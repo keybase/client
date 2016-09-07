@@ -33,6 +33,8 @@ type fsEngine struct {
 	name       string
 	t          testing.TB
 	createUser createUserFn
+	// journal directory
+	journalDir string
 }
 type fsNode struct {
 	path string
@@ -310,13 +312,62 @@ func (*fsEngine) Rekey(user User, tlfName string, isPublic bool) error {
 		[]byte("x"), 0644)
 }
 
+// EnableJournal is called by the test harness as the given user to
+// enable journaling.
+func (*fsEngine) EnableJournal(user User, tlfName string,
+	isPublic bool) (err error) {
+	u := user.(*fsUser)
+	path := buildTlfPath(u, tlfName, isPublic)
+	return ioutil.WriteFile(
+		filepath.Join(path, libfs.EnableJournalFileName),
+		[]byte("on"), 0644)
+}
+
+// FlushJournal is called by the test harness as the given user to
+// wait for the journal to flush, if enabled.
+func (*fsEngine) FlushJournal(user User, tlfName string,
+	isPublic bool) (err error) {
+	u := user.(*fsUser)
+	path := buildTlfPath(u, tlfName, isPublic)
+	return ioutil.WriteFile(
+		filepath.Join(path, libfs.FlushJournalFileName),
+		[]byte("on"), 0644)
+}
+
 // Shutdown is called by the test harness when it is done with the
 // given user.
-func (*fsEngine) Shutdown(user User) error {
+func (e *fsEngine) Shutdown(user User) error {
 	u := user.(*fsUser)
 	u.cancel()
 	u.close()
-	return u.config.Shutdown()
+
+	// Get the user name before shutting everything down.
+	var userName libkb.NormalizedUsername
+	if e.journalDir != "" {
+		var err error
+		userName, _, err =
+			u.config.KBPKI().GetCurrentUserInfo(context.Background())
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := u.config.Shutdown(); err != nil {
+		return err
+	}
+
+	if e.journalDir != "" {
+		// Remove the user journal.
+		if err := os.RemoveAll(
+			filepath.Join(e.journalDir, userName.String())); err != nil {
+			return err
+		}
+		// Remove the overall journal dir if it's empty.
+		if err := os.Remove(e.journalDir); err != nil {
+			e.t.Logf("Journal dir %s not empty yet", e.journalDir)
+		}
+	}
+	return nil
 }
 
 // CreateLink is called by the test harness to create a symlink in the given directory as
@@ -398,7 +449,7 @@ func fiTypeString(fi os.FileInfo) string {
 func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 	blockChangeSize int64, bwKBps int, opTimeout time.Duration,
 	users []libkb.NormalizedUsername,
-	clock libkbfs.Clock) map[libkb.NormalizedUsername]User {
+	clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User {
 	e.t = t
 	res := map[libkb.NormalizedUsername]User{}
 
@@ -411,6 +462,16 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 	config0 := libkbfs.MakeTestConfigOrBust(t, users...)
 	config0.SetClock(clock)
 
+	if journal {
+		jdir, err := ioutil.TempDir(os.TempDir(), "kbfs_journal")
+		if err != nil {
+			t.Fatalf("Couldn't enable journaling: %v", err)
+		}
+		e.journalDir = jdir
+		t.Log(fmt.Sprintf("Journal directory: %s", e.journalDir))
+		config0.EnableJournaling(filepath.Join(jdir, users[0].String()))
+	}
+
 	setBlockSizes(t, config0, blockSize, blockChangeSize)
 	maybeSetBw(t, config0, bwKBps)
 	uids := make([]keybase1.UID, len(users))
@@ -422,6 +483,9 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 		c.SetClock(clock)
 		cfgs[i+1] = c
 		uids[i+1] = nameToUID(t, c)
+		if journal && e.journalDir != "" {
+			c.EnableJournaling(filepath.Join(e.journalDir, name.String()))
+		}
 	}
 
 	for i, name := range users {

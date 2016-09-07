@@ -45,6 +45,7 @@ type opt struct {
 	timeout                  time.Duration
 	clock                    *libkbfs.TestClock
 	isParallel               bool
+	journal                  bool
 }
 
 func test(t testing.TB, actions ...optionOp) {
@@ -92,7 +93,7 @@ func (o *opt) runInitOnce() {
 		o.clock = &libkbfs.TestClock{}
 		o.clock.Set(time.Unix(0, 0))
 		o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize,
-			o.bwKBps, o.timeout, o.usernames, o.clock)
+			o.bwKBps, o.timeout, o.usernames, o.clock, o.journal)
 		o.stallers = o.makeStallers()
 	})
 }
@@ -137,6 +138,12 @@ func bandwidth(n int) optionOp {
 func opTimeout(n time.Duration) optionOp {
 	return func(o *opt) {
 		o.timeout = n
+	}
+}
+
+func journal() optionOp {
+	return func(o *opt) {
+		o.journal = true
 	}
 }
 
@@ -571,6 +578,28 @@ func forceQuotaReclamation() fileOp {
 func rekey() fileOp {
 	return fileOp{func(c *ctx) error {
 		return c.engine.Rekey(c.user, c.tlfName, c.tlfIsPublic)
+	}, IsInit}
+}
+
+func enableJournal() fileOp {
+	return fileOp{func(c *ctx) error {
+		err := c.engine.EnableJournal(c.user, c.tlfName, c.tlfIsPublic)
+		if err != nil {
+			return err
+		}
+		return c.engine.SyncFromServerForTesting(c.user, c.tlfName,
+			c.tlfIsPublic)
+	}, IsInit}
+}
+
+func flushJournal() fileOp {
+	return fileOp{func(c *ctx) error {
+		err := c.engine.FlushJournal(c.user, c.tlfName, c.tlfIsPublic)
+		if err != nil {
+			return err
+		}
+		return c.engine.SyncFromServerForTesting(c.user, c.tlfName,
+			c.tlfIsPublic)
 	}, IsInit}
 }
 

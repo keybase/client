@@ -131,6 +131,9 @@ type tlfJournal struct {
 	// Serializes all flushes.
 	flushLock sync.Mutex
 
+	// Tracks background work.
+	wg RepeatedWaitGroup
+
 	// Protects all operations on blockJournal and mdJournal.
 	//
 	// TODO: Consider using https://github.com/pkg/singlefile
@@ -194,9 +197,11 @@ func makeTLFJournal(
 }
 
 func (j *tlfJournal) signalWork() {
+	j.wg.Add(1)
 	select {
 	case j.hasWorkCh <- struct{}{}:
 	default:
+		j.wg.Done()
 	}
 }
 
@@ -365,6 +370,7 @@ func (j *tlfJournal) doBackgroundWork(ctx context.Context) <-chan error {
 	errCh := make(chan error, 1)
 	// TODO: Handle panics.
 	go func() {
+		defer j.wg.Done()
 		errCh <- j.flush(ctx)
 	}()
 	return errCh
@@ -794,4 +800,10 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 	defer j.journalLock.Unlock()
 	// No need to signal work in this case.
 	return j.mdJournal.clear(ctx, uid, key, bid)
+}
+
+func (j *tlfJournal) wait(ctx context.Context) error {
+	// TODO: figure out if the journal is currently paused; if so,
+	// return an error.
+	return j.wg.Wait(ctx)
 }
