@@ -8,6 +8,7 @@ package test
 
 import (
 	"testing"
+	"time"
 )
 
 // bob creates a file while running the journal.
@@ -113,6 +114,28 @@ func TestJournalCRSimple(t *testing.T) {
 			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
 			read("a/b", "hello"),
 			read(crname("a/b", bob), "uh oh"),
+		),
+	)
+}
+
+// Check that simple quota reclamation works when journaling is enabled.
+func TestJournalQRSimple(t *testing.T) {
+	test(t, journal(),
+		users("alice"),
+		as(alice,
+			addTime(1*time.Minute),
+			enableJournal(),
+			mkfile("a", "hello"),
+			rm("a"),
+			addTime(2*time.Minute),
+			flushJournal(),
+			pauseJournal(),
+			addTime(2*time.Minute),
+			mkfile("b", "hello2"),
+			mkfile("c", "hello3"),
+			addTime(2*time.Minute),
+			forceQuotaReclamation(),
+			resumeJournal(),
 		),
 	)
 }

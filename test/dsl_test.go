@@ -572,6 +572,7 @@ func forceQuotaReclamation() fileOp {
 		if err != nil {
 			return err
 		}
+		// Wait for QR to finish.
 		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
 	}, IsInit}
 }
