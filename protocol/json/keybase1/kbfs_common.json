@@ -103,6 +103,63 @@
           "name": "requestID"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "FSSyncStatusRequest",
+      "fields": [
+        {
+          "type": "int",
+          "name": "requestID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FSPathSyncStatus",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "publicTopLevelFolder"
+        },
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": "int64",
+          "name": "syncingBytes"
+        },
+        {
+          "type": "int64",
+          "name": "syncingOps"
+        },
+        {
+          "type": "int64",
+          "name": "syncedBytes"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FSSyncStatus",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "totalSyncingBytes"
+        },
+        {
+          "type": "int64",
+          "name": "totalSyncingOps"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "FSPathSyncStatus"
+          },
+          "name": "pathStatuses"
+        }
+      ]
     }
   ],
   "messages": {},

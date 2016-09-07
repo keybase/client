@@ -18,7 +18,6 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdBTC(cl, g),
 		NewCmdCA(cl, g),
 		NewCmdCert(cl),
-		NewCmdChat(cl, g),
 		NewCmdCompatDir(cl),
 		NewCmdCompatPush(cl),
 		NewCmdConfig(cl, g),

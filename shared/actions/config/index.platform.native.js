@@ -39,3 +39,12 @@ export function updateDevSettings (updates: any): Action {
     payload: {updates},
   }
 }
+
+export function readAppVersion () {
+  const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
+  const version = nativeBridge.version
+  return {
+    type: Constants.readAppVersion,
+    payload: {version},
+  }
+}

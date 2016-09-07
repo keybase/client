@@ -14,6 +14,7 @@ import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '..
 import {isLoading} from '../constants/tracker'
 import {openInKBFS} from '../actions/kbfs'
 import {routeAppend, navigateUp} from '../actions/router'
+import {isTesting} from '../local-debug'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
@@ -116,7 +117,7 @@ export default connect(
       refresh,
       followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
       following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
-      loading: isLoading(stateProps.trackerState),
+      loading: isLoading(stateProps.trackerState) && !isTesting,
       onFollow: username => dispatchProps.onFollow(stateProps.username),
       onUnfollow: username => dispatchProps.onUnfollow(stateProps.username),
       onAcceptProofs: username => dispatchProps.onFollow(stateProps.username),

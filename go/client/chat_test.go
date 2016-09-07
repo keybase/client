@@ -58,21 +58,21 @@ func (c *chatLocalMock) GetThreadLocal(ctx context.Context, arg keybase1.GetThre
 		return tview, errors.New("unexpected ConversationID")
 	}
 
-	msg := c.mockMessage(1, chat1.MessageType_TEXT)
+	msg := c.mockMessage(2, chat1.MessageType_TEXT)
 	msg.MessagePlaintext.MessageBodies = append(msg.MessagePlaintext.MessageBodies,
 		keybase1.NewMessageBodyWithText(keybase1.MessageText{
 			Body: "O_O blah blah blah this is a really long line and I don't know what I'm talking about hahahahaha OK long enough",
 		}))
 	tview.Messages = append(tview.Messages, msg)
 
-	msg = c.mockMessage(2, chat1.MessageType_TEXT)
+	msg = c.mockMessage(3, chat1.MessageType_TEXT)
 	msg.MessagePlaintext.MessageBodies = append(msg.MessagePlaintext.MessageBodies,
 		keybase1.NewMessageBodyWithText(keybase1.MessageText{
 			Body: "Not much; just drinking.",
 		}))
 	tview.Messages = append(tview.Messages, msg)
 
-	msg = c.mockMessage(3, chat1.MessageType_TEXT)
+	msg = c.mockMessage(4, chat1.MessageType_TEXT)
 	msg.MessagePlaintext.MessageBodies = append(msg.MessagePlaintext.MessageBodies,
 		keybase1.NewMessageBodyWithText(keybase1.MessageText{
 			Body: "Hey what's up!",
@@ -87,12 +87,22 @@ func (c *chatLocalMock) PostLocal(ctx context.Context, arg keybase1.PostLocalArg
 }
 
 func (c *chatLocalMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
-	return res, errors.New("CompleteAndCanonicalizeTlfName not implemented")
+	// TODO
+	return keybase1.CanonicalTlfName(tlfName), nil
 }
 
-func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg keybase1.ConversationInfoLocal) (ids []chat1.ConversationID, err error) {
-	ids = append(ids, chatLocalMockConversationID)
-	return ids, nil
+func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg keybase1.ConversationInfoLocal) (conversations []keybase1.ConversationInfoLocal, err error) {
+	conversations = append(conversations, keybase1.ConversationInfoLocal{
+		TlfName:   "morty,rick,songgao",
+		TopicName: "random",
+		TopicType: chat1.TopicType_CHAT,
+		Id:        chatLocalMockConversationID,
+	})
+	return conversations, nil
+}
+
+func (c *chatLocalMock) UpdateTopicNameLocal(ctx context.Context, arg keybase1.UpdateTopicNameLocalArg) (err error) {
+	return errors.New("UpdateTopicNameLocal not implemented")
 }
 
 func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationLocal, err error) {
@@ -118,7 +128,7 @@ func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.Messa
 	}, nil
 }
 
-func (c *chatLocalMock) NewConversationLocal(ctx context.Context, cID chat1.ConversationIDTriple) (id chat1.ConversationID, err error) {
+func (c *chatLocalMock) NewConversationLocal(ctx context.Context, cID keybase1.ConversationInfoLocal) (id keybase1.ConversationInfoLocal, err error) {
 	return id, errors.New("NewConversationLocal not implemented")
 }
 

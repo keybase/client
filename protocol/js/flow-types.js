@@ -518,6 +518,10 @@ export function chatLocalResolveConversationLocalRpc (request: $Exact<requestCom
   engineRpcOutgoing({...request, method: 'chatLocal.resolveConversationLocal'})
 }
 
+export function chatLocalUpdateTopicNameLocalRpc (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalUpdateTopicNameLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chatLocal.updateTopicNameLocal'})
+}
+
 export function configCheckAPIServerOutOfDateWarningRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>) {
   engineRpcOutgoing({...request, method: 'config.checkAPIServerOutOfDateWarning'})
 }
@@ -688,6 +692,14 @@ export function kbfsFSEditListRpc (request: $Exact<requestCommon & requestErrorC
 
 export function kbfsFSEventRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEventRpcParam}>) {
   engineRpcOutgoing({...request, method: 'kbfs.FSEvent'})
+}
+
+export function kbfsFSSyncEventRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncEventRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'kbfs.FSSyncEvent'})
+}
+
+export function kbfsFSSyncStatusRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncStatusRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'kbfs.FSSyncStatus'})
 }
 
 export function logRegisterLoggerRpc (request: $Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>) {
@@ -1224,6 +1236,7 @@ export type ConfirmResult = {
 }
 
 export type ConversationInfoLocal = {
+  id: chat1.ConversationID,
   tlfName: string,
   topicName: string,
   topicType: chat1.TopicType,
@@ -1373,10 +1386,28 @@ export type FSNotificationType =
   | 9 // FILE_DELETED_9
   | 10 // FILE_RENAMED_10
 
+export type FSPathSyncStatus = {
+  publicTopLevelFolder: boolean,
+  path: string,
+  syncingBytes: int64,
+  syncingOps: int64,
+  syncedBytes: int64,
+}
+
 export type FSStatusCode = 
     0 // START_0
   | 1 // FINISH_1
   | 2 // ERROR_2
+
+export type FSSyncStatus = {
+  totalSyncingBytes: int64,
+  totalSyncingOps: int64,
+  pathStatuses?: ?Array<FSPathSyncStatus>,
+}
+
+export type FSSyncStatusRequest = {
+  requestID: int,
+}
 
 export type FavoritesResult = {
   favoriteFolders?: ?Array<Folder>,
@@ -1765,8 +1796,21 @@ export type NotifyFSFSEditListResponseRpcParam = $Exact<{
   requestID: int
 }>
 
+export type NotifyFSFSSyncActivityRpcParam = $Exact<{
+  status: FSPathSyncStatus
+}>
+
+export type NotifyFSFSSyncStatusResponseRpcParam = $Exact<{
+  status: FSSyncStatus,
+  requestID: int
+}>
+
 export type NotifyFSRequestFSEditListRequestRpcParam = $Exact<{
   req: FSEditListRequest
+}>
+
+export type NotifyFSRequestFSSyncStatusRequestRpcParam = $Exact<{
+  req: FSSyncStatusRequest
 }>
 
 export type NotifyFavoritesFavoritesChangedRpcParam = $Exact<{
@@ -2606,7 +2650,7 @@ export type chatLocalGetThreadLocalRpcParam = $Exact<{
 }>
 
 export type chatLocalNewConversationLocalRpcParam = $Exact<{
-  conversationTriple: chat1.ConversationIDTriple
+  conversation: ConversationInfoLocal
 }>
 
 export type chatLocalPostLocalRpcParam = $Exact<{
@@ -2616,6 +2660,11 @@ export type chatLocalPostLocalRpcParam = $Exact<{
 
 export type chatLocalResolveConversationLocalRpcParam = $Exact<{
   conversation: ConversationInfoLocal
+}>
+
+export type chatLocalUpdateTopicNameLocalRpcParam = $Exact<{
+  conversationID: chat1.ConversationID,
+  newTopicName: string
 }>
 
 export type configClearValueRpcParam = $Exact<{
@@ -2826,6 +2875,15 @@ export type kbfsFSEditListRpcParam = $Exact<{
 
 export type kbfsFSEventRpcParam = $Exact<{
   event: FSNotification
+}>
+
+export type kbfsFSSyncEventRpcParam = $Exact<{
+  event: FSPathSyncStatus
+}>
+
+export type kbfsFSSyncStatusRpcParam = $Exact<{
+  status: FSSyncStatus,
+  requestID: int
 }>
 
 export type logRegisterLoggerRpcParam = $Exact<{
@@ -3412,9 +3470,9 @@ type chatLocalGetMessagesLocalResult = ?Array<ConversationLocal>
 
 type chatLocalGetThreadLocalResult = ThreadView
 
-type chatLocalNewConversationLocalResult = chat1.ConversationID
+type chatLocalNewConversationLocalResult = ConversationInfoLocal
 
-type chatLocalResolveConversationLocalResult = ?Array<chat1.ConversationID>
+type chatLocalResolveConversationLocalResult = ?Array<ConversationInfoLocal>
 
 type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
 
@@ -3639,6 +3697,7 @@ export type rpc =
   | chatLocalNewConversationLocalRpc
   | chatLocalPostLocalRpc
   | chatLocalResolveConversationLocalRpc
+  | chatLocalUpdateTopicNameLocalRpc
   | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
   | configGetConfigRpc
@@ -3682,6 +3741,8 @@ export type rpc =
   | identifyResolveRpc
   | kbfsFSEditListRpc
   | kbfsFSEventRpc
+  | kbfsFSSyncEventRpc
+  | kbfsFSSyncStatusRpc
   | logRegisterLoggerRpc
   | loginAccountDeleteRpc
   | loginClearStoredSecretRpc
@@ -4029,6 +4090,12 @@ export type incomingCallMapType = $Exact<{
     response: {} // Notify call
     */
   ) => void,
+  'keybase.1.NotifyFS.FSSyncActivity'?: (
+    params: $Exact<{
+      status: FSPathSyncStatus
+    }>,
+    response: CommonResponseHandler
+  ) => void,
   'keybase.1.NotifyFS.FSEditListResponse'?: (
     params: $Exact<{
       edits?: ?Array<FSNotification>,
@@ -4036,9 +4103,23 @@ export type incomingCallMapType = $Exact<{
     }>,
     response: CommonResponseHandler
   ) => void,
+  'keybase.1.NotifyFS.FSSyncStatusResponse'?: (
+    params: $Exact<{
+      status: FSSyncStatus,
+      requestID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
   'keybase.1.NotifyFSRequest.FSEditListRequest'?: (
     params: $Exact<{
       req: FSEditListRequest
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyFSRequest.FSSyncStatusRequest'?: (
+    params: $Exact<{
+      req: FSSyncStatusRequest
     }> /* ,
     response: {} // Notify call
     */

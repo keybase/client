@@ -56,6 +56,12 @@ type Pagination struct {
 	Last     bool   `codec:"last" json:"last"`
 }
 
+type RateLimit struct {
+	CallsRemaining int `codec:"callsRemaining" json:"callsRemaining"`
+	WindowReset    int `codec:"windowReset" json:"windowReset"`
+	MaxCalls       int `codec:"maxCalls" json:"maxCalls"`
+}
+
 type ConversationIDTriple struct {
 	Tlfid     TLFID     `codec:"tlfid" json:"tlfid"`
 	TopicType TopicType `codec:"topicType" json:"topicType"`

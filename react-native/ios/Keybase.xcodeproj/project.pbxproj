@@ -22,6 +22,34 @@
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB1D5FEC1CA99E67006DC784 /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE21CA99E67006DC784 /* kb.ttf */; };
+		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
+		DB7538FD1D776CC400AFA61B /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
+		DB7539021D776CC400AFA61B /* AppDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938FF1BCC1E4300137015 /* AppDefault.swift */; };
+		DB7539031D776CC400AFA61B /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938C61BCC082C00137015 /* App.swift */; };
+		DB7539041D776CC400AFA61B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E964581C1BC8542000902F39 /* AppDelegate.swift */; };
+		DB7539071D776CC400AFA61B /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */; };
+		DB7539081D776CC400AFA61B /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
+		DB7539091D776CC400AFA61B /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302AC1ABCB8CE00DB3ED1 /* libRCTActionSheet.a */; };
+		DB75390A1D776CC400AFA61B /* libRCTGeolocation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302BA1ABCB90400DB3ED1 /* libRCTGeolocation.a */; };
+		DB75390B1D776CC400AFA61B /* libRCTImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302C01ABCB91800DB3ED1 /* libRCTImage.a */; };
+		DB75390C1D776CC400AFA61B /* libRCTLinking.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 78C398B91ACF4ADC00677621 /* libRCTLinking.a */; };
+		DB75390D1D776CC400AFA61B /* libRCTNetwork.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302DC1ABCB9D200DB3ED1 /* libRCTNetwork.a */; };
+		DB75390E1D776CC400AFA61B /* libRCTSettings.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 139105C11AF99BAD00B5F7CC /* libRCTSettings.a */; };
+		DB75390F1D776CC400AFA61B /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
+		DB7539101D776CC400AFA61B /* libRCTVibration.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302E41ABCB9EE00DB3ED1 /* libRCTVibration.a */; };
+		DB7539121D776CC400AFA61B /* libRCTWebSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 139FDEF41B06529B00C62182 /* libRCTWebSocket.a */; };
+		DB7539141D776CC400AFA61B /* Lato_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */; };
+		DB7539151D776CC400AFA61B /* Lato_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */; };
+		DB7539161D776CC400AFA61B /* Lato-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC91CD3AA1000A226BC /* Lato-Semi_bold.ttf */; };
+		DB7539171D776CC400AFA61B /* Lato-Semibold_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCA1CD3AA1000A226BC /* Lato-Semibold_italic.ttf */; };
+		DB7539181D776CC400AFA61B /* Lato.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCB1CD3AA1000A226BC /* Lato.ttf */; };
+		DB7539191D776CC400AFA61B /* SourceCodePro-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCC1CD3AA1000A226BC /* SourceCodePro-Semi_bold.ttf */; };
+		DB75391A1D776CC400AFA61B /* SourceCodePro.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCD1CD3AA1000A226BC /* SourceCodePro.ttf */; };
+		DB75391B1D776CC400AFA61B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
+		DB75391C1D776CC400AFA61B /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE21CA99E67006DC784 /* kb.ttf */; };
+		DB75391D1D776CC400AFA61B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
+		DB7539351D777E7100AFA61B /* Engine-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539341D777E7100AFA61B /* Engine-Test.m */; };
+		DB7539371D777E8400AFA61B /* LogSend-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539361D777E8400AFA61B /* LogSend-Test.m */; };
 		DBC44FCE1CD3AF9400A226BC /* Lato_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */; };
 		DBC44FCF1CD3AF9400A226BC /* Lato_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */; };
 		DBC44FD01CD3AF9400A226BC /* Lato-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC91CD3AA1000A226BC /* Lato-Semi_bold.ttf */; };
@@ -76,13 +104,6 @@
 			remoteGlobalIDString = 832C81801AAF6DEF007FA2F7;
 			remoteInfo = RCTVibration;
 		};
-		00E356F41AD99517003FC87E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = Keybase;
-		};
 		139105C01AF99BAD00B5F7CC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 139105B61AF99BAD00B5F7CC /* RCTSettings.xcodeproj */;
@@ -118,6 +139,13 @@
 			remoteGlobalIDString = 58B5119B1A9E6C1200147676;
 			remoteInfo = RCTText;
 		};
+		DB75392F1D7771DD00AFA61B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DB7538FB1D776CC400AFA61B;
+			remoteInfo = "Keybase For Tests";
+		};
 		DBF20EB91BB34AD00048BC26 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DBF20EB41BB34AD00048BC26 /* RCTCamera.xcodeproj */;
@@ -148,6 +176,12 @@
 		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
 		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
 		DB1D5FE21CA99E67006DC784 /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = kb.ttf; path = ../../../desktop/renderer/fonts/kb.ttf; sourceTree = "<group>"; };
+		DB27DE551D747A6B003DE8BC /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
+		DB27DE561D747A6C003DE8BC /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
+		DB7539221D776CC400AFA61B /* Keybase For Tests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Keybase For Tests.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DB7539311D77753600AFA61B /* Keybase_For_Tests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase_For_Tests-Bridging-Header.h"; sourceTree = "<group>"; };
+		DB7539341D777E7100AFA61B /* Engine-Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Engine-Test.m"; sourceTree = "<group>"; };
+		DB7539361D777E8400AFA61B /* LogSend-Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "LogSend-Test.m"; sourceTree = "<group>"; };
 		DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Lato_bold.ttf; path = ../../../desktop/renderer/fonts/Lato_bold.ttf; sourceTree = "<group>"; };
 		DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Lato_italic.ttf; path = ../../../desktop/renderer/fonts/Lato_italic.ttf; sourceTree = "<group>"; };
 		DBC44FC91CD3AA1000A226BC /* Lato-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Lato-Semi_bold.ttf"; path = "../../../desktop/renderer/fonts/Lato-Semi_bold.ttf"; sourceTree = "<group>"; };
@@ -194,6 +228,24 @@
 				00C302EA1ABCBA2D00DB3ED1 /* libRCTVibration.a in Frameworks */,
 				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
 				139FDEF61B0652A700C62182 /* libRCTWebSocket.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DB7539061D776CC400AFA61B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DB7539071D776CC400AFA61B /* libRCTCamera.a in Frameworks */,
+				DB7539081D776CC400AFA61B /* libReact.a in Frameworks */,
+				DB7539091D776CC400AFA61B /* libRCTActionSheet.a in Frameworks */,
+				DB75390A1D776CC400AFA61B /* libRCTGeolocation.a in Frameworks */,
+				DB75390B1D776CC400AFA61B /* libRCTImage.a in Frameworks */,
+				DB75390C1D776CC400AFA61B /* libRCTLinking.a in Frameworks */,
+				DB75390D1D776CC400AFA61B /* libRCTNetwork.a in Frameworks */,
+				DB75390E1D776CC400AFA61B /* libRCTSettings.a in Frameworks */,
+				DB75390F1D776CC400AFA61B /* libRCTText.a in Frameworks */,
+				DB7539101D776CC400AFA61B /* libRCTVibration.a in Frameworks */,
+				DB7539121D776CC400AFA61B /* libRCTWebSocket.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -333,6 +385,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* Keybase.app */,
 				00E356EE1AD99517003FC87E /* KeybaseTests.xctest */,
+				DB7539221D776CC400AFA61B /* Keybase For Tests.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -372,13 +425,18 @@
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
 				DBCE36231B90F14800ECADDE /* Engine.h */,
 				DBCE36241B90F14800ECADDE /* Engine.m */,
+				DB7539341D777E7100AFA61B /* Engine-Test.m */,
 				DBDCF34F1B8D04FD00BA95D8 /* ObjcTest.h */,
 				DBDCF3501B8D04FD00BA95D8 /* ObjcTest.m */,
 				DBDCF3511B8D04FD00BA95D8 /* ReactBridge.m */,
+				DB27DE551D747A6B003DE8BC /* Utils.h */,
+				DB27DE561D747A6C003DE8BC /* Utils.m */,
 				DBDCF3521B8D04FD00BA95D8 /* SwiftTest.swift */,
-				A969A4091CF65C9C00F273F2 /* LogSend.m */,
 				A969A4161CF65CB200F273F2 /* LogSend.h */,
+				A969A4091CF65C9C00F273F2 /* LogSend.m */,
+				DB7539361D777E8400AFA61B /* LogSend-Test.m */,
 				DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */,
+				DB7539311D77753600AFA61B /* Keybase_For_Tests-Bridging-Header.h */,
 				0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */,
 			);
 			path = Keybase;
@@ -406,7 +464,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				00E356F51AD99517003FC87E /* PBXTargetDependency */,
+				DB7539301D7771DD00AFA61B /* PBXTargetDependency */,
 			);
 			name = KeybaseTests;
 			productName = KeybaseTests;
@@ -431,6 +489,24 @@
 			productReference = 13B07F961A680F5B00A75B9A /* Keybase.app */;
 			productType = "com.apple.product-type.application";
 		};
+		DB7538FB1D776CC400AFA61B /* Keybase For Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DB75391F1D776CC400AFA61B /* Build configuration list for PBXNativeTarget "Keybase For Tests" */;
+			buildPhases = (
+				DB7538FC1D776CC400AFA61B /* Sources */,
+				DB7539061D776CC400AFA61B /* Frameworks */,
+				DB7539131D776CC400AFA61B /* Resources */,
+				DB75391E1D776CC400AFA61B /* Bundle React Native code and images */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Keybase For Tests";
+			productName = "Hello World";
+			productReference = DB7539221D776CC400AFA61B /* Keybase For Tests.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -443,7 +519,7 @@
 				TargetAttributes = {
 					00E356ED1AD99517003FC87E = {
 						CreatedOnToolsVersion = 6.2;
-						TestTargetID = 13B07F861A680F5B00A75B9A;
+						TestTargetID = DB7538FB1D776CC400AFA61B;
 					};
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = 99229SGT5K;
@@ -528,6 +604,7 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* Keybase */,
 				00E356ED1AD99517003FC87E /* KeybaseTests */,
+				DB7538FB1D776CC400AFA61B /* Keybase For Tests */,
 			);
 		};
 /* End PBXProject section */
@@ -637,10 +714,41 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DB7539131D776CC400AFA61B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DB7539141D776CC400AFA61B /* Lato_bold.ttf in Resources */,
+				DB7539151D776CC400AFA61B /* Lato_italic.ttf in Resources */,
+				DB7539161D776CC400AFA61B /* Lato-Semi_bold.ttf in Resources */,
+				DB7539171D776CC400AFA61B /* Lato-Semibold_italic.ttf in Resources */,
+				DB7539181D776CC400AFA61B /* Lato.ttf in Resources */,
+				DB7539191D776CC400AFA61B /* SourceCodePro-Semi_bold.ttf in Resources */,
+				DB75391A1D776CC400AFA61B /* SourceCodePro.ttf in Resources */,
+				DB75391B1D776CC400AFA61B /* LaunchScreen.storyboard in Resources */,
+				DB75391C1D776CC400AFA61B /* kb.ttf in Resources */,
+				DB75391D1D776CC400AFA61B /* Images.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		DB229EE81BF697160081901A /* Bundle React Native code and images */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Bundle React Native code and images";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export NODE_BINARY=node\n../node_modules/react-native/packager/react-native-xcode.sh";
+		};
+		DB75391E1D776CC400AFA61B /* Bundle React Native code and images */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -669,6 +777,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB27DE571D747A6C003DE8BC /* Utils.m in Sources */,
 				A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */,
 				DBDCF3531B8D04FD00BA95D8 /* ObjcTest.m in Sources */,
 				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,
@@ -680,13 +789,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DB7538FC1D776CC400AFA61B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DB7538FD1D776CC400AFA61B /* Utils.m in Sources */,
+				DB7539021D776CC400AFA61B /* AppDefault.swift in Sources */,
+				DB7539371D777E8400AFA61B /* LogSend-Test.m in Sources */,
+				DB7539351D777E7100AFA61B /* Engine-Test.m in Sources */,
+				DB7539031D776CC400AFA61B /* App.swift in Sources */,
+				DB7539041D776CC400AFA61B /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		00E356F51AD99517003FC87E /* PBXTargetDependency */ = {
+		DB7539301D7771DD00AFA61B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* Keybase */;
-			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
+			target = DB7538FB1D776CC400AFA61B /* Keybase For Tests */;
+			targetProxy = DB75392F1D7771DD00AFA61B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -708,7 +830,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase.app/Keybase";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase For Tests.app/Keybase For Tests";
 			};
 			name = Debug;
 		};
@@ -726,7 +848,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase.app/Keybase";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase For Tests.app/Keybase For Tests";
 			};
 			name = Release;
 		};
@@ -893,6 +1015,86 @@
 			};
 			name = Release;
 		};
+		DB7539201D776CC400AFA61B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 4;
+				DEAD_CODE_STRIPPING = NO;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"$(SRCROOT)/../node_modules/react-native/React/**",
+					"$(SRCROOT)/KeybaseGo",
+				);
+				INFOPLIST_FILE = Keybase/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lc++",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase_For_Tests-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(SWIFT_MODULE_NAME)-Swift.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				VALID_ARCHS = "arm64 armv7 armv7s";
+			};
+			name = Debug;
+		};
+		DB7539211D776CC400AFA61B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Keybase/Keybase.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution: Keybase, Inc. (99229SGT5K)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Keybase, Inc. (99229SGT5K)";
+				CURRENT_PROJECT_VERSION = 4;
+				DEAD_CODE_STRIPPING = NO;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				GCC_PREPROCESSOR_DEFINITIONS = "TESTING=1";
+				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = "";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					"$(SRCROOT)/../node_modules/react-native/React/**",
+					"$(SRCROOT)/KeybaseGo",
+				);
+				INFOPLIST_FILE = Keybase/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lc++",
+				);
+				OTHER_SWIFT_FLAGS = "-DTESTING";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase_For_Tests-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(SWIFT_MODULE_NAME)-Swift.h";
+				VALID_ARCHS = "arm64 armv7 armv7s";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -919,6 +1121,15 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DB75391F1D776CC400AFA61B /* Build configuration list for PBXNativeTarget "Keybase For Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB7539201D776CC400AFA61B /* Debug */,
+				DB7539211D776CC400AFA61B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
