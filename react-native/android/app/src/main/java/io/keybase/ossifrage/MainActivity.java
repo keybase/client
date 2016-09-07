@@ -22,8 +22,8 @@ import java.security.cert.CertificateException;
 
 import go.keybase.Keybase;
 
-import static go.keybase.Keybase.InitOnce;
-import static go.keybase.Keybase.LogSend;
+import static go.keybase.Keybase.initOnce;
+import static go.keybase.Keybase.logSend;
 
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
@@ -38,10 +38,10 @@ public class MainActivity extends ReactActivity {
             startActivityForResult(intent, -1);
         }
 
-        InitOnce(this.getFilesDir().getPath(), logFile.getAbsolutePath(), "staging", false);
+        initOnce(this.getFilesDir().getPath(), logFile.getAbsolutePath(), "staging", false);
 
         try {
-            Keybase.SetGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
+            Keybase.setGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
         } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
@@ -53,7 +53,7 @@ public class MainActivity extends ReactActivity {
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             try {
-                final String id = LogSend(logFile.getAbsolutePath());
+                final String id = logSend(logFile.getAbsolutePath());
                 Log.d(TAG, "LOG id is: " + id);
             } catch (Exception e) {
                 Log.d(TAG, "Error in log sending:", e);
