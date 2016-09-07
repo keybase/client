@@ -18,6 +18,7 @@ class Render extends Component<void, Props, any> {
     this.state = {
       filterShow: false,
       localFilter: props.dumbFilter || '',
+      testIndex: 0,
     }
 
     this._onFilterChangeProp = debounce(filter => {
@@ -36,8 +37,36 @@ class Render extends Component<void, Props, any> {
     }, 0)
   }
 
+  _increment () {
+    if (this.props.autoIncrement && this.state.testIndex !== -1) {
+      const {componentsOnly} = this._getComponents()
+      if (this.state.testIndex >= componentsOnly.length) {
+        this.setState({testIndex: -1})
+      } else {
+        this.setState({testIndex: this.state.testIndex + 1})
+      }
+    }
+  }
+
+  componentDidMount () {
+    if (this.props.autoIncrement) {
+      this._increment()
+    }
+  }
+
+  componentDidUpdate () {
+    if (this.props.autoIncrement) {
+      setImmediate(() => {
+        this._increment()
+      })
+    }
+  }
+
   render () {
-    const filter = this.props.dumbFilter.toLowerCase()
+    return this.props.autoIncrement ? this.renderIncrement() : this.renderSingle()
+  }
+
+  _getComponents (filter: ?string) {
     const components = []
     const componentsOnly = []
     const parentPropsOnly = []
@@ -66,6 +95,27 @@ class Render extends Component<void, Props, any> {
         parentPropsOnly.push(parentProps)
       })
     })
+
+    return {
+      components,
+      componentsOnly,
+      parentPropsOnly,
+    }
+  }
+
+  renderIncrement () {
+    if (this.state.testIndex === -1) {
+      return <Text type='Body'>DONE TESTING</Text>
+    }
+    const {componentsOnly} = this._getComponents()
+    const sub = componentsOnly.slice(this.state.testIndex, this.state.testIndex + 1)
+    console.log('test render idx', this.state.testIndex)
+    return <Box>{sub}</Box>
+  }
+
+  renderSingle () {
+    const filter = this.props.dumbFilter.toLowerCase()
+    const {components, componentsOnly, parentPropsOnly} = this._getComponents(filter)
 
     const ToShow = components[this.props.dumbIndex % components.length]
 

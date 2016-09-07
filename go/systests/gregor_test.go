@@ -109,7 +109,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 
 	// Spin until gregor comes up; it should come up after signup
 	var ok bool
-	for i := 0; !ok && i < 40; i++ {
+	for i := 0; !ok && i < 200; i++ {
 		if ok = svc.HasGregor(); !ok {
 			time.Sleep(50 * time.Millisecond)
 		} else {

@@ -7,13 +7,15 @@ let iconType: 'regular' | 'update' | 'badged' = 'regular'
 
 const isMacOS = process.platform === 'darwin'
 
+const isDarkMode = () => isMacOS && systemPreferences && systemPreferences.isDarkMode()
+
 const getIcon = (invertColors) => {
   const devMode = __DEV__ ? '-dev' : ''
   let color = 'white'
   let platform = ''
 
   if (isMacOS) {
-    color = (systemPreferences && systemPreferences.isDarkMode()) ? 'white' : 'black'
+    color = isDarkMode() ? 'white' : 'black'
   } else if (process.platform === 'win32') {
     color = 'black'
     platform = 'windows-'
@@ -104,7 +106,7 @@ export default function () {
 
     mb.on('show', () => {
       menubarListeners.forEach(l => l.send('menubarShow'))
-      isMacOS && updateIcon(true)
+      isMacOS && updateIcon(!isDarkMode())
     })
     mb.on('hide', () => {
       menubarListeners.forEach(l => l.send('menubarHide'))

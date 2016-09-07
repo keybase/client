@@ -1485,3 +1485,33 @@ type DeviceBadNameError struct{}
 func (e DeviceBadNameError) Error() string {
 	return "device name is malformed"
 }
+
+//=============================================================================
+
+type UnexpectedChatDataFromServer struct {
+	Msg string
+}
+
+func (e UnexpectedChatDataFromServer) Error() string {
+	return fmt.Sprintf("unexpected chat data from server: %s", e.Msg)
+}
+
+//=============================================================================
+
+type ChatBoxingError struct {
+	Msg string
+}
+
+func (e ChatBoxingError) Error() string {
+	return fmt.Sprintf("error boxing chat message: %s", e.Msg)
+}
+
+//=============================================================================
+
+type ChatUnboxingError struct {
+	Msg string
+}
+
+func (e ChatUnboxingError) Error() string {
+	return fmt.Sprintf("error unboxing chat message: %s", e.Msg)
+}

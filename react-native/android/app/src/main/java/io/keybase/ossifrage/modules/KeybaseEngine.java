@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import static go.keybase.Keybase.ReadB64;
 import static go.keybase.Keybase.Reset;
 import static go.keybase.Keybase.WriteB64;
+import static go.keybase.Keybase.Version;
 
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
 
@@ -91,6 +92,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public Map<String, Object> getConstants() {
         final Map<String, Object> constants = new HashMap<>();
         constants.put("eventName", RPC_EVENT_NAME);
+        constants.put("version", Version());
         return constants;
     }
 

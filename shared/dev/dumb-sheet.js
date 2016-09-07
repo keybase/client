@@ -4,6 +4,7 @@ import Render from './dumb-sheet.render'
 import {connect} from 'react-redux'
 import {navigateUp} from '../actions/router'
 import {updateDebugConfig} from '../actions/dev'
+import {isTesting} from '../local-debug'
 
 class DumbSheet extends Component {
   render () {
@@ -13,6 +14,7 @@ class DumbSheet extends Component {
       dumbIndex={this.props.dumbIndex}
       dumbFilter={this.props.dumbFilter}
       dumbFullscreen={this.props.dumbFullscreen}
+      autoIncrement={isTesting}
     />
   }
 

@@ -60,7 +60,7 @@ class Session {
   // and do internal bookkeeping if the request is done
   _makeWaitingHandler (isOutgoing: boolean, method: MethodKey, seqid: ?number) {
     return (waiting: boolean) => {
-      rpcLog('engineInternal', 'waiting state change', this.id, waiting, method, this, seqid)
+      rpcLog('engineInternal', 'waiting state change', {id: this.id, waiting, method, this: this, seqid})
       // Call the outer handler with all the params it needs
       this._waitingHandler && this._waitingHandler(waiting, method, this._id)
 
@@ -115,7 +115,7 @@ class Session {
       sessionID: this.id,
     }
 
-    rpcLog('engineInternal', 'session start call', this.id, method, this)
+    rpcLog('engineInternal', 'session start call', {id: this.id, method, this: this})
     const outgoingRequest = new OutgoingRequest(method, wrappedParam, wrappedCallback, this._makeWaitingHandler(true, method), this._invoke)
     this._outgoingRequests.push(outgoingRequest)
     outgoingRequest.send()
@@ -123,7 +123,7 @@ class Session {
 
   // We have an incoming call tied to a sessionID, called only by engine
   incomingCall (method: MethodKey, param: Object, response: ?Object): boolean {
-    rpcLog('engineInternal', 'session incoming call', this.id, method, this, response)
+    rpcLog('engineInternal', 'session incoming call', {id: this.id, method, this: this, response})
     const handler = this._incomingCallMap[method]
 
     if (!handler) {

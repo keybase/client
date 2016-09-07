@@ -22,6 +22,45 @@ type ThreadViewBoxed struct {
 	Pagination *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
+type GetInboxRemoteRes struct {
+	Inbox     InboxView  `codec:"inbox" json:"inbox"`
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+type GetInboxByTLFIDRemoteRes struct {
+	Convs     []Conversation `codec:"convs" json:"convs"`
+	RateLimit *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+type GetThreadRemoteRes struct {
+	Thread    ThreadViewBoxed `codec:"thread" json:"thread"`
+	RateLimit *RateLimit      `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+type GetConversationMetadataRemoteRes struct {
+	Conv      Conversation `codec:"conv" json:"conv"`
+	RateLimit *RateLimit   `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+type PostRemoteRes struct {
+	MsgID     MessageID  `codec:"msgID" json:"msgID"`
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+type NewConversationRemoteRes struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	RateLimit *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+type GetMessagesRemoteRes struct {
+	Msgs      []MessageBoxed `codec:"msgs" json:"msgs"`
+	RateLimit *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+type MarkAsReadRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
 type GetInboxRemoteArg struct {
 	Pagination *Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
@@ -65,15 +104,15 @@ type MarkAsReadArg struct {
 }
 
 type RemoteInterface interface {
-	GetInboxRemote(context.Context, *Pagination) (InboxView, error)
-	GetInboxByTLFIDRemote(context.Context, TLFID) ([]Conversation, error)
-	GetThreadRemote(context.Context, GetThreadRemoteArg) (ThreadViewBoxed, error)
-	GetConversationMetadataRemote(context.Context, ConversationID) (Conversation, error)
-	PostRemote(context.Context, PostRemoteArg) (MessageID, error)
-	NewConversationRemote(context.Context, ConversationIDTriple) (ConversationID, error)
-	NewConversationRemote2(context.Context, NewConversationRemote2Arg) (ConversationID, error)
-	GetMessagesRemote(context.Context, GetMessagesRemoteArg) ([]MessageBoxed, error)
-	MarkAsRead(context.Context, MarkAsReadArg) error
+	GetInboxRemote(context.Context, *Pagination) (GetInboxRemoteRes, error)
+	GetInboxByTLFIDRemote(context.Context, TLFID) (GetInboxByTLFIDRemoteRes, error)
+	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
+	GetConversationMetadataRemote(context.Context, ConversationID) (GetConversationMetadataRemoteRes, error)
+	PostRemote(context.Context, PostRemoteArg) (PostRemoteRes, error)
+	NewConversationRemote(context.Context, ConversationIDTriple) (NewConversationRemoteRes, error)
+	NewConversationRemote2(context.Context, NewConversationRemote2Arg) (NewConversationRemoteRes, error)
+	GetMessagesRemote(context.Context, GetMessagesRemoteArg) (GetMessagesRemoteRes, error)
+	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -219,7 +258,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]MarkAsReadArg)(nil), args)
 						return
 					}
-					err = i.MarkAsRead(ctx, (*typedArgs)[0])
+					ret, err = i.MarkAsRead(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -232,51 +271,51 @@ type RemoteClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c RemoteClient) GetInboxRemote(ctx context.Context, pagination *Pagination) (res InboxView, err error) {
+func (c RemoteClient) GetInboxRemote(ctx context.Context, pagination *Pagination) (res GetInboxRemoteRes, err error) {
 	__arg := GetInboxRemoteArg{Pagination: pagination}
 	err = c.Cli.Call(ctx, "chat.1.remote.getInboxRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) GetInboxByTLFIDRemote(ctx context.Context, TLFID TLFID) (res []Conversation, err error) {
+func (c RemoteClient) GetInboxByTLFIDRemote(ctx context.Context, TLFID TLFID) (res GetInboxByTLFIDRemoteRes, err error) {
 	__arg := GetInboxByTLFIDRemoteArg{TLFID: TLFID}
 	err = c.Cli.Call(ctx, "chat.1.remote.getInboxByTLFIDRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemoteArg) (res ThreadViewBoxed, err error) {
+func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemoteArg) (res GetThreadRemoteRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.getThreadRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) GetConversationMetadataRemote(ctx context.Context, conversationID ConversationID) (res Conversation, err error) {
+func (c RemoteClient) GetConversationMetadataRemote(ctx context.Context, conversationID ConversationID) (res GetConversationMetadataRemoteRes, err error) {
 	__arg := GetConversationMetadataRemoteArg{ConversationID: conversationID}
 	err = c.Cli.Call(ctx, "chat.1.remote.getConversationMetadataRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (res MessageID, err error) {
+func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (res PostRemoteRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.postRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) NewConversationRemote(ctx context.Context, idTriple ConversationIDTriple) (res ConversationID, err error) {
+func (c RemoteClient) NewConversationRemote(ctx context.Context, idTriple ConversationIDTriple) (res NewConversationRemoteRes, err error) {
 	__arg := NewConversationRemoteArg{IdTriple: idTriple}
 	err = c.Cli.Call(ctx, "chat.1.remote.newConversationRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) NewConversationRemote2(ctx context.Context, __arg NewConversationRemote2Arg) (res ConversationID, err error) {
+func (c RemoteClient) NewConversationRemote2(ctx context.Context, __arg NewConversationRemote2Arg) (res NewConversationRemoteRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.newConversationRemote2", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) GetMessagesRemote(ctx context.Context, __arg GetMessagesRemoteArg) (res []MessageBoxed, err error) {
+func (c RemoteClient) GetMessagesRemote(ctx context.Context, __arg GetMessagesRemoteArg) (res GetMessagesRemoteRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.getMessagesRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.remote.markAsRead", []interface{}{__arg}, nil)
+func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (res MarkAsReadRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.markAsRead", []interface{}{__arg}, &res)
 	return
 }

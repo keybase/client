@@ -714,3 +714,11 @@ var _ rpc.ErrorUnwrapper = ErrorUnwrapper{}
 func (t TLFID) String() string {
 	return string(t)
 }
+
+func (t TLFID) ToBytes() []byte {
+	b, err := hex.DecodeString(string(t))
+	if err != nil {
+		return nil
+	}
+	return b
+}

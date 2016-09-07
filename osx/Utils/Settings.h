@@ -15,6 +15,7 @@ typedef NS_OPTIONS (NSUInteger, UninstallOptions) {
   UninstallOptionNone = 0,
   UninstallOptionApp = 1 << 0,
   UninstallOptionKext = 1 << 1,
+  UninstallOptionMountDir = 1 << 2,
 };
 
 @interface Settings : NSObject
@@ -24,6 +25,8 @@ typedef NS_OPTIONS (NSUInteger, UninstallOptions) {
 @property (readonly) UninstallOptions uninstallOptions;
 
 - (instancetype)initWithSettings:(GBSettings *)settings;
+
+- (BOOL)parseArgs:(NSError **)error;
 
 - (KBEnvironment *)environment;
 
