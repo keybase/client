@@ -474,6 +474,14 @@ func (j *tlfJournal) getBlockEntriesToFlush(ctx context.Context) (
 	return j.blockJournal.getNextEntriesToFlush(ctx)
 }
 
+func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
+	entries blockEntriesToFlush) error {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	return j.blockJournal.removeFlushedEntries(ctx, entries, j.tlfID,
+		j.config.Reporter())
+}
+
 func (j *tlfJournal) flushBlockEntries(ctx context.Context) (int, error) {
 	j.flushLock.Lock()
 	defer j.flushLock.Unlock()
@@ -495,8 +503,7 @@ func (j *tlfJournal) flushBlockEntries(ctx context.Context) (int, error) {
 		return 0, err
 	}
 
-	err = j.blockJournal.removeFlushedEntries(ctx, entries, j.tlfID,
-		j.config.Reporter())
+	err = j.removeFlushedBlockEntries(ctx, entries)
 	if err != nil {
 		return 0, err
 	}
