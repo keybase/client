@@ -26,6 +26,10 @@
       return;
     }
   }
+  if (settings.uninstallOptions & UninstallOptionMountDir) {
+    KBMountDir *mountDir = [[KBMountDir alloc] initWithConfig:environment.config helperTool:environment.helperTool];
+    [installables addObject:mountDir];
+  }
   [KBUninstaller uninstall:installables completion:completion];
 }
 
