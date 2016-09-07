@@ -78,7 +78,7 @@ func retryWithoutBackoffUpToNTimesUntilNoError(n int, action func() error) (err 
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybase1.ConversationInfoLocal) (created keybase1.ConversationInfoLocal, err error) {
-	h.G().Log.Debug("NewConversationLocal: %+v (%x)", trip, trip.Tlfid)
+	h.G().Log.Debug("NewConversationLocal: %+v", info)
 	res, err := h.boxer.tlf.CryptKeys(ctx, info.TlfName)
 	if err != nil {
 		return created, fmt.Errorf("error getting crypt keys %s", err)
@@ -536,6 +536,8 @@ func (h *chatLocalHandler) fillSenderIDsForPostLocal(arg *keybase1.MessagePlaint
 	if err = did.ToBytes(hdid); err != nil {
 		return err
 	}
+	arg.ClientHeader.SenderDevice = gregor1.DeviceID(hdid)
+
 	arg.ClientHeader.SenderDevice = gregor1.DeviceID(hdid)
 
 	return nil

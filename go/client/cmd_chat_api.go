@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"os"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -34,6 +35,14 @@ func (c *CmdChatAPI) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdChatAPI) Run() error {
+	d := NewChatAPIDecoder(&ChatAPI{svcHandler: c})
+
+	// TODO: flags for not using stdin, stdout
+
+	if err := d.Decode(os.Stdin, os.Stdout); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -43,4 +52,13 @@ func (c *CmdChatAPI) GetUsage() libkb.Usage {
 		KbKeyring: true,
 		Config:    true,
 	}
+}
+func (c *CmdChatAPI) ListV1() Reply {
+	return Reply{}
+}
+func (c *CmdChatAPI) ReadV1(opts readOptionsV1) Reply {
+	return Reply{}
+}
+func (c *CmdChatAPI) SendV1(opts sendOptionsV1) Reply {
+	return Reply{}
 }
