@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -83,7 +84,7 @@ func (c *CmdChatAPI) ReadV1(opts readOptionsV1) Reply {
 	}
 
 	if opts.ConversationID == 0 {
-		// resolve conversation id
+		// XXX resolve conversation id
 	}
 
 	arg := keybase1.GetThreadLocalArg{
@@ -107,7 +108,42 @@ func (c *CmdChatAPI) SendV1(opts sendOptionsV1) Reply {
 	if err != nil {
 		return c.errReply(err)
 	}
-	_ = client
+
+	// XXX plumb context through?
+	ctx := context.Background()
+
+	// XXX support other topic types
+	// XXX support conversation id
+	// XXX support topic name
+	// XXX add sender name to channel name?
+	// XXX add public, private
+	cinfo := keybase1.ConversationInfoLocal{
+		TlfName:   opts.Channel.Name,
+		TopicType: chat1.TopicType_CHAT,
+	}
+
+	// find the conversation
+	existing, err := client.ResolveConversationLocal(ctx, cinfo)
+	if err != nil {
+		return c.errReply(err)
+	}
+	if len(existing) > 1 {
+		return c.errReply(fmt.Errorf("multiple conversations matched"))
+	}
+	var conversation keybase1.ConversationInfoLocal
+	switch len(existing) {
+	case 0:
+		conversation, err = client.NewConversationLocal(ctx, cinfo)
+		if err != nil {
+			return c.errReply(err)
+		}
+	case 1:
+		conversation = existing[0]
+	default:
+		return c.errReply(fmt.Errorf("multiple conversations matched"))
+	}
+
+	fmt.Printf("conversation: %+v\n", conversation)
 
 	return Reply{}
 }
