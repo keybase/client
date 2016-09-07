@@ -4,7 +4,7 @@ import {defaultKBFSPath} from './config'
 import type {$Exact} from './types/more'
 import type {Folder as FolderRPC} from '../constants/types/flow-types'
 import type {Folder, ParticipantUnlock, Device, MetaType} from './folders'
-import type {TypedAction} from './types/flux'
+import type {TypedAction, NoErrorTypedAction} from './types/flux'
 import type {UserList} from '../common-adapters/usernames'
 
 type ListState = $Exact<{
@@ -37,17 +37,20 @@ export type FavoriteState = $Exact<{
   viewState: ViewState,
 }>
 
-export const favoriteGet = 'favorite:favoriteGet'
-export type FavoriteGet = TypedAction<'favorite:favoriteGet', void, void>
-
 export const favoriteAdd = 'favorite:favoriteAdd'
-export type FavoriteAdd = TypedAction<'favorite:favoriteAdd', void, {errorText: string}>
+export type FavoriteAdd = NoErrorTypedAction<'favorite:favoriteAdd', {path: string}>
+export const favoriteAdded = 'favorite:favoriteAdded'
+export type FavoriteAdded = TypedAction<'favorite:favoriteAdded', void, {errorText: string}>
 
 export const favoriteList = 'favorite:favoriteList'
-export type FavoriteList = TypedAction<'favorite:favoriteList', {folders: FolderState}, void>
+export type FavoriteList = NoErrorTypedAction<'favorite:favoriteList', void>
+export const favoriteListed = 'favorite:favoriteListed'
+export type FavoriteListed = TypedAction<'favorite:favoriteListed', {folders: FolderState}, void>
 
 export const favoriteIgnore = 'favorite:favoriteIgnore'
-export type FavoriteIgnore = TypedAction<'favorite:favoriteIgnore', void, {errorText: string}>
+export type FavoriteIgnore = NoErrorTypedAction<'favorite:favoriteIgnore', {path: string}>
+export const favoriteIgnored = 'favorite:favoriteIgnored'
+export type FavoriteIgnored = TypedAction<'favorite:favoriteIgnored', void, {errorText: string}>
 
 export const favoriteSwitchTab = 'favorite:favoriteSwitchTab'
 export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showingPrivate: boolean}, void>
@@ -55,7 +58,7 @@ export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showi
 export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
 export type FavoriteToggleIgnored = TypedAction<'favorite:favoriteToggleIgnored', {isPrivate: boolean}, void>
 
-export type FavoriteAction = FavoriteGet | FavoriteAdd | FavoriteList | FavoriteIgnore | FavoriteSwitchTab | FavoriteToggleIgnored
+export type FavoriteAction = FavoriteAdd | FavoriteAdded | FavoriteList | FavoriteListed | FavoriteIgnore | FavoriteIgnored | FavoriteSwitchTab | FavoriteToggleIgnored
 
 function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
   const sortName = users.map(u => u.username).join(',')
@@ -88,6 +91,8 @@ function folderFromPath (path: string): ?FolderRPC {
     return null
   }
 }
+
+export type {Folder as FolderRPC} from '../constants/types/flow-types'
 
 export {
   folderFromPath,
