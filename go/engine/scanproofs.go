@@ -130,19 +130,24 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 		return fmt.Errorf("Only one of sigid and indices allowed")
 	}
 
-	var ticker *time.Ticker
+	// One ticker for each proof type.
+	var tickers = make(map[keybase1.ProofType]*time.Ticker)
 	e.G().Log.Info("Running with ratelimit: %v ms", e.ratelimit)
 	if e.ratelimit < 0 {
 		return fmt.Errorf("Ratelimit value can not be negative: %v", e.ratelimit)
 	}
 	if e.ratelimit > 0 {
-		ticker = time.NewTicker(time.Millisecond * time.Duration(e.ratelimit))
-	}
-	defer func(ticker *time.Ticker) {
-		if ticker != nil {
-			ticker.Stop()
+		for _, ptype := range keybase1.ProofTypeMap {
+			tickers[ptype] = time.NewTicker(time.Millisecond * time.Duration(e.ratelimit))
 		}
-	}(ticker)
+	}
+	defer func(tickers *map[keybase1.ProofType]*time.Ticker) {
+		for _, ticker := range *tickers {
+			if ticker != nil {
+				ticker.Stop()
+			}
+		}
+	}(&tickers)
 
 	f, err := os.Open(e.infile)
 	if err != nil {
@@ -201,7 +206,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 
 		e.G().Log.Info("i:%v user:%v type:%v sigid:%v", i, rec["username"], rec["proof_type"], rec["sig_id"])
 
-		fast, err := e.ProcessOne(i, rec, cache, ignored)
+		err := e.ProcessOne(i, rec, cache, ignored, tickers)
 		nrun++
 		if err == nil {
 			e.G().Log.Info("Ok\n")
@@ -218,10 +223,6 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 		} else {
 			e.G().Log.Errorf("%v FAILED: %v\n", i, err)
 		}
-
-		if !fast && ticker != nil {
-			<-ticker.C
-		}
 	}
 
 	e.G().Log.Info("---")
@@ -232,11 +233,17 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 	return nil
 }
 
-func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanProofsCache, ignored []string) (bool, error) {
+func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanProofsCache, ignored []string, tickers map[keybase1.ProofType]*time.Ticker) error {
 	serverstate, err := strconv.Atoi(rec["state"])
 	if err != nil {
-		return true, fmt.Errorf("Could not read serverstate: %v", err)
+		return fmt.Errorf("Could not read serverstate: %v", err)
 	}
+	ptypestr, err := strconv.Atoi(rec["proof_type"])
+	if err != nil {
+		return fmt.Errorf("Could not read proof_type: %v", err)
+	}
+	// Note: There is no gaurantee this is a valid prooftype.
+	ptype := keybase1.ProofType(ptypestr)
 
 	shouldsucceed := true
 	skip := false
@@ -282,26 +289,31 @@ func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanP
 	}
 
 	if badstate {
-		return true, fmt.Errorf("Unsupported serverstate: %v", serverstate)
+		return fmt.Errorf("Unsupported serverstate: %v", serverstate)
 	}
 
 	if skip {
 		e.G().Log.Info("skipping: %v", skipreason)
-		return true, nil
+		return nil
+	}
+
+	// Beyond this point, external requests will occur, and rate limiting is used
+	if tickers[ptype] != nil {
+		<-tickers[ptype].C
 	}
 
 	perr1, err := e.CheckOne(rec, false)
 	perr2, err := e.CheckOne(rec, true)
 
 	if (perr1 == nil) != (perr2 == nil) {
-		return false, fmt.Errorf("Local verifiers disagree:\n  %v\n  %v", perr1, perr2)
+		return fmt.Errorf("Local verifiers disagree:\n  %v\n  %v", perr1, perr2)
 	}
 
 	if (perr1 == nil) != shouldsucceed {
-		return false, fmt.Errorf("Local verifiers disagree with server: server:%v client:%v", serverstate, perr1)
+		return fmt.Errorf("Local verifiers disagree with server: server:%v client:%v", serverstate, perr1)
 	}
 
-	return false, nil
+	return nil
 }
 
 func (e *ScanProofsEngine) CheckOne(rec map[string]string, forcepvl bool) (libkb.ProofError, error) {
