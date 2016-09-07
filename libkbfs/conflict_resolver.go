@@ -3335,6 +3335,19 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		cr.log.CDebugf(ctx, "Unmerged writes blocked")
 	}
 
+	// Wait for the journal to flush, if there is one.  We don't want
+	// to do conflict resolution until we're sure all the necessary
+	// blocks made it to the server (since the resolution could
+	// reference them without re-uploading them).  If any new unmerged
+	// puts happen, our context will get cancelled and we'll try
+	// again.
+	if jServer, jErr := GetJournalServer(cr.config); jErr == nil {
+		cr.log.CDebugf(ctx, "Waiting for journal to flush")
+		if err = jServer.Wait(ctx, cr.fbo.id()); err != nil {
+			return
+		}
+	}
+
 	// Step 1: Build the chains for each branch, as well as the paths
 	// and necessary extra recreate ops.  The result of this step is:
 	//   * A set of conflict resolution "chains" for both the unmerged and
