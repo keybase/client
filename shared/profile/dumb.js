@@ -120,23 +120,23 @@ const folders = [
   }),
 ]
 
-const thumbnail = 'https://s3.amazonaws.com/keybase_processed_uploads/40f1d7cce021744333f4ed77c08df905_360_360_square_360.jpeg'
+const thumbnailUrl = 'https://s3.amazonaws.com/keybase_processed_uploads/40f1d7cce021744333f4ed77c08df905_360_360_square_360.jpeg'
 
 const followers = [
-  {username: 'awendland', uid: '0', fullname: 'Alex Wendland', followsYou: true, following: false, thumbnail},
-  {username: 'marcopolo', uid: '0', fullname: 'Marco Munizaga', followsYou: false, following: false, thumbnail},
-  {username: 'chromakode', uid: '0', fullname: 'Max Goodman', followsYou: true, following: true, thumbnail},
-  {username: 'strib', uid: '0', fullname: 'Jeremy Stribling', followsYou: false, following: true, thumbnail},
-  {username: 'chris', uid: '0', fullname: 'Chris Vendle', followsYou: false, following: false, thumbnail},
-  {username: 'thor', uid: '0', fullname: 'Thor Asgard', followsYou: false, following: true, thumbnail},
-  {username: 'alex', uid: '0', fullname: 'Alexander The-Gret', followsYou: true, following: false, thumbnail},
-  {username: 'daniel', uid: '0', fullname: 'Daniel Steven', followsYou: true, following: true, thumbnail},
+  {username: 'awendland', uid: '0', fullname: 'Alex Wendland', followsYou: true, following: false, thumbnailUrl},
+  {username: 'marcopolo', uid: '0', fullname: 'Marco Munizaga', followsYou: false, following: false, thumbnailUrl},
+  {username: 'chromakode', uid: '0', fullname: 'Max Goodman', followsYou: true, following: true, thumbnailUrl},
+  {username: 'strib', uid: '0', fullname: 'Jeremy Stribling', followsYou: false, following: true, thumbnailUrl},
+  {username: 'chris', uid: '0', fullname: 'Chris Vendle', followsYou: false, following: false, thumbnailUrl},
+  {username: 'thor', uid: '0', fullname: 'Thor Asgard', followsYou: false, following: true, thumbnailUrl},
+  {username: 'alex', uid: '0', fullname: 'Alexander The-Gret', followsYou: true, following: false, thumbnailUrl},
+  {username: 'daniel', uid: '0', fullname: 'Daniel Steven', followsYou: true, following: true, thumbnailUrl},
 ]
 
 const following = [
-  {username: 'zanderz', uid: '0', fullname: 'Steve Sanders', followsYou: false, following: false, thumbnail},
-  {username: 'awendland', uid: '0', fullname: 'Alex Wendland', followsYou: true, following: false, thumbnail},
-  {username: 'strib', uid: '0', fullname: 'Jeremy Stribling', followsYou: false, following: true, thumbnail},
+  {username: 'zanderz', uid: '0', fullname: 'Steve Sanders', followsYou: false, following: false, thumbnailUrl},
+  {username: 'awendland', uid: '0', fullname: 'Alex Wendland', followsYou: true, following: false, thumbnailUrl},
+  {username: 'strib', uid: '0', fullname: 'Jeremy Stribling', followsYou: false, following: true, thumbnailUrl},
 ]
 
 const propsBase: RenderProps = {

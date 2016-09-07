@@ -3,7 +3,7 @@ import {Component} from 'react'
 
 export type FriendshipUserInfo = {
   username: string,
-  thumbnail: ?string,
+  thumbnailUrl: ?string,
   uid: string,
   fullname: string,
   followsYou: boolean,

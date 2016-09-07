@@ -677,7 +677,7 @@ type APIFriendshipUserInfo = {
 function parseFriendship ({is_followee, is_follower, username, uid, full_name, thumbnail}: APIFriendshipUserInfo): FriendshipUserInfo {
   return {
     username,
-    thumbnail,
+    thumbnailUrl: thumbnail,
     uid,
     fullname: full_name,
     followsYou: is_follower,
