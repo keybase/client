@@ -19,11 +19,7 @@ func (e externalServicesCollection) Register(st libkb.ServiceType) {
 }
 
 func (e externalServicesCollection) GetServiceType(s string) libkb.ServiceType {
-	serviceType := e[strings.ToLower(s)]
-	if serviceType != nil && !useDevelProofCheckers && serviceType.IsDevelOnly() {
-		return nil
-	}
-	return serviceType
+	return e[strings.ToLower(s)]
 }
 
 func (e externalServicesCollection) ListProofCheckers() []string {
