@@ -617,7 +617,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         expiringLocal: false,
       })
     },
-    'keybase.1.identifyUi.finish': (param, response) => {
+    'keybase.1.identifyUi.finish': ({sessionID}, response) => {
       response.result()
       requestIdleCallback(() => {
         // Check if there were any errors in the proofs
@@ -649,6 +649,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
       if (alreadyPending) {
         onFinish && onFinish()
       }
+
+      // cleanup bookkeeping
+      delete sessionIDToUsername[sessionID]
     },
   }
 }
