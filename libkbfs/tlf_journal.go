@@ -21,6 +21,7 @@ type tlfJournalConfig interface {
 	BlockSplitter() BlockSplitter
 	Codec() Codec
 	Crypto() Crypto
+	BlockCache() BlockCache
 	Reporter() Reporter
 	currentInfoGetter() currentInfoGetter
 	encryptionKeyGetter() encryptionKeyGetter
@@ -413,19 +414,19 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 	// TODO: Interleave block flushes with their related MD
 	// flushes.
 
-	// TODO: Parallelize block puts.
-
+	// Flush the block journal ops in parallel.
 	for {
-		flushed, err := j.flushOneBlockOp(ctx)
+		numFlushed, err := j.flushBlockEntries(ctx)
 		if err != nil {
 			return err
 		}
-		if !flushed {
+		if numFlushed == 0 {
 			break
 		}
-		flushedBlockEntries++
+		flushedBlockEntries += numFlushed
 	}
 
+	// TODO: flush MDs in parallel?
 	for {
 		flushed, err := j.flushOneMDOp(ctx)
 		if err != nil {
@@ -440,58 +441,6 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 	j.log.CDebugf(ctx, "Flushed %d block entries and %d MD entries for %s",
 		flushedBlockEntries, flushedMDEntries, j.tlfID)
 	return nil
-}
-
-func (j *tlfJournal) getNextBlockEntryToFlush(ctx context.Context) (
-	journalOrdinal, *blockJournalEntry, []byte,
-	BlockCryptKeyServerHalf, error) {
-	j.journalLock.RLock()
-	defer j.journalLock.RUnlock()
-	return j.blockJournal.getNextEntryToFlush(ctx)
-}
-
-func (j *tlfJournal) removeFlushedBlockEntry(ctx context.Context,
-	ordinal journalOrdinal, entry blockJournalEntry) (int64, error) {
-	j.journalLock.Lock()
-	defer j.journalLock.Unlock()
-	return j.blockJournal.removeFlushedEntry(ctx, ordinal, entry)
-}
-
-func (j *tlfJournal) flushOneBlockOp(ctx context.Context) (bool, error) {
-	j.flushLock.Lock()
-	defer j.flushLock.Unlock()
-
-	ordinal, entry, data, serverHalf, err := j.getNextBlockEntryToFlush(ctx)
-	if err != nil {
-		return false, err
-	}
-	if entry == nil {
-		return false, nil
-	}
-
-	err = flushBlockJournalEntry(
-		ctx, j.log, j.delegateBlockServer, j.tlfID, *entry,
-		data, serverHalf)
-	if err != nil {
-		return false, err
-	}
-
-	// We're the only thing removing from the block journal, so we
-	// can assume that the earliest op is the one we just got.
-	flushedBytes, err := j.removeFlushedBlockEntry(ctx, ordinal, *entry)
-	if err != nil {
-		return false, err
-	}
-
-	j.config.Reporter().NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
-		PublicTopLevelFolder: j.tlfID.IsPublic(),
-		// Path: TODO,
-		// SyncingBytes: TODO,
-		// SyncingOps: TODO,
-		SyncedBytes: flushedBytes,
-	})
-
-	return true, nil
 }
 
 func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
@@ -516,6 +465,43 @@ func (j *tlfJournal) convertMDsToBranch(
 
 	return j.mdJournal.getNextEntryToFlush(
 		ctx, currentUID, currentVerifyingKey, j.config.Crypto())
+}
+
+func (j *tlfJournal) getBlockEntriesToFlush(ctx context.Context) (
+	entries blockEntriesToFlush, err error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	return j.blockJournal.getNextEntriesToFlush(ctx)
+}
+
+func (j *tlfJournal) flushBlockEntries(ctx context.Context) (int, error) {
+	j.flushLock.Lock()
+	defer j.flushLock.Unlock()
+
+	entries, err := j.getBlockEntriesToFlush(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	if entries.length() == 0 {
+		return 0, nil
+	}
+
+	// TODO: fill this in for logging/error purposes.
+	var tlfName CanonicalTlfName
+	err = flushBlockEntries(ctx, j.log, j.delegateBlockServer,
+		j.config.BlockCache(), j.config.Reporter(), j.tlfID, tlfName, entries)
+	if err != nil {
+		return 0, err
+	}
+
+	err = j.blockJournal.removeFlushedEntries(ctx, entries, j.tlfID,
+		j.config.Reporter())
+	if err != nil {
+		return 0, err
+	}
+
+	return entries.length(), nil
 }
 
 func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,

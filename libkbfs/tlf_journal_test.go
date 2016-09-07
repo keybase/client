@@ -66,6 +66,7 @@ type testTLFJournalConfig struct {
 	splitter BlockSplitter
 	codec    Codec
 	crypto   CryptoLocal
+	bcache   BlockCache
 	reporter Reporter
 	cig      singleCurrentInfoGetter
 	ekg      singleEncryptionKeyGetter
@@ -82,6 +83,10 @@ func (c testTLFJournalConfig) Codec() Codec {
 
 func (c testTLFJournalConfig) Crypto() Crypto {
 	return c.crypto
+}
+
+func (c testTLFJournalConfig) BlockCache() BlockCache {
+	return c.bcache
 }
 
 func (c testTLFJournalConfig) Reporter() Reporter {
@@ -174,7 +179,7 @@ func setupTLFJournalTest(
 
 	config = &testTLFJournalConfig{
 		t, FakeTlfID(1, false), bsplitter, codec, crypto,
-		NewReporterSimple(newTestClockNow(), 10), cig, ekg, mdserver,
+		nil, NewReporterSimple(newTestClockNow(), 10), cig, ekg, mdserver,
 	}
 
 	// Time out individual tests after 10 seconds.
@@ -473,11 +478,6 @@ func TestTLFJournalBlockOpWhileBusy(t *testing.T) {
 }
 
 // The test below test tlfJournal's block flushing behavior.
-//
-// TODO: Move it to block_journal_test.go, since nothing in it depends
-// on tlfJournal. (Contrast with the MD flushing behavior, which
-// requires its locking behavior to be tested.)
-
 func TestTLFJournalFlushBlock(t *testing.T) {
 	tempdir, config, ctx, cancel, tlfJournal, delegate :=
 		setupTLFJournalTest(t, TLFJournalBackgroundWorkPaused)
@@ -507,16 +507,7 @@ func TestTLFJournalFlushBlock(t *testing.T) {
 	err = tlfJournal.addBlockReference(ctx, bID, bCtx3)
 	require.NoError(t, err)
 
-	// Remove some references.
-
-	liveCounts, err := tlfJournal.removeBlockReferences(
-		ctx, map[BlockID][]BlockContext{
-			bID: {bCtx, bCtx2},
-		})
-	require.NoError(t, err)
-	require.Equal(t, map[BlockID]int{bID: 1}, liveCounts)
-
-	// Archive the rest.
+	// Archive one of the references.
 
 	require.NoError(t, err)
 	err = tlfJournal.archiveBlockReferences(
@@ -525,84 +516,55 @@ func TestTLFJournalFlushBlock(t *testing.T) {
 		})
 	require.NoError(t, err)
 
-	// Then remove them.
-
-	require.NoError(t, err)
-	liveCounts, err = tlfJournal.removeBlockReferences(
-		ctx, map[BlockID][]BlockContext{
-			bID: {bCtx3},
-		})
-	require.NoError(t, err)
-	require.Equal(t, map[BlockID]int{bID: 0}, liveCounts)
-
-	blockServer := tlfJournal.delegateBlockServer
-
 	flush := func() {
-		flushed, err := tlfJournal.flushOneBlockOp(ctx)
+		numFlushed, err := tlfJournal.flushBlockEntries(ctx)
 		require.NoError(t, err)
-		require.True(t, flushed)
+		require.NotZero(t, numFlushed)
 	}
-
-	// Flush the block put.
 
 	flush()
 
+	// Check the Put.
 	tlfID := config.tlfID
+	blockServer := tlfJournal.delegateBlockServer
 	buf, key, err := blockServer.Get(ctx, tlfID, bID, bCtx)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
-	// Flush the reference adds.
-
-	flush()
-
+	// Check the AddReference.
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
-	flush()
-
+	// Check the archiving.
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
-	// Flush the reference removals.
+	// Now remove all the references.
+	liveCounts, err := tlfJournal.removeBlockReferences(
+		ctx, map[BlockID][]BlockContext{
+			bID: {bCtx, bCtx2, bCtx3},
+		})
+	require.NoError(t, err)
+	require.Equal(t, map[BlockID]int{}, liveCounts)
 
 	flush()
 
-	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx)
+	// Check they're all gone.
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx)
 	require.IsType(t, BServerErrorBlockNonExistent{}, err)
-
-	_, _, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
+	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
 	require.IsType(t, BServerErrorBlockNonExistent{}, err)
-
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
-	require.NoError(t, err)
-	require.Equal(t, data, buf)
-	require.Equal(t, serverHalf, key)
-
-	// Flush the reference archival.
-
-	flush()
-
-	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
-	require.NoError(t, err)
-	require.Equal(t, data, buf)
-	require.Equal(t, serverHalf, key)
-
-	// Flush the last removal.
-
-	flush()
-
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
 	require.IsType(t, BServerErrorBlockNonExistent{}, err)
 
-	_, e, _, _, err := tlfJournal.blockJournal.getNextEntryToFlush(ctx)
+	length, err := tlfJournal.blockJournal.length()
 	require.NoError(t, err)
-	require.Nil(t, e)
+	require.Zero(t, length)
 	require.Zero(t, tlfJournal.getUnflushedBytes())
 }
 
