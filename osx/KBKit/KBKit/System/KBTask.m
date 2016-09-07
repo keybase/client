@@ -11,9 +11,22 @@
 #import "KBDefines.h"
 #include <signal.h>
 
+@interface KBTaskReader : NSObject
+@property NSFileHandle *outFh;
+@property NSFileHandle *errFh;
+@property NSMutableData *outData;
+@property NSMutableData *errData;
+- (instancetype)initWithOutPipe:(NSPipe *)outPipe errPipe:(NSPipe *)errPipe;
+@end
+
 @implementation KBTask
 
 + (void)execute:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, NSData *outData, NSData *errData))completion {
+  KBTask *task = [[KBTask alloc] init];
+  [task execute:command args:args timeout:timeout completion:completion];
+}
+
+- (void)execute:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, NSData *outData, NSData *errData))completion {
   NSTask *task = [[NSTask alloc] init];
   task.launchPath = command;
   task.arguments = args;
@@ -22,6 +35,8 @@
   [task setStandardOutput:outPipe];
   NSPipe *errPipe = [NSPipe pipe];
   [task setStandardError:errPipe];
+
+  KBTaskReader *taskReader = [[KBTaskReader alloc] initWithOutPipe:outPipe errPipe:errPipe];
 
   dispatch_queue_t taskQueue = dispatch_queue_create("taskQueue", NULL);
 
@@ -32,42 +47,33 @@
       if (!replied) {
         timedOut = YES;
 
-        // Dump golang stack to log
-        kill(task.processIdentifier, SIGABRT);
-
         NSString *taskDesc = NSStringWithFormat(@"%@ %@", command, [args join:@" "]);
-        [self readOutPipe:outPipe errPipe:errPipe description:taskDesc completion:^(NSData *outData, NSData *errData) {
-          DDLogError(@"Task timed out: %@", taskDesc);
-          dispatch_async(dispatch_get_main_queue(), ^{
-            completion(KBMakeError(KBErrorCodeTimeout, @"Task timed out: %@", taskDesc), nil, nil);
-          });
+        DDLogError(@"Task timed out: %@", taskDesc);
+        dispatch_async(dispatch_get_main_queue(), ^{
+          completion(KBMakeError(KBErrorCodeTimeout, @"Task timed out: %@", taskDesc), nil, nil);
+        });
 
-          // Terminate/cleanup task after timeout
-          @try {
-            [task terminate];
-          } @catch(NSException *e) {
-            DDLogDebug(@"Task error in terminate after timeout: %@", e);
-          }
-        }];
+        // Terminate/cleanup task after timeout
+        @try {
+          [task terminate];
+        } @catch(NSException *e) {
+          DDLogDebug(@"Task error in terminate after timeout: %@", e);
+        }
       }
     });
   }
 
   task.terminationHandler = ^(NSTask *t) {
     dispatch_async(taskQueue, ^{
-      NSString *taskDesc = NSStringWithFormat(@"%@ %@", command, [args join:@" "]);
       if (timedOut) {
         DDLogDebug(@"Task termination handler, timed out, skipping");
         return;
       }
       replied = YES;
-      DDLogDebug(@"Task termination handler, reading output");
-      [self readOutPipe:outPipe errPipe:errPipe description:taskDesc completion:^(NSData *outData, NSData *errData) {
-        DDLogDebug(@"Task dispatch completion");
-        dispatch_async(dispatch_get_main_queue(), ^{
-          completion(nil, outData, errData);
-        });
-      }];
+      DDLogDebug(@"Task dispatch completion");
+      dispatch_async(dispatch_get_main_queue(), ^{
+        completion(nil, taskReader.outData, taskReader.errData);
+      });
     });
   };
 
@@ -84,6 +90,12 @@
 }
 
 + (void)executeForJSONWithCommand:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, id value))completion {
+  KBTask *task = [[KBTask alloc] init];
+  [task executeForJSONWithCommand:command args:args timeout:timeout completion:completion];
+}
+
+
+- (void)executeForJSONWithCommand:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, id value))completion {
   [self execute:command args:args timeout:timeout completion:^(NSError *error, NSData *outData, NSData *errData) {
     if (error) {
       completion(error, nil);
@@ -109,19 +121,51 @@
   }];
 }
 
-+ (void)readOutPipe:(NSPipe *)outPipe errPipe:(NSPipe *)errPipe description:(NSString *)description completion:(void (^)(NSData *outData, NSData *errData))completion {
-  NSFileHandle *outRead = [outPipe fileHandleForReading];
-  NSData *outData = [outRead readDataToEndOfFile];
-  NSFileHandle *errRead = [errPipe fileHandleForReading];
-  NSData *errData = [errRead readDataToEndOfFile];
+@end
 
-  if ([outData length] > 0) {
-    DDLogDebug(@"Task %@ (out): %@", description, [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
+@implementation KBTaskReader
+
+- (instancetype)initWithOutPipe:(NSPipe *)outPipe errPipe:(NSPipe *)errPipe {
+  if ((self = [super init])) {
+    self.outFh = [outPipe fileHandleForReading];
+    self.outData = [NSMutableData data];
+    GHWeakSelf wself = self;
+    [[NSNotificationCenter defaultCenter] addObserverForName:NSFileHandleReadCompletionNotification object:self.outFh queue:nil usingBlock:^(NSNotification *notification) {
+      [wself outData:notification];
+    }];
+    [self.outFh readInBackgroundAndNotify];
+
+    self.errFh = [errPipe fileHandleForReading];
+    self.errData = [NSMutableData data];
+    [[NSNotificationCenter defaultCenter] addObserverForName:NSFileHandleReadCompletionNotification object:self.errFh queue:nil usingBlock:^(NSNotification *notification) {
+      [wself errData:notification];
+    }];
+    [self.errFh readInBackgroundAndNotify];
   }
-  if ([errData length] > 0) {
-    DDLogDebug(@"Task %@ (err): %@", description, [[NSString alloc] initWithData:errData encoding:NSUTF8StringEncoding]);
+  return self;
+}
+
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleReadCompletionNotification object:self.outFh];
+  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSFileHandleReadCompletionNotification object:self.errFh];
+}
+
+- (void)outData:(NSNotification *)notification {
+  NSData *data = [[notification userInfo] objectForKey:NSFileHandleNotificationDataItem];
+  if (data.length > 0) {
+    DDLogDebug(@"Task (out): %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+    [self.outData appendData:data];
   }
-  completion(outData, errData);
+  [self.outFh readInBackgroundAndNotify];
+}
+
+- (void)errData:(NSNotification *)notification {
+  NSData *data = [[notification userInfo] objectForKey:NSFileHandleNotificationDataItem];
+  if (data.length > 0) {
+    DDLogDebug(@"Task (err): %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+    [self.errData appendData:data];
+  }
+  [self.errFh readInBackgroundAndNotify];
 }
 
 @end
