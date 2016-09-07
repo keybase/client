@@ -54,9 +54,7 @@ func (rc *FacebookChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) li
 }
 
 func (rc *FacebookChecker) ScreenNameCompare(s1, s2 string) bool {
-	s1NoDots := strings.Replace(s1, ".", "", -1)
-	s2NoDots := strings.Replace(s2, ".", "", -1)
-	return libkb.Cicmp(s1NoDots, s2NoDots)
+	return normalizeUsername(s1) == normalizeUsername(s2)
 }
 
 func (rc *FacebookChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
@@ -78,7 +76,7 @@ func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHin
 		return proofErr
 	}
 
-	if !usernamesEqual(username, rc.proof.GetRemoteUsername()) {
+	if !rc.ScreenNameCompare(username, rc.proof.GetRemoteUsername()) {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_USERNAME, "Usernames don't match: '%s' != '%s'", username, rc.proof.GetRemoteUsername())
 	}
 
@@ -135,10 +133,6 @@ func extractProofText(doc *goquery.Document) (string, libkb.ProofError) {
 func normalizeUsername(username string) string {
 	// Convert to lowercase and strip out dots.
 	return strings.ToLower(strings.Replace(username, ".", "", -1))
-}
-
-func usernamesEqual(user1, user2 string) bool {
-	return normalizeUsername(user1) == normalizeUsername(user2)
 }
 
 //
