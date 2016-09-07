@@ -406,6 +406,10 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 		}
 	}
 
+	if len(conversationInfo.TlfName) == 0 {
+		return conversationInfo, triple, maxMessages, errors.New("unexpected response from server: global MaxMsgid is not present in MaxHeaders")
+	}
+
 	return conversationInfo, triple, maxMessages, nil
 }
 

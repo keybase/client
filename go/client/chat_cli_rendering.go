@@ -67,7 +67,7 @@ func (v conversationListView) show(ui libkb.TerminalUI) {
 }
 
 func (v conversationListView) showSummaryOnMore(ui libkb.TerminalUI, totalMore int) {
-	for i := len(v) - 1; i >= 0; i++ {
+	for i := len(v) - 1; i >= 0; i-- {
 		if len(v[i].Messages) == 0 {
 			continue
 		}
