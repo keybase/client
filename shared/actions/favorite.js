@@ -7,7 +7,7 @@ import {badgeApp} from './notifications'
 import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 import {navigateBack} from '../actions/router'
 import {call, put, select} from 'redux-saga/effects'
-import {takeLatest} from 'redux-saga'
+import {takeLatest, takeEvery} from 'redux-saga'
 
 import type {Action} from '../constants/types/flux'
 import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, FolderWithMeta} from '../constants/favorite'
@@ -289,8 +289,8 @@ function _notify (state) {
 function * _favoriteSaga (): SagaGenerator<any, any> {
   yield [
     takeLatest(Constants.favoriteList, _listSaga),
-    takeLatest(Constants.favoriteAdd, _addSaga),
-    takeLatest(Constants.favoriteIgnore, _ignoreSaga),
+    takeEvery(Constants.favoriteAdd, _addSaga),
+    takeEvery(Constants.favoriteIgnore, _ignoreSaga),
   ]
 }
 
