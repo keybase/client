@@ -108,15 +108,12 @@ type folderBlockManager struct {
 
 	helper fbmHelper
 
-	// Keep track of the last reclamation time, for testing.
-	lastReclamationTimeLock sync.Mutex
-	lastReclamationTime     time.Time
-
-	// Remembers what happened last time during quota reclamation;
-	// should only be accessed by the QR goroutine.
-	lastQRHeadRev      MetadataRevision
-	lastQROldEnoughRev MetadataRevision
-	wasLastQRComplete  bool
+	// Remembers what happened last time during quota reclamation.
+	lastQRLock          sync.Mutex
+	lastQRHeadRev       MetadataRevision
+	lastQROldEnoughRev  MetadataRevision
+	wasLastQRComplete   bool
+	lastReclamationTime time.Time
 }
 
 func newFolderBlockManager(config Config, fb FolderBranch,
@@ -861,6 +858,8 @@ func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
 }
 
 func (fbm *folderBlockManager) isQRNecessary(head ReadOnlyRootMetadata) bool {
+	fbm.lastQRLock.Lock()
+	defer fbm.lastQRLock.Unlock()
 	if head == (ReadOnlyRootMetadata{}) {
 		return false
 	}
@@ -918,6 +917,8 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	var mostRecentOldEnoughRev MetadataRevision
 	var complete bool
 	defer func() {
+		fbm.lastQRLock.Lock()
+		defer fbm.lastQRLock.Unlock()
 		// Remember the QR we just performed.
 		if err == nil && head != (ImmutableRootMetadata{}) {
 			fbm.lastQRHeadRev = head.Revision()
@@ -973,8 +974,8 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	fbm.log.CDebugf(ctx, "Starting quota reclamation process")
 	defer func() {
 		fbm.log.CDebugf(ctx, "Ending quota reclamation process: %v", err)
-		fbm.lastReclamationTimeLock.Lock()
-		defer fbm.lastReclamationTimeLock.Unlock()
+		fbm.lastQRLock.Lock()
+		defer fbm.lastQRLock.Unlock()
 		fbm.lastReclamationTime = fbm.config.Clock().Now()
 	}()
 
@@ -1025,10 +1026,10 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 	}
 }
 
-func (fbm *folderBlockManager) getLastReclamationTime() time.Time {
-	fbm.lastReclamationTimeLock.Lock()
-	defer fbm.lastReclamationTimeLock.Unlock()
-	return fbm.lastReclamationTime
+func (fbm *folderBlockManager) getLastQRData() (time.Time, MetadataRevision) {
+	fbm.lastQRLock.Lock()
+	defer fbm.lastQRLock.Unlock()
+	return fbm.lastReclamationTime, fbm.lastQROldEnoughRev
 }
 
 func (fbm *folderBlockManager) clearLastQRData() {

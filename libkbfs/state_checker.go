@@ -91,29 +91,31 @@ func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
 	return nil
 }
 
-func (sc *StateChecker) getLastGCRevisionTime(ctx context.Context,
-	tlf TlfID) time.Time {
+func (sc *StateChecker) getLastGCData(ctx context.Context,
+	tlf TlfID) (time.Time, MetadataRevision) {
 	config, ok := sc.config.(*ConfigLocal)
 	if !ok {
-		return time.Time{}
+		return time.Time{}, MetadataRevisionUninitialized
 	}
 
 	var latestTime time.Time
+	var latestRev MetadataRevision
 	for _, c := range *config.allKnownConfigsForTesting {
 		ops := c.KBFSOps().(*KBFSOpsStandard).getOpsNoAdd(
 			FolderBranch{tlf, MasterBranch})
-		rt := ops.fbm.getLastReclamationTime()
-		if rt.After(latestTime) {
+		rt, rev := ops.fbm.getLastQRData()
+		if rt.After(latestTime) && rev > latestRev {
 			latestTime = rt
+			latestRev = rev
 		}
 	}
 	if latestTime == (time.Time{}) {
-		return latestTime
+		return latestTime, latestRev
 	}
 
-	sc.log.CDebugf(ctx, "Last reclamation time for TLF %s: %s",
-		tlf, latestTime)
-	return latestTime.Add(-sc.config.QuotaReclamationMinUnrefAge())
+	sc.log.CDebugf(ctx, "Last qr data for TLF %s: revTime=%s, rev=%d",
+		tlf, latestTime, latestRev)
+	return latestTime.Add(-sc.config.QuotaReclamationMinUnrefAge()), latestRev
 }
 
 // CheckMergedState verifies that the state for the given tlf is
@@ -145,7 +147,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 
 	fb := FolderBranch{tlf, MasterBranch}
 	ops := kbfsOps.getOpsNoAdd(fb)
-	lastGCRevisionTime := sc.getLastGCRevisionTime(ctx, tlf)
+	lastGCRevisionTime, lastGCRev := sc.getLastGCData(ctx, tlf)
 
 	// Build the expected block list.
 	expectedLiveBlocks := make(map[BlockPointer]bool)
@@ -241,11 +243,12 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		// it will be run completely and not left partially done due
 		// to there being too many pointers to collect in one sweep.
 		mtime := time.Unix(0, rmd.data.Dir.Mtime)
-		if !lastGCRevisionTime.Before(mtime) {
+		if !lastGCRevisionTime.Before(mtime) && rmd.Revision() <= lastGCRev {
 			if rmd.Revision() > gcRevision {
 				return fmt.Errorf("Revision %d happened before the last "+
-					"gc time %s, but was not included in the latest gc op "+
-					"revision %d", rmd.Revision(), lastGCRevisionTime, gcRevision)
+					"gc time %s rev %d, but was not included in the latest "+
+					"gc op revision %d", rmd.Revision(), lastGCRevisionTime,
+					lastGCRev, gcRevision)
 			}
 		}
 	}
