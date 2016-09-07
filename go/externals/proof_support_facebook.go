@@ -41,13 +41,13 @@ func (rc *FacebookChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) li
 
 	if !strings.HasPrefix(strings.ToLower(h.GetAPIURL()), wantedURL) {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-			"Bad hint from server; URL should start with '%s'", wantedURL)
+			"Bad hint from server; URL should start with '%s', received '%s'", wantedURL, h.GetAPIURL())
 	}
 
 	// TODO: We could ignore this portion of the server's hint. Should we?
 	if !strings.Contains(h.GetCheckText(), wantedMediumID) {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad proof-check text from server; need '%s' as a substring", wantedMediumID)
+			"Bad proof-check text from server; need '%s' as a substring, received '%s'", wantedMediumID, h.GetCheckText())
 	}
 
 	return nil
