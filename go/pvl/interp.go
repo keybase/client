@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 package pvl
@@ -95,22 +95,42 @@ var Steps = map[CommandName]Step{
 	CmdTransformURL:        stepTransformURL,
 }
 
+// ProofInfo contains all the data about a proof PVL needs to check it.
+// It can be derived from a RemoteProofChainLink and SigHint.
+type ProofInfo struct {
+	ArmoredSig     string
+	Username       string
+	RemoteUsername string
+	Hostname       string
+	APIURL         string
+}
+
+func NewProofInfo(link libkb.RemoteProofChainLink, h libkb.SigHint) ProofInfo {
+	return ProofInfo{
+		ArmoredSig:     link.GetArmoredSig(),
+		RemoteUsername: link.GetRemoteUsername(),
+		Username:       link.GetUsername(),
+		Hostname:       link.GetHostname(),
+		APIURL:         h.GetAPIURL(),
+	}
+}
+
 // Checkproof verifies one proof by running the pvl on the provided proof information.
-func CheckProof(g1 libkb.ProofContext, pvl *jsonw.Wrapper, service keybase1.ProofType, link libkb.RemoteProofChainLink, h libkb.SigHint) libkb.ProofError {
+func CheckProof(g1 libkb.ProofContext, pvl *jsonw.Wrapper, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
 	g := NewProofContextExt(g1)
-	perr := checkProofInner(g, pvl, service, link, h)
+	perr := checkProofInner(g, pvl, service, info)
 	if perr != nil {
 		debug(g, "CheckProof failed: %v", perr)
 	}
 	return perr
 }
 
-func checkProofInner(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.ProofType, link libkb.RemoteProofChainLink, h libkb.SigHint) libkb.ProofError {
+func checkProofInner(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
 	if perr := validateChunk(g, pvl, service); perr != nil {
 		return perr
 	}
 
-	sigBody, sigID, err := libkb.OpenSig(link.GetArmoredSig())
+	sigBody, sigID, err := libkb.OpenSig(info.ArmoredSig)
 	if err != nil {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %v", err)
@@ -123,12 +143,12 @@ func checkProofInner(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.Pro
 
 	newstate := func(i int) ScriptState {
 		vars := ScriptVariables{
-			UsernameService: link.GetRemoteUsername(), // Blank for DNS-proofs
-			UsernameKeybase: link.GetUsername(),
+			UsernameService: info.RemoteUsername, // Blank for DNS-proofs
+			UsernameKeybase: info.Username,
 			Sig:             sigBody,
 			SigIDMedium:     sigID.ToMediumID(),
 			SigIDShort:      sigID.ToShortID(),
-			Hostname:        link.GetHostname(), // Blank for non-{DNS/Web} proofs
+			Hostname:        info.Hostname, // Blank for non-{DNS/Web} proofs
 		}
 
 		// Enforce prooftype-dependent variables.
@@ -144,8 +164,8 @@ func checkProofInner(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.Pro
 			PC:           0,
 			Service:      service,
 			Vars:         vars,
-			ActiveString: h.GetAPIURL(),
-			FetchURL:     h.GetAPIURL(),
+			ActiveString: info.APIURL,
+			FetchURL:     info.APIURL,
 			HasFetched:   false,
 			FetchResult:  nil,
 		}
@@ -498,7 +518,8 @@ func stepAssertRegexMatch(g ProofContextExt, ins *jsonw.Wrapper, state ScriptSta
 		return state, err
 	}
 	if !re.MatchString(state.ActiveString) {
-		debugWithState(g, state, "Regex did not match:\n  %v\n  %v\n  %v", rdesc.Template, re, state.ActiveString)
+		debugWithState(g, state, "Regex did not match:\n  %v\n  %v\n  %v",
+			rdesc.Template, re, state.ActiveString)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
 			"Regex did not match (%v)", rdesc.Template)
 	}
@@ -657,8 +678,13 @@ func stepSelectorCSS(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (
 	useAttr := err == nil
 
 	// Whether the final selection can contain multiple elements.
-	multi, err := ins.AtKey("multi").GetBool()
-	multi = multi && err == nil
+	multinil := ins.AtKey("multi").IsNil()
+	multi, multierr := ins.AtKey("multi").GetBool()
+	if !multinil && multierr != nil {
+		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+			"CSS selector multi option must be a bool: %v", multierr)
+	}
+	multi = !multinil && multi
 
 	selection, perr := runCSSSelectorInner(g, state.FetchResult.HTML.Selection, selectors)
 	if perr != nil {
@@ -699,8 +725,7 @@ func stepTransformURL(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) 
 
 	match := re.FindStringSubmatch(state.FetchURL)
 	if len(match) < 1 {
-		libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Regex transform did not match:\n  %v\n  %v\n  %v",
+		debugWithState(g, state, "Regex transform did not match:\n  %v\n  %v\n  %v",
 			sourceRdesc.Template, re, state.FetchURL)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
 			"Regex transform did not match: %v", sourceRdesc.Template)
@@ -766,7 +791,7 @@ func runSelectorJSONInner(g ProofContextExt, state ScriptState, object *jsonw.Wr
 		s, err := jsonStringSimple(object)
 		if err != nil {
 			debugWithState(g, state, "JSON could not read object: %v (%v)", err, object)
-			return make([]string, 0), nil
+			return []string{}, nil
 		}
 		return []string{s}, nil
 	}
@@ -788,8 +813,16 @@ func runSelectorJSONInner(g ProofContextExt, state ScriptState, object *jsonw.Wr
 			debugWithState(g, state, "JSON select by index from non-array: %v (%v) (%v)", err, selectorIndex, object)
 			return []string{}, nil
 		}
+		length, err := object.Len()
+		if err != nil {
+			return []string{}, nil
+		}
 
-		nextobject := object.AtIndex(selectorIndex)
+		index, ok := pyindex(selectorIndex, length)
+		if !ok || index < 0 {
+			return []string{}, nil
+		}
+		nextobject := object.AtIndex(index)
 		return runSelectorJSONInner(g, state, nextobject, nextselectors)
 	case selectorIsKey:
 		object, err := object.ToDictionary()
@@ -814,6 +847,7 @@ func runSelectorJSONInner(g ProofContextExt, state ScriptState, object *jsonw.Wr
 			}
 			results = append(results, innerresults...)
 		}
+		return results, nil
 	}
 	return []string{}, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 		"Selector entry not recognized: %v", selector)
