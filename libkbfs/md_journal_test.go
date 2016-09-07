@@ -230,7 +230,8 @@ func TestMDJournalPutCase1Conflict(t *testing.T) {
 	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer, id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	_, err = j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
@@ -279,7 +280,8 @@ func TestMDJournalPutCase2NonEmptyReplace(t *testing.T) {
 	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer, id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	md.SetUnmerged()
@@ -297,7 +299,8 @@ func TestMDJournalPutCase2NonEmptyAppend(t *testing.T) {
 	mdID, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer, id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	md2 := makeMDForTest(t, id, MetadataRevision(11), uid, mdID)
@@ -316,7 +319,8 @@ func TestMDJournalPutCase2Empty(t *testing.T) {
 	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer, id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	// Flush.
@@ -341,7 +345,8 @@ func TestMDJournalPutCase3NonEmptyAppend(t *testing.T) {
 	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer, id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	head, err := j.getHead(uid, verifyingKey)
@@ -364,7 +369,8 @@ func TestMDJournalPutCase3NonEmptyReplace(t *testing.T) {
 	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer, id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	head, err := j.getHead(uid, verifyingKey)
@@ -386,7 +392,8 @@ func TestMDJournalPutCase3EmptyAppend(t *testing.T) {
 	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	_, err = j.convertToBranch(ctx, uid, verifyingKey, signer, id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	// Flush.
@@ -428,7 +435,8 @@ func TestMDJournalBranchConversion(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := j.convertToBranch(ctx, uid, verifyingKey, signer)
+	_, err := j.convertToBranch(ctx, uid, verifyingKey, signer, id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	// Branch conversion shouldn't leave old folders behind.
@@ -485,7 +493,8 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := j.convertToBranch(ctx, uid, verifyingKey, &limitedSigner)
+	_, err := j.convertToBranch(ctx, uid, verifyingKey, &limitedSigner, id,
+		NewMDCacheStandard(10))
 	require.NotNil(t, err)
 
 	// All entries should remain unchanged, since the conversion
@@ -519,7 +528,8 @@ func TestMDJournalClear(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := j.convertToBranch(ctx, uid, verifyingKey, signer)
+	_, err := j.convertToBranch(ctx, uid, verifyingKey, signer, id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 	require.NotEqual(t, NullBranchID, j.branchID)
 
@@ -606,7 +616,8 @@ func TestMDJournalRestartAfterBranchConversion(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := j.convertToBranch(ctx, uid, verifyingKey, signer)
+	_, err := j.convertToBranch(ctx, uid, verifyingKey, signer, id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	// Restart journal.

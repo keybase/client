@@ -49,3 +49,10 @@ func (md *MDCacheStandard) Put(rmd ImmutableRootMetadata) error {
 	md.lru.Add(key, rmd)
 	return nil
 }
+
+// Delete implements the MDCache interface for MDCacheStandard.
+func (md *MDCacheStandard) Delete(tlf TlfID, rev MetadataRevision,
+	bid BranchID) {
+	key := mdCacheKey{tlf, rev, bid}
+	md.lru.Remove(key)
+}

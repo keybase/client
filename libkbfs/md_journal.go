@@ -325,7 +325,8 @@ func (j mdJournal) checkGetParams(currentUID keybase1.UID,
 
 func (j *mdJournal) convertToBranch(
 	ctx context.Context, currentUID keybase1.UID,
-	currentVerifyingKey VerifyingKey, signer cryptoSigner) (
+	currentVerifyingKey VerifyingKey, signer cryptoSigner,
+	tlfID TlfID, mdcache MDCache) (
 	bid BranchID, err error) {
 	if j.branchID != NullBranchID {
 		return NullBranchID, fmt.Errorf(
@@ -388,6 +389,9 @@ func (j *mdJournal) convertToBranch(
 		}
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
+
+		// Delete the old "merged" version from the cache.
+		mdcache.Delete(tlfID, ibrmd.RevisionNumber(), NullBranchID)
 
 		// Re-sign the writer metadata.
 		buf, err := brmd.GetSerializedWriterMetadata(j.codec)

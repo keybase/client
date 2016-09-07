@@ -22,6 +22,7 @@ type tlfJournalConfig interface {
 	Codec() Codec
 	Crypto() Crypto
 	BlockCache() BlockCache
+	MDCache() MDCache
 	Reporter() Reporter
 	currentInfoGetter() currentInfoGetter
 	encryptionKeyGetter() encryptionKeyGetter
@@ -539,8 +540,9 @@ func (j *tlfJournal) convertMDsToBranchAndGetNextEntry(
 	nextEntryEnd MetadataRevision) (MdID, *RootMetadataSigned, error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
-	err := j.mdJournal.convertToBranch(
-		ctx, currentUID, currentVerifyingKey, j.config.Crypto())
+	bid, err := j.mdJournal.convertToBranch(
+		ctx, currentUID, currentVerifyingKey, j.config.Crypto(), j.tlfID,
+		j.config.MDCache())
 	if err != nil {
 		return MdID{}, nil, err
 	}

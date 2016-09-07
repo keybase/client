@@ -561,6 +561,8 @@ type MDCache interface {
 	Get(tlf TlfID, rev MetadataRevision, bid BranchID) (ImmutableRootMetadata, error)
 	// Put stores the metadata object.
 	Put(md ImmutableRootMetadata) error
+	// Delete removes the given metadata object from the cache if it exists.
+	Delete(tlf TlfID, rev MetadataRevision, bid BranchID)
 }
 
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.
