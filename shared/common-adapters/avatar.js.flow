@@ -2,6 +2,7 @@
 import {Component} from 'react'
 
 export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 32 | 24 | 16
+export type UserPictureSize = 360 | 200 | 40
 
 type CommonProps = {
   size: AvatarSize,

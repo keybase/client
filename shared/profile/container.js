@@ -66,7 +66,6 @@ export default connect(
     return {
       username,
       uid,
-      myUid,
       myUsername,
       trackerState: state.tracker.trackers[username],
     }
