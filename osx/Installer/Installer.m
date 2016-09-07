@@ -128,6 +128,31 @@ typedef NS_ENUM (NSInteger, KBExit) {
     return;
   }
 
+  // Helper auth canceled, denied or not allowed
+  if ([error.domain isEqualToString:@"keybase.Helper"] &&
+      (error.code == errAuthorizationCanceled || error.code == errAuthorizationDenied || error.code == errAuthorizationInteractionNotAllowed)) {
+    NSString *title = @"Keybase: Installation Required";
+    NSString *message = [NSString stringWithFormat:@"We were unable to install a helper tool needed for Keybase to work properly (%@).", @(error.code)];
+    [self showQuitDialogWithTitle:title message:message error:error environment:environment completion:completion];
+  } else {
+    [self showErrorDialog:error environment:environment completion:completion];
+  }
+}
+
+- (void)showQuitDialogWithTitle:(NSString *)title message:(NSString *)message error:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
+  NSAlert *alert = [[NSAlert alloc] init];
+  [alert setMessageText:title];
+  [alert setInformativeText:message];
+  [alert addButtonWithTitle:@"Quit"];
+
+  [alert setAlertStyle:NSWarningAlertStyle];
+  NSModalResponse response = [alert runModal];
+  if (response == NSAlertFirstButtonReturn) {
+    completion(error, KBExitError);
+  }
+}
+
+- (void)showErrorDialog:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:@"Keybase Error"];
   [alert setInformativeText:error.localizedDescription];
