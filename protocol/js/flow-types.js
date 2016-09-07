@@ -2631,6 +2631,7 @@ export type PingResponse = {
 
 export type PlatformInfo = {
   os: string,
+  osVersion: string,
   arch: string,
   goVersion: string,
 }

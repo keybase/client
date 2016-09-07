@@ -61,7 +61,9 @@ export type FavoriteToggleIgnored = TypedAction<'favorite:favoriteToggleIgnored'
 export type FavoriteAction = FavoriteAdd | FavoriteAdded | FavoriteList | FavoriteListed | FavoriteIgnore | FavoriteIgnored | FavoriteSwitchTab | FavoriteToggleIgnored
 
 function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
-  const sortName = users.map(u => u.username).join(',')
+  const rwers = users.filter(u => !u.readOnly).map(u => u.username)
+  const readers = users.filter(u => !!u.readOnly).map(u => u.username)
+  const sortName = rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
   const path = `${defaultKBFSPath}/${isPublic ? 'public' : 'private'}/${sortName}`
   return {sortName, path}
 }

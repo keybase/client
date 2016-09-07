@@ -101,6 +101,10 @@
         },
         {
           "type": "string",
+          "name": "osVersion"
+        },
+        {
+          "type": "string",
           "name": "arch"
         },
         {

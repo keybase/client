@@ -4,7 +4,7 @@ import _ from 'lodash'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
+import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
 import {navigateBack} from '../actions/router'
 import {call, put, select} from 'redux-saga/effects'
 import {takeLatest, takeEvery} from 'redux-saga'
@@ -97,12 +97,7 @@ function _folderToState (txt: string = '', username: string, loggedIn: boolean):
   let publicBadge = 0
 
   const converted: Array<FoldersFolder & {sortName: string}> = folders.map(f => {
-    const users = canonicalizeUsernames(username, parseFolderNameToUsers(f.name))
-      .map(u => ({
-        username: u,
-        you: u === username,
-        broken: false,
-      }))
+    const users = sortUserList(parseFolderNameToUsers(username, f.name))
 
     const {sortName, path} = pathFromFolder({users, isPublic: !f.private})
     const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
