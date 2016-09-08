@@ -4660,6 +4660,10 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
 		return
 	}
 
+	// Everything we thought we knew about quota reclamation is now
+	// called into question.
+	fbo.fbm.clearLastQRData()
+
 	// Kick off conflict resolution and set the head to the correct branch.
 	fbo.setBranchIDLocked(lState, newBID)
 	fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)

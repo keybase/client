@@ -1027,3 +1027,12 @@ func (fbm *folderBlockManager) getLastReclamationTime() time.Time {
 	defer fbm.lastReclamationTimeLock.Unlock()
 	return fbm.lastReclamationTime
 }
+
+func (fbm *folderBlockManager) clearLastQRData() {
+	fbm.lastQRLock.Lock()
+	defer fbm.lastQRLock.Unlock()
+	fbm.lastQRHeadRev = MetadataRevisionUninitialized
+	fbm.lastQROldEnoughRev = MetadataRevisionUninitialized
+	fbm.wasLastQRComplete = false
+	fbm.lastReclamationTime = time.Time{}
+}
