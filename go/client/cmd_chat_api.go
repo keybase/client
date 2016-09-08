@@ -118,11 +118,12 @@ type MsgSender struct {
 }
 
 type MsgSummary struct {
-	ID       chat1.MessageID `json:"id"`
-	Channel  ChatChannel     `json:"channel"`
-	Sender   MsgSender       `json:"sender"`
-	SentAt   int64           `json:"sent_at"`
-	SentAtMs int64           `json:"sent_at_ms"`
+	ID       chat1.MessageID      `json:"id"`
+	Channel  ChatChannel          `json:"channel"`
+	Sender   MsgSender            `json:"sender"`
+	SentAt   int64                `json:"sent_at"`
+	SentAtMs int64                `json:"sent_at_ms"`
+	Content  keybase1.MessageBody `json:"content"`
 }
 
 type Thread struct {
@@ -182,6 +183,12 @@ func (c *CmdChatAPI) ReadV1(opts readOptionsV1) Reply {
 			},
 			SentAt:   int64(m.ServerHeader.Ctime / 1000),
 			SentAtMs: int64(m.ServerHeader.Ctime),
+		}
+		if len(m.MessagePlaintext.MessageBodies) > 0 {
+			thread.Messages[i].Content = m.MessagePlaintext.MessageBodies[0]
+		}
+		if len(m.MessagePlaintext.MessageBodies) > 1 {
+			c.G().Log.Warning("message %v had multiple bodies", m.ServerHeader.MessageID)
 		}
 	}
 
