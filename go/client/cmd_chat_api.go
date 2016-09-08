@@ -74,7 +74,6 @@ type ConvSummary struct {
 }
 
 type ChatList struct {
-	Status        string        `json:"status"`
 	Conversations []ConvSummary `json:"conversations"`
 }
 
@@ -93,7 +92,6 @@ func (c *CmdChatAPI) ListV1() Reply {
 	fmt.Printf("inbox: %+v\n", inbox)
 
 	var cl ChatList
-	cl.Status = "ok"
 	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
 	for i, conv := range inbox.Conversations {
 		cl.Conversations[i] = ConvSummary{
@@ -107,30 +105,82 @@ func (c *CmdChatAPI) ListV1() Reply {
 	return Reply{Result: cl}
 }
 
+type MsgSender struct {
+	UID        string `json:"uid"`
+	Username   string `json:"username,omitempty"`
+	DeviceID   string `json:"device_id"`
+	DeviceName string `json:"device_name,omitempty"`
+}
+
+type MsgSummary struct {
+	ID       chat1.MessageID `json:"id"`
+	Channel  ChatChannel     `json:"channel"`
+	Sender   MsgSender       `json:"sender"`
+	SentAt   int64           `json:"sent_at"`
+	SentAtMs int64           `json:"sent_at_ms"`
+}
+
+type Thread struct {
+	Messages []MsgSummary `json:"messages"`
+}
+
 func (c *CmdChatAPI) ReadV1(opts readOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 
+	// XXX plumb context through?
+	ctx := context.Background()
+
 	if opts.ConversationID == 0 {
-		// XXX resolve conversation id
+		// resolve conversation id
+		// XXX support other topic types
+		cinfo := keybase1.ConversationInfoLocal{
+			TlfName:   opts.Channel.Name,
+			TopicType: chat1.TopicType_CHAT,
+		}
+		existing, err := client.ResolveConversationLocal(ctx, cinfo)
+		if err != nil {
+			return c.errReply(err)
+		}
+		if len(existing) > 1 {
+			return c.errReply(fmt.Errorf("multiple conversations matched %q", opts.Channel.Name))
+		}
+		if len(existing) == 0 {
+			return c.errReply(fmt.Errorf("no conversations matched %q", opts.Channel.Name))
+		}
+		opts.ConversationID = existing[0].Id
 	}
 
 	arg := keybase1.GetThreadLocalArg{
 		ConversationID: opts.ConversationID,
 		MarkAsRead:     true,
 	}
-	// XXX plumb context through?
-	thread, err := client.GetThreadLocal(context.Background(), arg)
+	threadView, err := client.GetThreadLocal(ctx, arg)
 	if err != nil {
 		return c.errReply(err)
 	}
 
-	// XXX convert thread to something else...
-	fmt.Printf("thread: %+v\n", thread)
+	fmt.Printf("threadView: %+v\n", threadView)
+	var thread Thread
+	thread.Messages = make([]MsgSummary, len(threadView.Messages))
+	for i, m := range threadView.Messages {
+		thread.Messages[i] = MsgSummary{
+			ID: m.ServerHeader.MessageID,
+			Channel: ChatChannel{
+				Name: m.MessagePlaintext.ClientHeader.TlfName,
+			},
+			Sender: MsgSender{
+				UID:      m.MessagePlaintext.ClientHeader.Sender.String(),
+				DeviceID: m.MessagePlaintext.ClientHeader.SenderDevice.String(),
+			},
+			SentAt:   int64(m.ServerHeader.Ctime / 1000),
+			SentAtMs: int64(m.ServerHeader.Ctime),
+		}
+	}
 
-	return Reply{}
+	return Reply{Result: thread}
 }
 
 func (c *CmdChatAPI) SendV1(opts sendOptionsV1) Reply {
@@ -156,9 +206,6 @@ func (c *CmdChatAPI) SendV1(opts sendOptionsV1) Reply {
 	existing, err := client.ResolveConversationLocal(ctx, cinfo)
 	if err != nil {
 		return c.errReply(err)
-	}
-	if len(existing) > 1 {
-		return c.errReply(fmt.Errorf("multiple conversations matched"))
 	}
 	var conversation keybase1.ConversationInfoLocal
 	switch len(existing) {
@@ -189,7 +236,7 @@ func (c *CmdChatAPI) SendV1(opts sendOptionsV1) Reply {
 		return c.errReply(err)
 	}
 
-	return Reply{Result: "ok"}
+	return Reply{Result: "message sent"}
 }
 
 func (c *CmdChatAPI) errReply(err error) Reply {
