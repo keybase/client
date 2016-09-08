@@ -27,6 +27,7 @@ export type State = {
   serverStarted: boolean,
   trackers: {[key: string]: TrackerOrNonUserState},
   pendingIdentifies: {[key: string]: boolean},
+  cachedIdentifies: {[key: string]: number}, // good until unix timestamp
   timerActive: number,
   tracking: Array<{
     username: string,
@@ -43,6 +44,7 @@ const initialState: State = {
   timerActive: 0,
   trackers: {},
   pendingIdentifies: {},
+  cachedIdentifies: {},
   tracking: [],
 }
 
@@ -390,6 +392,17 @@ export default function (state: State = initialState, action: Action): State {
         ...state,
         timerActive: state.timerActive - 1,
       }
+    case Constants.cacheIdentify:
+      if (!action.error) {
+        return {
+          ...state,
+          cachedIdentifies: {
+            ...state.cachedIdentifies,
+            [action.payload.uid]: action.payload.goodTill,
+          },
+        }
+      }
+      break
     case Constants.pendingIdentify:
       if (!action.error) {
         return {
@@ -400,6 +413,7 @@ export default function (state: State = initialState, action: Action): State {
           },
         }
       }
+      break
   }
 
   if (userKey && trackerOrNonUserState && trackerOrNonUserState.type === 'tracker') {

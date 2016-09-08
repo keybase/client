@@ -7,6 +7,8 @@ import type {TypedAction} from './types/flux'
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {identifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-types'
 
+const cachedIdentifyGoodUntil = 1000 * 60 * 60
+
 // Types
 export type Proof = {
   id: string,
@@ -99,6 +101,8 @@ export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUiDisplayTL
 
 export const pendingIdentify = 'tracker:pendingIdentify'
 export type PendingIdentify = TypedAction<'tracker:pendingIdentify', {username: string, pending: boolean}, void>
+export const cacheIdentify = 'tracker:cacheIdentify'
+export type CacheIdentify = TypedAction<'tracker:cacheIdentify', {username: string, goodTill: number}, void>
 
 export const identifyStarted = 'tracker:identifyStarted'
 export type IdentifyStarted = TypedAction<'tracker:identifyStarted', void, {error: string}>
@@ -131,7 +135,7 @@ export type TrackerState = {
   tlfs: Array<Folder>,
 }
 
-export function isLoading (state: ?TrackerState): boolean {
+function isLoading (state: ?TrackerState): boolean {
   // TODO (mm) ideally userInfo should be null until we get a response from the server
   // Same with proofs (instead of empty array). So we know the difference between
   // not having data and having empty data.
@@ -148,11 +152,17 @@ export function isLoading (state: ?TrackerState): boolean {
   return !state.userInfo || state.userInfo.followersCount === -1
 }
 
-export function bufferToNiceHexString (fingerPrint: Buffer): string {
+function bufferToNiceHexString (fingerPrint: Buffer): string {
   try {
     // $FlowIssue
     return fingerPrint.toString('hex').slice(-16).toUpperCase().match(/(.{4})(.{4})(.{4})(.{4})/).slice(1).join(' ')
   } catch (_) {
     return ''
   }
+}
+
+export {
+  cachedIdentifyGoodUntil,
+  bufferToNiceHexString,
+  isLoading,
 }
