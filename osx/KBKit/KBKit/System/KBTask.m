@@ -9,22 +9,23 @@
 #import "KBTask.h"
 
 #import "KBDefines.h"
-#include <signal.h>
 
 @interface KBTaskReader : NSObject
 @property NSFileHandle *outFh;
 @property NSFileHandle *errFh;
 @property NSMutableData *outData;
 @property NSMutableData *errData;
-- (instancetype)initWithTask:(NSTask *)task;
+@property BOOL outEOF;
+@property BOOL errEOF;
+@property KBCompletion completion;
+- (instancetype)initWithTask:(NSTask *)task completion:(KBCompletion)completion;
 - (void)start;
-- (void)drain;
 @end
 
 @interface KBTask ()
 @property NSTimeInterval timeout;
 @property BOOL timedOut;
-@property BOOL replied;
+@property BOOL completed;
 @property dispatch_queue_t taskQueue;
 @property KBTaskReader *taskReader;
 @property KBTaskCompletion completion;
@@ -51,32 +52,26 @@
     task.arguments = args;
     [task setStandardInput:[NSPipe pipe]];
     self.task = task;
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(taskDidTerminate:) name:NSTaskDidTerminateNotification object:self.task];
-
-    self.taskReader = [[KBTaskReader alloc] initWithTask:self.task];
+    self.taskReader = [[KBTaskReader alloc] initWithTask:self.task completion:^(NSError *error) {
+      // Task is done when out/err EOF
+      [self completed];
+    }];
   }
   return self;
 }
 
-- (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSTaskDidTerminateNotification object:self.task];
-}
-
-- (void)taskDidTerminate:(NSNotification *)notification {
-  GHWeakSelf wself = self;
+- (void)completed {
   dispatch_async(self.taskQueue, ^{
-    if (wself.timedOut) {
+    if (self.timedOut) {
       DDLogDebug(@"Task termination handler, timed out, skipping");
       return;
     }
-    wself.replied = YES;
+    self.completed = YES;
     DDLogDebug(@"Task dispatch completion");
     dispatch_async(dispatch_get_main_queue(), ^{
-      // Ensure we've read to EOF
-      [wself.taskReader drain];
-      DDLogDebug(@"Task (out): %@", ([[NSString alloc] initWithData:wself.taskReader.outData encoding:NSUTF8StringEncoding]));
-      DDLogDebug(@"Task (err): %@", ([[NSString alloc] initWithData:wself.taskReader.errData encoding:NSUTF8StringEncoding]));
-      self.completion(nil, wself.taskReader.outData, wself.taskReader.errData);
+      DDLogDebug(@"Task (out): %@", ([[NSString alloc] initWithData:self.taskReader.outData encoding:NSUTF8StringEncoding]));
+      DDLogDebug(@"Task (err): %@", ([[NSString alloc] initWithData:self.taskReader.errData encoding:NSUTF8StringEncoding]));
+      self.completion(nil, self.taskReader.outData, self.taskReader.errData);
     });
   });
 }
@@ -84,19 +79,18 @@
 - (void)execute {
   [self.taskReader start];
 
-  GHWeakSelf wself = self;
   if (self.timeout > 0) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, self.timeout * NSEC_PER_SEC), self.taskQueue, ^{
-      if (!wself.replied) {
-        wself.timedOut = YES;
-        DDLogError(@"Task timed out: %@", wself.taskDescription);
+      if (!self.completed) {
+        self.timedOut = YES;
+        DDLogError(@"Task timed out: %@", self.taskDescription);
         dispatch_async(dispatch_get_main_queue(), ^{
-          wself.completion(KBMakeError(KBErrorCodeTimeout, @"Task timed out: %@", wself.taskDescription), nil, nil);
+          self.completion(KBMakeError(KBErrorCodeTimeout, @"Task timed out: %@", self.taskDescription), nil, nil);
         });
 
         // Terminate/cleanup task after timeout
         @try {
-          [wself.task terminate];
+          [self.task terminate];
         } @catch(NSException *e) {
           DDLogDebug(@"Task error in terminate after timeout: %@", e);
         }
@@ -111,7 +105,7 @@
   } @catch (NSException *e) {
     NSString *errorMessage = NSStringWithFormat(@"%@ (%@)", e.reason, self.taskDescription);
     DDLogError(@"Error running task: %@", errorMessage);
-    self.replied = YES;
+    self.completed = YES;
     self.completion(KBMakeError(KBErrorCodeGeneric, @"%@", errorMessage), nil, nil);
   }
 }
@@ -147,8 +141,10 @@
 
 @implementation KBTaskReader
 
-- (instancetype)initWithTask:(NSTask *)task {
+- (instancetype)initWithTask:(NSTask *)task completion:(KBCompletion)completion {
   if ((self = [super init])) {
+    self.completion = completion;
+
     NSPipe *outPipe = [NSPipe pipe];
     [task setStandardOutput:outPipe];
     NSPipe *errPipe = [NSPipe pipe];
@@ -180,23 +176,13 @@
   [self.errFh readToEndOfFileInBackgroundAndNotify];
 }
 
-- (void)drain {
-  [self drain:self.outFh data:self.outData];
-  [self drain:self.errFh data:self.errData];
-}
-
-- (void)drain:(NSFileHandle *)fh data:(NSMutableData *)data {
-  NSData *readData = [fh readDataToEndOfFile];
-  if (readData.length > 0) {
-    [data appendData:readData];
-  }
-}
-
 - (void)outData:(NSNotification *)notification {
   NSData *data = [[notification userInfo] objectForKey:NSFileHandleNotificationDataItem];
   if (data.length > 0) {
     [self.outData appendData:data];
   }
+  self.outEOF = YES;
+  [self checkCompletion];
 }
 
 - (void)errData:(NSNotification *)notification {
@@ -204,6 +190,12 @@
   if (data.length > 0) {
     [self.errData appendData:data];
   }
+  self.errEOF = YES;
+  [self checkCompletion];
+}
+
+- (void)checkCompletion {
+  if (self.outEOF && self.errEOF) self.completion(nil);
 }
 
 @end
