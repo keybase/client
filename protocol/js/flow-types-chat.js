@@ -56,36 +56,72 @@ export function remoteGetConversationMetadataRemoteRpc (request: $Exact<requestC
   engineRpcOutgoing({...request, method: 'remote.getConversationMetadataRemote'})
 }
 
+export function remoteGetConversationMetadataRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetConversationMetadataRemoteResult) => void} & {param: remoteGetConversationMetadataRemoteRpcParam}>): Promise<remoteGetConversationMetadataRemoteResult> {
+  return new Promise((resolve, reject) => { remoteGetConversationMetadataRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteGetInboxByTLFIDRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxByTLFIDRemoteResult) => void} & {param: remoteGetInboxByTLFIDRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.getInboxByTLFIDRemote'})
+}
+
+export function remoteGetInboxByTLFIDRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxByTLFIDRemoteResult) => void} & {param: remoteGetInboxByTLFIDRemoteRpcParam}>): Promise<remoteGetInboxByTLFIDRemoteResult> {
+  return new Promise((resolve, reject) => { remoteGetInboxByTLFIDRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function remoteGetInboxRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.getInboxRemote'})
 }
 
+export function remoteGetInboxRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>): Promise<remoteGetInboxRemoteResult> {
+  return new Promise((resolve, reject) => { remoteGetInboxRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteGetMessagesRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetMessagesRemoteResult) => void} & {param: remoteGetMessagesRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.getMessagesRemote'})
+}
+
+export function remoteGetMessagesRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetMessagesRemoteResult) => void} & {param: remoteGetMessagesRemoteRpcParam}>): Promise<remoteGetMessagesRemoteResult> {
+  return new Promise((resolve, reject) => { remoteGetMessagesRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function remoteGetThreadRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.getThreadRemote'})
 }
 
+export function remoteGetThreadRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>): Promise<remoteGetThreadRemoteResult> {
+  return new Promise((resolve, reject) => { remoteGetThreadRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteMarkAsReadRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteMarkAsReadResult) => void} & {param: remoteMarkAsReadRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.markAsRead'})
+}
+
+export function remoteMarkAsReadRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteMarkAsReadResult) => void} & {param: remoteMarkAsReadRpcParam}>): Promise<remoteMarkAsReadResult> {
+  return new Promise((resolve, reject) => { remoteMarkAsReadRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function remoteNewConversationRemote2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemote2Result) => void} & {param: remoteNewConversationRemote2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.newConversationRemote2'})
 }
 
+export function remoteNewConversationRemote2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemote2Result) => void} & {param: remoteNewConversationRemote2RpcParam}>): Promise<remoteNewConversationRemote2Result> {
+  return new Promise((resolve, reject) => { remoteNewConversationRemote2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteNewConversationRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemoteResult) => void} & {param: remoteNewConversationRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.newConversationRemote'})
 }
 
+export function remoteNewConversationRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemoteResult) => void} & {param: remoteNewConversationRemoteRpcParam}>): Promise<remoteNewConversationRemoteResult> {
+  return new Promise((resolve, reject) => { remoteNewConversationRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remotePostRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remotePostRemoteResult) => void} & {param: remotePostRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.postRemote'})
+}
+
+export function remotePostRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remotePostRemoteResult) => void} & {param: remotePostRemoteRpcParam}>): Promise<remotePostRemoteResult> {
+  return new Promise((resolve, reject) => { remotePostRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export type Conversation = {
