@@ -545,9 +545,11 @@ function diffAndStatusMeta (diff: ?TrackDiffType, proofResult: ?ProofResult, isT
       return null
     }
 
-    if (state === ProveCommonProofState.tempFailure) {
-      return metaPending
-    }
+    // FIXME: uncomment once the backend indicates pending-state failures based
+    // on low proof age.
+    // if (state === ProveCommonProofState.tempFailure) {
+    //   return metaPending
+    // }
 
     // The full mapping between the proof status we get back from the server
     // and a simplified representation that we show the users.
