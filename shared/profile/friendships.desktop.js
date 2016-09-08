@@ -71,7 +71,7 @@ class Render extends Component<void, Props, void> {
           label={`FOLLOWERS (${this.props.followers.length})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Followers') }}>
           <ReactList
-            style={tabItemContainerStyle}
+            style={reactListStyle}
             useTranslate3d={true}
             useStaticSize={true}
             itemRenderer={(index, key) => this._itemRenderer(true, index)}
@@ -83,7 +83,7 @@ class Render extends Component<void, Props, void> {
           label={`FOLLOWING (${this.props.following.length})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Following') }}>
           <ReactList
-            style={reactListStyle }
+            style={reactListStyle}
             useTranslate3d={true}
             useStaticSize={true}
             itemRenderer={(index, key) => this._itemRenderer(false, index)}

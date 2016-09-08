@@ -589,7 +589,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	return newUninstallResult(componentResults)
 }
 
-// UninstallKBFS uninstalls all KBFS services and unmounts the directory
+// UninstallKBFS uninstalls all KBFS services, unmounts and removes the directory
 func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, log Log) error {
 	err := uninstallKBFSServices(runMode, log)
 	if err != nil {
@@ -618,9 +618,33 @@ func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, lo
 	if !empty {
 		return fmt.Errorf("Mount has files after unmounting: %s", mountDir)
 	}
-	// TODO: We should remove the mountPath via trashDir(g, mountPath) but given
-	// permissions of /keybase we'll need the privileged tool to do it instead.
+
+	appPath, err := AppBundleForPath()
+	if err != nil {
+		return err
+	}
+	log.Info("Removing %s", mountDir)
+	if err := removeMountDir(appPath, string(runMode), log); err != nil {
+		return fmt.Errorf("Error removing mount dir: %s", err)
+	}
+
 	return nil
+}
+
+func nativeInstallerAppBundlePath(appPath string) string {
+	return filepath.Join(appPath, "Contents/Resources/KeybaseInstaller.app")
+}
+
+func nativeInstallerAppBundleExecPath(appPath string) string {
+	return filepath.Join(nativeInstallerAppBundlePath(appPath), "Contents/MacOS/Keybase")
+}
+
+func removeMountDir(appPath string, runMode string, log Log) error {
+	// We need the installer to remove the mount directory (since it's in the root, only the helper tool can do it)
+	cmd := exec.Command(nativeInstallerAppBundleExecPath(appPath), fmt.Sprintf("--run-mode=%s", runMode), "--uninstall-mountdir")
+	output, err := cmd.CombinedOutput()
+	log.Debug("Output (uninstall-mountdir): %s", string(output))
+	return err
 }
 
 // AutoInstallWithStatus runs the auto install and returns a result

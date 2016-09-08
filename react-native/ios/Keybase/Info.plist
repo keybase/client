@@ -53,7 +53,9 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
+	<true/>
+	<key>ITSEncryptionExportComplianceCode</key>
+	<string>63ff6926-88f0-4db0-8886-a4bb56bd4ad5</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>

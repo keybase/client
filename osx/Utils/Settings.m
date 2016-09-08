@@ -26,35 +26,50 @@
 
 - (instancetype)initWithSettings:(GBSettings *)settings {
   if ((self = [super init])) {
-    NSArray *args = NSProcessInfo.processInfo.arguments;
     self.settings = settings;
-    GBCommandLineParser *parser = [[GBCommandLineParser alloc] init];
-    [parser registerOption:@"app-path" shortcut:'a' requirement:GBValueRequired];
-    [parser registerOption:@"run-mode" shortcut:'r' requirement:GBValueRequired];
-    [parser registerSwitch:@"uninstall-app"];
-    [parser registerSwitch:@"uninstall-kext"];
-    [parser registerSwitch:@"install-fuse"];
-    [parser registerSettings:self.settings];
-    NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
-    [parser parseOptionsWithArguments:subargs commandLine:args[0]];
-    self.runMode = [self.settings objectForKey:@"run-mode"];
-    NSAssert(self.runMode, @"No run mode");
-    self.appPath = [self.settings objectForKey:@"app-path"];
-    NSAssert(self.appPath, @"No app path");
-    if ([[self.settings objectForKey:@"uninstall-app"] boolValue]) {
-      self.uninstallOptions |= UninstallOptionApp;
-    }
-    if ([[self.settings objectForKey:@"uninstall-kext"] boolValue]) {
-      self.uninstallOptions |= UninstallOptionKext;
-    }
-    if ([[self.settings objectForKey:@"install-fuse"] boolValue]) {
-      self.installOptions |= KBInstallOptionFuse;
-    }
-    if (self.installOptions == 0) {
-      self.installOptions = KBInstallOptionAll;
-    }
   }
   return self;
+}
+
+- (BOOL)parseArgs:(NSError **)error {
+  NSArray *args = NSProcessInfo.processInfo.arguments;
+  GBCommandLineParser *parser = [[GBCommandLineParser alloc] init];
+  [parser registerOption:@"app-path" shortcut:'a' requirement:GBValueRequired];
+  [parser registerOption:@"run-mode" shortcut:'r' requirement:GBValueRequired];
+  [parser registerSwitch:@"uninstall-app"];
+  [parser registerSwitch:@"uninstall-kext"];
+  [parser registerSwitch:@"uninstall-mountdir"];
+  [parser registerSwitch:@"uninstall-helper"];
+  [parser registerSwitch:@"install-fuse"];
+  [parser registerSettings:self.settings];
+  NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
+  if (![parser parseOptionsWithArguments:subargs commandLine:args[0]]) {
+    if (error) *error = KBMakeError(-1, @"Unable to process arguments");
+    return NO;
+  }
+  self.runMode = [self.settings objectForKey:@"run-mode"];
+  NSAssert(self.runMode, @"No run mode");
+  self.appPath = [self.settings objectForKey:@"app-path"];
+  NSAssert(self.appPath, @"No app path");
+  if ([[self.settings objectForKey:@"uninstall-app"] boolValue]) {
+    self.uninstallOptions |= UninstallOptionApp;
+  }
+  if ([[self.settings objectForKey:@"uninstall-kext"] boolValue]) {
+    self.uninstallOptions |= UninstallOptionKext;
+  }
+  if ([[self.settings objectForKey:@"uninstall-mountdir"] boolValue]) {
+    self.uninstallOptions |= UninstallOptionMountDir;
+  }
+  if ([[self.settings objectForKey:@"uninstall-helper"] boolValue]) {
+    self.uninstallOptions |= UninstallOptionHelper;
+  }
+  if ([[self.settings objectForKey:@"install-fuse"] boolValue]) {
+    self.installOptions |= KBInstallOptionFuse;
+  }
+  if (self.installOptions == 0) {
+    self.installOptions = KBInstallOptionAll;
+  }
+  return YES;
 }
 
 - (KBEnvironment *)environment {

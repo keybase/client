@@ -11,10 +11,9 @@
 #import "KBComponent.h"
 #import "KBInstallable.h"
 #import "KBEnvConfig.h"
-#import "KBHelperTool.h"
 
 @interface KBFSService : KBInstallable
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool label:(NSString *)label servicePath:(NSString *)servicePath;
+- (instancetype)initWithConfig:(KBEnvConfig *)config label:(NSString *)label servicePath:(NSString *)servicePath;
 
 @end

@@ -498,6 +498,10 @@ export function chatLocalGetInboxLocalRpc (request: $Exact<requestCommon & {call
   engineRpcOutgoing({...request, method: 'chatLocal.getInboxLocal'})
 }
 
+export function chatLocalGetInboxSummaryLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxSummaryLocalResult) => void} & {param: chatLocalGetInboxSummaryLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chatLocal.getInboxSummaryLocal'})
+}
+
 export function chatLocalGetMessagesLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetMessagesLocalResult) => void} & {param: chatLocalGetMessagesLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.getMessagesLocal'})
 }
@@ -516,6 +520,10 @@ export function chatLocalPostLocalRpc (request: $Exact<requestCommon & requestEr
 
 export function chatLocalResolveConversationLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalResolveConversationLocalResult) => void} & {param: chatLocalResolveConversationLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.resolveConversationLocal'})
+}
+
+export function chatLocalUpdateTopicNameLocalRpc (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalUpdateTopicNameLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chatLocal.updateTopicNameLocal'})
 }
 
 export function configCheckAPIServerOutOfDateWarningRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>) {
@@ -1232,6 +1240,7 @@ export type ConfirmResult = {
 }
 
 export type ConversationInfoLocal = {
+  id: chat1.ConversationID,
   tlfName: string,
   topicName: string,
   topicType: chat1.TopicType,
@@ -1505,6 +1514,12 @@ export type GetCurrentStatusRes = {
   loggedIn: boolean,
   sessionIsValid: boolean,
   user?: ?User,
+}
+
+export type GetInboxSummaryLocalRes = {
+  conversations?: ?Array<ConversationLocal>,
+  more?: ?Array<ConversationLocal>,
+  moreTotal: int,
 }
 
 export type GetPassphraseRes = {
@@ -1922,6 +1937,7 @@ export type PingResponse = {
 
 export type PlatformInfo = {
   os: string,
+  osVersion: string,
   arch: string,
   goVersion: string,
 }
@@ -2634,6 +2650,12 @@ export type chatLocalGetInboxLocalRpcParam = $Exact<{
   pagination?: ?chat1.Pagination
 }>
 
+export type chatLocalGetInboxSummaryLocalRpcParam = $Exact<{
+  topicTypes?: ?Array<chat1.TopicType>,
+  since: string,
+  limit: int
+}>
+
 export type chatLocalGetMessagesLocalRpcParam = $Exact<{
   selector: MessageSelector
 }>
@@ -2645,7 +2667,7 @@ export type chatLocalGetThreadLocalRpcParam = $Exact<{
 }>
 
 export type chatLocalNewConversationLocalRpcParam = $Exact<{
-  conversationTriple: chat1.ConversationIDTriple
+  conversation: ConversationInfoLocal
 }>
 
 export type chatLocalPostLocalRpcParam = $Exact<{
@@ -2655,6 +2677,11 @@ export type chatLocalPostLocalRpcParam = $Exact<{
 
 export type chatLocalResolveConversationLocalRpcParam = $Exact<{
   conversation: ConversationInfoLocal
+}>
+
+export type chatLocalUpdateTopicNameLocalRpcParam = $Exact<{
+  conversationID: chat1.ConversationID,
+  newTopicName: string
 }>
 
 export type configClearValueRpcParam = $Exact<{
@@ -3456,13 +3483,15 @@ type chatLocalCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
 
 type chatLocalGetInboxLocalResult = chat1.InboxView
 
+type chatLocalGetInboxSummaryLocalResult = GetInboxSummaryLocalRes
+
 type chatLocalGetMessagesLocalResult = ?Array<ConversationLocal>
 
 type chatLocalGetThreadLocalResult = ThreadView
 
-type chatLocalNewConversationLocalResult = chat1.ConversationID
+type chatLocalNewConversationLocalResult = ConversationInfoLocal
 
-type chatLocalResolveConversationLocalResult = ?Array<chat1.ConversationID>
+type chatLocalResolveConversationLocalResult = ?Array<ConversationInfoLocal>
 
 type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
 
@@ -3682,11 +3711,13 @@ export type rpc =
   | blockPutBlockRpc
   | chatLocalCompleteAndCanonicalizeTlfNameRpc
   | chatLocalGetInboxLocalRpc
+  | chatLocalGetInboxSummaryLocalRpc
   | chatLocalGetMessagesLocalRpc
   | chatLocalGetThreadLocalRpc
   | chatLocalNewConversationLocalRpc
   | chatLocalPostLocalRpc
   | chatLocalResolveConversationLocalRpc
+  | chatLocalUpdateTopicNameLocalRpc
   | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
   | configGetConfigRpc
