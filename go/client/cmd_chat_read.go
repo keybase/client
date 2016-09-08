@@ -27,7 +27,12 @@ func newCmdChatRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatRead{Contextified: libkb.NewContextified(g)}, "read", c)
 		},
-		Flags:       makeChatListAndReadFlags(nil),
+		Flags: makeChatListAndReadFlags([]cli.Flag{
+			cli.StringFlag{
+				Name:  "topic-name",
+				Usage: `Specify topic name of the conversation.`,
+			},
+		}),
 		Description: `"keybase chat read" displays shows and read chat messages from a conversation. --time/--since can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported.`,
 	}
 }
