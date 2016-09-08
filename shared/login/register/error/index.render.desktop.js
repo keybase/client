@@ -54,6 +54,12 @@ const renderError = (error: RPCError) => {
             </p>
           </div>)
       }
+    case ConstantsStatusCode.scnotfound:
+      return (
+        <p>
+          <Text type='Body'>The username you provided doesn't exist on Keybase, please try logging in again with a different username.</Text>
+        </p>
+      )
     case ConstantsStatusCode.scbadloginpassword:
       return (
         <p>
@@ -71,7 +77,7 @@ const renderError = (error: RPCError) => {
           <Text type='BodySmall' style={{display: 'inline-block'}}> - Go back and provision with another device or paper key</Text>
         </p>)
     default:
-      return <Text type='Body'>Unknown error: {error.toString()}</Text>
+      return <Text type='Body'>Unknown error: {error.desc}</Text>
   }
 }
 
