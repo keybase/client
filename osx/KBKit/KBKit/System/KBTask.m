@@ -18,6 +18,7 @@
 @property NSMutableData *errData;
 - (instancetype)initWithTask:(NSTask *)task;
 - (void)start;
+- (void)flush;
 @end
 
 @interface KBTask ()
@@ -62,17 +63,20 @@
 }
 
 - (void)taskDidTerminate:(NSNotification *)notification {
+  GHWeakSelf wself = self;
   dispatch_async(self.taskQueue, ^{
-    if (self.timedOut) {
+    if (wself.timedOut) {
       DDLogDebug(@"Task termination handler, timed out, skipping");
       return;
     }
-    self.replied = YES;
+    wself.replied = YES;
     DDLogDebug(@"Task dispatch completion");
     dispatch_async(dispatch_get_main_queue(), ^{
-      DDLogDebug(@"Task (out): %@", ([[NSString alloc] initWithData:self.taskReader.outData encoding:NSUTF8StringEncoding]));
-      DDLogDebug(@"Task (err): %@", ([[NSString alloc] initWithData:self.taskReader.errData encoding:NSUTF8StringEncoding]));
-      self.completion(nil, self.taskReader.outData, self.taskReader.errData);
+      // Ensure we've read to EOF
+      [wself.taskReader flush];
+      DDLogDebug(@"Task (out): %@", ([[NSString alloc] initWithData:wself.taskReader.outData encoding:NSUTF8StringEncoding]));
+      DDLogDebug(@"Task (err): %@", ([[NSString alloc] initWithData:wself.taskReader.errData encoding:NSUTF8StringEncoding]));
+      self.completion(nil, wself.taskReader.outData, wself.taskReader.errData);
     });
   });
 }
@@ -174,6 +178,18 @@
 - (void)start {
   [self.outFh readToEndOfFileInBackgroundAndNotify];
   [self.errFh readToEndOfFileInBackgroundAndNotify];
+}
+
+- (void)flush {
+  [self flush:self.outFh data:self.outData];
+  [self flush:self.errFh data:self.errData];
+}
+
+- (void)flush:(NSFileHandle *)fh data:(NSMutableData *)data {
+  NSData *readData = [fh readDataToEndOfFile];
+  if (readData.length > 0) {
+    [data appendData:readData];
+  }
 }
 
 - (void)outData:(NSNotification *)notification {
