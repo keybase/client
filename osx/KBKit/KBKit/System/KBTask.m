@@ -22,7 +22,6 @@
 @property NSMutableData *errData;
 - (instancetype)initWithTask:(NSTask *)task;
 - (void)start;
-- (void)readToEOF;
 @end
 
 @implementation KBTask
@@ -80,8 +79,6 @@
       replied = YES;
       DDLogDebug(@"Task dispatch completion");
       dispatch_async(dispatch_get_main_queue(), ^{
-        // Ensure we have all the data
-        [taskReader readToEOF];
         DDLogDebug(@"Task (out): %@", [[NSString alloc] initWithData:taskReader.outData encoding:NSUTF8StringEncoding]);
         DDLogDebug(@"Task (err): %@", [[NSString alloc] initWithData:taskReader.errData encoding:NSUTF8StringEncoding]);
         completion(nil, taskReader.outData, taskReader.errData);
@@ -168,17 +165,6 @@
 - (void)start {
   [self.outFh readToEndOfFileInBackgroundAndNotify];
   [self.errFh readToEndOfFileInBackgroundAndNotify];
-}
-
-- (void)readToEOF {
-  NSData *outData = [self.outFh readDataToEndOfFile];
-  if (outData.length > 0) {
-    [self.outData appendData:outData];
-  }
-  NSData *errData = [self.errFh readDataToEndOfFile];
-  if (errData.length > 0) {
-    [self.errData appendData:errData];
-  }
 }
 
 - (void)outData:(NSNotification *)notification {
