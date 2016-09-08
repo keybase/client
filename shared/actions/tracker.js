@@ -85,10 +85,8 @@ export function getProfile (username: string): TrackerActionCreator {
       return
     }
 
-    console.log('aaa', username, tracker)
     const uid = tracker.trackers[username] && tracker.trackers[username].userInfo && tracker.trackers[username].userInfo.uid
     const goodTill = tracker.cachedIdentifies[uid]
-    console.log('aaa', uid, goodTill, Date.now())
     if (goodTill && goodTill >= Date.now()) {
       console.log('Bailing on cached getProfile', username, uid)
       return
