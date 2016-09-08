@@ -343,6 +343,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(bws TLFJournalBackgroundWorkStatus) {
 
 		case bws == TLFJournalBackgroundWorkPaused:
 			// 3) Paused
+			j.wg.Pause()
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwPaused)
 			}
@@ -351,6 +352,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(bws TLFJournalBackgroundWorkStatus) {
 				j.tlfID)
 			select {
 			case <-j.needResumeCh:
+				j.wg.Resume()
 				j.log.CDebugf(ctx,
 					"Got resume signal for %s", j.tlfID)
 				bws = TLFJournalBackgroundWorkEnabled
@@ -936,7 +938,10 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 }
 
 func (j *tlfJournal) wait(ctx context.Context) error {
-	// TODO: figure out if the journal is currently paused; if so,
-	// return an error.
-	return j.wg.Wait(ctx)
+	workLeft, err := j.wg.WaitUnlessPaused(ctx)
+	if err == nil && workLeft {
+		j.log.CDebugf(ctx, "Wait completed with work left, "+
+			"due to paused journal")
+	}
+	return err
 }
