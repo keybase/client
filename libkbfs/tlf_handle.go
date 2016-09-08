@@ -169,36 +169,6 @@ func (h TlfHandle) WithUpdatedConflictInfo(
 	return newHandle, nil
 }
 
-// UpdateConflictInfo sets the handle's conflict info to the given
-// one, if the existing one is nil. (In this case, the given one may
-// also be nil.) Otherwise, the given conflict info must match the
-// existing one.
-func (h *TlfHandle) UpdateConflictInfo(
-	codec Codec, info *TlfHandleExtension) error {
-	if h.conflictInfo == nil {
-		if info == nil {
-			// Nothing to do.
-			return nil
-		}
-		conflictInfoCopy := *info
-		h.conflictInfo = &conflictInfoCopy
-		return nil
-	}
-	// Make sure conflict info is the same; the conflict info for
-	// a TLF, once set, is immutable and should never change.
-	equal, err := CodecEqual(codec, h.conflictInfo, info)
-	if err != nil {
-		return err
-	}
-	if !equal {
-		return TlfHandleExtensionMismatchError{
-			Expected: *h.ConflictInfo(),
-			Actual:   info,
-		}
-	}
-	return nil
-}
-
 // FinalizedInfo returns the handle's finalized info, if any.
 func (h TlfHandle) FinalizedInfo() *TlfHandleExtension {
 	if h.finalizedInfo == nil {
