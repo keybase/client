@@ -104,6 +104,9 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 		if err != nil {
 			return fmt.Errorf("error preparing message: %s", err)
 		}
+
+		h.G().Log.Warning("firstMessageBoxed: %+v", firstMessageBoxed)
+
 		res, err := h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,
 			TLFMessage: firstMessageBoxed,
@@ -531,14 +534,16 @@ func (h *chatLocalHandler) fillSenderIDsForPostLocal(arg *keybase1.MessagePlaint
 		return errors.New("invalid UID")
 	}
 	arg.ClientHeader.Sender = gregor1.UID(huid)
+	arg.ClientHeader.Sender = huid
+	h.G().Log.Warning("Sender: %v", arg.ClientHeader.Sender)
+	h.G().Log.Warning("huid: %v", huid)
 
 	hdid := make([]byte, libkb.DeviceIDLen)
 	if err = did.ToBytes(hdid); err != nil {
 		return err
 	}
 	arg.ClientHeader.SenderDevice = gregor1.DeviceID(hdid)
-
-	arg.ClientHeader.SenderDevice = gregor1.DeviceID(hdid)
+	h.G().Log.Warning("SenderDevice: %v", arg.ClientHeader.Sender)
 
 	return nil
 }
