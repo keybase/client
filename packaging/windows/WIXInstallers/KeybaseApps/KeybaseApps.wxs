@@ -24,7 +24,7 @@
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
       <Custom Action="StopUpdater" Before="InstallValidate"/>
       <Custom Action="StopGUI" Before="InstallValidate"/>
-      <Custom Action="StopMainApp" Before="InstallValidate"/>
+      <Custom Action="StopMainApp" Before="StopKBFS"/>
       <Custom Action="StopKBFS" Before="InstallValidate"/>
       <Custom Action="RunMainApp" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
       <Custom Action="RunGUI" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
