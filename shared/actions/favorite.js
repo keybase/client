@@ -281,7 +281,7 @@ function _notify (state) {
   previousNotifyState = newNotifyState
 }
 
-function * _favoriteSaga (): SagaGenerator<any, any> {
+function * favoriteSaga (): SagaGenerator<any, any> {
   yield [
     takeLatest(Constants.favoriteList, _listSaga),
     takeEvery(Constants.favoriteAdd, _addSaga),
@@ -297,4 +297,4 @@ export {
   ignoreFolder,
 }
 
-export default _favoriteSaga
+export default favoriteSaga
