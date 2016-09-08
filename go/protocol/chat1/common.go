@@ -98,7 +98,7 @@ type ConversationReaderInfo struct {
 type Conversation struct {
 	Metadata   ConversationMetadata    `codec:"metadata" json:"metadata"`
 	ReaderInfo *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	MaxHeaders []MessageServerHeader   `codec:"maxHeaders" json:"maxHeaders"`
+	MaxMsgs    []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
 }
 
 type MessageServerHeader struct {

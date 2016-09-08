@@ -91,7 +91,7 @@ export function remotePostRemoteRpc (request: $Exact<requestCommon & {callback?:
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
-  maxHeaders?: ?Array<MessageServerHeader>,
+  maxMsgs?: ?Array<MessageBoxed>,
 }
 
 export type ConversationID = uint64
