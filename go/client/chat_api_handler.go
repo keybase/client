@@ -65,11 +65,12 @@ type ChatServiceHandler interface {
 
 type ChatAPI struct {
 	svcHandler ChatServiceHandler
+	indent     bool
 }
 
 type ChatChannel struct {
-	Name   string
-	Public bool
+	Name   string `json:"name"`
+	Public bool   `json:"public"`
 }
 
 func (c ChatChannel) Valid() bool {
@@ -165,5 +166,8 @@ func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
 	reply.ID = call.ID
 
 	enc := json.NewEncoder(w)
+	if a.indent {
+		enc.SetIndent("", "\t")
+	}
 	return enc.Encode(reply)
 }

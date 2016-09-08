@@ -57,3 +57,7 @@ func (t TopicType) String() string {
 		return "UNKNOWN"
 	}
 }
+
+func (t TopicID) String() string {
+	return hex.EncodeToString(t)
+}

@@ -18,6 +18,7 @@ import (
 
 type CmdChatAPI struct {
 	libkb.Contextified
+	indent bool
 }
 
 func newCmdChatAPI(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -28,6 +29,12 @@ func newCmdChatAPI(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			cmd := &CmdChatAPI{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "api", c)
 		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "p, pretty",
+				Usage: "Output pretty (indented) JSON.",
+			},
+		},
 	}
 }
 
@@ -35,11 +42,12 @@ func (c *CmdChatAPI) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 0 {
 		return errors.New("api takes no arguments")
 	}
+	c.indent = ctx.Bool("pretty")
 	return nil
 }
 
 func (c *CmdChatAPI) Run() error {
-	d := NewChatAPIDecoder(&ChatAPI{svcHandler: c})
+	d := NewChatAPIDecoder(&ChatAPI{svcHandler: c, indent: c.indent})
 
 	// TODO: flags for not using stdin, stdout
 
@@ -58,6 +66,18 @@ func (c *CmdChatAPI) GetUsage() libkb.Usage {
 	}
 }
 
+type ConvSummary struct {
+	ID        chat1.ConversationID `json:"id"`
+	Channel   ChatChannel          `json:"channel"`
+	TopicType string               `json:"topic_type"`
+	TopicID   string               `json:"topic_id"`
+}
+
+type ChatList struct {
+	Status        string        `json:"status"`
+	Conversations []ConvSummary `json:"conversations"`
+}
+
 func (c *CmdChatAPI) ListV1() Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
@@ -72,9 +92,19 @@ func (c *CmdChatAPI) ListV1() Reply {
 
 	fmt.Printf("inbox: %+v\n", inbox)
 
-	// XXX convert inbox to something else...
+	var cl ChatList
+	cl.Status = "ok"
+	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
+	for i, conv := range inbox.Conversations {
+		cl.Conversations[i] = ConvSummary{
+			ID:        conv.Metadata.ConversationID,
+			Channel:   ChatChannel{},
+			TopicType: conv.Metadata.IdTriple.TopicType.String(),
+			TopicID:   conv.Metadata.IdTriple.TopicID.String(),
+		}
+	}
 
-	return Reply{}
+	return Reply{Result: cl}
 }
 
 func (c *CmdChatAPI) ReadV1(opts readOptionsV1) Reply {
@@ -143,9 +173,23 @@ func (c *CmdChatAPI) SendV1(opts sendOptionsV1) Reply {
 		return c.errReply(fmt.Errorf("multiple conversations matched"))
 	}
 
-	fmt.Printf("conversation: %+v\n", conversation)
+	postArg := keybase1.PostLocalArg{
+		ConversationID: conversation.Id,
+		MessagePlaintext: keybase1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				TlfName:     conversation.TlfName,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBodies: []keybase1.MessageBody{
+				keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: opts.Message.Body}),
+			},
+		},
+	}
+	if err := client.PostLocal(ctx, postArg); err != nil {
+		return c.errReply(err)
+	}
 
-	return Reply{}
+	return Reply{Result: "ok"}
 }
 
 func (c *CmdChatAPI) errReply(err error) Reply {
