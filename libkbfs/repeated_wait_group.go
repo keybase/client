@@ -20,6 +20,8 @@ type RepeatedWaitGroup struct {
 	lock     sync.Mutex
 	num      int
 	isIdleCh chan struct{} // leave as nil when initializing
+	paused   bool
+	pauseCh  chan struct{} // leave as nil when initializing
 }
 
 // Add indicates that a number of tasks have begun.
@@ -58,6 +60,62 @@ func (rwg *RepeatedWaitGroup) Wait(ctx context.Context) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+// WaitUnlessPaused works like Wait, except it can return early if the
+// wait group is paused.  It returns whether it was paused with
+// outstanding work still left in the group.
+func (rwg *RepeatedWaitGroup) WaitUnlessPaused(ctx context.Context) (
+	bool, error) {
+	paused, isIdleCh, pauseCh := func() (bool, chan struct{}, chan struct{}) {
+		rwg.lock.Lock()
+		defer rwg.lock.Unlock()
+		if !rwg.paused && rwg.pauseCh == nil {
+			rwg.pauseCh = make(chan struct{})
+		}
+		return rwg.paused, rwg.isIdleCh, rwg.pauseCh
+	}()
+
+	if isIdleCh == nil {
+		return false, nil
+	}
+
+	if paused {
+		return true, nil
+	}
+
+	select {
+	case <-isIdleCh:
+		return false, nil
+	case <-pauseCh:
+		return true, nil
+	case <-ctx.Done():
+		return false, ctx.Err()
+	}
+}
+
+// Pause causes any current or future callers of `WaitUnlessPaused` to
+// return immediately.
+func (rwg *RepeatedWaitGroup) Pause() {
+	rwg.lock.Lock()
+	defer rwg.lock.Unlock()
+	rwg.paused = true
+	if rwg.pauseCh != nil {
+		close(rwg.pauseCh)
+		rwg.pauseCh = nil
+	}
+}
+
+// Resume unpauses the wait group, allowing future callers of
+// `WaitUnlessPaused` to wait until all the outstanding work is
+// completed.
+func (rwg *RepeatedWaitGroup) Resume() {
+	rwg.lock.Lock()
+	defer rwg.lock.Unlock()
+	if rwg.pauseCh != nil {
+		panic("Non-nil pauseCh on resume!")
+	}
+	rwg.paused = false
 }
 
 // Done indicates that one task has completed.
