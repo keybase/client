@@ -168,9 +168,9 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageServerHeader"
+            "items": "MessageBoxed"
           },
-          "name": "maxHeaders"
+          "name": "maxMsgs"
         }
       ]
     },

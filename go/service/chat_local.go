@@ -360,31 +360,12 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 	conversationInfo.Id = conversationRemote.Metadata.ConversationID
 	conversationInfo.TopicType = conversationRemote.Metadata.IdTriple.TopicType
 
-	if len(conversationRemote.MaxHeaders) == 0 {
-		return conversationInfo, triple, maxMessages, libkb.UnexpectedChatDataFromServer{Msg: "conversation has an empty MaxHeaders field"}
-	}
-	var messageIDs []chat1.MessageID
-	for _, header := range conversationRemote.MaxHeaders {
-		messageIDs = append(messageIDs, header.MessageID)
+	if len(conversationRemote.MaxMsgs) == 0 {
+		return conversationInfo, triple, maxMessages,
+			libkb.UnexpectedChatDataFromServer{Msg: "conversation has an empty MaxMsgs field"}
 	}
 
-	res, err := h.remoteClient().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
-		ConversationID: conversationRemote.Metadata.ConversationID,
-
-		// Now we definitely have the maximum message ID in the conversation no
-		// matter the type; we also might have the maximum message ID of message
-		// type METADATA. The former one is used for latest TLF name and the latter
-		// one is used to set topic name. So we retrieve both.
-		MessageIDs: messageIDs,
-	})
-	if err != nil {
-		return conversationInfo, triple, maxMessages, err
-	}
-	if len(res.Msgs) != len(messageIDs) {
-		return conversationInfo, triple, maxMessages, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("unexpected number of messages (got %d, expected %d) from GetMessagesRemote", len(res.Msgs), len(messageIDs))}
-	}
-
-	for _, b := range res.Msgs {
+	for _, b := range conversationRemote.MaxMsgs {
 		unboxed, err := h.boxer.unboxMessage(ctx, newKeyFinder(), b)
 		if err != nil {
 			return conversationInfo, triple, maxMessages, err

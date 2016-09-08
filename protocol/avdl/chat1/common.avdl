@@ -59,8 +59,8 @@ protocol common {
     ConversationMetadata metadata;
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
 
-    // maxHeaders is the maximum header for each messageType in the conversation.
-    array<MessageServerHeader> maxHeaders;
+    // maxMsgs is the maximum message for each messageType in the conversation
+    array<MessageBoxed> maxMsgs;
   }
 
   record MessageServerHeader {
