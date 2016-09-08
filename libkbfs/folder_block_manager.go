@@ -250,7 +250,13 @@ func (fbm *folderBlockManager) enqueueBlocksToDeleteAfterShortDelay(
 	toDelete blocksToDelete) {
 	fbm.blocksToDeleteWaitGroup.Add(1)
 	time.AfterFunc(deleteBlocksRetryDelay,
-		func() { fbm.blocksToDeleteChan <- toDelete })
+		func() {
+			select {
+			case fbm.blocksToDeleteChan <- toDelete:
+			case <-fbm.shutdownChan:
+				fbm.blocksToDeleteWaitGroup.Done()
+			}
+		})
 }
 
 // enqueueBlocksToDeleteNoWait enqueues blocks to be deleted just like
