@@ -54,13 +54,12 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
             def clientImage = docker.image("keybaseprivate/kbclient")
             def kbfsImage = docker.image("keybaseprivate/kbfsfuse")
 
+            println "Setting up build: ${env.BUILD_TAG}"
+            def cause = helpers.getCauseString(currentBuild)
+            println "Cause: ${cause}"
+            def startKbweb = !binding.variables.containsKey("kbwebNodePrivateIP") || kbwebNodePrivateIP == '' || kbwebNodePublicIP == ''
 
-            stage "Setup"
-
-                println "Setting up build: ${env.BUILD_TAG}"
-                def cause = helpers.getCauseString(currentBuild)
-                println "Cause: ${cause}"
-                def startKbweb = !binding.variables.containsKey("kbwebNodePrivateIP") || kbwebNodePrivateIP == '' || kbwebNodePublicIP == ''
+            stage("Setup") {
                 sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
                 sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
                 sh "docker rmi --no-prune keybaseprivate/mysql keybaseprivate/kbgregor keybaseprivate/kbweb keybaseprivate/kbclient || echo 'No images to remove'"
@@ -112,9 +111,10 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                         },
                     )
                 }
+            }
 
+            stage("Test") {
                 def kbweb = null
-
                 try {
                     if (startKbweb) {
                         retry(5) {
@@ -129,7 +129,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                         sh "rm private.txt"
                     }
 
-                    stage "Test"
                     parallel (
                         test_linux: {
                             withEnv([
@@ -210,17 +209,17 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                 } finally {
                     sh "docker-compose down"
                 }
+            }
 
-
-            stage "Push"
-
+            stage("Push") {
                 if (env.BRANCH_NAME == "master" && cause != "upstream") {
-                    docker.withRegistry("https://docker.io", "docker-hub-creds") {
+                    docker.withRegistry("", "docker-hub-creds") {
                         kbfsImage.push()
                     }
                 } else {
                     println "Not pushing docker"
                 }
+            }
         }
     }
 }
