@@ -180,6 +180,7 @@ func (h TlfHandle) FinalizedInfo() *TlfHandleExtension {
 
 // SetFinalizedInfo sets the handle's finalized info to the given one,
 // which may be nil.
+// TODO: remove this to make TlfHandle fully immutable
 func (h *TlfHandle) SetFinalizedInfo(info *TlfHandleExtension) {
 	if info == nil {
 		h.finalizedInfo = nil
