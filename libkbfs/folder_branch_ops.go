@@ -356,10 +356,6 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
 	}
 
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		jServer.RegisterBranchChange(fbo.id(), fbo.journalBranchChange)
-	}
-
 	return fbo
 }
 
@@ -4609,7 +4605,7 @@ func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
 	return fbo.unstageLocked(ctx, lState)
 }
 
-func (fbo *folderBranchOps) journalBranchChange(newBID BranchID) {
+func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
 	if newBID == NullBranchID {
 		return
 	}

@@ -637,3 +637,9 @@ func (fs *KBFSOpsStandard) UnregisterFromChanges(
 	}
 	return nil
 }
+
+func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID TlfID, newBID BranchID) {
+	ops := fs.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch})
+	// Launch in a new goroutine to avoid deadlocks.
+	go ops.onTLFBranchChange(newBID)
+}

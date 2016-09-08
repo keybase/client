@@ -777,8 +777,9 @@ func (c *ConfigLocal) EnableJournaling(journalRoot string) {
 	// it if it doesn't exist, make sure that it doesn't
 	// point to /keybase itself, etc.
 	log := c.MakeLogger("")
+	onBranchChange := c.KBFSOps().(*KBFSOpsStandard)
 	jServer := makeJournalServer(c, log, journalRoot, c.BlockCache(),
-		c.BlockServer(), c.MDOps())
+		c.BlockServer(), c.MDOps(), onBranchChange)
 	ctx := context.Background()
 	err := jServer.EnableExistingJournals(
 		ctx, TLFJournalBackgroundWorkEnabled)

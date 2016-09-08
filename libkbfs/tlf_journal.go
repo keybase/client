@@ -110,8 +110,6 @@ type tlfJournalBWDelegate interface {
 	OnShutdown(ctx context.Context)
 }
 
-type branchChangeNotifier func(BranchID)
-
 // A tlfJournal contains all the journals for a TLF and controls the
 // synchronization between the objects that are adding to those
 // journals (via journalBlockServer or journalMDOps) and a background
@@ -122,7 +120,7 @@ type tlfJournal struct {
 	delegateBlockServer BlockServer
 	log                 logger.Logger
 	deferLog            logger.Logger
-	branchFn            branchChangeNotifier
+	onBranchChange      branchChangeListener
 
 	// All the channels below are used as simple on/off
 	// signals. They're buffered for one object, and all sends are
@@ -154,7 +152,7 @@ type tlfJournal struct {
 func makeTLFJournal(
 	ctx context.Context, dir string, tlfID TlfID, config tlfJournalConfig,
 	delegateBlockServer BlockServer, bws TLFJournalBackgroundWorkStatus,
-	bwDelegate tlfJournalBWDelegate, branchFn branchChangeNotifier) (
+	bwDelegate tlfJournalBWDelegate, onBranchChange branchChangeListener) (
 	*tlfJournal, error) {
 	log := config.MakeLogger("TLFJ")
 
@@ -184,7 +182,7 @@ func makeTLFJournal(
 		delegateBlockServer: delegateBlockServer,
 		log:                 log,
 		deferLog:            log.CloneWithAddedDepth(1),
-		branchFn:            branchFn,
+		onBranchChange:      onBranchChange,
 		hasWorkCh:           make(chan struct{}, 1),
 		needPauseCh:         make(chan struct{}, 1),
 		needResumeCh:        make(chan struct{}, 1),
@@ -547,8 +545,8 @@ func (j *tlfJournal) convertMDsToBranchAndGetNextEntry(
 		return MdID{}, nil, err
 	}
 
-	if j.branchFn != nil {
-		j.branchFn(bid)
+	if j.onBranchChange != nil {
+		j.onBranchChange.onTLFBranchChange(j.tlfID, bid)
 	}
 
 	return j.mdJournal.getNextEntryToFlush(
@@ -836,8 +834,8 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 		return err
 	}
 
-	if j.branchFn != nil {
-		j.branchFn(NullBranchID)
+	if j.onBranchChange != nil {
+		j.onBranchChange.onTLFBranchChange(j.tlfID, NullBranchID)
 	}
 
 	j.journalLock.Lock()

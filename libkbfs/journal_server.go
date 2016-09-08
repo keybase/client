@@ -24,6 +24,17 @@ type JournalServerStatus struct {
 	UnflushedBytes int64 // (signed because os.FileInfo.Size() is signed)
 }
 
+// branchChangeListener describes a caller that will get updates via
+// the onTLFBranchChange method call when the journal branch changes
+// for the given TlfID.  If a new branch has been created, the given
+// BranchID will be something other than NullBranchID.  If the current
+// branch was pruned, it will be NullBranchID.  If the implementer
+// will be accessing the journal, it must do so from another goroutine
+// to avoid deadlocks.
+type branchChangeListener interface {
+	onTLFBranchChange(TlfID, BranchID)
+}
+
 // TODO: JournalServer isn't really a server, although it can create
 // objects that act as servers. Rename to JournalManager.
 
@@ -44,15 +55,16 @@ type JournalServer struct {
 	delegateBlockCache  BlockCache
 	delegateBlockServer BlockServer
 	delegateMDOps       MDOps
+	onBranchChange      branchChangeListener
 
-	lock            sync.RWMutex
-	tlfJournals     map[TlfID]*tlfJournal
-	branchChangeFns map[TlfID][]branchChangeNotifier
+	lock        sync.RWMutex
+	tlfJournals map[TlfID]*tlfJournal
 }
 
 func makeJournalServer(
 	config Config, log logger.Logger, dir string,
-	bcache BlockCache, bserver BlockServer, mdOps MDOps) *JournalServer {
+	bcache BlockCache, bserver BlockServer, mdOps MDOps,
+	onBranchChange branchChangeListener) *JournalServer {
 	jServer := JournalServer{
 		config:              config,
 		log:                 log,
@@ -61,8 +73,8 @@ func makeJournalServer(
 		delegateBlockCache:  bcache,
 		delegateBlockServer: bserver,
 		delegateMDOps:       mdOps,
+		onBranchChange:      onBranchChange,
 		tlfJournals:         make(map[TlfID]*tlfJournal),
-		branchChangeFns:     make(map[TlfID][]branchChangeNotifier),
 	}
 	return &jServer
 }
@@ -141,13 +153,9 @@ func (j *JournalServer) Enable(
 		return nil
 	}
 
-	branchFn := func(bid BranchID) {
-		j.branchChange(tlfID, bid)
-	}
-
 	tlfJournal, err := makeTLFJournal(ctx, j.dir, tlfID,
 		tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
-		bws, nil, branchFn)
+		bws, nil, j.onBranchChange)
 	if err != nil {
 		return err
 	}
@@ -289,27 +297,6 @@ func (j *JournalServer) JournalStatus(tlfID TlfID) (TLFJournalStatus, error) {
 	}
 
 	return tlfJournal.getJournalStatus()
-}
-
-func (j *JournalServer) branchChange(tlfID TlfID, newBID BranchID) {
-	j.lock.RLock()
-	defer j.lock.RUnlock()
-	for _, f := range j.branchChangeFns[tlfID] {
-		// Call in a separate goroutine so we don't block journal
-		// operations or block any locks.
-		go f(newBID)
-	}
-}
-
-// RegisterBranchChange allows a caller to be notified (via a call of
-// `branchFn`) whenever the branch ID for `tlfID` changes in the
-// journal.  `branchFn` will be called in a new goroutine each time it
-// is called.
-func (j *JournalServer) RegisterBranchChange(tlfID TlfID,
-	branchFn branchChangeNotifier) {
-	j.lock.Lock()
-	defer j.lock.Unlock()
-	j.branchChangeFns[tlfID] = append(j.branchChangeFns[tlfID], branchFn)
 }
 
 func (j *JournalServer) shutdown() {
