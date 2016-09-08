@@ -73,7 +73,6 @@ class Render extends Component<void, Props, void> {
           <ReactList
             style={reactListStyle}
             useTranslate3d={true}
-            useStaticSize={true}
             itemRenderer={(index, key) => this._itemRenderer(true, index)}
             length={this.props.followers.length}
             type='uniform' />
@@ -85,7 +84,6 @@ class Render extends Component<void, Props, void> {
           <ReactList
             style={reactListStyle}
             useTranslate3d={true}
-            useStaticSize={true}
             itemRenderer={(index, key) => this._itemRenderer(false, index)}
             length={this.props.following.length}
             type='uniform' />
