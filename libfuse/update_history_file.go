@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"bazil.org/fuse"
 	"golang.org/x/net/context"
 )
 
@@ -18,8 +17,9 @@ const UpdateHistoryFileName = ".kbfs_update_history"
 
 func getEncodedUpdateHistory(ctx context.Context, folder *Folder) (
 	data []byte, t time.Time, err error) {
+	folderBranch := folder.getFolderBranch()
 	history, err := folder.fs.config.KBFSOps().GetUpdateHistory(
-		ctx, folder.getFolderBranch())
+		ctx, folderBranch)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
@@ -30,14 +30,14 @@ func getEncodedUpdateHistory(ctx context.Context, folder *Folder) (
 	}
 
 	data = append(data, '\n')
-	return data, time.Time{}, err
+	return data, time.Time{}, nil
 }
 
 // NewUpdateHistoryFile returns a special read file that contains a text
 // representation of the update history of the current TLF.
-func NewUpdateHistoryFile(folder *Folder,
-	resp *fuse.LookupResponse) *SpecialReadFile {
-	resp.EntryValid = 0
+func NewUpdateHistoryFile(
+	folder *Folder, entryValid *time.Duration) *SpecialReadFile {
+	*entryValid = 0
 	return &SpecialReadFile{
 		read: func(ctx context.Context) ([]byte, time.Time, error) {
 			return getEncodedUpdateHistory(ctx, folder)

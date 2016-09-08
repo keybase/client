@@ -7,23 +7,31 @@ package libfuse
 import (
 	"time"
 
-	"bazil.org/fuse"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/kbfs/libfs"
-	"github.com/keybase/kbfs/libkbfs"
 )
 
-// NewStatusFile returns a special read file that contains a text
-// representation of the status of the current TLF.
-func NewStatusFile(fs *FS, folderBranch *libkbfs.FolderBranch, resp *fuse.LookupResponse) *SpecialReadFile {
-	resp.EntryValid = 0
+// NewNonTLFStatusFile returns a special read file that contains a
+// text representation of the global KBFS status.
+func NewNonTLFStatusFile(fs *FS, entryValid *time.Duration) *SpecialReadFile {
+	*entryValid = 0
 	return &SpecialReadFile{
 		read: func(ctx context.Context) ([]byte, time.Time, error) {
-			if folderBranch == nil {
-				return libfs.GetEncodedStatus(ctx, fs.config)
-			}
-			return libfs.GetEncodedFolderStatus(ctx, fs.config, folderBranch)
+			return libfs.GetEncodedStatus(ctx, fs.config)
+		},
+	}
+}
+
+// NewTLFStatusFile returns a special read file that contains a text
+// representation of the status of the current TLF.
+func NewTLFStatusFile(
+	folder *Folder, entryValid *time.Duration) *SpecialReadFile {
+	*entryValid = 0
+	return &SpecialReadFile{
+		read: func(ctx context.Context) ([]byte, time.Time, error) {
+			return libfs.GetEncodedFolderStatus(
+				ctx, folder.fs.config, folder.getFolderBranch())
 		},
 	}
 }

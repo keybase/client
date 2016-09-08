@@ -47,12 +47,18 @@ func (f *SyncFromServerFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	if len(req.Data) == 0 {
 		return nil
 	}
+	folderBranch := f.folder.getFolderBranch()
+	if folderBranch == (libkbfs.FolderBranch{}) {
+		// Nothing to do.
+		resp.Size = len(req.Data)
+		return nil
+	}
 
 	// Use a context with a nil CtxAppIDKey value so that
 	// notifications generated from this sync won't be discarded.
 	syncCtx := context.WithValue(ctx, CtxAppIDKey, nil)
 	err = f.folder.fs.config.KBFSOps().SyncFromServerForTesting(
-		syncCtx, f.folder.getFolderBranch())
+		syncCtx, folderBranch)
 	if err != nil {
 		return err
 	}

@@ -63,7 +63,8 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string, filterErr bool) 
 	name := tlf.folder.name()
 
 	tlf.folder.fs.log.CDebugf(ctx, "Loading root directory for folder %s "+
-		"(public: %t) for %s", name, tlf.isPublic(), info)
+		"(public: %t, filter error: %t) for %s",
+		name, tlf.isPublic(), filterErr, info)
 	defer func() {
 		if filterErr {
 			exitEarly, err = libfs.FilterTLFEarlyExitError(ctx, err, tlf.folder.fs.log, name)
@@ -165,8 +166,9 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (dokan
 		return nil, false, err
 	}
 	if exitEarly {
-		if node := openSpecialFile(lastStr(path), tlf.folder); node != nil {
-			return node, false, nil
+		specialNode := handleTLFSpecialFile(lastStr(path), tlf.folder)
+		if specialNode != nil {
+			return specialNode, false, nil
 		}
 
 		return nil, false, dokan.ErrObjectNameNotFound

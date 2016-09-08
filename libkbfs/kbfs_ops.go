@@ -185,6 +185,10 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 }
 
 func (fs *KBFSOpsStandard) getOpsNoAdd(fb FolderBranch) *folderBranchOps {
+	if fb == (FolderBranch{}) {
+		panic("zero FolderBranch in getOps")
+	}
+
 	fs.opsLock.RLock()
 	if ops, ok := fs.ops[fb]; ok {
 		fs.opsLock.RUnlock()
@@ -223,7 +227,14 @@ func (fs *KBFSOpsStandard) getOpsByNode(ctx context.Context,
 
 func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	handle *TlfHandle, fb FolderBranch) *folderBranchOps {
-	ops := fs.getOps(ctx, fb)
+	ops := fs.getOpsNoAdd(fb)
+	if err := ops.addToFavoritesByHandle(
+		ctx, fs.favs, handle, false); err != nil {
+		// Failure to favorite shouldn't cause a failure.  Just log
+		// and move on.
+		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
+	}
+
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 	// Track under its name, so we can later tell it to remove itself

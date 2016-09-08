@@ -52,6 +52,10 @@ func (a JournalAction) String() string {
 func (a JournalAction) Execute(
 	ctx context.Context, jServer *libkbfs.JournalServer,
 	tlf libkbfs.TlfID) error {
+	if tlf == (libkbfs.TlfID{}) {
+		panic("zero TlfID in JournalAction.Execute")
+	}
+
 	switch a {
 	case JournalEnable:
 		err := jServer.Enable(

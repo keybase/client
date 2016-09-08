@@ -5,13 +5,14 @@
 package libfuse
 
 import (
-	"bazil.org/fuse"
+	"time"
+
 	"github.com/keybase/kbfs/libfs"
 )
 
 // NewMetricsFile returns a special read file that contains a text
 // representation of all metrics.
-func NewMetricsFile(fs *FS, resp *fuse.LookupResponse) *SpecialReadFile {
-	resp.EntryValid = 0
+func NewMetricsFile(fs *FS, entryValid *time.Duration) *SpecialReadFile {
+	*entryValid = 0
 	return &SpecialReadFile{read: libfs.GetEncodedMetrics(fs.config)}
 }

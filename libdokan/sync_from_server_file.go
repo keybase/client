@@ -33,8 +33,13 @@ func (f *SyncFromServerFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, 
 	if len(bs) == 0 {
 		return 0, nil
 	}
+	folderBranch := f.folder.getFolderBranch()
+	if folderBranch == (libkbfs.FolderBranch{}) {
+		// Nothing to do.
+		return len(bs), nil
+	}
 	err = f.folder.fs.config.KBFSOps().SyncFromServerForTesting(
-		ctx, f.folder.getFolderBranch())
+		ctx, folderBranch)
 	if err != nil {
 		return 0, err
 	}

@@ -263,14 +263,35 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		return nil, false, dokan.ErrObjectNameNotFound
 	case psl == 1 && ps[0] == ``:
 		return oc.returnDirNoCleanup(f.root)
+
+		// This section is equivalent to
+		// handleCommonSpecialFile in libfuse.
 	case libkbfs.ErrorFile == ps[psl-1]:
 		return NewErrorFile(f), false, nil
 	case libfs.MetricsFileName == ps[psl-1]:
 		return NewMetricsFile(f), false, nil
-	case libfs.StatusFileName == ps[0]:
-		return NewStatusFile(f.root.private.fs, nil), false, nil
+		// TODO: Make the two cases below available from any
+		// directory.
+	case libfs.ProfileListDirName == ps[0]:
+		return (ProfileList{fs: f}).open(ctx, oc, ps[1:])
 	case libfs.ResetCachesFileName == ps[0]:
 		return &ResetCachesFile{fs: f.root.private.fs}, false, nil
+
+		// This section is equivalent to
+		// handleNonTLFSpecialFile in libfuse.
+		//
+		// TODO: Make the two cases below available from any
+		// non-TLF directory.
+	case libfs.StatusFileName == ps[0]:
+		return NewNonTLFStatusFile(f.root.private.fs), false, nil
+	case libfs.HumanErrorFileName == ps[0], libfs.HumanNoLoginFileName == ps[0]:
+		return &SpecialReadFile{
+			read: f.remoteStatus.NewSpecialReadFunc,
+			fs:   f}, false, nil
+
+	case ".kbfs_unmount" == ps[0]:
+		os.Exit(0)
+
 	// TODO
 	// Unfortunately sometimes we end up in this case while using
 	// reparse points.
@@ -294,14 +315,6 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 			return nil, false, dokan.ErrAccessDenied
 		}
 		return f.root.private.open(ctx, oc, ps[1:])
-	case libfs.ProfileListDirName == ps[0]:
-		return (ProfileList{fs: f}).open(ctx, oc, ps[1:])
-	case libfs.HumanErrorFileName == ps[0], libfs.HumanNoLoginFileName == ps[0]:
-		return &SpecialReadFile{
-			read: f.remoteStatus.NewSpecialReadFunc,
-			fs:   f}, false, nil
-	case ".kbfs_unmount" == ps[0]:
-		os.Exit(0)
 	}
 	return nil, false, dokan.ErrObjectNameNotFound
 }

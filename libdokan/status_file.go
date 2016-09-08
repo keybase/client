@@ -8,20 +8,28 @@ import (
 	"time"
 
 	"github.com/keybase/kbfs/libfs"
-	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 
-// NewStatusFile returns a special read file that contains a text
-// representation of the status of the current TLF.
-func NewStatusFile(fs *FS, folderBranch *libkbfs.FolderBranch) *SpecialReadFile {
+// NewNonTLFStatusFile returns a special read file that contains a
+// text representation of the global KBFS status.
+func NewNonTLFStatusFile(fs *FS) *SpecialReadFile {
 	return &SpecialReadFile{
 		read: func(ctx context.Context) ([]byte, time.Time, error) {
-			if folderBranch == nil {
-				return libfs.GetEncodedStatus(ctx, fs.config)
-			}
-			return libfs.GetEncodedFolderStatus(ctx, fs.config, folderBranch)
+			return libfs.GetEncodedStatus(ctx, fs.config)
 		},
 		fs: fs,
+	}
+}
+
+// NewTLFStatusFile returns a special read file that contains a text
+// representation of the status of the current TLF.
+func NewTLFStatusFile(folder *Folder) *SpecialReadFile {
+	return &SpecialReadFile{
+		read: func(ctx context.Context) ([]byte, time.Time, error) {
+			return libfs.GetEncodedFolderStatus(
+				ctx, folder.fs.config, folder.getFolderBranch())
+		},
+		fs: folder.fs,
 	}
 }
