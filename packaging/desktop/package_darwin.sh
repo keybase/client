@@ -187,7 +187,6 @@ update_plist() {(
   # App shouldn't display dock icon on startup
   /usr/libexec/plistBuddy -c "Add :LSUIElement bool true" "$app_name.app/Contents/Info.plist"
   /usr/libexec/plistBuddy -c "Add :NSSupportsSuddenTermination bool true" "$app_name.app/Contents/Info.plist"
-  /usr/libexec/plistBuddy -c "Add :ITSAppUsesNonExemptEncryption string 63ff6926-88f0-4db0-8886-a4bb56bd4ad5" "$app_name.app/Contents/Info.plist"
 )}
 
 sign() {(
