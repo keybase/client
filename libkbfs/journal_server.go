@@ -204,7 +204,8 @@ func (j *JournalServer) Wait(ctx context.Context, tlfID TlfID) (err error) {
 }
 
 // Disable turns off the write journal for the given TLF.
-func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (err error) {
+func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (
+	wasEnabled bool, err error) {
 	j.log.CDebugf(ctx, "Disabling journal for %s", tlfID)
 	defer func() {
 		if err != nil {
@@ -219,16 +220,16 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (err error) {
 	tlfJournal, ok := j.tlfJournals[tlfID]
 	if !ok {
 		j.log.CDebugf(ctx, "Journal already disabled for %s", tlfID)
-		return nil
+		return false, nil
 	}
 
 	blockEntryCount, mdEntryCount, err := tlfJournal.getJournalEntryCounts()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if (blockEntryCount != 0) || (mdEntryCount != 0) {
-		return fmt.Errorf(
+		return false, fmt.Errorf(
 			"Journal still has %d block entries and %d md entries",
 			blockEntryCount, mdEntryCount)
 	}
@@ -238,7 +239,7 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (err error) {
 	j.log.CDebugf(ctx, "Disabled journal for %s", tlfID)
 
 	delete(j.tlfJournals, tlfID)
-	return nil
+	return true, nil
 }
 
 func (j *JournalServer) blockCache() journalBlockCache {

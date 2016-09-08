@@ -73,7 +73,7 @@ func (a JournalAction) Execute(
 		jServer.ResumeBackgroundWork(ctx, tlf)
 
 	case JournalDisable:
-		err := jServer.Disable(ctx, tlf)
+		_, err := jServer.Disable(ctx, tlf)
 		if err != nil {
 			return err
 		}
