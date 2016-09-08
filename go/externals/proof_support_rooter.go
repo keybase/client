@@ -130,7 +130,8 @@ func (rc *RooterChecker) rewriteURL(ctx libkb.ProofContext, s string) (string, e
 
 func (rc *RooterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) (perr libkb.ProofError) {
 	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_ROOTER, rc.proof, h)
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_ROOTER,
+			pvl.NewProofInfo(rc.proof, h))
 	}
 	return rc.CheckStatusOld(ctx, h)
 }

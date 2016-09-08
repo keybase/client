@@ -200,6 +200,12 @@ type ConversationLocal struct {
 	Messages []Message              `codec:"messages" json:"messages"`
 }
 
+type GetInboxSummaryLocalRes struct {
+	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
+	More          []ConversationLocal `codec:"more" json:"more"`
+	MoreTotal     int                 `codec:"moreTotal" json:"moreTotal"`
+}
+
 type GetInboxLocalArg struct {
 	Pagination *chat1.Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
@@ -232,6 +238,12 @@ type GetMessagesLocalArg struct {
 	Selector MessageSelector `codec:"selector" json:"selector"`
 }
 
+type GetInboxSummaryLocalArg struct {
+	TopicTypes []chat1.TopicType `codec:"topicTypes" json:"topicTypes"`
+	Since      string            `codec:"since" json:"since"`
+	Limit      int               `codec:"limit" json:"limit"`
+}
+
 type CompleteAndCanonicalizeTlfNameArg struct {
 	TlfName string `codec:"tlfName" json:"tlfName"`
 }
@@ -244,6 +256,7 @@ type ChatLocalInterface interface {
 	NewConversationLocal(context.Context, ConversationInfoLocal) (ConversationInfoLocal, error)
 	UpdateTopicNameLocal(context.Context, UpdateTopicNameLocalArg) error
 	GetMessagesLocal(context.Context, MessageSelector) ([]ConversationLocal, error)
+	GetInboxSummaryLocal(context.Context, GetInboxSummaryLocalArg) (GetInboxSummaryLocalRes, error)
 	CompleteAndCanonicalizeTlfName(context.Context, string) (CanonicalTlfName, error)
 }
 
@@ -363,6 +376,22 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getInboxSummaryLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetInboxSummaryLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetInboxSummaryLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetInboxSummaryLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInboxSummaryLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"completeAndCanonicalizeTlfName": {
 				MakeArg: func() interface{} {
 					ret := make([]CompleteAndCanonicalizeTlfNameArg, 1)
@@ -423,6 +452,11 @@ func (c ChatLocalClient) UpdateTopicNameLocal(ctx context.Context, __arg UpdateT
 func (c ChatLocalClient) GetMessagesLocal(ctx context.Context, selector MessageSelector) (res []ConversationLocal, err error) {
 	__arg := GetMessagesLocalArg{Selector: selector}
 	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getMessagesLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ChatLocalClient) GetInboxSummaryLocal(ctx context.Context, __arg GetInboxSummaryLocalArg) (res GetInboxSummaryLocalRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getInboxSummaryLocal", []interface{}{__arg}, &res)
 	return
 }
 

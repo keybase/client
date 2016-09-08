@@ -16,6 +16,7 @@ typedef NS_OPTIONS (NSUInteger, UninstallOptions) {
   UninstallOptionApp = 1 << 0,
   UninstallOptionKext = 1 << 1,
   UninstallOptionMountDir = 1 << 2,
+  UninstallOptionHelper = 1 << 3,
 };
 
 @interface Settings : NSObject

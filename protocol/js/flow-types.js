@@ -598,6 +598,14 @@ export function chatLocalGetInboxLocalRpcPromise (request: $Exact<requestCommon 
   return new Promise((resolve, reject) => { chatLocalGetInboxLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function chatLocalGetInboxSummaryLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxSummaryLocalResult) => void} & {param: chatLocalGetInboxSummaryLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chatLocal.getInboxSummaryLocal'})
+}
+
+export function chatLocalGetInboxSummaryLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxSummaryLocalResult) => void} & {param: chatLocalGetInboxSummaryLocalRpcParam}>): Promise<chatLocalGetInboxSummaryLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalGetInboxSummaryLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function chatLocalGetMessagesLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetMessagesLocalResult) => void} & {param: chatLocalGetMessagesLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.getMessagesLocal'})
 }
@@ -2216,6 +2224,12 @@ export type GetCurrentStatusRes = {
   user?: ?User,
 }
 
+export type GetInboxSummaryLocalRes = {
+  conversations?: ?Array<ConversationLocal>,
+  more?: ?Array<ConversationLocal>,
+  moreTotal: int,
+}
+
 export type GetPassphraseRes = {
   passphrase: string,
   storeSecret: boolean,
@@ -3344,6 +3358,12 @@ export type chatLocalGetInboxLocalRpcParam = $Exact<{
   pagination?: ?chat1.Pagination
 }>
 
+export type chatLocalGetInboxSummaryLocalRpcParam = $Exact<{
+  topicTypes?: ?Array<chat1.TopicType>,
+  since: string,
+  limit: int
+}>
+
 export type chatLocalGetMessagesLocalRpcParam = $Exact<{
   selector: MessageSelector
 }>
@@ -4171,6 +4191,8 @@ type chatLocalCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
 
 type chatLocalGetInboxLocalResult = chat1.InboxView
 
+type chatLocalGetInboxSummaryLocalResult = GetInboxSummaryLocalRes
+
 type chatLocalGetMessagesLocalResult = ?Array<ConversationLocal>
 
 type chatLocalGetThreadLocalResult = ThreadView
@@ -4397,6 +4419,7 @@ export type rpc =
   | blockPutBlockRpc
   | chatLocalCompleteAndCanonicalizeTlfNameRpc
   | chatLocalGetInboxLocalRpc
+  | chatLocalGetInboxSummaryLocalRpc
   | chatLocalGetMessagesLocalRpc
   | chatLocalGetThreadLocalRpc
   | chatLocalNewConversationLocalRpc

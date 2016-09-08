@@ -109,7 +109,6 @@ class Input extends Component<void, Props, State> {
           hintStyle={{...styles.hintStyle, ...(this.props.multiline ? {textAlign: 'center'} : {top: 3, bottom: 'auto'}), ...this.props.hintStyle}}
           hintText={this.props.hintText}
           inputStyle={{...(this.props.small ? {} : {marginTop: 6}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
-          multiline={this.props.multiline}
           name='name'
           onBlur={() => this.setState({focused: false})}
           onChange={event => this.onChange(event)}
