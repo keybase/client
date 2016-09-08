@@ -59,7 +59,7 @@ const userEntryUsernameStyle = followsYou => ({
 
 class Render extends Component<void, Props, void> {
   _itemRenderer (followers: boolean, index: number) {
-    const user = this.props.followers[index]
+    const user = followers ? this.props.followers[index] : this.props.following[index]
     return <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
   }
 
@@ -87,7 +87,7 @@ class Render extends Component<void, Props, void> {
             useTranslate3d={true}
             useStaticSize={true}
             itemRenderer={(index, key) => this._itemRenderer(false, index)}
-            length={this.props.followers.length}
+            length={this.props.following.length}
             type='uniform' />
         </TabBarItem>
       </TabBar>
