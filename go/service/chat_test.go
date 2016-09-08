@@ -50,12 +50,31 @@ func setupChatTest(t *testing.T, name string) (libkb.TestContext, *chatLocalHand
 	return tc, handler
 }
 
+func getSigningKeyPairForTest(t *testing.T, tc libkb.TestContext, u *kbtest.FakeUser) libkb.NaclSigningKeyPair {
+	var err error
+	if u == nil {
+		u, err = kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	kp, err := tc.G.Keyrings.GetSecretKeyWithPassphrase(nil, u.User, u.Passphrase, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	signKP, ok := kp.(libkb.NaclSigningKeyPair)
+	if !ok {
+		t.Fatal("signing key not nacl")
+	}
+	return signKP
+}
+
 func TestChatMessageBox(t *testing.T) {
 	key := cryptKey(t)
 	msg := textMsg(t, "hello")
 	tc, handler := setupChatTest(t, "box")
 	defer tc.Cleanup()
-	boxed, err := handler.boxer.boxMessageWithKey(msg, key)
+	boxed, err := handler.boxer.boxMessageWithKeys(msg, key, getSigningKeyPairForTest(t, tc, nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,23 +97,11 @@ func TestChatMessageUnbox(t *testing.T) {
 	}
 	msg.ClientHeader.Sender = gregor1.UID(u.User.GetUID().ToBytes())
 
+	signKP := getSigningKeyPairForTest(t, tc, u)
+
 	ctime := time.Now()
-	boxed, err := handler.boxer.boxMessageWithKey(msg, key)
+	boxed, err := handler.boxer.boxMessageWithKeys(msg, key, signKP)
 	if err != nil {
-		t.Fatal(err)
-	}
-
-	// get user's signing key
-	kp, err := tc.G.Keyrings.GetSecretKeyWithPassphrase(nil, u.User, u.Passphrase, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	signKP, ok := kp.(libkb.NaclSigningKeyPair)
-	if !ok {
-		t.Fatal("signing key not nacl")
-	}
-
-	if err := handler.signMessageBoxed(&boxed, signKP); err != nil {
 		t.Fatal(err)
 	}
 
@@ -124,15 +131,8 @@ func TestChatMessageSigned(t *testing.T) {
 	msg := textMsg(t, "sign me")
 	tc, handler := setupChatTest(t, "signed")
 	defer tc.Cleanup()
-	boxed, err := handler.boxer.boxMessageWithKey(msg, key)
+	boxed, err := handler.boxer.boxMessageWithKeys(msg, key, getSigningKeyPairForTest(t, tc, nil))
 	if err != nil {
-		t.Fatal(err)
-	}
-	kp, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := handler.signMessageBoxed(&boxed, kp); err != nil {
 		t.Fatal(err)
 	}
 	if boxed.HeaderSignature.V != 2 {

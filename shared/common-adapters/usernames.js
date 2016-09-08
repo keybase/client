@@ -41,10 +41,15 @@ function usernameText ({type, users, style, inline, redColor}: Props) {
 class Usernames extends Component<void, Props, void> {
   render () {
     const containerStyle = this.props.inline ? {display: 'inline'} : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
+    const rwers = this.props.users.filter(u => !u.readOnly)
+    const readers = this.props.users.filter(u => !!u.readOnly)
 
     return (
       <Box style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'})}}>
-        {usernameText(this.props)}
+
+        {usernameText({...this.props, users: rwers})}
+        {!!readers.length && <Text type={this.props.type} style={{...this.props.style, marginRight: 1}}>#</Text>}
+        {usernameText({...this.props, users: readers})}
       </Box>
     )
   }

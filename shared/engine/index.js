@@ -100,10 +100,10 @@ class Engine {
   _handleCancel (seqid: number) {
     const cancelledSessionID = Object.keys(this._sessionsMap).find(key => this._sessionsMap[key].hasSeqID(seqid))
     if (cancelledSessionID) {
-      rpcLog('engineInternal', 'Received cancel for session', cancelledSessionID)
+      rpcLog('engineInternal', 'received cancel for session', {cancelledSessionID})
       this._sessionsMap[cancelledSessionID].cancel()
     } else {
-      rpcLog('engineInternal', "Received cancel but couldn't find session", cancelledSessionID)
+      rpcLog('engineInternal', "received cancel but couldn't find session", {cancelledSessionID})
     }
   }
 
@@ -138,7 +138,7 @@ class Engine {
       if (session && session.incomingCall(method, param, response)) { // Part of a session?
       } else if (this._incomingHandler[method]) { // General incoming
         const handler = this._incomingHandler[method]
-        rpcLog('engineInternal', 'Handling incoming')
+        rpcLog('engineInternal', 'handling incoming')
         handler(param, response)
       } else { // Unhandled
         this._handleUnhandled(sessionID, method, seqid, param, response)
@@ -175,7 +175,7 @@ class Engine {
     dangling?: boolean = false
   ): Session {
     const sessionID = this._generateSessionID()
-    rpcLog('engineInternal', `Session start ${sessionID}`)
+    rpcLog('engineInternal', 'session start', {sessionID})
 
     const session = new Session(
       sessionID,
@@ -192,7 +192,7 @@ class Engine {
 
   // Cleanup a session that ended
   _sessionEnded (session: Session) {
-    rpcLog('engineInternal', `Session end ${session.id}`)
+    rpcLog('engineInternal', 'session end', {sessionID: session.id})
     delete this._sessionsMap[String(session.id)]
   }
 
@@ -223,12 +223,12 @@ class Engine {
   }
 
   // Setup a handler for a rpc w/o a session (id = 0)
-  setIncomingHandler (method:MethodKey, handler: (param: Object, response: ?Object) => void) {
+  setIncomingHandler (method: MethodKey, handler: (param: Object, response: ?Object) => void) {
     if (this._incomingHandler[method]) {
-      rpcLog('engineInternal', "Duplicate incoming handler!!!! This isn't allowed", method)
+      rpcLog('engineInternal', "duplicate incoming handler!!! this isn't allowed", {method})
       return
     }
-    rpcLog('engineInternal', 'Registering incoming handler:', method)
+    rpcLog('engineInternal', 'registering incoming handler:', {method})
     this._incomingHandler[method] = handler
   }
 

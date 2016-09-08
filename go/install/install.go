@@ -264,6 +264,9 @@ func IsInUse(mountDir string, log Log) bool {
 	processes, err := lsof.MountPoint(mountDir)
 	if err != nil {
 		// If there is an error in lsof it's ok to continue
+		// An exit status of 1 means that the mount is not in use, and is
+		// not really an error.
+		// TODO: Remove this when we fix lsof
 		log.Warning("Continuing despite error in lsof: %s", err)
 	}
 	if len(processes) != 0 {

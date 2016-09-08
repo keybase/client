@@ -4,6 +4,7 @@ import type {TextType} from './text'
 
 export type UserList = Array<{
   username: string,
+  readOnly?: boolean,
   broken?: boolean,
   you?: boolean
 }>

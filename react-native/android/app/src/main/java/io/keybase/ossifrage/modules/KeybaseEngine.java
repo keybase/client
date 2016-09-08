@@ -14,9 +14,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static go.keybase.Keybase.ReadB64;
-import static go.keybase.Keybase.Reset;
-import static go.keybase.Keybase.WriteB64;
+import static go.keybase.Keybase.readB64;
+import static go.keybase.Keybase.reset;
+import static go.keybase.Keybase.writeB64;
+import static go.keybase.Keybase.version;
 
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
 
@@ -35,7 +36,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         public void run() {
           do {
               try {
-                  final String data = ReadB64();
+                  final String data = readB64();
 
                   if (!reactContext.hasActiveCatalystInstance()) {
                       Log.e(NAME, "JS Bridge is dead, dropping engine message: " + data);
@@ -76,7 +77,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public void destroy(){
         try {
             executor.shutdownNow();
-            Reset();
+            reset();
             executor.awaitTermination(30, TimeUnit.SECONDS);
         } catch (Exception e) {
             e.printStackTrace();
@@ -91,13 +92,14 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public Map<String, Object> getConstants() {
         final Map<String, Object> constants = new HashMap<>();
         constants.put("eventName", RPC_EVENT_NAME);
+        constants.put("version", version());
         return constants;
     }
 
     @ReactMethod
     public void runWithData(String data) {
       try {
-          WriteB64(data);
+          writeB64(data);
       } catch (Exception e) {
           e.printStackTrace();
       }
@@ -106,7 +108,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     @ReactMethod
     public void reset() {
       try {
-          Reset();
+          reset();
       } catch (Exception e) {
           e.printStackTrace();
       }

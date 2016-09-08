@@ -20,6 +20,7 @@ make
 # re-running the protocol generation, because any changes should have been
 # checked in.
 if ! git diff --quiet --exit-code HEAD -- ./ ../go/ ../shared/; then
+  git diff HEAD -- ./ ../go/ ../shared/;
   echo 'ERROR: `git diff` detected changes. The generated protocol files are stale.'
   exit 1
 fi

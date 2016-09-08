@@ -20,13 +20,15 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
   KBInstallOptionFuse = 1 << 3,
   KBInstallOptionKBFS = 1 << 4,
   KBInstallOptionUpdater = 1 << 5,
+  KBInstallOptionMountDir = 1 << 6,
   KBInstallOptionCLI = 1 << 10,
 
-  KBInstallOptionAll = KBInstallOptionService | KBInstallOptionHelper | KBInstallOptionFuse | KBInstallOptionKBFS | KBInstallOptionUpdater | KBInstallOptionCLI,
+  KBInstallOptionAll = KBInstallOptionService | KBInstallOptionHelper | KBInstallOptionFuse | KBInstallOptionMountDir | KBInstallOptionKBFS | KBInstallOptionUpdater | KBInstallOptionCLI,
 };
 
 @interface KBEnvironment : NSObject
 
+@property (readonly) KBHelperTool *helperTool;
 @property (readonly) KBEnvConfig *config;
 @property (readonly) KBService *service;
 @property (readonly) KBFSService *kbfs;

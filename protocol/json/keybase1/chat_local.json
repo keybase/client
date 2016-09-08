@@ -231,6 +231,10 @@
       "name": "ConversationInfoLocal",
       "fields": [
         {
+          "type": "chat1.ConversationID",
+          "name": "id"
+        },
+        {
           "type": "string",
           "name": "tlfName"
         },
@@ -265,6 +269,30 @@
             "items": "Message"
           },
           "name": "messages"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxSummaryLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "more"
+        },
+        {
+          "type": "int",
+          "name": "moreTotal"
         }
       ]
     }
@@ -315,15 +343,6 @@
       ],
       "response": null
     },
-    "newConversationLocal": {
-      "request": [
-        {
-          "name": "conversationTriple",
-          "type": "chat1.ConversationIDTriple"
-        }
-      ],
-      "response": "chat1.ConversationID"
-    },
     "resolveConversationLocal": {
       "request": [
         {
@@ -333,8 +352,30 @@
       ],
       "response": {
         "type": "array",
-        "items": "chat1.ConversationID"
+        "items": "ConversationInfoLocal"
       }
+    },
+    "newConversationLocal": {
+      "request": [
+        {
+          "name": "conversation",
+          "type": "ConversationInfoLocal"
+        }
+      ],
+      "response": "ConversationInfoLocal"
+    },
+    "updateTopicNameLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "chat1.ConversationID"
+        },
+        {
+          "name": "newTopicName",
+          "type": "string"
+        }
+      ],
+      "response": null
     },
     "getMessagesLocal": {
       "request": [
@@ -347,6 +388,26 @@
         "type": "array",
         "items": "ConversationLocal"
       }
+    },
+    "getInboxSummaryLocal": {
+      "request": [
+        {
+          "name": "topicTypes",
+          "type": {
+            "type": "array",
+            "items": "chat1.TopicType"
+          }
+        },
+        {
+          "name": "since",
+          "type": "string"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        }
+      ],
+      "response": "GetInboxSummaryLocalRes"
     },
     "completeAndCanonicalizeTlfName": {
       "request": [

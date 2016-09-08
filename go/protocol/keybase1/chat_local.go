@@ -188,15 +188,22 @@ type MessageSelector struct {
 }
 
 type ConversationInfoLocal struct {
-	TlfName   string          `codec:"tlfName" json:"tlfName"`
-	TopicName string          `codec:"topicName" json:"topicName"`
-	TopicType chat1.TopicType `codec:"topicType" json:"topicType"`
+	Id        chat1.ConversationID `codec:"id" json:"id"`
+	TlfName   string               `codec:"tlfName" json:"tlfName"`
+	TopicName string               `codec:"topicName" json:"topicName"`
+	TopicType chat1.TopicType      `codec:"topicType" json:"topicType"`
 }
 
 type ConversationLocal struct {
 	Id       chat1.ConversationID   `codec:"id" json:"id"`
 	Info     *ConversationInfoLocal `codec:"info,omitempty" json:"info,omitempty"`
 	Messages []Message              `codec:"messages" json:"messages"`
+}
+
+type GetInboxSummaryLocalRes struct {
+	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
+	More          []ConversationLocal `codec:"more" json:"more"`
+	MoreTotal     int                 `codec:"moreTotal" json:"moreTotal"`
 }
 
 type GetInboxLocalArg struct {
@@ -214,16 +221,27 @@ type PostLocalArg struct {
 	MessagePlaintext MessagePlaintext     `codec:"messagePlaintext" json:"messagePlaintext"`
 }
 
-type NewConversationLocalArg struct {
-	ConversationTriple chat1.ConversationIDTriple `codec:"conversationTriple" json:"conversationTriple"`
-}
-
 type ResolveConversationLocalArg struct {
 	Conversation ConversationInfoLocal `codec:"conversation" json:"conversation"`
 }
 
+type NewConversationLocalArg struct {
+	Conversation ConversationInfoLocal `codec:"conversation" json:"conversation"`
+}
+
+type UpdateTopicNameLocalArg struct {
+	ConversationID chat1.ConversationID `codec:"conversationID" json:"conversationID"`
+	NewTopicName   string               `codec:"newTopicName" json:"newTopicName"`
+}
+
 type GetMessagesLocalArg struct {
 	Selector MessageSelector `codec:"selector" json:"selector"`
+}
+
+type GetInboxSummaryLocalArg struct {
+	TopicTypes []chat1.TopicType `codec:"topicTypes" json:"topicTypes"`
+	Since      string            `codec:"since" json:"since"`
+	Limit      int               `codec:"limit" json:"limit"`
 }
 
 type CompleteAndCanonicalizeTlfNameArg struct {
@@ -234,9 +252,11 @@ type ChatLocalInterface interface {
 	GetInboxLocal(context.Context, *chat1.Pagination) (chat1.InboxView, error)
 	GetThreadLocal(context.Context, GetThreadLocalArg) (ThreadView, error)
 	PostLocal(context.Context, PostLocalArg) error
-	NewConversationLocal(context.Context, chat1.ConversationIDTriple) (chat1.ConversationID, error)
-	ResolveConversationLocal(context.Context, ConversationInfoLocal) ([]chat1.ConversationID, error)
+	ResolveConversationLocal(context.Context, ConversationInfoLocal) ([]ConversationInfoLocal, error)
+	NewConversationLocal(context.Context, ConversationInfoLocal) (ConversationInfoLocal, error)
+	UpdateTopicNameLocal(context.Context, UpdateTopicNameLocalArg) error
 	GetMessagesLocal(context.Context, MessageSelector) ([]ConversationLocal, error)
+	GetInboxSummaryLocal(context.Context, GetInboxSummaryLocalArg) (GetInboxSummaryLocalRes, error)
 	CompleteAndCanonicalizeTlfName(context.Context, string) (CanonicalTlfName, error)
 }
 
@@ -292,22 +312,6 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"newConversationLocal": {
-				MakeArg: func() interface{} {
-					ret := make([]NewConversationLocalArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]NewConversationLocalArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]NewConversationLocalArg)(nil), args)
-						return
-					}
-					ret, err = i.NewConversationLocal(ctx, (*typedArgs)[0].ConversationTriple)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"resolveConversationLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]ResolveConversationLocalArg, 1)
@@ -324,6 +328,38 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"newConversationLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]NewConversationLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]NewConversationLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]NewConversationLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.NewConversationLocal(ctx, (*typedArgs)[0].Conversation)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"updateTopicNameLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]UpdateTopicNameLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpdateTopicNameLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpdateTopicNameLocalArg)(nil), args)
+						return
+					}
+					err = i.UpdateTopicNameLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getMessagesLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]GetMessagesLocalArg, 1)
@@ -336,6 +372,22 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetMessagesLocal(ctx, (*typedArgs)[0].Selector)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getInboxSummaryLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetInboxSummaryLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetInboxSummaryLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetInboxSummaryLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInboxSummaryLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -380,21 +432,31 @@ func (c ChatLocalClient) PostLocal(ctx context.Context, __arg PostLocalArg) (err
 	return
 }
 
-func (c ChatLocalClient) NewConversationLocal(ctx context.Context, conversationTriple chat1.ConversationIDTriple) (res chat1.ConversationID, err error) {
-	__arg := NewConversationLocalArg{ConversationTriple: conversationTriple}
+func (c ChatLocalClient) ResolveConversationLocal(ctx context.Context, conversation ConversationInfoLocal) (res []ConversationInfoLocal, err error) {
+	__arg := ResolveConversationLocalArg{Conversation: conversation}
+	err = c.Cli.Call(ctx, "keybase.1.chatLocal.resolveConversationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ChatLocalClient) NewConversationLocal(ctx context.Context, conversation ConversationInfoLocal) (res ConversationInfoLocal, err error) {
+	__arg := NewConversationLocalArg{Conversation: conversation}
 	err = c.Cli.Call(ctx, "keybase.1.chatLocal.newConversationLocal", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ChatLocalClient) ResolveConversationLocal(ctx context.Context, conversation ConversationInfoLocal) (res []chat1.ConversationID, err error) {
-	__arg := ResolveConversationLocalArg{Conversation: conversation}
-	err = c.Cli.Call(ctx, "keybase.1.chatLocal.resolveConversationLocal", []interface{}{__arg}, &res)
+func (c ChatLocalClient) UpdateTopicNameLocal(ctx context.Context, __arg UpdateTopicNameLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.chatLocal.updateTopicNameLocal", []interface{}{__arg}, nil)
 	return
 }
 
 func (c ChatLocalClient) GetMessagesLocal(ctx context.Context, selector MessageSelector) (res []ConversationLocal, err error) {
 	__arg := GetMessagesLocalArg{Selector: selector}
 	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getMessagesLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ChatLocalClient) GetInboxSummaryLocal(ctx context.Context, __arg GetInboxSummaryLocalArg) (res GetInboxSummaryLocalRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getInboxSummaryLocal", []interface{}{__arg}, &res)
 	return
 }
 
