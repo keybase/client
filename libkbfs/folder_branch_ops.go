@@ -2160,6 +2160,20 @@ func (fbo *folderBranchOps) createEntryLocked(
 			NameTooLongError{name, fbo.config.MaxNameBytes()}
 	}
 
+	// Wait for any journal entries to flush first.  TODO: this opens
+	// us up to timeout issues, even when journaling is enabled;
+	// perhaps investigate how we can re-order file system operations
+	// easily without compromising semantics too much (i.e., to jump
+	// this operation to the front of the journal).
+	if excl == WithExcl {
+		if jServer, err := GetJournalServer(fbo.config); err == nil {
+			fbo.log.CDebugf(ctx, "Waiting for journal to flush")
+			if err := jServer.Wait(ctx, fbo.id()); err != nil {
+				return nil, DirEntry{}, err
+			}
+		}
+	}
+
 	// verify we have permission to write
 	md, err := fbo.getMDForWriteLocked(ctx, lState)
 	if err != nil {
@@ -2202,6 +2216,28 @@ func (fbo *folderBranchOps) createEntryLocked(
 		}
 	} else {
 		newBlock = &FileBlock{}
+	}
+
+	// Passthrough journal writes temporarily.
+	if excl == WithExcl {
+		if jServer, err := GetJournalServer(fbo.config); err == nil {
+			wasEnabled, err := jServer.Disable(ctx, fbo.id())
+			if err != nil {
+				return nil, DirEntry{}, err
+			}
+			if wasEnabled {
+				defer func() {
+					// TODO: check whether it had been paused when we
+					// disabled it, so we can start it without
+					// background work enabled?
+					if err := jServer.Enable(ctx, fbo.id(),
+						TLFJournalBackgroundWorkEnabled); err != nil {
+						fbo.log.CDebugf(ctx,
+							"Couldn't re-enable journal: %v", err)
+					}
+				}()
+			}
+		}
 	}
 
 	de, err := fbo.syncBlockAndFinalizeLocked(
