@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -67,10 +68,8 @@ func (c *CmdChatAPI) GetUsage() libkb.Usage {
 }
 
 type ConvSummary struct {
-	ID        chat1.ConversationID `json:"id"`
-	Channel   ChatChannel          `json:"channel"`
-	TopicType string               `json:"topic_type"`
-	TopicID   string               `json:"topic_id"`
+	ID      chat1.ConversationID `json:"id"`
+	Channel ChatChannel          `json:"channel"`
 }
 
 type ChatList struct {
@@ -88,21 +87,19 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 		return c.errReply(err)
 	}
 
-	fmt.Printf("inbox: %+v\n", inbox)
-
 	var cl ChatList
 	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
 	for i, conv := range inbox.Conversations {
-		fmt.Printf("id %v, # max msgs: %d\n", conv.Metadata.ConversationID, len(conv.MaxMsgs))
 		if len(conv.MaxMsgs) == 0 {
 			return c.errReply(fmt.Errorf("conversation %d had no max msgs", conv.Metadata.ConversationID))
 		}
 		tlf := conv.MaxMsgs[0].ClientHeader.TlfName
 		cl.Conversations[i] = ConvSummary{
-			ID:        conv.Metadata.ConversationID,
-			Channel:   ChatChannel{Name: tlf},
-			TopicType: conv.Metadata.IdTriple.TopicType.String(),
-			TopicID:   conv.Metadata.IdTriple.TopicID.String(),
+			ID: conv.Metadata.ConversationID,
+			Channel: ChatChannel{
+				Name:      tlf,
+				TopicType: strings.ToLower(conv.Metadata.IdTriple.TopicType.String()),
+			},
 		}
 	}
 
@@ -116,13 +113,23 @@ type MsgSender struct {
 	DeviceName string `json:"device_name,omitempty"`
 }
 
+// unfortunately need this...
+type MsgContent struct {
+	TypeName   string                                `json:"type"`
+	Text       *keybase1.MessageText                 `json:"text,omitempty"`
+	Attachment *keybase1.MessageAttachment           `json:"attachment,omitempty"`
+	Edit       *keybase1.MessageEdit                 `json:"edit,omitempty"`
+	Delete     *keybase1.MessageDelete               `json:"delete,omitempty"`
+	Metadata   *keybase1.MessageConversationMetadata `json:"metadata,omitempty"`
+}
+
 type MsgSummary struct {
-	ID       chat1.MessageID      `json:"id"`
-	Channel  ChatChannel          `json:"channel"`
-	Sender   MsgSender            `json:"sender"`
-	SentAt   int64                `json:"sent_at"`
-	SentAtMs int64                `json:"sent_at_ms"`
-	Content  keybase1.MessageBody `json:"content"`
+	ID       chat1.MessageID `json:"id"`
+	Channel  ChatChannel     `json:"channel"`
+	Sender   MsgSender       `json:"sender"`
+	SentAt   int64           `json:"sent_at"`
+	SentAtMs int64           `json:"sent_at_ms"`
+	Content  MsgContent      `json:"content"`
 }
 
 type Thread struct {
@@ -137,10 +144,10 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 
 	if opts.ConversationID == 0 {
 		// resolve conversation id
-		// XXX support other topic types
 		cinfo := keybase1.ConversationInfoLocal{
 			TlfName:   opts.Channel.Name,
-			TopicType: chat1.TopicType_CHAT,
+			TopicType: opts.Channel.TopicTypeEnum(),
+			TopicName: opts.Channel.TopicName,
 		}
 		existing, err := client.ResolveConversationLocal(ctx, cinfo)
 		if err != nil {
@@ -164,14 +171,14 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 		return c.errReply(err)
 	}
 
-	fmt.Printf("threadView: %+v\n", threadView)
 	var thread Thread
 	thread.Messages = make([]MsgSummary, len(threadView.Messages))
 	for i, m := range threadView.Messages {
 		thread.Messages[i] = MsgSummary{
 			ID: m.ServerHeader.MessageID,
 			Channel: ChatChannel{
-				Name: m.MessagePlaintext.ClientHeader.TlfName,
+				Name:      m.MessagePlaintext.ClientHeader.TlfName,
+				TopicType: strings.ToLower(m.MessagePlaintext.ClientHeader.Conv.TopicType.String()),
 			},
 			Sender: MsgSender{
 				UID:      m.MessagePlaintext.ClientHeader.Sender.String(),
@@ -181,7 +188,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			SentAtMs: int64(m.ServerHeader.Ctime),
 		}
 		if len(m.MessagePlaintext.MessageBodies) > 0 {
-			thread.Messages[i].Content = m.MessagePlaintext.MessageBodies[0]
+			thread.Messages[i].Content = c.convertMsgBody(m.MessagePlaintext.MessageBodies[0])
 		}
 		if len(m.MessagePlaintext.MessageBodies) > 1 {
 			c.G().Log.Warning("message %v had multiple bodies", m.ServerHeader.MessageID)
@@ -197,14 +204,11 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 		return c.errReply(err)
 	}
 
-	// XXX support other topic types
 	// XXX support conversation id
-	// XXX support topic name
-	// XXX add sender name to channel name?
-	// XXX add public, private
 	cinfo := keybase1.ConversationInfoLocal{
 		TlfName:   opts.Channel.Name,
-		TopicType: chat1.TopicType_CHAT,
+		TopicType: opts.Channel.TopicTypeEnum(),
+		TopicName: opts.Channel.TopicName,
 	}
 
 	// find the conversation
@@ -225,10 +229,17 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 		return c.errReply(fmt.Errorf("multiple conversations matched"))
 	}
 
+	// XXX ResolveConversationLocal, NewConversationLocal need to return
+	// topic id and tlf id.  In order to fill in conversation id triple
+	// below.
+
 	postArg := keybase1.PostLocalArg{
 		ConversationID: conversation.Id,
 		MessagePlaintext: keybase1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv: chat1.ConversationIDTriple{
+					TopicType: conversation.TopicType,
+				},
 				TlfName:     conversation.TlfName,
 				MessageType: chat1.MessageType_TEXT,
 			},
@@ -246,4 +257,16 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 
 func (c *CmdChatAPI) errReply(err error) Reply {
 	return Reply{Error: &CallError{Message: err.Error()}}
+}
+
+// need this to get message type name
+func (c *CmdChatAPI) convertMsgBody(mb keybase1.MessageBody) MsgContent {
+	return MsgContent{
+		TypeName:   strings.ToLower(chat1.MessageTypeRevMap[mb.MessageType__]),
+		Text:       mb.Text__,
+		Attachment: mb.Attachment__,
+		Edit:       mb.Edit__,
+		Delete:     mb.Delete__,
+		Metadata:   mb.Metadata__,
+	}
 }

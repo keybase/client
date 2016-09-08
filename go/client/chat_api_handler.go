@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
@@ -70,12 +71,26 @@ type ChatAPI struct {
 }
 
 type ChatChannel struct {
-	Name   string `json:"name"`
-	Public bool   `json:"public"`
+	Name      string `json:"name"`
+	Public    bool   `json:"public"`
+	TopicType string `json:"topic_type,omitempty"`
+	TopicName string `json:"topic_name,omitempty"`
 }
 
 func (c ChatChannel) Valid() bool {
 	return len(c.Name) > 0
+}
+
+func (c ChatChannel) TopicTypeEnum() chat1.TopicType {
+	if len(c.TopicType) == 0 {
+		return chat1.TopicType_CHAT
+	}
+	tt, ok := chat1.TopicTypeMap[strings.ToUpper(c.TopicType)]
+	if ok {
+		return tt
+	}
+
+	return chat1.TopicType_NONE
 }
 
 type ChatMessage struct {
