@@ -11,10 +11,6 @@
 #import "KBDefines.h"
 #include <signal.h>
 
-@interface KBTask ()
-@property dispatch_queue_t taskQueue;
-@end
-
 @interface KBTaskReader : NSObject
 @property NSFileHandle *outFh;
 @property NSFileHandle *errFh;
@@ -24,45 +20,79 @@
 - (void)start;
 @end
 
+@interface KBTask ()
+@property NSTimeInterval timeout;
+@property BOOL timedOut;
+@property BOOL replied;
+@property dispatch_queue_t taskQueue;
+@property KBTaskReader *taskReader;
+@property KBTaskCompletion completion;
+@property NSTask *task;
+@property NSString *taskDescription;
+@end
+
 @implementation KBTask
 
-+ (void)execute:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, NSData *outData, NSData *errData))completion {
-  KBTask *task = [[KBTask alloc] init];
-  [task execute:command args:args timeout:timeout completion:completion];
++ (void)execute:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(KBTaskCompletion)completion {
+  KBTask *task = [[KBTask alloc] initWithCommand:command args:args timeout:timeout completion:completion];
+  [task execute];
 }
 
-- (instancetype)init {
+- (instancetype)initWithCommand:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(KBTaskCompletion)completion {
   if ((self = [super init])) {
     self.taskQueue = dispatch_queue_create("taskQueue", NULL);
+    self.timeout = timeout;
+    self.completion = completion;
+    self.taskDescription = NSStringWithFormat(@"%@ %@", command, [args join:@" "]);;
+
+    NSTask *task = [[NSTask alloc] init];
+    task.launchPath = command;
+    task.arguments = args;
+    [task setStandardInput:[NSPipe pipe]];
+    self.task = task;
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(taskDidTerminate:) name:NSTaskDidTerminateNotification object:self.task];
+
+    self.taskReader = [[KBTaskReader alloc] initWithTask:self.task];
   }
   return self;
 }
 
-- (void)execute:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, NSData *outData, NSData *errData))completion {
-  NSTask *task = [[NSTask alloc] init];
-  task.launchPath = command;
-  task.arguments = args;
-  [task setStandardInput:[NSPipe pipe]];
+- (void)dealloc {
+  [[NSNotificationCenter defaultCenter] removeObserver:self name:NSTaskDidTerminateNotification object:self.task];
+}
 
-  KBTaskReader *taskReader = [[KBTaskReader alloc] initWithTask:task];
-  [taskReader start];
+- (void)taskDidTerminate:(NSNotification *)notification {
+  dispatch_async(self.taskQueue, ^{
+    if (self.timedOut) {
+      DDLogDebug(@"Task termination handler, timed out, skipping");
+      return;
+    }
+    self.replied = YES;
+    DDLogDebug(@"Task dispatch completion");
+    dispatch_async(dispatch_get_main_queue(), ^{
+      DDLogDebug(@"Task (out): %@", ([[NSString alloc] initWithData:self.taskReader.outData encoding:NSUTF8StringEncoding]));
+      DDLogDebug(@"Task (err): %@", ([[NSString alloc] initWithData:self.taskReader.errData encoding:NSUTF8StringEncoding]));
+      self.completion(nil, self.taskReader.outData, self.taskReader.errData);
+    });
+  });
+}
 
-  __block BOOL replied = NO;
-  __block BOOL timedOut = NO;
-  if (timeout > 0) {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, timeout * NSEC_PER_SEC), self.taskQueue, ^{
-      if (!replied) {
-        timedOut = YES;
+- (void)execute {
+  [self.taskReader start];
 
-        NSString *taskDesc = NSStringWithFormat(@"%@ %@", command, [args join:@" "]);
-        DDLogError(@"Task timed out: %@", taskDesc);
+  GHWeakSelf wself = self;
+  if (self.timeout > 0) {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, self.timeout * NSEC_PER_SEC), self.taskQueue, ^{
+      if (!wself.replied) {
+        wself.timedOut = YES;
+        DDLogError(@"Task timed out: %@", wself.taskDescription);
         dispatch_async(dispatch_get_main_queue(), ^{
-          completion(KBMakeError(KBErrorCodeTimeout, @"Task timed out: %@", taskDesc), nil, nil);
+          wself.completion(KBMakeError(KBErrorCodeTimeout, @"Task timed out: %@", wself.taskDescription), nil, nil);
         });
 
         // Terminate/cleanup task after timeout
         @try {
-          [task terminate];
+          [wself.task terminate];
         } @catch(NSException *e) {
           DDLogDebug(@"Task error in terminate after timeout: %@", e);
         }
@@ -70,42 +100,20 @@
     });
   }
 
-  task.terminationHandler = ^(NSTask *t) {
-    dispatch_async(self.taskQueue, ^{
-      if (timedOut) {
-        DDLogDebug(@"Task termination handler, timed out, skipping");
-        return;
-      }
-      replied = YES;
-      DDLogDebug(@"Task dispatch completion");
-      dispatch_async(dispatch_get_main_queue(), ^{
-        DDLogDebug(@"Task (out): %@", [[NSString alloc] initWithData:taskReader.outData encoding:NSUTF8StringEncoding]);
-        DDLogDebug(@"Task (err): %@", [[NSString alloc] initWithData:taskReader.errData encoding:NSUTF8StringEncoding]);
-        completion(nil, taskReader.outData, taskReader.errData);
-      });
-    });
-  };
-
   @try {
-    DDLogDebug(@"Task: %@ %@", command, [args join:@" "]);
-    [task launch];
-    [task waitUntilExit];
+    DDLogDebug(@"Task: %@", self.taskDescription);
+    [self.task launch];
+    [self.task waitUntilExit];
   } @catch (NSException *e) {
-    NSString *errorMessage = NSStringWithFormat(@"%@ (%@ %@)", e.reason, command, [args join:@" "]);
+    NSString *errorMessage = NSStringWithFormat(@"%@ (%@)", e.reason, self.taskDescription);
     DDLogError(@"Error running task: %@", errorMessage);
-    replied = YES;
-    completion(KBMakeError(KBErrorCodeGeneric, @"%@", errorMessage), nil, nil);
+    self.replied = YES;
+    self.completion(KBMakeError(KBErrorCodeGeneric, @"%@", errorMessage), nil, nil);
   }
 }
 
 + (void)executeForJSONWithCommand:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, id value))completion {
-  KBTask *task = [[KBTask alloc] init];
-  [task executeForJSONWithCommand:command args:args timeout:timeout completion:completion];
-}
-
-
-- (void)executeForJSONWithCommand:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, id value))completion {
-  [self execute:command args:args timeout:timeout completion:^(NSError *error, NSData *outData, NSData *errData) {
+  KBTask *task = [[KBTask alloc] initWithCommand:command args:args timeout:timeout completion:^(NSError *error, NSData *outData, NSData *errData) {
     if (error) {
       completion(error, nil);
       return;
@@ -128,6 +136,7 @@
 
     completion(nil, value);
   }];
+  [task execute];
 }
 
 @end
