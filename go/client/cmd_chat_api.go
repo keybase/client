@@ -94,9 +94,14 @@ func (c *CmdChatAPI) ListV1() Reply {
 	var cl ChatList
 	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
 	for i, conv := range inbox.Conversations {
+		fmt.Printf("id %v, # max msgs: %d\n", conv.Metadata.ConversationID, len(conv.MaxMsgs))
+		if len(conv.MaxMsgs) == 0 {
+			return c.errReply(fmt.Errorf("conversation %d had no max msgs", conv.Metadata.ConversationID))
+		}
+		tlf := conv.MaxMsgs[0].ClientHeader.TlfName
 		cl.Conversations[i] = ConvSummary{
 			ID:        conv.Metadata.ConversationID,
-			Channel:   ChatChannel{},
+			Channel:   ChatChannel{Name: tlf},
 			TopicType: conv.Metadata.IdTriple.TopicType.String(),
 			TopicID:   conv.Metadata.IdTriple.TopicID.String(),
 		}
