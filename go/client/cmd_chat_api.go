@@ -51,7 +51,7 @@ func (c *CmdChatAPI) Run() error {
 
 	// TODO: flags for not using stdin, stdout
 
-	if err := d.Decode(os.Stdin, os.Stdout); err != nil {
+	if err := d.Decode(context.Background(), os.Stdin, os.Stdout); err != nil {
 		return err
 	}
 
@@ -77,14 +77,13 @@ type ChatList struct {
 	Conversations []ConvSummary `json:"conversations"`
 }
 
-func (c *CmdChatAPI) ListV1() Reply {
+func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 
-	// XXX plumb context through?
-	inbox, err := client.GetInboxLocal(context.Background(), nil)
+	inbox, err := client.GetInboxLocal(ctx, nil)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -130,14 +129,11 @@ type Thread struct {
 	Messages []MsgSummary `json:"messages"`
 }
 
-func (c *CmdChatAPI) ReadV1(opts readOptionsV1) Reply {
+func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
-
-	// XXX plumb context through?
-	ctx := context.Background()
 
 	if opts.ConversationID == 0 {
 		// resolve conversation id
@@ -195,14 +191,11 @@ func (c *CmdChatAPI) ReadV1(opts readOptionsV1) Reply {
 	return Reply{Result: thread}
 }
 
-func (c *CmdChatAPI) SendV1(opts sendOptionsV1) Reply {
+func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
-
-	// XXX plumb context through?
-	ctx := context.Background()
 
 	// XXX support other topic types
 	// XXX support conversation id

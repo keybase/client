@@ -10,6 +10,7 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/protocol/chat1"
+	"golang.org/x/net/context"
 )
 
 type ErrInvalidOptions struct {
@@ -52,15 +53,15 @@ type APICallStatus struct {
 }
 
 type ChatAPIHandler interface {
-	ListV1(Call, io.Writer) error
-	ReadV1(Call, io.Writer) error
-	SendV1(Call, io.Writer) error
+	ListV1(context.Context, Call, io.Writer) error
+	ReadV1(context.Context, Call, io.Writer) error
+	SendV1(context.Context, Call, io.Writer) error
 }
 
 type ChatServiceHandler interface {
-	ListV1() Reply
-	ReadV1(opts readOptionsV1) Reply
-	SendV1(opts sendOptionsV1) Reply
+	ListV1(context.Context) Reply
+	ReadV1(context.Context, readOptionsV1) Reply
+	SendV1(context.Context, sendOptionsV1) Reply
 }
 
 type ChatAPI struct {
@@ -118,15 +119,15 @@ func (r readOptionsV1) Check() error {
 	return nil
 }
 
-func (a *ChatAPI) ListV1(c Call, w io.Writer) error {
+func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) != 0 {
 		return ErrInvalidOptions{version: 1, method: "list", err: errors.New("unexpected options, should be empty")}
 	}
 
-	return a.encodeReply(c, a.svcHandler.ListV1(), w)
+	return a.encodeReply(c, a.svcHandler.ListV1(ctx), w)
 }
 
-func (a *ChatAPI) ReadV1(c Call, w io.Writer) error {
+func (a *ChatAPI) ReadV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
 		return ErrInvalidOptions{version: 1, method: "read", err: errors.New("empty options")}
 	}
@@ -140,10 +141,10 @@ func (a *ChatAPI) ReadV1(c Call, w io.Writer) error {
 
 	// opts are valid for read v1
 
-	return a.encodeReply(c, a.svcHandler.ReadV1(opts), w)
+	return a.encodeReply(c, a.svcHandler.ReadV1(ctx, opts), w)
 }
 
-func (a *ChatAPI) SendV1(c Call, w io.Writer) error {
+func (a *ChatAPI) SendV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
 		return ErrInvalidOptions{version: 1, method: "send", err: errors.New("empty options")}
 	}
@@ -157,7 +158,7 @@ func (a *ChatAPI) SendV1(c Call, w io.Writer) error {
 
 	// opts are valid for send v1
 
-	return a.encodeReply(c, a.svcHandler.SendV1(opts), w)
+	return a.encodeReply(c, a.svcHandler.SendV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

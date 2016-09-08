@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+
+	"golang.org/x/net/context"
 )
 
 type ErrInvalidMethod struct {
@@ -36,7 +38,7 @@ func NewChatAPIDecoder(h ChatAPIHandler) *ChatAPIDecoder {
 	}
 }
 
-func (d *ChatAPIDecoder) Decode(r io.Reader, w io.Writer) error {
+func (d *ChatAPIDecoder) Decode(ctx context.Context, r io.Reader, w io.Writer) error {
 	dec := json.NewDecoder(r)
 	for {
 		var c Call
@@ -48,7 +50,7 @@ func (d *ChatAPIDecoder) Decode(r io.Reader, w io.Writer) error {
 
 		switch c.Params.Version {
 		case 0, 1:
-			if err := d.handleV1(c, w); err != nil {
+			if err := d.handleV1(ctx, c, w); err != nil {
 				return err
 			}
 		default:
@@ -59,14 +61,14 @@ func (d *ChatAPIDecoder) Decode(r io.Reader, w io.Writer) error {
 	return nil
 }
 
-func (d *ChatAPIDecoder) handleV1(c Call, w io.Writer) error {
+func (d *ChatAPIDecoder) handleV1(ctx context.Context, c Call, w io.Writer) error {
 	switch c.Method {
 	case "list":
-		return d.handler.ListV1(c, w)
+		return d.handler.ListV1(ctx, c, w)
 	case "read":
-		return d.handler.ReadV1(c, w)
+		return d.handler.ReadV1(ctx, c, w)
 	case "send":
-		return d.handler.SendV1(c, w)
+		return d.handler.SendV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

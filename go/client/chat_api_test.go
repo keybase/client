@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"golang.org/x/net/context"
 )
 
 type handlerTracker struct {
@@ -17,17 +19,17 @@ type handlerTracker struct {
 	sendV1 int
 }
 
-func (h *handlerTracker) ListV1(Call, io.Writer) error {
+func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
 	h.listV1++
 	return nil
 }
 
-func (h *handlerTracker) ReadV1(Call, io.Writer) error {
+func (h *handlerTracker) ReadV1(context.Context, Call, io.Writer) error {
 	h.readV1++
 	return nil
 }
 
-func (h *handlerTracker) SendV1(Call, io.Writer) error {
+func (h *handlerTracker) SendV1(context.Context, Call, io.Writer) error {
 	h.sendV1++
 	return nil
 }
@@ -40,15 +42,15 @@ var echoOK = echoResult{Status: APICallStatus{Code: 200, Desc: "OK"}}
 
 type chatEcho struct{}
 
-func (c *chatEcho) ListV1() Reply {
+func (c *chatEcho) ListV1(context.Context) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) ReadV1(opts readOptionsV1) Reply {
+func (c *chatEcho) ReadV1(context.Context, readOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) SendV1(opts sendOptionsV1) Reply {
+func (c *chatEcho) SendV1(context.Context, sendOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -85,7 +87,7 @@ func TestChatAPIDecoderTop(t *testing.T) {
 		h := new(handlerTracker)
 		d := NewChatAPIDecoder(h)
 		var buf bytes.Buffer
-		err := d.Decode(strings.NewReader(test.input), &buf)
+		err := d.Decode(context.Background(), strings.NewReader(test.input), &buf)
 		if test.err != nil {
 			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
 				t.Errorf("test %d: error type %T, expected %T", i, err, test.err)
@@ -167,7 +169,7 @@ func TestChatAPIDecoderOptions(t *testing.T) {
 		h := &ChatAPI{svcHandler: new(chatEcho)}
 		d := NewChatAPIDecoder(h)
 		var buf bytes.Buffer
-		err := d.Decode(strings.NewReader(test.input), &buf)
+		err := d.Decode(context.Background(), strings.NewReader(test.input), &buf)
 		if test.err != nil {
 			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
 				t.Errorf("test %d: error type %T, expected %T", i, err, test.err)
@@ -227,7 +229,7 @@ func TestChatAPIEcho(t *testing.T) {
 		h := &ChatAPI{svcHandler: new(chatEcho)}
 		d := NewChatAPIDecoder(h)
 		var buf bytes.Buffer
-		err := d.Decode(strings.NewReader(test.input), &buf)
+		err := d.Decode(context.Background(), strings.NewReader(test.input), &buf)
 		if test.err != nil {
 			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
 				t.Errorf("test %d: error type %T, expected %T", i, err, test.err)
