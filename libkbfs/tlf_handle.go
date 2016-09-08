@@ -138,6 +138,37 @@ func (h TlfHandle) ConflictInfo() *TlfHandleExtension {
 	return &conflictInfoCopy
 }
 
+// WithUpdatedConflictInfo returns a new handle with the conflict info set to
+// the given one, if the existing one is nil. (In this case, the given one may
+// also be nil.) Otherwise, the given conflict info must match the existing
+// one.
+func (h TlfHandle) WithUpdatedConflictInfo(
+	codec Codec, info *TlfHandleExtension) (*TlfHandle, error) {
+	newHandle := h.deepCopy()
+	if newHandle.conflictInfo == nil {
+		if info == nil {
+			// Nothing to do.
+			return newHandle, nil
+		}
+		conflictInfoCopy := *info
+		newHandle.conflictInfo = &conflictInfoCopy
+		return newHandle, nil
+	}
+	// Make sure conflict info is the same; the conflict info for
+	// a TLF, once set, is immutable and should never change.
+	equal, err := CodecEqual(codec, newHandle.conflictInfo, info)
+	if err != nil {
+		return newHandle, err
+	}
+	if !equal {
+		return newHandle, TlfHandleExtensionMismatchError{
+			Expected: *newHandle.ConflictInfo(),
+			Actual:   info,
+		}
+	}
+	return newHandle, nil
+}
+
 // UpdateConflictInfo sets the handle's conflict info to the given
 // one, if the existing one is nil. (In this case, the given one may
 // also be nil.) Otherwise, the given conflict info must match the
@@ -474,7 +505,7 @@ func MakeTlfHandle(
 	return h, nil
 }
 
-func (h *TlfHandle) deepCopy() *TlfHandle {
+func (h TlfHandle) deepCopy() *TlfHandle {
 	hCopy := TlfHandle{
 		public:            h.public,
 		name:              h.name,
