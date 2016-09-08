@@ -1978,8 +1978,21 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		return err
 	}
 
-	// Archive the old, unref'd blocks
-	fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
+	// Archive the old, unref'd blocks if journaling is off.
+	doArchive := true
+	if jServer, err := GetJournalServer(fbo.config); err == nil {
+		if _, err := jServer.JournalStatus(fbo.id()); err == nil {
+			// Journaling is enabled, so don't archive!  TODO:
+			// JournalStatus could return other errors (likely
+			// file/disk corruption) that indicate a real problem, so
+			// it might be nice to type those errors so we can
+			// distinguish them.
+			doArchive = false
+		}
+	}
+	if doArchive {
+		fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
+	}
 
 	fbo.notifyBatchLocked(ctx, lState, irmd)
 	return nil
@@ -4564,7 +4577,8 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	}
 	fbo.setBranchIDLocked(lState, NullBranchID)
 
-	// Archive the old, unref'd blocks
+	// Archive the old, unref'd blocks (the revision went straight to
+	// the server, so we know it is merged).
 	fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
 
 	// notifyOneOp for every fixed-up merged op.
@@ -4667,6 +4681,37 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
 			"Could not set head on journal branch change: %v", err)
 		return
 	}
+}
+
+func (fbo *folderBranchOps) onMDFlush(bid BranchID, rev MetadataRevision) {
+	ctx, cancelFunc := fbo.newCtxWithFBOID()
+	defer cancelFunc()
+
+	if bid != NullBranchID {
+		fbo.log.CDebugf(ctx, "Ignoring MD flush on branch %v for revision %d",
+			bid, rev)
+		return
+	}
+
+	fbo.log.CDebugf(ctx, "Archiving references for flushed MD revision %d", rev)
+
+	// Get that revision.
+	rmds, err := getMDRange(ctx, fbo.config, fbo.id(), NullBranchID,
+		rev, rev, Merged)
+	if err != nil || len(rmds) == 0 {
+		fbo.log.CWarningf(ctx, "Couldn't get revision %d for archiving: %v",
+			rev, err)
+		return
+	}
+
+	// We must take the lock so that other users, like exclusive file
+	// creation, can wait for the journal to flush while holding the
+	// lock, and be guaranteed it will stay flushed.
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
+	fbo.fbm.archiveUnrefBlocks(rmds[0].ReadOnly())
 }
 
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps

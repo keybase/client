@@ -121,6 +121,7 @@ type tlfJournal struct {
 	log                 logger.Logger
 	deferLog            logger.Logger
 	onBranchChange      branchChangeListener
+	onMDFlush           mdFlushListener
 
 	// All the channels below are used as simple on/off
 	// signals. They're buffered for one object, and all sends are
@@ -152,7 +153,8 @@ type tlfJournal struct {
 func makeTLFJournal(
 	ctx context.Context, dir string, tlfID TlfID, config tlfJournalConfig,
 	delegateBlockServer BlockServer, bws TLFJournalBackgroundWorkStatus,
-	bwDelegate tlfJournalBWDelegate, onBranchChange branchChangeListener) (
+	bwDelegate tlfJournalBWDelegate, onBranchChange branchChangeListener,
+	onMDFlush mdFlushListener) (
 	*tlfJournal, error) {
 	log := config.MakeLogger("TLFJ")
 
@@ -183,6 +185,7 @@ func makeTLFJournal(
 		log:                 log,
 		deferLog:            log.CloneWithAddedDepth(1),
 		onBranchChange:      onBranchChange,
+		onMDFlush:           onMDFlush,
 		hasWorkCh:           make(chan struct{}, 1),
 		needPauseCh:         make(chan struct{}, 1),
 		needResumeCh:        make(chan struct{}, 1),
@@ -652,6 +655,11 @@ func (j *tlfJournal) flushOneMDOp(
 	}
 	if pushErr != nil {
 		return false, pushErr
+	}
+
+	if j.onMDFlush != nil {
+		j.onMDFlush.onMDFlush(rmds.MD.TlfID(), rmds.MD.BID(),
+			rmds.MD.RevisionNumber())
 	}
 
 	err = j.removeFlushedMDEntry(ctx, uid, key, mdID, rmds)

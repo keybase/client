@@ -22,7 +22,7 @@ func setupJournalServerTest(t *testing.T) (
 	log := config.MakeLogger("")
 	jServer = makeJournalServer(
 		config, log, tempdir, config.BlockCache(),
-		config.BlockServer(), config.MDOps(), nil)
+		config.BlockServer(), config.MDOps(), nil, nil)
 	ctx := context.Background()
 	err = jServer.EnableExistingJournals(
 		ctx, TLFJournalBackgroundWorkPaused)
@@ -95,7 +95,7 @@ func TestJournalServerRestart(t *testing.T) {
 
 	jServer = makeJournalServer(
 		config, jServer.log, tempdir, jServer.delegateBlockCache,
-		jServer.delegateBlockServer, jServer.delegateMDOps, nil)
+		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil)
 	err = jServer.EnableExistingJournals(
 		ctx, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
