@@ -1,6 +1,7 @@
 // @flow
 import ConfirmOrPending from './confirm-or-pending-container'
 import EditProfile from './edit-profile'
+import EditAvatar from './edit-avatar-container'
 import PostProof from './post-proof-container'
 import ProveEnterUsername from './prove-enter-username-container'
 import ProveWebsiteChoice from './prove-website-choice-container'
@@ -39,6 +40,7 @@ class ProfileContainer extends PureComponent<void, ?Props, void> {
       },
       subRoutes: {
         'editprofile': EditProfile,
+        'editavatar': EditAvatar,
         ProveEnterUsername,
         ProveWebsiteChoice,
         Revoke: RevokeContainer,
@@ -75,6 +77,7 @@ export default connect(
     onBack: ownProps.profileIsRoot ? null : () => { dispatch(navigateUp()) },
     onFolderClick: folder => { dispatch(openInKBFS(folder.path)) },
     onEditProfile: () => { dispatch(routeAppend({path: 'editprofile'})) },
+    onEditAvatar: () => { dispatch(routeAppend({path: 'editavatar'})) },
     onMissingProofClick: (missingProof: MissingProof) => { dispatch(addProof(missingProof.type)) },
     onRecheckProof: (proof: Proof) => { dispatch(checkSpecificProof(proof && proof.id)) },
     onRevokeProof: (proof: Proof) => {
@@ -95,7 +98,7 @@ export default connect(
     const isYou = stateProps.username === stateProps.myUsername
     const bioEditFns = isYou ? {
       onBioEdit: dispatchProps.onEditProfile,
-      onEditAvatarClick: dispatchProps.onEditProfile,
+      onEditAvatarClick: dispatchProps.onEditAvatar,
       onEditProfile: dispatchProps.onEditProfile,
       onLocationEdit: dispatchProps.onEditProfile,
       onNameEdit: dispatchProps.onEditProfile,
