@@ -18,7 +18,7 @@
 @property NSMutableData *errData;
 - (instancetype)initWithTask:(NSTask *)task;
 - (void)start;
-- (void)flush;
+- (void)drain;
 @end
 
 @interface KBTask ()
@@ -73,7 +73,7 @@
     DDLogDebug(@"Task dispatch completion");
     dispatch_async(dispatch_get_main_queue(), ^{
       // Ensure we've read to EOF
-      [wself.taskReader flush];
+      [wself.taskReader drain];
       DDLogDebug(@"Task (out): %@", ([[NSString alloc] initWithData:wself.taskReader.outData encoding:NSUTF8StringEncoding]));
       DDLogDebug(@"Task (err): %@", ([[NSString alloc] initWithData:wself.taskReader.errData encoding:NSUTF8StringEncoding]));
       self.completion(nil, wself.taskReader.outData, wself.taskReader.errData);
@@ -180,12 +180,12 @@
   [self.errFh readToEndOfFileInBackgroundAndNotify];
 }
 
-- (void)flush {
-  [self flush:self.outFh data:self.outData];
-  [self flush:self.errFh data:self.errData];
+- (void)drain {
+  [self drain:self.outFh data:self.outData];
+  [self drain:self.errFh data:self.errData];
 }
 
-- (void)flush:(NSFileHandle *)fh data:(NSMutableData *)data {
+- (void)drain:(NSFileHandle *)fh data:(NSMutableData *)data {
   NSData *readData = [fh readDataToEndOfFile];
   if (readData.length > 0) {
     [data appendData:readData];
