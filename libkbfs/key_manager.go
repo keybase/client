@@ -456,7 +456,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 			km.log.CDebugf(ctx, "handle for %s is conflicted",
 				handle.GetCanonicalPath())
 		}
-		err = resolvedHandle.UpdateConflictInfo(
+		resolvedHandle, err = resolvedHandle.WithUpdatedConflictInfo(
 			km.config.Codec(), latestHandle.ConflictInfo)
 		if err != nil {
 			return false, nil, err

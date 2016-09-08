@@ -271,3 +271,8 @@ func (l tlfHandleExtensionList) Splat() (ci, fi *TlfHandleExtension) {
 	}
 	return ci, fi
 }
+
+// Suffix outputs a suffix string for this extension list.
+func (l tlfHandleExtensionList) Suffix() string {
+	return NewTlfHandleExtensionSuffix(l)
+}

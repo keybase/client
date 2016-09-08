@@ -282,12 +282,12 @@ func TestTlfHandleAccessorsPublic(t *testing.T) {
 }
 
 func TestTlfHandleConflictInfo(t *testing.T) {
-	var h TlfHandle
+	h := &TlfHandle{}
 
 	require.Nil(t, h.ConflictInfo())
 
 	codec := NewCodecMsgpack()
-	err := h.UpdateConflictInfo(codec, nil)
+	h, err := h.WithUpdatedConflictInfo(codec, nil)
 	require.NoError(t, err)
 
 	info := TlfHandleExtension{
@@ -295,7 +295,7 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 		Number: 50,
 		Type:   TlfHandleExtensionConflict,
 	}
-	err = h.UpdateConflictInfo(codec, &info)
+	h, err = h.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 	require.Equal(t, info, *h.ConflictInfo())
 
@@ -303,14 +303,14 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 	require.NotEqual(t, info, *h.ConflictInfo())
 
 	info.Date = 100
-	err = h.UpdateConflictInfo(codec, &info)
+	h, err = h.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 
 	expectedErr := TlfHandleExtensionMismatchError{
 		Expected: *h.ConflictInfo(),
 		Actual:   nil,
 	}
-	err = h.UpdateConflictInfo(codec, nil)
+	h, err = h.WithUpdatedConflictInfo(codec, nil)
 	require.Equal(t, expectedErr, err)
 	require.Equal(t, "Folder handle extension mismatch, expected: (conflicted copy 1970-01-01 #50), actual: <nil>", err.Error())
 
@@ -319,7 +319,7 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 		Actual:   &info,
 	}
 	info.Date = 101
-	err = h.UpdateConflictInfo(codec, &info)
+	h, err = h.WithUpdatedConflictInfo(codec, &info)
 	require.Equal(t, expectedErr, err)
 	// A strange error message, since the difference doesn't show
 	// up in the strings. Oh, well.
@@ -404,7 +404,7 @@ func TestTlfHandlEqual(t *testing.T) {
 		Number: 50,
 		Type:   TlfHandleExtensionConflict,
 	}
-	err = h2.UpdateConflictInfo(codec, &info)
+	h2, err = h2.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 
 	eq, err = h1.Equals(codec, *h2)
@@ -694,7 +694,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 		Number: 50,
 		Type:   TlfHandleExtensionConflict,
 	}
-	err = h2.UpdateConflictInfo(codec, &info)
+	h2, err = h2.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
@@ -727,14 +727,14 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 		Number: 50,
 		Type:   TlfHandleExtensionConflict,
 	}
-	err = h2.UpdateConflictInfo(codec, &info)
+	h2, err = h2.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 	info = TlfHandleExtension{
 		Date:   99,
 		Number: 49,
 		Type:   TlfHandleExtensionConflict,
 	}
-	err = h1.UpdateConflictInfo(codec, &info)
+	h1, err = h1.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
@@ -772,7 +772,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 		Number: 50,
 		Type:   TlfHandleExtensionConflict,
 	}
-	err = h2.UpdateConflictInfo(codec, &info)
+	h2, err = h2.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
