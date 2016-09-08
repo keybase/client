@@ -323,7 +323,8 @@ func (e *ScanProofsEngine) CheckOne(rec map[string]string, forcepvl bool) (libkb
 	}
 
 	if forcepvl {
-		perr := pvl.CheckProof(e.G(), pvl.GetHardcodedPvl(), link.GetProofType(), link, *hint)
+		perr := pvl.CheckProof(e.G(), pvl.GetHardcodedPvl(), link.GetProofType(),
+			pvl.NewProofInfo(link, *hint))
 		return perr, nil
 	}
 

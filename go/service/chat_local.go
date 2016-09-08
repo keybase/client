@@ -73,7 +73,7 @@ func retryWithoutBackoffUpToNTimesUntilNoError(n int, action func() error) (err 
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybase1.ConversationInfoLocal) (created keybase1.ConversationInfoLocal, err error) {
 	res, err := h.boxer.tlf.CryptKeys(ctx, info.TlfName)
 	if err != nil {
-		return created, err
+		return created, fmt.Errorf("error getting crypt keys %s", err)
 	}
 	tlfIDb := res.TlfID.ToBytes()
 	if tlfIDb == nil {
@@ -90,11 +90,11 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 
 	if err = retryWithoutBackoffUpToNTimesUntilNoError(3, func() (err error) {
 		if triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
-			return err
+			return fmt.Errorf("error creating topic ID: %s", err)
 		}
 		firstMessageBoxed, err := h.prepareMessageForRemote(ctx, makeFirstMessage(ctx, info, triple))
 		if err != nil {
-			return err
+			return fmt.Errorf("error preparing message: %s", err)
 		}
 		res, err := h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,
@@ -115,7 +115,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 
 // UpdateTopicNameLocal implements keybase.chatLocal.updateTopicNameLocal protocol.
 func (h *chatLocalHandler) UpdateTopicNameLocal(ctx context.Context, arg keybase1.UpdateTopicNameLocalArg) (err error) {
-	info, triple, err := h.getConversationInfoByID(ctx, arg.ConversationID)
+	info, triple, _, err := h.getConversationInfoByID(ctx, arg.ConversationID)
 	return h.PostLocal(ctx, keybase1.PostLocalArg{
 		ConversationID:   info.Id,
 		MessagePlaintext: makeUnboxedMessageToUpdateTopicName(ctx, info, triple),
@@ -180,87 +180,173 @@ func (h *chatLocalHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, t
 // keybase.chatLocal.GetOrCreateTextConversationLocal protocol.
 func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg keybase1.ConversationInfoLocal) (conversations []keybase1.ConversationInfoLocal, err error) {
 	if arg.Id != 0 {
-		info, _, err := h.getConversationInfoByID(ctx, arg.Id)
+		info, _, _, err := h.getConversationInfoByID(ctx, arg.Id)
 		if err != nil {
 			return nil, err
 		}
 		return []keybase1.ConversationInfoLocal{info}, nil
 	}
-	return h.searchForConversations(ctx, arg)
+	return h.resolveConversations(ctx, arg)
 }
 
-// searchForConversations searches for conversations using tlfName, topicName,
+func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg keybase1.GetInboxSummaryLocalArg) (res keybase1.GetInboxSummaryLocalRes, err error) {
+	var topicTypes map[chat1.TopicType]bool
+	if len(arg.TopicTypes) > 0 {
+		topicTypes := make(map[chat1.TopicType]bool)
+		for _, t := range arg.TopicTypes {
+			topicTypes[t] = true
+		}
+	}
+
+	var since time.Time
+	if len(arg.Since) > 0 {
+		since, err := parseTimeFromRFC3339OrDurationFromPast(arg.Since)
+		if err != nil {
+			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Since, since)
+		}
+	}
+	since2 := time.Now().Add(-time.Since(since) * 2)
+
+	// TODO: move these criterian to server using queries
+	appendMaybe := func(conv chat1.Conversation) (shouldContinue bool, err error) {
+		info, _, maxMessages, err := h.getConversationInfo(ctx, conv)
+		if err != nil {
+			return false, err
+		}
+		c := keybase1.ConversationLocal{
+			Id:       info.Id,
+			Info:     &info,
+			Messages: maxMessages,
+		}
+
+		if topicTypes != nil && !topicTypes[info.TopicType] {
+			return true, nil
+		}
+
+		switch {
+		case !since.IsZero(): // since is present; limit is ignored
+			var newest time.Time
+			for _, m := range maxMessages {
+				t := gregor1.FromTime(m.ServerHeader.Ctime)
+				if t.After(newest) {
+					newest = t
+				}
+			}
+
+			if newest.Before(since2) { // too old; don't care anymore
+				return false, nil
+			} else if newest.Before(since) { // not in interesting range; but caller might be interested in this in the future, so put in res.More
+				res.More = append(res.More, c)
+				return true, nil
+			} else { // caller is interested in this conversation
+				res.Conversations = append(res.Conversations, c)
+				return true, nil
+			}
+		case arg.Limit > 0: // since is not present; try to use limit
+			if len(res.Conversations) < arg.Limit { // caller is interested in this conversation
+				res.Conversations = append(res.Conversations, c)
+				return true, nil
+			} else if len(res.More) < arg.Limit { // not in interesting range; but caller might be interested in this in the future, so put in res.More
+				res.More = append(res.More, c)
+				return true, nil
+			} else { // too much; don't care anymore
+				return false, nil
+			}
+		default: // not limiting number of items in result at all
+			res.Conversations = append(res.Conversations, c)
+			return true, nil
+		}
+
+	}
+
+	ipagination := &chat1.Pagination{Num: 20}
+	if arg.Limit != 0 {
+		ipagination.Num = arg.Limit * 2
+	}
+
+getinbox:
+	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
+		iview, err := h.GetInboxLocal(ctx, ipagination)
+		if err != nil {
+			return res, err
+		}
+		for _, conv := range iview.Conversations {
+			shouldContinue, err := appendMaybe(conv)
+			if err != nil {
+				return res, err
+			}
+
+			if !shouldContinue {
+				break getinbox
+			}
+		}
+
+		if iview.Pagination == nil || iview.Pagination.Last {
+			break getinbox
+		} else {
+			ipagination = iview.Pagination
+		}
+	}
+
+	res.MoreTotal = 1000 // TODO: implement this on server
+
+	return res, nil
+}
+
+// resolveConversations gets conversations from inbox using tlfName, topicName,
 // and topicType fields in criteria, and returns all matching conversations.
 // Conversation IDs are populated in returned conversations.
-func (h *chatLocalHandler) searchForConversations(ctx context.Context, criteria keybase1.ConversationInfoLocal) (conversations []keybase1.ConversationInfoLocal, err error) {
+func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria keybase1.ConversationInfoLocal) (conversations []keybase1.ConversationInfoLocal, err error) {
 	appendMaybe := func(info keybase1.ConversationInfoLocal) {
 		if len(criteria.TopicName) > 0 && criteria.TopicName != info.TopicName {
+			h.G().Log.Debug("+ resolveConversations: FAILED TOPIC NAME, %s != %s", criteria.TopicName, info.TopicName)
 			return
 		}
 		if criteria.TopicType != chat1.TopicType_NONE && criteria.TopicType != info.TopicType {
+			h.G().Log.Debug("+ resolveConversations: FAILED TOPIC TYPE, %d != %d", criteria.TopicType, info.TopicType)
 			return
 		}
 		conversations = append(conversations, info)
 	}
 
-	if len(criteria.TlfName) > 0 { // fast case
-		// TODO: do some caching in boxer so we don't end up calling this RPC
-		// unnecessarily too often
-		resp, err := h.boxer.tlf.CryptKeys(ctx, criteria.TlfName)
+	if len(criteria.TlfName) == 0 {
+		return nil, errors.New("unexpected criteria: empty TlfName")
+	}
+	// TODO: do some caching in boxer so we don't end up calling this RPC
+	// unnecessarily too often
+	resp, err := h.boxer.tlf.CryptKeys(ctx, criteria.TlfName)
+	if err != nil {
+		return nil, err
+	}
+	tlfIDb := resp.TlfID.ToBytes()
+	if tlfIDb == nil {
+		return nil, errors.New("invalid TLF ID acquired")
+	}
+	conversationsRemote, err := h.remoteClient().GetInboxByTLFIDRemote(ctx, tlfIDb)
+	if err != nil {
+		return nil, err
+	}
+	for _, cr := range conversationsRemote.Convs {
+		info, _, _, err := h.getConversationInfo(ctx, cr)
 		if err != nil {
 			return nil, err
 		}
-		tlfIDb := resp.TlfID.ToBytes()
-		if tlfIDb == nil {
-			return nil, errors.New("invalid TLF ID acquired")
+		if info.TlfName != criteria.TlfName {
+			// check again using signed information to make sure it's the correct
+			// conversation
+			return nil, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("Unexpected data is returned from server. We asked for %v, but got conversation for %v. TODO: handle tlfName changes properly for SBS case", criteria.TlfName, info.TlfName)}
 		}
-		conversationsRemote, err := h.remoteClient().GetInboxByTLFIDRemote(ctx, tlfIDb)
-		if err != nil {
-			return nil, err
-		}
-		for _, cr := range conversationsRemote.Convs {
-			info, _, err := h.getConversationInfo(ctx, cr)
-			if err != nil {
-				return nil, err
-			}
-			if info.TlfName != criteria.TlfName {
-				// check again using signed information to make sure it's the correct
-				// conversation
-				return nil, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("Unexpected data is returned from server. We asked for %v, but got conversation for %v. TODO: handle tlfName changes properly for SBS case", criteria.TlfName, info.TlfName)}
-			}
-			appendMaybe(info)
-		}
-	} else { // slow case: tlfName not specified; need to search through inbox
-		ipagination := &chat1.Pagination{Num: 20}
-	getinbox:
-		for i := 0; i < 10000; /* in case we have a server bug */ i++ {
-			iview, err := h.GetInboxLocal(ctx, ipagination)
-			if err != nil {
-				return conversations, err
-			}
-			for _, conv := range iview.Conversations {
-				info, _, err := h.getConversationInfo(ctx, conv)
-				if err != nil {
-					return conversations, err
-				}
-				appendMaybe(info)
-			}
-
-			if iview.Pagination == nil || iview.Pagination.Last {
-				break getinbox
-			} else {
-				ipagination = iview.Pagination
-			}
-		}
+		appendMaybe(info)
 	}
 
+	h.G().Log.Debug("- resolveConversations: returning: %d messages", len(conversations))
 	return conversations, nil
 }
 
-func (h *chatLocalHandler) getConversationInfoByID(ctx context.Context, id chat1.ConversationID) (conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple, err error) {
+func (h *chatLocalHandler) getConversationInfoByID(ctx context.Context, id chat1.ConversationID) (conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple, maxMessages []keybase1.Message, err error) {
 	res, err := h.remoteClient().GetConversationMetadataRemote(ctx, id)
 	if err != nil {
-		return conversationInfo, triple, err
+		return conversationInfo, triple, maxMessages, err
 	}
 	return h.getConversationInfo(ctx, res.Conv)
 }
@@ -269,18 +355,17 @@ func (h *chatLocalHandler) getConversationInfoByID(ctx context.Context, id chat1
 // all fields filled in conversationInfo, along with a ConversationIDTriple
 //
 // TODO: cache
-func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversationRemote chat1.Conversation) (conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple, err error) {
+func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversationRemote chat1.Conversation) (conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple, maxMessages []keybase1.Message, err error) {
+
+	conversationInfo.Id = conversationRemote.Metadata.ConversationID
+	conversationInfo.TopicType = conversationRemote.Metadata.IdTriple.TopicType
+
 	if len(conversationRemote.MaxHeaders) == 0 {
-		return conversationInfo, triple, libkb.UnexpectedChatDataFromServer{Msg: "conversation has an empty MaxHeaders field"}
+		return conversationInfo, triple, maxMessages, libkb.UnexpectedChatDataFromServer{Msg: "conversation has an empty MaxHeaders field"}
 	}
-	messageIDs := []chat1.MessageID{conversationRemote.ReaderInfo.MaxMsgid}
+	var messageIDs []chat1.MessageID
 	for _, header := range conversationRemote.MaxHeaders {
-		if header.MessageType == chat1.MessageType_METADATA {
-			// if METADATA message exists, retrieve it (which is the newest one) to
-			// get topic name
-			messageIDs = append(messageIDs, header.MessageID)
-			break
-		}
+		messageIDs = append(messageIDs, header.MessageID)
 	}
 
 	res, err := h.remoteClient().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
@@ -293,33 +378,39 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 		MessageIDs: messageIDs,
 	})
 	if err != nil {
-		return conversationInfo, triple, err
+		return conversationInfo, triple, maxMessages, err
 	}
 	if len(res.Msgs) != len(messageIDs) {
-		return conversationInfo, triple, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("unexpected number of messages (got %d, expected %d) from GetMessagesRemote", len(res.Msgs), len(messageIDs))}
+		return conversationInfo, triple, maxMessages, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("unexpected number of messages (got %d, expected %d) from GetMessagesRemote", len(res.Msgs), len(messageIDs))}
 	}
 
 	for _, b := range res.Msgs {
 		unboxed, err := h.boxer.unboxMessage(ctx, newKeyFinder(), b)
 		if err != nil {
-			return conversationInfo, triple, err
+			return conversationInfo, triple, maxMessages, err
 		}
+
+		maxMessages = append(maxMessages, unboxed)
 
 		if len(unboxed.MessagePlaintext.MessageBodies) > 0 {
 			body := unboxed.MessagePlaintext.MessageBodies[0]
 			if t, err := body.MessageType(); err != nil {
-				return conversationInfo, triple, err
+				return conversationInfo, triple, maxMessages, err
 			} else if t == chat1.MessageType_METADATA {
 				conversationInfo.TopicName = body.Metadata().ConversationTitle
 			}
 		}
 
-		// at this point, this has to be the newest message across the
-		// conversation. Use this for TLF name
-		conversationInfo.TlfName = unboxed.MessagePlaintext.ClientHeader.TlfName
+		if unboxed.ServerHeader.MessageID.String() == conversationRemote.ReaderInfo.MaxMsgid.String() {
+			conversationInfo.TlfName = unboxed.MessagePlaintext.ClientHeader.TlfName
+		}
 	}
 
-	return conversationInfo, triple, nil
+	if len(conversationInfo.TlfName) == 0 {
+		return conversationInfo, triple, maxMessages, errors.New("unexpected response from server: global MaxMsgid is not present in MaxHeaders")
+	}
+
+	return conversationInfo, triple, maxMessages, nil
 }
 
 func (h *chatLocalHandler) fillMessageInfoLocal(ctx context.Context, m *keybase1.Message, isNew bool) (err error) {
@@ -339,7 +430,7 @@ func (h *chatLocalHandler) makeConversationLocal(ctx context.Context, conversati
 	if len(messages) == 0 {
 		return conversation, errors.New("empty messages")
 	}
-	info, _, err := h.getConversationInfo(ctx, conversationRemote)
+	info, _, _, err := h.getConversationInfo(ctx, conversationRemote)
 	if err != nil {
 		return conversation, err
 	}
@@ -384,14 +475,20 @@ getthread:
 			typ, err := m.MessagePlaintext.MessageBodies[0].MessageType()
 
 			if err != nil {
+				h.G().Log.Debug("+ getConversationMessages(): failed on message type cast: %d",
+					m.ServerHeader.MessageID)
 				return conv, err
 			}
 
 			if messageTypes != nil && !messageTypes[typ] {
+				h.G().Log.Debug("+ getConversationMessages(): failed on message type check: %d",
+					m.ServerHeader.MessageID)
 				continue
 			}
 
 			if !since.IsZero() && gregor1.FromTime(m.ServerHeader.Ctime).Before(since) {
+				h.G().Log.Debug("+ getConversationMessages(): failed on time check: %d",
+					m.ServerHeader.MessageID)
 				// messages are sorted DESC by time, so at this point we can stop fetching
 				break getthread
 			}
@@ -487,17 +584,17 @@ func (h *chatLocalHandler) fillSenderIDsForPostLocal(arg *keybase1.MessagePlaint
 		return libkb.DeviceRequiredError{}
 	}
 
-	if huid := uid.ToBytes(); huid == nil {
+	huid := uid.ToBytes()
+	if huid == nil {
 		return errors.New("invalid UID")
-	} else {
-		arg.ClientHeader.Sender = gregor1.UID(huid)
 	}
-	var hdid []byte
+	arg.ClientHeader.Sender = gregor1.UID(huid)
+
+	hdid := make([]byte, libkb.DeviceIDLen)
 	if err = did.ToBytes(hdid); err != nil {
 		return err
-	} else {
-		arg.ClientHeader.SenderDevice = gregor1.DeviceID(hdid)
 	}
+	arg.ClientHeader.SenderDevice = gregor1.DeviceID(hdid)
 
 	return nil
 }

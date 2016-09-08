@@ -39,6 +39,8 @@ typedef NS_ENUM (NSInteger, KBExit) {
 
   [KBAppearance setCurrentAppearance:[KBUIAppearance appearance]];
 
+  DDLogDebug(@"Version: %@", NSBundle.mainBundle.infoDictionary[(NSString *)kCFBundleVersionKey]);
+
   GBSettings *settings = [GBSettings settingsWithName:@"Settings" parent:nil];
 #if DEBUG
   [settings setObject:@"/Applications/Keybase.app" forKey:@"app-path"];
@@ -46,6 +48,11 @@ typedef NS_ENUM (NSInteger, KBExit) {
   [settings setObject:@"prod" forKey:@"run-mode"];
 #endif
   _settings = [[Settings alloc] initWithSettings:settings];
+  NSError *parseError = nil;
+  if (![_settings parseArgs:&parseError]) {
+    [self exit:KBExitError];
+    return;
+  }
 
   if ([_settings isUninstall]) {
     [self uninstall];

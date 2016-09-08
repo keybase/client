@@ -59,12 +59,12 @@ public class KeyStore implements ExternalKeyStore {
 
     @SuppressLint("CommitPrefEdits")
     @Override
-    public void ClearSecret(final String serviceName, final String key) throws Exception {
+    public void clearSecret(final String serviceName, final String key) throws Exception {
         prefs.edit().remove(sharedPrefKeyPrefix(serviceName) + key).commit();
     }
 
     @Override
-    public synchronized byte[] GetUsersWithStoredSecretsMsgPack(final String serviceName) throws Exception {
+    public synchronized byte[] getUsersWithStoredSecretsMsgPack(final String serviceName) throws Exception {
         final Iterator<String> keyIterator = prefs.getAll().keySet().iterator();
         final ArrayList<String> userNames = new ArrayList<>();
 
@@ -80,7 +80,7 @@ public class KeyStore implements ExternalKeyStore {
     }
 
     @Override
-    public synchronized byte[] RetrieveSecret(final String serviceName, final String key) throws Exception {
+    public synchronized byte[] retrieveSecret(final String serviceName, final String key) throws Exception {
         final byte[] wrappedSecret = readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
         Entry entry;
         try {
@@ -101,7 +101,7 @@ public class KeyStore implements ExternalKeyStore {
     }
 
     @Override
-    public synchronized void SetupKeyStore(final String serviceName, final String key) throws Exception {
+    public synchronized void setupKeyStore(final String serviceName, final String key) throws Exception {
         if (!ks.containsAlias(keyStoreAlias(serviceName))) {
             KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
         }
@@ -124,7 +124,7 @@ public class KeyStore implements ExternalKeyStore {
     }
 
     @Override
-    public synchronized void StoreSecret(final String serviceName, final String key, final byte[] bytes) throws Exception {
+    public synchronized void storeSecret(final String serviceName, final String key, final byte[] bytes) throws Exception {
         Entry entry = null;
 
         try {

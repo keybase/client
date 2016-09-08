@@ -8,7 +8,7 @@ import type {Folder} from '../list'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {favoriteFolder, ignoreFolder} from '../../actions/favorite'
-import {navigateBack, routeAppend} from '../../actions/router'
+import {navigateUp, routeAppend} from '../../actions/router'
 import {openInKBFS} from '../../actions/kbfs'
 
 type Props = $Shape<{
@@ -16,7 +16,7 @@ type Props = $Shape<{
   path: string,
   username: string,
   allowIgnore: boolean,
-  navigateBack: () => void,
+  navigateUp: () => void,
   routeAppend: (route: any) => void,
   ignoreFolder: (path: string) => void,
   favoriteFolder: (path: string) => void,
@@ -34,7 +34,7 @@ class Files extends Component<void, Props, State> {
     // TODO (AW): make a more user friendly response for when the folder they were hoping to look at
     // has been removed/defavorited in the time between them clicking it in the Folders view and the
     // loading of this component
-    if (!props.folder) props.navigateBack()
+    if (!props.folder) props.navigateUp()
   }
 
   constructor (props) {
@@ -72,7 +72,7 @@ class Files extends Component<void, Props, State> {
         users={folder.users}
         waitingForParticipantUnlock={folder.waitingForParticipantUnlock}
         youCanUnlock={folder.youCanUnlock}
-        onBack={() => this.props.navigateBack()}
+        onBack={() => this.props.navigateUp()}
         openCurrentFolder={openCurrentFolder}
         onClickPaperkey={device => this.props.routeAppend({path: 'paperkey', name: device.name})}
         ignoreCurrentFolder={ignoreCurrentFolder}
@@ -110,7 +110,7 @@ const ConnectedFiles = connect(
       username: state.config && state.config.username,
     }
   },
-  dispatch => bindActionCreators({favoriteFolder, ignoreFolder, navigateBack, openInKBFS, routeAppend}, dispatch)
+  dispatch => bindActionCreators({favoriteFolder, ignoreFolder, navigateUp, openInKBFS, routeAppend}, dispatch)
 )(Files)
 
 export default ConnectedFiles

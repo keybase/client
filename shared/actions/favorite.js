@@ -9,12 +9,14 @@ import type {UserList} from '../common-adapters/usernames'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
+import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
 import {defaultKBFSPath} from '../constants/config'
 import {navigateBack} from '../actions/router'
 
 export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
-  const sortName = users.map(u => u.username).join(',')
+  const rwers = users.filter(u => !u.readOnly).map(u => u.username)
+  const readers = users.filter(u => !!u.readOnly).map(u => u.username)
+  const sortName = rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
   const path = `${defaultKBFSPath}/${isPublic ? 'public' : 'private'}/${sortName}`
   return {sortName, path}
 }
@@ -50,12 +52,7 @@ const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): F
   let publicBadge = 0
 
   const converted: Array<FoldersFolder & {sortName: string}> = folders.map(f => {
-    const users = canonicalizeUsernames(username, parseFolderNameToUsers(f.name))
-      .map(u => ({
-        username: u,
-        you: u === username,
-        broken: false,
-      }))
+    const users = sortUserList(parseFolderNameToUsers(username, f.name))
 
     const {sortName, path} = pathFromFolder({users, isPublic: !f.private})
     const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)

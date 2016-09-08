@@ -32,6 +32,10 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		},
 		Flags: makeChatFlags([]cli.Flag{
 			cli.StringFlag{
+				Name:  "topic-name",
+				Usage: `Specify topic name of the conversation.`,
+			},
+			cli.StringFlag{
 				Name:  "set-topic-name",
 				Usage: `set topic name for the conversation`,
 			},
