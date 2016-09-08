@@ -4520,6 +4520,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	default:
 	}
 
+	mdOps := fbo.config.MDOps()
 	if jServer, err := GetJournalServer(fbo.config); err == nil {
 		// Disable journal writes after flushing all the resolution
 		// block writes -- resolutions must go straight through to the
@@ -4527,23 +4528,12 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		if err = jServer.Wait(ctx, fbo.id()); err != nil {
 			return err
 		}
-		wasEnabled, err := jServer.Disable(ctx, fbo.id())
-		if err != nil {
-			return err
-		}
-		if wasEnabled {
-			defer func() {
-				if err := jServer.Enable(ctx, fbo.id(),
-					TLFJournalBackgroundWorkEnabled); err != nil {
-					fbo.log.CDebugf(ctx, "Couldn't re-enable journal: %v", err)
-				}
-			}()
-		}
+		mdOps = jServer.delegateMDOps
 	}
 
 	// Put the MD.  If there's a conflict, abort the whole process and
 	// let CR restart itself.
-	mdID, err := fbo.config.MDOps().Put(ctx, md)
+	mdID, err := mdOps.Put(ctx, md)
 	doUnmergedPut := isRevisionConflict(err)
 	if doUnmergedPut {
 		fbo.log.CDebugf(ctx, "Got a conflict after resolution; aborting CR")
@@ -4553,7 +4543,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		return err
 	}
 
-	err = fbo.config.MDOps().PruneBranch(ctx, fbo.id(), fbo.bid)
+	err = mdOps.PruneBranch(ctx, fbo.id(), fbo.bid)
 	if err != nil {
 		return err
 	}
