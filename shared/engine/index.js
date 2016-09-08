@@ -30,7 +30,7 @@ class Engine {
   constructor () {
     this._setupClient()
     this._setupCoreHandlers()
-    this._setupIgnoredHanlders()
+    this._setupIgnoredHandlers()
     this._setupDebugging()
   }
 
@@ -70,10 +70,7 @@ class Engine {
     })
   }
 
-  _setupIgnoredHanlders () {
-    // The ui doesn't do anything with these calls currently. We handle it so we don't
-    // get an unhandled rpc warning.
-    this.setIncomingHandler('keybase.1.NotifyUsers.userChanged', () => {})
+  _setupIgnoredHandlers () {
   }
 
   // Called when we reconnect to the server
