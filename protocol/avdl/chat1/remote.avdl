@@ -61,9 +61,8 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
 
-  GetInboxRemoteRes getInboxRemote(union { null, Pagination } pagination);
-  GetInboxByTLFIDRemoteRes getInboxByTLFIDRemote(TLFID TLFID);
-  GetThreadRemoteRes getThreadRemote(ConversationID conversationID, boolean markAsRead, union { null, Pagination } pagination);
+  GetInboxRemoteRes getInboxRemote(union { null, GetInboxQuery } query, union { null, Pagination } pagination);
+  GetThreadRemoteRes getThreadRemote(ConversationID conversationID, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
   GetConversationMetadataRemoteRes getConversationMetadataRemote(ConversationID conversationID);
 
   PostRemoteRes postRemote(ConversationID conversationID, MessageBoxed messageBoxed);

@@ -301,6 +301,13 @@
     "getInboxLocal": {
       "request": [
         {
+          "name": "query",
+          "type": [
+            null,
+            "chat1.GetInboxQuery"
+          ]
+        },
+        {
           "name": "pagination",
           "type": [
             null,
@@ -317,8 +324,11 @@
           "type": "chat1.ConversationID"
         },
         {
-          "name": "markAsRead",
-          "type": "boolean"
+          "name": "query",
+          "type": [
+            null,
+            "chat1.GetThreadQuery"
+          ]
         },
         {
           "name": "pagination",

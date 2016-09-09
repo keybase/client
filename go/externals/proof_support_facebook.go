@@ -93,11 +93,11 @@ func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHin
 	return nil
 }
 
-const POST_HEADERS_SELECTOR = "#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3"
+const PostHeadersSelector = "#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3"
 
 func extractUsername(doc *goquery.Document) (string, libkb.ProofError) {
 	// Get the anchor tag from inside the first header.
-	usernameAnchor := doc.Find(POST_HEADERS_SELECTOR).Eq(0).Find("a")
+	usernameAnchor := doc.Find(PostHeadersSelector).Eq(0).Find("a")
 	if usernameAnchor.Length() == 0 {
 		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find username anchor tag")
 	}
@@ -123,7 +123,7 @@ func extractUsername(doc *goquery.Document) (string, libkb.ProofError) {
 
 func extractProofText(doc *goquery.Document) (string, libkb.ProofError) {
 	// Get the second header.
-	proofHeader := doc.Find(POST_HEADERS_SELECTOR).Eq(1)
+	proofHeader := doc.Find(PostHeadersSelector).Eq(1)
 	if proofHeader.Length() == 0 {
 		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find proof text header")
 	}
@@ -187,13 +187,13 @@ func (t FacebookServiceType) GetProofType() string { return t.BaseGetProofType(t
 func (t FacebookServiceType) CheckProofText(text string, id keybase1.SigID, sig string) error {
 	// In this case the "proof" is a link to a Facebook post dialog, with the
 	// actual (short, Twitter-style) proof text in the "name" query parameter.
-	parsedUrl, err := url.Parse(text)
+	parsedURL, err := url.Parse(text)
 	if err != nil {
 		return err
 	}
-	nameParams := parsedUrl.Query()["name"]
+	nameParams := parsedURL.Query()["name"]
 	if len(nameParams) != 1 {
-		return libkb.BadSigError{fmt.Sprintf("Expected 1 'name' param, found %d", len(nameParams))}
+		return libkb.BadSigError{E: fmt.Sprintf("Expected 1 'name' param, found %d", len(nameParams))}
 	}
 	name := nameParams[0]
 	err = t.BaseCheckProofTextShort(name, id, true /* med */)
@@ -201,14 +201,14 @@ func (t FacebookServiceType) CheckProofText(text string, id keybase1.SigID, sig 
 		return err
 	}
 	// Sanity check other parts of the URL.
-	if parsedUrl.Scheme != "https" {
-		return libkb.BadSigError{fmt.Sprintf("Expected HTTPS, found %s", parsedUrl.Scheme)}
+	if parsedURL.Scheme != "https" {
+		return libkb.BadSigError{E: fmt.Sprintf("Expected HTTPS, found %s", parsedURL.Scheme)}
 	}
-	if parsedUrl.Host != "facebook.com" {
-		return libkb.BadSigError{fmt.Sprintf("Expected facebook.com, found %s", parsedUrl.Host)}
+	if parsedURL.Host != "facebook.com" {
+		return libkb.BadSigError{E: fmt.Sprintf("Expected facebook.com, found %s", parsedURL.Host)}
 	}
-	if parsedUrl.Path != "/dialog/feed" {
-		return libkb.BadSigError{fmt.Sprintf("Unexpected path: %s", parsedUrl.Path)}
+	if parsedURL.Path != "/dialog/feed" {
+		return libkb.BadSigError{E: fmt.Sprintf("Unexpected path: %s", parsedURL.Path)}
 	}
 	return nil
 }

@@ -39,8 +39,12 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 }
 
 // GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
-func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, p *chat1.Pagination) (chat1.InboxView, error) {
-	ib, err := h.remoteClient().GetInboxRemote(ctx, p)
+func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg keybase1.GetInboxLocalArg) (chat1.InboxView, error) {
+
+	ib, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query:      arg.Query,
+		Pagination: arg.Pagination,
+	})
 	return ib.Inbox, err
 }
 
@@ -48,7 +52,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, p *chat1.Paginatio
 func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetThreadLocalArg) (keybase1.ThreadView, error) {
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: arg.ConversationID,
-		MarkAsRead:     arg.MarkAsRead,
+		Query:          arg.Query,
 		Pagination:     arg.Pagination,
 	}
 	boxed, err := h.remoteClient().GetThreadRemote(ctx, rarg)
@@ -266,7 +270,9 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg keybase
 
 getinbox:
 	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
-		iview, err := h.GetInboxLocal(ctx, ipagination)
+		iview, err := h.GetInboxLocal(ctx, keybase1.GetInboxLocalArg{
+			Pagination: ipagination,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -322,11 +328,18 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ke
 	if tlfIDb == nil {
 		return nil, errors.New("invalid TLF ID acquired")
 	}
-	conversationsRemote, err := h.remoteClient().GetInboxByTLFIDRemote(ctx, tlfIDb)
+
+	tlfID := chat1.TLFID(tlfIDb)
+	conversationsRemote, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query: &chat1.GetInboxQuery{
+			TlfID: &tlfID,
+		},
+		Pagination: nil,
+	})
 	if err != nil {
 		return nil, err
 	}
-	for _, cr := range conversationsRemote.Convs {
+	for _, cr := range conversationsRemote.Inbox.Conversations {
 		info, _, _, err := h.getConversationInfo(ctx, cr)
 		if err != nil {
 			return nil, err
@@ -441,8 +454,10 @@ getthread:
 	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
 		tview, err := h.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
 			ConversationID: conversationRemote.Metadata.ConversationID,
-			MarkAsRead:     selector.MarkAsRead,
-			Pagination:     tpagination,
+			Query: &chat1.GetThreadQuery{
+				MarkAsRead: selector.MarkAsRead,
+			},
+			Pagination: tpagination,
 		})
 		if err != nil {
 			return conv, err

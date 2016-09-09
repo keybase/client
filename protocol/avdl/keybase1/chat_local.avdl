@@ -84,8 +84,8 @@ protocol chatLocal {
     array<Message> messages;
   }
 
-  chat1.InboxView getInboxLocal(union { null, chat1.Pagination } pagination);
-  ThreadView getThreadLocal(chat1.ConversationID conversationID, boolean markAsRead, union { null, chat1.Pagination } pagination);
+  chat1.InboxView getInboxLocal(union { null, chat1.GetInboxQuery} query, union { null, chat1.Pagination } pagination);
+  ThreadView getThreadLocal(chat1.ConversationID conversationID, union { null, chat1.GetThreadQuery} query, union { null, chat1.Pagination } pagination);
   void postLocal(chat1.ConversationID conversationID, MessagePlaintext messagePlaintext);
 
   // resolveConversationLocal resolves information related to a conversation.
