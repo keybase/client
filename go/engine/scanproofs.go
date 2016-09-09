@@ -45,16 +45,19 @@ func LoadScanProofsCache(filepath string) (*ScanProofsCache, error) {
 }
 
 func (c *ScanProofsCache) Save(filepath string) error {
-	f, err := os.Create(filepath)
+	temppath := filepath + "-temp-swap"
+	f, err := os.Create(temppath)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 	enc := gob.NewEncoder(f)
 	err = enc.Encode(c)
 	if err != nil {
+		f.Close()
 		return err
 	}
+	f.Close()
+	os.Rename(temppath, filepath)
 	return nil
 }
 
