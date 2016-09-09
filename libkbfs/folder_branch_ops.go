@@ -2042,8 +2042,23 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 
 	oldPrevRoot := md.PrevRoot()
 
-	// finally, write out the new metadata
-	mdID, err := fbo.config.MDOps().Put(ctx, md)
+	// Write out the new metadata.  If journaling is enabled, we don't
+	// want the rekey to hit the journal and possibly end up on a
+	// conflict branch, so wait for the journal to flush and then push
+	// straight to the server.  TODO: we're holding the writer lock
+	// while flushing the journal here (just like for exclusive
+	// writes), which may end up blocking incoming writes for a long
+	// time.  Rekeys are pretty rare, but if this becomes an issue
+	// maybe we should consider letting these hit the journal and
+	// scrubbing them when converting it to a branch.
+	mdOps := fbo.config.MDOps()
+	if jServer, err := GetJournalServer(fbo.config); err == nil {
+		if err = jServer.Wait(ctx, fbo.id()); err != nil {
+			return err
+		}
+		mdOps = jServer.delegateMDOps
+	}
+	mdID, err := mdOps.Put(ctx, md)
 	isConflict := isRevisionConflict(err)
 	if err != nil && !isConflict {
 		return err
