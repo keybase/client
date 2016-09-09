@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -675,6 +676,46 @@ func (h TlfHandle) ResolvesTo(
 	}
 
 	return resolvesTo, partialResolvedH, nil
+}
+
+// MutuallyResolvesTo checks that the target handle, and the provided
+// `other` handle, resolve to each other.
+func (h TlfHandle) MutuallyResolvesTo(ctx context.Context, codec Codec,
+	resolver resolver, other TlfHandle, rev MetadataRevision, tlfID TlfID,
+	log logger.Logger) error {
+	handleResolvesToOther, partialResolvedHandle, err :=
+		h.ResolvesTo(ctx, codec, resolver, other)
+	if err != nil {
+		return err
+	}
+
+	// TODO: If h has conflict info, other should, too.
+	otherResolvesToHandle, partialResolvedOther, err :=
+		other.ResolvesTo(ctx, codec, resolver, h)
+	if err != nil {
+		return err
+	}
+
+	handlePath := h.GetCanonicalPath()
+	otherPath := other.GetCanonicalPath()
+	if !handleResolvesToOther && !otherResolvesToHandle {
+		return MDMismatchError{
+			rev, h.GetCanonicalPath(), tlfID,
+			fmt.Errorf(
+				"MD contained unexpected handle path %s (%s -> %s) (%s -> %s)",
+				otherPath,
+				h.GetCanonicalPath(),
+				partialResolvedHandle.GetCanonicalPath(),
+				other.GetCanonicalPath(),
+				partialResolvedOther.GetCanonicalPath()),
+		}
+	}
+
+	if handlePath != otherPath {
+		log.CDebugf(ctx, "handle for %s resolved to %s",
+			handlePath, otherPath)
+	}
+	return nil
 }
 
 func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase1.SocialAssertion {
