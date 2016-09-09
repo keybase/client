@@ -694,7 +694,21 @@ func (j *blockJournal) getNextEntriesToFlush(
 	}
 
 	if first >= end {
-		return blockEntriesToFlush{}, nil
+		return blockEntriesToFlush{}, fmt.Errorf("Trying to flush past the "+
+			"start of the journal (first=%d, end=%d)", first, end)
+	}
+
+	realEnd, err := j.end()
+	if realEnd == 0 {
+		return blockEntriesToFlush{}, fmt.Errorf("There was an earliest "+
+			"ordinal %d, but no latest ordinal", first)
+	} else if err != nil {
+		return blockEntriesToFlush{}, err
+	}
+
+	if end > realEnd {
+		return blockEntriesToFlush{}, fmt.Errorf("Trying to flush past the "+
+			"end of the journal (realEnd=%d, end=%d)", realEnd, end)
 	}
 
 	entries.puts = newBlockPutState(int(end - first))

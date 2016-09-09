@@ -255,8 +255,11 @@ func TestBlockJournalFlush(t *testing.T) {
 		}
 
 		// Test that the end parameter is respected.
-		partialEntries, err := j.getNextEntriesToFlush(ctx, end-1)
-		require.NoError(t, err)
+		var partialEntries blockEntriesToFlush
+		if end > 1 {
+			partialEntries, err = j.getNextEntriesToFlush(ctx, end-1)
+			require.NoError(t, err)
+		}
 
 		entries, err := j.getNextEntriesToFlush(ctx, end)
 		require.NoError(t, err)

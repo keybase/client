@@ -420,6 +420,9 @@ func (j *tlfJournal) getJournalEnds(ctx context.Context) (
 }
 
 func (j *tlfJournal) flush(ctx context.Context) (err error) {
+	j.flushLock.Lock()
+	defer j.flushLock.Unlock()
+
 	flushedBlockEntries := 0
 	flushedMDEntries := 0
 	defer func() {
@@ -510,9 +513,6 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 
 func (j *tlfJournal) flushBlockEntries(
 	ctx context.Context, end journalOrdinal) (int, error) {
-	j.flushLock.Lock()
-	defer j.flushLock.Unlock()
-
 	entries, err := j.getNextBlockEntriesToFlush(ctx, end)
 	if err != nil {
 		return 0, err
@@ -606,9 +606,6 @@ func (j *tlfJournal) flushOneMDOp(
 			j.deferLog.CDebugf(ctx, "Flush failed with %v", err)
 		}
 	}()
-
-	j.flushLock.Lock()
-	defer j.flushLock.Unlock()
 
 	mdServer := j.config.MDServer()
 
