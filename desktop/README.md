@@ -71,6 +71,8 @@ smfinder --position 1200:10 path-to-your-source-map
 2. Find outdated packages: Run ```npm outdated```
 3. Install updated packages: Run ```npm install -E -S packageName@specificVersion``` or ```npm install -E -D devPackageName@specificVersion```
 
+If updating a dev dependency, make sure it didn't get added to dependencies.
+
 #### Shrinkwrapping and re-vendoring
 
 Dependencies are shrinkwrapped in this repository. Vendored copies of dependencies are located in [keybase/js-vendor-desktop](https://github.com/keybase/js-vendor-desktop).
