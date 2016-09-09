@@ -214,6 +214,7 @@ var ProofTypeRevMap = map[ProofType]string{
 	4:      "REDDIT",
 	5:      "COINBASE",
 	6:      "HACKERNEWS",
+	8:      "FACEBOOK",
 	1000:   "GENERIC_WEB_SITE",
 	1001:   "DNS",
 	1002:   "PGP",
