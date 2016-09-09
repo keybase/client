@@ -199,7 +199,6 @@ const stylesButtonLabel = {
   whiteSpace: 'nowrap',
   fontSize: 16,
   height: 'auto',
-  lineHeight: 0,
   textTransform: 'none',
 }
 const stylesButtonSmallLabel = {
@@ -207,7 +206,6 @@ const stylesButtonSmallLabel = {
   fontSize: 14,
   paddingLeft: 20,
   paddingRight: 20,
-  lineHeight: 0,
 }
 const stylesProgress = {
   position: 'absolute',
