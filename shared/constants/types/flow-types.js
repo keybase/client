@@ -330,6 +330,7 @@ export const ProveCommonProofType = {
   reddit: 4,
   coinbase: 5,
   hackernews: 6,
+  facebook: 8,
   genericWebSite: 1000,
   dns: 1001,
   pgp: 1002,
@@ -2747,6 +2748,7 @@ export type ProofType =
   | 4 // REDDIT_4
   | 5 // COINBASE_5
   | 6 // HACKERNEWS_6
+  | 8 // FACEBOOK_8
   | 1000 // GENERIC_WEB_SITE_1000
   | 1001 // DNS_1001
   | 1002 // PGP_1002
