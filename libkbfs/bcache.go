@@ -21,7 +21,6 @@ type idCacheKey struct {
 // internally by just their block ID (since blocks are immutable and
 // content-addressable).
 type BlockCacheStandard struct {
-	config             Config
 	cleanBytesCapacity uint64
 
 	ids *lru.Cache
@@ -41,10 +40,9 @@ type BlockCacheStandard struct {
 // between the transient and permanent clean caches.  If putting a
 // block will exceed this bytes capacity, transient entries are
 // evicted until the block will fit in capacity.
-func NewBlockCacheStandard(config Config, transientCapacity int,
+func NewBlockCacheStandard(transientCapacity int,
 	cleanBytesCapacity uint64) *BlockCacheStandard {
 	b := &BlockCacheStandard{
-		config:             config,
 		cleanBytesCapacity: cleanBytesCapacity,
 		cleanPermanent:     make(map[BlockID]Block),
 	}

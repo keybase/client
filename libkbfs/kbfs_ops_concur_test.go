@@ -407,7 +407,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	defer config.Shutdown()
 
 	// Turn off transient block caching.
-	config.SetBlockCache(NewBlockCacheStandard(config, 0, 1<<30))
+	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
@@ -530,7 +530,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	config.SetKeyManager(km)
 
 	// Turn off block caching.
-	config.SetBlockCache(NewBlockCacheStandard(config, 0, 1<<30))
+	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
@@ -617,7 +617,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	config.SetKeyManager(km)
 
 	// Turn off block caching.
-	config.SetBlockCache(NewBlockCacheStandard(config, 0, 1<<30))
+	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
@@ -702,7 +702,7 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 	defer config.Shutdown()
 
 	// Turn off block caching.
-	config.SetBlockCache(NewBlockCacheStandard(config, 0, 1<<30))
+	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
 
 	// Use the smallest block size possible.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())

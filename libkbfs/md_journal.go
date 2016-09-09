@@ -463,18 +463,19 @@ func (j *mdJournal) convertToBranch(
 }
 
 // getNextEntryToFlush returns the info for the next journal entry to
-// flush, if any. If there is no next journal entry to flush, the
-// returned MdID will be zero, and the returned *RootMetadataSigned
-// will be nil.
+// flush, if it exists, and its revision is less than end. If there is
+// no next journal entry to flush, the returned MdID will be zero, and
+// the returned *RootMetadataSigned will be nil.
 func (j mdJournal) getNextEntryToFlush(
 	ctx context.Context, currentUID keybase1.UID,
-	currentVerifyingKey VerifyingKey, signer cryptoSigner) (
+	currentVerifyingKey VerifyingKey, end MetadataRevision,
+	signer cryptoSigner) (
 	MdID, *RootMetadataSigned, error) {
 	rmd, err := j.getEarliest(currentUID, currentVerifyingKey, true)
 	if err != nil {
 		return MdID{}, nil, err
 	}
-	if rmd == (ImmutableBareRootMetadata{}) {
+	if rmd == (ImmutableBareRootMetadata{}) || rmd.RevisionNumber() >= end {
 		return MdID{}, nil, nil
 	}
 
@@ -562,6 +563,10 @@ func (j mdJournal) readLatestRevision() (MetadataRevision, error) {
 
 func (j mdJournal) length() (uint64, error) {
 	return j.j.length()
+}
+
+func (j mdJournal) end() (MetadataRevision, error) {
+	return j.j.end()
 }
 
 func (j mdJournal) getBranchID() BranchID {

@@ -176,6 +176,35 @@ func TestMDJournalBasic(t *testing.T) {
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 }
 
+func TestMDJournalGetNextEntry(t *testing.T) {
+	uid, verifyingKey, _, _, id, signer, ekg,
+		bsplit, tempdir, j := setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+	md := makeMDForTest(t, id, MetadataRevision(10), uid, fakeMdID(1))
+	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
+
+	mdID, rmds, err := j.getNextEntryToFlush(
+		ctx, uid, verifyingKey, md.Revision(), signer)
+	require.NoError(t, err)
+	require.Equal(t, MdID{}, mdID)
+	require.Nil(t, rmds)
+
+	mdID, rmds, err = j.getNextEntryToFlush(
+		ctx, uid, verifyingKey, md.Revision()+1, signer)
+	require.NoError(t, err)
+	require.NotEqual(t, MdID{}, mdID)
+	require.Equal(t, md.bareMd, rmds.MD)
+
+	mdID, rmds, err = j.getNextEntryToFlush(
+		ctx, uid, verifyingKey, md.Revision()+100, signer)
+	require.NoError(t, err)
+	require.NotEqual(t, MdID{}, mdID)
+	require.Equal(t, md.bareMd, rmds.MD)
+}
+
 func TestMDJournalPutCase1Empty(t *testing.T) {
 	uid, verifyingKey, _, _, id, signer, ekg,
 		bsplit, tempdir, j := setupMDJournalTest(t)
@@ -291,7 +320,8 @@ func TestMDJournalPutCase2Empty(t *testing.T) {
 	require.NoError(t, err)
 
 	// Flush.
-	mdID, rmds, err := j.getNextEntryToFlush(ctx, uid, verifyingKey, signer)
+	mdID, rmds, err := j.getNextEntryToFlush(
+		ctx, uid, verifyingKey, md.Revision()+1, signer)
 	require.NoError(t, err)
 	j.removeFlushedEntry(ctx, uid, verifyingKey, mdID, rmds)
 
@@ -360,7 +390,8 @@ func TestMDJournalPutCase3EmptyAppend(t *testing.T) {
 	require.NoError(t, err)
 
 	// Flush.
-	mdID, rmds, err := j.getNextEntryToFlush(ctx, uid, verifyingKey, signer)
+	mdID, rmds, err := j.getNextEntryToFlush(
+		ctx, uid, verifyingKey, md.Revision()+1, signer)
 	require.NoError(t, err)
 	j.removeFlushedEntry(ctx, uid, verifyingKey, mdID, rmds)
 

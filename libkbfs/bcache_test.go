@@ -8,8 +8,8 @@ import "testing"
 
 func blockCacheTestInit(t *testing.T, capacity int,
 	bytesCapacity uint64) Config {
+	b := NewBlockCacheStandard(capacity, bytesCapacity)
 	config := MakeTestConfigOrBust(t, "test")
-	b := NewBlockCacheStandard(config, capacity, bytesCapacity)
 	config.SetBlockCache(b)
 	return config
 }

@@ -107,6 +107,18 @@ func (j mdIDJournal) length() (uint64, error) {
 	return j.j.length()
 }
 
+func (j mdIDJournal) end() (MetadataRevision, error) {
+	last, err := j.readLatestRevision()
+	if err != nil {
+		return MetadataRevisionUninitialized, err
+	}
+	if last == MetadataRevisionUninitialized {
+		return MetadataRevisionUninitialized, nil
+	}
+
+	return last + 1, nil
+}
+
 func (j mdIDJournal) getEarliest() (MdID, error) {
 	earliestRevision, err := j.readEarliestRevision()
 	if err != nil {

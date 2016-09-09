@@ -593,7 +593,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	c.mdcache = NewMDCacheStandard(5000)
 	c.kcache = NewKeyCacheStandard(5000)
 	// Limit the block cache to 10K entries or 1024 blocks (currently 512MiB)
-	c.bcache = NewBlockCacheStandard(c, 10000, MaxBlockSizeBytesDefault*1024)
+	c.bcache = NewBlockCacheStandard(10000, MaxBlockSizeBytesDefault*1024)
 	oldDirtyBcache := c.dirtyBcache
 
 	// The minimum number of bytes we'll try to sync in parallel.

@@ -398,6 +398,23 @@ func (j *tlfJournal) resumeBackgroundWork() {
 	}
 }
 
+func (j *tlfJournal) getJournalEnds(ctx context.Context) (
+	blockEnd journalOrdinal, mdEnd MetadataRevision, err error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	blockEnd, err = j.blockJournal.end()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	mdEnd, err = j.mdJournal.end()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return blockEnd, mdEnd, nil
+}
+
 func (j *tlfJournal) flush(ctx context.Context) (err error) {
 	flushedBlockEntries := 0
 	flushedMDEntries := 0
@@ -411,31 +428,42 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		}
 	}()
 
-	// TODO: Interleave block flushes with their related MD
-	// flushes.
+	// TODO: Avoid starving flushing MD ops if there are many
+	// block ops. See KBFS-1502.
 
-	// Flush the block journal ops in parallel.
 	for {
-		numFlushed, err := j.flushBlockEntries(ctx)
+		blockEnd, mdEnd, err := j.getJournalEnds(ctx)
 		if err != nil {
 			return err
 		}
-		if numFlushed == 0 {
+
+		if blockEnd == 0 && mdEnd == MetadataRevisionUninitialized {
+			j.log.CDebugf(ctx, "Nothing else to flush")
 			break
+		}
+
+		j.log.CDebugf(ctx, "Flushing up to blockEnd=%d and mdEnd=%d",
+			blockEnd, mdEnd)
+
+		// Flush the block journal ops in parallel.
+		numFlushed, err := j.flushBlockEntries(ctx, blockEnd)
+		if err != nil {
+			return err
 		}
 		flushedBlockEntries += numFlushed
-	}
 
-	// TODO: flush MDs in parallel?
-	for {
-		flushed, err := j.flushOneMDOp(ctx)
-		if err != nil {
-			return err
+		// TODO: Flush MDs in batch.
+
+		for {
+			flushed, err := j.flushOneMDOp(ctx, mdEnd)
+			if err != nil {
+				return err
+			}
+			if !flushed {
+				break
+			}
+			flushedMDEntries++
 		}
-		if !flushed {
-			break
-		}
-		flushedMDEntries++
 	}
 
 	j.log.CDebugf(ctx, "Flushed %d block entries and %d MD entries for %s",
@@ -443,35 +471,12 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 	return nil
 }
 
-func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
-	currentUID keybase1.UID, currentVerifyingKey VerifyingKey) (
-	MdID, *RootMetadataSigned, error) {
-	j.journalLock.RLock()
-	defer j.journalLock.RUnlock()
-	return j.mdJournal.getNextEntryToFlush(
-		ctx, currentUID, currentVerifyingKey, j.config.Crypto())
-}
-
-func (j *tlfJournal) convertMDsToBranch(
-	ctx context.Context, currentUID keybase1.UID,
-	currentVerifyingKey VerifyingKey) (MdID, *RootMetadataSigned, error) {
-	j.journalLock.Lock()
-	defer j.journalLock.Unlock()
-	err := j.mdJournal.convertToBranch(
-		ctx, currentUID, currentVerifyingKey, j.config.Crypto())
-	if err != nil {
-		return MdID{}, nil, err
-	}
-
-	return j.mdJournal.getNextEntryToFlush(
-		ctx, currentUID, currentVerifyingKey, j.config.Crypto())
-}
-
-func (j *tlfJournal) getBlockEntriesToFlush(ctx context.Context) (
+func (j *tlfJournal) getNextBlockEntriesToFlush(
+	ctx context.Context, end journalOrdinal) (
 	entries blockEntriesToFlush, err error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
-	return j.blockJournal.getNextEntriesToFlush(ctx)
+	return j.blockJournal.getNextEntriesToFlush(ctx, end)
 }
 
 func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
@@ -482,11 +487,12 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 		j.config.Reporter())
 }
 
-func (j *tlfJournal) flushBlockEntries(ctx context.Context) (int, error) {
+func (j *tlfJournal) flushBlockEntries(
+	ctx context.Context, end journalOrdinal) (int, error) {
 	j.flushLock.Lock()
 	defer j.flushLock.Unlock()
 
-	entries, err := j.getBlockEntriesToFlush(ctx)
+	entries, err := j.getNextBlockEntriesToFlush(ctx, end)
 	if err != nil {
 		return 0, err
 	}
@@ -498,7 +504,8 @@ func (j *tlfJournal) flushBlockEntries(ctx context.Context) (int, error) {
 	// TODO: fill this in for logging/error purposes.
 	var tlfName CanonicalTlfName
 	err = flushBlockEntries(ctx, j.log, j.delegateBlockServer,
-		j.config.BlockCache(), j.config.Reporter(), j.tlfID, tlfName, entries)
+		j.config.BlockCache(), j.config.Reporter(),
+		j.tlfID, tlfName, entries)
 	if err != nil {
 		return 0, err
 	}
@@ -511,6 +518,33 @@ func (j *tlfJournal) flushBlockEntries(ctx context.Context) (int, error) {
 	return entries.length(), nil
 }
 
+func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
+	currentUID keybase1.UID, currentVerifyingKey VerifyingKey,
+	end MetadataRevision) (
+	MdID, *RootMetadataSigned, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	return j.mdJournal.getNextEntryToFlush(
+		ctx, currentUID, currentVerifyingKey, end, j.config.Crypto())
+}
+
+func (j *tlfJournal) convertMDsToBranchAndGetNextEntry(
+	ctx context.Context, currentUID keybase1.UID,
+	currentVerifyingKey VerifyingKey,
+	nextEntryEnd MetadataRevision) (MdID, *RootMetadataSigned, error) {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	err := j.mdJournal.convertToBranch(
+		ctx, currentUID, currentVerifyingKey, j.config.Crypto())
+	if err != nil {
+		return MdID{}, nil, err
+	}
+
+	return j.mdJournal.getNextEntryToFlush(
+		ctx, currentUID, currentVerifyingKey, nextEntryEnd,
+		j.config.Crypto())
+}
+
 func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
 	currentUID keybase1.UID, currentVerifyingKey VerifyingKey,
 	mdID MdID, rmds *RootMetadataSigned) error {
@@ -520,7 +554,8 @@ func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
 		ctx, currentUID, currentVerifyingKey, mdID, rmds)
 }
 
-func (j *tlfJournal) flushOneMDOp(ctx context.Context) (bool, error) {
+func (j *tlfJournal) flushOneMDOp(
+	ctx context.Context, end MetadataRevision) (bool, error) {
 	uid, key, err :=
 		getCurrentUIDAndVerifyingKey(ctx, j.config.currentInfoGetter())
 	if err != nil {
@@ -539,7 +574,7 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context) (bool, error) {
 
 	mdServer := j.config.MDServer()
 
-	mdID, rmds, err := j.getNextMDEntryToFlush(ctx, uid, key)
+	mdID, rmds, err := j.getNextMDEntryToFlush(ctx, uid, key, end)
 	if err != nil {
 		return false, err
 	}
@@ -551,9 +586,9 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context) (bool, error) {
 		rmds.MD.TlfID(), mdID, rmds.MD.RevisionNumber(), rmds.MD.BID())
 	pushErr := mdServer.Put(ctx, rmds)
 	if isRevisionConflict(pushErr) {
-		headMdID, err := getMdID(
-			ctx, mdServer, j.mdJournal.crypto, rmds.MD.TlfID(), rmds.MD.BID(),
-			rmds.MD.MergedStatus(), rmds.MD.RevisionNumber())
+		headMdID, err := getMdID(ctx, mdServer, j.mdJournal.crypto,
+			rmds.MD.TlfID(), rmds.MD.BID(), rmds.MD.MergedStatus(),
+			rmds.MD.RevisionNumber())
 		if err != nil {
 			j.log.CWarningf(ctx,
 				"getMdID failed for TLF %s, BID %s, and revision %d: %v",
@@ -567,7 +602,8 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context) (bool, error) {
 		} else if rmds.MD.MergedStatus() == Merged {
 			j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
 			// Convert MDs to a branch and retry the put.
-			mdID, rmds, err = j.convertMDsToBranch(ctx, uid, key)
+			mdID, rmds, err = j.convertMDsToBranchAndGetNextEntry(
+				ctx, uid, key, end)
 			if err != nil {
 				return false, err
 			}
