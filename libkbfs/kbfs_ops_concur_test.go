@@ -57,7 +57,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	onGetStalledCh, getUnstallCh, ctxStallGetForTLF :=
-		StallMDOp(ctx, config, StallableMDGetForTLF)
+		StallMDOp(ctx, config, StallableMDGetForTLF, 1)
 
 	// Initialize the MD using a different config
 	c2 := ConfigAsUser(config.(*ConfigLocal), "test_user")
@@ -102,7 +102,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut)
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
@@ -152,7 +152,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	defer CheckConfigAndShutdown(t, config)
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut)
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -287,7 +287,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut)
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -419,9 +419,9 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	}
 
 	onReadStalledCh, readUnstallCh, ctxStallRead :=
-		StallBlockOp(ctx, config, StallableBlockGet)
+		StallBlockOp(ctx, config, StallableBlockGet, 1)
 	onWriteStalledCh, writeUnstallCh, ctxStallWrite :=
-		StallBlockOp(ctx, config, StallableBlockGet)
+		StallBlockOp(ctx, config, StallableBlockGet, 1)
 
 	var wg sync.WaitGroup
 
@@ -556,7 +556,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	}
 
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockGet)
+		StallBlockOp(ctx, config, StallableBlockGet, 1)
 
 	var wg sync.WaitGroup
 
@@ -643,7 +643,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	}
 
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockGet)
+		StallBlockOp(ctx, config, StallableBlockGet, 1)
 
 	var wg sync.WaitGroup
 
@@ -805,7 +805,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut)
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// make blocks small
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = 5
@@ -1135,7 +1135,7 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	oldBServer := config.BlockServer()
 	defer config.SetBlockServer(oldBServer)
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockPut)
+		StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
@@ -1239,7 +1239,7 @@ func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
 	ctx := context.Background()
 
 	onPutStalledCh, putUnstallCh, ctx :=
-		StallMDOp(ctx, config, StallableMDPut)
+		StallMDOp(ctx, config, StallableMDPut, 1)
 
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -1290,7 +1290,7 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	ctx := context.Background()
 
 	onPutStalledCh, putUnstallCh, ctx :=
-		StallMDOp(ctx, config, StallableMDPut)
+		StallMDOp(ctx, config, StallableMDPut, 1)
 
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -1346,7 +1346,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut)
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -1491,7 +1491,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	oldBServer := config.BlockServer()
 	defer config.SetBlockServer(oldBServer)
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(cancelCtx, config, StallableBlockPut)
+		StallBlockOp(cancelCtx, config, StallableBlockPut, 1)
 
 	go func() {
 		errChan <- kbfsOps.Sync(ctxStallSync, fileNode2)
@@ -1555,7 +1555,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	config.SetBlockOps(&blockOpsOverQuota{BlockOps: config.BlockOps()})
 
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockPut)
+		StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	// Block the Sync
 	// Sync the initial two data blocks
