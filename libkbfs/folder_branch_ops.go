@@ -4518,9 +4518,10 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 
 	mdOps := fbo.config.MDOps()
 	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		// Disable journal writes after flushing all the resolution
-		// block writes -- resolutions must go straight through to the
-		// server or else the journal will get confused.
+		// Switch to the non-journaled MDOps after flushing all the
+		// resolution block writes -- resolutions must go straight
+		// through to the server or else the journal will get
+		// confused.
 		if err = jServer.Wait(ctx, fbo.id()); err != nil {
 			return err
 		}
@@ -4640,8 +4641,11 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
 
 	if md == (ImmutableRootMetadata{}) || md.MergedStatus() != Unmerged ||
 		md.BID() != newBID {
-		fbo.log.CWarningf(ctx, "Unexpected md on journal "+
-			"branch change: %v", md)
+		// This can happen if CR got kicked off in some other way and
+		// completed before we took the lock to process this
+		// notification.
+		fbo.log.CDebugf(ctx, "Ignoring stale branch change: md=%v, newBID=%d",
+			md, newBID)
 		return
 	}
 
