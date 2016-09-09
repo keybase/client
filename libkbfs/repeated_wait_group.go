@@ -42,7 +42,7 @@ func (rwg *RepeatedWaitGroup) Add(delta int) {
 }
 
 // Wait blocks until either the underlying task count goes to 0, or
-// the gien context is canceled.
+// the given context is canceled.
 func (rwg *RepeatedWaitGroup) Wait(ctx context.Context) error {
 	isIdleCh := func() chan struct{} {
 		rwg.lock.Lock()
