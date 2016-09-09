@@ -58,14 +58,6 @@ export const CommonTopicType = {
   dev: 2,
 }
 
-export function remoteGetConversationMetadataRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetConversationMetadataRemoteResult) => void} & {param: remoteGetConversationMetadataRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.getConversationMetadataRemote'})
-}
-
-export function remoteGetConversationMetadataRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetConversationMetadataRemoteResult) => void} & {param: remoteGetConversationMetadataRemoteRpcParam}>): Promise<remoteGetConversationMetadataRemoteResult> {
-  return new Promise((resolve, reject) => { remoteGetConversationMetadataRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
 export function remoteGetInboxRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.getInboxRemote'})
 }
@@ -303,10 +295,6 @@ export type TopicType =
   | 1 // CHAT_1
   | 2 // DEV_2
 
-export type remoteGetConversationMetadataRemoteRpcParam = $Exact<{
-  conversationID: ConversationID
-}>
-
 export type remoteGetInboxRemoteRpcParam = $Exact<{
   query?: ?GetInboxQuery,
   pagination?: ?Pagination
@@ -342,8 +330,6 @@ export type remotePostRemoteRpcParam = $Exact<{
   messageBoxed: MessageBoxed
 }>
 
-type remoteGetConversationMetadataRemoteResult = GetConversationMetadataRemoteRes
-
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
@@ -359,8 +345,7 @@ type remoteNewConversationRemoteResult = NewConversationRemoteRes
 type remotePostRemoteResult = PostRemoteRes
 
 export type rpc =
-    remoteGetConversationMetadataRemoteRpc
-  | remoteGetInboxRemoteRpc
+    remoteGetInboxRemoteRpc
   | remoteGetMessagesRemoteRpc
   | remoteGetThreadRemoteRpc
   | remoteMarkAsReadRpc

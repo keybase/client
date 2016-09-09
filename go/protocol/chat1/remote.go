@@ -72,10 +72,6 @@ type GetThreadRemoteArg struct {
 	Pagination     *Pagination     `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
-type GetConversationMetadataRemoteArg struct {
-	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-}
-
 type PostRemoteArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	MessageBoxed   MessageBoxed   `codec:"messageBoxed" json:"messageBoxed"`
@@ -103,7 +99,6 @@ type MarkAsReadArg struct {
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
-	GetConversationMetadataRemote(context.Context, ConversationID) (GetConversationMetadataRemoteRes, error)
 	PostRemote(context.Context, PostRemoteArg) (PostRemoteRes, error)
 	NewConversationRemote(context.Context, ConversationIDTriple) (NewConversationRemoteRes, error)
 	NewConversationRemote2(context.Context, NewConversationRemote2Arg) (NewConversationRemoteRes, error)
@@ -143,22 +138,6 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadRemote(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"getConversationMetadataRemote": {
-				MakeArg: func() interface{} {
-					ret := make([]GetConversationMetadataRemoteArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetConversationMetadataRemoteArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetConversationMetadataRemoteArg)(nil), args)
-						return
-					}
-					ret, err = i.GetConversationMetadataRemote(ctx, (*typedArgs)[0].ConversationID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -258,12 +237,6 @@ func (c RemoteClient) GetInboxRemote(ctx context.Context, __arg GetInboxRemoteAr
 
 func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemoteArg) (res GetThreadRemoteRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.getThreadRemote", []interface{}{__arg}, &res)
-	return
-}
-
-func (c RemoteClient) GetConversationMetadataRemote(ctx context.Context, conversationID ConversationID) (res GetConversationMetadataRemoteRes, err error) {
-	__arg := GetConversationMetadataRemoteArg{ConversationID: conversationID}
-	err = c.Cli.Call(ctx, "chat.1.remote.getConversationMetadataRemote", []interface{}{__arg}, &res)
 	return
 }
 

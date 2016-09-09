@@ -357,11 +357,18 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ke
 }
 
 func (h *chatLocalHandler) getConversationInfoByID(ctx context.Context, id chat1.ConversationID) (conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple, maxMessages []keybase1.Message, err error) {
-	res, err := h.remoteClient().GetConversationMetadataRemote(ctx, id)
+	res, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query: &chat1.GetInboxQuery{
+			ConvID: &id,
+		},
+	})
 	if err != nil {
 		return conversationInfo, triple, maxMessages, err
 	}
-	return h.getConversationInfo(ctx, res.Conv)
+	if len(res.Inbox.Conversations) == 0 {
+		return conversationInfo, triple, maxMessages, fmt.Errorf("unknown conversation: %v", id)
+	}
+	return h.getConversationInfo(ctx, res.Inbox.Conversations[0])
 }
 
 // getConversationInfo locates the conversation by using id, and returns with
@@ -542,11 +549,19 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.Me
 	}
 
 	for _, cid := range arg.Conversations {
-		res, err := h.remoteClient().GetConversationMetadataRemote(ctx, cid)
+		res, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+			Query: &chat1.GetInboxQuery{
+				ConvID: &cid,
+			},
+		})
 		if err != nil {
 			return nil, fmt.Errorf("getting conversation %v error: %v", cid, err)
 		}
-		conversationLocal, err := h.getConversationMessages(ctx, res.Conv, messageTypes, &arg)
+		if len(res.Inbox.Conversations) == 0 {
+			return nil, fmt.Errorf("unknown conversation: %v", cid)
+		}
+		conversationLocal, err := h.getConversationMessages(ctx, res.Inbox.Conversations[0],
+			messageTypes, &arg)
 		if err != nil {
 			return nil, fmt.Errorf("getting messages for conversation %v error: %v", cid, err)
 		}

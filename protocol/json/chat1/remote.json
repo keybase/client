@@ -237,15 +237,6 @@
       ],
       "response": "GetThreadRemoteRes"
     },
-    "getConversationMetadataRemote": {
-      "request": [
-        {
-          "name": "conversationID",
-          "type": "ConversationID"
-        }
-      ],
-      "response": "GetConversationMetadataRemoteRes"
-    },
     "postRemote": {
       "request": [
         {
