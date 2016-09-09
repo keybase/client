@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -340,18 +341,41 @@ func (s Service) StatusDescription() string {
 
 // LoadStatus returns service status
 func (s Service) LoadStatus() (*ServiceStatus, error) {
-	out, err := exec.Command("/bin/launchctl", "list").Output()
-	if err != nil {
+	out, err := exec.Command("/bin/launchctl", "list", s.label).Output()
+	if exiterr, ok := err.(*exec.ExitError); ok {
+		if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
+			// Exit status 113 means service wasn't found
+			if status.ExitStatus() == 113 {
+				return nil, nil
+			}
+		}
 		return nil, err
 	}
 
+	pid := findStringInPlist("PID", out, s.log)
+	lastExitStatus := findStringInPlist("LastExitStatus", out, s.log)
+	return &ServiceStatus{label: s.label, pid: pid, lastExitStatus: lastExitStatus}, nil
+}
+
+func findStringInPlist(key string, plistData []byte, log Log) string {
+	res := fmt.Sprintf(`"%s"\s*=\s*([\S ]+);`, key)
+	re := regexp.MustCompile(res)
+	submatch := re.FindStringSubmatch(string(plistData))
+	if len(submatch) == 2 {
+		return strings.Trim(submatch[1], `" `) // Remove leading and trailing space or " (quote)
+	}
+	log.Debug("No key (%s) found", key)
+	return ""
+}
+
+func parseList(label string, out []byte) (*ServiceStatus, error) {
 	var pid, lastExitStatus string
 	var found bool
 	scanner := bufio.NewScanner(bytes.NewBuffer(out))
 	for scanner.Scan() {
 		line := scanner.Text()
 		fields := strings.Fields(line)
-		if len(fields) == 3 && fields[2] == s.label {
+		if len(fields) == 3 && fields[2] == label {
 			found = true
 			if fields[0] != "-" {
 				pid = fields[0]
@@ -370,7 +394,7 @@ func (s Service) LoadStatus() (*ServiceStatus, error) {
 		if pid != "" && pidInt > 0 {
 			lastExitStatus = ""
 		}
-		return &ServiceStatus{label: s.label, pid: pid, lastExitStatus: lastExitStatus}, nil
+		return &ServiceStatus{label: label, pid: pid, lastExitStatus: lastExitStatus}, nil
 	}
 
 	return nil, nil
