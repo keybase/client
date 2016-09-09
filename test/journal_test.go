@@ -173,3 +173,67 @@ func TestJournalQRSimple(t *testing.T) {
 		),
 	)
 }
+
+// bob rekeys for charlie while journaling, but gets converted to a
+// conflict branch so the rekey fails.
+func TestJournalRekeyErrorAfterConflict(t *testing.T) {
+	test(t, journal(),
+		users("alice", "bob", "charlie"),
+		inPrivateTlf("alice,bob,charlie@twitter"),
+		as(alice,
+			mkfile("a", "hello"),
+		),
+		as(bob,
+			enableJournal(),
+			mkfile("b", "hello2"),
+			read("a", "hello"),
+			read("b", "hello2"),
+			disableUpdates(),
+		),
+		as(alice,
+			// Cause conflict with bob.
+			mkfile("c", "hello3"),
+		),
+		as(bob, noSync(),
+			pauseJournal(),
+			mkfile("d", "hello4"),
+		),
+		as(bob, noSync(), stallOnMDPut()),
+		addNewAssertion("charlie", "charlie@twitter"),
+		parallel(
+			as(bob, noSync(),
+				expectError(rekey(),
+					"Conflict during a rekey, not retrying"),
+			),
+			// Don't let the journal flush until the rekey is about to
+			// hit it, so that bob is not staged yet.
+			as(bob, noSync(),
+				waitForStalledMDPut(),
+				resumeJournal(),
+				undoStallOnMDPut(),
+				reenableUpdates(),
+				flushJournal(),
+			),
+		),
+		as(charlie,
+			expectError(initRoot(), "MDServer Unauthorized"),
+		),
+		as(alice,
+			rekey(),
+		),
+		inPrivateTlfNonCanonical("alice,bob,charlie@twitter",
+			"alice,bob,charlie"),
+		as(bob, // ensure bob syncs his resolution
+			read("a", "hello"),
+			read("b", "hello2"),
+			read("c", "hello3"),
+			read("d", "hello4"),
+		),
+		as(charlie,
+			read("a", "hello"),
+			read("b", "hello2"),
+			read("c", "hello3"),
+			read("d", "hello4"),
+		),
+	)
+}
