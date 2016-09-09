@@ -939,9 +939,12 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 
 func (j *tlfJournal) wait(ctx context.Context) error {
 	workLeft, err := j.wg.WaitUnlessPaused(ctx)
-	if err == nil && workLeft {
+	if err == nil {
+		return err
+	}
+	if workLeft {
 		j.log.CDebugf(ctx, "Wait completed with work left, "+
 			"due to paused journal")
 	}
-	return err
+	return nil
 }
