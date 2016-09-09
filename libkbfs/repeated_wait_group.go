@@ -20,8 +20,12 @@ type RepeatedWaitGroup struct {
 	lock     sync.Mutex
 	num      int
 	isIdleCh chan struct{} // leave as nil when initializing
-	paused   bool
-	pauseCh  chan struct{} // leave as nil when initializing
+	// TODO: we could remove this paused bool by converting the
+	// `pauseCh` into an `onPauseCh` that starts off initialized and
+	// gets set to nil when a pause happens.  But that would require
+	// an initializer for the channel.
+	paused  bool
+	pauseCh chan struct{} // leave as nil when initializing
 }
 
 // Add indicates that a number of tasks have begun.
