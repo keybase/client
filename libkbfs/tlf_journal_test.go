@@ -69,6 +69,7 @@ type testTLFJournalConfig struct {
 	codec    Codec
 	crypto   CryptoLocal
 	bcache   BlockCache
+	mdcache  MDCache
 	reporter Reporter
 	cig      singleCurrentInfoGetter
 	ekg      singleEncryptionKeyGetter
@@ -89,6 +90,10 @@ func (c testTLFJournalConfig) Crypto() Crypto {
 
 func (c testTLFJournalConfig) BlockCache() BlockCache {
 	return c.bcache
+}
+
+func (c testTLFJournalConfig) MDCache() MDCache {
+	return c.mdcache
 }
 
 func (c testTLFJournalConfig) Reporter() Reporter {
@@ -181,7 +186,8 @@ func setupTLFJournalTest(
 
 	config = &testTLFJournalConfig{
 		t, FakeTlfID(1, false), bsplitter, codec, crypto,
-		nil, NewReporterSimple(newTestClockNow(), 10), cig, ekg, mdserver,
+		nil, NewMDCacheStandard(10), NewReporterSimple(newTestClockNow(), 10),
+		cig, ekg, mdserver,
 	}
 
 	// Time out individual tests after 10 seconds.
@@ -209,7 +215,7 @@ func setupTLFJournalTest(
 	delegateBlockServer := NewBlockServerMemory(config)
 
 	tlfJournal, err = makeTLFJournal(ctx, tempdir, config.tlfID, config,
-		delegateBlockServer, bwStatus, delegate)
+		delegateBlockServer, bwStatus, delegate, nil)
 	require.NoError(t, err)
 
 	switch bwStatus {

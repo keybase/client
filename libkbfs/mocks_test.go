@@ -1354,6 +1354,14 @@ func (_mr *_MockMDCacheRecorder) Put(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0)
 }
 
+func (_m *MockMDCache) Delete(tlf TlfID, rev MetadataRevision, bid BranchID) {
+	_m.ctrl.Call(_m, "Delete", tlf, rev, bid)
+}
+
+func (_mr *_MockMDCacheRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2)
+}
+
 // Mock of KeyCache interface
 type MockKeyCache struct {
 	ctrl     *gomock.Controller

@@ -82,3 +82,37 @@ func TestJournalExclWriteConflict(t *testing.T) {
 		),
 	)
 }
+
+// bob creates a conflicting file while running the journal.
+func TestJournalCRSimple(t *testing.T) {
+	test(t, journal(),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+			mkfile("a/b", "uh oh"),
+			// Don't flush yet.
+		),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob, noSync(),
+			resumeJournal(),
+			// This should kick off conflict resolution.
+			flushJournal(),
+		),
+		as(bob,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			read("a/b", "hello"),
+			read(crname("a/b", bob), "uh oh"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			read("a/b", "hello"),
+			read(crname("a/b", bob), "uh oh"),
+		),
+	)
+}

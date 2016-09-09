@@ -323,6 +323,28 @@ func (*fsEngine) EnableJournal(user User, tlfName string,
 		[]byte("on"), 0644)
 }
 
+// PauseJournal is called by the test harness as the given user to
+// pause journaling.
+func (*fsEngine) PauseJournal(user User, tlfName string,
+	isPublic bool) (err error) {
+	u := user.(*fsUser)
+	path := buildTlfPath(u, tlfName, isPublic)
+	return ioutil.WriteFile(
+		filepath.Join(path, libfs.PauseJournalBackgroundWorkFileName),
+		[]byte("on"), 0644)
+}
+
+// ResumeJournal is called by the test harness as the given user to
+// resume journaling.
+func (*fsEngine) ResumeJournal(user User, tlfName string,
+	isPublic bool) (err error) {
+	u := user.(*fsUser)
+	path := buildTlfPath(u, tlfName, isPublic)
+	return ioutil.WriteFile(
+		filepath.Join(path, libfs.ResumeJournalBackgroundWorkFileName),
+		[]byte("on"), 0644)
+}
+
 // FlushJournal is called by the test harness as the given user to
 // wait for the journal to flush, if enabled.
 func (*fsEngine) FlushJournal(user User, tlfName string,

@@ -22,6 +22,7 @@ type tlfJournalConfig interface {
 	Codec() Codec
 	Crypto() Crypto
 	BlockCache() BlockCache
+	MDCache() MDCache
 	Reporter() Reporter
 	currentInfoGetter() currentInfoGetter
 	encryptionKeyGetter() encryptionKeyGetter
@@ -119,6 +120,7 @@ type tlfJournal struct {
 	delegateBlockServer BlockServer
 	log                 logger.Logger
 	deferLog            logger.Logger
+	onBranchChange      branchChangeListener
 
 	// All the channels below are used as simple on/off
 	// signals. They're buffered for one object, and all sends are
@@ -150,7 +152,8 @@ type tlfJournal struct {
 func makeTLFJournal(
 	ctx context.Context, dir string, tlfID TlfID, config tlfJournalConfig,
 	delegateBlockServer BlockServer, bws TLFJournalBackgroundWorkStatus,
-	bwDelegate tlfJournalBWDelegate) (*tlfJournal, error) {
+	bwDelegate tlfJournalBWDelegate, onBranchChange branchChangeListener) (
+	*tlfJournal, error) {
 	log := config.MakeLogger("TLFJ")
 
 	tlfDir := filepath.Join(dir, tlfID.String())
@@ -179,6 +182,7 @@ func makeTLFJournal(
 		delegateBlockServer: delegateBlockServer,
 		log:                 log,
 		deferLog:            log.CloneWithAddedDepth(1),
+		onBranchChange:      onBranchChange,
 		hasWorkCh:           make(chan struct{}, 1),
 		needPauseCh:         make(chan struct{}, 1),
 		needResumeCh:        make(chan struct{}, 1),
@@ -534,10 +538,15 @@ func (j *tlfJournal) convertMDsToBranchAndGetNextEntry(
 	nextEntryEnd MetadataRevision) (MdID, *RootMetadataSigned, error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
-	err := j.mdJournal.convertToBranch(
-		ctx, currentUID, currentVerifyingKey, j.config.Crypto())
+	bid, err := j.mdJournal.convertToBranch(
+		ctx, currentUID, currentVerifyingKey, j.config.Crypto(), j.tlfID,
+		j.config.MDCache())
 	if err != nil {
 		return MdID{}, nil, err
+	}
+
+	if j.onBranchChange != nil {
+		j.onBranchChange.onTLFBranchChange(j.tlfID, bid)
 	}
 
 	return j.mdJournal.getNextEntryToFlush(
@@ -823,6 +832,10 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 		getCurrentUIDAndVerifyingKey(ctx, j.config.currentInfoGetter())
 	if err != nil {
 		return err
+	}
+
+	if j.onBranchChange != nil {
+		j.onBranchChange.onTLFBranchChange(j.tlfID, NullBranchID)
 	}
 
 	j.journalLock.Lock()

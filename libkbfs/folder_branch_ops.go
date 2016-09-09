@@ -355,6 +355,7 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
 	}
+
 	return fbo
 }
 
@@ -4515,9 +4516,21 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	default:
 	}
 
+	mdOps := fbo.config.MDOps()
+	if jServer, err := GetJournalServer(fbo.config); err == nil {
+		// Switch to the non-journaled MDOps after flushing all the
+		// resolution block writes -- resolutions must go straight
+		// through to the server or else the journal will get
+		// confused.
+		if err = jServer.Wait(ctx, fbo.id()); err != nil {
+			return err
+		}
+		mdOps = jServer.delegateMDOps
+	}
+
 	// Put the MD.  If there's a conflict, abort the whole process and
 	// let CR restart itself.
-	mdID, err := fbo.config.MDOps().Put(ctx, md)
+	mdID, err := mdOps.Put(ctx, md)
 	doUnmergedPut := isRevisionConflict(err)
 	if doUnmergedPut {
 		fbo.log.CDebugf(ctx, "Got a conflict after resolution; aborting CR")
@@ -4527,7 +4540,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		return err
 	}
 
-	err = fbo.config.MDOps().PruneBranch(ctx, fbo.id(), fbo.bid)
+	err = mdOps.PruneBranch(ctx, fbo.id(), fbo.bid)
 	if err != nil {
 		return err
 	}
@@ -4591,6 +4604,69 @@ func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
 	fbo.log.CWarningf(ctx, "Unstaging branch %s after a resolution failure",
 		fbo.bid)
 	return fbo.unstageLocked(ctx, lState)
+}
+
+func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
+	ctx, cancelFunc := fbo.newCtxWithFBOID()
+	defer cancelFunc()
+
+	// This only happens on a `PruneBranch` call, in which case we
+	// would have already updated fbo's local view of the branch/head.
+	if newBID == NullBranchID {
+		fbo.log.CDebugf(ctx, "Ignoring branch change back to master")
+		return
+	}
+
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
+	fbo.log.CDebugf(ctx, "Journal branch change: %s", newBID)
+
+	if !fbo.isMasterBranchLocked(lState) {
+		if fbo.bid == newBID {
+			fbo.log.CDebugf(ctx, "Already on branch %s", newBID)
+			return
+		}
+		panic(fmt.Sprintf("Cannot switch to branch %s while on branch %s",
+			newBID, fbo.bid))
+	}
+
+	md, err := fbo.config.MDOps().GetUnmergedForTLF(ctx, fbo.id(), newBID)
+	if err != nil {
+		fbo.log.CWarningf(ctx,
+			"No unmerged head on journal branch change (bid=%s)", newBID)
+		return
+	}
+
+	if md == (ImmutableRootMetadata{}) || md.MergedStatus() != Unmerged ||
+		md.BID() != newBID {
+		// This can happen if CR got kicked off in some other way and
+		// completed before we took the lock to process this
+		// notification.
+		fbo.log.CDebugf(ctx, "Ignoring stale branch change: md=%v, newBID=%d",
+			md, newBID)
+		return
+	}
+
+	// Kick off conflict resolution and set the head to the correct branch.
+	fbo.setBranchIDLocked(lState, newBID)
+	fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
+
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+	// We don't currently know the latest merged revision, because we
+	// may have been journaled for a while.  We will know it once we
+	// get the latest merged update or when conflict resolution
+	// completes.
+	fbo.setLatestMergedRevisionLocked(ctx, lState,
+		MetadataRevisionUninitialized, true)
+	err = fbo.setHeadSuccessorLocked(ctx, lState, md, true /*rebased*/)
+	if err != nil {
+		fbo.log.CWarningf(ctx,
+			"Could not set head on journal branch change: %v", err)
+		return
+	}
 }
 
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps

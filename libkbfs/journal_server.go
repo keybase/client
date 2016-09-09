@@ -24,6 +24,17 @@ type JournalServerStatus struct {
 	UnflushedBytes int64 // (signed because os.FileInfo.Size() is signed)
 }
 
+// branchChangeListener describes a caller that will get updates via
+// the onTLFBranchChange method call when the journal branch changes
+// for the given TlfID.  If a new branch has been created, the given
+// BranchID will be something other than NullBranchID.  If the current
+// branch was pruned, it will be NullBranchID.  If the implementer
+// will be accessing the journal, it must do so from another goroutine
+// to avoid deadlocks.
+type branchChangeListener interface {
+	onTLFBranchChange(TlfID, BranchID)
+}
+
 // TODO: JournalServer isn't really a server, although it can create
 // objects that act as servers. Rename to JournalManager.
 
@@ -44,6 +55,7 @@ type JournalServer struct {
 	delegateBlockCache  BlockCache
 	delegateBlockServer BlockServer
 	delegateMDOps       MDOps
+	onBranchChange      branchChangeListener
 
 	lock        sync.RWMutex
 	tlfJournals map[TlfID]*tlfJournal
@@ -51,7 +63,8 @@ type JournalServer struct {
 
 func makeJournalServer(
 	config Config, log logger.Logger, dir string,
-	bcache BlockCache, bserver BlockServer, mdOps MDOps) *JournalServer {
+	bcache BlockCache, bserver BlockServer, mdOps MDOps,
+	onBranchChange branchChangeListener) *JournalServer {
 	jServer := JournalServer{
 		config:              config,
 		log:                 log,
@@ -60,6 +73,7 @@ func makeJournalServer(
 		delegateBlockCache:  bcache,
 		delegateBlockServer: bserver,
 		delegateMDOps:       mdOps,
+		onBranchChange:      onBranchChange,
 		tlfJournals:         make(map[TlfID]*tlfJournal),
 	}
 	return &jServer
@@ -141,7 +155,7 @@ func (j *JournalServer) Enable(
 
 	tlfJournal, err := makeTLFJournal(ctx, j.dir, tlfID,
 		tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
-		bws, nil)
+		bws, nil, j.onBranchChange)
 	if err != nil {
 		return err
 	}

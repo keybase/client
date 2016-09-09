@@ -121,6 +121,12 @@ type Engine interface {
 	// EnableJournal is called by the test harness as the given
 	// user to enable journaling.
 	EnableJournal(u User, tlfName string, isPublic bool) (err error)
+	// PauseJournal is called by the test harness as the given
+	// user to pause journaling.
+	PauseJournal(u User, tlfName string, isPublic bool) (err error)
+	// ResumeJournal is called by the test harness as the given
+	// user to resume journaling.
+	ResumeJournal(u User, tlfName string, isPublic bool) (err error)
 	// FlushJournal is called by the test harness as the given
 	// user to wait for the journal to flush, if enabled.
 	FlushJournal(u User, tlfName string, isPublic bool) (err error)
