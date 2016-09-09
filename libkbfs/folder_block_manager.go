@@ -898,7 +898,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	} else if err := isReadableOrError(ctx, fbm.config, head.ReadOnly()); err != nil {
 		return err
 	} else if head.MergedStatus() != Merged {
-		return errors.New("Skipping quota reclamation while unstaged")
+		return errors.New("Supposedly fully-merged MD is unexpectedly unmerged")
 	}
 
 	// Make sure we're a writer
