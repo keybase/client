@@ -15,8 +15,8 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func sampleState() ScriptState {
-	var sampleVars = ScriptVariables{
+func sampleState() scriptState {
+	var sampleVars = scriptVariables{
 		UsernameService: "kronk",
 		UsernameKeybase: "kronk_on_kb",
 		Sig:             []byte{1, 2, 3, 4, 5},
@@ -25,7 +25,7 @@ func sampleState() ScriptState {
 		Hostname:        "%{sig_id_medium}",
 	}
 
-	var sampleState = ScriptState{
+	var sampleState = scriptState{
 		WhichScript:  0,
 		PC:           0,
 		Service:      keybase1.ProofType_TWITTER,
@@ -33,7 +33,7 @@ func sampleState() ScriptState {
 		ActiveString: "",
 		FetchURL:     "<<NONE>>",
 		HasFetched:   false,
-		FetchResult:  nil,
+		fetchResult:  nil,
 	}
 
 	return sampleState
@@ -84,7 +84,7 @@ func TestJSONHasKey(t *testing.T) {
 		if jsonHasKey(test.json, test.key) != test.has {
 			t.Fatalf("%v %v", i, !test.has)
 		}
-		if jsonHasKeyCommand(test.json, CommandName(test.key)) != test.has {
+		if jsonHasKeyCommand(test.json, commandName(test.key)) != test.has {
 			t.Fatalf("%v %v", i, !test.has)
 		}
 	}

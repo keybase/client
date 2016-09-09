@@ -21,14 +21,14 @@ import (
 // Only substitutes whitelisted variables.
 // It is an error to refer to an unknown variable or undefined numbered group.
 // Match is an optional slice which is a regex match.
-func substitute(template string, state ScriptState, match []string) (string, libkb.ProofError) {
+func substitute(template string, state scriptState, match []string) (string, libkb.ProofError) {
 	vars := state.Vars
 	webish := (state.Service == keybase1.ProofType_DNS || state.Service == keybase1.ProofType_GENERIC_WEB_SITE)
 
 	var outerr libkb.ProofError
 	// Regex to find %{name} occurrences.
 	// Match broadly here so that even %{} is sent to the default case and reported as invalid.
-	re := regexp.MustCompile("%\\{[\\w]*\\}")
+	re := regexp.MustCompile(`%\{[\w]*\}`)
 	substituteOne := func(vartag string) string {
 		// Strip off the %, {, and }
 		varname := vartag[2 : len(vartag)-1]
@@ -94,7 +94,7 @@ func jsonHasKey(w *jsonw.Wrapper, key string) bool {
 	return !w.AtKey(key).IsNil()
 }
 
-func jsonHasKeyCommand(w *jsonw.Wrapper, key CommandName) bool {
+func jsonHasKeyCommand(w *jsonw.Wrapper, key commandName) bool {
 	return !w.AtKey(string(key)).IsNil()
 }
 
