@@ -78,6 +78,8 @@ func removeKeybaseStartupShortcuts() {
 
 // Read all the uninstall subkeys and find the ones with DisplayName starting with "Dokan Library".
 // If not just listing, execute each uninstaller we find and merge return codes.
+// TODO: only delete the one matching the product key the keybase installer writes to the registry
+// https://keybase.atlassian.net/browse/CORE-3743
 func findDokanUninstall(list bool, wow64 bool) (result int) {
 	var access uint32 = registry.ENUMERATE_SUB_KEYS | registry.QUERY_VALUE
 	// Assume this is build 32 bit, so we need this flag to see 64 but registry
