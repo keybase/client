@@ -102,32 +102,44 @@ if [ ! "$nowait" = "1" ]; then
   "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build and release for $platform."
 fi
 
-if [ ! "$nobuild" = "1" ]; then
-  BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
-  BUILD_DIR=$build_dir_kbfs "$dir/build_kbfs.sh"
-  BUILD_DIR=$build_dir_updater "$dir/build_updater.sh"
-fi
+# Okay, here's where we start generating version numbers and doing builds.
+for i in {1..2}; do
+  if [ ! "$nobuild" = "1" ]; then
+    BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
+    BUILD_DIR=$build_dir_kbfs "$dir/build_kbfs.sh"
+    BUILD_DIR=$build_dir_updater "$dir/build_updater.sh"
+  fi
 
-version=`$build_dir_keybase/keybase version -S`
-kbfs_version=`$build_dir_kbfs/kbfs -version`
-updater_version=`$build_dir_updater/updater -version`
+  version=`$build_dir_keybase/keybase version -S`
+  kbfs_version=`$build_dir_kbfs/kbfs -version`
+  updater_version=`$build_dir_updater/updater -version`
 
-save_dir="/tmp/build_desktop"
-rm -rf $save_dir
+  save_dir="/tmp/build_desktop"
+  rm -rf $save_dir
 
-if [ "$platform" = "darwin" ]; then
-  SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" \
-    UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" \
-    "$dir/../desktop/package_darwin.sh"
-else
-  # TODO: Support linux build here?
-  echo "Unknown platform: $platform"
-  exit 1
-fi
+  if [ "$platform" = "darwin" ]; then
+    SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" \
+      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" \
+      "$dir/../desktop/package_darwin.sh"
+  else
+    # TODO: Support linux build here?
+    echo "Unknown platform: $platform"
+    exit 1
+  fi
 
-BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
+  BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
 
-"$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See $s3host"
+  if [ "$i" = "1" ]; then
+    buildA = version
+  elif [ "$i" = "2" ]; then
+    buildB = version
+  fi
+
+  "$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See $s3host";
+done
+
+echo "Made $buildA and $buildB."
+BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-new-build-to-server --buildA="$buildA" --buildB="$buildB"
 
 if [ "$istest" = "" ]; then
   BUCKET_NAME="$bucket_name" "$dir/report.sh"
