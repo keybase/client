@@ -100,14 +100,14 @@ func (s *NaïveStaller) getNaïveStallInfoForMDOpOrBust(
 
 // StallBlockOp wraps the internal BlockServer so that all subsequent stalledOp
 // will be stalled. This can be undone by calling UndoStallBlockOp.
-func (s *NaïveStaller) StallBlockOp(stalledOp StallableBlockOp) {
+func (s *NaïveStaller) StallBlockOp(stalledOp StallableBlockOp, maxStalls int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.blockStalled {
 		panic("incorrect use of NaïveStaller;" +
 			" only one stalled Op at a time is supported")
 	}
-	onStalledCh := make(chan struct{}, 1)
+	onStalledCh := make(chan struct{}, maxStalls)
 	unstallCh := make(chan struct{})
 	oldBlockServer := s.config.BlockServer()
 	s.config.SetBlockServer(&stallingBlockServer{
@@ -129,14 +129,14 @@ func (s *NaïveStaller) StallBlockOp(stalledOp StallableBlockOp) {
 
 // StallMDOp wraps the internal MDOps so that all subsequent stalledOp
 // will be stalled. This can be undone by calling UndoStallMDOp.
-func (s *NaïveStaller) StallMDOp(stalledOp StallableMDOp) {
+func (s *NaïveStaller) StallMDOp(stalledOp StallableMDOp, maxStalls int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.mdStalled {
 		panic("incorrect use of NaïveStaller;" +
 			" only one stalled Op at a time is supported")
 	}
-	onStalledCh := make(chan struct{}, 1)
+	onStalledCh := make(chan struct{}, maxStalls)
 	unstallCh := make(chan struct{})
 	oldMDOps := s.config.MDOps()
 	s.config.SetMDOps(&stallingMDOps{
@@ -237,9 +237,10 @@ func StallBlockOp(ctx context.Context, config Config,
 // operations for the stall to be effective. onStalled is a channel to notify
 // the caller when the stall has happened. unstall is a channel for caller to
 // unstall an Op.
-func StallMDOp(ctx context.Context, config Config, stalledOp StallableMDOp) (
+func StallMDOp(ctx context.Context, config Config, stalledOp StallableMDOp,
+	maxStalls int) (
 	onStalled <-chan struct{}, unstall chan<- struct{}, newCtx context.Context) {
-	onStalledCh := make(chan struct{}, 1)
+	onStalledCh := make(chan struct{}, maxStalls)
 	unstallCh := make(chan struct{})
 	stallKey := newStallKey()
 	config.SetMDOps(&stallingMDOps{

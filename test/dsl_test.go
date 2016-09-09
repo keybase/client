@@ -529,7 +529,8 @@ func disableUpdates() fileOp {
 
 func stallOnMDPut() fileOp {
 	return fileOp{func(c *ctx) error {
-		c.staller.StallMDOp(libkbfs.StallableMDPut)
+		// TODO: Allow test to pass in a more precise maxStalls limit.
+		c.staller.StallMDOp(libkbfs.StallableMDPut, 100)
 		return nil
 	}, Defaults}
 }

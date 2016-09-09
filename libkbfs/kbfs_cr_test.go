@@ -994,7 +994,7 @@ func TestCRDouble(t *testing.T) {
 	// Cancel this revision after the Put happens, to force the
 	// background block manager to try to clean up.
 	onSyncStalledCh, syncUnstallCh, syncCtx := StallMDOp(
-		syncCtx, config2, StallableMDPutUnmerged)
+		syncCtx, config2, StallableMDPutUnmerged, 1)
 
 	wg.Add(1)
 	go func() {
@@ -1695,7 +1695,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	}
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config2, StallableMDPut)
+		StallMDOp(ctx, config2, StallableMDPut, 1)
 
 	var wg sync.WaitGroup
 	putCtx, cancel := context.WithCancel(putCtx)
@@ -1842,7 +1842,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	// to it locking next time (since it has seen how many revisions
 	// are outstanding).
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config2, StallableMDPut)
+		StallMDOp(ctx, config2, StallableMDPut, 1)
 
 	var wg sync.WaitGroup
 	firstPutCtx, cancel := context.WithCancel(putCtx)
@@ -2001,7 +2001,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	}
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config2, StallableMDAfterPutUnmerged)
+		StallMDOp(ctx, config2, StallableMDAfterPutUnmerged, 1)
 
 	var wg sync.WaitGroup
 	putCtx, cancel := context.WithCancel(putCtx)

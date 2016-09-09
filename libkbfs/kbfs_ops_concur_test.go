@@ -57,7 +57,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	onGetStalledCh, getUnstallCh, ctxStallGetForTLF :=
-		StallMDOp(ctx, config, StallableMDGetForTLF)
+		StallMDOp(ctx, config, StallableMDGetForTLF, 1)
 
 	// Initialize the MD using a different config
 	c2 := ConfigAsUser(config.(*ConfigLocal), "test_user")
@@ -102,7 +102,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut)
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
@@ -152,7 +152,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	defer CheckConfigAndShutdown(t, config)
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut)
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -287,7 +287,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut)
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -805,7 +805,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut)
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// make blocks small
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = 5
@@ -1239,7 +1239,7 @@ func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
 	ctx := context.Background()
 
 	onPutStalledCh, putUnstallCh, ctx :=
-		StallMDOp(ctx, config, StallableMDPut)
+		StallMDOp(ctx, config, StallableMDPut, 1)
 
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -1290,7 +1290,7 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	ctx := context.Background()
 
 	onPutStalledCh, putUnstallCh, ctx :=
-		StallMDOp(ctx, config, StallableMDPut)
+		StallMDOp(ctx, config, StallableMDPut, 1)
 
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -1346,7 +1346,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config, StallableMDAfterPut)
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
