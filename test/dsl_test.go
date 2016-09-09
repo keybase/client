@@ -242,15 +242,16 @@ func runFileOp(c *ctx, fop fileOp) (string, error) {
 	return "File operation", fop.operation(c)
 }
 
-func expectError(op fileOp, reason string) fileOp {
+func expectError(op fileOp, reasonPrefix string) fileOp {
 	return fileOp{func(c *ctx) error {
 		_, err := runFileOp(c, op)
 		if err == nil {
-			return fmt.Errorf("Didn't get expected error (success while expecting failure): %q", reason)
+			return fmt.Errorf("Didn't get expected error (success while expecting failure): %q", reasonPrefix)
 		}
 		// Real filesystems don't give us the exact errors we wish for.
-		if c.engine.Name() == "libkbfs" && err.Error() != reason {
-			return fmt.Errorf("Got the wrong error: expected %q, got %q", reason, err.Error())
+		if c.engine.Name() == "libkbfs" &&
+			!strings.HasPrefix(err.Error(), reasonPrefix) {
+			return fmt.Errorf("Got the wrong error: expected prefix %q, got %q", reasonPrefix, err.Error())
 		}
 		return nil
 	}, IsInit /* So that we can use expectError with e.g. initRoot(). */}
