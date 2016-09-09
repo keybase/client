@@ -283,8 +283,8 @@ func installKeybaseService(context Context, service launchd.Service, plist launc
 	return &st, err
 }
 
-// Uninstall keybase all services for this run mode.
-func uninstallKeybaseServices(runMode libkb.RunMode, log Log) error {
+// UninstallKeybaseServices removes the keybase service (includes homebrew)
+func UninstallKeybaseServices(runMode libkb.RunMode, log Log) error {
 	err1 := launchd.Uninstall(defaultServiceLabel(runMode, false), defaultLaunchdWait, log)
 	err2 := launchd.Uninstall(defaultServiceLabel(runMode, true), defaultLaunchdWait, log)
 	return libkb.CombineErrors(err1, err2)
@@ -336,7 +336,8 @@ func installKBFSService(context Context, service launchd.Service, plist launchd.
 	return &st, err
 }
 
-func uninstallKBFSServices(runMode libkb.RunMode, log Log) error {
+// UninstallUninstallKBFSServicesBFS removes KBFS service (including homebrew)
+func UninstallKBFSServices(runMode libkb.RunMode, log Log) error {
 	err1 := launchd.Uninstall(defaultKBFSLabel(runMode, false), defaultLaunchdWait, log)
 	err2 := launchd.Uninstall(defaultKBFSLabel(runMode, true), defaultLaunchdWait, log)
 	return libkb.CombineErrors(err1, err2)
@@ -401,7 +402,7 @@ func Install(context Context, binPath string, components []string, force bool, l
 	log.Debug("Installing components: %s", components)
 
 	if libkb.IsIn(string(ComponentNameUpdater), components, false) {
-		err = installUpdater(context, binPath, force, log)
+		err = InstallUpdater(context, binPath, force, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameUpdater), err))
 	}
 
@@ -411,12 +412,12 @@ func Install(context Context, binPath string, components []string, force bool, l
 	}
 
 	if libkb.IsIn(string(ComponentNameService), components, false) {
-		err = installService(context, binPath, force, log)
+		err = InstallService(context, binPath, force, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		err = KBFS(context, binPath, force, log)
+		err = InstallKBFS(context, binPath, force, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 	}
 
@@ -471,7 +472,8 @@ func installCommandLineForBinPath(binPath string, linkPath string, force bool) e
 	return nil
 }
 
-func installService(context Context, binPath string, force bool, log Log) error {
+// InstallService installs the launchd service
+func InstallService(context Context, binPath string, force bool, log Log) error {
 	resolvedBinPath, err := chooseBinPath(binPath)
 	if err != nil {
 		return err
@@ -501,7 +503,7 @@ func installService(context Context, binPath string, force bool, log Log) error 
 	}
 
 	if needsInstall || force {
-		uninstallKeybaseServices(context.GetRunMode(), log)
+		UninstallKeybaseServices(context.GetRunMode(), log)
 		log.Debug("Installing Keybase service")
 		_, err := installKeybaseService(context, service, plist, defaultLaunchdWait, log)
 		if err != nil {
@@ -513,8 +515,8 @@ func installService(context Context, binPath string, force bool, log Log) error 
 	return nil
 }
 
-// KBFS installs the KBFS service
-func KBFS(context Context, binPath string, force bool, log Log) error {
+// InstallKBFS installs the KBFS launchd service
+func InstallKBFS(context Context, binPath string, force bool, log Log) error {
 	runMode := context.GetRunMode()
 	label := DefaultKBFSLabel(runMode)
 	kbfsService := launchd.NewService(label)
@@ -543,7 +545,7 @@ func KBFS(context Context, binPath string, force bool, log Log) error {
 		}
 	}
 	if needsInstall || force {
-		uninstallKBFSServices(context.GetRunMode(), log)
+		UninstallKBFSServices(context.GetRunMode(), log)
 		log.Debug("Installing KBFS")
 		_, err := installKBFSService(context, kbfsService, plist, defaultLaunchdWait, log)
 		if err != nil {
@@ -577,13 +579,23 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	}
 
 	if libkb.IsIn(string(ComponentNameService), components, false) {
-		err = uninstallKeybaseServices(context.GetRunMode(), log)
+		err = UninstallKeybaseServices(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 	}
 
 	if libkb.IsIn(string(ComponentNameUpdater), components, false) {
-		err = uninstallUpdater(context.GetRunMode(), log)
+		err = UninstallUpdaterService(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameUpdater), err))
+	}
+
+	if libkb.IsIn(string(ComponentNameFuse), components, false) {
+		err = uninstallFuse(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
+	}
+
+	if libkb.IsIn(string(ComponentNameHelper), components, false) {
+		err = uninstallHelper(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
 	}
 
 	return newUninstallResult(componentResults)
@@ -591,7 +603,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 
 // UninstallKBFS uninstalls all KBFS services, unmounts and removes the directory
 func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, log Log) error {
-	err := uninstallKBFSServices(runMode, log)
+	err := UninstallKBFSServices(runMode, log)
 	if err != nil {
 		return err
 	}
@@ -619,12 +631,8 @@ func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, lo
 		return fmt.Errorf("Mount has files after unmounting: %s", mountDir)
 	}
 
-	appPath, err := AppBundleForPath()
-	if err != nil {
-		return err
-	}
 	log.Info("Removing %s", mountDir)
-	if err := removeMountDir(appPath, string(runMode), log); err != nil {
+	if err := uninstallMountDir(runMode, log); err != nil {
 		return fmt.Errorf("Error removing mount dir: %s", err)
 	}
 
@@ -639,11 +647,29 @@ func nativeInstallerAppBundleExecPath(appPath string) string {
 	return filepath.Join(nativeInstallerAppBundlePath(appPath), "Contents/MacOS/Keybase")
 }
 
-func removeMountDir(appPath string, runMode string, log Log) error {
+func uninstallMountDir(runMode libkb.RunMode, log Log) error {
 	// We need the installer to remove the mount directory (since it's in the root, only the helper tool can do it)
-	cmd := exec.Command(nativeInstallerAppBundleExecPath(appPath), fmt.Sprintf("--run-mode=%s", runMode), "--uninstall-mountdir")
+	return execNativeInstallerWithArg("--uninstall-mountdir", runMode, log)
+}
+
+func uninstallFuse(runMode libkb.RunMode, log Log) error {
+	log.Info("Removing KBFuse")
+	return execNativeInstallerWithArg("--uninstall-fuse", runMode, log)
+}
+
+func uninstallHelper(runMode libkb.RunMode, log Log) error {
+	log.Info("Removing privileged helper tool")
+	return execNativeInstallerWithArg("--uninstall-helper", runMode, log)
+}
+
+func execNativeInstallerWithArg(arg string, runMode libkb.RunMode, log Log) error {
+	appPath, err := AppBundleForPath()
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(nativeInstallerAppBundleExecPath(appPath), fmt.Sprintf("--run-mode=%s", runMode), arg)
 	output, err := cmd.CombinedOutput()
-	log.Debug("Output (uninstall-mountdir): %s", string(output))
+	log.Debug("Output (%s): %s", arg, string(output))
 	return err
 }
 
@@ -694,7 +720,7 @@ func autoInstall(context Context, binPath string, force bool, log Log) (newProc 
 		return
 	}
 
-	err = installService(context, binPath, true, log)
+	err = InstallService(context, binPath, true, log)
 	componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 	if err != nil {
 		return
@@ -850,7 +876,8 @@ func OSVersion() (semver.Version, error) {
 	return semver.Make(swver)
 }
 
-func installUpdater(context Context, keybaseBinPath string, force bool, log Log) error {
+// InstallUpdater installs the updater launchd service
+func InstallUpdater(context Context, keybaseBinPath string, force bool, log Log) error {
 	if context.GetRunMode() != libkb.ProductionRunMode {
 		return fmt.Errorf("Updater not supported in this run mode")
 	}
@@ -894,7 +921,7 @@ func installUpdater(context Context, keybaseBinPath string, force bool, log Log)
 	}
 
 	if needsInstall || force {
-		uninstallUpdater(context.GetRunMode(), log)
+		UninstallUpdaterService(context.GetRunMode(), log)
 		log.Debug("Installing updater service")
 		_, err := installUpdaterService(service, plist, defaultLaunchdWait, log)
 		if err != nil {
@@ -928,7 +955,8 @@ func installUpdaterService(service launchd.Service, plist launchd.Plist, wait ti
 	return &st, err
 }
 
-func uninstallUpdater(runMode libkb.RunMode, log Log) error {
+// UninstallUpdaterService removes updater launchd service
+func UninstallUpdaterService(runMode libkb.RunMode, log Log) error {
 	return launchd.Uninstall(DefaultUpdaterLabel(runMode), defaultLaunchdWait, log)
 }
 
