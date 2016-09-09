@@ -158,6 +158,21 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 	return rmds, nil
 }
 
+// getSingleMD returns an MD that is required to exist.
+func getSingleMD(ctx context.Context, config Config, id TlfID, bid BranchID,
+	rev MetadataRevision, mStatus MergeStatus) (
+	rmds []ImmutableRootMetadata, err error) {
+	rmds, err = getMDRange(ctx, config, id, bid, rev, rev, mStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(rmds) != 1 {
+		return nil, fmt.Errorf("Single expected revision %d not found", rev)
+	}
+	return rmds, nil
+}
+
 // getMergedMDUpdates returns a slice of all the merged MDs for a TLF,
 // starting from the given startRev.  The returned MDs are the same
 // instances that are stored in the MD cache, so they should be

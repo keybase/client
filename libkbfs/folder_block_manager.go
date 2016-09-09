@@ -442,9 +442,8 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 	// if the Sync was canceled while the MD put was
 	// outstanding.)
 	if toDelete.bdType == blockDeleteOnMDFail {
-		rmds, err := getMDRange(ctx, fbm.config, fbm.id, toDelete.md.BID(),
-			toDelete.md.Revision(), toDelete.md.Revision(),
-			toDelete.md.MergedStatus())
+		rmds, err := getSingleMD(ctx, fbm.config, fbm.id, toDelete.md.BID(),
+			toDelete.md.Revision(), toDelete.md.MergedStatus())
 		if err != nil || len(rmds) == 0 {
 			// Don't re-enqueue immediately, since this might mean no
 			// new revision has made it to the server yet, and we'd

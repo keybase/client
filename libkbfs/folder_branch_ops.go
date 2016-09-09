@@ -901,8 +901,8 @@ func (fbo *folderBranchOps) getMostRecentFullyMergedMD(ctx context.Context) (
 
 	// Otherwise, use the revision from before the start of the journal.
 	mergedRev := jStatus.RevisionStart - 1
-	rmds, err := getMDRange(ctx, fbo.config, fbo.id(), NullBranchID,
-		mergedRev, mergedRev, Merged)
+	rmds, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
+		mergedRev, Merged)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -3889,13 +3889,10 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	// the updates.
 	fbo.setBranchIDLocked(lState, NullBranchID)
 
-	rmds, err := getMDRange(ctx, fbo.config, fbo.id(), NullBranchID,
-		currHead, currHead, Merged)
+	rmds, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
+		currHead, Merged)
 	if err != nil {
 		return nil, err
-	}
-	if len(rmds) == 0 {
-		return nil, fmt.Errorf("Couldn't find the branch point %d", currHead)
 	}
 	err = func() error {
 		fbo.headLock.Lock(lState)
