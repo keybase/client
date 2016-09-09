@@ -60,16 +60,6 @@ func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 	// create the first user specially
 	config := libkbfs.MakeTestConfigOrBust(t, users...)
 
-	if journal {
-		jdir, err := ioutil.TempDir(os.TempDir(), "kbfs_journal")
-		if err != nil {
-			k.t.Fatalf("Couldn't enable journaling: %v", err)
-		}
-		k.journalDir = jdir
-		k.t.Logf("Journal directory: %s", k.journalDir)
-		config.EnableJournaling(filepath.Join(jdir, users[0].String()))
-	}
-
 	setBlockSizes(t, config, blockSize, blockChangeSize)
 	maybeSetBw(t, config, bwKBps)
 	k.opTimeout = opTimeout
@@ -90,10 +80,21 @@ func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 		userMap[name] = c
 		k.refs[c] = make(map[libkbfs.Node]bool)
 		k.updateChannels[c] = make(map[libkbfs.FolderBranch]chan<- struct{})
-		if journal && k.journalDir != "" {
-			c.EnableJournaling(filepath.Join(k.journalDir, name.String()))
+	}
+
+	if journal {
+		jdir, err := ioutil.TempDir(os.TempDir(), "kbfs_journal")
+		if err != nil {
+			k.t.Fatalf("Couldn't enable journaling: %v", err)
+		}
+		k.journalDir = jdir
+		k.t.Logf("Journal directory: %s", k.journalDir)
+		for name, c := range userMap {
+			c.(*libkbfs.ConfigLocal).EnableJournaling(
+				filepath.Join(jdir, name.String()))
 		}
 	}
+
 	return userMap
 }
 

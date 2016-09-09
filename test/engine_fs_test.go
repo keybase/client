@@ -484,16 +484,6 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 	config0 := libkbfs.MakeTestConfigOrBust(t, users...)
 	config0.SetClock(clock)
 
-	if journal {
-		jdir, err := ioutil.TempDir(os.TempDir(), "kbfs_journal")
-		if err != nil {
-			t.Fatalf("Couldn't enable journaling: %v", err)
-		}
-		e.journalDir = jdir
-		t.Log(fmt.Sprintf("Journal directory: %s", e.journalDir))
-		config0.EnableJournaling(filepath.Join(jdir, users[0].String()))
-	}
-
 	setBlockSizes(t, config0, blockSize, blockChangeSize)
 	maybeSetBw(t, config0, bwKBps)
 	uids := make([]keybase1.UID, len(users))
@@ -505,13 +495,23 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 		c.SetClock(clock)
 		cfgs[i+1] = c
 		uids[i+1] = nameToUID(t, c)
-		if journal && e.journalDir != "" {
-			c.EnableJournaling(filepath.Join(e.journalDir, name.String()))
-		}
 	}
 
 	for i, name := range users {
 		res[name] = e.createUser(t, i, cfgs[i], opTimeout)
+	}
+
+	if journal {
+		jdir, err := ioutil.TempDir(os.TempDir(), "kbfs_journal")
+		if err != nil {
+			t.Fatalf("Couldn't enable journaling: %v", err)
+		}
+		e.journalDir = jdir
+		t.Logf("Journal directory: %s", e.journalDir)
+		for i, c := range cfgs {
+			c.EnableJournaling(
+				filepath.Join(jdir, users[i].String()))
+		}
 	}
 
 	return res

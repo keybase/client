@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -60,9 +59,8 @@ type blockJournal struct {
 	log      logger.Logger
 	deferLog logger.Logger
 
-	j          diskJournal
-	refs       map[BlockID]blockRefMap
-	isShutdown bool
+	j    diskJournal
+	refs map[BlockID]blockRefMap
 
 	// Tracks the total size of on-disk blocks that will be flushed to
 	// the server (i.e., does not count reference adds).  It is only
@@ -73,24 +71,41 @@ type blockJournal struct {
 	unflushedBytes int64
 }
 
-type bserverOpName string
+type blockOpType int
 
 const (
-	blockPutOp    bserverOpName = "blockPut"
-	addRefOp      bserverOpName = "addReference"
-	removeRefsOp  bserverOpName = "removeReferences"
-	archiveRefsOp bserverOpName = "archiveReferences"
+	blockPutOp    blockOpType = 1
+	addRefOp      blockOpType = 2
+	removeRefsOp  blockOpType = 3
+	archiveRefsOp blockOpType = 4
 )
+
+func (t blockOpType) String() string {
+	switch t {
+	case blockPutOp:
+		return "blockPut"
+	case addRefOp:
+		return "addReference"
+	case removeRefsOp:
+		return "removeReferences"
+	case archiveRefsOp:
+		return "archiveReferences"
+	default:
+		return fmt.Sprintf("blockOpType(%d)", t)
+	}
+}
 
 // A blockJournalEntry is just the name of the operation and the
 // associated block ID and contexts. Fields are exported only for
 // serialization.
 type blockJournalEntry struct {
 	// Must be one of the four ops above.
-	Op bserverOpName
+	Op blockOpType
 	// Must have exactly one entry with one context for blockPutOp
 	// and addRefOp.
 	Contexts map[BlockID][]BlockContext
+
+	// TODO: Support unknown fields.
 }
 
 // Get the single context stored in this entry. Only applicable to
@@ -218,7 +233,7 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 				refs[id] = blockRefs
 			}
 
-			err = blockRefs.put(context, liveBlockRef)
+			err = blockRefs.put(context, liveBlockRef, i)
 			if err != nil {
 				return nil, 0, err
 			}
@@ -253,7 +268,7 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 				}
 
 				for _, context := range idContexts {
-					err := blockRefs.remove(context)
+					err := blockRefs.remove(context, nil)
 					if err != nil {
 						return nil, 0, err
 					}
@@ -271,7 +286,7 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 
 				for _, context := range idContexts {
 					err := blockRefs.put(
-						context, archivedBlockRef)
+						context, archivedBlockRef, i)
 					if err != nil {
 						return nil, 0, err
 					}
@@ -292,7 +307,8 @@ func (j *blockJournal) writeJournalEntry(
 }
 
 func (j *blockJournal) appendJournalEntry(
-	op bserverOpName, contexts map[BlockID][]BlockContext) error {
+	op blockOpType, contexts map[BlockID][]BlockContext) (
+	journalOrdinal, error) {
 	return j.j.appendJournalEntry(nil, blockJournalEntry{
 		Op:       op,
 		Contexts: contexts,
@@ -317,24 +333,24 @@ func (j *blockJournal) getRefEntry(
 	id BlockID, refNonce BlockRefNonce) (blockRefEntry, error) {
 	refs := j.refs[id]
 	if refs == nil {
-		return blockRefEntry{}, BServerErrorBlockNonExistent{}
+		return blockRefEntry{}, blockNonExistentError{id}
 	}
 
 	e, ok := refs[refNonce]
 	if !ok {
-		return blockRefEntry{}, BServerErrorBlockNonExistent{}
+		return blockRefEntry{}, blockNonExistentError{id}
 	}
 
 	return e, nil
 }
 
 func (j *blockJournal) putRefEntry(
-	id BlockID, refEntry blockRefEntry) error {
+	id BlockID, refEntry blockRefEntry, ordinal journalOrdinal) error {
 	existingRefEntry, err := j.getRefEntry(
-		id, refEntry.Context.GetRefNonce())
+		id, refEntry.context.GetRefNonce())
 	var exists bool
 	switch err.(type) {
-	case BServerErrorBlockNonExistent:
+	case blockNonExistentError:
 		exists = false
 	case nil:
 		exists = true
@@ -343,7 +359,7 @@ func (j *blockJournal) putRefEntry(
 	}
 
 	if exists {
-		err = existingRefEntry.checkContext(refEntry.Context)
+		err = existingRefEntry.checkContext(refEntry.context)
 		if err != nil {
 			return err
 		}
@@ -353,7 +369,7 @@ func (j *blockJournal) putRefEntry(
 		j.refs[id] = make(blockRefMap)
 	}
 
-	return j.refs[id].put(refEntry.Context, refEntry.Status)
+	return j.refs[id].put(refEntry.context, refEntry.status, ordinal)
 }
 
 func (j *blockJournal) getDataSize(id BlockID) (int64, error) {
@@ -368,8 +384,7 @@ func (j *blockJournal) getData(id BlockID) (
 	[]byte, BlockCryptKeyServerHalf, error) {
 	data, err := ioutil.ReadFile(j.blockDataPath(id))
 	if os.IsNotExist(err) {
-		return nil, BlockCryptKeyServerHalf{},
-			BServerErrorBlockNonExistent{}
+		return nil, BlockCryptKeyServerHalf{}, blockNonExistentError{id}
 	} else if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
@@ -377,8 +392,7 @@ func (j *blockJournal) getData(id BlockID) (
 	keyServerHalfPath := j.keyServerHalfPath(id)
 	buf, err := ioutil.ReadFile(keyServerHalfPath)
 	if os.IsNotExist(err) {
-		return nil, BlockCryptKeyServerHalf{},
-			BServerErrorBlockNonExistent{}
+		return nil, BlockCryptKeyServerHalf{}, blockNonExistentError{id}
 	} else if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
@@ -406,16 +420,23 @@ func (j *blockJournal) getData(id BlockID) (
 
 // All functions below are public functions.
 
-var errBlockJournalShutdown = errors.New("blockJournal is shutdown")
+func (j *blockJournal) hasRef(id BlockID) bool {
+	return j.refs[id] != nil
+}
+
+func (j *blockJournal) hasNonArchivedRef(id BlockID) bool {
+	refs := j.refs[id]
+	return (refs != nil) && refs.hasNonArchivedRef()
+}
+
+func (j *blockJournal) hasContext(id BlockID, context BlockContext) bool {
+	refs := j.refs[id]
+	return (refs != nil) && (refs.checkExists(context) == nil)
+}
 
 func (j *blockJournal) getDataWithContext(
 	id BlockID, context BlockContext) (
 	[]byte, BlockCryptKeyServerHalf, error) {
-	if j.isShutdown {
-		return nil, BlockCryptKeyServerHalf{},
-			errBlockJournalShutdown
-	}
-
 	refEntry, err := j.getRefEntry(id, context.GetRefNonce())
 	if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
@@ -431,23 +452,10 @@ func (j *blockJournal) getDataWithContext(
 
 func (j *blockJournal) getAll() (
 	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
-	if j.isShutdown {
-		return nil, errBlockJournalShutdown
-	}
-
 	res := make(map[BlockID]map[BlockRefNonce]blockRefLocalStatus)
-
 	for id, refs := range j.refs {
-		if len(refs) == 0 {
-			continue
-		}
-
-		res[id] = make(map[BlockRefNonce]blockRefLocalStatus)
-		for ref, refEntry := range refs {
-			res[id][ref] = refEntry.Status
-		}
+		res[id] = refs.getStatuses()
 	}
-
 	return res, nil
 }
 
@@ -469,15 +477,11 @@ func (j *blockJournal) putData(
 		return err
 	}
 
-	if j.isShutdown {
-		return errBlockJournalShutdown
-	}
-
 	// Check the data and retrieve the server half, if they exist.
 	_, existingServerHalf, err := j.getDataWithContext(id, context)
 	var exists bool
 	switch err.(type) {
-	case BServerErrorBlockNonExistent:
+	case blockNonExistentError:
 		exists = false
 	case nil:
 		exists = true
@@ -519,16 +523,16 @@ func (j *blockJournal) putData(
 		return err
 	}
 
-	err = j.putRefEntry(id, blockRefEntry{
-		Status:  liveBlockRef,
-		Context: context,
-	})
+	ordinal, err := j.appendJournalEntry(blockPutOp,
+		map[BlockID][]BlockContext{id: {context}})
 	if err != nil {
 		return err
 	}
 
-	return j.appendJournalEntry(
-		blockPutOp, map[BlockID][]BlockContext{id: {context}})
+	return j.putRefEntry(id, blockRefEntry{
+		status:  liveBlockRef,
+		context: context,
+	}, ordinal)
 }
 
 func (j *blockJournal) addReference(
@@ -544,45 +548,16 @@ func (j *blockJournal) addReference(
 		}
 	}()
 
-	if j.isShutdown {
-		return errBlockJournalShutdown
-	}
-
-	refs := j.refs[id]
-	if refs == nil {
-		return BServerErrorBlockNonExistent{fmt.Sprintf("Block ID %s "+
-			"doesn't exist and cannot be referenced.", id)}
-	}
-
-	// Only add it if there's a non-archived reference.
-	hasNonArchivedRef := false
-	for _, refEntry := range refs {
-		if refEntry.Status == liveBlockRef {
-			hasNonArchivedRef = true
-			break
-		}
-	}
-
-	if !hasNonArchivedRef {
-		return BServerErrorBlockArchived{fmt.Sprintf("Block ID %s has "+
-			"been archived and cannot be referenced.", id)}
-	}
-
-	// TODO: Figure out if we should allow adding a reference even
-	// if all the existing references are archived, or if we have
-	// no references at all. Also figure out what to do with an
-	// addReference without a preceding Put.
-
-	err = j.putRefEntry(id, blockRefEntry{
-		Status:  liveBlockRef,
-		Context: context,
-	})
+	ordinal, err := j.appendJournalEntry(addRefOp,
+		map[BlockID][]BlockContext{id: {context}})
 	if err != nil {
 		return err
 	}
 
-	return j.appendJournalEntry(
-		addRefOp, map[BlockID][]BlockContext{id: {context}})
+	return j.putRefEntry(id, blockRefEntry{
+		status:  liveBlockRef,
+		context: context,
+	}, ordinal)
 }
 
 // removeReferences fixes up the in-memory reference map to delete the
@@ -591,21 +566,15 @@ func (j *blockJournal) addReference(
 // that case, j.unflushedBytes will no longer be accurate and
 // shouldn't be relied upon.
 func (j *blockJournal) removeReferences(
-	ctx context.Context, contexts map[BlockID][]BlockContext,
-	removeUnreferencedBlocks bool) (liveCounts map[BlockID]int, err error) {
-	j.log.CDebugf(ctx, "Removing references for %v (remove unreferenced blocks=%t)",
-		contexts, removeUnreferencedBlocks)
+	ctx context.Context, contexts map[BlockID][]BlockContext) (
+	liveCounts map[BlockID]int, err error) {
+	j.log.CDebugf(ctx, "Removing references for %v", contexts)
 	defer func() {
 		if err != nil {
 			j.deferLog.CDebugf(ctx,
-				"Removing references for %v (remove unreferenced blocks=%t)",
-				contexts, removeUnreferencedBlocks, err)
+				"Removing references for %v", contexts, err)
 		}
 	}()
-
-	if j.isShutdown {
-		return nil, errBlockJournalShutdown
-	}
 
 	liveCounts = make(map[BlockID]int)
 
@@ -617,7 +586,7 @@ func (j *blockJournal) removeReferences(
 		}
 
 		for _, context := range idContexts {
-			err := refs.remove(context)
+			err := refs.remove(context, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -626,22 +595,24 @@ func (j *blockJournal) removeReferences(
 		count := len(refs)
 		if count == 0 {
 			delete(j.refs, id)
-			if removeUnreferencedBlocks {
-				err := os.RemoveAll(j.blockPath(id))
-				if err != nil {
-					return nil, err
-				}
-			}
 		}
 		liveCounts[id] = count
 	}
 
-	err = j.appendJournalEntry(removeRefsOp, contexts)
+	_, err = j.appendJournalEntry(removeRefsOp, contexts)
 	if err != nil {
 		return nil, err
 	}
 
 	return liveCounts, nil
+}
+
+func (j *blockJournal) removeBlockData(id BlockID) error {
+	if j.hasRef(id) {
+		return fmt.Errorf(
+			"Trying to remove data for referenced block %s", id)
+	}
+	return os.RemoveAll(j.blockPath(id))
 }
 
 func (j *blockJournal) archiveReferences(
@@ -654,8 +625,9 @@ func (j *blockJournal) archiveReferences(
 		}
 	}()
 
-	if j.isShutdown {
-		return errBlockJournalShutdown
+	ordinal, err := j.appendJournalEntry(archiveRefsOp, contexts)
+	if err != nil {
+		return err
 	}
 
 	for id, idContexts := range contexts {
@@ -663,34 +635,31 @@ func (j *blockJournal) archiveReferences(
 			refNonce := context.GetRefNonce()
 			refEntry, err := j.getRefEntry(id, refNonce)
 			switch err.(type) {
-			case BServerErrorBlockNonExistent:
-				return BServerErrorBlockNonExistent{
-					fmt.Sprintf(
-						"Block ID %s (ref %s) doesn't "+
-							"exist and cannot be archived.",
-						id, refNonce),
+			case blockNonExistentError:
+				refEntry = blockRefEntry{
+					status:  archivedBlockRef,
+					context: context,
 				}
+
 			case nil:
-				break
+				err = refEntry.checkContext(context)
+				if err != nil {
+					return err
+				}
+				refEntry.status = archivedBlockRef
 
 			default:
 				return err
 			}
 
-			err = refEntry.checkContext(context)
-			if err != nil {
-				return err
-			}
-
-			refEntry.Status = archivedBlockRef
-			err = j.putRefEntry(id, refEntry)
+			err = j.putRefEntry(id, refEntry, ordinal)
 			if err != nil {
 				return err
 			}
 		}
 	}
 
-	return j.appendJournalEntry(archiveRefsOp, contexts)
+	return nil
 }
 
 // blockEntriesToFlush is an internal data structure for blockJournal;
@@ -717,10 +686,6 @@ func (be blockEntriesToFlush) flushNeeded() bool {
 func (j *blockJournal) getNextEntriesToFlush(
 	ctx context.Context, end journalOrdinal) (
 	entries blockEntriesToFlush, err error) {
-	if j.isShutdown {
-		return blockEntriesToFlush{}, errBlockJournalShutdown
-	}
-
 	first, err := j.j.readEarliestOrdinal()
 	if os.IsNotExist(err) {
 		return blockEntriesToFlush{}, nil
@@ -862,14 +827,6 @@ func flushBlockEntries(ctx context.Context, log logger.Logger,
 func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 	ordinal journalOrdinal, entry blockJournalEntry) (
 	flushedBytes int64, err error) {
-	if j.isShutdown {
-		// TODO: This creates a race condition if we shut down
-		// after we've flushed an op but before we remove
-		// it. Make sure we handle re-flushed ops
-		// idempotently.
-		return 0, errBlockJournalShutdown
-	}
-
 	// Fix up the block byte count if we've finished a Put.
 	if entry.Op == blockPutOp {
 		id, _, err := entry.getSingleContext()
@@ -904,24 +861,31 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 		return 0, err
 	}
 
-	// TODO: This is a hack to work around KBFS-1439. Figure out a
-	// better way to update j.refs to reflect the removed entry.
-	refs, unflushedBytes, err := j.readJournal(ctx)
-	if err != nil {
-		return 0, err
+	// Remove any of the entry's refs that hasn't been modified by
+	// a subsequent block op (i.e., that has earliestOrdinal as a
+	// tag).
+	for id, idContexts := range entry.Contexts {
+		refs := j.refs[id]
+		if len(refs) == 0 {
+			continue
+		}
+		for _, context := range idContexts {
+			err := refs.remove(context, earliestOrdinal)
+			if err != nil {
+				return 0, err
+			}
+			if len(refs) == 0 {
+				delete(j.refs, id)
+				break
+			}
+		}
 	}
-	j.refs = refs
-	j.unflushedBytes = unflushedBytes
 
 	return flushedBytes, nil
 }
 
 func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 	entries blockEntriesToFlush, tlfID TlfID, reporter Reporter) error {
-	if j.isShutdown {
-		return errBlockJournalShutdown
-	}
-
 	// Remove them all!
 	for i, entry := range entries.all {
 		flushedBytes, err := j.removeFlushedEntry(
@@ -941,17 +905,13 @@ func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 	return nil
 }
 
-func (j *blockJournal) shutdown() {
-	j.isShutdown = true
-
-	// Double-check the on-disk journal with the in-memory one.
-	ctx := context.Background()
+func (j *blockJournal) checkInSync(ctx context.Context) error {
 	refs, _, err := j.readJournal(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
-
 	if !reflect.DeepEqual(refs, j.refs) {
-		panic(fmt.Sprintf("refs = %v != j.refs = %v", refs, j.refs))
+		return fmt.Errorf("refs = %v != j.refs = %v", refs, j.refs)
 	}
+	return nil
 }

@@ -142,7 +142,7 @@ type tlfJournal struct {
 	// TODO: Consider using https://github.com/pkg/singlefile
 	// instead.
 	journalLock sync.RWMutex
-
+	// both of these are nil after shutdown() is called.
 	blockJournal *blockJournal
 	mdJournal    *mdJournal
 
@@ -475,11 +475,24 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 	return nil
 }
 
+var errTLFJournalShutdown = errors.New("tlfJournal is shutdown")
+
+func (j *tlfJournal) checkShutdownLocked() error {
+	if j.blockJournal == nil || j.mdJournal == nil {
+		return errTLFJournalShutdown
+	}
+	return nil
+}
+
 func (j *tlfJournal) getNextBlockEntriesToFlush(
 	ctx context.Context, end journalOrdinal) (
 	entries blockEntriesToFlush, err error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return blockEntriesToFlush{}, err
+	}
+
 	return j.blockJournal.getNextEntriesToFlush(ctx, end)
 }
 
@@ -487,6 +500,10 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 	entries blockEntriesToFlush) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return err
+	}
+
 	return j.blockJournal.removeFlushedEntries(ctx, entries, j.tlfID,
 		j.config.Reporter())
 }
@@ -528,6 +545,10 @@ func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
 	MdID, *RootMetadataSigned, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return MdID{}, nil, err
+	}
+
 	return j.mdJournal.getNextEntryToFlush(
 		ctx, currentUID, currentVerifyingKey, end, j.config.Crypto())
 }
@@ -538,9 +559,13 @@ func (j *tlfJournal) convertMDsToBranchAndGetNextEntry(
 	nextEntryEnd MetadataRevision) (MdID, *RootMetadataSigned, error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return MdID{}, nil, err
+	}
+
 	bid, err := j.mdJournal.convertToBranch(
-		ctx, currentUID, currentVerifyingKey, j.config.Crypto(), j.tlfID,
-		j.config.MDCache())
+		ctx, currentUID, currentVerifyingKey, j.config.Crypto(),
+		j.tlfID, j.config.MDCache())
 	if err != nil {
 		return MdID{}, nil, err
 	}
@@ -559,6 +584,10 @@ func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
 	mdID MdID, rmds *RootMetadataSigned) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return err
+	}
+
 	return j.mdJournal.removeFlushedEntry(
 		ctx, currentUID, currentVerifyingKey, mdID, rmds)
 }
@@ -640,6 +669,10 @@ func (j *tlfJournal) getJournalEntryCounts() (
 	blockEntryCount, mdEntryCount uint64, err error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return 0, 0, err
+	}
+
 	blockEntryCount, err = j.blockJournal.length()
 	if err != nil {
 		return 0, 0, err
@@ -656,6 +689,10 @@ func (j *tlfJournal) getJournalEntryCounts() (
 func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return TLFJournalStatus{}, err
+	}
+
 	earliestRevision, err := j.mdJournal.readEarliestRevision()
 	if err != nil {
 		return TLFJournalStatus{}, err
@@ -689,9 +726,23 @@ func (j *tlfJournal) shutdown() {
 	default:
 	}
 
+	// This may happen before the background goroutine finishes,
+	// but that's ok.
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
-	j.blockJournal.shutdown()
+	if err := j.checkShutdownLocked(); err != nil {
+		// Already shutdown.
+		return
+	}
+
+	ctx := context.Background()
+	err := j.blockJournal.checkInSync(ctx)
+	if err != nil {
+		panic(err)
+	}
+	// Make further accesses error out.
+	j.blockJournal = nil
+	j.mdJournal = nil
 }
 
 // All the functions below just do the equivalent blockJournal or
@@ -702,6 +753,10 @@ func (j *tlfJournal) getBlockDataWithContext(
 	[]byte, BlockCryptKeyServerHalf, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return nil, BlockCryptKeyServerHalf{}, err
+	}
+
 	return j.blockJournal.getDataWithContext(id, context)
 }
 
@@ -710,6 +765,10 @@ func (j *tlfJournal) putBlockData(
 	serverHalf BlockCryptKeyServerHalf) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return err
+	}
+
 	err := j.blockJournal.putData(ctx, id, context, buf, serverHalf)
 	if err != nil {
 		return err
@@ -733,6 +792,10 @@ func (j *tlfJournal) addBlockReference(
 	ctx context.Context, id BlockID, context BlockContext) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return err
+	}
+
 	err := j.blockJournal.addReference(ctx, id, context)
 	if err != nil {
 		return err
@@ -748,14 +811,17 @@ func (j *tlfJournal) removeBlockReferences(
 	liveCounts map[BlockID]int, err error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return nil, err
+	}
+
 	// Don't remove the block data if we remove the last
 	// reference; we still need it to flush the initial put
 	// operation.
 	//
 	// TODO: It would be nice if we could detect that case and
 	// avoid having to flush the put.
-	liveCounts, err = j.blockJournal.removeReferences(
-		ctx, contexts, false)
+	liveCounts, err = j.blockJournal.removeReferences(ctx, contexts)
 	if err != nil {
 		return nil, err
 	}
@@ -769,6 +835,10 @@ func (j *tlfJournal) archiveBlockReferences(
 	ctx context.Context, contexts map[BlockID][]BlockContext) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return err
+	}
+
 	err := j.blockJournal.archiveReferences(ctx, contexts)
 	if err != nil {
 		return err
@@ -789,6 +859,10 @@ func (j *tlfJournal) getMDHead(
 
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return ImmutableBareRootMetadata{}, err
+	}
+
 	return j.mdJournal.getHead(uid, key)
 }
 
@@ -803,6 +877,10 @@ func (j *tlfJournal) getMDRange(
 
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return nil, err
+	}
+
 	return j.mdJournal.getRange(uid, key, start, stop)
 }
 
@@ -816,6 +894,10 @@ func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata) (
 
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return MdID{}, err
+	}
+
 	mdID, err := j.mdJournal.put(ctx, uid, key, j.config.Crypto(),
 		j.config.encryptionKeyGetter(), j.config.BlockSplitter(), rmd)
 	if err != nil {
@@ -840,6 +922,10 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
+	if err := j.checkShutdownLocked(); err != nil {
+		return err
+	}
+
 	// No need to signal work in this case.
 	return j.mdJournal.clear(ctx, uid, key, bid)
 }

@@ -191,7 +191,8 @@ func (j mdIDJournal) append(r MetadataRevision, mdID MdID) error {
 	if err != nil {
 		return err
 	}
-	return j.j.appendJournalEntry(&o, mdID)
+	_, err = j.j.appendJournalEntry(&o, mdID)
+	return err
 }
 
 func (j mdIDJournal) removeEarliest() (empty bool, err error) {

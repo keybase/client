@@ -13,92 +13,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// TODO: Move this to bserver_errors.go once the actual block server
-// starts using it.
-type bserverErrorContextMismatch struct {
-	expected, actual BlockContext
-}
-
-func (e bserverErrorContextMismatch) Error() string {
-	return fmt.Sprintf(
-		"Context mismatch: expected %s, got %s", e.expected, e.actual)
-}
-
-type blockRefEntry struct {
-	// These fields are exported only for serialization purposes.
-	Status  blockRefLocalStatus
-	Context BlockContext
-
-	// TODO: Add unknown field support.
-}
-
-func (e blockRefEntry) checkContext(context BlockContext) error {
-	if e.Context != context {
-		return bserverErrorContextMismatch{e.Context, context}
-	}
-	return nil
-}
-
-// blockRefMap is a map with additional checking methods.
-type blockRefMap map[BlockRefNonce]blockRefEntry
-
-func (refs blockRefMap) hasNonArchivedRef() bool {
-	for _, refEntry := range refs {
-		if refEntry.Status == liveBlockRef {
-			return true
-		}
-	}
-	return false
-}
-
-func (refs blockRefMap) checkExists(context BlockContext) error {
-	refEntry, ok := refs[context.GetRefNonce()]
-	if !ok {
-		return BServerErrorBlockNonExistent{}
-	}
-
-	return refEntry.checkContext(context)
-}
-
-func (refs blockRefMap) getStatuses() map[BlockRefNonce]blockRefLocalStatus {
-	statuses := make(map[BlockRefNonce]blockRefLocalStatus)
-	for ref, refEntry := range refs {
-		statuses[ref] = refEntry.Status
-	}
-	return statuses
-}
-
-func (refs blockRefMap) put(
-	context BlockContext, status blockRefLocalStatus) error {
-	refNonce := context.GetRefNonce()
-	if refEntry, ok := refs[refNonce]; ok {
-		err := refEntry.checkContext(context)
-		if err != nil {
-			return err
-		}
-	}
-
-	refs[refNonce] = blockRefEntry{
-		Status:  status,
-		Context: context,
-	}
-	return nil
-}
-
-func (refs blockRefMap) remove(context BlockContext) error {
-	refNonce := context.GetRefNonce()
-	// If this check fails, this ref is already gone, which is not
-	// an error.
-	if refEntry, ok := refs[refNonce]; ok {
-		err := refEntry.checkContext(context)
-		if err != nil {
-			return err
-		}
-		delete(refs, refNonce)
-	}
-	return nil
-}
-
 type blockMemEntry struct {
 	tlfID         TlfID
 	blockData     []byte
@@ -134,7 +48,11 @@ var errBlockServerMemoryShutdown = errors.New("BlockServerMemory is shutdown")
 
 // Get implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) Get(ctx context.Context, tlfID TlfID, id BlockID,
-	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
+	context BlockContext) (
+	data []byte, serverHalf BlockCryptKeyServerHalf, err error) {
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
 	b.log.CDebugf(ctx, "BlockServerMemory.Get id=%s tlfID=%s context=%s",
 		id, tlfID, context)
 	b.lock.RLock()
@@ -155,7 +73,7 @@ func (b *BlockServerMemory) Get(ctx context.Context, tlfID TlfID, id BlockID,
 				entry.tlfID, tlfID)
 	}
 
-	err := entry.refs.checkExists(context)
+	err = entry.refs.checkExists(context)
 	if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
@@ -190,11 +108,14 @@ func validateBlockServerPut(
 // Put implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) Put(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext, buf []byte,
-	serverHalf BlockCryptKeyServerHalf) error {
+	serverHalf BlockCryptKeyServerHalf) (err error) {
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
 	b.log.CDebugf(ctx, "BlockServerMemory.Put id=%s tlfID=%s context=%s "+
 		"size=%d", id, tlfID, context, len(buf))
 
-	err := validateBlockServerPut(b.crypto, id, context, buf)
+	err = validateBlockServerPut(b.crypto, id, context, buf)
 	if err != nil {
 		return err
 	}
@@ -241,12 +162,15 @@ func (b *BlockServerMemory) Put(ctx context.Context, tlfID TlfID, id BlockID,
 		}
 	}
 
-	return refs.put(context, liveBlockRef)
+	return refs.put(context, liveBlockRef, nil)
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID TlfID,
-	id BlockID, context BlockContext) error {
+	id BlockID, context BlockContext) (err error) {
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
 	b.log.CDebugf(ctx, "BlockServerMemory.AddBlockReference id=%s "+
 		"tlfID=%s context=%s", id, tlfID, context)
 
@@ -274,7 +198,7 @@ func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID TlfID,
 			"been archived and cannot be referenced.", id)}
 	}
 
-	return entry.refs.put(context, liveBlockRef)
+	return entry.refs.put(context, liveBlockRef, nil)
 }
 
 func (b *BlockServerMemory) removeBlockReference(
@@ -298,7 +222,7 @@ func (b *BlockServerMemory) removeBlockReference(
 	}
 
 	for _, context := range contexts {
-		err := entry.refs.remove(context)
+		err := entry.refs.remove(context, nil)
 		if err != nil {
 			return 0, err
 		}
@@ -315,6 +239,9 @@ func (b *BlockServerMemory) removeBlockReference(
 func (b *BlockServerMemory) RemoveBlockReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID][]BlockContext) (
 	liveCounts map[BlockID]int, err error) {
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
 	b.log.CDebugf(ctx, "BlockServerMemory.RemoveBlockReference "+
 		"tlfID=%s contexts=%v", tlfID, contexts)
 	liveCounts = make(map[BlockID]int)
@@ -349,20 +276,23 @@ func (b *BlockServerMemory) archiveBlockReference(
 	}
 
 	err := entry.refs.checkExists(context)
-	if _, ok := err.(BServerErrorBlockNonExistent); ok {
+	if _, ok := err.(blockNonExistentError); ok {
 		return BServerErrorBlockNonExistent{fmt.Sprintf("Block ID %s (ref %s) "+
 			"doesn't exist and cannot be archived.", id, context.GetRefNonce())}
 	} else if err != nil {
 		return err
 	}
 
-	return entry.refs.put(context, archivedBlockRef)
+	return entry.refs.put(context, archivedBlockRef, nil)
 }
 
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerMemory.
 func (b *BlockServerMemory) ArchiveBlockReferences(ctx context.Context,
-	tlfID TlfID, contexts map[BlockID][]BlockContext) error {
+	tlfID TlfID, contexts map[BlockID][]BlockContext) (err error) {
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
 	b.log.CDebugf(ctx, "BlockServerMemory.ArchiveBlockReferences "+
 		"tlfID=%s contexts=%v", tlfID, contexts)
 

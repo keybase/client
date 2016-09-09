@@ -16,14 +16,17 @@ var _ BlockServer = journalBlockServer{}
 
 func (j journalBlockServer) Get(
 	ctx context.Context, tlfID TlfID, id BlockID, context BlockContext) (
-	[]byte, BlockCryptKeyServerHalf, error) {
+	data []byte, serverHalf BlockCryptKeyServerHalf, err error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
+		defer func() {
+			err = translateToBlockServerError(err)
+		}()
 		data, serverHalf, err := tlfJournal.getBlockDataWithContext(
 			id, context)
 		switch err.(type) {
 		case nil:
 			return data, serverHalf, nil
-		case BServerErrorBlockNonExistent:
+		case blockNonExistentError:
 			return j.BlockServer.Get(ctx, tlfID, id, context)
 		default:
 			return nil, BlockCryptKeyServerHalf{}, err
@@ -35,8 +38,11 @@ func (j journalBlockServer) Get(
 
 func (j journalBlockServer) Put(
 	ctx context.Context, tlfID TlfID, id BlockID, context BlockContext,
-	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
+	buf []byte, serverHalf BlockCryptKeyServerHalf) (err error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
+		defer func() {
+			err = translateToBlockServerError(err)
+		}()
 		return tlfJournal.putBlockData(ctx, id, context, buf, serverHalf)
 	}
 
@@ -45,7 +51,7 @@ func (j journalBlockServer) Put(
 
 func (j journalBlockServer) AddBlockReference(
 	ctx context.Context, tlfID TlfID, id BlockID,
-	context BlockContext) error {
+	context BlockContext) (err error) {
 	if !j.enableAddBlockReference {
 		// TODO: Temporarily return an error until KBFS-1149 is
 		// fixed. This is needed despite
@@ -55,6 +61,9 @@ func (j journalBlockServer) AddBlockReference(
 	}
 
 	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
+		defer func() {
+			err = translateToBlockServerError(err)
+		}()
 		return tlfJournal.addBlockReference(ctx, id, context)
 	}
 
@@ -66,6 +75,9 @@ func (j journalBlockServer) RemoveBlockReferences(
 	contexts map[BlockID][]BlockContext) (
 	liveCounts map[BlockID]int, err error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
+		defer func() {
+			err = translateToBlockServerError(err)
+		}()
 		// TODO: Get server counts without making a
 		// RemoveBlockReferences call and merge it.
 		return tlfJournal.removeBlockReferences(ctx, contexts)
@@ -76,8 +88,11 @@ func (j journalBlockServer) RemoveBlockReferences(
 
 func (j journalBlockServer) ArchiveBlockReferences(
 	ctx context.Context, tlfID TlfID,
-	contexts map[BlockID][]BlockContext) error {
+	contexts map[BlockID][]BlockContext) (err error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
+		defer func() {
+			err = translateToBlockServerError(err)
+		}()
 		return tlfJournal.archiveBlockReferences(ctx, contexts)
 	}
 

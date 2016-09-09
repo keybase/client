@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -773,15 +774,22 @@ func (c *ConfigLocal) CheckStateOnShutdown() bool {
 // EnableJournaling creates a JournalServer, but journaling must still
 // be enabled manually for individual folders.
 func (c *ConfigLocal) EnableJournaling(journalRoot string) {
+	jServer, err := GetJournalServer(c)
+	if err == nil {
+		// Journaling shouldn't be enabled twice for the same
+		// config.
+		panic(errors.New("Trying to enable journaling twice"))
+	}
+
 	// TODO: Sanity-check the root directory, e.g. create
 	// it if it doesn't exist, make sure that it doesn't
 	// point to /keybase itself, etc.
 	log := c.MakeLogger("")
 	listener := c.KBFSOps().(branchChangeListener)
-	jServer := makeJournalServer(c, log, journalRoot, c.BlockCache(),
+	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
 		c.BlockServer(), c.MDOps(), listener)
 	ctx := context.Background()
-	err := jServer.EnableExistingJournals(
+	err = jServer.EnableExistingJournals(
 		ctx, TLFJournalBackgroundWorkEnabled)
 	if err == nil {
 		c.SetBlockCache(jServer.blockCache())

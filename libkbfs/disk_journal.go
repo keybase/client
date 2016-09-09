@@ -195,11 +195,13 @@ func (j diskJournal) writeJournalEntry(
 // appendJournalEntry appends the given entry to the journal. If o is
 // nil, then if the journal is empty, the new entry will have ordinal
 // 0, and otherwise it will have ordinal equal to the successor of the
-// latest ordinal. Otherwise, if o is non-nil, then if the journal
-// entry, the new entry will have ordinal *o, and otherwise it return
-// an error if *o is not the successor of the latest ordinal.
+// latest ordinal. Otherwise, if o is non-nil, then if the journal is
+// empty, the new entry will have ordinal *o, and otherwise it returns
+// an error if *o is not the successor of the latest ordinal. If
+// successful, appendJournalEntry returns the ordinal of the
+// just-appended entry.
 func (j diskJournal) appendJournalEntry(
-	o *journalOrdinal, entry interface{}) error {
+	o *journalOrdinal, entry interface{}) (journalOrdinal, error) {
 	// TODO: Consider caching the latest ordinal in memory instead
 	// of reading it from disk every time.
 	var next journalOrdinal
@@ -211,15 +213,15 @@ func (j diskJournal) appendJournalEntry(
 			next = 0
 		}
 	} else if err != nil {
-		return err
+		return 0, err
 	} else {
 		next = lo + 1
 		if next == 0 {
 			// Rollover is almost certainly a bug.
-			return fmt.Errorf("Ordinal rollover for %+v", entry)
+			return 0, fmt.Errorf("Ordinal rollover for %+v", entry)
 		}
 		if o != nil && next != *o {
-			return fmt.Errorf(
+			return 0, fmt.Errorf(
 				"%v unexpectedly does not follow %v for %+v",
 				*o, lo, entry)
 		}
@@ -227,19 +229,23 @@ func (j diskJournal) appendJournalEntry(
 
 	err = j.writeJournalEntry(next, entry)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	_, err = j.readEarliestOrdinal()
 	if os.IsNotExist(err) {
 		err := j.writeEarliestOrdinal(next)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	} else if err != nil {
-		return err
+		return 0, err
 	}
-	return j.writeLatestOrdinal(next)
+	err = j.writeLatestOrdinal(next)
+	if err != nil {
+		return 0, err
+	}
+	return next, nil
 }
 
 func (j *diskJournal) move(newDir string) (oldDir string, err error) {
