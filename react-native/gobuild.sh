@@ -7,6 +7,7 @@ cd $dir
 
 local_client=${LOCAL_CLIENT:-"1"}
 local_kbfs=${LOCAL_KBFS:-}
+skip_gomobile_init=${SKIP_GOMOBILE_INIT:-}
 tmp_gopath=${TMP_GOPATH:-"/tmp/go"}
 
 # Original sources
@@ -59,10 +60,16 @@ rsync -pr --ignore-times "$go_client_dir/vendor" "$GOPATH/src/github.com/keybase
 rm -rf "$go_kbfs_dir/vendor"
 rm -rf "$go_client_dir/vendor"
 
+vendor_path="$GOPATH/src/github.com/keybase/vendor"
+gomobile_path="$vendor_path/golang.org/x/mobile/cmd/gomobile"
 
-if [ ! -f "$GOPATH/bin/gomobile" ]; then
-  echo "Build gomobile..."
-  go get golang.org/x/mobile/cmd/gomobile
+echo "Build gomobile..."
+(cd "$gomobile_path" && go build -o "$GOPATH/bin/gomobile")
+# The gomobile binary only looks for packages in the GOPATH,
+rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
+
+if [ ! "$skip_gomobile_init" = "1" ]; then
+  echo "doing gomobile init"
   "$GOPATH/bin/gomobile" init
 fi
 
