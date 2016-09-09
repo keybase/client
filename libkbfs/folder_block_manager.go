@@ -916,6 +916,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	}
 	var mostRecentOldEnoughRev MetadataRevision
 	var complete bool
+	var reclamationTime time.Time
 	defer func() {
 		fbm.lastQRLock.Lock()
 		defer fbm.lastQRLock.Unlock()
@@ -924,6 +925,9 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 			fbm.lastQRHeadRev = head.Revision()
 			fbm.lastQROldEnoughRev = mostRecentOldEnoughRev
 			fbm.wasLastQRComplete = complete
+		}
+		if reclamationTime != (time.Time{}) {
+			fbm.lastReclamationTime = reclamationTime
 		}
 	}()
 
@@ -974,9 +978,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	fbm.log.CDebugf(ctx, "Starting quota reclamation process")
 	defer func() {
 		fbm.log.CDebugf(ctx, "Ending quota reclamation process: %v", err)
-		fbm.lastQRLock.Lock()
-		defer fbm.lastQRLock.Unlock()
-		fbm.lastReclamationTime = fbm.config.Clock().Now()
+		reclamationTime = fbm.config.Clock().Now()
 	}()
 
 	ptrs, latestRev, complete, err :=
