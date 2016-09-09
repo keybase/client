@@ -25,6 +25,9 @@ type chatLocalHandler struct {
 	gh             *gregorHandler
 	boxer          *chatBoxer
 	userInfoMapper userInfoMapper
+
+	// for test only
+	rc chat1.RemoteInterface
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
@@ -641,7 +644,10 @@ func (h *chatLocalHandler) getSecretUI() libkb.SecretUI {
 }
 
 // remoteClient returns a client connection to gregord.
-func (h *chatLocalHandler) remoteClient() *chat1.RemoteClient {
+func (h *chatLocalHandler) remoteClient() chat1.RemoteInterface {
+	if h.rc != nil {
+		return h.rc
+	}
 	return &chat1.RemoteClient{Cli: h.gh.cli}
 }
 
