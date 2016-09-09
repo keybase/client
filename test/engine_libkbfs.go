@@ -69,10 +69,6 @@ func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 	k.refs[config] = make(map[libkbfs.Node]bool)
 	k.updateChannels[config] = make(map[libkbfs.FolderBranch]chan<- struct{})
 
-	if len(users) == 1 {
-		return userMap
-	}
-
 	// create the rest of the users as copies of the original config
 	for _, name := range users[1:] {
 		c := libkbfs.ConfigAsUser(config, name)
