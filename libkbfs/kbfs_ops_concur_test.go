@@ -419,9 +419,9 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	}
 
 	onReadStalledCh, readUnstallCh, ctxStallRead :=
-		StallBlockOp(ctx, config, StallableBlockGet)
+		StallBlockOp(ctx, config, StallableBlockGet, 1)
 	onWriteStalledCh, writeUnstallCh, ctxStallWrite :=
-		StallBlockOp(ctx, config, StallableBlockGet)
+		StallBlockOp(ctx, config, StallableBlockGet, 1)
 
 	var wg sync.WaitGroup
 
@@ -556,7 +556,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	}
 
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockGet)
+		StallBlockOp(ctx, config, StallableBlockGet, 1)
 
 	var wg sync.WaitGroup
 
@@ -643,7 +643,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	}
 
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockGet)
+		StallBlockOp(ctx, config, StallableBlockGet, 1)
 
 	var wg sync.WaitGroup
 
@@ -1135,7 +1135,7 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	oldBServer := config.BlockServer()
 	defer config.SetBlockServer(oldBServer)
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockPut)
+		StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
@@ -1491,7 +1491,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	oldBServer := config.BlockServer()
 	defer config.SetBlockServer(oldBServer)
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(cancelCtx, config, StallableBlockPut)
+		StallBlockOp(cancelCtx, config, StallableBlockPut, 1)
 
 	go func() {
 		errChan <- kbfsOps.Sync(ctxStallSync, fileNode2)
@@ -1555,7 +1555,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	config.SetBlockOps(&blockOpsOverQuota{BlockOps: config.BlockOps()})
 
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockPut)
+		StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	// Block the Sync
 	// Sync the initial two data blocks

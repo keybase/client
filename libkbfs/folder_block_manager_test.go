@@ -384,7 +384,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	oldBServer := config2.BlockServer()
 	defer config2.SetBlockServer(oldBServer)
 	onWriteStalledCh, writeUnstallCh, ctxStall := StallBlockOp(
-		ctx, config2, StallableBlockPut)
+		ctx, config2, StallableBlockPut, 2)
 
 	// Start the sync and wait for it to stall twice only.
 	errChan := make(chan error)

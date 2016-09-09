@@ -1552,7 +1552,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	// Now user 2 makes a big write where most of the blocks get canceled.
 	// We only need to know the first time we stall.
 	onSyncStalledCh, syncUnstallCh, syncCtx := StallBlockOp(
-		syncCtx, config2, StallableBlockPut)
+		syncCtx, config2, StallableBlockPut, 2)
 
 	var syncErr error
 	go func() {

@@ -211,9 +211,10 @@ func (s *NaïveStaller) UndoStallMDOp(stalledOp StallableMDOp) {
 // for the stall to be effective. onStalled is a channel to notify the caller
 // when the stall has happened. unstall is a channel for caller to unstall an
 // Op.
-func StallBlockOp(ctx context.Context, config Config, stalledOp StallableBlockOp) (
+func StallBlockOp(ctx context.Context, config Config,
+	stalledOp StallableBlockOp, maxStalls int) (
 	onStalled <-chan struct{}, unstall chan<- struct{}, newCtx context.Context) {
-	onStalledCh := make(chan struct{}, 1)
+	onStalledCh := make(chan struct{}, maxStalls)
 	unstallCh := make(chan struct{})
 	stallKey := newStallKey()
 	config.SetBlockServer(&stallingBlockServer{
