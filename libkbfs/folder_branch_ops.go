@@ -4606,12 +4606,15 @@ func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
 }
 
 func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
-	if newBID == NullBranchID {
-		return
-	}
-
 	ctx, cancelFunc := fbo.newCtxWithFBOID()
 	defer cancelFunc()
+
+	// This only happens on a `PruneBranch` call, in which case we
+	// would have already updated fbo's local view of the branch/head.
+	if newBID == NullBranchID {
+		fbo.log.CDebugf(ctx, "Ignoring branch change back to master")
+		return
+	}
 
 	lState := makeFBOLockState()
 	fbo.mdWriterLock.Lock(lState)
