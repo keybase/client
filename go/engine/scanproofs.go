@@ -104,7 +104,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 	defer e.G().Trace("ScanProofsEngine#Run", func() error { return err })()
 
 	var cache *ScanProofsCache
-	saveevery := 1
+	saveevery := 10
 	var ignored []string
 
 	if len(e.cachefile) > 0 {
@@ -138,7 +138,12 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 	}
 	if e.ratelimit > 0 {
 		for _, ptype := range keybase1.ProofTypeMap {
-			tickers[ptype] = time.NewTicker(time.Millisecond * time.Duration(e.ratelimit))
+			switch ptype {
+			case keybase1.ProofType_GENERIC_WEB_SITE, keybase1.ProofType_DNS:
+				// Web sites and DNS do not need a rate limit.
+			default:
+				tickers[ptype] = time.NewTicker(time.Millisecond * time.Duration(e.ratelimit))
+			}
 		}
 	}
 	defer func(tickers *map[keybase1.ProofType]*time.Ticker) {
@@ -230,6 +235,13 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 	e.G().Log.Info("oks             : %v", nok)
 	e.G().Log.Info("fails           : %v", nrun-nok)
 
+	if cache != nil {
+		saveerr := cache.Save(e.cachefile)
+		if saveerr != nil {
+			e.G().Log.Warning("Could not save cache: %v", saveerr)
+		}
+	}
+
 	return nil
 }
 
@@ -299,6 +311,7 @@ func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanP
 
 	// Beyond this point, external requests will occur, and rate limiting is used
 	if tickers[ptype] != nil {
+		e.G().Log.Info("Waiting for ticker: %v (%v)", keybase1.ProofTypeRevMap[ptype], ptype)
 		<-tickers[ptype].C
 	}
 
