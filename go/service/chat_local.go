@@ -203,9 +203,9 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg keybase
 
 	var since time.Time
 	if len(arg.Since) > 0 {
-		since, err := parseTimeFromRFC3339OrDurationFromPast(arg.Since)
+		since, err = parseTimeFromRFC3339OrDurationFromPast(arg.Since)
 		if err != nil {
-			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Since, since)
+			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Since, err)
 		}
 	}
 	since2 := time.Now().Add(-time.Since(since) * 2)
@@ -393,6 +393,8 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 	if len(conversationInfo.TlfName) == 0 {
 		return conversationInfo, triple, maxMessages, errors.New("unexpected response from server: global MaxMsgid is not present in MaxHeaders")
 	}
+
+	// TODO: verify Conv matches ConversationIDTriple in MessageClientHeader
 
 	return conversationInfo, triple, maxMessages, nil
 }
@@ -596,6 +598,8 @@ func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintex
 	if err != nil {
 		return boxed, err
 	}
+
+	// TODO: populate plaintext.ClientHeader.Conv
 
 	return boxed, nil
 }
