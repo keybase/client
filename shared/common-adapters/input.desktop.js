@@ -1,5 +1,4 @@
 // @flow
-import MultiLineInput from './multi-line-input.desktop'
 import React, {Component} from 'react'
 import type {Props} from './input'
 import {TextField} from 'material-ui'
@@ -65,31 +64,23 @@ class Input extends Component<void, Props, State> {
   }
 
   render () {
-    if (this.props.multiline) {
-      return (
-        <MultiLineInput
-          autoFocus={this.props.autoFocus}
-          errorText={this.props.errorText}
-          errorStyle={this.props.errorStyle}
-          onChange={event => this.onChange(event)}
-          onEnterKeyDown={this.props.onEnterKeyDown}
-          hintText={this.props.hintText}
-          style={this.props.style} />
-      )
-    }
-
     const style = this.props.small ? styles.containerSmall : styles.container
     const textStyle = this.props.small ? styles.inputSmall : styles.input
+    const textHeight = this.props.small ? 32 : (this.props.floatingLabelText ? 79 : 50)
+    const hintBottom = this.props.small ? 11 : (this.props.multiline ? 16 : 14)
 
     // HACK: We can't reset the text area style, so we need to counteract it by moving the wrapper up
     const multilineStyleFix = {
       height: 'auto',
       position: 'relative',
       // Other HACK: having a floating label affects position, but only in multiline
-      bottom: (this.props.floatingLabelText ? 30 : 5),
-      marginTop: 6,
+      bottom: (this.props.floatingLabelText ? 30 : 6),
+      // tweak distance between entered text and floating label to match single-line
+      marginTop: 1,
+      // tweak distance between entered text and underline to match single-line
+      marginBottom: -2,
     }
-    const inputStyle = this.props.multiline ? multilineStyleFix : {height: 'auto'}
+    const inputStyle = this.props.multiline ? multilineStyleFix : {height: 'auto', top: 3}
     const alignStyle = this.props.style && this.props.style.textAlign ? {textAlign: this.props.style.textAlign} : {textAlign: 'center'}
 
     const passwordVisible = this.props.type === 'passwordVisible'
@@ -106,10 +97,12 @@ class Input extends Component<void, Props, State> {
           floatingLabelStyle={styles.floatingLabelStyle}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
           fullWidth={true}
-          hintStyle={{...styles.hintStyle, ...(this.props.multiline ? {textAlign: 'center'} : {top: 3, bottom: 'auto'}), ...this.props.hintStyle}}
+          hintStyle={{bottom: hintBottom, ...styles.hintStyle, ...this.props.hintStyle}}
           hintText={this.props.hintText}
-          inputStyle={{...(this.props.small ? {} : {marginTop: 6}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
+          inputStyle={{...(this.props.small ? {} : {marginTop: 4}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
+          textareaStyle={{...alignStyle, overflow: 'overlay'}}
           name='name'
+          multiLine={this.props.multiline}
           onBlur={() => this.setState({focused: false})}
           onChange={event => this.onChange(event)}
           onFocus={() => this.setState({focused: true})}
@@ -117,7 +110,7 @@ class Input extends Component<void, Props, State> {
           ref={textField => (this._textField = textField)}
           rows={this.props.rows}
           rowsMax={this.props.rowsMax}
-          style={{...textStyle, ...globalStyles.flexBoxColumn, ...this.props.textStyle}}
+          style={{...textStyle, height: textHeight, transition: 'none', ...globalStyles.flexBoxColumn, ...this.props.textStyle}}
           type={password ? 'password' : 'text'}
           underlineFocusStyle={{...styles.underlineFocusStyle, ...this.props.underlineStyle}}
           underlineShow={this.props.underlineShow}
@@ -139,13 +132,11 @@ export const styles = {
   },
   input: {
     ...specialStyles.textInput,
-    height: 80,
   },
   inputSmall: {
     ...TextStyles.textBody,
     ...TextStyles.textSmallMixin,
-    height: 40,
-    lineHeight: '11px',
+    lineHeight: '16px',
   },
   underlineFocusStyle: {
     marginTop: 4,
@@ -173,7 +164,6 @@ export const styles = {
     color: globalColors.black_10,
     width: '100%',
     textAlign: 'center',
-    marginTop: -3,
   },
   floatingLabelStyle: {
     ...globalStyles.fontSemibold,
@@ -182,6 +172,7 @@ export const styles = {
     fontSize: 24,
     lineHeight: '29px',
     position: 'inherit',
+    top: 36,
     transform: 'scale(1) translate3d(0, 0, 0)',
     transition: 'color 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms',
   },
@@ -192,7 +183,7 @@ export const styles = {
     fontSize: 14,
     lineHeight: '29px',
     position: 'inherit',
-    transform: 'perspective(1px) scale(1) translate3d(2px, -29px, 0)',
+    transform: 'perspective(1px) scale(1) translate3d(2px, -26px, 0)',
     transformOrigin: 'center top',
   },
 }
