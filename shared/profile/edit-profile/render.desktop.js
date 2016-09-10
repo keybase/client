@@ -27,6 +27,8 @@ class Render extends Component<void, Props, void> {
             style={styleEditProfile}
             floatingLabelText='Bio'
             value={this.props.bio}
+            multiline={true}
+            rowsMax={4}
             errorText={this.props.bioLengthLeft <= 5 ? this.props.bioLengthLeft + ' characters left.' : ''}
             onEnterKeyDown={this.props.onSubmit}
             onChangeText={bio => this.props.onBioChange(bio)} />
