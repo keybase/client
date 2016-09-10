@@ -30,7 +30,6 @@ class Render extends Component<void, Props, void> {
             multiline={true}
             rowsMax={4}
             errorText={this.props.bioLengthLeft <= 5 ? this.props.bioLengthLeft + ' characters left.' : ''}
-            onEnterKeyDown={this.props.onSubmit}
             onChangeText={bio => this.props.onBioChange(bio)} />
           <Box style={styleButtonContainer}>
             <Button type='Secondary' onClick={this.props.onCancel} label='Cancel' />
