@@ -76,6 +76,7 @@ const landingMap: DumbComponentMap<Landing> = {
   component: Landing,
   mocks: {
     'Normal': landingBase,
+    'Normal - Not Verified email': {...landingBase, account: {...landingBase.account, isVerified: false}},
     'Gold Plan': goldBase,
     'Gold Plan - Broken Payment': {
       ...goldBase,
