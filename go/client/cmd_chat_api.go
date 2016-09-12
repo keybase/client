@@ -122,6 +122,7 @@ type ChatList struct {
 	Conversations []ConvSummary `json:"conversations"`
 }
 
+// ListV1 implements ChatServiceHandler.ListV1.
 func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
@@ -182,6 +183,7 @@ type Thread struct {
 	Messages []MsgSummary `json:"messages"`
 }
 
+// ReadV1 implements ChatServiceHandler.ReadV1.
 func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
@@ -244,6 +246,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	return Reply{Result: thread}
 }
 
+// SendV1 implements ChatServiceHandler.SendV1.
 func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
