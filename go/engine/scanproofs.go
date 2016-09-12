@@ -45,8 +45,7 @@ func LoadScanProofsCache(filepath string) (*ScanProofsCache, error) {
 }
 
 func (c *ScanProofsCache) Save(filepath string) error {
-	temppath := filepath + "-temp-swap"
-	f, err := os.Create(temppath)
+	temppath, f, err := libkb.OpenTempFile(filepath, "", 0644)
 	if err != nil {
 		return err
 	}
