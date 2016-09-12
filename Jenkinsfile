@@ -212,7 +212,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                         parallel (
                                             test_windows_go: {
                                                 println "Test Windows Go"
-                                                bat "choco install -y golang --version 1.6"
+                                                bat "choco install -y golang --version 1.7"
                                                 bat "choco install -y gpg4win-vanilla --version 2.3.1"
                                                 dir("go") {
                                                     dir ("keybase") {
@@ -235,7 +235,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             if (false && env.CHANGE_ID) {
                                             wrap([$class: 'Xvfb']) {
                                                 println "Test Windows JS"
-                                                bat "choco install -y nodejs.install --allow-downgrade --version 6.1.0"
+                                                bat "choco install -y nodejs.install --allow-downgrade --version 6.5.0"
                                                 bat "choco install -y python --version 2.7.11"
                                                 bat "choco install -y graphicsmagick --version 1.3.24"
                                                 dir("visdiff") {
