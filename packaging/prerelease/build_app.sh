@@ -117,26 +117,25 @@ for i in {1..2}; do
   save_dir="/tmp/build_desktop"
   rm -rf $save_dir
 
-  if [ "$i" = "1" ]; then
-    buildA = version
-  elif [ "$i" = "2" ]; then
-    buildB = version
-  fi
 
+  skip_update_json = [ "$i == "]
   if [ "$platform" = "darwin" ]; then
-
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" \
       UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" \
-      "$dir/../desktop/package_darwin.sh"
+      SKIP_UPDATE_JSON="$skip_update_json" "$dir/../desktop/package_darwin.sh"
   else
     # TODO: Support linux build here?
     echo "Unknown platform: $platform"
     exit 1
   fi
 
-  BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
+  if [ "$i" = "1" ]; then
+    buildA = version
+  elif [ "$i" = "2" ]; then
+    buildB = version
+  fi
 
-  "$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See $s3host";
+  BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
 done
 
 if [ "$istest" = "" ]; then
@@ -145,3 +144,5 @@ if [ "$istest" = "" ]; then
 
   BUCKET_NAME="$bucket_name" "$dir/report.sh"
 fi
+
+"$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See $s3host";
