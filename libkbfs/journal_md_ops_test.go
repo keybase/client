@@ -34,7 +34,7 @@ func setupJournalMDOpsTest(t *testing.T) (
 
 	log := config.MakeLogger("")
 	jServer = makeJournalServer(
-		config, log, tempdir, config.BlockCache(),
+		config, log, tempdir, config.BlockCache(), config.DirtyBlockCache(),
 		config.BlockServer(), config.MDOps(), nil, nil)
 
 	ctx := context.Background()

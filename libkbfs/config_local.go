@@ -788,12 +788,24 @@ func (c *ConfigLocal) EnableJournaling(journalRoot string) {
 	branchListener := c.KBFSOps().(branchChangeListener)
 	flushListener := c.KBFSOps().(mdFlushListener)
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
-		c.BlockServer(), c.MDOps(), branchListener, flushListener)
+		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
+		flushListener)
 	ctx := context.Background()
 	err = jServer.EnableExistingJournals(
 		ctx, TLFJournalBackgroundWorkEnabled)
 	if err == nil {
+		syncCache, ok := c.DirtyBlockCache().(*DirtyBlockCacheStandard)
+		if ok {
+			syncCache.name = "sync"
+		}
+		maxSyncBufferSize :=
+			int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
+		journalCache := NewDirtyBlockCacheStandard(c.clock, c.MakeLogger,
+			maxSyncBufferSize, maxSyncBufferSize, maxSyncBufferSize)
+		journalCache.name = "journal"
+
 		c.SetBlockCache(jServer.blockCache())
+		c.SetDirtyBlockCache(jServer.dirtyBlockCache(journalCache))
 		c.SetBlockServer(jServer.blockServer())
 		c.SetMDOps(jServer.mdOps())
 	} else {

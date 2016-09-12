@@ -21,7 +21,7 @@ func setupJournalBlockServerTest(t *testing.T) (
 	config = MakeTestConfigOrBust(t, "test_user")
 	log := config.MakeLogger("")
 	jServer = makeJournalServer(
-		config, log, tempdir, config.BlockCache(),
+		config, log, tempdir, config.BlockCache(), config.DirtyBlockCache(),
 		config.BlockServer(), config.MDOps(), nil, nil)
 	ctx := context.Background()
 	err = jServer.EnableExistingJournals(

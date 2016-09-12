@@ -60,11 +60,12 @@ type JournalServer struct {
 
 	dir string
 
-	delegateBlockCache  BlockCache
-	delegateBlockServer BlockServer
-	delegateMDOps       MDOps
-	onBranchChange      branchChangeListener
-	onMDFlush           mdFlushListener
+	delegateBlockCache      BlockCache
+	delegateDirtyBlockCache DirtyBlockCache
+	delegateBlockServer     BlockServer
+	delegateMDOps           MDOps
+	onBranchChange          branchChangeListener
+	onMDFlush               mdFlushListener
 
 	lock        sync.RWMutex
 	tlfJournals map[TlfID]*tlfJournal
@@ -72,20 +73,21 @@ type JournalServer struct {
 
 func makeJournalServer(
 	config Config, log logger.Logger, dir string,
-	bcache BlockCache, bserver BlockServer, mdOps MDOps,
-	onBranchChange branchChangeListener,
+	bcache BlockCache, dirtyBcache DirtyBlockCache, bserver BlockServer,
+	mdOps MDOps, onBranchChange branchChangeListener,
 	onMDFlush mdFlushListener) *JournalServer {
 	jServer := JournalServer{
-		config:              config,
-		log:                 log,
-		deferLog:            log.CloneWithAddedDepth(1),
-		dir:                 dir,
-		delegateBlockCache:  bcache,
-		delegateBlockServer: bserver,
-		delegateMDOps:       mdOps,
-		onBranchChange:      onBranchChange,
-		onMDFlush:           onMDFlush,
-		tlfJournals:         make(map[TlfID]*tlfJournal),
+		config:                  config,
+		log:                     log,
+		deferLog:                log.CloneWithAddedDepth(1),
+		dir:                     dir,
+		delegateBlockCache:      bcache,
+		delegateDirtyBlockCache: dirtyBcache,
+		delegateBlockServer:     bserver,
+		delegateMDOps:           mdOps,
+		onBranchChange:          onBranchChange,
+		onMDFlush:               onMDFlush,
+		tlfJournals:             make(map[TlfID]*tlfJournal),
 	}
 	return &jServer
 }
@@ -269,6 +271,11 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (
 
 func (j *JournalServer) blockCache() journalBlockCache {
 	return journalBlockCache{j, j.delegateBlockCache}
+}
+
+func (j *JournalServer) dirtyBlockCache(
+	journalCache DirtyBlockCache) journalDirtyBlockCache {
+	return journalDirtyBlockCache{j, j.delegateDirtyBlockCache, journalCache}
 }
 
 func (j *JournalServer) blockServer() journalBlockServer {
