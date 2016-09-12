@@ -17,19 +17,20 @@ func testDirtyBcachePut(t *testing.T, id BlockID, dirtyBcache DirtyBlockCache) {
 	branch := MasterBranch
 
 	// put the block
-	if err := dirtyBcache.Put(ptr, branch, block); err != nil {
+	tlfID := FakeTlfID(1, false)
+	if err := dirtyBcache.Put(tlfID, ptr, branch, block); err != nil {
 		t.Errorf("Got error on Put for block %s: %v", id, err)
 	}
 
 	// make sure we can get it successfully
-	if block2, err := dirtyBcache.Get(ptr, branch); err != nil {
+	if block2, err := dirtyBcache.Get(tlfID, ptr, branch); err != nil {
 		t.Errorf("Got error on get for block %s: %v", id, err)
 	} else if block2 != block {
 		t.Errorf("Got back unexpected block: %v", block2)
 	}
 
 	// make sure its dirty status is right
-	if !dirtyBcache.IsDirty(ptr, branch) {
+	if !dirtyBcache.IsDirty(tlfID, ptr, branch) {
 		t.Errorf("Block %s unexpectedly not dirty", id)
 	}
 }
@@ -38,7 +39,8 @@ func testExpectedMissingDirty(t *testing.T, id BlockID,
 	dirtyBcache DirtyBlockCache) {
 	expectedErr := NoSuchBlockError{id}
 	ptr := BlockPointer{ID: id}
-	if _, err := dirtyBcache.Get(ptr, MasterBranch); err == nil {
+	tlfID := FakeTlfID(1, false)
+	if _, err := dirtyBcache.Get(tlfID, ptr, MasterBranch); err == nil {
 		t.Errorf("No expected error on 1st get: %v", err)
 	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on 1st get: %v", err)
@@ -67,14 +69,15 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 		ID:           id1,
 		BlockContext: BlockContext{RefNonce: newNonce},
 	}
-	err := dirtyBcache.Put(bp2, MasterBranch, newNonceBlock)
+	id := FakeTlfID(1, false)
+	err := dirtyBcache.Put(id, bp2, MasterBranch, newNonceBlock)
 	if err != nil {
 		t.Errorf("Unexpected error on PutDirty: %v", err)
 	}
 
 	cleanBranch := MasterBranch
 	testExpectedMissingDirty(t, id1, dirtyBcache)
-	if !dirtyBcache.IsDirty(bp2, cleanBranch) {
+	if !dirtyBcache.IsDirty(id, bp2, cleanBranch) {
 		t.Errorf("New refnonce block is now unexpectedly clean")
 	}
 
@@ -82,17 +85,17 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 	// original is still clean
 	newBranch := BranchName("dirtyBranch")
 	newBranchBlock := NewFileBlock()
-	err = dirtyBcache.Put(bp1, newBranch, newBranchBlock)
+	err = dirtyBcache.Put(id, bp1, newBranch, newBranchBlock)
 	if err != nil {
 		t.Errorf("Unexpected error on PutDirty: %v", err)
 	}
 
 	// make sure the original dirty status is right
 	testExpectedMissingDirty(t, id1, dirtyBcache)
-	if !dirtyBcache.IsDirty(bp2, cleanBranch) {
+	if !dirtyBcache.IsDirty(id, bp2, cleanBranch) {
 		t.Errorf("New refnonce block is now unexpectedly clean")
 	}
-	if !dirtyBcache.IsDirty(bp1, newBranch) {
+	if !dirtyBcache.IsDirty(id, bp1, newBranch) {
 		t.Errorf("New branch block is now unexpectedly clean")
 	}
 }
@@ -106,14 +109,15 @@ func TestDirtyBcacheDelete(t *testing.T) {
 	testDirtyBcachePut(t, id1, dirtyBcache)
 	newBranch := BranchName("dirtyBranch")
 	newBranchBlock := NewFileBlock()
-	err := dirtyBcache.Put(BlockPointer{ID: id1}, newBranch, newBranchBlock)
+	id := FakeTlfID(1, false)
+	err := dirtyBcache.Put(id, BlockPointer{ID: id1}, newBranch, newBranchBlock)
 	if err != nil {
 		t.Errorf("Unexpected error on PutDirty: %v", err)
 	}
 
-	dirtyBcache.Delete(BlockPointer{ID: id1}, MasterBranch)
+	dirtyBcache.Delete(id, BlockPointer{ID: id1}, MasterBranch)
 	testExpectedMissingDirty(t, id1, dirtyBcache)
-	if !dirtyBcache.IsDirty(BlockPointer{ID: id1}, newBranch) {
+	if !dirtyBcache.IsDirty(id, BlockPointer{ID: id1}, newBranch) {
 		t.Errorf("New branch block is now unexpectedly clean")
 	}
 }
@@ -128,13 +132,14 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	ctx := context.Background()
 
 	// The first write should get immediate permission.
-	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, bufSize*2+1)
+	id := FakeTlfID(1, false)
+	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, id, bufSize*2+1)
 	if err != nil {
 		t.Fatalf("Request permission error: %v", err)
 	}
 	<-c1
 	// Now the unsynced buffer is full
-	if !dirtyBcache.ShouldForceSync() {
+	if !dirtyBcache.ShouldForceSync(id) {
 		t.Fatalf("Unsynced not full after a request")
 	}
 	// Not blocked
@@ -143,7 +148,7 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	}
 
 	// The next request should block
-	c2, err := dirtyBcache.RequestPermissionToDirty(ctx, bufSize)
+	c2, err := dirtyBcache.RequestPermissionToDirty(ctx, id, bufSize)
 	if err != nil {
 		t.Fatalf("Request permission error: %v", err)
 	}
@@ -157,14 +162,14 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	}
 
 	// Let's say the actual number of unsynced bytes for c1 was double
-	dirtyBcache.UpdateUnsyncedBytes(4*bufSize+2, false)
+	dirtyBcache.UpdateUnsyncedBytes(id, 4*bufSize+2, false)
 	// Now release the previous bytes
-	dirtyBcache.UpdateUnsyncedBytes(-(2*bufSize + 1), false)
+	dirtyBcache.UpdateUnsyncedBytes(id, -(2*bufSize + 1), false)
 
 	// Request 2 should still be blocked.  (This check isn't
 	// fool-proof, since it doesn't necessarily give time for the
 	// background thread to run.)
-	if !dirtyBcache.ShouldForceSync() {
+	if !dirtyBcache.ShouldForceSync(id) {
 		t.Fatalf("Total not full before sync finishes")
 	}
 	select {
@@ -173,22 +178,22 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	default:
 	}
 
-	dirtyBcache.UpdateSyncingBytes(4*bufSize + 2)
+	dirtyBcache.UpdateSyncingBytes(id, 4*bufSize+2)
 	if blockedSize := <-blockedChan; blockedSize != -1 {
 		t.Fatalf("Wrong blocked size: %d", blockedSize)
 	}
 	<-c2 // c2 is now unblocked since the wait buffer has drained.
 	// We should still need to sync the waitBuf caused by c2.
-	if !dirtyBcache.ShouldForceSync() {
+	if !dirtyBcache.ShouldForceSync(id) {
 		t.Fatalf("Buffers not full after c2 accepted")
 	}
 
 	// Finish syncing most of the blocks, but the c2 sync hasn't
 	// finished.
-	dirtyBcache.BlockSyncFinished(2*bufSize + 1)
-	dirtyBcache.BlockSyncFinished(bufSize)
-	dirtyBcache.BlockSyncFinished(bufSize + 1)
-	dirtyBcache.SyncFinished(4*bufSize + 2)
+	dirtyBcache.BlockSyncFinished(id, 2*bufSize+1)
+	dirtyBcache.BlockSyncFinished(id, bufSize)
+	dirtyBcache.BlockSyncFinished(id, bufSize+1)
+	dirtyBcache.SyncFinished(id, 4*bufSize+2)
 }
 
 func TestDirtyBcacheCalcBackpressure(t *testing.T) {
@@ -204,21 +209,22 @@ func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 	}
 
 	// still less
-	dirtyBcache.UpdateUnsyncedBytes(9, false)
+	id := FakeTlfID(1, false)
+	dirtyBcache.UpdateUnsyncedBytes(id, 9, false)
 	bp = dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
 	if bp != 0 {
 		t.Fatalf("Unexpected backpressure before unsyned bytes: %d", bp)
 	}
 
 	// Now make 11 unsynced bytes, or 10% of the overage
-	dirtyBcache.UpdateUnsyncedBytes(2, false)
+	dirtyBcache.UpdateUnsyncedBytes(id, 2, false)
 	bp = dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
 	if g, e := bp, 1*time.Second; g != e {
 		t.Fatalf("Got backpressure %s, expected %s", g, e)
 	}
 
 	// Now completely fill the buffer
-	dirtyBcache.UpdateUnsyncedBytes(9, false)
+	dirtyBcache.UpdateUnsyncedBytes(id, 9, false)
 	bp = dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
 	if g, e := bp, 10*time.Second; g != e {
 		t.Fatalf("Got backpressure %s, expected %s", g, e)
@@ -243,13 +249,14 @@ func TestDirtyBcacheResetBufferCap(t *testing.T) {
 	ctx := context.Background()
 
 	// The first write should get immediate permission.
-	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, bufSize*2+1)
+	id := FakeTlfID(1, false)
+	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, id, bufSize*2+1)
 	if err != nil {
 		t.Fatalf("Request permission error: %v", err)
 	}
 	<-c1
 	// Now the unsynced buffer is full
-	if !dirtyBcache.ShouldForceSync() {
+	if !dirtyBcache.ShouldForceSync(id) {
 		t.Fatalf("Unsynced not full after a request")
 	}
 	// Not blocked
@@ -258,9 +265,9 @@ func TestDirtyBcacheResetBufferCap(t *testing.T) {
 	}
 
 	// Finish it
-	dirtyBcache.UpdateSyncingBytes(2*bufSize + 1)
-	dirtyBcache.BlockSyncFinished(2*bufSize + 1)
-	dirtyBcache.SyncFinished(2*bufSize + 1)
+	dirtyBcache.UpdateSyncingBytes(id, 2*bufSize+1)
+	dirtyBcache.BlockSyncFinished(id, 2*bufSize+1)
+	dirtyBcache.SyncFinished(id, 2*bufSize+1)
 
 	// Wait for the reset
 	if blockedSize := <-blockedChan; blockedSize != -1 {

@@ -640,17 +640,17 @@ type DirtyPermChan <-chan struct{}
 type DirtyBlockCache interface {
 	// Get gets the block associated with the given block ID.  Returns
 	// the dirty block for the given ID, if one exists.
-	Get(ptr BlockPointer, branch BranchName) (Block, error)
+	Get(tlfID TlfID, ptr BlockPointer, branch BranchName) (Block, error)
 	// Put stores a dirty block currently identified by the
 	// given block pointer and branch name.
-	Put(ptr BlockPointer, branch BranchName, block Block) error
+	Put(tlfID TlfID, ptr BlockPointer, branch BranchName, block Block) error
 	// Delete removes the dirty block associated with the given block
 	// pointer and branch from the cache.  No error is returned if no
 	// block exists for the given ID.
-	Delete(ptr BlockPointer, branch BranchName) error
+	Delete(tlfID TlfID, ptr BlockPointer, branch BranchName) error
 	// IsDirty states whether or not the block associated with the
 	// given block pointer and branch name is dirty in this cache.
-	IsDirty(ptr BlockPointer, branch BranchName) bool
+	IsDirty(tlfID TlfID, ptr BlockPointer, branch BranchName) bool
 	// RequestPermissionToDirty is called whenever a user wants to
 	// write data to a file.  The caller provides an estimated number
 	// of bytes that will become dirty -- this is difficult to know
@@ -662,7 +662,7 @@ type DirtyBlockCache interface {
 	// `UpdateUnsyncedBytes(-estimatedDirtyBytes)` once it has
 	// completed its write and called `UpdateUnsyncedBytes` for all
 	// the exact dirty block sizes.
-	RequestPermissionToDirty(ctx context.Context,
+	RequestPermissionToDirty(ctx context.Context, tlfID TlfID,
 		estimatedDirtyBytes int64) (DirtyPermChan, error)
 	// UpdateUnsyncedBytes is called by a user, who has already been
 	// granted permission to write, with the delta in block sizes that
@@ -676,25 +676,25 @@ type DirtyBlockCache interface {
 	// requests, newUnsyncedBytes may be negative.  wasSyncing should
 	// be true if `BlockSyncStarted` has already been called for this
 	// block.
-	UpdateUnsyncedBytes(newUnsyncedBytes int64, wasSyncing bool)
+	UpdateUnsyncedBytes(tlfID TlfID, newUnsyncedBytes int64, wasSyncing bool)
 	// UpdateSyncingBytes is called when a particular block has
 	// started syncing, or with a negative number when a block is no
 	// longer syncing due to an error (and BlockSyncFinished will
 	// never be called).
-	UpdateSyncingBytes(size int64)
+	UpdateSyncingBytes(tlfID TlfID, size int64)
 	// BlockSyncFinished is called when a particular block has
 	// finished syncing, though the overall sync might not yet be
 	// complete.  This lets the cache know it might be able to grant
 	// more permission to writers.
-	BlockSyncFinished(size int64)
+	BlockSyncFinished(tlfID TlfID, size int64)
 	// SyncFinished is called when a complete sync has completed and
 	// its dirty blocks have been removed from the cache.  This lets
 	// the cache know it might be able to grant more permission to
 	// writers.
-	SyncFinished(size int64)
+	SyncFinished(tlfID TlfID, size int64)
 	// ShouldForceSync returns true if the sync buffer is full enough
 	// to force all callers to sync their data immediately.
-	ShouldForceSync() bool
+	ShouldForceSync(tlfID TlfID) bool
 
 	// Shutdown frees any resources associated with this instance.  It
 	// returns an error if there are any unsynced blocks.

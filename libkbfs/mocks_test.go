@@ -1508,98 +1508,98 @@ func (_m *MockDirtyBlockCache) EXPECT() *_MockDirtyBlockCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDirtyBlockCache) Get(ptr BlockPointer, branch BranchName) (Block, error) {
-	ret := _m.ctrl.Call(_m, "Get", ptr, branch)
+func (_m *MockDirtyBlockCache) Get(tlfID TlfID, ptr BlockPointer, branch BranchName) (Block, error) {
+	ret := _m.ctrl.Call(_m, "Get", tlfID, ptr, branch)
 	ret0, _ := ret[0].(Block)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1)
+func (_mr *_MockDirtyBlockCacheRecorder) Get(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2)
 }
 
-func (_m *MockDirtyBlockCache) Put(ptr BlockPointer, branch BranchName, block Block) error {
-	ret := _m.ctrl.Call(_m, "Put", ptr, branch, block)
+func (_m *MockDirtyBlockCache) Put(tlfID TlfID, ptr BlockPointer, branch BranchName, block Block) error {
+	ret := _m.ctrl.Call(_m, "Put", tlfID, ptr, branch, block)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
+func (_mr *_MockDirtyBlockCacheRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockDirtyBlockCache) Delete(ptr BlockPointer, branch BranchName) error {
-	ret := _m.ctrl.Call(_m, "Delete", ptr, branch)
+func (_m *MockDirtyBlockCache) Delete(tlfID TlfID, ptr BlockPointer, branch BranchName) error {
+	ret := _m.ctrl.Call(_m, "Delete", tlfID, ptr, branch)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1)
+func (_mr *_MockDirtyBlockCacheRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2)
 }
 
-func (_m *MockDirtyBlockCache) IsDirty(ptr BlockPointer, branch BranchName) bool {
-	ret := _m.ctrl.Call(_m, "IsDirty", ptr, branch)
+func (_m *MockDirtyBlockCache) IsDirty(tlfID TlfID, ptr BlockPointer, branch BranchName) bool {
+	ret := _m.ctrl.Call(_m, "IsDirty", tlfID, ptr, branch)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) IsDirty(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsDirty", arg0, arg1)
+func (_mr *_MockDirtyBlockCacheRecorder) IsDirty(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsDirty", arg0, arg1, arg2)
 }
 
-func (_m *MockDirtyBlockCache) RequestPermissionToDirty(ctx context.Context, estimatedDirtyBytes int64) (DirtyPermChan, error) {
-	ret := _m.ctrl.Call(_m, "RequestPermissionToDirty", ctx, estimatedDirtyBytes)
+func (_m *MockDirtyBlockCache) RequestPermissionToDirty(ctx context.Context, tlfID TlfID, estimatedDirtyBytes int64) (DirtyPermChan, error) {
+	ret := _m.ctrl.Call(_m, "RequestPermissionToDirty", ctx, tlfID, estimatedDirtyBytes)
 	ret0, _ := ret[0].(DirtyPermChan)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) RequestPermissionToDirty(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RequestPermissionToDirty", arg0, arg1)
+func (_mr *_MockDirtyBlockCacheRecorder) RequestPermissionToDirty(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RequestPermissionToDirty", arg0, arg1, arg2)
 }
 
-func (_m *MockDirtyBlockCache) UpdateUnsyncedBytes(newUnsyncedBytes int64, wasSyncing bool) {
-	_m.ctrl.Call(_m, "UpdateUnsyncedBytes", newUnsyncedBytes, wasSyncing)
+func (_m *MockDirtyBlockCache) UpdateUnsyncedBytes(tlfID TlfID, newUnsyncedBytes int64, wasSyncing bool) {
+	_m.ctrl.Call(_m, "UpdateUnsyncedBytes", tlfID, newUnsyncedBytes, wasSyncing)
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) UpdateUnsyncedBytes(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateUnsyncedBytes", arg0, arg1)
+func (_mr *_MockDirtyBlockCacheRecorder) UpdateUnsyncedBytes(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateUnsyncedBytes", arg0, arg1, arg2)
 }
 
-func (_m *MockDirtyBlockCache) UpdateSyncingBytes(size int64) {
-	_m.ctrl.Call(_m, "UpdateSyncingBytes", size)
+func (_m *MockDirtyBlockCache) UpdateSyncingBytes(tlfID TlfID, size int64) {
+	_m.ctrl.Call(_m, "UpdateSyncingBytes", tlfID, size)
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) UpdateSyncingBytes(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateSyncingBytes", arg0)
+func (_mr *_MockDirtyBlockCacheRecorder) UpdateSyncingBytes(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateSyncingBytes", arg0, arg1)
 }
 
-func (_m *MockDirtyBlockCache) BlockSyncFinished(size int64) {
-	_m.ctrl.Call(_m, "BlockSyncFinished", size)
+func (_m *MockDirtyBlockCache) BlockSyncFinished(tlfID TlfID, size int64) {
+	_m.ctrl.Call(_m, "BlockSyncFinished", tlfID, size)
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) BlockSyncFinished(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockSyncFinished", arg0)
+func (_mr *_MockDirtyBlockCacheRecorder) BlockSyncFinished(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockSyncFinished", arg0, arg1)
 }
 
-func (_m *MockDirtyBlockCache) SyncFinished(size int64) {
-	_m.ctrl.Call(_m, "SyncFinished", size)
+func (_m *MockDirtyBlockCache) SyncFinished(tlfID TlfID, size int64) {
+	_m.ctrl.Call(_m, "SyncFinished", tlfID, size)
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) SyncFinished(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncFinished", arg0)
+func (_mr *_MockDirtyBlockCacheRecorder) SyncFinished(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncFinished", arg0, arg1)
 }
 
-func (_m *MockDirtyBlockCache) ShouldForceSync() bool {
-	ret := _m.ctrl.Call(_m, "ShouldForceSync")
+func (_m *MockDirtyBlockCache) ShouldForceSync(tlfID TlfID) bool {
+	ret := _m.ctrl.Call(_m, "ShouldForceSync", tlfID)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) ShouldForceSync() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ShouldForceSync")
+func (_mr *_MockDirtyBlockCacheRecorder) ShouldForceSync(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ShouldForceSync", arg0)
 }
 
 func (_m *MockDirtyBlockCache) Shutdown() error {

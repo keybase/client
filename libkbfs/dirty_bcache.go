@@ -181,8 +181,8 @@ func NewDirtyBlockCacheStandard(clock Clock,
 
 // Get implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
-	Block, error) {
+func (d *DirtyBlockCacheStandard) Get(_ TlfID, ptr BlockPointer,
+	branch BranchName) (Block, error) {
 	block := func() Block {
 		dirtyID := dirtyBlockID{
 			id:       ptr.ID,
@@ -202,8 +202,8 @@ func (d *DirtyBlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
 
 // Put implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) Put(ptr BlockPointer, branch BranchName,
-	block Block) error {
+func (d *DirtyBlockCacheStandard) Put(_ TlfID, ptr BlockPointer,
+	branch BranchName, block Block) error {
 	dirtyID := dirtyBlockID{
 		id:       ptr.ID,
 		refNonce: ptr.RefNonce,
@@ -218,7 +218,7 @@ func (d *DirtyBlockCacheStandard) Put(ptr BlockPointer, branch BranchName,
 
 // Delete implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) Delete(ptr BlockPointer,
+func (d *DirtyBlockCacheStandard) Delete(_ TlfID, ptr BlockPointer,
 	branch BranchName) error {
 	dirtyID := dirtyBlockID{
 		id:       ptr.ID,
@@ -234,8 +234,8 @@ func (d *DirtyBlockCacheStandard) Delete(ptr BlockPointer,
 
 // IsDirty implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) IsDirty(
-	ptr BlockPointer, branch BranchName) (isDirty bool) {
+func (d *DirtyBlockCacheStandard) IsDirty(_ TlfID, ptr BlockPointer,
+	branch BranchName) (isDirty bool) {
 	dirtyID := dirtyBlockID{
 		id:       ptr.ID,
 		refNonce: ptr.RefNonce,
@@ -479,7 +479,8 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 // RequestPermissionToDirty implements the DirtyBlockCache interface
 // for DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) RequestPermissionToDirty(
-	ctx context.Context, estimatedDirtyBytes int64) (DirtyPermChan, error) {
+	ctx context.Context, _ TlfID, estimatedDirtyBytes int64) (
+	DirtyPermChan, error) {
 	d.shutdownLock.RLock()
 	defer d.shutdownLock.RUnlock()
 	if d.isShutdown {
@@ -517,8 +518,8 @@ func (d *DirtyBlockCacheStandard) signalDecreasedBytes() {
 
 // UpdateUnsyncedBytes implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) UpdateUnsyncedBytes(newUnsyncedBytes int64,
-	wasSyncing bool) {
+func (d *DirtyBlockCacheStandard) UpdateUnsyncedBytes(_ TlfID,
+	newUnsyncedBytes int64, wasSyncing bool) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	if wasSyncing {
@@ -533,7 +534,7 @@ func (d *DirtyBlockCacheStandard) UpdateUnsyncedBytes(newUnsyncedBytes int64,
 
 // UpdateSyncingBytes implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) UpdateSyncingBytes(size int64) {
+func (d *DirtyBlockCacheStandard) UpdateSyncingBytes(_ TlfID, size int64) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	d.syncBufBytes += size
@@ -543,7 +544,7 @@ func (d *DirtyBlockCacheStandard) UpdateSyncingBytes(size int64) {
 
 // BlockSyncFinished implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) BlockSyncFinished(size int64) {
+func (d *DirtyBlockCacheStandard) BlockSyncFinished(_ TlfID, size int64) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	if size > 0 {
@@ -571,7 +572,7 @@ func (d *DirtyBlockCacheStandard) resetBufferCap() {
 
 // SyncFinished implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) SyncFinished(size int64) {
+func (d *DirtyBlockCacheStandard) SyncFinished(_ TlfID, size int64) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	if size <= 0 {
@@ -615,7 +616,7 @@ func (d *DirtyBlockCacheStandard) SyncFinished(size int64) {
 
 // ShouldForceSync implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) ShouldForceSync() bool {
+func (d *DirtyBlockCacheStandard) ShouldForceSync(_ TlfID) bool {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
 	// TODO: Fill up to likely block boundaries?

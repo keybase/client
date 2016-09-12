@@ -100,7 +100,7 @@ func (df *dirtyFile) updateNotYetSyncingBytes(newBytes int64) {
 	df.lock.Lock()
 	defer df.lock.Unlock()
 	df.notYetSyncingBytes += newBytes
-	df.dirtyBcache.UpdateUnsyncedBytes(newBytes, false)
+	df.dirtyBcache.UpdateUnsyncedBytes(df.path.Tlf, newBytes, false)
 }
 
 // setBlockDirty transitions a block to a dirty state, and returns
@@ -151,7 +151,7 @@ func (df *dirtyFile) setBlockSyncing(ptr BlockPointer) error {
 	}
 	state.copy = blockNeedsCopy
 	state.sync = blockSyncing
-	block, err := df.dirtyBcache.Get(ptr, df.path.Branch)
+	block, err := df.dirtyBcache.Get(df.path.Tlf, ptr, df.path.Branch)
 	if err != nil {
 		// The dirty block cache must always contain the dirty block
 		// until the full sync is completely done.  If the block is
@@ -168,7 +168,7 @@ func (df *dirtyFile) setBlockSyncing(ptr BlockPointer) error {
 	df.totalSyncBytes += state.syncSize
 	df.notYetSyncingBytes -= state.syncSize
 	df.fileBlockStates[ptr] = state
-	df.dirtyBcache.UpdateSyncingBytes(state.syncSize)
+	df.dirtyBcache.UpdateSyncingBytes(df.path.Tlf, state.syncSize)
 	return nil
 }
 
@@ -181,9 +181,10 @@ func (df *dirtyFile) resetSyncingBlocksToDirty() {
 			// This block will never be sync'd again, so clear any
 			// bytes from the buffer.
 			if state.sync == blockSyncing {
-				df.dirtyBcache.UpdateUnsyncedBytes(-state.syncSize, true)
+				df.dirtyBcache.UpdateUnsyncedBytes(df.path.Tlf,
+					-state.syncSize, true)
 			} else if state.sync == blockSynced {
-				df.dirtyBcache.SyncFinished(state.syncSize)
+				df.dirtyBcache.SyncFinished(df.path.Tlf, state.syncSize)
 			}
 			state.syncSize = 0
 			delete(df.fileBlockStates, ptr)
@@ -192,9 +193,9 @@ func (df *dirtyFile) resetSyncingBlocksToDirty() {
 		if state.sync == blockSynced {
 			// Re-dirty the unsynced bytes (but don't touch the total
 			// bytes).
-			df.dirtyBcache.BlockSyncFinished(-state.syncSize)
+			df.dirtyBcache.BlockSyncFinished(df.path.Tlf, -state.syncSize)
 		} else if state.sync == blockSyncing {
-			df.dirtyBcache.UpdateSyncingBytes(-state.syncSize)
+			df.dirtyBcache.UpdateSyncingBytes(df.path.Tlf, -state.syncSize)
 		}
 		if state.sync != blockNotSyncing {
 			state.copy = blockAlreadyCopied
@@ -219,7 +220,7 @@ func (df *dirtyFile) setBlockSyncedLocked(ptr BlockPointer) error {
 			"progress: %v (%v)", ptr, df.fileBlockStates[ptr])
 	}
 	state.sync = blockSynced
-	df.dirtyBcache.BlockSyncFinished(state.syncSize)
+	df.dirtyBcache.BlockSyncFinished(df.path.Tlf, state.syncSize)
 	// Keep syncSize set in case the block needs to be re-dirtied due
 	// to an error.
 	df.fileBlockStates[ptr] = state
@@ -261,13 +262,14 @@ func (df *dirtyFile) finishSync() error {
 			}
 		}
 	}
-	df.dirtyBcache.SyncFinished(df.totalSyncBytes)
+	df.dirtyBcache.SyncFinished(df.path.Tlf, df.totalSyncBytes)
 	df.totalSyncBytes = 0
 	df.deferredNewBytes = 0
 	if df.notYetSyncingBytes > 0 {
 		// The sync will never happen (probably because the underlying
 		// file was removed).
-		df.dirtyBcache.UpdateUnsyncedBytes(-df.notYetSyncingBytes, false)
+		df.dirtyBcache.UpdateUnsyncedBytes(df.path.Tlf,
+			-df.notYetSyncingBytes, false)
 		df.notYetSyncingBytes = 0
 	}
 	return nil
@@ -315,6 +317,6 @@ func (df *dirtyFile) assimilateDeferredNewBytes() {
 	if df.deferredNewBytes == 0 {
 		return
 	}
-	df.dirtyBcache.UpdateUnsyncedBytes(df.deferredNewBytes, false)
+	df.dirtyBcache.UpdateUnsyncedBytes(df.path.Tlf, df.deferredNewBytes, false)
 	df.deferredNewBytes = 0
 }
