@@ -46,26 +46,16 @@ export const CommonMessageType = {
   tlfname: 6,
 }
 
+export const CommonTLFVisibility = {
+  public: 0,
+  private: 1,
+  any: 2,
+}
+
 export const CommonTopicType = {
   none: 0,
   chat: 1,
   dev: 2,
-}
-
-export function remoteGetConversationMetadataRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetConversationMetadataRemoteResult) => void} & {param: remoteGetConversationMetadataRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.getConversationMetadataRemote'})
-}
-
-export function remoteGetConversationMetadataRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetConversationMetadataRemoteResult) => void} & {param: remoteGetConversationMetadataRemoteRpcParam}>): Promise<remoteGetConversationMetadataRemoteResult> {
-  return new Promise((resolve, reject) => { remoteGetConversationMetadataRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function remoteGetInboxByTLFIDRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxByTLFIDRemoteResult) => void} & {param: remoteGetInboxByTLFIDRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.getInboxByTLFIDRemote'})
-}
-
-export function remoteGetInboxByTLFIDRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxByTLFIDRemoteResult) => void} & {param: remoteGetInboxByTLFIDRemoteRpcParam}>): Promise<remoteGetInboxByTLFIDRemoteResult> {
-  return new Promise((resolve, reject) => { remoteGetInboxByTLFIDRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function remoteGetInboxRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
@@ -165,6 +155,16 @@ export type GetInboxByTLFIDRemoteRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type GetInboxQuery = {
+  convID?: ?ConversationID,
+  topicType?: ?TopicType,
+  tlfID?: ?TLFID,
+  tlfVisibility?: ?TLFVisibility,
+  before?: ?gregor1.Time,
+  after?: ?gregor1.Time,
+  unreadOnly: bool,
+}
+
 export type GetInboxRemoteRes = {
   inbox: InboxView,
   rateLimit?: ?RateLimit,
@@ -173,6 +173,13 @@ export type GetInboxRemoteRes = {
 export type GetMessagesRemoteRes = {
   msgs?: ?Array<MessageBoxed>,
   rateLimit?: ?RateLimit,
+}
+
+export type GetThreadQuery = {
+  markAsRead: bool,
+  messageTypes?: ?Array<MessageType>,
+  before?: ?gregor1.Time,
+  after?: ?gregor1.Time,
 }
 
 export type GetThreadRemoteRes = {
@@ -269,6 +276,11 @@ export type SignatureInfo = {
 
 export type TLFID = bytes
 
+export type TLFVisibility = 
+    0 // PUBLIC_0
+  | 1 // PRIVATE_1
+  | 2 // ANY_2
+
 export type ThreadID = bytes
 
 export type ThreadViewBoxed = {
@@ -283,15 +295,8 @@ export type TopicType =
   | 1 // CHAT_1
   | 2 // DEV_2
 
-export type remoteGetConversationMetadataRemoteRpcParam = $Exact<{
-  conversationID: ConversationID
-}>
-
-export type remoteGetInboxByTLFIDRemoteRpcParam = $Exact<{
-  TLFID: TLFID
-}>
-
 export type remoteGetInboxRemoteRpcParam = $Exact<{
+  query?: ?GetInboxQuery,
   pagination?: ?Pagination
 }>
 
@@ -302,7 +307,7 @@ export type remoteGetMessagesRemoteRpcParam = $Exact<{
 
 export type remoteGetThreadRemoteRpcParam = $Exact<{
   conversationID: ConversationID,
-  markAsRead: boolean,
+  query?: ?GetThreadQuery,
   pagination?: ?Pagination
 }>
 
@@ -325,10 +330,6 @@ export type remotePostRemoteRpcParam = $Exact<{
   messageBoxed: MessageBoxed
 }>
 
-type remoteGetConversationMetadataRemoteResult = GetConversationMetadataRemoteRes
-
-type remoteGetInboxByTLFIDRemoteResult = GetInboxByTLFIDRemoteRes
-
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
@@ -344,9 +345,7 @@ type remoteNewConversationRemoteResult = NewConversationRemoteRes
 type remotePostRemoteResult = PostRemoteRes
 
 export type rpc =
-    remoteGetConversationMetadataRemoteRpc
-  | remoteGetInboxByTLFIDRemoteRpc
-  | remoteGetInboxRemoteRpc
+    remoteGetInboxRemoteRpc
   | remoteGetMessagesRemoteRpc
   | remoteGetThreadRemoteRpc
   | remoteMarkAsReadRpc

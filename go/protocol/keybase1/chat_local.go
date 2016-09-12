@@ -207,13 +207,14 @@ type GetInboxSummaryLocalRes struct {
 }
 
 type GetInboxLocalArg struct {
-	Pagination *chat1.Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Query      *chat1.GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
+	Pagination *chat1.Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 type GetThreadLocalArg struct {
-	ConversationID chat1.ConversationID `codec:"conversationID" json:"conversationID"`
-	MarkAsRead     bool                 `codec:"markAsRead" json:"markAsRead"`
-	Pagination     *chat1.Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	ConversationID chat1.ConversationID  `codec:"conversationID" json:"conversationID"`
+	Query          *chat1.GetThreadQuery `codec:"query,omitempty" json:"query,omitempty"`
+	Pagination     *chat1.Pagination     `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 type PostLocalArg struct {
@@ -249,7 +250,7 @@ type CompleteAndCanonicalizeTlfNameArg struct {
 }
 
 type ChatLocalInterface interface {
-	GetInboxLocal(context.Context, *chat1.Pagination) (chat1.InboxView, error)
+	GetInboxLocal(context.Context, GetInboxLocalArg) (chat1.InboxView, error)
 	GetThreadLocal(context.Context, GetThreadLocalArg) (ThreadView, error)
 	PostLocal(context.Context, PostLocalArg) error
 	ResolveConversationLocal(context.Context, ConversationInfoLocal) ([]ConversationInfoLocal, error)
@@ -275,7 +276,7 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetInboxLocalArg)(nil), args)
 						return
 					}
-					ret, err = i.GetInboxLocal(ctx, (*typedArgs)[0].Pagination)
+					ret, err = i.GetInboxLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -416,8 +417,7 @@ type ChatLocalClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c ChatLocalClient) GetInboxLocal(ctx context.Context, pagination *chat1.Pagination) (res chat1.InboxView, err error) {
-	__arg := GetInboxLocalArg{Pagination: pagination}
+func (c ChatLocalClient) GetInboxLocal(ctx context.Context, __arg GetInboxLocalArg) (res chat1.InboxView, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getInboxLocal", []interface{}{__arg}, &res)
 	return
 }
