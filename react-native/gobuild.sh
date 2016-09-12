@@ -69,7 +69,7 @@ echo "Build gomobile..."
 rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
 
 if [ ! "$skip_gomobile_init" = "1" ]; then
-  echo "doing gomobile init"
+  echo "Doing gomobile init"
   "$GOPATH/bin/gomobile" init
 fi
 
