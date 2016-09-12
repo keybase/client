@@ -649,6 +649,10 @@ func (g *GlobalContext) GetLogDir() string {
 	return g.Env.GetLogDir()
 }
 
+func (g *GlobalContext) GetDataDir() string {
+	return g.Env.GetDataDir()
+}
+
 func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
 	return &RPCLogFactory{Contextified: NewContextified(g)}
 }
