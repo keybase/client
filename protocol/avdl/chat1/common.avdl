@@ -38,6 +38,29 @@ protocol common {
     int maxCalls; // Max amount of calls allowed in a window for the given RPC
   }
 
+  enum TLFVisibility {
+    PUBLIC_0,
+    PRIVATE_1,
+    ANY_2
+  }
+
+  record GetInboxQuery {
+    union { null, ConversationID } convID;
+    union { null, TopicType } topicType;
+    union { null, TLFID } tlfID;
+    union { null, TLFVisibility } tlfVisibility;
+    union { null, gregor1.Time } before;
+    union { null, gregor1.Time } after;
+    bool unreadOnly;
+  }
+
+  record GetThreadQuery {
+    bool markAsRead;
+    array<MessageType> messageTypes;
+    union { null, gregor1.Time } before;
+    union { null, gregor1.Time } after;
+  }
+
   record ConversationIDTriple {
     TLFID tlfid;
     TopicType topicType;

@@ -42,8 +42,12 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 }
 
 // GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
-func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, p *chat1.Pagination) (chat1.InboxView, error) {
-	ib, err := h.remoteClient().GetInboxRemote(ctx, p)
+func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg keybase1.GetInboxLocalArg) (chat1.InboxView, error) {
+
+	ib, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query:      arg.Query,
+		Pagination: arg.Pagination,
+	})
 	return ib.Inbox, err
 }
 
@@ -51,7 +55,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, p *chat1.Paginatio
 func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetThreadLocalArg) (keybase1.ThreadView, error) {
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: arg.ConversationID,
-		MarkAsRead:     arg.MarkAsRead,
+		Query:          arg.Query,
 		Pagination:     arg.Pagination,
 	}
 	boxed, err := h.remoteClient().GetThreadRemote(ctx, rarg)
@@ -193,13 +197,6 @@ func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg key
 }
 
 func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg keybase1.GetInboxSummaryLocalArg) (res keybase1.GetInboxSummaryLocalRes, err error) {
-	var topicTypes map[chat1.TopicType]bool
-	if len(arg.TopicTypes) > 0 {
-		topicTypes := make(map[chat1.TopicType]bool)
-		for _, t := range arg.TopicTypes {
-			topicTypes[t] = true
-		}
-	}
 
 	var since time.Time
 	if len(arg.Since) > 0 {
@@ -208,87 +205,36 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg keybase
 			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Since, err)
 		}
 	}
-	since2 := time.Now().Add(-time.Since(since) * 2)
 
-	// TODO: move these criterian to server using queries
-	appendMaybe := func(conv chat1.Conversation) (shouldContinue bool, err error) {
+	var rpcArg keybase1.GetInboxLocalArg
+	if arg.Limit != 0 {
+		rpcArg.Pagination = &chat1.Pagination{Num: arg.Limit}
+	}
+	var query chat1.GetInboxQuery
+	if !since.IsZero() {
+		gsince := gregor1.ToTime(since)
+		query.Before = &gsince
+	}
+	if len(arg.TopicTypes) > 0 {
+		query.TopicType = &arg.TopicTypes[0]
+	}
+	rpcArg.Query = &query
+
+	iview, err := h.GetInboxLocal(ctx, rpcArg)
+	if err != nil {
+		return res, err
+	}
+	for _, conv := range iview.Conversations {
 		info, _, maxMessages, err := h.getConversationInfo(ctx, conv)
 		if err != nil {
-			return false, err
+			return res, err
 		}
 		c := keybase1.ConversationLocal{
 			Id:       info.Id,
 			Info:     &info,
 			Messages: maxMessages,
 		}
-
-		if topicTypes != nil && !topicTypes[info.TopicType] {
-			return true, nil
-		}
-
-		switch {
-		case !since.IsZero(): // since is present; limit is ignored
-			var newest time.Time
-			for _, m := range maxMessages {
-				t := gregor1.FromTime(m.ServerHeader.Ctime)
-				if t.After(newest) {
-					newest = t
-				}
-			}
-
-			if newest.Before(since2) { // too old; don't care anymore
-				return false, nil
-			} else if newest.Before(since) { // not in interesting range; but caller might be interested in this in the future, so put in res.More
-				res.More = append(res.More, c)
-				return true, nil
-			} else { // caller is interested in this conversation
-				res.Conversations = append(res.Conversations, c)
-				return true, nil
-			}
-		case arg.Limit > 0: // since is not present; try to use limit
-			if len(res.Conversations) < arg.Limit { // caller is interested in this conversation
-				res.Conversations = append(res.Conversations, c)
-				return true, nil
-			} else if len(res.More) < arg.Limit { // not in interesting range; but caller might be interested in this in the future, so put in res.More
-				res.More = append(res.More, c)
-				return true, nil
-			} else { // too much; don't care anymore
-				return false, nil
-			}
-		default: // not limiting number of items in result at all
-			res.Conversations = append(res.Conversations, c)
-			return true, nil
-		}
-
-	}
-
-	ipagination := &chat1.Pagination{Num: 20}
-	if arg.Limit != 0 {
-		ipagination.Num = arg.Limit * 2
-	}
-
-getinbox:
-	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
-		iview, err := h.GetInboxLocal(ctx, ipagination)
-		if err != nil {
-			return res, err
-		}
-		for _, conv := range iview.Conversations {
-			shouldContinue, err := appendMaybe(conv)
-			if err != nil {
-				return res, err
-			}
-
-			if !shouldContinue {
-				break getinbox
-			}
-		}
-
-		if iview.Pagination == nil || iview.Pagination.Last {
-			break getinbox
-		} else {
-			ipagination = iview.Pagination
-		}
+		res.Conversations = append(res.Conversations, c)
 	}
 
 	res.MoreTotal = 1000 // TODO: implement this on server
@@ -325,11 +271,18 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ke
 	if tlfIDb == nil {
 		return nil, errors.New("invalid TLF ID acquired")
 	}
-	conversationsRemote, err := h.remoteClient().GetInboxByTLFIDRemote(ctx, tlfIDb)
+
+	tlfID := chat1.TLFID(tlfIDb)
+	conversationsRemote, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query: &chat1.GetInboxQuery{
+			TlfID: &tlfID,
+		},
+		Pagination: nil,
+	})
 	if err != nil {
 		return nil, err
 	}
-	for _, cr := range conversationsRemote.Convs {
+	for _, cr := range conversationsRemote.Inbox.Conversations {
 		info, _, _, err := h.getConversationInfo(ctx, cr)
 		if err != nil {
 			return nil, err
@@ -347,11 +300,18 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ke
 }
 
 func (h *chatLocalHandler) getConversationInfoByID(ctx context.Context, id chat1.ConversationID) (conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple, maxMessages []keybase1.Message, err error) {
-	res, err := h.remoteClient().GetConversationMetadataRemote(ctx, id)
+	res, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query: &chat1.GetInboxQuery{
+			ConvID: &id,
+		},
+	})
 	if err != nil {
 		return conversationInfo, triple, maxMessages, err
 	}
-	return h.getConversationInfo(ctx, res.Conv)
+	if len(res.Inbox.Conversations) == 0 {
+		return conversationInfo, triple, maxMessages, fmt.Errorf("unknown conversation: %v", id)
+	}
+	return h.getConversationInfo(ctx, res.Inbox.Conversations[0])
 }
 
 // getConversationInfo locates the conversation by using id, and returns with
@@ -441,68 +401,44 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversa
 
 	var messages []keybase1.Message
 
-	tpagination := &chat1.Pagination{Num: 20}
-getthread:
-	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
-		tview, err := h.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
-			ConversationID: conversationRemote.Metadata.ConversationID,
-			MarkAsRead:     selector.MarkAsRead,
-			Pagination:     tpagination,
-		})
-		if err != nil {
-			return conv, err
+	query := chat1.GetThreadQuery{
+		MarkAsRead:   selector.MarkAsRead,
+		MessageTypes: selector.MessageTypes,
+	}
+	if !since.IsZero() {
+		gsince := gregor1.ToTime(since)
+		query.Before = &gsince
+	}
+	tview, err := h.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
+		ConversationID: conversationRemote.Metadata.ConversationID,
+		Query:          &query,
+	})
+	if err != nil {
+		return conv, err
+	}
+
+	for _, m := range tview.Messages {
+		if len(m.MessagePlaintext.MessageBodies) == 0 {
+			continue
 		}
 
-		for _, m := range tview.Messages {
-			if len(m.MessagePlaintext.MessageBodies) == 0 {
-				continue
-			}
-
-			typ, err := m.MessagePlaintext.MessageBodies[0].MessageType()
-
-			if err != nil {
-				h.G().Log.Debug("+ getConversationMessages(): failed on message type cast: %d",
-					m.ServerHeader.MessageID)
-				return conv, err
-			}
-
-			if messageTypes != nil && !messageTypes[typ] {
-				h.G().Log.Debug("+ getConversationMessages(): failed on message type check: %d",
-					m.ServerHeader.MessageID)
-				continue
-			}
-
-			if !since.IsZero() && gregor1.FromTime(m.ServerHeader.Ctime).Before(since) {
-				h.G().Log.Debug("+ getConversationMessages(): failed on time check: %d",
-					m.ServerHeader.MessageID)
-				// messages are sorted DESC by time, so at this point we can stop fetching
-				break getthread
-			}
-
-			isNew := false
-			if conversationRemote.ReaderInfo != nil && m.ServerHeader.MessageID > conversationRemote.ReaderInfo.ReadMsgid {
-				isNew = true
-			}
-
-			if selector.OnlyNew && !isNew {
-				// new messages are in front, so at this point we can stop fetching
-				break getthread
-			}
-
-			h.fillMessageInfoLocal(ctx, &m, isNew)
-
-			messages = append(messages, m)
-
-			selector.Limit--
-			if selector.Limit <= 0 {
-				break getthread
-			}
+		isNew := false
+		if conversationRemote.ReaderInfo != nil && m.ServerHeader.MessageID > conversationRemote.ReaderInfo.ReadMsgid {
+			isNew = true
 		}
 
-		if tview.Pagination == nil || tview.Pagination.Last {
-			break getthread
-		} else {
-			tpagination = tview.Pagination
+		if selector.OnlyNew && !isNew {
+			// new messages are in front, so at this point we can stop fetching
+			break
+		}
+
+		h.fillMessageInfoLocal(ctx, &m, isNew)
+
+		messages = append(messages, m)
+
+		selector.Limit--
+		if selector.Limit <= 0 {
+			break
 		}
 	}
 
@@ -532,11 +468,19 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.Me
 	}
 
 	for _, cid := range arg.Conversations {
-		res, err := h.remoteClient().GetConversationMetadataRemote(ctx, cid)
+		res, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+			Query: &chat1.GetInboxQuery{
+				ConvID: &cid,
+			},
+		})
 		if err != nil {
 			return nil, fmt.Errorf("getting conversation %v error: %v", cid, err)
 		}
-		conversationLocal, err := h.getConversationMessages(ctx, res.Conv, messageTypes, &arg)
+		if len(res.Inbox.Conversations) == 0 {
+			return nil, fmt.Errorf("unknown conversation: %v", cid)
+		}
+		conversationLocal, err := h.getConversationMessages(ctx, res.Inbox.Conversations[0],
+			messageTypes, &arg)
 		if err != nil {
 			return nil, fmt.Errorf("getting messages for conversation %v error: %v", cid, err)
 		}
