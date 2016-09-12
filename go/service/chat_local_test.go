@@ -6,6 +6,7 @@ package service
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -163,15 +164,19 @@ func TestGetInboxSummaryLocal(t *testing.T) {
 	withAlice := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
 	mustPostLocalForTest(t, ctc, withAlice, keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: "hello!"}))
 
+	time.Sleep(time.Millisecond)
+
 	withBob := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_bob")
 	mustPostLocalForTest(t, ctc, withBob, keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: "Dude I just said hello to Alice!"}))
+
+	time.Sleep(time.Millisecond)
 
 	withCharlie := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_charlie")
 	mustPostLocalForTest(t, ctc, withCharlie, keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: "O_O"}))
 
 	res, err := ctc.h.GetInboxSummaryLocal(context.Background(), keybase1.GetInboxSummaryLocalArg{
-		Since:      "1d",
-		TopicTypes: []chat1.TopicType{chat1.TopicType_CHAT},
+		After:     "1d",
+		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
 		t.Fatalf("GetThreadLocal error: %v", err)
@@ -187,8 +192,8 @@ func TestGetInboxSummaryLocal(t *testing.T) {
 	}
 
 	res, err = ctc.h.GetInboxSummaryLocal(context.Background(), keybase1.GetInboxSummaryLocalArg{
-		Limit:      2,
-		TopicTypes: []chat1.TopicType{chat1.TopicType_CHAT},
+		Limit:     2,
+		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
 		t.Fatalf("GetThreadLocal error: %v", err)

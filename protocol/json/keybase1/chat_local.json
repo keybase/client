@@ -402,14 +402,15 @@
     "getInboxSummaryLocal": {
       "request": [
         {
-          "name": "topicTypes",
-          "type": {
-            "type": "array",
-            "items": "chat1.TopicType"
-          }
+          "name": "topicType",
+          "type": "chat1.TopicType"
         },
         {
-          "name": "since",
+          "name": "after",
+          "type": "string"
+        },
+        {
+          "name": "before",
           "type": "string"
         },
         {

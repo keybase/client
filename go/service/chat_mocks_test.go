@@ -137,10 +137,34 @@ func newChatRemoteMock(world *chatMockWorld) (m *chatRemoteMock) {
 	return m
 }
 
-func (m *chatRemoteMock) GetInboxRemote(ctx context.Context, p *chat1.Pagination) (res chat1.GetInboxRemoteRes, err error) {
+func (m *chatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxRemoteArg) (res chat1.GetInboxRemoteRes, err error) {
 	// TODO: add pagination support
 	for _, conv := range m.conversations {
+		if arg.Query != nil {
+			if arg.Query.ConvID != nil && conv.Metadata.ConversationID != *arg.Query.ConvID {
+				continue
+			}
+			if arg.Query.TlfID != nil && conv.Metadata.IdTriple.Tlfid.Eq(*arg.Query.TlfID) {
+				continue
+			}
+			if arg.Query.TopicType != nil && conv.Metadata.IdTriple.TopicType != *arg.Query.TopicType {
+				continue
+			}
+			if arg.Query.UnreadOnly && conv.ReaderInfo.ReadMsgid != conv.ReaderInfo.MaxMsgid {
+				continue
+			}
+			// TODO: check arg.Query.TlfVisibility
+			if arg.Query.After != nil && conv.ReaderInfo.Mtime < *arg.Query.After {
+				continue
+			}
+			if arg.Query.Before != nil && conv.ReaderInfo.Mtime > *arg.Query.Before {
+				continue
+			}
+		}
 		res.Inbox.Conversations = append(res.Inbox.Conversations, *conv)
+		if arg.Pagination != nil && arg.Pagination.Num != 0 && arg.Pagination.Num == len(res.Inbox.Conversations) {
+			break
+		}
 	}
 	return res, nil
 }
@@ -156,12 +180,31 @@ func (m *chatRemoteMock) GetInboxByTLFIDRemote(ctx context.Context, tlfID chat1.
 }
 
 func (m *chatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThreadRemoteArg) (res chat1.GetThreadRemoteRes, err error) {
+	var mts map[chat1.MessageType]bool
+	if arg.Query != nil && len(arg.Query.MessageTypes) > 0 {
+		mts = make(map[chat1.MessageType]bool)
+		for _, mt := range arg.Query.MessageTypes {
+			mts[mt] = true
+		}
+	}
+
 	// TODO: add pagination support
 	msgs := m.msgs[arg.ConversationID]
 	for _, msg := range msgs {
+		if arg.Query != nil {
+			if arg.Query.After != nil && msg.ServerHeader.Ctime < *arg.Query.After {
+				continue
+			}
+			if arg.Query.Before != nil && msg.ServerHeader.Ctime > *arg.Query.Before {
+				continue
+			}
+			if mts != nil && !mts[msg.ServerHeader.MessageType] {
+				continue
+			}
+		}
 		res.Thread.Messages = append(res.Thread.Messages, *msg)
 	}
-	if arg.MarkAsRead {
+	if arg.Query != nil && arg.Query.MarkAsRead {
 		conv := m.getConversationByID(arg.ConversationID)
 		if conv == nil {
 			err = errors.New("conversation not found")

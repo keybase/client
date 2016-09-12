@@ -198,11 +198,18 @@ func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg key
 
 func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg keybase1.GetInboxSummaryLocalArg) (res keybase1.GetInboxSummaryLocalRes, err error) {
 
-	var since time.Time
-	if len(arg.Since) > 0 {
-		since, err = parseTimeFromRFC3339OrDurationFromPast(arg.Since)
+	var after time.Time
+	if len(arg.After) > 0 {
+		after, err = parseTimeFromRFC3339OrDurationFromPast(arg.After)
 		if err != nil {
-			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Since, err)
+			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
+		}
+	}
+	var before time.Time
+	if len(arg.Before) > 0 {
+		before, err = parseTimeFromRFC3339OrDurationFromPast(arg.Before)
+		if err != nil {
+			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
 		}
 	}
 
@@ -211,12 +218,16 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg keybase
 		rpcArg.Pagination = &chat1.Pagination{Num: arg.Limit}
 	}
 	var query chat1.GetInboxQuery
-	if !since.IsZero() {
-		gsince := gregor1.ToTime(since)
-		query.Before = &gsince
+	if !after.IsZero() {
+		gafter := gregor1.ToTime(after)
+		query.After = &gafter
 	}
-	if len(arg.TopicTypes) > 0 {
-		query.TopicType = &arg.TopicTypes[0]
+	if !before.IsZero() {
+		gbefore := gregor1.ToTime(before)
+		query.Before = &gbefore
+	}
+	if arg.TopicType != chat1.TopicType_NONE {
+		query.TopicType = &arg.TopicType
 	}
 	rpcArg.Query = &query
 
