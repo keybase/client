@@ -174,9 +174,9 @@ func (f inboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conver
 	}
 
 	res, err := chatClient.GetInboxSummaryLocal(ctx, keybase1.GetInboxSummaryLocalArg{
-		TopicTypes: []chat1.TopicType{f.topicType},
-		Since:      f.since,
-		Limit:      f.limit,
+		TopicType: f.topicType,
+		After:     f.since,
+		Limit:     f.limit,
 	})
 	if err != nil {
 		return nil, nil, moreTotal, err

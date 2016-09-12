@@ -240,9 +240,10 @@ type GetMessagesLocalArg struct {
 }
 
 type GetInboxSummaryLocalArg struct {
-	TopicTypes []chat1.TopicType `codec:"topicTypes" json:"topicTypes"`
-	Since      string            `codec:"since" json:"since"`
-	Limit      int               `codec:"limit" json:"limit"`
+	TopicType chat1.TopicType `codec:"topicType" json:"topicType"`
+	After     string          `codec:"after" json:"after"`
+	Before    string          `codec:"before" json:"before"`
+	Limit     int             `codec:"limit" json:"limit"`
 }
 
 type CompleteAndCanonicalizeTlfNameArg struct {

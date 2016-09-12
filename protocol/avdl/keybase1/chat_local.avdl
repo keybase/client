@@ -115,7 +115,7 @@ protocol chatLocal {
   }
 
   // if since is given, limit is ignored
-  GetInboxSummaryLocalRes getInboxSummaryLocal(array<chat1.TopicType> topicTypes, string since, int limit);
+  GetInboxSummaryLocalRes getInboxSummaryLocal(chat1.TopicType topicType, string after, string before, int limit);
 
   // The tlfName can be either complete or partial. If the user's username is
   // not present in tlfName, it gets appended automatically. The canonical TLF

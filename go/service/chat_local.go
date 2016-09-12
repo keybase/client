@@ -25,6 +25,9 @@ type chatLocalHandler struct {
 	gh             *gregorHandler
 	boxer          *chatBoxer
 	userInfoMapper userInfoMapper
+
+	// for test only
+	rc chat1.RemoteInterface
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
@@ -195,11 +198,18 @@ func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg key
 
 func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg keybase1.GetInboxSummaryLocalArg) (res keybase1.GetInboxSummaryLocalRes, err error) {
 
-	var since time.Time
-	if len(arg.Since) > 0 {
-		since, err := parseTimeFromRFC3339OrDurationFromPast(arg.Since)
+	var after time.Time
+	if len(arg.After) > 0 {
+		after, err = parseTimeFromRFC3339OrDurationFromPast(arg.After)
 		if err != nil {
-			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Since, since)
+			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
+		}
+	}
+	var before time.Time
+	if len(arg.Before) > 0 {
+		before, err = parseTimeFromRFC3339OrDurationFromPast(arg.Before)
+		if err != nil {
+			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
 		}
 	}
 
@@ -208,12 +218,16 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg keybase
 		rpcArg.Pagination = &chat1.Pagination{Num: arg.Limit}
 	}
 	var query chat1.GetInboxQuery
-	if !since.IsZero() {
-		gsince := gregor1.ToTime(since)
-		query.Before = &gsince
+	if !after.IsZero() {
+		gafter := gregor1.ToTime(after)
+		query.After = &gafter
 	}
-	if len(arg.TopicTypes) > 0 {
-		query.TopicType = &arg.TopicTypes[0]
+	if !before.IsZero() {
+		gbefore := gregor1.ToTime(before)
+		query.Before = &gbefore
+	}
+	if arg.TopicType != chat1.TopicType_NONE {
+		query.TopicType = &arg.TopicType
 	}
 	rpcArg.Query = &query
 
@@ -350,6 +364,8 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 	if len(conversationInfo.TlfName) == 0 {
 		return conversationInfo, triple, maxMessages, errors.New("unexpected response from server: global MaxMsgid is not present in MaxHeaders")
 	}
+
+	// TODO: verify Conv matches ConversationIDTriple in MessageClientHeader
 
 	return conversationInfo, triple, maxMessages, nil
 }
@@ -538,6 +554,8 @@ func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintex
 		return boxed, err
 	}
 
+	// TODO: populate plaintext.ClientHeader.Conv
+
 	return boxed, nil
 }
 
@@ -585,7 +603,10 @@ func (h *chatLocalHandler) getSecretUI() libkb.SecretUI {
 }
 
 // remoteClient returns a client connection to gregord.
-func (h *chatLocalHandler) remoteClient() *chat1.RemoteClient {
+func (h *chatLocalHandler) remoteClient() chat1.RemoteInterface {
+	if h.rc != nil {
+		return h.rc
+	}
 	return &chat1.RemoteClient{Cli: h.gh.cli}
 }
 
