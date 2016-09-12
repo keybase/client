@@ -117,7 +117,14 @@ for i in {1..2}; do
   save_dir="/tmp/build_desktop"
   rm -rf $save_dir
 
+  if [ "$i" = "1" ]; then
+    buildA = version
+  elif [ "$i" = "2" ]; then
+    buildB = version
+  fi
+
   if [ "$platform" = "darwin" ]; then
+
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" \
       UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" \
       "$dir/../desktop/package_darwin.sh"
@@ -129,18 +136,12 @@ for i in {1..2}; do
 
   BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
 
-  if [ "$i" = "1" ]; then
-    buildA = version
-  elif [ "$i" = "2" ]; then
-    buildB = version
-  fi
-
   "$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See $s3host";
 done
 
-echo "Made $buildA and $buildB."
-BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-new-build-to-server --buildA="$buildA" --buildB="$buildB"
-
 if [ "$istest" = "" ]; then
+  echo "Made $buildA and $buildB."
+  BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-new-build-to-server --build-a="$buildA" --build-b="$buildB" --platform="darwin"
+
   BUCKET_NAME="$bucket_name" "$dir/report.sh"
 fi
