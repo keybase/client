@@ -129,7 +129,7 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 		return c.errReply(err)
 	}
 
-	inbox, err := client.GetInboxLocal(ctx, nil)
+	inbox, err := client.GetInboxLocal(ctx, keybase1.GetInboxLocalArg{})
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -212,7 +212,9 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 
 	arg := keybase1.GetThreadLocalArg{
 		ConversationID: opts.ConversationID,
-		MarkAsRead:     true,
+		Query: &chat1.GetThreadQuery{
+			MarkAsRead: true,
+		},
 	}
 	threadView, err := client.GetThreadLocal(ctx, arg)
 	if err != nil {
