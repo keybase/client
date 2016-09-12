@@ -250,11 +250,17 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 		return c.errReply(err)
 	}
 
-	// XXX support conversation id
-	cinfo := keybase1.ConversationInfoLocal{
-		TlfName:   opts.Channel.Name,
-		TopicType: opts.Channel.TopicTypeEnum(),
-		TopicName: opts.Channel.TopicName,
+	var cinfo keybase1.ConversationInfoLocal
+	if opts.ConversationID > 0 {
+		cinfo = keybase1.ConversationInfoLocal{
+			Id: opts.ConversationID,
+		}
+	} else {
+		cinfo = keybase1.ConversationInfoLocal{
+			TlfName:   opts.Channel.Name,
+			TopicType: opts.Channel.TopicTypeEnum(),
+			TopicName: opts.Channel.TopicName,
+		}
 	}
 
 	// find the conversation

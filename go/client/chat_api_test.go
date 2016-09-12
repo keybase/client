@@ -35,10 +35,10 @@ func (h *handlerTracker) SendV1(context.Context, Call, io.Writer) error {
 }
 
 type echoResult struct {
-	Status APICallStatus `json:"status"`
+	Status string `json:"status"`
 }
 
-var echoOK = echoResult{Status: APICallStatus{Code: 200, Desc: "OK"}}
+var echoOK = echoResult{Status: "ok"}
 
 type chatEcho struct{}
 
@@ -191,35 +191,35 @@ type echoTest struct {
 var echoTests = []echoTest{
 	{
 		input:  `{"method": "list", "params":{"version": 1}}`,
-		output: `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
 		input:  `{"id": 1, "method": "list", "params":{"version": 1}}`,
-		output: `{"id":1,"result":{"status":{"code":200,"desc":"OK"}}}`,
+		output: `{"id":1,"result":{"status":"ok"}}`,
 	},
 	{
 		input:  `{"jsonrpc": "2.0", "id": 3, "method": "list", "params":{"version": 1}}`,
-		output: `{"jsonrpc":"2.0","id":3,"result":{"status":{"code":200,"desc":"OK"}}}`,
+		output: `{"jsonrpc":"2.0","id":3,"result":{"status":"ok"}}`,
 	},
 	{
 		input:  `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
-		output: `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
 		input:  `{"method": "read", "params":{"version": 1, "options": {"conversation_id": 123}}}`,
-		output: `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
 		input:  `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
-		output: `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 	{
 		input:  `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
-		output: `{"result":{"status":{"code":200,"desc":"OK"}}}` + "\n" + `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
 	{
 		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": 123}}}`,
-		output: `{"result":{"status":{"code":200,"desc":"OK"}}}` + "\n" + `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
 }
 

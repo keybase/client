@@ -14,6 +14,7 @@ import (
 	"golang.org/x/net/context"
 )
 
+// ErrInvalidOptions is returned when the options aren't valid.
 type ErrInvalidOptions struct {
 	method  string
 	version int
@@ -24,6 +25,7 @@ func (e ErrInvalidOptions) Error() string {
 	return fmt.Sprintf("invalid %s v%d options: %s", e.method, e.version, e.err)
 }
 
+// Call represents a JSON chat call.
 type Call struct {
 	Jsonrpc string
 	ID      int
@@ -31,16 +33,19 @@ type Call struct {
 	Params  Params
 }
 
+// Params represents the `params` portion of the JSON chat call.
 type Params struct {
 	Version int
 	Options json.RawMessage
 }
 
+// CallError is the result when there is an error.
 type CallError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
+// Reply is returned with the results of procressing a Call.
 type Reply struct {
 	Jsonrpc string      `json:"jsonrpc,omitempty"`
 	ID      int         `json:"id,omitempty"`
@@ -48,28 +53,28 @@ type Reply struct {
 	Result  interface{} `json:"result,omitempty"`
 }
 
-type APICallStatus struct {
-	Code int    `json:"code"`
-	Desc string `json:"desc,omitempty"`
-}
-
+// ChatAPIHandler can handle all of the chat json api methods.
 type ChatAPIHandler interface {
 	ListV1(context.Context, Call, io.Writer) error
 	ReadV1(context.Context, Call, io.Writer) error
 	SendV1(context.Context, Call, io.Writer) error
 }
 
+// ChatServiceHandler can call the service.
 type ChatServiceHandler interface {
 	ListV1(context.Context) Reply
 	ReadV1(context.Context, readOptionsV1) Reply
 	SendV1(context.Context, sendOptionsV1) Reply
 }
 
+// ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
+// to do all the work.
 type ChatAPI struct {
 	svcHandler ChatServiceHandler
 	indent     bool
 }
 
+// ChatChannel represents a channel through which chat happens.
 type ChatChannel struct {
 	Name      string `json:"name"`
 	Public    bool   `json:"public"`
@@ -77,10 +82,12 @@ type ChatChannel struct {
 	TopicName string `json:"topic_name,omitempty"`
 }
 
+// Valid returns true if the ChatChannel has at least a Name.
 func (c ChatChannel) Valid() bool {
 	return len(c.Name) > 0
 }
 
+// TopicTypeEnum returns the chat1.TopicType from the TopicType string field.
 func (c ChatChannel) TopicTypeEnum() chat1.TopicType {
 	if len(c.TopicType) == 0 {
 		return chat1.TopicType_CHAT
@@ -93,17 +100,20 @@ func (c ChatChannel) TopicTypeEnum() chat1.TopicType {
 	return chat1.TopicType_NONE
 }
 
+// ChatMessage represents a text message to be sent.
 type ChatMessage struct {
 	Body string
 }
 
+// Valid returns true if the message has a body.
 func (c ChatMessage) Valid() bool {
 	return len(c.Body) > 0
 }
 
 type sendOptionsV1 struct {
-	Channel ChatChannel
-	Message ChatMessage
+	Channel        ChatChannel
+	ConversationID chat1.ConversationID `json:"conversation_id"`
+	Message        ChatMessage
 }
 
 func (s sendOptionsV1) Check() error {
