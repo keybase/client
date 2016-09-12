@@ -349,6 +349,8 @@
 		006D68141C7D281400B1CA0B /* KBSharedFileList.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D68121C7D281400B1CA0B /* KBSharedFileList.m */; };
 		008949981BFBB60C00CB605A /* KBCustomEnvView.m in Sources */ = {isa = PBXBuildFile; fileRef = 008949961BFBB60C00CB605A /* KBCustomEnvView.m */; };
 		008949991BFBB60C00CB605A /* KBCustomEnvView.h in Headers */ = {isa = PBXBuildFile; fileRef = 008949971BFBB60C00CB605A /* KBCustomEnvView.h */; };
+		009ABE521D6E577A00C724B0 /* KBMountDir.h in Headers */ = {isa = PBXBuildFile; fileRef = 009ABE501D6E577A00C724B0 /* KBMountDir.h */; };
+		009ABE531D6E577A00C724B0 /* KBMountDir.m in Sources */ = {isa = PBXBuildFile; fileRef = 009ABE511D6E577A00C724B0 /* KBMountDir.m */; };
 		00B82BD21BE9424600C1FC72 /* KBTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 00B82BD01BE9424600C1FC72 /* KBTask.h */; };
 		00B82BD31BE9424600C1FC72 /* KBTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 00B82BD11BE9424600C1FC72 /* KBTask.m */; };
 		00E206681C4DBD170095FD56 /* KBCommandLine.h in Headers */ = {isa = PBXBuildFile; fileRef = 00E206661C4DBD170095FD56 /* KBCommandLine.h */; };
@@ -714,6 +716,8 @@
 		006D68121C7D281400B1CA0B /* KBSharedFileList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSharedFileList.m; sourceTree = "<group>"; };
 		008949961BFBB60C00CB605A /* KBCustomEnvView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCustomEnvView.m; sourceTree = "<group>"; };
 		008949971BFBB60C00CB605A /* KBCustomEnvView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCustomEnvView.h; sourceTree = "<group>"; };
+		009ABE501D6E577A00C724B0 /* KBMountDir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBMountDir.h; sourceTree = "<group>"; };
+		009ABE511D6E577A00C724B0 /* KBMountDir.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBMountDir.m; sourceTree = "<group>"; };
 		00B82BD01BE9424600C1FC72 /* KBTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTask.h; sourceTree = "<group>"; };
 		00B82BD11BE9424600C1FC72 /* KBTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBTask.m; sourceTree = "<group>"; };
 		00E206661C4DBD170095FD56 /* KBCommandLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCommandLine.h; sourceTree = "<group>"; };
@@ -832,6 +836,8 @@
 				00010B391BE19F8800A9C285 /* KBComponent.m */,
 				00010B3A1BE19F8800A9C285 /* KBComponentStatus.h */,
 				00010B3B1BE19F8800A9C285 /* KBComponentStatus.m */,
+				009ABE501D6E577A00C724B0 /* KBMountDir.h */,
+				009ABE511D6E577A00C724B0 /* KBMountDir.m */,
 				00010B3E1BE19F8800A9C285 /* KBFSService.h */,
 				00010B3F1BE19F8800A9C285 /* KBFSService.m */,
 				00010B401BE19F8800A9C285 /* KBFuseComponent.h */,
@@ -1470,6 +1476,7 @@
 				0033F4791C3F27D700317C79 /* KBLogFormatter.h in Headers */,
 				00010CFA1BE19F8900A9C285 /* KBEnvConfig.h in Headers */,
 				00010DA41BE19F8900A9C285 /* KBAlertView.h in Headers */,
+				009ABE521D6E577A00C724B0 /* KBMountDir.h in Headers */,
 				00010DC81BE19F8900A9C285 /* KBUserInfoLabels.h in Headers */,
 				00010D141BE19F8900A9C285 /* KBEnvSelectView.h in Headers */,
 				00010B101BE19F2100A9C285 /* KBKit.h in Headers */,
@@ -1783,6 +1790,7 @@
 				00010CA41BE19F8900A9C285 /* KBComponentStatus.m in Sources */,
 				00010D9B1BE19F8900A9C285 /* KBPGPVerifyAppView.m in Sources */,
 				00010D311BE19F8900A9C285 /* KBFilePreviewView.m in Sources */,
+				009ABE531D6E577A00C724B0 /* KBMountDir.m in Sources */,
 				00010CFD1BE19F8900A9C285 /* KBEnvironment.m in Sources */,
 				00010DD31BE19F8900A9C285 /* KBUsersAppView.m in Sources */,
 				00010D111BE19F8900A9C285 /* KBDebugPropertiesView.m in Sources */,

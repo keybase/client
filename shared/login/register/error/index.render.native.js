@@ -23,7 +23,7 @@ const styles = {
 }
 
 const renderError = error => {
-  return <Text type='Body'>Unknown error: {error.toString()}</Text>
+  return <Text type='Body'>Unknown error: {error.desc}</Text>
 }
 
 export default Render

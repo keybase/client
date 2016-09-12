@@ -198,6 +198,13 @@
     "getInboxRemote": {
       "request": [
         {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxQuery"
+          ]
+        },
+        {
           "name": "pagination",
           "type": [
             null,
@@ -207,15 +214,6 @@
       ],
       "response": "GetInboxRemoteRes"
     },
-    "getInboxByTLFIDRemote": {
-      "request": [
-        {
-          "name": "TLFID",
-          "type": "TLFID"
-        }
-      ],
-      "response": "GetInboxByTLFIDRemoteRes"
-    },
     "getThreadRemote": {
       "request": [
         {
@@ -223,8 +221,11 @@
           "type": "ConversationID"
         },
         {
-          "name": "markAsRead",
-          "type": "boolean"
+          "name": "query",
+          "type": [
+            null,
+            "GetThreadQuery"
+          ]
         },
         {
           "name": "pagination",
@@ -235,15 +236,6 @@
         }
       ],
       "response": "GetThreadRemoteRes"
-    },
-    "getConversationMetadataRemote": {
-      "request": [
-        {
-          "name": "conversationID",
-          "type": "ConversationID"
-        }
-      ],
-      "response": "GetConversationMetadataRemoteRes"
     },
     "postRemote": {
       "request": [

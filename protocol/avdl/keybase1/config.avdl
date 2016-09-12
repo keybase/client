@@ -32,6 +32,7 @@ protocol config {
 
   record PlatformInfo {
     string os;
+    string osVersion;
     string arch;
     string goVersion;
   }

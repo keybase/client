@@ -271,11 +271,42 @@
           "name": "messages"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxSummaryLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "more"
+        },
+        {
+          "type": "int",
+          "name": "moreTotal"
+        }
+      ]
     }
   ],
   "messages": {
     "getInboxLocal": {
       "request": [
+        {
+          "name": "query",
+          "type": [
+            null,
+            "chat1.GetInboxQuery"
+          ]
+        },
         {
           "name": "pagination",
           "type": [
@@ -293,8 +324,11 @@
           "type": "chat1.ConversationID"
         },
         {
-          "name": "markAsRead",
-          "type": "boolean"
+          "name": "query",
+          "type": [
+            null,
+            "chat1.GetThreadQuery"
+          ]
         },
         {
           "name": "pagination",
@@ -364,6 +398,27 @@
         "type": "array",
         "items": "ConversationLocal"
       }
+    },
+    "getInboxSummaryLocal": {
+      "request": [
+        {
+          "name": "topicType",
+          "type": "chat1.TopicType"
+        },
+        {
+          "name": "after",
+          "type": "string"
+        },
+        {
+          "name": "before",
+          "type": "string"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        }
+      ],
+      "response": "GetInboxSummaryLocalRes"
     },
     "completeAndCanonicalizeTlfName": {
       "request": [

@@ -43,7 +43,8 @@ func (rc *GithubChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libk
 
 func (rc *GithubChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_GITHUB, rc.proof, h)
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_GITHUB,
+			pvl.NewProofInfo(rc.proof, h))
 	}
 	return rc.CheckStatusOld(ctx, h)
 }

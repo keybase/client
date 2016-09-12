@@ -9,6 +9,7 @@ export type invokeType = (method: string, param: ?Object, cb: (err: any, data: a
 export type createClientType = {
   transport: {
     needsConnect: boolean,
+    reset: () => void,
   },
   invoke: invokeType,
 };

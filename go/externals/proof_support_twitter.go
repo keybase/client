@@ -87,7 +87,8 @@ func (rc *TwitterChecker) findSigInTweet(ctx libkb.ProofContext, h libkb.SigHint
 
 func (rc *TwitterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_TWITTER, rc.proof, h)
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_TWITTER,
+			pvl.NewProofInfo(rc.proof, h))
 	}
 	return rc.CheckStatusOld(ctx, h)
 }

@@ -20,7 +20,7 @@ const (
 type chatLocalMock struct {
 }
 
-func (c *chatLocalMock) GetInboxLocal(ctx context.Context, p *chat1.Pagination) (iview chat1.InboxView, err error) {
+func (c *chatLocalMock) GetInboxLocal(ctx context.Context, arg keybase1.GetInboxLocalArg) (iview chat1.InboxView, err error) {
 	iview.Conversations = append(iview.Conversations, chat1.Conversation{
 		Metadata: chat1.ConversationMetadata{
 			ConversationID: chatLocalMockConversationID,
@@ -99,6 +99,25 @@ func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg keybas
 		Id:        chatLocalMockConversationID,
 	})
 	return conversations, nil
+}
+
+func (c *chatLocalMock) GetInboxSummaryLocal(ctx context.Context, arg keybase1.GetInboxSummaryLocalArg) (res keybase1.GetInboxSummaryLocalRes, err error) {
+	res.Conversations, err = c.GetMessagesLocal(ctx, keybase1.MessageSelector{})
+	if err != nil {
+		return res, err
+	}
+
+	res.More, err = c.GetMessagesLocal(ctx, keybase1.MessageSelector{})
+	if err != nil {
+		return res, err
+	}
+	res.More[0].Info.TlfName = "morty,songgao"
+	res.More[0].Info.Id++
+	res.More[0].Messages[0].ServerHeader.Ctime -= 1000 * 3600 * 24 * 5
+
+	res.MoreTotal = 1000
+
+	return res, nil
 }
 
 func (c *chatLocalMock) UpdateTopicNameLocal(ctx context.Context, arg keybase1.UpdateTopicNameLocalArg) (err error) {

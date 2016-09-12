@@ -17,10 +17,9 @@
 #import "KBSemVersion.h"
 #import "KBFormatter.h"
 
-#define PLIST_DEST (@"/Library/LaunchDaemons/keybase.Helper.plist")
 #define HELPER_LOCATION (@"/Library/PrivilegedHelperTools/keybase.Helper")
 
-@interface KBHelperTool ()
+@interface KBHelperTool () <MPLog>
 @property KBDebugPropertiesView *infoView;
 @property (nonatomic) MPXPCClient *helper;
 @end
@@ -44,13 +43,18 @@
 }
 
 + (MPXPCClient *)helper {
-  return [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
+  MPXPCClient *client = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
+  client.retryMaxAttempts = 4;
+  client.retryDelay = 0.5;
+  client.timeout = 10.0;
+  return client;
 }
 
 - (MPXPCClient *)helper {
-  // Always use a new helper tool since it can be interrupted if stale or updated.
-  [_helper close];
-  _helper = [KBHelperTool helper];
+  if (!_helper) {
+    _helper = [KBHelperTool helper];
+    _helper.logDelegate = self;
+  }
   return _helper;
 }
 
@@ -59,10 +63,15 @@
   GHODictionary *statusInfo = [self.componentStatus statusInfo];
   if (statusInfo) [info addEntriesFromOrderedDictionary:statusInfo];
 
-  info[@"Plist"] = PLIST_DEST;
-
   if (!_infoView) _infoView = [[KBDebugPropertiesView alloc] init];
   [_infoView setProperties:info];
+}
+
+- (void)log:(MPLogLevel)level format:(NSString *)format, ... {
+  va_list args;
+  va_start(args, format);
+  DDLogInfo(@"%@", [[NSString alloc] initWithFormat:format arguments:args]);
+  va_end(args);
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
@@ -70,18 +79,18 @@
   KBSemVersion *bundleVersion = [self bundleVersion];
   info[@"Bundle Version"] = [bundleVersion description];
 
-  if (![NSFileManager.defaultManager fileExistsAtPath:PLIST_DEST isDirectory:nil] &&
-      ![NSFileManager.defaultManager fileExistsAtPath:HELPER_LOCATION isDirectory:nil]) {
+  if (![NSFileManager.defaultManager fileExistsAtPath:HELPER_LOCATION isDirectory:nil]) {
     self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:info error:nil];
     completion(self.componentStatus);
     return;
   }
 
-  [self.helper sendRequest:@"version" params:nil maxAttempts:4 completion:^(NSError *error, NSDictionary *versions) {
+  [self.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionReinstall info:info error:error];
       completion(self.componentStatus);
     } else {
+      DDLogDebug(@"Helper version: %@", versions);
       KBSemVersion *runningVersion = [KBSemVersion version:KBIfNull(versions[@"version"], @"") build:nil];
       if (runningVersion) info[@"Version"] = [runningVersion description];
       if ([bundleVersion isGreaterThan:runningVersion]) {
@@ -129,7 +138,9 @@
   AuthorizationFlags flags =	kAuthorizationFlagDefaults | kAuthorizationFlagInteractionAllowed	| kAuthorizationFlagPreAuthorize | kAuthorizationFlagExtendRights;
   OSStatus authResult = AuthorizationCopyRights(authRef, &authRights, kAuthorizationEmptyEnvironment, flags, NULL);
   if (authResult != errAuthorizationSuccess) {
-    if (error) *error = KBMakeError(authResult, @"Error copying rights: %@", @(authResult));
+    if (error) {
+      *error = [NSError errorWithDomain:@"keybase.Helper" code:authResult userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:@"Error copying rights: %@", @(authResult)], NSLocalizedRecoveryOptionsErrorKey: @[@"Quit"]}];
+    }
     return nil;
   }
 
@@ -142,7 +153,7 @@
     return NO;
   }
 
-  NSString *helperPath = @"/Library/PrivilegedHelperTools/keybase.Helper";
+  NSString *helperPath = HELPER_LOCATION;
   // It's unsafe to update privileged helper tools.
   // https://openradar.appspot.com/20446733
   DDLogDebug(@"Removing %@", helperPath);
@@ -171,6 +182,24 @@
   } else {
     DDLogDebug(@"Helper tool installed");
     return YES;
+  }
+}
+
+- (void)uninstall:(KBCompletion)completion {
+  [self removeIfExists:HELPER_LOCATION completion:completion];
+  // TODO: Maybe, we should also kill the running helper process, but that requires more privilege, and
+  // isn't a big deal that we don't kill it on uninstall. The plist should be left untouched because if
+  // removed seems to cause problems if the helper tool needs to be re-installed.
+}
+
+- (void)removeIfExists:(NSString *)path completion:(KBCompletion)completion {
+  if ([NSFileManager.defaultManager fileExistsAtPath:path]) {
+    DDLogDebug(@"Removing %@", path);
+    [self.helper sendRequest:@"remove" params:@[@{@"path": path}] completion:^(NSError *err, id value) {
+      completion(err);
+    }];
+  } else {
+    completion(nil);
   }
 }
 

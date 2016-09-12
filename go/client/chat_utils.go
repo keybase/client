@@ -15,10 +15,6 @@ import (
 func makeChatFlags(extras []cli.Flag) []cli.Flag {
 	return append(extras, []cli.Flag{
 		cli.StringFlag{
-			Name:  "topic-name",
-			Usage: `Specify topic name of the conversation.`,
-		},
-		cli.StringFlag{
 			Name:  "topic-type",
 			Value: "chat",
 			Usage: `Specify topic name of the conversation. Has to be chat or dev`,
@@ -73,20 +69,25 @@ type messageFetcher struct {
 	chatClient keybase1.ChatLocalInterface // for testing only
 }
 
-func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conversationResolver, err error) {
-	resolver.TopicName = ctx.String("topic-name")
+func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, err error) {
 	switch t := strings.ToLower(ctx.String("topic-type")); t {
 	case "chat":
-		resolver.TopicType = chat1.TopicType_CHAT
+		topicType = chat1.TopicType_CHAT
 	case "dev":
-		resolver.TopicType = chat1.TopicType_DEV
+		topicType = chat1.TopicType_DEV
 	default:
 		err = fmt.Errorf("invalid topic-type %s. Has to be one of %v", t, []string{"chat", "dev"})
+	}
+	return topicType, err
+}
+
+func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conversationResolver, err error) {
+	resolver.TopicName = ctx.String("topic-name")
+	resolver.TlfName = tlfName
+	if resolver.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return resolver, err
 	}
-	resolver.TlfName = tlfName
-
-	return resolver, err
+	return resolver, nil
 }
 
 func makeMessageFetcherFromCliCtx(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher messageFetcher, err error) {
@@ -128,6 +129,7 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 	}
 
 	if len(f.selector.Conversations) == 0 {
+		g.Log.Debug("no conversatins in fetch?")
 		return conversations, nil
 	}
 
@@ -137,4 +139,48 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 	}
 
 	return conversations, nil
+}
+
+type inboxFetcher struct {
+	topicType chat1.TopicType
+	limit     int
+	since     string
+
+	chatClient keybase1.ChatLocalInterface // for testing only
+}
+
+func makeInboxFetcherFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error) {
+	if fetcher.topicType, err = parseConversationTopicType(ctx); err != nil {
+		return fetcher, err
+	}
+
+	fetcher.limit = ctx.Int("number")
+	fetcher.since = ctx.String("time")
+
+	if ctx.Bool("all") {
+		fetcher.limit = 0
+	}
+
+	return fetcher, err
+}
+
+func (f inboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []keybase1.ConversationLocal, more []keybase1.ConversationLocal, moreTotal int, err error) {
+	chatClient := f.chatClient // should be nil unless in test
+	if chatClient == nil {
+		chatClient, err = GetChatLocalClient(g)
+		if err != nil {
+			return nil, nil, moreTotal, fmt.Errorf("Getting chat service client error: %s", err)
+		}
+	}
+
+	res, err := chatClient.GetInboxSummaryLocal(ctx, keybase1.GetInboxSummaryLocalArg{
+		TopicType: f.topicType,
+		After:     f.since,
+		Limit:     f.limit,
+	})
+	if err != nil {
+		return nil, nil, moreTotal, err
+	}
+
+	return res.Conversations, res.More, res.MoreTotal, nil
 }

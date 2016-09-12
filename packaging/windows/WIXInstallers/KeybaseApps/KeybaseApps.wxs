@@ -25,7 +25,6 @@
       <Custom Action="StopUpdater" Before="InstallValidate"/>
       <Custom Action="StopGUI" Before="InstallValidate"/>
       <Custom Action="StopMainApp" Before="InstallValidate"/>
-      <Custom Action="StopKBFS" Before="InstallValidate"/>
       <Custom Action="RunMainApp" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
       <Custom Action="RunGUI" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
     </InstallExecuteSequence>
@@ -98,7 +97,16 @@
         </RegistryKey>
         <File Id="upd.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\service\upd.exe" Checksum="yes"/>
       </Component>
-
+      <!-- The cleaner will look at these to make sure it only scrubs the driver we installed -->
+      <Component Id="RegistryEntries" Guid="{753F8CE7-57CF-4824-865F-55B1FA520C48}">
+        <RegistryKey Root="HKCU"
+                     Key="Software\Keybase\Keybase"
+              Action="createAndRemoveOnUninstall">
+          <RegistryValue Type="string" Name="DOKANPRODUCT86" Value="[DOKANPRODUCT86]"/>
+          <RegistryValue Type="string" Name="DOKANPRODUCT64" Value="[DOKANPRODUCT64]"/>
+        </RegistryKey>
+      </Component>
+      
     </ComponentGroup>
   </Fragment>
   <Fragment>
@@ -192,14 +200,6 @@
     <CustomAction Id="StopMainApp"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe -wait &quot;[INSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
-              Execute="immediate"
-              Return="ignore"/>
-  </Fragment>
-  <Fragment>
-    <!-- This is just in case kill-kbfs doesn't work -->
-    <CustomAction Id="StopKBFS"
-              Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM kbfsdokan.exe"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>

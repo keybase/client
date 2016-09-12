@@ -14,6 +14,7 @@
 #import "KBDefines.h"
 #import "KBCommandLine.h"
 #import "KBUpdaterService.h"
+#import "KBMountDir.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
@@ -37,9 +38,9 @@
 
     _installables = [NSMutableArray array];
 
-    KBHelperTool *helperTool = [[KBHelperTool alloc] initWithConfig:config];
+    _helperTool = [[KBHelperTool alloc] initWithConfig:config];
     if (options&KBInstallOptionHelper) {
-      [_installables addObject:helperTool];
+      [_installables addObject:_helperTool];
     }
 
     _updater = [[KBUpdaterService alloc] initWithConfig:config label:[config launchdUpdaterLabel] servicePath:servicePath];
@@ -52,23 +53,28 @@
       [_installables addObject:_service];
     }
 
-    _fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:helperTool servicePath:servicePath];
+    _fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
     if (options&KBInstallOptionFuse) {
       [_installables addObject:_fuse];
     }
 
-    _kbfs = [[KBFSService alloc] initWithConfig:config helperTool:helperTool label:[config launchdKBFSLabel] servicePath:servicePath];
+    if (options&KBInstallOptionMountDir) {
+      KBMountDir *mountDir = [[KBMountDir alloc] initWithConfig:config helperTool:_helperTool];
+      [_installables addObject:mountDir];
+    }
+
+    _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel] servicePath:servicePath];
     if (options&KBInstallOptionKBFS) {
       [_installables addObject:_kbfs];
     }
 
     if (options&KBInstallOptionCLI) {
-      KBCommandLine *cli = [[KBCommandLine alloc] initWithConfig:config helperTool:helperTool servicePath:servicePath];
+      KBCommandLine *cli = [[KBCommandLine alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
       [_installables addObject:cli];
     }
 
     _services = [NSArray arrayWithObjects:_service, _kbfs, _updater, nil];
-    _components = [NSMutableArray arrayWithObjects:_service, _kbfs, helperTool, _fuse, _updater, nil];
+    _components = [NSMutableArray arrayWithObjects:_service, _kbfs, _helperTool, _fuse, _updater, nil];
   }
   return self;
 }
