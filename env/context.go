@@ -37,6 +37,11 @@ func (c Context) GetLogDir() string {
 	return c.g.Env.GetLogDir()
 }
 
+// GetDataDir returns log dir
+func (c Context) GetDataDir() string {
+	return c.g.Env.GetDataDir()
+}
+
 // GetRunMode returns run mode
 func (c Context) GetRunMode() libkb.RunMode {
 	return c.g.GetRunMode()

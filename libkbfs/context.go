@@ -15,6 +15,7 @@ import (
 type Context interface {
 	GetRunMode() libkb.RunMode
 	GetLogDir() string
+	GetDataDir() string
 	ConfigureSocketInfo() (err error)
 	GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	NewRPCLogFactory() *libkb.RPCLogFactory
