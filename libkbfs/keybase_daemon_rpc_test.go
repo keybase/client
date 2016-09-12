@@ -356,6 +356,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	clock, now := newTestClockAndTimeNow()

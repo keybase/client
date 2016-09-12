@@ -170,6 +170,7 @@ func checkBlockCache(t *testing.T, config *ConfigMock,
 
 func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	config, _, ctx := kbfsOpsInitNoMocks(t, "alice", "bob")
+	defer CleanupCancellationDelayer(ctx)
 	defer config.Shutdown()
 
 	handle1 := parseTlfHandleOrBust(t, config, "alice", false)
@@ -5168,6 +5169,7 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 
 func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	config, _, ctx := kbfsOpsInitNoMocks(t, "test_user")
+	defer CleanupCancellationDelayer(ctx)
 	defer config.Shutdown()
 
 	// create a file.
@@ -5213,6 +5215,7 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 
 func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	config, _, ctx := kbfsOpsInitNoMocks(t, "test_user")
+	defer CleanupCancellationDelayer(ctx)
 	defer config.Shutdown()
 
 	// create a file.
@@ -5259,6 +5262,7 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 
 func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 	config, _, ctx := kbfsOpsInitNoMocks(t, "test_user")
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config)
 
 	// create a file.
@@ -5293,6 +5297,7 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 
 func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	config, _, ctx := kbfsOpsInitNoMocks(t, "test_user")
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config)
 
 	// make blocks small
@@ -5366,6 +5371,7 @@ func (cbs corruptBlockServer) Get(ctx context.Context, tlfID TlfID, id BlockID,
 
 func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	config, _, ctx := kbfsOpsInitNoMocks(t, "test_user")
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config)
 	config.SetBlockServer(&corruptBlockServer{
 		BlockServer: config.BlockServer(),
@@ -5399,6 +5405,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 // test ever fails, consult max or strib before merging.
 func TestKBFSOpsEmptyTlfSize(t *testing.T) {
 	config, _, ctx := kbfsOpsInitNoMocks(t, "test_user")
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config)
 
 	// Create a TLF.
@@ -5427,6 +5434,7 @@ func (c cryptoFixedTlf) MakeRandomTlfID(isPublic bool) (TlfID, error) {
 // accepting bad MDs.
 func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	config1, _, ctx := kbfsOpsInitNoMocks(t, "alice", "mallory")
+	defer CleanupCancellationDelayer(ctx)
 	defer config1.Shutdown()
 
 	// Create alice's TLF.

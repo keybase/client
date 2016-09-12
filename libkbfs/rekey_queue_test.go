@@ -15,6 +15,7 @@ import (
 func TestRekeyQueueBasic(t *testing.T) {
 	var u1, u2, u3, u4 libkb.NormalizedUsername = "u1", "u2", "u3", "u4"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2, u3, u4)
+	defer CleanupCancellationDelayer(ctx)
 	defer config1.Shutdown()
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)

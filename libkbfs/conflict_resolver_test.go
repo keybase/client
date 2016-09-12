@@ -45,6 +45,7 @@ func TestCRInput(t *testing.T) {
 	mockCtrl, config, cr := crTestInit(t)
 	defer crTestShutdown(mockCtrl, config, cr)
 	ctx := BackgroundContextWithCancellationDelayer()
+	defer CleanupCancellationDelayer(ctx)
 
 	// First try a completely unknown revision
 	cr.Resolve(MetadataRevisionUninitialized, MetadataRevisionUninitialized)
@@ -135,6 +136,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 	mockCtrl, config, cr := crTestInit(t)
 	defer crTestShutdown(mockCtrl, config, cr)
 	ctx := BackgroundContextWithCancellationDelayer()
+	defer CleanupCancellationDelayer(ctx)
 
 	// Next, try resolving a few items
 	branchPoint := MetadataRevision(2)
@@ -238,6 +240,7 @@ func testCRSharedFolderForUsers(t *testing.T, name string, createAs keybase1.UID
 	kbfsOps := configs[createAs].KBFSOps()
 	rootNode := GetRootNodeOrBust(t, configs[createAs], name, false)
 	ctx := BackgroundContextWithCancellationDelayer()
+	defer CleanupCancellationDelayer(ctx)
 	dir := rootNode
 	for _, d := range dirs {
 		dirNext, _, err := kbfsOps.CreateDir(ctx, dir, d)
@@ -279,6 +282,7 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 	expectedRecreateOps []*createOp,
 	expectedActions map[BlockPointer]crActionList) {
 	ctx := BackgroundContextWithCancellationDelayer()
+	defer CleanupCancellationDelayer(ctx)
 	lState := makeFBOLockState()
 
 	// Step 1 -- check the chains and paths
@@ -381,6 +385,7 @@ func testCRGetCROrBust(t *testing.T, config Config,
 func TestCRMergedChainsSimple(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
@@ -441,6 +446,7 @@ func TestCRMergedChainsSimple(t *testing.T) {
 func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
@@ -503,6 +509,7 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
@@ -600,6 +607,7 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
@@ -680,6 +688,7 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 func TestCRMergedChainsComplex(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
@@ -862,6 +871,7 @@ func TestCRMergedChainsComplex(t *testing.T) {
 func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	clock, now := newTestClockAndTimeNow()
@@ -951,6 +961,7 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 func TestCRMergedChainsConflictSimple(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
@@ -1019,6 +1030,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
@@ -1128,6 +1140,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 func TestCRDoActionsSimple(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
@@ -1216,6 +1229,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 func TestCRDoActionsWriteConflict(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)

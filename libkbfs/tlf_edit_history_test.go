@@ -19,6 +19,7 @@ import (
 func TestBasicTlfEditHistory(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	clock, now := newTestClockAndTimeNow()
@@ -122,6 +123,7 @@ func testDoTlfEdit(t *testing.T, ctx context.Context, tlfName string,
 func TestLongTlfEditHistory(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	clock, now := newTestClockAndTimeNow()

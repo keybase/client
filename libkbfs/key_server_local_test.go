@@ -17,6 +17,7 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)

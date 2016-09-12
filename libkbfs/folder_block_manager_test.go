@@ -112,6 +112,7 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 func TestQuotaReclamationSimple(t *testing.T) {
 	var userName libkb.NormalizedUsername = "test_user"
 	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config)
 
 	testQuotaReclamation(t, ctx, config, userName)
@@ -122,6 +123,7 @@ func TestQuotaReclamationSimple(t *testing.T) {
 func TestQuotaReclamationUnembedded(t *testing.T) {
 	var userName libkb.NormalizedUsername = "test_user"
 	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config)
 
 	config.bsplit.(*BlockSplitterSimple).blockChangeEmbedMaxSize = 32
@@ -144,6 +146,7 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	var userName libkb.NormalizedUsername = "test_user"
 	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config)
 
 	now := time.Now()
@@ -221,6 +224,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsInitNoMocks(t, u1, u2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	clock, now := newTestClockAndTimeNow()
@@ -454,6 +458,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 	clock := newTestClockNow()
 	config1.SetClock(clock)

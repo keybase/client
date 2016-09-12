@@ -605,6 +605,7 @@ func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
 func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 	clock := newTestClockNow()
 	config1.SetClock(clock)
@@ -819,6 +820,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	var u1, u2, u3 libkb.NormalizedUsername = "u1", "u2", "u3"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2, u3)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	// Revoke user 3's device for now, to test the "other" rekey error.
@@ -911,6 +913,7 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
@@ -992,6 +995,7 @@ func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 func TestKeyManagerReaderRekey(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 	_, uid1, err := config1.KBPKI().GetCurrentUserInfo(context.Background())
 
@@ -1073,6 +1077,7 @@ func TestKeyManagerReaderRekey(t *testing.T) {
 func TestKeyManagerReaderRekeyAndRevoke(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 	clock := newTestClockNow()
 	config1.SetClock(clock)
@@ -1167,6 +1172,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 		if doShutdown1 {
 			CheckConfigAndShutdown(t, config1)
 		}
+		CleanupCancellationDelayer(ctx)
 	}()
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
@@ -1332,6 +1338,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 	clock := newTestClockNow()
 	config1.SetClock(clock)
@@ -1458,6 +1465,7 @@ func (clta *cryptoLocalTrapAny) DecryptTLFCryptKeyClientHalfAny(
 func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
@@ -1564,6 +1572,7 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 	clock := newTestClockNow()
 	config1.SetClock(clock)
@@ -1676,6 +1685,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 func TestKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CleanupCancellationDelayer(ctx)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
