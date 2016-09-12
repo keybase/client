@@ -112,6 +112,7 @@ type DirtyBlockCacheStandard struct {
 	makeLog func(string) logger.Logger
 	log     logger.Logger
 	reqWg   sync.WaitGroup
+	name    string
 
 	// requestsChan is a queue for channels that should be closed when
 	// permission is granted to dirty new data.
@@ -294,7 +295,7 @@ func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
 
 func (d *DirtyBlockCacheStandard) logLocked(fmt string, arg ...interface{}) {
 	if d.log == nil {
-		log := d.makeLog("")
+		log := d.makeLog(d.name)
 		if log != nil {
 			d.log = log.CloneWithAddedDepth(1)
 		}
