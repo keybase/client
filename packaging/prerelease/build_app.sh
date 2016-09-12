@@ -117,8 +117,11 @@ for i in {1..2}; do
   save_dir="/tmp/build_desktop"
   rm -rf $save_dir
 
+  skip_update_json=""
+  if [ "$i" = "2" ]; then
+    skip_update_json = "true"
+  fi
 
-  skip_update_json = [ "$i == "]
   if [ "$platform" = "darwin" ]; then
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" \
       UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" \
