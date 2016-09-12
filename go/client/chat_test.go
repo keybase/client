@@ -20,7 +20,7 @@ const (
 type chatLocalMock struct {
 }
 
-func (c *chatLocalMock) GetInboxLocal(ctx context.Context, p *chat1.Pagination) (iview chat1.InboxView, err error) {
+func (c *chatLocalMock) GetInboxLocal(ctx context.Context, arg keybase1.GetInboxLocalArg) (iview chat1.InboxView, err error) {
 	iview.Conversations = append(iview.Conversations, chat1.Conversation{
 		Metadata: chat1.ConversationMetadata{
 			ConversationID: chatLocalMockConversationID,
