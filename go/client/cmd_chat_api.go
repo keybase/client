@@ -6,6 +6,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -19,7 +20,10 @@ import (
 
 type CmdChatAPI struct {
 	libkb.Contextified
-	indent bool
+	indent     bool
+	inputFile  string
+	outputFile string
+	message    string
 }
 
 func newCmdChatAPI(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -35,6 +39,18 @@ func newCmdChatAPI(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "p, pretty",
 				Usage: "Output pretty (indented) JSON.",
 			},
+			cli.StringFlag{
+				Name:  "m",
+				Usage: "Specify JSON as string instead of stdin",
+			},
+			cli.StringFlag{
+				Name:  "i, infile",
+				Usage: "Specify JSON input file (stdin default)",
+			},
+			cli.StringFlag{
+				Name:  "o, outfile",
+				Usage: "Specify output file (stdout default)",
+			},
 		},
 	}
 }
@@ -44,15 +60,45 @@ func (c *CmdChatAPI) ParseArgv(ctx *cli.Context) error {
 		return errors.New("api takes no arguments")
 	}
 	c.indent = ctx.Bool("pretty")
+	c.inputFile = ctx.String("infile")
+	c.outputFile = ctx.String("outfile")
+	c.message = ctx.String("message")
+
+	if len(c.message) > 0 && len(c.inputFile) > 0 {
+		return errors.New("specify -m or -i, but not both")
+	}
+
 	return nil
 }
 
 func (c *CmdChatAPI) Run() error {
 	d := NewChatAPIDecoder(&ChatAPI{svcHandler: c, indent: c.indent})
 
-	// TODO: flags for not using stdin, stdout
+	var r io.Reader
+	r = os.Stdin
+	if len(c.message) > 0 {
+		r = strings.NewReader(c.message)
+	} else if len(c.inputFile) > 0 {
+		f, err := os.Open(c.inputFile)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		r = f
+	}
 
-	if err := d.Decode(context.Background(), os.Stdin, os.Stdout); err != nil {
+	var w io.Writer
+	w = os.Stdout
+	if len(c.outputFile) > 0 {
+		f, err := os.Create(c.outputFile)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		w = f
+	}
+
+	if err := d.Decode(context.Background(), r, w); err != nil {
 		return err
 	}
 
@@ -232,6 +278,7 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 	// XXX ResolveConversationLocal, NewConversationLocal need to return
 	// topic id and tlf id.  In order to fill in conversation id triple
 	// below.
+	// ticket CORE-3746
 
 	postArg := keybase1.PostLocalArg{
 		ConversationID: conversation.Id,
