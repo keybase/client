@@ -798,6 +798,11 @@ func (c *ConfigLocal) EnableJournaling(journalRoot string) {
 		if ok {
 			syncCache.name = "sync"
 		}
+
+		// Make a dirty block cache specifically for the journal
+		// server.  Since this doesn't rely directly on the network,
+		// there's no need for an adaptive sync buffer size, so we
+		// always set the min and max to the same thing.
 		maxSyncBufferSize :=
 			int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
 		journalCache := NewDirtyBlockCacheStandard(c.clock, c.MakeLogger,

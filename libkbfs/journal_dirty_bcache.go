@@ -20,7 +20,7 @@ var _ DirtyBlockCache = journalDirtyBlockCache{}
 
 func (j journalDirtyBlockCache) Get(tlfID TlfID, ptr BlockPointer,
 	branch BranchName) (Block, error) {
-	if _, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if j.jServer.hasTLFJournal(tlfID) {
 		return j.journalCache.Get(tlfID, ptr, branch)
 	}
 
@@ -29,7 +29,7 @@ func (j journalDirtyBlockCache) Get(tlfID TlfID, ptr BlockPointer,
 
 func (j journalDirtyBlockCache) Put(tlfID TlfID, ptr BlockPointer,
 	branch BranchName, block Block) error {
-	if _, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if j.jServer.hasTLFJournal(tlfID) {
 		return j.journalCache.Put(tlfID, ptr, branch, block)
 	}
 
@@ -38,7 +38,7 @@ func (j journalDirtyBlockCache) Put(tlfID TlfID, ptr BlockPointer,
 
 func (j journalDirtyBlockCache) Delete(tlfID TlfID, ptr BlockPointer,
 	branch BranchName) error {
-	if _, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if j.jServer.hasTLFJournal(tlfID) {
 		return j.journalCache.Delete(tlfID, ptr, branch)
 	}
 
@@ -47,7 +47,7 @@ func (j journalDirtyBlockCache) Delete(tlfID TlfID, ptr BlockPointer,
 
 func (j journalDirtyBlockCache) IsDirty(tlfID TlfID, ptr BlockPointer,
 	branch BranchName) bool {
-	if _, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if j.jServer.hasTLFJournal(tlfID) {
 		return j.journalCache.IsDirty(tlfID, ptr, branch)
 	}
 
@@ -60,7 +60,7 @@ func (j journalDirtyBlockCache) IsAnyDirty(tlfID TlfID) bool {
 
 func (j journalDirtyBlockCache) RequestPermissionToDirty(ctx context.Context,
 	tlfID TlfID, estimatedDirtyBytes int64) (DirtyPermChan, error) {
-	if _, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if j.jServer.hasTLFJournal(tlfID) {
 		return j.journalCache.RequestPermissionToDirty(ctx, tlfID,
 			estimatedDirtyBytes)
 	}
@@ -70,7 +70,7 @@ func (j journalDirtyBlockCache) RequestPermissionToDirty(ctx context.Context,
 
 func (j journalDirtyBlockCache) UpdateUnsyncedBytes(tlfID TlfID,
 	newUnsyncedBytes int64, wasSyncing bool) {
-	if _, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if j.jServer.hasTLFJournal(tlfID) {
 		j.journalCache.UpdateUnsyncedBytes(tlfID, newUnsyncedBytes, wasSyncing)
 	} else {
 		j.syncCache.UpdateUnsyncedBytes(tlfID, newUnsyncedBytes, wasSyncing)
@@ -78,7 +78,7 @@ func (j journalDirtyBlockCache) UpdateUnsyncedBytes(tlfID TlfID,
 }
 
 func (j journalDirtyBlockCache) UpdateSyncingBytes(tlfID TlfID, size int64) {
-	if _, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if j.jServer.hasTLFJournal(tlfID) {
 		j.journalCache.UpdateSyncingBytes(tlfID, size)
 	} else {
 		j.syncCache.UpdateSyncingBytes(tlfID, size)
@@ -86,7 +86,7 @@ func (j journalDirtyBlockCache) UpdateSyncingBytes(tlfID TlfID, size int64) {
 }
 
 func (j journalDirtyBlockCache) BlockSyncFinished(tlfID TlfID, size int64) {
-	if _, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if j.jServer.hasTLFJournal(tlfID) {
 		j.journalCache.BlockSyncFinished(tlfID, size)
 	} else {
 		j.syncCache.BlockSyncFinished(tlfID, size)
@@ -94,7 +94,7 @@ func (j journalDirtyBlockCache) BlockSyncFinished(tlfID TlfID, size int64) {
 }
 
 func (j journalDirtyBlockCache) SyncFinished(tlfID TlfID, size int64) {
-	if _, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if j.jServer.hasTLFJournal(tlfID) {
 		j.journalCache.SyncFinished(tlfID, size)
 	} else {
 		j.syncCache.SyncFinished(tlfID, size)
@@ -102,7 +102,7 @@ func (j journalDirtyBlockCache) SyncFinished(tlfID TlfID, size int64) {
 }
 
 func (j journalDirtyBlockCache) ShouldForceSync(tlfID TlfID) bool {
-	if _, ok := j.jServer.getTLFJournal(tlfID); ok {
+	if j.jServer.hasTLFJournal(tlfID) {
 		return j.journalCache.ShouldForceSync(tlfID)
 	}
 

@@ -100,6 +100,13 @@ func (j *JournalServer) getTLFJournal(tlfID TlfID) (*tlfJournal, bool) {
 	return tlfJournal, ok
 }
 
+func (j *JournalServer) hasTLFJournal(tlfID TlfID) bool {
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+	_, ok := j.tlfJournals[tlfID]
+	return ok
+}
+
 // EnableExistingJournals turns on the write journal for all TLFs with
 // an existing journal. This must be the first thing done to a
 // JournalServer. Any returned error is fatal, and means that the
@@ -288,11 +295,11 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (
 	}
 
 	if j.dirtyOps > 0 {
-		return false, fmt.Errorf("Can't enable journal for %s while there "+
+		return false, fmt.Errorf("Can't disable journal for %s while there "+
 			"are outstanding dirty ops", tlfID)
 	}
 	if j.delegateDirtyBlockCache.IsAnyDirty(tlfID) {
-		return false, fmt.Errorf("Can't enable journal for %s while there "+
+		return false, fmt.Errorf("Can't disable journal for %s while there "+
 			"are any dirty blocks outstanding", tlfID)
 	}
 
