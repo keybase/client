@@ -32,7 +32,7 @@ export default class PaperKeyInput extends Component<void, Props, State> {
         <BackButton onClick={this.props.onBack} style={backStyle} />
         <Text style={headerTextStyle} type='Body'>Type in your paper key:</Text>
         <Icon style={paperKeyIconStyle} type='icon-paper-key-48' />
-        <Input multiline={true} style={paperKeyInputStyle}
+        <Input multiline={true} rowsMax={3} style={paperKeyInputStyle}
           onChange={e => this.setState({paperkey: e.target.textContent})}
           errorText={errorText}
           hintText='elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose' />
@@ -55,6 +55,7 @@ const paperKeyIconStyle = {
 const paperKeyInputStyle = {
   marginTop: 4,
   width: 440,
+  height: '4em',
 }
 
 const backStyle = {

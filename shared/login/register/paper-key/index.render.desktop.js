@@ -14,6 +14,7 @@ const Render = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingFor
       <Input
         autoFocus={true}
         multiline={true}
+        rowsMax={3}
         style={styles.input}
         errorText={error}
         hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
@@ -48,6 +49,7 @@ const styles = {
   input: {
     alignSelf: 'stretch',
     marginBottom: 55,
+    height: '4em',
   },
 }
 

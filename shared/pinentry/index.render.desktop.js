@@ -69,6 +69,7 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
       [PassphraseCommonPassphraseType.paperKey]: {
         floatingLabelText: 'Paperkey',
         multiline: true,
+        rowsMax: 2,
         hintText: 'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
         checkboxContainerStyle: {bottom: 0},
       },
