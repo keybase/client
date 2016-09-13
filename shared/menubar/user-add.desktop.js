@@ -111,6 +111,7 @@ const stylesInputContainer = {
   alignItems: 'center',
   flex: 1,
   height: 40,
+  overflow: 'hidden',
 }
 
 const stylesInput = {
