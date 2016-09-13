@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"reflect"
 	"sync"
 	"testing"
@@ -549,6 +550,20 @@ func requireJournalEntryCounts(t *testing.T, j *tlfJournal,
 	require.Equal(t, expectedMDEntryCount, mdEntryCount)
 }
 
+func testMDJournalGCd(t *testing.T, j *mdJournal) {
+	filepath.Walk(j.j.j.dir, func(path string, _ os.FileInfo, _ error) error {
+		// We should only find the root directory here.
+		require.Equal(t, path, j.j.j.dir)
+		return nil
+	})
+	filepath.Walk(j.mdsPath(),
+		func(path string, info os.FileInfo, _ error) error {
+			// We shouldn't find any files.
+			require.True(t, info.IsDir(), "%s is not a dir", path)
+			return nil
+		})
+}
+
 // The tests below test tlfJournal's MD flushing behavior.
 
 func TestTLFJournalFlushMDBasic(t *testing.T) {
@@ -586,6 +601,7 @@ func TestTLFJournalFlushMDBasic(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, flushed)
 	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Check RMDSes on the server.
 
@@ -659,6 +675,7 @@ func TestTLFJournalFlushMDConflict(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, flushed)
 	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Check RMDSes on the server.
 
@@ -709,6 +726,7 @@ func TestTLFJournalPreservesBranchID(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, flushed)
 	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Put last revision and flush it.
 	{
@@ -732,6 +750,7 @@ func TestTLFJournalPreservesBranchID(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, flushed)
 		requireJournalEntryCounts(t, tlfJournal, 0, 0)
+		testMDJournalGCd(t, tlfJournal.mdJournal)
 	}
 
 	// Check RMDSes on the server. In particular, the BranchID of
@@ -854,6 +873,8 @@ func TestTLFJournalFlushOrdering(t *testing.T) {
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
 	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
+
 	// These two orderings depend on the exact flushing process,
 	// but there are other possible orderings which respect the
 	// above is-put-before constraints and also respect the

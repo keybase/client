@@ -466,6 +466,17 @@ func (j *mdJournal) convertToBranch(
 	j.j = tempJournal
 	j.branchID = bid
 
+	// Garbage-collect the old non-branch entries.  TODO: we'll
+	// eventually need a sweeper to clean up entries left behind if we
+	// crash here.
+	for _, id := range allMdIDs {
+		path := j.mdPath(id)
+		err := os.Remove(path)
+		if err != nil {
+			return NullBranchID, err
+		}
+	}
+
 	return bid, nil
 }
 
@@ -537,7 +548,10 @@ func (j *mdJournal) removeFlushedEntry(
 		j.lastMdID = mdID
 	}
 
-	return nil
+	// Garbage-collect the old entry.  TODO: we'll eventually need a
+	// sweeper to clean up entries left behind if we crash here.
+	path := j.mdPath(mdID)
+	return os.Remove(path)
 }
 
 func getMdID(ctx context.Context, mdserver MDServer, crypto cryptoPure,

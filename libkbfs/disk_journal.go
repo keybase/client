@@ -135,20 +135,29 @@ func (j diskJournal) removeEarliest() (empty bool, err error) {
 		return false, err
 	}
 
+	empty = false
 	if earliestOrdinal == latestOrdinal {
 		err := j.clearOrdinals()
 		if err != nil {
 			return false, err
 		}
-		return true, nil
+		empty = true
+	} else {
+		err = j.writeEarliestOrdinal(earliestOrdinal + 1)
+		if err != nil {
+			return false, err
+		}
 	}
 
-	err = j.writeEarliestOrdinal(earliestOrdinal + 1)
+	// Garbage-collect the old entry.  TODO: we'll eventually need a
+	// sweeper to clean up entries left behind if we crash right here.
+	p := j.journalEntryPath(earliestOrdinal)
+	err = os.Remove(p)
 	if err != nil {
 		return false, err
 	}
 
-	return false, nil
+	return empty, nil
 }
 
 // The functions below are for reading and writing journal entries.

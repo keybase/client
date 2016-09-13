@@ -890,6 +890,14 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 			}
 			if len(refs) == 0 {
 				delete(j.refs, id)
+
+				// Garbage-collect the old entry.  TODO: we'll
+				// eventually need a sweeper to clean up entries left
+				// behind if we crash here.
+				err = j.removeBlockData(id)
+				if err != nil {
+					return 0, err
+				}
 				break
 			}
 		}

@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -218,6 +219,20 @@ func TestBlockJournalArchiveNonExistentReference(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func testBlockJournalGCd(t *testing.T, j *blockJournal) {
+	filepath.Walk(j.j.dir, func(path string, _ os.FileInfo, _ error) error {
+		// We should only find the root directory here.
+		require.Equal(t, path, j.j.dir)
+		return nil
+	})
+	filepath.Walk(j.blocksPath(),
+		func(path string, info os.FileInfo, _ error) error {
+			// We shouldn't find any files.
+			require.True(t, info.IsDir(), "%s is not a dir", path)
+			return nil
+		})
+}
+
 func TestBlockJournalFlush(t *testing.T) {
 	ctx, tempdir, j := setupBlockJournalTest(t)
 	defer teardownBlockJournalTest(t, tempdir, j)
@@ -316,6 +331,9 @@ func TestBlockJournalFlush(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, length)
 	require.Zero(t, j.unflushedBytes)
+
+	// Make sure the ordinals and blocks are flushed.
+	testBlockJournalGCd(t, j)
 }
 
 func TestBlockJournalFlushInterleaved(t *testing.T) {
@@ -443,4 +461,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	entries, err := j.getNextEntriesToFlush(ctx, end)
 	require.NoError(t, err)
 	require.Equal(t, 0, entries.length())
+
+	// Make sure the ordinals and blocks are flushed.
+	testBlockJournalGCd(t, j)
 }
