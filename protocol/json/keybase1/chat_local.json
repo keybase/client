@@ -7,6 +7,11 @@
       "import_as": "chat1"
     },
     {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    },
+    {
       "path": "common.avdl",
       "type": "idl"
     }
@@ -112,19 +117,142 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "MessagePlaintextVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
       "type": "record",
-      "name": "MessagePlaintext",
+      "name": "MessagePlaintextV1",
       "fields": [
         {
           "type": "chat1.MessageClientHeader",
           "name": "clientHeader"
         },
         {
+          "type": "MessageBody",
+          "name": "messageBody"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "MessagePlaintext",
+      "switch": {
+        "type": "MessagePlaintextVersion",
+        "name": "version"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "MessagePlaintextV1"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "HeaderPlaintextVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HeaderPlaintextV1",
+      "fields": [
+        {
+          "type": "chat1.ConversationIDTriple",
+          "name": "conv"
+        },
+        {
+          "type": "string",
+          "name": "tlfName"
+        },
+        {
+          "type": "chat1.MessageType",
+          "name": "messageType"
+        },
+        {
           "type": {
             "type": "array",
-            "items": "MessageBody"
+            "items": "chat1.MessagePreviousPointer"
           },
-          "name": "messageBodies"
+          "name": "prev"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "sender"
+        },
+        {
+          "type": "gregor1.DeviceID",
+          "name": "senderDevice"
+        },
+        {
+          "type": "bytes",
+          "name": "bodyHash"
+        },
+        {
+          "type": [
+            null,
+            "chat1.SignatureInfo"
+          ],
+          "name": "headerSignature"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "HeaderPlaintext",
+      "switch": {
+        "type": "HeaderPlaintextVersion",
+        "name": "version"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "HeaderPlaintextV1"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "BodyPlaintextVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BodyPlaintextV1",
+      "fields": [
+        {
+          "type": "MessageBody",
+          "name": "messageBody"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "BodyPlaintext",
+      "switch": {
+        "type": "BodyPlaintextVersion",
+        "name": "version"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "BodyPlaintextV1"
         }
       ]
     },

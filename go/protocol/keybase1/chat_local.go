@@ -6,6 +6,7 @@ package keybase1
 import (
 	"errors"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	context "golang.org/x/net/context"
 )
@@ -156,9 +157,165 @@ func NewMessageBodyWithMetadata(v MessageConversationMetadata) MessageBody {
 	}
 }
 
+type MessagePlaintextVersion int
+
+const (
+	MessagePlaintextVersion_V1 MessagePlaintextVersion = 1
+)
+
+var MessagePlaintextVersionMap = map[string]MessagePlaintextVersion{
+	"V1": 1,
+}
+
+var MessagePlaintextVersionRevMap = map[MessagePlaintextVersion]string{
+	1: "V1",
+}
+
+type MessagePlaintextV1 struct {
+	ClientHeader chat1.MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
+	MessageBody  MessageBody               `codec:"messageBody" json:"messageBody"`
+}
+
 type MessagePlaintext struct {
-	ClientHeader  chat1.MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
-	MessageBodies []MessageBody             `codec:"messageBodies" json:"messageBodies"`
+	Version__ MessagePlaintextVersion `codec:"version" json:"version"`
+	V1__      *MessagePlaintextV1     `codec:"v1,omitempty" json:"v1,omitempty"`
+}
+
+func (o *MessagePlaintext) Version() (ret MessagePlaintextVersion, err error) {
+	switch o.Version__ {
+	case MessagePlaintextVersion_V1:
+		if o.V1__ == nil {
+			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	}
+	return o.Version__, nil
+}
+
+func (o MessagePlaintext) V1() MessagePlaintextV1 {
+	if o.Version__ != MessagePlaintextVersion_V1 {
+		panic("wrong case accessed")
+	}
+	if o.V1__ == nil {
+		return MessagePlaintextV1{}
+	}
+	return *o.V1__
+}
+
+func NewMessagePlaintextWithV1(v MessagePlaintextV1) MessagePlaintext {
+	return MessagePlaintext{
+		Version__: MessagePlaintextVersion_V1,
+		V1__:      &v,
+	}
+}
+
+type HeaderPlaintextVersion int
+
+const (
+	HeaderPlaintextVersion_V1 HeaderPlaintextVersion = 1
+)
+
+var HeaderPlaintextVersionMap = map[string]HeaderPlaintextVersion{
+	"V1": 1,
+}
+
+var HeaderPlaintextVersionRevMap = map[HeaderPlaintextVersion]string{
+	1: "V1",
+}
+
+type HeaderPlaintextV1 struct {
+	Conv            chat1.ConversationIDTriple     `codec:"conv" json:"conv"`
+	TlfName         string                         `codec:"tlfName" json:"tlfName"`
+	MessageType     chat1.MessageType              `codec:"messageType" json:"messageType"`
+	Prev            []chat1.MessagePreviousPointer `codec:"prev" json:"prev"`
+	Sender          gregor1.UID                    `codec:"sender" json:"sender"`
+	SenderDevice    gregor1.DeviceID               `codec:"senderDevice" json:"senderDevice"`
+	BodyHash        []byte                         `codec:"bodyHash" json:"bodyHash"`
+	HeaderSignature *chat1.SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
+}
+
+type HeaderPlaintext struct {
+	Version__ HeaderPlaintextVersion `codec:"version" json:"version"`
+	V1__      *HeaderPlaintextV1     `codec:"v1,omitempty" json:"v1,omitempty"`
+}
+
+func (o *HeaderPlaintext) Version() (ret HeaderPlaintextVersion, err error) {
+	switch o.Version__ {
+	case HeaderPlaintextVersion_V1:
+		if o.V1__ == nil {
+			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	}
+	return o.Version__, nil
+}
+
+func (o HeaderPlaintext) V1() HeaderPlaintextV1 {
+	if o.Version__ != HeaderPlaintextVersion_V1 {
+		panic("wrong case accessed")
+	}
+	if o.V1__ == nil {
+		return HeaderPlaintextV1{}
+	}
+	return *o.V1__
+}
+
+func NewHeaderPlaintextWithV1(v HeaderPlaintextV1) HeaderPlaintext {
+	return HeaderPlaintext{
+		Version__: HeaderPlaintextVersion_V1,
+		V1__:      &v,
+	}
+}
+
+type BodyPlaintextVersion int
+
+const (
+	BodyPlaintextVersion_V1 BodyPlaintextVersion = 1
+)
+
+var BodyPlaintextVersionMap = map[string]BodyPlaintextVersion{
+	"V1": 1,
+}
+
+var BodyPlaintextVersionRevMap = map[BodyPlaintextVersion]string{
+	1: "V1",
+}
+
+type BodyPlaintextV1 struct {
+	MessageBody MessageBody `codec:"messageBody" json:"messageBody"`
+}
+
+type BodyPlaintext struct {
+	Version__ BodyPlaintextVersion `codec:"version" json:"version"`
+	V1__      *BodyPlaintextV1     `codec:"v1,omitempty" json:"v1,omitempty"`
+}
+
+func (o *BodyPlaintext) Version() (ret BodyPlaintextVersion, err error) {
+	switch o.Version__ {
+	case BodyPlaintextVersion_V1:
+		if o.V1__ == nil {
+			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	}
+	return o.Version__, nil
+}
+
+func (o BodyPlaintext) V1() BodyPlaintextV1 {
+	if o.Version__ != BodyPlaintextVersion_V1 {
+		panic("wrong case accessed")
+	}
+	if o.V1__ == nil {
+		return BodyPlaintextV1{}
+	}
+	return *o.V1__
+}
+
+func NewBodyPlaintextWithV1(v BodyPlaintextV1) BodyPlaintext {
+	return BodyPlaintext{
+		Version__: BodyPlaintextVersion_V1,
+		V1__:      &v,
+	}
 }
 
 type MessageInfoLocal struct {

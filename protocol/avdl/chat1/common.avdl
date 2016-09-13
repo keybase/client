@@ -107,8 +107,6 @@ protocol common {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
-    bytes bodyHash;
-    union {null, SignatureInfo} headerSignature;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)

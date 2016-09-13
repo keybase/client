@@ -5,12 +5,11 @@ package service
 
 import (
 	"crypto/rand"
-	"crypto/sha512"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
 
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
@@ -91,9 +90,11 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 		return keybase1.Message{}, err
 	}
 
-	if !reflect.DeepEqual(unboxed.MessagePlaintext.ClientHeader, msg.ClientHeader) {
-		return keybase1.Message{}, errors.New("unboxed ClientHeader does not match ClientHeader in MessageBoxed")
-	}
+	/*
+		if !reflect.DeepEqual(unboxed.MessagePlaintext.ClientHeader, msg.ClientHeader) {
+			return keybase1.Message{}, errors.New("unboxed ClientHeader does not match ClientHeader in MessageBoxed")
+		}
+	*/
 
 	return unboxed, nil
 
@@ -101,11 +102,25 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 
 // boxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
 // finds the most recent key for the TLF.
-func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (boxed chat1.MessageBoxed, err error) {
+func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+	version, err := msg.Version()
+	if err != nil {
+		return nil, err
+	}
+
+	switch version {
+	case keybase1.MessagePlaintextVersion_V1:
+		return b.boxMessageV1(ctx, msg.V1(), signingKeyPair)
+	default:
+		return nil, fmt.Errorf("invalid MessagePlaintext version %v", version)
+	}
+}
+
+func (b *chatBoxer) boxMessageV1(ctx context.Context, msg keybase1.MessagePlaintextV1, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 	tlfName := msg.ClientHeader.TlfName
 	keys, err := b.tlf.CryptKeys(ctx, tlfName)
 	if err != nil {
-		return boxed, libkb.ChatBoxingError{Msg: err.Error()}
+		return nil, libkb.ChatBoxingError{Msg: err.Error()}
 	}
 
 	var recentKey *keybase1.CryptKey
@@ -116,43 +131,58 @@ func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintex
 	}
 
 	if recentKey == nil {
-		return boxed, libkb.ChatBoxingError{Msg: fmt.Sprintf("no key found for tlf %q", tlfName)}
+		return nil, libkb.ChatBoxingError{Msg: fmt.Sprintf("no key found for tlf %q", tlfName)}
 	}
 
-	if boxed, err = b.boxMessageWithKeys(msg, recentKey, signingKeyPair); err != nil {
-		return boxed, libkb.ChatBoxingError{Msg: err.Error()}
+	boxed, err := b.boxMessageWithKeysV1(msg, recentKey, signingKeyPair)
+	if err != nil {
+		return nil, libkb.ChatBoxingError{Msg: err.Error()}
 	}
+
 	return boxed, nil
 }
 
 // boxMessageWithKey encrypts and signs a keybase1.MessagePlaintext into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
-func (b *chatBoxer) boxMessageWithKeys(msg keybase1.MessagePlaintext, key *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (boxed chat1.MessageBoxed, err error) {
-	encryptedBody, err := b.seal(msg, key)
+func (b *chatBoxer) boxMessageWithKeysV1(msg keybase1.MessagePlaintextV1, key *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+	body := keybase1.BodyPlaintextV1{
+		MessageBody: msg.MessageBody,
+	}
+	plaintextBody := keybase1.NewBodyPlaintextWithV1(body)
+	encryptedBody, err := b.seal(plaintextBody, key)
 	if err != nil {
-		return boxed, err
+		return nil, err
 	}
 
-	bodyHash := sha512.Sum512(encryptedBody.E)
+	bodyHash := sha256.Sum256(encryptedBody.E)
 
-	// copy the header, add hash and signature:
-	header := msg.ClientHeader
-	header.BodyHash = bodyHash[:]
-	header.HeaderSignature = nil
+	// create the v1 header, adding hash
+	header := keybase1.HeaderPlaintextV1{
+		Conv:         msg.ClientHeader.Conv,
+		TlfName:      msg.ClientHeader.TlfName,
+		MessageType:  msg.ClientHeader.MessageType,
+		Prev:         msg.ClientHeader.Prev,
+		Sender:       msg.ClientHeader.Sender,
+		SenderDevice: msg.ClientHeader.SenderDevice,
+		BodyHash:     bodyHash[:],
+	}
 
+	// sign the header and insert the signature
 	sig, err := b.signJSON(header, signingKeyPair, libkb.SignaturePrefixChatHeader)
 	if err != nil {
-		return boxed, err
+		return nil, err
 	}
 	header.HeaderSignature = &sig
 
-	encryptedHeader, err := b.seal(header, key)
+	// create a plaintext header
+	plaintextHeader := keybase1.NewHeaderPlaintextWithV1(header)
+	encryptedHeader, err := b.seal(plaintextHeader, key)
 	if err != nil {
-		return boxed, err
+		return nil, err
 	}
 
-	boxed = chat1.MessageBoxed{
-		ClientHeader:     msg.ClientHeader, // send plaintext one without hash, sig
+	boxed := &chat1.MessageBoxed{
+		ClientHeader:     msg.ClientHeader,
 		BodyCiphertext:   *encryptedBody,
 		HeaderCiphertext: *encryptedHeader,
 		KeyGeneration:    key.KeyGeneration,

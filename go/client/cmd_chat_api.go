@@ -224,24 +224,29 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	var thread Thread
 	thread.Messages = make([]MsgSummary, len(threadView.Messages))
 	for i, m := range threadView.Messages {
-		thread.Messages[i] = MsgSummary{
-			ID: m.ServerHeader.MessageID,
-			Channel: ChatChannel{
-				Name:      m.MessagePlaintext.ClientHeader.TlfName,
-				TopicType: strings.ToLower(m.MessagePlaintext.ClientHeader.Conv.TopicType.String()),
-			},
-			Sender: MsgSender{
-				UID:      m.MessagePlaintext.ClientHeader.Sender.String(),
-				DeviceID: m.MessagePlaintext.ClientHeader.SenderDevice.String(),
-			},
-			SentAt:   int64(m.ServerHeader.Ctime / 1000),
-			SentAtMs: int64(m.ServerHeader.Ctime),
+		version, err := m.MessagePlaintext.Version()
+		if err != nil {
+			return c.errReply(err)
 		}
-		if len(m.MessagePlaintext.MessageBodies) > 0 {
-			thread.Messages[i].Content = c.convertMsgBody(m.MessagePlaintext.MessageBodies[0])
-		}
-		if len(m.MessagePlaintext.MessageBodies) > 1 {
-			c.G().Log.Warning("message %v had multiple bodies", m.ServerHeader.MessageID)
+		switch version {
+		case keybase1.MessagePlaintextVersion_V1:
+			v1 := m.MessagePlaintext.V1()
+			thread.Messages[i] = MsgSummary{
+				ID: m.ServerHeader.MessageID,
+				Channel: ChatChannel{
+					Name:      v1.ClientHeader.TlfName,
+					TopicType: strings.ToLower(v1.ClientHeader.Conv.TopicType.String()),
+				},
+				Sender: MsgSender{
+					UID:      v1.ClientHeader.Sender.String(),
+					DeviceID: v1.ClientHeader.SenderDevice.String(),
+				},
+				SentAt:   int64(m.ServerHeader.Ctime / 1000),
+				SentAtMs: int64(m.ServerHeader.Ctime),
+			}
+			thread.Messages[i].Content = c.convertMsgBody(v1.MessageBody)
+		default:
+			return c.errReply(fmt.Errorf("unhandled version %v", version))
 		}
 	}
 
@@ -293,7 +298,7 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 
 	postArg := keybase1.PostLocalArg{
 		ConversationID: conversation.Id,
-		MessagePlaintext: keybase1.MessagePlaintext{
+		MessagePlaintext: keybase1.NewMessagePlaintextWithV1(keybase1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv: chat1.ConversationIDTriple{
 					TopicType: conversation.TopicType,
@@ -301,10 +306,8 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 				TlfName:     conversation.TlfName,
 				MessageType: chat1.MessageType_TEXT,
 			},
-			MessageBodies: []keybase1.MessageBody{
-				keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: opts.Message.Body}),
-			},
-		},
+			MessageBody: keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: opts.Message.Body}),
+		}),
 	}
 	if err := client.PostLocal(ctx, postArg); err != nil {
 		return c.errReply(err)

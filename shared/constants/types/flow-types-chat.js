@@ -211,8 +211,6 @@ export type MessageClientHeader = {
   prev?: ?Array<MessagePreviousPointer>,
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
-  bodyHash: bytes,
-  headerSignature?: ?SignatureInfo,
 }
 
 export type MessageID = uint

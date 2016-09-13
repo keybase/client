@@ -3,6 +3,7 @@
 protocol chatLocal {
 
   import idl "github.com/keybase/client/go/protocol/chat1" as chat1;
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "common.avdl";
 
   record MessageText {
@@ -34,10 +35,48 @@ protocol chatLocal {
     case METADATA: MessageConversationMetadata;
   }
 
-  // This is what is encrypted and sent over as bodyCiphertext.
-  record MessagePlaintext {
+  enum MessagePlaintextVersion {
+    V1_1
+  }
+
+  record MessagePlaintextV1 {
     chat1.MessageClientHeader clientHeader;
-    array<MessageBody> messageBodies;
+    MessageBody messageBody;
+  }
+
+  variant MessagePlaintext switch (MessagePlaintextVersion version) {
+    case V1: MessagePlaintextV1;
+  }
+
+  enum HeaderPlaintextVersion {
+    V1_1
+  }
+
+  record HeaderPlaintextV1 {
+    chat1.ConversationIDTriple conv;
+    string tlfName;
+    chat1.MessageType messageType;
+    array<chat1.MessagePreviousPointer> prev;
+    gregor1.UID sender;
+    gregor1.DeviceID senderDevice;
+    bytes bodyHash;
+    union {null, chat1.SignatureInfo} headerSignature;
+  }
+
+  variant HeaderPlaintext switch (HeaderPlaintextVersion version) {
+    case V1: HeaderPlaintextV1;
+  }
+  
+  enum BodyPlaintextVersion {
+    V1_1
+  }
+
+  record BodyPlaintextV1 {
+    MessageBody messageBody;
+  }
+
+  variant BodyPlaintext switch (BodyPlaintextVersion version) {
+    case V1: BodyPlaintextV1;
   }
 
   record MessageInfoLocal {

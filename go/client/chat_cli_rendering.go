@@ -127,21 +127,29 @@ func (f messageFormatter) renderAuthorAndTime() string {
 }
 
 func (f messageFormatter) body() []string {
-	bodies := keybase1.Message(f).MessagePlaintext.MessageBodies
-	if len(bodies) == 0 {
-		return nil
-	}
-	typ, err := bodies[0].MessageType()
+	version, err := f.MessagePlaintext.Version()
 	if err != nil {
+		// XXX would like to log this error or return it...
 		return nil
 	}
-	switch typ {
-	case chat1.MessageType_TEXT:
-		return []string{bodies[0].Text().Body}
-	case chat1.MessageType_ATTACHMENT:
-		return []string{"{Attachment}", "Caption: <unimplemented>", fmt.Sprintf("KBFS: %s", bodies[0].Attachment().Path)}
+	switch version {
+	case keybase1.MessagePlaintextVersion_V1:
+		body := f.MessagePlaintext.V1().MessageBody
+		typ, err := body.MessageType()
+		if err != nil {
+			return nil
+		}
+		switch typ {
+		case chat1.MessageType_TEXT:
+			return []string{body.Text().Body}
+		case chat1.MessageType_ATTACHMENT:
+			return []string{"{Attachment}", "Caption: <unimplemented>", fmt.Sprintf("KBFS: %s", body.Attachment().Path)}
+		default:
+			return []string{fmt.Sprintf("unsupported MessageType: %s", typ.String())}
+		}
 	default:
-		return []string{fmt.Sprintf("unsupported MessageType: %s", typ.String())}
+		// XXX this should be an error too
+		return []string{fmt.Sprintf("unhandled version: %v", version)}
 	}
 }
 

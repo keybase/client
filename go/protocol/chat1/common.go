@@ -153,14 +153,12 @@ type MessagePreviousPointer struct {
 }
 
 type MessageClientHeader struct {
-	Conv            ConversationIDTriple     `codec:"conv" json:"conv"`
-	TlfName         string                   `codec:"tlfName" json:"tlfName"`
-	MessageType     MessageType              `codec:"messageType" json:"messageType"`
-	Prev            []MessagePreviousPointer `codec:"prev" json:"prev"`
-	Sender          gregor1.UID              `codec:"sender" json:"sender"`
-	SenderDevice    gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
-	BodyHash        []byte                   `codec:"bodyHash" json:"bodyHash"`
-	HeaderSignature *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
+	Conv         ConversationIDTriple     `codec:"conv" json:"conv"`
+	TlfName      string                   `codec:"tlfName" json:"tlfName"`
+	MessageType  MessageType              `codec:"messageType" json:"messageType"`
+	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
+	Sender       gregor1.UID              `codec:"sender" json:"sender"`
+	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
 }
 
 type EncryptedData struct {
