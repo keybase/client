@@ -429,10 +429,17 @@ func FormatTime(t Time) string {
 }
 
 func (s Status) Error() string {
-	if s.Code == 0 {
+	if s.Code == int(StatusCode_SCOk) {
 		return ""
 	}
 	return fmt.Sprintf("%s (%s/%d)", s.Desc, s.Name, s.Code)
+}
+
+func (s Status) GoError() error {
+	if s.Code == int(StatusCode_SCOk) {
+		return nil
+	}
+	return fmt.Errorf(s.Error())
 }
 
 func (s InstallStatus) String() string {
