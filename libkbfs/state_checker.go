@@ -243,13 +243,12 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		// it will be run completely and not left partially done due
 		// to there being too many pointers to collect in one sweep.
 		mtime := time.Unix(0, rmd.data.Dir.Mtime)
-		if !lastGCRevisionTime.Before(mtime) && rmd.Revision() <= lastGCRev {
-			if rmd.Revision() > gcRevision {
-				return fmt.Errorf("Revision %d happened before the last "+
-					"gc time %s rev %d, but was not included in the latest "+
-					"gc op revision %d", rmd.Revision(), lastGCRevisionTime,
-					lastGCRev, gcRevision)
-			}
+		if !lastGCRevisionTime.Before(mtime) && rmd.Revision() <= lastGCRev &&
+			rmd.Revision() > gcRevision {
+			return fmt.Errorf("Revision %d happened on or before the last "+
+				"gc time %s rev %d, but was not included in the latest "+
+				"gc op revision %d", rmd.Revision(), lastGCRevisionTime,
+				lastGCRev, gcRevision)
 		}
 	}
 	sc.log.CDebugf(ctx, "Folder %v has %d expected live blocks, total %d bytes",
