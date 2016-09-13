@@ -249,6 +249,14 @@ func (d *DirtyBlockCacheStandard) IsDirty(_ TlfID, ptr BlockPointer,
 	return
 }
 
+// IsAnyDirty implements the DirtyBlockCache interface for
+// DirtyBlockCacheStandard.
+func (d *DirtyBlockCacheStandard) IsAnyDirty(_ TlfID) bool {
+	d.lock.RLock()
+	defer d.lock.RUnlock()
+	return len(d.cache) > 0 || d.syncBufBytes > 0 || d.waitBufBytes > 0
+}
+
 const backpressureSlack = 1 * time.Second
 
 // calcBackpressure returns how much longer a given request should be

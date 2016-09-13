@@ -54,6 +54,10 @@ func (j journalDirtyBlockCache) IsDirty(tlfID TlfID, ptr BlockPointer,
 	return j.syncCache.IsDirty(tlfID, ptr, branch)
 }
 
+func (j journalDirtyBlockCache) IsAnyDirty(tlfID TlfID) bool {
+	return j.journalCache.IsAnyDirty(tlfID) || j.syncCache.IsAnyDirty(tlfID)
+}
+
 func (j journalDirtyBlockCache) RequestPermissionToDirty(ctx context.Context,
 	tlfID TlfID, estimatedDirtyBytes int64) (DirtyPermChan, error) {
 	if _, ok := j.jServer.getTLFJournal(tlfID); ok {

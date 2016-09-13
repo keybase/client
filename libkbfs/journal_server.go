@@ -69,6 +69,7 @@ type JournalServer struct {
 
 	lock        sync.RWMutex
 	tlfJournals map[TlfID]*tlfJournal
+	dirtyOps    uint
 }
 
 func makeJournalServer(
@@ -161,9 +162,19 @@ func (j *JournalServer) Enable(
 
 	j.lock.Lock()
 	defer j.lock.Unlock()
+
 	if _, ok := j.tlfJournals[tlfID]; ok {
 		j.log.CDebugf(ctx, "Journal already enabled for %s", tlfID)
 		return nil
+	}
+
+	if j.dirtyOps > 0 {
+		return fmt.Errorf("Can't enable journal for %s while there "+
+			"are outstanding dirty ops", tlfID)
+	}
+	if j.delegateDirtyBlockCache.IsAnyDirty(tlfID) {
+		return fmt.Errorf("Can't enable journal for %s while there "+
+			"are any dirty blocks outstanding", tlfID)
 	}
 
 	tlfJournal, err := makeTLFJournal(ctx, j.dir, tlfID,
@@ -175,6 +186,21 @@ func (j *JournalServer) Enable(
 
 	j.tlfJournals[tlfID] = tlfJournal
 	return nil
+}
+
+func (j *JournalServer) dirtyOpStart(tlfID TlfID) {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	j.dirtyOps++
+}
+
+func (j *JournalServer) dirtyOpEnd(tlfID TlfID) {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	if j.dirtyOps == 0 {
+		panic("Trying to end a dirty op when count is 0")
+	}
+	j.dirtyOps--
 }
 
 // PauseBackgroundWork pauses the background work goroutine, if it's
@@ -259,6 +285,15 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (
 		return false, fmt.Errorf(
 			"Journal still has %d block entries and %d md entries",
 			blockEntryCount, mdEntryCount)
+	}
+
+	if j.dirtyOps > 0 {
+		return false, fmt.Errorf("Can't enable journal for %s while there "+
+			"are outstanding dirty ops", tlfID)
+	}
+	if j.delegateDirtyBlockCache.IsAnyDirty(tlfID) {
+		return false, fmt.Errorf("Can't enable journal for %s while there "+
+			"are any dirty blocks outstanding", tlfID)
 	}
 
 	tlfJournal.shutdown()

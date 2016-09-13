@@ -651,6 +651,9 @@ type DirtyBlockCache interface {
 	// IsDirty states whether or not the block associated with the
 	// given block pointer and branch name is dirty in this cache.
 	IsDirty(tlfID TlfID, ptr BlockPointer, branch BranchName) bool
+	// IsAnyDirty returns whether there are any dirty blocks in the
+	// cache. tlfID may be ignored.
+	IsAnyDirty(tlfID TlfID) bool
 	// RequestPermissionToDirty is called whenever a user wants to
 	// write data to a file.  The caller provides an estimated number
 	// of bytes that will become dirty -- this is difficult to know

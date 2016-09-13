@@ -1249,6 +1249,11 @@ func (fbo *folderBlockOps) writeDataLocked(
 	ctx context.Context, lState *lockState, kmd KeyMetadata, file path,
 	data []byte, off int64) (latestWrite WriteRange, dirtyPtrs []BlockPointer,
 	newlyDirtiedChildBytes int64, err error) {
+	if jServer, err := GetJournalServer(fbo.config); err == nil {
+		jServer.dirtyOpStart(fbo.id())
+		defer jServer.dirtyOpEnd(fbo.id())
+	}
+
 	fbo.blockLock.AssertLocked(lState)
 	fbo.log.CDebugf(ctx, "writeDataLocked on file pointer %v",
 		file.tailPointer())
@@ -1617,6 +1622,11 @@ const truncateExtendCutoffPoint = 128 * 1024
 func (fbo *folderBlockOps) truncateLocked(
 	ctx context.Context, lState *lockState, kmd KeyMetadata,
 	file path, size uint64) (*WriteRange, []BlockPointer, int64, error) {
+	if jServer, err := GetJournalServer(fbo.config); err == nil {
+		jServer.dirtyOpStart(fbo.id())
+		defer jServer.dirtyOpEnd(fbo.id())
+	}
+
 	fblock, _, err := fbo.writeGetFileLocked(ctx, lState, kmd, file)
 	if err != nil {
 		return &WriteRange{}, nil, 0, err
@@ -2265,6 +2275,10 @@ func (fbo *folderBlockOps) StartSync(ctx context.Context,
 	lState *lockState, md *RootMetadata, uid keybase1.UID, file path) (
 	fblock *FileBlock, bps *blockPutState, lbc localBcache,
 	syncState fileSyncState, err error) {
+	if jServer, err := GetJournalServer(fbo.config); err == nil {
+		jServer.dirtyOpStart(fbo.id())
+	}
+
 	fblock, bps, syncState, dirtyDe, err := fbo.startSyncWrite(
 		ctx, lState, md, uid, file)
 	if err != nil {
@@ -2286,6 +2300,10 @@ func (fbo *folderBlockOps) CleanupSyncState(
 	ctx context.Context, lState *lockState, md ReadOnlyRootMetadata,
 	file path, blocksToRemove []BlockPointer,
 	result fileSyncState, err error) {
+	if jServer, err := GetJournalServer(fbo.config); err == nil {
+		defer jServer.dirtyOpEnd(fbo.id())
+	}
+
 	if err == nil {
 		return
 	}

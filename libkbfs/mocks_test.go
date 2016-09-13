@@ -1549,6 +1549,16 @@ func (_mr *_MockDirtyBlockCacheRecorder) IsDirty(arg0, arg1, arg2 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsDirty", arg0, arg1, arg2)
 }
 
+func (_m *MockDirtyBlockCache) IsAnyDirty(tlfID TlfID) bool {
+	ret := _m.ctrl.Call(_m, "IsAnyDirty", tlfID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockDirtyBlockCacheRecorder) IsAnyDirty(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsAnyDirty", arg0)
+}
+
 func (_m *MockDirtyBlockCache) RequestPermissionToDirty(ctx context.Context, tlfID TlfID, estimatedDirtyBytes int64) (DirtyPermChan, error) {
 	ret := _m.ctrl.Call(_m, "RequestPermissionToDirty", ctx, tlfID, estimatedDirtyBytes)
 	ret0, _ := ret[0].(DirtyPermChan)
