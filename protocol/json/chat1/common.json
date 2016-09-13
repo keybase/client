@@ -104,9 +104,9 @@
       "type": "enum",
       "name": "TLFVisibility",
       "symbols": [
-        "PUBLIC_0",
-        "PRIVATE_1",
-        "ANY_2"
+        "ANY_0",
+        "PUBLIC_1",
+        "PRIVATE_2"
       ]
     },
     {

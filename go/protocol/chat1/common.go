@@ -81,21 +81,21 @@ type RateLimit struct {
 type TLFVisibility int
 
 const (
-	TLFVisibility_PUBLIC  TLFVisibility = 0
-	TLFVisibility_PRIVATE TLFVisibility = 1
-	TLFVisibility_ANY     TLFVisibility = 2
+	TLFVisibility_ANY     TLFVisibility = 0
+	TLFVisibility_PUBLIC  TLFVisibility = 1
+	TLFVisibility_PRIVATE TLFVisibility = 2
 )
 
 var TLFVisibilityMap = map[string]TLFVisibility{
-	"PUBLIC":  0,
-	"PRIVATE": 1,
-	"ANY":     2,
+	"ANY":     0,
+	"PUBLIC":  1,
+	"PRIVATE": 2,
 }
 
 var TLFVisibilityRevMap = map[TLFVisibility]string{
-	0: "PUBLIC",
-	1: "PRIVATE",
-	2: "ANY",
+	0: "ANY",
+	1: "PUBLIC",
+	2: "PRIVATE",
 }
 
 type GetInboxQuery struct {

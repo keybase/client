@@ -37,13 +37,22 @@ func makeChatListAndReadFlags(extras []cli.Flag) []cli.Flag {
 			Name:  "time,since",
 			Usage: `Only show messages after certain time.`,
 		},
+		cli.BoolFlag{
+			Name:  "public",
+			Usage: `Only select public conversations. Exclusive to --private`,
+		},
+		cli.BoolFlag{
+			Name:  "private",
+			Usage: `Only select private conversations. Exclusive to --public`,
+		},
 	}...))
 }
 
 type conversationResolver struct {
-	TlfName   string
-	TopicName string
-	TopicType chat1.TopicType
+	TlfName    string
+	TopicName  string
+	TopicType  chat1.TopicType
+	Visibility chat1.TLFVisibility
 }
 
 func (r conversationResolver) Resolve(ctx context.Context, chatClient keybase1.ChatLocalInterface) (conversations []keybase1.ConversationInfoLocal, err error) {
@@ -55,9 +64,10 @@ func (r conversationResolver) Resolve(ctx context.Context, chatClient keybase1.C
 		r.TlfName = string(cname)
 	}
 	conversations, err = chatClient.ResolveConversationLocal(ctx, keybase1.ConversationInfoLocal{
-		TlfName:   r.TlfName,
-		TopicName: r.TopicName,
-		TopicType: r.TopicType,
+		TlfName:    r.TlfName,
+		TopicName:  r.TopicName,
+		TopicType:  r.TopicType,
+		Visibility: r.Visibility,
 	})
 	return conversations, err
 }
@@ -86,6 +96,13 @@ func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conve
 	resolver.TlfName = tlfName
 	if resolver.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return resolver, err
+	}
+	if ctx.Bool("private") {
+		resolver.Visibility = chat1.TLFVisibility_PRIVATE
+	} else if ctx.Bool("public") {
+		resolver.Visibility = chat1.TLFVisibility_PUBLIC
+	} else {
+		resolver.Visibility = chat1.TLFVisibility_ANY
 	}
 	return resolver, nil
 }
@@ -142,9 +159,10 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 }
 
 type inboxFetcher struct {
-	topicType chat1.TopicType
-	limit     int
-	since     string
+	topicType  chat1.TopicType
+	limit      int
+	since      string
+	visibility chat1.TLFVisibility
 
 	chatClient keybase1.ChatLocalInterface // for testing only
 }
@@ -161,6 +179,14 @@ func makeInboxFetcherFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error)
 		fetcher.limit = 0
 	}
 
+	if ctx.Bool("private") {
+		fetcher.visibility = chat1.TLFVisibility_PRIVATE
+	} else if ctx.Bool("public") {
+		fetcher.visibility = chat1.TLFVisibility_PUBLIC
+	} else {
+		fetcher.visibility = chat1.TLFVisibility_ANY
+	}
+
 	return fetcher, err
 }
 
@@ -174,9 +200,10 @@ func (f inboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conver
 	}
 
 	res, err := chatClient.GetInboxSummaryLocal(ctx, keybase1.GetInboxSummaryLocalArg{
-		TopicType: f.topicType,
-		After:     f.since,
-		Limit:     f.limit,
+		TopicType:  f.topicType,
+		After:      f.since,
+		Limit:      f.limit,
+		Visibility: f.visibility,
 	})
 	if err != nil {
 		return nil, nil, moreTotal, err

@@ -245,6 +245,10 @@
         {
           "type": "chat1.TopicType",
           "name": "topicType"
+        },
+        {
+          "type": "chat1.TLFVisibility",
+          "name": "visibility"
         }
       ]
     },
@@ -416,6 +420,10 @@
         {
           "name": "limit",
           "type": "int"
+        },
+        {
+          "name": "visibility",
+          "type": "chat1.TLFVisibility"
         }
       ],
       "response": "GetInboxSummaryLocalRes"

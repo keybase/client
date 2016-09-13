@@ -188,10 +188,11 @@ type MessageSelector struct {
 }
 
 type ConversationInfoLocal struct {
-	Id        chat1.ConversationID `codec:"id" json:"id"`
-	TlfName   string               `codec:"tlfName" json:"tlfName"`
-	TopicName string               `codec:"topicName" json:"topicName"`
-	TopicType chat1.TopicType      `codec:"topicType" json:"topicType"`
+	Id         chat1.ConversationID `codec:"id" json:"id"`
+	TlfName    string               `codec:"tlfName" json:"tlfName"`
+	TopicName  string               `codec:"topicName" json:"topicName"`
+	TopicType  chat1.TopicType      `codec:"topicType" json:"topicType"`
+	Visibility chat1.TLFVisibility  `codec:"visibility" json:"visibility"`
 }
 
 type ConversationLocal struct {
@@ -240,10 +241,11 @@ type GetMessagesLocalArg struct {
 }
 
 type GetInboxSummaryLocalArg struct {
-	TopicType chat1.TopicType `codec:"topicType" json:"topicType"`
-	After     string          `codec:"after" json:"after"`
-	Before    string          `codec:"before" json:"before"`
-	Limit     int             `codec:"limit" json:"limit"`
+	TopicType  chat1.TopicType     `codec:"topicType" json:"topicType"`
+	After      string              `codec:"after" json:"after"`
+	Before     string              `codec:"before" json:"before"`
+	Limit      int                 `codec:"limit" json:"limit"`
+	Visibility chat1.TLFVisibility `codec:"visibility" json:"visibility"`
 }
 
 type CompleteAndCanonicalizeTlfNameArg struct {

@@ -233,6 +233,9 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg keybase
 	if arg.TopicType != chat1.TopicType_NONE {
 		query.TopicType = &arg.TopicType
 	}
+	if arg.Visibility != chat1.TLFVisibility_ANY {
+		query.TlfVisibility = &arg.Visibility
+	}
 	rpcArg.Query = &query
 
 	iview, err := h.GetInboxLocal(ctx, rpcArg)
@@ -288,10 +291,14 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ke
 	}
 
 	tlfID := chat1.TLFID(tlfIDb)
+	query := &chat1.GetInboxQuery{
+		TlfID: &tlfID,
+	}
+	if criteria.Visibility != chat1.TLFVisibility_ANY {
+		query.TlfVisibility = &criteria.Visibility
+	}
 	conversationsRemote, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			TlfID: &tlfID,
-		},
+		Query:      query,
 		Pagination: nil,
 	})
 	if err != nil {

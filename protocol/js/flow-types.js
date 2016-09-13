@@ -1953,6 +1953,7 @@ export type ConversationInfoLocal = {
   tlfName: string,
   topicName: string,
   topicType: chat1.TopicType,
+  visibility: chat1.TLFVisibility,
 }
 
 export type ConversationLocal = {
@@ -3365,7 +3366,8 @@ export type chatLocalGetInboxSummaryLocalRpcParam = $Exact<{
   topicType: chat1.TopicType,
   after: string,
   before: string,
-  limit: int
+  limit: int,
+  visibility: chat1.TLFVisibility
 }>
 
 export type chatLocalGetMessagesLocalRpcParam = $Exact<{
