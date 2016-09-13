@@ -8,12 +8,14 @@ protocol remote {
 
     // Sent as plaintext so that if the message is ever deleted, we can still
     // validate that metadata.
+    //
+    // This is still needed because it contains the TLF name, which is needed
+    // to get the keys for this message.
     MessageClientHeader clientHeader;
-    // The signature of the above.
-    SignatureInfo headerSignature;
 
+    EncryptedData headerCiphertext;
     EncryptedData bodyCiphertext;
-    SignatureInfo bodySignature;
+
     int keyGeneration;
   }
 

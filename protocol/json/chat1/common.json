@@ -340,6 +340,17 @@
         {
           "type": "gregor1.DeviceID",
           "name": "senderDevice"
+        },
+        {
+          "type": "bytes",
+          "name": "bodyHash"
+        },
+        {
+          "type": [
+            null,
+            "SignatureInfo"
+          ],
+          "name": "headerSignature"
         }
       ]
     },

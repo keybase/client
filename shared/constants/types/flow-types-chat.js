@@ -199,9 +199,8 @@ export type MarkAsReadRes = {
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
   clientHeader: MessageClientHeader,
-  headerSignature: SignatureInfo,
+  headerCiphertext: EncryptedData,
   bodyCiphertext: EncryptedData,
-  bodySignature: SignatureInfo,
   keyGeneration: int,
 }
 
@@ -212,6 +211,8 @@ export type MessageClientHeader = {
   prev?: ?Array<MessagePreviousPointer>,
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
+  bodyHash: bytes,
+  headerSignature?: ?SignatureInfo,
 }
 
 export type MessageID = uint

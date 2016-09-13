@@ -125,32 +125,3 @@ func TestChatMessageUnbox(t *testing.T) {
 		t.Errorf("body text: %q, expected %q", body.Text().Body, text)
 	}
 }
-
-func TestChatMessageSigned(t *testing.T) {
-	key := cryptKey(t)
-	msg := textMsg(t, "sign me")
-	tc, handler := setupChatTest(t, "signed")
-	defer tc.Cleanup()
-	boxed, err := handler.boxer.boxMessageWithKeys(msg, key, getSigningKeyPairForTest(t, tc, nil))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if boxed.HeaderSignature.V != 2 {
-		t.Errorf("HeaderSignature.V = %d, expected 2", boxed.HeaderSignature.V)
-	}
-	if len(boxed.HeaderSignature.S) == 0 {
-		t.Error("after signMessageBoxed, HeaderSignature.S is empty")
-	}
-	if len(boxed.HeaderSignature.K) == 0 {
-		t.Error("after signMessageBoxed, HeaderSignature.K is empty")
-	}
-	if boxed.BodySignature.V != 2 {
-		t.Errorf("BodySignature.V = %d, expected 2", boxed.BodySignature.V)
-	}
-	if len(boxed.BodySignature.S) == 0 {
-		t.Error("after signMessageBoxed, BodySignature.S is empty")
-	}
-	if len(boxed.BodySignature.K) == 0 {
-		t.Error("after signMessageBoxed, BodySignature.K is empty")
-	}
-}

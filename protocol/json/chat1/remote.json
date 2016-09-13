@@ -18,16 +18,12 @@
           "name": "clientHeader"
         },
         {
-          "type": "SignatureInfo",
-          "name": "headerSignature"
+          "type": "EncryptedData",
+          "name": "headerCiphertext"
         },
         {
           "type": "EncryptedData",
           "name": "bodyCiphertext"
-        },
-        {
-          "type": "SignatureInfo",
-          "name": "bodySignature"
         },
         {
           "type": "int",

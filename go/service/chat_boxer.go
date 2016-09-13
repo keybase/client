@@ -5,6 +5,7 @@ package service
 
 import (
 	"crypto/rand"
+	"crypto/sha512"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -127,38 +128,62 @@ func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintex
 // boxMessageWithKey encrypts and signs a keybase1.MessagePlaintext into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
 func (b *chatBoxer) boxMessageWithKeys(msg keybase1.MessagePlaintext, key *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (boxed chat1.MessageBoxed, err error) {
-	s, err := json.Marshal(msg)
+	encryptedBody, err := b.seal(msg, key)
 	if err != nil {
 		return boxed, err
 	}
 
-	var nonce [libkb.NaclDHNonceSize]byte
-	if _, err := rand.Read(nonce[:]); err != nil {
+	bodyHash := sha512.Sum512(encryptedBody.E)
+
+	// copy the header, add hash and signature:
+	header := msg.ClientHeader
+	header.BodyHash = bodyHash[:]
+	header.HeaderSignature = nil
+
+	sig, err := b.signJSON(header, signingKeyPair, libkb.SignaturePrefixChatHeader)
+	if err != nil {
 		return boxed, err
 	}
+	header.HeaderSignature = &sig
 
-	sealed := secretbox.Seal(nil, []byte(s), &nonce, ((*[32]byte)(&key.Key)))
+	encryptedHeader, err := b.seal(header, key)
+	if err != nil {
+		return boxed, err
+	}
 
 	boxed = chat1.MessageBoxed{
-		ClientHeader: msg.ClientHeader,
-		BodyCiphertext: chat1.EncryptedData{
-			V: 1,
-			E: sealed,
-			N: nonce[:],
-		},
-		KeyGeneration: key.KeyGeneration,
-	}
-
-	// sign the header, encrypted body
-	if err := b.signMessageBoxed(&boxed, signingKeyPair); err != nil {
-		return boxed, err
+		ClientHeader:     msg.ClientHeader, // send plaintext one without hash, sig
+		BodyCiphertext:   *encryptedBody,
+		HeaderCiphertext: *encryptedHeader,
+		KeyGeneration:    key.KeyGeneration,
 	}
 
 	return boxed, nil
 }
 
+func (b *chatBoxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.EncryptedData, error) {
+	s, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	var nonce [libkb.NaclDHNonceSize]byte
+	if _, err := rand.Read(nonce[:]); err != nil {
+		return nil, err
+	}
+
+	sealed := secretbox.Seal(nil, []byte(s), &nonce, ((*[32]byte)(&key.Key)))
+	enc := &chat1.EncryptedData{
+		V: 1,
+		E: sealed,
+		N: nonce[:],
+	}
+	return enc, nil
+}
+
 // signMessageBoxed signs the header and encrypted body of a chat1.MessageBoxed
 // with the NaclSigningKeyPair.
+/*
 func (b *chatBoxer) signMessageBoxed(msg *chat1.MessageBoxed, kp libkb.NaclSigningKeyPair) error {
 	header, err := b.signJSON(msg.ClientHeader, kp, libkb.SignaturePrefixChatHeader)
 	if err != nil {
@@ -174,6 +199,7 @@ func (b *chatBoxer) signMessageBoxed(msg *chat1.MessageBoxed, kp libkb.NaclSigni
 
 	return nil
 }
+*/
 
 // signJSON signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
 // It encodes data to JSON before signing.
@@ -186,49 +212,48 @@ func (b *chatBoxer) signJSON(data interface{}, kp libkb.NaclSigningKeyPair, pref
 	return b.sign(encoded, kp, prefix)
 }
 
-func exportSigInfo(si *libkb.NaclSigInfo) chat1.SignatureInfo {
-	return chat1.SignatureInfo{
-		V: si.Version,
-		S: si.Sig[:],
-		K: si.Kid,
-	}
-}
-
 // sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
 func (b *chatBoxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
 	sig, err := kp.SignV2(msg, prefix)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
 	}
-	return exportSigInfo(sig), nil
+	sigInfo := chat1.SignatureInfo{
+		V: sig.Version,
+		S: sig.Sig[:],
+		K: sig.Kid,
+	}
+	return sigInfo, nil
 }
 
 // verifyMessageBoxed verifies the header and body signatures in a boxed
 // message.
 func (b *chatBoxer) verifyMessageBoxed(msg chat1.MessageBoxed) error {
-	header, err := json.Marshal(msg.ClientHeader)
-	if err != nil {
-		return err
-	}
-	if !b.verify(header, msg.HeaderSignature, libkb.SignaturePrefixChatHeader) {
-		return libkb.BadSigError{E: "header signature invalid"}
-	}
+	/*
+		header, err := json.Marshal(msg.ClientHeader)
+		if err != nil {
+			return err
+		}
+		if !b.verify(header, msg.HeaderSignature, libkb.SignaturePrefixChatHeader) {
+			return libkb.BadSigError{E: "header signature invalid"}
+		}
 
-	if !b.verify(msg.BodyCiphertext.E, msg.BodySignature, libkb.SignaturePrefixChatBody) {
-		return libkb.BadSigError{E: "body signature invalid"}
-	}
+		if !b.verify(msg.BodyCiphertext.E, msg.BodySignature, libkb.SignaturePrefixChatBody) {
+			return libkb.BadSigError{E: "body signature invalid"}
+		}
 
-	if !libkb.SecureByteArrayEq(msg.HeaderSignature.K, msg.BodySignature.K) {
-		return errors.New("header and body signature keys do not match")
-	}
+		if !libkb.SecureByteArrayEq(msg.HeaderSignature.K, msg.BodySignature.K) {
+			return errors.New("header and body signature keys do not match")
+		}
 
-	valid, err := b.validSenderKey(msg.ClientHeader.Sender, msg.HeaderSignature.K, msg.ServerHeader.Ctime)
-	if err != nil {
-		return err
-	}
-	if !valid {
-		return errors.New("key invalid for sender at message ctime")
-	}
+		valid, err := b.validSenderKey(msg.ClientHeader.Sender, msg.HeaderSignature.K, msg.ServerHeader.Ctime)
+		if err != nil {
+			return err
+		}
+		if !valid {
+			return errors.New("key invalid for sender at message ctime")
+		}
+	*/
 
 	return nil
 }
