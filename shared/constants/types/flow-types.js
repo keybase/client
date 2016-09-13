@@ -3357,12 +3357,14 @@ export type chatLocalCompleteAndCanonicalizeTlfNameRpcParam = $Exact<{
 }>
 
 export type chatLocalGetInboxLocalRpcParam = $Exact<{
+  query?: ?chat1.GetInboxQuery,
   pagination?: ?chat1.Pagination
 }>
 
 export type chatLocalGetInboxSummaryLocalRpcParam = $Exact<{
-  topicTypes?: ?Array<chat1.TopicType>,
-  since: string,
+  topicType: chat1.TopicType,
+  after: string,
+  before: string,
   limit: int
 }>
 
@@ -3372,7 +3374,7 @@ export type chatLocalGetMessagesLocalRpcParam = $Exact<{
 
 export type chatLocalGetThreadLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
-  markAsRead: boolean,
+  query?: ?chat1.GetThreadQuery,
   pagination?: ?chat1.Pagination
 }>
 

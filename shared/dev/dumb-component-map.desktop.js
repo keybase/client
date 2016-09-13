@@ -14,6 +14,7 @@ import ProfileMap from '../profile/dumb'
 import RegisterMap from '../login/register/dumb'
 import SearchMap from '../search/dumb'
 import SearchUserPaneMap from '../search/user-pane/dumb'
+import SettingsMap from '../settings/dumb'
 import SignupMap from '../login/signup/dumb.desktop'
 import TabBarMap from '../tab-bar/dumb.desktop'
 import TrackerMap from '../tracker/dumb.desktop'
@@ -35,6 +36,7 @@ const map: any = {
   ...RegisterMap,
   ...SearchMap,
   ...SearchUserPaneMap,
+  ...SettingsMap,
   ...SignupMap,
   ...TabBarMap,
   ...TrackerMap,

@@ -528,7 +528,7 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 
 	tc := libkb.SetupTest(t, unit.name, 1)
 	g := tc.G
-	xapi := NewStubAPIEngine()
+	xapi := newStubAPIEngine()
 	g.XAPI = xapi
 
 	pvl, err := makeTestPvl(unit.prepvl)
