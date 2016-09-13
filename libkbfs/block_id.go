@@ -56,3 +56,15 @@ func (id BlockID) MarshalBinary() (data []byte, err error) {
 func (id *BlockID) UnmarshalBinary(data []byte) error {
 	return id.h.UnmarshalBinary(data)
 }
+
+// MarshalJSON implements the encoding.json.Marshaler interface for
+// BlockID.
+func (id BlockID) MarshalJSON() ([]byte, error) {
+	return id.h.MarshalJSON()
+}
+
+// UnmarshalJSON implements the encoding.json.Unmarshaler interface
+// for BlockID.
+func (id BlockID) UnmarshalJSON(s []byte) error {
+	return id.h.UnmarshalJSON(s)
+}
