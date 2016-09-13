@@ -44,7 +44,6 @@ const styles = {
   },
   icon: {
     marginTop: 45,
-    marginBottom: 65,
   },
   input: {
     alignSelf: 'stretch',

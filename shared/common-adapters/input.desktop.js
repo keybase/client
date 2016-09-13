@@ -164,6 +164,9 @@ export const styles = {
     color: globalColors.black_10,
     width: '100%',
     textAlign: 'center',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   floatingLabelStyle: {
     ...globalStyles.fontSemibold,
