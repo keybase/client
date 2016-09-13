@@ -102,8 +102,13 @@ if [ ! "$nowait" = "1" ]; then
   "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build and release for $platform."
 fi
 
+number_of_builds=1
+if [ -n "$SMOKE_TEST" ]; then
+  number_of_builds=2
+fi
+
 # Okay, here's where we start generating version numbers and doing builds.
-for i in {1..2}; do
+for i in {1..$number_of_builds}; do
   if [ ! "$nobuild" = "1" ]; then
     BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
     BUILD_DIR=$build_dir_kbfs "$dir/build_kbfs.sh"
@@ -142,8 +147,10 @@ for i in {1..2}; do
 done
 
 if [ "$istest" = "" ]; then
-  echo "Made $buildA and $buildB."
-  BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-new-build-to-server --build-a="$buildA" --build-b="$buildB" --platform="darwin"
+  if [ "$number_of_builds" = "2" ]; then
+    echo "Made: $buildA and $buildB."
+    BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-new-build-to-server --build-a="$buildA" --build-b="$buildB" --platform="darwin"
+  fi
 
   BUCKET_NAME="$bucket_name" "$dir/report.sh"
 fi
