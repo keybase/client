@@ -10,6 +10,7 @@ import (
 	"net"
 	"sync"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -40,6 +41,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	fmt.Printf("Go: Using log: %s\n", logFile)
 	kbCtx = libkb.G
 	kbCtx.Init()
+	kbCtx.SetServices(externals.GetServices())
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,
