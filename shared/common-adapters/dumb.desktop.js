@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
-import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, ListItem, PopupMenu, StandardScreen, TabBar, Text} from './index'
+import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, SmallInput, ListItem, PopupMenu, StandardScreen, TabBar, Text} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
@@ -61,6 +61,92 @@ const iconMap: DumbComponentMap<IconHolder> = {
     'Icon Image': {
       label: 'Sheet',
       iconFont: false,
+    },
+  },
+}
+
+const inputMap: DumbComponentMap<Input> = {
+  component: Input,
+  mocks: {
+    'Default Empty': {},
+    'Default Filled': {
+      value: 'Hello, World!',
+    },
+    'Hint Empty': {
+      hintText: 'Hello...',
+    },
+    'Floating Label Empty': {
+      floatingLabelText: 'Hello...',
+    },
+    'Floating Label Filled': {
+      floatingLabelText: 'Hello...',
+      value: 'Hello, World!',
+    },
+    'Floating Label Error': {
+      floatingLabelText: 'Hello...',
+      value: 'Hello, Worl',
+      errorText: 'Check your spelling',
+    },
+    'Floating Label Hint Empty': {
+      hintText: 'Hello!',
+      floatingLabelText: 'Hello...',
+    },
+    'Hint Multiline Empty': {
+      hintText: 'This is a very long hint that will hopefully wrap to two lines',
+      multiline: true,
+    },
+    'Floating Label Multiline Empty': {
+      floatingLabelText: 'Hello...',
+      multiline: true,
+    },
+    'Floating Label Multiline Filled': {
+      floatingLabelText: 'Hello...',
+      multiline: true,
+      value: 'Hello, World!',
+    },
+    'Floating Label Multiline Filled Long': {
+      floatingLabelText: 'Hello...',
+      multiline: true,
+      value: 'Hello,\nMy name is Max\nHow are you?',
+    },
+    'Small Empty': {
+      small: true,
+    },
+    'Small Filled': {
+      small: true,
+      value: 'Hello, World!',
+    },
+    'Small Hint Empty': {
+      small: true,
+      hintText: 'Hello...',
+    },
+  },
+}
+
+const smallInputMap: DumbComponentMap<SmallInput> = {
+  component: SmallInput,
+  mocks: {
+    'Default Empty': {
+      label: 'Greet:',
+      hintText: 'Hello...',
+      value: null,
+    },
+    'Default Filled': {
+      label: 'Greet:',
+      hintText: 'Hello...',
+      value: 'Hello, World!',
+    },
+    'Error Empty': {
+      label: 'Greet:',
+      hintText: 'Hello...',
+      errorState: true,
+      value: null,
+    },
+    'Error Filled': {
+      label: 'Greet:',
+      hintText: 'Hello...',
+      value: 'Hello, World!',
+      errorState: true,
     },
   },
 }
@@ -246,6 +332,8 @@ export default {
   Checkbox: checkboxMap,
   ChoiceList: choiceListMap,
   Icon: iconMap,
+  Input: inputMap,
+  SmallInput: smallInputMap,
   ListItem: listItemMap,
   PopupMenu: popupMenuMap,
   StandardScreen: standardScreenMap,
