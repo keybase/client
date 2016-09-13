@@ -1,7 +1,7 @@
 import UIKit
 
 func appDelegate() -> AppDelegate {
-  return UIApplication.sharedApplication().delegate as! AppDelegate
+  return UIApplication.shared.delegate as! AppDelegate
 }
 
 @UIApplicationMain
@@ -15,22 +15,22 @@ class AppDelegate: UIResponder {
   var logSender: LogSend!
 #endif
 
-  private func setupReactWithOptions(launchOptions: [NSObject: AnyObject]?) -> RCTRootView {
+  fileprivate func setupReactWithOptions(_ launchOptions: [AnyHashable: Any]?) -> RCTRootView {
     return RCTRootView(bundleURL: {
 
       #if DEBUG
         if let reactHost = AppDefault.ReactHost.stringValue {
-          return NSURL(string: "http://\(reactHost)/index.ios.bundle?platform=ios&dev=true")
+          return NSURL(string: "http://\(reactHost)/index.ios.bundle?platform=ios&dev=true") as URL!
         } else {
-          return NSBundle.mainBundle().URLForResource("main", withExtension: "jsbundle")
+          return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
         }
       #else
-        return NSBundle.mainBundle().URLForResource("main", withExtension: "jsbundle")
+        return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
       #endif
     }(), moduleName: "Keybase", initialProperties: nil, launchOptions: launchOptions)
   }
 
-  private func setupEngine() {
+  fileprivate func setupEngine() {
     #if SIMULATOR
       let SecurityAccessGroupOverride = true
     #else
@@ -41,13 +41,13 @@ class AppDelegate: UIResponder {
     if home == "" {
       home = NSHomeDirectory()
     } else {
-      let root = (NSHomeDirectory() as NSString).stringByAppendingPathComponent("Library")
-      home = (root as NSString).stringByAppendingPathComponent(home)
+      let root = (NSHomeDirectory() as NSString).appendingPathComponent("Library")
+      home = (root as NSString).appendingPathComponent(home)
     }
 
 #if TESTING
 #else
-    let logFile = (home as NSString).stringByAppendingPathComponent("ios.log");
+    let logFile = (home as NSString).appendingPathComponent("ios.log");
 
     engine = try! Engine(settings: [
       "runmode": AppDefault.RunMode.stringValue!,
@@ -64,7 +64,7 @@ class AppDelegate: UIResponder {
 }
 
 class KeyListener: UIViewController {
-  override func canBecomeFirstResponder() -> Bool {
+  override var canBecomeFirstResponder : Bool {
     return true
   }
 
@@ -72,38 +72,38 @@ class KeyListener: UIViewController {
 
   override var keyCommands: [UIKeyCommand]? {
     return [
-      UIKeyCommand(input: "[", modifierFlags: .Command, action: "goBackInTime:"),
-      UIKeyCommand(input: "]", modifierFlags: .Command, action: "goForwardInTime:"),
-      UIKeyCommand(input: "s", modifierFlags: [.Shift, .Command], action: "saveState:"),
-      UIKeyCommand(input: "c", modifierFlags: [.Shift, .Command], action: "clearState:")
+      UIKeyCommand(input: "[", modifierFlags: .command, action: #selector(KeyListener.goBackInTime(_:))),
+      UIKeyCommand(input: "]", modifierFlags: .command, action: #selector(KeyListener.goForwardInTime(_:))),
+      UIKeyCommand(input: "s", modifierFlags: [.shift, .command], action: #selector(KeyListener.saveState(_:))),
+      UIKeyCommand(input: "c", modifierFlags: [.shift, .command], action: #selector(KeyListener.clearState(_:)))
     ]
   }
 
-  func goBackInTime(sender: UIKeyCommand){
-    bridge.eventDispatcher().sendDeviceEventWithName("backInTime", body: true)
+  func goBackInTime(_ sender: UIKeyCommand){
+    bridge.eventDispatcher().sendDeviceEvent(withName: "backInTime", body: true)
   }
 
-  func goForwardInTime(sender: UIKeyCommand){
-    bridge.eventDispatcher().sendDeviceEventWithName("forwardInTime", body: true)
+  func goForwardInTime(_ sender: UIKeyCommand){
+    bridge.eventDispatcher().sendDeviceEvent(withName: "forwardInTime", body: true)
   }
 
-  func saveState(sender: UIKeyCommand){
-    bridge.eventDispatcher().sendDeviceEventWithName("saveState", body: true)
+  func saveState(_ sender: UIKeyCommand){
+    bridge.eventDispatcher().sendDeviceEvent(withName: "saveState", body: true)
   }
 
-  func clearState(sender: UIKeyCommand){
-    bridge.eventDispatcher().sendDeviceEventWithName("clearState", body: true)
+  func clearState(_ sender: UIKeyCommand){
+    bridge.eventDispatcher().sendDeviceEvent(withName: "clearState", body: true)
   }
 
 }
 
 extension AppDelegate: UIApplicationDelegate {
 
-  func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
-    AppDefault.RunMode.setDefaultValue("staging")
+  func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+    AppDefault.RunMode.setDefaultValue("staging" as AnyObject)
 
     #if SIMULATOR
-      AppDefault.ReactHost.setDefaultValue("localhost:8081")
+      AppDefault.ReactHost.setDefaultValue("localhost:8081" as AnyObject)
     #else
       #if DEBUG
         // Uncomment if you want your device to hit a local server while debugging
@@ -119,7 +119,7 @@ extension AppDelegate: UIApplicationDelegate {
     rootViewController.view = rctView
     rootViewController.bridge = rctView.bridge
 
-    let window = UIWindow(frame: UIScreen.mainScreen().bounds)
+    let window = UIWindow(frame: UIScreen.main.bounds)
     self.window = window
     window.rootViewController = rootViewController
     window.makeKeyAndVisible()

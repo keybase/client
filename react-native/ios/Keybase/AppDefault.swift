@@ -8,23 +8,23 @@ enum AppDefault: String {
   case ReactHost = "ReactHost"
   
   var objectValue: AnyObject? {
-    get { return NSUserDefaults.standardUserDefaults().objectForKey(rawValue) }
+    get { return UserDefaults.standard.object(forKey: rawValue) as AnyObject? }
     nonmutating set {
       if let newValue = newValue {
-        NSUserDefaults.standardUserDefaults().setObject(newValue, forKey: rawValue)
+        UserDefaults.standard.set(newValue, forKey: rawValue)
       } else {
-        NSUserDefaults.standardUserDefaults().removeObjectForKey(rawValue)
+        UserDefaults.standard.removeObject(forKey: rawValue)
       }
     }
   }
   
   var stringValue: String? {
-    get { return NSUserDefaults.standardUserDefaults().stringForKey(rawValue) }
-    nonmutating set { objectValue = newValue }
+    get { return UserDefaults.standard.string(forKey: rawValue) }
+    nonmutating set { objectValue = newValue as AnyObject? }
   }
   
-  func setDefaultValue(value: AnyObject) {
-    NSUserDefaults.standardUserDefaults().registerDefaults([rawValue: value])
+  func setDefaultValue(_ value: AnyObject) {
+    UserDefaults.standard.register(defaults: [rawValue: value])
   }
   
 }
