@@ -643,3 +643,9 @@ func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID TlfID, newBID BranchID) {
 	// Launch in a new goroutine to avoid deadlocks.
 	go ops.onTLFBranchChange(newBID)
 }
+
+func (fs *KBFSOpsStandard) onMDFlush(tlfID TlfID, bid BranchID,
+	rev MetadataRevision) {
+	ops := fs.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch})
+	go ops.onMDFlush(bid, rev)
+}

@@ -16,3 +16,13 @@ func GetJournalServer(config Config) (*JournalServer, error) {
 	}
 	return jbserver.jServer, nil
 }
+
+// TLFJournalEnabled returns true if journaling is enabled for the
+// given TLF.
+func TLFJournalEnabled(config Config, tlfID TlfID) bool {
+	if jServer, err := GetJournalServer(config); err == nil {
+		_, err := jServer.JournalStatus(tlfID)
+		return err == nil
+	}
+	return false
+}

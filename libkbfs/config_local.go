@@ -785,9 +785,10 @@ func (c *ConfigLocal) EnableJournaling(journalRoot string) {
 	// it if it doesn't exist, make sure that it doesn't
 	// point to /keybase itself, etc.
 	log := c.MakeLogger("")
-	listener := c.KBFSOps().(branchChangeListener)
+	branchListener := c.KBFSOps().(branchChangeListener)
+	flushListener := c.KBFSOps().(mdFlushListener)
 	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
-		c.BlockServer(), c.MDOps(), listener)
+		c.BlockServer(), c.MDOps(), branchListener, flushListener)
 	ctx := context.Background()
 	err = jServer.EnableExistingJournals(
 		ctx, TLFJournalBackgroundWorkEnabled)

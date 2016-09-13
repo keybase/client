@@ -35,6 +35,14 @@ type branchChangeListener interface {
 	onTLFBranchChange(TlfID, BranchID)
 }
 
+// mdFlushListener describes a caller that will ge updates via the
+// onMDFlush metod when an MD is flushed.  If the implementer will be
+// accessing the journal, it must do so from another goroutine to
+// avoid deadlocks.
+type mdFlushListener interface {
+	onMDFlush(TlfID, BranchID, MetadataRevision)
+}
+
 // TODO: JournalServer isn't really a server, although it can create
 // objects that act as servers. Rename to JournalManager.
 
@@ -56,6 +64,7 @@ type JournalServer struct {
 	delegateBlockServer BlockServer
 	delegateMDOps       MDOps
 	onBranchChange      branchChangeListener
+	onMDFlush           mdFlushListener
 
 	lock        sync.RWMutex
 	tlfJournals map[TlfID]*tlfJournal
@@ -64,7 +73,8 @@ type JournalServer struct {
 func makeJournalServer(
 	config Config, log logger.Logger, dir string,
 	bcache BlockCache, bserver BlockServer, mdOps MDOps,
-	onBranchChange branchChangeListener) *JournalServer {
+	onBranchChange branchChangeListener,
+	onMDFlush mdFlushListener) *JournalServer {
 	jServer := JournalServer{
 		config:              config,
 		log:                 log,
@@ -74,6 +84,7 @@ func makeJournalServer(
 		delegateBlockServer: bserver,
 		delegateMDOps:       mdOps,
 		onBranchChange:      onBranchChange,
+		onMDFlush:           onMDFlush,
 		tlfJournals:         make(map[TlfID]*tlfJournal),
 	}
 	return &jServer
@@ -155,7 +166,7 @@ func (j *JournalServer) Enable(
 
 	tlfJournal, err := makeTLFJournal(ctx, j.dir, tlfID,
 		tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
-		bws, nil, j.onBranchChange)
+		bws, nil, j.onBranchChange, j.onMDFlush)
 	if err != nil {
 		return err
 	}
