@@ -8,6 +8,7 @@
 /react-native/shared
 /shared/libs/immutable-interface.js
 /shared/libs/flow-interface.js
+/shared/flow-typed/**
 /shared/constants/types/keybase-v1.js
 /shared/constants/types/flow-types.js
 /shared/constants/types/flow-types-gregor.js

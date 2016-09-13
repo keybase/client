@@ -40,7 +40,7 @@ class DevMenu extends Component {
 
 export default connect(
   null,
-  dispatch => {
+  (dispatch: any) => {
     return {
       routeAppend: uri => dispatch(routeAppend(uri)),
       switchTab: tabName => dispatch(switchTab(tabName)),

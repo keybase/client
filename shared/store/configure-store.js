@@ -71,6 +71,7 @@ if (closureStoreCheck) {
   middlewares.push(closureCheck)
 }
 
+// $FlowIssue
 const createStoreWithMiddleware = applyMiddleware.apply(null, middlewares)
 
 export default function configureStore (initialState: any) {

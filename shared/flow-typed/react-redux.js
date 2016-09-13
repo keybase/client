@@ -46,10 +46,10 @@ declare module 'react-redux' {
     options?: ConnectOptions
   ): Connector<OP, { dispatch: Dispatch<A> } & OP>;
 
-  declare function connect<S, A, OP, SP>(
+  declare function connect<S, OP, SP>(
     mapStateToProps: MapStateToProps<S, OP, SP>,
     options?: ConnectOptions
-  ): Connector<OP, SP & { dispatch: Dispatch<A> }>;
+  ): Connector<OP, SP & OP>;
 
   declare function connect<A, OP, DP>(
     mapStateToProps: null,

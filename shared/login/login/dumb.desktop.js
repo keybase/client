@@ -1,6 +1,6 @@
 // @flow
 import Login from './index.render'
-import type LoginProps from './'
+import type {Props as LoginProps} from './index.render'
 import type {DumbComponentMap} from '../../constants/types/more'
 
 function createLogger (event) {

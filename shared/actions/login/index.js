@@ -11,7 +11,6 @@ import type {Dispatch, GetState, AsyncAction, TypedAction, Action} from '../../c
 import type {incomingCallMapType, DeviceType as RPCDeviceType} from '../../constants/types/flow-types'
 import type {ResponseType} from '../../engine'
 import {Map} from 'immutable'
-import {bindActionCreators} from 'redux'
 import {bootstrap} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {devicesTab, loginTab} from '../../constants/tabs'
@@ -29,7 +28,7 @@ const InputCancelError = {desc: 'Cancel Login', code: ConstantsStatusCode.scinpu
 
 function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
-    waitingHandler: bindActionCreators(waitingForResponse, dispatch),
+    waitingHandler: (waiting: boolean) => { dispatch(waitingForResponse(waiting)) },
   }
 }
 

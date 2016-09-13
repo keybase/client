@@ -1,10 +1,12 @@
 // @flow
 import React, {Component} from 'react'
 import Render from './index.render'
-import type {Props} from './index.render'
 import {connect} from 'react-redux'
 import {openAccountResetPage, relogin, login} from '../../actions/login'
 import {routeAppend} from '../../actions/router'
+
+import type {TypedState} from '../../constants/reducer'
+import type {Props} from './index.render'
 
 type State = {
   selectedUser: ?string,
@@ -49,9 +51,9 @@ class Login extends Component {
 }
 
 export default connect(
-  store => {
-    const users = store.login.configuredAccounts && store.login.configuredAccounts.map(c => c.username) || []
-    let lastUser = store.config.username
+  (state: TypedState) => {
+    const users = state.login.configuredAccounts && state.login.configuredAccounts.map(c => c.username) || []
+    let lastUser = state.config.username
 
     if (users.indexOf(lastUser) === -1 && users.length) {
       lastUser = users[0]
@@ -61,11 +63,11 @@ export default connect(
       serverURI: 'https://keybase.io',
       users,
       lastUser,
-      error: store.login.loginError,
-      waitingForResponse: store.login.waitingForResponse,
+      error: state.login.loginError,
+      waitingForResponse: state.login.waitingForResponse,
     }
   },
-  dispatch => ({
+  (dispatch: any) => ({
     onForgotPassphrase: () => dispatch(openAccountResetPage()),
     onLogin: (user, passphrase) => dispatch(relogin(user, passphrase)),
     onSignup: () => dispatch(routeAppend(['signup'])),

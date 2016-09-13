@@ -46,5 +46,5 @@ class CodePage extends Component<void, Props, State> {
 }
 
 export default connect(
-  (state, ownProps) => ownProps.mapStateToProps(state)
+  (state: any, ownProps: any) => ownProps.mapStateToProps(state),
 )(CodePage)

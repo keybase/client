@@ -46,8 +46,10 @@ class SetPublicName extends Component<void, Props, State> {
   }
 }
 
+type OwnProps = any
+
 export default connect(
-  state => ({waiting: state.login.waitingForResponse})
+  (state: any, op: OwnProps) => ({waiting: state.login.waitingForResponse})
 )(SetPublicName)
 
 export {
