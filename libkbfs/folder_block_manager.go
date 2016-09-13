@@ -15,7 +15,8 @@ import (
 )
 
 type fbmHelper interface {
-	getMDForFBM(ctx context.Context) (ImmutableRootMetadata, error)
+	getMostRecentFullyMergedMD(ctx context.Context) (
+		ImmutableRootMetadata, error)
 	finalizeGCOp(ctx context.Context, gco *gcOp) error
 }
 
@@ -107,15 +108,12 @@ type folderBlockManager struct {
 
 	helper fbmHelper
 
-	// Keep track of the last reclamation time, for testing.
-	lastReclamationTimeLock sync.Mutex
-	lastReclamationTime     time.Time
-
-	// Remembers what happened last time during quota reclamation;
-	// should only be accessed by the QR goroutine.
-	lastQRHeadRev      MetadataRevision
-	lastQROldEnoughRev MetadataRevision
-	wasLastQRComplete  bool
+	// Remembers what happened last time during quota reclamation.
+	lastQRLock          sync.Mutex
+	lastQRHeadRev       MetadataRevision
+	lastQROldEnoughRev  MetadataRevision
+	wasLastQRComplete   bool
+	lastReclamationTime time.Time
 }
 
 func newFolderBlockManager(config Config, fb FolderBranch,
@@ -444,10 +442,9 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 	// if the Sync was canceled while the MD put was
 	// outstanding.)
 	if toDelete.bdType == blockDeleteOnMDFail {
-		rmds, err := getMDRange(ctx, fbm.config, fbm.id, toDelete.md.BID(),
-			toDelete.md.Revision(), toDelete.md.Revision(),
-			toDelete.md.MergedStatus())
-		if err != nil || len(rmds) == 0 {
+		rmd, err := getSingleMD(ctx, fbm.config, fbm.id, toDelete.md.BID(),
+			toDelete.md.Revision(), toDelete.md.MergedStatus())
+		if err != nil {
 			// Don't re-enqueue immediately, since this might mean no
 			// new revision has made it to the server yet, and we'd
 			// just get into an infinite loop.  But don't retry
@@ -465,7 +462,7 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 				toDelete.md.Revision())
 		} else {
 			dirsEqual, err := CodecEqual(fbm.config.Codec(),
-				rmds[0].data.Dir, toDelete.md.data.Dir)
+				rmd.data.Dir, toDelete.md.data.Dir)
 			if err != nil {
 				fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
 			} else if dirsEqual {
@@ -473,10 +470,10 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 				// shouldn't delete the blocks.  But, since this MD
 				// put seems to have succeeded, we should archive it.
 				fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d; "+
-					"archiving it", rmds[0].Revision)
+					"archiving it", rmd.Revision)
 				// Don't block on archiving the MD, because that could
 				// lead to deadlock.
-				fbm.archiveUnrefBlocksNoWait(rmds[0].ReadOnly())
+				fbm.archiveUnrefBlocksNoWait(rmd.ReadOnly())
 				return nil
 			}
 		}
@@ -860,6 +857,8 @@ func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
 }
 
 func (fbm *folderBlockManager) isQRNecessary(head ReadOnlyRootMetadata) bool {
+	fbm.lastQRLock.Lock()
+	defer fbm.lastQRLock.Unlock()
 	if head == (ReadOnlyRootMetadata{}) {
 		return false
 	}
@@ -889,14 +888,16 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	// any considerable amount of time, so it should be safe to let it
 	// run indefinitely.
 
-	// First get the current head, and see if we're staged or not.
-	head, err := fbm.helper.getMDForFBM(ctx)
+	// First get the most recent fully merged MD (might be different
+	// from the local head if journaling is enabled), and see if we're
+	// staged or not.
+	head, err := fbm.helper.getMostRecentFullyMergedMD(ctx)
 	if err != nil {
 		return err
 	} else if err := isReadableOrError(ctx, fbm.config, head.ReadOnly()); err != nil {
 		return err
 	} else if head.MergedStatus() != Merged {
-		return errors.New("Skipping quota reclamation while unstaged")
+		return errors.New("Supposedly fully-merged MD is unexpectedly unmerged")
 	}
 
 	// Make sure we're a writer
@@ -914,12 +915,18 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	}
 	var mostRecentOldEnoughRev MetadataRevision
 	var complete bool
+	var reclamationTime time.Time
 	defer func() {
+		fbm.lastQRLock.Lock()
+		defer fbm.lastQRLock.Unlock()
 		// Remember the QR we just performed.
 		if err == nil && head != (ImmutableRootMetadata{}) {
 			fbm.lastQRHeadRev = head.Revision()
 			fbm.lastQROldEnoughRev = mostRecentOldEnoughRev
 			fbm.wasLastQRComplete = complete
+		}
+		if reclamationTime != (time.Time{}) {
+			fbm.lastReclamationTime = reclamationTime
 		}
 	}()
 
@@ -970,9 +977,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	fbm.log.CDebugf(ctx, "Starting quota reclamation process")
 	defer func() {
 		fbm.log.CDebugf(ctx, "Ending quota reclamation process: %v", err)
-		fbm.lastReclamationTimeLock.Lock()
-		defer fbm.lastReclamationTimeLock.Unlock()
-		fbm.lastReclamationTime = fbm.config.Clock().Now()
+		reclamationTime = fbm.config.Clock().Now()
 	}()
 
 	ptrs, latestRev, complete, err :=
@@ -1022,8 +1027,17 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 	}
 }
 
-func (fbm *folderBlockManager) getLastReclamationTime() time.Time {
-	fbm.lastReclamationTimeLock.Lock()
-	defer fbm.lastReclamationTimeLock.Unlock()
-	return fbm.lastReclamationTime
+func (fbm *folderBlockManager) getLastQRData() (time.Time, MetadataRevision) {
+	fbm.lastQRLock.Lock()
+	defer fbm.lastQRLock.Unlock()
+	return fbm.lastReclamationTime, fbm.lastQROldEnoughRev
+}
+
+func (fbm *folderBlockManager) clearLastQRData() {
+	fbm.lastQRLock.Lock()
+	defer fbm.lastQRLock.Unlock()
+	fbm.lastQRHeadRev = MetadataRevisionUninitialized
+	fbm.lastQROldEnoughRev = MetadataRevisionUninitialized
+	fbm.wasLastQRComplete = false
+	fbm.lastReclamationTime = time.Time{}
 }

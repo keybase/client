@@ -861,11 +861,54 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 	return md, nil
 }
 
-// getMDForFBM is a helper method for the folderBlockManager only.
-func (fbo *folderBranchOps) getMDForFBM(ctx context.Context) (
+// getMostRecentFullyMergedMD is a helper method that returns the most
+// recent merged MD that has been flushed to the server.  This could
+// be different from the current local head if journaling is on.  If
+// the journal is on a branch, it returns an error.
+func (fbo *folderBranchOps) getMostRecentFullyMergedMD(ctx context.Context) (
 	ImmutableRootMetadata, error) {
 	lState := makeFBOLockState()
-	return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
+
+	jServer, err := GetJournalServer(fbo.config)
+	if err != nil {
+		// Journaling is disabled entirely, so use the local head.
+		return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
+	}
+
+	jStatus, err := jServer.JournalStatus(fbo.id())
+	if err != nil {
+		// Journaling is disabled for this TLF, so use the local head.
+		// TODO: JournalStatus could return other errors (likely
+		// file/disk corruption) that indicate a real problem, so it
+		// might be nice to type those errors so we can distinguish
+		// them.
+		return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
+	}
+
+	if jStatus.BranchID != NullBranchID.String() {
+		return ImmutableRootMetadata{},
+			errors.New("Cannot find most recent merged revision while staged")
+	}
+
+	if jStatus.RevisionStart == MetadataRevisionUninitialized {
+		// The journal is empty, so the local head must be the most recent.
+		return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
+	} else if jStatus.RevisionStart == MetadataRevisionInitial {
+		// Nothing has been flushed to the servers yet, so don't
+		// return anything.
+		return ImmutableRootMetadata{}, errors.New("No flushed MDs yet")
+	}
+
+	// Otherwise, use the revision from before the start of the journal.
+	mergedRev := jStatus.RevisionStart - 1
+	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
+		mergedRev, Merged)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
+	fbo.log.CDebugf(ctx, "Most recent fully merged revision is %d", mergedRev)
+	return rmd, nil
 }
 
 func (fbo *folderBranchOps) getMDForReadNoIdentify(
@@ -3846,22 +3889,19 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	// the updates.
 	fbo.setBranchIDLocked(lState, NullBranchID)
 
-	rmds, err := getMDRange(ctx, fbo.config, fbo.id(), NullBranchID,
-		currHead, currHead, Merged)
+	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
+		currHead, Merged)
 	if err != nil {
 		return nil, err
-	}
-	if len(rmds) == 0 {
-		return nil, fmt.Errorf("Couldn't find the branch point %d", currHead)
 	}
 	err = func() error {
 		fbo.headLock.Lock(lState)
 		defer fbo.headLock.Unlock(lState)
-		err = fbo.setHeadPredecessorLocked(ctx, lState, rmds[0])
+		err = fbo.setHeadPredecessorLocked(ctx, lState, rmd)
 		if err != nil {
 			return err
 		}
-		fbo.setLatestMergedRevisionLocked(ctx, lState, rmds[0].Revision(), true)
+		fbo.setLatestMergedRevisionLocked(ctx, lState, rmd.Revision(), true)
 		return nil
 	}()
 	if err != nil {
@@ -4660,6 +4700,10 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
 		return
 	}
 
+	// Everything we thought we knew about quota reclamation is now
+	// called into question.
+	fbo.fbm.clearLastQRData()
+
 	// Kick off conflict resolution and set the head to the correct branch.
 	fbo.setBranchIDLocked(lState, newBID)
 	fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
@@ -4686,9 +4730,9 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 	fbo.log.CDebugf(ctx, "Archiving references for flushed MD revision %d", rev)
 
 	// Get that revision.
-	rmds, err := getMDRange(ctx, fbo.config, fbo.id(), NullBranchID,
-		rev, rev, Merged)
-	if err != nil || len(rmds) == 0 {
+	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
+		rev, Merged)
+	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't get revision %d for archiving: %v",
 			rev, err)
 		return
@@ -4701,7 +4745,7 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 
-	fbo.fbm.archiveUnrefBlocks(rmds[0].ReadOnly())
+	fbo.fbm.archiveUnrefBlocks(rmd.ReadOnly())
 }
 
 func (fbo *folderBranchOps) onMDFlush(bid BranchID, rev MetadataRevision) {
