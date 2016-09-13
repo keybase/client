@@ -2171,11 +2171,9 @@ func (fbo *folderBranchOps) createEntryLocked(
 	// easily without compromising semantics too much (i.e., to jump
 	// this operation to the front of the journal).
 	if excl == WithExcl {
-		if jServer, err := GetJournalServer(fbo.config); err == nil {
-			fbo.log.CDebugf(ctx, "Waiting for journal to flush")
-			if err := jServer.Wait(ctx, fbo.id()); err != nil {
-				return nil, DirEntry{}, err
-			}
+		if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
+			fbo.log); err != nil {
+			return nil, DirEntry{}, err
 		}
 	}
 
@@ -4210,10 +4208,9 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 	}
 
 	// A journal flush, if needed.
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		if err := jServer.Wait(context.Background(), fbo.id()); err != nil {
-			return err
-		}
+	if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
+		fbo.log); err != nil {
+		return err
 	}
 
 	if err := fbo.mdFlushes.Wait(ctx); err != nil {
@@ -4247,12 +4244,7 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 
 	// A second journal flush if needed, to clear out any
 	// archive/remove calls caused by the above operations.
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		if err := jServer.Wait(context.Background(), fbo.id()); err != nil {
-			return err
-		}
-	}
-	return nil
+	return WaitForTLFJournal(ctx, fbo.config, fbo.id(), fbo.log)
 }
 
 // CtxFBOTagKey is the type used for unique context tags within folderBranchOps
