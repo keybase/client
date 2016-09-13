@@ -60,9 +60,6 @@ func (c *CmdChatAPI) ParseArgv(ctx *cli.Context) error {
 		return errors.New("api takes no arguments")
 	}
 	c.indent = ctx.Bool("pretty")
-	if c.indent {
-		c.G().Log.Warning("pretty output disabled until go 1.7 used on CI machines")
-	}
 	c.inputFile = ctx.String("infile")
 	c.outputFile = ctx.String("outfile")
 	c.message = ctx.String("message")

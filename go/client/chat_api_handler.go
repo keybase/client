@@ -193,8 +193,7 @@ func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
 
 	enc := json.NewEncoder(w)
 	if a.indent {
-		// XXX put this back in when OS X CI machines using go 1.7...
-		// enc.SetIndent("", "\t")
+		enc.SetIndent("", "    ")
 	}
 	return enc.Encode(reply)
 }
