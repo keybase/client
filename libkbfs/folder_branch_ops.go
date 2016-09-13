@@ -4730,9 +4730,9 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 	fbo.log.CDebugf(ctx, "Archiving references for flushed MD revision %d", rev)
 
 	// Get that revision.
-	rmds, err := getMDRange(ctx, fbo.config, fbo.id(), NullBranchID,
-		rev, rev, Merged)
-	if err != nil || len(rmds) == 0 {
+	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
+		rev, Merged)
+	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't get revision %d for archiving: %v",
 			rev, err)
 		return
@@ -4745,7 +4745,7 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 
-	fbo.fbm.archiveUnrefBlocks(rmds[0].ReadOnly())
+	fbo.fbm.archiveUnrefBlocks(rmd.ReadOnly())
 }
 
 func (fbo *folderBranchOps) onMDFlush(bid BranchID, rev MetadataRevision) {
