@@ -65,7 +65,7 @@ build_script:
   - echo github.com/keybase/kbfs/test >> testlist.txt
 # TODO: Run the below tests with env KEYBASE_TEST_BSERVER_ADDR=tempdir.
   - for /f %%i in (testlist.txt) do (appveyor AddTest %%i -Outcome Running -Framework gotest -Filename %%i & go test -timeout 5m %%i && appveyor UpdateTest %%i -Outcome Passed -Framework gotest -Filename %%i -Duration 0) || (appveyor UpdateTest %%i -Outcome Failed -Framework gotest -Filename %%i -Duration 0 & exit /b 1) 
-  - cd test && go test -tags dokan
+  - cd test && go test -tags dokan -timeout 300s
 
 # to disable automatic builds
 #build: off
