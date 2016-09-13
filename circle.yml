@@ -1,0 +1,42 @@
+machine:
+  xcode:
+    version: 7.2
+  node:
+    version: 5.7.0
+  environment:
+    GOPATH: $HOME/go-path
+    PATH: $GOROOT/bin:$PATH
+    # Limit memory usage of gradle
+    _JAVA_OPTIONS: "-Xms512m -Xmx1024m"
+    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError"'
+    REACT_NATIVE_MAX_WORKERS: 1
+    # Some node dependencies break without this
+    CXX: g++-4.8
+general:
+  build_dir: .
+dependencies:
+  pre:
+    - sudo rm -rf $HOME/go* # Remove old go installation
+    - sudo rm -rf /usr/local/go* # Remove old go installation
+    - wget https://storage.googleapis.com/golang/go1.7.linux-amd64.tar.gz -O $HOME/go.tar.gz
+    - mkdir $HOME/go-path
+    - (cd $HOME; tar -xzvf go.tar.gz)
+    - sudo mv $HOME/go /usr/local
+    - (cd $HOME; git clone https://github.com/keybase/client.git)
+    - mkdir -p $GOPATH/src/github.com/keybase
+    - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
+    - if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
+    - if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
+  cache_directories:
+    - /usr/local/android-sdk-linux/tools
+    - /usr/local/android-sdk-linux/build-tools/23.0.2
+  override:
+    - rm -rf $HOME/client/react-native/node_modules # Clear node_modules cache, it appears to be getting out of sync
+    - npm install
+    - npm install -g react-native-cli
+    - ln -s $HOME/kbfs $GOPATH/src/github.com/keybase/kbfs
+    - (cd $GOPATH/src/github.com/keybase/client/react-native; npm run gobuild-android)
+test:
+  override:
+    # Just testing builds
+    - echo "Only testing builds"
