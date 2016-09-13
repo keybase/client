@@ -102,14 +102,14 @@ func mustPostLocalForTest(t *testing.T, ctc chatTestContext, conv keybase1.Conve
 	}
 	err = ctc.h.PostLocal(context.Background(), keybase1.PostLocalArg{
 		ConversationID: conv.Id,
-		MessagePlaintext: keybase1.MessagePlaintext{
+		MessagePlaintext: keybase1.NewMessagePlaintextWithV1(keybase1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
 				// Conv omitted
 				MessageType: mt,
 				TlfName:     conv.TlfName,
 			},
-			MessageBodies: []keybase1.MessageBody{msg},
-		},
+			MessageBody: msg,
+		}),
 	})
 	if err != nil {
 		t.Fatalf("PostLocal error: %v", err)
@@ -152,7 +152,7 @@ func TestGetThreadLocal(t *testing.T) {
 	if len(tv.Messages) != 2 {
 		t.Fatalf("unexpected response from GetThreadLocal . expected 2 items, got %d\n", len(tv.Messages))
 	}
-	if tv.Messages[0].MessagePlaintext.MessageBodies[0].Text().Body != "hello!" {
+	if tv.Messages[0].MessagePlaintext.V1().MessageBody.Text().Body != "hello!" {
 		t.Fatalf("unexpected response from GetThreadLocal . expected 'hello!' got %#+v\n", tv.Messages[0])
 	}
 }

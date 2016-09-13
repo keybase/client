@@ -32,14 +32,16 @@ func textMsg(t *testing.T, text string) keybase1.MessagePlaintext {
 		t.Fatal(err)
 	}
 	uid[15] = keybase1.UID_SUFFIX_2
-	return keybase1.MessagePlaintext{
+	return textMsgWithSender(t, text, gregor1.UID(uid))
+}
+
+func textMsgWithSender(t *testing.T, text string, uid gregor1.UID) keybase1.MessagePlaintext {
+	return keybase1.NewMessagePlaintextWithV1(keybase1.MessagePlaintextV1{
 		ClientHeader: chat1.MessageClientHeader{
-			Sender: gregor1.UID(uid),
+			Sender: uid,
 		},
-		MessageBodies: []keybase1.MessageBody{
-			keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: text}),
-		},
-	}
+		MessageBody: keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: text}),
+	})
 }
 
 func setupChatTest(t *testing.T, name string) (libkb.TestContext, *chatLocalHandler) {
@@ -74,7 +76,7 @@ func TestChatMessageBox(t *testing.T) {
 	msg := textMsg(t, "hello")
 	tc, handler := setupChatTest(t, "box")
 	defer tc.Cleanup()
-	boxed, err := handler.boxer.boxMessageWithKeys(msg, key, getSigningKeyPairForTest(t, tc, nil))
+	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, getSigningKeyPairForTest(t, tc, nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +88,6 @@ func TestChatMessageBox(t *testing.T) {
 func TestChatMessageUnbox(t *testing.T) {
 	key := cryptKey(t)
 	text := "hi"
-	msg := textMsg(t, text)
 	tc, handler := setupChatTest(t, "unbox")
 	defer tc.Cleanup()
 
@@ -95,12 +96,12 @@ func TestChatMessageUnbox(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	msg.ClientHeader.Sender = gregor1.UID(u.User.GetUID().ToBytes())
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
 
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
 	ctime := time.Now()
-	boxed, err := handler.boxer.boxMessageWithKeys(msg, key, signKP)
+	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,14 +111,11 @@ func TestChatMessageUnbox(t *testing.T) {
 		Ctime: gregor1.ToTime(ctime),
 	}
 
-	unboxed, err := handler.boxer.unboxMessageWithKey(boxed, key)
+	unboxed, err := handler.boxer.unboxMessageWithKey(*boxed, key)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(unboxed.MessagePlaintext.MessageBodies) != 1 {
-		t.Fatalf("unboxed message bodies: %d, expected 1", len(unboxed.MessagePlaintext.MessageBodies))
-	}
-	body := unboxed.MessagePlaintext.MessageBodies[0]
+	body := unboxed.MessagePlaintext.V1().MessageBody
 	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
 		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
 	}
