@@ -1979,18 +1979,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	}
 
 	// Archive the old, unref'd blocks if journaling is off.
-	doArchive := true
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		if _, err := jServer.JournalStatus(fbo.id()); err == nil {
-			// Journaling is enabled, so don't archive!  TODO:
-			// JournalStatus could return other errors (likely
-			// file/disk corruption) that indicate a real problem, so
-			// it might be nice to type those errors so we can
-			// distinguish them.
-			doArchive = false
-		}
-	}
-	if doArchive {
+	if !TLFJournalEnabled(fbo.config, fbo.id()) {
 		fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
 	}
 
