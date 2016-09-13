@@ -442,9 +442,9 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 	// if the Sync was canceled while the MD put was
 	// outstanding.)
 	if toDelete.bdType == blockDeleteOnMDFail {
-		rmds, err := getSingleMD(ctx, fbm.config, fbm.id, toDelete.md.BID(),
+		rmd, err := getSingleMD(ctx, fbm.config, fbm.id, toDelete.md.BID(),
 			toDelete.md.Revision(), toDelete.md.MergedStatus())
-		if err != nil || len(rmds) == 0 {
+		if err != nil {
 			// Don't re-enqueue immediately, since this might mean no
 			// new revision has made it to the server yet, and we'd
 			// just get into an infinite loop.  But don't retry
@@ -462,7 +462,7 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 				toDelete.md.Revision())
 		} else {
 			dirsEqual, err := CodecEqual(fbm.config.Codec(),
-				rmds[0].data.Dir, toDelete.md.data.Dir)
+				rmd.data.Dir, toDelete.md.data.Dir)
 			if err != nil {
 				fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
 			} else if dirsEqual {
@@ -470,10 +470,10 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 				// shouldn't delete the blocks.  But, since this MD
 				// put seems to have succeeded, we should archive it.
 				fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d; "+
-					"archiving it", rmds[0].Revision)
+					"archiving it", rmd.Revision)
 				// Don't block on archiving the MD, because that could
 				// lead to deadlock.
-				fbm.archiveUnrefBlocksNoWait(rmds[0].ReadOnly())
+				fbm.archiveUnrefBlocksNoWait(rmd.ReadOnly())
 				return nil
 			}
 		}

@@ -901,14 +901,14 @@ func (fbo *folderBranchOps) getMostRecentFullyMergedMD(ctx context.Context) (
 
 	// Otherwise, use the revision from before the start of the journal.
 	mergedRev := jStatus.RevisionStart - 1
-	rmds, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
+	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
 		mergedRev, Merged)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
 
 	fbo.log.CDebugf(ctx, "Most recent fully merged revision is %d", mergedRev)
-	return rmds[0], nil
+	return rmd, nil
 }
 
 func (fbo *folderBranchOps) getMDForReadNoIdentify(
@@ -3889,7 +3889,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	// the updates.
 	fbo.setBranchIDLocked(lState, NullBranchID)
 
-	rmds, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
+	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
 		currHead, Merged)
 	if err != nil {
 		return nil, err
@@ -3897,11 +3897,11 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	err = func() error {
 		fbo.headLock.Lock(lState)
 		defer fbo.headLock.Unlock(lState)
-		err = fbo.setHeadPredecessorLocked(ctx, lState, rmds[0])
+		err = fbo.setHeadPredecessorLocked(ctx, lState, rmd)
 		if err != nil {
 			return err
 		}
-		fbo.setLatestMergedRevisionLocked(ctx, lState, rmds[0].Revision(), true)
+		fbo.setLatestMergedRevisionLocked(ctx, lState, rmd.Revision(), true)
 		return nil
 	}()
 	if err != nil {
