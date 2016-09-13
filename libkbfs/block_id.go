@@ -4,11 +4,7 @@
 
 package libkbfs
 
-import (
-	"encoding"
-	"fmt"
-	"strings"
-)
+import "encoding"
 
 // BlockID is the (usually content-based) ID for a data block.
 type BlockID struct {
@@ -64,17 +60,11 @@ func (id *BlockID) UnmarshalBinary(data []byte) error {
 // MarshalJSON implements the encoding.json.Marshaler interface for
 // BlockID.
 func (id BlockID) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("\"%s\"", id)), nil
+	return id.h.MarshalJSON()
 }
 
 // UnmarshalJSON implements the encoding.json.Unmarshaler interface
 // for BlockID.
 func (id BlockID) UnmarshalJSON(s []byte) error {
-	blockIDStr := strings.Trim(string(s), "\"")
-	newID, err := BlockIDFromString(blockIDStr)
-	if err != nil {
-		return err
-	}
-	id.h = newID.h
-	return nil
+	return id.h.UnmarshalJSON(s)
 }

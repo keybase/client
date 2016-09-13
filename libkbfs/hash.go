@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 )
 
@@ -210,6 +211,28 @@ func (h Hash) Verify(buf []byte) error {
 	if h != expectedH {
 		return HashMismatchError{expectedH, h}
 	}
+	return nil
+}
+
+// MarshalJSON implements the encoding.json.Marshaler interface for
+// Hash.
+func (h Hash) MarshalJSON() ([]byte, error) {
+	return json.Marshal(h.String())
+}
+
+// UnmarshalJSON implements the encoding.json.Unmarshaler interface
+// for Hash.
+func (h Hash) UnmarshalJSON(data []byte) error {
+	var s string
+	err := json.Unmarshal(data, &s)
+	if err != nil {
+		return err
+	}
+	newH, err := HashFromString(s)
+	if err != nil {
+		return err
+	}
+	h.h = newH.h
 	return nil
 }
 
