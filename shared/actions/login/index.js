@@ -14,7 +14,7 @@ import {Map} from 'immutable'
 import {bindActionCreators} from 'redux'
 import {bootstrap} from '../config'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
-import {devicesTab, loginTab} from '../../constants/tabs'
+import {defaultTabAfterLogin, loginTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {loadDevices} from '../devices'
 import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
@@ -55,7 +55,7 @@ export function navBasedOnLoginState (): AsyncAction {
           console.log('Loading overridden logged in tab')
           dispatch(switchTab(overrideLoggedInTab))
         } else {
-          dispatch(switchTab(devicesTab))
+          dispatch(switchTab(defaultTabAfterLogin))
         }
       } else if (status.registered) { // relogging in
         dispatch(getAccounts())

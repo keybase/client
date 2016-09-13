@@ -28,6 +28,8 @@ const prettyNames = {
   [profileTab]: 'Profile',
 }
 
+export const defaultTabAfterLogin = folderTab
+
 export type VisibleTab = ProfileTab
 | PeopleTab
 | FolderTab
@@ -42,4 +44,3 @@ export type Tabs = VisibleTab
 export function prettify (tabName: string) {
   return prettyNames[tabName] || 'You have found a bug'
 }
-
