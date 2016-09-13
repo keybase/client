@@ -31,15 +31,18 @@ class Render extends Component<void, Props, void> {
 const stylesOuter = {
   backgroundColor: globalColors.black_10,
 }
+
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   justifyContent: 'center',
   alignItems: 'center',
   marginTop: 15,
 }
+
 const stylesInput = {
   marginBottom: globalMargins.large,
 }
+
 const stylesFirst = {
   marginTop: 35,
 }
