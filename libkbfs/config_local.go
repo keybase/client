@@ -627,6 +627,11 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 // ResetCaches implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) ResetCaches() {
 	oldDirtyBcache := c.resetCachesWithoutShutdown()
+	if err := c.journalizeDirtyBcache(); err != nil {
+		if log := c.MakeLogger(""); log != nil {
+			log.CWarningf(nil, "Error journalizing dirty block cache: %v", err)
+		}
+	}
 	if oldDirtyBcache != nil {
 		// Shutdown outside of the lock so it doesn't block other
 		// access to this config.
@@ -771,6 +776,33 @@ func (c *ConfigLocal) CheckStateOnShutdown() bool {
 	return false
 }
 
+func (c *ConfigLocal) journalizeDirtyBcache() error {
+	jServer, err := GetJournalServer(c)
+	if err != nil {
+		// Journaling is disabled.
+		return nil
+	}
+
+	syncCache, ok := c.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	if !ok {
+		return fmt.Errorf("Dirty bcache unexpectedly type %T", syncCache)
+	}
+	syncCache.name = "sync"
+	jServer.delegateDirtyBlockCache = syncCache
+
+	// Make a dirty block cache specifically for the journal
+	// server.  Since this doesn't rely directly on the network,
+	// there's no need for an adaptive sync buffer size, so we
+	// always set the min and max to the same thing.
+	maxSyncBufferSize :=
+		int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
+	journalCache := NewDirtyBlockCacheStandard(c.clock, c.MakeLogger,
+		maxSyncBufferSize, maxSyncBufferSize, maxSyncBufferSize)
+	journalCache.name = "journal"
+	c.SetDirtyBlockCache(jServer.dirtyBlockCache(journalCache))
+	return nil
+}
+
 // EnableJournaling creates a JournalServer, but journaling must still
 // be enabled manually for individual folders.
 func (c *ConfigLocal) EnableJournaling(journalRoot string) {
@@ -791,26 +823,12 @@ func (c *ConfigLocal) EnableJournaling(journalRoot string) {
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
 		flushListener)
 	ctx := context.Background()
-	err = jServer.EnableExistingJournals(
-		ctx, TLFJournalBackgroundWorkEnabled)
+	err = jServer.EnableExistingJournals(ctx, TLFJournalBackgroundWorkEnabled)
 	if err == nil {
-		syncCache, ok := c.DirtyBlockCache().(*DirtyBlockCacheStandard)
-		if ok {
-			syncCache.name = "sync"
+		if err := c.journalizeDirtyBcache(); err != nil {
+			panic(err)
 		}
-
-		// Make a dirty block cache specifically for the journal
-		// server.  Since this doesn't rely directly on the network,
-		// there's no need for an adaptive sync buffer size, so we
-		// always set the min and max to the same thing.
-		maxSyncBufferSize :=
-			int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
-		journalCache := NewDirtyBlockCacheStandard(c.clock, c.MakeLogger,
-			maxSyncBufferSize, maxSyncBufferSize, maxSyncBufferSize)
-		journalCache.name = "journal"
-
 		c.SetBlockCache(jServer.blockCache())
-		c.SetDirtyBlockCache(jServer.dirtyBlockCache(journalCache))
 		c.SetBlockServer(jServer.blockServer())
 		c.SetMDOps(jServer.mdOps())
 	} else {
