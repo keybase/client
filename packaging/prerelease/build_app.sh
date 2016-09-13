@@ -124,7 +124,7 @@ for i in {1..$number_of_builds}; do
 
   skip_update_json=""
   if [ "$i" = "2" ]; then
-    skip_update_json = "true"
+    skip_update_json = "1"
   fi
 
   if [ "$platform" = "darwin" ]; then
