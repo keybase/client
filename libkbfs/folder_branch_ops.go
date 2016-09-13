@@ -287,6 +287,8 @@ type folderBranchOps struct {
 	rekeyWithPromptTimer *time.Timer
 
 	editHistory *TlfEditHistory
+
+	mdFlushes RepeatedWaitGroup
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -2169,11 +2171,9 @@ func (fbo *folderBranchOps) createEntryLocked(
 	// easily without compromising semantics too much (i.e., to jump
 	// this operation to the front of the journal).
 	if excl == WithExcl {
-		if jServer, err := GetJournalServer(fbo.config); err == nil {
-			fbo.log.CDebugf(ctx, "Waiting for journal to flush")
-			if err := jServer.Wait(ctx, fbo.id()); err != nil {
-				return nil, DirEntry{}, err
-			}
+		if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
+			fbo.log); err != nil {
+			return nil, DirEntry{}, err
 		}
 	}
 
@@ -4208,11 +4208,13 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 	}
 
 	// A journal flush, if needed.
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		if err := jServer.Wait(context.Background(),
-			fbo.id()); err != nil {
-			return err
-		}
+	if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
+		fbo.log); err != nil {
+		return err
+	}
+
+	if err := fbo.mdFlushes.Wait(ctx); err != nil {
+		return err
 	}
 
 	if err := fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdates); err != nil {
@@ -4236,7 +4238,13 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 	if err := fbo.editHistory.Wait(ctx); err != nil {
 		return err
 	}
-	return fbo.fbm.waitForQuotaReclamations(ctx)
+	if err := fbo.fbm.waitForQuotaReclamations(ctx); err != nil {
+		return err
+	}
+
+	// A second journal flush if needed, to clear out any
+	// archive/remove calls caused by the above operations.
+	return WaitForTLFJournal(ctx, fbo.config, fbo.id(), fbo.log)
 }
 
 // CtxFBOTagKey is the type used for unique context tags within folderBranchOps
@@ -4672,16 +4680,9 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
 	}
 }
 
-func (fbo *folderBranchOps) onMDFlush(bid BranchID, rev MetadataRevision) {
-	ctx, cancelFunc := fbo.newCtxWithFBOID()
-	defer cancelFunc()
-
-	if bid != NullBranchID {
-		fbo.log.CDebugf(ctx, "Ignoring MD flush on branch %v for revision %d",
-			bid, rev)
-		return
-	}
-
+func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
+	rev MetadataRevision) {
+	defer fbo.mdFlushes.Done()
 	fbo.log.CDebugf(ctx, "Archiving references for flushed MD revision %d", rev)
 
 	// Get that revision.
@@ -4701,6 +4702,20 @@ func (fbo *folderBranchOps) onMDFlush(bid BranchID, rev MetadataRevision) {
 	defer fbo.mdWriterLock.Unlock(lState)
 
 	fbo.fbm.archiveUnrefBlocks(rmds[0].ReadOnly())
+}
+
+func (fbo *folderBranchOps) onMDFlush(bid BranchID, rev MetadataRevision) {
+	ctx, cancelFunc := fbo.newCtxWithFBOID()
+	defer cancelFunc()
+
+	if bid != NullBranchID {
+		fbo.log.CDebugf(ctx, "Ignoring MD flush on branch %v for revision %d",
+			bid, rev)
+		return
+	}
+
+	fbo.mdFlushes.Add(1)
+	go fbo.handleMDFlush(ctx, bid, rev)
 }
 
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps

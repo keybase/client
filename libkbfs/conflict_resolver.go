@@ -3341,11 +3341,9 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// reference them without re-uploading them).  If any new unmerged
 	// puts happen, our context will get cancelled and we'll try
 	// again.
-	if jServer, jErr := GetJournalServer(cr.config); jErr == nil {
-		cr.log.CDebugf(ctx, "Waiting for journal to flush")
-		if err = jServer.Wait(ctx, cr.fbo.id()); err != nil {
-			return
-		}
+	if err = WaitForTLFJournal(ctx, cr.config, cr.fbo.id(),
+		cr.log); err != nil {
+		return
 	}
 
 	// Step 1: Build the chains for each branch, as well as the paths

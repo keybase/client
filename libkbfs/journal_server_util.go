@@ -4,7 +4,12 @@
 
 package libkbfs
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/keybase/client/go/logger"
+	"golang.org/x/net/context"
+)
 
 // GetJournalServer returns the JournalServer tied to a particular
 // config.
@@ -25,4 +30,17 @@ func TLFJournalEnabled(config Config, tlfID TlfID) bool {
 		return err == nil
 	}
 	return false
+}
+
+// WaitForTLFJournal waits for the corresponding journal to flush, if
+// one exists.
+func WaitForTLFJournal(ctx context.Context, config Config, tlfID TlfID,
+	log logger.Logger) error {
+	if jServer, err := GetJournalServer(config); err == nil {
+		log.CDebugf(ctx, "Waiting for journal to flush")
+		if err := jServer.Wait(ctx, tlfID); err != nil {
+			return err
+		}
+	}
+	return nil
 }

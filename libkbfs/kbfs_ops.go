@@ -647,5 +647,5 @@ func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID TlfID, newBID BranchID) {
 func (fs *KBFSOpsStandard) onMDFlush(tlfID TlfID, bid BranchID,
 	rev MetadataRevision) {
 	ops := fs.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch})
-	go ops.onMDFlush(bid, rev)
+	ops.onMDFlush(bid, rev) // folderBranchOps makes a goroutine
 }
