@@ -52,7 +52,7 @@ popd
 
 :: Runquiet
 pushd %GOPATH%\src\github.com\keybase\client\go\tools\runquiet
-..\winresource\winresource.exe  -d "Keybase quiet start utility" -n "runquiet.exe" -i ../../../media/icons/Keybase.ico
+..\..\keybase\winresource.exe  -d "Keybase quiet start utility" -n "runquiet.exe" -i ../../../media/icons/Keybase.ico
 go build -ldflags "-H windowsgui"
 popd
 

@@ -1,0 +1,12 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  email: ?string,
+  isVerified: boolean,
+  onChangeEmail: (nextEmail: string) => void,
+  onSave: () => void,
+  onResendConfirmationCode: ?(() => void),
+}
+
+export default class UpdateEmail extends Component<void, Props, void> { }

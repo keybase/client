@@ -78,10 +78,14 @@ func removeKeybaseStartupShortcuts() {
 
 // Read all the uninstall subkeys and find the ones with DisplayName starting with "Dokan Library".
 // If not just listing, execute each uninstaller we find and merge return codes.
+// TODO: only delete the one matching the product key the keybase installer writes to the registry
+// https://keybase.atlassian.net/browse/CORE-3743
 func findDokanUninstall(list bool, wow64 bool) (result int) {
 	var access uint32 = registry.ENUMERATE_SUB_KEYS | registry.QUERY_VALUE
+	// Assume this is build 32 bit, so we need this flag to see 64 but registry
+	//   https://msdn.microsoft.com/en-us/library/windows/desktop/aa384129(v=vs.110).aspx
 	if wow64 {
-		access = access | registry.WOW64_32KEY
+		access = access | registry.WOW64_64KEY
 	}
 
 	k, err := registry.OpenKey(registry.LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", access)
@@ -103,7 +107,11 @@ func findDokanUninstall(list bool, wow64 bool) (result int) {
 		}
 
 		displayName, _, err := subKey.GetStringValue("DisplayName")
+		if list {
+			fmt.Printf("  %s -- %s\n", name, displayName)
+		}
 		if err == nil && strings.HasPrefix(displayName, "Dokan Library") {
+
 			fmt.Printf("Found %s  %s\n", displayName, name)
 			uninstall, _, err := subKey.GetStringValue("QuietUninstallString")
 			if err != nil {
@@ -124,8 +132,10 @@ func main() {
 	listPtr := flag.Bool("l", false, "list only, don't perform uninstall")
 
 	flag.Parse()
-
 	code := findDokanUninstall(*listPtr, false)
+	if *listPtr {
+		fmt.Print(" -- wow64 -- \n")
+	}
 	code = mergeResults(code, findDokanUninstall(*listPtr, true))
 	if !*listPtr {
 		removeKeybaseStartupShortcuts()
