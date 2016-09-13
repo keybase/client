@@ -939,7 +939,7 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 
 func (j *tlfJournal) wait(ctx context.Context) error {
 	workLeft, err := j.wg.WaitUnlessPaused(ctx)
-	if err == nil {
+	if err != nil {
 		return err
 	}
 	if workLeft {
