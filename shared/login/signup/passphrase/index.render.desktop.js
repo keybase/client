@@ -3,7 +3,7 @@ import Container from '../../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {UserCard, Input, Button} from '../../../common-adapters'
-import {globalStyles, globalColors} from '../../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 class Render extends Component<void, Props, void> {
 
@@ -14,11 +14,11 @@ class Render extends Component<void, Props, void> {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer} outerStyle={stylesOuter}>
         <UserCard style={stylesCard}>
-          <Input autoFocus={true} style={stylesFirst} type='password'
+          <Input autoFocus={true} style={{...stylesInput, ...stylesFirst}} type='password'
             onChangeText={pass1 => this.props.pass1Update(pass1)}
             onEnterKeyDown={() => confirmInput.focus()}
             hintText='Create a passphrase' errorText={passphraseError} />
-          <Input type='password' hintText='Confirm passphrase' onEnterKeyDown={this.props.onSubmit}
+          <Input type='password' style={stylesInput} hintText='Confirm passphrase' onEnterKeyDown={this.props.onSubmit}
             ref={input => { confirmInput = input }}
             onChangeText={pass2 => this.props.pass2Update(pass2)} />
           <Button fullWidth={true} type='Primary' label='Continue' onClick={this.props.onSubmit} />
@@ -36,6 +36,9 @@ const stylesContainer = {
   justifyContent: 'center',
   alignItems: 'center',
   marginTop: 15,
+}
+const stylesInput = {
+  marginBottom: globalMargins.large,
 }
 const stylesFirst = {
   marginTop: 35,
