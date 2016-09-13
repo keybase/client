@@ -425,7 +425,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
 
   const requestIdle = f => {
     if (!alreadyPending) {
-      requestIdleCallback(f)
+      requestIdleCallback(f, {timeout: 1e3})
     } else {
       console.log('skipped idle call due to already pending')
     }
@@ -643,7 +643,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         }
 
         onFinish && onFinish()
-      })
+      }, {timeout: 1e3})
 
       // if we're pending we still want to call onFinish
       if (alreadyPending) {
