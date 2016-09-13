@@ -108,6 +108,7 @@ var hardcodedPVLString = `
 }
 `
 
+// GetHardcodedPvl returns the parsed hardcoded pvl
 func GetHardcodedPvl() *jsonw.Wrapper {
 	return &hardcodedPVL
 }
