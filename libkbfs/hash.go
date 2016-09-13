@@ -222,7 +222,7 @@ func (h Hash) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements the encoding.json.Unmarshaler interface
 // for Hash.
-func (h Hash) UnmarshalJSON(data []byte) error {
+func (h *Hash) UnmarshalJSON(data []byte) error {
 	var s string
 	err := json.Unmarshal(data, &s)
 	if err != nil {
@@ -232,7 +232,7 @@ func (h Hash) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	h.h = newH.h
+	*h = newH
 	return nil
 }
 

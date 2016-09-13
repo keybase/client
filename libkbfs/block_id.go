@@ -65,6 +65,6 @@ func (id BlockID) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements the encoding.json.Unmarshaler interface
 // for BlockID.
-func (id BlockID) UnmarshalJSON(s []byte) error {
+func (id *BlockID) UnmarshalJSON(s []byte) error {
 	return id.h.UnmarshalJSON(s)
 }
