@@ -38,7 +38,7 @@ for (const method in console) {
     logger[method] = (...args) => {
       requestIdleCallback(() => {
         console[method](...args)
-      })
+      }, {timeout: 1e3})
     }
   }
 }
