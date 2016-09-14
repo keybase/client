@@ -286,6 +286,7 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ke
 	if tlfIDb == nil {
 		return nil, errors.New("invalid TLF ID acquired")
 	}
+	criteria.TlfName = string(resp.CanonicalName)
 
 	tlfID := chat1.TLFID(tlfIDb)
 	conversationsRemote, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
