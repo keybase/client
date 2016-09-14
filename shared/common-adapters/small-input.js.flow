@@ -6,7 +6,7 @@ export type SmallInputProps = {
   hintText: string,
   label: string,
   value: ?string,
-  onChange?: (next: string) => void,
+  onChange: (next: string) => void,
   errorState?: boolean,
   style?: Object,
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters', // Native only

@@ -130,23 +130,27 @@ const smallInputMap: DumbComponentMap<SmallInput> = {
       label: 'Greet:',
       hintText: 'Hello...',
       value: null,
+      onChange: ev => console.log('onChange', ev),
     },
     'Default Filled': {
       label: 'Greet:',
       hintText: 'Hello...',
       value: 'Hello, World!',
+      onChange: ev => console.log('onChange', ev),
     },
     'Error Empty': {
       label: 'Greet:',
       hintText: 'Hello...',
       errorState: true,
       value: null,
+      onChange: ev => console.log('onChange', ev),
     },
     'Error Filled': {
       label: 'Greet:',
       hintText: 'Hello...',
       value: 'Hello, World!',
       errorState: true,
+      onChange: ev => console.log('onChange', ev),
     },
   },
 }
