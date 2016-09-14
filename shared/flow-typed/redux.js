@@ -1,3 +1,5 @@
+// Lifted from: https://github.com/gcanti/redux/commit/ec18cbe4551159a64518b17bd556a7525be94f88
+// PR into redux here: https://github.com/reactjs/redux/pull/1887
 declare module 'redux' {
 
   /*
