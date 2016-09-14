@@ -101,7 +101,6 @@ func TestChatMessageUnbox(t *testing.T) {
 
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
-	ctime := time.Now()
 	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
 	if err != nil {
 		t.Fatal(err)
@@ -109,7 +108,7 @@ func TestChatMessageUnbox(t *testing.T) {
 
 	// need to give it a server header...
 	boxed.ServerHeader = &chat1.MessageServerHeader{
-		Ctime: gregor1.ToTime(ctime),
+		Ctime: gregor1.ToTime(time.Now()),
 	}
 
 	unboxed, err := handler.boxer.unboxMessageWithKey(*boxed, key)
@@ -141,12 +140,12 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
 	origHashFn := handler.boxer.hashV1
-	handler.boxer.hashV1 = func(data []byte) [sha256.Size]byte {
+	handler.boxer.hashV1 = func(data []byte) chat1.Hash {
 		data = append(data, []byte{1, 2, 3}...)
-		return sha256.Sum256(data)
+		sum := sha256.Sum256(data)
+		return sum[:]
 	}
 
-	ctime := time.Now()
 	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
 	if err != nil {
 		t.Fatal(err)
@@ -154,7 +153,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 
 	// need to give it a server header...
 	boxed.ServerHeader = &chat1.MessageServerHeader{
-		Ctime: gregor1.ToTime(ctime),
+		Ctime: gregor1.ToTime(time.Now()),
 	}
 
 	// put original hash fn back
@@ -192,14 +191,11 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 			S: sig.Sig[:],
 			K: sig.Kid,
 		}
-		// reverse the sig
-		for left, right := 0, len(sigInfo.S)-1; left < right; left, right = left+1, right-1 {
-			sigInfo.S[left], sigInfo.S[right] = sigInfo.S[right], sigInfo.S[left]
-		}
+		// flip bits
+		sigInfo.S[4] ^= 0x10
 		return sigInfo, nil
 	}
 
-	ctime := time.Now()
 	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
 	if err != nil {
 		t.Fatal(err)
@@ -207,7 +203,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 
 	// need to give it a server header...
 	boxed.ServerHeader = &chat1.MessageServerHeader{
-		Ctime: gregor1.ToTime(ctime),
+		Ctime: gregor1.ToTime(time.Now()),
 	}
 
 	// put original signing fn back

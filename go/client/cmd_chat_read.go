@@ -47,7 +47,7 @@ func (c *cmdChatRead) Run() error {
 
 	switch len(conversations) {
 	case 0:
-		ui.Printf("no conversation is found\n")
+		ui.Printf("no conversations found\n")
 	case 1:
 		conversationView(conversations[0]).show(c.G(), ui)
 	default:

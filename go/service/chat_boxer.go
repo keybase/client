@@ -22,15 +22,15 @@ import (
 
 type chatBoxer struct {
 	tlf    keybase1.TlfInterface
-	hashV1 func(data []byte) [sha256.Size]byte // replaceable for testing
-	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error)
+	hashV1 func(data []byte) chat1.Hash
+	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
 	libkb.Contextified
 }
 
 func newChatBoxer(g *libkb.GlobalContext) *chatBoxer {
 	return &chatBoxer{
 		tlf:          newTlfHandler(nil, g),
-		hashV1:       sha256.Sum256,
+		hashV1:       hashSha256V1,
 		sign:         sign,
 		Contextified: libkb.NewContextified(g),
 	}
@@ -395,4 +395,9 @@ func (b *chatBoxer) unmarshal(data []byte, v interface{}) error {
 	mh := codec.MsgpackHandle{WriteExt: true}
 	dec := codec.NewDecoderBytes(data, &mh)
 	return dec.Decode(&v)
+}
+
+func hashSha256V1(data []byte) chat1.Hash {
+	sum := sha256.Sum256(data)
+	return sum[:]
 }
