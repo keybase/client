@@ -212,15 +212,12 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                         parallel (
                                             test_windows_go: {
                                                 println "Test Windows Go"
-                                                bat "choco install -y golang --version 1.6"
-                                                bat "choco install -y gpg4win-vanilla --version 2.3.1"
                                                 dir("go") {
                                                     dir ("keybase") {
                                                         bat "go build -a 2>&1 || exit /B 1"
                                                         bat "echo %errorlevel%"
                                                     }
                                                     bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
-                                                    bat "choco install -y curl"
                                                     helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
                                                     def testlist = readFile('testlist.txt')
                                                     def tests = testlist.tokenize()
@@ -235,9 +232,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             if (false && env.CHANGE_ID) {
                                             wrap([$class: 'Xvfb']) {
                                                 println "Test Windows JS"
-                                                bat "choco install -y nodejs.install --allow-downgrade --version 6.1.0"
-                                                bat "choco install -y python --version 2.7.11"
-                                                bat "choco install -y graphicsmagick --version 1.3.24"
                                                 dir("visdiff") {
                                                     bat "npm install"
                                                 }

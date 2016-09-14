@@ -23,7 +23,7 @@ func parseDurationExtended(s string) (d time.Duration, err error) {
 	}
 	d = time.Duration(days) * 24 * time.Hour
 
-	if p < len(s) {
+	if p < len(s)-1 {
 		var dur time.Duration
 		if dur, err = time.ParseDuration(s[p+1:]); err != nil {
 			return time.Duration(0), err

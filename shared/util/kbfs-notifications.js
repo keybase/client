@@ -16,9 +16,10 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
   const tlf = `/keybase${getTLF(notification.publicTopLevelFolder, basedir)}`
   switch (notification.errorType) {
     case KbfsCommonFSErrorType.accessDenied:
+      let prefix = user ? `${user} does` : 'You do'
       return {
         title: 'Keybase: Access denied',
-        body: `${user} does not have ${notification.params.mode} access to ${tlf}`,
+        body: `${prefix} not have ${notification.params.mode} access to ${tlf}`,
       }
 
     case KbfsCommonFSErrorType.userNotFound:
@@ -176,7 +177,7 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
 
   let title = `KBFS: ${action}`
   let body = `Files in ${tlf} ${notification.status}`
-  let user = 'You' || getState().config.username
+  let user = getState().config.username
 
   const isError = notification.statusCode === KbfsCommonFSStatusCode.error
   // Don't show starting or finished, but do show error.

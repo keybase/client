@@ -55,6 +55,10 @@ const (
 	ComponentNameUpdater ComponentName = "updater"
 	// ComponentNameApp is the UI app
 	ComponentNameApp ComponentName = "app"
+	// ComponentNameFuse is the Fuse component
+	ComponentNameFuse ComponentName = "fuse"
+	// ComponentNameHelper is the privileged helper tool
+	ComponentNameHelper ComponentName = "helper"
 	// ComponentNameUnknown is placeholder for unknown components
 	ComponentNameUnknown ComponentName = "unknown"
 )
@@ -80,6 +84,10 @@ func (c ComponentName) Description() string {
 		return "Command Line"
 	case ComponentNameUpdater:
 		return "Updater"
+	case ComponentNameFuse:
+		return "Fuse"
+	case ComponentNameHelper:
+		return "Privileged Helper Tool"
 	}
 	return "Unknown"
 }
@@ -97,6 +105,10 @@ func ComponentNameFromString(s string) ComponentName {
 		return ComponentNameUpdater
 	case string(ComponentNameApp):
 		return ComponentNameApp
+	case string(ComponentNameFuse):
+		return ComponentNameFuse
+	case string(ComponentNameHelper):
+		return ComponentNameHelper
 	}
 	return ComponentNameUnknown
 }

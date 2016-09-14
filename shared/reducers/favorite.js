@@ -26,7 +26,7 @@ export default function (state: FavoriteState = initialState, action: FavoriteAc
     case CommonConstants.resetStore:
       return {...initialState}
 
-    case Constants.favoriteList:
+    case Constants.favoriteListed:
       if (action.error) {
         break
       }

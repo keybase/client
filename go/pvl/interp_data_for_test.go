@@ -52,7 +52,7 @@ var json1 = ` {
       "type": "useful",
       "poster": "eve",
       "data": "evil.com",
-      "extra": [4,5,6]
+      "extra": [[4],5,6]
     }
   ]
 }`

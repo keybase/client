@@ -117,7 +117,9 @@ func (v *CmdInstall) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	} else {
-		outputComponentResults(v.G(), "Install", result.ComponentResults)
+		if err := result.Status.GoError(); err != nil {
+			v.G().Log.Errorf("%s", err)
+		}
 	}
 	return nil
 }
@@ -167,7 +169,7 @@ func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 		if libkb.IsBrewBuild {
 			v.components = []string{"service"}
 		} else {
-			v.components = []string{"service", "kbfs", "updater"}
+			v.components = []string{"service", "kbfs", "updater", "fuse", "helper"}
 		}
 	} else {
 		v.components = strings.Split(ctx.String("components"), ",")
@@ -184,16 +186,11 @@ func (v *CmdUninstall) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	} else {
-		outputComponentResults(v.G(), "Uninstall", result.ComponentResults)
+		if err := result.Status.GoError(); err != nil {
+			v.G().Log.Errorf("%s", err)
+		}
 	}
 	return nil
-}
-
-func outputComponentResults(g *libkb.GlobalContext, action string, crs []keybase1.ComponentResult) {
-	for _, cr := range crs {
-		cn := install.ComponentNameFromString(cr.Name)
-		g.Log.Info("%s %s: %s", action, cn.Description(), cr.Status.Desc)
-	}
 }
 
 func DiagnoseSocketError(ui libkb.UI, err error) {

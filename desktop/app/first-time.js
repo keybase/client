@@ -11,8 +11,8 @@ const isFirstTime: Promise<boolean> = new Promise((resolve, reject) => {
     if (err) {
       try {
         fs.writeFileSync(filePath, 'This file gets created on first run of the app')
-      } catch (e) {
-        console.error(`Couldn't touch startup.txt file: ${e}`)
+      } catch (err) {
+        console.error('Couldn\'t touch startup.txt file:', err)
         // if we cant' write this file, let's not assume this is the first time, maybe something weird is going on
         resolve(false)
         return

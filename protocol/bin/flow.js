@@ -211,7 +211,11 @@ function analyzeMessages (json, project) {
     const rpc = isUIProtocol ? '' : `export function ${name}Rpc (request: Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
   engineRpcOutgoing({...request, method: '${json.protocol}.${m}'})
 }`
-    return [paramType, response, rpc]
+
+    const rpcPromise = isUIProtocol ? '' : `export function ${name}RpcPromise (request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>): Promise<${responseType !== 'null' ? `${name}Result` : 'any'}> {
+  return new Promise((resolve, reject) => { ${name}Rpc({...request, ${p ? 'param: request.param, ' : ''}callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}`
+    return [paramType, response, rpc, rpcPromise]
   })
 }
 

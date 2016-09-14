@@ -101,6 +101,98 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "TLFVisibility",
+      "symbols": [
+        "PUBLIC_0",
+        "PRIVATE_1",
+        "ANY_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxQuery",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
+        },
+        {
+          "type": [
+            null,
+            "TopicType"
+          ],
+          "name": "topicType"
+        },
+        {
+          "type": [
+            null,
+            "TLFID"
+          ],
+          "name": "tlfID"
+        },
+        {
+          "type": [
+            null,
+            "TLFVisibility"
+          ],
+          "name": "tlfVisibility"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "before"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "after"
+        },
+        {
+          "type": "bool",
+          "name": "unreadOnly"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetThreadQuery",
+      "fields": [
+        {
+          "type": "bool",
+          "name": "markAsRead"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageType"
+          },
+          "name": "messageTypes"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "before"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "after"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "ConversationIDTriple",
       "fields": [
@@ -168,9 +260,9 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageServerHeader"
+            "items": "MessageBoxed"
           },
-          "name": "maxHeaders"
+          "name": "maxMsgs"
         }
       ]
     },
