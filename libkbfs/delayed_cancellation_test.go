@@ -102,6 +102,28 @@ func TestDelayedCancellationCleanupWhileNotEnabled(t *testing.T) {
 	}
 }
 
+func TestDelayedCancellationSecondEnable(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := makeContextWithDelayedCancellation(t)
+	defer cancel()
+
+	err := EnableDelayedCancellationWithGracePeriod(ctx, 0)
+	if err != nil {
+		t.Fatalf("1st EnableDelayedCancellationWithGracePeriod failed: %v", err)
+	}
+	cancel()
+	<-ctx.Done()
+	// parent context is not canceled; second "enable" should succeed even it's
+	// after grace period
+	err = EnableDelayedCancellationWithGracePeriod(ctx, 0)
+	if err == nil {
+		t.Fatalf("2nd EnableDelayedCancellationWithGracePeriod succeeded even " +
+			"though more than grace period has passed since parent context was " +
+			"canceled")
+	}
+}
+
 func TestDelayedCancellationEnabled(t *testing.T) {
 	t.Parallel()
 

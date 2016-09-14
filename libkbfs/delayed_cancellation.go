@@ -118,16 +118,15 @@ func NewContextWithReplayFrom(ctx context.Context) (context.Context, error) {
 }
 
 type cancellationDelayer struct {
-	*sync.Cond
-	delayEnabled bool
-	timer        *time.Timer
-	canceled     bool
-	done         chan struct{}
+	mu       sync.Mutex
+	delay    time.Duration
+	canceled bool
+
+	done chan struct{}
 }
 
 func newCancellationDelayer() *cancellationDelayer {
 	return &cancellationDelayer{
-		Cond: sync.NewCond(&sync.Mutex{}),
 		done: make(chan struct{}),
 	}
 }
@@ -173,12 +172,16 @@ func NewContextWithCancellationDelayer(
 		case <-ctx.Done():
 		case <-c.done:
 		}
-		c.L.Lock()
-		for c.delayEnabled {
-			c.Wait()
+		var d time.Duration
+		func() {
+			c.mu.Lock()
+			defer c.mu.Unlock()
+			c.canceled = true
+			d = c.delay
+		}()
+		if d != 0 {
+			time.Sleep(d)
 		}
-		c.canceled = true
-		c.L.Unlock()
 		cancel()
 	}()
 	return newCtx, nil
@@ -192,30 +195,17 @@ func NewContextWithCancellationDelayer(
 // is called.
 func EnableDelayedCancellationWithGracePeriod(ctx context.Context, timeout time.Duration) error {
 	if c, ok := ctx.Value(CtxCancellationDelayerKey).(*cancellationDelayer); ok {
-		c.L.Lock()
-		defer c.L.Unlock()
-		if c.canceled || (c.timer != nil && !c.timer.Stop()) {
-			// Too late! The context is already canceled or the timer for
-			// disableDelay is already fired.
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		if c.canceled {
+			// Too late! The parent context is already canceled and timer has already
+			// started.
 			return context.Canceled
 		}
-		if !c.delayEnabled {
-			c.delayEnabled = true
-			c.Broadcast()
-		}
-		c.timer = time.AfterFunc(timeout, c.disableDelay)
+		c.delay = timeout
 		return nil
 	}
 	return NoCancellationDelayerError{}
-}
-
-func (c *cancellationDelayer) disableDelay() {
-	c.L.Lock()
-	defer c.L.Unlock()
-	if c.delayEnabled {
-		c.delayEnabled = false
-		c.Broadcast()
-	}
 }
 
 // CleanupCancellationDelayer cleans up a context (ctx) that is cancellation
