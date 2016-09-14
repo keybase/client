@@ -2268,7 +2268,7 @@ export type HeaderPlaintextV1 = {
   prev?: ?Array<chat1.MessagePreviousPointer>,
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
-  bodyHash: bytes,
+  bodyHash: chat1.Hash,
   headerSignature?: ?chat1.SignatureInfo,
 }
 

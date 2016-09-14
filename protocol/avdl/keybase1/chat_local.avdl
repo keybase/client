@@ -59,7 +59,7 @@ protocol chatLocal {
     array<chat1.MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
-    bytes bodyHash;
+    chat1.Hash bodyHash;
     union {null, chat1.SignatureInfo} headerSignature;
   }
 

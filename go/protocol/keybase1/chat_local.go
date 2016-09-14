@@ -230,7 +230,7 @@ type HeaderPlaintextV1 struct {
 	Prev            []chat1.MessagePreviousPointer `codec:"prev" json:"prev"`
 	Sender          gregor1.UID                    `codec:"sender" json:"sender"`
 	SenderDevice    gregor1.DeviceID               `codec:"senderDevice" json:"senderDevice"`
-	BodyHash        []byte                         `codec:"bodyHash" json:"bodyHash"`
+	BodyHash        chat1.Hash                     `codec:"bodyHash" json:"bodyHash"`
 	HeaderSignature *chat1.SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
 }
 

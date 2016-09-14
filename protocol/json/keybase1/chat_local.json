@@ -193,7 +193,7 @@
           "name": "senderDevice"
         },
         {
-          "type": "bytes",
+          "type": "chat1.Hash",
           "name": "bodyHash"
         },
         {
