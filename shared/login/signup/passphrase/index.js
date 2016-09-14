@@ -38,6 +38,7 @@ class PassphraseForm extends Component {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   state => ({
     passphraseError: state.signup.passphraseError,

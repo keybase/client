@@ -118,7 +118,7 @@ class ProofsRender extends Component<void, Props, void> {
 
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
-        {this.props.proofs && this.props.proofs.map((p, idx) =>
+        {this.props.type === 'proofs' && this.props.proofs.map((p, idx) =>
           <ProofRow
             key={`${p.id || ''}${p.type}`}
             proof={p}
@@ -127,7 +127,7 @@ class ProofsRender extends Component<void, Props, void> {
             hasMenu={!!onClickProofMenu}
             style={pad(idx)} />
         )}
-        {this.props.missingProofs && this.props.missingProofs.map((mp, idx) =>
+        {this.props.type === 'missingProofs' && this.props.missingProofs.map((mp, idx) =>
           <MissingProofRow
             key={mp.type}
             missingProof={mp}

@@ -1,13 +1,13 @@
 // @flow
 import {defaultKBFSPath} from './config'
 
-import type {$Exact} from './types/more'
+import type {Exact} from '../constants/types/more'
 import type {Folder as FolderRPC} from '../constants/types/flow-types'
 import type {Folder, ParticipantUnlock, Device, MetaType} from './folders'
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
 import type {UserList} from '../common-adapters/usernames'
 
-type ListState = $Exact<{
+type ListState = Exact<{
   tlfs?: Array<Folder>,
   ignored?: Array<Folder>,
   isPublic: boolean,
@@ -19,20 +19,20 @@ type ListState = $Exact<{
   extraRows?: Array<React$Element<*>>
 }>
 
-export type FolderState = $Exact<{
+export type FolderState = Exact<{
   privateBadge: number,
   private: ListState,
   publicBadge: number,
   public: ListState,
 }>
 
-export type ViewState = $Exact<{
+export type ViewState = Exact<{
   showingPrivate: boolean,
   publicIgnoredOpen: boolean,
   privateIgnoredOpen: boolean,
 }>
 
-export type FavoriteState = $Exact<{
+export type FavoriteState = Exact<{
   folderState: FolderState,
   viewState: ViewState,
 }>

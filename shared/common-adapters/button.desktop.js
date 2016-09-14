@@ -6,7 +6,7 @@ import {FlatButton} from 'material-ui'
 import {globalStyles, globalColors} from '../styles'
 
 class Button extends Component<void, Props, void> {
-  _styles (type: Props.type): Object {
+  _styles (type: $PropertyType<Props, 'type'>): Object {
     let backgroundStyle = {}
     let labelStyle = {}
     let progressColor = globalColors.white

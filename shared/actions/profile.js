@@ -3,7 +3,6 @@ import * as Constants from '../constants/profile'
 import engine from '../engine'
 import openURL from '../util/open-url'
 import {BTCRegisterBTCRpc, ConstantsStatusCode, ProveCommonProofStatus, apiserverPostRpc, pgpPgpKeyGenDefaultRpc, proveCheckProofRpc, proveStartProofRpc, revokeRevokeKeyRpc, revokeRevokeSigsRpc} from '../constants/types/flow-types'
-import {bindActionCreators} from 'redux'
 import {call, put, take, race, select} from 'redux-saga/effects'
 import {getMyProfile} from './tracker'
 import {isValidEmail, isValidName} from '../util/simple-validators'
@@ -65,7 +64,7 @@ function editProfile (bio: string, fullname: string, location: string): AsyncAct
 
 function _makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
-    waitingHandler: bindActionCreators(_waitingForResponse, dispatch),
+    waitingHandler: (waiting: boolean) => { dispatch(_waitingForResponse(waiting)) },
   }
 }
 
@@ -296,7 +295,7 @@ function _revokedErrorResponse (error: string): FinishRevokeProof {
 
 function _makeRevokeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
-    waitingHandler: bindActionCreators(_revokedWaitingForResponse, dispatch),
+    waitingHandler: (waiting: boolean) => { dispatch(_revokedWaitingForResponse(waiting)) },
   }
 }
 

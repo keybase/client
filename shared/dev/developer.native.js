@@ -86,11 +86,11 @@ const styles = {
 }
 
 export default connect(
-  state => {
+  (state: any) => {
     const {devConfig} = state.config
     return {devConfig}
   },
-  dispatch => {
+  (dispatch: any) => {
     return {
       getDevSettings: () => dispatch(getDevSettings()),
       saveDevSettings: () => dispatch(saveDevSettings()),
