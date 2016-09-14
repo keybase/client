@@ -139,6 +139,18 @@ func (s *NaïveStaller) StallMDOp(stalledOp StallableMDOp, maxStalls int) {
 	onStalledCh := make(chan struct{}, maxStalls)
 	unstallCh := make(chan struct{})
 	oldMDOps := s.config.MDOps()
+	if jServer, err := GetJournalServer(s.config); err == nil {
+		// Stall the delegate server as well
+		jServer.delegateMDOps = &stallingMDOps{
+			stallOpName: stalledOp,
+			stallKey:    stallKeyStallEverything,
+			staller: staller{
+				stalled: onStalledCh,
+				unstall: unstallCh,
+			},
+			delegate: jServer.delegateMDOps,
+		}
+	}
 	s.config.SetMDOps(&stallingMDOps{
 		stallOpName: stalledOp,
 		stallKey:    stallKeyStallEverything,
