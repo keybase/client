@@ -19,14 +19,22 @@ import (
 	"github.com/keybase/client/go/pvl"
 )
 
-type ScanProofsCache struct {
+type ScanProofsCacheData struct {
 	// Map from sigid to whether the proof is ok.
 	Proofs map[string]bool
 }
 
+type ScanProofsCache struct {
+	data  ScanProofsCacheData
+	dirty bool
+}
+
 func NewScanProofsCache() *ScanProofsCache {
 	return &ScanProofsCache{
-		Proofs: make(map[string]bool),
+		data: ScanProofsCacheData{
+			Proofs: make(map[string]bool),
+		},
+		dirty: false,
 	}
 }
 
@@ -37,26 +45,42 @@ func LoadScanProofsCache(filepath string) (*ScanProofsCache, error) {
 	}
 	dec := gob.NewDecoder(f)
 	var c ScanProofsCache
-	err = dec.Decode(&c)
+	err = dec.Decode(&c.data)
 	if err != nil {
 		return nil, err
 	}
 	return &c, nil
 }
 
+func (c *ScanProofsCache) Get(sigID string) bool {
+	return c.data.Proofs[sigID]
+}
+
+func (c *ScanProofsCache) Set(sigID string) {
+	if !c.data.Proofs[sigID] {
+		c.dirty = true
+	}
+	c.data.Proofs[sigID] = true
+}
+
 func (c *ScanProofsCache) Save(filepath string) error {
+	if !c.dirty {
+		// Don't save if nothing has changed
+		return nil
+	}
 	temppath, f, err := libkb.OpenTempFile(filepath, "", 0644)
 	if err != nil {
 		return err
 	}
 	enc := gob.NewEncoder(f)
-	err = enc.Encode(c)
+	err = enc.Encode(c.data)
 	if err != nil {
 		f.Close()
 		return err
 	}
 	f.Close()
 	os.Rename(temppath, filepath)
+	c.dirty = false
 	return nil
 }
 
@@ -114,7 +138,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 	if len(e.cachefile) > 0 {
 		lcache, err := LoadScanProofsCache(e.cachefile)
 		if err == nil {
-			e.G().Log.Info("Using cache: %v (%v entries)", e.cachefile, len(lcache.Proofs))
+			e.G().Log.Info("Using cache: %v (%v entries)", e.cachefile, len(lcache.data.Proofs))
 			cache = lcache
 		} else {
 			e.G().Log.Warning("Could not load cache: %v", err)
@@ -127,7 +151,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 		if err != nil {
 			return fmt.Errorf("Could not open ignore file: %v", err)
 		}
-		e.G().Log.Info("Using ignore file: %v (%v entries)", len(ignored), e.ignorefile)
+		e.G().Log.Info("Using ignore file: %v (%v entries)", e.ignorefile, len(ignored))
 	}
 
 	if len(e.sigid) > 0 && len(e.indices) > 0 {
@@ -221,7 +245,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 			e.G().Log.Info("Ok\n")
 			nok++
 			if cache != nil {
-				cache.Proofs[rec["sig_id"]] = true
+				cache.Set(rec["sig_id"])
 				if i%saveevery == 0 {
 					saveerr := cache.Save(e.cachefile)
 					if saveerr != nil {
@@ -286,7 +310,7 @@ func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanP
 		badstate = true
 	}
 
-	if cache != nil && cache.Proofs[rec["sig_id"]] {
+	if cache != nil && cache.Get(rec["sig_id"]) {
 		skip = true
 		skipreason = "cached success"
 	}
