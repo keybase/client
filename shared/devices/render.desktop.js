@@ -69,12 +69,6 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
           {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
         </Box>
       </Box>
-      <Box style={{...stylesRevokedColumn}}>
-        {!revoked && <Text type='BodySmallError' className='existing-device-item' onClick={e => {
-          e.stopPropagation()
-          showRemoveDevicePage(device)
-        }}>Revoke</Text>}
-      </Box>
     </Box>
   )
 }
