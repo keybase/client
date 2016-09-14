@@ -62,7 +62,7 @@ func (c *CmdChatAPI) ParseArgv(ctx *cli.Context) error {
 	c.indent = ctx.Bool("pretty")
 	c.inputFile = ctx.String("infile")
 	c.outputFile = ctx.String("outfile")
-	c.message = ctx.String("message")
+	c.message = ctx.String("m")
 
 	if len(c.message) > 0 && len(c.inputFile) > 0 {
 		return errors.New("specify -m or -i, but not both")
