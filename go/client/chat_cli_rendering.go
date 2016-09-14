@@ -148,8 +148,8 @@ func (f messageFormatter) body(g *libkb.GlobalContext) []string {
 			return []string{fmt.Sprintf("unsupported MessageType: %s", typ.String())}
 		}
 	default:
-		// XXX this should be an error too
-		return []string{fmt.Sprintf("unhandled version: %v", version)}
+		g.Log.Warning("messageFormatter.body unhandled MessagePlaintext version %v", version)
+		return nil
 	}
 }
 
