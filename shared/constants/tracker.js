@@ -131,6 +131,18 @@ export type TrackerState = {
   tlfs: Array<Folder>,
 }
 
+export type NonUserState = {
+  type: 'nonUser',
+  closed: boolean,
+  hidden: boolean,
+  name: string,
+  reason: string,
+  isPrivate: boolean,
+  inviteLink: ?string,
+}
+
+export type TrackerOrNonUserState = TrackerState | NonUserState
+
 export function isLoading (state: ?TrackerState): boolean {
   // TODO (mm) ideally userInfo should be null until we get a response from the server
   // Same with proofs (instead of empty array). So we know the difference between

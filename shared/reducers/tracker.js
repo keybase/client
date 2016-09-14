@@ -2,7 +2,7 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/tracker'
 import _ from 'lodash'
-import type {Proof, OverviewProofState, SimpleProofState, SimpleProofMeta, NonUserActions, TrackerState} from '../constants/tracker'
+import type {Proof, OverviewProofState, SimpleProofState, SimpleProofMeta, NonUserActions, TrackerState, NonUserState, TrackerOrNonUserState} from '../constants/tracker'
 import type {Action} from '../constants/types/flux'
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, ProofResult} from '../constants/types/flow-types'
 import type {PlatformsExpandedType} from '../constants/types/more'
@@ -10,18 +10,6 @@ import {IdentifyCommonTrackDiffType, ProveCommonProofState, ProveCommonProofType
 
 const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored, metaPending,
   normal, warning, error, checking} = Constants
-
-export type NonUserState = {
-  type: 'nonUser',
-  closed: boolean,
-  hidden: boolean,
-  name: string,
-  reason: string,
-  isPrivate: boolean,
-  inviteLink: ?string
-}
-
-type TrackerOrNonUserState = TrackerState | NonUserState
 
 export type State = {
   serverStarted: boolean,

@@ -51,11 +51,11 @@ class Devices extends Component {
 }
 
 export default connect(
-  state => {
+  (state: any) => {
     const {devices, waitingForServer, error} = state.devices
     return {devices, waitingForServer, error}
   },
-  dispatch => {
+  (dispatch: any) => {
     return {
       loadDevices: () => dispatch(loadDevices()),
       showExistingDevicePage: device => dispatch(routeAppend({path: 'showDevice', device})),

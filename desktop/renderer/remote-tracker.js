@@ -2,20 +2,21 @@
 
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
 import {registerIdentifyUi, onClose, startTimer, stopTimer, registerTrackerIncomingRpcs} from '../shared/actions/tracker'
 import RemoteComponent from './remote-component'
-import type {TrackerState} from '../shared/constants/tracker'
-import type {Action, Dispatch} from '../shared/constants/types/flux'
+
+import type {TypedState} from '../shared/constants/reducer'
+import type {TrackerOrNonUserState} from '../shared/constants/tracker'
+import type {Action} from '../shared/constants/types/flux'
 
 type Props = {
   registerIdentifyUi: () => void,
   registerTrackerIncomingRpcs: () => void,
-  onClose: () => void,
+  onClose: (username: string) => void,
   started: boolean,
-  startTimer: (dispatch: Dispatch, getState: any) => void,
+  startTimer: () => void,
   stopTimer: () => Action,
-  trackers: {[key: string]: TrackerState},
+  trackers: {[key: string]: TrackerOrNonUserState},
 }
 
 class RemoteTracker extends Component<void, Props, void> {
@@ -34,7 +35,7 @@ class RemoteTracker extends Component<void, Props, void> {
 
     return (
       <div>
-        {Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
+        {Object.keys(trackers).filter(username => !trackers[username].closed && trackers[username].type === 'tracker').map(username => (
           <RemoteComponent
             positionBottomRight={true}
             windowsOpts={windowsOpts}
@@ -55,16 +56,18 @@ class RemoteTracker extends Component<void, Props, void> {
   }
 }
 
+type OwnProps = {}
+
 export default connect(
-  state => ({
+  (state: TypedState, op: OwnProps) => ({
     started: state.tracker.serverStarted,
     trackers: state.tracker.trackers,
   }),
-  dispatch => bindActionCreators({
-    registerIdentifyUi,
-    startTimer,
-    stopTimer,
-    onClose,
-    registerTrackerIncomingRpcs,
-  }, dispatch)
+  (dispatch: any, op: OwnProps) => ({
+    registerIdentifyUi: () => dispatch(registerIdentifyUi()),
+    startTimer: () => dispatch(startTimer()),
+    stopTimer: () => dispatch(stopTimer()),
+    onClose: (username: string) => { dispatch(onClose(username)) },
+    registerTrackerIncomingRpcs: () => dispatch(registerTrackerIncomingRpcs),
+  })
 )(RemoteTracker)

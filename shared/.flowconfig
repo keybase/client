@@ -28,6 +28,7 @@
 
 [libs]
 ./libs/flow-interface.js.flow
+./flow-typed
 
 [options]
 munge_underscores=true

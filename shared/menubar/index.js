@@ -181,6 +181,7 @@ class Menubar extends Component<void, Props, void> {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   state => ({
     username: state.config && state.config.username,
