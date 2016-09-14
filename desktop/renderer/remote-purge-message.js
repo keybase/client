@@ -4,8 +4,10 @@ import {connect} from 'react-redux'
 import RemoteComponent from './remote-component'
 import * as Constants from '../../shared/constants/pgp'
 
+import type {TypedState} from '../../shared/constants/reducer'
+
 type Props = {
-  close: () => void,
+  onClose: () => void,
   open: boolean,
 }
 
@@ -27,10 +29,10 @@ class RemotePurgeMessage extends Component<void, Props, void> {
           title='PgpPurgeMessage'
           windowsOpts={windowsOpts}
           waitForState={false}
-          onRemoteClose={() => this.props.close()}
+          onRemoteClose={() => this.props.onClose()}
           component='purgeMessage'
           onSubmit={() => {}}
-          onCancel={() => this.props.close()}
+          onCancel={() => this.props.onClose()}
           sessionID={0} />
       </div>
     )
@@ -38,10 +40,10 @@ class RemotePurgeMessage extends Component<void, Props, void> {
 }
 
 export default connect(
-  state => ({
+  (state: TypedState) => ({
     open: state.pgp.open,
   }),
-  dispatch => ({
+  (dispatch: any) => ({
     onClose: () => { dispatch({type: Constants.pgpAckedMessage, payload: {hitOk: false}}) },
   })
 )(RemotePurgeMessage)

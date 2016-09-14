@@ -85,8 +85,9 @@ export function getProfile (username: string): TrackerActionCreator {
       return
     }
 
-    const uid = tracker.trackers[username] && tracker.trackers[username].userInfo && tracker.trackers[username].userInfo.uid
-    const goodTill = uid && tracker.cachedIdentifies[uid]
+    const trackerState = tracker.trackers[username] && tracker.trackers[username]
+    const uid = trackerState.type === 'tracker' ? trackerState.userInfo && trackerState.userInfo.uid : null
+    const goodTill = uid && tracker.cachedIdentifies[uid + '']
     if (goodTill && goodTill >= Date.now()) {
       console.log('Bailing on cached getProfile', username, uid)
       return
@@ -398,7 +399,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: bo
 
   const requestIdle = f => {
     if (!alreadyPending) {
-      requestIdleCallback(f)
+      // The timeout with the requestIdleCallback says f must be run when idle or if 1 second passes whichover comes first.
+      // The timeout is necessary because the callback fn f won't be called if the window is hidden.
+      requestIdleCallback(f, {timeout: 1e3})
     } else {
       console.log('skipped idle call due to already pending')
     }
@@ -615,7 +618,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: bo
         }
 
         onFinish && onFinish()
-      })
+      }, {timeout: 1e3})
 
       // if we're pending we still want to call onFinish
       if (alreadyPending) {

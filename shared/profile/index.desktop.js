@@ -260,6 +260,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
               </Box>
               {(loading || this.props.proofs.length > 0) &&
                 <UserProofs
+                  type={'proofs'}
                   ref={c => { this._proofList = c }}
                   style={styleProofs}
                   username={this.props.username}
@@ -268,8 +269,9 @@ class ProfileRender extends PureComponent<void, Props, State> {
                   onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
                   showingMenuIndex={this.state.proofMenuIndex}
                 />}
-              {!loading && missingProofs.length > 0 &&
+              {!loading && !this.props.serverActive && missingProofs.length > 0 &&
                 <UserProofs
+                  type={'missingProofs'}
                   style={styleMissingProofs(this.props.proofs.length > 0)}
                   username={this.props.username}
                   missingProofs={missingProofs}

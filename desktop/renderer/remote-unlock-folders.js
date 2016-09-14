@@ -44,8 +44,8 @@ class RemoteUnlockFolders extends Component<void, Props, void> {
 }
 
 export default connect(
-  state => state.unlockFolders,
-  dispatch => bindActionCreators({
+  (state: any) => state.unlockFolders,
+  (dispatch: any) => bindActionCreators({
     registerRekeyListener,
     close,
   }, dispatch)

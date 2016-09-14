@@ -29,6 +29,7 @@ class DeviceName extends Component {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   state => ({
     deviceNameError: state.signup.deviceNameError,

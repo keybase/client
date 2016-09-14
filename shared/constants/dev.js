@@ -1,6 +1,6 @@
 // @flow
 import type {TypedAction} from './types/flux'
-import type {$Exact} from './types/more'
+import type {Exact} from './types/more'
 
 export const serializeRestore = 'dev:restoreState'
 export const serializeSave = 'dev:saveState'
@@ -15,7 +15,7 @@ export type DebugConfig = {
 }
 
 export const updateDebugConfig = 'dev:updateDebugConfig'
-export type UpdateDebugConfig = TypedAction<'dev:updateDebugConfig', $Exact<DebugConfig>, void>
+export type UpdateDebugConfig = TypedAction<'dev:updateDebugConfig', Exact<DebugConfig>, void>
 
 export const updateReloading = 'dev:updatehmrReloading'
 export type UpdateReloading = TypedAction<'dev:updatehmrReloading', {reloading: boolean}, void>

@@ -1,9 +1,13 @@
 // @flow
-import type {TypedAction} from '../constants/types/flux'
-import type {$Exact} from '../constants/types/more'
-import type {Folder} from '../constants/folders'
+import {defaultKBFSPath} from './config'
 
-type ListState = $Exact<{
+import type {Exact} from '../constants/types/more'
+import type {Folder as FolderRPC} from '../constants/types/flow-types'
+import type {Folder, ParticipantUnlock, Device, MetaType} from './folders'
+import type {TypedAction, NoErrorTypedAction} from './types/flux'
+import type {UserList} from '../common-adapters/usernames'
+
+type ListState = Exact<{
   tlfs?: Array<Folder>,
   ignored?: Array<Folder>,
   isPublic: boolean,
@@ -15,32 +19,38 @@ type ListState = $Exact<{
   extraRows?: Array<React$Element<*>>
 }>
 
-export type FolderState = $Exact<{
+export type FolderState = Exact<{
   privateBadge: number,
   private: ListState,
   publicBadge: number,
   public: ListState,
 }>
 
-export type ViewState = $Exact<{
+export type ViewState = Exact<{
   showingPrivate: boolean,
   publicIgnoredOpen: boolean,
   privateIgnoredOpen: boolean,
 }>
 
-export type FavoriteState = $Exact<{
+export type FavoriteState = Exact<{
   folderState: FolderState,
   viewState: ViewState,
 }>
 
 export const favoriteAdd = 'favorite:favoriteAdd'
-export type FavoriteAdd = TypedAction<'favorite:favoriteAdd', void, {errorText: string}>
+export type FavoriteAdd = NoErrorTypedAction<'favorite:favoriteAdd', {path: string}>
+export const favoriteAdded = 'favorite:favoriteAdded'
+export type FavoriteAdded = TypedAction<'favorite:favoriteAdded', void, {errorText: string}>
 
 export const favoriteList = 'favorite:favoriteList'
-export type FavoriteList = TypedAction<'favorite:favoriteList', {folders: FolderState}, void>
+export type FavoriteList = NoErrorTypedAction<'favorite:favoriteList', void>
+export const favoriteListed = 'favorite:favoriteListed'
+export type FavoriteListed = TypedAction<'favorite:favoriteListed', {folders: FolderState}, void>
 
 export const favoriteIgnore = 'favorite:favoriteIgnore'
-export type FavoriteIgnore = TypedAction<'favorite:favoriteIgnore', void, {errorText: string}>
+export type FavoriteIgnore = NoErrorTypedAction<'favorite:favoriteIgnore', {path: string}>
+export const favoriteIgnored = 'favorite:favoriteIgnored'
+export type FavoriteIgnored = TypedAction<'favorite:favoriteIgnored', void, {errorText: string}>
 
 export const favoriteSwitchTab = 'favorite:favoriteSwitchTab'
 export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showingPrivate: boolean}, void>
@@ -48,4 +58,45 @@ export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showi
 export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
 export type FavoriteToggleIgnored = TypedAction<'favorite:favoriteToggleIgnored', {isPrivate: boolean}, void>
 
-export type FavoriteAction = FavoriteAdd | FavoriteList | FavoriteIgnore | FavoriteSwitchTab | FavoriteToggleIgnored
+export type FavoriteAction = FavoriteAdd | FavoriteAdded | FavoriteList | FavoriteListed | FavoriteIgnore | FavoriteIgnored | FavoriteSwitchTab | FavoriteToggleIgnored
+
+function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
+  const rwers = users.filter(u => !u.readOnly).map(u => u.username)
+  const readers = users.filter(u => !!u.readOnly).map(u => u.username)
+  const sortName = rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
+  const path = `${defaultKBFSPath}/${isPublic ? 'public' : 'private'}/${sortName}`
+  return {sortName, path}
+}
+
+export type FolderWithMeta = {
+  meta: MetaType,
+  waitingForParticipantUnlock: Array<ParticipantUnlock>,
+  youCanUnlock: Array<Device>,
+} & FolderRPC
+
+function folderFromPath (path: string): ?FolderRPC {
+  if (path.startsWith(`${defaultKBFSPath}/private/`)) {
+    return {
+      name: path.replace(`${defaultKBFSPath}/private/`, ''),
+      private: true,
+      notificationsOn: false,
+      created: false,
+    }
+  } else if (path.startsWith(`${defaultKBFSPath}/public/`)) {
+    return {
+      name: path.replace(`${defaultKBFSPath}/public/`, ''),
+      private: false,
+      notificationsOn: false,
+      created: false,
+    }
+  } else {
+    return null
+  }
+}
+
+export type {Folder as FolderRPC} from '../constants/types/flow-types'
+
+export {
+  folderFromPath,
+  pathFromFolder,
+}

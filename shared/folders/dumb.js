@@ -6,7 +6,7 @@ import type {Folder} from './list'
 import type {Props as FilesProps} from './files/render'
 import type {PropsOf, DumbComponentMap} from '../constants/types/more'
 import {globalStyles} from '../styles'
-import {pathFromFolder} from '../actions/favorite'
+import {pathFromFolder} from '../constants/favorite'
 
 function createFolder (partialFolder: $Shape<Folder>) {
   return {...partialFolder, path: pathFromFolder(partialFolder).path}

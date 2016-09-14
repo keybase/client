@@ -215,8 +215,7 @@ class Engine {
     if (isMobile) {
       return
     }
-    resetClient()
-    this._setupClient()
+    resetClient(this._rpcClient)
   }
 
   // Setup a handler for a rpc w/o a session (id = 0)

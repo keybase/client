@@ -80,17 +80,17 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool, wait time.Durat
 		}
 	}
 	if ok := components[install.ComponentNameService.String()]; ok {
-		if _, err := launchd.Stop(install.DefaultServiceLabel(runMode), wait, g.Log); err != nil {
+		if err := install.UninstallKeybaseServices(runMode, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	if ok := components[install.ComponentNameKBFS.String()]; ok {
-		if _, err := launchd.Stop(install.DefaultKBFSLabel(runMode), wait, g.Log); err != nil {
+		if err := install.UninstallKBFSServices(runMode, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	if ok := components[install.ComponentNameUpdater.String()]; ok {
-		if _, err := launchd.Stop(install.DefaultUpdaterLabel(runMode), wait, g.Log); err != nil {
+		if err := install.UninstallUpdaterService(runMode, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}

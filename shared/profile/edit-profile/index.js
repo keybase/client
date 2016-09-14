@@ -60,6 +60,7 @@ class EditProfile extends Component<void, Props, State> {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   (state, ownProps) => {
     const userInfo = state.tracker.trackers[state.config.username].userInfo

@@ -1,6 +1,7 @@
 // @flow
 
 import {Component} from 'react' // eslint-disable-line
+import pickBy from 'lodash/pickBy'
 import type {Device as _Device, DeviceID, Time} from './flow-types'
 
 const ProvablePlatformsMap = {
@@ -12,7 +13,7 @@ const ProvablePlatformsMap = {
   'dns': true,
   'http': true,
   'https': true,
-  'rooter': true,
+  'rooter': __DEV__,
 }
 
 const PlatformsExpandedMap = {
@@ -25,20 +26,20 @@ const PlatformsExpandedMap = {
   'dns': true,
   'http': true,
   'https': true,
-  'rooter': true,
+  'rooter': __DEV__,
   'btc': true,
   'dnsOrGenericWebSite': true,
   'pgp': true,
 }
 
-export const ProvablePlatforms = Object.keys(ProvablePlatformsMap)
+export const ProvablePlatforms = Object.keys(pickBy(ProvablePlatformsMap))
 export type ProvablePlatformsType = $Keys<typeof ProvablePlatformsMap>
 
-export const PlatformsExpanded = Object.keys(PlatformsExpandedMap)
+export const PlatformsExpanded = Object.keys(pickBy(PlatformsExpandedMap))
 export type PlatformsExpandedType = $Keys<typeof PlatformsExpandedMap>
 
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
-export type $Exact<X> = $Shape<X> & X
+export type Exact<X> = $Shape<X> & X
 
 export type Device = {
   name: string,

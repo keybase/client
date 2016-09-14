@@ -1,9 +1,10 @@
 // @flow
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
 import RemoteComponent from './remote-component'
 import {registerPinentryListener, onCancel, onSubmit} from '../shared/actions/pinentry'
+
+import type {TypedState} from '../shared/constants/reducer'
 import type {PinentryState} from '../shared/reducers/pinentry'
 import type {GUIEntryFeatures} from '../shared/constants/types/flow-types'
 
@@ -49,13 +50,13 @@ class RemotePinentry extends Component<void, Props, void> {
 }
 
 export default connect(
-  state => ({
+  (state: TypedState, ownProps: {}) => ({
     pinentryStates: state.pinentry.pinentryStates || {},
   }),
-  dispatch => bindActionCreators({
-    registerPinentryListener,
-    onCancel,
-    onSubmit,
-  }, dispatch)
+  (dispatch: any, ownProps: {}) => ({
+    registerPinentryListener: () => dispatch(registerPinentryListener()),
+    onCancel: (sid: number) => dispatch(onCancel(sid)),
+    onSubmit: (sid: number, passphrase: string, features: GUIEntryFeatures) => dispatch(onSubmit(sid, passphrase, features)),
+  })
 )(RemotePinentry)
 

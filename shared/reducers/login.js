@@ -10,7 +10,7 @@ import {fromJS} from 'immutable'
 type QRCode = HiddenString
 type Error = string
 
-type LoginState = {
+export type LoginState = {
   codePage: {
     otherDeviceRole: ?DeviceRole,
     myDeviceRole: ?DeviceRole,
@@ -31,6 +31,7 @@ type LoginState = {
   waitingForResponse: boolean,
   loginError: ?string,
   justRevokedSelf: ?string,
+  justLoginFromRevokedDevice: ?boolean,
   loaded: boolean,
 }
 
@@ -60,6 +61,7 @@ const initialState: LoginState = {
   waitingForResponse: false,
   loginError: null,
   justRevokedSelf: null,
+  justLoginFromRevokedDevice: null,
   loaded: false,
 }
 
@@ -145,7 +147,7 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       break
     case Constants.loginDone:
       if (action.error) {
-        toMerge = {loginError: action.payload && action.payload.message}
+        toMerge = {loginError: action.payload && action.payload.desc}
       } else {
         return state
       }

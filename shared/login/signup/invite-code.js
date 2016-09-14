@@ -25,6 +25,7 @@ InviteCode.propTypes = {
   errorText: React.PropTypes.string,
 }
 
+// $FlowIssue type this connector
 export default connect(
   state => ({
     errorText: state.signup.inviteCodeError,

@@ -100,4 +100,5 @@ export type State = {
   sigID: ?SigID,
   pgpInfo: PgpInfo & PgpInfoError,
   pgpPublicKey: ?string,
+  proofText: ?string,
 }

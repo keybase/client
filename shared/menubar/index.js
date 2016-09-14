@@ -50,7 +50,7 @@ class Menubar extends Component<void, Props, void> {
       })
     }
 
-    if (module.hot) {
+    if (module.hot && typeof module.hot.dispose === 'function') {
       module.hot.dispose(() => {
         try {
           engine().reset()
@@ -181,6 +181,7 @@ class Menubar extends Component<void, Props, void> {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   state => ({
     username: state.config && state.config.username,

@@ -1,7 +1,6 @@
 // @flow
 import React, {Component} from 'react'
 import Render from './index.render'
-import type {Props} from './index.render'
 import {connect} from 'react-redux'
 import {openAccountResetPage} from '../../../actions/login'
 
@@ -9,6 +8,16 @@ type State = {
   showTyping: boolean,
   saveInKeychain: boolean,
   passphrase: ?string
+}
+
+type Props = {
+  prompt: string,
+  onSubmit: (passphrase: string) => void,
+  onBack: () => void,
+  onForgotPassphrase: () => void,
+  waitingForResponse: boolean,
+  error?: ?string,
+  username: ?string,
 }
 
 class Passphrase extends Component<void, Props, State> {
@@ -24,7 +33,11 @@ class Passphrase extends Component<void, Props, State> {
   }
 
   render () {
-    return <Render {...this.props}
+    return <Render
+      onBack={this.props.onBack}
+      prompt={this.props.prompt}
+      username={this.props.prompt}
+      waitingForResponse={this.props.waitingForResponse}
       onForgotPassphrase={() => {
         this.props.onForgotPassphrase()
         this.props.onBack()
@@ -40,8 +53,9 @@ class Passphrase extends Component<void, Props, State> {
 }
 
 export default connect(
-  state => ({waitingForResponse: state.login.waitingForResponse}),
-  dispatch => ({
+  (state: any, op: any) => ({waitingForResponse: state.login.waitingForResponse}),
+  (dispatch: any, op: any) => ({
     onForgotPassphrase: () => { dispatch(openAccountResetPage()) },
-  })
+  }),
+  (stateProps, dispatchProps, ownProps) => ({...stateProps, ...dispatchProps, ...ownProps}),
 )(Passphrase)

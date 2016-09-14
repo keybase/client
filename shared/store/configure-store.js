@@ -5,6 +5,7 @@ import createLogger from 'redux-logger'
 import createSagaMiddleware from 'redux-saga'
 import gregorSaga from '../actions/gregor'
 import profileSaga from '../actions/profile'
+import favoriteSaga from '../actions/favorite'
 import pgpSaga from '../actions/pgp'
 import rootReducer from '../reducers'
 import thunkMiddleware from 'redux-thunk'
@@ -37,12 +38,12 @@ for (const method in console) {
     logger[method] = (...args) => {
       requestIdleCallback(() => {
         console[method](...args)
-      })
+      }, {timeout: 1e3})
     }
   }
 }
 
-const loggerMiddleware = enableStoreLogging ? createLogger({
+const loggerMiddleware: any = enableStoreLogging ? createLogger({
   duration: true,
   stateTransformer: objToJS,
   actionTransformer: objToJS,
@@ -54,6 +55,7 @@ function * mainSaga (getState) {
   yield [
     call(gregorSaga),
     call(profileSaga),
+    call(favoriteSaga),
     call(pgpSaga),
   ]
 }

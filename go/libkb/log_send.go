@@ -9,6 +9,7 @@ import (
 	"compress/gzip"
 	"mime/multipart"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/keybase/client/go/logger"
@@ -110,7 +111,10 @@ func tail(Log logger.Logger, filename string, numLines int) string {
 
 	f, err := os.Open(filename)
 	if err != nil {
-		Log.Warning("error opening log %q: %s", filename, err)
+		// This "error" freaks out users on Windows, which has no start log
+		if !(runtime.GOOS == "windows" && strings.HasSuffix(filename, StartLogFileName)) {
+			Log.Warning("error opening log %q: %s", filename, err)
+		}
 		return ""
 	}
 	b := rogReverse.NewScanner(f)

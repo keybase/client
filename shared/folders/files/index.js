@@ -95,7 +95,7 @@ class Files extends Component<void, Props, State> {
 }
 
 const ConnectedFiles = connect(
-  (state, ownProps) => {
+  (state: any, ownProps) => {
     const folders: Array<Folder> = [].concat(
       _.get(state, 'favorite.folderState.private.tlfs', []),
       _.get(state, 'favorite.folderState.public.tlfs', []),
@@ -110,7 +110,7 @@ const ConnectedFiles = connect(
       username: state.config && state.config.username,
     }
   },
-  dispatch => bindActionCreators({favoriteFolder, ignoreFolder, navigateUp, openInKBFS, routeAppend}, dispatch)
+  (dispatch: any) => bindActionCreators({favoriteFolder, ignoreFolder, navigateUp, openInKBFS, routeAppend}, dispatch)
 )(Files)
 
 export default ConnectedFiles

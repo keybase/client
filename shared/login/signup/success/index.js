@@ -18,6 +18,7 @@ class Success extends Component {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   state => ({
     paperkey: state.signup.paperkey,

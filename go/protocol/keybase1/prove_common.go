@@ -184,6 +184,7 @@ const (
 	ProofType_REDDIT           ProofType = 4
 	ProofType_COINBASE         ProofType = 5
 	ProofType_HACKERNEWS       ProofType = 6
+	ProofType_FACEBOOK         ProofType = 8
 	ProofType_GENERIC_WEB_SITE ProofType = 1000
 	ProofType_DNS              ProofType = 1001
 	ProofType_PGP              ProofType = 1002
@@ -198,6 +199,7 @@ var ProofTypeMap = map[string]ProofType{
 	"REDDIT":           4,
 	"COINBASE":         5,
 	"HACKERNEWS":       6,
+	"FACEBOOK":         8,
 	"GENERIC_WEB_SITE": 1000,
 	"DNS":              1001,
 	"PGP":              1002,
@@ -212,6 +214,7 @@ var ProofTypeRevMap = map[ProofType]string{
 	4:      "REDDIT",
 	5:      "COINBASE",
 	6:      "HACKERNEWS",
+	8:      "FACEBOOK",
 	1000:   "GENERIC_WEB_SITE",
 	1001:   "DNS",
 	1002:   "PGP",

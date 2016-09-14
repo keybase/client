@@ -77,7 +77,7 @@ function rpcLog (type: rpcLogType, title: string, info?: Object): void {
 
   requestIdleCallback(() => {
     logLocal(`%c${prefix}`, style, title, info)
-  })
+  }, {timeout: 1e3})
 }
 
 class TransportShared extends RobustTransport {

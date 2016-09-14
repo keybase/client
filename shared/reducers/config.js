@@ -16,6 +16,7 @@ export type ConfigState = {
   kbfsPath: string,
   error: ?any,
   devConfig: ?any,
+  bootstrapTriesRemaining: number,
   bootstrapped: number,
   followers: {[key: string]: true},
   following: {[key: string]: true},
@@ -31,6 +32,7 @@ const initialState: ConfigState = {
   kbfsPath: Constants.defaultKBFSPath,
   error: null,
   devConfig: null,
+  bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   bootstrapped: 0,
   followers: {},
   following: {},
@@ -108,9 +110,17 @@ export default function (state: ConfigState = initialState, action: Action): Con
         },
       }
 
+    case Constants.bootstrapFailed: {
+      return {
+        ...state,
+        bootstrapTriesRemaining: state.bootstrapTriesRemaining - 1,
+      }
+    }
+
     case Constants.bootstrapped: {
       return {
         ...state,
+        bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
         bootstrapped: state.bootstrapped + 1,
       }
     }

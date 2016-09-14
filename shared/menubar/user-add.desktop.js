@@ -111,11 +111,12 @@ const stylesInputContainer = {
   alignItems: 'center',
   flex: 1,
   height: 40,
+  overflow: 'hidden',
 }
 
 const stylesInput = {
   flex: 1,
-  height: 20,
+  marginTop: 12,
 }
 
 const stylesInputInput = {
@@ -128,7 +129,7 @@ const stylesInputHint = {
   ...globalStyles.fontSemibold,
   fontSize: 14,
   textAlign: 'left',
-  marginTop: 1,
+  marginBottom: 2,
 }
 
 const stylesInputUnderline = {

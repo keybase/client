@@ -5,7 +5,7 @@ import * as gregor1 from './flow-types-gregor'
 import * as chat1 from './flow-types-chat'
 
 import engine from '../../engine'
-import type {$Exact} from './more'
+import type {Exact} from './more'
 export type int = number
 export type int64 = number
 export type uint = number
@@ -330,6 +330,7 @@ export const ProveCommonProofType = {
   reddit: 4,
   coinbase: 5,
   hackernews: 6,
+  facebook: 8,
   genericWebSite: 1000,
   dns: 1001,
   pgp: 1002,
@@ -398,712 +399,1420 @@ export const UiPromptDefault = {
   no: 2,
 }
 
-export function BTCRegisterBTCRpc (request: $Exact<requestCommon & requestErrorCallback & {param: BTCRegisterBTCRpcParam}>) {
+export function BTCRegisterBTCRpc (request: Exact<requestCommon & requestErrorCallback & {param: BTCRegisterBTCRpcParam}>) {
   engineRpcOutgoing({...request, method: 'BTC.registerBTC'})
 }
 
-export function Kex2Provisionee2DidCounterSign2Rpc (request: $Exact<requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}>) {
+export function BTCRegisterBTCRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: BTCRegisterBTCRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { BTCRegisterBTCRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function Kex2Provisionee2DidCounterSign2Rpc (request: Exact<requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisionee2.didCounterSign2'})
 }
 
-export function Kex2Provisionee2Hello2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2Provisionee2Hello2Result) => void} & {param: Kex2Provisionee2Hello2RpcParam}>) {
+export function Kex2Provisionee2DidCounterSign2RpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { Kex2Provisionee2DidCounterSign2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function Kex2Provisionee2Hello2Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2Provisionee2Hello2Result) => void} & {param: Kex2Provisionee2Hello2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisionee2.hello2'})
 }
 
-export function Kex2ProvisioneeDidCounterSignRpc (request: $Exact<requestCommon & requestErrorCallback & {param: Kex2ProvisioneeDidCounterSignRpcParam}>) {
+export function Kex2Provisionee2Hello2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2Provisionee2Hello2Result) => void} & {param: Kex2Provisionee2Hello2RpcParam}>): Promise<Kex2Provisionee2Hello2Result> {
+  return new Promise((resolve, reject) => { Kex2Provisionee2Hello2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function Kex2ProvisioneeDidCounterSignRpc (request: Exact<requestCommon & requestErrorCallback & {param: Kex2ProvisioneeDidCounterSignRpcParam}>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisionee.didCounterSign'})
 }
 
-export function Kex2ProvisioneeHelloRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2ProvisioneeHelloResult) => void} & {param: Kex2ProvisioneeHelloRpcParam}>) {
+export function Kex2ProvisioneeDidCounterSignRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: Kex2ProvisioneeDidCounterSignRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { Kex2ProvisioneeDidCounterSignRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function Kex2ProvisioneeHelloRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2ProvisioneeHelloResult) => void} & {param: Kex2ProvisioneeHelloRpcParam}>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisionee.hello'})
 }
 
-export function Kex2ProvisionerKexStartRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function Kex2ProvisioneeHelloRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2ProvisioneeHelloResult) => void} & {param: Kex2ProvisioneeHelloRpcParam}>): Promise<Kex2ProvisioneeHelloResult> {
+  return new Promise((resolve, reject) => { Kex2ProvisioneeHelloRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function Kex2ProvisionerKexStartRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisioner.kexStart'})
 }
 
-export function ScanProofsScanProofsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: ScanProofsScanProofsRpcParam}>) {
+export function Kex2ProvisionerKexStartRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { Kex2ProvisionerKexStartRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function ScanProofsScanProofsRpc (request: Exact<requestCommon & requestErrorCallback & {param: ScanProofsScanProofsRpcParam}>) {
   engineRpcOutgoing({...request, method: 'ScanProofs.scanProofs'})
 }
 
-export function SecretKeysGetSecretKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>) {
+export function ScanProofsScanProofsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: ScanProofsScanProofsRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { ScanProofsScanProofsRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function SecretKeysGetSecretKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>) {
   engineRpcOutgoing({...request, method: 'SecretKeys.getSecretKeys'})
 }
 
-export function accountPassphraseChangeRpc (request: $Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>) {
+export function SecretKeysGetSecretKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>): Promise<SecretKeysGetSecretKeysResult> {
+  return new Promise((resolve, reject) => { SecretKeysGetSecretKeysRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function accountPassphraseChangeRpc (request: Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'account.passphraseChange'})
 }
 
-export function accountPassphrasePromptRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountPassphrasePromptResult) => void} & {param: accountPassphrasePromptRpcParam}>) {
+export function accountPassphraseChangeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { accountPassphraseChangeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function accountPassphrasePromptRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: accountPassphrasePromptResult) => void} & {param: accountPassphrasePromptRpcParam}>) {
   engineRpcOutgoing({...request, method: 'account.passphrasePrompt'})
 }
 
-export function apiserverGetRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>) {
+export function accountPassphrasePromptRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountPassphrasePromptResult) => void} & {param: accountPassphrasePromptRpcParam}>): Promise<accountPassphrasePromptResult> {
+  return new Promise((resolve, reject) => { accountPassphrasePromptRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function apiserverGetRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>) {
   engineRpcOutgoing({...request, method: 'apiserver.Get'})
 }
 
-export function apiserverPostJSONRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostJSONResult) => void} & {param: apiserverPostJSONRpcParam}>) {
+export function apiserverGetRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>): Promise<apiserverGetResult> {
+  return new Promise((resolve, reject) => { apiserverGetRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function apiserverPostJSONRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostJSONResult) => void} & {param: apiserverPostJSONRpcParam}>) {
   engineRpcOutgoing({...request, method: 'apiserver.PostJSON'})
 }
 
-export function apiserverPostRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostResult) => void} & {param: apiserverPostRpcParam}>) {
+export function apiserverPostJSONRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostJSONResult) => void} & {param: apiserverPostJSONRpcParam}>): Promise<apiserverPostJSONResult> {
+  return new Promise((resolve, reject) => { apiserverPostJSONRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function apiserverPostRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostResult) => void} & {param: apiserverPostRpcParam}>) {
   engineRpcOutgoing({...request, method: 'apiserver.Post'})
 }
 
-export function blockAddReferenceRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>) {
+export function apiserverPostRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostResult) => void} & {param: apiserverPostRpcParam}>): Promise<apiserverPostResult> {
+  return new Promise((resolve, reject) => { apiserverPostRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function blockAddReferenceRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.addReference'})
 }
 
-export function blockArchiveReferenceRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceResult) => void} & {param: blockArchiveReferenceRpcParam}>) {
+export function blockAddReferenceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { blockAddReferenceRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function blockArchiveReferenceRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceResult) => void} & {param: blockArchiveReferenceRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.archiveReference'})
 }
 
-export function blockArchiveReferenceWithCountRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceWithCountResult) => void} & {param: blockArchiveReferenceWithCountRpcParam}>) {
+export function blockArchiveReferenceRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceResult) => void} & {param: blockArchiveReferenceRpcParam}>): Promise<blockArchiveReferenceResult> {
+  return new Promise((resolve, reject) => { blockArchiveReferenceRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function blockArchiveReferenceWithCountRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceWithCountResult) => void} & {param: blockArchiveReferenceWithCountRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.archiveReferenceWithCount'})
 }
 
-export function blockAuthenticateSessionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockAuthenticateSessionRpcParam}>) {
+export function blockArchiveReferenceWithCountRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceWithCountResult) => void} & {param: blockArchiveReferenceWithCountRpcParam}>): Promise<blockArchiveReferenceWithCountResult> {
+  return new Promise((resolve, reject) => { blockArchiveReferenceWithCountRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function blockAuthenticateSessionRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockAuthenticateSessionRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.authenticateSession'})
 }
 
-export function blockDelReferenceRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockDelReferenceRpcParam}>) {
+export function blockAuthenticateSessionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockAuthenticateSessionRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { blockAuthenticateSessionRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function blockDelReferenceRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockDelReferenceRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.delReference'})
 }
 
-export function blockDelReferenceWithCountRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockDelReferenceWithCountResult) => void} & {param: blockDelReferenceWithCountRpcParam}>) {
+export function blockDelReferenceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockDelReferenceRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { blockDelReferenceRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function blockDelReferenceWithCountRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockDelReferenceWithCountResult) => void} & {param: blockDelReferenceWithCountRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.delReferenceWithCount'})
 }
 
-export function blockGetBlockRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetBlockResult) => void} & {param: blockGetBlockRpcParam}>) {
+export function blockDelReferenceWithCountRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockDelReferenceWithCountResult) => void} & {param: blockDelReferenceWithCountRpcParam}>): Promise<blockDelReferenceWithCountResult> {
+  return new Promise((resolve, reject) => { blockDelReferenceWithCountRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function blockGetBlockRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetBlockResult) => void} & {param: blockGetBlockRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.getBlock'})
 }
 
-export function blockGetSessionChallengeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetSessionChallengeResult) => void}>) {
+export function blockGetBlockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetBlockResult) => void} & {param: blockGetBlockRpcParam}>): Promise<blockGetBlockResult> {
+  return new Promise((resolve, reject) => { blockGetBlockRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function blockGetSessionChallengeRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetSessionChallengeResult) => void}>) {
   engineRpcOutgoing({...request, method: 'block.getSessionChallenge'})
 }
 
-export function blockGetUserQuotaInfoRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>) {
+export function blockGetSessionChallengeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetSessionChallengeResult) => void}>): Promise<blockGetSessionChallengeResult> {
+  return new Promise((resolve, reject) => { blockGetSessionChallengeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function blockGetUserQuotaInfoRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>) {
   engineRpcOutgoing({...request, method: 'block.getUserQuotaInfo'})
 }
 
-export function blockPutBlockRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>) {
+export function blockGetUserQuotaInfoRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>): Promise<blockGetUserQuotaInfoResult> {
+  return new Promise((resolve, reject) => { blockGetUserQuotaInfoRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function blockPutBlockRpc (request: Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.putBlock'})
 }
 
-export function chatLocalCompleteAndCanonicalizeTlfNameRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalCompleteAndCanonicalizeTlfNameResult) => void} & {param: chatLocalCompleteAndCanonicalizeTlfNameRpcParam}>) {
+export function blockPutBlockRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { blockPutBlockRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function chatLocalCompleteAndCanonicalizeTlfNameRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalCompleteAndCanonicalizeTlfNameResult) => void} & {param: chatLocalCompleteAndCanonicalizeTlfNameRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.completeAndCanonicalizeTlfName'})
 }
 
-export function chatLocalGetInboxLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxLocalResult) => void} & {param: chatLocalGetInboxLocalRpcParam}>) {
+export function chatLocalCompleteAndCanonicalizeTlfNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalCompleteAndCanonicalizeTlfNameResult) => void} & {param: chatLocalCompleteAndCanonicalizeTlfNameRpcParam}>): Promise<chatLocalCompleteAndCanonicalizeTlfNameResult> {
+  return new Promise((resolve, reject) => { chatLocalCompleteAndCanonicalizeTlfNameRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function chatLocalGetInboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxLocalResult) => void} & {param: chatLocalGetInboxLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.getInboxLocal'})
 }
 
-export function chatLocalGetInboxSummaryLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxSummaryLocalResult) => void} & {param: chatLocalGetInboxSummaryLocalRpcParam}>) {
+export function chatLocalGetInboxLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxLocalResult) => void} & {param: chatLocalGetInboxLocalRpcParam}>): Promise<chatLocalGetInboxLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalGetInboxLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function chatLocalGetInboxSummaryLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxSummaryLocalResult) => void} & {param: chatLocalGetInboxSummaryLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.getInboxSummaryLocal'})
 }
 
-export function chatLocalGetMessagesLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetMessagesLocalResult) => void} & {param: chatLocalGetMessagesLocalRpcParam}>) {
+export function chatLocalGetInboxSummaryLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxSummaryLocalResult) => void} & {param: chatLocalGetInboxSummaryLocalRpcParam}>): Promise<chatLocalGetInboxSummaryLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalGetInboxSummaryLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function chatLocalGetMessagesLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetMessagesLocalResult) => void} & {param: chatLocalGetMessagesLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.getMessagesLocal'})
 }
 
-export function chatLocalGetThreadLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetThreadLocalResult) => void} & {param: chatLocalGetThreadLocalRpcParam}>) {
+export function chatLocalGetMessagesLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetMessagesLocalResult) => void} & {param: chatLocalGetMessagesLocalRpcParam}>): Promise<chatLocalGetMessagesLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalGetMessagesLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function chatLocalGetThreadLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetThreadLocalResult) => void} & {param: chatLocalGetThreadLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.getThreadLocal'})
 }
 
-export function chatLocalNewConversationLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalNewConversationLocalResult) => void} & {param: chatLocalNewConversationLocalRpcParam}>) {
+export function chatLocalGetThreadLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetThreadLocalResult) => void} & {param: chatLocalGetThreadLocalRpcParam}>): Promise<chatLocalGetThreadLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalGetThreadLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function chatLocalNewConversationLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalNewConversationLocalResult) => void} & {param: chatLocalNewConversationLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.newConversationLocal'})
 }
 
-export function chatLocalPostLocalRpc (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalPostLocalRpcParam}>) {
+export function chatLocalNewConversationLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalNewConversationLocalResult) => void} & {param: chatLocalNewConversationLocalRpcParam}>): Promise<chatLocalNewConversationLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalNewConversationLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function chatLocalPostLocalRpc (request: Exact<requestCommon & requestErrorCallback & {param: chatLocalPostLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.postLocal'})
 }
 
-export function chatLocalResolveConversationLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalResolveConversationLocalResult) => void} & {param: chatLocalResolveConversationLocalRpcParam}>) {
+export function chatLocalPostLocalRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalPostLocalRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { chatLocalPostLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function chatLocalResolveConversationLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalResolveConversationLocalResult) => void} & {param: chatLocalResolveConversationLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.resolveConversationLocal'})
 }
 
-export function chatLocalUpdateTopicNameLocalRpc (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalUpdateTopicNameLocalRpcParam}>) {
+export function chatLocalResolveConversationLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalResolveConversationLocalResult) => void} & {param: chatLocalResolveConversationLocalRpcParam}>): Promise<chatLocalResolveConversationLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalResolveConversationLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function chatLocalUpdateTopicNameLocalRpc (request: Exact<requestCommon & requestErrorCallback & {param: chatLocalUpdateTopicNameLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.updateTopicNameLocal'})
 }
 
-export function configCheckAPIServerOutOfDateWarningRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>) {
+export function chatLocalUpdateTopicNameLocalRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalUpdateTopicNameLocalRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { chatLocalUpdateTopicNameLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configCheckAPIServerOutOfDateWarningRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>) {
   engineRpcOutgoing({...request, method: 'config.checkAPIServerOutOfDateWarning'})
 }
 
-export function configClearValueRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configClearValueRpcParam}>) {
+export function configCheckAPIServerOutOfDateWarningRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>): Promise<configCheckAPIServerOutOfDateWarningResult> {
+  return new Promise((resolve, reject) => { configCheckAPIServerOutOfDateWarningRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configClearValueRpc (request: Exact<requestCommon & requestErrorCallback & {param: configClearValueRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.clearValue'})
 }
 
-export function configGetConfigRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetConfigResult) => void}>) {
+export function configClearValueRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configClearValueRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { configClearValueRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configGetConfigRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: configGetConfigResult) => void}>) {
   engineRpcOutgoing({...request, method: 'config.getConfig'})
 }
 
-export function configGetCurrentStatusRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetCurrentStatusResult) => void}>) {
+export function configGetConfigRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetConfigResult) => void}>): Promise<configGetConfigResult> {
+  return new Promise((resolve, reject) => { configGetConfigRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configGetCurrentStatusRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: configGetCurrentStatusResult) => void}>) {
   engineRpcOutgoing({...request, method: 'config.getCurrentStatus'})
 }
 
-export function configGetExtendedStatusRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetExtendedStatusResult) => void}>) {
+export function configGetCurrentStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetCurrentStatusResult) => void}>): Promise<configGetCurrentStatusResult> {
+  return new Promise((resolve, reject) => { configGetCurrentStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configGetExtendedStatusRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: configGetExtendedStatusResult) => void}>) {
   engineRpcOutgoing({...request, method: 'config.getExtendedStatus'})
 }
 
-export function configGetValueRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetValueResult) => void} & {param: configGetValueRpcParam}>) {
+export function configGetExtendedStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetExtendedStatusResult) => void}>): Promise<configGetExtendedStatusResult> {
+  return new Promise((resolve, reject) => { configGetExtendedStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configGetValueRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: configGetValueResult) => void} & {param: configGetValueRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.getValue'})
 }
 
-export function configHelloIAmRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configHelloIAmRpcParam}>) {
+export function configGetValueRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetValueResult) => void} & {param: configGetValueRpcParam}>): Promise<configGetValueResult> {
+  return new Promise((resolve, reject) => { configGetValueRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configHelloIAmRpc (request: Exact<requestCommon & requestErrorCallback & {param: configHelloIAmRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.helloIAm'})
 }
 
-export function configSetPathRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configSetPathRpcParam}>) {
+export function configHelloIAmRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configHelloIAmRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { configHelloIAmRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configSetPathRpc (request: Exact<requestCommon & requestErrorCallback & {param: configSetPathRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.setPath'})
 }
 
-export function configSetUserConfigRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configSetUserConfigRpcParam}>) {
+export function configSetPathRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configSetPathRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { configSetPathRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configSetUserConfigRpc (request: Exact<requestCommon & requestErrorCallback & {param: configSetUserConfigRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.setUserConfig'})
 }
 
-export function configSetValueRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configSetValueRpcParam}>) {
+export function configSetUserConfigRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configSetUserConfigRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { configSetUserConfigRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function configSetValueRpc (request: Exact<requestCommon & requestErrorCallback & {param: configSetValueRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.setValue'})
 }
 
-export function cryptoSignED25519Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519Result) => void} & {param: cryptoSignED25519RpcParam}>) {
+export function configSetValueRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configSetValueRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { configSetValueRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function cryptoSignED25519Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519Result) => void} & {param: cryptoSignED25519RpcParam}>) {
   engineRpcOutgoing({...request, method: 'crypto.signED25519'})
 }
 
-export function cryptoSignToStringRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignToStringResult) => void} & {param: cryptoSignToStringRpcParam}>) {
+export function cryptoSignED25519RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519Result) => void} & {param: cryptoSignED25519RpcParam}>): Promise<cryptoSignED25519Result> {
+  return new Promise((resolve, reject) => { cryptoSignED25519Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function cryptoSignToStringRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignToStringResult) => void} & {param: cryptoSignToStringRpcParam}>) {
   engineRpcOutgoing({...request, method: 'crypto.signToString'})
 }
 
-export function cryptoUnboxBytes32AnyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32AnyResult) => void} & {param: cryptoUnboxBytes32AnyRpcParam}>) {
+export function cryptoSignToStringRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignToStringResult) => void} & {param: cryptoSignToStringRpcParam}>): Promise<cryptoSignToStringResult> {
+  return new Promise((resolve, reject) => { cryptoSignToStringRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function cryptoUnboxBytes32AnyRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32AnyResult) => void} & {param: cryptoUnboxBytes32AnyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'crypto.unboxBytes32Any'})
 }
 
-export function cryptoUnboxBytes32Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32Result) => void} & {param: cryptoUnboxBytes32RpcParam}>) {
+export function cryptoUnboxBytes32AnyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32AnyResult) => void} & {param: cryptoUnboxBytes32AnyRpcParam}>): Promise<cryptoUnboxBytes32AnyResult> {
+  return new Promise((resolve, reject) => { cryptoUnboxBytes32AnyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function cryptoUnboxBytes32Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32Result) => void} & {param: cryptoUnboxBytes32RpcParam}>) {
   engineRpcOutgoing({...request, method: 'crypto.unboxBytes32'})
 }
 
-export function ctlAppExitRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function cryptoUnboxBytes32RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32Result) => void} & {param: cryptoUnboxBytes32RpcParam}>): Promise<cryptoUnboxBytes32Result> {
+  return new Promise((resolve, reject) => { cryptoUnboxBytes32Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function ctlAppExitRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'ctl.appExit'})
 }
 
-export function ctlDbNukeRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function ctlAppExitRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlAppExitRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function ctlDbNukeRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'ctl.dbNuke'})
 }
 
-export function ctlLogRotateRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function ctlDbNukeRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlDbNukeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function ctlLogRotateRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'ctl.logRotate'})
 }
 
-export function ctlReloadRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function ctlLogRotateRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlLogRotateRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function ctlReloadRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'ctl.reload'})
 }
 
-export function ctlStopRpc (request: $Exact<requestCommon & requestErrorCallback & {param: ctlStopRpcParam}>) {
+export function ctlReloadRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlReloadRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function ctlStopRpc (request: Exact<requestCommon & requestErrorCallback & {param: ctlStopRpcParam}>) {
   engineRpcOutgoing({...request, method: 'ctl.stop'})
 }
 
-export function debuggingFirstStepRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingFirstStepResult) => void} & {param: debuggingFirstStepRpcParam}>) {
+export function ctlStopRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: ctlStopRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlStopRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function debuggingFirstStepRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingFirstStepResult) => void} & {param: debuggingFirstStepRpcParam}>) {
   engineRpcOutgoing({...request, method: 'debugging.firstStep'})
 }
 
-export function debuggingIncrementRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingIncrementResult) => void} & {param: debuggingIncrementRpcParam}>) {
+export function debuggingFirstStepRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingFirstStepResult) => void} & {param: debuggingFirstStepRpcParam}>): Promise<debuggingFirstStepResult> {
+  return new Promise((resolve, reject) => { debuggingFirstStepRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function debuggingIncrementRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingIncrementResult) => void} & {param: debuggingIncrementRpcParam}>) {
   engineRpcOutgoing({...request, method: 'debugging.increment'})
 }
 
-export function debuggingSecondStepRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingSecondStepResult) => void} & {param: debuggingSecondStepRpcParam}>) {
+export function debuggingIncrementRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingIncrementResult) => void} & {param: debuggingIncrementRpcParam}>): Promise<debuggingIncrementResult> {
+  return new Promise((resolve, reject) => { debuggingIncrementRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function debuggingSecondStepRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingSecondStepResult) => void} & {param: debuggingSecondStepRpcParam}>) {
   engineRpcOutgoing({...request, method: 'debugging.secondStep'})
 }
 
-export function delegateUiCtlRegisterGregorFirehoseRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function debuggingSecondStepRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingSecondStepResult) => void} & {param: debuggingSecondStepRpcParam}>): Promise<debuggingSecondStepResult> {
+  return new Promise((resolve, reject) => { debuggingSecondStepRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function delegateUiCtlRegisterGregorFirehoseRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'delegateUiCtl.registerGregorFirehose'})
 }
 
-export function delegateUiCtlRegisterIdentifyUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function delegateUiCtlRegisterGregorFirehoseRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { delegateUiCtlRegisterGregorFirehoseRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function delegateUiCtlRegisterIdentifyUIRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'delegateUiCtl.registerIdentifyUI'})
 }
 
-export function delegateUiCtlRegisterRekeyUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function delegateUiCtlRegisterIdentifyUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { delegateUiCtlRegisterIdentifyUIRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function delegateUiCtlRegisterRekeyUIRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'delegateUiCtl.registerRekeyUI'})
 }
 
-export function delegateUiCtlRegisterSecretUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function delegateUiCtlRegisterRekeyUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { delegateUiCtlRegisterRekeyUIRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function delegateUiCtlRegisterSecretUIRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'delegateUiCtl.registerSecretUI'})
 }
 
-export function delegateUiCtlRegisterUpdateUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function delegateUiCtlRegisterSecretUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { delegateUiCtlRegisterSecretUIRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function delegateUiCtlRegisterUpdateUIRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'delegateUiCtl.registerUpdateUI'})
 }
 
-export function deviceCheckDeviceNameForUserRpc (request: $Exact<requestCommon & requestErrorCallback & {param: deviceCheckDeviceNameForUserRpcParam}>) {
+export function delegateUiCtlRegisterUpdateUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { delegateUiCtlRegisterUpdateUIRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function deviceCheckDeviceNameForUserRpc (request: Exact<requestCommon & requestErrorCallback & {param: deviceCheckDeviceNameForUserRpcParam}>) {
   engineRpcOutgoing({...request, method: 'device.checkDeviceNameForUser'})
 }
 
-export function deviceCheckDeviceNameFormatRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceCheckDeviceNameFormatResult) => void} & {param: deviceCheckDeviceNameFormatRpcParam}>) {
+export function deviceCheckDeviceNameForUserRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: deviceCheckDeviceNameForUserRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { deviceCheckDeviceNameForUserRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function deviceCheckDeviceNameFormatRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: deviceCheckDeviceNameFormatResult) => void} & {param: deviceCheckDeviceNameFormatRpcParam}>) {
   engineRpcOutgoing({...request, method: 'device.checkDeviceNameFormat'})
 }
 
-export function deviceDeviceAddRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function deviceCheckDeviceNameFormatRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceCheckDeviceNameFormatResult) => void} & {param: deviceCheckDeviceNameFormatRpcParam}>): Promise<deviceCheckDeviceNameFormatResult> {
+  return new Promise((resolve, reject) => { deviceCheckDeviceNameFormatRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function deviceDeviceAddRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'device.deviceAdd'})
 }
 
-export function deviceDeviceHistoryListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceHistoryListResult) => void}>) {
+export function deviceDeviceAddRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { deviceDeviceAddRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function deviceDeviceHistoryListRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceHistoryListResult) => void}>) {
   engineRpcOutgoing({...request, method: 'device.deviceHistoryList'})
 }
 
-export function deviceDeviceListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceListResult) => void}>) {
+export function deviceDeviceHistoryListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceHistoryListResult) => void}>): Promise<deviceDeviceHistoryListResult> {
+  return new Promise((resolve, reject) => { deviceDeviceHistoryListRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function deviceDeviceListRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceListResult) => void}>) {
   engineRpcOutgoing({...request, method: 'device.deviceList'})
 }
 
-export function favoriteFavoriteAddRpc (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteAddRpcParam}>) {
+export function deviceDeviceListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceListResult) => void}>): Promise<deviceDeviceListResult> {
+  return new Promise((resolve, reject) => { deviceDeviceListRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function favoriteFavoriteAddRpc (request: Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteAddRpcParam}>) {
   engineRpcOutgoing({...request, method: 'favorite.favoriteAdd'})
 }
 
-export function favoriteFavoriteIgnoreRpc (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteIgnoreRpcParam}>) {
+export function favoriteFavoriteAddRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteAddRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { favoriteFavoriteAddRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function favoriteFavoriteIgnoreRpc (request: Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteIgnoreRpcParam}>) {
   engineRpcOutgoing({...request, method: 'favorite.favoriteIgnore'})
 }
 
-export function favoriteGetFavoritesRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: favoriteGetFavoritesResult) => void}>) {
+export function favoriteFavoriteIgnoreRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteIgnoreRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { favoriteFavoriteIgnoreRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function favoriteGetFavoritesRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: favoriteGetFavoritesResult) => void}>) {
   engineRpcOutgoing({...request, method: 'favorite.getFavorites'})
 }
 
-export function fsListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>) {
+export function favoriteGetFavoritesRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: favoriteGetFavoritesResult) => void}>): Promise<favoriteGetFavoritesResult> {
+  return new Promise((resolve, reject) => { favoriteGetFavoritesRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function fsListRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>) {
   engineRpcOutgoing({...request, method: 'fs.List'})
 }
 
-export function gregorGetStateRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}>) {
+export function fsListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>): Promise<fsListResult> {
+  return new Promise((resolve, reject) => { fsListRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function gregorGetStateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}>) {
   engineRpcOutgoing({...request, method: 'gregor.getState'})
 }
 
-export function identifyIdentify2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}>) {
+export function gregorGetStateRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}>): Promise<gregorGetStateResult> {
+  return new Promise((resolve, reject) => { gregorGetStateRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function identifyIdentify2Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'identify.identify2'})
 }
 
-export function identifyIdentifyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>) {
+export function identifyIdentify2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}>): Promise<identifyIdentify2Result> {
+  return new Promise((resolve, reject) => { identifyIdentify2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function identifyIdentifyRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'identify.identify'})
 }
 
-export function identifyResolve2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}>) {
+export function identifyIdentifyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>): Promise<identifyIdentifyResult> {
+  return new Promise((resolve, reject) => { identifyIdentifyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function identifyResolve2Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'identify.Resolve2'})
 }
 
-export function identifyResolveRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>) {
+export function identifyResolve2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}>): Promise<identifyResolve2Result> {
+  return new Promise((resolve, reject) => { identifyResolve2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function identifyResolveRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>) {
   engineRpcOutgoing({...request, method: 'identify.Resolve'})
 }
 
-export function kbfsFSEditListRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>) {
+export function identifyResolveRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>): Promise<identifyResolveResult> {
+  return new Promise((resolve, reject) => { identifyResolveRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function kbfsFSEditListRpc (request: Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>) {
   engineRpcOutgoing({...request, method: 'kbfs.FSEditList'})
 }
 
-export function kbfsFSEventRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEventRpcParam}>) {
+export function kbfsFSEditListRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { kbfsFSEditListRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function kbfsFSEventRpc (request: Exact<requestCommon & requestErrorCallback & {param: kbfsFSEventRpcParam}>) {
   engineRpcOutgoing({...request, method: 'kbfs.FSEvent'})
 }
 
-export function kbfsFSSyncEventRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncEventRpcParam}>) {
+export function kbfsFSEventRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEventRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { kbfsFSEventRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function kbfsFSSyncEventRpc (request: Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncEventRpcParam}>) {
   engineRpcOutgoing({...request, method: 'kbfs.FSSyncEvent'})
 }
 
-export function kbfsFSSyncStatusRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncStatusRpcParam}>) {
+export function kbfsFSSyncEventRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncEventRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { kbfsFSSyncEventRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function kbfsFSSyncStatusRpc (request: Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncStatusRpcParam}>) {
   engineRpcOutgoing({...request, method: 'kbfs.FSSyncStatus'})
 }
 
-export function logRegisterLoggerRpc (request: $Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>) {
+export function kbfsFSSyncStatusRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncStatusRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { kbfsFSSyncStatusRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function logRegisterLoggerRpc (request: Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>) {
   engineRpcOutgoing({...request, method: 'log.registerLogger'})
 }
 
-export function loginAccountDeleteRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function logRegisterLoggerRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { logRegisterLoggerRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginAccountDeleteRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'login.accountDelete'})
 }
 
-export function loginClearStoredSecretRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginClearStoredSecretRpcParam}>) {
+export function loginAccountDeleteRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { loginAccountDeleteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginClearStoredSecretRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginClearStoredSecretRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.clearStoredSecret'})
 }
 
-export function loginDeprovisionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginDeprovisionRpcParam}>) {
+export function loginClearStoredSecretRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginClearStoredSecretRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginClearStoredSecretRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginDeprovisionRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginDeprovisionRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.deprovision'})
 }
 
-export function loginGetConfiguredAccountsRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginGetConfiguredAccountsResult) => void}>) {
+export function loginDeprovisionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginDeprovisionRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginDeprovisionRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginGetConfiguredAccountsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: loginGetConfiguredAccountsResult) => void}>) {
   engineRpcOutgoing({...request, method: 'login.getConfiguredAccounts'})
 }
 
-export function loginLoginRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>) {
+export function loginGetConfiguredAccountsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginGetConfiguredAccountsResult) => void}>): Promise<loginGetConfiguredAccountsResult> {
+  return new Promise((resolve, reject) => { loginGetConfiguredAccountsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginLoginRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.login'})
 }
 
-export function loginLogoutRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function loginLoginRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginLoginRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginLogoutRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'login.logout'})
 }
 
-export function loginPaperKeyRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function loginLogoutRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { loginLogoutRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginPaperKeyRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'login.paperKey'})
 }
 
-export function loginPaperKeySubmitRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginPaperKeySubmitRpcParam}>) {
+export function loginPaperKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { loginPaperKeyRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginPaperKeySubmitRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginPaperKeySubmitRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.paperKeySubmit'})
 }
 
-export function loginPgpProvisionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginPgpProvisionRpcParam}>) {
+export function loginPaperKeySubmitRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginPaperKeySubmitRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginPaperKeySubmitRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginPgpProvisionRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginPgpProvisionRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.pgpProvision'})
 }
 
-export function loginRecoverAccountFromEmailAddressRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginRecoverAccountFromEmailAddressRpcParam}>) {
+export function loginPgpProvisionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginPgpProvisionRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginPgpProvisionRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginRecoverAccountFromEmailAddressRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginRecoverAccountFromEmailAddressRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.recoverAccountFromEmailAddress'})
 }
 
-export function loginUnlockRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function loginRecoverAccountFromEmailAddressRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginRecoverAccountFromEmailAddressRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginRecoverAccountFromEmailAddressRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginUnlockRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'login.unlock'})
 }
 
-export function loginUnlockWithPassphraseRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginUnlockWithPassphraseRpcParam}>) {
+export function loginUnlockRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { loginUnlockRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function loginUnlockWithPassphraseRpc (request: Exact<requestCommon & requestErrorCallback & {param: loginUnlockWithPassphraseRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.unlockWithPassphrase'})
 }
 
-export function metadataAuthenticateRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>) {
+export function loginUnlockWithPassphraseRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginUnlockWithPassphraseRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginUnlockWithPassphraseRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataAuthenticateRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.authenticate'})
 }
 
-export function metadataDeleteKeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataDeleteKeyRpcParam}>) {
+export function metadataAuthenticateRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>): Promise<metadataAuthenticateResult> {
+  return new Promise((resolve, reject) => { metadataAuthenticateRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataDeleteKeyRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataDeleteKeyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.deleteKey'})
 }
 
-export function metadataGetChallengeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetChallengeResult) => void}>) {
+export function metadataDeleteKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataDeleteKeyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataDeleteKeyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataGetChallengeRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetChallengeResult) => void}>) {
   engineRpcOutgoing({...request, method: 'metadata.getChallenge'})
 }
 
-export function metadataGetFolderHandleRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetFolderHandleResult) => void} & {param: metadataGetFolderHandleRpcParam}>) {
+export function metadataGetChallengeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetChallengeResult) => void}>): Promise<metadataGetChallengeResult> {
+  return new Promise((resolve, reject) => { metadataGetChallengeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataGetFolderHandleRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetFolderHandleResult) => void} & {param: metadataGetFolderHandleRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getFolderHandle'})
 }
 
-export function metadataGetFoldersForRekeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataGetFoldersForRekeyRpcParam}>) {
+export function metadataGetFolderHandleRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetFolderHandleResult) => void} & {param: metadataGetFolderHandleRpcParam}>): Promise<metadataGetFolderHandleResult> {
+  return new Promise((resolve, reject) => { metadataGetFolderHandleRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataGetFoldersForRekeyRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataGetFoldersForRekeyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getFoldersForRekey'})
 }
 
-export function metadataGetKeyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyResult) => void} & {param: metadataGetKeyRpcParam}>) {
+export function metadataGetFoldersForRekeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataGetFoldersForRekeyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataGetFoldersForRekeyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataGetKeyRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyResult) => void} & {param: metadataGetKeyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getKey'})
 }
 
-export function metadataGetLatestFolderHandleRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetLatestFolderHandleResult) => void} & {param: metadataGetLatestFolderHandleRpcParam}>) {
+export function metadataGetKeyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyResult) => void} & {param: metadataGetKeyRpcParam}>): Promise<metadataGetKeyResult> {
+  return new Promise((resolve, reject) => { metadataGetKeyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataGetLatestFolderHandleRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetLatestFolderHandleResult) => void} & {param: metadataGetLatestFolderHandleRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getLatestFolderHandle'})
 }
 
-export function metadataGetMerkleNodeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleNodeResult) => void} & {param: metadataGetMerkleNodeRpcParam}>) {
+export function metadataGetLatestFolderHandleRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetLatestFolderHandleResult) => void} & {param: metadataGetLatestFolderHandleRpcParam}>): Promise<metadataGetLatestFolderHandleResult> {
+  return new Promise((resolve, reject) => { metadataGetLatestFolderHandleRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataGetMerkleNodeRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleNodeResult) => void} & {param: metadataGetMerkleNodeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getMerkleNode'})
 }
 
-export function metadataGetMerkleRootLatestRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootLatestResult) => void} & {param: metadataGetMerkleRootLatestRpcParam}>) {
+export function metadataGetMerkleNodeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleNodeResult) => void} & {param: metadataGetMerkleNodeRpcParam}>): Promise<metadataGetMerkleNodeResult> {
+  return new Promise((resolve, reject) => { metadataGetMerkleNodeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataGetMerkleRootLatestRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootLatestResult) => void} & {param: metadataGetMerkleRootLatestRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getMerkleRootLatest'})
 }
 
-export function metadataGetMerkleRootRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootResult) => void} & {param: metadataGetMerkleRootRpcParam}>) {
+export function metadataGetMerkleRootLatestRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootLatestResult) => void} & {param: metadataGetMerkleRootLatestRpcParam}>): Promise<metadataGetMerkleRootLatestResult> {
+  return new Promise((resolve, reject) => { metadataGetMerkleRootLatestRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataGetMerkleRootRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootResult) => void} & {param: metadataGetMerkleRootRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getMerkleRoot'})
 }
 
-export function metadataGetMerkleRootSinceRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootSinceResult) => void} & {param: metadataGetMerkleRootSinceRpcParam}>) {
+export function metadataGetMerkleRootRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootResult) => void} & {param: metadataGetMerkleRootRpcParam}>): Promise<metadataGetMerkleRootResult> {
+  return new Promise((resolve, reject) => { metadataGetMerkleRootRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataGetMerkleRootSinceRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootSinceResult) => void} & {param: metadataGetMerkleRootSinceRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getMerkleRootSince'})
 }
 
-export function metadataGetMetadataRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMetadataResult) => void} & {param: metadataGetMetadataRpcParam}>) {
+export function metadataGetMerkleRootSinceRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootSinceResult) => void} & {param: metadataGetMerkleRootSinceRpcParam}>): Promise<metadataGetMerkleRootSinceResult> {
+  return new Promise((resolve, reject) => { metadataGetMerkleRootSinceRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataGetMetadataRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMetadataResult) => void} & {param: metadataGetMetadataRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getMetadata'})
 }
 
-export function metadataPing2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}>) {
+export function metadataGetMetadataRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMetadataResult) => void} & {param: metadataGetMetadataRpcParam}>): Promise<metadataGetMetadataResult> {
+  return new Promise((resolve, reject) => { metadataGetMetadataRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataPing2Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}>) {
   engineRpcOutgoing({...request, method: 'metadata.ping2'})
 }
 
-export function metadataPingRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function metadataPing2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}>): Promise<metadataPing2Result> {
+  return new Promise((resolve, reject) => { metadataPing2Rpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataPingRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'metadata.ping'})
 }
 
-export function metadataPruneBranchRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPruneBranchRpcParam}>) {
+export function metadataPingRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataPingRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataPruneBranchRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataPruneBranchRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.pruneBranch'})
 }
 
-export function metadataPutKeysRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutKeysRpcParam}>) {
+export function metadataPruneBranchRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPruneBranchRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataPruneBranchRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataPutKeysRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataPutKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.putKeys'})
 }
 
-export function metadataPutMetadataRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataRpcParam}>) {
+export function metadataPutKeysRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutKeysRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataPutKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataPutMetadataRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.putMetadata'})
 }
 
-export function metadataRegisterForUpdatesRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>) {
+export function metadataPutMetadataRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataPutMetadataRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataRegisterForUpdatesRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.registerForUpdates'})
 }
 
-export function metadataTruncateLockRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}>) {
+export function metadataRegisterForUpdatesRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataRegisterForUpdatesRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataTruncateLockRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.truncateLock'})
 }
 
-export function metadataTruncateUnlockRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateUnlockResult) => void} & {param: metadataTruncateUnlockRpcParam}>) {
+export function metadataTruncateLockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}>): Promise<metadataTruncateLockResult> {
+  return new Promise((resolve, reject) => { metadataTruncateLockRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataTruncateUnlockRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateUnlockResult) => void} & {param: metadataTruncateUnlockRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.truncateUnlock'})
 }
 
-export function metadataUpdateFolderNeedsRekeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFolderNeedsRekeyRpcParam}>) {
+export function metadataTruncateUnlockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateUnlockResult) => void} & {param: metadataTruncateUnlockRpcParam}>): Promise<metadataTruncateUnlockResult> {
+  return new Promise((resolve, reject) => { metadataTruncateUnlockRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataUpdateFolderNeedsRekeyRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFolderNeedsRekeyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadataUpdate.folderNeedsRekey'})
 }
 
-export function metadataUpdateMetadataUpdateRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateMetadataUpdateRpcParam}>) {
+export function metadataUpdateFolderNeedsRekeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFolderNeedsRekeyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataUpdateFolderNeedsRekeyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataUpdateMetadataUpdateRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataUpdateMetadataUpdateRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadataUpdate.metadataUpdate'})
 }
 
-export function notifyCtlSetNotificationsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: notifyCtlSetNotificationsRpcParam}>) {
+export function metadataUpdateMetadataUpdateRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateMetadataUpdateRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataUpdateMetadataUpdateRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function notifyCtlSetNotificationsRpc (request: Exact<requestCommon & requestErrorCallback & {param: notifyCtlSetNotificationsRpcParam}>) {
   engineRpcOutgoing({...request, method: 'notifyCtl.setNotifications'})
 }
 
-export function paperprovisionPaperProvisionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: paperprovisionPaperProvisionRpcParam}>) {
+export function notifyCtlSetNotificationsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: notifyCtlSetNotificationsRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { notifyCtlSetNotificationsRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function paperprovisionPaperProvisionRpc (request: Exact<requestCommon & requestErrorCallback & {param: paperprovisionPaperProvisionRpcParam}>) {
   engineRpcOutgoing({...request, method: 'paperprovision.paperProvision'})
 }
 
-export function pgpPgpDecryptRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpDecryptResult) => void} & {param: pgpPgpDecryptRpcParam}>) {
+export function paperprovisionPaperProvisionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: paperprovisionPaperProvisionRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { paperprovisionPaperProvisionRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpDecryptRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpDecryptResult) => void} & {param: pgpPgpDecryptRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpDecrypt'})
 }
 
-export function pgpPgpDeletePrimaryRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function pgpPgpDecryptRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpDecryptResult) => void} & {param: pgpPgpDecryptRpcParam}>): Promise<pgpPgpDecryptResult> {
+  return new Promise((resolve, reject) => { pgpPgpDecryptRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpDeletePrimaryRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpDeletePrimary'})
 }
 
-export function pgpPgpEncryptRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpEncryptRpcParam}>) {
+export function pgpPgpDeletePrimaryRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpDeletePrimaryRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpEncryptRpc (request: Exact<requestCommon & requestErrorCallback & {param: pgpPgpEncryptRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpEncrypt'})
 }
 
-export function pgpPgpExportByFingerprintRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByFingerprintResult) => void} & {param: pgpPgpExportByFingerprintRpcParam}>) {
+export function pgpPgpEncryptRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpEncryptRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpEncryptRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpExportByFingerprintRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByFingerprintResult) => void} & {param: pgpPgpExportByFingerprintRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpExportByFingerprint'})
 }
 
-export function pgpPgpExportByKIDRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByKIDResult) => void} & {param: pgpPgpExportByKIDRpcParam}>) {
+export function pgpPgpExportByFingerprintRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByFingerprintResult) => void} & {param: pgpPgpExportByFingerprintRpcParam}>): Promise<pgpPgpExportByFingerprintResult> {
+  return new Promise((resolve, reject) => { pgpPgpExportByFingerprintRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpExportByKIDRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByKIDResult) => void} & {param: pgpPgpExportByKIDRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpExportByKID'})
 }
 
-export function pgpPgpExportRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportResult) => void} & {param: pgpPgpExportRpcParam}>) {
+export function pgpPgpExportByKIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByKIDResult) => void} & {param: pgpPgpExportByKIDRpcParam}>): Promise<pgpPgpExportByKIDResult> {
+  return new Promise((resolve, reject) => { pgpPgpExportByKIDRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpExportRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportResult) => void} & {param: pgpPgpExportRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpExport'})
 }
 
-export function pgpPgpImportRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpImportRpcParam}>) {
+export function pgpPgpExportRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportResult) => void} & {param: pgpPgpExportRpcParam}>): Promise<pgpPgpExportResult> {
+  return new Promise((resolve, reject) => { pgpPgpExportRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpImportRpc (request: Exact<requestCommon & requestErrorCallback & {param: pgpPgpImportRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpImport'})
 }
 
-export function pgpPgpKeyGenDefaultRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenDefaultRpcParam}>) {
+export function pgpPgpImportRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpImportRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpImportRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpKeyGenDefaultRpc (request: Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenDefaultRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpKeyGenDefault'})
 }
 
-export function pgpPgpKeyGenRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenRpcParam}>) {
+export function pgpPgpKeyGenDefaultRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenDefaultRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpKeyGenDefaultRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpKeyGenRpc (request: Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpKeyGen'})
 }
 
-export function pgpPgpPullRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpPullRpcParam}>) {
+export function pgpPgpKeyGenRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpKeyGenRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpPullRpc (request: Exact<requestCommon & requestErrorCallback & {param: pgpPgpPullRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpPull'})
 }
 
-export function pgpPgpPurgeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpPurgeResult) => void} & {param: pgpPgpPurgeRpcParam}>) {
+export function pgpPgpPullRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpPullRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpPullRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpPurgeRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpPurgeResult) => void} & {param: pgpPgpPurgeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpPurge'})
 }
 
-export function pgpPgpSelectRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSelectRpcParam}>) {
+export function pgpPgpPurgeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpPurgeResult) => void} & {param: pgpPgpPurgeRpcParam}>): Promise<pgpPgpPurgeResult> {
+  return new Promise((resolve, reject) => { pgpPgpPurgeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpSelectRpc (request: Exact<requestCommon & requestErrorCallback & {param: pgpPgpSelectRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpSelect'})
 }
 
-export function pgpPgpSignRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSignRpcParam}>) {
+export function pgpPgpSelectRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSelectRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpSelectRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpSignRpc (request: Exact<requestCommon & requestErrorCallback & {param: pgpPgpSignRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpSign'})
 }
 
-export function pgpPgpStorageDismissRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function pgpPgpSignRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSignRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpSignRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpStorageDismissRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpStorageDismiss'})
 }
 
-export function pgpPgpUpdateRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpUpdateRpcParam}>) {
+export function pgpPgpStorageDismissRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpStorageDismissRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpUpdateRpc (request: Exact<requestCommon & requestErrorCallback & {param: pgpPgpUpdateRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpUpdate'})
 }
 
-export function pgpPgpVerifyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpVerifyResult) => void} & {param: pgpPgpVerifyRpcParam}>) {
+export function pgpPgpUpdateRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpUpdateRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpUpdateRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function pgpPgpVerifyRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpVerifyResult) => void} & {param: pgpPgpVerifyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpVerify'})
 }
 
-export function proveCheckProofRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveCheckProofResult) => void} & {param: proveCheckProofRpcParam}>) {
+export function pgpPgpVerifyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpVerifyResult) => void} & {param: pgpPgpVerifyRpcParam}>): Promise<pgpPgpVerifyResult> {
+  return new Promise((resolve, reject) => { pgpPgpVerifyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function proveCheckProofRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: proveCheckProofResult) => void} & {param: proveCheckProofRpcParam}>) {
   engineRpcOutgoing({...request, method: 'prove.checkProof'})
 }
 
-export function proveStartProofRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveStartProofResult) => void} & {param: proveStartProofRpcParam}>) {
+export function proveCheckProofRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveCheckProofResult) => void} & {param: proveCheckProofRpcParam}>): Promise<proveCheckProofResult> {
+  return new Promise((resolve, reject) => { proveCheckProofRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function proveStartProofRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: proveStartProofResult) => void} & {param: proveStartProofRpcParam}>) {
   engineRpcOutgoing({...request, method: 'prove.startProof'})
 }
 
-export function quotaVerifySessionRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: quotaVerifySessionResult) => void} & {param: quotaVerifySessionRpcParam}>) {
+export function proveStartProofRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveStartProofResult) => void} & {param: proveStartProofRpcParam}>): Promise<proveStartProofResult> {
+  return new Promise((resolve, reject) => { proveStartProofRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function quotaVerifySessionRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: quotaVerifySessionResult) => void} & {param: quotaVerifySessionRpcParam}>) {
   engineRpcOutgoing({...request, method: 'quota.verifySession'})
 }
 
-export function rekeyDebugShowRekeyStatusRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function quotaVerifySessionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: quotaVerifySessionResult) => void} & {param: quotaVerifySessionRpcParam}>): Promise<quotaVerifySessionResult> {
+  return new Promise((resolve, reject) => { quotaVerifySessionRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function rekeyDebugShowRekeyStatusRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'rekey.debugShowRekeyStatus'})
 }
 
-export function rekeyGetPendingRekeyStatusRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetPendingRekeyStatusResult) => void}>) {
+export function rekeyDebugShowRekeyStatusRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { rekeyDebugShowRekeyStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function rekeyGetPendingRekeyStatusRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetPendingRekeyStatusResult) => void}>) {
   engineRpcOutgoing({...request, method: 'rekey.getPendingRekeyStatus'})
 }
 
-export function rekeyRekeyStatusFinishRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyRekeyStatusFinishResult) => void}>) {
+export function rekeyGetPendingRekeyStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetPendingRekeyStatusResult) => void}>): Promise<rekeyGetPendingRekeyStatusResult> {
+  return new Promise((resolve, reject) => { rekeyGetPendingRekeyStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function rekeyRekeyStatusFinishRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyRekeyStatusFinishResult) => void}>) {
   engineRpcOutgoing({...request, method: 'rekey.rekeyStatusFinish'})
 }
 
-export function rekeyRekeySyncRpc (request: $Exact<requestCommon & requestErrorCallback & {param: rekeyRekeySyncRpcParam}>) {
+export function rekeyRekeyStatusFinishRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyRekeyStatusFinishResult) => void}>): Promise<rekeyRekeyStatusFinishResult> {
+  return new Promise((resolve, reject) => { rekeyRekeyStatusFinishRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function rekeyRekeySyncRpc (request: Exact<requestCommon & requestErrorCallback & {param: rekeyRekeySyncRpcParam}>) {
   engineRpcOutgoing({...request, method: 'rekey.rekeySync'})
 }
 
-export function rekeyShowPendingRekeyStatusRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function rekeyRekeySyncRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: rekeyRekeySyncRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { rekeyRekeySyncRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function rekeyShowPendingRekeyStatusRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'rekey.showPendingRekeyStatus'})
 }
 
-export function revokeRevokeDeviceRpc (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeDeviceRpcParam}>) {
+export function rekeyShowPendingRekeyStatusRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { rekeyShowPendingRekeyStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function revokeRevokeDeviceRpc (request: Exact<requestCommon & requestErrorCallback & {param: revokeRevokeDeviceRpcParam}>) {
   engineRpcOutgoing({...request, method: 'revoke.revokeDevice'})
 }
 
-export function revokeRevokeKeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeKeyRpcParam}>) {
+export function revokeRevokeDeviceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeDeviceRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { revokeRevokeDeviceRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function revokeRevokeKeyRpc (request: Exact<requestCommon & requestErrorCallback & {param: revokeRevokeKeyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'revoke.revokeKey'})
 }
 
-export function revokeRevokeSigsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeSigsRpcParam}>) {
+export function revokeRevokeKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeKeyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { revokeRevokeKeyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function revokeRevokeSigsRpc (request: Exact<requestCommon & requestErrorCallback & {param: revokeRevokeSigsRpcParam}>) {
   engineRpcOutgoing({...request, method: 'revoke.revokeSigs'})
 }
 
-export function saltpackSaltpackDecryptRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: saltpackSaltpackDecryptResult) => void} & {param: saltpackSaltpackDecryptRpcParam}>) {
+export function revokeRevokeSigsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeSigsRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { revokeRevokeSigsRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function saltpackSaltpackDecryptRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: saltpackSaltpackDecryptResult) => void} & {param: saltpackSaltpackDecryptRpcParam}>) {
   engineRpcOutgoing({...request, method: 'saltpack.saltpackDecrypt'})
 }
 
-export function saltpackSaltpackEncryptRpc (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackEncryptRpcParam}>) {
+export function saltpackSaltpackDecryptRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: saltpackSaltpackDecryptResult) => void} & {param: saltpackSaltpackDecryptRpcParam}>): Promise<saltpackSaltpackDecryptResult> {
+  return new Promise((resolve, reject) => { saltpackSaltpackDecryptRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function saltpackSaltpackEncryptRpc (request: Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackEncryptRpcParam}>) {
   engineRpcOutgoing({...request, method: 'saltpack.saltpackEncrypt'})
 }
 
-export function saltpackSaltpackSignRpc (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackSignRpcParam}>) {
+export function saltpackSaltpackEncryptRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackEncryptRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { saltpackSaltpackEncryptRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function saltpackSaltpackSignRpc (request: Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackSignRpcParam}>) {
   engineRpcOutgoing({...request, method: 'saltpack.saltpackSign'})
 }
 
-export function saltpackSaltpackVerifyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackVerifyRpcParam}>) {
+export function saltpackSaltpackSignRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackSignRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { saltpackSaltpackSignRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function saltpackSaltpackVerifyRpc (request: Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackVerifyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'saltpack.saltpackVerify'})
 }
 
-export function sessionCurrentSessionRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sessionCurrentSessionResult) => void}>) {
+export function saltpackSaltpackVerifyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackVerifyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { saltpackSaltpackVerifyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function sessionCurrentSessionRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: sessionCurrentSessionResult) => void}>) {
   engineRpcOutgoing({...request, method: 'session.currentSession'})
 }
 
-export function signupCheckInvitationCodeRpc (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckInvitationCodeRpcParam}>) {
+export function sessionCurrentSessionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sessionCurrentSessionResult) => void}>): Promise<sessionCurrentSessionResult> {
+  return new Promise((resolve, reject) => { sessionCurrentSessionRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function signupCheckInvitationCodeRpc (request: Exact<requestCommon & requestErrorCallback & {param: signupCheckInvitationCodeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'signup.checkInvitationCode'})
 }
 
-export function signupCheckUsernameAvailableRpc (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckUsernameAvailableRpcParam}>) {
+export function signupCheckInvitationCodeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckInvitationCodeRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { signupCheckInvitationCodeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function signupCheckUsernameAvailableRpc (request: Exact<requestCommon & requestErrorCallback & {param: signupCheckUsernameAvailableRpcParam}>) {
   engineRpcOutgoing({...request, method: 'signup.checkUsernameAvailable'})
 }
 
-export function signupInviteRequestRpc (request: $Exact<requestCommon & requestErrorCallback & {param: signupInviteRequestRpcParam}>) {
+export function signupCheckUsernameAvailableRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckUsernameAvailableRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { signupCheckUsernameAvailableRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function signupInviteRequestRpc (request: Exact<requestCommon & requestErrorCallback & {param: signupInviteRequestRpcParam}>) {
   engineRpcOutgoing({...request, method: 'signup.inviteRequest'})
 }
 
-export function signupSignupRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupSignupResult) => void} & {param: signupSignupRpcParam}>) {
+export function signupInviteRequestRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: signupInviteRequestRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { signupInviteRequestRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function signupSignupRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: signupSignupResult) => void} & {param: signupSignupRpcParam}>) {
   engineRpcOutgoing({...request, method: 'signup.signup'})
 }
 
-export function sigsSigListJSONRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListJSONResult) => void} & {param: sigsSigListJSONRpcParam}>) {
+export function signupSignupRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupSignupResult) => void} & {param: signupSignupRpcParam}>): Promise<signupSignupResult> {
+  return new Promise((resolve, reject) => { signupSignupRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function sigsSigListJSONRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListJSONResult) => void} & {param: sigsSigListJSONRpcParam}>) {
   engineRpcOutgoing({...request, method: 'sigs.sigListJSON'})
 }
 
-export function sigsSigListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListResult) => void} & {param: sigsSigListRpcParam}>) {
+export function sigsSigListJSONRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListJSONResult) => void} & {param: sigsSigListJSONRpcParam}>): Promise<sigsSigListJSONResult> {
+  return new Promise((resolve, reject) => { sigsSigListJSONRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function sigsSigListRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListResult) => void} & {param: sigsSigListRpcParam}>) {
   engineRpcOutgoing({...request, method: 'sigs.sigList'})
 }
 
-export function testPanicRpc (request: $Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
+export function sigsSigListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListResult) => void} & {param: sigsSigListRpcParam}>): Promise<sigsSigListResult> {
+  return new Promise((resolve, reject) => { sigsSigListRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function testPanicRpc (request: Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
   engineRpcOutgoing({...request, method: 'test.panic'})
 }
 
-export function testTestCallbackRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestCallbackResult) => void} & {param: testTestCallbackRpcParam}>) {
+export function testPanicRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { testPanicRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function testTestCallbackRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: testTestCallbackResult) => void} & {param: testTestCallbackRpcParam}>) {
   engineRpcOutgoing({...request, method: 'test.testCallback'})
 }
 
-export function testTestRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestResult) => void} & {param: testTestRpcParam}>) {
+export function testTestCallbackRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestCallbackResult) => void} & {param: testTestCallbackRpcParam}>): Promise<testTestCallbackResult> {
+  return new Promise((resolve, reject) => { testTestCallbackRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function testTestRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: testTestResult) => void} & {param: testTestRpcParam}>) {
   engineRpcOutgoing({...request, method: 'test.test'})
 }
 
-export function tlfCryptKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>) {
+export function testTestRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestResult) => void} & {param: testTestRpcParam}>): Promise<testTestResult> {
+  return new Promise((resolve, reject) => { testTestRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function tlfCryptKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'tlf.CryptKeys'})
 }
 
-export function tlfKeysGetTLFCryptKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>) {
+export function tlfCryptKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>): Promise<tlfCryptKeysResult> {
+  return new Promise((resolve, reject) => { tlfCryptKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function tlfKeysGetTLFCryptKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'tlfKeys.getTLFCryptKeys'})
 }
 
-export function trackCheckTrackingRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+export function tlfKeysGetTLFCryptKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>): Promise<tlfKeysGetTLFCryptKeysResult> {
+  return new Promise((resolve, reject) => { tlfKeysGetTLFCryptKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function trackCheckTrackingRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'track.checkTracking'})
 }
 
-export function trackDismissWithTokenRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackDismissWithTokenRpcParam}>) {
+export function trackCheckTrackingRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { trackCheckTrackingRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function trackDismissWithTokenRpc (request: Exact<requestCommon & requestErrorCallback & {param: trackDismissWithTokenRpcParam}>) {
   engineRpcOutgoing({...request, method: 'track.dismissWithToken'})
 }
 
-export function trackFakeTrackingChangedRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackFakeTrackingChangedRpcParam}>) {
+export function trackDismissWithTokenRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackDismissWithTokenRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { trackDismissWithTokenRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function trackFakeTrackingChangedRpc (request: Exact<requestCommon & requestErrorCallback & {param: trackFakeTrackingChangedRpcParam}>) {
   engineRpcOutgoing({...request, method: 'track.fakeTrackingChanged'})
 }
 
-export function trackTrackRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackRpcParam}>) {
+export function trackFakeTrackingChangedRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackFakeTrackingChangedRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { trackFakeTrackingChangedRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function trackTrackRpc (request: Exact<requestCommon & requestErrorCallback & {param: trackTrackRpcParam}>) {
   engineRpcOutgoing({...request, method: 'track.track'})
 }
 
-export function trackTrackWithTokenRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackWithTokenRpcParam}>) {
+export function trackTrackRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { trackTrackRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function trackTrackWithTokenRpc (request: Exact<requestCommon & requestErrorCallback & {param: trackTrackWithTokenRpcParam}>) {
   engineRpcOutgoing({...request, method: 'track.trackWithToken'})
 }
 
-export function trackUntrackRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackUntrackRpcParam}>) {
+export function trackTrackWithTokenRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackWithTokenRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { trackTrackWithTokenRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function trackUntrackRpc (request: Exact<requestCommon & requestErrorCallback & {param: trackUntrackRpcParam}>) {
   engineRpcOutgoing({...request, method: 'track.untrack'})
 }
 
-export function userListTrackers2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackers2Result) => void} & {param: userListTrackers2RpcParam}>) {
+export function trackUntrackRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackUntrackRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { trackUntrackRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userListTrackers2Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackers2Result) => void} & {param: userListTrackers2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.listTrackers2'})
 }
 
-export function userListTrackersByNameRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersByNameResult) => void} & {param: userListTrackersByNameRpcParam}>) {
+export function userListTrackers2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackers2Result) => void} & {param: userListTrackers2RpcParam}>): Promise<userListTrackers2Result> {
+  return new Promise((resolve, reject) => { userListTrackers2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userListTrackersByNameRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersByNameResult) => void} & {param: userListTrackersByNameRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.listTrackersByName'})
 }
 
-export function userListTrackersRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersResult) => void} & {param: userListTrackersRpcParam}>) {
+export function userListTrackersByNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersByNameResult) => void} & {param: userListTrackersByNameRpcParam}>): Promise<userListTrackersByNameResult> {
+  return new Promise((resolve, reject) => { userListTrackersByNameRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userListTrackersRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersResult) => void} & {param: userListTrackersRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.listTrackers'})
 }
 
-export function userListTrackersSelfRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersSelfResult) => void}>) {
+export function userListTrackersRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersResult) => void} & {param: userListTrackersRpcParam}>): Promise<userListTrackersResult> {
+  return new Promise((resolve, reject) => { userListTrackersRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userListTrackersSelfRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersSelfResult) => void}>) {
   engineRpcOutgoing({...request, method: 'user.listTrackersSelf'})
 }
 
-export function userListTrackingJSONRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingJSONResult) => void} & {param: userListTrackingJSONRpcParam}>) {
+export function userListTrackersSelfRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersSelfResult) => void}>): Promise<userListTrackersSelfResult> {
+  return new Promise((resolve, reject) => { userListTrackersSelfRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userListTrackingJSONRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingJSONResult) => void} & {param: userListTrackingJSONRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.listTrackingJSON'})
 }
 
-export function userListTrackingRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingResult) => void} & {param: userListTrackingRpcParam}>) {
+export function userListTrackingJSONRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingJSONResult) => void} & {param: userListTrackingJSONRpcParam}>): Promise<userListTrackingJSONResult> {
+  return new Promise((resolve, reject) => { userListTrackingJSONRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userListTrackingRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingResult) => void} & {param: userListTrackingRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.listTracking'})
 }
 
-export function userLoadAllPublicKeysUnverifiedRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void} & {param: userLoadAllPublicKeysUnverifiedRpcParam}>) {
+export function userListTrackingRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingResult) => void} & {param: userListTrackingRpcParam}>): Promise<userListTrackingResult> {
+  return new Promise((resolve, reject) => { userListTrackingRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userLoadAllPublicKeysUnverifiedRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void} & {param: userLoadAllPublicKeysUnverifiedRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadAllPublicKeysUnverified'})
 }
 
-export function userLoadMyPublicKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMyPublicKeysResult) => void}>) {
+export function userLoadAllPublicKeysUnverifiedRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void} & {param: userLoadAllPublicKeysUnverifiedRpcParam}>): Promise<userLoadAllPublicKeysUnverifiedResult> {
+  return new Promise((resolve, reject) => { userLoadAllPublicKeysUnverifiedRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userLoadMyPublicKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMyPublicKeysResult) => void}>) {
   engineRpcOutgoing({...request, method: 'user.loadMyPublicKeys'})
 }
 
-export function userLoadPublicKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadPublicKeysResult) => void} & {param: userLoadPublicKeysRpcParam}>) {
+export function userLoadMyPublicKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMyPublicKeysResult) => void}>): Promise<userLoadMyPublicKeysResult> {
+  return new Promise((resolve, reject) => { userLoadMyPublicKeysRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userLoadPublicKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadPublicKeysResult) => void} & {param: userLoadPublicKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadPublicKeys'})
 }
 
-export function userLoadUncheckedUserSummariesRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUncheckedUserSummariesResult) => void} & {param: userLoadUncheckedUserSummariesRpcParam}>) {
+export function userLoadPublicKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadPublicKeysResult) => void} & {param: userLoadPublicKeysRpcParam}>): Promise<userLoadPublicKeysResult> {
+  return new Promise((resolve, reject) => { userLoadPublicKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userLoadUncheckedUserSummariesRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUncheckedUserSummariesResult) => void} & {param: userLoadUncheckedUserSummariesRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadUncheckedUserSummaries'})
 }
 
-export function userLoadUserByNameRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserByNameResult) => void} & {param: userLoadUserByNameRpcParam}>) {
+export function userLoadUncheckedUserSummariesRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUncheckedUserSummariesResult) => void} & {param: userLoadUncheckedUserSummariesRpcParam}>): Promise<userLoadUncheckedUserSummariesResult> {
+  return new Promise((resolve, reject) => { userLoadUncheckedUserSummariesRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userLoadUserByNameRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserByNameResult) => void} & {param: userLoadUserByNameRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadUserByName'})
 }
 
-export function userLoadUserPlusKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserPlusKeysResult) => void} & {param: userLoadUserPlusKeysRpcParam}>) {
+export function userLoadUserByNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserByNameResult) => void} & {param: userLoadUserByNameRpcParam}>): Promise<userLoadUserByNameResult> {
+  return new Promise((resolve, reject) => { userLoadUserByNameRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userLoadUserPlusKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserPlusKeysResult) => void} & {param: userLoadUserPlusKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadUserPlusKeys'})
 }
 
-export function userLoadUserRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserResult) => void} & {param: userLoadUserRpcParam}>) {
+export function userLoadUserPlusKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserPlusKeysResult) => void} & {param: userLoadUserPlusKeysRpcParam}>): Promise<userLoadUserPlusKeysResult> {
+  return new Promise((resolve, reject) => { userLoadUserPlusKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userLoadUserRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserResult) => void} & {param: userLoadUserRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadUser'})
 }
 
-export function userSearchRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>) {
+export function userLoadUserRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserResult) => void} & {param: userLoadUserRpcParam}>): Promise<userLoadUserResult> {
+  return new Promise((resolve, reject) => { userLoadUserRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function userSearchRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.search'})
+}
+
+export function userSearchRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>): Promise<userSearchResult> {
+  return new Promise((resolve, reject) => { userSearchRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export type APIRes = {
@@ -1113,7 +1822,7 @@ export type APIRes = {
   appStatus: string,
 }
 
-export type BTCRegisterBTCRpcParam = $Exact<{
+export type BTCRegisterBTCRpcParam = Exact<{
   address: string,
   force: boolean
 }>
@@ -1621,23 +2330,23 @@ export type InstallStatus =
 
 export type KID = string
 
-export type Kex2Provisionee2DidCounterSign2RpcParam = $Exact<{
+export type Kex2Provisionee2DidCounterSign2RpcParam = Exact<{
   sig: bytes,
   ppsEncrypted: string
 }>
 
-export type Kex2Provisionee2Hello2RpcParam = $Exact<{
+export type Kex2Provisionee2Hello2RpcParam = Exact<{
   uid: UID,
   token: SessionToken,
   csrf: CsrfToken,
   sigBody: string
 }>
 
-export type Kex2ProvisioneeDidCounterSignRpcParam = $Exact<{
+export type Kex2ProvisioneeDidCounterSignRpcParam = Exact<{
   sig: bytes
 }>
 
-export type Kex2ProvisioneeHelloRpcParam = $Exact<{
+export type Kex2ProvisioneeHelloRpcParam = Exact<{
   uid: UID,
   token: SessionToken,
   csrf: CsrfToken,
@@ -1792,67 +2501,67 @@ export type NotificationChannels = {
   kbfsrequest: boolean,
 }
 
-export type NotifyChatNewChatActivityRpcParam = $Exact<{
+export type NotifyChatNewChatActivityRpcParam = Exact<{
   uid: UID,
   activity: ChatActivity
 }>
 
-export type NotifyFSFSActivityRpcParam = $Exact<{
+export type NotifyFSFSActivityRpcParam = Exact<{
   notification: FSNotification
 }>
 
-export type NotifyFSFSEditListResponseRpcParam = $Exact<{
+export type NotifyFSFSEditListResponseRpcParam = Exact<{
   edits?: ?Array<FSNotification>,
   requestID: int
 }>
 
-export type NotifyFSFSSyncActivityRpcParam = $Exact<{
+export type NotifyFSFSSyncActivityRpcParam = Exact<{
   status: FSPathSyncStatus
 }>
 
-export type NotifyFSFSSyncStatusResponseRpcParam = $Exact<{
+export type NotifyFSFSSyncStatusResponseRpcParam = Exact<{
   status: FSSyncStatus,
   requestID: int
 }>
 
-export type NotifyFSRequestFSEditListRequestRpcParam = $Exact<{
+export type NotifyFSRequestFSEditListRequestRpcParam = Exact<{
   req: FSEditListRequest
 }>
 
-export type NotifyFSRequestFSSyncStatusRequestRpcParam = $Exact<{
+export type NotifyFSRequestFSSyncStatusRequestRpcParam = Exact<{
   req: FSSyncStatusRequest
 }>
 
-export type NotifyFavoritesFavoritesChangedRpcParam = $Exact<{
+export type NotifyFavoritesFavoritesChangedRpcParam = Exact<{
   uid: UID
 }>
 
-export type NotifyKeyfamilyKeyfamilyChangedRpcParam = $Exact<{
+export type NotifyKeyfamilyKeyfamilyChangedRpcParam = Exact<{
   uid: UID
 }>
 
-export type NotifyPaperKeyPaperKeyCachedRpcParam = $Exact<{
+export type NotifyPaperKeyPaperKeyCachedRpcParam = Exact<{
   uid: UID,
   encKID: KID,
   sigKID: KID
 }>
 
-export type NotifySessionClientOutOfDateRpcParam = $Exact<{
+export type NotifySessionClientOutOfDateRpcParam = Exact<{
   upgradeTo: string,
   upgradeURI: string,
   upgradeMsg: string
 }>
 
-export type NotifySessionLoggedInRpcParam = $Exact<{
+export type NotifySessionLoggedInRpcParam = Exact<{
   username: string
 }>
 
-export type NotifyTrackingTrackingChangedRpcParam = $Exact<{
+export type NotifyTrackingTrackingChangedRpcParam = Exact<{
   uid: UID,
   username: string
 }>
 
-export type NotifyUsersUserChangedRpcParam = $Exact<{
+export type NotifyUsersUserChangedRpcParam = Exact<{
   uid: UID
 }>
 
@@ -2039,6 +2748,7 @@ export type ProofType =
   | 4 // REDDIT_4
   | 5 // COINBASE_5
   | 6 // HACKERNEWS_6
+  | 8 // FACEBOOK_8
   | 1000 // GENERIC_WEB_SITE_1000
   | 1001 // DNS_1001
   | 1002 // PGP_1002
@@ -2157,7 +2867,7 @@ export type SaltpackVerifyOptions = {
   signature: bytes,
 }
 
-export type ScanProofsScanProofsRpcParam = $Exact<{
+export type ScanProofsScanProofsRpcParam = Exact<{
   infile: string,
   indices: string,
   sigid: string,
@@ -2569,24 +3279,24 @@ export type WebProof = {
   protocols?: ?Array<string>,
 }
 
-export type accountPassphraseChangeRpcParam = $Exact<{
+export type accountPassphraseChangeRpcParam = Exact<{
   oldPassphrase: string,
   passphrase: string,
   force: boolean
 }>
 
-export type accountPassphrasePromptRpcParam = $Exact<{
+export type accountPassphrasePromptRpcParam = Exact<{
   guiArg: GUIEntryArg
 }>
 
-export type apiserverGetRpcParam = $Exact<{
+export type apiserverGetRpcParam = Exact<{
   endpoint: string,
   args?: ?Array<StringKVPair>,
   httpStatus?: ?Array<int>,
   appStatusCode?: ?Array<int>
 }>
 
-export type apiserverPostJSONRpcParam = $Exact<{
+export type apiserverPostJSONRpcParam = Exact<{
   endpoint: string,
   args?: ?Array<StringKVPair>,
   JSONPayload?: ?Array<StringKVPair>,
@@ -2594,206 +3304,208 @@ export type apiserverPostJSONRpcParam = $Exact<{
   appStatusCode?: ?Array<int>
 }>
 
-export type apiserverPostRpcParam = $Exact<{
+export type apiserverPostRpcParam = Exact<{
   endpoint: string,
   args?: ?Array<StringKVPair>,
   httpStatus?: ?Array<int>,
   appStatusCode?: ?Array<int>
 }>
 
-export type blockAddReferenceRpcParam = $Exact<{
+export type blockAddReferenceRpcParam = Exact<{
   folder: string,
   ref: BlockReference
 }>
 
-export type blockArchiveReferenceRpcParam = $Exact<{
+export type blockArchiveReferenceRpcParam = Exact<{
   folder: string,
   refs?: ?Array<BlockReference>
 }>
 
-export type blockArchiveReferenceWithCountRpcParam = $Exact<{
+export type blockArchiveReferenceWithCountRpcParam = Exact<{
   folder: string,
   refs?: ?Array<BlockReference>
 }>
 
-export type blockAuthenticateSessionRpcParam = $Exact<{
+export type blockAuthenticateSessionRpcParam = Exact<{
   signature: string
 }>
 
-export type blockDelReferenceRpcParam = $Exact<{
+export type blockDelReferenceRpcParam = Exact<{
   folder: string,
   ref: BlockReference
 }>
 
-export type blockDelReferenceWithCountRpcParam = $Exact<{
+export type blockDelReferenceWithCountRpcParam = Exact<{
   folder: string,
   refs?: ?Array<BlockReference>
 }>
 
-export type blockGetBlockRpcParam = $Exact<{
+export type blockGetBlockRpcParam = Exact<{
   bid: BlockIdCombo,
   folder: string
 }>
 
-export type blockPutBlockRpcParam = $Exact<{
+export type blockPutBlockRpcParam = Exact<{
   bid: BlockIdCombo,
   folder: string,
   blockKey: string,
   buf: bytes
 }>
 
-export type chatLocalCompleteAndCanonicalizeTlfNameRpcParam = $Exact<{
+export type chatLocalCompleteAndCanonicalizeTlfNameRpcParam = Exact<{
   tlfName: string
 }>
 
-export type chatLocalGetInboxLocalRpcParam = $Exact<{
+export type chatLocalGetInboxLocalRpcParam = Exact<{
+  query?: ?chat1.GetInboxQuery,
   pagination?: ?chat1.Pagination
 }>
 
-export type chatLocalGetInboxSummaryLocalRpcParam = $Exact<{
-  topicTypes?: ?Array<chat1.TopicType>,
-  since: string,
+export type chatLocalGetInboxSummaryLocalRpcParam = Exact<{
+  topicType: chat1.TopicType,
+  after: string,
+  before: string,
   limit: int
 }>
 
-export type chatLocalGetMessagesLocalRpcParam = $Exact<{
+export type chatLocalGetMessagesLocalRpcParam = Exact<{
   selector: MessageSelector
 }>
 
-export type chatLocalGetThreadLocalRpcParam = $Exact<{
+export type chatLocalGetThreadLocalRpcParam = Exact<{
   conversationID: chat1.ConversationID,
-  markAsRead: boolean,
+  query?: ?chat1.GetThreadQuery,
   pagination?: ?chat1.Pagination
 }>
 
-export type chatLocalNewConversationLocalRpcParam = $Exact<{
+export type chatLocalNewConversationLocalRpcParam = Exact<{
   conversation: ConversationInfoLocal
 }>
 
-export type chatLocalPostLocalRpcParam = $Exact<{
+export type chatLocalPostLocalRpcParam = Exact<{
   conversationID: chat1.ConversationID,
   messagePlaintext: MessagePlaintext
 }>
 
-export type chatLocalResolveConversationLocalRpcParam = $Exact<{
+export type chatLocalResolveConversationLocalRpcParam = Exact<{
   conversation: ConversationInfoLocal
 }>
 
-export type chatLocalUpdateTopicNameLocalRpcParam = $Exact<{
+export type chatLocalUpdateTopicNameLocalRpcParam = Exact<{
   conversationID: chat1.ConversationID,
   newTopicName: string
 }>
 
-export type configClearValueRpcParam = $Exact<{
+export type configClearValueRpcParam = Exact<{
   path: string
 }>
 
-export type configGetValueRpcParam = $Exact<{
+export type configGetValueRpcParam = Exact<{
   path: string
 }>
 
-export type configHelloIAmRpcParam = $Exact<{
+export type configHelloIAmRpcParam = Exact<{
   details: ClientDetails
 }>
 
-export type configSetPathRpcParam = $Exact<{
+export type configSetPathRpcParam = Exact<{
   path: string
 }>
 
-export type configSetUserConfigRpcParam = $Exact<{
+export type configSetUserConfigRpcParam = Exact<{
   username: string,
   key: string,
   value: string
 }>
 
-export type configSetValueRpcParam = $Exact<{
+export type configSetValueRpcParam = Exact<{
   path: string,
   value: ConfigValue
 }>
 
-export type cryptoSignED25519RpcParam = $Exact<{
+export type cryptoSignED25519RpcParam = Exact<{
   msg: bytes,
   reason: string
 }>
 
-export type cryptoSignToStringRpcParam = $Exact<{
+export type cryptoSignToStringRpcParam = Exact<{
   msg: bytes,
   reason: string
 }>
 
-export type cryptoUnboxBytes32AnyRpcParam = $Exact<{
+export type cryptoUnboxBytes32AnyRpcParam = Exact<{
   bundles?: ?Array<CiphertextBundle>,
   reason: string,
   promptPaper: boolean
 }>
 
-export type cryptoUnboxBytes32RpcParam = $Exact<{
+export type cryptoUnboxBytes32RpcParam = Exact<{
   encryptedBytes32: EncryptedBytes32,
   nonce: BoxNonce,
   peersPublicKey: BoxPublicKey,
   reason: string
 }>
 
-export type ctlStopRpcParam = $Exact<{
+export type ctlStopRpcParam = Exact<{
   exitCode: ExitCode
 }>
 
-export type debuggingFirstStepRpcParam = $Exact<{
+export type debuggingFirstStepRpcParam = Exact<{
   val: int
 }>
 
-export type debuggingIncrementRpcParam = $Exact<{
+export type debuggingIncrementRpcParam = Exact<{
   val: int
 }>
 
-export type debuggingSecondStepRpcParam = $Exact<{
+export type debuggingSecondStepRpcParam = Exact<{
   val: int
 }>
 
-export type deviceCheckDeviceNameForUserRpcParam = $Exact<{
+export type deviceCheckDeviceNameForUserRpcParam = Exact<{
   username: string,
   devicename: string
 }>
 
-export type deviceCheckDeviceNameFormatRpcParam = $Exact<{
+export type deviceCheckDeviceNameFormatRpcParam = Exact<{
   name: string
 }>
 
-export type favoriteFavoriteAddRpcParam = $Exact<{
+export type favoriteFavoriteAddRpcParam = Exact<{
   folder: Folder
 }>
 
-export type favoriteFavoriteIgnoreRpcParam = $Exact<{
+export type favoriteFavoriteIgnoreRpcParam = Exact<{
   folder: Folder
 }>
 
-export type fsListRpcParam = $Exact<{
+export type fsListRpcParam = Exact<{
   path: string
 }>
 
-export type gpgUiSelectKeyAndPushOptionRpcParam = $Exact<{
+export type gpgUiSelectKeyAndPushOptionRpcParam = Exact<{
   keys?: ?Array<GPGKey>
 }>
 
-export type gpgUiSelectKeyRpcParam = $Exact<{
+export type gpgUiSelectKeyRpcParam = Exact<{
   keys?: ?Array<GPGKey>
 }>
 
-export type gpgUiSignRpcParam = $Exact<{
+export type gpgUiSignRpcParam = Exact<{
   msg: bytes,
   fingerprint: bytes
 }>
 
-export type gregorUIPushOutOfBandMessagesRpcParam = $Exact<{
+export type gregorUIPushOutOfBandMessagesRpcParam = Exact<{
   oobm?: ?Array<gregor1.OutOfBandMessage>
 }>
 
-export type gregorUIPushStateRpcParam = $Exact<{
+export type gregorUIPushStateRpcParam = Exact<{
   state: gregor1.State,
   reason: PushReason
 }>
 
-export type identifyIdentify2RpcParam = $Exact<{
+export type identifyIdentify2RpcParam = Exact<{
   uid: UID,
   userAssertion: string,
   reason: IdentifyReason,
@@ -2807,7 +3519,7 @@ export type identifyIdentify2RpcParam = $Exact<{
   canSuppressUI?: bool
 }>
 
-export type identifyIdentifyRpcParam = $Exact<{
+export type identifyIdentifyRpcParam = Exact<{
   userAssertion: string,
   forceRemoteCheck?: boolean,
   useDelegateUI?: boolean,
@@ -2815,32 +3527,32 @@ export type identifyIdentifyRpcParam = $Exact<{
   source: ClientType
 }>
 
-export type identifyResolve2RpcParam = $Exact<{
+export type identifyResolve2RpcParam = Exact<{
   assertion: string
 }>
 
-export type identifyResolveRpcParam = $Exact<{
+export type identifyResolveRpcParam = Exact<{
   assertion: string
 }>
 
-export type identifyUiConfirmRpcParam = $Exact<{
+export type identifyUiConfirmRpcParam = Exact<{
   outcome: IdentifyOutcome
 }>
 
-export type identifyUiDismissRpcParam = $Exact<{
+export type identifyUiDismissRpcParam = Exact<{
   username: string,
   reason: DismissReason
 }>
 
-export type identifyUiDisplayCryptocurrencyRpcParam = $Exact<{
+export type identifyUiDisplayCryptocurrencyRpcParam = Exact<{
   c: Cryptocurrency
 }>
 
-export type identifyUiDisplayKeyRpcParam = $Exact<{
+export type identifyUiDisplayKeyRpcParam = Exact<{
   key: IdentifyKey
 }>
 
-export type identifyUiDisplayTLFCreateWithInviteRpcParam = $Exact<{
+export type identifyUiDisplayTLFCreateWithInviteRpcParam = Exact<{
   folderName: string,
   isPrivate: boolean,
   assertion: string,
@@ -2849,166 +3561,166 @@ export type identifyUiDisplayTLFCreateWithInviteRpcParam = $Exact<{
   throttled: boolean
 }>
 
-export type identifyUiDisplayTrackStatementRpcParam = $Exact<{
+export type identifyUiDisplayTrackStatementRpcParam = Exact<{
   stmt: string
 }>
 
-export type identifyUiDisplayUserCardRpcParam = $Exact<{
+export type identifyUiDisplayUserCardRpcParam = Exact<{
   card: UserCard
 }>
 
-export type identifyUiFinishSocialProofCheckRpcParam = $Exact<{
+export type identifyUiFinishSocialProofCheckRpcParam = Exact<{
   rp: RemoteProof,
   lcr: LinkCheckResult
 }>
 
-export type identifyUiFinishWebProofCheckRpcParam = $Exact<{
+export type identifyUiFinishWebProofCheckRpcParam = Exact<{
   rp: RemoteProof,
   lcr: LinkCheckResult
 }>
 
-export type identifyUiLaunchNetworkChecksRpcParam = $Exact<{
+export type identifyUiLaunchNetworkChecksRpcParam = Exact<{
   identity: Identity,
   user: User
 }>
 
-export type identifyUiReportLastTrackRpcParam = $Exact<{
+export type identifyUiReportLastTrackRpcParam = Exact<{
   track?: ?TrackSummary
 }>
 
-export type identifyUiReportTrackTokenRpcParam = $Exact<{
+export type identifyUiReportTrackTokenRpcParam = Exact<{
   trackToken: TrackToken
 }>
 
-export type identifyUiStartRpcParam = $Exact<{
+export type identifyUiStartRpcParam = Exact<{
   username: string,
   reason: IdentifyReason
 }>
 
-export type kbfsFSEditListRpcParam = $Exact<{
+export type kbfsFSEditListRpcParam = Exact<{
   edits?: ?Array<FSNotification>,
   requestID: int
 }>
 
-export type kbfsFSEventRpcParam = $Exact<{
+export type kbfsFSEventRpcParam = Exact<{
   event: FSNotification
 }>
 
-export type kbfsFSSyncEventRpcParam = $Exact<{
+export type kbfsFSSyncEventRpcParam = Exact<{
   event: FSPathSyncStatus
 }>
 
-export type kbfsFSSyncStatusRpcParam = $Exact<{
+export type kbfsFSSyncStatusRpcParam = Exact<{
   status: FSSyncStatus,
   requestID: int
 }>
 
-export type logRegisterLoggerRpcParam = $Exact<{
+export type logRegisterLoggerRpcParam = Exact<{
   name: string,
   level: LogLevel
 }>
 
-export type logUiLogRpcParam = $Exact<{
+export type logUiLogRpcParam = Exact<{
   level: LogLevel,
   text: Text
 }>
 
-export type loginClearStoredSecretRpcParam = $Exact<{
+export type loginClearStoredSecretRpcParam = Exact<{
   username: string
 }>
 
-export type loginDeprovisionRpcParam = $Exact<{
+export type loginDeprovisionRpcParam = Exact<{
   username: string,
   doRevoke: boolean
 }>
 
-export type loginLoginRpcParam = $Exact<{
+export type loginLoginRpcParam = Exact<{
   deviceType: string,
   usernameOrEmail: string,
   clientType: ClientType
 }>
 
-export type loginPaperKeySubmitRpcParam = $Exact<{
+export type loginPaperKeySubmitRpcParam = Exact<{
   paperPhrase: string
 }>
 
-export type loginPgpProvisionRpcParam = $Exact<{
+export type loginPgpProvisionRpcParam = Exact<{
   username: string,
   passphrase: string,
   deviceName: string
 }>
 
-export type loginRecoverAccountFromEmailAddressRpcParam = $Exact<{
+export type loginRecoverAccountFromEmailAddressRpcParam = Exact<{
   email: string
 }>
 
-export type loginUiDisplayPaperKeyPhraseRpcParam = $Exact<{
+export type loginUiDisplayPaperKeyPhraseRpcParam = Exact<{
   phrase: string
 }>
 
-export type loginUiDisplayPrimaryPaperKeyRpcParam = $Exact<{
+export type loginUiDisplayPrimaryPaperKeyRpcParam = Exact<{
   phrase: string
 }>
 
-export type loginUiPromptRevokePaperKeysRpcParam = $Exact<{
+export type loginUiPromptRevokePaperKeysRpcParam = Exact<{
   device: Device,
   index: int
 }>
 
-export type loginUnlockWithPassphraseRpcParam = $Exact<{
+export type loginUnlockWithPassphraseRpcParam = Exact<{
   passphrase: string
 }>
 
-export type metadataAuthenticateRpcParam = $Exact<{
+export type metadataAuthenticateRpcParam = Exact<{
   signature: string
 }>
 
-export type metadataDeleteKeyRpcParam = $Exact<{
+export type metadataDeleteKeyRpcParam = Exact<{
   uid: UID,
   deviceKID: KID,
   keyHalfID: bytes,
   logTags: {[key: string]: string}
 }>
 
-export type metadataGetFolderHandleRpcParam = $Exact<{
+export type metadataGetFolderHandleRpcParam = Exact<{
   folderID: string,
   signature: string,
   challenge: string
 }>
 
-export type metadataGetFoldersForRekeyRpcParam = $Exact<{
+export type metadataGetFoldersForRekeyRpcParam = Exact<{
   deviceKID: KID
 }>
 
-export type metadataGetKeyRpcParam = $Exact<{
+export type metadataGetKeyRpcParam = Exact<{
   keyHalfID: bytes,
   deviceKID: string,
   logTags: {[key: string]: string}
 }>
 
-export type metadataGetLatestFolderHandleRpcParam = $Exact<{
+export type metadataGetLatestFolderHandleRpcParam = Exact<{
   folderID: string
 }>
 
-export type metadataGetMerkleNodeRpcParam = $Exact<{
+export type metadataGetMerkleNodeRpcParam = Exact<{
   hash: string
 }>
 
-export type metadataGetMerkleRootLatestRpcParam = $Exact<{
+export type metadataGetMerkleRootLatestRpcParam = Exact<{
   treeID: MerkleTreeID
 }>
 
-export type metadataGetMerkleRootRpcParam = $Exact<{
+export type metadataGetMerkleRootRpcParam = Exact<{
   treeID: MerkleTreeID,
   seqNo: long
 }>
 
-export type metadataGetMerkleRootSinceRpcParam = $Exact<{
+export type metadataGetMerkleRootSinceRpcParam = Exact<{
   treeID: MerkleTreeID,
   when: Time
 }>
 
-export type metadataGetMetadataRpcParam = $Exact<{
+export type metadataGetMetadataRpcParam = Exact<{
   folderID: string,
   folderHandle: bytes,
   branchID: string,
@@ -3018,90 +3730,90 @@ export type metadataGetMetadataRpcParam = $Exact<{
   logTags: {[key: string]: string}
 }>
 
-export type metadataPruneBranchRpcParam = $Exact<{
+export type metadataPruneBranchRpcParam = Exact<{
   folderID: string,
   branchID: string,
   logTags: {[key: string]: string}
 }>
 
-export type metadataPutKeysRpcParam = $Exact<{
+export type metadataPutKeysRpcParam = Exact<{
   keyHalves?: ?Array<KeyHalf>,
   logTags: {[key: string]: string}
 }>
 
-export type metadataPutMetadataRpcParam = $Exact<{
+export type metadataPutMetadataRpcParam = Exact<{
   mdBlock: MDBlock,
   logTags: {[key: string]: string}
 }>
 
-export type metadataRegisterForUpdatesRpcParam = $Exact<{
+export type metadataRegisterForUpdatesRpcParam = Exact<{
   folderID: string,
   currRevision: long,
   logTags: {[key: string]: string}
 }>
 
-export type metadataTruncateLockRpcParam = $Exact<{
+export type metadataTruncateLockRpcParam = Exact<{
   folderID: string
 }>
 
-export type metadataTruncateUnlockRpcParam = $Exact<{
+export type metadataTruncateUnlockRpcParam = Exact<{
   folderID: string
 }>
 
-export type metadataUpdateFolderNeedsRekeyRpcParam = $Exact<{
+export type metadataUpdateFolderNeedsRekeyRpcParam = Exact<{
   folderID: string,
   revision: long
 }>
 
-export type metadataUpdateMetadataUpdateRpcParam = $Exact<{
+export type metadataUpdateMetadataUpdateRpcParam = Exact<{
   folderID: string,
   revision: long
 }>
 
-export type notifyCtlSetNotificationsRpcParam = $Exact<{
+export type notifyCtlSetNotificationsRpcParam = Exact<{
   channels: NotificationChannels
 }>
 
-export type paperprovisionPaperProvisionRpcParam = $Exact<{
+export type paperprovisionPaperProvisionRpcParam = Exact<{
   username: string,
   deviceName: string,
   paperKey: string
 }>
 
-export type pgpPgpDecryptRpcParam = $Exact<{
+export type pgpPgpDecryptRpcParam = Exact<{
   source: Stream,
   sink: Stream,
   opts: PGPDecryptOptions
 }>
 
-export type pgpPgpEncryptRpcParam = $Exact<{
+export type pgpPgpEncryptRpcParam = Exact<{
   source: Stream,
   sink: Stream,
   opts: PGPEncryptOptions
 }>
 
-export type pgpPgpExportByFingerprintRpcParam = $Exact<{
+export type pgpPgpExportByFingerprintRpcParam = Exact<{
   options: PGPQuery
 }>
 
-export type pgpPgpExportByKIDRpcParam = $Exact<{
+export type pgpPgpExportByKIDRpcParam = Exact<{
   options: PGPQuery
 }>
 
-export type pgpPgpExportRpcParam = $Exact<{
+export type pgpPgpExportRpcParam = Exact<{
   options: PGPQuery
 }>
 
-export type pgpPgpImportRpcParam = $Exact<{
+export type pgpPgpImportRpcParam = Exact<{
   key: bytes,
   pushSecret: boolean
 }>
 
-export type pgpPgpKeyGenDefaultRpcParam = $Exact<{
+export type pgpPgpKeyGenDefaultRpcParam = Exact<{
   createUids: PGPCreateUids
 }>
 
-export type pgpPgpKeyGenRpcParam = $Exact<{
+export type pgpPgpKeyGenRpcParam = Exact<{
   primaryBits: int,
   subkeyBits: int,
   createUids: PGPCreateUids,
@@ -3110,53 +3822,53 @@ export type pgpPgpKeyGenRpcParam = $Exact<{
   pushSecret: boolean
 }>
 
-export type pgpPgpPullRpcParam = $Exact<{
+export type pgpPgpPullRpcParam = Exact<{
   userAsserts?: ?Array<string>
 }>
 
-export type pgpPgpPurgeRpcParam = $Exact<{
+export type pgpPgpPurgeRpcParam = Exact<{
   doPurge: boolean
 }>
 
-export type pgpPgpSelectRpcParam = $Exact<{
+export type pgpPgpSelectRpcParam = Exact<{
   fingerprintQuery: string,
   allowMulti: boolean,
   skipImport: boolean,
   onlyImport: boolean
 }>
 
-export type pgpPgpSignRpcParam = $Exact<{
+export type pgpPgpSignRpcParam = Exact<{
   source: Stream,
   sink: Stream,
   opts: PGPSignOptions
 }>
 
-export type pgpPgpUpdateRpcParam = $Exact<{
+export type pgpPgpUpdateRpcParam = Exact<{
   all: boolean,
   fingerprints?: ?Array<string>
 }>
 
-export type pgpPgpVerifyRpcParam = $Exact<{
+export type pgpPgpVerifyRpcParam = Exact<{
   source: Stream,
   opts: PGPVerifyOptions
 }>
 
-export type pgpUiKeyGeneratedRpcParam = $Exact<{
+export type pgpUiKeyGeneratedRpcParam = Exact<{
   kid: KID,
   key: KeyInfo
 }>
 
-export type pgpUiOutputSignatureSuccessRpcParam = $Exact<{
+export type pgpUiOutputSignatureSuccessRpcParam = Exact<{
   fingerprint: string,
   username: string,
   signedAt: Time
 }>
 
-export type proveCheckProofRpcParam = $Exact<{
+export type proveCheckProofRpcParam = Exact<{
   sigID: SigID
 }>
 
-export type proveStartProofRpcParam = $Exact<{
+export type proveStartProofRpcParam = Exact<{
   service: string,
   username: string,
   force: boolean,
@@ -3164,163 +3876,163 @@ export type proveStartProofRpcParam = $Exact<{
   auto: boolean
 }>
 
-export type proveUiDisplayRecheckWarningRpcParam = $Exact<{
+export type proveUiDisplayRecheckWarningRpcParam = Exact<{
   text: Text
 }>
 
-export type proveUiOkToCheckRpcParam = $Exact<{
+export type proveUiOkToCheckRpcParam = Exact<{
   name: string,
   attempt: int
 }>
 
-export type proveUiOutputInstructionsRpcParam = $Exact<{
+export type proveUiOutputInstructionsRpcParam = Exact<{
   instructions: Text,
   proof: string
 }>
 
-export type proveUiOutputPrechecksRpcParam = $Exact<{
+export type proveUiOutputPrechecksRpcParam = Exact<{
   text: Text
 }>
 
-export type proveUiPreProofWarningRpcParam = $Exact<{
+export type proveUiPreProofWarningRpcParam = Exact<{
   text: Text
 }>
 
-export type proveUiPromptOverwriteRpcParam = $Exact<{
+export type proveUiPromptOverwriteRpcParam = Exact<{
   account: string,
   typ: PromptOverwriteType
 }>
 
-export type proveUiPromptUsernameRpcParam = $Exact<{
+export type proveUiPromptUsernameRpcParam = Exact<{
   prompt: string,
   prevError?: ?Status
 }>
 
-export type provisionUiChooseDeviceRpcParam = $Exact<{
+export type provisionUiChooseDeviceRpcParam = Exact<{
   devices?: ?Array<Device>
 }>
 
-export type provisionUiChooseDeviceTypeRpcParam = $Exact<{
+export type provisionUiChooseDeviceTypeRpcParam = Exact<{
   kind: ChooseType
 }>
 
-export type provisionUiChooseGPGMethodRpcParam = $Exact<{
+export type provisionUiChooseGPGMethodRpcParam = Exact<{
   keys?: ?Array<GPGKey>
 }>
 
-export type provisionUiChooseProvisioningMethodRpcParam = $Exact<{
+export type provisionUiChooseProvisioningMethodRpcParam = Exact<{
   gpgOption: boolean
 }>
 
-export type provisionUiDisplayAndPromptSecretRpcParam = $Exact<{
+export type provisionUiDisplayAndPromptSecretRpcParam = Exact<{
   secret: bytes,
   phrase: string,
   otherDeviceType: DeviceType
 }>
 
-export type provisionUiPromptNewDeviceNameRpcParam = $Exact<{
+export type provisionUiPromptNewDeviceNameRpcParam = Exact<{
   existingDevices?: ?Array<string>,
   errorMessage: string
 }>
 
-export type provisionUiProvisioneeSuccessRpcParam = $Exact<{
+export type provisionUiProvisioneeSuccessRpcParam = Exact<{
   username: string,
   deviceName: string
 }>
 
-export type provisionUiProvisionerSuccessRpcParam = $Exact<{
+export type provisionUiProvisionerSuccessRpcParam = Exact<{
   deviceName: string,
   deviceType: string
 }>
 
-export type provisionUiSwitchToGPGSignOKRpcParam = $Exact<{
+export type provisionUiSwitchToGPGSignOKRpcParam = Exact<{
   key: GPGKey,
   importError: string
 }>
 
-export type quotaVerifySessionRpcParam = $Exact<{
+export type quotaVerifySessionRpcParam = Exact<{
   session: string
 }>
 
-export type rekeyRekeySyncRpcParam = $Exact<{
+export type rekeyRekeySyncRpcParam = Exact<{
   force: boolean
 }>
 
-export type rekeyUIRefreshRpcParam = $Exact<{
+export type rekeyUIRefreshRpcParam = Exact<{
   problemSetDevices: ProblemSetDevices
 }>
 
-export type rekeyUIRekeySendEventRpcParam = $Exact<{
+export type rekeyUIRekeySendEventRpcParam = Exact<{
   event: RekeyEvent
 }>
 
-export type revokeRevokeDeviceRpcParam = $Exact<{
+export type revokeRevokeDeviceRpcParam = Exact<{
   deviceID: DeviceID,
   force: boolean
 }>
 
-export type revokeRevokeKeyRpcParam = $Exact<{
+export type revokeRevokeKeyRpcParam = Exact<{
   keyID: KID
 }>
 
-export type revokeRevokeSigsRpcParam = $Exact<{
+export type revokeRevokeSigsRpcParam = Exact<{
   sigIDQueries?: ?Array<string>
 }>
 
-export type saltpackSaltpackDecryptRpcParam = $Exact<{
+export type saltpackSaltpackDecryptRpcParam = Exact<{
   source: Stream,
   sink: Stream,
   opts: SaltpackDecryptOptions
 }>
 
-export type saltpackSaltpackEncryptRpcParam = $Exact<{
+export type saltpackSaltpackEncryptRpcParam = Exact<{
   source: Stream,
   sink: Stream,
   opts: SaltpackEncryptOptions
 }>
 
-export type saltpackSaltpackSignRpcParam = $Exact<{
+export type saltpackSaltpackSignRpcParam = Exact<{
   source: Stream,
   sink: Stream,
   opts: SaltpackSignOptions
 }>
 
-export type saltpackSaltpackVerifyRpcParam = $Exact<{
+export type saltpackSaltpackVerifyRpcParam = Exact<{
   source: Stream,
   sink: Stream,
   opts: SaltpackVerifyOptions
 }>
 
-export type saltpackUiSaltpackPromptForDecryptRpcParam = $Exact<{
+export type saltpackUiSaltpackPromptForDecryptRpcParam = Exact<{
   sender: SaltpackSender,
   usedDelegateUI: bool
 }>
 
-export type saltpackUiSaltpackVerifySuccessRpcParam = $Exact<{
+export type saltpackUiSaltpackVerifySuccessRpcParam = Exact<{
   signingKID: KID,
   sender: SaltpackSender
 }>
 
-export type secretUiGetPassphraseRpcParam = $Exact<{
+export type secretUiGetPassphraseRpcParam = Exact<{
   pinentry: GUIEntryArg,
   terminal?: ?SecretEntryArg
 }>
 
-export type signupCheckInvitationCodeRpcParam = $Exact<{
+export type signupCheckInvitationCodeRpcParam = Exact<{
   invitationCode: string
 }>
 
-export type signupCheckUsernameAvailableRpcParam = $Exact<{
+export type signupCheckUsernameAvailableRpcParam = Exact<{
   username: string
 }>
 
-export type signupInviteRequestRpcParam = $Exact<{
+export type signupInviteRequestRpcParam = Exact<{
   email: string,
   fullname: string,
   notes: string
 }>
 
-export type signupSignupRpcParam = $Exact<{
+export type signupSignupRpcParam = Exact<{
   email: string,
   inviteCode: string,
   passphrase: string,
@@ -3331,125 +4043,125 @@ export type signupSignupRpcParam = $Exact<{
   genPGPBatch: boolean
 }>
 
-export type sigsSigListJSONRpcParam = $Exact<{
+export type sigsSigListJSONRpcParam = Exact<{
   arg: SigListArgs
 }>
 
-export type sigsSigListRpcParam = $Exact<{
+export type sigsSigListRpcParam = Exact<{
   arg: SigListArgs
 }>
 
-export type streamUiCloseRpcParam = $Exact<{
+export type streamUiCloseRpcParam = Exact<{
   s: Stream
 }>
 
-export type streamUiReadRpcParam = $Exact<{
+export type streamUiReadRpcParam = Exact<{
   s: Stream,
   sz: int
 }>
 
-export type streamUiWriteRpcParam = $Exact<{
+export type streamUiWriteRpcParam = Exact<{
   s: Stream,
   buf: bytes
 }>
 
-export type testPanicRpcParam = $Exact<{
+export type testPanicRpcParam = Exact<{
   message: string
 }>
 
-export type testTestCallbackRpcParam = $Exact<{
+export type testTestCallbackRpcParam = Exact<{
   name: string
 }>
 
-export type testTestRpcParam = $Exact<{
+export type testTestRpcParam = Exact<{
   name: string
 }>
 
-export type tlfCryptKeysRpcParam = $Exact<{
+export type tlfCryptKeysRpcParam = Exact<{
   tlfName: string
 }>
 
-export type tlfKeysGetTLFCryptKeysRpcParam = $Exact<{
+export type tlfKeysGetTLFCryptKeysRpcParam = Exact<{
   tlfName: string
 }>
 
-export type trackDismissWithTokenRpcParam = $Exact<{
+export type trackDismissWithTokenRpcParam = Exact<{
   trackToken: TrackToken
 }>
 
-export type trackFakeTrackingChangedRpcParam = $Exact<{
+export type trackFakeTrackingChangedRpcParam = Exact<{
   username: string
 }>
 
-export type trackTrackRpcParam = $Exact<{
+export type trackTrackRpcParam = Exact<{
   userAssertion: string,
   options: TrackOptions,
   forceRemoteCheck: boolean
 }>
 
-export type trackTrackWithTokenRpcParam = $Exact<{
+export type trackTrackWithTokenRpcParam = Exact<{
   trackToken: TrackToken,
   options: TrackOptions
 }>
 
-export type trackUntrackRpcParam = $Exact<{
+export type trackUntrackRpcParam = Exact<{
   username: string
 }>
 
-export type uiPromptYesNoRpcParam = $Exact<{
+export type uiPromptYesNoRpcParam = Exact<{
   text: Text,
   promptDefault: PromptDefault
 }>
 
-export type userListTrackers2RpcParam = $Exact<{
+export type userListTrackers2RpcParam = Exact<{
   assertion: string,
   reverse: bool
 }>
 
-export type userListTrackersByNameRpcParam = $Exact<{
+export type userListTrackersByNameRpcParam = Exact<{
   username: string
 }>
 
-export type userListTrackersRpcParam = $Exact<{
+export type userListTrackersRpcParam = Exact<{
   uid: UID
 }>
 
-export type userListTrackingJSONRpcParam = $Exact<{
+export type userListTrackingJSONRpcParam = Exact<{
   filter: string,
   verbose: boolean,
   assertion: string
 }>
 
-export type userListTrackingRpcParam = $Exact<{
+export type userListTrackingRpcParam = Exact<{
   filter: string,
   assertion: string
 }>
 
-export type userLoadAllPublicKeysUnverifiedRpcParam = $Exact<{
+export type userLoadAllPublicKeysUnverifiedRpcParam = Exact<{
   uid: UID
 }>
 
-export type userLoadPublicKeysRpcParam = $Exact<{
+export type userLoadPublicKeysRpcParam = Exact<{
   uid: UID
 }>
 
-export type userLoadUncheckedUserSummariesRpcParam = $Exact<{
+export type userLoadUncheckedUserSummariesRpcParam = Exact<{
   uids?: ?Array<UID>
 }>
 
-export type userLoadUserByNameRpcParam = $Exact<{
+export type userLoadUserByNameRpcParam = Exact<{
   username: string
 }>
 
-export type userLoadUserPlusKeysRpcParam = $Exact<{
+export type userLoadUserPlusKeysRpcParam = Exact<{
   uid: UID
 }>
 
-export type userLoadUserRpcParam = $Exact<{
+export type userLoadUserRpcParam = Exact<{
   uid: UID
 }>
 
-export type userSearchRpcParam = $Exact<{
+export type userSearchRpcParam = Exact<{
   query: string
 }>
 
@@ -3863,9 +4575,9 @@ export type rpc =
   | userLoadUserPlusKeysRpc
   | userLoadUserRpc
   | userSearchRpc
-export type incomingCallMapType = $Exact<{
+export type incomingCallMapType = Exact<{
   'keybase.1.gpgUi.wantToAddGPGKey'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int
     }>,
     response: {
@@ -3874,7 +4586,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int
     }>,
     response: {
@@ -3883,7 +4595,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.gpgUi.selectKeyAndPushOption'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       keys?: ?Array<GPGKey>
     }>,
@@ -3893,7 +4605,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.gpgUi.selectKey'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       keys?: ?Array<GPGKey>
     }>,
@@ -3903,7 +4615,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.gpgUi.sign'?: (
-    params: $Exact<{
+    params: Exact<{
       msg: bytes,
       fingerprint: bytes
     }>,
@@ -3913,20 +4625,20 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.gregorUI.pushState'?: (
-    params: $Exact<{
+    params: Exact<{
       state: gregor1.State,
       reason: PushReason
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.gregorUI.pushOutOfBandMessages'?: (
-    params: $Exact<{
+    params: Exact<{
       oobm?: ?Array<gregor1.OutOfBandMessage>
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       folderName: string,
       isPrivate: boolean,
@@ -3938,14 +4650,14 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.delegateIdentifyUI'?: (
-    params: $Exact<{}>,
+    params: Exact<{}>,
     response: {
       error: RPCErrorHandler,
       result: (result: identifyUiDelegateIdentifyUIResult) => void,
     }
   ) => void,
   'keybase.1.identifyUi.start'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       username: string,
       reason: IdentifyReason
@@ -3953,21 +4665,21 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.displayKey'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       key: IdentifyKey
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.reportLastTrack'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       track?: ?TrackSummary
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.launchNetworkChecks'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       identity: Identity,
       user: User
@@ -3975,14 +4687,14 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.displayTrackStatement'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       stmt: string
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.finishWebProofCheck'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       rp: RemoteProof,
       lcr: LinkCheckResult
@@ -3990,7 +4702,7 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.finishSocialProofCheck'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       rp: RemoteProof,
       lcr: LinkCheckResult
@@ -3998,28 +4710,28 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.displayCryptocurrency'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       c: Cryptocurrency
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.reportTrackToken'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       trackToken: TrackToken
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.displayUserCard'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       card: UserCard
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.confirm'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       outcome: IdentifyOutcome
     }>,
@@ -4029,13 +4741,13 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.identifyUi.finish'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.dismiss'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       username: string,
       reason: DismissReason
@@ -4043,7 +4755,7 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.logUi.log'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       level: LogLevel,
       text: Text
@@ -4051,7 +4763,7 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.loginUi.getEmailOrUsername'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int
     }>,
     response: {
@@ -4060,7 +4772,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.loginUi.promptRevokePaperKeys'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       device: Device,
       index: int
@@ -4071,25 +4783,25 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.loginUi.displayPaperKeyPhrase'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       phrase: string
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.loginUi.displayPrimaryPaperKey'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       phrase: string
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyApp.exit'?: (
-    params: $Exact<{}>,
+    params: Exact<{}>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyChat.NewChatActivity'?: (
-    params: $Exact<{
+    params: Exact<{
       uid: UID,
       activity: ChatActivity
     }> /* ,
@@ -4097,61 +4809,61 @@ export type incomingCallMapType = $Exact<{
     */
   ) => void,
   'keybase.1.NotifyFavorites.favoritesChanged'?: (
-    params: $Exact<{
+    params: Exact<{
       uid: UID
     }> /* ,
     response: {} // Notify call
     */
   ) => void,
   'keybase.1.NotifyFS.FSActivity'?: (
-    params: $Exact<{
+    params: Exact<{
       notification: FSNotification
     }> /* ,
     response: {} // Notify call
     */
   ) => void,
   'keybase.1.NotifyFS.FSSyncActivity'?: (
-    params: $Exact<{
+    params: Exact<{
       status: FSPathSyncStatus
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyFS.FSEditListResponse'?: (
-    params: $Exact<{
+    params: Exact<{
       edits?: ?Array<FSNotification>,
       requestID: int
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyFS.FSSyncStatusResponse'?: (
-    params: $Exact<{
+    params: Exact<{
       status: FSSyncStatus,
       requestID: int
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyFSRequest.FSEditListRequest'?: (
-    params: $Exact<{
+    params: Exact<{
       req: FSEditListRequest
     }> /* ,
     response: {} // Notify call
     */
   ) => void,
   'keybase.1.NotifyFSRequest.FSSyncStatusRequest'?: (
-    params: $Exact<{
+    params: Exact<{
       req: FSSyncStatusRequest
     }> /* ,
     response: {} // Notify call
     */
   ) => void,
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (
-    params: $Exact<{
+    params: Exact<{
       uid: UID
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (
-    params: $Exact<{
+    params: Exact<{
       uid: UID,
       encKID: KID,
       sigKID: KID
@@ -4159,26 +4871,26 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (
-    params: $Exact<{}>,
+    params: Exact<{}>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyService.shutdown'?: (
-    params: $Exact<{}>,
+    params: Exact<{}>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifySession.loggedOut'?: (
-    params: $Exact<{}> /* ,
+    params: Exact<{}> /* ,
     response: {} // Notify call
     */
   ) => void,
   'keybase.1.NotifySession.loggedIn'?: (
-    params: $Exact<{
+    params: Exact<{
       username: string
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifySession.clientOutOfDate'?: (
-    params: $Exact<{
+    params: Exact<{
       upgradeTo: string,
       upgradeURI: string,
       upgradeMsg: string
@@ -4186,7 +4898,7 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyTracking.trackingChanged'?: (
-    params: $Exact<{
+    params: Exact<{
       uid: UID,
       username: string
     }> /* ,
@@ -4194,14 +4906,14 @@ export type incomingCallMapType = $Exact<{
     */
   ) => void,
   'keybase.1.NotifyUsers.userChanged'?: (
-    params: $Exact<{
+    params: Exact<{
       uid: UID
     }> /* ,
     response: {} // Notify call
     */
   ) => void,
   'keybase.1.pgpUi.outputSignatureSuccess'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       fingerprint: string,
       username: string,
@@ -4210,7 +4922,7 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.pgpUi.keyGenerated'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       kid: KID,
       key: KeyInfo
@@ -4218,7 +4930,7 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.pgpUi.shouldPushPrivate'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int
     }>,
     response: {
@@ -4227,13 +4939,13 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.pgpUi.finished'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.proveUi.promptOverwrite'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       account: string,
       typ: PromptOverwriteType
@@ -4244,7 +4956,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.proveUi.promptUsername'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       prompt: string,
       prevError?: ?Status
@@ -4255,14 +4967,14 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.proveUi.outputPrechecks'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       text: Text
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.proveUi.preProofWarning'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       text: Text
     }>,
@@ -4272,7 +4984,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.proveUi.outputInstructions'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       instructions: Text,
       proof: string
@@ -4280,7 +4992,7 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.proveUi.okToCheck'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       name: string,
       attempt: int
@@ -4291,14 +5003,14 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.proveUi.displayRecheckWarning'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       text: Text
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.provisionUi.chooseProvisioningMethod'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       gpgOption: boolean
     }>,
@@ -4308,7 +5020,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.provisionUi.chooseGPGMethod'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       keys?: ?Array<GPGKey>
     }>,
@@ -4318,7 +5030,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.provisionUi.switchToGPGSignOK'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       key: GPGKey,
       importError: string
@@ -4329,7 +5041,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.provisionUi.chooseDevice'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       devices?: ?Array<Device>
     }>,
@@ -4339,7 +5051,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.provisionUi.chooseDeviceType'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       kind: ChooseType
     }>,
@@ -4349,7 +5061,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.provisionUi.DisplayAndPromptSecret'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       secret: bytes,
       phrase: string,
@@ -4361,13 +5073,13 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.provisionUi.DisplaySecretExchanged'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.provisionUi.PromptNewDeviceName'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       existingDevices?: ?Array<string>,
       errorMessage: string
@@ -4378,7 +5090,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.provisionUi.ProvisioneeSuccess'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       username: string,
       deviceName: string
@@ -4386,7 +5098,7 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.provisionUi.ProvisionerSuccess'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       deviceName: string,
       deviceType: string
@@ -4394,28 +5106,28 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.rekeyUI.delegateRekeyUI'?: (
-    params: $Exact<{}>,
+    params: Exact<{}>,
     response: {
       error: RPCErrorHandler,
       result: (result: rekeyUIDelegateRekeyUIResult) => void,
     }
   ) => void,
   'keybase.1.rekeyUI.refresh'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       problemSetDevices: ProblemSetDevices
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.rekeyUI.rekeySendEvent'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       event: RekeyEvent
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       sender: SaltpackSender,
       usedDelegateUI: bool
@@ -4423,7 +5135,7 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.saltpackUi.saltpackVerifySuccess'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       signingKID: KID,
       sender: SaltpackSender
@@ -4431,7 +5143,7 @@ export type incomingCallMapType = $Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.secretUi.getPassphrase'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       pinentry: GUIEntryArg,
       terminal?: ?SecretEntryArg
@@ -4442,14 +5154,14 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.streamUi.close'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       s: Stream
     }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.streamUi.read'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       s: Stream,
       sz: int
@@ -4460,7 +5172,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.streamUi.write'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       s: Stream,
       buf: bytes
@@ -4471,7 +5183,7 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.ui.promptYesNo'?: (
-    params: $Exact<{
+    params: Exact<{
       sessionID: int,
       text: Text,
       promptDefault: PromptDefault

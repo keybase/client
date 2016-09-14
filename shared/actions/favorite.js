@@ -1,53 +1,98 @@
 // @flow
 import * as Constants from '../constants/favorite'
 import _ from 'lodash'
-import type {Dispatch} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteList, FavoriteIgnore, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored} from '../constants/favorite'
-import type {Folder} from '../constants/types/flow-types'
-import type {ParticipantUnlock, Device, Folder as FoldersFolder, MetaType} from '../constants/folders'
-import type {UserList} from '../common-adapters/usernames'
 import {NotifyPopup} from '../native/notifications'
-import {apiserverGetRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
-import {defaultKBFSPath} from '../constants/config'
 import {navigateBack} from '../actions/router'
+import {call, put, select} from 'redux-saga/effects'
+import {takeLatest, takeEvery} from 'redux-saga'
 
-export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
-  const rwers = users.filter(u => !u.readOnly).map(u => u.username)
-  const readers = users.filter(u => !!u.readOnly).map(u => u.username)
-  const sortName = rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
-  const path = `${defaultKBFSPath}/${isPublic ? 'public' : 'private'}/${sortName}`
-  return {sortName, path}
+import type {Action} from '../constants/types/flux'
+import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, FolderWithMeta} from '../constants/favorite'
+import type {Folder as FoldersFolder, MetaType} from '../constants/folders'
+import type {SagaGenerator} from '../constants/types/saga'
+
+const {pathFromFolder, folderFromPath} = Constants
+
+function switchTab (showingPrivate: boolean): FavoriteSwitchTab {
+  return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
 }
 
-function folderFromPath (path: string): ?Folder {
-  if (path.startsWith(`${defaultKBFSPath}/private/`)) {
-    return {
-      name: path.replace(`${defaultKBFSPath}/private/`, ''),
-      private: true,
-      notificationsOn: false,
-      created: false,
+function toggleShowIgnored (isPrivate: boolean): FavoriteToggleIgnored {
+  return {type: Constants.favoriteToggleIgnored, payload: {isPrivate}, error: false}
+}
+
+function favoriteList (): FavoriteList {
+  return {type: Constants.favoriteList, payload: undefined}
+}
+
+function favoriteFolder (path: string): FavoriteAdd {
+  return {type: Constants.favoriteAdd, payload: {path}}
+}
+
+function ignoreFolder (path: string): FavoriteIgnore {
+  return {type: Constants.favoriteIgnore, payload: {path}}
+}
+
+const injectMeta = type => f => { f.meta = type }
+
+const _jsonToFolders = (json: Object, myKID: any): Array<FolderWithMeta> => {
+  const folderSets = [json.favorites, json.ignored, json.new]
+  const fillFolder = folder => {
+    folder.waitingForParticipantUnlock = []
+    folder.youCanUnlock = []
+
+    if (!folder.problem_set) {
+      return
     }
-  } else if (path.startsWith(`${defaultKBFSPath}/public/`)) {
-    return {
-      name: path.replace(`${defaultKBFSPath}/public/`, ''),
-      private: false,
-      notificationsOn: false,
-      created: false,
+
+    const solutions = folder.problem_set.solution_kids || {}
+    if (Object.keys(solutions).length) {
+      folder.meta = 'rekey'
     }
-  } else {
-    return null
+
+    if (folder.problem_set.can_self_help) {
+      const mySolutions = solutions[myKID] || []
+      folder.youCanUnlock = mySolutions.map(kid => {
+        const device = json.devices[kid]
+        return {...device, deviceID: kid}
+      })
+    } else {
+      folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
+        const devices = solutions[userID].map(kid => json.devices[kid].name)
+        const numDevices = devices.length
+        const last = numDevices > 1 ? devices.pop() : null
+
+        return {
+          name: json.users[userID],
+          devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${last ? ` or ${last}` : ''}.`,
+        }
+      })
+    }
   }
+
+  folderSets.forEach(folders => folders.forEach(fillFolder))
+  return _.flatten(folderSets)
 }
 
-type FolderWithMeta = {
-  meta: MetaType,
-  waitingForParticipantUnlock: Array<ParticipantUnlock>,
-  youCanUnlock: Array<Device>,
-} & Folder
+function _folderSort (username, a, b) {
+  // New first
+  if (a.meta !== b.meta) {
+    if (a.meta === 'new') return -1
+    if (b.meta === 'new') return 1
+  }
 
-const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): FolderState => { // eslint-disable-line space-infix-ops
+  // You next
+  if (a.sortName === username) return -1
+  if (b.sortName === username) return 1
+
+  return a.sortName.localeCompare(b.sortName)
+}
+
+function _folderToState (txt: string = '', username: string, loggedIn: boolean): FolderState {
+  const folders: Array<FolderWithMeta> = _getFavoritesRPCToFolders(txt, username, loggedIn)
   let privateBadge = 0
   let publicBadge = 0
 
@@ -80,19 +125,7 @@ const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): F
       waitingForParticipantUnlock: f.waitingForParticipantUnlock,
       youCanUnlock: f.youCanUnlock,
     }
-  }).sort((a, b) => {
-    // New first
-    if (a.meta !== b.meta) {
-      if (a.meta === 'new') return -1
-      if (b.meta === 'new') return 1
-    }
-
-    // You next
-    if (a.sortName === username) return -1
-    if (b.sortName === username) return 1
-
-    return a.sortName.localeCompare(b.sortName)
-  })
+  }).sort((a, b) => _folderSort(username, a, b))
 
   const [priFolders, pubFolders] = _.partition(converted, {isPublic: false})
   const [privIgnored, priv] = _.partition(priFolders, {ignored: true})
@@ -113,198 +146,155 @@ const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): F
   }
 }
 
+function _getFavoritesRPCToFolders (txt: string, username: string = '', loggedIn: boolean): Array<FolderWithMeta> {
+  let json
+  try {
+    json = JSON.parse(txt)
+  } catch (err) {
+    console.warn('Invalid json from getFavorites: ', err)
+    return []
+  }
+
+  const myKID = _.findKey(json.users, name => name === username)
+
+  // inject our meta tag
+  json.favorites && json.favorites.forEach(injectMeta(null))
+  json.ignored && json.ignored.forEach(injectMeta('ignored'))
+  json.new && json.new.forEach(injectMeta('new'))
+
+  // figure out who can solve the rekey
+  const folders: Array<FolderWithMeta> = _jsonToFolders(json, myKID)
+
+  // Ensure private/public folders exist for us
+  if (username && loggedIn) {
+    [true, false].forEach(isPrivate => {
+      const idx = folders.findIndex(f => f.name === username && f.private === isPrivate)
+      let toAdd = {
+        meta: null,
+        name: username,
+        private: isPrivate,
+        notificationsOn: false,
+        created: false,
+        waitingForParticipantUnlock: [],
+        youCanUnlock: [],
+      }
+
+      if (idx !== -1) {
+        toAdd = folders[idx]
+        folders.splice(idx, 1)
+      }
+
+      folders.unshift(toAdd)
+    })
+  }
+
+  return folders
+}
+
+function * _addSaga (action: FavoriteAdd): SagaGenerator<any, any> {
+  const folder = folderFromPath(action.payload.path)
+  if (!folder) {
+    const action: FavoriteAdded = {type: Constants.favoriteAdded, error: true, payload: {errorText: 'No folder specified'}}
+    yield put(action)
+    return
+  } else {
+    try {
+      yield call(favoriteFavoriteAddRpcPromise, {param: {folder}})
+      const action: FavoriteAdded = {type: Constants.favoriteAdded, payload: undefined}
+      yield put(action)
+      yield put(navigateBack())
+    } catch (error) {
+      console.warn('Err in favorite.favoriteAdd', error)
+      yield put(navigateBack())
+    }
+  }
+}
+
+function * _ignoreSaga (action: FavoriteAdd): SagaGenerator<any, any> {
+  const folder = folderFromPath(action.payload.path)
+  if (!folder) {
+    const action: FavoriteIgnored = {type: Constants.favoriteIgnored, error: true, payload: {errorText: 'No folder specified'}}
+    yield put(action)
+    return
+  } else {
+    try {
+      yield call(favoriteFavoriteIgnoreRpcPromise, {param: {folder}})
+      const action: FavoriteIgnored = {type: Constants.favoriteIgnored, payload: undefined}
+      yield put(action)
+      yield put(navigateBack())
+    } catch (error) {
+      console.warn('Err in favorite.favoriteIgnore', error)
+      yield put(navigateBack())
+    }
+  }
+}
+
+function * _listSaga (): SagaGenerator<any, any> {
+  const bail = yield select(({dev: {reloading = false} = {}}) => reloading)
+  if (bail) {
+    return
+  }
+
+  const results = yield call(apiserverGetRpcPromise, {
+    param: {
+      endpoint: 'kbfs/favorite/list',
+      args: [{key: 'problems', value: '1'}],
+    },
+  })
+  const username = yield select(state => state.config && state.config.username)
+  const loggedIn = yield select(state => state.config && state.config.loggedIn)
+  const state: FolderState = _folderToState(results && results.body, username || '', loggedIn || false)
+
+  const listedAction: FavoriteListed = {type: Constants.favoriteListed, payload: {folders: state}}
+  yield put(listedAction)
+
+  const badgeAction: Action = badgeApp('newTLFs', !!(state.publicBadge || state.privateBadge))
+  yield put(badgeAction)
+
+  yield call(_notify, state)
+}
+
 // If the notify data has changed, show a popup
 let previousNotifyState = null
 
-const injectMeta = type => f => { f.meta = type }
+function _notify (state) {
+  const total = state.publicBadge + state.privateBadge
 
-const jsonToFolders = (json: Object, myKID: any) => {
-  const folderSets = [json.favorites, json.ignored, json.new]
-  folderSets.forEach(folders => {
-    folders.forEach(folder => {
-      folder.waitingForParticipantUnlock = []
-      folder.youCanUnlock = []
+  if (!total) {
+    return
+  }
 
-      if (folder.problem_set) {
-        const solutions = folder.problem_set.solution_kids || {}
-        if (Object.keys(solutions).length) {
-          folder.meta = 'rekey'
-        }
+  const newNotifyState = [].concat(state.private.tlfs || [], state.public.tlfs || [])
+    .filter(t => t.meta === 'new').map(t => t.path)
 
-        if (folder.problem_set.can_self_help) {
-          const mySolutions = solutions[myKID] || []
-          folder.youCanUnlock = mySolutions.map(kid => {
-            const device = json.devices[kid]
-            return {...device, deviceID: kid}
-          })
-        } else {
-          folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
-            const devices = solutions[userID].map(kid => json.devices[kid].name)
-            const numDevices = devices.length
-            let last
-
-            if (numDevices > 1) {
-              last = devices.pop()
-            }
-
-            return {
-              name: json.users[userID],
-              devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${last ? ` or ${last}` : ''}.`,
-            }
-          })
-        }
-      }
-    })
-  })
-  return _.flatten(folderSets)
-}
-
-export function favoriteList (): (dispatch: Dispatch, getState: () => Object) => void {
-  return (dispatch, getState) => {
-    // Ignore any messages we receive while reloading
-    if (getState().dev && getState().dev.reloading) {
-      return
+  if (_.difference(newNotifyState, previousNotifyState).length) {
+    let body
+    if (total <= 3) {
+      body = newNotifyState.join('\n')
+    } else {
+      body = `You have ${total} new folders`
     }
 
-    apiserverGetRpc({
-      param: {
-        endpoint: 'kbfs/favorite/list',
-        args: [{key: 'problems', value: '1'}],
-      },
-      callback: (error, result) => {
-        if (error) {
-          console.warn('Err in getFavorites', error)
-          return
-        }
-
-        let json
-        try {
-          json = JSON.parse(result.body)
-        } catch (err) {
-          console.warn('Invalid json from getFavorites: ', err)
-          return
-        }
-
-        const config = getState().config
-        const myUsername = config && config.username
-        const myKID = _.findKey(json.users, name => name === myUsername)
-
-        // inject our meta tag
-        json.favorites && json.favorites.forEach(injectMeta(null))
-        json.ignored && json.ignored.forEach(injectMeta('ignored'))
-        json.new && json.new.forEach(injectMeta('new'))
-
-        // figure out who can solve the rekey
-        const folders: Array<FolderWithMeta> = jsonToFolders(json, myKID)
-        const currentUser = config && config.username
-        const loggedIn = config && config.loggedIn
-
-        // Ensure private/public folders exist for us
-        if (currentUser && loggedIn) {
-          [true, false].forEach(isPrivate => {
-            const idx = folders.findIndex(f => f.name === currentUser && f.private === isPrivate)
-            let toAdd = {
-              meta: null,
-              name: currentUser,
-              private: isPrivate,
-              notificationsOn: false,
-              created: false,
-              waitingForParticipantUnlock: [],
-              youCanUnlock: [],
-            }
-
-            if (idx !== -1) {
-              toAdd = folders[idx]
-              folders.splice(idx, 1)
-            }
-
-            folders.unshift(toAdd)
-          })
-        }
-
-        const state = folderToState(folders, currentUser)
-        const action: FavoriteList = {type: Constants.favoriteList, payload: {folders: state}}
-        dispatch(action)
-        dispatch(badgeApp('newTLFs', !!(state.publicBadge || state.privateBadge)))
-
-        const total = state.publicBadge + state.privateBadge
-
-        if (total) {
-          const newNotifyState = [].concat(state.private.tlfs || [], state.public.tlfs || [])
-            .filter(t => t.meta === 'new').map(t => t.path)
-
-          if (_.difference(newNotifyState, previousNotifyState).length) {
-            let body
-            if (total <= 3) {
-              body = newNotifyState.join('\n')
-            } else {
-              body = `You have ${total} new folders`
-            }
-
-            NotifyPopup('New Keybase Folders!', {body}, 60 * 10)
-          }
-
-          previousNotifyState = newNotifyState
-        }
-      },
-    })
+    NotifyPopup('New Keybase Folders!', {body}, 60 * 10)
   }
+
+  previousNotifyState = newNotifyState
 }
 
-export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
-  return (dispatch, getState) => {
-    const folder = folderFromPath(path)
-    if (!folder) {
-      const action: FavoriteIgnore = {type: Constants.favoriteIgnore, error: true, payload: {errorText: 'No folder specified'}}
-      dispatch(action)
-      return
-    }
-
-    favoriteFavoriteIgnoreRpc({
-      param: {folder},
-      callback: error => {
-        if (error) {
-          console.warn('Err in favorite.favoriteIgnore', error)
-          dispatch(navigateBack())
-          return
-        }
-        const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: undefined}
-        dispatch(action)
-        dispatch(navigateBack())
-      },
-    })
-  }
+function * favoriteSaga (): SagaGenerator<any, any> {
+  yield [
+    takeLatest(Constants.favoriteList, _listSaga),
+    takeEvery(Constants.favoriteAdd, _addSaga),
+    takeEvery(Constants.favoriteIgnore, _ignoreSaga),
+  ]
 }
 
-export function favoriteFolder (path: string): (dispatch: Dispatch) => void {
-  return (dispatch, getState) => {
-    const folder = folderFromPath(path)
-    if (!folder) {
-      const action: FavoriteAdd = {type: Constants.favoriteAdd, error: true, payload: {errorText: 'No folder specified'}}
-      dispatch(action)
-      return
-    }
-
-    favoriteFavoriteAddRpc({
-      param: {folder},
-      callback: error => {
-        if (error) {
-          console.warn('Err in favorite.favoriteAdd', error)
-          dispatch(navigateBack())
-          return
-        }
-        const action: FavoriteAdd = {type: Constants.favoriteAdd, payload: undefined}
-        dispatch(action)
-        dispatch(navigateBack())
-      },
-    })
-  }
+export {
+  favoriteList,
+  toggleShowIgnored,
+  switchTab,
+  favoriteFolder,
+  ignoreFolder,
 }
 
-export function switchTab (showingPrivate: boolean): FavoriteSwitchTab {
-  return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
-}
-
-export function toggleShowIgnored (isPrivate: boolean): FavoriteToggleIgnored {
-  return {type: Constants.favoriteToggleIgnored, payload: {isPrivate}, error: false}
-}
+export default favoriteSaga

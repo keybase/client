@@ -79,7 +79,7 @@ class DevMenu extends Component {
 
 export default connect(
   null,
-  dispatch => {
+  (dispatch: any) => {
     return {
       navigateUp: () => dispatch(navigateUp()),
       routeAppend: uri => dispatch(routeAppend(uri)),

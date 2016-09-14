@@ -37,9 +37,10 @@
   [parser registerOption:@"app-path" shortcut:'a' requirement:GBValueRequired];
   [parser registerOption:@"run-mode" shortcut:'r' requirement:GBValueRequired];
   [parser registerSwitch:@"uninstall-app"];
-  [parser registerSwitch:@"uninstall-kext"];
+  [parser registerSwitch:@"uninstall-fuse"];
   [parser registerSwitch:@"uninstall-mountdir"];
   [parser registerSwitch:@"uninstall-helper"];
+  [parser registerSwitch:@"uninstall"];
   [parser registerSwitch:@"install-fuse"];
   [parser registerSettings:self.settings];
   NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
@@ -54,8 +55,8 @@
   if ([[self.settings objectForKey:@"uninstall-app"] boolValue]) {
     self.uninstallOptions |= UninstallOptionApp;
   }
-  if ([[self.settings objectForKey:@"uninstall-kext"] boolValue]) {
-    self.uninstallOptions |= UninstallOptionKext;
+  if ([[self.settings objectForKey:@"uninstall-fuse"] boolValue]) {
+    self.uninstallOptions |= UninstallOptionFuse;
   }
   if ([[self.settings objectForKey:@"uninstall-mountdir"] boolValue]) {
     self.uninstallOptions |= UninstallOptionMountDir;
@@ -63,6 +64,10 @@
   if ([[self.settings objectForKey:@"uninstall-helper"] boolValue]) {
     self.uninstallOptions |= UninstallOptionHelper;
   }
+  if ([[self.settings objectForKey:@"uninstall"] boolValue]) {
+    self.installOptions |= UninstallOptionAll;
+  }
+
   if ([[self.settings objectForKey:@"install-fuse"] boolValue]) {
     self.installOptions |= KBInstallOptionFuse;
   }

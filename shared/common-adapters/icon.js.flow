@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import type {IconType as _IconType} from './icon.constants'
 export type IconType = _IconType
-import type {$Exact} from '../constants/types/more'
+import type {Exact} from '../constants/types/more'
 
 export type Props = {
   type: IconType,
@@ -12,9 +12,10 @@ export type Props = {
   onMouseEnter?: () => void,
   onMouseLeave?: () => void,
   style?: Object,
+  opacity?: boolean,
   inheritColor?: boolean,
   underlayColor?: string,
   className?: string
 }
 
-declare export default class Icon extends Component<void, $Exact<Props>, void> {}
+declare export default class Icon extends Component<void, Exact<Props>, void> {}

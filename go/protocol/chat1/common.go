@@ -78,6 +78,43 @@ type RateLimit struct {
 	MaxCalls       int `codec:"maxCalls" json:"maxCalls"`
 }
 
+type TLFVisibility int
+
+const (
+	TLFVisibility_PUBLIC  TLFVisibility = 0
+	TLFVisibility_PRIVATE TLFVisibility = 1
+	TLFVisibility_ANY     TLFVisibility = 2
+)
+
+var TLFVisibilityMap = map[string]TLFVisibility{
+	"PUBLIC":  0,
+	"PRIVATE": 1,
+	"ANY":     2,
+}
+
+var TLFVisibilityRevMap = map[TLFVisibility]string{
+	0: "PUBLIC",
+	1: "PRIVATE",
+	2: "ANY",
+}
+
+type GetInboxQuery struct {
+	ConvID        *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
+	TopicType     *TopicType      `codec:"topicType,omitempty" json:"topicType,omitempty"`
+	TlfID         *TLFID          `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
+	TlfVisibility *TLFVisibility  `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
+	Before        *gregor1.Time   `codec:"before,omitempty" json:"before,omitempty"`
+	After         *gregor1.Time   `codec:"after,omitempty" json:"after,omitempty"`
+	UnreadOnly    bool            `codec:"unreadOnly" json:"unreadOnly"`
+}
+
+type GetThreadQuery struct {
+	MarkAsRead   bool          `codec:"markAsRead" json:"markAsRead"`
+	MessageTypes []MessageType `codec:"messageTypes" json:"messageTypes"`
+	Before       *gregor1.Time `codec:"before,omitempty" json:"before,omitempty"`
+	After        *gregor1.Time `codec:"after,omitempty" json:"after,omitempty"`
+}
+
 type ConversationIDTriple struct {
 	Tlfid     TLFID     `codec:"tlfid" json:"tlfid"`
 	TopicType TopicType `codec:"topicType" json:"topicType"`
@@ -98,7 +135,7 @@ type ConversationReaderInfo struct {
 type Conversation struct {
 	Metadata   ConversationMetadata    `codec:"metadata" json:"metadata"`
 	ReaderInfo *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	MaxHeaders []MessageServerHeader   `codec:"maxHeaders" json:"maxHeaders"`
+	MaxMsgs    []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
 }
 
 type MessageServerHeader struct {

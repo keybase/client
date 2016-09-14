@@ -62,7 +62,7 @@ export const actionLogger = (store: any) => (next: any) => (action: any) => {
     console.log.apply(console, log1)
     console.log.apply(console, log2)
     console.groupEnd && console.groupEnd()
-  })
+  }, {timeout: 1e3})
 
   // Make sure to print these after the groupEnd
   printTimingStats(shouldRunLogStats, loggingStatSink, true, 3)

@@ -3,7 +3,7 @@
 import {Component} from 'react'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 import type {IconType} from '../../common-adapters/icon'
-import type {$Exact} from '../../constants/types/more'
+import type {Exact} from '../../constants/types/more'
 
 export type PropsLoose = {
   platform: PlatformsExpandedType,
@@ -14,6 +14,6 @@ export type PropsLoose = {
   isWaiting?: boolean,
 }
 
-export type Props = $Exact<PropsLoose>
+export type Props = Exact<PropsLoose>
 
 export default class Render extends Component<void, Props, void> { }
