@@ -138,7 +138,7 @@ export type NonUserState = {
   name: string,
   reason: string,
   isPrivate: boolean,
-  inviteLink: ?string
+  inviteLink: ?string,
 }
 
 export type TrackerOrNonUserState = TrackerState | NonUserState

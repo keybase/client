@@ -42,7 +42,7 @@ for (const method in console) {
   }
 }
 
-const loggerMiddleware = enableStoreLogging ? createLogger({
+const loggerMiddleware: any = enableStoreLogging ? createLogger({
   duration: true,
   stateTransformer: objToJS,
   actionTransformer: objToJS,
@@ -71,7 +71,6 @@ if (closureStoreCheck) {
   middlewares.push(closureCheck)
 }
 
-// $FlowIssue
 const createStoreWithMiddleware = applyMiddleware.apply(null, middlewares)
 
 export default function configureStore (initialState: any) {
