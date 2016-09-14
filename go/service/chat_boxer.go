@@ -7,7 +7,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 type chatBoxer struct {
@@ -68,22 +68,22 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 	}
 
 	// decrypt body
-	jsonBody, err := b.open(msg.BodyCiphertext, key)
+	packedBody, err := b.open(msg.BodyCiphertext, key)
 	if err != nil {
 		return keybase1.Message{}, err
 	}
 	var body keybase1.BodyPlaintext
-	if err := json.Unmarshal(jsonBody, &body); err != nil {
+	if err := b.unmarshal(packedBody, &body); err != nil {
 		return keybase1.Message{}, err
 	}
 
 	// decrypt header
-	jsonHeader, err := b.open(msg.HeaderCiphertext, key)
+	packedHeader, err := b.open(msg.HeaderCiphertext, key)
 	if err != nil {
 		return keybase1.Message{}, err
 	}
 	var header keybase1.HeaderPlaintext
-	if err := json.Unmarshal(jsonHeader, &header); err != nil {
+	if err := b.unmarshal(packedHeader, &header); err != nil {
 		return keybase1.Message{}, err
 	}
 
@@ -205,7 +205,7 @@ func (b *chatBoxer) boxMessageWithKeysV1(msg keybase1.MessagePlaintextV1, key *k
 	}
 
 	// sign the header and insert the signature
-	sig, err := b.signJSON(header, signingKeyPair, libkb.SignaturePrefixChatHeader)
+	sig, err := b.signMarshal(header, signingKeyPair, libkb.SignaturePrefixChatHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +230,7 @@ func (b *chatBoxer) boxMessageWithKeysV1(msg keybase1.MessagePlaintextV1, key *k
 
 // seal encrypts data into chat1.EncryptedData.
 func (b *chatBoxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.EncryptedData, error) {
-	s, err := json.Marshal(data)
+	s, err := b.marshal(data)
 	if err != nil {
 		return nil, err
 	}
@@ -264,10 +264,10 @@ func (b *chatBoxer) open(data chat1.EncryptedData, key *keybase1.CryptKey) ([]by
 	return plain, nil
 }
 
-// signJSON signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-// It encodes data to JSON before signing.
-func (b *chatBoxer) signJSON(data interface{}, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
-	encoded, err := json.Marshal(data)
+// signMarshal signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
+// It marshals data before signing.
+func (b *chatBoxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+	encoded, err := b.marshal(data)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
 	}
@@ -315,11 +315,11 @@ func (b *chatBoxer) verifyMessageHeaderV1(header keybase1.HeaderPlaintextV1, msg
 	// check signature
 	hcopy := header
 	hcopy.HeaderSignature = nil
-	hjson, err := json.Marshal(hcopy)
+	hpack, err := b.marshal(hcopy)
 	if err != nil {
 		return err
 	}
-	if !b.verify(hjson, *header.HeaderSignature, libkb.SignaturePrefixChatHeader) {
+	if !b.verify(hpack, *header.HeaderSignature, libkb.SignaturePrefixChatHeader) {
 		return libkb.BadSigError{E: "header signature invalid"}
 	}
 
@@ -375,4 +375,20 @@ func (b *chatBoxer) validSenderKey(sender gregor1.UID, key []byte, ctime gregor1
 	}
 
 	return true, nil
+}
+
+func (b *chatBoxer) marshal(v interface{}) ([]byte, error) {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	var data []byte
+	enc := codec.NewEncoderBytes(&data, &mh)
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (b *chatBoxer) unmarshal(data []byte, v interface{}) error {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	dec := codec.NewDecoderBytes(data, &mh)
+	return dec.Decode(&v)
 }
