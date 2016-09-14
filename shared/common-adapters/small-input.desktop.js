@@ -31,7 +31,7 @@ const styleContainer = {
 
 const styleLabel = (hasError: boolean) => ({
   position: 'absolute',
-  bottom: 6,
+  bottom: 7,
   left: 2,
   color: (hasError ? globalColors.red : globalColors.blue),
 })
@@ -45,7 +45,7 @@ const styleInputHint = {
   textAlign: 'left',
   marginLeft: 60,
   marginTop: 6,
-  top: undefined,
+  bottom: undefined,
 }
 
 const styleInputUser = {
