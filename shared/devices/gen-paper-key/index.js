@@ -3,7 +3,7 @@ import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
 import Render from '../../login/signup/success/index.render'
 import {connect} from 'react-redux'
-import {generatePaperKey} from '../../actions/devices'
+import {generatePaperKey, loadDevices} from '../../actions/devices'
 import {navigateUp} from '../../actions/router'
 
 type State = {
@@ -46,7 +46,7 @@ class GenPaperKey extends Component<void, Props, State> {
       <Render
         paperkey={this.props.paperKey}
         waiting={false}
-        onFinish={this.props.onBack}
+        onFinish={this.props.onFinish}
         onBack={this.props.onBack}
         title='Paper key generated!'
       />
@@ -64,6 +64,10 @@ export default connect(
     return {
       generatePaperKey: () => dispatch(generatePaperKey()),
       onBack: () => dispatch(navigateUp()),
+      onFinish: () => {
+        dispatch(loadDevices())
+        dispatch(navigateUp())
+      },
     }
   }
 )(GenPaperKey)
