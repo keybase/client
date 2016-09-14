@@ -335,7 +335,8 @@ func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanP
 	if err != nil {
 		return err
 	}
-	perr2, foundhint2, err := e.CheckOne(rec, true, tickers)
+	// Skip the rate limit on the second check.
+	perr2, foundhint2, err := e.CheckOne(rec, true, nil)
 	if err != nil {
 		return err
 	}
