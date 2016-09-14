@@ -728,16 +728,29 @@ func (c *ConfigLocal) Shutdown() error {
 				continue
 			}
 			for _, fbo := range kbfsOps.ops {
-				if err := fbo.fbm.waitForArchives(context.Background()); err != nil {
+				ctx := context.Background()
+				if err := fbo.fbm.waitForArchives(ctx); err != nil {
 					return err
 				}
-				if err := fbo.fbm.waitForDeletingBlocks(
-					context.Background()); err != nil {
+				if err := fbo.fbm.waitForDeletingBlocks(ctx); err != nil {
 					return err
 				}
 				if jServer, err := GetJournalServer(config); err == nil {
-					if err := jServer.Wait(context.Background(),
-						fbo.id()); err != nil {
+					if err := jServer.Wait(ctx, fbo.id()); err != nil {
+						return err
+					}
+				}
+				// The above wait could have resulted in some MD
+				// flushes, so now we have to wait on any archives as
+				// well.
+				if err := fbo.mdFlushes.Wait(ctx); err != nil {
+					return err
+				}
+				if err := fbo.fbm.waitForArchives(ctx); err != nil {
+					return err
+				}
+				if jServer, err := GetJournalServer(config); err == nil {
+					if err := jServer.Wait(ctx, fbo.id()); err != nil {
 						return err
 					}
 				}
