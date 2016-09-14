@@ -4455,7 +4455,7 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 	for {
 		doSelect := true
 		if fbo.blocks.GetState(lState) == dirtyState &&
-			fbo.config.DirtyBlockCache().ShouldForceSync() {
+			fbo.config.DirtyBlockCache().ShouldForceSync(fbo.id()) {
 			// We have dirty files, and the system has a full buffer,
 			// so don't bother waiting for a signal, just get right to
 			// the main attraction.

@@ -60,32 +60,35 @@ type JournalServer struct {
 
 	dir string
 
-	delegateBlockCache  BlockCache
-	delegateBlockServer BlockServer
-	delegateMDOps       MDOps
-	onBranchChange      branchChangeListener
-	onMDFlush           mdFlushListener
+	delegateBlockCache      BlockCache
+	delegateDirtyBlockCache DirtyBlockCache
+	delegateBlockServer     BlockServer
+	delegateMDOps           MDOps
+	onBranchChange          branchChangeListener
+	onMDFlush               mdFlushListener
 
 	lock        sync.RWMutex
 	tlfJournals map[TlfID]*tlfJournal
+	dirtyOps    uint
 }
 
 func makeJournalServer(
 	config Config, log logger.Logger, dir string,
-	bcache BlockCache, bserver BlockServer, mdOps MDOps,
-	onBranchChange branchChangeListener,
+	bcache BlockCache, dirtyBcache DirtyBlockCache, bserver BlockServer,
+	mdOps MDOps, onBranchChange branchChangeListener,
 	onMDFlush mdFlushListener) *JournalServer {
 	jServer := JournalServer{
-		config:              config,
-		log:                 log,
-		deferLog:            log.CloneWithAddedDepth(1),
-		dir:                 dir,
-		delegateBlockCache:  bcache,
-		delegateBlockServer: bserver,
-		delegateMDOps:       mdOps,
-		onBranchChange:      onBranchChange,
-		onMDFlush:           onMDFlush,
-		tlfJournals:         make(map[TlfID]*tlfJournal),
+		config:                  config,
+		log:                     log,
+		deferLog:                log.CloneWithAddedDepth(1),
+		dir:                     dir,
+		delegateBlockCache:      bcache,
+		delegateDirtyBlockCache: dirtyBcache,
+		delegateBlockServer:     bserver,
+		delegateMDOps:           mdOps,
+		onBranchChange:          onBranchChange,
+		onMDFlush:               onMDFlush,
+		tlfJournals:             make(map[TlfID]*tlfJournal),
 	}
 	return &jServer
 }
@@ -95,6 +98,13 @@ func (j *JournalServer) getTLFJournal(tlfID TlfID) (*tlfJournal, bool) {
 	defer j.lock.RUnlock()
 	tlfJournal, ok := j.tlfJournals[tlfID]
 	return tlfJournal, ok
+}
+
+func (j *JournalServer) hasTLFJournal(tlfID TlfID) bool {
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+	_, ok := j.tlfJournals[tlfID]
+	return ok
 }
 
 // EnableExistingJournals turns on the write journal for all TLFs with
@@ -159,9 +169,19 @@ func (j *JournalServer) Enable(
 
 	j.lock.Lock()
 	defer j.lock.Unlock()
+
 	if _, ok := j.tlfJournals[tlfID]; ok {
 		j.log.CDebugf(ctx, "Journal already enabled for %s", tlfID)
 		return nil
+	}
+
+	if j.dirtyOps > 0 {
+		return fmt.Errorf("Can't enable journal for %s while there "+
+			"are outstanding dirty ops", tlfID)
+	}
+	if j.delegateDirtyBlockCache.IsAnyDirty(tlfID) {
+		return fmt.Errorf("Can't enable journal for %s while there "+
+			"are any dirty blocks outstanding", tlfID)
 	}
 
 	tlfJournal, err := makeTLFJournal(ctx, j.dir, tlfID,
@@ -173,6 +193,21 @@ func (j *JournalServer) Enable(
 
 	j.tlfJournals[tlfID] = tlfJournal
 	return nil
+}
+
+func (j *JournalServer) dirtyOpStart(tlfID TlfID) {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	j.dirtyOps++
+}
+
+func (j *JournalServer) dirtyOpEnd(tlfID TlfID) {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	if j.dirtyOps == 0 {
+		panic("Trying to end a dirty op when count is 0")
+	}
+	j.dirtyOps--
 }
 
 // PauseBackgroundWork pauses the background work goroutine, if it's
@@ -259,6 +294,15 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (
 			blockEntryCount, mdEntryCount)
 	}
 
+	if j.dirtyOps > 0 {
+		return false, fmt.Errorf("Can't disable journal for %s while there "+
+			"are outstanding dirty ops", tlfID)
+	}
+	if j.delegateDirtyBlockCache.IsAnyDirty(tlfID) {
+		return false, fmt.Errorf("Can't disable journal for %s while there "+
+			"are any dirty blocks outstanding", tlfID)
+	}
+
 	tlfJournal.shutdown()
 
 	j.log.CDebugf(ctx, "Disabled journal for %s", tlfID)
@@ -269,6 +313,11 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (
 
 func (j *JournalServer) blockCache() journalBlockCache {
 	return journalBlockCache{j, j.delegateBlockCache}
+}
+
+func (j *JournalServer) dirtyBlockCache(
+	journalCache DirtyBlockCache) journalDirtyBlockCache {
+	return journalDirtyBlockCache{j, j.delegateDirtyBlockCache, journalCache}
 }
 
 func (j *JournalServer) blockServer() journalBlockServer {
