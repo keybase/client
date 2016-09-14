@@ -118,14 +118,6 @@ class Render extends Component<void, Props, State> {
   render () {
     const {devices, revokedDevices, showRemoveDevicePage, showExistingDevicePage} = this.props
 
-    const realCSS = `
-    .existing-device-container .existing-device-item {
-      display: none;
-    }
-    .existing-device-container:hover .existing-device-item {
-      display: block;
-    }
-    `
     return (
       <Box style={stylesContainer}>
         <DeviceHeader
@@ -133,7 +125,6 @@ class Render extends Component<void, Props, State> {
           addNewDevice={() => this.setState({showingMenu: true})}
           showingMenu={this.state.showingMenu}
           onHidden={() => this.setState({showingMenu: false})} />
-        <style>{realCSS}</style>
         {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage} />)}
         {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} showExistingDevicePage={showExistingDevicePage} />}
       </Box>
