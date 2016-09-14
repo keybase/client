@@ -138,9 +138,8 @@ func TestDelayedCancellationEnabled(t *testing.T) {
 	case <-time.After(10 * time.Millisecond):
 	}
 
-	select {
-	case <-ctx.Done():
-	case <-time.After(10 * time.Millisecond):
-		t.Fatalf("Cancellation did not happen after grace period")
-	}
+	<-ctx.Done()
+
+	// if test timeouts, then it's a failure: Cancellation did not happen after
+	// grace period
 }
