@@ -4,6 +4,7 @@ package service
 // this source code is governed by the included BSD license.
 
 import (
+	"crypto/sha256"
 	"testing"
 	"time"
 
@@ -121,5 +122,99 @@ func TestChatMessageUnbox(t *testing.T) {
 	}
 	if body.Text().Body != text {
 		t.Errorf("body text: %q, expected %q", body.Text().Body, text)
+	}
+}
+
+func TestChatMessageInvalidBodyHash(t *testing.T) {
+	key := cryptKey(t)
+	text := "hi"
+	tc, handler := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+
+	signKP := getSigningKeyPairForTest(t, tc, u)
+
+	origHashFn := handler.boxer.hashV1
+	handler.boxer.hashV1 = func(data []byte) [sha256.Size]byte {
+		data = append(data, []byte{1, 2, 3}...)
+		return sha256.Sum256(data)
+	}
+
+	ctime := time.Now()
+	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// need to give it a server header...
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(ctime),
+	}
+
+	// put original hash fn back
+	handler.boxer.hashV1 = origHashFn
+
+	_, err = handler.boxer.unboxMessageWithKey(*boxed, key)
+	if _, ok := err.(libkb.ChatBodyHashInvalid); !ok {
+		t.Fatalf("unexpected error for invalid body hash: %s", err)
+	}
+}
+
+func TestChatMessageInvalidHeaderSig(t *testing.T) {
+	key := cryptKey(t)
+	text := "hi"
+	tc, handler := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+
+	signKP := getSigningKeyPairForTest(t, tc, u)
+
+	origSign := handler.boxer.sign
+	handler.boxer.sign = func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+		sig, err := kp.SignV2(msg, prefix)
+		if err != nil {
+			return chat1.SignatureInfo{}, err
+		}
+		sigInfo := chat1.SignatureInfo{
+			V: sig.Version,
+			S: sig.Sig[:],
+			K: sig.Kid,
+		}
+		// reverse the sig
+		for left, right := 0, len(sigInfo.S)-1; left < right; left, right = left+1, right-1 {
+			sigInfo.S[left], sigInfo.S[right] = sigInfo.S[right], sigInfo.S[left]
+		}
+		return sigInfo, nil
+	}
+
+	ctime := time.Now()
+	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// need to give it a server header...
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(ctime),
+	}
+
+	// put original signing fn back
+	handler.boxer.sign = origSign
+
+	_, err = handler.boxer.unboxMessageWithKey(*boxed, key)
+	if _, ok := err.(libkb.BadSigError); !ok {
+		t.Fatalf("unexpected error for invalid header signature: %s", err)
 	}
 }

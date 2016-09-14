@@ -34,10 +34,8 @@ func makeChatTestContext(t *testing.T, name string) (ctc chatTestContext) {
 	ctc.mock = newChatRemoteMock(ctc.world)
 	ctc.h = newChatLocalHandler(nil, ctc.tc.G, nil)
 	ctc.h.rc = ctc.mock
-	ctc.h.boxer = &chatBoxer{
-		tlf:          newTlfMock(ctc.world),
-		Contextified: libkb.NewContextified(ctc.tc.G),
-	}
+	ctc.h.boxer = newChatBoxer(ctc.tc.G)
+	ctc.h.boxer.tlf = newTlfMock(ctc.world)
 	return ctc
 }
 

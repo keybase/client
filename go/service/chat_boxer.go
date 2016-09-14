@@ -21,13 +21,17 @@ import (
 )
 
 type chatBoxer struct {
-	tlf keybase1.TlfInterface
+	tlf    keybase1.TlfInterface
+	hashV1 func(data []byte) [sha256.Size]byte // replaceable for testing
+	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error)
 	libkb.Contextified
 }
 
 func newChatBoxer(g *libkb.GlobalContext) *chatBoxer {
 	return &chatBoxer{
 		tlf:          newTlfHandler(nil, g),
+		hashV1:       sha256.Sum256,
+		sign:         sign,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -191,7 +195,7 @@ func (b *chatBoxer) boxMessageWithKeysV1(msg keybase1.MessagePlaintextV1, key *k
 		return nil, err
 	}
 
-	bodyHash := sha256.Sum256(encryptedBody.E)
+	bodyHash := b.hashV1(encryptedBody.E)
 
 	// create the v1 header, adding hash
 	header := keybase1.HeaderPlaintextV1{
@@ -276,7 +280,7 @@ func (b *chatBoxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, p
 }
 
 // sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-func (b *chatBoxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+func sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
 	sig, err := kp.SignV2(msg, prefix)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
@@ -307,9 +311,9 @@ func (b *chatBoxer) verifyMessage(header keybase1.HeaderPlaintext, msg chat1.Mes
 // verifyMessageHeaderV1 checks the body hash, header signature, and signing key validity.
 func (b *chatBoxer) verifyMessageHeaderV1(header keybase1.HeaderPlaintextV1, msg chat1.MessageBoxed) error {
 	// check body hash
-	bh := sha256.Sum256(msg.BodyCiphertext.E)
+	bh := b.hashV1(msg.BodyCiphertext.E)
 	if !libkb.SecureByteArrayEq(bh[:], header.BodyHash) {
-		return errors.New("body hash mismatch")
+		return libkb.ChatBodyHashInvalid{}
 	}
 
 	// check signature

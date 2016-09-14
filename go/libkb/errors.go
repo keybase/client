@@ -1545,3 +1545,9 @@ func NewChatMessageVersionError(version keybase1.MessagePlaintextVersion) ChatVe
 		Version: int(version),
 	}
 }
+
+type ChatBodyHashInvalid struct{}
+
+func (e ChatBodyHashInvalid) Error() string {
+	return "chat body hash invalid"
+}
