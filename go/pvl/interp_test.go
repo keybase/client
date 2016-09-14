@@ -23,12 +23,14 @@ type interpUnitTest struct {
 	service   keybase1.ProofType
 
 	// What api call to expect
-	restype     libkb.XAPIResType
-	resjson     string
-	reshtml     string
-	restext     string
-	urloverride string
+	restype libkb.XAPIResType
+	resjson string
+	reshtml string
+	restext string
 	// (Optional) Expect a different url to be fetched than proofinfo.APIURL
+	urloverride string
+	// (Optional) Don't check that the xapi was hit exactly once.
+	allowmanyfetches bool
 
 	// Whether the proof should validate
 	shouldwork bool
@@ -39,6 +41,11 @@ type interpUnitTest struct {
 }
 
 var interpUnitTests = []interpUnitTest{
+	// There are a lot of these tests in a line.
+	// They are organized into sections with markdown-style headings.
+	// All tests are run by the single runPvlTest function. If you want to run
+	// just one test, set the `solo` variable there.
+
 	// # Basic tests
 	{
 		name:      "basichtml",
@@ -871,6 +878,80 @@ var interpUnitTests = []interpUnitTest{
 	// ## (Invalid) TransformURL
 	// No tests
 
+	// # Multiple Scripts
+	// TODO
+	{
+		name:      "MultipleScripts-first-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok$"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"}
+]]`},
+		service:    keybase1.ProofType_FACEBOOK,
+		restype:    libkb.XAPIResText,
+		restext:    "ok",
+		shouldwork: true,
+	}, {
+		name:      "MultipleScripts-second-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok$"}
+]]`},
+		service:          keybase1.ProofType_FACEBOOK,
+		restype:          libkb.XAPIResText,
+		restext:          "ok",
+		allowmanyfetches: true,
+		shouldwork:       true,
+	}, {
+		name:      "MultipleScripts-both-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok$"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok"}
+]]`},
+		service:    keybase1.ProofType_FACEBOOK,
+		restype:    libkb.XAPIResText,
+		restext:    "ok",
+		shouldwork: true,
+	}, {
+		name:      "MultipleScripts-both-fail",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"
+  ,"error": "HOST_UNREACHABLE"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"
+  ,"error": "HOST_UNREACHABLE"}
+]]`},
+		service:    keybase1.ProofType_FACEBOOK,
+		restype:    libkb.XAPIResText,
+		restext:    "ok",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_HOST_UNREACHABLE,
+	},
+
+	// # DNS tests
+	// Checking a DNS proof is different from checking other proofs.
+	// It runs each script against each TXT record of 2 domains.
+	// That mechanism is tested here.
+	// TODO
+
 	// # Custom Errors
 	{
 		// With a custom status, the code will change
@@ -1073,7 +1154,12 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 			fail("proof should have failed")
 		}
 
-		err = xapi.AssertCalledOnceWith(unit.restype, url)
+		err = nil
+		if unit.allowmanyfetches {
+			err = xapi.AssertCalledWith(unit.restype, url)
+		} else {
+			err = xapi.AssertCalledOnceWith(unit.restype, url)
+		}
 		if err != nil {
 			fail("%v", err)
 		}

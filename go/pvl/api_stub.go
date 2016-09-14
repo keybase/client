@@ -113,6 +113,24 @@ func (e *stubAPIEngine) AssertCalledOnceWith(kind libkb.XAPIResType, endpoint st
 	return nil
 }
 
+func (e *stubAPIEngine) AssertCalledWith(kind libkb.XAPIResType, endpoint string) error {
+	if len(e.calls) == 0 {
+		return fmt.Errorf("stub api not called")
+	}
+	ok := false
+	for _, call := range e.calls {
+		expected := stubAPIEngineCallRecord{kind, endpoint}
+		if call == expected {
+			ok = true
+		}
+	}
+	if ok {
+		return nil
+	}
+	return fmt.Errorf("stub api never called with arguments: %v %v",
+		kind, endpoint)
+}
+
 func (e *stubAPIEngine) getMock(arg libkb.APIArg, restype libkb.XAPIResType) (
 	*libkb.ExternalAPIRes, *libkb.ExternalHTMLRes, *libkb.ExternalTextRes, error) {
 	e.calls = append(e.calls, stubAPIEngineCallRecord{

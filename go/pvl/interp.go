@@ -396,7 +396,7 @@ func runDNS(g proofContextExt, scripts []*jsonw.Wrapper, startstate scriptState)
 	domains := []string{userdomain, "_keybase." + userdomain}
 	var errs []libkb.ProofError
 	for _, d := range domains {
-		debugWithState(g, startstate, "Trying DNS: %v", d)
+		debugWithState(g, startstate, "Trying DNS for domain: %v", d)
 
 		err := runDNSOne(g, scripts, startstate, d)
 		if err != nil {
