@@ -14,23 +14,30 @@ import (
 type proofContextExt interface {
 	libkb.ProofContext
 	GetLogPvl() logger.Logger
+	getStubDNS() *stubDNSEngine
 }
 
 type proofContextExtImpl struct {
 	libkb.ProofContext
 	pvlLogger logger.Logger
+	stubDNS   *stubDNSEngine
 }
 
-func newProofContextExt(ctx libkb.ProofContext) proofContextExt {
+func newProofContextExt(ctx libkb.ProofContext, stubDNS *stubDNSEngine) proofContextExt {
 	pvlLogger := ctx.GetLog().CloneWithAddedDepth(1)
 	return &proofContextExtImpl{
 		ctx,
 		pvlLogger,
+		stubDNS,
 	}
 }
 
 func (ctx *proofContextExtImpl) GetLogPvl() logger.Logger {
 	return ctx.pvlLogger
+}
+
+func (ctx *proofContextExtImpl) getStubDNS() *stubDNSEngine {
+	return ctx.stubDNS
 }
 
 func debugWithState(g proofContextExt, state scriptState, format string, arg ...interface{}) {

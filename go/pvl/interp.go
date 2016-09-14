@@ -103,6 +103,7 @@ type ProofInfo struct {
 	RemoteUsername string
 	Hostname       string
 	APIURL         string
+	stubDNS        *stubDNSEngine
 }
 
 // NewProofInfo creates a new ProofInfo
@@ -118,7 +119,7 @@ func NewProofInfo(link libkb.RemoteProofChainLink, h libkb.SigHint) ProofInfo {
 
 // CheckProof verifies one proof by running the pvl on the provided proof information.
 func CheckProof(g1 libkb.ProofContext, pvl *jsonw.Wrapper, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
-	g := newProofContextExt(g1)
+	g := newProofContextExt(g1, info.stubDNS)
 	perr := checkProofInner(g, pvl, service, info)
 	if perr != nil {
 		debug(g, "CheckProof failed: %v", perr)
@@ -411,7 +412,15 @@ func runDNS(g proofContextExt, scripts []*jsonw.Wrapper, startstate scriptState)
 
 // Run each script on each TXT record of the domain.
 func runDNSOne(g proofContextExt, scripts []*jsonw.Wrapper, startstate scriptState, domain string) libkb.ProofError {
-	txts, err := net.LookupTXT(domain)
+	// Fetch TXT records
+	var txts []string
+	var err error
+	if g.getStubDNS() == nil {
+		txts, err = net.LookupTXT(domain)
+	} else {
+		txts, err = g.getStubDNS().LookupTXT(domain)
+	}
+
 	if err != nil {
 		return libkb.NewProofError(keybase1.ProofStatus_DNS_ERROR,
 			"DNS failure for %s: %s", domain, err)
