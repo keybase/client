@@ -218,3 +218,37 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 		t.Fatalf("unexpected error for invalid header signature: %s", err)
 	}
 }
+
+func TestChatMessageInvalidSenderKey(t *testing.T) {
+	key := cryptKey(t)
+	text := "hi"
+	tc, handler := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+
+	// use a random signing key, not one of u's keys
+	signKP, err := libkb.GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+
+	_, err = handler.boxer.unboxMessageWithKey(*boxed, key)
+	if _, ok := err.(libkb.NoKeyError); !ok {
+		t.Fatalf("unexpected error for invalid sender key: %v", err)
+	}
+}
