@@ -169,17 +169,6 @@ const stylesRevokedDescription = {
   backgroundColor: globalColors.lightGrey,
 }
 
-const stylesCommonColumn = {
-  padding: 20,
-}
-
-const stylesRevokedColumn = {
-  ...stylesCommonColumn,
-  alignSelf: 'center',
-  textAlign: 'right',
-  paddingRight: 20,
-}
-
 const stylesPopup = {
   marginLeft: 'auto',
   marginRight: 'auto',
