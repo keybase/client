@@ -142,7 +142,7 @@ function PlanLevelRow ({level, onInfo, variants, style}: PlanLevelProps) {
     <Box style={{...globalStyles.flexBoxRow, ...planLevelRowStyle, backgroundColor: selected ? globalColors.blue4 : globalColors.white, ...style}}>
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Text onClick={() => onInfo()} type={'BodyPrimaryLink'} style={{marginRight: globalMargins.xtiny}}>
+          <Text onClick={() => onInfo()} type={'BodySemibold'} link={true} style={{marginRight: globalMargins.xtiny, color: globalColors.blue}}>
             {level}
           </Text>
           <Text style={{...globalStyles.flex}} type={'BodySmall'}>
@@ -152,7 +152,7 @@ function PlanLevelRow ({level, onInfo, variants, style}: PlanLevelProps) {
         {selected && <Meta title='Your Plan' style={{backgroundColor: globalColors.blue2}} />}
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-        <Text style={{...globalStyles.flex, marginRight: globalMargins.xtiny}} type={'BodySmall'}>
+        <Text style={{...globalStyles.flex, marginRight: globalMargins.xtiny}} type={'BodyXSmall'}>
           {levelToSpace[level]}
         </Text>
         <Stars level={level} />
@@ -214,7 +214,7 @@ function Plan ({onInfo, onUpgrade, onDowngrade, freeSpace, freeSpacePercentage, 
       {!!paymentInfo && <PaymentInfo {...paymentInfo} onChangePaymentInfo={onChangePaymentInfo} />}
       {!!paymentInfo &&
         <Text style={{marginTop: globalMargins.small}} type='BodySmall'>
-          * You only pay for data you write on Keybase. When you share a file, the recipient does not pay.
+          * You only pay for data you write on Keybase. When you share a file, the recipient does not pay.
         </Text>}
     </Box>
   )
