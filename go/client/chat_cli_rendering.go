@@ -29,7 +29,7 @@ func (v conversationListView) renderConversationName(maxWidth int, index int) st
 	return name
 }
 
-func (v conversationListView) show(ui libkb.TerminalUI) {
+func (v conversationListView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) {
 	if len(v) == 0 {
 		return
 	}
@@ -59,7 +59,7 @@ func (v conversationListView) show(ui libkb.TerminalUI) {
 			// w/2 space, in which case messages should be able to be longer.
 			//
 			// TODO: need a more beefy tablifier
-			messageFormatter(v[iConversation].Messages[0]).renderMessage(w - w/2 - 2),
+			messageFormatter(v[iConversation].Messages[0]).renderMessage(g, w-w/2-2),
 		}
 		iConversation++
 		return ret
@@ -79,7 +79,7 @@ func (v conversationListView) showSummaryOnMore(ui libkb.TerminalUI, totalMore i
 
 type conversationView keybase1.ConversationLocal
 
-func (v conversationView) show(ui libkb.TerminalUI) {
+func (v conversationView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) {
 	if len(v.Messages) == 0 {
 		return
 	}
@@ -97,7 +97,7 @@ func (v conversationView) show(ui libkb.TerminalUI) {
 				ui.Printf("terminal too small!\n")
 				break
 			}
-			lines := messageFormatter(m).renderMessageWrap(rest)
+			lines := messageFormatter(m).renderMessageWrap(g, rest)
 			for i, l := range lines {
 				if i == 0 {
 					ch <- []string{unread, authorAndTime, lines[0]}
@@ -126,10 +126,10 @@ func (f messageFormatter) renderAuthorAndTime() string {
 	return fmt.Sprintf("[%s (%s) %s] ", info.SenderUsername, info.SenderDeviceName, humanize.Time(t))
 }
 
-func (f messageFormatter) body() []string {
+func (f messageFormatter) body(g *libkb.GlobalContext) []string {
 	version, err := f.MessagePlaintext.Version()
 	if err != nil {
-		// XXX would like to log this error or return it...
+		g.Log.Warning("MessagePlaintext version error: %s", err)
 		return nil
 	}
 	switch version {
@@ -154,8 +154,8 @@ func (f messageFormatter) body() []string {
 }
 
 // maxWidth must >= 3
-func (f messageFormatter) renderMessage(maxWidth int) string {
-	lines := f.body()
+func (f messageFormatter) renderMessage(g *libkb.GlobalContext, maxWidth int) string {
+	lines := f.body(g)
 	if len(lines) == 0 {
 		return ""
 	}
@@ -166,8 +166,8 @@ func (f messageFormatter) renderMessage(maxWidth int) string {
 }
 
 // maxWidth must > 0
-func (f messageFormatter) renderMessageWrap(maxWidth int) (lines []string) {
-	bodyLines := f.body()
+func (f messageFormatter) renderMessageWrap(g *libkb.GlobalContext, maxWidth int) (lines []string) {
+	bodyLines := f.body(g)
 	for _, b := range bodyLines {
 		for len(b) > maxWidth {
 			lines = append(lines, b[:maxWidth])
