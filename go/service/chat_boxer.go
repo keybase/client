@@ -110,7 +110,7 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 			SenderDevice: hp.SenderDevice,
 		}
 	default:
-		return keybase1.Message{}, fmt.Errorf("unhandled version %v", headerVersion)
+		return keybase1.Message{}, libkb.NewChatHeaderVersionError(headerVersion)
 	}
 
 	// create an unboxed message from versioned BodyPlaintext and clientHeader
@@ -130,7 +130,7 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 		}
 		unboxed.MessagePlaintext = keybase1.NewMessagePlaintextWithV1(msgPlainV1)
 	default:
-		return keybase1.Message{}, fmt.Errorf("unhandled version %v", bodyVersion)
+		return keybase1.Message{}, libkb.NewChatBodyVersionError(bodyVersion)
 	}
 
 	return unboxed, nil
@@ -300,7 +300,7 @@ func (b *chatBoxer) verifyMessage(header keybase1.HeaderPlaintext, msg chat1.Mes
 	case keybase1.HeaderPlaintextVersion_V1:
 		return b.verifyMessageHeaderV1(header.V1(), msg)
 	default:
-		return fmt.Errorf("unhandled version %v", headerVersion)
+		return libkb.NewChatHeaderVersionError(headerVersion)
 	}
 }
 

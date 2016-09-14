@@ -246,7 +246,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			}
 			thread.Messages[i].Content = c.convertMsgBody(v1.MessageBody)
 		default:
-			return c.errReply(fmt.Errorf("unhandled version %v", version))
+			return c.errReply(libkb.NewChatMessageVersionError(version))
 		}
 	}
 

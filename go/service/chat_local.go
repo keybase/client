@@ -365,7 +365,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 				conversationInfo.TlfName = unboxed.MessagePlaintext.V1().ClientHeader.TlfName
 			}
 		default:
-			return conversationInfo, triple, maxMessages, fmt.Errorf("unhandled MessagePlaintext version %v", version)
+			return conversationInfo, triple, maxMessages, libkb.NewChatMessageVersionError(version)
 		}
 
 	}
@@ -397,7 +397,7 @@ func (h *chatLocalHandler) fillMessageInfoLocal(ctx context.Context, m *keybase1
 		}
 		return nil
 	default:
-		return fmt.Errorf("unhandled version: %v", version)
+		return libkb.NewChatMessageVersionError(version)
 	}
 }
 
@@ -565,7 +565,7 @@ func (h *chatLocalHandler) addSenderToMessage(msg keybase1.MessagePlaintext) (ke
 		}
 		return keybase1.NewMessagePlaintextWithV1(updated), nil
 	default:
-		return msg, fmt.Errorf("unhandled version %v", version)
+		return msg, libkb.NewChatMessageVersionError(version)
 	}
 
 }

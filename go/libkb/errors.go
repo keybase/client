@@ -1515,3 +1515,33 @@ type ChatUnboxingError struct {
 func (e ChatUnboxingError) Error() string {
 	return fmt.Sprintf("error unboxing chat message: %s", e.Msg)
 }
+
+type ChatVersionError struct {
+	Kind    string
+	Version int
+}
+
+func (e ChatVersionError) Error() string {
+	return fmt.Sprintf("chat version error: unhandled %s version %d", e.Kind, e.Version)
+}
+
+func NewChatHeaderVersionError(version keybase1.HeaderPlaintextVersion) ChatVersionError {
+	return ChatVersionError{
+		Kind:    "header",
+		Version: int(version),
+	}
+}
+
+func NewChatBodyVersionError(version keybase1.BodyPlaintextVersion) ChatVersionError {
+	return ChatVersionError{
+		Kind:    "body",
+		Version: int(version),
+	}
+}
+
+func NewChatMessageVersionError(version keybase1.MessagePlaintextVersion) ChatVersionError {
+	return ChatVersionError{
+		Kind:    "message",
+		Version: int(version),
+	}
+}
