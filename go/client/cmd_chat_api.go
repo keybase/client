@@ -77,7 +77,7 @@ func (c *CmdChatAPI) Run() error {
 	var r io.Reader
 	r = os.Stdin
 	if len(c.message) > 0 {
-		r = strings.NewReader(c.message + "\n")
+		r = strings.NewReader(c.message)
 	} else if len(c.inputFile) > 0 {
 		f, err := os.Open(c.inputFile)
 		if err != nil {
