@@ -46,7 +46,9 @@ func (tlf *TLF) getStoredDir() *Dir {
 	return tlf.dir
 }
 
-func (tlf *TLF) loadDirHelper(ctx context.Context, info string, filterErr bool) (dir *Dir, exitEarly bool, err error) {
+func (tlf *TLF) loadDirHelper(ctx context.Context, info string,
+	mode libkbfs.ErrorModeType, filterErr bool) (
+	dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
 	if dir != nil {
 		return dir, false, nil
@@ -70,7 +72,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string, filterErr bool) 
 			exitEarly, err = libfs.FilterTLFEarlyExitError(ctx, err, tlf.folder.fs.log, name)
 		}
 
-		tlf.folder.reportErr(ctx, libkbfs.ReadMode, err)
+		tlf.folder.reportErr(ctx, mode, err)
 	}()
 
 	handle, err := tlf.folder.resolve(ctx)
@@ -111,20 +113,25 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string, filterErr bool) 
 	return tlf.dir, false, nil
 }
 
+func (tlf *TLF) loadDir(ctx context.Context, info string) (*Dir, error) {
+	dir, _, err := tlf.loadDirHelper(ctx, info, libkbfs.WriteMode, false)
+	return dir, err
+}
+
 // loadDirAllowNonexistent loads a TLF if it's not already loaded.  If
 // the TLF doesn't yet exist, it still returns a nil error and
 // indicates that the calling function should pretend it's an empty
 // folder.
 func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context, info string) (
 	*Dir, bool, error) {
-	return tlf.loadDirHelper(ctx, info, true)
+	return tlf.loadDirHelper(ctx, info, libkbfs.ReadMode, true)
 }
 
 // SetFileTime sets mtime for FSOs (File and Dir).
 func (tlf *TLF) SetFileTime(ctx context.Context, fi *dokan.FileInfo, creation time.Time, lastAccess time.Time, lastWrite time.Time) (err error) {
 	tlf.folder.fs.logEnter(ctx, "TLF SetFileTime")
 
-	dir, _, err := tlf.loadDirHelper(ctx, "TLF SetFileTime", false)
+	dir, err := tlf.loadDir(ctx, "TLF SetFileTime")
 	if err != nil {
 		return err
 	}
@@ -134,7 +141,7 @@ func (tlf *TLF) SetFileTime(ctx context.Context, fi *dokan.FileInfo, creation ti
 // SetFileAttributes for Dokan.
 func (tlf *TLF) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAttributes dokan.FileAttribute) error {
 	tlf.folder.fs.logEnter(ctx, "TLF SetFileAttributes")
-	dir, _, err := tlf.loadDirHelper(ctx, "TLF SetFileAttributes", false)
+	dir, err := tlf.loadDir(ctx, "TLF SetFileAttributes")
 	if err != nil {
 		return err
 	}
@@ -160,8 +167,14 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (dokan
 		tlf.refcount.Increase()
 		return tlf, true, nil
 	}
+
+	mode := libkbfs.ReadMode
+	if oc.isCreation() {
+		mode = libkbfs.WriteMode
+	}
 	// If it is a creation then we need the dir for real.
-	dir, exitEarly, err := tlf.loadDirHelper(ctx, "open", !oc.isCreation())
+	dir, exitEarly, err :=
+		tlf.loadDirHelper(ctx, "open", mode, !oc.isCreation())
 	if err != nil {
 		return nil, false, err
 	}
