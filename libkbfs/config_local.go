@@ -735,24 +735,24 @@ func (c *ConfigLocal) Shutdown() error {
 				if err := fbo.fbm.waitForDeletingBlocks(ctx); err != nil {
 					return err
 				}
-				if jServer, err := GetJournalServer(config); err == nil {
-					if err := jServer.Wait(ctx, fbo.id()); err != nil {
-						return err
-					}
+				log := config.MakeLogger("")
+				if err := WaitForTLFJournal(ctx, config, fbo.id(),
+					log); err != nil {
+					return err
 				}
 				// The above wait could have resulted in some MD
 				// flushes, so now we have to wait on any archives as
-				// well.
+				// well.  We only need one more check for this, since
+				// archives don't produce MDs.
 				if err := fbo.mdFlushes.Wait(ctx); err != nil {
 					return err
 				}
 				if err := fbo.fbm.waitForArchives(ctx); err != nil {
 					return err
 				}
-				if jServer, err := GetJournalServer(config); err == nil {
-					if err := jServer.Wait(ctx, fbo.id()); err != nil {
-						return err
-					}
+				if err := WaitForTLFJournal(ctx, config, fbo.id(),
+					log); err != nil {
+					return err
 				}
 			}
 		}
