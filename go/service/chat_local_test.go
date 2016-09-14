@@ -95,6 +95,33 @@ func TestResolveConversationLocal(t *testing.T) {
 	}
 }
 
+func TestResolveConversationLocalTlfName(t *testing.T) {
+	ctc := makeChatTestContext(t, "ResolveConversationLocal")
+	defer ctc.tc.Cleanup()
+
+	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
+
+	conversations, err := ctc.h.ResolveConversationLocal(context.Background(), keybase1.ConversationInfoLocal{
+		TlfName: "t_alice" + "," + ctc.world.me.Username, // not canonical
+	})
+	if err != nil {
+		t.Fatalf("ResolveConversationLocal error: %v", err)
+	}
+	if len(conversations) != 1 {
+		t.Fatalf("unexpected response from ResolveConversationLocal. expected 1 item, got %d\n", len(conversations))
+	}
+	conv := ctc.mock.getConversationByID(created.Id)
+	if conversations[0].TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
+		t.Fatalf("unexpected TlfName in response from ResolveConversationLocal. %s != %s\n", conversations[0].TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
+	}
+	if conversations[0].Id != created.Id {
+		t.Fatalf("unexpected Id in response from ResolveConversationLocal. %s != %s\n", conversations[0].Id, created.Id)
+	}
+	if conversations[0].TopicType != chat1.TopicType_CHAT {
+		t.Fatalf("unexpected topicType in response from ResolveConversationLocal. %s != %s\n", conversations[0].TopicType, chat1.TopicType_CHAT)
+	}
+}
+
 func mustPostLocalForTest(t *testing.T, ctc chatTestContext, conv keybase1.ConversationInfoLocal, msg keybase1.MessageBody) {
 	mt, err := msg.MessageType()
 	if err != nil {
