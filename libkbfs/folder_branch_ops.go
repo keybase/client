@@ -1180,6 +1180,16 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 		return fmt.Errorf("MD with revision=%d not initialized", md.Revision())
 	}
 
+	// Return early if the head is already set.  This avoids taking
+	// mdWriterLock for no reason.
+	lState := makeFBOLockState()
+	head := fbo.getHead(lState)
+	if head != (ImmutableRootMetadata{}) && head.mdID == md.mdID {
+		fbo.log.CDebugf(ctx, "Head MD already set to revision %d (%s), no "+
+			"need to set initial head again", md.Revision(), md.MergedStatus())
+		return nil
+	}
+
 	return runUnlessCanceled(ctx, func() error {
 		fb := FolderBranch{md.TlfID(), MasterBranch}
 		if fb != fbo.folderBranch {
