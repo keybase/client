@@ -276,7 +276,7 @@ func (e *ScanProofsEngine) Run(ctx *Context) (err error) {
 func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanProofsCache, ignored []string, tickers ScanProofsTickers) error {
 	serverstate, err := strconv.Atoi(rec["state"])
 	if err != nil {
-		return fmt.Errorf("Could not read serverstate: %v", err)
+		return fmt.Errorf("Could not read server state: %v", err)
 	}
 
 	shouldsucceed := true
@@ -331,8 +331,13 @@ func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanP
 		return nil
 	}
 
+	deluserstr := "Error loading user: Deleted"
 	perr1, foundhint1, err := e.CheckOne(rec, false, tickers)
 	if err != nil {
+		if err.Error() == deluserstr {
+			e.G().Log.Info("deleted user")
+			return nil
+		}
 		return err
 	}
 	// Skip the rate limit on the second check.
@@ -428,7 +433,7 @@ func (e *ScanProofsEngine) GetSigHint(uid keybase1.UID, sigid keybase1.SigID) (*
 func (e *ScanProofsEngine) GetRemoteProofChainLink(uid keybase1.UID, sigid keybase1.SigID) (libkb.RemoteProofChainLink, error) {
 	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(e.G(), uid))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error loading user: %v", err)
 	}
 
 	link := user.LinkFromSigID(sigid)
