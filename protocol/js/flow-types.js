@@ -37,18 +37,6 @@ type CommonResponseHandler = {
   error: RPCErrorHandler,
   result: (...rest: Array<void>) => void,
 }
-export const ChatLocalBodyPlaintextVersion = {
-  v1: 1,
-}
-
-export const ChatLocalHeaderPlaintextVersion = {
-  v1: 1,
-}
-
-export const ChatLocalMessagePlaintextVersion = {
-  v1: 1,
-}
-
 export const CommonClientType = {
   none: 0,
   cli: 1,
@@ -593,78 +581,6 @@ export function blockPutBlockRpc (request: Exact<requestCommon & requestErrorCal
 
 export function blockPutBlockRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { blockPutBlockRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function chatLocalCompleteAndCanonicalizeTlfNameRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalCompleteAndCanonicalizeTlfNameResult) => void} & {param: chatLocalCompleteAndCanonicalizeTlfNameRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chatLocal.completeAndCanonicalizeTlfName'})
-}
-
-export function chatLocalCompleteAndCanonicalizeTlfNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalCompleteAndCanonicalizeTlfNameResult) => void} & {param: chatLocalCompleteAndCanonicalizeTlfNameRpcParam}>): Promise<chatLocalCompleteAndCanonicalizeTlfNameResult> {
-  return new Promise((resolve, reject) => { chatLocalCompleteAndCanonicalizeTlfNameRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function chatLocalGetInboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxLocalResult) => void} & {param: chatLocalGetInboxLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chatLocal.getInboxLocal'})
-}
-
-export function chatLocalGetInboxLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxLocalResult) => void} & {param: chatLocalGetInboxLocalRpcParam}>): Promise<chatLocalGetInboxLocalResult> {
-  return new Promise((resolve, reject) => { chatLocalGetInboxLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function chatLocalGetInboxSummaryLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxSummaryLocalResult) => void} & {param: chatLocalGetInboxSummaryLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chatLocal.getInboxSummaryLocal'})
-}
-
-export function chatLocalGetInboxSummaryLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxSummaryLocalResult) => void} & {param: chatLocalGetInboxSummaryLocalRpcParam}>): Promise<chatLocalGetInboxSummaryLocalResult> {
-  return new Promise((resolve, reject) => { chatLocalGetInboxSummaryLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function chatLocalGetMessagesLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetMessagesLocalResult) => void} & {param: chatLocalGetMessagesLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chatLocal.getMessagesLocal'})
-}
-
-export function chatLocalGetMessagesLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetMessagesLocalResult) => void} & {param: chatLocalGetMessagesLocalRpcParam}>): Promise<chatLocalGetMessagesLocalResult> {
-  return new Promise((resolve, reject) => { chatLocalGetMessagesLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function chatLocalGetThreadLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetThreadLocalResult) => void} & {param: chatLocalGetThreadLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chatLocal.getThreadLocal'})
-}
-
-export function chatLocalGetThreadLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetThreadLocalResult) => void} & {param: chatLocalGetThreadLocalRpcParam}>): Promise<chatLocalGetThreadLocalResult> {
-  return new Promise((resolve, reject) => { chatLocalGetThreadLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function chatLocalNewConversationLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalNewConversationLocalResult) => void} & {param: chatLocalNewConversationLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chatLocal.newConversationLocal'})
-}
-
-export function chatLocalNewConversationLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalNewConversationLocalResult) => void} & {param: chatLocalNewConversationLocalRpcParam}>): Promise<chatLocalNewConversationLocalResult> {
-  return new Promise((resolve, reject) => { chatLocalNewConversationLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function chatLocalPostLocalRpc (request: Exact<requestCommon & requestErrorCallback & {param: chatLocalPostLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chatLocal.postLocal'})
-}
-
-export function chatLocalPostLocalRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalPostLocalRpcParam}>): Promise<any> {
-  return new Promise((resolve, reject) => { chatLocalPostLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function chatLocalResolveConversationLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalResolveConversationLocalResult) => void} & {param: chatLocalResolveConversationLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chatLocal.resolveConversationLocal'})
-}
-
-export function chatLocalResolveConversationLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalResolveConversationLocalResult) => void} & {param: chatLocalResolveConversationLocalRpcParam}>): Promise<chatLocalResolveConversationLocalResult> {
-  return new Promise((resolve, reject) => { chatLocalResolveConversationLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function chatLocalUpdateTopicNameLocalRpc (request: Exact<requestCommon & requestErrorCallback & {param: chatLocalUpdateTopicNameLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chatLocal.updateTopicNameLocal'})
-}
-
-export function chatLocalUpdateTopicNameLocalRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalUpdateTopicNameLocalRpcParam}>): Promise<any> {
-  return new Promise((resolve, reject) => { chatLocalUpdateTopicNameLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function configCheckAPIServerOutOfDateWarningRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>) {
@@ -1651,6 +1567,14 @@ export function testTestRpcPromise (request: $Exact<requestCommon & {callback?: 
   return new Promise((resolve, reject) => { testTestRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function tlfCompleteAndCanonicalizeTlfNameRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizeTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizeTlfNameRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'tlf.completeAndCanonicalizeTlfName'})
+}
+
+export function tlfCompleteAndCanonicalizeTlfNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizeTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizeTlfNameRpcParam}>): Promise<tlfCompleteAndCanonicalizeTlfNameResult> {
+  return new Promise((resolve, reject) => { tlfCompleteAndCanonicalizeTlfNameRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function tlfCryptKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'tlf.CryptKeys'})
 }
@@ -1859,16 +1783,6 @@ export type BlockReferenceCount = {
   liveCount: int,
 }
 
-export type BodyPlaintext = 
-    { version : 1, v1 : ?BodyPlaintextV1 }
-
-export type BodyPlaintextV1 = {
-  messageBody: MessageBody,
-}
-
-export type BodyPlaintextVersion = 
-    1 // V1_1
-
 export type BoxNonce = any
 
 export type BoxPublicKey = any
@@ -1884,7 +1798,7 @@ export type ChallengeInfo = {
 
 export type ChatActivity = {
   ActivityType: ChatActivityType,
-  IncomingMessage?: ?Message,
+  IncomingMessage?: ?chat1.Message,
 }
 
 export type ChatActivityType = 
@@ -1968,20 +1882,6 @@ export type ConfirmResult = {
   identityConfirmed: boolean,
   remoteConfirmed: boolean,
   expiringLocal: boolean,
-}
-
-export type ConversationInfoLocal = {
-  id: chat1.ConversationID,
-  tlfName: string,
-  topicName: string,
-  topicType: chat1.TopicType,
-  visibility: chat1.TLFVisibility,
-}
-
-export type ConversationLocal = {
-  id: chat1.ConversationID,
-  info?: ?ConversationInfoLocal,
-  messages?: ?Array<Message>,
 }
 
 export type CryptKey = {
@@ -2248,33 +2148,10 @@ export type GetCurrentStatusRes = {
   user?: ?User,
 }
 
-export type GetInboxSummaryLocalRes = {
-  conversations?: ?Array<ConversationLocal>,
-  more?: ?Array<ConversationLocal>,
-  moreTotal: int,
-}
-
 export type GetPassphraseRes = {
   passphrase: string,
   storeSecret: boolean,
 }
-
-export type HeaderPlaintext = 
-    { version : 1, v1 : ?HeaderPlaintextV1 }
-
-export type HeaderPlaintextV1 = {
-  conv: chat1.ConversationIDTriple,
-  tlfName: string,
-  messageType: chat1.MessageType,
-  prev?: ?Array<chat1.MessagePreviousPointer>,
-  sender: gregor1.UID,
-  senderDevice: gregor1.DeviceID,
-  bodyHash: chat1.Hash,
-  headerSignature?: ?chat1.SignatureInfo,
-}
-
-export type HeaderPlaintextVersion = 
-    1 // V1_1
 
 export type Hello2Res = {
   encryptionKey: KID,
@@ -2458,66 +2335,6 @@ export type MerkleTreeID =
     0 // MASTER_0
   | 1 // KBFS_PUBLIC_1
   | 2 // KBFS_PRIVATE_2
-
-export type Message = {
-  serverHeader: chat1.MessageServerHeader,
-  messagePlaintext: MessagePlaintext,
-  info?: ?MessageInfoLocal,
-}
-
-export type MessageAttachment = {
-  path: string,
-}
-
-export type MessageBody = 
-    { messageType : 1, text : ?MessageText }
-  | { messageType : 2, attachment : ?MessageAttachment }
-  | { messageType : 3, edit : ?MessageEdit }
-  | { messageType : 4, delete : ?MessageDelete }
-  | { messageType : 5, metadata : ?MessageConversationMetadata }
-
-export type MessageConversationMetadata = {
-  conversationTitle: string,
-}
-
-export type MessageDelete = {
-  messageID: chat1.MessageID,
-}
-
-export type MessageEdit = {
-  messageID: chat1.MessageID,
-  body: string,
-}
-
-export type MessageInfoLocal = {
-  isNew: boolean,
-  senderUsername: string,
-  senderDeviceName: string,
-}
-
-export type MessagePlaintext = 
-    { version : 1, v1 : ?MessagePlaintextV1 }
-
-export type MessagePlaintextV1 = {
-  clientHeader: chat1.MessageClientHeader,
-  messageBody: MessageBody,
-}
-
-export type MessagePlaintextVersion = 
-    1 // V1_1
-
-export type MessageSelector = {
-  MessageTypes?: ?Array<chat1.MessageType>,
-  Since?: ?string,
-  onlyNew: boolean,
-  limit: int,
-  conversations?: ?Array<chat1.ConversationID>,
-  markAsRead: boolean,
-}
-
-export type MessageText = {
-  body: string,
-}
 
 export type MetadataResponse = {
   folderID: string,
@@ -3172,11 +2989,6 @@ export type Text = {
   markup: boolean,
 }
 
-export type ThreadView = {
-  messages?: ?Array<Message>,
-  pagination?: ?chat1.Pagination,
-}
-
 export type Time = long
 
 export type TrackDiff = {
@@ -3396,51 +3208,6 @@ export type blockPutBlockRpcParam = Exact<{
   folder: string,
   blockKey: string,
   buf: bytes
-}>
-
-export type chatLocalCompleteAndCanonicalizeTlfNameRpcParam = Exact<{
-  tlfName: string
-}>
-
-export type chatLocalGetInboxLocalRpcParam = Exact<{
-  query?: ?chat1.GetInboxQuery,
-  pagination?: ?chat1.Pagination
-}>
-
-export type chatLocalGetInboxSummaryLocalRpcParam = Exact<{
-  topicType: chat1.TopicType,
-  after: string,
-  before: string,
-  limit: int,
-  visibility: chat1.TLFVisibility
-}>
-
-export type chatLocalGetMessagesLocalRpcParam = Exact<{
-  selector: MessageSelector
-}>
-
-export type chatLocalGetThreadLocalRpcParam = Exact<{
-  conversationID: chat1.ConversationID,
-  query?: ?chat1.GetThreadQuery,
-  pagination?: ?chat1.Pagination
-}>
-
-export type chatLocalNewConversationLocalRpcParam = Exact<{
-  conversation: ConversationInfoLocal
-}>
-
-export type chatLocalPostLocalRpcParam = Exact<{
-  conversationID: chat1.ConversationID,
-  messagePlaintext: MessagePlaintext
-}>
-
-export type chatLocalResolveConversationLocalRpcParam = Exact<{
-  conversation: ConversationInfoLocal
-}>
-
-export type chatLocalUpdateTopicNameLocalRpcParam = Exact<{
-  conversationID: chat1.ConversationID,
-  newTopicName: string
 }>
 
 export type configClearValueRpcParam = Exact<{
@@ -4124,6 +3891,10 @@ export type testTestRpcParam = Exact<{
   name: string
 }>
 
+export type tlfCompleteAndCanonicalizeTlfNameRpcParam = Exact<{
+  tlfName: string
+}>
+
 export type tlfCryptKeysRpcParam = Exact<{
   tlfName: string
 }>
@@ -4237,20 +4008,6 @@ type blockGetBlockResult = GetBlockRes
 type blockGetSessionChallengeResult = ChallengeInfo
 
 type blockGetUserQuotaInfoResult = bytes
-
-type chatLocalCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
-
-type chatLocalGetInboxLocalResult = chat1.InboxView
-
-type chatLocalGetInboxSummaryLocalResult = GetInboxSummaryLocalRes
-
-type chatLocalGetMessagesLocalResult = ?Array<ConversationLocal>
-
-type chatLocalGetThreadLocalResult = ThreadView
-
-type chatLocalNewConversationLocalResult = ConversationInfoLocal
-
-type chatLocalResolveConversationLocalResult = ?Array<ConversationInfoLocal>
 
 type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
 
@@ -4410,6 +4167,8 @@ type testTestCallbackResult = string
 
 type testTestResult = Test
 
+type tlfCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
+
 type tlfCryptKeysResult = TLFCryptKeys
 
 type tlfKeysGetTLFCryptKeysResult = TLFCryptKeys
@@ -4468,15 +4227,6 @@ export type rpc =
   | blockGetSessionChallengeRpc
   | blockGetUserQuotaInfoRpc
   | blockPutBlockRpc
-  | chatLocalCompleteAndCanonicalizeTlfNameRpc
-  | chatLocalGetInboxLocalRpc
-  | chatLocalGetInboxSummaryLocalRpc
-  | chatLocalGetMessagesLocalRpc
-  | chatLocalGetThreadLocalRpc
-  | chatLocalNewConversationLocalRpc
-  | chatLocalPostLocalRpc
-  | chatLocalResolveConversationLocalRpc
-  | chatLocalUpdateTopicNameLocalRpc
   | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
   | configGetConfigRpc
@@ -4600,6 +4350,7 @@ export type rpc =
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc
+  | tlfCompleteAndCanonicalizeTlfNameRpc
   | tlfCryptKeysRpc
   | tlfKeysGetTLFCryptKeysRpc
   | trackCheckTrackingRpc

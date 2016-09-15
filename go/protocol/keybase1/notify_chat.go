@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	chat1 "github.com/keybase/client/go/protocol/chat1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	context "golang.org/x/net/context"
 )
@@ -27,7 +28,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 
 type ChatActivity struct {
 	ActivityType    ChatActivityType `codec:"ActivityType" json:"ActivityType"`
-	IncomingMessage *Message         `codec:"IncomingMessage,omitempty" json:"IncomingMessage,omitempty"`
+	IncomingMessage *chat1.Message   `codec:"IncomingMessage,omitempty" json:"IncomingMessage,omitempty"`
 }
 
 type NewChatActivityArg struct {

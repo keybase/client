@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type cmdChatSend struct {
@@ -49,15 +48,20 @@ func (c *cmdChatSend) Run() (err error) {
 		return err
 	}
 
+	tlfClient, err := GetTlfClient(c.G())
+	if err != nil {
+		return err
+	}
+
 	ctx := context.TODO()
 
-	var conversationInfo keybase1.ConversationInfoLocal
-	conversationInfos, err := c.resolver.Resolve(context.TODO(), chatClient)
+	var conversationInfo chat1.ConversationInfoLocal
+	conversationInfos, err := c.resolver.Resolve(context.TODO(), chatClient, tlfClient)
 	if err != nil {
 		return err
 	}
 	if len(conversationInfos) == 0 {
-		conversationInfo, err = chatClient.NewConversationLocal(ctx, keybase1.ConversationInfoLocal{
+		conversationInfo, err = chatClient.NewConversationLocal(ctx, chat1.ConversationInfoLocal{
 			TlfName:   c.resolver.TlfName,
 			TopicName: c.resolver.TopicName,
 			TopicType: c.resolver.TopicType,
@@ -70,18 +74,18 @@ func (c *cmdChatSend) Run() (err error) {
 		conversationInfo = conversationInfos[0]
 	}
 
-	var args keybase1.PostLocalArg
+	var args chat1.PostLocalArg
 	// TODO: prompt user to choose one if multiple exist
 	args.ConversationID = conversationInfo.Id
 
-	var msgV1 keybase1.MessagePlaintextV1
+	var msgV1 chat1.MessagePlaintextV1
 	// msgV1.ClientHeader.Conv omitted
 	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
 	msgV1.ClientHeader.TlfName = conversationInfo.TlfName
 	msgV1.ClientHeader.MessageType = chat1.MessageType_TEXT
-	msgV1.MessageBody = keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: c.message})
+	msgV1.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{Body: c.message})
 
-	args.MessagePlaintext = keybase1.NewMessagePlaintextWithV1(msgV1)
+	args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
 
 	if err = chatClient.PostLocal(ctx, args); err != nil {
 		return err
@@ -90,8 +94,8 @@ func (c *cmdChatSend) Run() (err error) {
 	if len(c.setTopicName) > 0 {
 		msgV1.ClientHeader.MessageType = chat1.MessageType_METADATA
 		msgV1.ClientHeader.Prev = nil // TODO
-		msgV1.MessageBody = keybase1.NewMessageBodyWithMetadata(keybase1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
-		args.MessagePlaintext = keybase1.NewMessagePlaintextWithV1(msgV1)
+		msgV1.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
+		args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
 		if err := chatClient.PostLocal(ctx, args); err != nil {
 			return err
 		}
