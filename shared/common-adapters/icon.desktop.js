@@ -14,6 +14,8 @@ class Icon extends PureComponent<void, Exact<Props>, void> {
     let hoverColor = shared.defaultHoverColor(this.props.type)
     let iconType = shared.typeToIconMapper(this.props.type)
 
+    console.log('in Icon render')
+    console.log(this.props)
     if (!iconType) {
       console.warn('Null iconType passed')
       return null

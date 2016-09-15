@@ -86,6 +86,7 @@ export function getProfile (username: string): TrackerActionCreator {
     }
 
     const trackerState = tracker.trackers[username] && tracker.trackers[username]
+    console.log('trackerState is', trackerState)
     const uid = trackerState.type === 'tracker' ? trackerState.userInfo && trackerState.userInfo.uid : null
     const goodTill = uid && tracker.cachedIdentifies[uid + '']
     if (goodTill && goodTill >= Date.now()) {
