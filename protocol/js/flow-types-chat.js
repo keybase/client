@@ -162,7 +162,7 @@ export type GetInboxQuery = {
   tlfVisibility?: ?TLFVisibility,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
-  unreadOnly: bool,
+  unreadOnly: boolean,
 }
 
 export type GetInboxRemoteRes = {
@@ -176,7 +176,7 @@ export type GetMessagesRemoteRes = {
 }
 
 export type GetThreadQuery = {
-  markAsRead: bool,
+  markAsRead: boolean,
   messageTypes?: ?Array<MessageType>,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
