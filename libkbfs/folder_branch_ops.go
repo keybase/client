@@ -2208,11 +2208,6 @@ func (fbo *folderBranchOps) createEntryLocked(
 			NameTooLongError{name, fbo.config.MaxNameBytes()}
 	}
 
-	// Wait for any journal entries to flush first.  TODO: this opens
-	// us up to timeout issues, even when journaling is enabled;
-	// perhaps investigate how we can re-order file system operations
-	// easily without compromising semantics too much (i.e., to jump
-	// this operation to the front of the journal).
 	if excl == WithExcl {
 		if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
 			fbo.log); err != nil {
@@ -2267,8 +2262,29 @@ func (fbo *folderBranchOps) createEntryLocked(
 	// Passthrough journal writes temporarily.
 	if excl == WithExcl {
 		if jServer, err := GetJournalServer(fbo.config); err == nil {
-			wasEnabled, err := jServer.Disable(ctx, fbo.id())
+			// Repeatedly flush and try to disable the journal. Since
+			// we hold the write lock, this shouldn't take more than
+			// one attempt very often (but could happen since block
+			// archives and removals don't take the write lock).
+			// TODO: this opens us up to timeout issues; perhaps
+			// investigate how we can re-order file system operations
+			// easily without compromising semantics too much (i.e.,
+			// to jump this operation to the front of the journal).
+			wasEnabled := false
+			for i := 0; i < 20; i++ {
+				err = WaitForTLFJournal(ctx, fbo.config, fbo.id(), fbo.log)
+				if err != nil {
+					return nil, DirEntry{}, err
+				}
+				wasEnabled, err = jServer.Disable(ctx, fbo.id())
+				if err == nil {
+					break
+				}
+				fbo.log.CDebugf(ctx, "Trying again after error "+
+					"disabling journal: %v", err)
+			}
 			if err != nil {
+				fbo.log.CDebugf(ctx, "Couldn't disable journal: %v", err)
 				return nil, DirEntry{}, err
 			}
 			if wasEnabled {
