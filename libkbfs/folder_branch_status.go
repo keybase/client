@@ -17,13 +17,14 @@ import (
 // current status of a particular folder-branch.  It is suitable for
 // encoding directly as JSON.
 type FolderBranchStatus struct {
-	Staged       bool
-	BranchID     string
-	HeadWriter   libkb.NormalizedUsername
-	DiskUsage    uint64
-	RekeyPending bool
-	FolderID     string
-	Revision     MetadataRevision
+	Staged              bool
+	BranchID            string
+	HeadWriter          libkb.NormalizedUsername
+	DiskUsage           uint64
+	RekeyPending        bool
+	LatestKeyGeneration KeyGen
+	FolderID            string
+	Revision            MetadataRevision
 
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
@@ -176,6 +177,7 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
 		fbs.HeadWriter = name
 		fbs.DiskUsage = fbsk.md.DiskUsage()
 		fbs.RekeyPending = fbsk.config.RekeyQueue().IsRekeyPending(fbsk.md.TlfID())
+		fbs.LatestKeyGeneration = fbsk.md.LatestKeyGeneration()
 		fbs.FolderID = fbsk.md.TlfID().String()
 		fbs.Revision = fbsk.md.Revision()
 
