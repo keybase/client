@@ -116,7 +116,7 @@ export function platformToIcon (platform: SearchPlatforms): IconType {
     'Coinbase': 'iconfont-identity-bitcoin',
     'Hackernews': 'iconfont-identity-hn',
     'Pgp': 'iconfont-identity-pgp',
-    'Facebook': 'iconfont-identify-facebook',
+    'Facebook': 'iconfont-identity-facebook',
   }[platform]
 }
 
