@@ -2,6 +2,7 @@
 
 import UpdateEmail from './email'
 import Landing from './landing'
+import SettingsNav from './nav'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -91,7 +92,33 @@ const landingMap: DumbComponentMap<Landing> = {
   },
 }
 
+const settingsNavBase = {
+  items: [{
+    text: 'Your Account',
+    onClick: () => { console.log('clicked your account') },
+    badgeNumber: 1,
+    selected: true,
+  }, {
+    text: 'Invitations (15)',
+    onClick: () => { console.log('clicked ivites') },
+  }, {
+    text: 'Notifications',
+    onClick: () => { console.log('clicked notifications') },
+  }, {
+    text: 'Delete me',
+    onClick: () => { console.log('clicked delete me') },
+  }],
+}
+
+const settingsNavMap: DumbComponentMap<SettingsNav> = {
+  component: SettingsNav,
+  mocks: {
+    'Normal': settingsNavBase,
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
   Landing: landingMap,
+  SettingsNav: settingsNavMap,
 }

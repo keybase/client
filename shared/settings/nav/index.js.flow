@@ -5,6 +5,7 @@ export type SettingsItem = {
   text: string,
   onClick: () => void,
   badgeNumber?: number,
+  selected?: boolean,
 }
 
 export type BannerType = 'red' | 'green'
