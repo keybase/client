@@ -9,6 +9,7 @@ export type UserInfo = {
   followingCount: number,
   followsYou: boolean,
   bio: string,
+  uid: string,
   avatar: ?string,
   location: string
 }
