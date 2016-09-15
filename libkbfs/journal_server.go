@@ -170,9 +170,8 @@ func (j *JournalServer) Enable(
 	j.lock.Lock()
 	defer j.lock.Unlock()
 
-	if _, ok := j.tlfJournals[tlfID]; ok {
-		j.log.CDebugf(ctx, "Journal already enabled for %s", tlfID)
-		return nil
+	if tlfJournal, ok := j.tlfJournals[tlfID]; ok {
+		return tlfJournal.enable()
 	}
 
 	if j.dirtyOps > 0 {
@@ -279,19 +278,8 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (
 	defer j.lock.Unlock()
 	tlfJournal, ok := j.tlfJournals[tlfID]
 	if !ok {
-		j.log.CDebugf(ctx, "Journal already disabled for %s", tlfID)
+		j.log.CDebugf(ctx, "Journal already existed for %s", tlfID)
 		return false, nil
-	}
-
-	blockEntryCount, mdEntryCount, err := tlfJournal.getJournalEntryCounts()
-	if err != nil {
-		return false, err
-	}
-
-	if (blockEntryCount != 0) || (mdEntryCount != 0) {
-		return false, fmt.Errorf(
-			"Journal still has %d block entries and %d md entries",
-			blockEntryCount, mdEntryCount)
 	}
 
 	if j.dirtyOps > 0 {
@@ -303,12 +291,15 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (
 			"are any dirty blocks outstanding", tlfID)
 	}
 
-	tlfJournal.shutdown()
+	wasEnabled, err = tlfJournal.disable()
+	if err != nil {
+		return false, err
+	}
 
-	j.log.CDebugf(ctx, "Disabled journal for %s", tlfID)
-
-	delete(j.tlfJournals, tlfID)
-	return true, nil
+	if wasEnabled {
+		j.log.CDebugf(ctx, "Disabled journal for %s", tlfID)
+	}
+	return wasEnabled, nil
 }
 
 func (j *JournalServer) blockCache() journalBlockCache {
