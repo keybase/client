@@ -51,8 +51,8 @@ func (tlf *TLF) clearStoredDir() {
 	tlf.dir = nil
 }
 
-func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
-	dir *Dir, exitEarly bool, err error) {
+func (tlf *TLF) loadDirHelper(ctx context.Context, mode libkbfs.ErrorModeType,
+	filterErr bool) (dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
 	if dir != nil {
 		return dir, false, nil
@@ -73,7 +73,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 		if filterErr {
 			exitEarly, err = libfs.FilterTLFEarlyExitError(ctx, err, tlf.folder.fs.log, tlf.folder.name())
 		}
-		tlf.folder.reportErr(ctx, libkbfs.ReadMode, err)
+		tlf.folder.reportErr(ctx, mode, err)
 	}()
 
 	handle, err := tlf.folder.resolve(ctx)
@@ -112,7 +112,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 }
 
 func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
-	dir, _, err := tlf.loadDirHelper(ctx, false)
+	dir, _, err := tlf.loadDirHelper(ctx, libkbfs.WriteMode, false)
 	return dir, err
 }
 
@@ -122,7 +122,7 @@ func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
 // folder.
 func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context) (
 	*Dir, bool, error) {
-	return tlf.loadDirHelper(ctx, true)
+	return tlf.loadDirHelper(ctx, libkbfs.ReadMode, true)
 }
 
 // Attr implements the fs.Node interface for TLF.

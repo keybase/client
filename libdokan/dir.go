@@ -535,7 +535,7 @@ func asDir(ctx context.Context, f dokan.File) *Dir {
 	case *Dir:
 		return x
 	case *TLF:
-		d, _, _ := x.loadDirHelper(ctx, "asDir", false)
+		d, _, _ := x.loadDirHelper(ctx, "asDir", libkbfs.WriteMode, false)
 		return d
 	}
 	return nil
