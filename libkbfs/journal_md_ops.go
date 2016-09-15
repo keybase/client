@@ -207,10 +207,10 @@ func (j journalMDOps) GetForHandle(
 	// If the journal has a head, use that.
 	irmd, err := j.getHeadFromJournal(
 		ctx, tlfID, NullBranchID, mStatus, handle)
-	if err != nil {
+	if err != nil && err != errTLFJournalDisabled {
 		return TlfID{}, ImmutableRootMetadata{}, err
 	}
-	if irmd != (ImmutableRootMetadata{}) {
+	if err == nil && irmd != (ImmutableRootMetadata{}) {
 		return TlfID{}, irmd, nil
 	}
 
@@ -226,10 +226,10 @@ func (j journalMDOps) getForTLF(
 	ImmutableRootMetadata, error) {
 	// If the journal has a head, use that.
 	irmd, err := j.getHeadFromJournal(ctx, id, bid, mStatus, nil)
-	if err != nil {
+	if err != nil && err != errTLFJournalDisabled {
 		return ImmutableRootMetadata{}, err
 	}
-	if irmd != (ImmutableRootMetadata{}) {
+	if err == nil && irmd != (ImmutableRootMetadata{}) {
 		return irmd, nil
 	}
 
@@ -263,12 +263,12 @@ func (j journalMDOps) getRange(
 	[]ImmutableRootMetadata, error) {
 	// Grab the range from the journal first.
 	jirmds, err := j.getRangeFromJournal(ctx, id, bid, mStatus, start, stop)
-	if err != nil {
+	if err != nil && err != errTLFJournalDisabled {
 		return nil, err
 	}
 
-	// If it's empty, just fall back to the server.
-	if len(jirmds) == 0 {
+	// If it's empty or disabled, just fall back to the server.
+	if len(jirmds) == 0 || err == errTLFJournalDisabled {
 		return delegateFn(ctx, id, start, stop)
 	}
 
@@ -323,7 +323,10 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		// Just route to the journal.
-		return tlfJournal.putMD(ctx, rmd)
+		mdID, err := tlfJournal.putMD(ctx, rmd)
+		if err != errTLFJournalDisabled {
+			return mdID, err
+		}
 	}
 
 	return j.MDOps.Put(ctx, rmd)
@@ -333,7 +336,10 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		rmd.SetUnmerged()
-		return tlfJournal.putMD(ctx, rmd)
+		mdID, err := tlfJournal.putMD(ctx, rmd)
+		if err != errTLFJournalDisabled {
+			return mdID, err
+		}
 	}
 
 	return j.MDOps.PutUnmerged(ctx, rmd)
@@ -344,7 +350,7 @@ func (j journalMDOps) PruneBranch(
 	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
 		// Prune the journal, too.
 		err := tlfJournal.clearMDs(ctx, bid)
-		if err != nil {
+		if err != nil && err != errTLFJournalDisabled {
 			return err
 		}
 	}

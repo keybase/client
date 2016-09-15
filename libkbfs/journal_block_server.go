@@ -27,8 +27,11 @@ func (j journalBlockServer) Get(
 		case nil:
 			return data, serverHalf, nil
 		case blockNonExistentError:
-			return j.BlockServer.Get(ctx, tlfID, id, context)
+			break
 		default:
+			if err == errTLFJournalDisabled {
+				break
+			}
 			return nil, BlockCryptKeyServerHalf{}, err
 		}
 	}
@@ -43,7 +46,10 @@ func (j journalBlockServer) Put(
 		defer func() {
 			err = translateToBlockServerError(err)
 		}()
-		return tlfJournal.putBlockData(ctx, id, context, buf, serverHalf)
+		err := tlfJournal.putBlockData(ctx, id, context, buf, serverHalf)
+		if err != errTLFJournalDisabled {
+			return err
+		}
 	}
 
 	return j.BlockServer.Put(ctx, tlfID, id, context, buf, serverHalf)
@@ -64,7 +70,10 @@ func (j journalBlockServer) AddBlockReference(
 		defer func() {
 			err = translateToBlockServerError(err)
 		}()
-		return tlfJournal.addBlockReference(ctx, id, context)
+		err := tlfJournal.addBlockReference(ctx, id, context)
+		if err != errTLFJournalDisabled {
+			return err
+		}
 	}
 
 	return j.BlockServer.AddBlockReference(ctx, tlfID, id, context)
@@ -80,7 +89,10 @@ func (j journalBlockServer) RemoveBlockReferences(
 		}()
 		// TODO: Get server counts without making a
 		// RemoveBlockReferences call and merge it.
-		return tlfJournal.removeBlockReferences(ctx, contexts)
+		liveCounts, err := tlfJournal.removeBlockReferences(ctx, contexts)
+		if err != errTLFJournalDisabled {
+			return liveCounts, err
+		}
 	}
 
 	return j.BlockServer.RemoveBlockReferences(ctx, tlfID, contexts)
@@ -93,7 +105,10 @@ func (j journalBlockServer) ArchiveBlockReferences(
 		defer func() {
 			err = translateToBlockServerError(err)
 		}()
-		return tlfJournal.archiveBlockReferences(ctx, contexts)
+		err := tlfJournal.archiveBlockReferences(ctx, contexts)
+		if err != errTLFJournalDisabled {
+			return err
+		}
 	}
 
 	return j.BlockServer.ArchiveBlockReferences(ctx, tlfID, contexts)

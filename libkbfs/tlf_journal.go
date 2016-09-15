@@ -485,7 +485,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 }
 
 var errTLFJournalShutdown = errors.New("tlfJournal is shutdown")
-var errTLFJournalDisabled = errors.New("tlfJournal is disable")
+var errTLFJournalDisabled = errors.New("tlfJournal is disabled")
 var errTLFJournalNotEmpty = errors.New("tlfJournal is not empty")
 
 func (j *tlfJournal) checkEnabledLocked() error {
@@ -762,45 +762,45 @@ func (j *tlfJournal) shutdown() {
 
 // disable prevents new operations from hitting the journal.  Will
 // fail unless the journal is completely empty.
-func (j *tlfJournal) disable(ctx context.Context) error {
+func (j *tlfJournal) disable() (wasEnabled bool, err error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
-	if err := j.checkEnabledLocked(); err != nil {
+	err = j.checkEnabledLocked()
+	if err != nil {
+		if err == errTLFJournalDisabled {
+			// Already disabled.
+			return false, nil
+		}
 		// Already shutdown.
-		return err
-	}
-	if j.disabled {
-		return errTLFJournalDisabled
+		return false, err
 	}
 
 	blockEntryCount, err := j.blockJournal.length()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	mdEntryCount, err := j.mdJournal.length()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// You can only disable an empty journal.
 	if blockEntryCount > 0 || mdEntryCount > 0 {
-		return errTLFJournalNotEmpty
+		return false, errTLFJournalNotEmpty
 	}
 
-	j.log.CDebugf(ctx, "Disabling the journal for %s", j.tlfID)
 	j.disabled = true
-	return nil
+	return true, nil
 }
 
-func (j *tlfJournal) reenable(ctx context.Context) error {
-	// This may happen before the background goroutine finishes,
-	// but that's ok.
+func (j *tlfJournal) enable() error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	err := j.checkEnabledLocked()
 	if err == nil {
-		return errors.New("Cannot reenable a journal that's not disabled")
+		// Already enabled.
+		return nil
 	} else if err != errTLFJournalDisabled {
 		return err
 	}
