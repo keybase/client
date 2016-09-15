@@ -96,6 +96,10 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 	}
 	info.TlfName = string(res.CanonicalName)
 
+	// TODO: change retryWithoutBackoffUpToNTimesUntilNoError so that it examines
+	// whether an error is retriable.
+	// TODO: after we have exportable errors in gregor, only retry on topic ID
+	// duplication.
 	if err = retryWithoutBackoffUpToNTimesUntilNoError(3, func() (err error) {
 		if triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
 			return fmt.Errorf("error creating topic ID: %s", err)
@@ -104,6 +108,11 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 		if err != nil {
 			return fmt.Errorf("error preparing message: %s", err)
 		}
+
+		// Note: it's NOT OK to reuse `triple` after the call
+		// to`NewConversationRemote2` since it might return a conversation ID for
+		// an existing conversation, which corresponds to a different triple. This
+		// is because we enforce one CHAT conversation per TLF for now.
 
 		res, err := h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,

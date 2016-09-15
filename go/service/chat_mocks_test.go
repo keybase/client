@@ -236,19 +236,7 @@ func (m *chatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 }
 
 func (m *chatRemoteMock) NewConversationRemote(ctx context.Context, arg chat1.ConversationIDTriple) (res chat1.NewConversationRemoteRes, err error) {
-	res.ConvID = chat1.ConversationID(len(m.conversations) + 1) // TODO: compute this when we need it
-	m.conversations = append(m.conversations, &chat1.Conversation{
-		Metadata: chat1.ConversationMetadata{
-			IdTriple:       arg,
-			ConversationID: res.ConvID,
-		},
-		MaxMsgs: []chat1.MessageBoxed{},
-		ReaderInfo: &chat1.ConversationReaderInfo{
-			Mtime: gregor1.ToTime(time.Now()),
-		},
-	})
-	sort.Sort(convByNewlyUpdated{mock: m})
-	return res, nil
+	return res, errors.New("not implemented anymore")
 }
 
 func (m *chatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.NewConversationRemote2Arg) (res chat1.NewConversationRemoteRes, err error) {
