@@ -53,12 +53,16 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'facebook':
       return {
         ...base,
-        descriptionView: <Box>
-          <Text type='Body' {...styleCentered}>Click the link below and post. The text can be whatever you like, but make sure the post is <Text type='BodySemibold'>public</Text>, like this:</Text>
-          <img src={resolveImageAsURL('facebook_visibility.gif')} />
+        descriptionView: <Box style={{flexDirection: 'column'}}>
+          <Box>
+            <Text type='Body' {...styleCentered}>Click the link below and post. The text can be whatever you like, but make sure the post is <Text type='BodySemibold'>public</Text>, like this:</Text>
+          </Box>
+          <Box style={{padding: 20}}>
+            <img src={resolveImageAsURL('facebook_visibility.gif')} />
+          </Box>
         </Box>,
         proofText: null,
-        proofActionText: 'Facebook post',
+        proofActionText: 'Make a Facebook post',
         proofActionIcon: 'iconfont-open-browser',
         onCompleteText: 'OK posted! Check for it!',
       }
