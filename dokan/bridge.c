@@ -358,7 +358,7 @@ error_t kbfsLibdokanRun(struct kbfsLibdokanCtx* ctx) {
 		kbfsLibdokanLoadLibrary(L"DOKAN" DOKAN_MAJOR_API_VERSION L".DLL");
 	if(!kbfsLibdokanPtr_Main)
 		return kbfsLibDokan_DLL_LOAD_ERROR;
-	if(ctx->dokan_options.Options & kbfsLibdokanUseFindFilesWithPattern != 0) {
+	if((ctx->dokan_options.Options & kbfsLibdokanUseFindFilesWithPattern) != 0) {
 	  ctx->dokan_options.Options &= ~kbfsLibdokanUseFindFilesWithPattern;
 	  ctx->dokan_operations.FindFilesWithPattern = kbfsLibdokanC_FindFilesWithPattern;
 	}
