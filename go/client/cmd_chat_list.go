@@ -44,7 +44,7 @@ func (c *cmdChatList) Run() error {
 		return nil
 	}
 
-	conversationListView(conversations).show(ui)
+	conversationListView(conversations).show(c.G(), ui)
 	conversationListView(more).showSummaryOnMore(ui, moreTotal)
 	// TODO: print summary of inbox. e.g.
 	//		+44 older chats (--time=7d to see 25 more)

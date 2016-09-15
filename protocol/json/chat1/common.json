@@ -39,6 +39,12 @@
       "typedef": "bytes"
     },
     {
+      "type": "record",
+      "name": "Hash",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
       "type": "enum",
       "name": "MessageType",
       "symbols": [
@@ -305,7 +311,7 @@
           "name": "id"
         },
         {
-          "type": "bytes",
+          "type": "Hash",
           "name": "hash"
         }
       ]

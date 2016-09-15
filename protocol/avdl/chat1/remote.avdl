@@ -6,14 +6,13 @@ protocol remote {
     // server, it's null.
     union { null, MessageServerHeader } serverHeader;
 
-    // Sent as plaintext so that if the message is ever deleted, we can still
-    // validate that metadata.
+    // MessageClientHeader is needed by clients to get keys via TLF name.
+    // The server needs it as well for sender uid, device id.
     MessageClientHeader clientHeader;
-    // The signature of the above.
-    SignatureInfo headerSignature;
 
+    EncryptedData headerCiphertext;
     EncryptedData bodyCiphertext;
-    SignatureInfo bodySignature;
+
     int keyGeneration;
   }
 

@@ -37,6 +37,18 @@ type CommonResponseHandler = {
   error: RPCErrorHandler,
   result: (...rest: Array<void>) => void,
 }
+export const ChatLocalBodyPlaintextVersion = {
+  v1: 1,
+}
+
+export const ChatLocalHeaderPlaintextVersion = {
+  v1: 1,
+}
+
+export const ChatLocalMessagePlaintextVersion = {
+  v1: 1,
+}
+
 export const CommonClientType = {
   none: 0,
   cli: 1,
@@ -1847,6 +1859,16 @@ export type BlockReferenceCount = {
   liveCount: int,
 }
 
+export type BodyPlaintext = 
+    { version : 1, v1 : ?BodyPlaintextV1 }
+
+export type BodyPlaintextV1 = {
+  messageBody: MessageBody,
+}
+
+export type BodyPlaintextVersion = 
+    1 // V1_1
+
 export type BoxNonce = any
 
 export type BoxPublicKey = any
@@ -2236,6 +2258,23 @@ export type GetPassphraseRes = {
   storeSecret: boolean,
 }
 
+export type HeaderPlaintext = 
+    { version : 1, v1 : ?HeaderPlaintextV1 }
+
+export type HeaderPlaintextV1 = {
+  conv: chat1.ConversationIDTriple,
+  tlfName: string,
+  messageType: chat1.MessageType,
+  prev?: ?Array<chat1.MessagePreviousPointer>,
+  sender: gregor1.UID,
+  senderDevice: gregor1.DeviceID,
+  bodyHash: chat1.Hash,
+  headerSignature?: ?chat1.SignatureInfo,
+}
+
+export type HeaderPlaintextVersion = 
+    1 // V1_1
+
 export type Hello2Res = {
   encryptionKey: KID,
   sigPayload: HelloRes,
@@ -2455,10 +2494,16 @@ export type MessageInfoLocal = {
   senderDeviceName: string,
 }
 
-export type MessagePlaintext = {
+export type MessagePlaintext = 
+    { version : 1, v1 : ?MessagePlaintextV1 }
+
+export type MessagePlaintextV1 = {
   clientHeader: chat1.MessageClientHeader,
-  messageBodies?: ?Array<MessageBody>,
+  messageBody: MessageBody,
 }
+
+export type MessagePlaintextVersion = 
+    1 // V1_1
 
 export type MessageSelector = {
   MessageTypes?: ?Array<chat1.MessageType>,
