@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"reflect"
 	"sync"
 	"testing"
@@ -548,20 +547,6 @@ func requireJournalEntryCounts(t *testing.T, j *tlfJournal,
 	require.NoError(t, err)
 	require.Equal(t, expectedBlockEntryCount, blockEntryCount)
 	require.Equal(t, expectedMDEntryCount, mdEntryCount)
-}
-
-func testMDJournalGCd(t *testing.T, j *mdJournal) {
-	filepath.Walk(j.j.j.dir, func(path string, _ os.FileInfo, _ error) error {
-		// We should only find the root directory here.
-		require.Equal(t, path, j.j.j.dir)
-		return nil
-	})
-	filepath.Walk(j.mdsPath(),
-		func(path string, info os.FileInfo, _ error) error {
-			// We shouldn't find any files.
-			require.True(t, info.IsDir(), "%s is not a dir", path)
-			return nil
-		})
 }
 
 // The tests below test tlfJournal's MD flushing behavior.

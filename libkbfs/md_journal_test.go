@@ -8,6 +8,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -429,6 +430,36 @@ func TestMDJournalPutCase4(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func testMDJournalGCd(t *testing.T, j *mdJournal) {
+	filepath.Walk(j.j.j.dir, func(path string, _ os.FileInfo, _ error) error {
+		// We should only find the root directory here.
+		require.Equal(t, path, j.j.j.dir)
+		return nil
+	})
+	filepath.Walk(j.mdsPath(),
+		func(path string, info os.FileInfo, _ error) error {
+			// We shouldn't find any files.
+			require.True(t, info.IsDir(), "%s is not a dir", path)
+			return nil
+		})
+}
+
+func flushAllMDs(t *testing.T, ctx context.Context, uid keybase1.UID,
+	verifyingKey VerifyingKey, signer cryptoSigner, j *mdJournal) {
+	end, err := j.end()
+	require.NoError(t, err)
+	for {
+		mdID, rmds, err := j.getNextEntryToFlush(
+			ctx, uid, verifyingKey, end, signer)
+		require.NoError(t, err)
+		if mdID == (MdID{}) {
+			break
+		}
+		j.removeFlushedEntry(ctx, uid, verifyingKey, mdID, rmds)
+	}
+	testMDJournalGCd(t, j)
+}
+
 func TestMDJournalBranchConversion(t *testing.T) {
 	uid, verifyingKey, codec, crypto, id, signer, ekg, bsplit, tempdir, j :=
 		setupMDJournalTest(t)
@@ -471,6 +502,8 @@ func TestMDJournalBranchConversion(t *testing.T) {
 	head, err := j.getHead(uid, verifyingKey, nil)
 	require.NoError(t, err)
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
+
+	flushAllMDs(t, ctx, uid, verifyingKey, signer, j)
 }
 
 type limitedCryptoSigner struct {
@@ -524,6 +557,9 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	head, err := j.getHead(uid, verifyingKey, nil)
 	require.NoError(t, err)
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
+
+	// Flush all MDs so we can check garbage collection.
+	flushAllMDs(t, ctx, uid, verifyingKey, signer, j)
 }
 
 func TestMDJournalClear(t *testing.T) {
@@ -584,6 +620,8 @@ func TestMDJournalClear(t *testing.T) {
 	head, err = j.getHead(uid, verifyingKey, nil)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableBareRootMetadata{}, head)
+
+	flushAllMDs(t, ctx, uid, verifyingKey, signer, j)
 }
 
 func TestMDJournalRestart(t *testing.T) {
@@ -613,6 +651,8 @@ func TestMDJournalRestart(t *testing.T) {
 
 	checkIBRMDRange(t, uid, verifyingKey, codec, crypto,
 		ibrmds, firstRevision, firstPrevRoot, Merged, NullBranchID)
+
+	flushAllMDs(t, context.Background(), uid, verifyingKey, signer, j)
 }
 
 func TestMDJournalRestartAfterBranchConversion(t *testing.T) {
@@ -651,4 +691,6 @@ func TestMDJournalRestartAfterBranchConversion(t *testing.T) {
 
 	checkIBRMDRange(t, uid, verifyingKey, codec, crypto,
 		ibrmds, firstRevision, firstPrevRoot, Unmerged, ibrmds[0].BID())
+
+	flushAllMDs(t, ctx, uid, verifyingKey, signer, j)
 }

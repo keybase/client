@@ -365,13 +365,27 @@ func (j *mdJournal) convertToBranch(
 		return NullBranchID, err
 	}
 	j.log.CDebugf(ctx, "Using temp dir %s for rewriting", journalTempDir)
+
+	mdsToRemove := make([]MdID, 0, len(allMdIDs))
 	defer func() {
-		j.log.CDebugf(ctx, "Removing temp dir %s", journalTempDir)
+		j.log.CDebugf(ctx, "Removing temp dir %s and %d old MDs",
+			journalTempDir, len(mdsToRemove))
 		removeErr := os.RemoveAll(journalTempDir)
 		if removeErr != nil {
 			j.log.CWarningf(ctx,
 				"Error when removing temp dir %s: %v",
 				journalTempDir, removeErr)
+		}
+		// Garbage-collect the unnecessary MD entries.  TODO: we'll
+		// eventually need a sweeper to clean up entries left behind
+		// if we crash here.
+		for _, id := range mdsToRemove {
+			path := j.mdPath(id)
+			removeErr := os.Remove(path)
+			if removeErr != nil {
+				j.log.CWarningf(ctx, "Error when removing old MD %s: %v",
+					id, removeErr)
+			}
 		}
 	}()
 
@@ -426,6 +440,7 @@ func (j *mdJournal) convertToBranch(
 		if err != nil {
 			return NullBranchID, err
 		}
+		mdsToRemove = append(mdsToRemove, newID)
 
 		err = tempJournal.append(brmd.RevisionNumber(), newID)
 		if err != nil {
@@ -462,20 +477,10 @@ func (j *mdJournal) convertToBranch(
 
 	// Make the defer block above remove oldJournalTempDir.
 	journalTempDir = oldJournalTempDir
+	mdsToRemove = allMdIDs
 
 	j.j = tempJournal
 	j.branchID = bid
-
-	// Garbage-collect the old non-branch entries.  TODO: we'll
-	// eventually need a sweeper to clean up entries left behind if we
-	// crash here.
-	for _, id := range allMdIDs {
-		path := j.mdPath(id)
-		err := os.Remove(path)
-		if err != nil {
-			return NullBranchID, err
-		}
-	}
 
 	return bid, nil
 }
@@ -856,9 +861,39 @@ func (j *mdJournal) clear(
 		return nil
 	}
 
+	earliestRevision, err := j.j.readEarliestRevision()
+	if err != nil {
+		return err
+	}
+
+	latestRevision, err := j.j.readLatestRevision()
+	if err != nil {
+		return err
+	}
+
+	_, allMdIDs, err := j.j.getRange(earliestRevision, latestRevision)
+	if err != nil {
+		return err
+	}
+
 	j.branchID = NullBranchID
 
 	// No need to set lastMdID in this case.
 
-	return j.j.clear()
+	err = j.j.clear()
+	if err != nil {
+		return nil
+	}
+
+	// Garbage-collect the old branch entries.  TODO: we'll eventually
+	// need a sweeper to clean up entries left behind if we crash
+	// here.
+	for _, id := range allMdIDs {
+		path := j.mdPath(id)
+		err := os.Remove(path)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
