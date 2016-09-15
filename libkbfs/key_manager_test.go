@@ -193,8 +193,8 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 }
 
 // makeDirRKeyBundle creates a new bundle with a reader key.
-func makeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFReaderKeyBundle {
-	return TLFReaderKeyBundle{
+func makeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFReaderKeyBundleV2 {
+	return TLFReaderKeyBundleV2{
 		RKeys: UserDeviceKeyInfoMap{
 			uid: {
 				cryptPublicKey.kid: TLFCryptKeyInfo{

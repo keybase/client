@@ -280,22 +280,22 @@ func FakeBranchID(b byte) BranchID {
 	return BranchID{bytes}
 }
 
-// NewEmptyTLFWriterKeyBundle creates a new empty TLFWriterKeyBundle
-func NewEmptyTLFWriterKeyBundle() TLFWriterKeyBundle {
-	return TLFWriterKeyBundle{
+// NewEmptyTLFWriterKeyBundle creates a new empty TLFWriterKeyBundleV2
+func NewEmptyTLFWriterKeyBundle() TLFWriterKeyBundleV2 {
+	return TLFWriterKeyBundleV2{
 		WKeys: make(UserDeviceKeyInfoMap, 0),
 	}
 }
 
-// NewEmptyTLFReaderKeyBundle creates a new empty TLFReaderKeyBundle
-func NewEmptyTLFReaderKeyBundle() TLFReaderKeyBundle {
-	return TLFReaderKeyBundle{
+// NewEmptyTLFReaderKeyBundle creates a new empty TLFReaderKeyBundleV2
+func NewEmptyTLFReaderKeyBundle() TLFReaderKeyBundleV2 {
+	return TLFReaderKeyBundleV2{
 		RKeys: make(UserDeviceKeyInfoMap, 0),
 	}
 }
 
 // AddNewKeysOrBust adds new keys to root metadata and blows up on error.
-func AddNewKeysOrBust(t logger.TestLogBackend, rmd *RootMetadata, wkb TLFWriterKeyBundle, rkb TLFReaderKeyBundle) {
+func AddNewKeysOrBust(t logger.TestLogBackend, rmd *RootMetadata, wkb TLFWriterKeyBundleV2, rkb TLFReaderKeyBundleV2) {
 	if err := rmd.AddNewKeys(wkb, rkb); err != nil {
 		t.Fatal(err)
 	}

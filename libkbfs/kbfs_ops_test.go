@@ -251,7 +251,7 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 			EncodedSize: 1,
 		},
 	}
-	rmd.FakeInitialRekey(h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(config.Codec(), h.ToBareHandleOrBust())
 
 	ops := getOps(config, id)
 	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(fakeTlfIDByte(id)),
@@ -410,7 +410,7 @@ func (p ptrMatcher) String() string {
 
 func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) {
 	if !rmd.TlfID().IsPublic() {
-		rmd.FakeInitialRekey(rmd.GetTlfHandle().ToBareHandleOrBust())
+		rmd.FakeInitialRekey(config.Codec(), rmd.GetTlfHandle().ToBareHandleOrBust())
 	}
 	rootPtr := BlockPointer{
 		ID:      fakeBlockID(42),

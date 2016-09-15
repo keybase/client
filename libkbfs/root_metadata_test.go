@@ -158,7 +158,7 @@ func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 	h := makeFakeTlfHandle(t, 14, false, uw, ur)
 	tlfID := FakeTlfID(0, false)
 	rmd := newRootMetadataOrBust(t, tlfID, h)
-	rmd.FakeInitialRekey(h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(NewCodecMsgpack(), h.ToBareHandleOrBust())
 
 	dirHandle := rmd.GetTlfHandle()
 	require.Equal(t, h, dirHandle)
@@ -177,7 +177,7 @@ func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 	if rmd.LatestKeyGeneration() != 0 {
 		t.Errorf("Expected key generation to be invalid (0)")
 	}
-	rmd.FakeInitialRekey(h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(NewCodecMsgpack(), h.ToBareHandleOrBust())
 	if rmd.LatestKeyGeneration() != FirstValidKeyGen {
 		t.Errorf("Expected key generation to be valid(%d)", FirstValidKeyGen)
 	}
@@ -471,8 +471,9 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 
 	// Copy bit unset.
 	newRmd := newRootMetadataOrBust(t, id, h)
+	// MDv3 TODO: pass reader key bundles
 	ok, err := newRmd.bareMd.IsValidRekeyRequest(
-		config.Codec(), rmd.bareMd, newRmd.LastModifyingWriter())
+		config.Codec(), rmd.bareMd, newRmd.LastModifyingWriter(), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -496,8 +497,9 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 		t.Fatal(err)
 	}
 	newRmd.SetWriterMetadataSigInfo(sigInfo2)
+	// MDv3 TODO: pass reader key bundles
 	ok, err = newRmd.bareMd.IsValidRekeyRequest(
-		config.Codec(), rmd.bareMd, newRmd.LastModifyingWriter())
+		config.Codec(), rmd.bareMd, newRmd.LastModifyingWriter(), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -507,8 +509,9 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 
 	// Replace with copied signature.
 	newRmd.SetWriterMetadataSigInfo(sigInfo)
+	// MDv3 TODO: pass reader key bundles
 	ok, err = newRmd.bareMd.IsValidRekeyRequest(
-		config.Codec(), rmd.bareMd, newRmd.LastModifyingWriter())
+		config.Codec(), rmd.bareMd, newRmd.LastModifyingWriter(), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -544,7 +547,7 @@ func TestRootMetadataVersion(t *testing.T) {
 	// ... including if the assertions get resolved.
 	AddNewAssertionForTestOrBust(t, config, "bob", "bob@twitter")
 	rmd.SetSerializedPrivateMetadata([]byte{1}) // MakeSuccessor requires this
-	rmd.FakeInitialRekey(h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(config.Codec(), h.ToBareHandleOrBust())
 	if rmd.GetSerializedPrivateMetadata() == nil {
 		t.Fatalf("Nil private MD")
 	}
@@ -556,7 +559,7 @@ func TestRootMetadataVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't make MD successor: %v", err)
 	}
-	rmd3.FakeInitialRekey(h3.ToBareHandleOrBust())
+	rmd3.FakeInitialRekey(config.Codec(), h3.ToBareHandleOrBust())
 	err = rmd3.updateFromTlfHandle(h3)
 	if err != nil {
 		t.Fatalf("Couldn't update TLF handle: %v", err)
@@ -575,7 +578,7 @@ func TestMakeRekeyReadError(t *testing.T) {
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	rmd := newRootMetadataOrBust(t, id, h)
-	rmd.FakeInitialRekey(h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(config.Codec(), h.ToBareHandleOrBust())
 
 	u, uid, err := config.KBPKI().Resolve(context.Background(), "bob")
 	require.NoError(t, err)
@@ -600,7 +603,7 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 		false)
 	require.NoError(t, err)
 	rmd := newRootMetadataOrBust(t, id, h)
-	rmd.FakeInitialRekey(h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(config.Codec(), h.ToBareHandleOrBust())
 
 	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
 	require.NoError(t, err)
@@ -645,7 +648,7 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rmds.MD.FakeInitialRekey(h)
+	rmds.MD.FakeInitialRekey(config.Codec(), h)
 	rmds.MD.SetLastModifyingWriter(h.Writers[0])
 	rmds.MD.SetLastModifyingUser(h.Writers[0])
 	rmds.MD.SetSerializedPrivateMetadata([]byte{42})
@@ -670,7 +673,8 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 	rmds.SigInfo = sigInfo
 
 	// verify it
-	err = rmds.IsValidAndSigned(config.Codec(), config.Crypto())
+	// MDv3 TODO: pass key bundles
+	err = rmds.IsValidAndSigned(config.Codec(), config.Crypto(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -689,7 +693,8 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 	rmds2.MD.SetFinalizedInfo(fi)
 
 	// verify the finalized copy
-	err = rmds2.IsValidAndSigned(config.Codec(), config.Crypto())
+	// MDv3 TODO: pass key bundles
+	err = rmds2.IsValidAndSigned(config.Codec(), config.Crypto(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -697,7 +702,8 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 	// touch something the server shouldn't be allowed to edit for finalized metadata
 	// and verify verification failure.
 	rmds2.MD.SetRekeyBit()
-	err = rmds2.IsValidAndSigned(config.Codec(), config.Crypto())
+	// MDv3 TODO: pass key bundles
+	err = rmds2.IsValidAndSigned(config.Codec(), config.Crypto(), nil)
 	if err == nil {
 		t.Fatalf("expected error")
 	}

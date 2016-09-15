@@ -34,6 +34,7 @@ type mdBlockMem struct {
 	// An encoded RootMetdataSigned.
 	encodedMd []byte
 	timestamp time.Time
+	version   MetadataVer
 }
 
 type mdBlockMemList struct {
@@ -150,8 +151,8 @@ func (md *MDServerMemory) GetForHandle(ctx context.Context, handle BareTlfHandle
 }
 
 func (md *MDServerMemory) checkGetParams(
-	ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus) (
-	newBid BranchID, err error) {
+	ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus,
+	extra ExtraMetadata) (newBid BranchID, err error) {
 	if mStatus == Merged && bid != NullBranchID {
 		return NullBranchID, MDServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
@@ -171,7 +172,7 @@ func (md *MDServerMemory) checkGetParams(
 
 	// TODO: Figure out nil case.
 	if mergedMasterHead != nil {
-		ok, err := isReader(currentUID, mergedMasterHead.MD)
+		ok, err := isReader(currentUID, mergedMasterHead.MD, extra)
 		if err != nil {
 			return NullBranchID, MDServerError{err}
 		}
@@ -191,7 +192,8 @@ func (md *MDServerMemory) checkGetParams(
 // GetForTLF implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetForTLF(ctx context.Context, id TlfID,
 	bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
-	bid, err := md.checkGetParams(ctx, id, bid, mStatus)
+	// MDv3 TODO: pass actual key bundles
+	bid, err := md.checkGetParams(ctx, id, bid, mStatus, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -223,9 +225,10 @@ func (md *MDServerMemory) getHeadForTLF(ctx context.Context, id TlfID,
 		return nil, nil
 	}
 	blocks := blockList.blocks
-	ver := md.config.MetadataVersion()
+	max := md.config.MetadataVersion()
+	ver := blocks[len(blocks)-1].version
 	buf := blocks[len(blocks)-1].encodedMd
-	rmds, err := DecodeRootMetadataSigned(md.config.Codec(), id, ver, ver, buf)
+	rmds, err := DecodeRootMetadataSigned(md.config.Codec(), id, ver, max, buf)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +269,8 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id TlfID,
 	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
 	md.log.CDebugf(ctx, "GetRange %d %d (%s)", start, stop, mStatus)
-	bid, err := md.checkGetParams(ctx, id, bid, mStatus)
+	// MDv3 TODO: pass actual key bundles
+	bid, err := md.checkGetParams(ctx, id, bid, mStatus, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -300,12 +304,13 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id TlfID,
 		endI = len(blocks)
 	}
 
-	ver := md.config.MetadataVersion()
+	max := md.config.MetadataVersion()
 
 	var rmdses []*RootMetadataSigned
 	for i := startI; i < endI; i++ {
+		ver := blocks[i].version
 		buf := blocks[i].encodedMd
-		rmds, err := DecodeRootMetadataSigned(md.config.Codec(), id, ver, ver, buf)
+		rmds, err := DecodeRootMetadataSigned(md.config.Codec(), id, ver, max, buf)
 		if err != nil {
 			return nil, MDServerError{err}
 		}
@@ -322,14 +327,16 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id TlfID,
 }
 
 // Put implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) error {
+func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
+	extra ExtraMetadata) error {
+
 	currentUID, currentVerifyingKey, err :=
 		getCurrentUIDAndVerifyingKey(ctx, md.config.currentInfoGetter())
 	if err != nil {
 		return MDServerError{err}
 	}
 
-	err = rmds.IsValidAndSigned(md.config.Codec(), md.config.cryptoPure())
+	err = rmds.IsValidAndSigned(md.config.Codec(), md.config.cryptoPure(), extra)
 	if err != nil {
 		return MDServerErrorBadRequest{Reason: err.Error()}
 	}
@@ -425,7 +432,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 		return MDServerError{err}
 	}
 
-	block := mdBlockMem{encodedMd, md.config.Clock().Now()}
+	block := mdBlockMem{encodedMd, md.config.Clock().Now(), rmds.MD.Version()}
 
 	// Add an entry with the revision key.
 	revKey, err := md.getMDKey(id, bid, mStatus)

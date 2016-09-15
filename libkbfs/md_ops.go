@@ -144,7 +144,8 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	handle *TlfHandle, rmds *RootMetadataSigned, getRangeLock *sync.Mutex) (
 	ImmutableRootMetadata, error) {
 	// First, verify validity and signatures.
-	err := rmds.IsValidAndSigned(md.config.Codec(), md.config.Crypto())
+	// MDv3 TODO: pass key bundles
+	err := rmds.IsValidAndSigned(md.config.Codec(), md.config.Crypto(), nil)
 	if err != nil {
 		return ImmutableRootMetadata{}, MDMismatchError{
 			rmds.MD.RevisionNumber(), handle.GetCanonicalPath(),
@@ -221,7 +222,8 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 		return id, ImmutableRootMetadata{}, nil
 	}
 
-	bareMdHandle, err := rmds.MD.MakeBareTlfHandle()
+	// MDv3 TODO: pass key bunldes when needed
+	bareMdHandle, err := rmds.MD.MakeBareTlfHandle(nil)
 	if err != nil {
 		return TlfID{}, ImmutableRootMetadata{}, err
 	}
@@ -313,7 +315,8 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID,
 		// Possible if mStatus is Unmerged
 		return ImmutableRootMetadata{}, nil
 	}
-	bareHandle, err := rmds.MD.MakeBareTlfHandle()
+	// MDv3 TODO: pass key bundle when needed
+	bareHandle, err := rmds.MD.MakeBareTlfHandle(nil)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -364,7 +367,8 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 	worker := func() {
 		defer wg.Done()
 		for rmds := range rmdsChan {
-			bareHandle, err := rmds.MD.MakeBareTlfHandle()
+			// MDv3 TODO: pass key bundles when needed
+			bareHandle, err := rmds.MD.MakeBareTlfHandle(nil)
 			if err != nil {
 				select {
 				case errChan <- err:
@@ -520,7 +524,7 @@ func (md *MDOpsStandard) put(
 		return MdID{}, err
 	}
 
-	err = md.config.MDServer().Put(ctx, &rmds)
+	err = md.config.MDServer().Put(ctx, &rmds, rmd.extra)
 	if err != nil {
 		return MdID{}, err
 	}

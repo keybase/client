@@ -22,7 +22,7 @@ func makeRMDSForTest(t *testing.T, id TlfID, h BareTlfHandle,
 	rmds.MD.SetRevision(revision)
 	rmds.MD.SetLastModifyingWriter(uid)
 	rmds.MD.SetLastModifyingUser(uid)
-	rmds.MD.FakeInitialRekey(h)
+	rmds.MD.FakeInitialRekey(NewCodecMsgpack(), h)
 	rmds.MD.SetPrevRoot(prevRoot)
 	return rmds
 }
@@ -73,7 +73,8 @@ func TestMDServerBasics(t *testing.T) {
 	for i := MetadataRevision(1); i <= 10; i++ {
 		rmds := makeRMDSForTest(t, id, h, i, uid, prevRoot)
 		signRMDSForTest(t, config.Codec(), config.Crypto(), rmds)
-		err = mdServer.Put(ctx, rmds)
+		// MDv3 TODO: pass actual key bundles
+		err = mdServer.Put(ctx, rmds, nil)
 		require.NoError(t, err)
 		prevRoot, err = config.Crypto().MakeMdID(rmds.MD)
 		require.NoError(t, err)
@@ -85,7 +86,8 @@ func TestMDServerBasics(t *testing.T) {
 	// (3) trigger a conflict
 	rmds = makeRMDSForTest(t, id, h, 10, uid, prevRoot)
 	signRMDSForTest(t, config.Codec(), config.Crypto(), rmds)
-	err = mdServer.Put(ctx, rmds)
+	// MDv3 TODO: pass actual key bundles
+	err = mdServer.Put(ctx, rmds, nil)
 	require.IsType(t, MDServerErrorConflictRevision{}, err)
 
 	// (4) push some new unmerged metadata blocks linking to the
@@ -98,7 +100,8 @@ func TestMDServerBasics(t *testing.T) {
 		rmds.MD.SetUnmerged()
 		rmds.MD.SetBranchID(bid)
 		signRMDSForTest(t, config.Codec(), config.Crypto(), rmds)
-		err = mdServer.Put(ctx, rmds)
+		// MDv3 TODO: pass actual key bundles
+		err = mdServer.Put(ctx, rmds, nil)
 		require.NoError(t, err)
 		prevRoot, err = config.Crypto().MakeMdID(rmds.MD)
 		require.NoError(t, err)

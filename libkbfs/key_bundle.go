@@ -23,7 +23,7 @@ func (id TLFCryptKeyServerHalfID) String() string {
 }
 
 // TLFCryptKeyInfo is a per-device key half entry in the
-// TLFWriterKeyBundle/TLFReaderKeyBundle.
+// TLFWriterKeyBundleV2/TLFReaderKeyBundleV2.
 type TLFCryptKeyInfo struct {
 	ClientHalf   EncryptedTLFCryptKeyClientHalf
 	ServerHalfID TLFCryptKeyServerHalfID
@@ -102,9 +102,9 @@ func (kim DeviceKeyInfoMap) fillInDeviceInfo(crypto Crypto,
 // UserDeviceKeyInfoMap maps a user's keybase UID to their DeviceKeyInfoMap
 type UserDeviceKeyInfoMap map[keybase1.UID]DeviceKeyInfoMap
 
-// TLFWriterKeyBundle is a bundle of all the writer keys for a top-level
+// TLFWriterKeyBundleV2 is a bundle of all the writer keys for a top-level
 // folder.
-type TLFWriterKeyBundle struct {
+type TLFWriterKeyBundleV2 struct {
 	// Maps from each writer to their crypt key bundle.
 	WKeys UserDeviceKeyInfoMap
 
@@ -123,14 +123,14 @@ type TLFWriterKeyBundle struct {
 }
 
 // IsWriter returns true if the given user device is in the writer set.
-func (tkb TLFWriterKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
+func (tkb TLFWriterKeyBundleV2) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
 	_, ok := tkb.WKeys[user][deviceKID]
 	return ok
 }
 
-// TLFWriterKeyGenerations stores a slice of TLFWriterKeyBundle,
+// TLFWriterKeyGenerations stores a slice of TLFWriterKeyBundleV2,
 // where the last element is the current generation.
-type TLFWriterKeyGenerations []TLFWriterKeyBundle
+type TLFWriterKeyGenerations []TLFWriterKeyBundleV2
 
 // LatestKeyGeneration returns the current key generation for this TLF.
 func (tkg TLFWriterKeyGenerations) LatestKeyGeneration() KeyGen {
@@ -147,9 +147,9 @@ func (tkg TLFWriterKeyGenerations) IsWriter(user keybase1.UID, deviceKID keybase
 	return tkg[keyGen-1].IsWriter(user, deviceKID)
 }
 
-// TLFReaderKeyBundle stores all the user keys with reader
+// TLFReaderKeyBundleV2 stores all the user keys with reader
 // permissions on a TLF
-type TLFReaderKeyBundle struct {
+type TLFReaderKeyBundleV2 struct {
 	RKeys UserDeviceKeyInfoMap
 
 	// M_e as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
@@ -166,14 +166,14 @@ type TLFReaderKeyBundle struct {
 }
 
 // IsReader returns true if the given user device is in the reader set.
-func (trb TLFReaderKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
+func (trb TLFReaderKeyBundleV2) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
 	_, ok := trb.RKeys[user][deviceKID]
 	return ok
 }
 
-// TLFReaderKeyGenerations stores a slice of TLFReaderKeyBundle,
+// TLFReaderKeyGenerations stores a slice of TLFReaderKeyBundleV2,
 // where the last element is the current generation.
-type TLFReaderKeyGenerations []TLFReaderKeyBundle
+type TLFReaderKeyGenerations []TLFReaderKeyBundleV2
 
 // LatestKeyGeneration returns the current key generation for this TLF.
 func (tkg TLFReaderKeyGenerations) LatestKeyGeneration() KeyGen {
@@ -218,8 +218,9 @@ func fillInDevicesAndServerMap(crypto Crypto, newIndex int,
 // in the provided lists has complete TLF crypt key info, and uses the
 // new ephemeral key pair to generate the info if it doesn't yet
 // exist.
+// MDv3 TODO: get rid of this as it's only used in tests right now.
 func fillInDevices(crypto Crypto,
-	wkb *TLFWriterKeyBundle, rkb *TLFReaderKeyBundle,
+	wkb *TLFWriterKeyBundleV2, rkb *TLFReaderKeyBundleV2,
 	wKeys map[keybase1.UID][]CryptPublicKey,
 	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
 	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) (
