@@ -98,8 +98,8 @@ function SpaceInfo ({freeSpace, freeSpacePercentage, lowSpaceWarning}: {freeSpac
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Text
-        style={{marginRight: globalMargins.xtiny}}
-        type={'BodySmall'}>
+        style={{marginRight: globalMargins.xtiny, fontSize: 11, color: globalColors.black_40}}
+        type={'BodySmallSemibold'}>
         {freeSpace} FREE
       </Text>
       <Box style={{position: 'relative', width: 64}}>
@@ -145,14 +145,14 @@ function PlanLevelRow ({level, onInfo, variants, style}: PlanLevelProps) {
           <Text onClick={() => onInfo()} type={'BodySemibold'} link={true} style={{marginRight: globalMargins.xtiny, color: globalColors.blue}}>
             {level}
           </Text>
-          <Text style={{...globalStyles.flex}} type={'BodySmall'}>
+          <Text type={'BodySmall'}>
             ({levelToPrice[level]})
           </Text>
         </Box>
         {selected && <Meta title='Your Plan' style={{backgroundColor: globalColors.blue2}} />}
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-        <Text style={{...globalStyles.flex, marginRight: globalMargins.xtiny}} type={'BodyXSmall'}>
+        <Text style={{...globalStyles.fontSemibold, marginRight: globalMargins.xtiny}} type={'BodyXSmall'}>
           {levelToSpace[level]}
         </Text>
         <Stars level={level} />
@@ -169,7 +169,7 @@ function PaymentInfo ({name, last4Digits, isBroken, onChangePaymentInfo}: Paymen
     <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.medium}}>
       <Text
         style={{color: globalColors.black_40}}
-        type='BodySmall'>
+        type='BodySmallSemibold'>
         Your payment method
       </Text>
       <Divider />
@@ -200,7 +200,7 @@ function Plan ({onInfo, onUpgrade, onDowngrade, freeSpace, freeSpacePercentage, 
       <Box style={globalStyles.flexBoxColumn}>
         <Text
           style={{color: globalColors.black_40, marginBottom: globalMargins.tiny}}
-          type='BodySmall'>
+          type='BodySmallSemibold'>
           Your plan
         </Text>
         <Divider />
