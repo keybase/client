@@ -28,6 +28,7 @@
 
 [libs]
 ./libs/flow-interface.js.flow
+./flow-typed
 
 [options]
 munge_underscores=true
@@ -52,4 +53,4 @@ suppress_comment=\\(.\\|\n\\)*\\$FlowIssue
 suppress_comment=\\(.\\|\n\\)*\\$ForceType
 
 [version]
-0.29.0
+0.32.0

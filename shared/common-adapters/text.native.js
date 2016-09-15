@@ -12,7 +12,7 @@ class Text extends Component {
   props: Props;
   context: Context;
 
-  _terminalPrefix (type: Props.type): ?React$Element<*> {
+  _terminalPrefix (type: $PropertyType<Props, 'type'>): ?React$Element<*> {
     return ({
       'TerminalEmpty': <NativeText>&nbsp;</NativeText>,
       'TerminalCommand': <NativeText>> </NativeText>,
@@ -20,7 +20,7 @@ class Text extends Component {
     }: {[key: string]: React$Element<*>})[type]
   }
 
-  static _inlineStyle (type: Props.type, context: Context): Object {
+  static _inlineStyle (type: $PropertyType<Props, 'type'>, context: Context): Object {
     switch (type) {
       case 'Terminal':
       case 'TerminalCommand':
@@ -35,7 +35,7 @@ class Text extends Component {
     }
   }
 
-  static _colorStyleBackgroundMode (backgroundMode: Background, type: Props.type, inTerminal: boolean): Object {
+  static _colorStyleBackgroundMode (backgroundMode: Background, type: $PropertyType<Props, 'type'>, inTerminal: boolean): Object {
     if (backgroundMode === 'Information') {
       return {color: globalColors.brown_60}
     }

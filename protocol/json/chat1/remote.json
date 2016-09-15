@@ -14,20 +14,23 @@
           "name": "serverHeader"
         },
         {
+          "type": [
+            null,
+            "MessageBoxed"
+          ],
+          "name": "supersededBy"
+        },
+        {
           "type": "MessageClientHeader",
           "name": "clientHeader"
         },
         {
-          "type": "SignatureInfo",
-          "name": "headerSignature"
+          "type": "EncryptedData",
+          "name": "headerCiphertext"
         },
         {
           "type": "EncryptedData",
           "name": "bodyCiphertext"
-        },
-        {
-          "type": "SignatureInfo",
-          "name": "bodySignature"
         },
         {
           "type": "int",

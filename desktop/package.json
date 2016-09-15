@@ -50,6 +50,7 @@
     "react": "15.3.1",
     "react-addons-css-transition-group": "15.3.1",
     "react-dom": "15.3.1",
+    "react-list": "0.8.0",
     "react-redux": "4.4.5",
     "react-tap-event-plugin": "1.0.0",
     "redux": "3.5.2",
@@ -114,5 +115,5 @@
   "optionalDependencies": {
     "fsevents": "1.0.14"
   },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#2ef8ed17e5dca37e56c29450176f4df6e7146427"
+  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#a910fa990be59d55f64c005aaed823c57e71d8b0"
 }

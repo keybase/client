@@ -85,14 +85,13 @@ const stylesContainer = {
 
 const styleBadge = {
   borderWidth: 0,
-  paddingLeft: 3,
+  paddingLeft: 2,
   paddingRight: 3,
   minWidth: 13,
   minHeight: 13,
   borderRadius: 20,
   flex: 'initial',
   justifyContent: 'center',
-  alignItems: 'center',
   marginRight: 15,
   marginLeft: 2,
 }

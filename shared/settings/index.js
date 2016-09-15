@@ -45,6 +45,7 @@ class Settings extends Component {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   state => ({}),
   dispatch => {

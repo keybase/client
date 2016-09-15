@@ -58,6 +58,7 @@ class ProfileContainer extends PureComponent<void, ?Props, void> {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   (state, ownProps: OwnProps) => {
     const myUsername = state.config.username

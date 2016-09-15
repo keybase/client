@@ -134,7 +134,6 @@ func exitStatus(err error) int {
 // Returns true, nil on successful stop.
 // If false, nil is returned it means there was nothing to stop.
 func (s Service) Stop(wait time.Duration) (bool, error) {
-	s.log.Info("Stopping %s", s.label)
 	// We stop by removing the job. This works for non-demand and demand jobs.
 	output, err := exec.Command("/bin/launchctl", "remove", s.label).CombinedOutput()
 	s.log.Debug("Output (launchctl remove): %s", string(output))
@@ -156,6 +155,7 @@ func (s Service) Stop(wait time.Duration) (bool, error) {
 			return false, waitErr
 		}
 	}
+	s.log.Info("Stopped %s", s.label)
 	return true, nil
 }
 
@@ -200,11 +200,11 @@ func (s Service) WaitForExit(wait time.Duration) error {
 			running = false
 			break
 		}
-		// Tell user we're waiting for exit after 4 seconds, every 4 seconds
-		if i%4 == 0 {
+		// Tell user we're waiting for exit every second
+		if i%5 == 0 {
 			s.log.Info("Waiting for %s to exit...", s.label)
 		}
-		time.Sleep(time.Second)
+		time.Sleep(200 * time.Millisecond)
 		i++
 	}
 	if running {

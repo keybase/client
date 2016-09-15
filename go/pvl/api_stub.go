@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 // +build !production
@@ -11,7 +11,7 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 )
 
-type StubAPIEngine struct {
+type stubAPIEngine struct {
 	expectations map[string]stubAPIEngineExpectation
 	calls        []stubAPIEngineCallRecord
 }
@@ -27,14 +27,14 @@ type stubAPIEngineCallRecord struct {
 	endpoint string
 }
 
-func NewStubAPIEngine() *StubAPIEngine {
-	return &StubAPIEngine{
+func newStubAPIEngine() *stubAPIEngine {
+	return &stubAPIEngine{
 		expectations: make(map[string]stubAPIEngineExpectation),
 		calls:        make([]stubAPIEngineCallRecord, 0),
 	}
 }
 
-func (e *StubAPIEngine) Get(arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
+func (e *stubAPIEngine) Get(arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
 	res, _, _, err := e.getMock(arg, libkb.XAPIResJSON)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (e *StubAPIEngine) Get(arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
 
 }
 
-func (e *StubAPIEngine) GetHTML(arg libkb.APIArg) (*libkb.ExternalHTMLRes, error) {
+func (e *stubAPIEngine) GetHTML(arg libkb.APIArg) (*libkb.ExternalHTMLRes, error) {
 	_, res, _, err := e.getMock(arg, libkb.XAPIResHTML)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (e *StubAPIEngine) GetHTML(arg libkb.APIArg) (*libkb.ExternalHTMLRes, error
 	return res, nil
 }
 
-func (e *StubAPIEngine) GetText(arg libkb.APIArg) (*libkb.ExternalTextRes, error) {
+func (e *stubAPIEngine) GetText(arg libkb.APIArg) (*libkb.ExternalTextRes, error) {
 	_, _, res, err := e.getMock(arg, libkb.XAPIResText)
 	if err != nil {
 		return nil, err
@@ -59,27 +59,27 @@ func (e *StubAPIEngine) GetText(arg libkb.APIArg) (*libkb.ExternalTextRes, error
 	return res, nil
 }
 
-func (e *StubAPIEngine) Post(arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
+func (e *stubAPIEngine) Post(arg libkb.APIArg) (*libkb.ExternalAPIRes, error) {
 	return nil, fmt.Errorf("unsupported operation Post for stub api")
 }
 
-func (e *StubAPIEngine) PostHTML(arg libkb.APIArg) (*libkb.ExternalHTMLRes, error) {
+func (e *stubAPIEngine) PostHTML(arg libkb.APIArg) (*libkb.ExternalHTMLRes, error) {
 	return nil, fmt.Errorf("unsupported operation Post for stub api")
 }
 
-func (e *StubAPIEngine) Set(endpoint string, canned *libkb.ExternalAPIRes) {
+func (e *stubAPIEngine) Set(endpoint string, canned *libkb.ExternalAPIRes) {
 	e.setCommon(endpoint, canned, nil, nil)
 }
 
-func (e *StubAPIEngine) SetHTML(endpoint string, canned *libkb.ExternalHTMLRes) {
+func (e *stubAPIEngine) SetHTML(endpoint string, canned *libkb.ExternalHTMLRes) {
 	e.setCommon(endpoint, nil, canned, nil)
 }
 
-func (e *StubAPIEngine) SetText(endpoint string, canned *libkb.ExternalTextRes) {
+func (e *stubAPIEngine) SetText(endpoint string, canned *libkb.ExternalTextRes) {
 	e.setCommon(endpoint, nil, nil, canned)
 }
 
-func (e *StubAPIEngine) setCommon(endpoint string, e1 *libkb.ExternalAPIRes, e2 *libkb.ExternalHTMLRes, e3 *libkb.ExternalTextRes) {
+func (e *stubAPIEngine) setCommon(endpoint string, e1 *libkb.ExternalAPIRes, e2 *libkb.ExternalHTMLRes, e3 *libkb.ExternalTextRes) {
 	entry := e.expectations[endpoint]
 	if e1 != nil {
 		entry.JSON = e1
@@ -93,11 +93,11 @@ func (e *StubAPIEngine) setCommon(endpoint string, e1 *libkb.ExternalAPIRes, e2 
 	e.expectations[endpoint] = entry
 }
 
-func (e *StubAPIEngine) ResetCalls() {
+func (e *stubAPIEngine) ResetCalls() {
 	e.calls = make([]stubAPIEngineCallRecord, 0)
 }
 
-func (e *StubAPIEngine) AssertCalledOnceWith(kind libkb.XAPIResType, endpoint string) error {
+func (e *stubAPIEngine) AssertCalledOnceWith(kind libkb.XAPIResType, endpoint string) error {
 	if len(e.calls) == 0 {
 		return fmt.Errorf("stub api not called")
 	}
@@ -113,7 +113,25 @@ func (e *StubAPIEngine) AssertCalledOnceWith(kind libkb.XAPIResType, endpoint st
 	return nil
 }
 
-func (e *StubAPIEngine) getMock(arg libkb.APIArg, restype libkb.XAPIResType) (
+func (e *stubAPIEngine) AssertCalledWith(kind libkb.XAPIResType, endpoint string) error {
+	if len(e.calls) == 0 {
+		return fmt.Errorf("stub api not called")
+	}
+	ok := false
+	for _, call := range e.calls {
+		expected := stubAPIEngineCallRecord{kind, endpoint}
+		if call == expected {
+			ok = true
+		}
+	}
+	if ok {
+		return nil
+	}
+	return fmt.Errorf("stub api never called with arguments: %v %v",
+		kind, endpoint)
+}
+
+func (e *stubAPIEngine) getMock(arg libkb.APIArg, restype libkb.XAPIResType) (
 	*libkb.ExternalAPIRes, *libkb.ExternalHTMLRes, *libkb.ExternalTextRes, error) {
 	e.calls = append(e.calls, stubAPIEngineCallRecord{
 		kind:     restype,

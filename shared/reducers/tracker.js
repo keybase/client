@@ -2,7 +2,7 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/tracker'
 import _ from 'lodash'
-import type {Proof, OverviewProofState, SimpleProofState, SimpleProofMeta, NonUserActions, TrackerState} from '../constants/tracker'
+import type {Proof, OverviewProofState, SimpleProofState, SimpleProofMeta, NonUserActions, TrackerState, NonUserState, TrackerOrNonUserState} from '../constants/tracker'
 import type {Action} from '../constants/types/flux'
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, ProofResult} from '../constants/types/flow-types'
 import type {PlatformsExpandedType} from '../constants/types/more'
@@ -11,22 +11,11 @@ import {IdentifyCommonTrackDiffType, ProveCommonProofState, ProveCommonProofType
 const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored, metaPending,
   normal, warning, error, checking} = Constants
 
-export type NonUserState = {
-  type: 'nonUser',
-  closed: boolean,
-  hidden: boolean,
-  name: string,
-  reason: string,
-  isPrivate: boolean,
-  inviteLink: ?string
-}
-
-type TrackerOrNonUserState = TrackerState | NonUserState
-
 export type State = {
   serverStarted: boolean,
   trackers: {[key: string]: TrackerOrNonUserState},
   pendingIdentifies: {[key: string]: boolean},
+  cachedIdentifies: {[key: string]: number}, // good until unix timestamp
   timerActive: number,
   tracking: Array<{
     username: string,
@@ -43,6 +32,7 @@ const initialState: State = {
   timerActive: 0,
   trackers: {},
   pendingIdentifies: {},
+  cachedIdentifies: {},
   tracking: [],
 }
 
@@ -390,6 +380,17 @@ export default function (state: State = initialState, action: Action): State {
         ...state,
         timerActive: state.timerActive - 1,
       }
+    case Constants.cacheIdentify:
+      if (!action.error) {
+        return {
+          ...state,
+          cachedIdentifies: {
+            ...state.cachedIdentifies,
+            [action.payload.uid]: action.payload.goodTill,
+          },
+        }
+      }
+      break
     case Constants.pendingIdentify:
       if (!action.error) {
         return {
@@ -400,6 +401,7 @@ export default function (state: State = initialState, action: Action): State {
           },
         }
       }
+      break
   }
 
   if (userKey && trackerOrNonUserState && trackerOrNonUserState.type === 'tracker') {
@@ -545,9 +547,11 @@ function diffAndStatusMeta (diff: ?TrackDiffType, proofResult: ?ProofResult, isT
       return null
     }
 
-    if (state === ProveCommonProofState.tempFailure) {
-      return metaPending
-    }
+    // FIXME: uncomment once the backend indicates pending-state failures based
+    // on low proof age.
+    // if (state === ProveCommonProofState.tempFailure) {
+    //   return metaPending
+    // }
 
     // The full mapping between the proof status we get back from the server
     // and a simplified representation that we show the users.

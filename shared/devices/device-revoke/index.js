@@ -34,10 +34,10 @@ class DeviceRevoke extends Component<void, Props, void> {
 }
 
 export default connect(
-  (state, ownProps) => {
+  (state: any, ownProps) => {
     return ownProps
   },
-  dispatch => {
+  (dispatch: any) => {
     return {
       ...bindActionCreators(devicesActions, dispatch),
       onSubmit: ({deviceID, name, currentDevice}) => {

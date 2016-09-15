@@ -11,46 +11,53 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type ProofContextExt interface {
+type proofContextExt interface {
 	libkb.ProofContext
 	GetLogPvl() logger.Logger
+	getStubDNS() *stubDNSEngine
 }
 
-type ProofContextExtImpl struct {
+type proofContextExtImpl struct {
 	libkb.ProofContext
 	pvlLogger logger.Logger
+	stubDNS   *stubDNSEngine
 }
 
-func NewProofContextExt(ctx libkb.ProofContext) ProofContextExt {
+func newProofContextExt(ctx libkb.ProofContext, stubDNS *stubDNSEngine) proofContextExt {
 	pvlLogger := ctx.GetLog().CloneWithAddedDepth(1)
-	return &ProofContextExtImpl{
+	return &proofContextExtImpl{
 		ctx,
 		pvlLogger,
+		stubDNS,
 	}
 }
 
-func (ctx *ProofContextExtImpl) GetLogPvl() logger.Logger {
+func (ctx *proofContextExtImpl) GetLogPvl() logger.Logger {
 	return ctx.pvlLogger
 }
 
-func debugWithState(g ProofContextExt, state ScriptState, format string, arg ...interface{}) {
+func (ctx *proofContextExtImpl) getStubDNS() *stubDNSEngine {
+	return ctx.stubDNS
+}
+
+func debugWithState(g proofContextExt, state scriptState, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
 	g.GetLogPvl().Debug("PVL @(service:%v script:%v pc:%v) %v",
 		debugServiceToString(state.Service), state.WhichScript, state.PC, s)
 }
 
-func debugWithStateError(g ProofContextExt, state ScriptState, err libkb.ProofError) {
+func debugWithStateError(g proofContextExt, state scriptState, err libkb.ProofError) {
 	g.GetLogPvl().Debug("PVL @(service:%v script:%v pc:%v) Error code=%v: %v",
 		debugServiceToString(state.Service), state.WhichScript, state.PC, err.GetProofStatus(), err.GetDesc())
 }
 
-func debugWithPosition(g ProofContextExt, service keybase1.ProofType, whichscript int, pc int, format string, arg ...interface{}) {
+func debugWithPosition(g proofContextExt, service keybase1.ProofType, whichscript int, pc int, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
 	g.GetLogPvl().Debug("PVL @(service:%v script:%v pc:%v) %v",
 		debugServiceToString(service), whichscript, pc, s)
 }
 
-func debug(g ProofContextExt, format string, arg ...interface{}) {
+func debug(g proofContextExt, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
 	g.GetLogPvl().Debug("PVL %v", s)
 }

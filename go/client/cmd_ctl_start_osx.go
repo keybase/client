@@ -10,7 +10,6 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
-	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 )
@@ -63,23 +62,22 @@ func ctlStart(g *libkb.GlobalContext, components map[string]bool) error {
 	if libkb.IsBrewBuild {
 		return ctlBrewStart(g)
 	}
-	runMode := g.Env.GetRunMode()
 	g.Log.Debug("Components: %v", components)
 	errs := []error{}
 	if ok := components[install.ComponentNameService.String()]; ok {
-		if err := startLaunchdService(g, install.DefaultServiceLabel(runMode), g.Env.GetServiceInfoPath(), true); err != nil {
+		if err := install.InstallService(g, "", false, g.Log); err != nil {
 			errs = append(errs, err)
 			g.Log.Errorf("%s", err)
 		}
 	}
 	if ok := components[install.ComponentNameKBFS.String()]; ok {
-		if err := startLaunchdService(g, install.DefaultKBFSLabel(runMode), g.Env.GetKBFSInfoPath(), true); err != nil {
+		if err := install.InstallKBFS(g, "", false, g.Log); err != nil {
 			errs = append(errs, err)
 			g.Log.Errorf("%s", err)
 		}
 	}
 	if ok := components[install.ComponentNameUpdater.String()]; ok {
-		if err := launchd.Start(install.DefaultUpdaterLabel(runMode), defaultLaunchdWait, g.Log); err != nil {
+		if err := install.InstallUpdater(g, "", false, g.Log); err != nil {
 			errs = append(errs, err)
 			g.Log.Errorf("%s", err)
 		}

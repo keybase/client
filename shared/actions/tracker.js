@@ -27,7 +27,7 @@ import {requestIdleCallback} from '../util/idle-callback'
 import {routeAppend} from './router'
 import {showAllTrackers} from '../local-debug'
 
-const {bufferToNiceHexString} = Constants
+const {bufferToNiceHexString, cachedIdentifyGoodUntil} = Constants
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => TypedState) => ?Promise<*>
 
 export function startTimer (): TrackerActionCreator {
@@ -77,14 +77,24 @@ export function registerTrackerIncomingRpcs (): TrackerActionCreator {
 
 export function getProfile (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
+    const tracker = getState().tracker
+
     // If we have a pending identify no point in firing off another one
-    if (getState().tracker.pendingIdentifies[username]) {
+    if (tracker.pendingIdentifies[username]) {
       console.log('Bailing on simultaneous getProfile', username)
       return
     }
 
+    const trackerState = tracker && tracker.trackers ? tracker.trackers[username] : null
+    const uid = trackerState && trackerState.type === 'tracker' ? trackerState.userInfo && trackerState.userInfo.uid : null
+    const goodTill = uid && tracker.cachedIdentifies[uid + '']
+    if (goodTill && goodTill >= Date.now()) {
+      console.log('Bailing on cached getProfile', username, uid)
+      return
+    }
+
     dispatch({type: Constants.updateUsername, payload: {username}})
-    dispatch(triggerIdentify('', username, true, serverCallMap(dispatch, getState, true)))
+    dispatch(triggerIdentify('', username, serverCallMap(dispatch, getState, true)))
     dispatch(fillFolders(username))
   }
 }
@@ -92,79 +102,43 @@ export function getProfile (username: string): TrackerActionCreator {
 export function getMyProfile (): TrackerActionCreator {
   return (dispatch, getState) => {
     const status = getState().config.status
-
     const username = status && status.user && status.user.username
     if (username) {
-      dispatch(fillFolders(username))
-      dispatch({type: Constants.updateUsername, payload: {username}})
-    }
-
-    const myUID = status && status.user && status.user.uid
-    if (myUID) {
-      dispatch(triggerIdentify(myUID, '', true, serverCallMap(dispatch, getState, true)))
+      dispatch(getProfile(username))
     }
   }
 }
 
-const profileReason = 'Profile'
-
-export function triggerIdentify (uid: string = '', userAssertion: string = ''
-  , skipPopup: boolean = false, incomingCallMap: Object = {}): TrackerActionCreator {
-  let allowSelf
-  let useDelegateUI
-  let allowEmptySelfID
-  let noSkipSelf
-  let reason
-
-  if (skipPopup) {
-    allowSelf = true
-    useDelegateUI = false
-    allowEmptySelfID = true
-    noSkipSelf = true
-    reason = profileReason
-  } else {
-    allowSelf = false
-    useDelegateUI = true
-    allowEmptySelfID = false
-    noSkipSelf = false
-    reason = ''
-  }
-
+export function triggerIdentify (uid: string = '', userAssertion: string = '', incomingCallMap: Object = {}): TrackerActionCreator {
   return (dispatch, getState) => new Promise((resolve, reject) => {
-    const status = getState().config.status
-    const myUID = status && status.user && status.user.uid
-
-    // Don't identify ourself
-    if (allowSelf || myUID !== uid) {
-      dispatch({type: Constants.identifyStarted, payload: null})
-      identifyIdentify2Rpc({
-        param: {
-          uid,
-          userAssertion,
-          alwaysBlock: false,
-          noErrorOnTrackFailure: true,
-          forceRemoteCheck: false,
-          useDelegateUI,
-          needProofSet: true,
-          reason: {
-            type: IdentifyCommonIdentifyReasonType.id,
-            reason,
-            resource: '',
-          },
-          allowEmptySelfID,
-          noSkipSelf,
+    dispatch({type: Constants.identifyStarted, payload: null})
+    identifyIdentify2Rpc({
+      param: {
+        uid,
+        userAssertion,
+        alwaysBlock: false,
+        noErrorOnTrackFailure: true,
+        forceRemoteCheck: false,
+        useDelegateUI: false,
+        needProofSet: true,
+        reason: {
+          type: IdentifyCommonIdentifyReasonType.id,
+          reason: 'Profile',
+          resource: '',
         },
-        incomingCallMap,
-        callback: (error, response) => {
-          console.log('called identify and got back', error, response)
-          if (error) {
-            dispatch({type: Constants.identifyFinished, error: true, payload: {error: error.desc}})
-          }
-          dispatch({type: Constants.identifyFinished, payload: null})
-          resolve()
-        },
-      })
-    }
+        allowEmptySelfID: true,
+        noSkipSelf: true,
+      },
+      incomingCallMap,
+      callback: (error, response) => {
+        console.log('called identify and got back', error, response)
+        if (error) {
+          dispatch({type: Constants.identifyFinished, error: true, payload: {error: error.desc}})
+        }
+        dispatch({type: Constants.identifyFinished, payload: null})
+        resolve()
+      },
+    })
   })
 }
 
@@ -417,7 +391,7 @@ function updatePGPKey (username: string, pgpFingerprint: Buffer, kid: string): A
 
 const sessionIDToUsername: { [key: number]: string } = {}
 // TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
-function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: boolean = false, onFinish: ?() => void): incomingCallMapType {
+function serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: boolean = false, onFinish: ?() => void): incomingCallMapType {
   // if true we already have a pending call so lets skip a ton of work
   let username
   let clearPendingTimeout
@@ -425,7 +399,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
 
   const requestIdle = f => {
     if (!alreadyPending) {
-      requestIdleCallback(f)
+      // The timeout with the requestIdleCallback says f must be run when idle or if 1 second passes whichover comes first.
+      // The timeout is necessary because the callback fn f won't be called if the window is hidden.
+      requestIdleCallback(f, {timeout: 1e3})
     } else {
       console.log('skipped idle call due to already pending')
     }
@@ -449,10 +425,6 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
       clearPendingTimeout = setTimeout(() => {
         dispatch(pendingIdentify(username, false))
       }, 60e3)
-
-      if (reason && (reason.reason === profileReason)) {
-        skipPopups = true
-      }
 
       requestIdle(() => {
         dispatch({
@@ -504,7 +476,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
           dispatch({type: Constants.updateEldestKidChanged, payload: {username}})
           dispatch({type: Constants.updateReason, payload: {username, reason: `${username} has reset their account!`}})
           dispatch({type: Constants.updateProofState, payload: {username}})
-          if (!skipPopups) {
+          if (!isGetProfile) {
             dispatch({type: Constants.showTracker, payload: {username}})
           }
         } else if (key.pgpFingerprint) {
@@ -521,7 +493,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
           payload: {username, track},
         })
 
-        if (!track && !skipPopups) {
+        if (!track && !isGetProfile) {
           dispatch({type: Constants.showTracker, payload: {username}})
         }
       })
@@ -537,7 +509,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
           payload: {username, identity},
         })
         dispatch({type: Constants.updateProofState, payload: {username}})
-        if (identity.breaksTracking && !skipPopups) {
+        if (identity.breaksTracking && !isGetProfile) {
           dispatch({type: Constants.showTracker, payload: {username}})
         }
       })
@@ -562,7 +534,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         dispatch(updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
-        if (lcr.breaksTracking && !skipPopups) {
+        if (lcr.breaksTracking && !isGetProfile) {
           dispatch({type: Constants.showTracker, payload: {username}})
         }
       })
@@ -573,7 +545,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         dispatch(updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
-        if (lcr.breaksTracking && !skipPopups) {
+        if (lcr.breaksTracking && !isGetProfile) {
           dispatch({type: Constants.showTracker, payload: {username}})
         }
       })
@@ -588,6 +560,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
     'keybase.1.identifyUi.displayUserCard': ({card}, response) => {
       response.result()
       requestIdle(() => {
+        if (isGetProfile) { // cache profile calls
+          dispatch({type: Constants.cacheIdentify, payload: {uid: card.uid, goodTill: Date.now() + cachedIdentifyGoodUntil}})
+        }
         dispatch(updateUserInfo(card, username, getState))
       })
     },
@@ -623,7 +598,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         // Check if there were any errors in the proofs
         dispatch({type: Constants.updateProofState, payload: {username}})
 
-        if (showAllTrackers && !skipPopups) {
+        if (showAllTrackers && !isGetProfile) {
           console.log('showAllTrackers is on, so showing tracker')
           dispatch({type: Constants.showTracker, payload: {username}})
         }
@@ -637,13 +612,13 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         })
 
         // Doing a non-tracker so explicitly cleanup instead of using the timeout
-        if (skipPopups) {
+        if (isGetProfile) {
           dispatch(pendingIdentify(username, false))
           clearTimeout(clearPendingTimeout)
         }
 
         onFinish && onFinish()
-      })
+      }, {timeout: 1e3})
 
       // if we're pending we still want to call onFinish
       if (alreadyPending) {

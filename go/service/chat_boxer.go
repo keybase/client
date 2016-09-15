@@ -5,11 +5,10 @@ package service
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
 
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
@@ -18,16 +17,21 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 type chatBoxer struct {
-	tlf keybase1.TlfInterface
+	tlf    keybase1.TlfInterface
+	hashV1 func(data []byte) chat1.Hash
+	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
 	libkb.Contextified
 }
 
 func newChatBoxer(g *libkb.GlobalContext) *chatBoxer {
 	return &chatBoxer{
 		tlf:          newTlfHandler(nil, g),
+		hashV1:       hashSha256V1,
+		sign:         sign,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -67,44 +71,97 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 		return keybase1.Message{}, errors.New("nil ServerHeader in MessageBoxed")
 	}
 
-	if err := b.verifyMessageBoxed(msg); err != nil {
+	// decrypt body
+	packedBody, err := b.open(msg.BodyCiphertext, key)
+	if err != nil {
+		return keybase1.Message{}, err
+	}
+	var body keybase1.BodyPlaintext
+	if err := b.unmarshal(packedBody, &body); err != nil {
 		return keybase1.Message{}, err
 	}
 
+	// decrypt header
+	packedHeader, err := b.open(msg.HeaderCiphertext, key)
+	if err != nil {
+		return keybase1.Message{}, err
+	}
+	var header keybase1.HeaderPlaintext
+	if err := b.unmarshal(packedHeader, &header); err != nil {
+		return keybase1.Message{}, err
+	}
+
+	// verify the message
+	if err := b.verifyMessage(header, msg); err != nil {
+		return keybase1.Message{}, err
+	}
+
+	// create a chat1.MessageClientHeader from versioned HeaderPlaintext
+	var clientHeader chat1.MessageClientHeader
+	headerVersion, err := header.Version()
+	if err != nil {
+		return keybase1.Message{}, err
+	}
+	switch headerVersion {
+	case keybase1.HeaderPlaintextVersion_V1:
+		hp := header.V1()
+		clientHeader = chat1.MessageClientHeader{
+			Conv:         hp.Conv,
+			TlfName:      hp.TlfName,
+			MessageType:  hp.MessageType,
+			Prev:         hp.Prev,
+			Sender:       hp.Sender,
+			SenderDevice: hp.SenderDevice,
+		}
+	default:
+		return keybase1.Message{}, libkb.NewChatHeaderVersionError(headerVersion)
+	}
+
+	// create an unboxed message from versioned BodyPlaintext and clientHeader
 	unboxed := keybase1.Message{
 		ServerHeader: *msg.ServerHeader,
 	}
 
-	if len(msg.BodyCiphertext.N) != libkb.NaclDHNonceSize {
-		return keybase1.Message{}, libkb.DecryptBadNonceError{}
-	}
-	var nonce [libkb.NaclDHNonceSize]byte
-	copy(nonce[:], msg.BodyCiphertext.N)
-
-	plaintext, ok := secretbox.Open(nil, msg.BodyCiphertext.E, &nonce, ((*[32]byte)(&key.Key)))
-	if !ok {
-		return keybase1.Message{}, libkb.DecryptOpenError{}
-	}
-
-	if err := json.Unmarshal(plaintext, &unboxed.MessagePlaintext); err != nil {
+	bodyVersion, err := body.Version()
+	if err != nil {
 		return keybase1.Message{}, err
 	}
-
-	if !reflect.DeepEqual(unboxed.MessagePlaintext.ClientHeader, msg.ClientHeader) {
-		return keybase1.Message{}, errors.New("unboxed ClientHeader does not match ClientHeader in MessageBoxed")
+	switch bodyVersion {
+	case keybase1.BodyPlaintextVersion_V1:
+		msgPlainV1 := keybase1.MessagePlaintextV1{
+			ClientHeader: clientHeader,
+			MessageBody:  body.V1().MessageBody,
+		}
+		unboxed.MessagePlaintext = keybase1.NewMessagePlaintextWithV1(msgPlainV1)
+	default:
+		return keybase1.Message{}, libkb.NewChatBodyVersionError(bodyVersion)
 	}
 
 	return unboxed, nil
-
 }
 
 // boxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
 // finds the most recent key for the TLF.
-func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (boxed chat1.MessageBoxed, err error) {
+func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+	version, err := msg.Version()
+	if err != nil {
+		return nil, err
+	}
+
+	switch version {
+	case keybase1.MessagePlaintextVersion_V1:
+		return b.boxMessageV1(ctx, msg.V1(), signingKeyPair)
+	default:
+		return nil, fmt.Errorf("invalid MessagePlaintext version %v", version)
+	}
+}
+
+// boxMessageV1 encrypts and signs a keybase1.MessagePlaintextV1 into a chat1.MessageBoxed.
+func (b *chatBoxer) boxMessageV1(ctx context.Context, msg keybase1.MessagePlaintextV1, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 	tlfName := msg.ClientHeader.TlfName
 	keys, err := b.tlf.CryptKeys(ctx, tlfName)
 	if err != nil {
-		return boxed, libkb.ChatBoxingError{Msg: err.Error()}
+		return nil, libkb.ChatBoxingError{Msg: err.Error()}
 	}
 
 	var recentKey *keybase1.CryptKey
@@ -115,70 +172,106 @@ func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintex
 	}
 
 	if recentKey == nil {
-		return boxed, libkb.ChatBoxingError{Msg: fmt.Sprintf("no key found for tlf %q", tlfName)}
+		return nil, libkb.ChatBoxingError{Msg: fmt.Sprintf("no key found for tlf %q", tlfName)}
 	}
 
-	if boxed, err = b.boxMessageWithKeys(msg, recentKey, signingKeyPair); err != nil {
-		return boxed, libkb.ChatBoxingError{Msg: err.Error()}
+	boxed, err := b.boxMessageWithKeysV1(msg, recentKey, signingKeyPair)
+	if err != nil {
+		return nil, libkb.ChatBoxingError{Msg: err.Error()}
 	}
+
 	return boxed, nil
 }
 
-// boxMessageWithKey encrypts and signs a keybase1.MessagePlaintext into a
+// boxMessageWithKeysV1 encrypts and signs a keybase1.MessagePlaintextV1 into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
-func (b *chatBoxer) boxMessageWithKeys(msg keybase1.MessagePlaintext, key *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (boxed chat1.MessageBoxed, err error) {
-	s, err := json.Marshal(msg)
+func (b *chatBoxer) boxMessageWithKeysV1(msg keybase1.MessagePlaintextV1, key *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+	body := keybase1.BodyPlaintextV1{
+		MessageBody: msg.MessageBody,
+	}
+	plaintextBody := keybase1.NewBodyPlaintextWithV1(body)
+	encryptedBody, err := b.seal(plaintextBody, key)
 	if err != nil {
-		return boxed, err
+		return nil, err
+	}
+
+	bodyHash := b.hashV1(encryptedBody.E)
+
+	// create the v1 header, adding hash
+	header := keybase1.HeaderPlaintextV1{
+		Conv:         msg.ClientHeader.Conv,
+		TlfName:      msg.ClientHeader.TlfName,
+		MessageType:  msg.ClientHeader.MessageType,
+		Prev:         msg.ClientHeader.Prev,
+		Sender:       msg.ClientHeader.Sender,
+		SenderDevice: msg.ClientHeader.SenderDevice,
+		BodyHash:     bodyHash[:],
+	}
+
+	// sign the header and insert the signature
+	sig, err := b.signMarshal(header, signingKeyPair, libkb.SignaturePrefixChatHeader)
+	if err != nil {
+		return nil, err
+	}
+	header.HeaderSignature = &sig
+
+	// create a plaintext header
+	plaintextHeader := keybase1.NewHeaderPlaintextWithV1(header)
+	encryptedHeader, err := b.seal(plaintextHeader, key)
+	if err != nil {
+		return nil, err
+	}
+
+	boxed := &chat1.MessageBoxed{
+		ClientHeader:     msg.ClientHeader,
+		BodyCiphertext:   *encryptedBody,
+		HeaderCiphertext: *encryptedHeader,
+		KeyGeneration:    key.KeyGeneration,
+	}
+
+	return boxed, nil
+}
+
+// seal encrypts data into chat1.EncryptedData.
+func (b *chatBoxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.EncryptedData, error) {
+	s, err := b.marshal(data)
+	if err != nil {
+		return nil, err
 	}
 
 	var nonce [libkb.NaclDHNonceSize]byte
 	if _, err := rand.Read(nonce[:]); err != nil {
-		return boxed, err
+		return nil, err
 	}
 
 	sealed := secretbox.Seal(nil, []byte(s), &nonce, ((*[32]byte)(&key.Key)))
-
-	boxed = chat1.MessageBoxed{
-		ClientHeader: msg.ClientHeader,
-		BodyCiphertext: chat1.EncryptedData{
-			V: 1,
-			E: sealed,
-			N: nonce[:],
-		},
-		KeyGeneration: key.KeyGeneration,
+	enc := &chat1.EncryptedData{
+		V: 1,
+		E: sealed,
+		N: nonce[:],
 	}
-
-	// sign the header, encrypted body
-	if err := b.signMessageBoxed(&boxed, signingKeyPair); err != nil {
-		return boxed, err
-	}
-
-	return boxed, nil
+	return enc, nil
 }
 
-// signMessageBoxed signs the header and encrypted body of a chat1.MessageBoxed
-// with the NaclSigningKeyPair.
-func (b *chatBoxer) signMessageBoxed(msg *chat1.MessageBoxed, kp libkb.NaclSigningKeyPair) error {
-	header, err := b.signJSON(msg.ClientHeader, kp, libkb.SignaturePrefixChatHeader)
-	if err != nil {
-		return err
+// open decrypts chat1.EncryptedData.
+func (b *chatBoxer) open(data chat1.EncryptedData, key *keybase1.CryptKey) ([]byte, error) {
+	if len(data.N) != libkb.NaclDHNonceSize {
+		return nil, libkb.DecryptBadNonceError{}
 	}
-	msg.HeaderSignature = header
+	var nonce [libkb.NaclDHNonceSize]byte
+	copy(nonce[:], data.N)
 
-	body, err := b.sign(msg.BodyCiphertext.E, kp, libkb.SignaturePrefixChatBody)
-	if err != nil {
-		return err
+	plain, ok := secretbox.Open(nil, data.E, &nonce, ((*[32]byte)(&key.Key)))
+	if !ok {
+		return nil, libkb.DecryptOpenError{}
 	}
-	msg.BodySignature = body
-
-	return nil
+	return plain, nil
 }
 
-// signJSON signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-// It encodes data to JSON before signing.
-func (b *chatBoxer) signJSON(data interface{}, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
-	encoded, err := json.Marshal(data)
+// signMarshal signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
+// It marshals data before signing.
+func (b *chatBoxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+	encoded, err := b.marshal(data)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
 	}
@@ -186,43 +279,56 @@ func (b *chatBoxer) signJSON(data interface{}, kp libkb.NaclSigningKeyPair, pref
 	return b.sign(encoded, kp, prefix)
 }
 
-func exportSigInfo(si *libkb.NaclSigInfo) chat1.SignatureInfo {
-	return chat1.SignatureInfo{
-		V: si.Version,
-		S: si.Sig[:],
-		K: si.Kid,
-	}
-}
-
 // sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-func (b *chatBoxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+func sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
 	sig, err := kp.SignV2(msg, prefix)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
 	}
-	return exportSigInfo(sig), nil
+	sigInfo := chat1.SignatureInfo{
+		V: sig.Version,
+		S: sig.Sig[:],
+		K: sig.Kid,
+	}
+	return sigInfo, nil
 }
 
-// verifyMessageBoxed verifies the header and body signatures in a boxed
-// message.
-func (b *chatBoxer) verifyMessageBoxed(msg chat1.MessageBoxed) error {
-	header, err := json.Marshal(msg.ClientHeader)
+// verifyMessage checks that a message is valid.
+func (b *chatBoxer) verifyMessage(header keybase1.HeaderPlaintext, msg chat1.MessageBoxed) error {
+	headerVersion, err := header.Version()
 	if err != nil {
 		return err
 	}
-	if !b.verify(header, msg.HeaderSignature, libkb.SignaturePrefixChatHeader) {
+
+	switch headerVersion {
+	case keybase1.HeaderPlaintextVersion_V1:
+		return b.verifyMessageHeaderV1(header.V1(), msg)
+	default:
+		return libkb.NewChatHeaderVersionError(headerVersion)
+	}
+}
+
+// verifyMessageHeaderV1 checks the body hash, header signature, and signing key validity.
+func (b *chatBoxer) verifyMessageHeaderV1(header keybase1.HeaderPlaintextV1, msg chat1.MessageBoxed) error {
+	// check body hash
+	bh := b.hashV1(msg.BodyCiphertext.E)
+	if !libkb.SecureByteArrayEq(bh[:], header.BodyHash) {
+		return libkb.ChatBodyHashInvalid{}
+	}
+
+	// check signature
+	hcopy := header
+	hcopy.HeaderSignature = nil
+	hpack, err := b.marshal(hcopy)
+	if err != nil {
+		return err
+	}
+	if !b.verify(hpack, *header.HeaderSignature, libkb.SignaturePrefixChatHeader) {
 		return libkb.BadSigError{E: "header signature invalid"}
 	}
 
-	if !b.verify(msg.BodyCiphertext.E, msg.BodySignature, libkb.SignaturePrefixChatBody) {
-		return libkb.BadSigError{E: "body signature invalid"}
-	}
-
-	if !libkb.SecureByteArrayEq(msg.HeaderSignature.K, msg.BodySignature.K) {
-		return errors.New("header and body signature keys do not match")
-	}
-
-	valid, err := b.validSenderKey(msg.ClientHeader.Sender, msg.HeaderSignature.K, msg.ServerHeader.Ctime)
+	// check key validity
+	valid, err := b.validSenderKey(header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
 	if err != nil {
 		return err
 	}
@@ -231,6 +337,7 @@ func (b *chatBoxer) verifyMessageBoxed(msg chat1.MessageBoxed) error {
 	}
 
 	return nil
+
 }
 
 // verify verifies the signature of data using SignatureInfo.
@@ -272,4 +379,25 @@ func (b *chatBoxer) validSenderKey(sender gregor1.UID, key []byte, ctime gregor1
 	}
 
 	return true, nil
+}
+
+func (b *chatBoxer) marshal(v interface{}) ([]byte, error) {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	var data []byte
+	enc := codec.NewEncoderBytes(&data, &mh)
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (b *chatBoxer) unmarshal(data []byte, v interface{}) error {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	dec := codec.NewDecoderBytes(data, &mh)
+	return dec.Decode(&v)
+}
+
+func hashSha256V1(data []byte) chat1.Hash {
+	sum := sha256.Sum256(data)
+	return sum[:]
 }

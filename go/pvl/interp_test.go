@@ -17,16 +17,21 @@ import (
 type interpUnitTest struct {
 	name      string
 	proofinfo ProofInfo
+	// Only one of prepvl or prepvlstr should be specified.
 	prepvl    map[keybase1.ProofType]string
+	prepvlstr string
 	service   keybase1.ProofType
 
-	// What api call to expect
-	restype     libkb.XAPIResType
-	resjson     string
-	reshtml     string
-	restext     string
-	urloverride string
+	// What api call to expect (for non-DNS)
+	restype libkb.XAPIResType
+	resjson string
+	reshtml string
+	restext string
+	resdns  map[string]([]string)
 	// (Optional) Expect a different url to be fetched than proofinfo.APIURL
+	urloverride string
+	// (Optional) Don't check that the xapi was hit exactly once.
+	allowmanyfetches bool
 
 	// Whether the proof should validate
 	shouldwork bool
@@ -37,6 +42,11 @@ type interpUnitTest struct {
 }
 
 var interpUnitTests = []interpUnitTest{
+	// There are a lot of these tests in a line.
+	// They are organized into sections with markdown-style headings.
+	// All tests are run by the single runPvlTest function. If you want to run
+	// just one test, set the `solo` variable there.
+
 	// # Basic tests
 	{
 		name:      "basichtml",
@@ -339,6 +349,20 @@ var interpUnitTests = []interpUnitTest{
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
 		shouldwork: true,
+	}, {
+		// Index into a non-array
+		name:      "SelectorJSON-index-nonarray",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "json"},
+{"selector_json": ["data", {"all": true}, "extra", 0, 0]},
+{"assert_regex_match": "^4$"}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResJSON,
+		resjson:    json1,
+		shouldwork: true,
 	},
 
 	// ## SelectorCSS,
@@ -490,11 +514,10 @@ var interpUnitTests = []interpUnitTest{
 	},
 
 	// # Tests for invalid PVL at the top level
-
-	// Empty service entries should fail.
 	{
 		name:      "omitted-service",
 		proofinfo: info1,
+		// Empty service entries should fail.
 		prepvl: map[keybase1.ProofType]string{
 			keybase1.ProofType_TWITTER: `[{"fetch": "string"}]`,
 		},
@@ -503,6 +526,646 @@ var interpUnitTests = []interpUnitTest{
 		reshtml:    html1,
 		shouldwork: false,
 		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:       "omitted-version",
+		proofinfo:  info1,
+		prepvlstr:  `{"revision": 1, "services": {}}`,
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:       "omitted-revision",
+		proofinfo:  info1,
+		prepvlstr:  `{"pvl_version": 1, "services": {}}`,
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:       "bad-services",
+		proofinfo:  info1,
+		prepvlstr:  `{"pvl_version": 1, "revision": 2, "services": []}`,
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:       "non-array-script",
+		proofinfo:  info1,
+		prepvlstr:  `{"pvl_version": 1, "revision": 2, "services": {"github": "bad"}}`,
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:       "empty-script",
+		proofinfo:  info1,
+		prepvlstr:  `{"pvl_version": 1, "revision": 2, "services": {"github": []}}`,
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:       "empty-script-multi",
+		proofinfo:  info1,
+		prepvlstr:  `{"pvl_version": 1, "revision": 2, "services": {"github": [[], []]}}`,
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	},
+
+	// ## (Invalid) AssertRegexMatch
+	{
+		name:      "AssertRegexMatch-invalid-missing^",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"assert_regex_match": "foobar$"}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "AssertRegexMatch-invalid-missing$",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"assert_regex_match": "^foobar"}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "AssertRegexMatch-invalid-badvar",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"assert_regex_match": "^%{hostname}$"}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "AssertRegexMatch-invalid-redesc",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"assert_regex_match": ["^foobar$"]}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "AssertRegexMatch-invalid-badre",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"assert_regex_match": "^foo)(bar$"}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	},
+
+	// ## (Invalid) AssertFindBase64
+	{
+		name:      "AssertFindBase64-invalid-badtarget",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "string"},
+{"assert_find_base64": "username_keybase"}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "foobar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	},
+
+	// ## (Invalid) WhitespaceNormalize
+	// No tests
+
+	// ## (Invalid) RegexCapture
+	// Mostly the same as AssertRegexMatch
+	{
+		name:      "RegexCapture-invalid-missing^",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"regex_capture": "(f)oobar$"}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "RegexCapture-invalid-missing$",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"regex_capture": "^(f)oobar"}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "RegexCapture-invalid-badvar",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"regex_capture": "^(%{hostname})$"}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "RegexCapture-invalid-redesc",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"regex_capture": ["^(f)oobar$"]}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	},
+
+	// ## (Invalid) Fetch
+	{
+		name:      "Fetch-invalid-type",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "whatsthis"}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "foobar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "Fetch-invalid-indns",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[
+{"fetch": "text"}
+]`},
+		service:    keybase1.ProofType_DNS,
+		restype:    libkb.XAPIResText,
+		restext:    "foobar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	},
+	{
+		name:      "Fetch-invalid-multiple",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "string"},
+{"fetch": "string"}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "foobar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	},
+
+	// ## (Invalid) SelectorJSON
+	{
+		name:      "SelectorJSON-invalid-scripttype",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "string"},
+{"selector_json": [0]}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "foobar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "SelectorJSON-invalid-selectorlist",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "json"},
+{"selector_json": 0}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResJSON,
+		resjson:    json1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "SelectorJSON-invalid-empty",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "json"},
+{"selector_json": []}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResJSON,
+		resjson:    json1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "SelectorJSON-invalid-spec",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "json"},
+{"selector_json": [{"foo": "bar"}]}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResJSON,
+		resjson:    json1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	},
+
+	// ## (Invalid) SelectorCSS
+	{
+		name:      "SelectorCSS-invalid-scripttype",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "json"},
+{"selector_css": [0]}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResJSON,
+		resjson:    json1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "SelectorCSS-invalid-selectorlist",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"selector_css": 0}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "SelectorCSS-invalid-empty",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"selector_css": []}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "SelectorCSS-invalid-spec",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{"fetch": "html"},
+{"selector_css": [{"foo": "bar"}]}
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	},
+
+	// ## (Invalid) TransformURL
+	// No tests
+
+	// # Multiple Scripts
+	{
+		name:      "MultipleScripts-first-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok$"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"}
+]]`},
+		service:    keybase1.ProofType_FACEBOOK,
+		restype:    libkb.XAPIResText,
+		restext:    "ok",
+		shouldwork: true,
+	}, {
+		name:      "MultipleScripts-second-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok$"}
+]]`},
+		service:          keybase1.ProofType_FACEBOOK,
+		restype:          libkb.XAPIResText,
+		restext:          "ok",
+		allowmanyfetches: true,
+		shouldwork:       true,
+	}, {
+		name:      "MultipleScripts-both-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok$"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok"}
+]]`},
+		service:    keybase1.ProofType_FACEBOOK,
+		restype:    libkb.XAPIResText,
+		restext:    "ok",
+		shouldwork: true,
+	}, {
+		name:      "MultipleScripts-both-fail",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"
+  ,"error": "HOST_UNREACHABLE"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"
+  ,"error": "HOST_UNREACHABLE"}
+]]`},
+		service:    keybase1.ProofType_FACEBOOK,
+		restype:    libkb.XAPIResText,
+		restext:    "ok",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_HOST_UNREACHABLE,
+	},
+
+	// # DNS tests
+	// Checking a DNS proof is different from checking other proofs.
+	// It runs each script against each TXT record of 2 domains.
+	// That mechanism is tested here.
+	// TODO
+	{
+		name:      "DNS-second-record-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[
+{"assert_regex_match": "^ok$"}
+]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname: {"NO", "ok"},
+		},
+		shouldwork: true,
+	}, {
+		name:      "DNS-_keybase-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[
+{"assert_regex_match": "^ok$"}
+]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname:               {"NO_1", "NO_2"},
+			"_keybase." + info1.Hostname: {"NO_3", "ok"},
+		},
+		shouldwork: true,
+	}, {
+		name:      "DNS-no-records",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[
+{"assert_regex_match": "^ok$"}
+]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname:               {},
+			"_keybase." + info1.Hostname: {},
+		},
+		shouldwork: false,
+	}, {
+		name:      "DNS-no-matching-records",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[
+{"assert_regex_match": "^ok$"}
+]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname:               {"NO_1"},
+			"_keybase." + info1.Hostname: {"NO_2", "NO_3"},
+		},
+		shouldwork: false,
+	}, {
+		name:      "DNS-error-then-succeed",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[
+{"assert_regex_match": "^ok$"}
+]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname:               {"ERROR"},
+			"_keybase." + info1.Hostname: {"ok"},
+		},
+		shouldwork: true,
+	}, {
+		name:      "DNS-error-then-succeed",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[[
+  {"assert_regex_match": "^ok1$"}
+], [
+  {"assert_regex_match": "^ok2$"}
+]]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname: {"NO_1", "ok2"},
+		},
+		shouldwork: true,
+	},
+
+	// # Custom Errors
+	{
+		// With a custom status, the code will change
+		// but the description will stay the same.
+		name:      "CustomError-code",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{ "fetch": "string" },
+{ "assert_regex_match": "^foo$"
+, "error": "PERMISSION_DENIED" }
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "bar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_PERMISSION_DENIED,
+		errstr:     "Regex did not match (^foo$)",
+	}, {
+		name:      "CustomError-code-and-desc",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{ "fetch": "string" },
+{ "assert_regex_match": "^foo$"
+, "error": ["PERMISSION_DENIED", "whoops!"] }
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "bar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_PERMISSION_DENIED,
+		errstr:     "whoops!",
+	}, {
+		name:      "CustomError-wrong-short-array",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{ "fetch": "string" },
+{ "assert_regex_match": "^foo$"
+, "error": ["PERMISSION_DENIED"] }
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "bar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		// If the error spec is bad, the default error is used.
+		name:      "CustomError-wrong",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{ "fetch": "string" },
+{ "assert_regex_match": "^foo$"
+, "error": {} }
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "bar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "CustomError-wrong-type1",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{ "fetch": "string" },
+{ "assert_regex_match": "^foo$"
+, "error": 108 }
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "bar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "CustomError-wrong-type2",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{ "fetch": "string" },
+{ "assert_regex_match": "^foo$"
+, "error": [{}, "hmph"] }
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "bar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "CustomError-wrong-type3",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{ "fetch": "string" },
+{ "assert_regex_match": "^foo$"
+, "error": ["TIMEOUT", []] }
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "bar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		// A custom error should not affect invalidity.
+		// Here the regex contains invalid var name.
+		name:      "CustomError-and-invalid",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{ "fetch": "string" },
+{ "assert_regex_match": "^%{invalid}"
+, "error": "PERMISSION_DENIED" }
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "bar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		// Without a custom error, a default will appear.
+		name:      "CustomError-none",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[
+{ "fetch": "string" },
+{ "assert_regex_match": "^foo$" }
+]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "bar",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_CONTENT_FAILURE,
+		errstr:     "Regex did not match (^foo$)",
 	},
 }
 
@@ -528,12 +1191,24 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 
 	tc := libkb.SetupTest(t, unit.name, 1)
 	g := tc.G
-	xapi := NewStubAPIEngine()
+	xapi := newStubAPIEngine()
 	g.XAPI = xapi
 
-	pvl, err := makeTestPvl(unit.prepvl)
-	if err != nil {
-		fail("Error in prepvl: %v", err)
+	var pvl *jsonw.Wrapper
+	var err error
+	switch {
+	case (unit.prepvl == nil) == (unit.prepvlstr == ""):
+		fail("one of prepvl or prepvlstr must be specified")
+	case unit.prepvlstr == "":
+		pvl, err = makeTestPvl(unit.prepvl)
+		if err != nil {
+			fail("Error in prepvl: %v", err)
+		}
+	default:
+		pvl, err = jsonw.Unmarshal([]byte(unit.prepvlstr))
+		if err != nil {
+			fail("Error in prepvlstr: %v", err)
+		}
 	}
 
 	var url = unit.proofinfo.APIURL
@@ -541,15 +1216,21 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 		url = unit.urloverride
 	}
 
-	switch unit.restype {
-	case libkb.XAPIResJSON:
-		xapi.Set(url, newExternalJSONRes(t, unit.resjson))
-	case libkb.XAPIResHTML:
-		xapi.SetHTML(url, newExternalHTMLRes(t, unit.reshtml))
-	case libkb.XAPIResText:
-		xapi.SetText(url, newExternalTextRes(t, unit.restext))
-	default:
-		fail("unsupported restype: %v", unit.restype)
+	isdns := unit.service == keybase1.ProofType_DNS
+
+	if isdns {
+		unit.proofinfo.stubDNS = newStubDNSEngine(unit.resdns)
+	} else {
+		switch unit.restype {
+		case libkb.XAPIResJSON:
+			xapi.Set(url, newExternalJSONRes(t, unit.resjson))
+		case libkb.XAPIResHTML:
+			xapi.SetHTML(url, newExternalHTMLRes(t, unit.reshtml))
+		case libkb.XAPIResText:
+			xapi.SetText(url, newExternalTextRes(t, unit.restext))
+		default:
+			fail("unsupported restype: %v", unit.restype)
+		}
 	}
 
 	perr := CheckProof(g, pvl, unit.service, unit.proofinfo)
@@ -558,9 +1239,20 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 			fail("proof should have failed")
 		}
 
-		err = xapi.AssertCalledOnceWith(unit.restype, url)
-		if err != nil {
-			fail("%v", err)
+		err = nil
+		if isdns {
+			if !unit.proofinfo.stubDNS.IsOk() {
+				fail("DNS stub ran out of bounds")
+			}
+		} else {
+			if unit.allowmanyfetches {
+				err = xapi.AssertCalledWith(unit.restype, url)
+			} else {
+				err = xapi.AssertCalledOnceWith(unit.restype, url)
+			}
+			if err != nil {
+				fail("%v", err)
+			}
 		}
 	} else {
 		if unit.shouldwork {
@@ -614,7 +1306,7 @@ func makeTestPvl(rules map[keybase1.ProofType]string) (*jsonw.Wrapper, error) {
 
 func newExternalJSONRes(t *testing.T, json string) *libkb.ExternalAPIRes {
 	if json == "" {
-		t.Fatalf("empty html string")
+		t.Fatalf("empty json string")
 	}
 	w, err := jsonw.Unmarshal([]byte(json))
 	if err != nil {

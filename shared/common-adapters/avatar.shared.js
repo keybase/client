@@ -4,7 +4,7 @@ import type {AvatarSize} from './avatar'
 
 export function createAvatarUrl (props: {url: ?string} | {username: ?string, size: AvatarSize}): ?string {
   if (__SCREENSHOT__ || isTesting) return null
-  if (props.url) return props.url
+  if (typeof props.url === 'string') return props.url
   if (props.username) {
     const formatSize = {
       '176': 200,

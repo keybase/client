@@ -10,7 +10,7 @@ export type Props = {
   ignored: boolean,
   allowIgnore: boolean,
   visiblePopupMenu: boolean,
-  popupMenuItems: MenuProps.items,
+  popupMenuItems: $PropertyType<MenuProps, 'items'>,
   selfUsername: string,
   users: UserList,
   showGroupIcon?: boolean, // TODO (this is not implemented, but this will show the group icon instead of user avatars)

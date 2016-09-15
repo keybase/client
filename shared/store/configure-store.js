@@ -38,12 +38,12 @@ for (const method in console) {
     logger[method] = (...args) => {
       requestIdleCallback(() => {
         console[method](...args)
-      })
+      }, {timeout: 1e3})
     }
   }
 }
 
-const loggerMiddleware = enableStoreLogging ? createLogger({
+const loggerMiddleware: any = enableStoreLogging ? createLogger({
   duration: true,
   stateTransformer: objToJS,
   actionTransformer: objToJS,

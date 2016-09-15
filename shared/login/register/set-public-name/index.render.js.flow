@@ -1,15 +1,16 @@
 // @flow
 import {Component} from 'react'
-import type {$Exact} from '../../../constants/types/more'
+import type {Exact} from '../../../constants/types/more'
 
-export type Props = $Exact<{
+export type Props = Exact<{
   onBack?: () => void,
   onChange: (deviceName: string) => void,
   onSubmit: () => void,
   deviceName: ?string,
   deviceNameError?: ?string,
   submitEnabled: boolean,
-  waiting?: ?boolean
+  waiting?: ?boolean,
+  existingDevices?: ?Array<string>,
 }>
 
 export type State = {

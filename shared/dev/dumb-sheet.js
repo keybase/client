@@ -6,7 +6,7 @@ import {navigateUp} from '../actions/router'
 import {updateDebugConfig} from '../actions/dev'
 import {isTesting} from '../local-debug'
 
-class DumbSheet extends Component {
+class DumbSheet extends Component<*, *, *> {
   render () {
     return <Render
       onBack={this.props.onBack}
@@ -26,12 +26,12 @@ class DumbSheet extends Component {
 }
 
 export default connect(
-  state => ({
+  (state: any) => ({
     dumbIndex: state.dev.debugConfig.dumbIndex,
     dumbFilter: state.dev.debugConfig.dumbFilter,
     dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   }),
-  dispatch => ({
+  (dispatch: any) => ({
     onBack: () => dispatch(navigateUp()),
     onDebugConfigChange: value => dispatch(updateDebugConfig(value)),
   }))(DumbSheet)

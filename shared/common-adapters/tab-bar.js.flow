@@ -1,11 +1,11 @@
 // @flow
 import Avatar from './avatar'
 import {Component} from 'react'
-import type {$Exact} from '../constants/types/more'
+import type {Exact} from '../constants/types/more'
 import type {IconType} from './icon'
 import type {TextType} from './text'
 
-export type Props = $Exact<{
+export type Props = Exact<{
   style?: ?Object,
   styleTabBar?: Object,
   children?: Array<React$Element<ItemProps>>,
@@ -15,7 +15,7 @@ export type Props = $Exact<{
 
 export default class TabBar extends Component<void, Props, void> { }
 
-export type ItemProps = $Exact<{
+export type ItemProps = Exact<{
   tabBarButton?: React$Element<*>,
   label?: string,
   selected: boolean,
@@ -25,11 +25,13 @@ export type ItemProps = $Exact<{
   style?: Object,
   styleContainer?: Object,
   children?: React$Element<*>,
+  onBottom?: boolean,
+  underlined?: boolean,
 }>
 
 export class TabBarItem extends Component<void, ItemProps, void> { }
 
-export type TabBarButtonProps = $Exact<{
+export type TabBarButtonProps = Exact<{
   selected?: boolean,
   source: {type: 'icon', icon: IconType} | {type: 'avatar', avatar: Avatar},
   label?: string,

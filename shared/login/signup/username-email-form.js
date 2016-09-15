@@ -39,6 +39,7 @@ class UsernameEmailForm extends Component {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   state => ({
     usernameErrorText: state.signup.usernameError,

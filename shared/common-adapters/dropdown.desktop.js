@@ -92,7 +92,7 @@ class MenuItem extends Component<void, MenuItemProps, void> {
 
   render () {
     let textStyle : Object = {}
-    let textType: TextProps.type = 'HeaderBig'
+    let textType: $PropertyType<TextProps, 'type'> = 'HeaderBig'
 
     switch (this.props.type || 'Normal') {
       case 'Normal':

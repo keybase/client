@@ -73,27 +73,26 @@ func (c *cmdChatSend) Run() (err error) {
 	var args keybase1.PostLocalArg
 	// TODO: prompt user to choose one if multiple exist
 	args.ConversationID = conversationInfo.Id
-	// args.MessagePlaintext.ClientHeader.Conv omitted
-	// args.MessagePlaintext.ClientHeader.{Sender,SenderDevice} are filled by service
-	args.MessagePlaintext.ClientHeader.TlfName = conversationInfo.TlfName
-	args.MessagePlaintext.ClientHeader.MessageType = chat1.MessageType_TEXT
-	args.MessagePlaintext.ClientHeader.Prev = nil
 
-	body := keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: c.message})
-	args.MessagePlaintext.MessageBodies = append(args.MessagePlaintext.MessageBodies, body)
+	var msgV1 keybase1.MessagePlaintextV1
+	// msgV1.ClientHeader.Conv omitted
+	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
+	msgV1.ClientHeader.TlfName = conversationInfo.TlfName
+	msgV1.ClientHeader.MessageType = chat1.MessageType_TEXT
+	msgV1.MessageBody = keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: c.message})
+
+	args.MessagePlaintext = keybase1.NewMessagePlaintextWithV1(msgV1)
 
 	if err = chatClient.PostLocal(ctx, args); err != nil {
 		return err
 	}
 
 	if len(c.setTopicName) > 0 {
-		args.MessagePlaintext.ClientHeader.MessageType = chat1.MessageType_METADATA
-		args.MessagePlaintext.ClientHeader.Prev = nil // TODO
-		args.MessagePlaintext.MessageBodies = append([]keybase1.MessageBody(nil),
-			keybase1.NewMessageBodyWithMetadata(keybase1.MessageConversationMetadata{
-				ConversationTitle: c.setTopicName,
-			}))
-		if err = chatClient.PostLocal(ctx, args); err != nil {
+		msgV1.ClientHeader.MessageType = chat1.MessageType_METADATA
+		msgV1.ClientHeader.Prev = nil // TODO
+		msgV1.MessageBody = keybase1.NewMessageBodyWithMetadata(keybase1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
+		args.MessagePlaintext = keybase1.NewMessagePlaintextWithV1(msgV1)
+		if err := chatClient.PostLocal(ctx, args); err != nil {
 			return err
 		}
 	}

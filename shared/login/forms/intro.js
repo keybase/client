@@ -5,7 +5,9 @@ import {connect} from 'react-redux'
 import {routeAppend} from '../../actions/router'
 import {setRevokedSelf, setLoginFromRevokedDevice, login} from '../../actions/login'
 
-class Intro extends Component {
+import type {TypedState} from '../../constants/reducer'
+
+class Intro extends Component<*, *, *> {
   render () {
     return (
       <Render onSignup={this.props.onSignup} onLogin={this.props.onLogin} loaded={this.props.loaded} justLoginFromRevokedDevice={this.props.justLoginFromRevokedDevice} justRevokedSelf={this.props.justRevokedSelf} />
@@ -19,12 +21,12 @@ Intro.propTypes = {
 }
 
 export default connect(
-  state => ({
+  (state: TypedState) => ({
     justLoginFromRevokedDevice: state.login.justLoginFromRevokedDevice,
     justRevokedSelf: state.login.justRevokedSelf,
     loaded: state.login.loaded,
   }),
-  dispatch => ({
+  (dispatch: any) => ({
     onSignup: () => {
       dispatch(setLoginFromRevokedDevice(''))
       dispatch(setRevokedSelf(''))

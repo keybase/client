@@ -68,14 +68,14 @@ class DevicePage extends Component {
 }
 
 export default connect(
-  (state, ownProps) => {
+  (state: any, ownProps) => {
     const devices = state.devices.devices.find(d => d.name === ownProps.device.name)
     return ({
       ...devices,
       ...ownProps,
     })
   },
-  dispatch => {
+  (dispatch: any) => {
     return {
       ...bindActionCreators(devicesActions, dispatch),
       showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),

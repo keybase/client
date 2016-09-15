@@ -75,6 +75,7 @@ class Tracker extends Component<void, TrackerProps, void> {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   (state, ownProps) => {
     const trackerState = state.tracker.trackers[ownProps.username]
