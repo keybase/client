@@ -93,6 +93,7 @@ protocol common {
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
     MessageID supersededBy;
+    MessageID supersedes;
     gregor1.Time ctime;
   }
 
@@ -105,6 +106,7 @@ protocol common {
     ConversationIDTriple conv;
     string tlfName;
     MessageType messageType;
+    MessageID supersedes;
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
