@@ -168,6 +168,7 @@ func TestCliList(t *testing.T) {
 }
 
 func TestCliRead(t *testing.T) {
+	t.Skip("not needed")
 	g := libkb.NewGlobalContextInit()
 	term, err := NewTerminal(g)
 	if err != nil {
