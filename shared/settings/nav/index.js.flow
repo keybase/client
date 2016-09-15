@@ -1,0 +1,18 @@
+// @flow
+import {Component} from 'react'
+
+export type SettingsItem = {
+  text: string,
+  onClick: () => void,
+  badgeNumber?: number,
+}
+
+export type BannerType = 'red' | 'green'
+
+export type Props = {
+  items: Array<SettingsItem>,
+  bannerElement?: React$Element<*>,
+  bannerType?: BannerType,
+}
+
+export default class SettingsNav extends Component<void, Props, void> { }
