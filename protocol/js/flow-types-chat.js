@@ -187,6 +187,8 @@ export type GetThreadRemoteRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type Hash = bytes
+
 export type InboxView = {
   conversations?: ?Array<Conversation>,
   pagination?: ?Pagination,
@@ -198,10 +200,10 @@ export type MarkAsReadRes = {
 
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
+  supersededBy?: ?MessageBoxed,
   clientHeader: MessageClientHeader,
-  headerSignature: SignatureInfo,
+  headerCiphertext: EncryptedData,
   bodyCiphertext: EncryptedData,
-  bodySignature: SignatureInfo,
   keyGeneration: int,
 }
 
@@ -209,6 +211,7 @@ export type MessageClientHeader = {
   conv: ConversationIDTriple,
   tlfName: string,
   messageType: MessageType,
+  supersedes: MessageID,
   prev?: ?Array<MessagePreviousPointer>,
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
@@ -218,7 +221,7 @@ export type MessageID = uint
 
 export type MessagePreviousPointer = {
   id: MessageID,
-  hash: bytes,
+  hash: Hash,
 }
 
 export type MessageServerHeader = {
@@ -227,6 +230,7 @@ export type MessageServerHeader = {
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
   supersededBy: MessageID,
+  supersedes: MessageID,
   ctime: gregor1.Time,
 }
 

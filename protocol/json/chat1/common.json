@@ -39,6 +39,12 @@
       "typedef": "bytes"
     },
     {
+      "type": "record",
+      "name": "Hash",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
       "type": "enum",
       "name": "MessageType",
       "symbols": [
@@ -291,6 +297,10 @@
           "name": "supersededBy"
         },
         {
+          "type": "MessageID",
+          "name": "supersedes"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         }
@@ -305,7 +315,7 @@
           "name": "id"
         },
         {
-          "type": "bytes",
+          "type": "Hash",
           "name": "hash"
         }
       ]
@@ -325,6 +335,10 @@
         {
           "type": "MessageType",
           "name": "messageType"
+        },
+        {
+          "type": "MessageID",
+          "name": "supersedes"
         },
         {
           "type": {

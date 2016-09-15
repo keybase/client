@@ -13,6 +13,7 @@ type MessageID uint
 type TopicID []byte
 type ConversationID uint64
 type TLFID []byte
+type Hash []byte
 type MessageType int
 
 const (
@@ -144,18 +145,20 @@ type MessageServerHeader struct {
 	Sender       gregor1.UID      `codec:"sender" json:"sender"`
 	SenderDevice gregor1.DeviceID `codec:"senderDevice" json:"senderDevice"`
 	SupersededBy MessageID        `codec:"supersededBy" json:"supersededBy"`
+	Supersedes   MessageID        `codec:"supersedes" json:"supersedes"`
 	Ctime        gregor1.Time     `codec:"ctime" json:"ctime"`
 }
 
 type MessagePreviousPointer struct {
 	Id   MessageID `codec:"id" json:"id"`
-	Hash []byte    `codec:"hash" json:"hash"`
+	Hash Hash      `codec:"hash" json:"hash"`
 }
 
 type MessageClientHeader struct {
 	Conv         ConversationIDTriple     `codec:"conv" json:"conv"`
 	TlfName      string                   `codec:"tlfName" json:"tlfName"`
 	MessageType  MessageType              `codec:"messageType" json:"messageType"`
+	Supersedes   MessageID                `codec:"supersedes" json:"supersedes"`
 	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
 	Sender       gregor1.UID              `codec:"sender" json:"sender"`
 	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`

@@ -4,6 +4,7 @@ package service
 // this source code is governed by the included BSD license.
 
 import (
+	"crypto/sha256"
 	"testing"
 	"time"
 
@@ -32,14 +33,16 @@ func textMsg(t *testing.T, text string) keybase1.MessagePlaintext {
 		t.Fatal(err)
 	}
 	uid[15] = keybase1.UID_SUFFIX_2
-	return keybase1.MessagePlaintext{
+	return textMsgWithSender(t, text, gregor1.UID(uid))
+}
+
+func textMsgWithSender(t *testing.T, text string, uid gregor1.UID) keybase1.MessagePlaintext {
+	return keybase1.NewMessagePlaintextWithV1(keybase1.MessagePlaintextV1{
 		ClientHeader: chat1.MessageClientHeader{
-			Sender: gregor1.UID(uid),
+			Sender: uid,
 		},
-		MessageBodies: []keybase1.MessageBody{
-			keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: text}),
-		},
-	}
+		MessageBody: keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: text}),
+	})
 }
 
 func setupChatTest(t *testing.T, name string) (libkb.TestContext, *chatLocalHandler) {
@@ -74,7 +77,7 @@ func TestChatMessageBox(t *testing.T) {
 	msg := textMsg(t, "hello")
 	tc, handler := setupChatTest(t, "box")
 	defer tc.Cleanup()
-	boxed, err := handler.boxer.boxMessageWithKeys(msg, key, getSigningKeyPairForTest(t, tc, nil))
+	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, getSigningKeyPairForTest(t, tc, nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +89,6 @@ func TestChatMessageBox(t *testing.T) {
 func TestChatMessageUnbox(t *testing.T) {
 	key := cryptKey(t)
 	text := "hi"
-	msg := textMsg(t, text)
 	tc, handler := setupChatTest(t, "unbox")
 	defer tc.Cleanup()
 
@@ -95,29 +97,25 @@ func TestChatMessageUnbox(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	msg.ClientHeader.Sender = gregor1.UID(u.User.GetUID().ToBytes())
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
 
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
-	ctime := time.Now()
-	boxed, err := handler.boxer.boxMessageWithKeys(msg, key, signKP)
+	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// need to give it a server header...
 	boxed.ServerHeader = &chat1.MessageServerHeader{
-		Ctime: gregor1.ToTime(ctime),
+		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	unboxed, err := handler.boxer.unboxMessageWithKey(boxed, key)
+	unboxed, err := handler.boxer.unboxMessageWithKey(*boxed, key)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(unboxed.MessagePlaintext.MessageBodies) != 1 {
-		t.Fatalf("unboxed message bodies: %d, expected 1", len(unboxed.MessagePlaintext.MessageBodies))
-	}
-	body := unboxed.MessagePlaintext.MessageBodies[0]
+	body := unboxed.MessagePlaintext.V1().MessageBody
 	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
 		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
 	}
@@ -126,31 +124,127 @@ func TestChatMessageUnbox(t *testing.T) {
 	}
 }
 
-func TestChatMessageSigned(t *testing.T) {
+func TestChatMessageInvalidBodyHash(t *testing.T) {
 	key := cryptKey(t)
-	msg := textMsg(t, "sign me")
-	tc, handler := setupChatTest(t, "signed")
+	text := "hi"
+	tc, handler := setupChatTest(t, "unbox")
 	defer tc.Cleanup()
-	boxed, err := handler.boxer.boxMessageWithKeys(msg, key, getSigningKeyPairForTest(t, tc, nil))
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if boxed.HeaderSignature.V != 2 {
-		t.Errorf("HeaderSignature.V = %d, expected 2", boxed.HeaderSignature.V)
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+
+	signKP := getSigningKeyPairForTest(t, tc, u)
+
+	origHashFn := handler.boxer.hashV1
+	handler.boxer.hashV1 = func(data []byte) chat1.Hash {
+		data = append(data, []byte{1, 2, 3}...)
+		sum := sha256.Sum256(data)
+		return sum[:]
 	}
-	if len(boxed.HeaderSignature.S) == 0 {
-		t.Error("after signMessageBoxed, HeaderSignature.S is empty")
+
+	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if len(boxed.HeaderSignature.K) == 0 {
-		t.Error("after signMessageBoxed, HeaderSignature.K is empty")
+
+	// need to give it a server header...
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
 	}
-	if boxed.BodySignature.V != 2 {
-		t.Errorf("BodySignature.V = %d, expected 2", boxed.BodySignature.V)
+
+	// put original hash fn back
+	handler.boxer.hashV1 = origHashFn
+
+	_, err = handler.boxer.unboxMessageWithKey(*boxed, key)
+	if _, ok := err.(libkb.ChatBodyHashInvalid); !ok {
+		t.Fatalf("unexpected error for invalid body hash: %s", err)
 	}
-	if len(boxed.BodySignature.S) == 0 {
-		t.Error("after signMessageBoxed, BodySignature.S is empty")
+}
+
+func TestChatMessageInvalidHeaderSig(t *testing.T) {
+	key := cryptKey(t)
+	text := "hi"
+	tc, handler := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if len(boxed.BodySignature.K) == 0 {
-		t.Error("after signMessageBoxed, BodySignature.K is empty")
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+
+	signKP := getSigningKeyPairForTest(t, tc, u)
+
+	origSign := handler.boxer.sign
+	handler.boxer.sign = func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+		sig, err := kp.SignV2(msg, prefix)
+		if err != nil {
+			return chat1.SignatureInfo{}, err
+		}
+		sigInfo := chat1.SignatureInfo{
+			V: sig.Version,
+			S: sig.Sig[:],
+			K: sig.Kid,
+		}
+		// flip bits
+		sigInfo.S[4] ^= 0x10
+		return sigInfo, nil
+	}
+
+	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// need to give it a server header...
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+
+	// put original signing fn back
+	handler.boxer.sign = origSign
+
+	_, err = handler.boxer.unboxMessageWithKey(*boxed, key)
+	if _, ok := err.(libkb.BadSigError); !ok {
+		t.Fatalf("unexpected error for invalid header signature: %s", err)
+	}
+}
+
+func TestChatMessageInvalidSenderKey(t *testing.T) {
+	key := cryptKey(t)
+	text := "hi"
+	tc, handler := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+
+	// use a random signing key, not one of u's keys
+	signKP, err := libkb.GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+
+	_, err = handler.boxer.unboxMessageWithKey(*boxed, key)
+	if _, ok := err.(libkb.NoKeyError); !ok {
+		t.Fatalf("unexpected error for invalid sender key: %v", err)
 	}
 }

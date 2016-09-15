@@ -3,17 +3,17 @@ protocol remote {
 
   record MessageBoxed {
     // Only set when returned from the server; on the way up to the
-    // server, it's null.
+    // server, they are null.
     union { null, MessageServerHeader } serverHeader;
+    union { null, MessageBoxed } supersededBy;
 
-    // Sent as plaintext so that if the message is ever deleted, we can still
-    // validate that metadata.
+    // MessageClientHeader is needed by clients to get keys via TLF name.
+    // The server needs it as well for sender uid, device id.
     MessageClientHeader clientHeader;
-    // The signature of the above.
-    SignatureInfo headerSignature;
 
+    EncryptedData headerCiphertext;
     EncryptedData bodyCiphertext;
-    SignatureInfo bodySignature;
+
     int keyGeneration;
   }
 
