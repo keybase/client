@@ -6,6 +6,7 @@ import type {Props} from './post-proof'
 import {Box, LinkWithIcon, Text} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 import {subtitle} from '../util/platforms'
+import {resolveImageAsURL} from '../../desktop/resolve-root'
 
 type MoreProps = {
   descriptionView?: ?any,
@@ -52,10 +53,12 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'facebook':
       return {
         ...base,
-        descriptionView: <Text type='Body' {...styleCentered}>Click the link below and post.</Text>,
-        noteText: 'Make sure you\'re signed in to Facebook, and don\'t edit the text or title before submitting.',
+        descriptionView: <Box>
+          <Text type='Body' {...styleCentered}>Click the link below and post. The text can be whatever you like, but make sure the post is <Text type='BodySemibold'>public</Text>, like this:</Text>
+          <img src={resolveImageAsURL('facebook_visibility.gif')} />
+        </Box>,
         proofText: null,
-        proofActionText: 'Facebook form',
+        proofActionText: 'Facebook post',
         proofActionIcon: 'iconfont-open-browser',
         onCompleteText: 'OK posted! Check for it!',
       }
