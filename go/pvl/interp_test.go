@@ -22,13 +22,16 @@ type interpUnitTest struct {
 	prepvlstr string
 	service   keybase1.ProofType
 
-	// What api call to expect
-	restype     libkb.XAPIResType
-	resjson     string
-	reshtml     string
-	restext     string
-	urloverride string
+	// What api call to expect (for non-DNS)
+	restype libkb.XAPIResType
+	resjson string
+	reshtml string
+	restext string
+	resdns  map[string]([]string)
 	// (Optional) Expect a different url to be fetched than proofinfo.APIURL
+	urloverride string
+	// (Optional) Don't check that the xapi was hit exactly once.
+	allowmanyfetches bool
 
 	// Whether the proof should validate
 	shouldwork bool
@@ -39,6 +42,11 @@ type interpUnitTest struct {
 }
 
 var interpUnitTests = []interpUnitTest{
+	// There are a lot of these tests in a line.
+	// They are organized into sections with markdown-style headings.
+	// All tests are run by the single runPvlTest function. If you want to run
+	// just one test, set the `solo` variable there.
+
 	// # Basic tests
 	{
 		name:      "basichtml",
@@ -871,6 +879,158 @@ var interpUnitTests = []interpUnitTest{
 	// ## (Invalid) TransformURL
 	// No tests
 
+	// # Multiple Scripts
+	{
+		name:      "MultipleScripts-first-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok$"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"}
+]]`},
+		service:    keybase1.ProofType_FACEBOOK,
+		restype:    libkb.XAPIResText,
+		restext:    "ok",
+		shouldwork: true,
+	}, {
+		name:      "MultipleScripts-second-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok$"}
+]]`},
+		service:          keybase1.ProofType_FACEBOOK,
+		restype:          libkb.XAPIResText,
+		restext:          "ok",
+		allowmanyfetches: true,
+		shouldwork:       true,
+	}, {
+		name:      "MultipleScripts-both-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok$"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^ok"}
+]]`},
+		service:    keybase1.ProofType_FACEBOOK,
+		restype:    libkb.XAPIResText,
+		restext:    "ok",
+		shouldwork: true,
+	}, {
+		name:      "MultipleScripts-both-fail",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_FACEBOOK: `[[
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"
+  ,"error": "HOST_UNREACHABLE"}
+], [
+  {"fetch": "string"},
+  {"assert_regex_match": "^NO$"
+  ,"error": "HOST_UNREACHABLE"}
+]]`},
+		service:    keybase1.ProofType_FACEBOOK,
+		restype:    libkb.XAPIResText,
+		restext:    "ok",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_HOST_UNREACHABLE,
+	},
+
+	// # DNS tests
+	// Checking a DNS proof is different from checking other proofs.
+	// It runs each script against each TXT record of 2 domains.
+	// That mechanism is tested here.
+	// TODO
+	{
+		name:      "DNS-second-record-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[
+{"assert_regex_match": "^ok$"}
+]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname: {"NO", "ok"},
+		},
+		shouldwork: true,
+	}, {
+		name:      "DNS-_keybase-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[
+{"assert_regex_match": "^ok$"}
+]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname:               {"NO_1", "NO_2"},
+			"_keybase." + info1.Hostname: {"NO_3", "ok"},
+		},
+		shouldwork: true,
+	}, {
+		name:      "DNS-no-records",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[
+{"assert_regex_match": "^ok$"}
+]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname:               {},
+			"_keybase." + info1.Hostname: {},
+		},
+		shouldwork: false,
+	}, {
+		name:      "DNS-no-matching-records",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[
+{"assert_regex_match": "^ok$"}
+]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname:               {"NO_1"},
+			"_keybase." + info1.Hostname: {"NO_2", "NO_3"},
+		},
+		shouldwork: false,
+	}, {
+		name:      "DNS-error-then-succeed",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[
+{"assert_regex_match": "^ok$"}
+]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname:               {"ERROR"},
+			"_keybase." + info1.Hostname: {"ok"},
+		},
+		shouldwork: true,
+	}, {
+		name:      "DNS-error-then-succeed",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[[
+  {"assert_regex_match": "^ok1$"}
+], [
+  {"assert_regex_match": "^ok2$"}
+]]`},
+		service: keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname: {"NO_1", "ok2"},
+		},
+		shouldwork: true,
+	},
+
 	// # Custom Errors
 	{
 		// With a custom status, the code will change
@@ -1056,15 +1216,21 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 		url = unit.urloverride
 	}
 
-	switch unit.restype {
-	case libkb.XAPIResJSON:
-		xapi.Set(url, newExternalJSONRes(t, unit.resjson))
-	case libkb.XAPIResHTML:
-		xapi.SetHTML(url, newExternalHTMLRes(t, unit.reshtml))
-	case libkb.XAPIResText:
-		xapi.SetText(url, newExternalTextRes(t, unit.restext))
-	default:
-		fail("unsupported restype: %v", unit.restype)
+	isdns := unit.service == keybase1.ProofType_DNS
+
+	if isdns {
+		unit.proofinfo.stubDNS = newStubDNSEngine(unit.resdns)
+	} else {
+		switch unit.restype {
+		case libkb.XAPIResJSON:
+			xapi.Set(url, newExternalJSONRes(t, unit.resjson))
+		case libkb.XAPIResHTML:
+			xapi.SetHTML(url, newExternalHTMLRes(t, unit.reshtml))
+		case libkb.XAPIResText:
+			xapi.SetText(url, newExternalTextRes(t, unit.restext))
+		default:
+			fail("unsupported restype: %v", unit.restype)
+		}
 	}
 
 	perr := CheckProof(g, pvl, unit.service, unit.proofinfo)
@@ -1073,9 +1239,20 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 			fail("proof should have failed")
 		}
 
-		err = xapi.AssertCalledOnceWith(unit.restype, url)
-		if err != nil {
-			fail("%v", err)
+		err = nil
+		if isdns {
+			if !unit.proofinfo.stubDNS.IsOk() {
+				fail("DNS stub ran out of bounds")
+			}
+		} else {
+			if unit.allowmanyfetches {
+				err = xapi.AssertCalledWith(unit.restype, url)
+			} else {
+				err = xapi.AssertCalledOnceWith(unit.restype, url)
+			}
+			if err != nil {
+				fail("%v", err)
+			}
 		}
 	} else {
 		if unit.shouldwork {
@@ -1129,7 +1306,7 @@ func makeTestPvl(rules map[keybase1.ProofType]string) (*jsonw.Wrapper, error) {
 
 func newExternalJSONRes(t *testing.T, json string) *libkb.ExternalAPIRes {
 	if json == "" {
-		t.Fatalf("empty html string")
+		t.Fatalf("empty json string")
 	}
 	w, err := jsonw.Unmarshal([]byte(json))
 	if err != nil {
