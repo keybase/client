@@ -70,7 +70,7 @@ class SearchBar extends Component<void, Props, void> {
   }
 
   render () {
-    const services = ['Keybase', 'Twitter', 'Github', 'Coinbase', 'Reddit', 'Hackernews']
+    const services = ['Keybase', 'Twitter', 'Facebook', 'Github', 'Coinbase', 'Reddit', 'Hackernews']
     const tooltips: {[key: string]: ?string} = {'Hackernews': 'Hacker News'}
 
     return (

@@ -49,6 +49,16 @@ export function propsForPlatform (props: Props): MoreProps {
         proofActionIcon: 'iconfont-open-browser',
         onCompleteText: 'OK posted! Check for it!',
       }
+    case 'facebook':
+      return {
+        ...base,
+        descriptionView: <Text type='Body' {...styleCentered}>Click the link below and post.</Text>,
+        noteText: 'Make sure you\'re signed in to Facebook, and don\'t edit the text or title before submitting.',
+        proofText: null,
+        proofActionText: 'Facebook form',
+        proofActionIcon: 'iconfont-open-browser',
+        onCompleteText: 'OK posted! Check for it!',
+      }
     case 'github':
       return {
         ...base,

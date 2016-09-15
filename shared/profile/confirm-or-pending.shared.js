@@ -18,6 +18,10 @@ export function propsForPlatform (props: Props): Object {
       return {
         ...commonConfirm(props),
       }
+    case 'facebook':
+      return {
+        ...commonConfirm(props),
+      }
     case 'reddit':
       return {
         ...commonConfirm(props),
