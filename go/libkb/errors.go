@@ -10,7 +10,8 @@ import (
 	"os/exec"
 	"strings"
 
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 //=============================================================================
@@ -1525,21 +1526,21 @@ func (e ChatVersionError) Error() string {
 	return fmt.Sprintf("chat version error: unhandled %s version %d", e.Kind, e.Version)
 }
 
-func NewChatHeaderVersionError(version keybase1.HeaderPlaintextVersion) ChatVersionError {
+func NewChatHeaderVersionError(version chat1.HeaderPlaintextVersion) ChatVersionError {
 	return ChatVersionError{
 		Kind:    "header",
 		Version: int(version),
 	}
 }
 
-func NewChatBodyVersionError(version keybase1.BodyPlaintextVersion) ChatVersionError {
+func NewChatBodyVersionError(version chat1.BodyPlaintextVersion) ChatVersionError {
 	return ChatVersionError{
 		Kind:    "body",
 		Version: int(version),
 	}
 }
 
-func NewChatMessageVersionError(version keybase1.MessagePlaintextVersion) ChatVersionError {
+func NewChatMessageVersionError(version chat1.MessagePlaintextVersion) ChatVersionError {
 	return ChatVersionError{
 		Kind:    "message",
 		Version: int(version),

@@ -9,10 +9,9 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type conversationListView []keybase1.ConversationLocal
+type conversationListView []chat1.ConversationLocal
 
 // maxWidth must >= 3
 func (v conversationListView) renderConversationName(maxWidth int, index int) string {
@@ -77,7 +76,7 @@ func (v conversationListView) showSummaryOnMore(ui libkb.TerminalUI, totalMore i
 	}
 }
 
-type conversationView keybase1.ConversationLocal
+type conversationView chat1.ConversationLocal
 
 func (v conversationView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) {
 	if len(v.Messages) == 0 {
@@ -114,14 +113,14 @@ func (v conversationView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) {
 	})
 }
 
-type messageFormatter keybase1.Message
+type messageFormatter chat1.Message
 
 func (f messageFormatter) renderAuthorAndTime() string {
-	info := keybase1.Message(f).Info
+	info := chat1.Message(f).Info
 	if info == nil {
 		return "[] "
 	}
-	t := gregor1.FromTime(keybase1.Message(f).ServerHeader.Ctime)
+	t := gregor1.FromTime(chat1.Message(f).ServerHeader.Ctime)
 	// extra space to get around right aligned tab writer
 	return fmt.Sprintf("[%s (%s) %s] ", info.SenderUsername, info.SenderDeviceName, humanize.Time(t))
 }
@@ -133,7 +132,7 @@ func (f messageFormatter) body(g *libkb.GlobalContext) []string {
 		return nil
 	}
 	switch version {
-	case keybase1.MessagePlaintextVersion_V1:
+	case chat1.MessagePlaintextVersion_V1:
 		body := f.MessagePlaintext.V1().MessageBody
 		typ, err := body.MessageType()
 		if err != nil {

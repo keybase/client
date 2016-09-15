@@ -20,7 +20,7 @@ const (
 type chatLocalMock struct {
 }
 
-func (c *chatLocalMock) GetInboxLocal(ctx context.Context, arg keybase1.GetInboxLocalArg) (iview chat1.InboxView, err error) {
+func (c *chatLocalMock) GetInboxLocal(ctx context.Context, arg chat1.GetInboxLocalArg) (iview chat1.InboxView, err error) {
 	iview.Conversations = append(iview.Conversations, chat1.Conversation{
 		Metadata: chat1.ConversationMetadata{
 			ConversationID: chatLocalMockConversationID,
@@ -29,8 +29,8 @@ func (c *chatLocalMock) GetInboxLocal(ctx context.Context, arg keybase1.GetInbox
 	return iview, nil
 }
 
-func (c *chatLocalMock) mockMessage(idSeed byte, msgType chat1.MessageType, body keybase1.MessageBody) keybase1.Message {
-	return keybase1.Message{
+func (c *chatLocalMock) mockMessage(idSeed byte, msgType chat1.MessageType, body chat1.MessageBody) chat1.Message {
+	return chat1.Message{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageType:  msgType,
 			MessageID:    chat1.MessageID(idSeed),
@@ -38,7 +38,7 @@ func (c *chatLocalMock) mockMessage(idSeed byte, msgType chat1.MessageType, body
 			SenderDevice: gregor1.DeviceID{idSeed, 2},
 			Ctime:        gregor1.ToTime(time.Now().Add(-time.Duration(idSeed) * time.Minute)),
 		},
-		MessagePlaintext: keybase1.NewMessagePlaintextWithV1(keybase1.MessagePlaintextV1{
+		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
 				MessageType:  msgType,
 				TlfName:      "morty,rick,songgao",
@@ -54,24 +54,24 @@ func (c *chatLocalMock) mockMessage(idSeed byte, msgType chat1.MessageType, body
 	}
 }
 
-func (c *chatLocalMock) GetThreadLocal(ctx context.Context, arg keybase1.GetThreadLocalArg) (tview keybase1.ThreadView, err error) {
+func (c *chatLocalMock) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg) (tview chat1.ThreadView, err error) {
 	if arg.ConversationID != chatLocalMockConversationID {
 		return tview, errors.New("unexpected ConversationID")
 	}
 
-	body := keybase1.NewMessageBodyWithText(keybase1.MessageText{
+	body := chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "O_O blah blah blah this is a really long line and I don't know what I'm talking about hahahahaha OK long enough",
 	})
 	msg := c.mockMessage(2, chat1.MessageType_TEXT, body)
 	tview.Messages = append(tview.Messages, msg)
 
-	body = keybase1.NewMessageBodyWithText(keybase1.MessageText{
+	body = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "Not much; just drinking.",
 	})
 	msg = c.mockMessage(3, chat1.MessageType_TEXT, body)
 	tview.Messages = append(tview.Messages, msg)
 
-	body = keybase1.NewMessageBodyWithText(keybase1.MessageText{
+	body = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "Hey what's up!",
 	})
 	msg = c.mockMessage(4, chat1.MessageType_TEXT, body)
@@ -80,7 +80,7 @@ func (c *chatLocalMock) GetThreadLocal(ctx context.Context, arg keybase1.GetThre
 	return tview, nil
 }
 
-func (c *chatLocalMock) PostLocal(ctx context.Context, arg keybase1.PostLocalArg) error {
+func (c *chatLocalMock) PostLocal(ctx context.Context, arg chat1.PostLocalArg) error {
 	return errors.New("PostLocal not implemented")
 }
 
@@ -89,8 +89,8 @@ func (c *chatLocalMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfN
 	return keybase1.CanonicalTlfName(tlfName), nil
 }
 
-func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg keybase1.ConversationInfoLocal) (conversations []keybase1.ConversationInfoLocal, err error) {
-	conversations = append(conversations, keybase1.ConversationInfoLocal{
+func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg chat1.ConversationInfoLocal) (conversations []chat1.ConversationInfoLocal, err error) {
+	conversations = append(conversations, chat1.ConversationInfoLocal{
 		TlfName:   "morty,rick,songgao",
 		TopicName: "random",
 		TopicType: chat1.TopicType_CHAT,
@@ -99,13 +99,13 @@ func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg keybas
 	return conversations, nil
 }
 
-func (c *chatLocalMock) GetInboxSummaryLocal(ctx context.Context, arg keybase1.GetInboxSummaryLocalArg) (res keybase1.GetInboxSummaryLocalRes, err error) {
-	res.Conversations, err = c.GetMessagesLocal(ctx, keybase1.MessageSelector{})
+func (c *chatLocalMock) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalArg) (res chat1.GetInboxSummaryLocalRes, err error) {
+	res.Conversations, err = c.GetMessagesLocal(ctx, chat1.MessageSelector{})
 	if err != nil {
 		return res, err
 	}
 
-	res.More, err = c.GetMessagesLocal(ctx, keybase1.MessageSelector{})
+	res.More, err = c.GetMessagesLocal(ctx, chat1.MessageSelector{})
 	if err != nil {
 		return res, err
 	}
@@ -118,24 +118,24 @@ func (c *chatLocalMock) GetInboxSummaryLocal(ctx context.Context, arg keybase1.G
 	return res, nil
 }
 
-func (c *chatLocalMock) UpdateTopicNameLocal(ctx context.Context, arg keybase1.UpdateTopicNameLocalArg) (err error) {
+func (c *chatLocalMock) UpdateTopicNameLocal(ctx context.Context, arg chat1.UpdateTopicNameLocalArg) (err error) {
 	return errors.New("UpdateTopicNameLocal not implemented")
 }
 
-func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationLocal, err error) {
-	tview, err := c.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
+func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg chat1.MessageSelector) (messages []chat1.ConversationLocal, err error) {
+	tview, err := c.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 		ConversationID: chatLocalMockConversationID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	tview.Messages[0].Info = &keybase1.MessageInfoLocal{IsNew: true, SenderUsername: "songgao", SenderDeviceName: "MacBook"}
-	tview.Messages[1].Info = &keybase1.MessageInfoLocal{IsNew: true, SenderUsername: "rick", SenderDeviceName: "bottle-opener"}
-	tview.Messages[2].Info = &keybase1.MessageInfoLocal{IsNew: false, SenderUsername: "morty", SenderDeviceName: "toothbrush"}
-	return []keybase1.ConversationLocal{
-		keybase1.ConversationLocal{
+	tview.Messages[0].Info = &chat1.MessageInfoLocal{IsNew: true, SenderUsername: "songgao", SenderDeviceName: "MacBook"}
+	tview.Messages[1].Info = &chat1.MessageInfoLocal{IsNew: true, SenderUsername: "rick", SenderDeviceName: "bottle-opener"}
+	tview.Messages[2].Info = &chat1.MessageInfoLocal{IsNew: false, SenderUsername: "morty", SenderDeviceName: "toothbrush"}
+	return []chat1.ConversationLocal{
+		chat1.ConversationLocal{
 			Id: chatLocalMockConversationID,
-			Info: &keybase1.ConversationInfoLocal{
+			Info: &chat1.ConversationInfoLocal{
 				TlfName:   "morty,rick,songgao",
 				TopicName: "",
 				TopicType: chat1.TopicType_CHAT,
@@ -145,7 +145,7 @@ func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.Messa
 	}, nil
 }
 
-func (c *chatLocalMock) NewConversationLocal(ctx context.Context, cID keybase1.ConversationInfoLocal) (id keybase1.ConversationInfoLocal, err error) {
+func (c *chatLocalMock) NewConversationLocal(ctx context.Context, cID chat1.ConversationInfoLocal) (id chat1.ConversationInfoLocal, err error) {
 	return id, errors.New("NewConversationLocal not implemented")
 }
 
@@ -177,7 +177,7 @@ func TestCliRead(t *testing.T) {
 	c := &cmdChatRead{
 		Contextified: libkb.NewContextified(g),
 		fetcher: messageFetcher{
-			selector: keybase1.MessageSelector{
+			selector: chat1.MessageSelector{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 				Limit:        0,
 			},

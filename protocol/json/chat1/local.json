@@ -1,11 +1,6 @@
 {
-  "protocol": "chatLocal",
+  "protocol": "local",
   "imports": [
-    {
-      "path": "github.com/keybase/client/go/protocol/chat1",
-      "type": "idl",
-      "import_as": "chat1"
-    },
     {
       "path": "github.com/keybase/client/go/protocol/gregor1",
       "type": "idl",
@@ -42,7 +37,7 @@
       "name": "MessageEdit",
       "fields": [
         {
-          "type": "chat1.MessageID",
+          "type": "MessageID",
           "name": "messageID"
         },
         {
@@ -56,7 +51,7 @@
       "name": "MessageDelete",
       "fields": [
         {
-          "type": "chat1.MessageID",
+          "type": "MessageID",
           "name": "messageID"
         }
       ]
@@ -75,7 +70,7 @@
       "type": "variant",
       "name": "MessageBody",
       "switch": {
-        "type": "chat1.MessageType",
+        "type": "MessageType",
         "name": "messageType"
       },
       "cases": [
@@ -128,7 +123,7 @@
       "name": "MessagePlaintextV1",
       "fields": [
         {
-          "type": "chat1.MessageClientHeader",
+          "type": "MessageClientHeader",
           "name": "clientHeader"
         },
         {
@@ -166,7 +161,7 @@
       "name": "HeaderPlaintextV1",
       "fields": [
         {
-          "type": "chat1.ConversationIDTriple",
+          "type": "ConversationIDTriple",
           "name": "conv"
         },
         {
@@ -174,13 +169,13 @@
           "name": "tlfName"
         },
         {
-          "type": "chat1.MessageType",
+          "type": "MessageType",
           "name": "messageType"
         },
         {
           "type": {
             "type": "array",
-            "items": "chat1.MessagePreviousPointer"
+            "items": "MessagePreviousPointer"
           },
           "name": "prev"
         },
@@ -193,13 +188,13 @@
           "name": "senderDevice"
         },
         {
-          "type": "chat1.Hash",
+          "type": "Hash",
           "name": "bodyHash"
         },
         {
           "type": [
             null,
-            "chat1.SignatureInfo"
+            "SignatureInfo"
           ],
           "name": "headerSignature"
         }
@@ -279,7 +274,7 @@
       "name": "Message",
       "fields": [
         {
-          "type": "chat1.MessageServerHeader",
+          "type": "MessageServerHeader",
           "name": "serverHeader"
         },
         {
@@ -309,7 +304,7 @@
         {
           "type": [
             null,
-            "chat1.Pagination"
+            "Pagination"
           ],
           "name": "pagination"
         }
@@ -322,7 +317,7 @@
         {
           "type": {
             "type": "array",
-            "items": "chat1.MessageType"
+            "items": "MessageType"
           },
           "name": "MessageTypes"
         },
@@ -344,7 +339,7 @@
         {
           "type": {
             "type": "array",
-            "items": "chat1.ConversationID"
+            "items": "ConversationID"
           },
           "name": "conversations"
         },
@@ -359,7 +354,7 @@
       "name": "ConversationInfoLocal",
       "fields": [
         {
-          "type": "chat1.ConversationID",
+          "type": "ConversationID",
           "name": "id"
         },
         {
@@ -371,7 +366,7 @@
           "name": "topicName"
         },
         {
-          "type": "chat1.TopicType",
+          "type": "TopicType",
           "name": "topicType"
         }
       ]
@@ -381,7 +376,7 @@
       "name": "ConversationLocal",
       "fields": [
         {
-          "type": "chat1.ConversationID",
+          "type": "ConversationID",
           "name": "id"
         },
         {
@@ -432,37 +427,37 @@
           "name": "query",
           "type": [
             null,
-            "chat1.GetInboxQuery"
+            "GetInboxQuery"
           ]
         },
         {
           "name": "pagination",
           "type": [
             null,
-            "chat1.Pagination"
+            "Pagination"
           ]
         }
       ],
-      "response": "chat1.InboxView"
+      "response": "InboxView"
     },
     "getThreadLocal": {
       "request": [
         {
           "name": "conversationID",
-          "type": "chat1.ConversationID"
+          "type": "ConversationID"
         },
         {
           "name": "query",
           "type": [
             null,
-            "chat1.GetThreadQuery"
+            "GetThreadQuery"
           ]
         },
         {
           "name": "pagination",
           "type": [
             null,
-            "chat1.Pagination"
+            "Pagination"
           ]
         }
       ],
@@ -472,7 +467,7 @@
       "request": [
         {
           "name": "conversationID",
-          "type": "chat1.ConversationID"
+          "type": "ConversationID"
         },
         {
           "name": "messagePlaintext",
@@ -506,7 +501,7 @@
       "request": [
         {
           "name": "conversationID",
-          "type": "chat1.ConversationID"
+          "type": "ConversationID"
         },
         {
           "name": "newTopicName",
@@ -531,7 +526,7 @@
       "request": [
         {
           "name": "topicType",
-          "type": "chat1.TopicType"
+          "type": "TopicType"
         },
         {
           "name": "after",
@@ -547,16 +542,7 @@
         }
       ],
       "response": "GetInboxSummaryLocalRes"
-    },
-    "completeAndCanonicalizeTlfName": {
-      "request": [
-        {
-          "name": "tlfName",
-          "type": "string"
-        }
-      ],
-      "response": "CanonicalTlfName"
     }
   },
-  "namespace": "keybase.1"
+  "namespace": "chat.1"
 }

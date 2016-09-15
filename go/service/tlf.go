@@ -42,3 +42,24 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, tlfName string) (keybase1.TL
 	}
 	return tlfClient.GetTLFCryptKeys(ctx, tlfName)
 }
+
+func (h *tlfHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
+	username := h.G().Env.GetUsername()
+	if len(username) == 0 {
+		return res, libkb.InvalidArgumentError{Msg: "Username is empty. Are you logged in?"}
+	}
+
+	// Append username in case it's not present. We don't need to check if it
+	// exists already since CryptKeys calls below transforms the TLF name into a
+	// canonical one.
+	tlfName = tlfName + "," + string(username)
+
+	// TODO: do some caching so we don't end up calling this RPC
+	// unnecessarily too often
+	resp, err := h.CryptKeys(ctx, tlfName)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.CanonicalName, nil
+}
