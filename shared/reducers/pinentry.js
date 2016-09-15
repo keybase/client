@@ -25,7 +25,7 @@ export type PinentryState = {
 export type RootPinentryState = {
   started: boolean,
   pinentryStates: {
-    [key: number]: PinentryState
+    [key: string]: PinentryState
   }
 }
 
@@ -83,7 +83,7 @@ export default function (state: RootPinentryState = initialState, action: Pinent
           ...state,
           pinentryStates: {
             ...state.pinentryStates,
-            [sessionID]: updatePinentryState(state.pinentryStates[sessionID] || {}, action),
+            [sessionID]: updatePinentryState(state.pinentryStates[sessionID + ''] || {}, action),
           },
         }
       }

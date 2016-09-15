@@ -187,6 +187,7 @@ const stylesTabsContainer = {
   flex: 1,
 }
 
+// $FlowIssue type this connector
 export default connect(
   ({
     router,

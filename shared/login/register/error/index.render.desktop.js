@@ -8,8 +8,9 @@ import {ConstantsStatusCode} from '../../../constants/types/flow-types'
 import {Text} from '../../../common-adapters'
 
 const renderError = (error: RPCError) => {
-  const fields = (error.fields || []).reduce((acc, f) => {
-    acc[f.key] = f.value
+  const fields = (Array.isArray(error.fields) ? error.fields : []).reduce((acc, f) => {
+    const k = f && typeof f.key === 'string' ? f.key : ''
+    acc[k] = f.value || ''
     return acc
   }, {})
   switch (error.code) {

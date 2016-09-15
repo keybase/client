@@ -4,7 +4,7 @@
 import * as gregor1 from './flow-types-gregor'
 
 import engine from '../../engine'
-import type {$Exact} from './more'
+import type {Exact} from './more'
 export type int = number
 export type int64 = number
 export type uint = number
@@ -58,7 +58,7 @@ export const CommonTopicType = {
   dev: 2,
 }
 
-export function remoteGetInboxRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
+export function remoteGetInboxRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.getInboxRemote'})
 }
 
@@ -66,7 +66,7 @@ export function remoteGetInboxRemoteRpcPromise (request: $Exact<requestCommon & 
   return new Promise((resolve, reject) => { remoteGetInboxRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function remoteGetMessagesRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetMessagesRemoteResult) => void} & {param: remoteGetMessagesRemoteRpcParam}>) {
+export function remoteGetMessagesRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetMessagesRemoteResult) => void} & {param: remoteGetMessagesRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.getMessagesRemote'})
 }
 
@@ -74,7 +74,7 @@ export function remoteGetMessagesRemoteRpcPromise (request: $Exact<requestCommon
   return new Promise((resolve, reject) => { remoteGetMessagesRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function remoteGetThreadRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>) {
+export function remoteGetThreadRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.getThreadRemote'})
 }
 
@@ -82,7 +82,7 @@ export function remoteGetThreadRemoteRpcPromise (request: $Exact<requestCommon &
   return new Promise((resolve, reject) => { remoteGetThreadRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function remoteMarkAsReadRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteMarkAsReadResult) => void} & {param: remoteMarkAsReadRpcParam}>) {
+export function remoteMarkAsReadRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteMarkAsReadResult) => void} & {param: remoteMarkAsReadRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.markAsRead'})
 }
 
@@ -90,7 +90,7 @@ export function remoteMarkAsReadRpcPromise (request: $Exact<requestCommon & {cal
   return new Promise((resolve, reject) => { remoteMarkAsReadRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function remoteNewConversationRemote2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemote2Result) => void} & {param: remoteNewConversationRemote2RpcParam}>) {
+export function remoteNewConversationRemote2Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemote2Result) => void} & {param: remoteNewConversationRemote2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.newConversationRemote2'})
 }
 
@@ -98,7 +98,7 @@ export function remoteNewConversationRemote2RpcPromise (request: $Exact<requestC
   return new Promise((resolve, reject) => { remoteNewConversationRemote2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function remoteNewConversationRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemoteResult) => void} & {param: remoteNewConversationRemoteRpcParam}>) {
+export function remoteNewConversationRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemoteResult) => void} & {param: remoteNewConversationRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.newConversationRemote'})
 }
 
@@ -106,7 +106,7 @@ export function remoteNewConversationRemoteRpcPromise (request: $Exact<requestCo
   return new Promise((resolve, reject) => { remoteNewConversationRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function remotePostRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remotePostRemoteResult) => void} & {param: remotePostRemoteRpcParam}>) {
+export function remotePostRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remotePostRemoteResult) => void} & {param: remotePostRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.postRemote'})
 }
 
@@ -187,6 +187,8 @@ export type GetThreadRemoteRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type Hash = bytes
+
 export type InboxView = {
   conversations?: ?Array<Conversation>,
   pagination?: ?Pagination,
@@ -199,9 +201,8 @@ export type MarkAsReadRes = {
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
   clientHeader: MessageClientHeader,
-  headerSignature: SignatureInfo,
+  headerCiphertext: EncryptedData,
   bodyCiphertext: EncryptedData,
-  bodySignature: SignatureInfo,
   keyGeneration: int,
 }
 
@@ -218,7 +219,7 @@ export type MessageID = uint
 
 export type MessagePreviousPointer = {
   id: MessageID,
-  hash: bytes,
+  hash: Hash,
 }
 
 export type MessageServerHeader = {
@@ -295,37 +296,37 @@ export type TopicType =
   | 1 // CHAT_1
   | 2 // DEV_2
 
-export type remoteGetInboxRemoteRpcParam = $Exact<{
+export type remoteGetInboxRemoteRpcParam = Exact<{
   query?: ?GetInboxQuery,
   pagination?: ?Pagination
 }>
 
-export type remoteGetMessagesRemoteRpcParam = $Exact<{
+export type remoteGetMessagesRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   messageIDs?: ?Array<MessageID>
 }>
 
-export type remoteGetThreadRemoteRpcParam = $Exact<{
+export type remoteGetThreadRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   query?: ?GetThreadQuery,
   pagination?: ?Pagination
 }>
 
-export type remoteMarkAsReadRpcParam = $Exact<{
+export type remoteMarkAsReadRpcParam = Exact<{
   conversationID: ConversationID,
   msgID: MessageID
 }>
 
-export type remoteNewConversationRemote2RpcParam = $Exact<{
+export type remoteNewConversationRemote2RpcParam = Exact<{
   idTriple: ConversationIDTriple,
   TLFMessage: MessageBoxed
 }>
 
-export type remoteNewConversationRemoteRpcParam = $Exact<{
+export type remoteNewConversationRemoteRpcParam = Exact<{
   idTriple: ConversationIDTriple
 }>
 
-export type remotePostRemoteRpcParam = $Exact<{
+export type remotePostRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   messageBoxed: MessageBoxed
 }>
@@ -352,6 +353,6 @@ export type rpc =
   | remoteNewConversationRemote2Rpc
   | remoteNewConversationRemoteRpc
   | remotePostRemoteRpc
-export type incomingCallMapType = $Exact<{
+export type incomingCallMapType = Exact<{
 
 }>

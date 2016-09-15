@@ -17,7 +17,7 @@ class SetPublicName extends Component<void, Props, State> {
   }
 
   render () {
-    const nameTaken = !!(this.props.existingDevices && this.props.existingDevices.indexOf(this.state.deviceName) !== -1)
+    const nameTaken = !!(this.props.existingDevices && this.state.deviceName && this.props.existingDevices.indexOf(this.state.deviceName) !== -1)
     const submitEnabled = !!(this.state.deviceName && this.state.deviceName.length && !nameTaken)
     const nameTakenError = nameTaken ? `The device name: ${this.state.deviceName || ''} is already taken` : null
 
@@ -28,6 +28,7 @@ class SetPublicName extends Component<void, Props, State> {
         onSubmit={() => this.props.onSubmit(this.state.deviceName)}
         onBack={this.props.onBack}
         deviceNameError={nameTakenError || this.props.deviceNameError}
+        existingDevices={this.props.existingDevices}
         submitEnabled={submitEnabled}
         waiting={this.props.waiting}
       />
@@ -45,8 +46,10 @@ class SetPublicName extends Component<void, Props, State> {
   }
 }
 
+type OwnProps = any
+
 export default connect(
-  state => ({waiting: state.login.waitingForResponse})
+  (state: any, op: OwnProps) => ({waiting: state.login.waitingForResponse})
 )(SetPublicName)
 
 export {

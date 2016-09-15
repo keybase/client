@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 // +build !production
@@ -111,6 +111,24 @@ func (e *stubAPIEngine) AssertCalledOnceWith(kind libkb.XAPIResType, endpoint st
 			expected.kind, expected.endpoint, call.kind, call.endpoint)
 	}
 	return nil
+}
+
+func (e *stubAPIEngine) AssertCalledWith(kind libkb.XAPIResType, endpoint string) error {
+	if len(e.calls) == 0 {
+		return fmt.Errorf("stub api not called")
+	}
+	ok := false
+	for _, call := range e.calls {
+		expected := stubAPIEngineCallRecord{kind, endpoint}
+		if call == expected {
+			ok = true
+		}
+	}
+	if ok {
+		return nil
+	}
+	return fmt.Errorf("stub api never called with arguments: %v %v",
+		kind, endpoint)
 }
 
 func (e *stubAPIEngine) getMock(arg libkb.APIArg, restype libkb.XAPIResType) (

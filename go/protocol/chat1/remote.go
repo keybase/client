@@ -9,12 +9,11 @@ import (
 )
 
 type MessageBoxed struct {
-	ServerHeader    *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
-	ClientHeader    MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
-	HeaderSignature SignatureInfo        `codec:"headerSignature" json:"headerSignature"`
-	BodyCiphertext  EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
-	BodySignature   SignatureInfo        `codec:"bodySignature" json:"bodySignature"`
-	KeyGeneration   int                  `codec:"keyGeneration" json:"keyGeneration"`
+	ServerHeader     *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
+	ClientHeader     MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
+	HeaderCiphertext EncryptedData        `codec:"headerCiphertext" json:"headerCiphertext"`
+	BodyCiphertext   EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
+	KeyGeneration    int                  `codec:"keyGeneration" json:"keyGeneration"`
 }
 
 type ThreadViewBoxed struct {

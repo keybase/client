@@ -13,6 +13,7 @@ type MessageID uint
 type TopicID []byte
 type ConversationID uint64
 type TLFID []byte
+type Hash []byte
 type MessageType int
 
 const (
@@ -149,7 +150,7 @@ type MessageServerHeader struct {
 
 type MessagePreviousPointer struct {
 	Id   MessageID `codec:"id" json:"id"`
-	Hash []byte    `codec:"hash" json:"hash"`
+	Hash Hash      `codec:"hash" json:"hash"`
 }
 
 type MessageClientHeader struct {

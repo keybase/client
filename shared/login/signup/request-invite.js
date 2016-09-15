@@ -37,6 +37,7 @@ class RequestInvite extends Component {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   state => ({
     emailErrorText: state.signup.emailError,

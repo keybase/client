@@ -105,11 +105,9 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 			return fmt.Errorf("error preparing message: %s", err)
 		}
 
-		h.G().Log.Warning("firstMessageBoxed: %+v", firstMessageBoxed)
-
 		res, err := h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,
-			TLFMessage: firstMessageBoxed,
+			TLFMessage: *firstMessageBoxed,
 		})
 		if err != nil {
 			return err
@@ -133,11 +131,11 @@ func (h *chatLocalHandler) UpdateTopicNameLocal(ctx context.Context, arg keybase
 	})
 }
 
-func makeFirstMessage(ctx context.Context, conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple) (unboxed keybase1.MessagePlaintext) {
+func makeFirstMessage(ctx context.Context, conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple) keybase1.MessagePlaintext {
 	if len(conversationInfo.TopicName) > 0 {
 		return makeUnboxedMessageToUpdateTopicName(ctx, conversationInfo, triple)
 	}
-	return keybase1.MessagePlaintext{
+	v1 := keybase1.MessagePlaintextV1{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        triple,
 			TlfName:     conversationInfo.TlfName,
@@ -145,12 +143,12 @@ func makeFirstMessage(ctx context.Context, conversationInfo keybase1.Conversatio
 			Prev:        nil, // TODO
 			// Sender and SenderDevice filled by PostLocal
 		},
-		MessageBodies: nil,
 	}
+	return keybase1.NewMessagePlaintextWithV1(v1)
 }
 
 func makeUnboxedMessageToUpdateTopicName(ctx context.Context, conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple) (unboxed keybase1.MessagePlaintext) {
-	return keybase1.MessagePlaintext{
+	v1 := keybase1.MessagePlaintextV1{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        triple,
 			TlfName:     conversationInfo.TlfName,
@@ -158,12 +156,12 @@ func makeUnboxedMessageToUpdateTopicName(ctx context.Context, conversationInfo k
 			Prev:        nil, // TODO
 			// Sender and SenderDevice filled by PostLocal
 		},
-		MessageBodies: []keybase1.MessageBody{keybase1.NewMessageBodyWithMetadata(
+		MessageBody: keybase1.NewMessageBodyWithMetadata(
 			keybase1.MessageConversationMetadata{
 				ConversationTitle: conversationInfo.TopicName,
 			}),
-		},
 	}
+	return keybase1.NewMessagePlaintextWithV1(v1)
 }
 
 func (h *chatLocalHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
@@ -289,6 +287,7 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ke
 	if tlfIDb == nil {
 		return nil, errors.New("invalid TLF ID acquired")
 	}
+	criteria.TlfName = string(resp.CanonicalName)
 
 	tlfID := chat1.TLFID(tlfIDb)
 	query := &chat1.GetInboxQuery{
@@ -358,18 +357,25 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 
 		maxMessages = append(maxMessages, unboxed)
 
-		if len(unboxed.MessagePlaintext.MessageBodies) > 0 {
-			body := unboxed.MessagePlaintext.MessageBodies[0]
+		version, err := unboxed.MessagePlaintext.Version()
+		if err != nil {
+			return conversationInfo, triple, maxMessages, err
+		}
+		switch version {
+		case keybase1.MessagePlaintextVersion_V1:
+			body := unboxed.MessagePlaintext.V1().MessageBody
 			if t, err := body.MessageType(); err != nil {
 				return conversationInfo, triple, maxMessages, err
 			} else if t == chat1.MessageType_METADATA {
 				conversationInfo.TopicName = body.Metadata().ConversationTitle
 			}
+			if unboxed.ServerHeader.MessageID.String() == conversationRemote.ReaderInfo.MaxMsgid.String() {
+				conversationInfo.TlfName = unboxed.MessagePlaintext.V1().ClientHeader.TlfName
+			}
+		default:
+			return conversationInfo, triple, maxMessages, libkb.NewChatMessageVersionError(version)
 		}
 
-		if unboxed.ServerHeader.MessageID.String() == conversationRemote.ReaderInfo.MaxMsgid.String() {
-			conversationInfo.TlfName = unboxed.MessagePlaintext.ClientHeader.TlfName
-		}
 	}
 
 	if len(conversationInfo.TlfName) == 0 {
@@ -385,13 +391,22 @@ func (h *chatLocalHandler) fillMessageInfoLocal(ctx context.Context, m *keybase1
 	m.Info = &keybase1.MessageInfoLocal{
 		IsNew: isNew,
 	}
-	if m.Info.SenderUsername, err = h.userInfoMapper.getUsername(ctx, keybase1.UID(m.MessagePlaintext.ClientHeader.Sender.String())); err != nil {
+	version, err := m.MessagePlaintext.Version()
+	if err != nil {
 		return err
 	}
-	if m.Info.SenderDeviceName, err = h.userInfoMapper.getDeviceName(ctx, keybase1.DeviceID(m.MessagePlaintext.ClientHeader.SenderDevice.String())); err != nil {
-		return err
+	switch version {
+	case keybase1.MessagePlaintextVersion_V1:
+		if m.Info.SenderUsername, err = h.userInfoMapper.getUsername(ctx, keybase1.UID(m.MessagePlaintext.V1().ClientHeader.Sender.String())); err != nil {
+			return err
+		}
+		if m.Info.SenderDeviceName, err = h.userInfoMapper.getDeviceName(ctx, keybase1.DeviceID(m.MessagePlaintext.V1().ClientHeader.SenderDevice.String())); err != nil {
+			return err
+		}
+		return nil
+	default:
+		return libkb.NewChatMessageVersionError(version)
 	}
-	return nil
 }
 
 func (h *chatLocalHandler) makeConversationLocal(ctx context.Context, conversationRemote chat1.Conversation, messages []keybase1.Message) (conversation keybase1.ConversationLocal, err error) {
@@ -440,10 +455,6 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversa
 	}
 
 	for _, m := range tview.Messages {
-		if len(m.MessagePlaintext.MessageBodies) == 0 {
-			continue
-		}
-
 		isNew := false
 		if conversationRemote.ReaderInfo != nil && m.ServerHeader.MessageID > conversationRemote.ReaderInfo.ReadMsgid {
 			isNew = true
@@ -518,51 +529,69 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.Me
 	return conversations, nil
 }
 
-func (h *chatLocalHandler) fillSenderIDsForPostLocal(arg *keybase1.MessagePlaintext) error {
+func (h *chatLocalHandler) addSenderToMessage(msg keybase1.MessagePlaintext) (keybase1.MessagePlaintext, error) {
 	ok, err := h.G().LoginState().LoggedInProvisionedLoad()
 	if err != nil {
-		return err
+		return msg, err
 	}
 	if !ok {
-		return libkb.LoginRequiredError{}
+		return msg, libkb.LoginRequiredError{}
 	}
 
 	uid := h.G().Env.GetUID()
 	if uid.IsNil() {
-		return libkb.LoginRequiredError{}
+		return msg, libkb.LoginRequiredError{}
 	}
 	did := h.G().Env.GetDeviceID()
 	if did.IsNil() {
-		return libkb.DeviceRequiredError{}
+		return msg, libkb.DeviceRequiredError{}
 	}
 
 	huid := uid.ToBytes()
 	if huid == nil {
-		return errors.New("invalid UID")
+		return msg, errors.New("invalid UID")
 	}
-	arg.ClientHeader.Sender = gregor1.UID(huid)
 
 	hdid := make([]byte, libkb.DeviceIDLen)
 	if err = did.ToBytes(hdid); err != nil {
-		return err
+		return msg, err
 	}
-	arg.ClientHeader.SenderDevice = gregor1.DeviceID(hdid)
 
-	return nil
+	version, err := msg.Version()
+	if err != nil {
+		return msg, err
+	}
+
+	switch version {
+	case keybase1.MessagePlaintextVersion_V1:
+		header := msg.V1().ClientHeader
+		header.Sender = gregor1.UID(huid)
+		header.SenderDevice = gregor1.DeviceID(hdid)
+		updated := keybase1.MessagePlaintextV1{
+			ClientHeader: header,
+			MessageBody:  msg.V1().MessageBody,
+		}
+		return keybase1.NewMessagePlaintextWithV1(updated), nil
+	default:
+		return msg, libkb.NewChatMessageVersionError(version)
+	}
+
 }
 
-func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintext keybase1.MessagePlaintext) (boxed chat1.MessageBoxed, err error) {
-	if err := h.fillSenderIDsForPostLocal(&plaintext); err != nil {
-		return boxed, err
+func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintext keybase1.MessagePlaintext) (*chat1.MessageBoxed, error) {
+	msg, err := h.addSenderToMessage(plaintext)
+	if err != nil {
+		return nil, err
 	}
+
 	// encrypt the message
 	skp, err := h.getSigningKeyPair()
 	if err != nil {
-		return boxed, err
+		return nil, err
 	}
-	boxed, err = h.boxer.boxMessage(ctx, plaintext, skp)
+	boxed, err := h.boxer.boxMessage(ctx, msg, skp)
 	if err != nil {
-		return boxed, err
+		return nil, err
 	}
 
 	// TODO: populate plaintext.ClientHeader.Conv
@@ -580,7 +609,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg keybase1.PostLocal
 	// post to remote gregord
 	rarg := chat1.PostRemoteArg{
 		ConversationID: arg.ConversationID,
-		MessageBoxed:   boxed,
+		MessageBoxed:   *boxed,
 	}
 
 	_, err = h.remoteClient().PostRemote(ctx, rarg)

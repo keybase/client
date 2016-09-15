@@ -16,7 +16,7 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
   const tlf = `/keybase${getTLF(notification.publicTopLevelFolder, basedir)}`
   switch (notification.errorType) {
     case KbfsCommonFSErrorType.accessDenied:
-      let prefix = user ? `${user} does ` : 'You do '
+      let prefix = user ? `${user} does` : 'You do'
       return {
         title: 'Keybase: Access denied',
         body: `${prefix} not have ${notification.params.mode} access to ${tlf}`,

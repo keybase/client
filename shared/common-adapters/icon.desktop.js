@@ -1,13 +1,14 @@
 // @flow
 import * as shared from './icon.shared'
 import React, {PureComponent} from 'react'
-import type {$Exact} from '../constants/types/more'
-import type {Props} from './icon'
 import {FontIcon} from 'material-ui'
 import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
-class Icon extends PureComponent<void, $Exact<Props>, void> {
+import type {Exact} from '../constants/types/more'
+import type {Props} from './icon'
+
+class Icon extends PureComponent<void, Exact<Props>, void> {
   render () {
     let color = shared.defaultColor(this.props.type)
     let hoverColor = shared.defaultHoverColor(this.props.type)

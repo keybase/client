@@ -36,6 +36,7 @@ export type SearchResult = {
   icon: IconType,
   username: string,
   serviceName: SearchPlatforms,
+  serviceAvatar: string, // i.e. with twitter it would be their twitter avatar url
   profileUrl: string,
   extraInfo: ExtraInfo,
   keybaseSearchResult: ?SearchResult, // If we want to grab the keybase version of a search result

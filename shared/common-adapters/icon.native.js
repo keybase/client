@@ -1,14 +1,14 @@
 // @flow
 import * as shared from './icon.shared'
 import React, {Component} from 'react'
-import type {$Exact} from '../constants/types/more'
+import type {Exact} from '../constants/types/more'
 import type {Props} from './icon'
 import {NativeText, NativeImage} from './index.native'
 import {TouchableHighlight} from 'react-native'
 import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 
-class Icon extends Component<void, $Exact<Props>, void> {
+class Icon extends Component<void, Exact<Props>, void> {
   render () {
     let color = shared.defaultColor(this.props.type)
     let iconType = shared.typeToIconMapper(this.props.type)

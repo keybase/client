@@ -43,7 +43,7 @@ for (const method in console) {
   }
 }
 
-const loggerMiddleware = enableStoreLogging ? createLogger({
+const loggerMiddleware: any = enableStoreLogging ? createLogger({
   duration: true,
   stateTransformer: objToJS,
   actionTransformer: objToJS,

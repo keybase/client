@@ -262,7 +262,6 @@ Object.keys(icons).map(name => {
       meta.push(`charCode: ${icons[name].charCode},`)
     }
     if (icon.require) {
-      meta.push('// $FlowIssue')
       meta.push(`require: require(${icons[name].require}),`)
     }
 

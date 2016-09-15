@@ -19,7 +19,7 @@ type OwnProps = {
 
 export type Props = {
   devices: ?Array<Device>,
-  phase: UnlockFoldersState.phase,
+  phase: $PropertyType<UnlockFoldersState, 'phase'>,
   close: () => void,
   toPaperKeyInput: () => void,
   onBackFromPaperKey: () => void,

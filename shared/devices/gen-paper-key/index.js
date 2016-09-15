@@ -59,8 +59,8 @@ class GenPaperKey extends Component<void, Props, State> {
 }
 
 export default connect(
-  state => ({paperKey: state.devices.paperKey}),
-  dispatch => {
+  (state: any) => ({paperKey: state.devices.paperKey}),
+  (dispatch: any) => {
     return {
       generatePaperKey: () => dispatch(generatePaperKey()),
       onBack: () => dispatch(navigateUp()),

@@ -1,6 +1,6 @@
 // @flow
 import * as shared from './avatar.shared'
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import type {Props} from './avatar'
 import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
@@ -12,7 +12,7 @@ type State = {
   errored: boolean,
 }
 
-class Avatar extends Component<void, Props, State> {
+class Avatar extends PureComponent<void, Props, State> {
   state: State;
 
   constructor (props: Props) {

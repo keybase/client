@@ -1,8 +1,10 @@
 // @flow
 import React, {Component} from 'react'
 import Render from './index.render'
-import type {Props, State} from './index'
 import {connect} from 'react-redux'
+
+import type {Props, State} from './index'
+import type {TypedState} from '../../../constants/reducer'
 
 class PaperKey extends Component<void, Props, State> {
   state: State;
@@ -29,6 +31,12 @@ class PaperKey extends Component<void, Props, State> {
   }
 }
 
+type OwnProps = {
+  error: string,
+  onBack: () => void,
+  onSubmit: (paperkey: string) => void,
+}
+
 export default connect(
-  state => ({waitingForResponse: state.login.waitingForResponse})
+  (state: TypedState, ownProps: OwnProps) => ({waitingForResponse: state.login.waitingForResponse})
 )(PaperKey)

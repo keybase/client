@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import Render from './index.render'
 import type {Props} from './index.render'
-import {connect} from 'react-redux'
 
 class GPGSign extends Component<void, Props, void> {
   render () {
@@ -10,6 +9,4 @@ class GPGSign extends Component<void, Props, void> {
   }
 }
 
-export default connect(
-  state => ({}),
-)(GPGSign)
+export default GPGSign

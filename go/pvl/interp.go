@@ -103,6 +103,7 @@ type ProofInfo struct {
 	RemoteUsername string
 	Hostname       string
 	APIURL         string
+	stubDNS        *stubDNSEngine
 }
 
 // NewProofInfo creates a new ProofInfo
@@ -118,7 +119,7 @@ func NewProofInfo(link libkb.RemoteProofChainLink, h libkb.SigHint) ProofInfo {
 
 // CheckProof verifies one proof by running the pvl on the provided proof information.
 func CheckProof(g1 libkb.ProofContext, pvl *jsonw.Wrapper, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
-	g := newProofContextExt(g1)
+	g := newProofContextExt(g1, info.stubDNS)
 	perr := checkProofInner(g, pvl, service, info)
 	if perr != nil {
 		debug(g, "CheckProof failed: %v", perr)
@@ -275,6 +276,7 @@ func validateChunk(g proofContextExt, pvl *jsonw.Wrapper, service keybase1.Proof
 func validateScript(g proofContextExt, script *jsonw.Wrapper, service keybase1.ProofType, whichscript int) libkb.ProofError {
 	// Scan the script.
 	// Does not validate each instruction's format. (That is done when running it)
+	// Validate each instruction's "error" field.
 
 	logerr := func(g proofContextExt, service keybase1.ProofType, whichscript int, pc int, format string, arg ...interface{}) libkb.ProofError {
 		debugWithPosition(g, service, whichscript, pc, format, arg...)
@@ -297,6 +299,12 @@ func validateScript(g proofContextExt, script *jsonw.Wrapper, service keybase1.P
 
 	for i := 0; i < scriptlen; i++ {
 		ins := script.AtIndex(i)
+
+		_, err := extractCustomErrorSpec(g, ins)
+		if err != nil {
+			return err
+		}
+
 		switch {
 
 		// These can always run, but must be cases so that the default case works.
@@ -389,7 +397,7 @@ func runDNS(g proofContextExt, scripts []*jsonw.Wrapper, startstate scriptState)
 	domains := []string{userdomain, "_keybase." + userdomain}
 	var errs []libkb.ProofError
 	for _, d := range domains {
-		debugWithState(g, startstate, "Trying DNS: %v", d)
+		debugWithState(g, startstate, "Trying DNS for domain: %v", d)
 
 		err := runDNSOne(g, scripts, startstate, d)
 		if err != nil {
@@ -404,7 +412,15 @@ func runDNS(g proofContextExt, scripts []*jsonw.Wrapper, startstate scriptState)
 
 // Run each script on each TXT record of the domain.
 func runDNSOne(g proofContextExt, scripts []*jsonw.Wrapper, startstate scriptState, domain string) libkb.ProofError {
-	txts, err := net.LookupTXT(domain)
+	// Fetch TXT records
+	var txts []string
+	var err error
+	if g.getStubDNS() == nil {
+		txts, err = net.LookupTXT(domain)
+	} else {
+		txts, err = g.getStubDNS().LookupTXT(domain)
+	}
+
 	if err != nil {
 		return libkb.NewProofError(keybase1.ProofStatus_DNS_ERROR,
 			"DNS failure for %s: %s", domain, err)
@@ -485,19 +501,32 @@ func stepInstruction(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (
 
 	if n == 1 {
 		debugWithState(g, state, "Running instruction %v: %v", name, ins.MarshalToDebug())
-		newstate, err := step(g, ins, state)
-		if err != nil {
-			debugWithStateError(g, state, err)
+		newstate, stepErr := step(g, ins, state)
+		if stepErr != nil {
+			debugWithStateError(g, state, stepErr)
 
+			if stepErr.GetProofStatus() == keybase1.ProofStatus_INVALID_PVL {
+				return newstate, stepErr
+			}
+
+			customErrSpec, customErrSpecErr := extractCustomErrorSpec(g, ins)
+			if customErrSpecErr != nil {
+				// Validation should have already caught this case.
+				// So here we just allow the non-custom error through.
+				customErrSpec = customErrorSpec{
+					hasStatus: false,
+					hasDesc:   false,
+				}
+			}
 			// Replace error with custom error.
-			customerr, swap := customError(g, ins, state, err)
+			customErr, swap := replaceCustomError(g, state, customErrSpec, stepErr)
 			if swap {
-				err = customerr
+				stepErr = customErr
 				debugWithState(g, state, "Replacing error with custom error")
-				debugWithStateError(g, state, err)
+				debugWithStateError(g, state, customErr)
 			}
 		}
-		return newstate, err
+		return newstate, stepErr
 	} else if n > 1 {
 		err := libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Instruction contains multiple instruction names")
@@ -635,7 +664,7 @@ func stepSelectorJSON(g proofContextExt, ins *jsonw.Wrapper, state scriptState) 
 	selectorsw, err := ins.AtKey(string(cmdSelectorJSON)).ToArray()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Cannot use css selector with non-html fetch result")
+			"Json selector list must be an array")
 	}
 
 	selectors, err := jsonUnpackArray(selectorsw)
@@ -928,58 +957,93 @@ func interpretRegex(g proofContextExt, state scriptState, rdesc regexDescriptor)
 	return re, nil
 }
 
-// Take an instruction and if it specifies a custom error via an "error" key, replace the error.
-// Always returns an error because that's its job. The second return argument is true if a different error is returned.
-// If there is an issue with the "error" spec, this just returns the unmodfied err1.
-// It would be just too harsh to report INVALID_PVL for that.
-func customError(g proofContextExt, ins *jsonw.Wrapper, state scriptState, err1 libkb.ProofError) (libkb.ProofError, bool) {
-	if err1 == nil {
-		return err1, false
-	}
-	if !jsonHasKey(ins, "error") {
-		return err1, false
+type customErrorSpec struct {
+	hasStatus bool
+	status    keybase1.ProofStatus
+	hasDesc   bool
+	desc      string
+}
+
+func extractCustomErrorSpec(g proofContextExt, ins *jsonw.Wrapper) (customErrorSpec, libkb.ProofError) {
+	spec := customErrorSpec{
+		hasStatus: false,
+		hasDesc:   false,
 	}
 
-	var ename string
-	edesc := err1.GetDesc()
+	if !jsonHasKey(ins, "error") {
+		// No custom error specified
+		return spec, nil
+	}
+
+	var estatusstr string
 
 	ar, err := ins.AtKey("error").ToArray()
 	if err != nil {
 		// "error": "name"
 		name, err := ins.AtKey("error").GetString()
 		if err != nil {
-			debugWithState(g, state, "Invalid error spec: %v", err)
-			return err1, false
+			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Custom error must be an array or string: %v", err)
 		}
-		ename = name
+		estatusstr = name
 	} else {
 		// "error": ["name", "desc"]
+		length, err := ar.Len()
+		if err != nil {
+			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Could not get length of error array: %v", err)
+		}
+		if length != 2 {
+			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Error array must be of length 2 but was %v", length)
+		}
 		name, err := ar.AtIndex(0).GetString()
 		if err != nil {
-			debugWithState(g, state, "Invalid error spec: %v", err)
-		} else {
-			ename = name
+			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Could not get error name: %v", err)
 		}
+		estatusstr = name
 
 		desc, err := ar.AtIndex(1).GetString()
-		if err == nil {
-			edesc = desc
+		if err != nil {
+			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Could not error description: %v", err)
 		}
+		spec.hasDesc = true
+		spec.desc = desc
 	}
 
-	estatus := err1.GetProofStatus()
-
-	if ename != "" {
-		status, ok := keybase1.ProofStatusMap[ename]
+	if estatusstr != "" {
+		status, ok := keybase1.ProofStatusMap[estatusstr]
 		if !ok {
-			debugWithState(g, state, "Invalid error spec: %v", ename)
-		} else {
-			estatus = status
+			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Unrecognized error status: %v", estatusstr)
 		}
+		spec.hasStatus = true
+		spec.status = status
 	}
 
-	if estatus != err1.GetProofStatus() || edesc != err1.GetDesc() {
-		return libkb.NewProofError(estatus, edesc), true
+	return spec, nil
+}
+
+func replaceCustomError(g proofContextExt, state scriptState, spec customErrorSpec, err1 libkb.ProofError) (libkb.ProofError, bool) {
+	status := err1.GetProofStatus()
+	desc := err1.GetDesc()
+
+	if spec.hasStatus {
+		status = spec.status
+	}
+	if spec.hasDesc {
+		desc = spec.desc
+	}
+
+	if (status != err1.GetProofStatus()) || (desc != err1.GetDesc()) {
+		return libkb.NewProofError(status, desc), true
 	}
 	return err1, false
 }
+
+// Take an instruction and if it specifies a custom error via an "error" key, replace the error.
+// Always returns an error because that's its job. The second return argument is true if a different error is returned.
+// If there is an issue with the "error" spec, this just returns the unmodfied err1.
+// It would be too harsh to report INVALID_PVL for that.

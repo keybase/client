@@ -29,7 +29,7 @@ func (c *chatLocalMock) GetInboxLocal(ctx context.Context, arg keybase1.GetInbox
 	return iview, nil
 }
 
-func (c *chatLocalMock) mockMessage(idSeed byte, msgType chat1.MessageType) keybase1.Message {
+func (c *chatLocalMock) mockMessage(idSeed byte, msgType chat1.MessageType, body keybase1.MessageBody) keybase1.Message {
 	return keybase1.Message{
 		ServerHeader: chat1.MessageServerHeader{
 			MessageType:  msgType,
@@ -38,7 +38,7 @@ func (c *chatLocalMock) mockMessage(idSeed byte, msgType chat1.MessageType) keyb
 			SenderDevice: gregor1.DeviceID{idSeed, 2},
 			Ctime:        gregor1.ToTime(time.Now().Add(-time.Duration(idSeed) * time.Minute)),
 		},
-		MessagePlaintext: keybase1.MessagePlaintext{
+		MessagePlaintext: keybase1.NewMessagePlaintextWithV1(keybase1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
 				MessageType:  msgType,
 				TlfName:      "morty,rick,songgao",
@@ -49,7 +49,8 @@ func (c *chatLocalMock) mockMessage(idSeed byte, msgType chat1.MessageType) keyb
 					TopicID:   chat1.TopicID{idSeed, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
 				},
 			},
-		},
+			MessageBody: body,
+		}),
 	}
 }
 
@@ -58,25 +59,22 @@ func (c *chatLocalMock) GetThreadLocal(ctx context.Context, arg keybase1.GetThre
 		return tview, errors.New("unexpected ConversationID")
 	}
 
-	msg := c.mockMessage(2, chat1.MessageType_TEXT)
-	msg.MessagePlaintext.MessageBodies = append(msg.MessagePlaintext.MessageBodies,
-		keybase1.NewMessageBodyWithText(keybase1.MessageText{
-			Body: "O_O blah blah blah this is a really long line and I don't know what I'm talking about hahahahaha OK long enough",
-		}))
+	body := keybase1.NewMessageBodyWithText(keybase1.MessageText{
+		Body: "O_O blah blah blah this is a really long line and I don't know what I'm talking about hahahahaha OK long enough",
+	})
+	msg := c.mockMessage(2, chat1.MessageType_TEXT, body)
 	tview.Messages = append(tview.Messages, msg)
 
-	msg = c.mockMessage(3, chat1.MessageType_TEXT)
-	msg.MessagePlaintext.MessageBodies = append(msg.MessagePlaintext.MessageBodies,
-		keybase1.NewMessageBodyWithText(keybase1.MessageText{
-			Body: "Not much; just drinking.",
-		}))
+	body = keybase1.NewMessageBodyWithText(keybase1.MessageText{
+		Body: "Not much; just drinking.",
+	})
+	msg = c.mockMessage(3, chat1.MessageType_TEXT, body)
 	tview.Messages = append(tview.Messages, msg)
 
-	msg = c.mockMessage(4, chat1.MessageType_TEXT)
-	msg.MessagePlaintext.MessageBodies = append(msg.MessagePlaintext.MessageBodies,
-		keybase1.NewMessageBodyWithText(keybase1.MessageText{
-			Body: "Hey what's up!",
-		}))
+	body = keybase1.NewMessageBodyWithText(keybase1.MessageText{
+		Body: "Hey what's up!",
+	})
+	msg = c.mockMessage(4, chat1.MessageType_TEXT, body)
 	tview.Messages = append(tview.Messages, msg)
 
 	return tview, nil

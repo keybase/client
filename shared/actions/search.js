@@ -100,6 +100,7 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: 
       service: 'external',
       icon: platformToLogo32(serviceName),
       username: rr.service && rr.service.username || '',
+      serviceAvatar: rr.service && rr.service.picture_url || '',
       serviceName,
       profileUrl: 'TODO',
       extraInfo,

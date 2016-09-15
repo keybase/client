@@ -14,6 +14,7 @@ class SignupError extends Component {
   }
 }
 
+// $FlowIssue type this connector
 export default connect(
   state => ({errorText: state.signup.signupError}),
   dispatch => ({restartSignup: () => dispatch(restartSignup())})

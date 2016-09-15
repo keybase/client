@@ -144,7 +144,7 @@ func (m *chatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 			if arg.Query.ConvID != nil && conv.Metadata.ConversationID != *arg.Query.ConvID {
 				continue
 			}
-			if arg.Query.TlfID != nil && conv.Metadata.IdTriple.Tlfid.Eq(*arg.Query.TlfID) {
+			if arg.Query.TlfID != nil && !conv.Metadata.IdTriple.Tlfid.Eq(*arg.Query.TlfID) {
 				continue
 			}
 			if arg.Query.TopicType != nil && conv.Metadata.IdTriple.TopicType != *arg.Query.TopicType {
