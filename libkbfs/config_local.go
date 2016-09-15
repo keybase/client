@@ -597,6 +597,9 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	c.bcache = NewBlockCacheStandard(10000, MaxBlockSizeBytesDefault*1024)
 	oldDirtyBcache := c.dirtyBcache
 
+	// TODO: we should probably fail or re-schedule this reset if
+	// there is anything dirty in the dirty block cache.
+
 	// The minimum number of bytes we'll try to sync in parallel.
 	// This should be roughly the minimum amount of bytes we expect
 	// our worst supported connection to send within the timeout
@@ -627,7 +630,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 // ResetCaches implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) ResetCaches() {
 	oldDirtyBcache := c.resetCachesWithoutShutdown()
-	if err := c.journalizeDirtyBcache(); err != nil {
+	if err := c.journalizeBcaches(); err != nil {
 		if log := c.MakeLogger(""); log != nil {
 			log.CWarningf(nil, "Error journalizing dirty block cache: %v", err)
 		}
@@ -776,7 +779,7 @@ func (c *ConfigLocal) CheckStateOnShutdown() bool {
 	return false
 }
 
-func (c *ConfigLocal) journalizeDirtyBcache() error {
+func (c *ConfigLocal) journalizeBcaches() error {
 	jServer, err := GetJournalServer(c)
 	if err != nil {
 		// Journaling is disabled.
@@ -800,6 +803,9 @@ func (c *ConfigLocal) journalizeDirtyBcache() error {
 		maxSyncBufferSize, maxSyncBufferSize, maxSyncBufferSize)
 	journalCache.name = "journal"
 	c.SetDirtyBlockCache(jServer.dirtyBlockCache(journalCache))
+
+	jServer.delegateBlockCache = c.BlockCache()
+	c.SetBlockCache(jServer.blockCache())
 	return nil
 }
 
@@ -825,12 +831,11 @@ func (c *ConfigLocal) EnableJournaling(journalRoot string) {
 	ctx := context.Background()
 	err = jServer.EnableExistingJournals(ctx, TLFJournalBackgroundWorkEnabled)
 	if err == nil {
-		if err := c.journalizeDirtyBcache(); err != nil {
-			panic(err)
-		}
-		c.SetBlockCache(jServer.blockCache())
 		c.SetBlockServer(jServer.blockServer())
 		c.SetMDOps(jServer.mdOps())
+		if err := c.journalizeBcaches(); err != nil {
+			panic(err)
+		}
 	} else {
 		log.Warning("Failed to enable existing journals: %v", err)
 	}
