@@ -13,7 +13,8 @@ type State = {
 type Props = {
   paperKey: HiddenString,
   generatePaperKey: () => void,
-  onBack: () => void
+  onBack: () => void,
+  onFinish: () => void
 }
 
 class GenPaperKey extends Component<void, Props, State> {
