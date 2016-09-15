@@ -21,7 +21,8 @@ import (
 // Only substitutes whitelisted variables.
 // It is an error to refer to an unknown variable or undefined numbered group.
 // Match is an optional slice which is a regex match.
-func substitute(template string, state scriptState, match []string) (string, libkb.ProofError) {
+// AllowActiveString makes active_string a valid variable.
+func substitute(template string, state scriptState, match []string, allowActiveString bool) (string, libkb.ProofError) {
 	vars := state.Vars
 	webish := (state.Service == keybase1.ProofType_DNS || state.Service == keybase1.ProofType_GENERIC_WEB_SITE)
 
@@ -55,6 +56,13 @@ func substitute(template string, state scriptState, match []string) (string, lib
 			} else {
 				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 					"Cannot use username_service in proof type %v", state.Service)
+			}
+		case "active_string":
+			if allowActiveString {
+				value = state.ActiveString
+			} else {
+				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+					"Active string substitution now allowed")
 			}
 		default:
 			var i int
