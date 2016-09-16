@@ -276,6 +276,7 @@ var PGPArmorHeaders = map[string]string{
 var RemoteServiceTypes = map[string]keybase1.ProofType{
 	"keybase":    keybase1.ProofType_KEYBASE,
 	"twitter":    keybase1.ProofType_TWITTER,
+	"facebook":   keybase1.ProofType_FACEBOOK,
 	"github":     keybase1.ProofType_GITHUB,
 	"reddit":     keybase1.ProofType_REDDIT,
 	"coinbase":   keybase1.ProofType_COINBASE,
@@ -289,6 +290,7 @@ var RemoteServiceTypes = map[string]keybase1.ProofType{
 var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_KEYBASE,
 	keybase1.ProofType_TWITTER,
+	keybase1.ProofType_FACEBOOK,
 	keybase1.ProofType_GITHUB,
 	keybase1.ProofType_REDDIT,
 	keybase1.ProofType_COINBASE,
