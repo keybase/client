@@ -118,6 +118,7 @@ function _registerListeners (): AsyncAction {
 let bootstrapSetup = false
 export function bootstrap (): AsyncAction {
   return (dispatch, getState) => {
+    const state = getState()
     if (!bootstrapSetup) {
       bootstrapSetup = true
       console.log('[bootstrap] registered bootstrap')
@@ -125,7 +126,7 @@ export function bootstrap (): AsyncAction {
         console.log('[bootstrap] bootstrapping on connect')
         dispatch(bootstrap())
       })
-    } else if (getState().dev.reloading) {
+    } else if (state.dev && state.dev.reloading) {
       // Let's still register the listeners
       dispatch(_registerListeners())
     } else {

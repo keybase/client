@@ -162,6 +162,10 @@ export function doneRegistering (): TypedAction<'login:doneRegistering', void, v
 function setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) : AsyncAction {
   return (dispatch, getState) => {
     const store = getState().login.codePage
+    if (store.myDeviceRole == null) {
+      console.warn("my device role is null, can't setCodePageOtherDeviceRole. Bailing")
+      return
+    }
     dispatch(setCodePageMode(defaultModeForDeviceRoles(store.myDeviceRole, otherDeviceRole, false)))
     dispatch({type: Constants.setOtherDeviceCodeState, payload: otherDeviceRole})
   }
@@ -195,6 +199,16 @@ function setCameraBrokenMode (broken) : AsyncAction {
     dispatch({type: Constants.cameraBrokenMode, payload: broken})
 
     const root = getState().login.codePage
+    if (root.myDeviceRole == null) {
+      console.warn("my device role is null, can't setCameraBrokenMode. Bailing")
+      return
+    }
+
+    if (root.otherDeviceRole == null) {
+      console.warn("other device role is null, can't setCameraBrokenMode. Bailing")
+      return
+    }
+
     dispatch(setCodePageMode(defaultModeForDeviceRoles(root.myDeviceRole, root.otherDeviceRole, broken)))
   }
 }

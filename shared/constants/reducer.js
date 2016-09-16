@@ -3,6 +3,7 @@ import type {ConfigState} from '../reducers/config'
 import type {FavoriteState} from '../constants/favorite'
 import type {LoginState} from '../reducers/login'
 import type {RootPinentryState} from '../reducers/pinentry'
+import type {SignupState} from '../reducers/signup'
 import type {State as GregorState} from '../reducers/gregor'
 import type {State as PgpState} from '../reducers/pgp'
 import type {State as ProfileState} from '../constants/profile'
@@ -19,6 +20,7 @@ export type TypedState = {
   pinentry: RootPinentryState,
   profile: ProfileState,
   search: SearchState,
+  signup: SignupState,
   tracker: TotalTrackerState,
   unlockFolders: UnlockFoldersState,
 }
