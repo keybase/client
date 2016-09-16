@@ -1,5 +1,8 @@
 // @flow
 
+import React from 'react'
+import {Box, Text} from '../common-adapters'
+
 import UpdateEmail from './email'
 import Landing from './landing'
 import SettingsNav from './nav'
@@ -92,7 +95,10 @@ const landingMap: DumbComponentMap<Landing> = {
   },
 }
 
+const fillerContent = <Box style={{flex: 1, backgroundColor: 'grey'}} />
+
 const settingsNavBase = {
+  content: fillerContent,
   items: [{
     text: 'Your Account',
     onClick: () => { console.log('clicked your account') },
@@ -110,10 +116,26 @@ const settingsNavBase = {
   }],
 }
 
+const bannerTextStyle = {
+  alignSelf: 'center',
+  textAlign: 'center',
+  flex: 1,
+}
+
 const settingsNavMap: DumbComponentMap<SettingsNav> = {
   component: SettingsNav,
   mocks: {
     'Normal': settingsNavBase,
+    'Normal - Good Banner': {
+      ...settingsNavBase,
+      bannerElement: <Text type='BodySmallSemibold' style={bannerTextStyle} backgroundMode='Success'>Success! You have just upgraded to the Gold plan. </Text>,
+      bannerType: 'green',
+    },
+    'Normal - Bad Banner': {
+      ...settingsNavBase,
+      bannerElement: <Text type='BodySmallSemibold' style={bannerTextStyle} backgroundMode='HighRisk'>Your Visa **** 4242 has broken. Please update your preferred payment method.</Text>,
+      bannerType: 'red',
+    },
   },
 }
 
