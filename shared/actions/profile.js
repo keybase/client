@@ -405,14 +405,14 @@ function outputInstructionsActionLink (): AsyncAction {
         openURL(`https://coinbase.com/${profile.username}#settings`)
         break
       case 'twitter':
-        openURL(`https://twitter.com/home?status=${profile.proof}`)
+        openURL(`https://twitter.com/home?status=${profile.proofText}`)
         break
       case 'github':
         openURL('https://gist.github.com/')
         break
       case 'reddit':
       case 'facebook':
-        openURL(profile.proof)
+        openURL(profile.proofText)
         break
       default:
         break
