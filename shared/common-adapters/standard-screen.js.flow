@@ -6,7 +6,7 @@ export type NotificationType = 'error' | 'success'
 export type Props = {
   children?: ?any,
   onClose?: ?(event: SyntheticEvent) => void,
-  onCloseText?: ?string, // Native only
+  onBack?: ?() => void,
   notification?: {
     message: string | React$Element<*>,
     type: NotificationType,
@@ -14,6 +14,7 @@ export type Props = {
   style?: ?Object,
   styleOuter?: ?Object,
   styleClose?: ?Object,
+  styleBack?: ?Object,
   styleBanner?: ?Object,
 }
 
