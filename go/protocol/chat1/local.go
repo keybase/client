@@ -344,10 +344,11 @@ type MessageSelector struct {
 }
 
 type ConversationInfoLocal struct {
-	Id        ConversationID `codec:"id" json:"id"`
-	TlfName   string         `codec:"tlfName" json:"tlfName"`
-	TopicName string         `codec:"topicName" json:"topicName"`
-	TopicType TopicType      `codec:"topicType" json:"topicType"`
+	Id         ConversationID `codec:"id" json:"id"`
+	TlfName    string         `codec:"tlfName" json:"tlfName"`
+	TopicName  string         `codec:"topicName" json:"topicName"`
+	TopicType  TopicType      `codec:"topicType" json:"topicType"`
+	Visibility TLFVisibility  `codec:"visibility" json:"visibility"`
 }
 
 type ConversationLocal struct {
@@ -396,10 +397,11 @@ type GetMessagesLocalArg struct {
 }
 
 type GetInboxSummaryLocalArg struct {
-	TopicType TopicType `codec:"topicType" json:"topicType"`
-	After     string    `codec:"after" json:"after"`
-	Before    string    `codec:"before" json:"before"`
-	Limit     int       `codec:"limit" json:"limit"`
+	TopicType  TopicType     `codec:"topicType" json:"topicType"`
+	After      string        `codec:"after" json:"after"`
+	Before     string        `codec:"before" json:"before"`
+	Limit      int           `codec:"limit" json:"limit"`
+	Visibility TLFVisibility `codec:"visibility" json:"visibility"`
 }
 
 type LocalInterface interface {

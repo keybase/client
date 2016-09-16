@@ -368,6 +368,10 @@
         {
           "type": "TopicType",
           "name": "topicType"
+        },
+        {
+          "type": "TLFVisibility",
+          "name": "visibility"
         }
       ]
     },
@@ -539,6 +543,10 @@
         {
           "name": "limit",
           "type": "int"
+        },
+        {
+          "name": "visibility",
+          "type": "TLFVisibility"
         }
       ],
       "response": "GetInboxSummaryLocalRes"
