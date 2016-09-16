@@ -48,7 +48,9 @@ func (j journalMDOps) getHeadFromJournal(
 	}
 
 	head, err := tlfJournal.getMDHead(ctx)
-	if err != nil {
+	if err == errTLFJournalDisabled {
+		return ImmutableRootMetadata{}, nil
+	} else if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
 
@@ -129,7 +131,9 @@ func (j journalMDOps) getRangeFromJournal(
 	}
 
 	ibrmds, err := tlfJournal.getMDRange(ctx, start, stop)
-	if err != nil {
+	if err == errTLFJournalDisabled {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -267,8 +271,8 @@ func (j journalMDOps) getRange(
 		return nil, err
 	}
 
-	// If it's empty, just fall back to the server.
-	if len(jirmds) == 0 {
+	// If it's empty or disabled, just fall back to the server.
+	if len(jirmds) == 0 || err == errTLFJournalDisabled {
 		return delegateFn(ctx, id, start, stop)
 	}
 
@@ -323,7 +327,10 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		// Just route to the journal.
-		return tlfJournal.putMD(ctx, rmd)
+		mdID, err := tlfJournal.putMD(ctx, rmd)
+		if err != errTLFJournalDisabled {
+			return mdID, err
+		}
 	}
 
 	return j.MDOps.Put(ctx, rmd)
@@ -333,7 +340,10 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		rmd.SetUnmerged()
-		return tlfJournal.putMD(ctx, rmd)
+		mdID, err := tlfJournal.putMD(ctx, rmd)
+		if err != errTLFJournalDisabled {
+			return mdID, err
+		}
 	}
 
 	return j.MDOps.PutUnmerged(ctx, rmd)
@@ -344,7 +354,7 @@ func (j journalMDOps) PruneBranch(
 	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
 		// Prune the journal, too.
 		err := tlfJournal.clearMDs(ctx, bid)
-		if err != nil {
+		if err != nil && err != errTLFJournalDisabled {
 			return err
 		}
 	}
