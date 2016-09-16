@@ -123,10 +123,11 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.
 			TLFMessage: *firstMessageBoxed,
 		})
 		if err != nil {
-			if triple.TopicType == chat1.TopicType_CHAT {
-				// If a chat conversation already exists, server should just return it.
-				// So this must be something else.
-				return false, err
+			if triple.TopicType == chat1.TopicType_CHAT /* TODO: check for error type */ {
+				// A chat conversation already exists; just reuse it.
+				info.Id = res.ConvID
+				created = info
+				return false, nil
 			}
 
 			// Not a chat conversation. Multiples are fine.
@@ -134,6 +135,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.
 			// ID duplication.
 			return true, err
 		}
+
 		info.Id = res.ConvID
 		created = info
 
