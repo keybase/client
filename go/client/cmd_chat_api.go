@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -129,7 +128,7 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 		return c.errReply(err)
 	}
 
-	inbox, err := client.GetInboxLocal(ctx, keybase1.GetInboxLocalArg{})
+	inbox, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{})
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -162,12 +161,12 @@ type MsgSender struct {
 
 // unfortunately need this...
 type MsgContent struct {
-	TypeName   string                                `json:"type"`
-	Text       *keybase1.MessageText                 `json:"text,omitempty"`
-	Attachment *keybase1.MessageAttachment           `json:"attachment,omitempty"`
-	Edit       *keybase1.MessageEdit                 `json:"edit,omitempty"`
-	Delete     *keybase1.MessageDelete               `json:"delete,omitempty"`
-	Metadata   *keybase1.MessageConversationMetadata `json:"metadata,omitempty"`
+	TypeName   string                             `json:"type"`
+	Text       *chat1.MessageText                 `json:"text,omitempty"`
+	Attachment *chat1.MessageAttachment           `json:"attachment,omitempty"`
+	Edit       *chat1.MessageEdit                 `json:"edit,omitempty"`
+	Delete     *chat1.MessageDelete               `json:"delete,omitempty"`
+	Metadata   *chat1.MessageConversationMetadata `json:"metadata,omitempty"`
 }
 
 type MsgSummary struct {
@@ -192,7 +191,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 
 	if opts.ConversationID == 0 {
 		// resolve conversation id
-		cinfo := keybase1.ConversationInfoLocal{
+		cinfo := chat1.ConversationInfoLocal{
 			TlfName:   opts.Channel.Name,
 			TopicType: opts.Channel.TopicTypeEnum(),
 			TopicName: opts.Channel.TopicName,
@@ -210,7 +209,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 		opts.ConversationID = existing[0].Id
 	}
 
-	arg := keybase1.GetThreadLocalArg{
+	arg := chat1.GetThreadLocalArg{
 		ConversationID: opts.ConversationID,
 		Query: &chat1.GetThreadQuery{
 			MarkAsRead: true,
@@ -229,7 +228,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			return c.errReply(err)
 		}
 		switch version {
-		case keybase1.MessagePlaintextVersion_V1:
+		case chat1.MessagePlaintextVersion_V1:
 			v1 := m.MessagePlaintext.V1()
 			thread.Messages[i] = MsgSummary{
 				ID: m.ServerHeader.MessageID,
@@ -260,13 +259,13 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 		return c.errReply(err)
 	}
 
-	var cinfo keybase1.ConversationInfoLocal
+	var cinfo chat1.ConversationInfoLocal
 	if opts.ConversationID > 0 {
-		cinfo = keybase1.ConversationInfoLocal{
+		cinfo = chat1.ConversationInfoLocal{
 			Id: opts.ConversationID,
 		}
 	} else {
-		cinfo = keybase1.ConversationInfoLocal{
+		cinfo = chat1.ConversationInfoLocal{
 			TlfName:   opts.Channel.Name,
 			TopicType: opts.Channel.TopicTypeEnum(),
 			TopicName: opts.Channel.TopicName,
@@ -278,7 +277,7 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 	if err != nil {
 		return c.errReply(err)
 	}
-	var conversation keybase1.ConversationInfoLocal
+	var conversation chat1.ConversationInfoLocal
 	switch len(existing) {
 	case 0:
 		conversation, err = client.NewConversationLocal(ctx, cinfo)
@@ -296,9 +295,9 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 	// below.
 	// ticket CORE-3746
 
-	postArg := keybase1.PostLocalArg{
+	postArg := chat1.PostLocalArg{
 		ConversationID: conversation.Id,
-		MessagePlaintext: keybase1.NewMessagePlaintextWithV1(keybase1.MessagePlaintextV1{
+		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv: chat1.ConversationIDTriple{
 					TopicType: conversation.TopicType,
@@ -306,7 +305,7 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 				TlfName:     conversation.TlfName,
 				MessageType: chat1.MessageType_TEXT,
 			},
-			MessageBody: keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: opts.Message.Body}),
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
 		}),
 	}
 	if err := client.PostLocal(ctx, postArg); err != nil {
@@ -321,7 +320,7 @@ func (c *CmdChatAPI) errReply(err error) Reply {
 }
 
 // need this to get message type name
-func (c *CmdChatAPI) convertMsgBody(mb keybase1.MessageBody) MsgContent {
+func (c *CmdChatAPI) convertMsgBody(mb chat1.MessageBody) MsgContent {
 	return MsgContent{
 		TypeName:   strings.ToLower(chat1.MessageTypeRevMap[mb.MessageType__]),
 		Text:       mb.Text__,

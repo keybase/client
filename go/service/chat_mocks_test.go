@@ -117,6 +117,11 @@ func (m tlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.TL
 	return res, nil
 }
 
+// Not used by tests?
+func (m tlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
+	return
+}
+
 type chatRemoteMock struct {
 	world *chatMockWorld
 

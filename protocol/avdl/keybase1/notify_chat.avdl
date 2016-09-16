@@ -2,7 +2,7 @@
 @namespace("keybase.1")
 protocol NotifyChat {
   import idl "common.avdl";
-  import idl "chat_local.avdl";
+  import idl "github.com/keybase/client/go/protocol/chat1" as chat1;
 
   enum ChatActivityType {
     RESERVED_0,
@@ -11,7 +11,7 @@ protocol NotifyChat {
 
   record ChatActivity {
     ChatActivityType ActivityType;
-    union { null, Message } IncomingMessage;
+    union { null, chat1.Message } IncomingMessage;
   }
 
   @notify("")
