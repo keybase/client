@@ -7,7 +7,7 @@ export type Props = {
   children?: ?any,
   onClose?: ?(event: SyntheticEvent) => void,
   onBack?: ?() => void,
-  notification?: {
+  notification?: ?{
     message: string | React$Element<*>,
     type: NotificationType,
   },
