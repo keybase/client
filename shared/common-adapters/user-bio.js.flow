@@ -32,6 +32,9 @@ export type Props = {
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   editFns?: ?BioEditFns,
+  onClickAvatar: () => void,
+  onClickFollowers: () => void,
+  onClickFollowing: () => void,
 }
 
 export default class Render extends Component<void, Props, void> {}

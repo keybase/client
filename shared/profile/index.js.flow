@@ -35,6 +35,9 @@ export type Props = {
   reason: ?string,
   error: ?string,
   showComingSoon: boolean,
+  onClickAvatar: () => void,
+  onClickFollowers: () => void,
+  onClickFollowing: () => void,
 }
 
 export default class Render extends Component<void, Props, void> { }

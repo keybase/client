@@ -3,6 +3,7 @@ import {fullName} from '../../constants/search'
 import keybaseUrl from '../../constants/urls'
 import {TypedConnector} from '../../util/typed-connect'
 import {getProfile, onFollow, onUnfollow} from '../../actions/tracker'
+import {onClickAvatar, onClickFollowers, onClickFollowing} from '../../actions/profile'
 import openURL from '../../util/open-url'
 import Render from './render'
 
@@ -45,6 +46,9 @@ export default connector.connect(
             onFollow: () => { dispatch(onFollow(username, false)) },
             onUnfollow: () => { dispatch(onUnfollow(username)) },
             onAcceptProofs: () => { dispatch(onFollow(username, false)) },
+            onClickAvatar: username => { dispatch(onClickAvatar(username)) },
+            onClickFollowers: username => { dispatch(onClickFollowers(username)) },
+            onClickFollowing: username => { dispatch(onClickFollowing(username)) },
           },
         }
       } else {

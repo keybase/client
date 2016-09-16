@@ -24,6 +24,9 @@ export default class Render extends Component<void, Props, void> {
             userInfo={this.props.userInfo}
             trackerState={this.props.trackerState}
             currentlyFollowing={this.props.currentlyFollowing}
+            onClickAvatar={this.props.onClickAvatar}
+            onClickFollowers={this.props.onClickFollowers}
+            onClickFollowing={this.props.onClickFollowing}
           />
           <UserProofs
             type={'proofs'}

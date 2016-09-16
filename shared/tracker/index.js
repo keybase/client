@@ -5,6 +5,7 @@ import {connect} from 'react-redux'
 import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
+import {onClickAvatar, onClickFollowers, onClickFollowing} from '../actions/profile'
 import {bindActionCreators} from 'redux'
 import {isLoading} from '../constants/tracker'
 
@@ -39,6 +40,9 @@ export type TrackerProps = {
   userInfo: ?UserInfo,
   username: string,
   waiting: boolean,
+  onClickAvatar: () => void,
+  onClickFollowers: () => void,
+  onClickFollowing: () => void,
 }
 
 export function trackerPropsToRenderProps (tprops: TrackerProps): RenderPropsUnshaped {
@@ -98,6 +102,9 @@ export default connect(
       onIgnore: () => actions.onIgnore(ownProps.username),
       onRefollow: () => actions.onRefollow(ownProps.username),
       onUnfollow: () => actions.onUnfollow(ownProps.username),
+      onClickAvatar: username => { dispatch(onClickAvatar(username, true)) },
+      onClickFollowers: username => { dispatch(onClickFollowers(username, true)) },
+      onClickFollowing: username => { dispatch(onClickFollowing(username, true)) },
     }
   }
 )(Tracker)

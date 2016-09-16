@@ -16,6 +16,9 @@ export type Props = {
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
+  onClickAvatar: () => void,
+  onClickFollowers: () => void,
+  onClickFollowing: () => void,
 }
 
 export default class Render extends Component<void, Props, void> {}

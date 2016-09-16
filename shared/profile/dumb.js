@@ -171,6 +171,9 @@ const propsBase: RenderProps = {
       height: 578,
     },
   },
+  onClickAvatar: console.log('on click avatar'),
+  onClickFollowers: console.log('on click followers'),
+  onClickFollowing: console.log('on click following'),
 }
 
 const bioEditFns = {

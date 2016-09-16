@@ -31,6 +31,9 @@ export type RenderPropsUnshaped = {
   afterMount?: any,
   loading: boolean,
   actionBarReady: boolean,
+  onClickAvatar: () => void,
+  onClickFollowers: () => void,
+  onClickFollowing: () => void,
 }
 
 export type RenderProps = Exact<RenderPropsUnshaped>

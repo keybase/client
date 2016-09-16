@@ -11,7 +11,7 @@ import React, {PureComponent} from 'react'
 import RevokeContainer from './revoke/container'
 import flags from '../util/feature-flags'
 import pgpRouter from './pgp'
-import {addProof, checkSpecificProof} from '../actions/profile'
+import {addProof, checkSpecificProof, onClickAvatar, onClickFollowers, onClickFollowing} from '../actions/profile'
 import {connect} from 'react-redux'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
@@ -103,6 +103,9 @@ export default connect(
     onFollow: username => { dispatch(onFollow(username, false)) },
     onUnfollow: username => { dispatch(onUnfollow(username)) },
     onAcceptProofs: username => { dispatch(onFollow(username, false)) },
+    onClickAvatar: username => { dispatch(onClickAvatar(username)) },
+    onClickFollowers: username => { dispatch(onClickFollowers(username)) },
+    onClickFollowing: username => { dispatch(onClickFollowing(username)) },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const refresh = () => {
