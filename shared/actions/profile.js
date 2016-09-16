@@ -1,7 +1,9 @@
 // @flow
+import keybaseUrl from '../constants/urls'
 import * as Constants from '../constants/profile'
 import engine from '../engine'
 import openURL from '../util/open-url'
+import flags from '../util/feature-flags'
 import {BTCRegisterBTCRpc, ConstantsStatusCode, ProveCommonProofStatus, apiserverPostRpc, pgpPgpKeyGenDefaultRpc, proveCheckProofRpc, proveStartProofRpc, revokeRevokeKeyRpc, revokeRevokeSigsRpc} from '../constants/types/flow-types'
 import {call, put, take, race, select} from 'redux-saga/effects'
 import {getMyProfile} from './tracker'
@@ -311,6 +313,36 @@ function finishRevoking (): AsyncAction {
   return (dispatch) => {
     dispatch(_revokedFinishResponse())
     dispatch(navigateUp())
+  }
+}
+
+function onClickAvatar (username: ?string, openWebsite?: boolean): AsyncAction {
+  return () => {
+    if (!openWebsite && flags.tabProfileEnabled === true) {
+      // Open profile tab
+    } else {
+      username && openURL(`${keybaseUrl}/${username}`)
+    }
+  }
+}
+
+function onClickFollowers (username: ?string, openWebsite?: boolean): AsyncAction {
+  return () => {
+    if (!openWebsite && flags.tabProfileEnabled === true) {
+      // Open profile tab, hint followers?
+    } else {
+      username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
+    }
+  }
+}
+
+function onClickFollowing (username: ?string, openWebsite?: boolean): AsyncAction {
+  return () => {
+    if (!openWebsite && flags.tabProfileEnabled === true) {
+      // Open profile tab, hint followers?
+    } else {
+      username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
+    }
   }
 }
 
@@ -636,6 +668,9 @@ export {
   editProfile,
   finishRevoking,
   generatePgp,
+  onClickAvatar,
+  onClickFollowers,
+  onClickFollowing,
   outputInstructionsActionLink,
   submitBTCAddress,
   submitRevokeProof,
