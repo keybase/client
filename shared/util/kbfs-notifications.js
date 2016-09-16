@@ -12,6 +12,7 @@ type DecodedKBFSError = {
 }
 
 export function decodeKBFSError (user: string, notification: FSNotification): DecodedKBFSError {
+  console.log('Notification (kbfs error):', notification)
   const basedir = notification.filename.split(path.sep)[0]
   const tlf = `/keybase${getTLF(notification.publicTopLevelFolder, basedir)}`
   switch (notification.errorType) {
@@ -19,7 +20,7 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
       let prefix = user ? `${user} does` : 'You do'
       return {
         title: 'Keybase: Access denied',
-        body: `${prefix} not have ${notification.params.mode} access to ${tlf}`,
+        body: `${prefix} not have ${notification.params.mode} access to ${notification.filename}`,
       }
 
     case KbfsCommonFSErrorType.userNotFound:
@@ -53,12 +54,6 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
       } : {
         title: 'Keybase: Friends needed',
         body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`,
-      }
-
-    case KbfsCommonFSErrorType.badFolder:
-      return {
-        title: 'Keybase: Bad folder',
-        body: `${notification.params.tlf} is not a Keybase folder. All folders begin with /keybase/private or /keybase/public.`,
       }
 
     case KbfsCommonFSErrorType.overQuota:
