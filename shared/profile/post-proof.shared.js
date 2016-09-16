@@ -6,6 +6,7 @@ import type {Props} from './post-proof'
 import {Box, LinkWithIcon, Text} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 import {subtitle} from '../util/platforms'
+import {resolveImageAsURL} from '../../desktop/resolve-root'
 
 type MoreProps = {
   descriptionView?: ?any,
@@ -46,6 +47,22 @@ export function propsForPlatform (props: Props): MoreProps {
         noteText: 'Make sure you\'re signed in to Reddit, and don\'t edit the text or title before submitting.',
         proofText: null,
         proofActionText: 'Reddit form',
+        proofActionIcon: 'iconfont-open-browser',
+        onCompleteText: 'OK posted! Check for it!',
+      }
+    case 'facebook':
+      return {
+        ...base,
+        descriptionView: <Box style={{flexDirection: 'column'}}>
+          <Box>
+            <Text type='Body' {...styleCentered}>Click the link below and post. The text can be whatever you like, but make sure the post is <Text type='BodySemibold'>public</Text>, like this:</Text>
+          </Box>
+          <Box style={{padding: 20}}>
+            <img src={resolveImageAsURL('facebook_visibility.gif')} />
+          </Box>
+        </Box>,
+        proofText: null,
+        proofActionText: 'Make a Facebook post',
         proofActionIcon: 'iconfont-open-browser',
         onCompleteText: 'OK posted! Check for it!',
       }
