@@ -13,190 +13,237 @@ const iconMeta_ = {
   'iconfont-caret-down': {
     isFont: true,
     gridSize: 8,
+    charCode: 59648,
   },
   'iconfont-caret-right': {
     isFont: true,
     gridSize: 8,
+    charCode: 59649,
   },
   'iconfont-star': {
     isFont: true,
     gridSize: 16,
+    charCode: 59688,
   },
   'iconfont-search_2': {
     isFont: true,
     gridSize: 16,
+    charCode: 59689,
   },
   'iconfont-identity-coinbase': {
     isFont: true,
     gridSize: 16,
+    charCode: 59690,
   },
   'iconfont-folder-visible': {
     isFont: true,
     gridSize: 16,
+    charCode: 59691,
   },
   'iconfont-folder-hidden': {
     isFont: true,
     gridSize: 16,
+    charCode: 59692,
   },
   'iconfont-exclamation': {
     isFont: true,
     gridSize: 16,
+    charCode: 59693,
   },
   'iconfont-identity-facebook': {
     isFont: true,
     gridSize: 16,
+    charCode: 59687,
   },
   'iconfont-identity-twitter': {
     isFont: true,
     gridSize: 16,
+    charCode: 59667,
   },
   'iconfont-identity-github': {
     isFont: true,
     gridSize: 16,
+    charCode: 59663,
   },
   'iconfont-identity-reddit': {
     isFont: true,
     gridSize: 16,
+    charCode: 59666,
   },
   'iconfont-identity-website': {
     isFont: true,
     gridSize: 16,
+    charCode: 59668,
   },
   'iconfont-identity-hn': {
     isFont: true,
     gridSize: 16,
+    charCode: 59664,
   },
   'iconfont-coinbase': {
     isFont: true,
     gridSize: 16,
+    charCode: 59653,
   },
   'iconfont-identity-bitcoin': {
     isFont: true,
     gridSize: 16,
+    charCode: 59661,
   },
   'iconfont-identity-devices': {
     isFont: true,
     gridSize: 16,
+    charCode: 59662,
   },
   'iconfont-identity-pgp': {
     isFont: true,
     gridSize: 16,
+    charCode: 59665,
   },
   'iconfont-folder-private': {
     isFont: true,
     gridSize: 16,
+    charCode: 59656,
   },
   'iconfont-folder-private-has-files': {
     isFont: true,
     gridSize: 16,
+    charCode: 59657,
   },
   'iconfont-folder-public-has-files': {
     isFont: true,
     gridSize: 16,
+    charCode: 59659,
   },
   'iconfont-folder-public': {
     isFont: true,
     gridSize: 16,
+    charCode: 59658,
   },
   'iconfont-close': {
     isFont: true,
     gridSize: 16,
+    charCode: 59652,
   },
   'iconfont-check': {
     isFont: true,
     gridSize: 16,
+    charCode: 59680,
   },
   'iconfont-back': {
     isFont: true,
     gridSize: 16,
+    charCode: 59650,
   },
   'iconfont-thunderbolt': {
     isFont: true,
     gridSize: 16,
+    charCode: 59676,
   },
   'iconfont-remove': {
     isFont: true,
     gridSize: 16,
+    charCode: 59673,
   },
   'iconfont-import': {
     isFont: true,
     gridSize: 16,
+    charCode: 59681,
   },
   'iconfont-add': {
     isFont: true,
     gridSize: 16,
+    charCode: 59682,
   },
   'iconfont-link': {
     isFont: true,
     gridSize: 16,
+    charCode: 59677,
   },
   'iconfont-ellipsis': {
     isFont: true,
     gridSize: 16,
+    charCode: 59679,
   },
   'iconfont-edit': {
     isFont: true,
     gridSize: 16,
+    charCode: 59678,
   },
   'iconfont-tweet': {
     isFont: true,
     gridSize: 16,
+    charCode: 59683,
   },
   'iconfont-open-browser': {
     isFont: true,
     gridSize: 16,
+    charCode: 59684,
   },
   'iconfont-lock': {
     isFont: true,
     gridSize: 16,
+    charCode: 59685,
   },
   'iconfont-nav-search': {
     isFont: true,
     gridSize: 24,
+    charCode: 59694,
   },
   'iconfont-proof-placeholder': {
     isFont: true,
     gridSize: 24,
+    charCode: 59686,
   },
   'iconfont-proof-good': {
     isFont: true,
     gridSize: 24,
+    charCode: 59671,
   },
   'iconfont-proof-broken': {
     isFont: true,
     gridSize: 24,
+    charCode: 59670,
   },
   'iconfont-proof-pending': {
     isFont: true,
     gridSize: 24,
+    charCode: 59672,
   },
   'iconfont-hamburger': {
     isFont: true,
     gridSize: 24,
+    charCode: 59660,
   },
   'iconfont-people': {
     isFont: true,
     gridSize: 24,
+    charCode: 59669,
   },
   'iconfont-folder': {
     isFont: true,
     gridSize: 24,
+    charCode: 59655,
   },
   'iconfont-device': {
     isFont: true,
     gridSize: 24,
+    charCode: 59654,
   },
   'iconfont-settings': {
     isFont: true,
     gridSize: 24,
+    charCode: 59675,
   },
   'iconfont-search': {
     isFont: true,
     gridSize: 24,
+    charCode: 59674,
   },
   'iconfont-chat': {
     isFont: true,
     gridSize: 24,
+    charCode: 59651,
   },
   'icon-GPG-export': {
     isFont: false,
