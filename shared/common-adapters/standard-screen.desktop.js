@@ -8,7 +8,6 @@ const StandardScreen = (props: Props) => {
   return (
     <Box style={{...styleContainer, ...props.styleOuter}}>
       <Box style={styleTopStack}>
-        {!!props.onClose && <Icon style={{...styleClose, ...props.styleClose}} type='iconfont-close' onClick={props.onClose} />}
         {!!props.onBack && <BackButton onClick={props.onBack} style={{...styleBack, ...props.styleBack}} />}
         {!!props.notification && <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
           {typeof props.notification.message === 'string'
@@ -18,6 +17,7 @@ const StandardScreen = (props: Props) => {
         </Box>}
       </Box>
       <Box style={{...styleContentContainer, ...props.style}}>
+        {!!props.onClose && <Icon style={{...styleClose, ...props.styleClose}} type='iconfont-close' onClick={props.onClose} />}
         {props.children}
       </Box>
     </Box>
@@ -28,16 +28,14 @@ const styleContainer = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.scrollable,
   flex: 1,
-  alignItems: 'center',
+  alignItems: 'stretch',
   position: 'relative',
-  paddingBottom: globalMargins.large,
 }
 
 const styleTopStack = {
   ...globalStyles.flexBoxColumn,
   position: 'relative',
   alignItems: 'stretch',
-  minHeight: globalMargins.large,
   width: '100%',
 }
 
@@ -74,10 +72,11 @@ const styleBannerText = {
 
 const styleContentContainer = {
   ...globalStyles.flexBoxColumn,
+  position: 'relative',
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
-  margin: globalMargins.large,
+  padding: globalMargins.large,
   textAlign: 'center',
 }
 
