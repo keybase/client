@@ -113,6 +113,11 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.
 			return false, fmt.Errorf("error preparing message: %s", err)
 		}
 
+		// Note: it's NOT OK to reuse `triple` after the call
+		// to`NewConversationRemote2` since it might return a conversation ID for
+		// an existing conversation, which corresponds to a different triple. This
+		// is because we enforce one CHAT conversation per TLF for now.
+
 		res, err := h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,
 			TLFMessage: *firstMessageBoxed,
