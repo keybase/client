@@ -3,6 +3,7 @@ import Box from './box'
 import Icon from './icon'
 import React, {Component} from 'react'
 import Text from './text'
+import Badge from './badge'
 import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {globalStyles, globalColors} from '../styles'
@@ -51,9 +52,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
           {badgeNumber > 0 &&
             <Box style={{width: 0, display: 'flex'}}>
               <Box style={{...styleBadgeOutline, borderColor: backgroundColor, backgroundColor}}>
-                <Box style={{...styleBadge, marginLeft: 0, marginRight: 0}}>
-                  <Text style={{flex: 0}} type='BadgeNumber'>{badgeNumber}</Text>
-                </Box>
+                <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
               </Box>
             </Box>}
         </Box>
@@ -68,10 +67,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
       <Box style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}>
         <Icon type={this.props.source.icon} style={{...stylesIcon, color, ...this.props.styleIcon}} />
         {!!this.props.label && <Text type={this.props.styleLabelType || 'BodySmallSemibold'} style={{color, ...this.props.styleLabel}}>{this.props.label}</Text>}
-        {badgeNumber > 0 &&
-          <Box style={{...styleBadge, ...this.props.styleBadge}}>
-            <Text style={{flex: 0, ...this.props.styleBadgeNumber}} type='BadgeNumber'>{badgeNumber}</Text>
-          </Box>}
+        {badgeNumber > 0 && <Badge badgeNumber={badgeNumber} badgeStyle={this.props.styleBadge} badgeNumberStyle={this.props.styleBadgeNumber} /> }
       </Box>
     )
   }
@@ -89,19 +85,6 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
         return this._renderIcon(backgroundColor, color, badgeNumber)
     }
   }
-}
-
-const styleBadge = {
-  ...globalStyles.flexBoxRow,
-  backgroundColor: globalColors.orange,
-  borderColor: globalColors.orange,
-  borderWidth: 2,
-  paddingLeft: 5,
-  paddingRight: 5,
-  borderRadius: 10,
-  flex: 0,
-  marginLeft: 'auto',
-  marginRight: 8,
 }
 
 const styleBadgeOutline = {
