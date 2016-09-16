@@ -586,6 +586,7 @@ func TestTLFJournalFlushMDBasic(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, flushed)
 	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Check RMDSes on the server.
 
@@ -659,6 +660,7 @@ func TestTLFJournalFlushMDConflict(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, flushed)
 	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Check RMDSes on the server.
 
@@ -709,6 +711,7 @@ func TestTLFJournalPreservesBranchID(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, flushed)
 	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Put last revision and flush it.
 	{
@@ -732,6 +735,7 @@ func TestTLFJournalPreservesBranchID(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, flushed)
 		requireJournalEntryCounts(t, tlfJournal, 0, 0)
+		testMDJournalGCd(t, tlfJournal.mdJournal)
 	}
 
 	// Check RMDSes on the server. In particular, the BranchID of
@@ -854,6 +858,8 @@ func TestTLFJournalFlushOrdering(t *testing.T) {
 	err = tlfJournal.flush(ctx)
 	require.NoError(t, err)
 	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
+
 	// These two orderings depend on the exact flushing process,
 	// but there are other possible orderings which respect the
 	// above is-put-before constraints and also respect the
