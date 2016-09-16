@@ -1,21 +1,23 @@
 // @flow
 import ConfirmOrPending from './confirm-or-pending-container'
-import EditProfile from './edit-profile'
 import EditAvatar from './edit-avatar-container'
+import EditProfile from './edit-profile'
+import ErrorComponent from '../common-adapters/error-profile'
 import PostProof from './post-proof-container'
+import Profile from './index'
 import ProveEnterUsername from './prove-enter-username-container'
 import ProveWebsiteChoice from './prove-website-choice-container'
 import React, {PureComponent} from 'react'
-import Profile from './index'
 import RevokeContainer from './revoke/container'
+import flags from '../util/feature-flags'
 import pgpRouter from './pgp'
 import {addProof, checkSpecificProof} from '../actions/profile'
 import {connect} from 'react-redux'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
+import {isTesting} from '../local-debug'
 import {openInKBFS} from '../actions/kbfs'
 import {routeAppend, navigateUp} from '../actions/router'
-import {isTesting} from '../local-debug'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
@@ -28,7 +30,15 @@ type OwnProps = {
   }
 }
 
-class ProfileContainer extends PureComponent<void, ?Props, void> {
+type EitherProps<P> = {
+  type: 'ok',
+  okProps: P,
+} | {
+  type: 'error',
+  propError: string,
+}
+
+class ProfileContainer extends PureComponent<void, EitherProps<Props>, void> {
   static parseRoute (currentPath, uri) {
     return {
       componentAtTop: {
@@ -54,11 +64,14 @@ class ProfileContainer extends PureComponent<void, ?Props, void> {
   }
 
   render () {
-    return <Profile {...this.props} />
+    if (this.props.type === 'error') {
+      return <ErrorComponent error={this.props.propError} />
+    }
+
+    return <Profile {...this.props.okProps} />
   }
 }
 
-// $FlowIssue type this connector
 export default connect(
   (state, ownProps: OwnProps) => {
     const myUsername = state.config.username
@@ -73,7 +86,7 @@ export default connect(
       trackerState: state.tracker.trackers[username],
     }
   },
-  (dispatch, ownProps: OwnProps) => ({
+  (dispatch: any, ownProps: OwnProps) => ({
     onUserClick: (username, uid) => { dispatch(routeAppend({path: 'profile', userOverride: {username, uid}})) },
     onBack: ownProps.profileIsRoot ? null : () => { dispatch(navigateUp()) },
     onFolderClick: folder => { dispatch(openInKBFS(folder.path)) },
@@ -91,7 +104,7 @@ export default connect(
     onUnfollow: username => { dispatch(onUnfollow(username)) },
     onAcceptProofs: username => { dispatch(onFollow(username, false)) },
   }),
-  (stateProps, dispatchProps, ownProps) => {
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
     const refresh = () => {
       dispatchProps.getProfile(stateProps.username)
       dispatchProps.updateTrackers(stateProps.username, stateProps.uid)
@@ -106,11 +119,12 @@ export default connect(
     } : null
 
     if (stateProps.trackerState && stateProps.trackerState.type !== 'tracker') {
-      console.warn('Expected a tracker type, trying to show profile for non user')
-      return null
+      const propError = 'Expected a tracker type, trying to show profile for non user'
+      console.warn(propError)
+      return {type: 'error', propError}
     }
 
-    return {
+    const okProps = {
       ...ownProps,
       ...stateProps.trackerState,
       ...dispatchProps,
@@ -124,6 +138,9 @@ export default connect(
       onFollow: username => dispatchProps.onFollow(stateProps.username),
       onUnfollow: username => dispatchProps.onUnfollow(stateProps.username),
       onAcceptProofs: username => dispatchProps.onFollow(stateProps.username),
+      showComingSoon: !flags.tabProfileEnabled,
     }
+
+    return {type: 'ok', okProps}
   }
 )(ProfileContainer)

@@ -1,0 +1,30 @@
+// @flow
+import {Component} from 'react'
+
+import type {PlanLevel, PaymentInfo} from '../../constants/settings'
+
+export type PlanProps = {
+  onUpgrade: (toLevel: PlanLevel) => void,
+  onDowngrade: (toLevel: PlanLevel) => void,
+  onInfo: (level: PlanLevel) => void,
+  selectedLevel: PlanLevel,
+  freeSpace: string,
+  freeSpacePercentage: number, // number from 0 - 1
+  lowSpaceWarning: boolean,
+  paymentInfo: ?PaymentInfo,
+  onChangePaymentInfo: () => void,
+}
+
+export type AccountProps = {
+  email: string,
+  isVerified: boolean,
+  onChangeEmail: () => void,
+  onChangePassphrase: () => void,
+}
+
+export type Props = {
+  plan: PlanProps,
+  account: AccountProps,
+}
+
+export default class LandingPage extends Component<void, Props, void> { }

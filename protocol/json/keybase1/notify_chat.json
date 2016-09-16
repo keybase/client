@@ -6,8 +6,9 @@
       "type": "idl"
     },
     {
-      "path": "chat_local.avdl",
-      "type": "idl"
+      "path": "github.com/keybase/client/go/protocol/chat1",
+      "type": "idl",
+      "import_as": "chat1"
     }
   ],
   "types": [
@@ -30,7 +31,7 @@
         {
           "type": [
             null,
-            "Message"
+            "chat1.Message"
           ],
           "name": "IncomingMessage"
         }
