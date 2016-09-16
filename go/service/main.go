@@ -16,7 +16,8 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
@@ -86,7 +87,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		keybase1.ChatLocalProtocol(newChatLocalHandler(xp, g, d.gregor)),
+		chat1.LocalProtocol(newChatLocalHandler(xp, g, d.gregor)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {

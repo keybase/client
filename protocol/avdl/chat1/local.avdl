@@ -1,8 +1,6 @@
-@namespace("keybase.1")
+@namespace("chat.1")
 
-protocol chatLocal {
-
-  import idl "github.com/keybase/client/go/protocol/chat1" as chat1;
+protocol local {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "common.avdl";
 
@@ -15,19 +13,19 @@ protocol chatLocal {
   }
 
   record MessageEdit {
-    chat1.MessageID messageID;
+    MessageID messageID;
     string body;
   }
 
   record MessageDelete {
-    chat1.MessageID messageID;
+    MessageID messageID;
   }
 
   record MessageAttachment {
     string path;
   }
 
-  variant MessageBody switch (chat1.MessageType messageType) {
+  variant MessageBody switch (MessageType messageType) {
     case TEXT: MessageText;
     case ATTACHMENT: MessageAttachment;
     case EDIT: MessageEdit;
@@ -40,7 +38,7 @@ protocol chatLocal {
   }
 
   record MessagePlaintextV1 {
-    chat1.MessageClientHeader clientHeader;
+    MessageClientHeader clientHeader;
     MessageBody messageBody;
   }
 
@@ -53,14 +51,14 @@ protocol chatLocal {
   }
 
   record HeaderPlaintextV1 {
-    chat1.ConversationIDTriple conv;
+    ConversationIDTriple conv;
     string tlfName;
-    chat1.MessageType messageType;
-    array<chat1.MessagePreviousPointer> prev;
+    MessageType messageType;
+    array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
-    chat1.Hash bodyHash;
-    union {null, chat1.SignatureInfo} headerSignature;
+    Hash bodyHash;
+    union {null, SignatureInfo} headerSignature;
   }
 
   variant HeaderPlaintext switch (HeaderPlaintextVersion version) {
@@ -86,7 +84,7 @@ protocol chatLocal {
   }
 
   record Message {
-    chat1.MessageServerHeader serverHeader;
+    MessageServerHeader serverHeader;
     MessagePlaintext messagePlaintext;
 
     union { null, MessageInfoLocal } info;
@@ -94,38 +92,38 @@ protocol chatLocal {
 
   record ThreadView {
     array<Message> messages;
-    union { null, chat1.Pagination } pagination;
+    union { null, Pagination } pagination;
   }
 
   record MessageSelector {
-    array<chat1.MessageType> MessageTypes;
+    array<MessageType> MessageTypes;
 
     union { null, string } Since;
     boolean onlyNew;
 
     int limit;
 
-    array<chat1.ConversationID> conversations;
+    array<ConversationID> conversations;
 
     boolean markAsRead;
   }
 
   record ConversationInfoLocal {
-    chat1.ConversationID id;
+    ConversationID id;
     string tlfName;
     string topicName;
-    chat1.TopicType topicType;
+    TopicType topicType;
   }
 
   record ConversationLocal {
-    chat1.ConversationID id;
+    ConversationID id;
     union { null, ConversationInfoLocal } info;
     array<Message> messages;
   }
 
-  chat1.InboxView getInboxLocal(union { null, chat1.GetInboxQuery} query, union { null, chat1.Pagination } pagination);
-  ThreadView getThreadLocal(chat1.ConversationID conversationID, union { null, chat1.GetThreadQuery} query, union { null, chat1.Pagination } pagination);
-  void postLocal(chat1.ConversationID conversationID, MessagePlaintext messagePlaintext);
+  InboxView getInboxLocal(union { null, GetInboxQuery} query, union { null, Pagination } pagination);
+  ThreadView getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
+  void postLocal(ConversationID conversationID, MessagePlaintext messagePlaintext);
 
   // resolveConversationLocal resolves information related to a conversation.
   // If conversation.id is given (non-zero), it is used to locate the
@@ -142,7 +140,7 @@ protocol chatLocal {
   // returned ConversationInfoLocal has all fields populated.
   ConversationInfoLocal newConversationLocal(ConversationInfoLocal conversation);
 
-  void updateTopicNameLocal(chat1.ConversationID conversationID, string newTopicName);
+  void updateTopicNameLocal(ConversationID conversationID, string newTopicName);
 
   // selector.conversations is required
   array<ConversationLocal> getMessagesLocal(MessageSelector selector);
@@ -154,10 +152,5 @@ protocol chatLocal {
   }
 
   // if since is given, limit is ignored
-  GetInboxSummaryLocalRes getInboxSummaryLocal(chat1.TopicType topicType, string after, string before, int limit);
-
-  // The tlfName can be either complete or partial. If the user's username is
-  // not present in tlfName, it gets appended automatically. The canonical TLF
-  // name is returned.
-  CanonicalTlfName completeAndCanonicalizeTlfName(string tlfName);
+  GetInboxSummaryLocalRes getInboxSummaryLocal(TopicType topicType, string after, string before, int limit);
 }

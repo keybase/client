@@ -5,6 +5,7 @@ package client
 
 import (
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
@@ -267,12 +268,12 @@ func GetSecretKeysClient(g *libkb.GlobalContext) (cli keybase1.SecretKeysClient,
 	return cli, nil
 }
 
-func GetChatLocalClient(g *libkb.GlobalContext) (cli keybase1.ChatLocalClient, err error) {
+func GetChatLocalClient(g *libkb.GlobalContext) (cli chat1.LocalClient, err error) {
 	rcli, _, err := GetRPCClientWithContext(g)
 	if err != nil {
 		return cli, err
 	}
-	cli = keybase1.ChatLocalClient{Cli: rcli}
+	cli = chat1.LocalClient{Cli: rcli}
 	return cli, nil
 }
 

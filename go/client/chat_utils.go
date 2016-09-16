@@ -46,15 +46,15 @@ type conversationResolver struct {
 	TopicType chat1.TopicType
 }
 
-func (r conversationResolver) Resolve(ctx context.Context, chatClient keybase1.ChatLocalInterface) (conversations []keybase1.ConversationInfoLocal, err error) {
+func (r conversationResolver) Resolve(ctx context.Context, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversations []chat1.ConversationInfoLocal, err error) {
 	if len(r.TlfName) > 0 {
-		cname, err := chatClient.CompleteAndCanonicalizeTlfName(ctx, r.TlfName)
+		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, r.TlfName)
 		if err != nil {
 			return nil, fmt.Errorf("completing TLF name error: %v", err)
 		}
 		r.TlfName = string(cname)
 	}
-	conversations, err = chatClient.ResolveConversationLocal(ctx, keybase1.ConversationInfoLocal{
+	conversations, err = chatClient.ResolveConversationLocal(ctx, chat1.ConversationInfoLocal{
 		TlfName:   r.TlfName,
 		TopicName: r.TopicName,
 		TopicType: r.TopicType,
@@ -63,10 +63,10 @@ func (r conversationResolver) Resolve(ctx context.Context, chatClient keybase1.C
 }
 
 type messageFetcher struct {
-	selector keybase1.MessageSelector
+	selector chat1.MessageSelector
 	resolver conversationResolver
 
-	chatClient keybase1.ChatLocalInterface // for testing only
+	chatClient chat1.LocalInterface // for testing only
 }
 
 func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, err error) {
@@ -110,7 +110,7 @@ func makeMessageFetcherFromCliCtx(ctx *cli.Context, tlfName string, markAsRead b
 	return fetcher, nil
 }
 
-func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []keybase1.ConversationLocal, err error) {
+func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []chat1.ConversationLocal, err error) {
 	chatClient := f.chatClient // should be nil unless in test
 	if chatClient == nil {
 		chatClient, err = GetChatLocalClient(g)
@@ -119,7 +119,12 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 		}
 	}
 
-	conversationInfos, err := f.resolver.Resolve(ctx, chatClient)
+	tlfClient, err := GetTlfClient(g)
+	if err != nil {
+		return nil, err
+	}
+
+	conversationInfos, err := f.resolver.Resolve(ctx, chatClient, tlfClient)
 	if err != nil {
 		return nil, fmt.Errorf("resolving conversation error: %v\n", err)
 	}
@@ -146,7 +151,7 @@ type inboxFetcher struct {
 	limit     int
 	since     string
 
-	chatClient keybase1.ChatLocalInterface // for testing only
+	chatClient chat1.LocalInterface // for testing only
 }
 
 func makeInboxFetcherFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error) {
@@ -164,7 +169,7 @@ func makeInboxFetcherFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error)
 	return fetcher, err
 }
 
-func (f inboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []keybase1.ConversationLocal, more []keybase1.ConversationLocal, moreTotal int, err error) {
+func (f inboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []chat1.ConversationLocal, more []chat1.ConversationLocal, moreTotal int, err error) {
 	chatClient := f.chatClient // should be nil unless in test
 	if chatClient == nil {
 		chatClient, err = GetChatLocalClient(g)
@@ -173,7 +178,7 @@ func (f inboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conver
 		}
 	}
 
-	res, err := chatClient.GetInboxSummaryLocal(ctx, keybase1.GetInboxSummaryLocalArg{
+	res, err := chatClient.GetInboxSummaryLocal(ctx, chat1.GetInboxSummaryLocalArg{
 		TopicType: f.topicType,
 		After:     f.since,
 		Limit:     f.limit,
