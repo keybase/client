@@ -5,18 +5,22 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props, NotificationType} from './standard-screen'
 
 const StandardScreen = (props: Props) => {
+  const topStack = [
+    !!props.onBack && <BackButton key='back' onClick={props.onBack} style={{...styleBack, ...props.styleBack}} />,
+    !!props.notification && (<Box key='banner' style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
+      {typeof props.notification.message === 'string'
+        ? <Text style={styleBannerText} type='BodySmallSemibold'>{props.notification.message}</Text>
+        : props.notification.message
+      }
+    </Box>),
+  ]
+  const topStackCount = topStack.reduce((acc, x) => acc + !!x, 0)
   return (
     <Box style={{...styleContainer, ...props.styleOuter}}>
       <Box style={styleTopStack}>
-        {!!props.onBack && <BackButton onClick={props.onBack} style={{...styleBack, ...props.styleBack}} />}
-        {!!props.notification && <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
-          {typeof props.notification.message === 'string'
-            ? <Text style={styleBannerText} type='BodySmallSemibold'>{props.notification.message}</Text>
-            : props.notification.message
-          }
-        </Box>}
+        {topStack}
       </Box>
-      <Box style={{...styleContentContainer, ...props.style}}>
+      <Box style={{...styleContentContainer, paddingBottom: (topStackCount + 1) * globalMargins.large, ...props.style}}>
         {!!props.onClose && <Icon style={{...styleClose, ...props.styleClose}} type='iconfont-close' onClick={props.onClose} />}
         {props.children}
       </Box>
