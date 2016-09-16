@@ -309,6 +309,7 @@ function _revokedFinishResponse (): FinishRevokeProof {
 
 function finishRevoking (): AsyncAction {
   return (dispatch) => {
+    dispatch(getMyProfile(true))
     dispatch(_revokedFinishResponse())
     dispatch(navigateUp())
   }
