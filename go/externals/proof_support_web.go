@@ -45,7 +45,7 @@ func (rc *WebChecker) GetTorError() libkb.ProofError {
 func (rc *WebChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 
 	files := webKeybaseFiles
-	urlBase := rc.proof.ToDisplayString()
+	urlBase := strings.ToLower(rc.proof.ToDisplayString())
 	theirURL := strings.ToLower(h.GetAPIURL())
 
 	for _, file := range files {
