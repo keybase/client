@@ -291,6 +291,10 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (
 			"are any dirty blocks outstanding", tlfID)
 	}
 
+	// Disable the journal.  Note that we don't bother deleting the
+	// journal from j.tlfJournals, to avoid cases where something
+	// keeps it around doing background work or re-enables it, at the
+	// same time JournalServer creates a new journal for the same TLF.
 	wasEnabled, err = tlfJournal.disable()
 	if err != nil {
 		return false, err

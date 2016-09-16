@@ -2278,6 +2278,13 @@ func (fbo *folderBranchOps) createEntryLocked(
 				}
 				wasEnabled, err = jServer.Disable(ctx, fbo.id())
 				if err == nil {
+					// TODO: there is a theoretical race here if a
+					// user re-enables the journal directly via the
+					// JournalServer through a file system interface.
+					// Maybe we should create a way to lock down
+					// enables except for the goroutine that called
+					// Disable (using a channel or function returned
+					// from Disable, for example).
 					break
 				}
 				fbo.log.CDebugf(ctx, "Trying again after error "+

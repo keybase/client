@@ -48,7 +48,9 @@ func (j journalMDOps) getHeadFromJournal(
 	}
 
 	head, err := tlfJournal.getMDHead(ctx)
-	if err != nil {
+	if err == errTLFJournalDisabled {
+		return ImmutableRootMetadata{}, nil
+	} else if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
 
@@ -129,7 +131,9 @@ func (j journalMDOps) getRangeFromJournal(
 	}
 
 	ibrmds, err := tlfJournal.getMDRange(ctx, start, stop)
-	if err != nil {
+	if err == errTLFJournalDisabled {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -207,10 +211,10 @@ func (j journalMDOps) GetForHandle(
 	// If the journal has a head, use that.
 	irmd, err := j.getHeadFromJournal(
 		ctx, tlfID, NullBranchID, mStatus, handle)
-	if err != nil && err != errTLFJournalDisabled {
+	if err != nil {
 		return TlfID{}, ImmutableRootMetadata{}, err
 	}
-	if err == nil && irmd != (ImmutableRootMetadata{}) {
+	if irmd != (ImmutableRootMetadata{}) {
 		return TlfID{}, irmd, nil
 	}
 
@@ -226,10 +230,10 @@ func (j journalMDOps) getForTLF(
 	ImmutableRootMetadata, error) {
 	// If the journal has a head, use that.
 	irmd, err := j.getHeadFromJournal(ctx, id, bid, mStatus, nil)
-	if err != nil && err != errTLFJournalDisabled {
+	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
-	if err == nil && irmd != (ImmutableRootMetadata{}) {
+	if irmd != (ImmutableRootMetadata{}) {
 		return irmd, nil
 	}
 
@@ -263,7 +267,7 @@ func (j journalMDOps) getRange(
 	[]ImmutableRootMetadata, error) {
 	// Grab the range from the journal first.
 	jirmds, err := j.getRangeFromJournal(ctx, id, bid, mStatus, start, stop)
-	if err != nil && err != errTLFJournalDisabled {
+	if err != nil {
 		return nil, err
 	}
 
