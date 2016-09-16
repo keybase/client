@@ -65,6 +65,28 @@ func TestNewConversationLocal(t *testing.T) {
 	}
 }
 
+func TestNewChatConversationLocalTwice(t *testing.T) {
+	ctc := makeChatTestContext(t, "NewConversationLocal")
+	defer ctc.tc.Cleanup()
+
+	mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
+
+	if _, err := ctc.h.NewConversationLocal(context.Background(), chat1.ConversationInfoLocal{
+		TlfName:   "t_alice," + ctc.world.me.Username,
+		TopicType: chat1.TopicType_CHAT,
+	}); err == nil {
+		t.Fatalf("creating CHAT conversation twice did not fail")
+	}
+}
+
+func TestNewDevConversationLocalTwice(t *testing.T) {
+	ctc := makeChatTestContext(t, "NewConversationLocal")
+	defer ctc.tc.Cleanup()
+
+	mustCreateConversationForTest(t, ctc, chat1.TopicType_DEV, "t_alice")
+	mustCreateConversationForTest(t, ctc, chat1.TopicType_DEV, "t_alice")
+}
+
 func TestResolveConversationLocal(t *testing.T) {
 	t.Skip("this needs to be fixed")
 	ctc := makeChatTestContext(t, "ResolveConversationLocal")

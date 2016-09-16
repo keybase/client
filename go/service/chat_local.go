@@ -66,11 +66,12 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	return h.unboxThread(ctx, boxed.Thread, arg.ConversationID)
 }
 
-func retryWithoutBackoffUpToNTimesUntilNoError(n int, action func() error) (err error) {
-	for ; n > 0; n-- {
-		err = action()
+func retryWithoutBackoffUpToNTimesUntilNoError(n int, action func() (bool, error)) (err error) {
+	retriable := true
+	for ; retriable && n > 0; n-- {
+		retriable, err = action()
 		if err == nil {
-			return
+			return nil
 		}
 	}
 	return err
@@ -96,34 +97,41 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.
 	}
 	info.TlfName = string(res.CanonicalName)
 
-	// TODO: change retryWithoutBackoffUpToNTimesUntilNoError so that it examines
-	// whether an error is retriable.
-	// TODO: after we have exportable errors in gregor, only retry on topic ID
-	// duplication.
-	if err = retryWithoutBackoffUpToNTimesUntilNoError(3, func() (err error) {
-		if triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
-			return fmt.Errorf("error creating topic ID: %s", err)
-		}
-		firstMessageBoxed, err := h.prepareMessageForRemote(ctx, makeFirstMessage(ctx, info, triple))
-		if err != nil {
-			return fmt.Errorf("error preparing message: %s", err)
+	if err = retryWithoutBackoffUpToNTimesUntilNoError(3, func() (retriable bool, err error) {
+		if triple.TopicType != chat1.TopicType_CHAT {
+			// We only set topic ID if it's not CHAT. We are supporting only one
+			// conversation per TLF now. A topic ID of 0s is intentional as it would
+			// cause insertion failure in database.
+
+			if triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
+				return false, fmt.Errorf("error creating topic ID: %s", err)
+			}
 		}
 
-		// Note: it's NOT OK to reuse `triple` after the call
-		// to`NewConversationRemote2` since it might return a conversation ID for
-		// an existing conversation, which corresponds to a different triple. This
-		// is because we enforce one CHAT conversation per TLF for now.
+		firstMessageBoxed, err := h.prepareMessageForRemote(ctx, makeFirstMessage(ctx, info, triple))
+		if err != nil {
+			return false, fmt.Errorf("error preparing message: %s", err)
+		}
 
 		res, err := h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,
 			TLFMessage: *firstMessageBoxed,
 		})
 		if err != nil {
-			return err
+			if triple.TopicType == chat1.TopicType_CHAT {
+				// A chat conversation already exists!
+				return false, err
+			}
+
+			// Not a chat conversation. Multiples are fine.
+			// TODO: after we have exportable errors in gregor, only retry on topic
+			// ID duplication.
+			return true, err
 		}
 		info.Id = res.ConvID
 		created = info
-		return nil
+
+		return false, nil
 	}); err != nil {
 		return created, err
 	}
