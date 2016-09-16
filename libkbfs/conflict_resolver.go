@@ -2568,6 +2568,20 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 			entryType = File // TODO: FIXME for Ex and Sym
 		}
 
+		var childBps *blockPutState
+		if entryType != Dir && fblock.IsInd {
+			childBps = newBlockPutState(len(fblock.IPtrs))
+			// For an indirect file block, make sure a new
+			// reference is made for every child block.
+			for _, iptr := range fblock.IPtrs {
+				childBps.addNewBlock(iptr.BlockPointer, nil, ReadyBlockData{},
+					nil)
+				// TODO: add block updates to the op chain for these guys
+				// (need encoded size!)
+				newMD.AddRefBlock(iptr.BlockInfo)
+			}
+		}
+
 		// TODO: fix mtime and ctime?
 		_, _, bps, err := cr.fbo.syncBlockForConflictResolution(
 			ctx, lState, uid, newMD, block,
@@ -2577,18 +2591,8 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 			return nil, err
 		}
 
-		if entryType != Dir {
-			if fblock.IsInd {
-				// For an indirect file block, make sure a new
-				// reference is made for every child block.
-				for _, iptr := range fblock.IPtrs {
-					bps.addNewBlock(iptr.BlockPointer, nil, ReadyBlockData{},
-						nil)
-					// TODO: add block updates to the op chain for these guys
-					// (need encoded size!)
-					newMD.AddRefBlock(iptr.BlockInfo)
-				}
-			}
+		if childBps != nil {
+			bps.mergeOtherBps(childBps)
 		}
 
 		return bps, nil
