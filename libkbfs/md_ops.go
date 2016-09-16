@@ -233,7 +233,7 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 		return TlfID{}, ImmutableRootMetadata{}, err
 	}
 
-	// Check for mutal handle resolution.
+	// Check for mutual handle resolution.
 	if err := mdHandle.MutuallyResolvesTo(ctx, md.config.Codec(),
 		md.config.KBPKI(), *handle, rmds.MD.RevisionNumber(), rmds.MD.TlfID(),
 		md.log); err != nil {

@@ -83,7 +83,7 @@ func (j journalMDOps) getHeadFromJournal(
 			return ImmutableRootMetadata{}, err
 		}
 	} else {
-		// Check for mutal handle resolution.
+		// Check for mutual handle resolution.
 		headHandle, err := MakeTlfHandle(ctx, headBareHandle,
 			j.jServer.config.KBPKI())
 		if err != nil {
