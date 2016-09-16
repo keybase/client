@@ -15,6 +15,10 @@ import (
 //=============================================================================
 
 func MakeProofChecker(c ExternalServicesCollector, l RemoteProofChainLink) (ProofChecker, ProofError) {
+	if c == nil {
+		return nil, NewProofError(keybase1.ProofStatus_UNKNOWN_TYPE,
+			"No proof services configured")
+	}
 	k := l.TableKey()
 	st := c.GetServiceType(k)
 	if st == nil {
