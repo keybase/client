@@ -265,6 +265,7 @@ function addProof (platform: PlatformsExpandedType): AsyncAction {
       case 'http':
       case 'https':
       case 'twitter':
+      case 'facebook':
       case 'reddit':
       case 'github':
       case 'coinbase':
@@ -404,13 +405,14 @@ function outputInstructionsActionLink (): AsyncAction {
         openURL(`https://coinbase.com/${profile.username}#settings`)
         break
       case 'twitter':
-        openURL(`https://twitter.com/home?status=${profile.proof}`)
+        openURL(`https://twitter.com/home?status=${profile.proofText}`)
         break
       case 'github':
         openURL('https://gist.github.com/')
         break
       case 'reddit':
-        openURL(profile.proof)
+      case 'facebook':
+        openURL(profile.proofText)
         break
       default:
         break
