@@ -297,6 +297,10 @@
           "name": "supersededBy"
         },
         {
+          "type": "MessageID",
+          "name": "supersedes"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         }
@@ -331,6 +335,10 @@
         {
           "type": "MessageType",
           "name": "messageType"
+        },
+        {
+          "type": "MessageID",
+          "name": "supersedes"
         },
         {
           "type": {

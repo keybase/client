@@ -340,6 +340,7 @@ export type MessageBody =
 
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
+  supersededBy?: ?MessageBoxed,
   clientHeader: MessageClientHeader,
   headerCiphertext: EncryptedData,
   bodyCiphertext: EncryptedData,
@@ -350,6 +351,7 @@ export type MessageClientHeader = {
   conv: ConversationIDTriple,
   tlfName: string,
   messageType: MessageType,
+  supersedes: MessageID,
   prev?: ?Array<MessagePreviousPointer>,
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
@@ -407,6 +409,7 @@ export type MessageServerHeader = {
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
   supersededBy: MessageID,
+  supersedes: MessageID,
   ctime: gregor1.Time,
 }
 

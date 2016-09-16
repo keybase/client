@@ -141,6 +141,7 @@ const following = [
 
 const propsBase: RenderProps = {
   ...mockUserInfo,
+  showComingSoon: false,
   isYou: false,
   loading: false,
   bioEditFns: null,

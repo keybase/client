@@ -52,7 +52,7 @@ export default connector.connect(
      showUserGroup,
      selectedUsers,
      onRemoveUserFromGroup: user => { dispatch(removeUserFromGroup(user)) },
-     onClickUserInGroup: user => { dispatch(isMobile ? routeAppend({path: 'profile', username: user.username}) : selectUserForInfo(user)) },
+     onClickUserInGroup: user => { dispatch(isMobile ? routeAppend({path: 'profile', userOverride: {username: user.username}}) : selectUserForInfo(user)) },
      onReset: () => { dispatch(reset()) },
      onAddAnotherUserToGroup: () => { dispatch(hideUserGroup()) },
      onOpenPrivateGroupFolder: () => { username && dispatch(openInKBFS(privateFolderWithUsers(selectedUsers.map(searchResultToAssertion).concat(username)))) },
