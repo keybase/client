@@ -119,7 +119,8 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.
 		})
 		if err != nil {
 			if triple.TopicType == chat1.TopicType_CHAT {
-				// A chat conversation already exists!
+				// If a chat conversation already exists, server should just return it.
+				// So this must be something else.
 				return false, err
 			}
 

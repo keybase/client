@@ -69,13 +69,11 @@ func TestNewChatConversationLocalTwice(t *testing.T) {
 	ctc := makeChatTestContext(t, "NewConversationLocal")
 	defer ctc.tc.Cleanup()
 
-	mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
+	c1 := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
+	c2 := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
 
-	if _, err := ctc.h.NewConversationLocal(context.Background(), chat1.ConversationInfoLocal{
-		TlfName:   "t_alice," + ctc.world.me.Username,
-		TopicType: chat1.TopicType_CHAT,
-	}); err == nil {
-		t.Fatalf("creating CHAT conversation twice did not fail")
+	if c2.Id != c1.Id {
+		t.Fatalf("2nd call to NewConversationLocal for a chat conversation did not return the same conversation ID")
 	}
 }
 

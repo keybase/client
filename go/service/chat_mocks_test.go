@@ -249,7 +249,8 @@ func (m *chatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 		if conv.Metadata.IdTriple.Tlfid.Eq(arg.IdTriple.Tlfid) &&
 			conv.Metadata.IdTriple.TopicID.String() == arg.IdTriple.TopicID.String() &&
 			conv.Metadata.IdTriple.TopicType == arg.IdTriple.TopicType {
-			return res, errors.New("duplicate IdTriple")
+			res.ConvID = conv.Metadata.ConversationID
+			return res, nil
 		}
 	}
 	res.ConvID = chat1.ConversationID(len(m.conversations) + 1) // TODO: compute this when we need it
