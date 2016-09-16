@@ -18,6 +18,30 @@ const iconMeta_ = {
     isFont: true,
     gridSize: 8,
   },
+  'iconfont-star': {
+    isFont: true,
+    gridSize: 16,
+  },
+  'iconfont-search_2': {
+    isFont: true,
+    gridSize: 16,
+  },
+  'iconfont-identity-coinbase': {
+    isFont: true,
+    gridSize: 16,
+  },
+  'iconfont-folder-visible': {
+    isFont: true,
+    gridSize: 16,
+  },
+  'iconfont-folder-hidden': {
+    isFont: true,
+    gridSize: 16,
+  },
+  'iconfont-exclamation': {
+    isFont: true,
+    gridSize: 16,
+  },
   'iconfont-identity-facebook': {
     isFont: true,
     gridSize: 16,
@@ -125,6 +149,10 @@ const iconMeta_ = {
   'iconfont-lock': {
     isFont: true,
     gridSize: 16,
+  },
+  'iconfont-nav-search': {
+    isFont: true,
+    gridSize: 24,
   },
   'iconfont-proof-placeholder': {
     isFont: true,
