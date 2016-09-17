@@ -4,14 +4,16 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 //=============================================================================
@@ -1551,4 +1553,62 @@ type ChatBodyHashInvalid struct{}
 
 func (e ChatBodyHashInvalid) Error() string {
 	return "chat body hash invalid"
+}
+
+//=============================================================================
+
+type ChatInternalError struct{}
+
+func (e ChatInternalError) Error() string {
+	return "chat internal error"
+}
+
+//=============================================================================
+
+type ChatConvExistsError struct {
+	ConvID chat1.ConversationID
+}
+
+func (e ChatConvExistsError) Error() string {
+	return fmt.Sprintf("conversation already exists: %d", e.ConvID)
+}
+
+//=============================================================================
+
+type ChatUnknownTLFIDError struct {
+	TlfID chat1.TLFID
+}
+
+func (e ChatUnknownTLFIDError) Error() string {
+	return fmt.Sprintf("unknown TLF ID: %s", hex.EncodeToString(e.TlfID))
+}
+
+//=============================================================================
+
+type ChatNotInConvError struct {
+	UID gregor.UID
+}
+
+func (e ChatNotInConvError) Error() string {
+	return fmt.Sprintf("user is not in conversation: uid: %s", e.UID.String())
+}
+
+//=============================================================================
+
+type ChatBadMsgError struct {
+	Msg string
+}
+
+func (e ChatBadMsgError) Error() string {
+	return e.Msg
+}
+
+//=============================================================================
+
+type ChatBroadcastError struct {
+	Msg string
+}
+
+func (e ChatBroadcastError) Error() string {
+	return e.Msg
 }
