@@ -8,7 +8,7 @@ import {BTCRegisterBTCRpc, ConstantsStatusCode, ProveCommonProofStatus, apiserve
 import {call, put, take, race, select} from 'redux-saga/effects'
 import {getMyProfile} from './tracker'
 import {isValidEmail, isValidName} from '../util/simple-validators'
-import {navigateUp, navigateTo, routeAppend} from '../actions/router'
+import {navigateUp, navigateTo, routeAppend, switchTab} from '../actions/router'
 import {profileTab} from '../constants/tabs'
 import {takeLatest, takeEvery, eventChannel, END, buffers} from 'redux-saga'
 
@@ -318,7 +318,9 @@ function finishRevoking (): AsyncAction {
 
 function onUserClick (username: string, uid: string): AsyncAction {
   return dispatch => {
-    dispatch(routeAppend({path: 'profile', userOverride: {username, uid}}))
+    dispatch(routeAppend({path: 'profile', userOverride: {username, uid}}, profileTab))
+    dispatch(switchTab(profileTab))
+
   }
 }
 
