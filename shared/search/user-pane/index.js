@@ -28,6 +28,7 @@ export default connector.connect(
         }
       }
       if (username && trackerState && trackerState.type === 'tracker') {
+        const {userInfo: {uid}} = trackerState
         const currentlyFollowing = trackerState.lastAction === 'followed' || trackerState.lastAction === 'refollowed' || trackerState.currentlyFollowing
         // TODO (mm) ideally userInfo should be null until we get a response from the server
         // Same with proofs (instead of empty array). So we know the difference between
@@ -46,9 +47,9 @@ export default connector.connect(
             onFollow: () => { dispatch(onFollow(username, false)) },
             onUnfollow: () => { dispatch(onUnfollow(username)) },
             onAcceptProofs: () => { dispatch(onFollow(username, false)) },
-            onClickAvatar: username => { dispatch(onClickAvatar(username)) },
-            onClickFollowers: username => { dispatch(onClickFollowers(username)) },
-            onClickFollowing: username => { dispatch(onClickFollowing(username)) },
+            onClickAvatar: () => { dispatch(onClickAvatar(username, uid)) },
+            onClickFollowers: () => { dispatch(onClickFollowers(username, uid)) },
+            onClickFollowing: () => { dispatch(onClickFollowing(username, uid)) },
           },
         }
       } else {
