@@ -420,6 +420,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ChatBadMsgError{Msg: s.Desc}
 	case SCChatBroadcast:
 		return ChatBroadcastError{Msg: s.Desc}
+	case SCChatRateLimit:
+		return ChatRateLimitError{Msg: s.Desc}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1341,6 +1343,14 @@ func (e ChatBroadcastError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCChatBroadcast,
 		Name: "SC_CHAT_BROADCAST",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatRateLimitError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatRateLimit,
+		Name: "SC_CHAT_RATELIMIT",
 		Desc: e.Error(),
 	}
 }

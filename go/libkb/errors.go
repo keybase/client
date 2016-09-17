@@ -1612,3 +1612,13 @@ type ChatBroadcastError struct {
 func (e ChatBroadcastError) Error() string {
 	return e.Msg
 }
+
+//=============================================================================
+
+type ChatRateLimitError struct {
+	Msg string
+}
+
+func (e ChatRateLimitError) Error() string {
+	return e.Msg
+}
