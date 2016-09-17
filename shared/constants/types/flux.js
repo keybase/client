@@ -1,4 +1,5 @@
 /* @flow */
+import type {TypedState} from '../reducer'
 
 export type TypedAction<T, P, E> = {
   error?: false,
@@ -13,7 +14,7 @@ export type TypedAction<T, P, E> = {
 export type NoErrorTypedAction<T, P> = TypedAction<T, P, P>
 
 export type Action = TypedAction<any, any, any>
-export type GetState = () => Object
+export type GetState = () => TypedState
 export type AsyncAction = (dispatch: Dispatch, getState: GetState) => ?Promise<*>
 export type Dispatch = (action: AsyncAction | Action) => ?Promise<*>
 
