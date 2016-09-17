@@ -320,7 +320,6 @@ function onUserClick (username: string, uid: string): AsyncAction {
   return dispatch => {
     dispatch(routeAppend({path: 'profile', userOverride: {username, uid}}, profileTab))
     dispatch(switchTab(profileTab))
-
   }
 }
 

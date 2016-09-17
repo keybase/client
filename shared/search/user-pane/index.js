@@ -48,9 +48,18 @@ export default connector.connect(
             onFollow: () => { dispatch(onFollow(username, false)) },
             onUnfollow: () => { dispatch(onUnfollow(username)) },
             onAcceptProofs: () => { dispatch(onFollow(username, false)) },
-            onClickAvatar: () => { dispatch(onClickAvatar(username, uid)) },
-            onClickFollowers: () => { dispatch(onClickFollowers(username, uid)) },
-            onClickFollowing: () => { dispatch(onClickFollowing(username, uid)) },
+            onClickAvatar: () => {
+              dispatch(setActive(false))
+              dispatch(onClickAvatar(username, uid))
+            },
+            onClickFollowers: () => {
+              dispatch(setActive(false))
+              dispatch(onClickFollowers(username, uid))
+            },
+            onClickFollowing: () => {
+              dispatch(setActive(false))
+              dispatch(onClickFollowing(username, uid))
+            },
           },
         }
       } else {
