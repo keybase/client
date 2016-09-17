@@ -11,7 +11,7 @@ import React, {PureComponent} from 'react'
 import RevokeContainer from './revoke/container'
 import flags from '../util/feature-flags'
 import pgpRouter from './pgp'
-import {addProof, checkSpecificProof, onClickAvatar, onClickFollowers, onClickFollowing} from '../actions/profile'
+import {addProof, checkSpecificProof, onUserClick, onClickAvatar, onClickFollowers, onClickFollowing} from '../actions/profile'
 import {connect} from 'react-redux'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
@@ -88,6 +88,7 @@ export default connect(
   },
   (dispatch: any, ownProps: OwnProps) => ({
     onUserClick: (username, uid) => { dispatch(routeAppend({path: 'profile', userOverride: {username, uid}})) },
+    onUserClick: (username, uid) => { dispatch(onUserClick(username, uid)) },
     onBack: ownProps.profileIsRoot ? null : () => { dispatch(navigateUp()) },
     onFolderClick: folder => { dispatch(openInKBFS(folder.path)) },
     onEditProfile: () => { dispatch(routeAppend({path: 'editprofile'})) },
@@ -103,9 +104,9 @@ export default connect(
     onFollow: username => { dispatch(onFollow(username, false)) },
     onUnfollow: username => { dispatch(onUnfollow(username)) },
     onAcceptProofs: username => { dispatch(onFollow(username, false)) },
-    onClickAvatar: username => { dispatch(onClickAvatar(username)) },
-    onClickFollowers: username => { dispatch(onClickFollowers(username)) },
-    onClickFollowing: username => { dispatch(onClickFollowing(username)) },
+    onClickAvatar: (username, uid) => { dispatch(onClickAvatar(username, uid)) },
+    onClickFollowers: (username, uid) => { dispatch(onClickFollowers(username, uid)) },
+    onClickFollowing: (username, uid) => { dispatch(onClickFollowing(username, uid)) },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const refresh = () => {
@@ -127,6 +128,7 @@ export default connect(
       return {type: 'error', propError}
     }
 
+    const {username, uid} = stateProps
     const okProps = {
       ...ownProps,
       ...stateProps.trackerState,
@@ -142,6 +144,9 @@ export default connect(
       onUnfollow: username => dispatchProps.onUnfollow(stateProps.username),
       onAcceptProofs: username => dispatchProps.onFollow(stateProps.username),
       showComingSoon: !flags.tabProfileEnabled,
+      onClickAvatar: () => dispatchProps.onClickAvatar(username, uid),
+      onClickFollowers: () => dispatchProps.onClickFollowers(username, uid),
+      onClickFollowing: () => dispatchProps.onClickFollowing(username, uid),
     }
 
     return {type: 'ok', okProps}

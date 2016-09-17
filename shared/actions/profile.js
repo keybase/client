@@ -316,30 +316,38 @@ function finishRevoking (): AsyncAction {
   }
 }
 
-function onClickAvatar (username: ?string, openWebsite?: boolean): AsyncAction {
-  return () => {
+function onUserClick (username: string, uid: string): AsyncAction {
+  return dispatch => {
+    dispatch(routeAppend({path: 'profile', userOverride: {username, uid}}))
+  }
+}
+
+function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
+  return dispatch => {
     if (!openWebsite && flags.tabProfileEnabled === true) {
-      // Open profile tab
+      username && dispatch(onUserClick(username, uid))
     } else {
       username && openURL(`${keybaseUrl}/${username}`)
     }
   }
 }
 
-function onClickFollowers (username: ?string, openWebsite?: boolean): AsyncAction {
-  return () => {
+function onClickFollowers (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
+  return dispatch => {
     if (!openWebsite && flags.tabProfileEnabled === true) {
-      // Open profile tab, hint followers?
+      // TODO(mm) hint followers
+      username && dispatch(onUserClick(username, uid))
     } else {
       username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
     }
   }
 }
 
-function onClickFollowing (username: ?string, openWebsite?: boolean): AsyncAction {
-  return () => {
+function onClickFollowing (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
+  return dispatch => {
     if (!openWebsite && flags.tabProfileEnabled === true) {
-      // Open profile tab, hint followers?
+      // TODO(mm) hint followings
+      username && dispatch(onUserClick(username, uid))
     } else {
       username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
     }
@@ -671,6 +679,7 @@ export {
   onClickAvatar,
   onClickFollowers,
   onClickFollowing,
+  onUserClick,
   outputInstructionsActionLink,
   submitBTCAddress,
   submitRevokeProof,
