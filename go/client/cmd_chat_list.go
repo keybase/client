@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 package client
@@ -24,28 +24,27 @@ func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Aliases:      []string{"ls"},
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&cmdChatList{Contextified: libkb.NewContextified(g)}, "inbox", c)
+			cl.ChooseCommand(&cmdChatList{Contextified: libkb.NewContextified(g)}, "list", c)
 		},
 		Flags:       makeChatListAndReadFlags(nil),
-		Description: `"keybase chat inbox" display an inbox view of chat messages. --time/--since can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported.`,
+		Description: `"keybase chat list" display an inbox view of chat messages. --time/--since can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported.`,
 	}
 }
 
 func (c *cmdChatList) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 
-	conversations, more, moreTotal, err := c.fetcher.fetch(context.TODO(), c.G())
+	conversations, _, _, err := c.fetcher.fetch(context.TODO(), c.G())
 	if err != nil {
 		return err
 	}
 
-	if len(conversations) == 0 && len(more) == 0 {
+	if len(conversations) == 0 {
 		ui.Printf("no conversation is found\n")
 		return nil
 	}
 
 	conversationListView(conversations).show(c.G(), ui)
-	conversationListView(more).showSummaryOnMore(ui, moreTotal)
 	// TODO: print summary of inbox. e.g.
 	//		+44 older chats (--time=7d to see 25 more)
 
