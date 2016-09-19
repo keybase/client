@@ -104,8 +104,11 @@ export type Reset = TypedAction<'search:reset', {}, void>
 export const waiting = 'search:waiting'
 export type Waiting = TypedAction<'search:waiting', {waiting: boolean}, void>
 
+export const setActive = 'search:setActive'
+export type SetActive = TypedAction<'search:setActive', {active: boolean}, void>
+
 export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup
-  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting
+  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting | SetActive
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {

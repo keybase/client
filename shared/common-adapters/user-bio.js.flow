@@ -1,18 +1,7 @@
 // @flow
 import type {AvatarSize} from './avatar'
-import type {SimpleProofState} from '../constants/tracker'
+import type {SimpleProofState, UserInfo} from '../constants/tracker'
 import {Component} from 'react'
-
-export type UserInfo = {
-  fullname: string,
-  followersCount: number,
-  followingCount: number,
-  followsYou: boolean,
-  bio: string,
-  uid: string,
-  avatar: ?string,
-  location: string
-}
 
 export type BioEditFns = {
   onEditAvatarClick: () => void,
@@ -32,6 +21,9 @@ export type Props = {
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   editFns?: ?BioEditFns,
+  onClickAvatar: () => void,
+  onClickFollowers: () => void,
+  onClickFollowing: () => void,
 }
 
 export default class Render extends Component<void, Props, void> {}

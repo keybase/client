@@ -3,6 +3,8 @@ import {fullName} from '../../constants/search'
 import keybaseUrl from '../../constants/urls'
 import {TypedConnector} from '../../util/typed-connect'
 import {getProfile, onFollow, onUnfollow} from '../../actions/tracker'
+import {setActive} from '../../actions/search'
+import {onClickAvatar, onClickFollowers, onClickFollowing} from '../../actions/profile'
 import openURL from '../../util/open-url'
 import Render from './render'
 
@@ -27,6 +29,7 @@ export default connector.connect(
         }
       }
       if (username && trackerState && trackerState.type === 'tracker') {
+        const {userInfo: {uid}} = trackerState
         const currentlyFollowing = trackerState.lastAction === 'followed' || trackerState.lastAction === 'refollowed' || trackerState.currentlyFollowing
         // TODO (mm) ideally userInfo should be null until we get a response from the server
         // Same with proofs (instead of empty array). So we know the difference between
@@ -45,6 +48,18 @@ export default connector.connect(
             onFollow: () => { dispatch(onFollow(username, false)) },
             onUnfollow: () => { dispatch(onUnfollow(username)) },
             onAcceptProofs: () => { dispatch(onFollow(username, false)) },
+            onClickAvatar: () => {
+              dispatch(setActive(false))
+              dispatch(onClickAvatar(username, uid))
+            },
+            onClickFollowers: () => {
+              dispatch(setActive(false))
+              dispatch(onClickFollowers(username, uid))
+            },
+            onClickFollowing: () => {
+              dispatch(setActive(false))
+              dispatch(onClickFollowing(username, uid))
+            },
           },
         }
       } else {

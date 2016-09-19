@@ -5,12 +5,12 @@ import {connect} from 'react-redux'
 import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
+import {onClickAvatar, onClickFollowers, onClickFollowing} from '../actions/profile'
 import {bindActionCreators} from 'redux'
 import {isLoading} from '../constants/tracker'
 
 import type {RenderPropsUnshaped} from './render'
-import type {UserInfo} from '../common-adapters/user-bio'
-import type {Proof, SimpleProofState} from '../constants/tracker'
+import type {Proof, SimpleProofState, UserInfo} from '../constants/tracker'
 
 export type TrackerProps = {
   actionBarReady: boolean,
@@ -39,6 +39,9 @@ export type TrackerProps = {
   userInfo: ?UserInfo,
   username: string,
   waiting: boolean,
+  onClickAvatar: () => void,
+  onClickFollowers: () => void,
+  onClickFollowing: () => void,
 }
 
 export function trackerPropsToRenderProps (tprops: TrackerProps): RenderPropsUnshaped {
@@ -98,6 +101,21 @@ export default connect(
       onIgnore: () => actions.onIgnore(ownProps.username),
       onRefollow: () => actions.onRefollow(ownProps.username),
       onUnfollow: () => actions.onUnfollow(ownProps.username),
+      onClickAvatar: (username, uid) => { dispatch(onClickAvatar(username, uid, true)) },
+      onClickFollowers: (username, uid) => { dispatch(onClickFollowers(username, uid, true)) },
+      onClickFollowing: (username, uid) => { dispatch(onClickFollowing(username, uid, true)) },
+    }
+  },
+  (stateProps, dispatchProps, ownProps) => {
+    const {username, userInfo: {uid}} = stateProps
+
+    return {
+      ...ownProps,
+      ...stateProps,
+      ...dispatchProps,
+      onClickAvatar: () => dispatchProps.onClickAvatar(username, uid),
+      onClickFollowers: () => dispatchProps.onClickFollowers(username, uid),
+      onClickFollowing: () => dispatchProps.onClickFollowing(username, uid),
     }
   }
 )(Tracker)

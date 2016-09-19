@@ -18,6 +18,7 @@ export type State = {
   userForInfoPane: ?SearchResult,
   showUserGroup: boolean,
   waiting: boolean,
+  searchActive: boolean,
 }
 
 const searchHintText = (searchPlatform: SearchPlatforms, selectedUsers: Array<SearchResult>): string => {
@@ -40,6 +41,7 @@ const initialState: State = {
   userForInfoPane: null,
   showUserGroup: showUserGroup(null, []),
   waiting: false,
+  searchActive: false,
 }
 
 export default function (state: State = initialState, action: SearchActions): State {
@@ -156,6 +158,11 @@ export default function (state: State = initialState, action: SearchActions): St
       return {
         ...state,
         waiting: action.payload && action.payload.waiting,
+      }
+    case Constants.setActive:
+      return {
+        ...state,
+        searchActive: action.payload && action.payload.active,
       }
   }
 

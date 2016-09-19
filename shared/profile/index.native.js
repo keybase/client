@@ -57,7 +57,10 @@ class Profile extends Component<void, Props, State> {
         username={this.props.username}
         userInfo={this.props.userInfo}
         currentlyFollowing={this.props.currentlyFollowing}
-        trackerState={this.props.trackerState} />
+        trackerState={this.props.trackerState}
+        onClickAvatar={this.props.onClickAvatar}
+        onClickFollowers={this.props.onClickFollowers}
+        onClickFollowing={this.props.onClickFollowing} />
     )
   }
 

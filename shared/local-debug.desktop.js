@@ -82,7 +82,6 @@ export const {
   skipSecondaryDevtools,
   forceMainWindowPosition,
   closureStoreCheck,
-  searchActive,
   logStatFrequency,
   actionStatFrequency,
   isTesting,

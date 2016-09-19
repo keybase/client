@@ -4,35 +4,9 @@ import type {FriendshipUserInfo} from '../profile/friendships'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Time} from '../constants/types/flow-types'
 import type {TypedAction} from './types/flux'
-import type {UserInfo} from '../common-adapters/user-bio'
 import type {identifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-types'
 
 const cachedIdentifyGoodUntil = 1000 * 60 * 60
-
-// Types
-export type Proof = {
-  id: string,
-  type: PlatformsExpandedType,
-  mTime: Time,
-  meta: ?SimpleProofMeta,
-  humanUrl: ?string,
-  profileUrl: ?string,
-  name: string,
-  state: SimpleProofState,
-  isTracked: bool,
-}
-
-export type OverviewProofState = {
-  allOk: boolean,
-  anyWarnings: boolean,
-  anyError: boolean,
-  anyPending: boolean,
-  anyDeletedProofs: boolean,
-  anyUnreachableProofs: boolean,
-  anyUpgradedProofs: boolean,
-  anyNewProofs: boolean,
-  anyChanged: boolean,
-}
 
 // Simple state of the overall proof result
 export type SimpleProofState = 'normal' | 'warning' | 'error' | 'checking' | 'revoked'
@@ -111,6 +85,41 @@ export const identifyFinished = 'tracker:identifyFinished'
 export type IdentifyFinished = TypedAction<'tracker:identifyFinished', void, void>
 
 export type NonUserActions = ShowNonUser | OnClose | PendingIdentify | UpdateFolders
+
+export type Proof = {
+  id: string,
+  type: PlatformsExpandedType,
+  mTime: Time,
+  meta: ?SimpleProofMeta,
+  humanUrl: ?string,
+  profileUrl: ?string,
+  name: string,
+  state: SimpleProofState,
+  isTracked: bool,
+}
+
+export type OverviewProofState = {
+  allOk: boolean,
+  anyWarnings: boolean,
+  anyError: boolean,
+  anyPending: boolean,
+  anyDeletedProofs: boolean,
+  anyUnreachableProofs: boolean,
+  anyUpgradedProofs: boolean,
+  anyNewProofs: boolean,
+  anyChanged: boolean,
+}
+
+export type UserInfo = {
+  fullname: string,
+  followersCount: number,
+  followingCount: number,
+  followsYou: boolean,
+  bio: string,
+  uid: string,
+  avatar: ?string,
+  location: string
+}
 
 export type TrackerState = {
   type: 'tracker',

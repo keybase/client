@@ -68,7 +68,7 @@ class BioRender extends Component<void, Props, void> {
         <Box style={stylesContainer}>
           <Box style={{...globalStyles.flexBoxRow, ...globalStyles.fadeOpacity, alignItems: 'flex-end', zIndex: 2, position: 'relative', opacity: loading ? 0 : 1}}>
             <Avatar
-              onClick={() => shared.onClickAvatar(username)}
+              onClick={() => this.props.onClickAvatar(username)}
               style={globalStyles.clickable}
               url={userInfo.avatar}
               size={avatarSize}
@@ -86,7 +86,7 @@ class BioRender extends Component<void, Props, void> {
             <Text
               type='HeaderBig'
               style={{...stylesUsername, color: trackerStateColors.username}}
-              onClick={() => shared.onClickAvatar(username)}>
+              onClick={() => this.props.onClickAvatar(username)}>
               {username}
             </Text>
             <Text type='BodySemibold' style={stylesFullname} {...nameTweaks}>{userInfo.fullname}</Text>
@@ -97,11 +97,11 @@ class BioRender extends Component<void, Props, void> {
             }
             <Box style={{...globalStyles.flexBoxRow}}>
               <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}
-                onClick={() => shared.onClickFollowers(username)}>{userInfo.followersCount}
+                onClick={() => this.props.onClickFollowers(username)}>{userInfo.followersCount}
                 <Text type='BodySmallSecondaryLink'>&nbsp;Follower{userInfo.followersCount === 1 ? '' : 's'}</Text>
               </Text>
               <Text type='BodySmall'>&nbsp; &middot; &nbsp;</Text>
-              <Text type='BodySmallSecondaryLink' onClick={() => shared.onClickFollowing(username)}>Following&nbsp;
+              <Text type='BodySmallSecondaryLink' onClick={() => this.props.onClickFollowing(username)}>Following&nbsp;
                 <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
               </Text>
             </Box>
