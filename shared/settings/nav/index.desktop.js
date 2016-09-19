@@ -16,9 +16,9 @@ function Banner ({element, type}: {element: React$Element<*>, type: BannerType})
 function SettingsItem ({text, selected, onClick, badgeNumber}: SettingsItemType) {
   return (
     <ClickableBox onClick={onClick} style={itemStyle}>
-      <Text style={{marginLeft: globalMargins.small, color: globalColors.black_75}} type={'BodySmallSemibold'}>{text}</Text>
+      <Text style={{marginLeft: globalMargins.small, color: selected ? globalColors.black_75 : globalColors.black_60}} type={'BodySmallSemibold'}>{text}</Text>
       {!!selected && <Box style={selectedStyle} />}
-      {!!badgeNumber && badgeNumber > 0 && <Badge badgeNumber={badgeNumber} />}
+      {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
     </ClickableBox>
 
   )
@@ -31,7 +31,7 @@ class SettingsNav extends Component<void, Props, void> {
       <Box style={globalStyles.flexBoxColumn}>
         {!!bannerElement && <Banner element={bannerElement} type={bannerType || 'green'} />}
         <Box style={globalStyles.flexBoxRow}>
-          <Box style={{...globalStyles.flexBoxColumn, width: 136}}>
+          <Box style={globalStyles.flexBoxColumn}>
             {items.map(i => <SettingsItem key={i.text} {...i} />)}
           </Box>
           <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
@@ -56,6 +56,7 @@ const variantBannerStyle = {
 const itemStyle = {
   ...globalStyles.flexBoxRow,
   height: 40,
+  paddingRight: globalMargins.small,
   alignItems: 'center',
   position: 'relative',
 }
@@ -67,6 +68,12 @@ const selectedStyle = {
   bottom: 0,
   left: 0,
   right: 0,
+}
+
+const badgeStyle = {
+  marginRight: 0,
+  marginLeft: 4,
+  marginTop: 2,
 }
 
 export default SettingsNav
