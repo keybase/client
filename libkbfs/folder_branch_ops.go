@@ -1181,7 +1181,9 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	}
 
 	// Return early if the head is already set.  This avoids taking
-	// mdWriterLock for no reason.
+	// mdWriterLock for no reason, and it also avoids any side effects
+	// (e.g., calling `identifyOnce` and downloading the merged
+	// head) if head is already set.
 	lState := makeFBOLockState()
 	head := fbo.getHead(lState)
 	if head != (ImmutableRootMetadata{}) && head.mdID == md.mdID {
