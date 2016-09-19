@@ -357,7 +357,6 @@ func (j *tlfJournal) doBackgroundWorkLoop(bws TLFJournalBackgroundWorkStatus) {
 				j.tlfID)
 			select {
 			case <-j.needResumeCh:
-				j.wg.Resume()
 				j.log.CDebugf(ctx,
 					"Got resume signal for %s", j.tlfID)
 				bws = TLFJournalBackgroundWorkEnabled
@@ -408,6 +407,9 @@ func (j *tlfJournal) pauseBackgroundWork() {
 func (j *tlfJournal) resumeBackgroundWork() {
 	select {
 	case j.needResumeCh <- struct{}{}:
+		// Resume the wait group right away, so future callers will block
+		// even before the background goroutine picks up this signal.
+		j.wg.Resume()
 	default:
 	}
 }
