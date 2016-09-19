@@ -15,6 +15,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -249,8 +250,7 @@ func (m *chatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 		if conv.Metadata.IdTriple.Tlfid.Eq(arg.IdTriple.Tlfid) &&
 			conv.Metadata.IdTriple.TopicID.String() == arg.IdTriple.TopicID.String() &&
 			conv.Metadata.IdTriple.TopicType == arg.IdTriple.TopicType {
-			res.ConvID = conv.Metadata.ConversationID
-			return res, errors.New("duplicate idtrip; existing conversation ID returned")
+			return res, libkb.ChatConvExistsError{ConvID: conv.Metadata.ConversationID}
 		}
 	}
 	res.ConvID = chat1.ConversationID(len(m.conversations) + 1) // TODO: compute this when we need it

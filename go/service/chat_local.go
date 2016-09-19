@@ -123,17 +123,19 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.
 			TLFMessage: *firstMessageBoxed,
 		})
 		if err != nil {
-			if triple.TopicType == chat1.TopicType_CHAT /* TODO: check for error type */ {
-				// A chat conversation already exists; just reuse it.
-				info.Id = res.ConvID
-				created = info
-				return false, nil
-			}
+			if cerr, ok := err.(libkb.ChatConvExistsError); ok {
+				if triple.TopicType == chat1.TopicType_CHAT /* TODO: check for error type */ {
+					// A chat conversation already exists; just reuse it.
+					info.Id = cerr.ConvID
+					created = info
+					return false, nil
+				}
 
-			// Not a chat conversation. Multiples are fine.
-			// TODO: after we have exportable errors in gregor, only retry on topic
-			// ID duplication.
-			return true, err
+				// Not a chat conversation. Multiples are fine.
+				// TODO: after we have exportable errors in gregor, only retry on topic
+				// ID duplication.
+				return true, err
+			}
 		}
 
 		info.Id = res.ConvID
