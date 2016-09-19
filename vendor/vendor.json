@@ -184,10 +184,10 @@
 			"revisionTime": "2016-09-02T20:02:26Z"
 		},
 		{
-			"checksumSHA1": "20AXSG8Y/7PXq2MCYbXwPldRktw=",
+			"checksumSHA1": "3Zp5CeXKfBXW1NueFHo12swXtvI=",
 			"path": "github.com/keybase/client/go/protocol/chat1",
-			"revision": "b091059021e499ec698710cb6b228074ed4bbd3b",
-			"revisionTime": "2016-09-02T21:53:04Z"
+			"revision": "0c65a41fe3be3b5fd7f6459c40917c4cfaff5eee",
+			"revisionTime": "2016-09-19T14:58:59Z"
 		},
 		{
 			"checksumSHA1": "maCjYeV1OJ/h8ziIp4eIk9oH0Dc=",
@@ -196,10 +196,10 @@
 			"revisionTime": "2016-09-02T21:53:04Z"
 		},
 		{
-			"checksumSHA1": "Pd/kIJdMeW5jQDASe1l44ZIRWYM=",
+			"checksumSHA1": "8fIku8+gdP2ifmIKpdUh645ZIcA=",
 			"path": "github.com/keybase/client/go/protocol/keybase1",
-			"revision": "b091059021e499ec698710cb6b228074ed4bbd3b",
-			"revisionTime": "2016-09-02T21:53:04Z"
+			"revision": "0c65a41fe3be3b5fd7f6459c40917c4cfaff5eee",
+			"revisionTime": "2016-09-19T14:58:59Z"
 		},
 		{
 			"checksumSHA1": "hTUKO63Ts6JbzocqfEn79IumZx4=",
