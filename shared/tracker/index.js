@@ -11,6 +11,7 @@ import {isLoading} from '../constants/tracker'
 
 import type {RenderPropsUnshaped} from './render'
 import type {Proof, SimpleProofState, UserInfo} from '../constants/tracker'
+import type {ErrorProps} from './error'
 import type {TypedState} from '../constants/reducer'
 
 export type TrackerProps = {
@@ -43,6 +44,7 @@ export type TrackerProps = {
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,
+  error: ?ErrorProps,
 }
 
 export function trackerPropsToRenderProps (tprops: TrackerProps): RenderPropsUnshaped {
@@ -120,6 +122,7 @@ export default connect(
       onClickAvatar: () => dispatchProps.onClickAvatar(username, uid),
       onClickFollowers: () => dispatchProps.onClickFollowers(username, uid),
       onClickFollowing: () => dispatchProps.onClickFollowing(username, uid),
+      error: null,
     }
   }
 )(Tracker)
