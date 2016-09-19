@@ -8,6 +8,8 @@
 
 #import "KBDeviceSetupDisplayView.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBDeviceSetupDisplayView ()
 @property KBLabel *label;
 @property KBLabel *secretWordsLabel;

@@ -12,6 +12,7 @@
 #import "KBPaperKeyDisplayView.h"
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
+#import <YOLayout/YOLayout+PrefabLayouts.h>
 
 @interface KBSignupView () <NSTextFieldDelegate, KBTextFieldFocusDelegate>
 @property KBTextField *inviteField;

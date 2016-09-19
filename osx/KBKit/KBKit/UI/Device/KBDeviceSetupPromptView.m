@@ -9,6 +9,7 @@
 #import "KBDeviceSetupPromptView.h"
 
 #import "KBDefines.h"
+#import <YOLayout/YOLayout+PrefabLayouts.h>
 
 @interface KBDeviceSetupPromptView ()
 @property KBTextField *deviceNameField;

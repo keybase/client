@@ -11,6 +11,8 @@
 #import "KBPGPVerifyView.h"
 #import "KBPGPOutputView.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBPGPVerifyAppView ()
 @property KBPGPVerifyView *verifyView;
 @property KBPGPOutputView *outputView;

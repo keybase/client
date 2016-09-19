@@ -69,13 +69,13 @@
 }
 
 - (id)valueForIdentifier:(NSString *)identifier {
-  id value = [[NSApp delegate] preferencesValueForIdentifier:identifier];
+  id value = [((id)[NSApp delegate]) preferencesValueForIdentifier:identifier];
   NSAssert(value, @"Unknown preference: %@", identifier);
   return value;
 }
 
 - (void)setValue:(id)value forIdentifier:(NSString *)identifier synchronize:(BOOL)synchronize {
-  [[NSApp delegate] setPrefencesValue:value forIdentifier:identifier synchronize:synchronize];
+  [((id)[NSApp delegate]) setPrefencesValue:value forIdentifier:identifier synchronize:synchronize];
 }
 
 @end

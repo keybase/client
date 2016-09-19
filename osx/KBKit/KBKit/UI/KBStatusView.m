@@ -8,6 +8,8 @@
 
 #import "KBStatusView.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBStatusView ()
 @property KBLabel *titleLabel;
 @property KBLabel *label;

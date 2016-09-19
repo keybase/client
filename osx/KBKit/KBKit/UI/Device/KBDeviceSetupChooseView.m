@@ -8,6 +8,8 @@
 
 #import "KBDeviceSetupChooseView.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 #import "KBRPC.h"
 #import "KBDeviceSignerOption.h"
 

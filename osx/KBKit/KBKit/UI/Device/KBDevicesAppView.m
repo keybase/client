@@ -12,6 +12,7 @@
 #import "KBDeviceAddView.h"
 
 #import <MDPSplitView/MDPSplitView.h>
+#import <YOLayout/YOLayout+PrefabLayouts.h>
 
 @interface KBDevicesAppView ()
 @property MDPSplitView *splitView;
