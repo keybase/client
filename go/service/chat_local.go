@@ -412,7 +412,7 @@ func (h *chatLocalHandler) makeConversationLocal(ctx context.Context, conversati
 func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversationRemote chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *chat1.MessageSelector) (conv chat1.ConversationLocal, err error) {
 	var since time.Time
 	if selector.Since != nil {
-		since, err := parseTimeFromRFC3339OrDurationFromPast(*selector.Since)
+		since, err = parseTimeFromRFC3339OrDurationFromPast(*selector.Since)
 		if err != nil {
 			return conv, fmt.Errorf("parsing time or duration (%s) error: %s", *selector.Since, since)
 		}
@@ -426,7 +426,7 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversa
 	}
 	if !since.IsZero() {
 		gsince := gregor1.ToTime(since)
-		query.Before = &gsince
+		query.After = &gsince
 	}
 	tview, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 		ConversationID: conversationRemote.Metadata.ConversationID,
