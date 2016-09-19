@@ -87,7 +87,6 @@ export default connect(
     }
   },
   (dispatch: any, ownProps: OwnProps) => ({
-    onUserClick: (username, uid) => { dispatch(routeAppend({path: 'profile', userOverride: {username, uid}})) },
     onUserClick: (username, uid) => { dispatch(onUserClick(username, uid)) },
     onBack: ownProps.profileIsRoot ? null : () => { dispatch(navigateUp()) },
     onFolderClick: folder => { dispatch(openInKBFS(folder.path)) },
