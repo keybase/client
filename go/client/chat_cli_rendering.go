@@ -2,10 +2,11 @@ package client
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
+	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/flexibleTable"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -120,7 +121,7 @@ func (f messageFormatter) authorAndTime() string {
 		return ""
 	}
 	t := gregor1.FromTime(chat1.Message(f).ServerHeader.Ctime)
-	return fmt.Sprintf("%s %s", info.SenderUsername, humanize.Time(t))
+	return fmt.Sprintf("%s %s", info.SenderUsername, shortDurationFromNow(t))
 }
 
 func (f messageFormatter) body(g *libkb.GlobalContext) (string, error) {
@@ -148,4 +149,26 @@ func (f messageFormatter) body(g *libkb.GlobalContext) (string, error) {
 		g.Log.Warning("messageFormatter.body unhandled MessagePlaintext version %v", version)
 		return "", err
 	}
+}
+
+func shortDurationFromNow(t time.Time) string {
+	d := time.Now().Sub(t)
+
+	num := d.Hours() / 24
+	if num > 1 {
+		return strconv.Itoa(int(math.Ceil(num))) + "d"
+	}
+
+	num = d.Hours()
+	if num > 1 {
+		return strconv.Itoa(int(math.Ceil(num))) + "h"
+	}
+
+	num = d.Minutes()
+	if num > 1 {
+		return strconv.Itoa(int(math.Ceil(num))) + "m"
+	}
+
+	num = d.Seconds()
+	return strconv.Itoa(int(math.Ceil(num))) + "s"
 }
