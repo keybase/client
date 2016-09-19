@@ -155,8 +155,14 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                     sh "npm install"
                                                 }
                                                 sh "npm install ./visdiff"
-                                                dir("desktop") {
-                                                    sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, HEAD)...HEAD'"
+                                                try {
+                                                    timeout(time: 10, unit: 'MINUTES') {
+                                                        dir("desktop") {
+                                                            sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, HEAD)...HEAD'"
+                                                        }
+                                                    }
+                                                } catch (e) {
+                                                    helpers.slackMessage("#ci-notify", "warning", "<@mgood>: visdiff failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>")
                                                 }
                                             }}}
                                         }
