@@ -40,7 +40,7 @@ func (c *cmdChatList) Run() error {
 	}
 
 	if len(conversations) == 0 {
-		ui.Printf("no conversation is found\n")
+		ui.Printf("no conversations\n")
 		return nil
 	}
 
