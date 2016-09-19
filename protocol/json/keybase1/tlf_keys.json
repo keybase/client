@@ -47,6 +47,20 @@
           "name": "CryptKeys"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TLFCanonicalID",
+      "fields": [
+        {
+          "type": "TLFID",
+          "name": "tlfID"
+        },
+        {
+          "type": "CanonicalTlfName",
+          "name": "CanonicalName"
+        }
+      ]
     }
   ],
   "messages": {
@@ -59,6 +73,20 @@
       ],
       "response": "TLFCryptKeys",
       "doc": "getTLFCryptKeys returns TLF crypt keys from all generations."
+    },
+    "getTLFCanonicalID": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
+        }
+      ],
+      "response": "TLFCanonicalID",
+      "doc": "getTLFCanonicalID return the canonical name and TLFID for tlfName."
     }
   },
   "namespace": "keybase.1"

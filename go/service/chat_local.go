@@ -665,28 +665,41 @@ func newKeyFinder() *keyFinder {
 	return &keyFinder{keys: make(map[string]keybase1.TLFCryptKeys)}
 }
 
+func (k *keyFinder) cacheKey(tlfName string, tlfPublic bool) string {
+	return fmt.Sprintf("%s|%v", tlfName, tlfPublic)
+}
+
 // find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
 func (k *keyFinder) find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.TLFCryptKeys, error) {
-	if tlfPublic {
-		return keybase1.TLFCryptKeys{
-			// TODO: fix these:
-			CanonicalName: keybase1.CanonicalTlfName(tlfName),
-			// TlfID:
-			CryptKeys: []keybase1.CryptKey{publicCryptKey},
-		}, nil
-	}
-	existing, ok := k.keys[tlfName]
+	ckey := k.cacheKey(tlfName, tlfPublic)
+	existing, ok := k.keys[ckey]
 	if ok {
 		return existing, nil
 	}
 
-	keys, err := tlf.CryptKeys(ctx, tlfName)
-	if err != nil {
-		return keybase1.TLFCryptKeys{}, err
+	var keys keybase1.TLFCryptKeys
+	if tlfPublic {
+		arg := keybase1.TlfCanonicalIDArg{
+			TlfName: tlfName,
+			Public:  tlfPublic,
+		}
+		cid, err := tlf.TlfCanonicalID(ctx, arg)
+		if err != nil {
+			return keybase1.TLFCryptKeys{}, err
+		}
+		keys.CanonicalName = cid.CanonicalName
+		keys.TlfID = cid.TlfID
+		keys.CryptKeys = []keybase1.CryptKey{publicCryptKey}
+	} else {
+		var err error
+		keys, err = tlf.CryptKeys(ctx, tlfName)
+		if err != nil {
+			return keybase1.TLFCryptKeys{}, err
+		}
 	}
 
-	k.keys[tlfName] = keys
+	k.keys[ckey] = keys
 
 	return keys, nil
 }

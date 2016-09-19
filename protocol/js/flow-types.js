@@ -1590,12 +1590,28 @@ export function tlfCryptKeysRpcPromise (request: $Exact<requestCommon & {callbac
   return new Promise((resolve, reject) => { tlfCryptKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function tlfKeysGetTLFCanonicalIDRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCanonicalIDResult) => void} & {param: tlfKeysGetTLFCanonicalIDRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'tlfKeys.getTLFCanonicalID'})
+}
+
+export function tlfKeysGetTLFCanonicalIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCanonicalIDResult) => void} & {param: tlfKeysGetTLFCanonicalIDRpcParam}>): Promise<tlfKeysGetTLFCanonicalIDResult> {
+  return new Promise((resolve, reject) => { tlfKeysGetTLFCanonicalIDRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function tlfKeysGetTLFCryptKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'tlfKeys.getTLFCryptKeys'})
 }
 
 export function tlfKeysGetTLFCryptKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>): Promise<tlfKeysGetTLFCryptKeysResult> {
   return new Promise((resolve, reject) => { tlfKeysGetTLFCryptKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function tlfTlfCanonicalIDRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfTlfCanonicalIDResult) => void} & {param: tlfTlfCanonicalIDRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'tlf.tlfCanonicalID'})
+}
+
+export function tlfTlfCanonicalIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfTlfCanonicalIDResult) => void} & {param: tlfTlfCanonicalIDRpcParam}>): Promise<tlfTlfCanonicalIDResult> {
+  return new Promise((resolve, reject) => { tlfTlfCanonicalIDRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function trackCheckTrackingRpc (request: Exact<requestCommon & requestErrorCallback>) {
@@ -2986,6 +3002,11 @@ export type TLF = {
   isPrivate: boolean,
 }
 
+export type TLFCanonicalID = {
+  tlfID: TLFID,
+  CanonicalName: CanonicalTlfName,
+}
+
 export type TLFCryptKeys = {
   tlfID: TLFID,
   CanonicalName: CanonicalTlfName,
@@ -3913,8 +3934,18 @@ export type tlfCryptKeysRpcParam = Exact<{
   tlfName: string
 }>
 
+export type tlfKeysGetTLFCanonicalIDRpcParam = Exact<{
+  tlfName: string,
+  public: boolean
+}>
+
 export type tlfKeysGetTLFCryptKeysRpcParam = Exact<{
   tlfName: string
+}>
+
+export type tlfTlfCanonicalIDRpcParam = Exact<{
+  tlfName: string,
+  public: boolean
 }>
 
 export type trackDismissWithTokenRpcParam = Exact<{
@@ -4185,7 +4216,11 @@ type tlfCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
 
 type tlfCryptKeysResult = TLFCryptKeys
 
+type tlfKeysGetTLFCanonicalIDResult = TLFCanonicalID
+
 type tlfKeysGetTLFCryptKeysResult = TLFCryptKeys
+
+type tlfTlfCanonicalIDResult = TLFCanonicalID
 
 type uiPromptYesNoResult = boolean
 
@@ -4366,7 +4401,9 @@ export type rpc =
   | testTestRpc
   | tlfCompleteAndCanonicalizeTlfNameRpc
   | tlfCryptKeysRpc
+  | tlfKeysGetTLFCanonicalIDRpc
   | tlfKeysGetTLFCryptKeysRpc
+  | tlfTlfCanonicalIDRpc
   | trackCheckTrackingRpc
   | trackDismissWithTokenRpc
   | trackFakeTrackingChangedRpc

@@ -29,4 +29,14 @@ protocol tlfKeys {
    getTLFCryptKeys returns TLF crypt keys from all generations.
    */
   TLFCryptKeys getTLFCryptKeys(string tlfName);
+
+  record TLFCanonicalID {
+    TLFID tlfID;
+    CanonicalTlfName CanonicalName;
+  }
+
+  /**
+   getTLFCanonicalID return the canonical name and TLFID for tlfName.
+   */   
+  TLFCanonicalID getTLFCanonicalID(string tlfName, boolean public);
 }

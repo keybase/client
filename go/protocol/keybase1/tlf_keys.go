@@ -20,13 +20,25 @@ type TLFCryptKeys struct {
 	CryptKeys     []CryptKey       `codec:"CryptKeys" json:"CryptKeys"`
 }
 
+type TLFCanonicalID struct {
+	TlfID         TLFID            `codec:"tlfID" json:"tlfID"`
+	CanonicalName CanonicalTlfName `codec:"CanonicalName" json:"CanonicalName"`
+}
+
 type GetTLFCryptKeysArg struct {
 	TlfName string `codec:"tlfName" json:"tlfName"`
+}
+
+type GetTLFCanonicalIDArg struct {
+	TlfName string `codec:"tlfName" json:"tlfName"`
+	Public  bool   `codec:"public" json:"public"`
 }
 
 type TlfKeysInterface interface {
 	// getTLFCryptKeys returns TLF crypt keys from all generations.
 	GetTLFCryptKeys(context.Context, string) (TLFCryptKeys, error)
+	// getTLFCanonicalID return the canonical name and TLFID for tlfName.
+	GetTLFCanonicalID(context.Context, GetTLFCanonicalIDArg) (TLFCanonicalID, error)
 }
 
 func TlfKeysProtocol(i TlfKeysInterface) rpc.Protocol {
@@ -49,6 +61,22 @@ func TlfKeysProtocol(i TlfKeysInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getTLFCanonicalID": {
+				MakeArg: func() interface{} {
+					ret := make([]GetTLFCanonicalIDArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetTLFCanonicalIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetTLFCanonicalIDArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTLFCanonicalID(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -61,5 +89,11 @@ type TlfKeysClient struct {
 func (c TlfKeysClient) GetTLFCryptKeys(ctx context.Context, tlfName string) (res TLFCryptKeys, err error) {
 	__arg := GetTLFCryptKeysArg{TlfName: tlfName}
 	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getTLFCryptKeys", []interface{}{__arg}, &res)
+	return
+}
+
+// getTLFCanonicalID return the canonical name and TLFID for tlfName.
+func (c TlfKeysClient) GetTLFCanonicalID(ctx context.Context, __arg GetTLFCanonicalIDArg) (res TLFCanonicalID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getTLFCanonicalID", []interface{}{__arg}, &res)
 	return
 }

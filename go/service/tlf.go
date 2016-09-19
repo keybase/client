@@ -43,6 +43,18 @@ func (h *tlfHandler) CryptKeys(ctx context.Context, tlfName string) (keybase1.TL
 	return tlfClient.GetTLFCryptKeys(ctx, tlfName)
 }
 
+func (h *tlfHandler) TlfCanonicalID(ctx context.Context, arg keybase1.TlfCanonicalIDArg) (keybase1.TLFCanonicalID, error) {
+	tlfClient, err := h.tlfKeysClient()
+	if err != nil {
+		return keybase1.TLFCanonicalID{}, err
+	}
+	karg := keybase1.GetTLFCanonicalIDArg{
+		TlfName: arg.TlfName,
+		Public:  arg.Public,
+	}
+	return tlfClient.GetTLFCanonicalID(ctx, karg)
+}
+
 func (h *tlfHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
 	username := h.G().Env.GetUsername()
 	if len(username) == 0 {

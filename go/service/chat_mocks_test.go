@@ -122,6 +122,14 @@ func (m tlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName str
 	return
 }
 
+func (m tlfMock) TlfCanonicalID(ctx context.Context, arg keybase1.TlfCanonicalIDArg) (keybase1.TLFCanonicalID, error) {
+	res := keybase1.TLFCanonicalID{
+		CanonicalName: keybase1.CanonicalTlfName(arg.TlfName),
+		TlfID:         "abcdefg",
+	}
+	return res, nil
+}
+
 type chatRemoteMock struct {
 	world *chatMockWorld
 
