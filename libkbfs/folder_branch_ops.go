@@ -4304,6 +4304,16 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 
 	lState := makeFBOLockState()
 
+	// A journal flush before CR, if needed.
+	if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
+		fbo.log); err != nil {
+		return err
+	}
+
+	if err := fbo.mdFlushes.Wait(ctx); err != nil {
+		return err
+	}
+
 	if !fbo.isMasterBranch(lState) {
 		if err := fbo.cr.Wait(ctx); err != nil {
 			return err
@@ -4323,7 +4333,7 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 		return errors.New("Can't sync from server while dirty.")
 	}
 
-	// A journal flush, if needed.
+	// A journal flush after CR, if needed.
 	if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
 		fbo.log); err != nil {
 		return err
