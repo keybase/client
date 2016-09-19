@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"testing"
-	"text/tabwriter"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
@@ -153,12 +152,6 @@ func (n *signupTerminalUI) PromptForConfirmation(prompt string) error {
 
 func (n *signupTerminalUI) Tablify(headings []string, rowfunc func() []string) {
 	libkb.Tablify(n.OutputWriter(), headings, rowfunc)
-}
-
-func (n *signupTerminalUI) TablifyAlignRight(headings []string, rowfunc func() []string) {
-	w := new(tabwriter.Writer)
-	w.Init(n.OutputWriter(), 0, 0, 1, ' ', tabwriter.AlignRight)
-	libkb.TablifyWithTabWriter(w, headings, rowfunc)
 }
 
 func (n *signupTerminalUI) TerminalSize() (width int, height int) {

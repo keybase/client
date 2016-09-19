@@ -47,9 +47,9 @@ export const CommonMessageType = {
 }
 
 export const CommonTLFVisibility = {
-  public: 0,
-  private: 1,
-  any: 2,
+  any: 0,
+  public: 1,
+  private: 2,
 }
 
 export const CommonTopicType = {
@@ -219,6 +219,7 @@ export type ConversationInfoLocal = {
   tlfName: string,
   topicName: string,
   topicType: TopicType,
+  visibility: TLFVisibility,
 }
 
 export type ConversationLocal = {
@@ -463,9 +464,9 @@ export type SignatureInfo = {
 export type TLFID = bytes
 
 export type TLFVisibility = 
-    0 // PUBLIC_0
-  | 1 // PRIVATE_1
-  | 2 // ANY_2
+    0 // ANY_0
+  | 1 // PUBLIC_1
+  | 2 // PRIVATE_2
 
 export type ThreadID = bytes
 
@@ -495,7 +496,8 @@ export type localGetInboxSummaryLocalRpcParam = Exact<{
   topicType: TopicType,
   after: string,
   before: string,
-  limit: int
+  limit: int,
+  visibility: TLFVisibility
 }>
 
 export type localGetMessagesLocalRpcParam = Exact<{

@@ -235,6 +235,9 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 	if arg.TopicType != chat1.TopicType_NONE {
 		query.TopicType = &arg.TopicType
 	}
+	if arg.Visibility != chat1.TLFVisibility_ANY {
+		query.TlfVisibility = &arg.Visibility
+	}
 	rpcArg.Query = &query
 
 	iview, err := h.GetInboxLocal(ctx, rpcArg)
@@ -291,10 +294,14 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ch
 	criteria.TlfName = string(resp.CanonicalName)
 
 	tlfID := chat1.TLFID(tlfIDb)
+	query := &chat1.GetInboxQuery{
+		TlfID: &tlfID,
+	}
+	if criteria.Visibility != chat1.TLFVisibility_ANY {
+		query.TlfVisibility = &criteria.Visibility
+	}
 	conversationsRemote, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			TlfID: &tlfID,
-		},
+		Query:      query,
 		Pagination: nil,
 	})
 	if err != nil {
@@ -352,6 +359,9 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 			return conversationInfo, triple, maxMessages, err
 		}
 
+		if err = h.fillMessageInfoLocal(ctx, &unboxed, conversationRemote.ReaderInfo.ReadMsgid < unboxed.ServerHeader.MessageID); err != nil {
+			return conversationInfo, triple, maxMessages, err
+		}
 		maxMessages = append(maxMessages, unboxed)
 
 		version, err := unboxed.MessagePlaintext.Version()

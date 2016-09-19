@@ -7,6 +7,7 @@ import type {Device as _Device, DeviceID, Time} from './flow-types'
 const ProvablePlatformsMap = {
   'twitter': true,
   'reddit': true,
+  'facebook': true,
   'github': true,
   'coinbase': true,
   'hackernews': true,
@@ -20,6 +21,7 @@ const PlatformsExpandedMap = {
   // Flow needs this to be duplicated
   'twitter': true,
   'reddit': true,
+  'facebook': true,
   'github': true,
   'coinbase': true,
   'hackernews': true,

@@ -152,6 +152,7 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
       'Coinbase': 'coinbase',
       'Github': 'github',
       'Pgp': 'pgp',
+      'Facebook': 'facebook',
     }[platform]
 
     const limit = 20

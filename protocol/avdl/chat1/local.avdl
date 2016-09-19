@@ -113,6 +113,7 @@ protocol local {
     string tlfName;
     string topicName;
     TopicType topicType;
+    TLFVisibility visibility;
   }
 
   record ConversationLocal {
@@ -152,5 +153,5 @@ protocol local {
   }
 
   // if since is given, limit is ignored
-  GetInboxSummaryLocalRes getInboxSummaryLocal(TopicType topicType, string after, string before, int limit);
+  GetInboxSummaryLocalRes getInboxSummaryLocal(TopicType topicType, string after, string before, int limit, TLFVisibility visibility);
 }

@@ -1,143 +1,167 @@
 @font-face {
-    font-family: 'kb';
-    src:
-        url('fonts/kb.ttf?u528ua') format('truetype'),
-        url('fonts/kb.woff?u528ua') format('woff'),
-        url('fonts/kb.svg?u528ua#kb') format('svg');
-    font-weight: normal;
-    font-style: normal;
+  font-family: 'kb';
+  src:
+    url('fonts/kb.ttf?wveoxq') format('truetype'),
+    url('fonts/kb.woff?wveoxq') format('woff'),
+    url('fonts/kb.svg?wveoxq#kb') format('svg');
+  font-weight: normal;
+  font-style: normal;
 }
 
 [class^="icon-"], [class*=" icon-"] {
-    /* use !important to prevent issues with browser extensions that change fonts */
-    font-family: 'kb' !important;
-    speak: none;
-    font-style: normal;
-    font-weight: normal;
-    font-variant: normal;
-    text-transform: none;
-    line-height: 1;
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'kb' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
 
-    /* Better Font Rendering =========== */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .icon-kb-iconfont-caret-down:before {
-    content: "\e900";
+  content: "\e900";
 }
 .icon-kb-iconfont-caret-right:before {
-    content: "\e901";
+  content: "\e901";
+}
+.icon-kb-iconfont-star:before {
+  content: "\e928";
+}
+.icon-kb-iconfont-search_2:before {
+  content: "\e929";
+}
+.icon-kb-iconfont-identity-coinbase:before {
+  content: "\e92a";
+}
+.icon-kb-iconfont-folder-visible:before {
+  content: "\e92b";
+}
+.icon-kb-iconfont-folder-hidden:before {
+  content: "\e92c";
+}
+.icon-kb-iconfont-exclamation:before {
+  content: "\e92d";
+}
+.icon-kb-iconfont-identity-facebook:before {
+  content: "\e927";
 }
 .icon-kb-iconfont-identity-twitter:before {
-    content: "\e913";
+  content: "\e913";
 }
 .icon-kb-iconfont-identity-github:before {
-    content: "\e90f";
+  content: "\e90f";
 }
 .icon-kb-iconfont-identity-reddit:before {
-    content: "\e912";
+  content: "\e912";
 }
 .icon-kb-iconfont-identity-website:before {
-    content: "\e914";
+  content: "\e914";
 }
 .icon-kb-iconfont-identity-hn:before {
-    content: "\e910";
+  content: "\e910";
 }
 .icon-kb-iconfont-coinbase:before {
-    content: "\e905";
+  content: "\e905";
 }
 .icon-kb-iconfont-identity-bitcoin:before {
-    content: "\e90d";
+  content: "\e90d";
 }
 .icon-kb-iconfont-identity-devices:before {
-    content: "\e90e";
+  content: "\e90e";
 }
 .icon-kb-iconfont-identity-pgp:before {
-    content: "\e911";
+  content: "\e911";
 }
 .icon-kb-iconfont-folder-private:before {
-    content: "\e908";
+  content: "\e908";
 }
 .icon-kb-iconfont-folder-private-has-files:before {
-    content: "\e909";
+  content: "\e909";
 }
 .icon-kb-iconfont-folder-public-has-files:before {
-    content: "\e90b";
+  content: "\e90b";
 }
 .icon-kb-iconfont-folder-public:before {
-    content: "\e90a";
+  content: "\e90a";
 }
 .icon-kb-iconfont-close:before {
-    content: "\e904";
+  content: "\e904";
 }
 .icon-kb-iconfont-check:before {
-    content: "\e920";
+  content: "\e920";
 }
 .icon-kb-iconfont-back:before {
-    content: "\e902";
+  content: "\e902";
 }
 .icon-kb-iconfont-thunderbolt:before {
-    content: "\e91c";
+  content: "\e91c";
 }
 .icon-kb-iconfont-remove:before {
-    content: "\e919";
+  content: "\e919";
 }
 .icon-kb-iconfont-import:before {
-    content: "\e921";
+  content: "\e921";
 }
 .icon-kb-iconfont-add:before {
-    content: "\e922";
+  content: "\e922";
 }
 .icon-kb-iconfont-link:before {
-    content: "\e91d";
+  content: "\e91d";
 }
 .icon-kb-iconfont-ellipsis:before {
-    content: "\e91f";
+  content: "\e91f";
 }
 .icon-kb-iconfont-edit:before {
-    content: "\e91e";
+  content: "\e91e";
 }
 .icon-kb-iconfont-tweet:before {
-    content: "\e923";
+  content: "\e923";
 }
 .icon-kb-iconfont-open-browser:before {
-    content: "\e924";
+  content: "\e924";
 }
 .icon-kb-iconfont-lock:before {
-    content: "\e925";
+  content: "\e925";
+}
+.icon-kb-iconfont-nav-search:before {
+  content: "\e92e";
 }
 .icon-kb-iconfont-proof-placeholder:before {
-    content: "\e926";
+  content: "\e926";
 }
 .icon-kb-iconfont-proof-good:before {
-    content: "\e917";
+  content: "\e917";
 }
 .icon-kb-iconfont-proof-broken:before {
-    content: "\e916";
+  content: "\e916";
 }
 .icon-kb-iconfont-proof-pending:before {
-    content: "\e918";
+  content: "\e918";
 }
 .icon-kb-iconfont-hamburger:before {
-    content: "\e90c";
+  content: "\e90c";
 }
 .icon-kb-iconfont-people:before {
-    content: "\e915";
+  content: "\e915";
 }
 .icon-kb-iconfont-folder:before {
-    content: "\e907";
+  content: "\e907";
 }
 .icon-kb-iconfont-device:before {
-    content: "\e906";
+  content: "\e906";
 }
 .icon-kb-iconfont-settings:before {
-    content: "\e91b";
+  content: "\e91b";
 }
 .icon-kb-iconfont-search:before {
-    content: "\e91a";
+  content: "\e91a";
 }
 .icon-kb-iconfont-chat:before {
-    content: "\e903";
+  content: "\e903";
 }
 
