@@ -3,6 +3,7 @@
 import UpdateEmail from './email'
 import Landing from './landing'
 import DeleteMe from './delete'
+import DeleteConfirm from './delete-confirm'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -108,8 +109,26 @@ const deleteMeMap: DumbComponentMap<DeleteMe> = {
   },
 }
 
+const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
+  component: DeleteConfirm,
+  mocks: {
+    'Normal': {
+      onDeleteForever: () => console.log('onDeleteForever clicked'),
+      onCancel: () => console.log('onCancel clicked'),
+      username: 'chris',
+      parentProps: {
+        style: {
+          height: 500,
+          display: 'flex',
+        },
+      },
+    },
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
   Landing: landingMap,
   DeleteMe: deleteMeMap,
+  DeleteConfirm: deleteConfirmMap,
 }
