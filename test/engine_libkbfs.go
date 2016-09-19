@@ -450,6 +450,8 @@ func getRootNode(ctx context.Context, config libkbfs.Config, tlfName string,
 		return nil, err
 	}
 
+	// TODO: we should cache the root node, to more faithfully
+	// simulate real-world callers and avoid unnecessary work.
 	kbfsOps := config.KBFSOps()
 	dir, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, libkbfs.MasterBranch)
 	if err != nil {
