@@ -252,6 +252,27 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 	}
 }
 
+// PathType returns PathType for this folder
+func (r *Root) PathType() libkbfs.PathType {
+	return libkbfs.KeybasePathType
+}
+
+var _ fs.NodeCreater = (*Root)(nil)
+
+// Create implements the fs.NodeCreater interface for Root.
+func (r *Root) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (_ fs.Node, _ fs.Handle, err error) {
+	r.log().CDebugf(ctx, "FS Create")
+	defer func() { r.private.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
+	return nil, nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
+}
+
+// Mkdir implements the fs.NodeMkdirer interface for Root.
+func (r *Root) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, err error) {
+	r.log().CDebugf(ctx, "FS Mkdir")
+	defer func() { r.private.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
+	return nil, libkbfs.NewWriteUnsupportedError(libkbfs.BuildCanonicalPath(r.PathType(), req.Name))
+}
+
 var _ fs.Handle = (*Root)(nil)
 
 var _ fs.HandleReadDirAller = (*Root)(nil)

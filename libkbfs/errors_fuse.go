@@ -44,6 +44,14 @@ func (e WriteAccessError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }
 
+var _ fuse.ErrorNumber = WriteUnsupportedError{}
+
+// Errno implements the fuse.ErrorNumber interface for
+// WriteAccessError.
+func (e WriteUnsupportedError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.ENOENT)
+}
+
 var _ fuse.ErrorNumber = NeedSelfRekeyError{}
 
 // Errno implements the fuse.ErrorNumber interface for

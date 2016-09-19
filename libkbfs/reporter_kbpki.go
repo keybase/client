@@ -93,14 +93,22 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	r.ReporterSimple.ReportErr(ctx, tlfName, public, mode, err)
 
 	// Fire off error popups
-	var n *keybase1.FSNotification
 	params := make(map[string]string)
+	filename := ""
 	var code keybase1.FSErrorType = -1
 	switch e := err.(type) {
 	case ReadAccessError:
 		code = keybase1.FSErrorType_ACCESS_DENIED
+		params[errorParamMode] = errorModeRead
 	case WriteAccessError:
 		code = keybase1.FSErrorType_ACCESS_DENIED
+		params[errorParamUsername] = e.User.String()
+		params[errorParamMode] = errorModeWrite
+		filename = e.Filename
+	case WriteUnsupportedError:
+		code = keybase1.FSErrorType_ACCESS_DENIED
+		params[errorParamMode] = errorModeWrite
+		filename = e.Filename
 	case NoSuchUserError:
 		if !noErrorNames[e.Input] {
 			code = keybase1.FSErrorType_USER_NOT_FOUND
@@ -121,11 +129,6 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case NeedOtherRekeyError:
 		code = keybase1.FSErrorType_REKEY_NEEDED
 		params[errorParamRekeySelf] = "false"
-	case NoSuchFolderListError:
-		if !noErrorNames[e.Name] {
-			code = keybase1.FSErrorType_BAD_FOLDER
-			params[errorParamTlf] = fmt.Sprintf("/keybase/%s", e.Name)
-		}
 	case FileTooBigError:
 		code = keybase1.FSErrorType_NOT_IMPLEMENTED
 		params[errorParamFeature] = errorFeatureFileLimit
@@ -152,7 +155,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	}
 
 	if code >= 0 {
-		n = errorNotification(err, code, tlfName, public, mode, params)
+		n := errorNotification(err, code, tlfName, public, mode, filename, params)
 		r.Notify(ctx, n)
 	}
 }
@@ -254,7 +257,7 @@ func rekeyNotification(ctx context.Context, config Config, handle *TlfHandle, fi
 
 	return &keybase1.FSNotification{
 		PublicTopLevelFolder: handle.IsPublic(),
-		Filename:             string(handle.GetCanonicalName()),
+		Filename:             string(handle.GetCanonicalPath()),
 		StatusCode:           code,
 		NotificationType:     keybase1.FSNotificationType_REKEYING,
 	}
@@ -330,11 +333,10 @@ func baseNotification(file path, finish bool) *keybase1.FSNotification {
 	}
 }
 
-// genericErrorNotification creates FSNotifications for generic
-// errors, and makes it look like a read error.
+// errorNotification creates FSNotifications for errors.
 func errorNotification(err error, errType keybase1.FSErrorType,
 	tlfName CanonicalTlfName, public bool, mode ErrorModeType,
-	params map[string]string) *keybase1.FSNotification {
+	filename string, params map[string]string) *keybase1.FSNotification {
 	if tlfName != "" {
 		params[errorParamTlf] = string(tlfName)
 	}
@@ -358,26 +360,27 @@ func errorNotification(err error, errType keybase1.FSErrorType,
 		panic(fmt.Sprintf("Unknown mode: %v", mode))
 	}
 	return &keybase1.FSNotification{
-		Filename:             params[errorParamTlf],
+		Filename:             filename,
 		StatusCode:           keybase1.FSStatusCode_ERROR,
 		Status:               err.Error(),
 		ErrorType:            errType,
 		Params:               params,
 		NotificationType:     nType,
-		PublicTopLevelFolder: public,
+		PublicTopLevelFolder: public, // Deprecated
 	}
 }
 
-func mdReadSuccessNotification(tlfName CanonicalTlfName,
+func mdReadSuccessNotification(handle *TlfHandle,
 	public bool) *keybase1.FSNotification {
 	params := make(map[string]string)
-	if tlfName != "" {
-		params[errorParamTlf] = string(tlfName)
+	if handle != nil {
+		params[errorParamTlf] = string(handle.GetCanonicalName())
 	}
 	return &keybase1.FSNotification{
-		Filename:             params[errorParamTlf],
+		Filename:             string(handle.GetCanonicalPath()),
 		StatusCode:           keybase1.FSStatusCode_START,
 		NotificationType:     keybase1.FSNotificationType_MD_READ_SUCCESS,
 		PublicTopLevelFolder: public,
+		Params:               params,
 	}
 }

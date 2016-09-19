@@ -522,20 +522,9 @@ func (h *TlfHandle) GetCanonicalName() CanonicalTlfName {
 	return h.name
 }
 
-func buildCanonicalPath(public bool, canonicalName CanonicalTlfName) string {
-	var folderType string
-	if public {
-		folderType = "public"
-	} else {
-		folderType = "private"
-	}
-	// TODO: Handle windows paths?
-	return fmt.Sprintf("/keybase/%s/%s", folderType, canonicalName)
-}
-
 // GetCanonicalPath returns the full canonical path of this TLF.
 func (h *TlfHandle) GetCanonicalPath() string {
-	return buildCanonicalPath(h.IsPublic(), h.GetCanonicalName())
+	return buildCanonicalPathForTlfName(h.IsPublic(), h.GetCanonicalName())
 }
 
 // ToFavorite converts a TlfHandle into a Favorite, suitable for

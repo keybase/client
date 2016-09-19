@@ -405,23 +405,6 @@ func (f Favorite) toKBFolder(created bool) keybase1.Folder {
 	}
 }
 
-// PathNode is a single node along an KBFS path, pointing to the top
-// block for that node of the path.
-type pathNode struct {
-	BlockPointer
-	Name string
-}
-
-func (n pathNode) isValid() bool {
-	return n.BlockPointer.IsValid()
-}
-
-// DebugString returns a string representation of the node with all
-// pointer information.
-func (n pathNode) DebugString() string {
-	return fmt.Sprintf("%s(ptr=%s)", n.Name, n.BlockPointer)
-}
-
 // BranchName is the name given to a KBFS branch, for a particular
 // top-level folder.  Currently, the notion of a "branch" is
 // client-side only, and can be used to specify which root to use for
@@ -449,103 +432,6 @@ func (fb FolderBranch) String() string {
 		s += fmt.Sprintf("(branch=%s)", fb.Branch)
 	}
 	return s
-}
-
-// path represents the full KBFS path to a particular location, so
-// that a flush can traverse backwards and fix up ids along the way.
-type path struct {
-	FolderBranch
-	path []pathNode
-}
-
-// isValid() returns true if the path has at least one node (for the
-// root).
-func (p path) isValid() bool {
-	if len(p.path) < 1 {
-		return false
-	}
-
-	for _, n := range p.path {
-		if !n.isValid() {
-			return false
-		}
-	}
-
-	return true
-}
-
-// hasValidParent() returns true if this path is valid and
-// parentPath() is a valid path.
-func (p path) hasValidParent() bool {
-	return len(p.path) >= 2 && p.parentPath().isValid()
-}
-
-// tailName returns the name of the final node in the Path. Must be
-// called with a valid path.
-func (p path) tailName() string {
-	return p.path[len(p.path)-1].Name
-}
-
-// tailPointer returns the BlockPointer of the final node in the Path.
-// Must be called with a valid path.
-func (p path) tailPointer() BlockPointer {
-	return p.path[len(p.path)-1].BlockPointer
-}
-
-// DebugString returns a string representation of the path with all
-// branch and pointer information.
-func (p path) DebugString() string {
-	debugNames := make([]string, 0, len(p.path))
-	for _, node := range p.path {
-		debugNames = append(debugNames, node.DebugString())
-	}
-	return fmt.Sprintf("%s:%s", p.FolderBranch, strings.Join(debugNames, "/"))
-}
-
-// String implements the fmt.Stringer interface for Path.
-func (p path) String() string {
-	names := make([]string, 0, len(p.path))
-	for _, node := range p.path {
-		names = append(names, node.Name)
-	}
-	return strings.Join(names, "/")
-}
-
-// parentPath returns a new Path representing the parent subdirectory
-// of this Path. Must be called with a valid path. Should not be
-// called with a path of only a single node, as that would produce an
-// invalid path.
-func (p path) parentPath() *path {
-	return &path{p.FolderBranch, p.path[:len(p.path)-1]}
-}
-
-// ChildPath returns a new Path with the addition of a new entry
-// with the given name and BlockPointer.
-func (p path) ChildPath(name string, ptr BlockPointer) path {
-	child := path{
-		FolderBranch: p.FolderBranch,
-		path:         make([]pathNode, len(p.path), len(p.path)+1),
-	}
-	copy(child.path, p.path)
-	child.path = append(child.path, pathNode{Name: name, BlockPointer: ptr})
-	return child
-}
-
-// ChildPathNoPtr returns a new Path with the addition of a new entry
-// with the given name.  That final PathNode will have no BlockPointer.
-func (p path) ChildPathNoPtr(name string) path {
-	return p.ChildPath(name, BlockPointer{})
-}
-
-// hasPublic returns whether or not this is a top-level folder that
-// should have a "public" subdirectory.
-func (p path) hasPublic() bool {
-	// This directory has a corresponding public subdirectory if the
-	// path has only one node and the top-level directory is not
-	// already public TODO: Ideally, we'd also check if there are no
-	// explicit readers, but for now we expect the caller to check
-	// that.
-	return len(p.path) == 1 && !p.Tlf.IsPublic()
 }
 
 // BlockChanges tracks the set of blocks that changed in a commit, and

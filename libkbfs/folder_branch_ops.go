@@ -572,7 +572,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 		// Let any listeners know that this folder is now readable,
 		// which may indicate that a rekey successfully took place.
 		fbo.config.Reporter().Notify(ctx, mdReadSuccessNotification(
-			md.GetTlfHandle().GetCanonicalName(), md.TlfID().IsPublic()))
+			md.GetTlfHandle(), md.TlfID().IsPublic()))
 	}
 	return nil
 }
@@ -927,6 +927,11 @@ func (fbo *folderBranchOps) getMDForReadNeedIdentify(
 // then. (See comments for mdWriterLock above.)
 func (fbo *folderBranchOps) getMDForWriteLocked(
 	ctx context.Context, lState *lockState) (*RootMetadata, error) {
+	return fbo.getMDForWriteLockedForFilename(ctx, lState, "")
+}
+
+func (fbo *folderBranchOps) getMDForWriteLockedForFilename(
+	ctx context.Context, lState *lockState, filename string) (*RootMetadata, error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	md, err := fbo.getMDLocked(ctx, lState, mdWrite)
@@ -939,8 +944,7 @@ func (fbo *folderBranchOps) getMDForWriteLocked(
 		return nil, err
 	}
 	if !md.GetTlfHandle().IsWriter(uid) {
-		return nil,
-			NewWriteAccessError(md.GetTlfHandle(), username)
+		return nil, NewWriteAccessError(md.GetTlfHandle(), username, filename)
 	}
 
 	// Make a new successor of the current MD to hold the coming
@@ -1044,7 +1048,7 @@ func (fbo *folderBranchOps) initMDLocked(
 
 	// make sure we're a writer before rekeying or putting any blocks.
 	if !handle.IsWriter(uid) {
-		return NewWriteAccessError(handle, username)
+		return NewWriteAccessError(handle, username, handle.GetCanonicalPath())
 	}
 
 	newDblock := &DirBlock{
@@ -2193,6 +2197,23 @@ func (fbo *folderBranchOps) checkNewDirSize(ctx context.Context,
 	return nil
 }
 
+// PathType returns path type
+func (fbo *folderBranchOps) PathType() PathType {
+	if fbo.folderBranch.Tlf.IsPublic() {
+		return PublicPathType
+	}
+	return PrivatePathType
+}
+
+// canonicalPath returns full canonical path for dir node and name.
+func (fbo *folderBranchOps) canonicalPath(ctx context.Context, dir Node, name string) (string, error) {
+	dirPath, err := fbo.pathFromNodeForRead(dir)
+	if err != nil {
+		return "", err
+	}
+	return BuildCanonicalPath(fbo.PathType(), dirPath.String(), name), nil
+}
+
 // entryType must not by Sym.
 func (fbo *folderBranchOps) createEntryLocked(
 	ctx context.Context, lState *lockState, dir Node, name string,
@@ -2215,8 +2236,13 @@ func (fbo *folderBranchOps) createEntryLocked(
 		}
 	}
 
+	filename, err := fbo.canonicalPath(ctx, dir, name)
+	if err != nil {
+		return nil, DirEntry{}, err
+	}
+
 	// verify we have permission to write
-	md, err := fbo.getMDForWriteLocked(ctx, lState)
+	md, err := fbo.getMDForWriteLockedForFilename(ctx, lState, filename)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}

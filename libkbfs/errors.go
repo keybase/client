@@ -162,21 +162,34 @@ type ReadAccessError struct {
 // Error implements the error interface for ReadAccessError
 func (e ReadAccessError) Error() string {
 	return fmt.Sprintf("%s does not have read access to directory %s",
-		e.User, buildCanonicalPath(e.Public, e.Tlf))
+		e.User, buildCanonicalPathForTlfName(e.Public, e.Tlf))
 }
 
-// WriteAccessError indicates that the user tried to read from a
-// top-level folder without read permission.
+// WriteAccessError indicates an error when trying to write a file
 type WriteAccessError struct {
-	User   libkb.NormalizedUsername
-	Tlf    CanonicalTlfName
-	Public bool
+	User     libkb.NormalizedUsername
+	Filename string
+	Tlf      CanonicalTlfName
+	Public   bool
 }
 
 // Error implements the error interface for WriteAccessError
 func (e WriteAccessError) Error() string {
-	return fmt.Sprintf("%s does not have write access to directory %s",
-		e.User, buildCanonicalPath(e.Public, e.Tlf))
+	if e.Tlf != "" {
+		return fmt.Sprintf("%s does not have write access to directory %s",
+			e.User, buildCanonicalPathForTlfName(e.Public, e.Tlf))
+	}
+	return fmt.Sprintf("%s does not have write access to %s", e.User, e.Filename)
+}
+
+// WriteUnsupportedError indicates an error when trying to write a file
+type WriteUnsupportedError struct {
+	Filename string
+}
+
+// Error implements the error interface for WriteAccessError
+func (e WriteUnsupportedError) Error() string {
+	return fmt.Sprintf("Writing to %s is unsupported", e.Filename)
 }
 
 // NewReadAccessError constructs a ReadAccessError for the given
@@ -186,11 +199,27 @@ func NewReadAccessError(h *TlfHandle, username libkb.NormalizedUsername) error {
 	return ReadAccessError{username, tlfname, h.IsPublic()}
 }
 
-// NewWriteAccessError constructs a WriteAccessError for the given
-// directory and user.
-func NewWriteAccessError(h *TlfHandle, username libkb.NormalizedUsername) error {
-	tlfname := h.GetCanonicalName()
-	return WriteAccessError{username, tlfname, h.IsPublic()}
+// NewWriteAccessError is an access error trying to write a file
+func NewWriteAccessError(h *TlfHandle, username libkb.NormalizedUsername, filename string) error {
+	tlf := CanonicalTlfName("")
+	public := false
+	if h != nil {
+		tlf = h.GetCanonicalName()
+		public = h.IsPublic()
+	}
+	return WriteAccessError{
+		User:     username,
+		Filename: filename,
+		Tlf:      tlf,
+		Public:   public,
+	}
+}
+
+// NewWriteUnsupportedError returns unsupported error trying to write a file
+func NewWriteUnsupportedError(filename string) error {
+	return WriteUnsupportedError{
+		Filename: filename,
+	}
 }
 
 // NeedSelfRekeyError indicates that the folder in question needs to
@@ -204,7 +233,7 @@ type NeedSelfRekeyError struct {
 func (e NeedSelfRekeyError) Error() string {
 	return fmt.Sprintf("This device does not yet have read access to "+
 		"directory %s, log into Keybase from one of your other "+
-		"devices to grant access", buildCanonicalPath(false, e.Tlf))
+		"devices to grant access", buildCanonicalPathForTlfName(false, e.Tlf))
 }
 
 // NeedOtherRekeyError indicates that the folder in question needs to
@@ -219,7 +248,7 @@ func (e NeedOtherRekeyError) Error() string {
 	return fmt.Sprintf("This device does not yet have read access to "+
 		"directory %s, ask one of the other directory participants to "+
 		"log into Keybase to grant you access automatically",
-		buildCanonicalPath(false, e.Tlf))
+		buildCanonicalPathForTlfName(false, e.Tlf))
 }
 
 // NotFileBlockError indicates that a file block was expected but a
@@ -1024,7 +1053,7 @@ type NoSuchFolderListError struct {
 
 // Error implements the error interface for NoSuchFolderListError
 func (e NoSuchFolderListError) Error() string {
-	return fmt.Sprintf("/keybase/%s is not a Keybase folder.  "+
+	return fmt.Sprintf("/keybase/%s is not a Keybase folder. "+
 		"All folders begin with /keybase/%s or /keybase/%s.",
 		e.Name, e.PrivName, e.PubName)
 }

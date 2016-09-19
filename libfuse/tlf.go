@@ -11,6 +11,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -51,6 +52,10 @@ func (tlf *TLF) clearStoredDir() {
 	tlf.dir = nil
 }
 
+func (tlf *TLF) log() logger.Logger {
+	return tlf.folder.fs.log
+}
+
 func (tlf *TLF) loadDirHelper(ctx context.Context, mode libkbfs.ErrorModeType,
 	filterErr bool) (dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
@@ -66,12 +71,12 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, mode libkbfs.ErrorModeType,
 		return tlf.dir, false, nil
 	}
 
-	tlf.folder.fs.log.CDebugf(ctx, "Loading root directory for folder %s "+
+	tlf.log().CDebugf(ctx, "Loading root directory for folder %s "+
 		"(public: %t, filter error: %t)", tlf.folder.name(),
 		tlf.isPublic(), filterErr)
 	defer func() {
 		if filterErr {
-			exitEarly, err = libfs.FilterTLFEarlyExitError(ctx, err, tlf.folder.fs.log, tlf.folder.name())
+			exitEarly, err = libfs.FilterTLFEarlyExitError(ctx, err, tlf.log(), tlf.folder.name())
 		}
 		tlf.folder.reportErr(ctx, mode, err)
 	}()
@@ -129,7 +134,7 @@ func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context) (
 func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 	dir := tlf.getStoredDir()
 	if dir == nil {
-		tlf.folder.fs.log.CDebugf(
+		tlf.log().CDebugf(
 			ctx, "Faking Attr for TLF %s", tlf.folder.name())
 		// Have a low non-zero value for Valid to avoid being
 		// swamped with requests, while still not showing
@@ -172,8 +177,7 @@ func (tlf *TLF) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.
 }
 
 // Mkdir implements the fs.NodeMkdirer interface for TLF.
-func (tlf *TLF) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
-	fs.Node, error) {
+func (tlf *TLF) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (_ fs.Node, err error) {
 	dir, err := tlf.loadDir(ctx)
 	if err != nil {
 		return nil, err
