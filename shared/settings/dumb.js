@@ -4,6 +4,7 @@ import UpdateEmail from './email'
 import Landing from './landing'
 import DeleteMe from './delete'
 import DeleteConfirm from './delete-confirm'
+import Notifications from './notifications'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -126,9 +127,52 @@ const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
   },
 }
 
+const commonSettings = {
+  settings: [
+    {
+      name: 'follow',
+      subscribed: true,
+      description: 'when someone follows me',
+    },
+    {
+      name: 'twitter_friend_joined',
+      subscribed: true,
+      description: 'when someone I follow on Twitter joins',
+    },
+    {
+      name: 'filesystem_attention',
+      subscribed: true,
+      description: 'when the Keybase filesystem needs my attention',
+    },
+    {
+      name: 'newsletter',
+      subscribed: true,
+      description: 'Keybase news, once in a great while',
+    },
+  ],
+  unsubscribedFromAll: false,
+  onSave: () => console.log('onSave'),
+  onToggle: (name: string) => console.log('on toggle', name),
+  onToggleUnsubscribeAll: () => console.log('on subscribe all'),
+}
+
+const notificationsMap: DumbComponentMap<Notifications> = {
+  component: Notifications,
+  mocks: {
+    'Normal': {
+      ...commonSettings,
+    },
+    'UnsubAll': {
+      ...commonSettings,
+      unsubscribedFromAll: true,
+    },
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
   Landing: landingMap,
   DeleteMe: deleteMeMap,
   DeleteConfirm: deleteConfirmMap,
+  Notifications: notificationsMap,
 }
