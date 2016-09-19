@@ -82,7 +82,7 @@ export const identifyStarted = 'tracker:identifyStarted'
 export type IdentifyStarted = TypedAction<'tracker:identifyStarted', void, {error: string}>
 
 export const identifyFinished = 'tracker:identifyFinished'
-export type IdentifyFinished = TypedAction<'tracker:identifyFinished', void, void>
+export type IdentifyFinished = TypedAction<'tracker:identifyFinished', void, {username: string, error: string}>
 
 export type NonUserActions = ShowNonUser | OnClose | PendingIdentify | UpdateFolders
 

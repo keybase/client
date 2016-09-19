@@ -94,6 +94,7 @@ export default connect(
       loggedIn: state.config && state.config.loggedIn,
       loading: isLoading(trackerState),
       actionBarReady: !trackerState.serverActive && !trackerState.error,
+      errorMessage: trackerState.error,
       ...trackerState,
       ...ownProps,
     }
@@ -110,6 +111,7 @@ export default connect(
       onClickAvatar: (username, uid) => { dispatch(onClickAvatar(username, uid, true)) },
       onClickFollowers: (username, uid) => { dispatch(onClickFollowers(username, uid, true)) },
       onClickFollowing: (username, uid) => { dispatch(onClickFollowing(username, uid, true)) },
+      errorRetry: () => { actions.getProfile(ownProps.username, true) },
     }
   },
   (stateProps, dispatchProps, ownProps) => {
@@ -122,7 +124,12 @@ export default connect(
       onClickAvatar: () => dispatchProps.onClickAvatar(username, uid),
       onClickFollowers: () => dispatchProps.onClickFollowers(username, uid),
       onClickFollowing: () => dispatchProps.onClickFollowing(username, uid),
-      error: null,
+      error: stateProps.errorMessage
+      ? {
+        onRetry: dispatchProps.errorRetry,
+        errorMessage: stateProps.errorMessage,
+      }
+      : null,
     }
   }
 )(Tracker)
