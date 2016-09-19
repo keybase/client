@@ -761,7 +761,7 @@ func stepTransformURL(g proofContextExt, ins *jsonw.Wrapper, state scriptState) 
 			"Regex transform did not match: %v", sourceRdesc.Template)
 	}
 
-	newURL, err := substitute(destTemplate, state, match, []string{})
+	newURL, err := substitute(destTemplate, state, match, nil)
 	if err != nil {
 		debugWithState(g, state, "Regex transform did not substitute:\n  %v\n  %v\n  %v\n  %v",
 			destTemplate, re, state.FetchURL, match)
@@ -941,7 +941,7 @@ func interpretRegex(g proofContextExt, state scriptState, rdesc regexDescriptor)
 	}
 
 	// Do variable interpolation.
-	prepattern, perr := substitute(rdesc.Template, state, nil, []string{})
+	prepattern, perr := substitute(rdesc.Template, state, nil, nil)
 	if perr != nil {
 		return nil, perr
 	}
