@@ -22,7 +22,7 @@ import (
 // It is an error to refer to an unknown variable or undefined numbered group.
 // Match is an optional slice which is a regex match.
 // AllowActiveString makes active_string a valid variable.
-func substitute(template string, state scriptState, match []string, allowActiveString bool) (string, libkb.ProofError) {
+func substitute(template string, state scriptState, match []string, allowedExtras []string) (string, libkb.ProofError) {
 	vars := state.Vars
 	webish := (state.Service == keybase1.ProofType_DNS || state.Service == keybase1.ProofType_GENERIC_WEB_SITE)
 
@@ -58,7 +58,7 @@ func substitute(template string, state scriptState, match []string, allowActiveS
 					"Cannot use username_service in proof type %v", state.Service)
 			}
 		case "active_string":
-			if allowActiveString {
+			if stringsContains(allowedExtras, "active_string") {
 				value = state.ActiveString
 			} else {
 				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
@@ -204,4 +204,13 @@ func pyindex(index, len int) (int, bool) {
 		return 0, false
 	}
 	return index, true
+}
+
+func stringsContains(xs []string, x string) bool {
+	for _, y := range xs {
+		if x == y {
+			return true
+		}
+	}
+	return false
 }

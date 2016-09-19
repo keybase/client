@@ -91,57 +91,57 @@ func TestJSONHasKey(t *testing.T) {
 }
 
 type substituteTest struct {
-	shouldwork         bool
-	service            keybase1.ProofType
-	numbered           []string
-	enableActiveString bool
-	a, b               string
+	shouldwork    bool
+	service       keybase1.ProofType
+	numbered      []string
+	allowedExtras []string
+	a, b          string
 }
 
 var substituteTests = []substituteTest{
-	{true, keybase1.ProofType_TWITTER, nil, false,
+	{true, keybase1.ProofType_TWITTER, nil, []string{},
 		"%{username_service}", "kronk"},
-	{true, keybase1.ProofType_GENERIC_WEB_SITE, nil, false,
+	{true, keybase1.ProofType_GENERIC_WEB_SITE, nil, []string{},
 		"%{hostname}", "%\\{sig_id_medium\\}"},
-	{true, keybase1.ProofType_TWITTER, nil, false,
+	{true, keybase1.ProofType_TWITTER, nil, []string{},
 		"x%{username_service}y%{sig_id_short}z", "xkronky000z"},
-	{true, keybase1.ProofType_TWITTER, nil, false,
+	{true, keybase1.ProofType_TWITTER, nil, []string{},
 		"http://git(?:hub)?%{username_service}/%20%%{sig_id_short}}{}", "http://git(?:hub)?kronk/%20%000}{}"},
-	{true, keybase1.ProofType_DNS, nil, false,
+	{true, keybase1.ProofType_DNS, nil, []string{},
 		"^%{hostname}/(?:.well-known/keybase.txt|keybase.txt)$", "^%\\{sig_id_medium\\}/(?:.well-known/keybase.txt|keybase.txt)$"},
-	{true, keybase1.ProofType_TWITTER, nil, false,
+	{true, keybase1.ProofType_TWITTER, nil, []string{},
 		"^.*%{sig_id_short}.*$", "^.*000.*$"},
-	{true, keybase1.ProofType_TWITTER, nil, false,
+	{true, keybase1.ProofType_TWITTER, nil, []string{},
 		"^keybase-site-verification=%{sig_id_short}$", "^keybase-site-verification=000$"},
-	{true, keybase1.ProofType_TWITTER, nil, false,
+	{true, keybase1.ProofType_TWITTER, nil, []string{},
 		"^%{sig_id_medium}$", "^sig%\\{sig_id_medium\\}\\.\\*\\$\\(\\^\\)\\\\/$"},
-	{true, keybase1.ProofType_TWITTER, nil, false,
+	{true, keybase1.ProofType_TWITTER, nil, []string{},
 		"%{username_keybase}:%{sig}", "kronk_on_kb:AQIDBAU="},
 
-	{false, keybase1.ProofType_TWITTER, nil, false,
+	{false, keybase1.ProofType_TWITTER, nil, []string{},
 		"%{}", "%{}"},
-	{false, keybase1.ProofType_TWITTER, nil, false,
+	{false, keybase1.ProofType_TWITTER, nil, []string{},
 		"%{bad}", ""},
 
-	{false, keybase1.ProofType_TWITTER, nil, false,
+	{false, keybase1.ProofType_TWITTER, nil, []string{},
 		"%{hostname}", ""},
-	{false, keybase1.ProofType_DNS, nil, false,
+	{false, keybase1.ProofType_DNS, nil, []string{},
 		"%{username_service}", ""},
-	{false, keybase1.ProofType_GENERIC_WEB_SITE, nil, false,
+	{false, keybase1.ProofType_GENERIC_WEB_SITE, nil, []string{},
 		"%{username_service}", ""},
 
-	{true, keybase1.ProofType_TWITTER, []string{"zero", "one", "two", "three"}, false,
+	{true, keybase1.ProofType_TWITTER, []string{"zero", "one", "two", "three"}, []string{},
 		"%{0}:%{3}", "zero:three"},
-	{true, keybase1.ProofType_TWITTER, []string{"zero"}, false,
+	{true, keybase1.ProofType_TWITTER, []string{"zero"}, []string{},
 		"%{-1}", "%{-1}"},
-	{false, keybase1.ProofType_TWITTER, []string{"zero", "one"}, false,
+	{false, keybase1.ProofType_TWITTER, []string{"zero", "one"}, []string{},
 		"%{0}:%{1}:%{2}", ""},
-	{false, keybase1.ProofType_TWITTER, nil, false,
+	{false, keybase1.ProofType_TWITTER, nil, []string{},
 		"%{1}", ""},
 
-	{false, keybase1.ProofType_TWITTER, nil, false,
+	{false, keybase1.ProofType_TWITTER, nil, []string{},
 		"%{active_string}", ""},
-	{true, keybase1.ProofType_TWITTER, nil, true,
+	{true, keybase1.ProofType_TWITTER, nil, []string{"active_string"},
 		"%{active_string}", "whaaa"},
 }
 
@@ -149,7 +149,7 @@ func TestSubstitute(t *testing.T) {
 	for i, test := range substituteTests {
 		state := sampleState()
 		state.Service = test.service
-		res, err := substitute(test.a, state, test.numbered, test.enableActiveString)
+		res, err := substitute(test.a, state, test.numbered, test.allowedExtras)
 		if (err == nil) != test.shouldwork {
 			t.Fatalf("%v error mismatch: %v %v %v", i, test.shouldwork, err, res)
 		}
