@@ -209,7 +209,7 @@ func (b *chatBoxer) boxMessageWithKeysV1(msg chat1.MessagePlaintextV1, key *keyb
 	}
 
 	// sign the header and insert the signature
-	sig, err := b.signMarshal(header, signingKeyPair, libkb.SignaturePrefixChatHeader)
+	sig, err := b.signMarshal(header, signingKeyPair, libkb.SignaturePrefixChat)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ func (b *chatBoxer) verifyMessageHeaderV1(header chat1.HeaderPlaintextV1, msg ch
 	if err != nil {
 		return err
 	}
-	if !b.verify(hpack, *header.HeaderSignature, libkb.SignaturePrefixChatHeader) {
+	if !b.verify(hpack, *header.HeaderSignature, libkb.SignaturePrefixChat) {
 		return libkb.BadSigError{E: "header signature invalid"}
 	}
 
