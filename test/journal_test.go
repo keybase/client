@@ -198,7 +198,7 @@ func TestJournalRekeyErrorAfterConflict(t *testing.T) {
 			pauseJournal(),
 			mkfile("d", "hello4"),
 		),
-		as(bob, noSync(), stallOnMDPut()),
+		as(bob, noSync(), stallDelegateOnMDPut()),
 		addNewAssertion("charlie", "charlie@twitter"),
 		parallel(
 			as(bob, noSync(),
