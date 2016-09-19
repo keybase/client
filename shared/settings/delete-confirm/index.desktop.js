@@ -1,15 +1,16 @@
 // @flow
 import React, {Component} from 'react'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
-import {Box, Button, Icon, Text, Avatar} from '../../common-adapters'
+import {Box, Button, Icon, Text, Avatar, HOCTimers} from '../../common-adapters'
 
+import type {TimerProps} from '../../common-adapters/hoc-timers'
 import type {Props} from './index'
 
 type State = {
   allowDeleteForever: boolean,
 }
 
-class DeleteConfirm extends Component<void, Props, State> {
+class DeleteConfirm extends Component<void, Props & TimerProps, State> {
   state: State;
 
   constructor (props: Props) {
@@ -23,7 +24,7 @@ class DeleteConfirm extends Component<void, Props, State> {
   }
 
   componentDidMount () {
-    setTimeout(() => {
+    this.props.setTimeout(() => {
       this.setState({allowDeleteForever: true})
     }, 2000)
   }
@@ -66,4 +67,4 @@ const iconStyle = {
   padding: '1px 0px 0px 1px',
 }
 
-export default DeleteConfirm
+export default HOCTimers(DeleteConfirm)
