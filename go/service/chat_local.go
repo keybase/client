@@ -328,8 +328,9 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 			libkb.UnexpectedChatDataFromServer{Msg: "conversation has an empty MaxMsgs field"}
 	}
 
+	kf := newKeyFinder()
 	for _, b := range conversationRemote.MaxMsgs {
-		unboxed, err := h.boxer.unboxMessage(ctx, newKeyFinder(), b)
+		unboxed, err := h.boxer.unboxMessage(ctx, kf, b)
 		if err != nil {
 			return conversationInfo, triple, maxMessages, err
 		}
@@ -666,7 +667,15 @@ func newKeyFinder() *keyFinder {
 
 // find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
-func (k *keyFinder) find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string) (keybase1.TLFCryptKeys, error) {
+func (k *keyFinder) find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.TLFCryptKeys, error) {
+	if tlfPublic {
+		return keybase1.TLFCryptKeys{
+			// TODO: fix these:
+			CanonicalName: keybase1.CanonicalTlfName(tlfName),
+			// TlfID:
+			CryptKeys: []keybase1.CryptKey{publicCryptKey},
+		}, nil
+	}
 	existing, ok := k.keys[tlfName]
 	if ok {
 		return existing, nil

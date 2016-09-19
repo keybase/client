@@ -20,6 +20,22 @@ import (
 	"github.com/keybase/go-codec/codec"
 )
 
+var publicEncKey libkb.NaclDHKeyPair
+var publicCryptKey keybase1.CryptKey
+
+func init() {
+	var zero [libkb.NaclDHKeySecretSize]byte
+	var err error
+	publicEncKey, err = libkb.MakeNaclDHKeyPairFromSecret(zero)
+	if err != nil {
+		panic(err)
+	}
+	publicCryptKey = keybase1.CryptKey{
+		KeyGeneration: 1,
+		Key:           keybase1.Bytes32(*publicEncKey.Private),
+	}
+}
+
 type chatBoxer struct {
 	tlf    keybase1.TlfInterface
 	hashV1 func(data []byte) chat1.Hash
@@ -40,7 +56,8 @@ func newChatBoxer(g *libkb.GlobalContext) *chatBoxer {
 // the appropriate keybase1.CryptKey.
 func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, boxed chat1.MessageBoxed) (unboxed chat1.Message, err error) {
 	tlfName := boxed.ClientHeader.TlfName
-	keys, err := finder.find(ctx, b.tlf, tlfName)
+	tlfPublic := boxed.ClientHeader.TlfPublic
+	keys, err := finder.find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
 		return unboxed, libkb.ChatUnboxingError{Msg: err.Error()}
 	}
@@ -159,20 +176,25 @@ func (b *chatBoxer) boxMessage(ctx context.Context, msg chat1.MessagePlaintext, 
 // boxMessageV1 encrypts and signs a keybase1.MessagePlaintextV1 into a chat1.MessageBoxed.
 func (b *chatBoxer) boxMessageV1(ctx context.Context, msg chat1.MessagePlaintextV1, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 	tlfName := msg.ClientHeader.TlfName
-	keys, err := b.tlf.CryptKeys(ctx, tlfName)
-	if err != nil {
-		return nil, libkb.ChatBoxingError{Msg: err.Error()}
-	}
-
 	var recentKey *keybase1.CryptKey
-	for _, key := range keys.CryptKeys {
-		if recentKey == nil || key.KeyGeneration > recentKey.KeyGeneration {
-			recentKey = &key
+
+	if msg.ClientHeader.TlfPublic {
+		recentKey = &publicCryptKey
+	} else {
+		keys, err := b.tlf.CryptKeys(ctx, tlfName)
+		if err != nil {
+			return nil, libkb.ChatBoxingError{Msg: err.Error()}
+		}
+
+		for _, key := range keys.CryptKeys {
+			if recentKey == nil || key.KeyGeneration > recentKey.KeyGeneration {
+				recentKey = &key
+			}
 		}
 	}
 
 	if recentKey == nil {
-		return nil, libkb.ChatBoxingError{Msg: fmt.Sprintf("no key found for tlf %q", tlfName)}
+		return nil, libkb.ChatBoxingError{Msg: fmt.Sprintf("no key found for tlf %q (public: %v)", tlfName, msg.ClientHeader.TlfPublic)}
 	}
 
 	boxed, err := b.boxMessageWithKeysV1(msg, recentKey, signingKeyPair)
