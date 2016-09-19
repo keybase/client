@@ -141,6 +141,7 @@ const following = [
 
 const propsBase: RenderProps = {
   ...mockUserInfo,
+  showComingSoon: false,
   isYou: false,
   loading: false,
   bioEditFns: null,
@@ -319,6 +320,7 @@ const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
   mocks: {
     'Confirm Twitter': confirmBase,
     'Confirm Reddit': {...confirmBase, platform: 'reddit'},
+    'Confirm Facebook': {...confirmBase, platform: 'facebook'},
     'Confirm GitHub': {...confirmBase, platform: 'github'},
     'Pending Hacker News': {...confirmBase,
       ...pending,
@@ -360,6 +362,7 @@ const dumbProveEnterUsername: DumbComponentMap<ProveEnterUsername> = {
     'Twitter': {...proveEnterUsernameBase, platform: 'twitter'},
     'Twitter with Error': {...proveEnterUsernameBase, platform: 'twitter', errorText: 'Something went wrong'},
     'Reddit': {...proveEnterUsernameBase, platform: 'reddit'},
+    'Facebook': {...proveEnterUsernameBase, platform: 'facebook'},
     'GitHub': {...proveEnterUsernameBase, platform: 'github'},
     'Coinbase': {...proveEnterUsernameBase, platform: 'coinbase'},
     'Coinbase with Error': {...proveEnterUsernameBase, platform: 'coinbase', errorText: 'Coinbase specific error', errorCode: ConstantsStatusCode.scprofilenotpublic},
@@ -403,6 +406,7 @@ const dumbRevoke: DumbComponentMap<Revoke> = {
     'Twitter - Error': {...revokeTwitter, errorMessage: 'There was an error revoking your proof. You can click the button to try again.'},
     'Twitter - Waiting': {...revokeTwitter, isWaiting: true},
     'Reddit': {...revokeBase, platformHandle: 'malgorithms', platform: 'reddit'},
+    'Facebook': {...revokeBase, platformHandle: 'malgorithms', platform: 'facebook'},
     'GitHub': {...revokeBase, platformHandle: 'malgorithms', platform: 'github'},
     'Coinbase': {...revokeBase, platformHandle: 'malgorithms', platform: 'coinbase'},
     'Hacker News': {...revokeBase, platformHandle: 'malgorithms', platform: 'hackernews'},
@@ -445,6 +449,11 @@ const dumbPostProof: DumbComponentMap<PostProof> = {
       ...postProofBase,
       platform: 'reddit',
       proofAction: () => console.log('Open Reddit to post'),
+    },
+    'Facebook': {
+      ...postProofBase,
+      platform: 'facebook',
+      proofAction: () => console.log('Open Facebook to post'),
     },
     'GitHub': {
       ...postProofBase,

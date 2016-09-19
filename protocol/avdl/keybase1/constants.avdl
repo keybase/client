@@ -69,7 +69,14 @@ protocol constants {
     SCOldVersionError_1801,
     SCInvalidLocationError_1802,
     SCServiceStatusError_1803,
-    SCInstallError_1804
+    SCInstallError_1804,
+    SCChatInternal_2500,
+    SCChatRateLimit_2501,
+    SCChatConvExists_2502,
+    SCChatUnknownTLFID_2503,
+    SCChatNotInConv_2504,
+    SCChatBadMsg_2505,
+    SCChatBroadcast_2506
   }
 
 }

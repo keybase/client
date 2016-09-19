@@ -18,8 +18,20 @@ func (id TLFID) EqString(other fmt.Stringer) bool {
 	return hex.EncodeToString(id) == other.String()
 }
 
+func (id TLFID) String() string {
+	return hex.EncodeToString(id)
+}
+
 func (cid ConversationID) String() string {
 	return strconv.FormatUint(uint64(cid), 10)
+}
+
+func MakeConversationID(val uint64) ConversationID {
+	return ConversationID(val)
+}
+
+func MakeTLFID(val string) (TLFID, error) {
+	return hex.DecodeString(val)
 }
 
 func (mid MessageID) String() string {

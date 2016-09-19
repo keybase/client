@@ -12,6 +12,7 @@ function standardText (name: string) {
 export const platformText : {[key: PlatformsExpandedType]: {headerText: string, floatingLabelText?: string, hintText?: string}} = {
   'twitter': standardText('Twitter'),
   'reddit': standardText('Reddit'),
+  'facebook': standardText('Facebook'),
   'github': standardText('GitHub'),
   'coinbase': standardText('Coinbase'),
   'hackernews': standardText('Hacker News'),

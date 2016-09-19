@@ -265,6 +265,7 @@ function addProof (platform: PlatformsExpandedType): AsyncAction {
       case 'http':
       case 'https':
       case 'twitter':
+      case 'facebook':
       case 'reddit':
       case 'github':
       case 'coinbase':
@@ -309,6 +310,7 @@ function _revokedFinishResponse (): FinishRevokeProof {
 
 function finishRevoking (): AsyncAction {
   return (dispatch) => {
+    dispatch(getMyProfile(true))
     dispatch(_revokedFinishResponse())
     dispatch(navigateUp())
   }
@@ -396,6 +398,14 @@ function _checkProof (sigID: string, currentlyAdding: boolean): AsyncAction {
   }
 }
 
+function openURLIfNotNull (nullableThing, url, metaText) {
+  if (nullableThing == null) {
+    console.warn("Can't openURL because we have a null", metaText)
+    return
+  }
+  openURL(url)
+}
+
 function outputInstructionsActionLink (): AsyncAction {
   return (dispatch, getState) => {
     const profile = getState().profile
@@ -404,13 +414,16 @@ function outputInstructionsActionLink (): AsyncAction {
         openURL(`https://coinbase.com/${profile.username}#settings`)
         break
       case 'twitter':
-        openURL(`https://twitter.com/home?status=${profile.proof}`)
+        openURLIfNotNull(profile.proofText, `https://twitter.com/home?status=${profile.proofText || ''}`, 'twitter url')
         break
       case 'github':
         openURL('https://gist.github.com/')
         break
       case 'reddit':
-        openURL(profile.proof)
+        openURLIfNotNull(profile.proofText, profile.proofText, 'reddit url')
+        break
+      case 'facebook':
+        openURLIfNotNull(profile.proofText, profile.proofText, 'facebook url')
         break
       default:
         break

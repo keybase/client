@@ -24,7 +24,7 @@ export function saveDevSettings (): AsyncAction {
     const {config: {devConfig}} = getState()
 
     console.info(devConfig)
-    NativeModules.App.setDevConfig(devConfig.configured)
+    devConfig && NativeModules.App.setDevConfig(devConfig.configured)
 
     return dispatch({
       type: Constants.devConfigSaved,

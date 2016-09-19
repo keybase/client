@@ -97,10 +97,11 @@ type gregorHandler struct {
 	connMutex sync.Mutex
 	conn      *rpc.Connection
 
-	cli                 rpc.GenericClient
-	sessionID           gregor1.SessionID
-	skipRetryConnect    bool
-	freshReplay         bool
+	cli              rpc.GenericClient
+	sessionID        gregor1.SessionID
+	skipRetryConnect bool
+	freshReplay      bool
+
 	transportForTesting *connTransport
 
 	// Function for determining if a new BroadcastMessage should trigger
@@ -950,7 +951,7 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 	g.Debug("Using CA for gregor: %s", libkb.ShortCA(rawCA))
 
 	g.connMutex.Lock()
-	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), keybase1.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), keybase1.WrapError, g.G().Log, nil)
+	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), libkb.WrapError, g.G().Log, nil)
 	g.connMutex.Unlock()
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
@@ -973,7 +974,7 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.transportForTesting = t
 	g.connMutex.Lock()
-	g.conn = rpc.NewConnectionWithTransport(g, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, g.G().Log, nil)
+	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, true, libkb.WrapError, g.G().Log, nil)
 	g.connMutex.Unlock()
 	g.cli = g.conn.GetClient()
 

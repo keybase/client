@@ -75,7 +75,7 @@ export function registerTrackerIncomingRpcs (): TrackerActionCreator {
   }
 }
 
-export function getProfile (username: string): TrackerActionCreator {
+export function getProfile (username: string, ignoreCache?: boolean): TrackerActionCreator {
   return (dispatch, getState) => {
     const tracker = getState().tracker
 
@@ -85,10 +85,10 @@ export function getProfile (username: string): TrackerActionCreator {
       return
     }
 
-    const trackerState = tracker.trackers[username] && tracker.trackers[username]
-    const uid = trackerState.type === 'tracker' ? trackerState.userInfo && trackerState.userInfo.uid : null
+    const trackerState = tracker && tracker.trackers ? tracker.trackers[username] : null
+    const uid = trackerState && trackerState.type === 'tracker' ? trackerState.userInfo && trackerState.userInfo.uid : null
     const goodTill = uid && tracker.cachedIdentifies[uid + '']
-    if (goodTill && goodTill >= Date.now()) {
+    if (!ignoreCache && goodTill && goodTill >= Date.now()) {
       console.log('Bailing on cached getProfile', username, uid)
       return
     }
@@ -99,12 +99,12 @@ export function getProfile (username: string): TrackerActionCreator {
   }
 }
 
-export function getMyProfile (): TrackerActionCreator {
+export function getMyProfile (ignoreCache?: boolean): TrackerActionCreator {
   return (dispatch, getState) => {
     const status = getState().config.status
     const username = status && status.user && status.user.username
     if (username) {
-      dispatch(getProfile(username))
+      dispatch(getProfile(username, ignoreCache || false))
     }
   }
 }

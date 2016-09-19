@@ -34,6 +34,7 @@ export type Props = {
   following: Array<FriendshipUserInfo>,
   reason: ?string,
   error: ?string,
+  showComingSoon: boolean,
 }
 
 export default class Render extends Component<void, Props, void> { }

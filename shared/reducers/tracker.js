@@ -604,6 +604,7 @@ function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, hu
     case ProveCommonProofType.dns: return `http://${name}`
     case ProveCommonProofType.genericWebSite: return `${key}://${name}`
     case ProveCommonProofType.twitter: return `https://twitter.com/${name}`
+    case ProveCommonProofType.facebook: return `https://facebook.com/${name}`
     case ProveCommonProofType.github: return `https://github.com/${name}`
     case ProveCommonProofType.reddit: return `https://reddit.com/user/${name}`
     case ProveCommonProofType.coinbase: return `https://coinbase.com/${name}`

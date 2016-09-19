@@ -14,7 +14,6 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type chatTestContext struct {
@@ -39,9 +38,9 @@ func makeChatTestContext(t *testing.T, name string) (ctc chatTestContext) {
 	return ctc
 }
 
-func mustCreateConversationForTest(t *testing.T, ctc chatTestContext, topicType chat1.TopicType, others ...string) (created keybase1.ConversationInfoLocal) {
+func mustCreateConversationForTest(t *testing.T, ctc chatTestContext, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
 	var err error
-	created, err = ctc.h.NewConversationLocal(context.Background(), keybase1.ConversationInfoLocal{
+	created, err = ctc.h.NewConversationLocal(context.Background(), chat1.ConversationInfoLocal{
 		TlfName:   strings.Join(others, ",") + "," + ctc.world.me.Username,
 		TopicType: topicType,
 	})
@@ -73,7 +72,7 @@ func TestResolveConversationLocal(t *testing.T) {
 
 	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
 
-	conversations, err := ctc.h.ResolveConversationLocal(context.Background(), keybase1.ConversationInfoLocal{
+	conversations, err := ctc.h.ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
 		Id: created.Id,
 	})
 	if err != nil {
@@ -100,7 +99,7 @@ func TestResolveConversationLocalTlfName(t *testing.T) {
 
 	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
 
-	conversations, err := ctc.h.ResolveConversationLocal(context.Background(), keybase1.ConversationInfoLocal{
+	conversations, err := ctc.h.ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
 		TlfName: "t_alice" + "," + ctc.world.me.Username, // not canonical
 	})
 	if err != nil {
@@ -121,14 +120,14 @@ func TestResolveConversationLocalTlfName(t *testing.T) {
 	}
 }
 
-func mustPostLocalForTest(t *testing.T, ctc chatTestContext, conv keybase1.ConversationInfoLocal, msg keybase1.MessageBody) {
+func mustPostLocalForTest(t *testing.T, ctc chatTestContext, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
 	mt, err := msg.MessageType()
 	if err != nil {
 		t.Fatalf("msg.MessageType() error: %v\n", err)
 	}
-	err = ctc.h.PostLocal(context.Background(), keybase1.PostLocalArg{
+	err = ctc.h.PostLocal(context.Background(), chat1.PostLocalArg{
 		ConversationID: conv.Id,
-		MessagePlaintext: keybase1.NewMessagePlaintextWithV1(keybase1.MessagePlaintextV1{
+		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
 				// Conv omitted
 				MessageType: mt,
@@ -147,7 +146,7 @@ func TestPostLocal(t *testing.T) {
 	defer ctc.tc.Cleanup()
 
 	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	mustPostLocalForTest(t, ctc, created, keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: "hello!"}))
+	mustPostLocalForTest(t, ctc, created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
 	// we just posted this message, so should be the first one.
 	msg := ctc.mock.msgs[created.Id][0]
@@ -167,9 +166,9 @@ func TestGetThreadLocal(t *testing.T) {
 	defer ctc.tc.Cleanup()
 
 	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	mustPostLocalForTest(t, ctc, created, keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: "hello!"}))
+	mustPostLocalForTest(t, ctc, created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
-	tv, err := ctc.h.GetThreadLocal(context.Background(), keybase1.GetThreadLocalArg{
+	tv, err := ctc.h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: created.Id,
 	})
 	if err != nil {
@@ -189,19 +188,19 @@ func TestGetInboxSummaryLocal(t *testing.T) {
 	defer ctc.tc.Cleanup()
 
 	withAlice := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	mustPostLocalForTest(t, ctc, withAlice, keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: "hello!"}))
+	mustPostLocalForTest(t, ctc, withAlice, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
 	time.Sleep(time.Millisecond)
 
 	withBob := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_bob")
-	mustPostLocalForTest(t, ctc, withBob, keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: "Dude I just said hello to Alice!"}))
+	mustPostLocalForTest(t, ctc, withBob, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "Dude I just said hello to Alice!"}))
 
 	time.Sleep(time.Millisecond)
 
 	withCharlie := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_charlie")
-	mustPostLocalForTest(t, ctc, withCharlie, keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: "O_O"}))
+	mustPostLocalForTest(t, ctc, withCharlie, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
 
-	res, err := ctc.h.GetInboxSummaryLocal(context.Background(), keybase1.GetInboxSummaryLocalArg{
+	res, err := ctc.h.GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalArg{
 		After:     "1d",
 		TopicType: chat1.TopicType_CHAT,
 	})
@@ -218,7 +217,7 @@ func TestGetInboxSummaryLocal(t *testing.T) {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 2 messages in the first conversation, got %d\n", len(res.Conversations[0].Messages))
 	}
 
-	res, err = ctc.h.GetInboxSummaryLocal(context.Background(), keybase1.GetInboxSummaryLocalArg{
+	res, err = ctc.h.GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalArg{
 		Limit:     2,
 		TopicType: chat1.TopicType_CHAT,
 	})

@@ -371,7 +371,6 @@ type TerminalUI interface {
 	PromptPassword(PromptDescriptor, string) (string, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
 	Tablify(headings []string, rowfunc func() []string)
-	TablifyAlignRight(headings []string, rowfunc func() []string)
 	TerminalSize() (width int, height int)
 }
 

@@ -70,7 +70,7 @@ class SearchBar extends Component<void, Props, void> {
   }
 
   render () {
-    const services = ['Keybase', 'Twitter', 'Github', 'Coinbase', 'Reddit', 'Hackernews']
+    const services = ['Keybase', 'Twitter', 'Facebook', 'Github', 'Coinbase', 'Reddit', 'Hackernews']
     const tooltips: {[key: string]: ?string} = {'Hackernews': 'Hacker News'}
 
     return (
@@ -96,10 +96,9 @@ class SearchBar extends Component<void, Props, void> {
             onChange={() => this._onDebouncedSearch()}
             value={this.props.searchText}
             hintText={this.props.searchHintText}
-            hintStyle={{textAlign: 'left', marginTop: 3}}
+            hintStyle={{textAlign: 'left'}}
             underlineShow={false}
-            style={stylesInput}
-            textStyle={{height: 31}} />
+            style={stylesInput} />
           {this.props.searchText && <Icon type='iconfont-remove' style={{marginRight: 16}}
             onClick={() => this.refs.searchBox.clearValue()} />}
         </Box>
@@ -125,6 +124,7 @@ const stylesInput = {
   textAlign: 'left',
   marginLeft: 16,
   marginRight: 30,
+  marginBottom: 0,
 }
 const serviceContainerStyle = {
   ...globalStyles.flexBoxColumn,
