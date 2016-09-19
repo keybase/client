@@ -1,0 +1,9 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  onRevokeCurrentDevice: () => void,
+  onDelete: () => void,
+}
+
+export default class DeleteMe extends Component<void, Props, void> { }

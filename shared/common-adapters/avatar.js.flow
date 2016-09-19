@@ -16,6 +16,7 @@ type CommonProps = {
   followsYou?: ?boolean,
   backgroundColor?: string,
   opacity?: number,
+  children?: any,
 }
 
 export type Props = ({url: ?string} & CommonProps) | ({username: ?string} & CommonProps)
