@@ -2,6 +2,7 @@
 
 import UpdateEmail from './email'
 import Landing from './landing'
+import DeleteMe from './delete'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -91,7 +92,24 @@ const landingMap: DumbComponentMap<Landing> = {
   },
 }
 
+const deleteMeMap: DumbComponentMap<DeleteMe> = {
+  component: DeleteMe,
+  mocks: {
+    'Normal': {
+      onDelete: () => console.log('onDelete clicked'),
+      onRevokeCurrentDevice: () => console.log('onRevokeCurrentDevice clicked'),
+      parentProps: {
+        style: {
+          height: 500,
+          display: 'flex',
+        },
+      },
+    },
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
   Landing: landingMap,
+  DeleteMe: deleteMeMap,
 }
