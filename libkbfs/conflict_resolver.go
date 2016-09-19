@@ -2535,9 +2535,9 @@ type crPathTreeNode struct {
 // syncTree returns the merged blockPutState for itself and all of its
 // children.
 func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
-	newMD *RootMetadata, uid keybase1.UID, node *crPathTreeNode,
-	stopAt BlockPointer, lbc localBcache, newFileBlocks fileBlockMap) (
-	*blockPutState, error) {
+	unmergedChains *crChains, newMD *RootMetadata, uid keybase1.UID,
+	node *crPathTreeNode, stopAt BlockPointer, lbc localBcache,
+	newFileBlocks fileBlockMap) (*blockPutState, error) {
 	// If this has no children, then sync it, as far back as stopAt.
 	if len(node.children) == 0 {
 		// Look for the directory block or the new file block.
@@ -2568,6 +2568,45 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 			entryType = File // TODO: FIXME for Ex and Sym
 		}
 
+		var childBps *blockPutState
+		if entryType != Dir && fblock.IsInd {
+			childBps = newBlockPutState(len(fblock.IPtrs))
+			// For an indirect file block, make sure a new
+			// reference is made for every child block.
+			for i, iptr := range fblock.IPtrs {
+				// If journaling is enabled, new references aren't
+				// supported.  We have to fetch each block and ready
+				// it.  TODO: remove this when KBFS-1149 is fixed.
+				//
+				// TODO: parallelize the block fetches.
+				if TLFJournalEnabled(cr.config, cr.fbo.id()) {
+					cr.log.CDebugf(ctx, "Duplicating data from child block %v",
+						iptr.BlockPointer)
+					childBlock, err := cr.fbo.blocks.GetFileBlockForReading(
+						ctx, lState,
+						unmergedChains.mostRecentMD.ReadOnly(),
+						iptr.BlockPointer, node.mergedPath.Branch,
+						node.mergedPath)
+					if err != nil {
+						return nil, err
+					}
+					info, _, readyBlockData, err := cr.fbo.blocks.ReadyBlock(
+						ctx, newMD.ReadOnly(), childBlock, uid)
+					if err != nil {
+						return nil, err
+					}
+					fblock.IPtrs[i].BlockInfo = info
+					childBps.addNewBlock(info.BlockPointer, childBlock,
+						readyBlockData, nil)
+					newMD.AddRefBlock(info)
+				} else {
+					childBps.addNewBlock(iptr.BlockPointer, nil,
+						ReadyBlockData{}, nil)
+					newMD.AddRefBlock(iptr.BlockInfo)
+				}
+			}
+		}
+
 		// TODO: fix mtime and ctime?
 		_, _, bps, err := cr.fbo.syncBlockForConflictResolution(
 			ctx, lState, uid, newMD, block,
@@ -2577,18 +2616,8 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 			return nil, err
 		}
 
-		if entryType != Dir {
-			if fblock.IsInd {
-				// For an indirect file block, make sure a new
-				// reference is made for every child block.
-				for _, iptr := range fblock.IPtrs {
-					bps.addNewBlock(iptr.BlockPointer, nil, ReadyBlockData{},
-						nil)
-					// TODO: add block updates to the op chain for these guys
-					// (need encoded size!)
-					newMD.AddRefBlock(iptr.BlockInfo)
-				}
-			}
+		if childBps != nil {
+			bps.mergeOtherBps(childBps)
 		}
 
 		return bps, nil
@@ -2605,7 +2634,7 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 			localStopAt = stopAt
 		}
 		childBps, err := cr.syncTree(
-			ctx, lState, newMD, uid, child, localStopAt, lbc,
+			ctx, lState, unmergedChains, newMD, uid, child, localStopAt, lbc,
 			newFileBlocks)
 		if err != nil {
 			return nil, err
@@ -2849,8 +2878,8 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 
 	// Now do a depth-first walk, and syncBlock back up to the fork on
 	// every branch
-	bps, err = cr.syncTree(ctx, lState, md, uid, root, BlockPointer{},
-		lbc, newFileBlocks)
+	bps, err = cr.syncTree(ctx, lState, unmergedChains, md, uid, root,
+		BlockPointer{}, lbc, newFileBlocks)
 	if err != nil {
 		return nil, nil, err
 	}

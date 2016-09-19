@@ -118,6 +118,39 @@ func TestJournalCRSimple(t *testing.T) {
 	)
 }
 
+// bob writes a multi-block file that conflicts with a file created by
+// alice when journaling is on.
+func TestJournalCrConflictUnmergedWriteMultiblockFile(t *testing.T) {
+	test(t, journal(), blockSize(20),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			enableJournal(),
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/b", "hello"),
+		),
+		as(bob, noSync(),
+			write("a/b", ntimesString(15, "0123456789")),
+			flushJournal(),
+			reenableUpdates(),
+		),
+		as(bob,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			read("a/b", "hello"),
+			read(crname("a/b", bob), ntimesString(15, "0123456789")),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			read("a/b", "hello"),
+			read(crname("a/b", bob), ntimesString(15, "0123456789")),
+		),
+	)
+}
+
 // Check that simple quota reclamation works when journaling is enabled.
 func TestJournalQRSimple(t *testing.T) {
 	test(t, journal(),
