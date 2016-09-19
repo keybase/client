@@ -197,6 +197,13 @@ const (
 	SCWrongCryptoFormat      = int(keybase1.StatusCode_SCWrongCryptoFormat)
 	SCGPGUnavailable         = int(keybase1.StatusCode_SCGPGUnavailable)
 	SCDecryptionError        = int(keybase1.StatusCode_SCDecryptionError)
+	SCChatInternal           = int(keybase1.StatusCode_SCChatInternal)
+	SCChatRateLimit          = int(keybase1.StatusCode_SCChatRateLimit)
+	SCChatConvExists         = int(keybase1.StatusCode_SCChatConvExists)
+	SCChatUnknownTLFID       = int(keybase1.StatusCode_SCChatUnknownTLFID)
+	SCChatNotInConv          = int(keybase1.StatusCode_SCChatNotInConv)
+	SCChatBadMsg             = int(keybase1.StatusCode_SCChatBadMsg)
+	SCChatBroadcast          = int(keybase1.StatusCode_SCChatBroadcast)
 )
 
 const (
