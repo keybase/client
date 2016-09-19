@@ -203,9 +203,8 @@ func (k *KeybaseServiceBase) LoggedIn(ctx context.Context, name string) error {
 	// Since we don't have the whole session, just clear the cache.
 	k.setCachedCurrentSession(SessionInfo{})
 	if k.config != nil {
-		k.config.MDServer().RefreshAuthToken(ctx)
-		k.config.BlockServer().RefreshAuthToken(ctx)
-		k.config.KBFSOps().RefreshCachedFavorites(ctx)
+		serviceLoggedIn(
+			ctx, k.config, name, TLFJournalBackgroundWorkEnabled)
 	}
 	return nil
 }
@@ -215,10 +214,7 @@ func (k *KeybaseServiceBase) LoggedOut(ctx context.Context) error {
 	k.log.CDebugf(ctx, "Current session logged out")
 	k.setCachedCurrentSession(SessionInfo{})
 	if k.config != nil {
-		k.config.ResetCaches()
-		k.config.MDServer().RefreshAuthToken(ctx)
-		k.config.BlockServer().RefreshAuthToken(ctx)
-		k.config.KBFSOps().RefreshCachedFavorites(ctx)
+		serviceLoggedOut(ctx, k.config)
 	}
 	return nil
 }

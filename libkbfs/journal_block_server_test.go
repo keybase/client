@@ -10,29 +10,43 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 func setupJournalBlockServerTest(t *testing.T) (
-	tempdir string, config Config, jServer *JournalServer) {
+	tempdir string, config *ConfigLocal, jServer *JournalServer) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_block_server")
 	require.NoError(t, err)
+
+	// Clean up the tempdir if the rest of the setup fails.
+	setupSucceeded := false
+	defer func() {
+		if !setupSucceeded {
+			err := os.RemoveAll(tempdir)
+			assert.NoError(t, err)
+		}
+	}()
+
 	config = MakeTestConfigOrBust(t, "test_user")
-	log := config.MakeLogger("")
-	jServer = makeJournalServer(
-		config, log, tempdir, config.BlockCache(), config.DirtyBlockCache(),
-		config.BlockServer(), config.MDOps(), nil, nil)
-	ctx := context.Background()
-	err = jServer.EnableExistingJournals(
-		ctx, TLFJournalBackgroundWorkPaused)
+
+	// Clean up the config if the rest of the setup fails.
+	defer func() {
+		if !setupSucceeded {
+			CheckConfigAndShutdown(t, config)
+		}
+	}()
+
+	config.EnableJournaling(tempdir)
+	jServer, err = GetJournalServer(config)
 	require.NoError(t, err)
-	config.SetBlockCache(jServer.blockCache())
 	blockServer := jServer.blockServer()
 	// Turn this on for testing.
 	blockServer.enableAddBlockReference = true
 	config.SetBlockServer(blockServer)
-	config.SetMDOps(jServer.mdOps())
+
+	setupSucceeded = true
 	return tempdir, config, jServer
 }
 
@@ -40,7 +54,7 @@ func teardownJournalBlockServerTest(
 	t *testing.T, tempdir string, config Config) {
 	CheckConfigAndShutdown(t, config)
 	err := os.RemoveAll(tempdir)
-	require.NoError(t, err)
+	assert.NoError(t, err)
 }
 
 type shutdownOnlyBlockServer struct{ BlockServer }

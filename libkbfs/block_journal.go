@@ -167,6 +167,8 @@ func (j *blockJournal) blocksPath() string {
 	return filepath.Join(j.dir, "blocks")
 }
 
+// TODO: Consider truncating the ID string to avoid running into path
+// limits while keeping the chance of collision negligible.
 func (j *blockJournal) blockPath(id BlockID) string {
 	idStr := id.String()
 	return filepath.Join(j.blocksPath(), idStr[:4], idStr[4:])

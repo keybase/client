@@ -71,7 +71,7 @@ type testTLFJournalConfig struct {
 	bcache   BlockCache
 	mdcache  MDCache
 	reporter Reporter
-	cig      singleCurrentInfoGetter
+	uid      keybase1.UID
 	ekg      singleEncryptionKeyGetter
 	mdserver MDServer
 }
@@ -104,10 +104,6 @@ func (c testTLFJournalConfig) cryptoPure() cryptoPure {
 	return c.crypto
 }
 
-func (c testTLFJournalConfig) currentInfoGetter() currentInfoGetter {
-	return c.cig
-}
-
 func (c testTLFJournalConfig) encryptionKeyGetter() encryptionKeyGetter {
 	return c.ekg
 }
@@ -124,7 +120,7 @@ func (c testTLFJournalConfig) makeBlock(data []byte) (
 	BlockID, BlockContext, BlockCryptKeyServerHalf) {
 	id, err := c.crypto.MakePermanentBlockID(data)
 	require.NoError(c.t, err)
-	bCtx := BlockContext{c.cig.uid, "", zeroBlockRefNonce}
+	bCtx := BlockContext{c.uid, "", zeroBlockRefNonce}
 	serverHalf, err := c.crypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(c.t, err)
 	return id, bCtx, serverHalf
@@ -132,21 +128,20 @@ func (c testTLFJournalConfig) makeBlock(data []byte) (
 
 func (c testTLFJournalConfig) makeMD(
 	revision MetadataRevision, prevRoot MdID) *RootMetadata {
-	return makeMDForTest(c.t, c.tlfID, revision, c.cig.uid, prevRoot)
+	return makeMDForTest(c.t, c.tlfID, revision, c.uid, prevRoot)
 }
 
 func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
 	expectedRevision MetadataRevision, expectedPrevRoot MdID,
 	expectedMergeStatus MergeStatus, expectedBranchID BranchID) {
-	uid := c.cig.uid
 	verifyingKey := c.crypto.signingKey.GetVerifyingKey()
-	checkBRMD(c.t, uid, verifyingKey, c.Codec(), c.Crypto(),
+	checkBRMD(c.t, c.uid, verifyingKey, c.Codec(), c.Crypto(),
 		rmds.MD, expectedRevision, expectedPrevRoot,
 		expectedMergeStatus, expectedBranchID)
 	// MDv3 TODO: pass key bundles
 	err := rmds.IsValidAndSigned(c.Codec(), c.Crypto(), nil)
 	require.NoError(c.t, err)
-	err = rmds.IsLastModifiedBy(uid, verifyingKey)
+	err = rmds.IsLastModifiedBy(c.uid, verifyingKey)
 	require.NoError(c.t, err)
 }
 
@@ -176,23 +171,34 @@ func setupTLFJournalTest(
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	crypto := NewCryptoLocal(codec, signingKey, cryptPrivateKey)
+	uid := keybase1.MakeTestUID(1)
+	verifyingKey := signingKey.GetVerifyingKey()
+	ekg := singleEncryptionKeyGetter{MakeTLFCryptKey([32]byte{0x1})}
+
 	cig := singleCurrentInfoGetter{
 		name:         "fake_user",
-		uid:          keybase1.MakeTestUID(1),
-		verifyingKey: signingKey.GetVerifyingKey(),
+		uid:          uid,
+		verifyingKey: verifyingKey,
 	}
-	ekg := singleEncryptionKeyGetter{MakeTLFCryptKey([32]byte{0x1})}
 	mdserver, err := NewMDServerMemory(newTestMDServerLocalConfig(t, cig))
 	require.NoError(t, err)
 
 	config = &testTLFJournalConfig{
 		t, FakeTlfID(1, false), bsplitter, codec, crypto,
-		nil, NewMDCacheStandard(10), NewReporterSimple(newTestClockNow(), 10),
-		cig, ekg, mdserver,
+		nil, NewMDCacheStandard(10),
+		NewReporterSimple(newTestClockNow(), 10), uid, ekg, mdserver,
 	}
 
 	// Time out individual tests after 10 seconds.
 	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+
+	// Clean up the context if the rest of the setup fails.
+	setupSucceeded := false
+	defer func() {
+		if !setupSucceeded {
+			cancel()
+		}
+	}()
 
 	delegate = testBWDelegate{
 		t:          t,
@@ -203,20 +209,21 @@ func setupTLFJournalTest(
 
 	tempdir, err = ioutil.TempDir(os.TempDir(), "tlf_journal")
 	require.NoError(t, err)
-	// Clean up the tempdir if anything in the setup fails/panics.
+
+	// Clean up the tempdir if anything in the rest of the setup
+	// fails.
 	defer func() {
-		if r := recover(); r != nil {
+		if !setupSucceeded {
 			err := os.RemoveAll(tempdir)
-			if err != nil {
-				t.Errorf(err.Error())
-			}
+			assert.NoError(t, err)
 		}
 	}()
 
 	delegateBlockServer := NewBlockServerMemory(config)
 
-	tlfJournal, err = makeTLFJournal(ctx, tempdir, config.tlfID, config,
-		delegateBlockServer, bwStatus, delegate, nil, nil)
+	tlfJournal, err = makeTLFJournal(ctx, uid, verifyingKey,
+		tempdir, config.tlfID, config, delegateBlockServer,
+		bwStatus, delegate, nil, nil)
 	require.NoError(t, err)
 
 	switch bwStatus {
@@ -233,6 +240,8 @@ func setupTLFJournalTest(
 	default:
 		require.FailNow(t, "Unknown bwStatus %s", bwStatus)
 	}
+
+	setupSucceeded = true
 	return tempdir, config, ctx, cancel, tlfJournal, delegate
 }
 
@@ -246,7 +255,7 @@ func teardownTLFJournalTest(
 	select {
 	case <-delegate.shutdownCh:
 	case <-ctx.Done():
-		require.FailNow(config.t, ctx.Err().Error())
+		assert.Fail(config.t, ctx.Err().Error())
 	}
 
 	cancel()
@@ -261,7 +270,7 @@ func teardownTLFJournalTest(
 	tlfJournal.delegateBlockServer.Shutdown()
 
 	err := os.RemoveAll(tempdir)
-	require.NoError(config.t, err)
+	assert.NoError(config.t, err)
 }
 
 func putOneMD(ctx context.Context, config *testTLFJournalConfig,

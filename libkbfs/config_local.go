@@ -842,14 +842,18 @@ func (c *ConfigLocal) EnableJournaling(journalRoot string) {
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
 		flushListener)
 	ctx := context.Background()
-	err = jServer.EnableExistingJournals(ctx, TLFJournalBackgroundWorkEnabled)
-	if err == nil {
-		c.SetBlockServer(jServer.blockServer())
-		c.SetMDOps(jServer.mdOps())
-		if err := c.journalizeBcaches(); err != nil {
-			panic(err)
-		}
-	} else {
+	uid, key, err := getCurrentUIDAndVerifyingKey(ctx, c.KBPKI())
+	if err != nil {
+		log.Warning("Failed to get current UID and key; not enabling existing journals: %v", err)
+		return
+	}
+	err = jServer.EnableExistingJournals(ctx, uid, key, TLFJournalBackgroundWorkEnabled)
+	if err != nil {
 		log.Warning("Failed to enable existing journals: %v", err)
+	}
+	c.SetBlockServer(jServer.blockServer())
+	c.SetMDOps(jServer.mdOps())
+	if err := c.journalizeBcaches(); err != nil {
+		panic(err)
 	}
 }

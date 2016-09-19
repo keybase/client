@@ -5,12 +5,15 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 
 	"golang.org/x/net/context"
 )
@@ -19,9 +22,12 @@ import (
 // JournalServer for display in diagnostics. It is suitable for
 // encoding directly as JSON.
 type JournalServerStatus struct {
-	RootDir        string
-	JournalCount   int
-	UnflushedBytes int64 // (signed because os.FileInfo.Size() is signed)
+	RootDir             string
+	Version             int
+	CurrentUID          string
+	CurrentVerifyingKey string
+	JournalCount        int
+	UnflushedBytes      int64 // (signed because os.FileInfo.Size() is signed)
 }
 
 // branchChangeListener describes a caller that will get updates via
@@ -67,9 +73,13 @@ type JournalServer struct {
 	onBranchChange          branchChangeListener
 	onMDFlush               mdFlushListener
 
-	lock        sync.RWMutex
-	tlfJournals map[TlfID]*tlfJournal
-	dirtyOps    uint
+	// Protects all fields below.
+	lock                sync.RWMutex
+	currentUID          keybase1.UID
+	currentVerifyingKey VerifyingKey
+	tlfJournals         map[TlfID]*tlfJournal
+	dirtyOps            uint
+	dirtyOpsDone        *sync.Cond
 }
 
 func makeJournalServer(
@@ -90,7 +100,30 @@ func makeJournalServer(
 		onMDFlush:               onMDFlush,
 		tlfJournals:             make(map[TlfID]*tlfJournal),
 	}
+	jServer.dirtyOpsDone = sync.NewCond(&jServer.lock)
 	return &jServer
+}
+
+func (j *JournalServer) getDirLocked() string {
+	if j.currentVerifyingKey == (VerifyingKey{}) {
+		panic("currentVerifyingKey is zero")
+	}
+
+	// Device IDs and verifying keys are globally unique, so no
+	// need to have the uid in the path. Furthermore, everything
+	// after the first two bytes (four characters) are randomly
+	// generated, so taking the first 36 characters gives ~1/2^64
+	// collision probability.
+	//
+	// TODO: Write out a file with the full string.
+	shortID := j.currentVerifyingKey.String()[0:36]
+	return filepath.Join(j.dir, "v1", shortID)
+}
+
+func (j *JournalServer) getDir() string {
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+	return j.getDirLocked()
 }
 
 func (j *JournalServer) getTLFJournal(tlfID TlfID) (*tlfJournal, bool) {
@@ -107,12 +140,17 @@ func (j *JournalServer) hasTLFJournal(tlfID TlfID) bool {
 	return ok
 }
 
-// EnableExistingJournals turns on the write journal for all TLFs with
-// an existing journal. This must be the first thing done to a
-// JournalServer. Any returned error is fatal, and means that the
-// JournalServer must not be used.
+// EnableExistingJournals turns on the write journal for all TLFs for
+// the given (UID, device) tuple (with the device identified by its
+// verifying key) with an existing journal. Any returned error means
+// that the JournalServer remains in the same state as it was before.
+//
+// Once this is called, this must not be called again until
+// shutdownExistingJournals is called.
 func (j *JournalServer) EnableExistingJournals(
-	ctx context.Context, bws TLFJournalBackgroundWorkStatus) (err error) {
+	ctx context.Context, currentUID keybase1.UID,
+	currentVerifyingKey VerifyingKey,
+	bws TLFJournalBackgroundWorkStatus) (err error) {
 	j.log.CDebugf(ctx, "Enabling existing journals (%s)", bws)
 	defer func() {
 		if err != nil {
@@ -122,8 +160,43 @@ func (j *JournalServer) EnableExistingJournals(
 		}
 	}()
 
-	fileInfos, err := ioutil.ReadDir(j.dir)
+	j.lock.Lock()
+	defer j.lock.Unlock()
+
+	if j.currentUID != keybase1.UID("") {
+		return fmt.Errorf("Trying to set current UID from %s to %s",
+			j.currentUID, currentUID)
+	}
+	if j.currentVerifyingKey != (VerifyingKey{}) {
+		return fmt.Errorf(
+			"Trying to set current verifying key from %s to %s",
+			j.currentVerifyingKey, currentVerifyingKey)
+	}
+
+	if currentUID == keybase1.UID("") {
+		return errors.New("Current UID is empty")
+	}
+	if currentVerifyingKey == (VerifyingKey{}) {
+		return errors.New("Current verifying key is empty")
+	}
+
+	// Need to set it here since getDirLocked and enableLocked
+	// depend on it.
+	j.currentUID = currentUID
+	j.currentVerifyingKey = currentVerifyingKey
+
+	enableSucceeded := false
+	defer func() {
+		// Revert to a clean state if the enable doesn't
+		// succeed, either due to a panic or error.
+		if !enableSucceeded {
+			j.shutdownExistingJournalsLocked(ctx)
+		}
+	}()
+
+	fileInfos, err := ioutil.ReadDir(j.getDirLocked())
 	if os.IsNotExist(err) {
+		enableSucceeded = true
 		return nil
 	} else if err != nil {
 		return err
@@ -141,7 +214,9 @@ func (j *JournalServer) EnableExistingJournals(
 			continue
 		}
 
-		err = j.Enable(ctx, tlfID, bws)
+		// Allow enable even if dirty, since any dirty writes
+		// in flight are most likely for another user.
+		err = j.enableLocked(ctx, tlfID, bws, true)
 		if err != nil {
 			// Don't treat per-TLF errors as fatal.
 			j.log.CWarningf(
@@ -151,13 +226,13 @@ func (j *JournalServer) EnableExistingJournals(
 		}
 	}
 
+	enableSucceeded = true
 	return nil
 }
 
-// Enable turns on the write journal for the given TLF.
-func (j *JournalServer) Enable(
-	ctx context.Context, tlfID TlfID,
-	bws TLFJournalBackgroundWorkStatus) (err error) {
+func (j *JournalServer) enableLocked(
+	ctx context.Context, tlfID TlfID, bws TLFJournalBackgroundWorkStatus,
+	allowEnableIfDirty bool) (err error) {
 	j.log.CDebugf(ctx, "Enabling journal for %s (%s)", tlfID, bws)
 	defer func() {
 		if err != nil {
@@ -167,24 +242,40 @@ func (j *JournalServer) Enable(
 		}
 	}()
 
-	j.lock.Lock()
-	defer j.lock.Unlock()
+	if j.currentUID == keybase1.UID("") {
+		return errors.New("Current UID is empty")
+	}
+	if j.currentVerifyingKey == (VerifyingKey{}) {
+		return errors.New("Current verifying key is empty")
+	}
 
 	if tlfJournal, ok := j.tlfJournals[tlfID]; ok {
 		return tlfJournal.enable()
 	}
 
-	if j.dirtyOps > 0 {
-		return fmt.Errorf("Can't enable journal for %s while there "+
-			"are outstanding dirty ops", tlfID)
-	}
-	if j.delegateDirtyBlockCache.IsAnyDirty(tlfID) {
-		return fmt.Errorf("Can't enable journal for %s while there "+
-			"are any dirty blocks outstanding", tlfID)
+	err = func() error {
+		if j.dirtyOps > 0 {
+			return fmt.Errorf("Can't enable journal for %s while there "+
+				"are outstanding dirty ops", tlfID)
+		}
+		if j.delegateDirtyBlockCache.IsAnyDirty(tlfID) {
+			return fmt.Errorf("Can't enable journal for %s while there "+
+				"are any dirty blocks outstanding", tlfID)
+		}
+		return nil
+	}()
+	if err != nil {
+		if !allowEnableIfDirty {
+			return err
+		}
+
+		j.log.CWarningf(ctx,
+			"Got ignorable error on journal enable, and proceeding anyway: %v", err)
 	}
 
-	tlfJournal, err := makeTLFJournal(ctx, j.dir, tlfID,
-		tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
+	tlfJournal, err := makeTLFJournal(
+		ctx, j.currentUID, j.currentVerifyingKey, j.getDirLocked(),
+		tlfID, tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
 		bws, nil, j.onBranchChange, j.onMDFlush)
 	if err != nil {
 		return err
@@ -192,6 +283,14 @@ func (j *JournalServer) Enable(
 
 	j.tlfJournals[tlfID] = tlfJournal
 	return nil
+}
+
+// Enable turns on the write journal for the given TLF.
+func (j *JournalServer) Enable(ctx context.Context, tlfID TlfID,
+	bws TLFJournalBackgroundWorkStatus) error {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	return j.enableLocked(ctx, tlfID, bws, false)
 }
 
 func (j *JournalServer) dirtyOpStart(tlfID TlfID) {
@@ -207,6 +306,9 @@ func (j *JournalServer) dirtyOpEnd(tlfID TlfID) {
 		panic("Trying to end a dirty op when count is 0")
 	}
 	j.dirtyOps--
+	if j.dirtyOps == 0 {
+		j.dirtyOpsDone.Broadcast()
+	}
 }
 
 // PauseBackgroundWork pauses the background work goroutine, if it's
@@ -326,19 +428,24 @@ func (j *JournalServer) mdOps() journalMDOps {
 // Status returns a JournalServerStatus object suitable for
 // diagnostics.
 func (j *JournalServer) Status() JournalServerStatus {
-	journalCount, unflushedBytes := func() (int, int64) {
-		j.lock.RLock()
-		defer j.lock.RUnlock()
-		var unflushedBytes int64
-		for _, tlfJournal := range j.tlfJournals {
-			unflushedBytes += tlfJournal.getUnflushedBytes()
-		}
-		return len(j.tlfJournals), unflushedBytes
-	}()
+	journalCount, unflushedBytes, currentUID, currentVerifyingKey :=
+		func() (int, int64, keybase1.UID, VerifyingKey) {
+			j.lock.RLock()
+			defer j.lock.RUnlock()
+			var unflushedBytes int64
+			for _, tlfJournal := range j.tlfJournals {
+				unflushedBytes += tlfJournal.getUnflushedBytes()
+			}
+			return len(j.tlfJournals), unflushedBytes,
+				j.currentUID, j.currentVerifyingKey
+		}()
 	return JournalServerStatus{
-		RootDir:        j.dir,
-		JournalCount:   journalCount,
-		UnflushedBytes: unflushedBytes,
+		RootDir:             j.dir,
+		Version:             1,
+		CurrentUID:          currentUID.String(),
+		CurrentVerifyingKey: currentVerifyingKey.String(),
+		JournalCount:        journalCount,
+		UnflushedBytes:      unflushedBytes,
 	}
 }
 
@@ -354,6 +461,40 @@ func (j *JournalServer) JournalStatus(tlfID TlfID) (TLFJournalStatus, error) {
 	return tlfJournal.getJournalStatus()
 }
 
+// shutdownExistingJournalsLocked shuts down all write journals, sets
+// the current UID and verifying key to zero, and returns once all
+// shutdowns are complete. It is safe to call multiple times in a row,
+// and once this is called, EnableExistingJournals may be called
+// again.
+func (j *JournalServer) shutdownExistingJournalsLocked(ctx context.Context) {
+	for j.dirtyOps > 0 {
+		j.log.CDebugf(ctx,
+			"Waiting for %d dirty ops before shutting down existing journals...", j.dirtyOps)
+		j.dirtyOpsDone.Wait()
+	}
+
+	j.log.CDebugf(ctx, "Shutting down existing journals")
+
+	for _, tlfJournal := range j.tlfJournals {
+		tlfJournal.shutdown()
+	}
+
+	j.tlfJournals = make(map[TlfID]*tlfJournal)
+	j.currentUID = keybase1.UID("")
+	j.currentVerifyingKey = VerifyingKey{}
+}
+
+// shutdownExistingJournals shuts down all write journals, sets the
+// current UID and verifying key to zero, and returns once all
+// shutdowns are complete. It is safe to call multiple times in a row,
+// and once this is called, EnableExistingJournals may be called
+// again.
+func (j *JournalServer) shutdownExistingJournals(ctx context.Context) {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	j.shutdownExistingJournalsLocked(ctx)
+}
+
 func (j *JournalServer) shutdown() {
 	j.log.CDebugf(context.Background(), "Shutting down journal")
 	j.lock.Lock()
@@ -361,4 +502,7 @@ func (j *JournalServer) shutdown() {
 	for _, tlfJournal := range j.tlfJournals {
 		tlfJournal.shutdown()
 	}
+
+	// Leave all the tlfJournals in j.tlfJournals, so that any
+	// access to them errors out instead of mutating the journal.
 }
