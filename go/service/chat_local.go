@@ -334,6 +334,9 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 			return conversationInfo, triple, maxMessages, err
 		}
 
+		if err = h.fillMessageInfoLocal(ctx, &unboxed, conversationRemote.ReaderInfo.ReadMsgid < unboxed.ServerHeader.MessageID); err != nil {
+			return conversationInfo, triple, maxMessages, err
+		}
 		maxMessages = append(maxMessages, unboxed)
 
 		version, err := unboxed.MessagePlaintext.Version()

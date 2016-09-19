@@ -55,7 +55,7 @@ type conversationResolver struct {
 	Visibility chat1.TLFVisibility
 }
 
-func (r conversationResolver) Resolve(ctx context.Context, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversations []chat1.ConversationInfoLocal, err error) {
+func (r *conversationResolver) Resolve(ctx context.Context, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversations []chat1.ConversationInfoLocal, err error) {
 	if len(r.TlfName) > 0 {
 		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, r.TlfName)
 		if err != nil {
