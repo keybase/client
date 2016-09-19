@@ -224,7 +224,7 @@ function updatedFonts () {
   icons['iconfont-proof-new'] = {isFont: true, gridSize: icons['iconfont-proof-good'].gridSize}
   icons['iconfont-proof-followed'] = {isFont: true, gridSize: icons['iconfont-proof-good'].gridSize}
 
-  const findCode = /\.icon-kb-(.*):before {\n {4}content: "\\(.*)";/g
+  const findCode = /\.icon-kb-(.*):before {\n {2}content: "\\(.*)";/g
   while (true) {
     const match = findCode.exec(fs.readFileSync('./renderer/fonticon.css', {encoding: 'utf8'}))
     if (!match) {

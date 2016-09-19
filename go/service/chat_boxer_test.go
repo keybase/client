@@ -27,7 +27,7 @@ func cryptKey(t *testing.T) *keybase1.CryptKey {
 	}
 }
 
-func textMsg(t *testing.T, text string) keybase1.MessagePlaintext {
+func textMsg(t *testing.T, text string) chat1.MessagePlaintext {
 	uid, err := libkb.RandBytes(16)
 	if err != nil {
 		t.Fatal(err)
@@ -36,12 +36,12 @@ func textMsg(t *testing.T, text string) keybase1.MessagePlaintext {
 	return textMsgWithSender(t, text, gregor1.UID(uid))
 }
 
-func textMsgWithSender(t *testing.T, text string, uid gregor1.UID) keybase1.MessagePlaintext {
-	return keybase1.NewMessagePlaintextWithV1(keybase1.MessagePlaintextV1{
+func textMsgWithSender(t *testing.T, text string, uid gregor1.UID) chat1.MessagePlaintext {
+	return chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
 		ClientHeader: chat1.MessageClientHeader{
 			Sender: uid,
 		},
-		MessageBody: keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: text}),
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}),
 	})
 }
 

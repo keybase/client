@@ -2,7 +2,7 @@
 import * as Constants from '../constants/search'
 import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
   AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult,
-  SearchPlatforms, Reset, Waiting} from '../constants/search'
+  SearchPlatforms, Reset, Waiting, SetActive} from '../constants/search'
 import type {TypedAsyncAction} from '../constants/types/flux'
 import {apiserverGetRpc} from '../constants/types/flow-types'
 import {capitalize, trim} from 'lodash'
@@ -152,6 +152,7 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
       'Coinbase': 'coinbase',
       'Github': 'github',
       'Pgp': 'pgp',
+      'Facebook': 'facebook',
     }[platform]
 
     const limit = 20
@@ -235,5 +236,12 @@ export function reset (): Reset {
   return {
     type: Constants.reset,
     payload: {},
+  }
+}
+
+export function setActive (active: boolean): SetActive {
+  return {
+    type: Constants.setActive,
+    payload: {active},
   }
 }

@@ -26,6 +26,9 @@ const userPaneBase: UserRenderProps = {
   onUnfollow: () => console.log('onUnfollow'),
   onAcceptProofs: () => console.log('onAcceptProofs'),
   parentProps: defaultParentProps,
+  onClickAvatar: console.log('on click avatar'),
+  onClickFollowers: console.log('on click followers'),
+  onClickFollowing: console.log('on click following'),
 }
 
 const dumbMapUser: DumbComponentMap<UserPane> = {

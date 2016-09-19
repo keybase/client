@@ -1,12 +1,14 @@
 // @flow
+import keybaseUrl from '../constants/urls'
 import * as Constants from '../constants/profile'
 import engine from '../engine'
 import openURL from '../util/open-url'
+import flags from '../util/feature-flags'
 import {BTCRegisterBTCRpc, ConstantsStatusCode, ProveCommonProofStatus, apiserverPostRpc, pgpPgpKeyGenDefaultRpc, proveCheckProofRpc, proveStartProofRpc, revokeRevokeKeyRpc, revokeRevokeSigsRpc} from '../constants/types/flow-types'
 import {call, put, take, race, select} from 'redux-saga/effects'
 import {getMyProfile} from './tracker'
 import {isValidEmail, isValidName} from '../util/simple-validators'
-import {navigateUp, navigateTo, routeAppend} from '../actions/router'
+import {navigateUp, navigateTo, routeAppend, switchTab} from '../actions/router'
 import {profileTab} from '../constants/tabs'
 import {takeLatest, takeEvery, eventChannel, END, buffers} from 'redux-saga'
 
@@ -265,6 +267,7 @@ function addProof (platform: PlatformsExpandedType): AsyncAction {
       case 'http':
       case 'https':
       case 'twitter':
+      case 'facebook':
       case 'reddit':
       case 'github':
       case 'coinbase':
@@ -309,8 +312,48 @@ function _revokedFinishResponse (): FinishRevokeProof {
 
 function finishRevoking (): AsyncAction {
   return (dispatch) => {
+    dispatch(getMyProfile(true))
     dispatch(_revokedFinishResponse())
     dispatch(navigateUp())
+  }
+}
+
+function onUserClick (username: string, uid: string): AsyncAction {
+  return dispatch => {
+    dispatch(routeAppend({path: 'profile', userOverride: {username, uid}}, profileTab))
+    dispatch(switchTab(profileTab))
+  }
+}
+
+function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
+  return dispatch => {
+    if (!openWebsite && flags.tabProfileEnabled === true) {
+      username && dispatch(onUserClick(username, uid))
+    } else {
+      username && openURL(`${keybaseUrl}/${username}`)
+    }
+  }
+}
+
+function onClickFollowers (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
+  return dispatch => {
+    if (!openWebsite && flags.tabProfileEnabled === true) {
+      // TODO(mm) hint followers
+      username && dispatch(onUserClick(username, uid))
+    } else {
+      username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
+    }
+  }
+}
+
+function onClickFollowing (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
+  return dispatch => {
+    if (!openWebsite && flags.tabProfileEnabled === true) {
+      // TODO(mm) hint followings
+      username && dispatch(onUserClick(username, uid))
+    } else {
+      username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
+    }
   }
 }
 
@@ -396,6 +439,14 @@ function _checkProof (sigID: string, currentlyAdding: boolean): AsyncAction {
   }
 }
 
+function openURLIfNotNull (nullableThing, url, metaText) {
+  if (nullableThing == null) {
+    console.warn("Can't openURL because we have a null", metaText)
+    return
+  }
+  openURL(url)
+}
+
 function outputInstructionsActionLink (): AsyncAction {
   return (dispatch, getState) => {
     const profile = getState().profile
@@ -404,13 +455,16 @@ function outputInstructionsActionLink (): AsyncAction {
         openURL(`https://coinbase.com/${profile.username}#settings`)
         break
       case 'twitter':
-        openURL(`https://twitter.com/home?status=${profile.proof}`)
+        openURLIfNotNull(profile.proofText, `https://twitter.com/home?status=${profile.proofText || ''}`, 'twitter url')
         break
       case 'github':
         openURL('https://gist.github.com/')
         break
       case 'reddit':
-        openURL(profile.proof)
+        openURLIfNotNull(profile.proofText, profile.proofText, 'reddit url')
+        break
+      case 'facebook':
+        openURLIfNotNull(profile.proofText, profile.proofText, 'facebook url')
         break
       default:
         break
@@ -636,6 +690,10 @@ export {
   editProfile,
   finishRevoking,
   generatePgp,
+  onClickAvatar,
+  onClickFollowers,
+  onClickFollowing,
+  onUserClick,
   outputInstructionsActionLink,
   submitBTCAddress,
   submitRevokeProof,

@@ -10,7 +10,6 @@ import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import ProfileHelp from './help.desktop'
 import * as shared from './index.shared'
-import ErrorComponent from '../common-adapters/error-profile'
 import type {Tab as FriendshipsTab} from './friendships'
 import type {Proof} from '../constants/tracker'
 import type {Props} from './index'
@@ -172,12 +171,8 @@ class ProfileRender extends PureComponent<void, Props, State> {
   }
 
   render () {
-    if (this.props.showComingSoon) {
+    if (this.props.showComingSoon === true) {
       return this._renderComingSoon()
-    }
-
-    if (this.props && this.props.error) {
-      return <ErrorComponent error={this.props.error} />
     }
 
     const {loading} = this.props
@@ -244,6 +239,9 @@ class ProfileRender extends PureComponent<void, Props, State> {
                 userInfo={this.props.userInfo}
                 currentlyFollowing={this.props.currentlyFollowing}
                 trackerState={this.props.trackerState}
+                onClickAvatar={this.props.onClickAvatar}
+                onClickFollowers={this.props.onClickFollowers}
+                onClickFollowing={this.props.onClickFollowing}
               />
               {!this.props.isYou && !loading &&
                 <UserActions

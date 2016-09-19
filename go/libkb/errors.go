@@ -4,12 +4,15 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -1525,21 +1528,21 @@ func (e ChatVersionError) Error() string {
 	return fmt.Sprintf("chat version error: unhandled %s version %d", e.Kind, e.Version)
 }
 
-func NewChatHeaderVersionError(version keybase1.HeaderPlaintextVersion) ChatVersionError {
+func NewChatHeaderVersionError(version chat1.HeaderPlaintextVersion) ChatVersionError {
 	return ChatVersionError{
 		Kind:    "header",
 		Version: int(version),
 	}
 }
 
-func NewChatBodyVersionError(version keybase1.BodyPlaintextVersion) ChatVersionError {
+func NewChatBodyVersionError(version chat1.BodyPlaintextVersion) ChatVersionError {
 	return ChatVersionError{
 		Kind:    "body",
 		Version: int(version),
 	}
 }
 
-func NewChatMessageVersionError(version keybase1.MessagePlaintextVersion) ChatVersionError {
+func NewChatMessageVersionError(version chat1.MessagePlaintextVersion) ChatVersionError {
 	return ChatVersionError{
 		Kind:    "message",
 		Version: int(version),
@@ -1550,4 +1553,72 @@ type ChatBodyHashInvalid struct{}
 
 func (e ChatBodyHashInvalid) Error() string {
 	return "chat body hash invalid"
+}
+
+//=============================================================================
+
+type ChatInternalError struct{}
+
+func (e ChatInternalError) Error() string {
+	return "chat internal error"
+}
+
+//=============================================================================
+
+type ChatConvExistsError struct {
+	ConvID chat1.ConversationID
+}
+
+func (e ChatConvExistsError) Error() string {
+	return fmt.Sprintf("conversation already exists: %d", e.ConvID)
+}
+
+//=============================================================================
+
+type ChatUnknownTLFIDError struct {
+	TlfID chat1.TLFID
+}
+
+func (e ChatUnknownTLFIDError) Error() string {
+	return fmt.Sprintf("unknown TLF ID: %s", hex.EncodeToString(e.TlfID))
+}
+
+//=============================================================================
+
+type ChatNotInConvError struct {
+	UID gregor.UID
+}
+
+func (e ChatNotInConvError) Error() string {
+	return fmt.Sprintf("user is not in conversation: uid: %s", e.UID.String())
+}
+
+//=============================================================================
+
+type ChatBadMsgError struct {
+	Msg string
+}
+
+func (e ChatBadMsgError) Error() string {
+	return e.Msg
+}
+
+//=============================================================================
+
+type ChatBroadcastError struct {
+	Msg string
+}
+
+func (e ChatBroadcastError) Error() string {
+	return e.Msg
+}
+
+//=============================================================================
+
+type ChatRateLimitError struct {
+	Msg string
+}
+
+func (e ChatRateLimitError) Error() string {
+	return e.Msg
 }

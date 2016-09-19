@@ -235,23 +235,27 @@ function * _listSaga (): SagaGenerator<any, any> {
     return
   }
 
-  const results = yield call(apiserverGetRpcPromise, {
-    param: {
-      endpoint: 'kbfs/favorite/list',
-      args: [{key: 'problems', value: '1'}],
-    },
-  })
-  const username = yield select(state => state.config && state.config.username)
-  const loggedIn = yield select(state => state.config && state.config.loggedIn)
-  const state: FolderState = _folderToState(results && results.body, username || '', loggedIn || false)
+  try {
+    const results = yield call(apiserverGetRpcPromise, {
+      param: {
+        endpoint: 'kbfs/favorite/list',
+        args: [{key: 'problems', value: '1'}],
+      },
+    })
+    const username = yield select(state => state.config && state.config.username)
+    const loggedIn = yield select(state => state.config && state.config.loggedIn)
+    const state: FolderState = _folderToState(results && results.body, username || '', loggedIn || false)
 
-  const listedAction: FavoriteListed = {type: Constants.favoriteListed, payload: {folders: state}}
-  yield put(listedAction)
+    const listedAction: FavoriteListed = {type: Constants.favoriteListed, payload: {folders: state}}
+    yield put(listedAction)
 
-  const badgeAction: Action = badgeApp('newTLFs', !!(state.publicBadge || state.privateBadge))
-  yield put(badgeAction)
+    const badgeAction: Action = badgeApp('newTLFs', !!(state.publicBadge || state.privateBadge))
+    yield put(badgeAction)
 
-  yield call(_notify, state)
+    yield call(_notify, state)
+  } catch (e) {
+    console.warn('Error listing favorites:', e)
+  }
 }
 
 // If the notify data has changed, show a popup

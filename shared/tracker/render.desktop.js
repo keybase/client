@@ -49,6 +49,9 @@ export default class Render extends PureComponent<void, RenderProps, void> {
             userInfo={this.props.userInfo}
             currentlyFollowing={this.props.currentlyFollowing}
             trackerState={this.props.trackerState}
+            onClickAvatar={this.props.onClickAvatar}
+            onClickFollowers={this.props.onClickFollowers}
+            onClickFollowing={this.props.onClickFollowing}
           />
           <UserProofs
             type='proofs'

@@ -9,6 +9,7 @@ export type SearchPlatforms = 'Keybase'
 | 'Coinbase'
 | 'Hackernews'
 | 'Pgp'
+| 'Facebook'
 
 export type ExtraInfo = {
   service: 'external',
@@ -103,8 +104,11 @@ export type Reset = TypedAction<'search:reset', {}, void>
 export const waiting = 'search:waiting'
 export type Waiting = TypedAction<'search:waiting', {waiting: boolean}, void>
 
+export const setActive = 'search:setActive'
+export type SetActive = TypedAction<'search:setActive', {active: boolean}, void>
+
 export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup
-  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting
+  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting | SetActive
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {
@@ -115,6 +119,7 @@ export function platformToIcon (platform: SearchPlatforms): IconType {
     'Coinbase': 'iconfont-identity-bitcoin',
     'Hackernews': 'iconfont-identity-hn',
     'Pgp': 'iconfont-identity-pgp',
+    'Facebook': 'iconfont-identity-facebook',
   }[platform]
 }
 
@@ -127,6 +132,7 @@ export function platformToLogo32 (platform: SearchPlatforms): IconType {
     'Coinbase': 'icon-coinbase-logo-32',
     'Hackernews': 'icon-hacker-news-logo-32',
     'Pgp': 'icon-pgp-key-32',
+    'Facebook': 'icon-facebook-logo-32',
   }[platform]
 }
 
@@ -139,6 +145,7 @@ export function platformToLogo24 (platform: SearchPlatforms): IconType {
     'Coinbase': 'icon-coinbase-logo-24',
     'Hackernews': 'icon-hacker-news-logo-24',
     'Pgp': 'icon-pgp-key-24',
+    'Facebook': 'icon-facebook-logo-24',
   }[platform]
 }
 
@@ -151,6 +158,7 @@ export function platformToLogo16 (platform: SearchPlatforms): IconType {
     'Coinbase': 'icon-coinbase-logo-16',
     'Hackernews': 'icon-hacker-news-logo-16',
     'Pgp': 'icon-pgp-key-16',
+    'Facebook': 'icon-facebook-logo-16',
   }[platform]
 }
 

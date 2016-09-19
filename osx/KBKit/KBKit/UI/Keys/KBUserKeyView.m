@@ -14,6 +14,8 @@
 #import "KBPGPTextView.h"
 #import "KBDefines.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBUserKeyView ()
 @property YOVBox *labels;
 @property (nonatomic) KBRIdentifyKey *identifyKey;

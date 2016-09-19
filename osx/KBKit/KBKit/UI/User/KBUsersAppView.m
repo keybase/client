@@ -18,6 +18,7 @@
 #import "KBNotifications.h"
 
 #import <MDPSplitView/MDPSplitView.h>
+#import <YOLayout/YOLayout+PrefabLayouts.h>
 
 @interface KBUsersAppView ()
 @property MDPSplitView *splitView;

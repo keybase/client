@@ -8,6 +8,8 @@
 
 #import "KBPaperKeyDisplayView.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBPaperKeyDisplayView ()
 @property KBLabel *label;
 @property KBLabel *phraseLabel;

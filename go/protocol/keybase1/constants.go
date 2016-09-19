@@ -78,6 +78,13 @@ const (
 	StatusCode_SCInvalidLocationError   StatusCode = 1802
 	StatusCode_SCServiceStatusError     StatusCode = 1803
 	StatusCode_SCInstallError           StatusCode = 1804
+	StatusCode_SCChatInternal           StatusCode = 2500
+	StatusCode_SCChatRateLimit          StatusCode = 2501
+	StatusCode_SCChatConvExists         StatusCode = 2502
+	StatusCode_SCChatUnknownTLFID       StatusCode = 2503
+	StatusCode_SCChatNotInConv          StatusCode = 2504
+	StatusCode_SCChatBadMsg             StatusCode = 2505
+	StatusCode_SCChatBroadcast          StatusCode = 2506
 )
 
 var StatusCodeMap = map[string]StatusCode{
@@ -149,6 +156,13 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCInvalidLocationError":   1802,
 	"SCServiceStatusError":     1803,
 	"SCInstallError":           1804,
+	"SCChatInternal":           2500,
+	"SCChatRateLimit":          2501,
+	"SCChatConvExists":         2502,
+	"SCChatUnknownTLFID":       2503,
+	"SCChatNotInConv":          2504,
+	"SCChatBadMsg":             2505,
+	"SCChatBroadcast":          2506,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -220,6 +234,13 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1802: "SCInvalidLocationError",
 	1803: "SCServiceStatusError",
 	1804: "SCInstallError",
+	2500: "SCChatInternal",
+	2501: "SCChatRateLimit",
+	2502: "SCChatConvExists",
+	2503: "SCChatUnknownTLFID",
+	2504: "SCChatNotInConv",
+	2505: "SCChatBadMsg",
+	2506: "SCChatBroadcast",
 }
 
 type ConstantsInterface interface {

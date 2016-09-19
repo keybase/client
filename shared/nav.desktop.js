@@ -17,11 +17,11 @@ import Settings from './settings'
 import Login from './login'
 import flags from './util/feature-flags'
 import {mapValues} from 'lodash'
-import {searchActive} from './local-debug'
 import type {Tabs} from './constants/tabs'
 
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 import {navigateBack, navigateUp, switchTab} from './actions/router'
+import {setActive} from './actions/search'
 import TabBar from './tab-bar/index.render'
 
 const tabs = {
@@ -33,10 +33,6 @@ const tabs = {
   [devicesTab]: {module: Devices, name: 'Devices'},
 }
 
-type State = {
-  searchActive: boolean
-}
-
 type Props = {
   menuBadge: boolean,
   switchTab: (tab: Tabs) => void,
@@ -45,11 +41,12 @@ type Props = {
   username: string,
   navigateBack: () => void,
   navigateUp: () => void,
-  folderBadge: number
+  folderBadge: number,
+  searchActive: boolean,
+  setSearchActive: (active: boolean) => void,
 }
 
-class Nav extends Component<void, Props, State> {
-  state: State;
+class Nav extends Component<void, Props, void> {
   _lastCheckedTab: ?Tabs;
   _checkingTab: boolean;
   _originalSize: $Shape<{width: number, height: number}>;
@@ -59,13 +56,10 @@ class Nav extends Component<void, Props, State> {
     super(props)
     this._handleKeyDown = this._handleKeyDown.bind(this)
 
-    this.state = {searchActive}
-
     this._lastCheckedTab = null // the last tab we resized for
   }
 
-  _handleTabsChange (e, key, payload) {
-    this.setState({searchActive: false})
+  _handleTabsChange (e) {
     this.props.switchTab(e)
   }
 
@@ -123,7 +117,7 @@ class Nav extends Component<void, Props, State> {
       ipcRenderer.send(this.props.menuBadge ? 'showTrayRegular' : 'showTrayBadged')
     }
 
-    if (this.state.searchActive !== nextState.searchActive) {
+    if (this.props.searchActive !== nextProps.searchActive) {
       return true
     }
 
@@ -171,8 +165,8 @@ class Nav extends Component<void, Props, State> {
         <TabBar
           onTabClick={t => this._handleTabsChange(t)}
           selectedTab={activeTab}
-          onSearchClick={() => this.setState({searchActive: !this.state.searchActive})}
-          searchActive={this.state.searchActive}
+          onSearchClick={() => this.props.setSearchActive(!this.props.searchActive)}
+          searchActive={this.props.searchActive}
           username={this.props.username}
           searchContent={<Search />}
           badgeNumbers={{[folderTab]: this.props.folderBadge}}
@@ -190,11 +184,13 @@ const stylesTabsContainer = {
 // $FlowIssue type this connector
 export default connect(
   ({
+    search: {searchActive},
     router,
     config: {extendedConfig, username},
     favorite: {publicBadge = 0, privateBadge = 0},
     notifications: {menuBadge}}) => ({
       router,
+      searchActive,
       provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
       username,
       menuBadge,
@@ -205,6 +201,7 @@ export default connect(
       switchTab: tab => dispatch(switchTab(tab)),
       navigateBack: () => dispatch(navigateBack()),
       navigateUp: () => dispatch(navigateUp()),
+      setSearchActive: (active) => { dispatch(setActive(active)) },
     }
   }
 )(Nav)

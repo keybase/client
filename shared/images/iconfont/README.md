@@ -1,7 +1,7 @@
 ## How to build the font icon
 
 - Go to https://icomoon.io
-- Import project file kb-icomoon-project.json
+- Import project file kb-icomoon-project.json, using menu -> Projects -> Import Project
 - Save exported svgs from Zeplin to this directory (protip you can export all assets in Zeplin under assets if you don't have anything selected)
 - Add new svgs to icomoon in the correct grid sections
 - Ensure settings:

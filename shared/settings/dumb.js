@@ -6,6 +6,8 @@ import {Box, Text} from '../common-adapters'
 import UpdateEmail from './email'
 import Landing from './landing'
 import SettingsNav from './nav'
+import DeleteMe from './delete'
+import DeleteConfirm from './delete-confirm'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -139,8 +141,43 @@ const settingsNavMap: DumbComponentMap<SettingsNav> = {
   },
 }
 
+const deleteMeMap: DumbComponentMap<DeleteMe> = {
+  component: DeleteMe,
+  mocks: {
+    'Normal': {
+      onDelete: () => console.log('onDelete clicked'),
+      onRevokeCurrentDevice: () => console.log('onRevokeCurrentDevice clicked'),
+      parentProps: {
+        style: {
+          height: 500,
+          display: 'flex',
+        },
+      },
+    },
+  },
+}
+
+const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
+  component: DeleteConfirm,
+  mocks: {
+    'Normal': {
+      onDeleteForever: () => console.log('onDeleteForever clicked'),
+      onCancel: () => console.log('onCancel clicked'),
+      username: 'chris',
+      parentProps: {
+        style: {
+          height: 500,
+          display: 'flex',
+        },
+      },
+    },
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
   Landing: landingMap,
   SettingsNav: settingsNavMap,
+  DeleteMe: deleteMeMap,
+  DeleteConfirm: deleteConfirmMap,
 }

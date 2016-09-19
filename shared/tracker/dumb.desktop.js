@@ -46,6 +46,7 @@ const proofWeb5: Proof = {...proofMaker('http', '5'),
 }
 const proofGithub = proofMaker('github')
 const proofTwitter: Proof = proofMaker('twitter')
+const proofFacebook: Proof = proofMaker('facebook')
 const proofHN: Proof = proofMaker('hackernews')
 const proofReddit: Proof = proofMaker('reddit')
 const proofPgp: Proof = proofMaker('pgp')
@@ -57,6 +58,7 @@ const proofDNS: Proof = proofMaker('dns')
 const proofsDefault: Array<Proof> = [
   proofGithub,
   proofTwitter,
+  proofFacebook,
   proofHN,
   proofRooter,
   proofReddit,
@@ -96,6 +98,9 @@ const propsBase = {
   lastAction: null,
   loading: false,
   actionBarReady: true,
+  onClickAvatar: console.log('on click avatar'),
+  onClickFollowers: console.log('on click followers'),
+  onClickFollowing: console.log('on click following'),
 }
 
 const propsDefault: TrackerProps = {

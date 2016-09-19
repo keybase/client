@@ -62,7 +62,10 @@ function openInWindows (openPath: string = Constants.defaultKBFSPath): AsyncActi
     // On windows the path isn't /keybase
     // We can figure it out by looking at the extendedConfig though
     if (kbfsPath === Constants.defaultKBFSPath) {
-      const extendedConfigPromise = Promise.resolve(state.config.extendedConfig)
+      const extendedConfig = state.config.extendedConfig
+      const extendedConfigPromise = extendedConfig
+        ? Promise.resolve(extendedConfig)
+        : Promise.reject()
 
       extendedConfigPromise
         .then(formKbfsPathWindows)

@@ -40,9 +40,9 @@ protocol common {
   }
 
   enum TLFVisibility {
-    PUBLIC_0,
-    PRIVATE_1,
-    ANY_2
+    ANY_0,
+    PUBLIC_1,
+    PRIVATE_2
   }
 
   record GetInboxQuery {

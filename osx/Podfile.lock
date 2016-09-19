@@ -17,18 +17,18 @@ PODS:
   - AFNetworking/Reachability (2.6.3)
   - AFNetworking/Security (2.6.3)
   - AFNetworking/Serialization (2.6.3)
-  - CocoaLumberjack (2.3.0):
-    - CocoaLumberjack/Default (= 2.3.0)
-    - CocoaLumberjack/Extensions (= 2.3.0)
-  - CocoaLumberjack/Core (2.3.0)
-  - CocoaLumberjack/Default (2.3.0):
+  - CocoaLumberjack (2.4.0):
+    - CocoaLumberjack/Default (= 2.4.0)
+    - CocoaLumberjack/Extensions (= 2.4.0)
+  - CocoaLumberjack/Core (2.4.0)
+  - CocoaLumberjack/Default (2.4.0):
     - CocoaLumberjack/Core
-  - CocoaLumberjack/Extensions (2.3.0):
+  - CocoaLumberjack/Extensions (2.4.0):
     - CocoaLumberjack/Default
   - GBCli (1.1)
   - GHKeychain (1.2.8)
   - GHKit (2.0.3)
-  - GHODictionary (1.0.9)
+  - GHODictionary (1.1.0)
   - KBKit (0.1.6):
     - AFNetworking (~> 2.0)
     - CocoaLumberjack
@@ -45,18 +45,18 @@ PODS:
     - Mantle/extobjc (= 2.0.7)
   - Mantle/extobjc (2.0.7)
   - MDPSplitView (1.0.2)
-  - MPMessagePack (1.3.11):
+  - MPMessagePack (1.3.12):
     - GHODictionary
   - ObjectiveSugar (1.1.0)
   - Slash (0.1.4)
-  - Tikppa (0.2.2):
+  - Tikppa (0.2.3):
     - AFNetworking
     - CocoaLumberjack
     - GHKit
     - ObjectiveSugar
     - Slash
     - YOLayout
-  - YOLayout (0.2.12)
+  - YOLayout (0.2.13)
 
 DEPENDENCIES:
   - GBCli
@@ -71,20 +71,20 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   AFNetworking: cb8d14a848e831097108418f5d49217339d4eb60
-  CocoaLumberjack: 97fab7ee5f507fe54445cca7ea80f926729cfd15
+  CocoaLumberjack: aa9dcab71bdf9eaf2a63bbd9ddc87863efe45457
   GBCli: e5f988fadb68e1e3c01919f134009fed9796fde0
   GHKeychain: 008cdb8bbab5b0dc1da3d0f06a67ce5203231e44
   GHKit: 2a20b51df9ce8f4355b2af2821805d369d610546
-  GHODictionary: 1f7873492445e0f33ac19575a358c3c91926b564
+  GHODictionary: 225e042596a4b3d5b66b2b24250086b2f95514af
   KBKit: 9f139696e2cd916f05ee603e33aabfd558ac8ccd
   Mantle: bc40bb061d8c2c6fb48d5083e04d928c3b7f73d9
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
-  MPMessagePack: 71e6be8e3c058b521c5ddaaa54c8b9191ef4b59d
+  MPMessagePack: 078f8c3aed25079bac89003391fdb71f44bcf37a
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: 7184f2a98e13ad62303037db3a706c88e98b197e
-  Tikppa: 5174130e6bae70e8b2b0c93bc2efca4927d34ac6
-  YOLayout: 3f5b3ac64f9018f1e63a19223dbb8382c37d58cb
+  Tikppa: 61e77778349e8b9bc2668105711c57706337184d
+  YOLayout: 6728d890bab9b9e4962efd554cba16d677b30b0f
 
 PODFILE CHECKSUM: 254d09634e37270f76c88d82cab3a560a72b79ed
 
-COCOAPODS: 1.0.1
+COCOAPODS: 1.1.0.rc.2

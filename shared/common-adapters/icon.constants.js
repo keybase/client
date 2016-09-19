@@ -20,6 +20,41 @@ const iconMeta_ = {
     gridSize: 8,
     charCode: 59649,
   },
+  'iconfont-star': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 59688,
+  },
+  'iconfont-search_2': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 59689,
+  },
+  'iconfont-identity-coinbase': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 59690,
+  },
+  'iconfont-folder-visible': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 59691,
+  },
+  'iconfont-folder-hidden': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 59692,
+  },
+  'iconfont-exclamation': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 59693,
+  },
+  'iconfont-identity-facebook': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 59687,
+  },
   'iconfont-identity-twitter': {
     isFont: true,
     gridSize: 16,
@@ -149,6 +184,11 @@ const iconMeta_ = {
     isFont: true,
     gridSize: 16,
     charCode: 59685,
+  },
+  'iconfont-nav-search': {
+    isFont: true,
+    gridSize: 24,
+    charCode: 59694,
   },
   'iconfont-proof-placeholder': {
     isFont: true,
@@ -354,6 +394,41 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-dns-64.png'),
+  },
+  'icon-doggy-crying-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-doggy-crying-48.png'),
+  },
+  'icon-doggy-crying-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-doggy-crying-64.png'),
+  },
+  'icon-facebook-logo-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-facebook-logo-16.png'),
+  },
+  'icon-facebook-logo-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-facebook-logo-24.png'),
+  },
+  'icon-facebook-logo-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-facebook-logo-32.png'),
+  },
+  'icon-facebook-logo-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-facebook-logo-48.png'),
+  },
+  'icon-facebook-logo-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-facebook-logo-64.png'),
   },
   'icon-fancy-bubbles-123-x-64': {
     isFont: false,

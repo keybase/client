@@ -9,6 +9,7 @@
 #import "KBProveView.h"
 
 #import "KBDefines.h"
+#import <YOLayout/YOLayout+PrefabLayouts.h>
 
 @interface KBProveView ()
 @property (nonatomic) NSString *serviceName;

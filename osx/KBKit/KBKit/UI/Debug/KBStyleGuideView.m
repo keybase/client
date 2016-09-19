@@ -14,6 +14,8 @@
 #import "KBRMockClient.h"
 #import "KBFontIcon.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBStyleGuideView ()
 @property KBProgressOverlayView *progressView;
 @end

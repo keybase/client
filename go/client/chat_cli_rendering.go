@@ -3,177 +3,172 @@ package client
 import (
 	"fmt"
 	"math"
+	"strconv"
+	"strings"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
+	"github.com/keybase/client/go/flexibletable"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type conversationListView []keybase1.ConversationLocal
-
-// maxWidth must >= 3
-func (v conversationListView) renderConversationName(maxWidth int, index int) string {
-	if v[index].Info == nil {
-		return ""
-	}
-	name := v[index].Info.TlfName
-	if len(v[index].Messages) > 0 && v[index].Messages[0].Info != nil && v[index].Messages[0].Info.IsNew {
-		name = "* " + name
-	}
-	if len(name) > maxWidth {
-		name = name[:maxWidth-3] + "..."
-	}
-	return name
-}
+type conversationListView []chat1.ConversationLocal
 
 func (v conversationListView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) {
 	if len(v) == 0 {
 		return
 	}
 	w, _ := ui.TerminalSize()
-	iConversation := 0
-	ui.TablifyAlignRight(nil, func() []string {
-		for ; iConversation < len(v) && len(v[iConversation].Messages) == 0; iConversation++ {
-		}
-		if iConversation == len(v) {
-			return nil
-		}
-		headings := w/2 - 2 // headings shouldn't exceed half of terminal size
-		conversationNumber := fmt.Sprintf("[%d]", iConversation)
-		headings -= len(conversationNumber)
-		authorAndTime := messageFormatter(v[iConversation].Messages[0]).renderAuthorAndTime()
-		headings -= len(authorAndTime)
-		if headings < 3 {
-			ui.Printf("terminal too small!\n")
-			return nil
-		}
-		conversationName := v.renderConversationName(headings, iConversation)
-		ret := []string{
-			conversationNumber,
-			conversationName,
-			authorAndTime,
-			// This is actually incorrect since the headings may not take as much as
-			// w/2 space, in which case messages should be able to be longer.
-			//
-			// TODO: need a more beefy tablifier
-			messageFormatter(v[iConversation].Messages[0]).renderMessage(g, w-w/2-2),
-		}
-		iConversation++
-		return ret
-	})
-}
 
-func (v conversationListView) showSummaryOnMore(ui libkb.TerminalUI, totalMore int) {
-	for i := len(v) - 1; i >= 0; i-- {
-		if len(v[i].Messages) == 0 {
-			continue
+	table := &flexibletable.Table{}
+	for i, conv := range v {
+		unread := ""
+		if conv.Messages[0].Info.IsNew {
+			unread = "*"
 		}
-		days := int(math.Ceil(time.Since(gregor1.FromTime(v[i].Messages[0].ServerHeader.Ctime)).Hours() / 24))
-		ui.Printf(" +%d older chats (--time=%dd to see %d more)\n", totalMore, days, len(v))
-		return
+		participants := strings.Split(conv.Info.TlfName, ",")
+		authorAndTime := messageFormatter(conv.Messages[0]).authorAndTime()
+		body, err := messageFormatter(conv.Messages[0]).body(g)
+		if err != nil {
+			ui.Printf("rendering message body error: %v\n", err)
+		}
+
+		table.Insert(flexibletable.Row{
+			flexibletable.Cell{
+				Frame:     [2]string{"[", "]"},
+				Alignment: flexibletable.Right,
+				Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: unread},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
+				Content:   flexibletable.MultiCell{Sep: ",", Items: participants},
+			},
+			flexibletable.Cell{
+				Frame:     [2]string{"[", "]"},
+				Alignment: flexibletable.Right,
+				Content:   flexibletable.SingleCell{Item: authorAndTime},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
+				Content:   flexibletable.SingleCell{Item: body},
+			},
+		})
+	}
+	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
+		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
+	}); err != nil {
+		ui.Printf("rendering conversation list view error: %v\n", err)
 	}
 }
 
-type conversationView keybase1.ConversationLocal
+type conversationView chat1.ConversationLocal
 
 func (v conversationView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) {
 	if len(v.Messages) == 0 {
 		return
 	}
 	w, _ := ui.TerminalSize()
-	ch := make(chan []string)
-	go func() {
-		for _, m := range v.Messages {
-			unread := ""
-			if m.Info.IsNew {
-				unread = "*"
-			}
-			authorAndTime := messageFormatter(m).renderAuthorAndTime()
-			rest := w - len(unread) - len(authorAndTime) - 2 /* 2 extra spaces added by tablify */
-			if rest < 3 {
-				ui.Printf("terminal too small!\n")
-				break
-			}
-			lines := messageFormatter(m).renderMessageWrap(g, rest)
-			for i, l := range lines {
-				if i == 0 {
-					ch <- []string{unread, authorAndTime, lines[0]}
-				} else {
-					ch <- []string{"", "", l}
-				}
-			}
+	table := &flexibletable.Table{}
+	for i, m := range v.Messages {
+		unread := ""
+		if m.Info.IsNew {
+			unread = "*"
 		}
-		close(ch)
-	}()
-	// TODO: need better tablifier!
-	ui.TablifyAlignRight(nil, func() []string {
-		return <-ch
-	})
-}
+		authorAndTime := messageFormatter(m).authorAndTime()
+		body, err := messageFormatter(m).body(g)
+		if err != nil {
+			ui.Printf("rendering message body error: %v\n", err)
+		}
 
-type messageFormatter keybase1.Message
-
-func (f messageFormatter) renderAuthorAndTime() string {
-	info := keybase1.Message(f).Info
-	if info == nil {
-		return "[] "
+		table.Insert(flexibletable.Row{
+			flexibletable.Cell{
+				Frame:     [2]string{"[", "]"},
+				Alignment: flexibletable.Right,
+				Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: unread},
+			},
+			flexibletable.Cell{
+				Frame:     [2]string{"[", "]"},
+				Alignment: flexibletable.Right,
+				Content:   flexibletable.SingleCell{Item: authorAndTime},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
+				Content:   flexibletable.SingleCell{Item: body},
+			},
+		})
 	}
-	t := gregor1.FromTime(keybase1.Message(f).ServerHeader.Ctime)
-	// extra space to get around right aligned tab writer
-	return fmt.Sprintf("[%s (%s) %s] ", info.SenderUsername, info.SenderDeviceName, humanize.Time(t))
+	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
+		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ExpandableWrappable,
+	}); err != nil {
+		ui.Printf("rendering conversation view error: %v\n", err)
+	}
 }
 
-func (f messageFormatter) body(g *libkb.GlobalContext) []string {
+type messageFormatter chat1.Message
+
+func (f messageFormatter) authorAndTime() string {
+	info := chat1.Message(f).Info
+	if info == nil {
+		return ""
+	}
+	t := gregor1.FromTime(chat1.Message(f).ServerHeader.Ctime)
+	return fmt.Sprintf("%s %s", info.SenderUsername, shortDurationFromNow(t))
+}
+
+func (f messageFormatter) body(g *libkb.GlobalContext) (string, error) {
 	version, err := f.MessagePlaintext.Version()
 	if err != nil {
 		g.Log.Warning("MessagePlaintext version error: %s", err)
-		return nil
+		return "", err
 	}
 	switch version {
-	case keybase1.MessagePlaintextVersion_V1:
+	case chat1.MessagePlaintextVersion_V1:
 		body := f.MessagePlaintext.V1().MessageBody
 		typ, err := body.MessageType()
 		if err != nil {
-			return nil
+			return "", err
 		}
 		switch typ {
 		case chat1.MessageType_TEXT:
-			return []string{body.Text().Body}
+			return body.Text().Body, nil
 		case chat1.MessageType_ATTACHMENT:
-			return []string{"{Attachment}", "Caption: <unimplemented>", fmt.Sprintf("KBFS: %s", body.Attachment().Path)}
+			return fmt.Sprintf("{Attachment} | Caption: <unimplemented> | KBFS: %s", body.Attachment().Path), nil
 		default:
-			return []string{fmt.Sprintf("unsupported MessageType: %s", typ.String())}
+			return fmt.Sprintf("unsupported MessageType: %s", typ.String()), nil
 		}
 	default:
 		g.Log.Warning("messageFormatter.body unhandled MessagePlaintext version %v", version)
-		return nil
+		return "", err
 	}
 }
 
-// maxWidth must >= 3
-func (f messageFormatter) renderMessage(g *libkb.GlobalContext, maxWidth int) string {
-	lines := f.body(g)
-	if len(lines) == 0 {
-		return ""
-	}
-	if len(lines[0]) > maxWidth {
-		return lines[0][:maxWidth-3] + "..."
-	}
-	return lines[0]
-}
+func shortDurationFromNow(t time.Time) string {
+	d := time.Since(t)
 
-// maxWidth must > 0
-func (f messageFormatter) renderMessageWrap(g *libkb.GlobalContext, maxWidth int) (lines []string) {
-	bodyLines := f.body(g)
-	for _, b := range bodyLines {
-		for len(b) > maxWidth {
-			lines = append(lines, b[:maxWidth])
-			b = b[maxWidth:]
-		}
-		lines = append(lines, b)
+	num := d.Hours() / 24
+	if num > 1 {
+		return strconv.Itoa(int(math.Ceil(num))) + "d"
 	}
-	return lines
+
+	num = d.Hours()
+	if num > 1 {
+		return strconv.Itoa(int(math.Ceil(num))) + "h"
+	}
+
+	num = d.Minutes()
+	if num > 1 {
+		return strconv.Itoa(int(math.Ceil(num))) + "m"
+	}
+
+	num = d.Seconds()
+	return strconv.Itoa(int(math.Ceil(num))) + "s"
 }
