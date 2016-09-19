@@ -1,4 +1,4 @@
-package flexibleTable
+package flexibletable
 
 import "fmt"
 

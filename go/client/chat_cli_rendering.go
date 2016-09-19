@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/flexibleTable"
+	"github.com/keybase/client/go/flexibletable"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -21,7 +21,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) 
 	}
 	w, _ := ui.TerminalSize()
 
-	table := &flexibleTable.Table{}
+	table := &flexibletable.Table{}
 	for i, conv := range v {
 		unread := ""
 		if conv.Messages[0].Info.IsNew {
@@ -34,33 +34,33 @@ func (v conversationListView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) 
 			ui.Printf("rendering message body error: %v\n", err)
 		}
 
-		table.Insert(flexibleTable.Row{
-			flexibleTable.Cell{
+		table.Insert(flexibletable.Row{
+			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
-				Alignment: flexibleTable.Right,
-				Content:   flexibleTable.SingleCell{Item: strconv.Itoa(i + 1)},
+				Alignment: flexibletable.Right,
+				Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
 			},
-			flexibleTable.Cell{
-				Alignment: flexibleTable.Center,
-				Content:   flexibleTable.SingleCell{Item: unread},
+			flexibletable.Cell{
+				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: unread},
 			},
-			flexibleTable.Cell{
-				Alignment: flexibleTable.Left,
-				Content:   flexibleTable.MultiCell{Sep: ",", Items: participants},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
+				Content:   flexibletable.MultiCell{Sep: ",", Items: participants},
 			},
-			flexibleTable.Cell{
+			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
-				Alignment: flexibleTable.Right,
-				Content:   flexibleTable.SingleCell{Item: authorAndTime},
+				Alignment: flexibletable.Right,
+				Content:   flexibletable.SingleCell{Item: authorAndTime},
 			},
-			flexibleTable.Cell{
-				Alignment: flexibleTable.Left,
-				Content:   flexibleTable.SingleCell{Item: body},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
+				Content:   flexibletable.SingleCell{Item: body},
 			},
 		})
 	}
-	if err := table.Render(ui.OutputWriter(), " ", w, []flexibleTable.ColumnConstraint{
-		5, 1, 20, 20, flexibleTable.Expandable,
+	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
+		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
 	}); err != nil {
 		ui.Printf("rendering conversation list view error: %v\n", err)
 	}
@@ -73,7 +73,7 @@ func (v conversationView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) {
 		return
 	}
 	w, _ := ui.TerminalSize()
-	table := &flexibleTable.Table{}
+	table := &flexibletable.Table{}
 	for i, m := range v.Messages {
 		unread := ""
 		if m.Info.IsNew {
@@ -85,29 +85,29 @@ func (v conversationView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) {
 			ui.Printf("rendering message body error: %v\n", err)
 		}
 
-		table.Insert(flexibleTable.Row{
-			flexibleTable.Cell{
+		table.Insert(flexibletable.Row{
+			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
-				Alignment: flexibleTable.Right,
-				Content:   flexibleTable.SingleCell{Item: strconv.Itoa(i + 1)},
+				Alignment: flexibletable.Right,
+				Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
 			},
-			flexibleTable.Cell{
-				Alignment: flexibleTable.Center,
-				Content:   flexibleTable.SingleCell{Item: unread},
+			flexibletable.Cell{
+				Alignment: flexibletable.Center,
+				Content:   flexibletable.SingleCell{Item: unread},
 			},
-			flexibleTable.Cell{
+			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
-				Alignment: flexibleTable.Right,
-				Content:   flexibleTable.SingleCell{Item: authorAndTime},
+				Alignment: flexibletable.Right,
+				Content:   flexibletable.SingleCell{Item: authorAndTime},
 			},
-			flexibleTable.Cell{
-				Alignment: flexibleTable.Left,
-				Content:   flexibleTable.SingleCell{Item: body},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
+				Content:   flexibletable.SingleCell{Item: body},
 			},
 		})
 	}
-	if err := table.Render(ui.OutputWriter(), " ", w, []flexibleTable.ColumnConstraint{
-		5, 1, 20, flexibleTable.ExpandableWrappable,
+	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
+		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ExpandableWrappable,
 	}); err != nil {
 		ui.Printf("rendering conversation view error: %v\n", err)
 	}
@@ -152,7 +152,7 @@ func (f messageFormatter) body(g *libkb.GlobalContext) (string, error) {
 }
 
 func shortDurationFromNow(t time.Time) string {
-	d := time.Now().Sub(t)
+	d := time.Since(t)
 
 	num := d.Hours() / 24
 	if num > 1 {

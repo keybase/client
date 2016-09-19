@@ -1,7 +1,7 @@
 // Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package flexibleTable
+package flexibletable
 
 import (
 	"fmt"
@@ -40,7 +40,7 @@ func (t *Table) Insert(row Row) error {
 
 // Render renders the table into writer. The constraints parameter specifies
 // how each column should be constrained while being rendered. Positive values
-// limits the maximum width.
+// limit the maximum width.
 func (t Table) Render(w io.Writer, cellSep string, maxWidth int, constraints []ColumnConstraint) error {
 	if len(constraints) != len(t.rows[0]) {
 		return InconsistentRowsError{existingRows: len(t.rows[0]), newRow: len(constraints)}
@@ -97,7 +97,7 @@ func (t Table) Render(w io.Writer, cellSep string, maxWidth int, constraints []C
 					return err
 				}
 				strs = append(strs, str)
-			} else { // need warping!
+			} else { // need wrapping!
 				strs = append(strs, c.full())
 			}
 		}
