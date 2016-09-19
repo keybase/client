@@ -125,6 +125,7 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 		clientHeader = chat1.MessageClientHeader{
 			Conv:         hp.Conv,
 			TlfName:      hp.TlfName,
+			TlfPublic:    hp.TlfPublic,
 			MessageType:  hp.MessageType,
 			Prev:         hp.Prev,
 			Sender:       hp.Sender,
@@ -223,6 +224,7 @@ func (b *chatBoxer) boxMessageWithKeysV1(msg chat1.MessagePlaintextV1, key *keyb
 	header := chat1.HeaderPlaintextV1{
 		Conv:         msg.ClientHeader.Conv,
 		TlfName:      msg.ClientHeader.TlfName,
+		TlfPublic:    msg.ClientHeader.TlfPublic,
 		MessageType:  msg.ClientHeader.MessageType,
 		Prev:         msg.ClientHeader.Prev,
 		Sender:       msg.ClientHeader.Sender,

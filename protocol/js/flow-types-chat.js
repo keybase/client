@@ -301,6 +301,7 @@ export type HeaderPlaintext =
 export type HeaderPlaintextV1 = {
   conv: ConversationIDTriple,
   tlfName: string,
+  tlfPublic: boolean,
   messageType: MessageType,
   prev?: ?Array<MessagePreviousPointer>,
   sender: gregor1.UID,

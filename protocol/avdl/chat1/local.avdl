@@ -53,6 +53,7 @@ protocol local {
   record HeaderPlaintextV1 {
     ConversationIDTriple conv;
     string tlfName;
+    boolean tlfPublic;
     MessageType messageType;
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;

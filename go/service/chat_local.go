@@ -139,6 +139,7 @@ func makeFirstMessage(ctx context.Context, conversationInfo chat1.ConversationIn
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        triple,
 			TlfName:     conversationInfo.TlfName,
+			TlfPublic:   conversationInfo.Visibility == chat1.TLFVisibility_PUBLIC,
 			MessageType: chat1.MessageType_TLFNAME,
 			Prev:        nil, // TODO
 			// Sender and SenderDevice filled by PostLocal
@@ -152,6 +153,7 @@ func makeUnboxedMessageToUpdateTopicName(ctx context.Context, conversationInfo c
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        triple,
 			TlfName:     conversationInfo.TlfName,
+			TlfPublic:   conversationInfo.Visibility == chat1.TLFVisibility_PUBLIC,
 			MessageType: chat1.MessageType_METADATA,
 			Prev:        nil, // TODO
 			// Sender and SenderDevice filled by PostLocal
