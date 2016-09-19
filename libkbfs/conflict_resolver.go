@@ -128,6 +128,7 @@ func (cr *ConflictResolver) processInput(baseCtx context.Context,
 		if cancel != nil {
 			cancel()
 		}
+		CleanupCancellationDelayer(baseCtx)
 	}()
 	for ci := range inputChan {
 		ctx := ctxWithRandomIDReplayable(baseCtx, CtxCRIDKey, CtxCROpID, cr.log)
@@ -215,7 +216,7 @@ func (cr *ConflictResolver) Pause() {
 }
 
 // Restart re-enables conflict resolution, with a base context for CR
-// operations.
+// operations.  baseCtx must have a cancellation delayer.
 func (cr *ConflictResolver) Restart(baseCtx context.Context) {
 	cr.startProcessing(baseCtx)
 }

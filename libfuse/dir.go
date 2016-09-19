@@ -128,6 +128,7 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 	delete(f.nodes, node.GetID())
 	if len(f.nodes) == 0 {
 		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+		defer libkbfs.CleanupCancellationDelayer(ctx)
 		f.unsetFolderBranch(ctx)
 		f.list.forgetFolder(string(f.name()))
 	}

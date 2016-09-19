@@ -1560,6 +1560,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	wg.Add(1)
 	syncCtx, cancel := context.WithCancel(
 		BackgroundContextWithCancellationDelayer())
+	defer CleanupCancellationDelayer(syncCtx)
 
 	// Now user 2 makes a big write where most of the blocks get canceled.
 	// We only need to know the first time we stall.
@@ -1708,7 +1709,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	}
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config2, StallableMDPut, 1)
+		StallMDOp(context.Background(), config2, StallableMDPut, 1)
 
 	var wg sync.WaitGroup
 	putCtx, cancel := context.WithCancel(putCtx)
@@ -1856,7 +1857,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	// to it locking next time (since it has seen how many revisions
 	// are outstanding).
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(ctx, config2, StallableMDPut, 1)
+		StallMDOp(context.Background(), config2, StallableMDPut, 1)
 
 	var wg sync.WaitGroup
 	firstPutCtx, cancel := context.WithCancel(putCtx)

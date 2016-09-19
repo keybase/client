@@ -135,7 +135,10 @@ func (k *LibKBFS) newContext() (context.Context, context.CancelFunc) {
 		panic(err)
 	}
 
-	return ctx, cancel
+	return ctx, func() {
+		libkbfs.CleanupCancellationDelayer(ctx)
+		cancel()
+	}
 }
 
 // GetUID implements the Engine interface.
@@ -506,7 +509,11 @@ func (k *LibKBFS) ReenableUpdates(u User, tlfName string, isPublic bool) error {
 		return fmt.Errorf("Couldn't re-enable updates for %s (public=%t)", tlfName, isPublic)
 	}
 
-	err = libkbfs.RestartCRForTesting(ctx, config, dir.GetFolderBranch())
+	// Restart CR using a clean context, since we will cancel ctx when
+	// we return.
+	err = libkbfs.RestartCRForTesting(
+		libkbfs.BackgroundContextWithCancellationDelayer(), config,
+		dir.GetFolderBranch())
 	if err != nil {
 		return err
 	}

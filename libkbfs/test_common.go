@@ -469,8 +469,8 @@ func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
 	return nil
 }
 
-// RestartCRForTesting re-enables conflict resolution for
-// the given folder.
+// RestartCRForTesting re-enables conflict resolution for the given
+// folder.  baseCtx must have a cancellation delayer.
 func RestartCRForTesting(baseCtx context.Context, config Config,
 	folderBranch FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
