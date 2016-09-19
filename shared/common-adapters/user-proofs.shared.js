@@ -44,6 +44,7 @@ function iconNameForProof ({type}: {type: PlatformsExpandedType}): IconType {
     'none': 'iconfont-close',
     'keybase': 'iconfont-close',
     'twitter': 'iconfont-identity-twitter',
+    'facebook': 'iconfont-identity-facebook',
     'github': 'iconfont-identity-github',
     'reddit': 'iconfont-identity-reddit',
     'pgp': 'iconfont-identity-pgp',

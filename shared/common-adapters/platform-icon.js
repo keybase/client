@@ -27,6 +27,7 @@ const getSpecForPlatform = (platform: PlatformsExpandedType): IconSpec => {
     'coinbase': {icon: 'icon-coinbase-logo-48'},
     'twitter': {icon: 'icon-twitter-logo-48'},
     'github': {icon: 'icon-github-logo-48'},
+    'facebook': {icon: 'icon-facebook-logo-48'},
     'reddit': {icon: 'icon-reddit-logo-48'},
     'hackernews': {icon: 'icon-hacker-news-logo-48'},
     'dns': {icon: 'icon-website-48'},
