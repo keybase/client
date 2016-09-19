@@ -39,6 +39,7 @@ type scriptVariables struct {
 	SigIDMedium     string
 	SigIDShort      string
 	Hostname        string
+	Protocol        string
 }
 
 type fetchResult struct {
@@ -102,6 +103,7 @@ type ProofInfo struct {
 	Username       string
 	RemoteUsername string
 	Hostname       string
+	Protocol       string
 	APIURL         string
 	stubDNS        *stubDNSEngine
 }
@@ -113,6 +115,7 @@ func NewProofInfo(link libkb.RemoteProofChainLink, h libkb.SigHint) ProofInfo {
 		RemoteUsername: link.GetRemoteUsername(),
 		Username:       link.GetUsername(),
 		Hostname:       link.GetHostname(),
+		Protocol:       link.GetProtocol(),
 		APIURL:         h.GetAPIURL(),
 	}
 }
@@ -138,29 +141,50 @@ func checkProofInner(g proofContextExt, pvl *jsonw.Wrapper, service keybase1.Pro
 			"Bad signature: %v", err)
 	}
 
+	vars := scriptVariables{
+		UsernameService: info.RemoteUsername, // Empty "" for web and dns proofs
+		UsernameKeybase: info.Username,
+		Sig:             sigBody,
+		SigIDMedium:     sigID.ToMediumID(),
+		SigIDShort:      sigID.ToShortID(),
+		Hostname:        info.Hostname, // Empty "" except for web/dns proofs
+		Protocol:        info.Protocol, // Empty "" except for web proofs
+	}
+
+	// Enforce prooftype-dependent variables.
+	webish := (service == keybase1.ProofType_DNS || service == keybase1.ProofType_GENERIC_WEB_SITE)
+	if webish {
+		vars.UsernameService = ""
+	} else {
+		vars.Hostname = ""
+	}
+	if service != keybase1.ProofType_GENERIC_WEB_SITE {
+		vars.Protocol = ""
+	}
+
+	// Validate and rewrite domain and protocol
+	if webish {
+		if !validateDomain(vars.Hostname) {
+			return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
+				"Bad hostname in sig: %s", vars.Hostname)
+		}
+	}
+	if service == keybase1.ProofType_GENERIC_WEB_SITE {
+		cp, ok := validateProtocol(vars.Protocol, []string{"http", "https"})
+		if ok {
+			vars.Protocol = cp
+		} else {
+			return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
+				"Bad protocol in sig: %s", vars.Protocol)
+		}
+	}
+
 	scripts, perr := chunkGetScripts(pvl, service)
 	if perr != nil {
 		return perr
 	}
 
 	newstate := func(i int) scriptState {
-		vars := scriptVariables{
-			UsernameService: info.RemoteUsername, // Blank for DNS-proofs
-			UsernameKeybase: info.Username,
-			Sig:             sigBody,
-			SigIDMedium:     sigID.ToMediumID(),
-			SigIDShort:      sigID.ToShortID(),
-			Hostname:        info.Hostname, // Blank for non-{DNS/Web} proofs
-		}
-
-		// Enforce prooftype-dependent variables.
-		webish := (service == keybase1.ProofType_DNS || service == keybase1.ProofType_GENERIC_WEB_SITE)
-		if webish {
-			vars.UsernameService = ""
-		} else {
-			vars.Hostname = ""
-		}
-
 		state := scriptState{
 			WhichScript:  i,
 			PC:           0,
@@ -964,6 +988,11 @@ type customErrorSpec struct {
 	desc      string
 }
 
+// Take an instruction and if it specifies a custom error via an "error" key, return a customErrorSpec.
+// The second return value is used if the error spec is invalid.
+// The two accepted formats are:
+// error: "CONTENT_FAILURE"
+// error: ["CONTENT_FAILURE", "Bad author; wanted \"%{username_service}\", got \"%{active_string}\""]
 func extractCustomErrorSpec(g proofContextExt, ins *jsonw.Wrapper) (customErrorSpec, libkb.ProofError) {
 	spec := customErrorSpec{
 		hasStatus: false,
@@ -1026,6 +1055,9 @@ func extractCustomErrorSpec(g proofContextExt, ins *jsonw.Wrapper) (customErrorS
 	return spec, nil
 }
 
+// Use a custom error spec to derive an error.
+// Copies over the error code if none is specified.
+// The second return value indicates whether the returned error is different than err1.
 func replaceCustomError(g proofContextExt, state scriptState, spec customErrorSpec, err1 libkb.ProofError) (libkb.ProofError, bool) {
 	status := err1.GetProofStatus()
 	desc := err1.GetDesc()
@@ -1047,8 +1079,3 @@ func replaceCustomError(g proofContextExt, state scriptState, spec customErrorSp
 	}
 	return err1, false
 }
-
-// Take an instruction and if it specifies a custom error via an "error" key, replace the error.
-// Always returns an error because that's its job. The second return argument is true if a different error is returned.
-// If there is an issue with the "error" spec, this just returns the unmodfied err1.
-// It would be too harsh to report INVALID_PVL for that.

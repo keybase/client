@@ -23,6 +23,7 @@ func sampleState() scriptState {
 		SigIDMedium:     "sig%{sig_id_medium}.*$(^)\\/",
 		SigIDShort:      "000",
 		Hostname:        "%{sig_id_medium}",
+		Protocol:        "http",
 	}
 
 	var sampleState = scriptState{
@@ -143,6 +144,15 @@ var substituteTests = []substituteTest{
 		"%{active_string}", ""},
 	{true, keybase1.ProofType_TWITTER, nil, []string{"active_string"},
 		"%{active_string}", "whaaa"},
+
+	{false, keybase1.ProofType_TWITTER, nil, []string{},
+		"%{hostname}", ""},
+	{false, keybase1.ProofType_DNS, nil, []string{},
+		"%{protocol}", ""},
+	{true, keybase1.ProofType_DNS, nil, []string{},
+		"%{hostname}", "%\\{sig_id_medium\\}"},
+	{true, keybase1.ProofType_GENERIC_WEB_SITE, nil, []string{},
+		"%{protocol}://%{hostname}", "http://%\\{sig_id_medium\\}"},
 }
 
 func TestSubstitute(t *testing.T) {
@@ -355,6 +365,63 @@ func TestPyindex(t *testing.T) {
 		if (x != test.x) || (ok != test.ok) {
 			t.Fatalf("%v mismatch (%v, %v):\n  expected %v %v\n  got %v %v",
 				i, test.index, test.len, test.x, test.ok, x, ok)
+		}
+	}
+}
+
+func TestValidateDomain(t *testing.T) {
+	tests := []struct {
+		s  string
+		ok bool
+	}{
+		{"example.com", true},
+		{"www.example.com", true},
+		{"com.", true},
+
+		{"example.com:8080", false},
+		{"www.example.com:8080", false},
+		{"http://example.com", false},
+		{"example.com/", false},
+		{"example.com/123", false},
+		{"example.com?a=b", false},
+		{"example.com#2", false},
+		{"http://http://", false},
+		{"http://http://example.com", false},
+		{"http://http:/example.com", false},
+
+		{"http://ht$%$&$tp:/example.com", false},
+	}
+
+	for i, test := range tests {
+		ans := validateDomain(test.s)
+		if ans != test.ok {
+			t.Fatalf("%v mismatch: %v\ngot      : %v\nexpected : %v\n", i, test.s, ans, test.ok)
+		}
+	}
+}
+
+func TestValidateProtocol(t *testing.T) {
+	tests := []struct {
+		s        string
+		allowed  []string
+		expected string
+		ok       bool
+	}{
+		{"http", []string{"http", "https"}, "http", true},
+		{"http:", []string{"http", "https"}, "http", true},
+		{"https:", []string{"http", "https"}, "https", true},
+
+		{"http", []string{"https"}, "http", false},
+		{"dns", []string{"http", "https"}, "dns", false},
+
+		{"spdy", []string{"http", "https"}, "", false},
+	}
+
+	for i, test := range tests {
+		a, b := validateProtocol(test.s, test.allowed)
+		if !(a == test.expected && b == test.ok) {
+			t.Fatalf("%v mismatch: %v\ngot      : %v %v\nexpected : %v %v\n",
+				i, test.s, test.expected, test.ok, a, b)
 		}
 	}
 }
