@@ -61,8 +61,6 @@ app.on('ready', () => {
     })
   })
 
-  ipcMain.on('visdiff-ready', ev => renderNext(ev.sender))
-
   const scriptPath = resolveRoot('dist', 'visdiff.bundle.js')
   for (let i = 0; i < WORKER_COUNT; i++) {
     setTimeout(() => {
