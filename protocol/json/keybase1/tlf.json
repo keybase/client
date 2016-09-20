@@ -18,19 +18,15 @@
       "response": "TLFCryptKeys",
       "doc": "CryptKeys returns TLF crypt keys from all generations."
     },
-    "tlfCanonicalID": {
+    "publicCanonicalTLFNameAndID": {
       "request": [
         {
           "name": "tlfName",
           "type": "string"
-        },
-        {
-          "name": "public",
-          "type": "boolean"
         }
       ],
-      "response": "TLFCanonicalID",
-      "doc": "* getTLFCanonicalID returns the canonical name and TLFID for tlfName."
+      "response": "CanonicalTLFNameAndID",
+      "doc": "* tlfCanonicalID returns the canonical name and TLFID for tlfName.\n   * TLFID should not be cached or stored persistently."
     },
     "completeAndCanonicalizeTlfName": {
       "request": [

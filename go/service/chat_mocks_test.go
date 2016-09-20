@@ -122,9 +122,9 @@ func (m tlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName str
 	return
 }
 
-func (m tlfMock) TlfCanonicalID(ctx context.Context, arg keybase1.TlfCanonicalIDArg) (keybase1.TLFCanonicalID, error) {
-	res := keybase1.TLFCanonicalID{
-		CanonicalName: keybase1.CanonicalTlfName(arg.TlfName),
+func (m tlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndID, error) {
+	res := keybase1.CanonicalTLFNameAndID{
+		CanonicalName: keybase1.CanonicalTlfName(tlfName),
 		TlfID:         "abcdefg",
 	}
 	return res, nil

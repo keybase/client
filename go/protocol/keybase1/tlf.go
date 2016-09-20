@@ -12,9 +12,8 @@ type CryptKeysArg struct {
 	TlfName string `codec:"tlfName" json:"tlfName"`
 }
 
-type TlfCanonicalIDArg struct {
+type PublicCanonicalTLFNameAndIDArg struct {
 	TlfName string `codec:"tlfName" json:"tlfName"`
-	Public  bool   `codec:"public" json:"public"`
 }
 
 type CompleteAndCanonicalizeTlfNameArg struct {
@@ -24,8 +23,9 @@ type CompleteAndCanonicalizeTlfNameArg struct {
 type TlfInterface interface {
 	// CryptKeys returns TLF crypt keys from all generations.
 	CryptKeys(context.Context, string) (TLFCryptKeys, error)
-	// * getTLFCanonicalID returns the canonical name and TLFID for tlfName.
-	TlfCanonicalID(context.Context, TlfCanonicalIDArg) (TLFCanonicalID, error)
+	// * tlfCanonicalID returns the canonical name and TLFID for tlfName.
+	// * TLFID should not be cached or stored persistently.
+	PublicCanonicalTLFNameAndID(context.Context, string) (CanonicalTLFNameAndID, error)
 	CompleteAndCanonicalizeTlfName(context.Context, string) (CanonicalTlfName, error)
 }
 
@@ -49,18 +49,18 @@ func TlfProtocol(i TlfInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"tlfCanonicalID": {
+			"publicCanonicalTLFNameAndID": {
 				MakeArg: func() interface{} {
-					ret := make([]TlfCanonicalIDArg, 1)
+					ret := make([]PublicCanonicalTLFNameAndIDArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]TlfCanonicalIDArg)
+					typedArgs, ok := args.(*[]PublicCanonicalTLFNameAndIDArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]TlfCanonicalIDArg)(nil), args)
+						err = rpc.NewTypeError((*[]PublicCanonicalTLFNameAndIDArg)(nil), args)
 						return
 					}
-					ret, err = i.TlfCanonicalID(ctx, (*typedArgs)[0])
+					ret, err = i.PublicCanonicalTLFNameAndID(ctx, (*typedArgs)[0].TlfName)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -96,9 +96,11 @@ func (c TlfClient) CryptKeys(ctx context.Context, tlfName string) (res TLFCryptK
 	return
 }
 
-// * getTLFCanonicalID returns the canonical name and TLFID for tlfName.
-func (c TlfClient) TlfCanonicalID(ctx context.Context, __arg TlfCanonicalIDArg) (res TLFCanonicalID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.tlf.tlfCanonicalID", []interface{}{__arg}, &res)
+// * tlfCanonicalID returns the canonical name and TLFID for tlfName.
+// * TLFID should not be cached or stored persistently.
+func (c TlfClient) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res CanonicalTLFNameAndID, err error) {
+	__arg := PublicCanonicalTLFNameAndIDArg{TlfName: tlfName}
+	err = c.Cli.Call(ctx, "keybase.1.tlf.publicCanonicalTLFNameAndID", []interface{}{__arg}, &res)
 	return
 }
 

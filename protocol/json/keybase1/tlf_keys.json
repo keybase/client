@@ -50,7 +50,7 @@
     },
     {
       "type": "record",
-      "name": "TLFCanonicalID",
+      "name": "CanonicalTLFNameAndID",
       "fields": [
         {
           "type": "TLFID",
@@ -72,21 +72,17 @@
         }
       ],
       "response": "TLFCryptKeys",
-      "doc": "getTLFCryptKeys returns TLF crypt keys from all generations."
+      "doc": "getTLFCryptKeys returns TLF crypt keys from all generations and the TLF ID.\n   TLF ID should not be cached or stored persistently."
     },
-    "getTLFCanonicalID": {
+    "getPublicCanonicalTLFNameAndID": {
       "request": [
         {
           "name": "tlfName",
           "type": "string"
-        },
-        {
-          "name": "public",
-          "type": "boolean"
         }
       ],
-      "response": "TLFCanonicalID",
-      "doc": "getTLFCanonicalID return the canonical name and TLFID for tlfName."
+      "response": "CanonicalTLFNameAndID",
+      "doc": "getCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.\n   TLF ID should not be cached or stored persistently."
     }
   },
   "namespace": "keybase.1"

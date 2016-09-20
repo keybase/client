@@ -682,11 +682,7 @@ func (k *keyFinder) find(ctx context.Context, tlf keybase1.TlfInterface, tlfName
 
 	var keys keybase1.TLFCryptKeys
 	if tlfPublic {
-		arg := keybase1.TlfCanonicalIDArg{
-			TlfName: tlfName,
-			Public:  tlfPublic,
-		}
-		cid, err := tlf.TlfCanonicalID(ctx, arg)
+		cid, err := tlf.PublicCanonicalTLFNameAndID(ctx, tlfName)
 		if err != nil {
 			return keybase1.TLFCryptKeys{}, err
 		}
