@@ -167,6 +167,7 @@ func makeFirstMessage(ctx context.Context, conversationInfo chat1.ConversationIn
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        triple,
 			TlfName:     conversationInfo.TlfName,
+			TlfPublic:   conversationInfo.Visibility == chat1.TLFVisibility_PUBLIC,
 			MessageType: chat1.MessageType_TLFNAME,
 			Prev:        nil, // TODO
 			// Sender and SenderDevice filled by PostLocal
@@ -180,6 +181,7 @@ func makeUnboxedMessageToUpdateTopicName(ctx context.Context, conversationInfo c
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        triple,
 			TlfName:     conversationInfo.TlfName,
+			TlfPublic:   conversationInfo.Visibility == chat1.TLFVisibility_PUBLIC,
 			MessageType: chat1.MessageType_METADATA,
 			Prev:        nil, // TODO
 			// Sender and SenderDevice filled by PostLocal
@@ -362,8 +364,9 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 			libkb.UnexpectedChatDataFromServer{Msg: "conversation has an empty MaxMsgs field"}
 	}
 
+	kf := newKeyFinder()
 	for _, b := range conversationRemote.MaxMsgs {
-		unboxed, err := h.boxer.unboxMessage(ctx, newKeyFinder(), b)
+		unboxed, err := h.boxer.unboxMessage(ctx, kf, b)
 		if err != nil {
 			return conversationInfo, triple, maxMessages, err
 		}
@@ -707,20 +710,37 @@ func newKeyFinder() *keyFinder {
 	return &keyFinder{keys: make(map[string]keybase1.TLFCryptKeys)}
 }
 
+func (k *keyFinder) cacheKey(tlfName string, tlfPublic bool) string {
+	return fmt.Sprintf("%s|%v", tlfName, tlfPublic)
+}
+
 // find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
-func (k *keyFinder) find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string) (keybase1.TLFCryptKeys, error) {
-	existing, ok := k.keys[tlfName]
+func (k *keyFinder) find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.TLFCryptKeys, error) {
+	ckey := k.cacheKey(tlfName, tlfPublic)
+	existing, ok := k.keys[ckey]
 	if ok {
 		return existing, nil
 	}
 
-	keys, err := tlf.CryptKeys(ctx, tlfName)
-	if err != nil {
-		return keybase1.TLFCryptKeys{}, err
+	var keys keybase1.TLFCryptKeys
+	if tlfPublic {
+		cid, err := tlf.PublicCanonicalTLFNameAndID(ctx, tlfName)
+		if err != nil {
+			return keybase1.TLFCryptKeys{}, err
+		}
+		keys.CanonicalName = cid.CanonicalName
+		keys.TlfID = cid.TlfID
+		keys.CryptKeys = []keybase1.CryptKey{publicCryptKey}
+	} else {
+		var err error
+		keys, err = tlf.CryptKeys(ctx, tlfName)
+		if err != nil {
+			return keybase1.TLFCryptKeys{}, err
+		}
 	}
 
-	k.keys[tlfName] = keys
+	k.keys[ckey] = keys
 
 	return keys, nil
 }

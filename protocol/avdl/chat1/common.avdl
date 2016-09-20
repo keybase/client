@@ -105,6 +105,7 @@ protocol common {
   record MessageClientHeader {
     ConversationIDTriple conv;
     string tlfName;
+    boolean tlfPublic;
     MessageType messageType;
     MessageID supersedes;
     array<MessagePreviousPointer> prev;
