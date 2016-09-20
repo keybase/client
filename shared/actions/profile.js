@@ -1,12 +1,14 @@
 // @flow
+import keybaseUrl from '../constants/urls'
 import * as Constants from '../constants/profile'
 import engine from '../engine'
 import openURL from '../util/open-url'
+import flags from '../util/feature-flags'
 import {BTCRegisterBTCRpc, ConstantsStatusCode, ProveCommonProofStatus, apiserverPostRpc, pgpPgpKeyGenDefaultRpc, proveCheckProofRpc, proveStartProofRpc, revokeRevokeKeyRpc, revokeRevokeSigsRpc} from '../constants/types/flow-types'
 import {call, put, take, race, select} from 'redux-saga/effects'
 import {getMyProfile} from './tracker'
 import {isValidEmail, isValidName} from '../util/simple-validators'
-import {navigateUp, navigateTo, routeAppend} from '../actions/router'
+import {navigateUp, navigateTo, routeAppend, switchTab} from '../actions/router'
 import {profileTab} from '../constants/tabs'
 import {takeLatest, takeEvery, eventChannel, END, buffers} from 'redux-saga'
 
@@ -313,6 +315,45 @@ function finishRevoking (): AsyncAction {
     dispatch(getMyProfile(true))
     dispatch(_revokedFinishResponse())
     dispatch(navigateUp())
+  }
+}
+
+function onUserClick (username: string, uid: string): AsyncAction {
+  return dispatch => {
+    dispatch(routeAppend({path: 'profile', userOverride: {username, uid}}, profileTab))
+    dispatch(switchTab(profileTab))
+  }
+}
+
+function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
+  return dispatch => {
+    if (!openWebsite && flags.tabProfileEnabled === true) {
+      username && dispatch(onUserClick(username, uid))
+    } else {
+      username && openURL(`${keybaseUrl}/${username}`)
+    }
+  }
+}
+
+function onClickFollowers (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
+  return dispatch => {
+    if (!openWebsite && flags.tabProfileEnabled === true) {
+      // TODO(mm) hint followers
+      username && dispatch(onUserClick(username, uid))
+    } else {
+      username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
+    }
+  }
+}
+
+function onClickFollowing (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
+  return dispatch => {
+    if (!openWebsite && flags.tabProfileEnabled === true) {
+      // TODO(mm) hint followings
+      username && dispatch(onUserClick(username, uid))
+    } else {
+      username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
+    }
   }
 }
 
@@ -649,6 +690,10 @@ export {
   editProfile,
   finishRevoking,
   generatePgp,
+  onClickAvatar,
+  onClickFollowers,
+  onClickFollowing,
+  onUserClick,
   outputInstructionsActionLink,
   submitBTCAddress,
   submitRevokeProof,

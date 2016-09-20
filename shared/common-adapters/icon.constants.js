@@ -395,6 +395,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-dns-64.png'),
   },
+  'icon-doggy-crying-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-doggy-crying-48.png'),
+  },
+  'icon-doggy-crying-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-doggy-crying-64.png'),
+  },
   'icon-facebook-logo-16': {
     isFont: false,
     extension: 'png',

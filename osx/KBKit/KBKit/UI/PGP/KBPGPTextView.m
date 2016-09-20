@@ -10,6 +10,8 @@
 
 #import "KBFormatter.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @implementation KBPGPTextView
 
 - (void)viewInit {

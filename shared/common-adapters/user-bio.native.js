@@ -65,7 +65,7 @@ class BioRender extends Component<void, Props, void> {
         <Box style={stylesAvatarWrapper(avatarSize)}>
           <Avatar
             style={stylesAvatar}
-            onClick={() => shared.onClickAvatar(username)}
+            onClick={() => this.props.onClickAvatar(username)}
             url={userInfo.avatar}
             size={avatarSize}
             following={currentlyFollowing}
@@ -75,20 +75,20 @@ class BioRender extends Component<void, Props, void> {
           <Text
             type='HeaderBig'
             style={{...stylesUsername, color: trackerStateColors.username}}
-            onClick={() => shared.onClickAvatar(username)}>
+            onClick={() => this.props.onClickAvatar(username)}>
             {username}
           </Text>
           <Text type='BodySemibold' style={stylesFullname}>{userInfo.fullname}</Text>
           {!!followLabel &&
             <Text type='BodySmall' style={stylesFollowLabel}>{followLabel.toUpperCase()}</Text>}
           <Text type='BodySmall' style={stylesFollowing}>
-            <Text type='BodySmallLink' onClick={() => shared.onClickFollowers(username)} style={stylesFollowingLabel}>
+            <Text type='BodySmallLink' onClick={() => this.props.onClickFollowers(username)} style={stylesFollowingLabel}>
               <Text type='BodySmall' style={stylesFollowingCount}>{userInfo.followersCount}</Text> {userInfo.followersCount === 1 ? 'Follower' : 'Followers'}
             </Text>
             &nbsp;
             &middot;
             &nbsp;
-            <Text type='BodySmallLink' onClick={() => shared.onClickFollowing(username)} style={stylesFollowingLabel}>
+            <Text type='BodySmallLink' onClick={() => this.props.onClickFollowing(username)} style={stylesFollowingLabel}>
               Following <Text type='BodySmall' style={stylesFollowingCount}>{userInfo.followingCount}</Text>
             </Text>
           </Text>

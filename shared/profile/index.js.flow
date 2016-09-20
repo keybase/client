@@ -2,8 +2,8 @@
 
 import {Component} from 'react'
 
-import type {SimpleProofState} from '../constants/tracker'
-import type {UserInfo, BioEditFns} from '../common-adapters/user-bio'
+import type {SimpleProofState, UserInfo} from '../constants/tracker'
+import type {BioEditFns} from '../common-adapters/user-bio'
 import type {FriendshipUserInfo} from './friendships'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
@@ -35,6 +35,9 @@ export type Props = {
   reason: ?string,
   error: ?string,
   showComingSoon: boolean,
+  onClickAvatar: () => void,
+  onClickFollowers: () => void,
+  onClickFollowing: () => void,
 }
 
 export default class Render extends Component<void, Props, void> { }

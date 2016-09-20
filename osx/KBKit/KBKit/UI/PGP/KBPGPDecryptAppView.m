@@ -11,6 +11,8 @@
 #import "KBPGPDecryptView.h"
 #import "KBPGPOutputView.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBPGPDecryptAppView ()
 @property KBPGPDecryptView *decryptView;
 @property KBPGPOutputView *outputView;

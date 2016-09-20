@@ -67,6 +67,7 @@ class Avatar extends PureComponent<void, Props, State> {
             <div style={{...followBottom(size, this.props.following ? globalColors.green : globalColors.grey)}} />
           </div>
         }
+        {this.props.children}
         </div>
       </div>
     )

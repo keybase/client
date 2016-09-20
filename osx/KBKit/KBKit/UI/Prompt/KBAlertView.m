@@ -8,6 +8,8 @@
 
 #import "KBAlertView.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBAlertView ()
 @property KBLabel *header;
 @property KBLabel *label;

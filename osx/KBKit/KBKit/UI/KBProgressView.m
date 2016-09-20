@@ -9,6 +9,7 @@
 #import "KBProgressView.h"
 
 #import "KBProgressOverlayView.h"
+#import <YOLayout/YOLayout+PrefabLayouts.h>
 
 @interface KBProgressView ()
 @property KBProgressOverlayView *progressView;

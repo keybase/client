@@ -8,6 +8,8 @@
 
 #import "KBSearchField.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBSearchField () <NSSearchFieldDelegate>
 @property NSSearchField *searchField;
 @end

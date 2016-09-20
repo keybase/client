@@ -13,6 +13,8 @@
 #import "KBPaperKeyDisplayView.h"
 #import "KBDefines.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 #define PASSWORD_PLACEHOLDER (@"-----------")
 
 @interface KBLoginView () <NSTextFieldDelegate, KBTextFieldFocusDelegate>

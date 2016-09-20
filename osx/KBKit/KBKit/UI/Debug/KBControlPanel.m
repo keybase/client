@@ -15,6 +15,7 @@
 #import "KBInstallable.h"
 
 #import <MDPSplitView/MDPSplitView.h>
+#import <YOLayout/YOLayout+PrefabLayouts.h>
 
 @interface KBControlPanel ()
 @property KBListView *listView;

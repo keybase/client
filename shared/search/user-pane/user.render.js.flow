@@ -1,8 +1,7 @@
 /* @flow */
 
 import {Component} from 'react'
-import type {UserInfo} from '../../common-adapters/user-bio'
-import type {Proof} from '../../constants/tracker'
+import type {Proof, UserInfo} from '../../constants/tracker'
 import type {SimpleProofState} from '../../constants/tracker'
 
 export type Props = {
@@ -16,6 +15,9 @@ export type Props = {
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
+  onClickAvatar: () => void,
+  onClickFollowers: () => void,
+  onClickFollowing: () => void,
 }
 
 export default class Render extends Component<void, Props, void> {}

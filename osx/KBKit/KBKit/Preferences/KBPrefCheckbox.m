@@ -58,7 +58,7 @@
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
-  BOOL value = [object state] == NSOnState;
+  BOOL value = [(NSButton *)object state] == NSOnState;
   [self.preferences setValue:@(value) forIdentifier:self.identifier synchronize:YES];
 }
 

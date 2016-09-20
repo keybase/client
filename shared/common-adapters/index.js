@@ -1,6 +1,7 @@
 // @flow
 export {default as Avatar} from './avatar'
 export {default as BackButton} from './back-button'
+export {default as Badge} from './badge'
 export {default as Box} from './box'
 export {default as Button} from './button'
 export {default as Checkbox} from './checkbox'

@@ -13,6 +13,7 @@
 #import "KBFoldersView.h"
 #import "KBFilePreviewView.h"
 #import <MDPSplitView/MDPSplitView.h>
+#import <YOLayout/YOLayout+PrefabLayouts.h>
 
 @interface KBFoldersAppView ()
 @property MDPSplitView *splitView;

@@ -41,6 +41,8 @@
 #import "KBAppProgressView.h"
 #import "KBPaperKeyDisplayView.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @implementation KBDebugViews
 
 - (void)viewInit {

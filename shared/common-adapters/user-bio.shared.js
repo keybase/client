@@ -1,22 +1,8 @@
 // @flow
-import keybaseUrl from '../constants/urls'
-import openUrl from '../util/open-url'
-import type {SimpleProofState} from '../constants/tracker'
-import type {UserInfo} from './user-bio'
 import {error as proofError} from '../constants/tracker'
 import {globalColors} from '../styles'
 
-function onClickAvatar (username: ?string) {
-  username && openUrl(`${keybaseUrl}/${username}`)
-}
-
-function onClickFollowers (username: ?string) {
-  username && openUrl(`${keybaseUrl}/${username}#profile-tracking-section`)
-}
-
-function onClickFollowing (username: ?string) {
-  username && openUrl(`${keybaseUrl}/${username}#profile-tracking-section`)
-}
+import type {SimpleProofState, UserInfo} from '../constants/tracker'
 
 function followLabel (userInfo: UserInfo, currentlyFollowing: boolean): ?string {
   if (userInfo.followsYou && currentlyFollowing) {
@@ -46,8 +32,5 @@ function headerColor ({currentlyFollowing, trackerState}: {currentlyFollowing: b
 export {
   followLabel,
   headerColor,
-  onClickAvatar,
-  onClickFollowers,
-  onClickFollowing,
   usernameStyle,
 }

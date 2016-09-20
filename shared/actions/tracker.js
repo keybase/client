@@ -297,7 +297,7 @@ function _getTrackToken (state, username) {
   return trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
 }
 
-export function onFollow (username: string, localIgnore: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+export function onFollow (username: string, localIgnore?: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
     const trackToken = _getTrackToken(getState(), username)
 
@@ -311,7 +311,7 @@ export function onFollow (username: string, localIgnore: bool): (dispatch: Dispa
     }
 
     dispatch(onWaiting(username, true))
-    trackUser(trackToken, localIgnore)
+    trackUser(trackToken, localIgnore || false)
       .then(dispatchFollowedAction)
       .catch(err => {
         console.warn("Couldn't track user: ", err)

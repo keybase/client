@@ -43,7 +43,9 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 
 // GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
 func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInboxLocalArg) (chat1.InboxView, error) {
-
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return chat1.InboxView{}, err
+	}
 	ib, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query:      arg.Query,
 		Pagination: arg.Pagination,
@@ -53,6 +55,9 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
 func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg) (chat1.ThreadView, error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return chat1.ThreadView{}, err
+	}
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: arg.ConversationID,
 		Query:          arg.Query,
@@ -69,6 +74,9 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.ConversationInfoLocal) (created chat1.ConversationInfoLocal, err error) {
 	h.G().Log.Debug("NewConversationLocal: %+v", info)
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return created, err
+	}
 	res, err := h.boxer.tlf.CryptKeys(ctx, info.TlfName)
 	if err != nil {
 		return created, fmt.Errorf("error getting crypt keys %s", err)
@@ -137,8 +145,14 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.
 }
 
 // UpdateTopicNameLocal implements keybase.chatLocal.updateTopicNameLocal protocol.
-func (h *chatLocalHandler) UpdateTopicNameLocal(ctx context.Context, arg chat1.UpdateTopicNameLocalArg) (err error) {
+func (h *chatLocalHandler) UpdateTopicNameLocal(ctx context.Context, arg chat1.UpdateTopicNameLocalArg) error {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	info, triple, _, err := h.getConversationInfoByID(ctx, arg.ConversationID)
+	if err != nil {
+		return err
+	}
 	return h.PostLocal(ctx, chat1.PostLocalArg{
 		ConversationID:   info.Id,
 		MessagePlaintext: makeUnboxedMessageToUpdateTopicName(ctx, info, triple),
@@ -181,6 +195,9 @@ func makeUnboxedMessageToUpdateTopicName(ctx context.Context, conversationInfo c
 // GetOrCreateTextConversationLocal implements
 // keybase.chatLocal.GetOrCreateTextConversationLocal protocol.
 func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg chat1.ConversationInfoLocal) (conversations []chat1.ConversationInfoLocal, err error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return nil, err
+	}
 	if arg.Id != 0 {
 		info, _, _, err := h.getConversationInfoByID(ctx, arg.Id)
 		if err != nil {
@@ -192,6 +209,9 @@ func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg cha
 }
 
 func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalArg) (res chat1.GetInboxSummaryLocalRes, err error) {
+	if err = h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
 
 	var after time.Time
 	if len(arg.After) > 0 {
@@ -426,7 +446,7 @@ func (h *chatLocalHandler) makeConversationLocal(ctx context.Context, conversati
 func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversationRemote chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *chat1.MessageSelector) (conv chat1.ConversationLocal, err error) {
 	var since time.Time
 	if selector.Since != nil {
-		since, err := parseTimeFromRFC3339OrDurationFromPast(*selector.Since)
+		since, err = parseTimeFromRFC3339OrDurationFromPast(*selector.Since)
 		if err != nil {
 			return conv, fmt.Errorf("parsing time or duration (%s) error: %s", *selector.Since, since)
 		}
@@ -440,7 +460,7 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversa
 	}
 	if !since.IsZero() {
 		gsince := gregor1.ToTime(since)
-		query.Before = &gsince
+		query.After = &gsince
 	}
 	tview, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 		ConversationID: conversationRemote.Metadata.ConversationID,
@@ -480,6 +500,9 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversa
 
 // GetMessagesLocal implements keybase.chatLocal.GetMessagesLocal protocol.
 func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.MessageSelector) (conversations []chat1.ConversationLocal, err error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return nil, err
+	}
 	var messageTypes map[chat1.MessageType]bool
 	if len(arg.MessageTypes) > 0 {
 		messageTypes := make(map[chat1.MessageType]bool)
@@ -526,14 +549,6 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.Messa
 }
 
 func (h *chatLocalHandler) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, error) {
-	ok, err := h.G().LoginState().LoggedInProvisionedLoad()
-	if err != nil {
-		return msg, err
-	}
-	if !ok {
-		return msg, libkb.LoginRequiredError{}
-	}
-
 	uid := h.G().Env.GetUID()
 	if uid.IsNil() {
 		return msg, libkb.LoginRequiredError{}
@@ -549,7 +564,7 @@ func (h *chatLocalHandler) addSenderToMessage(msg chat1.MessagePlaintext) (chat1
 	}
 
 	hdid := make([]byte, libkb.DeviceIDLen)
-	if err = did.ToBytes(hdid); err != nil {
+	if err := did.ToBytes(hdid); err != nil {
 		return msg, err
 	}
 
@@ -597,6 +612,9 @@ func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintex
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg) error {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	boxed, err := h.prepareMessageForRemote(ctx, arg.MessagePlaintext)
 	if err != nil {
 		return err
@@ -663,6 +681,17 @@ func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadVi
 	}
 
 	return thread, nil
+}
+
+func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {
+	ok, err := h.G().LoginState().LoggedInProvisionedLoad()
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return libkb.LoginRequiredError{}
+	}
+	return nil
 }
 
 // keyFinder remembers results from previous calls to CryptKeys().
