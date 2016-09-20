@@ -62,13 +62,16 @@ function * openInWindows (openPath: string): SagaGenerator<any, any> {
   // We can figure it out by looking at the extendedConfig though
   if (kbfsPath === Constants.defaultKBFSPath) {
     let kbfsPathError
+    kbfsPath = null
 
     // there can be a race between extendedConfig / kbfs / everything loading so we try a couple of times
-    for (let i = 0; i < 3 && !kbfsPath; ++i) {
+    for (let i = 0; i < 3; ++i) {
       const extendedConfig = yield select(state => state.config.extendedConfig)
       try {
         kbfsPath = yield call(windowsKBFSRoot, extendedConfig)
-        break
+        if (kbfsPath) {
+          break
+        }
       } catch (error) {
         kbfsPathError = error
       }
@@ -104,7 +107,7 @@ function * openSaga (action: FSOpen): SagaGenerator<any, any> {
 
   console.log('openInKBFS:', openPath)
   if (process.platform === 'win32') {
-    yield * call(openInWindows, openPath)
+    yield * openInWindows(openPath)
   } else {
     yield call(openInDefault, openPath)
   }
