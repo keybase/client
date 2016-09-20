@@ -620,13 +620,13 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 	return res, nil
 }
 
-// GetTLFCanonicalID implements the TlfKeysInterface interface for
+// GetPublicCanonicalTLFNameAndID implements the TlfKeysInterface interface for
 // KeybaseServiceBase.
-func (k *KeybaseServiceBase) GetTLFCanonicalID(ctx context.Context,
-	arg keybase1.GetTLFCanonicalIDArg) (res keybase1.TLFCanonicalID, err error) {
+func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(ctx context.Context,
+	tlfName string) (res keybase1.CanonicalTLFNameAndID, err error) {
 	ctx = ctxWithRandomIDReplayable(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
 		k.log)
-	tlfHandle, err := k.getHandleFromFolderName(ctx, arg.TlfName, arg.Public)
+	tlfHandle, err := k.getHandleFromFolderName(ctx, tlfName, true /* public */)
 	if err != nil {
 		return res, err
 	}
