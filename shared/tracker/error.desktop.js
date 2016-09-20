@@ -9,7 +9,7 @@ import type {Props} from './error'
 
 function TrackerError ({errorMessage, onRetry, onClose}: Props) {
   return (
-    <Box style={globalStyles.flexBoxColumn}>
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Header
         reason={'Error in getting identity information :\'('}
         onClose={onClose}
@@ -21,7 +21,9 @@ function TrackerError ({errorMessage, onRetry, onClose}: Props) {
       <Text style={errorTextStyle} type='Error'>
         {errorMessage}
       </Text>
-      <Button onClick={onRetry} style={retryStyle} type='Primary' label='Retry fetching identity' />
+      <Box style={retryStyle}>
+        <Button onClick={onRetry} type='Primary' label='Retry fetching identity' />
+      </Box>
     </Box>
   )
 }
@@ -29,6 +31,7 @@ function TrackerError ({errorMessage, onRetry, onClose}: Props) {
 const errorTextStyle = {
   marginTop: globalMargins.medium,
   marginBottom: globalMargins.medium,
+  textAlign: 'center',
 }
 
 const retryStyle = {
