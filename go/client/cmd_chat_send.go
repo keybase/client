@@ -56,11 +56,13 @@ func (c *cmdChatSend) Run() (err error) {
 	ctx := context.TODO()
 
 	var conversationInfo chat1.ConversationInfoLocal
-	conversationInfos, err := c.resolver.Resolve(context.TODO(), chatClient, tlfClient)
+	resolved, err := c.resolver.Resolve(context.TODO(), c.G(), chatClient, tlfClient)
 	if err != nil {
 		return err
 	}
-	if len(conversationInfos) == 0 {
+	c.G().UI.GetTerminalUI().Printf("sending to %s ... ", resolved.TlfName)
+
+	if resolved == nil {
 		conversationInfo, err = chatClient.NewConversationLocal(ctx, chat1.ConversationInfoLocal{
 			TlfName:   c.resolver.TlfName,
 			TopicName: c.resolver.TopicName,
@@ -71,7 +73,7 @@ func (c *cmdChatSend) Run() (err error) {
 		}
 	} else {
 		// TODO: prompt user to choose one
-		conversationInfo = conversationInfos[0]
+		conversationInfo = *resolved
 	}
 
 	var args chat1.PostLocalArg
@@ -101,19 +103,29 @@ func (c *cmdChatSend) Run() (err error) {
 		}
 	}
 
+	c.G().UI.GetTerminalUI().Printf("done!\n")
+
 	return nil
 }
 
 func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
-	if len(ctx.Args()) != 2 {
-		return fmt.Errorf("keybase chat send takes 2 args")
+	switch len(ctx.Args()) {
+	case 2:
+		tlfName := ctx.Args().Get(0)
+		if c.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
+			return err
+		}
+		c.message = ctx.Args().Get(1)
+	case 1:
+		if c.resolver, err = parseConversationResolver(ctx, ""); err != nil {
+			return err
+		}
+		c.message = ctx.Args().Get(0)
+	default:
+		return fmt.Errorf("keybase chat send takes 1 or 2 args")
 	}
-	tlfName := ctx.Args().Get(0)
-	if c.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
-		return err
-	}
-	c.message = ctx.Args().Get(1)
 	c.setTopicName = ctx.String("set-topic-name")
+
 	return nil
 }
 
