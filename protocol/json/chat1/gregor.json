@@ -4,6 +4,16 @@
   "types": [
     {
       "type": "record",
+      "name": "GenericPayload",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Action"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "NewMessagePayload",
       "fields": [
         {

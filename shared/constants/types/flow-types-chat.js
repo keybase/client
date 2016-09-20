@@ -245,6 +245,10 @@ export type EncryptedData = {
   n: bytes,
 }
 
+export type GenericPayload = {
+  Action: string,
+}
+
 export type GetConversationMetadataRemoteRes = {
   conv: Conversation,
   rateLimit?: ?RateLimit,
