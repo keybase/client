@@ -259,6 +259,13 @@ func (fs *KBFSOpsStandard) GetTLFCryptKeys(ctx context.Context,
 	return keys, id, err
 }
 
+// GetTLFID implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (TlfID, error) {
+	_, _, id, err := fs.getOrInitializeNewMDMaster(ctx, fs.config.MDOps(), tlfHandle,
+		true)
+	return id, err
+}
+
 func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
 	ctx context.Context, mdops MDOps, h *TlfHandle, create bool) (initialized bool,
 	md ImmutableRootMetadata, id TlfID, err error) {

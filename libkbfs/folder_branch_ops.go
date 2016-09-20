@@ -1145,6 +1145,10 @@ func (fbo *folderBranchOps) GetTLFCryptKeys(ctx context.Context,
 	return nil, TlfID{}, errors.New("GetTLFCryptKeys is not supported by folderBranchOps")
 }
 
+func (fbo *folderBranchOps) GetTLFID(ctx context.Context, h *TlfHandle) (TlfID, error) {
+	return TlfID{}, errors.New("GetTLFID is not supported by folderBranchOps")
+}
+
 func (fbo *folderBranchOps) GetOrCreateRootNode(
 	ctx context.Context, h *TlfHandle, branch BranchName) (
 	node Node, ei EntryInfo, err error) {

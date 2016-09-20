@@ -615,3 +615,25 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 
 	return res, nil
 }
+
+// GetPublicCanonicalTLFNameAndID implements the TlfKeysInterface interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(ctx context.Context,
+	tlfName string) (res keybase1.CanonicalTLFNameAndID, err error) {
+	ctx = ctxWithRandomIDReplayable(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
+		k.log)
+	tlfHandle, err := k.getHandleFromFolderName(ctx, tlfName, true /* public */)
+	if err != nil {
+		return res, err
+	}
+
+	res.CanonicalName = keybase1.CanonicalTlfName(tlfHandle.GetCanonicalName())
+
+	id, err := k.config.KBFSOps().GetTLFID(ctx, tlfHandle)
+	if err != nil {
+		return res, err
+	}
+	res.TlfID = keybase1.TLFID(id.String())
+
+	return res, nil
+}
