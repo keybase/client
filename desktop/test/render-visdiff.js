@@ -67,13 +67,25 @@ app.on('ready', () => {
   const scriptPath = resolveRoot('dist', 'visdiff.bundle.js')
   for (let i = 0; i < WORKER_COUNT; i++) {
     setTimeout(() => {
+      console.log('Creating new worker window', i)
       const workerWin = new BrowserWindow({show: false, width: CANVAS_SIZE, height: CANVAS_SIZE})
       console.log('Created new worker window', i)
+
+      workerWin.on('ready-to-show', () => console.log('Worker window ready-to-show:', i))
+      workerWin.webContents.on('did-finish-load', () => console.log('Worker window did-finish-load:', i))
+      workerWin.webContents.on('did-fail-load', () => console.log('Worker window did-fail-load:', i))
+      workerWin.on('unresponsive', () => console.log('Worker window unresponsive:', i))
+      workerWin.on('responsive', () => console.log('Worker window responsive:', i))
+      workerWin.on('closed', () => console.log('Worker window closed:', i))
+
       // TODO: once we're on electron v1.2.3, try ready-to-show event.
       workerWin.webContents.once('did-finish-load', () => renderNext(workerWin.webContents))
       const workerURL = resolveRootAsURL('renderer', `index.html?src=${scriptPath}`)
-      workerWin.loadURL(workerURL)
       console.log('Loading worker', i, workerURL)
+      workerWin.loadURL(workerURL)
+      console.log('Loaded worker', i, workerURL)
     }, i * 150)
   }
+
+  console.log('Worker startup queued')
 })
