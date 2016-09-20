@@ -60,7 +60,6 @@ func (c *cmdChatSend) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	c.G().UI.GetTerminalUI().Printf("sending to %s ... ", resolved.TlfName)
 
 	if resolved == nil {
 		conversationInfo, err = chatClient.NewConversationLocal(ctx, chat1.ConversationInfoLocal{
@@ -75,6 +74,8 @@ func (c *cmdChatSend) Run() (err error) {
 		// TODO: prompt user to choose one
 		conversationInfo = *resolved
 	}
+
+	c.G().UI.GetTerminalUI().Printf("sending to %s ... ", conversationInfo.TlfName)
 
 	var args chat1.PostLocalArg
 	// TODO: prompt user to choose one if multiple exist
