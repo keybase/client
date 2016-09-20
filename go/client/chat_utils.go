@@ -142,7 +142,7 @@ func makeMessageFetcherFromCliCtx(ctx *cli.Context, tlfName string, markAsRead b
 		fetcher.selector.Since = &timeStr
 	}
 
-	if ctx.Bool("all") {
+	if ctx.Bool("all") || fetcher.selector.Since != nil {
 		fetcher.selector.Limit = 0
 	}
 	fetcher.selector.MarkAsRead = markAsRead
@@ -200,7 +200,7 @@ func makeInboxFetcherFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error)
 	fetcher.limit = ctx.Int("number")
 	fetcher.since = ctx.String("time")
 
-	if ctx.Bool("all") {
+	if ctx.Bool("all") || len(fetcher.since) > 0 {
 		fetcher.limit = 0
 	}
 
