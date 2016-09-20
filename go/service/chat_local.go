@@ -71,16 +71,6 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	return h.unboxThread(ctx, boxed.Thread, arg.ConversationID)
 }
 
-func retryWithoutBackoffUpToNTimesUntilNoError(n int, action func() error) (err error) {
-	for ; n > 0; n-- {
-		err = action()
-		if err == nil {
-			return
-		}
-	}
-	return err
-}
-
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.ConversationInfoLocal) (created chat1.ConversationInfoLocal, err error) {
 	h.G().Log.Debug("NewConversationLocal: %+v", info)
@@ -104,30 +94,54 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.
 	}
 	info.TlfName = string(res.CanonicalName)
 
-	if err = retryWithoutBackoffUpToNTimesUntilNoError(3, func() (err error) {
-		if triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
-			return fmt.Errorf("error creating topic ID: %s", err)
-		}
-		firstMessageBoxed, err := h.prepareMessageForRemote(ctx, makeFirstMessage(ctx, info, triple))
-		if err != nil {
-			return fmt.Errorf("error preparing message: %s", err)
+	for i := 0; i < 3; i++ {
+		if triple.TopicType != chat1.TopicType_CHAT {
+			// We only set topic ID if it's not CHAT. We are supporting only one
+			// conversation per TLF now. A topic ID of 0s is intentional as it would
+			// cause insertion failure in database.
+
+			if triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
+				return created, fmt.Errorf("error creating topic ID: %s", err)
+			}
 		}
 
-		res, err := h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
+		firstMessageBoxed, err := h.prepareMessageForRemote(ctx, makeFirstMessage(ctx, info, triple))
+		if err != nil {
+			return created, fmt.Errorf("error preparing message: %s", err)
+		}
+
+		// Note: it's NOT OK to reuse `triple` after the call
+		// to `NewConversationRemote2` since it might return a conversation ID for
+		// an existing conversation, which corresponds to a different triple. This
+		// is because we enforce one CHAT conversation per TLF for now.
+
+		var res chat1.NewConversationRemoteRes
+		res, err = h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,
 			TLFMessage: *firstMessageBoxed,
 		})
 		if err != nil {
-			return err
+			if cerr, ok := err.(libkb.ChatConvExistsError); ok {
+				if triple.TopicType == chat1.TopicType_CHAT {
+					// A chat conversation already exists; just reuse it.
+					info.Id = cerr.ConvID
+					created = info
+					return created, nil
+				}
+
+				// Not a chat conversation. Multiples are fine. Just retry with a
+				// different topic ID.
+				continue
+			}
 		}
+
 		info.Id = res.ConvID
 		created = info
-		return nil
-	}); err != nil {
-		return created, err
+
+		return created, nil
 	}
 
-	return created, nil
+	return created, err
 }
 
 // UpdateTopicNameLocal implements keybase.chatLocal.updateTopicNameLocal protocol.

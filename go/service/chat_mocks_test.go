@@ -15,6 +15,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -241,22 +242,17 @@ func (m *chatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 }
 
 func (m *chatRemoteMock) NewConversationRemote(ctx context.Context, arg chat1.ConversationIDTriple) (res chat1.NewConversationRemoteRes, err error) {
-	res.ConvID = chat1.ConversationID(len(m.conversations) + 1) // TODO: compute this when we need it
-	m.conversations = append(m.conversations, &chat1.Conversation{
-		Metadata: chat1.ConversationMetadata{
-			IdTriple:       arg,
-			ConversationID: res.ConvID,
-		},
-		MaxMsgs: []chat1.MessageBoxed{},
-		ReaderInfo: &chat1.ConversationReaderInfo{
-			Mtime: gregor1.ToTime(time.Now()),
-		},
-	})
-	sort.Sort(convByNewlyUpdated{mock: m})
-	return res, nil
+	return res, errors.New("not implemented anymore")
 }
 
 func (m *chatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.NewConversationRemote2Arg) (res chat1.NewConversationRemoteRes, err error) {
+	for _, conv := range m.conversations {
+		if conv.Metadata.IdTriple.Tlfid.Eq(arg.IdTriple.Tlfid) &&
+			conv.Metadata.IdTriple.TopicID.String() == arg.IdTriple.TopicID.String() &&
+			conv.Metadata.IdTriple.TopicType == arg.IdTriple.TopicType {
+			return res, libkb.ChatConvExistsError{ConvID: conv.Metadata.ConversationID}
+		}
+	}
 	res.ConvID = chat1.ConversationID(len(m.conversations) + 1) // TODO: compute this when we need it
 	first := m.insertMsgAndSort(res.ConvID, arg.TLFMessage)
 	m.conversations = append(m.conversations, &chat1.Conversation{
