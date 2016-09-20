@@ -20,7 +20,7 @@ const StandardScreen = (props: Props) => {
       <Box style={styleTopStack}>
         {topStack}
       </Box>
-      <Box style={{...styleInnerContainer, paddingBottom: (topStackCount + 1) * globalMargins.large}}>
+      <Box style={{...styleInnerContainer, paddingBottom: topStackCount * globalMargins.large}}>
         {!!props.onClose && <Icon style={{...styleClose, ...props.styleClose}} type='iconfont-close' onClick={props.onClose} />}
         <Box style={{...styleContentContainer, ...props.style}}>
           {props.children}
