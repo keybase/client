@@ -1,7 +1,11 @@
 // @flow
 
+import React from 'react'
+import {Box, Text} from '../common-adapters'
+
 import UpdateEmail from './email'
 import Landing from './landing'
+import SettingsNav from './nav'
 import DeleteMe from './delete'
 import DeleteConfirm from './delete-confirm'
 
@@ -93,6 +97,50 @@ const landingMap: DumbComponentMap<Landing> = {
   },
 }
 
+const fillerContent = <Box style={{flex: 1, backgroundColor: 'grey'}} />
+
+const settingsNavBase = {
+  content: fillerContent,
+  items: [{
+    text: 'Your Account',
+    onClick: () => { console.log('clicked your account') },
+    badgeNumber: 1,
+    selected: true,
+  }, {
+    text: 'Invitations (15)',
+    onClick: () => { console.log('clicked ivites') },
+  }, {
+    text: 'Notifications',
+    onClick: () => { console.log('clicked notifications') },
+  }, {
+    text: 'Delete me',
+    onClick: () => { console.log('clicked delete me') },
+  }],
+}
+
+const bannerTextStyle = {
+  alignSelf: 'center',
+  textAlign: 'center',
+  flex: 1,
+}
+
+const settingsNavMap: DumbComponentMap<SettingsNav> = {
+  component: SettingsNav,
+  mocks: {
+    'Normal': settingsNavBase,
+    'Normal - Good Banner': {
+      ...settingsNavBase,
+      bannerElement: <Text type='BodySmallSemibold' style={bannerTextStyle} backgroundMode='Success'>Success! You have just upgraded to the Gold plan. </Text>,
+      bannerType: 'green',
+    },
+    'Normal - Bad Banner': {
+      ...settingsNavBase,
+      bannerElement: <Text type='BodySmallSemibold' style={bannerTextStyle} backgroundMode='HighRisk'>Your Visa **** 4242 has broken. Please update your preferred payment method.</Text>,
+      bannerType: 'red',
+    },
+  },
+}
+
 const deleteMeMap: DumbComponentMap<DeleteMe> = {
   component: DeleteMe,
   mocks: {
@@ -129,6 +177,7 @@ const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
 export default {
   UpdateEmail: updateEmailMap,
   Landing: landingMap,
+  SettingsNav: settingsNavMap,
   DeleteMe: deleteMeMap,
   DeleteConfirm: deleteConfirmMap,
 }
