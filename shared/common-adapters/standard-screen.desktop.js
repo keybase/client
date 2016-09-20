@@ -20,9 +20,11 @@ const StandardScreen = (props: Props) => {
       <Box style={styleTopStack}>
         {topStack}
       </Box>
-      <Box style={{...styleContentContainer, paddingBottom: (topStackCount + 1) * globalMargins.large, ...props.style}}>
+      <Box style={{...styleInnerContainer, paddingBottom: (topStackCount + 1) * globalMargins.large}}>
         {!!props.onClose && <Icon style={{...styleClose, ...props.styleClose}} type='iconfont-close' onClick={props.onClose} />}
-        {props.children}
+        <Box style={{...styleContentContainer, ...props.style}}>
+          {props.children}
+        </Box>
       </Box>
     </Box>
   )
@@ -74,13 +76,19 @@ const styleBannerText = {
   color: globalColors.white,
 }
 
+const styleInnerContainer = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+  alignItems: 'center',
+  position: 'relative',
+}
+
 const styleContentContainer = {
   ...globalStyles.flexBoxColumn,
-  position: 'relative',
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
-  padding: globalMargins.large,
+  margin: globalMargins.large,
   textAlign: 'center',
 }
 
