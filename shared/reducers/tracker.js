@@ -73,6 +73,7 @@ function initialTrackerState (username: string): TrackerState {
 function initialNonUserState (assertion: string): NonUserState {
   return {
     closed: true,
+    error: null,
     hidden: true,
     inviteLink: null,
     isPrivate: false,

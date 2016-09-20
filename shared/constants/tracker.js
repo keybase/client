@@ -146,6 +146,7 @@ export type TrackerState = {
 
 export type NonUserState = {
   type: 'nonUser',
+  error: ?string,
   closed: boolean,
   hidden: boolean,
   name: string,
@@ -156,7 +157,7 @@ export type NonUserState = {
 
 export type TrackerOrNonUserState = TrackerState | NonUserState
 
-function isLoading (state: ?TrackerState): boolean {
+function isLoading (state: ?TrackerOrNonUserState): boolean {
   // TODO (mm) ideally userInfo should be null until we get a response from the server
   // Same with proofs (instead of empty array). So we know the difference between
   // not having data and having empty data.
