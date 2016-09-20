@@ -51,3 +51,5 @@ ipcRenderer.on('display', (ev, msg) => {
     }, 1000)
   })
 })
+
+ipcRenderer.send('visdiff-ready')
