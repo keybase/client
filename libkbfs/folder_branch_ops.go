@@ -4630,7 +4630,8 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		return err
 	}
 
-	err = mdOps.PruneBranch(ctx, fbo.id(), fbo.bid)
+	// Prune the branch via the journal, if there is one.
+	err = fbo.config.MDOps().PruneBranch(ctx, fbo.id(), fbo.bid)
 	if err != nil {
 		return err
 	}
