@@ -330,6 +330,7 @@ func (b *chatBoxer) verifyMessage(header chat1.HeaderPlaintext, msg chat1.Messag
 // verifyMessageHeaderV1 checks the body hash, header signature, and signing key validity.
 func (b *chatBoxer) verifyMessageHeaderV1(header chat1.HeaderPlaintextV1, msg chat1.MessageBoxed) error {
 	// check body hash
+	b.G().Log.Debug("ciphertext: v: %d E: %v all: %v", msg.BodyCiphertext.V, msg.BodyCiphertext.E, msg.BodyCiphertext)
 	bh := b.hashV1(msg.BodyCiphertext.E)
 	if !libkb.SecureByteArrayEq(bh[:], header.BodyHash) {
 		return libkb.ChatBodyHashInvalid{}

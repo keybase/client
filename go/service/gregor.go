@@ -853,18 +853,25 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		return err
 	}
 
+	g.G().Log.Debug("push handler: chat activity: action %s", gm.Action)
+
 	action := gm.Action
+	reader.Reset(m.Body().Bytes())
 	switch action {
 	case "newMessage":
 		var nm chat1.NewMessagePayload
 		err = dec.Decode(&nm)
 		if err != nil {
+			g.G().Log.Error("push handler: chat activity: error decoding newMessage: %s", err.Error())
 			return err
 		}
 
-		boxer := chatBoxer{tlf: newTlfHandler(nil, g.G())}
+		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %d sender: %s",
+			nm.ConvID, nm.Message.ServerHeader.Sender)
+		boxer := newChatBoxer(g.G())
 		msg, err := boxer.unboxMessage(ctx, newKeyFinder(), nm.Message)
 		if err != nil {
+			g.G().Log.Error("push handler: chat activity: unable to unbox message: %s", err.Error())
 			return err
 		}
 		activity.IncomingMessage = &msg
