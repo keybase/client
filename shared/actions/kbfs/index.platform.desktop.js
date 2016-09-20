@@ -1,33 +1,34 @@
 // @flow
 import * as Constants from '../../constants/config'
 import path from 'path'
-import type {AsyncAction} from '../../constants/types/flux'
 import {CommonClientType} from '../../constants/types/flow-types'
+import {delay} from 'redux-saga'
+import {call, put, select, race, take} from 'redux-saga/effects'
 import {getExtendedStatus} from '../config'
 import {ipcRenderer} from 'electron'
 
+import type {FSOpen} from '../../constants/kbfs'
 import type {ExtendedStatus} from '../../constants/types/flow-types'
+import type {SagaGenerator} from '../../constants/types/saga'
 
 function open (openPath: string) {
   console.log('openItem:', openPath)
   ipcRenderer.send('openInKBFS', openPath)
 }
 
-function openInDefault (openPath: string): AsyncAction {
-  return (dispatch, getState) => new Promise((resolve, reject) => {
-    console.log('openInDefault:', openPath)
-    // Path resolve removes any ..
-    openPath = path.resolve(openPath)
-    // Paths MUST start with defaultKBFSPath
-    if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-      console.warn(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
-      return
-    }
-    open(openPath)
-  })
+function openInDefault (openPath: string) {
+  console.log('openInDefault:', openPath)
+  // Path resolve removes any ..
+  openPath = path.resolve(openPath)
+  // Paths MUST start with defaultKBFSPath
+  if (!openPath.startsWith(Constants.defaultKBFSPath)) {
+    console.warn(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+    return
+  }
+  open(openPath)
 }
 
-function formKbfsPathWindows (extendedConfig: ExtendedStatus): string {
+function windowsKBFSRoot (extendedConfig: ExtendedStatus): string {
   const kbfsClients = extendedConfig.Clients && extendedConfig.Clients.length && extendedConfig.Clients.filter(c => c.clientType === CommonClientType.kbfs) || []
 
   if (kbfsClients.length > 1) {
@@ -48,55 +49,67 @@ function formKbfsPathWindows (extendedConfig: ExtendedStatus): string {
   return kbfsPath + '\\'
 }
 
-function openInWindows (openPath: string = Constants.defaultKBFSPath): AsyncAction {
-  return (dispatch, getState) => new Promise((resolve, reject) => {
-    if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-      console.warn(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+function * openInWindows (openPath: string): SagaGenerator<any, any> {
+  if (!openPath.startsWith(Constants.defaultKBFSPath)) {
+    console.warn(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+    return
+  }
+  openPath = openPath.slice(Constants.defaultKBFSPath.length)
+
+  let kbfsPath = yield select(state => state.config.kbfsPath)
+
+  // On windows the path isn't /keybase
+  // We can figure it out by looking at the extendedConfig though
+  if (kbfsPath === Constants.defaultKBFSPath) {
+    let kbfsPathError
+
+    // there can be a race between extendedConfig / kbfs / everything loading so we try a couple of times
+    for (let i = 0; i < 3 && !kbfsPath; ++i) {
+      const extendedConfig = yield select(state => state.config.extendedConfig)
+      try {
+        kbfsPath = yield call(windowsKBFSRoot, extendedConfig)
+        break
+      } catch (error) {
+        kbfsPathError = error
+      }
+
+      yield put(getExtendedStatus())
+      yield race({
+        loaded: take(Constants.extendedConfigLoaded),
+        timeout: call(delay, 1000),
+      })
+    }
+
+    if (!kbfsPath) {
+      console.warn('Error in parsing kbfsPath: ', kbfsPathError)
       return
     }
-    openPath = openPath.slice(Constants.defaultKBFSPath.length)
 
-    const state = getState()
-    const kbfsPath = state.config.kbfsPath
+    yield put({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
+  }
 
-    // On windows the path isn't /keybase
-    // We can figure it out by looking at the extendedConfig though
-    if (kbfsPath === Constants.defaultKBFSPath) {
-      const extendedConfig = state.config.extendedConfig
-      const extendedConfigPromise = extendedConfig
-        ? Promise.resolve(extendedConfig)
-        : Promise.reject()
-
-      extendedConfigPromise
-        .then(formKbfsPathWindows)
-        // In case the first try fails, let's try to get the extendedConfig again
-        // This can happen because kbfs loads after the first getExtended status call
-        // $FlowIssue
-        .catch(() => dispatch(getExtendedStatus()).then(formKbfsPathWindows))
-        .then(kbfsPath => {
-          dispatch({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
-
-          openPath = path.resolve(kbfsPath, openPath)
-          // Check to make sure our resolved path starts with the kbfsPath
-          // i.e. (not opening a folder outside kbfs)
-          if (!openPath.startsWith(kbfsPath)) {
-            throw new Error(`openInKBFS requires ${kbfsPath} prefix: ${openPath}`)
-          }
-          open(openPath)
-        })
-        .catch(e => {
-          console.warn('Error in parsing kbfsPath:', e)
-        })
-    } else {
-      open(path.resolve(kbfsPath, openPath))
+  if (kbfsPath) {
+    openPath = path.resolve(kbfsPath, openPath)
+    // Check to make sure our resolved path starts with the kbfsPath
+    // i.e. (not opening a folder outside kbfs)
+    if (!openPath.startsWith(kbfsPath)) {
+      throw new Error(`openInKBFS requires ${kbfsPath} prefix: ${openPath}`)
     }
-  })
+    open(openPath)
+  }
 }
 
-export function openInKBFS (openPath: string = Constants.defaultKBFSPath): AsyncAction {
+function * openSaga (action: FSOpen): SagaGenerator<any, any> {
+  const openPath = action.payload.path || Constants.defaultKBFSPath
+
   console.log('openInKBFS:', openPath)
   if (process.platform === 'win32') {
-    return openInWindows(openPath)
+    yield * call(openInWindows, openPath)
+  } else {
+    yield call(openInDefault, openPath)
   }
-  return openInDefault(openPath)
+}
+
+export {
+  openSaga,
 }
