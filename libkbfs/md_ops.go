@@ -233,40 +233,11 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 		return TlfID{}, ImmutableRootMetadata{}, err
 	}
 
-	handleResolvesToMdHandle, partialResolvedHandle, err :=
-		handle.ResolvesTo(
-			ctx, md.config.Codec(), md.config.KBPKI(), *mdHandle)
-	if err != nil {
+	// Check for mutual handle resolution.
+	if err := mdHandle.MutuallyResolvesTo(ctx, md.config.Codec(),
+		md.config.KBPKI(), *handle, rmds.MD.RevisionNumber(), rmds.MD.TlfID(),
+		md.log); err != nil {
 		return TlfID{}, ImmutableRootMetadata{}, err
-	}
-
-	// TODO: If handle has conflict info, mdHandle should, too.
-	mdHandleResolvesToHandle, partialResolvedMdHandle, err :=
-		mdHandle.ResolvesTo(
-			ctx, md.config.Codec(), md.config.KBPKI(), *handle)
-	if err != nil {
-		return TlfID{}, ImmutableRootMetadata{}, err
-	}
-
-	handlePath := handle.GetCanonicalPath()
-	mdHandlePath := mdHandle.GetCanonicalPath()
-	if !handleResolvesToMdHandle && !mdHandleResolvesToHandle {
-		return TlfID{}, ImmutableRootMetadata{}, MDMismatchError{
-			rmds.MD.RevisionNumber(), handle.GetCanonicalPath(),
-			rmds.MD.TlfID(),
-			fmt.Errorf(
-				"MD contained unexpected handle path %s (%s -> %s) (%s -> %s)",
-				mdHandlePath,
-				handle.GetCanonicalPath(),
-				partialResolvedHandle.GetCanonicalPath(),
-				mdHandle.GetCanonicalPath(),
-				partialResolvedMdHandle.GetCanonicalPath()),
-		}
-	}
-
-	if handlePath != mdHandlePath {
-		md.log.CDebugf(ctx, "handle for %s resolved to %s",
-			handlePath, mdHandlePath)
 	}
 
 	// TODO: For now, use the mdHandle that came with rmds for

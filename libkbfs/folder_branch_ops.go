@@ -1180,6 +1180,18 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 		return fmt.Errorf("MD with revision=%d not initialized", md.Revision())
 	}
 
+	// Return early if the head is already set.  This avoids taking
+	// mdWriterLock for no reason, and it also avoids any side effects
+	// (e.g., calling `identifyOnce` and downloading the merged
+	// head) if head is already set.
+	lState := makeFBOLockState()
+	head := fbo.getHead(lState)
+	if head != (ImmutableRootMetadata{}) && head.mdID == md.mdID {
+		fbo.log.CDebugf(ctx, "Head MD already set to revision %d (%s), no "+
+			"need to set initial head again", md.Revision(), md.MergedStatus())
+		return nil
+	}
+
 	return runUnlessCanceled(ctx, func() error {
 		fb := FolderBranch{md.TlfID(), MasterBranch}
 		if fb != fbo.folderBranch {
@@ -2042,8 +2054,23 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 
 	oldPrevRoot := md.PrevRoot()
 
-	// finally, write out the new metadata
-	mdID, err := fbo.config.MDOps().Put(ctx, md)
+	// Write out the new metadata.  If journaling is enabled, we don't
+	// want the rekey to hit the journal and possibly end up on a
+	// conflict branch, so wait for the journal to flush and then push
+	// straight to the server.  TODO: we're holding the writer lock
+	// while flushing the journal here (just like for exclusive
+	// writes), which may end up blocking incoming writes for a long
+	// time.  Rekeys are pretty rare, but if this becomes an issue
+	// maybe we should consider letting these hit the journal and
+	// scrubbing them when converting it to a branch.
+	mdOps := fbo.config.MDOps()
+	if jServer, err := GetJournalServer(fbo.config); err == nil {
+		if err = jServer.Wait(ctx, fbo.id()); err != nil {
+			return err
+		}
+		mdOps = jServer.delegateMDOps
+	}
+	mdID, err := mdOps.Put(ctx, md)
 	isConflict := isRevisionConflict(err)
 	if err != nil && !isConflict {
 		return err
@@ -4277,6 +4304,16 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 
 	lState := makeFBOLockState()
 
+	// A journal flush before CR, if needed.
+	if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
+		fbo.log); err != nil {
+		return err
+	}
+
+	if err := fbo.mdFlushes.Wait(ctx); err != nil {
+		return err
+	}
+
 	if !fbo.isMasterBranch(lState) {
 		if err := fbo.cr.Wait(ctx); err != nil {
 			return err
@@ -4296,7 +4333,7 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 		return errors.New("Can't sync from server while dirty.")
 	}
 
-	// A journal flush, if needed.
+	// A journal flush after CR, if needed.
 	if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
 		fbo.log); err != nil {
 		return err
