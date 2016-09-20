@@ -28,9 +28,9 @@ func isReader(currentUID keybase1.UID, mergedMasterHead BareRootMetadata,
 // access TLF metadata. mergedMasterHead can be nil, in which case
 // true is returned.
 func isWriterOrValidRekey(codec kbfscodec.Codec, currentUID keybase1.UID,
-	mergedMasterHead, newMd BareRootMetadata) (bool, error) {
-	// MDv3 TODO: pass actual key bundles
-	h, err := mergedMasterHead.MakeBareTlfHandle(nil)
+	mergedMasterHead, newMd BareRootMetadata, prevExtra, extra ExtraMetadata) (
+	bool, error) {
+	h, err := mergedMasterHead.MakeBareTlfHandle(prevExtra)
 	if err != nil {
 		return false, err
 	}
@@ -41,9 +41,8 @@ func isWriterOrValidRekey(codec kbfscodec.Codec, currentUID keybase1.UID,
 	if h.IsReader(currentUID) {
 		// if this is a reader, are they acting within their
 		// restrictions?
-		// MDv3 TODO: pass actual key bundles
 		return newMd.IsValidRekeyRequest(
-			codec, mergedMasterHead, currentUID, nil, nil)
+			codec, mergedMasterHead, currentUID, prevExtra, extra)
 	}
 
 	return false, nil

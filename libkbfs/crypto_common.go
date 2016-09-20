@@ -102,6 +102,34 @@ func (c CryptoCommon) MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error)
 	return MerkleHash{h}, nil
 }
 
+// MakeTLFWriterKeyBundleID implements the Crypto interface for CryptoCommon.
+func (c CryptoCommon) MakeTLFWriterKeyBundleID(wkb *TLFWriterKeyBundleV3) (
+	TLFWriterKeyBundleID, error) {
+	buf, err := c.codec.Encode(wkb)
+	if err != nil {
+		return TLFWriterKeyBundleID{}, err
+	}
+	h, err := DefaultHash(buf)
+	if err != nil {
+		return TLFWriterKeyBundleID{}, err
+	}
+	return TLFWriterKeyBundleID{h}, nil
+}
+
+// MakeTLFReaderKeyBundleID implements the Crypto interface for CryptoCommon.
+func (c CryptoCommon) MakeTLFReaderKeyBundleID(rkb *TLFReaderKeyBundleV3) (
+	TLFReaderKeyBundleID, error) {
+	buf, err := c.codec.Encode(rkb)
+	if err != nil {
+		return TLFReaderKeyBundleID{}, err
+	}
+	h, err := DefaultHash(buf)
+	if err != nil {
+		return TLFReaderKeyBundleID{}, err
+	}
+	return TLFReaderKeyBundleID{h}, nil
+}
+
 // MakeTemporaryBlockID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
 	var dh RawDefaultHash

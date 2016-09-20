@@ -679,5 +679,9 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		}
 	}
 
+	if err := md.finalizeRekey(km.config); err != nil {
+		return false, nil, err
+	}
+
 	return true, &tlfCryptKey, nil
 }

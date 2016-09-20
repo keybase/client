@@ -211,6 +211,7 @@ func (j mdJournal) getMD(id MdID, verifyBranchID bool) (
 	}
 
 	// TODO: Read version info.
+	// MDv3 TODO: the file needs to encode the version
 	var rmd BareRootMetadataV2
 	err = j.codec.Decode(data, &rmd)
 	if err != nil {
@@ -355,7 +356,7 @@ func (j mdJournal) getLatest(verifyBranchID bool) (
 	return MakeImmutableBareRootMetadata(latest, latestID, ts), nil
 }
 
-func (j mdJournal) checkGetParams(extra ExtraMetadata) (
+func (j mdJournal) checkGetParams() (
 	ImmutableBareRootMetadata, error) {
 	head, err := j.getLatest(true)
 	if err != nil {
@@ -363,6 +364,12 @@ func (j mdJournal) checkGetParams(extra ExtraMetadata) (
 	}
 
 	if head != (ImmutableBareRootMetadata{}) {
+		extra, err := j.getExtraMD(
+			head.GetTLFWriterKeyBundleID(),
+			head.GetTLFReaderKeyBundleID())
+		if err != nil {
+			return ImmutableBareRootMetadata{}, err
+		}
 		ok, err := isReader(j.uid, head.BareRootMetadata, extra)
 		if err != nil {
 			return ImmutableBareRootMetadata{}, err
@@ -650,15 +657,14 @@ func (j mdJournal) getBranchID() BranchID {
 	return j.branchID
 }
 
-func (j mdJournal) getHead(extra ExtraMetadata) (
+func (j mdJournal) getHead() (
 	ImmutableBareRootMetadata, error) {
-	return j.checkGetParams(extra)
+	return j.checkGetParams()
 }
 
-func (j mdJournal) getRange(
-	extra ExtraMetadata, start, stop MetadataRevision) (
+func (j mdJournal) getRange(start, stop MetadataRevision) (
 	[]ImmutableBareRootMetadata, error) {
-	_, err := j.checkGetParams(extra)
+	_, err := j.checkGetParams()
 	if err != nil {
 		return nil, err
 	}
@@ -820,8 +826,13 @@ func (j *mdJournal) put(
 
 	// Check permissions and consistency with head, if it exists.
 	if head != (ImmutableBareRootMetadata{}) {
+		prevExtra, err := j.getExtraMD(
+			head.GetTLFWriterKeyBundleID(),
+			head.GetTLFReaderKeyBundleID())
 		ok, err := isWriterOrValidRekey(
-			j.codec, j.uid, head.BareRootMetadata, rmd.bareMd)
+			j.codec, j.uid,
+			head.BareRootMetadata, rmd.bareMd,
+			prevExtra, rmd.extra)
 		if err != nil {
 			return MdID{}, err
 		}
@@ -885,7 +896,7 @@ func (j *mdJournal) put(
 }
 
 func (j *mdJournal) clear(
-	ctx context.Context, bid BranchID, extra ExtraMetadata) (err error) {
+	ctx context.Context, bid BranchID) (err error) {
 	j.log.CDebugf(ctx, "Clearing journal for branch %s", bid)
 	defer func() {
 		if err != nil {
@@ -906,7 +917,7 @@ func (j *mdJournal) clear(
 		return nil
 	}
 
-	head, err := j.getHead(extra)
+	head, err := j.getHead()
 	if err != nil {
 		return err
 	}
@@ -957,4 +968,13 @@ func (j *mdJournal) clear(
 		}
 	}
 	return nil
+}
+
+func (j mdJournal) getExtraMD(wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
+	ExtraMetadata, error) {
+	// MDv3 TODO: implement this
+	if (wkbID != TLFWriterKeyBundleID{}) || (rkbID != TLFReaderKeyBundleID{}) {
+		panic("Bundle IDs are unexpectedly set")
+	}
+	return nil, nil
 }

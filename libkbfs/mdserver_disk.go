@@ -374,7 +374,7 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
 	}
 
 	recordBranchID, err := tlfStorage.put(
-		currentUID, currentVerifyingKey, rmds)
+		currentUID, currentVerifyingKey, rmds, extra)
 	if err != nil {
 		return err
 	}
@@ -620,4 +620,15 @@ func (md *MDServerDisk) GetLatestHandleForTLF(_ context.Context, id TlfID) (
 // MDServerDisk.
 func (md *MDServerDisk) OffsetFromServerTime() (time.Duration, bool) {
 	return 0, true
+}
+
+// GetKeyBundles implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) GetKeyBundles(_ context.Context,
+	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
+	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	// MDv3 TODO: implement this
+	if (wkbID != TLFWriterKeyBundleID{}) || (rkbID != TLFReaderKeyBundleID{}) {
+		panic("Bundle IDs are unexpectedly set")
+	}
+	return nil, nil, nil
 }

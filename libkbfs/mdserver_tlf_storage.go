@@ -313,7 +313,7 @@ func (s *mdServerTlfStorage) getRange(
 
 func (s *mdServerTlfStorage) put(
 	currentUID keybase1.UID, currentVerifyingKey VerifyingKey,
-	rmds *RootMetadataSigned) (
+	rmds *RootMetadataSigned, extra ExtraMetadata) (
 	recordBranchID bool, err error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -322,8 +322,7 @@ func (s *mdServerTlfStorage) put(
 		return false, errMDServerTlfStorageShutdown
 	}
 
-	// MDv3 TODO: pass key bundles
-	err = rmds.IsValidAndSigned(s.codec, s.crypto, nil)
+	err = rmds.IsValidAndSigned(s.codec, s.crypto, extra)
 	if err != nil {
 		return false, MDServerErrorBadRequest{Reason: err.Error()}
 	}
@@ -342,8 +341,16 @@ func (s *mdServerTlfStorage) put(
 
 	// TODO: Figure out nil case.
 	if mergedMasterHead != nil {
+		prevExtra, err := s.getExtraMD(
+			mergedMasterHead.MD.GetTLFWriterKeyBundleID(),
+			mergedMasterHead.MD.GetTLFReaderKeyBundleID())
+		if err != nil {
+			return false, MDServerError{err}
+		}
 		ok, err := isWriterOrValidRekey(
-			s.codec, currentUID, mergedMasterHead.MD, rmds.MD)
+			s.codec, currentUID,
+			mergedMasterHead.MD, rmds.MD,
+			prevExtra, extra)
 		if err != nil {
 			return false, MDServerError{err}
 		}
@@ -412,4 +419,13 @@ func (s *mdServerTlfStorage) shutdown() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.branchJournals = nil
+}
+
+func (s *mdServerTlfStorage) getExtraMD(wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
+	ExtraMetadata, error) {
+	// MDv3 TODO: implement this
+	if (wkbID != TLFWriterKeyBundleID{}) || (rkbID != TLFReaderKeyBundleID{}) {
+		panic("Bundle IDs are unexpectedly set")
+	}
+	return nil, nil
 }
