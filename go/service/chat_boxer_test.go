@@ -267,6 +267,9 @@ func TestChatMessagePublic(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	world := newChatMockWorld(u)
+	handler.boxer.tlf = newTlfMock(world)
+
 	header := chat1.MessageClientHeader{
 		Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
 		TlfPublic: true,
