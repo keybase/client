@@ -162,7 +162,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                         }
                                                     }
                                                 } catch (e) {
-                                                    helpers.slackMessage("#ci-notify", "warning", "<@mgood>: visdiff failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>")
+                                                    helpers.slackMessage("#breaking-visdiff", "warning", "<@mgood>: visdiff failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>")
                                                 }
                                             }}}
                                         }
