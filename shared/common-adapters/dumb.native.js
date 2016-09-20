@@ -196,9 +196,10 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
     'Normal': {
       ...standardScreenProps,
     },
-    'Error w/ Custom Close Text': {
+    'Error w/ Back Button': {
       ...standardScreenProps,
-      onCloseText: 'Back',
+      onClose: null,
+      onBack: () => console.log('StandardScreen: onBack'),
       notification: {
         message: 'Something went horribly wrong! :-(',
         type: 'error',

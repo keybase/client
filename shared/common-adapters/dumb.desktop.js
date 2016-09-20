@@ -328,6 +328,20 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
         type: 'success',
       },
     },
+    'Back Button': {
+      ...standardScreenProps,
+      onClose: null,
+      onBack: () => console.log('StandardScreen: onBack'),
+    },
+    'Error w/ Back Button': {
+      ...standardScreenProps,
+      onClose: null,
+      onBack: () => console.log('StandardScreen: onBack'),
+      notification: {
+        message: 'This is an error, but you can go back!',
+        type: 'error',
+      },
+    },
   },
 }
 
