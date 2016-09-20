@@ -845,14 +845,27 @@ func (j *mdJournal) clear(
 		return errors.New("Cannot clear master branch")
 	}
 
+	if j.branchID != bid {
+		// Nothing to do.
+		j.log.CDebugf(ctx, "Ignoring clear for branch %s while on branch %s",
+			bid, j.branchID)
+		return nil
+	}
+
 	head, err := j.getHead(extra)
 	if err != nil {
 		return err
 	}
 
-	if head == (ImmutableBareRootMetadata{}) || head.BID() != bid {
-		// Nothing to do.
+	if head == (ImmutableBareRootMetadata{}) {
+		// The journal has been flushed but not cleared yet.
+		j.branchID = NullBranchID
 		return nil
+	}
+
+	if head.BID() != j.branchID {
+		return fmt.Errorf("Head branch ID %s doesn't match journal "+
+			"branch ID %s while clearing", head.BID(), j.branchID)
 	}
 
 	earliestRevision, err := j.j.readEarliestRevision()

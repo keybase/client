@@ -591,6 +591,21 @@ func TestMDJournalClear(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ImmutableBareRootMetadata{}, head)
 
+	// Put more MDs, flush them, and clear the branch ID of an empty
+	// journal.
+	putMDRange(t, id, signer, ekg, bsplit,
+		firstRevision, firstPrevRoot, mdCount, j)
+	_, err = j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	require.NoError(t, err)
+	require.NotEqual(t, NullBranchID, j.branchID)
+
+	bid = j.branchID
+	flushAllMDs(t, ctx, signer, j)
+	require.Equal(t, bid, j.branchID)
+	err = j.clear(ctx, bid, nil)
+	require.NoError(t, err)
+	require.Equal(t, NullBranchID, j.branchID)
+
 	flushAllMDs(t, ctx, signer, j)
 }
 
