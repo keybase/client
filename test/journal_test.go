@@ -56,7 +56,7 @@ func TestJournalExclWrite(t *testing.T) {
 }
 
 // bob creates a conflicting file while running the journal.
-func TestJournalCRSimple(t *testing.T) {
+func TestJournalCrSimple(t *testing.T) {
 	test(t, journal(),
 		users("alice", "bob"),
 		as(alice,
@@ -85,6 +85,67 @@ func TestJournalCRSimple(t *testing.T) {
 			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
 			read("a/b", "hello"),
 			read(crname("a/b", bob), "uh oh"),
+		),
+	)
+}
+
+// bob creates a conflicting file while running the journal.
+func TestJournalDoubleCrSimple(t *testing.T) {
+	test(t, journal(),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+			mkfile("a/b", "uh oh"),
+			// Don't flush yet.
+		),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob, noSync(),
+			resumeJournal(),
+			// This should kick off conflict resolution.
+			flushJournal(),
+		),
+		as(bob,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			read("a/b", "hello"),
+			read(crname("a/b", bob), "uh oh"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			read("a/b", "hello"),
+			read(crname("a/b", bob), "uh oh"),
+		),
+		as(bob,
+			pauseJournal(),
+			mkfile("a/c", "uh oh"),
+			// Don't flush yet.
+		),
+		as(alice,
+			mkfile("a/c", "hello"),
+		),
+		as(bob, noSync(),
+			resumeJournal(),
+			// This should kick off conflict resolution.
+			flushJournal(),
+		),
+		as(bob,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE", "c$": "FILE", crnameEsc("c", bob): "FILE"}),
+			read("a/b", "hello"),
+			read(crname("a/b", bob), "uh oh"),
+			read("a/c", "hello"),
+			read(crname("a/c", bob), "uh oh"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE", "c$": "FILE", crnameEsc("c", bob): "FILE"}),
+			read("a/b", "hello"),
+			read(crname("a/b", bob), "uh oh"),
+			read("a/c", "hello"),
+			read(crname("a/c", bob), "uh oh"),
 		),
 	)
 }
