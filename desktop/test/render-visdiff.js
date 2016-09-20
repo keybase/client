@@ -28,11 +28,14 @@ Object.keys(dumbComponentMap).forEach(key => {
 })
 
 app.on('ready', () => {
+  console.log('Starting visdiff rendering')
+
   let rendering = 0
   const total = toRender.length
   let count = 0
 
   function renderNext (target) {
+    console.log('Rendering next. Remaining:', toRender.length, 'Currently rendering:', rendering)
     if (!toRender.length) {
       if (rendering === 0) {
         app.quit()
@@ -61,15 +64,16 @@ app.on('ready', () => {
     })
   })
 
-  ipcMain.on('visdiff-ready', ev => renderNext(ev.sender))
-
   const scriptPath = resolveRoot('dist', 'visdiff.bundle.js')
   for (let i = 0; i < WORKER_COUNT; i++) {
     setTimeout(() => {
       const workerWin = new BrowserWindow({show: false, width: CANVAS_SIZE, height: CANVAS_SIZE})
+      console.log('Created new worker window', i)
       // TODO: once we're on electron v1.2.3, try ready-to-show event.
       workerWin.webContents.once('did-finish-load', () => renderNext(workerWin.webContents))
-      workerWin.loadURL(resolveRootAsURL('renderer', `index.html?src=${scriptPath}`))
+      const workerURL = resolveRootAsURL('renderer', `index.html?src=${scriptPath}`)
+      workerWin.loadURL(workerURL)
+      console.log('Loading worker', i, workerURL)
     }, i * 150)
   }
 })
