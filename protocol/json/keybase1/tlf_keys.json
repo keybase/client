@@ -82,7 +82,7 @@
         }
       ],
       "response": "CanonicalTLFNameAndID",
-      "doc": "getCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.\n   TLF ID should not be cached or stored persistently."
+      "doc": "getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.\n   TLF ID should not be cached or stored persistently."
     }
   },
   "namespace": "keybase.1"
