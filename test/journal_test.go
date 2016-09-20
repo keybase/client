@@ -34,7 +34,8 @@ func TestJournalSimple(t *testing.T) {
 	)
 }
 
-// bob exclusively creates a file while running the journal.
+// bob exclusively creates a file while running the journal.  For now
+// this is treated like a normal file create.
 func TestJournalExclWrite(t *testing.T) {
 	test(t, journal(),
 		users("alice", "bob"),
@@ -46,40 +47,10 @@ func TestJournalExclWrite(t *testing.T) {
 			mkfile("a/c", "hello"),
 			mkfileexcl("a/b"),
 			lsdir("a/", m{"b$": "FILE", "c$": "FILE"}),
+			flushJournal(),
 		),
 		as(alice,
-			// Alice should be able to read this right away, without
-			// waiting for bob's journal to sync, since excl writes
-			// aren't journaled.
 			lsdir("a/", m{"b$": "FILE", "c$": "FILE"}),
-		),
-	)
-}
-
-// bob exclusively creates a file while running the journal, which
-// conflicts with one of alice's files.
-func TestJournalExclWriteConflict(t *testing.T) {
-	test(t, journal(),
-		users("alice", "bob"),
-		as(alice,
-			mkdir("a"),
-		),
-		as(bob,
-			enableJournal(),
-			disableUpdates(),
-		),
-		as(alice,
-			mkfile("a/b", "hello"),
-		),
-		as(bob, noSync(),
-			expectError(mkfileexcl("a/b"), "b already exists"),
-			reenableUpdates(),
-			lsdir("a/", m{"b$": "FILE"}),
-			read("a/b", "hello"),
-		),
-		as(alice,
-			lsdir("a/", m{"b$": "FILE"}),
-			read("a/b", "hello"),
 		),
 	)
 }
