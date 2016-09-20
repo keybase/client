@@ -16,23 +16,18 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 )
 
-var publicEncKey libkb.NaclDHKeyPair
 var publicCryptKey keybase1.CryptKey
 
 func init() {
+	// publicCryptKey is a zero key used for public chat messages.
 	var zero [libkb.NaclDHKeySecretSize]byte
-	var err error
-	publicEncKey, err = libkb.MakeNaclDHKeyPairFromSecret(zero)
-	if err != nil {
-		panic(err)
-	}
 	publicCryptKey = keybase1.CryptKey{
 		KeyGeneration: 1,
-		Key:           keybase1.Bytes32(*publicEncKey.Private),
+		Key:           keybase1.Bytes32(zero),
 	}
 }
 
