@@ -71,14 +71,14 @@ func (c *cmdChatSend) Run() (err error) {
 			return fmt.Errorf("creating conversation error: %v\n", err)
 		}
 	} else {
-		// TODO: prompt user to choose one
 		conversationInfo = *resolved
 	}
 
-	c.G().UI.GetTerminalUI().Printf("sending to %s ... ", conversationInfo.TlfName)
+	if err = c.G().UI.GetTerminalUI().PromptForConfirmation("Send to " + conversationInfo.TlfName); err != nil {
+		return err
+	}
 
 	var args chat1.PostLocalArg
-	// TODO: prompt user to choose one if multiple exist
 	args.ConversationID = conversationInfo.Id
 
 	var msgV1 chat1.MessagePlaintextV1
@@ -104,7 +104,7 @@ func (c *cmdChatSend) Run() (err error) {
 		}
 	}
 
-	c.G().UI.GetTerminalUI().Printf("done!\n")
+	c.G().UI.GetTerminalUI().Printf("sent!\n")
 
 	return nil
 }
