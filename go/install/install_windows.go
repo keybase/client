@@ -4,7 +4,18 @@
 package install
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"sort"
+	"strings"
+
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -41,31 +52,6 @@ func RunApp(context Context, log Log) error {
 	// TODO: Start the app
 	return nil
 }
-
-
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
-// this source code is governed by the included BSD license.
-
-// +build windows
-
-package client
-
-import (
-	"bufio"
-	"bytes"
-	"fmt"
-	"io"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"sort"
-	"strings"
-
-	"github.com/keybase/client/go/libkb"
-
-	"golang.org/x/text/encoding/unicode"
-	"golang.org/x/text/transform"
-)
 
 type utfScanner interface {
 	Read(p []byte) (n int, err error)
