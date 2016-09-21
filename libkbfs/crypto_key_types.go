@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"encoding"
 	"encoding/hex"
+	"encoding/json"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -53,6 +54,17 @@ func (k *kidContainer) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
+var _ json.Marshaler = kidContainer{}
+var _ json.Unmarshaler = (*kidContainer)(nil)
+
+func (k kidContainer) MarshalJSON() ([]byte, error) {
+	return k.kid.MarshalJSON()
+}
+
+func (k *kidContainer) UnmarshalJSON(s []byte) error {
+	return k.kid.UnmarshalJSON(s)
+}
+
 // Needed by mdserver/server_test.go. TODO: Figure out how to avoid
 // this.
 func (k kidContainer) KID() keybase1.KID {
@@ -82,6 +94,9 @@ type VerifyingKey struct {
 
 var _ encoding.BinaryMarshaler = VerifyingKey{}
 var _ encoding.BinaryUnmarshaler = (*VerifyingKey)(nil)
+
+var _ json.Marshaler = VerifyingKey{}
+var _ json.Unmarshaler = (*VerifyingKey)(nil)
 
 // MakeVerifyingKey returns a VerifyingKey containing the given KID.
 func MakeVerifyingKey(kid keybase1.KID) VerifyingKey {
@@ -198,6 +213,9 @@ func MakeCryptPublicKey(kid keybase1.KID) CryptPublicKey {
 
 var _ encoding.BinaryMarshaler = CryptPublicKey{}
 var _ encoding.BinaryUnmarshaler = (*CryptPublicKey)(nil)
+
+var _ json.Marshaler = CryptPublicKey{}
+var _ json.Unmarshaler = (*CryptPublicKey)(nil)
 
 // TLFEphemeralPublicKey (M_e) is used along with a crypt private key
 // to decrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for

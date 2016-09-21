@@ -230,8 +230,8 @@ func testBlockJournalGCd(t *testing.T, j *blockJournal) {
 	})
 	filepath.Walk(j.blocksPath(),
 		func(path string, info os.FileInfo, _ error) error {
-			// We shouldn't find any files.
-			require.True(t, info.IsDir(), "%s is not a dir", path)
+			// We should only find the blocks directory here.
+			require.Equal(t, path, j.blocksPath())
 			return nil
 		})
 }

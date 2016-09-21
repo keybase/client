@@ -39,15 +39,20 @@ import (
 // journal.)
 //
 // The block data is stored separately in dir/blocks. Each block has
-// its own subdirectory with its ID as a name.  The block
-// subdirectories are splayed over (# of possible hash types) * 256
-// subdirectories -- one byte for the hash type (currently only one)
-// plus the first byte of the hash data -- using the first four
-// characters of the name to keep the number of directories in dir
-// itself to a manageable number, similar to git. Each block directory
-// has data, which is the raw block data that should hash to the block
-// ID, and key_server_half, which contains the raw data for the
-// associated key server half.
+// its own subdirectory with its ID truncated to 17 bytes (34
+// characters) as a name. The block subdirectories are splayed over (#
+// of possible hash types) * 256 subdirectories -- one byte for the
+// hash type (currently only one) plus the first byte of the hash data
+// -- using the first four characters of the name to keep the number
+// of directories in dir itself to a manageable number, similar to
+// git. Each block directory has data, which is the raw block data
+// that should hash to the block ID, and key_server_half, which
+// contains the raw data for the associated key server half.
+//
+// The maximum number of characters added to the root dir by a block
+// journal is 59:
+//
+//   /blocks/01ff/f...(30 characters total)...ff/key_server_half
 //
 // blockJournal is not goroutine-safe, so any code that uses it must
 // guarantee that only one goroutine at a time calls its functions.
@@ -167,11 +172,16 @@ func (j *blockJournal) blocksPath() string {
 	return filepath.Join(j.dir, "blocks")
 }
 
-// TODO: Consider truncating the ID string to avoid running into path
-// limits while keeping the chance of collision negligible.
 func (j *blockJournal) blockPath(id BlockID) string {
+	// Truncate to 34 characters, which corresponds to 16 random
+	// bytes (since the first byte is a hash type) or 128 random
+	// bits, which means that the expected number of blocks
+	// generated before getting a path collision is 2^64 (see
+	// https://en.wikipedia.org/wiki/Birthday_problem#Cast_as_a_collision_problem
+	// ). The full ID can be recovered just by hashing the data
+	// again with the same hash type.
 	idStr := id.String()
-	return filepath.Join(j.blocksPath(), idStr[:4], idStr[4:])
+	return filepath.Join(j.blocksPath(), idStr[:4], idStr[4:34])
 }
 
 func (j *blockJournal) blockDataPath(id BlockID) string {
@@ -609,12 +619,28 @@ func (j *blockJournal) removeReferences(
 	return liveCounts, nil
 }
 
+// removeBlockData removes any existing block data for the given
+// ID. If there is no data, nil is returned; this can happen when we
+// have only non-put references to a block in the journal.
 func (j *blockJournal) removeBlockData(id BlockID) error {
 	if j.hasRef(id) {
 		return fmt.Errorf(
 			"Trying to remove data for referenced block %s", id)
 	}
-	return os.RemoveAll(j.blockPath(id))
+	path := j.blockPath(id)
+
+	err := os.RemoveAll(path)
+	if err != nil {
+		return err
+	}
+
+	// Remove the parent (splayed) directory if it exists and is
+	// empty.
+	err = os.Remove(filepath.Dir(path))
+	if os.IsNotExist(err) || isExist(err) {
+		err = nil
+	}
+	return err
 }
 
 func (j *blockJournal) archiveReferences(

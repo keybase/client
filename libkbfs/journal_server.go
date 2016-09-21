@@ -24,8 +24,8 @@ import (
 type JournalServerStatus struct {
 	RootDir             string
 	Version             int
-	CurrentUID          string
-	CurrentVerifyingKey string
+	CurrentUID          keybase1.UID
+	CurrentVerifyingKey VerifyingKey
 	JournalCount        int
 	UnflushedBytes      int64 // (signed because os.FileInfo.Size() is signed)
 }
@@ -58,6 +58,12 @@ type mdFlushListener interface {
 // RootMetadata passed in, and by the time it hits MDServer it's
 // already too late. However, this assumes that all MD ops go through
 // MDOps.
+//
+// The maximum number of characters added to the root dir by a journal
+// server journal is 116: 59 for the TLF journal, and 57 for
+// everything else.
+//
+//   /v1/de...-...(53 characters total)...ff(/tlf journal)
 type JournalServer struct {
 	config Config
 
@@ -104,26 +110,37 @@ func makeJournalServer(
 	return &jServer
 }
 
-func (j *JournalServer) getDirLocked() string {
+func (j *JournalServer) rootPath() string {
+	return filepath.Join(j.dir, "v1")
+}
+
+func (j *JournalServer) tlfJournalPathLocked(tlfID TlfID) string {
 	if j.currentVerifyingKey == (VerifyingKey{}) {
 		panic("currentVerifyingKey is zero")
 	}
 
-	// Device IDs and verifying keys are globally unique, so no
-	// need to have the uid in the path. Furthermore, everything
-	// after the first two bytes (four characters) are randomly
-	// generated, so taking the first 36 characters gives ~1/2^64
-	// collision probability.
+	// We need to generate a unique path for each (UID, device,
+	// TLF) tuple. Verifying keys (which are unique to a device)
+	// are globally unique, so no need to have the uid in the
+	// path. Furthermore, everything after the first two bytes
+	// (four characters) is randomly generated, so taking the
+	// first 36 characters of the verifying key gives us 16 random
+	// bytes (since the first two bytes encode version/type) or
+	// 128 random bits, which means that the expected number of
+	// devices generated before getting a collision in the first
+	// part of the path is 2^64 (see
+	// https://en.wikipedia.org/wiki/Birthday_problem#Cast_as_a_collision_problem
+	// ).
 	//
-	// TODO: Write out a file with the full string.
-	shortID := j.currentVerifyingKey.String()[0:36]
-	return filepath.Join(j.dir, "v1", shortID)
-}
-
-func (j *JournalServer) getDir() string {
-	j.lock.RLock()
-	defer j.lock.RUnlock()
-	return j.getDirLocked()
+	// By similar reasoning, for a single device, taking the first
+	// 16 characters of the TLF ID gives us 64 random bits, which
+	// means that the expected number of TLFs associated to that
+	// device before getting a collision in the second part of the
+	// path is 2^32.
+	shortDeviceIDStr := j.currentVerifyingKey.String()[:36]
+	shortTlfIDStr := tlfID.String()[:16]
+	dir := fmt.Sprintf("%s-%s", shortDeviceIDStr, shortTlfIDStr)
+	return filepath.Join(j.rootPath(), dir)
 }
 
 func (j *JournalServer) getTLFJournal(tlfID TlfID) (*tlfJournal, bool) {
@@ -180,8 +197,8 @@ func (j *JournalServer) EnableExistingJournals(
 		return errors.New("Current verifying key is empty")
 	}
 
-	// Need to set it here since getDirLocked and enableLocked
-	// depend on it.
+	// Need to set it here since tlfJournalPathLocked and
+	// enableLocked depend on it.
 	j.currentUID = currentUID
 	j.currentVerifyingKey = currentVerifyingKey
 
@@ -194,7 +211,7 @@ func (j *JournalServer) EnableExistingJournals(
 		}
 	}()
 
-	fileInfos, err := ioutil.ReadDir(j.getDirLocked())
+	fileInfos, err := ioutil.ReadDir(j.rootPath())
 	if os.IsNotExist(err) {
 		enableSucceeded = true
 		return nil
@@ -208,9 +225,34 @@ func (j *JournalServer) EnableExistingJournals(
 			j.log.CDebugf(ctx, "Skipping file %q", name)
 			continue
 		}
-		tlfID, err := ParseTlfID(fi.Name())
+
+		dir := filepath.Join(j.rootPath(), name)
+		uid, key, tlfID, err := readTLFJournalInfoFile(dir)
 		if err != nil {
-			j.log.CDebugf(ctx, "Skipping non-TLF dir %q", name)
+			j.log.CDebugf(
+				ctx, "Skipping non-TLF dir %q: %v", name, err)
+			continue
+		}
+
+		if uid != currentUID {
+			j.log.CDebugf(
+				ctx, "Skipping dir %q due to mismatched UID %s",
+				name, uid)
+			continue
+		}
+
+		if key != currentVerifyingKey {
+			j.log.CDebugf(
+				ctx, "Skipping dir %q due to mismatched key %s",
+				name, uid)
+			continue
+		}
+
+		expectedDir := j.tlfJournalPathLocked(tlfID)
+		if dir != expectedDir {
+			j.log.CDebugf(
+				ctx, "Skipping misnamed dir %q; expected %q",
+				dir, expectedDir)
 			continue
 		}
 
@@ -273,8 +315,9 @@ func (j *JournalServer) enableLocked(
 			"Got ignorable error on journal enable, and proceeding anyway: %v", err)
 	}
 
+	tlfDir := j.tlfJournalPathLocked(tlfID)
 	tlfJournal, err := makeTLFJournal(
-		ctx, j.currentUID, j.currentVerifyingKey, j.getDirLocked(),
+		ctx, j.currentUID, j.currentVerifyingKey, tlfDir,
 		tlfID, tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
 		bws, nil, j.onBranchChange, j.onMDFlush)
 	if err != nil {
@@ -440,10 +483,10 @@ func (j *JournalServer) Status() JournalServerStatus {
 				j.currentUID, j.currentVerifyingKey
 		}()
 	return JournalServerStatus{
-		RootDir:             j.dir,
+		RootDir:             j.rootPath(),
 		Version:             1,
-		CurrentUID:          currentUID.String(),
-		CurrentVerifyingKey: currentVerifyingKey.String(),
+		CurrentUID:          currentUID,
+		CurrentVerifyingKey: currentVerifyingKey,
 		JournalCount:        journalCount,
 		UnflushedBytes:      unflushedBytes,
 	}

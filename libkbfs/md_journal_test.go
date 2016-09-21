@@ -412,8 +412,8 @@ func testMDJournalGCd(t *testing.T, j *mdJournal) {
 	})
 	filepath.Walk(j.mdsPath(),
 		func(path string, info os.FileInfo, _ error) error {
-			// We shouldn't find any files.
-			require.True(t, info.IsDir(), "%s is not a dir", path)
+			// We should only find the MD directory here.
+			require.Equal(t, path, j.mdsPath())
 			return nil
 		})
 }

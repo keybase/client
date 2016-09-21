@@ -5,8 +5,11 @@
 package libkbfs
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -43,6 +46,7 @@ func (ca tlfJournalConfigAdapter) encryptionKeyGetter() encryptionKeyGetter {
 // display in diagnostics. It is suitable for encoding directly as
 // JSON.
 type TLFJournalStatus struct {
+	Dir            string
 	RevisionStart  MetadataRevision
 	RevisionEnd    MetadataRevision
 	BranchID       string
@@ -110,10 +114,15 @@ type tlfJournalBWDelegate interface {
 // adding to those journals (via journalBlockServer or journalMDOps)
 // and a background goroutine that flushes journal entries to the
 // servers.
+//
+// The maximum number of characters added to the root dir by a TLF
+// journal is 59, which just the max of the block journal and MD
+// journal numbers.
 type tlfJournal struct {
 	uid                 keybase1.UID
 	key                 VerifyingKey
 	tlfID               TlfID
+	dir                 string
 	config              tlfJournalConfig
 	delegateBlockServer BlockServer
 	log                 logger.Logger
@@ -152,6 +161,48 @@ type tlfJournal struct {
 	bwDelegate tlfJournalBWDelegate
 }
 
+func getTLFJournalInfoFilePath(dir string) string {
+	return filepath.Join(dir, "info.json")
+}
+
+type tlfJournalInfo struct {
+	UID          keybase1.UID
+	VerifyingKey VerifyingKey
+	TlfID        TlfID
+}
+
+func readTLFJournalInfoFile(dir string) (
+	keybase1.UID, VerifyingKey, TlfID, error) {
+	infoJSON, err := ioutil.ReadFile(getTLFJournalInfoFilePath(dir))
+	if err != nil {
+		return keybase1.UID(""), VerifyingKey{}, TlfID{}, err
+	}
+
+	var info tlfJournalInfo
+	err = json.Unmarshal(infoJSON, &info)
+	if err != nil {
+		return keybase1.UID(""), VerifyingKey{}, TlfID{}, err
+	}
+
+	return info.UID, info.VerifyingKey, info.TlfID, nil
+}
+
+func writeTLFJournalInfoFile(
+	dir string, uid keybase1.UID, key VerifyingKey, tlfID TlfID) error {
+	info := tlfJournalInfo{uid, key, tlfID}
+	infoJSON, err := json.Marshal(info)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(dir, 0700)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(getTLFJournalInfoFilePath(dir), infoJSON, 0600)
+}
+
 func makeTLFJournal(
 	ctx context.Context, uid keybase1.UID, key VerifyingKey,
 	dir string, tlfID TlfID, config tlfJournalConfig,
@@ -164,25 +215,59 @@ func makeTLFJournal(
 	if key == (VerifyingKey{}) {
 		return nil, errors.New("Empty verifying key")
 	}
+	if tlfID == (TlfID{}) {
+		return nil, errors.New("Empty TlfID")
+	}
+
+	readUID, readKey, readTlfID, err := readTLFJournalInfoFile(dir)
+	switch {
+	case os.IsNotExist(err):
+		// Info file doesn't exist, so write it.
+		err := writeTLFJournalInfoFile(dir, uid, key, tlfID)
+		if err != nil {
+			return nil, err
+		}
+
+	case err != nil:
+		return nil, err
+
+	default:
+		// Info file exists, so it should match passed-in
+		// parameters.
+		if uid != readUID {
+			return nil, fmt.Errorf(
+				"Expected UID %s, got %s", uid, readUID)
+		}
+
+		if key != readKey {
+			return nil, fmt.Errorf(
+				"Expected verifying key %s, got %s",
+				key, readKey)
+		}
+
+		if tlfID != readTlfID {
+			return nil, fmt.Errorf(
+				"Expected TLF ID %s, got %s", tlfID, readTlfID)
+		}
+	}
 
 	log := config.MakeLogger("TLFJ")
 
-	tlfDir := filepath.Join(dir, tlfID.String())
-
 	blockJournal, err := makeBlockJournal(
-		ctx, config.Codec(), config.Crypto(), tlfDir, log)
+		ctx, config.Codec(), config.Crypto(), dir, log)
 	if err != nil {
 		return nil, err
 	}
 
 	mdJournal, err := makeMDJournal(
-		uid, key, config.Codec(), config.Crypto(), tlfDir, log)
+		uid, key, config.Codec(), config.Crypto(), dir, log)
 	if err != nil {
 		return nil, err
 	}
 
 	j := &tlfJournal{
 		tlfID:                tlfID,
+		dir:                  dir,
 		config:               config,
 		delegateBlockServer:  delegateBlockServer,
 		log:                  log,
@@ -204,7 +289,7 @@ func makeTLFJournal(
 	// Signal work to pick up any existing journal entries.
 	j.signalWork()
 
-	j.log.CDebugf(ctx, "Enabled journal for %s with path %s", tlfID, tlfDir)
+	j.log.CDebugf(ctx, "Enabled journal for %s with path %s", tlfID, dir)
 	return j, nil
 }
 
@@ -714,6 +799,7 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 		return TLFJournalStatus{}, err
 	}
 	return TLFJournalStatus{
+		Dir:            j.dir,
 		BranchID:       j.mdJournal.getBranchID().String(),
 		RevisionStart:  earliestRevision,
 		RevisionEnd:    latestRevision,

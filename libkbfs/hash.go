@@ -90,6 +90,9 @@ type Hash struct {
 var _ encoding.BinaryMarshaler = Hash{}
 var _ encoding.BinaryUnmarshaler = (*Hash)(nil)
 
+var _ json.Marshaler = Hash{}
+var _ json.Unmarshaler = (*Hash)(nil)
+
 // HashFromRaw creates a hash from a type and raw hash data. If the
 // returned error is nil, the returned Hash is valid.
 func HashFromRaw(hashType HashType, rawHash []byte) (Hash, error) {

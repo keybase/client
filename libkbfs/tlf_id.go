@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"encoding"
 	"encoding/hex"
+	"encoding/json"
 )
 
 const (
@@ -28,6 +29,9 @@ type TlfID struct {
 
 var _ encoding.BinaryMarshaler = TlfID{}
 var _ encoding.BinaryUnmarshaler = (*TlfID)(nil)
+
+var _ json.Marshaler = TlfID{}
+var _ json.Unmarshaler = (*TlfID)(nil)
 
 // NullTlfID is an empty TlfID
 var NullTlfID = TlfID{}
@@ -62,6 +66,28 @@ func (id *TlfID) UnmarshalBinary(data []byte) error {
 		return InvalidTlfID{hex.EncodeToString(data)}
 	}
 	copy(id.id[:], data)
+	return nil
+}
+
+// MarshalJSON implements the encoding.json.Marshaler interface for
+// TlfID.
+func (id TlfID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(id.String())
+}
+
+// UnmarshalJSON implements the encoding.json.Unmarshaler interface
+// for TlfID.
+func (id *TlfID) UnmarshalJSON(buf []byte) error {
+	var str string
+	err := json.Unmarshal(buf, &str)
+	if err != nil {
+		return err
+	}
+	newID, err := ParseTlfID(str)
+	if err != nil {
+		return err
+	}
+	*id = newID
 	return nil
 }
 
