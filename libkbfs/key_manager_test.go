@@ -502,7 +502,7 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	daemon.addNewAssertionForTestOrBust("dave", "dave@twitter")
 
 	_, bobUID, err := daemon.Resolve(ctx, "bob")
-	daemon.currentUID = bobUID
+	daemon.setCurrentUID(bobUID)
 
 	// Now resolve using only a device addition, which won't bump the
 	// generation number.

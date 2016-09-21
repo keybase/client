@@ -29,40 +29,43 @@ func (m localUserMap) getLocalUser(uid keybase1.UID) (LocalUser, error) {
 }
 
 type favoriteStore interface {
-	FavoriteAdd(folder keybase1.Folder) error
-	FavoriteDelete(folder keybase1.Folder) error
-	FavoriteList(sessionID int) ([]keybase1.Folder, error)
+	FavoriteAdd(uid keybase1.UID, folder keybase1.Folder) error
+	FavoriteDelete(uid keybase1.UID, folder keybase1.Folder) error
+	FavoriteList(uid keybase1.UID) ([]keybase1.Folder, error)
 
 	Shutdown()
 }
 
 type diskFavoriteClient struct {
-	currentUID keybase1.UID
 	favoriteDb *leveldb.DB
 	codec      Codec
 }
 
 var _ favoriteStore = diskFavoriteClient{}
 
-func (c diskFavoriteClient) favkey(folder keybase1.Folder) []byte {
-	return []byte(fmt.Sprintf("%s:%s", c.currentUID, folder.Name))
+func (c diskFavoriteClient) favkey(
+	uid keybase1.UID, folder keybase1.Folder) []byte {
+	return []byte(fmt.Sprintf("%s:%s", uid, folder.ToString()))
 }
 
-func (c diskFavoriteClient) FavoriteAdd(folder keybase1.Folder) error {
+func (c diskFavoriteClient) FavoriteAdd(
+	uid keybase1.UID, folder keybase1.Folder) error {
 	enc, err := c.codec.Encode(folder)
 	if err != nil {
 		return err
 	}
 
-	return c.favoriteDb.Put(c.favkey(folder), enc, nil)
+	return c.favoriteDb.Put(c.favkey(uid, folder), enc, nil)
 }
 
-func (c diskFavoriteClient) FavoriteDelete(folder keybase1.Folder) error {
-	return c.favoriteDb.Delete(c.favkey(folder), nil)
+func (c diskFavoriteClient) FavoriteDelete(
+	uid keybase1.UID, folder keybase1.Folder) error {
+	return c.favoriteDb.Delete(c.favkey(uid, folder), nil)
 }
 
-func (c diskFavoriteClient) FavoriteList(sessionID int) ([]keybase1.Folder, error) {
-	iter := c.favoriteDb.NewIterator(util.BytesPrefix([]byte(c.currentUID+":")), nil)
+func (c diskFavoriteClient) FavoriteList(uid keybase1.UID) (
+	[]keybase1.Folder, error) {
+	iter := c.favoriteDb.NewIterator(util.BytesPrefix([]byte(uid+":")), nil)
 	defer iter.Release()
 	var folders []keybase1.Folder
 	for iter.Next() {
@@ -84,25 +87,33 @@ func (c diskFavoriteClient) Shutdown() {
 }
 
 type memoryFavoriteClient struct {
-	favorites map[string]keybase1.Folder
+	favorites map[keybase1.UID]map[string]keybase1.Folder
 }
 
 var _ favoriteStore = memoryFavoriteClient{}
 
-func (c memoryFavoriteClient) FavoriteAdd(folder keybase1.Folder) error {
-	c.favorites[folder.ToString()] = folder
+func (c memoryFavoriteClient) FavoriteAdd(
+	uid keybase1.UID, folder keybase1.Folder) error {
+	if c.favorites[uid] == nil {
+		c.favorites[uid] = make(map[string]keybase1.Folder)
+	}
+	c.favorites[uid][folder.ToString()] = folder
 	return nil
 }
 
-func (c memoryFavoriteClient) FavoriteDelete(folder keybase1.Folder) error {
-	delete(c.favorites, folder.ToString())
+func (c memoryFavoriteClient) FavoriteDelete(
+	uid keybase1.UID, folder keybase1.Folder) error {
+	if c.favorites[uid] != nil {
+		delete(c.favorites[uid], folder.ToString())
+	}
 	return nil
 }
 
-func (c memoryFavoriteClient) FavoriteList(sessionID int) ([]keybase1.Folder, error) {
-	folders := make([]keybase1.Folder, len(c.favorites))
+func (c memoryFavoriteClient) FavoriteList(
+	uid keybase1.UID) ([]keybase1.Folder, error) {
+	folders := make([]keybase1.Folder, len(c.favorites[uid]))
 	i := 0
-	for _, v := range c.favorites {
+	for _, v := range c.favorites[uid] {
 		folders[i] = v
 		i++
 	}
@@ -116,16 +127,22 @@ func (c memoryFavoriteClient) Shutdown() {}
 type KeybaseDaemonLocal struct {
 	codec Codec
 
-	// lock protects localUsers and asserts against races.
-	lock       sync.Mutex
-	localUsers localUserMap
-	asserts    map[string]keybase1.UID
-
+	// lock protects everything below.
+	lock          sync.Mutex
+	localUsers    localUserMap
 	currentUID    keybase1.UID
+	asserts       map[string]keybase1.UID
 	favoriteStore favoriteStore
 }
 
 var _ KeybaseService = &KeybaseDaemonLocal{}
+
+func (k *KeybaseDaemonLocal) setCurrentUID(uid keybase1.UID) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	// TODO: Send out notifications.
+	k.currentUID = uid
+}
 
 func (k *KeybaseDaemonLocal) assertionToUIDLocked(ctx context.Context,
 	assertion string) (uid keybase1.UID, err error) {
@@ -380,19 +397,25 @@ func (k *KeybaseDaemonLocal) switchDeviceForTesting(uid keybase1.UID,
 // FavoriteAdd implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteAdd(
 	ctx context.Context, folder keybase1.Folder) error {
-	return k.favoriteStore.FavoriteAdd(folder)
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	return k.favoriteStore.FavoriteAdd(k.currentUID, folder)
 }
 
 // FavoriteDelete implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteDelete(
 	ctx context.Context, folder keybase1.Folder) error {
-	return k.favoriteStore.FavoriteDelete(folder)
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	return k.favoriteStore.FavoriteDelete(k.currentUID, folder)
 }
 
 // FavoriteList implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteList(
 	ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
-	return k.favoriteStore.FavoriteList(sessionID)
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	return k.favoriteStore.FavoriteList(k.currentUID)
 }
 
 // Notify implements KeybaseDaemon for KeybaseDeamonLocal.
@@ -434,7 +457,7 @@ func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []LocalUser,
 	if err != nil {
 		return nil, err
 	}
-	favoriteStore := diskFavoriteClient{currentUID, favoriteDb, codec}
+	favoriteStore := diskFavoriteClient{favoriteDb, codec}
 	return newKeybaseDaemonLocal(codec, currentUID, users, favoriteStore), nil
 }
 
@@ -444,7 +467,7 @@ func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []LocalUser,
 func NewKeybaseDaemonMemory(currentUID keybase1.UID,
 	users []LocalUser, codec Codec) *KeybaseDaemonLocal {
 	favoriteStore := memoryFavoriteClient{
-		favorites: make(map[string]keybase1.Folder),
+		favorites: make(map[keybase1.UID]map[string]keybase1.Folder),
 	}
 	return newKeybaseDaemonLocal(codec, currentUID, users, favoriteStore)
 }
