@@ -27,7 +27,8 @@
     "help": "babel-node --presets es2015,stage-2 npm-helper.js help",
     "watch-test-file": "KEYBASE_RUN_MODE=devel babel-node --presets es2015,stage-2 npm-helper.js watch-test-file",
     "mocha": "KEYBASE_RUN_MODE=devel node_modules/mocha/bin/mocha --require source-map-support/register dist/test.bundle.js",
-    "test": "babel-node --presets es2015,stage-2 npm-helper.js test && npm run mocha"
+    "test": "babel-node --presets es2015,stage-2 npm-helper.js test && npm run mocha",
+    "undiff-log": "babel-node --presets es2015,stage-2 npm-helper.js undiff-log"
   },
   "keywords": [],
   "author": "",
