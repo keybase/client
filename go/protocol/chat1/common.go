@@ -157,6 +157,7 @@ type MessagePreviousPointer struct {
 type MessageClientHeader struct {
 	Conv         ConversationIDTriple     `codec:"conv" json:"conv"`
 	TlfName      string                   `codec:"tlfName" json:"tlfName"`
+	TlfPublic    bool                     `codec:"tlfPublic" json:"tlfPublic"`
 	MessageType  MessageType              `codec:"messageType" json:"messageType"`
 	Supersedes   MessageID                `codec:"supersedes" json:"supersedes"`
 	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`

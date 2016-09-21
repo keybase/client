@@ -1590,12 +1590,28 @@ export function tlfCryptKeysRpcPromise (request: $Exact<requestCommon & {callbac
   return new Promise((resolve, reject) => { tlfCryptKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function tlfKeysGetPublicCanonicalTLFNameAndIDRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetPublicCanonicalTLFNameAndIDResult) => void} & {param: tlfKeysGetPublicCanonicalTLFNameAndIDRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'tlfKeys.getPublicCanonicalTLFNameAndID'})
+}
+
+export function tlfKeysGetPublicCanonicalTLFNameAndIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetPublicCanonicalTLFNameAndIDResult) => void} & {param: tlfKeysGetPublicCanonicalTLFNameAndIDRpcParam}>): Promise<tlfKeysGetPublicCanonicalTLFNameAndIDResult> {
+  return new Promise((resolve, reject) => { tlfKeysGetPublicCanonicalTLFNameAndIDRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function tlfKeysGetTLFCryptKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'tlfKeys.getTLFCryptKeys'})
 }
 
 export function tlfKeysGetTLFCryptKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>): Promise<tlfKeysGetTLFCryptKeysResult> {
   return new Promise((resolve, reject) => { tlfKeysGetTLFCryptKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function tlfPublicCanonicalTLFNameAndIDRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfPublicCanonicalTLFNameAndIDResult) => void} & {param: tlfPublicCanonicalTLFNameAndIDRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'tlf.publicCanonicalTLFNameAndID'})
+}
+
+export function tlfPublicCanonicalTLFNameAndIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfPublicCanonicalTLFNameAndIDResult) => void} & {param: tlfPublicCanonicalTLFNameAndIDRpcParam}>): Promise<tlfPublicCanonicalTLFNameAndIDResult> {
+  return new Promise((resolve, reject) => { tlfPublicCanonicalTLFNameAndIDRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function trackCheckTrackingRpc (request: Exact<requestCommon & requestErrorCallback>) {
@@ -1795,6 +1811,11 @@ export type BoxNonce = any
 export type BoxPublicKey = any
 
 export type Bytes32 = any
+
+export type CanonicalTLFNameAndID = {
+  tlfID: TLFID,
+  CanonicalName: CanonicalTlfName,
+}
 
 export type CanonicalTlfName = string
 
@@ -3121,8 +3142,8 @@ export type UserSummary2 = {
   username: string,
   thumbnail: string,
   fullName: string,
-  isFollower: bool,
-  isFollowee: bool,
+  isFollower: boolean,
+  isFollowee: boolean,
 }
 
 export type UserSummary2Set = {
@@ -3344,7 +3365,7 @@ export type identifyIdentify2RpcParam = Exact<{
   needProofSet?: boolean,
   allowEmptySelfID?: boolean,
   noSkipSelf?: boolean,
-  canSuppressUI?: bool
+  canSuppressUI?: boolean
 }>
 
 export type identifyIdentifyRpcParam = Exact<{
@@ -3833,7 +3854,7 @@ export type saltpackSaltpackVerifyRpcParam = Exact<{
 
 export type saltpackUiSaltpackPromptForDecryptRpcParam = Exact<{
   sender: SaltpackSender,
-  usedDelegateUI: bool
+  usedDelegateUI: boolean
 }>
 
 export type saltpackUiSaltpackVerifySuccessRpcParam = Exact<{
@@ -3913,7 +3934,15 @@ export type tlfCryptKeysRpcParam = Exact<{
   tlfName: string
 }>
 
+export type tlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = Exact<{
+  tlfName: string
+}>
+
 export type tlfKeysGetTLFCryptKeysRpcParam = Exact<{
+  tlfName: string
+}>
+
+export type tlfPublicCanonicalTLFNameAndIDRpcParam = Exact<{
   tlfName: string
 }>
 
@@ -3947,7 +3976,7 @@ export type uiPromptYesNoRpcParam = Exact<{
 
 export type userListTrackers2RpcParam = Exact<{
   assertion: string,
-  reverse: bool
+  reverse: boolean
 }>
 
 export type userListTrackersByNameRpcParam = Exact<{
@@ -4125,7 +4154,7 @@ type pgpPgpPurgeResult = PGPPurgeRes
 
 type pgpPgpVerifyResult = PGPSigVerification
 
-type pgpUiShouldPushPrivateResult = bool
+type pgpUiShouldPushPrivateResult = boolean
 
 type proveCheckProofResult = CheckProofStatus
 
@@ -4185,7 +4214,11 @@ type tlfCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
 
 type tlfCryptKeysResult = TLFCryptKeys
 
+type tlfKeysGetPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndID
+
 type tlfKeysGetTLFCryptKeysResult = TLFCryptKeys
+
+type tlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndID
 
 type uiPromptYesNoResult = boolean
 
@@ -4366,7 +4399,9 @@ export type rpc =
   | testTestRpc
   | tlfCompleteAndCanonicalizeTlfNameRpc
   | tlfCryptKeysRpc
+  | tlfKeysGetPublicCanonicalTLFNameAndIDRpc
   | tlfKeysGetTLFCryptKeysRpc
+  | tlfPublicCanonicalTLFNameAndIDRpc
   | trackCheckTrackingRpc
   | trackDismissWithTokenRpc
   | trackFakeTrackingChangedRpc
@@ -4942,7 +4977,7 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       sessionID: int,
       sender: SaltpackSender,
-      usedDelegateUI: bool
+      usedDelegateUI: boolean
     }>,
     response: CommonResponseHandler
   ) => void,

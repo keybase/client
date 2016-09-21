@@ -138,29 +138,34 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                         }
                                         sh "desktop/node_modules/.bin/eslint ."
                                         // Only run visdiff for PRs
-                                        // FIXME visdiff currently hangs. Re-enable once we know how to fix it.
-                                        //if (env.CHANGE_ID) {
-                                        //    wrap([$class: 'Xvfb', screen: '1280x1024x16']) {
-                                        //    withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                        //            credentialsId: 'visdiff-aws-creds',
-                                        //            usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
-                                        //            passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
-                                        //        ],[$class: 'StringBinding',
-                                        //            credentialsId: 'visdiff-github-token',
-                                        //            variable: 'VISDIFF_GH_TOKEN',
-                                        //    ]]) {
-                                        //    withEnv([
-                                        //        "VISDIFF_PR_ID=${env.CHANGE_ID}",
-                                        //    ]) {
-                                        //        dir("visdiff") {
-                                        //            sh "npm install"
-                                        //        }
-                                        //        sh "npm install ./visdiff"
-                                        //        dir("desktop") {
-                                        //            sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, HEAD)...HEAD'"
-                                        //        }
-                                        //    }}}
-                                        //}
+                                        if (env.CHANGE_ID) {
+                                            wrap([$class: 'Xvfb', screen: '1280x1024x16']) {
+                                            withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                                    credentialsId: 'visdiff-aws-creds',
+                                                    usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
+                                                    passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
+                                                ],[$class: 'StringBinding',
+                                                    credentialsId: 'visdiff-github-token',
+                                                    variable: 'VISDIFF_GH_TOKEN',
+                                            ]]) {
+                                            withEnv([
+                                                "VISDIFF_PR_ID=${env.CHANGE_ID}",
+                                            ]) {
+                                                dir("visdiff") {
+                                                    sh "npm install"
+                                                }
+                                                sh "npm install ./visdiff"
+                                                try {
+                                                    timeout(time: 10, unit: 'MINUTES') {
+                                                        dir("desktop") {
+                                                            sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, HEAD)...HEAD'"
+                                                        }
+                                                    }
+                                                } catch (e) {
+                                                    helpers.slackMessage("#breaking-visdiff", "warning", "<@mgood>: visdiff failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>")
+                                                }
+                                            }}}
+                                        }
                                     }},
                                     test_kbfs: {
                                         dir('go') {

@@ -245,6 +245,10 @@ export type EncryptedData = {
   n: bytes,
 }
 
+export type GenericPayload = {
+  Action: string,
+}
+
 export type GetConversationMetadataRemoteRes = {
   conv: Conversation,
   rateLimit?: ?RateLimit,
@@ -262,7 +266,7 @@ export type GetInboxQuery = {
   tlfVisibility?: ?TLFVisibility,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
-  unreadOnly: bool,
+  unreadOnly: boolean,
 }
 
 export type GetInboxRemoteRes = {
@@ -282,7 +286,7 @@ export type GetMessagesRemoteRes = {
 }
 
 export type GetThreadQuery = {
-  markAsRead: bool,
+  markAsRead: boolean,
   messageTypes?: ?Array<MessageType>,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
@@ -301,6 +305,7 @@ export type HeaderPlaintext =
 export type HeaderPlaintextV1 = {
   conv: ConversationIDTriple,
   tlfName: string,
+  tlfPublic: boolean,
   messageType: MessageType,
   prev?: ?Array<MessagePreviousPointer>,
   sender: gregor1.UID,
@@ -350,6 +355,7 @@ export type MessageBoxed = {
 export type MessageClientHeader = {
   conv: ConversationIDTriple,
   tlfName: string,
+  tlfPublic: boolean,
   messageType: MessageType,
   supersedes: MessageID,
   prev?: ?Array<MessagePreviousPointer>,

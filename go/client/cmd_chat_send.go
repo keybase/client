@@ -56,11 +56,12 @@ func (c *cmdChatSend) Run() (err error) {
 	ctx := context.TODO()
 
 	var conversationInfo chat1.ConversationInfoLocal
-	conversationInfos, err := c.resolver.Resolve(context.TODO(), chatClient, tlfClient)
+	resolved, err := c.resolver.Resolve(context.TODO(), c.G(), chatClient, tlfClient)
 	if err != nil {
 		return err
 	}
-	if len(conversationInfos) == 0 {
+
+	if resolved == nil {
 		conversationInfo, err = chatClient.NewConversationLocal(ctx, chat1.ConversationInfoLocal{
 			TlfName:   c.resolver.TlfName,
 			TopicName: c.resolver.TopicName,
@@ -70,12 +71,14 @@ func (c *cmdChatSend) Run() (err error) {
 			return fmt.Errorf("creating conversation error: %v\n", err)
 		}
 	} else {
-		// TODO: prompt user to choose one
-		conversationInfo = conversationInfos[0]
+		conversationInfo = *resolved
+	}
+
+	if err = c.G().UI.GetTerminalUI().PromptForConfirmation(fmt.Sprintf("Send to %s?", conversationInfo.TlfName)); err != nil {
+		return err
 	}
 
 	var args chat1.PostLocalArg
-	// TODO: prompt user to choose one if multiple exist
 	args.ConversationID = conversationInfo.Id
 
 	var msgV1 chat1.MessagePlaintextV1
@@ -101,19 +104,29 @@ func (c *cmdChatSend) Run() (err error) {
 		}
 	}
 
+	c.G().UI.GetTerminalUI().Printf("sent!\n")
+
 	return nil
 }
 
 func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
-	if len(ctx.Args()) != 2 {
-		return fmt.Errorf("keybase chat send takes 2 args")
+	switch len(ctx.Args()) {
+	case 2:
+		tlfName := ctx.Args().Get(0)
+		if c.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
+			return err
+		}
+		c.message = ctx.Args().Get(1)
+	case 1:
+		if c.resolver, err = parseConversationResolver(ctx, ""); err != nil {
+			return err
+		}
+		c.message = ctx.Args().Get(0)
+	default:
+		return fmt.Errorf("keybase chat send takes 1 or 2 args")
 	}
-	tlfName := ctx.Args().Get(0)
-	if c.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
-		return err
-	}
-	c.message = ctx.Args().Get(1)
 	c.setTopicName = ctx.String("set-topic-name")
+
 	return nil
 }
 

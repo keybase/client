@@ -1,0 +1,22 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  onChangeCurrentPassphrase: (currentPassphrase: string) => void,
+  onChangeNewPassphrase: (newPassphrase: string) => void,
+  onChangeNewPassphraseConfirm: (newPassphraseConfirm: string) => void,
+  onChangeShowPassphrase: (showPassphrase: boolean) => void,
+  currentPassphrase: string,
+  newPassphrase: string,
+  newPassphraseConfirm: string,
+  showTyping: boolean,
+  errorMessage?: ?string,
+  newPassphraseError: ?string,
+  newPassphraseConfirmError: ?string,
+  canSave: boolean,
+  onBack: () => void,
+  onSave: () => void,
+  onForgotPassphrase: () => void,
+}
+
+export default class UpdatePassphrase extends Component<void, Props, void> {}

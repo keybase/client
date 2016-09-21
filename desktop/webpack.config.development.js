@@ -38,6 +38,7 @@ config.plugins.push(new UnusedFilesWebpackPlugin({
       '../shared/constants/types/flux.js',
       '../shared/constants/types/saga.js',
       '../shared/constants/reducer.js',
+      '../shared/flow-typed/*.js',
       // Tests
       '../shared/test/**',
       // Misc
