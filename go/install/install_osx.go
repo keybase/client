@@ -417,7 +417,11 @@ func Install(context Context, binPath string, components []string, force bool, l
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		if !isKBFSCompatible(log) {
+		if !isKBFSCompatible(log) && !force {
+			// Uninstall in case it was started somehow
+			if uninstallErr := launchd.Uninstall(DefaultKBFSLabel(context.GetRunMode()), time.Second, log); uninstallErr != nil {
+				log.Errorf("KBFS is not compatible; Error trying to uninstall KBFS: %s", uninstallErr)
+			}
 			err = fmt.Errorf("Oops, the Keybase Filesystem isn't currently available on MacOS 10.12 (Sierra). We are working on a fix which should be available shortly.")
 		} else {
 			err = InstallKBFS(context, binPath, force, log)

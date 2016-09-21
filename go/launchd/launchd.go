@@ -242,14 +242,16 @@ func (s Service) install(p Plist, plistDest string, wait time.Duration) error {
 
 // Uninstall will uninstall the launchd service
 func (s Service) Uninstall(wait time.Duration) error {
-	if _, err := s.Stop(wait); err != nil {
-		return err
-	}
-
+	// It's safer to remove the plist before stopping in case stopping
+	// hangs the system somehow, the plist will still be removed.
 	plistDest := s.plistDestination()
 	if _, err := os.Stat(plistDest); err == nil {
 		s.log.Info("Removing %s", plistDest)
 		return os.Remove(plistDest)
+	}
+
+	if _, err := s.Stop(wait); err != nil {
+		return err
 	}
 	return nil
 }
