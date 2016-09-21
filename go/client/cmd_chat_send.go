@@ -79,8 +79,8 @@ func (c *cmdChatSend) Run() (err error) {
 	args.ConversationID = conversationInfo.Id
 
 	var msgV1 chat1.MessagePlaintextV1
-	// msgV1.ClientHeader.Conv omitted
 	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
+	msgV1.ClientHeader.Conv = conversationInfo.Triple
 	msgV1.ClientHeader.TlfName = conversationInfo.TlfName
 	msgV1.ClientHeader.MessageType = chat1.MessageType_TEXT
 	msgV1.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{Body: c.message})
