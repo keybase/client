@@ -106,14 +106,6 @@ func serviceToString(service keybase1.ProofType) (string, libkb.ProofError) {
 	return "", libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL, "Unsupported service %v", service)
 }
 
-func jsonHasKey(w *jsonw.Wrapper, key string) bool {
-	return !w.AtKey(key).IsNil()
-}
-
-func jsonHasKeyCommand(w *jsonw.Wrapper, key commandName) bool {
-	return !w.AtKey(string(key)).IsNil()
-}
-
 // Return the elements of an array.
 func jsonUnpackArray(w *jsonw.Wrapper) ([]*jsonw.Wrapper, error) {
 	w, err := w.ToArray()

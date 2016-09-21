@@ -67,30 +67,6 @@ func TestServiceToString(t *testing.T) {
 	}
 }
 
-type jsonHasKeyTest struct {
-	json *jsonw.Wrapper
-	key  string
-	has  bool
-}
-
-var jsonHasKeyTests = []jsonHasKeyTest{
-	{jsonw.NewBool(true), "foo", false},
-	{makeJSONDangerous(`{"foo": "bar"}`), "foo", true},
-	{makeJSONDangerous(`{"baz": "bar"}`), "foo", false},
-	{makeJSONDangerous(`[0, 1, 2]`), "0", false},
-}
-
-func TestJSONHasKey(t *testing.T) {
-	for i, test := range jsonHasKeyTests {
-		if jsonHasKey(test.json, test.key) != test.has {
-			t.Fatalf("%v %v", i, !test.has)
-		}
-		if jsonHasKeyCommand(test.json, commandName(test.key)) != test.has {
-			t.Fatalf("%v %v", i, !test.has)
-		}
-	}
-}
-
 type substituteTest struct {
 	shouldwork    bool
 	service       keybase1.ProofType
