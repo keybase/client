@@ -80,7 +80,7 @@ export function getProfile (username: string, ignoreCache?: boolean): TrackerAct
     const tracker = getState().tracker
 
     // If we have a pending identify no point in firing off another one
-    if (tracker.pendingIdentifies[username]) {
+    if (!ignoreCache && tracker.pendingIdentifies[username]) {
       console.log('Bailing on simultaneous getProfile', username)
       return
     }
@@ -133,9 +133,9 @@ export function triggerIdentify (uid: string = '', userAssertion: string = '', i
       callback: (error, response) => {
         console.log('called identify and got back', error, response)
         if (error) {
-          dispatch({type: Constants.identifyFinished, error: true, payload: {error: error.desc}})
+          dispatch({type: Constants.identifyFinished, error: true, payload: {username: uid || userAssertion, error: error.desc}})
         }
-        dispatch({type: Constants.identifyFinished, payload: null})
+        dispatch({type: Constants.identifyFinished, payload: {username: uid || userAssertion}})
         resolve()
       },
     })
@@ -171,9 +171,20 @@ export function registerIdentifyUi (): TrackerActionCreator {
     }
 
     engine().setIncomingHandler('keybase.1.identifyUi.delegateIdentifyUI', (param: any, response: ?Object) => {
+      // If we don't finish the session by our timeout, we'll display an error
+      const trackerTimeout = 1e3 * 60 * 5
+      let trackerTimeoutError = 0
+
+      const onStart = (username) => {
+        trackerTimeoutError = setTimeout(() => {
+          dispatch({type: Constants.identifyFinished, error: true, payload: {username, error: 'Identify timed out'}})
+        }, trackerTimeout)
+      }
+
       const session: Session = engine().createSession(
-        serverCallMap(dispatch, getState, false, () => {
+        serverCallMap(dispatch, getState, false, onStart, () => {
           session.end()
+          clearTimeout(trackerTimeoutError)
         }), null, cancelHandler)
 
       response && response.result(session.id)
@@ -391,7 +402,7 @@ function updatePGPKey (username: string, pgpFingerprint: Buffer, kid: string): A
 
 const sessionIDToUsername: { [key: number]: string } = {}
 // TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
-function serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: boolean = false, onFinish: ?() => void): incomingCallMapType {
+function serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: boolean = false, onStart: ?(username: string) => void, onFinish: ?() => void): incomingCallMapType {
   // if true we already have a pending call so lets skip a ton of work
   let username
   let clearPendingTimeout
@@ -412,6 +423,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: bo
       response.result()
       username = currentUsername
       sessionIDToUsername[sessionID] = username
+      onStart && onStart(username)
 
       if (getState().tracker.pendingIdentifies[username]) {
         console.log('Bailing on idenitifies in time window', username)
@@ -598,6 +610,8 @@ function serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: bo
         // Check if there were any errors in the proofs
         dispatch({type: Constants.updateProofState, payload: {username}})
 
+        dispatch({type: Constants.identifyFinished, payload: {username}})
+
         if (showAllTrackers && !isGetProfile) {
           console.log('showAllTrackers is on, so showing tracker')
           dispatch({type: Constants.showTracker, payload: {username}})
@@ -617,12 +631,12 @@ function serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: bo
           clearTimeout(clearPendingTimeout)
         }
 
-        onFinish && onFinish()
+        onFinish && onFinish(username)
       }, {timeout: 1e3})
 
       // if we're pending we still want to call onFinish
       if (alreadyPending) {
-        onFinish && onFinish()
+        onFinish && onFinish(username)
       }
 
       // cleanup bookkeeping

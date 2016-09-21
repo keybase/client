@@ -111,7 +111,7 @@ export default connect(
       onClickAvatar: (username, uid) => { dispatch(onClickAvatar(username, uid, true)) },
       onClickFollowers: (username, uid) => { dispatch(onClickFollowers(username, uid, true)) },
       onClickFollowing: (username, uid) => { dispatch(onClickFollowing(username, uid, true)) },
-      errorRetry: () => { actions.getProfile(ownProps.username, true) },
+      errorRetry: ownProps.errorRetry || (() => { actions.getProfile(ownProps.username, true) }),
     }
   },
   (stateProps, dispatchProps, ownProps) => {

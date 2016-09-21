@@ -11,7 +11,7 @@ function TrackerError ({errorMessage, onRetry, onClose}: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Header
-        reason={'Error in getting identity information :\'('}
+        reason={"Error in getting identity information :'("}
         onClose={onClose}
         trackerState={'error'}
         currentlyFollowing={false}
@@ -22,7 +22,7 @@ function TrackerError ({errorMessage, onRetry, onClose}: Props) {
         {errorMessage}
       </Text>
       <Box style={retryStyle}>
-        <Button onClick={onRetry} type='Primary' label='Retry fetching identity' />
+        <Button onClick={() => onRetry()} type='Primary' label='Retry fetching identity' />
       </Box>
     </Box>
   )
