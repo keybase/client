@@ -22,9 +22,8 @@ import (
 type chatLocalHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	gh             *gregorHandler
-	boxer          *chatBoxer
-	userInfoMapper userInfoMapper
+	gh    *gregorHandler
+	boxer *chatBoxer
 
 	// for test only
 	rc chat1.RemoteInterface
