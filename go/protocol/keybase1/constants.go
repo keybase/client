@@ -85,6 +85,8 @@ const (
 	StatusCode_SCChatNotInConv          StatusCode = 2504
 	StatusCode_SCChatBadMsg             StatusCode = 2505
 	StatusCode_SCChatBroadcast          StatusCode = 2506
+	StatusCode_SCChatAlreadySuperseded  StatusCode = 2507
+	StatusCode_SCChatAlreadyDeleted     StatusCode = 2508
 )
 
 var StatusCodeMap = map[string]StatusCode{
@@ -163,6 +165,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCChatNotInConv":          2504,
 	"SCChatBadMsg":             2505,
 	"SCChatBroadcast":          2506,
+	"SCChatAlreadySuperseded":  2507,
+	"SCChatAlreadyDeleted":     2508,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -241,6 +245,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2504: "SCChatNotInConv",
 	2505: "SCChatBadMsg",
 	2506: "SCChatBroadcast",
+	2507: "SCChatAlreadySuperseded",
+	2508: "SCChatAlreadyDeleted",
 }
 
 type ConstantsInterface interface {

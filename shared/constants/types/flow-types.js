@@ -144,6 +144,8 @@ export const ConstantsStatusCode = {
   scchatnotinconv: 2504,
   scchatbadmsg: 2505,
   scchatbroadcast: 2506,
+  scchatalreadysuperseded: 2507,
+  scchatalreadydeleted: 2508,
 }
 
 export const CtlExitCode = {
@@ -2989,6 +2991,8 @@ export type StatusCode =
   | 2504 // SCChatNotInConv_2504
   | 2505 // SCChatBadMsg_2505
   | 2506 // SCChatBroadcast_2506
+  | 2507 // SCChatAlreadySuperseded_2507
+  | 2508 // SCChatAlreadyDeleted_2508
 
 export type Stream = {
   fd: int,
