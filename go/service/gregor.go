@@ -16,8 +16,10 @@ import (
 	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/gregor/storage"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -842,45 +844,44 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		return errors.New("gregor handler for chat.activity: nil message body")
 	}
 
-	g.G().Log.Debug("ignoring newChatActivity OOBM, needs fix CORE-3789")
+	var activity keybase1.ChatActivity
+	var gm chat1.GenericPayload
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err := dec.Decode(&gm)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	g.G().Log.Debug("push handler: chat activity: action %s", gm.Action)
 
-	// TODO: this needs to use msgpack, not json see CORE-3789
-	/*
-		body, err := jsonw.Unmarshal(m.Body().Bytes())
+	action := gm.Action
+	reader.Reset(m.Body().Bytes())
+	switch action {
+	case "newMessage":
+		var nm chat1.NewMessagePayload
+		err = dec.Decode(&nm)
 		if err != nil {
+			g.G().Log.Error("push handler: chat activity: error decoding newMessage: %s", err.Error())
 			return err
 		}
 
-		action, err := body.AtPath("action").GetString()
+		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %d sender: %s",
+			nm.ConvID, nm.Message.ServerHeader.Sender)
+		boxer := newChatBoxer(g.G())
+		msg, err := boxer.unboxMessage(ctx, newKeyFinder(), nm.Message)
 		if err != nil {
+			g.G().Log.Error("push handler: chat activity: unable to unbox message: %s", err.Error())
 			return err
 		}
+		activity.IncomingMessage = &msg
+		activity.ActivityType = keybase1.ChatActivityType_INCOMING_MESSAGE
 
-		var activity keybase1.ChatActivity
+	default:
+		return fmt.Errorf("unhandled chat.activity action %q", action)
+	}
 
-		switch action {
-		case "newMessage":
-			var boxed chat1.MessageBoxed
-			if err = body.AtPath("payload").UnmarshalAgain(&boxed); err != nil {
-				return err
-			}
-
-			boxer := chatBoxer{tlf: newTlfHandler(nil, g.G())}
-			msg, err := boxer.unboxMessage(ctx, newKeyFinder(), boxed)
-			if err != nil {
-				return err
-			}
-			activity.IncomingMessage = &msg
-			activity.ActivityType = keybase1.ChatActivityType_INCOMING_MESSAGE
-
-		default:
-			return fmt.Errorf("unhandled chat.activity action %q", action)
-		}
-
-		return g.notifyNewChatActivity(ctx, m.UID(), &activity)
-	*/
+	return g.notifyNewChatActivity(ctx, m.UID(), &activity)
 }
 
 func (g *gregorHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID, activity *keybase1.ChatActivity) error {
