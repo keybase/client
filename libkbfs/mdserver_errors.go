@@ -39,6 +39,9 @@ const (
 	// StatusCodeMDServerErrorConflictFolderMapping is the error code for a folder handle to folder ID
 	// mapping conflict error.
 	StatusCodeMDServerErrorConflictFolderMapping = 2810
+	// StatusCodeMDServerErrorTooManyFoldersCreated is the error code to
+	// indicate that the user has created more folders than their limit.
+	StatusCodeMDServerErrorTooManyFoldersCreated = 2811
 )
 
 // MDServerError is a generic server-side error.
@@ -267,6 +270,27 @@ func (e MDServerErrorConflictFolderMapping) ToStatus() (s keybase1.Status) {
 	return
 }
 
+// MDServerErrorTooManyFoldersCreated is returned when a user has created more
+// folders than their limit allows.
+type MDServerErrorTooManyFoldersCreated struct {
+	Created uint64
+	Limit   uint64
+}
+
+// Error implements the Error interface for MDServerErrorTooManyFoldersCreated.
+func (e MDServerErrorTooManyFoldersCreated) Error() string {
+	return fmt.Sprintf("Too many folders created. Created: %d, limit: %d",
+		e.Created, e.Limit)
+}
+
+// ToStatus implements the ExportableError interface for MDServerErrorConflictFolderMapping
+func (e MDServerErrorTooManyFoldersCreated) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeMDServerErrorTooManyFoldersCreated
+	s.Name = "TOO_MANY_FOLDERS_CREATED"
+	s.Desc = e.Error()
+	return
+}
+
 // MDServerErrorUnwrapper is an implementation of rpc.ErrorUnwrapper
 // for errors coming from the MDServer.
 type MDServerErrorUnwrapper struct{}
@@ -322,6 +346,9 @@ func (eu MDServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, d
 		break
 	case StatusCodeMDServerErrorConflictFolderMapping:
 		appError = MDServerErrorConflictFolderMapping{Desc: s.Desc}
+		break
+	case StatusCodeMDServerErrorTooManyFoldersCreated:
+		appError = MDServerErrorTooManyFoldersCreated{}
 		break
 	default:
 		ase := libkb.AppStatusError{
