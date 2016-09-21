@@ -333,6 +333,10 @@
           "name": "tlfName"
         },
         {
+          "type": "boolean",
+          "name": "tlfPublic"
+        },
+        {
           "type": "MessageType",
           "name": "messageType"
         },

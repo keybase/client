@@ -24,7 +24,6 @@
 
 @interface KBTask ()
 @property NSTimeInterval timeout;
-@property BOOL timedOut;
 @property BOOL completed;
 @property dispatch_queue_t taskQueue;
 @property KBTaskReader *taskReader;
@@ -53,21 +52,22 @@
     [task setStandardInput:[NSPipe pipe]];
     self.task = task;
     self.taskReader = [[KBTaskReader alloc] initWithTask:self.task completion:^(NSError *error) {
+      DDLogDebug(@"Task EOF");
       // Task is done when out/err EOF
-      [self completed];
+      [self finished];
     }];
   }
   return self;
 }
 
-- (void)completed {
+- (void)finished {
   dispatch_async(self.taskQueue, ^{
-    if (self.timedOut) {
-      DDLogDebug(@"Task termination handler, timed out, skipping");
+    if (self.completed) {
+      DDLogDebug(@"Already completed, skipping (completion)");
       return;
     }
     self.completed = YES;
-    DDLogDebug(@"Task dispatch completion");
+    DDLogDebug(@"Completed");
     dispatch_async(dispatch_get_main_queue(), ^{
       DDLogDebug(@"Task (out): %@", ([[NSString alloc] initWithData:self.taskReader.outData encoding:NSUTF8StringEncoding]));
       DDLogDebug(@"Task (err): %@", ([[NSString alloc] initWithData:self.taskReader.errData encoding:NSUTF8StringEncoding]));
@@ -76,25 +76,37 @@
   });
 }
 
+- (void)errored:(NSError *)error after:(dispatch_block_t)after {
+  dispatch_async(self.taskQueue, ^{
+    if (self.completed) {
+      //DDLogDebug(@"Already completed, skipping (error)");
+      return;
+    }
+    DDLogError(@"Task error: %@", error);
+    self.completed = YES;
+    dispatch_async(dispatch_get_main_queue(), ^{
+      self.completion(error, nil, nil);
+    });
+
+    if (after) {
+      after();
+    }
+  });
+}
+
 - (void)execute {
   [self.taskReader start];
 
   if (self.timeout > 0) {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, self.timeout * NSEC_PER_SEC), self.taskQueue, ^{
-      if (!self.completed) {
-        self.timedOut = YES;
-        DDLogError(@"Task timed out: %@", self.taskDescription);
-        dispatch_async(dispatch_get_main_queue(), ^{
-          self.completion(KBMakeError(KBErrorCodeTimeout, @"Task timed out: %@", self.taskDescription), nil, nil);
-        });
-
+      [self errored:KBMakeError(KBErrorCodeTimeout, @"Task timed out: %@", self.taskDescription) after:^{
         // Terminate/cleanup task after timeout
         @try {
           [self.task terminate];
         } @catch(NSException *e) {
           DDLogDebug(@"Task error in terminate after timeout: %@", e);
         }
-      }
+      }];
     });
   }
 
@@ -105,8 +117,7 @@
   } @catch (NSException *e) {
     NSString *errorMessage = NSStringWithFormat(@"%@ (%@)", e.reason, self.taskDescription);
     DDLogError(@"Error running task: %@", errorMessage);
-    self.completed = YES;
-    self.completion(KBMakeError(KBErrorCodeGeneric, @"%@", errorMessage), nil, nil);
+    [self errored:KBMakeError(KBErrorCodeGeneric, @"%@", errorMessage) after:nil];
   }
 }
 
