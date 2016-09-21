@@ -47,7 +47,7 @@ app.on('ready', () => {
   }
 
   ipcMain.on('visdiff-ready', ev => {
-    console.log('Worker ready:', ev.sender.getTitle())
+    console.log('Worker ready:', ev.sender.getOwnerBrowserWindow().id)
     renderNext(ev.sender)
   })
 
@@ -73,20 +73,20 @@ app.on('ready', () => {
   for (let i = 0; i < WORKER_COUNT; i++) {
     setTimeout(() => {
       console.log('Creating new worker window', i)
-      const workerWin = new BrowserWindow({show: false, width: CANVAS_SIZE, height: CANVAS_SIZE, title: i})
-      console.log('Created new worker window', i)
+      const workerWin = new BrowserWindow({show: false, width: CANVAS_SIZE, height: CANVAS_SIZE})
+      console.log('Created new worker window', i, 'window id:', workerWin.id)
 
-      workerWin.on('ready-to-show', () => console.log('Worker window ready-to-show:', i))
-      workerWin.webContents.on('did-finish-load', () => console.log('Worker window did-finish-load:', i))
-      workerWin.webContents.on('did-fail-load', () => console.log('Worker window did-fail-load:', i))
-      workerWin.on('unresponsive', () => console.log('Worker window unresponsive:', i))
-      workerWin.on('responsive', () => console.log('Worker window responsive:', i))
-      workerWin.on('closed', () => console.log('Worker window closed:', i))
+      workerWin.on('ready-to-show', () => console.log('Worker window ready-to-show:', workerWin.id))
+      workerWin.webContents.on('did-finish-load', () => console.log('Worker window did-finish-load:', workerWin.id))
+      workerWin.webContents.on('did-fail-load', () => console.log('Worker window did-fail-load:', workerWin.id))
+      workerWin.on('unresponsive', () => console.log('Worker window unresponsive:', workerWin.id))
+      workerWin.on('responsive', () => console.log('Worker window responsive:', workerWin.id))
+      workerWin.on('closed', () => console.log('Worker window closed:', workerWin.id))
 
       const workerURL = resolveRootAsURL('renderer', `index.html?src=${scriptPath}`)
-      console.log('Loading worker', i, workerURL)
+      console.log('Loading worker', workerWin.id, workerURL)
       workerWin.loadURL(workerURL)
-      console.log('Loaded worker', i, workerURL)
+      console.log('Loaded worker', workerWin.id, workerURL)
     }, i * 150)
   }
 
