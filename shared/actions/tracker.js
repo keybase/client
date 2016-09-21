@@ -631,12 +631,12 @@ function serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: bo
           clearTimeout(clearPendingTimeout)
         }
 
-        onFinish && onFinish(username)
+        onFinish && onFinish()
       }, {timeout: 1e3})
 
       // if we're pending we still want to call onFinish
       if (alreadyPending) {
-        onFinish && onFinish(username)
+        onFinish && onFinish()
       }
 
       // cleanup bookkeeping
