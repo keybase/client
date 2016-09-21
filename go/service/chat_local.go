@@ -287,28 +287,29 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ch
 		conversations = append(conversations, info)
 	}
 
-	if len(criteria.TlfName) == 0 {
-		return nil, errors.New("unexpected criteria: empty TlfName")
-	}
-	// TODO: do some caching in boxer so we don't end up calling this RPC
-	// unnecessarily too often
-	resp, err := h.boxer.tlf.CryptKeys(ctx, criteria.TlfName)
-	if err != nil {
-		return nil, err
-	}
-	tlfIDb := resp.TlfID.ToBytes()
-	if tlfIDb == nil {
-		return nil, errors.New("invalid TLF ID acquired")
-	}
-	criteria.TlfName = string(resp.CanonicalName)
+	query := &chat1.GetInboxQuery{}
 
-	tlfID := chat1.TLFID(tlfIDb)
-	query := &chat1.GetInboxQuery{
-		TlfID: &tlfID,
+	if len(criteria.TlfName) != 0 {
+		// TODO: do some caching in boxer so we don't end up calling this RPC
+		// unnecessarily too often
+		resp, err := h.boxer.tlf.CryptKeys(ctx, criteria.TlfName)
+		if err != nil {
+			return nil, err
+		}
+		tlfIDb := resp.TlfID.ToBytes()
+		if tlfIDb == nil {
+			return nil, errors.New("invalid TLF ID acquired")
+		}
+		criteria.TlfName = string(resp.CanonicalName)
+
+		tlfID := chat1.TLFID(tlfIDb)
+		query.TlfID = &tlfID
 	}
+
 	if criteria.Visibility != chat1.TLFVisibility_ANY {
 		query.TlfVisibility = &criteria.Visibility
 	}
+
 	conversationsRemote, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query:      query,
 		Pagination: nil,
@@ -321,7 +322,7 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ch
 		if err != nil {
 			return nil, err
 		}
-		if info.TlfName != criteria.TlfName {
+		if len(criteria.TlfName) > 0 && info.TlfName != criteria.TlfName {
 			// check again using signed information to make sure it's the correct
 			// conversation
 			return nil, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("Unexpected data is returned from server. We asked for %v, but got conversation for %v. TODO: handle tlfName changes properly for SBS case", criteria.TlfName, info.TlfName)}
