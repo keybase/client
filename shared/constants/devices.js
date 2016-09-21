@@ -20,7 +20,10 @@ export const deviceRemoved = 'devices:deviceRemoved'
 export type DeviceRemoved = TypedAction<'devices:deviceRemoved', void, {errorText: string}>
 
 export const paperKeyLoaded = 'devices:paperKeyLoaded'
+export type PaperKeyLoaded = TypedAction<'devices:paperKeyLoaded', HiddenString, {errorText: string}>
+
 export const paperKeyLoading = 'devices:paperKeyLoading'
+export type PaperKeyLoading = NoErrorTypedAction<'devices:paperKeyLoading', void>
 
 export const showDevices = 'devices:showDevices'
 export type ShowDevices = TypedAction<'devices:showDevices', void, {errorText: string}>
