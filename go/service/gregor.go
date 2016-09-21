@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -842,28 +843,35 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.activity: nil message body")
 	}
-	body, err := jsonw.Unmarshal(m.Body().Bytes())
-	if err != nil {
-		return err
-	}
-
-	action, err := body.AtPath("action").GetString()
-	if err != nil {
-		return err
-	}
 
 	var activity keybase1.ChatActivity
+	var gm chat1.GenericPayload
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	err := dec.Decode(&gm)
+	if err != nil {
+		return err
+	}
 
+	g.G().Log.Debug("push handler: chat activity: action %s", gm.Action)
+
+	action := gm.Action
+	reader.Reset(m.Body().Bytes())
 	switch action {
 	case "newMessage":
-		var boxed chat1.MessageBoxed
-		if err = body.AtPath("payload").UnmarshalAgain(&boxed); err != nil {
+		var nm chat1.NewMessagePayload
+		err = dec.Decode(&nm)
+		if err != nil {
+			g.G().Log.Error("push handler: chat activity: error decoding newMessage: %s", err.Error())
 			return err
 		}
 
-		boxer := chatBoxer{tlf: newTlfHandler(nil, g.G())}
-		msg, err := boxer.unboxMessage(ctx, newKeyFinder(), boxed)
+		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %d sender: %s",
+			nm.ConvID, nm.Message.ServerHeader.Sender)
+		boxer := newChatBoxer(g.G())
+		msg, err := boxer.unboxMessage(ctx, newKeyFinder(), nm.Message)
 		if err != nil {
+			g.G().Log.Error("push handler: chat activity: unable to unbox message: %s", err.Error())
 			return err
 		}
 		activity.IncomingMessage = &msg

@@ -140,10 +140,12 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 			return c.errReply(fmt.Errorf("conversation %d had no max msgs", conv.Metadata.ConversationID))
 		}
 		tlf := conv.MaxMsgs[0].ClientHeader.TlfName
+		pub := conv.MaxMsgs[0].ClientHeader.TlfPublic
 		cl.Conversations[i] = ConvSummary{
 			ID: conv.Metadata.ConversationID,
 			Channel: ChatChannel{
 				Name:      tlf,
+				Public:    pub,
 				TopicType: strings.ToLower(conv.Metadata.IdTriple.TopicType.String()),
 			},
 		}
@@ -221,8 +223,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	}
 
 	var thread Thread
-	thread.Messages = make([]MsgSummary, len(threadView.Messages))
-	for i, m := range threadView.Messages {
+	for _, m := range threadView.Messages {
 		version, err := m.MessagePlaintext.Version()
 		if err != nil {
 			return c.errReply(err)
@@ -230,10 +231,15 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 		switch version {
 		case chat1.MessagePlaintextVersion_V1:
 			v1 := m.MessagePlaintext.V1()
-			thread.Messages[i] = MsgSummary{
+			if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
+				// skip TLFNAME messages
+				continue
+			}
+			msg := MsgSummary{
 				ID: m.ServerHeader.MessageID,
 				Channel: ChatChannel{
 					Name:      v1.ClientHeader.TlfName,
+					Public:    v1.ClientHeader.TlfPublic,
 					TopicType: strings.ToLower(v1.ClientHeader.Conv.TopicType.String()),
 				},
 				Sender: MsgSender{
@@ -243,7 +249,12 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 				SentAt:   int64(m.ServerHeader.Ctime / 1000),
 				SentAtMs: int64(m.ServerHeader.Ctime),
 			}
-			thread.Messages[i].Content = c.convertMsgBody(v1.MessageBody)
+			msg.Content = c.convertMsgBody(v1.MessageBody)
+			if m.Info != nil {
+				msg.Sender.Username = m.Info.SenderUsername
+				msg.Sender.DeviceName = m.Info.SenderDeviceName
+			}
+			thread.Messages = append(thread.Messages, msg)
 		default:
 			return c.errReply(libkb.NewChatMessageVersionError(version))
 		}
@@ -265,10 +276,15 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 			Id: opts.ConversationID,
 		}
 	} else {
+		vis := chat1.TLFVisibility_PRIVATE
+		if opts.Channel.Public {
+			vis = chat1.TLFVisibility_PUBLIC
+		}
 		cinfo = chat1.ConversationInfoLocal{
-			TlfName:   opts.Channel.Name,
-			TopicType: opts.Channel.TopicTypeEnum(),
-			TopicName: opts.Channel.TopicName,
+			TlfName:    opts.Channel.Name,
+			Visibility: vis,
+			TopicType:  opts.Channel.TopicTypeEnum(),
+			TopicName:  opts.Channel.TopicName,
 		}
 	}
 
@@ -303,6 +319,7 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 					TopicType: conversation.TopicType,
 				},
 				TlfName:     conversation.TlfName,
+				TlfPublic:   conversation.Visibility == chat1.TLFVisibility_PUBLIC,
 				MessageType: chat1.MessageType_TEXT,
 			},
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),

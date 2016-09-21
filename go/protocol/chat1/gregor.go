@@ -7,6 +7,10 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
+type GenericPayload struct {
+	Action string `codec:"Action" json:"Action"`
+}
+
 type NewMessagePayload struct {
 	Action  string         `codec:"Action" json:"Action"`
 	ConvID  ConversationID `codec:"convID" json:"convID"`

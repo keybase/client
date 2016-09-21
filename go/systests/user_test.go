@@ -243,7 +243,9 @@ func TestSignupLogout(t *testing.T) {
 
 	logout := client.NewCmdLogoutRunner(tc2.G)
 
+	tc.G.Log.Debug("sleeping on server startCh")
 	<-startCh
+	tc.G.Log.Debug("waking on server startCh")
 
 	nh := newNotifyHandler()
 
