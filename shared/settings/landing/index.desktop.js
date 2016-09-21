@@ -4,6 +4,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
 import {comparePlans, levelToPrice, levelToSpace, plans} from '../../constants/settings'
 import {Stars} from '../common.desktop.js'
+import SubHeading from '../subheading'
 
 import type {Props, AccountProps, PlanProps} from './index'
 import type {PlanLevel, PaymentInfo as PaymentInfoType} from '../../constants/settings'
@@ -128,12 +129,7 @@ function PlanLevelRow ({level, onInfo, variants, style}: PlanLevelProps) {
 function PaymentInfo ({name, last4Digits, isBroken, onChangePaymentInfo}: PaymentInfoType & {onChangePaymentInfo: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.medium}}>
-      <Text
-        style={{color: globalColors.black_40}}
-        type='BodySmallSemibold'>
-        Your payment method
-      </Text>
-      <Divider style={{backgroundColor: globalColors.black_05}} />
+      <SubHeading>Your payment method</SubHeading>
       <Box style={{...globalStyles.flexBoxRow, minHeight: ROW_HEIGHT, paddingLeft: globalMargins.xtiny, justifyContent: 'space-between', alignItems: 'center'}}>
         <Box style={globalStyles.flexBoxColumn}>
           <Text
@@ -159,12 +155,7 @@ function Plan ({onInfo, onUpgrade, onDowngrade, freeSpace, freeSpacePercentage, 
   return (
     <Box style={globalStyles.flexBoxColumn}>
       <Box style={globalStyles.flexBoxColumn}>
-        <Text
-          style={{color: globalColors.black_40, marginBottom: globalMargins.tiny}}
-          type='BodySmallSemibold'>
-          Your plan
-        </Text>
-        <Divider style={{backgroundColor: globalColors.black_05}} />
+        <SubHeading>Your plan</SubHeading>
       </Box>
       {plans.map(p => (
         <PlanLevelRow
