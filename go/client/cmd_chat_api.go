@@ -250,6 +250,10 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 				SentAtMs: int64(m.ServerHeader.Ctime),
 			}
 			msg.Content = c.convertMsgBody(v1.MessageBody)
+			if m.Info != nil {
+				msg.Sender.Username = m.Info.SenderUsername
+				msg.Sender.DeviceName = m.Info.SenderDeviceName
+			}
 			thread.Messages = append(thread.Messages, msg)
 		default:
 			return c.errReply(libkb.NewChatMessageVersionError(version))
