@@ -362,6 +362,10 @@
           "name": "id"
         },
         {
+          "type": "ConversationIDTriple",
+          "name": "triple"
+        },
+        {
           "type": "string",
           "name": "tlfName"
         },
@@ -383,10 +387,6 @@
       "type": "record",
       "name": "ConversationLocal",
       "fields": [
-        {
-          "type": "ConversationID",
-          "name": "id"
-        },
         {
           "type": [
             null,

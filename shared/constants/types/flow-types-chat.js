@@ -216,6 +216,7 @@ export type ConversationIDTriple = {
 
 export type ConversationInfoLocal = {
   id: ConversationID,
+  triple: ConversationIDTriple,
   tlfName: string,
   topicName: string,
   topicType: TopicType,
@@ -223,7 +224,6 @@ export type ConversationInfoLocal = {
 }
 
 export type ConversationLocal = {
-  id: ConversationID,
   info?: ?ConversationInfoLocal,
   messages?: ?Array<Message>,
 }
