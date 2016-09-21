@@ -1,10 +1,10 @@
 Recent changes:
 ---------------
+- KBFS for macOS 10.12 (Sierra) is temporarily disabled, while we resolve an issue. A fix should be coming shortly.
+
 - Folders view! You can browse your public and private folders and see new sharing requests inside the app.
 
 - Search from the app! Want to share data in KBFS with a Twitter user? Just click the Twitter bird and type their username. This will popup a folder for you, and if they're not on Keybase yet, and invitation code to share.
-
-- Support for macOS 10.12 (Sierra).
 
 - Introducing the main GUI screen. This is where you'll look people up, manage your folders, and perform other actions. A lot of the features are stubbed out, but you can start playing with it.
 
