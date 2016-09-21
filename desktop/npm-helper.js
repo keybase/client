@@ -197,8 +197,24 @@ function fixupSymlinks () {
 
 // Edit this function to filter down the store in the undiff log
 function storeFilter (store) {
+  // Example
+  // try {
+    // return {mike: store.tracker.trackers.mike}
+  // } catch (_) {
+    // return {nullStore: null}
+  // }
+
   return store
-  // return {serverStarted: store.tracker.serverStarted}
+}
+
+// Edit this function to filter down actions, return null to filter out entirely
+function actionFilter (action) {
+  // Example
+  // if (action.type.startsWith('gregor')) {
+    // return null
+  // }
+
+  return action
 }
 
 // Recreate the store from a log that has diffs (from log send)
@@ -240,11 +256,21 @@ function undiff () {
   }
 
   const filterStore = part => {
-    if (part.action) {
+    if (part.hasOwnProperty('action')) {
       return part
     }
 
     return storeFilter(part)
+  }
+
+  const filterActions = part => {
+    if (part.hasOwnProperty('action')) {
+      const action = actionFilter(part.action)
+      if (action) return {action}
+      return null
+    }
+
+    return part
   }
 
   const parts = log
@@ -254,6 +280,8 @@ function undiff () {
     .filter(part => part)
     .map(buildStore)
     .map(filterStore)
+    .map(filterActions)
+    .filter(part => part)
 
   fs.writeFileSync('./log.json', JSON.stringify(parts, null, 2))
   console.log('Success! Wrote ./log.json')
