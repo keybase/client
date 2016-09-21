@@ -88,7 +88,11 @@ var hardcodedPVLString = `
         "attr": "data-screen-name",
         "selector_css": ["div.permalink-tweet-container div.permalink-tweet", 0]
       },
-      { "assert_regex_match": "^%{username_service}$", "case_insensitive": true },
+      {
+        "assert_regex_match": "^%{username_service}$",
+        "case_insensitive": true,
+        "error": ["CONTENT_FAILURE", "Bad post authored; wanted \"%{username_service}\", got \"%{active_string}\""]
+      },
       { "selector_css": ["div.permalink-tweet-container div.permalink-tweet", 0, "p.tweet-text", 0] },
       { "whitespace_normalize": true },
       {

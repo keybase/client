@@ -1,9 +1,15 @@
 // @flow
 
+import React from 'react'
+import {Box, Text} from '../common-adapters'
+
 import UpdateEmail from './email'
+import UpdatePassphrase from './passphrase'
 import Landing from './landing'
+import SettingsNav from './nav'
 import DeleteMe from './delete'
 import DeleteConfirm from './delete-confirm'
+import Notifications from './notifications'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -31,6 +37,57 @@ const updateEmailMap: DumbComponentMap<UpdateEmail> = {
     'Resend Confirmation': {
       ...updateEmailBase,
       onResendConfirmationCode: () => console.log('onResendConfirmationCode'),
+    },
+  },
+}
+
+const updatePassphraseBase = {
+  onChangeCurrentPassphrase: currentPassphrase => console.log('onChangeCurrentPassphrase', currentPassphrase),
+  onChangeNewPassphrase: newPassphrase => console.log('onChangeNewPassphrase', newPassphrase),
+  onChangeNewPassphraseConfirm: newPassphraseConfirm => console.log('onChangeNewPassphraseConfirm', newPassphraseConfirm),
+  onChangeShowPassphrase: showPassphrase => console.log('onChangeShowPassphrase', showPassphrase),
+  currentPassphrase: 'swordfish',
+  newPassphrase: 'open sesame',
+  newPassphraseConfirm: 'open sesame',
+  showTyping: false,
+  errorMessage: null,
+  newPassphraseError: null,
+  newPassphraseConfirmError: null,
+  canSave: true,
+  onBack: () => console.log('onBack'),
+  onSave: () => console.log('onSave'),
+  onForgotPassphrase: () => console.log('onForgotPassphrase'),
+}
+
+const updatePassphraseMap: DumbComponentMap<UpdatePassphrase> = {
+  component: UpdatePassphrase,
+  mocks: {
+    'Normal - Empty': {
+      ...updatePassphraseBase,
+      currentPassphrase: '',
+      newPassphrase: '',
+      newPassphraseConfirm: '',
+      canSave: false,
+    },
+    'Normal': updatePassphraseBase,
+    'Normal - Show Typing': {
+      ...updatePassphraseBase,
+      showTyping: true,
+    },
+    'Error - Wrong Passphrase': {
+      ...updatePassphraseBase,
+      errorMessage: 'Wrong current passphrase. Please try again.',
+      currentPassphrase: '',
+      canSave: false,
+    },
+    'Error - New Passphrase Requirements': {
+      ...updatePassphraseBase,
+      newPassphraseError: 'Your new passphrase must have minimum 12 characters.',
+      newPassphraseConfirm: '',
+    },
+    'Error - New Passphrase Mismatch': {
+      ...updatePassphraseBase,
+      newPassphraseConfirmError: 'Passphrase confirmation does not match.',
     },
   },
 }
@@ -93,6 +150,50 @@ const landingMap: DumbComponentMap<Landing> = {
   },
 }
 
+const fillerContent = <Box style={{flex: 1, backgroundColor: 'grey'}} />
+
+const settingsNavBase = {
+  content: fillerContent,
+  items: [{
+    text: 'Your Account',
+    onClick: () => { console.log('clicked your account') },
+    badgeNumber: 1,
+    selected: true,
+  }, {
+    text: 'Invitations (15)',
+    onClick: () => { console.log('clicked ivites') },
+  }, {
+    text: 'Notifications',
+    onClick: () => { console.log('clicked notifications') },
+  }, {
+    text: 'Delete me',
+    onClick: () => { console.log('clicked delete me') },
+  }],
+}
+
+const bannerTextStyle = {
+  alignSelf: 'center',
+  textAlign: 'center',
+  flex: 1,
+}
+
+const settingsNavMap: DumbComponentMap<SettingsNav> = {
+  component: SettingsNav,
+  mocks: {
+    'Normal': settingsNavBase,
+    'Normal - Good Banner': {
+      ...settingsNavBase,
+      bannerElement: <Text type='BodySmallSemibold' style={bannerTextStyle} backgroundMode='Success'>Success! You have just upgraded to the Gold plan. </Text>,
+      bannerType: 'green',
+    },
+    'Normal - Bad Banner': {
+      ...settingsNavBase,
+      bannerElement: <Text type='BodySmallSemibold' style={bannerTextStyle} backgroundMode='HighRisk'>Your Visa **** 4242 has broken. Please update your preferred payment method.</Text>,
+      bannerType: 'red',
+    },
+  },
+}
+
 const deleteMeMap: DumbComponentMap<DeleteMe> = {
   component: DeleteMe,
   mocks: {
@@ -126,9 +227,54 @@ const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
   },
 }
 
+const commonSettings = {
+  settings: [
+    {
+      name: 'follow',
+      subscribed: true,
+      description: 'when someone follows me',
+    },
+    {
+      name: 'twitter_friend_joined',
+      subscribed: true,
+      description: 'when someone I follow on Twitter joins',
+    },
+    {
+      name: 'filesystem_attention',
+      subscribed: true,
+      description: 'when the Keybase filesystem needs my attention',
+    },
+    {
+      name: 'newsletter',
+      subscribed: true,
+      description: 'Keybase news, once in a great while',
+    },
+  ],
+  unsubscribedFromAll: false,
+  onSave: () => console.log('onSave'),
+  onToggle: (name: string) => console.log('on toggle', name),
+  onToggleUnsubscribeAll: () => console.log('on subscribe all'),
+}
+
+const notificationsMap: DumbComponentMap<Notifications> = {
+  component: Notifications,
+  mocks: {
+    'Normal': {
+      ...commonSettings,
+    },
+    'UnsubAll': {
+      ...commonSettings,
+      unsubscribedFromAll: true,
+    },
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
+  UpdatePassphrase: updatePassphraseMap,
   Landing: landingMap,
+  SettingsNav: settingsNavMap,
   DeleteMe: deleteMeMap,
   DeleteConfirm: deleteConfirmMap,
+  Notifications: notificationsMap,
 }
