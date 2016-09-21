@@ -38,7 +38,7 @@ app.on('ready', () => {
     console.log('Rendering next. Remaining:', toRender.length, 'Currently rendering:', rendering)
     if (!toRender.length) {
       if (rendering === 0) {
-        app.quit()
+        process.exit(0)
       }
       return
     }
@@ -59,7 +59,7 @@ app.on('ready', () => {
       fs.writeFile(path.join(outputDir, filename), img.toPng(), err => {
         if (err) {
           console.log('Error writing image', err)
-          app.exit(1)
+          process.exit(1)
         }
         count++
         console.log(`[${count} / ${total}] wrote ${filename}`)
