@@ -33,11 +33,10 @@ type chatLocalHandler struct {
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
 	return &chatLocalHandler{
-		BaseHandler:    NewBaseHandler(xp),
-		Contextified:   libkb.NewContextified(g),
-		gh:             gh,
-		boxer:          newChatBoxer(g),
-		userInfoMapper: userInfoMapper{g: g},
+		BaseHandler:  NewBaseHandler(xp),
+		Contextified: libkb.NewContextified(g),
+		gh:           gh,
+		boxer:        newChatBoxer(g),
 	}
 }
 
@@ -365,13 +364,14 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 	}
 
 	kf := newKeyFinder()
+	uimap := newUserInfoMapper(h.G())
 	for _, b := range conversationRemote.MaxMsgs {
 		unboxed, err := h.boxer.unboxMessage(ctx, kf, b)
 		if err != nil {
 			return conversationInfo, triple, maxMessages, err
 		}
 
-		if err = h.fillMessageInfoLocal(ctx, &unboxed, conversationRemote.ReaderInfo.ReadMsgid < unboxed.ServerHeader.MessageID); err != nil {
+		if err = h.fillMessageInfoLocal(uimap, &unboxed, conversationRemote.ReaderInfo.ReadMsgid < unboxed.ServerHeader.MessageID); err != nil {
 			return conversationInfo, triple, maxMessages, err
 		}
 		maxMessages = append(maxMessages, unboxed)
@@ -406,7 +406,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 	return conversationInfo, triple, maxMessages, nil
 }
 
-func (h *chatLocalHandler) fillMessageInfoLocal(ctx context.Context, m *chat1.Message, isNew bool) (err error) {
+func (h *chatLocalHandler) fillMessageInfoLocal(uimap *userInfoMapper, m *chat1.Message, isNew bool) (err error) {
 	m.Info = &chat1.MessageInfoLocal{
 		IsNew: isNew,
 	}
@@ -416,12 +416,17 @@ func (h *chatLocalHandler) fillMessageInfoLocal(ctx context.Context, m *chat1.Me
 	}
 	switch version {
 	case chat1.MessagePlaintextVersion_V1:
-		if m.Info.SenderUsername, err = h.userInfoMapper.getUsername(ctx, keybase1.UID(m.MessagePlaintext.V1().ClientHeader.Sender.String())); err != nil {
+		v1 := m.MessagePlaintext.V1()
+		uid := keybase1.UID(v1.ClientHeader.Sender.String())
+		did := keybase1.DeviceID(v1.ClientHeader.SenderDevice.String())
+		username, deviceName, err := uimap.lookup(uid, did)
+		if err != nil {
 			return err
 		}
-		if m.Info.SenderDeviceName, err = h.userInfoMapper.getDeviceName(ctx, keybase1.DeviceID(m.MessagePlaintext.V1().ClientHeader.SenderDevice.String())); err != nil {
-			return err
-		}
+
+		m.Info.SenderUsername = username
+		m.Info.SenderDeviceName = deviceName
+
 		return nil
 	default:
 		return libkb.NewChatMessageVersionError(version)
@@ -473,6 +478,7 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversa
 		return conv, err
 	}
 
+	uimap := newUserInfoMapper(h.G())
 	for _, m := range tview.Messages {
 		isNew := false
 		if conversationRemote.ReaderInfo != nil && m.ServerHeader.MessageID > conversationRemote.ReaderInfo.ReadMsgid {
@@ -484,7 +490,7 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversa
 			break
 		}
 
-		h.fillMessageInfoLocal(ctx, &m, isNew)
+		h.fillMessageInfoLocal(uimap, &m, isNew)
 
 		messages = append(messages, m)
 
@@ -674,9 +680,15 @@ func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadVi
 	}
 
 	finder := newKeyFinder()
+	uimap := newUserInfoMapper(h.G())
 	for _, msg := range boxed.Messages {
 		unboxed, err := h.boxer.unboxMessage(ctx, finder, msg)
 		if err != nil {
+			return chat1.ThreadView{}, err
+		}
+
+		// don't have conversation so can't figure out isNew here
+		if err := h.fillMessageInfoLocal(uimap, &unboxed, false /* isNew */); err != nil {
 			return chat1.ThreadView{}, err
 		}
 
