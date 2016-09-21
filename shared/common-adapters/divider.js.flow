@@ -2,9 +2,8 @@
 import {Component} from 'react'
 
 export type Props = {
-  style: Object,
-  vertical: bool,
-  key: Object,
+  style?: Object,
+  vertical?: bool,
 }
 
 declare export default class Divider extends Component<void, Props, void> { }
