@@ -1,4 +1,5 @@
 // @flow
-import type {Action} from '../../constants/types/flux'
+import type {FSOpen} from '../../constants/kbfs'
+import type {SagaGenerator} from '../../constants/types/saga'
 
-declare function openInKBFS (path: ?string): Action
+export function * openSaga (action: FSOpen): SagaGenerator<any, any> {}

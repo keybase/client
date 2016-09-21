@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../../constants/kbfs'
 import {fsListRpcPromise} from '../../constants/types/flow-types'
-// $FlowIssue flow doens't understand generator exports
 import {openSaga} from './index.platform'
 import {call, put} from 'redux-saga/effects'
 import {takeLatest, takeEvery} from 'redux-saga'
