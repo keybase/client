@@ -4,6 +4,7 @@
 package pvl
 
 import (
+	"encoding/json"
 	"net"
 	"regexp"
 	"strings"
@@ -56,11 +57,6 @@ type regexDescriptor struct {
 	MultiLine       bool
 }
 
-const (
-	regexKeyCaseInsensitive string = "case_insensitive"
-	regexKeyMultiline       string = "multiline"
-)
-
 type fetchMode string
 
 const (
@@ -82,19 +78,6 @@ const (
 	cmdSelectorCSS         commandName = "selector_css"
 	cmdTransformURL        commandName = "transform_url"
 )
-
-type stepType func(proofContextExt, *jsonw.Wrapper, scriptState) (scriptState, libkb.ProofError)
-
-var stepFuncs = map[commandName]stepType{
-	cmdAssertRegexMatch:    stepAssertRegexMatch,
-	cmdAssertFindBase64:    stepAssertFindBase64,
-	cmdWhitespaceNormalize: stepWhitespaceNormalize,
-	cmdRegexCapture:        stepRegexCapture,
-	cmdFetch:               stepFetch,
-	cmdSelectorJSON:        stepSelectorJSON,
-	cmdSelectorCSS:         stepSelectorCSS,
-	cmdTransformURL:        stepTransformURL,
-}
 
 // ProofInfo contains all the data about a proof PVL needs to check it.
 // It can be derived from a RemoteProofChainLink and SigHint.
@@ -121,17 +104,23 @@ func NewProofInfo(link libkb.RemoteProofChainLink, h libkb.SigHint) ProofInfo {
 }
 
 // CheckProof verifies one proof by running the pvl on the provided proof information.
-func CheckProof(g1 libkb.ProofContext, pvl *jsonw.Wrapper, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
+func CheckProof(g1 libkb.ProofContext, pvlS string, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
 	g := newProofContextExt(g1, info.stubDNS)
-	perr := checkProofInner(g, pvl, service, info)
+	perr := checkProofInner(g, pvlS, service, info)
 	if perr != nil {
 		debug(g, "CheckProof failed: %v", perr)
 	}
 	return perr
 }
 
-func checkProofInner(g proofContextExt, pvl *jsonw.Wrapper, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
-	if perr := validateChunk(g, pvl, service); perr != nil {
+func checkProofInner(g proofContextExt, pvlS string, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
+	pvl, err := parse(pvlS)
+	if err != nil {
+		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+			"Could not parse pvl: %v", err)
+	}
+
+	if perr := validateChunk(g, &pvl, service); perr != nil {
 		return perr
 	}
 
@@ -179,7 +168,7 @@ func checkProofInner(g proofContextExt, pvl *jsonw.Wrapper, service keybase1.Pro
 		}
 	}
 
-	scripts, perr := chunkGetScripts(pvl, service)
+	scripts, perr := chunkGetScripts(&pvl, service)
 	if perr != nil {
 		return perr
 	}
@@ -207,7 +196,7 @@ func checkProofInner(g proofContextExt, pvl *jsonw.Wrapper, service keybase1.Pro
 		// If one fails, the next takes over.
 		// If all fail, log and report errors.
 		for i, script := range scripts {
-			perr = runScript(g, script, newstate(i))
+			perr = runScript(g, &script, newstate(i))
 			if perr == nil {
 				return nil
 			}
@@ -229,75 +218,44 @@ func checkProofInner(g proofContextExt, pvl *jsonw.Wrapper, service keybase1.Pro
 }
 
 // Get the list of scripts for a given service.
-func chunkGetScripts(pvl *jsonw.Wrapper, service keybase1.ProofType) ([]*jsonw.Wrapper, libkb.ProofError) {
-	serviceString, perr := serviceToString(service)
-	if perr != nil {
-		return nil, perr
-	}
-	scriptsw, err := pvl.AtKey("services").AtKey(serviceString).ToArray()
-	if err != nil {
+func chunkGetScripts(pvl *pvlT, service keybase1.ProofType) ([]scriptT, libkb.ProofError) {
+	scripts, ok := pvl.Services.Map[service]
+	if !ok {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"PVL script is not an array: %v", err)
-	}
-
-	// Check if pvl[services][service][0] is an array. If it is, this an OR of multiple scripts.
-	_, err = scriptsw.AtIndex(0).ToArray()
-	multiscript := err == nil
-	var scripts []*jsonw.Wrapper
-	if multiscript {
-		scripts, err = jsonUnpackArray(scriptsw)
-		if err != nil {
-			return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"Could not unpack PVL multiscript: %v", err)
-		}
-	} else {
-		scripts = []*jsonw.Wrapper{scriptsw}
-	}
-	if len(scripts) < 1 {
-		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Empty script list")
+			"No entry for service: %v", service)
 	}
 	return scripts, nil
 }
 
 // Check that a chunk of PVL is valid code.
 // Will always accept valid code, but may not always notice invalidities.
-func validateChunk(g proofContextExt, pvl *jsonw.Wrapper, service keybase1.ProofType) libkb.ProofError {
-	// Check the version.
-	version, err := pvl.AtKey("pvl_version").GetInt()
-	if err != nil {
+func validateChunk(g proofContextExt, pvl *pvlT, service keybase1.ProofType) libkb.ProofError {
+	if pvl.PvlVersion != SupportedVersion {
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"missing version number: %v", err)
-	}
-	if version != SupportedVersion {
-		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"PVL is for the wrong version %v != %v", version, SupportedVersion)
+			"PVL is for the wrong version %v != %v", pvl.PvlVersion, SupportedVersion)
 	}
 
-	// Check that revision is there.
-	revision, err := pvl.AtKey("revision").GetInt()
-	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"PVL missing reversion number: %v", err)
-	}
-
-	debug(g, "valid version:%v revision:%v", version, revision)
+	debug(g, "valid version:%v revision:%v", pvl.PvlVersion, pvl.Revision)
 
 	scripts, perr := chunkGetScripts(pvl, service)
 	if perr != nil {
 		return perr
 	}
+	if len(scripts) == 0 {
+		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+			"Empty scripts list for service: %v", service)
+	}
 
 	// Scan all the scripts (for this service) for errors. Report the first error.
 	var errs []libkb.ProofError
 	for whichscript, script := range scripts {
-		perr = validateScript(g, script, service, whichscript)
+		perr = validateScript(g, &script, service, whichscript)
 		errs = append(errs, perr)
 	}
 	return errs[0]
 }
 
-func validateScript(g proofContextExt, script *jsonw.Wrapper, service keybase1.ProofType, whichscript int) libkb.ProofError {
+func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofType, whichscript int) libkb.ProofError {
 	// Scan the script.
 	// Does not validate each instruction's format. (That is done when running it)
 	// Validate each instruction's "error" field.
@@ -313,39 +271,28 @@ func validateScript(g proofContextExt, script *jsonw.Wrapper, service keybase1.P
 		modeknown = true
 		mode = fetchModeDNS
 	}
-	scriptlen, err := script.Len()
-	if err != nil {
-		return logerr(g, service, whichscript, 0, "Could not get length of script: %v", err)
-	}
-	if scriptlen < 1 {
+	if len(script.Instructions) < 1 {
 		return logerr(g, service, whichscript, 0, "Empty script")
 	}
 
-	for i := 0; i < scriptlen; i++ {
-		ins := script.AtIndex(i)
-
-		_, err := extractCustomErrorSpec(g, ins)
-		if err != nil {
-			return err
+	for i, ins := range script.Instructions {
+		if ins.variantsFilled() != 1 {
+			return logerr(g, service, whichscript, i, "exactly 1 variant must appear in instruction")
 		}
 
 		switch {
 
 		// These can always run, but must be cases so that the default case works.
-		case jsonHasKeyCommand(ins, cmdAssertRegexMatch):
-		case jsonHasKeyCommand(ins, cmdAssertFindBase64):
-		case jsonHasKeyCommand(ins, cmdWhitespaceNormalize):
-		case jsonHasKeyCommand(ins, cmdRegexCapture):
+		case ins.AssertRegexMatch != nil:
+		case ins.AssertFindBase64 != nil:
+		case ins.WhitespaceNormalize != nil:
+		case ins.RegexCapture != nil:
 
-		case jsonHasKeyCommand(ins, cmdFetch):
+		case ins.Fetch != nil:
 			// A script can contain only <=1 fetches.
 			// A DNS script cannot contain fetches.
 
-			fetchType, err := ins.AtKey(string(cmdFetch)).GetString()
-			if err != nil {
-				return logerr(g, service, whichscript, i,
-					"Could not get fetch type")
-			}
+			fetchType := ins.Fetch.Kind
 
 			if service == keybase1.ProofType_DNS {
 				return logerr(g, service, whichscript, i,
@@ -369,7 +316,7 @@ func validateScript(g proofContextExt, script *jsonw.Wrapper, service keybase1.P
 				return logerr(g, service, whichscript, i,
 					"Unsupported fetch type: %v", fetchType)
 			}
-		case jsonHasKeyCommand(ins, cmdSelectorJSON):
+		case ins.SelectorJSON != nil:
 			// Can only select after fetching.
 			switch {
 			case service == keybase1.ProofType_DNS:
@@ -382,7 +329,7 @@ func validateScript(g proofContextExt, script *jsonw.Wrapper, service keybase1.P
 				return logerr(g, service, whichscript, i,
 					"Script contains json selector in non-html mode")
 			}
-		case jsonHasKeyCommand(ins, cmdSelectorCSS):
+		case ins.SelectorCSS != nil:
 			// Can only select after fetching.
 			switch {
 			case service == keybase1.ProofType_DNS:
@@ -395,7 +342,7 @@ func validateScript(g proofContextExt, script *jsonw.Wrapper, service keybase1.P
 				return logerr(g, service, whichscript, i,
 					"Script contains css selector in non-html mode")
 			}
-		case jsonHasKeyCommand(ins, cmdTransformURL):
+		case ins.TransformURL != nil:
 			// Can only transform before fetching.
 			switch {
 			case service == keybase1.ProofType_DNS:
@@ -416,7 +363,7 @@ func validateScript(g proofContextExt, script *jsonw.Wrapper, service keybase1.P
 
 // Run each script on each TXT record of each domain.
 // Succeed if any succeed.
-func runDNS(g proofContextExt, scripts []*jsonw.Wrapper, startstate scriptState) []libkb.ProofError {
+func runDNS(g proofContextExt, scripts []scriptT, startstate scriptState) []libkb.ProofError {
 	userdomain := startstate.Vars.Hostname
 	domains := []string{userdomain, "_keybase." + userdomain}
 	var errs []libkb.ProofError
@@ -435,7 +382,7 @@ func runDNS(g proofContextExt, scripts []*jsonw.Wrapper, startstate scriptState)
 }
 
 // Run each script on each TXT record of the domain.
-func runDNSOne(g proofContextExt, scripts []*jsonw.Wrapper, startstate scriptState, domain string) libkb.ProofError {
+func runDNSOne(g proofContextExt, scripts []scriptT, startstate scriptState, domain string) libkb.ProofError {
 	// Fetch TXT records
 	var txts []string
 	var err error
@@ -458,7 +405,7 @@ func runDNSOne(g proofContextExt, scripts []*jsonw.Wrapper, startstate scriptSta
 			state := startstate
 			state.WhichScript = i
 			state.ActiveString = record
-			err = runScript(g, script, state)
+			err = runScript(g, &script, state)
 			if err == nil {
 				return nil
 			}
@@ -471,24 +418,15 @@ func runDNSOne(g proofContextExt, scripts []*jsonw.Wrapper, startstate scriptSta
 		len(txts), domain)
 }
 
-func runScript(g proofContextExt, script *jsonw.Wrapper, startstate scriptState) libkb.ProofError {
+func runScript(g proofContextExt, script *scriptT, startstate scriptState) libkb.ProofError {
 	var state = startstate
-	scriptlen, err := script.Len()
-	if err != nil {
-		perr := libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not get length of script: %v", err)
-		debugWithStateError(g, state, perr)
-		return perr
-	}
-	if scriptlen < 1 {
+	if len(script.Instructions) < 1 {
 		perr := libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Empty scripts are not allowed.")
 		debugWithStateError(g, state, perr)
 		return perr
 	}
-	for i := 0; i < scriptlen; i++ {
-		ins := script.AtIndex(i)
-
+	for i, ins := range script.Instructions {
 		// Sanity check.
 		if state.PC != i {
 			perr := libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
@@ -510,62 +448,68 @@ func runScript(g proofContextExt, script *jsonw.Wrapper, startstate scriptState)
 }
 
 // stepInstruction decides which instruction to run.
-func stepInstruction(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (scriptState, libkb.ProofError) {
-	var name commandName
-	var step stepType
-	n := 0
+func stepInstruction(g proofContextExt, ins instructionT, state scriptState) (scriptState, libkb.ProofError) {
+	debugWithState(g, state, "Running instruction %v: %v", ins.Name(), ins)
 
-	for iname, istep := range stepFuncs {
-		if jsonHasKeyCommand(ins, iname) {
-			step = istep
-			name = iname
-			n++
-		}
+	var newState scriptState
+	var stepErr libkb.ProofError
+	var customErrSpec *errorT
+	switch {
+	case ins.AssertRegexMatch != nil:
+		newState, stepErr = stepAssertRegexMatch(g, *ins.AssertRegexMatch, state)
+		customErrSpec = ins.AssertRegexMatch.Error
+	case ins.AssertFindBase64 != nil:
+		newState, stepErr = stepAssertFindBase64(g, *ins.AssertFindBase64, state)
+		customErrSpec = ins.AssertFindBase64.Error
+	case ins.WhitespaceNormalize != nil:
+		newState, stepErr = stepWhitespaceNormalize(g, *ins.WhitespaceNormalize, state)
+		customErrSpec = ins.WhitespaceNormalize.Error
+	case ins.RegexCapture != nil:
+		newState, stepErr = stepRegexCapture(g, *ins.RegexCapture, state)
+		customErrSpec = ins.RegexCapture.Error
+	case ins.Fetch != nil:
+		newState, stepErr = stepFetch(g, *ins.Fetch, state)
+		customErrSpec = ins.Fetch.Error
+	case ins.SelectorJSON != nil:
+		newState, stepErr = stepSelectorJSON(g, *ins.SelectorJSON, state)
+		customErrSpec = ins.SelectorJSON.Error
+	case ins.SelectorCSS != nil:
+		newState, stepErr = stepSelectorCSS(g, *ins.SelectorCSS, state)
+		customErrSpec = ins.SelectorCSS.Error
+	case ins.TransformURL != nil:
+		newState, stepErr = stepTransformURL(g, *ins.TransformURL, state)
+		customErrSpec = ins.TransformURL.Error
+	default:
+		newState = state
+		stepErr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+			"Invalid instruction: %v", ins)
 	}
 
-	if n == 1 {
-		debugWithState(g, state, "Running instruction %v: %v", name, ins.MarshalToDebug())
-		newstate, stepErr := step(g, ins, state)
-		if stepErr != nil {
-			debugWithStateError(g, state, stepErr)
+	if stepErr != nil {
+		debugWithStateError(g, state, stepErr)
 
-			if stepErr.GetProofStatus() == keybase1.ProofStatus_INVALID_PVL {
-				return newstate, stepErr
-			}
-
-			customErrSpec, customErrSpecErr := extractCustomErrorSpec(g, ins)
-			if customErrSpecErr != nil {
-				// Validation should have already caught this case.
-				// So here we just allow the non-custom error through.
-				customErrSpec = customErrorSpec{
-					hasStatus: false,
-					hasDesc:   false,
-				}
-			}
-			// Replace error with custom error.
-			customErr, swap := replaceCustomError(g, state, customErrSpec, stepErr)
-			if swap {
-				stepErr = customErr
-				debugWithState(g, state, "Replacing error with custom error")
-				debugWithStateError(g, state, customErr)
-			}
+		// Don't rewrite invalid_pvl errors
+		if stepErr.GetProofStatus() == keybase1.ProofStatus_INVALID_PVL {
+			return newState, stepErr
 		}
-		return newstate, stepErr
-	} else if n > 1 {
-		err := libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Instruction contains multiple instruction names")
-		debugWithStateError(g, state, err)
-		return state, err
-	}
 
-	return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-		"Unsupported PVL instruction")
+		// Replace error with custom error.
+		customErr, swap := replaceCustomError(g, state, customErrSpec, stepErr)
+		if swap {
+			stepErr = customErr
+			debugWithState(g, state, "Replacing error with custom error")
+			debugWithStateError(g, state, customErr)
+		}
+	}
+	return newState, stepErr
+
 }
 
-func stepAssertRegexMatch(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (scriptState, libkb.ProofError) {
-	rdesc, err := extractregexDescriptor(g, state, ins, string(cmdAssertRegexMatch))
-	if err != nil {
-		return state, err
+func stepAssertRegexMatch(g proofContextExt, ins assertRegexMatchT, state scriptState) (scriptState, libkb.ProofError) {
+	rdesc := regexDescriptor{
+		Template:        ins.Pattern,
+		CaseInsensitive: ins.CaseInsensitive,
+		MultiLine:       ins.MultiLine,
 	}
 	re, err := interpretRegex(g, state, rdesc)
 	if err != nil {
@@ -581,12 +525,8 @@ func stepAssertRegexMatch(g proofContextExt, ins *jsonw.Wrapper, state scriptSta
 	return state, nil
 }
 
-func stepAssertFindBase64(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (scriptState, libkb.ProofError) {
-	target, err := ins.AtKey(string(cmdAssertFindBase64)).GetString()
-	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Bad assert-findbase64 instruction")
-	}
+func stepAssertFindBase64(g proofContextExt, ins assertFindBase64T, state scriptState) (scriptState, libkb.ProofError) {
+	target := ins.Var
 	if target == "sig" {
 		if libkb.FindBase64Block(state.ActiveString, state.Vars.Sig, false) {
 			return state, nil
@@ -598,15 +538,16 @@ func stepAssertFindBase64(g proofContextExt, ins *jsonw.Wrapper, state scriptSta
 		"Can only assert_find_base64 for sig")
 }
 
-func stepWhitespaceNormalize(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (scriptState, libkb.ProofError) {
+func stepWhitespaceNormalize(g proofContextExt, ins whitespaceNormalizeT, state scriptState) (scriptState, libkb.ProofError) {
 	state.ActiveString = libkb.WhitespaceNormalize(state.ActiveString)
 	return state, nil
 }
 
-func stepRegexCapture(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (scriptState, libkb.ProofError) {
-	rdesc, err := extractregexDescriptor(g, state, ins, string(cmdRegexCapture))
-	if err != nil {
-		return state, err
+func stepRegexCapture(g proofContextExt, ins regexCaptureT, state scriptState) (scriptState, libkb.ProofError) {
+	rdesc := regexDescriptor{
+		Template:        ins.Pattern,
+		CaseInsensitive: ins.CaseInsensitive,
+		MultiLine:       ins.MultiLine,
 	}
 	re, err := interpretRegex(g, state, rdesc)
 	if err != nil {
@@ -624,12 +565,8 @@ func stepRegexCapture(g proofContextExt, ins *jsonw.Wrapper, state scriptState) 
 	return state, nil
 }
 
-func stepFetch(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (scriptState, libkb.ProofError) {
-	fetchType, err := ins.AtKey(string(cmdFetch)).GetString()
-	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not get fetch type")
-	}
+func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, libkb.ProofError) {
+	fetchType := ins.Kind
 	if state.fetchResult != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Script cannot contain more than one fetch")
@@ -679,13 +616,23 @@ func stepFetch(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (script
 	}
 }
 
-func stepSelectorJSON(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (scriptState, libkb.ProofError) {
+func stepSelectorJSON(g proofContextExt, ins selectorJSONT, state scriptState) (scriptState, libkb.ProofError) {
 	if state.fetchResult == nil || state.fetchResult.fetchMode != fetchModeJSON {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Cannot use json selector with non-json fetch result")
 	}
 
-	selectorsw, err := ins.AtKey(string(cmdSelectorJSON)).ToArray()
+	selectorsStr, err := json.Marshal(ins.Selectors)
+	if err != nil {
+		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+			"Could not marshal selectors")
+	}
+	selectorsw, err := jsonw.Unmarshal(selectorsStr)
+	if err != nil {
+		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+			"Could not unmarshal selectors")
+	}
+	selectorsw, err = selectorsw.ToArray()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Json selector list must be an array")
@@ -715,32 +662,28 @@ func stepSelectorJSON(g proofContextExt, ins *jsonw.Wrapper, state scriptState) 
 	return state, nil
 }
 
-func stepSelectorCSS(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (scriptState, libkb.ProofError) {
+func stepSelectorCSS(g proofContextExt, ins selectorCSST, state scriptState) (scriptState, libkb.ProofError) {
 	if state.fetchResult == nil || state.fetchResult.fetchMode != fetchModeHTML {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Cannot use css selector with non-html fetch result")
 	}
 
-	selectors, err := ins.AtKey(string(cmdSelectorCSS)).ToArray()
+	selectorsStr, err := json.Marshal(ins.Selectors)
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"CSS selectors must be an array: %v", err)
+			"Could not marshal selectors")
+	}
+	selectorsw, err := jsonw.Unmarshal(selectorsStr)
+	if err != nil {
+		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+			"Could not unmarshal selectors")
 	}
 
 	// Whether to get an attribute or the text contents.
-	attr, err := ins.AtKey("attr").GetString()
-	useAttr := err == nil
+	attr := ins.Attr
+	useAttr := attr != ""
 
-	// Whether the final selection can contain multiple elements.
-	multinil := ins.AtKey("multi").IsNil()
-	multi, multierr := ins.AtKey("multi").GetBool()
-	if !multinil && multierr != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"CSS selector multi option must be a bool: %v", multierr)
-	}
-	multi = !multinil && multi
-
-	selection, perr := runCSSSelectorInner(g, state.fetchResult.HTML.Selection, selectors)
+	selection, perr := runCSSSelectorInner(g, state.fetchResult.HTML.Selection, selectorsw)
 	if perr != nil {
 		return state, perr
 	}
@@ -750,7 +693,7 @@ func stepSelectorCSS(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (
 			"No elements matched by selector")
 	}
 
-	if selection.Size() > 1 && !multi {
+	if selection.Size() > 1 && !ins.Multi {
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
 			"CSS selector matched too many elements")
 	}
@@ -761,20 +704,21 @@ func stepSelectorCSS(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (
 	return state, nil
 }
 
-func stepTransformURL(g proofContextExt, ins *jsonw.Wrapper, state scriptState) (scriptState, libkb.ProofError) {
-	sourceRdesc, perr := extractregexDescriptor(g, state, ins, string(cmdTransformURL))
-	if perr != nil {
-		return state, perr
+func stepTransformURL(g proofContextExt, ins transformURLT, state scriptState) (scriptState, libkb.ProofError) {
+	sourceRdesc := regexDescriptor{
+		Template:        ins.Pattern,
+		CaseInsensitive: ins.CaseInsensitive,
+		MultiLine:       ins.MultiLine,
 	}
 	re, perr := interpretRegex(g, state, sourceRdesc)
 	if perr != nil {
 		return state, perr
 	}
 
-	destTemplate, err := ins.AtKey("to").GetString()
-	if err != nil {
+	destTemplate := ins.ToPattern
+	if destTemplate == "" {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not get dest pattern for transformation")
+			"Empty dest pattern for transformation")
 	}
 
 	match := re.FindStringSubmatch(state.FetchURL)
@@ -907,38 +851,6 @@ func runSelectorJSONInner(g proofContextExt, state scriptState, selectedObject *
 		"Selector entry not recognized: %v", selector)
 }
 
-func extractregexDescriptor(g proofContextExt, state scriptState, obj *jsonw.Wrapper, templatekey string) (regexDescriptor, libkb.ProofError) {
-	var desc regexDescriptor
-
-	template, err := obj.AtKey(templatekey).GetString()
-	if err != nil {
-		debugWithState(g, state, "Could not get regex template: %v", err)
-		return regexDescriptor{}, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not get regex template")
-	}
-	desc.Template = template
-
-	if !obj.AtKey(regexKeyCaseInsensitive).IsNil() {
-		caseinsensitive, err := obj.AtKey(regexKeyCaseInsensitive).GetBool()
-		if err != nil {
-			return regexDescriptor{}, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"Regex option '%v' must be a bool", regexKeyCaseInsensitive)
-		}
-		desc.CaseInsensitive = caseinsensitive
-	}
-
-	if !obj.AtKey(regexKeyMultiline).IsNil() {
-		multiline, err := obj.AtKey(regexKeyMultiline).GetBool()
-		if err != nil {
-			return regexDescriptor{}, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"Regex option '%v' must be a bool", regexKeyMultiline)
-		}
-		desc.MultiLine = multiline
-	}
-
-	return desc, nil
-}
-
 // Take a regex descriptor, do variable substitution, and build a regex.
 func interpretRegex(g proofContextExt, state scriptState, rdesc regexDescriptor) (*regexp.Regexp, libkb.ProofError) {
 	// Check that regex is bounded by "^" and "$".
@@ -981,101 +893,17 @@ func interpretRegex(g proofContextExt, state scriptState, rdesc regexDescriptor)
 	return re, nil
 }
 
-type customErrorSpec struct {
-	hasStatus bool
-	status    keybase1.ProofStatus
-	hasDesc   bool
-	desc      string
-}
-
-// Take an instruction and if it specifies a custom error via an "error" key, return a customErrorSpec.
-// The second return value is used if the error spec is invalid.
-// The two accepted formats are:
-// error: "CONTENT_FAILURE"
-// error: ["CONTENT_FAILURE", "Bad author; wanted \"%{username_service}\", got \"%{active_string}\""]
-func extractCustomErrorSpec(g proofContextExt, ins *jsonw.Wrapper) (customErrorSpec, libkb.ProofError) {
-	spec := customErrorSpec{
-		hasStatus: false,
-		hasDesc:   false,
-	}
-
-	if !jsonHasKey(ins, "error") {
-		// No custom error specified
-		return spec, nil
-	}
-
-	var estatusstr string
-
-	ar, err := ins.AtKey("error").ToArray()
-	if err != nil {
-		// "error": "name"
-		name, err := ins.AtKey("error").GetString()
-		if err != nil {
-			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"Custom error must be an array or string: %v", err)
-		}
-		estatusstr = name
-	} else {
-		// "error": ["name", "desc"]
-		length, err := ar.Len()
-		if err != nil {
-			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"Could not get length of error array: %v", err)
-		}
-		if length != 2 {
-			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"Error array must be of length 2 but was %v", length)
-		}
-		name, err := ar.AtIndex(0).GetString()
-		if err != nil {
-			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"Could not get error name: %v", err)
-		}
-		estatusstr = name
-
-		desc, err := ar.AtIndex(1).GetString()
-		if err != nil {
-			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"Could not error description: %v", err)
-		}
-		spec.hasDesc = true
-		spec.desc = desc
-	}
-
-	if estatusstr != "" {
-		status, ok := keybase1.ProofStatusMap[estatusstr]
-		if !ok {
-			return spec, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"Unrecognized error status: %v", estatusstr)
-		}
-		spec.hasStatus = true
-		spec.status = status
-	}
-
-	return spec, nil
-}
-
 // Use a custom error spec to derive an error.
+// spec can be none
 // Copies over the error code if none is specified.
 // The second return value indicates whether the returned error is different than err1.
-func replaceCustomError(g proofContextExt, state scriptState, spec customErrorSpec, err1 libkb.ProofError) (libkb.ProofError, bool) {
-	status := err1.GetProofStatus()
-	desc := err1.GetDesc()
-
-	if spec.hasStatus {
-		status = spec.status
-	}
-	if spec.hasDesc {
-		subbedDesc, err := substitute(spec.desc, state, nil, []string{"active_string"})
-		if err == nil {
-			desc = subbedDesc
-		} else {
-			desc = spec.desc
-		}
+func replaceCustomError(g proofContextExt, state scriptState, spec *errorT, err1 libkb.ProofError) (libkb.ProofError, bool) {
+	if spec == nil {
+		return err1, false
 	}
 
-	if (status != err1.GetProofStatus()) || (desc != err1.GetDesc()) {
-		return libkb.NewProofError(status, desc), true
+	if (spec.Status != err1.GetProofStatus()) || (spec.Description != err1.GetDesc()) {
+		return libkb.NewProofError(spec.Status, spec.Description), true
 	}
 	return err1, false
 }
