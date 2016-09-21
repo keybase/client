@@ -37,11 +37,16 @@ protocol local {
     V1_1
   }
 
+  // MessagePlaintextV1 is version 1 of MessagePlaintext.
+  // The fields here cannot change.  To modify,
+  // create a new record type with a new version.
   record MessagePlaintextV1 {
     MessageClientHeader clientHeader;
     MessageBody messageBody;
   }
 
+  // MessagePlaintext is a variant container for all the 
+  // versions of MessagePlaintext.
   variant MessagePlaintext switch (MessagePlaintextVersion version) {
     case V1: MessagePlaintextV1;
   }
@@ -50,6 +55,9 @@ protocol local {
     V1_1
   }
 
+  // HeaderPlaintextV1 is version 1 of HeaderPlaintext.
+  // The fields here cannot change.  To modify, 
+  // create a new record type with a new version.
   record HeaderPlaintextV1 {
     ConversationIDTriple conv;
     string tlfName;
@@ -62,6 +70,8 @@ protocol local {
     union {null, SignatureInfo} headerSignature;
   }
 
+  // HeaderPlaintext is a variant container for all the
+  // versions of HeaderPlaintext.
   variant HeaderPlaintext switch (HeaderPlaintextVersion version) {
     case V1: HeaderPlaintextV1;
   }
@@ -70,10 +80,15 @@ protocol local {
     V1_1
   }
 
+  // BodyPlaintextV1 is version 1 of BodyPlaintext.
+  // The fields here cannot change.  To modify,
+  // create a new record type with a new version.
   record BodyPlaintextV1 {
     MessageBody messageBody;
   }
 
+  // BodyPlaintext is a variant container for all the
+  // versions of BodyPlaintext.
   variant BodyPlaintext switch (BodyPlaintextVersion version) {
     case V1: BodyPlaintextV1;
   }
