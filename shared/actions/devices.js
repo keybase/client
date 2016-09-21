@@ -178,6 +178,11 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
   } catch (e) {
     generatePaperKeyChan && generatePaperKeyChan.close()
     console.warn('error in generating paper key', e)
+    yield put(({
+      type: Constants.paperKeyLoaded,
+      payload: e,
+      error: true,
+    }: PaperKeyLoaded))
   }
 }
 
