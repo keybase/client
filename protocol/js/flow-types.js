@@ -3142,8 +3142,8 @@ export type UserSummary2 = {
   username: string,
   thumbnail: string,
   fullName: string,
-  isFollower: bool,
-  isFollowee: bool,
+  isFollower: boolean,
+  isFollowee: boolean,
 }
 
 export type UserSummary2Set = {
@@ -3365,7 +3365,7 @@ export type identifyIdentify2RpcParam = Exact<{
   needProofSet?: boolean,
   allowEmptySelfID?: boolean,
   noSkipSelf?: boolean,
-  canSuppressUI?: bool
+  canSuppressUI?: boolean
 }>
 
 export type identifyIdentifyRpcParam = Exact<{
@@ -3854,7 +3854,7 @@ export type saltpackSaltpackVerifyRpcParam = Exact<{
 
 export type saltpackUiSaltpackPromptForDecryptRpcParam = Exact<{
   sender: SaltpackSender,
-  usedDelegateUI: bool
+  usedDelegateUI: boolean
 }>
 
 export type saltpackUiSaltpackVerifySuccessRpcParam = Exact<{
@@ -3976,7 +3976,7 @@ export type uiPromptYesNoRpcParam = Exact<{
 
 export type userListTrackers2RpcParam = Exact<{
   assertion: string,
-  reverse: bool
+  reverse: boolean
 }>
 
 export type userListTrackersByNameRpcParam = Exact<{
@@ -4154,7 +4154,7 @@ type pgpPgpPurgeResult = PGPPurgeRes
 
 type pgpPgpVerifyResult = PGPSigVerification
 
-type pgpUiShouldPushPrivateResult = bool
+type pgpUiShouldPushPrivateResult = boolean
 
 type proveCheckProofResult = CheckProofStatus
 
@@ -4977,7 +4977,7 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       sessionID: int,
       sender: SaltpackSender,
-      usedDelegateUI: bool
+      usedDelegateUI: boolean
     }>,
     response: CommonResponseHandler
   ) => void,

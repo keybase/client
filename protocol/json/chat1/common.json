@@ -162,7 +162,7 @@
           "name": "after"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "unreadOnly"
         }
       ]
@@ -172,7 +172,7 @@
       "name": "GetThreadQuery",
       "fields": [
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "markAsRead"
         },
         {
