@@ -9,7 +9,7 @@ function InviteGenerated (props: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', justifyContent: 'center', alignItems: 'center'}}>
       <Icon type='iconfont-close' style={{...globalStyles.clickable, position: 'absolute', right: 0, top: 0}} onClick={props.onClose} />
-      <Icon type='icon-invite-link-32' />
+      <Icon type='icon-invite-link-48' />
       {
         props.email
         ? <Text type='Body' style={textStyle}>Yay! We emailed <Text type='BodySemibold'>{props.email}</Text>, but you can also give them the below link:</Text>
