@@ -74,7 +74,7 @@ func (c *cmdChatSend) Run() (err error) {
 		conversationInfo = *resolved
 	}
 
-	if err = c.G().UI.GetTerminalUI().PromptForConfirmation("Send to " + conversationInfo.TlfName); err != nil {
+	if err = c.G().UI.GetTerminalUI().PromptForConfirmation(fmt.Sprintf("Send to %s?", conversationInfo.TlfName)); err != nil {
 		return err
 	}
 
