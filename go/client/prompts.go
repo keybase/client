@@ -51,6 +51,7 @@ const (
 	PromptDescriptorPGPGenEnterID
 	PromptDescriptorTrackExpireLocal
 	PromptDescriptorChooseConversation
+	PromptDescriptorEnterChatMessage
 )
 
 const (

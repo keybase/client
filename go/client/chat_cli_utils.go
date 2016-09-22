@@ -56,11 +56,11 @@ type conversationResolver struct {
 	Visibility chat1.TLFVisibility
 }
 
-func (r *conversationResolver) Resolve(ctx context.Context, g *libkb.GlobalContext, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversationInfo *chat1.ConversationInfoLocal, err error) {
+func (r *conversationResolver) Resolve(ctx context.Context, g *libkb.GlobalContext, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
 	if len(r.TlfName) > 0 {
 		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, r.TlfName)
 		if err != nil {
-			return nil, fmt.Errorf("completing TLF name error: %v", err)
+			return nil, false, fmt.Errorf("completing TLF name error: %v", err)
 		}
 		r.TlfName = string(cname)
 	}
@@ -72,14 +72,14 @@ func (r *conversationResolver) Resolve(ctx context.Context, g *libkb.GlobalConte
 		Visibility: r.Visibility,
 	})
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	switch len(conversations) {
 	case 0:
-		return nil, nil
+		return nil, false, nil
 	case 1:
-		return &conversations[0], nil
+		return &conversations[0], false, nil
 	default:
 		g.UI.GetTerminalUI().Printf(
 			"There are %d conversations. Please choose one:\n", len(conversations))
@@ -89,13 +89,14 @@ func (r *conversationResolver) Resolve(ctx context.Context, g *libkb.GlobalConte
 			input, err := g.UI.GetTerminalUI().Prompt(PromptDescriptorChooseConversation,
 				fmt.Sprintf("Please enter a number [1-%d]: ", len(conversations)))
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 			if num, err = strconv.Atoi(input); err != nil {
-				return nil, err
+				g.UI.GetTerminalUI().Printf("Error converting input to number: %v\n", err)
+				continue
 			}
 		}
-		return &conversations[num-1], nil
+		return &conversations[num-1], true, nil
 	}
 }
 
@@ -168,9 +169,12 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 		return nil, err
 	}
 
-	conversationInfo, err := f.resolver.Resolve(ctx, g, chatClient, tlfClient)
+	conversationInfo, _, err := f.resolver.Resolve(ctx, g, chatClient, tlfClient)
 	if err != nil {
 		return nil, fmt.Errorf("resolving conversation error: %v\n", err)
+	}
+	if conversationInfo == nil {
+		return nil, nil
 	}
 	g.UI.GetTerminalUI().Printf("fetching conversation %s ...\n", conversationInfo.TlfName)
 	f.selector.Conversations = append(f.selector.Conversations, conversationInfo.Id)
