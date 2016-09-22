@@ -87,7 +87,6 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
         payload: undefined,
         error: false,
       }: DeviceRemoved))
-      yield put(loadDevices())
       yield put(setRevokedSelf(name))
       yield put(navigateTo([], loginTab))
       yield put(switchTab(loginTab))
