@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/devices'
 import HiddenString from '../util/hidden-string'
-import {Map} from 'immutable'
+import {Map, is} from 'immutable'
 import {devicesTab, loginTab} from '../constants/tabs'
 
 import {navigateTo, navigateUp, switchTab} from './router'
@@ -63,6 +63,10 @@ function * _deviceListSaga (): SagaGenerator<any, any> {
 }
 
 function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, any> {
+  // Record our current route, only navigate away later if it's unchanged.
+  const activeTab = yield select(state => state.router && state.router.get('activeTab'))
+  const beforeUri = yield select(state => state.router.get('tabs').get(activeTab).get('uri'))
+
   // Revoking the current device uses the "deprovision" RPC instead.
   const {currentDevice, name, deviceID} = removeAction.payload
   if (currentDevice) {
@@ -116,7 +120,11 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
     }
   }
   yield put(loadDevices())
-  yield put(navigateUp(devicesTab, Map({path: 'root'})))
+
+  const afterUri = yield select(state => state.router.get('tabs').get(activeTab).get('uri'))
+  if (is(beforeUri, afterUri)) {
+    yield put(navigateUp(devicesTab, Map({path: 'root'})))
+  }
 }
 
 function _generatePaperKey () {
