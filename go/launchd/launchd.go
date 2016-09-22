@@ -244,18 +244,22 @@ func (s Service) install(p Plist, plistDest string, wait time.Duration) error {
 
 // Uninstall will uninstall the launchd service
 func (s Service) Uninstall(wait time.Duration) error {
+	errs := []error{}
 	// It's safer to remove the plist before stopping in case stopping
 	// hangs the system somehow, the plist will still be removed.
 	plistDest := s.plistDestination()
 	if _, err := os.Stat(plistDest); err == nil {
 		s.log.Info("Removing %s", plistDest)
-		return os.Remove(plistDest)
+		if err := os.Remove(plistDest); err != nil {
+			errs = append(errs, err)
+		}
 	}
 
 	if _, err := s.Stop(wait); err != nil {
-		return err
+		errs = append(errs, err)
 	}
-	return nil
+
+	return libkb.CombineErrors(errs...)
 }
 
 // ListServices will return service with label that starts with a filter string.
