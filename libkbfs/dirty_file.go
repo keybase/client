@@ -142,6 +142,12 @@ func (df *dirtyFile) isBlockDirty(ptr BlockPointer) bool {
 	return df.fileBlockStates[ptr].copy == blockAlreadyCopied
 }
 
+func (df *dirtyFile) isBlockOrphaned(ptr BlockPointer) bool {
+	df.lock.Lock()
+	defer df.lock.Unlock()
+	return df.fileBlockStates[ptr].orphaned
+}
+
 func (df *dirtyFile) setBlockSyncing(ptr BlockPointer) error {
 	df.lock.Lock()
 	defer df.lock.Unlock()

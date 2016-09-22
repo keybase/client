@@ -2348,6 +2348,21 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		// bytes are already accounted for.
 		if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
 			df.updateNotYetSyncingBytes(-fbo.deferredWaitBytes)
+
+			// Some blocks that were dirty are now clean under their
+			// readied block ID, and now live in the bps rather than
+			// the dirty bcache, so we can delete them from the dirty
+			// bcache.
+			dirtyBcache := fbo.config.DirtyBlockCache()
+			for _, ptr := range result.oldFileBlockPtrs {
+				if df.isBlockOrphaned(ptr) {
+					fbo.log.CDebugf(ctx, "Deleting dirty orphan: %v", ptr)
+					if err := dirtyBcache.Delete(fbo.id(), ptr,
+						fbo.branch()); err != nil {
+						fbo.log.CDebugf(ctx, "Couldn't delete %v", ptr)
+					}
+				}
+			}
 		}
 
 		// On an unrecoverable error, the deferred writes aren't
@@ -2356,6 +2371,7 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		fbo.deferredDirtyDeletes = nil
 		fbo.deferredWrites = nil
 		fbo.deferredWaitBytes = 0
+
 	}
 
 	// The sync is over, due to an error, so reset the map so that we
