@@ -68,6 +68,9 @@ func fsTableGetFileCount(slot uint32) uint32 {
 }
 
 func fiTableStoreFile(global uint32, fi File) uint32 {
+	fsTableLock.Lock()
+	fsTable[global].fileCount++
+	fsTableLock.Unlock()
 	fiTableLock.Lock()
 	defer fiTableLock.Unlock()
 	for {
@@ -83,9 +86,6 @@ func fiTableStoreFile(global uint32, fi File) uint32 {
 		if !exist {
 			debug("FID alloc", fiIdx, fi)
 			fiTable[fiIdx] = fi
-			fsTableLock.Lock()
-			defer fsTableLock.Unlock()
-			fsTable[global].fileCount++
 			return fiIdx
 		}
 	}
@@ -100,11 +100,11 @@ func fiTableGetFile(file uint32) File {
 }
 
 func fiTableFreeFile(global uint32, file uint32) {
+	fsTableLock.Lock()
+	fsTable[global].fileCount--
+	fsTableLock.Unlock()
 	fiTableLock.Lock()
 	defer fiTableLock.Unlock()
 	debug("FID free", global, file, "=>", fiTable[file], "# of open files:", len(fiTable)-1)
 	delete(fiTable, file)
-	fsTableLock.Lock()
-	defer fsTableLock.Unlock()
-	fsTable[global].fileCount--
 }
