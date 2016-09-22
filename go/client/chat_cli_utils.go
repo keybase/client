@@ -173,6 +173,9 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 	if err != nil {
 		return nil, fmt.Errorf("resolving conversation error: %v\n", err)
 	}
+	if conversationInfo == nil {
+		return nil, nil
+	}
 	g.UI.GetTerminalUI().Printf("fetching conversation %s ...\n", conversationInfo.TlfName)
 	f.selector.Conversations = append(f.selector.Conversations, conversationInfo.Id)
 

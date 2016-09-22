@@ -88,7 +88,7 @@ func (c *cmdChatSend) Run() (err error) {
 			return err
 		}
 	case userChosen:
-		return errors.New("\"this should never happen\"")
+		return errors.New("potential command line argument parsing error: we had a message before letting user choose a conversation")
 	case len(c.message) == 0:
 		c.message, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, "Please enter message content: ")
 		if err != nil {
