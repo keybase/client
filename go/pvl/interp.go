@@ -4,7 +4,6 @@
 package pvl
 
 import (
-	"encoding/json"
 	"net"
 	"regexp"
 	"strings"
@@ -610,33 +609,12 @@ func stepSelectorJSON(g proofContextExt, ins selectorJSONT, state scriptState) (
 			"Cannot use json selector with non-json fetch result")
 	}
 
-	selectorsStr, err := json.Marshal(ins.Selectors)
-	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not marshal selectors")
-	}
-	selectorsw, err := jsonw.Unmarshal(selectorsStr)
-	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not unmarshal selectors")
-	}
-	selectorsw, err = selectorsw.ToArray()
-	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Json selector list must be an array")
-	}
-
-	selectors, err := jsonUnpackArray(selectorsw)
-	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not unpack json selector list: %v", err)
-	}
-	if len(selectors) < 1 {
+	if len(ins.Selectors) < 1 {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Json selector list must contain at least 1 element")
 	}
 
-	results, perr := runSelectorJSONInner(g, state, state.fetchResult.JSON, selectors)
+	results, perr := runSelectorJSONInner(g, state, state.fetchResult.JSON, ins.Selectors)
 	if perr != nil {
 		return state, perr
 	}
@@ -656,22 +634,7 @@ func stepSelectorCSS(g proofContextExt, ins selectorCSST, state scriptState) (sc
 			"Cannot use css selector with non-html fetch result")
 	}
 
-	selectorsStr, err := json.Marshal(ins.Selectors)
-	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not marshal selectors")
-	}
-	selectorsw, err := jsonw.Unmarshal(selectorsStr)
-	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not unmarshal selectors")
-	}
-
-	// Whether to get an attribute or the text contents.
-	attr := ins.Attr
-	useAttr := attr != ""
-
-	selection, perr := runCSSSelectorInner(g, state.fetchResult.HTML.Selection, selectorsw)
+	selection, perr := runCSSSelectorInner(g, state.fetchResult.HTML.Selection, ins.Selectors)
 	if perr != nil {
 		return state, perr
 	}
@@ -686,7 +649,9 @@ func stepSelectorCSS(g proofContextExt, ins selectorCSST, state scriptState) (sc
 			"CSS selector matched too many elements")
 	}
 
-	res := selectionContents(selection, useAttr, attr)
+	// Whether to get an attribute or the text contents.
+	useAttr := ins.Attr != ""
+	res := selectionContents(selection, useAttr, ins.Attr)
 
 	state.ActiveString = res
 	return state, nil
@@ -733,13 +698,8 @@ func stepTransformURL(g proofContextExt, ins transformURLT, state scriptState) (
 // Run a PVL CSS selector.
 // selectors is a list like [ "div .foo", 0, ".bar"] ].
 // Each string runs a selector, each integer runs a Eq.
-func runCSSSelectorInner(g proofContextExt, html *goquery.Selection, selectors *jsonw.Wrapper) (*goquery.Selection, libkb.ProofError) {
-	nselectors, err := selectors.Len()
-	if err != nil {
-		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not get length of selector list")
-	}
-	if nselectors < 1 {
+func runCSSSelectorInner(g proofContextExt, html *goquery.Selection, selectors []selectorEntryT) (*goquery.Selection, libkb.ProofError) {
+	if len(selectors) < 1 {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"CSS selectors array must not be empty")
 	}
@@ -747,19 +707,12 @@ func runCSSSelectorInner(g proofContextExt, html *goquery.Selection, selectors *
 	var selection *goquery.Selection
 	selection = html
 
-	for i := 0; i < nselectors; i++ {
-		selector := selectors.AtIndex(i)
-
-		selectorIndex, err := selector.GetInt()
-		selectorIsIndex := err == nil
-		selectorString, err := selector.GetString()
-		selectorIsString := err == nil && !selectorIsIndex
-
+	for _, selector := range selectors {
 		switch {
-		case selectorIsIndex:
-			selection = selection.Eq(selectorIndex)
-		case selectorIsString:
-			selection = selection.Find(selectorString)
+		case selector.IsIndex:
+			selection = selection.Eq(selector.Index)
+		case selector.IsKey:
+			selection = selection.Find(selector.Key)
 		default:
 			return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"Selector entry must be a string or int %v", selector)
@@ -771,7 +724,7 @@ func runCSSSelectorInner(g proofContextExt, html *goquery.Selection, selectors *
 
 // Most failures here log instead of returning an error. If an error occurs, ([], nil) will be returned.
 // This is because a selector may descend into many subtrees and fail in all but one.
-func runSelectorJSONInner(g proofContextExt, state scriptState, selectedObject *jsonw.Wrapper, selectors []*jsonw.Wrapper) ([]string, libkb.ProofError) {
+func runSelectorJSONInner(g proofContextExt, state scriptState, selectedObject *jsonw.Wrapper, selectors []selectorEntryT) ([]string, libkb.ProofError) {
 	// The terminating condition is when we've consumed all the selectors.
 	if len(selectors) == 0 {
 		s, err := jsonStringSimple(selectedObject)
@@ -785,18 +738,11 @@ func runSelectorJSONInner(g proofContextExt, state scriptState, selectedObject *
 	selector := selectors[0]
 	nextselectors := selectors[1:]
 
-	selectorIndex, err := selector.GetInt()
-	selectorIsIndex := err == nil
-	selectorKey, err := selector.GetString()
-	selectorIsKey := err == nil && !selectorIsIndex
-	allness, err := selector.AtKey("all").GetBool()
-	selectorIsAll := err == nil && allness
-
 	switch {
-	case selectorIsIndex:
+	case selector.IsIndex:
 		object, err := selectedObject.ToArray()
 		if err != nil {
-			debugWithState(g, state, "JSON select by index from non-array: %v (%v) (%v)", err, selectorIndex, object)
+			debugWithState(g, state, "JSON select by index from non-array: %v (%v) (%v)", err, selector.Index, object)
 			return []string{}, nil
 		}
 		length, err := object.Len()
@@ -804,22 +750,22 @@ func runSelectorJSONInner(g proofContextExt, state scriptState, selectedObject *
 			return []string{}, nil
 		}
 
-		index, ok := pyindex(selectorIndex, length)
+		index, ok := pyindex(selector.Index, length)
 		if !ok || index < 0 {
 			return []string{}, nil
 		}
 		nextobject := object.AtIndex(index)
 		return runSelectorJSONInner(g, state, nextobject, nextselectors)
-	case selectorIsKey:
+	case selector.IsKey:
 		object, err := selectedObject.ToDictionary()
 		if err != nil {
-			debugWithState(g, state, "JSON select by key from non-map: %v (%v) (%v)", err, selectorKey, object)
+			debugWithState(g, state, "JSON select by key from non-map: %v (%v) (%v)", err, selector.Key, object)
 			return []string{}, nil
 		}
 
-		nextobject := object.AtKey(selectorKey)
+		nextobject := object.AtKey(selector.Key)
 		return runSelectorJSONInner(g, state, nextobject, nextselectors)
-	case selectorIsAll:
+	case selector.IsAll:
 		children, err := jsonGetChildren(selectedObject)
 		if err != nil {
 			debugWithState(g, state, "JSON select could not get children: %v (%v)", err, selectedObject)
@@ -836,7 +782,7 @@ func runSelectorJSONInner(g proofContextExt, state scriptState, selectedObject *
 		return results, nil
 	}
 	return []string{}, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-		"Selector entry not recognized: %v", selector)
+		"Invalid selector entry: %v", selector)
 }
 
 // Take a regex descriptor, do variable substitution, and build a regex.
