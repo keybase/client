@@ -66,6 +66,7 @@ type Plist struct {
 	args      []string
 	envVars   []EnvVar
 	keepAlive bool
+	runAtLoad bool
 	logPath   string
 	comment   string
 }
@@ -78,6 +79,7 @@ func NewPlist(label string, binPath string, args []string, envVars []EnvVar, log
 		args:      args,
 		envVars:   envVars,
 		keepAlive: true,
+		runAtLoad: false,
 		logPath:   logPath,
 		comment:   comment,
 	}
@@ -529,6 +531,8 @@ func (p Plist) plistXML() string {
 	options := []string{}
 	if p.keepAlive {
 		options = append(options, encodeTag("key", "KeepAlive"), encodeBool(true))
+	}
+	if p.runAtLoad {
 		options = append(options, encodeTag("key", "RunAtLoad"), encodeBool(true))
 	}
 
