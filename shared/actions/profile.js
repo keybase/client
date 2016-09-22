@@ -10,12 +10,13 @@ import {getMyProfile} from './tracker'
 import {isValidEmail, isValidName} from '../util/simple-validators'
 import {navigateUp, navigateTo, routeAppend, switchTab} from '../actions/router'
 import {profileTab} from '../constants/tabs'
-import {takeLatest, takeEvery, eventChannel, END, buffers} from 'redux-saga'
+import {takeLatest, takeEvery} from 'redux-saga'
+import {createChannelMap, putOnChannelMap, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap} from '../util/saga'
 
-import type {SagaGenerator} from '../constants/types/saga'
-import type {Dispatch, AsyncAction, NoErrorTypedAction} from '../constants/types/flux'
+import type {SagaGenerator, ChannelConfig, ChannelMap} from '../constants/types/saga'
+import type {Dispatch, AsyncAction} from '../constants/types/flux'
 import type {PlatformsExpandedType, ProvablePlatformsType} from '../constants/types/more'
-import type {SigID, KID, KeyInfo} from '../constants/types/flow-types'
+import type {SigID, KID} from '../constants/types/flow-types'
 import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateErrorText, UpdateProofStatus,
   UpdateSigID, WaitingRevokeProof, FinishRevokeProof, CleanupUsername, UpdatePgpInfo, PgpInfo, GeneratePgp, FinishedWithKeyGen, DropPgp} from '../constants/profile'
 
@@ -514,62 +515,42 @@ function checkPgpInfoForErrors (pgpInfo: PgpInfo): PgpInfoError {
   }
 }
 
-// If we like this we can auto build this and the following way of calling rpc methods
-// so that they return a channel of these actions
-type IncomingKeyGenerated = NoErrorTypedAction<'keybase.1.pgpUi.keyGenerated', {params: {key: KeyInfo}, response: {result: () => void}}>
-type IncomingShouldPush = NoErrorTypedAction<'keybase.1.pgpUi.shouldPushPrivate', {response: {result: (shouldPush: boolean) => void}}>
-
 // Returns a channel that represents the feedback from the rpc service
 // Things in the channel look like actions
 // If the service expects a reply, a response will be attached to the payload
-function generatePgpKey (pgpInfo: PgpInfo): any {
+function generatePgpKey (channelConfig: ChannelConfig<*>, pgpInfo: PgpInfo): any {
   const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(email => !!email).map(email => ({
     username: pgpInfo.fullName || '',
     comment: '',
     email: email || '',
   }))
 
-  return eventChannel(emit => {
-    pgpPgpKeyGenDefaultRpc({
-      param: {
-        createUids: {
-          useDefault: false,
-          ids: identities,
-        },
+  const channelMap = createChannelMap(channelConfig)
+  pgpPgpKeyGenDefaultRpc({
+    param: {
+      createUids: {
+        useDefault: false,
+        ids: identities,
       },
-      incomingCallMap: {
-        'keybase.1.pgpUi.keyGenerated': ({kid, key}, response) => {
-          emit(({
-            type: 'keybase.1.pgpUi.keyGenerated',
-            payload: {params: {kid, key}, response},
-          }: IncomingKeyGenerated))
-        },
-        'keybase.1.pgpUi.shouldPushPrivate': (p, response) => {
-          emit(({
-            type: 'keybase.1.pgpUi.shouldPushPrivate',
-            payload: {response},
-          }: IncomingShouldPush))
-        },
-        'keybase.1.pgpUi.finished': (p, response) => {
-          emit({
-            type: 'keybase.1.pgpUi.finished',
-            payload: {response},
-          })
-        },
+    },
+    incomingCallMap: {
+      'keybase.1.pgpUi.keyGenerated': ({kid, key}, response) => {
+        putOnChannelMap(channelMap, 'keybase.1.pgpUi.keyGenerated', {params: {kid, key}, response})
       },
-      callback: (error) => {
-        emit({
-          type: 'finished',
-          payload: {error},
-        })
-        emit(END)
+      'keybase.1.pgpUi.shouldPushPrivate': (p, response) => {
+        putOnChannelMap(channelMap, 'keybase.1.pgpUi.shouldPushPrivate', {response})
       },
-    })
+      'keybase.1.pgpUi.finished': (p, response) => {
+        putOnChannelMap(channelMap, 'keybase.1.pgpUi.finished', {response})
+      },
+    },
+    callback: (error) => {
+      putOnChannelMap(channelMap, 'finished', {error})
+      closeChannelMap(channelMap)
+    },
+  })
 
-    // TODO(MM) this is the unsubscribe function, not sure what we can do here,
-    // maybe cancel ongoing rpc requests?
-    return () => {}
-  }, buffers.fixed())
+  return channelMap
 }
 
 // Resolves if the pgp key was dropped successfully
@@ -624,25 +605,27 @@ function * dropPgpSaga (action: DropPgp): SagaGenerator<any, any> {
 function * generatePgpSaga (): SagaGenerator<any, any> {
   yield put(routeAppend('generate'))
 
+  const channelConfig = singleFixedChannelConfig(['keybase.1.pgpUi.keyGenerated', 'keybase.1.pgpUi.shouldPushPrivate', 'keybase.1.pgpUi.finished', 'finished'])
+
   // $ForceType
   const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
-  const generatePgpKeyChan = yield call(generatePgpKey, pgpInfo)
+  // $ForceType
+  const generatePgpKeyChanMap: ChannelMap<any> = yield call(generatePgpKey, channelConfig, pgpInfo)
 
   try {
     // $ForceType
-    const {cancel, keyGenerated}: {keyGenerated: IncomingKeyGenerated, cancel: ?any} = yield race({
-      keyGenerated: take(generatePgpKeyChan, 'keybase.1.pgpUi.keyGenerated'),
+    const {cancel, keyGenerated}: {keyGenerated: any, cancel: ?any} = yield race({
+      keyGenerated: takeFromChannelMap(generatePgpKeyChanMap, 'keybase.1.pgpUi.keyGenerated'),
       cancel: take(Constants.cancelPgpGen),
     })
 
     if (cancel) {
-      generatePgpKeyChan && generatePgpKeyChan.close()
+      closeChannelMap(generatePgpKeyChanMap)
       yield put(navigateTo([]))
     }
 
-    keyGenerated.payload.response.result()
-    yield call([keyGenerated.payload.response, keyGenerated.payload.response.result])
-    const publicKey = keyGenerated.payload.params.key.key
+    yield call([keyGenerated.response, keyGenerated.response.result])
+    const publicKey = keyGenerated.params.key.key
 
     yield put({type: Constants.updatePgpPublicKey, payload: {publicKey}})
     yield put(routeAppend('finished'))
@@ -652,16 +635,16 @@ function * generatePgpSaga (): SagaGenerator<any, any> {
     const {shouldStoreKeyOnServer} = finishedAction.payload
 
     // $ForceType
-    const {payload: {response}}: IncomingShouldPush = yield take(generatePgpKeyChan, 'keybase.1.pgpUi.shouldPushPrivate')
+    const {response} = yield takeFromChannelMap(generatePgpKeyChanMap, 'keybase.1.pgpUi.shouldPushPrivate')
     yield call([response, response.result], shouldStoreKeyOnServer)
 
     // $FlowIssue
-    const {payload: {response: finishedResponse}} = yield take(generatePgpKeyChan, 'keybase.1.pgpUi.finished')
+    const {response: finishedResponse} = yield takeFromChannelMap(generatePgpKeyChanMap, 'keybase.1.pgpUi.finished')
     yield call([finishedResponse, finishedResponse.result])
 
     yield put(navigateTo([]))
   } catch (e) {
-    generatePgpKeyChan && generatePgpKeyChan.close()
+    closeChannelMap(generatePgpKeyChanMap)
     console.log('error in generating pgp key', e)
   }
 }
