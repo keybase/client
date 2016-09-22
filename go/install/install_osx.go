@@ -23,8 +23,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// defaultLaunchdWait is how long we should wait after install, start, etc
-const defaultLaunchdWait = 10 * time.Second
+// defaultLaunchdWait is how long we should wait after install & start.
+// We should make this shorter if the app is started by the user (so
+// they get more immediate feedback), and longer if the app is started
+// after boot (when it takes longer for things to start).
+const defaultLaunchdWait = 20 * time.Second
 
 // ServiceLabel is an identifier string for a service
 type ServiceLabel string
