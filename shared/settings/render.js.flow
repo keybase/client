@@ -2,15 +2,8 @@
 import {Component} from 'react'
 
 export type Props = {
-  onAccount: () => void,
-  onBilling: () => void,
-  onPrefs: () => void,
-  onInvites: () => void,
-  onNotifications: () => void,
-  onDeleteMe: () => void,
-  onLogSend: () => void,
-  onAbout: () => void,
-  onDev: () => void
+  showComingSoon: boolean,
+  onDevMenu: () => void,
 }
 
 export default class Render extends Component<void, Props, void> { }
