@@ -9,19 +9,28 @@ import (
 	"strings"
 )
 
+// Alignment defines how the content of a cell should align
 type Alignment int
 
+// Possible Alignment values
 const (
 	Left Alignment = iota // default
 	Right
 	Center
 )
 
+// Cell defines a cell (column) in a row
 type Cell struct {
-	Content   CellContent
+	// Content is the content of the cell. It can be either a SingleCell or a
+	// MultiCell
+	Content cellContent
+
+	// Alignment specifies how the content of a cell should align
 	Alignment Alignment
 
-	// added before and after the content, before paddings are inserted if any
+	// Frame defines a "frame" around the content. The array defines two strings,
+	// which are added before and after the content, before any paddings are
+	// inserted.
 	Frame [2]string
 }
 
@@ -63,13 +72,16 @@ func (c Cell) addPadding(str string, width int) (string, error) {
 	}
 }
 
-type CellContent interface {
+type cellContent interface {
 	render(maxWidth int) string
 	minWidth() int
 	full() string
 }
 
+// SingleCell defines cell content with a single string. If being truncated,
+// the truncated part is replaced with "..."
 type SingleCell struct {
+	// Item is, well, the contnet.
 	Item string
 }
 
@@ -91,8 +103,12 @@ func (c SingleCell) minWidth() int {
 	return 3 // "..."
 }
 
+// MultiCell defines cell content with multiple strings. If being truncated, it
+// looks like this: "item1,item2,+4..."
 type MultiCell struct {
-	Sep   string
+	// Sep is the separater between different items
+	Sep string
+	// Items are the content
 	Items []string
 }
 
