@@ -41,7 +41,8 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 			RKeys:    make(TLFReaderKeyGenerations, 1, 1),
 		},
 	}
-	rmd.AddNewKeys(NewEmptyTLFWriterKeyBundle(), TLFReaderKeyBundleV2{})
+	rmd.AddNewKeysForTesting(config.Crypto(),
+		NewEmptyUserDeviceKeyInfoMap(), NewEmptyUserDeviceKeyInfoMap())
 	if mStatus == Unmerged {
 		rmd.SetUnmerged()
 	}

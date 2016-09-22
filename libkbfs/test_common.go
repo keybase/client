@@ -297,9 +297,15 @@ func NewEmptyTLFReaderKeyBundle() TLFReaderKeyBundleV2 {
 	}
 }
 
+// NewEmptyUserDeviceKeyInfoMap creates a new empty UserDeviceKeyInfoMap.
+func NewEmptyUserDeviceKeyInfoMap() UserDeviceKeyInfoMap {
+	return UserDeviceKeyInfoMap{}
+}
+
 // AddNewKeysOrBust adds new keys to root metadata and blows up on error.
-func AddNewKeysOrBust(t logger.TestLogBackend, rmd *RootMetadata, wkb TLFWriterKeyBundleV2, rkb TLFReaderKeyBundleV2) {
-	if err := rmd.AddNewKeys(wkb, rkb); err != nil {
+func AddNewKeysOrBust(t logger.TestLogBackend, crypto cryptoPure,
+	rmd *RootMetadata, wDkim, rDkim UserDeviceKeyInfoMap) {
+	if err := rmd.AddNewKeysForTesting(crypto, wDkim, rDkim); err != nil {
 		t.Fatal(err)
 	}
 }

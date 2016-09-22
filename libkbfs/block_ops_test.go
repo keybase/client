@@ -156,6 +156,15 @@ func (kmd emptyKeyMetadata) GetTLFCryptKeyParams(
 		TLFCryptKeyServerHalfID{}, false, nil
 }
 
+func (kmd emptyKeyMetadata) StoresHistoricTLFCryptKeys() bool {
+	return false
+}
+
+func (kmd emptyKeyMetadata) GetHistoricTLFCryptKey(crypto cryptoPure, keyGen KeyGen, key TLFCryptKey) (
+	TLFCryptKey, error) {
+	return TLFCryptKey{}, nil
+}
+
 func makeKMD() KeyMetadata {
 	return emptyKeyMetadata{FakeTlfID(0, false), 1}
 }

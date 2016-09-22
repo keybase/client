@@ -91,6 +91,15 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	// Ignore Archive calls for now
 	config.mockBops.EXPECT().Archive(gomock.Any(), gomock.Any(),
 		gomock.Any()).AnyTimes().Return(nil)
+	// Ignore Archive calls for now
+	config.mockBops.EXPECT().Archive(gomock.Any(), gomock.Any(),
+		gomock.Any()).AnyTimes().Return(nil)
+
+	// Ignore key bundle ID creation calls for now
+	config.mockCrypto.EXPECT().MakeTLFWriterKeyBundleID(gomock.Any()).
+		AnyTimes().Return(TLFWriterKeyBundleID{}, nil)
+	config.mockCrypto.EXPECT().MakeTLFReaderKeyBundleID(gomock.Any()).
+		AnyTimes().Return(TLFReaderKeyBundleID{}, nil)
 
 	// Ignore favorites
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).AnyTimes().
@@ -252,7 +261,7 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 			EncodedSize: 1,
 		},
 	}
-	rmd.FakeInitialRekey(config.Codec(), h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(config.Crypto(), h.ToBareHandleOrBust())
 
 	ops := getOps(config, id)
 	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(fakeTlfIDByte(id)),
@@ -411,7 +420,7 @@ func (p ptrMatcher) String() string {
 
 func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) {
 	if !rmd.TlfID().IsPublic() {
-		rmd.FakeInitialRekey(config.Codec(), rmd.GetTlfHandle().ToBareHandleOrBust())
+		rmd.FakeInitialRekey(config.Crypto(), rmd.GetTlfHandle().ToBareHandleOrBust())
 	}
 	rootPtr := BlockPointer{
 		ID:      fakeBlockID(42),

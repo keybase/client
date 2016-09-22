@@ -129,6 +129,9 @@ type EncryptedPrivateMetadata encryptedData
 // EncryptedBlock is an encrypted Block.
 type EncryptedBlock encryptedData
 
+// EncryptedTLFCryptKeys is an encrypted TLFCryptKey array.
+type EncryptedTLFCryptKeys encryptedData
+
 // EncryptedMerkleLeaf is an encrypted Merkle leaf.
 type EncryptedMerkleLeaf struct {
 	_struct       bool `codec:",toarray"`
