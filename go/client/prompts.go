@@ -50,6 +50,7 @@ const (
 	PromptDescriptorDecryptInteractive
 	PromptDescriptorPGPGenEnterID
 	PromptDescriptorTrackExpireLocal
+	PromptDescriptorChooseConversation
 )
 
 const (

@@ -5,20 +5,26 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props, NotificationType} from './standard-screen'
 
 const StandardScreen = (props: Props) => {
+  const topStack = [
+    !!props.onBack && <BackButton key='back' onClick={props.onBack} style={{...styleBack, ...props.styleBack}} />,
+    !!props.notification && (<Box key='banner' style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
+      {typeof props.notification.message === 'string'
+        ? <Text style={styleBannerText} type='BodySmallSemibold'>{props.notification.message}</Text>
+        : props.notification.message
+      }
+    </Box>),
+  ]
+  const topStackCount = topStack.reduce((acc, x) => acc + !!x, 0)
   return (
     <Box style={{...styleContainer, ...props.styleOuter}}>
       <Box style={styleTopStack}>
-        {!!props.onClose && <Icon style={{...styleClose, ...props.styleClose}} type='iconfont-close' onClick={props.onClose} />}
-        {!!props.onBack && <BackButton onClick={props.onBack} style={{...styleBack, ...props.styleBack}} />}
-        {!!props.notification && <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
-          {typeof props.notification.message === 'string'
-            ? <Text style={styleBannerText} type='BodySmallSemibold'>{props.notification.message}</Text>
-            : props.notification.message
-          }
-        </Box>}
+        {topStack}
       </Box>
-      <Box style={{...styleContentContainer, ...props.style}}>
-        {props.children}
+      <Box style={{...styleInnerContainer, paddingBottom: topStackCount * globalMargins.large}}>
+        {!!props.onClose && <Icon style={{...styleClose, ...props.styleClose}} type='iconfont-close' onClick={props.onClose} />}
+        <Box style={{...styleContentContainer, ...props.style}}>
+          {props.children}
+        </Box>
       </Box>
     </Box>
   )
@@ -28,16 +34,14 @@ const styleContainer = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.scrollable,
   flex: 1,
-  alignItems: 'center',
+  alignItems: 'stretch',
   position: 'relative',
-  paddingBottom: globalMargins.large,
 }
 
 const styleTopStack = {
   ...globalStyles.flexBoxColumn,
   position: 'relative',
   alignItems: 'stretch',
-  minHeight: globalMargins.large,
   width: '100%',
 }
 
@@ -70,6 +74,13 @@ const styleBanner = (notificationType: NotificationType) => ({
 
 const styleBannerText = {
   color: globalColors.white,
+}
+
+const styleInnerContainer = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+  alignItems: 'center',
+  position: 'relative',
 }
 
 const styleContentContainer = {

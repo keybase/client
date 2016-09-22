@@ -64,7 +64,8 @@ export default connector.connect(
         }
       } else {
         // We have to fetch the tracker state, so lets do that.
-        dispatch(getProfile(username))
+        // We have to defer this as we're essentially in a constructor and react doesn't like this
+        setImmediate(() => dispatch(getProfile(username)))
 
         // Enter loading mode, when the store gets updated we'll come back to here
         return {

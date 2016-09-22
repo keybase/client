@@ -422,6 +422,10 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ChatBroadcastError{Msg: s.Desc}
 	case SCChatRateLimit:
 		return ChatRateLimitError{Msg: s.Desc}
+	case SCChatAlreadySuperseded:
+		return ChatAlreadySupersededError{Msg: s.Desc}
+	case SCChatAlreadyDeleted:
+		return ChatAlreadyDeletedError{Msg: s.Desc}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1351,6 +1355,22 @@ func (e ChatRateLimitError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCChatRateLimit,
 		Name: "SC_CHAT_RATELIMIT",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatAlreadySupersededError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatAlreadySuperseded,
+		Name: "SC_CHAT_ALREADY_SUPERSEDED",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatAlreadyDeletedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatAlreadyDeleted,
+		Name: "SC_CHAT_ALREADY_DELETED",
 		Desc: e.Error(),
 	}
 }

@@ -23,8 +23,11 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// defaultLaunchdWait is how long we should wait after install, start, etc
-const defaultLaunchdWait = 10 * time.Second
+// defaultLaunchdWait is how long we should wait after install & start.
+// We should make this shorter if the app is started by the user (so
+// they get more immediate feedback), and longer if the app is started
+// after boot (when it takes longer for things to start).
+const defaultLaunchdWait = 20 * time.Second
 
 // ServiceLabel is an identifier string for a service
 type ServiceLabel string
@@ -417,7 +420,11 @@ func Install(context Context, binPath string, components []string, force bool, l
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		if !isKBFSCompatible(log) {
+		if !isKBFSCompatible(log) && !force {
+			// Uninstall in case it was started somehow
+			if uninstallErr := launchd.Uninstall(DefaultKBFSLabel(context.GetRunMode()), time.Second, log); uninstallErr != nil {
+				log.Errorf("KBFS is not compatible; Error trying to uninstall KBFS: %s", uninstallErr)
+			}
 			err = fmt.Errorf("Oops, the Keybase Filesystem isn't currently available on MacOS 10.12 (Sierra). We are working on a fix which should be available shortly.")
 		} else {
 			err = InstallKBFS(context, binPath, force, log)

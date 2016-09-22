@@ -11,6 +11,7 @@ import {routeAppend} from '../actions/router'
 import UserPane from './user-pane'
 
 import type {TypedState} from '../constants/reducer'
+import type {FSOpen} from '../constants/kbfs'
 import type {Props} from './render'
 import type {SearchActions} from '../constants/search'
 import type {TypedDispatch} from '../constants/types/flux'
@@ -31,7 +32,7 @@ class Search extends Component<void, Props, void> {
   }
 }
 
-const connector: TypedConnector<TypedState, TypedDispatch<SearchActions>, OwnProps, Props> = new TypedConnector()
+const connector: TypedConnector<TypedState, TypedDispatch<SearchActions | FSOpen>, OwnProps, Props> = new TypedConnector()
 
 export default connector.connect(
   ({search:

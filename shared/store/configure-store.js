@@ -7,6 +7,7 @@ import deviceSaga from '../actions/devices'
 import gregorSaga from '../actions/gregor'
 import profileSaga from '../actions/profile'
 import favoriteSaga from '../actions/favorite'
+import kbfsSaga from '../actions/kbfs'
 import pgpSaga from '../actions/pgp'
 import rootReducer from '../reducers'
 import thunkMiddleware from 'redux-thunk'
@@ -59,6 +60,7 @@ function * mainSaga (getState) {
     call(favoriteSaga),
     call(pgpSaga),
     call(deviceSaga),
+    call(kbfsSaga),
   ]
 }
 

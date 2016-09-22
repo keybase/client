@@ -13,12 +13,46 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-type conversationListView []chat1.ConversationLocal
+type conversationInfoListView []chat1.ConversationInfoLocal
 
-func (v conversationListView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) {
+func (v conversationInfoListView) show(g *libkb.GlobalContext) {
 	if len(v) == 0 {
 		return
 	}
+
+	ui := g.UI.GetTerminalUI()
+	w, _ := ui.TerminalSize()
+
+	table := &flexibletable.Table{}
+	for i, conv := range v {
+		participants := strings.Split(conv.TlfName, ",")
+		table.Insert(flexibletable.Row{
+			flexibletable.Cell{
+				Frame:     [2]string{"[", "]"},
+				Alignment: flexibletable.Right,
+				Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
+				Content:   flexibletable.MultiCell{Sep: ",", Items: participants},
+			},
+		})
+	}
+	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
+		5, flexibletable.ExpandableWrappable,
+	}); err != nil {
+		ui.Printf("rendering conversation info list view error: %v\n", err)
+	}
+}
+
+type conversationListView []chat1.ConversationLocal
+
+func (v conversationListView) show(g *libkb.GlobalContext) {
+	if len(v) == 0 {
+		return
+	}
+
+	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
 	table := &flexibletable.Table{}
@@ -68,11 +102,14 @@ func (v conversationListView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) 
 
 type conversationView chat1.ConversationLocal
 
-func (v conversationView) show(g *libkb.GlobalContext, ui libkb.TerminalUI) {
+func (v conversationView) show(g *libkb.GlobalContext) {
 	if len(v.Messages) == 0 {
 		return
 	}
+
+	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
+
 	table := &flexibletable.Table{}
 	for i, m := range v.Messages {
 		unread := ""

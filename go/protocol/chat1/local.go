@@ -345,15 +345,15 @@ type MessageSelector struct {
 }
 
 type ConversationInfoLocal struct {
-	Id         ConversationID `codec:"id" json:"id"`
-	TlfName    string         `codec:"tlfName" json:"tlfName"`
-	TopicName  string         `codec:"topicName" json:"topicName"`
-	TopicType  TopicType      `codec:"topicType" json:"topicType"`
-	Visibility TLFVisibility  `codec:"visibility" json:"visibility"`
+	Id         ConversationID       `codec:"id" json:"id"`
+	Triple     ConversationIDTriple `codec:"triple" json:"triple"`
+	TlfName    string               `codec:"tlfName" json:"tlfName"`
+	TopicName  string               `codec:"topicName" json:"topicName"`
+	TopicType  TopicType            `codec:"topicType" json:"topicType"`
+	Visibility TLFVisibility        `codec:"visibility" json:"visibility"`
 }
 
 type ConversationLocal struct {
-	Id       ConversationID         `codec:"id" json:"id"`
 	Info     *ConversationInfoLocal `codec:"info,omitempty" json:"info,omitempty"`
 	Messages []Message              `codec:"messages" json:"messages"`
 }

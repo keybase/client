@@ -130,7 +130,7 @@
         },
         {
           "name": "canSuppressUI",
-          "type": "bool",
+          "type": "boolean",
           "default": false
         }
       ],

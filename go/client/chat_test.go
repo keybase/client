@@ -134,8 +134,8 @@ func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg chat1.MessageS
 	tview.Messages[2].Info = &chat1.MessageInfoLocal{IsNew: false, SenderUsername: "morty", SenderDeviceName: "toothbrush"}
 	return []chat1.ConversationLocal{
 		chat1.ConversationLocal{
-			Id: chatLocalMockConversationID,
 			Info: &chat1.ConversationInfoLocal{
+				Id:        chatLocalMockConversationID,
 				TlfName:   "morty,rick,songgao",
 				TopicName: "",
 				TopicType: chat1.TopicType_CHAT,

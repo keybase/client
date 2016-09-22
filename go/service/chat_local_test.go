@@ -230,7 +230,7 @@ func TestGetInboxSummaryLocal(t *testing.T) {
 	if len(res.Conversations) != 3 {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 3 items, got %d\n", len(res.Conversations))
 	}
-	if res.Conversations[0].Id != withCharlie.Id {
+	if res.Conversations[0].Info.Id != withCharlie.Id {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal; newest updated conversation is not the first in response.\n")
 	}
 	if len(res.Conversations[0].Messages) != 2 {
