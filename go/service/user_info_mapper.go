@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"sync"
 
 	"golang.org/x/net/context"
 
@@ -20,6 +21,7 @@ type userInfoMapper struct {
 	users       map[keybase1.UID]*libkb.User
 	deviceNames map[string]string
 	libkb.Contextified
+	sync.Mutex
 }
 
 func userInfoFromContext(ctx context.Context) (*userInfoMapper, bool) {
@@ -50,6 +52,9 @@ func (u *userInfoMapper) lookup(uid keybase1.UID, deviceID keybase1.DeviceID) (u
 		return "", "", err
 	}
 
+	u.Lock()
+	defer u.Unlock()
+
 	dkey := fmt.Sprintf("%s:%s", uid, deviceID)
 	dname, ok := u.deviceNames[dkey]
 	if !ok {
@@ -68,6 +73,9 @@ func (u *userInfoMapper) lookup(uid keybase1.UID, deviceID keybase1.DeviceID) (u
 }
 
 func (u *userInfoMapper) user(uid keybase1.UID) (*libkb.User, error) {
+	u.Lock()
+	defer u.Unlock()
+
 	user, ok := u.users[uid]
 	if !ok {
 		arg := libkb.NewLoadUserByUIDArg(u.G(), uid)
