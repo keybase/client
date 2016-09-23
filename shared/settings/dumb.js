@@ -417,6 +417,11 @@ const invitesBase = {
   onClickUser: username => console.log('onClickUser', username),
   onReclaimInvitation: invitationId => console.log('onReclaimInvitation', invitationId),
   onGenerateInvitation: () => console.log('onGenerateInvitation'),
+  parentProps: {
+    style: {
+      width: 504,
+    },
+  },
 }
 
 const invitesMap: DumbComponentMap<Invites> = {
