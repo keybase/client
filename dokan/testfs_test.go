@@ -17,6 +17,7 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/keybase/kbfs/dokan/winacl"
 	"golang.org/x/net/context"
 	"golang.org/x/sys/windows"
 )
@@ -223,6 +224,14 @@ var _ FileSystem = emptyFS{}
 
 type emptyFS struct{}
 
+func (t emptyFile) GetFileSecurity(ctx context.Context, fi *FileInfo, si winacl.SecurityInformation, sd *winacl.SecurityDescriptor) error {
+	debug("emptyFS.GetFileSecurity")
+	return nil
+}
+func (t emptyFile) SetFileSecurity(ctx context.Context, fi *FileInfo, si winacl.SecurityInformation, sd *winacl.SecurityDescriptor) error {
+	debug("emptyFS.SetFileSecurity")
+	return nil
+}
 func (t emptyFile) Cleanup(ctx context.Context, fi *FileInfo) {
 	debug("emptyFS.Cleanup")
 }

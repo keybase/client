@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/keybase/kbfs/dokan/winacl"
 	"golang.org/x/net/context"
 )
 
@@ -143,6 +144,9 @@ type File interface {
 	LockFile(ctx context.Context, fi *FileInfo, offset int64, length int64) error
 	UnlockFile(ctx context.Context, fi *FileInfo, offset int64, length int64) error
 
+	GetFileSecurity(ctx context.Context, fi *FileInfo, si winacl.SecurityInformation, sd *winacl.SecurityDescriptor) error
+	SetFileSecurity(ctx context.Context, fi *FileInfo, si winacl.SecurityInformation, sd *winacl.SecurityDescriptor) error
+
 	// CanDeleteFile and CanDeleteDirectory should check whether the file/directory
 	// can be deleted. The actual deletion should be done by checking
 	// FileInfo.IsDeleteOnClose in Cleanup.
@@ -253,6 +257,8 @@ const (
 	ErrFileAlreadyExists = NtStatus(0xC0000035)
 	// ErrNotSameDevice - MoveFile is denied, please use copy+delete.
 	ErrNotSameDevice = NtStatus(0xC00000D4)
+	// StatusBufferOverflow - buffer space too short for return value.
+	StatusBufferOverflow = NtStatus(0x80000005)
 	// StatusObjectNameExists - already exists, may be non-fatal...
 	StatusObjectNameExists = NtStatus(0x40000000)
 )

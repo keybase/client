@@ -4,6 +4,10 @@
 
 package dokan
 
+import (
+	"github.com/keybase/kbfs/dokan/winacl"
+)
+
 // MountHandle holds a reference to a mounted filesystem.
 type MountHandle struct {
 	errChan chan error
@@ -73,7 +77,7 @@ func (fi *FileInfo) IsDeleteOnClose() bool {
 
 // IsRequestorUserSidEqualTo returns true if the argument is equal
 // to the sid of the user associated with the filesystem request.
-func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *SID) bool {
+func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *winacl.SID) bool {
 	return fi.isRequestorUserSidEqualTo(sid)
 }
 
@@ -83,8 +87,3 @@ func (fi *FileInfo) NumberOfFileHandles() uint32 {
 	return fsTableGetFileCount(uint32(fi.ptr.DokanOptions.GlobalContext))
 }
 
-// CurrentProcessUserSid is a utility to get the
-// SID of the current user running the process.
-func CurrentProcessUserSid() (*SID, error) {
-	return currentProcessUserSid()
-}
