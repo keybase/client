@@ -8,15 +8,13 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+
+	"github.com/keybase/go-codec/codec"
 )
 
 // An mdIDJournal wraps a diskJournal to provide a persistent list of
-// MdIDs with sequential MetadataRevisions for a single branch.
-//
-// TODO: Consider future-proofing this in case we want to journal
-// other stuff besides metadata puts. But doing so would be difficult,
-// since then we would require the ordinals to be something other than
-// MetadataRevisions.
+// MdIDs (with possible other fields in the future) with sequential
+// MetadataRevisions for a single branch.
 //
 // TODO: Write unit tests for this. For now, we're relying on
 // md_journal.go's unit tests.
@@ -24,8 +22,16 @@ type mdIDJournal struct {
 	j diskJournal
 }
 
+// An mdIDJournalEntry is, for now, just an MdID. In the future, it
+// may contain more fields.
+type mdIDJournalEntry struct {
+	ID MdID
+
+	codec.UnknownFieldSetHandler
+}
+
 func makeMdIDJournal(codec Codec, dir string) mdIDJournal {
-	j := makeDiskJournal(codec, dir, reflect.TypeOf(MdID{}))
+	j := makeDiskJournal(codec, dir, reflect.TypeOf(mdIDJournalEntry{}))
 	return mdIDJournal{j}
 }
 
@@ -49,8 +55,7 @@ func revisionToOrdinal(r MetadataRevision) (journalOrdinal, error) {
 // TODO: Consider caching the values returned by the read functions
 // below in memory.
 
-func (j mdIDJournal) readEarliestRevision() (
-	MetadataRevision, error) {
+func (j mdIDJournal) readEarliestRevision() (MetadataRevision, error) {
 	o, err := j.j.readEarliestOrdinal()
 	if os.IsNotExist(err) {
 		return MetadataRevisionUninitialized, nil
@@ -68,8 +73,7 @@ func (j mdIDJournal) writeEarliestRevision(r MetadataRevision) error {
 	return j.j.writeEarliestOrdinal(o)
 }
 
-func (j mdIDJournal) readLatestRevision() (
-	MetadataRevision, error) {
+func (j mdIDJournal) readLatestRevision() (MetadataRevision, error) {
 	o, err := j.j.readLatestOrdinal()
 	if os.IsNotExist(err) {
 		return MetadataRevisionUninitialized, nil
@@ -87,18 +91,18 @@ func (j mdIDJournal) writeLatestRevision(r MetadataRevision) error {
 	return j.j.writeLatestOrdinal(o)
 }
 
-func (j mdIDJournal) readMdID(r MetadataRevision) (MdID, error) {
+func (j mdIDJournal) readJournalEntry(r MetadataRevision) (
+	mdIDJournalEntry, error) {
 	o, err := revisionToOrdinal(r)
 	if err != nil {
-		return MdID{}, err
+		return mdIDJournalEntry{}, err
 	}
 	e, err := j.j.readJournalEntry(o)
 	if err != nil {
-		return MdID{}, err
+		return mdIDJournalEntry{}, err
 	}
 
-	// TODO: Validate MdID?
-	return e.(MdID), nil
+	return e.(mdIDJournalEntry), nil
 }
 
 // All functions below are public functions.
@@ -119,28 +123,38 @@ func (j mdIDJournal) end() (MetadataRevision, error) {
 	return last + 1, nil
 }
 
-func (j mdIDJournal) getEarliest() (MdID, error) {
+func (j mdIDJournal) getEarliestEntry() (
+	entry mdIDJournalEntry, exists bool, err error) {
 	earliestRevision, err := j.readEarliestRevision()
 	if err != nil {
-		return MdID{}, err
+		return mdIDJournalEntry{}, false, err
 	} else if earliestRevision == MetadataRevisionUninitialized {
-		return MdID{}, nil
+		return mdIDJournalEntry{}, false, nil
 	}
-	return j.readMdID(earliestRevision)
+	entry, err = j.readJournalEntry(earliestRevision)
+	if err != nil {
+		return mdIDJournalEntry{}, false, err
+	}
+	return entry, true, err
 }
 
-func (j mdIDJournal) getLatest() (MdID, error) {
+func (j mdIDJournal) getLatestEntry() (
+	entry mdIDJournalEntry, exists bool, err error) {
 	latestRevision, err := j.readLatestRevision()
 	if err != nil {
-		return MdID{}, err
+		return mdIDJournalEntry{}, false, err
 	} else if latestRevision == MetadataRevisionUninitialized {
-		return MdID{}, nil
+		return mdIDJournalEntry{}, false, nil
 	}
-	return j.readMdID(latestRevision)
+	entry, err = j.readJournalEntry(latestRevision)
+	if err != nil {
+		return mdIDJournalEntry{}, false, err
+	}
+	return entry, true, err
 }
 
-func (j mdIDJournal) getRange(
-	start, stop MetadataRevision) (MetadataRevision, []MdID, error) {
+func (j mdIDJournal) getEntryRange(start, stop MetadataRevision) (
+	MetadataRevision, []mdIDJournalEntry, error) {
 	earliestRevision, err := j.readEarliestRevision()
 	if err != nil {
 		return MetadataRevisionUninitialized, nil, err
@@ -167,31 +181,31 @@ func (j mdIDJournal) getRange(
 		return MetadataRevisionUninitialized, nil, nil
 	}
 
-	var mdIDs []MdID
+	var entries []mdIDJournalEntry
 	for i := start; i <= stop; i++ {
-		mdID, err := j.readMdID(i)
+		entry, err := j.readJournalEntry(i)
 		if err != nil {
 			return MetadataRevisionUninitialized, nil, err
 		}
-		mdIDs = append(mdIDs, mdID)
+		entries = append(entries, entry)
 	}
-	return start, mdIDs, nil
+	return start, entries, nil
 }
 
-func (j mdIDJournal) replaceHead(mdID MdID) error {
+func (j mdIDJournal) replaceHead(entry mdIDJournalEntry) error {
 	o, err := j.j.readLatestOrdinal()
 	if err != nil {
 		return err
 	}
-	return j.j.writeJournalEntry(o, mdID)
+	return j.j.writeJournalEntry(o, entry)
 }
 
-func (j mdIDJournal) append(r MetadataRevision, mdID MdID) error {
+func (j mdIDJournal) append(r MetadataRevision, entry mdIDJournalEntry) error {
 	o, err := revisionToOrdinal(r)
 	if err != nil {
 		return err
 	}
-	_, err = j.j.appendJournalEntry(&o, mdID)
+	_, err = j.j.appendJournalEntry(&o, entry)
 	return err
 }
 

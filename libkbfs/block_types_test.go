@@ -11,6 +11,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func makeFakeBlockContext(t *testing.T) BlockContext {
+	return BlockContext{
+		"fake creator",
+		"fake writer",
+		BlockRefNonce{0xb},
+	}
+}
+
 func makeFakeBlockPointer(t *testing.T) BlockPointer {
 	h, err := DefaultHash([]byte("fake buf"))
 	require.NoError(t, err)
@@ -18,11 +26,7 @@ func makeFakeBlockPointer(t *testing.T) BlockPointer {
 		BlockID{h},
 		5,
 		1,
-		BlockContext{
-			"fake creator",
-			"fake writer",
-			BlockRefNonce{0xb},
-		},
+		makeFakeBlockContext(t),
 	}
 }
 

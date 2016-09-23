@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
 
@@ -47,7 +48,10 @@ import (
 // of directories in dir itself to a manageable number, similar to
 // git. Each block directory has data, which is the raw block data
 // that should hash to the block ID, and key_server_half, which
-// contains the raw data for the associated key server half.
+// contains the raw data for the associated key server half. Future
+// versions of the journal might add more files to this directory; if
+// any code is written to move blocks around, it should be careful to
+// preserve any unknown files in a block directory.
 //
 // The maximum number of characters added to the root dir by a block
 // journal is 59:
@@ -110,7 +114,7 @@ type blockJournalEntry struct {
 	// and addRefOp.
 	Contexts map[BlockID][]BlockContext
 
-	// TODO: Support unknown fields.
+	codec.UnknownFieldSetHandler
 }
 
 // Get the single context stored in this entry. Only applicable to
@@ -313,18 +317,9 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 	return refs, unflushedBytes, nil
 }
 
-func (j *blockJournal) writeJournalEntry(
-	ordinal journalOrdinal, entry blockJournalEntry) error {
-	return j.j.writeJournalEntry(ordinal, entry)
-}
-
-func (j *blockJournal) appendJournalEntry(
-	op blockOpType, contexts map[BlockID][]BlockContext) (
+func (j *blockJournal) appendJournalEntry(entry blockJournalEntry) (
 	journalOrdinal, error) {
-	return j.j.appendJournalEntry(nil, blockJournalEntry{
-		Op:       op,
-		Contexts: contexts,
-	})
+	return j.j.appendJournalEntry(nil, entry)
 }
 
 func (j *blockJournal) length() (uint64, error) {
@@ -535,8 +530,10 @@ func (j *blockJournal) putData(
 		return err
 	}
 
-	ordinal, err := j.appendJournalEntry(blockPutOp,
-		map[BlockID][]BlockContext{id: {context}})
+	ordinal, err := j.appendJournalEntry(blockJournalEntry{
+		Op:       blockPutOp,
+		Contexts: map[BlockID][]BlockContext{id: {context}},
+	})
 	if err != nil {
 		return err
 	}
@@ -560,8 +557,10 @@ func (j *blockJournal) addReference(
 		}
 	}()
 
-	ordinal, err := j.appendJournalEntry(addRefOp,
-		map[BlockID][]BlockContext{id: {context}})
+	ordinal, err := j.appendJournalEntry(blockJournalEntry{
+		Op:       addRefOp,
+		Contexts: map[BlockID][]BlockContext{id: {context}},
+	})
 	if err != nil {
 		return err
 	}
@@ -611,7 +610,10 @@ func (j *blockJournal) removeReferences(
 		liveCounts[id] = count
 	}
 
-	_, err = j.appendJournalEntry(removeRefsOp, contexts)
+	_, err = j.appendJournalEntry(blockJournalEntry{
+		Op:       removeRefsOp,
+		Contexts: contexts,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -653,7 +655,10 @@ func (j *blockJournal) archiveReferences(
 		}
 	}()
 
-	ordinal, err := j.appendJournalEntry(archiveRefsOp, contexts)
+	ordinal, err := j.appendJournalEntry(blockJournalEntry{
+		Op:       archiveRefsOp,
+		Contexts: contexts,
+	})
 	if err != nil {
 		return err
 	}

@@ -186,14 +186,14 @@ func (s *mdServerTlfStorage) getHeadForTLFReadLocked(bid BranchID) (
 	if !ok {
 		return nil, nil
 	}
-	headID, err := j.getLatest()
+	entry, exists, err := j.getLatestEntry()
 	if err != nil {
 		return nil, err
 	}
-	if headID == (MdID{}) {
+	if !exists {
 		return nil, nil
 	}
-	return s.getMDReadLocked(headID)
+	return s.getMDReadLocked(entry.ID)
 }
 
 func (s *mdServerTlfStorage) checkGetParamsReadLocked(
@@ -230,14 +230,14 @@ func (s *mdServerTlfStorage) getRangeReadLocked(
 		return nil, nil
 	}
 
-	realStart, mdIDs, err := j.getRange(start, stop)
+	realStart, entries, err := j.getEntryRange(start, stop)
 	if err != nil {
 		return nil, err
 	}
 	var rmdses []*RootMetadataSigned
-	for i, mdID := range mdIDs {
+	for i, entry := range entries {
 		expectedRevision := realStart + MetadataRevision(i)
-		rmds, err := s.getMDReadLocked(mdID)
+		rmds, err := s.getMDReadLocked(entry.ID)
 		if err != nil {
 			return nil, MDServerError{err}
 		}
@@ -399,7 +399,7 @@ func (s *mdServerTlfStorage) put(
 		return false, err
 	}
 
-	err = j.append(rmds.MD.RevisionNumber(), id)
+	err = j.append(rmds.MD.RevisionNumber(), mdIDJournalEntry{ID: id})
 	if err != nil {
 		return false, MDServerError{err}
 	}
