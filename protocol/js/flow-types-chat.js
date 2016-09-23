@@ -216,6 +216,7 @@ export type ConversationIDTriple = {
 
 export type ConversationInfoLocal = {
   id: ConversationID,
+  triple: ConversationIDTriple,
   tlfName: string,
   topicName: string,
   topicType: TopicType,
@@ -223,7 +224,6 @@ export type ConversationInfoLocal = {
 }
 
 export type ConversationLocal = {
-  id: ConversationID,
   info?: ?ConversationInfoLocal,
   messages?: ?Array<Message>,
 }
@@ -266,7 +266,7 @@ export type GetInboxQuery = {
   tlfVisibility?: ?TLFVisibility,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
-  unreadOnly: bool,
+  unreadOnly: boolean,
 }
 
 export type GetInboxRemoteRes = {
@@ -286,7 +286,7 @@ export type GetMessagesRemoteRes = {
 }
 
 export type GetThreadQuery = {
-  markAsRead: bool,
+  markAsRead: boolean,
   messageTypes?: ?Array<MessageType>,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,

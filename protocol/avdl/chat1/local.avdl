@@ -126,6 +126,8 @@ protocol local {
 
   record ConversationInfoLocal {
     ConversationID id;
+    ConversationIDTriple triple;
+
     string tlfName;
     string topicName;
     TopicType topicType;
@@ -133,7 +135,6 @@ protocol local {
   }
 
   record ConversationLocal {
-    ConversationID id;
     union { null, ConversationInfoLocal } info;
     array<Message> messages;
   }

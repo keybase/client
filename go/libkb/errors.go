@@ -1622,3 +1622,23 @@ type ChatRateLimitError struct {
 func (e ChatRateLimitError) Error() string {
 	return e.Msg
 }
+
+//=============================================================================
+
+type ChatAlreadySupersededError struct {
+	Msg string
+}
+
+func (e ChatAlreadySupersededError) Error() string {
+	return e.Msg
+}
+
+//=============================================================================
+
+type ChatAlreadyDeletedError struct {
+	Msg string
+}
+
+func (e ChatAlreadyDeletedError) Error() string {
+	return e.Msg
+}

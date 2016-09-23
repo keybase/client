@@ -31,6 +31,11 @@ func NewTwitterChecker(p libkb.RemoteProofChainLink) (*TwitterChecker, libkb.Pro
 func (rc *TwitterChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *TwitterChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		// checking the hint is done later in CheckStatus
+		return nil
+	}
+
 	wantedURL := ("https://twitter.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/")
 	wantedShortID := (" " + rc.proof.GetSigID().ToShortID() + " /")
 

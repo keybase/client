@@ -51,7 +51,7 @@
         },
         {
           "name": "usedDelegateUI",
-          "type": "bool"
+          "type": "boolean"
         }
       ],
       "response": null

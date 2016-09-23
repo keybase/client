@@ -16,20 +16,24 @@ type ColumnConstraint int
 
 const (
 
-	// The column and may expand automatically if other columns end up taking
-	// less actual width.
+	// Expandable is a special ColumnConstraint where the column and may expand
+	// automatically if other columns end up taking less actual width.
 	Expandable ColumnConstraint = 0
 
-	// The column is expandable. In addition, it  can wrap into multiple lines if
-	// needed.
+	// ExpandableWrappable is a special ColumnConstraint where the column is
+	// expandable. In addition, it  can wrap into multiple lines if needed.
 	ExpandableWrappable ColumnConstraint = -1
 )
 
+// Row defines a row
 type Row []Cell
+
+// Table defines a table and is used to do the rendering
 type Table struct {
 	rows []Row
 }
 
+// Insert inserts a row into the table
 func (t *Table) Insert(row Row) error {
 	if len(t.rows) > 0 && len(t.rows[0]) != len(row) {
 		return InconsistentRowsError{existingRows: len(t.rows), newRow: len(row)}
@@ -38,14 +42,7 @@ func (t *Table) Insert(row Row) error {
 	return nil
 }
 
-// Render renders the table into writer. The constraints parameter specifies
-// how each column should be constrained while being rendered. Positive values
-// limit the maximum width.
-func (t Table) Render(w io.Writer, cellSep string, maxWidth int, constraints []ColumnConstraint) error {
-	if len(constraints) != len(t.rows[0]) {
-		return InconsistentRowsError{existingRows: len(t.rows[0]), newRow: len(constraints)}
-	}
-
+func (t Table) renderFirstPass(cellSep string, maxWidth int, constraints []ColumnConstraint) (widths []int, err error) {
 	numOfNoConstraints := 0
 	for _, c := range constraints {
 		if c <= 0 {
@@ -54,13 +51,13 @@ func (t Table) Render(w io.Writer, cellSep string, maxWidth int, constraints []C
 	}
 
 	// first pass; determine smallest width for each column under constraints
-	widths := make([]int, len(t.rows[0]))
+	widths = make([]int, len(t.rows[0]))
 	for _, row := range t.rows {
 		for i, c := range row {
 			if constraints[i] > 0 {
 				str, err := c.render(int(constraints[i]))
 				if err != nil {
-					return err
+					return nil, err
 				}
 				if widths[i] < len(str) {
 					widths[i] = len(str)
@@ -86,15 +83,19 @@ func (t Table) Render(w io.Writer, cellSep string, maxWidth int, constraints []C
 		widths[last] = rest - each*(numOfNoConstraints-1)
 	}
 
-	// second pass: rendering
-	var rows [][]string
+	return widths, nil
+}
+
+func (t Table) renderSecondPass(constraints []ColumnConstraint, widths []int) (rows [][]string, err error) {
+	// actually rendering
+
 	for _, row := range t.rows {
 		var strs []string
 		for ic, c := range row {
 			if constraints[ic] >= 0 {
 				str, err := c.renderWithPadding(widths[ic])
 				if err != nil {
-					return err
+					return nil, err
 				}
 				strs = append(strs, str)
 			} else { // need wrapping!
@@ -112,7 +113,7 @@ func (t Table) Render(w io.Writer, cellSep string, maxWidth int, constraints []C
 				} else {
 					str, err := row[i].addPadding(strs[i], widths[i])
 					if err != nil {
-						return err
+						return nil, err
 					}
 					toAppend = append(toAppend, str)
 					strs[i] = strings.Repeat(" ", widths[i])
@@ -120,6 +121,27 @@ func (t Table) Render(w io.Writer, cellSep string, maxWidth int, constraints []C
 			}
 			rows = append(rows, toAppend)
 		}
+	}
+
+	return rows, nil
+}
+
+// Render renders the table into writer. The constraints parameter specifies
+// how each column should be constrained while being rendered. Positive values
+// limit the maximum width.
+func (t Table) Render(w io.Writer, cellSep string, maxWidth int, constraints []ColumnConstraint) error {
+	if len(constraints) != len(t.rows[0]) {
+		return InconsistentRowsError{existingRows: len(t.rows[0]), newRow: len(constraints)}
+	}
+
+	widths, err := t.renderFirstPass(cellSep, maxWidth, constraints)
+	if err != nil {
+		return err
+	}
+
+	rows, err := t.renderSecondPass(constraints, widths)
+	if err != nil {
+		return err
 	}
 
 	// write out

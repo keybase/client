@@ -315,9 +315,7 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 		ConversationID: conversation.Id,
 		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
-				Conv: chat1.ConversationIDTriple{
-					TopicType: conversation.TopicType,
-				},
+				Conv:        conversation.Triple,
 				TlfName:     conversation.TlfName,
 				TlfPublic:   conversation.Visibility == chat1.TLFVisibility_PUBLIC,
 				MessageType: chat1.MessageType_TEXT,

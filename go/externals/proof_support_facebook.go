@@ -36,6 +36,11 @@ func NewFacebookChecker(p libkb.RemoteProofChainLink) (*FacebookChecker, libkb.P
 func (rc *FacebookChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *FacebookChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		// checking the hint is done later in CheckStatus
+		return nil
+	}
+
 	wantedURL := ("https://m.facebook.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/posts/")
 	wantedMediumID := "on Keybase.io. " + rc.proof.GetSigID().ToMediumID()
 

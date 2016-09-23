@@ -5,6 +5,7 @@ import {Box, Text} from '../common-adapters'
 
 import UpdateEmail from './email'
 import UpdatePassphrase from './passphrase'
+import PaymentForm from './payment'
 import Landing from './landing'
 import SettingsNav from './nav'
 import DeleteMe from './delete'
@@ -88,6 +89,37 @@ const updatePassphraseMap: DumbComponentMap<UpdatePassphrase> = {
     'Error - New Passphrase Mismatch': {
       ...updatePassphraseBase,
       newPassphraseConfirmError: 'Passphrase confirmation does not match.',
+    },
+  },
+}
+
+const paymentBase = {
+  onChangeCardNumber: () => console.log('onChangeCardNumber'),
+  onChangeName: () => console.log('onChangeName'),
+  onChangeExpiration: () => console.log('onChangeExpiration'),
+  onChangeSecurityCode: () => console.log('onChangeSecurityCode'),
+  cardNumber: '0001 0002 0003 4242',
+  name: 'Jessica Jones',
+  expiration: '01/2017',
+  securityCode: '123',
+  onBack: () => console.log('onBack'),
+  onSubmit: () => console.log('onSubmit'),
+}
+
+const paymentFormMap: DumbComponentMap<PaymentForm> = {
+  component: PaymentForm,
+  mocks: {
+    'Normal - Empty': {
+      ...paymentBase,
+      cardNumber: '',
+      name: '',
+      expiration: '',
+      securityCode: '',
+    },
+    'Normal': paymentBase,
+    'Normal - Error': {
+      ...paymentBase,
+      errorMessage: 'Please check your payment details.',
     },
   },
 }
@@ -272,6 +304,7 @@ const notificationsMap: DumbComponentMap<Notifications> = {
 export default {
   UpdateEmail: updateEmailMap,
   UpdatePassphrase: updatePassphraseMap,
+  PaymentForm: paymentFormMap,
   Landing: landingMap,
   SettingsNav: settingsNavMap,
   DeleteMe: deleteMeMap,
