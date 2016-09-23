@@ -15,6 +15,8 @@ type cmdChatList struct {
 	libkb.Contextified
 
 	fetcher inboxFetcher
+
+	showDeviceName bool
 }
 
 func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -44,7 +46,7 @@ func (c *cmdChatList) Run() error {
 		return nil
 	}
 
-	conversationListView(conversations).show(c.G())
+	conversationListView(conversations).show(c.G(), c.showDeviceName)
 	// TODO: print summary of inbox. e.g.
 	//		+44 older chats (--time=7d to see 25 more)
 
@@ -55,6 +57,7 @@ func (c *cmdChatList) ParseArgv(ctx *cli.Context) (err error) {
 	if c.fetcher, err = makeInboxFetcherFromCli(ctx); err != nil {
 		return err
 	}
+	c.showDeviceName = ctx.Bool("show-device-name")
 	return nil
 }
 

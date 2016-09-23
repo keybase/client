@@ -46,6 +46,10 @@ func makeChatListAndReadFlags(extras []cli.Flag) []cli.Flag {
 			Name:  "private",
 			Usage: `Only select private conversations. Exclusive to --public`,
 		},
+		cli.BoolFlag{
+			Name:  "show-device-name",
+			Usage: `Show device name next to author username`,
+		},
 	}...))
 }
 

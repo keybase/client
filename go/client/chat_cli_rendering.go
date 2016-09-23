@@ -47,7 +47,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) {
 
 type conversationListView []chat1.ConversationLocal
 
-func (v conversationListView) show(g *libkb.GlobalContext) {
+func (v conversationListView) show(g *libkb.GlobalContext, showDeviceName bool) {
 	if len(v) == 0 {
 		return
 	}
@@ -62,7 +62,7 @@ func (v conversationListView) show(g *libkb.GlobalContext) {
 			unread = "*"
 		}
 		participants := strings.Split(conv.Info.TlfName, ",")
-		authorAndTime := messageFormatter(conv.Messages[0]).authorAndTime()
+		authorAndTime := messageFormatter(conv.Messages[0]).authorAndTime(showDeviceName)
 		body, err := messageFormatter(conv.Messages[0]).body(g)
 		if err != nil {
 			ui.Printf("rendering message body error: %v\n", err)
@@ -102,7 +102,7 @@ func (v conversationListView) show(g *libkb.GlobalContext) {
 
 type conversationView chat1.ConversationLocal
 
-func (v conversationView) show(g *libkb.GlobalContext) {
+func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) {
 	if len(v.Messages) == 0 {
 		return
 	}
@@ -116,7 +116,7 @@ func (v conversationView) show(g *libkb.GlobalContext) {
 		if m.Info.IsNew {
 			unread = "*"
 		}
-		authorAndTime := messageFormatter(m).authorAndTime()
+		authorAndTime := messageFormatter(m).authorAndTime(showDeviceName)
 		body, err := messageFormatter(m).body(g)
 		if err != nil {
 			ui.Printf("rendering message body error: %v\n", err)
@@ -152,12 +152,15 @@ func (v conversationView) show(g *libkb.GlobalContext) {
 
 type messageFormatter chat1.Message
 
-func (f messageFormatter) authorAndTime() string {
+func (f messageFormatter) authorAndTime(showDeviceName bool) string {
 	info := chat1.Message(f).Info
 	if info == nil {
 		return ""
 	}
 	t := gregor1.FromTime(chat1.Message(f).ServerHeader.Ctime)
+	if showDeviceName {
+		return fmt.Sprintf("%s <%s> %s", info.SenderUsername, info.SenderDeviceName, shortDurationFromNow(t))
+	}
 	return fmt.Sprintf("%s %s", info.SenderUsername, shortDurationFromNow(t))
 }
 
