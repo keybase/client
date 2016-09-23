@@ -198,6 +198,7 @@ type folderBlockOps struct {
 	// Blocks that need to be deleted from the dirty cache before any
 	// deferred writes are replayed.
 	deferredDirtyDeletes []BlockPointer
+	deferredWaitBytes    int64
 
 	// set to true if this write or truncate should be deferred
 	doDeferWrite bool
@@ -895,9 +896,6 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 	redirtyOnRecoverableError map[BlockPointer]BlockPointer) {
 	fbo.blockLock.AssertLocked(lState)
 
-	// If a copy of the top indirect block was made, we need to
-	// redirty all the sync'd blocks under their new IDs, so that
-	// future syncs will know they failed.
 	df := fbo.dirtyFiles[file.tailPointer()]
 	if df != nil {
 		// Un-orphan old blocks, since we are reverting back to the
@@ -921,6 +919,9 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 		return
 	}
 
+	// If a copy of the top indirect block was made, we need to
+	// redirty all the sync'd blocks under their new IDs, so that
+	// future syncs will know they failed.
 	for newPtr, oldPtr := range redirtyOnRecoverableError {
 		found := false
 		for i, iptr := range fblock.IPtrs {
@@ -1511,6 +1512,7 @@ func (fbo *folderBlockOps) Write(
 					ctx, lState, kmd, f, dataCopy, off)
 				return err
 			})
+		fbo.deferredWaitBytes += newlyDirtiedChildBytes
 	}
 
 	return nil
@@ -1803,6 +1805,7 @@ func (fbo *folderBlockOps) Truncate(
 					ctx, lState, kmd, f, size)
 				return err
 			})
+		fbo.deferredWaitBytes += newlyDirtiedChildBytes
 	}
 
 	return nil
@@ -2341,11 +2344,34 @@ func (fbo *folderBlockOps) CleanupSyncState(
 				result.redirtyOnRecoverableError)
 		}
 	} else {
+		// Since the sync has errored out unrecoverably, the deferred
+		// bytes are already accounted for.
+		if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
+			df.updateNotYetSyncingBytes(-fbo.deferredWaitBytes)
+
+			// Some blocks that were dirty are now clean under their
+			// readied block ID, and now live in the bps rather than
+			// the dirty bcache, so we can delete them from the dirty
+			// bcache.
+			dirtyBcache := fbo.config.DirtyBlockCache()
+			for _, ptr := range result.oldFileBlockPtrs {
+				if df.isBlockOrphaned(ptr) {
+					fbo.log.CDebugf(ctx, "Deleting dirty orphan: %v", ptr)
+					if err := dirtyBcache.Delete(fbo.id(), ptr,
+						fbo.branch()); err != nil {
+						fbo.log.CDebugf(ctx, "Couldn't delete %v", ptr)
+					}
+				}
+			}
+		}
+
 		// On an unrecoverable error, the deferred writes aren't
 		// needed anymore since they're already part of the
 		// (still-)dirty blocks.
 		fbo.deferredDirtyDeletes = nil
 		fbo.deferredWrites = nil
+		fbo.deferredWaitBytes = 0
+
 	}
 
 	// The sync is over, due to an error, so reset the map so that we
@@ -2415,6 +2441,41 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 	return nil
 }
 
+func (fbo *folderBlockOps) doDeferredWritesLocked(ctx context.Context,
+	lState *lockState, kmd KeyMetadata, newPath path) (
+	stillDirty bool, err error) {
+	fbo.blockLock.AssertLocked(lState)
+
+	// Redo any writes or truncates that happened to our file while
+	// the sync was happening.
+	deletes := fbo.deferredDirtyDeletes
+	writes := fbo.deferredWrites
+	stillDirty = len(fbo.deferredWrites) != 0
+	fbo.deferredDirtyDeletes = nil
+	fbo.deferredWrites = nil
+	fbo.deferredWaitBytes = 0
+
+	// Clear any dirty blocks that resulted from a write/truncate
+	// happening during the sync, since we're redoing them below.
+	dirtyBcache := fbo.config.DirtyBlockCache()
+	for _, ptr := range deletes {
+		fbo.log.CDebugf(ctx, "Deleting deferred dirty ptr %v", ptr)
+		if err := dirtyBcache.Delete(fbo.id(), ptr, fbo.branch()); err != nil {
+			return true, err
+		}
+	}
+
+	for _, f := range writes {
+		err = f(ctx, lState, kmd, newPath)
+		if err != nil {
+			// It's a little weird to return an error from a deferred
+			// write here. Hopefully that will never happen.
+			return true, err
+		}
+	}
+	return false, nil
+}
+
 // FinishSync finishes the sync process for a file, given the state
 // from StartSync. Specifically, it re-applies any writes that
 // happened since the call to StartSync.
@@ -2443,30 +2504,9 @@ func (fbo *folderBlockOps) FinishSync(
 		}
 	}
 
-	// Redo any writes or truncates that happened to our file while
-	// the sync was happening.
-	deletes := fbo.deferredDirtyDeletes
-	writes := fbo.deferredWrites
-	stillDirty = len(fbo.deferredWrites) != 0
-	fbo.deferredDirtyDeletes = nil
-	fbo.deferredWrites = nil
-
-	// Clear any dirty blocks that resulted from a write/truncate
-	// happening during the sync, since we're redoing them below.
-	for _, ptr := range deletes {
-		fbo.log.CDebugf(ctx, "Deleting deferred dirty ptr %v", ptr)
-		if err := dirtyBcache.Delete(fbo.id(), ptr, fbo.branch()); err != nil {
-			return true, err
-		}
-	}
-
-	for _, f := range writes {
-		err = f(ctx, lState, md, newPath)
-		if err != nil {
-			// It's a little weird to return an error from a deferred
-			// write here. Hopefully that will never happen.
-			return true, err
-		}
+	stillDirty, err = fbo.doDeferredWritesLocked(ctx, lState, md, newPath)
+	if err != nil {
+		return true, err
 	}
 
 	// Clear cached info for the old path.  We are guaranteed that any

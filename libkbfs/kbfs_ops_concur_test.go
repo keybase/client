@@ -1243,6 +1243,145 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	}
 }
 
+// Test that a sync of a multi-block file that hits both a retriable
+// error and a unretriable error leave the system in a clean state.
+// Regression test for KBFS-1508.
+func TestKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T) {
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer CleanupCancellationDelayer(ctx)
+	defer CheckConfigAndShutdown(t, config)
+
+	// Use the smallest possible block size.
+	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	if err != nil {
+		t.Fatalf("Couldn't create block splitter: %v", err)
+	}
+	config.SetBlockSplitter(bsplitter)
+
+	oldBServer := config.BlockServer()
+	defer config.SetBlockServer(oldBServer)
+	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
+		StallBlockOp(ctx, config, StallableBlockPut, 7)
+	ctxStallSync, cancel := context.WithCancel(ctxStallSync)
+
+	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
+	kbfsOps := config.KBFSOps()
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	var data []byte
+	// Write 2 blocks worth of data
+	for i := 0; i < 30; i++ {
+		data = append(data, byte(i))
+	}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	err = kbfsOps.Sync(ctx, fileNode)
+	if err != nil {
+		t.Fatalf("First sync failed: %v", err)
+	}
+
+	// Remove that file, and wait for the archiving to complete
+	err = kbfsOps.RemoveEntry(ctx, rootNode, "a")
+	if err != nil {
+		t.Fatalf("Couldn't remove file: %v", err)
+	}
+
+	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	fileNode2, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Now write the identical first block, plus a new block and sync it.
+	err = kbfsOps.Write(ctx, fileNode2, data[:20], 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	err = kbfsOps.Write(ctx, fileNode2, data[10:30], 20)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// Sync the initial three data blocks
+	errChan := make(chan error)
+	// start the sync
+	go func() {
+		errChan <- kbfsOps.Sync(ctxStallSync, fileNode2)
+	}()
+
+	// Wait for the first block to finish (before the retry)
+	<-onSyncStalledCh
+
+	// Dirty the last block and extend it, so the one that was sent as
+	// part of the first sync is no longer part of the file.
+	err = kbfsOps.Write(ctx, fileNode2, data[10:20], 40)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+	syncUnstallCh <- struct{}{}
+
+	// Wait for the rest of the first set of  block to finish (before the retry)
+	for i := 0; i < 5; i++ {
+		<-onSyncStalledCh
+		syncUnstallCh <- struct{}{}
+	}
+
+	// Once the first block of the retry comes in, cancel everything.
+	<-onSyncStalledCh
+	cancel()
+
+	// Unstall the sync.
+	close(syncUnstallCh)
+	err = <-errChan
+	if err != context.Canceled {
+		t.Errorf("Sync got an unexpected error: %v", err)
+	}
+
+	// Finish the sync
+	err = kbfsOps.Sync(ctx, fileNode2)
+	if err != nil {
+		t.Errorf("Couldn't sync file after error: %v", err)
+	}
+
+	gotData := make([]byte, 50)
+	nr, err := kbfsOps.Read(ctx, fileNode2, gotData, 0)
+	if err != nil {
+		t.Errorf("Couldn't read data: %v", err)
+	}
+	if nr != int64(len(gotData)) {
+		t.Errorf("Only read %d bytes", nr)
+	}
+	expectedData := make([]byte, 0, 45)
+	expectedData = append(expectedData, data[0:20]...)
+	expectedData = append(expectedData, data[10:30]...)
+	expectedData = append(expectedData, data[10:20]...)
+	if !bytes.Equal(expectedData, gotData) {
+		t.Errorf("Read wrong data.  Expected %v, got %v", expectedData, gotData)
+	}
+
+	// Make sure there are no dirty blocks left at the end of the test.
+	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	numDirtyBlocks := len(dbcs.cache)
+	if numDirtyBlocks != 0 {
+		for ptr := range dbcs.cache {
+			t.Logf("Block %v still dirty", ptr.id)
+		}
+		t.Errorf("%d dirty blocks left after final sync, sync=%d wait=%d", numDirtyBlocks, dbcs.syncBufBytes, dbcs.waitBufBytes)
+	}
+}
+
 // This tests the situation where cancellation happens when the MD write has
 // already started, and cancellation is delayed. Since no extra delay greater
 // than the grace period in MD writes is introduced, Create should succeed.
