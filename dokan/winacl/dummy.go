@@ -18,4 +18,4 @@ type syscallSID struct{}
 var errNotWin = errors.New("winacl does not work outside Windows")
 
 func currentProcessUserSid() (*SID, error)         { return nil, errNotWin }
-func currentProcessPrimaryGroupSid() (*SID, error) { return nil, enoNotWin }
+func currentProcessPrimaryGroupSid() (*SID, error) { return nil, errNotWin }
