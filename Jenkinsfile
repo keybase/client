@@ -158,7 +158,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                 try {
                                                     timeout(time: 10, unit: 'MINUTES') {
                                                         dir("desktop") {
-                                                            sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, HEAD)...HEAD'"
+                                                            sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, ${env.COMMIT_HASH})...${env.COMMIT_HASH}'"
                                                         }
                                                     }
                                                 } catch (e) {
