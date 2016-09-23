@@ -644,18 +644,9 @@ func (fbm *folderBlockManager) deleteBlocksInBackground() {
 	}
 }
 
-func (fbm *folderBlockManager) isOldEnough(rmd ReadOnlyRootMetadata) bool {
-	// Trust the client-provided timestamp -- it's
-	// possible that a writer with a bad clock could cause
-	// another writer to clear out quotas early.  That's
-	// ok, there's nothing we can really do about that.
-	//
-	// TODO: rmd.data.Dir.Mtime does not necessarily reflect when the
-	// MD was made, since it only gets updated if the root directory
-	// mtime needs to be updated.  As a result, some updates may be
-	// cleaned up earlier than desired.  We need to find a more stable
-	// way to record MD update time (KBFS-821).
-	mtime := time.Unix(0, rmd.data.Dir.Mtime)
+func (fbm *folderBlockManager) isOldEnough(rmd ImmutableRootMetadata) bool {
+	// Trust the server's timestamp on this MD.
+	mtime := rmd.localTimestamp
 	unrefAge := fbm.config.QuotaReclamationMinUnrefAge()
 	return mtime.Add(unrefAge).Before(fbm.config.Clock().Now())
 }
@@ -688,7 +679,7 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 		for i := len(rmds) - 1; i >= 0; i-- {
 			rmd := rmds[i]
 			if mostRecentOldEnoughRev == MetadataRevisionUninitialized &&
-				fbm.isOldEnough(rmd.ReadOnly()) {
+				fbm.isOldEnough(rmd) {
 				fbm.log.CDebugf(ctx, "Revision %d is older than the unref "+
 					"age %s", rmd.Revision(),
 					fbm.config.QuotaReclamationMinUnrefAge())
@@ -881,7 +872,7 @@ func (fbm *folderBlockManager) isQRNecessary(head ImmutableRootMetadata) bool {
 	// Do QR if the head was not reclaimable at the last QR time, but
 	// is old enough now.
 	return fbm.lastQRHeadRev > fbm.lastQROldEnoughRev &&
-		fbm.isOldEnough(head.ReadOnly())
+		fbm.isOldEnough(head)
 }
 
 func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
