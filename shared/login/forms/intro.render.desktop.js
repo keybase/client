@@ -16,6 +16,23 @@ class Intro extends Component<void, IntroProps, void> {
     )
   }
 
+  _renderFailure () {
+    return (
+      <Box style={stylesLoginForm}>
+        <Icon type='icon-keybase-logo-160' />
+        <Text style={stylesHeader} type='HeaderJumbo'>Keybase</Text>
+        <Text style={stylesMessage} type='Body'>
+          Oops, we had a problem communicating with our services.<br />
+          This might be because you lost connectivity.
+        </Text>
+        <Button
+          type='Primary'
+          label='Reload'
+          onClick={() => this.props.onRetry()} />
+      </Box>
+    )
+  }
+
   _render () {
     return (
       <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf || this.props.justLoginFromRevokedDevice ? 0 : 45}}>
@@ -39,10 +56,15 @@ class Intro extends Component<void, IntroProps, void> {
   }
 
   render () {
-    if (!this.props.loaded) {
-      return this._renderSplash()
+    console.log('bootStatus:', this.props.bootStatus)
+    switch (this.props.bootStatus) {
+      case 'bootStatusLoading':
+        return this._renderSplash()
+      case 'bootStatusFailure':
+        return this._renderFailure()
+      case 'bootStatusBootstrapped':
+        return this._render()
     }
-    return this._render()
   }
 }
 
@@ -59,6 +81,12 @@ const stylesHeader = {
 }
 const stylesHeaderSub = {
   marginTop: 3,
+}
+const stylesMessage = {
+  marginLeft: 40,
+  marginRight: 40,
+  marginBottom: 40,
+  textAlign: 'center',
 }
 const stylesButton = {
   marginTop: 15,

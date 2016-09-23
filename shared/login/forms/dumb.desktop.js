@@ -6,9 +6,10 @@ import type {DumbComponentMap} from '../../constants/types/more'
 const props: IntroProps = {
   onSignup: () => {},
   onLogin: () => {},
+  onRetry: () => {},
   justRevokedSelf: null,
   justLoginFromRevokedDevice: null,
-  loaded: false,
+  bootStatus: 'bootStatusLoading',
 }
 
 const dumbMap: DumbComponentMap<Intro> = {

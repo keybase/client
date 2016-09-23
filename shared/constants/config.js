@@ -12,7 +12,9 @@ export const statusLoaded = 'config:statusLoaded'
 export const configLoaded = 'config:configLoaded'
 export const extendedConfigLoaded = 'config:extendedConfigLoaded'
 export const bootstrapped = 'config:bootstrapped'
+export const bootstrapAttemptFailed = 'config:bootstrapAttemptFailed'
 export const bootstrapFailed = 'config:bootstrapFailed'
+export const bootstrapRetry = 'config:bootstrapRetry'
 export const updateFollowing = 'config:updateFollowing'
 export const updateFollowers = 'config:updateFollowers'
 
@@ -27,6 +29,10 @@ export const devConfigSaved = 'config:devConfigSaved'
 
 export const MAX_BOOTSTRAP_TRIES = 3
 export const bootstrapRetryDelay = 10 * 1000
+
+export type BootStatus = 'bootStatusLoading'
+  | 'bootStatusBootstrapped'
+  | 'bootStatusFailure'
 
 export function privateFolderWithUsers (users: Array<string>): string {
   return `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
