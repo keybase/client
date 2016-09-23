@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/kbfs/dokan"
+	"github.com/keybase/kbfs/dokan/winacl"
 	"golang.org/x/net/context"
 )
 
@@ -53,5 +54,17 @@ func (t emptyFile) CanDeleteFile(ctx context.Context, fi *dokan.FileInfo) error 
 	return dokan.ErrAccessDenied
 }
 func (t emptyFile) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) error {
+	return dokan.ErrAccessDenied
+}
+func (t emptyFile) GetFileSecurity(ctx context.Context, fi *dokan.FileInfo, si winacl.SecurityInformation, sd *winacl.SecurityDescriptor) error {
+	if si&winacl.OwnerSecurityInformation != 0 && currentUserSID != nil {
+		sd.SetOwner(currentUserSID)
+	}
+	if si&winacl.GroupSecurityInformation != 0 && currentGroupSID != nil {
+		sd.SetGroup(currentGroupSID)
+	}
+	return nil
+}
+func (t emptyFile) SetFileSecurity(ctx context.Context, fi *dokan.FileInfo, si winacl.SecurityInformation, sd *winacl.SecurityDescriptor) error {
 	return dokan.ErrAccessDenied
 }

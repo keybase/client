@@ -22,6 +22,7 @@ import (
 	"unicode/utf16"
 	"unsafe"
 
+	"github.com/keybase/kbfs/dokan/winacl"
 	"golang.org/x/net/context"
 	"golang.org/x/sys/windows"
 )
@@ -497,9 +498,33 @@ func kbfsLibdokanGetFileSecurity(
 	// A pointer to SECURITY_DESCRIPTOR buffer to be filled
 	output C.PSECURITY_DESCRIPTOR,
 	outlen C.ULONG, // length of Security descriptor buffer
-	LengthNeeded C.PULONG,
+	LengthNeeded *C.ULONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
-	debug("GetFileSecurity TODO")
+	var si winacl.SecurityInformation
+	if input != nil {
+		si = winacl.SecurityInformation(*input)
+	}
+	debug("GetFileSecurity", si)
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	buf := bufToSlice(unsafe.Pointer(output), uint32(outlen))
+	sd := winacl.NewSecurityDescriptorWithBuffer(
+		buf)
+	err := getfi(pfi).GetFileSecurity(ctx, makeFI(fname, pfi), si, sd)
+	if err != nil {
+		return errToNT(err)
+	}
+	if LengthNeeded != nil {
+		*LengthNeeded = C.ULONG(sd.Size())
+	}
+	if sd.HasOverflowed() {
+		debug("Too small buffer", outlen, "would have needed", sd.Size())
+		return errToNT(StatusBufferOverflow)
+	}
+	debugf("%X", buf)
+	debug("-> ok,", sd.Size(), "bytes")
 	return ntstatusOk
 }
 
@@ -646,7 +671,7 @@ func (fi *FileInfo) getRequestorToken() (syscall.Token, error) {
 // isRequestorUserSidEqualTo returns true if the sid passed as
 // the argument is equal to the sid of the user associated with
 // the filesystem request.
-func (fi *FileInfo) isRequestorUserSidEqualTo(sid *SID) bool {
+func (fi *FileInfo) isRequestorUserSidEqualTo(sid *winacl.SID) bool {
 	tok, err := fi.getRequestorToken()
 	if err != nil {
 		debug("IsRequestorUserSidEqualTo:", err)
@@ -670,21 +695,6 @@ func (fi *FileInfo) isRequestorUserSidEqualTo(sid *SID) bool {
 	runtime.KeepAlive(sid)
 	runtime.KeepAlive(tokUser.User.Sid)
 	return res != 0
-}
-
-// currentProcessUserSid is a utility to get the
-// SID of the current user running the process.
-func currentProcessUserSid() (*SID, error) {
-	tok, err := syscall.OpenCurrentProcessToken()
-	if err != nil {
-		return nil, err
-	}
-	defer tok.Close()
-	tokUser, err := tok.GetTokenUser()
-	if err != nil {
-		return nil, err
-	}
-	return (*SID)(tokUser.User.Sid), nil
 }
 
 var (

@@ -10,6 +10,8 @@ import "C"
 
 import (
 	"errors"
+
+	"github.com/keybase/kbfs/dokan/winacl"
 )
 
 var errNotWindows = errors.New("Dokan not supported outside Windows.")
@@ -27,7 +29,7 @@ type FileInfo struct {
 	rawPath struct{}
 }
 
-func (*FileInfo) isRequestorUserSidEqualTo(sid *SID) bool { return false }
+func (*FileInfo) isRequestorUserSidEqualTo(sid *winacl.SID) bool { return false }
 
 type dokanCtx struct{}
 
@@ -41,9 +43,6 @@ func unmount(path string) error {
 	return errNotWindows
 }
 
-// SID is on Windows type SID = syscall.SID. This is a dummy definition.
-type SID struct{}
-
 const (
 	kbfsLibdokanDebug = MountFlag(0)
 	kbfsLibdokanStderr
@@ -53,6 +52,6 @@ const (
 	kbfsLibdokanUseFindFilesWithPattern
 )
 
-func currentProcessUserSid() (*SID, error) {
+func currentProcessUserSid() (*winacl.SID, error) {
 	return nil, errNotWindows
 }
