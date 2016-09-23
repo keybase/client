@@ -86,4 +86,3 @@ func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *winacl.SID) bool {
 func (fi *FileInfo) NumberOfFileHandles() uint32 {
 	return fsTableGetFileCount(uint32(fi.ptr.DokanOptions.GlobalContext))
 }
-
