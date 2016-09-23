@@ -15,6 +15,12 @@ const levelToPrice: {[key: PlanLevel]: string} = {
   'Friend': '$9/mo',
 }
 
+const levelToPriceLong: {[key: PlanLevel]: string} = {
+  'Basic': 'Free',
+  'Gold': '$7/month',
+  'Friend': '$9/month',
+}
+
 const levelToStars: {[key: PlanLevel]: number} = {
   'Basic': 1,
   'Gold': 3,
@@ -25,6 +31,10 @@ const levelToSpace: {[key: PlanLevel]: string} = {
   'Basic': '10GB',
   'Gold': '50GB',
   'Friend': '250GB',
+}
+
+function levelToDetails (p: PlanLevel) {
+  return `You will be able to use up to ${levelToSpace[p]} of data`
 }
 
 // Compare weather another plan is an upgrade, downgrade or the same
@@ -44,7 +54,9 @@ function comparePlans (level: PlanLevel, otherLevel: PlanLevel): -1 | 0 | 1 {
 
 export {
   comparePlans,
+  levelToDetails,
   levelToPrice,
+  levelToPriceLong,
   levelToSpace,
   levelToStars,
   plans,

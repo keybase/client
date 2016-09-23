@@ -1,12 +1,14 @@
 // @flow
 import {Component} from 'react'
-import {PlanLevel} from '../../constants/settings'
+import type {PlanLevel} from '../../constants/settings'
 
-type PaymentVariants = {
+export type PaymentVariants = {
   type: 'credit-card-no-past',
   onAddCreditCard: () => void,
 } | {
   type: 'credit-card-with-past',
+  // Something like Visa **** 4242
+  cardInfo: string,
   onPayWithSavedCard: () => void,
   onUpdateCard: () => void,
 } | {
