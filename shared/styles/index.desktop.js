@@ -79,6 +79,7 @@ const util = {
   },
   selectable: {
     WebkitUserSelect: 'initial',
+    cursor: 'text',
   },
   noSelect: {
     WebkitUserSelect: 'none',
