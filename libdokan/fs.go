@@ -7,6 +7,7 @@ package libdokan
 import (
 	"errors"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -291,7 +292,8 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 
 	case ".kbfs_unmount" == ps[0]:
 		os.Exit(0)
-
+	case ".kbfs_number_of_handles" == ps[0]:
+		return f.stringReadFile(strconv.Itoa(int(oc.fi.NumberOfFileHandles())))
 	// TODO
 	// Unfortunately sometimes we end up in this case while using
 	// reparse points.
@@ -512,6 +514,15 @@ func (f *FS) logEnter(ctx context.Context, s string) {
 
 func (f *FS) logEnterf(ctx context.Context, fmt string, args ...interface{}) {
 	f.log.CDebugf(ctx, "=> "+fmt, args...)
+}
+
+func (f *FS) stringReadFile(contents string) (dokan.File, bool, error) {
+	return &SpecialReadFile{
+		read: func(context.Context) ([]byte, time.Time, error) {
+			return []byte(contents), time.Time{}, nil
+		},
+		fs: f,
+	}, false, nil
 }
 
 // Root represents the root of the KBFS file system.

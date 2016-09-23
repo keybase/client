@@ -21,8 +21,9 @@ var fiTable = map[uint32]File{}
 var fiIdx uint32
 
 type fsTableEntry struct {
-	fs      FileSystem
-	errChan chan error
+	fs        FileSystem
+	errChan   chan error
+	fileCount uint32
 }
 
 func fsTableStore(fs FileSystem, ec chan error) uint32 {
@@ -60,7 +61,16 @@ func fsTableGetErrChan(slot uint32) chan error {
 	return fsTable[slot].errChan
 }
 
+func fsTableGetFileCount(slot uint32) uint32 {
+	fsTableLock.Lock()
+	defer fsTableLock.Unlock()
+	return fsTable[slot].fileCount
+}
+
 func fiTableStoreFile(global uint32, fi File) uint32 {
+	fsTableLock.Lock()
+	fsTable[global].fileCount++
+	fsTableLock.Unlock()
 	fiTableLock.Lock()
 	defer fiTableLock.Unlock()
 	for {
@@ -90,8 +100,11 @@ func fiTableGetFile(file uint32) File {
 }
 
 func fiTableFreeFile(global uint32, file uint32) {
+	fsTableLock.Lock()
+	fsTable[global].fileCount--
+	fsTableLock.Unlock()
 	fiTableLock.Lock()
 	defer fiTableLock.Unlock()
-	debug("FID free", global, file, "=>", fiTable[file], "# of open files:", len(fiTable))
+	debug("FID free", global, file, "=>", fiTable[file], "# of open files:", len(fiTable)-1)
 	delete(fiTable, file)
 }

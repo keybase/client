@@ -20,6 +20,9 @@ func loadDokanDLL(fullpath string) error { return errNotWindows }
 type FileInfo struct {
 	ptr *struct {
 		DeleteOnClose int
+		DokanOptions  struct {
+			GlobalContext uint64
+		}
 	}
 	rawPath struct{}
 }

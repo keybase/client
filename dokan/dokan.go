@@ -77,6 +77,12 @@ func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *SID) bool {
 	return fi.isRequestorUserSidEqualTo(sid)
 }
 
+// NumberOfFileHandles returns the number of open file handles for
+// this filesystem.
+func (fi *FileInfo) NumberOfFileHandles() uint32 {
+	return fsTableGetFileCount(uint32(fi.ptr.DokanOptions.GlobalContext))
+}
+
 // CurrentProcessUserSid is a utility to get the
 // SID of the current user running the process.
 func CurrentProcessUserSid() (*SID, error) {
