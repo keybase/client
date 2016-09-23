@@ -498,7 +498,7 @@ func kbfsLibdokanGetFileSecurity(
 	// A pointer to SECURITY_DESCRIPTOR buffer to be filled
 	output C.PSECURITY_DESCRIPTOR,
 	outlen C.ULONG, // length of Security descriptor buffer
-	LengthNeeded C.PULONG,
+	LengthNeeded *C.ULONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	var si winacl.SecurityInformation
 	if input != nil {
