@@ -780,6 +780,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-invite-link-32.png'),
   },
+  'icon-invite-link-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-invite-link-48.png'),
+  },
   'icon-invite-link-negative-48': {
     isFont: false,
     extension: 'png',
@@ -835,15 +840,15 @@ const iconMeta_ = {
     extension: 'gif',
     require: require('../images/icons/icon-loader-infinity-64.gif'),
   },
-  'icon-loader-infinity-static-64': {
-    isFont: false,
-    extension: 'png',
-    require: require('../images/icons/icon-loader-infinity-static-64.png'),
-  },
   'icon-loader-infinity-80': {
     isFont: false,
     extension: 'gif',
     require: require('../images/icons/icon-loader-infinity-80.gif'),
+  },
+  'icon-loader-infinity-static-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-loader-infinity-static-64.png'),
   },
   'icon-loader-infinity-static-80': {
     isFont: false,

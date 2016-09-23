@@ -359,8 +359,9 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 	}
 
 	kf := newKeyFinder()
-	uimap := newUserInfoMapper(h.G())
 	var maxValidID chat1.MessageID
+	var uimap *userInfoMapper
+	ctx, uimap = getUserInfoMapper(ctx, h.G())
 	for _, b := range conversationRemote.MaxMsgs {
 		unboxed, err := h.boxer.unboxMessage(ctx, kf, b)
 		if err != nil {
@@ -678,7 +679,8 @@ func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadVi
 	}
 
 	finder := newKeyFinder()
-	uimap := newUserInfoMapper(h.G())
+	var uimap *userInfoMapper
+	ctx, uimap = getUserInfoMapper(ctx, h.G())
 	for _, msg := range boxed.Messages {
 		unboxed, err := h.boxer.unboxMessage(ctx, finder, msg)
 		if err != nil {

@@ -11,6 +11,7 @@ import SettingsNav from './nav'
 import DeleteMe from './delete'
 import DeleteConfirm from './delete-confirm'
 import Notifications from './notifications'
+import InviteGenerated from './invite-generated'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -301,6 +302,31 @@ const notificationsMap: DumbComponentMap<Notifications> = {
   },
 }
 
+const commonInvite = {
+  link: 'keybase.io/inv/9999999999',
+  parentProps: {
+    style: {
+      height: 500,
+      display: 'flex',
+    },
+  },
+  onClose: () => console.log('onClose clicked'),
+}
+
+const inviteGeneratedMap: DumbComponentMap<InviteGenerated> = {
+  component: InviteGenerated,
+  mocks: {
+    'Normal': {
+      ...commonInvite,
+      email: 'user@gmail.com',
+    },
+    'No email': {
+      ...commonInvite,
+      email: null,
+    },
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
   UpdatePassphrase: updatePassphraseMap,
@@ -310,4 +336,5 @@ export default {
   DeleteMe: deleteMeMap,
   DeleteConfirm: deleteConfirmMap,
   Notifications: notificationsMap,
+  InviteGenerated: inviteGeneratedMap,
 }
