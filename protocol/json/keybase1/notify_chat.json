@@ -31,7 +31,7 @@
         {
           "type": [
             null,
-            "chat1.Message"
+            "chat1.MessageFromServerUnboxedWithContext"
           ],
           "name": "IncomingMessage"
         }

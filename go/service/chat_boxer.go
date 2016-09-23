@@ -49,7 +49,7 @@ func newChatBoxer(g *libkb.GlobalContext) *chatBoxer {
 
 // unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
-func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, boxed chat1.MessageBoxed) (unboxed chat1.Message, err error) {
+func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, boxed chat1.MessageBoxed) (unboxed chat1.MessageFromServerUnboxed, err error) {
 	tlfName := boxed.ClientHeader.TlfName
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := finder.find(ctx, b.tlf, tlfName, tlfPublic)
@@ -78,41 +78,41 @@ func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, boxed c
 
 // unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given
 // a keybase1.CryptKey.
-func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.CryptKey) (chat1.Message, error) {
+func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.CryptKey) (unboxed chat1.MessageFromServerUnboxed, err error) {
 	if msg.ServerHeader == nil {
-		return chat1.Message{}, errors.New("nil ServerHeader in MessageBoxed")
+		return unboxed, errors.New("nil ServerHeader in MessageBoxed")
 	}
 
 	// decrypt body
 	packedBody, err := b.open(msg.BodyCiphertext, key)
 	if err != nil {
-		return chat1.Message{}, err
+		return unboxed, err
 	}
 	var body chat1.BodyPlaintext
 	if err := b.unmarshal(packedBody, &body); err != nil {
-		return chat1.Message{}, err
+		return unboxed, err
 	}
 
 	// decrypt header
 	packedHeader, err := b.open(msg.HeaderCiphertext, key)
 	if err != nil {
-		return chat1.Message{}, err
+		return unboxed, err
 	}
 	var header chat1.HeaderPlaintext
 	if err := b.unmarshal(packedHeader, &header); err != nil {
-		return chat1.Message{}, err
+		return unboxed, err
 	}
 
 	// verify the message
 	if err := b.verifyMessage(header, msg); err != nil {
-		return chat1.Message{}, err
+		return unboxed, err
 	}
 
 	// create a chat1.MessageClientHeader from versioned HeaderPlaintext
 	var clientHeader chat1.MessageClientHeader
 	headerVersion, err := header.Version()
 	if err != nil {
-		return chat1.Message{}, err
+		return unboxed, err
 	}
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V1:
@@ -127,17 +127,17 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 			SenderDevice: hp.SenderDevice,
 		}
 	default:
-		return chat1.Message{}, libkb.NewChatHeaderVersionError(headerVersion)
+		return chat1.MessageFromServerUnboxed{}, libkb.NewChatHeaderVersionError(headerVersion)
 	}
 
 	// create an unboxed message from versioned BodyPlaintext and clientHeader
-	unboxed := chat1.Message{
+	unboxed = chat1.MessageFromServerUnboxed{
 		ServerHeader: *msg.ServerHeader,
 	}
 
 	bodyVersion, err := body.Version()
 	if err != nil {
-		return chat1.Message{}, err
+		return unboxed, err
 	}
 	switch bodyVersion {
 	case chat1.BodyPlaintextVersion_V1:
@@ -147,7 +147,7 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 		}
 		unboxed.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgPlainV1)
 	default:
-		return chat1.Message{}, libkb.NewChatBodyVersionError(bodyVersion)
+		return chat1.MessageFromServerUnboxed{}, libkb.NewChatBodyVersionError(bodyVersion)
 	}
 
 	return unboxed, nil

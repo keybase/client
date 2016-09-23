@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -58,10 +59,16 @@ func (v conversationListView) show(g *libkb.GlobalContext) {
 	table := &flexibletable.Table{}
 	for i, conv := range v {
 		unread := ""
-		if conv.Messages[0].Info.IsNew {
+		if conv.Messages[0].Message != nil &&
+			conv.ReadUpTo < conv.Messages[0].Message.ServerHeader.MessageID {
 			unread = "*"
 		}
-		participants := strings.Split(conv.Info.TlfName, ",")
+
+		var participants []string
+		if conv.Info != nil {
+			participants = strings.Split(conv.Info.TlfName, ",")
+		}
+
 		authorAndTime := messageFormatter(conv.Messages[0]).authorAndTime()
 		body, err := messageFormatter(conv.Messages[0]).body(g)
 		if err != nil {
@@ -113,9 +120,11 @@ func (v conversationView) show(g *libkb.GlobalContext) {
 	table := &flexibletable.Table{}
 	for i, m := range v.Messages {
 		unread := ""
-		if m.Info.IsNew {
+		if m.Message != nil &&
+			v.ReadUpTo < m.Message.ServerHeader.MessageID {
 			unread = "*"
 		}
+
 		authorAndTime := messageFormatter(m).authorAndTime()
 		body, err := messageFormatter(m).body(g)
 		if err != nil {
@@ -150,42 +159,52 @@ func (v conversationView) show(g *libkb.GlobalContext) {
 	}
 }
 
-type messageFormatter chat1.Message
+type messageFormatter chat1.MessageFromServerUnboxedWithContext
 
 func (f messageFormatter) authorAndTime() string {
-	info := chat1.Message(f).Info
+	m := chat1.MessageFromServerUnboxedWithContext(f)
+	info := m.Info
 	if info == nil {
 		return ""
 	}
-	t := gregor1.FromTime(chat1.Message(f).ServerHeader.Ctime)
+	t := gregor1.FromTime(m.Message.ServerHeader.Ctime)
 	return fmt.Sprintf("%s %s", info.SenderUsername, shortDurationFromNow(t))
 }
 
 func (f messageFormatter) body(g *libkb.GlobalContext) (string, error) {
-	version, err := f.MessagePlaintext.Version()
-	if err != nil {
-		g.Log.Warning("MessagePlaintext version error: %s", err)
-		return "", err
-	}
-	switch version {
-	case chat1.MessagePlaintextVersion_V1:
-		body := f.MessagePlaintext.V1().MessageBody
-		typ, err := body.MessageType()
+	m := chat1.MessageFromServerUnboxedWithContext(f)
+	if m.Message != nil {
+		version, err := m.Message.MessagePlaintext.Version()
 		if err != nil {
+			g.Log.Warning("MessagePlaintext version error: %s", err)
 			return "", err
 		}
-		switch typ {
-		case chat1.MessageType_TEXT:
-			return body.Text().Body, nil
-		case chat1.MessageType_ATTACHMENT:
-			return fmt.Sprintf("{Attachment} | Caption: <unimplemented> | KBFS: %s", body.Attachment().Path), nil
+		switch version {
+		case chat1.MessagePlaintextVersion_V1:
+			body := m.Message.MessagePlaintext.V1().MessageBody
+			typ, err := body.MessageType()
+			if err != nil {
+				return "", err
+			}
+			switch typ {
+			case chat1.MessageType_TEXT:
+				return body.Text().Body, nil
+			case chat1.MessageType_ATTACHMENT:
+				return fmt.Sprintf("{Attachment} | Caption: <unimplemented> | KBFS: %s", body.Attachment().Path), nil
+			default:
+				return fmt.Sprintf("unsupported MessageType: %s", typ.String()), nil
+			}
 		default:
-			return fmt.Sprintf("unsupported MessageType: %s", typ.String()), nil
+			g.Log.Warning("messageFormatter.body unhandled MessagePlaintext version %v", version)
+			return "", err
 		}
-	default:
-		g.Log.Warning("messageFormatter.body unhandled MessagePlaintext version %v", version)
-		return "", err
 	}
+
+	if m.UnboxingError != nil {
+		return fmt.Sprintf("<%s>", *m.UnboxingError), nil
+	}
+
+	return "", errors.New("unexpected data")
 }
 
 func shortDurationFromNow(t time.Time) string {

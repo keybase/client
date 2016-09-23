@@ -1828,7 +1828,7 @@ export type ChallengeInfo = {
 
 export type ChatActivity = {
   ActivityType: ChatActivityType,
-  IncomingMessage?: ?chat1.Message,
+  IncomingMessage?: ?chat1.MessageFromServerUnboxedWithContext,
 }
 
 export type ChatActivityType = 

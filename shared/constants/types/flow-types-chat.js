@@ -225,7 +225,8 @@ export type ConversationInfoLocal = {
 
 export type ConversationLocal = {
   info?: ?ConversationInfoLocal,
-  messages?: ?Array<Message>,
+  messages?: ?Array<MessageFromServerUnboxedWithContext>,
+  readUpTo: MessageID,
 }
 
 export type ConversationMetadata = {
@@ -326,12 +327,6 @@ export type MarkAsReadRes = {
   rateLimit?: ?RateLimit,
 }
 
-export type Message = {
-  serverHeader: MessageServerHeader,
-  messagePlaintext: MessagePlaintext,
-  info?: ?MessageInfoLocal,
-}
-
 export type MessageAttachment = {
   path: string,
 }
@@ -376,10 +371,20 @@ export type MessageEdit = {
   body: string,
 }
 
+export type MessageFromServerUnboxed = {
+  serverHeader: MessageServerHeader,
+  messagePlaintext: MessagePlaintext,
+}
+
+export type MessageFromServerUnboxedWithContext = {
+  unboxingError?: ?string,
+  message?: ?MessageFromServerUnboxed,
+  info?: ?MessageInfoLocal,
+}
+
 export type MessageID = uint
 
 export type MessageInfoLocal = {
-  isNew: boolean,
   senderUsername: string,
   senderDeviceName: string,
 }
@@ -477,7 +482,7 @@ export type TLFVisibility =
 export type ThreadID = bytes
 
 export type ThreadView = {
-  messages?: ?Array<Message>,
+  messages?: ?Array<MessageFromServerUnboxedWithContext>,
   pagination?: ?Pagination,
 }
 

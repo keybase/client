@@ -94,20 +94,23 @@ protocol local {
   }
 
   record MessageInfoLocal {
-    boolean isNew;
     string senderUsername;
     string senderDeviceName;
   }
 
-  record Message {
+  record MessageFromServerUnboxed {
     MessageServerHeader serverHeader;
     MessagePlaintext messagePlaintext;
+  }
 
+  record MessageFromServerUnboxedWithContext {
+    union { null, string } unboxingError;
+    union { null, MessageFromServerUnboxed } message;
     union { null, MessageInfoLocal } info;
   }
 
   record ThreadView {
-    array<Message> messages;
+    array<MessageFromServerUnboxedWithContext> messages;
     union { null, Pagination } pagination;
   }
 
@@ -136,7 +139,8 @@ protocol local {
 
   record ConversationLocal {
     union { null, ConversationInfoLocal } info;
-    array<Message> messages;
+    array<MessageFromServerUnboxedWithContext> messages;
+    MessageID readUpTo;
   }
 
   InboxView getInboxLocal(union { null, GetInboxQuery} query, union { null, Pagination } pagination);

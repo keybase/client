@@ -874,7 +874,10 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			g.G().Log.Error("push handler: chat activity: unable to unbox message: %s", err.Error())
 			return err
 		}
-		activity.IncomingMessage = &msg
+		activity.IncomingMessage = &chat1.MessageFromServerUnboxedWithContext{
+			Message: &msg,
+			Info:    nil, // TODO: populate this?
+		}
 		activity.ActivityType = keybase1.ChatActivityType_INCOMING_MESSAGE
 
 	default:

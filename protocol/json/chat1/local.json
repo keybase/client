@@ -260,10 +260,6 @@
       "name": "MessageInfoLocal",
       "fields": [
         {
-          "type": "boolean",
-          "name": "isNew"
-        },
-        {
           "type": "string",
           "name": "senderUsername"
         },
@@ -275,7 +271,7 @@
     },
     {
       "type": "record",
-      "name": "Message",
+      "name": "MessageFromServerUnboxed",
       "fields": [
         {
           "type": "MessageServerHeader",
@@ -284,6 +280,26 @@
         {
           "type": "MessagePlaintext",
           "name": "messagePlaintext"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageFromServerUnboxedWithContext",
+      "fields": [
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "unboxingError"
+        },
+        {
+          "type": [
+            null,
+            "MessageFromServerUnboxed"
+          ],
+          "name": "message"
         },
         {
           "type": [
@@ -301,7 +317,7 @@
         {
           "type": {
             "type": "array",
-            "items": "Message"
+            "items": "MessageFromServerUnboxedWithContext"
           },
           "name": "messages"
         },
@@ -397,9 +413,13 @@
         {
           "type": {
             "type": "array",
-            "items": "Message"
+            "items": "MessageFromServerUnboxedWithContext"
           },
           "name": "messages"
+        },
+        {
+          "type": "MessageID",
+          "name": "readUpTo"
         }
       ]
     },
