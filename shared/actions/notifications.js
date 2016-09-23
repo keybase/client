@@ -5,7 +5,7 @@ import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
 import {log} from '../native/log/logui'
 import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
-import {setupTrackingChangedHandler, registerIdentifyUi} from './tracker'
+import {setupTrackingChangedHandler, registerIdentifyUi, setupUserChangedHandler} from './tracker'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {LogAction, NotificationKeys, NotificationAction} from '../constants/notifications'
@@ -55,6 +55,7 @@ function listenForNotifications (): (dispatch: Dispatch) => void {
     })
 
     dispatch(registerIdentifyUi())
+    dispatch(setupUserChangedHandler())
     dispatch(setupTrackingChangedHandler())
 
     initialized = true

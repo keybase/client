@@ -56,17 +56,41 @@ export function stopTimer (): Action {
   }
 }
 
+function clearIdentifyCache (uid: string): Action {
+  return {
+    type: Constants.cacheIdentify,
+    payload: {uid, goodTill: 0},
+  }
+}
+
+export function setupUserChangedHandler (): TrackerActionCreator {
+  return (dispatch, getState) => {
+    engine().setIncomingHandler('keybase.1.NotifyUsers.userChanged', ({uid}) => {
+  console.log('AAAAAAAAAAAAAAAA9', uid)
+      dispatch(clearIdentifyCache(uid))
+      const username = _getUsername(uid, getState)
+      if (username) {
+  console.log('AAAAAAAAAAAAAAAA10',username)
+        dispatch(getProfile(username))
+      } else {
+        console.log('AAAAAAAAAAAAAAAA11', uid)
+      }
+    })
+  }
+}
+
 export function setupTrackingChangedHandler (): TrackerActionCreator {
+  // TODO remove
   console.log('AAAAAAAAAAAAAAAA1')
   return (dispatch, getState) => {
   console.log('AAAAAAAAAAAAAAAA2')
     engine().setIncomingHandler('keybase.1.NotifyTracking.trackingChanged', ({username}) => {
-  console.log('AAAAAAAAAAAAAAAA3')
-      const trackerState = getState().tracker.trackers[username]
-      if (trackerState && trackerState.type === 'tracker') {
-  console.log('AAAAAAAAAAAAAAAA4')
-        dispatch(getProfile(username, true))
-      }
+  // console.log('AAAAAAAAAAAAAAAA3')
+      // const trackerState = getState().tracker.trackers[username]
+      // if (trackerState && trackerState.type === 'tracker') {
+  // console.log('AAAAAAAAAAAAAAAA4')
+        // dispatch(getProfile(username, true))
+      // }
     })
   }
 }
@@ -128,7 +152,6 @@ export function getMyProfile (ignoreCache?: boolean): TrackerActionCreator {
 
 export function triggerIdentify (uid: string = '', userAssertion: string = '', incomingCallMap: Object = {}): TrackerActionCreator {
   return (dispatch, getState) => new Promise((resolve, reject) => {
-    debugger;
     console.log('AAAAAAA8 triggeridentify', uid, userAssertion)
     dispatch({type: Constants.identifyStarted, payload: null})
     identifyIdentify2Rpc({
@@ -221,6 +244,10 @@ export function onRefollow (username: string): TrackerActionCreator {
     const trackToken = _getTrackToken(getState(), username)
 
     const dispatchRefollowAction = () => {
+      const uid = _getUID(username, getState)
+      if (uid) {
+        dispatch(clearIdentifyCache(uid))
+      }
       dispatch(onWaiting(username, false))
       dispatch({
         type: Constants.onRefollow,
@@ -247,6 +274,12 @@ export function onRefollow (username: string): TrackerActionCreator {
 export function onUnfollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     dispatch(onWaiting(username, true))
+
+    const uid = _getUID(username, getState)
+    if (uid) {
+      dispatch(clearIdentifyCache(uid))
+    }
+
     trackUntrackRpc({
       param: {username},
       callback: (err, response) => {
@@ -316,11 +349,35 @@ function _getTrackToken (state, username) {
   return trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
 }
 
+function _getUsername (uid: string, getState: () => {tracker: RootTrackerState}): ?string {
+  const trackers = getState().tracker && getState().tracker.trackers
+  return Object.keys(trackers).find(
+    (name: string) => trackers[name].type === 'tracker' &&
+      trackers[name].userInfo &&
+      trackers[name].userInfo.uid === uid)
+}
+
+function _getUID (username: string, getState: () => {tracker: RootTrackerState}): ?string {
+  if (getState().tracker && getState().tracker.trackers && getState().tracker.trackers[username]) {
+    const t = getState().tracker.trackers[username]
+    if (t.type === 'tracker') {
+      if (t.userInfo) {
+        return t.userInfo.uid
+      }
+    }
+  }
+  return null
+}
+
 export function onFollow (username: string, localIgnore?: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
     const trackToken = _getTrackToken(getState(), username)
 
     const dispatchFollowedAction = () => {
+      const uid = _getUID(username, getState)
+      if (uid) {
+        dispatch(clearIdentifyCache(uid))
+      }
       dispatch({type: Constants.onFollow, payload: {username}})
       dispatch(onWaiting(username, false))
     }
