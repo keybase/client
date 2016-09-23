@@ -52,6 +52,7 @@ protocol common {
     union { null, TLFVisibility } tlfVisibility;
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
+    union { null, boolean } oneChatTypePerTLF;
     boolean unreadOnly;
   }
 
@@ -71,6 +72,7 @@ protocol common {
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
+    bool isFinalized;
   }
 
   record ConversationReaderInfo {

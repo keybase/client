@@ -78,7 +78,8 @@ protocol constants {
     SCChatBadMsg_2505,
     SCChatBroadcast_2506,
     SCChatAlreadySuperseded_2507,
-    SCChatAlreadyDeleted_2508
+    SCChatAlreadyDeleted_2508,
+    SCChatTLFFinalized_2509
   }
 
 }

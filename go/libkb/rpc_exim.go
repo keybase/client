@@ -416,6 +416,21 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ChatNotInConvError{
 			UID: uid,
 		}
+	case SCChatTLFFinalized:
+		var tlfID chat1.TLFID
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "TlfID":
+				val, err := hex.DecodeString(field.Value)
+				if err != nil {
+					G.Log.Warning("error parsing chat tlf finalized TLFID")
+				}
+				tlfID = chat1.TLFID(val)
+			}
+		}
+		return ChatTLFFinalizedError{
+			TlfID: tlfID,
+		}
 	case SCChatBadMsg:
 		return ChatBadMsgError{Msg: s.Desc}
 	case SCChatBroadcast:
@@ -1371,6 +1386,14 @@ func (e ChatAlreadyDeletedError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCChatAlreadyDeleted,
 		Name: "SC_CHAT_ALREADY_DELETED",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatTLFFinalizedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatTLFFinalized,
+		Name: "SC_CHAT_TLF_FINALIZED",
 		Desc: e.Error(),
 	}
 }
