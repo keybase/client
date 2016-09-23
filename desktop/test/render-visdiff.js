@@ -64,6 +64,10 @@ app.on('ready', () => {
     })
   })
 
+  ipcMain.on('visdiff-ready', () => {
+    console.log('Worker sent visdiff-ready')
+  })
+
   const scriptPath = resolveRoot('dist', 'visdiff.bundle.js')
   for (let i = 0; i < WORKER_COUNT; i++) {
     setTimeout(() => {
@@ -78,8 +82,7 @@ app.on('ready', () => {
       workerWin.on('responsive', () => console.log('Worker window responsive:', i))
       workerWin.on('closed', () => console.log('Worker window closed:', i))
 
-      // TODO: once we're on electron v1.2.3, try ready-to-show event.
-      workerWin.webContents.once('did-finish-load', () => renderNext(workerWin.webContents))
+      workerWin.once('ready-to-show', () => renderNext(workerWin.webContents))
       const workerURL = resolveRootAsURL('renderer', `index.html?src=${scriptPath}`)
       console.log('Loading worker', i, workerURL)
       workerWin.loadURL(workerURL)
