@@ -6,22 +6,49 @@
 
 #include "bridge.h"
 
+static const WCHAR dokansystem32[] = L"C:\\WINDOWS\\SYSTEM32\\DOKAN" DOKAN_MAJOR_API_VERSION L".DLL";
+static const WCHAR dokansyswow64[] = L"C:\\WINDOWS\\SYSWOW64\\DOKAN" DOKAN_MAJOR_API_VERSION L".DLL";
+static const WCHAR dokan1dll[] = L"DOKAN" DOKAN_MAJOR_API_VERSION L".DLL";
+
 static BOOL __stdcall (*kbfsLibdokanPtr_RemoveMountPoint)(LPCWSTR MountPoint);
 static HANDLE __stdcall (*kbfsLibdokanPtr_OpenRequestorToken)(PDOKAN_FILE_INFO DokanFileInfo);
 static int __stdcall (*kbfsLibdokanPtr_Main)(PDOKAN_OPTIONS DokanOptions, PDOKAN_OPERATIONS DokanOperations);
 
 DWORD kbfsLibdokanLoadLibrary(LPCWSTR location) {
   int i;
+  BOOL defaultPath = FALSE;
   // 0x800 is LOAD_LIBRARY_SEARCH_SYSTEM32 but that is not defined on build machines.
   DWORD flags = 0x800;
-  for(i=0; location[i]; i++)
-    if(location[i]== L'/' || location[i]==L'\\') {
-      flags = 0;
-      break;
-    }
+
+  if(!location) {
+    location = dokan1dll;
+    defaultPath = TRUE;
+  } else {
+    for(i=0; location[i]; i++)
+      if(location[i]== L'/' || location[i]==L'\\') {
+        flags = 0;
+        break;
+      }
+  }
   HMODULE mod = LoadLibraryExW(location, NULL, flags);
-  if(mod == NULL)
-    return GetLastError();
+  if(mod == NULL) {
+    if(defaultPath && GetLastError()==ERROR_INVALID_PARAMETER) {
+      // User has not installed KB2533623 which is a security update
+      // from 2011. Without this Windows security update loading libraries
+      // is unsafe on Windows.
+
+      // Try SysWOW64 on 32 bit builds.
+      if(sizeof(void*)==4)
+        mod = LoadLibrary(dokansyswow64);
+      if(mod == NULL)
+        mod = LoadLibrary(dokansystem32);
+      if(mod == NULL)
+        mod = LoadLibrary(dokan1dll);
+      if(mod == NULL)
+        return GetLastError();
+    } else
+      return GetLastError();
+  }
   kbfsLibdokanPtr_RemoveMountPoint = (void*)GetProcAddress(mod, "DokanRemoveMountPoint");
   if(kbfsLibdokanPtr_RemoveMountPoint == NULL)
     return GetLastError();
@@ -33,7 +60,6 @@ DWORD kbfsLibdokanLoadLibrary(LPCWSTR location) {
     return GetLastError();
   return 0;
 }
-
 
 extern NTSTATUS kbfsLibdokanCreateFile(LPCWSTR FileName,
 					 PDOKAN_IO_SECURITY_CONTEXT psec,
@@ -355,7 +381,7 @@ error_t kbfsLibdokanFree(struct kbfsLibdokanCtx* ctx) {
 
 error_t kbfsLibdokanRun(struct kbfsLibdokanCtx* ctx) {
 	if(!kbfsLibdokanPtr_Main)
-		kbfsLibdokanLoadLibrary(L"DOKAN" DOKAN_MAJOR_API_VERSION L".DLL");
+		kbfsLibdokanLoadLibrary(NULL);
 	if(!kbfsLibdokanPtr_Main)
 		return kbfsLibDokan_DLL_LOAD_ERROR;
 	if((ctx->dokan_options.Options & kbfsLibdokanUseFindFilesWithPattern) != 0) {
