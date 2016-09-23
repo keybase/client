@@ -10,32 +10,40 @@ import (
 	"testing"
 )
 
-func genTableForTest() *Table {
+func genTableForTest(t *testing.T) *Table {
 	table := &Table{}
-	table.Insert(Row{
+	if err := table.Insert(Row{
 		Cell{Frame: [2]string{"[", "]"}, Alignment: Right, Content: SingleCell{"0"}},
 		Cell{Alignment: Left, Content: MultiCell{Items: []string{"alice", "bob", "charlie", "david"}, Sep: ","}},
 		Cell{Frame: [2]string{"[", "]"}, Alignment: Right, Content: SingleCell{"alice 4h"}},
 		Cell{Alignment: Left, Content: SingleCell{"hello!"}},
-	})
-	table.Insert(Row{
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := table.Insert(Row{
 		Cell{Frame: [2]string{"[", "]"}, Alignment: Right, Content: SingleCell{"1"}},
 		Cell{Alignment: Left, Content: MultiCell{Items: []string{"alice", "bob", "charlie", "david"}, Sep: ","}},
 		Cell{Frame: [2]string{"[", "]"}, Alignment: Right, Content: SingleCell{"bob 2h"}},
 		Cell{Alignment: Left, Content: SingleCell{"hello! wejoi fwoi jwe oiew oiwfowfw"}},
-	})
-	table.Insert(Row{
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := table.Insert(Row{
 		Cell{Frame: [2]string{"[", "]"}, Alignment: Right, Content: SingleCell{"10"}},
 		Cell{Alignment: Left, Content: MultiCell{Items: []string{"alice", "bob", "charlie", "david"}, Sep: ","}},
 		Cell{Frame: [2]string{"[", "]"}, Alignment: Right, Content: SingleCell{"charlie 4h"}},
 		Cell{Alignment: Left, Content: SingleCell{"hello! this is super long hahahaha blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah"}},
-	})
-	table.Insert(Row{
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := table.Insert(Row{
 		Cell{Frame: [2]string{"[", "]"}, Alignment: Right, Content: SingleCell{"11"}},
 		Cell{Alignment: Left, Content: MultiCell{Items: []string{"alice", "bob", "charlie", "david"}, Sep: ","}},
 		Cell{Frame: [2]string{"[", "]"}, Alignment: Right, Content: SingleCell{"charliecharliecharlie 2h"}},
 		Cell{Alignment: Left, Content: SingleCell{"hello! hello!"}},
-	})
+	}); err != nil {
+		t.Fatal(err)
+	}
 	return table
 }
 
@@ -44,7 +52,7 @@ func readable(in string) string {
 }
 
 func TestTable(t *testing.T) {
-	table := genTableForTest()
+	table := genTableForTest(t)
 	expected := `
  [0] alice,+3...   [alice 4h] hello!                                            
  [1] alice,+3...     [bob 2h] hello! wejoi fwoi jwe oiew oiwfowfw               
@@ -64,7 +72,7 @@ func TestTable(t *testing.T) {
 }
 
 func TestTableWrap(t *testing.T) {
-	table := genTableForTest()
+	table := genTableForTest(t)
 	expected := `
  [0] alice,+3...   [alice 4h] hello!                                            
  [1] alice,+3...     [bob 2h] hello! wejoi fwoi jwe oiew oiwfowfw               

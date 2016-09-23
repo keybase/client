@@ -5,11 +5,13 @@ import {Box, Text} from '../common-adapters'
 
 import UpdateEmail from './email'
 import UpdatePassphrase from './passphrase'
+import PaymentForm from './payment'
 import Landing from './landing'
 import SettingsNav from './nav'
 import DeleteMe from './delete'
 import DeleteConfirm from './delete-confirm'
 import Notifications from './notifications'
+import InviteGenerated from './invite-generated'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -88,6 +90,37 @@ const updatePassphraseMap: DumbComponentMap<UpdatePassphrase> = {
     'Error - New Passphrase Mismatch': {
       ...updatePassphraseBase,
       newPassphraseConfirmError: 'Passphrase confirmation does not match.',
+    },
+  },
+}
+
+const paymentBase = {
+  onChangeCardNumber: () => console.log('onChangeCardNumber'),
+  onChangeName: () => console.log('onChangeName'),
+  onChangeExpiration: () => console.log('onChangeExpiration'),
+  onChangeSecurityCode: () => console.log('onChangeSecurityCode'),
+  cardNumber: '0001 0002 0003 4242',
+  name: 'Jessica Jones',
+  expiration: '01/2017',
+  securityCode: '123',
+  onBack: () => console.log('onBack'),
+  onSubmit: () => console.log('onSubmit'),
+}
+
+const paymentFormMap: DumbComponentMap<PaymentForm> = {
+  component: PaymentForm,
+  mocks: {
+    'Normal - Empty': {
+      ...paymentBase,
+      cardNumber: '',
+      name: '',
+      expiration: '',
+      securityCode: '',
+    },
+    'Normal': paymentBase,
+    'Normal - Error': {
+      ...paymentBase,
+      errorMessage: 'Please check your payment details.',
     },
   },
 }
@@ -269,12 +302,39 @@ const notificationsMap: DumbComponentMap<Notifications> = {
   },
 }
 
+const commonInvite = {
+  link: 'keybase.io/inv/9999999999',
+  parentProps: {
+    style: {
+      height: 500,
+      display: 'flex',
+    },
+  },
+  onClose: () => console.log('onClose clicked'),
+}
+
+const inviteGeneratedMap: DumbComponentMap<InviteGenerated> = {
+  component: InviteGenerated,
+  mocks: {
+    'Normal': {
+      ...commonInvite,
+      email: 'user@gmail.com',
+    },
+    'No email': {
+      ...commonInvite,
+      email: null,
+    },
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
   UpdatePassphrase: updatePassphraseMap,
+  PaymentForm: paymentFormMap,
   Landing: landingMap,
   SettingsNav: settingsNavMap,
   DeleteMe: deleteMeMap,
   DeleteConfirm: deleteConfirmMap,
   Notifications: notificationsMap,
+  InviteGenerated: inviteGeneratedMap,
 }

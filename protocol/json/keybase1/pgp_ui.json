@@ -53,7 +53,7 @@
           "type": "int"
         }
       ],
-      "response": "bool"
+      "response": "boolean"
     },
     "finished": {
       "request": [

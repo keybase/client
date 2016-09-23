@@ -306,6 +306,7 @@ const choiceListMap: DumbComponentMap<ChoiceList> = {
 const standardScreenProps = {
   onClose: () => console.log('StandardScreen: onClose'),
   children: <Text type='Header'>Whoa, look at this centered thing</Text>,
+  parentProps: {style: {display: 'flex', height: 578}},
 }
 
 const standardScreenMap: DumbComponentMap<StandardScreen> = {

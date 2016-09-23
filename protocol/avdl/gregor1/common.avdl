@@ -76,7 +76,7 @@ protocol common {
 
 	record ReminderSet {
 		array<Reminder> reminders;
-		bool moreRemindersReady;
+		boolean moreRemindersReady;
 	}
 
 	record Message {
@@ -95,4 +95,3 @@ protocol common {
 	@typedef("string") record SessionID {}
 	@typedef("string") record SessionToken {}
 }
-

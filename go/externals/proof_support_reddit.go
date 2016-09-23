@@ -36,6 +36,11 @@ func NewRedditChecker(p libkb.RemoteProofChainLink) (*RedditChecker, libkb.Proof
 func (rc *RedditChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *RedditChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		// checking the hint is done later in CheckStatus
+		return nil
+	}
+
 	if strings.HasPrefix(strings.ToLower(h.GetAPIURL()), RedditSub) {
 		return nil
 	}

@@ -1,36 +1,75 @@
 // @flow
+import DeleteContainer from './delete/container'
+import LandingContainer from './landing/container'
+import NavSettings from './nav'
+import NotificationsContainer from './notifications/container'
 import React, {Component} from 'react'
-import MenuList from './menu-list'
-import type {MenuListItem} from './menu-list'
 import SettingsHelp from './help.desktop'
+
+import type {SettingsItem} from './nav'
 import type {Props} from './render'
 
+const InvitationsContainer = LandingContainer // TODO add invitations
+
 type State = {
-  menuItems: Array<MenuListItem>
+    content: any,
+    items: Array<SettingsItem>,
 }
 
 class Render extends Component<void, Props, State> {
   state: State;
+  _textToContent: {[key: string]: any}
 
   constructor (props: Props) {
     super(props)
 
-    this.state = {
-      menuItems: [
-        {name: 'Account', hasChildren: true, onClick: this.props.onAccount},
-        {name: 'Billing Settings', hasChildren: true, onClick: this.props.onBilling},
-        {name: 'App Preferences', hasChildren: true, onClick: this.props.onPrefs},
-        {name: 'Invitations', hasChildren: true, onClick: this.props.onInvites},
-        {name: 'Notifications', hasChildren: true, onClick: this.props.onNotifications},
-        {name: 'Delete me', hasChildren: true, onClick: this.props.onDeleteMe},
-        {name: 'Log Send', hasChildren: false, onClick: this.props.onLogSend},
-        {name: 'About', hasChildren: true, onClick: this.props.onAbout},
-      ],
+    this._textToContent = {
+      'Your Account': <LandingContainer />,
+      'Invitations': <InvitationsContainer />,
+      'Notifications': <NotificationsContainer />,
+      'Delete me': <DeleteContainer />,
+      ...(__DEV__ ? {'Dev Menu': null} : {}),
     }
 
-    if (__DEV__) {
-      this.state.menuItems.push({name: 'Dev Menu', hasChildren: true, onClick: this.props.onDev})
+    // TODO handle badges and etc
+    const items = [{
+      text: 'Your Account',
+      onClick: () => this._select('Your Account'),
+      selected: true,
+    }, {
+      text: 'Invitations',
+      onClick: () => this._select('Invitations'),
+    }, {
+      text: 'Notifications',
+      onClick: () => this._select('Notifications'),
+    }, {
+      text: 'Delete me',
+      onClick: () => this._select('Delete me'),
+    },
+      ...(__DEV__ ? [{
+        text: 'Dev Menu',
+        onClick: () => props.onDevMenu(),
+      }] : []),
+    ]
+
+    this.state = {
+      content: this._textToContent[items[0].text],
+      items,
     }
+  }
+
+  _select (key: string) {
+    const items = this.state.items.map(item => {
+      return {
+        ...item,
+        selected: item.text === key,
+      }
+    })
+
+    this.setState({
+      content: this._textToContent[key],
+      items,
+    })
   }
 
   _renderComingSoon () {
@@ -42,9 +81,10 @@ class Render extends Component<void, Props, State> {
       return this._renderComingSoon()
     }
 
-    return <MenuList items={this.state.menuItems} />
+    return <NavSettings
+      content={this.state.content}
+      items={this.state.items} />
   }
-
 }
 
 export default Render

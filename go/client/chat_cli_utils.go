@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -55,21 +56,48 @@ type conversationResolver struct {
 	Visibility chat1.TLFVisibility
 }
 
-func (r *conversationResolver) Resolve(ctx context.Context, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversations []chat1.ConversationInfoLocal, err error) {
+func (r *conversationResolver) Resolve(ctx context.Context, g *libkb.GlobalContext, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
 	if len(r.TlfName) > 0 {
 		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, r.TlfName)
 		if err != nil {
-			return nil, fmt.Errorf("completing TLF name error: %v", err)
+			return nil, false, fmt.Errorf("completing TLF name error: %v", err)
 		}
 		r.TlfName = string(cname)
 	}
-	conversations, err = chatClient.ResolveConversationLocal(ctx, chat1.ConversationInfoLocal{
+
+	conversations, err := chatClient.ResolveConversationLocal(ctx, chat1.ConversationInfoLocal{
 		TlfName:    r.TlfName,
 		TopicName:  r.TopicName,
 		TopicType:  r.TopicType,
 		Visibility: r.Visibility,
 	})
-	return conversations, err
+	if err != nil {
+		return nil, false, err
+	}
+
+	switch len(conversations) {
+	case 0:
+		return nil, false, nil
+	case 1:
+		return &conversations[0], false, nil
+	default:
+		g.UI.GetTerminalUI().Printf(
+			"There are %d conversations. Please choose one:\n", len(conversations))
+		conversationInfoListView(conversations).show(g)
+		var num int
+		for num = -1; num < 1 || num > len(conversations); {
+			input, err := g.UI.GetTerminalUI().Prompt(PromptDescriptorChooseConversation,
+				fmt.Sprintf("Please enter a number [1-%d]: ", len(conversations)))
+			if err != nil {
+				return nil, false, err
+			}
+			if num, err = strconv.Atoi(input); err != nil {
+				g.UI.GetTerminalUI().Printf("Error converting input to number: %v\n", err)
+				continue
+			}
+		}
+		return &conversations[num-1], true, nil
+	}
 }
 
 type messageFetcher struct {
@@ -115,7 +143,7 @@ func makeMessageFetcherFromCliCtx(ctx *cli.Context, tlfName string, markAsRead b
 		fetcher.selector.Since = &timeStr
 	}
 
-	if ctx.Bool("all") {
+	if ctx.Bool("all") || fetcher.selector.Since != nil {
 		fetcher.selector.Limit = 0
 	}
 	fetcher.selector.MarkAsRead = markAsRead
@@ -141,19 +169,15 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 		return nil, err
 	}
 
-	conversationInfos, err := f.resolver.Resolve(ctx, chatClient, tlfClient)
+	conversationInfo, _, err := f.resolver.Resolve(ctx, g, chatClient, tlfClient)
 	if err != nil {
 		return nil, fmt.Errorf("resolving conversation error: %v\n", err)
 	}
-	// TODO: prompt user to choose conversation(s) if called by `keybase chat read` (rather than `keybase chat list`)
-	for _, conv := range conversationInfos {
-		f.selector.Conversations = append(f.selector.Conversations, conv.Id)
+	if conversationInfo == nil {
+		return nil, nil
 	}
-
-	if len(f.selector.Conversations) == 0 {
-		g.Log.Debug("no conversatins in fetch?")
-		return conversations, nil
-	}
+	g.UI.GetTerminalUI().Printf("fetching conversation %s ...\n", conversationInfo.TlfName)
+	f.selector.Conversations = append(f.selector.Conversations, conversationInfo.Id)
 
 	conversations, err = chatClient.GetMessagesLocal(ctx, f.selector)
 	if err != nil {
@@ -180,7 +204,7 @@ func makeInboxFetcherFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error)
 	fetcher.limit = ctx.Int("number")
 	fetcher.since = ctx.String("time")
 
-	if ctx.Bool("all") {
+	if ctx.Bool("all") || len(fetcher.since) > 0 {
 		fetcher.limit = 0
 	}
 

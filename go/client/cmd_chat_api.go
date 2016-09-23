@@ -223,8 +223,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	}
 
 	var thread Thread
-	thread.Messages = make([]MsgSummary, len(threadView.Messages))
-	for i, m := range threadView.Messages {
+	for _, m := range threadView.Messages {
 		version, err := m.MessagePlaintext.Version()
 		if err != nil {
 			return c.errReply(err)
@@ -232,7 +231,11 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 		switch version {
 		case chat1.MessagePlaintextVersion_V1:
 			v1 := m.MessagePlaintext.V1()
-			thread.Messages[i] = MsgSummary{
+			if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
+				// skip TLFNAME messages
+				continue
+			}
+			msg := MsgSummary{
 				ID: m.ServerHeader.MessageID,
 				Channel: ChatChannel{
 					Name:      v1.ClientHeader.TlfName,
@@ -246,7 +249,12 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 				SentAt:   int64(m.ServerHeader.Ctime / 1000),
 				SentAtMs: int64(m.ServerHeader.Ctime),
 			}
-			thread.Messages[i].Content = c.convertMsgBody(v1.MessageBody)
+			msg.Content = c.convertMsgBody(v1.MessageBody)
+			if m.Info != nil {
+				msg.Sender.Username = m.Info.SenderUsername
+				msg.Sender.DeviceName = m.Info.SenderDeviceName
+			}
+			thread.Messages = append(thread.Messages, msg)
 		default:
 			return c.errReply(libkb.NewChatMessageVersionError(version))
 		}
@@ -307,9 +315,7 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 		ConversationID: conversation.Id,
 		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
-				Conv: chat1.ConversationIDTriple{
-					TopicType: conversation.TopicType,
-				},
+				Conv:        conversation.Triple,
 				TlfName:     conversation.TlfName,
 				TlfPublic:   conversation.Visibility == chat1.TLFVisibility_PUBLIC,
 				MessageType: chat1.MessageType_TEXT,
