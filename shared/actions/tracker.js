@@ -4,7 +4,6 @@ import Session from '../engine/session'
 import _ from 'lodash'
 import engine from '../engine'
 import openUrl from '../util/open-url'
-import setNotifications from '../util/set-notifications'
 import type {Action, Dispatch, AsyncAction} from '../constants/types/flux'
 import type {CancelHandlerType} from '../engine/session'
 import type {ConfigState} from '../reducers/config'
@@ -57,23 +56,38 @@ export function stopTimer (): Action {
   }
 }
 
-export function registerTrackerChangeListener (): TrackerActionCreator {
+export function setupTrackingChangedHandler (): TrackerActionCreator {
+  console.log('AAAAAAAAAAAAAAAA1')
   return (dispatch, getState) => {
+  console.log('AAAAAAAAAAAAAAAA2')
     engine().setIncomingHandler('keybase.1.NotifyTracking.trackingChanged', ({username}) => {
+  console.log('AAAAAAAAAAAAAAAA3')
       const trackerState = getState().tracker.trackers[username]
       if (trackerState && trackerState.type === 'tracker') {
-        dispatch(getProfile(username))
+  console.log('AAAAAAAAAAAAAAAA4')
+        dispatch(getProfile(username, true))
       }
     })
-    setNotifications({tracking: true})
   }
 }
 
-export function registerTrackerIncomingRpcs (): TrackerActionCreator {
-  return dispatch => {
-    dispatch(registerTrackerChangeListener())
-  }
-}
+// export function registerTrackerIncomingRpcs (): TrackerActionCreator {
+  // return (dispatch, getState) => {
+    // engine().setIncomingHandler('keybase.1.NotifyUsers.userChanged', ({uid}) => {
+      // const trackers = getState().tracker.trackers
+      // const username = Object.keys(trackers).find(
+        // (name: string) => trackers[name].type === 'tracker' &&
+          // trackers[name].userInfo &&
+          // trackers[name].userInfo.uid === uid)
+      // if (username) {
+        // const trackerState = trackers[username]
+        // if (trackerState && trackerState.type === 'tracker') {
+          // dispatch(getProfile(username))
+        // }
+      // }
+    // })
+  // }
+// }
 
 export function getProfile (username: string, ignoreCache?: boolean): TrackerActionCreator {
   return (dispatch, getState) => {
@@ -81,6 +95,7 @@ export function getProfile (username: string, ignoreCache?: boolean): TrackerAct
 
     // If we have a pending identify no point in firing off another one
     if (tracker.pendingIdentifies[username]) {
+      console.log('AAAAAAAAAAAAAA5 Bailing on simultaneous getProfile', username)
       console.log('Bailing on simultaneous getProfile', username)
       return
     }
@@ -89,10 +104,12 @@ export function getProfile (username: string, ignoreCache?: boolean): TrackerAct
     const uid = trackerState && trackerState.type === 'tracker' ? trackerState.userInfo && trackerState.userInfo.uid : null
     const goodTill = uid && tracker.cachedIdentifies[uid + '']
     if (!ignoreCache && goodTill && goodTill >= Date.now()) {
+      console.log('AAAAAAAAA6 Bailing on cached getProfile', username, uid)
       console.log('Bailing on cached getProfile', username, uid)
       return
     }
 
+console.log('AAAAAA7 making actula idetnify call', username, uid)
     dispatch({type: Constants.updateUsername, payload: {username}})
     dispatch(triggerIdentify('', username, serverCallMap(dispatch, getState, true)))
     dispatch(fillFolders(username))
@@ -111,6 +128,8 @@ export function getMyProfile (ignoreCache?: boolean): TrackerActionCreator {
 
 export function triggerIdentify (uid: string = '', userAssertion: string = '', incomingCallMap: Object = {}): TrackerActionCreator {
   return (dispatch, getState) => new Promise((resolve, reject) => {
+    debugger;
+    console.log('AAAAAAA8 triggeridentify', uid, userAssertion)
     dispatch({type: Constants.identifyStarted, payload: null})
     identifyIdentify2Rpc({
       param: {

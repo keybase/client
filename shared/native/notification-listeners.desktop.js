@@ -3,6 +3,7 @@
 import {remote} from 'electron'
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
+import {getProfile} from '../actions/tracker'
 // import {favoriteList} from '../actions/favorite'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import {pgpKeyInSecretStoreFile} from '../constants/pgp'
@@ -59,5 +60,11 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     'keybase.1.NotifyUsers.userChanged': ({uid}) => {
       dispatch({type: cacheIdentify, payload: {uid, goodTill: 0}}) // clear identify cache
     },
+    // 'keybase.1.NotifyTracking.trackingChanged': ({username}) => {
+      // const trackerState = getState().tracker.trackers[username]
+      // if (trackerState && trackerState.type === 'tracker') {
+        // dispatch(getProfile(username))
+      // }
+    // },
   }
 }

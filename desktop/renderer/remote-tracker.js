@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {registerIdentifyUi, onClose, startTimer, stopTimer, registerTrackerIncomingRpcs} from '../shared/actions/tracker'
+import {onClose, startTimer, stopTimer} from '../shared/actions/tracker'
 import RemoteComponent from './remote-component'
 
 import type {TypedState} from '../shared/constants/reducer'
@@ -10,8 +10,6 @@ import type {TrackerOrNonUserState} from '../shared/constants/tracker'
 import type {Action} from '../shared/constants/types/flux'
 
 type Props = {
-  registerIdentifyUi: () => void,
-  registerTrackerIncomingRpcs: () => void,
   onClose: (username: string) => void,
   started: boolean,
   startTimer: () => void,
@@ -20,11 +18,6 @@ type Props = {
 }
 
 class RemoteTracker extends Component<void, Props, void> {
-  componentWillMount () {
-    this.props.registerIdentifyUi()
-    this.props.registerTrackerIncomingRpcs()
-  }
-
   shouldComponentUpdate (nextProps, nextState) {
     return nextProps.trackers !== this.props.trackers
   }
@@ -64,10 +57,8 @@ export default connect(
     trackers: state.tracker.trackers,
   }),
   (dispatch: any, op: OwnProps) => ({
-    registerIdentifyUi: () => dispatch(registerIdentifyUi()),
     startTimer: () => dispatch(startTimer()),
     stopTimer: () => dispatch(stopTimer()),
     onClose: (username: string) => { dispatch(onClose(username)) },
-    registerTrackerIncomingRpcs: () => dispatch(registerTrackerIncomingRpcs),
   })
 )(RemoteTracker)
