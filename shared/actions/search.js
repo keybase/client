@@ -1,13 +1,19 @@
 // @flow
 import * as Constants from '../constants/search'
-import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
-  AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult,
-  SearchPlatforms, Reset, Waiting, SetActive} from '../constants/search'
 import type {TypedAsyncAction} from '../constants/types/flux'
 import {apiserverGetRpc} from '../constants/types/flow-types'
 import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
 import {isFollowing as isFollowing_} from './config'
+import {switchTab} from '../constants/router'
+import {put, select} from 'redux-saga/effects'
+import {takeEvery} from 'redux-saga'
+
+import type {SagaGenerator} from '../constants/types/saga'
+import type {TypedState} from '../constants/reducer'
+import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
+  AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult,
+  SearchPlatforms, Reset, Waiting, SetActive} from '../constants/search'
 
 const {platformToLogo16, platformToLogo32, searchResultKeys} = Constants
 
@@ -245,3 +251,20 @@ export function setActive (active: boolean): SetActive {
     payload: {active},
   }
 }
+
+function * unsetActiveOnSwitchTab (): SagaGenerator<any, any> {
+  const selector = ({search: {searchActive}}: TypedState) => searchActive
+  // $FlowIssue
+  const searchActive: boolean = yield select(selector)
+  if (searchActive) {
+    yield put(setActive(false))
+  }
+}
+
+function * searchSaga (): SagaGenerator<any, any> {
+  yield [
+    takeEvery(switchTab, unsetActiveOnSwitchTab),
+  ]
+}
+
+export default searchSaga
