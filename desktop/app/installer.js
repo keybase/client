@@ -20,7 +20,7 @@ export default callback => {
   // If the app was opened at login, there might be contention for lots
   // of resources, so let's bump the install timeout to something large.
   if (app.getLoginItemSettings().wasOpenedAtLogin) {
-    timeout = 60
+    timeout = 30
   }
   const args = ['--app-path=' + bundlePath, '--run-mode=' + runMode, '--timeout=' + timeout]
 
