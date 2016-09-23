@@ -46,10 +46,12 @@ typedef NS_ENUM (NSInteger, KBExit) {
   [settings setObject:@"/Applications/Keybase.app" forKey:@"app-path"];
   //  [self.settings setObject:@"/Volumes/Keybase/Keybase.app" forKey:@"app-path"];
   [settings setObject:@"prod" forKey:@"run-mode"];
+  [settings setObject:@"10" forKey:@"timeout"];
 #endif
   _settings = [[Settings alloc] initWithSettings:settings];
   NSError *parseError = nil;
   if (![_settings parseArgs:&parseError]) {
+    DDLogError(@"Error parsing: %@", parseError);
     [self exit:KBExitError];
     return;
   }

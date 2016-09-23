@@ -1,3 +1,4 @@
+import {app} from 'electron'
 import {appInstallerPath, appBundlePath} from './paths'
 import exec from './exec'
 import {quit} from './ctl'
@@ -15,7 +16,13 @@ export default callback => {
     callback(new Error('No bundle path for installer'))
     return
   }
-  const args = ['--app-path=' + bundlePath, '--run-mode=' + runMode]
+  let timeout = 10
+  // If the app was opened at login, there might be contention for lots
+  // of resources, so let's bump the install timeout to something large.
+  if (app.getLoginItemSettings().wasOpenedAtLogin) {
+    timeout = 60
+  }
+  const args = ['--app-path=' + bundlePath, '--run-mode=' + runMode, '--timeout=' + timeout]
 
   exec(installerPath, args, 'darwin', 'prod', true, function (err) {
     if (err && err.code === 1) {

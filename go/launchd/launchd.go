@@ -157,7 +157,7 @@ func (s Service) Stop(wait time.Duration) (bool, error) {
 			return false, waitErr
 		}
 	}
-	s.log.Info("Stopped %s", s.label)
+	s.log.Info("Stopped %s (wait=%s)", s.label, wait)
 	return true, nil
 }
 
@@ -178,7 +178,7 @@ func (s Service) WaitForStatus(wait time.Duration, delay time.Duration) (*Servic
 		if status != nil && status.HasRun() {
 			return status, nil
 		}
-		// Tell user we're waiting for status after 4 seconds, every 4 seconds
+		// Tell user we're waiting for status after every 4 delays
 		if i%4 == 0 {
 			s.log.Info("Waiting for %s to be loaded...", s.label)
 		}
@@ -190,6 +190,7 @@ func (s Service) WaitForStatus(wait time.Duration, delay time.Duration) (*Servic
 
 // WaitForExit waits for service to exit
 func (s Service) WaitForExit(wait time.Duration) error {
+	delay := 200 * time.Millisecond
 	running := true
 	t := time.Now()
 	i := 1
@@ -202,11 +203,11 @@ func (s Service) WaitForExit(wait time.Duration) error {
 			running = false
 			break
 		}
-		// Tell user we're waiting for exit every second
-		if i%5 == 0 {
+		// Tell user we're waiting for exit every 4 delays
+		if i%4 == 0 {
 			s.log.Info("Waiting for %s to exit...", s.label)
 		}
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(delay)
 		i++
 	}
 	if running {
@@ -244,18 +245,22 @@ func (s Service) install(p Plist, plistDest string, wait time.Duration) error {
 
 // Uninstall will uninstall the launchd service
 func (s Service) Uninstall(wait time.Duration) error {
+	errs := []error{}
 	// It's safer to remove the plist before stopping in case stopping
 	// hangs the system somehow, the plist will still be removed.
 	plistDest := s.plistDestination()
 	if _, err := os.Stat(plistDest); err == nil {
 		s.log.Info("Removing %s", plistDest)
-		return os.Remove(plistDest)
+		if err := os.Remove(plistDest); err != nil {
+			errs = append(errs, err)
+		}
 	}
 
 	if _, err := s.Stop(wait); err != nil {
-		return err
+		errs = append(errs, err)
 	}
-	return nil
+
+	return libkb.CombineErrors(errs...)
 }
 
 // ListServices will return service with label that starts with a filter string.
