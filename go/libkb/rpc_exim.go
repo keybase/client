@@ -1391,9 +1391,14 @@ func (e ChatAlreadyDeletedError) ToStatus() keybase1.Status {
 }
 
 func (e ChatTLFFinalizedError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "TlfID",
+		Value: e.TlfID.String(),
+	}
 	return keybase1.Status{
-		Code: SCChatTLFFinalized,
-		Name: "SC_CHAT_TLF_FINALIZED",
-		Desc: e.Error(),
+		Code:   SCChatTLFFinalized,
+		Name:   "SC_CHAT_TLF_FINALIZED",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
 	}
 }
