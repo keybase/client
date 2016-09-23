@@ -37,6 +37,8 @@ const (
 	qrPeriodDefault = 1 * time.Minute
 	// How long must something be unreferenced before we reclaim it?
 	qrUnrefAgeDefault = 1 * time.Minute
+	// How old must the most recent revision be before we run QR?
+	qrMinHeadAgeDefault = 1 * time.Minute
 	// tlfValidDurationDefault is the default for tlf validity before redoing identify.
 	tlfValidDurationDefault = 6 * time.Hour
 )
@@ -78,6 +80,7 @@ type ConfigLocal struct {
 
 	qrPeriod                       time.Duration
 	qrUnrefAge                     time.Duration
+	qrMinHeadAge                   time.Duration
 	delayedCancellationGracePeriod time.Duration
 
 	// allKnownConfigsForTesting is used for testing, and contains all created
@@ -212,6 +215,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.delayedCancellationGracePeriod = delayedCancellationGracePeriodDefault
 	config.qrPeriod = qrPeriodDefault
 	config.qrUnrefAge = qrUnrefAgeDefault
+	config.qrMinHeadAge = qrMinHeadAgeDefault
 
 	// Don't bother creating the registry if UseNilMetrics is set.
 	if !metrics.UseNilMetrics {
@@ -569,6 +573,11 @@ func (c *ConfigLocal) QuotaReclamationPeriod() time.Duration {
 // QuotaReclamationMinUnrefAge implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) QuotaReclamationMinUnrefAge() time.Duration {
 	return c.qrUnrefAge
+}
+
+// QuotaReclamationMinHeadAge implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) QuotaReclamationMinHeadAge() time.Duration {
+	return c.qrMinHeadAge
 }
 
 // ReqsBufSize implements the Config interface for ConfigLocal.

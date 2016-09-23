@@ -1351,6 +1351,10 @@ type Config interface {
 	// QuotaReclamationMinUnrefAge indicates the minimum time a block
 	// must have been unreferenced before it can be reclaimed.
 	QuotaReclamationMinUnrefAge() time.Duration
+	// QuotaReclamationMinHeadAge indicates the minimum age of the
+	// most recently merged MD update before we can run reclamation,
+	// to avoid conflicting with a currently active writer.
+	QuotaReclamationMinHeadAge() time.Duration
 
 	// ResetCaches clears and re-initializes all data and key caches.
 	ResetCaches()

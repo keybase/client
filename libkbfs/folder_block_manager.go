@@ -857,10 +857,17 @@ func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
 		func() error { return fbm.helper.finalizeGCOp(ctx, gco) })
 }
 
-func (fbm *folderBlockManager) isQRNecessary(head ReadOnlyRootMetadata) bool {
+func (fbm *folderBlockManager) isQRNecessary(head ImmutableRootMetadata) bool {
 	fbm.lastQRLock.Lock()
 	defer fbm.lastQRLock.Unlock()
-	if head == (ReadOnlyRootMetadata{}) {
+	if head == (ImmutableRootMetadata{}) {
+		return false
+	}
+
+	// Don't do reclamation if the head isn't old enough.  We want to
+	// avoid fighting with active writers whenever possible.
+	headAge := fbm.config.Clock().Now().Sub(head.localTimestamp)
+	if headAge < fbm.config.QuotaReclamationMinHeadAge() {
 		return false
 	}
 
@@ -873,7 +880,8 @@ func (fbm *folderBlockManager) isQRNecessary(head ReadOnlyRootMetadata) bool {
 
 	// Do QR if the head was not reclaimable at the last QR time, but
 	// is old enough now.
-	return fbm.lastQRHeadRev > fbm.lastQROldEnoughRev && fbm.isOldEnough(head)
+	return fbm.lastQRHeadRev > fbm.lastQROldEnoughRev &&
+		fbm.isOldEnough(head.ReadOnly())
 }
 
 func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
@@ -910,8 +918,9 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return NewWriteAccessError(head.GetTlfHandle(), username, head.GetTlfHandle().GetCanonicalPath())
 	}
 
-	if !fbm.isQRNecessary(head.ReadOnly()) {
-		// Nothing has changed since last time, so no need to do any QR.
+	if !fbm.isQRNecessary(head) {
+		// Nothing has changed since last time, or the current head is
+		// too new, so no need to do any QR.
 		return nil
 	}
 	var mostRecentOldEnoughRev MetadataRevision
