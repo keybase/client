@@ -1,7 +1,7 @@
 // @flow
 
 export type PlanLevel = 'Basic' | 'Gold' | 'Friend'
-export const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
+const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
 
 export type PaymentInfo = {
   name: string,
@@ -9,3 +9,43 @@ export type PaymentInfo = {
   isBroken: boolean,
 }
 
+const levelToPrice: {[key: PlanLevel]: string} = {
+  'Basic': 'Free',
+  'Gold': '$7/mo',
+  'Friend': '$9/mo',
+}
+
+const levelToStars: {[key: PlanLevel]: number} = {
+  'Basic': 1,
+  'Gold': 3,
+  'Friend': 5,
+}
+
+const levelToSpace: {[key: PlanLevel]: string} = {
+  'Basic': '10GB',
+  'Gold': '50GB',
+  'Friend': '250GB',
+}
+
+// Compare weather another plan is an upgrade, downgrade or the same
+// -1 : otherLevel is a downgrade from level
+// 0 : otherLevel is the same as level
+// 1 : otherLevel is an upgrade from level
+function comparePlans (level: PlanLevel, otherLevel: PlanLevel): -1 | 0 | 1 {
+  const levelIndex = plans.indexOf(level)
+  const otherLevelIndex = plans.indexOf(otherLevel)
+  if (levelIndex === otherLevelIndex) return 0
+  if (levelIndex < otherLevelIndex) return 1
+  if (levelIndex > otherLevelIndex) return -1
+
+  // make flow happy
+  return 0
+}
+
+export {
+  comparePlans,
+  levelToPrice,
+  levelToSpace,
+  levelToStars,
+  plans,
+}
