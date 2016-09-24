@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 
@@ -25,7 +26,7 @@ type blockServerDiskTlfStorage struct {
 // BlockServerDisk implements the BlockServer interface by just
 // storing blocks in a local leveldb instance.
 type BlockServerDisk struct {
-	codec        Codec
+	codec        kbfscodec.Codec
 	crypto       cryptoPure
 	log          logger.Logger
 	dirPath      string

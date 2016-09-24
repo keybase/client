@@ -4,12 +4,15 @@
 
 package libkbfs
 
-import "github.com/keybase/client/go/logger"
+import (
+	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfscodec"
+)
 
 // blockServerLocalConfig is the subset of the Config interface needed
 // by the local BlockServer implementations (for ease of testing).
 type blockServerLocalConfig interface {
-	Codec() Codec
+	Codec() kbfscodec.Codec
 	cryptoPure() cryptoPure
 	MakeLogger(module string) logger.Logger
 }

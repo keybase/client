@@ -11,6 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -24,7 +25,7 @@ func keyManagerInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.SetKeyManager(keyman)
 	interposeDaemonKBPKI(config, "alice", "bob", "charlie", "dave")
 	ctx = context.Background()
-	config.SetCodec(NewCodecMsgpack())
+	config.SetCodec(kbfscodec.NewMsgpack())
 	return
 }
 

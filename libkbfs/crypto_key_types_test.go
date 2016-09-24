@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -15,13 +16,13 @@ import (
 type kidContainerType interface {
 	makeZero() interface{}
 	makeFromKID(kid keybase1.KID) interface{}
-	decode(codec *CodecMsgpack, data []byte) (interface{}, error)
+	decode(codec *kbfscodec.CodecMsgpack, data []byte) (interface{}, error)
 }
 
 // Make sure the kid container type encodes and decodes properly with
 // minimal overhead.
 func testKidContainerTypeEncodeDecode(t *testing.T, kt kidContainerType) {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	kidBytes := []byte{1}
 	k := kt.makeFromKID(keybase1.KIDFromSlice(kidBytes))
 
@@ -43,7 +44,7 @@ func testKidContainerTypeEncodeDecode(t *testing.T, kt kidContainerType) {
 // Make sure the zero value for the kid container type encodes and
 // decodes properly.
 func testKidContainerTypeEncodeDecodeZero(t *testing.T, kt kidContainerType) {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	zeroValue := kt.makeZero()
 	encodedK, err := codec.Encode(zeroValue)
 	require.NoError(t, err)
@@ -67,7 +68,8 @@ func (verifyingKeyType) makeFromKID(kid keybase1.KID) interface{} {
 	return MakeVerifyingKey(kid)
 }
 
-func (verifyingKeyType) decode(codec *CodecMsgpack, data []byte) (interface{}, error) {
+func (verifyingKeyType) decode(
+	codec *kbfscodec.CodecMsgpack, data []byte) (interface{}, error) {
 	k := VerifyingKey{}
 	err := codec.Decode(data, &k)
 	return k, err
@@ -89,7 +91,7 @@ type byte32ContainerType interface {
 }
 
 func testByte32ContainerEncodeDecode(t *testing.T, bt byte32ContainerType) {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	k := bt.makeFromData([32]byte{1, 2, 3, 4})
 
 	encodedK, err := codec.Encode(k)
@@ -166,7 +168,8 @@ func (cryptPublicKeyType) makeFromKID(kid keybase1.KID) interface{} {
 	return MakeCryptPublicKey(kid)
 }
 
-func (cryptPublicKeyType) decode(codec *CodecMsgpack, data []byte) (interface{}, error) {
+func (cryptPublicKeyType) decode(
+	codec *kbfscodec.CodecMsgpack, data []byte) (interface{}, error) {
 	k := CryptPublicKey{}
 	err := codec.Decode(data, &k)
 	return k, err

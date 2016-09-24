@@ -9,10 +9,11 @@ import (
 	"time"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 func TestTlfHandleExtension(t *testing.T) {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	for _, et := range []TlfHandleExtensionType{
 		TlfHandleExtensionConflict,
 		TlfHandleExtensionFinalized,

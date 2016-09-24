@@ -4,10 +4,14 @@
 
 package libkbfs
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/keybase/kbfs/kbfscodec"
+)
 
 func TestTlfIDEncodeDecode(t *testing.T) {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	id := FakeTlfID(1, true)
 
 	encodedID, err := codec.Encode(id)

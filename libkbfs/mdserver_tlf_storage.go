@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 // mdServerTlfStorage stores an ordered list of metadata IDs for each
@@ -48,7 +49,7 @@ import (
 // characters of the name to keep the number of directories in dir
 // itself to a manageable number, similar to git.
 type mdServerTlfStorage struct {
-	codec  Codec
+	codec  kbfscodec.Codec
 	crypto cryptoPure
 	dir    string
 
@@ -58,8 +59,8 @@ type mdServerTlfStorage struct {
 	branchJournals map[BranchID]mdIDJournal
 }
 
-func makeMDServerTlfStorage(
-	codec Codec, crypto cryptoPure, dir string) *mdServerTlfStorage {
+func makeMDServerTlfStorage(codec kbfscodec.Codec,
+	crypto cryptoPure, dir string) *mdServerTlfStorage {
 	journal := &mdServerTlfStorage{
 		codec:          codec,
 		crypto:         crypto,

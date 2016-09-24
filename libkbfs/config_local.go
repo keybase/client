@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )
@@ -50,7 +51,7 @@ type ConfigLocal struct {
 	kcache      KeyCache
 	bcache      BlockCache
 	dirtyBcache DirtyBlockCache
-	codec       Codec
+	codec       kbfscodec.Codec
 	mdops       MDOps
 	kops        KeyOps
 	crypto      Crypto
@@ -198,7 +199,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
 	config.ResetCaches()
-	config.SetCodec(NewCodecMsgpack())
+	config.SetCodec(kbfscodec.NewMsgpack())
 	config.SetBlockOps(&BlockOpsStandard{config})
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
@@ -336,14 +337,14 @@ func (c *ConfigLocal) SetCrypto(cr Crypto) {
 }
 
 // Codec implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) Codec() Codec {
+func (c *ConfigLocal) Codec() kbfscodec.Codec {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.codec
 }
 
 // SetCodec implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetCodec(co Codec) {
+func (c *ConfigLocal) SetCodec(co kbfscodec.Codec) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.codec = co

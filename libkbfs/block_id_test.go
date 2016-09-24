@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"bytes"
 	"testing"
+
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 func fakeBlockID(b byte) BlockID {
@@ -28,7 +30,7 @@ func fakeBlockIDMul(id BlockID, b byte) BlockID {
 
 // Make sure BlockID encodes and decodes properly with minimal overhead.
 func TestBlockIDEncodeDecode(t *testing.T) {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 
 	id := fakeBlockID(1)
 
@@ -59,7 +61,7 @@ func TestBlockIDEncodeDecode(t *testing.T) {
 
 // Make sure the zero BlockID value encodes and decodes properly.
 func TestBlockIDEncodeDecodeZero(t *testing.T) {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	encodedBlockID, err := codec.Encode(BlockID{})
 	if err != nil {
 		t.Fatal(err)

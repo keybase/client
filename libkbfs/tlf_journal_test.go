@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -66,7 +67,7 @@ type testTLFJournalConfig struct {
 	t        *testing.T
 	tlfID    TlfID
 	splitter BlockSplitter
-	codec    Codec
+	codec    kbfscodec.Codec
 	crypto   CryptoLocal
 	bcache   BlockCache
 	mdcache  MDCache
@@ -80,7 +81,7 @@ func (c testTLFJournalConfig) BlockSplitter() BlockSplitter {
 	return c.splitter
 }
 
-func (c testTLFJournalConfig) Codec() Codec {
+func (c testTLFJournalConfig) Codec() kbfscodec.Codec {
 	return c.codec
 }
 
@@ -167,7 +168,7 @@ func setupTLFJournalTest(
 	delegate testBWDelegate) {
 	// Set up config and dependencies.
 	bsplitter := &BlockSplitterSimple{64 * 1024, 8 * 1024}
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	crypto := NewCryptoLocal(codec, signingKey, cryptPrivateKey)

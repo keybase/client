@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfscodec
 
 import (
 	"bytes"
@@ -19,7 +19,7 @@ func TestCodecEncodeMap(t *testing.T) {
 		m2[9-i] = 1
 	}
 
-	codec := NewCodecMsgpack()
+	codec := NewMsgpack()
 
 	b1, err := codec.Encode(m1)
 	if err != nil {

@@ -7,11 +7,13 @@ package libkbfs
 import (
 	"bytes"
 	"testing"
+
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 // Make sure MdID encodes and decodes properly with minimal overhead.
 func TestMdIDEncodeDecode(t *testing.T) {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 
 	id := fakeMdID(1)
 
@@ -42,7 +44,7 @@ func TestMdIDEncodeDecode(t *testing.T) {
 
 // Make sure the zero MdID value encodes and decodes properly.
 func TestMdIDEncodeDecodeZero(t *testing.T) {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	encodedMdID, err := codec.Encode(MdID{})
 	if err != nil {
 		t.Fatal(err)

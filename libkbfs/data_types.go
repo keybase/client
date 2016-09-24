@@ -586,16 +586,6 @@ type EntryInfo struct {
 	Ctime int64
 }
 
-// extCode is used to register codec extensions
-type extCode uint64
-
-// these track the start of a range of unique extCodes for various
-// types of extensions.
-const (
-	extCodeOpsRangeStart  = 1
-	extCodeListRangeStart = 101
-)
-
 // ReportedError represents an error reported by KBFS.
 type ReportedError struct {
 	Time  time.Time

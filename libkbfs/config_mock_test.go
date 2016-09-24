@@ -9,6 +9,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 
@@ -49,7 +50,7 @@ type ConfigMock struct {
 	mockBcache      *MockBlockCache
 	mockDirtyBcache *MockDirtyBlockCache
 	mockCrypto      *MockCrypto
-	mockCodec       *MockCodec
+	mockCodec       *kbfscodec.MockCodec
 	mockMdops       *MockMDOps
 	mockKops        *MockKeyOps
 	mockBops        *MockBlockOps
@@ -86,7 +87,7 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetDirtyBlockCache(config.mockDirtyBcache)
 	config.mockCrypto = NewMockCrypto(c)
 	config.SetCrypto(config.mockCrypto)
-	config.mockCodec = NewMockCodec(c)
+	config.mockCodec = kbfscodec.NewMockCodec(c)
 	config.mockCodec.EXPECT().RegisterType(gomock.Any(), gomock.Any()).
 		AnyTimes().Return()
 	config.mockCodec.EXPECT().RegisterIfaceSliceType(gomock.Any(),

@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +23,7 @@ func getMDStorageLength(t *testing.T, s *mdServerTlfStorage, bid BranchID) int {
 // TestMDServerTlfStorageBasic copies TestMDServerBasics, but for a
 // single mdServerTlfStorage.
 func TestMDServerTlfStorageBasic(t *testing.T) {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	crypto := MakeCryptoCommon(codec)
 	signingKey := MakeFakeSigningKeyOrBust("test key")
 	verifyingKey := MakeFakeVerifyingKeyOrBust("test key")

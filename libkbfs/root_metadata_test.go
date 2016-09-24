@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -158,7 +159,7 @@ func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 	h := makeFakeTlfHandle(t, 14, false, uw, ur)
 	tlfID := FakeTlfID(0, false)
 	rmd := newRootMetadataOrBust(t, tlfID, h)
-	rmd.FakeInitialRekey(NewCodecMsgpack(), h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(kbfscodec.NewMsgpack(), h.ToBareHandleOrBust())
 
 	dirHandle := rmd.GetTlfHandle()
 	require.Equal(t, h, dirHandle)
@@ -177,7 +178,7 @@ func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 	if rmd.LatestKeyGeneration() != 0 {
 		t.Errorf("Expected key generation to be invalid (0)")
 	}
-	rmd.FakeInitialRekey(NewCodecMsgpack(), h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(kbfscodec.NewMsgpack(), h.ToBareHandleOrBust())
 	if rmd.LatestKeyGeneration() != FirstValidKeyGen {
 		t.Errorf("Expected key generation to be valid(%d)", FirstValidKeyGen)
 	}
@@ -230,7 +231,7 @@ func TestWriterMetadataUnchangedEncoding(t *testing.T) {
 		UnrefBytes:                101,
 	}
 
-	c := NewCodecMsgpack()
+	c := kbfscodec.NewMsgpack()
 
 	var wm WriterMetadataV2
 	err := c.Decode(encodedWm, &wm)
@@ -258,7 +259,7 @@ func TestWriterMetadataEncodedFields(t *testing.T) {
 		},
 	}
 
-	c := NewCodecMsgpack()
+	c := kbfscodec.NewMsgpack()
 
 	buf, err := c.Encode(wm)
 	require.NoError(t, err)

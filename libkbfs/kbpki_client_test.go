@@ -11,6 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 
@@ -19,7 +20,7 @@ func makeTestKBPKIClient(t *testing.T) (
 	currentUID = keybase1.MakeTestUID(1)
 	names := []libkb.NormalizedUsername{"test_name1", "test_name2"}
 	users = MakeLocalUsers(names)
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, users, codec)
 	config := &ConfigLocal{codec: codec, service: daemon}
 	setTestLogger(config, t)
@@ -41,7 +42,7 @@ func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 		}
 		users[i] = user
 	}
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, users, codec)
 	config := &ConfigLocal{codec: codec, service: daemon}
 	setTestLogger(config, t)
@@ -197,7 +198,7 @@ func makeTestKBPKIClientWithUnverifiedKey(t *testing.T) (
 		user.UnverifiedKeys = []keybase1.PublicKey{key}
 		users[i] = user
 	}
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, users, codec)
 	config := &ConfigLocal{codec: codec, service: daemon}
 	setTestLogger(config, t)

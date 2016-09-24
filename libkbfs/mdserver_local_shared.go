@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 // Helper to aid in enforcement that only specified public keys can
@@ -26,7 +27,7 @@ func isReader(currentUID keybase1.UID, mergedMasterHead BareRootMetadata,
 // Helper to aid in enforcement that only specified public keys can
 // access TLF metadata. mergedMasterHead can be nil, in which case
 // true is returned.
-func isWriterOrValidRekey(codec Codec, currentUID keybase1.UID,
+func isWriterOrValidRekey(codec kbfscodec.Codec, currentUID keybase1.UID,
 	mergedMasterHead, newMd BareRootMetadata) (bool, error) {
 	// MDv3 TODO: pass actual key bundles
 	h, err := mergedMasterHead.MakeBareTlfHandle(nil)

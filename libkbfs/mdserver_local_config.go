@@ -4,13 +4,16 @@
 
 package libkbfs
 
-import "github.com/keybase/client/go/logger"
+import (
+	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfscodec"
+)
 
 // mdServerLocalConfig is the subset of the Config interface needed by
 // the local MDServer implementations (for ease of testing).
 type mdServerLocalConfig interface {
 	Clock() Clock
-	Codec() Codec
+	Codec() kbfscodec.Codec
 	cryptoPure() cryptoPure
 	currentInfoGetter() currentInfoGetter
 	MetadataVersion() MetadataVer

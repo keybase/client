@@ -4,15 +4,14 @@
 package libkbfs
 
 import (
-	reflect "reflect"
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	kbfscodec "github.com/keybase/kbfs/kbfscodec"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
+	time "time"
 )
 
 // Mock of AuthTokenRefreshHandler interface
@@ -235,13 +234,6 @@ func (_mr *_MockKBFSOpsRecorder) DeleteFavorite(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteFavorite", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (TlfID, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFID", ctx, tlfHandle)
-	ret0, _ := ret[0].(TlfID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
 func (_m *MockKBFSOps) GetTLFCryptKeys(ctx context.Context, tlfHandle *TlfHandle) ([]TLFCryptKey, TlfID, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeys", ctx, tlfHandle)
 	ret0, _ := ret[0].([]TLFCryptKey)
@@ -252,6 +244,17 @@ func (_m *MockKBFSOps) GetTLFCryptKeys(ctx context.Context, tlfHandle *TlfHandle
 
 func (_mr *_MockKBFSOpsRecorder) GetTLFCryptKeys(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeys", arg0, arg1)
+}
+
+func (_m *MockKBFSOps) GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (TlfID, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFID", ctx, tlfHandle)
+	ret0, _ := ret[0].(TlfID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBFSOpsRecorder) GetTLFID(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFID", arg0, arg1)
 }
 
 func (_m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, h *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
@@ -2298,64 +2301,6 @@ func (_mr *_MockCryptoRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
-// Mock of Codec interface
-type MockCodec struct {
-	ctrl     *gomock.Controller
-	recorder *_MockCodecRecorder
-}
-
-// Recorder for MockCodec (not exported)
-type _MockCodecRecorder struct {
-	mock *MockCodec
-}
-
-func NewMockCodec(ctrl *gomock.Controller) *MockCodec {
-	mock := &MockCodec{ctrl: ctrl}
-	mock.recorder = &_MockCodecRecorder{mock}
-	return mock
-}
-
-func (_m *MockCodec) EXPECT() *_MockCodecRecorder {
-	return _m.recorder
-}
-
-func (_m *MockCodec) Decode(buf []byte, obj interface{}) error {
-	ret := _m.ctrl.Call(_m, "Decode", buf, obj)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockCodecRecorder) Decode(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Decode", arg0, arg1)
-}
-
-func (_m *MockCodec) Encode(obj interface{}) ([]byte, error) {
-	ret := _m.ctrl.Call(_m, "Encode", obj)
-	ret0, _ := ret[0].([]byte)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockCodecRecorder) Encode(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Encode", arg0)
-}
-
-func (_m *MockCodec) RegisterType(rt reflect.Type, code extCode) {
-	_m.ctrl.Call(_m, "RegisterType", rt, code)
-}
-
-func (_mr *_MockCodecRecorder) RegisterType(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterType", arg0, arg1)
-}
-
-func (_m *MockCodec) RegisterIfaceSliceType(rt reflect.Type, code extCode, typer func(interface{}) reflect.Value) {
-	_m.ctrl.Call(_m, "RegisterIfaceSliceType", rt, code, typer)
-}
-
-func (_mr *_MockCodecRecorder) RegisterIfaceSliceType(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterIfaceSliceType", arg0, arg1, arg2)
-}
-
 // Mock of MDOps interface
 type MockMDOps struct {
 	ctrl     *gomock.Controller
@@ -3637,9 +3582,9 @@ func (_mr *_MockConfigRecorder) SetCrypto(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetCrypto", arg0)
 }
 
-func (_m *MockConfig) Codec() Codec {
+func (_m *MockConfig) Codec() kbfscodec.Codec {
 	ret := _m.ctrl.Call(_m, "Codec")
-	ret0, _ := ret[0].(Codec)
+	ret0, _ := ret[0].(kbfscodec.Codec)
 	return ret0
 }
 
@@ -3647,7 +3592,7 @@ func (_mr *_MockConfigRecorder) Codec() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Codec")
 }
 
-func (_m *MockConfig) SetCodec(_param0 Codec) {
+func (_m *MockConfig) SetCodec(_param0 kbfscodec.Codec) {
 	_m.ctrl.Call(_m, "SetCodec", _param0)
 }
 
@@ -4330,8 +4275,8 @@ func (_mr *_MockBareRootMetadataRecorder) LatestKeyGeneration() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LatestKeyGeneration")
 }
 
-func (_m *MockBareRootMetadata) IsValidRekeyRequest(codec Codec, prevMd BareRootMetadata, user keybase1.UID, prevRkb *TLFReaderKeyBundleV2, rkb *TLFReaderKeyBundleV2) (bool, error) {
-	ret := _m.ctrl.Call(_m, "IsValidRekeyRequest", codec, prevMd, user, prevRkb, rkb)
+func (_m *MockBareRootMetadata) IsValidRekeyRequest(codec kbfscodec.Codec, prevMd BareRootMetadata, user keybase1.UID, prevExtra ExtraMetadata, extra ExtraMetadata) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsValidRekeyRequest", codec, prevMd, user, prevExtra, extra)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -4401,7 +4346,7 @@ func (_mr *_MockBareRootMetadataRecorder) IsReader(arg0, arg1, arg2 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsReader", arg0, arg1, arg2)
 }
 
-func (_m *MockBareRootMetadata) DeepCopy(codec Codec) (BareRootMetadata, error) {
+func (_m *MockBareRootMetadata) DeepCopy(codec kbfscodec.Codec) (BareRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "DeepCopy", codec)
 	ret0, _ := ret[0].(BareRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -4412,15 +4357,15 @@ func (_mr *_MockBareRootMetadataRecorder) DeepCopy(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeepCopy", arg0)
 }
 
-func (_m *MockBareRootMetadata) MakeSuccessor(codec Codec) (BareRootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "MakeSuccessor", codec)
+func (_m *MockBareRootMetadata) MakeSuccessorCopy(codec kbfscodec.Codec) (BareRootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "MakeSuccessorCopy", codec)
 	ret0, _ := ret[0].(BareRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockBareRootMetadataRecorder) MakeSuccessor(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessor", arg0)
+func (_mr *_MockBareRootMetadataRecorder) MakeSuccessorCopy(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0)
 }
 
 func (_m *MockBareRootMetadata) CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error {
@@ -4499,7 +4444,7 @@ func (_mr *_MockBareRootMetadataRecorder) GetTLFCryptKeyParams(arg0, arg1, arg2,
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyParams", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBareRootMetadata) IsValidAndSigned(codec Codec, crypto cryptoPure, extra ExtraMetadata) error {
+func (_m *MockBareRootMetadata) IsValidAndSigned(codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata) error {
 	ret := _m.ctrl.Call(_m, "IsValidAndSigned", codec, crypto, extra)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -4629,7 +4574,7 @@ func (_mr *_MockBareRootMetadataRecorder) GetSerializedPrivateMetadata() *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSerializedPrivateMetadata")
 }
 
-func (_m *MockBareRootMetadata) GetSerializedWriterMetadata(codec Codec) ([]byte, error) {
+func (_m *MockBareRootMetadata) GetSerializedWriterMetadata(codec kbfscodec.Codec) ([]byte, error) {
 	ret := _m.ctrl.Call(_m, "GetSerializedWriterMetadata", codec)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
@@ -4671,7 +4616,7 @@ func (_mr *_MockBareRootMetadataRecorder) GetTLFPublicKey(arg0, arg1 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFPublicKey", arg0, arg1)
 }
 
-func (_m *MockBareRootMetadata) AreKeyGenerationsEqual(_param0 Codec, _param1 BareRootMetadata) (bool, error) {
+func (_m *MockBareRootMetadata) AreKeyGenerationsEqual(_param0 kbfscodec.Codec, _param1 BareRootMetadata) (bool, error) {
 	ret := _m.ctrl.Call(_m, "AreKeyGenerationsEqual", _param0, _param1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
@@ -4734,8 +4679,8 @@ func (_mr *_MockMutableBareRootMetadataRecorder) LatestKeyGeneration() *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LatestKeyGeneration")
 }
 
-func (_m *MockMutableBareRootMetadata) IsValidRekeyRequest(codec Codec, prevMd BareRootMetadata, user keybase1.UID, prevRkb *TLFReaderKeyBundleV2, rkb *TLFReaderKeyBundleV2) (bool, error) {
-	ret := _m.ctrl.Call(_m, "IsValidRekeyRequest", codec, prevMd, user, prevRkb, rkb)
+func (_m *MockMutableBareRootMetadata) IsValidRekeyRequest(codec kbfscodec.Codec, prevMd BareRootMetadata, user keybase1.UID, prevExtra ExtraMetadata, extra ExtraMetadata) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsValidRekeyRequest", codec, prevMd, user, prevExtra, extra)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -4805,7 +4750,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) IsReader(arg0, arg1, arg2 inter
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsReader", arg0, arg1, arg2)
 }
 
-func (_m *MockMutableBareRootMetadata) DeepCopy(codec Codec) (BareRootMetadata, error) {
+func (_m *MockMutableBareRootMetadata) DeepCopy(codec kbfscodec.Codec) (BareRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "DeepCopy", codec)
 	ret0, _ := ret[0].(BareRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -4816,15 +4761,15 @@ func (_mr *_MockMutableBareRootMetadataRecorder) DeepCopy(arg0 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeepCopy", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) MakeSuccessor(codec Codec) (BareRootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "MakeSuccessor", codec)
+func (_m *MockMutableBareRootMetadata) MakeSuccessorCopy(codec kbfscodec.Codec) (BareRootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "MakeSuccessorCopy", codec)
 	ret0, _ := ret[0].(BareRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMutableBareRootMetadataRecorder) MakeSuccessor(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessor", arg0)
+func (_mr *_MockMutableBareRootMetadataRecorder) MakeSuccessorCopy(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0)
 }
 
 func (_m *MockMutableBareRootMetadata) CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error {
@@ -4903,7 +4848,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) GetTLFCryptKeyParams(arg0, arg1
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyParams", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMutableBareRootMetadata) IsValidAndSigned(codec Codec, crypto cryptoPure, extra ExtraMetadata) error {
+func (_m *MockMutableBareRootMetadata) IsValidAndSigned(codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata) error {
 	ret := _m.ctrl.Call(_m, "IsValidAndSigned", codec, crypto, extra)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -5033,7 +4978,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) GetSerializedPrivateMetadata() 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSerializedPrivateMetadata")
 }
 
-func (_m *MockMutableBareRootMetadata) GetSerializedWriterMetadata(codec Codec) ([]byte, error) {
+func (_m *MockMutableBareRootMetadata) GetSerializedWriterMetadata(codec kbfscodec.Codec) ([]byte, error) {
 	ret := _m.ctrl.Call(_m, "GetSerializedWriterMetadata", codec)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(error)
@@ -5075,7 +5020,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) GetTLFPublicKey(arg0, arg1 inte
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFPublicKey", arg0, arg1)
 }
 
-func (_m *MockMutableBareRootMetadata) AreKeyGenerationsEqual(_param0 Codec, _param1 BareRootMetadata) (bool, error) {
+func (_m *MockMutableBareRootMetadata) AreKeyGenerationsEqual(_param0 kbfscodec.Codec, _param1 BareRootMetadata) (bool, error) {
 	ret := _m.ctrl.Call(_m, "AreKeyGenerationsEqual", _param0, _param1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
@@ -5323,7 +5268,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetTlfID(arg0 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetTlfID", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) FakeInitialRekey(c Codec, h BareTlfHandle) (ExtraMetadata, error) {
+func (_m *MockMutableBareRootMetadata) FakeInitialRekey(c kbfscodec.Codec, h BareTlfHandle) (ExtraMetadata, error) {
 	ret := _m.ctrl.Call(_m, "FakeInitialRekey", c, h)
 	ret0, _ := ret[0].(ExtraMetadata)
 	ret1, _ := ret[1].(error)
@@ -5368,17 +5313,6 @@ func (_mr *_MockMutableBareRootMetadataRecorder) GetUserDeviceKeyInfoMaps(arg0, 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUserDeviceKeyInfoMaps", arg0, arg1)
 }
 
-func (_m *MockMutableBareRootMetadata) fillInDevices(crypto Crypto, wkb *TLFWriterKeyBundleV2, wkb2 *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV2, wKeys map[keybase1.UID][]CryptPublicKey, rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey, ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) (serverKeyMap, error) {
-	ret := _m.ctrl.Call(_m, "fillInDevices", crypto, wkb, wkb2, rkb, wKeys, rKeys, ePubKey, ePrivKey, tlfCryptKey)
-	ret0, _ := ret[0].(serverKeyMap)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockMutableBareRootMetadataRecorder) fillInDevices(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "fillInDevices", arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
-}
-
 // Mock of KeyBundleCache interface
 type MockKeyBundleCache struct {
 	ctrl     *gomock.Controller
@@ -5400,40 +5334,40 @@ func (_m *MockKeyBundleCache) EXPECT() *_MockKeyBundleCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyBundleCache) GetTLFReaderKeyBundleV2(_param0 TLFReaderKeyBundleID) (TLFReaderKeyBundleV2, bool) {
-	ret := _m.ctrl.Call(_m, "GetTLFReaderKeyBundleV2", _param0)
-	ret0, _ := ret[0].(TLFReaderKeyBundleV2)
+func (_m *MockKeyBundleCache) GetTLFReaderKeyBundle(_param0 TLFReaderKeyBundleID) (TLFReaderKeyBundleV3, bool) {
+	ret := _m.ctrl.Call(_m, "GetTLFReaderKeyBundle", _param0)
+	ret0, _ := ret[0].(TLFReaderKeyBundleV3)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyBundleCacheRecorder) GetTLFReaderKeyBundleV2(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFReaderKeyBundleV2", arg0)
+func (_mr *_MockKeyBundleCacheRecorder) GetTLFReaderKeyBundle(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFReaderKeyBundle", arg0)
 }
 
-func (_m *MockKeyBundleCache) GetTLFWriterKeyBundleV2(_param0 TLFWriterKeyBundleID) (TLFWriterKeyBundleV3, bool) {
-	ret := _m.ctrl.Call(_m, "GetTLFWriterKeyBundleV2", _param0)
+func (_m *MockKeyBundleCache) GetTLFWriterKeyBundle(_param0 TLFWriterKeyBundleID) (TLFWriterKeyBundleV3, bool) {
+	ret := _m.ctrl.Call(_m, "GetTLFWriterKeyBundle", _param0)
 	ret0, _ := ret[0].(TLFWriterKeyBundleV3)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyBundleCacheRecorder) GetTLFWriterKeyBundleV2(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFWriterKeyBundleV2", arg0)
+func (_mr *_MockKeyBundleCacheRecorder) GetTLFWriterKeyBundle(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFWriterKeyBundle", arg0)
 }
 
-func (_m *MockKeyBundleCache) PutTLFReaderKeyBundleV2(_param0 TLFReaderKeyBundleV2) {
-	_m.ctrl.Call(_m, "PutTLFReaderKeyBundleV2", _param0)
+func (_m *MockKeyBundleCache) PutTLFReaderKeyBundle(_param0 TLFReaderKeyBundleV3) {
+	_m.ctrl.Call(_m, "PutTLFReaderKeyBundle", _param0)
 }
 
-func (_mr *_MockKeyBundleCacheRecorder) PutTLFReaderKeyBundleV2(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFReaderKeyBundleV2", arg0)
+func (_mr *_MockKeyBundleCacheRecorder) PutTLFReaderKeyBundle(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFReaderKeyBundle", arg0)
 }
 
-func (_m *MockKeyBundleCache) PutTLFWriterKeyBundleV2(_param0 TLFWriterKeyBundleV3) {
-	_m.ctrl.Call(_m, "PutTLFWriterKeyBundleV2", _param0)
+func (_m *MockKeyBundleCache) PutTLFWriterKeyBundle(_param0 TLFWriterKeyBundleV3) {
+	_m.ctrl.Call(_m, "PutTLFWriterKeyBundle", _param0)
 }
 
-func (_mr *_MockKeyBundleCacheRecorder) PutTLFWriterKeyBundleV2(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFWriterKeyBundleV2", arg0)
+func (_mr *_MockKeyBundleCacheRecorder) PutTLFWriterKeyBundle(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFWriterKeyBundle", arg0)
 }

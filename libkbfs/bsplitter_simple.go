@@ -4,7 +4,11 @@
 
 package libkbfs
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/keybase/kbfs/kbfscodec"
+)
 
 // BlockSplitterSimple implements the BlockSplitter interface by using
 // a simple max-size algorithm to determine when to split blocks.
@@ -18,7 +22,8 @@ type BlockSplitterSimple struct {
 // blocks, given the overhead of encoding a file block and the
 // round-up padding we do.
 func NewBlockSplitterSimple(desiredBlockSize int64,
-	blockChangeEmbedMaxSize uint64, codec Codec) (*BlockSplitterSimple, error) {
+	blockChangeEmbedMaxSize uint64, codec kbfscodec.Codec) (
+	*BlockSplitterSimple, error) {
 	// If the desired block size is exactly a power of 2, subtract one
 	// from it to account for the padding we will do, which rounds up
 	// when the encoded size is exactly a power of 2.

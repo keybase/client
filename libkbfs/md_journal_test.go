@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,10 +36,10 @@ func getMDJournalLength(t *testing.T, j *mdJournal) int {
 }
 
 func setupMDJournalTest(t *testing.T) (
-	codec Codec, crypto CryptoCommon, id TlfID, signer cryptoSigner,
-	ekg singleEncryptionKeyGetter, bsplit BlockSplitter, tempdir string,
-	j *mdJournal) {
-	codec = NewCodecMsgpack()
+	codec kbfscodec.Codec, crypto CryptoCommon, id TlfID,
+	signer cryptoSigner, ekg singleEncryptionKeyGetter,
+	bsplit BlockSplitter, tempdir string, j *mdJournal) {
+	codec = kbfscodec.NewMsgpack()
 	crypto = MakeCryptoCommon(codec)
 
 	uid := keybase1.MakeTestUID(1)
@@ -83,7 +84,7 @@ func makeMDForTest(t *testing.T, tlfID TlfID, revision MetadataRevision,
 	err = md.Update(tlfID, h)
 	require.NoError(t, err)
 	md.SetRevision(revision)
-	md.FakeInitialRekey(NewCodecMsgpack(), h)
+	md.FakeInitialRekey(kbfscodec.NewMsgpack(), h)
 	md.SetPrevRoot(prevRoot)
 	md.SetDiskUsage(500)
 	return md
@@ -106,7 +107,7 @@ func putMDRange(t *testing.T, tlfID TlfID, signer cryptoSigner,
 }
 
 func checkBRMD(t *testing.T, uid keybase1.UID, key VerifyingKey,
-	codec Codec, crypto cryptoPure, brmd BareRootMetadata,
+	codec kbfscodec.Codec, crypto cryptoPure, brmd BareRootMetadata,
 	expectedRevision MetadataRevision, expectedPrevRoot MdID,
 	expectedMergeStatus MergeStatus, expectedBranchID BranchID) {
 	require.Equal(t, expectedRevision, brmd.RevisionNumber())
@@ -124,7 +125,7 @@ func checkBRMD(t *testing.T, uid keybase1.UID, key VerifyingKey,
 }
 
 func checkIBRMDRange(t *testing.T, uid keybase1.UID,
-	key VerifyingKey, codec Codec, crypto cryptoPure,
+	key VerifyingKey, codec kbfscodec.Codec, crypto cryptoPure,
 	ibrmds []ImmutableBareRootMetadata, firstRevision MetadataRevision,
 	firstPrevRoot MdID, mStatus MergeStatus, bid BranchID) {
 	checkBRMD(t, uid, key, codec, crypto, ibrmds[0],

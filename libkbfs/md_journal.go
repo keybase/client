@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfscodec"
 
 	"golang.org/x/net/context"
 
@@ -101,7 +102,7 @@ type mdJournal struct {
 	uid keybase1.UID
 	key VerifyingKey
 
-	codec  Codec
+	codec  kbfscodec.Codec
 	crypto cryptoPure
 	dir    string
 
@@ -121,7 +122,7 @@ type mdJournal struct {
 	lastMdID MdID
 }
 
-func makeMDJournal(uid keybase1.UID, key VerifyingKey, codec Codec,
+func makeMDJournal(uid keybase1.UID, key VerifyingKey, codec kbfscodec.Codec,
 	crypto cryptoPure, dir string, log logger.Logger) (*mdJournal, error) {
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
@@ -583,7 +584,7 @@ func (j *mdJournal) removeFlushedEntry(
 		return fmt.Errorf("Expected mdID %s, got %s", mdID, rmd.mdID)
 	}
 
-	eq, err := CodecEqual(j.codec, rmd.BareRootMetadata, rmds.MD)
+	eq, err := kbfscodec.Equal(j.codec, rmd.BareRootMetadata, rmds.MD)
 	if err != nil {
 		return err
 	}

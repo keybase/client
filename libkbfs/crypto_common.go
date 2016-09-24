@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
 )
@@ -33,13 +34,13 @@ func cryptoRandRead(buf []byte) error {
 // CryptoCommon contains many of the function implementations need for
 // the Crypto interface, which can be reused by other implementations.
 type CryptoCommon struct {
-	codec Codec
+	codec kbfscodec.Codec
 }
 
 var _ cryptoPure = (*CryptoCommon)(nil)
 
 // MakeCryptoCommon returns a default CryptoCommon object.
-func MakeCryptoCommon(codec Codec) CryptoCommon {
+func MakeCryptoCommon(codec kbfscodec.Codec) CryptoCommon {
 	return CryptoCommon{codec}
 }
 

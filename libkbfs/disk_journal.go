@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"reflect"
 	"strconv"
+
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 // diskJournal stores an ordered list of entries.
@@ -35,14 +37,14 @@ import (
 //
 // TODO: Make IO ops cancellable.
 type diskJournal struct {
-	codec     Codec
+	codec     kbfscodec.Codec
 	dir       string
 	entryType reflect.Type
 }
 
 // makeDiskJournal returns a new diskJournal for the given directory.
 func makeDiskJournal(
-	codec Codec, dir string, entryType reflect.Type) diskJournal {
+	codec kbfscodec.Codec, dir string, entryType reflect.Type) diskJournal {
 	return diskJournal{
 		codec:     codec,
 		dir:       dir,

@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -63,7 +64,7 @@ func getBlockJournalLength(t *testing.T, j *blockJournal) int {
 func setupBlockJournalTest(t *testing.T) (
 	ctx context.Context, tempdir string, j *blockJournal) {
 	ctx = context.Background()
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	crypto := MakeCryptoCommon(codec)
 	log := logger.NewTestLogger(t)
 

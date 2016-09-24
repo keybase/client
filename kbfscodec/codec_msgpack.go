@@ -2,10 +2,9 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfscodec
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 
@@ -125,12 +124,7 @@ func (es extSlice) ReadExt(v interface{}, buf []byte) {
 // marshaling and unmarshaling.
 type CodecMsgpack struct {
 	h        codec.Handle
-	extCodec *CodecMsgpack
-}
-
-// NewCodecMsgpack constructs a new CodecMsgpack.
-func NewCodecMsgpack() *CodecMsgpack {
-	return newCodecMsgpackHelper(true)
+	ExtCodec *CodecMsgpack
 }
 
 // newCodecMsgpackHelper constructs a new CodecMsgpack that may or may
@@ -147,8 +141,19 @@ func newCodecMsgpackHelper(handleUnknownFields bool) *CodecMsgpack {
 	// types.
 	handleNoExt := handle
 	handleNoExt.WriteExt = false
-	extCodec := &CodecMsgpack{&handleNoExt, nil}
-	return &CodecMsgpack{&handle, extCodec}
+	ExtCodec := &CodecMsgpack{&handleNoExt, nil}
+	return &CodecMsgpack{&handle, ExtCodec}
+}
+
+// NewMsgpack constructs a new CodecMsgpack.
+func NewMsgpack() *CodecMsgpack {
+	return newCodecMsgpackHelper(true)
+}
+
+// NewMsgpackNoUnknownFields constructs a new CodecMsgpack that
+// doesn't handle unknown fields.
+func NewMsgpackNoUnknownFields() *CodecMsgpack {
+	return newCodecMsgpackHelper(false)
 }
 
 // Decode implements the Codec interface for CodecMsgpack
@@ -164,40 +169,12 @@ func (c *CodecMsgpack) Encode(obj interface{}) (buf []byte, err error) {
 }
 
 // RegisterType implements the Codec interface for CodecMsgpack
-func (c *CodecMsgpack) RegisterType(rt reflect.Type, code extCode) {
-	c.h.(*codec.MsgpackHandle).SetExt(rt, uint64(code), ext{c.extCodec})
+func (c *CodecMsgpack) RegisterType(rt reflect.Type, code ExtCode) {
+	c.h.(*codec.MsgpackHandle).SetExt(rt, uint64(code), ext{c.ExtCodec})
 }
 
 // RegisterIfaceSliceType implements the Codec interface for CodecMsgpack
-func (c *CodecMsgpack) RegisterIfaceSliceType(rt reflect.Type, code extCode,
+func (c *CodecMsgpack) RegisterIfaceSliceType(rt reflect.Type, code ExtCode,
 	typer func(interface{}) reflect.Value) {
 	c.h.(*codec.MsgpackHandle).SetExt(rt, uint64(code), extSlice{c, typer})
-}
-
-// CodecEqual returns whether or not the given objects serialize to
-// the same byte string. x or y (or both) can be nil.
-func CodecEqual(c Codec, x, y interface{}) (bool, error) {
-	xBuf, err := c.Encode(x)
-	if err != nil {
-		return false, err
-	}
-	yBuf, err := c.Encode(y)
-	if err != nil {
-		return false, err
-	}
-	return bytes.Equal(xBuf, yBuf), nil
-}
-
-// CodecUpdate encodes src into a byte string, and then decode it into
-// dst.
-func CodecUpdate(c Codec, dst interface{}, src interface{}) error {
-	buf, err := c.Encode(src)
-	if err != nil {
-		return err
-	}
-	err = c.Decode(buf, dst)
-	if err != nil {
-		return err
-	}
-	return nil
 }

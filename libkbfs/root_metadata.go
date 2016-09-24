@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 // MetadataFlags bitfield.
@@ -141,7 +142,8 @@ func (md *RootMetadata) clearLastRevision() {
 	md.clearWriterMetadataCopiedBit()
 }
 
-func (md *RootMetadata) makeSuccessor(codec Codec) (*RootMetadata, error) {
+func (md *RootMetadata) makeSuccessor(
+	codec kbfscodec.Codec) (*RootMetadata, error) {
 	var newMd RootMetadata
 	if err := md.deepCopyInPlace(codec, true, true, &newMd); err != nil {
 		return nil, err
@@ -149,7 +151,8 @@ func (md *RootMetadata) makeSuccessor(codec Codec) (*RootMetadata, error) {
 	return &newMd, nil
 }
 
-func (md *RootMetadata) deepCopy(codec Codec, copyHandle bool) (*RootMetadata, error) {
+func (md *RootMetadata) deepCopy(
+	codec kbfscodec.Codec, copyHandle bool) (*RootMetadata, error) {
 	var newMd RootMetadata
 	if err := md.deepCopyInPlace(codec, copyHandle, false, &newMd); err != nil {
 		return nil, err
@@ -157,12 +160,13 @@ func (md *RootMetadata) deepCopy(codec Codec, copyHandle bool) (*RootMetadata, e
 	return &newMd, nil
 }
 
-func (md *RootMetadata) deepCopyInPlace(codec Codec, copyHandle, successorCopy bool,
+func (md *RootMetadata) deepCopyInPlace(
+	codec kbfscodec.Codec, copyHandle, successorCopy bool,
 	newMd *RootMetadata) error {
-	if err := CodecUpdate(codec, newMd, md); err != nil {
+	if err := kbfscodec.Update(codec, newMd, md); err != nil {
 		return err
 	}
-	if err := CodecUpdate(codec, &newMd.data, md.data); err != nil {
+	if err := kbfscodec.Update(codec, &newMd.data, md.data); err != nil {
 		return err
 	}
 	var err error
@@ -507,7 +511,8 @@ func (md *RootMetadata) GetSerializedPrivateMetadata() []byte {
 }
 
 // GetSerializedWriterMetadata wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) GetSerializedWriterMetadata(codec Codec) ([]byte, error) {
+func (md *RootMetadata) GetSerializedWriterMetadata(
+	codec kbfscodec.Codec) ([]byte, error) {
 	return md.bareMd.GetSerializedWriterMetadata(codec)
 }
 
@@ -597,7 +602,8 @@ func (md *RootMetadata) HasKeyForUser(keyGen KeyGen, user keybase1.UID) bool {
 }
 
 // FakeInitialRekey wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) FakeInitialRekey(codec Codec, h BareTlfHandle) error {
+func (md *RootMetadata) FakeInitialRekey(
+	codec kbfscodec.Codec, h BareTlfHandle) error {
 	var err error
 	md.extra, err = md.bareMd.FakeInitialRekey(codec, h)
 	return err
@@ -784,7 +790,7 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 // validated, either by comparing to the current device key (using
 // IsLastModifiedBy), or by checking with KBPKI.
 func (rmds *RootMetadataSigned) IsValidAndSigned(
-	codec Codec, crypto cryptoPure, extra ExtraMetadata) error {
+	codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata) error {
 	// Optimization -- if the RootMetadata signature is nil, it
 	// will fail verification.
 	if rmds.SigInfo.IsNil() {
@@ -848,7 +854,8 @@ func (rmds *RootMetadataSigned) IsLastModifiedBy(
 }
 
 // DecodeRootMetadataSigned deserializes a metaddata block into the specified versioned structure.
-func DecodeRootMetadataSigned(codec Codec, tlf TlfID, ver, max MetadataVer, buf []byte) (
+func DecodeRootMetadataSigned(
+	codec kbfscodec.Codec, tlf TlfID, ver, max MetadataVer, buf []byte) (
 	*RootMetadataSigned, error) {
 	if ver < FirstValidMetadataVer {
 		return nil, InvalidMetadataVersionError{tlf, ver}

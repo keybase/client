@@ -13,12 +13,13 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 // Test (very superficially) that MakeTemporaryBlockID() returns non-zero
 // values that aren't equal.
 func TestCryptoCommonRandomBlockID(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	b1, err := c.MakeTemporaryBlockID()
 	if err != nil {
@@ -46,7 +47,7 @@ func TestCryptoCommonRandomBlockID(t *testing.T) {
 // Test (very superficially) that MakeRandomTLFKeys() returns non-zero
 // values that aren't equal.
 func TestCryptoCommonRandomTLFKeys(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	a1, a2, a3, a4, a5, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -122,7 +123,7 @@ func TestCryptoCommonRandomTLFKeys(t *testing.T) {
 // Test (very superficially) that MakeRandomTLFCryptKeyServerHalf()
 // returns non-zero values that aren't equal.
 func TestCryptoCommonRandomTLFCryptKeyServerHalf(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	k1, err := c.MakeRandomTLFCryptKeyServerHalf()
 	if err != nil {
@@ -150,7 +151,7 @@ func TestCryptoCommonRandomTLFCryptKeyServerHalf(t *testing.T) {
 // Test (very superficially) that MakeRandomBlockCryptKeyServerHalf()
 // returns non-zero values that aren't equal.
 func TestCryptoCommonRandomBlockCryptKeyServerHalf(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	k1, err := c.MakeRandomBlockCryptKeyServerHalf()
 	if err != nil {
@@ -179,7 +180,7 @@ func TestCryptoCommonRandomBlockCryptKeyServerHalf(t *testing.T) {
 // the server half and the key, and that UnmaskTLFCryptKey() undoes
 // the masking properly.
 func TestCryptoCommonMaskUnmaskTLFCryptKey(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	serverHalf, err := c.MakeRandomTLFCryptKeyServerHalf()
 	if err != nil {
@@ -217,7 +218,7 @@ func TestCryptoCommonMaskUnmaskTLFCryptKey(t *testing.T) {
 // Test that UnmaskBlockCryptKey() returns bytes that are different from
 // the server half and the key.
 func TestCryptoCommonUnmaskTLFCryptKey(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	serverHalf, err := c.MakeRandomBlockCryptKeyServerHalf()
 	if err != nil {
@@ -244,7 +245,7 @@ func TestCryptoCommonUnmaskTLFCryptKey(t *testing.T) {
 }
 
 func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	block := TestBlock{42}
 	key := BlockCryptKey{}
@@ -276,7 +277,7 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 		VerifyingKey: signingKey.GetVerifyingKey(),
 	}
 
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	var expectedErr, err error
 
@@ -351,7 +352,7 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 // Test that crypto.EncryptTLFCryptKeyClientHalf() encrypts its
 // passed-in client half properly.
 func TestCryptoCommonEncryptTLFCryptKeyClientHalf(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -437,7 +438,7 @@ func checkSecretboxOpen(t *testing.T, encryptedData encryptedData, key [32]byte)
 // Test that crypto.EncryptPrivateMetadata() encrypts its passed-in
 // PrivateMetadata object properly.
 func TestEncryptPrivateMetadata(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -493,7 +494,7 @@ func secretboxSealEncoded(t *testing.T, c *CryptoCommon, encodedData []byte, key
 // PrivateMetadata object encrypted with the default method (current
 // nacl/secretbox).
 func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -511,7 +512,7 @@ func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pmEquals, err := CodecEqual(
+	pmEquals, err := kbfscodec.Equal(
 		c.codec, decryptedPrivateMetadata, privateMetadata)
 	if err != nil {
 		t.Fatal(err)
@@ -525,7 +526,7 @@ func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
 // PrivateMetadata object encrypted with the default method (current
 // nacl/secretbox).
 func TestDecryptEncryptedPrivateMetadata(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -546,7 +547,7 @@ func TestDecryptEncryptedPrivateMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	pmEquals, err := CodecEqual(
+	pmEquals, err := kbfscodec.Equal(
 		c.codec, decryptedPrivateMetadata, privateMetadata)
 	if err != nil {
 		t.Fatal(err)
@@ -604,7 +605,7 @@ func checkDecryptionFailures(
 
 // Test various failure cases for crypto.DecryptPrivateMetadata().
 func TestDecryptPrivateMetadataFailures(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	_, tlfPrivateKey, _, _, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -645,7 +646,7 @@ func makeFakeBlockCryptKey(t *testing.T) BlockCryptKey {
 // Test that crypto.EncryptBlock() encrypts its passed-in Block object
 // properly.
 func TestEncryptBlock(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	cryptKey := makeFakeBlockCryptKey(t)
 
@@ -678,7 +679,7 @@ func TestEncryptBlock(t *testing.T) {
 // Test that crypto.DecryptBlock() decrypts a Block object encrypted
 // with the default method (current nacl/secretbox).
 func TestDecryptBlockSecretboxSeal(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	cryptKey := makeFakeBlockCryptKey(t)
 
@@ -710,7 +711,7 @@ func TestDecryptBlockSecretboxSeal(t *testing.T) {
 // Test that crypto.DecryptBlock() decrypts a Block object encrypted
 // with the default method (current nacl/secretbox).
 func TestDecryptEncryptedBlock(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	cryptKey := makeFakeBlockCryptKey(t)
 
@@ -734,7 +735,7 @@ func TestDecryptEncryptedBlock(t *testing.T) {
 
 // Test various failure cases for crypto.DecryptBlock().
 func TestDecryptBlockFailures(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	cryptKey := makeFakeBlockCryptKey(t)
 
@@ -833,7 +834,7 @@ func TestBlockPadMinimum(t *testing.T) {
 // Test that secretbox encrypted data length is a deterministic
 // function of the input data length.
 func TestSecretboxEncryptedLen(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 
 	const startSize = 100
 	const endSize = 100000
@@ -880,7 +881,7 @@ func (testBlockArray) DataVersion() DataVer { return FirstValidDataVer }
 // Test that block encrypted data length is the same for data
 // length within same power of 2.
 func TestBlockEncryptedLen(t *testing.T) {
-	c := MakeCryptoCommon(NewCodecMsgpack())
+	c := MakeCryptoCommon(kbfscodec.NewMsgpack())
 	cryptKey := makeFakeBlockCryptKey(t)
 
 	const startSize = 1025

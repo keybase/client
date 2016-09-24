@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 
@@ -61,7 +62,7 @@ import (
 // blockJournal is not goroutine-safe, so any code that uses it must
 // guarantee that only one goroutine at a time calls its functions.
 type blockJournal struct {
-	codec  Codec
+	codec  kbfscodec.Codec
 	crypto cryptoPure
 	dir    string
 
@@ -145,8 +146,8 @@ func (e blockJournalEntry) getSingleContext() (
 // makeBlockJournal returns a new blockJournal for the given
 // directory. Any existing journal entries are read.
 func makeBlockJournal(
-	ctx context.Context, codec Codec, crypto cryptoPure, dir string,
-	log logger.Logger) (*blockJournal, error) {
+	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
+	dir string, log logger.Logger) (*blockJournal, error) {
 	journalPath := filepath.Join(dir, "block_journal")
 	deferLog := log.CloneWithAddedDepth(1)
 	j := makeDiskJournal(

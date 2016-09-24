@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/net/context"
 )
@@ -136,7 +137,7 @@ func (fc FakeCryptoClient) Notify(_ context.Context, s string, args interface{})
 }
 
 func testCryptoClientConfig(t *testing.T) Config {
-	config := &ConfigLocal{codec: NewCodecMsgpack()}
+	config := &ConfigLocal{codec: kbfscodec.NewMsgpack()}
 	setTestLogger(config, t)
 	return config
 }

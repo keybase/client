@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 
@@ -44,14 +45,14 @@ func (cig singleCurrentInfoGetter) GetCurrentVerifyingKey(
 type testMDServerLocalConfig struct {
 	t      *testing.T
 	clock  Clock
-	codec  Codec
+	codec  kbfscodec.Codec
 	crypto cryptoPure
 	cig    currentInfoGetter
 }
 
 func newTestMDServerLocalConfig(
 	t *testing.T, cig currentInfoGetter) testMDServerLocalConfig {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	return testMDServerLocalConfig{
 		t:      t,
 		clock:  newTestClockNow(),
@@ -65,7 +66,7 @@ func (c testMDServerLocalConfig) Clock() Clock {
 	return c.clock
 }
 
-func (c testMDServerLocalConfig) Codec() Codec {
+func (c testMDServerLocalConfig) Codec() kbfscodec.Codec {
 	return c.codec
 }
 

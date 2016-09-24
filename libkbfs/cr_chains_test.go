@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
 
 	"golang.org/x/net/context"
@@ -100,7 +101,7 @@ func testCRCheckOps(t *testing.T, cc *crChains, original BlockPointer,
 		t.Fatalf("Wrong number of operations: %d vs %d: %v", g, e, chain.ops)
 	}
 
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	for i, op := range chain.ops {
 		eOp := expectedOps[i]
 		// First check for rename create ops.
@@ -128,7 +129,7 @@ func testCRCheckOps(t *testing.T, cc *crChains, original BlockPointer,
 				t.Errorf("Bad create op after rename: %v", ro)
 			}
 		} else {
-			ok, err := CodecEqual(codec, op, eOp)
+			ok, err := kbfscodec.Equal(codec, op, eOp)
 			if err != nil {
 				t.Fatalf("Couldn't compare ops: %v", err)
 			}

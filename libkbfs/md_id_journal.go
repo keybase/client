@@ -10,6 +10,8 @@ import (
 	"reflect"
 
 	"github.com/keybase/go-codec/codec"
+
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 // An mdIDJournal wraps a diskJournal to provide a persistent list of
@@ -30,7 +32,7 @@ type mdIDJournalEntry struct {
 	codec.UnknownFieldSetHandler
 }
 
-func makeMdIDJournal(codec Codec, dir string) mdIDJournal {
+func makeMdIDJournal(codec kbfscodec.Codec, dir string) mdIDJournal {
 	j := makeDiskJournal(codec, dir, reflect.TypeOf(mdIDJournalEntry{}))
 	return mdIDJournal{j}
 }

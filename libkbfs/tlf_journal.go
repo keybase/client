@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 
@@ -22,7 +23,7 @@ import (
 // tlfJournal (for ease of testing).
 type tlfJournalConfig interface {
 	BlockSplitter() BlockSplitter
-	Codec() Codec
+	Codec() kbfscodec.Codec
 	Crypto() Crypto
 	BlockCache() BlockCache
 	MDCache() MDCache

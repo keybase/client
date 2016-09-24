@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
 )
 
@@ -180,7 +181,7 @@ func opPointerizerFuture(iface interface{}) reflect.Value {
 	}
 }
 
-func registerOpsFuture(codec Codec) {
+func registerOpsFuture(codec kbfscodec.Codec) {
 	codec.RegisterType(reflect.TypeOf(createOpFuture{}), createOpCode)
 	codec.RegisterType(reflect.TypeOf(rmOpFuture{}), rmOpCode)
 	codec.RegisterType(reflect.TypeOf(renameOpFuture{}), renameOpCode)
@@ -472,7 +473,7 @@ type testOps struct {
 
 // Tests that ops can be serialized and deserialized as extensions.
 func TestOpSerialization(t *testing.T) {
-	c := NewCodecMsgpack()
+	c := kbfscodec.NewMsgpack()
 	RegisterOps(c)
 
 	ops := testOps{}

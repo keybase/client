@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -47,7 +48,7 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
-	config.SetCodec(NewCodecMsgpack())
+	config.SetCodec(kbfscodec.NewMsgpack())
 	blockops := &CheckBlockOps{config.mockBops, ctr}
 	config.SetBlockOps(blockops)
 	kbfsops := NewKBFSOpsStandard(config)
@@ -2961,8 +2962,8 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	}
 }
 
-func checkSyncOp(t *testing.T, codec Codec, so *syncOp, filePtr BlockPointer,
-	writes []WriteRange) {
+func checkSyncOp(t *testing.T, codec kbfscodec.Codec,
+	so *syncOp, filePtr BlockPointer, writes []WriteRange) {
 	if so == nil {
 		t.Error("No sync info for written file!")
 	}
@@ -2975,7 +2976,7 @@ func checkSyncOp(t *testing.T, codec Codec, so *syncOp, filePtr BlockPointer,
 			len(so.Writes), len(writes))
 	}
 	for i, w := range writes {
-		writeEqual, err := CodecEqual(codec, so.Writes[i], w)
+		writeEqual, err := kbfscodec.Equal(codec, so.Writes[i], w)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2985,8 +2986,8 @@ func checkSyncOp(t *testing.T, codec Codec, so *syncOp, filePtr BlockPointer,
 	}
 }
 
-func checkSyncOpInCache(t *testing.T, codec Codec, ops *folderBranchOps,
-	filePtr BlockPointer, writes []WriteRange) {
+func checkSyncOpInCache(t *testing.T, codec kbfscodec.Codec,
+	ops *folderBranchOps, filePtr BlockPointer, writes []WriteRange) {
 	// check the in-progress syncOp
 	si, ok := ops.blocks.unrefCache[filePtr.ref()]
 	if !ok {

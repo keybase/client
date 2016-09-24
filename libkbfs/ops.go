@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 // op represents a single file-system remote-sync operation
@@ -48,7 +49,7 @@ type op interface {
 
 // op codes
 const (
-	createOpCode extCode = iota + extCodeOpsRangeStart
+	createOpCode kbfscodec.ExtCode = iota + kbfscodec.ExtCodeOpsRangeStart
 	rmOpCode
 	renameOpCode
 	syncOpCode
@@ -109,7 +110,7 @@ func (u *blockUpdate) setRef(ptr BlockPointer) error {
 
 // list codes
 const (
-	opsListCode extCode = iota + extCodeListRangeStart
+	opsListCode kbfscodec.ExtCode = iota + kbfscodec.ExtCodeListRangeStart
 )
 
 type opsList []op
@@ -1136,7 +1137,7 @@ func opPointerizer(iface interface{}) reflect.Value {
 }
 
 // RegisterOps registers all op types with the given codec.
-func RegisterOps(codec Codec) {
+func RegisterOps(codec kbfscodec.Codec) {
 	codec.RegisterType(reflect.TypeOf(createOp{}), createOpCode)
 	codec.RegisterType(reflect.TypeOf(rmOp{}), rmOpCode)
 	codec.RegisterType(reflect.TypeOf(renameOp{}), renameOpCode)

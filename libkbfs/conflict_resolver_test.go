@@ -13,6 +13,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,7 +22,7 @@ func crTestInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock,
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
-	config.SetCodec(NewCodecMsgpack())
+	config.SetCodec(kbfscodec.NewMsgpack())
 	id := FakeTlfID(1, false)
 	fbo := newFolderBranchOps(config, FolderBranch{id, MasterBranch}, standard)
 	// usernames don't matter for these tests

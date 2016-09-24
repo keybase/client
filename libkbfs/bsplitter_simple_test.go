@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"bytes"
 	"testing"
+
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 func TestBsplitterEmptyCopyAll(t *testing.T) {
@@ -138,7 +140,7 @@ func TestBsplitterShouldNotEmbed(t *testing.T) {
 }
 
 func TestBsplitterOverhead(t *testing.T) {
-	codec := NewCodecMsgpack()
+	codec := kbfscodec.NewMsgpack()
 	desiredBlockSize := int64(64 * 1024)
 	bsplit, err := NewBlockSplitterSimple(desiredBlockSize, 8*1024, codec)
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 
@@ -49,7 +50,7 @@ type syncInfo struct {
 	toCleanIfUnused []mdToCleanIfUnused
 }
 
-func (si *syncInfo) DeepCopy(codec Codec) (*syncInfo, error) {
+func (si *syncInfo) DeepCopy(codec kbfscodec.Codec) (*syncInfo, error) {
 	newSi := &syncInfo{
 		oldInfo:    si.oldInfo,
 		refBytes:   si.refBytes,
@@ -61,7 +62,7 @@ func (si *syncInfo) DeepCopy(codec Codec) (*syncInfo, error) {
 		newSi.bps = si.bps.DeepCopy()
 	}
 	if si.op != nil {
-		err := CodecUpdate(codec, &newSi.op, si.op)
+		err := kbfscodec.Update(codec, &newSi.op, si.op)
 		if err != nil {
 			return nil, err
 		}

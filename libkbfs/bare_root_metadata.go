@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 // WriterMetadataV2 stores the metadata for a TLF that is
@@ -112,7 +113,8 @@ func (md *BareRootMetadataV2) LatestKeyGeneration() KeyGen {
 }
 
 func (md *BareRootMetadataV2) haveOnlyUserRKeysChanged(
-	codec Codec, prevMD *BareRootMetadataV2, user keybase1.UID) (bool, error) {
+	codec kbfscodec.Codec, prevMD *BareRootMetadataV2,
+	user keybase1.UID) (bool, error) {
 	// Require the same number of generations
 	if len(md.RKeys) != len(prevMD.RKeys) {
 		return false, nil
@@ -125,7 +127,8 @@ func (md *BareRootMetadataV2) haveOnlyUserRKeysChanged(
 		for u, keys := range gen.RKeys {
 			if u != user {
 				prevKeys := prevMDGen.RKeys[u]
-				keysEqual, err := CodecEqual(codec, keys, prevKeys)
+				keysEqual, err :=
+					kbfscodec.Equal(codec, keys, prevKeys)
 				if err != nil {
 					return false, err
 				}
@@ -140,8 +143,8 @@ func (md *BareRootMetadataV2) haveOnlyUserRKeysChanged(
 
 // IsValidRekeyRequest implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) IsValidRekeyRequest(
-	codec Codec, prevBareMd BareRootMetadata, user keybase1.UID, _, _ ExtraMetadata) (
-	bool, error) {
+	codec kbfscodec.Codec, prevBareMd BareRootMetadata,
+	user keybase1.UID, _, _ ExtraMetadata) (bool, error) {
 	if !md.IsWriterMetadataCopiedSet() {
 		// Not a copy.
 		return false, nil
@@ -151,7 +154,7 @@ func (md *BareRootMetadataV2) IsValidRekeyRequest(
 		// Not the same type so not a copy.
 		return false, nil
 	}
-	writerEqual, err := CodecEqual(
+	writerEqual, err := kbfscodec.Equal(
 		codec, md.WriterMetadataV2, prevMd.WriterMetadataV2)
 	if err != nil {
 		return false, err
@@ -160,7 +163,7 @@ func (md *BareRootMetadataV2) IsValidRekeyRequest(
 		// Copy mismatch.
 		return false, nil
 	}
-	writerSigInfoEqual, err := CodecEqual(codec,
+	writerSigInfoEqual, err := kbfscodec.Equal(codec,
 		md.WriterMetadataSigInfo, prevMd.WriterMetadataSigInfo)
 	if err != nil {
 		return false, err
@@ -263,16 +266,18 @@ func (md *BareRootMetadataV2) Update(id TlfID, h BareTlfHandle) error {
 }
 
 // DeepCopy implements the BareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) DeepCopy(codec Codec) (BareRootMetadata, error) {
+func (md *BareRootMetadataV2) DeepCopy(
+	codec kbfscodec.Codec) (BareRootMetadata, error) {
 	var newMd BareRootMetadataV2
-	if err := CodecUpdate(codec, &newMd, md); err != nil {
+	if err := kbfscodec.Update(codec, &newMd, md); err != nil {
 		return nil, err
 	}
 	return &newMd, nil
 }
 
 // MakeSuccessorCopy implements the ImmutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) MakeSuccessorCopy(codec Codec) (BareRootMetadata, error) {
+func (md *BareRootMetadataV2) MakeSuccessorCopy(
+	codec kbfscodec.Codec) (BareRootMetadata, error) {
 	// MDv3 TODO: Make a v3 successor.
 	return md.DeepCopy(codec)
 }
@@ -537,7 +542,7 @@ func (md *BareRootMetadataV2) GetTLFCryptKeyParams(
 
 // IsValidAndSigned implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) IsValidAndSigned(
-	codec Codec, crypto cryptoPure, extra ExtraMetadata) error {
+	codec kbfscodec.Codec, crypto cryptoPure, extra ExtraMetadata) error {
 	// Optimization -- if the WriterMetadata signature is nil, it
 	// will fail verification.
 	if md.WriterMetadataSigInfo.IsNil() {
@@ -757,7 +762,8 @@ func (md *BareRootMetadataV2) SetSerializedPrivateMetadata(spmd []byte) {
 }
 
 // GetSerializedWriterMetadata implements the BareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) GetSerializedWriterMetadata(codec Codec) ([]byte, error) {
+func (md *BareRootMetadataV2) GetSerializedWriterMetadata(
+	codec kbfscodec.Codec) ([]byte, error) {
 	return codec.Encode(md.WriterMetadataV2)
 }
 
@@ -858,7 +864,8 @@ func (md *BareRootMetadataV2) Version() MetadataVer {
 }
 
 // FakeInitialRekey implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) FakeInitialRekey(_ Codec, h BareTlfHandle) (
+func (md *BareRootMetadataV2) FakeInitialRekey(
+	_ kbfscodec.Codec, h BareTlfHandle) (
 	ExtraMetadata, error) {
 	if md.ID.IsPublic() {
 		panic("Called FakeInitialRekey on public TLF")
@@ -897,21 +904,22 @@ func (md *BareRootMetadataV2) GetTLFPublicKey(keyGen KeyGen, _ ExtraMetadata) (
 }
 
 // AreKeyGenerationsEqual implements the BareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) AreKeyGenerationsEqual(codec Codec, other BareRootMetadata) (
+func (md *BareRootMetadataV2) AreKeyGenerationsEqual(
+	codec kbfscodec.Codec, other BareRootMetadata) (
 	bool, error) {
 	md2, ok := other.(*BareRootMetadataV2)
 	if !ok {
 		// No idea what this is.
 		return false, errors.New("Unknown metadata version")
 	}
-	ok, err := CodecEqual(codec, md.WKeys, md2.WKeys)
+	ok, err := kbfscodec.Equal(codec, md.WKeys, md2.WKeys)
 	if err != nil {
 		return false, err
 	}
 	if !ok {
 		return false, nil
 	}
-	ok, err = CodecEqual(codec, md.RKeys, md2.RKeys)
+	ok, err = kbfscodec.Equal(codec, md.RKeys, md2.RKeys)
 	if err != nil {
 		return false, err
 	}
