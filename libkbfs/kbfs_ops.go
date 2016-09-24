@@ -647,8 +647,7 @@ func (fs *KBFSOpsStandard) UnregisterFromChanges(
 
 func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID TlfID, newBID BranchID) {
 	ops := fs.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch})
-	// Launch in a new goroutine to avoid deadlocks.
-	go ops.onTLFBranchChange(newBID)
+	ops.onTLFBranchChange(newBID) // folderBranchOps makes a goroutine
 }
 
 func (fs *KBFSOpsStandard) onMDFlush(tlfID TlfID, bid BranchID,

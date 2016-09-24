@@ -288,7 +288,8 @@ type folderBranchOps struct {
 
 	editHistory *TlfEditHistory
 
-	mdFlushes RepeatedWaitGroup
+	branchChanges RepeatedWaitGroup
+	mdFlushes     RepeatedWaitGroup
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -4268,6 +4269,10 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 		return err
 	}
 
+	if err := fbo.branchChanges.Wait(ctx); err != nil {
+		return err
+	}
+
 	if !fbo.isMasterBranch(lState) {
 		if err := fbo.cr.Wait(ctx); err != nil {
 			return err
@@ -4294,6 +4299,10 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 	}
 
 	if err := fbo.mdFlushes.Wait(ctx); err != nil {
+		return err
+	}
+
+	if err := fbo.branchChanges.Wait(ctx); err != nil {
 		return err
 	}
 
@@ -4698,17 +4707,8 @@ func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
 	return fbo.unstageLocked(ctx, lState)
 }
 
-func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
-	ctx, cancelFunc := fbo.newCtxWithFBOID()
-	defer cancelFunc()
-
-	// This only happens on a `PruneBranch` call, in which case we
-	// would have already updated fbo's local view of the branch/head.
-	if newBID == NullBranchID {
-		fbo.log.CDebugf(ctx, "Ignoring branch change back to master")
-		return
-	}
-
+func (fbo *folderBranchOps) handleTLFBranchChange(ctx context.Context,
+	newBID BranchID) {
 	lState := makeFBOLockState()
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
@@ -4765,9 +4765,27 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
 	}
 }
 
+func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
+	fbo.branchChanges.Add(1)
+
+	go func() {
+		defer fbo.branchChanges.Done()
+		ctx, cancelFunc := fbo.newCtxWithFBOID()
+		defer cancelFunc()
+
+		// This only happens on a `PruneBranch` call, in which case we
+		// would have already updated fbo's local view of the branch/head.
+		if newBID == NullBranchID {
+			fbo.log.CDebugf(ctx, "Ignoring branch change back to master")
+			return
+		}
+
+		fbo.handleTLFBranchChange(ctx, newBID)
+	}()
+}
+
 func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 	rev MetadataRevision) {
-	defer fbo.mdFlushes.Done()
 	fbo.log.CDebugf(ctx, "Archiving references for flushed MD revision %d", rev)
 
 	// Get that revision.
@@ -4790,17 +4808,21 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 }
 
 func (fbo *folderBranchOps) onMDFlush(bid BranchID, rev MetadataRevision) {
-	ctx, cancelFunc := fbo.newCtxWithFBOID()
-	defer cancelFunc()
-
-	if bid != NullBranchID {
-		fbo.log.CDebugf(ctx, "Ignoring MD flush on branch %v for revision %d",
-			bid, rev)
-		return
-	}
-
 	fbo.mdFlushes.Add(1)
-	go fbo.handleMDFlush(ctx, bid, rev)
+
+	go func() {
+		defer fbo.mdFlushes.Done()
+		ctx, cancelFunc := fbo.newCtxWithFBOID()
+		defer cancelFunc()
+
+		if bid != NullBranchID {
+			fbo.log.CDebugf(ctx, "Ignoring MD flush on branch %v for "+
+				"revision %d", bid, rev)
+			return
+		}
+
+		fbo.handleMDFlush(ctx, bid, rev)
+	}()
 }
 
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps
