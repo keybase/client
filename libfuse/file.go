@@ -5,24 +5,81 @@
 package libfuse
 
 import (
+	"sync"
+
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 
+type eiCache struct {
+	ei    libkbfs.EntryInfo
+	reqID string
+}
+
+// eiCacheHolder caches the EntryInfo for a particular reqID. It's used for the
+// Attr call after Create. This should only be used for operations with same
+// reqID.
+type eiCacheHolder struct {
+	mu    sync.Mutex
+	cache *eiCache
+}
+
+func (c *eiCacheHolder) destroy() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cache = nil
+}
+
+func (c *eiCacheHolder) getAndDestroyIfMatches(reqID string) (ei *libkbfs.EntryInfo) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.cache != nil && c.cache.reqID == reqID {
+		ei = &c.cache.ei
+		c.cache = nil
+	}
+	return ei
+}
+
+func (c *eiCacheHolder) set(reqID string, ei libkbfs.EntryInfo) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.cache = &eiCache{
+		ei:    ei,
+		reqID: reqID,
+	}
+}
+
 // File represents KBFS files.
 type File struct {
 	folder *Folder
 	node   libkbfs.Node
+
+	eiCache eiCacheHolder
 }
 
 var _ fs.Node = (*File)(nil)
+
+func fillAttrWithMode(ei *libkbfs.EntryInfo, a *fuse.Attr) {
+	fillAttr(ei, a)
+	a.Mode = 0644
+	if ei.Type == libkbfs.Exec {
+		a.Mode |= 0111
+	}
+}
 
 // Attr implements the fs.Node interface for File.
 func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	f.folder.fs.log.CDebugf(ctx, "File Attr")
 	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+
+	if reqID, ok := ctx.Value(CtxIDKey).(string); ok {
+		if ei := f.eiCache.getAndDestroyIfMatches(reqID); ei != nil {
+			fillAttrWithMode(ei, a)
+			return nil
+		}
+	}
 
 	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
 	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
@@ -43,17 +100,14 @@ func (f *File) attr(ctx context.Context, a *fuse.Attr) (err error) {
 		return err
 	}
 
-	fillAttr(&de, a)
-	a.Mode = 0644
-	if de.Type == libkbfs.Exec {
-		a.Mode |= 0111
-	}
+	fillAttrWithMode(&de, a)
 	return nil
 }
 
 var _ fs.NodeFsyncer = (*File)(nil)
 
 func (f *File) sync(ctx context.Context) error {
+	f.eiCache.destroy()
 	err := f.folder.fs.config.KBFSOps().Sync(ctx, f.node)
 	if err != nil {
 		return err
@@ -104,6 +158,7 @@ func (f *File) Write(ctx context.Context, req *fuse.WriteRequest,
 	f.folder.fs.log.CDebugf(ctx, "File Write sz=%d ", len(req.Data))
 	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
+	f.eiCache.destroy()
 	if err := f.folder.fs.config.KBFSOps().Write(
 		ctx, f.node, req.Data, req.Offset); err != nil {
 		return err
@@ -138,6 +193,8 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 	resp *fuse.SetattrResponse) (err error) {
 	f.folder.fs.log.CDebugf(ctx, "File SetAttr")
 	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+
+	f.eiCache.destroy()
 
 	valid := req.Valid
 	if valid.Size() {
@@ -213,5 +270,6 @@ var _ fs.NodeForgetter = (*File)(nil)
 
 // Forget kernel reference to this node.
 func (f *File) Forget() {
+	f.eiCache.destroy()
 	f.folder.forgetNode(f.node)
 }

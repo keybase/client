@@ -5,7 +5,7 @@
 package libkbfs
 
 import (
-	"sync"
+	"sync/atomic"
 	"time"
 
 	"golang.org/x/net/context"
@@ -118,9 +118,8 @@ func NewContextWithReplayFrom(ctx context.Context) (context.Context, error) {
 }
 
 type cancellationDelayer struct {
-	mu       sync.Mutex
-	delay    time.Duration
-	canceled bool
+	delay    int64
+	canceled int64
 
 	done chan struct{}
 }
@@ -172,16 +171,11 @@ func NewContextWithCancellationDelayer(
 		case <-ctx.Done():
 		case <-c.done:
 		}
-		var d time.Duration
-		func() {
-			c.mu.Lock()
-			defer c.mu.Unlock()
-			c.canceled = true
-			d = c.delay
-		}()
+		d := time.Duration(atomic.LoadInt64(&c.delay))
 		if d != 0 {
 			time.Sleep(d)
 		}
+		atomic.StoreInt64(&c.canceled, 1)
 		cancel()
 	}()
 	return newCtx, nil
@@ -193,16 +187,20 @@ func NewContextWithCancellationDelayer(
 // operation(s) associated with the context has entered a critical state, and
 // it should not be canceled until after timeout or CleanupCancellationDelayer
 // is called.
+//
+// Note that if EnableDelayedCancellationWithGracePeriod is called for the
+// second time, and the grace period has started due to a cancellation, the
+// grace period would not be extended (i.e. timeout has no effect in this
+// case). Although in this case, no error is returned, since the delayed
+// cancellation is already enabled.
 func EnableDelayedCancellationWithGracePeriod(ctx context.Context, timeout time.Duration) error {
 	if c, ok := ctx.Value(CtxCancellationDelayerKey).(*cancellationDelayer); ok {
-		c.mu.Lock()
-		defer c.mu.Unlock()
-		if c.canceled {
+		if atomic.LoadInt64(&c.canceled) > 0 {
 			// Too late! The parent context is already canceled and timer has already
 			// started.
 			return context.Canceled
 		}
-		c.delay = timeout
+		atomic.StoreInt64(&c.delay, int64(timeout))
 		return nil
 	}
 	return NoCancellationDelayerError{}
