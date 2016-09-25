@@ -121,7 +121,7 @@ func (r *RemoteStatus) ExtraFileNameAndSize() (string, int64) {
 	r.Lock()
 	defer r.Unlock()
 
-	if r.extraFileName == "" || time.Since(r.failingSince) > failureDisplayThreshold {
+	if r.extraFileName == "" || time.Since(r.failingSince) < failureDisplayThreshold {
 		return "", 0
 	}
 
