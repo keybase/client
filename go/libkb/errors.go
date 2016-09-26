@@ -1622,3 +1622,33 @@ type ChatRateLimitError struct {
 func (e ChatRateLimitError) Error() string {
 	return e.Msg
 }
+
+//=============================================================================
+
+type ChatAlreadySupersededError struct {
+	Msg string
+}
+
+func (e ChatAlreadySupersededError) Error() string {
+	return e.Msg
+}
+
+//=============================================================================
+
+type ChatAlreadyDeletedError struct {
+	Msg string
+}
+
+func (e ChatAlreadyDeletedError) Error() string {
+	return e.Msg
+}
+
+//=============================================================================
+
+type ChatTLFFinalizedError struct {
+	TlfID chat1.TLFID
+}
+
+func (e ChatTLFFinalizedError) Error() string {
+	return fmt.Sprintf("unable to create conversation on finalized TLF: %s", e.TlfID)
+}

@@ -1,0 +1,18 @@
+// @flow
+import {Component} from 'react'
+
+export type Settings = {
+  name: string,
+  subscribed: boolean,
+  description: string,
+}
+
+export type Props = {
+  settings: Array<Settings>,
+  unsubscribedFromAll: boolean,
+  onToggle: (name: string) => void,
+  onToggleUnsubscribeAll: () => void,
+  onSave: () => void,
+}
+
+export default class Notifications extends Component<void, Props, void> { }

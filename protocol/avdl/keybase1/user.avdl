@@ -107,8 +107,8 @@ protocol user {
     string username;
     string thumbnail;
     string fullName;
-    bool isFollower;
-    bool isFollowee;
+    boolean isFollower;
+    boolean isFollowee;
   }
 
   record UserSummary2Set {
@@ -117,5 +117,5 @@ protocol user {
     int version;
   }
 
-  UserSummary2Set listTrackers2(int sessionID, string assertion, bool reverse);
+  UserSummary2Set listTrackers2(int sessionID, string assertion, boolean reverse);
 }

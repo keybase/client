@@ -33,6 +33,11 @@ func (rc *CoinbaseChecker) ProfileURL() string {
 }
 
 func (rc *CoinbaseChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		// checking the hint is done later in CheckStatus
+		return nil
+	}
+
 	wanted := rc.ProfileURL()
 	url := h.GetAPIURL()
 	if strings.ToLower(wanted) == strings.ToLower(url) {

@@ -51,6 +51,11 @@ func NewHackerNewsChecker(p libkb.RemoteProofChainLink) (*HackerNewsChecker, lib
 }
 
 func (h *HackerNewsChecker) CheckHint(ctx libkb.ProofContext, hint libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		// checking the hint is done later in CheckStatus
+		return nil
+	}
+
 	wanted := h.APIURL()
 	if libkb.Cicmp(wanted, hint.GetAPIURL()) {
 		return nil

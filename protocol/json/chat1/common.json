@@ -162,7 +162,14 @@
           "name": "after"
         },
         {
-          "type": "bool",
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "oneChatTypePerTLF"
+        },
+        {
+          "type": "boolean",
           "name": "unreadOnly"
         }
       ]
@@ -172,7 +179,7 @@
       "name": "GetThreadQuery",
       "fields": [
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "markAsRead"
         },
         {
@@ -227,6 +234,10 @@
         {
           "type": "ConversationID",
           "name": "conversationID"
+        },
+        {
+          "type": "bool",
+          "name": "isFinalized"
         }
       ]
     },
@@ -331,6 +342,10 @@
         {
           "type": "string",
           "name": "tlfName"
+        },
+        {
+          "type": "boolean",
+          "name": "tlfPublic"
         },
         {
           "type": "MessageType",

@@ -23,6 +23,7 @@ func sampleState() scriptState {
 		SigIDMedium:     "sig%{sig_id_medium}.*$(^)\\/",
 		SigIDShort:      "000",
 		Hostname:        "%{sig_id_medium}",
+		Protocol:        "http",
 	}
 
 	var sampleState = scriptState{
@@ -30,7 +31,7 @@ func sampleState() scriptState {
 		PC:           0,
 		Service:      keybase1.ProofType_TWITTER,
 		Vars:         sampleVars,
-		ActiveString: "",
+		ActiveString: "whaaa",
 		FetchURL:     "<<NONE>>",
 		HasFetched:   false,
 		fetchResult:  nil,
@@ -91,59 +92,74 @@ func TestJSONHasKey(t *testing.T) {
 }
 
 type substituteTest struct {
-	shouldwork bool
-	service    keybase1.ProofType
-	numbered   []string
-	a, b       string
+	shouldwork    bool
+	service       keybase1.ProofType
+	numbered      []string
+	allowedExtras []string
+	a, b          string
 }
 
 var substituteTests = []substituteTest{
-	{true, keybase1.ProofType_TWITTER, nil,
+	{true, keybase1.ProofType_TWITTER, nil, nil,
 		"%{username_service}", "kronk"},
-	{true, keybase1.ProofType_GENERIC_WEB_SITE, nil,
+	{true, keybase1.ProofType_GENERIC_WEB_SITE, nil, nil,
 		"%{hostname}", "%\\{sig_id_medium\\}"},
-	{true, keybase1.ProofType_TWITTER, nil,
+	{true, keybase1.ProofType_TWITTER, nil, nil,
 		"x%{username_service}y%{sig_id_short}z", "xkronky000z"},
-	{true, keybase1.ProofType_TWITTER, nil,
+	{true, keybase1.ProofType_TWITTER, nil, nil,
 		"http://git(?:hub)?%{username_service}/%20%%{sig_id_short}}{}", "http://git(?:hub)?kronk/%20%000}{}"},
-	{true, keybase1.ProofType_DNS, nil,
+	{true, keybase1.ProofType_DNS, nil, nil,
 		"^%{hostname}/(?:.well-known/keybase.txt|keybase.txt)$", "^%\\{sig_id_medium\\}/(?:.well-known/keybase.txt|keybase.txt)$"},
-	{true, keybase1.ProofType_TWITTER, nil,
+	{true, keybase1.ProofType_TWITTER, nil, nil,
 		"^.*%{sig_id_short}.*$", "^.*000.*$"},
-	{true, keybase1.ProofType_TWITTER, nil,
+	{true, keybase1.ProofType_TWITTER, nil, nil,
 		"^keybase-site-verification=%{sig_id_short}$", "^keybase-site-verification=000$"},
-	{true, keybase1.ProofType_TWITTER, nil,
+	{true, keybase1.ProofType_TWITTER, nil, nil,
 		"^%{sig_id_medium}$", "^sig%\\{sig_id_medium\\}\\.\\*\\$\\(\\^\\)\\\\/$"},
-	{true, keybase1.ProofType_TWITTER, nil,
+	{true, keybase1.ProofType_TWITTER, nil, nil,
 		"%{username_keybase}:%{sig}", "kronk_on_kb:AQIDBAU="},
 
-	{false, keybase1.ProofType_TWITTER, nil,
+	{false, keybase1.ProofType_TWITTER, nil, nil,
 		"%{}", "%{}"},
-	{false, keybase1.ProofType_TWITTER, nil,
+	{false, keybase1.ProofType_TWITTER, nil, nil,
 		"%{bad}", ""},
 
-	{false, keybase1.ProofType_TWITTER, nil,
+	{false, keybase1.ProofType_TWITTER, nil, nil,
 		"%{hostname}", ""},
-	{false, keybase1.ProofType_DNS, nil,
+	{false, keybase1.ProofType_DNS, nil, nil,
 		"%{username_service}", ""},
-	{false, keybase1.ProofType_GENERIC_WEB_SITE, nil,
+	{false, keybase1.ProofType_GENERIC_WEB_SITE, nil, nil,
 		"%{username_service}", ""},
 
-	{true, keybase1.ProofType_TWITTER, []string{"zero", "one", "two", "three"},
+	{true, keybase1.ProofType_TWITTER, []string{"zero", "one", "two", "three"}, nil,
 		"%{0}:%{3}", "zero:three"},
-	{true, keybase1.ProofType_TWITTER, []string{"zero"},
+	{true, keybase1.ProofType_TWITTER, []string{"zero"}, nil,
 		"%{-1}", "%{-1}"},
-	{false, keybase1.ProofType_TWITTER, []string{"zero", "one"},
+	{false, keybase1.ProofType_TWITTER, []string{"zero", "one"}, nil,
 		"%{0}:%{1}:%{2}", ""},
-	{false, keybase1.ProofType_TWITTER, nil,
+	{false, keybase1.ProofType_TWITTER, nil, nil,
 		"%{1}", ""},
+
+	{false, keybase1.ProofType_TWITTER, nil, nil,
+		"%{active_string}", ""},
+	{true, keybase1.ProofType_TWITTER, nil, []string{"active_string"},
+		"%{active_string}", "whaaa"},
+
+	{false, keybase1.ProofType_TWITTER, nil, []string{},
+		"%{hostname}", ""},
+	{false, keybase1.ProofType_DNS, nil, []string{},
+		"%{protocol}", ""},
+	{true, keybase1.ProofType_DNS, nil, []string{},
+		"%{hostname}", "%\\{sig_id_medium\\}"},
+	{true, keybase1.ProofType_GENERIC_WEB_SITE, nil, []string{},
+		"%{protocol}://%{hostname}", "http://%\\{sig_id_medium\\}"},
 }
 
 func TestSubstitute(t *testing.T) {
 	for i, test := range substituteTests {
 		state := sampleState()
 		state.Service = test.service
-		res, err := substitute(test.a, state, test.numbered)
+		res, err := substitute(test.a, state, test.numbered, test.allowedExtras)
 		if (err == nil) != test.shouldwork {
 			t.Fatalf("%v error mismatch: %v %v %v", i, test.shouldwork, err, res)
 		}
@@ -349,6 +365,82 @@ func TestPyindex(t *testing.T) {
 		if (x != test.x) || (ok != test.ok) {
 			t.Fatalf("%v mismatch (%v, %v):\n  expected %v %v\n  got %v %v",
 				i, test.index, test.len, test.x, test.ok, x, ok)
+		}
+	}
+}
+
+func TestValidateDomain(t *testing.T) {
+	tests := []struct {
+		s  string
+		ok bool
+	}{
+		// allow domains
+		{"example.com", true},
+		{"www.example.com", true},
+		{"com.", true},
+		{"0x0f.example.com", true},
+
+		// disallow ports, paths, protocols, and other junk
+		{"example.com:8080", false},
+		{"www.example.com:8080", false},
+		{"http://example.com", false},
+		{"example.com/", false},
+		{"example.com/123", false},
+		{"example.com?a=b", false},
+		{"example.com#2", false},
+		{"http://http://", false},
+		{"http://http://example.com", false},
+		{"http://http:/example.com", false},
+		{"http://ht$%$&$tp:/example.com", false},
+
+		// disallow ips, even when weirdly formatted
+		{"8.8.8.8", false},
+		{"8.8.8.8.", false},
+		{"8.8.8.00008", false},
+		{"8.8.8.", false},
+		{"8.8.8.8/24", false},
+		{"8.8.8/24", false},
+		{"8.", false},
+		{"8", false},
+		{"8.8.8", false},
+		{"2001:db8:a0b:12f0::1", false},
+		{"::21", false},
+		{":21:", false},
+		{":21:", false},
+		{"2001:db8:a0b:12f0::1%eth0", false},
+		{"[2001:db8:a0b:12f0::1]:21", false},
+	}
+
+	for i, test := range tests {
+		ans := validateDomain(test.s)
+		if ans != test.ok {
+			t.Fatalf("%v mismatch: %v\ngot      : %v\nexpected : %v\n", i, test.s, ans, test.ok)
+		}
+	}
+}
+
+func TestValidateProtocol(t *testing.T) {
+	tests := []struct {
+		s        string
+		allowed  []string
+		expected string
+		ok       bool
+	}{
+		{"http", []string{"http", "https"}, "http", true},
+		{"http:", []string{"http", "https"}, "http", true},
+		{"https:", []string{"http", "https"}, "https", true},
+
+		{"http", []string{"https"}, "http", false},
+		{"dns", []string{"http", "https"}, "dns", false},
+
+		{"spdy", []string{"http", "https"}, "", false},
+	}
+
+	for i, test := range tests {
+		a, b := validateProtocol(test.s, test.allowed)
+		if !(a == test.expected && b == test.ok) {
+			t.Fatalf("%v mismatch: %v\ngot      : %v %v\nexpected : %v %v\n",
+				i, test.s, test.expected, test.ok, a, b)
 		}
 	}
 }

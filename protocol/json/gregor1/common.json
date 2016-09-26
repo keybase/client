@@ -254,7 +254,7 @@
           "name": "reminders"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "moreRemindersReady"
         }
       ]
