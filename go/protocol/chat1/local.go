@@ -370,6 +370,16 @@ type GetInboxSummaryLocalRes struct {
 	MoreTotal     int                 `codec:"moreTotal" json:"moreTotal"`
 }
 
+type GetInboxSummaryLocalQuery struct {
+	TopicType           TopicType     `codec:"topicType" json:"topicType"`
+	After               string        `codec:"after" json:"after"`
+	Before              string        `codec:"before" json:"before"`
+	UnreadFirst         bool          `codec:"unreadFirst" json:"unreadFirst"`
+	UnreadFirstLimit    NumLimit      `codec:"unreadFirstLimit" json:"unreadFirstLimit"`
+	ActivitySortedLimit int           `codec:"activitySortedLimit" json:"activitySortedLimit"`
+	Visibility          TLFVisibility `codec:"visibility" json:"visibility"`
+}
+
 type GetInboxLocalArg struct {
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -404,11 +414,7 @@ type GetMessagesLocalArg struct {
 }
 
 type GetInboxSummaryLocalArg struct {
-	TopicType  TopicType     `codec:"topicType" json:"topicType"`
-	After      string        `codec:"after" json:"after"`
-	Before     string        `codec:"before" json:"before"`
-	Limit      NumLimit      `codec:"limit" json:"limit"`
-	Visibility TLFVisibility `codec:"visibility" json:"visibility"`
+	Query GetInboxSummaryLocalQuery `codec:"query" json:"query"`
 }
 
 type LocalInterface interface {
@@ -419,7 +425,7 @@ type LocalInterface interface {
 	NewConversationLocal(context.Context, ConversationInfoLocal) (ConversationInfoLocal, error)
 	UpdateTopicNameLocal(context.Context, UpdateTopicNameLocalArg) error
 	GetMessagesLocal(context.Context, MessageSelector) ([]ConversationLocal, error)
-	GetInboxSummaryLocal(context.Context, GetInboxSummaryLocalArg) (GetInboxSummaryLocalRes, error)
+	GetInboxSummaryLocal(context.Context, GetInboxSummaryLocalQuery) (GetInboxSummaryLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -549,7 +555,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetInboxSummaryLocalArg)(nil), args)
 						return
 					}
-					ret, err = i.GetInboxSummaryLocal(ctx, (*typedArgs)[0])
+					ret, err = i.GetInboxSummaryLocal(ctx, (*typedArgs)[0].Query)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -600,7 +606,8 @@ func (c LocalClient) GetMessagesLocal(ctx context.Context, selector MessageSelec
 	return
 }
 
-func (c LocalClient) GetInboxSummaryLocal(ctx context.Context, __arg GetInboxSummaryLocalArg) (res GetInboxSummaryLocalRes, err error) {
+func (c LocalClient) GetInboxSummaryLocal(ctx context.Context, query GetInboxSummaryLocalQuery) (res GetInboxSummaryLocalRes, err error) {
+	__arg := GetInboxSummaryLocalArg{Query: query}
 	err = c.Cli.Call(ctx, "chat.1.local.getInboxSummaryLocal", []interface{}{__arg}, &res)
 	return
 }

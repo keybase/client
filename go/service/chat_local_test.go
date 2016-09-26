@@ -220,7 +220,7 @@ func TestGetInboxSummaryLocal(t *testing.T) {
 	withCharlie := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_charlie")
 	mustPostLocalForTest(t, ctc, withCharlie, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
 
-	res, err := ctc.h.GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalArg{
+	res, err := ctc.h.GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
 		After:     "1d",
 		TopicType: chat1.TopicType_CHAT,
 	})
@@ -237,11 +237,9 @@ func TestGetInboxSummaryLocal(t *testing.T) {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 2 messages in the first conversation, got %d\n", len(res.Conversations[0].Messages))
 	}
 
-	res, err = ctc.h.GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalArg{
-		Limit: chat1.NumLimit{
-			AtMost: 2,
-		},
-		TopicType: chat1.TopicType_CHAT,
+	res, err = ctc.h.GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+		ActivitySortedLimit: 2,
+		TopicType:           chat1.TopicType_CHAT,
 	})
 	if err != nil {
 		t.Fatalf("GetThreadLocal error: %v", err)

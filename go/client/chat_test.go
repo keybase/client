@@ -1,5 +1,8 @@
 package client
 
+/* NOTE: This file is very out-dated. Maybe we can just remove this all
+* together. */
+
 import (
 	"errors"
 	"testing"
@@ -99,7 +102,7 @@ func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg chat1.
 	return conversations, nil
 }
 
-func (c *chatLocalMock) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalArg) (res chat1.GetInboxSummaryLocalRes, err error) {
+func (c *chatLocalMock) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalQuery) (res chat1.GetInboxSummaryLocalRes, err error) {
 	res.Conversations, err = c.GetMessagesLocal(ctx, chat1.MessageSelector{})
 	if err != nil {
 		return res, err
@@ -180,7 +183,6 @@ func TestCliRead(t *testing.T) {
 		fetcher: messageFetcher{
 			selector: chat1.MessageSelector{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-				Limit:        0,
 			},
 			resolver: conversationResolver{
 				TlfName: "morty,rick,songgao",

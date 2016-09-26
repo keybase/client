@@ -203,7 +203,7 @@ func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg cha
 	return h.resolveConversations(ctx, arg)
 }
 
-func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalArg) (res chat1.GetInboxSummaryLocalRes, err error) {
+func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalQuery) (res chat1.GetInboxSummaryLocalRes, err error) {
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
@@ -222,9 +222,6 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
 		}
 	}
-	if arg.Limit.AtMost <= 0 {
-		arg.Limit.AtMost = int(^uint(0) >> 1) // maximum int
-	}
 
 	var queryBase chat1.GetInboxQuery
 	if !after.IsZero() {
@@ -242,10 +239,9 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 		queryBase.TlfVisibility = &arg.Visibility
 	}
 
-	fetchInbox := func(atMost int, query chat1.GetInboxQuery) (conversations []chat1.ConversationLocal, err error) {
-		fmt.Printf("atMost: %d, query: %#+v\n", atMost, query)
+	fetchInbox := func(num int, query chat1.GetInboxQuery) (conversations []chat1.ConversationLocal, err error) {
 		var rpcArg chat1.GetInboxLocalArg
-		rpcArg.Pagination = &chat1.Pagination{Num: atMost}
+		rpcArg.Pagination = &chat1.Pagination{Num: num}
 		rpcArg.Query = &query
 
 		iview, err := h.GetInboxLocal(ctx, rpcArg)
@@ -269,20 +265,34 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 
 	var convs []chat1.ConversationLocal
 
-	queryBase.UnreadOnly, queryBase.ReadOnly = true, false
-	if convs, err = fetchInbox(arg.Limit.AtMost, queryBase); err != nil {
-		return res, nil
-	}
-	res.Conversations = append(res.Conversations, convs...)
+	if arg.UnreadFirst {
+		if arg.UnreadFirstLimit.AtMost <= 0 {
+			arg.UnreadFirstLimit.AtMost = int(^uint(0) >> 1) // maximum int
+		}
+		queryBase.UnreadOnly, queryBase.ReadOnly = true, false
+		if convs, err = fetchInbox(arg.UnreadFirstLimit.AtMost, queryBase); err != nil {
+			return res, nil
+		}
+		res.Conversations = append(res.Conversations, convs...)
 
-	more := collar(
-		arg.Limit.AtLeast-len(res.Conversations),
-		arg.Limit.IdeallyGetUnreadPlus,
-		arg.Limit.AtMost-len(res.Conversations),
-	)
-	if more > 0 {
-		queryBase.UnreadOnly, queryBase.ReadOnly = false, true
-		if convs, err = fetchInbox(more, queryBase); err != nil {
+		more := collar(
+			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
+			arg.UnreadFirstLimit.IdeallyGetUnreadPlus,
+			arg.UnreadFirstLimit.AtMost-len(res.Conversations),
+		)
+		if more > 0 {
+			queryBase.UnreadOnly, queryBase.ReadOnly = false, true
+			if convs, err = fetchInbox(more, queryBase); err != nil {
+				return res, nil
+			}
+			res.Conversations = append(res.Conversations, convs...)
+		}
+	} else {
+		if arg.ActivitySortedLimit <= 0 {
+			arg.ActivitySortedLimit = int(^uint(0) >> 1) // maximum int
+		}
+		queryBase.UnreadOnly, queryBase.ReadOnly = false, false
+		if convs, err = fetchInbox(arg.ActivitySortedLimit, queryBase); err != nil {
 			return res, nil
 		}
 		res.Conversations = append(res.Conversations, convs...)

@@ -275,6 +275,16 @@ export type GetInboxRemoteRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type GetInboxSummaryLocalQuery = {
+  topicType: TopicType,
+  after: string,
+  before: string,
+  unreadFirst: boolean,
+  unreadFirstLimit: NumLimit,
+  activitySortedLimit: int,
+  visibility: TLFVisibility,
+}
+
 export type GetInboxSummaryLocalRes = {
   conversations?: ?Array<ConversationLocal>,
   more?: ?Array<ConversationLocal>,
@@ -506,11 +516,7 @@ export type localGetInboxLocalRpcParam = Exact<{
 }>
 
 export type localGetInboxSummaryLocalRpcParam = Exact<{
-  topicType: TopicType,
-  after: string,
-  before: string,
-  limit: NumLimit,
-  visibility: TLFVisibility
+  query: GetInboxSummaryLocalQuery
 }>
 
 export type localGetMessagesLocalRpcParam = Exact<{

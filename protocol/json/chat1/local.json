@@ -444,6 +444,40 @@
           "name": "moreTotal"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxSummaryLocalQuery",
+      "fields": [
+        {
+          "type": "TopicType",
+          "name": "topicType"
+        },
+        {
+          "type": "string",
+          "name": "after"
+        },
+        {
+          "type": "string",
+          "name": "before"
+        },
+        {
+          "type": "boolean",
+          "name": "unreadFirst"
+        },
+        {
+          "type": "NumLimit",
+          "name": "unreadFirstLimit"
+        },
+        {
+          "type": "int",
+          "name": "activitySortedLimit"
+        },
+        {
+          "type": "TLFVisibility",
+          "name": "visibility"
+        }
+      ]
     }
   ],
   "messages": {
@@ -551,24 +585,8 @@
     "getInboxSummaryLocal": {
       "request": [
         {
-          "name": "topicType",
-          "type": "TopicType"
-        },
-        {
-          "name": "after",
-          "type": "string"
-        },
-        {
-          "name": "before",
-          "type": "string"
-        },
-        {
-          "name": "limit",
-          "type": "NumLimit"
-        },
-        {
-          "name": "visibility",
-          "type": "TLFVisibility"
+          "name": "query",
+          "type": "GetInboxSummaryLocalQuery"
         }
       ],
       "response": "GetInboxSummaryLocalRes"

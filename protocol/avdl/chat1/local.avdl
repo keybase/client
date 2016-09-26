@@ -183,6 +183,18 @@ protocol local {
     int moreTotal;
   }
 
+  record GetInboxSummaryLocalQuery {
+    TopicType topicType;
+    string after;
+    string before;
+
+    boolean unreadFirst;
+    NumLimit unreadFirstLimit;
+    int activitySortedLimit;
+
+    TLFVisibility visibility;
+  }
+
   // if since is given, limit is ignored
-  GetInboxSummaryLocalRes getInboxSummaryLocal(TopicType topicType, string after, string before, NumLimit limit, TLFVisibility visibility);
+  GetInboxSummaryLocalRes getInboxSummaryLocal(GetInboxSummaryLocalQuery query);
 }
