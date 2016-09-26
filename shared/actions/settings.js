@@ -35,8 +35,6 @@ function * saveNotificationsSaga (): SagaGenerator<any, any> {
         key: `unsub|email`,
         value: current.unsubscribedFromAll ? '1' : '0'})
 
-    console.log('calling save with ', JSONPayload)
-
     const result = yield call(apiserverPostJSONRpcPromise, {
       param: {
         endpoint: 'account/subscribe',
