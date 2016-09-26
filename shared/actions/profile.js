@@ -622,6 +622,7 @@ function * generatePgpSaga (): SagaGenerator<any, any> {
     if (cancel) {
       closeChannelMap(generatePgpKeyChanMap)
       yield put(navigateTo([]))
+      return
     }
 
     yield call([keyGenerated.response, keyGenerated.response.result])

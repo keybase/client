@@ -6,7 +6,7 @@ import {buffers, channel} from 'redux-saga'
 import {take} from 'redux-saga/effects'
 
 export function createChannelMap<T> (channelConfig: ChannelConfig<T>): ChannelMap<T> {
-  return mapValues(channelConfig, (v, k) => {
+  return mapValues(channelConfig, v => {
     return channel(v)
   })
 }
