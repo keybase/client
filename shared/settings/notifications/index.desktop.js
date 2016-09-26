@@ -28,6 +28,7 @@ function Notifications (props: Props) {
         style={{alignSelf: 'center'}}
         type='Primary'
         label='Save'
+        disabled={!props.allowSave}
         onClick={props.onSave} />
     </Box>
   )

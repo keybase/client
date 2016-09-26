@@ -32,6 +32,7 @@ export type NotificationsState = {
     description: string,
   }>,
   unsubscribedFromAll: ?boolean,
+  allowSave: boolean,
 }
 
 export type State = {

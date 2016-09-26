@@ -10,6 +10,7 @@ export type Settings = {
 export type Props = {
   settings: ?Array<Settings>,
   unsubscribedFromAll: ?boolean,
+  allowSave: boolean,
   onToggle: (name: string) => void,
   onToggleUnsubscribeAll: () => void,
   onSave: () => void,

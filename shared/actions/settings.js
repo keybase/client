@@ -45,7 +45,7 @@ function * saveNotificationsSaga (): SagaGenerator<any, any> {
       },
     })
 
-    if (JSON.parse(result && result.body || '').status.code !== '0') {
+    if (JSON.parse(result && result.body || '').status.code !== 0) {
       throw new Error(`Invalid response ${result || ''}`)
     }
 

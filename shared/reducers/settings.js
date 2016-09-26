@@ -7,10 +7,11 @@ const initialState: State = {
   notifications: {
     settings: null,
     unsubscribedFromAll: null,
+    allowSave: false,
   },
 }
 
-function reducer (state: State = initialState, action: Actions) {
+function reducer (state: State = initialState, action: Actions): State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
@@ -43,13 +44,25 @@ function reducer (state: State = initialState, action: Actions) {
           ...state.notifications,
           settings: state.notifications.settings.map(updateSubscribe),
           unsubscribedFromAll: name ? false : !state.notifications.unsubscribedFromAll,
+          allowSave: true,
+        },
+      }
+    case Constants.notificationsSaved:
+      return {
+        ...state,
+        notifications: {
+          ...state.notifications,
+          allowSave: false,
         },
       }
     case Constants.notificationsRefreshed:
       if (action.error) { break }
       return {
         ...state,
-        notifications: action.payload,
+        notifications: {
+          ...action.payload,
+          allowSave: false,
+        },
       }
   }
 
