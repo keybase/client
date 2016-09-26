@@ -3,12 +3,6 @@ import {Iterable} from 'immutable'
 import configureStoreNative from './configure-store.platform'
 import createLogger from 'redux-logger'
 import createSagaMiddleware from 'redux-saga'
-import deviceSaga from '../actions/devices'
-import gregorSaga from '../actions/gregor'
-import profileSaga from '../actions/profile'
-import favoriteSaga from '../actions/favorite'
-import kbfsSaga from '../actions/kbfs'
-import pgpSaga from '../actions/pgp'
 import rootReducer from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import {actionLogger} from './action-logger'
@@ -17,6 +11,13 @@ import {call} from 'redux-saga/effects'
 import {closureCheck} from './closure-check'
 import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
+
+import deviceSaga from '../actions/devices'
+import favoriteSaga from '../actions/favorite'
+import gregorSaga from '../actions/gregor'
+import kbfsSaga from '../actions/kbfs'
+import pgpSaga from '../actions/pgp'
+import profileSaga from '../actions/profile'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -55,12 +56,12 @@ const loggerMiddleware: any = enableStoreLogging ? createLogger({
 
 function * mainSaga (getState) {
   yield [
-    call(gregorSaga),
-    call(profileSaga),
-    call(favoriteSaga),
-    call(pgpSaga),
     call(deviceSaga),
+    call(favoriteSaga),
+    call(gregorSaga),
     call(kbfsSaga),
+    call(pgpSaga),
+    call(profileSaga),
   ]
 }
 
