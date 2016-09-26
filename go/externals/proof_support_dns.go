@@ -30,6 +30,11 @@ func NewDNSChecker(p libkb.RemoteProofChainLink) (*DNSChecker, libkb.ProofError)
 func (rc *DNSChecker) GetTorError() libkb.ProofError { return libkb.ProofErrorDNSOverTor }
 
 func (rc *DNSChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		// checking the hint is done later in CheckStatus
+		return nil
+	}
+
 	_, sigID, err := libkb.OpenSig(rc.proof.GetArmoredSig())
 
 	if err != nil {

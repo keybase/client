@@ -19,6 +19,7 @@
 #import "MDPSplitView.h"
 
 #import <Tikppa/Tikppa.h>
+#import <YOLayout/YOLayout+PrefabLayouts.h>
 
 @interface KBEnvSelectView ()
 @property MDPSplitView *splitView;

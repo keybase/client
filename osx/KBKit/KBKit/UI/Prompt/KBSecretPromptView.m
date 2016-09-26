@@ -8,6 +8,8 @@
 
 #import "KBSecretPromptView.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBSecretPromptView ()
 @property KBLabel *header;
 @property KBLabel *label;

@@ -204,6 +204,8 @@ const (
 	SCChatNotInConv          = int(keybase1.StatusCode_SCChatNotInConv)
 	SCChatBadMsg             = int(keybase1.StatusCode_SCChatBadMsg)
 	SCChatBroadcast          = int(keybase1.StatusCode_SCChatBroadcast)
+	SCChatAlreadySuperseded  = int(keybase1.StatusCode_SCChatAlreadySuperseded)
+	SCChatAlreadyDeleted     = int(keybase1.StatusCode_SCChatAlreadyDeleted)
 )
 
 const (
@@ -451,10 +453,9 @@ const (
 )
 
 const (
-	SignaturePrefixKBFS       SignaturePrefix = "Keybase-KBFS-1"
-	SignaturePrefixChatHeader SignaturePrefix = "Keybase-Chat-Body-1"
-	SignaturePrefixChatBody   SignaturePrefix = "Keybase-Chat-Header-1"
-	SignaturePrefixSigchain   SignaturePrefix = "Keybase-Sigchain-1"
+	SignaturePrefixKBFS     SignaturePrefix = "Keybase-KBFS-1"
+	SignaturePrefixChat     SignaturePrefix = "Keybase-Chat-1"
+	SignaturePrefixSigchain SignaturePrefix = "Keybase-Sigchain-1"
 )
 
 const (

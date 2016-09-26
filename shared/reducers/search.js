@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/search'
+import {switchTab} from '../constants/router'
 import * as CommonConstants from '../constants/common'
 import type {IconType} from '../common-adapters/icon'
 import type {SearchResult, SearchActions, SearchPlatforms} from '../constants/search'
@@ -18,6 +19,7 @@ export type State = {
   userForInfoPane: ?SearchResult,
   showUserGroup: boolean,
   waiting: boolean,
+  searchActive: boolean,
 }
 
 const searchHintText = (searchPlatform: SearchPlatforms, selectedUsers: Array<SearchResult>): string => {
@@ -40,6 +42,7 @@ const initialState: State = {
   userForInfoPane: null,
   showUserGroup: showUserGroup(null, []),
   waiting: false,
+  searchActive: false,
 }
 
 export default function (state: State = initialState, action: SearchActions): State {
@@ -156,6 +159,20 @@ export default function (state: State = initialState, action: SearchActions): St
       return {
         ...state,
         waiting: action.payload && action.payload.waiting,
+      }
+    case Constants.setActive:
+      return {
+        ...state,
+        searchActive: action.payload && action.payload.active,
+      }
+    // TODO (MM): We shouldn't be changing the same state in multiple spots
+    // doing this here, instead of making a saga to fire the setActive action after
+    // a switchTab.
+    // In the future search will be a tab too, so we won't have this notion of searchActive
+    case switchTab:
+      return {
+        ...state,
+        searchActive: false,
       }
   }
 

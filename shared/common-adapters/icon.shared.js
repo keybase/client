@@ -44,6 +44,10 @@ export function typeToIconMapper (type: IconType): IconType {
       return __SCREENSHOT__ ? 'icon-progress-white-static' : 'icon-progress-white-animated'
     case 'icon-progress-grey-animated':
       return __SCREENSHOT__ ? 'icon-progress-grey-static' : 'icon-progress-grey-animated'
+    case 'icon-loader-infinity-64':
+      return __SCREENSHOT__ ? 'icon-loader-infinity-static-64' : 'icon-loader-infinity-64'
+    case 'icon-loader-infinity-80':
+      return __SCREENSHOT__ ? 'icon-loader-infinity-static-80' : 'icon-loader-infinity-80'
     default:
       return type
   }

@@ -26,7 +26,19 @@ protocol tlfKeys {
   }
 
   /**
-   getTLFCryptKeys returns TLF crypt keys from all generations.
+   getTLFCryptKeys returns TLF crypt keys from all generations and the TLF ID.
+   TLF ID should not be cached or stored persistently.
    */
   TLFCryptKeys getTLFCryptKeys(string tlfName);
+
+  record CanonicalTLFNameAndID {
+    TLFID tlfID;
+    CanonicalTlfName CanonicalName;
+  }
+
+  /**
+   getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.
+   TLF ID should not be cached or stored persistently.
+   */   
+  CanonicalTLFNameAndID getPublicCanonicalTLFNameAndID(string tlfName);
 }

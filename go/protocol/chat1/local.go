@@ -225,6 +225,7 @@ var HeaderPlaintextVersionRevMap = map[HeaderPlaintextVersion]string{
 type HeaderPlaintextV1 struct {
 	Conv            ConversationIDTriple     `codec:"conv" json:"conv"`
 	TlfName         string                   `codec:"tlfName" json:"tlfName"`
+	TlfPublic       bool                     `codec:"tlfPublic" json:"tlfPublic"`
 	MessageType     MessageType              `codec:"messageType" json:"messageType"`
 	Prev            []MessagePreviousPointer `codec:"prev" json:"prev"`
 	Sender          gregor1.UID              `codec:"sender" json:"sender"`
@@ -344,15 +345,15 @@ type MessageSelector struct {
 }
 
 type ConversationInfoLocal struct {
-	Id         ConversationID `codec:"id" json:"id"`
-	TlfName    string         `codec:"tlfName" json:"tlfName"`
-	TopicName  string         `codec:"topicName" json:"topicName"`
-	TopicType  TopicType      `codec:"topicType" json:"topicType"`
-	Visibility TLFVisibility  `codec:"visibility" json:"visibility"`
+	Id         ConversationID       `codec:"id" json:"id"`
+	Triple     ConversationIDTriple `codec:"triple" json:"triple"`
+	TlfName    string               `codec:"tlfName" json:"tlfName"`
+	TopicName  string               `codec:"topicName" json:"topicName"`
+	TopicType  TopicType            `codec:"topicType" json:"topicType"`
+	Visibility TLFVisibility        `codec:"visibility" json:"visibility"`
 }
 
 type ConversationLocal struct {
-	Id       ConversationID         `codec:"id" json:"id"`
 	Info     *ConversationInfoLocal `codec:"info,omitempty" json:"info,omitempty"`
 	Messages []Message              `codec:"messages" json:"messages"`
 }

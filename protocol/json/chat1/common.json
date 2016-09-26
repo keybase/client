@@ -162,7 +162,7 @@
           "name": "after"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "unreadOnly"
         }
       ]
@@ -172,7 +172,7 @@
       "name": "GetThreadQuery",
       "fields": [
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "markAsRead"
         },
         {
@@ -331,6 +331,10 @@
         {
           "type": "string",
           "name": "tlfName"
+        },
+        {
+          "type": "boolean",
+          "name": "tlfPublic"
         },
         {
           "type": "MessageType",

@@ -11,6 +11,8 @@
 #import "KBPGPSignView.h"
 #import "KBPGPOutputView.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBPGPSignAppView ()
 @property KBPGPSignView *signView;
 @property KBPGPOutputView *outputView;

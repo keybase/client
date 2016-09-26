@@ -9,6 +9,7 @@
 #import "KBDeviceAddView.h"
 
 #import "KBDefines.h"
+#import <YOLayout/YOLayout+PrefabLayouts.h>
 
 @interface KBDeviceAddView ()
 @property KBTextView *inputField;

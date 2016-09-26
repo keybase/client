@@ -395,6 +395,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-dns-64.png'),
   },
+  'icon-doggy-crying-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-doggy-crying-48.png'),
+  },
+  'icon-doggy-crying-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-doggy-crying-64.png'),
+  },
   'icon-facebook-logo-16': {
     isFont: false,
     extension: 'png',
@@ -770,6 +780,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-invite-link-32.png'),
   },
+  'icon-invite-link-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-invite-link-48.png'),
+  },
   'icon-invite-link-negative-48': {
     isFont: false,
     extension: 'png',
@@ -829,6 +844,16 @@ const iconMeta_ = {
     isFont: false,
     extension: 'gif',
     require: require('../images/icons/icon-loader-infinity-80.gif'),
+  },
+  'icon-loader-infinity-static-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-loader-infinity-static-64.png'),
+  },
+  'icon-loader-infinity-static-80': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-loader-infinity-static-80.png'),
   },
   'icon-no-gpg': {
     isFont: false,

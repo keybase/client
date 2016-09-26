@@ -3,6 +3,7 @@ import {fullName} from '../../constants/search'
 import keybaseUrl from '../../constants/urls'
 import {TypedConnector} from '../../util/typed-connect'
 import {getProfile, onFollow, onUnfollow} from '../../actions/tracker'
+import {onClickAvatar, onClickFollowers, onClickFollowing} from '../../actions/profile'
 import openURL from '../../util/open-url'
 import Render from './render'
 
@@ -27,6 +28,7 @@ export default connector.connect(
         }
       }
       if (username && trackerState && trackerState.type === 'tracker') {
+        const {userInfo: {uid}} = trackerState
         const currentlyFollowing = trackerState.lastAction === 'followed' || trackerState.lastAction === 'refollowed' || trackerState.currentlyFollowing
         // TODO (mm) ideally userInfo should be null until we get a response from the server
         // Same with proofs (instead of empty array). So we know the difference between
@@ -45,11 +47,15 @@ export default connector.connect(
             onFollow: () => { dispatch(onFollow(username, false)) },
             onUnfollow: () => { dispatch(onUnfollow(username)) },
             onAcceptProofs: () => { dispatch(onFollow(username, false)) },
+            onClickAvatar: () => { dispatch(onClickAvatar(username, uid)) },
+            onClickFollowers: () => { dispatch(onClickFollowers(username, uid)) },
+            onClickFollowing: () => { dispatch(onClickFollowing(username, uid)) },
           },
         }
       } else {
         // We have to fetch the tracker state, so lets do that.
-        dispatch(getProfile(username))
+        // We have to defer this as we're essentially in a constructor and react doesn't like this
+        setImmediate(() => dispatch(getProfile(username)))
 
         // Enter loading mode, when the store gets updated we'll come back to here
         return {

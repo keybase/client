@@ -30,6 +30,8 @@
 #import "KBProver.h"
 #import "KBErrorView.h"
 
+#import <YOLayout/YOLayout+PrefabLayouts.h>
+
 @interface KBUserProfileView ()
 @property KBScrollView *scrollView;
 @property KBUserHeaderView *headerView;

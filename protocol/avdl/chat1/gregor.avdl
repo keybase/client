@@ -1,6 +1,10 @@
 @namespace("chat.1")
 protocol gregor {
 
+    record GenericPayload {
+        string Action;
+    }
+
     record NewMessagePayload {
         string Action;
         ConversationID convID;

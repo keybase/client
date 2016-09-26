@@ -265,6 +265,7 @@ func (n *NotifyRouter) HandleFSActivity(activity keybase1.FSNotification) {
 	if n == nil {
 		return
 	}
+	n.G().Log.Debug("FS activity: %v", activity)
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Kbfs` notification type

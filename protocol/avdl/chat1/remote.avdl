@@ -66,6 +66,8 @@ protocol remote {
 
   PostRemoteRes postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
   NewConversationRemoteRes newConversationRemote(ConversationIDTriple idTriple);
+
+  // on duplication of idTriple, and error is returned and the conversation ID of the existing conversation is returned.
   NewConversationRemoteRes newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage);
   GetMessagesRemoteRes getMessagesRemote(ConversationID conversationID, array<MessageID> messageIDs);
 

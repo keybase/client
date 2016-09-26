@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -108,7 +109,7 @@ func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
 
 // Run then engine
 func (e *Identify2WithUID) Run(ctx *Context) (err error) {
-
+	defer libkb.TimeLog(fmt.Sprintf("Identify2WithUID.Run(UID=%v, Assertion=%s", e.arg.Uid, e.arg.UserAssertion), e.G().Clock().Now(), e.G().Log.Debug)
 	e.G().Log.Debug("+ Identify2WithUID.Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
 
 	if e.arg.Uid.IsNil() {

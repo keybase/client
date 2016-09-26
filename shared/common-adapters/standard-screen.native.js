@@ -8,7 +8,8 @@ const StandardScreen = (props: Props) => {
   return (
     <Box style={{...styleContainer, ...props.styleOuter}}>
       <Box style={styleCloseContainer}>
-        {!!props.onClose && <Text type='BodyPrimaryLink' style={{...styleClose, ...props.styleClose}} onClick={props.onClose}>{props.onCloseText || 'Cancel'}</Text>}
+        {!!props.onClose && <Text type='BodyPrimaryLink' style={{...styleClose, ...props.styleClose}} onClick={props.onClose}>Cancel</Text>}
+        {!!props.onBack && <Text type='BodyPrimaryLink' style={{...styleClose, ...props.styleBack}} onClick={props.onBack}>Back</Text>}
       </Box>
       <NativeScrollView style={styleScrollContainer} contentContainerStyle={styleScrollContainer}>
         {!!props.notification &&

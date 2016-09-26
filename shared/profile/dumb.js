@@ -15,9 +15,8 @@ import {isMobile} from '../constants/platform'
 import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaPending, metaUnreachable} from '../constants/tracker'
 
 import type {DumbComponentMap} from '../constants/types/more'
-import type {Proof} from '../constants/tracker'
+import type {Proof, UserInfo} from '../constants/tracker'
 import type {Props as RenderProps} from './index'
-import type {UserInfo} from '../common-adapters/user-bio'
 
 export const proofsDefault: Array<Proof> = [
   {name: 'malgorithms', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false, mTime: 1469665223000},
@@ -171,6 +170,9 @@ const propsBase: RenderProps = {
       height: 578,
     },
   },
+  onClickAvatar: console.log('on click avatar'),
+  onClickFollowers: console.log('on click followers'),
+  onClickFollowing: console.log('on click following'),
 }
 
 const bioEditFns = {
