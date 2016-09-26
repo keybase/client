@@ -148,7 +148,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return err
 	}
 
-	if !e.useAnyAssertions() && e.checkFastCacheHit() && e.allowEarlyOuts() {
+	if !e.useAnyAssertions() && e.allowEarlyOuts() && e.checkFastCacheHit() {
 		e.G().Log.Debug("| hit fast cache")
 		return nil
 	}
@@ -167,7 +167,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return nil
 	}
 
-	if !e.useRemoteAssertions() && e.checkSlowCacheHit() && e.allowEarlyOuts() {
+	if !e.useRemoteAssertions() && e.allowEarlyOuts() && e.checkSlowCacheHit() {
 		e.G().Log.Debug("| hit slow cache, first check")
 		return nil
 	}
@@ -190,7 +190,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return err
 	}
 
-	if e.useRemoteAssertions() && e.checkSlowCacheHit() && e.allowEarlyOuts() {
+	if e.useRemoteAssertions() && e.allowEarlyOuts() && e.checkSlowCacheHit() {
 		e.G().Log.Debug("| hit slow cache, second check")
 		return nil
 	}
