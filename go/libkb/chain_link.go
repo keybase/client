@@ -596,7 +596,7 @@ func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*
 		// May as well recheck onload (maybe revisit this)
 		ret = NewChainLink(g, nil, id, jw)
 		if err = ret.Unpack(true, selfUID); err != nil {
-			ret = nil
+			return nil, err
 		}
 		ret.storedLocally = true
 
