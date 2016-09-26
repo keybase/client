@@ -18,6 +18,7 @@ import gregorSaga from '../actions/gregor'
 import kbfsSaga from '../actions/kbfs'
 import pgpSaga from '../actions/pgp'
 import profileSaga from '../actions/profile'
+import settingsSaga from '../actions/settings'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -62,6 +63,7 @@ function * mainSaga (getState) {
     call(kbfsSaga),
     call(pgpSaga),
     call(profileSaga),
+    call(settingsSaga),
   ]
 }
 

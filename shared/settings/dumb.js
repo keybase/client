@@ -284,6 +284,7 @@ const commonSettings = {
     },
   ],
   unsubscribedFromAll: false,
+  onRefresh: () => console.log('onRefresh'),
   onSave: () => console.log('onSave'),
   onToggle: (name: string) => console.log('on toggle', name),
   onToggleUnsubscribeAll: () => console.log('on subscribe all'),

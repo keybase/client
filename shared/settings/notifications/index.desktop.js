@@ -7,10 +7,10 @@ import type {Props} from './index'
 
 function Notifications (props: Props) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn}}>
+    <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
       <Text type='Header' style={{marginTop: globalMargins.xlarge}}>Email me:</Text>
       <Box style={globalStyles.flexBoxColumn}>
-        {props.settings.map(s => (
+        {!!props.settings && props.settings.map(s => (
           <Checkbox
             style={{marginTop: globalMargins.small}}
             key={s.name}
@@ -22,7 +22,7 @@ function Notifications (props: Props) {
       <Checkbox
         style={{marginTop: globalMargins.small, marginBottom: globalMargins.medium}}
         onCheck={() => props.onToggleUnsubscribeAll()}
-        checked={props.unsubscribedFromAll}
+        checked={!!props.unsubscribedFromAll}
         label='Unsubscribe me from all mail' />
       <Button
         style={{alignSelf: 'center'}}

@@ -8,11 +8,12 @@ export type Settings = {
 }
 
 export type Props = {
-  settings: Array<Settings>,
-  unsubscribedFromAll: boolean,
+  settings: ?Array<Settings>,
+  unsubscribedFromAll: ?boolean,
   onToggle: (name: string) => void,
   onToggleUnsubscribeAll: () => void,
   onSave: () => void,
+  onRefresh: () => void,
 }
 
 export default class Notifications extends Component<void, Props, void> { }
