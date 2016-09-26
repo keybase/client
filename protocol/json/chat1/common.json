@@ -275,6 +275,20 @@
           "name": "readerInfo"
         },
         {
+          "type": [
+            null,
+            "ConversationMetadata"
+          ],
+          "name": "supersedes"
+        },
+        {
+          "type": [
+            null,
+            "ConversationMetadata"
+          ],
+          "name": "supersededBy"
+        },
+        {
           "type": {
             "type": "array",
             "items": "MessageBoxed"
