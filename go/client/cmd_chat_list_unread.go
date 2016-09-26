@@ -44,7 +44,7 @@ func (c *cmdChatListUnread) Run() error {
 		return nil
 	}
 
-	conversationListView(conversations).show(c.G())
+	conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()))
 	// TODO: print summary of inbox. e.g.
 	//		+44 older chats (--time=7d to see 25 more)
 

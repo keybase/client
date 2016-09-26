@@ -100,14 +100,15 @@ var TLFVisibilityRevMap = map[TLFVisibility]string{
 }
 
 type GetInboxQuery struct {
-	ConvID        *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
-	TopicType     *TopicType      `codec:"topicType,omitempty" json:"topicType,omitempty"`
-	TlfID         *TLFID          `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
-	TlfVisibility *TLFVisibility  `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
-	Before        *gregor1.Time   `codec:"before,omitempty" json:"before,omitempty"`
-	After         *gregor1.Time   `codec:"after,omitempty" json:"after,omitempty"`
-	UnreadOnly    bool            `codec:"unreadOnly" json:"unreadOnly"`
-	ReadOnly      bool            `codec:"readOnly" json:"readOnly"`
+	ConvID            *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
+	TopicType         *TopicType      `codec:"topicType,omitempty" json:"topicType,omitempty"`
+	TlfID             *TLFID          `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
+	TlfVisibility     *TLFVisibility  `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
+	Before            *gregor1.Time   `codec:"before,omitempty" json:"before,omitempty"`
+	After             *gregor1.Time   `codec:"after,omitempty" json:"after,omitempty"`
+	OneChatTypePerTLF *bool           `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
+	UnreadOnly        bool            `codec:"unreadOnly" json:"unreadOnly"`
+	ReadOnly          bool            `codec:"readOnly" json:"readOnly"`
 }
 
 type GetThreadQuery struct {
@@ -126,6 +127,7 @@ type ConversationIDTriple struct {
 type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID       `codec:"conversationID" json:"conversationID"`
+	IsFinalized    bool                 `codec:"isFinalized" json:"isFinalized"`
 }
 
 type ConversationReaderInfo struct {

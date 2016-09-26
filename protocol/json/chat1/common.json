@@ -162,6 +162,13 @@
           "name": "after"
         },
         {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "oneChatTypePerTLF"
+        },
+        {
           "type": "boolean",
           "name": "unreadOnly"
         },
@@ -231,6 +238,10 @@
         {
           "type": "ConversationID",
           "name": "conversationID"
+        },
+        {
+          "type": "bool",
+          "name": "isFinalized"
         }
       ]
     },

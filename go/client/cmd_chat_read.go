@@ -43,7 +43,9 @@ func (c *cmdChatRead) Run() error {
 		ui.Printf("no conversations found\n")
 	case 1:
 		ui.Printf("\n")
-		conversationView(conversations[0]).show(c.G())
+		if err = conversationView(conversations[0]).show(c.G()); err != nil {
+			return err
+		}
 		ui.Printf("\n")
 		if len(conversations) == c.fetcher.selector.Limit.AtMost {
 			ui.Printf("Number of conversations is capped by --at-most, so there might be more unread ones. Specify --at-most to a large number to fetch more.\n")

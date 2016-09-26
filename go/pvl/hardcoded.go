@@ -29,8 +29,8 @@ var hardcodedPVLString = `
     "dns": [{ "assert_regex_match": "^keybase-site-verification=%{sig_id_medium}$" }],
     "generic_web_site": [
       {
-        "assert_regex_match": "^https?://%{hostname}/(?:\\.well-known/keybase\\.txt|keybase\\.txt)$",
-        "case_insensitive": true
+        "assert_regex_match": "^%{protocol}://%{hostname}/(?:\\.well-known/keybase\\.txt|keybase\\.txt)$",
+        "error": ["BAD_API_URL", "Bad hint from server; didn't recognize API url: \"%{active_string}\""]
       },
       { "fetch": "string" },
       { "assert_find_base64": "sig" }
