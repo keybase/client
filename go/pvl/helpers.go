@@ -238,7 +238,7 @@ func validateDomain(s string) bool {
 	// To disallow the likes of "8.8.8.8."
 	dotsplit := strings.Split(strings.TrimSuffix(u.Host, "."), ".")
 	if len(dotsplit) > 0 {
-		hasalpha := regexp.MustCompile(`^.*\D.*$`)
+		hasalpha := regexp.MustCompile(`\D`)
 		group := dotsplit[len(dotsplit)-1]
 		if !hasalpha.MatchString(group) {
 			return false

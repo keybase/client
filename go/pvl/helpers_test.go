@@ -398,6 +398,8 @@ func TestValidateDomain(t *testing.T) {
 		{"8.8.8.8.", false},
 		{"8.8.8.00008", false},
 		{"8.8.8.", false},
+		{"8.8.8.8/24", false},
+		{"8.8.8/24", false},
 		{"8.", false},
 		{"8", false},
 		{"8.8.8", false},
