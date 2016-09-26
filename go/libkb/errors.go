@@ -1650,5 +1650,5 @@ type ChatTLFFinalizedError struct {
 }
 
 func (e ChatTLFFinalizedError) Error() string {
-	return fmt.Sprintf("unable to create conversation on finalized TLF: %s", e.TlfID.String())
+	return fmt.Sprintf("unable to create conversation on finalized TLF: %s", e.TlfID)
 }
