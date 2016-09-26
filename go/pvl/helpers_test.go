@@ -374,10 +374,13 @@ func TestValidateDomain(t *testing.T) {
 		s  string
 		ok bool
 	}{
+		// allow domains
 		{"example.com", true},
 		{"www.example.com", true},
 		{"com.", true},
+		{"0x0f.example.com", true},
 
+		// disallow ports, paths, protocols, and other junk
 		{"example.com:8080", false},
 		{"www.example.com:8080", false},
 		{"http://example.com", false},
@@ -388,8 +391,22 @@ func TestValidateDomain(t *testing.T) {
 		{"http://http://", false},
 		{"http://http://example.com", false},
 		{"http://http:/example.com", false},
-
 		{"http://ht$%$&$tp:/example.com", false},
+
+		// disallow ips, even when weirdly formatted
+		{"8.8.8.8", false},
+		{"8.8.8.8.", false},
+		{"8.8.8.00008", false},
+		{"8.8.8.", false},
+		{"8.", false},
+		{"8", false},
+		{"8.8.8", false},
+		{"2001:db8:a0b:12f0::1", false},
+		{"::21", false},
+		{":21:", false},
+		{":21:", false},
+		{"2001:db8:a0b:12f0::1%eth0", false},
+		{"[2001:db8:a0b:12f0::1]:21", false},
 	}
 
 	for i, test := range tests {

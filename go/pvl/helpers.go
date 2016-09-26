@@ -7,6 +7,7 @@ import (
 	b64 "encoding/base64"
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -223,7 +224,7 @@ func stringsContains(xs []string, x string) bool {
 	return false
 }
 
-// Check that a url is valid and has only a domain.
+// Check that a url is valid and has only a domain and is not an ip.
 // No port, path, protocol, user, query, or any other junk is allowed.
 func validateDomain(s string) bool {
 	// Throw a protocol in front because the parser wants one.
@@ -233,6 +234,17 @@ func validateDomain(s string) bool {
 		return false
 	}
 
+	// The final group must include a non-numeric character.
+	// To disallow the likes of "8.8.8.8."
+	dotsplit := strings.Split(strings.TrimSuffix(u.Host, "."), ".")
+	if len(dotsplit) > 0 {
+		hasalpha := regexp.MustCompile(`^.*\D.*$`)
+		group := dotsplit[len(dotsplit)-1]
+		if !hasalpha.MatchString(group) {
+			return false
+		}
+	}
+
 	ok := (u.IsAbs()) &&
 		(u.Scheme == proto) &&
 		(u.User == nil) &&
@@ -240,7 +252,10 @@ func validateDomain(s string) bool {
 		(u.RawPath == "") &&
 		(u.RawQuery == "") &&
 		(u.Fragment == "") &&
-		(!strings.Contains(u.Host, ":"))
+		// Disallow colons. So no port, and no ipv6.
+		(!strings.Contains(u.Host, ":")) &&
+		// Disallow any valid ip addresses.
+		(net.ParseIP(u.Host) == nil)
 	return ok
 }
 
