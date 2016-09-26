@@ -34,7 +34,7 @@ const levelToSpace: {[key: PlanLevel]: string} = {
 }
 
 function levelToDetails (p: PlanLevel) {
-  return `You will be able to use up to ${levelToSpace[p]} of data`
+  return `You will be able to use up to ${levelToSpace[p]} of data.`
 }
 
 // Compare weather another plan is an upgrade, downgrade or the same

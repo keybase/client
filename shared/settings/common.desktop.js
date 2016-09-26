@@ -19,4 +19,3 @@ function Stars ({level}: {level: PlanLevel}) {
 export {
   Stars,
 }
-
