@@ -1642,3 +1642,13 @@ type ChatAlreadyDeletedError struct {
 func (e ChatAlreadyDeletedError) Error() string {
 	return e.Msg
 }
+
+//=============================================================================
+
+type ChatTLFFinalizedError struct {
+	TlfID chat1.TLFID
+}
+
+func (e ChatTLFFinalizedError) Error() string {
+	return fmt.Sprintf("unable to create conversation on finalized TLF: %s", e.TlfID)
+}
