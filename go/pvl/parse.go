@@ -16,14 +16,19 @@ func parse(in string) (pvlT, error) {
 	p := pvlT{}
 	p.PvlVersion = -1
 	p.Revision = -1
+
 	err := json.Unmarshal(b, &p)
+	if err != nil {
+		return p, err
+	}
+
 	if p.PvlVersion == -1 {
 		return p, fmt.Errorf("pvl_version required")
 	}
 	if p.Revision == -1 {
 		return p, fmt.Errorf("revision required")
 	}
-	return p, err
+	return p, nil
 }
 
 type pvlT struct {
@@ -76,7 +81,7 @@ type instructionT struct {
 	// Exactly one of these shall be non-nil
 	// This list is duplicated to:
 	// - instructionT.variantsFilled
-	// - instructionT.String
+	// - instructionT.Name
 	// - stepInstruction
 	// This invariant is enforced by scriptT.UnmarshalJSON
 	AssertRegexMatch    *assertRegexMatchT    `json:"assert_regex_match,omitempty"`
@@ -92,79 +97,56 @@ type instructionT struct {
 func (ins *instructionT) variantsFilled() int {
 	n := 0
 	if ins.AssertRegexMatch != nil {
-		n += 1
+		n++
 	}
 	if ins.AssertFindBase64 != nil {
-		n += 1
+		n++
 	}
 	if ins.WhitespaceNormalize != nil {
-		n += 1
+		n++
 	}
 	if ins.RegexCapture != nil {
-		n += 1
+		n++
 	}
 	if ins.Fetch != nil {
-		n += 1
+		n++
 	}
 	if ins.SelectorJSON != nil {
-		n += 1
+		n++
 	}
 	if ins.SelectorCSS != nil {
-		n += 1
+		n++
 	}
 	if ins.TransformURL != nil {
-		n += 1
+		n++
 	}
 	return n
 }
 
-func (x instructionT) Name() string {
+func (ins instructionT) Name() string {
 	switch {
-	case x.AssertRegexMatch != nil:
+	case ins.AssertRegexMatch != nil:
 		return string(cmdAssertRegexMatch)
-	case x.AssertFindBase64 != nil:
+	case ins.AssertFindBase64 != nil:
 		return string(cmdAssertFindBase64)
-	case x.WhitespaceNormalize != nil:
+	case ins.WhitespaceNormalize != nil:
 		return string(cmdWhitespaceNormalize)
-	case x.RegexCapture != nil:
+	case ins.RegexCapture != nil:
 		return string(cmdRegexCapture)
-	case x.Fetch != nil:
+	case ins.Fetch != nil:
 		return string(cmdFetch)
-	case x.SelectorJSON != nil:
+	case ins.SelectorJSON != nil:
 		return string(cmdSelectorJSON)
-	case x.SelectorCSS != nil:
+	case ins.SelectorCSS != nil:
 		return string(cmdSelectorCSS)
-	case x.TransformURL != nil:
+	case ins.TransformURL != nil:
 		return string(cmdTransformURL)
 	}
 	return "<invalid instruction>"
 }
 
-func (x instructionT) String() string {
-	var s = ""
-	switch {
-	case x.AssertRegexMatch != nil:
-		s = fmt.Sprintf("%v", x.AssertRegexMatch)
-	case x.AssertFindBase64 != nil:
-		s = fmt.Sprintf("%v", x.AssertFindBase64)
-	case x.WhitespaceNormalize != nil:
-		s = fmt.Sprintf("%v", x.WhitespaceNormalize)
-	case x.RegexCapture != nil:
-		s = fmt.Sprintf("%v", x.RegexCapture)
-	case x.Fetch != nil:
-		s = fmt.Sprintf("%v", x.Fetch)
-	case x.SelectorJSON != nil:
-		s = fmt.Sprintf("%v", x.SelectorJSON)
-	case x.SelectorCSS != nil:
-		s = fmt.Sprintf("%v", x.SelectorCSS)
-	case x.TransformURL != nil:
-		s = fmt.Sprintf("%v", x.TransformURL)
-	}
-	if s != "" {
-		return fmt.Sprintf("[ins %v]", s)
-	} else {
-		return "[nil instruction]"
-	}
+func (ins instructionT) String() string {
+	return fmt.Sprintf("[ins %v]", ins.Name())
 }
 
 type assertRegexMatchT struct {
