@@ -25,18 +25,19 @@ func makeChatFlags(extras []cli.Flag) []cli.Flag {
 
 func makeChatListAndReadFlags(extras []cli.Flag) []cli.Flag {
 	return makeChatFlags(append(extras, []cli.Flag{
-		cli.BoolFlag{
-			Name:  "a,all",
-			Usage: `Do not limit number of messages shown. This has same effect as "--number 0"`,
+		cli.IntFlag{
+			Name:  "at-most",
+			Usage: `Show at most this number of items. Only effective when > 0. "keybase chat" tries to show n+2 items, where n is # of unread items. --at-most caps the total number of items possibly shown in case there are too many unread items.`,
+			Value: 100,
 		},
 		cli.IntFlag{
-			Name:  "n,number",
-			Usage: `Limit the number of messages shown. Only effective when > 0.`,
+			Name:  "at-least",
+			Usage: `Show at least this number of items, assuming they exist. Only effective when > 0. "keybase chat" tries to show n+2 items, where n is # of unread items. --at-least floors the total number of items possibly shown in case there are too few unread items.`,
 			Value: 5,
 		},
 		cli.StringFlag{
 			Name:  "time,since",
-			Usage: `Only show messages after certain time.`,
+			Usage: `Only show updates after certain time.`,
 		},
 		cli.BoolFlag{
 			Name:  "public",
@@ -44,7 +45,7 @@ func makeChatListAndReadFlags(extras []cli.Flag) []cli.Flag {
 		},
 		cli.BoolFlag{
 			Name:  "private",
-			Usage: `Only select private conversations. Exclusive to --public`,
+			Usage: `Only select private conversations. Exclusive to --public. If both --public and --private are present, --private takes priority.`,
 		},
 	}...))
 }
@@ -137,15 +138,16 @@ func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conve
 
 func makeMessageFetcherFromCliCtx(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher messageFetcher, err error) {
 	fetcher.selector.MessageTypes = []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT}
-	fetcher.selector.Limit = ctx.Int("number")
+	fetcher.selector.Limit = chat1.NumLimit{
+		IdeallyGetUnreadPlus: 2,
+		AtLeast:              ctx.Int("at-least"),
+		AtMost:               ctx.Int("at-most"),
+	}
 
 	if timeStr := ctx.String("time"); len(timeStr) > 0 {
 		fetcher.selector.Since = &timeStr
 	}
 
-	if ctx.Bool("all") || fetcher.selector.Since != nil {
-		fetcher.selector.Limit = 0
-	}
 	fetcher.selector.MarkAsRead = markAsRead
 
 	if fetcher.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
@@ -189,7 +191,7 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 
 type inboxFetcher struct {
 	topicType  chat1.TopicType
-	limit      int
+	limit      chat1.NumLimit
 	since      string
 	visibility chat1.TLFVisibility
 
@@ -201,12 +203,12 @@ func makeInboxFetcherFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error)
 		return fetcher, err
 	}
 
-	fetcher.limit = ctx.Int("number")
-	fetcher.since = ctx.String("time")
-
-	if ctx.Bool("all") || len(fetcher.since) > 0 {
-		fetcher.limit = 0
+	fetcher.limit = chat1.NumLimit{
+		IdeallyGetUnreadPlus: 2,
+		AtLeast:              ctx.Int("at-least"),
+		AtMost:               ctx.Int("at-most"),
 	}
+	fetcher.since = ctx.String("time")
 
 	if ctx.Bool("private") {
 		fetcher.visibility = chat1.TLFVisibility_PRIVATE

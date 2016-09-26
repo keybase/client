@@ -238,7 +238,9 @@ func TestGetInboxSummaryLocal(t *testing.T) {
 	}
 
 	res, err = ctc.h.GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalArg{
-		Limit:     2,
+		Limit: chat1.NumLimit{
+			AtMost: 2,
+		},
 		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {

@@ -53,6 +53,7 @@ protocol common {
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
     boolean unreadOnly;
+    boolean readOnly;
   }
 
   record GetThreadQuery {

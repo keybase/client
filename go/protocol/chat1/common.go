@@ -107,6 +107,7 @@ type GetInboxQuery struct {
 	Before        *gregor1.Time   `codec:"before,omitempty" json:"before,omitempty"`
 	After         *gregor1.Time   `codec:"after,omitempty" json:"after,omitempty"`
 	UnreadOnly    bool            `codec:"unreadOnly" json:"unreadOnly"`
+	ReadOnly      bool            `codec:"readOnly" json:"readOnly"`
 }
 
 type GetThreadQuery struct {

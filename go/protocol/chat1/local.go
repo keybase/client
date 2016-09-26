@@ -335,11 +335,17 @@ type ThreadView struct {
 	Pagination *Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
+type NumLimit struct {
+	IdeallyGetUnreadPlus int `codec:"IdeallyGetUnreadPlus" json:"IdeallyGetUnreadPlus"`
+	AtLeast              int `codec:"AtLeast" json:"AtLeast"`
+	AtMost               int `codec:"AtMost" json:"AtMost"`
+}
+
 type MessageSelector struct {
 	MessageTypes  []MessageType    `codec:"MessageTypes" json:"MessageTypes"`
 	Since         *string          `codec:"Since,omitempty" json:"Since,omitempty"`
 	OnlyNew       bool             `codec:"onlyNew" json:"onlyNew"`
-	Limit         int              `codec:"limit" json:"limit"`
+	Limit         NumLimit         `codec:"limit" json:"limit"`
 	Conversations []ConversationID `codec:"conversations" json:"conversations"`
 	MarkAsRead    bool             `codec:"markAsRead" json:"markAsRead"`
 }
@@ -401,7 +407,7 @@ type GetInboxSummaryLocalArg struct {
 	TopicType  TopicType     `codec:"topicType" json:"topicType"`
 	After      string        `codec:"after" json:"after"`
 	Before     string        `codec:"before" json:"before"`
-	Limit      int           `codec:"limit" json:"limit"`
+	Limit      NumLimit      `codec:"limit" json:"limit"`
 	Visibility TLFVisibility `codec:"visibility" json:"visibility"`
 }
 

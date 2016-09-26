@@ -48,6 +48,10 @@ func (c *cmdChatList) Run() error {
 	// TODO: print summary of inbox. e.g.
 	//		+44 older chats (--time=7d to see 25 more)
 
+	if len(conversations) == c.fetcher.limit.AtMost {
+		ui.Printf("\nNumber of conversations is capped by --at-most, so there might be more unread ones. Specify --at-most to a large number to fetch more.\n")
+	}
+
 	return nil
 }
 

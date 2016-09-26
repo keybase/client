@@ -316,6 +316,24 @@
     },
     {
       "type": "record",
+      "name": "NumLimit",
+      "fields": [
+        {
+          "type": "int",
+          "name": "IdeallyGetUnreadPlus"
+        },
+        {
+          "type": "int",
+          "name": "AtLeast"
+        },
+        {
+          "type": "int",
+          "name": "AtMost"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageSelector",
       "fields": [
         {
@@ -337,7 +355,7 @@
           "name": "onlyNew"
         },
         {
-          "type": "int",
+          "type": "NumLimit",
           "name": "limit"
         },
         {
@@ -546,7 +564,7 @@
         },
         {
           "name": "limit",
-          "type": "int"
+          "type": "NumLimit"
         },
         {
           "name": "visibility",

@@ -267,6 +267,7 @@ export type GetInboxQuery = {
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
   unreadOnly: boolean,
+  readOnly: boolean,
 }
 
 export type GetInboxRemoteRes = {
@@ -404,7 +405,7 @@ export type MessageSelector = {
   MessageTypes?: ?Array<MessageType>,
   Since?: ?string,
   onlyNew: boolean,
-  limit: int,
+  limit: NumLimit,
   conversations?: ?Array<ConversationID>,
   markAsRead: boolean,
 }
@@ -441,6 +442,12 @@ export type NewMessagePayload = {
   Action: string,
   convID: ConversationID,
   message: MessageBoxed,
+}
+
+export type NumLimit = {
+  IdeallyGetUnreadPlus: int,
+  AtLeast: int,
+  AtMost: int,
 }
 
 export type Pagination = {
@@ -502,7 +509,7 @@ export type localGetInboxSummaryLocalRpcParam = Exact<{
   topicType: TopicType,
   after: string,
   before: string,
-  limit: int,
+  limit: NumLimit,
   visibility: TLFVisibility
 }>
 
