@@ -170,9 +170,9 @@ func checkProofInner(g proofContextExt, pvl *jsonw.Wrapper, service keybase1.Pro
 		}
 	}
 	if service == keybase1.ProofType_GENERIC_WEB_SITE {
-		cp, ok := validateProtocol(vars.Protocol, []string{"http", "https"})
+		canonicalProtocol, ok := validateProtocol(vars.Protocol, []string{"http", "https"})
 		if ok {
-			vars.Protocol = cp
+			vars.Protocol = canonicalProtocol
 		} else {
 			return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 				"Bad protocol in sig: %s", vars.Protocol)
