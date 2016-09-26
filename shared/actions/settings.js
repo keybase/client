@@ -5,7 +5,7 @@ import {call, put, select} from 'redux-saga/effects'
 import {takeLatest} from 'redux-saga'
 
 import type {SagaGenerator} from '../constants/types/saga'
-import type {NotificationsRefresh, NotificationsSave} from '../constants/settings'
+import type {NotificationsRefresh, NotificationsSave, NotificationsToggle} from '../constants/settings'
 
 function notificationsRefresh (): NotificationsRefresh {
   return {type: Constants.notificationsRefresh, payload: undefined}
@@ -13,6 +13,10 @@ function notificationsRefresh (): NotificationsRefresh {
 
 function notificationsSave (): NotificationsSave {
   return {type: Constants.notificationsSave, payload: undefined}
+}
+
+function notificationsToggle (name?: string): NotificationsToggle {
+  return {type: Constants.notificationsToggle, payload: {name}}
 }
 
 function * saveNotificationsSaga (): SagaGenerator<any, any> {
@@ -119,6 +123,7 @@ function * settingsSaga (): SagaGenerator<any, any> {
 export {
   notificationsRefresh,
   notificationsSave,
+  notificationsToggle,
 }
 
 export default settingsSaga

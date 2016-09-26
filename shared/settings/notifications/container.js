@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Notifications from './index'
-import {notificationsRefresh, notificationsSave} from '../../actions/settings'
+import {notificationsRefresh, notificationsSave, notificationsToggle} from '../../actions/settings'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -21,8 +21,8 @@ export default connect(
   (state: TypedState, ownProps: {}) => state.settings.notifications,
   (dispatch: any, ownProps: {}) => ({
     onSave: () => dispatch(notificationsSave()),
-    onToggle: (name: string) => console.log('on toggle', name),
-    onToggleUnsubscribeAll: () => console.log('on subscribe all'),
+    onToggle: (name: string) => dispatch(notificationsToggle(name)),
+    onToggleUnsubscribeAll: () => dispatch(notificationsToggle()),
     onRefresh: () => dispatch(notificationsRefresh()),
   }),
 )(NotificationsContainer)
