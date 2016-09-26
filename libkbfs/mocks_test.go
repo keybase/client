@@ -1919,6 +1919,28 @@ func (_mr *_MockcryptoPureRecorder) DecryptMerkleLeaf(arg0, arg1, arg2, arg3 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptMerkleLeaf", arg0, arg1, arg2, arg3)
 }
 
+func (_m *MockcryptoPure) MakeTLFWriterKeyBundleID(wkb *TLFWriterKeyBundleV3) (TLFWriterKeyBundleID, error) {
+	ret := _m.ctrl.Call(_m, "MakeTLFWriterKeyBundleID", wkb)
+	ret0, _ := ret[0].(TLFWriterKeyBundleID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockcryptoPureRecorder) MakeTLFWriterKeyBundleID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeTLFWriterKeyBundleID", arg0)
+}
+
+func (_m *MockcryptoPure) MakeTLFReaderKeyBundleID(rkb *TLFReaderKeyBundleV3) (TLFReaderKeyBundleID, error) {
+	ret := _m.ctrl.Call(_m, "MakeTLFReaderKeyBundleID", rkb)
+	ret0, _ := ret[0].(TLFReaderKeyBundleID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockcryptoPureRecorder) MakeTLFReaderKeyBundleID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeTLFReaderKeyBundleID", arg0)
+}
+
 // Mock of cryptoSigner interface
 type MockcryptoSigner struct {
 	ctrl     *gomock.Controller
@@ -2246,6 +2268,28 @@ func (_m *MockCrypto) DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf, privK
 
 func (_mr *_MockCryptoRecorder) DecryptMerkleLeaf(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptMerkleLeaf", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockCrypto) MakeTLFWriterKeyBundleID(wkb *TLFWriterKeyBundleV3) (TLFWriterKeyBundleID, error) {
+	ret := _m.ctrl.Call(_m, "MakeTLFWriterKeyBundleID", wkb)
+	ret0, _ := ret[0].(TLFWriterKeyBundleID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MakeTLFWriterKeyBundleID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeTLFWriterKeyBundleID", arg0)
+}
+
+func (_m *MockCrypto) MakeTLFReaderKeyBundleID(rkb *TLFReaderKeyBundleV3) (TLFReaderKeyBundleID, error) {
+	ret := _m.ctrl.Call(_m, "MakeTLFReaderKeyBundleID", rkb)
+	ret0, _ := ret[0].(TLFReaderKeyBundleID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MakeTLFReaderKeyBundleID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeTLFReaderKeyBundleID", arg0)
 }
 
 func (_m *MockCrypto) Sign(ctx context.Context, msg []byte) (SignatureInfo, error) {
@@ -2712,6 +2756,18 @@ func (_mr *_MockMDServerRecorder) OffsetFromServerTime() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "OffsetFromServerTime")
 }
 
+func (_m *MockMDServer) GetKeyBundles(ctx context.Context, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	ret := _m.ctrl.Call(_m, "GetKeyBundles", ctx, wkbID, rkbID)
+	ret0, _ := ret[0].(*TLFWriterKeyBundleV3)
+	ret1, _ := ret[1].(*TLFReaderKeyBundleV3)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockMDServerRecorder) GetKeyBundles(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetKeyBundles", arg0, arg1, arg2)
+}
+
 // Mock of mdServerLocal interface
 type MockmdServerLocal struct {
 	ctrl     *gomock.Controller
@@ -2884,6 +2940,18 @@ func (_m *MockmdServerLocal) OffsetFromServerTime() (time.Duration, bool) {
 
 func (_mr *_MockmdServerLocalRecorder) OffsetFromServerTime() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "OffsetFromServerTime")
+}
+
+func (_m *MockmdServerLocal) GetKeyBundles(ctx context.Context, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	ret := _m.ctrl.Call(_m, "GetKeyBundles", ctx, wkbID, rkbID)
+	ret0, _ := ret[0].(*TLFWriterKeyBundleV3)
+	ret1, _ := ret[1].(*TLFReaderKeyBundleV3)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockmdServerLocalRecorder) GetKeyBundles(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetKeyBundles", arg0, arg1, arg2)
 }
 
 func (_m *MockmdServerLocal) addNewAssertionForTest(uid keybase1.UID, newAssertion keybase1.SocialAssertion) error {
@@ -4638,6 +4706,26 @@ func (_mr *_MockBareRootMetadataRecorder) GetUnresolvedParticipants() *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnresolvedParticipants")
 }
 
+func (_m *MockBareRootMetadata) GetTLFWriterKeyBundleID() TLFWriterKeyBundleID {
+	ret := _m.ctrl.Call(_m, "GetTLFWriterKeyBundleID")
+	ret0, _ := ret[0].(TLFWriterKeyBundleID)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetTLFWriterKeyBundleID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFWriterKeyBundleID")
+}
+
+func (_m *MockBareRootMetadata) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
+	ret := _m.ctrl.Call(_m, "GetTLFReaderKeyBundleID")
+	ret0, _ := ret[0].(TLFReaderKeyBundleID)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetTLFReaderKeyBundleID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFReaderKeyBundleID")
+}
+
 // Mock of MutableBareRootMetadata interface
 type MockMutableBareRootMetadata struct {
 	ctrl     *gomock.Controller
@@ -5042,6 +5130,26 @@ func (_mr *_MockMutableBareRootMetadataRecorder) GetUnresolvedParticipants() *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnresolvedParticipants")
 }
 
+func (_m *MockMutableBareRootMetadata) GetTLFWriterKeyBundleID() TLFWriterKeyBundleID {
+	ret := _m.ctrl.Call(_m, "GetTLFWriterKeyBundleID")
+	ret0, _ := ret[0].(TLFWriterKeyBundleID)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetTLFWriterKeyBundleID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFWriterKeyBundleID")
+}
+
+func (_m *MockMutableBareRootMetadata) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
+	ret := _m.ctrl.Call(_m, "GetTLFReaderKeyBundleID")
+	ret0, _ := ret[0].(TLFReaderKeyBundleID)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetTLFReaderKeyBundleID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFReaderKeyBundleID")
+}
+
 func (_m *MockMutableBareRootMetadata) SetRefBytes(refBytes uint64) {
 	_m.ctrl.Call(_m, "SetRefBytes", refBytes)
 }
@@ -5311,6 +5419,16 @@ func (_m *MockMutableBareRootMetadata) GetUserDeviceKeyInfoMaps(keyGen KeyGen, e
 
 func (_mr *_MockMutableBareRootMetadataRecorder) GetUserDeviceKeyInfoMaps(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUserDeviceKeyInfoMaps", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) FinalizeRekey(_param0 Config, _param1 ExtraMetadata) error {
+	ret := _m.ctrl.Call(_m, "FinalizeRekey", _param0, _param1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) FinalizeRekey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "FinalizeRekey", arg0, arg1)
 }
 
 // Mock of KeyBundleCache interface

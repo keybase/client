@@ -1002,6 +1002,32 @@ func (md *BareRootMetadataV3) fillInDevices(crypto Crypto,
 	return newServerKeys, nil
 }
 
+// GetTLFWriterKeyBundleID implements the BareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) GetTLFWriterKeyBundleID() TLFWriterKeyBundleID {
+	return md.WriterMetadata.WKeyBundleID
+}
+
+// GetTLFReaderKeyBundleID implements the BareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
+	return md.RKeyBundleID
+}
+
+// FinalizeRekey implements the MutableBareRootMetadata interface for BareRootMetadataV3.
+func (md *BareRootMetadataV3) FinalizeRekey(config Config, extra ExtraMetadata) error {
+	extraV3, ok := extra.(*ExtraMetadataV3)
+	if !ok {
+		return errors.New("Invalid extra metadata")
+	}
+	var err error
+	md.WriterMetadata.WKeyBundleID, err =
+		config.Crypto().MakeTLFWriterKeyBundleID(extraV3.wkb)
+	if err != nil {
+		return err
+	}
+	md.RKeyBundleID, err = config.Crypto().MakeTLFReaderKeyBundleID(extraV3.rkb)
+	return err
+}
+
 // BareRootMetadataSignedV3 is the MD that is signed by the reader or
 // writer including the signature info. Unlike RootMetadataSigned,
 // it contains exactly the serializable metadata and signature info.

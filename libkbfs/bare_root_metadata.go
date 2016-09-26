@@ -993,6 +993,24 @@ func (md *BareRootMetadataV2) fillInDevices(crypto Crypto,
 	return newServerKeys, nil
 }
 
+// GetTLFWriterKeyBundleID implements the BareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) GetTLFWriterKeyBundleID() TLFWriterKeyBundleID {
+	// Since key bundles are stored internally, just return the zero value.
+	return TLFWriterKeyBundleID{}
+}
+
+// GetTLFReaderKeyBundleID implements the BareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
+	// Since key bundles are stored internally, just return the zero value.
+	return TLFReaderKeyBundleID{}
+}
+
+// FinalizeRekey implements the MutableBareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) FinalizeRekey(_ Config, _ ExtraMetadata) error {
+	// No-op.
+	return nil
+}
+
 // BareRootMetadataSignedV2 is the MD that is signed by the reader or
 // writer including the signature info. Unlike RootMetadataSigned,
 // it contains exactly the serializable metadata and signature info.

@@ -124,6 +124,8 @@ var _ KeyMetadata = (*RootMetadata)(nil)
 // NewRootMetadata returns a new RootMetadata object at the latest known version.
 func NewRootMetadata() *RootMetadata {
 	return &RootMetadata{bareMd: &BareRootMetadataV2{}}
+	// MDv3 TODO: uncomment the below when we're ready for MDv3
+	//return &RootMetadata{bareMd: &BareRootMetadataV3{}}
 }
 
 // Data returns the private metadata of this RootMetadata.
@@ -654,6 +656,10 @@ func (md *RootMetadata) fillInDevices(crypto Crypto,
 	return serverKeyMap{}, errors.New("Unknown bare metadata version")
 }
 
+func (md *RootMetadata) finalizeRekey(config Config) error {
+	return md.bareMd.FinalizeRekey(config, md.extra)
+}
+
 // A ReadOnlyRootMetadata is a thin wrapper around a
 // *RootMetadata. Functions that take a ReadOnlyRootMetadata parameter
 // must not modify it, and therefore code that passes a
@@ -736,6 +742,8 @@ type RootMetadataSigned struct {
 // NewRootMetadataSigned returns a new RootMetadataSigned object at the latest known version.
 func NewRootMetadataSigned() *RootMetadataSigned {
 	return &RootMetadataSigned{MD: &BareRootMetadataV2{}}
+	// MDv3 TODO: uncomment the below when we're ready for MDv3
+	//return &RootMetadataSigned{MD: &BareRootMetadataV3{}}
 }
 
 // MerkleHash computes a hash of this RootMetadataSigned object for inclusion

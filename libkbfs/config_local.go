@@ -522,6 +522,8 @@ func (c *ConfigLocal) SetConflictRenamer(cr ConflictRenamer) {
 // MetadataVersion implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) MetadataVersion() MetadataVer {
 	return InitialExtraMetadataVer
+	// MDv3 TODO: uncomment the below when ready for MDv3.
+	//return SegregatedKeyBundlesVer
 }
 
 // DataVersion implements the Config interface for ConfigLocal.

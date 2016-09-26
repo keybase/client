@@ -1006,8 +1006,7 @@ func (j *tlfJournal) getMDHead(
 		return ImmutableBareRootMetadata{}, err
 	}
 
-	// MDv3 TODO: pass actual key bundles
-	return j.mdJournal.getHead(nil)
+	return j.mdJournal.getHead()
 }
 
 func (j *tlfJournal) getMDRange(
@@ -1019,8 +1018,7 @@ func (j *tlfJournal) getMDRange(
 		return nil, err
 	}
 
-	// MDv3 TODO: pass actual key bundles
-	return j.mdJournal.getRange(nil, start, stop)
+	return j.mdJournal.getRange(start, stop)
 }
 
 func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata) (
@@ -1054,8 +1052,7 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 	}
 
 	// No need to signal work in this case.
-	// MDv3 TODO: pass actual key bundles
-	return j.mdJournal.clear(ctx, bid, nil)
+	return j.mdJournal.clear(ctx, bid)
 }
 
 func (j *tlfJournal) wait(ctx context.Context) error {
