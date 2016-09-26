@@ -6,6 +6,11 @@ export type NotificationsRefresh = NoErrorTypedAction<'settings:notificationsRef
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
 export type NotificationsRefreshed = NoErrorTypedAction<'settings:notificationsRefreshed', NotificationsState>
 
+export const notificationsSave = 'settings:notificationsSave'
+export type NotificationsSave = NoErrorTypedAction<'settings:notificationsSave', void>
+export const notificationsSaved = 'settings:notificationsSaved'
+export type NotificationsSaved = NoErrorTypedAction<'settings:notificationsSaved', void>
+
 export type PlanLevel = 'Basic' | 'Gold' | 'Friend'
 export const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
 
@@ -15,7 +20,7 @@ export type PaymentInfo = {
   isBroken: boolean,
 }
 
-export type Actions = NotificationsRefresh | NotificationsRefreshed
+export type Actions = NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved
 
 export type NotificationsState = {
   settings: ?Array<{
