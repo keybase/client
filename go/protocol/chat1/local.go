@@ -335,19 +335,19 @@ type ThreadView struct {
 	Pagination *Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
-type NumLimit struct {
-	IdeallyGetUnreadPlus int `codec:"IdeallyGetUnreadPlus" json:"IdeallyGetUnreadPlus"`
-	AtLeast              int `codec:"AtLeast" json:"AtLeast"`
-	AtMost               int `codec:"AtMost" json:"AtMost"`
+type UnreadFirstNumLimit struct {
+	NumRead int `codec:"NumRead" json:"NumRead"`
+	AtLeast int `codec:"AtLeast" json:"AtLeast"`
+	AtMost  int `codec:"AtMost" json:"AtMost"`
 }
 
 type MessageSelector struct {
-	MessageTypes  []MessageType    `codec:"MessageTypes" json:"MessageTypes"`
-	Since         *string          `codec:"Since,omitempty" json:"Since,omitempty"`
-	OnlyNew       bool             `codec:"onlyNew" json:"onlyNew"`
-	Limit         NumLimit         `codec:"limit" json:"limit"`
-	Conversations []ConversationID `codec:"conversations" json:"conversations"`
-	MarkAsRead    bool             `codec:"markAsRead" json:"markAsRead"`
+	MessageTypes  []MessageType       `codec:"MessageTypes" json:"MessageTypes"`
+	Since         *string             `codec:"Since,omitempty" json:"Since,omitempty"`
+	OnlyNew       bool                `codec:"onlyNew" json:"onlyNew"`
+	Limit         UnreadFirstNumLimit `codec:"limit" json:"limit"`
+	Conversations []ConversationID    `codec:"conversations" json:"conversations"`
+	MarkAsRead    bool                `codec:"markAsRead" json:"markAsRead"`
 }
 
 type ConversationInfoLocal struct {
@@ -371,13 +371,13 @@ type GetInboxSummaryLocalRes struct {
 }
 
 type GetInboxSummaryLocalQuery struct {
-	TopicType           TopicType     `codec:"topicType" json:"topicType"`
-	After               string        `codec:"after" json:"after"`
-	Before              string        `codec:"before" json:"before"`
-	UnreadFirst         bool          `codec:"unreadFirst" json:"unreadFirst"`
-	UnreadFirstLimit    NumLimit      `codec:"unreadFirstLimit" json:"unreadFirstLimit"`
-	ActivitySortedLimit int           `codec:"activitySortedLimit" json:"activitySortedLimit"`
-	Visibility          TLFVisibility `codec:"visibility" json:"visibility"`
+	TopicType           TopicType           `codec:"topicType" json:"topicType"`
+	After               string              `codec:"after" json:"after"`
+	Before              string              `codec:"before" json:"before"`
+	UnreadFirst         bool                `codec:"unreadFirst" json:"unreadFirst"`
+	UnreadFirstLimit    UnreadFirstNumLimit `codec:"unreadFirstLimit" json:"unreadFirstLimit"`
+	ActivitySortedLimit int                 `codec:"activitySortedLimit" json:"activitySortedLimit"`
+	Visibility          TLFVisibility       `codec:"visibility" json:"visibility"`
 }
 
 type GetInboxLocalArg struct {

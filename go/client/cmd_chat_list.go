@@ -20,7 +20,7 @@ type cmdChatList struct {
 func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "list",
-		Usage:        "Show conversations in inbox, sorted by activities.",
+		Usage:        "Show conversations in inbox, sorted by activity.",
 		Aliases:      []string{"ls"},
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {

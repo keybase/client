@@ -179,10 +179,10 @@ func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conve
 
 func makeMessageFetcherFromCliCtx(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher messageFetcher, err error) {
 	fetcher.selector.MessageTypes = []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT}
-	fetcher.selector.Limit = chat1.NumLimit{
-		IdeallyGetUnreadPlus: 2,
-		AtLeast:              ctx.Int("at-least"),
-		AtMost:               ctx.Int("at-most"),
+	fetcher.selector.Limit = chat1.UnreadFirstNumLimit{
+		NumRead: 2,
+		AtLeast: ctx.Int("at-least"),
+		AtMost:  ctx.Int("at-most"),
 	}
 
 	if timeStr := ctx.String("since"); len(timeStr) > 0 {
@@ -262,10 +262,10 @@ func makeInboxFetcherUnreadFirstFromCli(ctx *cli.Context) (fetcher inboxFetcher,
 	}
 
 	fetcher.query.UnreadFirst = true
-	fetcher.query.UnreadFirstLimit = chat1.NumLimit{
-		IdeallyGetUnreadPlus: 2,
-		AtLeast:              ctx.Int("at-least"),
-		AtMost:               ctx.Int("at-most"),
+	fetcher.query.UnreadFirstLimit = chat1.UnreadFirstNumLimit{
+		NumRead: 2,
+		AtLeast: ctx.Int("at-least"),
+		AtMost:  ctx.Int("at-most"),
 	}
 	fetcher.query.After = ctx.String("since")
 

@@ -316,11 +316,11 @@
     },
     {
       "type": "record",
-      "name": "NumLimit",
+      "name": "UnreadFirstNumLimit",
       "fields": [
         {
           "type": "int",
-          "name": "IdeallyGetUnreadPlus"
+          "name": "NumRead"
         },
         {
           "type": "int",
@@ -355,7 +355,7 @@
           "name": "onlyNew"
         },
         {
-          "type": "NumLimit",
+          "type": "UnreadFirstNumLimit",
           "name": "limit"
         },
         {
@@ -466,7 +466,7 @@
           "name": "unreadFirst"
         },
         {
-          "type": "NumLimit",
+          "type": "UnreadFirstNumLimit",
           "name": "unreadFirstLimit"
         },
         {

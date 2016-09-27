@@ -290,7 +290,7 @@ export type GetInboxSummaryLocalQuery = {
   after: string,
   before: string,
   unreadFirst: boolean,
-  unreadFirstLimit: NumLimit,
+  unreadFirstLimit: UnreadFirstNumLimit,
   activitySortedLimit: int,
   visibility: TLFVisibility,
 }
@@ -425,7 +425,7 @@ export type MessageSelector = {
   MessageTypes?: ?Array<MessageType>,
   Since?: ?string,
   onlyNew: boolean,
-  limit: NumLimit,
+  limit: UnreadFirstNumLimit,
   conversations?: ?Array<ConversationID>,
   markAsRead: boolean,
 }
@@ -462,12 +462,6 @@ export type NewMessagePayload = {
   Action: string,
   convID: ConversationID,
   message: MessageBoxed,
-}
-
-export type NumLimit = {
-  IdeallyGetUnreadPlus: int,
-  AtLeast: int,
-  AtMost: int,
 }
 
 export type Pagination = {
@@ -519,6 +513,12 @@ export type TopicType =
     0 // NONE_0
   | 1 // CHAT_1
   | 2 // DEV_2
+
+export type UnreadFirstNumLimit = {
+  NumRead: int,
+  AtLeast: int,
+  AtMost: int,
+}
 
 export type localGetInboxLocalRpcParam = Exact<{
   query?: ?GetInboxQuery,

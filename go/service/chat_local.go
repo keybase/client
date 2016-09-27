@@ -277,7 +277,7 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 
 		more := collar(
 			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
-			arg.UnreadFirstLimit.IdeallyGetUnreadPlus,
+			arg.UnreadFirstLimit.NumRead,
 			arg.UnreadFirstLimit.AtMost-len(res.Conversations),
 		)
 		if more > 0 {
@@ -531,10 +531,10 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversa
 		selector.Limit.AtMost--
 		selector.Limit.AtLeast--
 		if m.ServerHeader.MessageID <= conversationRemote.ReaderInfo.ReadMsgid {
-			selector.Limit.IdeallyGetUnreadPlus--
+			selector.Limit.NumRead--
 		}
 		if selector.Limit.AtMost <= 0 ||
-			(selector.Limit.IdeallyGetUnreadPlus <= 0 && selector.Limit.AtLeast <= 0) {
+			(selector.Limit.NumRead <= 0 && selector.Limit.AtLeast <= 0) {
 			break
 		}
 	}

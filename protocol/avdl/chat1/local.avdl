@@ -118,8 +118,8 @@ protocol local {
   //
   // By definition, one could use a same non-zero number for both AtLeast and
   // AtMost to precisely control the number of items returned.
-  record NumLimit {
-    int IdeallyGetUnreadPlus;
+  record UnreadFirstNumLimit {
+    int NumRead;
 
     int AtLeast;
     int AtMost;
@@ -131,7 +131,7 @@ protocol local {
     union { null, string } Since;
     boolean onlyNew;
 
-    NumLimit limit;
+    UnreadFirstNumLimit limit;
 
     array<ConversationID> conversations;
 
@@ -189,7 +189,7 @@ protocol local {
     string before;
 
     boolean unreadFirst;
-    NumLimit unreadFirstLimit;
+    UnreadFirstNumLimit unreadFirstLimit;
     int activitySortedLimit;
 
     TLFVisibility visibility;
