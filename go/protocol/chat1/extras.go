@@ -30,8 +30,24 @@ func MakeConversationID(val uint64) ConversationID {
 	return ConversationID(val)
 }
 
+func ConvertConversationID(val string) (ConversationID, error) {
+	raw, err := strconv.ParseUint(val, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return MakeConversationID(raw), nil
+}
+
 func MakeTLFID(val string) (TLFID, error) {
 	return hex.DecodeString(val)
+}
+
+func MakeTopicID(val string) (TopicID, error) {
+	return hex.DecodeString(val)
+}
+
+func MakeTopicType(val int64) TopicType {
+	return TopicType(val)
 }
 
 func (mid MessageID) String() string {

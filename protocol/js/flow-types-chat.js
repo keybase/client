@@ -190,6 +190,14 @@ export function remotePostRemoteRpcPromise (request: $Exact<requestCommon & {cal
   return new Promise((resolve, reject) => { remotePostRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteTlfFinalizeRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.tlfFinalize'})
+}
+
+export function remoteTlfFinalizeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { remoteTlfFinalizeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export type BodyPlaintext = 
     { version : 1, v1 : ?BodyPlaintextV1 }
 
@@ -203,6 +211,8 @@ export type BodyPlaintextVersion =
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
+  supersedes?: ?ConversationMetadata,
+  supersededBy?: ?ConversationMetadata,
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
@@ -232,6 +242,7 @@ export type ConversationLocal = {
 export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
+  isFinalized: bool,
 }
 
 export type ConversationReaderInfo = {
@@ -267,6 +278,7 @@ export type GetInboxQuery = {
   tlfVisibility?: ?TLFVisibility,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
+  oneChatTypePerTLF?: ?boolean,
   unreadOnly: boolean,
 }
 
@@ -574,6 +586,10 @@ export type remotePostRemoteRpcParam = Exact<{
   messageBoxed: MessageBoxed
 }>
 
+export type remoteTlfFinalizeRpcParam = Exact<{
+  tlfID: TLFID
+}>
+
 type localGetInboxLocalResult = InboxView
 
 type localGetInboxSummaryLocalResult = GetInboxSummaryLocalRes
@@ -616,6 +632,7 @@ export type rpc =
   | remoteNewConversationRemote2Rpc
   | remoteNewConversationRemoteRpc
   | remotePostRemoteRpc
+  | remoteTlfFinalizeRpc
 export type incomingCallMapType = Exact<{
 
 }>

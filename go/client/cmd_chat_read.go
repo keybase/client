@@ -48,7 +48,9 @@ func (c *cmdChatRead) Run() error {
 		ui.Printf("no conversations found\n")
 	case 1:
 		ui.Printf("\n")
-		conversationView(conversations[0]).show(c.G())
+		if err = conversationView(conversations[0]).show(c.G()); err != nil {
+			return err
+		}
 		ui.Printf("\n")
 	default:
 		// TODO: prompt user to choose one

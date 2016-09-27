@@ -162,6 +162,13 @@
           "name": "after"
         },
         {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "oneChatTypePerTLF"
+        },
+        {
           "type": "boolean",
           "name": "unreadOnly"
         }
@@ -227,6 +234,10 @@
         {
           "type": "ConversationID",
           "name": "conversationID"
+        },
+        {
+          "type": "bool",
+          "name": "isFinalized"
         }
       ]
     },
@@ -262,6 +273,20 @@
             "ConversationReaderInfo"
           ],
           "name": "readerInfo"
+        },
+        {
+          "type": [
+            null,
+            "ConversationMetadata"
+          ],
+          "name": "supersedes"
+        },
+        {
+          "type": [
+            null,
+            "ConversationMetadata"
+          ],
+          "name": "supersededBy"
         },
         {
           "type": {

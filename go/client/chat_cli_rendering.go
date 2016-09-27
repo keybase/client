@@ -16,9 +16,9 @@ import (
 
 type conversationInfoListView []chat1.ConversationInfoLocal
 
-func (v conversationInfoListView) show(g *libkb.GlobalContext) {
+func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 	if len(v) == 0 {
-		return
+		return nil
 	}
 
 	ui := g.UI.GetTerminalUI()
@@ -42,15 +42,17 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) {
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
 		5, flexibletable.ExpandableWrappable,
 	}); err != nil {
-		ui.Printf("rendering conversation info list view error: %v\n", err)
+		return fmt.Errorf("rendering conversation info list view error: %v\n", err)
 	}
+
+	return nil
 }
 
 type conversationListView []chat1.ConversationLocal
 
-func (v conversationListView) show(g *libkb.GlobalContext) {
+func (v conversationListView) show(g *libkb.GlobalContext, myUsername string) error {
 	if len(v) == 0 {
-		return
+		return nil
 	}
 
 	ui := g.UI.GetTerminalUI()
@@ -69,10 +71,20 @@ func (v conversationListView) show(g *libkb.GlobalContext) {
 			participants = strings.Split(conv.Info.TlfName, ",")
 		}
 
+		if len(participants) > 1 {
+			var withoutMe []string
+			for _, p := range participants {
+				if p != myUsername {
+					withoutMe = append(withoutMe, p)
+				}
+			}
+			participants = withoutMe
+		}
+
 		authorAndTime := messageFormatter(conv.Messages[0]).authorAndTime()
 		body, err := messageFormatter(conv.Messages[0]).body(g)
 		if err != nil {
-			ui.Printf("rendering message body error: %v\n", err)
+			return fmt.Errorf("rendering message body error: %v\n", err)
 		}
 
 		table.Insert(flexibletable.Row{
@@ -103,15 +115,17 @@ func (v conversationListView) show(g *libkb.GlobalContext) {
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
 		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
 	}); err != nil {
-		ui.Printf("rendering conversation list view error: %v\n", err)
+		return fmt.Errorf("rendering conversation list view error: %v\n", err)
 	}
+
+	return nil
 }
 
 type conversationView chat1.ConversationLocal
 
-func (v conversationView) show(g *libkb.GlobalContext) {
+func (v conversationView) show(g *libkb.GlobalContext) error {
 	if len(v.Messages) == 0 {
-		return
+		return nil
 	}
 
 	ui := g.UI.GetTerminalUI()
@@ -128,7 +142,7 @@ func (v conversationView) show(g *libkb.GlobalContext) {
 		authorAndTime := messageFormatter(m).authorAndTime()
 		body, err := messageFormatter(m).body(g)
 		if err != nil {
-			ui.Printf("rendering message body error: %v\n", err)
+			return fmt.Errorf("rendering message body error: %v\n", err)
 		}
 
 		table.Insert(flexibletable.Row{
@@ -155,8 +169,10 @@ func (v conversationView) show(g *libkb.GlobalContext) {
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
 		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ExpandableWrappable,
 	}); err != nil {
-		ui.Printf("rendering conversation view error: %v\n", err)
+		return fmt.Errorf("rendering conversation view error: %v\n", err)
 	}
+
+	return nil
 }
 
 type messageFormatter chat1.MessageFromServerUnboxedWithContext

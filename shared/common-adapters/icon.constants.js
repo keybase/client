@@ -430,6 +430,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-facebook-logo-64.png'),
   },
+  'icon-facebook-visibility': {
+    isFont: false,
+    extension: 'gif',
+    require: require('../images/icons/icon-facebook-visibility.gif'),
+  },
+  'icon-facebook-visibility-static': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-facebook-visibility-static.png'),
+  },
   'icon-fancy-bubbles-123-x-64': {
     isFont: false,
     extension: 'png',
