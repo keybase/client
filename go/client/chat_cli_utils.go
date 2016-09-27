@@ -127,7 +127,7 @@ func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conve
 		return resolver, err
 	}
 	if resolver.TopicType == chat1.TopicType_CHAT && len(resolver.TopicName) != 0 {
-		return resolver, errors.New("multiple topic names are not yet supported")
+		return resolver, errors.New("multiple topics are not yet supported")
 	}
 	if ctx.Bool("private") {
 		resolver.Visibility = chat1.TLFVisibility_PRIVATE
