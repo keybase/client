@@ -315,6 +315,15 @@ func (c *card) GetAppStatus() *libkb.AppStatus {
 func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
 	defer g.Trace("getUserCard", func() error { return err })()
 
+	cached, err := g.CardCache.Get(uid)
+	if err != nil {
+		g.Log.Debug("CardCache.Get error: %s", err)
+	} else if cached != nil {
+		g.Log.Debug("CardCache.Get hit for %s", uid)
+		return cached, nil
+	}
+	g.Log.Debug("CardCache.Get miss for %s", uid)
+
 	arg := libkb.APIArg{
 		Endpoint:    "user/card",
 		NeedSession: useSession,
@@ -328,8 +337,6 @@ func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret
 		return nil, err
 	}
 
-	g.Log.Debug("user card: %+v", card)
-
 	ret = &keybase1.UserCard{
 		Following:     card.FollowSummary.Following,
 		Followers:     card.FollowSummary.Followers,
@@ -342,6 +349,11 @@ func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret
 		YouFollowThem: card.YouFollowThem,
 		TheyFollowYou: card.TheyFollowYou,
 	}
+
+	if err := g.CardCache.Set(ret); err != nil {
+		g.Log.Debug("CardCache.Set error: %s", err)
+	}
+
 	return ret, nil
 }
 
