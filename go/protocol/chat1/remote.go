@@ -108,7 +108,7 @@ type RemoteInterface interface {
 	NewConversationRemote2(context.Context, NewConversationRemote2Arg) (NewConversationRemoteRes, error)
 	GetMessagesRemote(context.Context, GetMessagesRemoteArg) (GetMessagesRemoteRes, error)
 	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes, error)
-	TlfFinalize(context.Context, TLFID) (bool, error)
+	TlfFinalize(context.Context, TLFID) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -238,7 +238,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TlfFinalizeArg)(nil), args)
 						return
 					}
-					ret, err = i.TlfFinalize(ctx, (*typedArgs)[0].TlfID)
+					err = i.TlfFinalize(ctx, (*typedArgs)[0].TlfID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -287,8 +287,8 @@ func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (res 
 	return
 }
 
-func (c RemoteClient) TlfFinalize(ctx context.Context, tlfID TLFID) (res bool, err error) {
+func (c RemoteClient) TlfFinalize(ctx context.Context, tlfID TLFID) (err error) {
 	__arg := TlfFinalizeArg{TlfID: tlfID}
-	err = c.Cli.Call(ctx, "chat.1.remote.tlfFinalize", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.remote.tlfFinalize", []interface{}{__arg}, nil)
 	return
 }

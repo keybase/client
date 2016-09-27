@@ -311,7 +311,7 @@
           "type": "TLFID"
         }
       ],
-      "response": "bool"
+      "response": null
     }
   },
   "namespace": "chat.1"
