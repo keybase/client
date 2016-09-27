@@ -11,6 +11,7 @@ import {isLoading} from '../constants/tracker'
 
 import type {RenderPropsUnshaped} from './render'
 import type {Proof, SimpleProofState, UserInfo} from '../constants/tracker'
+import type {ErrorProps} from './error'
 import type {TypedState} from '../constants/reducer'
 
 export type TrackerProps = {
@@ -43,6 +44,7 @@ export type TrackerProps = {
   onClickAvatar: () => void,
   onClickFollowers: () => void,
   onClickFollowing: () => void,
+  error: ?ErrorProps,
 }
 
 export function trackerPropsToRenderProps (tprops: TrackerProps): RenderPropsUnshaped {
@@ -92,6 +94,7 @@ export default connect(
       loggedIn: state.config && state.config.loggedIn,
       loading: isLoading(trackerState),
       actionBarReady: !trackerState.serverActive && !trackerState.error,
+      errorMessage: trackerState.error,
       ...trackerState,
       ...ownProps,
     }
@@ -108,6 +111,7 @@ export default connect(
       onClickAvatar: (username, uid) => { dispatch(onClickAvatar(username, uid, true)) },
       onClickFollowers: (username, uid) => { dispatch(onClickFollowers(username, uid, true)) },
       onClickFollowing: (username, uid) => { dispatch(onClickFollowing(username, uid, true)) },
+      errorRetry: ownProps.errorRetry || (() => { actions.getProfile(ownProps.username, true) }),
     }
   },
   (stateProps, dispatchProps, ownProps) => {
@@ -120,6 +124,12 @@ export default connect(
       onClickAvatar: () => dispatchProps.onClickAvatar(username, uid),
       onClickFollowers: () => dispatchProps.onClickFollowers(username, uid),
       onClickFollowing: () => dispatchProps.onClickFollowing(username, uid),
+      error: stateProps.errorMessage
+      ? {
+        onRetry: dispatchProps.errorRetry,
+        errorMessage: stateProps.errorMessage,
+      }
+      : null,
     }
   }
 )(Tracker)
