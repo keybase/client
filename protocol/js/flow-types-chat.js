@@ -190,11 +190,11 @@ export function remotePostRemoteRpcPromise (request: $Exact<requestCommon & {cal
   return new Promise((resolve, reject) => { remotePostRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function remoteTlfFinalizeRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteTlfFinalizeResult) => void} & {param: remoteTlfFinalizeRpcParam}>) {
+export function remoteTlfFinalizeRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.tlfFinalize'})
 }
 
-export function remoteTlfFinalizeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteTlfFinalizeResult) => void} & {param: remoteTlfFinalizeRpcParam}>): Promise<remoteTlfFinalizeResult> {
+export function remoteTlfFinalizeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { remoteTlfFinalizeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
@@ -211,6 +211,8 @@ export type BodyPlaintextVersion =
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
+  supersedes?: ?ConversationMetadata,
+  supersededBy?: ?ConversationMetadata,
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
@@ -608,8 +610,6 @@ type remoteNewConversationRemote2Result = NewConversationRemoteRes
 type remoteNewConversationRemoteResult = NewConversationRemoteRes
 
 type remotePostRemoteResult = PostRemoteRes
-
-type remoteTlfFinalizeResult = bool
 
 export type rpc =
     localGetInboxLocalRpc

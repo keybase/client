@@ -136,9 +136,11 @@ type ConversationReaderInfo struct {
 }
 
 type Conversation struct {
-	Metadata   ConversationMetadata    `codec:"metadata" json:"metadata"`
-	ReaderInfo *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
-	MaxMsgs    []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
+	Metadata     ConversationMetadata    `codec:"metadata" json:"metadata"`
+	ReaderInfo   *ConversationReaderInfo `codec:"readerInfo,omitempty" json:"readerInfo,omitempty"`
+	Supersedes   *ConversationMetadata   `codec:"supersedes,omitempty" json:"supersedes,omitempty"`
+	SupersededBy *ConversationMetadata   `codec:"supersededBy,omitempty" json:"supersededBy,omitempty"`
+	MaxMsgs      []MessageBoxed          `codec:"maxMsgs" json:"maxMsgs"`
 }
 
 type MessageServerHeader struct {
