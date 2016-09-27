@@ -2929,6 +2929,19 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		}
 	}
 
+	// Also add in file updates from sync operations, since the
+	// reoslutionOp may not include file-specific updates.
+	for _, op := range oldOps[:len(oldOps)-1] {
+		so, ok := op.(*syncOp)
+		if !ok {
+			continue
+		}
+		if _, ok := updates[so.File.Unref]; !ok {
+			updates[so.File.Unref] = so.File.Ref
+			resOp.AddUpdate(so.File.Unref, so.File.Ref)
+		}
+	}
+
 	// For all chains that were created only in the unmerged branch,
 	// make sure we update all the pointers to their most recent
 	// version.
