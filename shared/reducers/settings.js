@@ -8,6 +8,7 @@ const initialState: State = {
     settings: null,
     unsubscribedFromAll: null,
     allowSave: false,
+    allowEdit: false,
   },
 }
 
@@ -47,12 +48,21 @@ function reducer (state: State = initialState, action: Actions): State {
           allowSave: true,
         },
       }
+    case Constants.notificationsSave:
+      return {
+        ...state,
+        notifications: {
+          ...state.notifications,
+          allowEdit: false,
+        },
+      }
     case Constants.notificationsSaved:
       return {
         ...state,
         notifications: {
           ...state.notifications,
           allowSave: false,
+          allowEdit: true,
         },
       }
     case Constants.notificationsRefreshed:
@@ -62,6 +72,7 @@ function reducer (state: State = initialState, action: Actions): State {
         notifications: {
           ...action.payload,
           allowSave: false,
+          allowEdit: true,
         },
       }
   }
