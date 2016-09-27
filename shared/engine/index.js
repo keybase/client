@@ -71,6 +71,7 @@ class Engine {
   }
 
   _setupIgnoredHandlers () {
+    this.setIncomingHandler('keybase.1.NotifyTracking.trackingChanged', () => {})
   }
 
   // Called when we reconnect to the server
