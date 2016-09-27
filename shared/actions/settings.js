@@ -1,8 +1,8 @@
 // @flow
 import * as Constants from '../constants/settings'
 import {apiserverGetRpcPromise, apiserverPostJSONRpcPromise} from '../constants/types/flow-types'
-import {call, put, select} from 'redux-saga/effects'
-import {takeLatest} from 'redux-saga'
+import {call, put, select, fork, cancel} from 'redux-saga/effects'
+import {takeLatest, delay} from 'redux-saga'
 
 import type {SagaGenerator} from '../constants/types/saga'
 import type {NotificationsRefresh, NotificationsSave, NotificationsToggle} from '../constants/settings'
@@ -59,12 +59,16 @@ function * saveNotificationsSaga (): SagaGenerator<any, any> {
 
 function * refreshNotificationsSaga (): SagaGenerator<any, any> {
   try {
-    yield put({
-      type: Constants.notificationsRefreshed,
-      payload: {
-        settings: null,
-        unsubscribedFromAll: null,
-      }})
+    // If the rpc is fast don't clear it out first
+    const delayThenEmptyTask = yield fork(function * () {
+      yield call(delay, 500)
+      yield put({
+        type: Constants.notificationsRefreshed,
+        payload: {
+          settings: null,
+          unsubscribedFromAll: null,
+        }})
+    })
 
     const json: ?{body: string} = yield call(apiserverGetRpcPromise, {
       param: {
@@ -72,6 +76,8 @@ function * refreshNotificationsSaga (): SagaGenerator<any, any> {
         args: [],
       },
     })
+
+    yield cancel(delayThenEmptyTask)
 
     const results: {
       notifications: {
