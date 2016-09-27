@@ -209,10 +209,6 @@ function onRefollow (username: string): TrackerActionCreator {
     const trackToken = _getTrackToken(getState(), username)
 
     const dispatchRefollowAction = () => {
-      const uid = _getUID(username, getState())
-      if (uid) {
-        dispatch(_clearIdentifyCache(uid))
-      }
       dispatch(_onWaiting(username, false))
       dispatch({
         type: Constants.onRefollow,
@@ -240,11 +236,6 @@ function onRefollow (username: string): TrackerActionCreator {
 function onUnfollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     dispatch(_onWaiting(username, true))
-
-    const uid = _getUID(username, getState())
-    if (uid) {
-      dispatch(_clearIdentifyCache(uid))
-    }
 
     trackUntrackRpc({
       param: {username},
@@ -323,27 +314,11 @@ function _getUsername (uid: string, state: {tracker: RootTrackerState}): ?string
       trackers[name].userInfo.uid === uid)
 }
 
-function _getUID (username: string, state: {tracker: RootTrackerState}): ?string {
-  if (state.tracker && state.tracker.trackers && state.tracker.trackers[username]) {
-    const t = state.tracker.trackers[username]
-    if (t.type === 'tracker') {
-      if (t.userInfo) {
-        return t.userInfo.uid
-      }
-    }
-  }
-  return null
-}
-
 function onFollow (username: string, localIgnore?: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
     const trackToken = _getTrackToken(getState(), username)
 
     const dispatchFollowedAction = () => {
-      const uid = _getUID(username, getState())
-      if (uid) {
-        dispatch(_clearIdentifyCache(uid))
-      }
       dispatch({type: Constants.onFollow, payload: {username}})
       dispatch(_onWaiting(username, false))
     }
