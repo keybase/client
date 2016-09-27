@@ -73,7 +73,7 @@ class Render extends Component<void, Props, any> {
 
           return (
             <Box key={key} style={styleBox}>
-              <Text type='Header' style={{marginBottom: 5}}>{key}</Text>
+              <Text type='Header' style={{marginBottom: 5}} onClick={() => this._onFilterChange(key)}>{key}</Text>
               {items}
             </Box>
           )
