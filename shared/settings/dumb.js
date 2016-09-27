@@ -4,10 +4,15 @@ import React from 'react'
 import {Box, Text} from '../common-adapters'
 
 import UpdateEmail from './email'
+import UpdatePassphrase from './passphrase'
+import PaymentForm from './payment'
 import Landing from './landing'
 import SettingsNav from './nav'
 import DeleteMe from './delete'
 import DeleteConfirm from './delete-confirm'
+import Notifications from './notifications'
+import InviteGenerated from './invite-generated'
+import PlanDetails from './plan-details'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -35,6 +40,88 @@ const updateEmailMap: DumbComponentMap<UpdateEmail> = {
     'Resend Confirmation': {
       ...updateEmailBase,
       onResendConfirmationCode: () => console.log('onResendConfirmationCode'),
+    },
+  },
+}
+
+const updatePassphraseBase = {
+  onChangeCurrentPassphrase: currentPassphrase => console.log('onChangeCurrentPassphrase', currentPassphrase),
+  onChangeNewPassphrase: newPassphrase => console.log('onChangeNewPassphrase', newPassphrase),
+  onChangeNewPassphraseConfirm: newPassphraseConfirm => console.log('onChangeNewPassphraseConfirm', newPassphraseConfirm),
+  onChangeShowPassphrase: showPassphrase => console.log('onChangeShowPassphrase', showPassphrase),
+  currentPassphrase: 'swordfish',
+  newPassphrase: 'open sesame',
+  newPassphraseConfirm: 'open sesame',
+  showTyping: false,
+  errorMessage: null,
+  newPassphraseError: null,
+  newPassphraseConfirmError: null,
+  canSave: true,
+  onBack: () => console.log('onBack'),
+  onSave: () => console.log('onSave'),
+  onForgotPassphrase: () => console.log('onForgotPassphrase'),
+}
+
+const updatePassphraseMap: DumbComponentMap<UpdatePassphrase> = {
+  component: UpdatePassphrase,
+  mocks: {
+    'Normal - Empty': {
+      ...updatePassphraseBase,
+      currentPassphrase: '',
+      newPassphrase: '',
+      newPassphraseConfirm: '',
+      canSave: false,
+    },
+    'Normal': updatePassphraseBase,
+    'Normal - Show Typing': {
+      ...updatePassphraseBase,
+      showTyping: true,
+    },
+    'Error - Wrong Passphrase': {
+      ...updatePassphraseBase,
+      errorMessage: 'Wrong current passphrase. Please try again.',
+      currentPassphrase: '',
+      canSave: false,
+    },
+    'Error - New Passphrase Requirements': {
+      ...updatePassphraseBase,
+      newPassphraseError: 'Your new passphrase must have minimum 12 characters.',
+      newPassphraseConfirm: '',
+    },
+    'Error - New Passphrase Mismatch': {
+      ...updatePassphraseBase,
+      newPassphraseConfirmError: 'Passphrase confirmation does not match.',
+    },
+  },
+}
+
+const paymentBase = {
+  onChangeCardNumber: () => console.log('onChangeCardNumber'),
+  onChangeName: () => console.log('onChangeName'),
+  onChangeExpiration: () => console.log('onChangeExpiration'),
+  onChangeSecurityCode: () => console.log('onChangeSecurityCode'),
+  cardNumber: '0001 0002 0003 4242',
+  name: 'Jessica Jones',
+  expiration: '01/2017',
+  securityCode: '123',
+  onBack: () => console.log('onBack'),
+  onSubmit: () => console.log('onSubmit'),
+}
+
+const paymentFormMap: DumbComponentMap<PaymentForm> = {
+  component: PaymentForm,
+  mocks: {
+    'Normal - Empty': {
+      ...paymentBase,
+      cardNumber: '',
+      name: '',
+      expiration: '',
+      securityCode: '',
+    },
+    'Normal': paymentBase,
+    'Normal - Error': {
+      ...paymentBase,
+      errorMessage: 'Please check your payment details.',
     },
   },
 }
@@ -174,10 +261,117 @@ const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
   },
 }
 
+const commonSettings = {
+  settings: [
+    {
+      name: 'follow',
+      subscribed: true,
+      description: 'when someone follows me',
+    },
+    {
+      name: 'twitter_friend_joined',
+      subscribed: true,
+      description: 'when someone I follow on Twitter joins',
+    },
+    {
+      name: 'filesystem_attention',
+      subscribed: true,
+      description: 'when the Keybase filesystem needs my attention',
+    },
+    {
+      name: 'newsletter',
+      subscribed: true,
+      description: 'Keybase news, once in a great while',
+    },
+  ],
+  unsubscribedFromAll: false,
+  onSave: () => console.log('onSave'),
+  onToggle: (name: string) => console.log('on toggle', name),
+  onToggleUnsubscribeAll: () => console.log('on subscribe all'),
+}
+
+const notificationsMap: DumbComponentMap<Notifications> = {
+  component: Notifications,
+  mocks: {
+    'Normal': {
+      ...commonSettings,
+    },
+    'UnsubAll': {
+      ...commonSettings,
+      unsubscribedFromAll: true,
+    },
+  },
+}
+
+const commonInvite = {
+  link: 'keybase.io/inv/9999999999',
+  parentProps: {
+    style: {
+      height: 500,
+      display: 'flex',
+    },
+  },
+  onClose: () => console.log('onClose clicked'),
+}
+
+const inviteGeneratedMap: DumbComponentMap<InviteGenerated> = {
+  component: InviteGenerated,
+  mocks: {
+    'Normal': {
+      ...commonInvite,
+      email: 'user@gmail.com',
+    },
+    'No email': {
+      ...commonInvite,
+      email: null,
+    },
+  },
+}
+
+const creditCardNoPast = {
+  type: 'credit-card-no-past',
+  onAddCreditCard: () => { console.log('onAddCreditCard') },
+}
+
+const creditCardWithPast = {
+  type: 'credit-card-with-past',
+  cardInfo: 'Visa **** 4242',
+  onPayWithSavedCard: () => { console.log('onPayWithSavedCard') },
+  onUpdateCard: () => { console.log('onPayWithSavedCard') },
+}
+
+const applePay = {
+  type: 'apple-pay',
+  onPayWithCardInstead: () => { console.log('onPayWithCardInstead') },
+}
+
+const planDetailsMap: DumbComponentMap<PlanDetails> = {
+  component: PlanDetails,
+  mocks: {
+    'Credit Card No Past': {
+      plan: 'Basic',
+      paymentOption: creditCardNoPast,
+    },
+    'Credit Card With Past': {
+      plan: 'Gold',
+      paymentOption: creditCardWithPast,
+    },
+    'Apple Pay': {
+      plan: 'Friend',
+      paymentOption: applePay,
+    },
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
+  UpdatePassphrase: updatePassphraseMap,
+  PaymentForm: paymentFormMap,
   Landing: landingMap,
   SettingsNav: settingsNavMap,
   DeleteMe: deleteMeMap,
   DeleteConfirm: deleteConfirmMap,
+  Notifications: notificationsMap,
+  InviteGenerated: inviteGeneratedMap,
+  PlanDetails: planDetailsMap,
 }

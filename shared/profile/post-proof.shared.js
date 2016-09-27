@@ -6,7 +6,7 @@ import type {Props} from './post-proof'
 import {Box, LinkWithIcon, Text} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 import {subtitle} from '../util/platforms'
-import {resolveImageAsURL} from '../../desktop/resolve-root'
+import FacebookDescription from './facebook-description'
 
 type MoreProps = {
   descriptionView?: ?any,
@@ -53,14 +53,7 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'facebook':
       return {
         ...base,
-        descriptionView: <Box style={{flexDirection: 'column'}}>
-          <Box>
-            <Text type='Body' {...styleCentered}>Click the link below and post. The text can be whatever you like, but make sure the post is <Text type='BodySemibold'>public</Text>, like this:</Text>
-          </Box>
-          <Box style={{padding: 20}}>
-            <img src={resolveImageAsURL('facebook_visibility.gif')} />
-          </Box>
-        </Box>,
+        descriptionView: <FacebookDescription />,
         proofText: null,
         proofActionText: 'Make a Facebook post',
         proofActionIcon: 'iconfont-open-browser',

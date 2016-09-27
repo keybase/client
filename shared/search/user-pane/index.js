@@ -3,7 +3,6 @@ import {fullName} from '../../constants/search'
 import keybaseUrl from '../../constants/urls'
 import {TypedConnector} from '../../util/typed-connect'
 import {getProfile, onFollow, onUnfollow} from '../../actions/tracker'
-import {setActive} from '../../actions/search'
 import {onClickAvatar, onClickFollowers, onClickFollowing} from '../../actions/profile'
 import openURL from '../../util/open-url'
 import Render from './render'
@@ -48,23 +47,15 @@ export default connector.connect(
             onFollow: () => { dispatch(onFollow(username, false)) },
             onUnfollow: () => { dispatch(onUnfollow(username)) },
             onAcceptProofs: () => { dispatch(onFollow(username, false)) },
-            onClickAvatar: () => {
-              dispatch(setActive(false))
-              dispatch(onClickAvatar(username, uid))
-            },
-            onClickFollowers: () => {
-              dispatch(setActive(false))
-              dispatch(onClickFollowers(username, uid))
-            },
-            onClickFollowing: () => {
-              dispatch(setActive(false))
-              dispatch(onClickFollowing(username, uid))
-            },
+            onClickAvatar: () => { dispatch(onClickAvatar(username, uid)) },
+            onClickFollowers: () => { dispatch(onClickFollowers(username, uid)) },
+            onClickFollowing: () => { dispatch(onClickFollowing(username, uid)) },
           },
         }
       } else {
         // We have to fetch the tracker state, so lets do that.
-        dispatch(getProfile(username))
+        // We have to defer this as we're essentially in a constructor and react doesn't like this
+        setImmediate(() => dispatch(getProfile(username)))
 
         // Enter loading mode, when the store gets updated we'll come back to here
         return {

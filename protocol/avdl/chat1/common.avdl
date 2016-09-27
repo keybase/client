@@ -52,11 +52,12 @@ protocol common {
     union { null, TLFVisibility } tlfVisibility;
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
-    bool unreadOnly;
+    union { null, boolean } oneChatTypePerTLF;
+    boolean unreadOnly;
   }
 
   record GetThreadQuery {
-    bool markAsRead;
+    boolean markAsRead;
     array<MessageType> messageTypes;
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
@@ -71,6 +72,7 @@ protocol common {
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
+    bool isFinalized;
   }
 
   record ConversationReaderInfo {
@@ -105,6 +107,7 @@ protocol common {
   record MessageClientHeader {
     ConversationIDTriple conv;
     string tlfName;
+    boolean tlfPublic;
     MessageType messageType;
     MessageID supersedes;
     array<MessagePreviousPointer> prev;

@@ -12,9 +12,23 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
+// Though I've never seen this come up in production, it definitely comes up
+// in systests that multiple go-routines might race over the current
+// working directory as they do the (chdir && dial) dance below. Make sure
+// a lock is held whenever operating on sockets, so that two racing goroutines
+// can't conflict here.
+var bindLock sync.Mutex
+
 func (s SocketInfo) BindToSocket() (net.Listener, error) {
+
+	// Lock so that multiple goroutines can't race over current working dir.
+	// See note above.
+	bindLock.Lock()
+	defer bindLock.Unlock()
+
 	bindFile := s.bindFile
 	if err := MakeParentDirs(bindFile); err != nil {
 		return nil, err
@@ -24,6 +38,7 @@ func (s SocketInfo) BindToSocket() (net.Listener, error) {
 	// In this case Chdir to the file directory first.
 	// https://github.com/golang/go/issues/6895#issuecomment-98006662
 	if len(bindFile) >= 108 {
+
 		prevWd, err := os.Getwd()
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)
@@ -53,6 +68,12 @@ func (s SocketInfo) DialSocket() (net.Conn, error) {
 }
 
 func (s SocketInfo) dialSocket(dialFile string) (net.Conn, error) {
+
+	// Lock so that multiple goroutines can't race over current working dir.
+	// See note above.
+	bindLock.Lock()
+	defer bindLock.Unlock()
+
 	if dialFile == "" {
 		return nil, fmt.Errorf("Can't dial empty path")
 	}

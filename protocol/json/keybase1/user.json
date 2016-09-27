@@ -193,11 +193,11 @@
           "name": "fullName"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "isFollower"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "isFollowee"
         }
       ]
@@ -448,7 +448,7 @@
         },
         {
           "name": "reverse",
-          "type": "bool"
+          "type": "boolean"
         }
       ],
       "response": "UserSummary2Set"

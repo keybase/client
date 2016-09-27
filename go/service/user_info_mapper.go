@@ -1,32 +1,91 @@
 package service
 
 import (
+	"fmt"
+	"sync"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-// UserInfoMapper looks for username and device name with given UIDs and
-// DeviceIDs. This would be a frequent operation for chat, so we should cache
-// lookup results.
-//
-// TODO: cache
+type uictxkey int
+
+var uiKey uictxkey = 1
+
+// userInfoMapper looks up usernames and device names, memoizing the results.
+// Only intended to be used for a single request (i.e., getting all the
+// users and devices for a thread).
 type userInfoMapper struct {
-	g *libkb.GlobalContext
+	users       map[keybase1.UID]*libkb.User
+	deviceNames map[string]string
+	libkb.Contextified
+	sync.Mutex
 }
 
-func (m userInfoMapper) getUsername(ctx context.Context, uid keybase1.UID) (string, error) {
-	arg := libkb.NewLoadUserByUIDArg(m.g, uid)
-	arg.PublicKeyOptional = true
-	u, err := libkb.LoadUser(arg)
-	if err != nil {
-		// TODO: populate this error when we have integration test
-		return "getting username error", nil
+func userInfoFromContext(ctx context.Context) (*userInfoMapper, bool) {
+	ui, ok := ctx.Value(uiKey).(*userInfoMapper)
+	return ui, ok
+}
+
+func getUserInfoMapper(ctx context.Context, g *libkb.GlobalContext) (context.Context, *userInfoMapper) {
+	ui, ok := userInfoFromContext(ctx)
+	if ok {
+		return ctx, ui
 	}
-	return u.GetName(), nil
+	ui = newUserInfoMapper(g)
+	return context.WithValue(ctx, uiKey, ui), ui
 }
 
-func (m userInfoMapper) getDeviceName(ctx context.Context, did keybase1.DeviceID) (string, error) {
-	return "unimplemented", nil
+func newUserInfoMapper(g *libkb.GlobalContext) *userInfoMapper {
+	return &userInfoMapper{
+		users:        make(map[keybase1.UID]*libkb.User),
+		deviceNames:  make(map[string]string),
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (u *userInfoMapper) lookup(uid keybase1.UID, deviceID keybase1.DeviceID) (username, deviceName string, err error) {
+	user, err := u.user(uid)
+	if err != nil {
+		return "", "", err
+	}
+
+	u.Lock()
+	defer u.Unlock()
+
+	dkey := fmt.Sprintf("%s:%s", uid, deviceID)
+	dname, ok := u.deviceNames[dkey]
+	if !ok {
+		d, err := user.GetDevice(deviceID)
+		if err != nil {
+			return "", "", err
+		}
+		if d.Description == nil {
+			return "", "", fmt.Errorf("nil device name for %s", dkey)
+		}
+		dname = *d.Description
+		u.deviceNames[dkey] = dname
+	}
+
+	return user.GetNormalizedName().String(), dname, nil
+}
+
+func (u *userInfoMapper) user(uid keybase1.UID) (*libkb.User, error) {
+	u.Lock()
+	defer u.Unlock()
+
+	user, ok := u.users[uid]
+	if !ok {
+		arg := libkb.NewLoadUserByUIDArg(u.G(), uid)
+		arg.PublicKeyOptional = true
+		var err error
+		user, err = libkb.LoadUser(arg)
+		if err != nil {
+			return nil, err
+		}
+		u.users[uid] = user
+	}
+	return user, nil
 }

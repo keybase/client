@@ -66,8 +66,16 @@ protocol remote {
 
   PostRemoteRes postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
   NewConversationRemoteRes newConversationRemote(ConversationIDTriple idTriple);
+
+  // on duplication of idTriple, and error is returned and the conversation ID of the existing conversation is returned.
   NewConversationRemoteRes newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage);
   GetMessagesRemoteRes getMessagesRemote(ConversationID conversationID, array<MessageID> messageIDs);
 
   MarkAsReadRes markAsRead(ConversationID conversationID, MessageID msgID);
+
+  // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
+  // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest
+  // conversation per TLF ID on GetInboxRemote.
+  bool tlfFinalize(TLFID tlfID);
+
 }

@@ -76,7 +76,10 @@ protocol constants {
     SCChatUnknownTLFID_2503,
     SCChatNotInConv_2504,
     SCChatBadMsg_2505,
-    SCChatBroadcast_2506
+    SCChatBroadcast_2506,
+    SCChatAlreadySuperseded_2507,
+    SCChatAlreadyDeleted_2508,
+    SCChatTLFFinalized_2509
   }
 
 }

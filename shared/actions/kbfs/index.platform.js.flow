@@ -1,6 +1,5 @@
 // @flow
-import type {AsyncAction} from '../../constants/types/flux'
+import type {FSOpen} from '../../constants/kbfs'
+import type {SagaGenerator} from '../../constants/types/saga'
 
-export function openInKBFS (path: string = ''): AsyncAction {
-  return (dispatch, getState) => {}
-}
+export function * openSaga (action: FSOpen): SagaGenerator<any, any> {}

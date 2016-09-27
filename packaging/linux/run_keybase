@@ -36,7 +36,7 @@ if which flock &> /dev/null && [ -e "$lockfile" ] ; then
   flock "$lockfile" true
 fi
 
-export KEYBASE_RUN_MODE=prod
+export KEYBASE_RUN_MODE="${KEYBASE_RUN_MODE:-prod}"
 export KEYBASE_DEBUG=1
 logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
 mkdir -p "$logdir"

@@ -18,7 +18,7 @@ const defines = {
 console.warn('Injecting dev defines: ', defines)
 
 config.debug = true
-config.devtool = NO_SOURCE_MAPS ? undefined : 'cheap-module-eval-source-map'
+config.devtool = NO_SOURCE_MAPS ? undefined : 'inline-source-map'
 config.pathinfo = true
 config.output.publicPath = 'http://localhost:4000/dist/'
 
@@ -38,6 +38,7 @@ config.plugins.push(new UnusedFilesWebpackPlugin({
       '../shared/constants/types/flux.js',
       '../shared/constants/types/saga.js',
       '../shared/constants/reducer.js',
+      '../shared/flow-typed/*.js',
       // Tests
       '../shared/test/**',
       // Misc

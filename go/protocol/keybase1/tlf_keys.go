@@ -20,13 +20,26 @@ type TLFCryptKeys struct {
 	CryptKeys     []CryptKey       `codec:"CryptKeys" json:"CryptKeys"`
 }
 
+type CanonicalTLFNameAndID struct {
+	TlfID         TLFID            `codec:"tlfID" json:"tlfID"`
+	CanonicalName CanonicalTlfName `codec:"CanonicalName" json:"CanonicalName"`
+}
+
 type GetTLFCryptKeysArg struct {
 	TlfName string `codec:"tlfName" json:"tlfName"`
 }
 
+type GetPublicCanonicalTLFNameAndIDArg struct {
+	TlfName string `codec:"tlfName" json:"tlfName"`
+}
+
 type TlfKeysInterface interface {
-	// getTLFCryptKeys returns TLF crypt keys from all generations.
+	// getTLFCryptKeys returns TLF crypt keys from all generations and the TLF ID.
+	// TLF ID should not be cached or stored persistently.
 	GetTLFCryptKeys(context.Context, string) (TLFCryptKeys, error)
+	// getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.
+	// TLF ID should not be cached or stored persistently.
+	GetPublicCanonicalTLFNameAndID(context.Context, string) (CanonicalTLFNameAndID, error)
 }
 
 func TlfKeysProtocol(i TlfKeysInterface) rpc.Protocol {
@@ -49,6 +62,22 @@ func TlfKeysProtocol(i TlfKeysInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getPublicCanonicalTLFNameAndID": {
+				MakeArg: func() interface{} {
+					ret := make([]GetPublicCanonicalTLFNameAndIDArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetPublicCanonicalTLFNameAndIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetPublicCanonicalTLFNameAndIDArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPublicCanonicalTLFNameAndID(ctx, (*typedArgs)[0].TlfName)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -57,9 +86,18 @@ type TlfKeysClient struct {
 	Cli rpc.GenericClient
 }
 
-// getTLFCryptKeys returns TLF crypt keys from all generations.
+// getTLFCryptKeys returns TLF crypt keys from all generations and the TLF ID.
+// TLF ID should not be cached or stored persistently.
 func (c TlfKeysClient) GetTLFCryptKeys(ctx context.Context, tlfName string) (res TLFCryptKeys, err error) {
 	__arg := GetTLFCryptKeysArg{TlfName: tlfName}
 	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getTLFCryptKeys", []interface{}{__arg}, &res)
+	return
+}
+
+// getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.
+// TLF ID should not be cached or stored persistently.
+func (c TlfKeysClient) GetPublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res CanonicalTLFNameAndID, err error) {
+	__arg := GetPublicCanonicalTLFNameAndIDArg{TlfName: tlfName}
+	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID", []interface{}{__arg}, &res)
 	return
 }

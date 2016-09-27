@@ -306,6 +306,7 @@ const choiceListMap: DumbComponentMap<ChoiceList> = {
 const standardScreenProps = {
   onClose: () => console.log('StandardScreen: onClose'),
   children: <Text type='Header'>Whoa, look at this centered thing</Text>,
+  parentProps: {style: {display: 'flex', height: 578}},
 }
 
 const standardScreenMap: DumbComponentMap<StandardScreen> = {
@@ -326,6 +327,20 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
       notification: {
         message: <Text type='BodySmallSemibold' style={{color: globalColors.white}}>You won a unicorn! <Text type='BodySmallSemibold' style={{color: globalColors.white, textDecoration: 'underline'}}>Make sure to feed it</Text> :-)</Text>,
         type: 'success',
+      },
+    },
+    'Back Button': {
+      ...standardScreenProps,
+      onClose: null,
+      onBack: () => console.log('StandardScreen: onBack'),
+    },
+    'Error w/ Back Button': {
+      ...standardScreenProps,
+      onClose: null,
+      onBack: () => console.log('StandardScreen: onBack'),
+      notification: {
+        message: 'This is an error, but you can go back!',
+        type: 'error',
       },
     },
   },

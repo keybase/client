@@ -142,7 +142,7 @@ export function remindGetRemindersRpcPromise (request: $Exact<requestCommon & {c
 export type AuthResult = {
   uid: UID,
   sid: SessionID,
-  isAdmin: bool,
+  isAdmin: boolean,
 }
 
 export type Body = bytes
@@ -215,7 +215,7 @@ export type ReminderID = {
 
 export type ReminderSet = {
   reminders?: ?Array<Reminder>,
-  moreRemindersReady: bool,
+  moreRemindersReady: boolean,
 }
 
 export type SessionID = string

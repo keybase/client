@@ -66,6 +66,7 @@ type Plist struct {
 	args      []string
 	envVars   []EnvVar
 	keepAlive bool
+	runAtLoad bool
 	logPath   string
 	comment   string
 }
@@ -78,6 +79,7 @@ func NewPlist(label string, binPath string, args []string, envVars []EnvVar, log
 		args:      args,
 		envVars:   envVars,
 		keepAlive: true,
+		runAtLoad: false,
 		logPath:   logPath,
 		comment:   comment,
 	}
@@ -242,16 +244,22 @@ func (s Service) install(p Plist, plistDest string, wait time.Duration) error {
 
 // Uninstall will uninstall the launchd service
 func (s Service) Uninstall(wait time.Duration) error {
-	if _, err := s.Stop(wait); err != nil {
-		return err
-	}
-
+	errs := []error{}
+	// It's safer to remove the plist before stopping in case stopping
+	// hangs the system somehow, the plist will still be removed.
 	plistDest := s.plistDestination()
 	if _, err := os.Stat(plistDest); err == nil {
 		s.log.Info("Removing %s", plistDest)
-		return os.Remove(plistDest)
+		if err := os.Remove(plistDest); err != nil {
+			errs = append(errs, err)
+		}
 	}
-	return nil
+
+	if _, err := s.Stop(wait); err != nil {
+		errs = append(errs, err)
+	}
+
+	return libkb.CombineErrors(errs...)
 }
 
 // ListServices will return service with label that starts with a filter string.
@@ -527,6 +535,8 @@ func (p Plist) plistXML() string {
 	options := []string{}
 	if p.keepAlive {
 		options = append(options, encodeTag("key", "KeepAlive"), encodeBool(true))
+	}
+	if p.runAtLoad {
 		options = append(options, encodeTag("key", "RunAtLoad"), encodeBool(true))
 	}
 

@@ -582,6 +582,39 @@ var interpUnitTests = []interpUnitTest{
 		errstatus:  keybase1.ProofStatus_INVALID_PVL,
 	},
 
+	// ## Tests for bad proofinfo
+	{
+		name:       "bad-sig-path-in-domain-web",
+		proofinfo:  infoBadDomain,
+		prepvlstr:  `{"pvl_version": 1, "revision": 2, "services": {"generic_web_site": [{"fetch": "html"}]}}`,
+		service:    keybase1.ProofType_GENERIC_WEB_SITE,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_BAD_SIGNATURE,
+	},
+	{
+		name:      "bad-sig-path-in-domain-dns",
+		proofinfo: infoBadDomain,
+		prepvlstr: `{"pvl_version": 1, "revision": 2, "services": {"dns": [{"assert_regex_match": "$foo^"}]}}`,
+		service:   keybase1.ProofType_DNS,
+		resdns: map[string][]string{
+			info1.Hostname: {"NO", "ok"},
+		},
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_BAD_SIGNATURE,
+	},
+	{
+		name:       "bad-sig-proto",
+		proofinfo:  infoBadProto,
+		prepvlstr:  `{"pvl_version": 1, "revision": 2, "services": {"generic_web_site": [{"fetch": "html"}]}}`,
+		service:    keybase1.ProofType_GENERIC_WEB_SITE,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_BAD_SIGNATURE,
+	},
+
 	// ## (Invalid) AssertRegexMatch
 	{
 		name:      "AssertRegexMatch-invalid-missing^",

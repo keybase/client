@@ -65,6 +65,26 @@ func TestNewConversationLocal(t *testing.T) {
 	}
 }
 
+func TestNewChatConversationLocalTwice(t *testing.T) {
+	ctc := makeChatTestContext(t, "NewConversationLocal")
+	defer ctc.tc.Cleanup()
+
+	c1 := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
+	c2 := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
+
+	if c2.Id != c1.Id {
+		t.Fatalf("2nd call to NewConversationLocal for a chat conversation did not return the same conversation ID")
+	}
+}
+
+func TestNewDevConversationLocalTwice(t *testing.T) {
+	ctc := makeChatTestContext(t, "NewConversationLocal")
+	defer ctc.tc.Cleanup()
+
+	mustCreateConversationForTest(t, ctc, chat1.TopicType_DEV, "t_alice")
+	mustCreateConversationForTest(t, ctc, chat1.TopicType_DEV, "t_alice")
+}
+
 func TestResolveConversationLocal(t *testing.T) {
 	t.Skip("this needs to be fixed")
 	ctc := makeChatTestContext(t, "ResolveConversationLocal")
@@ -210,7 +230,7 @@ func TestGetInboxSummaryLocal(t *testing.T) {
 	if len(res.Conversations) != 3 {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 3 items, got %d\n", len(res.Conversations))
 	}
-	if res.Conversations[0].Id != withCharlie.Id {
+	if res.Conversations[0].Info.Id != withCharlie.Id {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal; newest updated conversation is not the first in response.\n")
 	}
 	if len(res.Conversations[0].Messages) != 2 {

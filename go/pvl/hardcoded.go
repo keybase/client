@@ -29,8 +29,8 @@ var hardcodedPVLString = `
     "dns": [{ "assert_regex_match": "^keybase-site-verification=%{sig_id_medium}$" }],
     "generic_web_site": [
       {
-        "assert_regex_match": "^https?://%{hostname}/(?:\\.well-known/keybase\\.txt|keybase\\.txt)$",
-        "case_insensitive": true
+        "assert_regex_match": "^%{protocol}://%{hostname}/(?:\\.well-known/keybase\\.txt|keybase\\.txt)$",
+        "error": ["BAD_API_URL", "Bad hint from server; didn't recognize API url: \"%{active_string}\""]
       },
       { "fetch": "string" },
       { "assert_find_base64": "sig" }
@@ -88,7 +88,11 @@ var hardcodedPVLString = `
         "attr": "data-screen-name",
         "selector_css": ["div.permalink-tweet-container div.permalink-tweet", 0]
       },
-      { "assert_regex_match": "^%{username_service}$", "case_insensitive": true },
+      {
+        "assert_regex_match": "^%{username_service}$",
+        "case_insensitive": true,
+        "error": ["CONTENT_FAILURE", "Bad post authored; wanted \"%{username_service}\", got \"%{active_string}\""]
+      },
       { "selector_css": ["div.permalink-tweet-container div.permalink-tweet", 0, "p.tweet-text", 0] },
       { "whitespace_normalize": true },
       {

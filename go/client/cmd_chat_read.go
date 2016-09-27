@@ -4,8 +4,6 @@
 package client
 
 import (
-	"fmt"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -49,7 +47,11 @@ func (c *cmdChatRead) Run() error {
 	case 0:
 		ui.Printf("no conversations found\n")
 	case 1:
-		conversationView(conversations[0]).show(c.G(), ui)
+		ui.Printf("\n")
+		if err = conversationView(conversations[0]).show(c.G()); err != nil {
+			return err
+		}
+		ui.Printf("\n")
 	default:
 		// TODO: prompt user to choose one
 		ui.Printf("multiple conversations found\n")
@@ -59,10 +61,10 @@ func (c *cmdChatRead) Run() error {
 }
 
 func (c *cmdChatRead) ParseArgv(ctx *cli.Context) (err error) {
-	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("keybase chat read current takes exactly 1 arg")
+	var tlfName string
+	if len(ctx.Args()) >= 1 {
+		tlfName = ctx.Args().Get(0)
 	}
-	tlfName := ctx.Args().Get(0)
 	if c.fetcher, err = makeMessageFetcherFromCliCtx(ctx, tlfName, true); err != nil {
 		return err
 	}
