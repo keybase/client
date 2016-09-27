@@ -17,7 +17,7 @@ function reducer (state: State = initialState, action: Actions): State {
     case CommonConstants.resetStore:
       return {...initialState}
     case Constants.notificationsToggle:
-      if (!state.notifications.settings) {
+      if (!state.notifications.settings || !state.notifications.allowEdit) {
         return state
       }
 
