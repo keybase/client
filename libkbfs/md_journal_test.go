@@ -525,6 +525,66 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	flushAllMDs(t, ctx, signer, j)
 }
 
+type mdIDJournalEntryExtra struct {
+	mdIDJournalEntry
+	Extra int
+}
+
+func TestMDJournalBranchConversionPreservesUnknownFields(t *testing.T) {
+	codec, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	var expectedEntries []mdIDJournalEntry
+
+	firstRevision := MetadataRevision(5)
+	mdCount := 5
+	prevRoot := fakeMdID(1)
+	ctx := context.Background()
+	for i := 0; i < mdCount; i++ {
+		revision := firstRevision + MetadataRevision(i)
+		md := makeMDForTest(t, id, revision, j.uid, prevRoot)
+		mdID, err := j.put(ctx, signer, ekg, bsplit, md)
+		require.NoError(t, err)
+
+		// Add extra fields to the journal entry.
+		entryFuture := mdIDJournalEntryExtra{
+			mdIDJournalEntry: mdIDJournalEntry{
+				ID: mdID,
+			},
+			Extra: i,
+		}
+		var entry mdIDJournalEntry
+		err = kbfscodec.Update(codec, &entry, entryFuture)
+		require.NoError(t, err)
+		o, err := revisionToOrdinal(revision)
+		require.NoError(t, err)
+		j.j.j.writeJournalEntry(o, entry)
+
+		// Zero out the MdID, since branch conversion changes
+		// it.
+		entry.ID = MdID{}
+		expectedEntries = append(expectedEntries, entry)
+
+		prevRoot = mdID
+	}
+
+	_, err := j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	require.NoError(t, err)
+
+	// Check that the extra fields are preserved.
+	_, entries, err := j.j.getEntryRange(
+		firstRevision, firstRevision+MetadataRevision(mdCount))
+	require.NoError(t, err)
+	// Zero out MdIDs for comparison.
+	for i, entry := range entries {
+		entry.ID = MdID{}
+		entries[i] = entry
+	}
+	require.Equal(t, expectedEntries, entries)
+
+	flushAllMDs(t, ctx, signer, j)
+}
+
 func TestMDJournalClear(t *testing.T) {
 	_, _, id, signer, ekg, bsplit, tempdir, j := setupMDJournalTest(t)
 	defer teardownMDJournalTest(t, tempdir)
