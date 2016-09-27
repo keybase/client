@@ -181,6 +181,9 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	// no auto reclamation
 	config.qrPeriod = 0 * time.Second
 
+	// no min head age
+	config.qrMinHeadAge = 0 * time.Second
+
 	configs := []Config{config}
 	config.allKnownConfigsForTesting = &configs
 

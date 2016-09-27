@@ -4010,6 +4010,16 @@ func (_mr *_MockConfigRecorder) QuotaReclamationMinUnrefAge() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "QuotaReclamationMinUnrefAge")
 }
 
+func (_m *MockConfig) QuotaReclamationMinHeadAge() time.Duration {
+	ret := _m.ctrl.Call(_m, "QuotaReclamationMinHeadAge")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) QuotaReclamationMinHeadAge() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "QuotaReclamationMinHeadAge")
+}
+
 func (_m *MockConfig) ResetCaches() {
 	_m.ctrl.Call(_m, "ResetCaches")
 }
