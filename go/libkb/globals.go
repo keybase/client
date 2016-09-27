@@ -182,8 +182,12 @@ func (g *GlobalContext) Logout() error {
 	if g.Identify2Cache != nil {
 		g.Identify2Cache.Shutdown()
 	}
+	if g.CardCache != nil {
+		g.CardCache.Shutdown()
+	}
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
+	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
 
 	// get a clean LoginState:
 	g.createLoginStateLocked()

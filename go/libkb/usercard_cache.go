@@ -26,8 +26,9 @@ func NewUserCardCache(maxAge time.Duration) *UserCardCache {
 }
 
 // Get looks for a keybase1.UserCard for uid.  It returns nil, nil if not found.
-func (c *UserCardCache) Get(uid keybase1.UID) (*keybase1.UserCard, error) {
-	v, err := c.cache.Get(uid.String())
+// useSession is set if the card is being looked up with a session.
+func (c *UserCardCache) Get(uid keybase1.UID, useSession bool) (*keybase1.UserCard, error) {
+	v, err := c.cache.Get(c.key(uid, useSession))
 	if err != nil {
 		if err == ramcache.ErrNotFound {
 			return nil, nil
@@ -41,12 +42,21 @@ func (c *UserCardCache) Get(uid keybase1.UID) (*keybase1.UserCard, error) {
 	return &card, nil
 }
 
-// Set stores card in the UserCardCache.
-func (c *UserCardCache) Set(card *keybase1.UserCard) error {
-	return c.cache.Set(card.Uid.String(), *card)
+// Set stores card in the UserCardCache.  usedSession is set based on
+// whether user/card was looked up with a session or not.
+func (c *UserCardCache) Set(card *keybase1.UserCard, usedSession bool) error {
+	return c.cache.Set(c.key(card.Uid, usedSession), *card)
 }
 
 // Shutdown stops any goroutines in the cache.
 func (c *UserCardCache) Shutdown() {
 	c.cache.Shutdown()
+}
+
+func (c *UserCardCache) key(uid keybase1.UID, session bool) string {
+	suffix := "0"
+	if session {
+		suffix = "1"
+	}
+	return uid.String() + ":" + suffix
 }
