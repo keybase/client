@@ -17,7 +17,11 @@ function reducer (state: State = initialState, action: Actions): State {
     case CommonConstants.resetStore:
       return {...initialState}
     case Constants.notificationsToggle:
-      if (!state.notifications.settings || !state.notifications.allowEdit) {
+      if (!state.notifications.settings) {
+        console.log('Warning: trying to toggle while not loaded')
+        return state
+      } else if (!state.notifications.allowEdit) {
+        console.log('Warning: trying to toggle while allowEdit false')
         return state
       }
 
