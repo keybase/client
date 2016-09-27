@@ -3,10 +3,8 @@
 import {remote} from 'electron'
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
-// import {favoriteList} from '../actions/favorite'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import {pgpKeyInSecretStoreFile} from '../constants/pgp'
-// import {cacheIdentify} from '../constants/tracker'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
@@ -56,14 +54,5 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
       dispatch({type: pgpKeyInSecretStoreFile, payload: undefined})
     },
-    // 'keybase.1.NotifyUsers.userChanged': ({uid}) => {
-      // dispatch({type: cacheIdentify, payload: {uid, goodTill: 0}}) // clear identify cache
-    // },
-    // 'keybase.1.NotifyTracking.trackingChanged': ({username}) => {
-      // const trackerState = getState().tracker.trackers[username]
-      // if (trackerState && trackerState.type === 'tracker') {
-        // dispatch(getProfile(username))
-      // }
-    // },
   }
 }
