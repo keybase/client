@@ -75,13 +75,14 @@ const Render = ({banner, name, type, deviceID, currentDevice, timeline,
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-      <BackButton style={{marginLeft: 13, marginTop: 13}} onClick={onBack} />
+      <BackButton style={{alignSelf: 'flex-start', marginLeft: 13, marginTop: 13}} onClick={onBack} />
       {(banner != null) && <Banner type={banner.type} desc={banner.desc} />}
       <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1, marginTop: 32}} />
       <Header name={name} isCurrent={currentDevice} isRevoked={revokedAt} />
       {!!timeline && <Timeline timeline={timeline} />}
       {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={() => showRemoveDevicePage(device)} />}
-    </Box>)
+    </Box>
+  )
 }
 
 const stylesBanner = {
