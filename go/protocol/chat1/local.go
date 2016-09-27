@@ -318,25 +318,21 @@ func NewBodyPlaintextWithV1(v BodyPlaintextV1) BodyPlaintext {
 	}
 }
 
-type MessageInfoLocal struct {
-	SenderUsername   string `codec:"senderUsername" json:"senderUsername"`
-	SenderDeviceName string `codec:"senderDeviceName" json:"senderDeviceName"`
-}
-
-type MessageFromServerUnboxed struct {
+type MessageFromServer struct {
 	ServerHeader     MessageServerHeader `codec:"serverHeader" json:"serverHeader"`
 	MessagePlaintext MessagePlaintext    `codec:"messagePlaintext" json:"messagePlaintext"`
+	SenderUsername   string              `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName string              `codec:"senderDeviceName" json:"senderDeviceName"`
 }
 
-type MessageFromServerUnboxedWithContext struct {
-	UnboxingError *string                   `codec:"unboxingError,omitempty" json:"unboxingError,omitempty"`
-	Message       *MessageFromServerUnboxed `codec:"message,omitempty" json:"message,omitempty"`
-	Info          *MessageInfoLocal         `codec:"info,omitempty" json:"info,omitempty"`
+type MessageFromServerOrError struct {
+	UnboxingError *string            `codec:"unboxingError,omitempty" json:"unboxingError,omitempty"`
+	Message       *MessageFromServer `codec:"message,omitempty" json:"message,omitempty"`
 }
 
 type ThreadView struct {
-	Messages   []MessageFromServerUnboxedWithContext `codec:"messages" json:"messages"`
-	Pagination *Pagination                           `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages   []MessageFromServerOrError `codec:"messages" json:"messages"`
+	Pagination *Pagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 type MessageSelector struct {
@@ -358,9 +354,9 @@ type ConversationInfoLocal struct {
 }
 
 type ConversationLocal struct {
-	Info     *ConversationInfoLocal                `codec:"info,omitempty" json:"info,omitempty"`
-	Messages []MessageFromServerUnboxedWithContext `codec:"messages" json:"messages"`
-	ReadUpTo MessageID                             `codec:"readUpTo" json:"readUpTo"`
+	Info     *ConversationInfoLocal     `codec:"info,omitempty" json:"info,omitempty"`
+	Messages []MessageFromServerOrError `codec:"messages" json:"messages"`
+	ReadUpTo MessageID                  `codec:"readUpTo" json:"readUpTo"`
 }
 
 type GetInboxSummaryLocalRes struct {

@@ -257,10 +257,8 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 				}
 				msg.Content = c.convertMsgBody(v1.MessageBody)
 
-				if m.Info != nil {
-					msg.Sender.Username = m.Info.SenderUsername
-					msg.Sender.DeviceName = m.Info.SenderDeviceName
-				}
+				msg.Sender.Username = m.Message.SenderUsername
+				msg.Sender.DeviceName = m.Message.SenderDeviceName
 
 				thread.Messages = append(thread.Messages, MsgFromServer{
 					Msg: &msg,
@@ -278,6 +276,8 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			})
 			continue
 		}
+
+		return c.errReply(errors.New("unexpected response from service: UnboxingError and Message are both empty"))
 	}
 
 	return Reply{Result: thread}

@@ -175,20 +175,19 @@ func (v conversationView) show(g *libkb.GlobalContext) error {
 	return nil
 }
 
-type messageFormatter chat1.MessageFromServerUnboxedWithContext
+type messageFormatter chat1.MessageFromServerOrError
 
 func (f messageFormatter) authorAndTime() string {
-	m := chat1.MessageFromServerUnboxedWithContext(f)
-	info := m.Info
-	if info == nil {
+	m := chat1.MessageFromServerOrError(f)
+	if m.Message == nil {
 		return ""
 	}
 	t := gregor1.FromTime(m.Message.ServerHeader.Ctime)
-	return fmt.Sprintf("%s %s", info.SenderUsername, shortDurationFromNow(t))
+	return fmt.Sprintf("%s %s", m.Message.SenderUsername, shortDurationFromNow(t))
 }
 
 func (f messageFormatter) body(g *libkb.GlobalContext) (string, error) {
-	m := chat1.MessageFromServerUnboxedWithContext(f)
+	m := chat1.MessageFromServerOrError(f)
 	if m.Message != nil {
 		version, err := m.Message.MessagePlaintext.Version()
 		if err != nil {

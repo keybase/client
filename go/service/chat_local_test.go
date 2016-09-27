@@ -215,7 +215,7 @@ func TestGracefulUnboxing(t *testing.T) {
 	if len(tv.Messages) != 3 {
 		t.Fatalf("unexpected response from GetThreadLocal. expected 4 items, got %d\n", len(tv.Messages))
 	}
-	if tv.Messages[0].Message != nil || tv.Messages[0].Info != nil ||
+	if tv.Messages[0].Message != nil ||
 		tv.Messages[0].UnboxingError == nil || len(*tv.Messages[0].UnboxingError) == 0 {
 		t.Fatalf("unexpected response from GetThreadLocal. expected an error message from bad msg, got %#+v\n", tv.Messages[0])
 	}

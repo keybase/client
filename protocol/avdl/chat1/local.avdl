@@ -93,24 +93,20 @@ protocol local {
     case V1: BodyPlaintextV1;
   }
 
-  record MessageInfoLocal {
+  record MessageFromServer {
+    MessageServerHeader serverHeader;
+    MessagePlaintext messagePlaintext;
     string senderUsername;
     string senderDeviceName;
   }
 
-  record MessageFromServerUnboxed {
-    MessageServerHeader serverHeader;
-    MessagePlaintext messagePlaintext;
-  }
-
-  record MessageFromServerUnboxedWithContext {
+  record MessageFromServerOrError {
     union { null, string } unboxingError;
-    union { null, MessageFromServerUnboxed } message;
-    union { null, MessageInfoLocal } info;
+    union { null, MessageFromServer } message;
   }
 
   record ThreadView {
-    array<MessageFromServerUnboxedWithContext> messages;
+    array<MessageFromServerOrError> messages;
     union { null, Pagination } pagination;
   }
 
@@ -139,7 +135,7 @@ protocol local {
 
   record ConversationLocal {
     union { null, ConversationInfoLocal } info;
-    array<MessageFromServerUnboxedWithContext> messages;
+    array<MessageFromServerOrError> messages;
     MessageID readUpTo;
   }
 

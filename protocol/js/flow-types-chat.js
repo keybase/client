@@ -235,7 +235,7 @@ export type ConversationInfoLocal = {
 
 export type ConversationLocal = {
   info?: ?ConversationInfoLocal,
-  messages?: ?Array<MessageFromServerUnboxedWithContext>,
+  messages?: ?Array<MessageFromServerOrError>,
   readUpTo: MessageID,
 }
 
@@ -383,23 +383,19 @@ export type MessageEdit = {
   body: string,
 }
 
-export type MessageFromServerUnboxed = {
+export type MessageFromServer = {
   serverHeader: MessageServerHeader,
   messagePlaintext: MessagePlaintext,
-}
-
-export type MessageFromServerUnboxedWithContext = {
-  unboxingError?: ?string,
-  message?: ?MessageFromServerUnboxed,
-  info?: ?MessageInfoLocal,
-}
-
-export type MessageID = uint
-
-export type MessageInfoLocal = {
   senderUsername: string,
   senderDeviceName: string,
 }
+
+export type MessageFromServerOrError = {
+  unboxingError?: ?string,
+  message?: ?MessageFromServer,
+}
+
+export type MessageID = uint
 
 export type MessagePlaintext = 
     { version : 1, v1 : ?MessagePlaintextV1 }
@@ -494,7 +490,7 @@ export type TLFVisibility =
 export type ThreadID = bytes
 
 export type ThreadView = {
-  messages?: ?Array<MessageFromServerUnboxedWithContext>,
+  messages?: ?Array<MessageFromServerOrError>,
   pagination?: ?Pagination,
 }
 

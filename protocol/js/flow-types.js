@@ -1829,7 +1829,7 @@ export type ChallengeInfo = {
 
 export type ChatActivity = {
   ActivityType: ChatActivityType,
-  IncomingMessage?: ?chat1.MessageFromServerUnboxedWithContext,
+  IncomingMessage?: ?chat1.MessageFromServerOrError,
 }
 
 export type ChatActivityType = 

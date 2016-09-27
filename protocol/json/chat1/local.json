@@ -257,8 +257,16 @@
     },
     {
       "type": "record",
-      "name": "MessageInfoLocal",
+      "name": "MessageFromServer",
       "fields": [
+        {
+          "type": "MessageServerHeader",
+          "name": "serverHeader"
+        },
+        {
+          "type": "MessagePlaintext",
+          "name": "messagePlaintext"
+        },
         {
           "type": "string",
           "name": "senderUsername"
@@ -271,21 +279,7 @@
     },
     {
       "type": "record",
-      "name": "MessageFromServerUnboxed",
-      "fields": [
-        {
-          "type": "MessageServerHeader",
-          "name": "serverHeader"
-        },
-        {
-          "type": "MessagePlaintext",
-          "name": "messagePlaintext"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "MessageFromServerUnboxedWithContext",
+      "name": "MessageFromServerOrError",
       "fields": [
         {
           "type": [
@@ -297,16 +291,9 @@
         {
           "type": [
             null,
-            "MessageFromServerUnboxed"
+            "MessageFromServer"
           ],
           "name": "message"
-        },
-        {
-          "type": [
-            null,
-            "MessageInfoLocal"
-          ],
-          "name": "info"
         }
       ]
     },
@@ -317,7 +304,7 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageFromServerUnboxedWithContext"
+            "items": "MessageFromServerOrError"
           },
           "name": "messages"
         },
@@ -413,7 +400,7 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageFromServerUnboxedWithContext"
+            "items": "MessageFromServerOrError"
           },
           "name": "messages"
         },

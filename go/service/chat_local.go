@@ -73,15 +73,15 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.ConversationInfoLocal) (created chat1.ConversationInfoLocal, err error) {
 	h.G().Log.Debug("NewConversationLocal: %+v", info)
 	if err = h.assertLoggedIn(ctx); err != nil {
-		return created, err
+		return chat1.ConversationInfoLocal{}, err
 	}
 	res, err := h.boxer.tlf.CryptKeys(ctx, info.TlfName)
 	if err != nil {
-		return created, fmt.Errorf("error getting crypt keys %s", err)
+		return chat1.ConversationInfoLocal{}, fmt.Errorf("error getting crypt keys %s", err)
 	}
 	tlfIDb := res.TlfID.ToBytes()
 	if tlfIDb == nil {
-		return created, errors.New("invalid TlfID acquired")
+		return chat1.ConversationInfoLocal{}, errors.New("invalid TlfID acquired")
 	}
 	tlfID := chat1.TLFID(tlfIDb)
 
@@ -99,13 +99,13 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.
 			// cause insertion failure in database.
 
 			if info.Triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
-				return created, fmt.Errorf("error creating topic ID: %s", err)
+				return chat1.ConversationInfoLocal{}, fmt.Errorf("error creating topic ID: %s", err)
 			}
 		}
 
 		firstMessageBoxed, err := h.prepareMessageForRemote(ctx, makeFirstMessage(ctx, info))
 		if err != nil {
-			return created, fmt.Errorf("error preparing message: %s", err)
+			return chat1.ConversationInfoLocal{}, fmt.Errorf("error preparing message: %s", err)
 		}
 
 		var res chat1.NewConversationRemoteRes
@@ -134,7 +134,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info chat1.
 		return created, nil
 	}
 
-	return created, err
+	return chat1.ConversationInfoLocal{}, err
 }
 
 // UpdateTopicNameLocal implements keybase.chatLocal.updateTopicNameLocal protocol.
@@ -169,7 +169,7 @@ func makeFirstMessage(ctx context.Context, conversationInfo chat1.ConversationIn
 	return chat1.NewMessagePlaintextWithV1(v1)
 }
 
-func makeUnboxedMessageToUpdateTopicName(ctx context.Context, conversationInfo chat1.ConversationInfoLocal) (unboxed chat1.MessagePlaintext) {
+func makeUnboxedMessageToUpdateTopicName(ctx context.Context, conversationInfo chat1.ConversationInfoLocal) (messagePlaintext chat1.MessagePlaintext) {
 	v1 := chat1.MessagePlaintextV1{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conversationInfo.Triple,
@@ -205,21 +205,21 @@ func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg cha
 
 func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalArg) (res chat1.GetInboxSummaryLocalRes, err error) {
 	if err = h.assertLoggedIn(ctx); err != nil {
-		return res, err
+		return chat1.GetInboxSummaryLocalRes{}, err
 	}
 
 	var after time.Time
 	if len(arg.After) > 0 {
 		after, err = parseTimeFromRFC3339OrDurationFromPast(arg.After)
 		if err != nil {
-			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
+			return chat1.GetInboxSummaryLocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
 		}
 	}
 	var before time.Time
 	if len(arg.Before) > 0 {
 		before, err = parseTimeFromRFC3339OrDurationFromPast(arg.Before)
 		if err != nil {
-			return res, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
+			return chat1.GetInboxSummaryLocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
 		}
 	}
 
@@ -246,12 +246,12 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 
 	iview, err := h.GetInboxLocal(ctx, rpcArg)
 	if err != nil {
-		return res, err
+		return chat1.GetInboxSummaryLocalRes{}, err
 	}
 	for _, conv := range iview.Conversations {
 		info, maxMessages, err := h.getConversationInfo(ctx, conv)
 		if err != nil {
-			return res, err
+			return chat1.GetInboxSummaryLocalRes{}, err
 		}
 		c := chat1.ConversationLocal{
 			Info:     &info,
@@ -329,17 +329,17 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ch
 	return conversations, nil
 }
 
-func (h *chatLocalHandler) getConversationInfoByID(ctx context.Context, id chat1.ConversationID) (conversationInfo chat1.ConversationInfoLocal, maxMessages []chat1.MessageFromServerUnboxedWithContext, err error) {
+func (h *chatLocalHandler) getConversationInfoByID(ctx context.Context, id chat1.ConversationID) (conversationInfo chat1.ConversationInfoLocal, maxMessages []chat1.MessageFromServerOrError, err error) {
 	res, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query: &chat1.GetInboxQuery{
 			ConvID: &id,
 		},
 	})
 	if err != nil {
-		return conversationInfo, maxMessages, err
+		return chat1.ConversationInfoLocal{}, nil, err
 	}
 	if len(res.Inbox.Conversations) == 0 {
-		return conversationInfo, maxMessages, fmt.Errorf("unknown conversation: %v", id)
+		return chat1.ConversationInfoLocal{}, nil, fmt.Errorf("unknown conversation: %v", id)
 	}
 	return h.getConversationInfo(ctx, res.Inbox.Conversations[0])
 }
@@ -348,13 +348,13 @@ func (h *chatLocalHandler) getConversationInfoByID(ctx context.Context, id chat1
 // all fields filled in conversationInfo, along with a ConversationIDTriple
 //
 // TODO: cache
-func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversationRemote chat1.Conversation) (conversationInfo chat1.ConversationInfoLocal, maxMessages []chat1.MessageFromServerUnboxedWithContext, err error) {
+func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversationRemote chat1.Conversation) (conversationInfo chat1.ConversationInfoLocal, maxMessages []chat1.MessageFromServerOrError, err error) {
 
 	conversationInfo.Id = conversationRemote.Metadata.ConversationID
 	conversationInfo.TopicType = conversationRemote.Metadata.IdTriple.TopicType
 
 	if len(conversationRemote.MaxMsgs) == 0 {
-		return conversationInfo, maxMessages,
+		return chat1.ConversationInfoLocal{}, nil,
 			libkb.UnexpectedChatDataFromServer{Msg: "conversation has an empty MaxMsgs field"}
 	}
 
@@ -363,89 +363,90 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 	var uimap *userInfoMapper
 	ctx, uimap = getUserInfoMapper(ctx, h.G())
 	for _, b := range conversationRemote.MaxMsgs {
-		unboxed, err := h.boxer.unboxMessage(ctx, kf, b)
+		messagePlaintext, err := h.boxer.unboxMessage(ctx, kf, b)
 		if err != nil {
 			errMsg := err.Error()
-			maxMessages = append(maxMessages, chat1.MessageFromServerUnboxedWithContext{
+			maxMessages = append(maxMessages, chat1.MessageFromServerOrError{
 				UnboxingError: &errMsg,
 			})
-		} else {
-			info, err := h.getMessageInfoLocal(uimap, unboxed)
-			if err != nil {
-				return conversationInfo, maxMessages, err
-			}
-			maxMessages = append(maxMessages, chat1.MessageFromServerUnboxedWithContext{
-				Info:    info,
-				Message: &unboxed,
-			})
+			continue
+		}
 
-			version, err := unboxed.MessagePlaintext.Version()
-			if err != nil {
-				return conversationInfo, maxMessages, err
+		username, deviceName, err := h.getSenderInfoLocal(uimap, messagePlaintext)
+		if err != nil {
+			return chat1.ConversationInfoLocal{}, nil, err
+		}
+		maxMessages = append(maxMessages, chat1.MessageFromServerOrError{
+			Message: &chat1.MessageFromServer{
+				SenderUsername:   username,
+				SenderDeviceName: deviceName,
+				ServerHeader:     *b.ServerHeader,
+				MessagePlaintext: messagePlaintext,
+			},
+		})
+
+		version, err := messagePlaintext.Version()
+		if err != nil {
+			return chat1.ConversationInfoLocal{}, nil, err
+		}
+		switch version {
+		case chat1.MessagePlaintextVersion_V1:
+			body := messagePlaintext.V1().MessageBody
+			if t, err := body.MessageType(); err != nil {
+				return chat1.ConversationInfoLocal{}, nil, err
+			} else if t == chat1.MessageType_METADATA {
+				conversationInfo.TopicName = body.Metadata().ConversationTitle
 			}
-			switch version {
-			case chat1.MessagePlaintextVersion_V1:
-				body := unboxed.MessagePlaintext.V1().MessageBody
-				if t, err := body.MessageType(); err != nil {
-					return conversationInfo, maxMessages, err
-				} else if t == chat1.MessageType_METADATA {
-					conversationInfo.TopicName = body.Metadata().ConversationTitle
-				}
-				if unboxed.ServerHeader.MessageID >= maxValidID {
-					conversationInfo.TlfName = unboxed.MessagePlaintext.V1().ClientHeader.TlfName
-				}
-				conversationInfo.Triple = unboxed.MessagePlaintext.V1().ClientHeader.Conv
-			default:
-				return conversationInfo, maxMessages, libkb.NewChatMessageVersionError(version)
+			if b.ServerHeader.MessageID >= maxValidID {
+				conversationInfo.TlfName = messagePlaintext.V1().ClientHeader.TlfName
 			}
+			conversationInfo.Triple = messagePlaintext.V1().ClientHeader.Conv
+		default:
+			return chat1.ConversationInfoLocal{}, nil, libkb.NewChatMessageVersionError(version)
 		}
 	}
 
 	if len(conversationInfo.TlfName) == 0 {
-		return conversationInfo, maxMessages, errors.New("no valid message in the conversation")
+		return chat1.ConversationInfoLocal{}, nil, errors.New("no valid message in the conversation")
 	}
 
 	// verify Conv matches ConversationIDTriple in MessageClientHeader
 	if !conversationRemote.Metadata.IdTriple.Eq(conversationInfo.Triple) {
-		return conversationInfo, maxMessages, errors.New("server header conversation triple does not match client header triple")
+		return chat1.ConversationInfoLocal{}, nil, errors.New("server header conversation triple does not match client header triple")
 	}
 
 	return conversationInfo, maxMessages, nil
 }
 
-func (h *chatLocalHandler) getMessageInfoLocal(uimap *userInfoMapper, m chat1.MessageFromServerUnboxed) (info *chat1.MessageInfoLocal, err error) {
-	version, err := m.MessagePlaintext.Version()
+func (h *chatLocalHandler) getSenderInfoLocal(uimap *userInfoMapper, messagePlaintext chat1.MessagePlaintext) (senderUsername string, senderDeviceName string, err error) {
+	version, err := messagePlaintext.Version()
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 	switch version {
 	case chat1.MessagePlaintextVersion_V1:
-		v1 := m.MessagePlaintext.V1()
+		v1 := messagePlaintext.V1()
 		uid := keybase1.UID(v1.ClientHeader.Sender.String())
 		did := keybase1.DeviceID(v1.ClientHeader.SenderDevice.String())
 		username, deviceName, err := uimap.lookup(uid, did)
 		if err != nil {
-			return nil, err
+			return "", "", err
 		}
 
-		info = &chat1.MessageInfoLocal{
-			SenderUsername:   username,
-			SenderDeviceName: deviceName,
-		}
+		return username, deviceName, nil
 
-		return info, nil
 	default:
-		return nil, libkb.NewChatMessageVersionError(version)
+		return "", "", libkb.NewChatMessageVersionError(version)
 	}
 }
 
-func (h *chatLocalHandler) makeConversationLocal(ctx context.Context, conversationRemote chat1.Conversation, messages []chat1.MessageFromServerUnboxedWithContext) (conversation chat1.ConversationLocal, err error) {
+func (h *chatLocalHandler) makeConversationLocal(ctx context.Context, conversationRemote chat1.Conversation, messages []chat1.MessageFromServerOrError) (conversation chat1.ConversationLocal, err error) {
 	if len(messages) == 0 {
-		return conversation, errors.New("empty messages")
+		return chat1.ConversationLocal{}, errors.New("empty messages")
 	}
 	info, _, err := h.getConversationInfo(ctx, conversationRemote)
 	if err != nil {
-		return conversation, err
+		return chat1.ConversationLocal{}, err
 	}
 	// TODO: verify info.TlfName by running through KBFS and compare with
 	// message.MessagePlaintext.ClientHeader.TlfName,
@@ -454,7 +455,7 @@ func (h *chatLocalHandler) makeConversationLocal(ctx context.Context, conversati
 		Messages: messages,
 		ReadUpTo: conversationRemote.ReaderInfo.ReadMsgid,
 	}
-	return conversation, err
+	return conversation, nil
 }
 
 func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversationRemote chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *chat1.MessageSelector) (conv chat1.ConversationLocal, err error) {
@@ -462,11 +463,11 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversa
 	if selector.Since != nil {
 		since, err = parseTimeFromRFC3339OrDurationFromPast(*selector.Since)
 		if err != nil {
-			return conv, fmt.Errorf("parsing time or duration (%s) error: %s", *selector.Since, since)
+			return chat1.ConversationLocal{}, fmt.Errorf("parsing time or duration (%s) error: %s", *selector.Since, since)
 		}
 	}
 
-	var messages []chat1.MessageFromServerUnboxedWithContext
+	var messages []chat1.MessageFromServerOrError
 
 	query := chat1.GetThreadQuery{
 		MarkAsRead:   selector.MarkAsRead,
@@ -481,7 +482,7 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversa
 		Query:          &query,
 	})
 	if err != nil {
-		return conv, err
+		return chat1.ConversationLocal{}, err
 	}
 
 	for _, m := range tview.Messages {
@@ -500,10 +501,10 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversa
 	}
 
 	if conv, err = h.makeConversationLocal(ctx, conversationRemote, messages); err != nil {
-		return conv, err
+		return chat1.ConversationLocal{}, err
 	}
 
-	return conv, err
+	return conv, nil
 }
 
 // GetMessagesLocal implements keybase.chatLocal.GetMessagesLocal protocol.
@@ -559,26 +560,26 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.Messa
 func (h *chatLocalHandler) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, error) {
 	uid := h.G().Env.GetUID()
 	if uid.IsNil() {
-		return msg, libkb.LoginRequiredError{}
+		return chat1.MessagePlaintext{}, libkb.LoginRequiredError{}
 	}
 	did := h.G().Env.GetDeviceID()
 	if did.IsNil() {
-		return msg, libkb.DeviceRequiredError{}
+		return chat1.MessagePlaintext{}, libkb.DeviceRequiredError{}
 	}
 
 	huid := uid.ToBytes()
 	if huid == nil {
-		return msg, errors.New("invalid UID")
+		return chat1.MessagePlaintext{}, errors.New("invalid UID")
 	}
 
 	hdid := make([]byte, libkb.DeviceIDLen)
 	if err := did.ToBytes(hdid); err != nil {
-		return msg, err
+		return chat1.MessagePlaintext{}, err
 	}
 
 	version, err := msg.Version()
 	if err != nil {
-		return msg, err
+		return chat1.MessagePlaintext{}, err
 	}
 
 	switch version {
@@ -592,7 +593,7 @@ func (h *chatLocalHandler) addSenderToMessage(msg chat1.MessagePlaintext) (chat1
 		}
 		return chat1.NewMessagePlaintextWithV1(updated), nil
 	default:
-		return msg, libkb.NewChatMessageVersionError(version)
+		return chat1.MessagePlaintext{}, libkb.NewChatMessageVersionError(version)
 	}
 
 }
@@ -642,11 +643,11 @@ func (h *chatLocalHandler) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err
 	// get device signing key for this user
 	signingKey, err := engine.GetMySecretKey(h.G(), h.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
 	if err != nil {
-		return kp, err
+		return libkb.NaclSigningKeyPair{}, err
 	}
 	kp, ok := signingKey.(libkb.NaclSigningKeyPair)
 	if !ok || kp.Private == nil {
-		return kp, libkb.KeyCannotSignError{}
+		return libkb.NaclSigningKeyPair{}, libkb.KeyCannotSignError{}
 	}
 
 	return kp, nil
@@ -682,23 +683,27 @@ func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadVi
 	var uimap *userInfoMapper
 	ctx, uimap = getUserInfoMapper(ctx, h.G())
 	for _, msg := range boxed.Messages {
-		unboxed, err := h.boxer.unboxMessage(ctx, finder, msg)
+		messagePlaintext, err := h.boxer.unboxMessage(ctx, finder, msg)
 		if err != nil {
 			errMsg := err.Error()
-			thread.Messages = append(thread.Messages, chat1.MessageFromServerUnboxedWithContext{
+			thread.Messages = append(thread.Messages, chat1.MessageFromServerOrError{
 				UnboxingError: &errMsg,
 			})
 			continue
 		}
 
-		info, err := h.getMessageInfoLocal(uimap, unboxed)
+		username, deviceName, err := h.getSenderInfoLocal(uimap, messagePlaintext)
 		if err != nil {
 			return chat1.ThreadView{}, err
 		}
 
-		thread.Messages = append(thread.Messages, chat1.MessageFromServerUnboxedWithContext{
-			Message: &unboxed,
-			Info:    info,
+		thread.Messages = append(thread.Messages, chat1.MessageFromServerOrError{
+			Message: &chat1.MessageFromServer{
+				SenderUsername:   username,
+				SenderDeviceName: deviceName,
+				ServerHeader:     *msg.ServerHeader,
+				MessagePlaintext: messagePlaintext,
+			},
 		})
 	}
 
