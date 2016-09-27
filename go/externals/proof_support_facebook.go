@@ -156,7 +156,13 @@ func (t FacebookServiceType) NormalizeUsername(s string) (string, error) {
 func (t FacebookServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
-	return t.NormalizeUsername(s)
+	if !facebookUsernameRegexp.MatchString(s) {
+		return "", libkb.NewBadUsernameError(s)
+	}
+	// This is the normalization function that gets called by the Prove engine.
+	// Avoid stripping dots, so that we can preserve them when the username is
+	// displayed.
+	return strings.ToLower(s), nil
 }
 
 func (t FacebookServiceType) GetPrompt() string {
