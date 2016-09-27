@@ -50,7 +50,7 @@ class Render extends Component<void, Props, any> {
           const map = dumbComponentMap[key]
           const includeAllChildren = !filter || key.toLowerCase().indexOf(filter) !== -1
           const items = Object.keys(map.mocks)
-            .filter(mockKey => !filter || includeAllChildren || mockKey.toLowerCase().indexOf(filter) !== -1)
+            .filter(mockKey => !filter || includeAllChildren || (key.toLowerCase() + mockKey.toLowerCase()).indexOf(filter) !== -1)
             .map((mockKey, idx) => {
               return (
                 <DumbSheetItem

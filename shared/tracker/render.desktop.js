@@ -6,6 +6,7 @@ import {UserProofs, UserBio} from '../common-adapters'
 import {globalStyles} from '../styles'
 import NonUser from './non-user'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
+import TrackerError from './error'
 
 import type {RenderProps} from './render'
 
@@ -23,6 +24,18 @@ export default class Render extends PureComponent<void, RenderProps, void> {
         reason={this.props.reason}
         inviteLink={this.props.inviteLink}
         isPrivate={this.props.isPrivate} />
+    }
+
+    if (this.props.error != null) {
+      return (
+        <div style={styles.container}>
+          <TrackerError
+            errorMessage={this.props.error.errorMessage}
+            onRetry={this.props.error.onRetry}
+            onClose={this.props.onClose}
+          />
+        </div>
+      )
     }
 
     // We have to calculate the height of the footer.
