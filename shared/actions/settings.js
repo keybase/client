@@ -52,7 +52,8 @@ function * saveNotificationsSaga (): SagaGenerator<any, any> {
       payload: undefined,
     })
   } catch (err) {
-    // TODO global error
+    // TODO hook into global error handler
+    console.error(err)
   }
 }
 
@@ -101,7 +102,8 @@ function * refreshNotificationsSaga (): SagaGenerator<any, any> {
       },
     })
   } catch (err) {
-    // TODO global error
+    // TODO hook into global error handler
+    console.error(err)
   }
 }
 
