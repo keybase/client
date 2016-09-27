@@ -1,9 +1,6 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// When we delete this, also delete IsDevelOnly() below.
-// +build !production
-
 package externals
 
 import (
@@ -221,9 +218,6 @@ func (t FacebookServiceType) CheckProofText(text string, id keybase1.SigID, sig 
 func (t FacebookServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &FacebookChecker{l}
 }
-
-// When we delete this, also delete the build directive above.
-func (t FacebookServiceType) IsDevelOnly() bool { return true }
 
 //=============================================================================
 
