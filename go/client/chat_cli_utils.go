@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -124,6 +125,9 @@ func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conve
 	resolver.TlfName = tlfName
 	if resolver.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return resolver, err
+	}
+	if resolver.TopicType == chat1.TopicType_CHAT && len(resolver.TopicName) != 0 {
+		return resolver, errors.New("multiple topic names are not yet supportted with chat conversations")
 	}
 	if ctx.Bool("private") {
 		resolver.Visibility = chat1.TLFVisibility_PRIVATE
