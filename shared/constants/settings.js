@@ -33,6 +33,7 @@ export type NotificationsState = {
   }>,
   unsubscribedFromAll: ?boolean,
   allowSave: boolean,
+  allowEdit: boolean,
 }
 
 export type State = {
