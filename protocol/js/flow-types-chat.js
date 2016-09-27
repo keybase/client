@@ -211,6 +211,8 @@ export type BodyPlaintextVersion =
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
+  supersedes?: ?ConversationMetadata,
+  supersededBy?: ?ConversationMetadata,
   maxMsgs?: ?Array<MessageBoxed>,
 }
 

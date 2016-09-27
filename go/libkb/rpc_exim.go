@@ -421,11 +421,10 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "TlfID":
-				val, err := hex.DecodeString(field.Value)
+				var err error
+				tlfID, err = chat1.MakeTLFID(field.Value)
 				if err != nil {
 					G.Log.Warning("error parsing chat tlf finalized TLFID: %s", err.Error())
-				} else {
-					tlfID = chat1.TLFID(val)
 				}
 			}
 		}
