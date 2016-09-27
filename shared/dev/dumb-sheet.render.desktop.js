@@ -34,6 +34,7 @@ class Render extends Component<void, Props, any> {
 
   render () {
     const filter = this.props.dumbFilter.toLowerCase()
+    let numItemsLeftWeCanShow = 10
 
     return (
       <Box style={{...globalStyles.scrollable, padding: 20}}>
@@ -52,6 +53,10 @@ class Render extends Component<void, Props, any> {
           const items = Object.keys(map.mocks)
             .filter(mockKey => !filter || includeAllChildren || (key.toLowerCase() + mockKey.toLowerCase()).indexOf(filter) !== -1)
             .map((mockKey, idx) => {
+              --numItemsLeftWeCanShow
+
+              if (numItemsLeftWeCanShow <= 0) return null
+
               return (
                 <DumbSheetItem
                   key={mockKey}
