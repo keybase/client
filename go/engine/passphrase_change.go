@@ -274,7 +274,6 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 	var acctErr error
 	c.G().LoginState().Account(func(a *libkb.Account) {
 		gen := a.PassphraseStreamCache().PassphraseStream().Generation()
-		oldPWH := a.PassphraseStreamCache().PassphraseStream().PWHash()
 		oldClientHalf := a.PassphraseStreamCache().PassphraseStream().LksClientHalf()
 
 		payload, err := c.commonArgs(a, oldClientHalf, pgpKeys, gen)
@@ -282,8 +281,17 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 			acctErr = err
 			return
 		}
-		payload["oldpwh"] = libkb.HexArg(oldPWH).String()
+
+		lp, err := libkb.ComputeLoginPackage(a, "")
+		if err != nil {
+			acctErr = err
+			return
+		}
+
 		payload["ppgen"] = gen
+		payload["old_pdpka4"] = lp.PDPKA4()
+		payload["old_pdpka5"] = lp.PDPKA5()
+
 		postArg := libkb.APIArg{
 			Endpoint:    "passphrase/replace",
 			NeedSession: true,
@@ -323,6 +331,10 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 	}
 	newPWH := newPPStream.PWHash()
 	newClientHalf := newPPStream.LksClientHalf()
+	pdpka5kid, err := newPPStream.PDPKA5KID()
+	if err != nil {
+		return nil, err
+	}
 
 	mask := make([]byte, len(oldClientHalf))
 	libkb.XORBytes(mask, oldClientHalf, newClientHalf)
@@ -349,6 +361,7 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 	payload["pwh_version"] = triplesec.Version
 	payload["lks_mask"] = libkb.HexArg(mask).String()
 	payload["lks_client_halves"] = lksch
+	payload["pdpka5_kid"] = pdpka5kid.String()
 
 	var encodedKeys []string
 	for _, key := range pgpKeys {

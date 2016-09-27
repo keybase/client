@@ -4,17 +4,12 @@
 package libkb
 
 import (
-	"crypto/hmac"
-	"crypto/sha512"
-	"encoding/hex"
 	"errors"
 	"fmt"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 	"runtime/debug"
 	"time"
-
-	"golang.org/x/net/context"
-
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // PassphraseGeneration represents which generation of the passphrase is
@@ -378,40 +373,33 @@ func (s *LoginState) VerifyPlaintextPassphrase(pp string) (ppStream *PassphraseS
 	return
 }
 
-func (s *LoginState) ComputeLoginPw(lctx LoginContext) (macSum []byte, err error) {
-	loginSession, e := lctx.LoginSession().Session()
-	if e != nil {
-		err = e
-		return
+func ComputeLoginPackage(lctx LoginContext, username string) (ret PDPKALoginPackage, err error) {
+	loginSession, err := lctx.LoginSession().Session()
+	if err != nil {
+		return ret, err
 	}
 	if loginSession == nil {
-		err = fmt.Errorf("nil login session")
-		return
+		return ret, errors.New("nil login session")
 	}
-	sec := lctx.PassphraseStreamCache().PassphraseStream().PWHash()
-	mac := hmac.New(sha512.New, sec)
-	if _, err = mac.Write(loginSession); err != nil {
-		return
+	ps := lctx.PassphraseStreamCache().PassphraseStream()
+	if username == "" {
+		return computeLoginPackageFromUID(lctx.GetUID(), ps, loginSession)
 	}
-	macSum = mac.Sum(nil)
-	return
+	return computeLoginPackageFromEmailOrUsername(username, ps, loginSession)
 }
 
-func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byte) (*loginAPIResult, error) {
-	loginSessionEncoded, err := lctx.LoginSession().SessionEncoded()
-	if err != nil {
-		return nil, err
-	}
-	res, err := s.G().API.Post(APIArg{
+func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {
+
+	arg := APIArg{
 		Endpoint:    "login",
 		NeedSession: false,
 		Args: HTTPArgs{
 			"email_or_username": S{eOu},
-			"hmac_pwh":          S{hex.EncodeToString(lgpw)},
-			"login_session":     S{loginSessionEncoded},
 		},
 		AppStatusCodes: []int{SCOk, SCBadLoginPassword, SCBadLoginUserNotFound},
-	})
+	}
+	lp.PopulateArgs(&arg.Args)
+	res, err := s.G().API.Post(arg)
 	if err != nil {
 		return nil, err
 	}
@@ -703,12 +691,12 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		return err
 	}
 
-	lgpw, err := s.ComputeLoginPw(lctx)
+	lp, err := ComputeLoginPackage(lctx, username)
 	if err != nil {
 		return err
 	}
 
-	res, err := s.postLoginToServer(lctx, username, lgpw)
+	res, err := s.postLoginToServer(lctx, username, lp)
 	if err != nil {
 		lctx.ClearStreamCache()
 		return err

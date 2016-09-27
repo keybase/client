@@ -147,6 +147,11 @@ func (s *SignupEngine) genPassphraseStream(a libkb.LoginContext, passphrase stri
 func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode string, skipMail bool) error {
 	joinEngine := NewSignupJoinEngine(s.G())
 
+	pdpkda5kid, err := s.ppStream.PDPKA5KID()
+	if err != nil {
+		return err
+	}
+
 	arg := SignupJoinEngineRunArg{
 		Username:   username,
 		Email:      email,
@@ -154,6 +159,7 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 		PWHash:     s.ppStream.PWHash(),
 		PWSalt:     s.pwsalt,
 		SkipMail:   skipMail,
+		PDPKA5KID:  pdpkda5kid,
 	}
 	res := joinEngine.Run(a, arg)
 	if res.Err != nil {
