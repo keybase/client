@@ -15,7 +15,6 @@ function reducer (state: State = initialState, action: Actions) {
     case CommonConstants.resetStore:
       return {...initialState}
     case Constants.notificationsRefreshed:
-      if (action.error) { break }
       return {
         ...state,
         notifications: action.payload,
