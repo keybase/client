@@ -59,7 +59,7 @@ function setupUserChangedHandler (): TrackerActionCreator {
   return (dispatch, getState) => {
     engine().setIncomingHandler('keybase.1.NotifyUsers.userChanged', ({uid}) => {
       dispatch(_clearIdentifyCache(uid))
-      const username = _getUsername(uid, getState)
+      const username = _getUsername(uid, getState())
       if (username) {
         dispatch(getProfile(username))
       }
@@ -193,7 +193,7 @@ function onRefollow (username: string): TrackerActionCreator {
     const trackToken = _getTrackToken(getState(), username)
 
     const dispatchRefollowAction = () => {
-      const uid = _getUID(username, getState)
+      const uid = _getUID(username, getState())
       if (uid) {
         dispatch(_clearIdentifyCache(uid))
       }
@@ -225,7 +225,7 @@ function onUnfollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     dispatch(_onWaiting(username, true))
 
-    const uid = _getUID(username, getState)
+    const uid = _getUID(username, getState())
     if (uid) {
       dispatch(_clearIdentifyCache(uid))
     }
@@ -287,7 +287,7 @@ function _onWaiting (username: string, waiting: bool): (dispatch: Dispatch) => v
   }
 }
 
-function onIgnore (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+function onIgnore (username: string): (dispatch: Dispatch) => void {
   return dispatch => {
     dispatch(onFollow(username, true))
     dispatch(onClose(username))
@@ -299,17 +299,17 @@ function _getTrackToken (state, username) {
   return trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
 }
 
-function _getUsername (uid: string, getState: () => {tracker: RootTrackerState}): ?string {
-  const trackers = getState().tracker && getState().tracker.trackers
+function _getUsername (uid: string, state: {tracker: RootTrackerState}): ?string {
+  const trackers = state.tracker && state.tracker.trackers
   return Object.keys(trackers).find(
     (name: string) => trackers[name].type === 'tracker' &&
       trackers[name].userInfo &&
       trackers[name].userInfo.uid === uid)
 }
 
-function _getUID (username: string, getState: () => {tracker: RootTrackerState}): ?string {
-  if (getState().tracker && getState().tracker.trackers && getState().tracker.trackers[username]) {
-    const t = getState().tracker.trackers[username]
+function _getUID (username: string, state: {tracker: RootTrackerState}): ?string {
+  if (state.tracker && state.tracker.trackers && state.tracker.trackers[username]) {
+    const t = state.tracker.trackers[username]
     if (t.type === 'tracker') {
       if (t.userInfo) {
         return t.userInfo.uid
@@ -324,7 +324,7 @@ function onFollow (username: string, localIgnore?: bool): (dispatch: Dispatch, g
     const trackToken = _getTrackToken(getState(), username)
 
     const dispatchFollowedAction = () => {
-      const uid = _getUID(username, getState)
+      const uid = _getUID(username, getState())
       if (uid) {
         dispatch(_clearIdentifyCache(uid))
       }
