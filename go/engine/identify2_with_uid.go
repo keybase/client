@@ -501,13 +501,28 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	return err
 }
 
-func (e *Identify2WithUID) loadUsers(ctx *Context) (err error) {
-	if err = e.loadMe(ctx); err != nil {
-		return err
+func (e *Identify2WithUID) loadUsers(ctx *Context) error {
+	var loadMeErr, loadThemErr error
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		loadMeErr = e.loadMe(ctx)
+		wg.Done()
+	}()
+	wg.Add(1)
+	go func() {
+		loadThemErr = e.loadThem(ctx)
+		wg.Done()
+	}()
+	wg.Wait()
+
+	if loadMeErr != nil {
+		return loadMeErr
 	}
-	if err = e.loadThem(ctx); err != nil {
-		return err
+	if loadThemErr != nil {
+		return loadThemErr
 	}
+
 	return nil
 }
 

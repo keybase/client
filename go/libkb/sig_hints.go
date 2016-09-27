@@ -4,6 +4,8 @@
 package libkb
 
 import (
+	"fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -136,8 +138,8 @@ func LoadSigHints(uid keybase1.UID, g *GlobalContext) (sh *SigHints, err error) 
 	return
 }
 
-func (sh *SigHints) Refresh() error {
-	sh.G().Log.Debug("+ Refresh SigHints() for uid=%s", sh.uid)
+func (sh *SigHints) Refresh() (err error) {
+	defer sh.G().Trace(fmt.Sprintf("Refresh SigHints for uid=%s", sh.uid), func() error { return err })()
 	res, err := sh.G().API.Get(APIArg{
 		Endpoint:    "sig/hints",
 		NeedSession: false,
@@ -149,19 +151,24 @@ func (sh *SigHints) Refresh() error {
 	if err != nil {
 		return err
 	}
-	var n int
-	n, err = res.Body.AtKey("hints").Len()
+
+	return sh.RefreshWith(res.Body)
+}
+
+func (sh *SigHints) RefreshWith(jw *jsonw.Wrapper) (err error) {
+	defer sh.G().Trace("RefreshWith", func() error { return err })()
+
+	n, err := jw.AtKey("hints").Len()
 	if err != nil {
 		return err
 	}
 	if n == 0 {
 		sh.G().Log.Debug("| No changes; version %d was up-to-date", sh.version)
-	} else if err = sh.PopulateWith(res.Body); err != nil {
+	} else if err = sh.PopulateWith(jw); err != nil {
 		return err
 	} else {
 		sh.dirty = true
 	}
-	sh.G().Log.Debug("- Refresh SigHints() for uid=%s", sh.uid)
 	return nil
 }
 
