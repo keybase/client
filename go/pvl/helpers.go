@@ -7,6 +7,8 @@ import (
 	b64 "encoding/base64"
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -40,7 +42,7 @@ func substitute(template string, state scriptState, match []string, allowedExtra
 				value = vars.UsernameService
 			} else {
 				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Cannot use username_service in proof type %v", state.Service)
+					"Cannot use %v in proof type %v", varname, state.Service)
 			}
 		case "username_keybase":
 			value = vars.UsernameKeybase
@@ -55,7 +57,14 @@ func substitute(template string, state scriptState, match []string, allowedExtra
 				value = vars.Hostname
 			} else {
 				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Cannot use username_service in proof type %v", state.Service)
+					"Cannot use %v in proof type %v", varname, state.Service)
+			}
+		case "protocol":
+			if state.Service == keybase1.ProofType_GENERIC_WEB_SITE {
+				value = vars.Protocol
+			} else {
+				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+					"Cannot use %v in proof type %v", varname, state.Service)
 			}
 		case "active_string":
 			if stringsContains(allowedExtras, "active_string") {
@@ -213,4 +222,60 @@ func stringsContains(xs []string, x string) bool {
 		}
 	}
 	return false
+}
+
+// Check that a url is valid and has only a domain and is not an ip.
+// No port, path, protocol, user, query, or any other junk is allowed.
+func validateDomain(s string) bool {
+	// Throw a protocol in front because the parser wants one.
+	proto := "http"
+	u, err := url.Parse(proto + "://" + s)
+	if err != nil {
+		return false
+	}
+
+	// The final group must include a non-numeric character.
+	// To disallow the likes of "8.8.8.8."
+	dotsplit := strings.Split(strings.TrimSuffix(u.Host, "."), ".")
+	if len(dotsplit) > 0 {
+		hasalpha := regexp.MustCompile(`\D`)
+		group := dotsplit[len(dotsplit)-1]
+		if !hasalpha.MatchString(group) {
+			return false
+		}
+	}
+
+	ok := (u.IsAbs()) &&
+		(u.Scheme == proto) &&
+		(u.User == nil) &&
+		(u.Path == "") &&
+		(u.RawPath == "") &&
+		(u.RawQuery == "") &&
+		(u.Fragment == "") &&
+		// Disallow colons. So no port, and no ipv6.
+		(!strings.Contains(u.Host, ":")) &&
+		// Disallow any valid ip addresses.
+		(net.ParseIP(u.Host) == nil)
+	return ok
+}
+
+// validateProtocol takes a protocol and returns the canonicalized form and whether it is valid.
+func validateProtocol(s string, allowed []string) (string, bool) {
+	canons := map[string]string{
+		"http":     "http",
+		"https":    "https",
+		"dns":      "dns",
+		"http:":    "http",
+		"https:":   "https",
+		"dns:":     "dns",
+		"http://":  "http",
+		"https://": "https",
+		"dns://":   "dns",
+	}
+
+	canon, ok := canons[s]
+	if ok {
+		return canon, stringsContains(allowed, canon)
+	}
+	return canon, false
 }

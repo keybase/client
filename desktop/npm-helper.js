@@ -251,7 +251,13 @@ function undiff () {
       return part
     }
 
-    part.diff.forEach(diff => deepdiff.applyChange(store, store, diff))
+    part.diff.forEach(diff => {
+      try {
+        deepdiff.applyChange(store, store, diff)
+      } catch (err) {
+        console.log(`Tried to apply change: ${diff} but failed, trying to continue. ${err}`)
+      }
+    })
     return store
   }
 

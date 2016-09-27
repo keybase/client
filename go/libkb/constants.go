@@ -206,6 +206,7 @@ const (
 	SCChatBroadcast          = int(keybase1.StatusCode_SCChatBroadcast)
 	SCChatAlreadySuperseded  = int(keybase1.StatusCode_SCChatAlreadySuperseded)
 	SCChatAlreadyDeleted     = int(keybase1.StatusCode_SCChatAlreadyDeleted)
+	SCChatTLFFinalized       = int(keybase1.StatusCode_SCChatTLFFinalized)
 )
 
 const (

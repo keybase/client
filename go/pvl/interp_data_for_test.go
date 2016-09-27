@@ -14,6 +14,25 @@ var info1 = ProofInfo{
 	Username:       "kronk",
 	RemoteUsername: "kronkinator",
 	Hostname:       "kronk.example.com",
+	Protocol:       "http:",
+	APIURL:         "https://rooter.example.com/proofs/kronkinator/5.htjsxt",
+}
+
+var infoBadDomain = ProofInfo{
+	ArmoredSig:     sig1,
+	Username:       "kronk",
+	RemoteUsername: "kronkinator",
+	Hostname:       "kronk.example.com/foo", // Path in domain
+	Protocol:       "http:",
+	APIURL:         "https://rooter.example.com/proofs/kronkinator/5.htjsxt",
+}
+
+var infoBadProto = ProofInfo{
+	ArmoredSig:     sig1,
+	Username:       "kronk",
+	RemoteUsername: "kronkinator",
+	Hostname:       "kronk.example.com",
+	Protocol:       "spdy:", // Bad protocol.
 	APIURL:         "https://rooter.example.com/proofs/kronkinator/5.htjsxt",
 }
 
