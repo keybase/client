@@ -181,11 +181,16 @@ export function registerIdentifyUi (): TrackerActionCreator {
         }, trackerTimeout)
       }
 
+      const onFinish = () => {
+        session.end()
+        clearTimeout(trackerTimeoutError)
+      }
+
       const session: Session = engine().createSession(
-        serverCallMap(dispatch, getState, false, onStart, () => {
-          session.end()
-          clearTimeout(trackerTimeoutError)
-        }), null, cancelHandler)
+        serverCallMap(dispatch, getState, false, onStart, onFinish),
+        null,
+        cancelHandler
+      )
 
       response && response.result(session.id)
     })

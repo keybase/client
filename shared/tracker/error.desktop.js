@@ -11,7 +11,7 @@ function TrackerError ({errorMessage, onRetry, onClose}: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Header
-        reason={"Error in getting identity information :'("}
+        reason="Error in getting identity information :'("
         onClose={onClose}
         trackerState={'error'}
         currentlyFollowing={false}
