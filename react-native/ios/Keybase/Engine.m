@@ -10,6 +10,7 @@
 
 #import <keybase/keybase.h>
 #import "RCTEventDispatcher.h"
+#import "AppDelegate.h"
 #import "Keybase-Swift.h"
 #import "Utils.h"
 
@@ -98,7 +99,7 @@ RCT_EXPORT_MODULE();
 @synthesize bridge = _bridge;
 
 - (Engine *)engine {
-  AppDelegate *delegate = [UIApplication sharedApplication].delegate;
+  AppDelegate * delegate = (AppDelegate*)[UIApplication sharedApplication].delegate;
   return delegate.engine;
 }
 
