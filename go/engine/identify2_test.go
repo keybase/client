@@ -296,11 +296,7 @@ func TestIdentify2WithUIDWithTrackAndSuppress(t *testing.T) {
 	}
 }
 
-func testIdentify2WithUIDWithBrokenTrack(t *testing.T, suppress bool) {
-	arg := &keybase1.Identify2Arg{
-		Uid:           tracyUID,
-		CanSuppressUI: suppress,
-	}
+func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Identify2Arg) (*Identify2WithUID, libkb.IdentifyUI, func(), error) {
 	tc := SetupEngineTest(t, "testIdentify2WithUIDWithBrokenTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
@@ -318,11 +314,19 @@ func testIdentify2WithUIDWithBrokenTrack(t *testing.T, suppress bool) {
 		}
 		return nil
 	}
-
 	ctx := Context{IdentifyUI: i}
 	waiter := launchWaiter(t, i.finishCh)
-
 	err := eng.Run(&ctx)
+	return eng, i, waiter, err
+}
+
+func testIdentify2WithUIDWithBrokenTrack(t *testing.T, suppress bool) {
+	arg := &keybase1.Identify2Arg{
+		Uid:           tracyUID,
+		CanSuppressUI: suppress,
+	}
+	_, _, waiter, err := identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
+
 	if err == nil {
 		t.Fatal("expected an ID2 error since twitter proof failed")
 	}
@@ -335,6 +339,44 @@ func TestIdentify2WithUIDWithBrokenTrack(t *testing.T) {
 
 func TestIdentify2WithUIDWithBrokenTrackWithSuppressUI(t *testing.T) {
 	testIdentify2WithUIDWithBrokenTrack(t, true)
+}
+
+func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
+	arg := &keybase1.Identify2Arg{
+		Uid:     tracyUID,
+		Context: keybase1.NewIdentify2ContextWithChatGui(keybase1.Identify2ContextChatGUI{}),
+	}
+
+	eng, origUI, waiter, err := identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
+
+	if err != nil {
+		t.Fatalf("expected no ID2 error; got %v\n", err)
+	}
+
+	// Since we threw away the test UI, we have to manually complete the UI here,
+	// otherwise the waiter() will block indefinitely.
+	origUI.Finish()
+	waiter()
+
+	res := eng.Result()
+	if !res.Upk.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
+		t.Fatal("bad UID for t_tracy")
+	}
+	if res.Upk.Username != "t_tracy" {
+		t.Fatal("bad username for t_tracy")
+	}
+	if len(res.Upk.DeviceKeys) != 4 {
+		t.Fatal("wrong # of device keys for tracy")
+	}
+	if len(res.TrackBreaks.Proofs) != 1 {
+		t.Fatal("Expected to get back 1 broken proof")
+	}
+	if res.TrackBreaks.Proofs[0].RemoteProof.Key != "twitter" {
+		t.Fatal("Expected a twitter proof type")
+	}
+	if res.TrackBreaks.Proofs[0].Lcr.RemoteDiff.Type != keybase1.TrackDiffType_REMOTE_FAIL {
+		t.Fatal("wrong remote failure type")
+	}
 }
 
 func TestIdentify2WithUIDWithAssertion(t *testing.T) {

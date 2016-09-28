@@ -13,11 +13,89 @@
   "types": [
     {
       "type": "record",
+      "name": "IdentifyProofBreak",
+      "fields": [
+        {
+          "type": "RemoteProof",
+          "name": "remoteProof"
+        },
+        {
+          "type": "LinkCheckResult",
+          "name": "lcr"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IdentifyTrackBreaks",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "IdentifyKey"
+          },
+          "name": "keys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "IdentifyProofBreak"
+          },
+          "name": "proofs"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Identify2Res",
       "fields": [
         {
           "type": "UserPlusKeys",
           "name": "upk"
+        },
+        {
+          "type": [
+            null,
+            "IdentifyTrackBreaks"
+          ],
+          "name": "trackBreaks"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "Identify2ContextType",
+      "symbols": [
+        "NONE_0",
+        "CHAT_GUI_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Identify2ContextChatGUI",
+      "fields": []
+    },
+    {
+      "type": "variant",
+      "name": "Identify2Context",
+      "switch": {
+        "type": "Identify2ContextType",
+        "name": "contextType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "NONE",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "CHAT_GUI",
+            "def": false
+          },
+          "body": "Identify2ContextChatGUI"
         }
       ]
     }
@@ -92,6 +170,10 @@
         {
           "name": "reason",
           "type": "IdentifyReason"
+        },
+        {
+          "name": "context",
+          "type": "Identify2Context"
         },
         {
           "name": "useDelegateUI",
