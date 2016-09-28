@@ -160,6 +160,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         lastAction: 'refollowed',
+        trackerState: 'normal',
         reason: `You have re-followed ${state.username}.`,
       }
     case Constants.onUnfollow:
