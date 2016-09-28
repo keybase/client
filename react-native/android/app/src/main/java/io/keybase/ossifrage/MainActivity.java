@@ -33,11 +33,6 @@ public class MainActivity extends ReactActivity {
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected void onCreate(Bundle savedInstanceState) {
         logFile = this.getFileStreamPath("android.log");
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !Settings.canDrawOverlays(this) && this.getUseDeveloperSupport()) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-            startActivityForResult(intent, -1);
-        }
-
         initOnce(this.getFilesDir().getPath(), logFile.getAbsolutePath(), "staging", false);
 
         try {
