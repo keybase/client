@@ -874,3 +874,52 @@ func TestCrConflictMoveAndSetMtimeWrittenFile(t *testing.T) {
 		),
 	)
 }
+
+// bob moves and sets the mtime of a file while conflicted, and then
+// charlie resolves a conflict on top of bob's resolution.  This is a
+// regression test for KBFS-1534.
+func TestCrConflictWriteMoveAndSetMtimeFollowedByNewConflict(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob", "charlie"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			write("a/b", "hello"),
+			disableUpdates(),
+		),
+		as(charlie,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/c", "hello"),
+		),
+		as(bob, noSync(),
+			write("a/b", "hello world"),
+			setmtime("a/b", targetMtime),
+			rename("a/b", "a/d"),
+			reenableUpdates(),
+			lsdir("a/", m{"c$": "FILE", "d$": "FILE"}),
+			read("a/c", "hello"),
+			read("a/d", "hello world"),
+			mtime("a/d", targetMtime),
+		),
+		as(charlie, noSync(),
+			write("a/e", "hello too"),
+			reenableUpdates(),
+			lsdir("a/", m{"c$": "FILE", "d$": "FILE", "e$": "FILE"}),
+			read("a/c", "hello"),
+			read("a/d", "hello world"),
+			mtime("a/d", targetMtime),
+			read("a/e", "hello too"),
+		),
+		as(alice,
+			lsdir("a/", m{"c$": "FILE", "d$": "FILE", "e$": "FILE"}),
+			read("a/c", "hello"),
+			read("a/d", "hello world"),
+			mtime("a/d", targetMtime),
+			read("a/e", "hello too"),
+		),
+	)
+}
