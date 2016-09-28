@@ -11,7 +11,7 @@ protocol NotifyChat {
 
   record ChatActivity {
     ChatActivityType ActivityType;
-    union { null, chat1.Message } IncomingMessage;
+    union { null, chat1.MessageFromServerOrError } IncomingMessage;
   }
 
   @notify("")

@@ -74,9 +74,10 @@ type Pagination struct {
 }
 
 type RateLimit struct {
-	CallsRemaining int `codec:"callsRemaining" json:"callsRemaining"`
-	WindowReset    int `codec:"windowReset" json:"windowReset"`
-	MaxCalls       int `codec:"maxCalls" json:"maxCalls"`
+	Name           string `codec:"name" json:"name"`
+	CallsRemaining int    `codec:"callsRemaining" json:"callsRemaining"`
+	WindowReset    int    `codec:"windowReset" json:"windowReset"`
+	MaxCalls       int    `codec:"maxCalls" json:"maxCalls"`
 }
 
 type TLFVisibility int

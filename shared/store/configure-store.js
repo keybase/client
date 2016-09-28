@@ -7,18 +7,10 @@ import rootReducer from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import {actionLogger} from './action-logger'
 import {applyMiddleware} from 'redux'
-import {call} from 'redux-saga/effects'
 import {closureCheck} from './closure-check'
 import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
-
-import deviceSaga from '../actions/devices'
-import favoriteSaga from '../actions/favorite'
-import gregorSaga from '../actions/gregor'
-import kbfsSaga from '../actions/kbfs'
-import pgpSaga from '../actions/pgp'
-import profileSaga from '../actions/profile'
-import settingsSaga from '../actions/settings'
+import mainSaga from './configure-sagas'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -54,18 +46,6 @@ const loggerMiddleware: any = enableStoreLogging ? createLogger({
   collapsed: true,
   logger,
 }) : null
-
-function * mainSaga (getState) {
-  yield [
-    call(deviceSaga),
-    call(favoriteSaga),
-    call(gregorSaga),
-    call(kbfsSaga),
-    call(pgpSaga),
-    call(profileSaga),
-    call(settingsSaga),
-  ]
-}
 
 const sagaMiddleware = createSagaMiddleware()
 let middlewares = [sagaMiddleware, thunkMiddleware]

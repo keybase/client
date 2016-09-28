@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -184,12 +185,19 @@ func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKe
 		// get the new passphrase hash out of the args
 		pwh, ok := payload["pwh"].(string)
 		if !ok || len(pwh) == 0 {
-			acctErr = fmt.Errorf("no pwh found in common args")
+			acctErr = errors.New("no pwh found in common args")
+			return
+		}
+
+		// get the new PDPKA5 KID out of the args
+		pdpka5kid, ok := payload["pdpka5_kid"].(string)
+		if !ok || len(pdpka5kid) == 0 {
+			acctErr = errors.New("no pdpka5kid found in common args")
 			return
 		}
 
 		// Generate a signature with our unlocked sibling key from device.
-		proof, err := c.me.UpdatePassphraseProof(sigKey, pwh, ppGen+1)
+		proof, err := c.me.UpdatePassphraseProof(sigKey, pwh, ppGen+1, pdpka5kid)
 		if err != nil {
 			acctErr = err
 			return
@@ -274,7 +282,6 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 	var acctErr error
 	c.G().LoginState().Account(func(a *libkb.Account) {
 		gen := a.PassphraseStreamCache().PassphraseStream().Generation()
-		oldPWH := a.PassphraseStreamCache().PassphraseStream().PWHash()
 		oldClientHalf := a.PassphraseStreamCache().PassphraseStream().LksClientHalf()
 
 		payload, err := c.commonArgs(a, oldClientHalf, pgpKeys, gen)
@@ -282,8 +289,17 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 			acctErr = err
 			return
 		}
-		payload["oldpwh"] = libkb.HexArg(oldPWH).String()
+
+		lp, err := libkb.ComputeLoginPackage(a, "")
+		if err != nil {
+			acctErr = err
+			return
+		}
+
 		payload["ppgen"] = gen
+		payload["old_pdpka4"] = lp.PDPKA4()
+		payload["old_pdpka5"] = lp.PDPKA5()
+
 		postArg := libkb.APIArg{
 			Endpoint:    "passphrase/replace",
 			NeedSession: true,
@@ -323,6 +339,10 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 	}
 	newPWH := newPPStream.PWHash()
 	newClientHalf := newPPStream.LksClientHalf()
+	pdpka5kid, err := newPPStream.PDPKA5KID()
+	if err != nil {
+		return nil, err
+	}
 
 	mask := make([]byte, len(oldClientHalf))
 	libkb.XORBytes(mask, oldClientHalf, newClientHalf)
@@ -349,6 +369,7 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 	payload["pwh_version"] = triplesec.Version
 	payload["lks_mask"] = libkb.HexArg(mask).String()
 	payload["lks_client_halves"] = lksch
+	payload["pdpka5_kid"] = pdpka5kid.String()
 
 	var encodedKeys []string
 	for _, key := range pgpKeys {

@@ -41,8 +41,20 @@ type Params struct {
 
 // CallError is the result when there is an error.
 type CallError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
+type RateLimit struct {
+	Tank     string `json:"tank"`
+	Capacity int    `json:"capacity"`
+	Reset    int    `json:"reset"`
+	Gas      int    `json:"gas"`
+}
+
+type RateLimits struct {
+	RateLimits []RateLimit `json:"ratelimits,omitempty"`
 }
 
 // Reply is returned with the results of procressing a Call.
@@ -123,7 +135,6 @@ func (s sendOptionsV1) Check() error {
 	if !s.Message.Valid() {
 		return ErrInvalidOptions{version: 1, method: "send", err: errors.New("invalid message")}
 	}
-
 	return nil
 }
 

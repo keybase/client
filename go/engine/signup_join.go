@@ -70,6 +70,7 @@ type SignupJoinEngineRunArg struct {
 	InviteCode string
 	PWHash     []byte
 	PWSalt     []byte
+	PDPKA5KID  keybase1.KID
 	SkipMail   bool
 }
 
@@ -86,6 +87,7 @@ func (s *SignupJoinEngine) Post(arg SignupJoinEngineRunArg) (err error) {
 			"invitation_id": libkb.S{Val: arg.InviteCode},
 			"pwh_version":   libkb.I{Val: int(triplesec.Version)},
 			"skip_mail":     libkb.B{Val: arg.SkipMail},
+			"pdpka5_kid":    libkb.S{Val: arg.PDPKA5KID.String()},
 		}})
 	if err == nil {
 		s.username = libkb.NewNormalizedUsername(arg.Username)

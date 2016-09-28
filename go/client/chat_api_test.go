@@ -5,6 +5,7 @@ package client
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"reflect"
 	"strings"
@@ -161,6 +162,25 @@ var optTests = []optTest{
 	{
 		input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": 7777}}}`,
 	},
+	{
+		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}`, /* missing closing bracket at end */
+		err:   ErrInvalidJSON{},
+	},
+	{
+		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"`, /* missing closing brackets at end */
+		err:   ErrInvalidJSON{},
+	},
+	{
+		input: `{"method": "read", "params":{'version': 1, "options": {"channel": {"name": "alice,bob"}}}`,
+		err:   &json.SyntaxError{},
+	},
+	{
+		input: `{"method": "read", "params":{"version": 1, "options": "channel": {"name": "alice,bob"}}`,
+		err:   &json.SyntaxError{},
+	},
+	{
+		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+	},
 }
 
 // TestChatAPIDecoderOptions tests the option decoding.
@@ -172,7 +192,7 @@ func TestChatAPIDecoderOptions(t *testing.T) {
 		err := d.Decode(context.Background(), strings.NewReader(test.input), &buf)
 		if test.err != nil {
 			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
-				t.Errorf("test %d: error type %T, expected %T", i, err, test.err)
+				t.Errorf("test %d: error type %T, expected %T (%s)", i, err, test.err, err)
 				continue
 			}
 		} else if err != nil {

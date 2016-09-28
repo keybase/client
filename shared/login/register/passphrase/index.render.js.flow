@@ -12,9 +12,7 @@ export type Props = {
   error?: ?string,
   username: ?string,
   showTyping: boolean,
-  saveInKeychain: boolean,
   toggleShowTyping: () => void,
-  toggleSaveInKeychain: () => void
 }
 
 export default class Passphrase extends Component<void, Props, void> { }
