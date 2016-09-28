@@ -139,16 +139,56 @@ protocol local {
     array<Message> messages;
   }
 
-  InboxView getInboxLocal(union { null, GetInboxQuery} query, union { null, Pagination } pagination);
-  ThreadView getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
-  void postLocal(ConversationID conversationID, MessagePlaintext messagePlaintext);
+  record GetInboxLocalRes {
+    InboxView inbox;
+    array<RateLimit> rateLimits;
+  }
+
+  record GetThreadLocalRes {
+    ThreadView thread;
+    array<RateLimit> rateLimits;
+  }
+
+  record PostLocalRes {
+    array<RateLimit> rateLimits;
+  }
+
+  record ResolveConversationLocalRes {
+    array<ConversationInfoLocal> convs;
+    array<RateLimit> rateLimits;
+  }
+
+  record NewConversationLocalRes {
+    ConversationInfoLocal conv;
+    array<RateLimit> rateLimits;
+  }
+
+  record UpdateTopicNameLocalRes {
+    array<RateLimit> rateLimits;
+  }
+
+  record GetMessagesLocalRes {
+    array<ConversationLocal> msgs;
+    array<RateLimit> rateLimits;
+  }
+
+  record GetInboxSummaryLocalRes {
+    array<ConversationLocal> conversations;
+    array<ConversationLocal> more;
+    int moreTotal;
+    array<RateLimit> rateLimits;
+  }
+
+  GetInboxLocalRes getInboxLocal(union { null, GetInboxQuery} query, union { null, Pagination } pagination);
+  GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
+  PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext messagePlaintext);
 
   // resolveConversationLocal resolves information related to a conversation.
   // If conversation.id is given (non-zero), it is used to locate the
   // conversation. Otherwise, tlfName, topicName, and topicType, if any of
   // which are non zero value, are used to search for conversation. Any
   // matching conversation is added to a list and returned to the caller.
-  array<ConversationInfoLocal> resolveConversationLocal(ConversationInfoLocal conversation);
+  ResolveConversationLocalRes resolveConversationLocal(ConversationInfoLocal conversation);
 
   // newConversationLocal creates a new conversation. conversation.id field is
   // ignored. tlfName and topicType fields are required. topicName, if not
@@ -156,18 +196,12 @@ protocol local {
   // Calling newConversationLocal with a topic name is same to calling with an
   // empty topic name and following-up with an updateTopicName call. The
   // returned ConversationInfoLocal has all fields populated.
-  ConversationInfoLocal newConversationLocal(ConversationInfoLocal conversation);
+  NewConversationLocalRes newConversationLocal(ConversationInfoLocal conversation);
 
-  void updateTopicNameLocal(ConversationID conversationID, string newTopicName);
+  UpdateTopicNameLocalRes updateTopicNameLocal(ConversationID conversationID, string newTopicName);
 
   // selector.conversations is required
-  array<ConversationLocal> getMessagesLocal(MessageSelector selector);
-
-  record GetInboxSummaryLocalRes {
-    array<ConversationLocal> conversations;
-    array<ConversationLocal> more;
-    int moreTotal;
-  }
+  GetMessagesLocalRes getMessagesLocal(MessageSelector selector);
 
   // if since is given, limit is ignored
   GetInboxSummaryLocalRes getInboxSummaryLocal(TopicType topicType, string after, string before, int limit, TLFVisibility visibility);
