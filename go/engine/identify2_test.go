@@ -69,8 +69,8 @@ func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
 	}
 }
 
-func (i *Identify2WithUIDTester) ListProofCheckers() []string { return nil }
-func (i *Identify2WithUIDTester) AllStringKeys() []string     { return nil }
+func (i *Identify2WithUIDTester) ListProofCheckers(mode libkb.RunMode) []string { return nil }
+func (i *Identify2WithUIDTester) AllStringKeys() []string                       { return nil }
 func (i *Identify2WithUIDTester) CheckProofText(text string, id keybase1.SigID, sig string) error {
 	return nil
 }
