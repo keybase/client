@@ -7,7 +7,14 @@
     <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
     <Property Id="ARPHELPLINK" Value="https://www.keybase.io"/>
     <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
-
+    <!-- This seems to be the best way to detect pending reboot - MsiSystemRebootPending did NOT work -->
+    <Property Id="RESTART_PENDING">
+      <RegistrySearch Id="RestartPending"
+                      Root="HKLM"
+                      Key="SYSTEM\CurrentControlSet\Control\Session Manager"
+                      Name="PendingFileRenameOperations"
+                      Type="raw" />
+    </Property>
     
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />		
 
@@ -25,8 +32,8 @@
       <Custom Action="StopUpdater" Before="InstallValidate"/>
       <Custom Action="StopGUI" Before="InstallValidate"/>
       <Custom Action="StopMainApp" Before="InstallValidate"/>
-      <Custom Action="RunMainApp" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
-      <Custom Action="RunGUI" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
+      <Custom Action="RunMainApp" Before="InstallFinalize">NOT RESTART_PENDING AND NOT (REMOVE ~= "ALL")</Custom>
+      <Custom Action="RunGUI" Before="InstallFinalize">NOT RESTART_PENDING AND NOT (REMOVE ~= "ALL")</Custom>
     </InstallExecuteSequence>
 
 
