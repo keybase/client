@@ -4,44 +4,85 @@
 package service
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
-type chatTestContext struct {
-	h     *chatLocalHandler
-	tc    libkb.TestContext
-	world *chatMockWorld
-	mock  *chatRemoteMock
+type chatTestUserContext struct {
+	u *kbtest.FakeUser
+	h *chatLocalHandler
 }
 
-func makeChatTestContext(t *testing.T, name string) (ctc chatTestContext) {
-	ctc.tc = externals.SetupTest(t, "chat_local_test_"+name, 0)
-	u, err := kbtest.CreateAndSignupFakeUser("chat", ctc.tc.G)
-	if err != nil {
-		t.Fatalf("CreateAndSignupFakeUser error: %v\n", err)
-	}
-	ctc.world = newChatMockWorld(u)
+func (tuc *chatTestUserContext) user() *kbtest.FakeUser {
+	return tuc.u
+}
+
+func (tuc *chatTestUserContext) chatLocalHandler() chat1.LocalInterface {
+	return tuc.h
+}
+
+type chatTestContext struct {
+	world *chatMockWorld
+	mock  *chatRemoteMock
+
+	userContextCache map[string]*chatTestUserContext
+}
+
+func makeChatTestContext(t *testing.T, name string, numUsers int) *chatTestContext {
+	ctc := &chatTestContext{}
+	ctc.world = newChatMockWorld(t, name, numUsers)
 	ctc.mock = newChatRemoteMock(ctc.world)
-	ctc.h = newChatLocalHandler(nil, ctc.tc.G, nil)
-	ctc.h.rc = ctc.mock
-	ctc.h.boxer = newChatBoxer(ctc.tc.G)
-	ctc.h.boxer.tlf = newTlfMock(ctc.world)
+	ctc.userContextCache = make(map[string]*chatTestUserContext)
 	return ctc
 }
 
-func mustCreateConversationForTest(t *testing.T, ctc chatTestContext, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
+func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserContext {
+	if user == nil {
+		t.Fatalf("user is nil")
+	}
+
+	if tuc, ok := c.userContextCache[user.Username]; ok {
+		return tuc
+	}
+
+	tc, ok := c.world.tcs[user.Username]
+	if !ok {
+		t.Fatalf("user %s is not found", user.Username)
+	}
+	h := newChatLocalHandler(nil, tc.G, nil)
+	h.rc = c.mock
+	h.boxer = newChatBoxer(tc.G)
+	h.boxer.tlf = newTlfMock(c.world)
+	tuc := &chatTestUserContext{
+		h: h,
+		u: user,
+	}
+	c.userContextCache[user.Username] = tuc
+	return tuc
+}
+
+func (c *chatTestContext) cleanup() {
+	c.world.cleanup()
+}
+
+func (c *chatTestContext) users() (users []*kbtest.FakeUser) {
+	for _, u := range c.world.users {
+		users = append(users, u)
+	}
+	return users
+}
+
+func mustCreateConversationForTest(t *testing.T, creator *chatTestUserContext, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
 	var err error
-	created, err = ctc.h.NewConversationLocal(context.Background(), chat1.ConversationInfoLocal{
-		TlfName:   strings.Join(others, ",") + "," + ctc.world.me.Username,
+	created, err = creator.chatLocalHandler().NewConversationLocal(context.Background(), chat1.ConversationInfoLocal{
+		TlfName:   strings.Join(others, ",") + "," + creator.user().Username,
 		TopicType: topicType,
 	})
 	if err != nil {
@@ -50,27 +91,51 @@ func mustCreateConversationForTest(t *testing.T, ctc chatTestContext, topicType 
 	return created
 }
 
-func TestNewConversationLocal(t *testing.T) {
-	ctc := makeChatTestContext(t, "NewConversationLocal")
-	defer ctc.tc.Cleanup()
+func mustPostLocalForTest(t *testing.T, author *chatTestUserContext, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
+	mt, err := msg.MessageType()
+	if err != nil {
+		t.Fatalf("msg.MessageType() error: %v\n", err)
+	}
+	err = author.chatLocalHandler().PostLocal(context.Background(), chat1.PostLocalArg{
+		ConversationID: conv.Id,
+		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        conv.Triple,
+				MessageType: mt,
+				TlfName:     conv.TlfName,
+			},
+			MessageBody: msg,
+		}),
+	})
+	if err != nil {
+		t.Fatalf("PostLocal error: %v", err)
+	}
+}
 
-	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
+func TestNewConversationLocal(t *testing.T) {
+	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	created := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
 	conv := ctc.mock.getConversationByID(created.Id)
 	if len(conv.MaxMsgs) == 0 {
 		t.Fatalf("created conversation does not have a message")
 	}
-	if conv.MaxMsgs[0].ClientHeader.TlfName != ctc.world.me.Username+",t_alice" {
-		t.Fatalf("unexpected TLF name in created conversation. expected %s, got %s", ctc.world.me.Username+",t_alice", conv.MaxMsgs[0].ClientHeader.TlfName)
+	if conv.MaxMsgs[0].ClientHeader.TlfName !=
+		string(canonicalTlfNameForTest(ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username)) {
+		t.Fatalf("unexpected TLF name in created conversation. expected %s, got %s", ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username, conv.MaxMsgs[0].ClientHeader.TlfName)
 	}
 }
 
 func TestNewChatConversationLocalTwice(t *testing.T) {
-	ctc := makeChatTestContext(t, "NewConversationLocal")
-	defer ctc.tc.Cleanup()
+	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
 
-	c1 := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	c2 := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
+	c1 := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	c2 := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
 	if c2.Id != c1.Id {
 		t.Fatalf("2nd call to NewConversationLocal for a chat conversation did not return the same conversation ID")
@@ -78,21 +143,22 @@ func TestNewChatConversationLocalTwice(t *testing.T) {
 }
 
 func TestNewDevConversationLocalTwice(t *testing.T) {
-	ctc := makeChatTestContext(t, "NewConversationLocal")
-	defer ctc.tc.Cleanup()
+	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
 
-	mustCreateConversationForTest(t, ctc, chat1.TopicType_DEV, "t_alice")
-	mustCreateConversationForTest(t, ctc, chat1.TopicType_DEV, "t_alice")
+	mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_DEV, ctc.as(t, users[1]).user().Username)
+	mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_DEV, ctc.as(t, users[1]).user().Username)
 }
 
 func TestResolveConversationLocal(t *testing.T) {
-	t.Skip("this needs to be fixed")
-	ctc := makeChatTestContext(t, "ResolveConversationLocal")
-	defer ctc.tc.Cleanup()
+	ctc := makeChatTestContext(t, "ResolveConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
+	created := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
-	conversations, err := ctc.h.ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
+	conversations, err := ctc.as(t, users[0]).chatLocalHandler().ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
 		Id: created.Id,
 	})
 	if err != nil {
@@ -114,13 +180,14 @@ func TestResolveConversationLocal(t *testing.T) {
 }
 
 func TestResolveConversationLocalTlfName(t *testing.T) {
-	ctc := makeChatTestContext(t, "ResolveConversationLocal")
-	defer ctc.tc.Cleanup()
+	ctc := makeChatTestContext(t, "ResolveConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
+	created := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
-	conversations, err := ctc.h.ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
-		TlfName: "t_alice" + "," + ctc.world.me.Username, // not canonical
+	conversations, err := ctc.as(t, users[0]).chatLocalHandler().ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
+		TlfName: ctc.as(t, users[1]).user().Username + "," + ctc.as(t, users[0]).user().Username, // not canonical
 	})
 	if err != nil {
 		t.Fatalf("ResolveConversationLocal error: %v", err)
@@ -140,55 +207,30 @@ func TestResolveConversationLocalTlfName(t *testing.T) {
 	}
 }
 
-func mustPostLocalForTest(t *testing.T, ctc chatTestContext, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
-	mt, err := msg.MessageType()
-	if err != nil {
-		t.Fatalf("msg.MessageType() error: %v\n", err)
-	}
-	err = ctc.h.PostLocal(context.Background(), chat1.PostLocalArg{
-		ConversationID: conv.Id,
-		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
-			ClientHeader: chat1.MessageClientHeader{
-				// Conv omitted
-				MessageType: mt,
-				TlfName:     conv.TlfName,
-			},
-			MessageBody: msg,
-		}),
-	})
-	if err != nil {
-		t.Fatalf("PostLocal error: %v", err)
-	}
-}
-
 func TestPostLocal(t *testing.T) {
-	ctc := makeChatTestContext(t, "PostLocal")
-	defer ctc.tc.Cleanup()
+	ctc := makeChatTestContext(t, "PostLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	mustPostLocalForTest(t, ctc, created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+	created := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc.as(t, users[0]), created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
 	// we just posted this message, so should be the first one.
 	msg := ctc.mock.msgs[created.Id][0]
-	if len(msg.ClientHeader.Sender.Bytes()) == 0 && len(msg.ClientHeader.SenderDevice.Bytes()) == 0 {
+	if len(msg.ClientHeader.Sender.Bytes()) == 0 || len(msg.ClientHeader.SenderDevice.Bytes()) == 0 {
 		t.Fatalf("PostLocal didn't populate ClientHeader.Sender and/or ClientHeader.SenderDevice\n")
 	}
-
-	// TODO: enable this after we implement in service
-	/* if msg.ClientHeader.Conv == chat1.ConversationIDTriple{} {
-	 * 	 t.Fatalf("PostLocal didn't populate ClientHeader.Conv\n")
-	 * }
-	 */
 }
 
 func TestGetThreadLocal(t *testing.T) {
-	ctc := makeChatTestContext(t, "GetThreadLocal")
-	defer ctc.tc.Cleanup()
+	ctc := makeChatTestContext(t, "GetThreadLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	mustPostLocalForTest(t, ctc, created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+	created := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc.as(t, users[0]), created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
-	tv, err := ctc.h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
+	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: created.Id,
 	})
 	if err != nil {
@@ -203,24 +245,24 @@ func TestGetThreadLocal(t *testing.T) {
 }
 
 func TestGetInboxSummaryLocal(t *testing.T) {
-	t.Skip("this needs to be fixed")
-	ctc := makeChatTestContext(t, "GetInboxSummaryLocal")
-	defer ctc.tc.Cleanup()
+	ctc := makeChatTestContext(t, "GetInboxSummaryLocal", 4)
+	defer ctc.cleanup()
+	users := ctc.users()
 
-	withAlice := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	mustPostLocalForTest(t, ctc, withAlice, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-
-	time.Sleep(time.Millisecond)
-
-	withBob := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_bob")
-	mustPostLocalForTest(t, ctc, withBob, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "Dude I just said hello to Alice!"}))
+	withAlice := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc.as(t, users[0]), withAlice, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
 	time.Sleep(time.Millisecond)
 
-	withCharlie := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_charlie")
-	mustPostLocalForTest(t, ctc, withCharlie, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
+	withBob := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[2]).user().Username)
+	mustPostLocalForTest(t, ctc.as(t, users[0]), withBob, chat1.NewMessageBodyWithText(chat1.MessageText{Body: fmt.Sprintf("Dude I just said hello to %s!", ctc.as(t, users[2]).user().Username)}))
 
-	res, err := ctc.h.GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+	time.Sleep(time.Millisecond)
+
+	withCharlie := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[3]).user().Username)
+	mustPostLocalForTest(t, ctc.as(t, users[0]), withCharlie, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
+
+	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
 		After:     "1d",
 		TopicType: chat1.TopicType_CHAT,
 	})
@@ -237,7 +279,7 @@ func TestGetInboxSummaryLocal(t *testing.T) {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 2 messages in the first conversation, got %d\n", len(res.Conversations[0].Messages))
 	}
 
-	res, err = ctc.h.GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
 		ActivitySortedLimit: 2,
 		TopicType:           chat1.TopicType_CHAT,
 	})

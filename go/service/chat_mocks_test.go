@@ -10,10 +10,12 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"testing"
 	"time"
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -22,42 +24,36 @@ import (
 )
 
 type chatMockWorld struct {
-	me *kbtest.FakeUser
-
-	users   map[string]gregor1.UID
+	tcs     map[string]*libkb.TestContext
+	users   map[string]*kbtest.FakeUser
 	tlfs    map[keybase1.CanonicalTlfName]chat1.TLFID
 	tlfKeys map[keybase1.CanonicalTlfName][]keybase1.CryptKey
 }
 
-func newChatMockWorld(user *kbtest.FakeUser) (world *chatMockWorld) {
-	world = &chatMockWorld{me: user}
-
-	others := []string{"t_alice", "t_bob", "t_charlie", "t_doug"}
-
-	world.users = map[string]gregor1.UID{
-		"t_alice":   gregor1.UID(mustDecodeHex("295a7eea607af32040647123732bc819")),
-		"t_bob":     gregor1.UID(mustDecodeHex("afb5eda3154bc13c1df0189ce93ba119")),
-		"t_charlie": gregor1.UID(mustDecodeHex("9d56bd0c02ac2711e142faf484ea9519")),
-		"t_doug":    gregor1.UID(mustDecodeHex("c4c565570e7e87cafd077509abf5f619")),
+func newChatMockWorld(t *testing.T, name string, numUsers int) (world *chatMockWorld) {
+	world = &chatMockWorld{
+		tcs:     make(map[string]*libkb.TestContext),
+		users:   make(map[string]*kbtest.FakeUser),
+		tlfs:    make(map[keybase1.CanonicalTlfName]chat1.TLFID),
+		tlfKeys: make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
 	}
-	world.users[user.Username] = gregor1.UID(user.User.GetUID().ToBytes())
-
-	world.tlfs = make(map[keybase1.CanonicalTlfName]chat1.TLFID)
-	for i := 0; i < len(others); i++ { // 2-person conversations
-		tlfName := canonicalTlfNameForTest(user.Username + "," + others[i])
-		world.tlfs[tlfName] = mustGetRandBytesWithControlledFirstByte(16, byte(len(world.tlfs)+1))
-	}
-	for i := 1; i < len(others); i++ { // 3-person conversations
-		tlfName := canonicalTlfNameForTest(user.Username + "," + others[i] + "," + others[i-1])
-		world.tlfs[tlfName] = mustGetRandBytesWithControlledFirstByte(16, byte(len(world.tlfs)+1))
-	}
-
-	world.tlfKeys = make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey)
-	for tlfName := range world.tlfs {
-		world.tlfKeys[tlfName] = mustGetRandCryptKeys(byte(len(world.tlfKeys) + 1))
+	for i := 0; i < numUsers; i++ {
+		tc := externals.SetupTest(t, "chat_"+name, 0)
+		u, err := kbtest.CreateAndSignupFakeUser("chat", tc.G)
+		if err != nil {
+			t.Fatal(err)
+		}
+		world.users[u.Username] = u
+		world.tcs[u.Username] = &tc
 	}
 
 	return world
+}
+
+func (w *chatMockWorld) cleanup() {
+	for _, tc := range w.tcs {
+		tc.Cleanup()
+	}
 }
 
 func mustDecodeHex(h string) (b []byte) {
@@ -107,8 +103,15 @@ func (m tlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.TL
 	res.CanonicalName = canonicalTlfNameForTest(tlfName)
 	tlfID, ok := m.world.tlfs[res.CanonicalName]
 	if !ok {
-		err = fmt.Errorf("TLF %s not found", res.CanonicalName)
-		return res, err
+		for _, n := range strings.Split(string(res.CanonicalName), ",") {
+			if m.world.users[n] == nil {
+				err = fmt.Errorf("user %s not found", n)
+				return keybase1.TLFCryptKeys{}, err
+			}
+		}
+		tlfID = mustGetRandBytesWithControlledFirstByte(16, byte(len(m.world.tlfs)+1))
+		m.world.tlfs[res.CanonicalName] = tlfID
+		m.world.tlfKeys[res.CanonicalName] = mustGetRandCryptKeys(byte(len(m.world.tlfKeys) + 1))
 	}
 	res.TlfID = keybase1.TLFID(hex.EncodeToString([]byte(tlfID)))
 	if res.CryptKeys, ok = m.world.tlfKeys[res.CanonicalName]; !ok {
@@ -118,9 +121,9 @@ func (m tlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.TL
 	return res, nil
 }
 
-// Not used by tests?
+// Not used by service tests
 func (m tlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
-	return
+	return keybase1.CanonicalTlfName(""), errors.New("unimplemented")
 }
 
 func (m tlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndID, error) {
@@ -165,6 +168,9 @@ func (m *chatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 				continue
 			}
 			if arg.Query.UnreadOnly && conv.ReaderInfo.ReadMsgid != conv.ReaderInfo.MaxMsgid {
+				continue
+			}
+			if arg.Query.ReadOnly && conv.ReaderInfo.ReadMsgid == conv.ReaderInfo.MaxMsgid {
 				continue
 			}
 			// TODO: check arg.Query.TlfVisibility
@@ -242,6 +248,9 @@ func (m *chatRemoteMock) GetConversationMetadataRemote(ctx context.Context, conv
 func (m *chatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
 	inserted := m.insertMsgAndSort(arg.ConversationID, arg.MessageBoxed)
 	conv := m.getConversationByID(arg.ConversationID)
+	if conv.ReaderInfo.ReadMsgid == conv.ReaderInfo.MaxMsgid {
+		conv.ReaderInfo.ReadMsgid = inserted.ServerHeader.MessageID
+	}
 	conv.ReaderInfo.MaxMsgid = inserted.ServerHeader.MessageID
 	conv.ReaderInfo.Mtime = inserted.ServerHeader.Ctime
 	conv.MaxMsgs = m.getMaxMsgs(arg.ConversationID)

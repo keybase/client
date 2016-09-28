@@ -267,7 +267,7 @@ func TestChatMessagePublic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	world := newChatMockWorld(u)
+	world := newChatMockWorld(t, "unbox", 4)
 	handler.boxer.tlf = newTlfMock(world)
 
 	header := chat1.MessageClientHeader{
