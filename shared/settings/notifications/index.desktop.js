@@ -13,7 +13,7 @@ function Notifications (props: Props) {
     </Box>)
     : (
     <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
-      <Text type='Header' style={{marginTop: globalMargins.xlarge}}>Email me:</Text>
+      <Text type='Header' style={{marginTop: globalMargins.medium}}>Email me:</Text>
       <Box style={globalStyles.flexBoxColumn}>
         {!!props.settings && props.settings.map(s => (
           <Checkbox

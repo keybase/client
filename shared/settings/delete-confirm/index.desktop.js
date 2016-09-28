@@ -31,7 +31,7 @@ class DeleteConfirm extends Component<void, Props & TimerProps, State> {
 
   render () {
     return (
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', flex: 1}}>
+      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', flex: 1, padding: globalMargins.medium}}>
         <Avatar
           size={48}
           username={this.props.username}>
