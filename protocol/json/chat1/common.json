@@ -93,6 +93,10 @@
       "name": "RateLimit",
       "fields": [
         {
+          "type": "string",
+          "name": "name"
+        },
+        {
           "type": "int",
           "name": "callsRemaining"
         },

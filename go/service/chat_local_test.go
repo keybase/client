@@ -38,16 +38,16 @@ func makeChatTestContext(t *testing.T, name string) (ctc chatTestContext) {
 	return ctc
 }
 
-func mustCreateConversationForTest(t *testing.T, ctc chatTestContext, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
+func mustCreateConversationForTest(t *testing.T, ctc chatTestContext, topicType chat1.TopicType, others ...string) chat1.ConversationInfoLocal {
 	var err error
-	created, err = ctc.h.NewConversationLocal(context.Background(), chat1.ConversationInfoLocal{
+	ncres, err := ctc.h.NewConversationLocal(context.Background(), chat1.ConversationInfoLocal{
 		TlfName:   strings.Join(others, ",") + "," + ctc.world.me.Username,
 		TopicType: topicType,
 	})
 	if err != nil {
 		t.Fatalf("NewConversationLocal error: %v\n", err)
 	}
-	return created
+	return ncres.Conv
 }
 
 func TestNewConversationLocal(t *testing.T) {
@@ -92,12 +92,13 @@ func TestResolveConversationLocal(t *testing.T) {
 
 	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
 
-	conversations, err := ctc.h.ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
+	rcres, err := ctc.h.ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
 		Id: created.Id,
 	})
 	if err != nil {
 		t.Fatalf("ResolveConversationLocal error: %v", err)
 	}
+	conversations := rcres.Convs
 	if len(conversations) != 1 {
 		t.Fatalf("unexpected response from ResolveConversationLocal. expected 1 items, got %d\n", len(conversations))
 	}
@@ -119,12 +120,13 @@ func TestResolveConversationLocalTlfName(t *testing.T) {
 
 	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
 
-	conversations, err := ctc.h.ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
+	rcres, err := ctc.h.ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
 		TlfName: "t_alice" + "," + ctc.world.me.Username, // not canonical
 	})
 	if err != nil {
 		t.Fatalf("ResolveConversationLocal error: %v", err)
 	}
+	conversations := rcres.Convs
 	if len(conversations) != 1 {
 		t.Fatalf("unexpected response from ResolveConversationLocal. expected 1 item, got %d\n", len(conversations))
 	}
@@ -145,7 +147,7 @@ func mustPostLocalForTest(t *testing.T, ctc chatTestContext, conv chat1.Conversa
 	if err != nil {
 		t.Fatalf("msg.MessageType() error: %v\n", err)
 	}
-	err = ctc.h.PostLocal(context.Background(), chat1.PostLocalArg{
+	_, err = ctc.h.PostLocal(context.Background(), chat1.PostLocalArg{
 		ConversationID: conv.Id,
 		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
@@ -181,12 +183,13 @@ func TestGetThreadLocal(t *testing.T) {
 	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
 	mustPostLocalForTest(t, ctc, created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
-	tv, err := ctc.h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
+	tvres, err := ctc.h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: created.Id,
 	})
 	if err != nil {
 		t.Fatalf("GetThreadLocal error: %v", err)
 	}
+	tv := tvres.Thread
 	if len(tv.Messages) != 2 {
 		t.Fatalf("unexpected response from GetThreadLocal . expected 2 items, got %d\n", len(tv.Messages))
 	}
@@ -212,15 +215,15 @@ func TestGracefulUnboxing(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetThreadLocal error: %v", err)
 	}
-	if len(tv.Messages) != 3 {
-		t.Fatalf("unexpected response from GetThreadLocal. expected 4 items, got %d\n", len(tv.Messages))
+	if len(tv.Thread.Messages) != 3 {
+		t.Fatalf("unexpected response from GetThreadLocal. expected 4 items, got %d\n", len(tv.Thread.Messages))
 	}
-	if tv.Messages[0].Message != nil ||
-		tv.Messages[0].UnboxingError == nil || len(*tv.Messages[0].UnboxingError) == 0 {
-		t.Fatalf("unexpected response from GetThreadLocal. expected an error message from bad msg, got %#+v\n", tv.Messages[0])
+	if tv.Thread.Messages[0].Message != nil ||
+		tv.Thread.Messages[0].UnboxingError == nil || len(*tv.Thread.Messages[0].UnboxingError) == 0 {
+		t.Fatalf("unexpected response from GetThreadLocal. expected an error message from bad msg, got %#+v\n", tv.Thread.Messages[0])
 	}
-	if tv.Messages[1].Message == nil || tv.Messages[1].Message.MessagePlaintext.V1().MessageBody.Text().Body != "innocent hello" {
-		t.Fatalf("unexpected response from GetThreadLocal. expected 'innocent hello' got %#+v\n", tv.Messages[1].Message)
+	if tv.Thread.Messages[1].Message == nil || tv.Thread.Messages[1].Message.MessagePlaintext.V1().MessageBody.Text().Body != "innocent hello" {
+		t.Fatalf("unexpected response from GetThreadLocal. expected 'innocent hello' got %#+v\n", tv.Thread.Messages[1].Message)
 	}
 }
 
