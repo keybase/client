@@ -242,6 +242,31 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 	return nil
 }
 
+func (cc *crChain) remove(ctx context.Context, log logger.Logger,
+	rmd ImmutableRootMetadata) bool {
+	anyRemoved := false
+	var newOps []op
+	for i, currOp := range cc.ops {
+		info := currOp.getWriterInfo()
+		if info.revision == rmd.Revision() {
+			log.CDebugf(ctx, "Removing op %s from chain with mostRecent=%v",
+				currOp, cc.mostRecent)
+			if !anyRemoved {
+				newOps = make([]op, i, len(cc.ops)-1)
+				// Copy everything we've iterated over so far.
+				copy(newOps[:i], cc.ops[:i])
+				anyRemoved = true
+			}
+		} else if anyRemoved {
+			newOps = append(newOps, currOp)
+		}
+	}
+	if anyRemoved {
+		cc.ops = newOps
+	}
+	return anyRemoved
+}
+
 type renameInfo struct {
 	originalOldParent BlockPointer
 	oldName           string
@@ -875,4 +900,19 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 	// Order by descending path length.
 	sort.Sort(crSortedPaths(paths))
 	return paths, nil
+}
+
+// remove delets all operations associated with `rmd` from the chains.
+// It leaves original block pointers in place though, even when
+// removing operations from the head of the chain.  It returns the set
+// of chains with at least one operation removed.
+func (ccs *crChains) remove(ctx context.Context, log logger.Logger,
+	rmd ImmutableRootMetadata) []*crChain {
+	var chainsWithRemovals []*crChain
+	for _, chain := range ccs.byOriginal {
+		if chain.remove(ctx, log, rmd) {
+			chainsWithRemovals = append(chainsWithRemovals, chain)
+		}
+	}
+	return chainsWithRemovals
 }
