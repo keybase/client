@@ -55,6 +55,8 @@ func (f *File) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 
 	f.folder.fs.log.CDebugf(ctx, "Cleanup %v", *f)
 	if fi != nil && fi.IsDeleteOnClose() {
+		f.folder.fs.renameAndDeletionLock.Lock()
+		defer f.folder.fs.renameAndDeletionLock.Unlock()
 		f.folder.fs.log.CDebugf(ctx, "Removing (Delete) file in cleanup %s", f.name)
 
 		err = f.folder.fs.config.KBFSOps().RemoveEntry(ctx, f.parent, f.name)

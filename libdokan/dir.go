@@ -486,6 +486,8 @@ func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	if fi != nil && fi.IsDeleteOnClose() && d.parent != nil {
+		d.folder.fs.renameAndDeletionLock.Lock()
+		defer d.folder.fs.renameAndDeletionLock.Unlock()
 		d.folder.fs.log.CDebugf(ctx, "Removing (Delete) dir in cleanup %s", d.name)
 
 		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, d.name)
