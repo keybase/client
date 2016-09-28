@@ -318,21 +318,21 @@ func NewBodyPlaintextWithV1(v BodyPlaintextV1) BodyPlaintext {
 	}
 }
 
-type MessageInfoLocal struct {
-	IsNew            bool   `codec:"isNew" json:"isNew"`
-	SenderUsername   string `codec:"senderUsername" json:"senderUsername"`
-	SenderDeviceName string `codec:"senderDeviceName" json:"senderDeviceName"`
-}
-
-type Message struct {
+type MessageFromServer struct {
 	ServerHeader     MessageServerHeader `codec:"serverHeader" json:"serverHeader"`
 	MessagePlaintext MessagePlaintext    `codec:"messagePlaintext" json:"messagePlaintext"`
-	Info             *MessageInfoLocal   `codec:"info,omitempty" json:"info,omitempty"`
+	SenderUsername   string              `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName string              `codec:"senderDeviceName" json:"senderDeviceName"`
+}
+
+type MessageFromServerOrError struct {
+	UnboxingError *string            `codec:"unboxingError,omitempty" json:"unboxingError,omitempty"`
+	Message       *MessageFromServer `codec:"message,omitempty" json:"message,omitempty"`
 }
 
 type ThreadView struct {
-	Messages   []Message   `codec:"messages" json:"messages"`
-	Pagination *Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages   []MessageFromServerOrError `codec:"messages" json:"messages"`
+	Pagination *Pagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 type MessageSelector struct {
@@ -354,8 +354,9 @@ type ConversationInfoLocal struct {
 }
 
 type ConversationLocal struct {
-	Info     *ConversationInfoLocal `codec:"info,omitempty" json:"info,omitempty"`
-	Messages []Message              `codec:"messages" json:"messages"`
+	Info     *ConversationInfoLocal     `codec:"info,omitempty" json:"info,omitempty"`
+	Messages []MessageFromServerOrError `codec:"messages" json:"messages"`
+	ReadUpTo MessageID                  `codec:"readUpTo" json:"readUpTo"`
 }
 
 type GetInboxLocalRes struct {

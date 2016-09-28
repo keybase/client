@@ -118,11 +118,11 @@ func TestChatMessageUnbox(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	unboxed, err := handler.boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	messagePlaintext, err := handler.boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := unboxed.MessagePlaintext.V1().MessageBody
+	body := messagePlaintext.V1().MessageBody
 	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
 		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
 	}
@@ -291,11 +291,11 @@ func TestChatMessagePublic(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	unboxed, err := handler.boxer.unboxMessage(ctx, newKeyFinder(), *boxed)
+	messagePlaintext, err := handler.boxer.unboxMessage(ctx, newKeyFinder(), *boxed)
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := unboxed.MessagePlaintext.V1().MessageBody
+	body := messagePlaintext.V1().MessageBody
 	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
 		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
 	}

@@ -129,10 +129,10 @@ func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conve
 	resolver.TopicName = ctx.String("topic-name")
 	resolver.TlfName = tlfName
 	if resolver.TopicType, err = parseConversationTopicType(ctx); err != nil {
-		return resolver, err
+		return conversationResolver{}, err
 	}
 	if resolver.TopicType == chat1.TopicType_CHAT && len(resolver.TopicName) != 0 {
-		return resolver, errors.New("multiple topics are not yet supported")
+		return conversationResolver{}, errors.New("multiple topics are not yet supported")
 	}
 	if ctx.Bool("private") {
 		resolver.Visibility = chat1.TLFVisibility_PRIVATE
@@ -158,7 +158,7 @@ func makeMessageFetcherFromCliCtx(ctx *cli.Context, tlfName string, markAsRead b
 	fetcher.selector.MarkAsRead = markAsRead
 
 	if fetcher.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
-		return fetcher, err
+		return messageFetcher{}, err
 	}
 
 	return fetcher, nil
@@ -207,7 +207,7 @@ type inboxFetcher struct {
 
 func makeInboxFetcherFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error) {
 	if fetcher.topicType, err = parseConversationTopicType(ctx); err != nil {
-		return fetcher, err
+		return inboxFetcher{}, err
 	}
 
 	fetcher.limit = ctx.Int("number")

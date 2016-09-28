@@ -30,28 +30,32 @@ func (c *chatLocalMock) GetInboxLocal(ctx context.Context, arg chat1.GetInboxLoc
 	return res, nil
 }
 
-func (c *chatLocalMock) mockMessage(idSeed byte, msgType chat1.MessageType, body chat1.MessageBody) chat1.Message {
-	return chat1.Message{
-		ServerHeader: chat1.MessageServerHeader{
-			MessageType:  msgType,
-			MessageID:    chat1.MessageID(idSeed),
-			Sender:       gregor1.UID{idSeed, 1},
-			SenderDevice: gregor1.DeviceID{idSeed, 2},
-			Ctime:        gregor1.ToTime(time.Now().Add(-time.Duration(idSeed) * time.Minute)),
-		},
-		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
-			ClientHeader: chat1.MessageClientHeader{
+func (c *chatLocalMock) mockMessage(idSeed byte, msgType chat1.MessageType, body chat1.MessageBody, senderUsername string, senderDeviceName string) chat1.MessageFromServerOrError {
+	return chat1.MessageFromServerOrError{
+		Message: &chat1.MessageFromServer{
+			ServerHeader: chat1.MessageServerHeader{
 				MessageType:  msgType,
-				TlfName:      "morty,rick,songgao",
+				MessageID:    chat1.MessageID(idSeed),
 				Sender:       gregor1.UID{idSeed, 1},
 				SenderDevice: gregor1.DeviceID{idSeed, 2},
-				Conv: chat1.ConversationIDTriple{
-					TopicType: chat1.TopicType_CHAT,
-					TopicID:   chat1.TopicID{idSeed, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-				},
+				Ctime:        gregor1.ToTime(time.Now().Add(-time.Duration(idSeed) * time.Minute)),
 			},
-			MessageBody: body,
-		}),
+			MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
+				ClientHeader: chat1.MessageClientHeader{
+					MessageType:  msgType,
+					TlfName:      "morty,rick,songgao",
+					Sender:       gregor1.UID{idSeed, 1},
+					SenderDevice: gregor1.DeviceID{idSeed, 2},
+					Conv: chat1.ConversationIDTriple{
+						TopicType: chat1.TopicType_CHAT,
+						TopicID:   chat1.TopicID{idSeed, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+					},
+				},
+				MessageBody: body,
+			}),
+			SenderUsername:   senderUsername,
+			SenderDeviceName: senderDeviceName,
+		},
 	}
 }
 
@@ -63,19 +67,19 @@ func (c *chatLocalMock) GetThreadLocal(ctx context.Context, arg chat1.GetThreadL
 	body := chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "O_O blah blah blah this is a really long line and I don't know what I'm talking about hahahahaha OK long enough",
 	})
-	msg := c.mockMessage(2, chat1.MessageType_TEXT, body)
+	msg := c.mockMessage(2, chat1.MessageType_TEXT, body, "songgao", "ThinkPad")
 	res.Thread.Messages = append(res.Thread.Messages, msg)
 
 	body = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "Not much; just drinking.",
 	})
-	msg = c.mockMessage(3, chat1.MessageType_TEXT, body)
+	msg = c.mockMessage(3, chat1.MessageType_TEXT, body, "rick", "beer-machine")
 	res.Thread.Messages = append(res.Thread.Messages, msg)
 
 	body = chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "Hey what's up!",
 	})
-	msg = c.mockMessage(4, chat1.MessageType_TEXT, body)
+	msg = c.mockMessage(4, chat1.MessageType_TEXT, body, "morty", "toothbrush")
 	res.Thread.Messages = append(res.Thread.Messages, msg)
 
 	return res, nil
@@ -114,7 +118,7 @@ func (c *chatLocalMock) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetI
 	res.More = gmres.Msgs
 	res.More[0].Info.TlfName = "morty,songgao"
 	res.More[0].Info.Id++
-	res.More[0].Messages[0].ServerHeader.Ctime -= 1000 * 3600 * 24 * 5
+	res.More[0].Messages[0].Message.ServerHeader.Ctime -= 1000 * 3600 * 24 * 5
 
 	res.MoreTotal = 1000
 
@@ -133,9 +137,6 @@ func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg chat1.MessageS
 		return chat1.GetMessagesLocalRes{}, err
 	}
 	tview := tvres.Thread
-	tview.Messages[0].Info = &chat1.MessageInfoLocal{IsNew: true, SenderUsername: "songgao", SenderDeviceName: "MacBook"}
-	tview.Messages[1].Info = &chat1.MessageInfoLocal{IsNew: true, SenderUsername: "rick", SenderDeviceName: "bottle-opener"}
-	tview.Messages[2].Info = &chat1.MessageInfoLocal{IsNew: false, SenderUsername: "morty", SenderDeviceName: "toothbrush"}
 	res.Msgs = []chat1.ConversationLocal{
 		chat1.ConversationLocal{
 			Info: &chat1.ConversationInfoLocal{

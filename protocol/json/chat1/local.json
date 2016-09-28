@@ -257,11 +257,15 @@
     },
     {
       "type": "record",
-      "name": "MessageInfoLocal",
+      "name": "MessageFromServer",
       "fields": [
         {
-          "type": "boolean",
-          "name": "isNew"
+          "type": "MessageServerHeader",
+          "name": "serverHeader"
+        },
+        {
+          "type": "MessagePlaintext",
+          "name": "messagePlaintext"
         },
         {
           "type": "string",
@@ -275,22 +279,21 @@
     },
     {
       "type": "record",
-      "name": "Message",
+      "name": "MessageFromServerOrError",
       "fields": [
         {
-          "type": "MessageServerHeader",
-          "name": "serverHeader"
-        },
-        {
-          "type": "MessagePlaintext",
-          "name": "messagePlaintext"
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "unboxingError"
         },
         {
           "type": [
             null,
-            "MessageInfoLocal"
+            "MessageFromServer"
           ],
-          "name": "info"
+          "name": "message"
         }
       ]
     },
@@ -301,7 +304,7 @@
         {
           "type": {
             "type": "array",
-            "items": "Message"
+            "items": "MessageFromServerOrError"
           },
           "name": "messages"
         },
@@ -397,9 +400,13 @@
         {
           "type": {
             "type": "array",
-            "items": "Message"
+            "items": "MessageFromServerOrError"
           },
           "name": "messages"
+        },
+        {
+          "type": "MessageID",
+          "name": "readUpTo"
         }
       ]
     },

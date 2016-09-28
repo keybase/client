@@ -199,8 +199,13 @@ type MsgSummary struct {
 	Content  MsgContent      `json:"content"`
 }
 
+type MsgFromServer struct {
+	Msg   *MsgSummary `json:"msg,omitempty"`
+	Error *string     `json:"error,omitempty"`
+}
+
 type Thread struct {
-	Messages []MsgSummary `json:"messages"`
+	Messages []MsgFromServer `json:"messages"`
 	RateLimits
 }
 
@@ -248,40 +253,61 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 
 	var thread Thread
 	for _, m := range threadView.Thread.Messages {
-		version, err := m.MessagePlaintext.Version()
+		version, err := m.Message.MessagePlaintext.Version()
 		if err != nil {
 			return c.errReply(err)
 		}
 		switch version {
 		case chat1.MessagePlaintextVersion_V1:
-			v1 := m.MessagePlaintext.V1()
+			v1 := m.Message.MessagePlaintext.V1()
 			if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
 				// skip TLFNAME messages
 				continue
 			}
-			msg := MsgSummary{
-				ID: m.ServerHeader.MessageID,
-				Channel: ChatChannel{
-					Name:      v1.ClientHeader.TlfName,
-					Public:    v1.ClientHeader.TlfPublic,
-					TopicType: strings.ToLower(v1.ClientHeader.Conv.TopicType.String()),
-				},
-				Sender: MsgSender{
-					UID:      v1.ClientHeader.Sender.String(),
-					DeviceID: v1.ClientHeader.SenderDevice.String(),
-				},
-				SentAt:   int64(m.ServerHeader.Ctime / 1000),
-				SentAtMs: int64(m.ServerHeader.Ctime),
+			switch version {
+			case chat1.MessagePlaintextVersion_V1:
+				v1 := m.Message.MessagePlaintext.V1()
+				if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
+					// skip TLFNAME messages
+					continue
+				}
+				msg := MsgSummary{
+					ID: m.Message.ServerHeader.MessageID,
+					Channel: ChatChannel{
+						Name:      v1.ClientHeader.TlfName,
+						Public:    v1.ClientHeader.TlfPublic,
+						TopicType: strings.ToLower(v1.ClientHeader.Conv.TopicType.String()),
+					},
+					Sender: MsgSender{
+						UID:      v1.ClientHeader.Sender.String(),
+						DeviceID: v1.ClientHeader.SenderDevice.String(),
+					},
+					SentAt:   int64(m.Message.ServerHeader.Ctime / 1000),
+					SentAtMs: int64(m.Message.ServerHeader.Ctime),
+				}
+				msg.Content = c.convertMsgBody(v1.MessageBody)
+
+				msg.Sender.Username = m.Message.SenderUsername
+				msg.Sender.DeviceName = m.Message.SenderDeviceName
+
+				thread.Messages = append(thread.Messages, MsgFromServer{
+					Msg: &msg,
+				})
+			default:
+				return c.errReply(libkb.NewChatMessageVersionError(version))
 			}
-			msg.Content = c.convertMsgBody(v1.MessageBody)
-			if m.Info != nil {
-				msg.Sender.Username = m.Info.SenderUsername
-				msg.Sender.DeviceName = m.Info.SenderDeviceName
-			}
-			thread.Messages = append(thread.Messages, msg)
-		default:
-			return c.errReply(libkb.NewChatMessageVersionError(version))
+
+			continue
 		}
+
+		if m.UnboxingError != nil {
+			thread.Messages = append(thread.Messages, MsgFromServer{
+				Error: m.UnboxingError,
+			})
+			continue
+		}
+
+		return c.errReply(errors.New("unexpected response from service: UnboxingError and Message are both empty"))
 	}
 
 	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
