@@ -12,6 +12,7 @@ import DeleteMe from './delete'
 import DeleteConfirm from './delete-confirm'
 import Notifications from './notifications'
 import InviteGenerated from './invite-generated'
+import PlanDetails from './plan-details'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -327,6 +328,41 @@ const inviteGeneratedMap: DumbComponentMap<InviteGenerated> = {
   },
 }
 
+const creditCardNoPast = {
+  type: 'credit-card-no-past',
+  onAddCreditCard: () => { console.log('onAddCreditCard') },
+}
+
+const creditCardWithPast = {
+  type: 'credit-card-with-past',
+  cardInfo: 'Visa **** 4242',
+  onPayWithSavedCard: () => { console.log('onPayWithSavedCard') },
+  onUpdateCard: () => { console.log('onPayWithSavedCard') },
+}
+
+const applePay = {
+  type: 'apple-pay',
+  onPayWithCardInstead: () => { console.log('onPayWithCardInstead') },
+}
+
+const planDetailsMap: DumbComponentMap<PlanDetails> = {
+  component: PlanDetails,
+  mocks: {
+    'Credit Card No Past': {
+      plan: 'Basic',
+      paymentOption: creditCardNoPast,
+    },
+    'Credit Card With Past': {
+      plan: 'Gold',
+      paymentOption: creditCardWithPast,
+    },
+    'Apple Pay': {
+      plan: 'Friend',
+      paymentOption: applePay,
+    },
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
   UpdatePassphrase: updatePassphraseMap,
@@ -337,4 +373,5 @@ export default {
   DeleteConfirm: deleteConfirmMap,
   Notifications: notificationsMap,
   InviteGenerated: inviteGeneratedMap,
+  PlanDetails: planDetailsMap,
 }

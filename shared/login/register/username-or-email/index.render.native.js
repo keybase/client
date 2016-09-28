@@ -39,6 +39,7 @@ class Render extends Component<void, Props, State> {
             hintText='Username or email'
             floatingLabelText='Username or email'
             onChangeText={text => this.onChange(text)}
+            onEnterKeyDown={() => this.onSubmit()}
             value={this.state.usernameOrEmail}
           />
           <Button

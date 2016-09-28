@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -69,7 +70,7 @@ func (r *conversationResolver) Resolve(ctx context.Context, g *libkb.GlobalConte
 		r.TlfName = string(cname)
 	}
 
-	conversations, err := chatClient.ResolveConversationLocal(ctx, chat1.ConversationInfoLocal{
+	rcres, err := chatClient.ResolveConversationLocal(ctx, chat1.ConversationInfoLocal{
 		TlfName:    r.TlfName,
 		TopicName:  r.TopicName,
 		TopicType:  r.TopicType,
@@ -79,6 +80,7 @@ func (r *conversationResolver) Resolve(ctx context.Context, g *libkb.GlobalConte
 		return nil, false, err
 	}
 
+	conversations := rcres.Convs
 	switch len(conversations) {
 	case 0:
 		return nil, false, nil
@@ -128,6 +130,9 @@ func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conve
 	resolver.TlfName = tlfName
 	if resolver.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return resolver, err
+	}
+	if resolver.TopicType == chat1.TopicType_CHAT && len(resolver.TopicName) != 0 {
+		return resolver, errors.New("multiple topics are not yet supported")
 	}
 	if ctx.Bool("private") {
 		resolver.Visibility = chat1.TLFVisibility_PRIVATE
@@ -183,12 +188,12 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 	g.UI.GetTerminalUI().Printf("fetching conversation %s ...\n", conversationInfo.TlfName)
 	f.selector.Conversations = append(f.selector.Conversations, conversationInfo.Id)
 
-	conversations, err = chatClient.GetMessagesLocal(ctx, f.selector)
+	gmres, err := chatClient.GetMessagesLocal(ctx, f.selector)
 	if err != nil {
 		return nil, fmt.Errorf("GetMessagesLocal error: %s", err)
 	}
 
-	return conversations, nil
+	return gmres.Msgs, nil
 }
 
 type inboxFetcher struct {

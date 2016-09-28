@@ -9,6 +9,7 @@ export type HeaderProps = {
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   loggedIn: boolean,
+  headerStyle?: ?Object,
 }
 
 export default class HeaderRender extends Component<void, HeaderProps, void> { }

@@ -134,8 +134,8 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 	}
 
 	var cl ChatList
-	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
-	for i, conv := range inbox.Conversations {
+	cl.Conversations = make([]ConvSummary, len(inbox.Inbox.Conversations))
+	for i, conv := range inbox.Inbox.Conversations {
 		if len(conv.MaxMsgs) == 0 {
 			return c.errReply(fmt.Errorf("conversation %d had no max msgs", conv.Metadata.ConversationID))
 		}
@@ -198,10 +198,11 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			TopicType: opts.Channel.TopicTypeEnum(),
 			TopicName: opts.Channel.TopicName,
 		}
-		existing, err := client.ResolveConversationLocal(ctx, cinfo)
+		rcres, err := client.ResolveConversationLocal(ctx, cinfo)
 		if err != nil {
 			return c.errReply(err)
 		}
+		existing := rcres.Convs
 		if len(existing) > 1 {
 			return c.errReply(fmt.Errorf("multiple conversations matched %q", opts.Channel.Name))
 		}
@@ -223,7 +224,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	}
 
 	var thread Thread
-	for _, m := range threadView.Messages {
+	for _, m := range threadView.Thread.Messages {
 		version, err := m.MessagePlaintext.Version()
 		if err != nil {
 			return c.errReply(err)
@@ -289,17 +290,19 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 	}
 
 	// find the conversation
-	existing, err := client.ResolveConversationLocal(ctx, cinfo)
+	rcres, err := client.ResolveConversationLocal(ctx, cinfo)
 	if err != nil {
 		return c.errReply(err)
 	}
 	var conversation chat1.ConversationInfoLocal
+	existing := rcres.Convs
 	switch len(existing) {
 	case 0:
-		conversation, err = client.NewConversationLocal(ctx, cinfo)
+		ncres, err := client.NewConversationLocal(ctx, cinfo)
 		if err != nil {
 			return c.errReply(err)
 		}
+		conversation = ncres.Conv
 	case 1:
 		conversation = existing[0]
 	default:
@@ -323,7 +326,7 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
 		}),
 	}
-	if err := client.PostLocal(ctx, postArg); err != nil {
+	if _, err := client.PostLocal(ctx, postArg); err != nil {
 		return c.errReply(err)
 	}
 

@@ -101,6 +101,7 @@ const propsBase = {
   onClickAvatar: console.log('on click avatar'),
   onClickFollowers: console.log('on click followers'),
   onClickFollowing: console.log('on click following'),
+  error: null,
 }
 
 const propsDefault: TrackerProps = {
@@ -273,6 +274,13 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'Tracker - Loading': trackerPropsToRenderProps({...propsLessData, loading: true}),
     'Whatevz': trackerPropsToRenderProps(propsWhatevz),
     'Platforms': trackerPropsToRenderProps(propsWhatevz),
+    'Tracker Error': {
+      ...trackerPropsToRenderProps(propsWhatevz),
+      error: {
+        errorMessage: 'Failed to hit API Server',
+        onRetry: () => console.log('hit retry'),
+      },
+    },
   },
 }
 

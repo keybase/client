@@ -30,9 +30,6 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
           <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
           {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
         </Box>
-        <ClickableBox onClick={() => showRemoveDevicePage(device)}>
-          <Box>{!revoked && <Text style={{color: globalColors.red, paddingLeft: 16}} type='BodyPrimaryLink'>Revoke</Text>}</Box>
-        </ClickableBox>
       </Box>
     </ClickableBox>
   )

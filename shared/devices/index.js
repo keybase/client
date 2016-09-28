@@ -13,9 +13,9 @@ import {routeAppend} from '../actions/router'
 
 class Devices extends Component {
   componentWillMount () {
-    const {devices, waitingForServer, error} = this.props
+    const {devices, waitingForServer, loggedIn} = this.props
 
-    if (!devices && !waitingForServer && !error) {
+    if (loggedIn && !devices && !waitingForServer) {
       this.props.loadDevices()
     }
   }
@@ -53,7 +53,8 @@ class Devices extends Component {
 export default connect(
   (state: any) => {
     const {devices, waitingForServer, error} = state.devices
-    return {devices, waitingForServer, error}
+    const {loggedIn} = state.config
+    return {devices, waitingForServer, error, loggedIn}
   },
   (dispatch: any) => {
     return {

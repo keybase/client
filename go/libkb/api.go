@@ -134,15 +134,15 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
 	return client
 }
 
-func (api *BaseAPIEngine) PrepareGet(url url.URL, arg APIArg) (*http.Request, error) {
-	url.RawQuery = arg.getHTTPArgs().Encode()
-	ruri := url.String()
+func (api *BaseAPIEngine) PrepareGet(url1 url.URL, arg APIArg) (*http.Request, error) {
+	url1.RawQuery = arg.getHTTPArgs().Encode()
+	ruri := url1.String()
 	api.G().Log.Debug("+ API GET request to %s", ruri)
 	return http.NewRequest("GET", ruri, nil)
 }
 
-func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg, sendJSON bool) (*http.Request, error) {
-	ruri := url.String()
+func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg, sendJSON bool) (*http.Request, error) {
+	ruri := url1.String()
 	api.G().Log.Debug(fmt.Sprintf("+ API Post request to %s", ruri))
 
 	var body io.Reader
@@ -517,8 +517,8 @@ func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) erro
 }
 
 func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
-	url := a.getURL(arg)
-	req, err := a.PrepareGet(url, arg)
+	url1 := a.getURL(arg)
+	req, err := a.PrepareGet(url1, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -529,8 +529,8 @@ func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
 // returned response, if non-nil, should have DiscardAndCloseBody()
 // called on it.
 func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, error) {
-	url := a.getURL(arg)
-	req, err := a.PrepareGet(url, arg)
+	url1 := a.getURL(arg)
+	req, err := a.PrepareGet(url1, arg)
 	if err != nil {
 		return nil, err
 	}
@@ -559,8 +559,8 @@ func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 }
 
 func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
-	url := a.getURL(arg)
-	req, err := a.PreparePost(url, arg, false)
+	url1 := a.getURL(arg)
+	req, err := a.PreparePost(url1, arg, false)
 	if err != nil {
 		return nil, err
 	}
@@ -568,8 +568,8 @@ func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
 }
 
 func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
-	url := a.getURL(arg)
-	req, err := a.PreparePost(url, arg, true)
+	url1 := a.getURL(arg)
+	req, err := a.PreparePost(url1, arg, true)
 	if err != nil {
 		return nil, err
 	}
@@ -580,8 +580,8 @@ func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
 // The returned response, if non-nil, should have
 // DiscardAndCloseBody() called on it.
 func (a *InternalAPIEngine) PostResp(arg APIArg) (*http.Response, error) {
-	url := a.getURL(arg)
-	req, err := a.PreparePost(url, arg, false)
+	url1 := a.getURL(arg)
+	req, err := a.PreparePost(url1, arg, false)
 	if err != nil {
 		return nil, err
 	}
@@ -608,8 +608,8 @@ func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
 }
 
 func (a *InternalAPIEngine) PostRaw(arg APIArg, ctype string, r io.Reader) (*APIRes, error) {
-	url := a.getURL(arg)
-	req, err := http.NewRequest("POST", url.String(), r)
+	url1 := a.getURL(arg)
+	req, err := http.NewRequest("POST", url1.String(), r)
 	if len(ctype) > 0 {
 		req.Header.Set("Content-Type", ctype)
 	}
@@ -724,14 +724,14 @@ func (api *ExternalAPIEngine) DoRequest(
 func (api *ExternalAPIEngine) getCommon(arg APIArg, restype XAPIResType) (
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error) {
 
-	var url *url.URL
+	var url1 *url.URL
 	var req *http.Request
-	url, err = url.Parse(arg.Endpoint)
+	url1, err = url.Parse(arg.Endpoint)
 
 	if err != nil {
 		return
 	}
-	req, err = api.PrepareGet(*url, arg)
+	req, err = api.PrepareGet(*url1, arg)
 	if err != nil {
 		return
 	}
@@ -758,14 +758,14 @@ func (api *ExternalAPIEngine) GetText(arg APIArg) (res *ExternalTextRes, err err
 func (api *ExternalAPIEngine) postCommon(arg APIArg, restype XAPIResType) (
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, err error) {
 
-	var url *url.URL
+	var url1 *url.URL
 	var req *http.Request
-	url, err = url.Parse(arg.Endpoint)
+	url1, err = url1.Parse(arg.Endpoint)
 
 	if err != nil {
 		return
 	}
-	req, err = api.PreparePost(*url, arg, false)
+	req, err = api.PreparePost(*url1, arg, false)
 	if err != nil {
 		return
 	}

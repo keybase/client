@@ -347,8 +347,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         return {
           ...state,
           serverActive: false,
-          trackerState: Constants.error,
-          reason: error,
           error,
         }
       }
