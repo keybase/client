@@ -1,11 +1,11 @@
 // @flow
 import * as Constants from '../constants/settings'
-import {apiserverGetRpcPromise, apiserverPostJSONRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise} from '../constants/types/flow-types'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {takeLatest, delay} from 'redux-saga'
 
 import type {SagaGenerator} from '../constants/types/saga'
-import type {NotificationsRefresh, NotificationsSave, NotificationsToggle} from '../constants/settings'
+import type {NotificationsRefresh, NotificationsSave, NotificationsToggle, DeleteAccountForever} from '../constants/settings'
 
 function notificationsRefresh (): NotificationsRefresh {
   return {type: Constants.notificationsRefresh, payload: undefined}
@@ -17,6 +17,10 @@ function notificationsSave (): NotificationsSave {
 
 function notificationsToggle (name?: string): NotificationsToggle {
   return {type: Constants.notificationsToggle, payload: {name}}
+}
+
+function deleteAccountForever (): DeleteAccountForever {
+  return {type: Constants.deleteAccountForever, payload: undefined}
 }
 
 function * saveNotificationsSaga (): SagaGenerator<any, any> {
@@ -113,16 +117,20 @@ function * refreshNotificationsSaga (): SagaGenerator<any, any> {
   }
 }
 
-function * notificationsSaga (): SagaGenerator<any, any> {
-  yield [
-    takeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
-    takeLatest(Constants.notificationsSave, saveNotificationsSaga),
-  ]
+function * deleteAccountForeverSaga (): SagaGenerator<any, any> {
+  try {
+    yield call(loginAccountDeleteRpcPromise)
+  } catch (err) {
+    // TODO hook into global error handler
+    console.error(err)
+  }
 }
 
 function * settingsSaga (): SagaGenerator<any, any> {
   yield [
-    call(notificationsSaga),
+    takeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
+    takeLatest(Constants.notificationsSave, saveNotificationsSaga),
+    takeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga),
   ]
 }
 
@@ -130,6 +138,7 @@ export {
   notificationsRefresh,
   notificationsSave,
   notificationsToggle,
+  deleteAccountForever,
 }
 
 export default settingsSaga
