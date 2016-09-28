@@ -285,6 +285,8 @@ const commonSettings = {
     },
   ],
   unsubscribedFromAll: false,
+  allowSave: true,
+  allowEdit: true,
   onRefresh: () => console.log('onRefresh'),
   onSave: () => console.log('onSave'),
   onToggle: (name: string) => console.log('on toggle', name),
