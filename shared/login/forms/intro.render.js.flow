@@ -5,6 +5,7 @@ export type IntroProps = {
   onSignup: () => void,
   onLogin: () => void,
   justRevokedSelf: ?string,
+  justDeletedSelf: ?string,
   loaded: boolean
 }
 

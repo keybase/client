@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../constants/settings'
 import {apiserverGetRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise} from '../constants/types/flow-types'
+import {setDeletedSelf} from '../actions/login'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {takeLatest, delay} from 'redux-saga'
 
@@ -119,7 +120,12 @@ function * refreshNotificationsSaga (): SagaGenerator<any, any> {
 
 function * deleteAccountForeverSaga (): SagaGenerator<any, any> {
   try {
+    const username = yield select(state => state.config.username)
+    if (!username) {
+      throw new Error('Unable to delete account: not username set')
+    }
     yield call(loginAccountDeleteRpcPromise)
+    yield put(setDeletedSelf(username))
   } catch (err) {
     // TODO hook into global error handler
     console.error(err)
