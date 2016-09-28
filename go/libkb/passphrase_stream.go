@@ -101,6 +101,10 @@ func (ps PassphraseStream) LksClientHalf() []byte {
 	return ps.stream[lksIndex:]
 }
 
+func (ps PassphraseStream) PDPKA5KID() (keybase1.KID, error) {
+	return seedToPDPKAKID(ps.EdDSASeed())
+}
+
 func (ps PassphraseStream) String() string {
 	return fmt.Sprintf("pwh:   %x\nEdDSA: %x\nDH:    %x\nlks:   %x",
 		ps.PWHash(), ps.EdDSASeed(), ps.DHSeed(), ps.LksClientHalf())
