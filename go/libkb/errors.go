@@ -1616,7 +1616,8 @@ func (e ChatBroadcastError) Error() string {
 //=============================================================================
 
 type ChatRateLimitError struct {
-	Msg string
+	Msg       string
+	RateLimit chat1.RateLimit
 }
 
 func (e ChatRateLimitError) Error() string {
