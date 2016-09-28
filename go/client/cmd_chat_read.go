@@ -15,6 +15,8 @@ type cmdChatRead struct {
 	libkb.Contextified
 
 	fetcher messageFetcher
+
+	showDeviceName bool
 }
 
 func newCmdChatRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -48,7 +50,7 @@ func (c *cmdChatRead) Run() error {
 		ui.Printf("no conversations found\n")
 	case 1:
 		ui.Printf("\n")
-		if err = conversationView(conversations[0]).show(c.G()); err != nil {
+		if err = conversationView(conversations[0]).show(c.G(), c.showDeviceName); err != nil {
 			return err
 		}
 		ui.Printf("\n")
@@ -68,6 +70,7 @@ func (c *cmdChatRead) ParseArgv(ctx *cli.Context) (err error) {
 	if c.fetcher, err = makeMessageFetcherFromCliCtx(ctx, tlfName, true); err != nil {
 		return err
 	}
+	c.showDeviceName = ctx.Bool("show-device-name")
 	return nil
 }
 
