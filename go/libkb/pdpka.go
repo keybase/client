@@ -10,8 +10,12 @@ import (
 	"time"
 )
 
+// PDPKA is a "Passphrase-Derived Public Key Authentication". In this case, it's a
+// armored, packed, signature that's been output by our signing interface.
 type PDPKA string
 
+// PDPKALoginPackage contains all relevant PDPKA versions in use at this
+// time. For now, versions 4 and 5.
 type PDPKALoginPackage struct {
 	pdpka5 PDPKA
 	pdpka4 PDPKA
@@ -150,10 +154,15 @@ func computeLoginPackage(li loginIdentifier, ps *PassphraseStream, loginSession 
 	return ret, nil
 }
 
+// PopulateArgs populates the given HTTP args with parameters in this PDPKA package.
+// Right now that includes v4 and v5 of the PDPKA login system.
 func (lp PDPKALoginPackage) PopulateArgs(h *HTTPArgs) {
 	h.Add("pdpka4", S{string(lp.pdpka4)})
 	h.Add("pdpka5", S{string(lp.pdpka5)})
 }
 
+// PDPKA4 gets the v4 of the PDPKA token for this login package
 func (lp PDPKALoginPackage) PDPKA4() PDPKA { return lp.pdpka4 }
+
+// PDPKA5 gets the v4 of the PDPKA token for this login package
 func (lp PDPKALoginPackage) PDPKA5() PDPKA { return lp.pdpka5 }
