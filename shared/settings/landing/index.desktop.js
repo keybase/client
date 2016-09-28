@@ -2,7 +2,8 @@
 import React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Button, Icon, Text, Meta} from '../../common-adapters'
-import {plans} from '../../constants/settings'
+import {comparePlans, levelToPrice, levelToSpace, plans} from '../../constants/settings'
+import {Stars} from '../common.desktop.js'
 
 import type {Props, AccountProps, PlanProps} from './index'
 import type {PlanLevel, PaymentInfo as PaymentInfoType} from '../../constants/settings'
@@ -27,39 +28,6 @@ type PlanLevelProps = {
   level: PlanLevel,
   onInfo: () => void,
     variants: PlanActionVariantsProps
-}
-
-const levelToPrice: {[key: PlanLevel]: string} = {
-  'Basic': 'Free',
-  'Gold': '$7/mo',
-  'Friend': '$9/mo',
-}
-
-const levelToStars: {[key: PlanLevel]: number} = {
-  'Basic': 1,
-  'Gold': 3,
-  'Friend': 5,
-}
-
-const levelToSpace: {[key: PlanLevel]: string} = {
-  'Basic': '10GB',
-  'Gold': '50GB',
-  'Friend': '250GB',
-}
-
-// Compare weather another plan is an upgrade, downgrade or the same
-// -1 : otherLevel is a downgrade from level
-// 0 : otherLevel is the same as level
-// 1 : otherLevel is an upgrade from level
-function comparePlans (level: PlanLevel, otherLevel: PlanLevel): -1 | 0 | 1 {
-  const levelIndex = plans.indexOf(level)
-  const otherLevelIndex = plans.indexOf(otherLevel)
-  if (levelIndex === otherLevelIndex) return 0
-  if (levelIndex < otherLevelIndex) return 1
-  if (levelIndex > otherLevelIndex) return -1
-
-  // make flow happy
-  return 0
 }
 
 function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, onDowngrade: (l: PlanLevel) => void, onUpgrade: (l: PlanLevel) => void, freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean): PlanActionVariantsProps {
@@ -88,11 +56,6 @@ function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, on
 }
 
 const Divider = () => <Box style={{height: 1, backgroundColor: globalColors.black_05, flex: 1}} />
-
-function Stars ({level}: {level: PlanLevel}) {
-  // TODO(mm) use actual icon here
-  return <Text type='BodySmall'>{'*****'.substring(0, levelToStars[level])}</Text>
-}
 
 function SpaceInfo ({freeSpace, freeSpacePercentage, lowSpaceWarning}: {freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean}) {
   return (

@@ -56,7 +56,7 @@ function * _deviceListSaga (): SagaGenerator<any, any> {
   } catch (e) {
     yield put(({
       type: Constants.showDevices,
-      payload: {errorText: e.toString()},
+      payload: {errorText: e.desc + e.name, errorObj: e},
       error: true,
     }: ShowDevices))
   }
@@ -82,19 +82,19 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
         }: DeviceRemoved))
       }
       yield call(loginDeprovisionRpcPromise, {param: {username, doRevoke: true}})
+      yield put(navigateTo([], loginTab))
+      yield put(switchTab(loginTab))
+      yield put(setRevokedSelf(name))
       yield put(({
         type: Constants.deviceRemoved,
         payload: undefined,
         error: false,
       }: DeviceRemoved))
-      yield put(setRevokedSelf(name))
-      yield put(navigateTo([], loginTab))
-      yield put(switchTab(loginTab))
     } catch (e) {
       console.warn('Error removing the current device:', e)
       yield put(({
         type: Constants.deviceRemoved,
-        payload: {errorText: e.toString()},
+        payload: {errorText: e.desc + e.name, errorObj: e},
         error: true,
       }: DeviceRemoved))
     }
@@ -113,7 +113,7 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
       console.warn('Error removing a device:', e)
       yield put(({
         type: Constants.deviceRemoved,
-        payload: {errorText: e.toString()},
+        payload: {errorText: e.desc + e.name, errorObj: e},
         error: true,
       }: DeviceRemoved))
     }
@@ -187,7 +187,7 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
     console.warn('error in generating paper key', e)
     yield put(({
       type: Constants.paperKeyLoaded,
-      payload: {errorText: e.toString()},
+      payload: {errorText: e.desc + e.name, errorObj: e},
       error: true,
     }: PaperKeyLoaded))
   }

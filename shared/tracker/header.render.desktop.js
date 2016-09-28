@@ -28,7 +28,7 @@ export default class HeaderRender extends PureComponent<void, HeaderProps, State
 
     return (
       <div style={styleOuter}>
-        <div style={{...styleHeader, backgroundColor: headerBackgroundColor}}>
+        <div style={{...styleHeader, backgroundColor: headerBackgroundColor, ...this.props.headerStyle}}>
           <Text type='BodySemibold' lineClamp={2} style={{...styleText, backgroundColor: headerBackgroundColor, color: headerTextColor, ...(isWarningAboutTrackerShowingUpLater ? {zIndex: 2} : {})}}>{headerText}</Text>
           <Icon type='iconfont-close' style={styleClose}
             onClick={() => this.props.onClose()}

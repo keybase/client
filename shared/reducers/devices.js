@@ -24,7 +24,7 @@ export default function (state = initialState, action) {
     case Constants.showDevices:
       let devices
       if (action.error) {
-        devices = []
+        devices = null
       } else {
         devices = _.chain(action.payload)
           .map(dev => ({
@@ -47,6 +47,11 @@ export default function (state = initialState, action) {
         error: action.error && action.payload,
         devices,
         waitingForServer: false,
+      }
+    case Constants.removeDevice:
+      return {
+        ...state,
+        waitingForServer: true,
       }
     case Constants.deviceRemoved:
       return {

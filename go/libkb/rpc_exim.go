@@ -7,6 +7,7 @@ package libkb
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -421,11 +422,10 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "TlfID":
-				val, err := hex.DecodeString(field.Value)
+				var err error
+				tlfID, err = chat1.MakeTLFID(field.Value)
 				if err != nil {
 					G.Log.Warning("error parsing chat tlf finalized TLFID: %s", err.Error())
-				} else {
-					tlfID = chat1.TLFID(val)
 				}
 			}
 		}
@@ -437,7 +437,24 @@ func ImportStatusAsError(s *keybase1.Status) error {
 	case SCChatBroadcast:
 		return ChatBroadcastError{Msg: s.Desc}
 	case SCChatRateLimit:
-		return ChatRateLimitError{Msg: s.Desc}
+		var rlimit chat1.RateLimit
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "RateLimit":
+				var err error
+				err = json.Unmarshal([]byte(field.Value), &rlimit)
+				if err != nil {
+					G.Log.Warning("error parsing chat rate limit: %s", err.Error())
+				}
+			}
+		}
+		if rlimit.Name == "" {
+			G.Log.Warning("error rate limit information not found")
+		}
+		return ChatRateLimitError{
+			RateLimit: rlimit,
+			Msg:       s.Desc,
+		}
 	case SCChatAlreadySuperseded:
 		return ChatAlreadySupersededError{Msg: s.Desc}
 	case SCChatAlreadyDeleted:
@@ -1368,10 +1385,16 @@ func (e ChatBroadcastError) ToStatus() keybase1.Status {
 }
 
 func (e ChatRateLimitError) ToStatus() keybase1.Status {
+	b, _ := json.Marshal(e.RateLimit)
+	kv := keybase1.StringKVPair{
+		Key:   "RateLimit",
+		Value: string(b[:]),
+	}
 	return keybase1.Status{
-		Code: SCChatRateLimit,
-		Name: "SC_CHAT_RATELIMIT",
-		Desc: e.Error(),
+		Code:   SCChatRateLimit,
+		Name:   "SC_CHAT_RATELIMIT",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
 	}
 }
 

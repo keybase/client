@@ -6,8 +6,7 @@ import {openAccountResetPage} from '../../../actions/login'
 
 type State = {
   showTyping: boolean,
-  saveInKeychain: boolean,
-  passphrase: ?string
+  passphrase: ?string,
 }
 
 type Props = {
@@ -25,7 +24,7 @@ class Passphrase extends Component<void, Props, State> {
 
   constructor (props: Props) {
     super(props)
-    this.state = {showTyping: false, saveInKeychain: false, passphrase: null}
+    this.state = {showTyping: false, passphrase: null}
   }
 
   onChange (passphrase: string) {
@@ -36,7 +35,7 @@ class Passphrase extends Component<void, Props, State> {
     return <Render
       onBack={this.props.onBack}
       prompt={this.props.prompt}
-      username={this.props.prompt}
+      username={this.props.username}
       waitingForResponse={this.props.waitingForResponse}
       onForgotPassphrase={() => {
         this.props.onForgotPassphrase()
@@ -45,10 +44,8 @@ class Passphrase extends Component<void, Props, State> {
       passphrase={this.state.passphrase}
       onSubmit={() => this.props.onSubmit(this.state.passphrase || '')}
       onChange={p => this.onChange(p)}
-      saveInKeychain={this.state.saveInKeychain}
       showTyping={this.state.showTyping}
-      toggleShowTyping={showTyping => this.setState({showTyping})}
-      toggleSaveInKeychain={saveInKeychain => this.setState({saveInKeychain})} />
+      toggleShowTyping={showTyping => this.setState({showTyping})} />
   }
 }
 

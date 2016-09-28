@@ -257,11 +257,15 @@
     },
     {
       "type": "record",
-      "name": "MessageInfoLocal",
+      "name": "MessageFromServer",
       "fields": [
         {
-          "type": "boolean",
-          "name": "isNew"
+          "type": "MessageServerHeader",
+          "name": "serverHeader"
+        },
+        {
+          "type": "MessagePlaintext",
+          "name": "messagePlaintext"
         },
         {
           "type": "string",
@@ -275,22 +279,21 @@
     },
     {
       "type": "record",
-      "name": "Message",
+      "name": "MessageFromServerOrError",
       "fields": [
         {
-          "type": "MessageServerHeader",
-          "name": "serverHeader"
-        },
-        {
-          "type": "MessagePlaintext",
-          "name": "messagePlaintext"
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "unboxingError"
         },
         {
           "type": [
             null,
-            "MessageInfoLocal"
+            "MessageFromServer"
           ],
-          "name": "info"
+          "name": "message"
         }
       ]
     },
@@ -301,7 +304,7 @@
         {
           "type": {
             "type": "array",
-            "items": "Message"
+            "items": "MessageFromServerOrError"
           },
           "name": "messages"
         },
@@ -415,9 +418,130 @@
         {
           "type": {
             "type": "array",
-            "items": "Message"
+            "items": "MessageFromServerOrError"
           },
           "name": "messages"
+        },
+        {
+          "type": "MessageID",
+          "name": "readUpTo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxLocalRes",
+      "fields": [
+        {
+          "type": "InboxView",
+          "name": "inbox"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetThreadLocalRes",
+      "fields": [
+        {
+          "type": "ThreadView",
+          "name": "thread"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PostLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ResolveConversationLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationInfoLocal"
+          },
+          "name": "convs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NewConversationLocalRes",
+      "fields": [
+        {
+          "type": "ConversationInfoLocal",
+          "name": "conv"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpdateTopicNameLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetMessagesLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "msgs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
         }
       ]
     },
@@ -442,6 +566,13 @@
         {
           "type": "int",
           "name": "moreTotal"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
         }
       ]
     },
@@ -498,7 +629,7 @@
           ]
         }
       ],
-      "response": "InboxView"
+      "response": "GetInboxLocalRes"
     },
     "getThreadLocal": {
       "request": [
@@ -521,7 +652,7 @@
           ]
         }
       ],
-      "response": "ThreadView"
+      "response": "GetThreadLocalRes"
     },
     "postLocal": {
       "request": [
@@ -534,7 +665,7 @@
           "type": "MessagePlaintext"
         }
       ],
-      "response": null
+      "response": "PostLocalRes"
     },
     "resolveConversationLocal": {
       "request": [
@@ -543,10 +674,7 @@
           "type": "ConversationInfoLocal"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "ConversationInfoLocal"
-      }
+      "response": "ResolveConversationLocalRes"
     },
     "newConversationLocal": {
       "request": [
@@ -555,7 +683,7 @@
           "type": "ConversationInfoLocal"
         }
       ],
-      "response": "ConversationInfoLocal"
+      "response": "NewConversationLocalRes"
     },
     "updateTopicNameLocal": {
       "request": [
@@ -568,7 +696,7 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": "UpdateTopicNameLocalRes"
     },
     "getMessagesLocal": {
       "request": [
@@ -577,10 +705,7 @@
           "type": "MessageSelector"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "ConversationLocal"
-      }
+      "response": "GetMessagesLocalRes"
     },
     "getInboxSummaryLocal": {
       "request": [

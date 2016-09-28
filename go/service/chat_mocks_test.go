@@ -319,8 +319,8 @@ func (m *chatRemoteMock) MarkAsRead(ctx context.Context, arg chat1.MarkAsReadArg
 	return res, nil
 }
 
-func (m *chatRemoteMock) TlfFinalize(ctx context.Context, tlfID chat1.TLFID) (bool, error) {
-	return true, nil
+func (m *chatRemoteMock) TlfFinalize(ctx context.Context, tlfID chat1.TLFID) error {
+	return nil
 }
 
 type convByNewlyUpdated struct {

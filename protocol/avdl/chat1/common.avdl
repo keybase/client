@@ -34,6 +34,7 @@ protocol common {
   }
 
   record RateLimit {
+    string name;
     int callsRemaining; // Number of calls remaining for the given RPC in the current window
     int windowReset; // Amount of time (in seconds) until the window resets for this rate limit bucket
     int maxCalls; // Max amount of calls allowed in a window for the given RPC
@@ -85,6 +86,8 @@ protocol common {
   record Conversation {
     ConversationMetadata metadata;
     union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
+    union { null, ConversationMetadata } supersedes; // metadata about the conversation this supersedes from a TLF finalize (if any).
+    union { null, ConversationMetadata } supersededBy; // metadata about the conversation that superseded this conversation from a TLF finalize.
 
     // maxMsgs is the maximum message for each messageType in the conversation
     array<MessageBoxed> maxMsgs;

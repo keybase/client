@@ -110,11 +110,11 @@ export function localNewConversationLocalRpcPromise (request: $Exact<requestComm
   return new Promise((resolve, reject) => { localNewConversationLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function localPostLocalRpc (request: Exact<requestCommon & requestErrorCallback & {param: localPostLocalRpcParam}>) {
+export function localPostLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostLocalResult) => void} & {param: localPostLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'local.postLocal'})
 }
 
-export function localPostLocalRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: localPostLocalRpcParam}>): Promise<any> {
+export function localPostLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostLocalResult) => void} & {param: localPostLocalRpcParam}>): Promise<localPostLocalResult> {
   return new Promise((resolve, reject) => { localPostLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
@@ -126,11 +126,11 @@ export function localResolveConversationLocalRpcPromise (request: $Exact<request
   return new Promise((resolve, reject) => { localResolveConversationLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function localUpdateTopicNameLocalRpc (request: Exact<requestCommon & requestErrorCallback & {param: localUpdateTopicNameLocalRpcParam}>) {
+export function localUpdateTopicNameLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localUpdateTopicNameLocalResult) => void} & {param: localUpdateTopicNameLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'local.updateTopicNameLocal'})
 }
 
-export function localUpdateTopicNameLocalRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: localUpdateTopicNameLocalRpcParam}>): Promise<any> {
+export function localUpdateTopicNameLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localUpdateTopicNameLocalResult) => void} & {param: localUpdateTopicNameLocalRpcParam}>): Promise<localUpdateTopicNameLocalResult> {
   return new Promise((resolve, reject) => { localUpdateTopicNameLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
@@ -190,11 +190,11 @@ export function remotePostRemoteRpcPromise (request: $Exact<requestCommon & {cal
   return new Promise((resolve, reject) => { remotePostRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function remoteTlfFinalizeRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteTlfFinalizeResult) => void} & {param: remoteTlfFinalizeRpcParam}>) {
+export function remoteTlfFinalizeRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.tlfFinalize'})
 }
 
-export function remoteTlfFinalizeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteTlfFinalizeResult) => void} & {param: remoteTlfFinalizeRpcParam}>): Promise<remoteTlfFinalizeResult> {
+export function remoteTlfFinalizeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { remoteTlfFinalizeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
@@ -211,6 +211,8 @@ export type BodyPlaintextVersion =
 export type Conversation = {
   metadata: ConversationMetadata,
   readerInfo?: ?ConversationReaderInfo,
+  supersedes?: ?ConversationMetadata,
+  supersededBy?: ?ConversationMetadata,
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
@@ -233,7 +235,8 @@ export type ConversationInfoLocal = {
 
 export type ConversationLocal = {
   info?: ?ConversationInfoLocal,
-  messages?: ?Array<Message>,
+  messages?: ?Array<MessageFromServerOrError>,
+  readUpTo: MessageID,
 }
 
 export type ConversationMetadata = {
@@ -268,6 +271,11 @@ export type GetInboxByTLFIDRemoteRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type GetInboxLocalRes = {
+  inbox: InboxView,
+  rateLimits?: ?Array<RateLimit>,
+}
+
 export type GetInboxQuery = {
   convID?: ?ConversationID,
   topicType?: ?TopicType,
@@ -299,11 +307,22 @@ export type GetInboxSummaryLocalRes = {
   conversations?: ?Array<ConversationLocal>,
   more?: ?Array<ConversationLocal>,
   moreTotal: int,
+  rateLimits?: ?Array<RateLimit>,
+}
+
+export type GetMessagesLocalRes = {
+  msgs?: ?Array<ConversationLocal>,
+  rateLimits?: ?Array<RateLimit>,
 }
 
 export type GetMessagesRemoteRes = {
   msgs?: ?Array<MessageBoxed>,
   rateLimit?: ?RateLimit,
+}
+
+export type GetThreadLocalRes = {
+  thread: ThreadView,
+  rateLimits?: ?Array<RateLimit>,
 }
 
 export type GetThreadQuery = {
@@ -345,12 +364,6 @@ export type InboxView = {
 
 export type MarkAsReadRes = {
   rateLimit?: ?RateLimit,
-}
-
-export type Message = {
-  serverHeader: MessageServerHeader,
-  messagePlaintext: MessagePlaintext,
-  info?: ?MessageInfoLocal,
 }
 
 export type MessageAttachment = {
@@ -397,13 +410,19 @@ export type MessageEdit = {
   body: string,
 }
 
-export type MessageID = uint
-
-export type MessageInfoLocal = {
-  isNew: boolean,
+export type MessageFromServer = {
+  serverHeader: MessageServerHeader,
+  messagePlaintext: MessagePlaintext,
   senderUsername: string,
   senderDeviceName: string,
 }
+
+export type MessageFromServerOrError = {
+  unboxingError?: ?string,
+  message?: ?MessageFromServer,
+}
+
+export type MessageID = uint
 
 export type MessagePlaintext = 
     { version : 1, v1 : ?MessagePlaintextV1 }
@@ -453,6 +472,11 @@ export type MessageType =
   | 5 // METADATA_5
   | 6 // TLFNAME_6
 
+export type NewConversationLocalRes = {
+  conv: ConversationInfoLocal,
+  rateLimits?: ?Array<RateLimit>,
+}
+
 export type NewConversationRemoteRes = {
   convID: ConversationID,
   rateLimit?: ?RateLimit,
@@ -471,15 +495,25 @@ export type Pagination = {
   last: boolean,
 }
 
+export type PostLocalRes = {
+  rateLimits?: ?Array<RateLimit>,
+}
+
 export type PostRemoteRes = {
   msgID: MessageID,
   rateLimit?: ?RateLimit,
 }
 
 export type RateLimit = {
+  name: string,
   callsRemaining: int,
   windowReset: int,
   maxCalls: int,
+}
+
+export type ResolveConversationLocalRes = {
+  convs?: ?Array<ConversationInfoLocal>,
+  rateLimits?: ?Array<RateLimit>,
 }
 
 export type SignatureInfo = {
@@ -498,7 +532,7 @@ export type TLFVisibility =
 export type ThreadID = bytes
 
 export type ThreadView = {
-  messages?: ?Array<Message>,
+  messages?: ?Array<MessageFromServerOrError>,
   pagination?: ?Pagination,
 }
 
@@ -518,6 +552,10 @@ export type UnreadFirstNumLimit = {
   NumRead: int,
   AtLeast: int,
   AtMost: int,
+}
+
+export type UpdateTopicNameLocalRes = {
+  rateLimits?: ?Array<RateLimit>,
 }
 
 export type localGetInboxLocalRpcParam = Exact<{
@@ -596,17 +634,21 @@ export type remoteTlfFinalizeRpcParam = Exact<{
   tlfID: TLFID
 }>
 
-type localGetInboxLocalResult = InboxView
+type localGetInboxLocalResult = GetInboxLocalRes
 
 type localGetInboxSummaryLocalResult = GetInboxSummaryLocalRes
 
-type localGetMessagesLocalResult = ?Array<ConversationLocal>
+type localGetMessagesLocalResult = GetMessagesLocalRes
 
-type localGetThreadLocalResult = ThreadView
+type localGetThreadLocalResult = GetThreadLocalRes
 
-type localNewConversationLocalResult = ConversationInfoLocal
+type localNewConversationLocalResult = NewConversationLocalRes
 
-type localResolveConversationLocalResult = ?Array<ConversationInfoLocal>
+type localPostLocalResult = PostLocalRes
+
+type localResolveConversationLocalResult = ResolveConversationLocalRes
+
+type localUpdateTopicNameLocalResult = UpdateTopicNameLocalRes
 
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 
@@ -621,8 +663,6 @@ type remoteNewConversationRemote2Result = NewConversationRemoteRes
 type remoteNewConversationRemoteResult = NewConversationRemoteRes
 
 type remotePostRemoteResult = PostRemoteRes
-
-type remoteTlfFinalizeResult = bool
 
 export type rpc =
     localGetInboxLocalRpc
