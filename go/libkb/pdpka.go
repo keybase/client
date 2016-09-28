@@ -128,10 +128,12 @@ func computeLoginPackageFromUID(u keybase1.UID, ps *PassphraseStream, loginSessi
 
 func computeLoginPackageFromEmailOrUsername(eou string, ps *PassphraseStream, loginSession []byte) (ret PDPKALoginPackage, err error) {
 	var li loginIdentifier
-	if IsEmail(eou) {
+	if CheckUsername.F(eou) {
+		li = loginIdentifierUsername(eou)
+	} else if CheckEmail.F(eou) {
 		li = loginIdentifierEmail(eou)
 	} else {
-		li = loginIdentifierUsername(eou)
+		return ret, fmt.Errorf("expected an email or username; got neither (%s)", eou)
 	}
 	return computeLoginPackage(li, ps, loginSession)
 }

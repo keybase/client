@@ -472,7 +472,3 @@ func JoinPredicate(arr []string, delimeter string, f func(s string) bool) string
 	}
 	return strings.Join(arrNew, delimeter)
 }
-
-func IsEmail(s string) bool {
-	return strings.Index(s, "@") > 0
-}
