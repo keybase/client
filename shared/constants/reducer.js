@@ -1,5 +1,6 @@
 // @flow
 import type {ConfigState} from '../reducers/config'
+import type {State as DevicesState} from '../reducers/devices'
 import type {FavoriteState} from '../constants/favorite'
 import type {LoginState} from '../reducers/login'
 import type {RootPinentryState} from '../reducers/pinentry'
@@ -14,6 +15,7 @@ import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
 
 export type TypedState = {
   config: ConfigState,
+  devices: DevicesState,
   favorite: FavoriteState,
   gregor: GregorState,
   login: LoginState,
