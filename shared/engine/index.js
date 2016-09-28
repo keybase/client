@@ -312,4 +312,5 @@ export default getEngine
 export {
   getEngine,
   makeEngine,
+  Engine,
 }

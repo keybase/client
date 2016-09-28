@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/notifications'
 import ListenerCreator from '../native/notification-listeners'
-import engine from '../engine'
+import engine, {Engine} from '../engine'
 import {NotifyPopup} from '../native/notifications'
 import {log} from '../native/log/logui'
 import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
@@ -37,7 +37,9 @@ function * _listenSaga (): SagaGenerator<any, any> {
     users: true,
   }
 
-  engine().listenOnConnect('setNotifications', () => {
+  // $ForceType
+  const engineInst: Engine = yield call(engine)
+  yield call([engineInst, engineInst.listenOnConnect], 'setNotifications', () => {
     notifyCtlSetNotificationsRpc({
       param: {channels},
       callback: (error, response) => {
