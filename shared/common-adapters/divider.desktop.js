@@ -10,7 +10,7 @@ class Divider extends Component<void, Props, void> {
       : {maxHeight: 1, minHeight: 1}
 
     return (
-      <div key={this.props.key} style={{...styles.divider, ...orientationStyle, ...this.props.style}} />
+      <div style={{...styles.divider, ...orientationStyle, ...this.props.style}} />
     )
   }
 }

@@ -137,7 +137,7 @@ class Profile extends Component<void, Props, State> {
       return <ErrorComponent error={this.props.error} />
     }
 
-    const trackerStateColors = stateColors(this.props)
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     let proofNotice
     if (this.props.trackerState !== proofNormal) {
