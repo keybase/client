@@ -6,6 +6,7 @@ import kbfsSaga from '../actions/kbfs'
 import notificationsSaga from '../actions/notifications'
 import pgpSaga from '../actions/pgp'
 import profileSaga from '../actions/profile'
+import settingsSaga from '../actions/settings'
 import {call} from 'redux-saga/effects'
 
 import type {SagaGenerator} from '../constants/types/saga'
@@ -19,6 +20,7 @@ function * mainSaga (): SagaGenerator<any, any> {
     call(notificationsSaga),
     call(pgpSaga),
     call(profileSaga),
+    call(settingsSaga),
   ]
 }
 
