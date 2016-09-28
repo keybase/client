@@ -287,19 +287,20 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 		queryBase.TlfVisibility = &arg.Visibility
 	}
 
-	fetchInbox := func(num int, query chat1.GetInboxQuery) (conversations []chat1.ConversationLocal, err error) {
+	fetchInbox := func(num int, query chat1.GetInboxQuery) (conversations []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
 		var rpcArg chat1.GetInboxLocalArg
 		rpcArg.Pagination = &chat1.Pagination{Num: num}
 		rpcArg.Query = &query
 
-		iview, err := h.GetInboxLocal(ctx, rpcArg)
+		gilres, err := h.GetInboxLocal(ctx, rpcArg)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
+		iview := gilres.Inbox
 		for _, conv := range iview.Conversations {
 			info, maxMessages, err := h.getConversationInfo(ctx, conv)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			c := chat1.ConversationLocal{
 				Info:     &info,
@@ -309,7 +310,7 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 			conversations = append(conversations, c)
 		}
 
-		return conversations, nil
+		return conversations, gilres.RateLimits, nil
 	}
 
 	var convs []chat1.ConversationLocal
@@ -319,7 +320,7 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 			arg.UnreadFirstLimit.AtMost = int(^uint(0) >> 1) // maximum int
 		}
 		queryBase.UnreadOnly, queryBase.ReadOnly = true, false
-		if convs, err = fetchInbox(arg.UnreadFirstLimit.AtMost, queryBase); err != nil {
+		if convs, res.RateLimits, err = fetchInbox(arg.UnreadFirstLimit.AtMost, queryBase); err != nil {
 			return chat1.GetInboxSummaryLocalRes{}, err
 		}
 		res.Conversations = append(res.Conversations, convs...)
@@ -331,7 +332,7 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 		)
 		if more > 0 {
 			queryBase.UnreadOnly, queryBase.ReadOnly = false, true
-			if convs, err = fetchInbox(more, queryBase); err != nil {
+			if convs, res.RateLimits, err = fetchInbox(more, queryBase); err != nil {
 				return chat1.GetInboxSummaryLocalRes{}, err
 			}
 			res.Conversations = append(res.Conversations, convs...)
@@ -341,14 +342,13 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 			arg.ActivitySortedLimit = int(^uint(0) >> 1) // maximum int
 		}
 		queryBase.UnreadOnly, queryBase.ReadOnly = false, false
-		if convs, err = fetchInbox(arg.ActivitySortedLimit, queryBase); err != nil {
+		if convs, res.RateLimits, err = fetchInbox(arg.ActivitySortedLimit, queryBase); err != nil {
 			return chat1.GetInboxSummaryLocalRes{}, err
 		}
 		res.Conversations = append(res.Conversations, convs...)
 	}
 
 	res.MoreTotal = 1000 // TODO: implement this on server
-	res.RateLimits = iview.RateLimits
 
 	return res, nil
 }
@@ -596,7 +596,7 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context,
 
 		selector.Limit.AtMost--
 		selector.Limit.AtLeast--
-		if m.ServerHeader.MessageID <= conversationRemote.ReaderInfo.ReadMsgid {
+		if m.Message.ServerHeader.MessageID <= conversationRemote.ReaderInfo.ReadMsgid {
 			selector.Limit.NumRead--
 		}
 		if selector.Limit.AtMost <= 0 ||
