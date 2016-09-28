@@ -59,7 +59,8 @@ func splitExtension(path string) (string, string) {
 	return path, ""
 }
 
-func newWriterInfo(ctx context.Context, cfg Config, uid keybase1.UID, kid keybase1.KID) (writerInfo, error) {
+func newWriterInfo(ctx context.Context, cfg Config, uid keybase1.UID,
+	kid keybase1.KID, revision MetadataRevision) (writerInfo, error) {
 	ui, err := cfg.KeybaseService().LoadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return writerInfo{}, err
@@ -70,5 +71,6 @@ func newWriterInfo(ctx context.Context, cfg Config, uid keybase1.UID, kid keybas
 		uid:        uid,
 		kid:        kid,
 		deviceName: ui.KIDNames[kid],
+		revision:   revision,
 	}, nil
 }

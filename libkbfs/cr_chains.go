@@ -641,7 +641,7 @@ func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 		}
 
 		winfo, err := newWriterInfo(ctx, cfg, rmd.LastModifyingWriter(),
-			rmd.LastModifyingWriterKID())
+			rmd.LastModifyingWriterKID(), rmd.Revision())
 		if err != nil {
 			return nil, err
 		}
