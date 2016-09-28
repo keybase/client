@@ -487,19 +487,7 @@ func stepInstruction(g proofContextExt, ins instructionT, state scriptState) (sc
 
 	if stepErr != nil {
 		debugWithStateError(g, state, stepErr)
-
-		// Don't rewrite invalid_pvl errors
-		if stepErr.GetProofStatus() == keybase1.ProofStatus_INVALID_PVL {
-			return newState, stepErr
-		}
-
-		// Replace error with custom error.
-		customErr, swap := replaceCustomError(g, state, customErrSpec, stepErr)
-		if swap {
-			stepErr = customErr
-			debugWithState(g, state, "Replacing error with custom error")
-			debugWithStateError(g, state, customErr)
-		}
+		stepErr = replaceCustomError(g, state, customErrSpec, stepErr)
 	}
 	return newState, stepErr
 
@@ -896,14 +884,26 @@ func interpretRegex(g proofContextExt, state scriptState, rdesc regexDescriptor)
 // Use a custom error spec to derive an error.
 // spec can be none
 // Copies over the error code if none is specified.
-// The second return value indicates whether the returned error is different than err1.
-func replaceCustomError(g proofContextExt, state scriptState, spec *errorT, err1 libkb.ProofError) (libkb.ProofError, bool) {
+func replaceCustomError(g proofContextExt, state scriptState, spec *errorT, err1 libkb.ProofError) libkb.ProofError {
+	if err1 == nil {
+		return err1
+	}
+
+	// Don't rewrite invalid_pvl errors
+	if err1.GetProofStatus() == keybase1.ProofStatus_INVALID_PVL {
+		return err1
+	}
+
 	if spec == nil {
-		return err1, false
+		return err1
 	}
 
 	if (spec.Status != err1.GetProofStatus()) || (spec.Description != err1.GetDesc()) {
-		return libkb.NewProofError(spec.Status, spec.Description), true
+		err2 := libkb.NewProofError(spec.Status, spec.Description)
+		debugWithState(g, state, "Replacing error with custom error")
+		debugWithStateError(g, state, err2)
+
+		return err2
 	}
-	return err1, false
+	return err1
 }
