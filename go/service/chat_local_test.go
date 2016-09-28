@@ -245,6 +245,56 @@ func TestChatGetThreadLocal(t *testing.T) {
 	}
 }
 
+func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetThreadLocalMarkAsRead", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	withUser1 := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc.as(t, users[0]), withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello0"}))
+	mustPostLocalForTest(t, ctc.as(t, users[1]), withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello1"}))
+
+	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+		TopicType: chat1.TopicType_CHAT,
+	})
+	if err != nil {
+		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+	}
+	if len(res.Conversations) != 1 {
+		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 1 items, got %d\n", len(res.Conversations))
+	}
+	if res.Conversations[0].ReadUpTo == res.Conversations[0].Messages[0].Message.ServerHeader.MessageID {
+		t.Fatalf("unread conversation is shown as read\n")
+	}
+
+	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
+		ConversationID: withUser1.Id,
+		Query: &chat1.GetThreadQuery{
+			MarkAsRead:   true,
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		},
+	})
+	if err != nil {
+		t.Fatalf("GetThreadLocal error: %v", err)
+	}
+	if len(tv.Thread.Messages) != 2 {
+		t.Fatalf("unexpected response from GetThreadLocal. expected 2 items, got %d\n", len(tv.Thread.Messages))
+	}
+
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+		TopicType: chat1.TopicType_CHAT,
+	})
+	if err != nil {
+		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+	}
+	if len(res.Conversations) != 1 {
+		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 1 items, got %d\n", len(res.Conversations))
+	}
+	if res.Conversations[0].ReadUpTo != res.Conversations[0].Messages[0].Message.ServerHeader.MessageID {
+		t.Fatalf("conversation was not marked as read\n")
+	}
+}
+
 func TestChatGracefulUnboxing(t *testing.T) {
 	ctc := makeChatTestContext(t, "GracefulUnboxing", 2)
 	defer ctc.cleanup()
@@ -264,7 +314,7 @@ func TestChatGracefulUnboxing(t *testing.T) {
 		t.Fatalf("GetThreadLocal error: %v", err)
 	}
 	if len(tv.Thread.Messages) != 3 {
-		t.Fatalf("unexpected response from GetThreadLocal. expected 4 items, got %d\n", len(tv.Thread.Messages))
+		t.Fatalf("unexpected response from GetThreadLocal. expected 3 items, got %d\n", len(tv.Thread.Messages))
 	}
 	if tv.Thread.Messages[0].Message != nil ||
 		tv.Thread.Messages[0].UnboxingError == nil || len(*tv.Thread.Messages[0].UnboxingError) == 0 {
@@ -309,7 +359,7 @@ func TestChatGetInboxSummaryLocal(t *testing.T) {
 		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetThreadLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryLocal error: %v", err)
 	}
 	if len(res.Conversations) != 5 {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 3 items, got %d\n", len(res.Conversations))
@@ -326,7 +376,7 @@ func TestChatGetInboxSummaryLocal(t *testing.T) {
 		TopicType:           chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetThreadLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryLocal error: %v", err)
 	}
 	if len(res.Conversations) != 2 {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 2 items, got %d\n", len(res.Conversations))
@@ -342,7 +392,7 @@ func TestChatGetInboxSummaryLocal(t *testing.T) {
 		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetThreadLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryLocal error: %v", err)
 	}
 	if len(res.Conversations) != 2 {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 2 items, got %d\n", len(res.Conversations))
@@ -351,4 +401,35 @@ func TestChatGetInboxSummaryLocal(t *testing.T) {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal; unread conversation is not the first in response.\n")
 	}
 
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+		UnreadFirst: true,
+		UnreadFirstLimit: chat1.UnreadFirstNumLimit{
+			AtLeast: 0,
+			AtMost:  2,
+			NumRead: 5,
+		},
+		TopicType: chat1.TopicType_CHAT,
+	})
+	if err != nil {
+		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+	}
+	if len(res.Conversations) != 2 {
+		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 1 items, got %d\n", len(res.Conversations))
+	}
+
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+		UnreadFirst: true,
+		UnreadFirstLimit: chat1.UnreadFirstNumLimit{
+			AtLeast: 3,
+			AtMost:  100,
+			NumRead: 0,
+		},
+		TopicType: chat1.TopicType_CHAT,
+	})
+	if err != nil {
+		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+	}
+	if len(res.Conversations) != 3 {
+		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 1 items, got %d\n", len(res.Conversations))
+	}
 }
