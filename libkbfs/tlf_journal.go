@@ -62,6 +62,7 @@ type TLFJournalStatus struct {
 	BranchID       string
 	BlockOpCount   uint64
 	UnflushedBytes int64 // (signed because os.FileInfo.Size() is signed)
+	UnflushedPaths []string
 }
 
 // TLFJournalBackgroundWorkStatus indicates whether a journal should
@@ -806,9 +807,7 @@ func (j *tlfJournal) getJournalEntryCounts() (
 	return blockEntryCount, mdEntryCount, nil
 }
 
-func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
-	j.journalLock.RLock()
-	defer j.journalLock.RUnlock()
+func (j *tlfJournal) getBaseJournalStatusLocked() (TLFJournalStatus, error) {
 	if err := j.checkEnabledLocked(); err != nil {
 		return TLFJournalStatus{}, err
 	}
@@ -833,6 +832,62 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 		BlockOpCount:   blockEntryCount,
 		UnflushedBytes: j.blockJournal.unflushedBytes,
 	}, nil
+}
+
+func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	return j.getBaseJournalStatusLocked()
+}
+
+func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
+	config Config, mdOps journalMDOps, blocks *folderBlockOps) (
+	TLFJournalStatus, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	status, err := j.getBaseJournalStatusLocked()
+	if err != nil {
+		return TLFJournalStatus{}, err
+	}
+
+	// Make chains over the entire range to get the unflushed files.
+	// TODO: cache this chains object and update it when new revisions
+	// appear and when revisions are flushed, instead of rebuilding
+	// every time.
+	if status.RevisionEnd != MetadataRevisionUninitialized {
+		var irmds []ImmutableRootMetadata
+		// These GetRange calls end up taking journalLock for reading
+		// again, but that's ok.  (Note we can't just
+		// j.mdJournal.getRange() directly because we need them as
+		// ImmutableRootMetadatas, not ImmutableBareRootMetadatas.)
+		if j.mdJournal.getBranchID() == NullBranchID {
+			irmds, err = mdOps.GetRange(ctx, j.tlfID,
+				status.RevisionStart, status.RevisionEnd)
+		} else {
+			irmds, err = mdOps.GetUnmergedRange(ctx, j.tlfID,
+				j.mdJournal.getBranchID(), status.RevisionStart,
+				status.RevisionEnd)
+		}
+		if err != nil {
+			return TLFJournalStatus{}, err
+		}
+		chains, err := newCRChains(ctx, config, irmds, nil, false)
+		if err != nil {
+			return TLFJournalStatus{}, err
+		}
+		_, err = chains.getPaths(ctx, blocks, j.log, blocks.nodeCache, true)
+		if err != nil {
+			return TLFJournalStatus{}, err
+		}
+
+		for _, chain := range chains.byOriginal {
+			if len(chain.ops) > 0 {
+				status.UnflushedPaths = append(status.UnflushedPaths,
+					chain.ops[0].getFinalPath().String())
+			}
+		}
+	}
+	return status, nil
 }
 
 func (j *tlfJournal) getUnflushedBytes() int64 {

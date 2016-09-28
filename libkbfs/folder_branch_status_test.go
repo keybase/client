@@ -43,7 +43,7 @@ func TestFBStatusSignal(t *testing.T) {
 	defer fbStatusTestShutdown(mockCtrl, config)
 	ctx := context.Background()
 
-	_, c, err := fbsk.getStatus(ctx)
+	_, c, err := fbsk.getStatus(ctx, nil)
 	if err != nil {
 		t.Fatalf("Couldn't get status: %v", err)
 	}
@@ -55,7 +55,7 @@ func TestFBStatusSignal(t *testing.T) {
 	fbsk.addDirtyNode(n)
 	<-c
 
-	_, c, err = fbsk.getStatus(ctx)
+	_, c, err = fbsk.getStatus(ctx, nil)
 	if err != nil {
 		t.Fatalf("Couldn't get status: %v", err)
 	}
@@ -124,7 +124,7 @@ func TestFBStatusAllFields(t *testing.T) {
 	config.mockRekeyQueue.EXPECT().IsRekeyPending(id)
 
 	// check the returned status for accuracy
-	status, _, err := fbsk.getStatus(ctx)
+	status, _, err := fbsk.getStatus(ctx, nil)
 	if err != nil {
 		t.Fatalf("Couldn't get status: %v", err)
 	}

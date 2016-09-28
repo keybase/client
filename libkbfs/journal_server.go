@@ -495,7 +495,8 @@ func (j *JournalServer) Status() JournalServerStatus {
 
 // JournalStatus returns a TLFServerStatus object for the given TLF
 // suitable for diagnostics.
-func (j *JournalServer) JournalStatus(tlfID TlfID) (TLFJournalStatus, error) {
+func (j *JournalServer) JournalStatus(tlfID TlfID) (
+	TLFJournalStatus, error) {
 	tlfJournal, ok := j.getTLFJournal(tlfID)
 	if !ok {
 		return TLFJournalStatus{},
@@ -503,6 +504,22 @@ func (j *JournalServer) JournalStatus(tlfID TlfID) (TLFJournalStatus, error) {
 	}
 
 	return tlfJournal.getJournalStatus()
+}
+
+// JournalStatusWithPaths returns a TLFServerStatus object for the
+// given TLF suitable for diagnostics, including paths for all the
+// unflushed entries.
+func (j *JournalServer) JournalStatusWithPaths(ctx context.Context, tlfID TlfID,
+	blocks *folderBlockOps) (
+	TLFJournalStatus, error) {
+	tlfJournal, ok := j.getTLFJournal(tlfID)
+	if !ok {
+		return TLFJournalStatus{},
+			fmt.Errorf("Journal not enabled for %s", tlfID)
+	}
+
+	return tlfJournal.getJournalStatusWithPaths(ctx, j.config, j.mdOps(),
+		blocks)
 }
 
 // shutdownExistingJournalsLocked shuts down all write journals, sets
