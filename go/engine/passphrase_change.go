@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -184,12 +185,19 @@ func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKe
 		// get the new passphrase hash out of the args
 		pwh, ok := payload["pwh"].(string)
 		if !ok || len(pwh) == 0 {
-			acctErr = fmt.Errorf("no pwh found in common args")
+			acctErr = errors.New("no pwh found in common args")
+			return
+		}
+
+		// get the new PDPKA5 KID out of the args
+		pdpka5kid, ok := payload["pdpka5_kid"].(string)
+		if !ok || len(pdpka5kid) == 0 {
+			acctErr = errors.New("no pdpka5kid found in common args")
 			return
 		}
 
 		// Generate a signature with our unlocked sibling key from device.
-		proof, err := c.me.UpdatePassphraseProof(sigKey, pwh, ppGen+1)
+		proof, err := c.me.UpdatePassphraseProof(sigKey, pwh, ppGen+1, pdpka5kid)
 		if err != nil {
 			acctErr = err
 			return
