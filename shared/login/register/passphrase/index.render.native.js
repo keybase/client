@@ -3,12 +3,12 @@ import Container from '../../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Button, UserCard, Text, FormWithCheckbox} from '../../../common-adapters'
-import {globalColors} from '../../../styles'
+import {globalColors, globalMargins} from '../../../styles'
 import {specialStyles} from '../../../common-adapters/text'
 
 class Render extends Component<void, Props, void> {
   render () {
-    const {saveInKeychain, showTyping, toggleSaveInKeychain, toggleShowTyping} = this.props
+    const {showTyping, toggleShowTyping} = this.props
 
     return (
       <Container
@@ -29,7 +29,6 @@ class Render extends Component<void, Props, void> {
               errorText: this.props.error,
             }}
             checkboxesProps={[
-              {label: 'Save in keychain', checked: !!(saveInKeychain), onCheck: toggleSaveInKeychain},
               {label: 'Show typing', checked: !!(showTyping), onCheck: toggleShowTyping},
             ]} />
 
@@ -59,9 +58,9 @@ const stylesForgot = {
 const stylesCard = {
   alignItems: 'stretch',
 }
-
 const usernameStyle = {
   textAlign: 'center',
+  paddingBottom: globalMargins.small,
 }
 
 export default Render

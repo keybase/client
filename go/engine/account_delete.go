@@ -51,14 +51,7 @@ func (e *AccountDelete) Run(ctx *Context) error {
 			postErr = err
 			return
 		}
-		session, err := a.LoginSession().SessionEncoded()
-		if err != nil {
-			e.G().Log.Warning("SessionEncoded error: %s", err)
-			postErr = err
-			return
-		}
-
-		hmacPwh, err := e.G().LoginState().ComputeLoginPw(a)
+		lp, err := libkb.ComputeLoginPackage(a, "")
 		if err != nil {
 			postErr = err
 			return
@@ -68,11 +61,9 @@ func (e *AccountDelete) Run(ctx *Context) error {
 			Endpoint:    "delete",
 			NeedSession: true,
 			SessionR:    a.LocalSession(),
-			Args: libkb.HTTPArgs{
-				"hmac_pwh":      libkb.HexArg(hmacPwh),
-				"login_session": libkb.S{Val: session},
-			},
+			Args:        libkb.NewHTTPArgs(),
 		}
+		lp.PopulateArgs(&arg.Args)
 		_, postErr = e.G().API.Post(arg)
 		if postErr != nil {
 			e.G().Log.Warning("API.Post error: %s", postErr)

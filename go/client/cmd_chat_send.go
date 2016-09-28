@@ -69,7 +69,7 @@ func (c *cmdChatSend) Run() (err error) {
 	}
 
 	if resolved == nil {
-		conversationInfo, err = chatClient.NewConversationLocal(ctx, chat1.ConversationInfoLocal{
+		ncres, err := chatClient.NewConversationLocal(ctx, chat1.ConversationInfoLocal{
 			TlfName:   c.resolver.TlfName,
 			TopicName: c.resolver.TopicName,
 			TopicType: c.resolver.TopicType,
@@ -77,6 +77,7 @@ func (c *cmdChatSend) Run() (err error) {
 		if err != nil {
 			return fmt.Errorf("creating conversation error: %v\n", err)
 		}
+		conversationInfo = ncres.Conv
 	} else {
 		conversationInfo = *resolved
 	}
@@ -109,7 +110,7 @@ func (c *cmdChatSend) Run() (err error) {
 
 	args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
 
-	if err = chatClient.PostLocal(ctx, args); err != nil {
+	if _, err = chatClient.PostLocal(ctx, args); err != nil {
 		return err
 	}
 
@@ -121,7 +122,7 @@ func (c *cmdChatSend) Run() (err error) {
 		msgV1.ClientHeader.Prev = nil // TODO
 		msgV1.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
 		args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
-		if err := chatClient.PostLocal(ctx, args); err != nil {
+		if _, err := chatClient.PostLocal(ctx, args); err != nil {
 			return err
 		}
 	}

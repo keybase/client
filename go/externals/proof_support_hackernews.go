@@ -66,7 +66,7 @@ func (h *HackerNewsChecker) CheckHint(ctx libkb.ProofContext, hint libkb.SigHint
 
 func (h *HackerNewsChecker) CheckStatus(ctx libkb.ProofContext, hint libkb.SigHint) libkb.ProofError {
 	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_HACKERNEWS,
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_HACKERNEWS,
 			pvl.NewProofInfo(h.proof, hint))
 	}
 	return h.CheckStatusOld(ctx, hint)

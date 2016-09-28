@@ -119,10 +119,28 @@ type ConvSummary struct {
 
 type ChatList struct {
 	Conversations []ConvSummary `json:"conversations"`
+	RateLimits
+}
+
+func (c *CmdChatAPI) aggRateLimits(rlimits []chat1.RateLimit) (res []RateLimit) {
+	m := make(map[string]chat1.RateLimit)
+	for _, rl := range rlimits {
+		m[rl.Name] = rl
+	}
+	for _, v := range m {
+		res = append(res, RateLimit{
+			Tank:     v.Name,
+			Capacity: v.MaxCalls,
+			Reset:    v.WindowReset,
+			Gas:      v.CallsRemaining,
+		})
+	}
+	return res
 }
 
 // ListV1 implements ChatServiceHandler.ListV1.
 func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
+	var rlimits []chat1.RateLimit
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
@@ -132,10 +150,11 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 	if err != nil {
 		return c.errReply(err)
 	}
+	rlimits = append(rlimits, inbox.RateLimits...)
 
 	var cl ChatList
-	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
-	for i, conv := range inbox.Conversations {
+	cl.Conversations = make([]ConvSummary, len(inbox.Inbox.Conversations))
+	for i, conv := range inbox.Inbox.Conversations {
 		if len(conv.MaxMsgs) == 0 {
 			return c.errReply(fmt.Errorf("conversation %d had no max msgs", conv.Metadata.ConversationID))
 		}
@@ -150,7 +169,7 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 			},
 		}
 	}
-
+	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: cl}
 }
 
@@ -180,12 +199,19 @@ type MsgSummary struct {
 	Content  MsgContent      `json:"content"`
 }
 
+type MsgFromServer struct {
+	Msg   *MsgSummary `json:"msg,omitempty"`
+	Error *string     `json:"error,omitempty"`
+}
+
 type Thread struct {
-	Messages []MsgSummary `json:"messages"`
+	Messages []MsgFromServer `json:"messages"`
+	RateLimits
 }
 
 // ReadV1 implements ChatServiceHandler.ReadV1.
 func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
+	var rlimits []chat1.RateLimit
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
@@ -198,10 +224,12 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			TopicType: opts.Channel.TopicTypeEnum(),
 			TopicName: opts.Channel.TopicName,
 		}
-		existing, err := client.ResolveConversationLocal(ctx, cinfo)
+		rcres, err := client.ResolveConversationLocal(ctx, cinfo)
 		if err != nil {
 			return c.errReply(err)
 		}
+		rlimits = append(rlimits, rcres.RateLimits...)
+		existing := rcres.Convs
 		if len(existing) > 1 {
 			return c.errReply(fmt.Errorf("multiple conversations matched %q", opts.Channel.Name))
 		}
@@ -221,50 +249,79 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	if err != nil {
 		return c.errReply(err)
 	}
+	rlimits = append(rlimits, threadView.RateLimits...)
 
 	var thread Thread
-	for _, m := range threadView.Messages {
-		version, err := m.MessagePlaintext.Version()
+	for _, m := range threadView.Thread.Messages {
+		version, err := m.Message.MessagePlaintext.Version()
 		if err != nil {
 			return c.errReply(err)
 		}
 		switch version {
 		case chat1.MessagePlaintextVersion_V1:
-			v1 := m.MessagePlaintext.V1()
+			v1 := m.Message.MessagePlaintext.V1()
 			if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
 				// skip TLFNAME messages
 				continue
 			}
-			msg := MsgSummary{
-				ID: m.ServerHeader.MessageID,
-				Channel: ChatChannel{
-					Name:      v1.ClientHeader.TlfName,
-					Public:    v1.ClientHeader.TlfPublic,
-					TopicType: strings.ToLower(v1.ClientHeader.Conv.TopicType.String()),
-				},
-				Sender: MsgSender{
-					UID:      v1.ClientHeader.Sender.String(),
-					DeviceID: v1.ClientHeader.SenderDevice.String(),
-				},
-				SentAt:   int64(m.ServerHeader.Ctime / 1000),
-				SentAtMs: int64(m.ServerHeader.Ctime),
+			switch version {
+			case chat1.MessagePlaintextVersion_V1:
+				v1 := m.Message.MessagePlaintext.V1()
+				if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
+					// skip TLFNAME messages
+					continue
+				}
+				msg := MsgSummary{
+					ID: m.Message.ServerHeader.MessageID,
+					Channel: ChatChannel{
+						Name:      v1.ClientHeader.TlfName,
+						Public:    v1.ClientHeader.TlfPublic,
+						TopicType: strings.ToLower(v1.ClientHeader.Conv.TopicType.String()),
+					},
+					Sender: MsgSender{
+						UID:      v1.ClientHeader.Sender.String(),
+						DeviceID: v1.ClientHeader.SenderDevice.String(),
+					},
+					SentAt:   int64(m.Message.ServerHeader.Ctime / 1000),
+					SentAtMs: int64(m.Message.ServerHeader.Ctime),
+				}
+				msg.Content = c.convertMsgBody(v1.MessageBody)
+
+				msg.Sender.Username = m.Message.SenderUsername
+				msg.Sender.DeviceName = m.Message.SenderDeviceName
+
+				thread.Messages = append(thread.Messages, MsgFromServer{
+					Msg: &msg,
+				})
+			default:
+				return c.errReply(libkb.NewChatMessageVersionError(version))
 			}
-			msg.Content = c.convertMsgBody(v1.MessageBody)
-			if m.Info != nil {
-				msg.Sender.Username = m.Info.SenderUsername
-				msg.Sender.DeviceName = m.Info.SenderDeviceName
-			}
-			thread.Messages = append(thread.Messages, msg)
-		default:
-			return c.errReply(libkb.NewChatMessageVersionError(version))
+
+			continue
 		}
+
+		if m.UnboxingError != nil {
+			thread.Messages = append(thread.Messages, MsgFromServer{
+				Error: m.UnboxingError,
+			})
+			continue
+		}
+
+		return c.errReply(errors.New("unexpected response from service: UnboxingError and Message are both empty"))
 	}
 
+	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: thread}
+}
+
+type SendRes struct {
+	Message string `json:"message"`
+	RateLimits
 }
 
 // SendV1 implements ChatServiceHandler.SendV1.
 func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
+	var rlimits []chat1.RateLimit
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
@@ -289,17 +346,22 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 	}
 
 	// find the conversation
-	existing, err := client.ResolveConversationLocal(ctx, cinfo)
+	rcres, err := client.ResolveConversationLocal(ctx, cinfo)
 	if err != nil {
 		return c.errReply(err)
 	}
+	rlimits = append(rlimits, rcres.RateLimits...)
+
 	var conversation chat1.ConversationInfoLocal
+	existing := rcres.Convs
 	switch len(existing) {
 	case 0:
-		conversation, err = client.NewConversationLocal(ctx, cinfo)
+		ncres, err := client.NewConversationLocal(ctx, cinfo)
 		if err != nil {
 			return c.errReply(err)
 		}
+		rlimits = append(rlimits, ncres.RateLimits...)
+		conversation = ncres.Conv
 	case 1:
 		conversation = existing[0]
 	default:
@@ -323,14 +385,25 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
 		}),
 	}
-	if err := client.PostLocal(ctx, postArg); err != nil {
+	plres, err := client.PostLocal(ctx, postArg)
+	if err != nil {
 		return c.errReply(err)
 	}
+	rlimits = append(rlimits, plres.RateLimits...)
 
-	return Reply{Result: "message sent"}
+	res := SendRes{
+		Message: "message sent",
+		RateLimits: RateLimits{
+			RateLimits: c.aggRateLimits(rlimits),
+		},
+	}
+	return Reply{Result: res}
 }
 
 func (c *CmdChatAPI) errReply(err error) Reply {
+	if rlerr, ok := err.(libkb.ChatRateLimitError); ok {
+		return Reply{Error: &CallError{Message: err.Error(), Data: rlerr.RateLimit}}
+	}
 	return Reply{Error: &CallError{Message: err.Error()}}
 }
 

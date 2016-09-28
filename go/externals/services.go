@@ -4,8 +4,9 @@
 package externals
 
 import (
-	libkb "github.com/keybase/client/go/libkb"
 	"strings"
+
+	libkb "github.com/keybase/client/go/libkb"
 )
 
 type externalServicesCollection map[string]libkb.ServiceType
@@ -25,6 +26,10 @@ func (e externalServicesCollection) GetServiceType(s string) libkb.ServiceType {
 func (e externalServicesCollection) ListProofCheckers() []string {
 	var ret []string
 	for k, v := range e {
+		// Don't display Facebook until it's supported. TODO: Delete me!
+		if k == "facebook" {
+			continue
+		}
 		if useDevelProofCheckers || !v.IsDevelOnly() {
 			ret = append(ret, k)
 		}

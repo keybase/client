@@ -1,9 +1,6 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// When we delete this, also delete IsDevelOnly() below.
-// +build !production
-
 package externals
 
 import (
@@ -64,7 +61,7 @@ func (rc *FacebookChecker) ScreenNameCompare(s1, s2 string) bool {
 
 func (rc *FacebookChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_FACEBOOK, pvl.NewProofInfo(rc.proof, h))
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_FACEBOOK, pvl.NewProofInfo(rc.proof, h))
 	}
 	return rc.CheckStatusOld(ctx, h)
 }
@@ -159,7 +156,13 @@ func (t FacebookServiceType) NormalizeUsername(s string) (string, error) {
 func (t FacebookServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
-	return t.NormalizeUsername(s)
+	if !facebookUsernameRegexp.MatchString(s) {
+		return "", libkb.NewBadUsernameError(s)
+	}
+	// This is the normalization function that gets called by the Prove engine.
+	// Avoid stripping dots, so that we can preserve them when the username is
+	// displayed.
+	return strings.ToLower(s), nil
 }
 
 func (t FacebookServiceType) GetPrompt() string {
@@ -221,9 +224,6 @@ func (t FacebookServiceType) CheckProofText(text string, id keybase1.SigID, sig 
 func (t FacebookServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &FacebookChecker{l}
 }
-
-// When we delete this, also delete the build directive above.
-func (t FacebookServiceType) IsDevelOnly() bool { return true }
 
 //=============================================================================
 

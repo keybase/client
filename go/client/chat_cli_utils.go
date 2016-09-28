@@ -47,6 +47,10 @@ func makeChatListAndReadFlags(extras []cli.Flag) []cli.Flag {
 			Name:  "private",
 			Usage: `Only select private conversations. Exclusive to --public`,
 		},
+		cli.BoolFlag{
+			Name:  "show-device-name",
+			Usage: `Show device name next to author username`,
+		},
 	}...))
 }
 
@@ -66,7 +70,7 @@ func (r *conversationResolver) Resolve(ctx context.Context, g *libkb.GlobalConte
 		r.TlfName = string(cname)
 	}
 
-	conversations, err := chatClient.ResolveConversationLocal(ctx, chat1.ConversationInfoLocal{
+	rcres, err := chatClient.ResolveConversationLocal(ctx, chat1.ConversationInfoLocal{
 		TlfName:    r.TlfName,
 		TopicName:  r.TopicName,
 		TopicType:  r.TopicType,
@@ -76,6 +80,7 @@ func (r *conversationResolver) Resolve(ctx context.Context, g *libkb.GlobalConte
 		return nil, false, err
 	}
 
+	conversations := rcres.Convs
 	switch len(conversations) {
 	case 0:
 		return nil, false, nil
@@ -124,10 +129,10 @@ func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conve
 	resolver.TopicName = ctx.String("topic-name")
 	resolver.TlfName = tlfName
 	if resolver.TopicType, err = parseConversationTopicType(ctx); err != nil {
-		return resolver, err
+		return conversationResolver{}, err
 	}
 	if resolver.TopicType == chat1.TopicType_CHAT && len(resolver.TopicName) != 0 {
-		return resolver, errors.New("multiple topics are not yet supported")
+		return conversationResolver{}, errors.New("multiple topics are not yet supported")
 	}
 	if ctx.Bool("private") {
 		resolver.Visibility = chat1.TLFVisibility_PRIVATE
@@ -153,7 +158,7 @@ func makeMessageFetcherFromCliCtx(ctx *cli.Context, tlfName string, markAsRead b
 	fetcher.selector.MarkAsRead = markAsRead
 
 	if fetcher.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
-		return fetcher, err
+		return messageFetcher{}, err
 	}
 
 	return fetcher, nil
@@ -183,12 +188,12 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 	g.UI.GetTerminalUI().Printf("fetching conversation %s ...\n", conversationInfo.TlfName)
 	f.selector.Conversations = append(f.selector.Conversations, conversationInfo.Id)
 
-	conversations, err = chatClient.GetMessagesLocal(ctx, f.selector)
+	gmres, err := chatClient.GetMessagesLocal(ctx, f.selector)
 	if err != nil {
 		return nil, fmt.Errorf("GetMessagesLocal error: %s", err)
 	}
 
-	return conversations, nil
+	return gmres.Msgs, nil
 }
 
 type inboxFetcher struct {
@@ -202,7 +207,7 @@ type inboxFetcher struct {
 
 func makeInboxFetcherFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error) {
 	if fetcher.topicType, err = parseConversationTopicType(ctx); err != nil {
-		return fetcher, err
+		return inboxFetcher{}, err
 	}
 
 	fetcher.limit = ctx.Int("number")
