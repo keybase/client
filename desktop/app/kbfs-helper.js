@@ -1,9 +1,8 @@
 // @flow
-
-import {ipcMain, shell} from 'electron'
-import fs from 'fs'
-import {pathToURL} from './paths'
 import exec from './exec'
+import fs from 'fs'
+import {ipcMain, shell} from 'electron'
+import {pathToURL} from './paths'
 
 function openDirectory (path) {
   if (process.platform === 'win32') {

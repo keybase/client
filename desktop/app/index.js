@@ -1,17 +1,18 @@
-import {BrowserWindow, app, dialog} from 'electron'
-import splash from './splash'
-import installer from './installer'
+// @flow
+import MainWindow from './main-window'
 import consoleHelper, {ipcLogs} from './console-helper'
 import devTools from './dev-tools'
-import menuBar from './menu-bar'
-import storeHelper from './store-helper'
-import MainWindow from './main-window'
-import windowHelper from './window-helper'
-import kbfsHelper from './kbfs-helper'
-import urlHelper from './url-helper'
 import hello from '../shared/util/hello'
-import semver from 'semver'
+import installer from './installer'
+import kbfsHelper from './kbfs-helper'
+import menuBar from './menu-bar'
 import os from 'os'
+import semver from 'semver'
+import splash from './splash'
+import storeHelper from './store-helper'
+import urlHelper from './url-helper'
+import windowHelper from './window-helper'
+import {BrowserWindow, app, dialog} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../shared/util/quit-helper.desktop'
 
 let mainWindow = null
@@ -81,7 +82,7 @@ function start () {
 
   // Called when the user clicks the dock icon
   app.on('activate', () => {
-    mainWindow.show(true)
+    mainWindow && mainWindow.show(true)
   })
 
   // Don't quit the app, instead try to close all windows

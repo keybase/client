@@ -1,11 +1,13 @@
-import {ipcMain, ipcRenderer} from 'electron'
-import util from 'util'
-import {forwardLogs} from '../shared/local-debug'
+// @flow
 import fs from 'fs'
-import path from 'path'
 import mkdirp from 'mkdirp'
-import {logFileName} from '../shared/constants/platform.specific.desktop.js'
+import path from 'path'
 import setupLocalLogs from '../shared/util/local-log'
+import util from 'util'
+// $FlowIssue
+import {forwardLogs} from '../shared/local-debug'
+import {ipcMain, ipcRenderer} from 'electron'
+import {logFileName} from '../shared/constants/platform.specific.desktop.js'
 
 const methods = ['log', 'error', 'info']
 const originalConsole = {}
@@ -96,6 +98,7 @@ export default function pipeLogs () {
   methods.forEach(k => {
     console[k] = (...args) => {
       if (args.length) {
+        // $FlowIssue
         const out = output[k] || stdOutWriter
         out(`${k}: ${Date()} (${Date.now()}): ${util.format.apply(util, args)}\n`)
       }

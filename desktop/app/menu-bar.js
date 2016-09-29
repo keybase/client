@@ -1,7 +1,8 @@
-import {ipcMain, systemPreferences} from 'electron'
-import {resolveImage, resolveRootAsURL} from '../resolve-root'
+// @flow
 import hotPath from '../hot-path'
 import menubar from 'menubar'
+import {ipcMain, systemPreferences} from 'electron'
+import {resolveImage, resolveRootAsURL} from '../resolve-root'
 
 let iconType: 'regular' | 'update' | 'badged' = 'regular'
 
