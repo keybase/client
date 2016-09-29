@@ -1017,7 +1017,12 @@ func replaceCustomError(g proofContextExt, state scriptState, spec *errorT, err1
 	}
 
 	if (spec.Status != err1.GetProofStatus()) || (spec.Description != err1.GetDesc()) {
-		err2 := libkb.NewProofError(spec.Status, spec.Description)
+		newDesc := spec.Description
+		subbedDesc, subErr := substitute(spec.Description, state, false)
+		if subErr == nil {
+			newDesc = subbedDesc
+		}
+		err2 := libkb.NewProofError(spec.Status, newDesc)
 		debugWithState(g, state, "Replacing error with custom error")
 		debugWithStateError(g, state, err2)
 
