@@ -106,6 +106,10 @@ func CheckProof(g1 libkb.ProofContext, pvlS string, service keybase1.ProofType, 
 	if perr != nil {
 		debug(g, "CheckProof failed: %v", perr)
 	}
+	if perr != nil && perr.GetProofStatus() == keybase1.ProofStatus_INVALID_PVL {
+		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+			"Invalid proof verification instructions! Let us know at https://github.com/keybase/keybase-issues/new")
+	}
 	return perr
 }
 
