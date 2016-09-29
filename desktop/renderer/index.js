@@ -1,29 +1,29 @@
-/* @flow */
+// @flow
 /*
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import {AppContainer} from 'react-hot-loader'
+import Root from './container'
 import configureStore from '../shared/store/configure-store'
 import engine, {makeEngine} from '../shared/engine'
+import hello from '../shared/util/hello'
 import injectTapEventPlugin from 'react-tap-event-plugin'
+import {AppContainer} from 'react-hot-loader'
+import {bootstrap} from '../shared/actions/config'
+import {devEditAction} from '../shared/reducers/dev-edit'
 import {devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {listenForNotifications} from '../shared/actions/notifications'
-import {bootstrap} from '../shared/actions/config'
-import {updateDebugConfig} from '../shared/actions/dev'
-import hello from '../shared/util/hello'
-import {updateReloading} from '../shared/constants/dev'
-import Root from './container'
-import {devEditAction} from '../shared/reducers/dev-edit'
 import {setupContextMenu} from '../app/menu-helper'
+import {updateDebugConfig} from '../shared/actions/dev'
+import {updateReloading} from '../shared/constants/dev'
 
 // For Remote Components
 import electron, {ipcRenderer} from 'electron'
-import {ipcLogsRenderer} from '../app/console-helper'
 import loadPerf from '../shared/util/load-perf'
 import merge from 'lodash/merge'
+import {ipcLogsRenderer} from '../app/console-helper'
 
 function setupApp (store) {
   ipcLogsRenderer()

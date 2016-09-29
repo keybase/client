@@ -21,6 +21,7 @@ function ensureSymlink (target, dest) {
 
   var absDest = path.resolve(dest)
   console.log('Linking', target, '->', absDest)
+  // $FlowIssue
   fs.symlinkSync(absDest, target)
 }
 
@@ -28,6 +29,7 @@ function spawn (command, args, options) {
   options = options || {}
   args = args || []
   console.log((options.cwd || '') + '>', command, args.join(' '))
+  // $FlowIssue
   var res = spawnSync(command, args, Object.assign({stdio: 'inherit', encoding: 'utf8'}, options))
   if (res.error) {
     throw res.error

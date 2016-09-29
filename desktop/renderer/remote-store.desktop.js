@@ -1,11 +1,11 @@
-/* @flow */
+// @flow
 import {ipcRenderer} from 'electron'
 
 class RemoteStore {
   listeners: Array<Function>;
   internalState: any;
 
-  constructor (props: {component: string, selectorParams: ?string}) {
+  constructor (props: {component: string, selectorParams?: ?string}) {
     ipcRenderer.on('stateChange', (event, arg) => {
       this.internalState = arg
       this._publishChange()

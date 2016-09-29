@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
 import RemoteComponent from './remote-component'
+import {connect} from 'react-redux'
 import {registerPinentryListener, onCancel, onSubmit} from '../shared/actions/pinentry'
 
 import type {TypedState} from '../shared/constants/reducer'

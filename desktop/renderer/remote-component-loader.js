@@ -1,5 +1,7 @@
+// @flow
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
+// $FlowIssue
 import RemoteStore from './remote-store'
 import engine, {makeEngine} from '../shared/engine'
 import hello from '../shared/util/hello'
@@ -11,6 +13,7 @@ import tracker from '../shared/tracker'
 import unlockFolders from '../shared/unlock-folders'
 import {MuiThemeProvider} from 'material-ui/styles'
 import {Provider} from 'react-redux'
+// $FlowIssue
 import {globalColors} from '../shared/styles'
 import {ipcLogsRenderer} from '../app/console-helper'
 import {remote, ipcRenderer} from 'electron'
@@ -19,7 +22,9 @@ import {setupContextMenu} from '../app/menu-helper'
 ipcLogsRenderer()
 makeEngine()
 
+// $FlowIssue
 module.hot && module.hot.accept()
+// $FlowIssue
 module.hot && module.hot.dispose(() => {
   engine().reset()
 })
@@ -60,7 +65,17 @@ function getQueryVariable (variable) {
   return false
 }
 
-class RemoteComponentLoader extends Component {
+type State = {
+  loaded: boolean,
+  unmounted: boolean,
+  props?: any,
+}
+
+class RemoteComponentLoader extends Component<void, any, State> {
+  state: State;
+  store: any;
+  Component: any;
+
   constructor (props) {
     super(props)
     this.state = {
