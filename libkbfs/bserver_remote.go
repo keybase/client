@@ -166,16 +166,16 @@ func NewBlockServerRemote(config Config, blkSrvAddr string, ctx Context) *BlockS
 		"libkbfs_bserver_remote", getClientHandler)
 	getClientHandler.authToken = bs.getAuthToken
 
-	// These clients will connect only on-demand due to the last
-	// argument.
 	putConn := rpc.NewTLSConnection(blkSrvAddr, GetRootCerts(blkSrvAddr),
-		bServerErrorUnwrapper{}, putClientHandler, false,
+		bServerErrorUnwrapper{}, putClientHandler,
+		false, /* connect only on-demand */
 		ctx.NewRPCLogFactory(), libkb.WrapError, config.MakeLogger(""),
 		LogTagsFromContext)
 	bs.putClient = keybase1.BlockClient{Cli: putConn.GetClient()}
 	putClientHandler.client = bs.putClient
 	getConn := rpc.NewTLSConnection(blkSrvAddr, GetRootCerts(blkSrvAddr),
-		bServerErrorUnwrapper{}, getClientHandler, false,
+		bServerErrorUnwrapper{}, getClientHandler,
+		false, /* connect only on-demand */
 		ctx.NewRPCLogFactory(), libkb.WrapError, config.MakeLogger(""),
 		LogTagsFromContext)
 	bs.getClient = keybase1.BlockClient{Cli: getConn.GetClient()}
