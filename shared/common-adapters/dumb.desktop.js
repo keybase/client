@@ -3,13 +3,113 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
-import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, SmallInput, ListItem, PopupMenu, StandardScreen, TabBar, Text} from './index'
+import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, SmallInput, ListItem, PopupMenu, StandardScreen, TabBar, Text, Terminal} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 
 const onCheck = () => console.log('on check!')
 const onClick = () => console.log('on click!')
+
+let textMocks = {}
+const backgroundModes = ['Normal', 'Terminal', 'Announcements', 'Success', 'Information', 'HighRisk', 'Documentation']
+
+backgroundModes.forEach(backgroundMode => {
+  const backgroundColor = {
+    'Normal': globalColors.white,
+    'Terminal': globalColors.darkBlue3,
+    'Announcements': globalColors.blue,
+    'Success': globalColors.green,
+    'Information': globalColors.yellow,
+    'HighRisk': globalColors.red,
+    'Documentation': globalColors.darkBlue,
+  }[backgroundMode]
+
+  const base = {
+    parentProps: {
+      style: {
+        backgroundColor,
+        padding: 10,
+        minWidth: 320,
+      },
+    },
+    backgroundMode,
+  }
+
+  const mocks = {}
+
+  const types = [
+    'Body',
+    'BodyPrimaryLink',
+    'BodySemibold',
+    'BodySmall',
+    'BodySmallError',
+    'BodySmallLink',
+    'BodySmallPrimaryLink',
+    'BodySmallSecondaryLink',
+    'BodySmallSemibold',
+    'BodyXSmall',
+    'BodyXSmallLink',
+    'Header',
+    'HeaderBig',
+    'HeaderError',
+    'HeaderJumbo',
+    'HeaderLink',
+  ]
+
+  types.forEach(type => {
+    mocks[type] = {
+      ...base,
+      type,
+      children: type,
+    }
+  })
+
+  Object.keys(mocks).forEach(key => {
+    textMocks[`${key}: ${backgroundMode}`] = mocks[key]
+  })
+})
+
+const textMap: DumbComponentMap<Text> = {
+  component: Text,
+  mocks: textMocks,
+}
+
+const terminalMap: DumbComponentMap<Box> = {
+  component: Box,
+  mocks: {
+    'Terminal': {
+      children: [
+        <Box key='a' style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
+          <p>
+            <Text type='BodySmall'>Word word </Text>
+            <Text type='Terminal'>inline command line </Text>
+            <Text type='TerminalUsername'>username </Text>
+            <Text type='TerminalPrivate'>'secret'</Text>
+            <Text type='BodySmall'> word word word word word </Text>
+            <Text type='Terminal'>inline command line</Text>
+          </p>
+        </Box>,
+        <Terminal key='b' style={{flex: 1, overflow: 'scroll'}}>
+          <p>
+            <Text type='Terminal'>command line stuff </Text>
+            <Text type='TerminalUsername'>username </Text>
+            <Text type='TerminalPrivate'>'something secret'</Text>
+          </p>
+
+          <p>
+            <Text type='Terminal'>command line stuff </Text>
+            <Text type='TerminalUsername'>username </Text>
+            <Text type='TerminalPublic'>'something public'</Text>
+          </p>
+
+          <Text type='TerminalComment'>comment</Text>
+          <Text type='TerminalComment'>comment</Text>
+        </Terminal>,
+      ],
+    },
+  },
+}
 
 const commonButton = {
   onClick,
@@ -550,6 +650,8 @@ export default {
   Avatar: avatarMap,
   Checkbox: checkboxMap,
   Buttons: buttonsMap,
+  Text: textMap,
+  Terminal: terminalMap,
   ChoiceList: choiceListMap,
   Icon: iconMap,
   Input: inputMap,
