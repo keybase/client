@@ -15,7 +15,6 @@ export type ConfigState = {
   loggedIn: boolean,
   kbfsPath: string,
   error: ?any,
-  devConfig: ?any,
   bootstrapTriesRemaining: number,
   bootstrapped: number,
   followers: {[key: string]: true},
@@ -31,7 +30,6 @@ const initialState: ConfigState = {
   loggedIn: false,
   kbfsPath: Constants.defaultKBFSPath,
   error: null,
-  devConfig: null,
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
   bootstrapped: 0,
   followers: {},
@@ -82,34 +80,6 @@ export default function (state: ConfigState = initialState, action: Action): Con
         }
       }
       return state
-    case Constants.devConfigLoading:
-      return {
-        ...state,
-        devConfig: null,
-      }
-    case Constants.devConfigLoaded:
-      return {
-        ...state,
-        devConfig: action.payload.devConfig,
-      }
-    case Constants.devConfigSaved:
-      return {
-        ...state,
-        devConfig: null,
-      }
-    case Constants.devConfigUpdate:
-      const devConfigured = state.devConfig && state.devConfig.configured || {}
-      return {
-        ...state,
-        devConfig: {
-          ...state.devConfig,
-          configured: {
-            ...devConfigured,
-            ...action.payload.updates,
-          },
-        },
-      }
-
     case Constants.bootstrapFailed: {
       return {
         ...state,

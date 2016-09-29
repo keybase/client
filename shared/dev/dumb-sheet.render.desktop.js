@@ -33,8 +33,9 @@ class Render extends Component<void, Props, any> {
   }
 
   render () {
-    const filter = this.props.dumbFilter.toLowerCase()
-    let numItemsLeftWeCanShow = 10
+    const parts = this.props.dumbFilter.toLowerCase().split(':')
+    const filter = parts[0]
+    let numItemsLeftWeCanShow = parseInt(parts[1], 10) || 10
 
     return (
       <Box style={{...globalStyles.scrollable, padding: 20}}>
@@ -55,7 +56,7 @@ class Render extends Component<void, Props, any> {
             .map((mockKey, idx) => {
               --numItemsLeftWeCanShow
 
-              if (numItemsLeftWeCanShow <= 0) return null
+              if (numItemsLeftWeCanShow < 0) return null
 
               return (
                 <DumbSheetItem

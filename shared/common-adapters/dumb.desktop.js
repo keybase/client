@@ -9,6 +9,206 @@ import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 
 const onCheck = () => console.log('on check!')
+const onClick = () => console.log('on click!')
+
+const commonButton = {
+  onClick,
+}
+
+const buttonsMap: DumbComponentMap<Button> = {
+  component: Button,
+  mocks: {
+    'Primary': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+    },
+    'Primary disabled': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      disabled: true,
+    },
+    'Primary waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      waiting: true,
+    },
+    'Secondary': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+    },
+    'Secondary disabled': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      disabled: true,
+    },
+    'Secondary waiting': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      waiting: true,
+    },
+    'Danger': {
+      ...commonButton,
+      label: 'Danger',
+      type: 'Danger',
+    },
+    'Danger disabled': {
+      ...commonButton,
+      label: 'Danger',
+      type: 'Danger',
+      disabled: true,
+    },
+    'Danger waiting': {
+      ...commonButton,
+      label: 'Danger',
+      type: 'Danger',
+      waiting: true,
+    },
+    'Follow': {
+      ...commonButton,
+      label: 'Follow',
+      type: 'Follow',
+    },
+    'Follow Disabled': {
+      ...commonButton,
+      label: 'Follow',
+      type: 'Follow',
+      disabled: true,
+    },
+    'Following': {
+      ...commonButton,
+      label: 'Following',
+      type: 'Following',
+    },
+    'Unfollow': {
+      ...commonButton,
+      label: 'Unfollow',
+      type: 'Unfollow',
+    },
+    'Primary fullWidth': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      fullWidth: true,
+    },
+    'Primary fullWidth waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      fullWidth: true,
+      waiting: true,
+    },
+    'Secondary fullWidth': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      fullWidth: true,
+    },
+    'Secondary fullWidth waiting': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      fullWidth: true,
+      waiting: true,
+    },
+    'Danger fullWidth': {
+      ...commonButton,
+      label: 'Danger',
+      type: 'Danger',
+      fullWidth: true,
+    },
+    'Danger fullWidth waiting': {
+      ...commonButton,
+      label: 'Danger',
+      type: 'Danger',
+      fullWidth: true,
+      waiting: true,
+    },
+    'Follow fullWidth': {
+      ...commonButton,
+      label: 'Follow',
+      type: 'Follow',
+      fullWidth: true,
+    },
+    'Follow fullWidth waiting': {
+      ...commonButton,
+      label: 'Follow',
+      type: 'Follow',
+      fullWidth: true,
+      waiting: true,
+    },
+    'Primary small': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+    },
+    'Secondary small': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+    },
+    'Danger small': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+    },
+    'Follow small': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+    },
+    'Primary small waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+      waiting: true,
+    },
+    'Secondary small waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+      waiting: true,
+    },
+    'Danger small waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+      waiting: true,
+    },
+    'Follow small waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+      waiting: true,
+    },
+    'Secondary terminal': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      backgroundMode: 'Terminal',
+    },
+    'Secondary terminal fullWidth': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      backgroundMode: 'Terminal',
+      fullWidth: true,
+    },
+  },
+}
 
 const checkboxMap: DumbComponentMap<Checkbox> = {
   component: Checkbox,
@@ -349,6 +549,7 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
 export default {
   Avatar: avatarMap,
   Checkbox: checkboxMap,
+  Buttons: buttonsMap,
   ChoiceList: choiceListMap,
   Icon: iconMap,
   Input: inputMap,
