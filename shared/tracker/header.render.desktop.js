@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import React, {PureComponent} from 'react'
 import {Icon, Text} from '../common-adapters/index'
 import {globalStyles, globalColors, globalMargins} from '../styles'

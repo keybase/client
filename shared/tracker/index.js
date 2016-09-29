@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './render'

@@ -1,2 +1,3 @@
+// @flow
 import {createStore} from 'redux'
-export default f => f(createStore)
+export default (f: Function) => f(createStore)

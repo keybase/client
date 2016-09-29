@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import Tracker from './render'
 import {trackerPropsToRenderProps} from './index'
 import {normal, checking, revoked, error, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
