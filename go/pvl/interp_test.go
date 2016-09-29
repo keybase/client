@@ -845,6 +845,26 @@ var interpUnitTests = []interpUnitTest{
 		restype:    libkb.XAPIResText,
 		restext:    "foozle",
 		shouldwork: true,
+	}, {
+		name:      "Fill-ok-noregexesc",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } },
+{"fill": {
+  "with": "%{tmp1}-%{username_keybase}",
+  "into": "tmp2" } },
+{"assert_regex_match": {
+  "pattern": "^\\(x\\)-kronk$",
+  "from": "tmp2" } }
+]]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "(x)",
+		shouldwork: true,
 	},
 
 	// # Tests for invalid PVL at the top level

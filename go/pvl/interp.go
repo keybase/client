@@ -855,7 +855,7 @@ func stepSelectorCSS(g proofContextExt, ins selectorCSST, state scriptState) (sc
 }
 
 func stepFill(g proofContextExt, ins fillT, state scriptState) (scriptState, libkb.ProofError) {
-	s, err := substitute(ins.With, state)
+	s, err := substitute(ins.With, state, false)
 	if err != nil {
 		debugWithState(g, state, "Fill did not succeed:\n  %v\n  %v\n  %v",
 			ins.With, err, ins.Into)
@@ -983,7 +983,7 @@ func interpretRegex(g proofContextExt, state scriptState, rdesc regexDescriptor)
 	}
 
 	// Do variable interpolation.
-	prepattern, perr := substitute(rdesc.Template, state)
+	prepattern, perr := substitute(rdesc.Template, state, true)
 	if perr != nil {
 		return nil, perr
 	}

@@ -43,6 +43,7 @@ func sampleState() scriptState {
 	check(sampleState.Regs.Set("hostname", "%{sig_id_medium}"))
 	check(sampleState.Regs.Set("protocol", "http"))
 	check(sampleState.Regs.Ban("banned"))
+	check(sampleState.Regs.Set("restuff", "[(x)]"))
 
 	return sampleState
 }
@@ -75,43 +76,50 @@ func TestServiceToString(t *testing.T) {
 }
 
 var substituteTests = []struct {
-	shouldwork bool
-	service    keybase1.ProofType
-	a, b       string
+	shouldwork  bool
+	regexEscape bool
+	service     keybase1.ProofType
+	a, b        string
 }{
-	{true, keybase1.ProofType_TWITTER,
+	{true, true, keybase1.ProofType_TWITTER,
 		"%{username_service}", "kronk"},
-	{true, keybase1.ProofType_GENERIC_WEB_SITE,
+	{true, true, keybase1.ProofType_GENERIC_WEB_SITE,
 		"%{hostname}", "%\\{sig_id_medium\\}"},
-	{true, keybase1.ProofType_TWITTER,
+	{true, true, keybase1.ProofType_TWITTER,
 		"x%{username_service}y%{sig_id_short}z", "xkronky000z"},
-	{true, keybase1.ProofType_TWITTER,
+	{true, true, keybase1.ProofType_TWITTER,
 		"http://git(?:hub)?%{username_service}/%20%%{sig_id_short}}{}", "http://git(?:hub)?kronk/%20%000}{}"},
-	{true, keybase1.ProofType_DNS,
+	{true, true, keybase1.ProofType_DNS,
 		"^%{hostname}/(?:.well-known/keybase.txt|keybase.txt)$", "^%\\{sig_id_medium\\}/(?:.well-known/keybase.txt|keybase.txt)$"},
-	{true, keybase1.ProofType_TWITTER,
+	{true, true, keybase1.ProofType_TWITTER,
 		"^.*%{sig_id_short}.*$", "^.*000.*$"},
-	{true, keybase1.ProofType_TWITTER,
+	{true, true, keybase1.ProofType_TWITTER,
 		"^keybase-site-verification=%{sig_id_short}$", "^keybase-site-verification=000$"},
-	{true, keybase1.ProofType_TWITTER,
+	{true, true, keybase1.ProofType_TWITTER,
 		"^%{sig_id_medium}$", "^sig%\\{sig_id_medium\\}\\.\\*\\$\\(\\^\\)\\\\/$"},
-	{true, keybase1.ProofType_TWITTER,
+	{true, true, keybase1.ProofType_TWITTER,
 		"%{username_keybase}:%{sig}", "kronk_on_kb:AQIDBAU="},
 
-	{false, keybase1.ProofType_TWITTER,
+	{false, true, keybase1.ProofType_TWITTER,
 		"%{}", "%{}"},
-	{false, keybase1.ProofType_TWITTER,
+	{false, true, keybase1.ProofType_TWITTER,
 		"%{unset}", ""},
 
-	{false, keybase1.ProofType_TWITTER,
+	{false, true, keybase1.ProofType_TWITTER,
 		"%{banned}", ""},
+
+	// regex escape
+	{true, true, keybase1.ProofType_TWITTER,
+		"%{restuff}", "\\[\\(x\\)\\]"},
+	{true, false, keybase1.ProofType_TWITTER,
+		"%{restuff}", "[(x)]"},
 }
 
 func TestSubstitute(t *testing.T) {
 	for i, test := range substituteTests {
 		state := sampleState()
 		state.Service = test.service
-		res, err := substitute(test.a, state)
+		res, err := substitute(test.a, state, test.regexEscape)
 		if (err == nil) != test.shouldwork {
 			t.Fatalf("%v error mismatch: %v ; %v ; '%v'", i, test.shouldwork, err, res)
 		}

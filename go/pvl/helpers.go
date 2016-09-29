@@ -17,12 +17,8 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-// Substitute vars for %{name} in the string.
-// Only substitutes whitelisted variables.
-// It is an error to refer to an unknown variable or undefined numbered group.
-// Match is an optional slice which is a regex match.
-// AllowActiveString makes active_string a valid variable.
-func substitute(template string, state scriptState) (string, libkb.ProofError) {
+// Substitute register values for %{name} in the string.
+func substitute(template string, state scriptState, regexEscape bool) (string, libkb.ProofError) {
 	var outerr libkb.ProofError
 	// Regex to find %{name} occurrences.
 	// Match broadly here so that even %{} is sent to the default case and reported as invalid.
@@ -36,7 +32,10 @@ func substitute(template string, state scriptState) (string, libkb.ProofError) {
 				"Invalid substitution: %v", err)
 			return ""
 		}
-		return regexp.QuoteMeta(value)
+		if regexEscape {
+			return regexp.QuoteMeta(value)
+		}
+		return value
 	}
 	res := re.ReplaceAllStringFunc(template, substituteOne)
 	if outerr != nil {
