@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/engine"
@@ -284,6 +285,60 @@ func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg cha
 	}, nil
 }
 
+func (h *chatLocalHandler) resolveConversationsPipeline(ctx context.Context, convs []chat1.Conversation) ([]chat1.ConversationLocal, error) {
+	// Fetch conversation local information in parallel
+	ctx, _ = getUserInfoMapper(ctx, h.G())
+	type jobRes struct {
+		conv  chat1.ConversationLocal
+		index int
+	}
+	type job struct {
+		conv  chat1.Conversation
+		index int
+	}
+	eg, ctx := errgroup.WithContext(ctx)
+	convCh := make(chan job)
+	retCh := make(chan jobRes)
+	eg.Go(func() error {
+		defer close(convCh)
+		for i, conv := range convs {
+			convCh <- job{conv: conv, index: i}
+		}
+		return nil
+	})
+	for i := 0; i < 10; i++ {
+		eg.Go(func() error {
+			for conv := range convCh {
+				info, maxMessages, err := h.getConversationInfo(ctx, conv.conv)
+				if err != nil {
+					return err
+				}
+				retCh <- jobRes{
+					conv: chat1.ConversationLocal{
+						Info:     &info,
+						Messages: maxMessages,
+						ReadUpTo: conv.conv.ReaderInfo.ReadMsgid,
+					},
+					index: conv.index,
+				}
+			}
+			return nil
+		})
+	}
+	go func() {
+		eg.Wait()
+		close(retCh)
+	}()
+	res := make([]chat1.ConversationLocal, len(convs))
+	for c := range retCh {
+		res[c.index] = c.conv
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalArg) (res chat1.GetInboxSummaryLocalRes, err error) {
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetInboxSummaryLocalRes{}, err
@@ -329,17 +384,9 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 	if err != nil {
 		return chat1.GetInboxSummaryLocalRes{}, err
 	}
-	for _, conv := range iview.Inbox.Conversations {
-		info, maxMessages, err := h.getConversationInfo(ctx, conv)
-		if err != nil {
-			return chat1.GetInboxSummaryLocalRes{}, err
-		}
-		c := chat1.ConversationLocal{
-			Info:     &info,
-			Messages: maxMessages,
-			ReadUpTo: conv.ReaderInfo.ReadMsgid,
-		}
-		res.Conversations = append(res.Conversations, c)
+
+	if res.Conversations, err = h.resolveConversationsPipeline(ctx, iview.Inbox.Conversations); err != nil {
+		return chat1.GetInboxSummaryLocalRes{}, err
 	}
 
 	res.MoreTotal = 1000 // TODO: implement this on server
@@ -398,17 +445,17 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	for _, cr := range conversationsRemote.Inbox.Conversations {
-		info, _, err := h.getConversationInfo(ctx, cr)
-		if err != nil {
-			return nil, err
-		}
-		if len(criteria.TlfName) > 0 && info.TlfName != criteria.TlfName {
+	convsLocal, err := h.resolveConversationsPipeline(ctx, conversationsRemote.Inbox.Conversations)
+	if err != nil {
+		return nil, err
+	}
+	for _, convLocal := range convsLocal {
+		if len(criteria.TlfName) > 0 && convLocal.Info.TlfName != criteria.TlfName {
 			// check again using signed information to make sure it's the correct
 			// conversation
-			return nil, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("Unexpected data is returned from server. We asked for %v, but got conversation for %v. TODO: handle tlfName changes properly for SBS case", criteria.TlfName, info.TlfName)}
+			return nil, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("Unexpected data is returned from server. We asked for %v, but got conversation for %v. TODO: handle tlfName changes properly for SBS case", criteria.TlfName, convLocal.Info.TlfName)}
 		}
-		appendMaybe(info)
+		appendMaybe(*convLocal.Info)
 	}
 
 	h.G().Log.Debug("- resolveConversations: returning: %d messages", len(conversations))

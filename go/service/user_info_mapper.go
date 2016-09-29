@@ -78,6 +78,7 @@ func (u *userInfoMapper) user(uid keybase1.UID) (*libkb.User, error) {
 
 	user, ok := u.users[uid]
 	if !ok {
+		u.G().Log.Debug("userInfoMapper: missed user cache: uid: %s", uid)
 		arg := libkb.NewLoadUserByUIDArg(u.G(), uid)
 		arg.PublicKeyOptional = true
 		var err error
