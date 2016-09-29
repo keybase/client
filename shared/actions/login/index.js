@@ -564,5 +564,11 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     'keybase.1.provisionUi.DisplaySecretExchanged': (param, response) => {
       response.result()
     },
+    'keybase.1.gpgUi.selectKey': (param, response) => {
+      response.error({
+        code: ConstantsStatusCode.sckeynotfound,
+        desc: 'Not supported in GUI',
+      })
+    },
   }
 }
