@@ -966,8 +966,7 @@ var interpUnitTests = []interpUnitTest{
 		restext:    "fuzztroo",
 		shouldwork: false,
 		errstatus:  keybase1.ProofStatus_BAD_SIGNATURE,
-	},
-	{
+	}, {
 		name:      "bad-sig-path-in-domain-dns",
 		proofinfo: infoBadDomain,
 		prepvl: map[keybase1.ProofType]string{
@@ -982,10 +981,24 @@ var interpUnitTests = []interpUnitTest{
 		},
 		shouldwork: false,
 		errstatus:  keybase1.ProofStatus_BAD_SIGNATURE,
-	},
-	{
+	}, {
 		name:      "bad-sig-proto",
 		proofinfo: infoBadProto,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } }
+]]`},
+		service:    keybase1.ProofType_GENERIC_WEB_SITE,
+		restype:    libkb.XAPIResText,
+		restext:    "fuzztroo",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_BAD_SIGNATURE,
+	}, {
+		name:      "bad-sig-sig",
+		proofinfo: infoBadSig,
 		prepvl: map[keybase1.ProofType]string{
 			keybase1.ProofType_GENERIC_WEB_SITE: `[[
 {"fetch": {
