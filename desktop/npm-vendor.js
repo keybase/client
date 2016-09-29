@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @flow
 
 var os = require('os')
 var path = require('path')

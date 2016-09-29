@@ -1,3 +1,4 @@
+// @flow
 // Helper for cross platform npm run script commands
 import path from 'path'
 import childProcess, {execSync} from 'child_process'
@@ -42,7 +43,7 @@ const commands = {
   'help': {
     code: () => {
       const len = Object.keys(commands).reduce((acc, i) => Math.max(i.length, acc), 1) + 2
-      console.log(Object.keys(commands).map(c => commands[c].help && `npm run ${pad(c + ': ', len)}${commands[c].help}`).filter(c => !!c).join('\n'))
+      console.log(Object.keys(commands).map(c => commands[c].help && `npm run ${pad(c + ': ', len)}${commands[c].help || ''}`).filter(c => !!c).join('\n'))
     },
   },
   'start': {
@@ -168,6 +169,7 @@ function postInstall () {
 function setupDebugMain () {
   let electronVer = null
   try {
+    // $FlowIssue we catch this error
     electronVer = childProcess.execSync('npm list --dev electron-prebuilt', {encoding: 'utf8'}).match(/electron-prebuilt@([0-9.]+)/)[1]
     console.log(`Found electron-prebuilt version: ${electronVer}`)
   } catch (err) {
@@ -177,8 +179,8 @@ function setupDebugMain () {
 
   exec('npm install node-inspector')
   exec('npm install git+https://git@github.com/enlight/node-pre-gyp.git#detect-electron-runtime-in-find')
-  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer} --runtime=electron --fallback-to-build --directory node_modules/v8-debug/ --dist-url=https://atom.io/download/atom-shell reinstall`)
-  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer} --runtime=electron --fallback-to-build --directory node_modules/v8-profiler/ --dist-url=https://atom.io/download/atom-shell reinstall`)
+  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer || ''} --runtime=electron --fallback-to-build --directory node_modules/v8-debug/ --dist-url=https://atom.io/download/atom-shell reinstall`)
+  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer || ''} --runtime=electron --fallback-to-build --directory node_modules/v8-profiler/ --dist-url=https://atom.io/download/atom-shell reinstall`)
 }
 
 function fixupSymlinks () {
@@ -196,7 +198,7 @@ function fixupSymlinks () {
 }
 
 // Edit this function to filter down the store in the undiff log
-function storeFilter (store) {
+function storeFilter (store: any) {
   // Example
   // try {
     // return {mike: store.tracker.trackers.mike}
@@ -208,7 +210,7 @@ function storeFilter (store) {
 }
 
 // Edit this function to filter down actions, return null to filter out entirely
-function actionFilter (action) {
+function actionFilter (action: any) {
   // Example
   // if (action.type.startsWith('gregor')) {
     // return null
@@ -247,11 +249,11 @@ function undiff () {
   }
 
   const buildStore = part => {
-    if (part.hasOwnProperty('action')) {
+    if (part && part.hasOwnProperty('action')) {
       return part
     }
 
-    part.diff.forEach(diff => {
+    part && part.diff && part.diff.forEach(diff => {
       try {
         deepdiff.applyChange(store, store, diff)
       } catch (err) {
@@ -262,7 +264,7 @@ function undiff () {
   }
 
   const filterStore = part => {
-    if (part.hasOwnProperty('action')) {
+    if (part && part.hasOwnProperty('action')) {
       return part
     }
 
@@ -270,7 +272,8 @@ function undiff () {
   }
 
   const filterActions = part => {
-    if (part.hasOwnProperty('action')) {
+    if (part && part.hasOwnProperty('action')) {
+      // $FlowIssue
       const action = actionFilter(part.action)
       if (action) return {action}
       return null
@@ -388,6 +391,7 @@ function exec (command, env, options) {
     env = process.env
   }
 
+  // $FlowIssue
   console.log(execSync(command, {env: env, stdio: 'inherit', encoding: 'utf8', ...options}))
 }
 

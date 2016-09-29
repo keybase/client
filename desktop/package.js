@@ -1,3 +1,4 @@
+// @flow
 const os = require('os')
 const webpack = require('webpack')
 const cfg = require('./webpack.config.production.js')
