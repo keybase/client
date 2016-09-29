@@ -357,7 +357,7 @@ const iconMeta_ = {
 ${
   // eslint really doesn't understand embedded backticks
 /* eslint-disable */
-Object.keys(icons).map(name => {
+Object.keys(icons).sort().map(name => {
     const icon = icons[name]
     const meta = [`isFont: ${icon.isFont},`]
     if (icon.gridSize) {
