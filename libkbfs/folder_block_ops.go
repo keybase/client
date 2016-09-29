@@ -1640,6 +1640,9 @@ func (fbo *folderBlockOps) truncateLocked(
 	ptr, parentBlock, indexInParent, block, nextBlockOff, startOff, err :=
 		fbo.getFileBlockAtOffsetLocked(
 			ctx, lState, kmd, file, fblock, iSize, blockWrite)
+	if err != nil {
+		return &WriteRange{}, nil, 0, err
+	}
 
 	currLen := int64(startOff) + int64(len(block.Contents))
 	if currLen+truncateExtendCutoffPoint < iSize {
