@@ -72,7 +72,11 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 		ch := make(chan struct{}, 1)
 		doneChan = ch
 		onInterruptFn = func() {
-			ch <- struct{}{}
+			select {
+			case ch <- struct{}{}:
+				libkbfs.Shutdown()
+			default:
+			}
 		}
 	}
 
