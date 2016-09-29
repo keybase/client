@@ -29,7 +29,7 @@ var hardcodedPVLString = `
       [
         {
           "assert_regex_match": {
-            "error": ["CONTENT_FAILURE", "matching DNS entry not found"],
+            "error": ["NOT_FOUND", "matching DNS entry not found"],
             "from": "txt",
             "pattern": "^keybase-site-verification=%{sig_id_medium}$"
           }
@@ -61,6 +61,14 @@ var hardcodedPVLString = `
           }
         },
         { "fetch": { "from": "hint_url", "kind": "html" } },
+        {
+          "selector_css": {
+            "error": ["FAILED_PARSE", "Couldn't find facebook post %{hint_url}. Is it deleted or private?"],
+            "into": "unused",
+            "multi": true,
+            "selectors": ["#m_story_permalink_view"]
+          }
+        },
         {
           "selector_css": {
             "attr": "href",
