@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -22,8 +23,9 @@ import (
 type chatLocalHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	gh    *gregorHandler
-	boxer *chatBoxer
+	gh      *gregorHandler
+	boxer   *chatBoxer
+	udCache *lru.Cache
 
 	// for test only
 	rc chat1.RemoteInterface
@@ -31,12 +33,43 @@ type chatLocalHandler struct {
 
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
+	udc, _ := lru.New(10000)
 	return &chatLocalHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		gh:           gh,
 		boxer:        newChatBoxer(g),
+		udCache:      udc,
 	}
+}
+
+type udCacheKey struct {
+	UID      keybase1.UID
+	DeviceID keybase1.DeviceID
+}
+
+type udCacheValue struct {
+	Username   string
+	DeviceName string
+}
+
+func (h *chatLocalHandler) getUsernameAndDeviceName(uid keybase1.UID, deviceID keybase1.DeviceID,
+	uimap *userInfoMapper) (string, string, error) {
+
+	if val, ok := h.udCache.Get(udCacheKey{UID: uid, DeviceID: deviceID}); ok {
+		udval, _ := val.(udCacheValue)
+		h.G().Log.Debug("getUsernameAndDeviceName: lru hit: u: %s d: %s", udval.Username,
+			udval.DeviceName)
+		return udval.Username, udval.DeviceName, nil
+	}
+
+	username, deviceName, err := uimap.lookup(uid, deviceID)
+	if err != nil {
+		return username, deviceName, err
+	}
+	h.udCache.Add(udCacheKey{UID: uid, DeviceID: deviceID},
+		udCacheValue{Username: username, DeviceName: deviceName})
+	return username, deviceName, err
 }
 
 // aggregateRateLimits takes a list of rate limit responses and dedups then to the last one received
@@ -484,7 +517,7 @@ func (h *chatLocalHandler) getSenderInfoLocal(uimap *userInfoMapper, messagePlai
 		v1 := messagePlaintext.V1()
 		uid := keybase1.UID(v1.ClientHeader.Sender.String())
 		did := keybase1.DeviceID(v1.ClientHeader.SenderDevice.String())
-		username, deviceName, err := uimap.lookup(uid, did)
+		username, deviceName, err := h.getUsernameAndDeviceName(uid, did, uimap)
 		if err != nil {
 			return "", "", err
 		}
