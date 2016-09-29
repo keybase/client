@@ -2930,13 +2930,17 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	}
 
 	// Also add in file updates from sync operations, since the
-	// reoslutionOp may not include file-specific updates.
-	for _, op := range oldOps[:len(oldOps)-1] {
+	// resolutionOp may not include file-specific updates.  Start from
+	// the end of the list, so we use the final sync op for each file.
+	for i := len(oldOps) - 1; i >= 0; i-- {
+		op := oldOps[i]
 		so, ok := op.(*syncOp)
 		if !ok {
 			continue
 		}
 		if _, ok := updates[so.File.Unref]; !ok {
+			cr.log.CDebugf(ctx, "Adding sync op update %v -> %v",
+				so.File.Unref, so.File.Ref)
 			updates[so.File.Unref] = so.File.Ref
 			resOp.AddUpdate(so.File.Unref, so.File.Ref)
 		}

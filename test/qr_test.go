@@ -77,6 +77,34 @@ func TestQRAfterCR(t *testing.T) {
 	)
 }
 
+// Check that quota reclamation after two syncOps CR leaves the TLF in
+// a readable state.  Regression test for KBFS-1562.
+func TestQRAfterCRWithTwoSyncOps(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/c", "hello2"),
+		),
+		as(bob, noSync(),
+			write("a/b", "hello world"),
+			write("a/b", "hello world etc"),
+			reenableUpdates(),
+		),
+		as(alice,
+			addTime(2*time.Minute),
+			forceQuotaReclamation(),
+			read("a/b", "hello world etc"),
+			read("a/c", "hello2"),
+		),
+	)
+}
+
 // Check that quota reclamation works on multi-block files
 func TestQRWithMultiBlockFiles(t *testing.T) {
 	test(t,
