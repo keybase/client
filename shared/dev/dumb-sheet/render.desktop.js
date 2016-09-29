@@ -1,12 +1,12 @@
 // @flow
-import DumbSheetItem from './dumb-sheet-item'
+import DumbSheetItem from './item'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import debounce from 'lodash/debounce'
-import dumbComponentMap from './dumb-component-map.desktop'
-import type {Props} from './dumb-sheet.render'
-import {Box, Text, Input, BackButton} from '../common-adapters'
-import {globalStyles} from '../styles'
+import dumbComponentMap from './component-map.desktop'
+import type {Props} from './render'
+import {Box, Text, Input, BackButton} from '../../common-adapters'
+import {globalStyles} from '../../styles'
 
 class Render extends Component<void, Props, any> {
   _onFilterChange: (a: any) => void;

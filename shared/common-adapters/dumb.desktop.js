@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
-import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, SmallInput, ListItem, PopupMenu, StandardScreen, TabBar, Text, Terminal} from './index'
+import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, SmallInput, ListItem, PopupMenu, StandardScreen, TabBar, Text, Terminal, Dropdown} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
@@ -11,6 +11,31 @@ import {iconMeta} from './icon.constants'
 const onCheck = () => console.log('on check!')
 const onClick = () => console.log('on click!')
 
+const dropdownMap: DumbComponentMap<Dropdown> = {
+  component: Dropdown,
+  mocks: {
+    'Normal': {
+      type: 'General',
+      options: ['one', 'two', 'three'],
+      value: 'one',
+      onOther: onClick,
+      onClick: onClick,
+    },
+    'Not selected': {
+      type: 'General',
+      options: ['one', 'two', 'three'],
+      onOther: onClick,
+      onClick: onClick,
+    },
+    'Username': {
+      type: 'Username',
+      options: ['marcopolo', 'chris', 'cjb', 'bbbbbbbbbbbbbbbb'],
+      value: 'cjb',
+      onOther: onClick,
+      onClick: onClick,
+    },
+  },
+}
 const colorMocks = {}
 
 Object.keys(globalColors).sort().forEach(c => {
@@ -670,6 +695,7 @@ export default {
   Checkbox: checkboxMap,
   ChoiceList: choiceListMap,
   Colors: colorsMap,
+  Dropdown: dropdownMap,
   Icon: iconMap,
   Input: inputMap,
   ListItem: listItemMap,
