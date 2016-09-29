@@ -1,16 +1,18 @@
+// @flow
 import _ from 'lodash'
 import * as Constants from '../constants/devices'
 import * as CommonConstants from '../constants/common'
 
-const initialState = {
+import type {State} from '../constants/devices'
+
+const initialState: State = {
   waitingForServer: false,
-  response: null,
   devices: null,
   error: null,
   paperKey: null,
 }
 
-export default function (state = initialState, action) {
+export default function (state: State = initialState, action: any) {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}

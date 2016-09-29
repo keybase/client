@@ -2,11 +2,12 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/tracker'
 import _ from 'lodash'
-import type {Proof, OverviewProofState, SimpleProofState, SimpleProofMeta, NonUserActions, TrackerState, NonUserState, TrackerOrNonUserState} from '../constants/tracker'
+import {IdentifyCommonTrackDiffType, ProveCommonProofState, ProveCommonProofType, ProveCommonProofStatus} from '../constants/types/flow-types'
+
 import type {Action} from '../constants/types/flux'
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, ProofResult} from '../constants/types/flow-types'
 import type {PlatformsExpandedType} from '../constants/types/more'
-import {IdentifyCommonTrackDiffType, ProveCommonProofState, ProveCommonProofType, ProveCommonProofStatus} from '../constants/types/flow-types'
+import type {Proof, OverviewProofState, SimpleProofState, SimpleProofMeta, NonUserActions, TrackerState, NonUserState, TrackerOrNonUserState} from '../constants/tracker'
 
 const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored, metaPending,
   normal, warning, error, checking} = Constants

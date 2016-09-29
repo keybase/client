@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import * as Constants from '../constants/pinentry'
 import * as CommonConstants from '../constants/common'
 
