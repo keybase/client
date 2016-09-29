@@ -73,6 +73,11 @@ func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHin
 		return libkb.XapiError(err, apiURL)
 	}
 
+	notFoundError := checkForPostNotFound(apiURL, res.GoQuery)
+	if notFoundError != nil {
+		return notFoundError
+	}
+
 	username, proofErr := extractUsername(res.GoQuery)
 	if proofErr != nil {
 		return proofErr
@@ -92,6 +97,18 @@ func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHin
 	}
 
 	// The proof is good.
+	return nil
+}
+
+func checkForPostNotFound(postURL string, doc *goquery.Document) libkb.ProofError {
+	// m.facebook.com returns 200's for posts you can't see, rather than 404's.
+	// Having a post that's deleted or private is going to be much more common
+	// than the obscure errors below. Do an explicit check for that, to produce
+	// a better error message.
+	if doc.Find("#m_story_permalink_view").Length() == 0 {
+		errorText := fmt.Sprintf("Couldn't find Facebook post %s. Is it deleted or private?", postURL)
+		return libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, errorText)
+	}
 	return nil
 }
 
