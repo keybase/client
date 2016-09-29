@@ -2,7 +2,7 @@
 const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
-const config = Object.assign({}, baseConfig)
+const config: any = Object.assign({}, baseConfig)
 
 const SKIP_OPTIMIZE = false
 // __VERSION__ is injected by package.js

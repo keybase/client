@@ -39,6 +39,8 @@ function pad (s, num) {
   return s
 }
 
+const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
+
 const commands = {
   'help': {
     code: () => {
@@ -52,13 +54,13 @@ const commands = {
   'start-hot': {
     env: {HOT: 'true'},
     nodeEnv: 'development',
-    shell: 'node client.js',
+    shell: `${nodeCmd} client.js`,
     help: 'Start electron with hot reloading (needs npm run hot-server)',
   },
   'start-hot-debug': {
     env: {HOT: 'true', USE_INSPECTOR: 'true'},
     nodeEnv: 'development',
-    shell: 'node client.js',
+    shell: `${nodeCmd} client.js`,
     help: 'Start electron with hot reloading against a debugged main process',
   },
   'debug-main': {
@@ -80,21 +82,21 @@ const commands = {
     env: {NO_SERVER: 'true'},
     nodeEnv: 'production',
     nodePathDesktop: true,
-    shell: 'node server.js',
+    shell: `${nodeCmd} server.js`,
     help: 'Make a development build of the js code',
   },
   'watch-test-file': {
     env: {WATCH: 'true'},
     nodeEnv: 'staging',
     nodePathDesktop: true,
-    shell: 'node test.js',
+    shell: `${nodeCmd} test.js`,
     help: 'test code',
   },
   'test': {
     env: {},
     nodeEnv: 'staging',
     nodePathDesktop: true,
-    shell: 'node test.js',
+    shell: `${nodeCmd} test.js`,
     help: 'test code',
   },
   'build-prod': {
@@ -106,14 +108,14 @@ const commands = {
   'package': {
     nodeEnv: 'production',
     nodePathDesktop: true,
-    shell: 'node package.js',
+    shell: `${nodeCmd} package.js`,
     help: 'Package up the production js code',
   },
   'hot-server': {
     env: {HOT: 'true'},
     nodeEnv: 'development',
     nodePathDesktop: true,
-    shell: 'webpack-dashboard -- node server.js',
+    shell: `webpack-dashboard -- ${nodeCmd} server.js`,
     help: 'Start the webpack hot reloading code server (needed by npm run start-hot)',
   },
   'inject-sourcemaps-prod': {
