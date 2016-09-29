@@ -2,14 +2,30 @@
 import React, {Component} from 'react'
 import {TypedConnector} from '../../util/typed-connect'
 import {navigateUp} from '../../actions/router'
+import {HOCTimers} from '../../common-adapters'
 import DeleteConfirm from './index'
-import {deleteAccountForever} from '../../actions/settings'
+import {setAllowDeleteAccount, deleteAccountForever} from '../../actions/settings'
 
 import type {TypedDispatch} from '../../constants/types/flux'
 import type {TypedState} from '../../constants/reducer'
+import type {TimerProps} from '../../common-adapters/hoc-timers'
 import type {Props} from './index'
 
-class DeleteConfirmContainer extends Component<void, Props, void> {
+class DeleteConfirmContainer extends Component<void, Props & TimerProps, void> {
+  componentWillMount () {
+    this.props.setAllowDeleteAccount(false)
+  }
+
+  componentDidMount () {
+    this.props.setTimeout(() => {
+      this.props.setAllowDeleteAccount(true)
+    }, 2000)
+  }
+
+  componentWillUnmount () {
+    this.props.setAllowDeleteAccount(false)
+  }
+
   static parseRoute () {
     return {componentAtTop: {title: ''}}
   }
@@ -29,8 +45,10 @@ export default connector.connect(
 
     return {
       username: state.config.username,
+      allowDeleteForever: state.settings.allowDeleteAccount,
+      setAllowDeleteAccount: allow => { dispatch(setAllowDeleteAccount(allow)) },
       onCancel: () => { dispatch(navigateUp()) },
       onDeleteForever: () => { dispatch(deleteAccountForever()) },
     }
   }
-)(DeleteConfirmContainer)
+)(HOCTimers(DeleteConfirmContainer))

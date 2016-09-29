@@ -6,7 +6,7 @@ import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {takeLatest, delay} from 'redux-saga'
 
 import type {SagaGenerator} from '../constants/types/saga'
-import type {NotificationsRefresh, NotificationsSave, NotificationsToggle, DeleteAccountForever} from '../constants/settings'
+import type {NotificationsRefresh, NotificationsSave, NotificationsToggle, SetAllowDeleteAccount, DeleteAccountForever} from '../constants/settings'
 
 function notificationsRefresh (): NotificationsRefresh {
   return {type: Constants.notificationsRefresh, payload: undefined}
@@ -18,6 +18,10 @@ function notificationsSave (): NotificationsSave {
 
 function notificationsToggle (name?: string): NotificationsToggle {
   return {type: Constants.notificationsToggle, payload: {name}}
+}
+
+function setAllowDeleteAccount (allow: boolean): SetAllowDeleteAccount {
+  return {type: Constants.setAllowDeleteAccount, payload: allow}
 }
 
 function deleteAccountForever (): DeleteAccountForever {
@@ -121,9 +125,16 @@ function * refreshNotificationsSaga (): SagaGenerator<any, any> {
 function * deleteAccountForeverSaga (): SagaGenerator<any, any> {
   try {
     const username = yield select(state => state.config.username)
+    const allowDeleteAccount = yield select(state => state.settings.allowDeleteAccount)
+
     if (!username) {
       throw new Error('Unable to delete account: not username set')
     }
+
+    if (!allowDeleteAccount) {
+      throw new Error('Account deletion failsafe was not disengaged. This is a bug!')
+    }
+
     yield call(loginAccountDeleteRpcPromise)
     yield put(setDeletedSelf(username))
   } catch (err) {
@@ -144,6 +155,7 @@ export {
   notificationsRefresh,
   notificationsSave,
   notificationsToggle,
+  setAllowDeleteAccount,
   deleteAccountForever,
 }
 
