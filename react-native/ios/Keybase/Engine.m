@@ -11,7 +11,6 @@
 #import <keybase/keybase.h>
 #import "RCTEventDispatcher.h"
 #import "AppDelegate.h"
-#import "Keybase-Swift.h"
 #import "Utils.h"
 
 @interface Engine ()
