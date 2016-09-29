@@ -290,6 +290,42 @@ var interpUnitTests = []interpUnitTest{
 		restype:    libkb.XAPIResText,
 		restext:    "kr0nk",
 		shouldwork: false,
+	}, {
+		name:      "AssertCompare-exact-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } },
+{"assert_compare": {
+  "cmp": "exact",
+  "a": "username_keybase",
+  "b": "tmp1" } }
+]]`},
+		service:    keybase1.ProofType_GENERIC_WEB_SITE,
+		restype:    libkb.XAPIResText,
+		restext:    "kronk",
+		shouldwork: true,
+	}, {
+		name:      "AssertCompare-exact-fail",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } },
+{"assert_compare": {
+  "cmp": "exact",
+  "a": "username_keybase",
+  "b": "tmp1" } }
+]]`},
+		service:    keybase1.ProofType_GENERIC_WEB_SITE,
+		restype:    libkb.XAPIResText,
+		restext:    "kroNk",
+		shouldwork: false,
 	},
 
 	// ## RegexCapture and WhitespaceNormalize tested together

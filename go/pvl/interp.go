@@ -624,6 +624,8 @@ func stepAssertCompare(g proofContextExt, ins assertCompareT, state scriptState)
 
 	var same bool
 	switch ins.Cmp {
+	case "exact":
+		same = (a == b)
 	case "cicmp":
 		same = libkb.Cicmp(a, b)
 	case "stripdots-then-cicmp":
