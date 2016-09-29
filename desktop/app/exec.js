@@ -12,7 +12,7 @@ import {runMode} from '../shared/constants/platform.specific.desktop'
 // parent process is killed.
 // Callback is optional and accepts (error, boolean), where boolean is if we
 // attempted to execute.
-export default function (path: ?string, args: any, platformOnly: any, runModeOnly: ?string, killOnExit: boolean, callback: (err: any attempted: boolean) => void) {
+export default function (path: ?string, args: any, platformOnly: any, runModeOnly: ?string, killOnExit: boolean, callback: (err: any, attempted: boolean) => void): void {
   const platform = os.platform()
   if (platformOnly && platform !== platformOnly) {
     console.log('Exec (%s) not available for platform: %s != %s', path, platformOnly, platform)
