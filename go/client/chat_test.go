@@ -108,7 +108,7 @@ func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg chat1.
 }
 
 func (c *chatLocalMock) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalQuery) (res chat1.GetInboxSummaryLocalRes, err error) {
-	gmres.Conversations, err = c.GetMessagesLocal(ctx, chat1.MessageSelector{})
+	gmres, err := c.GetMessagesLocal(ctx, chat1.MessageSelector{})
 	if err != nil {
 		return res, err
 	}
