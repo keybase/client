@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import moment from 'moment'
 
 const rateLimit: {[key: string]: Object} = {}
