@@ -41,11 +41,11 @@ function waitingForResponse (waiting: boolean) : TypedAction<'login:waitingForRe
 
 export function navBasedOnLoginState (): AsyncAction {
   return (dispatch, getState) => {
-    const {config: {status, extendedConfig}} = getState()
+    const {config: {status, extendedConfig}, login: {justDeletedSelf}} = getState()
 
     // No status?
     if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length ||
-      !extendedConfig.defaultDeviceID) { // Not provisioned?
+      !extendedConfig.defaultDeviceID || justDeletedSelf) { // Not provisioned?
       dispatch(navigateTo([], loginTab))
       dispatch(switchTab(loginTab))
     } else {
@@ -148,6 +148,10 @@ export function login (): AsyncAction {
 
 export function setRevokedSelf (revoked: string) {
   return {type: Constants.setRevokedSelf, payload: revoked}
+}
+
+export function setDeletedSelf (deletedUsername: string) {
+  return {type: Constants.setDeletedSelf, payload: deletedUsername}
 }
 
 export function setLoginFromRevokedDevice (error: string) {

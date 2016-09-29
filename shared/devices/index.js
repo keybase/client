@@ -60,7 +60,6 @@ export default connect(
     return {
       loadDevices: () => dispatch(loadDevices()),
       showExistingDevicePage: device => dispatch(routeAppend({path: 'showDevice', device})),
-      showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
       addNewPhone: () => dispatch(addNewPhone()),
       addNewComputer: () => dispatch(addNewComputer()),
       addNewPaperKey: () => dispatch(addNewPaperKey()),
