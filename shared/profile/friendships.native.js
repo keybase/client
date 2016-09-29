@@ -1,8 +1,9 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
 import {Box, Avatar, Text, ClickableBox, TabBar} from '../common-adapters'
 import {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
+
 import type {Props, FriendshipUserInfo} from './friendships'
 
 const ITEM_WIDTH = 105

@@ -2,9 +2,10 @@
 import React, {Component, PureComponent} from 'react'
 import ReactList from 'react-list'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
-import type {Props, FriendshipUserInfo} from './friendships'
 import {Box, Avatar, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
+
+import type {Props, FriendshipUserInfo} from './friendships'
 
 type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void

@@ -1,10 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import {platformText} from './prove-enter-username.shared'
+import openURL from '../util/open-url'
 import {Box, Icon, Text, Button, Input, PlatformIcon, StandardScreen} from '../common-adapters'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import openURL from '../util/open-url'
+import {platformText} from './prove-enter-username.shared'
 
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Props} from './prove-enter-username'

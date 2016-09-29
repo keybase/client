@@ -1,6 +1,7 @@
-/* @flow */
+// @flow
 import EditProfile from './render'
 import {isMobile} from '../../constants/platform'
+
 import type {DumbComponentMap} from '../../constants/types/more'
 import type {Props as RenderProps} from './render'
 
