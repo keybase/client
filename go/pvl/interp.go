@@ -166,7 +166,10 @@ func checkProofInner(g proofContextExt, pvlS string, service keybase1.ProofType,
 
 	var errs []libkb.ProofError
 	if service == keybase1.ProofType_DNS {
-		errs = runDNS(g, info.Hostname, scripts, mknewstate)
+		perr = runDNS(g, info.Hostname, scripts, mknewstate, sigID.ToMediumID())
+		if perr != nil {
+			errs = append(errs, perr)
+		}
 	} else {
 		// Run the scripts in order.
 		// If any succeed, the proof succeeds.
@@ -418,13 +421,13 @@ func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofTy
 
 // Run each script on each TXT record of each domain.
 // Succeed if any succeed.
-func runDNS(g proofContextExt, userdomain string, scripts []scriptT, mknewstate stateMaker) []libkb.ProofError {
+func runDNS(g proofContextExt, userdomain string, scripts []scriptT, mknewstate stateMaker, sigIDMedium string) libkb.ProofError {
 	domains := []string{userdomain, "_keybase." + userdomain}
 	var errs []libkb.ProofError
 	for _, d := range domains {
 		debug(g, "Trying DNS for domain: %v", d)
 
-		err := runDNSOne(g, d, scripts, mknewstate)
+		err := runDNSOne(g, d, scripts, mknewstate, sigIDMedium)
 		if err != nil {
 			errs = append(errs, err)
 		} else {
@@ -432,11 +435,15 @@ func runDNS(g proofContextExt, userdomain string, scripts []scriptT, mknewstate 
 		}
 	}
 
-	return errs
+	// Return only the error for the first domain error
+	if len(errs) == 0 {
+		return nil
+	}
+	return errs[0]
 }
 
 // Run each script on each TXT record of the domain.
-func runDNSOne(g proofContextExt, domain string, scripts []scriptT, mknewstate stateMaker) libkb.ProofError {
+func runDNSOne(g proofContextExt, domain string, scripts []scriptT, mknewstate stateMaker, sigIDMedium string) libkb.ProofError {
 	// Fetch TXT records
 	var txts []string
 	var err error
@@ -476,8 +483,8 @@ func runDNSOne(g proofContextExt, domain string, scripts []scriptT, mknewstate s
 	}
 
 	return libkb.NewProofError(keybase1.ProofStatus_NOT_FOUND,
-		"Checked %d TXT entries of %s, but didn't find signature",
-		len(txts), domain)
+		"Checked %d TXT entries of %s, but didn't find signature keybase-site-verification=%s",
+		len(txts), domain, sigIDMedium)
 }
 
 func runScript(g proofContextExt, script *scriptT, startstate scriptState) libkb.ProofError {
