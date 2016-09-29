@@ -11,6 +11,24 @@ import {iconMeta} from './icon.constants'
 const onCheck = () => console.log('on check!')
 const onClick = () => console.log('on click!')
 
+const colorMocks = {}
+
+Object.keys(globalColors).sort().forEach(c => {
+  colorMocks[`${c}: ${globalColors[c]}`] = {
+    parentProps: {
+      height: 60,
+      width: 230,
+    },
+    style: {width: 60, height: 60, backgroundColor: globalColors[c]},
+    children: <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}} />,
+  }
+})
+
+const colorsMap: DumbComponentMap<Box> = {
+  component: Box,
+  mocks: colorMocks,
+}
+
 let textMocks = {}
 const backgroundModes = ['Normal', 'Terminal', 'Announcements', 'Success', 'Information', 'HighRisk', 'Documentation']
 
@@ -648,16 +666,17 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
 
 export default {
   Avatar: avatarMap,
-  Checkbox: checkboxMap,
   Buttons: buttonsMap,
-  Text: textMap,
-  Terminal: terminalMap,
+  Checkbox: checkboxMap,
   ChoiceList: choiceListMap,
+  Colors: colorsMap,
   Icon: iconMap,
   Input: inputMap,
-  SmallInput: smallInputMap,
   ListItem: listItemMap,
   PopupMenu: popupMenuMap,
+  SmallInput: smallInputMap,
   StandardScreen: standardScreenMap,
   TabBar: tabBarMap,
+  Terminal: terminalMap,
+  Text: textMap,
 }
