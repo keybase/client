@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import type {SimpleProofState} from '../constants/tracker'
 import {globalColors} from '../styles'
 import {warning, error} from '../constants/tracker'
