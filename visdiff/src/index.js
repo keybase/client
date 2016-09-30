@@ -45,8 +45,10 @@ function checkout (commit) {
   const origPackageHash = packageHash()
 
   del.sync([`node_modules.${origPackageHash}`])
-  fs.renameSync('node_modules', `node_modules.${origPackageHash}`)
-  console.log(`Shelved node_modules to node_modules.${origPackageHash}.`)
+  if (fs.existsSync('node_modules')) {
+    fs.renameSync('node_modules', `node_modules.${origPackageHash}`)
+    console.log(`Shelved node_modules to node_modules.${origPackageHash}.`)
+  }
 
   spawn('git', ['checkout', '-f', commit])
 
