@@ -80,7 +80,11 @@ function renderScreenshots (commitRange) {
   const relPath = path.relative(repoPath, process.cwd())
   if (!fs.existsSync(WORK_DIR)) {
     console.log(`Creating work tree: ${WORK_DIR}`)
-    spawn('git', ['worktree', 'add', '--detach', path.join(WORK_DIR)])
+    const result = spawn('git', ['worktree', 'add', '--detach', path.join(WORK_DIR)])
+    if (result.status !== 0) {
+      console.log(`Error creating work tree:`, result.error, result.stderr)
+      process.exit(1)
+    }
   }
   const workPath = path.join(WORK_DIR, relPath)
   console.log(`Running in work tree: ${workPath}`)
