@@ -13,11 +13,52 @@
   "types": [
     {
       "type": "record",
+      "name": "IdentifyProofBreak",
+      "fields": [
+        {
+          "type": "RemoteProof",
+          "name": "remoteProof"
+        },
+        {
+          "type": "LinkCheckResult",
+          "name": "lcr"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IdentifyTrackBreaks",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "IdentifyKey"
+          },
+          "name": "keys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "IdentifyProofBreak"
+          },
+          "name": "proofs"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Identify2Res",
       "fields": [
         {
           "type": "UserPlusKeys",
           "name": "upk"
+        },
+        {
+          "type": [
+            null,
+            "IdentifyTrackBreaks"
+          ],
+          "name": "trackBreaks"
         }
       ]
     }
@@ -130,6 +171,11 @@
         },
         {
           "name": "canSuppressUI",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "chatGUIMode",
           "type": "boolean",
           "default": false
         }

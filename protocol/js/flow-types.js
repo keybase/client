@@ -2193,6 +2193,7 @@ export type HelloRes = string
 
 export type Identify2Res = {
   upk: UserPlusKeys,
+  trackBreaks?: ?IdentifyTrackBreaks,
 }
 
 export type IdentifyKey = {
@@ -2217,6 +2218,11 @@ export type IdentifyOutcome = {
   trackOptions: TrackOptions,
   forPGPPull: boolean,
   reason: IdentifyReason,
+}
+
+export type IdentifyProofBreak = {
+  remoteProof: RemoteProof,
+  lcr: LinkCheckResult,
 }
 
 export type IdentifyReason = {
@@ -2245,6 +2251,11 @@ export type IdentifyRow = {
   rowId: int,
   proof: RemoteProof,
   trackDiff?: ?TrackDiff,
+}
+
+export type IdentifyTrackBreaks = {
+  keys?: ?Array<IdentifyKey>,
+  proofs?: ?Array<IdentifyProofBreak>,
 }
 
 export type Identity = {
@@ -3371,7 +3382,8 @@ export type identifyIdentify2RpcParam = Exact<{
   needProofSet?: boolean,
   allowEmptySelfID?: boolean,
   noSkipSelf?: boolean,
-  canSuppressUI?: boolean
+  canSuppressUI?: boolean,
+  chatGUIMode?: boolean
 }>
 
 export type identifyIdentifyRpcParam = Exact<{
