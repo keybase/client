@@ -355,14 +355,14 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 
 	var after time.Time
 	if len(arg.After) > 0 {
-		after, err = parseTimeFromRFC3339OrDurationFromPast(arg.After)
+		after, err = parseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
 		if err != nil {
 			return chat1.GetInboxSummaryLocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
 		}
 	}
 	var before time.Time
 	if len(arg.Before) > 0 {
-		before, err = parseTimeFromRFC3339OrDurationFromPast(arg.Before)
+		before, err = parseTimeFromRFC3339OrDurationFromPast(h.G(), arg.Before)
 		if err != nil {
 			return chat1.GetInboxSummaryLocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
 		}
@@ -647,7 +647,7 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context,
 
 	var since time.Time
 	if selector.Since != nil {
-		since, err = parseTimeFromRFC3339OrDurationFromPast(*selector.Since)
+		since, err = parseTimeFromRFC3339OrDurationFromPast(h.G(), *selector.Since)
 		if err != nil {
 			return chat1.ConversationLocal{}, fmt.Errorf("parsing time or duration (%s) error: %s", *selector.Since, since)
 		}
