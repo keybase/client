@@ -9,7 +9,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"runtime/debug"
 
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
@@ -291,8 +290,6 @@ func (b *chatBoxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.Encry
 // open decrypts chat1.EncryptedData.
 func (b *chatBoxer) open(data chat1.EncryptedData, key *keybase1.CryptKey) ([]byte, error) {
 	if len(data.N) != libkb.NaclDHNonceSize {
-		b.G().Log.Warning(string(debug.Stack()))
-		b.G().Log.Warning("data: %+v\n", data)
 		return nil, libkb.DecryptBadNonceError{}
 	}
 	var nonce [libkb.NaclDHNonceSize]byte
