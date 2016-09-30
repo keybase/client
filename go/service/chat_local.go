@@ -539,7 +539,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 	conversationInfo.TopicType = conversationRemote.Metadata.IdTriple.TopicType
 
 	if len(conversationRemote.MaxMsgs) == 0 {
-		return conversationInfo, maxMessages,
+		return chat1.ConversationInfoLocal{}, nil,
 			libkb.UnexpectedChatDataFromServer{Msg: "conversation has an empty MaxMsgs field"}
 	}
 
@@ -560,7 +560,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 
 		username, deviceName, err := h.getSenderInfoLocal(uimap, messagePlaintext)
 		if err != nil {
-			return conversationInfo, maxMessages, err
+			return chat1.ConversationInfoLocal{}, nil, err
 		}
 		maxMessages = append(maxMessages, chat1.MessageFromServerOrError{
 			Message: &chat1.MessageFromServer{
@@ -573,7 +573,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 
 		version, err := messagePlaintext.Version()
 		if err != nil {
-			return conversationInfo, maxMessages, err
+			return chat1.ConversationInfoLocal{}, nil, err
 		}
 		switch version {
 		case chat1.MessagePlaintextVersion_V1:
@@ -588,18 +588,18 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 			}
 			conversationInfo.Triple = messagePlaintext.V1().ClientHeader.Conv
 		default:
-			return conversationInfo, maxMessages, libkb.NewChatMessageVersionError(version)
+			return chat1.ConversationInfoLocal{}, nil, libkb.NewChatMessageVersionError(version)
 		}
 	}
 
 	if len(conversationInfo.TlfName) == 0 {
-		return conversationInfo, maxMessages,
+		return chat1.ConversationInfoLocal{}, nil,
 			fmt.Errorf("no valid message in the conversation: convID: %d", conversationRemote.Metadata.ConversationID)
 	}
 
 	// verify Conv matches ConversationIDTriple in MessageClientHeader
 	if !conversationRemote.Metadata.IdTriple.Eq(conversationInfo.Triple) {
-		return conversationInfo, maxMessages, errors.New("server header conversation triple does not match client header triple")
+		return chat1.ConversationInfoLocal{}, nil, errors.New("server header conversation triple does not match client header triple")
 	}
 
 	return conversationInfo, maxMessages, nil
