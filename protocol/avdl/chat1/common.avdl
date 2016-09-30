@@ -55,6 +55,7 @@ protocol common {
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
     boolean unreadOnly;
+    boolean readOnly;
   }
 
   record GetThreadQuery {

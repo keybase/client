@@ -285,11 +285,22 @@ export type GetInboxQuery = {
   after?: ?gregor1.Time,
   oneChatTypePerTLF?: ?boolean,
   unreadOnly: boolean,
+  readOnly: boolean,
 }
 
 export type GetInboxRemoteRes = {
   inbox: InboxView,
   rateLimit?: ?RateLimit,
+}
+
+export type GetInboxSummaryLocalQuery = {
+  topicType: TopicType,
+  after: string,
+  before: string,
+  unreadFirst: boolean,
+  unreadFirstLimit: UnreadFirstNumLimit,
+  activitySortedLimit: int,
+  visibility: TLFVisibility,
 }
 
 export type GetInboxSummaryLocalRes = {
@@ -433,7 +444,7 @@ export type MessageSelector = {
   MessageTypes?: ?Array<MessageType>,
   Since?: ?string,
   onlyNew: boolean,
-  limit: int,
+  limit: UnreadFirstNumLimit,
   conversations?: ?Array<ConversationID>,
   markAsRead: boolean,
 }
@@ -537,6 +548,12 @@ export type TopicType =
   | 1 // CHAT_1
   | 2 // DEV_2
 
+export type UnreadFirstNumLimit = {
+  NumRead: int,
+  AtLeast: int,
+  AtMost: int,
+}
+
 export type UpdateTopicNameLocalRes = {
   rateLimits?: ?Array<RateLimit>,
 }
@@ -547,11 +564,7 @@ export type localGetInboxLocalRpcParam = Exact<{
 }>
 
 export type localGetInboxSummaryLocalRpcParam = Exact<{
-  topicType: TopicType,
-  after: string,
-  before: string,
-  limit: int,
-  visibility: TLFVisibility
+  query: GetInboxSummaryLocalQuery
 }>
 
 export type localGetMessagesLocalRpcParam = Exact<{

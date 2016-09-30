@@ -109,6 +109,7 @@ type GetInboxQuery struct {
 	After             *gregor1.Time   `codec:"after,omitempty" json:"after,omitempty"`
 	OneChatTypePerTLF *bool           `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
 	UnreadOnly        bool            `codec:"unreadOnly" json:"unreadOnly"`
+	ReadOnly          bool            `codec:"readOnly" json:"readOnly"`
 }
 
 type GetThreadQuery struct {

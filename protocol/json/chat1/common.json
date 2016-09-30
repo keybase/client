@@ -175,6 +175,10 @@
         {
           "type": "boolean",
           "name": "unreadOnly"
+        },
+        {
+          "type": "boolean",
+          "name": "readOnly"
         }
       ]
     },

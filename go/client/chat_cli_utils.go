@@ -14,44 +14,86 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func makeChatFlags(extras []cli.Flag) []cli.Flag {
-	return append(extras, []cli.Flag{
-		cli.StringFlag{
-			Name:  "topic-type",
-			Value: "chat",
-			Usage: `Specify topic name of the conversation. Has to be chat or dev`,
-		},
-	}...)
+var chatFlags = map[string]cli.Flag{
+	"topic-type": cli.StringFlag{
+		Name:  "topic-type",
+		Value: "chat",
+		Usage: `Specify topic name of the conversation. Has to be chat or dev`,
+	},
+	"topic-name": cli.StringFlag{
+		Name:  "topic-name",
+		Usage: `Specify topic name of the conversation.`,
+	},
+	"set-topic-name": cli.StringFlag{
+		Name:  "set-topic-name",
+		Usage: `Set topic name for the conversation`,
+	},
+	"stdin": cli.BoolFlag{
+		Name:  "stdin",
+		Usage: "Use STDIN for message content. [conversation] is required and [message] is ignored.",
+	},
+	"at-most": cli.IntFlag{
+		Name:  "at-most",
+		Usage: `Show at most this number of items. Only effective when > 0. "keybase chat" tries to show n+2 items, where n is # of unread items. --at-most caps the total number of items possibly shown in case there are too many unread items.`,
+		Value: 100,
+	},
+	"at-least": cli.IntFlag{
+		Name:  "at-least",
+		Usage: `Show at least this number of items, assuming they exist. Only effective when > 0. "keybase chat" tries to show n+2 items, where n is # of unread items. --at-least floors the total number of items possibly shown in case there are too few unread items.`,
+		Value: 5,
+	},
+	"number": cli.IntFlag{
+		Name:  "number,n",
+		Usage: `Limit number of items`,
+		Value: 5,
+	},
+	"unread-first": cli.IntFlag{
+		Name:  "unread-first",
+		Usage: `Show unread items first. When --unread-first is set, --at-most and --at-least are effective. Otherwise, --number is effective.`,
+	},
+	"since": cli.StringFlag{
+		Name:  "time,since",
+		Usage: `Only show updates after certain time.`,
+	},
+	"public": cli.BoolFlag{
+		Name:  "public",
+		Usage: `Only select public conversations. Exclusive to --private`,
+	},
+	"private": cli.BoolFlag{
+		Name:  "private",
+		Usage: `Only select private conversations. Exclusive to --public. If both --public and --private are present, --private takes priority.`,
+	},
+	"show-device-name": cli.BoolFlag{
+		Name:  "show-device-name",
+		Usage: `Show device name next to author username`,
+	},
 }
 
-func makeChatListAndReadFlags(extras []cli.Flag) []cli.Flag {
-	return makeChatFlags(append(extras, []cli.Flag{
-		cli.BoolFlag{
-			Name:  "a,all",
-			Usage: `Do not limit number of messages shown. This has same effect as "--number 0"`,
-		},
-		cli.IntFlag{
-			Name:  "n,number",
-			Usage: `Limit the number of messages shown. Only effective when > 0.`,
-			Value: 5,
-		},
-		cli.StringFlag{
-			Name:  "time,since",
-			Usage: `Only show messages after certain time.`,
-		},
-		cli.BoolFlag{
-			Name:  "public",
-			Usage: `Only select public conversations. Exclusive to --private`,
-		},
-		cli.BoolFlag{
-			Name:  "private",
-			Usage: `Only select private conversations. Exclusive to --public`,
-		},
-		cli.BoolFlag{
-			Name:  "show-device-name",
-			Usage: `Show device name next to author username`,
-		},
-	}...))
+func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
+	for _, key := range keys {
+		f, ok := chatFlags[key]
+		if !ok {
+			panic(fmt.Sprintf("chat flag with key=%s not found", key))
+		}
+		flags = append(flags, f)
+	}
+	return flags
+}
+
+func getConversationResolverFlags() []cli.Flag {
+	return mustGetChatFlags("topic-type", "topic-name", "public", "private")
+}
+
+func getMessageFetcherFlags() []cli.Flag {
+	return append(mustGetChatFlags("at-least", "at-most", "since", "show-device-name"), getConversationResolverFlags()...)
+}
+
+func getInboxFetcherUnreadFirstFlags() []cli.Flag {
+	return append(mustGetChatFlags("at-least", "at-most", "since", "show-device-name"), getConversationResolverFlags()...)
+}
+
+func getInboxFetcherActivitySortedFlags() []cli.Flag {
+	return append(mustGetChatFlags("number", "since"), getConversationResolverFlags()...)
 }
 
 type conversationResolver struct {
@@ -146,15 +188,16 @@ func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conve
 
 func makeMessageFetcherFromCliCtx(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher messageFetcher, err error) {
 	fetcher.selector.MessageTypes = []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT}
-	fetcher.selector.Limit = ctx.Int("number")
+	fetcher.selector.Limit = chat1.UnreadFirstNumLimit{
+		NumRead: 2,
+		AtLeast: ctx.Int("at-least"),
+		AtMost:  ctx.Int("at-most"),
+	}
 
-	if timeStr := ctx.String("time"); len(timeStr) > 0 {
+	if timeStr := ctx.String("since"); len(timeStr) > 0 {
 		fetcher.selector.Since = &timeStr
 	}
 
-	if ctx.Bool("all") || fetcher.selector.Since != nil {
-		fetcher.selector.Limit = 0
-	}
 	fetcher.selector.MarkAsRead = markAsRead
 
 	if fetcher.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
@@ -197,32 +240,50 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 }
 
 type inboxFetcher struct {
-	topicType  chat1.TopicType
-	limit      int
-	since      string
-	visibility chat1.TLFVisibility
+	query chat1.GetInboxSummaryLocalQuery
 
 	chatClient chat1.LocalInterface // for testing only
 }
 
-func makeInboxFetcherFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error) {
-	if fetcher.topicType, err = parseConversationTopicType(ctx); err != nil {
+func makeInboxFetcherActivitySortedFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error) {
+	if fetcher.query.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return inboxFetcher{}, err
 	}
 
-	fetcher.limit = ctx.Int("number")
-	fetcher.since = ctx.String("time")
-
-	if ctx.Bool("all") || len(fetcher.since) > 0 {
-		fetcher.limit = 0
-	}
+	fetcher.query.UnreadFirst = false
+	fetcher.query.ActivitySortedLimit = ctx.Int("number")
+	fetcher.query.After = ctx.String("since")
 
 	if ctx.Bool("private") {
-		fetcher.visibility = chat1.TLFVisibility_PRIVATE
+		fetcher.query.Visibility = chat1.TLFVisibility_PRIVATE
 	} else if ctx.Bool("public") {
-		fetcher.visibility = chat1.TLFVisibility_PUBLIC
+		fetcher.query.Visibility = chat1.TLFVisibility_PUBLIC
 	} else {
-		fetcher.visibility = chat1.TLFVisibility_ANY
+		fetcher.query.Visibility = chat1.TLFVisibility_ANY
+	}
+
+	return fetcher, err
+}
+
+func makeInboxFetcherUnreadFirstFromCli(ctx *cli.Context) (fetcher inboxFetcher, err error) {
+	if fetcher.query.TopicType, err = parseConversationTopicType(ctx); err != nil {
+		return fetcher, err
+	}
+
+	fetcher.query.UnreadFirst = true
+	fetcher.query.UnreadFirstLimit = chat1.UnreadFirstNumLimit{
+		NumRead: 2,
+		AtLeast: ctx.Int("at-least"),
+		AtMost:  ctx.Int("at-most"),
+	}
+	fetcher.query.After = ctx.String("since")
+
+	if ctx.Bool("private") {
+		fetcher.query.Visibility = chat1.TLFVisibility_PRIVATE
+	} else if ctx.Bool("public") {
+		fetcher.query.Visibility = chat1.TLFVisibility_PUBLIC
+	} else {
+		fetcher.query.Visibility = chat1.TLFVisibility_ANY
 	}
 
 	return fetcher, err
@@ -237,12 +298,7 @@ func (f inboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conver
 		}
 	}
 
-	res, err := chatClient.GetInboxSummaryLocal(ctx, chat1.GetInboxSummaryLocalArg{
-		TopicType:  f.topicType,
-		After:      f.since,
-		Limit:      f.limit,
-		Visibility: f.visibility,
-	})
+	res, err := chatClient.GetInboxSummaryLocal(ctx, f.query)
 	if err != nil {
 		return nil, nil, moreTotal, err
 	}

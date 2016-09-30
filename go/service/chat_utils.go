@@ -52,3 +52,14 @@ func parseTimeFromRFC3339OrDurationFromPast(s string) (t time.Time, err error) {
 	return time.Time{}, fmt.Errorf("given string is neither a valid time (%s) nor a valid duration (%v)", errt, errd)
 
 }
+
+// upper bounds takes higher priority
+func collar(lower int, ideal int, upper int) int {
+	if ideal > upper {
+		return upper
+	}
+	if ideal < lower {
+		return lower
+	}
+	return ideal
+}

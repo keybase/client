@@ -348,7 +348,7 @@ func (h *chatLocalHandler) resolveConversationsPipeline(ctx context.Context, con
 	return res, nil
 }
 
-func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalArg) (res chat1.GetInboxSummaryLocalRes, err error) {
+func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalQuery) (res chat1.GetInboxSummaryLocalRes, err error) {
 	if err = h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetInboxSummaryLocalRes{}, err
 	}
@@ -368,38 +368,76 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 		}
 	}
 
-	var rpcArg chat1.GetInboxLocalArg
-	if arg.Limit != 0 {
-		rpcArg.Pagination = &chat1.Pagination{Num: arg.Limit}
-	}
-	var query chat1.GetInboxQuery
+	var queryBase chat1.GetInboxQuery
 	if !after.IsZero() {
 		gafter := gregor1.ToTime(after)
-		query.After = &gafter
+		queryBase.After = &gafter
 	}
 	if !before.IsZero() {
 		gbefore := gregor1.ToTime(before)
-		query.Before = &gbefore
+		queryBase.Before = &gbefore
 	}
 	if arg.TopicType != chat1.TopicType_NONE {
-		query.TopicType = &arg.TopicType
+		queryBase.TopicType = &arg.TopicType
 	}
 	if arg.Visibility != chat1.TLFVisibility_ANY {
-		query.TlfVisibility = &arg.Visibility
-	}
-	rpcArg.Query = &query
-
-	iview, err := h.GetInboxLocal(ctx, rpcArg)
-	if err != nil {
-		return chat1.GetInboxSummaryLocalRes{}, err
+		queryBase.TlfVisibility = &arg.Visibility
 	}
 
-	if res.Conversations, err = h.resolveConversationsPipeline(ctx, iview.Inbox.Conversations); err != nil {
-		return chat1.GetInboxSummaryLocalRes{}, err
+	fetchInbox := func(num int, query chat1.GetInboxQuery) (conversations []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+		var rpcArg chat1.GetInboxLocalArg
+		rpcArg.Pagination = &chat1.Pagination{Num: num}
+		rpcArg.Query = &query
+
+		gilres, err := h.GetInboxLocal(ctx, rpcArg)
+		if err != nil {
+			return nil, nil, err
+		}
+		iview := gilres.Inbox
+
+		if conversations, err = h.resolveConversationsPipeline(ctx, iview.Conversations); err != nil {
+			return nil, nil, err
+		}
+
+		return conversations, gilres.RateLimits, nil
+	}
+
+	var convs []chat1.ConversationLocal
+
+	if arg.UnreadFirst {
+		if arg.UnreadFirstLimit.AtMost <= 0 {
+			arg.UnreadFirstLimit.AtMost = int(^uint(0) >> 1) // maximum int
+		}
+		queryBase.UnreadOnly, queryBase.ReadOnly = true, false
+		if convs, res.RateLimits, err = fetchInbox(arg.UnreadFirstLimit.AtMost, queryBase); err != nil {
+			return chat1.GetInboxSummaryLocalRes{}, err
+		}
+		res.Conversations = append(res.Conversations, convs...)
+
+		more := collar(
+			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
+			arg.UnreadFirstLimit.NumRead,
+			arg.UnreadFirstLimit.AtMost-len(res.Conversations),
+		)
+		if more > 0 {
+			queryBase.UnreadOnly, queryBase.ReadOnly = false, true
+			if convs, res.RateLimits, err = fetchInbox(more, queryBase); err != nil {
+				return chat1.GetInboxSummaryLocalRes{}, err
+			}
+			res.Conversations = append(res.Conversations, convs...)
+		}
+	} else {
+		if arg.ActivitySortedLimit <= 0 {
+			arg.ActivitySortedLimit = int(^uint(0) >> 1) // maximum int
+		}
+		queryBase.UnreadOnly, queryBase.ReadOnly = false, false
+		if convs, res.RateLimits, err = fetchInbox(arg.ActivitySortedLimit, queryBase); err != nil {
+			return chat1.GetInboxSummaryLocalRes{}, err
+		}
+		res.Conversations = append(res.Conversations, convs...)
 	}
 
 	res.MoreTotal = 1000 // TODO: implement this on server
-	res.RateLimits = iview.RateLimits
 
 	return res, nil
 }
@@ -645,8 +683,13 @@ func (h *chatLocalHandler) getConversationMessages(ctx context.Context,
 
 		messages = append(messages, m)
 
-		selector.Limit--
-		if selector.Limit <= 0 {
+		selector.Limit.AtMost--
+		selector.Limit.AtLeast--
+		if m.Message.ServerHeader.MessageID <= conversationRemote.ReaderInfo.ReadMsgid {
+			selector.Limit.NumRead--
+		}
+		if selector.Limit.AtMost <= 0 ||
+			(selector.Limit.NumRead <= 0 && selector.Limit.AtLeast <= 0) {
 			break
 		}
 	}
@@ -677,8 +720,8 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.Messa
 			libkb.InvalidArgumentError{Msg: "At least 1 conversation ID is required"}
 	}
 
-	if arg.Limit <= 0 {
-		arg.Limit = int(^uint(0) >> 1) // maximum int
+	if arg.Limit.AtMost <= 0 {
+		arg.Limit.AtMost = int(^uint(0) >> 1) // maximum int
 	}
 
 	var conversations []chat1.ConversationLocal
@@ -703,10 +746,6 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.Messa
 		}
 		if len(conversationLocal.Messages) != 0 {
 			conversations = append(conversations, conversationLocal)
-			arg.Limit -= len(conversationLocal.Messages)
-			if arg.Limit <= 0 {
-				break
-			}
 		}
 	}
 
