@@ -438,9 +438,9 @@
       "resolved": "https://registry.npmjs.org/babel-preset-react-native/-/babel-preset-react-native-1.9.0.tgz"
     },
     "babel-register": {
-      "version": "6.16.0",
+      "version": "6.16.3",
       "from": "babel-register@>=6.6.0 <7.0.0",
-      "resolved": "https://registry.npmjs.org/babel-register/-/babel-register-6.16.0.tgz",
+      "resolved": "https://registry.npmjs.org/babel-register/-/babel-register-6.16.3.tgz",
       "dependencies": {
         "core-js": {
           "version": "2.4.1",
@@ -1278,8 +1278,7 @@
         "source-map": {
           "version": "0.2.0",
           "from": "source-map@>=0.2.0 <0.3.0",
-          "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.2.0.tgz",
-          "optional": true
+          "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.2.0.tgz"
         }
       }
     },
@@ -2872,11 +2871,6 @@
         }
       }
     },
-    "react-native-android-permissions": {
-      "version": "0.0.7",
-      "from": "react-native-android-permissions@0.0.7",
-      "resolved": "https://registry.npmjs.org/react-native-android-permissions/-/react-native-android-permissions-0.0.7.tgz"
-    },
     "react-native-barcodescanner": {
       "version": "3.1.1",
       "from": "react-native-barcodescanner@3.1.1",
@@ -2984,8 +2978,7 @@
     "redux-logger": {
       "version": "2.6.1",
       "from": "redux-logger@2.6.1",
-      "resolved": "https://registry.npmjs.org/redux-logger/-/redux-logger-2.6.1.tgz",
-      "dev": true
+      "resolved": "https://registry.npmjs.org/redux-logger/-/redux-logger-2.6.1.tgz"
     },
     "redux-saga": {
       "version": "0.11.1",

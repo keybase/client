@@ -1,13 +1,13 @@
 // @flow
 import BarcodeScanner from 'react-native-barcodescanner'
+import {PermissionsAndroid} from 'react-native'
 import React, {Component} from 'react'
 import type {Props} from './index'
-import {NativeImage, Box} from '../../../../common-adapters/index.native'
+import {NativeImage, Box, Text} from '../../../../common-adapters/index.native'
 import {globalStyles} from '../../../../styles'
-import {requestPermission} from 'react-native-android-permissions'
 
 type State = {
-  permissionGranted: boolean
+  permissionGranted: ?boolean,
 }
 
 class QR extends Component<void, Props, State> {
@@ -16,25 +16,43 @@ class QR extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     this.state = {
-      permissionGranted: false,
+      permissionGranted: null,
     }
 
-    requestPermission('android.permission.CAMERA').then(() => {
-      this.setState({permissionGranted: true})
-    }, () => {
+    this.requestCameraPermission()
+  }
+
+  async requestCameraPermission () {
+    try {
+      const granted = await PermissionsAndroid.requestPermission(
+        PermissionsAndroid.PERMISSIONS.CAMERA, {
+          'title': 'Keybase Camera Permission',
+          'message': 'Keybase needs access to your camera so we can scan your codes',
+        }
+      )
+
+      this.setState({permissionGranted: granted})
+    } catch (err) {
+      console.warn(err)
       this.setState({permissionGranted: false})
-    })
+    }
   }
 
   render () {
     if (this.props.scanning) {
-      return (
-        <BarcodeScanner
+      if (this.state.permissionGranted) {
+        return <BarcodeScanner
           onBarCodeRead={this.props.onBarCodeRead}
           style={this.props.style || {flex: 1}}
-          torchMode={'off'}
+          torchMode='off'
           cameraType='back' />
-      )
+      } else {
+        if (this.state.permissionGranted === false) {
+          return <Text type='Body'>Couldn't get camera permissions</Text>
+        } else {
+          return <Text type='Body'>Waiting for permissions</Text>
+        }
+      }
     } else {
       return (
         <Box style={{flex: 1, ...globalStyles.flexBoxColumn, ...this.props.style}}>
