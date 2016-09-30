@@ -4,7 +4,7 @@ machine:
   node:
     version: 5.7.0
   java:
-    version: openjdk7
+    version: oraclejdk8
   environment:
     GOPATH: $HOME/go-path
     PATH: $GOROOT/bin:$PATH
