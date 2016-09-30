@@ -219,11 +219,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 
 	if opts.ConversationID == 0 {
 		// resolve conversation id
-		cinfo := chat1.ConversationInfoLocal{
-			TlfName:   opts.Channel.Name,
-			TopicType: opts.Channel.TopicTypeEnum(),
-			TopicName: opts.Channel.TopicName,
-		}
+		cinfo := c.conversationInfo(opts.ConversationID, opts.Channel)
 		rcres, err := client.ResolveConversationLocal(ctx, cinfo)
 		if err != nil {
 			return c.errReply(err)
@@ -253,6 +249,13 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 
 	var thread Thread
 	for _, m := range threadView.Thread.Messages {
+		if m.UnboxingError != nil {
+			thread.Messages = append(thread.Messages, MsgFromServer{
+				Error: m.UnboxingError,
+			})
+			continue
+		}
+
 		version, err := m.Message.MessagePlaintext.Version()
 		if err != nil {
 			return c.errReply(err)
@@ -300,13 +303,6 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			continue
 		}
 
-		if m.UnboxingError != nil {
-			thread.Messages = append(thread.Messages, MsgFromServer{
-				Error: m.UnboxingError,
-			})
-			continue
-		}
-
 		return c.errReply(errors.New("unexpected response from service: UnboxingError and Message are both empty"))
 	}
 
@@ -321,28 +317,30 @@ type SendRes struct {
 
 // SendV1 implements ChatServiceHandler.SendV1.
 func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
+	cinfo := c.conversationInfo(opts.ConversationID, opts.Channel)
+	body := chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body})
+	return c.sendV1(ctx, cinfo, body, chat1.MessageType_TEXT, 0)
+}
+
+// DeleteV1 implements ChatServiceHandler.DeleteV1.
+func (c *CmdChatAPI) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
+	cinfo := c.conversationInfo(opts.ConversationID, opts.Channel)
+	body := chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageID: opts.MessageID})
+	return c.sendV1(ctx, cinfo, body, chat1.MessageType_DELETE, opts.MessageID)
+}
+
+// EditV1 implements ChatServiceHandler.EditV1.
+func (c *CmdChatAPI) EditV1(ctx context.Context, opts editOptionsV1) Reply {
+	cinfo := c.conversationInfo(opts.ConversationID, opts.Channel)
+	body := chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body})
+	return c.sendV1(ctx, cinfo, body, chat1.MessageType_EDIT, opts.MessageID)
+}
+
+func (c *CmdChatAPI) sendV1(ctx context.Context, cinfo chat1.ConversationInfoLocal, body chat1.MessageBody, mtype chat1.MessageType, sid chat1.MessageID) Reply {
 	var rlimits []chat1.RateLimit
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
-	}
-
-	var cinfo chat1.ConversationInfoLocal
-	if opts.ConversationID > 0 {
-		cinfo = chat1.ConversationInfoLocal{
-			Id: opts.ConversationID,
-		}
-	} else {
-		vis := chat1.TLFVisibility_PRIVATE
-		if opts.Channel.Public {
-			vis = chat1.TLFVisibility_PUBLIC
-		}
-		cinfo = chat1.ConversationInfoLocal{
-			TlfName:    opts.Channel.Name,
-			Visibility: vis,
-			TopicType:  opts.Channel.TopicTypeEnum(),
-			TopicName:  opts.Channel.TopicName,
-		}
 	}
 
 	// find the conversation
@@ -368,11 +366,6 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 		return c.errReply(fmt.Errorf("multiple conversations matched"))
 	}
 
-	// XXX ResolveConversationLocal, NewConversationLocal need to return
-	// topic id and tlf id.  In order to fill in conversation id triple
-	// below.
-	// ticket CORE-3746
-
 	postArg := chat1.PostLocalArg{
 		ConversationID: conversation.Id,
 		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
@@ -380,9 +373,10 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 				Conv:        conversation.Triple,
 				TlfName:     conversation.TlfName,
 				TlfPublic:   conversation.Visibility == chat1.TLFVisibility_PUBLIC,
-				MessageType: chat1.MessageType_TEXT,
+				MessageType: mtype,
+				Supersedes:  sid,
 			},
-			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
+			MessageBody: body,
 		}),
 	}
 	plres, err := client.PostLocal(ctx, postArg)
@@ -391,6 +385,7 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 	}
 	rlimits = append(rlimits, plres.RateLimits...)
 
+	// XXX change message sent?
 	res := SendRes{
 		Message: "message sent",
 		RateLimits: RateLimits{
@@ -398,6 +393,7 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 		},
 	}
 	return Reply{Result: res}
+
 }
 
 func (c *CmdChatAPI) errReply(err error) Reply {
@@ -416,5 +412,22 @@ func (c *CmdChatAPI) convertMsgBody(mb chat1.MessageBody) MsgContent {
 		Edit:       mb.Edit__,
 		Delete:     mb.Delete__,
 		Metadata:   mb.Metadata__,
+	}
+}
+
+func (c *CmdChatAPI) conversationInfo(id chat1.ConversationID, channel ChatChannel) chat1.ConversationInfoLocal {
+	if id > 0 {
+		return chat1.ConversationInfoLocal{Id: id}
+	}
+
+	vis := chat1.TLFVisibility_PRIVATE
+	if channel.Public {
+		vis = chat1.TLFVisibility_PUBLIC
+	}
+	return chat1.ConversationInfoLocal{
+		TlfName:    channel.Name,
+		Visibility: vis,
+		TopicType:  channel.TopicTypeEnum(),
+		TopicName:  channel.TopicName,
 	}
 }

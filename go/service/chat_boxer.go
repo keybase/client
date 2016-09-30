@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"runtime/debug"
 
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
@@ -84,13 +85,21 @@ func (b *chatBoxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBo
 	}
 
 	// decrypt body
-	packedBody, err := b.open(msg.BodyCiphertext, key)
-	if err != nil {
-		return chat1.MessagePlaintext{}, err
-	}
 	var body chat1.BodyPlaintext
-	if err := b.unmarshal(packedBody, &body); err != nil {
-		return chat1.MessagePlaintext{}, err
+	skipBodyVerification := false
+	if len(msg.BodyCiphertext.E) == 0 {
+		if msg.ServerHeader.SupersededBy == 0 {
+			return chat1.MessagePlaintext{}, errors.New("empty body and not superseded in MessageBoxed")
+		}
+		skipBodyVerification = true
+	} else {
+		packedBody, err := b.open(msg.BodyCiphertext, key)
+		if err != nil {
+			return chat1.MessagePlaintext{}, err
+		}
+		if err := b.unmarshal(packedBody, &body); err != nil {
+			return chat1.MessagePlaintext{}, err
+		}
 	}
 
 	// decrypt header
@@ -104,7 +113,7 @@ func (b *chatBoxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBo
 	}
 
 	// verify the message
-	if err := b.verifyMessage(ctx, header, msg); err != nil {
+	if err := b.verifyMessage(ctx, header, msg, skipBodyVerification); err != nil {
 		return chat1.MessagePlaintext{}, err
 	}
 
@@ -128,6 +137,19 @@ func (b *chatBoxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBo
 		}
 	default:
 		return chat1.MessagePlaintext{}, libkb.NewChatHeaderVersionError(headerVersion)
+	}
+
+	if skipBodyVerification {
+		// body was deleted, so return empty body that matches header version
+		switch headerVersion {
+		case chat1.HeaderPlaintextVersion_V1:
+			msgPlainV1 := chat1.MessagePlaintextV1{
+				ClientHeader: clientHeader,
+			}
+			return chat1.NewMessagePlaintextWithV1(msgPlainV1), nil
+		default:
+			return chat1.MessagePlaintext{}, libkb.NewChatHeaderVersionError(headerVersion)
+		}
 	}
 
 	// create an unboxed message from versioned BodyPlaintext and clientHeader
@@ -269,6 +291,8 @@ func (b *chatBoxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.Encry
 // open decrypts chat1.EncryptedData.
 func (b *chatBoxer) open(data chat1.EncryptedData, key *keybase1.CryptKey) ([]byte, error) {
 	if len(data.N) != libkb.NaclDHNonceSize {
+		b.G().Log.Warning(string(debug.Stack()))
+		b.G().Log.Warning("data: %+v\n", data)
 		return nil, libkb.DecryptBadNonceError{}
 	}
 	var nonce [libkb.NaclDHNonceSize]byte
@@ -307,7 +331,7 @@ func sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix)
 }
 
 // verifyMessage checks that a message is valid.
-func (b *chatBoxer) verifyMessage(ctx context.Context, header chat1.HeaderPlaintext, msg chat1.MessageBoxed) error {
+func (b *chatBoxer) verifyMessage(ctx context.Context, header chat1.HeaderPlaintext, msg chat1.MessageBoxed, skipBodyVerification bool) error {
 	headerVersion, err := header.Version()
 	if err != nil {
 		return err
@@ -315,18 +339,20 @@ func (b *chatBoxer) verifyMessage(ctx context.Context, header chat1.HeaderPlaint
 
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V1:
-		return b.verifyMessageHeaderV1(ctx, header.V1(), msg)
+		return b.verifyMessageHeaderV1(ctx, header.V1(), msg, skipBodyVerification)
 	default:
 		return libkb.NewChatHeaderVersionError(headerVersion)
 	}
 }
 
 // verifyMessageHeaderV1 checks the body hash, header signature, and signing key validity.
-func (b *chatBoxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPlaintextV1, msg chat1.MessageBoxed) error {
-	// check body hash
-	bh := b.hashV1(msg.BodyCiphertext.E)
-	if !libkb.SecureByteArrayEq(bh[:], header.BodyHash) {
-		return libkb.ChatBodyHashInvalid{}
+func (b *chatBoxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPlaintextV1, msg chat1.MessageBoxed, skipBodyVerification bool) error {
+	if !skipBodyVerification {
+		// check body hash
+		bh := b.hashV1(msg.BodyCiphertext.E)
+		if !libkb.SecureByteArrayEq(bh[:], header.BodyHash) {
+			return libkb.ChatBodyHashInvalid{}
+		}
 	}
 
 	// check signature
