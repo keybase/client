@@ -94,7 +94,7 @@ function compareScreenshots (commitRange, diffDir, callback) {
   function compareNext () {
     const filename = files.pop()
     if (!filename) {
-      callback(commitRange, results)
+      callback(diffDir, commitRange, results)
       return
     }
 
@@ -134,7 +134,7 @@ function compareScreenshots (commitRange, diffDir, callback) {
   compareNext()
 }
 
-function processDiff (commitRange, results) {
+function processDiff (diffDir, commitRange, results) {
   const changedResults = []
   const newResults = []
   const removedResults = []
