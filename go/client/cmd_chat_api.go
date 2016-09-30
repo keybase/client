@@ -317,26 +317,48 @@ type SendRes struct {
 
 // SendV1 implements ChatServiceHandler.SendV1.
 func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
-	cinfo := c.conversationInfo(opts.ConversationID, opts.Channel)
-	body := chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body})
-	return c.sendV1(ctx, cinfo, body, chat1.MessageType_TEXT, 0)
+	arg := sendArgV1{
+		cinfo:    c.conversationInfo(opts.ConversationID, opts.Channel),
+		body:     chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
+		mtype:    chat1.MessageType_TEXT,
+		response: "message sent",
+	}
+	return c.sendV1(ctx, arg)
 }
 
 // DeleteV1 implements ChatServiceHandler.DeleteV1.
 func (c *CmdChatAPI) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
-	cinfo := c.conversationInfo(opts.ConversationID, opts.Channel)
-	body := chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageID: opts.MessageID})
-	return c.sendV1(ctx, cinfo, body, chat1.MessageType_DELETE, opts.MessageID)
+	arg := sendArgV1{
+		cinfo:      c.conversationInfo(opts.ConversationID, opts.Channel),
+		body:       chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageID: opts.MessageID}),
+		mtype:      chat1.MessageType_DELETE,
+		supersedes: opts.MessageID,
+		response:   "message deleted",
+	}
+	return c.sendV1(ctx, arg)
 }
 
 // EditV1 implements ChatServiceHandler.EditV1.
 func (c *CmdChatAPI) EditV1(ctx context.Context, opts editOptionsV1) Reply {
-	cinfo := c.conversationInfo(opts.ConversationID, opts.Channel)
-	body := chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body})
-	return c.sendV1(ctx, cinfo, body, chat1.MessageType_EDIT, opts.MessageID)
+	arg := sendArgV1{
+		cinfo:      c.conversationInfo(opts.ConversationID, opts.Channel),
+		body:       chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
+		mtype:      chat1.MessageType_EDIT,
+		supersedes: opts.MessageID,
+		response:   "message edited",
+	}
+	return c.sendV1(ctx, arg)
 }
 
-func (c *CmdChatAPI) sendV1(ctx context.Context, cinfo chat1.ConversationInfoLocal, body chat1.MessageBody, mtype chat1.MessageType, sid chat1.MessageID) Reply {
+type sendArgV1 struct {
+	cinfo      chat1.ConversationInfoLocal
+	body       chat1.MessageBody
+	mtype      chat1.MessageType
+	supersedes chat1.MessageID
+	response   string
+}
+
+func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 	var rlimits []chat1.RateLimit
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
@@ -344,7 +366,7 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, cinfo chat1.ConversationInfoLoc
 	}
 
 	// find the conversation
-	rcres, err := client.ResolveConversationLocal(ctx, cinfo)
+	rcres, err := client.ResolveConversationLocal(ctx, arg.cinfo)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -354,7 +376,7 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, cinfo chat1.ConversationInfoLoc
 	existing := rcres.Convs
 	switch len(existing) {
 	case 0:
-		ncres, err := client.NewConversationLocal(ctx, cinfo)
+		ncres, err := client.NewConversationLocal(ctx, arg.cinfo)
 		if err != nil {
 			return c.errReply(err)
 		}
@@ -373,10 +395,10 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, cinfo chat1.ConversationInfoLoc
 				Conv:        conversation.Triple,
 				TlfName:     conversation.TlfName,
 				TlfPublic:   conversation.Visibility == chat1.TLFVisibility_PUBLIC,
-				MessageType: mtype,
-				Supersedes:  sid,
+				MessageType: arg.mtype,
+				Supersedes:  arg.supersedes,
 			},
-			MessageBody: body,
+			MessageBody: arg.body,
 		}),
 	}
 	plres, err := client.PostLocal(ctx, postArg)
@@ -385,15 +407,14 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, cinfo chat1.ConversationInfoLoc
 	}
 	rlimits = append(rlimits, plres.RateLimits...)
 
-	// XXX change message sent?
 	res := SendRes{
-		Message: "message sent",
+		Message: arg.response,
 		RateLimits: RateLimits{
 			RateLimits: c.aggRateLimits(rlimits),
 		},
 	}
-	return Reply{Result: res}
 
+	return Reply{Result: res}
 }
 
 func (c *CmdChatAPI) errReply(err error) Reply {
