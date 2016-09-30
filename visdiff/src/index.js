@@ -26,6 +26,7 @@ const DIFF_CHANGED = 'changed'
 const DIFF_SAME = 'same'
 
 const DRY_RUN = !!process.env['VISDIFF_DRY_RUN']
+const WORK_DIR = process.env['VISDIFF_WORK_DIR'] || path.join(os.tmpdir(), 'visdiff')
 
 function spawn (...args) {
   var res = spawnSync(...args)
@@ -75,6 +76,15 @@ function checkout (commit) {
 }
 
 function renderScreenshots (commitRange) {
+  const repoPath = spawn('git', ['rev-parse', '--show-toplevel'], {encoding: 'utf-8'}).stdout.trim()
+  const relPath = path.relative(repoPath, process.cwd())
+  if (!fs.existsSync(WORK_DIR)) {
+    console.log(`Creating work tree: ${WORK_DIR}`)
+    spawn('git', ['worktree', 'add', '--detach', path.join(WORK_DIR)])
+  }
+  const workPath = path.join(WORK_DIR, relPath)
+  console.log(`Running in work tree: ${workPath}`)
+  process.chdir(workPath)
   for (const commit of commitRange) {
     checkout(commit)
     console.log(`Rendering screenshots of ${commit}`)
