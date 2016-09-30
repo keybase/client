@@ -1,16 +1,16 @@
 // @flow
-import {Iterable} from 'immutable'
-import configureStoreNative from './configure-store.platform'
 import createLogger from 'redux-logger'
 import createSagaMiddleware from 'redux-saga'
+import storeEnhancer from './enhancer.platform'
+import mainSaga from './configure-sagas'
 import rootReducer from '../reducers'
 import thunkMiddleware from 'redux-thunk'
+import {Iterable} from 'immutable'
 import {actionLogger} from './action-logger'
-import {applyMiddleware} from 'redux'
+import {createStore} from 'redux'
 import {closureCheck} from './closure-check'
 import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
-import mainSaga from './configure-sagas'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -60,10 +60,16 @@ if (closureStoreCheck) {
   middlewares.push(closureCheck)
 }
 
-const createStoreWithMiddleware = applyMiddleware.apply(null, middlewares)
-
 export default function configureStore (initialState: any) {
-  const s = configureStoreNative(createStoreWithMiddleware)(rootReducer, initialState)
+  const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
+
+  if (module.hot) {
+    // $FlowIssue
+    module.hot.accept('../reducers', () => {
+      store.replaceReducer(require('../reducers').default)
+    })
+  }
+
   sagaMiddleware.run(mainSaga)
-  return s
+  return store
 }
