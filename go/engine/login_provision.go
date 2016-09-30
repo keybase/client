@@ -781,7 +781,8 @@ func (e *loginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (l
 
 	tty, err := ctx.GPGUI.GetTTY(context.TODO())
 	if err != nil {
-		return nil, err
+		e.G().Log.Warning("error getting TTY for GPG: %s", err)
+		err = nil
 	}
 
 	bundle, err := cli.ImportKey(true, *fp, tty)
