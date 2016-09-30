@@ -18,10 +18,12 @@ function clearId (clearFunc: (id?: number) => void, array: Array<number>, id?: ?
 }
 
 export default function HOCTimers<P> (ComposedComponent: ReactClass<P & TimerProps>): ReactClass<P> {
-  return class extends Component<void, P, void> {
+  class TimersComponent extends Component<void, P, void> {
     _timeoutIds: Array<number>
     _intervalIds: Array<number>
     _timerFuncs: TimerProps
+
+    static parseRoute: ?() => void;
 
     constructor (props: any) {
       super(props)
@@ -52,4 +54,9 @@ export default function HOCTimers<P> (ComposedComponent: ReactClass<P & TimerPro
       return <ComposedComponent {...this.props} {...this._timerFuncs} />
     }
   }
+
+  // TODO: this is necessary so that our static parseRoute method passes
+  // through this component.
+  TimersComponent.parseRoute = ComposedComponent.parseRoute
+  return TimersComponent
 }

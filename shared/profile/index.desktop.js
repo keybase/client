@@ -176,7 +176,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
     }
 
     const {loading} = this.props
-    const trackerStateColors = stateColors(this.props)
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     let proofNotice
     if (this.props.trackerState !== proofNormal && this.props.trackerState !== proofChecking && !loading) {

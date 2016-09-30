@@ -216,7 +216,7 @@ func (x *errorT) UnmarshalJSON(b []byte) error {
 	if !ok {
 		return fmt.Errorf("unrecognized proof status '%v'", ss[0])
 	}
-	x.Status = keybase1.ProofStatus(status)
+	x.Status = status
 	x.Description = ss[1]
 	return nil
 }

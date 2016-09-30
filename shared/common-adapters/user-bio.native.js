@@ -51,7 +51,7 @@ class BioRender extends Component<void, Props, void> {
 
     const {followsYou} = userInfo
     const followLabel = shared.followLabel(userInfo, currentlyFollowing)
-    const trackerStateColors = stateColors(this.props)
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     let [bioLineClamp, locationLineClamp] = [{}, {}]
     if (this.props.type === 'Tracker') {

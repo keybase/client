@@ -23,11 +23,11 @@ func (e externalServicesCollection) GetServiceType(s string) libkb.ServiceType {
 	return e[strings.ToLower(s)]
 }
 
-func (e externalServicesCollection) ListProofCheckers() []string {
+func (e externalServicesCollection) ListProofCheckers(mode libkb.RunMode) []string {
 	var ret []string
 	for k, v := range e {
-		// Don't display Facebook until it's supported. TODO: Delete me!
-		if k == "facebook" {
+		// Don't display Facebook in prod until it's supported. TODO: Delete me!
+		if k == "facebook" && mode == libkb.ProductionRunMode {
 			continue
 		}
 		if useDevelProofCheckers || !v.IsDevelOnly() {

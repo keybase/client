@@ -398,7 +398,7 @@ func (e *ScanProofsEngine) CheckOne(rec map[string]string, forcepvl bool, ticker
 	}
 
 	if forcepvl {
-		perr := pvl.CheckProof(e.G(), pvl.GetHardcodedPvl(), link.GetProofType(),
+		perr := pvl.CheckProof(e.G(), pvl.GetHardcodedPvlString(), link.GetProofType(),
 			pvl.NewProofInfo(link, *hint))
 		return perr, foundhint, nil
 	}

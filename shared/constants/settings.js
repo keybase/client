@@ -1,4 +1,24 @@
 // @flow
+import type {NoErrorTypedAction} from '../constants/types/flux'
+
+export const notificationsRefresh = 'settings:notificationsRefresh'
+export type NotificationsRefresh = NoErrorTypedAction<'settings:notificationsRefresh', void>
+export const notificationsRefreshed = 'settings:notificationsRefreshed'
+export type NotificationsRefreshed = NoErrorTypedAction<'settings:notificationsRefreshed', NotificationsState>
+
+export const notificationsSave = 'settings:notificationsSave'
+export type NotificationsSave = NoErrorTypedAction<'settings:notificationsSave', void>
+export const notificationsSaved = 'settings:notificationsSaved'
+export type NotificationsSaved = NoErrorTypedAction<'settings:notificationsSaved', void>
+
+export const notificationsToggle = 'settings:notificationsToggle'
+export type NotificationsToggle = NoErrorTypedAction<'settings:notificationsToggle', {name: ?string}>
+
+export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
+export type SetAllowDeleteAccount = NoErrorTypedAction<'settings:setAllowDeleteAccount', boolean>
+
+export const deleteAccountForever = 'settings:deleteAccountForever'
+export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountForever', void>
 
 export type PlanLevel = 'Basic' | 'Gold' | 'Friend'
 const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
@@ -7,6 +27,24 @@ export type PaymentInfo = {
   name: string,
   last4Digits: string,
   isBroken: boolean,
+}
+
+export type Actions = NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
+
+export type NotificationsState = {
+  settings: ?Array<{
+    name: string,
+    subscribed: boolean,
+    description: string,
+  }>,
+  unsubscribedFromAll: ?boolean,
+  allowSave: boolean,
+  allowEdit: boolean,
+}
+
+export type State = {
+  allowDeleteAccount: boolean,
+  notifications: NotificationsState,
 }
 
 const levelToPrice: {[key: PlanLevel]: string} = {

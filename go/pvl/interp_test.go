@@ -52,13 +52,17 @@ var interpUnitTests = []interpUnitTest{
 		name:      "basichtml",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_TWITTER: `[
-{"assert_regex_match": "^https://rooter\\.example\\.com/proofs/%{username_service}/[\\d]+\\.htjsxt$"},
-{"fetch": "html"},
-{"selector_css": [".twit", 0]},
-{"whitespace_normalize": true},
-{"assert_regex_match": "^.*goodproof.*$"}
-]`},
+			keybase1.ProofType_TWITTER: `[[
+{"assert_regex_match": {
+  "pattern": "^https://rooter\\.example\\.com/proofs/%{username_service}/[\\d]+\\.htjsxt$" } },
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": [".twit", 0] } },
+{"whitespace_normalize": {} },
+{"assert_regex_match": {
+  "pattern": "^.*goodproof.*$" }}
+]]`},
 		service:    keybase1.ProofType_TWITTER,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -73,10 +77,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertRegexMatch-url-ok",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_COINBASE: `[
-{"assert_regex_match": "^https://rooter\\.example\\.com/proofs/%{username_service}/[\\d]+\\.htjsxt$"},
-{"fetch": "string"}
-]`},
+			keybase1.ProofType_COINBASE: `[[
+{"assert_regex_match": {
+  "pattern": "^https://rooter\\.example\\.com/proofs/%{username_service}/[\\d]+\\.htjsxt$" } },
+{"fetch": {
+  "kind": "string" } }
+]]`},
 		service:    keybase1.ProofType_COINBASE,
 		restype:    libkb.XAPIResText,
 		restext:    "1234",
@@ -85,10 +91,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertRegexMatch-url-fail",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_HACKERNEWS: `[
-{"assert_regex_match": "^https://rooter\\.example\\.com/proofs/%{username_service}/+\\.htjsxt$"},
-{"fetch": "string"}
-]`},
+			keybase1.ProofType_HACKERNEWS: `[[
+{"assert_regex_match": {
+  "pattern": "^https://rooter\\.example\\.com/proofs/%{username_service}/+\\.htjsxt$" } },
+{"fetch": {
+  "kind": "string"} }
+]]`},
 		service:    keybase1.ProofType_HACKERNEWS,
 		restype:    libkb.XAPIResText,
 		restext:    "1234",
@@ -97,12 +105,15 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertRegexMatch-content-ok",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_REDDIT: `[
-{"fetch": "html"},
-{"selector_css": [".twit", -1]},
-{"whitespace_normalize": true},
-{"assert_regex_match": "^short %{sig_id_short}$"}
-]`},
+			keybase1.ProofType_REDDIT: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": [".twit", -1] } },
+{"whitespace_normalize": {}},
+{"assert_regex_match": {
+  "pattern": "^short %{sig_id_short}$" } }
+]]`},
 		service:    keybase1.ProofType_REDDIT,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -111,12 +122,15 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertRegexMatch-content-fail",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_TWITTER: `[
-{"fetch": "html"},
-{"selector_css": [".twit", -1]},
-{"whitespace_normalize": true},
-{"assert_regex_match": "^wrong %{sig_id_short}$"}
-]`},
+			keybase1.ProofType_TWITTER: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": [".twit", -1] } },
+{"whitespace_normalize": {}},
+{"assert_regex_match": {
+  "pattern": "^wrong %{sig_id_short}$" } }
+]]`},
 		service:    keybase1.ProofType_TWITTER,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -125,11 +139,14 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertRegexMatch-content-fail-case",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_TWITTER: `[
-{"fetch": "html"},
-{"selector_css": [".twit", -1]},
-{"assert_regex_match": "^.*SHORT.*$"}
-]`},
+			keybase1.ProofType_TWITTER: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": [".twit", -1] } },
+{"assert_regex_match": {
+  "pattern": "^.*SHORT.*$" } }
+]]`},
 		service:    keybase1.ProofType_TWITTER,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -141,10 +158,11 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertFindBase64-ok",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GENERIC_WEB_SITE: `[
-{"fetch": "string"},
-{"assert_find_base64": "sig"}
-]`},
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string" } },
+{"assert_find_base64": {"var": "sig"}}
+]]`},
 		service: keybase1.ProofType_GENERIC_WEB_SITE,
 		restype: libkb.XAPIResText,
 		// the sig must be on a line with only spacing.
@@ -154,10 +172,11 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertFindBase64-fail",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GENERIC_WEB_SITE: `[
-{"fetch": "string"},
-{"assert_find_base64": "sig"}
-]`},
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string" } },
+{"assert_find_base64": {"var": "sig"}}
+]]`},
 		service:    keybase1.ProofType_GENERIC_WEB_SITE,
 		restype:    libkb.XAPIResText,
 		restext:    sig1[1:],
@@ -169,12 +188,16 @@ var interpUnitTests = []interpUnitTest{
 		name:      "WhitespaceNormalize-ok",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GENERIC_WEB_SITE: `[
-{"fetch": "string"},
-{"assert_regex_match": "^[\\s\\S]*\\t[\\s\\S]*$"},
-{"whitespace_normalize": true},
-{"assert_regex_match": "^A b c de f$", "case_insensitive": true}
-]`},
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string" } },
+{"assert_regex_match": {
+  "pattern": "^[\\s\\S]*\\t[\\s\\S]*$" } },
+{"whitespace_normalize": {}},
+{"assert_regex_match": {
+  "pattern": "^A b c de f$",
+  "case_insensitive": true } }
+]]`},
 		service:    keybase1.ProofType_GENERIC_WEB_SITE,
 		restype:    libkb.XAPIResText,
 		restext:    "a b   \tc\tde  \n\tf",
@@ -186,13 +209,18 @@ var interpUnitTests = []interpUnitTest{
 		name:      "RegexCapture-ok-ignoregroup",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GENERIC_WEB_SITE: `[
-{"fetch": "html"},
-{"selector_css": ["div.twit", -1]},
-{"whitespace_normalize": true},
-{"regex_capture": "^(?:sHoRt) ([A-Za-z0-9+/=]+)$", "case_insensitive": true},
-{"assert_regex_match": "^%{sig_id_short}$"}
-]`},
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": ["div.twit", -1] } },
+{"whitespace_normalize": {}},
+{"regex_capture": {
+  "pattern": "^(?:sHoRt) ([A-Za-z0-9+/=]+)$",
+  "case_insensitive": true } },
+{"assert_regex_match": {
+  "pattern": "^%{sig_id_short}$" } }
+]]`},
 		service:    keybase1.ProofType_GENERIC_WEB_SITE,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -202,14 +230,19 @@ var interpUnitTests = []interpUnitTest{
 		name:      "RegexCapture-ok-multimatch",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GENERIC_WEB_SITE: `[
-{"fetch": "html"},
-{"selector_css": ["div.twit", -1]},
-{"whitespace_normalize": true},
-{"regex_capture": "^(short).*$"},
-{"regex_capture": "^(\\w)+$"},
-{"assert_regex_match": "^t$"}
-]`},
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": ["div.twit", -1] } },
+{"whitespace_normalize": {}},
+{"regex_capture": {
+  "pattern": "^(short).*$" } },
+{"regex_capture": {
+  "pattern": "^(\\w)+$" } },
+{"assert_regex_match": {
+  "pattern": "^t$" } }
+]]`},
 		service:    keybase1.ProofType_GENERIC_WEB_SITE,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -218,11 +251,15 @@ var interpUnitTests = []interpUnitTest{
 		name:      "RegexCapture-fail-nomatch",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GENERIC_WEB_SITE: `[
-{"fetch": "html"},
-{"selector_css": ["div.twit", -1]},
-{"regex_capture": "^(nowhere)$", "case_insensitive": true}
-]`},
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": ["div.twit", -1] } },
+{"regex_capture": {
+  "pattern": "^(nowhere)$",
+  "case_insensitive": true } }
+]]`},
 		service:    keybase1.ProofType_GENERIC_WEB_SITE,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -231,13 +268,18 @@ var interpUnitTests = []interpUnitTest{
 		name:      "RegexCapture-fail-nogroup",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GENERIC_WEB_SITE: `[
-{"fetch": "html"},
-{"selector_css": ["div.twit", -1]},
-{"whitespace_normalize": true},
-{"regex_capture": "^sHoRt.*$", "case_insensitive": true},
-{"assert_regex_match": "^%{sig_id_short}$/s"}
-]`},
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": ["div.twit", -1] } },
+{"whitespace_normalize": {}},
+{"regex_capture": {
+  "pattern": "^sHoRt.*$",
+  "case_insensitive": true } },
+{"assert_regex_match": {
+  "pattern": "^%{sig_id_short}$/s" } }
+]]`},
 		service:    keybase1.ProofType_GENERIC_WEB_SITE,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -249,10 +291,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "Fetch-string",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "string"},
-{"assert_regex_match": "^str9\n$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "string" } },
+{"assert_regex_match": {
+  "pattern": "^str9\n$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "str9\n",
@@ -261,11 +305,14 @@ var interpUnitTests = []interpUnitTest{
 		name:      "Fetch-html",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"selector_css": ["head title"]},
-{"assert_regex_match": "^proofer$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": ["head title"] } },
+{"assert_regex_match": {
+  "pattern": "^proofer$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -274,11 +321,14 @@ var interpUnitTests = []interpUnitTest{
 		name:      "Fetch-json",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "json"},
-{"selector_json": ["data", 2, "type"]},
-{"assert_regex_match": "^useful$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "json" } },
+{"selector_json": {
+  "selectors": ["data", 2, "type"] } },
+{"assert_regex_match": {
+  "pattern": "^useful$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
@@ -290,11 +340,14 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorJSON-simple",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "json"},
-{"selector_json": ["data", 2, "type"]},
-{"assert_regex_match": "^useful$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "json" } },
+{"selector_json": {
+  "selectors": ["data", 2, "type"] } },
+{"assert_regex_match": {
+  "pattern": "^useful$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
@@ -303,10 +356,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorJSON-index-dne",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "json"},
-{"selector_json": ["data", 500]}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "json" } },
+{"selector_json": {
+  "selectors": ["data", 500] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
@@ -315,10 +370,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorJSON-key-dne",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "json"},
-{"selector_json": ["data", "a500"]}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "json" } },
+{"selector_json": {
+  "selectors": ["data", "a500"] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
@@ -327,11 +384,14 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorJSON-index-neg",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "json"},
-{"selector_json": ["data", -1, "poster"]},
-{"assert_regex_match": "^eve$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "json" } },
+{"selector_json": {
+  "selectors": ["data", -1, "poster"] } },
+{"assert_regex_match": {
+  "pattern": "^eve$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
@@ -340,11 +400,14 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorJSON-index-all",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "json"},
-{"selector_json": ["data", {"all": true}, "poster"]},
-{"assert_regex_match": "^kronk eve$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "json" } },
+{"selector_json": {
+  "selectors": ["data", {"all": true }, "poster"] } },
+{"assert_regex_match": {
+  "pattern": "^kronk eve$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
@@ -354,11 +417,14 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorJSON-index-nonarray",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "json"},
-{"selector_json": ["data", {"all": true}, "extra", 0, 0]},
-{"assert_regex_match": "^4$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "json" } },
+{"selector_json": {
+  "selectors": ["data", {"all": true }, "extra", 0, 0] } },
+{"assert_regex_match": {
+  "pattern": "^4$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
@@ -370,12 +436,15 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorCSS-ok",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"selector_css": ["body .twit", -1]},
-{"whitespace_normalize": true},
-{"assert_regex_match": "^short %{sig_id_short}$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": ["body .twit", -1] } },
+{"whitespace_normalize": {}},
+{"assert_regex_match": {
+  "pattern": "^short %{sig_id_short}$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -384,11 +453,14 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorCSS-fail-dontcrash",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"selector_css": ["body .twit:eq(0)"]},
-{"assert_regex_match": "^$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": ["body .twit:eq(0)"] } },
+{"assert_regex_match": {
+  "pattern": "^$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -397,12 +469,15 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorCSS-ok-multi",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"selector_css": ["body .twit"],
- "multi": true},
-{"assert_regex_match": "^[\\s\\S]*goodproof[\\s\\S]*evil\\.com[\\s\\S]*short[\\s\\S]*$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": ["body .twit"],
+  "multi": true } },
+{"assert_regex_match": {
+  "pattern": "^[\\s\\S]*goodproof[\\s\\S]*evil\\.com[\\s\\S]*short[\\s\\S]*$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -411,12 +486,15 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorCSS-fail-nonmulti",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"selector_css": ["body .twit"]},
-{"whitespace_normalize": true},
-{"assert_regex_match": "^short %{sig_id_short}$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": ["body .twit"] } },
+{"whitespace_normalize": {}},
+{"assert_regex_match": {
+  "pattern": "^short %{sig_id_short}$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -425,12 +503,15 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorCSS-ok-attr",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"selector_css": ["body .twit[data-x]"],
- "attr": "data-x"},
-{"assert_regex_match": "^y$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": ["body .twit[data-x]"],
+  "attr": "data-x" } },
+{"assert_regex_match": {
+  "pattern": "^y$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -439,13 +520,16 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorCSS-ok-attr-dne",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"selector_css": ["body .twit"],
- "multi": true,
- "attr": "dne"},
-{"assert_regex_match": "^$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"selector_css": {
+  "selectors": ["body .twit"],
+  "multi": true,
+  "attr": "dne" } },
+{"assert_regex_match": {
+  "pattern": "^$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -458,13 +542,17 @@ var interpUnitTests = []interpUnitTest{
 		proofinfo: info1,
 		// Swap some parts of the paths. Also use an ignored capture group.
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"transform_url": "^https://rooter.example.com/(\\w+)/(?:%{username_service})/([^/])+\\.(htjsxt)$",
- "to": "https://rooter.example.com/%{username_keybase}/keybase/%{1}/%{2}.%{3}"},
-{"assert_regex_match": "^https://rooter.example.com/kronk/keybase/proofs/5\\.htjsxt$"},
-{"fetch": "string"},
-{"assert_regex_match": "^ok$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"transform_url": {
+  "pattern": "^https://rooter.example.com/(\\w+)/(?:%{username_service})/([^/])+\\.(htjsxt)$",
+  "to_pattern": "https://rooter.example.com/%{username_keybase}/keybase/%{1}/%{2}.%{3}" } },
+{"assert_regex_match": {
+  "pattern": "^https://rooter.example.com/kronk/keybase/proofs/5\\.htjsxt$" } },
+{"fetch": {
+  "kind": "string" } },
+{"assert_regex_match": {
+  "pattern": "^ok$" } }
+]]`},
 		service:     keybase1.ProofType_GITHUB,
 		restype:     libkb.XAPIResText,
 		restext:     "ok",
@@ -475,10 +563,11 @@ var interpUnitTests = []interpUnitTest{
 		proofinfo: info1,
 		// Swap some parts of the paths. Also use an ignored capture group.
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "string"},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "string" } },
 {"transform_url": "^$", "to": "^$"}
-]`},
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "ok",
@@ -489,10 +578,13 @@ var interpUnitTests = []interpUnitTest{
 		proofinfo: info1,
 		// Swap some parts of the paths. Also use an ignored capture group.
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"transform_url": "^$", "to": "^$"},
-{"fetch": "string"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"transform_url": {
+  "pattern": "^$",
+  "to_pattern": "^$" } },
+{"fetch": {
+  "kind": "string" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "ok",
@@ -502,11 +594,13 @@ var interpUnitTests = []interpUnitTest{
 		proofinfo: info1,
 		// Swap some parts of the paths. Also use an ignored capture group.
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"transform_url": "^(.*)$",
- "to": "%{2}"},
-{"fetch": "string"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"transform_url": {
+  "pattern": "^(.*)$",
+  "to_pattern": "%{2}" } },
+{"fetch": {
+  "kind": "string" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "ok",
@@ -519,7 +613,7 @@ var interpUnitTests = []interpUnitTest{
 		proofinfo: info1,
 		// Empty service entries should fail.
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_TWITTER: `[{"fetch": "string"}]`,
+			keybase1.ProofType_TWITTER: `[[ {"fetch": { "kind": "string" } } ]]`,
 		},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
@@ -565,7 +659,7 @@ var interpUnitTests = []interpUnitTest{
 	}, {
 		name:       "empty-script",
 		proofinfo:  info1,
-		prepvlstr:  `{"pvl_version": 1, "revision": 2, "services": {"github": []}}`,
+		prepvlstr:  `{"pvl_version": 1, "revision": 2, "services": {"github": [[]]}}`,
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -580,13 +674,26 @@ var interpUnitTests = []interpUnitTest{
 		reshtml:    html1,
 		shouldwork: false,
 		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:       "no-scripts",
+		proofinfo:  info1,
+		prepvlstr:  `{"pvl_version": 1, "revision": 2, "services": {"github": []}}`,
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
 	},
 
 	// ## Tests for bad proofinfo
 	{
-		name:       "bad-sig-path-in-domain-web",
-		proofinfo:  infoBadDomain,
-		prepvlstr:  `{"pvl_version": 1, "revision": 2, "services": {"generic_web_site": [{"fetch": "html"}]}}`,
+		name:      "bad-sig-path-in-domain-web",
+		proofinfo: infoBadDomain,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string" } }
+]]`},
 		service:    keybase1.ProofType_GENERIC_WEB_SITE,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -596,8 +703,12 @@ var interpUnitTests = []interpUnitTest{
 	{
 		name:      "bad-sig-path-in-domain-dns",
 		proofinfo: infoBadDomain,
-		prepvlstr: `{"pvl_version": 1, "revision": 2, "services": {"dns": [{"assert_regex_match": "$foo^"}]}}`,
-		service:   keybase1.ProofType_DNS,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_DNS: `[[
+{"assert_regex_match": {
+  "pattern": "^foo$" } }
+]]`},
+		service: keybase1.ProofType_DNS,
 		resdns: map[string][]string{
 			info1.Hostname: {"NO", "ok"},
 		},
@@ -605,9 +716,13 @@ var interpUnitTests = []interpUnitTest{
 		errstatus:  keybase1.ProofStatus_BAD_SIGNATURE,
 	},
 	{
-		name:       "bad-sig-proto",
-		proofinfo:  infoBadProto,
-		prepvlstr:  `{"pvl_version": 1, "revision": 2, "services": {"generic_web_site": [{"fetch": "html"}]}}`,
+		name:      "bad-sig-proto",
+		proofinfo: infoBadProto,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string" } }
+]]`},
 		service:    keybase1.ProofType_GENERIC_WEB_SITE,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -620,10 +735,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertRegexMatch-invalid-missing^",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"assert_regex_match": "foobar$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"assert_regex_match": {
+  "pattern": "foobar$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -633,10 +750,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertRegexMatch-invalid-missing$",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"assert_regex_match": "^foobar"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"assert_regex_match": {
+  "pattern": "^foobar" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -646,10 +765,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertRegexMatch-invalid-badvar",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"assert_regex_match": "^%{hostname}$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"assert_regex_match": {
+  "pattern": "^%{hostname}$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -659,10 +780,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertRegexMatch-invalid-redesc",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"assert_regex_match": ["^foobar$"]}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"assert_regex_match": {
+  "pattern": ["^foobar$"] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -672,10 +795,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertRegexMatch-invalid-badre",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"assert_regex_match": "^foo)(bar$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"assert_regex_match": {
+  "pattern": "^foo)(bar$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -688,10 +813,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "AssertFindBase64-invalid-badtarget",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "string"},
-{"assert_find_base64": "username_keybase"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "string" } },
+{"assert_find_base64": {
+  "var": "username_keybase" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "foobar",
@@ -708,10 +835,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "RegexCapture-invalid-missing^",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"regex_capture": "(f)oobar$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"regex_capture": {
+  "pattern": "(f)oobar$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -721,10 +850,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "RegexCapture-invalid-missing$",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"regex_capture": "^(f)oobar"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"regex_capture": {
+  "pattern": "^(f)oobar" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -734,10 +865,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "RegexCapture-invalid-badvar",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"regex_capture": "^(%{hostname})$"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"regex_capture": {
+  "pattern": "^(%{hostname})$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -747,10 +880,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "RegexCapture-invalid-redesc",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"regex_capture": ["^(f)oobar$"]}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html" } },
+{"regex_capture": {
+  "pattern": ["^(f)oobar$"] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -763,9 +898,9 @@ var interpUnitTests = []interpUnitTest{
 		name:      "Fetch-invalid-type",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "whatsthis"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": { "kind": "whatsthis" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "foobar",
@@ -775,9 +910,9 @@ var interpUnitTests = []interpUnitTest{
 		name:      "Fetch-invalid-indns",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_DNS: `[
-{"fetch": "text"}
-]`},
+			keybase1.ProofType_DNS: `[[
+{"fetch": { "kind": "text" } }
+]]`},
 		service:    keybase1.ProofType_DNS,
 		restype:    libkb.XAPIResText,
 		restext:    "foobar",
@@ -788,10 +923,10 @@ var interpUnitTests = []interpUnitTest{
 		name:      "Fetch-invalid-multiple",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "string"},
-{"fetch": "string"}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": { "kind": "string" } },
+{"fetch": { "kind": "string" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "foobar",
@@ -804,10 +939,11 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorJSON-invalid-scripttype",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "string"},
-{"selector_json": [0]}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": { "kind": "string" } },
+{"selector_json": {
+  "selectors": [0] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "foobar",
@@ -817,10 +953,11 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorJSON-invalid-selectorlist",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "json"},
-{"selector_json": 0}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": { "kind": "json" } },
+{"selector_json": {
+  "selectors": 0 } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
@@ -830,10 +967,11 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorJSON-invalid-empty",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "json"},
-{"selector_json": []}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": { "kind": "json" } },
+{"selector_json": {
+  "selectors": [] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
@@ -843,10 +981,11 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorJSON-invalid-spec",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "json"},
-{"selector_json": [{"foo": "bar"}]}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": { "kind": "json" } },
+{"selector_json": {
+  "selectors": [{"foo": "bar" }] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
@@ -859,10 +998,11 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorCSS-invalid-scripttype",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "json"},
-{"selector_css": [0]}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": { "kind": "json" } },
+{"selector_css": {
+  "selectors": [0] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
@@ -872,10 +1012,11 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorCSS-invalid-selectorlist",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"selector_css": 0}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": { "kind": "html" } },
+{"selector_css": {
+  "selectors": 0 } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -885,10 +1026,11 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorCSS-invalid-empty",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"selector_css": []}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": { "kind": "html" } },
+{"selector_css": {
+  "selectors": [] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -898,10 +1040,11 @@ var interpUnitTests = []interpUnitTest{
 		name:      "SelectorCSS-invalid-spec",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{"fetch": "html"},
-{"selector_css": [{"foo": "bar"}]}
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": { "kind": "html" } },
+{"selector_css": {
+  "selectors": [{"foo": "bar" }] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
@@ -918,11 +1061,13 @@ var interpUnitTests = []interpUnitTest{
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
 			keybase1.ProofType_FACEBOOK: `[[
-  {"fetch": "string"},
-  {"assert_regex_match": "^ok$"}
+{"fetch": { "kind": "string" } },
+{"assert_regex_match": {
+  "pattern": "^ok$" } }
 ], [
-  {"fetch": "string"},
-  {"assert_regex_match": "^NO$"}
+{"fetch": { "kind": "string" } },
+{"assert_regex_match": {
+  "pattern": "^NO$" } }
 ]]`},
 		service:    keybase1.ProofType_FACEBOOK,
 		restype:    libkb.XAPIResText,
@@ -933,11 +1078,13 @@ var interpUnitTests = []interpUnitTest{
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
 			keybase1.ProofType_FACEBOOK: `[[
-  {"fetch": "string"},
-  {"assert_regex_match": "^NO$"}
+{"fetch": { "kind": "string" } },
+{"assert_regex_match": {
+  "pattern": "^NO$" } }
 ], [
-  {"fetch": "string"},
-  {"assert_regex_match": "^ok$"}
+{"fetch": { "kind": "string" } },
+{"assert_regex_match": {
+  "pattern": "^ok$" } }
 ]]`},
 		service:          keybase1.ProofType_FACEBOOK,
 		restype:          libkb.XAPIResText,
@@ -949,11 +1096,13 @@ var interpUnitTests = []interpUnitTest{
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
 			keybase1.ProofType_FACEBOOK: `[[
-  {"fetch": "string"},
-  {"assert_regex_match": "^ok$"}
+{"fetch": { "kind": "string" } },
+{"assert_regex_match": {
+  "pattern": "^ok$" } }
 ], [
-  {"fetch": "string"},
-  {"assert_regex_match": "^ok"}
+{"fetch": { "kind": "string" } },
+{"assert_regex_match": {
+  "pattern": "^ok" } }
 ]]`},
 		service:    keybase1.ProofType_FACEBOOK,
 		restype:    libkb.XAPIResText,
@@ -964,13 +1113,15 @@ var interpUnitTests = []interpUnitTest{
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
 			keybase1.ProofType_FACEBOOK: `[[
-  {"fetch": "string"},
-  {"assert_regex_match": "^NO$"
-  ,"error": "HOST_UNREACHABLE"}
+{"fetch": { "kind": "string" } },
+{"assert_regex_match": {
+  "pattern": "^NO$",
+  "error": ["HOST_UNREACHABLE", "x"] } }
 ], [
-  {"fetch": "string"},
-  {"assert_regex_match": "^NO$"
-  ,"error": "HOST_UNREACHABLE"}
+{"fetch": { "kind": "string" } },
+{"assert_regex_match": {
+  "pattern": "^NO$",
+  "error": ["HOST_UNREACHABLE", "x"] } }
 ]]`},
 		service:    keybase1.ProofType_FACEBOOK,
 		restype:    libkb.XAPIResText,
@@ -983,14 +1134,14 @@ var interpUnitTests = []interpUnitTest{
 	// Checking a DNS proof is different from checking other proofs.
 	// It runs each script against each TXT record of 2 domains.
 	// That mechanism is tested here.
-	// TODO
 	{
 		name:      "DNS-second-record-ok",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_DNS: `[
-{"assert_regex_match": "^ok$"}
-]`},
+			keybase1.ProofType_DNS: `[[
+{"assert_regex_match": {
+  "pattern": "^ok$" } }
+]]`},
 		service: keybase1.ProofType_DNS,
 		resdns: map[string][]string{
 			info1.Hostname: {"NO", "ok"},
@@ -1000,9 +1151,10 @@ var interpUnitTests = []interpUnitTest{
 		name:      "DNS-_keybase-ok",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_DNS: `[
-{"assert_regex_match": "^ok$"}
-]`},
+			keybase1.ProofType_DNS: `[[
+{"assert_regex_match": {
+  "pattern": "^ok$" } }
+]]`},
 		service: keybase1.ProofType_DNS,
 		resdns: map[string][]string{
 			info1.Hostname:               {"NO_1", "NO_2"},
@@ -1013,9 +1165,10 @@ var interpUnitTests = []interpUnitTest{
 		name:      "DNS-no-records",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_DNS: `[
-{"assert_regex_match": "^ok$"}
-]`},
+			keybase1.ProofType_DNS: `[[
+{"assert_regex_match": {
+  "pattern": "^ok$" } }
+]]`},
 		service: keybase1.ProofType_DNS,
 		resdns: map[string][]string{
 			info1.Hostname:               {},
@@ -1026,9 +1179,10 @@ var interpUnitTests = []interpUnitTest{
 		name:      "DNS-no-matching-records",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_DNS: `[
-{"assert_regex_match": "^ok$"}
-]`},
+			keybase1.ProofType_DNS: `[[
+{"assert_regex_match": {
+  "pattern": "^ok$" } }
+]]`},
 		service: keybase1.ProofType_DNS,
 		resdns: map[string][]string{
 			info1.Hostname:               {"NO_1"},
@@ -1039,9 +1193,10 @@ var interpUnitTests = []interpUnitTest{
 		name:      "DNS-error-then-succeed",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_DNS: `[
-{"assert_regex_match": "^ok$"}
-]`},
+			keybase1.ProofType_DNS: `[[
+{"assert_regex_match": {
+  "pattern": "^ok$" } }
+]]`},
 		service: keybase1.ProofType_DNS,
 		resdns: map[string][]string{
 			info1.Hostname:               {"ERROR"},
@@ -1049,13 +1204,15 @@ var interpUnitTests = []interpUnitTest{
 		},
 		shouldwork: true,
 	}, {
-		name:      "DNS-error-then-succeed",
+		name:      "DNS-error-then-succeed-2",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
 			keybase1.ProofType_DNS: `[[
-  {"assert_regex_match": "^ok1$"}
+{"assert_regex_match": {
+  "pattern": "^ok1$" } }
 ], [
-  {"assert_regex_match": "^ok2$"}
+{"assert_regex_match": {
+  "pattern": "^ok2$" } }
 ]]`},
 		service: keybase1.ProofType_DNS,
 		resdns: map[string][]string{
@@ -1066,31 +1223,15 @@ var interpUnitTests = []interpUnitTest{
 
 	// # Custom Errors
 	{
-		// With a custom status, the code will change
-		// but the description will stay the same.
-		name:      "CustomError-code",
+		name:      "CustomError-ok",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{ "fetch": "string" },
-{ "assert_regex_match": "^foo$"
-, "error": "PERMISSION_DENIED" }
-]`},
-		service:    keybase1.ProofType_GITHUB,
-		restype:    libkb.XAPIResText,
-		restext:    "bar",
-		shouldwork: false,
-		errstatus:  keybase1.ProofStatus_PERMISSION_DENIED,
-		errstr:     "Regex did not match (^foo$)",
-	}, {
-		name:      "CustomError-code-and-desc",
-		proofinfo: info1,
-		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{ "fetch": "string" },
-{ "assert_regex_match": "^foo$"
-, "error": ["PERMISSION_DENIED", "whoops!"] }
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{ "fetch": { "kind": "string"  } },
+{ "assert_regex_match": {
+  "pattern": "^foo$",
+  "error": ["PERMISSION_DENIED", "whoops!"] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "bar",
@@ -1101,26 +1242,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "CustomError-wrong-short-array",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{ "fetch": "string" },
-{ "assert_regex_match": "^foo$"
-, "error": ["PERMISSION_DENIED"] }
-]`},
-		service:    keybase1.ProofType_GITHUB,
-		restype:    libkb.XAPIResText,
-		restext:    "bar",
-		shouldwork: false,
-		errstatus:  keybase1.ProofStatus_INVALID_PVL,
-	}, {
-		// If the error spec is bad, the default error is used.
-		name:      "CustomError-wrong",
-		proofinfo: info1,
-		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{ "fetch": "string" },
-{ "assert_regex_match": "^foo$"
-, "error": {} }
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{ "fetch": { "kind": "string"  } },
+{ "assert_regex_match": {
+  "pattern": "^foo$",
+  "error": ["PERMISSION_DENIED"] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "bar",
@@ -1130,11 +1257,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "CustomError-wrong-type1",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{ "fetch": "string" },
-{ "assert_regex_match": "^foo$"
-, "error": 108 }
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{ "fetch": { "kind": "string"  } },
+{ "assert_regex_match": {
+  "pattern": "^foo$",
+  "error": 108 } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "bar",
@@ -1144,25 +1272,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "CustomError-wrong-type2",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{ "fetch": "string" },
-{ "assert_regex_match": "^foo$"
-, "error": [{}, "hmph"] }
-]`},
-		service:    keybase1.ProofType_GITHUB,
-		restype:    libkb.XAPIResText,
-		restext:    "bar",
-		shouldwork: false,
-		errstatus:  keybase1.ProofStatus_INVALID_PVL,
-	}, {
-		name:      "CustomError-wrong-type3",
-		proofinfo: info1,
-		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{ "fetch": "string" },
-{ "assert_regex_match": "^foo$"
-, "error": ["TIMEOUT", []] }
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{ "fetch": { "kind": "string"  } },
+{ "assert_regex_match": {
+  "pattern": "^foo$",
+  "error": ["TIMEOUT", []] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "bar",
@@ -1174,11 +1289,12 @@ var interpUnitTests = []interpUnitTest{
 		name:      "CustomError-and-invalid",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{ "fetch": "string" },
-{ "assert_regex_match": "^%{invalid}"
-, "error": "PERMISSION_DENIED" }
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{ "fetch": { "kind": "string"  } },
+{ "assert_regex_match": {
+  "pattern": "^%{invalid}$",
+  "error": ["PERMISSION_DENIED", "whoops"] } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "bar",
@@ -1189,10 +1305,11 @@ var interpUnitTests = []interpUnitTest{
 		name:      "CustomError-none",
 		proofinfo: info1,
 		prepvl: map[keybase1.ProofType]string{
-			keybase1.ProofType_GITHUB: `[
-{ "fetch": "string" },
-{ "assert_regex_match": "^foo$" }
-]`},
+			keybase1.ProofType_GITHUB: `[[
+{ "fetch": { "kind": "string" } },
+{ "assert_regex_match": {
+  "pattern": "^foo$" } }
+]]`},
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResText,
 		restext:    "bar",
@@ -1227,7 +1344,7 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 	xapi := newStubAPIEngine()
 	g.XAPI = xapi
 
-	var pvl *jsonw.Wrapper
+	var pvl string
 	var err error
 	switch {
 	case (unit.prepvl == nil) == (unit.prepvlstr == ""):
@@ -1238,10 +1355,7 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 			fail("Error in prepvl: %v", err)
 		}
 	default:
-		pvl, err = jsonw.Unmarshal([]byte(unit.prepvlstr))
-		if err != nil {
-			fail("Error in prepvlstr: %v", err)
-		}
+		pvl = unit.prepvlstr
 	}
 
 	var url = unit.proofinfo.APIURL
@@ -1304,36 +1418,42 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 	}
 }
 
-func makeTestPvl(rules map[keybase1.ProofType]string) (*jsonw.Wrapper, error) {
+func makeTestPvl(rules map[keybase1.ProofType]string) (string, error) {
+	var pvl string
 	services := jsonw.NewDictionary()
 	for ptype, v1 := range rules {
 		var err error
 		ptypestr, err := serviceToString(ptype)
 		if err != nil {
-			return nil, err
+			return pvl, err
 		}
 		v2, err := jsonw.Unmarshal([]byte(v1))
 		if err != nil {
-			return nil, err
+			return pvl, err
 		}
 		err = services.SetKey(ptypestr, v2)
 		if err != nil {
-			return nil, err
+			return pvl, err
 		}
 	}
-	pvl := jsonw.NewDictionary()
-	err := pvl.SetKey("pvl_version", jsonw.NewInt(SupportedVersion))
+	pvlStr := jsonw.NewDictionary()
+	err := pvlStr.SetKey("pvl_version", jsonw.NewInt(SupportedVersion))
 	if err != nil {
-		return nil, err
+		return pvl, err
 	}
-	err = pvl.SetKey("revision", jsonw.NewInt(1))
+	err = pvlStr.SetKey("revision", jsonw.NewInt(1))
 	if err != nil {
-		return nil, err
+		return pvl, err
 	}
-	err = pvl.SetKey("services", services)
+	err = pvlStr.SetKey("services", services)
 	if err != nil {
-		return nil, err
+		return pvl, err
 	}
+	pvlB, err := pvlStr.Marshal()
+	if err != nil {
+		return pvl, err
+	}
+	pvl = string(pvlB)
 	return pvl, nil
 }
 
