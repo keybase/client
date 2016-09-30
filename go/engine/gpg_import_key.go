@@ -180,7 +180,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	tty, err := ctx.GPGUI.GetTTY(context.TODO())
+	tty, err := ctx.GPGUI.GetTTY(ctx.NetContext)
 	if err != nil {
 		e.G().Log.Warning("error getting TTY for GPG: %s", err)
 		err = nil
