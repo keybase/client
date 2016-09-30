@@ -84,6 +84,7 @@ function renderScreenshots (commitRange) {
 }
 
 function compareScreenshots (commitRange, diffDir, callback) {
+  console.log('Comparing screenshots...')
   const results = {}
 
   mkdirp.sync(`screenshots/${diffDir}`)
@@ -91,6 +92,7 @@ function compareScreenshots (commitRange, diffDir, callback) {
   const files0 = fs.readdirSync(`screenshots/${commitRange[0]}`)
   const files1 = fs.readdirSync(`screenshots/${commitRange[1]}`)
   const files = _.union(files0, files1)
+  const totalFiles = files.length
   function compareNext () {
     const filename = files.pop()
     if (!filename) {
@@ -101,6 +103,8 @@ function compareScreenshots (commitRange, diffDir, callback) {
     if (filename.startsWith('.')) {
       return
     }
+
+    console.log(`[${totalFiles - files.length} / ${totalFiles}] comparing ${filename}`)
 
     const diffPath = `screenshots/${diffDir}/${filename}`
 
@@ -254,6 +258,7 @@ function processDiff (diffDir, commitRange, results) {
   } else {
     console.log('No visual changes found as a result of these commits.')
   }
+  console.log(`Results in: ${path.resolve('screenshots', diffDir)}`)
 }
 
 function resolveCommit (name) {
