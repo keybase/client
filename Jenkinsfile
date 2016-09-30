@@ -149,6 +149,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                     variable: 'VISDIFF_GH_TOKEN',
                                             ]]) {
                                             withEnv([
+                                                "VISDIFF_WORK_DIR=${env.BASEDIR}/visdiff",
                                                 "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                             ]) {
                                                 dir("visdiff") {
