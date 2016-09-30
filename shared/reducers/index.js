@@ -10,6 +10,7 @@ import login from './login'
 import notifications from './notifications'
 import pgp from './pgp'
 import pinentry from './pinentry'
+import planBilling from './plan-billing'
 import profile from './profile'
 import router from './router'
 import search from './search'
@@ -50,6 +51,7 @@ const combinedReducer = combineReducers({
   notifications,
   pgp,
   pinentry,
+  planBilling,
   profile,
   router,
   search,

@@ -1,4 +1,5 @@
 // @flow
+import type {BillingState} from '../constants/plan-billing'
 import type {ConfigState} from '../reducers/config'
 import type {FavoriteState} from '../constants/favorite'
 import type {LoginState} from '../reducers/login'
@@ -18,6 +19,7 @@ export type TypedState = {
   login: LoginState,
   pgp: PgpState,
   pinentry: RootPinentryState,
+  planBilling: BillingState,
   profile: ProfileState,
   search: SearchState,
   signup: SignupState,

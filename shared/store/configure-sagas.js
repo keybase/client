@@ -5,6 +5,7 @@ import gregorSaga from '../actions/gregor'
 import kbfsSaga from '../actions/kbfs'
 import notificationsSaga from '../actions/notifications'
 import pgpSaga from '../actions/pgp'
+import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
 import {call} from 'redux-saga/effects'
 
@@ -18,6 +19,7 @@ function * mainSaga (): SagaGenerator<any, any> {
     call(kbfsSaga),
     call(notificationsSaga),
     call(pgpSaga),
+    call(planBillingSaga),
     call(profileSaga),
   ]
 }

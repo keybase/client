@@ -3,12 +3,6 @@
 export type PlanLevel = 'Basic' | 'Gold' | 'Friend'
 const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
 
-export type PaymentInfo = {
-  name: string,
-  last4Digits: string,
-  isBroken: boolean,
-}
-
 const levelToPrice: {[key: PlanLevel]: string} = {
   'Basic': 'Free',
   'Gold': '$7/mo',

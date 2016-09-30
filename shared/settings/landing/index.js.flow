@@ -1,7 +1,8 @@
 // @flow
 import {Component} from 'react'
 
-import type {PlanLevel, PaymentInfo} from '../../constants/settings'
+import type {PlanLevel} from '../../constants/settings'
+import type {PaymentInfo} from '../../constants/plan-billing'
 
 export type PlanProps = {
   onUpgrade: (toLevel: PlanLevel) => void,
