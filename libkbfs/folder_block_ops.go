@@ -2331,7 +2331,7 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		// Save this MD for later, so we can clean up its
 		// newly-referenced block pointers if necessary.
 		result.si.toCleanIfUnused = append(result.si.toCleanIfUnused,
-			mdToCleanIfUnused{md, result.si.bps})
+			mdToCleanIfUnused{md, result.si.bps.DeepCopy()})
 	}
 	if isRecoverableBlockError(err) {
 		if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
