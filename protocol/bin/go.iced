@@ -184,7 +184,7 @@ class GoEmitter
     cb err
 
   emit_imports : () ->
-    @output 'rpc "github.com/keybase/go-framed-msgpack-rpc"'
+    @output '"github.com/keybase/go-framed-msgpack-rpc/rpc"'
     @output 'context "golang.org/x/net/context"'
 
   emit_interface_server : (protocol, messages) ->
