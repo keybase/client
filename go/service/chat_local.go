@@ -58,10 +58,11 @@ func (h *chatLocalHandler) getUsernameAndDeviceName(uid keybase1.UID, deviceID k
 	uimap *userInfoMapper) (string, string, error) {
 
 	if val, ok := h.udCache.Get(udCacheKey{UID: uid, DeviceID: deviceID}); ok {
-		udval, _ := val.(udCacheValue)
-		h.G().Log.Debug("getUsernameAndDeviceName: lru hit: u: %s d: %s", udval.Username,
-			udval.DeviceName)
-		return udval.Username, udval.DeviceName, nil
+		if udval, ok := val.(udCacheValue); ok {
+			h.G().Log.Debug("getUsernameAndDeviceName: lru hit: u: %s d: %s", udval.Username,
+				udval.DeviceName)
+			return udval.Username, udval.DeviceName, nil
+		}
 	}
 
 	username, deviceName, err := uimap.lookup(uid, deviceID)
@@ -302,7 +303,11 @@ func (h *chatLocalHandler) resolveConversationsPipeline(ctx context.Context, con
 	eg.Go(func() error {
 		defer close(convCh)
 		for i, conv := range convs {
-			convCh <- job{conv: conv, index: i}
+			select {
+			case convCh <- job{conv: conv, index: i}:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
 		}
 		return nil
 	})
@@ -313,13 +318,17 @@ func (h *chatLocalHandler) resolveConversationsPipeline(ctx context.Context, con
 				if err != nil {
 					return err
 				}
-				retCh <- jobRes{
+				select {
+				case retCh <- jobRes{
 					conv: chat1.ConversationLocal{
 						Info:     &info,
 						Messages: maxMessages,
 						ReadUpTo: conv.conv.ReaderInfo.ReadMsgid,
 					},
 					index: conv.index,
+				}:
+				case <-ctx.Done():
+					return ctx.Err()
 				}
 			}
 			return nil
