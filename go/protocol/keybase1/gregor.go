@@ -5,7 +5,7 @@ package keybase1
 
 import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
 

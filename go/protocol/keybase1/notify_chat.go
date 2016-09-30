@@ -5,7 +5,7 @@ package keybase1
 
 import (
 	chat1 "github.com/keybase/client/go/protocol/chat1"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
 

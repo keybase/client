@@ -4,7 +4,7 @@
 package chat1
 
 import (
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type GenericPayload struct {
