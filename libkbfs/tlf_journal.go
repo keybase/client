@@ -773,8 +773,9 @@ func (j *tlfJournal) flushOneMDOp(
 	}
 
 	if j.onMDFlush != nil {
-		j.onMDFlush.onMDFlush(rmds.MD.TlfID(), rmds.MD.BID(),
-			rmds.MD.RevisionNumber())
+		j.onMDFlush.onMDFlush(rmds.MD.TlfID(),
+			MakeImmutableBareRootMetadata(rmds.MD, mdID,
+				rmds.untrustedServerTimestamp))
 	}
 
 	err = j.removeFlushedMDEntry(ctx, mdID, rmds)
