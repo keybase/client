@@ -11,7 +11,6 @@ import (
 	"sort"
 	"strings"
 	"testing"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -384,7 +383,7 @@ func (m *chatRemoteMock) getMaxMsgs(convID chat1.ConversationID) (maxMsgs []chat
 
 func (m *chatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1.MessageBoxed) (inserted chat1.MessageBoxed) {
 	msg.ServerHeader = &chat1.MessageServerHeader{
-		Ctime:        gregor1.ToTime(time.Now()),
+		Ctime:        gregor1.ToTime(chatClock.Now()),
 		MessageID:    chat1.MessageID(len(m.world.msgs[convID]) + 1),
 		MessageType:  msg.ClientHeader.MessageType,
 		Sender:       msg.ClientHeader.Sender,

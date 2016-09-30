@@ -5,7 +5,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/jonboulle/clockwork"
 )
+
+var chatClock = clockwork.NewRealClock()
 
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
 // one day, defined as 24*time.Hour. Only whole days are supported for "d"
@@ -46,7 +50,7 @@ func parseTimeFromRFC3339OrDurationFromPast(s string) (t time.Time, err error) {
 		return t, nil
 	}
 	if d, errd = parseDurationExtended(s); errd == nil {
-		return time.Now().Add(-d), nil
+		return chatClock.Now().Add(-d), nil
 	}
 
 	return time.Time{}, fmt.Errorf("given string is neither a valid time (%s) nor a valid duration (%v)", errt, errd)

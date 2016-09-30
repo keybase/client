@@ -11,9 +11,19 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 )
+
+func init() {
+	chatClock = clockwork.NewFakeClock()
+}
+
+func advanceFakeClockForChat(d time.Duration) {
+	fc := chatClock.(clockwork.FakeClock)
+	fc.Advance(d)
+}
 
 type chatTestUserContext struct {
 	u *kbtest.FakeUser
@@ -77,10 +87,16 @@ func (c *chatTestContext) users() (users []*kbtest.FakeUser) {
 	return users
 }
 
-func mustCreateConversationForTest(t *testing.T, creator *chatTestUserContext, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
+func mustCreateConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
+	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType, others...)
+	advanceFakeClockForChat(time.Second)
+	return created
+}
+
+func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
 	var err error
-	ncres, err := creator.chatLocalHandler().NewConversationLocal(context.Background(), chat1.ConversationInfoLocal{
-		TlfName:   strings.Join(others, ",") + "," + creator.user().Username,
+	ncres, err := ctc.as(t, creator).chatLocalHandler().NewConversationLocal(context.Background(), chat1.ConversationInfoLocal{
+		TlfName:   strings.Join(others, ",") + "," + creator.Username,
 		TopicType: topicType,
 	})
 	if err != nil {
@@ -89,12 +105,17 @@ func mustCreateConversationForTest(t *testing.T, creator *chatTestUserContext, t
 	return ncres.Conv
 }
 
-func mustPostLocalForTest(t *testing.T, author *chatTestUserContext, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
+func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
+	mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
+	advanceFakeClockForChat(time.Second)
+}
+
+func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
 	mt, err := msg.MessageType()
 	if err != nil {
 		t.Fatalf("msg.MessageType() error: %v\n", err)
 	}
-	_, err = author.chatLocalHandler().PostLocal(context.Background(), chat1.PostLocalArg{
+	_, err = ctc.as(t, asUser).chatLocalHandler().PostLocal(context.Background(), chat1.PostLocalArg{
 		ConversationID: conv.Id,
 		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
@@ -115,7 +136,7 @@ func TestChatNewConversationLocal(t *testing.T) {
 	defer ctc.cleanup()
 	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
 	conv := ctc.world.getConversationByID(created.Id)
 	if len(conv.MaxMsgs) == 0 {
@@ -132,8 +153,8 @@ func TestChatNewChatConversationLocalTwice(t *testing.T) {
 	defer ctc.cleanup()
 	users := ctc.users()
 
-	c1 := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
-	c2 := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	c1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	c2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
 	if c2.Id != c1.Id {
 		t.Fatalf("2nd call to NewConversationLocal for a chat conversation did not return the same conversation ID")
@@ -145,8 +166,8 @@ func TestChatNewDevConversationLocalTwice(t *testing.T) {
 	defer ctc.cleanup()
 	users := ctc.users()
 
-	mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_DEV, ctc.as(t, users[1]).user().Username)
-	mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_DEV, ctc.as(t, users[1]).user().Username)
+	mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_DEV, ctc.as(t, users[1]).user().Username)
+	mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_DEV, ctc.as(t, users[1]).user().Username)
 }
 
 func TestChatResolveConversationLocal(t *testing.T) {
@@ -154,7 +175,7 @@ func TestChatResolveConversationLocal(t *testing.T) {
 	defer ctc.cleanup()
 	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
 	rcres, err := ctc.as(t, users[0]).chatLocalHandler().ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
 		Id: created.Id,
@@ -183,7 +204,7 @@ func TestChatResolveConversationLocalTlfName(t *testing.T) {
 	defer ctc.cleanup()
 	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
 	rcres, err := ctc.as(t, users[0]).chatLocalHandler().ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
 		TlfName: ctc.as(t, users[1]).user().Username + "," + ctc.as(t, users[0]).user().Username, // not canonical
@@ -212,8 +233,8 @@ func TestChatPostLocal(t *testing.T) {
 	defer ctc.cleanup()
 	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
-	mustPostLocalForTest(t, ctc.as(t, users[0]), created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
 	// we just posted this message, so should be the first one.
 	msg := ctc.world.msgs[created.Id][0]
@@ -227,8 +248,8 @@ func TestChatGetThreadLocal(t *testing.T) {
 	defer ctc.cleanup()
 	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
-	mustPostLocalForTest(t, ctc.as(t, users[0]), created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
 	tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: created.Id,
@@ -250,9 +271,9 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 	defer ctc.cleanup()
 	users := ctc.users()
 
-	withUser1 := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
-	mustPostLocalForTest(t, ctc.as(t, users[0]), withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello0"}))
-	mustPostLocalForTest(t, ctc.as(t, users[1]), withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello1"}))
+	withUser1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello0"}))
+	mustPostLocalForTest(t, ctc, users[1], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello1"}))
 
 	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
 		TopicType: chat1.TopicType_CHAT,
@@ -300,9 +321,9 @@ func TestChatGracefulUnboxing(t *testing.T) {
 	defer ctc.cleanup()
 	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
-	mustPostLocalForTest(t, ctc.as(t, users[0]), created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "innocent hello"}))
-	mustPostLocalForTest(t, ctc.as(t, users[0]), created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "innocent hello"}))
+	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
 
 	// make evil hello evil
 	ctc.world.msgs[created.Id][0].BodyCiphertext.E[0]++
@@ -330,29 +351,21 @@ func TestChatGetInboxSummaryLocal(t *testing.T) {
 	defer ctc.cleanup()
 	users := ctc.users()
 
-	withUser1 := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
-	mustPostLocalForTest(t, ctc.as(t, users[0]), withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello0"}))
-	mustPostLocalForTest(t, ctc.as(t, users[1]), withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello1"}))
+	withUser1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello0"}))
+	mustPostLocalForTest(t, ctc, users[1], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello1"}))
 
-	time.Sleep(time.Millisecond)
+	withUser2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[2]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser2, chat1.NewMessageBodyWithText(chat1.MessageText{Body: fmt.Sprintf("Dude I just said hello to %s!", ctc.as(t, users[2]).user().Username)}))
 
-	withUser2 := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[2]).user().Username)
-	mustPostLocalForTest(t, ctc.as(t, users[0]), withUser2, chat1.NewMessageBodyWithText(chat1.MessageText{Body: fmt.Sprintf("Dude I just said hello to %s!", ctc.as(t, users[2]).user().Username)}))
+	withUser3 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[3]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser3, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
 
-	time.Sleep(time.Millisecond)
+	withUser12 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username, ctc.as(t, users[2]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser12, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
 
-	withUser3 := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[3]).user().Username)
-	mustPostLocalForTest(t, ctc.as(t, users[0]), withUser3, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
-
-	time.Sleep(time.Millisecond)
-
-	withUser12 := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username, ctc.as(t, users[2]).user().Username)
-	mustPostLocalForTest(t, ctc.as(t, users[0]), withUser12, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
-
-	time.Sleep(time.Millisecond)
-
-	withUser123 := mustCreateConversationForTest(t, ctc.as(t, users[0]), chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username, ctc.as(t, users[2]).user().Username, ctc.as(t, users[3]).user().Username)
-	mustPostLocalForTest(t, ctc.as(t, users[0]), withUser123, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
+	withUser123 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username, ctc.as(t, users[2]).user().Username, ctc.as(t, users[3]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser123, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
 
 	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
 		After:     "1d",
