@@ -79,15 +79,15 @@ function renderScreenshots (commitRange) {
   const repoPath = spawn('git', ['rev-parse', '--show-toplevel'], {encoding: 'utf-8'}).stdout.trim()
   const relPath = path.relative(repoPath, process.cwd())
   if (!fs.existsSync(WORK_DIR)) {
-    console.log(`Creating work tree: ${WORK_DIR}`)
-    const result = spawn('git', ['worktree', 'add', '--detach', path.join(WORK_DIR)])
+    console.log(`Creating clone in work dir: ${WORK_DIR}`)
+    const result = spawn('git', ['clone', repoPath, path.join(WORK_DIR)])
     if (result.status !== 0) {
-      console.log(`Error creating work tree:`, result.error, result.stderr)
+      console.log(`Error creating work dir clone:`, result.error, result.stderr)
       process.exit(1)
     }
   }
   const workPath = path.join(WORK_DIR, relPath)
-  console.log(`Running in work tree: ${workPath}`)
+  console.log(`Running in work dir: ${workPath}`)
   process.chdir(workPath)
   for (const commit of commitRange) {
     checkout(commit)
