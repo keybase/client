@@ -1047,7 +1047,6 @@ func (e *Env) GetMountDir() (string, error) {
 			func() string { return e.cmd.GetMountDir() },
 			func() string { return os.Getenv("KEYBASE_DRIVE_LETTER") },
 			func() string { return e.config.GetMountDir() },
-			func() string { return "k:" },
 		), nil
 	}
 
