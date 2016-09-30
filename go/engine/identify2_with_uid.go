@@ -112,10 +112,7 @@ func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
 }
 
 func (e *Identify2WithUID) calledFromChatGUI() bool {
-	if callerType, e2 := e.arg.Context.ContextType(); e2 == nil && callerType == keybase1.Identify2ContextType_CHAT_GUI {
-		return true
-	}
-	return false
+	return e.arg.ChatGUIMode
 }
 
 func (e *Identify2WithUID) resetError(err error) error {

@@ -343,8 +343,8 @@ func TestIdentify2WithUIDWithBrokenTrackWithSuppressUI(t *testing.T) {
 
 func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	arg := &keybase1.Identify2Arg{
-		Uid:     tracyUID,
-		Context: keybase1.NewIdentify2ContextWithChatGui(keybase1.Identify2ContextChatGUI{}),
+		Uid:         tracyUID,
+		ChatGUIMode: true,
 	}
 
 	eng, origUI, waiter, err := identify2WithUIDWithBrokenTrackMakeEngine(t, arg)

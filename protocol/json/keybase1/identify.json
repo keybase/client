@@ -61,43 +61,6 @@
           "name": "trackBreaks"
         }
       ]
-    },
-    {
-      "type": "enum",
-      "name": "Identify2ContextType",
-      "symbols": [
-        "NONE_0",
-        "CHAT_GUI_1"
-      ]
-    },
-    {
-      "type": "record",
-      "name": "Identify2ContextChatGUI",
-      "fields": []
-    },
-    {
-      "type": "variant",
-      "name": "Identify2Context",
-      "switch": {
-        "type": "Identify2ContextType",
-        "name": "contextType"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "NONE",
-            "def": false
-          },
-          "body": null
-        },
-        {
-          "label": {
-            "name": "CHAT_GUI",
-            "def": false
-          },
-          "body": "Identify2ContextChatGUI"
-        }
-      ]
     }
   ],
   "messages": {
@@ -172,10 +135,6 @@
           "type": "IdentifyReason"
         },
         {
-          "name": "context",
-          "type": "Identify2Context"
-        },
-        {
           "name": "useDelegateUI",
           "type": "boolean",
           "default": false
@@ -212,6 +171,11 @@
         },
         {
           "name": "canSuppressUI",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "chatGUIMode",
           "type": "boolean",
           "default": false
         }

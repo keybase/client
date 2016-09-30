@@ -4,7 +4,6 @@
 package keybase1
 
 import (
-	"errors"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	context "golang.org/x/net/context"
 )
@@ -22,65 +21,6 @@ type IdentifyTrackBreaks struct {
 type Identify2Res struct {
 	Upk         UserPlusKeys         `codec:"upk" json:"upk"`
 	TrackBreaks *IdentifyTrackBreaks `codec:"trackBreaks,omitempty" json:"trackBreaks,omitempty"`
-}
-
-type Identify2ContextType int
-
-const (
-	Identify2ContextType_NONE     Identify2ContextType = 0
-	Identify2ContextType_CHAT_GUI Identify2ContextType = 1
-)
-
-var Identify2ContextTypeMap = map[string]Identify2ContextType{
-	"NONE":     0,
-	"CHAT_GUI": 1,
-}
-
-var Identify2ContextTypeRevMap = map[Identify2ContextType]string{
-	0: "NONE",
-	1: "CHAT_GUI",
-}
-
-type Identify2ContextChatGUI struct {
-}
-
-type Identify2Context struct {
-	ContextType__ Identify2ContextType     `codec:"contextType" json:"contextType"`
-	ChatGui__     *Identify2ContextChatGUI `codec:"chatGui,omitempty" json:"chatGui,omitempty"`
-}
-
-func (o *Identify2Context) ContextType() (ret Identify2ContextType, err error) {
-	switch o.ContextType__ {
-	case Identify2ContextType_CHAT_GUI:
-		if o.ChatGui__ == nil {
-			err = errors.New("unexpected nil value for ChatGui__")
-			return ret, err
-		}
-	}
-	return o.ContextType__, nil
-}
-
-func (o Identify2Context) ChatGui() Identify2ContextChatGUI {
-	if o.ContextType__ != Identify2ContextType_CHAT_GUI {
-		panic("wrong case accessed")
-	}
-	if o.ChatGui__ == nil {
-		return Identify2ContextChatGUI{}
-	}
-	return *o.ChatGui__
-}
-
-func NewIdentify2ContextWithNone() Identify2Context {
-	return Identify2Context{
-		ContextType__: Identify2ContextType_NONE,
-	}
-}
-
-func NewIdentify2ContextWithChatGui(v Identify2ContextChatGUI) Identify2Context {
-	return Identify2Context{
-		ContextType__: Identify2ContextType_CHAT_GUI,
-		ChatGui__:     &v,
-	}
 }
 
 type ResolveArg struct {
@@ -101,19 +41,19 @@ type IdentifyArg struct {
 }
 
 type Identify2Arg struct {
-	SessionID             int              `codec:"sessionID" json:"sessionID"`
-	Uid                   UID              `codec:"uid" json:"uid"`
-	UserAssertion         string           `codec:"userAssertion" json:"userAssertion"`
-	Reason                IdentifyReason   `codec:"reason" json:"reason"`
-	Context               Identify2Context `codec:"context" json:"context"`
-	UseDelegateUI         bool             `codec:"useDelegateUI" json:"useDelegateUI"`
-	AlwaysBlock           bool             `codec:"alwaysBlock" json:"alwaysBlock"`
-	NoErrorOnTrackFailure bool             `codec:"noErrorOnTrackFailure" json:"noErrorOnTrackFailure"`
-	ForceRemoteCheck      bool             `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
-	NeedProofSet          bool             `codec:"needProofSet" json:"needProofSet"`
-	AllowEmptySelfID      bool             `codec:"allowEmptySelfID" json:"allowEmptySelfID"`
-	NoSkipSelf            bool             `codec:"noSkipSelf" json:"noSkipSelf"`
-	CanSuppressUI         bool             `codec:"canSuppressUI" json:"canSuppressUI"`
+	SessionID             int            `codec:"sessionID" json:"sessionID"`
+	Uid                   UID            `codec:"uid" json:"uid"`
+	UserAssertion         string         `codec:"userAssertion" json:"userAssertion"`
+	Reason                IdentifyReason `codec:"reason" json:"reason"`
+	UseDelegateUI         bool           `codec:"useDelegateUI" json:"useDelegateUI"`
+	AlwaysBlock           bool           `codec:"alwaysBlock" json:"alwaysBlock"`
+	NoErrorOnTrackFailure bool           `codec:"noErrorOnTrackFailure" json:"noErrorOnTrackFailure"`
+	ForceRemoteCheck      bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	NeedProofSet          bool           `codec:"needProofSet" json:"needProofSet"`
+	AllowEmptySelfID      bool           `codec:"allowEmptySelfID" json:"allowEmptySelfID"`
+	NoSkipSelf            bool           `codec:"noSkipSelf" json:"noSkipSelf"`
+	CanSuppressUI         bool           `codec:"canSuppressUI" json:"canSuppressUI"`
+	ChatGUIMode           bool           `codec:"chatGUIMode" json:"chatGUIMode"`
 }
 
 type IdentifyInterface interface {

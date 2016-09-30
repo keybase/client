@@ -195,11 +195,6 @@ export const IdentifyCommonTrackStatus = {
   updateBrokenRevoked: 7,
 }
 
-export const IdentifyIdentify2ContextType = {
-  none: 0,
-  chatGui: 1,
-}
-
 export const IdentifyUiCheckResultFreshness = {
   fresh: 0,
   aged: 1,
@@ -2196,16 +2191,6 @@ export type Hello2Res = {
 
 export type HelloRes = string
 
-export type Identify2Context = 
-    { contextType : 0 }
-  | { contextType : undefined, chat_gui : ?Identify2ContextChatGUI }
-
-export type Identify2ContextChatGUI = {}
-
-export type Identify2ContextType = 
-    0 // NONE_0
-  | 1 // CHAT_GUI_1
-
 export type Identify2Res = {
   upk: UserPlusKeys,
   trackBreaks?: ?IdentifyTrackBreaks,
@@ -3390,7 +3375,6 @@ export type identifyIdentify2RpcParam = Exact<{
   uid: UID,
   userAssertion: string,
   reason: IdentifyReason,
-  context: Identify2Context,
   useDelegateUI?: boolean,
   alwaysBlock?: boolean,
   noErrorOnTrackFailure?: boolean,
@@ -3398,7 +3382,8 @@ export type identifyIdentify2RpcParam = Exact<{
   needProofSet?: boolean,
   allowEmptySelfID?: boolean,
   noSkipSelf?: boolean,
-  canSuppressUI?: boolean
+  canSuppressUI?: boolean,
+  chatGUIMode?: boolean
 }>
 
 export type identifyIdentifyRpcParam = Exact<{
