@@ -4,6 +4,7 @@ import * as Constants from '../constants/settings'
 import type {Actions, State} from '../constants/settings'
 
 const initialState: State = {
+  allowDeleteAccount: false,
   notifications: {
     settings: null,
     unsubscribedFromAll: null,
@@ -16,6 +17,11 @@ function reducer (state: State = initialState, action: Actions): State {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
+    case Constants.setAllowDeleteAccount:
+      return {
+        ...initialState,
+        allowDeleteAccount: action.payload,
+      }
     case Constants.notificationsToggle:
       if (!state.notifications.settings) {
         console.log('Warning: trying to toggle while not loaded')

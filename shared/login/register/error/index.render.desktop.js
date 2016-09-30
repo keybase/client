@@ -55,6 +55,12 @@ const renderError = (error: RPCError) => {
             </p>
           </div>)
       }
+    case ConstantsStatusCode.sckeynotfound:
+      return (
+        <p>
+          <Text type='Body'>Your PGP keychain has multiple keys installed, and we're not sure which one to use to provision your account. Please run <Text type='Terminal'>keybase login</Text> on the command line to continue.</Text>
+        </p>
+      )
     case ConstantsStatusCode.scnotfound:
       return (
         <p>

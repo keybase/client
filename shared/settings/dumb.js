@@ -252,6 +252,8 @@ const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
       onDeleteForever: () => console.log('onDeleteForever clicked'),
       onCancel: () => console.log('onCancel clicked'),
       username: 'chris',
+      allowDeleteForever: true,
+      setAllowDeleteAccount: allow => console.log('setAllowDeleteAccount', allow),
       parentProps: {
         style: {
           height: 500,

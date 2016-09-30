@@ -6,9 +6,12 @@ import {globalStyles, globalColors} from '../../styles'
 class Render extends Component {
   render () {
     return (
-      <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf ? 0 : 55}}>
+      <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf || this.props.justDeletedSelf ? 0 : 55}}>
         {!!this.props.justRevokedSelf &&
           <Text type='BodySemiboldItalic' style={{...stylesRevoked}}>{this.props.justRevokedSelf}<Text type='BodySemiboldItalic' style={{color: globalColors.white}}>&nbsp;was revoked successfully</Text></Text>
+        }
+        {!!this.props.justDeletedSelf &&
+          <Text type='BodySemiboldItalic' style={{...stylesRevoked}}>Your Keybase account "{this.props.justDeletedSelf}" has been deleted. Au revoir!</Text>
         }
         {!!this.props.justLoginFromRevokedDevice &&
           <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>This device has been revoked, please log in again.</Text>

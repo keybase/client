@@ -36,7 +36,7 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
   }
 }
 
-const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
+const DeviceRow = ({device, revoked, showExistingDevicePage}) => {
   const icon: IconType = {
     'mobile': 'icon-phone-bw-48',
     'desktop': 'icon-computer-bw-48',
@@ -116,7 +116,7 @@ class Render extends Component<void, Props, State> {
   }
 
   render () {
-    const {devices, revokedDevices, showRemoveDevicePage, showExistingDevicePage} = this.props
+    const {devices, revokedDevices, showExistingDevicePage} = this.props
 
     return (
       <Box style={stylesContainer}>
@@ -125,7 +125,7 @@ class Render extends Component<void, Props, State> {
           addNewDevice={() => this.setState({showingMenu: true})}
           showingMenu={this.state.showingMenu}
           onHidden={() => this.setState({showingMenu: false})} />
-        {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage} />)}
+        {devices && devices.map(device => <DeviceRow key={device.name} device={device} showExistingDevicePage={showExistingDevicePage} />)}
         {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} showExistingDevicePage={showExistingDevicePage} />}
       </Box>
     )

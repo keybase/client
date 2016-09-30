@@ -14,6 +14,12 @@ export type NotificationsSaved = NoErrorTypedAction<'settings:notificationsSaved
 export const notificationsToggle = 'settings:notificationsToggle'
 export type NotificationsToggle = NoErrorTypedAction<'settings:notificationsToggle', {name: ?string}>
 
+export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
+export type SetAllowDeleteAccount = NoErrorTypedAction<'settings:setAllowDeleteAccount', boolean>
+
+export const deleteAccountForever = 'settings:deleteAccountForever'
+export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountForever', void>
+
 export type PlanLevel = 'Basic' | 'Gold' | 'Friend'
 const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
 
@@ -23,7 +29,7 @@ export type PaymentInfo = {
   isBroken: boolean,
 }
 
-export type Actions = NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle
+export type Actions = NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
 
 export type NotificationsState = {
   settings: ?Array<{
@@ -37,6 +43,7 @@ export type NotificationsState = {
 }
 
 export type State = {
+  allowDeleteAccount: boolean,
   notifications: NotificationsState,
 }
 
