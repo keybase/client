@@ -9,31 +9,36 @@ import (
 
 // loginProvisionedDevice is an engine that tries to login using the
 // current device, if there is an existing provisioned device.
-type loginProvisionedDevice struct {
+type LoginProvisionedDevice struct {
 	libkb.Contextified
-	username string
+	username        string
+	SecretStoreOnly bool // this should only be set by the service on its startup login attempt
 }
 
 // newLoginCurrentDevice creates a loginProvisionedDevice engine.
-func newLoginProvisionedDevice(g *libkb.GlobalContext, username string) *loginProvisionedDevice {
-	return &loginProvisionedDevice{
+func NewLoginProvisionedDevice(g *libkb.GlobalContext, username string) *LoginProvisionedDevice {
+	return &LoginProvisionedDevice{
 		username:     username,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *loginProvisionedDevice) Name() string {
+func (e *LoginProvisionedDevice) Name() string {
 	return "loginProvisionedDevice"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *loginProvisionedDevice) Prereqs() Prereqs {
+func (e *LoginProvisionedDevice) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *loginProvisionedDevice) RequiredUIs() []libkb.UIKind {
+func (e *LoginProvisionedDevice) RequiredUIs() []libkb.UIKind {
+	if e.SecretStoreOnly {
+		return []libkb.UIKind{}
+	}
+
 	return []libkb.UIKind{
 		libkb.LoginUIKind,
 		libkb.SecretUIKind,
@@ -41,11 +46,11 @@ func (e *loginProvisionedDevice) RequiredUIs() []libkb.UIKind {
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *loginProvisionedDevice) SubConsumers() []libkb.UIConsumer {
+func (e *LoginProvisionedDevice) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *loginProvisionedDevice) Run(ctx *Context) error {
+func (e *LoginProvisionedDevice) Run(ctx *Context) error {
 	// already logged in?
 	in, err := e.G().LoginState().LoggedInProvisionedLoad()
 	if err == nil && in {
@@ -109,15 +114,23 @@ func (e *loginProvisionedDevice) Run(ctx *Context) error {
 		}
 		return nil
 	}
-	if err := e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, afterLogin); err != nil {
-		return err
+
+	if e.SecretStoreOnly {
+		if err := e.G().LoginState().LoginWithStoredSecret(e.username, afterLogin); err != nil {
+			return err
+		}
+
+	} else {
+		if err := e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, afterLogin); err != nil {
+			return err
+		}
 	}
 
 	// login was successful, unlock the device keys
 	return e.unlockDeviceKeys(ctx, me)
 }
 
-func (e *loginProvisionedDevice) unlockDeviceKeys(ctx *Context, me *libkb.User) error {
+func (e *LoginProvisionedDevice) unlockDeviceKeys(ctx *Context, me *libkb.User) error {
 	if me == nil {
 		var err error
 		me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
