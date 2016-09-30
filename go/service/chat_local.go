@@ -551,7 +551,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 		messagePlaintext, err := h.boxer.unboxMessage(ctx, kf, b)
 		if err != nil {
 			errMsg := err.Error()
-			h.G().Log.Warning("getConversationInfo: failed to unbox message: convID: %d msgID: %d err: %s", conversationRemote.Metadata.ConversationID, b.ServerHeader.MessageID, errMsg)
+			h.G().Log.Warning("failed to unbox message: convID: %d msgID: %d err: %s", conversationRemote.Metadata.ConversationID, b.ServerHeader.MessageID, errMsg)
 			maxMessages = append(maxMessages, chat1.MessageFromServerOrError{
 				UnboxingError: &errMsg,
 			})
