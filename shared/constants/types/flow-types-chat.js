@@ -234,6 +234,7 @@ export type ConversationInfoLocal = {
 }
 
 export type ConversationLocal = {
+  error?: ?string,
   info?: ?ConversationInfoLocal,
   messages?: ?Array<MessageFromServerOrError>,
   readUpTo: MessageID,

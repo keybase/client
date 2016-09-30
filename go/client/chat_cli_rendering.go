@@ -60,6 +60,35 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 
 	table := &flexibletable.Table{}
 	for i, conv := range v {
+
+		if conv.Error != nil {
+			table.Insert(flexibletable.Row{
+				flexibletable.Cell{
+					Frame:     [2]string{"[", "]"},
+					Alignment: flexibletable.Right,
+					Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
+				},
+				flexibletable.Cell{
+					Alignment: flexibletable.Center,
+					Content:   flexibletable.SingleCell{Item: ""},
+				},
+				flexibletable.Cell{
+					Alignment: flexibletable.Left,
+					Content:   flexibletable.SingleCell{Item: "???"},
+				},
+				flexibletable.Cell{
+					Frame:     [2]string{"[", "]"},
+					Alignment: flexibletable.Right,
+					Content:   flexibletable.SingleCell{Item: "???"},
+				},
+				flexibletable.Cell{
+					Alignment: flexibletable.Left,
+					Content:   flexibletable.SingleCell{Item: *conv.Error},
+				},
+			})
+			continue
+		}
+
 		unread := ""
 		if conv.Messages[0].Message != nil &&
 			conv.ReadUpTo < conv.Messages[0].Message.ServerHeader.MessageID {

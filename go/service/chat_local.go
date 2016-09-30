@@ -315,18 +315,20 @@ func (h *chatLocalHandler) resolveConversationsPipeline(ctx context.Context, con
 		eg.Go(func() error {
 			for conv := range convCh {
 				info, maxMessages, err := h.getConversationInfo(ctx, conv.conv)
-				if err != nil {
-					return err
-				}
-				select {
-				case retCh <- jobRes{
+				jr := jobRes{
 					conv: chat1.ConversationLocal{
 						Info:     &info,
 						Messages: maxMessages,
 						ReadUpTo: conv.conv.ReaderInfo.ReadMsgid,
 					},
 					index: conv.index,
-				}:
+				}
+				if err != nil {
+					jr.conv.Error = new(string)
+					*jr.conv.Error = err.Error()
+				}
+				select {
+				case retCh <- jr:
 				case <-ctx.Done():
 					return ctx.Err()
 				}
@@ -537,7 +539,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 	conversationInfo.TopicType = conversationRemote.Metadata.IdTriple.TopicType
 
 	if len(conversationRemote.MaxMsgs) == 0 {
-		return chat1.ConversationInfoLocal{}, nil,
+		return conversationInfo, maxMessages,
 			libkb.UnexpectedChatDataFromServer{Msg: "conversation has an empty MaxMsgs field"}
 	}
 
@@ -549,6 +551,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 		messagePlaintext, err := h.boxer.unboxMessage(ctx, kf, b)
 		if err != nil {
 			errMsg := err.Error()
+			h.G().Log.Warning("getConversationInfo: failed to unbox message: convID: %d msgID: %d err: %s", conversationRemote.Metadata.ConversationID, b.ServerHeader.MessageID, errMsg)
 			maxMessages = append(maxMessages, chat1.MessageFromServerOrError{
 				UnboxingError: &errMsg,
 			})
@@ -557,7 +560,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 
 		username, deviceName, err := h.getSenderInfoLocal(uimap, messagePlaintext)
 		if err != nil {
-			return chat1.ConversationInfoLocal{}, nil, err
+			return conversationInfo, maxMessages, err
 		}
 		maxMessages = append(maxMessages, chat1.MessageFromServerOrError{
 			Message: &chat1.MessageFromServer{
@@ -570,7 +573,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 
 		version, err := messagePlaintext.Version()
 		if err != nil {
-			return chat1.ConversationInfoLocal{}, nil, err
+			return conversationInfo, maxMessages, err
 		}
 		switch version {
 		case chat1.MessagePlaintextVersion_V1:
@@ -585,17 +588,18 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 			}
 			conversationInfo.Triple = messagePlaintext.V1().ClientHeader.Conv
 		default:
-			return chat1.ConversationInfoLocal{}, nil, libkb.NewChatMessageVersionError(version)
+			return conversationInfo, maxMessages, libkb.NewChatMessageVersionError(version)
 		}
 	}
 
 	if len(conversationInfo.TlfName) == 0 {
-		return chat1.ConversationInfoLocal{}, nil, errors.New("no valid message in the conversation")
+		return conversationInfo, maxMessages,
+			fmt.Errorf("no valid message in the conversation: convID: %d", conversationRemote.Metadata.ConversationID)
 	}
 
 	// verify Conv matches ConversationIDTriple in MessageClientHeader
 	if !conversationRemote.Metadata.IdTriple.Eq(conversationInfo.Triple) {
-		return chat1.ConversationInfoLocal{}, nil, errors.New("server header conversation triple does not match client header triple")
+		return conversationInfo, maxMessages, errors.New("server header conversation triple does not match client header triple")
 	}
 
 	return conversationInfo, maxMessages, nil

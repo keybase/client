@@ -360,6 +360,7 @@ type ConversationInfoLocal struct {
 }
 
 type ConversationLocal struct {
+	Error    *string                    `codec:"error,omitempty" json:"error,omitempty"`
 	Info     *ConversationInfoLocal     `codec:"info,omitempty" json:"info,omitempty"`
 	Messages []MessageFromServerOrError `codec:"messages" json:"messages"`
 	ReadUpTo MessageID                  `codec:"readUpTo" json:"readUpTo"`

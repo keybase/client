@@ -411,6 +411,13 @@
         {
           "type": [
             null,
+            "string"
+          ],
+          "name": "error"
+        },
+        {
+          "type": [
+            null,
             "ConversationInfoLocal"
           ],
           "name": "info"
