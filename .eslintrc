@@ -16,7 +16,7 @@
         "__SCREENSHOT__": false
     },
     "plugins": [
-        "flow-vars", "mocha", "filenames", "babel", "import", "flowtype"
+        "mocha", "filenames", "babel", "import", "flowtype"
     ],
     "settings": {
         "import/core-modules": [ electron, react-native ],
@@ -35,8 +35,8 @@
         "flowtype/union-intersection-spacing": [2, "always"],
         "flowtype/generic-spacing": [2, "never"],
         "flowtype/valid-syntax": [2],
-        "flow-vars/define-flow-type": 1,
-        "flow-vars/use-flow-type": 1,
+        "flowtype/define-flow-type": 1,
+        "flowtype/use-flow-type": 1,
         "jsx-quotes": [2, "prefer-single"],
         "import/named": 2,
         "import/export": 2,

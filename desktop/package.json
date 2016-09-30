@@ -6,6 +6,7 @@
   "scripts": {
     "_node": "babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types ",
     "_helper": "npm run _node -- npm-helper.js",
+    "babel-install": "npm install babel-cli babel-preset-es2015 babel-preset-stage-2 babel-preset-react",
     "vendor-install": "npm run _node npm-vendor.js",
     "vendor-update": "npm run _node npm-vendor.js update",
     "start": "npm run _helper start",
@@ -62,7 +63,6 @@
     "semver": "5.3.0"
   },
   "devDependencies": {
-    "babel": "6.5.2",
     "babel-cli": "6.14.0",
     "babel-core": "6.14.0",
     "babel-eslint": "6.1.2",
@@ -87,7 +87,6 @@
     "eslint-config-standard-react": "4.0.2",
     "eslint-plugin-babel": "3.3.0",
     "eslint-plugin-filenames": "1.1.0",
-    "eslint-plugin-flow-vars": "0.5.0",
     "eslint-plugin-flowtype": "2.18.2",
     "eslint-plugin-import": "1.15.0",
     "eslint-plugin-mocha": "4.5.1",
