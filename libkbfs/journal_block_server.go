@@ -58,15 +58,16 @@ func (j journalBlockServer) Put(
 func (j journalBlockServer) AddBlockReference(
 	ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext) (err error) {
-	if !j.enableAddBlockReference {
-		// TODO: Temporarily return an error until KBFS-1149 is
-		// fixed. This is needed despite
-		// journalBlockCache.CheckForBlockPtr, since CheckForBlockPtr
-		// may be called before journaling is turned on for a TLF.
-		return BServerErrorBlockNonExistent{}
-	}
-
 	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
+		if !j.enableAddBlockReference {
+			// TODO: Temporarily return an error until KBFS-1149 is
+			// fixed. This is needed despite
+			// journalBlockCache.CheckForBlockPtr, since
+			// CheckForBlockPtr may be called before journaling is
+			// turned on for a TLF.
+			return BServerErrorBlockNonExistent{}
+		}
+
 		defer func() {
 			err = translateToBlockServerError(err)
 		}()
