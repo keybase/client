@@ -13,6 +13,7 @@
     "build-prod": "babel-node --presets es2015,stage-2 npm-helper.js build-prod",
     "package": "babel-node --presets es2015,stage-2 npm-helper.js package",
     "hot-server": "babel-node --presets es2015,stage-2 npm-helper.js hot-server",
+    "build-profile": "babel-node --presets es2015,stage-2 npm-helper.js build-profile",
     "inject-sourcemaps-prod": "babel-node --presets es2015,stage-2 npm-helper.js inject-sourcemaps-prod",
     "inject-code-prod": "babel-node --presets es2015,stage-2 npm-helper.js inject-code-prod",
     "start-prod": "babel-node --presets es2015,stage-2 npm-helper.js start-prod",

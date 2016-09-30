@@ -102,6 +102,12 @@ const commands = {
     shell: 'webpack --config webpack.config.production.js --progress --profile --colors',
     help: 'Make a production build of the js code',
   },
+  'build-profile': {
+    nodeEnv: 'development',
+    nodePathDesktop: true,
+    shell: 'webpack --config webpack.config.development.js --progress --profile --json > /tmp/stats.json',
+    help: 'Make a production build of the js code',
+  },
   'package': {
     nodeEnv: 'production',
     nodePathDesktop: true,
