@@ -106,3 +106,31 @@ func volumeName(dir string) (string, error) {
 	}
 	return volName, nil
 }
+
+// NoopMounter is a mounter that does nothing.
+type NoopMounter struct {
+	c chan struct{}
+}
+
+// NewNoopMounter creates a mounter that does nothing.
+func NewNoopMounter() NoopMounter {
+	return NoopMounter{c: make(chan struct{}, 1)}
+}
+
+// Mount doesn't mount anything, it just blocks until Unmount is
+// called.
+func (m NoopMounter) Mount(_ *dokan.Config, _ logger.Logger) error {
+	<-m.c
+	return nil
+}
+
+// Unmount doesn't do anything.
+func (m NoopMounter) Unmount() error {
+	close(m.c)
+	return nil
+}
+
+// Dir returns an empty string.
+func (m NoopMounter) Dir() string {
+	return ""
+}

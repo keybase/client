@@ -122,3 +122,26 @@ func volumeName(dir string) (string, error) {
 	}
 	return volName, nil
 }
+
+// NoopMounter is a mounter that does nothing.
+type NoopMounter struct{}
+
+// NewNoopMounter creates a mounter that does nothing.
+func NewNoopMounter() NoopMounter {
+	return NoopMounter{}
+}
+
+// Mount doesn't mount anything, and returns a nil connection.
+func (m NoopMounter) Mount() (*fuse.Conn, error) {
+	return nil, nil
+}
+
+// Unmount doesn't do anything.
+func (m NoopMounter) Unmount() error {
+	return nil
+}
+
+// Dir returns an empty string.
+func (m NoopMounter) Dir() string {
+	return ""
+}
