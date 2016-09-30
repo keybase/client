@@ -178,13 +178,13 @@ type fetchT struct {
 }
 
 type selectorJSONT struct {
-	Selectors []interface{} `json:"selectors"`
-	Error     *errorT       `json:"error"`
+	Selectors []selectorEntryT `json:"selectors"`
+	Error     *errorT          `json:"error"`
 }
 
 type selectorCSST struct {
-	Selectors []interface{} `json:"selectors"`
-	Attr      string        `json:"attr"`
+	Selectors []selectorEntryT `json:"selectors"`
+	Attr      string           `json:"attr"`
 	// Whether the final selection can contain multiple elements.
 	Multi bool    `json:"multi"`
 	Error *errorT `json:"error"`
@@ -203,7 +203,7 @@ type errorT struct {
 	Description string
 }
 
-func (x *errorT) UnmarshalJSON(b []byte) error {
+func (e *errorT) UnmarshalJSON(b []byte) error {
 	ss := []string{}
 	err := json.Unmarshal(b, &ss)
 	if err != nil {
@@ -216,7 +216,42 @@ func (x *errorT) UnmarshalJSON(b []byte) error {
 	if !ok {
 		return fmt.Errorf("unrecognized proof status '%v'", ss[0])
 	}
-	x.Status = status
-	x.Description = ss[1]
+	e.Status = status
+	e.Description = ss[1]
+	return nil
+}
+
+type selectorEntryT struct {
+	// Exactly one of Is* is true
+	IsIndex bool
+	Index   int
+	IsKey   bool
+	Key     string
+	IsAll   bool
+}
+
+func (se *selectorEntryT) UnmarshalJSON(b []byte) error {
+	err := json.Unmarshal(b, &se.Index)
+	if err == nil {
+		se.IsIndex = true
+		return nil
+	}
+
+	err = json.Unmarshal(b, &se.Key)
+	if err == nil {
+		se.IsKey = true
+		return nil
+	}
+
+	m := make(map[string]bool)
+	err = json.Unmarshal(b, &m)
+	if err != nil {
+		return fmt.Errorf("invalid selector")
+	}
+	ok1, ok2 := m["all"]
+	if !(ok1 && ok2) {
+		return fmt.Errorf("invalid 'all' selector")
+	}
+	se.IsAll = true
 	return nil
 }
