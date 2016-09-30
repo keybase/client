@@ -4094,6 +4094,8 @@ type fsListResult = ListResult
 
 type gpgUiConfirmDuplicateKeyChosenResult = boolean
 
+type gpgUiGetTTYResult = string
+
 type gpgUiSelectKeyAndPushOptionResult = SelectKeyRes
 
 type gpgUiSelectKeyResult = string
@@ -4475,6 +4477,13 @@ export type incomingCallMapType = Exact<{
     response: {
       error: RPCErrorHandler,
       result: (result: gpgUiSignResult) => void,
+    }
+  ) => void,
+  'keybase.1.gpgUi.getTTY'?: (
+    params: Exact<{}>,
+    response: {
+      error: RPCErrorHandler,
+      result: (result: gpgUiGetTTYResult) => void,
     }
   ) => void,
   'keybase.1.gregorUI.pushState'?: (

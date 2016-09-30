@@ -180,7 +180,12 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	bundle, err := gpg.ImportKey(true, *(selected.GetFingerprint()))
+	tty, err := ctx.GPGUI.GetTTY(context.TODO())
+	if err != nil {
+		e.G().Log.Warning("error getting TTY for GPG: %s", err)
+	}
+
+	bundle, err := gpg.ImportKey(true, *(selected.GetFingerprint()), tty)
 	if err != nil {
 		return fmt.Errorf("ImportKey error: %s", err)
 	}
