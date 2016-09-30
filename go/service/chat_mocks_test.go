@@ -11,9 +11,11 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
+	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -23,6 +25,8 @@ import (
 )
 
 type chatMockWorld struct {
+	fc clockwork.FakeClock
+
 	tcs     map[string]*libkb.TestContext
 	users   map[string]*kbtest.FakeUser
 	tlfs    map[keybase1.CanonicalTlfName]chat1.TLFID
@@ -37,6 +41,7 @@ type chatMockWorld struct {
 
 func newChatMockWorld(t *testing.T, name string, numUsers int) (world *chatMockWorld) {
 	world = &chatMockWorld{
+		fc:      clockwork.NewFakeClockAt(time.Now()),
 		tcs:     make(map[string]*libkb.TestContext),
 		users:   make(map[string]*kbtest.FakeUser),
 		tlfs:    make(map[keybase1.CanonicalTlfName]chat1.TLFID),
@@ -45,6 +50,7 @@ func newChatMockWorld(t *testing.T, name string, numUsers int) (world *chatMockW
 	}
 	for i := 0; i < numUsers; i++ {
 		tc := externals.SetupTest(t, "chat_"+name, 0)
+		tc.G.SetClock(world.fc)
 		u, err := kbtest.CreateAndSignupFakeUser("chat", tc.G)
 		if err != nil {
 			t.Fatal(err)
@@ -52,6 +58,8 @@ func newChatMockWorld(t *testing.T, name string, numUsers int) (world *chatMockW
 		world.users[u.Username] = u
 		world.tcs[u.Username] = &tc
 	}
+
+	world.fc.Advance(time.Hour)
 
 	return world
 }
@@ -383,7 +391,7 @@ func (m *chatRemoteMock) getMaxMsgs(convID chat1.ConversationID) (maxMsgs []chat
 
 func (m *chatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1.MessageBoxed) (inserted chat1.MessageBoxed) {
 	msg.ServerHeader = &chat1.MessageServerHeader{
-		Ctime:        gregor1.ToTime(chatClock.Now()),
+		Ctime:        gregor1.ToTime(m.world.fc.Now()),
 		MessageID:    chat1.MessageID(len(m.world.msgs[convID]) + 1),
 		MessageType:  msg.ClientHeader.MessageType,
 		Sender:       msg.ClientHeader.Sender,

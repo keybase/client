@@ -6,10 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/libkb"
 )
-
-var chatClock = clockwork.NewRealClock()
 
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
 // one day, defined as 24*time.Hour. Only whole days are supported for "d"
@@ -38,7 +36,7 @@ func parseDurationExtended(s string) (d time.Duration, err error) {
 	return d, nil
 }
 
-func parseTimeFromRFC3339OrDurationFromPast(s string) (t time.Time, err error) {
+func parseTimeFromRFC3339OrDurationFromPast(g *libkb.GlobalContext, s string) (t time.Time, err error) {
 	var errt, errd error
 	var d time.Duration
 
@@ -50,7 +48,7 @@ func parseTimeFromRFC3339OrDurationFromPast(s string) (t time.Time, err error) {
 		return t, nil
 	}
 	if d, errd = parseDurationExtended(s); errd == nil {
-		return chatClock.Now().Add(-d), nil
+		return g.Clock().Now().Add(-d), nil
 	}
 
 	return time.Time{}, fmt.Errorf("given string is neither a valid time (%s) nor a valid duration (%v)", errt, errd)

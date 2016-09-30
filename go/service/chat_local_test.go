@@ -11,19 +11,9 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 )
-
-func init() {
-	chatClock = clockwork.NewFakeClock()
-}
-
-func advanceFakeClockForChat(d time.Duration) {
-	fc := chatClock.(clockwork.FakeClock)
-	fc.Advance(d)
-}
 
 type chatTestUserContext struct {
 	u *kbtest.FakeUser
@@ -49,6 +39,10 @@ func makeChatTestContext(t *testing.T, name string, numUsers int) *chatTestConte
 	ctc.world = newChatMockWorld(t, name, numUsers)
 	ctc.userContextCache = make(map[string]*chatTestUserContext)
 	return ctc
+}
+
+func (c *chatTestContext) advanceFakeClock(d time.Duration) {
+	c.world.fc.Advance(d)
 }
 
 func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserContext {
@@ -89,7 +83,7 @@ func (c *chatTestContext) users() (users []*kbtest.FakeUser) {
 
 func mustCreateConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
 	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType, others...)
-	advanceFakeClockForChat(time.Second)
+	ctc.advanceFakeClock(time.Second)
 	return created
 }
 
@@ -107,7 +101,7 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 
 func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
 	mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
-	advanceFakeClockForChat(time.Second)
+	ctc.advanceFakeClock(time.Second)
 }
 
 func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
@@ -311,9 +305,15 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 	if len(res.Conversations) != 1 {
 		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 1 items, got %d\n", len(res.Conversations))
 	}
-	if res.Conversations[0].ReadUpTo != res.Conversations[0].Messages[0].Message.ServerHeader.MessageID {
-		t.Fatalf("conversation was not marked as read\n")
+	for _, m := range res.Conversations[0].Messages {
+		if m.Message.ServerHeader.MessageType == chat1.MessageType_TEXT {
+			if res.Conversations[0].ReadUpTo != m.Message.ServerHeader.MessageID {
+				t.Fatalf("conversation was not marked as read\n")
+			}
+			return
+		}
 	}
+	t.Fatalf("no TEXT message in returned inbox")
 }
 
 func TestChatGracefulUnboxing(t *testing.T) {
