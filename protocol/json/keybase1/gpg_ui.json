@@ -89,6 +89,10 @@
         }
       ],
       "response": "string"
+    },
+    "getTTY": {
+      "request": [],
+      "response": "string"
     }
   },
   "namespace": "keybase.1"

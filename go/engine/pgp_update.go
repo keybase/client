@@ -87,7 +87,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 			ctx.LogUI.Warning("Skipping update for key %s", fingerprint.String())
 			continue
 		}
-		bundle, err := gpgCLI.ImportKey(false /* secret */, fingerprint)
+		bundle, err := gpgCLI.ImportKey(false /* secret */, fingerprint, "")
 		if err != nil {
 			_, isNoKey := err.(libkb.NoKeyError)
 			if isNoKey {
