@@ -2417,7 +2417,11 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 	// immediately if the merge status matches the successful put, if
 	// they didn't get referenced in the successful put.  If the merge
 	// status is different (e.g., we ended up on a conflict branch),
-	// clean it up only if the original revision failed.
+	// clean it up only if the original revision failed.  If the same
+	// block appears more than once, the one with a different merged
+	// status takes precedence (which will always come earlier ni the
+	// list of MDs).
+	blocksSeen := make(map[BlockPointer]bool)
 	for _, oldMD := range syncState.si.toCleanIfUnused {
 		bdType := blockDeleteAlways
 		if oldMD.md.MergedStatus() != md.MergedStatus() {
@@ -2429,13 +2433,18 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 			if bs.blockPtr == zeroPtr {
 				panic("Unexpected zero block ptr in an old sync MD revision")
 			}
+			if blocksSeen[bs.blockPtr] {
+				continue
+			}
+			blocksSeen[bs.blockPtr] = true
 			if refs[bs.blockPtr] && bdType == blockDeleteAlways {
 				continue
 			}
 			failedBps.blockStates = append(failedBps.blockStates,
 				blockState{blockPtr: bs.blockPtr})
 			fbo.log.CDebugf(ctx, "Cleaning up block %v from a previous "+
-				"failed revision %d", bs.blockPtr, oldMD.md.Revision())
+				"failed revision %d (oldMD is %s, bdType=%d)", bs.blockPtr,
+				oldMD.md.Revision(), oldMD.md.MergedStatus(), bdType)
 		}
 
 		if len(failedBps.blockStates) > 0 {
