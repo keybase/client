@@ -156,7 +156,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                     sh "npm install"
                                                 }
                                                 sh "npm install ./visdiff"
-                                                sh "git rev-parse HEAD > ${env.BASEDIR}/visdiff_orig_revision"
                                                 try {
                                                     timeout(time: 10, unit: 'MINUTES') {
                                                         dir("desktop") {
@@ -166,7 +165,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                 } catch (e) {
                                                     helpers.slackMessage("#breaking-visdiff", "warning", "<@mgood>: visdiff failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>")
                                                 }
-                                                sh "git checkout \$(< ${env.BASEDIR}/visdiff_orig_revision)"
                                             }}}
                                         }
                                     }},
