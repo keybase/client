@@ -53,7 +53,7 @@ func (e *Login) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *Login) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&loginProvisionedDevice{},
+		&LoginProvisionedDevice{},
 		&loginLoadUser{},
 		&loginProvision{},
 	}
@@ -68,7 +68,7 @@ func (e *Login) Run(ctx *Context) error {
 		e.G().Log.Debug("skipping loginProvisionedDevice since %q provided to Login, which looks like an email address.", e.usernameOrEmail)
 	} else {
 		// First see if this device is already provisioned and it is possible to log in.
-		eng := newLoginProvisionedDevice(e.G(), e.usernameOrEmail)
+		eng := NewLoginProvisionedDevice(e.G(), e.usernameOrEmail)
 		err := RunEngine(eng, ctx)
 		if err == nil {
 			// login successful
