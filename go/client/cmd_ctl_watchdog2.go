@@ -63,7 +63,8 @@ func (c *CmdWatchdog2) Run() error {
 		return err
 	}
 	mountDir, err := env.GetMountDir()
-	if runtime.GOOS == "windows" {
+	if err != nil || mountDir == "" {
+		// for Windows
 		c.setDefaultMountDir()
 		mountDir, err = env.GetMountDir()
 	}
