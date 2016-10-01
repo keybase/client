@@ -79,12 +79,13 @@ func teardownMDJournalTest(t *testing.T, tempdir string) {
 func makeMDForTest(t *testing.T, tlfID TlfID, revision MetadataRevision,
 	uid keybase1.UID, prevRoot MdID) *RootMetadata {
 	h, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	crypto := MakeCryptoCommon(kbfscodec.NewMsgpack())
 	require.NoError(t, err)
 	md := NewRootMetadata()
 	err = md.Update(tlfID, h)
 	require.NoError(t, err)
 	md.SetRevision(revision)
-	md.FakeInitialRekey(kbfscodec.NewMsgpack(), h)
+	md.FakeInitialRekey(crypto, h)
 	md.SetPrevRoot(prevRoot)
 	md.SetDiskUsage(500)
 	return md

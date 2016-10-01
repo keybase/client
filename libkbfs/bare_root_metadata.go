@@ -807,11 +807,19 @@ func (md *BareRootMetadataV2) SetRevision(revision MetadataRevision) {
 	md.Revision = revision
 }
 
-// AddNewKeys implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) AddNewKeys(
-	wkb TLFWriterKeyBundleV2, rkb TLFReaderKeyBundleV2) {
+// AddNewKeysForTesting implements the MutableBareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) AddNewKeysForTesting(_ cryptoPure,
+	wDkim, rDkim UserDeviceKeyInfoMap) (extra ExtraMetadata, err error) {
+	wkb := TLFWriterKeyBundleV2{
+		WKeys: wDkim,
+	}
+	rkb := TLFReaderKeyBundleV2{
+		RKeys: rDkim,
+		TLFReaderEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
+	}
 	md.WKeys = append(md.WKeys, wkb)
 	md.RKeys = append(md.RKeys, rkb)
+	return nil, nil
 }
 
 // SetUnresolvedReaders implements the MutableBareRootMetadata interface for BareRootMetadataV2.
@@ -864,8 +872,7 @@ func (md *BareRootMetadataV2) Version() MetadataVer {
 }
 
 // FakeInitialRekey implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) FakeInitialRekey(
-	_ kbfscodec.Codec, h BareTlfHandle) (
+func (md *BareRootMetadataV2) FakeInitialRekey(_ cryptoPure, h BareTlfHandle) (
 	ExtraMetadata, error) {
 	if md.ID.IsPublic() {
 		panic("Called FakeInitialRekey on public TLF")
@@ -950,7 +957,8 @@ func (md *BareRootMetadataV2) NewKeyGeneration(pubKey TLFPublicKey) ExtraMetadat
 	newReaderKeys := TLFReaderKeyBundleV2{
 		RKeys: make(UserDeviceKeyInfoMap),
 	}
-	md.AddNewKeys(newWriterKeys, newReaderKeys)
+	md.WKeys = append(md.WKeys, newWriterKeys)
+	md.RKeys = append(md.RKeys, newReaderKeys)
 	return nil
 }
 
@@ -1006,9 +1014,21 @@ func (md *BareRootMetadataV2) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
 }
 
 // FinalizeRekey implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) FinalizeRekey(_ Config, _ ExtraMetadata) error {
+func (md *BareRootMetadataV2) FinalizeRekey(_ cryptoPure, _, _ TLFCryptKey, _ ExtraMetadata) error {
 	// No-op.
 	return nil
+}
+
+// StoresHistoricTLFCryptKeys implements the BareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) StoresHistoricTLFCryptKeys() bool {
+	// MDv2 metadata contains only per device encrypted keys.
+	return false
+}
+
+// GetHistoricTLFCryptKey implements the BareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) GetHistoricTLFCryptKey(_ cryptoPure, _ KeyGen, _ TLFCryptKey, _ ExtraMetadata) (
+	TLFCryptKey, error) {
+	return TLFCryptKey{}, errors.New("TLF crypt key not symmetrically encrypted")
 }
 
 // BareRootMetadataSignedV2 is the MD that is signed by the reader or

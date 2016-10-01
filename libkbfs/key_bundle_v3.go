@@ -33,10 +33,9 @@ type TLFWriterKeyBundleV3 struct {
 	// M_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
 	TLFPublicKeys []TLFPublicKey `codec:"pubKey"`
 
-	// This is a time-ordered, serialized, and encrypted list of historic key
-	// generations. It is encrypted with the latest generation of the TLF crypt
-	// key.
-	SerializedEncryptedHistoricTLFCryptKeys []byte `codec:"oldKeys"`
+	// This is a time-ordered encrypted list of historic key generations.
+	// It is encrypted with the latest generation of the TLF crypt key.
+	EncryptedHistoricTLFCryptKeys EncryptedTLFCryptKeys `codec:"oldKeys"`
 
 	codec.UnknownFieldSetHandler
 }

@@ -546,3 +546,37 @@ func (c CryptoCommon) DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf, privK
 	}
 	return &leaf, nil
 }
+
+// EncryptTLFCryptKeys implements the Crypto interface for CryptoCommon.
+func (c CryptoCommon) EncryptTLFCryptKeys(oldKeys []TLFCryptKey, key TLFCryptKey) (
+	encryptedKeys EncryptedTLFCryptKeys, err error) {
+	encodedKeys, err := c.codec.Encode(oldKeys)
+	if err != nil {
+		return
+	}
+
+	encryptedData, err := c.encryptData(encodedKeys, key.data)
+	if err != nil {
+		return
+	}
+
+	encryptedKeys = EncryptedTLFCryptKeys(encryptedData)
+	return
+}
+
+// DecryptTLFCryptKeys implements the Crypto interface for CryptoCommon.
+func (c CryptoCommon) DecryptTLFCryptKeys(encKeys EncryptedTLFCryptKeys, key TLFCryptKey) (
+	[]TLFCryptKey, error) {
+	encodedKeys, err := c.decryptData(encryptedData(encKeys), key.data)
+	if err != nil {
+		return nil, err
+	}
+
+	var oldKeys []TLFCryptKey
+	err = c.codec.Decode(encodedKeys, &oldKeys)
+	if err != nil {
+		return nil, err
+	}
+
+	return oldKeys, nil
+}

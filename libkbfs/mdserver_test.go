@@ -14,8 +14,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-func makeRMDSForTest(t *testing.T, id TlfID, h BareTlfHandle,
-	revision MetadataRevision, uid keybase1.UID,
+func makeRMDSForTest(t *testing.T, crypto cryptoPure, id TlfID,
+	h BareTlfHandle, revision MetadataRevision, uid keybase1.UID,
 	prevRoot MdID) *RootMetadataSigned {
 	rmds, err := NewRootMetadataSignedForTest(id, h)
 	require.NoError(t, err)
@@ -23,7 +23,7 @@ func makeRMDSForTest(t *testing.T, id TlfID, h BareTlfHandle,
 	rmds.MD.SetRevision(revision)
 	rmds.MD.SetLastModifyingWriter(uid)
 	rmds.MD.SetLastModifyingUser(uid)
-	rmds.MD.FakeInitialRekey(kbfscodec.NewMsgpack(), h)
+	rmds.MD.FakeInitialRekey(crypto, h)
 	rmds.MD.SetPrevRoot(prevRoot)
 	return rmds
 }
@@ -72,7 +72,7 @@ func TestMDServerBasics(t *testing.T) {
 	prevRoot := MdID{}
 	middleRoot := MdID{}
 	for i := MetadataRevision(1); i <= 10; i++ {
-		rmds := makeRMDSForTest(t, id, h, i, uid, prevRoot)
+		rmds := makeRMDSForTest(t, config.Crypto(), id, h, i, uid, prevRoot)
 		signRMDSForTest(t, config.Codec(), config.Crypto(), rmds)
 		// MDv3 TODO: pass actual key bundles
 		err = mdServer.Put(ctx, rmds, nil)
@@ -85,7 +85,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (3) trigger a conflict
-	rmds = makeRMDSForTest(t, id, h, 10, uid, prevRoot)
+	rmds = makeRMDSForTest(t, config.Crypto(), id, h, 10, uid, prevRoot)
 	signRMDSForTest(t, config.Codec(), config.Crypto(), rmds)
 	// MDv3 TODO: pass actual key bundles
 	err = mdServer.Put(ctx, rmds, nil)
@@ -97,7 +97,7 @@ func TestMDServerBasics(t *testing.T) {
 	bid, err := config.Crypto().MakeRandomBranchID()
 	require.NoError(t, err)
 	for i := MetadataRevision(6); i < 41; i++ {
-		rmds := makeRMDSForTest(t, id, h, i, uid, prevRoot)
+		rmds := makeRMDSForTest(t, config.Crypto(), id, h, i, uid, prevRoot)
 		rmds.MD.SetUnmerged()
 		rmds.MD.SetBranchID(bid)
 		signRMDSForTest(t, config.Codec(), config.Crypto(), rmds)

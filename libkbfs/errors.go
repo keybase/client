@@ -1233,3 +1233,17 @@ type blockNonExistentError struct {
 func (e blockNonExistentError) Error() string {
 	return fmt.Sprintf("block %s does not exist", e.id)
 }
+
+// TLFCryptKeyNotPerDeviceEncrypted is returned when a given TLFCryptKey is not
+// encrypted per-device but rather symmetrically encrypted with the current
+// generation of the TLFCryptKey.
+type TLFCryptKeyNotPerDeviceEncrypted struct {
+	tlf    TlfID
+	keyGen KeyGen
+}
+
+// // Error implements the error interface for TLFCryptKeyNotPerDeviceEncrypted
+func (e TLFCryptKeyNotPerDeviceEncrypted) Error() string {
+	return fmt.Sprintf("TLF crypt key for %s at generation %d is not per-device encrypted",
+		e.tlf, e.keyGen)
+}

@@ -38,9 +38,15 @@ func expectCachedGetTLFCryptKey(config *ConfigMock, tlfID TlfID, keyGen KeyGen) 
 	config.mockKcache.EXPECT().GetTLFCryptKey(tlfID, keyGen).Return(TLFCryptKey{}, nil)
 }
 
-func expectUncachedGetTLFCryptKey(config *ConfigMock, tlfID TlfID, keyGen KeyGen, uid keybase1.UID, subkey CryptPublicKey, encrypt bool) {
+func expectUncachedGetTLFCryptKey(config *ConfigMock, tlfID TlfID, keyGen, currKeyGen KeyGen,
+	uid keybase1.UID, subkey CryptPublicKey, encrypt, storesHistoric bool) {
 	config.mockKcache.EXPECT().GetTLFCryptKey(tlfID, keyGen).
 		Return(TLFCryptKey{}, KeyCacheMissError{})
+
+	if storesHistoric && keyGen < currKeyGen {
+		config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(gomock.Any()).
+			Return(subkey, nil)
+	}
 
 	// get the xor'd key out of the metadata
 	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(gomock.Any()).
@@ -53,6 +59,15 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, tlfID TlfID, keyGen KeyGen
 	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(gomock.Any(),
 		gomock.Any(), gomock.Any()).Return(TLFCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKeyClientHalf{}).Return(TLFCryptKey{}, nil)
+
+	if storesHistoric && keyGen < currKeyGen {
+		// expect a cache lookup of the current generation
+		config.mockKcache.EXPECT().GetTLFCryptKey(tlfID, currKeyGen).
+			Return(TLFCryptKey{}, KeyCacheMissError{})
+		// expect a decryption of the historic tlf keys
+		keys := make([]TLFCryptKey, int(currKeyGen-1))
+		config.mockCrypto.EXPECT().DecryptTLFCryptKeys(gomock.Any(), gomock.Any()).Return(keys, nil)
+	}
 
 	// now put the key into the cache
 	if !encrypt {
@@ -108,6 +123,14 @@ func expectRekey(config *ConfigMock, bh BareTlfHandle, numDevices int, handleCha
 	config.mockRep.EXPECT().Notify(gomock.Any(), gomock.Any()).AnyTimes()
 	config.mockKbs.EXPECT().FlushUserFromLocalCache(gomock.Any(),
 		gomock.Any()).AnyTimes()
+
+	// ignore key bundle ID creation
+	expectMakeKeyBundleIDs(config)
+}
+
+func expectMakeKeyBundleIDs(config *ConfigMock) {
+	config.mockCrypto.EXPECT().MakeTLFWriterKeyBundleID(gomock.Any()).Return(TLFWriterKeyBundleID{}, nil).AnyTimes()
+	config.mockCrypto.EXPECT().MakeTLFReaderKeyBundleID(gomock.Any()).Return(TLFReaderKeyBundleID{}, nil).AnyTimes()
 }
 
 func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
@@ -193,17 +216,14 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	}
 }
 
-// makeDirRKeyBundle creates a new bundle with a reader key.
-func makeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFReaderKeyBundleV2 {
-	return TLFReaderKeyBundleV2{
-		RKeys: UserDeviceKeyInfoMap{
-			uid: {
-				cryptPublicKey.kid: TLFCryptKeyInfo{
-					EPubKeyIndex: -1,
-				},
+// makeDirRKeyInfoMap creates a new user device key info map with a reader key.
+func makeDirRKeyInfoMap(uid keybase1.UID, cryptPublicKey CryptPublicKey) UserDeviceKeyInfoMap {
+	return UserDeviceKeyInfoMap{
+		uid: {
+			cryptPublicKey.kid: TLFCryptKeyInfo{
+				EPubKeyIndex: -1,
 			},
 		},
-		TLFReaderEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
 	}
 }
 
@@ -219,9 +239,12 @@ func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), makeDirRKeyBundle(uid, subkey))
+	expectMakeKeyBundleIDs(config)
+	AddNewKeysOrBust(t, config.Crypto(), rmd, NewEmptyUserDeviceKeyInfoMap(), makeDirRKeyInfoMap(uid, subkey))
 
-	expectUncachedGetTLFCryptKey(config, rmd.TlfID(), rmd.LatestKeyGeneration(), uid, subkey, true)
+	storesHistoric := rmd.StoresHistoricTLFCryptKeys()
+	expectUncachedGetTLFCryptKey(config, rmd.TlfID(),
+		rmd.LatestKeyGeneration(), rmd.LatestKeyGeneration(), uid, subkey, true, storesHistoric)
 
 	if _, err := config.KeyManager().
 		GetTLFCryptKeyForEncryption(ctx, rmd.ReadOnly()); err != nil {
@@ -239,7 +262,8 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), makeDirRKeyBundle(uid, subkey))
+	expectMakeKeyBundleIDs(config)
+	AddNewKeysOrBust(t, config.Crypto(), rmd, NewEmptyUserDeviceKeyInfoMap(), makeDirRKeyInfoMap(uid, subkey))
 
 	expectUncachedGetTLFCryptKeyAnyDevice(config, rmd.TlfID(), rmd.LatestKeyGeneration(), uid, subkey, false)
 
@@ -259,11 +283,14 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), makeDirRKeyBundle(uid, subkey))
-	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), makeDirRKeyBundle(uid, subkey))
+	expectMakeKeyBundleIDs(config)
+	AddNewKeysOrBust(t, config.Crypto(), rmd, NewEmptyUserDeviceKeyInfoMap(), makeDirRKeyInfoMap(uid, subkey))
+	AddNewKeysOrBust(t, config.Crypto(), rmd, NewEmptyUserDeviceKeyInfoMap(), makeDirRKeyInfoMap(uid, subkey))
 
 	keyGen := rmd.LatestKeyGeneration() - 1
-	expectUncachedGetTLFCryptKey(config, rmd.TlfID(), keyGen, uid, subkey, false)
+	storesHistoric := rmd.StoresHistoricTLFCryptKeys()
+	expectUncachedGetTLFCryptKey(config, rmd.TlfID(),
+		keyGen, rmd.LatestKeyGeneration(), uid, subkey, false, storesHistoric)
 
 	if _, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(
 		ctx, rmd.ReadOnly(), BlockPointer{KeyGen: keyGen}); err != nil {

@@ -136,6 +136,8 @@ func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
 // Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
 // non-public TLFs.
 func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
 	uw := []keybase1.SocialAssertion{
 		{
 			User:    "user2",
@@ -159,7 +161,7 @@ func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 	h := makeFakeTlfHandle(t, 14, false, uw, ur)
 	tlfID := FakeTlfID(0, false)
 	rmd := newRootMetadataOrBust(t, tlfID, h)
-	rmd.FakeInitialRekey(kbfscodec.NewMsgpack(), h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(crypto, h.ToBareHandleOrBust())
 
 	dirHandle := rmd.GetTlfHandle()
 	require.Equal(t, h, dirHandle)
@@ -172,13 +174,15 @@ func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 
 // Test that key generations work as expected for private TLFs.
 func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
 	tlfID := FakeTlfID(0, false)
 	h := makeFakeTlfHandle(t, 14, false, nil, nil)
 	rmd := newRootMetadataOrBust(t, tlfID, h)
 	if rmd.LatestKeyGeneration() != 0 {
 		t.Errorf("Expected key generation to be invalid (0)")
 	}
-	rmd.FakeInitialRekey(kbfscodec.NewMsgpack(), h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(crypto, h.ToBareHandleOrBust())
 	if rmd.LatestKeyGeneration() != FirstValidKeyGen {
 		t.Errorf("Expected key generation to be valid(%d)", FirstValidKeyGen)
 	}
@@ -548,7 +552,7 @@ func TestRootMetadataVersion(t *testing.T) {
 	// ... including if the assertions get resolved.
 	AddNewAssertionForTestOrBust(t, config, "bob", "bob@twitter")
 	rmd.SetSerializedPrivateMetadata([]byte{1}) // MakeSuccessor requires this
-	rmd.FakeInitialRekey(config.Codec(), h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(config.Crypto(), h.ToBareHandleOrBust())
 	if rmd.GetSerializedPrivateMetadata() == nil {
 		t.Fatalf("Nil private MD")
 	}
@@ -560,7 +564,7 @@ func TestRootMetadataVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't make MD successor: %v", err)
 	}
-	rmd3.FakeInitialRekey(config.Codec(), h3.ToBareHandleOrBust())
+	rmd3.FakeInitialRekey(config.Crypto(), h3.ToBareHandleOrBust())
 	err = rmd3.updateFromTlfHandle(h3)
 	if err != nil {
 		t.Fatalf("Couldn't update TLF handle: %v", err)
@@ -579,7 +583,7 @@ func TestMakeRekeyReadError(t *testing.T) {
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	rmd := newRootMetadataOrBust(t, id, h)
-	rmd.FakeInitialRekey(config.Codec(), h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(config.Crypto(), h.ToBareHandleOrBust())
 
 	u, uid, err := config.KBPKI().Resolve(context.Background(), "bob")
 	require.NoError(t, err)
@@ -590,6 +594,7 @@ func TestMakeRekeyReadError(t *testing.T) {
 	err = makeRekeyReadErrorHelper(rmd.ReadOnly(), h, FirstValidKeyGen, h.FirstResolvedWriter(), "alice")
 	require.Equal(t, NeedSelfRekeyError{"alice"}, err)
 
+	// MDv3 TODO: This case will no longer be valid. We'll expect the error to be NeedSelfRekeyError.
 	err = makeRekeyReadErrorHelper(rmd.ReadOnly(), h, FirstValidKeyGen+1, h.FirstResolvedWriter(), "alice")
 	require.Equal(t, NeedOtherRekeyError{"alice"}, err)
 }
@@ -604,7 +609,7 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 		false)
 	require.NoError(t, err)
 	rmd := newRootMetadataOrBust(t, id, h)
-	rmd.FakeInitialRekey(config.Codec(), h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(config.Crypto(), h.ToBareHandleOrBust())
 
 	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
 	require.NoError(t, err)
@@ -649,7 +654,7 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rmds.MD.FakeInitialRekey(config.Codec(), h)
+	rmds.MD.FakeInitialRekey(config.Crypto(), h)
 	rmds.MD.SetLastModifyingWriter(h.Writers[0])
 	rmds.MD.SetLastModifyingUser(h.Writers[0])
 	rmds.MD.SetSerializedPrivateMetadata([]byte{42})
