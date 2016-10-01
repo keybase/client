@@ -148,6 +148,7 @@ protocol local {
   }
 
   record ConversationLocal {
+    union { null, string } error;
     union { null, ConversationInfoLocal } info;
     array<MessageFromServerOrError> messages;
     MessageID readUpTo;

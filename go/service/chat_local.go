@@ -315,18 +315,20 @@ func (h *chatLocalHandler) resolveConversationsPipeline(ctx context.Context, con
 		eg.Go(func() error {
 			for conv := range convCh {
 				info, maxMessages, err := h.getConversationInfo(ctx, conv.conv)
-				if err != nil {
-					return err
-				}
-				select {
-				case retCh <- jobRes{
+				jr := jobRes{
 					conv: chat1.ConversationLocal{
 						Info:     &info,
 						Messages: maxMessages,
 						ReadUpTo: conv.conv.ReaderInfo.ReadMsgid,
 					},
 					index: conv.index,
-				}:
+				}
+				if err != nil {
+					jr.conv.Error = new(string)
+					*jr.conv.Error = err.Error()
+				}
+				select {
+				case retCh <- jr:
 				case <-ctx.Done():
 					return ctx.Err()
 				}
@@ -549,6 +551,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 		messagePlaintext, err := h.boxer.unboxMessage(ctx, kf, b)
 		if err != nil {
 			errMsg := err.Error()
+			h.G().Log.Warning("failed to unbox message: convID: %d msgID: %d err: %s", conversationRemote.Metadata.ConversationID, b.ServerHeader.MessageID, errMsg)
 			maxMessages = append(maxMessages, chat1.MessageFromServerOrError{
 				UnboxingError: &errMsg,
 			})
@@ -590,7 +593,8 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context,
 	}
 
 	if len(conversationInfo.TlfName) == 0 {
-		return chat1.ConversationInfoLocal{}, nil, errors.New("no valid message in the conversation")
+		return chat1.ConversationInfoLocal{}, nil,
+			fmt.Errorf("no valid message in the conversation: convID: %d", conversationRemote.Metadata.ConversationID)
 	}
 
 	// verify Conv matches ConversationIDTriple in MessageClientHeader
