@@ -1,8 +1,9 @@
 package client
 
-/* NOTE: This file is very out-dated. Maybe we can just remove this all
-* together. */
+/* NOTE: This file is very out-dated. We should retire this and use integration
+* tests instead. */
 
+/*
 import (
 	"errors"
 	"testing"
@@ -202,3 +203,4 @@ func TestCliRead(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+*/
