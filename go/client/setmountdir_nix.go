@@ -5,6 +5,6 @@
 
 package client
 
-func (c *CmdWatchdog2) setDefaultMountDir() error {
+func (c *CmdWatchdog2) probeForAvailalbleMountDir() error {
 	return nil
 }

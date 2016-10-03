@@ -65,7 +65,7 @@ func (c *CmdWatchdog2) Run() error {
 	mountDir, err := env.GetMountDir()
 	if err != nil || mountDir == "" {
 		// for Windows
-		c.setDefaultMountDir()
+		c.probeForAvailalbleMountDir()
 		mountDir, err = env.GetMountDir()
 	}
 	if err != nil {

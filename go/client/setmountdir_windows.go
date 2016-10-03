@@ -82,7 +82,7 @@ func getDriveLetter(log logger.Logger) (string, error) {
 // This makes a guess about what letter to use, starting at K,
 // and saving it in the settings.
 // Assume the caller has tested whether "mountdir" is set
-func (c *CmdWatchdog2) setDefaultMountDir() error {
+func (c *CmdWatchdog2) probeForAvailalbleMountDir() error {
 	drive, err := getDriveLetter(c.G().Log)
 	if err != nil {
 		return err
