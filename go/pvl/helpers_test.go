@@ -119,7 +119,13 @@ func TestSubstitute(t *testing.T) {
 	for i, test := range substituteTests {
 		state := sampleState()
 		state.Service = test.service
-		res, err := substitute(test.a, state, test.regexEscape)
+		var res string
+		var err error
+		if test.regexEscape {
+			res, err = substituteReEscape(test.a, state)
+		} else {
+			res, err = substituteExact(test.a, state)
+		}
 		if (err == nil) != test.shouldwork {
 			t.Fatalf("%v error mismatch: %v ; %v ; '%v'", i, test.shouldwork, err, res)
 		}

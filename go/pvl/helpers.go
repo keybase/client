@@ -18,7 +18,18 @@ import (
 )
 
 // Substitute register values for %{name} in the string.
-func substitute(template string, state scriptState, regexEscape bool) (string, libkb.ProofError) {
+// Regex-escape variable values
+func substituteReEscape(template string, state scriptState) (string, libkb.ProofError) {
+	return substituteInner(template, state, true)
+}
+
+// Substitute register values for %{name} in the string.
+// Does not escape register values
+func substituteExact(template string, state scriptState) (string, libkb.ProofError) {
+	return substituteInner(template, state, false)
+}
+
+func substituteInner(template string, state scriptState, regexEscape bool) (string, libkb.ProofError) {
 	var outerr libkb.ProofError
 	// Regex to find %{name} occurrences.
 	// Match broadly here so that even %{} is sent to the default case and reported as invalid.
