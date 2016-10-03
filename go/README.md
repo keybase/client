@@ -26,8 +26,7 @@ our [production site](https://keybase.io) or our [staging server](https://stage0
 
 #### Mac
 
-    brew update
-    brew install keybase
+See [Download for mac OS](https://keybase.io/docs/the_app/install_macos)
 
 #### Linux
 
@@ -42,7 +41,7 @@ Download the appropriate package:
 ### Building
 
 Here's how to build the command line client on Linux or OSX. You need to
-have both Git and **Go 1.5 or higher** installed. (Run `go version` to
+have both Git and **Go 1.6 or higher** installed. (Run `go version` to
 see what version you have.)
 
 ```bash
