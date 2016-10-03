@@ -34,18 +34,15 @@ else
 fi
 
 go_kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
+mkdir -p "$go_kbfs_dir"
+
 if [ ! "$local_kbfs" = "1" ]; then
   echo "Getting KBFS (via go get)..."
-  go get github.com/keybase/kbfs/libkbfs
-  go get github.com/keybase/kbfs/fsrpc
+  go get github.com/keybase/kbfs
 else
   # For testing local KBFS changes
   echo "Gettings KBFS (using local GOPATH)..."
-  mkdir -p "$go_kbfs_dir"
-  cp -R "$kbfs_dir"/libkbfs "$go_kbfs_dir"/libkbfs
-  cp -R "$kbfs_dir"/fsrpc "$go_kbfs_dir"/fsrpc
-  cp -R "$kbfs_dir"/env "$go_kbfs_dir"/env
-  cp -R "$kbfs_dir"/vendor "$go_kbfs_dir"/vendor
+  cp -R "$kbfs_dir"/* "$go_kbfs_dir"
 fi
 
 # Move all vendoring up a directory to github.com/keybase/vendor
