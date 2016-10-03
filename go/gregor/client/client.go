@@ -9,7 +9,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
 
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type LocalStorageEngine interface {

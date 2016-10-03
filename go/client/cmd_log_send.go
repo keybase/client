@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 )
@@ -140,10 +141,9 @@ func (c *CmdLogSend) GetUsage() libkb.Usage {
 
 func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 	logDir := c.G().Env.GetLogDir()
-	installLogPath, err := GetInstallLogPath()
+	installLogPath, err := install.InstallLogPath()
 	if err != nil {
-		c.G().Log.Errorf("Error in GetInstallLogPath: %s", err)
-		installLogPath = ""
+		c.G().Log.Errorf("Error (InstallLogPath): %s", err)
 	}
 	if status != nil {
 		return libkb.Logs{
@@ -153,6 +153,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 			Updater: status.Updater.Log,
 			Start:   status.Start.Log,
 			Install: installLogPath,
+			System:  install.SystemLogPath(),
 		}
 	}
 

@@ -290,6 +290,42 @@ var interpUnitTests = []interpUnitTest{
 		restype:    libkb.XAPIResText,
 		restext:    "kr0nk",
 		shouldwork: false,
+	}, {
+		name:      "AssertCompare-exact-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } },
+{"assert_compare": {
+  "cmp": "exact",
+  "a": "username_keybase",
+  "b": "tmp1" } }
+]]`},
+		service:    keybase1.ProofType_GENERIC_WEB_SITE,
+		restype:    libkb.XAPIResText,
+		restext:    "kronk",
+		shouldwork: true,
+	}, {
+		name:      "AssertCompare-exact-fail",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } },
+{"assert_compare": {
+  "cmp": "exact",
+  "a": "username_keybase",
+  "b": "tmp1" } }
+]]`},
+		service:    keybase1.ProofType_GENERIC_WEB_SITE,
+		restype:    libkb.XAPIResText,
+		restext:    "kroNk",
+		shouldwork: false,
 	},
 
 	// ## RegexCapture and WhitespaceNormalize tested together
@@ -809,6 +845,26 @@ var interpUnitTests = []interpUnitTest{
 		restype:    libkb.XAPIResText,
 		restext:    "foozle",
 		shouldwork: true,
+	}, {
+		name:      "Fill-ok-noregexesc",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } },
+{"fill": {
+  "with": "%{tmp1}-%{username_keybase}",
+  "into": "tmp2" } },
+{"assert_regex_match": {
+  "pattern": "^\\(x\\)-kronk$",
+  "from": "tmp2" } }
+]]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "(x)",
+		shouldwork: true,
 	},
 
 	// # Tests for invalid PVL at the top level
@@ -910,8 +966,7 @@ var interpUnitTests = []interpUnitTest{
 		restext:    "fuzztroo",
 		shouldwork: false,
 		errstatus:  keybase1.ProofStatus_BAD_SIGNATURE,
-	},
-	{
+	}, {
 		name:      "bad-sig-path-in-domain-dns",
 		proofinfo: infoBadDomain,
 		prepvl: map[keybase1.ProofType]string{
@@ -926,10 +981,24 @@ var interpUnitTests = []interpUnitTest{
 		},
 		shouldwork: false,
 		errstatus:  keybase1.ProofStatus_BAD_SIGNATURE,
-	},
-	{
+	}, {
 		name:      "bad-sig-proto",
 		proofinfo: infoBadProto,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } }
+]]`},
+		service:    keybase1.ProofType_GENERIC_WEB_SITE,
+		restype:    libkb.XAPIResText,
+		restext:    "fuzztroo",
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_BAD_SIGNATURE,
+	}, {
+		name:      "bad-sig-sig",
+		proofinfo: infoBadSig,
 		prepvl: map[keybase1.ProofType]string{
 			keybase1.ProofType_GENERIC_WEB_SITE: `[[
 {"fetch": {

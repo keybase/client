@@ -106,6 +106,10 @@ func CheckProof(g1 libkb.ProofContext, pvlS string, service keybase1.ProofType, 
 	if perr != nil {
 		debug(g, "CheckProof failed: %v", perr)
 	}
+	if perr != nil && perr.GetProofStatus() == keybase1.ProofStatus_INVALID_PVL {
+		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+			"Invalid proof verification instructions! Let us know at https://github.com/keybase/keybase-issues/new")
+	}
 	return perr
 }
 
@@ -166,7 +170,10 @@ func checkProofInner(g proofContextExt, pvlS string, service keybase1.ProofType,
 
 	var errs []libkb.ProofError
 	if service == keybase1.ProofType_DNS {
-		errs = runDNS(g, info.Hostname, scripts, mknewstate)
+		perr = runDNS(g, info.Hostname, scripts, mknewstate, sigID.ToMediumID())
+		if perr != nil {
+			errs = append(errs, perr)
+		}
 	} else {
 		// Run the scripts in order.
 		// If any succeed, the proof succeeds.
@@ -418,13 +425,13 @@ func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofTy
 
 // Run each script on each TXT record of each domain.
 // Succeed if any succeed.
-func runDNS(g proofContextExt, userdomain string, scripts []scriptT, mknewstate stateMaker) []libkb.ProofError {
+func runDNS(g proofContextExt, userdomain string, scripts []scriptT, mknewstate stateMaker, sigIDMedium string) libkb.ProofError {
 	domains := []string{userdomain, "_keybase." + userdomain}
 	var errs []libkb.ProofError
 	for _, d := range domains {
 		debug(g, "Trying DNS for domain: %v", d)
 
-		err := runDNSOne(g, d, scripts, mknewstate)
+		err := runDNSOne(g, d, scripts, mknewstate, sigIDMedium)
 		if err != nil {
 			errs = append(errs, err)
 		} else {
@@ -432,11 +439,20 @@ func runDNS(g proofContextExt, userdomain string, scripts []scriptT, mknewstate 
 		}
 	}
 
-	return errs
+	// Return only the error for the first domain error
+	if len(errs) == 0 {
+		return nil
+	}
+	var descs []string
+	for _, err := range errs {
+		descs = append(descs, err.GetDesc())
+	}
+	// Use the code from the first error
+	return libkb.NewProofError(errs[0].GetProofStatus(), strings.Join(descs, "; "))
 }
 
 // Run each script on each TXT record of the domain.
-func runDNSOne(g proofContextExt, domain string, scripts []scriptT, mknewstate stateMaker) libkb.ProofError {
+func runDNSOne(g proofContextExt, domain string, scripts []scriptT, mknewstate stateMaker, sigIDMedium string) libkb.ProofError {
 	// Fetch TXT records
 	var txts []string
 	var err error
@@ -476,8 +492,8 @@ func runDNSOne(g proofContextExt, domain string, scripts []scriptT, mknewstate s
 	}
 
 	return libkb.NewProofError(keybase1.ProofStatus_NOT_FOUND,
-		"Checked %d TXT entries of %s, but didn't find signature",
-		len(txts), domain)
+		"Checked %d TXT entries of %s, but didn't find signature keybase-site-verification=%s",
+		len(txts), domain, sigIDMedium)
 }
 
 func runScript(g proofContextExt, script *scriptT, startstate scriptState) libkb.ProofError {
@@ -613,6 +629,8 @@ func stepAssertCompare(g proofContextExt, ins assertCompareT, state scriptState)
 
 	var same bool
 	switch ins.Cmp {
+	case "exact":
+		same = (a == b)
 	case "cicmp":
 		same = libkb.Cicmp(a, b)
 	case "stripdots-then-cicmp":
@@ -842,7 +860,7 @@ func stepSelectorCSS(g proofContextExt, ins selectorCSST, state scriptState) (sc
 }
 
 func stepFill(g proofContextExt, ins fillT, state scriptState) (scriptState, libkb.ProofError) {
-	s, err := substitute(ins.With, state)
+	s, err := substituteExact(ins.With, state)
 	if err != nil {
 		debugWithState(g, state, "Fill did not succeed:\n  %v\n  %v\n  %v",
 			ins.With, err, ins.Into)
@@ -970,7 +988,7 @@ func interpretRegex(g proofContextExt, state scriptState, rdesc regexDescriptor)
 	}
 
 	// Do variable interpolation.
-	prepattern, perr := substitute(rdesc.Template, state)
+	prepattern, perr := substituteReEscape(rdesc.Template, state)
 	if perr != nil {
 		return nil, perr
 	}
@@ -1004,7 +1022,12 @@ func replaceCustomError(g proofContextExt, state scriptState, spec *errorT, err1
 	}
 
 	if (spec.Status != err1.GetProofStatus()) || (spec.Description != err1.GetDesc()) {
-		err2 := libkb.NewProofError(spec.Status, spec.Description)
+		newDesc := spec.Description
+		subbedDesc, subErr := substituteExact(spec.Description, state)
+		if subErr == nil {
+			newDesc = subbedDesc
+		}
+		err2 := libkb.NewProofError(spec.Status, newDesc)
 		debugWithState(g, state, "Replacing error with custom error")
 		debugWithStateError(g, state, err2)
 

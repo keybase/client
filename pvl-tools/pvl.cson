@@ -1,0 +1,304 @@
+pvl_version: 1
+revision: 1
+services:
+  coinbase: [[
+    # make the url (we don't need the hint)
+    { fill: {
+      , with: "https://coinbase.com/%{username_service}/public-key"
+      , into: "our_url" } },
+    # fetch
+    { fetch: {
+      , kind: "html"
+      , from: "our_url" } },
+    # find the sig
+    { selector_css: {
+      , selectors: ["pre.statement", 0]
+      , into: "haystack"
+      , error: ["FAILED_PARSE", "Couldn't find a div $(pre.statement)"] } },
+    { assert_find_base64: {
+      , needle: "sig"
+      , haystack: "haystack" }
+      , error: ["TEXT_NOT_FOUND", "signature not found in body"] },
+  ]]
+  dns: [[
+    # DNS has no hint. And it checks every txt record on two domains. And errors are handled specially.
+    # So everything is kind of different.
+    # Check this regex on each txt entry. If any match, the check succeeds.
+    { assert_regex_match: {
+      , pattern: "^keybase-site-verification=%{sig_id_medium}$"
+      , from: "txt"
+      , error: ["NOT_FOUND", "matching DNS entry not found"] } },
+  ]]
+  facebook: [[
+    # check url and extract username
+    { regex_capture: {
+      , pattern: "^https://m\\.facebook\\.com/([^/]*)/posts/.*$"
+      , from: "hint_url"
+      , into: ["username_from_url"]
+      , error: ["BAD_API_URL", "Bad hint from server; URL should start with 'https://m.facebook.com/%{username_service}/posts/', received '%{hint_url}'"] } },
+    { assert_compare: {
+      , cmp: "stripdots-then-cicmp"
+      , a: "username_from_url"
+      , b: "username_service"
+      , error: ["BAD_API_URL", "Bad hint from server; username in URL match '%{username_service}', received '%{username_from_url}'"] } },
+    { fetch: {
+      , kind: "html"
+      , from: "hint_url" } },
+    # m.facebook.com returns 200's for posts you can't see, rather than 404's.
+    # Having a post that's deleted or private is going to be much more common
+    # than the obscure errors below. Do an explicit check for that, to produce
+    # a better error message.
+    {selector_css: {
+      , selectors: ["#m_story_permalink_view"]
+      , multi: true
+      , into: "unused"
+      , error: ["FAILED_PARSE", "Couldn't find facebook post %{hint_url}. Is it deleted or private?"] } }
+    # check the username in the post's link
+    { selector_css: {
+      , selectors: ["#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3", 0, "a", 0]
+      , attr: "href"
+      , into: "username_link"
+      , error: ["FAILED_PARSE", "Couldn't find username href"] } },
+    { parse_url: {
+      , from: "username_link"
+      , path: "path"
+      , error: ["FAILED_PARSE", "Failed to parse username URL: %{username_link}"] } },
+    { regex_capture: {
+      , pattern: "^[^/]*/([^/]*)$"
+      , from: "path"
+      , into: ["split_path_1"]
+      , error: ["FAILED_PARSE", "Username URL has no path"] } },
+    { assert_compare: {
+      , cmp: "stripdots-then-cicmp"
+      , a: "split_path_1"
+      , b: "username_service"
+      , error: ["BAD_USERNAME", "Usernames don't match '%{split_path_1}' vs '%{username_service}'"] } },
+    # check the proof text
+    { selector_css: {
+      , selectors: ["#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3", 1]
+      , into: "header"
+      , error: ["FAILED_PARSE", "Couldn't find proof text header"] } },
+    { whitespace_normalize: {
+      , from: "header"
+      , into: "header_nw" } },
+    { regex_capture: {
+      , pattern: "^Verifying myself: I am (\\S+) on Keybase\\.io\\. %{sig_id_medium}$"
+      , from: "header_nw"
+      , into: ["username_from_header"]
+      , error: ["TEXT_NOT_FOUND", "Proof text not found: 'Verifying myself: I am %{username_keybase} on Keybase.io. %{sig_id_medium}' != '%{header_nw}'"] } },
+    { assert_compare: {
+      , cmp: "cicmp"
+      , a: "username_from_header"
+      , b: "username_keybase"
+      , error: ["TEXT_NOT_FOUND", "Wrong keybase username in proof text '%{username_from_header}' != 'username_keybase'"] } }
+  ]]
+  github: [[
+    # validate url and extract username
+    { regex_capture: {
+      , pattern: "^https://gist\\.github(?:usercontent)?\\.com/([^/]*)/.*$"
+      , from: "hint_url"
+      , into: ["username_from_url"]
+      , error: ["BAD_API_URL", "Bad hint from server; URL should start with either https://gist.github.com OR https://gist.githubusercontent.com"] } },
+    { assert_compare: {
+      , cmp: "cicmp"
+      , a: "username_from_url"
+      , b: "username_service"
+      , error: ["BAD_API_URL", "Bad hint from server; URL should contain username matching %{username_service}; got %{username_from_url}"] } },
+    { fetch: {
+      , kind: "string"
+      , from: "hint_url"
+      , into: "haystack" } },
+    # find the sig
+    { assert_find_base64: {
+      , needle: "sig"
+      , haystack: "haystack" }
+      , error: ["TEXT_NOT_FOUND", "signature not found in body"] },
+  ]]
+  hackernews: [[
+    # validate url and extract username
+    { regex_capture: {
+      , pattern: "^https://hacker-news\\.firebaseio\\.com/v0/user/([^/]+)/about.json$"
+      , from: "hint_url"
+      , into: ["username_from_url"]
+      , error: ["BAD_API_URL", "Bad hint from server; URL should match https://hacker-news.firebaseio.com/v0/user/%{username_service}/about.json"] } },
+    { assert_compare: {
+      , cmp: "cicmp"
+      , a: "username_from_url"
+      , b: "username_service"
+      , error: ["BAD_API_URL", "Bad hint from server; URL should contain username matching %{username_service}; got %{username_from_url}"] } },
+    { fetch: {
+      , kind: "string"
+      , from: "hint_url"
+      , into: "profile" } },
+    { assert_regex_match: {
+      , pattern: "^.*%{sig_id_medium}.*$"
+      , from: "profile"
+      , error: ["TEXT_NOT_FOUND", "Posted text does not include signature '%{sig_id_medium}'"] } },
+  ]]
+  reddit: [[
+    # validate the url
+    { regex_capture: {
+      , pattern: "^https://www.reddit.com/r/([^/]+)/(.*)$"
+      , from: "hint_url"
+      , into: ["subreddit_from_url", "path_remainder"]
+      , error: ["BAD_API_URL", "URL should start with 'https://www.reddit.com/r/keybaseproofs'"] } },
+    { assert_regex_match: {
+      , pattern: "^keybaseproofs$"
+      , case_insensitive: true
+      , from: "subreddit_from_url"
+      , error: ["BAD_API_URL", "URL contained wrong subreddit '%{subreddit_from_url}' !+ 'keybaseproofs'"] } },
+    { fetch: {
+      , from: "hint_url"
+      , kind: "json" } },
+    # check that the first thing is a Listing
+    { selector_json: {
+      , selectors: [0, "kind"]
+      , into: "kind"
+      , error: ["CONTENT_MISSING", "Could not find 'kind' in json"] } },
+    { assert_regex_match: {
+      , pattern: "^Listing$"
+      , from: "kind"
+      , error: ["CONTENT_FAILURE", "Wanted a post of type 'Listing', but got %{kind}"] } },
+    # check that the inner thing is a t3
+    { selector_json: {
+      , selectors: [0, "data", "children", 0, "kind"]
+      , into: "inner_kind"
+      , error: ["CONTENT_MISSING", "Could not find inner 'kind' in json"] } },
+    { assert_regex_match: {
+      , pattern: "^t3$"
+      , from: "inner_kind"
+      , error: ["CONTENT_FAILURE", "Wanted a child of type 't3' but got %{inner_kind}"] } },
+    # check the subreddit
+    { selector_json: {
+      , selectors: [0, "data", "children", 0, "data", "subreddit"]
+      , into: "subreddit_from_json"
+      , error: ["CONTENT_MISSING", "Could not find 'subreddit' in json"] } },
+    { assert_regex_match: {
+      , pattern: "^keybaseproofs$"
+      , case_insensitive: true
+      , from: "subreddit_from_json"
+      , error: ["CONTENT_FAILURE", "Wrong subreddti %{subreddit_from_json}"] } },
+    # check the author
+    { selector_json: {
+      , selectors: [0, "data", "children", 0, "data", "author"]
+      , into: "author"
+      , error: ["CONTENT_MISSING", "Could not find author in json"] } },
+    { assert_compare: {
+      , cmp: "cicmp"
+      , a: "author"
+      , b: "username_service"
+      , error: ["BAD_USERNAME", "Bad post author; wanted '%{username_service} but got '%{author}'"] } },
+    # check the title
+    { selector_json: {
+      , selectors: [0, "data", "children", 0, "data", "title"]
+      , into: "title"
+      , error: ["CONTENT_MISSING", "Could not find title in json"] } },
+    { assert_regex_match: {
+      , pattern: "^.*%{sig_id_medium}.*$"
+      , from: "title"
+      , error: ["TITLE_NOT_FOUND", "Missing signature ID (%{sig_id_medium})) in post title '%{title}'"] } },
+    # check the selftext
+    { selector_json: {
+      , selectors: [0, "data", "children", 0, "data", "selftext"]
+      , into: "selftext"
+      , error: ["CONTENT_MISSING", "Could not find selftext in json"] } },
+    { assert_find_base64: {
+      , needle: "sig"
+      , haystack: "selftext"
+      , error: ["TEXT_NOT_FOUND", "signature not found in body"] } },
+  ]]
+  rooter: [[
+    # URL validation.
+    { assert_regex_match: {
+      , pattern: "^https?://[\\w:_\\-\\.]+/_/api/1\\.0/rooter/%{username_service}/.*$"
+      , case_insensitive: true} },
+    # rooter is special cased by the interpreter to hit the api server
+    { fetch: {
+      , kind: "json" } },
+    { selector_json: {
+      , selectors: ["status", "name"]
+      , into: "name" } },
+    { assert_regex_match: {
+      , pattern: "^ok$"
+      , case_insensitive: true
+      , from: "name" } },
+    { selector_json: {
+      , selectors: ["toot", "post"]
+      , into: "post" } },
+    { assert_regex_match: {
+      , pattern: "^.*%{sig_id_medium}.*$"
+      , from: "post" } },
+  ]]
+  twitter: [[
+    # Twitter verification is a HTML fetch and two checks.
+    # One that the correct user posted the tweet according to data-screen-name.
+    # And another that the proof hash is in the tweet text.
+
+    # validate url and extract username
+    { regex_capture: {
+      , pattern: "^https://twitter\\.com/([^/]+)/.*$"
+      , from: "hint_url"
+      , into: ["username_from_url"]
+      , error: ["BAD_API_URL", "Bad hint from server; URL should start with 'https://twitter.com/%{username_service}/'"] } },
+    { assert_compare: {
+      , cmp: "cicmp"
+      , a: "username_from_url"
+      , b: "username_service"
+      , error: ["BAD_API_URL", "Bad hint from server; URL should contain username matching %{username_service}; got %{username_from_url}"] } },
+    # url validation passed
+    { fetch: {
+      , from: "hint_url"
+      , kind: "html" } },
+    # Check the author.
+    { selector_css: {
+      , selectors: [ "div.permalink-tweet-container div.permalink-tweet", 0 ]
+      , attr: "data-screen-name"
+      , into: "data_screen_name"
+      , error: ["FAILED_PARSE", "Couldn't find a div $(div.permalink-tweet-container div.permalink-tweet).eq(0)"] } },
+    { assert_compare: {
+      , cmp: "cicmp"
+      , a: "data_screen_name"
+      , b: "username_service"
+      , error: ["BAD_USERNAME", "Bad post authored: wanted ${username_service} but got %{data_screen_name}"] } },
+    # Check the username in the tweet. Case insensitive.
+    { selector_css: {
+      , selectors: ["div.permalink-tweet-container div.permalink-tweet", 0, "p.tweet-text", 0]
+      , into: "tweet_contents"
+      , error: ["CONTENT_MISSING", "Missing <div class='tweet-text'> container for tweet"] } },
+    { whitespace_normalize: {
+      , from: "tweet_contents"
+      , into: "tweet_contents_nw" } },
+    # Strip mentions off the front. Get username and sig.
+    { regex_capture: {
+      , pattern: "^ *(?:@[a-zA-Z0-9_-]+\\s*)* *Verifying myself: I am ([A-Za-z0-9_]+) on Keybase\\.io\\. (\\S+) */.*$"
+      , from: "tweet_contents_nw"
+      , into: ["username_from_tweet_contents", "sig_from_tweet_contents"]
+      , error: ["DELETED", "Could not find 'Verifying myself: I am %{username_keybase} on Keybase.io. %{sig_id_short}'"] } },
+    # Check username in tweet body
+    { assert_compare: {
+      , cmp: "cicmp"
+      , a: "username_from_tweet_contents"
+      , b: "username_keybase"
+      , error: ["BAD_USERNAME", "Wrong username in tweet '%{username_from_tweet_contents}' should be '%{username_keybase}'"] } },
+    # Check the sig id in the tweet.
+    { assert_regex_match: {
+      , pattern: "^%{sig_id_short}$"
+      , from: "sig_from_tweet_contents"
+      , error: ["TEXT_NOT_FOUND", "Could not find sig '%{sig_from_tweet_contents}' != '%{sig_id_short}'"] } },
+  ]]
+  generic_web_site: [[
+    # URL validation. Must be HTTP or HTTPS. Must be a known path from the proof domain.
+    { assert_regex_match: {
+      , pattern: "^%{protocol}://%{hostname}/(?:\\.well-known/keybase\\.txt|keybase\\.txt)$"
+      , from: "hint_url"
+      , error: ["BAD_API_URL", "Bad hint from server; didn't recognize API url: \"%{hint_url}\""]} },
+    { fetch: {
+      , kind: "string"
+      , from: "hint_url"
+      , into: "blob" } },
+    # Verify and find the sig.
+    { assert_find_base64: {
+      , needle: "sig"
+      , haystack: "blob"
+      , error: ["TEXT_NOT_FOUND", "signature not found in body"] } },
+  ]]
