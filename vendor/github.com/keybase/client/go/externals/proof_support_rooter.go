@@ -33,6 +33,11 @@ func NewRooterChecker(p libkb.RemoteProofChainLink) (*RooterChecker, libkb.Proof
 func (rc *RooterChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *RooterChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) (err libkb.ProofError) {
+	if pvl.UsePvl {
+		// checking the hint is done later in CheckStatus
+		return nil
+	}
+
 	ctx.GetLog().Debug("+ Rooter check hint: %v", h)
 	defer func() {
 		ctx.GetLog().Debug("- Rooter check hint: %v", err)
@@ -130,7 +135,8 @@ func (rc *RooterChecker) rewriteURL(ctx libkb.ProofContext, s string) (string, e
 
 func (rc *RooterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) (perr libkb.ProofError) {
 	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_ROOTER, rc.proof, h)
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_ROOTER,
+			pvl.NewProofInfo(rc.proof, h))
 	}
 	return rc.CheckStatusOld(ctx, h)
 }

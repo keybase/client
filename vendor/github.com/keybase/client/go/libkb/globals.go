@@ -84,6 +84,8 @@ type GlobalContext struct {
 	GregorListener  GregorListener            // for alerting about clients connecting and registering UI protocols
 	OutOfDateInfo   keybase1.OutOfDateInfo    // Stores out of date messages we got from API server headers.
 
+	CardCache *UserCardCache // cache of keybase1.UserCard objects
+
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
 }
@@ -180,8 +182,12 @@ func (g *GlobalContext) Logout() error {
 	if g.Identify2Cache != nil {
 		g.Identify2Cache.Shutdown()
 	}
+	if g.CardCache != nil {
+		g.CardCache.Shutdown()
+	}
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
+	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
 
 	// get a clean LoginState:
 	g.createLoginStateLocked()
@@ -279,9 +285,12 @@ func (g *GlobalContext) ConfigureCaches() error {
 	g.Resolver.EnableCaching()
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
+	g.Log.Debug("Created Identify2Cache, max age: %s", g.Env.GetUserCacheMaxAge())
 	g.ProofCache = NewProofCache(g, g.Env.GetProofCacheSize())
 	g.LinkCache = NewLinkCache(g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
 	g.Log.Debug("Created LinkCache, max size: %d, clean dur: %s", g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
+	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
+	g.Log.Debug("Created CardCache, max age: %s", g.Env.GetUserCacheMaxAge())
 
 	// We consider the local DB as a cache; it's caching our
 	// fetches from the server after all (and also our cryptographic
@@ -346,6 +355,9 @@ func (g *GlobalContext) Shutdown() error {
 		}
 		if g.LinkCache != nil {
 			g.LinkCache.Shutdown()
+		}
+		if g.CardCache != nil {
+			g.CardCache.Shutdown()
 		}
 		if g.Resolver != nil {
 			g.Resolver.Shutdown()
@@ -647,6 +659,10 @@ func (g *GlobalContext) GetKBFSInfoPath() string {
 
 func (g *GlobalContext) GetLogDir() string {
 	return g.Env.GetLogDir()
+}
+
+func (g *GlobalContext) GetDataDir() string {
+	return g.Env.GetDataDir()
 }
 
 func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {

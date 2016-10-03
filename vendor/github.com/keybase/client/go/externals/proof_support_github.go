@@ -30,6 +30,11 @@ func NewGithubChecker(p libkb.RemoteProofChainLink) (*GithubChecker, libkb.Proof
 func (rc *GithubChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *GithubChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		// checking the hint is done later in CheckStatus
+		return nil
+	}
+
 	given := strings.ToLower(h.GetAPIURL())
 	u := strings.ToLower(rc.proof.GetRemoteUsername())
 	ok1 := "https://gist.github.com/" + u + "/"
@@ -43,7 +48,8 @@ func (rc *GithubChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libk
 
 func (rc *GithubChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_GITHUB, rc.proof, h)
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_GITHUB,
+			pvl.NewProofInfo(rc.proof, h))
 	}
 	return rc.CheckStatusOld(ctx, h)
 }

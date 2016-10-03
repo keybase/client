@@ -197,6 +197,16 @@ const (
 	SCWrongCryptoFormat      = int(keybase1.StatusCode_SCWrongCryptoFormat)
 	SCGPGUnavailable         = int(keybase1.StatusCode_SCGPGUnavailable)
 	SCDecryptionError        = int(keybase1.StatusCode_SCDecryptionError)
+	SCChatInternal           = int(keybase1.StatusCode_SCChatInternal)
+	SCChatRateLimit          = int(keybase1.StatusCode_SCChatRateLimit)
+	SCChatConvExists         = int(keybase1.StatusCode_SCChatConvExists)
+	SCChatUnknownTLFID       = int(keybase1.StatusCode_SCChatUnknownTLFID)
+	SCChatNotInConv          = int(keybase1.StatusCode_SCChatNotInConv)
+	SCChatBadMsg             = int(keybase1.StatusCode_SCChatBadMsg)
+	SCChatBroadcast          = int(keybase1.StatusCode_SCChatBroadcast)
+	SCChatAlreadySuperseded  = int(keybase1.StatusCode_SCChatAlreadySuperseded)
+	SCChatAlreadyDeleted     = int(keybase1.StatusCode_SCChatAlreadyDeleted)
+	SCChatTLFFinalized       = int(keybase1.StatusCode_SCChatTLFFinalized)
 )
 
 const (
@@ -276,6 +286,7 @@ var PGPArmorHeaders = map[string]string{
 var RemoteServiceTypes = map[string]keybase1.ProofType{
 	"keybase":    keybase1.ProofType_KEYBASE,
 	"twitter":    keybase1.ProofType_TWITTER,
+	"facebook":   keybase1.ProofType_FACEBOOK,
 	"github":     keybase1.ProofType_GITHUB,
 	"reddit":     keybase1.ProofType_REDDIT,
 	"coinbase":   keybase1.ProofType_COINBASE,
@@ -289,6 +300,7 @@ var RemoteServiceTypes = map[string]keybase1.ProofType{
 var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_KEYBASE,
 	keybase1.ProofType_TWITTER,
+	keybase1.ProofType_FACEBOOK,
 	keybase1.ProofType_GITHUB,
 	keybase1.ProofType_REDDIT,
 	keybase1.ProofType_COINBASE,
@@ -442,10 +454,9 @@ const (
 )
 
 const (
-	SignaturePrefixKBFS       SignaturePrefix = "Keybase-KBFS-1"
-	SignaturePrefixChatHeader SignaturePrefix = "Keybase-Chat-Body-1"
-	SignaturePrefixChatBody   SignaturePrefix = "Keybase-Chat-Header-1"
-	SignaturePrefixSigchain   SignaturePrefix = "Keybase-Sigchain-1"
+	SignaturePrefixKBFS     SignaturePrefix = "Keybase-KBFS-1"
+	SignaturePrefixChat     SignaturePrefix = "Keybase-Chat-1"
+	SignaturePrefixSigchain SignaturePrefix = "Keybase-Sigchain-1"
 )
 
 const (

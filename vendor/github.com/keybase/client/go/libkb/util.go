@@ -448,7 +448,7 @@ func Digest(r io.Reader) (string, error) {
 // TimeLog calls out with the time since start.  Use like this:
 //    defer TimeLog("MyFunc", time.Now(), e.G().Log.Warning)
 func TimeLog(name string, start time.Time, out func(string, ...interface{})) {
-	out("* %s: %s", name, time.Since(start))
+	out("time> %s: %s", name, time.Since(start))
 }
 
 func WhitespaceNormalize(s string) string {

@@ -6,6 +6,8 @@
 package libkb
 
 import (
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -13,10 +15,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp"
 	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 func (sh SigHint) Export() *keybase1.SigHint {
@@ -365,6 +369,96 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			Msg:  s.Desc,
 			Code: code,
 		}
+	case SCChatInternal:
+		return ChatInternalError{}
+	case SCChatConvExists:
+		var convID chat1.ConversationID
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "ConvID":
+				var err error
+				val, err := strconv.ParseUint(field.Value, 10, 64)
+				if err != nil {
+					G.Log.Warning("error parsing chat conv exists conv ID: %s", err)
+				}
+				convID = chat1.MakeConversationID(val)
+			}
+		}
+		return ChatConvExistsError{
+			ConvID: convID,
+		}
+	case SCChatUnknownTLFID:
+		var tlfID chat1.TLFID
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "TlfID":
+				var err error
+				tlfID, err = chat1.MakeTLFID(field.Value)
+				if err != nil {
+					G.Log.Warning("error parsing chat unknown TLF ID error")
+				}
+			}
+		}
+		return ChatUnknownTLFIDError{
+			TlfID: tlfID,
+		}
+	case SCChatNotInConv:
+		var uid gregor1.UID
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "UID":
+				val, err := hex.DecodeString(field.Value)
+				if err != nil {
+					G.Log.Warning("error parsing chat not in conv UID")
+				}
+				uid = gregor1.UID(val)
+			}
+		}
+		return ChatNotInConvError{
+			UID: uid,
+		}
+	case SCChatTLFFinalized:
+		var tlfID chat1.TLFID
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "TlfID":
+				var err error
+				tlfID, err = chat1.MakeTLFID(field.Value)
+				if err != nil {
+					G.Log.Warning("error parsing chat tlf finalized TLFID: %s", err.Error())
+				}
+			}
+		}
+		return ChatTLFFinalizedError{
+			TlfID: tlfID,
+		}
+	case SCChatBadMsg:
+		return ChatBadMsgError{Msg: s.Desc}
+	case SCChatBroadcast:
+		return ChatBroadcastError{Msg: s.Desc}
+	case SCChatRateLimit:
+		var rlimit chat1.RateLimit
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "RateLimit":
+				var err error
+				err = json.Unmarshal([]byte(field.Value), &rlimit)
+				if err != nil {
+					G.Log.Warning("error parsing chat rate limit: %s", err.Error())
+				}
+			}
+		}
+		if rlimit.Name == "" {
+			G.Log.Warning("error rate limit information not found")
+		}
+		return ChatRateLimitError{
+			RateLimit: rlimit,
+			Msg:       s.Desc,
+		}
+	case SCChatAlreadySuperseded:
+		return ChatAlreadySupersededError{Msg: s.Desc}
+	case SCChatAlreadyDeleted:
+		return ChatAlreadyDeletedError{Msg: s.Desc}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1225,5 +1319,110 @@ func (e DeviceNameInUseError) ToStatus() (s keybase1.Status) {
 		Code: SCDeviceNameInUse,
 		Name: "SC_DEVICE_NAME_IN_USE",
 		Desc: e.Error(),
+	}
+}
+
+func (e ChatInternalError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatInternal,
+		Name: "SC_CHAT_INTERNAL",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatConvExistsError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "ConvID",
+		Value: e.ConvID.String(),
+	}
+	return keybase1.Status{
+		Code:   SCChatConvExists,
+		Name:   "SC_CHAT_CONVEXISTS",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
+	}
+}
+
+func (e ChatUnknownTLFIDError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "TlfID",
+		Value: e.TlfID.String(),
+	}
+	return keybase1.Status{
+		Code:   SCChatUnknownTLFID,
+		Name:   "SC_CHAT_UNKNOWN_TLFID",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
+	}
+}
+
+func (e ChatNotInConvError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "UID",
+		Value: e.UID.String(),
+	}
+	return keybase1.Status{
+		Code:   SCChatNotInConv,
+		Name:   "SC_CHAT_NOT_IN_CONV",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
+	}
+}
+func (e ChatBadMsgError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatBadMsg,
+		Name: "SC_CHAT_BADMSG",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatBroadcastError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatBroadcast,
+		Name: "SC_CHAT_BROADCAST",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatRateLimitError) ToStatus() keybase1.Status {
+	b, _ := json.Marshal(e.RateLimit)
+	kv := keybase1.StringKVPair{
+		Key:   "RateLimit",
+		Value: string(b[:]),
+	}
+	return keybase1.Status{
+		Code:   SCChatRateLimit,
+		Name:   "SC_CHAT_RATELIMIT",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
+	}
+}
+
+func (e ChatAlreadySupersededError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatAlreadySuperseded,
+		Name: "SC_CHAT_ALREADY_SUPERSEDED",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatAlreadyDeletedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatAlreadyDeleted,
+		Name: "SC_CHAT_ALREADY_DELETED",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatTLFFinalizedError) ToStatus() keybase1.Status {
+	kv := keybase1.StringKVPair{
+		Key:   "TlfID",
+		Value: e.TlfID.String(),
+	}
+	return keybase1.Status{
+		Code:   SCChatTLFFinalized,
+		Name:   "SC_CHAT_TLF_FINALIZED",
+		Desc:   e.Error(),
+		Fields: []keybase1.StringKVPair{kv},
 	}
 }

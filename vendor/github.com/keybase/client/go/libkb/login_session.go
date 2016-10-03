@@ -156,6 +156,7 @@ func (s *LoginSession) Load() error {
 		NeedSession: false,
 		Args: HTTPArgs{
 			"email_or_username": S{Val: s.sessionFor},
+			"pdpka_login":       B{Val: true},
 		},
 	})
 	if err != nil {

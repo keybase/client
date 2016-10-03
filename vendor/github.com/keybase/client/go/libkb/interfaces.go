@@ -371,7 +371,6 @@ type TerminalUI interface {
 	PromptPassword(PromptDescriptor, string) (string, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
 	Tablify(headings []string, rowfunc func() []string)
-	TablifyAlignRight(headings []string, rowfunc func() []string)
 	TerminalSize() (width int, height int)
 }
 
@@ -488,6 +487,11 @@ type ServiceType interface {
 	// NormalizeRemote normalizes the given remote username, which
 	// is usually but not always the same as the username. It also
 	// allows leaders like '@' and 'dns://'.
+	//
+	// In the case of Facebook, this version does the standard downcasing, but
+	// leaves the dots in (that NormalizeUsername above would strip out). This
+	// lets us keep the dots in the proof text, and display them on your
+	// profile page, even though we ignore them for proof checking.
 	NormalizeRemoteName(ctx ProofContext, name string) (string, error)
 
 	GetPrompt() string
@@ -510,5 +514,5 @@ type ServiceType interface {
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
-	ListProofCheckers() []string
+	ListProofCheckers(mode RunMode) []string
 }

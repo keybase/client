@@ -43,10 +43,14 @@ func (rc *WebChecker) GetTorError() libkb.ProofError {
 }
 
 func (rc *WebChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		// checking the hint is done later in CheckStatus
+		return nil
+	}
 
 	files := webKeybaseFiles
 	urlBase := rc.proof.ToDisplayString()
-	theirURL := strings.ToLower(h.GetAPIURL())
+	theirURL := h.GetAPIURL()
 
 	for _, file := range files {
 		ourURL := urlBase + "/" + file
@@ -62,7 +66,8 @@ func (rc *WebChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.P
 
 func (rc *WebChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_GENERIC_WEB_SITE, rc.proof, h)
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_GENERIC_WEB_SITE,
+			pvl.NewProofInfo(rc.proof, h))
 	}
 	return rc.CheckStatusOld(ctx, h)
 }

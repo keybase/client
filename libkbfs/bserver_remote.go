@@ -12,7 +12,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )

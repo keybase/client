@@ -9,7 +9,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 // Context is an implementation for libkbfs.Context
