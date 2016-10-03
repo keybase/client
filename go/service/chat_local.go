@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/engine"
@@ -157,12 +158,12 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		RateLimits: h.aggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 	}
 
-	for _, convRemote := range ib.Inbox.Conversations {
-		convLocal, err := h.localizeConversation(ctx, convRemote)
-		if err != nil {
-			return chat1.GetInboxLocalRes{}, err
-		}
-
+	ctx, _ = getUserInfoMapper(ctx, h.G())
+	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Conversations)
+	if err != nil {
+		return chat1.GetInboxLocalRes{}, err
+	}
+	for _, convLocal := range convLocals {
 		if rquery.TlfID != nil {
 			// verify using signed TlfName to make sure server returned genuine conversation
 			signedTlfID, _, err := h.cryptKeysWrapper(ctx, convLocal.Info.TlfName)
@@ -319,6 +320,65 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 		}
 	}
 	return h.prepareMessageForRemote(ctx, chat1.NewMessagePlaintextWithV1(v1))
+}
+
+func (h *chatLocalHandler) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation) ([]chat1.ConversationLocal, error) {
+	// Fetch conversation local information in parallel
+	ctx, _ = getUserInfoMapper(ctx, h.G())
+	type jobRes struct {
+		conv  chat1.ConversationLocal
+		index int
+	}
+	type job struct {
+		conv  chat1.Conversation
+		index int
+	}
+	eg, ctx := errgroup.WithContext(ctx)
+	convCh := make(chan job)
+	retCh := make(chan jobRes)
+	eg.Go(func() error {
+		defer close(convCh)
+		for i, conv := range convs {
+			select {
+			case convCh <- job{conv: conv, index: i}:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+		return nil
+	})
+	for i := 0; i < 10; i++ {
+		eg.Go(func() error {
+			for conv := range convCh {
+				convLocal, err := h.localizeConversation(ctx, conv.conv)
+				if err != nil {
+					return err
+				}
+				jr := jobRes{
+					conv:  convLocal,
+					index: conv.index,
+				}
+				select {
+				case retCh <- jr:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+			}
+			return nil
+		})
+	}
+	go func() {
+		eg.Wait()
+		close(retCh)
+	}()
+	res := make([]chat1.ConversationLocal, len(convs))
+	for c := range retCh {
+		res[c.index] = c.conv
+	}
+	if err := eg.Wait(); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetInboxSummaryForCLILocalQuery) (res chat1.GetInboxSummaryForCLILocalRes, err error) {
