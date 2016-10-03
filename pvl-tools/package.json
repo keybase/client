@@ -1,0 +1,15 @@
+{
+  "name": "pvl-tools",
+  "version": "1.0.0",
+  "description": "Tools for converting pvl from cson into a useable form",
+  "main": "reader.iced",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "dependencies": {
+    "cson": "^3.0.2",
+    "docopt": "^0.6.2",
+    "json-stable-stringify": "^1.0.1"
+  }
+}
