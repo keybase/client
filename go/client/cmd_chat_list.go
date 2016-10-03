@@ -14,7 +14,7 @@ import (
 type cmdChatList struct {
 	libkb.Contextified
 
-	fetcher chatInboxFetcher
+	fetcher chatCLIInboxFetcher
 
 	showDeviceName bool
 }
@@ -57,7 +57,7 @@ func (c *cmdChatList) Run() error {
 }
 
 func (c *cmdChatList) ParseArgv(ctx *cli.Context) (err error) {
-	if c.fetcher, err = makeInboxFetcherActivitySortedFromCli(ctx); err != nil {
+	if c.fetcher, err = makeChatCLIInboxFetcherActivitySorted(ctx); err != nil {
 		return err
 	}
 	c.showDeviceName = ctx.Bool("show-device-name")

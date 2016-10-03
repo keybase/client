@@ -86,12 +86,12 @@ export function localGetInboxLocalRpcPromise (request: $Exact<requestCommon & {c
   return new Promise((resolve, reject) => { localGetInboxLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function localGetInboxSummaryLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxSummaryLocalResult) => void} & {param: localGetInboxSummaryLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.getInboxSummaryLocal'})
+export function localGetInboxSummaryForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxSummaryForCLILocalResult) => void} & {param: localGetInboxSummaryForCLILocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'local.getInboxSummaryForCLILocal'})
 }
 
-export function localGetInboxSummaryLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxSummaryLocalResult) => void} & {param: localGetInboxSummaryLocalRpcParam}>): Promise<localGetInboxSummaryLocalResult> {
-  return new Promise((resolve, reject) => { localGetInboxSummaryLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+export function localGetInboxSummaryForCLILocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxSummaryForCLILocalResult) => void} & {param: localGetInboxSummaryForCLILocalRpcParam}>): Promise<localGetInboxSummaryForCLILocalResult> {
+  return new Promise((resolve, reject) => { localGetInboxSummaryForCLILocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function localGetThreadLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetThreadLocalResult) => void} & {param: localGetThreadLocalRpcParam}>) {
@@ -305,7 +305,7 @@ export type GetInboxRemoteRes = {
   rateLimit?: ?RateLimit,
 }
 
-export type GetInboxSummaryLocalQuery = {
+export type GetInboxSummaryForCLILocalQuery = {
   topicType: TopicType,
   after: string,
   before: string,
@@ -315,7 +315,7 @@ export type GetInboxSummaryLocalQuery = {
   activitySortedLimit: int,
 }
 
-export type GetInboxSummaryLocalRes = {
+export type GetInboxSummaryForCLILocalRes = {
   conversations?: ?Array<ConversationLocal>,
   more?: ?Array<ConversationLocal>,
   moreTotal: int,
@@ -509,11 +509,6 @@ export type RateLimit = {
   maxCalls: int,
 }
 
-export type ResolveConversationLocalRes = {
-  convs?: ?Array<ConversationInfoLocal>,
-  rateLimits?: ?Array<RateLimit>,
-}
-
 export type SignatureInfo = {
   v: int,
   s: bytes,
@@ -552,10 +547,6 @@ export type UnreadFirstNumLimit = {
   AtMost: int,
 }
 
-export type UpdateTopicNameLocalRes = {
-  rateLimits?: ?Array<RateLimit>,
-}
-
 export type localGetConversationForCLILocalRpcParam = Exact<{
   query: GetConversationForCLILocalQuery
 }>
@@ -565,8 +556,8 @@ export type localGetInboxLocalRpcParam = Exact<{
   pagination?: ?Pagination
 }>
 
-export type localGetInboxSummaryLocalRpcParam = Exact<{
-  query: GetInboxSummaryLocalQuery
+export type localGetInboxSummaryForCLILocalRpcParam = Exact<{
+  query: GetInboxSummaryForCLILocalQuery
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{
@@ -630,7 +621,7 @@ type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
 
 type localGetInboxLocalResult = GetInboxLocalRes
 
-type localGetInboxSummaryLocalResult = GetInboxSummaryLocalRes
+type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
 
 type localGetThreadLocalResult = GetThreadLocalRes
 
@@ -655,7 +646,7 @@ type remotePostRemoteResult = PostRemoteRes
 export type rpc =
     localGetConversationForCLILocalRpc
   | localGetInboxLocalRpc
-  | localGetInboxSummaryLocalRpc
+  | localGetInboxSummaryForCLILocalRpc
   | localGetThreadLocalRpc
   | localNewConversationLocalRpc
   | localPostLocalRpc

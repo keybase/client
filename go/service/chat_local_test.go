@@ -275,14 +275,14 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello0"}))
 	mustPostLocalForTest(t, ctc, users[1], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello1"}))
 
-	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
 		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 	}
 	if len(res.Conversations) != 1 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 1 items, got %d\n", len(res.Conversations))
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
 	}
 
 	var found bool
@@ -313,14 +313,14 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 		t.Fatalf("unexpected response from GetThreadLocal. expected 2 items, got %d\n", len(tv.Thread.Messages))
 	}
 
-	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
 		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 	}
 	if len(res.Conversations) != 1 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 1 items, got %d\n", len(res.Conversations))
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
 	}
 
 	found = false
@@ -368,8 +368,8 @@ func TestChatGracefulUnboxing(t *testing.T) {
 	}
 }
 
-func TestChatGetInboxSummaryLocal(t *testing.T) {
-	ctc := makeChatTestContext(t, "GetInboxSummaryLocal", 4)
+func TestChatGetInboxSummaryForCLILocal(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetInboxSummaryForCLILocal", 4)
 	defer ctc.cleanup()
 	users := ctc.users()
 
@@ -389,47 +389,47 @@ func TestChatGetInboxSummaryLocal(t *testing.T) {
 	withUser123 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username, ctc.as(t, users[2]).user().Username, ctc.as(t, users[3]).user().Username)
 	mustPostLocalForTest(t, ctc, users[0], withUser123, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
 
-	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
 		After:     "1d",
 		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 	}
 	if len(res.Conversations) != 5 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 3 items, got %d\n", len(res.Conversations))
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 3 items, got %d\n", len(res.Conversations))
 	}
 	if res.Conversations[0].Info.Id != withUser123.Id {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal; newest updated conversation is not the first in response.\n")
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal; newest updated conversation is not the first in response.\n")
 	}
 	// TODO: fix this when merging master back in
 	if len(res.Conversations[0].MaxMessages) != 2 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 2 messages in the first conversation, got %d\n", len(res.Conversations[0].MaxMessages))
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 messages in the first conversation, got %d\n", len(res.Conversations[0].MaxMessages))
 	}
 
-	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
 		ActivitySortedLimit: 2,
 		TopicType:           chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 	}
 	if len(res.Conversations) != 2 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 2 items, got %d\n", len(res.Conversations))
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
 	}
 
-	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
 		ActivitySortedLimit: 2,
 		TopicType:           chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 	}
 	if len(res.Conversations) != 2 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 2 items, got %d\n", len(res.Conversations))
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
 	}
 
-	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
 		UnreadFirst: true,
 		UnreadFirstLimit: chat1.UnreadFirstNumLimit{
 			AtLeast: 0,
@@ -439,16 +439,16 @@ func TestChatGetInboxSummaryLocal(t *testing.T) {
 		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 	}
 	if len(res.Conversations) != 2 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 2 items, got %d\n", len(res.Conversations))
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
 	}
 	if res.Conversations[0].Info.Id != withUser1.Id {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal; unread conversation is not the first in response.\n")
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal; unread conversation is not the first in response.\n")
 	}
 
-	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
 		UnreadFirst: true,
 		UnreadFirstLimit: chat1.UnreadFirstNumLimit{
 			AtLeast: 0,
@@ -458,13 +458,13 @@ func TestChatGetInboxSummaryLocal(t *testing.T) {
 		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 	}
 	if len(res.Conversations) != 2 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 1 items, got %d\n", len(res.Conversations))
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
 	}
 
-	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalQuery{
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
 		UnreadFirst: true,
 		UnreadFirstLimit: chat1.UnreadFirstNumLimit{
 			AtLeast: 3,
@@ -474,9 +474,9 @@ func TestChatGetInboxSummaryLocal(t *testing.T) {
 		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetInboxSummaryLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 	}
 	if len(res.Conversations) != 3 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 1 items, got %d\n", len(res.Conversations))
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
 	}
 }

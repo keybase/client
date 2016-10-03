@@ -14,14 +14,14 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type chatConversationResolver struct {
+type chatCLIConversationResolver struct {
 	TlfName    string
 	TopicName  string
 	TopicType  chat1.TopicType
 	Visibility chat1.TLFVisibility
 }
 
-func (r *chatConversationResolver) Resolve(ctx context.Context, g *libkb.GlobalContext, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
+func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.GlobalContext, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
 	if len(r.TlfName) > 0 {
 		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, r.TlfName)
 		if err != nil {
@@ -72,14 +72,14 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, g *libkb.GlobalC
 	}
 }
 
-type chatConversationFetcher struct {
+type chatCLIConversationFetcher struct {
 	query    chat1.GetConversationForCLILocalQuery
-	resolver chatConversationResolver
+	resolver chatCLIConversationResolver
 
 	chatClient chat1.LocalInterface // for testing only
 }
 
-func (f chatConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations chat1.ConversationLocal, messages []chat1.MessageFromServerOrError, err error) {
+func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations chat1.ConversationLocal, messages []chat1.MessageFromServerOrError, err error) {
 	chatClient := f.chatClient // should be nil unless in test
 	if chatClient == nil {
 		chatClient, err = GetChatLocalClient(g)
@@ -111,13 +111,13 @@ func (f chatConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalConte
 	return gcfclres.Conversation, gcfclres.Messages, nil
 }
 
-type chatInboxFetcher struct {
-	query chat1.GetInboxSummaryLocalQuery
+type chatCLIInboxFetcher struct {
+	query chat1.GetInboxSummaryForCLILocalQuery
 
 	chatClient chat1.LocalInterface // for testing only
 }
 
-func (f chatInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []chat1.ConversationLocal, more []chat1.ConversationLocal, moreTotal int, err error) {
+func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []chat1.ConversationLocal, more []chat1.ConversationLocal, moreTotal int, err error) {
 	chatClient := f.chatClient // should be nil unless in test
 	if chatClient == nil {
 		chatClient, err = GetChatLocalClient(g)
@@ -126,7 +126,7 @@ func (f chatInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (co
 		}
 	}
 
-	res, err := chatClient.GetInboxSummaryLocal(ctx, f.query)
+	res, err := chatClient.GetInboxSummaryForCLILocal(ctx, f.query)
 	if err != nil {
 		return nil, nil, moreTotal, err
 	}

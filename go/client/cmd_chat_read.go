@@ -14,7 +14,7 @@ import (
 type cmdChatRead struct {
 	libkb.Contextified
 
-	fetcher chatConversationFetcher
+	fetcher chatCLIConversationFetcher
 
 	showDeviceName bool
 }
@@ -62,7 +62,7 @@ func (c *cmdChatRead) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) >= 1 {
 		tlfName = ctx.Args().Get(0)
 	}
-	if c.fetcher, err = makeMessageFetcherFromCliCtx(ctx, tlfName, true); err != nil {
+	if c.fetcher, err = makeChatCLIConversationFetcher(ctx, tlfName, true); err != nil {
 		return err
 	}
 	c.showDeviceName = ctx.Bool("show-device-name")

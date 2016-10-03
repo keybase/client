@@ -321,23 +321,23 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 	return h.prepareMessageForRemote(ctx, chat1.NewMessagePlaintextWithV1(v1))
 }
 
-func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalQuery) (res chat1.GetInboxSummaryLocalRes, err error) {
+func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetInboxSummaryForCLILocalQuery) (res chat1.GetInboxSummaryForCLILocalRes, err error) {
 	if err = h.assertLoggedIn(ctx); err != nil {
-		return chat1.GetInboxSummaryLocalRes{}, err
+		return chat1.GetInboxSummaryForCLILocalRes{}, err
 	}
 
 	var after time.Time
 	if len(arg.After) > 0 {
 		after, err = parseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
 		if err != nil {
-			return chat1.GetInboxSummaryLocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
+			return chat1.GetInboxSummaryForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
 		}
 	}
 	var before time.Time
 	if len(arg.Before) > 0 {
 		before, err = parseTimeFromRFC3339OrDurationFromPast(h.G(), arg.Before)
 		if err != nil {
-			return chat1.GetInboxSummaryLocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
+			return chat1.GetInboxSummaryForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
 		}
 	}
 
@@ -368,7 +368,7 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 			Pagination: &chat1.Pagination{Num: arg.UnreadFirstLimit.AtMost},
 			Query:      &query,
 		}); err != nil {
-			return chat1.GetInboxSummaryLocalRes{}, err
+			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
 		res.RateLimits = append(res.RateLimits, gires.RateLimits...)
 		res.Conversations = append(res.Conversations, gires.Conversations...)
@@ -385,7 +385,7 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 				Pagination: &chat1.Pagination{Num: more},
 				Query:      &query,
 			}); err != nil {
-				return chat1.GetInboxSummaryLocalRes{}, err
+				return chat1.GetInboxSummaryForCLILocalRes{}, err
 			}
 			res.RateLimits = append(res.RateLimits, gires.RateLimits...)
 			res.Conversations = append(res.Conversations, gires.Conversations...)
@@ -400,7 +400,7 @@ func (h *chatLocalHandler) GetInboxSummaryLocal(ctx context.Context, arg chat1.G
 			Pagination: &chat1.Pagination{Num: arg.ActivitySortedLimit},
 			Query:      &query,
 		}); err != nil {
-			return chat1.GetInboxSummaryLocalRes{}, err
+			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
 		res.RateLimits = append(res.RateLimits, gires.RateLimits...)
 		res.Conversations = append(res.Conversations, gires.Conversations...)

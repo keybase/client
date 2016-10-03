@@ -20,7 +20,7 @@ import (
 type cmdChatSend struct {
 	libkb.Contextified
 	message      string
-	resolver     chatConversationResolver
+	resolver     chatCLIConversationResolver
 	setTopicName string
 }
 

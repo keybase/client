@@ -356,46 +356,16 @@ type ConversationLocal struct {
 	MaxMessages []MessageFromServerOrError `codec:"maxMessages" json:"maxMessages"`
 }
 
-type GetInboxLocalRes struct {
-	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
-	Pagination    *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	RateLimits    []RateLimit         `codec:"rateLimits" json:"rateLimits"`
+type GetThreadQuery struct {
+	MarkAsRead   bool          `codec:"markAsRead" json:"markAsRead"`
+	MessageTypes []MessageType `codec:"messageTypes" json:"messageTypes"`
+	Before       *gregor1.Time `codec:"before,omitempty" json:"before,omitempty"`
+	After        *gregor1.Time `codec:"after,omitempty" json:"after,omitempty"`
 }
 
 type GetThreadLocalRes struct {
 	Thread     ThreadView  `codec:"thread" json:"thread"`
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
-}
-
-type PostLocalRes struct {
-	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
-}
-
-type ResolveConversationLocalRes struct {
-	Convs      []ConversationInfoLocal `codec:"convs" json:"convs"`
-	RateLimits []RateLimit             `codec:"rateLimits" json:"rateLimits"`
-}
-
-type NewConversationLocalRes struct {
-	Conv       ConversationLocal `codec:"conv" json:"conv"`
-	RateLimits []RateLimit       `codec:"rateLimits" json:"rateLimits"`
-}
-
-type UpdateTopicNameLocalRes struct {
-	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
-}
-
-type GetConversationForCLILocalRes struct {
-	Conversation ConversationLocal          `codec:"conversation" json:"conversation"`
-	Messages     []MessageFromServerOrError `codec:"messages" json:"messages"`
-	RateLimits   []RateLimit                `codec:"rateLimits" json:"rateLimits"`
-}
-
-type GetInboxSummaryLocalRes struct {
-	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
-	More          []ConversationLocal `codec:"more" json:"more"`
-	MoreTotal     int                 `codec:"moreTotal" json:"moreTotal"`
-	RateLimits    []RateLimit         `codec:"rateLimits" json:"rateLimits"`
 }
 
 type GetInboxLocalQuery struct {
@@ -411,15 +381,22 @@ type GetInboxLocalQuery struct {
 	ReadOnly          bool            `codec:"readOnly" json:"readOnly"`
 }
 
-type GetConversationForCLILocalQuery struct {
-	MarkAsRead     bool                `codec:"markAsRead" json:"markAsRead"`
-	MessageTypes   []MessageType       `codec:"MessageTypes" json:"MessageTypes"`
-	Since          *string             `codec:"Since,omitempty" json:"Since,omitempty"`
-	Limit          UnreadFirstNumLimit `codec:"limit" json:"limit"`
-	ConversationId ConversationID      `codec:"conversationId" json:"conversationId"`
+type GetInboxLocalRes struct {
+	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
+	Pagination    *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	RateLimits    []RateLimit         `codec:"rateLimits" json:"rateLimits"`
 }
 
-type GetInboxSummaryLocalQuery struct {
+type PostLocalRes struct {
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+type NewConversationLocalRes struct {
+	Conv       ConversationLocal `codec:"conv" json:"conv"`
+	RateLimits []RateLimit       `codec:"rateLimits" json:"rateLimits"`
+}
+
+type GetInboxSummaryForCLILocalQuery struct {
 	TopicType           TopicType           `codec:"topicType" json:"topicType"`
 	After               string              `codec:"after" json:"after"`
 	Before              string              `codec:"before" json:"before"`
@@ -429,15 +406,36 @@ type GetInboxSummaryLocalQuery struct {
 	ActivitySortedLimit int                 `codec:"activitySortedLimit" json:"activitySortedLimit"`
 }
 
-type GetInboxLocalArg struct {
-	Query      *GetInboxLocalQuery `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
+type GetInboxSummaryForCLILocalRes struct {
+	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
+	More          []ConversationLocal `codec:"more" json:"more"`
+	MoreTotal     int                 `codec:"moreTotal" json:"moreTotal"`
+	RateLimits    []RateLimit         `codec:"rateLimits" json:"rateLimits"`
+}
+
+type GetConversationForCLILocalQuery struct {
+	MarkAsRead     bool                `codec:"markAsRead" json:"markAsRead"`
+	MessageTypes   []MessageType       `codec:"MessageTypes" json:"MessageTypes"`
+	Since          *string             `codec:"Since,omitempty" json:"Since,omitempty"`
+	Limit          UnreadFirstNumLimit `codec:"limit" json:"limit"`
+	ConversationId ConversationID      `codec:"conversationId" json:"conversationId"`
+}
+
+type GetConversationForCLILocalRes struct {
+	Conversation ConversationLocal          `codec:"conversation" json:"conversation"`
+	Messages     []MessageFromServerOrError `codec:"messages" json:"messages"`
+	RateLimits   []RateLimit                `codec:"rateLimits" json:"rateLimits"`
 }
 
 type GetThreadLocalArg struct {
 	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
 	Query          *GetThreadQuery `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination     *Pagination     `codec:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+type GetInboxLocalArg struct {
+	Query      *GetInboxLocalQuery `codec:"query,omitempty" json:"query,omitempty"`
+	Pagination *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 type PostLocalArg struct {
@@ -452,43 +450,27 @@ type NewConversationLocalArg struct {
 	TopicName     *string       `codec:"topicName,omitempty" json:"topicName,omitempty"`
 }
 
+type GetInboxSummaryForCLILocalArg struct {
+	Query GetInboxSummaryForCLILocalQuery `codec:"query" json:"query"`
+}
+
 type GetConversationForCLILocalArg struct {
 	Query GetConversationForCLILocalQuery `codec:"query" json:"query"`
 }
 
-type GetInboxSummaryLocalArg struct {
-	Query GetInboxSummaryLocalQuery `codec:"query" json:"query"`
-}
-
 type LocalInterface interface {
-	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
+	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
+	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
-	GetInboxSummaryLocal(context.Context, GetInboxSummaryLocalQuery) (GetInboxSummaryLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "chat.1.local",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"getInboxLocal": {
-				MakeArg: func() interface{} {
-					ret := make([]GetInboxLocalArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetInboxLocalArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetInboxLocalArg)(nil), args)
-						return
-					}
-					ret, err = i.GetInboxLocal(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"getThreadLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]GetThreadLocalArg, 1)
@@ -501,6 +483,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getInboxLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetInboxLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetInboxLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetInboxLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInboxLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -537,6 +535,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getInboxSummaryForCLILocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetInboxSummaryForCLILocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetInboxSummaryForCLILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetInboxSummaryForCLILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInboxSummaryForCLILocal(ctx, (*typedArgs)[0].Query)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getConversationForCLILocal": {
 				MakeArg: func() interface{} {
 					ret := make([]GetConversationForCLILocalArg, 1)
@@ -553,22 +567,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getInboxSummaryLocal": {
-				MakeArg: func() interface{} {
-					ret := make([]GetInboxSummaryLocalArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetInboxSummaryLocalArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetInboxSummaryLocalArg)(nil), args)
-						return
-					}
-					ret, err = i.GetInboxSummaryLocal(ctx, (*typedArgs)[0].Query)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 		},
 	}
 }
@@ -577,13 +575,13 @@ type LocalClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c LocalClient) GetInboxLocal(ctx context.Context, __arg GetInboxLocalArg) (res GetInboxLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getInboxLocal", []interface{}{__arg}, &res)
+func (c LocalClient) GetThreadLocal(ctx context.Context, __arg GetThreadLocalArg) (res GetThreadLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getThreadLocal", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LocalClient) GetThreadLocal(ctx context.Context, __arg GetThreadLocalArg) (res GetThreadLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getThreadLocal", []interface{}{__arg}, &res)
+func (c LocalClient) GetInboxLocal(ctx context.Context, __arg GetInboxLocalArg) (res GetInboxLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getInboxLocal", []interface{}{__arg}, &res)
 	return
 }
 
@@ -597,14 +595,14 @@ func (c LocalClient) NewConversationLocal(ctx context.Context, __arg NewConversa
 	return
 }
 
-func (c LocalClient) GetConversationForCLILocal(ctx context.Context, query GetConversationForCLILocalQuery) (res GetConversationForCLILocalRes, err error) {
-	__arg := GetConversationForCLILocalArg{Query: query}
-	err = c.Cli.Call(ctx, "chat.1.local.getConversationForCLILocal", []interface{}{__arg}, &res)
+func (c LocalClient) GetInboxSummaryForCLILocal(ctx context.Context, query GetInboxSummaryForCLILocalQuery) (res GetInboxSummaryForCLILocalRes, err error) {
+	__arg := GetInboxSummaryForCLILocalArg{Query: query}
+	err = c.Cli.Call(ctx, "chat.1.local.getInboxSummaryForCLILocal", []interface{}{__arg}, &res)
 	return
 }
 
-func (c LocalClient) GetInboxSummaryLocal(ctx context.Context, query GetInboxSummaryLocalQuery) (res GetInboxSummaryLocalRes, err error) {
-	__arg := GetInboxSummaryLocalArg{Query: query}
-	err = c.Cli.Call(ctx, "chat.1.local.getInboxSummaryLocal", []interface{}{__arg}, &res)
+func (c LocalClient) GetConversationForCLILocal(ctx context.Context, query GetConversationForCLILocalQuery) (res GetConversationForCLILocalRes, err error) {
+	__arg := GetConversationForCLILocalArg{Query: query}
+	err = c.Cli.Call(ctx, "chat.1.local.getConversationForCLILocal", []interface{}{__arg}, &res)
 	return
 }

@@ -391,28 +391,32 @@
     },
     {
       "type": "record",
-      "name": "GetInboxLocalRes",
+      "name": "GetThreadQuery",
       "fields": [
+        {
+          "type": "boolean",
+          "name": "markAsRead"
+        },
         {
           "type": {
             "type": "array",
-            "items": "ConversationLocal"
+            "items": "MessageType"
           },
-          "name": "conversations"
+          "name": "messageTypes"
         },
         {
           "type": [
             null,
-            "Pagination"
+            "gregor1.Time"
           ],
-          "name": "pagination"
+          "name": "before"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "RateLimit"
-          },
-          "name": "rateLimits"
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "after"
         }
       ]
     },
@@ -423,124 +427,6 @@
         {
           "type": "ThreadView",
           "name": "thread"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "RateLimit"
-          },
-          "name": "rateLimits"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PostLocalRes",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "RateLimit"
-          },
-          "name": "rateLimits"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ResolveConversationLocalRes",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "ConversationInfoLocal"
-          },
-          "name": "convs"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "RateLimit"
-          },
-          "name": "rateLimits"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "NewConversationLocalRes",
-      "fields": [
-        {
-          "type": "ConversationLocal",
-          "name": "conv"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "RateLimit"
-          },
-          "name": "rateLimits"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UpdateTopicNameLocalRes",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "RateLimit"
-          },
-          "name": "rateLimits"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "GetConversationForCLILocalRes",
-      "fields": [
-        {
-          "type": "ConversationLocal",
-          "name": "conversation"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "MessageFromServerOrError"
-          },
-          "name": "messages"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "RateLimit"
-          },
-          "name": "rateLimits"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "GetInboxSummaryLocalRes",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "ConversationLocal"
-          },
-          "name": "conversations"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ConversationLocal"
-          },
-          "name": "more"
-        },
-        {
-          "type": "int",
-          "name": "moreTotal"
         },
         {
           "type": {
@@ -623,6 +509,128 @@
     },
     {
       "type": "record",
+      "name": "GetInboxLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PostLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NewConversationLocalRes",
+      "fields": [
+        {
+          "type": "ConversationLocal",
+          "name": "conv"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxSummaryForCLILocalQuery",
+      "fields": [
+        {
+          "type": "TopicType",
+          "name": "topicType"
+        },
+        {
+          "type": "string",
+          "name": "after"
+        },
+        {
+          "type": "string",
+          "name": "before"
+        },
+        {
+          "type": "TLFVisibility",
+          "name": "visibility"
+        },
+        {
+          "type": "boolean",
+          "name": "unreadFirst"
+        },
+        {
+          "type": "UnreadFirstNumLimit",
+          "name": "unreadFirstLimit"
+        },
+        {
+          "type": "int",
+          "name": "activitySortedLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxSummaryForCLILocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "more"
+        },
+        {
+          "type": "int",
+          "name": "moreTotal"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetConversationForCLILocalQuery",
       "fields": [
         {
@@ -655,59 +663,30 @@
     },
     {
       "type": "record",
-      "name": "GetInboxSummaryLocalQuery",
+      "name": "GetConversationForCLILocalRes",
       "fields": [
         {
-          "type": "TopicType",
-          "name": "topicType"
+          "type": "ConversationLocal",
+          "name": "conversation"
         },
         {
-          "type": "string",
-          "name": "after"
+          "type": {
+            "type": "array",
+            "items": "MessageFromServerOrError"
+          },
+          "name": "messages"
         },
         {
-          "type": "string",
-          "name": "before"
-        },
-        {
-          "type": "TLFVisibility",
-          "name": "visibility"
-        },
-        {
-          "type": "boolean",
-          "name": "unreadFirst"
-        },
-        {
-          "type": "UnreadFirstNumLimit",
-          "name": "unreadFirstLimit"
-        },
-        {
-          "type": "int",
-          "name": "activitySortedLimit"
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
         }
       ]
     }
   ],
   "messages": {
-    "getInboxLocal": {
-      "request": [
-        {
-          "name": "query",
-          "type": [
-            null,
-            "GetInboxLocalQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
-          ]
-        }
-      ],
-      "response": "GetInboxLocalRes"
-    },
     "getThreadLocal": {
       "request": [
         {
@@ -730,6 +709,25 @@
         }
       ],
       "response": "GetThreadLocalRes"
+    },
+    "getInboxLocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        }
+      ],
+      "response": "GetInboxLocalRes"
     },
     "postLocal": {
       "request": [
@@ -768,6 +766,15 @@
       ],
       "response": "NewConversationLocalRes"
     },
+    "getInboxSummaryForCLILocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": "GetInboxSummaryForCLILocalQuery"
+        }
+      ],
+      "response": "GetInboxSummaryForCLILocalRes"
+    },
     "getConversationForCLILocal": {
       "request": [
         {
@@ -776,15 +783,6 @@
         }
       ],
       "response": "GetConversationForCLILocalRes"
-    },
-    "getInboxSummaryLocal": {
-      "request": [
-        {
-          "name": "query",
-          "type": "GetInboxSummaryLocalQuery"
-        }
-      ],
-      "response": "GetInboxSummaryLocalRes"
     }
   },
   "namespace": "chat.1"

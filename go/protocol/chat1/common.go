@@ -112,13 +112,6 @@ type GetInboxQuery struct {
 	ReadOnly          bool            `codec:"readOnly" json:"readOnly"`
 }
 
-type GetThreadQuery struct {
-	MarkAsRead   bool          `codec:"markAsRead" json:"markAsRead"`
-	MessageTypes []MessageType `codec:"messageTypes" json:"messageTypes"`
-	Before       *gregor1.Time `codec:"before,omitempty" json:"before,omitempty"`
-	After        *gregor1.Time `codec:"after,omitempty" json:"after,omitempty"`
-}
-
 type ConversationIDTriple struct {
 	Tlfid     TLFID     `codec:"tlfid" json:"tlfid"`
 	TopicType TopicType `codec:"topicType" json:"topicType"`

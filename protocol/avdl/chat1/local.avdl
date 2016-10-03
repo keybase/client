@@ -140,49 +140,21 @@ protocol local {
     array<MessageFromServerOrError> maxMessages;
   }
 
-  record GetInboxLocalRes {
-    // InboxView inbox;
-    array<ConversationLocal> conversations;
-    union { null, Pagination } pagination;
-    array<RateLimit> rateLimits;
-  }
 
+  GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
+  record GetThreadQuery {
+    boolean markAsRead;
+    array<MessageType> messageTypes;
+    union { null, gregor1.Time } before;
+    union { null, gregor1.Time } after;
+  }
   record GetThreadLocalRes {
     ThreadView thread;
     array<RateLimit> rateLimits;
   }
 
-  record PostLocalRes {
-    array<RateLimit> rateLimits;
-  }
 
-  record ResolveConversationLocalRes {
-    array<ConversationInfoLocal> convs;
-    array<RateLimit> rateLimits;
-  }
-
-  record NewConversationLocalRes {
-    ConversationLocal conv;
-    array<RateLimit> rateLimits;
-  }
-
-  record UpdateTopicNameLocalRes {
-    array<RateLimit> rateLimits;
-  }
-
-  record GetConversationForCLILocalRes {
-    ConversationLocal conversation;
-    array<MessageFromServerOrError> messages;
-    array<RateLimit> rateLimits;
-  }
-
-  record GetInboxSummaryLocalRes {
-    array<ConversationLocal> conversations;
-    array<ConversationLocal> more;
-    int moreTotal;
-    array<RateLimit> rateLimits;
-  }
-
+  GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
   record GetInboxLocalQuery {
     union { null, string } tlfName;
     union { null, string } topicName;
@@ -196,16 +168,47 @@ protocol local {
     boolean unreadOnly;
     boolean readOnly;
   }
+  record GetInboxLocalRes {
+    array<ConversationLocal> conversations;
+    union { null, Pagination } pagination;
+    array<RateLimit> rateLimits;
+  }
 
-  GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
-  GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
+
   PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext messagePlaintext);
+  record PostLocalRes {
+    array<RateLimit> rateLimits;
+  }
 
-  // newConversationLocal creates a new conversation. conversation.id field is
-  // ignored. tlfName and topicType fields are required. topicName, if not
-  // empty, causes a follow-up call to set the topic name for the conversation.
+
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName);
+  record NewConversationLocalRes {
+    ConversationLocal conv;
+    array<RateLimit> rateLimits;
+  }
 
+
+  // if since is given, limit is ignored
+  GetInboxSummaryForCLILocalRes getInboxSummaryForCLILocal(GetInboxSummaryForCLILocalQuery query);
+  record GetInboxSummaryForCLILocalQuery {
+    TopicType topicType;
+    string after;
+    string before;
+    TLFVisibility visibility;
+
+    boolean unreadFirst;
+    UnreadFirstNumLimit unreadFirstLimit;
+    int activitySortedLimit;
+  }
+  record GetInboxSummaryForCLILocalRes {
+    array<ConversationLocal> conversations;
+    array<ConversationLocal> more;
+    int moreTotal;
+    array<RateLimit> rateLimits;
+  }
+
+
+  GetConversationForCLILocalRes getConversationForCLILocal(GetConversationForCLILocalQuery query);
   record GetConversationForCLILocalQuery {
     boolean markAsRead;
     array<MessageType> MessageTypes;
@@ -216,21 +219,9 @@ protocol local {
 
     ConversationID conversationId;
   }
-
-  // query.conversationId is required
-  GetConversationForCLILocalRes getConversationForCLILocal(GetConversationForCLILocalQuery query);
-
-  record GetInboxSummaryLocalQuery {
-    TopicType topicType;
-    string after;
-    string before;
-    TLFVisibility visibility;
-
-    boolean unreadFirst;
-    UnreadFirstNumLimit unreadFirstLimit;
-    int activitySortedLimit;
+  record GetConversationForCLILocalRes {
+    ConversationLocal conversation;
+    array<MessageFromServerOrError> messages;
+    array<RateLimit> rateLimits;
   }
-
-  // if since is given, limit is ignored
-  GetInboxSummaryLocalRes getInboxSummaryLocal(GetInboxSummaryLocalQuery query);
 }
