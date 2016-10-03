@@ -17,6 +17,7 @@ const dumbMap: DumbComponentMap<Intro> = {
   component: Intro,
   mocks: {
     'Splash': props,
+    'Failure': {...props, bootStatus: 'bootStatusFailure'},
     'First time user': {...props, bootStatus: 'bootStatusBootstrapped'},
     'User who just revoked device': {...props, bootStatus: 'bootStatusBootstrapped', justRevokedSelf: 'DEVICE_NAME'},
     'User who just deleted self': {...props, bootStatus: 'bootStatusBootstrapped', justDeletedSelf: 'hal9000'},
