@@ -4,9 +4,10 @@
 package engine
 
 import (
+	"sync"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"sync"
 )
 
 type loopbackIdentifyUI struct {
@@ -38,7 +39,10 @@ func (b *loopbackIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keyba
 	defer b.Unlock()
 	if l.BreaksTracking {
 		tb := b.trackBreaks()
-		tb.Proofs = append(tb.Proofs, keybase1.IdentifyProofBreak{p, l})
+		tb.Proofs = append(tb.Proofs, keybase1.IdentifyProofBreak{
+			RemoteProof: p,
+			Lcr:         l,
+		})
 	}
 	return nil
 }
