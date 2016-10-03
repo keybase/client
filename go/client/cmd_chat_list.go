@@ -36,7 +36,7 @@ func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 func (c *cmdChatList) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 
-	conversations, _, _, err := c.fetcher.fetch(context.TODO(), c.G())
+	conversations, err := c.fetcher.fetch(context.TODO(), c.G())
 	if err != nil {
 		return err
 	}

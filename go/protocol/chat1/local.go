@@ -408,8 +408,6 @@ type GetInboxSummaryForCLILocalQuery struct {
 
 type GetInboxSummaryForCLILocalRes struct {
 	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
-	More          []ConversationLocal `codec:"more" json:"more"`
-	MoreTotal     int                 `codec:"moreTotal" json:"moreTotal"`
 	RateLimits    []RateLimit         `codec:"rateLimits" json:"rateLimits"`
 }
 

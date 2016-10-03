@@ -202,8 +202,6 @@ protocol local {
   }
   record GetInboxSummaryForCLILocalRes {
     array<ConversationLocal> conversations;
-    array<ConversationLocal> more;
-    int moreTotal;
     array<RateLimit> rateLimits;
   }
 

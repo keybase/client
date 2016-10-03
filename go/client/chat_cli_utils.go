@@ -117,19 +117,19 @@ type chatCLIInboxFetcher struct {
 	chatClient chat1.LocalInterface // for testing only
 }
 
-func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []chat1.ConversationLocal, more []chat1.ConversationLocal, moreTotal int, err error) {
+func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []chat1.ConversationLocal, err error) {
 	chatClient := f.chatClient // should be nil unless in test
 	if chatClient == nil {
 		chatClient, err = GetChatLocalClient(g)
 		if err != nil {
-			return nil, nil, moreTotal, fmt.Errorf("Getting chat service client error: %s", err)
+			return nil, fmt.Errorf("Getting chat service client error: %s", err)
 		}
 	}
 
 	res, err := chatClient.GetInboxSummaryForCLILocal(ctx, f.query)
 	if err != nil {
-		return nil, nil, moreTotal, err
+		return nil, err
 	}
 
-	return res.Conversations, res.More, res.MoreTotal, nil
+	return res.Conversations, nil
 }

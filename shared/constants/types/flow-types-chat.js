@@ -317,8 +317,6 @@ export type GetInboxSummaryForCLILocalQuery = {
 
 export type GetInboxSummaryForCLILocalRes = {
   conversations?: ?Array<ConversationLocal>,
-  more?: ?Array<ConversationLocal>,
-  moreTotal: int,
   rateLimits?: ?Array<RateLimit>,
 }
 

@@ -612,17 +612,6 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationLocal"
-          },
-          "name": "more"
-        },
-        {
-          "type": "int",
-          "name": "moreTotal"
-        },
-        {
-          "type": {
-            "type": "array",
             "items": "RateLimit"
           },
           "name": "rateLimits"
