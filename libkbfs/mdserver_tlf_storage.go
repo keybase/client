@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 )
 
 // mdServerTlfStorage stores an ordered list of metadata IDs for each
@@ -312,7 +313,7 @@ func (s *mdServerTlfStorage) getRange(
 }
 
 func (s *mdServerTlfStorage) put(
-	currentUID keybase1.UID, currentVerifyingKey VerifyingKey,
+	currentUID keybase1.UID, currentVerifyingKey kbfscrypto.VerifyingKey,
 	rmds *RootMetadataSigned, extra ExtraMetadata) (
 	recordBranchID bool, err error) {
 	s.lock.Lock()

@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfssync"
 	"golang.org/x/net/context"
 )
 
@@ -80,7 +81,7 @@ type folderBlockManager struct {
 	archivePauseChan chan (<-chan struct{})
 
 	// archiveGroup tracks the outstanding archives.
-	archiveGroup RepeatedWaitGroup
+	archiveGroup kbfssync.RepeatedWaitGroup
 
 	archiveCancelLock sync.Mutex
 	archiveCancel     context.CancelFunc
@@ -92,7 +93,7 @@ type folderBlockManager struct {
 	// TODO: Persist these to disk?
 	blocksToDeleteChan      chan blocksToDelete
 	blocksToDeletePauseChan chan (<-chan struct{})
-	blocksToDeleteWaitGroup RepeatedWaitGroup
+	blocksToDeleteWaitGroup kbfssync.RepeatedWaitGroup
 
 	blocksToDeleteCancelLock sync.Mutex
 	blocksToDeleteCancel     context.CancelFunc
@@ -102,7 +103,7 @@ type folderBlockManager struct {
 	forceReclamationChan chan struct{}
 
 	// reclamationGroup tracks the outstanding quota reclamations.
-	reclamationGroup RepeatedWaitGroup
+	reclamationGroup kbfssync.RepeatedWaitGroup
 
 	reclamationCancelLock sync.Mutex
 	reclamationCancel     context.CancelFunc

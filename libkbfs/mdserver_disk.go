@@ -220,7 +220,7 @@ func (md *MDServerDisk) getBranchKey(ctx context.Context, id TlfID) ([]byte, err
 	if err != nil {
 		return nil, err
 	}
-	_, err = buf.Write(key.kid.ToBytes())
+	_, err = buf.Write(key.KID().ToBytes())
 	if err != nil {
 		return nil, err
 	}
@@ -458,7 +458,7 @@ func (md *MDServerDisk) TruncateLock(ctx context.Context, id TlfID) (
 		return false, errMDServerDiskShutdown
 	}
 
-	return md.truncateLockManager.truncateLock(key.kid, id)
+	return md.truncateLockManager.truncateLock(key.KID(), id)
 }
 
 // TruncateUnlock implements the MDServer interface for MDServerDisk.
@@ -475,7 +475,7 @@ func (md *MDServerDisk) TruncateUnlock(ctx context.Context, id TlfID) (
 		return false, errMDServerDiskShutdown
 	}
 
-	return md.truncateLockManager.truncateUnlock(key.kid, id)
+	return md.truncateLockManager.truncateUnlock(key.KID(), id)
 }
 
 // Shutdown implements the MDServer interface for MDServerDisk.

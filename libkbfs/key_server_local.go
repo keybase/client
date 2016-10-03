@@ -13,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
@@ -84,7 +85,8 @@ func NewKeyServerTempDir(config Config) (*KeyServerLocal, error) {
 // GetTLFCryptKeyServerHalf implements the KeyServer interface for
 // KeyServerLocal.
 func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
-	serverHalfID TLFCryptKeyServerHalfID, key CryptPublicKey) (serverHalf TLFCryptKeyServerHalf, err error) {
+	serverHalfID TLFCryptKeyServerHalfID, key kbfscrypto.CryptPublicKey) (
+	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
 	ks.shutdownLock.RLock()
 	defer ks.shutdownLock.RUnlock()
 	if *ks.shutdown {
@@ -98,26 +100,26 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 
 	err = ks.config.Codec().Decode(buf, &serverHalf)
 	if err != nil {
-		return TLFCryptKeyServerHalf{}, err
+		return kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
 
 	_, uid, err := ks.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
-		return TLFCryptKeyServerHalf{}, err
+		return kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
 
 	err = ks.config.Crypto().VerifyTLFCryptKeyServerHalfID(
-		serverHalfID, uid, key.kid, serverHalf)
+		serverHalfID, uid, key.KID(), serverHalf)
 	if err != nil {
 		ks.log.CDebugf(ctx, "error verifying server half ID: %s", err)
-		return TLFCryptKeyServerHalf{}, MDServerErrorUnauthorized{}
+		return kbfscrypto.TLFCryptKeyServerHalf{}, MDServerErrorUnauthorized{}
 	}
 	return serverHalf, nil
 }
 
 // PutTLFCryptKeyServerHalves implements the KeyOps interface for KeyServerLocal.
 func (ks *KeyServerLocal) PutTLFCryptKeyServerHalves(ctx context.Context,
-	serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error {
+	serverKeyHalves map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf) error {
 	ks.shutdownLock.RLock()
 	defer ks.shutdownLock.RUnlock()
 	if *ks.shutdown {

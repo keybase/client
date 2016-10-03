@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,7 +28,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	crypto := MakeCryptoCommon(codec)
 	signingKey := MakeFakeSigningKeyOrBust("test key")
 	verifyingKey := MakeFakeVerifyingKeyOrBust("test key")
-	signer := cryptoSignerLocal{signingKey}
+	signer := kbfscrypto.SigningKeySigner{Key: signingKey}
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "mdserver_tlf_storage")
 	require.NoError(t, err)

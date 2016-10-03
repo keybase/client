@@ -7,12 +7,14 @@ package libkbfs
 import (
 	"errors"
 	"testing"
+
+	"github.com/keybase/kbfs/kbfscrypto"
 )
 
 func TestKeyCacheBasic(t *testing.T) {
 	cache := NewKeyCacheStandard(10)
 	tlf := TlfID{id: [TlfIDByteLen]byte{0xf}}
-	key := MakeTLFCryptKey([32]byte{0xf})
+	key := kbfscrypto.MakeTLFCryptKey([32]byte{0xf})
 	keyGen := KeyGen(1)
 	_, err := cache.GetTLFCryptKey(tlf, keyGen)
 	if _, ok := err.(KeyCacheMissError); !ok {
@@ -36,7 +38,7 @@ func TestKeyCacheBasic(t *testing.T) {
 	}
 	for i := 0; i < 11; i++ {
 		tlf = TlfID{id: [TlfIDByteLen]byte{byte(i)}}
-		key = MakeTLFCryptKey([32]byte{byte(i)})
+		key = kbfscrypto.MakeTLFCryptKey([32]byte{byte(i)})
 		err = cache.PutTLFCryptKey(tlf, keyGen, key)
 		if err != nil {
 			t.Fatal(err)

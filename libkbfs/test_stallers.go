@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/keybase/kbfs/kbfscrypto"
+
 	"golang.org/x/net/context"
 )
 
@@ -356,7 +358,7 @@ func (f *stallingBlockServer) maybeStall(ctx context.Context, opName StallableBl
 
 func (f *stallingBlockServer) Get(ctx context.Context, tlfID TlfID, id BlockID,
 	bctx BlockContext) (
-	buf []byte, serverHalf BlockCryptKeyServerHalf, err error) {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	f.maybeStall(ctx, StallableBlockGet)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGet error
@@ -368,7 +370,7 @@ func (f *stallingBlockServer) Get(ctx context.Context, tlfID TlfID, id BlockID,
 
 func (f *stallingBlockServer) Put(ctx context.Context, tlfID TlfID, id BlockID,
 	bctx BlockContext, buf []byte,
-	serverHalf BlockCryptKeyServerHalf) error {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	f.maybeStall(ctx, StallableBlockPut)
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
 		return f.BlockServer.Put(ctx, tlfID, id, bctx, buf, serverHalf)

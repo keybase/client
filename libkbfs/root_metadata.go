@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 )
 
 // MetadataFlags bitfield.
@@ -64,7 +65,7 @@ type PrivateMetadata struct {
 	Dir DirEntry
 
 	// m_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
-	TLFPrivateKey TLFPrivateKey
+	TLFPrivateKey kbfscrypto.TLFPrivateKey
 	// The block changes done as part of the update that created this MD
 	Changes BlockChanges
 
@@ -210,14 +211,15 @@ func (md *RootMetadata) deepCopyInPlace(
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
 func (md *RootMetadata) MakeSuccessor(
-	config Config, mdID MdID, isWriter bool) (*RootMetadata, error) {
+	codec kbfscodec.Codec, mdID MdID, isWriter bool) (
+	*RootMetadata, error) {
 	if mdID == (MdID{}) {
 		return nil, errors.New("Empty MdID in MakeSuccessor")
 	}
 	if md.IsFinal() {
 		return nil, MetadataIsFinalError{}
 	}
-	newMd, err := md.makeSuccessor(config.Codec())
+	newMd, err := md.makeSuccessor(codec)
 	if err != nil {
 		return nil, err
 	}
@@ -386,8 +388,8 @@ func (md *RootMetadata) swapCachedBlockChanges() {
 
 // GetTLFCryptKeyParams wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) GetTLFCryptKeyParams(
-	keyGen KeyGen, user keybase1.UID, key CryptPublicKey) (
-	TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
+	keyGen KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (
+	kbfscrypto.TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
 	TLFCryptKeyServerHalfID, bool, error) {
 	return md.bareMd.GetTLFCryptKeyParams(keyGen, user, key, md.extra)
 }
@@ -532,12 +534,13 @@ func (md *RootMetadata) GetSerializedWriterMetadata(
 }
 
 // GetWriterMetadataSigInfo wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) GetWriterMetadataSigInfo() SignatureInfo {
+func (md *RootMetadata) GetWriterMetadataSigInfo() kbfscrypto.SignatureInfo {
 	return md.bareMd.GetWriterMetadataSigInfo()
 }
 
 // SetWriterMetadataSigInfo wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) SetWriterMetadataSigInfo(sigInfo SignatureInfo) {
+func (md *RootMetadata) SetWriterMetadataSigInfo(
+	sigInfo kbfscrypto.SignatureInfo) {
 	md.bareMd.SetWriterMetadataSigInfo(sigInfo)
 }
 
@@ -634,14 +637,16 @@ func (md *RootMetadata) GetBareRootMetadata() BareRootMetadata {
 }
 
 // NewKeyGeneration adds a new key generation to this revision of metadata.
-func (md *RootMetadata) NewKeyGeneration(pubKey TLFPublicKey) {
+func (md *RootMetadata) NewKeyGeneration(pubKey kbfscrypto.TLFPublicKey) {
 	md.extra = md.bareMd.NewKeyGeneration(pubKey)
 }
 
 func (md *RootMetadata) fillInDevices(crypto Crypto,
-	keyGen KeyGen, wKeys map[keybase1.UID][]CryptPublicKey,
-	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
-	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) (serverKeyMap, error) {
+	keyGen KeyGen, wKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	ePubKey kbfscrypto.TLFEphemeralPublicKey,
+	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
+	tlfCryptKey kbfscrypto.TLFCryptKey) (serverKeyMap, error) {
 
 	if bareV3, ok := md.bareMd.(*BareRootMetadataV3); ok {
 		// v3 bundles aren't embedded.
@@ -668,7 +673,8 @@ func (md *RootMetadata) fillInDevices(crypto Crypto,
 	return serverKeyMap{}, errors.New("Unknown bare metadata version")
 }
 
-func (md *RootMetadata) finalizeRekey(crypto cryptoPure, prevKey, currKey TLFCryptKey) error {
+func (md *RootMetadata) finalizeRekey(
+	crypto cryptoPure, prevKey, currKey kbfscrypto.TLFCryptKey) error {
 	return md.bareMd.FinalizeRekey(crypto, prevKey, currKey, md.extra)
 }
 
@@ -684,8 +690,10 @@ func (md *RootMetadata) StoresHistoricTLFCryptKeys() bool {
 
 // GetHistoricTLFCryptKey implements the KeyMetadata interface for RootMetadata.
 func (md *RootMetadata) GetHistoricTLFCryptKey(
-	crypto cryptoPure, keyGen KeyGen, currentKey TLFCryptKey) (TLFCryptKey, error) {
-	return md.bareMd.GetHistoricTLFCryptKey(crypto, keyGen, currentKey, md.extra)
+	crypto cryptoPure, keyGen KeyGen,
+	currentKey kbfscrypto.TLFCryptKey) (kbfscrypto.TLFCryptKey, error) {
+	return md.bareMd.GetHistoricTLFCryptKey(
+		crypto, keyGen, currentKey, md.extra)
 }
 
 // A ReadOnlyRootMetadata is a thin wrapper around a
@@ -759,7 +767,7 @@ func (irmd ImmutableRootMetadata) MdID() MdID {
 // RootMetadataSigned is the top-level MD object stored in MD server
 type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key
-	SigInfo SignatureInfo `codec:",omitempty"`
+	SigInfo kbfscrypto.SignatureInfo `codec:",omitempty"`
 	// all the metadata
 	MD MutableBareRootMetadata
 	// When does the server say this MD update was received?  (This is
@@ -776,8 +784,8 @@ func NewRootMetadataSigned() *RootMetadataSigned {
 
 // MerkleHash computes a hash of this RootMetadataSigned object for inclusion
 // into the KBFS Merkle tree.
-func (rmds *RootMetadataSigned) MerkleHash(config Config) (MerkleHash, error) {
-	return config.Crypto().MakeMerkleHash(rmds)
+func (rmds *RootMetadataSigned) MerkleHash(crypto cryptoPure) (MerkleHash, error) {
+	return crypto.MakeMerkleHash(rmds)
 }
 
 // Version returns the metadata version of this MD block, depending on
@@ -788,13 +796,13 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 
 // MakeFinalCopy returns a complete copy of this RootMetadataSigned
 // with the revision incremented and the final bit set.
-func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
+func (rmds *RootMetadataSigned) MakeFinalCopy(codec kbfscodec.Codec) (
 	*RootMetadataSigned, error) {
 	if rmds.MD.IsFinal() {
 		return nil, MetadataIsFinalError{}
 	}
 	newRmds := RootMetadataSigned{}
-	newBareMd, err := rmds.MD.DeepCopy(config.Codec())
+	newBareMd, err := rmds.MD.DeepCopy(codec)
 	if err != nil {
 		return nil, err
 	}
@@ -805,7 +813,7 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 	// Set the bare metadata.
 	newRmds.MD = newMutableBareMd
 	// Copy the signature.
-	newRmds.SigInfo = rmds.SigInfo.deepCopy()
+	newRmds.SigInfo = rmds.SigInfo.DeepCopy()
 	// Set the final flag.
 	newRmds.MD.SetFinalBit()
 	// Increment revision but keep the PrevRoot --
@@ -875,7 +883,7 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 // the given user and device (identified by the KID of the device
 // verifying key), and returns an error if not.
 func (rmds *RootMetadataSigned) IsLastModifiedBy(
-	uid keybase1.UID, key VerifyingKey) error {
+	uid keybase1.UID, key kbfscrypto.VerifyingKey) error {
 	err := rmds.MD.IsLastModifiedBy(uid, key)
 	if err != nil {
 		return err

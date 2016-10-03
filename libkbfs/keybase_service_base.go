@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -63,8 +64,8 @@ func (k *KeybaseServiceBase) FillClients(identifyClient keybase1.IdentifyInterfa
 	k.kbfsClient = kbfsClient
 }
 
-type addVerifyingKeyFunc func(VerifyingKey)
-type addCryptPublicKeyFunc func(CryptPublicKey)
+type addVerifyingKeyFunc func(kbfscrypto.VerifyingKey)
+type addCryptPublicKeyFunc func(kbfscrypto.CryptPublicKey)
 
 // processKey adds the given public key to the appropriate verifying
 // or crypt list (as return values), and also updates the given name
@@ -82,9 +83,9 @@ func processKey(publicKey keybase1.PublicKey,
 		return err
 	}
 	if publicKey.IsSibkey {
-		addVerifyingKey(MakeVerifyingKey(key.GetKID()))
+		addVerifyingKey(kbfscrypto.MakeVerifyingKey(key.GetKID()))
 	} else {
-		addCryptPublicKey(MakeCryptPublicKey(key.GetKID()))
+		addCryptPublicKey(kbfscrypto.MakeCryptPublicKey(key.GetKID()))
 	}
 	if publicKey.DeviceDescription != "" {
 		kidNames[publicKey.KID] = publicKey.DeviceDescription
@@ -93,15 +94,15 @@ func processKey(publicKey keybase1.PublicKey,
 }
 
 func filterKeys(keys []keybase1.PublicKey) (
-	[]VerifyingKey, []CryptPublicKey, map[keybase1.KID]string, error) {
-	var verifyingKeys []VerifyingKey
-	var cryptPublicKeys []CryptPublicKey
+	[]kbfscrypto.VerifyingKey, []kbfscrypto.CryptPublicKey, map[keybase1.KID]string, error) {
+	var verifyingKeys []kbfscrypto.VerifyingKey
+	var cryptPublicKeys []kbfscrypto.CryptPublicKey
 	var kidNames = map[keybase1.KID]string{}
 
-	addVerifyingKey := func(key VerifyingKey) {
+	addVerifyingKey := func(key kbfscrypto.VerifyingKey) {
 		verifyingKeys = append(verifyingKeys, key)
 	}
-	addCryptPublicKey := func(key CryptPublicKey) {
+	addCryptPublicKey := func(key kbfscrypto.CryptPublicKey) {
 		cryptPublicKeys = append(cryptPublicKeys, key)
 	}
 
@@ -116,17 +117,18 @@ func filterKeys(keys []keybase1.PublicKey) (
 }
 
 func filterRevokedKeys(keys []keybase1.RevokedKey) (
-	map[VerifyingKey]keybase1.KeybaseTime,
-	map[CryptPublicKey]keybase1.KeybaseTime, map[keybase1.KID]string, error) {
-	verifyingKeys := make(map[VerifyingKey]keybase1.KeybaseTime)
-	cryptPublicKeys := make(map[CryptPublicKey]keybase1.KeybaseTime)
+	map[kbfscrypto.VerifyingKey]keybase1.KeybaseTime,
+	map[kbfscrypto.CryptPublicKey]keybase1.KeybaseTime,
+	map[keybase1.KID]string, error) {
+	verifyingKeys := make(map[kbfscrypto.VerifyingKey]keybase1.KeybaseTime)
+	cryptPublicKeys := make(map[kbfscrypto.CryptPublicKey]keybase1.KeybaseTime)
 	var kidNames = map[keybase1.KID]string{}
 
 	for _, revokedKey := range keys {
-		addVerifyingKey := func(key VerifyingKey) {
+		addVerifyingKey := func(key kbfscrypto.VerifyingKey) {
 			verifyingKeys[key] = revokedKey.Time
 		}
-		addCryptPublicKey := func(key CryptPublicKey) {
+		addCryptPublicKey := func(key kbfscrypto.CryptPublicKey) {
 			cryptPublicKeys[key] = revokedKey.Time
 		}
 		err := processKey(revokedKey.Key, addVerifyingKey, addCryptPublicKey,
@@ -609,7 +611,7 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 	for i, key := range keys {
 		res.CryptKeys = append(res.CryptKeys, keybase1.CryptKey{
 			KeyGeneration: FirstValidKeyGen + i,
-			Key:           keybase1.Bytes32(key.data),
+			Key:           keybase1.Bytes32(key.Data()),
 		})
 	}
 

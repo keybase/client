@@ -7,11 +7,13 @@ package libkbfs
 import (
 	"encoding"
 	"encoding/json"
+
+	"github.com/keybase/kbfs/kbfshash"
 )
 
 // BlockID is the (usually content-based) ID for a data block.
 type BlockID struct {
-	h Hash
+	h kbfshash.Hash
 }
 
 var _ encoding.BinaryMarshaler = BlockID{}
@@ -22,12 +24,12 @@ var _ json.Unmarshaler = (*BlockID)(nil)
 
 // MaxBlockIDStringLength is the maximum length of the string
 // representation of a BlockID.
-const MaxBlockIDStringLength = MaxHashStringLength
+const MaxBlockIDStringLength = kbfshash.MaxHashStringLength
 
 // BlockIDFromString creates a BlockID from the given string. If the
 // returned error is nil, the returned BlockID is valid.
 func BlockIDFromString(dataStr string) (BlockID, error) {
-	h, err := HashFromString(dataStr)
+	h, err := kbfshash.HashFromString(dataStr)
 	if err != nil {
 		return BlockID{}, err
 	}

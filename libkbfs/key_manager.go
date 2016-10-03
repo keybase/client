@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -31,7 +32,7 @@ func NewKeyManagerStandard(config Config) *KeyManagerStandard {
 // GetTLFCryptKeyForEncryption implements the KeyManager interface for
 // KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(ctx context.Context,
-	kmd KeyMetadata) (tlfCryptKey TLFCryptKey, err error) {
+	kmd KeyMetadata) (tlfCryptKey kbfscrypto.TLFCryptKey, err error) {
 	return km.getTLFCryptKeyUsingCurrentDevice(ctx, kmd,
 		kmd.LatestKeyGeneration(), false)
 }
@@ -40,7 +41,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(ctx context.Context,
 // for KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
 	ctx context.Context, kmdToDecrypt, kmdWithKeys KeyMetadata) (
-	tlfCryptKey TLFCryptKey, err error) {
+	tlfCryptKey kbfscrypto.TLFCryptKey, err error) {
 	return km.getTLFCryptKey(ctx, kmdWithKeys, kmdToDecrypt.LatestKeyGeneration(),
 		getTLFCryptKeyAnyDevice|getTLFCryptKeyDoCache)
 }
@@ -49,16 +50,17 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
 // KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
 	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (
-	tlfCryptKey TLFCryptKey, err error) {
+	tlfCryptKey kbfscrypto.TLFCryptKey, err error) {
 	return km.getTLFCryptKeyUsingCurrentDevice(ctx, kmd, blockPtr.KeyGen, true)
 }
 
 // GetTLFCryptKeyOfAllGenerations implements the KeyManager interface for
 // KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyOfAllGenerations(
-	ctx context.Context, kmd KeyMetadata) (keys []TLFCryptKey, err error) {
+	ctx context.Context, kmd KeyMetadata) (
+	keys []kbfscrypto.TLFCryptKey, err error) {
 	for g := KeyGen(FirstValidKeyGen); g <= kmd.LatestKeyGeneration(); g++ {
-		var key TLFCryptKey
+		var key kbfscrypto.TLFCryptKey
 		key, err = km.getTLFCryptKeyUsingCurrentDevice(ctx, kmd, g, true)
 		if err != nil {
 			return keys, err
@@ -70,7 +72,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyOfAllGenerations(
 
 func (km *KeyManagerStandard) getTLFCryptKeyUsingCurrentDevice(
 	ctx context.Context, kmd KeyMetadata, keyGen KeyGen, cache bool) (
-	tlfCryptKey TLFCryptKey, err error) {
+	tlfCryptKey kbfscrypto.TLFCryptKey, err error) {
 	flags := getTLFCryptKeyFlags(0)
 	if cache {
 		flags = getTLFCryptKeyDoCache
@@ -88,21 +90,21 @@ const (
 
 func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	kmd KeyMetadata, keyGen KeyGen, flags getTLFCryptKeyFlags) (
-	TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error) {
 	tlfID := kmd.TlfID()
 
 	if tlfID.IsPublic() {
-		return PublicTLFCryptKey, nil
+		return kbfscrypto.PublicTLFCryptKey, nil
 	}
 
 	if keyGen < FirstValidKeyGen {
-		return TLFCryptKey{}, InvalidKeyGenerationError{tlfID, keyGen}
+		return kbfscrypto.TLFCryptKey{}, InvalidKeyGenerationError{tlfID, keyGen}
 	}
 	// Is this some key we don't know yet?  Shouldn't really ever happen,
 	// since we must have seen the MD that led us to this block, which
 	// should include all the latest keys.  Consider this a failsafe.
 	if keyGen > kmd.LatestKeyGeneration() {
-		return TLFCryptKey{}, NewKeyGenerationError{tlfID, keyGen}
+		return kbfscrypto.TLFCryptKey{}, NewKeyGenerationError{tlfID, keyGen}
 	}
 
 	// look in the cache first
@@ -114,14 +116,14 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	case KeyCacheMissError:
 		break
 	default:
-		return TLFCryptKey{}, err
+		return kbfscrypto.TLFCryptKey{}, err
 	}
 
 	// Get the encrypted version of this secret key for this device
 	kbpki := km.config.KBPKI()
 	username, uid, err := kbpki.GetCurrentUserInfo(ctx)
 	if err != nil {
-		return TLFCryptKey{}, err
+		return kbfscrypto.TLFCryptKey{}, err
 	}
 
 	clientHalf, serverHalfID, cryptPublicKey, err :=
@@ -141,45 +143,49 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			clientHalf, serverHalfID, cryptPublicKey, err2 :=
 				km.getTLFCryptKeyParams(ctx, kmd, currKeyGen, uid, username, flags)
 			if err2 != nil {
-				return TLFCryptKey{}, err2
+				return kbfscrypto.TLFCryptKey{}, err2
 			}
 			// unmask it
 			latestKey, err2 = km.unmaskTLFCryptKey(ctx, serverHalfID, cryptPublicKey, clientHalf)
 			if err2 != nil {
-				return TLFCryptKey{}, err2
+				return kbfscrypto.TLFCryptKey{}, err2
 			}
 			break
 		default:
-			return TLFCryptKey{}, err
+			return kbfscrypto.TLFCryptKey{}, err
 		}
 		// get the historic key we want
 		tlfCryptKey, err =
 			kmd.GetHistoricTLFCryptKey(km.config.Crypto(), keyGen, latestKey)
 		if err != nil {
-			return TLFCryptKey{}, err
+			return kbfscrypto.TLFCryptKey{}, err
 		}
 	} else if err != nil {
-		return TLFCryptKey{}, err
+		return kbfscrypto.TLFCryptKey{}, err
 	} else {
 		// unmask it
 		tlfCryptKey, err = km.unmaskTLFCryptKey(ctx, serverHalfID, cryptPublicKey, clientHalf)
 		if err != nil {
-			return TLFCryptKey{}, err
+			return kbfscrypto.TLFCryptKey{}, err
 		}
 	}
 
 	if flags&getTLFCryptKeyDoCache != 0 {
 		if err = kcache.PutTLFCryptKey(tlfID, keyGen, tlfCryptKey); err != nil {
-			return TLFCryptKey{}, err
+			return kbfscrypto.TLFCryptKey{}, err
 		}
 	}
 
 	return tlfCryptKey, nil
 }
 
-func (km *KeyManagerStandard) getTLFCryptKeyParams(ctx context.Context, kmd KeyMetadata,
-	keyGen KeyGen, uid keybase1.UID, username libkb.NormalizedUsername, flags getTLFCryptKeyFlags) (
-	clientHalf TLFCryptKeyClientHalf, serverHalfID TLFCryptKeyServerHalfID, cryptPublicKey CryptPublicKey, err error) {
+func (km *KeyManagerStandard) getTLFCryptKeyParams(
+	ctx context.Context, kmd KeyMetadata,
+	keyGen KeyGen, uid keybase1.UID, username libkb.NormalizedUsername,
+	flags getTLFCryptKeyFlags) (
+	clientHalf kbfscrypto.TLFCryptKeyClientHalf,
+	serverHalfID TLFCryptKeyServerHalfID,
+	cryptPublicKey kbfscrypto.CryptPublicKey, err error) {
 	kbpki := km.config.KBPKI()
 	crypto := km.config.Crypto()
 	localMakeRekeyReadError := func() error {
@@ -189,7 +195,9 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(ctx context.Context, kmd KeyM
 	if flags&getTLFCryptKeyAnyDevice != 0 {
 		publicKeys, err := kbpki.GetCryptPublicKeys(ctx, uid)
 		if err != nil {
-			return TLFCryptKeyClientHalf{}, TLFCryptKeyServerHalfID{}, CryptPublicKey{}, err
+			return kbfscrypto.TLFCryptKeyClientHalf{},
+				TLFCryptKeyServerHalfID{},
+				kbfscrypto.CryptPublicKey{}, err
 		}
 
 		keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0,
@@ -200,7 +208,9 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(ctx context.Context, kmd KeyM
 		for i, k := range publicKeys {
 			ePublicKey, encryptedClientHalf, serverHalfID, found, err := kmd.GetTLFCryptKeyParams(keyGen, uid, k)
 			if _, notPerDeviceEncrypted := err.(TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted {
-				return TLFCryptKeyClientHalf{}, TLFCryptKeyServerHalfID{}, CryptPublicKey{}, err
+				return kbfscrypto.TLFCryptKeyClientHalf{},
+					TLFCryptKeyServerHalfID{},
+					kbfscrypto.CryptPublicKey{}, err
 			}
 			if err != nil {
 				km.log.CDebugf(ctx, "Got error for GetTLFCryptKeyParams(%d, %v, %v); skipping: %v", keyGen, uid, k, err)
@@ -221,7 +231,9 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(ctx context.Context, kmd KeyM
 		}
 		if len(keys) == 0 {
 			err = localMakeRekeyReadError()
-			return TLFCryptKeyClientHalf{}, TLFCryptKeyServerHalfID{}, CryptPublicKey{}, err
+			return kbfscrypto.TLFCryptKeyClientHalf{},
+				TLFCryptKeyServerHalfID{},
+				kbfscrypto.CryptPublicKey{}, err
 		}
 		var index int
 		clientHalf, index, err = crypto.DecryptTLFCryptKeyClientHalfAny(ctx,
@@ -231,34 +243,48 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(ctx context.Context, kmd KeyM
 		if isDecryptError || isNoKeyError {
 			km.log.CDebugf(ctx, "Got decryption error from service: %v", err)
 			err = localMakeRekeyReadError()
-			return TLFCryptKeyClientHalf{}, TLFCryptKeyServerHalfID{}, CryptPublicKey{}, err
+			return kbfscrypto.TLFCryptKeyClientHalf{},
+				TLFCryptKeyServerHalfID{},
+				kbfscrypto.CryptPublicKey{}, err
 		} else if err != nil {
-			return TLFCryptKeyClientHalf{}, TLFCryptKeyServerHalfID{}, CryptPublicKey{}, err
+			return kbfscrypto.TLFCryptKeyClientHalf{},
+				TLFCryptKeyServerHalfID{},
+				kbfscrypto.CryptPublicKey{}, err
 		}
 		serverHalfID = serverHalfIDs[index]
 		cryptPublicKey = publicKeys[publicKeyLookup[index]]
 	} else {
 		cryptPublicKey, err = kbpki.GetCurrentCryptPublicKey(ctx)
 		if err != nil {
-			return TLFCryptKeyClientHalf{}, TLFCryptKeyServerHalfID{}, CryptPublicKey{}, err
+			return kbfscrypto.TLFCryptKeyClientHalf{},
+				TLFCryptKeyServerHalfID{},
+				kbfscrypto.CryptPublicKey{}, err
 		}
 
 		ePublicKey, encryptedClientHalf, foundServerHalfID, found, err :=
 			kmd.GetTLFCryptKeyParams(keyGen, uid, cryptPublicKey)
 		if _, notPerDeviceEncrypted := err.(TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted {
-			return TLFCryptKeyClientHalf{}, TLFCryptKeyServerHalfID{}, CryptPublicKey{}, err
+			return kbfscrypto.TLFCryptKeyClientHalf{},
+				TLFCryptKeyServerHalfID{},
+				kbfscrypto.CryptPublicKey{}, err
 		}
 		if err != nil {
-			return TLFCryptKeyClientHalf{}, TLFCryptKeyServerHalfID{}, CryptPublicKey{}, err
+			return kbfscrypto.TLFCryptKeyClientHalf{},
+				TLFCryptKeyServerHalfID{},
+				kbfscrypto.CryptPublicKey{}, err
 		} else if !found {
 			err = localMakeRekeyReadError()
-			return TLFCryptKeyClientHalf{}, TLFCryptKeyServerHalfID{}, CryptPublicKey{}, err
+			return kbfscrypto.TLFCryptKeyClientHalf{},
+				TLFCryptKeyServerHalfID{},
+				kbfscrypto.CryptPublicKey{}, err
 		}
 
 		clientHalf, err = crypto.DecryptTLFCryptKeyClientHalf(
 			ctx, ePublicKey, encryptedClientHalf)
 		if err != nil {
-			return TLFCryptKeyClientHalf{}, TLFCryptKeyServerHalfID{}, CryptPublicKey{}, err
+			return kbfscrypto.TLFCryptKeyClientHalf{},
+				TLFCryptKeyServerHalfID{},
+				kbfscrypto.CryptPublicKey{}, err
 		}
 
 		serverHalfID = foundServerHalfID
@@ -267,25 +293,30 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(ctx context.Context, kmd KeyM
 }
 
 func (km *KeyManagerStandard) unmaskTLFCryptKey(ctx context.Context, serverHalfID TLFCryptKeyServerHalfID,
-	cryptPublicKey CryptPublicKey, clientHalf TLFCryptKeyClientHalf) (TLFCryptKey, error) {
+	cryptPublicKey kbfscrypto.CryptPublicKey,
+	clientHalf kbfscrypto.TLFCryptKeyClientHalf) (
+	kbfscrypto.TLFCryptKey, error) {
 	// get the server-side key-half, do the unmasking, possibly cache the result, return
 	// TODO: can parallelize the get() with decryption
 	serverHalf, err := km.config.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID,
 		cryptPublicKey)
 	if err != nil {
-		return TLFCryptKey{}, err
+		return kbfscrypto.TLFCryptKey{}, err
 	}
 	tlfCryptKey, err := km.config.Crypto().UnmaskTLFCryptKey(serverHalf, clientHalf)
 	if err != nil {
-		return TLFCryptKey{}, err
+		return kbfscrypto.TLFCryptKey{}, err
 	}
 	return tlfCryptKey, nil
 }
 
 func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
-	md *RootMetadata, keyGen KeyGen, wKeys map[keybase1.UID][]CryptPublicKey,
-	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
-	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) error {
+	md *RootMetadata, keyGen KeyGen,
+	wKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	ePubKey kbfscrypto.TLFEphemeralPublicKey,
+	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
+	tlfCryptKey kbfscrypto.TLFCryptKey) error {
 
 	newServerKeys, err := md.fillInDevices(km.config.Crypto(),
 		keyGen, wKeys, rKeys, ePubKey, ePrivKey, tlfCryptKey)
@@ -304,7 +335,7 @@ func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
 
 func (km *KeyManagerStandard) usersWithNewDevices(ctx context.Context,
 	tlfID TlfID, keyInfoMap UserDeviceKeyInfoMap,
-	expectedKeys map[keybase1.UID][]CryptPublicKey) map[keybase1.UID]bool {
+	expectedKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey) map[keybase1.UID]bool {
 	users := make(map[keybase1.UID]bool)
 	for u, keys := range expectedKeys {
 		kids, ok := keyInfoMap[u]
@@ -317,10 +348,10 @@ func (km *KeyManagerStandard) usersWithNewDevices(ctx context.Context,
 			continue
 		}
 		for _, k := range keys {
-			km.log.CDebugf(ctx, "Checking key %v", k.kid)
-			if _, ok := kids[k.kid]; !ok {
+			km.log.CDebugf(ctx, "Checking key %v", k.KID())
+			if _, ok := kids[k.KID()]; !ok {
 				km.log.CInfof(ctx, "Rekey %s: adding new device %s for user %s",
-					tlfID, k.kid, u)
+					tlfID, k.KID(), u)
 				users[u] = true
 				break
 			}
@@ -331,7 +362,7 @@ func (km *KeyManagerStandard) usersWithNewDevices(ctx context.Context,
 
 func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 	tlfID TlfID, keyInfoMap UserDeviceKeyInfoMap,
-	expectedKeys map[keybase1.UID][]CryptPublicKey) map[keybase1.UID]bool {
+	expectedKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey) map[keybase1.UID]bool {
 	users := make(map[keybase1.UID]bool)
 	for u, kids := range keyInfoMap {
 		keys, ok := expectedKeys[u]
@@ -345,7 +376,7 @@ func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 		}
 		keyLookup := make(map[keybase1.KID]bool)
 		for _, key := range keys {
-			keyLookup[key.kid] = true
+			keyLookup[key.KID()] = true
 		}
 		for kid := range kids {
 			// Make sure every kid has an expected key
@@ -362,7 +393,7 @@ func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 
 func (km *KeyManagerStandard) deleteKeysForRemovedDevices(ctx context.Context,
 	md *RootMetadata, info UserDeviceKeyInfoMap,
-	expectedKeys map[keybase1.UID][]CryptPublicKey) error {
+	expectedKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey) error {
 	kops := km.config.KeyOps()
 	var usersToDelete []keybase1.UID
 	for u, kids := range info {
@@ -427,8 +458,10 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 	return identifyUserList(ctx, kbpki, kbpki, uids, tlfID.IsPublic())
 }
 
-func (km *KeyManagerStandard) generateKeyMapForUsers(ctx context.Context, users []keybase1.UID) (map[keybase1.UID][]CryptPublicKey, error) {
-	keyMap := make(map[keybase1.UID][]CryptPublicKey)
+func (km *KeyManagerStandard) generateKeyMapForUsers(
+	ctx context.Context, users []keybase1.UID) (
+	map[keybase1.UID][]kbfscrypto.CryptPublicKey, error) {
+	keyMap := make(map[keybase1.UID][]kbfscrypto.CryptPublicKey)
 
 	// TODO: parallelize
 	for _, w := range users {
@@ -447,7 +480,7 @@ func (km *KeyManagerStandard) generateKeyMapForUsers(ctx context.Context, users 
 // Rekey implements the KeyManager interface for KeyManagerStandard.
 // TODO make this less terrible.
 func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promptPaper bool) (
-	rekeyDone bool, cryptKey *TLFCryptKey, err error) {
+	rekeyDone bool, cryptKey *kbfscrypto.TLFCryptKey, err error) {
 	km.log.CDebugf(ctx, "Rekey %s (prompt for paper key: %t)",
 		md.TlfID(), promptPaper)
 	defer func() { km.deferLog.CDebugf(ctx, "Rekey %s done: %#v", md.TlfID(), err) }()
@@ -614,7 +647,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	if !isWriter {
 		if _, userHasNewKeys := newReaderUsers[uid]; userHasNewKeys && !promotedReaders[uid] {
 			// Only rekey the logged-in reader, and only if that reader isn't being promoted
-			rKeys = map[keybase1.UID][]CryptPublicKey{
+			rKeys = map[keybase1.UID][]kbfscrypto.CryptPublicKey{
 				uid: rKeys[uid],
 			}
 			wKeys = nil
@@ -702,14 +735,14 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		}
 		// Otherwise, there's nothing left to do!
 		if err := md.finalizeRekey(km.config.Crypto(),
-			TLFCryptKey{}, tlfCryptKey); err != nil {
+			kbfscrypto.TLFCryptKey{}, tlfCryptKey); err != nil {
 			return false, nil, err
 		}
 		return true, nil, nil
 	} else if !incKeyGen {
 		// we're done!
 		if err := md.finalizeRekey(km.config.Crypto(),
-			TLFCryptKey{}, tlfCryptKey); err != nil {
+			kbfscrypto.TLFCryptKey{}, tlfCryptKey); err != nil {
 			return false, nil, err
 		}
 		return true, nil, nil
@@ -722,7 +755,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	// Save the previous TLF crypt key. It's symmetrically encrypted and appended to a list
 	// for MDv3 metadata.
-	var prevTlfCryptKey TLFCryptKey
+	var prevTlfCryptKey kbfscrypto.TLFCryptKey
 	if currKeyGen >= KeyGen(FirstValidKeyGen) && md.StoresHistoricTLFCryptKeys() {
 		flags := getTLFCryptKeyAnyDevice
 		if promptPaper {

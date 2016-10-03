@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -18,8 +19,8 @@ type singleCurrentInfoGetter struct {
 	token          string
 	name           libkb.NormalizedUsername
 	uid            keybase1.UID
-	cryptPublicKey CryptPublicKey
-	verifyingKey   VerifyingKey
+	cryptPublicKey kbfscrypto.CryptPublicKey
+	verifyingKey   kbfscrypto.VerifyingKey
 }
 
 func (cig singleCurrentInfoGetter) GetCurrentToken(
@@ -33,12 +34,12 @@ func (cig singleCurrentInfoGetter) GetCurrentUserInfo(ctx context.Context) (
 }
 
 func (cig singleCurrentInfoGetter) GetCurrentCryptPublicKey(
-	ctx context.Context) (CryptPublicKey, error) {
+	ctx context.Context) (kbfscrypto.CryptPublicKey, error) {
 	return cig.cryptPublicKey, nil
 }
 
 func (cig singleCurrentInfoGetter) GetCurrentVerifyingKey(
-	ctx context.Context) (VerifyingKey, error) {
+	ctx context.Context) (kbfscrypto.VerifyingKey, error) {
 	return cig.verifyingKey, nil
 }
 

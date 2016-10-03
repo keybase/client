@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfssync"
 
 	"golang.org/x/net/context"
 )
@@ -53,7 +54,7 @@ type Favorites struct {
 	// Channels for interacting with the favorites cache
 	reqChan chan *favReq
 
-	wg RepeatedWaitGroup
+	wg kbfssync.RepeatedWaitGroup
 
 	// cache tracks the favorites for this user, that we know about.
 	// It may not be consistent with the server's view of the user's

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfshash"
 )
 
 // Make sure MdID encodes and decodes properly with minimal overhead.
@@ -26,9 +27,10 @@ func TestMdIDEncodeDecode(t *testing.T) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	if len(encodedMdID) != DefaultHashByteLength+overhead {
+	if len(encodedMdID) != kbfshash.DefaultHashByteLength+overhead {
 		t.Errorf("expected encoded length %d, got %d",
-			DefaultHashByteLength+overhead, len(encodedMdID))
+			kbfshash.DefaultHashByteLength+overhead,
+			len(encodedMdID))
 	}
 
 	var id2 MdID

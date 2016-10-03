@@ -9,6 +9,8 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -27,7 +29,8 @@ func (cki tlfCryptKeyInfoFuture) toCurrentStruct() currentStruct {
 }
 
 func makeFakeTLFCryptKeyInfoFuture(t *testing.T) tlfCryptKeyInfoFuture {
-	hmac, err := DefaultHMAC([]byte("fake key"), []byte("fake buf"))
+	hmac, err := kbfshash.DefaultHMAC(
+		[]byte("fake key"), []byte("fake buf"))
 	require.NoError(t, err)
 	cki := TLFCryptKeyInfo{
 		EncryptedTLFCryptKeyClientHalf{
@@ -50,7 +53,7 @@ func TestTLFCryptKeyInfoUnknownFields(t *testing.T) {
 }
 
 func testKeyBundleGetKeysOrBust(t *testing.T, config Config, uid keybase1.UID,
-	keys map[keybase1.UID][]CryptPublicKey) {
+	keys map[keybase1.UID][]kbfscrypto.CryptPublicKey) {
 	publicKeys, err := config.KBPKI().GetCryptPublicKeys(
 		context.Background(), uid)
 	if err != nil {
@@ -60,15 +63,15 @@ func testKeyBundleGetKeysOrBust(t *testing.T, config Config, uid keybase1.UID,
 }
 
 func testKeyBundleCheckKeys(t *testing.T, config Config, uid keybase1.UID,
-	wkb TLFWriterKeyBundleV2, ePubKey TLFEphemeralPublicKey,
-	tlfCryptKey TLFCryptKey, serverMap serverKeyMap) {
+	wkb TLFWriterKeyBundleV2, ePubKey kbfscrypto.TLFEphemeralPublicKey,
+	tlfCryptKey kbfscrypto.TLFCryptKey, serverMap serverKeyMap) {
 	ctx := context.Background()
 	// Check that every user can recover the crypt key
 	cryptPublicKey, err := config.KBPKI().GetCurrentCryptPublicKey(ctx)
 	if err != nil {
 		t.Fatalf("Couldn't get current public key for user %s: %v", uid, err)
 	}
-	info, ok := wkb.WKeys[uid][cryptPublicKey.kid]
+	info, ok := wkb.WKeys[uid][cryptPublicKey.KID()]
 	if !ok {
 		t.Fatalf("Couldn't get current key info for user %s: %v", uid, err)
 	}
@@ -84,7 +87,7 @@ func testKeyBundleCheckKeys(t *testing.T, config Config, uid keybase1.UID,
 	if err != nil {
 		t.Fatalf("Couldn't decrypt client key half for user %s: %v", uid, err)
 	}
-	serverHalf, ok := serverMap[uid][cryptPublicKey.kid]
+	serverHalf, ok := serverMap[uid][cryptPublicKey.KID()]
 	if !ok {
 		t.Fatalf("No server half for user %s", uid)
 	}
@@ -123,11 +126,11 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 	// Make a wkb with empty writer key maps
 	wkb := TLFWriterKeyBundleV2{
 		WKeys: make(UserDeviceKeyInfoMap),
-		TLFEphemeralPublicKeys: make(TLFEphemeralPublicKeys, 1),
+		TLFEphemeralPublicKeys: make(kbfscrypto.TLFEphemeralPublicKeys, 1),
 	}
 
 	// Generate keys
-	wKeys := make(map[keybase1.UID][]CryptPublicKey)
+	wKeys := make(map[keybase1.UID][]kbfscrypto.CryptPublicKey)
 
 	testKeyBundleGetKeysOrBust(t, config1, u1, wKeys)
 	testKeyBundleGetKeysOrBust(t, config1, u2, wKeys)
@@ -232,9 +235,9 @@ func makeFakeDeviceKeyInfoMapFuture(t *testing.T) userDeviceKeyInfoMapFuture {
 func makeFakeTLFWriterKeyBundleFuture(t *testing.T) tlfWriterKeyBundleFuture {
 	wkb := TLFWriterKeyBundleV2{
 		nil,
-		MakeTLFPublicKey([32]byte{0xa}),
-		TLFEphemeralPublicKeys{
-			MakeTLFEphemeralPublicKey([32]byte{0xb}),
+		kbfscrypto.MakeTLFPublicKey([32]byte{0xa}),
+		kbfscrypto.TLFEphemeralPublicKeys{
+			kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0xb}),
 		},
 		codec.UnknownFieldSetHandler{},
 	}
@@ -269,8 +272,8 @@ func (rkbf tlfReaderKeyBundleFuture) toCurrentStruct() currentStruct {
 func makeFakeTLFReaderKeyBundleFuture(t *testing.T) tlfReaderKeyBundleFuture {
 	rkb := TLFReaderKeyBundleV2{
 		nil,
-		TLFEphemeralPublicKeys{
-			MakeTLFEphemeralPublicKey([32]byte{0xc}),
+		kbfscrypto.TLFEphemeralPublicKeys{
+			kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0xc}),
 		},
 		codec.UnknownFieldSetHandler{},
 	}

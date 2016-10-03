@@ -9,6 +9,8 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	merkle "github.com/keybase/go-merkle-tree"
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfshash"
 )
 
 // MerkleRootVersion is the current Merkle root version.
@@ -16,14 +18,14 @@ const MerkleRootVersion = 1
 
 // MerkleRoot represents a signed Merkle tree root.
 type MerkleRoot struct {
-	Version   int                    `codec:"v"`
-	TreeID    keybase1.MerkleTreeID  `codec:"t"`
-	SeqNo     int64                  `codec:"sn"`
-	Timestamp int64                  `codec:"ts"`
-	Hash      merkle.Hash            `codec:"h"`
-	PrevRoot  merkle.Hash            `codec:"pr"`
-	EPubKey   *TLFEphemeralPublicKey `codec:"epk,omitempty"` // these two are only necessary with encrypted leaves.
-	Nonce     *[24]byte              `codec:"non,omitempty"` // the public tree leaves are in the clear.
+	Version   int                               `codec:"v"`
+	TreeID    keybase1.MerkleTreeID             `codec:"t"`
+	SeqNo     int64                             `codec:"sn"`
+	Timestamp int64                             `codec:"ts"`
+	Hash      merkle.Hash                       `codec:"h"`
+	PrevRoot  merkle.Hash                       `codec:"pr"`
+	EPubKey   *kbfscrypto.TLFEphemeralPublicKey `codec:"epk,omitempty"` // these two are only necessary with encrypted leaves.
+	Nonce     *[24]byte                         `codec:"non,omitempty"` // the public tree leaves are in the clear.
 }
 
 // MerkleLeaf is the value of a Merkle leaf node.
@@ -44,7 +46,7 @@ func (l MerkleLeaf) Construct() interface{} {
 
 // MerkleHash is the hash of a RootMetadataSigned block.
 type MerkleHash struct {
-	h Hash
+	h kbfshash.Hash
 }
 
 var _ encoding.BinaryMarshaler = MerkleHash{}
@@ -53,7 +55,7 @@ var _ encoding.BinaryUnmarshaler = (*MerkleHash)(nil)
 // MerkleHashFromBytes creates a new MerkleHash from the given bytes. If the
 // returned error is nil, the returned MerkleHash is valid.
 func MerkleHashFromBytes(data []byte) (MerkleHash, error) {
-	h, err := HashFromBytes(data)
+	h, err := kbfshash.HashFromBytes(data)
 	if err != nil {
 		return MerkleHash{}, err
 	}

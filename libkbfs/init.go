@@ -313,26 +313,6 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 	config.SetKeyManager(NewKeyManagerStandard(config))
 	config.SetMDOps(NewMDOpsStandard(config))
 
-	mdServer, err := makeMDServer(
-		config, params.ServerInMemory || params.MDServerInMemory, params.ServerRootDir, params.MDServerAddr, ctx)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating MD server: %v", err)
-	}
-	config.SetMDServer(mdServer)
-
-	// note: the mdserver is the keyserver at the moment.
-	keyServer, err := makeKeyServer(
-		config, params.ServerInMemory || params.MDServerInMemory, params.ServerRootDir, params.MDServerAddr)
-	if err != nil {
-		return nil, fmt.Errorf("problem creating key server: %v", err)
-	}
-
-	if registry := config.MetricsRegistry(); registry != nil {
-		keyServer = NewKeyServerMeasured(keyServer, registry)
-	}
-
-	config.SetKeyServer(keyServer)
-
 	if keybaseServiceCn == nil {
 		keybaseServiceCn = keybaseDaemon{}
 	}
@@ -352,6 +332,8 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 
 	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
 
+	// crypto must be initialized before the MD and block servers
+	// are initialized, since those depend on crypto.
 	crypto, err := keybaseServiceCn.NewCrypto(config, params, ctx, log)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating crypto: %s", err)
@@ -362,6 +344,26 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 	}
 
 	config.SetCrypto(crypto)
+
+	mdServer, err := makeMDServer(
+		config, params.ServerInMemory || params.MDServerInMemory, params.ServerRootDir, params.MDServerAddr, ctx)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating MD server: %v", err)
+	}
+	config.SetMDServer(mdServer)
+
+	// note: the mdserver is the keyserver at the moment.
+	keyServer, err := makeKeyServer(
+		config, params.ServerInMemory || params.MDServerInMemory, params.ServerRootDir, params.MDServerAddr)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating key server: %v", err)
+	}
+
+	if registry := config.MetricsRegistry(); registry != nil {
+		keyServer = NewKeyServerMeasured(keyServer, registry)
+	}
+
+	config.SetKeyServer(keyServer)
 
 	bserv, err := makeBlockServer(config, params.ServerInMemory || params.BServerInMemory, params.ServerRootDir, params.BServerAddr, ctx, log)
 	if err != nil {

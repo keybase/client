@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/kbfscrypto"
 )
 
 // The functions below must be used only in tests or local
@@ -21,9 +22,27 @@ func makeFakeRandomBytes(seed string, byteCount int) []byte {
 	return []byte(seed[:byteCount])
 }
 
+// SigningKeySecretSize is the size of a SigningKeySecret.
+const SigningKeySecretSize = libkb.NaclSigningKeySecretSize
+
+// SigningKeySecret is a secret that can be used to construct a SigningKey.
+type SigningKeySecret struct {
+	secret [SigningKeySecretSize]byte
+}
+
+// makeSigningKey makes a new Nacl signing key from the given secret.
+func makeSigningKey(secret SigningKeySecret) (kbfscrypto.SigningKey, error) {
+	kp, err := libkb.MakeNaclSigningKeyPairFromSecret(secret.secret)
+	if err != nil {
+		return kbfscrypto.SigningKey{}, err
+	}
+
+	return kbfscrypto.NewSigningKey(kp), nil
+}
+
 // MakeFakeSigningKeyOrBust makes a new signing key from fake
 // randomness made from the given seed.
-func MakeFakeSigningKeyOrBust(seed string) SigningKey {
+func MakeFakeSigningKeyOrBust(seed string) kbfscrypto.SigningKey {
 	fakeRandomBytes := makeFakeRandomBytes(seed, SigningKeySecretSize)
 	var fakeSecret SigningKeySecret
 	copy(fakeSecret.secret[:], fakeRandomBytes)
@@ -36,7 +55,7 @@ func MakeFakeSigningKeyOrBust(seed string) SigningKey {
 
 // MakeFakeVerifyingKeyOrBust makes a new key suitable for verifying
 // signatures made from the fake signing key made with the same seed.
-func MakeFakeVerifyingKeyOrBust(seed string) VerifyingKey {
+func MakeFakeVerifyingKeyOrBust(seed string) kbfscrypto.VerifyingKey {
 	sk := MakeFakeSigningKeyOrBust(seed)
 	return sk.GetVerifyingKey()
 }
@@ -56,7 +75,7 @@ func MakeFakeCryptPrivateKeyOrBust(seed string) CryptPrivateKey {
 
 // MakeFakeCryptPublicKeyOrBust makes the public key corresponding to
 // the crypt private key made with the same seed.
-func MakeFakeCryptPublicKeyOrBust(seed string) CryptPublicKey {
+func MakeFakeCryptPublicKeyOrBust(seed string) kbfscrypto.CryptPublicKey {
 	k := MakeFakeCryptPrivateKeyOrBust(seed)
 	return k.getPublicKey()
 }

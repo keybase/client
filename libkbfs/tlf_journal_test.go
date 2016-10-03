@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -118,7 +119,7 @@ func (c testTLFJournalConfig) MakeLogger(module string) logger.Logger {
 }
 
 func (c testTLFJournalConfig) makeBlock(data []byte) (
-	BlockID, BlockContext, BlockCryptKeyServerHalf) {
+	BlockID, BlockContext, kbfscrypto.BlockCryptKeyServerHalf) {
 	id, err := c.crypto.MakePermanentBlockID(data)
 	require.NoError(c.t, err)
 	bCtx := BlockContext{c.uid, "", zeroBlockRefNonce}
@@ -135,7 +136,7 @@ func (c testTLFJournalConfig) makeMD(
 func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
 	expectedRevision MetadataRevision, expectedPrevRoot MdID,
 	expectedMergeStatus MergeStatus, expectedBranchID BranchID) {
-	verifyingKey := c.crypto.signingKey.GetVerifyingKey()
+	verifyingKey := c.crypto.SigningKeySigner.Key.GetVerifyingKey()
 	checkBRMD(c.t, c.uid, verifyingKey, c.Codec(), c.Crypto(),
 		rmds.MD, expectedRevision, expectedPrevRoot,
 		expectedMergeStatus, expectedBranchID)
@@ -174,7 +175,7 @@ func setupTLFJournalTest(
 	crypto := NewCryptoLocal(codec, signingKey, cryptPrivateKey)
 	uid := keybase1.MakeTestUID(1)
 	verifyingKey := signingKey.GetVerifyingKey()
-	ekg := singleEncryptionKeyGetter{MakeTLFCryptKey([32]byte{0x1})}
+	ekg := singleEncryptionKeyGetter{kbfscrypto.MakeTLFCryptKey([32]byte{0x1})}
 
 	cig := singleCurrentInfoGetter{
 		name:         "fake_user",
@@ -339,7 +340,7 @@ type hangingBlockServer struct {
 
 func (bs hangingBlockServer) Put(
 	ctx context.Context, tlfID TlfID, id BlockID, context BlockContext,
-	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	close(bs.onPutCh)
 	// Hang until the context is cancelled.
 	<-ctx.Done()
@@ -768,7 +769,7 @@ type orderedBlockServer struct {
 
 func (s *orderedBlockServer) Put(
 	ctx context.Context, tlfID TlfID, id BlockID, context BlockContext,
-	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	*s.puts = append(*s.puts, id)

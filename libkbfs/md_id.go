@@ -4,11 +4,15 @@
 
 package libkbfs
 
-import "encoding"
+import (
+	"encoding"
+
+	"github.com/keybase/kbfs/kbfshash"
+)
 
 // MdID is the content-based ID for a metadata block.
 type MdID struct {
-	h Hash
+	h kbfshash.Hash
 }
 
 var _ encoding.BinaryMarshaler = MdID{}
@@ -17,7 +21,7 @@ var _ encoding.BinaryUnmarshaler = (*MdID)(nil)
 // MdIDFromBytes creates a new MdID from the given bytes. If the
 // returned error is nil, the returned MdID is valid.
 func MdIDFromBytes(data []byte) (MdID, error) {
-	h, err := HashFromBytes(data)
+	h, err := kbfshash.HashFromBytes(data)
 	if err != nil {
 		return MdID{}, err
 	}

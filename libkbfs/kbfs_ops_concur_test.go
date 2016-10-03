@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -491,14 +492,14 @@ func (km *mdRecordingKeyManager) setLastKMD(kmd KeyMetadata) {
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForEncryption(
-	ctx context.Context, kmd KeyMetadata) (TLFCryptKey, error) {
+	ctx context.Context, kmd KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetTLFCryptKeyForEncryption(ctx, kmd)
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryption(
 	ctx context.Context, kmdToDecrypt, kmdWithKeys KeyMetadata) (
-	TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error) {
 	km.setLastKMD(kmdToDecrypt)
 	return km.delegate.GetTLFCryptKeyForMDDecryption(ctx,
 		kmdToDecrypt, kmdWithKeys)
@@ -506,20 +507,21 @@ func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryption(
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForBlockDecryption(
 	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (
-	TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetTLFCryptKeyForBlockDecryption(ctx, kmd, blockPtr)
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyOfAllGenerations(
-	ctx context.Context, kmd KeyMetadata) (keys []TLFCryptKey, err error) {
+	ctx context.Context, kmd KeyMetadata) (
+	keys []kbfscrypto.TLFCryptKey, err error) {
 	km.setLastKMD(kmd)
 	return km.delegate.GetTLFCryptKeyOfAllGenerations(ctx, kmd)
 }
 
 func (km *mdRecordingKeyManager) Rekey(
 	ctx context.Context, md *RootMetadata, promptPaper bool) (
-	bool, *TLFCryptKey, error) {
+	bool, *kbfscrypto.TLFCryptKey, error) {
 	km.setLastKMD(md)
 	return km.delegate.Rekey(ctx, md, promptPaper)
 }
@@ -1088,7 +1090,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 		gomock.Any(), gomock.Any()).
 		Do(func(ctx context.Context, tlfID TlfID, id BlockID,
 			context BlockContext, buf []byte,
-			serverHalf BlockCryptKeyServerHalf) {
+			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
 			errPtrChan <- BlockPointer{
 				ID:           id,
 				BlockContext: context,
@@ -1100,7 +1102,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 		gomock.Any(), gomock.Any()).AnyTimes().
 		Do(func(ctx context.Context, tlfID TlfID, id BlockID,
 			context BlockContext, buf []byte,
-			serverHalf BlockCryptKeyServerHalf) {
+			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
 			<-proceedChan
 		}).After(c).Return(nil)
 	b.EXPECT().Shutdown().AnyTimes()

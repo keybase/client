@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfscrypto
 
 import (
 	"errors"
@@ -20,9 +20,15 @@ import (
 // AuthTokenMinRefreshSeconds is the minimum number of seconds between refreshes.
 const AuthTokenMinRefreshSeconds = 60
 
+// AuthTokenRefreshHandler defines a callback to be called when an auth token refresh
+// is needed.
+type AuthTokenRefreshHandler interface {
+	RefreshAuthToken(context.Context)
+}
+
 // AuthToken encapsulates a timed authentication token.
 type AuthToken struct {
-	config         Config
+	signer         Signer
 	tokenType      string
 	expireIn       int
 	clientName     string
@@ -33,15 +39,15 @@ type AuthToken struct {
 }
 
 // NewAuthToken creates a new authentication token.
-func NewAuthToken(config Config, tokenType string, expireIn int,
-	submoduleName string, rh AuthTokenRefreshHandler) *AuthToken {
+func NewAuthToken(signer Signer, tokenType string, expireIn int,
+	submoduleName, version string, rh AuthTokenRefreshHandler) *AuthToken {
 	clientName := fmt.Sprintf("go %s %s %s", submoduleName, runtime.GOOS, runtime.GOARCH)
 	authToken := &AuthToken{
-		config:         config,
+		signer:         signer,
 		tokenType:      tokenType,
 		expireIn:       expireIn,
 		clientName:     clientName,
-		clientVersion:  VersionString(),
+		clientVersion:  version,
 		refreshHandler: rh,
 	}
 	return authToken
@@ -52,12 +58,12 @@ func (a *AuthToken) signWithUserAndKeyInfo(ctx context.Context,
 	challengeInfo keybase1.ChallengeInfo, uid keybase1.UID,
 	username libkb.NormalizedUsername, key VerifyingKey) (string, error) {
 	// create the token
-	token := auth.NewToken(uid, username, key.kid, a.tokenType,
+	token := auth.NewToken(uid, username, key.KID(), a.tokenType,
 		challengeInfo.Challenge, challengeInfo.Now, a.expireIn,
 		a.clientName, a.clientVersion)
 
 	// sign the token
-	signature, err := a.config.Crypto().SignToString(ctx, token.Bytes())
+	signature, err := a.signer.SignToString(ctx, token.Bytes())
 	if err != nil {
 		return "", err
 	}
@@ -74,30 +80,26 @@ func (a *AuthToken) signWithUserAndKeyInfo(ctx context.Context,
 
 // Sign is called to create a new signed authentication token,
 // including a challenge and username/uid/kid identifiers.
-func (a *AuthToken) Sign(ctx context.Context, challengeInfo keybase1.ChallengeInfo) (string, error) {
+func (a *AuthToken) Sign(ctx context.Context,
+	currentUsername libkb.NormalizedUsername, currentUID keybase1.UID,
+	currentVerifyingKey VerifyingKey,
+	challengeInfo keybase1.ChallengeInfo) (string, error) {
 	// make sure we're being asked to sign a legit challenge
 	if !auth.IsValidChallenge(challengeInfo.Challenge) {
 		return "", errors.New("Invalid challenge")
 	}
 
-	// get UID, deviceKID and normalized username
-	username, uid, err := a.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return "", err
-	}
-	key, err := a.config.KBPKI().GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	return a.signWithUserAndKeyInfo(ctx, challengeInfo, uid, username, key)
+	return a.signWithUserAndKeyInfo(
+		ctx, challengeInfo, currentUID,
+		currentUsername, currentVerifyingKey)
 }
 
 // SignUserless signs the token without a username, UID, or challenge.
 // This is useful for server-to-server communication where identity is
 // established using only the KID.  Assume the client and server
 // clocks are roughly synchronized.
-func (a *AuthToken) SignUserless(ctx context.Context, key VerifyingKey) (
+func (a *AuthToken) SignUserless(
+	ctx context.Context, key VerifyingKey) (
 	string, error) {
 	// Pass in a reserved, meaningless UID.
 	return a.signWithUserAndKeyInfo(ctx,

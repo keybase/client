@@ -16,6 +16,8 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfssync"
 	"golang.org/x/net/context"
 )
 
@@ -121,7 +123,7 @@ type tlfJournalBWDelegate interface {
 // journal numbers.
 type tlfJournal struct {
 	uid                 keybase1.UID
-	key                 VerifyingKey
+	key                 kbfscrypto.VerifyingKey
 	tlfID               TlfID
 	dir                 string
 	config              tlfJournalConfig
@@ -147,7 +149,7 @@ type tlfJournal struct {
 	flushLock sync.Mutex
 
 	// Tracks background work.
-	wg RepeatedWaitGroup
+	wg kbfssync.RepeatedWaitGroup
 
 	// Protects all operations on blockJournal and mdJournal.
 	//
@@ -168,28 +170,28 @@ func getTLFJournalInfoFilePath(dir string) string {
 
 type tlfJournalInfo struct {
 	UID          keybase1.UID
-	VerifyingKey VerifyingKey
+	VerifyingKey kbfscrypto.VerifyingKey
 	TlfID        TlfID
 }
 
 func readTLFJournalInfoFile(dir string) (
-	keybase1.UID, VerifyingKey, TlfID, error) {
+	keybase1.UID, kbfscrypto.VerifyingKey, TlfID, error) {
 	infoJSON, err := ioutil.ReadFile(getTLFJournalInfoFilePath(dir))
 	if err != nil {
-		return keybase1.UID(""), VerifyingKey{}, TlfID{}, err
+		return keybase1.UID(""), kbfscrypto.VerifyingKey{}, TlfID{}, err
 	}
 
 	var info tlfJournalInfo
 	err = json.Unmarshal(infoJSON, &info)
 	if err != nil {
-		return keybase1.UID(""), VerifyingKey{}, TlfID{}, err
+		return keybase1.UID(""), kbfscrypto.VerifyingKey{}, TlfID{}, err
 	}
 
 	return info.UID, info.VerifyingKey, info.TlfID, nil
 }
 
-func writeTLFJournalInfoFile(
-	dir string, uid keybase1.UID, key VerifyingKey, tlfID TlfID) error {
+func writeTLFJournalInfoFile(dir string, uid keybase1.UID,
+	key kbfscrypto.VerifyingKey, tlfID TlfID) error {
 	info := tlfJournalInfo{uid, key, tlfID}
 	infoJSON, err := json.Marshal(info)
 	if err != nil {
@@ -205,7 +207,7 @@ func writeTLFJournalInfoFile(
 }
 
 func makeTLFJournal(
-	ctx context.Context, uid keybase1.UID, key VerifyingKey,
+	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	dir string, tlfID TlfID, config tlfJournalConfig,
 	delegateBlockServer BlockServer, bws TLFJournalBackgroundWorkStatus,
 	bwDelegate tlfJournalBWDelegate, onBranchChange branchChangeListener,
@@ -213,7 +215,7 @@ func makeTLFJournal(
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
 	}
-	if key == (VerifyingKey{}) {
+	if key == (kbfscrypto.VerifyingKey{}) {
 		return nil, errors.New("Empty verifying key")
 	}
 	if tlfID == (TlfID{}) {
@@ -899,11 +901,11 @@ func (j *tlfJournal) enable() error {
 
 func (j *tlfJournal) getBlockDataWithContext(
 	id BlockID, context BlockContext) (
-	[]byte, BlockCryptKeyServerHalf, error) {
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	return j.blockJournal.getDataWithContext(id, context)
@@ -911,7 +913,7 @@ func (j *tlfJournal) getBlockDataWithContext(
 
 func (j *tlfJournal) putBlockData(
 	ctx context.Context, id BlockID, context BlockContext, buf []byte,
-	serverHalf BlockCryptKeyServerHalf) error {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {

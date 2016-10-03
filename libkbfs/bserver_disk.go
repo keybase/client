@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -128,7 +129,7 @@ func (b *BlockServerDisk) getStorage(ctx context.Context, tlfID TlfID) (
 // Get implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) Get(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext) (
-	data []byte, serverHalf BlockCryptKeyServerHalf, err error) {
+	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -136,20 +137,20 @@ func (b *BlockServerDisk) Get(ctx context.Context, tlfID TlfID, id BlockID,
 		id, tlfID, context)
 	tlfStorage, err := b.getStorage(ctx, tlfID)
 	if err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	tlfStorage.lock.RLock()
 	defer tlfStorage.lock.RUnlock()
 	if tlfStorage.journal == nil {
-		return nil, BlockCryptKeyServerHalf{},
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			errBlockServerDiskShutdown
 	}
 
 	data, keyServerHalf, err := tlfStorage.journal.getDataWithContext(
 		id, context)
 	if err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 	return data, keyServerHalf, nil
 }
@@ -157,7 +158,7 @@ func (b *BlockServerDisk) Get(ctx context.Context, tlfID TlfID, id BlockID,
 // Put implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) Put(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext, buf []byte,
-	serverHalf BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()

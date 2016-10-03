@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/kbfs/kbfscrypto"
 )
 
 // KeyCacheStandard is an LRU-based implementation of the KeyCache interface.
@@ -32,20 +33,21 @@ func NewKeyCacheStandard(capacity int) *KeyCacheStandard {
 
 // GetTLFCryptKey implements the KeyCache interface for KeyCacheStandard.
 func (k *KeyCacheStandard) GetTLFCryptKey(tlf TlfID, keyGen KeyGen) (
-	TLFCryptKey, error) {
+	kbfscrypto.TLFCryptKey, error) {
 	cacheKey := keyCacheKey{tlf, keyGen}
 	if entry, ok := k.lru.Get(cacheKey); ok {
-		if key, ok := entry.(TLFCryptKey); ok {
+		if key, ok := entry.(kbfscrypto.TLFCryptKey); ok {
 			return key, nil
 		}
 		// shouldn't really be possible
-		return TLFCryptKey{}, KeyCacheHitError{tlf, keyGen}
+		return kbfscrypto.TLFCryptKey{}, KeyCacheHitError{tlf, keyGen}
 	}
-	return TLFCryptKey{}, KeyCacheMissError{tlf, keyGen}
+	return kbfscrypto.TLFCryptKey{}, KeyCacheMissError{tlf, keyGen}
 }
 
 // PutTLFCryptKey implements the KeyCache interface for KeyCacheStandard.
-func (k *KeyCacheStandard) PutTLFCryptKey(tlf TlfID, keyGen KeyGen, key TLFCryptKey) error {
+func (k *KeyCacheStandard) PutTLFCryptKey(
+	tlf TlfID, keyGen KeyGen, key kbfscrypto.TLFCryptKey) error {
 	cacheKey := keyCacheKey{tlf, keyGen}
 	k.lru.Add(cacheKey, key)
 	return nil

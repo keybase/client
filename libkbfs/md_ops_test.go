@@ -13,6 +13,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -43,8 +45,8 @@ func mdOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.SetMDOps(mdops)
 	config.mockMdserv.EXPECT().OffsetFromServerTime().
 		Return(time.Duration(0), true).AnyTimes()
-	h1, _ := DefaultHash([]byte{1})
-	h2, _ := DefaultHash([]byte{2})
+	h1, _ := kbfshash.DefaultHash([]byte{1})
+	h2, _ := kbfshash.DefaultHash([]byte{2})
 	config.mockCrypto.EXPECT().MakeTLFWriterKeyBundleID(gomock.Any()).
 		Return(TLFWriterKeyBundleID{h1}, nil).AnyTimes()
 	config.mockCrypto.EXPECT().MakeTLFReaderKeyBundleID(gomock.Any()).
@@ -65,8 +67,8 @@ func addFakeRMDData(crypto cryptoPure, rmd *RootMetadata, h *TlfHandle) {
 	rmd.SetLastModifyingWriter(h.FirstResolvedWriter())
 	rmd.SetLastModifyingUser(h.FirstResolvedWriter())
 	fakeVerifyingKey := MakeFakeVerifyingKeyOrBust("fake key")
-	rmd.SetWriterMetadataSigInfo(SignatureInfo{
-		Version:      SigED25519,
+	rmd.SetWriterMetadataSigInfo(kbfscrypto.SignatureInfo{
+		Version:      kbfscrypto.SigED25519,
 		Signature:    []byte{41},
 		VerifyingKey: fakeVerifyingKey,
 	})
@@ -98,13 +100,13 @@ func addFakeRMDSData(crypto cryptoPure, rmds *RootMetadataSigned, h *TlfHandle) 
 	rmds.MD.SetLastModifyingWriter(h.FirstResolvedWriter())
 	rmds.MD.SetLastModifyingUser(h.FirstResolvedWriter())
 	fakeVerifyingKey := MakeFakeVerifyingKeyOrBust("fake key")
-	rmds.MD.SetWriterMetadataSigInfo(SignatureInfo{
-		Version:      SigED25519,
+	rmds.MD.SetWriterMetadataSigInfo(kbfscrypto.SignatureInfo{
+		Version:      kbfscrypto.SigED25519,
 		Signature:    []byte{41},
 		VerifyingKey: fakeVerifyingKey,
 	})
-	rmds.SigInfo = SignatureInfo{
-		Version:      SigED25519,
+	rmds.SigInfo = kbfscrypto.SignatureInfo{
+		Version:      kbfscrypto.SigED25519,
 		Signature:    []byte{42},
 		VerifyingKey: fakeVerifyingKey,
 	}
@@ -168,7 +170,7 @@ func verifyMDForPrivateHelper(
 	expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config, &fakeRMD)
 	var pmd PrivateMetadata
 	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
-		gomock.Any(), TLFCryptKey{}).
+		gomock.Any(), kbfscrypto.TLFCryptKey{}).
 		MinTimes(minTimes).MaxTimes(maxTimes).Return(&pmd, nil)
 
 	if rmds.MD.IsFinal() {
@@ -196,8 +198,11 @@ func verifyMDForPrivate(
 func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
 	expectGetTLFCryptKeyForEncryption(config, rmd)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
-		&rmd.data, TLFCryptKey{}).Return(EncryptedPrivateMetadata{}, nil)
-	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).Times(2).Return(SignatureInfo{}, nil)
+		&rmd.data, kbfscrypto.TLFCryptKey{}).Return(
+		EncryptedPrivateMetadata{}, nil)
+	config.mockCrypto.EXPECT().Sign(
+		gomock.Any(), gomock.Any()).Times(2).Return(
+		kbfscrypto.SignatureInfo{}, nil)
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
 		Return(true)
 	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
@@ -454,7 +459,7 @@ func TestMDOpsGetBlankSigFailure(t *testing.T) {
 	defer mdOpsShutdown(mockCtrl, config)
 
 	rmds, _, extra := newRMDS(t, config, false)
-	rmds.SigInfo = SignatureInfo{}
+	rmds.SigInfo = kbfscrypto.SignatureInfo{}
 
 	// only the get happens, no verify needed with a blank sig
 	config.mockMdserv.EXPECT().GetForTLF(ctx, rmds.MD.TlfID(), NullBranchID, Merged).Return(rmds, nil)
@@ -692,7 +697,8 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 
 	expectGetTLFCryptKeyForEncryption(config, rmd)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
-		&rmd.data, TLFCryptKey{}).Return(EncryptedPrivateMetadata{}, nil)
+		&rmd.data, kbfscrypto.TLFCryptKey{}).Return(
+		EncryptedPrivateMetadata{}, nil)
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
 		Return(true)
 

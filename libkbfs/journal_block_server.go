@@ -4,7 +4,10 @@
 
 package libkbfs
 
-import "golang.org/x/net/context"
+import (
+	"github.com/keybase/kbfs/kbfscrypto"
+	"golang.org/x/net/context"
+)
 
 type journalBlockServer struct {
 	jServer *JournalServer
@@ -16,7 +19,7 @@ var _ BlockServer = journalBlockServer{}
 
 func (j journalBlockServer) Get(
 	ctx context.Context, tlfID TlfID, id BlockID, context BlockContext) (
-	data []byte, serverHalf BlockCryptKeyServerHalf, err error) {
+	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
 		defer func() {
 			err = translateToBlockServerError(err)
@@ -32,7 +35,7 @@ func (j journalBlockServer) Get(
 			if err == errTLFJournalDisabled {
 				break
 			}
-			return nil, BlockCryptKeyServerHalf{}, err
+			return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 		}
 	}
 
@@ -41,7 +44,7 @@ func (j journalBlockServer) Get(
 
 func (j journalBlockServer) Put(
 	ctx context.Context, tlfID TlfID, id BlockID, context BlockContext,
-	buf []byte, serverHalf BlockCryptKeyServerHalf) (err error) {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
 		defer func() {
 			err = translateToBlockServerError(err)

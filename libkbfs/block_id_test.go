@@ -9,11 +9,12 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfshash"
 )
 
 func fakeBlockID(b byte) BlockID {
-	dh := RawDefaultHash{b}
-	h, err := HashFromRaw(DefaultHashType, dh[:])
+	dh := kbfshash.RawDefaultHash{b}
+	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
 	if err != nil {
 		panic(err)
 	}
@@ -21,11 +22,11 @@ func fakeBlockID(b byte) BlockID {
 }
 
 func fakeBlockIDAdd(id BlockID, b byte) BlockID {
-	return fakeBlockID(id.h.hashData()[0] + b)
+	return fakeBlockID(id.h.Bytes()[1] + b)
 }
 
 func fakeBlockIDMul(id BlockID, b byte) BlockID {
-	return fakeBlockID(id.h.hashData()[0] * b)
+	return fakeBlockID(id.h.Bytes()[1] * b)
 }
 
 // Make sure BlockID encodes and decodes properly with minimal overhead.
@@ -43,9 +44,10 @@ func TestBlockIDEncodeDecode(t *testing.T) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	if len(encodedBlockID) != DefaultHashByteLength+overhead {
+	if len(encodedBlockID) != kbfshash.DefaultHashByteLength+overhead {
 		t.Errorf("expected encoded length %d, got %d",
-			DefaultHashByteLength+overhead, len(encodedBlockID))
+			kbfshash.DefaultHashByteLength+overhead,
+			len(encodedBlockID))
 	}
 
 	var id2 BlockID

@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"sync"
 
+	"github.com/keybase/kbfs/kbfssync"
+
 	"golang.org/x/net/context"
 )
 
@@ -22,7 +24,7 @@ type RekeyQueueStandard struct {
 	queue     []rekeyQueueEntry
 	hasWorkCh chan struct{}
 	cancel    context.CancelFunc
-	wg        RepeatedWaitGroup
+	wg        kbfssync.RepeatedWaitGroup
 }
 
 // Test that RekeyQueueStandard fully implements the RekeyQueue interface.

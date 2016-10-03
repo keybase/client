@@ -543,17 +543,6 @@ func (e MDWriteNeededInRequest) Error() string {
 	return "This request needs MD write access, but doesn't have it."
 }
 
-// UnknownSigVer indicates that we can't process a signature because
-// it has an unknown version.
-type UnknownSigVer struct {
-	sigVer SigVer
-}
-
-// Error implements the error interface for UnknownSigVer
-func (e UnknownSigVer) Error() string {
-	return fmt.Sprintf("Unknown signature version %d", int(e.sigVer))
-}
-
 // KeyNotFoundError indicates that a key matching the given KID
 // couldn't be found.
 type KeyNotFoundError struct {
@@ -739,16 +728,6 @@ func (e KeyHalfMismatchError) Error() string {
 		e.Expected, e.Actual)
 }
 
-// InvalidHashError is returned whenever an invalid hash is
-// detected.
-type InvalidHashError struct {
-	H Hash
-}
-
-func (e InvalidHashError) Error() string {
-	return fmt.Sprintf("Invalid hash %s", e.H)
-}
-
 // InvalidTlfID indicates whether the TLF ID string is not parseable
 // or invalid.
 type InvalidTlfID struct {
@@ -767,27 +746,6 @@ type InvalidBranchID struct {
 
 func (e InvalidBranchID) Error() string {
 	return fmt.Sprintf("Invalid branch ID %q", e.id)
-}
-
-// UnknownHashTypeError is returned whenever a hash with an unknown
-// hash type is attempted to be used for verification.
-type UnknownHashTypeError struct {
-	T HashType
-}
-
-func (e UnknownHashTypeError) Error() string {
-	return fmt.Sprintf("Unknown hash type %s", e.T)
-}
-
-// HashMismatchError is returned whenever a hash mismatch is detected.
-type HashMismatchError struct {
-	ExpectedH Hash
-	ActualH   Hash
-}
-
-func (e HashMismatchError) Error() string {
-	return fmt.Sprintf("Hash mismatch: expected %s, got %s",
-		e.ExpectedH, e.ActualH)
 }
 
 // MDServerDisconnected indicates the MDServer has been disconnected for clients waiting
@@ -991,25 +949,6 @@ type RekeyIncompleteError struct{}
 
 func (e RekeyIncompleteError) Error() string {
 	return fmt.Sprintf("Rekey did not complete due to insufficient user permissions")
-}
-
-// InvalidKIDError is returned whenever an invalid KID is detected.
-type InvalidKIDError struct {
-	kid keybase1.KID
-}
-
-func (e InvalidKIDError) Error() string {
-	return fmt.Sprintf("Invalid KID %s", e.kid)
-}
-
-// InvalidByte32DataError is returned whenever invalid data for a
-// 32-byte type is detected.
-type InvalidByte32DataError struct {
-	data []byte
-}
-
-func (e InvalidByte32DataError) Error() string {
-	return fmt.Sprintf("Invalid byte32 data %v", e.data)
 }
 
 // TimeoutError is just a replacement for context.DeadlineExceeded

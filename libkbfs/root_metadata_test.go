@@ -14,6 +14,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -55,7 +57,7 @@ func makeFakePrivateMetadataFuture(t *testing.T) privateMetadataFuture {
 	pmf := privateMetadataFuture{
 		PrivateMetadata{
 			DirEntry{},
-			MakeTLFPrivateKey([32]byte{0xb}),
+			kbfscrypto.MakeTLFPrivateKey([32]byte{0xb}),
 			BlockChanges{
 				makeFakeBlockInfo(t),
 				opsList{
@@ -417,21 +419,23 @@ func (brmf *bareRootMetadataFuture) toCurrentStruct() currentStruct {
 func makeFakeBareRootMetadataFuture(t *testing.T) *bareRootMetadataFuture {
 	wmf := makeFakeWriterMetadataFuture(t)
 	rkb := makeFakeTLFReaderKeyBundleFuture(t)
-	h, err := DefaultHash([]byte("fake buf"))
+	h, err := kbfshash.DefaultHash([]byte("fake buf"))
 	require.NoError(t, err)
 	sa, _ := externals.NormalizeSocialAssertion("bar@github")
 	rmf := bareRootMetadataFuture{
 		wmf,
 		bareRootMetadataWrapper{
 			BareRootMetadataV2{
-				// This needs to be list format so it fails to compile if new
-				// fields are added, effectively checking at compile time
-				// whether new fields have been added
+				// This needs to be list format so it
+				// fails to compile if new fields are
+				// added, effectively checking at
+				// compile time whether new fields
+				// have been added
 				WriterMetadataV2{},
-				SignatureInfo{
-					100,
-					[]byte{0xc},
-					MakeFakeVerifyingKeyOrBust("fake kid"),
+				kbfscrypto.SignatureInfo{
+					Version:      100,
+					Signature:    []byte{0xc},
+					VerifyingKey: MakeFakeVerifyingKeyOrBust("fake kid"),
 				},
 				"uid1",
 				0xb,
@@ -560,7 +564,7 @@ func TestRootMetadataVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't resolve again: %v", err)
 	}
-	rmd3, err := rmd.MakeSuccessor(config, fakeMdID(1), true)
+	rmd3, err := rmd.MakeSuccessor(config.Codec(), fakeMdID(1), true)
 	if err != nil {
 		t.Fatalf("Couldn't make MD successor: %v", err)
 	}
@@ -686,7 +690,7 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 	}
 
 	// make a final copy
-	rmds2, err := rmds.MakeFinalCopy(config)
+	rmds2, err := rmds.MakeFinalCopy(config.Codec())
 	if err != nil {
 		t.Fatal(err)
 	}

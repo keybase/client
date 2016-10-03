@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfscrypto
 
 import (
 	"encoding"
@@ -21,6 +21,9 @@ type kidContainer struct {
 
 var _ encoding.BinaryMarshaler = kidContainer{}
 var _ encoding.BinaryUnmarshaler = (*kidContainer)(nil)
+
+var _ json.Marshaler = kidContainer{}
+var _ json.Unmarshaler = (*kidContainer)(nil)
 
 func (k kidContainer) MarshalBinary() (data []byte, err error) {
 	if k.kid.IsNil() {
@@ -54,9 +57,6 @@ func (k *kidContainer) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-var _ json.Marshaler = kidContainer{}
-var _ json.Unmarshaler = (*kidContainer)(nil)
-
 func (k kidContainer) MarshalJSON() ([]byte, error) {
 	return k.kid.MarshalJSON()
 }
@@ -65,8 +65,6 @@ func (k *kidContainer) UnmarshalJSON(s []byte) error {
 	return k.kid.UnmarshalJSON(s)
 }
 
-// Needed by mdserver/server_test.go. TODO: Figure out how to avoid
-// this.
 func (k kidContainer) KID() keybase1.KID {
 	return k.kid
 }
@@ -75,45 +73,16 @@ func (k kidContainer) String() string {
 	return k.kid.String()
 }
 
-// A VerifyingKey is a public key that can be used to verify a
-// signature created by the corresponding private signing key. In
-// particular, VerifyingKeys are used to authenticate home and public
-// TLFs. (See 4.2, 4.3.)
-//
-// These are also sometimes known as sibkeys.
-//
-// Copies of VerifyingKey objects are deep copies.
-type VerifyingKey struct {
-	// Should only be used by implementations of Crypto and KBPKI.
-	//
-	// Even though we currently use NaclSignatures, we use a KID
-	// here (which encodes the key type) as we may end up storing
-	// other kinds of signatures.
-	kidContainer
-}
-
-var _ encoding.BinaryMarshaler = VerifyingKey{}
-var _ encoding.BinaryUnmarshaler = (*VerifyingKey)(nil)
-
-var _ json.Marshaler = VerifyingKey{}
-var _ json.Unmarshaler = (*VerifyingKey)(nil)
-
-// MakeVerifyingKey returns a VerifyingKey containing the given KID.
-func MakeVerifyingKey(kid keybase1.KID) VerifyingKey {
-	return VerifyingKey{kidContainer{kid}}
-}
-
-// IsNil returns true if the VerifyingKey is nil.
-func (k VerifyingKey) IsNil() bool {
-	return k.kid.IsNil()
-}
-
 type byte32Container struct {
 	data [32]byte
 }
 
 var _ encoding.BinaryMarshaler = byte32Container{}
 var _ encoding.BinaryUnmarshaler = (*byte32Container)(nil)
+
+func (c byte32Container) Data() [32]byte {
+	return c.data
+}
 
 func (c byte32Container) MarshalBinary() (data []byte, err error) {
 	return c.data[:], nil
@@ -206,16 +175,16 @@ type CryptPublicKey struct {
 	kidContainer
 }
 
-// MakeCryptPublicKey returns a CryptPublicKey containing the given KID.
-func MakeCryptPublicKey(kid keybase1.KID) CryptPublicKey {
-	return CryptPublicKey{kidContainer{kid}}
-}
-
 var _ encoding.BinaryMarshaler = CryptPublicKey{}
 var _ encoding.BinaryUnmarshaler = (*CryptPublicKey)(nil)
 
 var _ json.Marshaler = CryptPublicKey{}
 var _ json.Unmarshaler = (*CryptPublicKey)(nil)
+
+// MakeCryptPublicKey returns a CryptPublicKey containing the given KID.
+func MakeCryptPublicKey(kid keybase1.KID) CryptPublicKey {
+	return CryptPublicKey{kidContainer{kid}}
+}
 
 // TLFEphemeralPublicKey (M_e) is used along with a crypt private key
 // to decrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for
@@ -236,6 +205,9 @@ var _ encoding.BinaryUnmarshaler = (*TLFEphemeralPublicKey)(nil)
 func MakeTLFEphemeralPublicKey(data [32]byte) TLFEphemeralPublicKey {
 	return TLFEphemeralPublicKey{byte32Container{data}}
 }
+
+// TLFEphemeralPublicKeys stores a list of TLFEphemeralPublicKey
+type TLFEphemeralPublicKeys []TLFEphemeralPublicKey
 
 // TLFCryptKeyServerHalf (s_u^{f,0,i}) is the masked, server-side half
 // of a TLFCryptKey, which can be recovered only with both
@@ -353,4 +325,31 @@ var _ encoding.BinaryUnmarshaler = (*BlockCryptKey)(nil)
 // Copies of BlockCryptKey objects are deep copies.
 func MakeBlockCryptKey(data [32]byte) BlockCryptKey {
 	return BlockCryptKey{byte32Container{data}}
+}
+
+func xorKeys(x, y [32]byte) [32]byte {
+	var res [32]byte
+	for i := 0; i < 32; i++ {
+		res[i] = x[i] ^ y[i]
+	}
+	return res
+}
+
+// MaskTLFCryptKey returns the client side of a top-level folder crypt
+// key.
+func MaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf,
+	key TLFCryptKey) TLFCryptKeyClientHalf {
+	return MakeTLFCryptKeyClientHalf(xorKeys(serverHalf.data, key.data))
+}
+
+// UnmaskTLFCryptKey returns the top-level folder crypt key.
+func UnmaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf,
+	clientHalf TLFCryptKeyClientHalf) TLFCryptKey {
+	return MakeTLFCryptKey(xorKeys(serverHalf.data, clientHalf.data))
+}
+
+// UnmaskBlockCryptKey returns the block crypt key.
+func UnmaskBlockCryptKey(serverHalf BlockCryptKeyServerHalf,
+	tlfCryptKey TLFCryptKey) BlockCryptKey {
+	return MakeBlockCryptKey(xorKeys(serverHalf.data, tlfCryptKey.data))
 }

@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )
@@ -38,8 +39,8 @@ func NewKeyServerMeasured(delegate KeyServer, r metrics.Registry) KeyServerMeasu
 // GetTLFCryptKeyServerHalf implements the KeyServer interface for
 // KeyServerMeasured.
 func (b KeyServerMeasured) GetTLFCryptKeyServerHalf(ctx context.Context,
-	serverHalfID TLFCryptKeyServerHalfID, key CryptPublicKey) (
-	serverHalf TLFCryptKeyServerHalf, err error) {
+	serverHalfID TLFCryptKeyServerHalfID, key kbfscrypto.CryptPublicKey) (
+	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
 	b.getTimer.Time(func() {
 		serverHalf, err = b.delegate.GetTLFCryptKeyServerHalf(ctx, serverHalfID, key)
 	})
@@ -49,7 +50,7 @@ func (b KeyServerMeasured) GetTLFCryptKeyServerHalf(ctx context.Context,
 // PutTLFCryptKeyServerHalves implements the KeyServer interface for
 // KeyServerMeasured.
 func (b KeyServerMeasured) PutTLFCryptKeyServerHalves(ctx context.Context,
-	serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) (err error) {
+	serverKeyHalves map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf) (err error) {
 	b.putTimer.Time(func() {
 		err = b.delegate.PutTLFCryptKeyServerHalves(ctx, serverKeyHalves)
 	})

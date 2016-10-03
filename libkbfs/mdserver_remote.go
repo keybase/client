@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -37,7 +38,7 @@ type MDServerRemote struct {
 	client       keybase1.MetadataClient
 	log          logger.Logger
 	mdSrvAddr    string
-	authToken    *AuthToken
+	authToken    *kbfscrypto.AuthToken
 	squelchRekey bool
 
 	authenticatedMtx sync.Mutex
@@ -64,7 +65,7 @@ var _ MDServer = (*MDServerRemote)(nil)
 var _ KeyServer = (*MDServerRemote)(nil)
 
 // Test that MDServerRemote fully implements the AuthTokenRefreshHandler interface.
-var _ AuthTokenRefreshHandler = (*MDServerRemote)(nil)
+var _ kbfscrypto.AuthTokenRefreshHandler = (*MDServerRemote)(nil)
 
 // Test that MDServerRemote fully implements the ConnectionHandler interface.
 var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
@@ -78,10 +79,10 @@ func NewMDServerRemote(config Config, srvAddr string, ctx Context) *MDServerRemo
 		mdSrvAddr:  srvAddr,
 		rekeyTimer: time.NewTimer(MdServerBackgroundRekeyPeriod),
 	}
-	mdServer.authToken = NewAuthToken(config,
+	mdServer.authToken = kbfscrypto.NewAuthToken(config.Crypto(),
 		MdServerTokenServer, MdServerTokenExpireIn,
-		"libkbfs_mdserver_remote", mdServer)
-	conn := rpc.NewTLSConnection(srvAddr, GetRootCerts(srvAddr),
+		"libkbfs_mdserver_remote", VersionString(), mdServer)
+	conn := rpc.NewTLSConnection(srvAddr, kbfscrypto.GetRootCerts(srvAddr),
 		MDServerErrorUnwrapper{}, mdServer, true,
 		ctx.NewRPCLogFactory(), libkb.WrapError,
 		config.MakeLogger(""), LogTagsFromContext)
@@ -172,8 +173,18 @@ func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClie
 	}
 	md.log.Debug("MDServerRemote: received challenge")
 
+	// get UID, deviceKID and normalized username
+	username, uid, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return 0, err
+	}
+	key, err := md.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	if err != nil {
+		return 0, err
+	}
+
 	// get a new signature
-	signature, err := md.authToken.Sign(ctx, challenge)
+	signature, err := md.authToken.Sign(ctx, username, uid, key, challenge)
 	if err != nil {
 		md.log.Warning("MDServerRemote: error signing authentication token: %v", err)
 		return 0, err
@@ -664,7 +675,7 @@ func (md *MDServerRemote) getFoldersForRekey(ctx context.Context,
 	if err != nil {
 		return err
 	}
-	return client.GetFoldersForRekey(ctx, cryptKey.kid)
+	return client.GetFoldersForRekey(ctx, cryptKey.KID())
 }
 
 // Shutdown implements the MDServer interface for MDServerRemote.
@@ -697,7 +708,9 @@ func (md *MDServerRemote) IsConnected() bool {
 
 // GetTLFCryptKeyServerHalf is an implementation of the KeyServer interface.
 func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
-	serverHalfID TLFCryptKeyServerHalfID, cryptKey CryptPublicKey) (serverHalf TLFCryptKeyServerHalf, err error) {
+	serverHalfID TLFCryptKeyServerHalfID,
+	cryptKey kbfscrypto.CryptPublicKey) (
+	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
 	// encode the ID
 	idBytes, err := md.config.Codec().Encode(serverHalfID)
 	if err != nil {
@@ -707,7 +720,7 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 	// get the key
 	arg := keybase1.GetKeyArg{
 		KeyHalfID: idBytes,
-		DeviceKID: cryptKey.kid.String(),
+		DeviceKID: cryptKey.KID().String(),
 		LogTags:   nil,
 	}
 	keyBytes, err := md.client.GetKey(ctx, arg)
@@ -726,7 +739,7 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 
 // PutTLFCryptKeyServerHalves is an implementation of the KeyServer interface.
 func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
-	serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error {
+	serverKeyHalves map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf) error {
 	// flatten out the map into an array
 	var keyHalves []keybase1.KeyHalf
 	for user, deviceMap := range serverKeyHalves {

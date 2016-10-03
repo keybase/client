@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
 
 	"golang.org/x/net/context"
 )
@@ -25,7 +26,7 @@ type JournalServerStatus struct {
 	RootDir             string
 	Version             int
 	CurrentUID          keybase1.UID
-	CurrentVerifyingKey VerifyingKey
+	CurrentVerifyingKey kbfscrypto.VerifyingKey
 	JournalCount        int
 	UnflushedBytes      int64 // (signed because os.FileInfo.Size() is signed)
 }
@@ -82,7 +83,7 @@ type JournalServer struct {
 	// Protects all fields below.
 	lock                sync.RWMutex
 	currentUID          keybase1.UID
-	currentVerifyingKey VerifyingKey
+	currentVerifyingKey kbfscrypto.VerifyingKey
 	tlfJournals         map[TlfID]*tlfJournal
 	dirtyOps            uint
 	dirtyOpsDone        *sync.Cond
@@ -115,7 +116,7 @@ func (j *JournalServer) rootPath() string {
 }
 
 func (j *JournalServer) tlfJournalPathLocked(tlfID TlfID) string {
-	if j.currentVerifyingKey == (VerifyingKey{}) {
+	if j.currentVerifyingKey == (kbfscrypto.VerifyingKey{}) {
 		panic("currentVerifyingKey is zero")
 	}
 
@@ -166,7 +167,7 @@ func (j *JournalServer) hasTLFJournal(tlfID TlfID) bool {
 // shutdownExistingJournals is called.
 func (j *JournalServer) EnableExistingJournals(
 	ctx context.Context, currentUID keybase1.UID,
-	currentVerifyingKey VerifyingKey,
+	currentVerifyingKey kbfscrypto.VerifyingKey,
 	bws TLFJournalBackgroundWorkStatus) (err error) {
 	j.log.CDebugf(ctx, "Enabling existing journals (%s)", bws)
 	defer func() {
@@ -184,7 +185,7 @@ func (j *JournalServer) EnableExistingJournals(
 		return fmt.Errorf("Trying to set current UID from %s to %s",
 			j.currentUID, currentUID)
 	}
-	if j.currentVerifyingKey != (VerifyingKey{}) {
+	if j.currentVerifyingKey != (kbfscrypto.VerifyingKey{}) {
 		return fmt.Errorf(
 			"Trying to set current verifying key from %s to %s",
 			j.currentVerifyingKey, currentVerifyingKey)
@@ -193,7 +194,7 @@ func (j *JournalServer) EnableExistingJournals(
 	if currentUID == keybase1.UID("") {
 		return errors.New("Current UID is empty")
 	}
-	if currentVerifyingKey == (VerifyingKey{}) {
+	if currentVerifyingKey == (kbfscrypto.VerifyingKey{}) {
 		return errors.New("Current verifying key is empty")
 	}
 
@@ -287,7 +288,7 @@ func (j *JournalServer) enableLocked(
 	if j.currentUID == keybase1.UID("") {
 		return errors.New("Current UID is empty")
 	}
-	if j.currentVerifyingKey == (VerifyingKey{}) {
+	if j.currentVerifyingKey == (kbfscrypto.VerifyingKey{}) {
 		return errors.New("Current verifying key is empty")
 	}
 
@@ -472,7 +473,7 @@ func (j *JournalServer) mdOps() journalMDOps {
 // diagnostics.
 func (j *JournalServer) Status() JournalServerStatus {
 	journalCount, unflushedBytes, currentUID, currentVerifyingKey :=
-		func() (int, int64, keybase1.UID, VerifyingKey) {
+		func() (int, int64, keybase1.UID, kbfscrypto.VerifyingKey) {
 			j.lock.RLock()
 			defer j.lock.RUnlock()
 			var unflushedBytes int64
@@ -524,7 +525,7 @@ func (j *JournalServer) shutdownExistingJournalsLocked(ctx context.Context) {
 
 	j.tlfJournals = make(map[TlfID]*tlfJournal)
 	j.currentUID = keybase1.UID("")
-	j.currentVerifyingKey = VerifyingKey{}
+	j.currentVerifyingKey = kbfscrypto.VerifyingKey{}
 }
 
 // shutdownExistingJournals shuts down all write journals, sets the

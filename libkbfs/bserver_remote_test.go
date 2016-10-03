@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -85,7 +86,7 @@ func (fc *FakeBServerClient) PutBlock(ctx context.Context, arg keybase1.PutBlock
 		return err
 	}
 
-	serverHalf, err := ParseBlockCryptKeyServerHalf(arg.BlockKey)
+	serverHalf, err := kbfscrypto.ParseBlockCryptKeyServerHalf(arg.BlockKey)
 	if err != nil {
 		return err
 	}

@@ -13,6 +13,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfshash"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
 )
@@ -82,7 +84,7 @@ func (c CryptoCommon) MakeMdID(md BareRootMetadata) (MdID, error) {
 		return MdID{}, err
 	}
 
-	h, err := DefaultHash(buf)
+	h, err := kbfshash.DefaultHash(buf)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -95,7 +97,7 @@ func (c CryptoCommon) MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error)
 	if err != nil {
 		return MerkleHash{}, err
 	}
-	h, err := DefaultHash(buf)
+	h, err := kbfshash.DefaultHash(buf)
 	if err != nil {
 		return MerkleHash{}, err
 	}
@@ -109,7 +111,7 @@ func (c CryptoCommon) MakeTLFWriterKeyBundleID(wkb *TLFWriterKeyBundleV3) (
 	if err != nil {
 		return TLFWriterKeyBundleID{}, err
 	}
-	h, err := DefaultHash(buf)
+	h, err := kbfshash.DefaultHash(buf)
 	if err != nil {
 		return TLFWriterKeyBundleID{}, err
 	}
@@ -123,7 +125,7 @@ func (c CryptoCommon) MakeTLFReaderKeyBundleID(rkb *TLFReaderKeyBundleV3) (
 	if err != nil {
 		return TLFReaderKeyBundleID{}, err
 	}
-	h, err := DefaultHash(buf)
+	h, err := kbfshash.DefaultHash(buf)
 	if err != nil {
 		return TLFReaderKeyBundleID{}, err
 	}
@@ -132,12 +134,12 @@ func (c CryptoCommon) MakeTLFReaderKeyBundleID(rkb *TLFReaderKeyBundleV3) (
 
 // MakeTemporaryBlockID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
-	var dh RawDefaultHash
+	var dh kbfshash.RawDefaultHash
 	err := cryptoRandRead(dh[:])
 	if err != nil {
 		return BlockID{}, err
 	}
-	h, err := HashFromRaw(DefaultHashType, dh[:])
+	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
 	if err != nil {
 		return BlockID{}, err
 	}
@@ -146,7 +148,7 @@ func (c CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
 
 // MakePermanentBlockID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakePermanentBlockID(encodedEncryptedData []byte) (BlockID, error) {
-	h, err := DefaultHash(encodedEncryptedData)
+	h, err := kbfshash.DefaultHash(encodedEncryptedData)
 	if err != nil {
 		return BlockID{}, nil
 	}
@@ -166,19 +168,19 @@ func (c CryptoCommon) MakeBlockRefNonce() (nonce BlockRefNonce, err error) {
 
 // MakeRandomTLFKeys implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakeRandomTLFKeys() (
-	tlfPublicKey TLFPublicKey,
-	tlfPrivateKey TLFPrivateKey,
-	tlfEphemeralPublicKey TLFEphemeralPublicKey,
-	tlfEphemeralPrivateKey TLFEphemeralPrivateKey,
-	tlfCryptKey TLFCryptKey,
+	tlfPublicKey kbfscrypto.TLFPublicKey,
+	tlfPrivateKey kbfscrypto.TLFPrivateKey,
+	tlfEphemeralPublicKey kbfscrypto.TLFEphemeralPublicKey,
+	tlfEphemeralPrivateKey kbfscrypto.TLFEphemeralPrivateKey,
+	tlfCryptKey kbfscrypto.TLFCryptKey,
 	err error) {
 	defer func() {
 		if err != nil {
-			tlfPublicKey = TLFPublicKey{}
-			tlfPrivateKey = TLFPrivateKey{}
-			tlfEphemeralPublicKey = TLFEphemeralPublicKey{}
-			tlfEphemeralPrivateKey = TLFEphemeralPrivateKey{}
-			tlfCryptKey = TLFCryptKey{}
+			tlfPublicKey = kbfscrypto.TLFPublicKey{}
+			tlfPrivateKey = kbfscrypto.TLFPrivateKey{}
+			tlfEphemeralPublicKey = kbfscrypto.TLFEphemeralPublicKey{}
+			tlfEphemeralPrivateKey = kbfscrypto.TLFEphemeralPrivateKey{}
+			tlfCryptKey = kbfscrypto.TLFCryptKey{}
 		}
 	}()
 
@@ -187,111 +189,99 @@ func (c CryptoCommon) MakeRandomTLFKeys() (
 		return
 	}
 
-	tlfPublicKey = MakeTLFPublicKey(*publicKey)
-	tlfPrivateKey = MakeTLFPrivateKey(*privateKey)
+	tlfPublicKey = kbfscrypto.MakeTLFPublicKey(*publicKey)
+	tlfPrivateKey = kbfscrypto.MakeTLFPrivateKey(*privateKey)
 
 	keyPair, err := libkb.GenerateNaclDHKeyPair()
 	if err != nil {
 		return
 	}
 
-	tlfEphemeralPublicKey = MakeTLFEphemeralPublicKey(keyPair.Public)
-	tlfEphemeralPrivateKey = MakeTLFEphemeralPrivateKey(*keyPair.Private)
+	tlfEphemeralPublicKey = kbfscrypto.MakeTLFEphemeralPublicKey(
+		keyPair.Public)
+	tlfEphemeralPrivateKey = kbfscrypto.MakeTLFEphemeralPrivateKey(
+		*keyPair.Private)
 
-	err = cryptoRandRead(tlfCryptKey.data[:])
+	var data [32]byte
+	err = cryptoRandRead(data[:])
 	if err != nil {
 		return
 	}
 
+	tlfCryptKey = kbfscrypto.MakeTLFCryptKey(data)
 	return
 }
 
 // MakeRandomTLFCryptKeyServerHalf implements the Crypto interface for
 // CryptoCommon.
-func (c CryptoCommon) MakeRandomTLFCryptKeyServerHalf() (serverHalf TLFCryptKeyServerHalf, err error) {
-	err = cryptoRandRead(serverHalf.data[:])
+func (c CryptoCommon) MakeRandomTLFCryptKeyServerHalf() (
+	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
+	var data [32]byte
+	err = cryptoRandRead(data[:])
 	if err != nil {
-		serverHalf = TLFCryptKeyServerHalf{}
-		return
+		return kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
-	return
+	serverHalf = kbfscrypto.MakeTLFCryptKeyServerHalf(data)
+	return serverHalf, nil
 }
 
 // MakeRandomBlockCryptKeyServerHalf implements the Crypto interface
 // for CryptoCommon.
-func (c CryptoCommon) MakeRandomBlockCryptKeyServerHalf() (serverHalf BlockCryptKeyServerHalf, err error) {
-	err = cryptoRandRead(serverHalf.data[:])
+func (c CryptoCommon) MakeRandomBlockCryptKeyServerHalf() (
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	var data [32]byte
+	err = cryptoRandRead(data[:])
 	if err != nil {
-		serverHalf = BlockCryptKeyServerHalf{}
-		return
+		return kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
-	return
-}
-
-func xorKeys(x, y [32]byte) [32]byte {
-	var res [32]byte
-	for i := 0; i < 32; i++ {
-		res[i] = x[i] ^ y[i]
-	}
-	return res
+	serverHalf = kbfscrypto.MakeBlockCryptKeyServerHalf(data)
+	return serverHalf, nil
 }
 
 // MaskTLFCryptKey implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) MaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf, key TLFCryptKey) (clientHalf TLFCryptKeyClientHalf, err error) {
-	clientHalf.data = xorKeys(serverHalf.data, key.data)
-	return
+func (c CryptoCommon) MaskTLFCryptKey(
+	serverHalf kbfscrypto.TLFCryptKeyServerHalf,
+	key kbfscrypto.TLFCryptKey) (
+	clientHalf kbfscrypto.TLFCryptKeyClientHalf, err error) {
+	return kbfscrypto.MaskTLFCryptKey(serverHalf, key), nil
 }
 
 // UnmaskTLFCryptKey implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) UnmaskTLFCryptKey(serverHalf TLFCryptKeyServerHalf, clientHalf TLFCryptKeyClientHalf) (key TLFCryptKey, err error) {
-	key.data = xorKeys(serverHalf.data, clientHalf.data)
-	return
+func (c CryptoCommon) UnmaskTLFCryptKey(
+	serverHalf kbfscrypto.TLFCryptKeyServerHalf,
+	clientHalf kbfscrypto.TLFCryptKeyClientHalf) (
+	key kbfscrypto.TLFCryptKey, err error) {
+	return kbfscrypto.UnmaskTLFCryptKey(serverHalf, clientHalf), nil
 }
 
 // UnmaskBlockCryptKey implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) UnmaskBlockCryptKey(serverHalf BlockCryptKeyServerHalf, tlfCryptKey TLFCryptKey) (key BlockCryptKey, error error) {
-	key.data = xorKeys(serverHalf.data, tlfCryptKey.data)
-	return
+func (c CryptoCommon) UnmaskBlockCryptKey(
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	tlfCryptKey kbfscrypto.TLFCryptKey) (
+	key kbfscrypto.BlockCryptKey, error error) {
+	return kbfscrypto.UnmaskBlockCryptKey(serverHalf, tlfCryptKey), nil
 }
 
 // Verify implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) Verify(msg []byte, sigInfo SignatureInfo) (err error) {
-	if sigInfo.Version != SigED25519 {
-		err = UnknownSigVer{sigInfo.Version}
-		return
-	}
-
-	publicKey := libkb.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.kid.ToBytes())
-	if publicKey == nil {
-		err = libkb.KeyCannotVerifyError{}
-		return
-	}
-
-	var naclSignature libkb.NaclSignature
-	if len(sigInfo.Signature) != len(naclSignature) {
-		err = libkb.VerificationError{}
-		return
-	}
-	copy(naclSignature[:], sigInfo.Signature)
-
-	if !publicKey.Verify(msg, &naclSignature) {
-		err = libkb.VerificationError{}
-		return
-	}
-
-	return
+func (c CryptoCommon) Verify(
+	msg []byte, sigInfo kbfscrypto.SignatureInfo) (err error) {
+	return kbfscrypto.Verify(msg, sigInfo)
 }
 
 // EncryptTLFCryptKeyClientHalf implements the Crypto interface for
 // CryptoCommon.
-func (c CryptoCommon) EncryptTLFCryptKeyClientHalf(privateKey TLFEphemeralPrivateKey, publicKey CryptPublicKey, clientHalf TLFCryptKeyClientHalf) (encryptedClientHalf EncryptedTLFCryptKeyClientHalf, err error) {
+func (c CryptoCommon) EncryptTLFCryptKeyClientHalf(
+	privateKey kbfscrypto.TLFEphemeralPrivateKey,
+	publicKey kbfscrypto.CryptPublicKey,
+	clientHalf kbfscrypto.TLFCryptKeyClientHalf) (
+	encryptedClientHalf EncryptedTLFCryptKeyClientHalf, err error) {
 	var nonce [24]byte
 	err = cryptoRandRead(nonce[:])
 	if err != nil {
 		return
 	}
 
-	keypair, err := libkb.ImportKeypairFromKID(publicKey.kid)
+	keypair, err := libkb.ImportKeypairFromKID(publicKey.KID())
 	if err != nil {
 		return
 	}
@@ -302,7 +292,9 @@ func (c CryptoCommon) EncryptTLFCryptKeyClientHalf(privateKey TLFEphemeralPrivat
 		return
 	}
 
-	encryptedData := box.Seal(nil, clientHalf.data[:], &nonce, (*[32]byte)(&dhKeyPair.Public), (*[32]byte)(&privateKey.data))
+	clientHalfData := clientHalf.Data()
+	privateKeyData := privateKey.Data()
+	encryptedData := box.Seal(nil, clientHalfData[:], &nonce, (*[32]byte)(&dhKeyPair.Public), &privateKeyData)
 
 	encryptedClientHalf = EncryptedTLFCryptKeyClientHalf{
 		Version:       EncryptionSecretbox,
@@ -329,13 +321,15 @@ func (c CryptoCommon) encryptData(data []byte, key [32]byte) (encryptedData, err
 }
 
 // EncryptPrivateMetadata implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) EncryptPrivateMetadata(pmd *PrivateMetadata, key TLFCryptKey) (encryptedPmd EncryptedPrivateMetadata, err error) {
+func (c CryptoCommon) EncryptPrivateMetadata(
+	pmd *PrivateMetadata, key kbfscrypto.TLFCryptKey) (
+	encryptedPmd EncryptedPrivateMetadata, err error) {
 	encodedPmd, err := c.codec.Encode(pmd)
 	if err != nil {
 		return
 	}
 
-	encryptedData, err := c.encryptData(encodedPmd, key.data)
+	encryptedData, err := c.encryptData(encodedPmd, key.Data())
 	if err != nil {
 		return
 	}
@@ -364,8 +358,10 @@ func (c CryptoCommon) decryptData(encryptedData encryptedData, key [32]byte) ([]
 }
 
 // DecryptPrivateMetadata implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) DecryptPrivateMetadata(encryptedPmd EncryptedPrivateMetadata, key TLFCryptKey) (*PrivateMetadata, error) {
-	encodedPmd, err := c.decryptData(encryptedData(encryptedPmd), key.data)
+func (c CryptoCommon) DecryptPrivateMetadata(
+	encryptedPmd EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (
+	*PrivateMetadata, error) {
+	encodedPmd, err := c.decryptData(encryptedData(encryptedPmd), key.Data())
 	if err != nil {
 		return nil, err
 	}
@@ -450,7 +446,8 @@ func (c CryptoCommon) depadBlock(paddedBlock []byte) ([]byte, error) {
 }
 
 // EncryptBlock implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) EncryptBlock(block Block, key BlockCryptKey) (plainSize int, encryptedBlock EncryptedBlock, err error) {
+func (c CryptoCommon) EncryptBlock(block Block, key kbfscrypto.BlockCryptKey) (
+	plainSize int, encryptedBlock EncryptedBlock, err error) {
 	encodedBlock, err := c.codec.Encode(block)
 	if err != nil {
 		return
@@ -461,7 +458,7 @@ func (c CryptoCommon) EncryptBlock(block Block, key BlockCryptKey) (plainSize in
 		return
 	}
 
-	encryptedData, err := c.encryptData(paddedBlock, key.data)
+	encryptedData, err := c.encryptData(paddedBlock, key.Data())
 	if err != nil {
 		return
 	}
@@ -472,8 +469,10 @@ func (c CryptoCommon) EncryptBlock(block Block, key BlockCryptKey) (plainSize in
 }
 
 // DecryptBlock implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) error {
-	paddedBlock, err := c.decryptData(encryptedData(encryptedBlock), key.data)
+func (c CryptoCommon) DecryptBlock(
+	encryptedBlock EncryptedBlock, key kbfscrypto.BlockCryptKey,
+	block Block) error {
+	paddedBlock, err := c.decryptData(encryptedData(encryptedBlock), key.Data())
 	if err != nil {
 		return err
 	}
@@ -493,10 +492,14 @@ func (c CryptoCommon) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCrypt
 // GetTLFCryptKeyServerHalfID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) GetTLFCryptKeyServerHalfID(
 	user keybase1.UID, deviceKID keybase1.KID,
-	serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error) {
-	key := serverHalf.data[:]
+	serverHalf kbfscrypto.TLFCryptKeyServerHalf) (
+	TLFCryptKeyServerHalfID, error) {
+	key, err := serverHalf.MarshalBinary()
+	if err != nil {
+		return TLFCryptKeyServerHalfID{}, err
+	}
 	data := append(user.ToBytes(), deviceKID.ToBytes()...)
-	hmac, err := DefaultHMAC(key, data)
+	hmac, err := kbfshash.DefaultHMAC(key, data)
 	if err != nil {
 		return TLFCryptKeyServerHalfID{}, err
 	}
@@ -506,36 +509,50 @@ func (c CryptoCommon) GetTLFCryptKeyServerHalfID(
 }
 
 // VerifyTLFCryptKeyServerHalfID implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID,
-	user keybase1.UID, deviceKID keybase1.KID, serverHalf TLFCryptKeyServerHalf) error {
-	key := serverHalf.data[:]
+func (c CryptoCommon) VerifyTLFCryptKeyServerHalfID(
+	serverHalfID TLFCryptKeyServerHalfID,
+	user keybase1.UID, deviceKID keybase1.KID,
+	serverHalf kbfscrypto.TLFCryptKeyServerHalf) error {
+	key, err := serverHalf.MarshalBinary()
+	if err != nil {
+		return err
+	}
 	data := append(user.ToBytes(), deviceKID.ToBytes()...)
 	return serverHalfID.ID.Verify(key, data)
 }
 
-// EncryptMerkleLeaf encrypts a Merkle leaf node with the TLFPublicKey.
-func (c CryptoCommon) EncryptMerkleLeaf(leaf MerkleLeaf, pubKey TLFPublicKey,
-	nonce *[24]byte, ePrivKey TLFEphemeralPrivateKey) (EncryptedMerkleLeaf, error) {
+// EncryptMerkleLeaf encrypts a Merkle leaf node with the
+// kbfscrypto.TLFPublicKey.
+func (c CryptoCommon) EncryptMerkleLeaf(leaf MerkleLeaf,
+	pubKey kbfscrypto.TLFPublicKey,
+	nonce *[24]byte, ePrivKey kbfscrypto.TLFEphemeralPrivateKey) (
+	EncryptedMerkleLeaf, error) {
 	// encode the clear-text leaf
 	leafBytes, err := c.codec.Encode(leaf)
 	if err != nil {
 		return EncryptedMerkleLeaf{}, err
 	}
 	// encrypt the encoded leaf
-	encryptedData := box.Seal(nil, leafBytes[:], nonce, (*[32]byte)(&pubKey.data), (*[32]byte)(&ePrivKey.data))
+	pubKeyData := pubKey.Data()
+	privKeyData := ePrivKey.Data()
+	encryptedData := box.Seal(nil, leafBytes[:], nonce, &pubKeyData, &privKeyData)
 	return EncryptedMerkleLeaf{
 		Version:       EncryptionSecretbox,
 		EncryptedData: encryptedData,
 	}, nil
 }
 
-// DecryptMerkleLeaf decrypts a Merkle leaf node with the TLFPrivateKey.
-func (c CryptoCommon) DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf, privKey TLFPrivateKey,
-	nonce *[24]byte, ePubKey TLFEphemeralPublicKey) (*MerkleLeaf, error) {
+// DecryptMerkleLeaf decrypts a Merkle leaf node with the
+// kbfscrypto.TLFPrivateKey.
+func (c CryptoCommon) DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf,
+	privKey kbfscrypto.TLFPrivateKey, nonce *[24]byte,
+	ePubKey kbfscrypto.TLFEphemeralPublicKey) (*MerkleLeaf, error) {
 	if encryptedLeaf.Version != EncryptionSecretbox {
 		return nil, UnknownEncryptionVer{encryptedLeaf.Version}
 	}
-	leafBytes, ok := box.Open(nil, encryptedLeaf.EncryptedData[:], nonce, (*[32]byte)(&ePubKey.data), (*[32]byte)(&privKey.data))
+	pubKeyData := ePubKey.Data()
+	privKeyData := privKey.Data()
+	leafBytes, ok := box.Open(nil, encryptedLeaf.EncryptedData[:], nonce, &pubKeyData, &privKeyData)
 	if !ok {
 		return nil, libkb.DecryptionError{}
 	}
@@ -548,14 +565,15 @@ func (c CryptoCommon) DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf, privK
 }
 
 // EncryptTLFCryptKeys implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) EncryptTLFCryptKeys(oldKeys []TLFCryptKey, key TLFCryptKey) (
+func (c CryptoCommon) EncryptTLFCryptKeys(
+	oldKeys []kbfscrypto.TLFCryptKey, key kbfscrypto.TLFCryptKey) (
 	encryptedKeys EncryptedTLFCryptKeys, err error) {
 	encodedKeys, err := c.codec.Encode(oldKeys)
 	if err != nil {
 		return
 	}
 
-	encryptedData, err := c.encryptData(encodedKeys, key.data)
+	encryptedData, err := c.encryptData(encodedKeys, key.Data())
 	if err != nil {
 		return
 	}
@@ -565,14 +583,15 @@ func (c CryptoCommon) EncryptTLFCryptKeys(oldKeys []TLFCryptKey, key TLFCryptKey
 }
 
 // DecryptTLFCryptKeys implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) DecryptTLFCryptKeys(encKeys EncryptedTLFCryptKeys, key TLFCryptKey) (
-	[]TLFCryptKey, error) {
-	encodedKeys, err := c.decryptData(encryptedData(encKeys), key.data)
+func (c CryptoCommon) DecryptTLFCryptKeys(
+	encKeys EncryptedTLFCryptKeys, key kbfscrypto.TLFCryptKey) (
+	[]kbfscrypto.TLFCryptKey, error) {
+	encodedKeys, err := c.decryptData(encryptedData(encKeys), key.Data())
 	if err != nil {
 		return nil, err
 	}
 
-	var oldKeys []TLFCryptKey
+	var oldKeys []kbfscrypto.TLFCryptKey
 	err = c.codec.Decode(encodedKeys, &oldKeys)
 	if err != nil {
 		return nil, err

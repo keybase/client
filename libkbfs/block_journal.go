@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -389,38 +390,40 @@ func (j *blockJournal) getDataSize(id BlockID) (int64, error) {
 }
 
 func (j *blockJournal) getData(id BlockID) (
-	[]byte, BlockCryptKeyServerHalf, error) {
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	data, err := ioutil.ReadFile(j.blockDataPath(id))
 	if os.IsNotExist(err) {
-		return nil, BlockCryptKeyServerHalf{}, blockNonExistentError{id}
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+			blockNonExistentError{id}
 	} else if err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	keyServerHalfPath := j.keyServerHalfPath(id)
 	buf, err := ioutil.ReadFile(keyServerHalfPath)
 	if os.IsNotExist(err) {
-		return nil, BlockCryptKeyServerHalf{}, blockNonExistentError{id}
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+			blockNonExistentError{id}
 	} else if err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	// Check integrity.
 
 	dataID, err := j.crypto.MakePermanentBlockID(data)
 	if err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	if id != dataID {
-		return nil, BlockCryptKeyServerHalf{}, fmt.Errorf(
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, fmt.Errorf(
 			"Block ID mismatch: expected %s, got %s", id, dataID)
 	}
 
-	var serverHalf BlockCryptKeyServerHalf
+	var serverHalf kbfscrypto.BlockCryptKeyServerHalf
 	err = serverHalf.UnmarshalBinary(buf)
 	if err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	return data, serverHalf, nil
@@ -444,15 +447,15 @@ func (j *blockJournal) hasContext(id BlockID, context BlockContext) bool {
 
 func (j *blockJournal) getDataWithContext(
 	id BlockID, context BlockContext) (
-	[]byte, BlockCryptKeyServerHalf, error) {
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	refEntry, err := j.getRefEntry(id, context.GetRefNonce())
 	if err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	err = refEntry.checkContext(context)
 	if err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	return j.getData(id)
@@ -469,7 +472,7 @@ func (j *blockJournal) getAll() (
 
 func (j *blockJournal) putData(
 	ctx context.Context, id BlockID, context BlockContext, buf []byte,
-	serverHalf BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	j.log.CDebugf(ctx, "Putting %d bytes of data for block %s with context %v",
 		len(buf), id, context)
 	defer func() {
@@ -525,8 +528,12 @@ func (j *blockJournal) putData(
 
 	// TODO: Add integrity-checking for key server half?
 
+	data, err := serverHalf.MarshalBinary()
+	if err != nil {
+		return err
+	}
 	err = ioutil.WriteFile(
-		j.keyServerHalfPath(id), serverHalf.data[:], 0600)
+		j.keyServerHalfPath(id), data, 0600)
 	if err != nil {
 		return err
 	}
@@ -754,7 +761,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 		}
 
 		var data []byte
-		var serverHalf BlockCryptKeyServerHalf
+		var serverHalf kbfscrypto.BlockCryptKeyServerHalf
 
 		switch entry.Op {
 		case blockPutOp:

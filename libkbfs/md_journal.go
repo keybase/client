@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 
 	"golang.org/x/net/context"
 
@@ -100,7 +101,7 @@ type mdJournal struct {
 	// uid, and both uid and key are assumed constant for the
 	// lifetime of this object.
 	uid keybase1.UID
-	key VerifyingKey
+	key kbfscrypto.VerifyingKey
 
 	codec  kbfscodec.Codec
 	crypto cryptoPure
@@ -122,12 +123,13 @@ type mdJournal struct {
 	lastMdID MdID
 }
 
-func makeMDJournal(uid keybase1.UID, key VerifyingKey, codec kbfscodec.Codec,
+func makeMDJournal(
+	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
 	crypto cryptoPure, dir string, log logger.Logger) (*mdJournal, error) {
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
 	}
-	if key == (VerifyingKey{}) {
+	if key == (kbfscrypto.VerifyingKey{}) {
 		return nil, errors.New("Empty verifying key")
 	}
 

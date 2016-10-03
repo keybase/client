@@ -9,11 +9,12 @@ import (
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/kbfs/kbfshash"
 )
 
 type idCacheKey struct {
 	tlf           TlfID
-	plaintextHash RawDefaultHash
+	plaintextHash kbfshash.RawDefaultHash
 }
 
 // BlockCacheStandard implements the BlockCache interface by storing
@@ -124,7 +125,7 @@ func (b *BlockCacheStandard) CheckForKnownPtr(tlf TlfID, block *FileBlock) (
 		return BlockPointer{}, nil
 	}
 
-	_, hash := DoRawDefaultHash(block.Contents)
+	_, hash := kbfshash.DoRawDefaultHash(block.Contents)
 	block.hash = &hash
 	key := idCacheKey{tlf, *block.hash}
 	tmp, ok := b.ids.Get(key)
@@ -190,7 +191,7 @@ func (b *BlockCacheStandard) Put(
 	// hash -> ID mapping.
 	if fBlock, ok := block.(*FileBlock); b.ids != nil && lifetime == TransientEntry && ok && !fBlock.IsInd {
 		if fBlock.hash == nil {
-			_, hash := DoRawDefaultHash(fBlock.Contents)
+			_, hash := kbfshash.DoRawDefaultHash(fBlock.Contents)
 			fBlock.hash = &hash
 		}
 
@@ -256,7 +257,7 @@ func (b *BlockCacheStandard) DeleteTransient(
 		// Remove the key if it exists
 		if fBlock, ok := block.(*FileBlock); b.ids != nil && ok &&
 			!fBlock.IsInd {
-			_, hash := DoRawDefaultHash(fBlock.Contents)
+			_, hash := kbfshash.DoRawDefaultHash(fBlock.Contents)
 			key := idCacheKey{tlf, hash}
 			b.ids.Remove(key)
 		}
@@ -276,7 +277,7 @@ func (b *BlockCacheStandard) DeleteKnownPtr(tlf TlfID, block *FileBlock) error {
 		return nil
 	}
 
-	_, hash := DoRawDefaultHash(block.Contents)
+	_, hash := kbfshash.DoRawDefaultHash(block.Contents)
 	key := idCacheKey{tlf, hash}
 	b.ids.Remove(key)
 	return nil

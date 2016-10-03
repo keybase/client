@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -36,18 +37,20 @@ func (m kmdMatcher) String() string {
 
 func expectGetTLFCryptKeyForEncryption(config *ConfigMock, kmd KeyMetadata) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForEncryption(gomock.Any(),
-		kmdMatcher{kmd}).Return(TLFCryptKey{}, nil)
+		kmdMatcher{kmd}).Return(kbfscrypto.TLFCryptKey{}, nil)
 }
 
 func expectGetTLFCryptKeyForMDDecryption(config *ConfigMock, kmd KeyMetadata) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
-		kmdMatcher{kmd}, kmdMatcher{kmd}).Return(TLFCryptKey{}, nil)
+		kmdMatcher{kmd}, kmdMatcher{kmd}).Return(
+		kbfscrypto.TLFCryptKey{}, nil)
 }
 
 func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
 	kmd KeyMetadata) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
-		kmdMatcher{kmd}, kmdMatcher{kmd}).MaxTimes(1).Return(TLFCryptKey{}, nil)
+		kmdMatcher{kmd}, kmdMatcher{kmd}).MaxTimes(1).Return(
+		kbfscrypto.TLFCryptKey{}, nil)
 }
 
 // TODO: Add test coverage for decryption of blocks with an old key
@@ -56,7 +59,7 @@ func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
 func expectGetTLFCryptKeyForBlockDecryption(
 	config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForBlockDecryption(gomock.Any(),
-		kmdMatcher{kmd}, blockPtr).Return(TLFCryptKey{}, nil)
+		kmdMatcher{kmd}, blockPtr).Return(kbfscrypto.TLFCryptKey{}, nil)
 }
 
 type TestBlock struct {
@@ -93,13 +96,16 @@ func blockOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 func expectBlockEncrypt(config *ConfigMock, kmd KeyMetadata, decData Block, plainSize int, encData []byte, err error) {
 	expectGetTLFCryptKeyForEncryption(config, kmd)
 	config.mockCrypto.EXPECT().MakeRandomBlockCryptKeyServerHalf().
-		Return(BlockCryptKeyServerHalf{}, nil)
+		Return(kbfscrypto.BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(
-		BlockCryptKeyServerHalf{}, TLFCryptKey{}).Return(BlockCryptKey{}, nil)
+		kbfscrypto.BlockCryptKeyServerHalf{},
+		kbfscrypto.TLFCryptKey{}).Return(
+		kbfscrypto.BlockCryptKey{}, nil)
 	encryptedBlock := EncryptedBlock{
 		EncryptedData: encData,
 	}
-	config.mockCrypto.EXPECT().EncryptBlock(decData, BlockCryptKey{}).
+	config.mockCrypto.EXPECT().EncryptBlock(decData,
+		kbfscrypto.BlockCryptKey{}).
 		Return(plainSize, encryptedBlock, err)
 	if err == nil {
 		config.mockCodec.EXPECT().Encode(encryptedBlock).Return(encData, nil)
@@ -110,10 +116,12 @@ func expectBlockDecrypt(config *ConfigMock, kmd KeyMetadata, blockPtr BlockPoint
 	config.mockCrypto.EXPECT().VerifyBlockID(encData, blockPtr.ID).Return(nil)
 	expectGetTLFCryptKeyForBlockDecryption(config, kmd, blockPtr)
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(gomock.Any(), gomock.Any()).
-		Return(BlockCryptKey{}, nil)
+		Return(kbfscrypto.BlockCryptKey{}, nil)
 	config.mockCodec.EXPECT().Decode(encData, gomock.Any()).Return(nil)
-	config.mockCrypto.EXPECT().DecryptBlock(gomock.Any(), BlockCryptKey{}, gomock.Any()).
-		Do(func(encryptedBlock EncryptedBlock, key BlockCryptKey, b Block) {
+	config.mockCrypto.EXPECT().DecryptBlock(
+		gomock.Any(), kbfscrypto.BlockCryptKey{}, gomock.Any()).
+		Do(func(encryptedBlock EncryptedBlock,
+			key kbfscrypto.BlockCryptKey, b Block) {
 			if b != nil {
 				tb := b.(*TestBlock)
 				*tb = block
@@ -149,10 +157,11 @@ func (kmd emptyKeyMetadata) HasKeyForUser(
 }
 
 func (kmd emptyKeyMetadata) GetTLFCryptKeyParams(
-	keyGen KeyGen, user keybase1.UID, key CryptPublicKey) (
-	TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
+	keyGen KeyGen, user keybase1.UID, key kbfscrypto.CryptPublicKey) (
+	kbfscrypto.TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
 	TLFCryptKeyServerHalfID, bool, error) {
-	return TLFEphemeralPublicKey{}, EncryptedTLFCryptKeyClientHalf{},
+	return kbfscrypto.TLFEphemeralPublicKey{},
+		EncryptedTLFCryptKeyClientHalf{},
 		TLFCryptKeyServerHalfID{}, false, nil
 }
 
@@ -160,9 +169,10 @@ func (kmd emptyKeyMetadata) StoresHistoricTLFCryptKeys() bool {
 	return false
 }
 
-func (kmd emptyKeyMetadata) GetHistoricTLFCryptKey(crypto cryptoPure, keyGen KeyGen, key TLFCryptKey) (
-	TLFCryptKey, error) {
-	return TLFCryptKey{}, nil
+func (kmd emptyKeyMetadata) GetHistoricTLFCryptKey(
+	crypto cryptoPure, keyGen KeyGen, key kbfscrypto.TLFCryptKey) (
+	kbfscrypto.TLFCryptKey, error) {
+	return kbfscrypto.TLFCryptKey{}, nil
 }
 
 func makeKMD() KeyMetadata {
@@ -180,7 +190,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
 	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
-		encData, BlockCryptKeyServerHalf{}, nil)
+		encData, kbfscrypto.BlockCryptKeyServerHalf{}, nil)
 	decData := TestBlock{42}
 
 	expectBlockDecrypt(config, kmd, blockPtr, encData, decData, nil)
@@ -206,7 +216,7 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
 	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
-		nil, BlockCryptKeyServerHalf{}, err)
+		nil, kbfscrypto.BlockCryptKeyServerHalf{}, err)
 
 	if err2 := config.BlockOps().Get(
 		ctx, kmd, blockPtr, nil); err2 != err {
@@ -225,7 +235,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	blockPtr := BlockPointer{ID: id}
 	encData := []byte{1, 2, 3}
 	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
-		encData, BlockCryptKeyServerHalf{}, nil)
+		encData, kbfscrypto.BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().VerifyBlockID(encData, id).Return(err)
 
 	if err2 := config.BlockOps().Get(
@@ -244,7 +254,7 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
 	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
-		encData, BlockCryptKeyServerHalf{}, nil)
+		encData, kbfscrypto.BlockCryptKeyServerHalf{}, nil)
 	err := errors.New("Fake fail")
 
 	expectBlockDecrypt(config, kmd, blockPtr, encData, TestBlock{}, err)

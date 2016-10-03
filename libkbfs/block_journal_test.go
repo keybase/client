@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -99,7 +100,7 @@ func teardownBlockJournalTest(t *testing.T, tempdir string, j *blockJournal) {
 
 func putBlockData(
 	ctx context.Context, t *testing.T, j *blockJournal, data []byte) (
-	BlockID, BlockContext, BlockCryptKeyServerHalf) {
+	BlockID, BlockContext, kbfscrypto.BlockCryptKeyServerHalf) {
 	oldLength := getBlockJournalLength(t, j)
 
 	bID, err := j.crypto.MakePermanentBlockID(data)
@@ -137,7 +138,7 @@ func addBlockRef(
 
 func getAndCheckBlockData(ctx context.Context, t *testing.T, j *blockJournal,
 	bID BlockID, bCtx BlockContext, expectedData []byte,
-	expectedServerHalf BlockCryptKeyServerHalf) {
+	expectedServerHalf kbfscrypto.BlockCryptKeyServerHalf) {
 	data, serverHalf, err := j.getDataWithContext(bID, bCtx)
 	require.NoError(t, err)
 	require.Equal(t, expectedData, data)

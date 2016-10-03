@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )
@@ -305,7 +306,7 @@ func (k *KeybaseDaemonLocal) removeAssertionForTest(assertion string) {
 }
 
 type makeKeysFunc func(libkb.NormalizedUsername, int) (
-	CryptPublicKey, VerifyingKey)
+	kbfscrypto.CryptPublicKey, kbfscrypto.VerifyingKey)
 
 func (k *KeybaseDaemonLocal) addDeviceForTesting(uid keybase1.UID,
 	makeKeys makeKeysFunc) (int, error) {
@@ -342,11 +343,12 @@ func (k *KeybaseDaemonLocal) revokeDeviceForTesting(clock Clock,
 	}
 
 	if user.RevokedVerifyingKeys == nil {
-		user.RevokedVerifyingKeys = make(map[VerifyingKey]keybase1.KeybaseTime)
+		user.RevokedVerifyingKeys =
+			make(map[kbfscrypto.VerifyingKey]keybase1.KeybaseTime)
 	}
 	if user.RevokedCryptPublicKeys == nil {
 		user.RevokedCryptPublicKeys =
-			make(map[CryptPublicKey]keybase1.KeybaseTime)
+			make(map[kbfscrypto.CryptPublicKey]keybase1.KeybaseTime)
 	}
 
 	kbtime := keybase1.KeybaseTime{

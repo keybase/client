@@ -16,6 +16,8 @@ import (
 	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfssync"
 	"golang.org/x/net/context"
 )
 
@@ -288,8 +290,8 @@ type folderBranchOps struct {
 
 	editHistory *TlfEditHistory
 
-	branchChanges RepeatedWaitGroup
-	mdFlushes     RepeatedWaitGroup
+	branchChanges kbfssync.RepeatedWaitGroup
+	mdFlushes     kbfssync.RepeatedWaitGroup
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -951,7 +953,7 @@ func (fbo *folderBranchOps) getMDForWriteLockedForFilename(
 	// Make a new successor of the current MD to hold the coming
 	// writes.  The caller must pass this into
 	// syncBlockAndCheckEmbedLocked or the changes will be lost.
-	newMd, err := md.MakeSuccessor(fbo.config, md.mdID, true)
+	newMd, err := md.MakeSuccessor(fbo.config.Codec(), md.mdID, true)
 	if err != nil {
 		return nil, err
 	}
@@ -981,7 +983,7 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 			NewRekeyPermissionError(md.GetTlfHandle(), username)
 	}
 
-	newMd, err := md.MakeSuccessor(fbo.config, md.mdID, handle.IsWriter(uid))
+	newMd, err := md.MakeSuccessor(fbo.config.Codec(), md.mdID, handle.IsWriter(uid))
 	if err != nil {
 		return nil, false, err
 	}
@@ -1057,7 +1059,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	}
 
 	var expectedKeyGen KeyGen
-	var tlfCryptKey *TLFCryptKey
+	var tlfCryptKey *kbfscrypto.TLFCryptKey
 	if md.TlfID().IsPublic() {
 		expectedKeyGen = PublicKeyGen
 	} else {
@@ -1142,7 +1144,7 @@ func (fbo *folderBranchOps) initMDLocked(
 }
 
 func (fbo *folderBranchOps) GetTLFCryptKeys(ctx context.Context,
-	h *TlfHandle) (keys []TLFCryptKey, id TlfID, err error) {
+	h *TlfHandle) (keys []kbfscrypto.TLFCryptKey, id TlfID, err error) {
 	return nil, TlfID{}, errors.New("GetTLFCryptKeys is not supported by folderBranchOps")
 }
 

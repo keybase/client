@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,7 +21,7 @@ func makeFakeBlockContext(t *testing.T) BlockContext {
 }
 
 func makeFakeBlockPointer(t *testing.T) BlockPointer {
-	h, err := DefaultHash([]byte("fake buf"))
+	h, err := kbfshash.DefaultHash([]byte("fake buf"))
 	require.NoError(t, err)
 	return BlockPointer{
 		BlockID{h},

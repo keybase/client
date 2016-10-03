@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/kbfs/kbfscrypto"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )
@@ -43,7 +44,7 @@ func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServe
 // Get implements the BlockServer interface for BlockServerMeasured.
 func (b BlockServerMeasured) Get(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext) (
-	buf []byte, serverHalf BlockCryptKeyServerHalf, err error) {
+	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	b.getTimer.Time(func() {
 		buf, serverHalf, err = b.delegate.Get(ctx, tlfID, id, context)
 	})
@@ -53,7 +54,7 @@ func (b BlockServerMeasured) Get(ctx context.Context, tlfID TlfID, id BlockID,
 // Put implements the BlockServer interface for BlockServerMeasured.
 func (b BlockServerMeasured) Put(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext, buf []byte,
-	serverHalf BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	b.putTimer.Time(func() {
 		err = b.delegate.Put(ctx, tlfID, id, context, buf, serverHalf)
 	})

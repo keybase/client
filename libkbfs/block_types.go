@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfshash"
 )
 
 // IndirectDirPtr pairs an indirect dir block with the start of that
@@ -105,7 +106,7 @@ type FileBlock struct {
 
 	// this is used for caching plaintext (block.Contents) hash. It is used by
 	// only direct blocks.
-	hash *RawDefaultHash
+	hash *kbfshash.RawDefaultHash
 }
 
 // NewFileBlock creates a new, empty FileBlock.

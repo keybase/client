@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )
@@ -106,31 +107,33 @@ type LocalUser struct {
 }
 
 // GetCurrentCryptPublicKey returns this LocalUser's public encryption key.
-func (lu *LocalUser) GetCurrentCryptPublicKey() CryptPublicKey {
+func (lu *LocalUser) GetCurrentCryptPublicKey() kbfscrypto.CryptPublicKey {
 	return lu.CryptPublicKeys[lu.CurrentCryptPublicKeyIndex]
 }
 
 // GetCurrentVerifyingKey returns this LocalUser's public signing key.
-func (lu *LocalUser) GetCurrentVerifyingKey() VerifyingKey {
+func (lu *LocalUser) GetCurrentVerifyingKey() kbfscrypto.VerifyingKey {
 	return lu.VerifyingKeys[lu.CurrentVerifyingKeyIndex]
 }
 
-func verifyingKeysToPublicKeys(keys []VerifyingKey) []keybase1.PublicKey {
+func verifyingKeysToPublicKeys(
+	keys []kbfscrypto.VerifyingKey) []keybase1.PublicKey {
 	publicKeys := make([]keybase1.PublicKey, len(keys))
 	for i, key := range keys {
 		publicKeys[i] = keybase1.PublicKey{
-			KID:      key.kid,
+			KID:      key.KID(),
 			IsSibkey: true,
 		}
 	}
 	return publicKeys
 }
 
-func cryptPublicKeysToPublicKeys(keys []CryptPublicKey) []keybase1.PublicKey {
+func cryptPublicKeysToPublicKeys(
+	keys []kbfscrypto.CryptPublicKey) []keybase1.PublicKey {
 	publicKeys := make([]keybase1.PublicKey, len(keys))
 	for i, key := range keys {
 		publicKeys[i] = keybase1.PublicKey{
-			KID:      key.kid,
+			KID:      key.KID(),
 			IsSibkey: false,
 		}
 	}
@@ -149,25 +152,29 @@ func (lu *LocalUser) GetPublicKeys() []keybase1.PublicKey {
 // will always be returned for a given user.
 
 // MakeLocalUserSigningKeyOrBust returns a unique signing key for this user.
-func MakeLocalUserSigningKeyOrBust(name libkb.NormalizedUsername) SigningKey {
+func MakeLocalUserSigningKeyOrBust(
+	name libkb.NormalizedUsername) kbfscrypto.SigningKey {
 	return MakeFakeSigningKeyOrBust(string(name) + " signing key")
 }
 
 // MakeLocalUserVerifyingKeyOrBust makes a new verifying key
 // corresponding to the signing key for this user.
-func MakeLocalUserVerifyingKeyOrBust(name libkb.NormalizedUsername) VerifyingKey {
+func MakeLocalUserVerifyingKeyOrBust(
+	name libkb.NormalizedUsername) kbfscrypto.VerifyingKey {
 	return MakeLocalUserSigningKeyOrBust(name).GetVerifyingKey()
 }
 
 // MakeLocalUserCryptPrivateKeyOrBust returns a unique private
 // encryption key for this user.
-func MakeLocalUserCryptPrivateKeyOrBust(name libkb.NormalizedUsername) CryptPrivateKey {
+func MakeLocalUserCryptPrivateKeyOrBust(
+	name libkb.NormalizedUsername) CryptPrivateKey {
 	return MakeFakeCryptPrivateKeyOrBust(string(name) + " crypt key")
 }
 
 // MakeLocalUserCryptPublicKeyOrBust returns the public key
 // corresponding to the crypt private key for this user.
-func MakeLocalUserCryptPublicKeyOrBust(name libkb.NormalizedUsername) CryptPublicKey {
+func MakeLocalUserCryptPublicKeyOrBust(
+	name libkb.NormalizedUsername) kbfscrypto.CryptPublicKey {
 	return MakeLocalUserCryptPrivateKeyOrBust(name).getPublicKey()
 }
 
@@ -182,8 +189,8 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 			UserInfo: UserInfo{
 				Name:            users[i],
 				UID:             keybase1.MakeTestUID(uint32(i + 1)),
-				VerifyingKeys:   []VerifyingKey{verifyingKey},
-				CryptPublicKeys: []CryptPublicKey{cryptPublicKey},
+				VerifyingKeys:   []kbfscrypto.VerifyingKey{verifyingKey},
+				CryptPublicKeys: []kbfscrypto.CryptPublicKey{cryptPublicKey},
 				KIDNames: map[keybase1.KID]string{
 					verifyingKey.KID(): "dev1",
 				},
@@ -677,10 +684,11 @@ func (c *ConfigLocal) SetLoggerMaker(
 	c.loggerFn = loggerFn
 }
 
-// NewConfigLocalWithCryptoForSigning initializes a local crypto
+// newConfigLocalWithCryptoForSigning initializes a local crypto
 // config w/a crypto interface, using the given signing key, that can
 // be used for non-PKI crypto.
-func NewConfigLocalWithCryptoForSigning(signingKey SigningKey) *ConfigLocal {
+func newConfigLocalWithCryptoForSigning(
+	signingKey kbfscrypto.SigningKey) *ConfigLocal {
 	config := NewConfigLocal()
 	config.SetLoggerMaker(func(m string) logger.Logger {
 		return logger.NewNull()
@@ -691,10 +699,11 @@ func NewConfigLocalWithCryptoForSigning(signingKey SigningKey) *ConfigLocal {
 	return config
 }
 
-// NewConfigLocalWithCrypto initializes a local crypto config w/a crypto interface that can be used for non-PKI crypto.
+// NewConfigLocalWithCrypto initializes a local crypto config w/a
+// crypto interface that can be used for non-PKI crypto.
 func NewConfigLocalWithCrypto() *ConfigLocal {
 	signingKey := MakeLocalUserSigningKeyOrBust("nobody")
-	return NewConfigLocalWithCryptoForSigning(signingKey)
+	return newConfigLocalWithCryptoForSigning(signingKey)
 }
 
 // MetricsRegistry implements the Config interface for ConfigLocal.

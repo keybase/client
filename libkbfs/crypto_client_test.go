@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/net/context"
 )
@@ -22,7 +23,7 @@ type FakeCryptoClient struct {
 	goChan    <-chan struct{}
 }
 
-func NewFakeCryptoClient(config Config, signingKey SigningKey,
+func NewFakeCryptoClient(config Config, signingKey kbfscrypto.SigningKey,
 	cryptPrivateKey CryptPrivateKey,
 	readyChan chan<- struct{},
 	goChan <-chan struct{}) *FakeCryptoClient {
@@ -68,7 +69,7 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 		var ed25519Signature keybase1.ED25519Signature
 		copy(ed25519Signature[:], sigInfo.Signature)
 		publicKey :=
-			libkb.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.kid.ToBytes())
+			libkb.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.KID().ToBytes())
 		*sigRes = keybase1.ED25519SignatureInfo{
 			Sig:       ed25519Signature,
 			PublicKey: keybase1.ED25519PublicKey(*publicKey),
@@ -80,7 +81,8 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 			return err
 		}
 		arg := args.([]interface{})[0].(keybase1.UnboxBytes32Arg)
-		publicKey := MakeTLFEphemeralPublicKey(arg.PeersPublicKey)
+		publicKey := kbfscrypto.MakeTLFEphemeralPublicKey(
+			arg.PeersPublicKey)
 		encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
 			Version:       EncryptionSecretbox,
 			EncryptedData: arg.EncryptedBytes32[:],
@@ -92,7 +94,7 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 			return err
 		}
 		res := res.(*keybase1.Bytes32)
-		*res = clientHalf.data
+		*res = clientHalf.Data()
 		return nil
 
 	case "keybase.1.crypto.unboxBytes32Any":
@@ -102,7 +104,8 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 		arg := args.([]interface{})[0].(keybase1.UnboxBytes32AnyArg)
 		keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, len(arg.Bundles))
 		for _, k := range arg.Bundles {
-			ePublicKey := MakeTLFEphemeralPublicKey(k.PublicKey)
+			ePublicKey := kbfscrypto.MakeTLFEphemeralPublicKey(
+				k.PublicKey)
 			encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
 				Version:       EncryptionSecretbox,
 				EncryptedData: make([]byte, len(k.Ciphertext)),
@@ -113,7 +116,7 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 			keys = append(keys, EncryptedTLFCryptKeyClientAndEphemeral{
 				EPubKey:    ePublicKey,
 				ClientHalf: encryptedClientHalf,
-				PubKey:     MakeCryptPublicKey(k.Kid),
+				PubKey:     kbfscrypto.MakeCryptPublicKey(k.Kid),
 			})
 		}
 		clientHalf, index, err := fc.Local.DecryptTLFCryptKeyClientHalfAny(
@@ -122,9 +125,9 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 			return err
 		}
 		res := res.(*keybase1.UnboxAnyRes)
-		res.Plaintext = clientHalf.data
+		res.Plaintext = clientHalf.Data()
 		res.Index = index
-		res.Kid = keys[index].PubKey.kidContainer.kid
+		res.Kid = keys[index].PubKey.KID()
 		return nil
 
 	default:
@@ -206,7 +209,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	keypair, err := libkb.ImportKeypairFromKID(cryptPrivateKey.getPublicKey().kid)
+	keypair, err := libkb.ImportKeypairFromKID(cryptPrivateKey.getPublicKey().KID())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -216,7 +219,9 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 		t.Fatal(libkb.KeyCannotEncryptError{})
 	}
 
-	encryptedData := box.Seal(nil, clientHalf.data[:], &nonce, (*[32]byte)(&dhKeyPair.Public), (*[32]byte)(&ephPrivateKey.data))
+	clientHalfData := clientHalf.Data()
+	ephPrivateKeyData := ephPrivateKey.Data()
+	encryptedData := box.Seal(nil, clientHalfData[:], &nonce, (*[32]byte)(&dhKeyPair.Public), &ephPrivateKeyData)
 	encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
 		Version:       EncryptionSecretbox,
 		Nonce:         nonce[:],
@@ -307,7 +312,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 	c := newCryptoClientWithClient(config, fc)
 
 	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 4)
-	clientHalves := make([]TLFCryptKeyClientHalf, 0, 4)
+	clientHalves := make([]kbfscrypto.TLFCryptKeyClientHalf, 0, 4)
 	for i := 0; i < 4; i++ {
 		_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 		if err != nil {
@@ -398,8 +403,10 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 	encryptedClientHalfWrongNonceSize.Nonce = encryptedClientHalfWrongNonceSize.Nonce[:len(encryptedClientHalfWrongNonceSize.Nonce)-1]
 
 	// Corrupt key.
-	ephPublicKeyCorrupt := ephPublicKey
-	ephPublicKeyCorrupt.data[0] = ^ephPublicKeyCorrupt.data[0]
+	ephPublicKeyCorruptData := ephPublicKey.Data()
+	ephPublicKeyCorruptData[0] = ^ephPublicKeyCorruptData[0]
+	ephPublicKeyCorrupt := kbfscrypto.MakeTLFEphemeralPublicKey(
+		ephPublicKeyCorruptData)
 
 	// Corrupt data.
 	encryptedClientHalfCorruptData := encryptedClientHalf
@@ -510,8 +517,10 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 
 	// Corrupt key.
 
-	ephPublicKeyCorrupt := ephPublicKey
-	ephPublicKeyCorrupt.data[0] = ^ephPublicKeyCorrupt.data[0]
+	ephPublicKeyCorruptData := ephPublicKey.Data()
+	ephPublicKeyCorruptData[0] = ^ephPublicKeyCorruptData[0]
+	ephPublicKeyCorrupt := kbfscrypto.MakeTLFEphemeralPublicKey(
+		ephPublicKeyCorruptData)
 	expectedErr = libkb.DecryptionError{}
 	_, err = c.DecryptTLFCryptKeyClientHalf(ctx, ephPublicKeyCorrupt,
 		encryptedClientHalf)

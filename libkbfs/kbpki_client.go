@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -52,20 +53,20 @@ func (k *KBPKIClient) GetCurrentUserInfo(ctx context.Context) (
 
 // GetCurrentCryptPublicKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCurrentCryptPublicKey(ctx context.Context) (
-	CryptPublicKey, error) {
+	kbfscrypto.CryptPublicKey, error) {
 	s, err := k.session(ctx)
 	if err != nil {
-		return CryptPublicKey{}, err
+		return kbfscrypto.CryptPublicKey{}, err
 	}
 	return s.CryptPublicKey, nil
 }
 
 // GetCurrentVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCurrentVerifyingKey(ctx context.Context) (
-	VerifyingKey, error) {
+	kbfscrypto.VerifyingKey, error) {
 	s, err := k.session(ctx)
 	if err != nil {
-		return VerifyingKey{}, err
+		return kbfscrypto.VerifyingKey{}, err
 	}
 	return s.VerifyingKey, nil
 }
@@ -94,20 +95,20 @@ func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UI
 }
 
 func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey VerifyingKey, atServerTime time.Time) (bool, error) {
+	verifyingKey kbfscrypto.VerifyingKey, atServerTime time.Time) (bool, error) {
 	userInfo, err := k.loadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return false, err
 	}
 
 	for _, key := range userInfo.VerifyingKeys {
-		if verifyingKey.kid.Equal(key.kid) {
+		if verifyingKey.KID().Equal(key.KID()) {
 			return true, nil
 		}
 	}
 
 	for key, t := range userInfo.RevokedVerifyingKeys {
-		if !verifyingKey.kid.Equal(key.kid) {
+		if !verifyingKey.KID().Equal(key.KID()) {
 			continue
 		}
 		revokedTime := keybase1.FromTime(t.Unix)
@@ -116,32 +117,33 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		// the server timestamps, to prove the server isn't lying.
 		if atServerTime.Before(revokedTime) {
 			k.log.CDebugf(ctx, "Trusting revoked verifying key %s for user %s "+
-				"(revoked time: %v vs. server time %v)", verifyingKey.kid, uid,
+				"(revoked time: %v vs. server time %v)", verifyingKey.KID(), uid,
 				revokedTime, atServerTime)
 			return true, nil
 		}
 		k.log.CDebugf(ctx, "Not trusting revoked verifying key %s for "+
 			"user %s (revoked time: %v vs. server time %v)",
-			verifyingKey.kid, uid, revokedTime, atServerTime)
+			verifyingKey.KID(), uid, revokedTime, atServerTime)
 		return false, nil
 	}
 
 	return false, nil
 }
 
-func (k *KBPKIClient) hasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey VerifyingKey) (bool, error) {
+func (k *KBPKIClient) hasUnverifiedVerifyingKey(
+	ctx context.Context, uid keybase1.UID,
+	verifyingKey kbfscrypto.VerifyingKey) (bool, error) {
 	keys, err := k.loadUnverifiedKeys(ctx, uid)
 	if err != nil {
 		return false, err
 	}
 
 	for _, key := range keys {
-		if !verifyingKey.kid.Equal(key.KID) {
+		if !verifyingKey.KID().Equal(key.KID) {
 			continue
 		}
 		k.log.CDebugf(ctx, "Trusting potentially unverified key %s for user %s",
-			verifyingKey.kid, uid)
+			verifyingKey.KID(), uid)
 		return true, nil
 	}
 
@@ -150,7 +152,7 @@ func (k *KBPKIClient) hasUnverifiedVerifyingKey(ctx context.Context, uid keybase
 
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey VerifyingKey, atServerTime time.Time) error {
+	verifyingKey kbfscrypto.VerifyingKey, atServerTime time.Time) error {
 	ok, err := k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
 	if err != nil {
 		return err
@@ -169,14 +171,15 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		return err
 	}
 	if !ok {
-		return KeyNotFoundError{verifyingKey.kid}
+		return KeyNotFoundError{verifyingKey.KID()}
 	}
 	return nil
 }
 
 // HasUnverifiedVerifyingKey implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) HasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey VerifyingKey) error {
+func (k *KBPKIClient) HasUnverifiedVerifyingKey(
+	ctx context.Context, uid keybase1.UID,
+	verifyingKey kbfscrypto.VerifyingKey) error {
 	ok, err := k.hasUnverifiedVerifyingKey(ctx, uid, verifyingKey)
 	if err != nil {
 		return err
@@ -190,14 +193,14 @@ func (k *KBPKIClient) HasUnverifiedVerifyingKey(ctx context.Context, uid keybase
 		return err
 	}
 	if !ok {
-		return KeyNotFoundError{verifyingKey.kid}
+		return KeyNotFoundError{verifyingKey.KID()}
 	}
 	return nil
 }
 
 // GetCryptPublicKeys implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
-	uid keybase1.UID) (keys []CryptPublicKey, err error) {
+	uid keybase1.UID) (keys []kbfscrypto.CryptPublicKey, err error) {
 	userInfo, err := k.loadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return nil, err

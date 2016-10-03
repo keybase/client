@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfssync"
 	"golang.org/x/net/context"
 )
 
@@ -154,7 +155,7 @@ type TlfEditHistory struct {
 	log    logger.Logger
 
 	rmdsChan chan []ImmutableRootMetadata
-	wg       RepeatedWaitGroup
+	wg       kbfssync.RepeatedWaitGroup
 	cancel   context.CancelFunc
 
 	lock     sync.Mutex

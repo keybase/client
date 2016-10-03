@@ -10,13 +10,14 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
 type blockMemEntry struct {
 	tlfID         TlfID
 	blockData     []byte
-	keyServerHalf BlockCryptKeyServerHalf
+	keyServerHalf kbfscrypto.BlockCryptKeyServerHalf
 	refs          blockRefMap
 }
 
@@ -49,7 +50,7 @@ var errBlockServerMemoryShutdown = errors.New("BlockServerMemory is shutdown")
 // Get implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) Get(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext) (
-	data []byte, serverHalf BlockCryptKeyServerHalf, err error) {
+	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -59,23 +60,25 @@ func (b *BlockServerMemory) Get(ctx context.Context, tlfID TlfID, id BlockID,
 	defer b.lock.RUnlock()
 
 	if b.m == nil {
-		return nil, BlockCryptKeyServerHalf{}, errBlockServerMemoryShutdown
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+			errBlockServerMemoryShutdown
 	}
 
 	entry, ok := b.m[id]
 	if !ok {
-		return nil, BlockCryptKeyServerHalf{}, BServerErrorBlockNonExistent{}
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+			BServerErrorBlockNonExistent{}
 	}
 
 	if entry.tlfID != tlfID {
-		return nil, BlockCryptKeyServerHalf{},
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			fmt.Errorf("TLF ID mismatch: expected %s, got %s",
 				entry.tlfID, tlfID)
 	}
 
 	err = entry.refs.checkExists(context)
 	if err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	return entry.blockData, entry.keyServerHalf, nil
@@ -108,7 +111,7 @@ func validateBlockServerPut(
 // Put implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) Put(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext, buf []byte,
-	serverHalf BlockCryptKeyServerHalf) (err error) {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()

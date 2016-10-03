@@ -13,6 +13,8 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 )
 
 const (
@@ -38,13 +40,13 @@ var disallowedPrefixes = [...]string{".kbfs"}
 type UserInfo struct {
 	Name            libkb.NormalizedUsername
 	UID             keybase1.UID
-	VerifyingKeys   []VerifyingKey
-	CryptPublicKeys []CryptPublicKey
+	VerifyingKeys   []kbfscrypto.VerifyingKey
+	CryptPublicKeys []kbfscrypto.CryptPublicKey
 	KIDNames        map[keybase1.KID]string
 
 	// Revoked keys, and the time at which they were revoked.
-	RevokedVerifyingKeys   map[VerifyingKey]keybase1.KeybaseTime
-	RevokedCryptPublicKeys map[CryptPublicKey]keybase1.KeybaseTime
+	RevokedVerifyingKeys   map[kbfscrypto.VerifyingKey]keybase1.KeybaseTime
+	RevokedCryptPublicKeys map[kbfscrypto.CryptPublicKey]keybase1.KeybaseTime
 }
 
 // SessionInfo contains all the info about the keybase session that
@@ -53,53 +55,9 @@ type SessionInfo struct {
 	Name           libkb.NormalizedUsername
 	UID            keybase1.UID
 	Token          string
-	CryptPublicKey CryptPublicKey
-	VerifyingKey   VerifyingKey
+	CryptPublicKey kbfscrypto.CryptPublicKey
+	VerifyingKey   kbfscrypto.VerifyingKey
 }
-
-// SigVer denotes a signature version.
-type SigVer int
-
-const (
-	// SigED25519 is the signature type for ED25519
-	SigED25519 SigVer = 1
-)
-
-// IsNil returns true if this SigVer is nil.
-func (v SigVer) IsNil() bool {
-	return int(v) == 0
-}
-
-// SignatureInfo contains all the info needed to verify a signature
-// for a message.
-type SignatureInfo struct {
-	// Exported only for serialization purposes.
-	Version      SigVer       `codec:"v"`
-	Signature    []byte       `codec:"s"`
-	VerifyingKey VerifyingKey `codec:"k"`
-}
-
-// IsNil returns true if this SignatureInfo is nil.
-func (s SignatureInfo) IsNil() bool {
-	return s.Version.IsNil() && len(s.Signature) == 0 && s.VerifyingKey.IsNil()
-}
-
-// deepCopy makes a complete copy of this SignatureInfo.
-func (s SignatureInfo) deepCopy() SignatureInfo {
-	signature := make([]byte, len(s.Signature))
-	copy(signature[:], s.Signature[:])
-	return SignatureInfo{s.Version, signature, s.VerifyingKey}
-}
-
-// String implements the fmt.Stringer interface for SignatureInfo.
-func (s SignatureInfo) String() string {
-	return fmt.Sprintf("SignatureInfo{Version: %d, Signature: %s, "+
-		"VerifyingKey: %s}", s.Version, hex.EncodeToString(s.Signature[:]),
-		&s.VerifyingKey)
-}
-
-// TLFEphemeralPublicKeys stores a list of TLFEphemeralPublicKey
-type TLFEphemeralPublicKeys []TLFEphemeralPublicKey
 
 // EncryptionVer denotes a version for the encryption method.
 type EncryptionVer int
@@ -143,11 +101,11 @@ type EncryptedMerkleLeaf struct {
 // request a client half decryption.
 type EncryptedTLFCryptKeyClientAndEphemeral struct {
 	// PublicKey contains the wrapped Key ID of the public key
-	PubKey CryptPublicKey
+	PubKey kbfscrypto.CryptPublicKey
 	// ClientHalf contains the encrypted client half of the TLF key
 	ClientHalf EncryptedTLFCryptKeyClientHalf
 	// EPubKey contains the ephemeral public key used to encrypt ClientHalf
-	EPubKey TLFEphemeralPublicKey
+	EPubKey kbfscrypto.TLFEphemeralPublicKey
 }
 
 // KeyGen is the type of a key generation for a top-level folder.
@@ -367,7 +325,7 @@ var bpSize = uint64(reflect.TypeOf(BlockPointer{}).Size())
 type ReadyBlockData struct {
 	// These fields should not be used outside of BlockOps.Put().
 	buf        []byte
-	serverHalf BlockCryptKeyServerHalf
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf
 }
 
 // GetEncodedSize returns the size of the encoded (and encrypted)
@@ -734,14 +692,15 @@ func (u *UserQuotaInfo) Accum(another *UserQuotaInfo, accumF func(int64, int64) 
 }
 
 // ToBytes marshals this UserQuotaInfo
-func (u *UserQuotaInfo) ToBytes(config Config) ([]byte, error) {
-	return config.Codec().Encode(u)
+func (u *UserQuotaInfo) ToBytes(codec kbfscodec.Codec) ([]byte, error) {
+	return codec.Encode(u)
 }
 
 // UserQuotaInfoDecode decodes b into a UserQuotaInfo
-func UserQuotaInfoDecode(b []byte, config Config) (*UserQuotaInfo, error) {
+func UserQuotaInfoDecode(b []byte, codec kbfscodec.Codec) (
+	*UserQuotaInfo, error) {
 	var info UserQuotaInfo
-	err := config.Codec().Decode(b, &info)
+	err := codec.Decode(b, &info)
 	if err != nil {
 		return nil, err
 	}
@@ -832,8 +791,8 @@ func SessionInfoFromProtocol(session keybase1.Session) (SessionInfo, error) {
 	if err != nil {
 		return SessionInfo{}, err
 	}
-	cryptPublicKey := MakeCryptPublicKey(deviceSubkey.GetKID())
-	verifyingKey := MakeVerifyingKey(deviceSibkey.GetKID())
+	cryptPublicKey := kbfscrypto.MakeCryptPublicKey(deviceSubkey.GetKID())
+	verifyingKey := kbfscrypto.MakeVerifyingKey(deviceSibkey.GetKID())
 	return SessionInfo{
 		Name:           libkb.NewNormalizedUsername(session.Username),
 		UID:            keybase1.UID(session.Uid),

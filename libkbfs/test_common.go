@@ -17,6 +17,8 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/env"
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
@@ -37,12 +39,12 @@ const (
 
 // RandomBlockID returns a randomly-generated BlockID for testing.
 func RandomBlockID() BlockID {
-	var dh RawDefaultHash
+	var dh kbfshash.RawDefaultHash
 	err := cryptoRandRead(dh[:])
 	if err != nil {
 		panic(err)
 	}
-	h, err := HashFromRaw(DefaultHashType, dh[:])
+	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
 	if err != nil {
 		panic(err)
 	}
@@ -50,8 +52,8 @@ func RandomBlockID() BlockID {
 }
 
 func fakeMdID(b byte) MdID {
-	dh := RawDefaultHash{b}
-	h, err := HashFromRaw(DefaultHashType, dh[:])
+	dh := kbfshash.RawDefaultHash{b}
+	h, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType, dh[:])
 	if err != nil {
 		panic(err)
 	}
@@ -321,7 +323,7 @@ func keySaltForUserDevice(name libkb.NormalizedUsername,
 }
 
 func makeFakeKeys(name libkb.NormalizedUsername, index int) (
-	CryptPublicKey, VerifyingKey) {
+	kbfscrypto.CryptPublicKey, kbfscrypto.VerifyingKey) {
 	keySalt := keySaltForUserDevice(name, index)
 	newCryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(keySalt)
 	newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)

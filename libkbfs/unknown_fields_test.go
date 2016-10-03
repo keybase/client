@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,12 +17,13 @@ import (
 // struct to test handling of unknown fields.
 type extra struct {
 	Extra1 encryptedData
-	Extra2 HMAC
+	Extra2 kbfshash.HMAC
 	Extra3 string
 }
 
 func makeExtraOrBust(prefix string, t *testing.T) extra {
-	extraHMAC, err := DefaultHMAC([]byte("fake extra key"), []byte("fake extra buf"))
+	extraHMAC, err := kbfshash.DefaultHMAC(
+		[]byte("fake extra key"), []byte("fake extra buf"))
 	require.NoError(t, err)
 	return extra{
 		Extra1: encryptedData{

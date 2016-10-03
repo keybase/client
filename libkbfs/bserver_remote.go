@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"encoding/hex"
 	"errors"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -35,8 +35,8 @@ type BlockServerRemote struct {
 	deferLog   logger.Logger
 	blkSrvAddr string
 
-	putAuthToken *AuthToken
-	getAuthToken *AuthToken
+	putAuthToken *kbfscrypto.AuthToken
+	getAuthToken *kbfscrypto.AuthToken
 }
 
 // Test that BlockServerRemote fully implements the BlockServer interface.
@@ -47,7 +47,7 @@ var _ BlockServer = (*BlockServerRemote)(nil)
 type blockServerRemoteClientHandler struct {
 	bs        *BlockServerRemote
 	name      string
-	authToken *AuthToken
+	authToken *kbfscrypto.AuthToken
 	client    keybase1.BlockInterface
 }
 
@@ -59,7 +59,7 @@ func (b *blockServerRemoteClientHandler) RefreshAuthToken(
 	}
 }
 
-var _ AuthTokenRefreshHandler = (*blockServerRemoteClientHandler)(nil)
+var _ kbfscrypto.AuthTokenRefreshHandler = (*blockServerRemoteClientHandler)(nil)
 
 // HandlerName implements the ConnectionHandler interface.
 func (b *blockServerRemoteClientHandler) HandlerName() string {
@@ -153,27 +153,29 @@ func NewBlockServerRemote(config Config, blkSrvAddr string, ctx Context) *BlockS
 		bs:   bs,
 		name: "BlockServerRemotePut",
 	}
-	bs.putAuthToken = NewAuthToken(config,
+	bs.putAuthToken = kbfscrypto.NewAuthToken(config.Crypto(),
 		BServerTokenServer, BServerTokenExpireIn,
-		"libkbfs_bserver_remote", putClientHandler)
+		"libkbfs_bserver_remote", VersionString(), putClientHandler)
 	putClientHandler.authToken = bs.putAuthToken
 	getClientHandler := &blockServerRemoteClientHandler{
 		bs:   bs,
 		name: "BlockServerRemoteGet",
 	}
-	bs.getAuthToken = NewAuthToken(config,
+	bs.getAuthToken = kbfscrypto.NewAuthToken(config.Crypto(),
 		BServerTokenServer, BServerTokenExpireIn,
-		"libkbfs_bserver_remote", getClientHandler)
+		"libkbfs_bserver_remote", VersionString(), getClientHandler)
 	getClientHandler.authToken = bs.getAuthToken
 
-	putConn := rpc.NewTLSConnection(blkSrvAddr, GetRootCerts(blkSrvAddr),
+	putConn := rpc.NewTLSConnection(blkSrvAddr,
+		kbfscrypto.GetRootCerts(blkSrvAddr),
 		bServerErrorUnwrapper{}, putClientHandler,
 		false, /* connect only on-demand */
 		ctx.NewRPCLogFactory(), libkb.WrapError, config.MakeLogger(""),
 		LogTagsFromContext)
 	bs.putClient = keybase1.BlockClient{Cli: putConn.GetClient()}
 	putClientHandler.client = bs.putClient
-	getConn := rpc.NewTLSConnection(blkSrvAddr, GetRootCerts(blkSrvAddr),
+	getConn := rpc.NewTLSConnection(blkSrvAddr,
+		kbfscrypto.GetRootCerts(blkSrvAddr),
 		bServerErrorUnwrapper{}, getClientHandler,
 		false, /* connect only on-demand */
 		ctx.NewRPCLogFactory(), libkb.WrapError, config.MakeLogger(""),
@@ -210,7 +212,9 @@ func (b *BlockServerRemote) RemoteAddress() string {
 
 // resetAuth is called to reset the authorization on a BlockServer
 // connection.
-func (b *BlockServerRemote) resetAuth(ctx context.Context, c keybase1.BlockInterface, authToken *AuthToken) error {
+func (b *BlockServerRemote) resetAuth(
+	ctx context.Context, c keybase1.BlockInterface,
+	authToken *kbfscrypto.AuthToken) error {
 	_, _, err := b.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		b.log.Debug("BServerRemote: User logged out, skipping resetAuth")
@@ -223,8 +227,18 @@ func (b *BlockServerRemote) resetAuth(ctx context.Context, c keybase1.BlockInter
 		return err
 	}
 
+	// get UID, deviceKID and normalized username
+	username, uid, err := b.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return err
+	}
+	key, err := b.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	if err != nil {
+		return err
+	}
+
 	// get a new signature
-	signature, err := authToken.Sign(ctx, challenge)
+	signature, err := authToken.Sign(ctx, username, uid, key, challenge)
 	if err != nil {
 		return err
 	}
@@ -263,7 +277,8 @@ func makeBlockReference(id BlockID, context BlockContext) keybase1.BlockReferenc
 
 // Get implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Get(ctx context.Context, tlfID TlfID, id BlockID,
-	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
+	context BlockContext) (
+	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	var err error
 	size := -1
 	defer func() {
@@ -285,23 +300,21 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID TlfID, id BlockID,
 
 	res, err := b.getClient.GetBlock(ctx, arg)
 	if err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	size = len(res.Buf)
-	bk := BlockCryptKeyServerHalf{}
-	var kbuf []byte
-	if kbuf, err = hex.DecodeString(res.BlockKey); err != nil {
-		return nil, BlockCryptKeyServerHalf{}, err
+	bk, err := kbfscrypto.ParseBlockCryptKeyServerHalf(res.BlockKey)
+	if err != nil {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
-	copy(bk.data[:], kbuf)
 	return res.Buf, bk, nil
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Put(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext, buf []byte,
-	serverHalf BlockCryptKeyServerHalf) error {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	var err error
 	size := len(buf)
 	defer func() {
@@ -497,7 +510,7 @@ func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *UserQuo
 	if err != nil {
 		return nil, err
 	}
-	return UserQuotaInfoDecode(res, b.config)
+	return UserQuotaInfoDecode(res, b.config.Codec())
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.

@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -37,7 +38,7 @@ func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 		index := 99
 		keySalt := keySaltForUserDevice(user.Name, index)
 		newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
-		user.RevokedVerifyingKeys = map[VerifyingKey]keybase1.KeybaseTime{
+		user.RevokedVerifyingKeys = map[kbfscrypto.VerifyingKey]keybase1.KeybaseTime{
 			newVerifyingKey: {Unix: keybase1.ToTime(revokeTime), Chain: 100},
 		}
 		users[i] = user
@@ -83,7 +84,7 @@ func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 	}
 
 	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		VerifyingKey{}, time.Now())
+		kbfscrypto.VerifyingKey{}, time.Now())
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
@@ -93,7 +94,7 @@ func TestKBPKIClientHasRevokedVerifyingKey(t *testing.T) {
 	revokeTime := time.Now()
 	c, _, localUsers := makeTestKBPKIClientWithRevokedKey(t, revokeTime)
 
-	var revokedKey VerifyingKey
+	var revokedKey kbfscrypto.VerifyingKey
 	for k := range localUsers[0].RevokedVerifyingKeys {
 		revokedKey = k
 		break
@@ -131,14 +132,14 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 	key1 := MakeLocalUserVerifyingKeyOrBust("u_1")
 	key2 := MakeLocalUserVerifyingKeyOrBust("u_2")
 	info1 := UserInfo{
-		VerifyingKeys: []VerifyingKey{key1},
+		VerifyingKeys: []kbfscrypto.VerifyingKey{key1},
 	}
 	config.mockKbs.EXPECT().LoadUserPlusKeys(gomock.Any(), u).
 		Return(info1, nil)
 
 	config.mockKbs.EXPECT().FlushUserFromLocalCache(gomock.Any(), u)
 	info2 := UserInfo{
-		VerifyingKeys: []VerifyingKey{key1, key2},
+		VerifyingKeys: []kbfscrypto.VerifyingKey{key1, key2},
 	}
 	config.mockKbs.EXPECT().LoadUserPlusKeys(gomock.Any(), u).
 		Return(info2, nil)
@@ -162,8 +163,8 @@ func TestKBPKIClientGetCryptPublicKeys(t *testing.T) {
 		t.Fatalf("Expected 1 crypt public key, got %d", len(cryptPublicKeys))
 	}
 
-	kid := cryptPublicKeys[0].kid
-	expectedKID := localUsers[0].CryptPublicKeys[0].kid
+	kid := cryptPublicKeys[0].KID()
+	expectedKID := localUsers[0].CryptPublicKeys[0].KID()
 	if kid != expectedKID {
 		t.Errorf("Expected %s, got %s", expectedKID, kid)
 	}
@@ -177,8 +178,8 @@ func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	kid := currPublicKey.kid
-	expectedKID := localUsers[0].GetCurrentCryptPublicKey().kid
+	kid := currPublicKey.KID()
+	expectedKID := localUsers[0].GetCurrentCryptPublicKey().KID()
 	if kid != expectedKID {
 		t.Errorf("Expected %s, got %s", expectedKID, kid)
 	}
@@ -194,7 +195,7 @@ func makeTestKBPKIClientWithUnverifiedKey(t *testing.T) (
 		index := 99
 		keySalt := keySaltForUserDevice(user.Name, index)
 		newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
-		key := keybase1.PublicKey{KID: newVerifyingKey.kid}
+		key := keybase1.PublicKey{KID: newVerifyingKey.KID()}
 		user.UnverifiedKeys = []keybase1.PublicKey{key}
 		users[i] = user
 	}
@@ -208,9 +209,9 @@ func makeTestKBPKIClientWithUnverifiedKey(t *testing.T) (
 func TestKBPKIClientHasUnverifiedVerifyingKey(t *testing.T) {
 	c, _, localUsers := makeTestKBPKIClientWithUnverifiedKey(t)
 
-	var unverifiedKey VerifyingKey
+	var unverifiedKey kbfscrypto.VerifyingKey
 	for _, k := range localUsers[0].UnverifiedKeys {
-		unverifiedKey.kid = k.KID
+		unverifiedKey = kbfscrypto.MakeVerifyingKey(k.KID)
 		break
 	}
 

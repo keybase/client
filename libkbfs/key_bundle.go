@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfshash"
 )
 
 // All section references below are to https://keybase.io/blog/kbfs-crypto
@@ -14,7 +16,7 @@ import (
 
 // TLFCryptKeyServerHalfID is the identifier type for a server-side key half.
 type TLFCryptKeyServerHalfID struct {
-	ID HMAC // Exported for serialization.
+	ID kbfshash.HMAC // Exported for serialization.
 }
 
 // String implements the Stringer interface for TLFCryptKeyServerHalfID.
@@ -45,11 +47,12 @@ const (
 type DeviceKeyInfoMap map[keybase1.KID]TLFCryptKeyInfo
 
 func (kim DeviceKeyInfoMap) fillInDeviceInfo(crypto Crypto,
-	uid keybase1.UID, tlfCryptKey TLFCryptKey,
-	ePrivKey TLFEphemeralPrivateKey, ePubIndex int,
-	publicKeys []CryptPublicKey) (
-	serverMap map[keybase1.KID]TLFCryptKeyServerHalf, err error) {
-	serverMap = make(map[keybase1.KID]TLFCryptKeyServerHalf)
+	uid keybase1.UID, tlfCryptKey kbfscrypto.TLFCryptKey,
+	ePrivKey kbfscrypto.TLFEphemeralPrivateKey, ePubIndex int,
+	publicKeys []kbfscrypto.CryptPublicKey) (
+	serverMap map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf,
+	err error) {
+	serverMap = make(map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf)
 	// for each device:
 	//    * create a new random server half
 	//    * mask it with the key to get the client half
@@ -58,17 +61,17 @@ func (kim DeviceKeyInfoMap) fillInDeviceInfo(crypto Crypto,
 	// TODO: parallelize
 	for _, k := range publicKeys {
 		// Skip existing entries, only fill in new ones
-		if _, ok := kim[k.kid]; ok {
+		if _, ok := kim[k.KID()]; ok {
 			continue
 		}
 
-		var serverHalf TLFCryptKeyServerHalf
+		var serverHalf kbfscrypto.TLFCryptKeyServerHalf
 		serverHalf, err = crypto.MakeRandomTLFCryptKeyServerHalf()
 		if err != nil {
 			return nil, err
 		}
 
-		var clientHalf TLFCryptKeyClientHalf
+		var clientHalf kbfscrypto.TLFCryptKeyClientHalf
 		clientHalf, err = crypto.MaskTLFCryptKey(serverHalf, tlfCryptKey)
 		if err != nil {
 			return nil, err
@@ -83,17 +86,17 @@ func (kim DeviceKeyInfoMap) fillInDeviceInfo(crypto Crypto,
 
 		var serverHalfID TLFCryptKeyServerHalfID
 		serverHalfID, err =
-			crypto.GetTLFCryptKeyServerHalfID(uid, k.kid, serverHalf)
+			crypto.GetTLFCryptKeyServerHalfID(uid, k.KID(), serverHalf)
 		if err != nil {
 			return nil, err
 		}
 
-		kim[k.kid] = TLFCryptKeyInfo{
+		kim[k.KID()] = TLFCryptKeyInfo{
 			ClientHalf:   encryptedClientHalf,
 			ServerHalfID: serverHalfID,
 			EPubKeyIndex: ePubIndex,
 		}
-		serverMap[k.kid] = serverHalf
+		serverMap[k.KID()] = serverHalf
 	}
 
 	return serverMap, nil
@@ -109,7 +112,7 @@ type TLFWriterKeyBundleV2 struct {
 	WKeys UserDeviceKeyInfoMap
 
 	// M_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
-	TLFPublicKey TLFPublicKey `codec:"pubKey"`
+	TLFPublicKey kbfscrypto.TLFPublicKey `codec:"pubKey"`
 
 	// M_e as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
 	// Because devices can be added into the key generation after it
@@ -117,7 +120,7 @@ type TLFWriterKeyBundleV2 struct {
 	// existing data), we track multiple ephemeral public keys; the
 	// one used by a particular device is specified by EPubKeyIndex in
 	// its TLFCryptoKeyInfo struct.
-	TLFEphemeralPublicKeys TLFEphemeralPublicKeys `codec:"ePubKey"`
+	TLFEphemeralPublicKeys kbfscrypto.TLFEphemeralPublicKeys `codec:"ePubKey"`
 
 	codec.UnknownFieldSetHandler
 }
@@ -160,7 +163,7 @@ type TLFReaderKeyBundleV2 struct {
 	// its TLFCryptoKeyInfo struct.
 	// This list is needed so a reader rekey doesn't modify the writer
 	// metadata.
-	TLFReaderEphemeralPublicKeys TLFEphemeralPublicKeys `codec:"readerEPubKey,omitempty"`
+	TLFReaderEphemeralPublicKeys kbfscrypto.TLFEphemeralPublicKeys `codec:"readerEPubKey,omitempty"`
 
 	codec.UnknownFieldSetHandler
 }
@@ -190,13 +193,14 @@ func (tkg TLFReaderKeyGenerations) IsReader(user keybase1.UID, deviceKID keybase
 	return tkg[keyGen-1].IsReader(user, deviceKID)
 }
 
-type serverKeyMap map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf
+type serverKeyMap map[keybase1.UID]map[keybase1.KID]kbfscrypto.TLFCryptKeyServerHalf
 
 func fillInDevicesAndServerMap(crypto Crypto, newIndex int,
-	cryptKeys map[keybase1.UID][]CryptPublicKey,
+	cryptKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
 	keyInfoMap UserDeviceKeyInfoMap,
-	ePubKey TLFEphemeralPublicKey, ePrivKey TLFEphemeralPrivateKey,
-	tlfCryptKey TLFCryptKey, newServerKeys serverKeyMap) error {
+	ePubKey kbfscrypto.TLFEphemeralPublicKey,
+	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
+	tlfCryptKey kbfscrypto.TLFCryptKey, newServerKeys serverKeyMap) error {
 	for u, keys := range cryptKeys {
 		if _, ok := keyInfoMap[u]; !ok {
 			keyInfoMap[u] = DeviceKeyInfoMap{}
@@ -221,9 +225,11 @@ func fillInDevicesAndServerMap(crypto Crypto, newIndex int,
 // MDv3 TODO: get rid of this as it's only used in tests right now.
 func fillInDevices(crypto Crypto,
 	wkb *TLFWriterKeyBundleV2, rkb *TLFReaderKeyBundleV2,
-	wKeys map[keybase1.UID][]CryptPublicKey,
-	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
-	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) (
+	wKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	ePubKey kbfscrypto.TLFEphemeralPublicKey,
+	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
+	tlfCryptKey kbfscrypto.TLFCryptKey) (
 	serverKeyMap, error) {
 	var newIndex int
 	if len(wKeys) == 0 {

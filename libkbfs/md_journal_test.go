@@ -16,16 +16,17 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 type singleEncryptionKeyGetter struct {
-	k TLFCryptKey
+	k kbfscrypto.TLFCryptKey
 }
 
 func (g singleEncryptionKeyGetter) GetTLFCryptKeyForEncryption(
-	ctx context.Context, kmd KeyMetadata) (TLFCryptKey, error) {
+	ctx context.Context, kmd KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
 	return g.k, nil
 }
 
@@ -46,9 +47,9 @@ func setupMDJournalTest(t *testing.T) (
 	id = FakeTlfID(1, false)
 
 	signingKey := MakeFakeSigningKeyOrBust("fake seed")
-	signer = cryptoSignerLocal{signingKey}
+	signer = kbfscrypto.SigningKeySigner{Key: signingKey}
 	verifyingKey := signingKey.GetVerifyingKey()
-	ekg = singleEncryptionKeyGetter{MakeTLFCryptKey([32]byte{0x1})}
+	ekg = singleEncryptionKeyGetter{kbfscrypto.MakeTLFCryptKey([32]byte{0x1})}
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "md_journal")
 	require.NoError(t, err)
@@ -107,7 +108,7 @@ func putMDRange(t *testing.T, tlfID TlfID, signer cryptoSigner,
 	return prevRoot
 }
 
-func checkBRMD(t *testing.T, uid keybase1.UID, key VerifyingKey,
+func checkBRMD(t *testing.T, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	codec kbfscodec.Codec, crypto cryptoPure, brmd BareRootMetadata,
 	expectedRevision MetadataRevision, expectedPrevRoot MdID,
 	expectedMergeStatus MergeStatus, expectedBranchID BranchID) {
@@ -126,7 +127,7 @@ func checkBRMD(t *testing.T, uid keybase1.UID, key VerifyingKey,
 }
 
 func checkIBRMDRange(t *testing.T, uid keybase1.UID,
-	key VerifyingKey, codec kbfscodec.Codec, crypto cryptoPure,
+	key kbfscrypto.VerifyingKey, codec kbfscodec.Codec, crypto cryptoPure,
 	ibrmds []ImmutableBareRootMetadata, firstRevision MetadataRevision,
 	firstPrevRoot MdID, mStatus MergeStatus, bid BranchID) {
 	checkBRMD(t, uid, key, codec, crypto, ibrmds[0],
@@ -478,9 +479,9 @@ type limitedCryptoSigner struct {
 }
 
 func (s *limitedCryptoSigner) Sign(ctx context.Context, msg []byte) (
-	SignatureInfo, error) {
+	kbfscrypto.SignatureInfo, error) {
 	if s.remaining <= 0 {
-		return SignatureInfo{}, errors.New("No more Sign calls left")
+		return kbfscrypto.SignatureInfo{}, errors.New("No more Sign calls left")
 	}
 	s.remaining--
 	return s.cryptoSigner.Sign(ctx, msg)

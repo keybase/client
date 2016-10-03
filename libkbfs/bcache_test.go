@@ -4,7 +4,11 @@
 
 package libkbfs
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/keybase/kbfs/kbfshash"
+)
 
 func blockCacheTestInit(t *testing.T, capacity int,
 	bytesCapacity uint64) Config {
@@ -368,7 +372,7 @@ func TestPutNoHashCalculation(t *testing.T) {
 
 	// this is an invalid hash; if Put() does not calculate hash, it should go
 	// into the cache
-	block.hash = &RawDefaultHash{}
+	block.hash = &kbfshash.RawDefaultHash{}
 	if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
 		t.Errorf("Got error on Put for block %s: %v", ptr.ID, err)
 	}
