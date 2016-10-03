@@ -28,6 +28,14 @@ func (e ErrInvalidVersion) Error() string {
 	return fmt.Sprintf("invalid version %d", e.version)
 }
 
+type ErrInvalidJSON struct {
+	message string
+}
+
+func (e ErrInvalidJSON) Error() string {
+	return fmt.Sprintf("invalid JSON: %s", e.message)
+}
+
 type ChatAPIDecoder struct {
 	handler ChatAPIHandler
 }
@@ -45,6 +53,9 @@ func (d *ChatAPIDecoder) Decode(ctx context.Context, r io.Reader, w io.Writer) e
 		if err := dec.Decode(&c); err == io.EOF {
 			break
 		} else if err != nil {
+			if err == io.ErrUnexpectedEOF {
+				return ErrInvalidJSON{message: "expected more JSON in input"}
+			}
 			return err
 		}
 
@@ -69,6 +80,10 @@ func (d *ChatAPIDecoder) handleV1(ctx context.Context, c Call, w io.Writer) erro
 		return d.handler.ReadV1(ctx, c, w)
 	case "send":
 		return d.handler.SendV1(ctx, c, w)
+	case "edit":
+		return d.handler.EditV1(ctx, c, w)
+	case "delete":
+		return d.handler.DeleteV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

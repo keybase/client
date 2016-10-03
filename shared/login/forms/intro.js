@@ -4,14 +4,14 @@ import Render from './intro.render'
 import {connect} from 'react-redux'
 import {routeAppend} from '../../actions/router'
 import {retryBootstrap} from '../../actions/config'
-import {setRevokedSelf, setLoginFromRevokedDevice, login} from '../../actions/login'
+import {setRevokedSelf, setDeletedSelf, setLoginFromRevokedDevice, login} from '../../actions/login'
 
 import type {TypedState} from '../../constants/reducer'
 
 class Intro extends Component<*, *, *> {
   render () {
     return (
-      <Render onSignup={this.props.onSignup} onLogin={this.props.onLogin} onRetry={this.props.onRetry} bootStatus={this.props.bootStatus} justLoginFromRevokedDevice={this.props.justLoginFromRevokedDevice} justRevokedSelf={this.props.justRevokedSelf} />
+      <Render onSignup={this.props.onSignup} onLogin={this.props.onLogin} onRetry={this.props.onRetry} bootStatus={this.props.bootStatus} justLoginFromRevokedDevice={this.props.justLoginFromRevokedDevice} justRevokedSelf={this.props.justRevokedSelf} justDeletedSelf={this.props.justDeletedSelf} />
     )
   }
 }
@@ -28,16 +28,19 @@ export default connect(
     justLoginFromRevokedDevice: state.login.justLoginFromRevokedDevice,
     justRevokedSelf: state.login.justRevokedSelf,
     bootStatus: state.config.bootStatus,
+    justDeletedSelf: state.login.justDeletedSelf,
   }),
   (dispatch: any) => ({
     onSignup: () => {
       dispatch(setLoginFromRevokedDevice(''))
       dispatch(setRevokedSelf(''))
+      dispatch(setDeletedSelf(''))
       dispatch(routeAppend('signup'))
     },
     onLogin: () => {
       dispatch(setLoginFromRevokedDevice(''))
       dispatch(setRevokedSelf(''))
+      dispatch(setDeletedSelf(''))
       dispatch(login())
     },
     onRetry: () => {

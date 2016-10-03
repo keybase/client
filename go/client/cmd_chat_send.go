@@ -32,20 +32,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatSend{Contextified: libkb.NewContextified(g)}, "send", c)
 		},
-		Flags: makeChatFlags([]cli.Flag{
-			cli.StringFlag{
-				Name:  "topic-name",
-				Usage: `Specify topic name of the conversation.`,
-			},
-			cli.StringFlag{
-				Name:  "set-topic-name",
-				Usage: `Set topic name for the conversation`,
-			},
-			cli.BoolFlag{
-				Name:  "stdin",
-				Usage: "Use STDIN for message content. [conversation] is required and [message] is ignored.",
-			},
-		}),
+		Flags: mustGetChatFlags("topic-type", "topic-name", "set-topic-name", "stdin"),
 	}
 }
 
@@ -69,7 +56,7 @@ func (c *cmdChatSend) Run() (err error) {
 	}
 
 	if resolved == nil {
-		conversationInfo, err = chatClient.NewConversationLocal(ctx, chat1.ConversationInfoLocal{
+		ncres, err := chatClient.NewConversationLocal(ctx, chat1.ConversationInfoLocal{
 			TlfName:   c.resolver.TlfName,
 			TopicName: c.resolver.TopicName,
 			TopicType: c.resolver.TopicType,
@@ -77,6 +64,7 @@ func (c *cmdChatSend) Run() (err error) {
 		if err != nil {
 			return fmt.Errorf("creating conversation error: %v\n", err)
 		}
+		conversationInfo = ncres.Conv
 	} else {
 		conversationInfo = *resolved
 	}
@@ -109,7 +97,7 @@ func (c *cmdChatSend) Run() (err error) {
 
 	args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
 
-	if err = chatClient.PostLocal(ctx, args); err != nil {
+	if _, err = chatClient.PostLocal(ctx, args); err != nil {
 		return err
 	}
 
@@ -121,7 +109,7 @@ func (c *cmdChatSend) Run() (err error) {
 		msgV1.ClientHeader.Prev = nil // TODO
 		msgV1.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
 		args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
-		if err := chatClient.PostLocal(ctx, args); err != nil {
+		if _, err := chatClient.PostLocal(ctx, args); err != nil {
 			return err
 		}
 	}

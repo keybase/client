@@ -49,12 +49,12 @@ func newChatBoxer(g *libkb.GlobalContext) *chatBoxer {
 
 // unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
-func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, boxed chat1.MessageBoxed) (unboxed chat1.Message, err error) {
+func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, boxed chat1.MessageBoxed) (messagePlaintext chat1.MessagePlaintext, err error) {
 	tlfName := boxed.ClientHeader.TlfName
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := finder.find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
-		return unboxed, libkb.ChatUnboxingError{Msg: err.Error()}
+		return chat1.MessagePlaintext{}, libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
 	var matchKey *keybase1.CryptKey
@@ -66,53 +66,61 @@ func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, boxed c
 	}
 
 	if matchKey == nil {
-		return unboxed, libkb.ChatUnboxingError{Msg: fmt.Sprintf("no key found for generation %d", boxed.KeyGeneration)}
+		return chat1.MessagePlaintext{}, libkb.ChatUnboxingError{Msg: fmt.Sprintf("no key found for generation %d", boxed.KeyGeneration)}
 	}
 
-	if unboxed, err = b.unboxMessageWithKey(boxed, matchKey); err != nil {
-		return unboxed, libkb.ChatUnboxingError{Msg: err.Error()}
+	if messagePlaintext, err = b.unboxMessageWithKey(ctx, boxed, matchKey); err != nil {
+		return chat1.MessagePlaintext{}, libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
-	return unboxed, nil
+	return messagePlaintext, nil
 }
 
 // unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given
 // a keybase1.CryptKey.
-func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.CryptKey) (chat1.Message, error) {
+func (b *chatBoxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed, key *keybase1.CryptKey) (messagePlaintext chat1.MessagePlaintext, err error) {
 	if msg.ServerHeader == nil {
-		return chat1.Message{}, errors.New("nil ServerHeader in MessageBoxed")
+		return chat1.MessagePlaintext{}, errors.New("nil ServerHeader in MessageBoxed")
 	}
 
 	// decrypt body
-	packedBody, err := b.open(msg.BodyCiphertext, key)
-	if err != nil {
-		return chat1.Message{}, err
-	}
 	var body chat1.BodyPlaintext
-	if err := b.unmarshal(packedBody, &body); err != nil {
-		return chat1.Message{}, err
+	skipBodyVerification := false
+	if len(msg.BodyCiphertext.E) == 0 {
+		if msg.ServerHeader.SupersededBy == 0 {
+			return chat1.MessagePlaintext{}, errors.New("empty body and not superseded in MessageBoxed")
+		}
+		skipBodyVerification = true
+	} else {
+		packedBody, err := b.open(msg.BodyCiphertext, key)
+		if err != nil {
+			return chat1.MessagePlaintext{}, err
+		}
+		if err := b.unmarshal(packedBody, &body); err != nil {
+			return chat1.MessagePlaintext{}, err
+		}
 	}
 
 	// decrypt header
 	packedHeader, err := b.open(msg.HeaderCiphertext, key)
 	if err != nil {
-		return chat1.Message{}, err
+		return chat1.MessagePlaintext{}, err
 	}
 	var header chat1.HeaderPlaintext
 	if err := b.unmarshal(packedHeader, &header); err != nil {
-		return chat1.Message{}, err
+		return chat1.MessagePlaintext{}, err
 	}
 
 	// verify the message
-	if err := b.verifyMessage(header, msg); err != nil {
-		return chat1.Message{}, err
+	if err := b.verifyMessage(ctx, header, msg, skipBodyVerification); err != nil {
+		return chat1.MessagePlaintext{}, err
 	}
 
 	// create a chat1.MessageClientHeader from versioned HeaderPlaintext
 	var clientHeader chat1.MessageClientHeader
 	headerVersion, err := header.Version()
 	if err != nil {
-		return chat1.Message{}, err
+		return chat1.MessagePlaintext{}, err
 	}
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V1:
@@ -127,17 +135,26 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 			SenderDevice: hp.SenderDevice,
 		}
 	default:
-		return chat1.Message{}, libkb.NewChatHeaderVersionError(headerVersion)
+		return chat1.MessagePlaintext{}, libkb.NewChatHeaderVersionError(headerVersion)
+	}
+
+	if skipBodyVerification {
+		// body was deleted, so return empty body that matches header version
+		switch headerVersion {
+		case chat1.HeaderPlaintextVersion_V1:
+			msgPlainV1 := chat1.MessagePlaintextV1{
+				ClientHeader: clientHeader,
+			}
+			return chat1.NewMessagePlaintextWithV1(msgPlainV1), nil
+		default:
+			return chat1.MessagePlaintext{}, libkb.NewChatHeaderVersionError(headerVersion)
+		}
 	}
 
 	// create an unboxed message from versioned BodyPlaintext and clientHeader
-	unboxed := chat1.Message{
-		ServerHeader: *msg.ServerHeader,
-	}
-
 	bodyVersion, err := body.Version()
 	if err != nil {
-		return chat1.Message{}, err
+		return chat1.MessagePlaintext{}, err
 	}
 	switch bodyVersion {
 	case chat1.BodyPlaintextVersion_V1:
@@ -145,12 +162,10 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 			ClientHeader: clientHeader,
 			MessageBody:  body.V1().MessageBody,
 		}
-		unboxed.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgPlainV1)
+		return chat1.NewMessagePlaintextWithV1(msgPlainV1), nil
 	default:
-		return chat1.Message{}, libkb.NewChatBodyVersionError(bodyVersion)
+		return chat1.MessagePlaintext{}, libkb.NewChatBodyVersionError(bodyVersion)
 	}
-
-	return unboxed, nil
 }
 
 // boxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
@@ -313,7 +328,7 @@ func sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix)
 }
 
 // verifyMessage checks that a message is valid.
-func (b *chatBoxer) verifyMessage(header chat1.HeaderPlaintext, msg chat1.MessageBoxed) error {
+func (b *chatBoxer) verifyMessage(ctx context.Context, header chat1.HeaderPlaintext, msg chat1.MessageBoxed, skipBodyVerification bool) error {
 	headerVersion, err := header.Version()
 	if err != nil {
 		return err
@@ -321,18 +336,20 @@ func (b *chatBoxer) verifyMessage(header chat1.HeaderPlaintext, msg chat1.Messag
 
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V1:
-		return b.verifyMessageHeaderV1(header.V1(), msg)
+		return b.verifyMessageHeaderV1(ctx, header.V1(), msg, skipBodyVerification)
 	default:
 		return libkb.NewChatHeaderVersionError(headerVersion)
 	}
 }
 
 // verifyMessageHeaderV1 checks the body hash, header signature, and signing key validity.
-func (b *chatBoxer) verifyMessageHeaderV1(header chat1.HeaderPlaintextV1, msg chat1.MessageBoxed) error {
-	// check body hash
-	bh := b.hashV1(msg.BodyCiphertext.E)
-	if !libkb.SecureByteArrayEq(bh[:], header.BodyHash) {
-		return libkb.ChatBodyHashInvalid{}
+func (b *chatBoxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPlaintextV1, msg chat1.MessageBoxed, skipBodyVerification bool) error {
+	if !skipBodyVerification {
+		// check body hash
+		bh := b.hashV1(msg.BodyCiphertext.E)
+		if !libkb.SecureByteArrayEq(bh[:], header.BodyHash) {
+			return libkb.ChatBodyHashInvalid{}
+		}
 	}
 
 	// check signature
@@ -347,7 +364,7 @@ func (b *chatBoxer) verifyMessageHeaderV1(header chat1.HeaderPlaintextV1, msg ch
 	}
 
 	// check key validity
-	valid, err := b.validSenderKey(header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
+	valid, err := b.validSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
 	if err != nil {
 		return err
 	}
@@ -373,7 +390,7 @@ func (b *chatBoxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.Sig
 }
 
 // validSenderKey checks that the key is active for sender at ctime.
-func (b *chatBoxer) validSenderKey(sender gregor1.UID, key []byte, ctime gregor1.Time) (bool, error) {
+func (b *chatBoxer) validSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (bool, error) {
 	kbSender, err := keybase1.UIDFromString(hex.EncodeToString(sender.Bytes()))
 	if err != nil {
 		return false, err
@@ -381,7 +398,9 @@ func (b *chatBoxer) validSenderKey(sender gregor1.UID, key []byte, ctime gregor1
 	kid := keybase1.KIDFromSlice(key)
 	t := gregor1.FromTime(ctime)
 
-	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(b.G(), kbSender))
+	var uimap *userInfoMapper
+	ctx, uimap = getUserInfoMapper(ctx, b.G())
+	user, err := uimap.user(kbSender)
 	if err != nil {
 		return false, err
 	}

@@ -2450,7 +2450,7 @@ func newGPGImportFailer(g *libkb.GlobalContext) *gpgImportFailer {
 	return &gpgImportFailer{g: g}
 }
 
-func (g *gpgImportFailer) ImportKey(secret bool, fp libkb.PGPFingerprint) (*libkb.PGPKeyBundle, error) {
+func (g *gpgImportFailer) ImportKey(secret bool, fp libkb.PGPFingerprint, tty string) (*libkb.PGPKeyBundle, error) {
 	return nil, errors.New("failed to import key")
 }
 

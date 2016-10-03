@@ -312,3 +312,6 @@ func (c *CmdStress) GetPassphrase(_ context.Context, arg keybase1.GetPassphraseA
 func (c *CmdStress) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
 	return "", nil
 }
+func (c *CmdStress) GetTTY(_ context.Context) (string, error) {
+	return "", nil
+}

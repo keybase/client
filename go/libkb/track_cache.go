@@ -20,8 +20,8 @@ func NewTrackCache() *TrackCache {
 	res := &TrackCache{
 		cache: ramcache.New(),
 	}
-	res.cache.TTL = 10 * time.Minute
-	res.cache.MaxAge = 10 * time.Minute
+	res.cache.TTL = 1 * time.Hour
+	res.cache.MaxAge = 1 * time.Hour
 	return res
 }
 

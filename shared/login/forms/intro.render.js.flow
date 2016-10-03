@@ -8,6 +8,7 @@ export type IntroProps = {
   onRetry: () => void,
   justRevokedSelf: ?string,
   bootStatus: BootStatus,
+  justDeletedSelf: ?string,
 }
 
 export default class Intro extends Component<void, IntroProps, void> { }

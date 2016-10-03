@@ -275,10 +275,13 @@ func importPathFromJSON(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 	return
 }
 
-func (mc *MerkleClient) LookupPath(q HTTPArgs) (vp *VerificationPath, err error) {
+func (mc *MerkleClient) LookupPath(q HTTPArgs, sigHints *SigHints) (vp *VerificationPath, err error) {
 
 	// Poll for 10s and ask for a race-free state.
 	q.Add("poll", I{10})
+
+	// Add the local db sigHints version
+	q.Add("sig_hints_low", I{sigHints.version})
 
 	res, err := mc.G().API.Get(APIArg{
 		Endpoint:       "merkle/path",
@@ -296,6 +299,10 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs) (vp *VerificationPath, err error)
 		return
 	case SCDeleted:
 		err = DeletedError{}
+		return
+	}
+
+	if err = sigHints.RefreshWith(res.Body.AtKey("sigs")); err != nil {
 		return
 	}
 
@@ -693,7 +700,7 @@ func (path PathSteps) VerifyPath(curr NodeHash, uidS string) (juser *jsonw.Wrapp
 	return
 }
 
-func (mc *MerkleClient) LookupUser(q HTTPArgs) (u *MerkleUserLeaf, err error) {
+func (mc *MerkleClient) LookupUser(q HTTPArgs, sigHints *SigHints) (u *MerkleUserLeaf, err error) {
 
 	mc.G().Log.Debug("+ MerkleClient.LookupUser(%v)", q)
 
@@ -704,7 +711,7 @@ func (mc *MerkleClient) LookupUser(q HTTPArgs) (u *MerkleUserLeaf, err error) {
 	}
 
 	mc.G().Log.Debug("| LookupPath")
-	if path, err = mc.LookupPath(q); err != nil {
+	if path, err = mc.LookupPath(q, sigHints); err != nil {
 		return
 	}
 

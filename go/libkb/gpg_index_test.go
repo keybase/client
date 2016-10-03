@@ -18,6 +18,9 @@ func parse(t *testing.T, kr string) *GpgKeyIndex {
 
 	if !w.IsEmpty() {
 		t.Errorf("Warnings in parsing:")
+		for _, e := range w.Warnings() {
+			t.Errorf(" - %s", e)
+		}
 		return nil
 	}
 	return i
@@ -64,6 +67,19 @@ func TestYubikeyOrigSecretKeys(t *testing.T) {
 	keylist := index.Emails.Get("dain@yubico.com")
 	if keylist != nil {
 		t.Errorf("nil keylist was expected")
+	}
+}
+
+func TestGPGIndex2Dot1(t *testing.T) {
+	index := parse(t, gpg2dot1)
+	if index == nil {
+		t.Fatal("parsing failed")
+	}
+	keylist := index.Emails.Get("themax+test@gmail.com")
+	if keylist == nil {
+		t.Errorf("nil keylist was not expected")
+	} else if len(keylist) != 1 {
+		t.Errorf("expected one key for max")
 	}
 }
 
@@ -214,4 +230,19 @@ fpr:::::::::20EE325B86A81BCBD3E56798F04367096FBA95E8:
 uid:::::::CBDD6BD90F5A01A814C4E5A0E05F8D7DC7B3D070::Dain Nilsson <dain@yubico.com>:
 ssb::2048:1:BFE3A8E58DB04E9F:1389358404:::::::::D2760001240102010006042129000000:
 ssb::2048:1:3B557A2E4C844B75:1389358510:::::::::D2760001240102010006042129000000:
+`
+
+// GPG 2.1.15ish broke everything...
+const gpg2dot1 = `
+sec:u:256:22:586422EFB7394E3D:1439134482:::u:::scSC:::+::ed25519::
+fpr:::::::::CC79CFE4C04CA6A75A69D20C586422EFB7394E3D:
+grp:::::::::57A65E8BF2417FF87D122A62385AF262B73EA6FC:
+uid:u::::1439134482::2667AF1B2E54C3582718E837343DC8F09B81E3F5::Early Adopter (PW is abcd) <early@adopt.er>:::::::::
+sec:u:256:22:7B2E3F571BF26EB7:1475200495:::u:::scESC:::+::ed25519::
+fpr:::::::::C0045FBD76822E6BBB78C7707B2E3F571BF26EB7:
+grp:::::::::3D436BF15A556C1D9BF5D420AB5C44A4008C4894:
+uid:u::::1475200495::92725E39A37C33E515983C6B0D25E7320ABB8247::Max Test <themax+test@gmail.com>:::::::::
+ssb:u:256:18:A0E78D11A79FE1EF:1475200495::::::e:::+::cv25519:
+fpr:::::::::39DC5F5D9252DDA6F5BF660CA0E78D11A79FE1EF:
+grp:::::::::7872FB84783726E5B066CEF45D6DEC2F2364A2A5:
 `

@@ -14,6 +14,14 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	methodList   = "list"
+	methodRead   = "read"
+	methodSend   = "send"
+	methodEdit   = "edit"
+	methodDelete = "delete"
+)
+
 // ErrInvalidOptions is returned when the options aren't valid.
 type ErrInvalidOptions struct {
 	method  string
@@ -41,8 +49,20 @@ type Params struct {
 
 // CallError is the result when there is an error.
 type CallError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
+type RateLimit struct {
+	Tank     string `json:"tank"`
+	Capacity int    `json:"capacity"`
+	Reset    int    `json:"reset"`
+	Gas      int    `json:"gas"`
+}
+
+type RateLimits struct {
+	RateLimits []RateLimit `json:"ratelimits,omitempty"`
 }
 
 // Reply is returned with the results of procressing a Call.
@@ -58,6 +78,8 @@ type ChatAPIHandler interface {
 	ListV1(context.Context, Call, io.Writer) error
 	ReadV1(context.Context, Call, io.Writer) error
 	SendV1(context.Context, Call, io.Writer) error
+	EditV1(context.Context, Call, io.Writer) error
+	DeleteV1(context.Context, Call, io.Writer) error
 }
 
 // ChatServiceHandler can call the service.
@@ -65,6 +87,8 @@ type ChatServiceHandler interface {
 	ListV1(context.Context) Reply
 	ReadV1(context.Context, readOptionsV1) Reply
 	SendV1(context.Context, sendOptionsV1) Reply
+	EditV1(context.Context, editOptionsV1) Reply
+	DeleteV1(context.Context, deleteOptionsV1) Reply
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -117,13 +141,12 @@ type sendOptionsV1 struct {
 }
 
 func (s sendOptionsV1) Check() error {
-	if !s.Channel.Valid() {
-		return ErrInvalidOptions{version: 1, method: "send", err: errors.New("invalid channel")}
+	if err := checkChannelConv(methodSend, s.Channel, s.ConversationID); err != nil {
+		return err
 	}
 	if !s.Message.Valid() {
-		return ErrInvalidOptions{version: 1, method: "send", err: errors.New("invalid message")}
+		return ErrInvalidOptions{version: 1, method: methodSend, err: errors.New("invalid message")}
 	}
-
 	return nil
 }
 
@@ -134,11 +157,46 @@ type readOptionsV1 struct {
 }
 
 func (r readOptionsV1) Check() error {
-	if !r.Channel.Valid() && r.ConversationID == 0 {
-		return ErrInvalidOptions{version: 1, method: "read", err: errors.New("need channel or conversation_id")}
+	return checkChannelConv(methodRead, r.Channel, r.ConversationID)
+}
+
+type editOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID chat1.ConversationID `json:"conversation_id"`
+	MessageID      chat1.MessageID      `json:"message_id"`
+	Message        ChatMessage
+}
+
+func (e editOptionsV1) Check() error {
+	if err := checkChannelConv(methodEdit, e.Channel, e.ConversationID); err != nil {
+		return err
 	}
-	if r.Channel.Valid() && r.ConversationID > 0 {
-		return ErrInvalidOptions{version: 1, method: "read", err: errors.New("include channel or conversation_id, not both")}
+
+	if e.MessageID == 0 {
+		return ErrInvalidOptions{version: 1, method: methodEdit, err: errors.New("invalid message id")}
+	}
+
+	if !e.Message.Valid() {
+		return ErrInvalidOptions{version: 1, method: methodEdit, err: errors.New("invalid message")}
+	}
+
+	return nil
+}
+
+type deleteOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID chat1.ConversationID `json:"conversation_id"`
+	MessageID      chat1.MessageID      `json:"message_id"`
+}
+
+func (d deleteOptionsV1) Check() error {
+	if err := checkChannelConv(methodDelete, d.Channel, d.ConversationID); err != nil {
+		return err
+	}
+
+	if d.MessageID == 0 {
+		return ErrInvalidOptions{version: 1, method: methodDelete, err: errors.New("invalid message id")}
+
 	}
 
 	return nil
@@ -146,7 +204,7 @@ func (r readOptionsV1) Check() error {
 
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) != 0 {
-		return ErrInvalidOptions{version: 1, method: "list", err: errors.New("unexpected options, should be empty")}
+		return ErrInvalidOptions{version: 1, method: methodList, err: errors.New("unexpected options, should be empty")}
 	}
 
 	return a.encodeReply(c, a.svcHandler.ListV1(ctx), w)
@@ -154,7 +212,7 @@ func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 
 func (a *ChatAPI) ReadV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: "read", err: errors.New("empty options")}
+		return ErrInvalidOptions{version: 1, method: methodRead, err: errors.New("empty options")}
 	}
 	var opts readOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
@@ -171,7 +229,7 @@ func (a *ChatAPI) ReadV1(ctx context.Context, c Call, w io.Writer) error {
 
 func (a *ChatAPI) SendV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) == 0 {
-		return ErrInvalidOptions{version: 1, method: "send", err: errors.New("empty options")}
+		return ErrInvalidOptions{version: 1, method: methodSend, err: errors.New("empty options")}
 	}
 	var opts sendOptionsV1
 	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
@@ -186,6 +244,40 @@ func (a *ChatAPI) SendV1(ctx context.Context, c Call, w io.Writer) error {
 	return a.encodeReply(c, a.svcHandler.SendV1(ctx, opts), w)
 }
 
+func (a *ChatAPI) EditV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodEdit, err: errors.New("empty options")}
+	}
+	var opts editOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+
+	// opts are valid for edit v1
+
+	return a.encodeReply(c, a.svcHandler.EditV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) DeleteV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodDelete, err: errors.New("empty options")}
+	}
+	var opts deleteOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+
+	// opts are valid for delete v1
+
+	return a.encodeReply(c, a.svcHandler.DeleteV1(ctx, opts), w)
+}
+
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
 	// copy jsonrpc fields from call to reply
 	reply.Jsonrpc = call.Jsonrpc
@@ -196,4 +288,14 @@ func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
 		enc.SetIndent("", "    ")
 	}
 	return enc.Encode(reply)
+}
+
+func checkChannelConv(method string, channel ChatChannel, convID chat1.ConversationID) error {
+	if !channel.Valid() && convID == 0 {
+		return ErrInvalidOptions{version: 1, method: method, err: errors.New("need channel or conversation_id")}
+	}
+	if channel.Valid() && convID > 0 {
+		return ErrInvalidOptions{version: 1, method: method, err: errors.New("include channel or conversation_id, not both")}
+	}
+	return nil
 }

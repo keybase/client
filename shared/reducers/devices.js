@@ -2,15 +2,23 @@ import _ from 'lodash'
 import * as Constants from '../constants/devices'
 import * as CommonConstants from '../constants/common'
 
-const initialState = {
+import type {Device} from '../constants/types/flow-types'
+
+export type State = {
+  waitingForServer: boolean,
+  devices: Array<Device>,
+  error: {errorText: string},
+  paperKey: string,
+}
+
+const initialState: State = {
   waitingForServer: false,
-  response: null,
   devices: null,
   error: null,
   paperKey: null,
 }
 
-export default function (state = initialState, action) {
+export default function (state: State = initialState, action) {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
@@ -24,7 +32,7 @@ export default function (state = initialState, action) {
     case Constants.showDevices:
       let devices
       if (action.error) {
-        devices = []
+        devices = null
       } else {
         devices = _.chain(action.payload)
           .map(dev => ({
@@ -47,6 +55,11 @@ export default function (state = initialState, action) {
         error: action.error && action.payload,
         devices,
         waitingForServer: false,
+      }
+    case Constants.removeDevice:
+      return {
+        ...state,
+        waitingForServer: true,
       }
     case Constants.deviceRemoved:
       return {

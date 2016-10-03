@@ -118,11 +118,11 @@ func TestChatMessageUnbox(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	unboxed, err := handler.boxer.unboxMessageWithKey(*boxed, key)
+	messagePlaintext, err := handler.boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := unboxed.MessagePlaintext.V1().MessageBody
+	body := messagePlaintext.V1().MessageBody
 	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
 		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
 	}
@@ -166,7 +166,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 	// put original hash fn back
 	handler.boxer.hashV1 = origHashFn
 
-	_, err = handler.boxer.unboxMessageWithKey(*boxed, key)
+	_, err = handler.boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := err.(libkb.ChatBodyHashInvalid); !ok {
 		t.Fatalf("unexpected error for invalid body hash: %s", err)
 	}
@@ -216,7 +216,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 	// put original signing fn back
 	handler.boxer.sign = origSign
 
-	_, err = handler.boxer.unboxMessageWithKey(*boxed, key)
+	_, err = handler.boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := err.(libkb.BadSigError); !ok {
 		t.Fatalf("unexpected error for invalid header signature: %s", err)
 	}
@@ -250,7 +250,7 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	_, err = handler.boxer.unboxMessageWithKey(*boxed, key)
+	_, err = handler.boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := err.(libkb.NoKeyError); !ok {
 		t.Fatalf("unexpected error for invalid sender key: %v", err)
 	}
@@ -267,7 +267,7 @@ func TestChatMessagePublic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	world := newChatMockWorld(u)
+	world := newChatMockWorld(t, "unbox", 4)
 	handler.boxer.tlf = newTlfMock(world)
 
 	header := chat1.MessageClientHeader{
@@ -291,11 +291,11 @@ func TestChatMessagePublic(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	unboxed, err := handler.boxer.unboxMessage(ctx, newKeyFinder(), *boxed)
+	messagePlaintext, err := handler.boxer.unboxMessage(ctx, newKeyFinder(), *boxed)
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := unboxed.MessagePlaintext.V1().MessageBody
+	body := messagePlaintext.V1().MessageBody
 	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
 		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
 	}

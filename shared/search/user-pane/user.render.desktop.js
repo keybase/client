@@ -9,7 +9,7 @@ import type {Props} from './user.render'
 
 export default class Render extends Component<void, Props, void> {
   render () {
-    const trackerStateColors = stateColors(this.props)
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
 
     return (
       <Box style={styleContainer}>

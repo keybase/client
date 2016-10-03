@@ -198,7 +198,18 @@ function processDiff (commitRange, results) {
   })
 
   if (commentLines.length > 0) {
-    commentLines.unshift(`:mag_right: The commits ${commitRange[0]}...${commitRange[1]} introduced some visual changes on ${os.platform()}:`)
+    const countParts = []
+    if (newResults.length) {
+      countParts.push(`${newResults.length} new`)
+    }
+    if (removedResults.length) {
+      countParts.push(`${removedResults.length} removed`)
+    }
+    if (changedResults.length) {
+      countParts.push(`${changedResults.length} changed`)
+    }
+    commentLines.unshift(`The commits ${commitRange[0]}...${commitRange[1]} introduce visual changes on ${os.platform()}. <details><summary>:mag_right: ${countParts.join(', ')}</summary>\n`)
+    commentLines.push(`</summary>`)
     const commentBody = commentLines.join('\n')
 
     if (!DRY_RUN) {

@@ -11,6 +11,9 @@ import SettingsNav from './nav'
 import DeleteMe from './delete'
 import DeleteConfirm from './delete-confirm'
 import Notifications from './notifications'
+import InviteGenerated from './invite-generated'
+import PlanDetails from './plan-details'
+import Invites from './invites'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -249,6 +252,8 @@ const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
       onDeleteForever: () => console.log('onDeleteForever clicked'),
       onCancel: () => console.log('onCancel clicked'),
       username: 'chris',
+      allowDeleteForever: true,
+      setAllowDeleteAccount: allow => console.log('setAllowDeleteAccount', allow),
       parentProps: {
         style: {
           height: 500,
@@ -283,6 +288,9 @@ const commonSettings = {
     },
   ],
   unsubscribedFromAll: false,
+  allowSave: true,
+  allowEdit: true,
+  onRefresh: () => console.log('onRefresh'),
   onSave: () => console.log('onSave'),
   onToggle: (name: string) => console.log('on toggle', name),
   onToggleUnsubscribeAll: () => console.log('on subscribe all'),
@@ -301,6 +309,149 @@ const notificationsMap: DumbComponentMap<Notifications> = {
   },
 }
 
+const commonInvite = {
+  link: 'keybase.io/inv/9999999999',
+  parentProps: {
+    style: {
+      height: 500,
+      display: 'flex',
+    },
+  },
+  onClose: () => console.log('onClose clicked'),
+}
+
+const inviteGeneratedMap: DumbComponentMap<InviteGenerated> = {
+  component: InviteGenerated,
+  mocks: {
+    'Normal': {
+      ...commonInvite,
+      email: 'user@gmail.com',
+    },
+    'No email': {
+      ...commonInvite,
+      email: null,
+    },
+  },
+}
+
+const creditCardNoPast = {
+  type: 'credit-card-no-past',
+  onAddCreditCard: () => { console.log('onAddCreditCard') },
+}
+
+const creditCardWithPast = {
+  type: 'credit-card-with-past',
+  cardInfo: 'Visa **** 4242',
+  onPayWithSavedCard: () => { console.log('onPayWithSavedCard') },
+  onUpdateCard: () => { console.log('onPayWithSavedCard') },
+}
+
+const applePay = {
+  type: 'apple-pay',
+  onPayWithCardInstead: () => { console.log('onPayWithCardInstead') },
+}
+
+const planDetailsMap: DumbComponentMap<PlanDetails> = {
+  component: PlanDetails,
+  mocks: {
+    'Credit Card No Past': {
+      plan: 'Basic',
+      paymentOption: creditCardNoPast,
+    },
+    'Credit Card With Past': {
+      plan: 'Gold',
+      paymentOption: creditCardWithPast,
+    },
+    'Apple Pay': {
+      plan: 'Friend',
+      paymentOption: applePay,
+    },
+  },
+}
+
+const invitesBase = {
+  inviteEmail: 'tcook@apple.com',
+  inviteMessage: 'Hey Tim! I heard you like end-to-end encryption...',
+  showMessageField: true,
+  emailError: false,
+  pendingInvites: [
+    {
+      type: 'pending-email',
+      id: '123456',
+      created: 1469565223000,
+      email: 'tcook@apple.com',
+    },
+    {
+      type: 'pending-url',
+      id: '123457',
+      created: 1469566223000,
+      url: 'keybase.io/inv/9999999999',
+    },
+  ],
+  acceptedInvites: [
+    {
+      id: '223456',
+      created: 1469565223000,
+      username: 'malgorithms',
+      fullname: 'Chris Coyne',
+      avatar: 'https://keybase.io/chris/picture',
+      currentlyFollowing: false,
+      trackerState: 'normal',
+    },
+    {
+      id: '223457',
+      created: 1469566223000,
+      username: 'cecileb',
+      fullname: 'Cécile Boucheron',
+      avatar: 'https://keybase.io/cecileb/picture',
+      currentlyFollowing: true,
+      trackerState: 'normal',
+    },
+    {
+      id: '223458',
+      created: 1469567223000,
+      username: 'chromakode',
+      fullname: 'Max Goodman',
+      avatar: 'https://keybase.io/chromakode/picture',
+      currentlyFollowing: false,
+      trackerState: 'error',
+    },
+  ],
+  onChangeInviteEmail: inviteEmail => console.log('onChangeInviteEmail', inviteEmail),
+  onChangeInviteMessage: inviteMessage => console.log('onChangeInviteMessage', inviteMessage),
+  onClickUser: username => console.log('onClickUser', username),
+  onReclaimInvitation: invitationId => console.log('onReclaimInvitation', invitationId),
+  onGenerateInvitation: () => console.log('onGenerateInvitation'),
+  parentProps: {
+    style: {
+      width: 504,
+    },
+  },
+}
+
+const invitesMap: DumbComponentMap<Invites> = {
+  component: Invites,
+  mocks: {
+    'Normal - Empty': {
+      ...invitesBase,
+      inviteEmail: '',
+      inviteMessage: '',
+      showMessageField: false,
+      pendingInvites: [],
+      acceptedInvites: [],
+    },
+    'Normal - Empty Message': {
+      ...invitesBase,
+      inviteMessage: '',
+    },
+    'Normal': invitesBase,
+    'Normal - Email Error': {
+      ...invitesBase,
+      emailError: true,
+    },
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
   UpdatePassphrase: updatePassphraseMap,
@@ -310,4 +461,7 @@ export default {
   DeleteMe: deleteMeMap,
   DeleteConfirm: deleteConfirmMap,
   Notifications: notificationsMap,
+  InviteGenerated: inviteGeneratedMap,
+  PlanDetails: planDetailsMap,
+  Invites: invitesMap,
 }

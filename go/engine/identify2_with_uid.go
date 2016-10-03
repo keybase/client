@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -80,6 +81,10 @@ type Identify2WithUID struct {
 	// These options are sent to the ui based on command line options.
 	// For normal identify, safe to leave these in their default zero state.
 	trackOptions keybase1.TrackOptions
+
+	// When called from chat, we should just collect breaking tracking failures, but
+	// not fail track. This is where we collect them
+	trackBreaks *keybase1.IdentifyTrackBreaks
 }
 
 var _ (Engine) = (*Identify2WithUID)(nil)
@@ -106,9 +111,34 @@ func (e *Identify2WithUID) WantDelegate(k libkb.UIKind) bool {
 	return k == libkb.IdentifyUIKind && e.arg.UseDelegateUI
 }
 
+func (e *Identify2WithUID) calledFromChatGUI() bool {
+	return e.arg.ChatGUIMode
+}
+
+func (e *Identify2WithUID) resetError(err error) error {
+
+	if err == nil {
+		return nil
+	}
+
+	switch err.(type) {
+	case libkb.ProofError:
+	case libkb.IdentifySummaryError:
+	default:
+		return err
+	}
+
+	if e.calledFromChatGUI() {
+		e.G().Log.Debug("| Reset err from %v -> nil since caller is 'CHAT_GUI'", err)
+		return nil
+	}
+
+	return err
+}
+
 // Run then engine
 func (e *Identify2WithUID) Run(ctx *Context) (err error) {
-
+	defer libkb.TimeLog(fmt.Sprintf("Identify2WithUID.Run(UID=%v, Assertion=%s", e.arg.Uid, e.arg.UserAssertion), e.G().Clock().Now(), e.G().Log.Debug)
 	e.G().Log.Debug("+ Identify2WithUID.Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
 
 	if e.arg.Uid.IsNil() {
@@ -122,7 +152,12 @@ func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 	e.resultCh = ch
 	go e.run(ctx)
 	err = <-ch
+
+	// Potentially reset the error based on the error and the calling context.
+	err = e.resetError(err)
+
 	e.G().Log.Debug("- Identify2WithUID.Run() -> %v", err)
+
 	return err
 }
 
@@ -147,7 +182,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return err
 	}
 
-	if !e.useAnyAssertions() && e.checkFastCacheHit() && e.allowEarlyOuts() {
+	if !e.useAnyAssertions() && e.allowEarlyOuts() && e.checkFastCacheHit() {
 		e.G().Log.Debug("| hit fast cache")
 		return nil
 	}
@@ -166,7 +201,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return nil
 	}
 
-	if !e.useRemoteAssertions() && e.checkSlowCacheHit() && e.allowEarlyOuts() {
+	if !e.useRemoteAssertions() && e.allowEarlyOuts() && e.checkSlowCacheHit() {
 		e.G().Log.Debug("| hit slow cache, first check")
 		return nil
 	}
@@ -189,7 +224,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return err
 	}
 
-	if e.useRemoteAssertions() && e.checkSlowCacheHit() && e.allowEarlyOuts() {
+	if e.useRemoteAssertions() && e.allowEarlyOuts() && e.checkSlowCacheHit() {
 		e.G().Log.Debug("| hit slow cache, second check")
 		return nil
 	}
@@ -342,6 +377,13 @@ func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 	return nil
 }
 
+func (e *Identify2WithUID) displayUserCardAsync(ctx *Context) <-chan error {
+	if e.calledFromChatGUI() {
+		return nil
+	}
+	return displayUserCardAsync(e.G(), ctx, e.them.GetUID(), (e.me != nil))
+}
+
 func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.G().Log.Debug("+ runIdentifyUI(%s)", e.them.GetName())
 
@@ -354,6 +396,8 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		iui = newBufferedIdentifyUI(e.G(), iui, keybase1.ConfirmResult{
 			IdentityConfirmed: true,
 		})
+	} else if e.calledFromChatGUI() {
+		iui = newLoopbackIdentifyUI(e.G(), &e.trackBreaks)
 	}
 
 	e.G().Log.Debug("| IdentifyUI.Start(%s)", e.them.GetName())
@@ -374,16 +418,19 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		return err
 	}
 
-	waiter := displayUserCardAsync(e.G(), ctx, e.them.GetUID(), (e.me != nil))
+	waiter := e.displayUserCardAsync(ctx)
+
 	e.G().Log.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
 	if err = e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, iui, e); err != nil {
 		return err
 	}
 
-	if err = <-waiter; err != nil {
-		return err
+	if waiter != nil {
+		if err = <-waiter; err != nil {
+			return err
+		}
+		e.G().Log.Debug("| IdentifyUI waited for waiter (%s)", e.them.GetName())
 	}
-	e.G().Log.Debug("| IdentifyUI waited for waiter (%s)", e.them.GetName())
 
 	// use Confirm to display the IdentifyOutcome
 	outcome := e.state.Result()
@@ -500,13 +547,28 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	return err
 }
 
-func (e *Identify2WithUID) loadUsers(ctx *Context) (err error) {
-	if err = e.loadMe(ctx); err != nil {
-		return err
+func (e *Identify2WithUID) loadUsers(ctx *Context) error {
+	var loadMeErr, loadThemErr error
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		loadMeErr = e.loadMe(ctx)
+		wg.Done()
+	}()
+	wg.Add(1)
+	go func() {
+		loadThemErr = e.loadThem(ctx)
+		wg.Done()
+	}()
+	wg.Wait()
+
+	if loadMeErr != nil {
+		return loadMeErr
 	}
-	if err = e.loadThem(ctx); err != nil {
-		return err
+	if loadThemErr != nil {
+		return loadThemErr
 	}
+
 	return nil
 }
 
@@ -550,6 +612,10 @@ func (e *Identify2WithUID) Result() *keybase1.Identify2Res {
 	} else if e.them != nil {
 		res.Upk = e.toUserPlusKeys()
 	}
+
+	// This will be a no-op unless we're being called from the chat GUI
+	res.TrackBreaks = e.trackBreaks
+
 	return res
 }
 

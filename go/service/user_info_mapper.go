@@ -2,10 +2,17 @@ package service
 
 import (
 	"fmt"
+	"sync"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
+
+type uictxkey int
+
+var uiKey uictxkey = 1
 
 // userInfoMapper looks up usernames and device names, memoizing the results.
 // Only intended to be used for a single request (i.e., getting all the
@@ -14,6 +21,21 @@ type userInfoMapper struct {
 	users       map[keybase1.UID]*libkb.User
 	deviceNames map[string]string
 	libkb.Contextified
+	sync.Mutex
+}
+
+func userInfoFromContext(ctx context.Context) (*userInfoMapper, bool) {
+	ui, ok := ctx.Value(uiKey).(*userInfoMapper)
+	return ui, ok
+}
+
+func getUserInfoMapper(ctx context.Context, g *libkb.GlobalContext) (context.Context, *userInfoMapper) {
+	ui, ok := userInfoFromContext(ctx)
+	if ok {
+		return ctx, ui
+	}
+	ui = newUserInfoMapper(g)
+	return context.WithValue(ctx, uiKey, ui), ui
 }
 
 func newUserInfoMapper(g *libkb.GlobalContext) *userInfoMapper {
@@ -25,17 +47,13 @@ func newUserInfoMapper(g *libkb.GlobalContext) *userInfoMapper {
 }
 
 func (u *userInfoMapper) lookup(uid keybase1.UID, deviceID keybase1.DeviceID) (username, deviceName string, err error) {
-	user, ok := u.users[uid]
-	if !ok {
-		arg := libkb.NewLoadUserByUIDArg(u.G(), uid)
-		arg.PublicKeyOptional = true
-		var err error
-		user, err = libkb.LoadUser(arg)
-		if err != nil {
-			return "", "", err
-		}
-		u.users[uid] = user
+	user, err := u.user(uid)
+	if err != nil {
+		return "", "", err
 	}
+
+	u.Lock()
+	defer u.Unlock()
 
 	dkey := fmt.Sprintf("%s:%s", uid, deviceID)
 	dname, ok := u.deviceNames[dkey]
@@ -52,4 +70,23 @@ func (u *userInfoMapper) lookup(uid keybase1.UID, deviceID keybase1.DeviceID) (u
 	}
 
 	return user.GetNormalizedName().String(), dname, nil
+}
+
+func (u *userInfoMapper) user(uid keybase1.UID) (*libkb.User, error) {
+	u.Lock()
+	defer u.Unlock()
+
+	user, ok := u.users[uid]
+	if !ok {
+		u.G().Log.Debug("userInfoMapper: missed user cache: uid: %s", uid)
+		arg := libkb.NewLoadUserByUIDArg(u.G(), uid)
+		arg.PublicKeyOptional = true
+		var err error
+		user, err = libkb.LoadUser(arg)
+		if err != nil {
+			return nil, err
+		}
+		u.users[uid] = user
+	}
+	return user, nil
 }

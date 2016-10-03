@@ -31,6 +31,7 @@ export type LoginState = {
   waitingForResponse: boolean,
   loginError: ?string,
   justRevokedSelf: ?string,
+  justDeletedSelf: ?string,
   justLoginFromRevokedDevice: ?boolean,
 }
 
@@ -60,6 +61,7 @@ const initialState: LoginState = {
   waitingForResponse: false,
   loginError: null,
   justRevokedSelf: null,
+  justDeletedSelf: null,
   justLoginFromRevokedDevice: null,
 }
 
@@ -147,6 +149,9 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       break
     case Constants.setRevokedSelf:
       toMerge = {justRevokedSelf: action.payload}
+      break
+    case Constants.setDeletedSelf:
+      toMerge = {justDeletedSelf: action.payload}
       break
     case Constants.setLoginFromRevokedDevice:
       toMerge = {justLoginFromRevokedDevice: action.payload}

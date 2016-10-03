@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -15,9 +16,9 @@ import (
 
 type conversationInfoListView []chat1.ConversationInfoLocal
 
-func (v conversationInfoListView) show(g *libkb.GlobalContext) {
+func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 	if len(v) == 0 {
-		return
+		return nil
 	}
 
 	ui := g.UI.GetTerminalUI()
@@ -41,15 +42,17 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) {
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
 		5, flexibletable.ExpandableWrappable,
 	}); err != nil {
-		ui.Printf("rendering conversation info list view error: %v\n", err)
+		return fmt.Errorf("rendering conversation info list view error: %v\n", err)
 	}
+
+	return nil
 }
 
 type conversationListView []chat1.ConversationLocal
 
-func (v conversationListView) show(g *libkb.GlobalContext) {
+func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, showDeviceName bool) error {
 	if len(v) == 0 {
-		return
+		return nil
 	}
 
 	ui := g.UI.GetTerminalUI()
@@ -57,15 +60,60 @@ func (v conversationListView) show(g *libkb.GlobalContext) {
 
 	table := &flexibletable.Table{}
 	for i, conv := range v {
+
+		if conv.Error != nil {
+			table.Insert(flexibletable.Row{
+				flexibletable.Cell{
+					Frame:     [2]string{"[", "]"},
+					Alignment: flexibletable.Right,
+					Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
+				},
+				flexibletable.Cell{
+					Alignment: flexibletable.Center,
+					Content:   flexibletable.SingleCell{Item: ""},
+				},
+				flexibletable.Cell{
+					Alignment: flexibletable.Left,
+					Content:   flexibletable.SingleCell{Item: "???"},
+				},
+				flexibletable.Cell{
+					Frame:     [2]string{"[", "]"},
+					Alignment: flexibletable.Right,
+					Content:   flexibletable.SingleCell{Item: "???"},
+				},
+				flexibletable.Cell{
+					Alignment: flexibletable.Left,
+					Content:   flexibletable.SingleCell{Item: *conv.Error},
+				},
+			})
+			continue
+		}
+
 		unread := ""
-		if conv.Messages[0].Info.IsNew {
+		if conv.Messages[0].Message != nil &&
+			conv.ReadUpTo < conv.Messages[0].Message.ServerHeader.MessageID {
 			unread = "*"
 		}
-		participants := strings.Split(conv.Info.TlfName, ",")
-		authorAndTime := messageFormatter(conv.Messages[0]).authorAndTime()
+
+		var participants []string
+		if conv.Info != nil {
+			participants = strings.Split(conv.Info.TlfName, ",")
+		}
+
+		if len(participants) > 1 {
+			var withoutMe []string
+			for _, p := range participants {
+				if p != myUsername {
+					withoutMe = append(withoutMe, p)
+				}
+			}
+			participants = withoutMe
+		}
+
+		authorAndTime := messageFormatter(conv.Messages[0]).authorAndTime(showDeviceName)
 		body, err := messageFormatter(conv.Messages[0]).body(g)
 		if err != nil {
-			ui.Printf("rendering message body error: %v\n", err)
+			return fmt.Errorf("rendering message body error: %v\n", err)
 		}
 
 		table.Insert(flexibletable.Row{
@@ -96,15 +144,17 @@ func (v conversationListView) show(g *libkb.GlobalContext) {
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
 		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
 	}); err != nil {
-		ui.Printf("rendering conversation list view error: %v\n", err)
+		return fmt.Errorf("rendering conversation list view error: %v\n", err)
 	}
+
+	return nil
 }
 
 type conversationView chat1.ConversationLocal
 
-func (v conversationView) show(g *libkb.GlobalContext) {
+func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) error {
 	if len(v.Messages) == 0 {
-		return
+		return nil
 	}
 
 	ui := g.UI.GetTerminalUI()
@@ -113,13 +163,15 @@ func (v conversationView) show(g *libkb.GlobalContext) {
 	table := &flexibletable.Table{}
 	for i, m := range v.Messages {
 		unread := ""
-		if m.Info.IsNew {
+		if m.Message != nil &&
+			v.ReadUpTo < m.Message.ServerHeader.MessageID {
 			unread = "*"
 		}
-		authorAndTime := messageFormatter(m).authorAndTime()
+
+		authorAndTime := messageFormatter(m).authorAndTime(showDeviceName)
 		body, err := messageFormatter(m).body(g)
 		if err != nil {
-			ui.Printf("rendering message body error: %v\n", err)
+			return fmt.Errorf("rendering message body error: %v\n", err)
 		}
 
 		table.Insert(flexibletable.Row{
@@ -146,46 +198,60 @@ func (v conversationView) show(g *libkb.GlobalContext) {
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
 		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ExpandableWrappable,
 	}); err != nil {
-		ui.Printf("rendering conversation view error: %v\n", err)
+		return fmt.Errorf("rendering conversation view error: %v\n", err)
 	}
+
+	return nil
 }
 
-type messageFormatter chat1.Message
+type messageFormatter chat1.MessageFromServerOrError
 
-func (f messageFormatter) authorAndTime() string {
-	info := chat1.Message(f).Info
-	if info == nil {
+func (f messageFormatter) authorAndTime(showDeviceName bool) string {
+	m := chat1.MessageFromServerOrError(f)
+	if m.Message == nil {
 		return ""
 	}
-	t := gregor1.FromTime(chat1.Message(f).ServerHeader.Ctime)
-	return fmt.Sprintf("%s %s", info.SenderUsername, shortDurationFromNow(t))
+	t := gregor1.FromTime(m.Message.ServerHeader.Ctime)
+	if showDeviceName {
+		return fmt.Sprintf("%s <%s> %s", m.Message.SenderUsername, m.Message.SenderDeviceName, shortDurationFromNow(t))
+	}
+	return fmt.Sprintf("%s %s", m.Message.SenderUsername, shortDurationFromNow(t))
 }
 
 func (f messageFormatter) body(g *libkb.GlobalContext) (string, error) {
-	version, err := f.MessagePlaintext.Version()
-	if err != nil {
-		g.Log.Warning("MessagePlaintext version error: %s", err)
-		return "", err
-	}
-	switch version {
-	case chat1.MessagePlaintextVersion_V1:
-		body := f.MessagePlaintext.V1().MessageBody
-		typ, err := body.MessageType()
+	m := chat1.MessageFromServerOrError(f)
+	if m.Message != nil {
+		version, err := m.Message.MessagePlaintext.Version()
 		if err != nil {
+			g.Log.Warning("MessagePlaintext version error: %s", err)
 			return "", err
 		}
-		switch typ {
-		case chat1.MessageType_TEXT:
-			return body.Text().Body, nil
-		case chat1.MessageType_ATTACHMENT:
-			return fmt.Sprintf("{Attachment} | Caption: <unimplemented> | KBFS: %s", body.Attachment().Path), nil
+		switch version {
+		case chat1.MessagePlaintextVersion_V1:
+			body := m.Message.MessagePlaintext.V1().MessageBody
+			typ, err := body.MessageType()
+			if err != nil {
+				return "", err
+			}
+			switch typ {
+			case chat1.MessageType_TEXT:
+				return body.Text().Body, nil
+			case chat1.MessageType_ATTACHMENT:
+				return fmt.Sprintf("{Attachment} | Caption: <unimplemented> | KBFS: %s", body.Attachment().Path), nil
+			default:
+				return fmt.Sprintf("unsupported MessageType: %s", typ.String()), nil
+			}
 		default:
-			return fmt.Sprintf("unsupported MessageType: %s", typ.String()), nil
+			g.Log.Warning("messageFormatter.body unhandled MessagePlaintext version %v", version)
+			return "", err
 		}
-	default:
-		g.Log.Warning("messageFormatter.body unhandled MessagePlaintext version %v", version)
-		return "", err
 	}
+
+	if m.UnboxingError != nil {
+		return fmt.Sprintf("<%s>", *m.UnboxingError), nil
+	}
+
+	return "", errors.New("unexpected data")
 }
 
 func shortDurationFromNow(t time.Time) string {

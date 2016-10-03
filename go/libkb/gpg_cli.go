@@ -93,7 +93,7 @@ func (g *GpgCLI) Path() string {
 	return ""
 }
 
-func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error) {
+func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint, tty string) (*PGPKeyBundle, error) {
 	g.outputVersion()
 	var cmd string
 	var which string
@@ -107,6 +107,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error
 	arg := RunGpg2Arg{
 		Arguments: []string{"--armor", cmd, fp.String()},
 		Stdout:    true,
+		TTY:       tty,
 	}
 
 	res := g.Run2(arg)
@@ -139,7 +140,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error
 	// ArmoredPublicKey from that. That's because the public import goes out of
 	// its way to preserve the exact armored string from GPG.
 	if secret {
-		publicBundle, err := g.ImportKey(false, fp)
+		publicBundle, err := g.ImportKey(false, fp, tty)
 		if err != nil {
 			return nil, err
 		}
@@ -257,6 +258,7 @@ type RunGpg2Arg struct {
 	Stdin     bool
 	Stderr    bool
 	Stdout    bool
+	TTY       string
 }
 
 type RunGpg2Res struct {
@@ -273,7 +275,7 @@ func (g *GpgCLI) Run2(arg RunGpg2Arg) (res RunGpg2Res) {
 		return
 	}
 
-	cmd := g.MakeCmd(arg.Arguments)
+	cmd := g.MakeCmd(arg.Arguments, arg.TTY)
 
 	if arg.Stdin {
 		if res.Stdin, res.Err = cmd.StdinPipe(); res.Err != nil {
@@ -336,7 +338,7 @@ func (g *GpgCLI) Run2(arg RunGpg2Arg) (res RunGpg2Res) {
 	return
 }
 
-func (g *GpgCLI) MakeCmd(args []string) *exec.Cmd {
+func (g *GpgCLI) MakeCmd(args []string, tty string) *exec.Cmd {
 	var nargs []string
 	if g.options != nil {
 		nargs = make([]string, len(g.options))
@@ -348,10 +350,14 @@ func (g *GpgCLI) MakeCmd(args []string) *exec.Cmd {
 	if g.G().Service {
 		nargs = append([]string{"--no-tty"}, nargs...)
 	}
-	g.logUI.Debug("| running Gpg: %s %v", g.path, nargs)
+	g.logUI.Debug("| running Gpg: %s %s", g.path, strings.Join(nargs, " "))
 	ret := exec.Command(g.path, nargs...)
-	if g.tty != "" {
-		ret.Env = append(os.Environ(), "GPG_TTY="+g.tty)
+	if tty == "" {
+		tty = g.tty
+	}
+	if tty != "" {
+		ret.Env = append(os.Environ(), "GPG_TTY="+tty)
+		g.logUI.Debug("| setting GPG_TTY=%s", tty)
 	}
 	return ret
 }

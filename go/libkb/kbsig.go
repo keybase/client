@@ -520,7 +520,7 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke key
 	return ret, nil
 }
 
-func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen PassphraseGeneration) (*jsonw.Wrapper, error) {
+func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen PassphraseGeneration, pdpka5kid string) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   UpdatePassphraseType,
@@ -532,6 +532,7 @@ func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen Passphras
 	body := ret.AtKey("body")
 	pp := jsonw.NewDictionary()
 	pp.SetKey("hash", jsonw.NewString(pwh))
+	pp.SetKey("pdpka5_kid", jsonw.NewString(pdpka5kid))
 	pp.SetKey("version", jsonw.NewInt(int(triplesec.Version)))
 	pp.SetKey("passphrase_generation", jsonw.NewInt(int(ppGen)))
 	body.SetKey("update_passphrase_hash", pp)

@@ -4,6 +4,8 @@
 package engine
 
 import (
+	"fmt"
+
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -314,6 +316,13 @@ func (p *Prove) Run(ctx *Context) (err error) {
 	if err = p.getServiceType(); err != nil {
 		return
 	}
+
+	// Disable creating Facebook proofs in prod for now. (The proof type still
+	// exists, because we support checking them.) TODO: Delete me!
+	if p.G().GetRunMode() == libkb.ProductionRunMode && p.st.GetTypeName() == "facebook" {
+		return fmt.Errorf("Facebook proofs aren't ready yet, but they will be soon!")
+	}
+
 	stage("LoadMe")
 	if err = p.loadMe(); err != nil {
 		return

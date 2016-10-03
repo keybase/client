@@ -22,13 +22,13 @@ export default class HeaderRender extends PureComponent<void, HeaderProps, State
     const isWarningAboutTrackerShowingUpLater = this.props.loggedIn && !this.props.currentlyFollowing && this.state.showCloseWarning
     const headerText = isWarningAboutTrackerShowingUpLater ? 'You will see this window every time you access this folder.' : this.props.reason
 
-    const trackerStateColors = stateColors(this.props)
+    const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
     const headerBackgroundColor = isWarningAboutTrackerShowingUpLater ? globalColors.yellow : trackerStateColors.header.background
     const headerTextColor = isWarningAboutTrackerShowingUpLater ? globalColors.brown_60 : trackerStateColors.header.text
 
     return (
       <div style={styleOuter}>
-        <div style={{...styleHeader, backgroundColor: headerBackgroundColor}}>
+        <div style={{...styleHeader, backgroundColor: headerBackgroundColor, ...this.props.headerStyle}}>
           <Text type='BodySemibold' lineClamp={2} style={{...styleText, backgroundColor: headerBackgroundColor, color: headerTextColor, ...(isWarningAboutTrackerShowingUpLater ? {zIndex: 2} : {})}}>{headerText}</Text>
           <Icon type='iconfont-close' style={styleClose}
             onClick={() => this.props.onClose()}
