@@ -102,7 +102,6 @@
     "minimist": "1.2.0",
     "mocha": "3.0.2",
     "null-loader": "0.1.1",
-    "path-chunk-webpack-plugin": "^1.2.0",
     "react-addons-perf": "15.3.2",
     "react-hot-loader": "3.0.0-beta.4",
     "redux-devtools": "3.3.1",
