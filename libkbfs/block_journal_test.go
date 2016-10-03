@@ -45,6 +45,7 @@ func makeFakeBlockJournalEntryFuture(t *testing.T) blockJournalEntryFuture {
 					makeFakeBlockContext(t),
 				},
 			},
+			MetadataRevisionInitial,
 			codec.UnknownFieldSetHandler{},
 		},
 		makeExtraOrBust("blockJournalEntry", t),

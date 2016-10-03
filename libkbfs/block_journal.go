@@ -89,6 +89,7 @@ const (
 	addRefOp      blockOpType = 2
 	removeRefsOp  blockOpType = 3
 	archiveRefsOp blockOpType = 4
+	mdRevMarkerOp blockOpType = 5
 )
 
 func (t blockOpType) String() string {
@@ -101,6 +102,8 @@ func (t blockOpType) String() string {
 		return "removeReferences"
 	case archiveRefsOp:
 		return "archiveReferences"
+	case mdRevMarkerOp:
+		return "mdRevisionMarker"
 	default:
 		return fmt.Sprintf("blockOpType(%d)", t)
 	}
@@ -115,6 +118,8 @@ type blockJournalEntry struct {
 	// Must have exactly one entry with one context for blockPutOp
 	// and addRefOp.
 	Contexts map[BlockID][]BlockContext
+	// Only used for mdRevMarkerOps.
+	Revision MetadataRevision
 
 	codec.UnknownFieldSetHandler
 }
@@ -309,6 +314,10 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 						return nil, 0, err
 					}
 				}
+
+			case mdRevMarkerOp:
+				// Ignore MD revision markers.
+				continue
 
 			default:
 				return nil, 0, fmt.Errorf("Unknown op %s", e.Op)
@@ -703,6 +712,26 @@ func (j *blockJournal) archiveReferences(
 	return nil
 }
 
+func (j *blockJournal) markMDRevision(ctx context.Context,
+	rev MetadataRevision) (err error) {
+	j.log.CDebugf(ctx, "Marking MD revision %d in the block journal", rev)
+	defer func() {
+		if err != nil {
+			j.deferLog.CDebugf(ctx, "Marking MD revision %d error: %v",
+				rev, err)
+		}
+	}()
+
+	_, err = j.appendJournalEntry(blockJournalEntry{
+		Op:       mdRevMarkerOp,
+		Revision: rev,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // blockEntriesToFlush is an internal data structure for blockJournal;
 // its fields shouldn't be accessed outside this file.
 type blockEntriesToFlush struct {
@@ -822,6 +851,9 @@ func flushNonBPSBlockJournalEntry(
 		if err != nil {
 			return err
 		}
+
+	case mdRevMarkerOp:
+		// Nothing to do.
 
 	default:
 		return fmt.Errorf("Unknown op %s", entry.Op)
