@@ -10,7 +10,7 @@ import Foundation
 @objc(SwiftTest)
 class SwiftTest: NSObject {
 
-  @objc func example(prefix: String, callback: RCTResponseSenderBlock) -> Void {
+  @objc func example(_ prefix: String, callback: RCTResponseSenderBlock) -> Void {
     callback([prefix + " from Swift"])
   }
 

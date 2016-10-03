@@ -3,21 +3,21 @@ import Foundation
 @objc(AppBridge)
 class AppBridge: NSObject {
   
-  func getDevConfig(cb: RCTResponseSenderBlock) {
-    let standardUserDefaults = NSUserDefaults.standardUserDefaults()
-    let registrationDomain = standardUserDefaults.volatileDomainForName(NSRegistrationDomain)
-    let appDomain = standardUserDefaults.persistentDomainForName(NSBundle.mainBundle().bundleIdentifier!)
+  func getDevConfig(_ cb: RCTResponseSenderBlock) {
+    let standardUserDefaults = UserDefaults.standard
+    let registrationDomain = standardUserDefaults.volatileDomain(forName: UserDefaults.registrationDomain)
+    let appDomain = standardUserDefaults.persistentDomain(forName: Bundle.main.bundleIdentifier!)
     
     var defaultValues: [String: AnyObject] = [:]
     var configuredValues: [String: AnyObject] = [:]
     
     for appDefault: AppDefault in [.APIServer, .RunMode, .HomeDirectory, .ReactHost] {
-      let key = String(appDefault)
+      let key = String(describing: appDefault)
       if let defaultValue = registrationDomain[key] {
-        defaultValues[key] = defaultValue
+        defaultValues[key] = defaultValue as AnyObject?
       }
       if let configuredValue = appDomain?[key] {
-        configuredValues[key] = configuredValue
+        configuredValues[key] = configuredValue as AnyObject?
       }
     }
     
@@ -28,7 +28,7 @@ class AppBridge: NSObject {
     ]])
   }
   
-  func setDevConfig(newConfig: [String: AnyObject]) {
+  func setDevConfig(_ newConfig: [String: AnyObject]) {
     for (k, v) in newConfig {
       guard let appDefault = AppDefault(rawValue: k) else {
         NSLog("Tried to set unknown default: \(k)")
@@ -36,7 +36,7 @@ class AppBridge: NSObject {
       }
       appDefault.objectValue = (v is NSNull) ? nil : v
     }
-    NSUserDefaults.standardUserDefaults().synchronize()
+    UserDefaults.standard.synchronize()
   }
   
 }
