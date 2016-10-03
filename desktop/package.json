@@ -26,7 +26,7 @@
     "render-screenshots": "npm run _helper render-screenshots",
     "updated-fonts": "npm run _helper updated-fonts",
     "wrap": "npm uninstall fsevents && npm prune && npm dedupe && npm shrinkwrap --dev",
-    "shrinkwrap-audit": "npm run _helper npm-shrinkwrap-audit",
+    "shrinkwrap-audit": "npm run _node npm-shrinkwrap-audit",
     "help": "npm run _helper help",
     "watch-test-file": "KEYBASE_RUN_MODE=devel npm run _helper watch-test-file",
     "mocha": "KEYBASE_RUN_MODE=devel node_modules/mocha/bin/mocha --require source-map-support/register dist/test.bundle.js",
