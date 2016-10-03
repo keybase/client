@@ -443,7 +443,12 @@ func runDNS(g proofContextExt, userdomain string, scripts []scriptT, mknewstate 
 	if len(errs) == 0 {
 		return nil
 	}
-	return errs[0]
+	var descs []string
+	for _, err := range errs {
+		descs = append(descs, err.GetDesc())
+	}
+	// Use the code from the first error
+	return libkb.NewProofError(errs[0].GetProofStatus(), strings.Join(descs, "; "))
 }
 
 // Run each script on each TXT record of the domain.
