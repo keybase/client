@@ -89,12 +89,15 @@ func VersionString() string {
 	return Version
 }
 
+// CtxBackgroundSyncKeyType is the type for a context background sync key.
+type CtxBackgroundSyncKeyType int
+
 const (
 	// CtxBackgroundSyncKey is set in the context for any change
 	// notifications that are triggered from a background sync.
 	// Observers can ignore these if they want, since they will have
 	// already gotten the relevant notifications via LocalChanges.
-	CtxBackgroundSyncKey = "kbfs-background"
+	CtxBackgroundSyncKey CtxBackgroundSyncKeyType = iota
 )
 
 func ctxWithRandomIDReplayable(ctx context.Context, tagKey interface{},

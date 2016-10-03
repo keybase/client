@@ -48,12 +48,21 @@ import (
 // in the middle of a MD write, also with a grace period timeout. See comments
 // in folder_branch_ops.go in finalizedMDWriteLocked for more.
 
+// CtxReplayKeyType is a type for the context key for CtxReplayFunc
+type CtxReplayKeyType int
+
 const (
 	// CtxReplayKey is a context key for CtxReplayFunc
-	CtxReplayKey = "libkbfs-replay"
+	CtxReplayKey CtxReplayKeyType = iota
+)
 
+// CtxCancellationDelayerKeyType is a type for the context key for
+// using cancellationDelayer
+type CtxCancellationDelayerKeyType int
+
+const (
 	// CtxCancellationDelayerKey is a context key for using cancellationDelayer
-	CtxCancellationDelayerKey = "libkbfs-cancellation-delayer"
+	CtxCancellationDelayerKey CtxCancellationDelayerKeyType = iota
 )
 
 // CtxReplayFunc is a function for replaying a series of changes done on a

@@ -43,7 +43,11 @@ func (cbo *CheckBlockOps) Ready(ctx context.Context, kmd KeyMetadata,
 	return
 }
 
-var tCtxID = "kbfs-ops-test-id"
+type tCtxIDType int
+
+const (
+	tCtxID tCtxIDType = iota
+)
 
 func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	config *ConfigMock, ctx context.Context) {

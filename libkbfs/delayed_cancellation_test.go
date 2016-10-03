@@ -11,12 +11,18 @@ import (
 	"golang.org/x/net/context"
 )
 
+type testDCKeyType int
+
+const (
+	testDCKey testDCKeyType = iota
+)
+
 func TestReplayableContext(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
 	ctx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
-		return context.WithValue(ctx, "test", "O_O")
+		return context.WithValue(ctx, testDCKey, "O_O")
 	})
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -26,7 +32,7 @@ func TestReplayableContext(t *testing.T) {
 	}
 
 	// Test if replay was run properly
-	if ctx.Value("test") != "O_O" {
+	if ctx.Value(testDCKey) != "O_O" {
 		t.Fatalf("NewContextWithReplayFrom did not replay attached replayFunc")
 	}
 
@@ -43,7 +49,7 @@ func TestReplayableContext(t *testing.T) {
 	if err != nil {
 		t.Fatalf("calling NewContextWithReplayFrom error: %s", err)
 	}
-	if ctx.Value("test") != "O_O" {
+	if ctx.Value(testDCKey) != "O_O" {
 		t.Fatalf("NewContextWithReplayFrom did not replay attached replayFunc")
 	}
 }
@@ -52,7 +58,7 @@ func makeContextWithDelayedCancellation(t *testing.T) (
 	ctx context.Context, originalCancel context.CancelFunc) {
 	ctx = context.Background()
 	ctx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
-		return context.WithValue(ctx, "test", "O_O")
+		return context.WithValue(ctx, testDCKey, "O_O")
 	})
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -62,7 +68,7 @@ func makeContextWithDelayedCancellation(t *testing.T) (
 	}
 
 	// Test NewContextWithCancellationDelayer does replay properly
-	if ctx.Value("test") != "O_O" {
+	if ctx.Value(testDCKey) != "O_O" {
 		t.Fatalf(
 			"NewContextWithCancellationDelayer did not replay attached replayFunc")
 	}

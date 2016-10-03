@@ -98,7 +98,7 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 	start := time.Now()
 	ctx, err := libkbfs.NewContextWithCancellationDelayer(
 		libkbfs.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
-			ctx = context.WithValue(ctx, CtxAppIDKey, f)
+			ctx = context.WithValue(ctx, libfs.CtxAppIDKey, f)
 			logTags := make(logger.CtxLogTags)
 			logTags[CtxIDKey] = CtxOpID
 			ctx = logger.NewContextWithLogTags(ctx, logTags)

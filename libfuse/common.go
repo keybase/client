@@ -18,9 +18,6 @@ const (
 	// PrivateName is the name of the parent of all private top-level folders.
 	PrivateName = "private"
 
-	// CtxAppIDKey is the context app id
-	CtxAppIDKey = "kbfsfuse-app-id"
-
 	// CtxOpID is the display name for the unique operation FUSE ID tag.
 	CtxOpID = "FID"
 )

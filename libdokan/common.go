@@ -19,9 +19,6 @@ const (
 	// PrivateName is the name of the parent of all private top-level folders.
 	PrivateName = "private"
 
-	// CtxAppIDKey is the context app id
-	CtxAppIDKey = "kbfsdokan-app-id"
-
 	// CtxOpID is the display name for the unique operation Dokan ID tag.
 	CtxOpID = "DID"
 )

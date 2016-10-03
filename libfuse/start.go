@@ -94,7 +94,7 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 		fs := NewFS(config, c, options.KbfsParams.Debug)
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		ctx = context.WithValue(ctx, CtxAppIDKey, fs)
+		ctx = context.WithValue(ctx, libfs.CtxAppIDKey, fs)
 		log.Debug("Serving filesystem")
 		fs.Serve(ctx)
 	}

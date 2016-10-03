@@ -7,6 +7,7 @@ package libfuse
 import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -56,7 +57,7 @@ func (f *SyncFromServerFile) Write(ctx context.Context, req *fuse.WriteRequest,
 
 	// Use a context with a nil CtxAppIDKey value so that
 	// notifications generated from this sync won't be discarded.
-	syncCtx := context.WithValue(ctx, CtxAppIDKey, nil)
+	syncCtx := context.WithValue(ctx, libfs.CtxAppIDKey, nil)
 	err = f.folder.fs.config.KBFSOps().SyncFromServerForTesting(
 		syncCtx, folderBranch)
 	if err != nil {

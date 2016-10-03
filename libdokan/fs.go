@@ -75,7 +75,7 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 
 // Adds log tags etc
 func wrapContext(ctx context.Context, f *FS) context.Context {
-	ctx = context.WithValue(ctx, CtxAppIDKey, f)
+	ctx = context.WithValue(ctx, libfs.CtxAppIDKey, f)
 	logTags := make(logger.CtxLogTags)
 	logTags[CtxIDKey] = CtxOpID
 	ctx = logger.NewContextWithLogTags(ctx, logTags)

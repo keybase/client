@@ -65,7 +65,7 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 	// the cancelFn returned will cancel notification processing; the
 	// FUSE serve loop is terminated by unmounting the filesystem
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
-	ctx = context.WithValue(ctx, CtxAppIDKey, filesys)
+	ctx = context.WithValue(ctx, libfs.CtxAppIDKey, filesys)
 	ctx, cancelFn := context.WithCancel(ctx)
 	filesys.LaunchNotificationProcessor(ctx)
 	return mnt, filesys, func() {

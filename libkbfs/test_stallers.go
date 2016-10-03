@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -39,7 +38,9 @@ const (
 	StallableMDPruneBranch           StallableMDOp = "PruneBranch"
 )
 
-const stallKeyStallEverything = ""
+type stallKeyType uint64
+
+const stallKeyStallEverything stallKeyType = 0
 
 type naïveStallInfo struct {
 	onStalled               <-chan struct{}
@@ -282,11 +283,11 @@ func StallMDOp(ctx context.Context, config Config, stalledOp StallableMDOp,
 	return onStalledCh, unstallCh, newCtx
 }
 
-var stallerCounter uint64
+var stallerCounter stallKeyType
 
-func newStallKey() string {
+func newStallKey() stallKeyType {
 	stallerCounter++
-	return fmt.Sprintf("stallKey-%d", stallerCounter)
+	return stallerCounter
 }
 
 // staller is a pair of channels. Whenever something is to be
@@ -298,7 +299,7 @@ type staller struct {
 }
 
 func maybeStall(ctx context.Context, opName stallableOp,
-	stallOpName stallableOp, stallKey string,
+	stallOpName stallableOp, stallKey stallKeyType,
 	staller staller) {
 	if opName != stallOpName {
 		return
@@ -345,7 +346,7 @@ type stallingBlockServer struct {
 	// stallKey is a key for switching on/off stalling. If it's present in ctx,
 	// and equal to `true`, the operation is stalled. This allows us to use the
 	// ctx to control stallings
-	stallKey string
+	stallKey stallKeyType
 	staller  staller
 }
 
@@ -386,7 +387,7 @@ type stallingMDOps struct {
 	// stallKey is a key for switching on/off stalling. If it's present in ctx,
 	// and equal to `true`, the operation is stalled. This allows us to use the
 	// ctx to control stallings
-	stallKey string
+	stallKey stallKeyType
 	staller  staller
 	delegate MDOps
 }
