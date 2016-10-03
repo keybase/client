@@ -606,6 +606,12 @@
 			"revisionTime": "2016-06-17T13:51:20-05:00"
 		},
 		{
+			"checksumSHA1": "n94g6qdzv0fgQFGelH4/HXOthl0=",
+			"path": "golang.org/x/text/unicode/cldr",
+			"revision": "2910a502d2bf9e43193af9d68ca516529614eed3",
+			"revisionTime": "2016-07-21T22:28:28Z"
+		},
+		{
 			"path": "h12.me/socks",
 			"revision": "c19db44edd3ca0f7992809b55412dbb57805bc8e",
 			"revisionTime": "2015-04-10T14:41:13+08:00"
