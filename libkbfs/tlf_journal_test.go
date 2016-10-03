@@ -890,3 +890,89 @@ func TestTLFJournalFlushOrdering(t *testing.T) {
 		"Expected %v or %v, got %v", expectedPuts1,
 		expectedPuts2, puts)
 }
+
+// TestTLFJournalFlushInterleaving tests that we interleave block and
+// MD ops while respecting the relative orderings of blocks and MD ops
+// when flushing.
+func TestTLFJournalFlushInterleaving(t *testing.T) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	var lock sync.Mutex
+	var puts []interface{}
+
+	bserver := orderedBlockServer{
+		lock: &lock,
+		puts: &puts,
+	}
+
+	tlfJournal.delegateBlockServer.Shutdown()
+	tlfJournal.delegateBlockServer = &bserver
+
+	mdserver := orderedMDServer{
+		lock: &lock,
+		puts: &puts,
+	}
+
+	config.mdserver = &mdserver
+
+	// Revision 1
+	var bids []BlockID
+	rev1BlockEnd := maxJournalParallelBlockFlushes * 2
+	for i := 0; i < rev1BlockEnd; i++ {
+		data := []byte{byte(i)}
+		bid, bCtx, serverHalf := config.makeBlock(data)
+		bids = append(bids, bid)
+		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
+		require.NoError(t, err)
+	}
+	md1 := config.makeMD(MetadataRevision(10), fakeMdID(1))
+	prevRoot, err := tlfJournal.putMD(ctx, md1)
+	require.NoError(t, err)
+
+	// Revision 2
+	rev2BlockEnd := rev1BlockEnd + maxJournalParallelBlockFlushes*2
+	for i := rev1BlockEnd; i < rev2BlockEnd; i++ {
+		data := []byte{byte(i)}
+		bid, bCtx, serverHalf := config.makeBlock(data)
+		bids = append(bids, bid)
+		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
+		require.NoError(t, err)
+	}
+	md2 := config.makeMD(MetadataRevision(11), prevRoot)
+	prevRoot, err = tlfJournal.putMD(ctx, md2)
+	require.NoError(t, err)
+
+	err = tlfJournal.flush(ctx)
+	require.NoError(t, err)
+	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
+
+	// Make sure that: before revision 1, all the rev1 blocks were
+	// put; rev2 comes last; some blocks are put between the two.
+	bidsSeen := make(map[BlockID]bool)
+	md1Slot := 0
+	for i, put := range puts {
+		if bid, ok := put.(BlockID); ok {
+			t.Logf("Saw bid %s at %d", bid, i)
+			bidsSeen[bid] = true
+			continue
+		}
+
+		mdID, ok := put.(MetadataRevision)
+		require.True(t, ok)
+		if mdID == md1.Revision() {
+			md1Slot = i
+			for j := 0; j < rev1BlockEnd; j++ {
+				t.Logf("Checking bid %s at %d", bids[j], i)
+				require.True(t, bidsSeen[bids[j]])
+			}
+		} else if mdID == md2.Revision() {
+			require.NotZero(t, md1Slot)
+			require.True(t, md1Slot+1 < i)
+			require.Equal(t, i, len(puts)-1)
+		}
+	}
+}
