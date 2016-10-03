@@ -43,6 +43,7 @@ config.plugins.push(new UnusedFilesWebpackPlugin({
       '../shared/test/**',
       // Misc
       '../shared/packager/wipe-cache.js',
+      '../shared/dev/log-send/index.js',
     ],
   },
 }))

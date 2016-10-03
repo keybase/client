@@ -6,9 +6,6 @@ import {navBasedOnLoginState} from '../../actions/login'
 import {resetSignup} from '../../actions/signup'
 import {registerGregorListeners} from '../../actions/gregor'
 
-// $FlowFixMe
-import * as platform from './index.platform'
-
 import type {AsyncAction, Action} from '../../constants/types/flux'
 import {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc,
   userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
@@ -177,18 +174,6 @@ function getCurrentStatus (): AsyncAction {
       })
     })
   }
-}
-
-export function getDevSettings () {
-  return platform.getDevSettings()
-}
-
-export function saveDevSettings () {
-  return platform.saveDevSettings()
-}
-
-export function updateDevSettings (updates: any) {
-  return platform.updateDevSettings(updates)
 }
 
 export {getExtendedStatus}

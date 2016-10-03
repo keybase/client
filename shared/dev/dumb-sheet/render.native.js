@@ -1,10 +1,10 @@
 // @flow
 import React, {Component} from 'react'
 import debounce from 'lodash/debounce'
-import dumbComponentMap from './dumb-component-map.native'
-import type {Props} from './dumb-sheet.render'
-import {Box, Text, SmallInput, Button, NativeScrollView, Icon} from '../common-adapters/index.native'
-import {globalStyles, globalColors} from '../styles'
+import dumbComponentMap from './component-map.native'
+import type {Props} from './render'
+import {Box, Text, SmallInput, Button, NativeScrollView, Icon} from '../../common-adapters/index.native'
+import {globalStyles, globalColors} from '../../styles'
 
 class Render extends Component<void, Props, any> {
   state: any;

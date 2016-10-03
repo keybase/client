@@ -24,9 +24,6 @@
 		DB1D5FEC1CA99E67006DC784 /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE21CA99E67006DC784 /* kb.ttf */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB7538FD1D776CC400AFA61B /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
-		DB7539021D776CC400AFA61B /* AppDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938FF1BCC1E4300137015 /* AppDefault.swift */; };
-		DB7539031D776CC400AFA61B /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938C61BCC082C00137015 /* App.swift */; };
-		DB7539041D776CC400AFA61B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E964581C1BC8542000902F39 /* AppDelegate.swift */; };
 		DB7539071D776CC400AFA61B /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */; };
 		DB7539081D776CC400AFA61B /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		DB7539091D776CC400AFA61B /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302AC1ABCB8CE00DB3ED1 /* libRCTActionSheet.a */; };
@@ -50,6 +47,9 @@
 		DB75391D1D776CC400AFA61B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
 		DB7539351D777E7100AFA61B /* Engine-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539341D777E7100AFA61B /* Engine-Test.m */; };
 		DB7539371D777E8400AFA61B /* LogSend-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539361D777E8400AFA61B /* LogSend-Test.m */; };
+		DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6121D9C4A8100312652 /* AppDelegate.m */; };
+		DBBCC6161D9C4BA700312652 /* KeyListener.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6151D9C4BA700312652 /* KeyListener.m */; };
+		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
 		DBC44FCE1CD3AF9400A226BC /* Lato_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */; };
 		DBC44FCF1CD3AF9400A226BC /* Lato_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */; };
 		DBC44FD01CD3AF9400A226BC /* Lato-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC91CD3AA1000A226BC /* Lato-Semi_bold.ttf */; };
@@ -59,13 +59,7 @@
 		DBC44FD41CD3AF9400A226BC /* SourceCodePro.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCD1CD3AA1000A226BC /* SourceCodePro.ttf */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
-		DBDCF3531B8D04FD00BA95D8 /* ObjcTest.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3501B8D04FD00BA95D8 /* ObjcTest.m */; };
-		DBDCF3541B8D04FD00BA95D8 /* ReactBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3511B8D04FD00BA95D8 /* ReactBridge.m */; };
-		DBDCF3551B8D04FD00BA95D8 /* SwiftTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3521B8D04FD00BA95D8 /* SwiftTest.swift */; };
 		DBF20EC41BB34AF00048BC26 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */; };
-		E94938C71BCC082C00137015 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938C61BCC082C00137015 /* App.swift */; };
-		E94939001BCC1E4300137015 /* AppDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938FF1BCC1E4300137015 /* AppDefault.swift */; };
-		E964581D1BC8542000902F39 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E964581C1BC8542000902F39 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -182,6 +176,11 @@
 		DB7539311D77753600AFA61B /* Keybase_For_Tests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase_For_Tests-Bridging-Header.h"; sourceTree = "<group>"; };
 		DB7539341D777E7100AFA61B /* Engine-Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Engine-Test.m"; sourceTree = "<group>"; };
 		DB7539361D777E8400AFA61B /* LogSend-Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "LogSend-Test.m"; sourceTree = "<group>"; };
+		DBBCC6111D9C4A8100312652 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		DBBCC6121D9C4A8100312652 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		DBBCC6141D9C4BA700312652 /* KeyListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyListener.h; sourceTree = "<group>"; };
+		DBBCC6151D9C4BA700312652 /* KeyListener.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeyListener.m; sourceTree = "<group>"; };
+		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Lato_bold.ttf; path = ../../../desktop/renderer/fonts/Lato_bold.ttf; sourceTree = "<group>"; };
 		DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Lato_italic.ttf; path = ../../../desktop/renderer/fonts/Lato_italic.ttf; sourceTree = "<group>"; };
 		DBC44FC91CD3AA1000A226BC /* Lato-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Lato-Semi_bold.ttf"; path = "../../../desktop/renderer/fonts/Lato-Semi_bold.ttf"; sourceTree = "<group>"; };
@@ -194,14 +193,7 @@
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
-		DBDCF34F1B8D04FD00BA95D8 /* ObjcTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ObjcTest.h; sourceTree = "<group>"; };
-		DBDCF3501B8D04FD00BA95D8 /* ObjcTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ObjcTest.m; sourceTree = "<group>"; };
-		DBDCF3511B8D04FD00BA95D8 /* ReactBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReactBridge.m; sourceTree = "<group>"; };
-		DBDCF3521B8D04FD00BA95D8 /* SwiftTest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftTest.swift; sourceTree = "<group>"; };
 		DBF20EB41BB34AD00048BC26 /* RCTCamera.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTCamera.xcodeproj; path = "../node_modules/react-native-camera/ios/RCTCamera.xcodeproj"; sourceTree = "<group>"; };
-		E94938C61BCC082C00137015 /* App.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
-		E94938FF1BCC1E4300137015 /* AppDefault.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDefault.swift; sourceTree = "<group>"; };
-		E964581C1BC8542000902F39 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -418,20 +410,18 @@
 			children = (
 				DB1D5FD61CA99DF4006DC784 /* Fonts */,
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
-				E94938FF1BCC1E4300137015 /* AppDefault.swift */,
-				E964581C1BC8542000902F39 /* AppDelegate.swift */,
-				E94938C61BCC082C00137015 /* App.swift */,
+				DBBCC6111D9C4A8100312652 /* AppDelegate.h */,
+				DBBCC6121D9C4A8100312652 /* AppDelegate.m */,
+				DBBCC6141D9C4BA700312652 /* KeyListener.h */,
+				DBBCC6151D9C4BA700312652 /* KeyListener.m */,
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
 				DBCE36231B90F14800ECADDE /* Engine.h */,
 				DBCE36241B90F14800ECADDE /* Engine.m */,
+				DBBCC6171D9C5C6A00312652 /* main.m */,
 				DB7539341D777E7100AFA61B /* Engine-Test.m */,
-				DBDCF34F1B8D04FD00BA95D8 /* ObjcTest.h */,
-				DBDCF3501B8D04FD00BA95D8 /* ObjcTest.m */,
-				DBDCF3511B8D04FD00BA95D8 /* ReactBridge.m */,
 				DB27DE551D747A6B003DE8BC /* Utils.h */,
 				DB27DE561D747A6C003DE8BC /* Utils.m */,
-				DBDCF3521B8D04FD00BA95D8 /* SwiftTest.swift */,
 				A969A4161CF65CB200F273F2 /* LogSend.h */,
 				A969A4091CF65C9C00F273F2 /* LogSend.m */,
 				DB7539361D777E8400AFA61B /* LogSend-Test.m */,
@@ -523,6 +513,7 @@
 					};
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = 99229SGT5K;
+						LastSwiftMigration = 0800;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
 								enabled = 1;
@@ -779,13 +770,10 @@
 			files = (
 				DB27DE571D747A6C003DE8BC /* Utils.m in Sources */,
 				A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */,
-				DBDCF3531B8D04FD00BA95D8 /* ObjcTest.m in Sources */,
+				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
 				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,
-				DBDCF3551B8D04FD00BA95D8 /* SwiftTest.swift in Sources */,
-				E94939001BCC1E4300137015 /* AppDefault.swift in Sources */,
-				E94938C71BCC082C00137015 /* App.swift in Sources */,
-				E964581D1BC8542000902F39 /* AppDelegate.swift in Sources */,
-				DBDCF3541B8D04FD00BA95D8 /* ReactBridge.m in Sources */,
+				DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */,
+				DBBCC6161D9C4BA700312652 /* KeyListener.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -794,11 +782,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				DB7538FD1D776CC400AFA61B /* Utils.m in Sources */,
-				DB7539021D776CC400AFA61B /* AppDefault.swift in Sources */,
 				DB7539371D777E8400AFA61B /* LogSend-Test.m in Sources */,
 				DB7539351D777E7100AFA61B /* Engine-Test.m in Sources */,
-				DB7539031D776CC400AFA61B /* App.swift in Sources */,
-				DB7539041D776CC400AFA61B /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -886,6 +871,7 @@
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -922,6 +908,7 @@
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
