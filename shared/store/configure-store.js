@@ -1,15 +1,16 @@
 // @flow
 import createLogger from 'redux-logger'
 import createSagaMiddleware from 'redux-saga'
-import storeEnhancer from './enhancer.platform'
 import mainSaga from './configure-sagas'
 import rootReducer from '../reducers'
+import storeEnhancer from './enhancer.platform'
 import thunkMiddleware from 'redux-thunk'
 import {Iterable} from 'immutable'
 import {actionLogger} from './action-logger'
-import {createStore} from 'redux'
 import {closureCheck} from './closure-check'
+import {createStore} from 'redux'
 import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../local-debug'
+import {isMobile} from '../constants/platform'
 import {requestIdleCallback} from '../util/idle-callback'
 
 // Transform objects from Immutable on printing
@@ -63,7 +64,7 @@ if (closureStoreCheck) {
 export default function configureStore (initialState: any) {
   const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
 
-  if (module.hot) {
+  if (module.hot && isMobile) {
     // $FlowIssue
     module.hot.accept('../reducers', () => {
       store.replaceReducer(require('../reducers').default)
