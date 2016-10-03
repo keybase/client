@@ -1,27 +1,27 @@
 // @flow
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import Notifications from './index'
-import {notificationsRefresh, notificationsSave, notificationsToggle} from '../../actions/settings'
+import Invites from './index'
+import {invitesRefresh, notificationsSave, notificationsToggle} from '../../actions/settings'
 
 import type {TypedState} from '../../constants/reducer'
 
-class NotificationsContainer extends Component {
+class InvitationsContainer extends Component {
   componentWillMount () {
     this.props.onRefresh()
   }
 
   render () {
-    return <Notifications {...this.props} />
+    return <Invites {...this.props} />
   }
 }
 
 export default connect(
-  (state: TypedState, ownProps: {}) => state.settings.notifications,
+  (state: TypedState, ownProps: {}) => state.settings.invites,
   (dispatch: any, ownProps: {}) => ({
     onSave: () => dispatch(notificationsSave()),
     onToggle: (name: string) => dispatch(notificationsToggle(name)),
     onToggleUnsubscribeAll: () => dispatch(notificationsToggle()),
-    onRefresh: () => dispatch(notificationsRefresh()),
+    onRefresh: () => dispatch(invitesRefresh()),
   }),
-)(NotificationsContainer)
+)(InvitationsContainer)

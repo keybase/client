@@ -1,5 +1,6 @@
 // @flow
 import DeleteContainer from './delete/container'
+import InvitationsContainer from './invites/container'
 import LandingContainer from './landing/container'
 import NavSettings from './nav'
 import NotificationsContainer from './notifications/container'
@@ -8,8 +9,6 @@ import SettingsHelp from './help.desktop'
 
 import type {SettingsItem} from './nav'
 import type {Props} from './render'
-
-const InvitationsContainer = LandingContainer // TODO add invitations
 
 type State = {
     content: any,

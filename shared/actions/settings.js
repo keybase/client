@@ -6,7 +6,11 @@ import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {takeLatest, delay} from 'redux-saga'
 
 import type {SagaGenerator} from '../constants/types/saga'
-import type {NotificationsRefresh, NotificationsSave, NotificationsToggle, SetAllowDeleteAccount, DeleteAccountForever} from '../constants/settings'
+import type {InvitesRefresh, NotificationsRefresh, NotificationsSave, NotificationsToggle, SetAllowDeleteAccount, DeleteAccountForever} from '../constants/settings'
+
+function invitesRefresh (): InvitesRefresh {
+  return {type: Constants.invitesRefresh, payload: undefined}
+}
 
 function notificationsRefresh (): NotificationsRefresh {
   return {type: Constants.notificationsRefresh, payload: undefined}
@@ -59,6 +63,83 @@ function * saveNotificationsSaga (): SagaGenerator<any, any> {
     yield put({
       type: Constants.notificationsSaved,
       payload: undefined,
+    })
+  } catch (err) {
+    // TODO hook into global error handler
+    console.error(err)
+  }
+}
+
+function * refreshInvitesSaga (): SagaGenerator<any, any> {
+  try {
+    // If the rpc is fast don't clear it out first
+    const delayThenEmptyTask = yield fork(function * () {
+      yield call(delay, 500)
+      yield put({
+        type: Constants.invitesRefreshed,
+        payload: {
+          settings: null,
+          unsubscribedFromAll: null,
+        }})
+    })
+
+    const json: ?{body: string} = yield call(apiserverGetRpcPromise, {
+      param: {
+        endpoint: 'invitations_sent',
+        args: [],
+      },
+    })
+
+    yield cancel(delayThenEmptyTask)
+
+    const results: {
+      invitations: [{
+        assertion: ?string,
+        ctime: number,
+        email: string,
+        invitation_id: string,
+        short_code: string,
+        type: string,
+        uid: number,
+        username: string,
+      }],
+    } = JSON.parse(json && json.body || '')
+
+    const acceptedInvites = []
+    const pendingInvites = []
+
+    results.invitations.forEach(i => {
+      const invite = {
+        created: i.ctime,
+        email: i.email,
+        id: i.invitation_id,
+        key: i.invitation_id,
+        // type will get filled in later
+        type: '',
+        username: i.username,
+        uid: i.uid,
+        // First ten chars of invite code is sufficient
+        url: 'keybase.io/inv/' + i.invitation_id.slice(0, 10),
+      }
+      // Here's an algorithm for interpreting invitation entries.
+      // 1: username+uid => accepted invite, else
+      // 2: email set => pending email invite, else
+      // 3: pending invitation code invite
+      if (i.username && i.uid) {
+        invite.type = 'accepted'
+        acceptedInvites.push(invite)
+      } else {
+        invite.type = i.email ? 'pending-email' : 'pending-url'
+        pendingInvites.push(invite)
+      }
+    })
+    yield put({
+      type: Constants.invitesRefreshed,
+      payload: {
+        ...results,
+        acceptedInvites,
+        pendingInvites,
+      },
     })
   } catch (err) {
     // TODO hook into global error handler
@@ -145,6 +226,7 @@ function * deleteAccountForeverSaga (): SagaGenerator<any, any> {
 
 function * settingsSaga (): SagaGenerator<any, any> {
   yield [
+    takeLatest(Constants.invitesRefresh, refreshInvitesSaga),
     takeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
     takeLatest(Constants.notificationsSave, saveNotificationsSaga),
     takeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga),
@@ -152,6 +234,7 @@ function * settingsSaga (): SagaGenerator<any, any> {
 }
 
 export {
+  invitesRefresh,
   notificationsRefresh,
   notificationsSave,
   notificationsToggle,

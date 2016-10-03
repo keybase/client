@@ -1,6 +1,11 @@
 // @flow
 import type {NoErrorTypedAction} from '../constants/types/flux'
 
+export const invitesRefresh = 'settings:invitesRefresh'
+export type InvitesRefresh = NoErrorTypedAction<'settings:invitesRefresh', void>
+export const invitesRefreshed = 'settings:invitesRefreshed'
+export type InvitesRefreshed = NoErrorTypedAction<'settings:invitesRefreshed', InvitesState>
+
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export type NotificationsRefresh = NoErrorTypedAction<'settings:notificationsRefresh', void>
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
@@ -29,7 +34,16 @@ export type PaymentInfo = {
   isBroken: boolean,
 }
 
-export type Actions = NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
+export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
+
+export type InvitesState = {
+  pendingInvites: ?Array<{
+    foo: null,
+  }>,
+  acceptedInvites: ?Array<{
+    foo: null,
+  }>,
+}
 
 export type NotificationsState = {
   settings: ?Array<{
@@ -44,6 +58,7 @@ export type NotificationsState = {
 
 export type State = {
   allowDeleteAccount: boolean,
+  invites: InvitesState,
   notifications: NotificationsState,
 }
 

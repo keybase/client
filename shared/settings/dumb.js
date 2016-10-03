@@ -378,20 +378,20 @@ const invitesBase = {
     {
       type: 'pending-email',
       id: '123456',
-      created: 1469565223000,
+      created: 1469565223,
       email: 'tcook@apple.com',
     },
     {
       type: 'pending-url',
       id: '123457',
-      created: 1469566223000,
+      created: 1469566223,
       url: 'keybase.io/inv/9999999999',
     },
   ],
   acceptedInvites: [
     {
       id: '223456',
-      created: 1469565223000,
+      created: 1469565223,
       username: 'malgorithms',
       fullname: 'Chris Coyne',
       avatar: 'https://keybase.io/chris/picture',
@@ -400,7 +400,7 @@ const invitesBase = {
     },
     {
       id: '223457',
-      created: 1469566223000,
+      created: 1469566223,
       username: 'cecileb',
       fullname: 'Cécile Boucheron',
       avatar: 'https://keybase.io/cecileb/picture',
@@ -409,7 +409,7 @@ const invitesBase = {
     },
     {
       id: '223458',
-      created: 1469567223000,
+      created: 1469567223,
       username: 'chromakode',
       fullname: 'Max Goodman',
       avatar: 'https://keybase.io/chromakode/picture',

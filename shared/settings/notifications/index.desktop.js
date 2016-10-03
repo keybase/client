@@ -8,7 +8,7 @@ import type {Props} from './index'
 function Notifications (props: Props) {
   return !props.settings
     ? (
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+    <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
       <ProgressIndicator type='Small' style={{width: globalMargins.medium}} />
     </Box>)
     : (

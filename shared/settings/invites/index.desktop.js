@@ -16,7 +16,7 @@ function intersperseDividers (arr) {
 
 function Invites (props: Props) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn}}>
+    <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flexShrink: 0, flex: 1}}>
       <Box style={{...globalStyles.flexBoxColumn, minHeight: 269, alignItems: 'stretch', marginTop: globalMargins.small}}>
         <Input
           floatingLabelText="Friend's email (optional)"
@@ -25,20 +25,20 @@ function Invites (props: Props) {
           errorText={props.emailError ? ' ' : null}
           style={{marginBottom: 0}}
         />
-        {props.showMessageField && <Input
+        <Input
           floatingLabelText='Message (optional)'
           multiline={true}
           value={props.inviteMessage}
           onChangeText={props.onChangeInviteMessage}
-        />}
+        />
         <Button
           type='Primary'
-          label='Generate invitiation'
+          label='Generate invitation'
           onClick={props.onGenerateInvitation}
           style={{alignSelf: 'center', marginTop: globalMargins.medium}}
         />
       </Box>
-      {props.pendingInvites.length > 0 && <Box style={{...globalStyles.flexBoxColumn, marginBottom: 16}}>
+      {props.pendingInvites.length > 0 && <Box style={{...globalStyles.flexBoxColumn, marginBottom: 16, flexShrink: 0}}>
         <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
         {intersperseDividers(props.pendingInvites.map(invite =>
           <PendingInviteItem
@@ -48,7 +48,7 @@ function Invites (props: Props) {
           />
         ))}
       </Box>}
-      <Box style={globalStyles.flexBoxColumn}>
+      <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
         <SubHeading>Accepted invites ({props.acceptedInvites.length})</SubHeading>
         {intersperseDividers(props.acceptedInvites.map(invite =>
           <AcceptedInviteItem
@@ -95,7 +95,7 @@ function PendingEmailContent ({invite}: {invite: PendingEmailInvite}) {
           type='BodySmall'
           style={{lineHeight: '17px'}}
         >
-          Invited {moment(invite.created).format('MMM D, YYYY')}
+          Invited {moment.unix(invite.created).format('MMM D, YYYY')}
         </Text>
       </Box>
     </Box>
@@ -114,7 +114,7 @@ function PendingURLContent ({invite}: {invite: PendingURLInvite}) {
 function AcceptedInviteItem ({invite, onClick}: {invite: AcceptedInvite, onClick: (username: string) => void}) {
   const nameColor = stateColors(invite.currentlyFollowing, invite.trackerState, globalColors.blue).username
   return (
-    <Box style={{...styleInviteItem, ...globalStyles.clickable}} onClick={onClick}>
+    <Box style={{...styleInviteItem, ...globalStyles.clickable, flexShrink: 0}} onClick={onClick}>
       <Avatar
         url={invite.avatar}
         size={32}
@@ -145,6 +145,7 @@ const styleInviteItem = {
   alignItems: 'center',
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
+  flexShrink: 0,
 }
 
 export default Invites
