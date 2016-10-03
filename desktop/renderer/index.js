@@ -23,7 +23,7 @@ import {setupContextMenu} from '../app/menu-helper'
 import electron, {ipcRenderer} from 'electron'
 import {ipcLogsRenderer} from '../app/console-helper'
 import loadPerf from '../shared/util/load-perf'
-import merge from 'lodash/merge'
+import {merge} from 'lodash'
 
 function setupApp (store) {
   ipcLogsRenderer()

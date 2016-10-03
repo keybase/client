@@ -20,11 +20,25 @@
           }
         return false
       }
+      const __DEV__ = getQueryVariable('dev') === 'true'
 
-      var script = document.createElement('script')
-      script.src = getQueryVariable('src')
-      script.async = true
-      document.getElementsByTagName('head')[0].appendChild(script)
+      function loadEntryChunk () {
+        var script = document.createElement('script')
+        script.src = getQueryVariable('src')
+        script.async = true
+        document.getElementsByTagName('head')[0].appendChild(script)
+      }
+
+      // Use vendor.js
+      if (__DEV__) {
+        var vendor = document.createElement('script')
+        vendor.onload = loadEntryChunk
+        vendor.src = '../dist/dll/dll.vendor.js'
+        vendor.async = true
+        document.getElementsByTagName('head')[0].appendChild(vendor)
+      } else {
+        loadEntryChunk()
+      }
     </script>
   </body>
 </html>

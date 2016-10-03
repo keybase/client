@@ -102,6 +102,19 @@ const commands = {
     shell: 'webpack --config webpack.config.production.js --progress --profile --colors',
     help: 'Make a production build of the js code',
   },
+  'build-main-thread': {
+    env: {HOT: 'true'},
+    nodeEnv: 'development',
+    nodePathDesktop: true,
+    shell: 'webpack --config webpack.config.main-thread-only.js --progress --profile --colors',
+    help: 'Bundle the code that the main node thread uses',
+  },
+  'build-dll': {
+    nodeEnv: 'development',
+    nodePathDesktop: true,
+    shell: 'webpack --config webpack.config.dll-build.js --progress',
+    help: 'Make a production build of the js code',
+  },
   'build-profile': {
     nodeEnv: 'development',
     nodePathDesktop: true,
@@ -115,7 +128,7 @@ const commands = {
     help: 'Package up the production js code',
   },
   'hot-server': {
-    env: {HOT: 'true'},
+    env: {HOT: 'true', USING_DLL: 'true'},
     nodeEnv: 'development',
     nodePathDesktop: true,
     shell: 'webpack-dashboard -- node server.js',

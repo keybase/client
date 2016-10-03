@@ -25,8 +25,12 @@ config.entry = {
 
 config.plugins.push(
   new webpack.NoErrorsPlugin(),
-  new webpack.DefinePlugin(defines),
+  new webpack.DefinePlugin(defines)
 )
+
+if (getenv.boolish('HOT', false)) {
+  config.plugins.push(new webpack.HotModuleReplacementPlugin())
+}
 
 config.target = webpackTargetElectronRenderer(config)
 module.exports = config
