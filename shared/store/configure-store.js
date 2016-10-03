@@ -1,8 +1,6 @@
 // @flow
 import createLogger from 'redux-logger'
-import createSagaMiddleware from 'redux-saga'
-import errorCatchingMiddleware, {errorToPayload} from './error-catching'
-import mainSaga from './configure-sagas'
+import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
 import rootReducer from '../reducers'
 import storeEnhancer from './enhancer.platform'
 import thunkMiddleware from 'redux-thunk'
@@ -42,6 +40,41 @@ for (const method in console) {
   }
 }
 
+let theStore
+
+const errorToPayload = (error: any): {summary: ?string, details: ?string} => {
+  let summary
+  let details
+
+  if (error.hasOwnProperty('desc') && error.hasOwnProperty('code')) {
+    summary = `Rpc error: ${error.desc}`
+    details = `Code: ${error.code}`
+  } else {
+    if (error.message && error.message.length < 50) {
+      summary = `Throw error: ${error.message}`
+      details = error.stack
+    } else {
+      summary = `Throw error: ${error.name}`
+      details = `${error.message}. ${error.stack}`
+    }
+  }
+
+  return {summary, details}
+}
+
+const crashHandler = (error) => {
+  if (theStore) {
+    // $FlowIssue
+    theStore.dispatch({
+      type: globalError,
+    // $FlowIssue
+      payload: errorToPayload(error),
+    })
+  } else {
+    console.error('Got crash before store created?', error)
+  }
+}
+
 const loggerMiddleware: any = enableStoreLogging ? createLogger({
   duration: true,
   stateTransformer: objToJS,
@@ -50,18 +83,16 @@ const loggerMiddleware: any = enableStoreLogging ? createLogger({
   logger,
 }) : null
 
-const sagaMiddleware = createSagaMiddleware({
-  onError: (error) => {
-    if (theStore) {
-      theStore.dispatch({
-        type: globalError,
-        payload: errorToPayload(error),
-      })
-    }
-  },
-})
+const errorCatching = store => next => action => {
+  try {
+    return next(action)
+  } catch (error) {
+    console.error(`Caught a middleware exception ${error}`)
+    crashHandler(error)
+  }
+}
 
-let middlewares = [errorCatchingMiddleware, sagaMiddleware, thunkMiddleware]
+let middlewares = [errorCatching, createSagaMiddleware(crashHandler), thunkMiddleware]
 
 if (enableStoreLogging) {
   middlewares.push(loggerMiddleware)
@@ -72,8 +103,6 @@ if (enableStoreLogging) {
 if (closureStoreCheck) {
   middlewares.push(closureCheck)
 }
-
-let theStore
 
 export default function configureStore (initialState: any) {
   const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
@@ -86,6 +115,6 @@ export default function configureStore (initialState: any) {
     })
   }
 
-  sagaMiddleware.run(mainSaga)
+  runSagas()
   return store
 }

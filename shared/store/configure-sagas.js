@@ -1,4 +1,5 @@
 // @flow
+import createSagaMiddleware from 'redux-saga'
 import deviceSaga from '../actions/devices'
 import favoriteSaga from '../actions/favorite'
 import gregorSaga from '../actions/gregor'
@@ -24,4 +25,20 @@ function * mainSaga (): SagaGenerator<any, any> {
   ]
 }
 
-export default mainSaga
+let middleWare
+function create (crashHandler: (err: any) => void) {
+  if (middleWare) {
+    throw new Error('Only create one saga middleware!')
+  }
+  middleWare = createSagaMiddleware({onError: crashHandler})
+  return middleWare
+}
+
+function run () {
+  middleWare.run(mainSaga)
+}
+
+export {
+  create,
+  run,
+}
