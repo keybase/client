@@ -1037,6 +1037,11 @@ func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata) (
 		return MdID{}, err
 	}
 
+	err = j.blockJournal.markMDRevision(ctx, rmd.Revision())
+	if err != nil {
+		return MdID{}, err
+	}
+
 	j.signalWork()
 
 	return mdID, nil

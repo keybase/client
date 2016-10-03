@@ -596,7 +596,7 @@ func TestTLFJournalFlushMDBasic(t *testing.T) {
 	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
 	require.NoError(t, err)
 	require.False(t, flushed)
-	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
 	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Check RMDSes on the server.
@@ -670,7 +670,7 @@ func TestTLFJournalFlushMDConflict(t *testing.T) {
 	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
 	require.NoError(t, err)
 	require.False(t, flushed)
-	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
 	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Check RMDSes on the server.
@@ -721,7 +721,7 @@ func TestTLFJournalPreservesBranchID(t *testing.T) {
 	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
 	require.NoError(t, err)
 	require.False(t, flushed)
-	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount)-1, 0)
 	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Put last revision and flush it.
@@ -745,7 +745,7 @@ func TestTLFJournalPreservesBranchID(t *testing.T) {
 		flushed, err = tlfJournal.flushOneMDOp(ctx, mdEnd)
 		require.NoError(t, err)
 		require.False(t, flushed)
-		requireJournalEntryCounts(t, tlfJournal, 0, 0)
+		requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
 		testMDJournalGCd(t, tlfJournal.mdJournal)
 	}
 
