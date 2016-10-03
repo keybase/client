@@ -29,7 +29,7 @@ var hardcodedPVLString = `
       [
         {
           "assert_regex_match": {
-            "error": ["CONTENT_FAILURE", "matching DNS entry not found"],
+            "error": ["NOT_FOUND", "matching DNS entry not found"],
             "from": "txt",
             "pattern": "^keybase-site-verification=%{sig_id_medium}$"
           }
@@ -61,6 +61,14 @@ var hardcodedPVLString = `
           }
         },
         { "fetch": { "from": "hint_url", "kind": "html" } },
+        {
+          "selector_css": {
+            "error": ["FAILED_PARSE", "Couldn't find facebook post %{hint_url}. Is it deleted or private?"],
+            "into": "unused",
+            "multi": true,
+            "selectors": ["#m_story_permalink_view"]
+          }
+        },
         {
           "selector_css": {
             "attr": "href",
@@ -101,10 +109,25 @@ var hardcodedPVLString = `
         },
         { "whitespace_normalize": { "from": "header", "into": "header_nw" } },
         {
-          "assert_regex_match": {
-            "error": ["TEXT_NOT_FOUND", "Proof text not found: '' != ''"],
+          "regex_capture": {
+            "error": [
+              "TEXT_NOT_FOUND",
+              "Proof text not found: 'Verifying myself: I am %{username_keybase} on Keybase.io. %{sig_id_medium}' != '%{header_nw}'"
+            ],
             "from": "header_nw",
-            "pattern": "^Verifying myself: I am %{username_keybase} on Keybase\\.io\\. %{sig_id_medium}$"
+            "into": ["username_from_header"],
+            "pattern": "^Verifying myself: I am (\\S+) on Keybase\\.io\\. %{sig_id_medium}$"
+          }
+        },
+        {
+          "assert_compare": {
+            "a": "username_from_header",
+            "b": "username_keybase",
+            "cmp": "cicmp",
+            "error": [
+              "TEXT_NOT_FOUND",
+              "Wrong keybase username in proof text '%{username_from_header}' != 'username_keybase'"
+            ]
           }
         }
       ]
@@ -113,7 +136,7 @@ var hardcodedPVLString = `
       [
         {
           "assert_regex_match": {
-            "error": ["BAD_API_URL", "Bad hint from server; didn't recognize API url: \"%{active_string}\""],
+            "error": ["BAD_API_URL", "Bad hint from server; didn't recognize API url: \"%{hint_url}\""],
             "from": "hint_url",
             "pattern": "^%{protocol}://%{hostname}/(?:\\.well-known/keybase\\.txt|keybase\\.txt)$"
           }
