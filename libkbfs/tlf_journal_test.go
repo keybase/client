@@ -920,7 +920,7 @@ func TestTLFJournalFlushInterleaving(t *testing.T) {
 
 	// Revision 1
 	var bids []BlockID
-	rev1BlockEnd := maxJournalParallelBlockFlushes * 2
+	rev1BlockEnd := maxJournalBlockFlushBatchSize * 2
 	for i := 0; i < rev1BlockEnd; i++ {
 		data := []byte{byte(i)}
 		bid, bCtx, serverHalf := config.makeBlock(data)
@@ -933,7 +933,7 @@ func TestTLFJournalFlushInterleaving(t *testing.T) {
 	require.NoError(t, err)
 
 	// Revision 2
-	rev2BlockEnd := rev1BlockEnd + maxJournalParallelBlockFlushes*2
+	rev2BlockEnd := rev1BlockEnd + maxJournalBlockFlushBatchSize*2
 	for i := rev1BlockEnd; i < rev2BlockEnd; i++ {
 		data := []byte{byte(i)}
 		bid, bCtx, serverHalf := config.makeBlock(data)

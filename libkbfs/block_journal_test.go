@@ -315,12 +315,12 @@ func TestBlockJournalFlush(t *testing.T) {
 		var partialEntries blockEntriesToFlush
 		if end > 1 {
 			partialEntries, _, err = j.getNextEntriesToFlush(ctx, end-1,
-				maxJournalParallelBlockFlushes)
+				maxJournalBlockFlushBatchSize)
 			require.NoError(t, err)
 		}
 
 		entries, _, err := j.getNextEntriesToFlush(ctx, end,
-			maxJournalParallelBlockFlushes)
+			maxJournalBlockFlushBatchSize)
 		require.NoError(t, err)
 		require.Equal(t, partialEntries.length()+1, entries.length())
 
@@ -408,7 +408,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 		first, err := j.j.readEarliestOrdinal()
 		require.NoError(t, err)
 		entries, _, err := j.getNextEntriesToFlush(ctx, first+1,
-			maxJournalParallelBlockFlushes)
+			maxJournalBlockFlushBatchSize)
 		require.NoError(t, err)
 		require.Equal(t, 1, entries.length())
 		err = flushBlockEntries(ctx, j.log, blockServer,
@@ -504,7 +504,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	end, err := j.end()
 	require.NoError(t, err)
 	entries, _, err := j.getNextEntriesToFlush(ctx, end,
-		maxJournalParallelBlockFlushes)
+		maxJournalBlockFlushBatchSize)
 	require.NoError(t, err)
 	require.Equal(t, 0, entries.length())
 

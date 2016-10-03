@@ -46,10 +46,10 @@ func (ca tlfJournalConfigAdapter) encryptionKeyGetter() encryptionKeyGetter {
 }
 
 const (
-	// Maximum number of blocks that can be sent in parallel by the
-	// journal.  TODO: make this configurable, so that users can
-	// choose how much bandwidth is used by the journal.
-	maxJournalParallelBlockFlushes = 10
+	// Maximum number of blocks that can be flushed in a single batch
+	// by the journal.  TODO: make this configurable, so that users
+	// can choose how much bandwidth is used by the journal.
+	maxJournalBlockFlushBatchSize = 25
 )
 
 // TLFJournalStatus represents the status of a TLF's journal for
@@ -566,7 +566,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		}
 		flushedBlockEntries += numFlushed
 
-		if maxMDRevToFlush == MetadataRevisionUninitialized && numFlushed == 0 {
+		if numFlushed == 0 {
 			// There were no blocks to flush, so we can flush all of
 			// the remaining MDs.
 			maxMDRevToFlush = mdEnd
@@ -615,7 +615,7 @@ func (j *tlfJournal) getNextBlockEntriesToFlush(
 	}
 
 	return j.blockJournal.getNextEntriesToFlush(ctx, end,
-		maxJournalParallelBlockFlushes)
+		maxJournalBlockFlushBatchSize)
 }
 
 func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
