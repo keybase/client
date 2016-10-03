@@ -45,6 +45,13 @@ func (ca tlfJournalConfigAdapter) encryptionKeyGetter() encryptionKeyGetter {
 	return ca.Config.KeyManager()
 }
 
+const (
+	// Maximum number of blocks that can be sent in parallel by the
+	// journal.  TODO: make this configurable, so that users can
+	// choose how much bandwidth is used by the journal.
+	maxJournalParallelBlockFlushes = 10
+)
+
 // TLFJournalStatus represents the status of a TLF's journal for
 // display in diagnostics. It is suitable for encoding directly as
 // JSON.
@@ -553,16 +560,22 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			blockEnd, mdEnd)
 
 		// Flush the block journal ops in parallel.
-		numFlushed, err := j.flushBlockEntries(ctx, blockEnd)
+		numFlushed, maxMDRevToFlush, err := j.flushBlockEntries(ctx, blockEnd)
 		if err != nil {
 			return err
 		}
 		flushedBlockEntries += numFlushed
 
+		if maxMDRevToFlush == MetadataRevisionUninitialized && numFlushed == 0 {
+			// There were no blocks to flush, so we can flush all of
+			// the remaining MDs.
+			maxMDRevToFlush = mdEnd
+		}
+
 		// TODO: Flush MDs in batch.
 
 		for {
-			flushed, err := j.flushOneMDOp(ctx, mdEnd)
+			flushed, err := j.flushOneMDOp(ctx, mdEnd, maxMDRevToFlush)
 			if err != nil {
 				return err
 			}
@@ -594,14 +607,15 @@ func (j *tlfJournal) checkEnabledLocked() error {
 
 func (j *tlfJournal) getNextBlockEntriesToFlush(
 	ctx context.Context, end journalOrdinal) (
-	entries blockEntriesToFlush, err error) {
+	entries blockEntriesToFlush, maxMDRevToFlush MetadataRevision, err error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return blockEntriesToFlush{}, err
+		return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
 	}
 
-	return j.blockJournal.getNextEntriesToFlush(ctx, end)
+	return j.blockJournal.getNextEntriesToFlush(ctx, end,
+		maxJournalParallelBlockFlushes)
 }
 
 func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
@@ -617,14 +631,14 @@ func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
 }
 
 func (j *tlfJournal) flushBlockEntries(
-	ctx context.Context, end journalOrdinal) (int, error) {
-	entries, err := j.getNextBlockEntriesToFlush(ctx, end)
+	ctx context.Context, end journalOrdinal) (int, MetadataRevision, error) {
+	entries, maxMDRevToFlush, err := j.getNextBlockEntriesToFlush(ctx, end)
 	if err != nil {
-		return 0, err
+		return 0, MetadataRevisionUninitialized, err
 	}
 
 	if entries.length() == 0 {
-		return 0, nil
+		return 0, maxMDRevToFlush, nil
 	}
 
 	// TODO: fill this in for logging/error purposes.
@@ -633,15 +647,15 @@ func (j *tlfJournal) flushBlockEntries(
 		j.config.BlockCache(), j.config.Reporter(),
 		j.tlfID, tlfName, entries)
 	if err != nil {
-		return 0, err
+		return 0, MetadataRevisionUninitialized, err
 	}
 
 	err = j.removeFlushedBlockEntries(ctx, entries)
 	if err != nil {
-		return 0, err
+		return 0, MetadataRevisionUninitialized, err
 	}
 
-	return entries.length(), nil
+	return entries.length(), maxMDRevToFlush, nil
 }
 
 func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
@@ -691,7 +705,8 @@ func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
 }
 
 func (j *tlfJournal) flushOneMDOp(
-	ctx context.Context, end MetadataRevision) (flushed bool, err error) {
+	ctx context.Context, end MetadataRevision,
+	maxMDRevToFlush MetadataRevision) (flushed bool, err error) {
 	j.log.CDebugf(ctx, "Flushing one MD to server")
 	defer func() {
 		if err != nil {
@@ -706,6 +721,15 @@ func (j *tlfJournal) flushOneMDOp(
 		return false, err
 	}
 	if mdID == (MdID{}) {
+		return false, nil
+	}
+
+	// Only flush MDs for which the blocks have been fully flushed.
+	if rmds.MD.RevisionNumber() > maxMDRevToFlush {
+		j.log.CDebugf(ctx, "Haven't flushed all the blocks for TLF=%s "+
+			"with id=%s, rev=%s, bid=%s yet (maxMDRevToFlush=%d)",
+			rmds.MD.TlfID(), mdID, rmds.MD.RevisionNumber(), rmds.MD.BID(),
+			maxMDRevToFlush)
 		return false, nil
 	}
 

@@ -370,9 +370,10 @@ func TestTLFJournalBlockOpBasic(t *testing.T) {
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
-	numFlushed, err := tlfJournal.flushBlockEntries(ctx, 1)
+	numFlushed, rev, err := tlfJournal.flushBlockEntries(ctx, 1)
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
+	require.Equal(t, rev, MetadataRevisionUninitialized)
 }
 
 func TestTLFJournalBlockOpBusyPause(t *testing.T) {
@@ -589,11 +590,11 @@ func TestTLFJournalFlushMDBasic(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < mdCount; i++ {
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.True(t, flushed)
 	}
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 	require.NoError(t, err)
 	require.False(t, flushed)
 	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
@@ -635,7 +636,7 @@ func TestTLFJournalFlushMDConflict(t *testing.T) {
 
 	// Simulate a flush with a conflict error halfway through.
 	{
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.True(t, flushed)
 
@@ -663,11 +664,11 @@ func TestTLFJournalFlushMDConflict(t *testing.T) {
 
 	// Flush remaining entries.
 	for i := 0; i < mdCount-1; i++ {
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.True(t, flushed)
 	}
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 	require.NoError(t, err)
 	require.False(t, flushed)
 	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
@@ -713,12 +714,12 @@ func TestTLFJournalPreservesBranchID(t *testing.T) {
 	// Flush all entries, with the first one encountering a
 	// conflict error.
 	for i := 0; i < mdCount-1; i++ {
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.True(t, flushed)
 	}
 
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 	require.NoError(t, err)
 	require.False(t, flushed)
 	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount)-1, 0)
@@ -738,11 +739,11 @@ func TestTLFJournalPreservesBranchID(t *testing.T) {
 
 		mdEnd++
 
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.True(t, flushed)
 
-		flushed, err = tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err = tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.False(t, flushed)
 		requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)

@@ -314,11 +314,13 @@ func TestBlockJournalFlush(t *testing.T) {
 		// Test that the end parameter is respected.
 		var partialEntries blockEntriesToFlush
 		if end > 1 {
-			partialEntries, err = j.getNextEntriesToFlush(ctx, end-1)
+			partialEntries, _, err = j.getNextEntriesToFlush(ctx, end-1,
+				maxJournalParallelBlockFlushes)
 			require.NoError(t, err)
 		}
 
-		entries, err := j.getNextEntriesToFlush(ctx, end)
+		entries, _, err := j.getNextEntriesToFlush(ctx, end,
+			maxJournalParallelBlockFlushes)
 		require.NoError(t, err)
 		require.Equal(t, partialEntries.length()+1, entries.length())
 
@@ -405,7 +407,8 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	flushOne := func() {
 		first, err := j.j.readEarliestOrdinal()
 		require.NoError(t, err)
-		entries, err := j.getNextEntriesToFlush(ctx, first+1)
+		entries, _, err := j.getNextEntriesToFlush(ctx, first+1,
+			maxJournalParallelBlockFlushes)
 		require.NoError(t, err)
 		require.Equal(t, 1, entries.length())
 		err = flushBlockEntries(ctx, j.log, blockServer,
@@ -500,7 +503,8 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	end, err := j.end()
 	require.NoError(t, err)
-	entries, err := j.getNextEntriesToFlush(ctx, end)
+	entries, _, err := j.getNextEntriesToFlush(ctx, end,
+		maxJournalParallelBlockFlushes)
 	require.NoError(t, err)
 	require.Equal(t, 0, entries.length())
 
