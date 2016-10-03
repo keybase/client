@@ -93,6 +93,10 @@
       "name": "RateLimit",
       "fields": [
         {
+          "type": "string",
+          "name": "name"
+        },
+        {
           "type": "int",
           "name": "callsRemaining"
         },
@@ -162,8 +166,19 @@
           "name": "after"
         },
         {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "oneChatTypePerTLF"
+        },
+        {
           "type": "boolean",
           "name": "unreadOnly"
+        },
+        {
+          "type": "boolean",
+          "name": "readOnly"
         }
       ]
     },
@@ -227,6 +242,10 @@
         {
           "type": "ConversationID",
           "name": "conversationID"
+        },
+        {
+          "type": "bool",
+          "name": "isFinalized"
         }
       ]
     },
@@ -262,6 +281,20 @@
             "ConversationReaderInfo"
           ],
           "name": "readerInfo"
+        },
+        {
+          "type": [
+            null,
+            "ConversationMetadata"
+          ],
+          "name": "supersedes"
+        },
+        {
+          "type": [
+            null,
+            "ConversationMetadata"
+          ],
+          "name": "supersededBy"
         },
         {
           "type": {

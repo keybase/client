@@ -34,7 +34,7 @@ type loginProvision struct {
 // gpgInterface defines the portions of gpg client that provision
 // needs.  This allows tests to stub out gpg client calls.
 type gpgInterface interface {
-	ImportKey(secret bool, fp libkb.PGPFingerprint) (*libkb.PGPKeyBundle, error)
+	ImportKey(secret bool, fp libkb.PGPFingerprint, tty string) (*libkb.PGPKeyBundle, error)
 	Index(secret bool, query string) (ki *libkb.GpgKeyIndex, w libkb.Warnings, err error)
 }
 
@@ -772,12 +772,20 @@ func (e *loginProvision) gpgSignKey(ctx *Context, fp *libkb.PGPFingerprint) (lib
 }
 
 func (e *loginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {
+
 	// import it with gpg
 	cli, err := e.gpgClient()
 	if err != nil {
 		return nil, err
 	}
-	bundle, err := cli.ImportKey(true, *fp)
+
+	tty, err := ctx.GPGUI.GetTTY(ctx.NetContext)
+	if err != nil {
+		e.G().Log.Warning("error getting TTY for GPG: %s", err)
+		err = nil
+	}
+
+	bundle, err := cli.ImportKey(true, *fp, tty)
 	if err != nil {
 		return nil, err
 	}

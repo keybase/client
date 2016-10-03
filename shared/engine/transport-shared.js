@@ -25,10 +25,10 @@ function _makeOnceOnly (f: () => void): () => void {
 }
 
 // Wrapped to add logging
-function _makeLogged (f: () => void, type: rpcLogType, logTitle: string, extraInfo?: Object): () => void {
+function _makeLogged (f: () => void, type: rpcLogType, logTitle: string, extraInfo?: ?Object, titleFromArgs?: ?Function): () => void {
   if (printRPC) {
     return (...args) => {
-      rpcLog(type, logTitle, {...extraInfo, args})
+      rpcLog(type, titleFromArgs ? titleFromArgs(...args) : logTitle, {...extraInfo, args})
       f(...args)
     }
   } else {
@@ -103,7 +103,7 @@ class TransportShared extends RobustTransport {
         incomingRPCCallback(payload)
       }
 
-      this.set_generic_handler(_makeDelayed(_makeLogged(handler, 'serverToEngine', 'incoming'), KEYBASE_RPC_DELAY_RESULT))
+      this.set_generic_handler(_makeDelayed(_makeLogged(handler, 'serverToEngine', 'incoming', null, args => `incoming: ${args.method}`), KEYBASE_RPC_DELAY_RESULT))
     }
   }
 

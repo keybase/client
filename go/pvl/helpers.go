@@ -4,11 +4,11 @@
 package pvl
 
 import (
-	b64 "encoding/base64"
 	"errors"
 	"fmt"
+	"net"
+	"net/url"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -22,10 +22,7 @@ import (
 // It is an error to refer to an unknown variable or undefined numbered group.
 // Match is an optional slice which is a regex match.
 // AllowActiveString makes active_string a valid variable.
-func substitute(template string, state scriptState, match []string, allowedExtras []string) (string, libkb.ProofError) {
-	vars := state.Vars
-	webish := (state.Service == keybase1.ProofType_DNS || state.Service == keybase1.ProofType_GENERIC_WEB_SITE)
-
+func substitute(template string, state scriptState) (string, libkb.ProofError) {
 	var outerr libkb.ProofError
 	// Regex to find %{name} occurrences.
 	// Match broadly here so that even %{} is sent to the default case and reported as invalid.
@@ -33,51 +30,11 @@ func substitute(template string, state scriptState, match []string, allowedExtra
 	substituteOne := func(vartag string) string {
 		// Strip off the %, {, and }
 		varname := vartag[2 : len(vartag)-1]
-		var value string
-		switch varname {
-		case "username_service":
-			if !webish {
-				value = vars.UsernameService
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Cannot use username_service in proof type %v", state.Service)
-			}
-		case "username_keybase":
-			value = vars.UsernameKeybase
-		case "sig":
-			value = b64.StdEncoding.EncodeToString(vars.Sig)
-		case "sig_id_medium":
-			value = vars.SigIDMedium
-		case "sig_id_short":
-			value = vars.SigIDShort
-		case "hostname":
-			if webish {
-				value = vars.Hostname
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Cannot use username_service in proof type %v", state.Service)
-			}
-		case "active_string":
-			if stringsContains(allowedExtras, "active_string") {
-				value = state.ActiveString
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Active string substitution now allowed")
-			}
-		default:
-			var i int
-			i, err := strconv.Atoi(varname)
-			if err == nil {
-				if i >= 0 && i < len(match) {
-					value = match[i]
-				} else {
-					outerr = libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-						"Substitution argument %v out of range of match", i)
-				}
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Unrecognized variable: %v", varname)
-			}
+		value, err := state.Regs.Get(varname)
+		if err != nil {
+			outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Invalid substitution: %v", err)
+			return ""
 		}
 		return regexp.QuoteMeta(value)
 	}
@@ -96,14 +53,6 @@ func serviceToString(service keybase1.ProofType) (string, libkb.ProofError) {
 	}
 
 	return "", libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL, "Unsupported service %v", service)
-}
-
-func jsonHasKey(w *jsonw.Wrapper, key string) bool {
-	return !w.AtKey(key).IsNil()
-}
-
-func jsonHasKeyCommand(w *jsonw.Wrapper, key commandName) bool {
-	return !w.AtKey(string(key)).IsNil()
 }
 
 // Return the elements of an array.
@@ -213,4 +162,60 @@ func stringsContains(xs []string, x string) bool {
 		}
 	}
 	return false
+}
+
+// Check that a url is valid and has only a domain and is not an ip.
+// No port, path, protocol, user, query, or any other junk is allowed.
+func validateDomain(s string) bool {
+	// Throw a protocol in front because the parser wants one.
+	proto := "http"
+	u, err := url.Parse(proto + "://" + s)
+	if err != nil {
+		return false
+	}
+
+	// The final group must include a non-numeric character.
+	// To disallow the likes of "8.8.8.8."
+	dotsplit := strings.Split(strings.TrimSuffix(u.Host, "."), ".")
+	if len(dotsplit) > 0 {
+		hasalpha := regexp.MustCompile(`\D`)
+		group := dotsplit[len(dotsplit)-1]
+		if !hasalpha.MatchString(group) {
+			return false
+		}
+	}
+
+	ok := (u.IsAbs()) &&
+		(u.Scheme == proto) &&
+		(u.User == nil) &&
+		(u.Path == "") &&
+		(u.RawPath == "") &&
+		(u.RawQuery == "") &&
+		(u.Fragment == "") &&
+		// Disallow colons. So no port, and no ipv6.
+		(!strings.Contains(u.Host, ":")) &&
+		// Disallow any valid ip addresses.
+		(net.ParseIP(u.Host) == nil)
+	return ok
+}
+
+// validateProtocol takes a protocol and returns the canonicalized form and whether it is valid.
+func validateProtocol(s string, allowed []string) (string, bool) {
+	canons := map[string]string{
+		"http":     "http",
+		"https":    "https",
+		"dns":      "dns",
+		"http:":    "http",
+		"https:":   "https",
+		"dns:":     "dns",
+		"http://":  "http",
+		"https://": "https",
+		"dns://":   "dns",
+	}
+
+	canon, ok := canons[s]
+	if ok {
+		return canon, stringsContains(allowed, canon)
+	}
+	return canon, false
 }

@@ -303,6 +303,15 @@
         }
       ],
       "response": "MarkAsReadRes"
+    },
+    "tlfFinalize": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

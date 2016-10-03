@@ -1,8 +1,10 @@
 // @flow
 import React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Button, Icon, Text, Meta} from '../../common-adapters'
-import {plans} from '../../constants/settings'
+import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
+import {comparePlans, levelToPrice, levelToSpace, plans} from '../../constants/settings'
+import {Stars} from '../common.desktop.js'
+import SubHeading from '../subheading'
 
 import type {Props, AccountProps, PlanProps} from './index'
 import type {PlanLevel, PaymentInfo as PaymentInfoType} from '../../constants/settings'
@@ -29,39 +31,6 @@ type PlanLevelProps = {
     variants: PlanActionVariantsProps
 }
 
-const levelToPrice: {[key: PlanLevel]: string} = {
-  'Basic': 'Free',
-  'Gold': '$7/mo',
-  'Friend': '$9/mo',
-}
-
-const levelToStars: {[key: PlanLevel]: number} = {
-  'Basic': 1,
-  'Gold': 3,
-  'Friend': 5,
-}
-
-const levelToSpace: {[key: PlanLevel]: string} = {
-  'Basic': '10GB',
-  'Gold': '50GB',
-  'Friend': '250GB',
-}
-
-// Compare weather another plan is an upgrade, downgrade or the same
-// -1 : otherLevel is a downgrade from level
-// 0 : otherLevel is the same as level
-// 1 : otherLevel is an upgrade from level
-function comparePlans (level: PlanLevel, otherLevel: PlanLevel): -1 | 0 | 1 {
-  const levelIndex = plans.indexOf(level)
-  const otherLevelIndex = plans.indexOf(otherLevel)
-  if (levelIndex === otherLevelIndex) return 0
-  if (levelIndex < otherLevelIndex) return 1
-  if (levelIndex > otherLevelIndex) return -1
-
-  // make flow happy
-  return 0
-}
-
 function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, onDowngrade: (l: PlanLevel) => void, onUpgrade: (l: PlanLevel) => void, freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean): PlanActionVariantsProps {
   const comparison = comparePlans(selectedLevel, otherLevel)
 
@@ -85,13 +54,6 @@ function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, on
         onUpgrade: () => onUpgrade(otherLevel),
       }
   }
-}
-
-const Divider = () => <Box style={{height: 1, backgroundColor: globalColors.black_05, flex: 1}} />
-
-function Stars ({level}: {level: PlanLevel}) {
-  // TODO(mm) use actual icon here
-  return <Text type='BodySmall'>{'*****'.substring(0, levelToStars[level])}</Text>
 }
 
 function SpaceInfo ({freeSpace, freeSpacePercentage, lowSpaceWarning}: {freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean}) {
@@ -167,12 +129,7 @@ function PlanLevelRow ({level, onInfo, variants, style}: PlanLevelProps) {
 function PaymentInfo ({name, last4Digits, isBroken, onChangePaymentInfo}: PaymentInfoType & {onChangePaymentInfo: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.medium}}>
-      <Text
-        style={{color: globalColors.black_40}}
-        type='BodySmallSemibold'>
-        Your payment method
-      </Text>
-      <Divider />
+      <SubHeading>Your payment method</SubHeading>
       <Box style={{...globalStyles.flexBoxRow, minHeight: ROW_HEIGHT, paddingLeft: globalMargins.xtiny, justifyContent: 'space-between', alignItems: 'center'}}>
         <Box style={globalStyles.flexBoxColumn}>
           <Text
@@ -198,12 +155,7 @@ function Plan ({onInfo, onUpgrade, onDowngrade, freeSpace, freeSpacePercentage, 
   return (
     <Box style={globalStyles.flexBoxColumn}>
       <Box style={globalStyles.flexBoxColumn}>
-        <Text
-          style={{color: globalColors.black_40, marginBottom: globalMargins.tiny}}
-          type='BodySmallSemibold'>
-          Your plan
-        </Text>
-        <Divider />
+        <SubHeading>Your plan</SubHeading>
       </Box>
       {plans.map(p => (
         <PlanLevelRow
@@ -254,7 +206,7 @@ function Account ({email, isVerified, onChangeEmail, onChangePassphrase}: Accoun
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
       <AccountEmail email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
-      <Divider />
+      <Divider style={{backgroundColor: globalColors.black_05}} />
       <AccountPassphrase onChangePassphrase={onChangePassphrase} />
     </Box>
   )

@@ -1216,6 +1216,16 @@ func (e IdentifyFailedError) Error() string {
 
 //=============================================================================
 
+type IdentifySummaryError struct {
+	problems []string
+}
+
+func (e IdentifySummaryError) Error() string {
+	return fmt.Sprintf("%s", strings.Join(e.problems, "; "))
+}
+
+//=============================================================================
+
 type NotLatestSubchainError struct {
 	Msg string
 }
@@ -1616,7 +1626,8 @@ func (e ChatBroadcastError) Error() string {
 //=============================================================================
 
 type ChatRateLimitError struct {
-	Msg string
+	Msg       string
+	RateLimit chat1.RateLimit
 }
 
 func (e ChatRateLimitError) Error() string {
@@ -1641,4 +1652,14 @@ type ChatAlreadyDeletedError struct {
 
 func (e ChatAlreadyDeletedError) Error() string {
 	return e.Msg
+}
+
+//=============================================================================
+
+type ChatTLFFinalizedError struct {
+	TlfID chat1.TLFID
+}
+
+func (e ChatTLFFinalizedError) Error() string {
+	return fmt.Sprintf("unable to create conversation on finalized TLF: %s", e.TlfID)
 }

@@ -28,9 +28,9 @@ class SettingsNav extends Component<void, Props, void> {
   render () {
     const {content, bannerElement, bannerType, items} = this.props
     return (
-      <Box style={globalStyles.flexBoxColumn}>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {!!bannerElement && <Banner element={bannerElement} type={bannerType || 'green'} />}
-        <Box style={globalStyles.flexBoxRow}>
+        <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
           <Box style={globalStyles.flexBoxColumn}>
             {items.map(i => <SettingsItem key={i.text} {...i} />)}
           </Box>

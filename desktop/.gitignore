@@ -2,3 +2,5 @@ node_modules
 dist
 release
 build
+log.txt
+log.json

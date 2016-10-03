@@ -60,6 +60,10 @@ func (g *gpgtestui) Sign(_ context.Context, arg keybase1.SignArg) (string, error
 	return cli.Sign(*fp, arg.Msg)
 }
 
+func (g *gpgtestui) GetTTY(_ context.Context) (string, error) {
+	return "", nil
+}
+
 type gpgTestUIBadSign struct {
 	gpgtestui
 }

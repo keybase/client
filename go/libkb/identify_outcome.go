@@ -6,7 +6,6 @@ package libkb
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/keybase/client/go/gregor"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -192,7 +191,7 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 
 	if i.Error != nil {
 		err = i.Error
-		return
+		return warnings, err
 	}
 
 	var probs []string
@@ -221,10 +220,10 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 	}
 
 	if len(probs) > 0 {
-		err = fmt.Errorf("%s", strings.Join(probs, ";"))
+		err = IdentifySummaryError{probs}
 	}
 
-	return
+	return warnings, err
 }
 
 func (i IdentifyOutcome) GetError() error {

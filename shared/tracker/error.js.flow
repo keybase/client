@@ -1,0 +1,14 @@
+// @flow
+
+import {Component} from 'react'
+
+export type ErrorProps = {
+  errorMessage: string,
+  onRetry: () => void,
+}
+
+export type Props = ErrorProps & {
+  onClose: () => void,
+}
+
+export default class TrackerError extends Component<void, Props, void> { }

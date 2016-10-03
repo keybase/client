@@ -11,7 +11,6 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 
-import com.burnweb.rnpermissions.RNPermissionsPackage;
 import com.eguma.barcodescanner.BarcodeScannerPackage;
 import com.facebook.react.ReactApplication;
 
@@ -52,7 +51,6 @@ public class MainApplication extends Application implements ReactApplication {
       return Arrays.asList(
               new MainReactPackage(),
               new BarcodeScannerPackage(),
-              new RNPermissionsPackage(),
               new KBReactPackage(logFile.getAbsolutePath()));
     }
 

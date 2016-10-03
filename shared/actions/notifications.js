@@ -1,46 +1,88 @@
 // @flow
 import * as Constants from '../constants/notifications'
 import ListenerCreator from '../native/notification-listeners'
-import engine from '../engine'
-import setNotifications from '../util/set-notifications'
-import type {Dispatch} from '../constants/types/flux'
-import type {LogAction, NotificationKeys, NotificationAction} from '../constants/notifications'
-import type {Text as KBText, LogLevel} from '../constants/types/flow-types'
+import engine, {Engine} from '../engine'
 import {NotifyPopup} from '../native/notifications'
 import {log} from '../native/log/logui'
+import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
+import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
+import {call, put, take} from 'redux-saga/effects'
 
-export function logUiLog ({text, level}: {text: KBText, level: LogLevel}, response: any): LogAction {
+import type {LogAction, NotificationKeys, ListenForNotifications, BadgeAppAction} from '../constants/notifications'
+import type {SagaGenerator} from '../constants/types/saga'
+import type {Text as KBText, LogLevel} from '../constants/types/flow-types'
+
+function logUiLog ({text, level}: {text: KBText, level: LogLevel}, response: any): LogAction {
   log({text, level}, response)
   return {type: Constants.log, payload: {text: text.data, level}}
 }
 
-var initialized = false
-export function listenForNotifications (): (dispatch: Dispatch) => void {
-  return (dispatch, getState) => {
-    if (initialized) {
-      return
-    }
+function listenForNotifications (): ListenForNotifications {
+  return {type: Constants.listenForNotifications, payload: undefined}
+}
 
-    setNotifications({
-      session: true,
-      users: true,
-      kbfs: true,
-      service: true,
-      app: true,
-      pgp: true,
+function * _listenSaga (): SagaGenerator<any, any> {
+  const channels = {
+    app: true,
+    chat: false,
+    favorites: false,
+    kbfs: true,
+    kbfsrequest: false,
+    keyfamily: false,
+    paperkeys: false,
+    pgp: true,
+    service: true,
+    session: true,
+    tracking: true,
+    users: true,
+  }
+
+  // $ForceType
+  const engineInst: Engine = yield call(engine)
+  yield call([engineInst, engineInst.listenOnConnect], 'setNotifications', () => {
+    notifyCtlSetNotificationsRpc({
+      param: {channels},
+      callback: (error, response) => {
+        if (error != null) {
+          console.warn('error in toggling notifications: ', error)
+        }
+      },
     })
+  })
 
+  yield put((dispatch, getState) => {
     const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
     Object.keys(listeners).forEach(key => {
       engine().setIncomingHandler(key, listeners[key])
     })
-    initialized = true
-  }
+  })
+
+  yield put(registerIdentifyUi())
+  yield put(setupUserChangedHandler())
 }
 
-export function badgeApp (key: NotificationKeys, on: boolean): NotificationAction {
+function badgeApp (key: NotificationKeys, on: boolean): BadgeAppAction {
   return {
     type: Constants.badgeApp,
     payload: {key, on},
   }
 }
+
+function * _listenNotifications (): SagaGenerator<any, any> {
+  yield take(Constants.listenForNotifications)
+  yield call(_listenSaga)
+}
+
+function * notificationsSaga (): SagaGenerator<any, any> {
+  yield [
+    call(_listenNotifications),
+  ]
+}
+
+export {
+  badgeApp,
+  listenForNotifications,
+  logUiLog,
+}
+
+export default notificationsSaga

@@ -41,3 +41,6 @@ func (r *RemoteGPGUI) ConfirmDuplicateKeyChosen(ctx context.Context, _ int) (boo
 func (r *RemoteGPGUI) Sign(ctx context.Context, arg keybase1.SignArg) (string, error) {
 	return r.uicli.Sign(ctx, arg)
 }
+func (r *RemoteGPGUI) GetTTY(ctx context.Context) (string, error) {
+	return r.uicli.GetTTY(ctx)
+}
