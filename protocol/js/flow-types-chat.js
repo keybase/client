@@ -70,6 +70,14 @@ export const LocalMessagePlaintextVersion = {
   v1: 1,
 }
 
+export function localGetConversationForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'local.getConversationForCLILocal'})
+}
+
+export function localGetConversationForCLILocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>): Promise<localGetConversationForCLILocalResult> {
+  return new Promise((resolve, reject) => { localGetConversationForCLILocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localGetInboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxLocalResult) => void} & {param: localGetInboxLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'local.getInboxLocal'})
 }
@@ -84,14 +92,6 @@ export function localGetInboxSummaryLocalRpc (request: Exact<requestCommon & {ca
 
 export function localGetInboxSummaryLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxSummaryLocalResult) => void} & {param: localGetInboxSummaryLocalRpcParam}>): Promise<localGetInboxSummaryLocalResult> {
   return new Promise((resolve, reject) => { localGetInboxSummaryLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function localGetMessagesLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetMessagesLocalResult) => void} & {param: localGetMessagesLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.getMessagesLocal'})
-}
-
-export function localGetMessagesLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetMessagesLocalResult) => void} & {param: localGetMessagesLocalRpcParam}>): Promise<localGetMessagesLocalResult> {
-  return new Promise((resolve, reject) => { localGetMessagesLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function localGetThreadLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetThreadLocalResult) => void} & {param: localGetThreadLocalRpcParam}>) {
@@ -116,22 +116,6 @@ export function localPostLocalRpc (request: Exact<requestCommon & {callback?: ?(
 
 export function localPostLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostLocalResult) => void} & {param: localPostLocalRpcParam}>): Promise<localPostLocalResult> {
   return new Promise((resolve, reject) => { localPostLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function localResolveConversationLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localResolveConversationLocalResult) => void} & {param: localResolveConversationLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.resolveConversationLocal'})
-}
-
-export function localResolveConversationLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localResolveConversationLocalResult) => void} & {param: localResolveConversationLocalRpcParam}>): Promise<localResolveConversationLocalResult> {
-  return new Promise((resolve, reject) => { localResolveConversationLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function localUpdateTopicNameLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localUpdateTopicNameLocalResult) => void} & {param: localUpdateTopicNameLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.updateTopicNameLocal'})
-}
-
-export function localUpdateTopicNameLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localUpdateTopicNameLocalResult) => void} & {param: localUpdateTopicNameLocalRpcParam}>): Promise<localUpdateTopicNameLocalResult> {
-  return new Promise((resolve, reject) => { localUpdateTopicNameLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function remoteGetInboxRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
@@ -229,15 +213,14 @@ export type ConversationInfoLocal = {
   triple: ConversationIDTriple,
   tlfName: string,
   topicName: string,
-  topicType: TopicType,
   visibility: TLFVisibility,
 }
 
 export type ConversationLocal = {
   error?: ?string,
-  info?: ?ConversationInfoLocal,
-  messages?: ?Array<MessageFromServerOrError>,
-  readUpTo: MessageID,
+  info: ConversationInfoLocal,
+  readerInfo: ConversationReaderInfo,
+  maxMessages?: ?Array<MessageFromServerOrError>,
 }
 
 export type ConversationMetadata = {
@@ -262,6 +245,20 @@ export type GenericPayload = {
   Action: string,
 }
 
+export type GetConversationForCLILocalQuery = {
+  markAsRead: boolean,
+  MessageTypes?: ?Array<MessageType>,
+  Since?: ?string,
+  limit: UnreadFirstNumLimit,
+  conversationId: ConversationID,
+}
+
+export type GetConversationForCLILocalRes = {
+  conversation: ConversationLocal,
+  messages?: ?Array<MessageFromServerOrError>,
+  rateLimits?: ?Array<RateLimit>,
+}
+
 export type GetConversationMetadataRemoteRes = {
   conv: Conversation,
   rateLimit?: ?RateLimit,
@@ -272,8 +269,22 @@ export type GetInboxByTLFIDRemoteRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type GetInboxLocalQuery = {
+  tlfName?: ?string,
+  topicName?: ?string,
+  convID?: ?ConversationID,
+  topicType?: ?TopicType,
+  tlfVisibility?: ?TLFVisibility,
+  before?: ?gregor1.Time,
+  after?: ?gregor1.Time,
+  oneChatTypePerTLF?: ?boolean,
+  unreadOnly: boolean,
+  readOnly: boolean,
+}
+
 export type GetInboxLocalRes = {
-  inbox: InboxView,
+  conversations?: ?Array<ConversationLocal>,
+  pagination?: ?Pagination,
   rateLimits?: ?Array<RateLimit>,
 }
 
@@ -298,21 +309,16 @@ export type GetInboxSummaryLocalQuery = {
   topicType: TopicType,
   after: string,
   before: string,
+  visibility: TLFVisibility,
   unreadFirst: boolean,
   unreadFirstLimit: UnreadFirstNumLimit,
   activitySortedLimit: int,
-  visibility: TLFVisibility,
 }
 
 export type GetInboxSummaryLocalRes = {
   conversations?: ?Array<ConversationLocal>,
   more?: ?Array<ConversationLocal>,
   moreTotal: int,
-  rateLimits?: ?Array<RateLimit>,
-}
-
-export type GetMessagesLocalRes = {
-  msgs?: ?Array<ConversationLocal>,
   rateLimits?: ?Array<RateLimit>,
 }
 
@@ -441,15 +447,6 @@ export type MessagePreviousPointer = {
   hash: Hash,
 }
 
-export type MessageSelector = {
-  MessageTypes?: ?Array<MessageType>,
-  Since?: ?string,
-  onlyNew: boolean,
-  limit: UnreadFirstNumLimit,
-  conversations?: ?Array<ConversationID>,
-  markAsRead: boolean,
-}
-
 export type MessageServerHeader = {
   messageType: MessageType,
   messageID: MessageID,
@@ -474,7 +471,7 @@ export type MessageType =
   | 6 // TLFNAME_6
 
 export type NewConversationLocalRes = {
-  conv: ConversationInfoLocal,
+  conv: ConversationLocal,
   rateLimits?: ?Array<RateLimit>,
 }
 
@@ -559,17 +556,17 @@ export type UpdateTopicNameLocalRes = {
   rateLimits?: ?Array<RateLimit>,
 }
 
+export type localGetConversationForCLILocalRpcParam = Exact<{
+  query: GetConversationForCLILocalQuery
+}>
+
 export type localGetInboxLocalRpcParam = Exact<{
-  query?: ?GetInboxQuery,
+  query?: ?GetInboxLocalQuery,
   pagination?: ?Pagination
 }>
 
 export type localGetInboxSummaryLocalRpcParam = Exact<{
   query: GetInboxSummaryLocalQuery
-}>
-
-export type localGetMessagesLocalRpcParam = Exact<{
-  selector: MessageSelector
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{
@@ -579,21 +576,15 @@ export type localGetThreadLocalRpcParam = Exact<{
 }>
 
 export type localNewConversationLocalRpcParam = Exact<{
-  conversation: ConversationInfoLocal
+  tlfName: string,
+  topicType: TopicType,
+  tlfVisibility: TLFVisibility,
+  topicName?: ?string
 }>
 
 export type localPostLocalRpcParam = Exact<{
   conversationID: ConversationID,
   messagePlaintext: MessagePlaintext
-}>
-
-export type localResolveConversationLocalRpcParam = Exact<{
-  conversation: ConversationInfoLocal
-}>
-
-export type localUpdateTopicNameLocalRpcParam = Exact<{
-  conversationID: ConversationID,
-  newTopicName: string
 }>
 
 export type remoteGetInboxRemoteRpcParam = Exact<{
@@ -635,21 +626,17 @@ export type remoteTlfFinalizeRpcParam = Exact<{
   tlfID: TLFID
 }>
 
+type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
+
 type localGetInboxLocalResult = GetInboxLocalRes
 
 type localGetInboxSummaryLocalResult = GetInboxSummaryLocalRes
-
-type localGetMessagesLocalResult = GetMessagesLocalRes
 
 type localGetThreadLocalResult = GetThreadLocalRes
 
 type localNewConversationLocalResult = NewConversationLocalRes
 
 type localPostLocalResult = PostLocalRes
-
-type localResolveConversationLocalResult = ResolveConversationLocalRes
-
-type localUpdateTopicNameLocalResult = UpdateTopicNameLocalRes
 
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 
@@ -666,14 +653,12 @@ type remoteNewConversationRemoteResult = NewConversationRemoteRes
 type remotePostRemoteResult = PostRemoteRes
 
 export type rpc =
-    localGetInboxLocalRpc
+    localGetConversationForCLILocalRpc
+  | localGetInboxLocalRpc
   | localGetInboxSummaryLocalRpc
-  | localGetMessagesLocalRpc
   | localGetThreadLocalRpc
   | localNewConversationLocalRpc
   | localPostLocalRpc
-  | localResolveConversationLocalRpc
-  | localUpdateTopicNameLocalRpc
   | remoteGetInboxRemoteRpc
   | remoteGetMessagesRemoteRpc
   | remoteGetThreadRemoteRpc

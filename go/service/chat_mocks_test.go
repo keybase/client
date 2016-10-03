@@ -60,7 +60,6 @@ func newChatMockWorld(t *testing.T, name string, numUsers int) (world *chatMockW
 	}
 
 	world.fc.Advance(time.Hour)
-
 	return world
 }
 

@@ -14,7 +14,7 @@ import (
 type cmdChatList struct {
 	libkb.Contextified
 
-	fetcher inboxFetcher
+	fetcher chatInboxFetcher
 
 	showDeviceName bool
 }

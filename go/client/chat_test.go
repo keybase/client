@@ -186,11 +186,11 @@ func TestCliRead(t *testing.T) {
 	g.UI = &UI{Terminal: term}
 	c := &cmdChatRead{
 		Contextified: libkb.NewContextified(g),
-		fetcher: messageFetcher{
+		fetcher: chatConversationFetcher{
 			selector: chat1.MessageSelector{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			},
-			resolver: conversationResolver{
+			resolver: chatConversationResolver{
 				TlfName: "morty,rick,songgao",
 			},
 			chatClient: &chatLocalMock{},

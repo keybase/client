@@ -337,45 +337,6 @@
     },
     {
       "type": "record",
-      "name": "MessageSelector",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "MessageType"
-          },
-          "name": "MessageTypes"
-        },
-        {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "Since"
-        },
-        {
-          "type": "boolean",
-          "name": "onlyNew"
-        },
-        {
-          "type": "UnreadFirstNumLimit",
-          "name": "limit"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ConversationID"
-          },
-          "name": "conversations"
-        },
-        {
-          "type": "boolean",
-          "name": "markAsRead"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "ConversationInfoLocal",
       "fields": [
         {
@@ -395,10 +356,6 @@
           "name": "topicName"
         },
         {
-          "type": "TopicType",
-          "name": "topicType"
-        },
-        {
           "type": "TLFVisibility",
           "name": "visibility"
         }
@@ -416,22 +373,19 @@
           "name": "error"
         },
         {
-          "type": [
-            null,
-            "ConversationInfoLocal"
-          ],
+          "type": "ConversationInfoLocal",
           "name": "info"
+        },
+        {
+          "type": "ConversationReaderInfo",
+          "name": "readerInfo"
         },
         {
           "type": {
             "type": "array",
             "items": "MessageFromServerOrError"
           },
-          "name": "messages"
-        },
-        {
-          "type": "MessageID",
-          "name": "readUpTo"
+          "name": "maxMessages"
         }
       ]
     },
@@ -440,8 +394,18 @@
       "name": "GetInboxLocalRes",
       "fields": [
         {
-          "type": "InboxView",
-          "name": "inbox"
+          "type": {
+            "type": "array",
+            "items": "ConversationLocal"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
         },
         {
           "type": {
@@ -507,7 +471,7 @@
       "name": "NewConversationLocalRes",
       "fields": [
         {
-          "type": "ConversationInfoLocal",
+          "type": "ConversationLocal",
           "name": "conv"
         },
         {
@@ -534,14 +498,18 @@
     },
     {
       "type": "record",
-      "name": "GetMessagesLocalRes",
+      "name": "GetConversationForCLILocalRes",
       "fields": [
+        {
+          "type": "ConversationLocal",
+          "name": "conversation"
+        },
         {
           "type": {
             "type": "array",
-            "items": "ConversationLocal"
+            "items": "MessageFromServerOrError"
           },
-          "name": "msgs"
+          "name": "messages"
         },
         {
           "type": {
@@ -585,6 +553,108 @@
     },
     {
       "type": "record",
+      "name": "GetInboxLocalQuery",
+      "fields": [
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "tlfName"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "topicName"
+        },
+        {
+          "type": [
+            null,
+            "ConversationID"
+          ],
+          "name": "convID"
+        },
+        {
+          "type": [
+            null,
+            "TopicType"
+          ],
+          "name": "topicType"
+        },
+        {
+          "type": [
+            null,
+            "TLFVisibility"
+          ],
+          "name": "tlfVisibility"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "before"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "after"
+        },
+        {
+          "type": [
+            null,
+            "boolean"
+          ],
+          "name": "oneChatTypePerTLF"
+        },
+        {
+          "type": "boolean",
+          "name": "unreadOnly"
+        },
+        {
+          "type": "boolean",
+          "name": "readOnly"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetConversationForCLILocalQuery",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "markAsRead"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageType"
+          },
+          "name": "MessageTypes"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "Since"
+        },
+        {
+          "type": "UnreadFirstNumLimit",
+          "name": "limit"
+        },
+        {
+          "type": "ConversationID",
+          "name": "conversationId"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetInboxSummaryLocalQuery",
       "fields": [
         {
@@ -600,6 +670,10 @@
           "name": "before"
         },
         {
+          "type": "TLFVisibility",
+          "name": "visibility"
+        },
+        {
           "type": "boolean",
           "name": "unreadFirst"
         },
@@ -610,10 +684,6 @@
         {
           "type": "int",
           "name": "activitySortedLimit"
-        },
-        {
-          "type": "TLFVisibility",
-          "name": "visibility"
         }
       ]
     }
@@ -625,7 +695,7 @@
           "name": "query",
           "type": [
             null,
-            "GetInboxQuery"
+            "GetInboxLocalQuery"
           ]
         },
         {
@@ -674,45 +744,38 @@
       ],
       "response": "PostLocalRes"
     },
-    "resolveConversationLocal": {
-      "request": [
-        {
-          "name": "conversation",
-          "type": "ConversationInfoLocal"
-        }
-      ],
-      "response": "ResolveConversationLocalRes"
-    },
     "newConversationLocal": {
       "request": [
         {
-          "name": "conversation",
-          "type": "ConversationInfoLocal"
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "topicType",
+          "type": "TopicType"
+        },
+        {
+          "name": "tlfVisibility",
+          "type": "TLFVisibility"
+        },
+        {
+          "name": "topicName",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": "NewConversationLocalRes"
     },
-    "updateTopicNameLocal": {
+    "getConversationForCLILocal": {
       "request": [
         {
-          "name": "conversationID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "newTopicName",
-          "type": "string"
+          "name": "query",
+          "type": "GetConversationForCLILocalQuery"
         }
       ],
-      "response": "UpdateTopicNameLocalRes"
-    },
-    "getMessagesLocal": {
-      "request": [
-        {
-          "name": "selector",
-          "type": "MessageSelector"
-        }
-      ],
-      "response": "GetMessagesLocalRes"
+      "response": "GetConversationForCLILocalRes"
     },
     "getInboxSummaryLocal": {
       "request": [
