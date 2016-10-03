@@ -1,6 +1,7 @@
 // @flow
 import createLogger from 'redux-logger'
 import createSagaMiddleware from 'redux-saga'
+import errorCatchingMiddleware, {errorToPayload} from './error-catching'
 import mainSaga from './configure-sagas'
 import rootReducer from '../reducers'
 import storeEnhancer from './enhancer.platform'
@@ -10,6 +11,7 @@ import {actionLogger} from './action-logger'
 import {closureCheck} from './closure-check'
 import {createStore} from 'redux'
 import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../local-debug'
+import {globalError} from '../constants/config'
 import {isMobile} from '../constants/platform'
 import {requestIdleCallback} from '../util/idle-callback'
 
@@ -48,8 +50,18 @@ const loggerMiddleware: any = enableStoreLogging ? createLogger({
   logger,
 }) : null
 
-const sagaMiddleware = createSagaMiddleware()
-let middlewares = [sagaMiddleware, thunkMiddleware]
+const sagaMiddleware = createSagaMiddleware({
+  onError: (error) => {
+    if (theStore) {
+      theStore.dispatch({
+        type: globalError,
+        payload: errorToPayload(error),
+      })
+    }
+  },
+})
+
+let middlewares = [errorCatchingMiddleware, sagaMiddleware, thunkMiddleware]
 
 if (enableStoreLogging) {
   middlewares.push(loggerMiddleware)
@@ -61,8 +73,11 @@ if (closureStoreCheck) {
   middlewares.push(closureCheck)
 }
 
+let theStore
+
 export default function configureStore (initialState: any) {
   const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
+  theStore = store
 
   if (module.hot && isMobile) {
     // $FlowIssue
