@@ -110,13 +110,27 @@ protocol local {
     union { null, Pagination } pagination;
   }
 
+  // This causes fetching to return N items, where N = IdeallyGetUnreadPlus +
+  // Unread, if AtLeast <= N <= AtMost, or one of the bounds if there are too
+  // many / too few unread items. i.e. (derived from chris's comment)
+  // collar(AtLeast, (IdeallyGetUnreadPlus + Unread), AtMost)
+  //
+  // By definition, one could use a same non-zero number for both AtLeast and
+  // AtMost to precisely control the number of items returned.
+  record UnreadFirstNumLimit {
+    int NumRead;
+
+    int AtLeast;
+    int AtMost;
+  }
+
   record MessageSelector {
     array<MessageType> MessageTypes;
 
     union { null, string } Since;
     boolean onlyNew;
 
-    int limit;
+    UnreadFirstNumLimit limit;
 
     array<ConversationID> conversations;
 
@@ -134,6 +148,7 @@ protocol local {
   }
 
   record ConversationLocal {
+    union { null, string } error;
     union { null, ConversationInfoLocal } info;
     array<MessageFromServerOrError> messages;
     MessageID readUpTo;
@@ -203,6 +218,18 @@ protocol local {
   // selector.conversations is required
   GetMessagesLocalRes getMessagesLocal(MessageSelector selector);
 
+  record GetInboxSummaryLocalQuery {
+    TopicType topicType;
+    string after;
+    string before;
+
+    boolean unreadFirst;
+    UnreadFirstNumLimit unreadFirstLimit;
+    int activitySortedLimit;
+
+    TLFVisibility visibility;
+  }
+
   // if since is given, limit is ignored
-  GetInboxSummaryLocalRes getInboxSummaryLocal(TopicType topicType, string after, string before, int limit, TLFVisibility visibility);
+  GetInboxSummaryLocalRes getInboxSummaryLocal(GetInboxSummaryLocalQuery query);
 }

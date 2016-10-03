@@ -4,6 +4,7 @@
 package pvl
 
 import (
+	b64 "encoding/base64"
 	"fmt"
 	"log"
 	"sort"
@@ -15,27 +16,33 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func sampleState() scriptState {
-	var sampleVars = scriptVariables{
-		UsernameService: "kronk",
-		UsernameKeybase: "kronk_on_kb",
-		Sig:             []byte{1, 2, 3, 4, 5},
-		SigIDMedium:     "sig%{sig_id_medium}.*$(^)\\/",
-		SigIDShort:      "000",
-		Hostname:        "%{sig_id_medium}",
-		Protocol:        "http",
+func check(err error) {
+	if err != nil {
+		log.Panicf("checked err: %v", err)
 	}
+}
+
+func sampleState() scriptState {
+	sigBody := []byte{1, 2, 3, 4, 5}
 
 	var sampleState = scriptState{
-		WhichScript:  0,
-		PC:           0,
-		Service:      keybase1.ProofType_TWITTER,
-		Vars:         sampleVars,
-		ActiveString: "whaaa",
-		FetchURL:     "<<NONE>>",
-		HasFetched:   false,
-		fetchResult:  nil,
+		WhichScript: 0,
+		PC:          0,
+		Service:     keybase1.ProofType_TWITTER,
+		Regs:        *newNamedRegsStore(),
+		Sig:         sigBody,
+		HasFetched:  false,
+		FetchResult: nil,
 	}
+
+	check(sampleState.Regs.Set("username_service", "kronk"))
+	check(sampleState.Regs.Set("username_keybase", "kronk_on_kb"))
+	check(sampleState.Regs.Set("sig", b64.StdEncoding.EncodeToString(sigBody)))
+	check(sampleState.Regs.Set("sig_id_medium", "sig%{sig_id_medium}.*$(^)\\/"))
+	check(sampleState.Regs.Set("sig_id_short", "000"))
+	check(sampleState.Regs.Set("hostname", "%{sig_id_medium}"))
+	check(sampleState.Regs.Set("protocol", "http"))
+	check(sampleState.Regs.Ban("banned"))
 
 	return sampleState
 }
@@ -67,77 +74,46 @@ func TestServiceToString(t *testing.T) {
 	}
 }
 
-type substituteTest struct {
-	shouldwork    bool
-	service       keybase1.ProofType
-	numbered      []string
-	allowedExtras []string
-	a, b          string
-}
-
-var substituteTests = []substituteTest{
-	{true, keybase1.ProofType_TWITTER, nil, nil,
+var substituteTests = []struct {
+	shouldwork bool
+	service    keybase1.ProofType
+	a, b       string
+}{
+	{true, keybase1.ProofType_TWITTER,
 		"%{username_service}", "kronk"},
-	{true, keybase1.ProofType_GENERIC_WEB_SITE, nil, nil,
+	{true, keybase1.ProofType_GENERIC_WEB_SITE,
 		"%{hostname}", "%\\{sig_id_medium\\}"},
-	{true, keybase1.ProofType_TWITTER, nil, nil,
+	{true, keybase1.ProofType_TWITTER,
 		"x%{username_service}y%{sig_id_short}z", "xkronky000z"},
-	{true, keybase1.ProofType_TWITTER, nil, nil,
+	{true, keybase1.ProofType_TWITTER,
 		"http://git(?:hub)?%{username_service}/%20%%{sig_id_short}}{}", "http://git(?:hub)?kronk/%20%000}{}"},
-	{true, keybase1.ProofType_DNS, nil, nil,
+	{true, keybase1.ProofType_DNS,
 		"^%{hostname}/(?:.well-known/keybase.txt|keybase.txt)$", "^%\\{sig_id_medium\\}/(?:.well-known/keybase.txt|keybase.txt)$"},
-	{true, keybase1.ProofType_TWITTER, nil, nil,
+	{true, keybase1.ProofType_TWITTER,
 		"^.*%{sig_id_short}.*$", "^.*000.*$"},
-	{true, keybase1.ProofType_TWITTER, nil, nil,
+	{true, keybase1.ProofType_TWITTER,
 		"^keybase-site-verification=%{sig_id_short}$", "^keybase-site-verification=000$"},
-	{true, keybase1.ProofType_TWITTER, nil, nil,
+	{true, keybase1.ProofType_TWITTER,
 		"^%{sig_id_medium}$", "^sig%\\{sig_id_medium\\}\\.\\*\\$\\(\\^\\)\\\\/$"},
-	{true, keybase1.ProofType_TWITTER, nil, nil,
+	{true, keybase1.ProofType_TWITTER,
 		"%{username_keybase}:%{sig}", "kronk_on_kb:AQIDBAU="},
 
-	{false, keybase1.ProofType_TWITTER, nil, nil,
+	{false, keybase1.ProofType_TWITTER,
 		"%{}", "%{}"},
-	{false, keybase1.ProofType_TWITTER, nil, nil,
-		"%{bad}", ""},
+	{false, keybase1.ProofType_TWITTER,
+		"%{unset}", ""},
 
-	{false, keybase1.ProofType_TWITTER, nil, nil,
-		"%{hostname}", ""},
-	{false, keybase1.ProofType_DNS, nil, nil,
-		"%{username_service}", ""},
-	{false, keybase1.ProofType_GENERIC_WEB_SITE, nil, nil,
-		"%{username_service}", ""},
-
-	{true, keybase1.ProofType_TWITTER, []string{"zero", "one", "two", "three"}, nil,
-		"%{0}:%{3}", "zero:three"},
-	{true, keybase1.ProofType_TWITTER, []string{"zero"}, nil,
-		"%{-1}", "%{-1}"},
-	{false, keybase1.ProofType_TWITTER, []string{"zero", "one"}, nil,
-		"%{0}:%{1}:%{2}", ""},
-	{false, keybase1.ProofType_TWITTER, nil, nil,
-		"%{1}", ""},
-
-	{false, keybase1.ProofType_TWITTER, nil, nil,
-		"%{active_string}", ""},
-	{true, keybase1.ProofType_TWITTER, nil, []string{"active_string"},
-		"%{active_string}", "whaaa"},
-
-	{false, keybase1.ProofType_TWITTER, nil, []string{},
-		"%{hostname}", ""},
-	{false, keybase1.ProofType_DNS, nil, []string{},
-		"%{protocol}", ""},
-	{true, keybase1.ProofType_DNS, nil, []string{},
-		"%{hostname}", "%\\{sig_id_medium\\}"},
-	{true, keybase1.ProofType_GENERIC_WEB_SITE, nil, []string{},
-		"%{protocol}://%{hostname}", "http://%\\{sig_id_medium\\}"},
+	{false, keybase1.ProofType_TWITTER,
+		"%{banned}", ""},
 }
 
 func TestSubstitute(t *testing.T) {
 	for i, test := range substituteTests {
 		state := sampleState()
 		state.Service = test.service
-		res, err := substitute(test.a, state, test.numbered, test.allowedExtras)
+		res, err := substitute(test.a, state)
 		if (err == nil) != test.shouldwork {
-			t.Fatalf("%v error mismatch: %v %v %v", i, test.shouldwork, err, res)
+			t.Fatalf("%v error mismatch: %v ; %v ; '%v'", i, test.shouldwork, err, res)
 		}
 		if err == nil && res != test.b {
 			t.Logf("%v lens: %v %v", i, len(res), len(test.b))

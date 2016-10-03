@@ -25,11 +25,7 @@ module.exports = {
       loader: 'json',
     }, {
       test: /\.(gif|png)$/,
-      loader: 'file',
-      query: {
-        emitFile: false,
-        name: 'NOT_USED_[name].[ext]',
-      },
+      loader: 'null',
     }],
   },
   output: {

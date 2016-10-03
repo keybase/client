@@ -69,9 +69,13 @@ type scriptT struct {
 
 func (x *scriptT) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &x.Instructions)
-	for _, ins := range x.Instructions {
-		if ins.variantsFilled() != 1 {
-			return fmt.Errorf("exactly 1 variant must appear in instruction")
+	for i, ins := range x.Instructions {
+		n := ins.variantsFilled()
+		if n != 1 {
+			if i == 0 {
+				return fmt.Errorf("%v != 1 variants appeared in instruction %v", n, i)
+			}
+			return fmt.Errorf("%v != 1 variants appeared in instruction %v prev: %v", n, i, x.Instructions[i-1])
 		}
 	}
 	return err
@@ -83,15 +87,18 @@ type instructionT struct {
 	// - instructionT.variantsFilled
 	// - instructionT.Name
 	// - stepInstruction
+	// - validateScript
 	// This invariant is enforced by scriptT.UnmarshalJSON
 	AssertRegexMatch    *assertRegexMatchT    `json:"assert_regex_match,omitempty"`
 	AssertFindBase64    *assertFindBase64T    `json:"assert_find_base64,omitempty"`
+	AssertCompare       *assertCompareT       `json:"assert_compare,omitempty"`
 	WhitespaceNormalize *whitespaceNormalizeT `json:"whitespace_normalize,omitempty"`
 	RegexCapture        *regexCaptureT        `json:"regex_capture,omitempty"`
+	ParseURL            *parseURLT            `json:"parse_url,omitempty"`
 	Fetch               *fetchT               `json:"fetch,omitempty"`
 	SelectorJSON        *selectorJSONT        `json:"selector_json,omitempty"`
 	SelectorCSS         *selectorCSST         `json:"selector_css,omitempty"`
-	TransformURL        *transformURLT        `json:"transform_url,omitempty"`
+	Fill                *fillT                `json:"fill,omitempty"`
 }
 
 func (ins *instructionT) variantsFilled() int {
@@ -102,10 +109,16 @@ func (ins *instructionT) variantsFilled() int {
 	if ins.AssertFindBase64 != nil {
 		n++
 	}
+	if ins.AssertCompare != nil {
+		n++
+	}
 	if ins.WhitespaceNormalize != nil {
 		n++
 	}
 	if ins.RegexCapture != nil {
+		n++
+	}
+	if ins.ParseURL != nil {
 		n++
 	}
 	if ins.Fetch != nil {
@@ -117,7 +130,7 @@ func (ins *instructionT) variantsFilled() int {
 	if ins.SelectorCSS != nil {
 		n++
 	}
-	if ins.TransformURL != nil {
+	if ins.Fill != nil {
 		n++
 	}
 	return n
@@ -129,18 +142,22 @@ func (ins instructionT) Name() string {
 		return string(cmdAssertRegexMatch)
 	case ins.AssertFindBase64 != nil:
 		return string(cmdAssertFindBase64)
+	case ins.AssertCompare != nil:
+		return string(cmdAssertCompare)
 	case ins.WhitespaceNormalize != nil:
 		return string(cmdWhitespaceNormalize)
 	case ins.RegexCapture != nil:
 		return string(cmdRegexCapture)
+	case ins.ParseURL != nil:
+		return string(cmdParseURL)
 	case ins.Fetch != nil:
 		return string(cmdFetch)
 	case ins.SelectorJSON != nil:
 		return string(cmdSelectorJSON)
 	case ins.SelectorCSS != nil:
 		return string(cmdSelectorCSS)
-	case ins.TransformURL != nil:
-		return string(cmdTransformURL)
+	case ins.Fill != nil:
+		return string(cmdFill)
 	}
 	return "<invalid instruction>"
 }
@@ -153,49 +170,74 @@ type assertRegexMatchT struct {
 	Pattern         string  `json:"pattern"`
 	CaseInsensitive bool    `json:"case_insensitive"`
 	MultiLine       bool    `json:"multiline"`
+	From            string  `json:"from"`
 	Error           *errorT `json:"error"`
 }
 
 type assertFindBase64T struct {
-	Var   string  `json:"var"`
+	Needle   string  `json:"needle"`
+	Haystack string  `json:"haystack"`
+	Error    *errorT `json:"error"`
+}
+
+type assertCompareT struct {
+	// Comparison strategy
+	Cmp   string  `json:"cmp"`
+	A     string  `json:"a"`
+	B     string  `json:"b"`
 	Error *errorT `json:"error"`
 }
 
 type whitespaceNormalizeT struct {
+	From  string  `json:"from"`
+	Into  string  `json:"into"`
 	Error *errorT `json:"error"`
 }
 
 type regexCaptureT struct {
-	Pattern         string  `json:"pattern"`
-	MultiLine       bool    `json:"multiline"`
-	CaseInsensitive bool    `json:"case_insensitive"`
-	Error           *errorT `json:"error"`
+	Pattern         string   `json:"pattern"`
+	MultiLine       bool     `json:"multiline"`
+	CaseInsensitive bool     `json:"case_insensitive"`
+	From            string   `json:"from"`
+	Into            []string `json:"into"`
+	Error           *errorT  `json:"error"`
+}
+
+type parseURLT struct {
+	From   string  `json:"from"`
+	Path   string  `json:"path"`
+	Host   string  `json:"host"`
+	Scheme string  `json:"scheme"`
+	Error  *errorT `json:"error"`
 }
 
 type fetchT struct {
-	Kind  string  `json:"kind"`
+	Kind string `json:"kind"`
+	From string `json:"from"`
+	// Value is "" when not fetching a string
+	Into  string  `json:"into"`
 	Error *errorT `json:"error"`
 }
 
 type selectorJSONT struct {
-	Selectors []interface{} `json:"selectors"`
-	Error     *errorT       `json:"error"`
+	Selectors []selectorEntryT `json:"selectors"`
+	Into      string           `json:"into"`
+	Error     *errorT          `json:"error"`
 }
 
 type selectorCSST struct {
-	Selectors []interface{} `json:"selectors"`
-	Attr      string        `json:"attr"`
+	Selectors []selectorEntryT `json:"selectors"`
+	Attr      string           `json:"attr"`
 	// Whether the final selection can contain multiple elements.
 	Multi bool    `json:"multi"`
+	Into  string  `json:"into"`
 	Error *errorT `json:"error"`
 }
 
-type transformURLT struct {
-	Pattern         string  `json:"pattern"`
-	MultiLine       bool    `json:"multiline"`
-	CaseInsensitive bool    `json:"case_insensitive"`
-	ToPattern       string  `json:"to_pattern"`
-	Error           *errorT `json:"error"`
+type fillT struct {
+	With  string  `json:"with"`
+	Into  string  `json:"into"`
+	Error *errorT `json:"error"`
 }
 
 type errorT struct {
@@ -203,7 +245,7 @@ type errorT struct {
 	Description string
 }
 
-func (x *errorT) UnmarshalJSON(b []byte) error {
+func (e *errorT) UnmarshalJSON(b []byte) error {
 	ss := []string{}
 	err := json.Unmarshal(b, &ss)
 	if err != nil {
@@ -216,7 +258,42 @@ func (x *errorT) UnmarshalJSON(b []byte) error {
 	if !ok {
 		return fmt.Errorf("unrecognized proof status '%v'", ss[0])
 	}
-	x.Status = status
-	x.Description = ss[1]
+	e.Status = status
+	e.Description = ss[1]
+	return nil
+}
+
+type selectorEntryT struct {
+	// Exactly one of Is* is true
+	IsIndex bool
+	Index   int
+	IsKey   bool
+	Key     string
+	IsAll   bool
+}
+
+func (se *selectorEntryT) UnmarshalJSON(b []byte) error {
+	err := json.Unmarshal(b, &se.Index)
+	if err == nil {
+		se.IsIndex = true
+		return nil
+	}
+
+	err = json.Unmarshal(b, &se.Key)
+	if err == nil {
+		se.IsKey = true
+		return nil
+	}
+
+	m := make(map[string]bool)
+	err = json.Unmarshal(b, &m)
+	if err != nil {
+		return fmt.Errorf("invalid selector")
+	}
+	ok1, ok2 := m["all"]
+	if !(ok1 && ok2) {
+		return fmt.Errorf("invalid 'all' selector")
+	}
+	se.IsAll = true
 	return nil
 }

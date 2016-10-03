@@ -14,4 +14,5 @@ protocol gpgUi {
   SelectKeyRes selectKeyAndPushOption(int sessionID, array<GPGKey> keys);
   string selectKey(int sessionID, array<GPGKey> keys);
   string sign(bytes msg, bytes fingerprint);
+  string getTTY();
 }

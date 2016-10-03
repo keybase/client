@@ -20,11 +20,6 @@ export const readAppVersion = 'config:readAppVersion'
 
 export const changeKBFSPath = 'config:changeKBFSPath'
 
-export const devConfigLoading = 'config:devConfigLoading'
-export const devConfigLoaded = 'config:devConfigLoaded'
-export const devConfigUpdate = 'config:devConfigUpdate'
-export const devConfigSaved = 'config:devConfigSaved'
-
 export const MAX_BOOTSTRAP_TRIES = 3
 export const bootstrapRetryDelay = 10 * 1000
 

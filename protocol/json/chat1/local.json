@@ -319,6 +319,24 @@
     },
     {
       "type": "record",
+      "name": "UnreadFirstNumLimit",
+      "fields": [
+        {
+          "type": "int",
+          "name": "NumRead"
+        },
+        {
+          "type": "int",
+          "name": "AtLeast"
+        },
+        {
+          "type": "int",
+          "name": "AtMost"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageSelector",
       "fields": [
         {
@@ -340,7 +358,7 @@
           "name": "onlyNew"
         },
         {
-          "type": "int",
+          "type": "UnreadFirstNumLimit",
           "name": "limit"
         },
         {
@@ -390,6 +408,13 @@
       "type": "record",
       "name": "ConversationLocal",
       "fields": [
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        },
         {
           "type": [
             null,
@@ -557,6 +582,40 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxSummaryLocalQuery",
+      "fields": [
+        {
+          "type": "TopicType",
+          "name": "topicType"
+        },
+        {
+          "type": "string",
+          "name": "after"
+        },
+        {
+          "type": "string",
+          "name": "before"
+        },
+        {
+          "type": "boolean",
+          "name": "unreadFirst"
+        },
+        {
+          "type": "UnreadFirstNumLimit",
+          "name": "unreadFirstLimit"
+        },
+        {
+          "type": "int",
+          "name": "activitySortedLimit"
+        },
+        {
+          "type": "TLFVisibility",
+          "name": "visibility"
+        }
+      ]
     }
   ],
   "messages": {
@@ -658,24 +717,8 @@
     "getInboxSummaryLocal": {
       "request": [
         {
-          "name": "topicType",
-          "type": "TopicType"
-        },
-        {
-          "name": "after",
-          "type": "string"
-        },
-        {
-          "name": "before",
-          "type": "string"
-        },
-        {
-          "name": "limit",
-          "type": "int"
-        },
-        {
-          "name": "visibility",
-          "type": "TLFVisibility"
+          "name": "query",
+          "type": "GetInboxSummaryLocalQuery"
         }
       ],
       "response": "GetInboxSummaryLocalRes"

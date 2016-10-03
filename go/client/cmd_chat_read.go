@@ -27,12 +27,7 @@ func newCmdChatRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatRead{Contextified: libkb.NewContextified(g)}, "read", c)
 		},
-		Flags: makeChatListAndReadFlags([]cli.Flag{
-			cli.StringFlag{
-				Name:  "topic-name",
-				Usage: `Specify topic name of the conversation.`,
-			},
-		}),
+		Flags:       getMessageFetcherFlags(),
 		Description: `"keybase chat read" displays shows and read chat messages from a conversation. --time/--since can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported.`,
 	}
 }
@@ -54,6 +49,9 @@ func (c *cmdChatRead) Run() error {
 			return err
 		}
 		ui.Printf("\n")
+		if len(conversations) == c.fetcher.selector.Limit.AtMost {
+			ui.Printf("Number of conversations is capped by --at-most, so there might be more unread ones. Specify --at-most to a large number to fetch more.\n")
+		}
 	default:
 		// TODO: prompt user to choose one
 		ui.Printf("multiple conversations found\n")

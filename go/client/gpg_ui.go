@@ -81,6 +81,10 @@ func (g GPGUI) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, error)
 	return g.parent.PromptYesNo(PromptDescriptorGPGConfirmDuplicateKey, "You've already selected this public key for use on Keybase. Would you like to update it on Keybase?", libkb.PromptDefaultYes)
 }
 
+func (g GPGUI) GetTTY(_ context.Context) (string, error) {
+	return g.tty, nil
+}
+
 func (g GPGUI) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
 	fp, err := libkb.PGPFingerprintFromSlice(arg.Fingerprint)
 	if err != nil {

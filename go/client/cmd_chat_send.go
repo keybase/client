@@ -32,20 +32,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatSend{Contextified: libkb.NewContextified(g)}, "send", c)
 		},
-		Flags: makeChatFlags([]cli.Flag{
-			cli.StringFlag{
-				Name:  "topic-name",
-				Usage: `Specify topic name of the conversation.`,
-			},
-			cli.StringFlag{
-				Name:  "set-topic-name",
-				Usage: `Set topic name for the conversation`,
-			},
-			cli.BoolFlag{
-				Name:  "stdin",
-				Usage: "Use STDIN for message content. [conversation] is required and [message] is ignored.",
-			},
-		}),
+		Flags: mustGetChatFlags("topic-type", "topic-name", "set-topic-name", "stdin"),
 	}
 }
 
