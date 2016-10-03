@@ -11,6 +11,7 @@ class QR extends Component<void, Props, void> {
       return (
         <Camera
           style={{...cameraStyle, ...this.props.style}}
+          captureAudio={false}
           ref='cam'
           onBarCodeRead={data => this.props.onBarCodeRead(data)}>
           {this.props.children}

@@ -58,5 +58,7 @@
 	<string>63ff6926-88f0-4db0-8886-a4bb56bd4ad5</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+  <key>NSCameraUsageDescription</key>
+  <string>Scanning codes</string>
 </dict>
 </plist>
