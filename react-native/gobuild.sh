@@ -19,29 +19,35 @@ GOPATH="$tmp_gopath"
 echo "Using temp GOPATH: $GOPATH"
 
 # Clear source
-rm -rf "$GOPATH/src/github.com/keybase"
+echo "Clearing $GOPATH/src"
+rm -rf "$GOPATH/src/"/*
+mkdir -p "$GOPATH/src/github.com/keybase"
 
 # Copy source
 go_client_dir="$GOPATH/src/github.com/keybase/client/go"
-mkdir -p "$go_client_dir"
 
 if [ ! "$local_client" = "1" ]; then
-  echo "Getting client (via go get)..."
-  go get github.com/keybase/client
+  echo "Getting client (via git clone)..."
+  (cd "$GOPATH/src/github.com/keybase"; git clone https://github.com/keybase/client)
+  # echo "Getting client (via go get)..."
+  # go get -u github.com/keybase/client/go/...
 else
   echo "Getting client (using local GOPATH)..."
+  mkdir -p "$go_client_dir"
   cp -R "$client_go_dir"/* "$go_client_dir"
 fi
 
 go_kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
-mkdir -p "$go_kbfs_dir"
 
 if [ ! "$local_kbfs" = "1" ]; then
-  echo "Getting KBFS (via go get)..."
-  go get github.com/keybase/kbfs
+  echo "Getting KBFS (via git clone)..."
+  (cd "$GOPATH/src/github.com/keybase"; git clone https://github.com/keybase/kbfs)
+  # echo "Getting KBFS (via go get)..."
+  # go get -u github.com/keybase/kbfs/...
 else
   # For testing local KBFS changes
   echo "Gettings KBFS (using local GOPATH)..."
+  mkdir -p "$go_kbfs_dir"
   cp -R "$kbfs_dir"/* "$go_kbfs_dir"
 fi
 
