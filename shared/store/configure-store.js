@@ -64,7 +64,7 @@ if (closureStoreCheck) {
 export default function configureStore (initialState: any) {
   const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
 
-  if (module.hot && isMobile) {
+  if (module.hot && !isMobile) {
     // $FlowIssue
     module.hot.accept('../reducers', () => {
       store.replaceReducer(require('../reducers').default)
