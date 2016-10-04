@@ -28,6 +28,7 @@ type chatLocalHandler struct {
 	gh      *gregorHandler
 	tlf     keybase1.TlfInterface
 	boxer   *chat.Boxer
+	storage *chat.Storage
 	udCache *lru.Cache
 
 	// for test only
@@ -44,6 +45,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		gh:           gh,
 		tlf:          tlf,
 		boxer:        chat.NewBoxer(g, tlf),
+		storage:      chat.NewStorage(g),
 		udCache:      udc,
 	}
 }
@@ -222,6 +224,23 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
+
+	// Try locally first
+	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
+	localData, err := h.storage.Fetch(ctx, h.remoteClient(), arg.ConversationID,
+		uid, arg.Query, arg.Pagination)
+	if err == nil {
+		// If found, then return the stuff
+		// TODO: pagination and query support
+		h.G().Log.Debug("GetThreadLocal cache hit: convID: %d uid: %s", arg.ConversationID, uid)
+		return chat1.GetThreadLocalRes{
+			Thread: chat1.ThreadView{
+				Messages: localData,
+			},
+		}, nil
+	}
+	h.G().Log.Debug("chat cache miss: %s", err.Error())
+
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: arg.ConversationID,
 		Query:          arg.Query,
@@ -244,6 +263,11 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	_, err = chat.CheckPrevPointersAndGetUnpreved(&thread)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
+	}
+
+	// Store locally (just warn on error, don't abort the whole thing)
+	if err = h.storage.Merge(arg.ConversationID, uid, thread.Messages); err != nil {
+		h.G().Log.Warning("unable to commit thread locally: convID: %d uid: %s", arg.ConversationID, uid)
 	}
 
 	// Run type filter if it exists

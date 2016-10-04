@@ -130,6 +130,9 @@ const (
 	DBTrackers2               = 0xf3
 	DBTrackers2Reverse        = 0xf4
 	DBNotificationDismiss     = 0xf5
+	DBChatBlockIndex          = 0xf6
+	DBChatConvIndex           = 0xf7
+	DBChatBlocks              = 0xf8
 )
 
 const (
