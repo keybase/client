@@ -2419,7 +2419,7 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 	// status is different (e.g., we ended up on a conflict branch),
 	// clean it up only if the original revision failed.  If the same
 	// block appears more than once, the one with a different merged
-	// status takes precedence (which will always come earlier ni the
+	// status takes precedence (which will always come earlier in the
 	// list of MDs).
 	blocksSeen := make(map[BlockPointer]bool)
 	for _, oldMD := range syncState.si.toCleanIfUnused {
