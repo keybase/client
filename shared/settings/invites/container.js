@@ -2,11 +2,18 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Invites from './index'
-import {invitesReclaim, invitesRefresh, notificationsSave, notificationsToggle} from '../../actions/settings'
+import {invitesReclaim, invitesRefresh, invitesSend, notificationsSave, notificationsToggle} from '../../actions/settings'
 
 import type {TypedState} from '../../constants/reducer'
+import type {Props} from './index'
 
-class InvitationsContainer extends Component {
+type State = {
+  email: string,
+  message: string,
+}
+
+class InvitationsContainer extends Component<void, Props, State> {
+  state: State;
   componentWillMount () {
     this.props.onRefresh()
   }
@@ -24,5 +31,6 @@ export default connect(
     onToggleUnsubscribeAll: () => dispatch(notificationsToggle()),
     onRefresh: () => dispatch(invitesRefresh()),
     onReclaimInvitation: (inviteId: string) => dispatch(invitesReclaim(inviteId)),
+    onGenerateInvitation: (email: string, message: ?string) => dispatch(invitesSend(email, message)),
   }),
 )(InvitationsContainer)

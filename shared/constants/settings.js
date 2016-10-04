@@ -12,6 +12,15 @@ export type InvitesRefresh = NoErrorTypedAction<'settings:invitesRefresh', void>
 export const invitesRefreshed = 'settings:invitesRefreshed'
 export type InvitesRefreshed = NoErrorTypedAction<'settings:invitesRefreshed', InvitesState>
 
+export const invitesSend = 'settings:invitesSend'
+export type InvitesSend = NoErrorTypedAction<'settings:invitesSend', {
+  email: string,
+  message: ?string,
+}>
+
+export const invitesSent = 'settings:invitesSent'
+export type InvitesSent = TypedAction<'settings:invitesSent', void, {errorText: string}>
+
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export type NotificationsRefresh = NoErrorTypedAction<'settings:notificationsRefresh', void>
 export const notificationsRefreshed = 'settings:notificationsRefreshed'

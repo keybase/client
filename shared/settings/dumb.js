@@ -424,6 +424,7 @@ const invitesBase = {
       width: 504,
     },
   },
+  onRefresh: () => console.log('onRefresh'),
 }
 
 const invitesMap: DumbComponentMap<Invites> = {

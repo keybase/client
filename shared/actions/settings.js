@@ -6,7 +6,18 @@ import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {takeEvery, takeLatest, delay} from 'redux-saga'
 
 import type {SagaGenerator} from '../constants/types/saga'
-import type {InvitesReclaim, InvitesReclaimed, InvitesRefresh, NotificationsRefresh, NotificationsSave, NotificationsToggle, SetAllowDeleteAccount, DeleteAccountForever} from '../constants/settings'
+import type {
+  DeleteAccountForever,
+  InvitesReclaim,
+  InvitesReclaimed,
+  InvitesRefresh,
+  InvitesSend,
+  InvitesSent,
+  NotificationsRefresh,
+  NotificationsSave,
+  NotificationsToggle,
+  SetAllowDeleteAccount,
+} from '../constants/settings'
 
 function invitesReclaim (inviteId: string): InvitesReclaim {
   return {type: Constants.invitesReclaim, payload: {inviteId}}
@@ -14,6 +25,14 @@ function invitesReclaim (inviteId: string): InvitesReclaim {
 
 function invitesRefresh (): InvitesRefresh {
   return {type: Constants.invitesRefresh, payload: undefined}
+}
+
+function invitesSend (email: string, message: ?string): InvitesSend {
+  return {type: Constants.invitesSend, payload: {email, message}}
+}
+
+function invitesSent (): InvitesSent {
+  return {type: Constants.invitesSent, payload: undefined}
 }
 
 function notificationsRefresh (): NotificationsRefresh {
@@ -176,6 +195,34 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
   }
 }
 
+function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, any> {
+  const {email, message} = invitesSendAction.payload
+  let args = [{key: 'email', value: email}]
+  if (message) {
+    args.push({key: 'invitation_message', value: message})
+  }
+  try {
+    yield call(apiserverPostRpcPromise, {
+      param: {
+        endpoint: 'send_invitation',
+        args: args,
+      },
+    })
+    yield put(({
+      type: Constants.invitesSent,
+      payload: undefined,
+      error: false,
+    }: InvitesSent))
+  } catch (e) {
+    console.warn('Error sending an invite:', e)
+    yield put(({
+      type: Constants.invitesSent,
+      payload: {errorText: e.desc + e.name, errorObj: e},
+      error: true,
+    }: InvitesSent))
+  }
+  yield put(invitesRefresh())
+}
 function * refreshNotificationsSaga (): SagaGenerator<any, any> {
   try {
     // If the rpc is fast don't clear it out first
@@ -257,6 +304,7 @@ function * settingsSaga (): SagaGenerator<any, any> {
   yield [
     takeEvery(Constants.invitesReclaim, reclaimInviteSaga),
     takeLatest(Constants.invitesRefresh, refreshInvitesSaga),
+    takeEvery(Constants.invitesSend, sendInviteSaga),
     takeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
     takeLatest(Constants.notificationsSave, saveNotificationsSaga),
     takeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga),
@@ -266,6 +314,7 @@ function * settingsSaga (): SagaGenerator<any, any> {
 export {
   invitesReclaim,
   invitesRefresh,
+  invitesSend,
   notificationsRefresh,
   notificationsSave,
   notificationsToggle,
