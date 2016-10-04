@@ -58,13 +58,6 @@ protocol common {
     boolean readOnly;
   }
 
-  record GetThreadQuery {
-    boolean markAsRead;
-    array<MessageType> messageTypes;
-    union { null, gregor1.Time } before;
-    union { null, gregor1.Time } after;
-  }
-
   record ConversationIDTriple {
     TLFID tlfid;
     TopicType topicType;
