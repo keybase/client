@@ -40,7 +40,7 @@ body {
       function loadEntryChunk () {
         var script = document.createElement('script')
         script.src = getQueryVariable('src')
-        document.getElementsByTagName('head')[0].appendChild(script)
+        document.head.appendChild(script)
       }
 
       // Use vendor.js
@@ -48,17 +48,9 @@ body {
         var vendor = document.createElement('script')
         vendor.onload = loadEntryChunk
         vendor.src = '../dist/dll/dll.vendor.js'
-        vendor.async = true
-        document.getElementsByTagName('head')[0].appendChild(vendor)
+        document.head.appendChild(vendor)
       } else {
         loadEntryChunk()
-      }
-
-      function loadEntryChunk () {
-        var script = document.createElement('script')
-        script.src = getQueryVariable('src')
-        script.async = true
-        document.getElementsByTagName('head')[0].appendChild(script)
       }
     </script>
   </body>

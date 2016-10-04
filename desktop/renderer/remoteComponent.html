@@ -25,7 +25,7 @@
       function loadEntryChunk () {
         var script = document.createElement('script')
         script.src = getQueryVariable('src')
-        document.getElementsByTagName('head')[0].appendChild(script)
+        document.head.appendChild(script)
       }
 
       // Use vendor.js
@@ -33,7 +33,7 @@
         var vendor = document.createElement('script')
         vendor.onload = loadEntryChunk
         vendor.src = '../dist/dll/dll.vendor.js'
-        document.getElementsByTagName('head')[0].appendChild(vendor)
+        document.head.appendChild(vendor)
       } else {
         loadEntryChunk()
       }
