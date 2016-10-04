@@ -8,6 +8,7 @@ import {apiserverGetRpcPromise, apiserverPostRpcPromise} from '../constants/type
 import type {UpdateBillingArgs, UpdateBilling, FetchBillingAndQuota, FetchBillingOverview, UpdateBillingAndQuota, UpdateAvailablePlans, BillingState, BootstrapData, UpdatePaymentInfo, BillingError} from '../constants/plan-billing'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
+import type {BootStatus} from '../constants/config'
 
 function updateBilling (updateBillingArgs: UpdateBillingArgs): UpdateBilling {
   return {
@@ -169,15 +170,15 @@ function * fetchBillingAndQuotaSaga (): SagaGenerator<any, any> {
 
 function * bootstrapDataSaga (): SagaGenerator<any, any> {
   const billingStateSelector = ({planBilling}: TypedState) => planBilling
-  const overallBootstrappedSelector = ({config: {bootstrapped}}: TypedState) => bootstrapped
+  const overallBootstrappedSelector = ({config: {bootStatus}}: TypedState) => bootStatus
   const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
 
-  let bootstrapNumber: number = ((yield select(overallBootstrappedSelector)): any)
+  let bootstrapStatus: BootStatus = ((yield select(overallBootstrappedSelector)): any)
   let loggedIn: boolean = ((yield select(loggedInSelector)): any)
 
-  while (bootstrapNumber === 0 || !loggedIn) {
+  while (bootstrapStatus !== 'bootStatusBootstrapped' || !loggedIn) {
     yield call(delay, 500)
-    bootstrapNumber = ((yield select(overallBootstrappedSelector)): any)
+    bootstrapStatus = ((yield select(overallBootstrappedSelector)): any)
     loggedIn = ((yield select(loggedInSelector)): any)
   }
 
