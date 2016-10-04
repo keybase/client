@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {IntroProps} from './intro.render'
 import {Text, Icon, Button, Box} from '../../common-adapters'
-import {globalColors, globalStyles} from '../../styles'
+import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 class Intro extends Component<void, IntroProps, void> {
 
@@ -12,6 +12,23 @@ class Intro extends Component<void, IntroProps, void> {
         <Icon type='icon-keybase-logo-160' />
         <Text style={stylesHeader} type='HeaderJumbo'>Keybase</Text>
         <Text style={stylesHeaderSub} type='Body'>Loading…</Text>
+      </Box>
+    )
+  }
+
+  _renderFailure () {
+    return (
+      <Box style={stylesLoginForm}>
+        <Icon type='icon-keybase-logo-160' />
+        <Text style={stylesHeader} type='HeaderJumbo'>Keybase</Text>
+        <Text style={stylesMessage} type='Body'>
+          Oops, we had a problem communicating with our services.<br />
+          This might be because you lost connectivity.
+        </Text>
+        <Button
+          type='Primary'
+          label='Reload'
+          onClick={() => this.props.onRetry()} />
       </Box>
     )
   }
@@ -42,10 +59,15 @@ class Intro extends Component<void, IntroProps, void> {
   }
 
   render () {
-    if (!this.props.loaded) {
-      return this._renderSplash()
+    console.log('bootStatus:', this.props.bootStatus)
+    switch (this.props.bootStatus) {
+      case 'bootStatusLoading':
+        return this._renderSplash()
+      case 'bootStatusFailure':
+        return this._renderFailure()
+      case 'bootStatusBootstrapped':
+        return this._render()
     }
-    return this._render()
   }
 }
 
@@ -62,6 +84,12 @@ const stylesHeader = {
 }
 const stylesHeaderSub = {
   marginTop: 3,
+}
+const stylesMessage = {
+  marginLeft: globalMargins.large,
+  marginRight: globalMargins.large,
+  marginBottom: globalMargins.large,
+  textAlign: 'center',
 }
 const stylesButton = {
   marginTop: 15,

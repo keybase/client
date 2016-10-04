@@ -11,7 +11,6 @@ import Search from './search'
 import Settings from './settings'
 import TabBar from './tab-bar/index.render.native'
 import flags from './util/feature-flags'
-import forwardLogs from './native/forward-logs.native'
 import globalRoutes from './router/global-routes'
 import hello from './util/hello'
 import {Text, Box, NativeBackAndroid, NativeDrawerLayoutAndroid, NativeImage, NativeTouchableNativeFeedback} from './common-adapters/index.native'
@@ -21,6 +20,7 @@ import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
 import {navigateBack, switchTab} from './actions/router'
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, prettify} from './constants/tabs'
+import {setupSource} from './util/forward-logs.native'
 
 import type {VisibleTab} from './constants/tabs'
 
@@ -33,7 +33,7 @@ const tabs: {[key: VisibleTab]: {module: any}} = {
   [devicesTab]: {module: Devices, name: 'Devices'},
 }
 
-forwardLogs()
+setupSource()
 
 class AndroidNavigator extends Component {
   push (componentAtTop) {

@@ -172,10 +172,13 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         reason: `You have unfollowed ${state.username}.`,
       }
     case Constants.onError:
+      let errorText = 'There was an error updating your follow status.'
+      if (action.payload && action.payload.extraText) {
+        errorText = `There was an error: ${action.payload.extraText}`
+      }
       return {
         ...state,
-        lastAction: 'error',
-        reason: 'There was an error updating your follow status.',
+        error: errorText,
       }
     case Constants.updateEldestKidChanged: {
       return {

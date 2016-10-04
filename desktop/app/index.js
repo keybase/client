@@ -1,6 +1,5 @@
 // @flow
 import MainWindow from './main-window'
-import consoleHelper, {ipcLogs} from './console-helper'
 import devTools from './dev-tools'
 import hello from '../shared/util/hello'
 import installer from './installer'
@@ -14,6 +13,8 @@ import urlHelper from './url-helper'
 import windowHelper from './window-helper'
 import {BrowserWindow, app, dialog} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../shared/util/quit-helper.desktop'
+// $FlowIssue
+import {setupTarget} from '../shared/util/forward-logs'
 
 let mainWindow = null
 
@@ -58,8 +59,7 @@ function start () {
 
   hello(process.pid, 'Main Thread', process.argv, __VERSION__) // eslint-disable-line no-undef
 
-  consoleHelper()
-  ipcLogs()
+  setupTarget()
   devTools()
   menuBar()
   urlHelper()

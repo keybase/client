@@ -14,7 +14,7 @@ import (
 type cmdChatListUnread struct {
 	libkb.Contextified
 
-	fetcher inboxFetcher
+	fetcher chatCLIInboxFetcher
 
 	showDeviceName bool
 }
@@ -36,7 +36,7 @@ func newCmdChatListUnread(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 func (c *cmdChatListUnread) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 
-	conversations, _, _, err := c.fetcher.fetch(context.TODO(), c.G())
+	conversations, err := c.fetcher.fetch(context.TODO(), c.G())
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (c *cmdChatListUnread) Run() error {
 }
 
 func (c *cmdChatListUnread) ParseArgv(ctx *cli.Context) (err error) {
-	if c.fetcher, err = makeInboxFetcherUnreadFirstFromCli(ctx); err != nil {
+	if c.fetcher, err = makeChatCLIInboxFetcherUnreadFirst(ctx); err != nil {
 		return err
 	}
 	c.showDeviceName = ctx.Bool("show-device-name")

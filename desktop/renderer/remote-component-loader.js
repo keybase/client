@@ -15,11 +15,12 @@ import {MuiThemeProvider} from 'material-ui/styles'
 import {Provider} from 'react-redux'
 // $FlowIssue
 import {globalColors} from '../shared/styles'
-import {ipcLogsRenderer} from '../app/console-helper'
 import {remote, ipcRenderer} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
+// $FlowIssue
+import {setupSource} from '../shared/util/forward-logs'
 
-ipcLogsRenderer()
+setupSource()
 makeEngine()
 
 // $FlowIssue

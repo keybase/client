@@ -1,7 +1,7 @@
 // Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package service
+package chat
 
 import (
 	"crypto/rand"
@@ -31,16 +31,16 @@ func init() {
 	}
 }
 
-type chatBoxer struct {
+type Boxer struct {
 	tlf    keybase1.TlfInterface
 	hashV1 func(data []byte) chat1.Hash
 	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
 	libkb.Contextified
 }
 
-func newChatBoxer(g *libkb.GlobalContext) *chatBoxer {
-	return &chatBoxer{
-		tlf:          newTlfHandler(nil, g),
+func NewBoxer(g *libkb.GlobalContext, tlf keybase1.TlfInterface) *Boxer {
+	return &Boxer{
+		tlf:          tlf,
 		hashV1:       hashSha256V1,
 		sign:         sign,
 		Contextified: libkb.NewContextified(g),
@@ -49,10 +49,10 @@ func newChatBoxer(g *libkb.GlobalContext) *chatBoxer {
 
 // unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
-func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, boxed chat1.MessageBoxed) (messagePlaintext chat1.MessagePlaintext, err error) {
+func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1.MessageBoxed) (messagePlaintext chat1.MessagePlaintext, err error) {
 	tlfName := boxed.ClientHeader.TlfName
 	tlfPublic := boxed.ClientHeader.TlfPublic
-	keys, err := finder.find(ctx, b.tlf, tlfName, tlfPublic)
+	keys, err := finder.Find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
 		return chat1.MessagePlaintext{}, libkb.ChatUnboxingError{Msg: err.Error()}
 	}
@@ -78,7 +78,7 @@ func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, boxed c
 
 // unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given
 // a keybase1.CryptKey.
-func (b *chatBoxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed, key *keybase1.CryptKey) (messagePlaintext chat1.MessagePlaintext, err error) {
+func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed, key *keybase1.CryptKey) (messagePlaintext chat1.MessagePlaintext, err error) {
 	if msg.ServerHeader == nil {
 		return chat1.MessagePlaintext{}, errors.New("nil ServerHeader in MessageBoxed")
 	}
@@ -170,7 +170,7 @@ func (b *chatBoxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBo
 
 // boxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
 // finds the most recent key for the TLF.
-func (b *chatBoxer) boxMessage(ctx context.Context, msg chat1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 	version, err := msg.Version()
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (b *chatBoxer) boxMessage(ctx context.Context, msg chat1.MessagePlaintext, 
 }
 
 // boxMessageV1 encrypts and signs a keybase1.MessagePlaintextV1 into a chat1.MessageBoxed.
-func (b *chatBoxer) boxMessageV1(ctx context.Context, msg chat1.MessagePlaintextV1, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+func (b *Boxer) boxMessageV1(ctx context.Context, msg chat1.MessagePlaintextV1, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 	tlfName := msg.ClientHeader.TlfName
 	var recentKey *keybase1.CryptKey
 
@@ -218,7 +218,7 @@ func (b *chatBoxer) boxMessageV1(ctx context.Context, msg chat1.MessagePlaintext
 
 // boxMessageWithKeysV1 encrypts and signs a keybase1.MessagePlaintextV1 into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
-func (b *chatBoxer) boxMessageWithKeysV1(msg chat1.MessagePlaintextV1, key *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+func (b *Boxer) boxMessageWithKeysV1(msg chat1.MessagePlaintextV1, key *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 	body := chat1.BodyPlaintextV1{
 		MessageBody: msg.MessageBody,
 	}
@@ -267,7 +267,7 @@ func (b *chatBoxer) boxMessageWithKeysV1(msg chat1.MessagePlaintextV1, key *keyb
 }
 
 // seal encrypts data into chat1.EncryptedData.
-func (b *chatBoxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.EncryptedData, error) {
+func (b *Boxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.EncryptedData, error) {
 	s, err := b.marshal(data)
 	if err != nil {
 		return nil, err
@@ -288,7 +288,7 @@ func (b *chatBoxer) seal(data interface{}, key *keybase1.CryptKey) (*chat1.Encry
 }
 
 // open decrypts chat1.EncryptedData.
-func (b *chatBoxer) open(data chat1.EncryptedData, key *keybase1.CryptKey) ([]byte, error) {
+func (b *Boxer) open(data chat1.EncryptedData, key *keybase1.CryptKey) ([]byte, error) {
 	if len(data.N) != libkb.NaclDHNonceSize {
 		return nil, libkb.DecryptBadNonceError{}
 	}
@@ -304,7 +304,7 @@ func (b *chatBoxer) open(data chat1.EncryptedData, key *keybase1.CryptKey) ([]by
 
 // signMarshal signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
 // It marshals data before signing.
-func (b *chatBoxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+func (b *Boxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
 	encoded, err := b.marshal(data)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
@@ -328,7 +328,7 @@ func sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix)
 }
 
 // verifyMessage checks that a message is valid.
-func (b *chatBoxer) verifyMessage(ctx context.Context, header chat1.HeaderPlaintext, msg chat1.MessageBoxed, skipBodyVerification bool) error {
+func (b *Boxer) verifyMessage(ctx context.Context, header chat1.HeaderPlaintext, msg chat1.MessageBoxed, skipBodyVerification bool) error {
 	headerVersion, err := header.Version()
 	if err != nil {
 		return err
@@ -343,7 +343,7 @@ func (b *chatBoxer) verifyMessage(ctx context.Context, header chat1.HeaderPlaint
 }
 
 // verifyMessageHeaderV1 checks the body hash, header signature, and signing key validity.
-func (b *chatBoxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPlaintextV1, msg chat1.MessageBoxed, skipBodyVerification bool) error {
+func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPlaintextV1, msg chat1.MessageBoxed, skipBodyVerification bool) error {
 	if !skipBodyVerification {
 		// check body hash
 		bh := b.hashV1(msg.BodyCiphertext.E)
@@ -377,7 +377,7 @@ func (b *chatBoxer) verifyMessageHeaderV1(ctx context.Context, header chat1.Head
 }
 
 // verify verifies the signature of data using SignatureInfo.
-func (b *chatBoxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.SignaturePrefix) bool {
+func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.SignaturePrefix) bool {
 	sigInfo := libkb.NaclSigInfo{
 		Version: si.V,
 		Prefix:  prefix,
@@ -390,7 +390,7 @@ func (b *chatBoxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.Sig
 }
 
 // validSenderKey checks that the key is active for sender at ctime.
-func (b *chatBoxer) validSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (bool, error) {
+func (b *Boxer) validSenderKey(ctx context.Context, sender gregor1.UID, key []byte, ctime gregor1.Time) (bool, error) {
 	kbSender, err := keybase1.UIDFromString(hex.EncodeToString(sender.Bytes()))
 	if err != nil {
 		return false, err
@@ -398,9 +398,9 @@ func (b *chatBoxer) validSenderKey(ctx context.Context, sender gregor1.UID, key 
 	kid := keybase1.KIDFromSlice(key)
 	t := gregor1.FromTime(ctime)
 
-	var uimap *userInfoMapper
-	ctx, uimap = getUserInfoMapper(ctx, b.G())
-	user, err := uimap.user(kbSender)
+	var uimap *UserInfoMapper
+	ctx, uimap = GetUserInfoMapper(ctx, b.G())
+	user, err := uimap.User(kbSender)
 	if err != nil {
 		return false, err
 	}
@@ -419,7 +419,7 @@ func (b *chatBoxer) validSenderKey(ctx context.Context, sender gregor1.UID, key 
 	return true, nil
 }
 
-func (b *chatBoxer) marshal(v interface{}) ([]byte, error) {
+func (b *Boxer) marshal(v interface{}) ([]byte, error) {
 	mh := codec.MsgpackHandle{WriteExt: true}
 	var data []byte
 	enc := codec.NewEncoderBytes(&data, &mh)
@@ -429,7 +429,7 @@ func (b *chatBoxer) marshal(v interface{}) ([]byte, error) {
 	return data, nil
 }
 
-func (b *chatBoxer) unmarshal(data []byte, v interface{}) error {
+func (b *Boxer) unmarshal(data []byte, v interface{}) error {
 	mh := codec.MsgpackHandle{WriteExt: true}
 	dec := codec.NewDecoderBytes(data, &mh)
 	return dec.Decode(&v)
