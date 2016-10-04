@@ -320,7 +320,10 @@ func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
 func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 	md.log.Warning("MDServerRemote: DoCommand error: %q; retrying in %s",
 		err, wait)
-	md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, err)
+	// Only push errors that should not be retried as connection status changes.
+	if !md.ShouldRetry("", err) {
+		md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, err)
+	}
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
