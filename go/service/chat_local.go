@@ -168,7 +168,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, err
 	}
 	for _, convLocal := range convLocals {
-		if rquery.TlfID != nil {
+		if rquery != nil && rquery.TlfID != nil {
 			// verify using signed TlfName to make sure server returned genuine conversation
 			signedTlfID, _, err := h.cryptKeysWrapper(ctx, convLocal.Info.TlfName)
 			if err != nil {
@@ -180,7 +180,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		}
 
 		// server can't query on topic name, so we'd have to do it ourselves in the loop
-		if arg.Query.TopicName != nil && *arg.Query.TopicName != convLocal.Info.TopicName {
+		if arg.Query != nil && arg.Query.TopicName != nil && *arg.Query.TopicName != convLocal.Info.TopicName {
 			continue
 		}
 
