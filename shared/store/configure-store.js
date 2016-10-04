@@ -40,7 +40,7 @@ for (const method in console) {
   }
 }
 
-let theStore
+let theStore: Store
 
 const errorToPayload = (error: any): {summary: ?string, details: ?string} => {
   let summary
@@ -64,10 +64,8 @@ const errorToPayload = (error: any): {summary: ?string, details: ?string} => {
 
 const crashHandler = (error) => {
   if (theStore) {
-    // $FlowIssue
     theStore.dispatch({
       type: globalError,
-    // $FlowIssue
       payload: errorToPayload(error),
     })
   } else {
