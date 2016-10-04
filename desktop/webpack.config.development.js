@@ -86,7 +86,8 @@ if (getenv.boolish('HOT', false)) {
 }
 
 if (USING_DLL) {
-  // Don't build the main thing
+  // If we are running a hot server and using a DLL we want to be fast.
+  // So don't waste time in building the main thread bundle in this webpack server
   delete config.entry.main
 }
 
