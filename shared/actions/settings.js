@@ -101,7 +101,6 @@ function * reclaimInviteSaga (invitesReclaimAction: InvitesReclaim): SagaGenerat
     yield put(({
       type: Constants.invitesReclaimed,
       payload: undefined,
-      error: false,
     }: InvitesReclaimed))
   } catch (e) {
     console.warn('Error reclaiming an invite:', e)
@@ -206,7 +205,6 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
     yield put(({
       type: Constants.invitesSent,
       payload: undefined,
-      error: false,
     }: InvitesSent))
   } catch (e) {
     console.warn('Error sending an invite:', e)

@@ -51,7 +51,6 @@ function * _deviceListSaga (): SagaGenerator<any, any> {
     yield put(({
       type: Constants.showDevices,
       payload: devices,
-      error: false,
     }: ShowDevices))
   } catch (e) {
     yield put(({
@@ -88,7 +87,6 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
       yield put(({
         type: Constants.deviceRemoved,
         payload: undefined,
-        error: false,
       }: DeviceRemoved))
     } catch (e) {
       console.warn('Error removing the current device:', e)
@@ -107,7 +105,6 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
       yield put(({
         type: Constants.deviceRemoved,
         payload: undefined,
-        error: false,
       }: DeviceRemoved))
     } catch (e) {
       console.warn('Error removing a device:', e)
@@ -179,7 +176,6 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
     yield put(({
       type: Constants.paperKeyLoaded,
       payload: displayPaperKeyPhrase.payload.params.paperKey,
-      error: false,
     }: PaperKeyLoaded))
     displayPaperKeyPhrase.payload.response.result()
   } catch (e) {
