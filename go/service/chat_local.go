@@ -12,6 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -25,7 +26,8 @@ type chatLocalHandler struct {
 	*BaseHandler
 	libkb.Contextified
 	gh      *gregorHandler
-	boxer   *chatBoxer
+	tlf     keybase1.TlfInterface
+	boxer   *chat.Boxer
 	udCache *lru.Cache
 
 	// for test only
@@ -35,11 +37,13 @@ type chatLocalHandler struct {
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
 	udc, _ := lru.New(10000)
+	tlf := newTlfHandler(nil, g)
 	return &chatLocalHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		gh:           gh,
-		boxer:        newChatBoxer(g),
+		tlf:          tlf,
+		boxer:        chat.NewBoxer(g, tlf),
 		udCache:      udc,
 	}
 }
@@ -55,7 +59,7 @@ type udCacheValue struct {
 }
 
 func (h *chatLocalHandler) getUsernameAndDeviceName(uid keybase1.UID, deviceID keybase1.DeviceID,
-	uimap *userInfoMapper) (string, string, error) {
+	uimap *chat.UserInfoMapper) (string, string, error) {
 
 	if val, ok := h.udCache.Get(udCacheKey{UID: uid, DeviceID: deviceID}); ok {
 		if udval, ok := val.(udCacheValue); ok {
@@ -65,7 +69,7 @@ func (h *chatLocalHandler) getUsernameAndDeviceName(uid keybase1.UID, deviceID k
 		}
 	}
 
-	username, deviceName, err := uimap.lookup(uid, deviceID)
+	username, deviceName, err := uimap.Lookup(uid, deviceID)
 	if err != nil {
 		return username, deviceName, err
 	}
@@ -101,7 +105,7 @@ func (h *chatLocalHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []chat1
 }
 
 func (h *chatLocalHandler) cryptKeysWrapper(ctx context.Context, tlfName string) (tlfID chat1.TLFID, canonicalTlfName string, err error) {
-	resp, err := h.boxer.tlf.CryptKeys(ctx, tlfName)
+	resp, err := h.tlf.CryptKeys(ctx, tlfName)
 	if err != nil {
 		return nil, "", err
 	}
@@ -158,7 +162,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		RateLimits: h.aggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 	}
 
-	ctx, _ = getUserInfoMapper(ctx, h.G())
+	ctx, _ = chat.GetUserInfoMapper(ctx, h.G())
 	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Conversations)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
@@ -324,7 +328,7 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 
 func (h *chatLocalHandler) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation) ([]chat1.ConversationLocal, error) {
 	// Fetch conversation local information in parallel
-	ctx, _ = getUserInfoMapper(ctx, h.G())
+	ctx, _ = chat.GetUserInfoMapper(ctx, h.G())
 	type jobRes struct {
 		conv  chat1.ConversationLocal
 		index int
@@ -388,14 +392,14 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 
 	var after time.Time
 	if len(arg.After) > 0 {
-		after, err = parseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
+		after, err = chat.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
 		if err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
 		}
 	}
 	var before time.Time
 	if len(arg.Before) > 0 {
-		before, err = parseTimeFromRFC3339OrDurationFromPast(h.G(), arg.Before)
+		before, err = chat.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.Before)
 		if err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
 		}
@@ -433,7 +437,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		res.RateLimits = append(res.RateLimits, gires.RateLimits...)
 		res.Conversations = append(res.Conversations, gires.Conversations...)
 
-		more := collar(
+		more := chat.Collar(
 			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
 			arg.UnreadFirstLimit.NumRead,
 			arg.UnreadFirstLimit.AtMost-len(res.Conversations),
@@ -541,7 +545,7 @@ func (h *chatLocalHandler) localizeConversation(
 	return conversationLocal, nil
 }
 
-func (h *chatLocalHandler) getSenderInfoLocal(uimap *userInfoMapper, messagePlaintext chat1.MessagePlaintext) (senderUsername string, senderDeviceName string, err error) {
+func (h *chatLocalHandler) getSenderInfoLocal(uimap *chat.UserInfoMapper, messagePlaintext chat1.MessagePlaintext) (senderUsername string, senderDeviceName string, err error) {
 	version, err := messagePlaintext.Version()
 	if err != nil {
 		return "", "", err
@@ -591,7 +595,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 
 	var since time.Time
 	if arg.Since != nil {
-		since, err = parseTimeFromRFC3339OrDurationFromPast(h.G(), *arg.Since)
+		since, err = chat.ParseTimeFromRFC3339OrDurationFromPast(h.G(), *arg.Since)
 		if err != nil {
 			return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", *arg.Since, since)
 		}
@@ -689,7 +693,7 @@ func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintex
 	if err != nil {
 		return nil, err
 	}
-	boxed, err := h.boxer.boxMessage(ctx, msg, skp)
+	boxed, err := h.boxer.BoxMessage(ctx, msg, skp)
 	if err != nil {
 		return nil, err
 	}
@@ -772,11 +776,11 @@ func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadVi
 }
 
 func (h *chatLocalHandler) unboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageFromServerOrError, err error) {
-	finder := newKeyFinder()
-	var uimap *userInfoMapper
-	ctx, uimap = getUserInfoMapper(ctx, h.G())
+	finder := chat.NewKeyFinder()
+	var uimap *chat.UserInfoMapper
+	ctx, uimap = chat.GetUserInfoMapper(ctx, h.G())
 	for _, msg := range boxed {
-		messagePlaintext, err := h.boxer.unboxMessage(ctx, finder, msg)
+		messagePlaintext, err := h.boxer.UnboxMessage(ctx, finder, msg)
 		if err != nil {
 			errMsg := err.Error()
 			h.G().Log.Warning("failed to unbox message: msgID: %d err: %s", msg.ServerHeader.MessageID, errMsg)
@@ -813,52 +817,4 @@ func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {
 		return libkb.LoginRequiredError{}
 	}
 	return nil
-}
-
-// keyFinder remembers results from previous calls to CryptKeys().
-// It is not intended to be used by multiple concurrent goroutines
-// or held onto for very long, just to remember the keys while
-// unboxing a thread of messages.
-type keyFinder struct {
-	keys map[string]keybase1.TLFCryptKeys
-}
-
-// newKeyFinder creates a keyFinder.
-func newKeyFinder() *keyFinder {
-	return &keyFinder{keys: make(map[string]keybase1.TLFCryptKeys)}
-}
-
-func (k *keyFinder) cacheKey(tlfName string, tlfPublic bool) string {
-	return fmt.Sprintf("%s|%v", tlfName, tlfPublic)
-}
-
-// find finds keybase1.TLFCryptKeys for tlfName, checking for existing
-// results.
-func (k *keyFinder) find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.TLFCryptKeys, error) {
-	ckey := k.cacheKey(tlfName, tlfPublic)
-	existing, ok := k.keys[ckey]
-	if ok {
-		return existing, nil
-	}
-
-	var keys keybase1.TLFCryptKeys
-	if tlfPublic {
-		cid, err := tlf.PublicCanonicalTLFNameAndID(ctx, tlfName)
-		if err != nil {
-			return keybase1.TLFCryptKeys{}, err
-		}
-		keys.CanonicalName = cid.CanonicalName
-		keys.TlfID = cid.TlfID
-		keys.CryptKeys = []keybase1.CryptKey{publicCryptKey}
-	} else {
-		var err error
-		keys, err = tlf.CryptKeys(ctx, tlfName)
-		if err != nil {
-			return keybase1.TLFCryptKeys{}, err
-		}
-	}
-
-	k.keys[ckey] = keys
-
-	return keys, nil
 }
