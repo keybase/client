@@ -8,7 +8,6 @@ import * as actions from '../../actions/plan-billing'
 import Payment from './index'
 import {parseExpiration} from '../../constants/plan-billing'
 
-import type {UpdateBillingArgs} from '../../constants/plan-billing'
 import type {TypedState} from '../../constants/reducer'
 
 type OwnProps = {}
@@ -24,14 +23,11 @@ type Props = {
   errorMessage?: ?string,
   clearBillingError: () => void,
   onBack: () => void,
-  parseExpiration: (expiration: string) => {month: string, year: string, error?: string}, // parsed 01/18 to [01, 18] and the like...
-  onSubmit: (args: UpdateBillingArgs) => void,
+  onSubmit: (cardNumber: ?string, name: ?string, securityCode: ?string, expiration: ?string) => void,
 }
 
 class PaymentStateHolder extends Component<void, Props, State> {
   state: State;
-  _onSubmit: () => void;
-
   constructor () {
     super()
     this.state = {
@@ -39,17 +35,6 @@ class PaymentStateHolder extends Component<void, Props, State> {
       name: null,
       expiration: null,
       securityCode: null,
-    }
-
-    this._onSubmit = () => {
-      const parsedExpiration = this.props.parseExpiration(this.state.expiration || '')
-      this.props.onSubmit({
-        cardNumber: new HiddenString(this.state.cardNumber || ''),
-        nameOnCard: new HiddenString(this.state.name || ''),
-        securityCode: new HiddenString(this.state.securityCode || ''),
-        cardExpMonth: new HiddenString(parsedExpiration.month),
-        cardExpYear: new HiddenString(parsedExpiration.year),
-      })
     }
   }
 
@@ -71,7 +56,7 @@ class PaymentStateHolder extends Component<void, Props, State> {
         securityCode={this.state.securityCode}
         errorMessage={this.props.errorMessage}
         onBack={this.props.onBack}
-        onSubmit={this._onSubmit}
+        onSubmit={() => this.props.onSubmit(this.state.cardNumber, this.state.name, this.state.securityCode, this.state.expiration)}
       />
     )
   }
@@ -111,9 +96,16 @@ export default connect(
       bootstrapDone: true,
       originalProps: {
         ...stateProps.originalProps,
-        onSubmit: dispatchProps.onSubmit,
-        // TODO(mm) make this an action that sets the error field correctly
-        parseExpiration: parseExpiration,
+        onSubmit: (cardNumber: ?string, name: ?string, securityCode: ?string, expiration: ?string) => {
+          const parsedExpiration = parseExpiration(expiration || '')
+          dispatchProps.onSubmit({
+            cardNumber: new HiddenString(cardNumber || ''),
+            nameOnCard: new HiddenString(name || ''),
+            securityCode: new HiddenString(securityCode || ''),
+            cardExpMonth: new HiddenString(parsedExpiration.month),
+            cardExpYear: new HiddenString(parsedExpiration.year),
+          })
+        },
         clearBillingError: dispatchProps.clearBillingError,
       },
     }
