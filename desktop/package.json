@@ -12,7 +12,7 @@
     "build-dev": "babel-node --presets es2015,stage-2 npm-helper.js build-dev",
     "build-prod": "babel-node --presets es2015,stage-2 npm-helper.js build-prod",
     "package": "babel-node --presets es2015,stage-2 npm-helper.js package",
-    "hot-server": "npm run build-main-thread && npm run build-wpdll && npm run just-hot-server",
+    "hot-server": "npm run build-main-thread && npm run build-wpdll && npm run hot-server-only",
     "hot-server-only": "babel-node --presets es2015,stage-2 npm-helper.js hot-server",
     "build-wpdll": "babel-node --presets es2015,stage-2 npm-helper.js build-wpdll",
     "build-main-thread": "babel-node --presets es2015,stage-2 npm-helper.js build-main-thread",
