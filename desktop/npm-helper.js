@@ -109,7 +109,7 @@ const commands = {
     shell: 'webpack --config webpack.config.main-thread-only.js --progress --profile --colors',
     help: 'Bundle the code that the main node thread uses',
   },
-  'build-dll': {
+  'build-wpdll': {
     nodeEnv: 'development',
     nodePathDesktop: true,
     shell: 'webpack --config webpack.config.dll-build.js --progress',
