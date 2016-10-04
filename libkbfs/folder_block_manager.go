@@ -283,11 +283,51 @@ func (fbm *folderBlockManager) enqueueBlocksToDeleteNoWait(toDelete blocksToDele
 	}
 }
 
+func isArchivableOp(op op) bool {
+	switch op.(type) {
+	case *createOp:
+		return true
+	case *rmOp:
+		return true
+	case *renameOp:
+		return true
+	case *syncOp:
+		return true
+	case *setAttrOp:
+		return true
+	case *resolutionOp:
+		return true
+	default:
+		// rekey ops don't have anything to archive, and gc
+		// ops only have deleted blocks.
+		return false
+	}
+}
+
+func isArchivableMDOrError(md ReadOnlyRootMetadata) error {
+	if md.MergedStatus() != Merged {
+		return fmt.Errorf("md rev=%d is not merged", md.Revision())
+	}
+
+	for _, op := range md.data.Changes.Ops {
+		if !isArchivableOp(op) {
+			return fmt.Errorf(
+				"md rev=%d has unarchivable op %s",
+				md.Revision(), op)
+		}
+	}
+	return nil
+}
+
 func (fbm *folderBlockManager) archiveUnrefBlocks(md ReadOnlyRootMetadata) {
 	// Don't archive for unmerged revisions, because conflict
 	// resolution might undo some of the unreferences.
 	if md.MergedStatus() != Merged {
 		return
+	}
+
+	if err := isArchivableMDOrError(md); err != nil {
+		panic(err)
 	}
 
 	fbm.archiveGroup.Add(1)
@@ -303,6 +343,10 @@ func (fbm *folderBlockManager) archiveUnrefBlocksNoWait(md ReadOnlyRootMetadata)
 	// resolution might undo some of the unreferences.
 	if md.MergedStatus() != Merged {
 		return
+	}
+
+	if err := isArchivableMDOrError(md); err != nil {
+		panic(err)
 	}
 
 	fbm.archiveGroup.Add(1)

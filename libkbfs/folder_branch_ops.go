@@ -4788,7 +4788,7 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
 
 func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 	rev MetadataRevision) {
-	fbo.log.CDebugf(ctx, "Archiving references for flushed MD revision %d", rev)
+	fbo.log.CDebugf(ctx, "Considering archiving references for flushed MD revision %d", rev)
 
 	// Get that revision.
 	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
@@ -4796,6 +4796,12 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't get revision %d for archiving: %v",
 			rev, err)
+		return
+	}
+
+	if err := isArchivableMDOrError(rmd.ReadOnly()); err != nil {
+		fbo.log.CDebugf(
+			ctx, "Skipping archiving references for flushed MD revision %d: %s", rev, err)
 		return
 	}
 
