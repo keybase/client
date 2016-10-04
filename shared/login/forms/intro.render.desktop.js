@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {IntroProps} from './intro.render'
 import {Text, Icon, Button, Box} from '../../common-adapters'
-import {globalColors, globalStyles} from '../../styles'
+import {globalColors, globalStyles, globalMargins} from '../../styles'
 
 class Intro extends Component<void, IntroProps, void> {
 
@@ -86,9 +86,9 @@ const stylesHeaderSub = {
   marginTop: 3,
 }
 const stylesMessage = {
-  marginLeft: 40,
-  marginRight: 40,
-  marginBottom: 40,
+  marginLeft: globalMargins.large,
+  marginRight: globalMargins.large,
+  marginBottom: globalMargins.large,
   textAlign: 'center',
 }
 const stylesButton = {
