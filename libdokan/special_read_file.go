@@ -31,6 +31,9 @@ func (f *SpecialReadFile) GetFileInformation(ctx context.Context, fi *dokan.File
 	// here, as is usual for pseudofiles. So return the actual
 	// size, even though it may be racy.
 	a, err := defaultFileInformation()
+	if err != nil {
+		return nil, err
+	}
 	a.FileAttributes |= dokan.FileAttributeReadonly
 	a.FileSize = int64(len(data))
 	a.LastWrite = t
