@@ -23,7 +23,6 @@ function start () {
   const shouldQuit = app.makeSingleInstance(() => {
     if (mainWindow) {
       mainWindow.show(true)
-      mainWindow.window.focus()
     }
   })
 
