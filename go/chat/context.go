@@ -13,6 +13,6 @@ import (
 // KeybaseContext defines what chat needs from Keybase
 type KeybaseContext interface {
 	GetLog() logger.Logger
-	LoadUser(uid keybase1.UID) (*libkb.User, error)
+	LoadUserByUID(uid keybase1.UID) (*libkb.User, error)
 	Clock() clockwork.Clock
 }

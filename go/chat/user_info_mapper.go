@@ -80,7 +80,7 @@ func (u *UserInfoMapper) User(uid keybase1.UID) (*libkb.User, error) {
 	if !ok {
 		u.kbCtx.GetLog().Debug("userInfoMapper: missed user cache: uid: %s", uid)
 		var err error
-		user, err = u.kbCtx.LoadUser(uid)
+		user, err = u.kbCtx.LoadUserByUID(uid)
 		if err != nil {
 			return nil, err
 		}
