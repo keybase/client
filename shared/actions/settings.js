@@ -199,7 +199,13 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
           invitationId: parsedBody.invitation_id.slice(0, 10),
         },
       }: InvitesSent))
-      yield put(routeAppend('invitesent'))
+      yield put(routeAppend({
+        path: 'inviteSent',
+        props: {
+          email,
+          invitationId: parsedBody.invitation_id.slice(0, 10),
+        },
+      }))
     }
   } catch (e) {
     console.warn('Error sending an invite:', e)
