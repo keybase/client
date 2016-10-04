@@ -303,21 +303,22 @@ func (s *LoginState) GetPassphraseStreamExport(ui SecretUI) (pps keybase1.Passph
 	if s.G().SecretStoreAll != nil {
 		s.G().Log.Debug("| trying to get passphrase stream from secret store")
 		secret, err := s.G().SecretStoreAll.RetrieveSecret(s.G().Env.GetUsername())
-		if err != nil {
-			return pps, err
+		if err == nil {
+			lks := NewLKSecWithFullSecret(secret, s.G().Env.GetUID(), s.G())
+			if err = lks.LoadServerHalf(nil); err != nil {
+				return pps, err
+			}
+			stream, err := NewPassphraseStreamLKSecOnly(secret)
+			if err != nil {
+				return pps, err
+			}
+			stream.SetGeneration(lks.Generation())
+			s.G().Log.Debug("| got passphrase stream from secret store")
+			return stream.Export(), nil
+		} else {
+			s.G().Log.Debug("| failed to get passphrase stream from secret store: %s", err)
 		}
-		lks := NewLKSecWithFullSecret(secret, s.G().Env.GetUID(), s.G())
-		if err = lks.LoadServerHalf(nil); err != nil {
-			return pps, err
-		}
-		stream, err := NewPassphraseStreamLKSecOnly(secret)
-		if err != nil {
-			return pps, err
-		}
-		stream.SetGeneration(lks.Generation())
-		return stream.Export(), nil
 	}
-	s.G().Log.Debug("| no secret store available")
 
 	// 3. login and get it
 	s.G().Log.Debug("| using full GetPassphraseStream")
