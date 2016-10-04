@@ -1,5 +1,9 @@
 package client
 
+/* NOTE: This file is very out-dated. We should retire this and use integration
+* tests instead. */
+
+/*
 import (
 	"errors"
 	"testing"
@@ -104,7 +108,7 @@ func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg chat1.
 	return res, nil
 }
 
-func (c *chatLocalMock) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalArg) (res chat1.GetInboxSummaryLocalRes, err error) {
+func (c *chatLocalMock) GetInboxSummaryLocal(ctx context.Context, arg chat1.GetInboxSummaryLocalQuery) (res chat1.GetInboxSummaryLocalRes, err error) {
 	gmres, err := c.GetMessagesLocal(ctx, chat1.MessageSelector{})
 	if err != nil {
 		return res, err
@@ -183,12 +187,11 @@ func TestCliRead(t *testing.T) {
 	g.UI = &UI{Terminal: term}
 	c := &cmdChatRead{
 		Contextified: libkb.NewContextified(g),
-		fetcher: messageFetcher{
+		fetcher: chatConversationFetcher{
 			selector: chat1.MessageSelector{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-				Limit:        0,
 			},
-			resolver: conversationResolver{
+			resolver: chatConversationResolver{
 				TlfName: "morty,rick,songgao",
 			},
 			chatClient: &chatLocalMock{},
@@ -200,3 +203,4 @@ func TestCliRead(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+*/

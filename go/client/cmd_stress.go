@@ -19,7 +19,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 func NewCmdStress(cl *libcmdline.CommandLine) cli.Command {
@@ -310,5 +310,8 @@ func (c *CmdStress) GetPassphrase(_ context.Context, arg keybase1.GetPassphraseA
 	return
 }
 func (c *CmdStress) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
+	return "", nil
+}
+func (c *CmdStress) GetTTY(_ context.Context) (string, error) {
 	return "", nil
 }

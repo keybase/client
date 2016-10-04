@@ -3,6 +3,8 @@ machine:
     version: 7.2
   node:
     version: 5.7.0
+  java:
+    version: oraclejdk8
   environment:
     GOPATH: $HOME/go-path
     PATH: $GOROOT/bin:$PATH
@@ -22,7 +24,6 @@ dependencies:
     - mkdir $HOME/go-path
     - (cd $HOME; tar -xzvf go.tar.gz)
     - sudo mv $HOME/go /usr/local
-    - go get github.com/keybase/kbfs/libkbfs
     - if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
     - if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
   cache_directories:

@@ -5,7 +5,7 @@ package service
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -40,4 +40,7 @@ func (r *RemoteGPGUI) ConfirmDuplicateKeyChosen(ctx context.Context, _ int) (boo
 }
 func (r *RemoteGPGUI) Sign(ctx context.Context, arg keybase1.SignArg) (string, error) {
 	return r.uicli.Sign(ctx, arg)
+}
+func (r *RemoteGPGUI) GetTTY(ctx context.Context) (string, error) {
+	return r.uicli.GetTTY(ctx)
 }

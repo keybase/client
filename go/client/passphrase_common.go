@@ -8,7 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 func newChangeArg(newPassphrase string, force bool) keybase1.PassphraseChangeArg {

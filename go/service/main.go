@@ -13,12 +13,13 @@ import (
 	"time"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type Service struct {
@@ -206,6 +207,7 @@ func (d *Service) Run() (err error) {
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
+	d.tryLogin()
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
@@ -601,5 +603,17 @@ func (d *Service) configurePath() {
 	}
 	if newDirs != "" {
 		mergeIntoPath(d.G(), newDirs)
+	}
+}
+
+// tryLogin attempts to run LoginProvisionedDevice when the service starts up.
+// This should get around any issue where the session.json file is out of date
+// or missing since the last time the service started.
+func (d *Service) tryLogin() {
+	eng := engine.NewLoginProvisionedDevice(d.G(), "")
+	eng.SecretStoreOnly = true
+	ctx := &engine.Context{}
+	if err := engine.RunEngine(eng, ctx); err != nil {
+		d.G().Log.Debug("error running LoginProvisionedDevice on service startup: %s", err)
 	}
 }

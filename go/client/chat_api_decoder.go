@@ -80,6 +80,10 @@ func (d *ChatAPIDecoder) handleV1(ctx context.Context, c Call, w io.Writer) erro
 		return d.handler.ReadV1(ctx, c, w)
 	case "send":
 		return d.handler.SendV1(ctx, c, w)
+	case "edit":
+		return d.handler.EditV1(ctx, c, w)
+	case "delete":
+		return d.handler.DeleteV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

@@ -175,37 +175,10 @@
         {
           "type": "boolean",
           "name": "unreadOnly"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "GetThreadQuery",
-      "fields": [
+        },
         {
           "type": "boolean",
-          "name": "markAsRead"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "MessageType"
-          },
-          "name": "messageTypes"
-        },
-        {
-          "type": [
-            null,
-            "gregor1.Time"
-          ],
-          "name": "before"
-        },
-        {
-          "type": [
-            null,
-            "gregor1.Time"
-          ],
-          "name": "after"
+          "name": "readOnly"
         }
       ]
     },

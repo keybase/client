@@ -4,13 +4,11 @@
 package pvl
 
 import (
-	b64 "encoding/base64"
 	"errors"
 	"fmt"
 	"net"
 	"net/url"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -19,15 +17,19 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-// Substitute vars for %{name} in the string.
-// Only substitutes whitelisted variables.
-// It is an error to refer to an unknown variable or undefined numbered group.
-// Match is an optional slice which is a regex match.
-// AllowActiveString makes active_string a valid variable.
-func substitute(template string, state scriptState, match []string, allowedExtras []string) (string, libkb.ProofError) {
-	vars := state.Vars
-	webish := (state.Service == keybase1.ProofType_DNS || state.Service == keybase1.ProofType_GENERIC_WEB_SITE)
+// Substitute register values for %{name} in the string.
+// Regex-escape variable values
+func substituteReEscape(template string, state scriptState) (string, libkb.ProofError) {
+	return substituteInner(template, state, true)
+}
 
+// Substitute register values for %{name} in the string.
+// Does not escape register values
+func substituteExact(template string, state scriptState) (string, libkb.ProofError) {
+	return substituteInner(template, state, false)
+}
+
+func substituteInner(template string, state scriptState, regexEscape bool) (string, libkb.ProofError) {
 	var outerr libkb.ProofError
 	// Regex to find %{name} occurrences.
 	// Match broadly here so that even %{} is sent to the default case and reported as invalid.
@@ -35,60 +37,16 @@ func substitute(template string, state scriptState, match []string, allowedExtra
 	substituteOne := func(vartag string) string {
 		// Strip off the %, {, and }
 		varname := vartag[2 : len(vartag)-1]
-		var value string
-		switch varname {
-		case "username_service":
-			if !webish {
-				value = vars.UsernameService
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Cannot use %v in proof type %v", varname, state.Service)
-			}
-		case "username_keybase":
-			value = vars.UsernameKeybase
-		case "sig":
-			value = b64.StdEncoding.EncodeToString(vars.Sig)
-		case "sig_id_medium":
-			value = vars.SigIDMedium
-		case "sig_id_short":
-			value = vars.SigIDShort
-		case "hostname":
-			if webish {
-				value = vars.Hostname
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Cannot use %v in proof type %v", varname, state.Service)
-			}
-		case "protocol":
-			if state.Service == keybase1.ProofType_GENERIC_WEB_SITE {
-				value = vars.Protocol
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Cannot use %v in proof type %v", varname, state.Service)
-			}
-		case "active_string":
-			if stringsContains(allowedExtras, "active_string") {
-				value = state.ActiveString
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Active string substitution now allowed")
-			}
-		default:
-			var i int
-			i, err := strconv.Atoi(varname)
-			if err == nil {
-				if i >= 0 && i < len(match) {
-					value = match[i]
-				} else {
-					outerr = libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-						"Substitution argument %v out of range of match", i)
-				}
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Unrecognized variable: %v", varname)
-			}
+		value, err := state.Regs.Get(varname)
+		if err != nil {
+			outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Invalid substitution: %v", err)
+			return ""
 		}
-		return regexp.QuoteMeta(value)
+		if regexEscape {
+			return regexp.QuoteMeta(value)
+		}
+		return value
 	}
 	res := re.ReplaceAllStringFunc(template, substituteOne)
 	if outerr != nil {

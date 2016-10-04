@@ -51,6 +51,10 @@ func (g *gpgtestui) Sign(_ context.Context, _ keybase1.SignArg) (string, error) 
 	return "", fmt.Errorf("not implemented")
 }
 
+func (g *gpgtestui) GetTTY(_ context.Context) (string, error) {
+	return "", nil
+}
+
 //
 // FakeIdentifyUI
 //

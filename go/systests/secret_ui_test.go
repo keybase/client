@@ -12,7 +12,7 @@ import (
 	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 func TestSecretUI(t *testing.T) {

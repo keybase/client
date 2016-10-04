@@ -11,7 +11,7 @@ import (
 
 // TestParse parses the hardcoded string
 func TestParse(t *testing.T) {
-	p, err := parse(hardcodedPVLString)
+	p, err := parse(GetHardcodedPvlString())
 	if err != nil {
 		t.Fatalf("parse failed: %v", err)
 	}
@@ -22,7 +22,7 @@ func TestParse(t *testing.T) {
 
 // TestParse2 checks a few of the parse output's details.
 func TestParse2(t *testing.T) {
-	p, err := parse(hardcodedPVLString)
+	p, err := parse(GetHardcodedPvlString())
 	if err != nil {
 		t.Fatalf("parse failed: %v", err)
 	}
@@ -43,7 +43,7 @@ func TestParse2(t *testing.T) {
 	if len(cbs.Instructions) < 1 {
 		t.Fatalf("empty script")
 	}
-	if cbs.Instructions[0].RegexCapture == nil {
-		t.Fatalf("first instruction is not a RegexCapture")
+	if cbs.Instructions[0].Fill == nil {
+		t.Fatalf("first instruction is not a fill")
 	}
 }

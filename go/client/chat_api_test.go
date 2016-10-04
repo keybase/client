@@ -15,9 +15,11 @@ import (
 )
 
 type handlerTracker struct {
-	listV1 int
-	readV1 int
-	sendV1 int
+	listV1   int
+	readV1   int
+	sendV1   int
+	editV1   int
+	deleteV1 int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -32,6 +34,16 @@ func (h *handlerTracker) ReadV1(context.Context, Call, io.Writer) error {
 
 func (h *handlerTracker) SendV1(context.Context, Call, io.Writer) error {
 	h.sendV1++
+	return nil
+}
+
+func (h *handlerTracker) EditV1(context.Context, Call, io.Writer) error {
+	h.editV1++
+	return nil
+}
+
+func (h *handlerTracker) DeleteV1(context.Context, Call, io.Writer) error {
+	h.deleteV1++
 	return nil
 }
 
@@ -55,12 +67,22 @@ func (c *chatEcho) SendV1(context.Context, sendOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) DeleteV1(context.Context, deleteOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) EditV1(context.Context, editOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 type topTest struct {
-	input  string
-	err    error
-	listV1 int
-	readV1 int
-	sendV1 int
+	input    string
+	err      error
+	listV1   int
+	readV1   int
+	sendV1   int
+	editV1   int
+	deleteV1 int
 }
 
 var topTests = []topTest{
@@ -79,6 +101,8 @@ var topTests = []topTest{
 	{input: `{"jsonrpc": "2.0", "id": 21, "method": "send", "params":{"version": 1}}`, sendV1: 1},
 	{input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`, listV1: 2},
 	{input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1}}`, listV1: 1, readV1: 1},
+	{input: `{"id": 29, "method": "edit", "params":{"version": 1}}`, editV1: 1},
+	{input: `{"id": 30, "method": "delete", "params":{"version": 1}}`, deleteV1: 1},
 }
 
 // TestChatAPIDecoderTop tests that the "top-level" of the chat json makes it to
@@ -106,6 +130,12 @@ func TestChatAPIDecoderTop(t *testing.T) {
 		}
 		if h.sendV1 != test.sendV1 {
 			t.Errorf("test %d: input %s => sendV1 = %d, expected %d", i, test.input, h.sendV1, test.sendV1)
+		}
+		if h.editV1 != test.editV1 {
+			t.Errorf("test %d: input %s => editV1 = %d, expected %d", i, test.input, h.editV1, test.editV1)
+		}
+		if h.deleteV1 != test.deleteV1 {
+			t.Errorf("test %d: input %s => deleteV1 = %d, expected %d", i, test.input, h.deleteV1, test.deleteV1)
 		}
 	}
 }
@@ -157,6 +187,13 @@ var optTests = []optTest{
 		input: `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
 	},
 	{
+		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": 123, "message": {"body": "hi"}}}}`,
+	},
+	{
+		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": 222, "channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
 		input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
 	},
 	{
@@ -180,6 +217,55 @@ var optTests = []optTest{
 	},
 	{
 		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+	},
+	{
+		input: `{"id": 29, "method": "edit", "params":{"version": 1}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "delete", "params":{"version": 1}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 29, "method": "edit", "params":{"version": 1, "options": {}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "edited"}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": "edited"}}}}`,
+	},
+	{
+		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": 333, "message_id": 123, "message": {"body": "edited"}}}}`,
+	},
+	{
+		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"message_id": 0}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"message_id": 19}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
 	},
 }
 
@@ -240,6 +326,10 @@ var echoTests = []echoTest{
 	{
 		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": 123}}}`,
 		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "delete", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		output: `{"result":{"status":"ok"}}`,
 	},
 }
 

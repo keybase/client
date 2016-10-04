@@ -44,7 +44,7 @@ func createGpgClient(tc libkb.TestContext) *libkb.GpgCLI {
 
 func assertKeysPresent(t *testing.T, gpgClient *libkb.GpgCLI, fingerprints []string) {
 	for _, fingerprint := range fingerprints {
-		fpObj, err := gpgClient.ImportKey(false /*secret*/, *libkb.PGPFingerprintFromHexNoError(fingerprint))
+		fpObj, err := gpgClient.ImportKey(false /*secret*/, *libkb.PGPFingerprintFromHexNoError(fingerprint), "")
 		if err != nil {
 			t.Fatal("Should have fingerprint in keyring:", fingerprint)
 		}
@@ -56,7 +56,7 @@ func assertKeysPresent(t *testing.T, gpgClient *libkb.GpgCLI, fingerprints []str
 
 func assertKeysMissing(t *testing.T, gpgClient *libkb.GpgCLI, fingerprints []string) {
 	for _, fingerprint := range fingerprints {
-		_, err := gpgClient.ImportKey(false /*secret*/, *libkb.PGPFingerprintFromHexNoError(fingerprint))
+		_, err := gpgClient.ImportKey(false /*secret*/, *libkb.PGPFingerprintFromHexNoError(fingerprint), "")
 		if err == nil {
 			t.Fatal("Should not already have fingerprint in keyring:", fingerprint)
 		}
