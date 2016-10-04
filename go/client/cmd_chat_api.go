@@ -274,41 +274,44 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			continue
 		}
 
-		version, err := m.Message.MessagePlaintext.Version()
-		if err != nil {
-			return c.errReply(err)
-		}
-		switch version {
-		case chat1.MessagePlaintextVersion_V1:
-			v1 := m.Message.MessagePlaintext.V1()
-			if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
-				// skip TLFNAME messages
+		if m.Message != nil {
+			version, err := m.Message.MessagePlaintext.Version()
+			if err != nil {
+				return c.errReply(err)
+			}
+			switch version {
+			case chat1.MessagePlaintextVersion_V1:
+				v1 := m.Message.MessagePlaintext.V1()
+				if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
+					// skip TLFNAME messages
+					continue
+				}
+				msg := MsgSummary{
+					ID: m.Message.ServerHeader.MessageID,
+					Channel: ChatChannel{
+						Name:      v1.ClientHeader.TlfName,
+						Public:    v1.ClientHeader.TlfPublic,
+						TopicType: strings.ToLower(v1.ClientHeader.Conv.TopicType.String()),
+					},
+					Sender: MsgSender{
+						UID:      v1.ClientHeader.Sender.String(),
+						DeviceID: v1.ClientHeader.SenderDevice.String(),
+					},
+					SentAt:   int64(m.Message.ServerHeader.Ctime / 1000),
+					SentAtMs: int64(m.Message.ServerHeader.Ctime),
+				}
+				msg.Content = c.convertMsgBody(v1.MessageBody)
+
+				msg.Sender.Username = m.Message.SenderUsername
+				msg.Sender.DeviceName = m.Message.SenderDeviceName
+
+				thread.Messages = append(thread.Messages, MsgFromServer{
+					Msg: &msg,
+				})
 				continue
+			default:
+				return c.errReply(libkb.NewChatMessageVersionError(version))
 			}
-			msg := MsgSummary{
-				ID: m.Message.ServerHeader.MessageID,
-				Channel: ChatChannel{
-					Name:      v1.ClientHeader.TlfName,
-					Public:    v1.ClientHeader.TlfPublic,
-					TopicType: strings.ToLower(v1.ClientHeader.Conv.TopicType.String()),
-				},
-				Sender: MsgSender{
-					UID:      v1.ClientHeader.Sender.String(),
-					DeviceID: v1.ClientHeader.SenderDevice.String(),
-				},
-				SentAt:   int64(m.Message.ServerHeader.Ctime / 1000),
-				SentAtMs: int64(m.Message.ServerHeader.Ctime),
-			}
-			msg.Content = c.convertMsgBody(v1.MessageBody)
-
-			msg.Sender.Username = m.Message.SenderUsername
-			msg.Sender.DeviceName = m.Message.SenderDeviceName
-
-			thread.Messages = append(thread.Messages, MsgFromServer{
-				Msg: &msg,
-			})
-		default:
-			return c.errReply(libkb.NewChatMessageVersionError(version))
 		}
 
 	}
