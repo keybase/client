@@ -902,7 +902,7 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 	return paths, nil
 }
 
-// remove delets all operations associated with `rmd` from the chains.
+// remove deletes all operations associated with `rmd` from the chains.
 // It leaves original block pointers in place though, even when
 // removing operations from the head of the chain.  It returns the set
 // of chains with at least one operation removed.
