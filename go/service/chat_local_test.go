@@ -30,14 +30,14 @@ func (tuc *chatTestUserContext) chatLocalHandler() chat1.LocalInterface {
 }
 
 type chatTestContext struct {
-	world *chat.ChatMockWorld
+	world *kbtest.ChatMockWorld
 
 	userContextCache map[string]*chatTestUserContext
 }
 
 func makeChatTestContext(t *testing.T, name string, numUsers int) *chatTestContext {
 	ctc := &chatTestContext{}
-	ctc.world = chat.NewChatMockWorld(t, name, numUsers)
+	ctc.world = kbtest.NewChatMockWorld(t, name, numUsers)
 	ctc.userContextCache = make(map[string]*chatTestUserContext)
 	return ctc
 }
@@ -60,8 +60,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		t.Fatalf("user %s is not found", user.Username)
 	}
 	h := newChatLocalHandler(nil, tc.G, nil)
-	h.rc = chat.NewChatRemoteMock(c.world)
-	h.tlf = chat.NewTlfMock(c.world)
+	h.rc = kbtest.NewChatRemoteMock(c.world)
+	h.tlf = kbtest.NewTlfMock(c.world)
 	h.boxer = chat.NewBoxer(tc.G, h.tlf)
 	tuc := &chatTestUserContext{
 		h: h,
@@ -139,7 +139,7 @@ func TestChatNewConversationLocal(t *testing.T) {
 		t.Fatalf("created conversation does not have a message")
 	}
 	if conv.MaxMsgs[0].ClientHeader.TlfName !=
-		string(chat.CanonicalTlfNameForTest(ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username)) {
+		string(kbtest.CanonicalTlfNameForTest(ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username)) {
 		t.Fatalf("unexpected TLF name in created conversation. expected %s, got %s", ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username, conv.MaxMsgs[0].ClientHeader.TlfName)
 	}
 }

@@ -1,4 +1,4 @@
-package chat
+package kbtest
 
 import (
 	"crypto/rand"
@@ -12,7 +12,6 @@ import (
 
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/externals"
-	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -24,7 +23,7 @@ type ChatMockWorld struct {
 	Fc clockwork.FakeClock
 
 	Tcs     map[string]*libkb.TestContext
-	Users   map[string]*kbtest.FakeUser
+	Users   map[string]*FakeUser
 	tlfs    map[keybase1.CanonicalTlfName]chat1.TLFID
 	tlfKeys map[keybase1.CanonicalTlfName][]keybase1.CryptKey
 
@@ -39,7 +38,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 	world = &ChatMockWorld{
 		Fc:      clockwork.NewFakeClockAt(time.Now()),
 		Tcs:     make(map[string]*libkb.TestContext),
-		Users:   make(map[string]*kbtest.FakeUser),
+		Users:   make(map[string]*FakeUser),
 		tlfs:    make(map[keybase1.CanonicalTlfName]chat1.TLFID),
 		tlfKeys: make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
 		Msgs:    make(map[chat1.ConversationID][]*chat1.MessageBoxed),
@@ -47,7 +46,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 	for i := 0; i < numUsers; i++ {
 		tc := externals.SetupTest(t, "chat_"+name, 0)
 		tc.G.SetClock(world.Fc)
-		u, err := kbtest.CreateAndSignupFakeUser("chat", tc.G)
+		u, err := CreateAndSignupFakeUser("chat", tc.G)
 		if err != nil {
 			t.Fatal(err)
 		}
