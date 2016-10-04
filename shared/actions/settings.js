@@ -31,10 +31,6 @@ function invitesSend (email: string, message: ?string): InvitesSend {
   return {type: Constants.invitesSend, payload: {email, message}}
 }
 
-function invitesSent (): InvitesSent {
-  return {type: Constants.invitesSent, payload: undefined}
-}
-
 function notificationsRefresh (): NotificationsRefresh {
   return {type: Constants.notificationsRefresh, payload: undefined}
 }
