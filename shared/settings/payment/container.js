@@ -30,6 +30,7 @@ type Props = {
 
 class PaymentStateHolder extends Component<void, Props, State> {
   state: State;
+  _onSubmit: () => void;
 
   constructor () {
     super()
@@ -39,6 +40,17 @@ class PaymentStateHolder extends Component<void, Props, State> {
       expiration: null,
       securityCode: null,
     }
+
+    this._onSubmit = () => {
+      const parsedExpiration = this.props.parseExpiration(this.state.expiration || '')
+      this.props.onSubmit({
+        cardNumber: new HiddenString(this.state.cardNumber || ''),
+        nameOnCard: new HiddenString(this.state.name || ''),
+        securityCode: new HiddenString(this.state.securityCode || ''),
+        cardExpMonth: new HiddenString(parsedExpiration.month),
+        cardExpYear: new HiddenString(parsedExpiration.year),
+      })
+    }
   }
 
   _clearErrorAndSetState (nextState) {
@@ -47,7 +59,6 @@ class PaymentStateHolder extends Component<void, Props, State> {
   }
 
   render () {
-    const parsedExpiration = this.props.parseExpiration(this.state.expiration || '')
     return (
       <Payment
         onChangeCardNumber={(cardNumber) => this._clearErrorAndSetState({cardNumber})}
@@ -60,13 +71,7 @@ class PaymentStateHolder extends Component<void, Props, State> {
         securityCode={this.state.securityCode}
         errorMessage={this.props.errorMessage}
         onBack={this.props.onBack}
-        onSubmit={() => this.props.onSubmit({
-          cardNumber: new HiddenString(this.state.cardNumber || ''),
-          nameOnCard: new HiddenString(this.state.name || ''),
-          securityCode: new HiddenString(this.state.securityCode || ''),
-          cardExpMonth: new HiddenString(parsedExpiration.month),
-          cardExpYear: new HiddenString(parsedExpiration.year),
-        })}
+        onSubmit={this._onSubmit}
       />
     )
   }
