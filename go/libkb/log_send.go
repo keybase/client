@@ -9,7 +9,6 @@ import (
 	"compress/gzip"
 	"mime/multipart"
 	"os"
-	"runtime"
 	"strings"
 
 	"github.com/keybase/client/go/logger"
@@ -24,6 +23,7 @@ type Logs struct {
 	Updater string
 	Start   string
 	Install string
+	System  string
 }
 
 // LogSendContext for LogSend
@@ -52,7 +52,7 @@ func addFile(mpart *multipart.Writer, param, filename, data string) error {
 	return nil
 }
 
-func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog string) (string, error) {
+func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog string) (string, error) {
 	l.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -77,6 +77,9 @@ func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, s
 		return "", err
 	}
 	if err := addFile(mpart, "install_log_gz", "install_log.gz", installLog); err != nil {
+		return "", err
+	}
+	if err := addFile(mpart, "system_log_gz", "system_log.gz", systemLog); err != nil {
 		return "", err
 	}
 
@@ -104,17 +107,17 @@ func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, s
 	return id, nil
 }
 
-func tail(Log logger.Logger, filename string, numLines int) string {
+func tail(log logger.Logger, filename string, numLines int) string {
 	if filename == "" {
 		return ""
 	}
-
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		log.Debug("log %q doesn't exist", filename)
+		return ""
+	}
 	f, err := os.Open(filename)
 	if err != nil {
-		// This "error" freaks out users on Windows, which has no start log
-		if !(runtime.GOOS == "windows" && strings.HasSuffix(filename, StartLogFileName)) {
-			Log.Warning("error opening log %q: %s", filename, err)
-		}
+		log.Errorf("error opening log %q: %s", filename, err)
 		return ""
 	}
 	b := rogReverse.NewScanner(f)
@@ -157,5 +160,8 @@ func (l *LogSendContext) LogSend(statusJSON string, numLines int) (string, error
 	l.G().Log.Debug("tailing install log %q", logs.Install)
 	installLog := tail(l.G().Log, logs.Install, numLines)
 
-	return l.post(statusJSON, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog)
+	l.G().Log.Debug("tailing system log %q", logs.System)
+	systemLog := tail(l.G().Log, logs.System, numLines)
+
+	return l.post(statusJSON, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog)
 }

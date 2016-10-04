@@ -14,7 +14,7 @@ import (
 type cmdChatRead struct {
 	libkb.Contextified
 
-	fetcher messageFetcher
+	fetcher chatCLIConversationFetcher
 
 	showDeviceName bool
 }
@@ -35,27 +35,24 @@ func newCmdChatRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 func (c *cmdChatRead) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 
-	conversations, err := c.fetcher.fetch(context.TODO(), c.G())
+	convLocal, messages, err := c.fetcher.fetch(context.TODO(), c.G())
 	if err != nil {
 		return err
 	}
 
-	switch len(conversations) {
-	case 0:
-		ui.Printf("no conversations found\n")
-	case 1:
-		ui.Printf("\n")
-		if err = conversationView(conversations[0]).show(c.G(), c.showDeviceName); err != nil {
-			return err
-		}
-		ui.Printf("\n")
-		if len(conversations) == c.fetcher.selector.Limit.AtMost {
-			ui.Printf("Number of conversations is capped by --at-most, so there might be more unread ones. Specify --at-most to a large number to fetch more.\n")
-		}
-	default:
-		// TODO: prompt user to choose one
-		ui.Printf("multiple conversations found\n")
+	if convLocal.Error != nil {
+		ui.Printf("proccessing conversation error: %s\n", *convLocal.Error)
+		return nil
 	}
+
+	ui.Printf("\n")
+	if err = (conversationView{
+		conversation: convLocal,
+		messages:     messages,
+	}).show(c.G(), c.showDeviceName); err != nil {
+		return err
+	}
+	ui.Printf("\n")
 
 	return nil
 }
@@ -65,7 +62,7 @@ func (c *cmdChatRead) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) >= 1 {
 		tlfName = ctx.Args().Get(0)
 	}
-	if c.fetcher, err = makeMessageFetcherFromCliCtx(ctx, tlfName, true); err != nil {
+	if c.fetcher, err = makeChatCLIConversationFetcher(ctx, tlfName, true); err != nil {
 		return err
 	}
 	c.showDeviceName = ctx.Bool("show-device-name")
