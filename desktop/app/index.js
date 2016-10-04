@@ -1,7 +1,6 @@
 import {BrowserWindow, app, dialog} from 'electron'
 import splash from './splash'
 import installer from './installer'
-import consoleHelper, {ipcLogs} from './console-helper'
 import devTools from './dev-tools'
 import menuBar from './menu-bar'
 import storeHelper from './store-helper'
@@ -13,6 +12,7 @@ import hello from '../shared/util/hello'
 import semver from 'semver'
 import os from 'os'
 import {setupExecuteActionsListener, executeActionsForContext} from '../shared/util/quit-helper.desktop'
+import {setupTarget} from '../shared/util/forward-logs'
 
 let mainWindow = null
 
@@ -57,8 +57,7 @@ function start () {
 
   hello(process.pid, 'Main Thread', process.argv, __VERSION__) // eslint-disable-line no-undef
 
-  consoleHelper()
-  ipcLogs()
+  setupTarget()
   devTools()
   menuBar()
   urlHelper()
