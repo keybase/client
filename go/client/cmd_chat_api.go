@@ -314,6 +314,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			}
 		}
 
+		return c.errReply(errors.New("unexpected response from service: UnboxingError and Message are both empty"))
 	}
 
 	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
