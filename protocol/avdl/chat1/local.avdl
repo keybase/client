@@ -112,6 +112,7 @@ protocol local {
     MessagePlaintext messagePlaintext;
     string senderUsername;
     string senderDeviceName;
+    Hash headerHash;
   }
 
   record MessageFromServerOrError {

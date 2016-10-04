@@ -431,6 +431,7 @@ export type MessageFromServer = {
   messagePlaintext: MessagePlaintext,
   senderUsername: string,
   senderDeviceName: string,
+  headerHash: Hash,
 }
 
 export type MessageFromServerOrError = {

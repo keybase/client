@@ -780,7 +780,7 @@ func (h *chatLocalHandler) unboxMessages(ctx context.Context, boxed []chat1.Mess
 	var uimap *chat.UserInfoMapper
 	ctx, uimap = chat.GetUserInfoMapper(ctx, h.G())
 	for _, msg := range boxed {
-		messagePlaintext, err := h.boxer.UnboxMessage(ctx, finder, msg)
+		messagePlaintext, headerHash, err := h.boxer.UnboxMessage(ctx, finder, msg)
 		if err != nil {
 			errMsg := err.Error()
 			h.G().Log.Warning("failed to unbox message: msgID: %d err: %s", msg.ServerHeader.MessageID, errMsg)
@@ -801,6 +801,7 @@ func (h *chatLocalHandler) unboxMessages(ctx context.Context, boxed []chat1.Mess
 				SenderDeviceName: deviceName,
 				ServerHeader:     *msg.ServerHeader,
 				MessagePlaintext: messagePlaintext,
+				HeaderHash:       headerHash,
 			},
 		})
 	}

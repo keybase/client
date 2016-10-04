@@ -371,6 +371,7 @@ type MessageFromServer struct {
 	MessagePlaintext MessagePlaintext    `codec:"messagePlaintext" json:"messagePlaintext"`
 	SenderUsername   string              `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName string              `codec:"senderDeviceName" json:"senderDeviceName"`
+	HeaderHash       Hash                `codec:"headerHash" json:"headerHash"`
 }
 
 type MessageFromServerOrError struct {
