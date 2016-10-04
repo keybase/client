@@ -104,7 +104,7 @@ class Nav extends Component {
     )
   }
 
-  _renderContent (tab, module, includeGlobalError) {
+  _renderContent (tab, module) {
     const tabStyle = {
       flex: 1,
       marginBottom: 0,

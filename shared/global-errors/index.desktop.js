@@ -93,7 +93,7 @@ class GlobalError extends Component<void, Props, State> {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  ...transition('max-heigh'),
+  ...transition('max-height'),
   overflow: 'hidden',
   position: 'absolute',
   top: 0,

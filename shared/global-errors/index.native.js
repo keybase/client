@@ -31,7 +31,6 @@ class GlobalError extends Component<void, Props, State> {
   }
 
   _onExpandClick = () => {
-    console.log('aaaaaa clicked')
     this.setState({size: 'Big'})
     this._clearCountdown()
   }
