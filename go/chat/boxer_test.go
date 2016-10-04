@@ -1,4 +1,4 @@
-package service
+package chat
 
 // Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
@@ -52,12 +52,9 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 	})
 }
 
-func setupChatTest(t *testing.T, name string) (libkb.TestContext, *chatLocalHandler) {
+func setupChatTest(t *testing.T, name string) (libkb.TestContext, *Boxer) {
 	tc := externals.SetupTest(t, name, 2)
-	handler := &chatLocalHandler{
-		boxer: newChatBoxer(tc.G),
-	}
-	return tc, handler
+	return tc, NewBoxer(tc.G, nil)
 }
 
 func getSigningKeyPairForTest(t *testing.T, tc libkb.TestContext, u *kbtest.FakeUser) libkb.NaclSigningKeyPair {
@@ -82,9 +79,9 @@ func getSigningKeyPairForTest(t *testing.T, tc libkb.TestContext, u *kbtest.Fake
 func TestChatMessageBox(t *testing.T) {
 	key := cryptKey(t)
 	msg := textMsg(t, "hello")
-	tc, handler := setupChatTest(t, "box")
+	tc, boxer := setupChatTest(t, "box")
 	defer tc.Cleanup()
-	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, getSigningKeyPairForTest(t, tc, nil))
+	boxed, err := boxer.boxMessageWithKeysV1(msg.V1(), key, getSigningKeyPairForTest(t, tc, nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +93,7 @@ func TestChatMessageBox(t *testing.T) {
 func TestChatMessageUnbox(t *testing.T) {
 	key := cryptKey(t)
 	text := "hi"
-	tc, handler := setupChatTest(t, "unbox")
+	tc, boxer := setupChatTest(t, "unbox")
 	defer tc.Cleanup()
 
 	// need a real user
@@ -108,7 +105,7 @@ func TestChatMessageUnbox(t *testing.T) {
 
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
-	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	boxed, err := boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +115,7 @@ func TestChatMessageUnbox(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	messagePlaintext, err := handler.boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	messagePlaintext, err := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +131,7 @@ func TestChatMessageUnbox(t *testing.T) {
 func TestChatMessageInvalidBodyHash(t *testing.T) {
 	key := cryptKey(t)
 	text := "hi"
-	tc, handler := setupChatTest(t, "unbox")
+	tc, boxer := setupChatTest(t, "unbox")
 	defer tc.Cleanup()
 
 	// need a real user
@@ -146,14 +143,14 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
-	origHashFn := handler.boxer.hashV1
-	handler.boxer.hashV1 = func(data []byte) chat1.Hash {
+	origHashFn := boxer.hashV1
+	boxer.hashV1 = func(data []byte) chat1.Hash {
 		data = append(data, []byte{1, 2, 3}...)
 		sum := sha256.Sum256(data)
 		return sum[:]
 	}
 
-	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	boxed, err := boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -164,9 +161,9 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 	}
 
 	// put original hash fn back
-	handler.boxer.hashV1 = origHashFn
+	boxer.hashV1 = origHashFn
 
-	_, err = handler.boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := err.(libkb.ChatBodyHashInvalid); !ok {
 		t.Fatalf("unexpected error for invalid body hash: %s", err)
 	}
@@ -175,7 +172,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 func TestChatMessageInvalidHeaderSig(t *testing.T) {
 	key := cryptKey(t)
 	text := "hi"
-	tc, handler := setupChatTest(t, "unbox")
+	tc, boxer := setupChatTest(t, "unbox")
 	defer tc.Cleanup()
 
 	// need a real user
@@ -187,8 +184,8 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
-	origSign := handler.boxer.sign
-	handler.boxer.sign = func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+	origSign := boxer.sign
+	boxer.sign = func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
 		sig, err := kp.SignV2(msg, prefix)
 		if err != nil {
 			return chat1.SignatureInfo{}, err
@@ -203,7 +200,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 		return sigInfo, nil
 	}
 
-	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	boxed, err := boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -214,9 +211,9 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 	}
 
 	// put original signing fn back
-	handler.boxer.sign = origSign
+	boxer.sign = origSign
 
-	_, err = handler.boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := err.(libkb.BadSigError); !ok {
 		t.Fatalf("unexpected error for invalid header signature: %s", err)
 	}
@@ -225,7 +222,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 func TestChatMessageInvalidSenderKey(t *testing.T) {
 	key := cryptKey(t)
 	text := "hi"
-	tc, handler := setupChatTest(t, "unbox")
+	tc, boxer := setupChatTest(t, "unbox")
 	defer tc.Cleanup()
 
 	// need a real user
@@ -241,7 +238,7 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	boxed, err := handler.boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	boxed, err := boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -250,7 +247,7 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	_, err = handler.boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := err.(libkb.NoKeyError); !ok {
 		t.Fatalf("unexpected error for invalid sender key: %v", err)
 	}
@@ -258,7 +255,7 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 
 func TestChatMessagePublic(t *testing.T) {
 	text := "hi"
-	tc, handler := setupChatTest(t, "unbox")
+	tc, boxer := setupChatTest(t, "unbox")
 	defer tc.Cleanup()
 
 	// need a real user
@@ -267,8 +264,8 @@ func TestChatMessagePublic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	world := newChatMockWorld(t, "unbox", 4)
-	handler.boxer.tlf = newTlfMock(world)
+	world := kbtest.NewChatMockWorld(t, "unbox", 4)
+	boxer.tlf = kbtest.NewTlfMock(world)
 
 	header := chat1.MessageClientHeader{
 		Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
@@ -280,7 +277,7 @@ func TestChatMessagePublic(t *testing.T) {
 
 	ctx := context.Background()
 
-	boxed, err := handler.boxer.boxMessageV1(ctx, msg.V1(), signKP)
+	boxed, err := boxer.boxMessageV1(ctx, msg.V1(), signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -291,7 +288,7 @@ func TestChatMessagePublic(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	messagePlaintext, err := handler.boxer.unboxMessage(ctx, newKeyFinder(), *boxed)
+	messagePlaintext, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed)
 	if err != nil {
 		t.Fatal(err)
 	}

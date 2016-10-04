@@ -1,4 +1,4 @@
-package service
+package chat
 
 import (
 	"fmt"
@@ -17,19 +17,19 @@ var uiKey uictxkey = 1
 // userInfoMapper looks up usernames and device names, memoizing the results.
 // Only intended to be used for a single request (i.e., getting all the
 // users and devices for a thread).
-type userInfoMapper struct {
+type UserInfoMapper struct {
 	users       map[keybase1.UID]*libkb.User
 	deviceNames map[string]string
 	libkb.Contextified
 	sync.Mutex
 }
 
-func userInfoFromContext(ctx context.Context) (*userInfoMapper, bool) {
-	ui, ok := ctx.Value(uiKey).(*userInfoMapper)
+func userInfoFromContext(ctx context.Context) (*UserInfoMapper, bool) {
+	ui, ok := ctx.Value(uiKey).(*UserInfoMapper)
 	return ui, ok
 }
 
-func getUserInfoMapper(ctx context.Context, g *libkb.GlobalContext) (context.Context, *userInfoMapper) {
+func GetUserInfoMapper(ctx context.Context, g *libkb.GlobalContext) (context.Context, *UserInfoMapper) {
 	ui, ok := userInfoFromContext(ctx)
 	if ok {
 		return ctx, ui
@@ -38,16 +38,16 @@ func getUserInfoMapper(ctx context.Context, g *libkb.GlobalContext) (context.Con
 	return context.WithValue(ctx, uiKey, ui), ui
 }
 
-func newUserInfoMapper(g *libkb.GlobalContext) *userInfoMapper {
-	return &userInfoMapper{
+func newUserInfoMapper(g *libkb.GlobalContext) *UserInfoMapper {
+	return &UserInfoMapper{
 		users:        make(map[keybase1.UID]*libkb.User),
 		deviceNames:  make(map[string]string),
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func (u *userInfoMapper) lookup(uid keybase1.UID, deviceID keybase1.DeviceID) (username, deviceName string, err error) {
-	user, err := u.user(uid)
+func (u *UserInfoMapper) Lookup(uid keybase1.UID, deviceID keybase1.DeviceID) (username, deviceName string, err error) {
+	user, err := u.User(uid)
 	if err != nil {
 		return "", "", err
 	}
@@ -72,7 +72,7 @@ func (u *userInfoMapper) lookup(uid keybase1.UID, deviceID keybase1.DeviceID) (u
 	return user.GetNormalizedName().String(), dname, nil
 }
 
-func (u *userInfoMapper) user(uid keybase1.UID) (*libkb.User, error) {
+func (u *UserInfoMapper) User(uid keybase1.UID) (*libkb.User, error) {
 	u.Lock()
 	defer u.Unlock()
 

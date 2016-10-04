@@ -13,6 +13,7 @@
         ['log', 'warn', 'error'].forEach(key => {
           window.console[`_${key}`] = window.console[key]
           window.console[key] = function() {
+            window.console[`_${key}`](...arguments)
             require('electron').ipcRenderer.send('console.' + key, Array.prototype.slice.call(arguments))
           }
         })
