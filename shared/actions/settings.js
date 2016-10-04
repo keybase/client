@@ -192,7 +192,7 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
 
 function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, any> {
   const {email, message} = invitesSendAction.payload
-  let args = [{key: 'email', value: email}]
+  const args = [{key: 'email', value: email}]
   if (message) {
     args.push({key: 'invitation_message', value: message})
   }
@@ -200,7 +200,7 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
     yield call(apiserverPostRpcPromise, {
       param: {
         endpoint: 'send_invitation',
-        args: args,
+        args,
       },
     })
     yield put(({
