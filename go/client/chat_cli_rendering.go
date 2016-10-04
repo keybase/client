@@ -89,16 +89,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			continue
 		}
 
-		unread := ""
-		if conv.Messages[0].Message != nil &&
-			conv.ReadUpTo < conv.Messages[0].Message.ServerHeader.MessageID {
-			unread = "*"
-		}
-
-		var participants []string
-		if conv.Info != nil {
-			participants = strings.Split(conv.Info.TlfName, ",")
-		}
+		participants := strings.Split(conv.Info.TlfName, ",")
 
 		if len(participants) > 1 {
 			var withoutMe []string
@@ -110,8 +101,21 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			participants = withoutMe
 		}
 
-		authorAndTime := messageFormatter(conv.Messages[0]).authorAndTime(showDeviceName)
-		body, err := messageFormatter(conv.Messages[0]).body(g)
+		unread := "*"
+		var msg chat1.MessageFromServerOrError
+		for _, m := range conv.MaxMessages {
+			if m.Message != nil {
+				if conv.ReaderInfo.ReadMsgid == m.Message.ServerHeader.MessageID {
+					unread = ""
+				}
+				if m.Message.ServerHeader.MessageType == chat1.MessageType_TEXT {
+					msg = m
+				}
+			}
+		}
+
+		authorAndTime := messageFormatter(msg).authorAndTime(showDeviceName)
+		body, err := messageFormatter(msg).body(g)
 		if err != nil {
 			return fmt.Errorf("rendering message body error: %v\n", err)
 		}
@@ -141,6 +145,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			},
 		})
 	}
+
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
 		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
 	}); err != nil {
@@ -150,10 +155,13 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	return nil
 }
 
-type conversationView chat1.ConversationLocal
+type conversationView struct {
+	conversation chat1.ConversationLocal
+	messages     []chat1.MessageFromServerOrError
+}
 
 func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) error {
-	if len(v.Messages) == 0 {
+	if len(v.messages) == 0 {
 		return nil
 	}
 
@@ -161,10 +169,10 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	w, _ := ui.TerminalSize()
 
 	table := &flexibletable.Table{}
-	for i, m := range v.Messages {
+	for i, m := range v.messages {
 		unread := ""
 		if m.Message != nil &&
-			v.ReadUpTo < m.Message.ServerHeader.MessageID {
+			v.conversation.ReaderInfo.ReadMsgid < m.Message.ServerHeader.MessageID {
 			unread = "*"
 		}
 

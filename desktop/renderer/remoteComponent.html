@@ -7,8 +7,20 @@
     <link rel="stylesheet" type="text/css" href="./fonticon.css" />
   </head>
   <body>
-    <div id="remoteComponent"></div>
+    <div id="remoteComponent">
+      <div title="loading..." style="flex: 1;background-color: #f5f5f5"></div>
+    </div>
     <script>
+      function logToElectron() {
+        ['log', 'warn', 'error'].forEach(key => {
+          window.console[`_${key}`] = window.console[key]
+          window.console[key] = function() {
+            require('electron').ipcRenderer.send('console.' + key, Array.prototype.slice.call(arguments))
+          }
+        })
+      }
+      logToElectron()
+
       function getQueryVariable(variable) {
         var query = window.location.search.substring(1)
           var vars = query.split("&")

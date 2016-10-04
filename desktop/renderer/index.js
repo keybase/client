@@ -5,28 +5,27 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import {AppContainer} from 'react-hot-loader'
-import configureStore from '../shared/store/configure-store'
-import engine, {makeEngine} from '../shared/engine'
-import injectTapEventPlugin from 'react-tap-event-plugin'
-import {devStoreChangingFunctions} from '../shared/local-debug.desktop'
-import {listenForNotifications} from '../shared/actions/notifications'
-import {bootstrap} from '../shared/actions/config'
-import {updateDebugConfig} from '../shared/actions/dev'
-import hello from '../shared/util/hello'
-import {updateReloading} from '../shared/constants/dev'
 import Root from './container'
-import {devEditAction} from '../shared/reducers/dev-edit'
-import {setupContextMenu} from '../app/menu-helper'
-
-// For Remote Components
+import configureStore from '../shared/store/configure-store'
 import electron, {ipcRenderer} from 'electron'
-import {ipcLogsRenderer} from '../app/console-helper'
+import engine, {makeEngine} from '../shared/engine'
+import hello from '../shared/util/hello'
+import injectTapEventPlugin from 'react-tap-event-plugin'
 import loadPerf from '../shared/util/load-perf'
 import merge from 'lodash/merge'
+import {AppContainer} from 'react-hot-loader'
+import {bootstrap} from '../shared/actions/config'
+import {devEditAction} from '../shared/reducers/dev-edit'
+import {devStoreChangingFunctions} from '../shared/local-debug.desktop'
+import {listenForNotifications} from '../shared/actions/notifications'
+import {setupContextMenu} from '../app/menu-helper'
+// $FlowIssue
+import {setupSource} from '../shared/util/forward-logs'
+import {updateDebugConfig} from '../shared/actions/dev'
+import {updateReloading} from '../shared/constants/dev'
 
 function setupApp (store) {
-  ipcLogsRenderer()
+  setupSource()
   makeEngine()
 
   loadPerf()
