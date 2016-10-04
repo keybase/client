@@ -740,6 +740,7 @@ type writerInfo struct {
 	uid        keybase1.UID
 	kid        keybase1.KID
 	deviceName string
+	revision   MetadataRevision
 }
 
 // ErrorModeType indicates what type of operation was being attempted

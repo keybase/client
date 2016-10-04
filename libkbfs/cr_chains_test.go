@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
-
 	"golang.org/x/net/context"
 )
 
@@ -230,8 +230,8 @@ func TestCRChainsRenameOp(t *testing.T) {
 	testCRCheckOps(t, cc, dir1Unref, []op{rmo})
 }
 
-// Test multiple operations, both in one MD and across multiple MDs
-func TestCRChainsMultiOps(t *testing.T) {
+func testCRChainsMultiOps(t *testing.T) (
+	[]ImmutableRootMetadata, BlockPointer) {
 	// To start, we have: root/dir1/dir2/file1 and root/dir3/file2
 	// Sequence of operations:
 	// * setex root/dir3/file2
@@ -372,6 +372,12 @@ func TestCRChainsMultiOps(t *testing.T) {
 		t.Fatalf("Root pointer incorrect for multi RMDs, %v vs %v",
 			mcc.originalRoot, rootPtrUnref)
 	}
+	return multiIrmds, file4Unref
+}
+
+// Test multiple operations, both in one MD and across multiple MDs
+func TestCRChainsMultiOps(t *testing.T) {
+	testCRChainsMultiOps(t)
 }
 
 // Test that we collapse chains correctly
@@ -505,4 +511,26 @@ func TestCRChainsCollapse(t *testing.T) {
 
 	// file1 should have the setattr
 	testCRCheckOps(t, cc, file1Ptr, []op{op2})
+}
+
+func TestCRChainsRemove(t *testing.T) {
+	irmds, writtenFileUnref := testCRChainsMultiOps(t)
+
+	for i, irmd := range irmds {
+		irmd.SetRevision(MetadataRevision(i))
+	}
+
+	config := MakeTestConfigOrBust(t, "u1")
+	defer config.Shutdown()
+	ccs, err := newCRChains(context.Background(), config, irmds, nil, true)
+	if err != nil {
+		t.Fatalf("Error making chains: %v", err)
+	}
+
+	// This should remove the write operation.
+	removedChains := ccs.remove(context.Background(),
+		logger.NewTestLogger(t), irmds[3])
+	require.Len(t, removedChains, 1)
+	require.Equal(t, removedChains[0].original, writtenFileUnref)
+	require.Len(t, removedChains[0].ops, 0)
 }

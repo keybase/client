@@ -1059,7 +1059,9 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	winfo, err := newWriterInfo(ctx, cr.config, uid, unmergedChains.mostRecentMD.LastModifyingWriterKID())
+	winfo, err := newWriterInfo(ctx, cr.config, uid,
+		unmergedChains.mostRecentMD.LastModifyingWriterKID(),
+		unmergedChains.mostRecentMD.Revision())
 	if err != nil {
 		return nil, err
 	}
@@ -1602,7 +1604,8 @@ func (cr *ConflictResolver) addMergedRecreates(ctx context.Context,
 					co.AddRefBlock(c.mostRecent)
 					winfo, err := newWriterInfo(ctx, cr.config,
 						mergedChains.mostRecentMD.LastModifyingWriter(),
-						mergedChains.mostRecentMD.LastModifyingWriterKID())
+						mergedChains.mostRecentMD.LastModifyingWriterKID(),
+						mergedChains.mostRecentMD.Revision())
 					if err != nil {
 						return err
 					}
