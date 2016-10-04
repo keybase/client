@@ -2055,6 +2055,33 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	return nil
 }
 
+func (fbo *folderBranchOps) waitForJournalLocked(ctx context.Context,
+	lState *lockState, jServer *JournalServer) error {
+	fbo.mdWriterLock.AssertLocked(lState)
+
+	if !TLFJournalEnabled(fbo.config, fbo.id()) {
+		// Nothing to do.
+		return nil
+	}
+
+	if err := jServer.Wait(ctx, fbo.id()); err != nil {
+		return err
+	}
+
+	// Make sure everything flushed successfully, since we're holding
+	// the writer lock, no other revisions could have snuck in.
+	jStatus, err := jServer.JournalStatus(fbo.id())
+	if err != nil {
+		return err
+	}
+	if jStatus.RevisionEnd != MetadataRevisionUninitialized {
+		return fmt.Errorf("Couldn't flush all MD revisions; current "+
+			"revision end for the journal is %d", jStatus.RevisionEnd)
+	}
+
+	return nil
+}
+
 func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -2072,7 +2099,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 	// scrubbing them when converting it to a branch.
 	mdOps := fbo.config.MDOps()
 	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		if err = jServer.Wait(ctx, fbo.id()); err != nil {
+		if err = fbo.waitForJournalLocked(ctx, lState, jServer); err != nil {
 			return err
 		}
 		mdOps = jServer.delegateMDOps
@@ -4623,7 +4650,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		// resolution block writes -- resolutions must go straight
 		// through to the server or else the journal will get
 		// confused.
-		if err = jServer.Wait(ctx, fbo.id()); err != nil {
+		if err := fbo.waitForJournalLocked(ctx, lState, jServer); err != nil {
 			return err
 		}
 		mdOps = jServer.delegateMDOps
