@@ -148,7 +148,7 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
         invitation_id: string,
         short_code: string,
         type: string,
-        uid: number,
+        uid: string,
         username: string,
       }],
     } = JSON.parse(json && json.body || '')
@@ -157,7 +157,7 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
     const pendingInvites = []
 
     results.invitations.forEach(i => {
-      const invite = {
+      const invite: Constants.Invitation = {
         created: i.ctime,
         email: i.email,
         id: i.invitation_id,
@@ -184,7 +184,6 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
     yield put({
       type: Constants.invitesRefreshed,
       payload: {
-        ...results,
         acceptedInvites,
         pendingInvites,
       },

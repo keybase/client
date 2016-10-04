@@ -51,13 +51,20 @@ export type PaymentInfo = {
 
 export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
 
+export type Invitation = {
+  created: number,
+  email: string,
+  id: string,
+  key: string,
+  type: string,
+  username: string,
+  uid: string,
+  url: string,
+}
+
 export type InvitesState = {
-  pendingInvites: ?Array<{
-    foo: null,
-  }>,
-  acceptedInvites: ?Array<{
-    foo: null,
-  }>,
+  pendingInvites: Array<Invitation>,
+  acceptedInvites: Array<Invitation>,
 }
 
 export type NotificationsState = {
