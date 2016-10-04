@@ -22,6 +22,7 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"time"
 
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/logger"
@@ -312,6 +313,22 @@ func (g *GlobalContext) ConfigureExportedStreams() error {
 // Shutdown is called exactly once per-process and does whatever
 // cleanup is necessary to shut down the server.
 func (g *GlobalContext) Shutdown() error {
+	ch := make(chan error)
+	go func() {
+		ch <- g.shutdown()
+	}()
+
+	select {
+	case err := <-ch:
+		return err
+	case <-time.After(1 * time.Second):
+		return TimeoutError{}
+	}
+}
+
+// Shutdown is called exactly once per-process and does whatever
+// cleanup is necessary to shut down the server.
+func (g *GlobalContext) shutdown() error {
 	var err error
 	didShutdown := false
 

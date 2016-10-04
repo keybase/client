@@ -286,6 +286,38 @@ func configurePath(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error {
 	return client.SendPath(g)
 }
 
+// if the current command has a Stop function, then call it.
+// It will do its own stopping of the process and calling
+// shutdown
+func tryCleanStop() bool {
+	if stop, ok := cmd.(Stopper); ok {
+		G.Log.Debug("Stopping command cleanly via stopper")
+		stop.Stop(keybase1.ExitCode_OK)
+		G.Log.Debug("Stopped command cleanly via stopper")
+		return true
+	}
+	return false
+
+}
+
+// timeoutCleanStop will return false if tryCleanStop takes more than 1s.
+func timeoutCleanStop() bool {
+	stopCh := make(chan bool)
+	go func() {
+		stopCh <- tryCleanStop()
+	}()
+
+	select {
+	case stopped := <-stopCh:
+		return stopped
+	case <-time.After(1 * time.Second):
+		G.Log.Debug("timed out stopping command")
+	}
+
+	return false
+
+}
+
 func HandleSignals() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM, os.Kill)
@@ -294,12 +326,8 @@ func HandleSignals() {
 		if s != nil {
 			G.Log.Debug("trapped signal %v", s)
 
-			// if the current command has a Stop function, then call it.
-			// It will do its own stopping of the process and calling
-			// shutdown
-			if stop, ok := cmd.(Stopper); ok {
-				G.Log.Debug("Stopping command cleanly via stopper")
-				stop.Stop(keybase1.ExitCode_OK)
+			if timeoutCleanStop() {
+				G.Log.Debug("clean stop worked, shutdown complete")
 				return
 			}
 
