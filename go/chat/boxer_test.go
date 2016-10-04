@@ -264,8 +264,8 @@ func TestChatMessagePublic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	world := NewChatMockWorld(t, "unbox", 4)
-	boxer.tlf = NewTlfMock(world)
+	world := kbtest.NewChatMockWorld(t, "unbox", 4)
+	boxer.tlf = kbtest.NewTlfMock(world)
 
 	header := chat1.MessageClientHeader{
 		Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
