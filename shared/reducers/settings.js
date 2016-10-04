@@ -92,8 +92,6 @@ function reducer (state: State = initialState, action: Actions): State {
       return {
         ...state,
         invites: {
-          pendingInvites: [],
-          acceptedInvites: [],
           ...action.payload,
         },
       }
