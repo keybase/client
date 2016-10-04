@@ -35,19 +35,19 @@ type Boxer struct {
 	tlf    keybase1.TlfInterface
 	hashV1 func(data []byte) chat1.Hash
 	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
-	libkb.Contextified
+	kbCtx  KeybaseContext
 }
 
-func NewBoxer(g *libkb.GlobalContext, tlf keybase1.TlfInterface) *Boxer {
+func NewBoxer(kbCtx KeybaseContext, tlf keybase1.TlfInterface) *Boxer {
 	return &Boxer{
-		tlf:          tlf,
-		hashV1:       hashSha256V1,
-		sign:         sign,
-		Contextified: libkb.NewContextified(g),
+		tlf:    tlf,
+		hashV1: hashSha256V1,
+		sign:   sign,
+		kbCtx:  kbCtx,
 	}
 }
 
-// unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
+// UnboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
 func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1.MessageBoxed) (messagePlaintext chat1.MessagePlaintext, err error) {
 	tlfName := boxed.ClientHeader.TlfName
@@ -399,7 +399,7 @@ func (b *Boxer) validSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	t := gregor1.FromTime(ctime)
 
 	var uimap *UserInfoMapper
-	ctx, uimap = GetUserInfoMapper(ctx, b.G())
+	ctx, uimap = GetUserInfoMapper(ctx, b.kbCtx)
 	user, err := uimap.User(kbSender)
 	if err != nil {
 		return false, err
