@@ -194,7 +194,10 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
       const parsedBody = JSON.parse(response.body)
       yield put(({
         type: Constants.invitesSent,
-        payload: {email, invitationId: parsedBody.invitation_id},
+        payload: {
+          email,
+          invitationId: parsedBody.invitation_id.slice(0, 10),
+        },
       }: InvitesSent))
       yield put(routeAppend('invitesent'))
     }
