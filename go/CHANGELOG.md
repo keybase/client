@@ -1,6 +1,9 @@
 ## 1.0.18
 - Some people (like @brentmaxwell) had broken sigchains due to bad 
   short signature IDs. Ignore those. (via vendored PR: keybase/go-crypto#36)
+- Preliminary ECDH support so that people can import/export these
+  keys (though not currently possible to decrypt/encrypt with them)
+  (Via vendored PR: keybase/go-crypto#37)
 
 ## 1.0.17
 - Allow signatures with DSA keys without needing to specify explicit signing flags

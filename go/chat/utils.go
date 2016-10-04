@@ -1,4 +1,4 @@
-package service
+package chat
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
 // one day, defined as 24*time.Hour. Only whole days are supported for "d"
 // unit, but it can be followed by smaller units, e.g., "1d1h".
-func parseDurationExtended(s string) (d time.Duration, err error) {
+func ParseDurationExtended(s string) (d time.Duration, err error) {
 	p := strings.Index(s, "d")
 	if p == -1 {
 		// no "d" suffix
@@ -36,7 +36,7 @@ func parseDurationExtended(s string) (d time.Duration, err error) {
 	return d, nil
 }
 
-func parseTimeFromRFC3339OrDurationFromPast(g *libkb.GlobalContext, s string) (t time.Time, err error) {
+func ParseTimeFromRFC3339OrDurationFromPast(g *libkb.GlobalContext, s string) (t time.Time, err error) {
 	var errt, errd error
 	var d time.Duration
 
@@ -47,7 +47,7 @@ func parseTimeFromRFC3339OrDurationFromPast(g *libkb.GlobalContext, s string) (t
 	if t, errt = time.Parse(time.RFC3339, s); errt == nil {
 		return t, nil
 	}
-	if d, errd = parseDurationExtended(s); errd == nil {
+	if d, errd = ParseDurationExtended(s); errd == nil {
 		return g.Clock().Now().Add(-d), nil
 	}
 
@@ -56,7 +56,7 @@ func parseTimeFromRFC3339OrDurationFromPast(g *libkb.GlobalContext, s string) (t
 }
 
 // upper bounds takes higher priority
-func collar(lower int, ideal int, upper int) int {
+func Collar(lower int, ideal int, upper int) int {
 	if ideal > upper {
 		return upper
 	}

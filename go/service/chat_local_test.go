@@ -11,6 +11,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 )
@@ -29,20 +30,20 @@ func (tuc *chatTestUserContext) chatLocalHandler() chat1.LocalInterface {
 }
 
 type chatTestContext struct {
-	world *chatMockWorld
+	world *kbtest.ChatMockWorld
 
 	userContextCache map[string]*chatTestUserContext
 }
 
 func makeChatTestContext(t *testing.T, name string, numUsers int) *chatTestContext {
 	ctc := &chatTestContext{}
-	ctc.world = newChatMockWorld(t, name, numUsers)
+	ctc.world = kbtest.NewChatMockWorld(t, name, numUsers)
 	ctc.userContextCache = make(map[string]*chatTestUserContext)
 	return ctc
 }
 
 func (c *chatTestContext) advanceFakeClock(d time.Duration) {
-	c.world.fc.Advance(d)
+	c.world.Fc.Advance(d)
 }
 
 func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserContext {
@@ -54,14 +55,14 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		return tuc
 	}
 
-	tc, ok := c.world.tcs[user.Username]
+	tc, ok := c.world.Tcs[user.Username]
 	if !ok {
 		t.Fatalf("user %s is not found", user.Username)
 	}
 	h := newChatLocalHandler(nil, tc.G, nil)
-	h.rc = newChatRemoteMock(c.world)
-	h.boxer = newChatBoxer(tc.G)
-	h.boxer.tlf = newTlfMock(c.world)
+	h.rc = kbtest.NewChatRemoteMock(c.world)
+	h.tlf = kbtest.NewTlfMock(c.world)
+	h.boxer = chat.NewBoxer(tc.G, h.tlf)
 	tuc := &chatTestUserContext{
 		h: h,
 		u: user,
@@ -71,11 +72,11 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 }
 
 func (c *chatTestContext) cleanup() {
-	c.world.cleanup()
+	c.world.Cleanup()
 }
 
 func (c *chatTestContext) users() (users []*kbtest.FakeUser) {
-	for _, u := range c.world.users {
+	for _, u := range c.world.Users {
 		users = append(users, u)
 	}
 	return users
@@ -133,12 +134,12 @@ func TestChatNewConversationLocal(t *testing.T) {
 
 	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
-	conv := ctc.world.getConversationByID(created.Id)
+	conv := ctc.world.GetConversationByID(created.Id)
 	if len(conv.MaxMsgs) == 0 {
 		t.Fatalf("created conversation does not have a message")
 	}
 	if conv.MaxMsgs[0].ClientHeader.TlfName !=
-		string(canonicalTlfNameForTest(ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username)) {
+		string(kbtest.CanonicalTlfNameForTest(ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username)) {
 		t.Fatalf("unexpected TLF name in created conversation. expected %s, got %s", ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username, conv.MaxMsgs[0].ClientHeader.TlfName)
 	}
 }
@@ -184,7 +185,7 @@ func TestChatInboxLocal(t *testing.T) {
 	if len(conversations) != 1 {
 		t.Fatalf("unexpected response from GetInboxLocal. expected 1 items, got %d\n", len(conversations))
 	}
-	conv := ctc.world.getConversationByID(created.Id)
+	conv := ctc.world.GetConversationByID(created.Id)
 	if conversations[0].Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
 		t.Fatalf("unexpected TlfName in response from GetInboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
 	}
@@ -216,7 +217,7 @@ func TestChatGetInboxLocalTlfName(t *testing.T) {
 	if len(conversations) != 1 {
 		t.Fatalf("unexpected response from GetInboxLocal. expected 1 items, got %d\n", len(conversations))
 	}
-	conv := ctc.world.getConversationByID(created.Id)
+	conv := ctc.world.GetConversationByID(created.Id)
 	if conversations[0].Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
 		t.Fatalf("unexpected TlfName in response from GetInboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
 	}
@@ -237,7 +238,7 @@ func TestChatPostLocal(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
 	// we just posted this message, so should be the first one.
-	msg := ctc.world.msgs[created.Id][0]
+	msg := ctc.world.Msgs[created.Id][0]
 	if len(msg.ClientHeader.Sender.Bytes()) == 0 || len(msg.ClientHeader.SenderDevice.Bytes()) == 0 {
 		t.Fatalf("PostLocal didn't populate ClientHeader.Sender and/or ClientHeader.SenderDevice\n")
 	}
@@ -348,7 +349,7 @@ func TestChatGracefulUnboxing(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
 
 	// make evil hello evil
-	ctc.world.msgs[created.Id][0].BodyCiphertext.E[0]++
+	ctc.world.Msgs[created.Id][0].BodyCiphertext.E[0]++
 
 	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: created.Id,
