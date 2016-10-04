@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Invites from './index'
-import {invitesRefresh, notificationsSave, notificationsToggle} from '../../actions/settings'
+import {invitesReclaim, invitesRefresh, notificationsSave, notificationsToggle} from '../../actions/settings'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -23,5 +23,6 @@ export default connect(
     onToggle: (name: string) => dispatch(notificationsToggle(name)),
     onToggleUnsubscribeAll: () => dispatch(notificationsToggle()),
     onRefresh: () => dispatch(invitesRefresh()),
+    onReclaimInvitation: (inviteId: string) => dispatch(invitesReclaim(inviteId)),
   }),
 )(InvitationsContainer)

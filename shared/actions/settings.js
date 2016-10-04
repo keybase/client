@@ -1,12 +1,16 @@
 // @flow
 import * as Constants from '../constants/settings'
-import {apiserverGetRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise} from '../constants/types/flow-types'
 import {setDeletedSelf} from '../actions/login'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
-import {takeLatest, delay} from 'redux-saga'
+import {takeEvery, takeLatest, delay} from 'redux-saga'
 
 import type {SagaGenerator} from '../constants/types/saga'
-import type {InvitesRefresh, NotificationsRefresh, NotificationsSave, NotificationsToggle, SetAllowDeleteAccount, DeleteAccountForever} from '../constants/settings'
+import type {InvitesReclaim, InvitesReclaimed, InvitesRefresh, NotificationsRefresh, NotificationsSave, NotificationsToggle, SetAllowDeleteAccount, DeleteAccountForever} from '../constants/settings'
+
+function invitesReclaim (inviteId: string): InvitesReclaim {
+  return {type: Constants.invitesReclaim, payload: {inviteId}}
+}
 
 function invitesRefresh (): InvitesRefresh {
   return {type: Constants.invitesRefresh, payload: undefined}
@@ -68,6 +72,31 @@ function * saveNotificationsSaga (): SagaGenerator<any, any> {
     // TODO hook into global error handler
     console.error(err)
   }
+}
+
+function * reclaimInviteSaga (invitesReclaimAction: InvitesReclaim): SagaGenerator<any, any> {
+  const {inviteId} = invitesReclaimAction.payload
+  try {
+    yield call(apiserverPostRpcPromise, {
+      param: {
+        endpoint: 'cancel_invitation',
+        args: [{key: 'invitation_id', value: inviteId}],
+      },
+    })
+    yield put(({
+      type: Constants.invitesReclaimed,
+      payload: undefined,
+      error: false,
+    }: InvitesReclaimed))
+  } catch (e) {
+    console.warn('Error reclaiming an invite:', e)
+    yield put(({
+      type: Constants.invitesReclaimed,
+      payload: {errorText: e.desc + e.name, errorObj: e},
+      error: true,
+    }: InvitesReclaimed))
+  }
+  yield put(invitesRefresh())
 }
 
 function * refreshInvitesSaga (): SagaGenerator<any, any> {
@@ -226,6 +255,7 @@ function * deleteAccountForeverSaga (): SagaGenerator<any, any> {
 
 function * settingsSaga (): SagaGenerator<any, any> {
   yield [
+    takeEvery(Constants.invitesReclaim, reclaimInviteSaga),
     takeLatest(Constants.invitesRefresh, refreshInvitesSaga),
     takeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
     takeLatest(Constants.notificationsSave, saveNotificationsSaga),
@@ -234,6 +264,7 @@ function * settingsSaga (): SagaGenerator<any, any> {
 }
 
 export {
+  invitesReclaim,
   invitesRefresh,
   notificationsRefresh,
   notificationsSave,

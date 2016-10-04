@@ -1,5 +1,11 @@
 // @flow
-import type {NoErrorTypedAction} from '../constants/types/flux'
+import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
+
+export const invitesReclaim = 'settings:invitesReclaim'
+export type InvitesReclaim = NoErrorTypedAction<'settings:invitesReclaim', {inviteId: string}>
+
+export const invitesReclaimed = 'settings:invitesReclaimed'
+export type InvitesReclaimed = TypedAction<'settings:invitesReclaimed', void, {errorText: string}>
 
 export const invitesRefresh = 'settings:invitesRefresh'
 export type InvitesRefresh = NoErrorTypedAction<'settings:invitesRefresh', void>

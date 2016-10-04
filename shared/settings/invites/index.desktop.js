@@ -116,7 +116,7 @@ function AcceptedInviteItem ({invite, onClick}: {invite: AcceptedInvite, onClick
   return (
     <Box style={{...styleInviteItem, ...globalStyles.clickable, flexShrink: 0}} onClick={onClick}>
       <Avatar
-        url={invite.avatar}
+        username={invite.username}
         size={32}
       />
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small, marginBottom: itemAlignmentFudge}}>
