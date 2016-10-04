@@ -34,7 +34,6 @@
         var vendor = document.createElement('script')
         vendor.onload = loadEntryChunk
         vendor.src = '../dist/dll/dll.vendor.js'
-        vendor.async = true
         document.getElementsByTagName('head')[0].appendChild(vendor)
       } else {
         loadEntryChunk()
