@@ -1591,6 +1591,102 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	}
 }
 
+// Test that when a Sync that is canceled during a successful MD put,
+// and then another Sync hits a conflict but then is also canceled,
+// and finally a Sync succeeds (as a conflict), the TLF is left in a
+// reasonable state where CR can succeed.  Regression for KBFS-1569.
+func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer CleanupCancellationDelayer(ctx)
+	defer CheckConfigAndShutdown(t, config)
+
+	onPutStalledCh, putUnstallCh, putCtx :=
+		StallMDOp(ctx, config, StallableMDAfterPut, 1)
+
+	// Use the smallest possible block size.
+	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	if err != nil {
+		t.Fatalf("Couldn't create block splitter: %v", err)
+	}
+	config.SetBlockSplitter(bsplitter)
+
+	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
+	kbfsOps := config.KBFSOps()
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	data := make([]byte, 30)
+	for i := 0; i < 30; i++ {
+		data[i] = 1
+	}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// start the sync
+	errChan := make(chan error)
+	cancelCtx, cancel := context.WithCancel(putCtx)
+	go func() {
+		errChan <- kbfsOps.Sync(cancelCtx, fileNode)
+	}()
+
+	// wait until Sync gets stuck at MDOps.Put()
+	<-onPutStalledCh
+	cancel()
+	close(putUnstallCh)
+
+	// We expect a canceled error
+	err = <-errChan
+	if err != context.Canceled {
+		t.Fatalf("No expected canceled error: %v", err)
+	}
+
+	// Cancel this one before it succeeds.
+	onUnmergedPutStalledCh, unmergedPutUnstallCh, putUnmergedCtx :=
+		StallMDOp(ctx, config, StallableMDPutUnmerged, 1)
+
+	// Flush the file again, which will result in an unmerged put,
+	// which we will also cancel.
+	cancelCtx, cancel = context.WithCancel(putUnmergedCtx)
+	go func() {
+		errChan <- kbfsOps.Sync(cancelCtx, fileNode)
+	}()
+
+	// wait until Sync gets stuck at MDOps.Put()
+	<-onUnmergedPutStalledCh
+	cancel()
+	close(unmergedPutUnstallCh)
+
+	// We expect a canceled error
+	err = <-errChan
+	if err != context.Canceled {
+		t.Fatalf("No expected canceled error: %v", err)
+	}
+
+	// Now finally flush the file again, which will result in a
+	// conflict file.
+	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+		t.Fatalf("Couldn't sync: %v", err)
+	}
+
+	// Wait for all the deletes to go through.
+	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
+	ops.fbm.waitForDeletingBlocks(ctx)
+	if len(ops.fbm.blocksToDeleteChan) > 0 {
+		t.Fatalf("Blocks left to delete after sync")
+	}
+
+	// Wait for CR to finish
+	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+}
+
 // Test that truncating a block to a zero-contents block, for which a
 // duplicate has previously been archived, works correctly after a
 // cancel.  Regression test for KBFS-727.
