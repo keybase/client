@@ -3,7 +3,7 @@ var webpack = require('webpack')
 
 module.exports = {
   entry: {
-    vendor: ['material-ui', 'react', 'lodash', 'immutable', 'material-ui/styles', 'material-ui/svg-icons', 'material-ui/FlatButton', 'material-ui/Popover', 'moment', 'lodash', 'html-entities', 'redux-saga', 'core-js', 'qrcode-generator', 'react-json-tree', 'redux'],
+    vendor: ['core-js', 'html-entities', 'immutable', 'lodash', 'material-ui', 'material-ui/FlatButton', 'material-ui/Popover', 'material-ui/styles', 'material-ui/svg-icons', 'moment', 'qrcode-generator', 'react', 'react-json-tree', 'redux', 'redux-saga'],
   },
   output: {
     path: path.join(__dirname, 'dist', 'dll'),
