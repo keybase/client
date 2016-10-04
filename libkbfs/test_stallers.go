@@ -157,6 +157,7 @@ func (s *NaïveStaller) StallMDOp(stalledOp StallableMDOp, maxStalls int,
 			},
 			delegate: jServer.delegateMDOps,
 		}
+		s.config.SetMDOps(jServer.mdOps())
 	} else {
 		s.config.SetMDOps(&stallingMDOps{
 			stallOpName: stalledOp,
