@@ -69,7 +69,7 @@ const crashHandler = (error) => {
       payload: errorToPayload(error),
     })
   } else {
-    console.error('Got crash before store created?', error)
+    console.warn('Got crash before store created?', error)
   }
 }
 
@@ -85,7 +85,7 @@ const errorCatching = store => next => action => {
   try {
     return next(action)
   } catch (error) {
-    console.error(`Caught a middleware exception ${error}`)
+    console.warn(`Caught a middleware exception ${error}`)
     crashHandler(error)
   }
 }
@@ -106,7 +106,7 @@ export default function configureStore (initialState: any) {
   const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
   theStore = store
 
-  if (module.hot && isMobile) {
+  if (module.hot && !isMobile) {
     // $FlowIssue
     module.hot.accept('../reducers', () => {
       store.replaceReducer(require('../reducers').default)

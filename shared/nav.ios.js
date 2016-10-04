@@ -21,6 +21,7 @@ import {mapValues} from 'lodash'
 import {globalStyles, globalColors, navBarHeight} from './styles'
 import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
+import GlobalError from './global-errors/container'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
@@ -103,7 +104,7 @@ class Nav extends Component {
     )
   }
 
-  _renderContent (tab, module) {
+  _renderContent (tab, module, includeGlobalError) {
     const tabStyle = {
       flex: 1,
       marginBottom: 0,
@@ -119,6 +120,7 @@ class Nav extends Component {
           NavBar={this.navBar()}
           navBarHeight={navBarHeight}
         />
+        <GlobalError />
       </Box>
     )
   }
