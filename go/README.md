@@ -41,7 +41,7 @@ Download the appropriate package:
 ### Building
 
 Here's how to build the command line client on Linux or OSX. You need to
-have both Git and **Go 1.6 or higher** installed. (Run `go version` to
+have both Git and **Go 1.7 or higher** installed. (Run `go version` to
 see what version you have.)
 
 ```bash
