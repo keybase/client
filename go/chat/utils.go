@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/keybase/client/go/libkb"
 )
 
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
@@ -36,7 +34,7 @@ func ParseDurationExtended(s string) (d time.Duration, err error) {
 	return d, nil
 }
 
-func ParseTimeFromRFC3339OrDurationFromPast(g *libkb.GlobalContext, s string) (t time.Time, err error) {
+func ParseTimeFromRFC3339OrDurationFromPast(kbCtx KeybaseContext, s string) (t time.Time, err error) {
 	var errt, errd error
 	var d time.Duration
 
@@ -48,11 +46,10 @@ func ParseTimeFromRFC3339OrDurationFromPast(g *libkb.GlobalContext, s string) (t
 		return t, nil
 	}
 	if d, errd = ParseDurationExtended(s); errd == nil {
-		return g.Clock().Now().Add(-d), nil
+		return kbCtx.Clock().Now().Add(-d), nil
 	}
 
 	return time.Time{}, fmt.Errorf("given string is neither a valid time (%s) nor a valid duration (%v)", errt, errd)
-
 }
 
 // upper bounds takes higher priority
