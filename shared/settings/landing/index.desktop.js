@@ -1,9 +1,10 @@
 // @flow
 import React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Button, Icon, Text, Meta} from '../../common-adapters'
+import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
 import {comparePlans, levelToPrice, levelToSpace, plans} from '../../constants/settings'
 import {Stars} from '../common.desktop.js'
+import SubHeading from '../subheading'
 
 import type {Props, AccountProps, PlanProps} from './index'
 import type {PlanLevel} from '../../constants/settings'
@@ -55,8 +56,6 @@ function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, on
       }
   }
 }
-
-const Divider = () => <Box style={{height: 1, backgroundColor: globalColors.black_05, flex: 1}} />
 
 function SpaceInfo ({freeSpace, freeSpacePercentage, lowSpaceWarning}: {freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean}) {
   return (
@@ -131,12 +130,7 @@ function PlanLevelRow ({level, onInfo, variants, style}: PlanLevelProps) {
 function PaymentInfo ({name, last4Digits, isBroken, onChangePaymentInfo}: PaymentInfoType & {onChangePaymentInfo: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.medium}}>
-      <Text
-        style={{color: globalColors.black_40}}
-        type='BodySmallSemibold'>
-        Your payment method
-      </Text>
-      <Divider />
+      <SubHeading>Your payment method</SubHeading>
       <Box style={{...globalStyles.flexBoxRow, minHeight: ROW_HEIGHT, paddingLeft: globalMargins.xtiny, justifyContent: 'space-between', alignItems: 'center'}}>
         <Box style={globalStyles.flexBoxColumn}>
           <Text
@@ -162,12 +156,7 @@ function Plan ({onInfo, onUpgrade, onDowngrade, freeSpace, freeSpacePercentage, 
   return (
     <Box style={globalStyles.flexBoxColumn}>
       <Box style={globalStyles.flexBoxColumn}>
-        <Text
-          style={{color: globalColors.black_40, marginBottom: globalMargins.tiny}}
-          type='BodySmallSemibold'>
-          Your plan
-        </Text>
-        <Divider />
+        <SubHeading>Your plan</SubHeading>
       </Box>
       {plans.map(p => (
         <PlanLevelRow
@@ -218,7 +207,7 @@ function Account ({email, isVerified, onChangeEmail, onChangePassphrase}: Accoun
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
       <AccountEmail email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
-      <Divider />
+      <Divider style={{backgroundColor: globalColors.black_05}} />
       <AccountPassphrase onChangePassphrase={onChangePassphrase} />
     </Box>
   )

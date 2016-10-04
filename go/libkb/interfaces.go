@@ -514,5 +514,5 @@ type ServiceType interface {
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
-	ListProofCheckers() []string
+	ListProofCheckers(mode RunMode) []string
 }

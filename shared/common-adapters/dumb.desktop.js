@@ -3,12 +3,355 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
-import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, SmallInput, ListItem, PopupMenu, StandardScreen, TabBar, Text} from './index'
+import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, SmallInput, ListItem, PopupMenu, StandardScreen, TabBar, Text, Terminal, Dropdown} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 
 const onCheck = () => console.log('on check!')
+const onClick = () => console.log('on click!')
+
+const dropdownMap: DumbComponentMap<Dropdown> = {
+  component: Dropdown,
+  mocks: {
+    'Normal': {
+      type: 'General',
+      options: ['one', 'two', 'three'],
+      value: 'one',
+      onOther: onClick,
+      onClick: onClick,
+    },
+    'Not selected': {
+      type: 'General',
+      options: ['one', 'two', 'three'],
+      onOther: onClick,
+      onClick: onClick,
+    },
+    'Username': {
+      type: 'Username',
+      options: ['marcopolo', 'chris', 'cjb', 'bbbbbbbbbbbbbbbb'],
+      value: 'cjb',
+      onOther: onClick,
+      onClick: onClick,
+    },
+  },
+}
+const colorMocks = {}
+
+Object.keys(globalColors).sort().forEach(c => {
+  colorMocks[`${c}: ${globalColors[c]}`] = {
+    parentProps: {
+      height: 60,
+      width: 230,
+    },
+    style: {width: 60, height: 60, backgroundColor: globalColors[c]},
+    children: <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}} />,
+  }
+})
+
+const colorsMap: DumbComponentMap<Box> = {
+  component: Box,
+  mocks: colorMocks,
+}
+
+let textMocks = {}
+const backgroundModes = ['Normal', 'Terminal', 'Announcements', 'Success', 'Information', 'HighRisk', 'Documentation']
+
+backgroundModes.forEach(backgroundMode => {
+  const backgroundColor = {
+    'Normal': globalColors.white,
+    'Terminal': globalColors.darkBlue3,
+    'Announcements': globalColors.blue,
+    'Success': globalColors.green,
+    'Information': globalColors.yellow,
+    'HighRisk': globalColors.red,
+    'Documentation': globalColors.darkBlue,
+  }[backgroundMode]
+
+  const base = {
+    parentProps: {
+      style: {
+        backgroundColor,
+        padding: 10,
+        minWidth: 320,
+      },
+    },
+    backgroundMode,
+  }
+
+  const mocks = {}
+
+  const types = [
+    'Body',
+    'BodyPrimaryLink',
+    'BodySemibold',
+    'BodySmall',
+    'BodySmallError',
+    'BodySmallLink',
+    'BodySmallPrimaryLink',
+    'BodySmallSecondaryLink',
+    'BodySmallSemibold',
+    'BodyXSmall',
+    'BodyXSmallLink',
+    'Header',
+    'HeaderBig',
+    'HeaderError',
+    'HeaderJumbo',
+    'HeaderLink',
+  ]
+
+  types.forEach(type => {
+    mocks[type] = {
+      ...base,
+      type,
+      children: type,
+    }
+  })
+
+  Object.keys(mocks).forEach(key => {
+    textMocks[`${key}: ${backgroundMode}`] = mocks[key]
+  })
+})
+
+const textMap: DumbComponentMap<Text> = {
+  component: Text,
+  mocks: textMocks,
+}
+
+const terminalMap: DumbComponentMap<Box> = {
+  component: Box,
+  mocks: {
+    'Terminal': {
+      children: [
+        <Box key='a' style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
+          <p>
+            <Text type='BodySmall'>Word word </Text>
+            <Text type='Terminal'>inline command line </Text>
+            <Text type='TerminalUsername'>username </Text>
+            <Text type='TerminalPrivate'>'secret'</Text>
+            <Text type='BodySmall'> word word word word word </Text>
+            <Text type='Terminal'>inline command line</Text>
+          </p>
+        </Box>,
+        <Terminal key='b' style={{flex: 1, overflow: 'scroll'}}>
+          <p>
+            <Text type='Terminal'>command line stuff </Text>
+            <Text type='TerminalUsername'>username </Text>
+            <Text type='TerminalPrivate'>'something secret'</Text>
+          </p>
+
+          <p>
+            <Text type='Terminal'>command line stuff </Text>
+            <Text type='TerminalUsername'>username </Text>
+            <Text type='TerminalPublic'>'something public'</Text>
+          </p>
+
+          <Text type='TerminalComment'>comment</Text>
+          <Text type='TerminalComment'>comment</Text>
+        </Terminal>,
+      ],
+    },
+  },
+}
+
+const commonButton = {
+  onClick,
+}
+
+const buttonsMap: DumbComponentMap<Button> = {
+  component: Button,
+  mocks: {
+    'Primary': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+    },
+    'Primary disabled': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      disabled: true,
+    },
+    'Primary waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      waiting: true,
+    },
+    'Secondary': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+    },
+    'Secondary disabled': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      disabled: true,
+    },
+    'Secondary waiting': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      waiting: true,
+    },
+    'Danger': {
+      ...commonButton,
+      label: 'Danger',
+      type: 'Danger',
+    },
+    'Danger disabled': {
+      ...commonButton,
+      label: 'Danger',
+      type: 'Danger',
+      disabled: true,
+    },
+    'Danger waiting': {
+      ...commonButton,
+      label: 'Danger',
+      type: 'Danger',
+      waiting: true,
+    },
+    'Follow': {
+      ...commonButton,
+      label: 'Follow',
+      type: 'Follow',
+    },
+    'Follow Disabled': {
+      ...commonButton,
+      label: 'Follow',
+      type: 'Follow',
+      disabled: true,
+    },
+    'Following': {
+      ...commonButton,
+      label: 'Following',
+      type: 'Following',
+    },
+    'Unfollow': {
+      ...commonButton,
+      label: 'Unfollow',
+      type: 'Unfollow',
+    },
+    'Primary fullWidth': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      fullWidth: true,
+    },
+    'Primary fullWidth waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      fullWidth: true,
+      waiting: true,
+    },
+    'Secondary fullWidth': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      fullWidth: true,
+    },
+    'Secondary fullWidth waiting': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      fullWidth: true,
+      waiting: true,
+    },
+    'Danger fullWidth': {
+      ...commonButton,
+      label: 'Danger',
+      type: 'Danger',
+      fullWidth: true,
+    },
+    'Danger fullWidth waiting': {
+      ...commonButton,
+      label: 'Danger',
+      type: 'Danger',
+      fullWidth: true,
+      waiting: true,
+    },
+    'Follow fullWidth': {
+      ...commonButton,
+      label: 'Follow',
+      type: 'Follow',
+      fullWidth: true,
+    },
+    'Follow fullWidth waiting': {
+      ...commonButton,
+      label: 'Follow',
+      type: 'Follow',
+      fullWidth: true,
+      waiting: true,
+    },
+    'Primary small': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+    },
+    'Secondary small': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+    },
+    'Danger small': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+    },
+    'Follow small': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+    },
+    'Primary small waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+      waiting: true,
+    },
+    'Secondary small waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+      waiting: true,
+    },
+    'Danger small waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+      waiting: true,
+    },
+    'Follow small waiting': {
+      ...commonButton,
+      label: 'Primary',
+      type: 'Primary',
+      small: true,
+      waiting: true,
+    },
+    'Secondary terminal': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      backgroundMode: 'Terminal',
+    },
+    'Secondary terminal fullWidth': {
+      ...commonButton,
+      label: 'Secondary',
+      type: 'Secondary',
+      backgroundMode: 'Terminal',
+      fullWidth: true,
+    },
+  },
+}
 
 const checkboxMap: DumbComponentMap<Checkbox> = {
   component: Checkbox,
@@ -348,13 +691,18 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
 
 export default {
   Avatar: avatarMap,
+  Buttons: buttonsMap,
   Checkbox: checkboxMap,
   ChoiceList: choiceListMap,
+  Colors: colorsMap,
+  Dropdown: dropdownMap,
   Icon: iconMap,
   Input: inputMap,
-  SmallInput: smallInputMap,
   ListItem: listItemMap,
   PopupMenu: popupMenuMap,
+  SmallInput: smallInputMap,
   StandardScreen: standardScreenMap,
   TabBar: tabBarMap,
+  Terminal: terminalMap,
+  Text: textMap,
 }

@@ -186,7 +186,7 @@ func (b *bufferedIdentifyUI) DisplayKey(k keybase1.IdentifyKey) error {
 	b.Lock()
 	defer b.Unlock()
 	b.keys = append(b.keys, k)
-	return b.flush(false)
+	return b.flush(k.BreaksTracking)
 }
 
 func (b *bufferedIdentifyUI) ReportLastTrack(s *keybase1.TrackSummary) error {

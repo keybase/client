@@ -143,8 +143,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "555af76fbcf22e132aa26af3abb8581a614cdee6",
-			"revisionTime": "2016-07-12T08:26:31-04:00"
+			"revision": "93f5b35093ba15e0f86e412cc5c767d5c10c15fd",
+			"revisionTime": "2016-10-04T11:35:44-04:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
@@ -168,8 +168,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "ba409f9a785a2517b7d10d9afc85cea9f665a2b3",
-			"revisionTime": "2016-08-22T17:27:46-04:00"
+			"revision": "93f5b35093ba15e0f86e412cc5c767d5c10c15fd",
+			"revisionTime": "2016-10-04T11:35:44-04:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
@@ -187,10 +187,10 @@
 			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
-			"checksumSHA1": "wjZgw3Uk/a6hIeLltwi2N1awOvI=",
-			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "0a70c4c69a35782a1e3011d33503c6625567bb69",
-			"revisionTime": "2016-08-09T17:17:08Z"
+			"checksumSHA1": "SC+9sm//Kzu5V1lUcFa/GyhtZas=",
+			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
+			"revision": "f08dee4c9e838e5a6c499ad4ed2e9a4ab6433361",
+			"revisionTime": "2016-10-03T19:37:48Z"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
@@ -550,6 +550,12 @@
 			"revisionTime": "2015-06-09T11:52:15-07:00"
 		},
 		{
+			"checksumSHA1": "S0DP7Pn7sZUmXc55IzZnNvERu6s=",
+			"path": "golang.org/x/sync/errgroup",
+			"revision": "316e794f7b5e3df4e95175a45a5fb8b12f85cb4f",
+			"revisionTime": "2016-07-15T18:54:39Z"
+		},
+		{
 			"path": "golang.org/x/sys/windows",
 			"revision": "f64b50fbea64174967a8882830d621a18ee1548e",
 			"revisionTime": "2016-04-14T16:31:22+03:00"
@@ -598,6 +604,12 @@
 			"path": "golang.org/x/text/transform",
 			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
 			"revisionTime": "2016-06-17T13:51:20-05:00"
+		},
+		{
+			"checksumSHA1": "n94g6qdzv0fgQFGelH4/HXOthl0=",
+			"path": "golang.org/x/text/unicode/cldr",
+			"revision": "a7c023693a94aedd6b6df43ae7526bfe9d2b7d22",
+			"revisionTime": "2016-09-22T05:42:04Z"
 		},
 		{
 			"path": "h12.me/socks",

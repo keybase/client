@@ -299,7 +299,7 @@ func (k *GpgPrimaryKey) AddLine(l *GpgIndexLine) (err error) {
 			err = k.AddFingerprint(l)
 		case "uid":
 			err = k.AddUID(l)
-		case "uat":
+		case "uat", "grp": // ignore
 		case "sub", "ssb":
 			err = k.AddSubkey(l)
 		default:

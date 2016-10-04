@@ -5,7 +5,7 @@
 	<key>BuildFlavor</key>
 	<string></string>
 	<key>BuildMachineOSBuild</key>
-	<string>14F1808</string>
+	<string>16A323</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleIdentifier</key>
@@ -17,15 +17,19 @@
 	<key>CFBundlePackageType</key>
 	<string>fs </string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.4.2</string>
+	<string>3.5.2</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleSupportedPlatforms</key>
+	<array>
+		<string>MacOSX</string>
+	</array>
 	<key>CFBundleVersion</key>
-	<string>3.4.2</string>
+	<string>3.5.2</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
-	<string>6E35b</string>
+	<string>7A1001</string>
 	<key>DTPlatformVersion</key>
 	<string>GM</string>
 	<key>DTSDKBuild</key>
@@ -33,9 +37,9 @@
 	<key>DTSDKName</key>
 	<string>macosx10.10</string>
 	<key>DTXcode</key>
-	<string>0640</string>
+	<string>0701</string>
 	<key>DTXcodeBuild</key>
-	<string>6E35b</string>
+	<string>7A1001</string>
 	<key>FSPersonalities</key>
 	<dict>
 		<key>Beagle</key>

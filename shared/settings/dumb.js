@@ -13,6 +13,7 @@ import DeleteConfirm from './delete-confirm'
 import Notifications from './notifications'
 import InviteGenerated from './invite-generated'
 import PlanDetails from './plan-details'
+import Invites from './invites'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -251,6 +252,8 @@ const deleteConfirmMap: DumbComponentMap<DeleteConfirm> = {
       onDeleteForever: () => console.log('onDeleteForever clicked'),
       onCancel: () => console.log('onCancel clicked'),
       username: 'chris',
+      allowDeleteForever: true,
+      setAllowDeleteAccount: allow => console.log('setAllowDeleteAccount', allow),
       parentProps: {
         style: {
           height: 500,
@@ -285,6 +288,9 @@ const commonSettings = {
     },
   ],
   unsubscribedFromAll: false,
+  allowSave: true,
+  allowEdit: true,
+  onRefresh: () => console.log('onRefresh'),
   onSave: () => console.log('onSave'),
   onToggle: (name: string) => console.log('on toggle', name),
   onToggleUnsubscribeAll: () => console.log('on subscribe all'),
@@ -363,6 +369,89 @@ const planDetailsMap: DumbComponentMap<PlanDetails> = {
   },
 }
 
+const invitesBase = {
+  inviteEmail: 'tcook@apple.com',
+  inviteMessage: 'Hey Tim! I heard you like end-to-end encryption...',
+  showMessageField: true,
+  emailError: false,
+  pendingInvites: [
+    {
+      type: 'pending-email',
+      id: '123456',
+      created: 1469565223000,
+      email: 'tcook@apple.com',
+    },
+    {
+      type: 'pending-url',
+      id: '123457',
+      created: 1469566223000,
+      url: 'keybase.io/inv/9999999999',
+    },
+  ],
+  acceptedInvites: [
+    {
+      id: '223456',
+      created: 1469565223000,
+      username: 'malgorithms',
+      fullname: 'Chris Coyne',
+      avatar: 'https://keybase.io/chris/picture',
+      currentlyFollowing: false,
+      trackerState: 'normal',
+    },
+    {
+      id: '223457',
+      created: 1469566223000,
+      username: 'cecileb',
+      fullname: 'Cécile Boucheron',
+      avatar: 'https://keybase.io/cecileb/picture',
+      currentlyFollowing: true,
+      trackerState: 'normal',
+    },
+    {
+      id: '223458',
+      created: 1469567223000,
+      username: 'chromakode',
+      fullname: 'Max Goodman',
+      avatar: 'https://keybase.io/chromakode/picture',
+      currentlyFollowing: false,
+      trackerState: 'error',
+    },
+  ],
+  onChangeInviteEmail: inviteEmail => console.log('onChangeInviteEmail', inviteEmail),
+  onChangeInviteMessage: inviteMessage => console.log('onChangeInviteMessage', inviteMessage),
+  onClickUser: username => console.log('onClickUser', username),
+  onReclaimInvitation: invitationId => console.log('onReclaimInvitation', invitationId),
+  onGenerateInvitation: () => console.log('onGenerateInvitation'),
+  parentProps: {
+    style: {
+      width: 504,
+    },
+  },
+}
+
+const invitesMap: DumbComponentMap<Invites> = {
+  component: Invites,
+  mocks: {
+    'Normal - Empty': {
+      ...invitesBase,
+      inviteEmail: '',
+      inviteMessage: '',
+      showMessageField: false,
+      pendingInvites: [],
+      acceptedInvites: [],
+    },
+    'Normal - Empty Message': {
+      ...invitesBase,
+      inviteMessage: '',
+    },
+    'Normal': invitesBase,
+    'Normal - Email Error': {
+      ...invitesBase,
+      emailError: true,
+    },
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
   UpdatePassphrase: updatePassphraseMap,
@@ -374,4 +463,5 @@ export default {
   Notifications: notificationsMap,
   InviteGenerated: inviteGeneratedMap,
   PlanDetails: planDetailsMap,
+  Invites: invitesMap,
 }

@@ -31,8 +31,8 @@ export type LoginState = {
   waitingForResponse: boolean,
   loginError: ?string,
   justRevokedSelf: ?string,
+  justDeletedSelf: ?string,
   justLoginFromRevokedDevice: ?boolean,
-  loaded: boolean,
 }
 
 const initialState: LoginState = {
@@ -61,8 +61,8 @@ const initialState: LoginState = {
   waitingForResponse: false,
   loginError: null,
   justRevokedSelf: null,
+  justDeletedSelf: null,
   justLoginFromRevokedDevice: null,
-  loaded: false,
 }
 
 export default function (state: LoginState = initialState, action: any): LoginState {
@@ -76,11 +76,6 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       if (action.error || action.payload == null) {
         return state
       }
-      break
-    case ConfigConstants.extendedConfigLoaded:
-      // When extended config is loaded, we have enough state to show
-      // login intro, index or logged in UI, so set loaded to true.
-      toMerge = {loaded: true}
       break
     case Constants.setMyDeviceCodeState:
       toMerge = {codePage: {myDeviceRole: action.payload}}
@@ -154,6 +149,9 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       break
     case Constants.setRevokedSelf:
       toMerge = {justRevokedSelf: action.payload}
+      break
+    case Constants.setDeletedSelf:
+      toMerge = {justDeletedSelf: action.payload}
       break
     case Constants.setLoginFromRevokedDevice:
       toMerge = {justLoginFromRevokedDevice: action.payload}

@@ -46,7 +46,7 @@ func TestGPGImportSecret(t *testing.T) {
 	if len(fps) != 1 {
 		t.Fatalf("num fingerprints: %d, expected 1", len(fps))
 	}
-	bundle, err := cli.ImportKey(true, fps[0])
+	bundle, err := cli.ImportKey(true, fps[0], "")
 	if err != nil {
 		t.Fatal(err)
 	}

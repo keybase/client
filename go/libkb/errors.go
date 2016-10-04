@@ -1216,6 +1216,16 @@ func (e IdentifyFailedError) Error() string {
 
 //=============================================================================
 
+type IdentifySummaryError struct {
+	problems []string
+}
+
+func (e IdentifySummaryError) Error() string {
+	return fmt.Sprintf("%s", strings.Join(e.problems, "; "))
+}
+
+//=============================================================================
+
 type NotLatestSubchainError struct {
 	Msg string
 }

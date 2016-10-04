@@ -13,6 +13,7 @@ import pinentry from './pinentry'
 import planBilling from './plan-billing'
 import profile from './profile'
 import router from './router'
+import settings from './settings'
 import search from './search'
 import serialize from './serialize'
 import signup from './signup'
@@ -55,6 +56,7 @@ const combinedReducer = combineReducers({
   profile,
   router,
   search,
+  settings,
   signup,
   tracker,
   unlockFolders,

@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -20,7 +21,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -868,8 +869,8 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %d sender: %s",
 			nm.ConvID, nm.Message.ServerHeader.Sender)
-		boxer := newChatBoxer(g.G())
-		msg, err := boxer.unboxMessage(ctx, newKeyFinder(), nm.Message)
+		boxer := chat.NewBoxer(g.G(), newTlfHandler(nil, g.G()))
+		msg, err := boxer.UnboxMessage(ctx, chat.NewKeyFinder(), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to unbox message: %s", err.Error())
 			return err

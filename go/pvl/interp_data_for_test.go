@@ -36,6 +36,15 @@ var infoBadProto = ProofInfo{
 	APIURL:         "https://rooter.example.com/proofs/kronkinator/5.htjsxt",
 }
 
+var infoBadSig = ProofInfo{
+	ArmoredSig:     sig1 + "w",
+	Username:       "kronk",
+	RemoteUsername: "kronkinator",
+	Hostname:       "kronk.example.com",
+	Protocol:       "http:",
+	APIURL:         "https://rooter.example.com/proofs/kronkinator/5.htjsxt",
+}
+
 var html1 = `
 <html>
 <head>

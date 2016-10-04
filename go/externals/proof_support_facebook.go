@@ -39,17 +39,27 @@ func (rc *FacebookChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) li
 	}
 
 	wantedURL := ("https://m.facebook.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/posts/")
-	wantedMediumID := "on Keybase.io. " + rc.proof.GetSigID().ToMediumID()
-
 	if !strings.HasPrefix(strings.ToLower(h.GetAPIURL()), wantedURL) {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should start with '%s', received '%s'", wantedURL, h.GetAPIURL())
 	}
 
-	// TODO: We could ignore this portion of the server's hint. Should we?
-	if !strings.Contains(h.GetCheckText(), wantedMediumID) {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad proof-check text from server; need '%s' as a substring, received '%s'", wantedMediumID, h.GetCheckText())
+	// TODO: We could ignore the checktext portion of the server's hint. Should we?
+
+	checkText := libkb.WhitespaceNormalize(h.GetCheckText())
+	re := regexp.MustCompile("^Verifying myself: I am (\\S+) on Keybase.io. (\\S+)$")
+	match := re.FindStringSubmatch(checkText)
+	wantedCheckText := "Verifying myself: I am " + rc.proof.GetUsername() + " on Keybase.io. " + rc.proof.GetSigID().ToMediumID()
+	checkTextErr := libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
+		"Bad proof-check text from server; need '%s', received '%s'", wantedCheckText, checkText)
+	if len(match) != 3 {
+		return checkTextErr
+	}
+	if !libkb.Cicmp(match[1], rc.proof.GetUsername()) {
+		return checkTextErr
+	}
+	if match[2] != rc.proof.GetSigID().ToMediumID() {
+		return checkTextErr
 	}
 
 	return nil
@@ -73,6 +83,11 @@ func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHin
 		return libkb.XapiError(err, apiURL)
 	}
 
+	notFoundError := checkForPostNotFound(apiURL, res.GoQuery)
+	if notFoundError != nil {
+		return notFoundError
+	}
+
 	username, proofErr := extractUsername(res.GoQuery)
 	if proofErr != nil {
 		return proofErr
@@ -92,6 +107,18 @@ func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHin
 	}
 
 	// The proof is good.
+	return nil
+}
+
+func checkForPostNotFound(postURL string, doc *goquery.Document) libkb.ProofError {
+	// m.facebook.com returns 200's for posts you can't see, rather than 404's.
+	// Having a post that's deleted or private is going to be much more common
+	// than the obscure errors below. Do an explicit check for that, to produce
+	// a better error message.
+	if doc.Find("#m_story_permalink_view").Length() == 0 {
+		errorText := fmt.Sprintf("Couldn't find Facebook post %s. Is it deleted or private?", postURL)
+		return libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, errorText)
+	}
 	return nil
 }
 

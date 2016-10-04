@@ -15,7 +15,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 // CmdProve is the wrapper structure for the the `keybase prove` operation.
@@ -104,7 +104,7 @@ func (p *CmdProve) installOutputHook(ui *ProveUI) {
 
 // NewCmdProve makes a new prove command from the given CLI parameters.
 func NewCmdProve(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	serviceList := strings.Join(g.Services.ListProofCheckers(), ", ")
+	serviceList := strings.Join(g.Services.ListProofCheckers(g.GetRunMode()), ", ")
 	description := fmt.Sprintf("Supported services are: %s.", serviceList)
 	cmd := cli.Command{
 		Name:         "prove",

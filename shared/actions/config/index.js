@@ -6,9 +6,6 @@ import {navBasedOnLoginState} from '../../actions/login'
 import {resetSignup} from '../../actions/signup'
 import {registerGregorListeners} from '../../actions/gregor'
 
-// $FlowFixMe
-import * as platform from './index.platform'
-
 import type {AsyncAction, Action} from '../../constants/types/flux'
 import {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc,
   userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
@@ -115,6 +112,13 @@ function _registerListeners (): AsyncAction {
   }
 }
 
+export function retryBootstrap (): AsyncAction {
+  return (dispatch, getState) => {
+    dispatch({type: Constants.bootstrapRetry, payload: null})
+    dispatch(bootstrap())
+  }
+}
+
 let bootstrapSetup = false
 export function bootstrap (): AsyncAction {
   return (dispatch, getState) => {
@@ -144,13 +148,14 @@ export function bootstrap (): AsyncAction {
         }).catch(error => {
           console.warn('[bootstrap] error bootstrapping: ', error)
           const triesRemaining = getState().config.bootstrapTriesRemaining
-          dispatch({type: Constants.bootstrapFailed, payload: null})
+          dispatch({type: Constants.bootstrapAttemptFailed, payload: null})
           if (triesRemaining > 0) {
             const retryDelay = Constants.bootstrapRetryDelay / triesRemaining
             console.log(`[bootstrap] resetting engine in ${retryDelay / 1000}s (${triesRemaining} tries left)`)
             setTimeout(() => engine().reset(), retryDelay)
           } else {
             console.error('[bootstrap] exhausted bootstrap retries')
+            dispatch({type: Constants.bootstrapFailed, payload: {error}})
           }
         })
     }
@@ -177,18 +182,6 @@ function getCurrentStatus (): AsyncAction {
       })
     })
   }
-}
-
-export function getDevSettings () {
-  return platform.getDevSettings()
-}
-
-export function saveDevSettings () {
-  return platform.saveDevSettings()
-}
-
-export function updateDevSettings (updates: any) {
-  return platform.updateDevSettings(updates)
 }
 
 export {getExtendedStatus}

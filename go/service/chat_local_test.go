@@ -4,153 +4,118 @@
 package service
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/kbtest"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
-type chatTestContext struct {
-	h     *chatLocalHandler
-	tc    libkb.TestContext
-	world *chatMockWorld
-	mock  *chatRemoteMock
+type chatTestUserContext struct {
+	u *kbtest.FakeUser
+	h *chatLocalHandler
 }
 
-func makeChatTestContext(t *testing.T, name string) (ctc chatTestContext) {
-	ctc.tc = externals.SetupTest(t, "chat_local_test_"+name, 0)
-	u, err := kbtest.CreateAndSignupFakeUser("chat", ctc.tc.G)
-	if err != nil {
-		t.Fatalf("CreateAndSignupFakeUser error: %v\n", err)
-	}
-	ctc.world = newChatMockWorld(u)
-	ctc.mock = newChatRemoteMock(ctc.world)
-	ctc.h = newChatLocalHandler(nil, ctc.tc.G, nil)
-	ctc.h.rc = ctc.mock
-	ctc.h.boxer = newChatBoxer(ctc.tc.G)
-	ctc.h.boxer.tlf = newTlfMock(ctc.world)
+func (tuc *chatTestUserContext) user() *kbtest.FakeUser {
+	return tuc.u
+}
+
+func (tuc *chatTestUserContext) chatLocalHandler() chat1.LocalInterface {
+	return tuc.h
+}
+
+type chatTestContext struct {
+	world *kbtest.ChatMockWorld
+
+	userContextCache map[string]*chatTestUserContext
+}
+
+func makeChatTestContext(t *testing.T, name string, numUsers int) *chatTestContext {
+	ctc := &chatTestContext{}
+	ctc.world = kbtest.NewChatMockWorld(t, name, numUsers)
+	ctc.userContextCache = make(map[string]*chatTestUserContext)
 	return ctc
 }
 
-func mustCreateConversationForTest(t *testing.T, ctc chatTestContext, topicType chat1.TopicType, others ...string) chat1.ConversationInfoLocal {
+func (c *chatTestContext) advanceFakeClock(d time.Duration) {
+	c.world.Fc.Advance(d)
+}
+
+func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserContext {
+	if user == nil {
+		t.Fatalf("user is nil")
+	}
+
+	if tuc, ok := c.userContextCache[user.Username]; ok {
+		return tuc
+	}
+
+	tc, ok := c.world.Tcs[user.Username]
+	if !ok {
+		t.Fatalf("user %s is not found", user.Username)
+	}
+	h := newChatLocalHandler(nil, tc.G, nil)
+	h.rc = kbtest.NewChatRemoteMock(c.world)
+	h.tlf = kbtest.NewTlfMock(c.world)
+	h.boxer = chat.NewBoxer(tc.G, h.tlf)
+	tuc := &chatTestUserContext{
+		h: h,
+		u: user,
+	}
+	c.userContextCache[user.Username] = tuc
+	return tuc
+}
+
+func (c *chatTestContext) cleanup() {
+	c.world.Cleanup()
+}
+
+func (c *chatTestContext) users() (users []*kbtest.FakeUser) {
+	for _, u := range c.world.Users {
+		users = append(users, u)
+	}
+	return users
+}
+
+func mustCreateConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
+	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType, others...)
+	ctc.advanceFakeClock(time.Second)
+	return created
+}
+
+func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
 	var err error
-	ncres, err := ctc.h.NewConversationLocal(context.Background(), chat1.ConversationInfoLocal{
-		TlfName:   strings.Join(others, ",") + "," + ctc.world.me.Username,
-		TopicType: topicType,
+	ncres, err := ctc.as(t, creator).chatLocalHandler().NewConversationLocal(context.Background(), chat1.NewConversationLocalArg{
+		TlfName:       strings.Join(others, ",") + "," + creator.Username,
+		TopicType:     topicType,
+		TlfVisibility: chat1.TLFVisibility_PRIVATE,
 	})
 	if err != nil {
 		t.Fatalf("NewConversationLocal error: %v\n", err)
 	}
-	return ncres.Conv
+	return ncres.Conv.Info
 }
 
-func TestNewConversationLocal(t *testing.T) {
-	ctc := makeChatTestContext(t, "NewConversationLocal")
-	defer ctc.tc.Cleanup()
-
-	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-
-	conv := ctc.mock.getConversationByID(created.Id)
-	if len(conv.MaxMsgs) == 0 {
-		t.Fatalf("created conversation does not have a message")
-	}
-	if conv.MaxMsgs[0].ClientHeader.TlfName != ctc.world.me.Username+",t_alice" {
-		t.Fatalf("unexpected TLF name in created conversation. expected %s, got %s", ctc.world.me.Username+",t_alice", conv.MaxMsgs[0].ClientHeader.TlfName)
-	}
+func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
+	mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
+	ctc.advanceFakeClock(time.Second)
 }
 
-func TestNewChatConversationLocalTwice(t *testing.T) {
-	ctc := makeChatTestContext(t, "NewConversationLocal")
-	defer ctc.tc.Cleanup()
-
-	c1 := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	c2 := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-
-	if c2.Id != c1.Id {
-		t.Fatalf("2nd call to NewConversationLocal for a chat conversation did not return the same conversation ID")
-	}
-}
-
-func TestNewDevConversationLocalTwice(t *testing.T) {
-	ctc := makeChatTestContext(t, "NewConversationLocal")
-	defer ctc.tc.Cleanup()
-
-	mustCreateConversationForTest(t, ctc, chat1.TopicType_DEV, "t_alice")
-	mustCreateConversationForTest(t, ctc, chat1.TopicType_DEV, "t_alice")
-}
-
-func TestResolveConversationLocal(t *testing.T) {
-	t.Skip("this needs to be fixed")
-	ctc := makeChatTestContext(t, "ResolveConversationLocal")
-	defer ctc.tc.Cleanup()
-
-	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-
-	rcres, err := ctc.h.ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
-		Id: created.Id,
-	})
-	if err != nil {
-		t.Fatalf("ResolveConversationLocal error: %v", err)
-	}
-	conversations := rcres.Convs
-	if len(conversations) != 1 {
-		t.Fatalf("unexpected response from ResolveConversationLocal. expected 1 items, got %d\n", len(conversations))
-	}
-	conv := ctc.mock.getConversationByID(created.Id)
-	if conversations[0].TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
-		t.Fatalf("unexpected TlfName in response from ResolveConversationLocal. %s != %s\n", conversations[0].TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
-	}
-	if conversations[0].Id != created.Id {
-		t.Fatalf("unexpected Id in response from ResolveConversationLocal. %s != %s\n", conversations[0].Id, created.Id)
-	}
-	if conversations[0].TopicType != chat1.TopicType_CHAT {
-		t.Fatalf("unexpected topicType in response from ResolveConversationLocal. %s != %s\n", conversations[0].TopicType, chat1.TopicType_CHAT)
-	}
-}
-
-func TestResolveConversationLocalTlfName(t *testing.T) {
-	ctc := makeChatTestContext(t, "ResolveConversationLocal")
-	defer ctc.tc.Cleanup()
-
-	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-
-	rcres, err := ctc.h.ResolveConversationLocal(context.Background(), chat1.ConversationInfoLocal{
-		TlfName: "t_alice" + "," + ctc.world.me.Username, // not canonical
-	})
-	if err != nil {
-		t.Fatalf("ResolveConversationLocal error: %v", err)
-	}
-	conversations := rcres.Convs
-	if len(conversations) != 1 {
-		t.Fatalf("unexpected response from ResolveConversationLocal. expected 1 item, got %d\n", len(conversations))
-	}
-	conv := ctc.mock.getConversationByID(created.Id)
-	if conversations[0].TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
-		t.Fatalf("unexpected TlfName in response from ResolveConversationLocal. %s != %s\n", conversations[0].TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
-	}
-	if conversations[0].Id != created.Id {
-		t.Fatalf("unexpected Id in response from ResolveConversationLocal. %s != %s\n", conversations[0].Id, created.Id)
-	}
-	if conversations[0].TopicType != chat1.TopicType_CHAT {
-		t.Fatalf("unexpected topicType in response from ResolveConversationLocal. %s != %s\n", conversations[0].TopicType, chat1.TopicType_CHAT)
-	}
-}
-
-func mustPostLocalForTest(t *testing.T, ctc chatTestContext, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
+func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
 	mt, err := msg.MessageType()
 	if err != nil {
 		t.Fatalf("msg.MessageType() error: %v\n", err)
 	}
-	_, err = ctc.h.PostLocal(context.Background(), chat1.PostLocalArg{
+	_, err = ctc.as(t, asUser).chatLocalHandler().PostLocal(context.Background(), chat1.PostLocalArg{
 		ConversationID: conv.Id,
 		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
+				Conv:        conv.Triple,
 				MessageType: mt,
 				TlfName:     conv.TlfName,
 			},
@@ -162,28 +127,132 @@ func mustPostLocalForTest(t *testing.T, ctc chatTestContext, conv chat1.Conversa
 	}
 }
 
-func TestPostLocal(t *testing.T) {
-	ctc := makeChatTestContext(t, "PostLocal")
-	defer ctc.tc.Cleanup()
+func TestChatNewConversationLocal(t *testing.T) {
+	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	mustPostLocalForTest(t, ctc, created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+
+	conv := ctc.world.GetConversationByID(created.Id)
+	if len(conv.MaxMsgs) == 0 {
+		t.Fatalf("created conversation does not have a message")
+	}
+	if conv.MaxMsgs[0].ClientHeader.TlfName !=
+		string(kbtest.CanonicalTlfNameForTest(ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username)) {
+		t.Fatalf("unexpected TLF name in created conversation. expected %s, got %s", ctc.as(t, users[0]).user().Username+","+ctc.as(t, users[1]).user().Username, conv.MaxMsgs[0].ClientHeader.TlfName)
+	}
+}
+
+func TestChatNewChatConversationLocalTwice(t *testing.T) {
+	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	c1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	c2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+
+	if c2.Id != c1.Id {
+		t.Fatalf("2nd call to NewConversationLocal for a chat conversation did not return the same conversation ID")
+	}
+}
+
+func TestChatNewDevConversationLocalTwice(t *testing.T) {
+	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_DEV, ctc.as(t, users[1]).user().Username)
+	mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_DEV, ctc.as(t, users[1]).user().Username)
+}
+
+func TestChatInboxLocal(t *testing.T) {
+	ctc := makeChatTestContext(t, "ResolveConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+
+	gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxLocal(context.Background(), chat1.GetInboxLocalArg{
+		Query: &chat1.GetInboxLocalQuery{
+			ConvID: &created.Id,
+		},
+	})
+	if err != nil {
+		t.Fatalf("GetInboxLocal error: %v", err)
+	}
+	conversations := gilres.Conversations
+	if len(conversations) != 1 {
+		t.Fatalf("unexpected response from GetInboxLocal. expected 1 items, got %d\n", len(conversations))
+	}
+	conv := ctc.world.GetConversationByID(created.Id)
+	if conversations[0].Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
+		t.Fatalf("unexpected TlfName in response from GetInboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
+	}
+	if conversations[0].Info.Id != created.Id {
+		t.Fatalf("unexpected Id in response from GetInboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
+	}
+	if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
+		t.Fatalf("unexpected topicType in response from GetInboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
+	}
+}
+
+func TestChatGetInboxLocalTlfName(t *testing.T) {
+	ctc := makeChatTestContext(t, "ResolveConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+
+	tlfName := ctc.as(t, users[1]).user().Username + "," + ctc.as(t, users[0]).user().Username // not canonical
+	gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxLocal(context.Background(), chat1.GetInboxLocalArg{
+		Query: &chat1.GetInboxLocalQuery{
+			TlfName: &tlfName,
+		},
+	})
+	if err != nil {
+		t.Fatalf("ResolveConversationLocal error: %v", err)
+	}
+	conversations := gilres.Conversations
+	if len(conversations) != 1 {
+		t.Fatalf("unexpected response from GetInboxLocal. expected 1 items, got %d\n", len(conversations))
+	}
+	conv := ctc.world.GetConversationByID(created.Id)
+	if conversations[0].Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
+		t.Fatalf("unexpected TlfName in response from GetInboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
+	}
+	if conversations[0].Info.Id != created.Id {
+		t.Fatalf("unexpected Id in response from GetInboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
+	}
+	if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
+		t.Fatalf("unexpected topicType in response from GetInboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
+	}
+}
+
+func TestChatPostLocal(t *testing.T) {
+	ctc := makeChatTestContext(t, "PostLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
 	// we just posted this message, so should be the first one.
-	msg := ctc.mock.msgs[created.Id][0]
-	if len(msg.ClientHeader.Sender.Bytes()) == 0 && len(msg.ClientHeader.SenderDevice.Bytes()) == 0 {
+	msg := ctc.world.Msgs[created.Id][0]
+	if len(msg.ClientHeader.Sender.Bytes()) == 0 || len(msg.ClientHeader.SenderDevice.Bytes()) == 0 {
 		t.Fatalf("PostLocal didn't populate ClientHeader.Sender and/or ClientHeader.SenderDevice\n")
 	}
 }
 
-func TestGetThreadLocal(t *testing.T) {
-	ctc := makeChatTestContext(t, "GetThreadLocal")
-	defer ctc.tc.Cleanup()
+func TestChatGetThreadLocal(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetThreadLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	mustPostLocalForTest(t, ctc, created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
-	tvres, err := ctc.h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
+	tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: created.Id,
 	})
 	if err != nil {
@@ -198,25 +267,98 @@ func TestGetThreadLocal(t *testing.T) {
 	}
 }
 
-func TestGracefulUnboxing(t *testing.T) {
-	ctc := makeChatTestContext(t, "GracefulUnboxing")
-	defer ctc.tc.Cleanup()
+func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetThreadLocalMarkAsRead", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
 
-	created := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	mustPostLocalForTest(t, ctc, created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "innocent hello"}))
-	mustPostLocalForTest(t, ctc, created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
+	withUser1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello0"}))
+	mustPostLocalForTest(t, ctc, users[1], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello1"}))
+
+	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
+		TopicType: chat1.TopicType_CHAT,
+	})
+	if err != nil {
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
+	}
+	if len(res.Conversations) != 1 {
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
+	}
+
+	var found bool
+	for _, m := range res.Conversations[0].MaxMessages {
+		if m.Message.ServerHeader.MessageType == chat1.MessageType_TEXT {
+			if res.Conversations[0].ReaderInfo.ReadMsgid == m.Message.ServerHeader.MessageID {
+				t.Fatalf("conversation was not marked as read\n")
+			}
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("no TEXT message in returned inbox")
+	}
+
+	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
+		ConversationID: withUser1.Id,
+		Query: &chat1.GetThreadQuery{
+			MarkAsRead:   true,
+			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+		},
+	})
+	if err != nil {
+		t.Fatalf("GetThreadLocal error: %v", err)
+	}
+	if len(tv.Thread.Messages) != 2 {
+		t.Fatalf("unexpected response from GetThreadLocal. expected 2 items, got %d\n", len(tv.Thread.Messages))
+	}
+
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
+		TopicType: chat1.TopicType_CHAT,
+	})
+	if err != nil {
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
+	}
+	if len(res.Conversations) != 1 {
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
+	}
+
+	found = false
+	for _, m := range res.Conversations[0].MaxMessages {
+		if m.Message.ServerHeader.MessageType == chat1.MessageType_TEXT {
+			if res.Conversations[0].ReaderInfo.ReadMsgid != m.Message.ServerHeader.MessageID {
+				t.Fatalf("conversation was not marked as read\n")
+			}
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("no TEXT message in returned inbox")
+	}
+}
+
+func TestChatGracefulUnboxing(t *testing.T) {
+	ctc := makeChatTestContext(t, "GracefulUnboxing", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "innocent hello"}))
+	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
 
 	// make evil hello evil
-	ctc.mock.msgs[created.Id][0].BodyCiphertext.E[0]++
+	ctc.world.Msgs[created.Id][0].BodyCiphertext.E[0]++
 
-	tv, err := ctc.h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
+	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: created.Id,
 	})
 	if err != nil {
 		t.Fatalf("GetThreadLocal error: %v", err)
 	}
 	if len(tv.Thread.Messages) != 3 {
-		t.Fatalf("unexpected response from GetThreadLocal. expected 4 items, got %d\n", len(tv.Thread.Messages))
+		t.Fatalf("unexpected response from GetThreadLocal. expected 3 items, got %d\n", len(tv.Thread.Messages))
 	}
 	if tv.Thread.Messages[0].Message != nil ||
 		tv.Thread.Messages[0].UnboxingError == nil || len(*tv.Thread.Messages[0].UnboxingError) == 0 {
@@ -227,49 +369,115 @@ func TestGracefulUnboxing(t *testing.T) {
 	}
 }
 
-func TestGetInboxSummaryLocal(t *testing.T) {
-	t.Skip("this needs to be fixed")
-	ctc := makeChatTestContext(t, "GetInboxSummaryLocal")
-	defer ctc.tc.Cleanup()
+func TestChatGetInboxSummaryForCLILocal(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetInboxSummaryForCLILocal", 4)
+	defer ctc.cleanup()
+	users := ctc.users()
 
-	withAlice := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_alice")
-	mustPostLocalForTest(t, ctc, withAlice, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+	withUser1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello0"}))
+	mustPostLocalForTest(t, ctc, users[1], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello1"}))
 
-	time.Sleep(time.Millisecond)
+	withUser2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[2]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser2, chat1.NewMessageBodyWithText(chat1.MessageText{Body: fmt.Sprintf("Dude I just said hello to %s!", ctc.as(t, users[2]).user().Username)}))
 
-	withBob := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_bob")
-	mustPostLocalForTest(t, ctc, withBob, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "Dude I just said hello to Alice!"}))
+	withUser3 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[3]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser3, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
 
-	time.Sleep(time.Millisecond)
+	withUser12 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username, ctc.as(t, users[2]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser12, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
 
-	withCharlie := mustCreateConversationForTest(t, ctc, chat1.TopicType_CHAT, "t_charlie")
-	mustPostLocalForTest(t, ctc, withCharlie, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
+	withUser123 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username, ctc.as(t, users[2]).user().Username, ctc.as(t, users[3]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], withUser123, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "O_O"}))
 
-	res, err := ctc.h.GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalArg{
+	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
 		After:     "1d",
 		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetThreadLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 	}
-	if len(res.Conversations) != 3 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 3 items, got %d\n", len(res.Conversations))
+	if len(res.Conversations) != 5 {
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 3 items, got %d\n", len(res.Conversations))
 	}
-	if res.Conversations[0].Info.Id != withCharlie.Id {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal; newest updated conversation is not the first in response.\n")
+	if res.Conversations[0].Info.Id != withUser123.Id {
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal; newest updated conversation is not the first in response.\n")
 	}
-	if len(res.Conversations[0].Messages) != 2 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 2 messages in the first conversation, got %d\n", len(res.Conversations[0].Messages))
+	// TODO: fix this when merging master back in
+	if len(res.Conversations[0].MaxMessages) != 2 {
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 messages in the first conversation, got %d\n", len(res.Conversations[0].MaxMessages))
 	}
 
-	res, err = ctc.h.GetInboxSummaryLocal(context.Background(), chat1.GetInboxSummaryLocalArg{
-		Limit:     2,
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
+		ActivitySortedLimit: 2,
+		TopicType:           chat1.TopicType_CHAT,
+	})
+	if err != nil {
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
+	}
+	if len(res.Conversations) != 2 {
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
+	}
+
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
+		ActivitySortedLimit: 2,
+		TopicType:           chat1.TopicType_CHAT,
+	})
+	if err != nil {
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
+	}
+	if len(res.Conversations) != 2 {
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
+	}
+
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
+		UnreadFirst: true,
+		UnreadFirstLimit: chat1.UnreadFirstNumLimit{
+			AtLeast: 0,
+			AtMost:  1000,
+			NumRead: 1,
+		},
 		TopicType: chat1.TopicType_CHAT,
 	})
 	if err != nil {
-		t.Fatalf("GetThreadLocal error: %v", err)
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
 	}
 	if len(res.Conversations) != 2 {
-		t.Fatalf("unexpected response from GetInboxSummaryLocal . expected 2 items, got %d\n", len(res.Conversations))
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
+	}
+	if res.Conversations[0].Info.Id != withUser1.Id {
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal; unread conversation is not the first in response.\n")
+	}
+
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
+		UnreadFirst: true,
+		UnreadFirstLimit: chat1.UnreadFirstNumLimit{
+			AtLeast: 0,
+			AtMost:  2,
+			NumRead: 5,
+		},
+		TopicType: chat1.TopicType_CHAT,
+	})
+	if err != nil {
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
+	}
+	if len(res.Conversations) != 2 {
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
+	}
+
+	res, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
+		UnreadFirst: true,
+		UnreadFirstLimit: chat1.UnreadFirstNumLimit{
+			AtLeast: 3,
+			AtMost:  100,
+			NumRead: 0,
+		},
+		TopicType: chat1.TopicType_CHAT,
+	})
+	if err != nil {
+		t.Fatalf("GetInboxSummaryForCLILocal error: %v", err)
+	}
+	if len(res.Conversations) != 3 {
+		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
 	}
 }

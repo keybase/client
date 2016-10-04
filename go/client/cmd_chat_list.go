@@ -14,7 +14,7 @@ import (
 type cmdChatList struct {
 	libkb.Contextified
 
-	fetcher inboxFetcher
+	fetcher chatCLIInboxFetcher
 
 	showDeviceName bool
 }
@@ -22,13 +22,13 @@ type cmdChatList struct {
 func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "list",
-		Usage:        "Show new messages in inbox.",
+		Usage:        "Show conversations in inbox, sorted by activity.",
 		Aliases:      []string{"ls"},
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatList{Contextified: libkb.NewContextified(g)}, "list", c)
 		},
-		Flags:       makeChatListAndReadFlags(nil),
+		Flags:       getInboxFetcherActivitySortedFlags(),
 		Description: `"keybase chat list" display an inbox view of chat messages. --time/--since can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported.`,
 	}
 }
@@ -36,7 +36,7 @@ func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 func (c *cmdChatList) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 
-	conversations, _, _, err := c.fetcher.fetch(context.TODO(), c.G())
+	conversations, err := c.fetcher.fetch(context.TODO(), c.G())
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (c *cmdChatList) Run() error {
 }
 
 func (c *cmdChatList) ParseArgv(ctx *cli.Context) (err error) {
-	if c.fetcher, err = makeInboxFetcherFromCli(ctx); err != nil {
+	if c.fetcher, err = makeChatCLIInboxFetcherActivitySorted(ctx); err != nil {
 		return err
 	}
 	c.showDeviceName = ctx.Bool("show-device-name")

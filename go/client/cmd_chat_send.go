@@ -20,7 +20,7 @@ import (
 type cmdChatSend struct {
 	libkb.Contextified
 	message      string
-	resolver     conversationResolver
+	resolver     chatCLIConversationResolver
 	setTopicName string
 }
 
@@ -32,20 +32,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatSend{Contextified: libkb.NewContextified(g)}, "send", c)
 		},
-		Flags: makeChatFlags([]cli.Flag{
-			cli.StringFlag{
-				Name:  "topic-name",
-				Usage: `Specify topic name of the conversation.`,
-			},
-			cli.StringFlag{
-				Name:  "set-topic-name",
-				Usage: `Set topic name for the conversation`,
-			},
-			cli.BoolFlag{
-				Name:  "stdin",
-				Usage: "Use STDIN for message content. [conversation] is required and [message] is ignored.",
-			},
-		}),
+		Flags: mustGetChatFlags("topic-type", "topic-name", "set-topic-name", "stdin"),
 	}
 }
 
@@ -69,15 +56,20 @@ func (c *cmdChatSend) Run() (err error) {
 	}
 
 	if resolved == nil {
-		ncres, err := chatClient.NewConversationLocal(ctx, chat1.ConversationInfoLocal{
-			TlfName:   c.resolver.TlfName,
-			TopicName: c.resolver.TopicName,
-			TopicType: c.resolver.TopicType,
+		var tnp *string
+		if len(c.resolver.TopicName) > 0 {
+			tnp = &c.resolver.TopicName
+		}
+		ncres, err := chatClient.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
+			TlfName:       c.resolver.TlfName,
+			TopicName:     tnp,
+			TopicType:     c.resolver.TopicType,
+			TlfVisibility: c.resolver.Visibility,
 		})
 		if err != nil {
 			return fmt.Errorf("creating conversation error: %v\n", err)
 		}
-		conversationInfo = ncres.Conv
+		conversationInfo = ncres.Conv.Info
 	} else {
 		conversationInfo = *resolved
 	}
@@ -115,7 +107,7 @@ func (c *cmdChatSend) Run() (err error) {
 	}
 
 	if len(c.setTopicName) > 0 {
-		if conversationInfo.TopicType == chat1.TopicType_CHAT {
+		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT {
 			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet. Ignoring --set-topic-name >.<")
 		}
 		msgV1.ClientHeader.MessageType = chat1.MessageType_METADATA
