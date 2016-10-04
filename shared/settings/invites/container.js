@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Invites from './index'
+import InviteGenerated from '../invite-generated/index'
 import {invitesReclaim, invitesRefresh, invitesSend, notificationsSave, notificationsToggle} from '../../actions/settings'
 
 import type {TypedState} from '../../constants/reducer'
@@ -14,6 +15,17 @@ type State = {
 
 class InvitationsContainer extends Component<void, Props, State> {
   state: State;
+
+  static parseRoute (currentPath, uri) {
+    return {
+      componentAtTop: {
+        title: 'Invitations',
+      },
+      subRoutes: {
+        'invitesent': InviteGenerated,
+      },
+    }
+  }
 
   constructor (props: Props) {
     super(props)

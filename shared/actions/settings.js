@@ -4,6 +4,7 @@ import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPro
 import {setDeletedSelf} from '../actions/login'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {takeEvery, takeLatest, delay} from 'redux-saga'
+import {routeAppend} from '../actions/router'
 
 import type {SagaGenerator} from '../constants/types/saga'
 import type {
@@ -115,25 +116,12 @@ function * reclaimInviteSaga (invitesReclaimAction: InvitesReclaim): SagaGenerat
 
 function * refreshInvitesSaga (): SagaGenerator<any, any> {
   try {
-    // If the rpc is fast don't clear it out first
-    const delayThenEmptyTask = yield fork(function * () {
-      yield call(delay, 500)
-      yield put({
-        type: Constants.invitesRefreshed,
-        payload: {
-          settings: null,
-          unsubscribedFromAll: null,
-        }})
-    })
-
     const json: ?{body: string} = yield call(apiserverGetRpcPromise, {
       param: {
         endpoint: 'invitations_sent',
         args: [],
       },
     })
-
-    yield cancel(delayThenEmptyTask)
 
     const results: {
       invitations: [{
@@ -204,7 +192,7 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
     })
     yield put(({
       type: Constants.invitesSent,
-      payload: undefined,
+      payload: {email},
     }: InvitesSent))
   } catch (e) {
     console.warn('Error sending an invite:', e)
@@ -215,7 +203,9 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
     }: InvitesSent))
   }
   yield put(invitesRefresh())
+  yield put(routeAppend('invitesent'))
 }
+
 function * refreshNotificationsSaga (): SagaGenerator<any, any> {
   try {
     // If the rpc is fast don't clear it out first
