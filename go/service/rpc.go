@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/keybase/client/go/libkb"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 	"net"
 )

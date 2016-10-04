@@ -1,12 +1,12 @@
 // @flow
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
 import rpc from 'framed-msgpack-rpc'
-import setupLocalLogs from '../util/local-log'
-import {requestIdleCallback} from '../util/idle-callback'
-import type {rpcLogType} from './index.platform'
+import {localLog} from '../util/forward-logs'
 import {printRPC} from '../local-debug'
+import {requestIdleCallback} from '../util/idle-callback'
 
-const {logLocal} = setupLocalLogs()
+import type {rpcLogType} from './index.platform'
+
 const {transport: {RobustTransport}, client: {Client: RpcClient}} = rpc
 const KEYBASE_RPC_DELAY_RESULT: number = process.env.KEYBASE_RPC_DELAY_RESULT ? parseInt(process.env.KEYBASE_RPC_DELAY_RESULT) : 0
 const KEYBASE_RPC_DELAY: number = process.env.KEYBASE_RPC_DELAY ? parseInt(process.env.KEYBASE_RPC_DELAY) : 0
@@ -40,7 +40,7 @@ function _makeLogged (f: () => void, type: rpcLogType, logTitle: string, extraIn
 function _makeDelayed (f: () => void, amount: number): () => void {
   if (__DEV__ && amount > 0) {
     return (...args) => {
-      logLocal('%c[RPC Delay call]', 'color: red')
+      localLog('%c[RPC Delay call]', 'color: red')
       setTimeout(() => {
         f(...args)
       }, amount)
@@ -76,7 +76,7 @@ function rpcLog (type: rpcLogType, title: string, info?: Object): void {
   }[type]
 
   requestIdleCallback(() => {
-    logLocal(`%c${prefix}`, style, title, info)
+    localLog(`%c${prefix}`, style, title, info)
   }, {timeout: 1e3})
 }
 

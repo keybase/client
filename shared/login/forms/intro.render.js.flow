@@ -1,12 +1,14 @@
 // @flow
 import {Component} from 'react'
+import type {BootStatus} from '../../constants/config'
 
 export type IntroProps = {
   onSignup: () => void,
   onLogin: () => void,
+  onRetry: () => void,
   justRevokedSelf: ?string,
+  bootStatus: BootStatus,
   justDeletedSelf: ?string,
-  loaded: boolean
 }
 
 export default class Intro extends Component<void, IntroProps, void> { }

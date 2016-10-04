@@ -9,7 +9,6 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 
-import com.burnweb.rnpermissions.RNPermissionsPackage;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
@@ -33,11 +32,6 @@ public class MainActivity extends ReactActivity {
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected void onCreate(Bundle savedInstanceState) {
         logFile = this.getFileStreamPath("android.log");
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !Settings.canDrawOverlays(this) && this.getUseDeveloperSupport()) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-            startActivityForResult(intent, -1);
-        }
-
         initOnce(this.getFilesDir().getPath(), logFile.getAbsolutePath(), "staging", false);
 
         try {
@@ -61,12 +55,6 @@ public class MainActivity extends ReactActivity {
             return super.onKeyUp(KeyEvent.KEYCODE_MENU, null);
         }
         return super.onKeyUp(keyCode, event);
-    }
-    // For dealing with permissions using RNPermissionsPackage
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        RNPermissionsPackage.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     /**

@@ -25,6 +25,7 @@
     "setup-debug-main": "babel-node --presets es2015,stage-2 npm-helper.js setup-debug-main",
     "postinstall": "babel-node --presets es2015,stage-2 npm-helper.js postinstall",
     "render-screenshots": "babel-node --presets es2015,stage-2 npm-helper.js render-screenshots",
+    "local-visdiff": "babel-node --presets es2015,stage-2 npm-helper.js local-visdiff",
     "updated-fonts": "babel-node --presets es2015,stage-2 npm-helper.js updated-fonts",
     "wrap": "npm uninstall fsevents && npm prune && npm dedupe && npm shrinkwrap --dev",
     "shrinkwrap-audit": "babel-node --presets es2015,stage-2 npm-shrinkwrap-audit",

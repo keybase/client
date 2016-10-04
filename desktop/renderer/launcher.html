@@ -22,8 +22,20 @@ body {
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div title="loading..." style="flex: 1;background-color: #f5f5f5"></div>
+    </div>
     <script>
+      function logToElectron() {
+        ['log', 'warn', 'error'].forEach(key => {
+          window.console[`_${key}`] = window.console[key]
+          window.console[key] = function() {
+            window.console[`_${key}`](...arguments)
+            require('electron').ipcRenderer.send('console.' + key, Array.prototype.slice.call(arguments))
+          }
+        })
+      }
+      logToElectron()
       function getQueryVariable(variable) {
         var query = window.location.search.substring(1)
           var vars = query.split("&")

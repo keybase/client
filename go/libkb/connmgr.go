@@ -8,7 +8,7 @@ import (
 	"sort"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 // ConnectionID is a sequential integer assigned to each RPC connection

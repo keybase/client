@@ -5,8 +5,8 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import {MuiThemeProvider} from 'material-ui/styles'
 import materialTheme from '../styles/material-theme.desktop'
-import dumbComponentMap from '../dev/dumb-component-map.desktop'
-import DumbSheetItem from '../dev/dumb-sheet-item'
+import dumbComponentMap from '../dev/dumb-sheet/component-map.desktop'
+import DumbSheetItem from '../dev/dumb-sheet/item'
 
 const PADDING = 25
 

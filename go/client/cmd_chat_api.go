@@ -153,21 +153,37 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 	rlimits = append(rlimits, inbox.RateLimits...)
 
 	var cl ChatList
-	cl.Conversations = make([]ConvSummary, len(inbox.Inbox.Conversations))
-	for i, conv := range inbox.Inbox.Conversations {
-		if len(conv.MaxMsgs) == 0 {
-			return c.errReply(fmt.Errorf("conversation %d had no max msgs", conv.Metadata.ConversationID))
+	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
+maxMessagesLoop:
+	for i, conv := range inbox.Conversations {
+		for _, msg := range conv.MaxMessages {
+			if msg.Message != nil {
+				var v1 chat1.MessagePlaintextV1
+				version, err := msg.Message.MessagePlaintext.Version()
+				if err != nil {
+					return c.errReply(err)
+				}
+				switch version {
+				case chat1.MessagePlaintextVersion_V1:
+					v1 = msg.Message.MessagePlaintext.V1()
+				default:
+					return c.errReply(libkb.NewChatMessageVersionError(version))
+				}
+
+				tlf := v1.ClientHeader.TlfName
+				pub := v1.ClientHeader.TlfPublic
+				cl.Conversations[i] = ConvSummary{
+					ID: conv.Info.Id,
+					Channel: ChatChannel{
+						Name:      tlf,
+						Public:    pub,
+						TopicType: strings.ToLower(conv.Info.Triple.TopicType.String()),
+					},
+				}
+				break maxMessagesLoop
+			}
 		}
-		tlf := conv.MaxMsgs[0].ClientHeader.TlfName
-		pub := conv.MaxMsgs[0].ClientHeader.TlfPublic
-		cl.Conversations[i] = ConvSummary{
-			ID: conv.Metadata.ConversationID,
-			Channel: ChatChannel{
-				Name:      tlf,
-				Public:    pub,
-				TopicType: strings.ToLower(conv.Metadata.IdTriple.TopicType.String()),
-			},
-		}
+		return c.errReply(fmt.Errorf("conversation %d had no valid max msg", conv.Info.Id))
 	}
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: cl}
@@ -219,20 +235,22 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 
 	if opts.ConversationID == 0 {
 		// resolve conversation id
-		cinfo := c.conversationInfo(opts.ConversationID, opts.Channel)
-		rcres, err := client.ResolveConversationLocal(ctx, cinfo)
+		query := c.getInboxLocalQuery(opts.ConversationID, opts.Channel)
+		gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+			Query: &query,
+		})
 		if err != nil {
 			return c.errReply(err)
 		}
-		rlimits = append(rlimits, rcres.RateLimits...)
-		existing := rcres.Convs
+		rlimits = append(rlimits, gilres.RateLimits...)
+		existing := gilres.Conversations
 		if len(existing) > 1 {
 			return c.errReply(fmt.Errorf("multiple conversations matched %q", opts.Channel.Name))
 		}
 		if len(existing) == 0 {
 			return c.errReply(fmt.Errorf("no conversations matched %q", opts.Channel.Name))
 		}
-		opts.ConversationID = existing[0].Id
+		opts.ConversationID = existing[0].Info.Id
 	}
 
 	arg := chat1.GetThreadLocalArg{
@@ -256,16 +274,10 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			continue
 		}
 
-		version, err := m.Message.MessagePlaintext.Version()
-		if err != nil {
-			return c.errReply(err)
-		}
-		switch version {
-		case chat1.MessagePlaintextVersion_V1:
-			v1 := m.Message.MessagePlaintext.V1()
-			if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
-				// skip TLFNAME messages
-				continue
+		if m.Message != nil {
+			version, err := m.Message.MessagePlaintext.Version()
+			if err != nil {
+				return c.errReply(err)
 			}
 			switch version {
 			case chat1.MessagePlaintextVersion_V1:
@@ -296,11 +308,10 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 				thread.Messages = append(thread.Messages, MsgFromServer{
 					Msg: &msg,
 				})
+				continue
 			default:
 				return c.errReply(libkb.NewChatMessageVersionError(version))
 			}
-
-			continue
 		}
 
 		return c.errReply(errors.New("unexpected response from service: UnboxingError and Message are both empty"))
@@ -318,10 +329,10 @@ type SendRes struct {
 // SendV1 implements ChatServiceHandler.SendV1.
 func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 	arg := sendArgV1{
-		cinfo:    c.conversationInfo(opts.ConversationID, opts.Channel),
-		body:     chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
-		mtype:    chat1.MessageType_TEXT,
-		response: "message sent",
+		convQuery: c.getInboxLocalQuery(opts.ConversationID, opts.Channel),
+		body:      chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
+		mtype:     chat1.MessageType_TEXT,
+		response:  "message sent",
 	}
 	return c.sendV1(ctx, arg)
 }
@@ -329,7 +340,7 @@ func (c *CmdChatAPI) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 // DeleteV1 implements ChatServiceHandler.DeleteV1.
 func (c *CmdChatAPI) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
 	arg := sendArgV1{
-		cinfo:      c.conversationInfo(opts.ConversationID, opts.Channel),
+		convQuery:  c.getInboxLocalQuery(opts.ConversationID, opts.Channel),
 		body:       chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageID: opts.MessageID}),
 		mtype:      chat1.MessageType_DELETE,
 		supersedes: opts.MessageID,
@@ -341,7 +352,7 @@ func (c *CmdChatAPI) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
 // EditV1 implements ChatServiceHandler.EditV1.
 func (c *CmdChatAPI) EditV1(ctx context.Context, opts editOptionsV1) Reply {
 	arg := sendArgV1{
-		cinfo:      c.conversationInfo(opts.ConversationID, opts.Channel),
+		convQuery:  c.getInboxLocalQuery(opts.ConversationID, opts.Channel),
 		body:       chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
 		mtype:      chat1.MessageType_EDIT,
 		supersedes: opts.MessageID,
@@ -351,7 +362,7 @@ func (c *CmdChatAPI) EditV1(ctx context.Context, opts editOptionsV1) Reply {
 }
 
 type sendArgV1 struct {
-	cinfo      chat1.ConversationInfoLocal
+	convQuery  chat1.GetInboxLocalQuery
 	body       chat1.MessageBody
 	mtype      chat1.MessageType
 	supersedes chat1.MessageID
@@ -366,24 +377,31 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 	}
 
 	// find the conversation
-	rcres, err := client.ResolveConversationLocal(ctx, arg.cinfo)
+	gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+		Query: &arg.convQuery,
+	})
 	if err != nil {
 		return c.errReply(err)
 	}
-	rlimits = append(rlimits, rcres.RateLimits...)
+	rlimits = append(rlimits, gilres.RateLimits...)
 
 	var conversation chat1.ConversationInfoLocal
-	existing := rcres.Convs
+	existing := gilres.Conversations
 	switch len(existing) {
 	case 0:
-		ncres, err := client.NewConversationLocal(ctx, arg.cinfo)
+		ncres, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
+			TlfName:       *arg.convQuery.TlfName,
+			TlfVisibility: *arg.convQuery.TlfVisibility,
+			TopicName:     arg.convQuery.TopicName,
+			TopicType:     *arg.convQuery.TopicType,
+		})
 		if err != nil {
 			return c.errReply(err)
 		}
 		rlimits = append(rlimits, ncres.RateLimits...)
-		conversation = ncres.Conv
+		conversation = ncres.Conv.Info
 	case 1:
-		conversation = existing[0]
+		conversation = existing[0].Info
 	default:
 		return c.errReply(fmt.Errorf("multiple conversations matched"))
 	}
@@ -436,19 +454,20 @@ func (c *CmdChatAPI) convertMsgBody(mb chat1.MessageBody) MsgContent {
 	}
 }
 
-func (c *CmdChatAPI) conversationInfo(id chat1.ConversationID, channel ChatChannel) chat1.ConversationInfoLocal {
+func (c *CmdChatAPI) getInboxLocalQuery(id chat1.ConversationID, channel ChatChannel) chat1.GetInboxLocalQuery {
 	if id > 0 {
-		return chat1.ConversationInfoLocal{Id: id}
+		return chat1.GetInboxLocalQuery{ConvID: &id}
 	}
 
 	vis := chat1.TLFVisibility_PRIVATE
 	if channel.Public {
 		vis = chat1.TLFVisibility_PUBLIC
 	}
-	return chat1.ConversationInfoLocal{
-		TlfName:    channel.Name,
-		Visibility: vis,
-		TopicType:  channel.TopicTypeEnum(),
-		TopicName:  channel.TopicName,
+	tt := channel.TopicTypeEnum()
+	return chat1.GetInboxLocalQuery{
+		TlfName:       &channel.Name,
+		TlfVisibility: &vis,
+		TopicType:     &tt,
+		TopicName:     &channel.TopicName,
 	}
 }

@@ -1,8 +1,9 @@
 package client
 
-/* NOTE: This file is very out-dated. Maybe we can just remove this all
-* together. */
+/* NOTE: This file is very out-dated. We should retire this and use integration
+* tests instead. */
 
+/*
 import (
 	"errors"
 	"testing"
@@ -186,11 +187,11 @@ func TestCliRead(t *testing.T) {
 	g.UI = &UI{Terminal: term}
 	c := &cmdChatRead{
 		Contextified: libkb.NewContextified(g),
-		fetcher: messageFetcher{
+		fetcher: chatConversationFetcher{
 			selector: chat1.MessageSelector{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			},
-			resolver: conversationResolver{
+			resolver: chatConversationResolver{
 				TlfName: "morty,rick,songgao",
 			},
 			chatClient: &chatLocalMock{},
@@ -202,3 +203,4 @@ func TestCliRead(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+*/

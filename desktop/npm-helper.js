@@ -159,6 +159,15 @@ const commands = {
     shell: 'webpack --config webpack.config.visdiff.js && electron ./dist/render-visdiff.bundle.js',
     help: 'Render images of dumb components',
   },
+  'local-visdiff': {
+    env: {
+      VISDIFF_DRY_RUN: 1,
+      KEYBASE_JS_VENDOR_DIR: process.env['KEYBASE_JS_VENDOR_DIR'] || path.resolve('../../js-vendor-desktop'),
+    },
+    nodePathDesktop: true,
+    shell: 'npm install ../visdiff && keybase-visdiff',
+    help: 'Perform a local visdiff',
+  },
   'updated-fonts': {
     help: 'Update our font sizes automatically',
     code: updatedFonts,

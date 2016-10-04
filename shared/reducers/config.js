@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/config'
+import type {BootStatus} from '../constants/config'
 import * as CommonConstants from '../constants/common'
 
 import type {Action} from '../constants/types/flux'
@@ -15,9 +16,8 @@ export type ConfigState = {
   loggedIn: boolean,
   kbfsPath: string,
   error: ?any,
-  devConfig: ?any,
   bootstrapTriesRemaining: number,
-  bootstrapped: number,
+  bootStatus: BootStatus,
   followers: {[key: string]: true},
   following: {[key: string]: true},
 }
@@ -31,9 +31,8 @@ const initialState: ConfigState = {
   loggedIn: false,
   kbfsPath: Constants.defaultKBFSPath,
   error: null,
-  devConfig: null,
   bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
-  bootstrapped: 0,
+  bootStatus: 'bootStatusLoading',
   followers: {},
   following: {},
 }
@@ -82,46 +81,33 @@ export default function (state: ConfigState = initialState, action: Action): Con
         }
       }
       return state
-    case Constants.devConfigLoading:
-      return {
-        ...state,
-        devConfig: null,
-      }
-    case Constants.devConfigLoaded:
-      return {
-        ...state,
-        devConfig: action.payload.devConfig,
-      }
-    case Constants.devConfigSaved:
-      return {
-        ...state,
-        devConfig: null,
-      }
-    case Constants.devConfigUpdate:
-      const devConfigured = state.devConfig && state.devConfig.configured || {}
-      return {
-        ...state,
-        devConfig: {
-          ...state.devConfig,
-          configured: {
-            ...devConfigured,
-            ...action.payload.updates,
-          },
-        },
-      }
 
-    case Constants.bootstrapFailed: {
+    case Constants.bootstrapAttemptFailed: {
       return {
         ...state,
         bootstrapTriesRemaining: state.bootstrapTriesRemaining - 1,
       }
     }
 
+    case Constants.bootstrapFailed: {
+      return {
+        ...state,
+        bootStatus: 'bootStatusFailure',
+      }
+    }
+
     case Constants.bootstrapped: {
       return {
         ...state,
+        bootStatus: 'bootStatusBootstrapped',
+      }
+    }
+
+    case Constants.bootstrapRetry: {
+      return {
+        ...state,
         bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
-        bootstrapped: state.bootstrapped + 1,
+        bootStatus: 'bootStatusLoading',
       }
     }
 
