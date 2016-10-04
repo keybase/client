@@ -154,8 +154,8 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 
 	var cl ChatList
 	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
+maxMessagesLoop:
 	for i, conv := range inbox.Conversations {
-	maxMessagesLoop:
 		for _, msg := range conv.MaxMessages {
 			if msg.Message != nil {
 				var v1 chat1.MessagePlaintextV1
@@ -311,7 +311,6 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			return c.errReply(libkb.NewChatMessageVersionError(version))
 		}
 
-		return c.errReply(errors.New("unexpected response from service: UnboxingError and Message are both empty"))
 	}
 
 	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
