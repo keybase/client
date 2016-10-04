@@ -184,16 +184,20 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
     args.push({key: 'invitation_message', value: message})
   }
   try {
-    yield call(apiserverPostRpcPromise, {
+    const response: ?{body: string} = yield call(apiserverPostRpcPromise, {
       param: {
         endpoint: 'send_invitation',
         args,
       },
     })
-    yield put(({
-      type: Constants.invitesSent,
-      payload: {email},
-    }: InvitesSent))
+    if (response) {
+      const parsedBody = JSON.parse(response.body)
+      yield put(({
+        type: Constants.invitesSent,
+        payload: {email, invitationId: parsedBody.invitation_id},
+      }: InvitesSent))
+      yield put(routeAppend('invitesent'))
+    }
   } catch (e) {
     console.warn('Error sending an invite:', e)
     yield put(({
@@ -203,7 +207,6 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
     }: InvitesSent))
   }
   yield put(invitesRefresh())
-  yield put(routeAppend('invitesent'))
 }
 
 function * refreshNotificationsSaga (): SagaGenerator<any, any> {
