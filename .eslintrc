@@ -16,7 +16,7 @@
         "__SCREENSHOT__": false
     },
     "plugins": [
-        "flow-vars", "mocha", "filenames", "babel", "import", "flowtype"
+        "mocha", "filenames", "babel", "import", "flowtype"
     ],
     "settings": {
         "import/core-modules": [ electron, react-native ],
@@ -29,14 +29,17 @@
         "babel/func-params-comma-dangle": 0,
         "comma-dangle": [2, "always-multiline"],
         "filenames/match-regex": [2, "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"],
-        "flowtype/require-valid-file-annotation": [2, "never"], // TODO always once we get 100% clean
+        "flowtype/require-valid-file-annotation": [2, "always"],
         "flowtype/space-after-type-colon": [2, "always"],
         "flowtype/space-before-generic-bracket": [2, "never"],
         "flowtype/union-intersection-spacing": [2, "always"],
         "flowtype/generic-spacing": [2, "never"],
         "flowtype/valid-syntax": [2],
-        "flow-vars/define-flow-type": 1,
-        "flow-vars/use-flow-type": 1,
+        "flowtype/define-flow-type": 1,
+        "flowtype/use-flow-type": 1,
+        "flowtype/delimiter-dangle": [2, "always-multiline"],
+        "flowtype/no-dupe-keys": 2,
+        "flowtype/semi": [2, "never"],
         "jsx-quotes": [2, "prefer-single"],
         "import/named": 2,
         "import/export": 2,

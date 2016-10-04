@@ -155,7 +155,7 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 	var cl ChatList
 	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
 	for i, conv := range inbox.Conversations {
-	maxMessagesLoop:
+		found := false
 		for _, msg := range conv.MaxMessages {
 			if msg.Message != nil {
 				var v1 chat1.MessagePlaintextV1
@@ -180,10 +180,13 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 						TopicType: strings.ToLower(conv.Info.Triple.TopicType.String()),
 					},
 				}
-				break maxMessagesLoop
+				found = true
+				break
 			}
 		}
-		return c.errReply(fmt.Errorf("conversation %d had no valid max msg", conv.Info.Id))
+		if !found {
+			return c.errReply(fmt.Errorf("conversation %d had no valid max msg", conv.Info.Id))
+		}
 	}
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: cl}
@@ -274,41 +277,44 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			continue
 		}
 
-		version, err := m.Message.MessagePlaintext.Version()
-		if err != nil {
-			return c.errReply(err)
-		}
-		switch version {
-		case chat1.MessagePlaintextVersion_V1:
-			v1 := m.Message.MessagePlaintext.V1()
-			if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
-				// skip TLFNAME messages
+		if m.Message != nil {
+			version, err := m.Message.MessagePlaintext.Version()
+			if err != nil {
+				return c.errReply(err)
+			}
+			switch version {
+			case chat1.MessagePlaintextVersion_V1:
+				v1 := m.Message.MessagePlaintext.V1()
+				if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
+					// skip TLFNAME messages
+					continue
+				}
+				msg := MsgSummary{
+					ID: m.Message.ServerHeader.MessageID,
+					Channel: ChatChannel{
+						Name:      v1.ClientHeader.TlfName,
+						Public:    v1.ClientHeader.TlfPublic,
+						TopicType: strings.ToLower(v1.ClientHeader.Conv.TopicType.String()),
+					},
+					Sender: MsgSender{
+						UID:      v1.ClientHeader.Sender.String(),
+						DeviceID: v1.ClientHeader.SenderDevice.String(),
+					},
+					SentAt:   int64(m.Message.ServerHeader.Ctime / 1000),
+					SentAtMs: int64(m.Message.ServerHeader.Ctime),
+				}
+				msg.Content = c.convertMsgBody(v1.MessageBody)
+
+				msg.Sender.Username = m.Message.SenderUsername
+				msg.Sender.DeviceName = m.Message.SenderDeviceName
+
+				thread.Messages = append(thread.Messages, MsgFromServer{
+					Msg: &msg,
+				})
 				continue
+			default:
+				return c.errReply(libkb.NewChatMessageVersionError(version))
 			}
-			msg := MsgSummary{
-				ID: m.Message.ServerHeader.MessageID,
-				Channel: ChatChannel{
-					Name:      v1.ClientHeader.TlfName,
-					Public:    v1.ClientHeader.TlfPublic,
-					TopicType: strings.ToLower(v1.ClientHeader.Conv.TopicType.String()),
-				},
-				Sender: MsgSender{
-					UID:      v1.ClientHeader.Sender.String(),
-					DeviceID: v1.ClientHeader.SenderDevice.String(),
-				},
-				SentAt:   int64(m.Message.ServerHeader.Ctime / 1000),
-				SentAtMs: int64(m.Message.ServerHeader.Ctime),
-			}
-			msg.Content = c.convertMsgBody(v1.MessageBody)
-
-			msg.Sender.Username = m.Message.SenderUsername
-			msg.Sender.DeviceName = m.Message.SenderDeviceName
-
-			thread.Messages = append(thread.Messages, MsgFromServer{
-				Msg: &msg,
-			})
-		default:
-			return c.errReply(libkb.NewChatMessageVersionError(version))
 		}
 
 		return c.errReply(errors.New("unexpected response from service: UnboxingError and Message are both empty"))

@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 
 import {Component} from 'react'
 import type {Props as UserSearchProps} from './user-search/render'

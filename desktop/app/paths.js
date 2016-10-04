@@ -1,3 +1,4 @@
+// @flow
 import {app} from 'electron'
 import path from 'path'
 import os from 'os'
@@ -40,7 +41,7 @@ export function keybaseBinPath () {
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
-export function pathToURL (path) {
+export function pathToURL (path: string) {
   path = path.replace(/\\/g, '/')
 
   // Windows drive letter must be prefixed with a slash

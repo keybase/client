@@ -5,7 +5,7 @@ import {Box, Text, Button, NativeLinking, NativeClipboard} from '../../common-ad
 import {globalStyles} from '../../styles'
 
 type State = {
-  copiedToClipboard: boolean
+  copiedToClipboard: boolean,
 }
 
 class Render extends Component<void, Props, State> {

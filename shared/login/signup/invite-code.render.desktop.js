@@ -6,7 +6,7 @@ import {Box, Text, Input, Button, Icon} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
 type State = {
-  inviteCode: ?string
+  inviteCode: ?string,
 }
 
 class Render extends Component<void, Props, State> {

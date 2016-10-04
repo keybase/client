@@ -1,3 +1,4 @@
+// @flow
 import React, {Component} from 'react'
 import {Box} from '../common-adapters'
 
@@ -26,19 +27,4 @@ export default class MetaNavigatorRender extends Component {
       />
     )
   }
-}
-
-MetaNavigatorRender.propTypes = {
-  NavBar: React.PropTypes.object.isRequired,
-  Navigator: React.PropTypes.func.isRequired,
-  getComponentAtTop: React.PropTypes.func.isRequired,
-  navBarHeight: React.PropTypes.number.isRequired,
-  rootComponent: React.PropTypes.oneOfType([
-    React.PropTypes.func,
-    React.PropTypes.shape({
-      parseRoute: React.PropTypes.func.isRequired,
-    }),
-  ]).isRequired,
-  setNavigator: React.PropTypes.func.isRequired,
-  uri: React.PropTypes.object.isRequired,
 }

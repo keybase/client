@@ -1,7 +1,7 @@
-/* @flow */
-
+// @flow
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
+
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
 

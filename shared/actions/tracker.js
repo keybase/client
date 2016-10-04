@@ -215,12 +215,9 @@ function onRefollow (username: string): TrackerActionCreator {
         payload: {username},
       })
     }
-    const dispatchErrorAction = () => {
+    const dispatchErrorAction = (errText) => {
       dispatch(_onWaiting(username, false))
-      dispatch({
-        type: Constants.onError,
-        payload: {username},
-      })
+      dispatch({type: Constants.onError, payload: {username, extraText: errText}})
     }
 
     dispatch(_onWaiting(username, true))
@@ -228,7 +225,7 @@ function onRefollow (username: string): TrackerActionCreator {
       .then(dispatchRefollowAction)
       .catch(err => {
         console.warn("Couldn't track user:", err)
-        dispatchErrorAction()
+        dispatchErrorAction(err.desc)
       })
   }
 }
@@ -322,8 +319,8 @@ function onFollow (username: string, localIgnore?: bool): (dispatch: Dispatch, g
       dispatch({type: Constants.onFollow, payload: {username}})
       dispatch(_onWaiting(username, false))
     }
-    const dispatchErrorAction = () => {
-      dispatch({type: Constants.onError, payload: {username}})
+    const dispatchErrorAction = (errText) => {
+      dispatch({type: Constants.onError, payload: {username, extraText: errText}})
       dispatch(_onWaiting(username, false))
     }
 
@@ -332,7 +329,7 @@ function onFollow (username: string, localIgnore?: bool): (dispatch: Dispatch, g
       .then(dispatchFollowedAction)
       .catch(err => {
         console.warn("Couldn't track user: ", err)
-        dispatchErrorAction()
+        dispatchErrorAction(err.desc)
       })
   }
 }

@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import type {UserList} from '../common-adapters/usernames'
 
 // Parses the folder name and returns an array of usernames

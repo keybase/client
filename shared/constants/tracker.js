@@ -118,7 +118,7 @@ export type UserInfo = {
   bio: string,
   uid: string,
   avatar: ?string,
-  location: string
+  location: string,
 }
 
 export type TrackerState = {

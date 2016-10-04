@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import React from 'react'
 import {Box, Text, Button, PlatformIcon, StandardScreen} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'

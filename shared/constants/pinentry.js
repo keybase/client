@@ -3,7 +3,7 @@ import type {GUIEntryFeatures, PassphraseType} from '../constants/types/flow-typ
 import type {TypedAction} from '../constants/types/flux'
 
 type sessionIDSpecificPayload = {
-  sessionID: number
+  sessionID: number,
 }
 
 type newPinentryPayload = {
@@ -14,7 +14,7 @@ type newPinentryPayload = {
   windowTitle: string,
   submitLabel: ?string,
   cancelLabel: ?string,
-  retryLabel: ?string
+  retryLabel: ?string,
 }
 
 // TODO: figure out what kind of errors we'll get here

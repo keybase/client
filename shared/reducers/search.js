@@ -1,8 +1,8 @@
-/* @flow */
-
+// @flow
+import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/search'
 import {switchTab} from '../constants/router'
-import * as CommonConstants from '../constants/common'
+
 import type {IconType} from '../common-adapters/icon'
 import type {SearchResult, SearchActions, SearchPlatforms} from '../constants/search'
 
