@@ -25,12 +25,12 @@ function Invites (props: Props) {
           errorText={props.emailError ? ' ' : null}
           style={{marginBottom: 0}}
         />
-        <Input
+        {props.showMessageField && <Input
           floatingLabelText='Message (optional)'
           multiline={true}
           value={props.inviteMessage}
           onChangeText={props.onChangeInviteMessage}
-        />
+        />}
         <Button
           type='Primary'
           label='Generate invitation'

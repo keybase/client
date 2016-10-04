@@ -29,9 +29,6 @@ class InvitationsContainer extends Component<void, Props, State> {
 
   onGenerateInvitation () {
     const {email, message} = this.state
-    console.log('in first onGenerateInvitation')
-    console.log(email)
-    console.log(message)
     this.props.onGenerateInvitation(email, message)
   }
 
@@ -41,6 +38,7 @@ class InvitationsContainer extends Component<void, Props, State> {
       onChangeInviteEmail={email => this.setState({email})}
       onChangeInviteMessage={message => this.setState({message})}
       onGenerateInvitation={() => this.onGenerateInvitation()}
+      showMessageField={!!this.state.email}
     />
   }
 }
