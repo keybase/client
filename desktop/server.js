@@ -33,6 +33,7 @@ if (NO_SERVER) {
   const app = express()
 
   app.use(require('webpack-dev-middleware')(compiler, {
+    // $FlowIssue
     publicPath: config.output.publicPath,
     hot: true,
     lazy: false,
