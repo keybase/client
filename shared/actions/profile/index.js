@@ -4,156 +4,157 @@ import flags from '../../util/feature-flags'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, checkSpecificProof} from './proofs'
-import {apiserverPostRpc, revokeRevokeSigsRpc} from '../../constants/types/flow-types'
-import {call} from 'redux-saga/effects'
+import {apiserverPostRpcPromise, revokeRevokeSigsRpcPromise} from '../../constants/types/flow-types'
+import {call, put, select} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
 import {navigateUp, routeAppend, switchTab} from '../../actions/router'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
+import {takeEvery} from 'redux-saga'
 
-import type {Dispatch, AsyncAction} from '../../constants/types/flux'
+import type {BackToProfile, EditProfile, FinishRevokeProof, FinishRevoking, OnClickAvatar, OnClickFollowers, OnClickFollowing, OnUserClick, OutputInstructionsActionLink, State, SubmitRevokeProof, UpdateUsername, WaitingRevokeProof} from '../../constants/profile'
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {UpdateUsername, WaitingRevokeProof, FinishRevokeProof} from '../../constants/profile'
+import type {TypedState} from '../../constants/reducer'
 
-function editProfile (bio: string, fullname: string, location: string): AsyncAction {
-  return (dispatch) => {
-    dispatch({
-      type: Constants.editingProfile,
-      payload: {bio, fullname, location},
-    })
+function editProfile (bio: string, fullname: string, location: string): EditProfile {
+  return {type: Constants.editProfile, payload: {bio, fullname, location}}
+}
 
-    apiserverPostRpc({
+function * _editProfile (action: EditProfile): SagaGenerator<any, any> {
+  try {
+    yield put({type: Constants.editingProfile, payload: action.payload})
+    yield call(apiserverPostRpcPromise, {
       param: {
         endpoint: 'profile-edit',
         args: [
-          {key: 'bio', value: bio},
-          {key: 'full_name', value: fullname},
-          {key: 'location', value: location},
+          {key: 'bio', value: action.payload.bio},
+          {key: 'full_name', value: action.payload.fullname},
+          {key: 'location', value: action.payload.location},
         ],
       },
-      incomingCallMap: {},
-      callback: (error, status) => {
-        // Flow is weird here, we have to give it true or false directly
-        // instead of just giving it !!error
-        if (error) {
-          dispatch({
-            type: Constants.editedProfile,
-            payload: error,
-            error: true,
-          })
-        } else {
-          dispatch({
-            type: Constants.editedProfile,
-            payload: null,
-            error: false,
-          })
-          dispatch(navigateUp())
-        }
-      },
     })
+
+    yield put({type: Constants.editedProfile, payload: null})
+    yield put(navigateUp())
+  } catch (error) {
+    yield put({type: Constants.editedProfile, payload: error, error: true})
   }
 }
 
 function updateUsername (username: string): UpdateUsername {
-  return {
-    type: Constants.updateUsername,
-    payload: {username},
-  }
+  return {type: Constants.updateUsername, payload: {username}}
 }
 
 function _revokedWaitingForResponse (waiting: boolean): WaitingRevokeProof {
-  return {
-    type: Constants.waitingRevokeProof,
-    payload: {waiting},
-  }
+  return {type: Constants.waitingRevokeProof, payload: {waiting}}
 }
 
 function _revokedErrorResponse (error: string): FinishRevokeProof {
-  return {
-    type: Constants.finishRevokeProof,
-    payload: {error},
-    error: true,
-  }
-}
-
-function _makeRevokeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
-  return {
-    waitingHandler: (waiting: boolean) => { dispatch(_revokedWaitingForResponse(waiting)) },
-  }
+  return {type: Constants.finishRevokeProof, payload: {error}, error: true}
 }
 
 function _revokedFinishResponse (): FinishRevokeProof {
+  return {type: Constants.finishRevokeProof, payload: undefined}
+}
+
+function finishRevoking (): FinishRevoking {
+  return {type: Constants.finishRevoking, payload: undefined}
+}
+
+function * _finishRevoking (): SagaGenerator<any, any> {
+  yield put(getMyProfile(true))
+  yield put(_revokedFinishResponse())
+  yield put(navigateUp())
+}
+
+function onUserClick (username: string, uid: string): OnUserClick {
+  return {type: Constants.onUserClick, payload: {username, uid}}
+}
+
+function * _onUserClick (action: OnUserClick): SagaGenerator<any, any> {
+  yield put(routeAppend({path: 'profile', userOverride: action.payload}, profileTab))
+  yield put(switchTab(profileTab))
+}
+
+function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): OnClickAvatar {
   return {
-    type: Constants.finishRevokeProof,
-    payload: undefined,
-    error: false,
+    type: Constants.onClickAvatar,
+    payload: {username, uid, openWebsite},
   }
 }
 
-function finishRevoking (): AsyncAction {
-  return (dispatch) => {
-    dispatch(getMyProfile(true))
-    dispatch(_revokedFinishResponse())
-    dispatch(navigateUp())
+function * _onClickAvatar (action: OnClickFollowers): SagaGenerator<any, any> {
+  if (!action.payload.username) {
+    return
+  }
+
+  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+    // TODO(mm) hint followings
+    yield put(onUserClick(action.payload.username, action.payload.uid))
+  } else {
+    yield call(openURL, `${keybaseUrl}/${action.payload.username}`)
   }
 }
 
-function onUserClick (username: string, uid: string): AsyncAction {
-  return dispatch => {
-    dispatch(routeAppend({path: 'profile', userOverride: {username, uid}}, profileTab))
-    dispatch(switchTab(profileTab))
+function onClickFollowers (username: ?string, uid: string, openWebsite?: boolean): OnClickFollowers {
+  return {
+    type: Constants.onClickFollowers,
+    payload: {
+      username,
+      uid,
+      openWebsite,
+    },
   }
 }
 
-function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
-  return dispatch => {
-    if (!openWebsite && flags.tabProfileEnabled === true) {
-      username && dispatch(onUserClick(username, uid))
-    } else {
-      username && openURL(`${keybaseUrl}/${username}`)
-    }
+function * _onClickFollowers (action: OnClickFollowers): SagaGenerator<any, any> {
+  if (!action.payload.username) {
+    return
+  }
+
+  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+    // TODO(mm) hint followings
+    yield put(onUserClick(action.payload.username, action.payload.uid))
+  } else {
+    yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }
 }
 
-function onClickFollowers (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
-  return dispatch => {
-    if (!openWebsite && flags.tabProfileEnabled === true) {
-      // TODO(mm) hint followers
-      username && dispatch(onUserClick(username, uid))
-    } else {
-      username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
-    }
+function onClickFollowing (username: ?string, uid: string, openWebsite?: boolean): OnClickFollowing {
+  return {
+    type: Constants.onClickFollowing,
+    payload: {username, uid, openWebsite},
   }
 }
 
-function onClickFollowing (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
-  return dispatch => {
-    if (!openWebsite && flags.tabProfileEnabled === true) {
-      // TODO(mm) hint followings
-      username && dispatch(onUserClick(username, uid))
-    } else {
-      username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
-    }
+function * _onClickFollowing (action: OnClickFollowing): SagaGenerator<any, any> {
+  if (!action.payload.username) {
+    return
+  }
+
+  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+    // TODO(mm) hint followings
+    yield put(onUserClick(action.payload.username, action.payload.uid))
+  } else {
+    yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }
 }
 
-function submitRevokeProof (proofId: string): AsyncAction {
-  return (dispatch) => {
-    revokeRevokeSigsRpc({
-      ..._makeRevokeWaitingHandler(dispatch),
-      param: {
-        sigIDQueries: [proofId],
-      },
-      incomingCallMap: { },
-      callback: error => {
-        if (error) {
-          console.warn(`Error when revoking proof ${proofId}`, error)
-          dispatch(_revokedErrorResponse('There was an error revoking your proof. You can click the button to try again.'))
-        } else {
-          dispatch(finishRevoking())
-        }
-      },
-    })
+function submitRevokeProof (proofId: string): SubmitRevokeProof {
+  return {type: Constants.submitRevokeProof, payload: {proofId}}
+}
+
+function * _submitRevokeProof (action: SubmitRevokeProof): SagaGenerator<any, any> {
+  try {
+    yield put(_revokedWaitingForResponse(true))
+    yield call(revokeRevokeSigsRpcPromise, {param: {sigIDQueries: [action.payload.proofId]}})
+    yield put(_revokedWaitingForResponse(false))
+
+    yield put(finishRevoking())
+  } catch (error) {
+    console.warn(`Error when revoking proof ${action.payload.proofId}`, error)
+    yield put(_revokedWaitingForResponse(false))
+    yield put(_revokedErrorResponse('There was an error revoking your proof. You can click the button to try again.'))
   }
 }
 
@@ -165,40 +166,60 @@ function _openURLIfNotNull (nullableThing, url, metaText) {
   openURL(url)
 }
 
-function outputInstructionsActionLink (): AsyncAction {
-  return (dispatch, getState) => {
-    const profile = getState().profile
-    switch (profile.platform) {
-      case 'coinbase':
-        openURL(`https://coinbase.com/${profile.username}#settings`)
-        break
-      case 'twitter':
-        _openURLIfNotNull(profile.proofText, `https://twitter.com/home?status=${profile.proofText || ''}`, 'twitter url')
-        break
-      case 'github':
-        openURL('https://gist.github.com/')
-        break
-      case 'reddit':
-        _openURLIfNotNull(profile.proofText, profile.proofText, 'reddit url')
-        break
-      case 'facebook':
-        _openURLIfNotNull(profile.proofText, profile.proofText, 'facebook url')
-        break
-      default:
-        break
-    }
+function outputInstructionsActionLink (): OutputInstructionsActionLink {
+  return {type: Constants.outputInstructionsActionLink, payload: undefined}
+}
+
+function * _outputInstructionsActionLink (): SagaGenerator<any, any> {
+  // $FlowIssue @marco dunno why this isn't working
+  const profile: State = yield select((state: TypedState) => state.profile)
+  switch (profile.platform) {
+    case 'coinbase':
+      yield call(openURL, `https://coinbase.com/${profile.username}#settings`)
+      break
+    case 'twitter':
+      yield call(_openURLIfNotNull, profile.proofText, `https://twitter.com/home?status=${profile.proofText || ''}`, 'twitter url')
+      break
+    case 'github':
+      yield call(openURL, 'https://gist.github.com/')
+      break
+    case 'reddit':
+      yield call(_openURLIfNotNull, profile.proofText, profile.proofText, 'reddit url')
+      break
+    case 'facebook':
+      yield call(_openURLIfNotNull, profile.proofText, profile.proofText, 'facebook url')
+      break
+    default:
+      break
   }
 }
 
-function backToProfile (): AsyncAction {
-  return (dispatch) => {
-    dispatch(getMyProfile())
-    dispatch(navigateUp())
-  }
+function backToProfile (): BackToProfile {
+  return {type: Constants.backToProfile, payload: undefined}
+}
+
+function * _backToProfile (): SagaGenerator<any, any> {
+  yield put(getMyProfile())
+  yield put(navigateUp())
+}
+
+function * _profileSaga (): SagaGenerator<any, any> {
+  yield [
+    takeEvery(Constants.backToProfile, _backToProfile),
+    takeEvery(Constants.editProfile, _editProfile),
+    takeEvery(Constants.finishRevoking, _finishRevoking),
+    takeEvery(Constants.onClickAvatar, _onClickAvatar),
+    takeEvery(Constants.onClickFollowers, _onClickFollowers),
+    takeEvery(Constants.onClickFollowing, _onClickFollowing),
+    takeEvery(Constants.onUserClick, _onUserClick),
+    takeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink),
+    takeEvery(Constants.submitRevokeProof, _submitRevokeProof),
+  ]
 }
 
 function * profileSaga (): SagaGenerator<any, any> {
   yield [
+    call(_profileSaga),
     call(pgpSaga),
   ]
 }

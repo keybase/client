@@ -1,6 +1,7 @@
 // @flow
 import type {IconType} from '../common-adapters/icon'
 import type {TypedAction} from '../constants/types/flux'
+import type {OnClickFollowers, OnClickFollowing, OnClickAvatar} from './profile'
 
 export type SearchPlatforms = 'Keybase'
 | 'Twitter'
@@ -108,7 +109,7 @@ export const setActive = 'search:setActive'
 export type SetActive = TypedAction<'search:setActive', {active: boolean}, void>
 
 export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup
-  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting | SetActive
+  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting | SetActive | OnClickFollowers | OnClickFollowing | OnClickAvatar
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {
