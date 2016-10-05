@@ -104,13 +104,12 @@ func (f *Folder) getFolderBranch() libkbfs.FolderBranch {
 }
 
 // forgetNode forgets a formerly active child with basename name.
-func (f *Folder) forgetNode(node libkbfs.Node) {
+func (f *Folder) forgetNode(ctx context.Context, node libkbfs.Node) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
 	delete(f.nodes, node.GetID())
 	if len(f.nodes) == 0 && !f.noForget {
-		ctx := context.Background()
 		f.unsetFolderBranch(ctx)
 		f.list.forgetFolder(string(f.name()))
 	}
@@ -475,6 +474,8 @@ func (d *Dir) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) (err e
 }
 
 // Cleanup - forget references, perform deletions etc.
+// If Cleanup is called with non-nil FileInfo that has IsDeleteOnClose()
+// no libdokan locks should be held prior to the call.
 func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	var err error
 	if fi != nil {
@@ -486,6 +487,7 @@ func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	if fi != nil && fi.IsDeleteOnClose() && d.parent != nil {
+		// renameAndDeletionLock should be the first lock to be grabbed in libdokan.
 		d.folder.fs.renameAndDeletionLock.Lock()
 		defer d.folder.fs.renameAndDeletionLock.Unlock()
 		d.folder.fs.log.CDebugf(ctx, "Removing (Delete) dir in cleanup %s", d.name)
@@ -494,7 +496,7 @@ func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	}
 
 	if d.refcount.Decrease() {
-		d.folder.forgetNode(d.node)
+		d.folder.forgetNode(ctx, d.node)
 	}
 }
 

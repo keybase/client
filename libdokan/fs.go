@@ -342,6 +342,9 @@ func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath st
 	// User checking is handled by the opening of the source file
 	f.logEnter(ctx, "FS MoveFile")
 	// No racing deletions or renames.
+	// Note that this calls Cleanup multiple times, however with nil
+	// FileInfo which means that Cleanup will not try to lock renameAndDeletionLock.
+	// renameAndDeletionLock should be the first lock to be grabbed in libdokan.
 	f.renameAndDeletionLock.Lock()
 	defer func() {
 		f.renameAndDeletionLock.Unlock()

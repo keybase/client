@@ -48,6 +48,8 @@ func (f *File) CanDeleteFile(ctx context.Context, fi *dokan.FileInfo) error {
 }
 
 // Cleanup - for dokan, remember to handle deletions.
+// If Cleanup is called with non-nil FileInfo that has IsDeleteOnClose()
+// no libdokan locks should be held prior to the call.
 func (f *File) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	var err error
 	f.folder.fs.logEnter(ctx, "File Cleanup")
@@ -55,6 +57,7 @@ func (f *File) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 
 	f.folder.fs.log.CDebugf(ctx, "Cleanup %v", *f)
 	if fi != nil && fi.IsDeleteOnClose() {
+		// renameAndDeletionLock should be the first lock to be grabbed in libdokan.
 		f.folder.fs.renameAndDeletionLock.Lock()
 		defer f.folder.fs.renameAndDeletionLock.Unlock()
 		f.folder.fs.log.CDebugf(ctx, "Removing (Delete) file in cleanup %s", f.name)
@@ -64,7 +67,7 @@ func (f *File) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 
 	if f.refcount.Decrease() {
 		f.folder.fs.log.CDebugf(ctx, "Forgetting file node")
-		f.folder.forgetNode(f.node)
+		f.folder.forgetNode(ctx, f.node)
 		// TODO this should not be needed in future.
 		f.folder.fs.config.KBFSOps().Sync(ctx, f.node)
 	}
