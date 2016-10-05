@@ -14,7 +14,6 @@
     "build-wpdll": "npm run _helper build-wpdll",
     "debug-main": "npm run _helper debug-main",
     "help": "npm run _helper help",
-    "hot-server": "npm run _helper hot-server",
     "hot-server": "npm run build-main-thread && npm run build-wpdll && npm run hot-server-only",
     "hot-server-only": "npm run _helper hot-server",
     "inject-code-prod": "npm run _helper inject-code-prod",
@@ -124,5 +123,5 @@
   "optionalDependencies": {
     "fsevents": "1.0.14"
   },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#50e7a998ada3eed3afb32d5ed1bee8fdcdb44ec9"
+  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#11aee8cee902fc7db0d3ee82947056c90cb7cc77"
 }
