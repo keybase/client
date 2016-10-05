@@ -57,8 +57,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "MessageAttachmentVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
       "type": "record",
-      "name": "MessageAttachment",
+      "name": "MessageAttachmentV1",
       "fields": [
         {
           "type": "string",
@@ -71,10 +78,23 @@
         {
           "type": "bytes",
           "name": "key"
-        },
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "MessageAttachment",
+      "switch": {
+        "type": "MessageAttachmentVersion",
+        "name": "version"
+      },
+      "cases": [
         {
-          "type": "int",
-          "name": "version"
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "MessageAttachmentV1"
         }
       ]
     },
