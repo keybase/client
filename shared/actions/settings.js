@@ -14,6 +14,7 @@ import type {
   InvitesRefresh,
   InvitesSend,
   InvitesSent,
+  Invitation,
   NotificationsRefresh,
   NotificationsSave,
   NotificationsToggle,
@@ -140,7 +141,7 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
     const pendingInvites = []
 
     results.invitations.forEach(i => {
-      const invite: Constants.Invitation = {
+      const invite: Invitation = {
         created: i.ctime,
         email: i.email,
         id: i.invitation_id,
