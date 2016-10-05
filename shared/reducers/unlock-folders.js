@@ -12,7 +12,7 @@ export type State = {
   devices: ?Array<Device>,
   waiting: boolean,
   paperkeyError: ?string,
-  sessionID: ?number
+  sessionID: ?number,
 }
 
 const initialState: State = {

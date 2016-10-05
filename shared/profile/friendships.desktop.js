@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import React, {Component, PureComponent} from 'react'
 import ReactList from 'react-list'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
@@ -8,7 +8,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props, FriendshipUserInfo} from './friendships'
 
 type UserEntryProps = FriendshipUserInfo & {
-  onClick?: (username: string) => void
+  onClick?: (username: string) => void,
 };
 
 class UserEntry extends PureComponent<void, UserEntryProps, void> {

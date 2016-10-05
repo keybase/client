@@ -6,8 +6,8 @@ import type {NotificationKeys, NotificationAction} from '../constants/notificati
 type State = {
   menuBadge: boolean,
   keyState: {
-    [key: NotificationKeys]: boolean
-  }
+    [key: NotificationKeys]: boolean,
+  },
 }
 
 const initialState = {

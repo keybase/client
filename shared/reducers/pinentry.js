@@ -18,14 +18,14 @@ export type PinentryState = {
   submitted: boolean,
   submitLabel: ?string,
   cancelLabel: ?string,
-  retryLabel: ?string
+  retryLabel: ?string,
 }
 
 export type RootPinentryState = {
   started: boolean,
   pinentryStates: {
-    [key: string]: PinentryState
-  }
+    [key: string]: PinentryState,
+  },
 }
 
 type EnabledFeatures = {[key: string]: Feature}

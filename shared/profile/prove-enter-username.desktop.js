@@ -25,7 +25,7 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
 }
 
 type State = {
-  username: string
+  username: string,
 }
 
 function customError (error: string, code: ?number) {

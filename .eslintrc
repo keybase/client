@@ -37,6 +37,7 @@
         "flowtype/valid-syntax": [2],
         "flowtype/define-flow-type": 1,
         "flowtype/use-flow-type": 1,
+        "flowtype/delimiter-dangle": [2, "always-multiline"],
         "jsx-quotes": [2, "prefer-single"],
         "import/named": 2,
         "import/export": 2,

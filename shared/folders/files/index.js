@@ -20,11 +20,11 @@ type Props = $Shape<{
   routeAppend: (route: any) => void,
   ignoreFolder: (path: string) => void,
   favoriteFolder: (path: string) => void,
-  openInKBFS: (path: string) => void
+  openInKBFS: (path: string) => void,
 }>
 
 type State = {
-  visiblePopupMenu: boolean
+  visiblePopupMenu: boolean,
 };
 
 class Files extends Component<void, Props, State> {

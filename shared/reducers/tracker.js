@@ -23,7 +23,7 @@ export type State = {
     fullname: string,
     followsYou: boolean,
     following: boolean,
-  }>
+  }>,
 }
 
 const initialProofState = checking

@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import * as shared from './index.shared'
 import Friendships from './friendships'
 import ProfileHelp from './help.desktop'
@@ -26,7 +26,7 @@ type State = {
   popupMenuPosition: {
     top?: number,
     right?: number,
-  }
+  },
 }
 
 class ProfileRender extends PureComponent<void, Props, State> {

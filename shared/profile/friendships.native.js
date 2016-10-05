@@ -9,7 +9,7 @@ import type {Props, FriendshipUserInfo} from './friendships'
 const ITEM_WIDTH = 105
 
 type UserEntryProps = FriendshipUserInfo & {
-  onClick?: (username: string) => void
+  onClick?: (username: string) => void,
 }
 
 const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: UserEntryProps) => (

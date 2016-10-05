@@ -12,7 +12,7 @@ type Props = {
   registerPinentryListener: () => void,
   onCancel: (sessionID: number) => void,
   onSubmit: (sessionID: number, passphrase: string, features: GUIEntryFeatures) => void,
-  pinentryStates: {[key: string]: PinentryState}
+  pinentryStates: {[key: string]: PinentryState},
 }
 
 class RemotePinentry extends Component<void, Props, void> {

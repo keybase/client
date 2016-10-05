@@ -10,7 +10,7 @@ import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Props} from './prove-enter-username'
 
 type State = {
-  username: string
+  username: string,
 }
 
 function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {

@@ -38,7 +38,7 @@ type ProofRowProps = {
   onClickStatus: (proof: Proof) => void,
   onClickProfile: (proof: Proof) => void,
   hasMenu: boolean,
-  style: Object
+  style: Object,
 }
 
 function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofRowProps): React$Element<*> {

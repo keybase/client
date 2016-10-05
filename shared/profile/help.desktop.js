@@ -5,7 +5,7 @@ import {globalStyles, globalColors} from '../styles'
 import {shell} from 'electron'
 
 type Props = {
-  username: string
+  username: string,
 };
 
 const RenderHelp = ({username}: Props) => (

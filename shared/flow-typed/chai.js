@@ -1,5 +1,5 @@
 // From https://github.com/flowtype/flow-typed/commit/94e9f7e0a4ae0c1c33e3b2e2319c4eca1e4d23f3#diff-d7e3b4090372ff6af749eaa32698d085
-/* @flow */
+// @flow
 declare module "chai" {
 
     declare type ExpectChain<T> = {

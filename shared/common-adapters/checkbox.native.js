@@ -7,7 +7,7 @@ import {globalStyles, globalColors} from '../styles'
 const checkedOffset = 14
 
 type State = {
-  left: any
+  left: any,
 }
 
 class Checkbox extends Component<void, Props, State> {

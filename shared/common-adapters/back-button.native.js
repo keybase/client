@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 
 import React, {Component} from 'react'
 import {Box, NativeTouchableWithoutFeedback, Text, Icon} from './index.native'

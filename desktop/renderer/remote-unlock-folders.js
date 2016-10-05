@@ -8,7 +8,7 @@ import {registerRekeyListener, close} from '../shared/actions/unlock-folders'
 type Props = {
   close: () => void,
   closed: boolean,
-  registerRekeyListener: () => void
+  registerRekeyListener: () => void,
 }
 
 class RemoteUnlockFolders extends Component<void, Props, void> {

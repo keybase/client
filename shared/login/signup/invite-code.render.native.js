@@ -9,7 +9,7 @@ class Render extends Component {
   props: Props;
 
   state: {
-    inviteCode: ?string
+    inviteCode: ?string,
   };
 
   constructor (props: Props) {

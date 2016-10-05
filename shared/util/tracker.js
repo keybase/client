@@ -6,9 +6,9 @@ import {warning, error} from '../constants/tracker'
 type StateColors = {
   header: {
     background: string,
-    text: string
+    text: string,
   },
-  username: string
+  username: string,
 }
 
 export function stateColors (currentlyFollowing: boolean, trackerState: SimpleProofState, defaultColor?: string): StateColors {
