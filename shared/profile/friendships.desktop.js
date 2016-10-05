@@ -9,7 +9,7 @@ import type {Props, FriendshipUserInfo} from './friendships'
 
 type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void,
-};
+}
 
 class UserEntry extends PureComponent<void, UserEntryProps, void> {
   _onClick: () => void;

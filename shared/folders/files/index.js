@@ -25,7 +25,7 @@ type Props = $Shape<{
 
 type State = {
   visiblePopupMenu: boolean,
-};
+}
 
 class Files extends Component<void, Props, State> {
   state: State;

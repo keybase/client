@@ -17,7 +17,6 @@ export type TrackerProps = {
   actionBarReady: boolean,
   closed: boolean,
   currentlyFollowing: boolean,
-  currentlyFollowing: boolean,
   inviteLink?: ?string,
   isPrivate?: boolean,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),

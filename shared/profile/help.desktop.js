@@ -6,7 +6,7 @@ import {shell} from 'electron'
 
 type Props = {
   username: string,
-};
+}
 
 const RenderHelp = ({username}: Props) => (
   <Box style={stylesScrollContainer}>
