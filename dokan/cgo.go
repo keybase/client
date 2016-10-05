@@ -576,7 +576,11 @@ func getfs(fi C.PDOKAN_FILE_INFO) FileSystem {
 }
 
 func getfi(fi C.PDOKAN_FILE_INFO) File {
-	return fiTableGetFile(uint32(fi.Context))
+	file := fiTableGetFile(uint32(fi.Context))
+	if file == nil {
+		file = &errorFile{getfs(fi)}
+	}
+	return file
 }
 
 func fiStore(pfi C.PDOKAN_FILE_INFO, fi File, err error) C.NTSTATUS {
