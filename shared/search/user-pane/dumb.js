@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import UserPane from './user.render'
 import NonUserPane from './non-user.render'
 import Help from './help'

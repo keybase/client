@@ -1,14 +1,15 @@
+// @flow
 /*
  * File to stash local debug changes to. Never check this in with changes
  */
 
-import {updateDebugConfig} from './actions/dev'
 import * as Tabs from './constants/tabs'
 import {NativeModules} from 'react-native'
+import {updateDebugConfig} from './actions/dev'
 
 const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
 
-let config = {
+let config: {[key: string]: any} = {
   allowStartupFailure: false,
   printRPC: false,
   showAllTrackers: false,
@@ -73,10 +74,11 @@ export function initTabbedRouterState () {
   return config.initialTabState
 }
 
-export function setup (store) {
+export function setup (store: any) {
   const updateLiveConfig = () => store.dispatch(updateDebugConfig(require('./local-debug-live')))
 
   if (module.hot) {
+    // $FlowIssue
     module.hot.accept(() => updateLiveConfig())
   }
   updateLiveConfig()

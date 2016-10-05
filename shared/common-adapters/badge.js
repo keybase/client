@@ -1,3 +1,4 @@
+// @flow
 import Box from './box'
 import React from 'react'
 import Text from './text'

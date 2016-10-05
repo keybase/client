@@ -1,12 +1,12 @@
+// @flow
 // Can't tell which thread we're in so let's try both
 import electron from 'electron'
-
 import {executeActionsForContext} from '../shared/util/quit-helper.desktop'
 
 const Menu = electron.Menu || electron.remote.Menu
 const shell = electron.shell || electron.remote.shell
 
-export default function makeMenu (window) {
+export default function makeMenu (window: any) {
   const editMenu = {
     label: 'Edit',
     submenu: [
@@ -82,7 +82,7 @@ export default function makeMenu (window) {
   }
 }
 
-export function setupContextMenu (window) {
+export function setupContextMenu (window: any) {
   const InputMenu = Menu.buildFromTemplate([
     {label: 'Undo', role: 'undo'},
     {label: 'Redo', role: 'redo'},
@@ -94,6 +94,7 @@ export function setupContextMenu (window) {
     {label: 'Select all', role: 'selectall'},
   ])
 
+  // $FlowIssue
   document.body.addEventListener('contextmenu', e => {
     e.preventDefault()
     e.stopPropagation()

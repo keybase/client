@@ -1,3 +1,4 @@
+// @flow
 import Devices from './devices'
 import DumbSheet from './dev/dumb-sheet'
 import Folders from './folders'
@@ -12,16 +13,17 @@ import TabBar from './tab-bar/index.render.native'
 import flags from './util/feature-flags'
 import globalRoutes from './router/global-routes'
 import hello from './util/hello'
-import type {VisibleTab} from './constants/tabs'
-import {Box, NativeNavigator, Text, ClickableBox, Icon} from './common-adapters'
+import {Box, NativeNavigator, Text, ClickableBox, Icon} from './common-adapters/index.native'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
+import {globalStyles, globalColors, navBarHeight} from './styles/index.native'
 import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
-import {globalStyles, globalColors, navBarHeight} from './styles'
 import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 import GlobalError from './global-errors/container'
+
+import type {VisibleTab} from './constants/tabs'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
@@ -190,6 +192,7 @@ const styles = {
   },
 }
 
+// $FlowIssue
 export default connect(
   ({router, favorite: {privateBadge, publicBadge}, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({
     router,
@@ -199,13 +202,11 @@ export default connect(
     dumbFullscreen,
     folderBadge: flags.tabFoldersEnabled ? privateBadge + publicBadge : 0,
   }),
-  dispatch => {
-    return {
-      switchTab: tab => dispatch(switchTab(tab)),
-      navigateUp: () => dispatch(navigateUp()),
-      navigateTo: uri => dispatch(navigateTo(uri)),
-      bootstrap: () => dispatch(bootstrap()),
-      listenForNotifications: () => dispatch(listenForNotifications()),
-    }
-  }
+  dispatch => ({
+    switchTab: tab => dispatch(switchTab(tab)),
+    navigateUp: () => dispatch(navigateUp()),
+    navigateTo: uri => dispatch(navigateTo(uri)),
+    bootstrap: () => dispatch(bootstrap()),
+    listenForNotifications: () => dispatch(listenForNotifications()),
+  })
 )(Nav)

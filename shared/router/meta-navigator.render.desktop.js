@@ -1,7 +1,6 @@
+// @flow
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
-import {navigateUp} from '../actions/router'
 import {globalStyles} from '../styles'
 
 class MetaNavigatorRender extends Component {
@@ -29,10 +28,10 @@ MetaNavigatorRender.propTypes = {
       parseRoute: React.PropTypes.func.isRequired,
     }),
   ]).isRequired,
-  navigateUp: React.PropTypes.func.isRequired,
 }
 
+// $FlowIssue
 export default connect(
   state => ({}),
-  dispatch => bindActionCreators({navigateUp}, dispatch)
+  dispatch => ({}),
 )(MetaNavigatorRender)

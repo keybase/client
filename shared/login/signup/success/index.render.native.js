@@ -13,7 +13,7 @@ import {specialStyles} from '../../../common-adapters/text'
   */
 
 type State = {
-  checked: boolean
+  checked: boolean,
 }
 
 class Render extends Component<void, Props, State> {

@@ -1,8 +1,9 @@
+// @flow
 import {app} from 'electron'
 import {keybaseBinPath} from './paths'
 import exec from './exec'
 
-export function ctlStop (callback) {
+export function ctlStop (callback: any) {
   const binPath = keybaseBinPath()
   const args = ['ctl', 'stop', '--exclude=app', '--no-wait']
   exec(binPath, args, 'darwin', 'prod', false, callback)

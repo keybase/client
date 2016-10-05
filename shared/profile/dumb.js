@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import ConfirmOrPending from './confirm-or-pending'
 import EditAvatar from './edit-avatar'
 import PostProof from './post-proof'

@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
 import {Box, Text} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'

@@ -4,7 +4,7 @@ import Render from './render'
 import logSend from '../../native/log-send'
 
 type State = {
-  logSendId: ?string
+  logSendId: ?string,
 }
 
 class LogSend extends Component<void, {}, State> {

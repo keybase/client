@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import * as Constants from '../constants/config'
 import type {BootStatus} from '../constants/config'
 import * as CommonConstants from '../constants/common'

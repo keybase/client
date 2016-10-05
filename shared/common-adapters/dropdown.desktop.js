@@ -8,7 +8,7 @@ import {Popover, PopoverAnimationVertical} from 'material-ui/Popover'
 import {transition, globalColors, globalStyles} from '../styles'
 
 type State = {
-  popoverOpen: boolean
+  popoverOpen: boolean,
 }
 
 class Dropdown extends Component<void, Props, State> {
@@ -119,7 +119,7 @@ type OptionsListProps = {
   options: Array<string>,
   onClick: (i: ?number) => void,
   onOther?: () => void,
-  username?: true
+  username?: true,
 }
 
 const optionsList = ({options, onClick, username}: OptionsListProps) => {

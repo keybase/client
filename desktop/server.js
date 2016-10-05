@@ -1,3 +1,4 @@
+// @flow
 // Builds our code, serves changes if NO_SERVER is false
 const express = require('express')
 const webpack = require('webpack')

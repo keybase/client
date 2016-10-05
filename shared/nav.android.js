@@ -1,3 +1,4 @@
+// @flow
 import Devices from './devices'
 import DumbSheet from './dev/dumb-sheet'
 import Folders from './folders'
@@ -10,17 +11,19 @@ import Search from './search'
 import Settings from './settings'
 import TabBar from './tab-bar/index.render.native'
 import flags from './util/feature-flags'
-import forwardLogs from './native/forward-logs'
 import globalRoutes from './router/global-routes'
 import hello from './util/hello'
-import {Text, Box, NativeBackAndroid, NativeDrawerLayoutAndroid, NativeImage, NativeTouchableNativeFeedback} from './common-adapters'
+import {Text, Box, NativeBackAndroid, NativeDrawerLayoutAndroid, NativeImage, NativeTouchableNativeFeedback} from './common-adapters/index.native'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
 import {navigateBack, switchTab} from './actions/router'
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, prettify} from './constants/tabs'
+import {setupSource} from './util/forward-logs.native'
 import GlobalError from './global-errors/container'
+
+import type {VisibleTab} from './constants/tabs'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
@@ -31,7 +34,7 @@ const tabs: {[key: VisibleTab]: {module: any}} = {
   [devicesTab]: {module: Devices, name: 'Devices'},
 }
 
-forwardLogs()
+setupSource()
 
 class AndroidNavigator extends Component {
   push (componentAtTop) {
@@ -112,7 +115,7 @@ class Nav extends Component {
 
     const drawerContent = (
       <Box style={{flex: 1, backgroundColor: '#fff'}}>
-        <Text style={{margin: 10, fontSize: 15, textAlign: 'left'}}>I'm in the Drawer!</Text>
+        <Text type='Header' style={{margin: 10, fontSize: 15, textAlign: 'left'}}>I'm in the Drawer!</Text>
       </Box>
     )
 
@@ -142,7 +145,7 @@ class Nav extends Component {
               </Box>
 
               <Box style={{marginLeft: 40}}>
-                <Text style={styles.toolbarName}>{prettify(activeTab)}</Text>
+                <Text type='Body' style={styles.toolbarName}>{prettify(activeTab)}</Text>
               </Box>
 
               <Box style={styles.toolbarSearchWrapper}>
@@ -202,6 +205,7 @@ const styles = {
   },
 }
 
+// $FlowIssue
 export default connect(
   ({
     router,

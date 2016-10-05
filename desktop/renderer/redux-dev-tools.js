@@ -1,8 +1,8 @@
-import React from 'react'
-
-import {createDevTools} from 'redux-devtools'
+// @flow
 import DockMonitor from 'redux-devtools-dock-monitor'
 import LogMonitor from 'redux-devtools-log-monitor'
+import React from 'react'
+import {createDevTools} from 'redux-devtools'
 import {reduxDevToolsSelect} from '../shared/local-debug.desktop.js'
 
 export default createDevTools(

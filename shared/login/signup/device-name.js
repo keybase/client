@@ -7,7 +7,7 @@ import {connect} from 'react-redux'
 
 class DeviceName extends Component {
   state: {
-    deviceName: ?string
+    deviceName: ?string,
   };
 
   constructor (props) {

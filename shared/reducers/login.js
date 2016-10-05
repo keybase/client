@@ -19,7 +19,7 @@ export type LoginState = {
     codeCountDown: number,
     textCode: ?HiddenString,
     qrScanned: ?QRCode,
-    qrCode: ?QRCode
+    qrCode: ?QRCode,
   },
   registerUserPassError: ?Error,
   registerUserPassLoading: boolean,

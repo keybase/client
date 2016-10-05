@@ -27,7 +27,7 @@ type OwnProps = {
   userOverride?: {
     username: string,
     uid: string,
-  }
+  },
 }
 
 type EitherProps<P> = {

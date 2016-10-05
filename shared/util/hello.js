@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 // Send helloIAm message to service
 
 import engine from '../engine'
