@@ -43,12 +43,6 @@ export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountFor
 export type PlanLevel = 'Basic' | 'Gold' | 'Friend'
 const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
 
-export type PaymentInfo = {
-  name: string,
-  last4Digits: string,
-  isBroken: boolean,
-}
-
 export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
 
 export type Invitation = {
