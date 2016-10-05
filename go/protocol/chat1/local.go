@@ -42,9 +42,8 @@ var MessageAttachmentVersionRevMap = map[MessageAttachmentVersion]string{
 }
 
 type MessageAttachmentV1 struct {
-	StorageType string `codec:"storageType" json:"storageType"`
-	Path        string `codec:"path" json:"path"`
-	Key         []byte `codec:"key" json:"key"`
+	Path string `codec:"path" json:"path"`
+	Key  []byte `codec:"key" json:"key"`
 }
 
 type MessageAttachment struct {

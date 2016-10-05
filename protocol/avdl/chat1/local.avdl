@@ -29,7 +29,6 @@ protocol local {
   // This record is immutable.  To modify, create a new
   // record type with a new version.
   record MessageAttachmentV1 {
-    string storageType;  // where the attachment object is stored (i.e. s3)
     string path;         // path to the attachment object
     bytes key;           // encryption key
   }

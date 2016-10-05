@@ -379,7 +379,6 @@ export type MessageAttachment =
     { version : 1, v1 : ?MessageAttachmentV1 }
 
 export type MessageAttachmentV1 = {
-  storageType: string,
   path: string,
   key: bytes,
 }

@@ -69,10 +69,6 @@
       "fields": [
         {
           "type": "string",
-          "name": "storageType"
-        },
-        {
-          "type": "string",
           "name": "path"
         },
         {
