@@ -77,7 +77,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
         if (err) {
           dispatch({
             type: Constants.requestInvite,
-            payload: {error: true, emailError: err.message, nameError: null, email, name},
+            payload: {error: true, emailError: err.desc, nameError: null, email, name},
           })
           reject(err)
         } else {
@@ -121,7 +121,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
           dispatch(({
             type: Constants.checkUsernameEmail,
             error: true,
-            payload: {emailError, usernameError: `Username error: ${err.message}`, email, username},
+            payload: {emailError, usernameError: `Username error: ${err.desc}`, email, username},
           }: CheckUsernameEmail))
           resolve()
         } else {
@@ -195,7 +195,7 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
             dispatch(({
               type: Constants.submitDeviceName,
               error: true,
-              payload: {deviceNameError: `Device name is invalid: ${err.message}.`, deviceName},
+              payload: {deviceNameError: `Device name is invalid: ${err.desc}.`, deviceName},
             }: SubmitDeviceName))
             reject(err)
           } else {
