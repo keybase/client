@@ -56,6 +56,21 @@ export type CancelPgpGen = NoErrorTypedAction<'profile:cancelPgpGen', {}>
 export const dropPgp = 'profile:dropPgp'
 export type DropPgp = TypedAction<'profile:dropPgp', {kid: KID}, {}>
 
+export const backToProfile = 'profile:backToProfile'
+export type BackToProfile = NoErrorTypedAction<'profile:backToProfile', void>
+
+export const outputInstructionsActionLink = 'profile:outputInstructionsActionLink'
+export type OutputInstructionsActionLink = NoErrorTypedAction<'profile:outputInstructionsActionLink', void>
+
+export const onClickFollowing = 'profile:onClickFollowing'
+export type OnClickFollowing = NoErrorTypedAction<'profile:onClickFollowing', {username: ?string, uid: string, openWebsite: ?boolean}>
+
+export const onClickFollowers = 'profile:onClickFollowers'
+export type OnClickFollowers = NoErrorTypedAction<'profile:onClickFollowers', {username: ?string, uid: string, openWebsite: ?boolean}>
+
+export const onClickAvatar = 'profile:onClickAvatar'
+export type OnClickAvatar = NoErrorTypedAction<'profile:onClickAvatar', {username: ?string, uid: string, openWebsite: ?boolean}>
+
 export const maxProfileBioChars = 256
 
 export type Actions = Waiting

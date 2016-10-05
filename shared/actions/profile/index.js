@@ -5,15 +5,17 @@ import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, checkSpecificProof} from './proofs'
 import {apiserverPostRpc, revokeRevokeSigsRpc} from '../../constants/types/flow-types'
-import {call} from 'redux-saga/effects'
+import {call, put, select} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
 import {navigateUp, routeAppend, switchTab} from '../../actions/router'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
+import {takeEvery} from 'redux-saga'
 
 import type {Dispatch, AsyncAction} from '../../constants/types/flux'
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {UpdateUsername, WaitingRevokeProof, FinishRevokeProof} from '../../constants/profile'
+import type {TypedState}  from '../../constants/reducer'
+import type {UpdateUsername, WaitingRevokeProof, FinishRevokeProof, BackToProfile, OutputInstructionsActionLink, State, OnClickFollowing, OnClickFollowers, OnClickAvatar} from '../../constants/profile'
 
 function editProfile (bio: string, fullname: string, location: string): AsyncAction {
   return (dispatch) => {
@@ -105,35 +107,75 @@ function onUserClick (username: string, uid: string): AsyncAction {
   }
 }
 
-function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
-  return dispatch => {
-    if (!openWebsite && flags.tabProfileEnabled === true) {
-      username && dispatch(onUserClick(username, uid))
-    } else {
-      username && openURL(`${keybaseUrl}/${username}`)
-    }
+function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): OnClickAvatar {
+  return {
+    type: Constants.onClickAvatar,
+    payload: {
+      username,
+      uid,
+      openWebsite,
+    },
   }
 }
 
-function onClickFollowers (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
-  return dispatch => {
-    if (!openWebsite && flags.tabProfileEnabled === true) {
-      // TODO(mm) hint followers
-      username && dispatch(onUserClick(username, uid))
-    } else {
-      username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
-    }
+function * _onClickAvatar (action: OnClickFollowers): SagaGenerator<any, any> {
+  if (!action.payload.username) {
+    return
+  }
+
+  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+    // TODO(mm) hint followings
+    yield put(onUserClick(action.payload.username, action.payload.uid))
+  } else {
+    yield call(openURL, `${keybaseUrl}/${action.payload.username}`)
   }
 }
 
-function onClickFollowing (username: ?string, uid: string, openWebsite?: boolean): AsyncAction {
-  return dispatch => {
-    if (!openWebsite && flags.tabProfileEnabled === true) {
-      // TODO(mm) hint followings
-      username && dispatch(onUserClick(username, uid))
-    } else {
-      username && openURL(`${keybaseUrl}/${username}#profile-tracking-section`)
-    }
+function onClickFollowers (username: ?string, uid: string, openWebsite?: boolean): OnClickFollowers {
+  return {
+    type: Constants.onClickFollowers,
+    payload: {
+      username,
+      uid,
+      openWebsite,
+    },
+  }
+}
+
+function * _onClickFollowers (action: OnClickFollowers): SagaGenerator<any, any> {
+  if (!action.payload.username) {
+    return
+  }
+
+  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+    // TODO(mm) hint followings
+    yield put(onUserClick(action.payload.username, action.payload.uid))
+  } else {
+    yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
+  }
+}
+
+function onClickFollowing (username: ?string, uid: string, openWebsite?: boolean): OnClickFollowing {
+  return {
+    type: Constants.onClickFollowing,
+    payload: {
+      username,
+      uid,
+      openWebsite,
+    },
+  }
+}
+
+function * _onClickFollowing (action: OnClickFollowing): SagaGenerator<any, any> {
+  if (!action.payload.username) {
+    return
+  }
+
+  if (!action.openWebsite && flags.tabProfileEnabled === true) {
+    // TODO(mm) hint followings
+    yield put(onUserClick(action.payload.username, action.payload.uid))
+  } else {
+    yield call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
   }
 }
 
@@ -165,40 +207,56 @@ function _openURLIfNotNull (nullableThing, url, metaText) {
   openURL(url)
 }
 
-function outputInstructionsActionLink (): AsyncAction {
-  return (dispatch, getState) => {
-    const profile = getState().profile
-    switch (profile.platform) {
-      case 'coinbase':
-        openURL(`https://coinbase.com/${profile.username}#settings`)
-        break
-      case 'twitter':
-        _openURLIfNotNull(profile.proofText, `https://twitter.com/home?status=${profile.proofText || ''}`, 'twitter url')
-        break
-      case 'github':
-        openURL('https://gist.github.com/')
-        break
-      case 'reddit':
-        _openURLIfNotNull(profile.proofText, profile.proofText, 'reddit url')
-        break
-      case 'facebook':
-        _openURLIfNotNull(profile.proofText, profile.proofText, 'facebook url')
-        break
-      default:
-        break
-    }
+function outputInstructionsActionLink (): OutputInstructionsActionLink {
+  return {type: Constants.outputInstructionsActionLink, payload: undefined}
+}
+
+function * _outputInstructionsActionLink (): SagaGenerator<any, any> {
+  // $FlowIssue @marco dunno why this isn't working
+  const profile: State = yield select((state: TypedState) => state.profile)
+  switch (profile.platform) {
+    case 'coinbase':
+      yield call(openURL, `https://coinbase.com/${profile.username}#settings`)
+      break
+    case 'twitter':
+      yield call(_openURLIfNotNull, profile.proofText, `https://twitter.com/home?status=${profile.proofText || ''}`, 'twitter url')
+      break
+    case 'github':
+      yield call(openURL, 'https://gist.github.com/')
+      break
+    case 'reddit':
+      yield call(_openURLIfNotNull, profile.proofText, profile.proofText, 'reddit url')
+      break
+    case 'facebook':
+      yield call(_openURLIfNotNull, profile.proofText, profile.proofText, 'facebook url')
+      break
+    default:
+      break
   }
 }
 
-function backToProfile (): AsyncAction {
-  return (dispatch) => {
-    dispatch(getMyProfile())
-    dispatch(navigateUp())
-  }
+function backToProfile (): BackToProfile {
+  return {type: Constants.backToProfile, payload: undefined}
+}
+
+function * _backToProfile (): SagaGenerator<any, any> {
+  yield put(getMyProfile())
+  yield put(navigateUp())
+}
+
+function * _profileSaga (): SagaGenerator<any, any> {
+  yield [
+    takeEvery(Constants.backToProfile, _backToProfile),
+    takeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink),
+    takeEvery(Constants.onClickFollowing, _onClickFollowing),
+    takeEvery(Constants.onClickFollowers, _onClickFollowers),
+    takeEvery(Constants.onClickAvatar, _onClickAvatar),
+  ]
 }
 
 function * profileSaga (): SagaGenerator<any, any> {
   yield [
+    call(_profileSaga),
     call(pgpSaga),
   ]
 }
