@@ -509,7 +509,9 @@ func (j *mdJournal) convertToBranch(
 
 		// If possible, replace the old RMD in the cache.  If it's not
 		// already in the cache, don't bother adding it, as that will
-		// just evict something incorrectly.
+		// just evict something incorrectly.  TODO: Don't replace the
+		// MD until we know for sure that the branch conversion
+		// succeeds.
 		oldIrmd, err := mdcache.Get(tlfID, ibrmd.RevisionNumber(), NullBranchID)
 		if err == nil {
 			newRmd, err := oldIrmd.deepCopy(codec, false)
