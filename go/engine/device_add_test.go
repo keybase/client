@@ -139,6 +139,49 @@ func TestDeviceAddPhrase(t *testing.T) {
 	wg.Wait()
 }
 
+func TestDeviceAddStoredSecret(t *testing.T) {
+	// device X (provisioner) context:
+	tcX := SetupEngineTest(t, "kex2provision")
+	defer tcX.Cleanup()
+
+	// device Y (provisionee) context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// provisioner needs to be logged in
+	userX := SignupFakeUserStoreSecret(tcX, "login")
+
+	var secretY kex2.Secret
+	if _, err := rand.Read(secretY[:]); err != nil {
+		t.Fatal(err)
+	}
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	wg.Add(1)
+	go runDeviceAddTest(t, &wg, &tcY, secretY, false)
+
+	testSecretUI := userX.NewSecretUI()
+
+	// run DeviceAdd engine on device X
+	ctx := &Context{
+		SecretUI:    testSecretUI,
+		ProvisionUI: &testXProvisionUI{secret: secretY},
+		NetContext:  context.TODO(),
+	}
+	eng := NewDeviceAdd(tcX.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Errorf("device add error: %s", err)
+	}
+
+	wg.Wait()
+
+	if testSecretUI.CalledGetPassphrase {
+		t.Fatal("GetPassphrase() unexpectedly called")
+	}
+}
+
 type testXProvisionUI struct {
 	secret kex2.Secret
 	testProvisionUI
