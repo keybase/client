@@ -3,6 +3,7 @@ import {Component} from 'react'
 
 export type Props = $Shape<{
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
+  autoCorrect?: bool,
   autoFocus?: bool,
   autoGrow?: bool,
   blur: () => void,
