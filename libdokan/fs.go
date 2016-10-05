@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/logger"
@@ -23,6 +24,8 @@ import (
 type FS struct {
 	config libkbfs.Config
 	log    logger.Logger
+	// renameAndDeletionLock should be held when doing renames or deletions.
+	renameAndDeletionLock sync.Mutex
 
 	notifications *libfs.FSNotifications
 
@@ -343,7 +346,15 @@ func (f *FS) ErrorPrint(err error) {
 func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
 	// User checking is handled by the opening of the source file
 	f.logEnter(ctx, "FS MoveFile")
-	defer func() { f.reportErr(ctx, libkbfs.WriteMode, err) }()
+	// No racing deletions or renames.
+	// Note that this calls Cleanup multiple times, however with nil
+	// FileInfo which means that Cleanup will not try to lock renameAndDeletionLock.
+	// renameAndDeletionLock should be the first lock to be grabbed in libdokan.
+	f.renameAndDeletionLock.Lock()
+	defer func() {
+		f.renameAndDeletionLock.Unlock()
+		f.reportErr(ctx, libkbfs.WriteMode, err)
+	}()
 
 	oc := newSyntheticOpenContext()
 	src, _, err := f.openRaw(ctx, source, oc.CreateData)
@@ -435,9 +446,10 @@ func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath st
 	// overwritten node, if any, will be removed from Folder.nodes, if
 	// it is there in the first place, by its Forget
 
-	f.log.CDebugf(ctx, "FS Rename KBFSOps().Rename(ctx,%v,%v,%v,%v)", srcParent, srcName, ddst.node, dstPath[len(dstPath)-1])
+	dstName := dstPath[len(dstPath)-1]
+	f.log.CDebugf(ctx, "FS Rename KBFSOps().Rename(ctx,%v,%v,%v,%v)", srcParent, srcName, ddst.node, dstName)
 	if err := srcFolder.fs.config.KBFSOps().Rename(
-		ctx, srcParent, srcName, ddst.node, dstPath[len(dstPath)-1]); err != nil {
+		ctx, srcParent, srcName, ddst.node, dstName); err != nil {
 		f.log.CDebugf(ctx, "FS Rename KBFSOps().Rename FAILED %v", err)
 		return err
 	}
@@ -445,8 +457,10 @@ func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath st
 	switch x := src.(type) {
 	case *Dir:
 		x.parent = ddst.node
+		x.name = dstName
 	case *File:
 		x.parent = ddst.node
+		x.name = dstName
 	}
 
 	f.log.CDebugf(ctx, "FS Rename SUCCESS")
