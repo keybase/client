@@ -6,7 +6,6 @@
   "scripts": {
     "_helper": "npm run _node -- npm-helper.js",
     "_node": "babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types",
-    "babel-install": "npm install babel-cli babel-preset-es2015 babel-preset-stage-2 babel-preset-react",
     "build-dev": "npm run _helper build-dev",
     "build-main-thread": "npm run _helper build-main-thread",
     "build-prod": "npm run _helper build-prod",
@@ -33,8 +32,8 @@
     "test": "npm run _helper test && npm run mocha",
     "undiff-log": "npm run _helper undiff-log",
     "updated-fonts": "npm run _helper updated-fonts",
-    "vendor-install": "npm run _node npm-vendor.js",
-    "vendor-update": "npm run _node npm-vendor.js update",
+    "vendor-install": "node npm-vendor.js",
+    "vendor-update": "node npm-vendor.js update",
     "watch-test-file": "KEYBASE_RUN_MODE=devel npm run _helper watch-test-file",
     "wrap": "npm uninstall fsevents && npm prune && npm dedupe && npm shrinkwrap --dev"
   },
