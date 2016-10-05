@@ -21,6 +21,7 @@ import {mapValues} from 'lodash'
 import {navigateBack, switchTab} from './actions/router'
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, prettify} from './constants/tabs'
 import {setupSource} from './util/forward-logs.native'
+import GlobalError from './global-errors/container'
 
 import type {VisibleTab} from './constants/tabs'
 
@@ -84,6 +85,7 @@ class Nav extends Component {
           Navigator={AndroidNavigator}
           NavBar={<Box />}
         />
+        <GlobalError />
       </Box>
     )
   }

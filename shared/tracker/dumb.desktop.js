@@ -98,9 +98,9 @@ const propsBase = {
   lastAction: null,
   loading: false,
   actionBarReady: true,
-  onClickAvatar: console.log('on click avatar'),
-  onClickFollowers: console.log('on click followers'),
-  onClickFollowing: console.log('on click following'),
+  onClickAvatar: () => console.log('on click avatar'),
+  onClickFollowers: () => console.log('on click followers'),
+  onClickFollowing: () => console.log('on click following'),
   error: null,
 }
 
