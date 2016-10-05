@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -227,7 +228,8 @@ func TestMDJournalPutCase1Conflict(t *testing.T) {
 	_, err := j.put(ctx, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	_, err = j.put(ctx, signer, ekg, bsplit, md)
@@ -273,7 +275,8 @@ func TestMDJournalPutCase2NonEmptyReplace(t *testing.T) {
 	_, err := j.put(ctx, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	md.SetUnmerged()
@@ -290,7 +293,8 @@ func TestMDJournalPutCase2NonEmptyAppend(t *testing.T) {
 	mdID, err := j.put(ctx, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	md2 := makeMDForTest(t, id, MetadataRevision(11), j.uid, mdID)
@@ -308,7 +312,8 @@ func TestMDJournalPutCase2Empty(t *testing.T) {
 	_, err := j.put(ctx, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	// Flush.
@@ -331,7 +336,8 @@ func TestMDJournalPutCase3NonEmptyAppend(t *testing.T) {
 	_, err := j.put(ctx, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	head, err := j.getHead()
@@ -353,7 +359,8 @@ func TestMDJournalPutCase3NonEmptyReplace(t *testing.T) {
 	_, err := j.put(ctx, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	head, err := j.getHead()
@@ -374,7 +381,8 @@ func TestMDJournalPutCase3EmptyAppend(t *testing.T) {
 	_, err := j.put(ctx, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	// Flush.
@@ -443,7 +451,15 @@ func TestMDJournalBranchConversion(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	// Put a single MD in the cache to make sure it gets converted.
+	mdcache := NewMDCacheStandard(10)
+	cachedMd := makeMDForTest(t, id, firstRevision, j.uid, firstPrevRoot)
+	err := mdcache.Put(MakeImmutableRootMetadata(cachedMd,
+		fakeMdID(1), time.Now()))
+	require.NoError(t, err)
+
+	bid, err := j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, mdcache)
 	require.NoError(t, err)
 
 	// Branch conversion shouldn't leave old folders behind.
@@ -471,6 +487,14 @@ func TestMDJournalBranchConversion(t *testing.T) {
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 
 	flushAllMDs(t, ctx, signer, j)
+
+	// Has the cache entry been replaced?
+	newlyCachedMd, err := mdcache.Get(id, firstRevision, bid)
+	require.NoError(t, err)
+	require.Equal(t, newlyCachedMd.BID(), bid)
+	require.Equal(t, newlyCachedMd.MergedStatus(), Unmerged)
+	_, err = mdcache.Get(id, firstRevision, NullBranchID)
+	require.Error(t, err)
 }
 
 type limitedCryptoSigner struct {
@@ -503,7 +527,7 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := j.convertToBranch(
-		ctx, &limitedSigner, id, NewMDCacheStandard(10))
+		ctx, &limitedSigner, kbfscodec.NewMsgpack(), id, NewMDCacheStandard(10))
 	require.NotNil(t, err)
 
 	// All entries should remain unchanged, since the conversion
@@ -570,7 +594,8 @@ func TestMDJournalBranchConversionPreservesUnknownFields(t *testing.T) {
 		prevRoot = mdID
 	}
 
-	_, err := j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	_, err := j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	// Check that the extra fields are preserved.
@@ -599,7 +624,8 @@ func TestMDJournalClear(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	_, err := j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 	require.NotEqual(t, NullBranchID, j.branchID)
 
@@ -641,7 +667,8 @@ func TestMDJournalClear(t *testing.T) {
 	// journal.
 	putMDRange(t, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)
-	_, err = j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 	require.NotEqual(t, NullBranchID, j.branchID)
 
@@ -702,7 +729,8 @@ func TestMDJournalRestartAfterBranchConversion(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := j.convertToBranch(ctx, signer, id, NewMDCacheStandard(10))
+	_, err := j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	// Restart journal.

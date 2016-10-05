@@ -679,7 +679,7 @@ func (j *tlfJournal) convertMDsToBranchAndGetNextEntry(
 	}
 
 	bid, err := j.mdJournal.convertToBranch(
-		ctx, j.config.Crypto(), j.tlfID, j.config.MDCache())
+		ctx, j.config.Crypto(), j.config.Codec(), j.tlfID, j.config.MDCache())
 	if err != nil {
 		return MdID{}, nil, err
 	}

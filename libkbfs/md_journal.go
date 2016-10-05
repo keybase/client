@@ -387,7 +387,7 @@ func (j mdJournal) checkGetParams() (
 }
 
 func (j *mdJournal) convertToBranch(
-	ctx context.Context, signer cryptoSigner,
+	ctx context.Context, signer cryptoSigner, codec kbfscodec.Codec,
 	tlfID TlfID, mdcache MDCache) (bid BranchID, err error) {
 	if j.branchID != NullBranchID {
 		return NullBranchID, fmt.Errorf(
@@ -453,7 +453,7 @@ func (j *mdJournal) convertToBranch(
 	var prevID MdID
 
 	for i, entry := range allEntries {
-		ibrmd, _, err := j.getMD(entry.ID, true)
+		ibrmd, ts, err := j.getMD(entry.ID, true)
 		if err != nil {
 			return NullBranchID, err
 		}
@@ -463,9 +463,6 @@ func (j *mdJournal) convertToBranch(
 		}
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
-
-		// Delete the old "merged" version from the cache.
-		mdcache.Delete(tlfID, ibrmd.RevisionNumber(), NullBranchID)
 
 		// Re-sign the writer metadata.
 		buf, err := brmd.GetSerializedWriterMetadata(j.codec)
@@ -509,6 +506,23 @@ func (j *mdJournal) convertToBranch(
 		}
 
 		prevID = newID
+
+		// If possible, replace the old RMD in the cache.  If it's not
+		// already in the cache, don't bother adding it, as that will
+		// just evict something incorrectly.
+		oldIrmd, err := mdcache.Get(tlfID, ibrmd.RevisionNumber(), NullBranchID)
+		if err == nil {
+			newRmd, err := oldIrmd.deepCopy(codec, false)
+			if err != nil {
+				return NullBranchID, err
+			}
+			newRmd.bareMd = brmd
+			err = mdcache.Replace(
+				MakeImmutableRootMetadata(newRmd, newID, ts), NullBranchID)
+			if err != nil {
+				return NullBranchID, err
+			}
+		}
 
 		j.log.CDebugf(ctx, "Changing ID for rev=%s from %s to %s",
 			brmd.RevisionNumber(), entry.ID, newID)
