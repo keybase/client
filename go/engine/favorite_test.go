@@ -13,27 +13,31 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+func makeFave(u1, u2 string) string {
+	return strings.Join([]string{u1, u2}, ",")
+}
+
 func TestFavoriteAdd(t *testing.T) {
-	t.Skip()
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
 	u := CreateAndSignupFakeUser(tc, "fav")
 	expectedFaves := newFavorites(u.Username)
 
 	idUI := &FakeIdentifyUI{}
-	addfav("t_alice,t_bob", true, true, idUI, tc, expectedFaves)
+	fave := makeFave(u.Username, "t_bob")
+	addfav(fave, true, true, idUI, tc, expectedFaves)
 	if !listfav(tc).Equal(*expectedFaves) {
 		t.Errorf("bad favorites")
 	}
 
 	// Add the same share again. The number shouldn't change.
-	addfav("t_alice,t_bob", true, true, idUI, tc, nil)
+	addfav(fave, true, true, idUI, tc, nil)
 	if !listfav(tc).Equal(*expectedFaves) {
 		t.Errorf("bad favorites")
 	}
 
 	// Add a public share of the same name, make sure both are represented.
-	addfav("t_alice,t_bob", false, true, idUI, tc, expectedFaves)
+	addfav(fave, false, true, idUI, tc, expectedFaves)
 	if !listfav(tc).Equal(*expectedFaves) {
 		t.Errorf("bad favorites")
 	}
@@ -43,7 +47,6 @@ func TestFavoriteAdd(t *testing.T) {
 // Sharing before signup, social assertion user doesn't
 // exist yet.
 func TestFavoriteAddSocial(t *testing.T) {
-	t.Skip()
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
 	u := CreateAndSignupFakeUser(tc, "fav")
@@ -106,7 +109,6 @@ func TestFavoriteAddSocial(t *testing.T) {
 }
 
 func TestFavoriteIgnore(t *testing.T) {
-	t.Skip()
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
 	u := CreateAndSignupFakeUser(tc, "fav")
@@ -114,27 +116,26 @@ func TestFavoriteIgnore(t *testing.T) {
 	expectedFaves := newFavorites(u.Username)
 
 	idUI := &FakeIdentifyUI{}
-	addfav("t_alice,t_bob", true, true, idUI, tc, expectedFaves)
-	addfav("t_alice,t_charlie", true, true, idUI, tc, expectedFaves)
+	addfav(makeFave(u.Username, "t_bob"), true, true, idUI, tc, expectedFaves)
+	addfav(makeFave(u.Username, "t_charlie"), true, true, idUI, tc, expectedFaves)
 	if !listfav(tc).Equal(*expectedFaves) {
 		t.Errorf("bad favorites")
 	}
-	rmfav("t_alice,t_bob", true, tc, expectedFaves)
+	rmfav(makeFave(u.Username, "t_bob"), true, tc, expectedFaves)
 	if !listfav(tc).Equal(*expectedFaves) {
 		t.Errorf("bad favorites")
 	}
 }
 
 func TestFavoriteList(t *testing.T) {
-	t.Skip()
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
 	u := CreateAndSignupFakeUser(tc, "fav")
 	expectedFaves := newFavorites(u.Username)
 
 	idUI := &FakeIdentifyUI{}
-	addfav("t_alice,t_charlie", true, true, idUI, tc, expectedFaves)
-	addfav("t_alice,t_bob", true, true, idUI, tc, expectedFaves)
+	addfav(makeFave(u.Username, "t_charlie"), true, true, idUI, tc, expectedFaves)
+	addfav(makeFave(u.Username, "t_bob"), true, true, idUI, tc, expectedFaves)
 
 	ctx := &Context{}
 	eng := NewFavoriteList(tc.G)
