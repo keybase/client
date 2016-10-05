@@ -954,6 +954,7 @@ func TestTLFJournalFlushInterleaving(t *testing.T) {
 	// put; rev2 comes last; some blocks are put between the two.
 	bidsSeen := make(map[BlockID]bool)
 	md1Slot := 0
+	md2Slot := 0
 	for i, put := range puts {
 		if bid, ok := put.(BlockID); ok {
 			t.Logf("Saw bid %s at %d", bid, i)
@@ -970,9 +971,12 @@ func TestTLFJournalFlushInterleaving(t *testing.T) {
 				require.True(t, bidsSeen[bids[j]])
 			}
 		} else if mdID == md2.Revision() {
+			md2Slot = i
 			require.NotZero(t, md1Slot)
 			require.True(t, md1Slot+1 < i)
 			require.Equal(t, i, len(puts)-1)
 		}
 	}
+	require.NotZero(t, md1Slot)
+	require.NotZero(t, md2Slot)
 }

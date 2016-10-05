@@ -115,11 +115,11 @@ func (t blockOpType) String() string {
 type blockJournalEntry struct {
 	// Must be one of the four ops above.
 	Op blockOpType
-	// Must have exactly one entry with one context for blockPutOp
-	// and addRefOp.
-	Contexts map[BlockID][]BlockContext
+	// Must have exactly one entry with one context for blockPutOp and
+	// addRefOp.  Used for all ops except for mdRevMarkerOp.
+	Contexts map[BlockID][]BlockContext `codec:",omitempty"`
 	// Only used for mdRevMarkerOps.
-	Revision MetadataRevision
+	Revision MetadataRevision `codec:",omitempty"`
 
 	codec.UnknownFieldSetHandler
 }
@@ -752,7 +752,11 @@ func (be blockEntriesToFlush) flushNeeded() bool {
 }
 
 // Only entries with ordinals less than the given ordinal (assumed to
-// be <= latest ordinal + 1) are returned.
+// be <= latest ordinal + 1) are returned.  Also returns the maximum
+// MD revision that can be merged after the returned entries are
+// successfully flushed; if no entries are returned (i.e., the block
+// journal is empty) then any MD revision may be flushed even when
+// MetadataRevisionUninitialized is returned.
 func (j *blockJournal) getNextEntriesToFlush(
 	ctx context.Context, end journalOrdinal, maxToFlush int) (
 	entries blockEntriesToFlush, maxMDRevToFlush MetadataRevision, err error) {
@@ -831,6 +835,11 @@ func (j *blockJournal) getNextEntriesToFlush(
 				ReadyBlockData{}, nil)
 
 		case mdRevMarkerOp:
+			if entry.Revision < maxMDRevToFlush {
+				return blockEntriesToFlush{}, MetadataRevisionUninitialized,
+					fmt.Errorf("Max MD revision decreased in block journal "+
+						"from %d to %d", entry.Revision, maxMDRevToFlush)
+			}
 			maxMDRevToFlush = entry.Revision
 			entries.other = append(entries.other, entry)
 
