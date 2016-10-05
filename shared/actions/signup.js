@@ -75,10 +75,11 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
       waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: err => {
         if (err) {
-          dispatch({
+          dispatch(({
             type: Constants.requestInvite,
-            payload: {error: true, emailError: err.desc, nameError: null, email, name},
-          })
+            error: true,
+            payload: {emailError: err.desc, nameError: null, email, name},
+          }: RequestInvite))
           reject(err)
         } else {
           if (email && name) {
