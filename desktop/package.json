@@ -20,7 +20,7 @@
     "inject-sourcemaps-prod": "npm run _helper inject-sourcemaps-prod",
     "local-visdiff": "npm run _helper local-visdiff",
     "mocha": "KEYBASE_RUN_MODE=devel node_modules/mocha/bin/mocha --require source-map-support/register dist/test.bundle.js",
-    "package": "npm run _helper package",
+    "package": "npm run _helper package --",
     "postinstall": "npm run _helper postinstall",
     "render-screenshots": "npm run _helper render-screenshots",
     "setup-debug-main": "npm run _helper setup-debug-main",
