@@ -2,6 +2,7 @@
 import fs from 'fs'
 import mkdirp from 'mkdirp'
 import path from 'path'
+import util from 'util'
 import {forwardLogs} from '../local-debug'
 import {ipcMain, ipcRenderer} from 'electron'
 import {logFileName} from '../constants/platform.specific.desktop.js'
@@ -69,19 +70,38 @@ const localWarn: Log = console._warn || console.warn.bind(console)
 // $FlowIssue
 const localError: Log = console._error || console.error.bind(console)
 
+function tee (...writeFns) {
+  return t => writeFns.forEach(w => w(t))
+}
+
 function setupTarget () {
   if (!forwardLogs) {
     return
   }
 
   const stdOutWriter = t => { (process.platform !== 'win32') && process.stdout.write(t) }
+  const stdErrWriter = t => { (process.platform !== 'win32') && process.stderr.write(t) }
   const logFileWriter = t => { fileWritable && fileWritable.write(t) }
 
-  ['log', 'warn', 'error'].forEach(key => {
+  const output = {
+    error: tee(stdErrWriter, logFileWriter),
+    log: tee(stdOutWriter, logFileWriter),
+    warn: tee(stdOutWriter, logFileWriter),
+  }
+
+  const keys = ['log', 'warn', 'error']
+  keys.forEach(key => {
+    const override = (...args) => {
+      if (args.length) {
+        output[key](`${key}: ${Date()} (${Date.now()}): ${util.format.apply(util, args)}\n`)
+      }
+    }
+
+    console[key] = override
     ipcMain.on(`console.${key}`, (event, args) => {
-      const toLog = `From ${event.sender.getTitle()}: ${args}`
-      stdOutWriter(toLog)
-      logFileWriter(toLog)
+      const prologue = `From ${event.sender.getTitle()}: `
+      output[key](prologue)
+      override(...args)
     })
   })
 }
