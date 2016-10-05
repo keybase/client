@@ -6,7 +6,7 @@ import {take} from 'redux-saga/effects'
 
 export function createChannelMap<T> (channelConfig: ChannelConfig<T>): ChannelMap<T> {
   return mapValues(channelConfig, v => {
-    return channel(v)
+    return channel(v())
   })
 }
 
@@ -35,7 +35,7 @@ export function closeChannelMap<T> (channelMap: ChannelMap<T>): void {
 
 export function singleFixedChannelConfig<T> (ks: Array<string>): ChannelConfig<T> {
   return ks.reduce((acc, k) => {
-    acc[k] = buffers.fixed(1)
+    acc[k] = () => buffers.fixed(1)
     return acc
   }, {})
 }
