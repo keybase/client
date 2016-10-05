@@ -464,10 +464,7 @@ func (j *mdJournal) convertToBranch(
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
 
-		// Delete the old "merged" version from the cache.  We aren't
-		// equipped here to cache the new version, but it will
-		// eventually get passed via an mdFlushListener to somewhere
-		// that will cache it.
+		// Delete the old "merged" version from the cache.
 		mdcache.Delete(tlfID, ibrmd.RevisionNumber(), NullBranchID)
 
 		// Re-sign the writer metadata.

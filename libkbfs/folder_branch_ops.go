@@ -4824,8 +4824,7 @@ func (fbo *folderBranchOps) onTLFBranchChange(newBID BranchID) {
 
 func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 	rev MetadataRevision) {
-	fbo.log.CDebugf(ctx, "Considering archiving references for flushed MD "+
-		"revision %d", rmd.Revision())
+	fbo.log.CDebugf(ctx, "Considering archiving references for flushed MD revision %d", rev)
 
 	lState := makeFBOLockState()
 	func() {
@@ -4858,56 +4857,7 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 	fbo.fbm.archiveUnrefBlocks(rmd.ReadOnly())
 }
 
-func (fbo *folderBranchOps) convertBareMDAndCache(ctx context.Context,
-	ibrmd ImmutableBareRootMetadata) (ImmutableRootMetadata, error) {
-	// First check the mdcache.
-	mdcache := fbo.config.MDCache()
-	irmd, err := mdcache.Get(fbo.id(), ibrmd.RevisionNumber(), ibrmd.BID())
-	if err == nil {
-		return irmd, nil
-	}
-
-	// If it's not there already, convert it.
-	bareHandle, err := ibrmd.MakeBareTlfHandle(nil)
-	if err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-
-	handle, err := MakeTlfHandle(ctx, bareHandle, fbo.config.KBPKI())
-	if err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-
-	brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
-	if !ok {
-		return ImmutableRootMetadata{}, MutableBareRootMetadataNoImplError{}
-	}
-
-	extra, err := getExtraMD(ctx, brmd, fbo.config.MDServer())
-	if err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-
-	rmd := RootMetadata{
-		bareMd:    brmd,
-		tlfHandle: handle,
-		extra:     extra,
-	}
-
-	err = decryptMDPrivateData(ctx, fbo.config, &rmd, rmd.ReadOnly())
-	if err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-
-	irmd = MakeImmutableRootMetadata(&rmd, ibrmd.mdID, ibrmd.localTimestamp)
-	if err := mdcache.Put(irmd); err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-
-	return irmd, nil
-}
-
-func (fbo *folderBranchOps) onMDFlush(ibrmd ImmutableBareRootMetadata) {
+func (fbo *folderBranchOps) onMDFlush(bid BranchID, rev MetadataRevision) {
 	fbo.mdFlushes.Add(1)
 
 	go func() {
@@ -4915,21 +4865,13 @@ func (fbo *folderBranchOps) onMDFlush(ibrmd ImmutableBareRootMetadata) {
 		ctx, cancelFunc := fbo.newCtxWithFBOID()
 		defer cancelFunc()
 
-		// We should convert and cache, even for unmerged revisions,
-		// because they likely aren't in the cache yet.
-		irmd, err := fbo.convertBareMDAndCache(ctx, ibrmd)
-		if err != nil {
-			fbo.log.CDebugf(ctx, "Couldn't convert bare MD: %v", err)
-			return
-		}
-
-		if irmd.BID() != NullBranchID {
+		if bid != NullBranchID {
 			fbo.log.CDebugf(ctx, "Ignoring MD flush on branch %v for "+
-				"revision %d", ibrmd.BID(), ibrmd.RevisionNumber())
+				"revision %d", bid, rev)
 			return
 		}
 
-		fbo.handleMDFlush(ctx, irmd)
+		fbo.handleMDFlush(ctx, bid, rev)
 	}()
 }
 

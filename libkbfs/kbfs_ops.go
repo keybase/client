@@ -652,8 +652,8 @@ func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID TlfID, newBID BranchID) {
 	ops.onTLFBranchChange(newBID) // folderBranchOps makes a goroutine
 }
 
-func (fs *KBFSOpsStandard) onMDFlush(tlfID TlfID,
-	ibrmd ImmutableBareRootMetadata) {
+func (fs *KBFSOpsStandard) onMDFlush(tlfID TlfID, bid BranchID,
+	rev MetadataRevision) {
 	ops := fs.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch})
-	ops.onMDFlush(ibrmd) // folderBranchOps makes a goroutine
+	ops.onMDFlush(bid, rev) // folderBranchOps makes a goroutine
 }

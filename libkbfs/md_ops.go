@@ -223,7 +223,7 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 		return id, ImmutableRootMetadata{}, nil
 	}
 
-	extra, err := getExtraMD(ctx, rmds.MD, md.config.MDServer())
+	extra, err := md.getExtraMD(ctx, rmds.MD)
 	if err != nil {
 		return TlfID{}, ImmutableRootMetadata{}, err
 	}
@@ -290,7 +290,7 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID,
 		// Possible if mStatus is Unmerged
 		return ImmutableRootMetadata{}, nil
 	}
-	extra, err := getExtraMD(ctx, rmds.MD, md.config.MDServer())
+	extra, err := md.getExtraMD(ctx, rmds.MD)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -345,7 +345,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 	worker := func() {
 		defer wg.Done()
 		for rmds := range rmdsChan {
-			extra, err := getExtraMD(ctx, rmds.MD, md.config.MDServer())
+			extra, err := md.getExtraMD(ctx, rmds.MD)
 			if err != nil {
 				select {
 				case errChan <- err:
@@ -558,4 +558,20 @@ func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
 	BareTlfHandle, error) {
 	// TODO: Verify this mapping using a Merkle tree.
 	return md.config.MDServer().GetLatestHandleForTLF(ctx, id)
+}
+
+// MDv3 TODO: cache extra metadata
+func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) (
+	ExtraMetadata, error) {
+	wkbID, rkbID := brmd.GetTLFWriterKeyBundleID(), brmd.GetTLFReaderKeyBundleID()
+	if (wkbID == TLFWriterKeyBundleID{}) || (rkbID == TLFReaderKeyBundleID{}) {
+		// pre-v3 metadata embed key bundles and as such won't set any IDs
+		return nil, nil
+	}
+	mdserv := md.config.MDServer()
+	wkb, rkb, err := mdserv.GetKeyBundles(ctx, wkbID, rkbID)
+	if err != nil {
+		return nil, err
+	}
+	return &ExtraMetadataV3{wkb: wkb, rkb: rkb}, nil
 }

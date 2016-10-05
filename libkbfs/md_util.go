@@ -461,18 +461,3 @@ func decryptMDPrivateData(ctx context.Context, config Config,
 
 	return nil
 }
-
-// MDv3 TODO: cache extra metadata
-func getExtraMD(ctx context.Context, brmd BareRootMetadata, mdserv MDServer) (
-	ExtraMetadata, error) {
-	wkbID, rkbID := brmd.GetTLFWriterKeyBundleID(), brmd.GetTLFReaderKeyBundleID()
-	if (wkbID == TLFWriterKeyBundleID{}) || (rkbID == TLFReaderKeyBundleID{}) {
-		// pre-v3 metadata embed key bundles and as such won't set any IDs
-		return nil, nil
-	}
-	wkb, rkb, err := mdserv.GetKeyBundles(ctx, wkbID, rkbID)
-	if err != nil {
-		return nil, err
-	}
-	return &ExtraMetadataV3{wkb: wkb, rkb: rkb}, nil
-}
