@@ -1,0 +1,12 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  summary: ?string,
+  details: ?string,
+  onDismiss: () => void,
+  setTimeout: (cb: () => void, delay: number) => any,
+  clearTimeout: (id: any) => void,
+}
+
+export default class GlobalError extends Component<void, Props, void> {}

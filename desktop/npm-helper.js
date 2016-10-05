@@ -102,6 +102,25 @@ const commands = {
     shell: 'webpack --config webpack.config.production.js --progress --profile --colors',
     help: 'Make a production build of the js code',
   },
+  'build-main-thread': {
+    env: {HOT: 'true'},
+    nodeEnv: 'development',
+    nodePathDesktop: true,
+    shell: 'webpack --config webpack.config.main-thread-only.js --progress --profile --colors',
+    help: 'Bundle the code that the main node thread uses',
+  },
+  'build-wpdll': {
+    nodeEnv: 'development',
+    nodePathDesktop: true,
+    shell: 'webpack --config webpack.config.dll-build.js --progress',
+    help: 'Make a production build of the js code',
+  },
+  'build-profile': {
+    nodeEnv: 'development',
+    nodePathDesktop: true,
+    shell: 'webpack --config webpack.config.development.js --progress --profile --json > /tmp/stats.json',
+    help: 'Make a production build of the js code',
+  },
   'package': {
     nodeEnv: 'production',
     nodePathDesktop: true,
@@ -109,7 +128,7 @@ const commands = {
     help: 'Package up the production js code',
   },
   'hot-server': {
-    env: {HOT: 'true'},
+    env: {HOT: 'true', USING_DLL: 'true'},
     nodeEnv: 'development',
     nodePathDesktop: true,
     shell: 'webpack-dashboard -- node server.js',
@@ -139,6 +158,15 @@ const commands = {
     nodePathDesktop: true,
     shell: 'webpack --config webpack.config.visdiff.js && electron ./dist/render-visdiff.bundle.js',
     help: 'Render images of dumb components',
+  },
+  'local-visdiff': {
+    env: {
+      VISDIFF_DRY_RUN: 1,
+      KEYBASE_JS_VENDOR_DIR: process.env['KEYBASE_JS_VENDOR_DIR'] || path.resolve('../../js-vendor-desktop'),
+    },
+    nodePathDesktop: true,
+    shell: 'npm install ../visdiff && keybase-visdiff',
+    help: 'Perform a local visdiff',
   },
   'updated-fonts': {
     help: 'Update our font sizes automatically',

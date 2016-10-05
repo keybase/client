@@ -12,7 +12,11 @@
     "build-dev": "babel-node --presets es2015,stage-2 npm-helper.js build-dev",
     "build-prod": "babel-node --presets es2015,stage-2 npm-helper.js build-prod",
     "package": "babel-node --presets es2015,stage-2 npm-helper.js package",
-    "hot-server": "babel-node --presets es2015,stage-2 npm-helper.js hot-server",
+    "hot-server": "npm run build-main-thread && npm run build-wpdll && npm run hot-server-only",
+    "hot-server-only": "babel-node --presets es2015,stage-2 npm-helper.js hot-server",
+    "build-wpdll": "babel-node --presets es2015,stage-2 npm-helper.js build-wpdll",
+    "build-main-thread": "babel-node --presets es2015,stage-2 npm-helper.js build-main-thread",
+    "build-profile": "babel-node --presets es2015,stage-2 npm-helper.js build-profile",
     "inject-sourcemaps-prod": "babel-node --presets es2015,stage-2 npm-helper.js inject-sourcemaps-prod",
     "inject-code-prod": "babel-node --presets es2015,stage-2 npm-helper.js inject-code-prod",
     "start-prod": "babel-node --presets es2015,stage-2 npm-helper.js start-prod",
@@ -21,6 +25,7 @@
     "setup-debug-main": "babel-node --presets es2015,stage-2 npm-helper.js setup-debug-main",
     "postinstall": "babel-node --presets es2015,stage-2 npm-helper.js postinstall",
     "render-screenshots": "babel-node --presets es2015,stage-2 npm-helper.js render-screenshots",
+    "local-visdiff": "babel-node --presets es2015,stage-2 npm-helper.js local-visdiff",
     "updated-fonts": "babel-node --presets es2015,stage-2 npm-helper.js updated-fonts",
     "wrap": "npm uninstall fsevents && npm prune && npm dedupe && npm shrinkwrap --dev",
     "shrinkwrap-audit": "babel-node --presets es2015,stage-2 npm-shrinkwrap-audit",
@@ -55,7 +60,7 @@
     "react-redux": "4.4.5",
     "react-tap-event-plugin": "1.0.0",
     "redux": "3.6.0",
-    "redux-saga": "0.11.1",
+    "redux-saga": "0.12.0",
     "redux-thunk": "2.1.0",
     "semver": "5.3.0"
   },
@@ -117,5 +122,5 @@
   "optionalDependencies": {
     "fsevents": "1.0.14"
   },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#26779f494d5fd15b80fdc83bc5a1d6da46911e05"
+  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#1433fccec7ee6e8d657208f98d02adec79210244"
 }
