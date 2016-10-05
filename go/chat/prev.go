@@ -1,8 +1,7 @@
 package chat
 
 import (
-	"fmt"
-
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -14,7 +13,7 @@ import (
 // 3. All prev pointers to a message agree on that message's header hash.
 // 4. For all messages we have locally, the hashes pointing to them are actually correct.
 // TODO: All of this should happen in the cache instead of here all at once.
-func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessagePreviousPointer, error) {
+func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessagePreviousPointer, *libkb.ChatThreadConsistencyError) {
 	// Filter out the messages that gave unboxing errors, and index the rest by
 	// ID. Enforce that there are no duplicate IDs.
 	// TODO: What should we really be doing with unboxing errors? Do we worry
@@ -30,7 +29,10 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 			// sequentially by the server, so this should really never happen.
 			_, alreadyExists := knownMessages[id]
 			if alreadyExists {
-				return nil, fmt.Errorf("MessageID %d is duplicated", id)
+				return nil, libkb.NewChatThreadConsistencyError(
+					libkb.DuplicateID,
+					"MessageID %d is duplicated",
+					id)
 			}
 
 			knownMessages[id] = msg
@@ -50,7 +52,11 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 		for _, prev := range plaintext.ClientHeader.Prev {
 			// Check that the prev's ID doesn't come after us. That would make no sense.
 			if prev.Id > id {
-				return nil, fmt.Errorf("MessageID %d thinks that message %d is previous.", id, prev.Id)
+				return nil, libkb.NewChatThreadConsistencyError(
+					libkb.OutOfOrderID,
+					"MessageID %d thinks that message %d is previous.",
+					id,
+					prev.Id)
 			}
 
 			// If this message has been referred to before, check that it's
@@ -59,7 +65,9 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 			if seenHash != nil {
 				// We have seen it before! It's an error if it's different now.
 				if !seenHash.Eq(prev.Hash) {
-					return nil, fmt.Errorf("MessageID %d has an inconsistent hash for ID %d (%s and %s)",
+					return nil, libkb.NewChatThreadConsistencyError(
+						libkb.InconsistentHash,
+						"MessageID %d has an inconsistent hash for ID %d (%s and %s)",
 						id, prev.Id, prev.Hash.String(), seenHash.String())
 				}
 			} else {
@@ -71,7 +79,9 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 				// time; we're not taking anyone's word for it.)
 				prevMessage, weHaveIt := knownMessages[prev.Id]
 				if weHaveIt && !prevMessage.HeaderHash.Eq(prev.Hash) {
-					return nil, fmt.Errorf("Message ID %d thinks message ID %d should have hash %s, but it has %s.",
+					return nil, libkb.NewChatThreadConsistencyError(
+						libkb.IncorrectHash,
+						"Message ID %d thinks message ID %d should have hash %s, but it has %s.",
 						id, prev.Id, prev.Hash.String(), prevMessage.HeaderHash.String())
 				}
 				// Also remove this message from the set of "never been pointed
