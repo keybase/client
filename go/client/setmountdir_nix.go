@@ -5,6 +5,31 @@
 
 package client
 
-func (c *CmdWatchdog2) probeForAvailalbleMountDir() error {
+import (
+	"github.com/keybase/go-updater/watchdog"
+)
+
+func (c *CmdWatchdog2) probeForAvailableMountDir() error {
 	return nil
+}
+
+func getkbfsProgram(G *GlobalContext, kbfsPath string) watchdog.Program, err {
+
+	mountDir, err := G.env.GetMountDir()
+	if err != nil {
+		return nil, err
+	}
+	
+	return watchdog.ProgramNormal{
+		Path: kbfsPath,
+		Args: []string{
+			"-debug",
+			"-log-to-file",
+			mountDir,
+		},
+		ExitOn: watchdog.ExitOnSuccess,
+	}, nil
+}
+
+func doMountDirChange(oldDir string) {	
 }

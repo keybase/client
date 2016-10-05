@@ -7,11 +7,15 @@ package client
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"syscall"
 	"unsafe"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-updater/watchdog"
 	"golang.org/x/net/context"
 )
 
@@ -82,16 +86,66 @@ func getDriveLetter(log logger.Logger) (string, error) {
 // This makes a guess about what letter to use, starting at K,
 // and saving it in the settings.
 // Assume the caller has tested whether "mountdir" is set
-func (c *CmdWatchdog2) probeForAvailalbleMountDir() error {
-	drive, err := getDriveLetter(c.G().Log)
+func probeForAvailableMountDir(G *libkb.GlobalContext) error {
+	drive, err := getDriveLetter(G.Log)
 	if err != nil {
 		return err
 	}
-	cli, err := GetConfigClient(c.G())
+	cli, err := GetConfigClient(G)
 	if err != nil {
 		return err
 	}
 	V := keybase1.ConfigValue{IsNull: false, S: &drive}
 	err = cli.SetValue(context.TODO(), keybase1.SetValueArg{Path: "mountdir", Value: V})
 	return err
+}
+
+// Program is a program at path with arguments
+type KBFSProgram struct {
+	libkb.Contextified
+	Path     string
+	mountDir string
+}
+
+func (p KBFSProgram) GetPath() string {
+	return p.Path
+}
+
+func (p *KBFSProgram) GetArgs() []string {
+	var err error
+	p.mountDir, err = p.G().Env.GetMountDir()
+	if err != nil || p.mountDir == "" {
+		// for Windows
+		probeForAvailableMountDir(p.G())
+		p.mountDir, err = p.G().Env.GetMountDir()
+	}
+
+	return []string{
+		"-debug",
+		"-log-to-file",
+		p.mountDir,
+	}
+}
+
+func (p KBFSProgram) GetExitOn() watchdog.ExitOn {
+	return watchdog.ExitOnSuccess
+}
+
+func (p KBFSProgram) DoStop(ospid int, log watchdog.Log) {
+	// open special "file". Errors not relevant.
+	log.Debugf("KillKBFS: opening .kbfs_unmount")
+	os.Open(filepath.Join(p.mountDir, ".kbfs_unmount"))
+}
+
+func GetkbfsProgram(G *libkb.GlobalContext, kbfsPath string) (watchdog.Program, error) {
+
+	return &KBFSProgram{
+		Contextified: libkb.NewContextified(G),
+		Path:         kbfsPath,
+	}, nil
+}
+
+func doMountDirChange(oldDir string) {
+	// open special "file". Errors not relevant.
+	os.Open(filepath.Join(oldDir, ".kbfs_unmount"))
 }
