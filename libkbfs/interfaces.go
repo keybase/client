@@ -578,6 +578,10 @@ type MDCache interface {
 	Put(md ImmutableRootMetadata) error
 	// Delete removes the given metadata object from the cache if it exists.
 	Delete(tlf TlfID, rev MetadataRevision, bid BranchID)
+	// Replace replaces the entry matching the md under the old branch
+	// ID with the new one.  If the old entry doesn't exist, this is
+	// equivalent to a Put.
+	Replace(newRmd ImmutableRootMetadata, oldBID BranchID) error
 }
 
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.
