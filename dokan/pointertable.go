@@ -93,8 +93,8 @@ func fiTableStoreFile(global uint32, fi File) uint32 {
 
 func fiTableGetFile(file uint32) File {
 	fiTableLock.Lock()
-	defer fiTableLock.Unlock()
 	var fi = fiTable[file]
+	fiTableLock.Unlock()
 	debug("FID get", file, fi)
 	return fi
 }

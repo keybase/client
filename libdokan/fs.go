@@ -334,6 +334,11 @@ func windowsPathSplit(raw string) ([]string, error) {
 	return strings.Split(raw[1:], `\`), nil
 }
 
+// ErrorPrint prints errors from the Dokan library.
+func (f *FS) ErrorPrint(err error) {
+	f.log.Errorf("Dokan error: %v", err)
+}
+
 // MoveFile tries to move a file.
 func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
 	// User checking is handled by the opening of the source file
