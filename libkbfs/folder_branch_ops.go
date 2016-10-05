@@ -548,9 +548,21 @@ func (fbo *folderBranchOps) setHeadLocked(
 		// revision is enough to trigger conflict resolution.
 		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
 	} else if md.MergedStatus() == Merged {
-		// If we are already merged through this write, the revision would be the
-		// latestMergedRevision on server.
-		fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision(), false)
+		journalEnabled := TLFJournalEnabled(fbo.config, fbo.id())
+		var key kbfscrypto.VerifyingKey
+		if journalEnabled {
+			key, err = fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		// If this is a merged revision, it should be the latest one
+		// we know about.  However, if journaling is enabled, and this
+		// MD was written by this device, it may not be merged yet, so
+		// let onMDFlush take care of setting it in that case.
+		if !journalEnabled || key.KID() != md.LastModifyingWriterKID() {
+			fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision(), false)
+		}
 	}
 
 	// Make sure that any unembedded block changes have been swapped
@@ -3828,6 +3840,9 @@ func (fbo *folderBranchOps) getLatestMergedRevision(lState *lockState) MetadataR
 // caller should have held fbo.headLock
 func (fbo *folderBranchOps) setLatestMergedRevisionLocked(ctx context.Context, lState *lockState, rev MetadataRevision, allowBackward bool) {
 	fbo.headLock.AssertLocked(lState)
+	if rev == MetadataRevisionUninitialized {
+		panic("Cannot set latest merged revision to an uninitialized value")
+	}
 
 	if fbo.latestMergedRevision < rev || allowBackward {
 		fbo.latestMergedRevision = rev
@@ -4780,12 +4795,6 @@ func (fbo *folderBranchOps) handleTLFBranchChange(ctx context.Context,
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	// We don't currently know the latest merged revision, because we
-	// may have been journaled for a while.  We will know it once we
-	// get the latest merged update or when conflict resolution
-	// completes.
-	fbo.setLatestMergedRevisionLocked(ctx, lState,
-		MetadataRevisionUninitialized, true)
 	err = fbo.setHeadSuccessorLocked(ctx, lState, md, true /*rebased*/)
 	if err != nil {
 		fbo.log.CWarningf(ctx,
@@ -4817,6 +4826,13 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 	rev MetadataRevision) {
 	fbo.log.CDebugf(ctx, "Considering archiving references for flushed MD revision %d", rev)
 
+	lState := makeFBOLockState()
+	func() {
+		fbo.headLock.Lock(lState)
+		defer fbo.headLock.Unlock(lState)
+		fbo.setLatestMergedRevisionLocked(ctx, lState, rev, false)
+	}()
+
 	// Get that revision.
 	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
 		rev, Merged)
@@ -4835,7 +4851,6 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 	// We must take the lock so that other users, like exclusive file
 	// creation, can wait for the journal to flush while holding the
 	// lock, and be guaranteed it will stay flushed.
-	lState := makeFBOLockState()
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 
