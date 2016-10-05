@@ -210,6 +210,15 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 		return chat1.GetThreadLocalRes{}, err
 	}
 
+	// Sanity check the prev pointers in this thread.
+	// TODO: We'll do this against what's in the cache once that's ready,
+	//       rather than only checking the messages we just fetched against
+	//       each other.
+	_, err = chat.CheckPrevPointersAndGetUnpreved(&thread)
+	if err != nil {
+		return chat1.GetThreadLocalRes{}, err
+	}
+
 	return chat1.GetThreadLocalRes{
 		Thread:     thread,
 		RateLimits: h.aggRateLimitsP([]*chat1.RateLimit{boxed.RateLimit}),

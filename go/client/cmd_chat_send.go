@@ -12,6 +12,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -148,79 +149,7 @@ func getPrevPointers(client chat1.LocalClient, convID chat1.ConversationID) ([]c
 		return nil, err
 	}
 
-	// Filter out the messages that gave unboxing errors, and index the rest by
-	// ID. Enforce that there are no duplicate IDs.
-	// TODO: What should we really be doing with unboxing errors? Do we worry
-	//       about an evil server causing them intentionally?
-	knownMessages := make(map[chat1.MessageID]chat1.MessageFromServer)
-	for _, messageOrError := range res.Thread.Messages {
-		if messageOrError.Message != nil {
-			msg := *messageOrError.Message
-			id := msg.ServerHeader.MessageID
-
-			// Check for IDs that show up more than once. IDs are assigned
-			// sequentially by the server, so this should really never happen.
-			_, alreadyExists := knownMessages[id]
-			if alreadyExists {
-				return nil, fmt.Errorf("MessageID %d is duplicated in conversation %d", id, convID)
-			}
-
-			knownMessages[id] = msg
-		}
-	}
-
-	// Using the index we built above, check each prev pointer on each message
-	// to make sure its hash is correct, and assemble the set of IDs that have
-	// ever been pointed to. (Some prev pointers might refer to IDs we've never
-	// seen. That's ok.) While we're at it, also enforce that each prev's ID is
-	// less than the ID of the message that's pointing to it.
-	seenPrevs := make(map[chat1.MessageID]struct{})
-	for id, msg := range knownMessages {
-		plaintext := msg.MessagePlaintext.V1()
-		for _, prev := range plaintext.ClientHeader.Prev {
-			// Check that the prev's ID doesn't come after us. That would make no sense.
-			if prev.Id > id {
-				return nil, fmt.Errorf("MessageID %d thinks that message %d is previous.", id, prev.Id)
-			}
-
-			// We might not have seen this ID before. (Unlikely while we're
-			// fetching up to 10k messages from the server, but more likely in
-			// the future when we're working from cache.) That's fine.
-			// TODO: Even if we can't confirm Message X's hash, should we
-			//       enforce that everyone agrees on what we *expect* it to be?
-			seenMsg, seen := knownMessages[prev.Id]
-			if !seen {
-				continue
-			}
-
-			// Check the hash in the prev pointer against the real hash of the
-			// message. Note that HeaderHash is computed *locally* at unbox
-			// time; we're not taking anyone's word for it.
-			if !seenMsg.HeaderHash.Eq(prev.Hash) {
-				return nil, fmt.Errorf("Message ID %d thinks message ID %d should have hash %s, but it has %s.",
-					id, prev.Id, prev.Hash.String(), seenMsg.HeaderHash.String())
-			}
-
-			// Make a note that we've seen this pointer.
-			seenPrevs[prev.Id] = struct{}{}
-		}
-	}
-
-	// Finally, figure out the list of IDs that we know about but which did
-	// *not* show up in anyone's prev pointers. This will be the prev set of
-	// our new message.
-	newPrevs := []chat1.MessagePreviousPointer{}
-	for id, msg := range knownMessages {
-		_, pointedToBefore := seenPrevs[id]
-		if !pointedToBefore {
-			newPrevs = append(newPrevs, chat1.MessagePreviousPointer{
-				Id:   id,
-				Hash: msg.HeaderHash, // Again, we computed this hash ourselves.
-			})
-		}
-	}
-
-	return newPrevs, nil
+	return chat.CheckPrevPointersAndGetUnpreved(&res.Thread)
 }
 
 func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
