@@ -639,7 +639,7 @@ func execNativeInstallerWithArg(arg string, runMode libkb.RunMode, log Log) erro
 
 // AutoInstallWithStatus runs the auto install and returns a result
 func AutoInstallWithStatus(context Context, binPath string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
-	_, res, err := autoInstall(context, binPath, force, log)
+	_, res, err := autoInstall(context, binPath, force, timeout, log)
 	if err != nil {
 		return keybase1.InstallResult{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
 	}
@@ -647,16 +647,16 @@ func AutoInstallWithStatus(context Context, binPath string, force bool, timeout 
 }
 
 // AutoInstall runs the auto install
-func AutoInstall(context Context, binPath string, force bool, log Log) (newProc bool, err error) {
+func AutoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (newProc bool, err error) {
 	if context.GetRunMode() != libkb.ProductionRunMode {
 		return false, fmt.Errorf("Auto install is only supported in production")
 	}
 
-	newProc, _, err = autoInstall(context, binPath, force, log)
+	newProc, _, err = autoInstall(context, binPath, force, timeout, log)
 	return
 }
 
-func autoInstall(context Context, binPath string, force bool, log Log) (newProc bool, componentResults []keybase1.ComponentResult, err error) {
+func autoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (newProc bool, componentResults []keybase1.ComponentResult, err error) {
 	log.Debug("+ AutoInstall for launchd")
 	defer func() {
 		log.Debug("- AutoInstall -> %v, %v", newProc, err)
@@ -684,7 +684,7 @@ func autoInstall(context Context, binPath string, force bool, log Log) (newProc 
 		return
 	}
 
-	err = InstallService(context, binPath, true, defaultLaunchdWait, log)
+	err = InstallService(context, binPath, true, timeout, log)
 	componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 	if err != nil {
 		return
