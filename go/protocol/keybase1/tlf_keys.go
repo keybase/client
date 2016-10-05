@@ -8,38 +8,64 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type TLFIdentifyBehavior int
+
+const (
+	TLFIdentifyBehavior_DEFAULT_KBFS TLFIdentifyBehavior = 1
+	TLFIdentifyBehavior_CHAT         TLFIdentifyBehavior = 2
+)
+
+var TLFIdentifyBehaviorMap = map[string]TLFIdentifyBehavior{
+	"DEFAULT_KBFS": 1,
+	"CHAT":         2,
+}
+
+var TLFIdentifyBehaviorRevMap = map[TLFIdentifyBehavior]string{
+	1: "DEFAULT_KBFS",
+	2: "CHAT",
+}
+
 type CanonicalTlfName string
 type CryptKey struct {
 	KeyGeneration int     `codec:"KeyGeneration" json:"KeyGeneration"`
 	Key           Bytes32 `codec:"Key" json:"Key"`
 }
 
-type TLFCryptKeys struct {
+type TLFBreak struct {
+	Username string              `codec:"username" json:"username"`
+	Breaks   IdentifyTrackBreaks `codec:"breaks" json:"breaks"`
+}
+
+type GetTLFCryptKeysRes struct {
 	TlfID         TLFID            `codec:"tlfID" json:"tlfID"`
 	CanonicalName CanonicalTlfName `codec:"CanonicalName" json:"CanonicalName"`
 	CryptKeys     []CryptKey       `codec:"CryptKeys" json:"CryptKeys"`
+	Breaks        []TLFBreak       `codec:"breaks" json:"breaks"`
 }
 
-type CanonicalTLFNameAndID struct {
+type CanonicalTLFNameAndIDWithBreaks struct {
 	TlfID         TLFID            `codec:"tlfID" json:"tlfID"`
 	CanonicalName CanonicalTlfName `codec:"CanonicalName" json:"CanonicalName"`
+	Breaks        []TLFBreak       `codec:"breaks" json:"breaks"`
 }
 
 type GetTLFCryptKeysArg struct {
-	TlfName string `codec:"tlfName" json:"tlfName"`
+	TlfName          string              `codec:"tlfName" json:"tlfName"`
+	IdentifyBehavior TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type GetPublicCanonicalTLFNameAndIDArg struct {
-	TlfName string `codec:"tlfName" json:"tlfName"`
+	TlfName          string              `codec:"tlfName" json:"tlfName"`
+	IdentifyBehavior TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type TlfKeysInterface interface {
 	// getTLFCryptKeys returns TLF crypt keys from all generations and the TLF ID.
 	// TLF ID should not be cached or stored persistently.
-	GetTLFCryptKeys(context.Context, string) (TLFCryptKeys, error)
+	GetTLFCryptKeys(context.Context, GetTLFCryptKeysArg) (GetTLFCryptKeysRes, error)
 	// getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.
 	// TLF ID should not be cached or stored persistently.
-	GetPublicCanonicalTLFNameAndID(context.Context, string) (CanonicalTLFNameAndID, error)
+	GetPublicCanonicalTLFNameAndID(context.Context, GetPublicCanonicalTLFNameAndIDArg) (CanonicalTLFNameAndIDWithBreaks, error)
 }
 
 func TlfKeysProtocol(i TlfKeysInterface) rpc.Protocol {
@@ -57,7 +83,7 @@ func TlfKeysProtocol(i TlfKeysInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetTLFCryptKeysArg)(nil), args)
 						return
 					}
-					ret, err = i.GetTLFCryptKeys(ctx, (*typedArgs)[0].TlfName)
+					ret, err = i.GetTLFCryptKeys(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -73,7 +99,7 @@ func TlfKeysProtocol(i TlfKeysInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetPublicCanonicalTLFNameAndIDArg)(nil), args)
 						return
 					}
-					ret, err = i.GetPublicCanonicalTLFNameAndID(ctx, (*typedArgs)[0].TlfName)
+					ret, err = i.GetPublicCanonicalTLFNameAndID(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -88,16 +114,14 @@ type TlfKeysClient struct {
 
 // getTLFCryptKeys returns TLF crypt keys from all generations and the TLF ID.
 // TLF ID should not be cached or stored persistently.
-func (c TlfKeysClient) GetTLFCryptKeys(ctx context.Context, tlfName string) (res TLFCryptKeys, err error) {
-	__arg := GetTLFCryptKeysArg{TlfName: tlfName}
+func (c TlfKeysClient) GetTLFCryptKeys(ctx context.Context, __arg GetTLFCryptKeysArg) (res GetTLFCryptKeysRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getTLFCryptKeys", []interface{}{__arg}, &res)
 	return
 }
 
 // getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.
 // TLF ID should not be cached or stored persistently.
-func (c TlfKeysClient) GetPublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res CanonicalTLFNameAndID, err error) {
-	__arg := GetPublicCanonicalTLFNameAndIDArg{TlfName: tlfName}
+func (c TlfKeysClient) GetPublicCanonicalTLFNameAndID(ctx context.Context, __arg GetPublicCanonicalTLFNameAndIDArg) (res CanonicalTLFNameAndIDWithBreaks, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.tlfKeys.getPublicCanonicalTLFNameAndID", []interface{}{__arg}, &res)
 	return
 }

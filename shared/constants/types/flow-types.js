@@ -403,6 +403,11 @@ export const SaltpackUiSaltpackSenderType = {
   self: 5,
 }
 
+export const TlfKeysTLFIdentifyBehavior = {
+  defaultKbfs: 1,
+  chat: 2,
+}
+
 export const UiPromptDefault = {
   none: 0,
   yes: 1,
@@ -1815,9 +1820,10 @@ export type BoxPublicKey = any
 
 export type Bytes32 = any
 
-export type CanonicalTLFNameAndID = {
+export type CanonicalTLFNameAndIDWithBreaks = {
   tlfID: TLFID,
   CanonicalName: CanonicalTlfName,
+  breaks?: ?Array<TLFBreak>,
 }
 
 export type CanonicalTlfName = string
@@ -2182,6 +2188,13 @@ export type GetCurrentStatusRes = {
 export type GetPassphraseRes = {
   passphrase: string,
   storeSecret: boolean,
+}
+
+export type GetTLFCryptKeysRes = {
+  tlfID: TLFID,
+  CanonicalName: CanonicalTlfName,
+  CryptKeys?: ?Array<CryptKey>,
+  breaks?: ?Array<TLFBreak>,
 }
 
 export type Hello2Res = {
@@ -3024,13 +3037,16 @@ export type TLF = {
   isPrivate: boolean,
 }
 
-export type TLFCryptKeys = {
-  tlfID: TLFID,
-  CanonicalName: CanonicalTlfName,
-  CryptKeys?: ?Array<CryptKey>,
+export type TLFBreak = {
+  username: string,
+  breaks: IdentifyTrackBreaks,
 }
 
 export type TLFID = string
+
+export type TLFIdentifyBehavior = 
+    1 // DEFAULT_KBFS_1
+  | 2 // CHAT_2
 
 export type Test = {
   reply: string,
@@ -3945,23 +3961,28 @@ export type testTestRpcParam = Exact<{
 }>
 
 export type tlfCompleteAndCanonicalizeTlfNameRpcParam = Exact<{
-  tlfName: string
+  tlfName: string,
+  identifyBehavior: TLFIdentifyBehavior
 }>
 
 export type tlfCryptKeysRpcParam = Exact<{
-  tlfName: string
+  tlfName: string,
+  identifyBehavior: TLFIdentifyBehavior
 }>
 
 export type tlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = Exact<{
-  tlfName: string
+  tlfName: string,
+  identifyBehavior: TLFIdentifyBehavior
 }>
 
 export type tlfKeysGetTLFCryptKeysRpcParam = Exact<{
-  tlfName: string
+  tlfName: string,
+  identifyBehavior: TLFIdentifyBehavior
 }>
 
 export type tlfPublicCanonicalTLFNameAndIDRpcParam = Exact<{
-  tlfName: string
+  tlfName: string,
+  identifyBehavior: TLFIdentifyBehavior
 }>
 
 export type trackDismissWithTokenRpcParam = Exact<{
@@ -4230,15 +4251,15 @@ type testTestCallbackResult = string
 
 type testTestResult = Test
 
-type tlfCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
+type tlfCompleteAndCanonicalizeTlfNameResult = CanonicalTLFNameAndIDWithBreaks
 
-type tlfCryptKeysResult = TLFCryptKeys
+type tlfCryptKeysResult = GetTLFCryptKeysRes
 
-type tlfKeysGetPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndID
+type tlfKeysGetPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 
-type tlfKeysGetTLFCryptKeysResult = TLFCryptKeys
+type tlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 
-type tlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndID
+type tlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 
 type uiPromptYesNoResult = boolean
 

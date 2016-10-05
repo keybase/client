@@ -105,7 +105,10 @@ func (h *chatLocalHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []chat1
 }
 
 func (h *chatLocalHandler) cryptKeysWrapper(ctx context.Context, tlfName string) (tlfID chat1.TLFID, canonicalTlfName string, err error) {
-	resp, err := h.tlf.CryptKeys(ctx, tlfName)
+	resp, err := h.tlf.CryptKeys(ctx, keybase1.CryptKeysArg{
+		TlfName:          tlfName,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT,
+	})
 	if err != nil {
 		return nil, "", err
 	}

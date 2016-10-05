@@ -9,24 +9,27 @@ import (
 )
 
 type CryptKeysArg struct {
-	TlfName string `codec:"tlfName" json:"tlfName"`
+	TlfName          string              `codec:"tlfName" json:"tlfName"`
+	IdentifyBehavior TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type PublicCanonicalTLFNameAndIDArg struct {
-	TlfName string `codec:"tlfName" json:"tlfName"`
+	TlfName          string              `codec:"tlfName" json:"tlfName"`
+	IdentifyBehavior TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type CompleteAndCanonicalizeTlfNameArg struct {
-	TlfName string `codec:"tlfName" json:"tlfName"`
+	TlfName          string              `codec:"tlfName" json:"tlfName"`
+	IdentifyBehavior TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type TlfInterface interface {
 	// CryptKeys returns TLF crypt keys from all generations.
-	CryptKeys(context.Context, string) (TLFCryptKeys, error)
+	CryptKeys(context.Context, CryptKeysArg) (GetTLFCryptKeysRes, error)
 	// * tlfCanonicalID returns the canonical name and TLFID for tlfName.
 	// * TLFID should not be cached or stored persistently.
-	PublicCanonicalTLFNameAndID(context.Context, string) (CanonicalTLFNameAndID, error)
-	CompleteAndCanonicalizeTlfName(context.Context, string) (CanonicalTlfName, error)
+	PublicCanonicalTLFNameAndID(context.Context, PublicCanonicalTLFNameAndIDArg) (CanonicalTLFNameAndIDWithBreaks, error)
+	CompleteAndCanonicalizeTlfName(context.Context, CompleteAndCanonicalizeTlfNameArg) (CanonicalTLFNameAndIDWithBreaks, error)
 }
 
 func TlfProtocol(i TlfInterface) rpc.Protocol {
@@ -44,7 +47,7 @@ func TlfProtocol(i TlfInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]CryptKeysArg)(nil), args)
 						return
 					}
-					ret, err = i.CryptKeys(ctx, (*typedArgs)[0].TlfName)
+					ret, err = i.CryptKeys(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -60,7 +63,7 @@ func TlfProtocol(i TlfInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PublicCanonicalTLFNameAndIDArg)(nil), args)
 						return
 					}
-					ret, err = i.PublicCanonicalTLFNameAndID(ctx, (*typedArgs)[0].TlfName)
+					ret, err = i.PublicCanonicalTLFNameAndID(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -76,7 +79,7 @@ func TlfProtocol(i TlfInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]CompleteAndCanonicalizeTlfNameArg)(nil), args)
 						return
 					}
-					ret, err = i.CompleteAndCanonicalizeTlfName(ctx, (*typedArgs)[0].TlfName)
+					ret, err = i.CompleteAndCanonicalizeTlfName(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -90,22 +93,19 @@ type TlfClient struct {
 }
 
 // CryptKeys returns TLF crypt keys from all generations.
-func (c TlfClient) CryptKeys(ctx context.Context, tlfName string) (res TLFCryptKeys, err error) {
-	__arg := CryptKeysArg{TlfName: tlfName}
+func (c TlfClient) CryptKeys(ctx context.Context, __arg CryptKeysArg) (res GetTLFCryptKeysRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.tlf.CryptKeys", []interface{}{__arg}, &res)
 	return
 }
 
 // * tlfCanonicalID returns the canonical name and TLFID for tlfName.
 // * TLFID should not be cached or stored persistently.
-func (c TlfClient) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res CanonicalTLFNameAndID, err error) {
-	__arg := PublicCanonicalTLFNameAndIDArg{TlfName: tlfName}
+func (c TlfClient) PublicCanonicalTLFNameAndID(ctx context.Context, __arg PublicCanonicalTLFNameAndIDArg) (res CanonicalTLFNameAndIDWithBreaks, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.tlf.publicCanonicalTLFNameAndID", []interface{}{__arg}, &res)
 	return
 }
 
-func (c TlfClient) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res CanonicalTlfName, err error) {
-	__arg := CompleteAndCanonicalizeTlfNameArg{TlfName: tlfName}
+func (c TlfClient) CompleteAndCanonicalizeTlfName(ctx context.Context, __arg CompleteAndCanonicalizeTlfNameArg) (res CanonicalTLFNameAndIDWithBreaks, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.tlf.completeAndCanonicalizeTlfName", []interface{}{__arg}, &res)
 	return
 }

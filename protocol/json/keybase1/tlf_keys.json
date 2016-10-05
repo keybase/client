@@ -4,9 +4,21 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "identify.avdl",
+      "type": "idl"
     }
   ],
   "types": [
+    {
+      "type": "enum",
+      "name": "TLFIdentifyBehavior",
+      "symbols": [
+        "DEFAULT_KBFS_1",
+        "CHAT_2"
+      ]
+    },
     {
       "type": "record",
       "name": "CanonicalTlfName",
@@ -29,7 +41,21 @@
     },
     {
       "type": "record",
-      "name": "TLFCryptKeys",
+      "name": "TLFBreak",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "IdentifyTrackBreaks",
+          "name": "breaks"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetTLFCryptKeysRes",
       "fields": [
         {
           "type": "TLFID",
@@ -45,12 +71,19 @@
             "items": "CryptKey"
           },
           "name": "CryptKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TLFBreak"
+          },
+          "name": "breaks"
         }
       ]
     },
     {
       "type": "record",
-      "name": "CanonicalTLFNameAndID",
+      "name": "CanonicalTLFNameAndIDWithBreaks",
       "fields": [
         {
           "type": "TLFID",
@@ -59,6 +92,13 @@
         {
           "type": "CanonicalTlfName",
           "name": "CanonicalName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TLFBreak"
+          },
+          "name": "breaks"
         }
       ]
     }
@@ -69,9 +109,13 @@
         {
           "name": "tlfName",
           "type": "string"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "TLFIdentifyBehavior"
         }
       ],
-      "response": "TLFCryptKeys",
+      "response": "GetTLFCryptKeysRes",
       "doc": "getTLFCryptKeys returns TLF crypt keys from all generations and the TLF ID.\n   TLF ID should not be cached or stored persistently."
     },
     "getPublicCanonicalTLFNameAndID": {
@@ -79,9 +123,13 @@
         {
           "name": "tlfName",
           "type": "string"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "TLFIdentifyBehavior"
         }
       ],
-      "response": "CanonicalTLFNameAndID",
+      "response": "CanonicalTLFNameAndIDWithBreaks",
       "doc": "getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.\n   TLF ID should not be cached or stored persistently."
     }
   },
