@@ -36,10 +36,6 @@ func testDeviceAdd(t *testing.T, v1Only bool) {
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
-	var secretX kex2.Secret
-	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
-	}
 
 	var secretY kex2.Secret
 	if _, err := rand.Read(secretY[:]); err != nil {
@@ -115,10 +111,6 @@ func TestDeviceAddPhrase(t *testing.T) {
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
-	var secretX kex2.Secret
-	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
-	}
 
 	secretY, err := libkb.NewKex2Secret()
 	if err != nil {
