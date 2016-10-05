@@ -27,6 +27,7 @@ declare module 'redux' { declare var exports: any; }
 declare module 'redux-devtools' { declare var exports: any; }
 declare module 'redux-saga' { declare var exports: any; }
 declare module 'redux-saga/effects' { declare var exports: any; }
+declare module './dll/vendor-manifest.json' { declare var exports: any; }
 
 declare module 'invariant' { declare var exports: (callback: any) => any; }
 declare module 'react-addons-perf' {
