@@ -192,19 +192,15 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
     })
     if (response) {
       const parsedBody = JSON.parse(response.body)
+      const invitationId = parsedBody.invitation_id.slice(0, 10)
+      const link = 'keybase.io/inv/' + invitationId
       yield put(({
         type: Constants.invitesSent,
-        payload: {
-          email,
-          invitationId: parsedBody.invitation_id.slice(0, 10),
-        },
+        payload: {email, invitationId},
       }: InvitesSent))
       yield put(routeAppend({
         path: 'inviteSent',
-        props: {
-          email,
-          invitationId: parsedBody.invitation_id.slice(0, 10),
-        },
+        props: {email, link},
       }))
     }
   } catch (e) {
