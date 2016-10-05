@@ -14,6 +14,7 @@ import (
 )
 
 func TestFavoriteAdd(t *testing.T) {
+	t.Skip()
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
 	u := CreateAndSignupFakeUser(tc, "fav")
@@ -42,6 +43,7 @@ func TestFavoriteAdd(t *testing.T) {
 // Sharing before signup, social assertion user doesn't
 // exist yet.
 func TestFavoriteAddSocial(t *testing.T) {
+	t.Skip()
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
 	u := CreateAndSignupFakeUser(tc, "fav")
@@ -104,6 +106,7 @@ func TestFavoriteAddSocial(t *testing.T) {
 }
 
 func TestFavoriteIgnore(t *testing.T) {
+	t.Skip()
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
 	u := CreateAndSignupFakeUser(tc, "fav")
@@ -123,6 +126,7 @@ func TestFavoriteIgnore(t *testing.T) {
 }
 
 func TestFavoriteList(t *testing.T) {
+	t.Skip()
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
 	u := CreateAndSignupFakeUser(tc, "fav")
