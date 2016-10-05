@@ -253,6 +253,11 @@ func (t emptyFS) GetDiskFreeSpace(ctx context.Context) (FreeSpace, error) {
 	debug("emptyFS.GetDiskFreeSpace")
 	return FreeSpace{}, nil
 }
+
+func (t emptyFS) ErrorPrint(err error) {
+	debug(err)
+}
+
 func (t emptyFS) CreateFile(ctx context.Context, fi *FileInfo, cd *CreateData) (File, bool, error) {
 	debug("emptyFS.CreateFile")
 	return emptyFile{}, true, nil
