@@ -56,3 +56,15 @@ func (md *MDCacheStandard) Delete(tlf TlfID, rev MetadataRevision,
 	key := mdCacheKey{tlf, rev, bid}
 	md.lru.Remove(key)
 }
+
+// Replace implements the MDCache interface for MDCacheStandard.
+func (md *MDCacheStandard) Replace(newRmd ImmutableRootMetadata,
+	oldBID BranchID) error {
+	oldKey := mdCacheKey{newRmd.TlfID(), newRmd.Revision(), oldBID}
+	newKey := mdCacheKey{newRmd.TlfID(), newRmd.Revision(), newRmd.BID()}
+	// TODO: implement our own LRU where we can replace the old data
+	// without affecting the LRU status.
+	md.lru.Remove(oldKey)
+	md.lru.Add(newKey, newRmd)
+	return nil
+}

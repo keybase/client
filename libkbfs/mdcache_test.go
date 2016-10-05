@@ -10,6 +10,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 func mdCacheInit(t *testing.T, cap int) (
@@ -97,5 +98,44 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 		t.Errorf("No expected error on get")
 	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on get: %v", err)
+	}
+}
+
+func TestMdcacheReplace(t *testing.T) {
+	mockCtrl, config := mdCacheInit(t, 100)
+	defer mdCacheShutdown(mockCtrl, config)
+
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+	h.resolvedWriters[keybase1.MakeTestUID(0)] = "test_user0"
+
+	testMdcachePut(t, id, 1, Merged, NullBranchID, h, config)
+
+	irmd, err := config.MDCache().Get(id, 1, NullBranchID)
+	if err != nil {
+		t.Fatalf("Get error: %v", err)
+	}
+
+	// Change the BID
+	bid := FakeBranchID(1)
+	newRmd, err := irmd.deepCopy(kbfscodec.NewMsgpack(), false)
+	if err != nil {
+		t.Fatalf("Deep-copy error: %v", err)
+	}
+
+	newRmd.SetBranchID(bid)
+	err = config.MDCache().Replace(MakeImmutableRootMetadata(newRmd,
+		fakeMdID(2), time.Now()), NullBranchID)
+	if err != nil {
+		t.Fatalf("Replace error: %v", err)
+	}
+
+	_, err = config.MDCache().Get(id, 1, NullBranchID)
+	if _, ok := err.(NoSuchMDError); !ok {
+		t.Fatalf("Unexpected err after replace: %v", err)
+	}
+	_, err = config.MDCache().Get(id, 1, bid)
+	if err != nil {
+		t.Fatalf("Get error after replace: %v", err)
 	}
 }
