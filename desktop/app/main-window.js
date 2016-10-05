@@ -18,7 +18,7 @@ export default function () {
   appState.checkOpenAtLogin()
 
   const mainWindow = new Window(
-    resolveRoot('renderer', `index.html?src=${hotPath('index.bundle.js')}&dev=${__DEV__}`), {
+    resolveRoot('renderer', `index.html?src=${hotPath('index.bundle.js')}&dev=${__DEV__ ? 'true' : 'false'}`), {
       x: appState.state.x,
       y: appState.state.y,
       width: appState.state.width,

@@ -71,6 +71,7 @@ if (USING_DLL) {
   config.plugins.push(
     new webpack.DllReferencePlugin({
       context: './renderer',
+      // $FlowIssue
       manifest: require('./dll/vendor-manifest.json'),
     })
   )
