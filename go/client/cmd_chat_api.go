@@ -154,8 +154,8 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 
 	var cl ChatList
 	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
-maxMessagesLoop:
 	for i, conv := range inbox.Conversations {
+		found := false
 		for _, msg := range conv.MaxMessages {
 			if msg.Message != nil {
 				var v1 chat1.MessagePlaintextV1
@@ -180,10 +180,13 @@ maxMessagesLoop:
 						TopicType: strings.ToLower(conv.Info.Triple.TopicType.String()),
 					},
 				}
-				break maxMessagesLoop
+				found = true
+				break
 			}
 		}
-		return c.errReply(fmt.Errorf("conversation %d had no valid max msg", conv.Info.Id))
+		if !found {
+			return c.errReply(fmt.Errorf("conversation %d had no valid max msg", conv.Info.Id))
+		}
 	}
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: cl}
