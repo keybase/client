@@ -7,7 +7,7 @@ import type {DeviceType} from '../constants/types/more'
 export type FileSection = {
   name: string,
   modifiedMarker: boolean,
-  files: Array<FileProps>
+  files: Array<FileProps>,
 }
 
 export type ParticipantUnlock = {
@@ -29,7 +29,7 @@ export type Folder = {
   meta?: MetaType,
   modified?: {
     when: string,
-    username: string
+    username: string,
   },
   isPublic: boolean,
   ignored: boolean,

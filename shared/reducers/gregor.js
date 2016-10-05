@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import * as Constants from '../constants/gregor'
 import * as CommonConstants from '../constants/common'
 import {keyBy} from 'lodash'

@@ -1,9 +1,9 @@
-/* @flow */
-
-import * as Constants from '../constants/unlock-folders'
+// @flow
 import * as CommonConstants from '../constants/common'
-import type {UnlockFolderActions, Device} from '../constants/unlock-folders'
+import * as Constants from '../constants/unlock-folders'
 import {toDeviceType} from '../constants/types/more'
+
+import type {UnlockFolderActions, Device} from '../constants/unlock-folders'
 
 export type State = {
   started: boolean,
@@ -12,7 +12,7 @@ export type State = {
   devices: ?Array<Device>,
   waiting: boolean,
   paperkeyError: ?string,
-  sessionID: ?number
+  sessionID: ?number,
 }
 
 const initialState: State = {

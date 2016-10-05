@@ -9,7 +9,7 @@ import {connect} from 'react-redux'
 class RequestInvite extends Component {
   state: {
     email: string,
-    name: string
+    name: string,
   };
 
   constructor (props: Props) {

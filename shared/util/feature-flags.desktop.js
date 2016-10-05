@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 
 import getenv from 'getenv'
 import type {FeatureKeys, FeatureFlags} from './feature-flags'

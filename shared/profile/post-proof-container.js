@@ -1,12 +1,13 @@
 // @flow
 import PostProof from './post-proof'
 import React, {Component} from 'react'
+import {TypedConnector} from '../util/typed-connect'
+import {cancelAddProof, checkProof, outputInstructionsActionLink} from '../actions/profile'
+
 import type {Props} from './post-proof'
 import type {ProvablePlatformsType} from '../constants/types/more'
 import type {TypedDispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
-import {TypedConnector} from '../util/typed-connect'
-import {cancelAddProof, checkProof, outputInstructionsActionLink} from '../actions/profile'
 
 class PostProofContainer extends Component<void, any, void> {
   static parseRoute (currentPath, uri) {

@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import type {PlatformsExpandedType} from '../constants/types/more'
 
 const FriendlyNames = {

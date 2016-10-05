@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './render'
@@ -17,7 +16,6 @@ import type {TypedState} from '../constants/reducer'
 export type TrackerProps = {
   actionBarReady: boolean,
   closed: boolean,
-  currentlyFollowing: boolean,
   currentlyFollowing: boolean,
   inviteLink?: ?string,
   isPrivate?: boolean,

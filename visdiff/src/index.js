@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @flow
 
 import os from 'os'
 import process from 'process'
@@ -26,6 +27,7 @@ const DIFF_CHANGED = 'changed'
 const DIFF_SAME = 'same'
 
 const DRY_RUN = !!process.env['VISDIFF_DRY_RUN']
+const WORK_DIR = process.env['VISDIFF_WORK_DIR'] || path.join(os.tmpdir(), 'visdiff')
 
 function spawn (...args) {
   var res = spawnSync(...args)
@@ -45,8 +47,10 @@ function checkout (commit) {
   const origPackageHash = packageHash()
 
   del.sync([`node_modules.${origPackageHash}`])
-  fs.renameSync('node_modules', `node_modules.${origPackageHash}`)
-  console.log(`Shelved node_modules to node_modules.${origPackageHash}.`)
+  if (fs.existsSync('node_modules')) {
+    fs.renameSync('node_modules', `node_modules.${origPackageHash}`)
+    console.log(`Shelved node_modules to node_modules.${origPackageHash}.`)
+  }
 
   spawn('git', ['checkout', '-f', commit])
 
@@ -73,6 +77,19 @@ function checkout (commit) {
 }
 
 function renderScreenshots (commitRange) {
+  const repoPath = spawn('git', ['rev-parse', '--show-toplevel'], {encoding: 'utf-8'}).stdout.trim()
+  const relPath = path.relative(repoPath, process.cwd())
+  if (!fs.existsSync(WORK_DIR)) {
+    console.log(`Creating clone in work dir: ${WORK_DIR}`)
+    const result = spawn('git', ['clone', repoPath, path.join(WORK_DIR)])
+    if (result.status !== 0) {
+      console.log(`Error creating work dir clone:`, result.error, result.stderr)
+      process.exit(1)
+    }
+  }
+  const workPath = path.join(WORK_DIR, relPath)
+  console.log(`Running in work dir: ${workPath}`)
+  process.chdir(workPath)
   for (const commit of commitRange) {
     checkout(commit)
     console.log(`Rendering screenshots of ${commit}`)
@@ -84,6 +101,7 @@ function renderScreenshots (commitRange) {
 }
 
 function compareScreenshots (commitRange, diffDir, callback) {
+  console.log('Comparing screenshots...')
   const results = {}
 
   mkdirp.sync(`screenshots/${diffDir}`)
@@ -91,16 +109,19 @@ function compareScreenshots (commitRange, diffDir, callback) {
   const files0 = fs.readdirSync(`screenshots/${commitRange[0]}`)
   const files1 = fs.readdirSync(`screenshots/${commitRange[1]}`)
   const files = _.union(files0, files1)
+  const totalFiles = files.length
   function compareNext () {
     const filename = files.pop()
     if (!filename) {
-      callback(commitRange, results)
+      callback(diffDir, commitRange, results)
       return
     }
 
     if (filename.startsWith('.')) {
       return
     }
+
+    console.log(`[${totalFiles - files.length} / ${totalFiles}] comparing ${filename}`)
 
     const diffPath = `screenshots/${diffDir}/${filename}`
 
@@ -134,7 +155,7 @@ function compareScreenshots (commitRange, diffDir, callback) {
   compareNext()
 }
 
-function processDiff (commitRange, results) {
+function processDiff (diffDir, commitRange, results) {
   const changedResults = []
   const newResults = []
   const removedResults = []
@@ -254,6 +275,7 @@ function processDiff (commitRange, results) {
   } else {
     console.log('No visual changes found as a result of these commits.')
   }
+  console.log(`Results in: ${path.resolve('screenshots', diffDir)}`)
 }
 
 function resolveCommit (name) {

@@ -1,4 +1,4 @@
-/* @flow */
-
+// @flow
 import type {Dispatch} from '../constants/types/flux'
+
 export default function (dispatch: Dispatch, notify: any): Object { return {} }

@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import Devices from './render'
 import type {Device} from '../constants/types/more'
 

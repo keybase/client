@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
 import UserSearch from './user-search/render'
 import UserGroup from './user-search/user-group'

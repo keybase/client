@@ -1,3 +1,4 @@
+// @flow
 function check (path, obj) {
   if (!obj) return
   if (typeof obj !== 'object') return
@@ -10,7 +11,7 @@ function check (path, obj) {
   })
 }
 
-export const closureCheck = store => next => action => {
+export const closureCheck = (store: any) => (next: (action: any) => any) => (action: any) => {
   const result = next(action)
   check([], store.getState())
   return result

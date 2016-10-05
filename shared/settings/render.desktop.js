@@ -1,6 +1,7 @@
 // @flow
 import DeleteContainer from './delete/container'
 import LandingContainer from './landing/container'
+import UpdatePayment from './payment/container'
 import NavSettings from './nav'
 import NotificationsContainer from './notifications/container'
 import React, {Component} from 'react'
@@ -25,6 +26,7 @@ class Render extends Component<void, Props, State> {
 
     this._textToContent = {
       'Your Account': <LandingContainer />,
+      'Update Payment': <UpdatePayment />,
       'Invitations': <InvitationsContainer />,
       'Notifications': <NotificationsContainer />,
       'Delete me': <DeleteContainer />,
@@ -36,6 +38,10 @@ class Render extends Component<void, Props, State> {
       text: 'Your Account',
       onClick: () => this._select('Your Account'),
       selected: true,
+    }, {
+      // TODO(mm) kill this when we build our routing stuff
+      text: 'Update Payment',
+      onClick: () => this._select('Update Payment'),
     }, {
       text: 'Invitations',
       onClick: () => this._select('Invitations'),

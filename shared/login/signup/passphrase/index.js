@@ -8,7 +8,7 @@ import {connect} from 'react-redux'
 
 type State = {
   pass1: string,
-  pass2: string
+  pass2: string,
 }
 
 class PassphraseForm extends Component {

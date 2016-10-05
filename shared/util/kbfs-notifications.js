@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import _ from 'lodash'
 import {KbfsCommonFSErrorType, KbfsCommonFSNotificationType, KbfsCommonFSStatusCode} from '../constants/types/flow-types'
 import {getTLF} from '../util/kbfs'

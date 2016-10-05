@@ -18,6 +18,7 @@ import Login from './login'
 import flags from './util/feature-flags'
 import {mapValues} from 'lodash'
 import type {Tabs} from './constants/tabs'
+import GlobalError from './global-errors/container'
 
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 import {navigateBack, navigateUp, switchTab} from './actions/router'
@@ -155,6 +156,7 @@ class Nav extends Component<void, Props, void> {
           <MetaNavigator
             tab={loginTab}
             rootComponent={Login} />
+          <GlobalError />
         </div>
       )
     }
@@ -171,6 +173,7 @@ class Nav extends Component<void, Props, void> {
           searchContent={<Search />}
           badgeNumbers={{[folderTab]: this.props.folderBadge}}
           tabContent={tabContent} />
+        <GlobalError />
       </div>
     )
   }
@@ -179,6 +182,7 @@ class Nav extends Component<void, Props, void> {
 const stylesTabsContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
+  position: 'relative',
 }
 
 // $FlowIssue type this connector

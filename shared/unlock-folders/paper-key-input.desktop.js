@@ -9,11 +9,11 @@ export type Props = {
   onBack: () => void,
   onContinue: (paperkey: HiddenString) => void,
   paperkeyError: ?string,
-  waiting: ?boolean
+  waiting: ?boolean,
 }
 
 type State = {
-  paperkey: string
+  paperkey: string,
 }
 
 export default class PaperKeyInput extends Component<void, Props, State> {

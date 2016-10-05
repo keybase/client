@@ -153,5 +153,5 @@ class Session {
   }
 }
 
-export type CancelHandlerType = (session: Session) => void;
+export type CancelHandlerType = (session: Session) => void
 export default Session

@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {StandardScreen, ChoiceList, Text} from '../common-adapters'
 import {globalMargins} from '../styles'
+
 import type {Props} from './prove-website-choice'
 
 class ProveWebsiteChoice extends Component<void, Props, void> {

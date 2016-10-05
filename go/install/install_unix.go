@@ -96,3 +96,11 @@ func RunApp(context Context, log Log) error {
 	// TODO: Start app, see run_keybase: /opt/keybase/Keybase &>> "$logdir/Keybase.app.log"
 	return nil
 }
+
+func InstallLogPath() (string, error) {
+	return "", nil
+}
+
+func SystemLogPath() string {
+	return ""
+}

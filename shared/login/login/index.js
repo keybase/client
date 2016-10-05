@@ -11,7 +11,7 @@ import type {Props} from './index.render'
 type State = {
   selectedUser: ?string,
   showTyping: boolean,
-  passphrase: string
+  passphrase: string,
 }
 
 class Login extends Component {

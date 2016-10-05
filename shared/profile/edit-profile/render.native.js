@@ -1,8 +1,9 @@
 // @flow
 import React from 'react'
-import type {Props} from './render'
 import {Button, Input, StandardScreen} from '../../common-adapters'
 import {globalMargins} from '../../styles'
+
+import type {Props} from './render'
 
 const EditProfileRender = (props: Props) => (
   <StandardScreen style={styleContainer} onClose={props.onBack}>

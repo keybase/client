@@ -8,7 +8,7 @@ import {connect} from 'react-redux'
 
 type State = {
   username: string,
-  email: string
+  email: string,
 }
 
 class UsernameEmailForm extends Component {

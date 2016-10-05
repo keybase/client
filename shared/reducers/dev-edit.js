@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import {Iterable} from 'immutable'
 import type {State} from '../constants/reducer'
 import type {Action} from '../constants/types/flux'
