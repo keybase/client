@@ -11,8 +11,8 @@
 #import "KBDebugPropertiesView.h"
 #import "KBSemVersion.h"
 #import "KBFormatter.h"
-#import "KBTask.h"
 #import "KBDefines.h"
+#include <sys/mount.h>
 
 @interface KBFuseComponent ()
 @property KBDebugPropertiesView *infoView;
@@ -22,7 +22,10 @@
 @property NSString *servicePath;
 @end
 
-typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
+@implementation KBFuseStatus
+@end
+
+typedef void (^KBOnFuseStatus)(NSError *error, KBFuseStatus *fuseStatus);
 
 @implementation KBFuseComponent
 
@@ -47,64 +50,81 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   [_infoView setProperties:info];
 }
 
-+ (void)status:(NSString *)binPath bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnFuseStatus)completion {
-  NSString *bundleVersionFlag = NSStringWithFormat(@"--bundle-version=%@", [bundleVersion description]);
-  [KBTask execute:binPath args:@[@"-d", @"--log-format=file", @"fuse", @"status", bundleVersionFlag] timeout:KBDefaultInstallableTimeout completion:^(NSError *error, NSData *outData, NSData *errData) {
-    if (error) {
-      completion(error, nil);
-      return;
-    }
-    if (!outData) {
-      completion(KBMakeError(KBErrorCodeGeneric, @"No data for fuse status"), nil);
-      return;
-    }
+- (void)bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnFuseStatus)completion {
+  KBFuseStatus *status = [[KBFuseStatus alloc] init];
+  status.bundleVersion = [bundleVersion description];
+  status.hasMounts = [self hasMounts];
 
-    id dict = [NSJSONSerialization JSONObjectWithData:outData options:NSJSONReadingMutableContainers error:&error];
-    if (error) {
-      DDLogError(@"Invalid data: %@", [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
-      completion(error, nil);
-      return;
-    }
-    if (!dict) {
-      completion(KBMakeError(KBErrorCodeGeneric, @"Invalid data for fuse status"), nil);
-      return;
-    }
-
-    KBRFuseStatus *status = [MTLJSONAdapter modelOfClass:KBRFuseStatus.class fromJSONDictionary:dict error:&error];
+  BOOL isDirectory = NO;
+  if (![[NSFileManager defaultManager] fileExistsAtPath:self.destination isDirectory:&isDirectory] || !isDirectory) {
+    DDLogInfo(@"Fuse destination doesn't exist");
+    status.installStatus = KBRInstallStatusNotInstalled;
+    status.installAction = KBRInstallActionInstall;
     completion(nil, status);
-  }];
+    return;
+  }
+
+  status.installStatus = KBRInstallStatusInstalled;
+
+  NSDictionary *info = [NSDictionary dictionaryWithContentsOfFile:[self.destination stringByAppendingPathComponent:@"Contents/Info.plist"]];
+  if (!info) {
+    DDLogInfo(@"Couldn't fuse load version");
+    status.installStatus = KBRInstallStatusError;
+    status.installAction = KBRInstallActionReinstall;
+    completion(nil, status);
+    return;
+  }
+
+  DDLogDebug(@"Fuse version: %@", info[@"CFBundleVersion"]);
+  status.version = info[@"CFBundleVersion"];
+  if ([bundleVersion isGreaterThan:[KBSemVersion version:status.version]]) {
+    DDLogInfo(@"Fuse needs upgrade");
+    status.installAction = KBRInstallActionUpgrade;
+    completion(nil, status);
+    return;
+  }
+
+  status.installAction = KBRInstallActionNone;
+
+  completion(nil, status);
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
-  [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *componentStatus) {
+  [self refreshFuseComponent:^(KBFuseStatus *fuseStatus, KBComponentStatus *componentStatus) {
     completion(componentStatus);
   }];
 }
 
-- (void)refreshFuseComponent:(void (^)(KBRFuseStatus *fuseStatus, KBComponentStatus *componentStatus))completion {
-  KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
-  [KBFuseComponent status:[self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath] bundleVersion:bundleVersion completion:^(NSError *error, KBRFuseStatus *fuseStatus) {
+- (BOOL)hasMounts {
+  struct statfs *mntbufp;
+  DDLogInfo(@"Checking mounts...");
+  int mountCount = getmntinfo(&mntbufp, MNT_WAIT);
+  BOOL hasMounts = NO;
+  for(int i = 0; i < mountCount; i++) {
+    NSString *fsType = [NSString stringWithCString:mntbufp[i].f_fstypename encoding:NSASCIIStringEncoding];
+    NSString *directory = [NSString stringWithCString:mntbufp[i].f_mntonname encoding:NSASCIIStringEncoding];
+    if ([fsType isEqualToString:@"kbfuse"]) {
+      DDLogInfo(@"Mount: %@ (%@)", directory, fsType);
+      hasMounts = YES;
+    }
+  }
+  return hasMounts;
+}
 
+- (void)refreshFuseComponent:(void (^)(KBFuseStatus *fuseStatus, KBComponentStatus *componentStatus))completion {
+  KBSemVersion *bundleVersion = [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBFuseVersion"]];
+  [self bundleVersion:bundleVersion completion:^(NSError *error, KBFuseStatus *fuseStatus) {
     self.fuseStatus = fuseStatus;
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithError:error];
     } else {
 
       GHODictionary *info = [GHODictionary dictionary];
+
       info[@"Version"] = KBIfBlank(fuseStatus.version, nil);
 
       if (![fuseStatus.version isEqualToString:fuseStatus.bundleVersion]) {
         info[@"Bundle Version"] = KBIfBlank(fuseStatus.bundleVersion, nil);
-      }
-
-      if (![NSString gh_isBlank:fuseStatus.kextID]) {
-        info[@"Kext ID"] = KBIfBlank(fuseStatus.kextID, nil);
-        info[@"Kext Loaded"] = fuseStatus.kextStarted ? @"Yes" : @"No";
-      }
-      info[@"Path"] = KBIfBlank(fuseStatus.path, nil);
-
-      if (fuseStatus.status.code > 0) {
-        error = KBMakeError(fuseStatus.status.code, @"%@", fuseStatus.status.desc);
       }
 
       KBComponentStatus *componentStatus = [KBComponentStatus componentStatusWithInstallStatus:fuseStatus.installStatus installAction:fuseStatus.installAction info:info error:error];
@@ -121,19 +141,10 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   return self.fuseStatus.kextStarted ? KBInstallRuntimeStatusStarted : KBInstallRuntimeStatusStopped;
 }
 
-- (BOOL)hasKBFuseMounts:(KBRFuseStatus *)fuseStatus {
-  for (KBRFuseMountInfo *mountInfo in fuseStatus.mountInfos) {
-    if ([mountInfo.fstype isEqualToString:@"kbfuse"]) {
-      return YES;
-    }
-  }
-  return NO;
-}
-
 - (void)install:(KBCompletion)completion {
-  [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *cs) {
+  [self refreshFuseComponent:^(KBFuseStatus *fuseStatus, KBComponentStatus *cs) {
     // Upgrades currently unsupported for Fuse if there are mounts
-    if (cs.installAction == KBRInstallActionUpgrade && [self hasKBFuseMounts:fuseStatus]) {
+    if (cs.installAction == KBRInstallActionUpgrade && fuseStatus.hasMounts) {
       DDLogError(@"Fuse needs upgrade but not supported yet if mounts are present");
       completion(nil);
       return;
