@@ -20,6 +20,7 @@ import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
 import {navigateBack, switchTab} from './actions/router'
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, prettify} from './constants/tabs'
+import GlobalError from './global-errors/container'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
@@ -81,6 +82,7 @@ class Nav extends Component {
           Navigator={AndroidNavigator}
           NavBar={<Box />}
         />
+        <GlobalError />
       </Box>
     )
   }
