@@ -45,6 +45,7 @@ func makeFakeBlockJournalEntryFuture(t *testing.T) blockJournalEntryFuture {
 					makeFakeBlockContext(t),
 				},
 			},
+			MetadataRevisionInitial,
 			codec.UnknownFieldSetHandler{},
 		},
 		makeExtraOrBust("blockJournalEntry", t),
@@ -312,14 +313,19 @@ func TestBlockJournalFlush(t *testing.T) {
 
 		// Test that the end parameter is respected.
 		var partialEntries blockEntriesToFlush
+		var rev MetadataRevision
 		if end > 1 {
-			partialEntries, err = j.getNextEntriesToFlush(ctx, end-1)
+			partialEntries, rev, err = j.getNextEntriesToFlush(ctx, end-1,
+				maxJournalBlockFlushBatchSize)
 			require.NoError(t, err)
+			require.Equal(t, rev, MetadataRevisionUninitialized)
 		}
 
-		entries, err := j.getNextEntriesToFlush(ctx, end)
+		entries, rev, err := j.getNextEntriesToFlush(ctx, end,
+			maxJournalBlockFlushBatchSize)
 		require.NoError(t, err)
 		require.Equal(t, partialEntries.length()+1, entries.length())
+		require.Equal(t, rev, MetadataRevisionUninitialized)
 
 		err = flushBlockEntries(
 			ctx, j.log, blockServer, bcache, reporter,
@@ -404,7 +410,8 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	flushOne := func() {
 		first, err := j.j.readEarliestOrdinal()
 		require.NoError(t, err)
-		entries, err := j.getNextEntriesToFlush(ctx, first+1)
+		entries, _, err := j.getNextEntriesToFlush(ctx, first+1,
+			maxJournalBlockFlushBatchSize)
 		require.NoError(t, err)
 		require.Equal(t, 1, entries.length())
 		err = flushBlockEntries(ctx, j.log, blockServer,
@@ -499,10 +506,49 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	end, err := j.end()
 	require.NoError(t, err)
-	entries, err := j.getNextEntriesToFlush(ctx, end)
+	entries, _, err := j.getNextEntriesToFlush(ctx, end,
+		maxJournalBlockFlushBatchSize)
 	require.NoError(t, err)
 	require.Equal(t, 0, entries.length())
 
 	// Make sure the ordinals and blocks are flushed.
 	testBlockJournalGCd(t, j)
+}
+
+func TestBlockJournalFlushMDRevMarker(t *testing.T) {
+	ctx, tempdir, j := setupBlockJournalTest(t)
+	defer teardownBlockJournalTest(t, tempdir, j)
+
+	// Put a block.
+
+	data := []byte{1, 2, 3, 4}
+	putBlockData(ctx, t, j, data)
+
+	// Put a revision marker
+	rev := MetadataRevision(10)
+	err := j.markMDRevision(ctx, rev)
+	require.NoError(t, err)
+
+	blockServer := NewBlockServerMemory(newTestBlockServerLocalConfig(t))
+	tlfID := FakeTlfID(1, false)
+	bcache := NewBlockCacheStandard(0, 0)
+	reporter := NewReporterSimple(nil, 0)
+
+	// Make sure the block journal reports that entries up to `rev`
+	// can be flushed.
+	last, err := j.j.readLatestOrdinal()
+	require.NoError(t, err)
+	entries, gotRev, err := j.getNextEntriesToFlush(ctx, last+1,
+		maxJournalBlockFlushBatchSize)
+	require.NoError(t, err)
+	require.Equal(t, rev, gotRev)
+	require.Equal(t, 2, entries.length())
+	err = flushBlockEntries(ctx, j.log, blockServer,
+		bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
+		entries)
+	require.NoError(t, err)
+	err = j.removeFlushedEntries(ctx, entries, tlfID, reporter)
+	require.NoError(t, err)
+	err = j.checkInSync(ctx)
+	require.NoError(t, err)
 }

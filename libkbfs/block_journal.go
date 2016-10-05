@@ -89,6 +89,7 @@ const (
 	addRefOp      blockOpType = 2
 	removeRefsOp  blockOpType = 3
 	archiveRefsOp blockOpType = 4
+	mdRevMarkerOp blockOpType = 5
 )
 
 func (t blockOpType) String() string {
@@ -101,6 +102,8 @@ func (t blockOpType) String() string {
 		return "removeReferences"
 	case archiveRefsOp:
 		return "archiveReferences"
+	case mdRevMarkerOp:
+		return "mdRevisionMarker"
 	default:
 		return fmt.Sprintf("blockOpType(%d)", t)
 	}
@@ -112,9 +115,11 @@ func (t blockOpType) String() string {
 type blockJournalEntry struct {
 	// Must be one of the four ops above.
 	Op blockOpType
-	// Must have exactly one entry with one context for blockPutOp
-	// and addRefOp.
-	Contexts map[BlockID][]BlockContext
+	// Must have exactly one entry with one context for blockPutOp and
+	// addRefOp.  Used for all ops except for mdRevMarkerOp.
+	Contexts map[BlockID][]BlockContext `codec:",omitempty"`
+	// Only used for mdRevMarkerOps.
+	Revision MetadataRevision `codec:",omitempty"`
 
 	codec.UnknownFieldSetHandler
 }
@@ -309,6 +314,10 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 						return nil, 0, err
 					}
 				}
+
+			case mdRevMarkerOp:
+				// Ignore MD revision markers.
+				continue
 
 			default:
 				return nil, 0, fmt.Errorf("Unknown op %s", e.Op)
@@ -703,6 +712,26 @@ func (j *blockJournal) archiveReferences(
 	return nil
 }
 
+func (j *blockJournal) markMDRevision(ctx context.Context,
+	rev MetadataRevision) (err error) {
+	j.log.CDebugf(ctx, "Marking MD revision %d in the block journal", rev)
+	defer func() {
+		if err != nil {
+			j.deferLog.CDebugf(ctx, "Marking MD revision %d error: %v",
+				rev, err)
+		}
+	}()
+
+	_, err = j.appendJournalEntry(blockJournalEntry{
+		Op:       mdRevMarkerOp,
+		Revision: rev,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // blockEntriesToFlush is an internal data structure for blockJournal;
 // its fields shouldn't be accessed outside this file.
 type blockEntriesToFlush struct {
@@ -723,41 +752,55 @@ func (be blockEntriesToFlush) flushNeeded() bool {
 }
 
 // Only entries with ordinals less than the given ordinal (assumed to
-// be <= latest ordinal + 1) are returned.
+// be <= latest ordinal + 1) are returned.  Also returns the maximum
+// MD revision that can be merged after the returned entries are
+// successfully flushed; if no entries are returned (i.e., the block
+// journal is empty) then any MD revision may be flushed even when
+// MetadataRevisionUninitialized is returned.
 func (j *blockJournal) getNextEntriesToFlush(
-	ctx context.Context, end journalOrdinal) (
-	entries blockEntriesToFlush, err error) {
+	ctx context.Context, end journalOrdinal, maxToFlush int) (
+	entries blockEntriesToFlush, maxMDRevToFlush MetadataRevision, err error) {
 	first, err := j.j.readEarliestOrdinal()
 	if os.IsNotExist(err) {
-		return blockEntriesToFlush{}, nil
+		return blockEntriesToFlush{}, MetadataRevisionUninitialized, nil
 	} else if err != nil {
-		return blockEntriesToFlush{}, err
+		return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
 	}
 
 	if first >= end {
-		return blockEntriesToFlush{}, fmt.Errorf("Trying to flush past the "+
-			"start of the journal (first=%d, end=%d)", first, end)
+		return blockEntriesToFlush{}, MetadataRevisionUninitialized,
+			fmt.Errorf("Trying to flush past the "+
+				"start of the journal (first=%d, end=%d)", first, end)
 	}
 
 	realEnd, err := j.end()
 	if realEnd == 0 {
-		return blockEntriesToFlush{}, fmt.Errorf("There was an earliest "+
-			"ordinal %d, but no latest ordinal", first)
+		return blockEntriesToFlush{}, MetadataRevisionUninitialized,
+			fmt.Errorf("There was an earliest "+
+				"ordinal %d, but no latest ordinal", first)
 	} else if err != nil {
-		return blockEntriesToFlush{}, err
+		return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
 	}
 
 	if end > realEnd {
-		return blockEntriesToFlush{}, fmt.Errorf("Trying to flush past the "+
-			"end of the journal (realEnd=%d, end=%d)", realEnd, end)
+		return blockEntriesToFlush{}, MetadataRevisionUninitialized,
+			fmt.Errorf("Trying to flush past the "+
+				"end of the journal (realEnd=%d, end=%d)", realEnd, end)
 	}
 
 	entries.puts = newBlockPutState(int(end - first))
 	entries.adds = newBlockPutState(int(end - first))
-	for ordinal := first; ordinal < end; ordinal++ {
+	maxMDRevToFlush = MetadataRevisionUninitialized
+
+	loopEnd := end
+	if first+journalOrdinal(maxToFlush) < end {
+		loopEnd = first + journalOrdinal(maxToFlush)
+	}
+
+	for ordinal := first; ordinal < loopEnd; ordinal++ {
 		entry, err := j.readJournalEntry(ordinal)
 		if err != nil {
-			return blockEntriesToFlush{}, err
+			return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
 		}
 
 		var data []byte
@@ -767,12 +810,12 @@ func (j *blockJournal) getNextEntriesToFlush(
 		case blockPutOp:
 			id, bctx, err := entry.getSingleContext()
 			if err != nil {
-				return blockEntriesToFlush{}, err
+				return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
 			}
 
 			data, serverHalf, err = j.getData(id)
 			if err != nil {
-				return blockEntriesToFlush{}, err
+				return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
 			}
 
 			entries.puts.addNewBlock(
@@ -783,13 +826,22 @@ func (j *blockJournal) getNextEntriesToFlush(
 		case addRefOp:
 			id, bctx, err := entry.getSingleContext()
 			if err != nil {
-				return blockEntriesToFlush{}, err
+				return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
 			}
 
 			entries.adds.addNewBlock(
 				BlockPointer{ID: id, BlockContext: bctx},
 				nil, /* only used by folderBranchOps */
 				ReadyBlockData{}, nil)
+
+		case mdRevMarkerOp:
+			if entry.Revision < maxMDRevToFlush {
+				return blockEntriesToFlush{}, MetadataRevisionUninitialized,
+					fmt.Errorf("Max MD revision decreased in block journal "+
+						"from %d to %d", entry.Revision, maxMDRevToFlush)
+			}
+			maxMDRevToFlush = entry.Revision
+			entries.other = append(entries.other, entry)
 
 		default:
 			entries.other = append(entries.other, entry)
@@ -798,7 +850,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 		entries.all = append(entries.all, entry)
 	}
 	entries.first = first
-	return entries, nil
+	return entries, maxMDRevToFlush, nil
 }
 
 // flushNonBPSBlockJournalEntry flushes journal entries that can't be
@@ -822,6 +874,9 @@ func flushNonBPSBlockJournalEntry(
 		if err != nil {
 			return err
 		}
+
+	case mdRevMarkerOp:
+		// Nothing to do.
 
 	default:
 		return fmt.Errorf("Unknown op %s", entry.Op)

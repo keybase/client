@@ -370,9 +370,10 @@ func TestTLFJournalBlockOpBasic(t *testing.T) {
 		tempdir, config, ctx, cancel, tlfJournal, delegate)
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
-	numFlushed, err := tlfJournal.flushBlockEntries(ctx, 1)
+	numFlushed, rev, err := tlfJournal.flushBlockEntries(ctx, 1)
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
+	require.Equal(t, rev, MetadataRevisionUninitialized)
 }
 
 func TestTLFJournalBlockOpBusyPause(t *testing.T) {
@@ -589,14 +590,14 @@ func TestTLFJournalFlushMDBasic(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < mdCount; i++ {
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.True(t, flushed)
 	}
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 	require.NoError(t, err)
 	require.False(t, flushed)
-	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
 	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Check RMDSes on the server.
@@ -635,7 +636,7 @@ func TestTLFJournalFlushMDConflict(t *testing.T) {
 
 	// Simulate a flush with a conflict error halfway through.
 	{
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.True(t, flushed)
 
@@ -663,14 +664,14 @@ func TestTLFJournalFlushMDConflict(t *testing.T) {
 
 	// Flush remaining entries.
 	for i := 0; i < mdCount-1; i++ {
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.True(t, flushed)
 	}
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 	require.NoError(t, err)
 	require.False(t, flushed)
-	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
 	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Check RMDSes on the server.
@@ -713,15 +714,15 @@ func TestTLFJournalPreservesBranchID(t *testing.T) {
 	// Flush all entries, with the first one encountering a
 	// conflict error.
 	for i := 0; i < mdCount-1; i++ {
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.True(t, flushed)
 	}
 
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 	require.NoError(t, err)
 	require.False(t, flushed)
-	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount)-1, 0)
 	testMDJournalGCd(t, tlfJournal.mdJournal)
 
 	// Put last revision and flush it.
@@ -738,14 +739,14 @@ func TestTLFJournalPreservesBranchID(t *testing.T) {
 
 		mdEnd++
 
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.True(t, flushed)
 
-		flushed, err = tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err = tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
 		require.False(t, flushed)
-		requireJournalEntryCounts(t, tlfJournal, 0, 0)
+		requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
 		testMDJournalGCd(t, tlfJournal.mdJournal)
 	}
 
@@ -888,4 +889,94 @@ func TestTLFJournalFlushOrdering(t *testing.T) {
 		reflect.DeepEqual(puts, expectedPuts2),
 		"Expected %v or %v, got %v", expectedPuts1,
 		expectedPuts2, puts)
+}
+
+// TestTLFJournalFlushInterleaving tests that we interleave block and
+// MD ops while respecting the relative orderings of blocks and MD ops
+// when flushing.
+func TestTLFJournalFlushInterleaving(t *testing.T) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	var lock sync.Mutex
+	var puts []interface{}
+
+	bserver := orderedBlockServer{
+		lock: &lock,
+		puts: &puts,
+	}
+
+	tlfJournal.delegateBlockServer.Shutdown()
+	tlfJournal.delegateBlockServer = &bserver
+
+	mdserver := orderedMDServer{
+		lock: &lock,
+		puts: &puts,
+	}
+
+	config.mdserver = &mdserver
+
+	// Revision 1
+	var bids []BlockID
+	rev1BlockEnd := maxJournalBlockFlushBatchSize * 2
+	for i := 0; i < rev1BlockEnd; i++ {
+		data := []byte{byte(i)}
+		bid, bCtx, serverHalf := config.makeBlock(data)
+		bids = append(bids, bid)
+		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
+		require.NoError(t, err)
+	}
+	md1 := config.makeMD(MetadataRevision(10), fakeMdID(1))
+	prevRoot, err := tlfJournal.putMD(ctx, md1)
+	require.NoError(t, err)
+
+	// Revision 2
+	rev2BlockEnd := rev1BlockEnd + maxJournalBlockFlushBatchSize*2
+	for i := rev1BlockEnd; i < rev2BlockEnd; i++ {
+		data := []byte{byte(i)}
+		bid, bCtx, serverHalf := config.makeBlock(data)
+		bids = append(bids, bid)
+		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
+		require.NoError(t, err)
+	}
+	md2 := config.makeMD(MetadataRevision(11), prevRoot)
+	prevRoot, err = tlfJournal.putMD(ctx, md2)
+	require.NoError(t, err)
+
+	err = tlfJournal.flush(ctx)
+	require.NoError(t, err)
+	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
+
+	// Make sure that: before revision 1, all the rev1 blocks were
+	// put; rev2 comes last; some blocks are put between the two.
+	bidsSeen := make(map[BlockID]bool)
+	md1Slot := 0
+	md2Slot := 0
+	for i, put := range puts {
+		if bid, ok := put.(BlockID); ok {
+			t.Logf("Saw bid %s at %d", bid, i)
+			bidsSeen[bid] = true
+			continue
+		}
+
+		mdID, ok := put.(MetadataRevision)
+		require.True(t, ok)
+		if mdID == md1.Revision() {
+			md1Slot = i
+			for j := 0; j < rev1BlockEnd; j++ {
+				t.Logf("Checking bid %s at %d", bids[j], i)
+				require.True(t, bidsSeen[bids[j]])
+			}
+		} else if mdID == md2.Revision() {
+			md2Slot = i
+			require.NotZero(t, md1Slot)
+			require.True(t, md1Slot+1 < i)
+			require.Equal(t, i, len(puts)-1)
+		}
+	}
+	require.NotZero(t, md1Slot)
+	require.NotZero(t, md2Slot)
 }
