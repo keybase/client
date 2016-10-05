@@ -76,7 +76,7 @@
   } else {
     return nil;
   }
-  envConfig.installOptions = KBInstallOptionAll;
+  envConfig.installOptions = installOptions;
   envConfig.installTimeout = installTimeout;
   return envConfig;
 }
