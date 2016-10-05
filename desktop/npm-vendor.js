@@ -8,7 +8,8 @@ var spawnSync = require('child_process').spawnSync
 
 var VENDOR_DIR = process.env.KEYBASE_JS_VENDOR_DIR || ''
 if (!VENDOR_DIR) {
-  throw new Error('No VENDOR_DIR')
+  console.log('Error: KEYBASE_JS_VENDOR_DIR unset. Please specify a location for the vendoring repo.')
+  process.exit(1)
 }
 
 const NPM_CMD = os.platform() === 'win32' ? 'npm.cmd' : 'npm'
@@ -129,11 +130,6 @@ function installVendored () {
       ELECTRON_ONLY_CACHE: 1,
     }),
   })
-}
-
-if (!VENDOR_DIR) {
-  console.log('Error: KEYBASE_JS_VENDOR_DIR unset. Please specify a location for the vendoring repo.')
-  process.exit(1)
 }
 
 var npmVersionRes = spawn(NPM_CMD, ['-v'], {stdio: 'pipe'})
