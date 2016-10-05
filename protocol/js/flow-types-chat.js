@@ -372,7 +372,10 @@ export type MarkAsReadRes = {
 }
 
 export type MessageAttachment = {
+  storageType: string,
   path: string,
+  key: bytes,
+  version: int,
 }
 
 export type MessageBody = 

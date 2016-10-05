@@ -22,7 +22,10 @@ protocol local {
   }
 
   record MessageAttachment {
-    string path;
+    string storageType;  // where the attachment object is stored (i.e. s3)
+    string path;         // path to the attachment object
+    bytes key;           // encryption key
+    int version;         // encryption version
   }
 
   variant MessageBody switch (MessageType messageType) {

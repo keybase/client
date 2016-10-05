@@ -62,7 +62,19 @@
       "fields": [
         {
           "type": "string",
+          "name": "storageType"
+        },
+        {
+          "type": "string",
           "name": "path"
+        },
+        {
+          "type": "bytes",
+          "name": "key"
+        },
+        {
+          "type": "int",
+          "name": "version"
         }
       ]
     },

@@ -28,7 +28,10 @@ type MessageDelete struct {
 }
 
 type MessageAttachment struct {
-	Path string `codec:"path" json:"path"`
+	StorageType string `codec:"storageType" json:"storageType"`
+	Path        string `codec:"path" json:"path"`
+	Key         []byte `codec:"key" json:"key"`
+	Version     int    `codec:"version" json:"version"`
 }
 
 type MessageBody struct {
