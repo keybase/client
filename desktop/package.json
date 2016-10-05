@@ -5,7 +5,7 @@
   "main": "./dist/main.bundle.js",
   "scripts": {
     "_helper": "npm run _node -- npm-helper.js",
-    "_node": "babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types ",
+    "_node": "babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types",
     "babel-install": "npm install babel-cli babel-preset-es2015 babel-preset-stage-2 babel-preset-react",
     "build-dev": "npm run _helper build-dev",
     "build-main-thread": "npm run _helper build-main-thread",
