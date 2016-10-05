@@ -1,3 +1,4 @@
+// @flow
 import React, {Component} from 'react'
 
 export default class NoTabRender extends Component {

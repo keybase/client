@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import React, {PureComponent} from 'react'
 import Header from './header.render.desktop'
 import Action, {calcFooterHeight} from './action.render.desktop'

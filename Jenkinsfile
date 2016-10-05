@@ -130,6 +130,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                         "KEYBASE_JS_VENDOR_DIR=${env.BASEDIR}/js-vendor-desktop",
                                     ]) {
                                         dir("desktop") {
+                                            sh "npm run babel-install"
                                             sh "npm run vendor-install"
                                             sh "unzip ${env.KEYBASE_JS_VENDOR_DIR}/flow/flow-linux64*.zip -d ${env.BASEDIR}"
                                             sh "${env.BASEDIR}/flow/flow status shared"
@@ -149,13 +150,13 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                     variable: 'VISDIFF_GH_TOKEN',
                                             ]]) {
                                             withEnv([
+                                                "VISDIFF_WORK_DIR=${env.BASEDIR}/visdiff",
                                                 "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                             ]) {
                                                 dir("visdiff") {
                                                     sh "npm install"
                                                 }
                                                 sh "npm install ./visdiff"
-                                                sh "git rev-parse HEAD > ${env.BASEDIR}/visdiff_orig_revision"
                                                 try {
                                                     timeout(time: 10, unit: 'MINUTES') {
                                                         dir("desktop") {
@@ -165,7 +166,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                 } catch (e) {
                                                     helpers.slackMessage("#breaking-visdiff", "warning", "<@mgood>: visdiff failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>")
                                                 }
-                                                sh "git checkout \$(< ${env.BASEDIR}/visdiff_orig_revision)"
                                             }}}
                                         }
                                     }},

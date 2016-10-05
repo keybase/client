@@ -1,4 +1,4 @@
-package service
+package chat
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 
 func TestParseDurationExtended(t *testing.T) {
 	test := func(input string, expected time.Duration) {
-		d, err := parseDurationExtended(input)
+		d, err := ParseDurationExtended(input)
 		if err != nil {
 			t.Fatal(err)
 		}

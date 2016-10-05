@@ -1,3 +1,4 @@
+// @flow
 import {BrowserWindow, app, globalShortcut} from 'electron'
 import {showDevTools, skipSecondaryDevtools} from '../shared/local-debug.desktop'
 

@@ -1,3 +1,4 @@
+// @flow
 /**
  * A Meta navigator for handling different navigators at the top level.
  * todo(mm) explain why we need a meta navigator
@@ -5,11 +6,26 @@
 
 import React, {Component} from 'react'
 import Render from './meta-navigator.render'
-import Immutable from 'immutable'
+import {Map, List, is} from 'immutable'
 import {connect} from 'react-redux'
 import {printRoutes} from '../local-debug'
 
-class MetaNavigator extends Component {
+type State = {
+  navigator: any,
+}
+
+type Props = {
+  uri: Object,
+  rootComponent: any,
+  globalRoutes: any,
+  NavBar: Object,
+  Navigator: Function,
+  navBarHeight: number,
+}
+
+class MetaNavigator extends Component<void, Props, State> {
+  state: State;
+
   constructor (props) {
     super(props)
 
@@ -20,8 +36,8 @@ class MetaNavigator extends Component {
 
   isParentOfRoute (routeParent, routeMaybeChild) {
     return (
-      !Immutable.is(routeMaybeChild, routeParent) &&
-      Immutable.is(routeMaybeChild.slice(0, routeParent.count()), routeParent)
+      !is(routeMaybeChild, routeParent) &&
+      is(routeMaybeChild.slice(0, routeParent.count()), routeParent)
     )
   }
 
@@ -51,7 +67,7 @@ class MetaNavigator extends Component {
     const lastNavRoute = navRoutes[navRoutes.length - 1]
 
     // Let's try to make sure our navigator is in sync with our route state
-    if (navRoutes.length !== route.count() || !lastNavRoute.uri || !Immutable.is(lastNavRoute.uri, route)) {
+    if (navRoutes.length !== route.count() || !lastNavRoute.uri || !is(lastNavRoute.uri, route)) {
       this._resetRouteStack(nextRouteStack)
       return true
     }
@@ -62,7 +78,7 @@ class MetaNavigator extends Component {
     // TODO: also check to see if this route exists in the navigator's route
     } else if (this.isParentOfRoute(nextRoute, route)) {
       const targetRoute = navRoutes[nextRouteStack.count() - 1]
-      if (Immutable.is(targetRoute.uri, nextRoute)) {
+      if (is(targetRoute.uri, nextRoute)) {
         this._resetRouteStack(nextRouteStack)
         // This doesn't happen immediately, so it breaks under cases
         // when you pop, then go to another route immediately
@@ -80,11 +96,11 @@ class MetaNavigator extends Component {
   }
 
   getComponentAtTop (rootComponent, uri) {
-    let currentPath = uri.first() || Immutable.Map()
+    let currentPath = uri.first() || Map()
     let nextPath = uri.rest().first()
     let restPath = uri.rest().rest()
-    let routeStack = Immutable.List()
-    let uriSoFar = Immutable.List([currentPath])
+    let routeStack = List()
+    let uriSoFar = List([currentPath])
 
     let nextComponent = rootComponent
     let parseNextRoute = rootComponent.parseRoute
@@ -164,20 +180,6 @@ class MetaNavigator extends Component {
       />
     )
   }
-}
-
-MetaNavigator.propTypes = {
-  uri: React.PropTypes.object.isRequired,
-  rootComponent: React.PropTypes.oneOfType([
-    React.PropTypes.func,
-    React.PropTypes.shape({
-      parseRoute: React.PropTypes.func.isRequired,
-    }),
-  ]).isRequired,
-  globalRoutes: React.PropTypes.object,
-  NavBar: React.PropTypes.object,
-  Navigator: React.PropTypes.func,
-  navBarHeight: React.PropTypes.number,
 }
 
 export default connect(

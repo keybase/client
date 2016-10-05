@@ -1,10 +1,17 @@
+// @flow
 import {showDockIcon} from './dock-icon'
 import menuHelper from './menu-helper'
 import {ipcMain, BrowserWindow} from 'electron'
+// $FlowIssue
 import {focusOnShow} from '../shared/local-debug'
 
 export default class Window {
-  constructor (filename, opts) {
+  filename: string;
+  opts: any;
+  window: any;
+  initiallyVisible: boolean;
+
+  constructor (filename: string, opts: any) {
     this.filename = filename
     this.opts = opts || {}
     this.window = null
@@ -69,7 +76,7 @@ export default class Window {
     menuHelper(this.window)
   }
 
-  show (shouldShowDockIcon) {
+  show (shouldShowDockIcon: boolean) {
     shouldShowDockIcon && showDockIcon()
 
     if (this.window) {

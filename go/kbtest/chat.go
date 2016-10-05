@@ -1,7 +1,4 @@
-// Copyright 2016 Keybase, Inc. All rights reserved. Use of
-// this source code is governed by the included BSD license.
-
-package service
+package kbtest
 
 import (
 	"crypto/rand"
@@ -13,22 +10,20 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/externals"
-	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
-type chatMockWorld struct {
-	fc clockwork.FakeClock
+type ChatMockWorld struct {
+	Fc clockwork.FakeClock
 
-	tcs     map[string]*libkb.TestContext
-	users   map[string]*kbtest.FakeUser
+	Tcs     map[string]*libkb.TestContext
+	Users   map[string]*FakeUser
 	tlfs    map[keybase1.CanonicalTlfName]chat1.TLFID
 	tlfKeys map[keybase1.CanonicalTlfName][]keybase1.CryptKey
 
@@ -36,40 +31,40 @@ type chatMockWorld struct {
 	conversations []*chat1.Conversation
 
 	// each slice should always be sorted by message ID in desc, i.e. newest messages first
-	msgs map[chat1.ConversationID][]*chat1.MessageBoxed
+	Msgs map[chat1.ConversationID][]*chat1.MessageBoxed
 }
 
-func newChatMockWorld(t *testing.T, name string, numUsers int) (world *chatMockWorld) {
-	world = &chatMockWorld{
-		fc:      clockwork.NewFakeClockAt(time.Now()),
-		tcs:     make(map[string]*libkb.TestContext),
-		users:   make(map[string]*kbtest.FakeUser),
+func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockWorld) {
+	world = &ChatMockWorld{
+		Fc:      clockwork.NewFakeClockAt(time.Now()),
+		Tcs:     make(map[string]*libkb.TestContext),
+		Users:   make(map[string]*FakeUser),
 		tlfs:    make(map[keybase1.CanonicalTlfName]chat1.TLFID),
 		tlfKeys: make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
-		msgs:    make(map[chat1.ConversationID][]*chat1.MessageBoxed),
+		Msgs:    make(map[chat1.ConversationID][]*chat1.MessageBoxed),
 	}
 	for i := 0; i < numUsers; i++ {
 		tc := externals.SetupTest(t, "chat_"+name, 0)
-		tc.G.SetClock(world.fc)
-		u, err := kbtest.CreateAndSignupFakeUser("chat", tc.G)
+		tc.G.SetClock(world.Fc)
+		u, err := CreateAndSignupFakeUser("chat", tc.G)
 		if err != nil {
 			t.Fatal(err)
 		}
-		world.users[u.Username] = u
-		world.tcs[u.Username] = &tc
+		world.Users[u.Username] = u
+		world.Tcs[u.Username] = &tc
 	}
 
-	world.fc.Advance(time.Hour)
+	world.Fc.Advance(time.Hour)
 	return world
 }
 
-func (w *chatMockWorld) cleanup() {
-	for _, tc := range w.tcs {
+func (w *ChatMockWorld) Cleanup() {
+	for _, tc := range w.Tcs {
 		tc.Cleanup()
 	}
 }
 
-func (w *chatMockWorld) getConversationByID(convID chat1.ConversationID) *chat1.Conversation {
+func (w *ChatMockWorld) GetConversationByID(convID chat1.ConversationID) *chat1.Conversation {
 	for _, conv := range w.conversations {
 		if conv.Metadata.ConversationID.String() == convID.String() {
 			return conv
@@ -103,17 +98,17 @@ func mustGetRandCryptKeys(controlled byte) []keybase1.CryptKey {
 	return []keybase1.CryptKey{key}
 }
 
-type tlfMock struct {
-	world *chatMockWorld
+type TlfMock struct {
+	world *ChatMockWorld
 }
 
-var _ keybase1.TlfInterface = tlfMock{}
+var _ keybase1.TlfInterface = TlfMock{}
 
-func newTlfMock(world *chatMockWorld) tlfMock {
-	return tlfMock{world}
+func NewTlfMock(world *ChatMockWorld) TlfMock {
+	return TlfMock{world}
 }
 
-func canonicalTlfNameForTest(tlfName string) keybase1.CanonicalTlfName {
+func CanonicalTlfNameForTest(tlfName string) keybase1.CanonicalTlfName {
 	// very much simplified canonicalization.
 	// TODO: implement rest when we need it
 	names := strings.Split(tlfName, ",")
@@ -121,12 +116,12 @@ func canonicalTlfNameForTest(tlfName string) keybase1.CanonicalTlfName {
 	return keybase1.CanonicalTlfName(strings.Join(names, ","))
 }
 
-func (m tlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.TLFCryptKeys, err error) {
-	res.CanonicalName = canonicalTlfNameForTest(tlfName)
+func (m TlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.TLFCryptKeys, err error) {
+	res.CanonicalName = CanonicalTlfNameForTest(tlfName)
 	tlfID, ok := m.world.tlfs[res.CanonicalName]
 	if !ok {
 		for _, n := range strings.Split(string(res.CanonicalName), ",") {
-			if m.world.users[n] == nil {
+			if m.world.Users[n] == nil {
 				err = fmt.Errorf("user %s not found", n)
 				return keybase1.TLFCryptKeys{}, err
 			}
@@ -144,11 +139,11 @@ func (m tlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.TL
 }
 
 // Not used by service tests
-func (m tlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
+func (m TlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
 	return keybase1.CanonicalTlfName(""), errors.New("unimplemented")
 }
 
-func (m tlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndID, error) {
+func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndID, error) {
 	res := keybase1.CanonicalTLFNameAndID{
 		CanonicalName: keybase1.CanonicalTlfName(tlfName),
 		TlfID:         "abcdefg",
@@ -156,25 +151,25 @@ func (m tlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string
 	return res, nil
 }
 
-type chatRemoteMock struct {
-	world     *chatMockWorld
+type ChatRemoteMock struct {
+	world     *ChatMockWorld
 	readMsgid map[chat1.ConversationID]chat1.MessageID
 }
 
-var _ chat1.RemoteInterface = (*chatRemoteMock)(nil)
+var _ chat1.RemoteInterface = (*ChatRemoteMock)(nil)
 
-func newChatRemoteMock(world *chatMockWorld) (m *chatRemoteMock) {
-	m = &chatRemoteMock{
+func NewChatRemoteMock(world *ChatMockWorld) (m *ChatRemoteMock) {
+	m = &ChatRemoteMock{
 		world:     world,
 		readMsgid: make(map[chat1.ConversationID]chat1.MessageID),
 	}
 	return m
 }
 
-func (m *chatRemoteMock) makeReaderInfo(convID chat1.ConversationID) (ri *chat1.ConversationReaderInfo) {
+func (m *ChatRemoteMock) makeReaderInfo(convID chat1.ConversationID) (ri *chat1.ConversationReaderInfo) {
 	ri = &chat1.ConversationReaderInfo{}
 	ri.ReadMsgid = m.readMsgid[convID]
-	for _, m := range m.world.msgs[convID] {
+	for _, m := range m.world.Msgs[convID] {
 		if m.ServerHeader.MessageID > ri.MaxMsgid {
 			ri.MaxMsgid = m.ServerHeader.MessageID
 			ri.Mtime = m.ServerHeader.Ctime
@@ -183,7 +178,7 @@ func (m *chatRemoteMock) makeReaderInfo(convID chat1.ConversationID) (ri *chat1.
 	return ri
 }
 
-func (m *chatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxRemoteArg) (res chat1.GetInboxRemoteRes, err error) {
+func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxRemoteArg) (res chat1.GetInboxRemoteRes, err error) {
 	// TODO: add pagination support
 	for _, conv := range m.world.conversations {
 		if arg.Query != nil {
@@ -220,7 +215,7 @@ func (m *chatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 	return res, nil
 }
 
-func (m *chatRemoteMock) GetInboxByTLFIDRemote(ctx context.Context, tlfID chat1.TLFID) (res chat1.GetInboxByTLFIDRemoteRes, err error) {
+func (m *ChatRemoteMock) GetInboxByTLFIDRemote(ctx context.Context, tlfID chat1.TLFID) (res chat1.GetInboxByTLFIDRemoteRes, err error) {
 	for _, conv := range m.world.conversations {
 		if tlfID.Eq(conv.Metadata.IdTriple.Tlfid) {
 			convToAppend := *conv
@@ -232,7 +227,7 @@ func (m *chatRemoteMock) GetInboxByTLFIDRemote(ctx context.Context, tlfID chat1.
 	return res, errors.New("conversation not found")
 }
 
-func (m *chatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThreadRemoteArg) (res chat1.GetThreadRemoteRes, err error) {
+func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThreadRemoteArg) (res chat1.GetThreadRemoteRes, err error) {
 	var mts map[chat1.MessageType]bool
 	if arg.Query != nil && len(arg.Query.MessageTypes) > 0 {
 		mts = make(map[chat1.MessageType]bool)
@@ -242,7 +237,7 @@ func (m *chatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 	}
 
 	// TODO: add pagination support
-	msgs := m.world.msgs[arg.ConversationID]
+	msgs := m.world.Msgs[arg.ConversationID]
 	for _, msg := range msgs {
 		if arg.Query != nil {
 			if arg.Query.After != nil && msg.ServerHeader.Ctime < *arg.Query.After {
@@ -263,8 +258,8 @@ func (m *chatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 	return res, nil
 }
 
-func (m *chatRemoteMock) GetConversationMetadataRemote(ctx context.Context, convID chat1.ConversationID) (res chat1.GetConversationMetadataRemoteRes, err error) {
-	conv := m.world.getConversationByID(convID)
+func (m *ChatRemoteMock) GetConversationMetadataRemote(ctx context.Context, convID chat1.ConversationID) (res chat1.GetConversationMetadataRemoteRes, err error) {
+	conv := m.world.GetConversationByID(convID)
 	if conv == nil {
 		err = errors.New("conversation not found")
 		return res, err
@@ -273,8 +268,8 @@ func (m *chatRemoteMock) GetConversationMetadataRemote(ctx context.Context, conv
 	return res, err
 }
 
-func (m *chatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
-	conv := m.world.getConversationByID(arg.ConversationID)
+func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
+	conv := m.world.GetConversationByID(arg.ConversationID)
 	ri := m.makeReaderInfo(conv.Metadata.ConversationID)
 	inserted := m.insertMsgAndSort(arg.ConversationID, arg.MessageBoxed)
 	if ri.ReadMsgid == ri.MaxMsgid {
@@ -285,11 +280,11 @@ func (m *chatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	return
 }
 
-func (m *chatRemoteMock) NewConversationRemote(ctx context.Context, arg chat1.ConversationIDTriple) (res chat1.NewConversationRemoteRes, err error) {
+func (m *ChatRemoteMock) NewConversationRemote(ctx context.Context, arg chat1.ConversationIDTriple) (res chat1.NewConversationRemoteRes, err error) {
 	return res, errors.New("not implemented anymore")
 }
 
-func (m *chatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.NewConversationRemote2Arg) (res chat1.NewConversationRemoteRes, err error) {
+func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.NewConversationRemote2Arg) (res chat1.NewConversationRemoteRes, err error) {
 	for _, conv := range m.world.conversations {
 		if conv.Metadata.IdTriple.Tlfid.Eq(arg.IdTriple.Tlfid) &&
 			conv.Metadata.IdTriple.TopicID.String() == arg.IdTriple.TopicID.String() &&
@@ -312,8 +307,8 @@ func (m *chatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 	return res, nil
 }
 
-func (m *chatRemoteMock) GetMessagesRemote(ctx context.Context, arg chat1.GetMessagesRemoteArg) (res chat1.GetMessagesRemoteRes, err error) {
-	msgs, ok := m.world.msgs[arg.ConversationID]
+func (m *ChatRemoteMock) GetMessagesRemote(ctx context.Context, arg chat1.GetMessagesRemoteArg) (res chat1.GetMessagesRemoteRes, err error) {
+	msgs, ok := m.world.Msgs[arg.ConversationID]
 	if !ok {
 		return res, errors.New("conversation not found")
 	}
@@ -334,8 +329,8 @@ func (m *chatRemoteMock) GetMessagesRemote(ctx context.Context, arg chat1.GetMes
 	return res, nil
 }
 
-func (m *chatRemoteMock) MarkAsRead(ctx context.Context, arg chat1.MarkAsReadArg) (res chat1.MarkAsReadRes, err error) {
-	conv := m.world.getConversationByID(arg.ConversationID)
+func (m *ChatRemoteMock) MarkAsRead(ctx context.Context, arg chat1.MarkAsReadArg) (res chat1.MarkAsReadRes, err error) {
+	conv := m.world.GetConversationByID(arg.ConversationID)
 	if conv == nil {
 		err = errors.New("conversation not found")
 		return res, err
@@ -344,12 +339,12 @@ func (m *chatRemoteMock) MarkAsRead(ctx context.Context, arg chat1.MarkAsReadArg
 	return res, nil
 }
 
-func (m *chatRemoteMock) TlfFinalize(ctx context.Context, tlfID chat1.TLFID) error {
+func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, tlfID chat1.TLFID) error {
 	return nil
 }
 
 type convByNewlyUpdated struct {
-	mock *chatRemoteMock
+	mock *ChatRemoteMock
 }
 
 func (s convByNewlyUpdated) Len() int { return len(s.mock.world.conversations) }
@@ -361,21 +356,21 @@ func (s convByNewlyUpdated) Less(i, j int) bool {
 }
 
 type msgByMessageIDDesc struct {
-	world  *chatMockWorld
+	world  *ChatMockWorld
 	convID chat1.ConversationID
 }
 
-func (s msgByMessageIDDesc) Len() int { return len(s.world.msgs[s.convID]) }
+func (s msgByMessageIDDesc) Len() int { return len(s.world.Msgs[s.convID]) }
 func (s msgByMessageIDDesc) Swap(i, j int) {
-	s.world.msgs[s.convID][i], s.world.msgs[s.convID][j] = s.world.msgs[s.convID][j], s.world.msgs[s.convID][i]
+	s.world.Msgs[s.convID][i], s.world.Msgs[s.convID][j] = s.world.Msgs[s.convID][j], s.world.Msgs[s.convID][i]
 }
 func (s msgByMessageIDDesc) Less(i, j int) bool {
-	return s.world.msgs[s.convID][i].ServerHeader.MessageID > s.world.msgs[s.convID][j].ServerHeader.MessageID
+	return s.world.Msgs[s.convID][i].ServerHeader.MessageID > s.world.Msgs[s.convID][j].ServerHeader.MessageID
 }
 
-func (m *chatRemoteMock) getMaxMsgs(convID chat1.ConversationID) (maxMsgs []chat1.MessageBoxed) {
+func (m *ChatRemoteMock) getMaxMsgs(convID chat1.ConversationID) (maxMsgs []chat1.MessageBoxed) {
 	finder := make(map[chat1.MessageType]*chat1.MessageBoxed)
-	for _, msg := range m.world.msgs[convID] {
+	for _, msg := range m.world.Msgs[convID] {
 		if existing, ok := finder[msg.ServerHeader.MessageType]; !ok || existing.ServerHeader.MessageID < msg.ServerHeader.MessageID {
 			finder[msg.ServerHeader.MessageType] = msg
 		}
@@ -388,15 +383,15 @@ func (m *chatRemoteMock) getMaxMsgs(convID chat1.ConversationID) (maxMsgs []chat
 	return maxMsgs
 }
 
-func (m *chatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1.MessageBoxed) (inserted chat1.MessageBoxed) {
+func (m *ChatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1.MessageBoxed) (inserted chat1.MessageBoxed) {
 	msg.ServerHeader = &chat1.MessageServerHeader{
-		Ctime:        gregor1.ToTime(m.world.fc.Now()),
-		MessageID:    chat1.MessageID(len(m.world.msgs[convID]) + 1),
+		Ctime:        gregor1.ToTime(m.world.Fc.Now()),
+		MessageID:    chat1.MessageID(len(m.world.Msgs[convID]) + 1),
 		MessageType:  msg.ClientHeader.MessageType,
 		Sender:       msg.ClientHeader.Sender,
 		SenderDevice: msg.ClientHeader.SenderDevice,
 	}
-	m.world.msgs[convID] = append(m.world.msgs[convID], &msg)
+	m.world.Msgs[convID] = append(m.world.Msgs[convID], &msg)
 	sort.Sort(msgByMessageIDDesc{world: m.world, convID: convID})
 	return msg
 }

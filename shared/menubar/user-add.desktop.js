@@ -8,7 +8,7 @@ import {defaultKBFSPath} from '../constants/config'
 
 type State = {
   showingInput: boolean,
-  text: string
+  text: string,
 }
 
 const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void}) => (

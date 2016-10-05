@@ -1,3 +1,4 @@
+// @flow
 // Builds our code for tests
 const webpack = require('webpack')
 const config = Object.assign({}, require('./webpack.config.test'))

@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import Tracker from './render'
 import {trackerPropsToRenderProps} from './index'
 import {normal, checking, revoked, error, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
@@ -108,7 +108,7 @@ const propsNewUserFollowsYou: TrackerProps = {
   },
 }
 
-type setFollowFilter = (p: Proof) => bool;
+type setFollowFilter = (p: Proof) => bool
 function setFollow (source: TrackerProps, filter: setFollowFilter): TrackerProps {
   source.proofs = source.proofs.map(p => filter(p) ? {
     ...p,

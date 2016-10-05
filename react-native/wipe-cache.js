@@ -1,3 +1,4 @@
+// @flow
 var os = require('os')
 var path = require('path')
 var tmpDir = os.tmpDir()

@@ -1,7 +1,8 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
 import {BackButton, Box, Button, Input} from '../../common-adapters'
 import {globalStyles} from '../../styles'
+
 import type {Props} from './render'
 
 class Render extends Component<void, Props, void> {

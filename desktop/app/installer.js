@@ -1,10 +1,10 @@
-import {appInstallerPath, appBundlePath} from './paths'
+// @flow
 import exec from './exec'
+import {appInstallerPath, appBundlePath} from './paths'
 import {quit} from './ctl'
-
 import {runMode} from '../shared/constants/platform.specific.desktop'
 
-export default callback => {
+export default (callback: (err: any) => void): void => {
   const installerPath = appInstallerPath()
   if (!installerPath) {
     callback(new Error('No installer path'))

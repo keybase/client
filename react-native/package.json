@@ -30,7 +30,7 @@
     "react-native-camera": "git://github.com/lwansbrough/react-native-camera.git#6074ec3c8275ef5eb5fc39489c9a379f6ced923b",
     "react-redux": "4.4.5",
     "redux": "3.6.0",
-    "redux-saga": "0.11.1",
+    "redux-saga": "0.12.0",
     "redux-thunk": "2.1.0",
     "transit-immutable-js": "0.6.0",
     "transit-js": "0.8.846",

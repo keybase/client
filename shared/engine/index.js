@@ -1,17 +1,15 @@
 // @flow
 // Handles sending requests to the daemon
 import Session from './session'
-import setupLocalLogs from '../util/local-log'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
 import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
+import {localLog} from '../util/forward-logs'
 import {log} from '../native/log/logui'
 import {resetClient, createClient, rpcLog} from './index.platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
-
-const {logLocal} = setupLocalLogs()
 
 class Engine {
   // Tracking outstanding sessions
@@ -55,7 +53,7 @@ class Engine {
     if (printOutstandingRPCs) {
       setInterval(() => {
         if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k].dangling).length) {
-          logLocal('outstandingSessionDebugger: ', this._sessionsMap)
+          localLog('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
     }
@@ -108,7 +106,7 @@ class Engine {
   // Got an incoming request with no handler
   _handleUnhandled (sessionID: number, method: MethodKey, seqid: number, param: Object, response: ?Object) {
     if (__DEV__) {
-      logLocal(`Unknown incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${response ? ': Sending back error' : ''}`)
+      localLog(`Unknown incoming rpc: ${sessionID} ${method} ${seqid} ${JSON.stringify(param)}${response ? ': Sending back error' : ''}`)
     }
     console.warn(`Unknown incoming rpc: ${sessionID} ${method}`)
 
@@ -206,7 +204,7 @@ class Engine {
         response.error(error || cancelError)
       }
     } else {
-      logLocal('Invalid response sent to cancelRPC')
+      localLog('Invalid response sent to cancelRPC')
     }
   }
 
@@ -273,11 +271,11 @@ class FakeEngine {
   }
 }
 
-export type EndHandlerType = (session: Object) => void;
-export type MethodKey = string;
-export type SessionID = number;
-export type SessionIDKey = string; // used in our maps, really converted to a string key
-export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => void;
+export type EndHandlerType = (session: Object) => void
+export type MethodKey = string
+export type SessionID = number
+export type SessionIDKey = string // used in our maps, really converted to a string key
+export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => void
 export type ResponseType = {
   cancel: (...args: Array<any>) => void,
   result: (...args: Array<any>) => void,

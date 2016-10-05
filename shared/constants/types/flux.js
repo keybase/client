@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import type {TypedState} from '../reducer'
 
 export type TypedAction<T, P, E> = {

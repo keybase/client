@@ -22,7 +22,7 @@ export type Props = {
   mode: 'error',
   error: string,
 } | {
-  mode: 'nothingSelected'
+  mode: 'nothingSelected',
 }
 
 class Render extends Component<void, Props, void> {

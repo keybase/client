@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
 
 import type {Props as FolderProps} from '../folders/render'

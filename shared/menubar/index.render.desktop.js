@@ -9,12 +9,12 @@ import UserAdd from './user-add'
 
 type State = {
   showingPrivate: boolean,
-  showingMenu: boolean
+  showingMenu: boolean,
 }
 
 type DefaultProps = {
   openToPrivate: boolean,
-  openWithMenuShowing: boolean
+  openWithMenuShowing: boolean,
 }
 
 class Render extends Component<DefaultProps, Props, State> {
