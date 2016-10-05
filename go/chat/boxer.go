@@ -192,9 +192,9 @@ func (b *Boxer) boxMessageV1(ctx context.Context, msg chat1.MessagePlaintextV1, 
 	if msg.ClientHeader.TlfPublic {
 		recentKey = &publicCryptKey
 	} else {
-		keys, err := b.tlf.CryptKeys(ctx, keybase1.CryptKeysArg{
+		keys, err := b.tlf.CryptKeys(ctx, keybase1.TLFQuery{
 			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 		if err != nil {
 			return nil, libkb.ChatBoxingError{Msg: err.Error()}

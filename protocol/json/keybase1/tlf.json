@@ -11,12 +11,8 @@
     "CryptKeys": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "TLFIdentifyBehavior"
+          "name": "query",
+          "type": "TLFQuery"
         }
       ],
       "response": "GetTLFCryptKeysRes",
@@ -25,12 +21,8 @@
     "publicCanonicalTLFNameAndID": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "TLFIdentifyBehavior"
+          "name": "query",
+          "type": "TLFQuery"
         }
       ],
       "response": "CanonicalTLFNameAndIDWithBreaks",
@@ -39,12 +31,8 @@
     "completeAndCanonicalizeTlfName": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "TLFIdentifyBehavior"
+          "name": "query",
+          "type": "TLFQuery"
         }
       ],
       "response": "CanonicalTLFNameAndIDWithBreaks"

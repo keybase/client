@@ -15,8 +15,9 @@
       "type": "enum",
       "name": "TLFIdentifyBehavior",
       "symbols": [
-        "DEFAULT_KBFS_1",
-        "CHAT_2"
+        "DEFAULT_KBFS_0",
+        "CHAT_CLI_1",
+        "CHAT_GUI_2"
       ]
     },
     {
@@ -44,8 +45,8 @@
       "name": "TLFBreak",
       "fields": [
         {
-          "type": "string",
-          "name": "username"
+          "type": "User",
+          "name": "user"
         },
         {
           "type": "IdentifyTrackBreaks",
@@ -58,12 +59,8 @@
       "name": "GetTLFCryptKeysRes",
       "fields": [
         {
-          "type": "TLFID",
-          "name": "tlfID"
-        },
-        {
-          "type": "CanonicalTlfName",
-          "name": "CanonicalName"
+          "type": "CanonicalTLFNameAndIDWithBreaks",
+          "name": "nameIDBreaks"
         },
         {
           "type": {
@@ -71,13 +68,20 @@
             "items": "CryptKey"
           },
           "name": "CryptKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TLFQuery",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tlfName"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "TLFBreak"
-          },
-          "name": "breaks"
+          "type": "TLFIdentifyBehavior",
+          "name": "identifyBehavior"
         }
       ]
     },
@@ -107,12 +111,8 @@
     "getTLFCryptKeys": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "TLFIdentifyBehavior"
+          "name": "query",
+          "type": "TLFQuery"
         }
       ],
       "response": "GetTLFCryptKeysRes",
@@ -121,12 +121,8 @@
     "getPublicCanonicalTLFNameAndID": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "TLFIdentifyBehavior"
+          "name": "query",
+          "type": "TLFQuery"
         }
       ],
       "response": "CanonicalTLFNameAndIDWithBreaks",

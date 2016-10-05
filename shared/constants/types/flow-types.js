@@ -404,8 +404,9 @@ export const SaltpackUiSaltpackSenderType = {
 }
 
 export const TlfKeysTLFIdentifyBehavior = {
-  defaultKbfs: 1,
-  chat: 2,
+  defaultKbfs: 0,
+  chatCli: 1,
+  chatGui: 2,
 }
 
 export const UiPromptDefault = {
@@ -2191,10 +2192,8 @@ export type GetPassphraseRes = {
 }
 
 export type GetTLFCryptKeysRes = {
-  tlfID: TLFID,
-  CanonicalName: CanonicalTlfName,
+  nameIDBreaks: CanonicalTLFNameAndIDWithBreaks,
   CryptKeys?: ?Array<CryptKey>,
-  breaks?: ?Array<TLFBreak>,
 }
 
 export type Hello2Res = {
@@ -3038,15 +3037,21 @@ export type TLF = {
 }
 
 export type TLFBreak = {
-  username: string,
+  user: User,
   breaks: IdentifyTrackBreaks,
 }
 
 export type TLFID = string
 
 export type TLFIdentifyBehavior = 
-    1 // DEFAULT_KBFS_1
-  | 2 // CHAT_2
+    0 // DEFAULT_KBFS_0
+  | 1 // CHAT_CLI_1
+  | 2 // CHAT_GUI_2
+
+export type TLFQuery = {
+  tlfName: string,
+  identifyBehavior: TLFIdentifyBehavior,
+}
 
 export type Test = {
   reply: string,
@@ -3961,28 +3966,23 @@ export type testTestRpcParam = Exact<{
 }>
 
 export type tlfCompleteAndCanonicalizeTlfNameRpcParam = Exact<{
-  tlfName: string,
-  identifyBehavior: TLFIdentifyBehavior
+  query: TLFQuery
 }>
 
 export type tlfCryptKeysRpcParam = Exact<{
-  tlfName: string,
-  identifyBehavior: TLFIdentifyBehavior
+  query: TLFQuery
 }>
 
 export type tlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = Exact<{
-  tlfName: string,
-  identifyBehavior: TLFIdentifyBehavior
+  query: TLFQuery
 }>
 
 export type tlfKeysGetTLFCryptKeysRpcParam = Exact<{
-  tlfName: string,
-  identifyBehavior: TLFIdentifyBehavior
+  query: TLFQuery
 }>
 
 export type tlfPublicCanonicalTLFNameAndIDRpcParam = Exact<{
-  tlfName: string,
-  identifyBehavior: TLFIdentifyBehavior
+  query: TLFQuery
 }>
 
 export type trackDismissWithTokenRpcParam = Exact<{

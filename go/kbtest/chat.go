@@ -131,25 +131,25 @@ func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, erro
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
 
-func (m TlfMock) CryptKeys(ctx context.Context, arg keybase1.CryptKeysArg) (res keybase1.GetTLFCryptKeysRes, err error) {
-	res.CanonicalName = CanonicalTlfNameForTest(arg.TlfName)
-	if res.TlfID, err = m.getTlfID(res.CanonicalName); err != nil {
+func (m TlfMock) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.GetTLFCryptKeysRes, err error) {
+	res.NameIDBreaks.CanonicalName = CanonicalTlfNameForTest(arg.TlfName)
+	if res.NameIDBreaks.TlfID, err = m.getTlfID(res.NameIDBreaks.CanonicalName); err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
 	var ok bool
-	if res.CryptKeys, ok = m.world.tlfKeys[res.CanonicalName]; !ok {
-		err = fmt.Errorf("CryptKeys for TLF %s not found", res.CanonicalName)
+	if res.CryptKeys, ok = m.world.tlfKeys[res.NameIDBreaks.CanonicalName]; !ok {
+		err = fmt.Errorf("CryptKeys for TLF %s not found", res.NameIDBreaks.CanonicalName)
 		return res, err
 	}
 	return res, nil
 }
 
 // Not used by service tests
-func (m TlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, arg keybase1.CompleteAndCanonicalizeTlfNameArg) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+func (m TlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, errors.New("unimplemented")
 }
 
-func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.PublicCanonicalTLFNameAndIDArg) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
 	res := keybase1.CanonicalTLFNameAndIDWithBreaks{
 		CanonicalName: keybase1.CanonicalTlfName(arg.TlfName),
 		TlfID:         "abcdefg",

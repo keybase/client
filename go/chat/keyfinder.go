@@ -33,25 +33,22 @@ func (k *KeyFinder) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName
 		return existing, nil
 	}
 
+	query := keybase1.TLFQuery{
+		TlfName:          tlfName,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+
 	var keys keybase1.GetTLFCryptKeysRes
 	if tlfPublic {
-		res, err := tlf.PublicCanonicalTLFNameAndID(ctx, keybase1.PublicCanonicalTLFNameAndIDArg{
-			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT,
-		})
+		res, err := tlf.PublicCanonicalTLFNameAndID(ctx, query)
 		if err != nil {
 			return keybase1.GetTLFCryptKeysRes{}, err
 		}
-		keys.Breaks = res.Breaks
-		keys.CanonicalName = res.CanonicalName
-		keys.TlfID = res.TlfID
+		keys.NameIDBreaks = res
 		keys.CryptKeys = []keybase1.CryptKey{publicCryptKey}
 	} else {
 		var err error
-		keys, err = tlf.CryptKeys(ctx, keybase1.CryptKeysArg{
-			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT,
-		})
+		keys, err = tlf.CryptKeys(ctx, query)
 		if err != nil {
 			return keybase1.GetTLFCryptKeysRes{}, err
 		}

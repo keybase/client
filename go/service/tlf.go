@@ -35,32 +35,26 @@ func (h *tlfHandler) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}, nil
 }
 
-func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.CryptKeysArg) (keybase1.GetTLFCryptKeysRes, error) {
+func (h *tlfHandler) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (keybase1.GetTLFCryptKeysRes, error) {
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
-	return tlfClient.GetTLFCryptKeys(ctx, keybase1.GetTLFCryptKeysArg{
-		TlfName:          arg.TlfName,
-		IdentifyBehavior: arg.IdentifyBehavior,
-	})
+	return tlfClient.GetTLFCryptKeys(ctx, arg)
 }
 
-func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.PublicCanonicalTLFNameAndIDArg) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
 	tlfClient, err := h.tlfKeysClient()
 	if err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
-	return tlfClient.GetPublicCanonicalTLFNameAndID(ctx, keybase1.GetPublicCanonicalTLFNameAndIDArg{
-		TlfName:          arg.TlfName,
-		IdentifyBehavior: arg.IdentifyBehavior,
-	})
+	return tlfClient.GetPublicCanonicalTLFNameAndID(ctx, arg)
 }
 
-func (h *tlfHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, arg keybase1.CompleteAndCanonicalizeTlfNameArg) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+func (h *tlfHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
 	username := h.G().Env.GetUsername()
 	if len(username) == 0 {
-		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, libkb.InvalidArgumentError{Msg: "Username is empty. Are you logged in?"}
+		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, libkb.LoginRequiredError{}
 	}
 
 	// Append username in case it's not present. We don't need to check if it
@@ -70,17 +64,10 @@ func (h *tlfHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, arg key
 
 	// TODO: do some caching so we don't end up calling this RPC
 	// unnecessarily too often
-	resp, err := h.CryptKeys(ctx, keybase1.CryptKeysArg{
-		TlfName:          arg.TlfName,
-		IdentifyBehavior: arg.IdentifyBehavior,
-	})
+	resp, err := h.CryptKeys(ctx, arg)
 	if err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
 
-	return keybase1.CanonicalTLFNameAndIDWithBreaks{
-		Breaks:        resp.Breaks,
-		CanonicalName: resp.CanonicalName,
-		TlfID:         resp.TlfID,
-	}, nil
+	return resp.NameIDBreaks, nil
 }
