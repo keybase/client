@@ -16,7 +16,8 @@ const defines = {
   '__VERSION__': JSON.stringify('Development'),
 }
 
-const config: any = Object.assign({}, baseConfig)
+// $FlowIssue
+const config = Object.assign({}, baseConfig)
 
 console.warn('Injecting dev defines: ', defines)
 
@@ -71,7 +72,6 @@ if (USING_DLL) {
   config.plugins.push(
     new webpack.DllReferencePlugin({
       context: './renderer',
-      // $FlowIssue
       manifest: require('./dll/vendor-manifest.json'),
     })
   )

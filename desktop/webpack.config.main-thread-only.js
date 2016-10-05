@@ -2,7 +2,8 @@
 const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
-const config: any = Object.assign({}, baseConfig)
+// $FlowIssue
+const config = Object.assign({}, baseConfig)
 const getenv = require('getenv')
 
 const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', true)
