@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
 )
 
@@ -289,6 +290,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 					// skip TLFNAME messages
 					continue
 				}
+				t := gregor1.FromTime(m.Message.ServerHeader.Ctime)
 				msg := MsgSummary{
 					ID: m.Message.ServerHeader.MessageID,
 					Channel: ChatChannel{
@@ -300,8 +302,8 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 						UID:      v1.ClientHeader.Sender.String(),
 						DeviceID: v1.ClientHeader.SenderDevice.String(),
 					},
-					SentAt:   int64(m.Message.ServerHeader.Ctime / 1000),
-					SentAtMs: int64(m.Message.ServerHeader.Ctime),
+					SentAt:   t.Unix(),
+					SentAtMs: t.UnixNano() / 1e6,
 				}
 				msg.Content = c.convertMsgBody(v1.MessageBody)
 
