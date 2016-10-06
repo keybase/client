@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import type {DumbComponentMap} from '../constants/types/more'
 import PurgeMessage from './purge-message.desktop'
 

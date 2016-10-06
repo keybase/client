@@ -245,7 +245,8 @@ func (f messageFormatter) body(g *libkb.GlobalContext) (string, error) {
 			case chat1.MessageType_TEXT:
 				return body.Text().Body, nil
 			case chat1.MessageType_ATTACHMENT:
-				return fmt.Sprintf("{Attachment} | Caption: <unimplemented> | KBFS: %s", body.Attachment().Path), nil
+				// TODO: will fix this in CORE-3899
+				return "{Attachment} | Caption: <unimplemented>", nil
 			default:
 				return fmt.Sprintf("unsupported MessageType: %s", typ.String()), nil
 			}

@@ -1,5 +1,6 @@
-/* @flow */
+// @flow
 import {Component} from 'react'
+
 import type {ProvablePlatformsType} from '../constants/types/more'
 import type {IconType} from '../common-adapters/icon'
 

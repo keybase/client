@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 
 // HiddenString tries to wrap a string value to prevent it from being easily
 // output as a string to log, file or console

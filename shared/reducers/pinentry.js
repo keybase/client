@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import * as Constants from '../constants/pinentry'
 import * as CommonConstants from '../constants/common'
 
@@ -19,14 +18,14 @@ export type PinentryState = {
   submitted: boolean,
   submitLabel: ?string,
   cancelLabel: ?string,
-  retryLabel: ?string
+  retryLabel: ?string,
 }
 
 export type RootPinentryState = {
   started: boolean,
   pinentryStates: {
-    [key: string]: PinentryState
-  }
+    [key: string]: PinentryState,
+  },
 }
 
 type EnabledFeatures = {[key: string]: Feature}

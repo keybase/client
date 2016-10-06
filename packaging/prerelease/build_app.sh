@@ -102,33 +102,57 @@ if [ ! "$nowait" = "1" ]; then
   "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build and release for $platform."
 fi
 
-if [ ! "$nobuild" = "1" ]; then
-  BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
-  BUILD_DIR=$build_dir_kbfs "$dir/build_kbfs.sh"
-  BUILD_DIR=$build_dir_updater "$dir/build_updater.sh"
+number_of_builds=1
+if [ -n "$SMOKE_TEST" ]; then
+  number_of_builds=2
 fi
 
-version=`$build_dir_keybase/keybase version -S`
-kbfs_version=`$build_dir_kbfs/kbfs -version`
-updater_version=`$build_dir_updater/updater -version`
+# Okay, here's where we start generating version numbers and doing builds.
+for i in {1..$number_of_builds}; do
+  if [ ! "$nobuild" = "1" ]; then
+    BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
+    BUILD_DIR=$build_dir_kbfs "$dir/build_kbfs.sh"
+    BUILD_DIR=$build_dir_updater "$dir/build_updater.sh"
+  fi
 
-save_dir="/tmp/build_desktop"
-rm -rf $save_dir
+  version=`$build_dir_keybase/keybase version -S`
+  kbfs_version=`$build_dir_kbfs/kbfs -version`
+  updater_version=`$build_dir_updater/updater -version`
 
-if [ "$platform" = "darwin" ]; then
-  SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" \
-    UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" \
-    "$dir/../desktop/package_darwin.sh"
-else
-  # TODO: Support linux build here?
-  echo "Unknown platform: $platform"
-  exit 1
-fi
+  save_dir="/tmp/build_desktop"
+  rm -rf $save_dir
 
-BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
+  skip_update_json=""
+  if [ "$i" = "2" ]; then
+    skip_update_json = "1"
+  fi
 
-"$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See $s3host"
+  if [ "$platform" = "darwin" ]; then
+    SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" \
+      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" \
+      SKIP_UPDATE_JSON="$skip_update_json" "$dir/../desktop/package_darwin.sh"
+  else
+    # TODO: Support linux build here?
+    echo "Unknown platform: $platform"
+    exit 1
+  fi
+
+  if [ "$i" = "1" ]; then
+    buildA = version
+  elif [ "$i" = "2" ]; then
+    buildB = version
+  fi
+
+  BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
+done
 
 if [ "$istest" = "" ]; then
+  if [ "$number_of_builds" = "2" ]; then
+    echo "Made: $buildA and $buildB."
+    BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-new-build-to-server --build-a="$buildA" --build-b="$buildB" --platform="darwin"
+  fi
+
   BUCKET_NAME="$bucket_name" "$dir/report.sh"
 fi
+
+"$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See $s3host";

@@ -1,3 +1,4 @@
+// @flow
 import {remote} from 'electron'
 
 export function autoResize () {

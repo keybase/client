@@ -7,7 +7,7 @@ import {globalStyles, globalColors} from '../../../styles'
 import {specialStyles as textStyles} from '../../../common-adapters/text'
 
 type State = {
-  inWallet: boolean
+  inWallet: boolean,
 }
 
 class Render extends Component<void, Props, State> {

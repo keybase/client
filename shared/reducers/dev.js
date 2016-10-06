@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import {updateDebugConfig, updateReloading} from '../constants/dev'
 import type {State} from '../constants/reducer'
 import type {DebugConfig, DevAction} from '../constants/dev'

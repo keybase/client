@@ -1,6 +1,4 @@
 // @flow
-//
-//
 // This is modified from https://github.com/mawie81/electron-window-state
 //
 

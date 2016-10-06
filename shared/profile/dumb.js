@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import ConfirmOrPending from './confirm-or-pending'
 import EditAvatar from './edit-avatar'
 import PostProof from './post-proof'
@@ -170,9 +170,9 @@ const propsBase: RenderProps = {
       height: 578,
     },
   },
-  onClickAvatar: console.log('on click avatar'),
-  onClickFollowers: console.log('on click followers'),
-  onClickFollowing: console.log('on click following'),
+  onClickAvatar: () => console.log('on click avatar'),
+  onClickFollowers: () => console.log('on click followers'),
+  onClickFollowing: () => console.log('on click following'),
 }
 
 const bioEditFns = {

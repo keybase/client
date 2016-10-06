@@ -1,3 +1,4 @@
+// @flow
 // Helper for cross platform npm run script commands
 import path from 'path'
 import childProcess, {execSync} from 'child_process'
@@ -38,11 +39,13 @@ function pad (s, num) {
   return s
 }
 
+const nodeCmd = 'babel-node --presets es2015,stage-2 --plugins transform-flow-strip-types'
+
 const commands = {
   'help': {
     code: () => {
       const len = Object.keys(commands).reduce((acc, i) => Math.max(i.length, acc), 1) + 2
-      console.log(Object.keys(commands).map(c => commands[c].help && `npm run ${pad(c + ': ', len)}${commands[c].help}`).filter(c => !!c).join('\n'))
+      console.log(Object.keys(commands).map(c => commands[c].help && `npm run ${pad(c + ': ', len)}${commands[c].help || ''}`).filter(c => !!c).join('\n'))
     },
   },
   'start': {
@@ -51,13 +54,13 @@ const commands = {
   'start-hot': {
     env: {HOT: 'true'},
     nodeEnv: 'development',
-    shell: 'node client.js',
+    shell: `${nodeCmd} client.js`,
     help: 'Start electron with hot reloading (needs npm run hot-server)',
   },
   'start-hot-debug': {
     env: {HOT: 'true', USE_INSPECTOR: 'true'},
     nodeEnv: 'development',
-    shell: 'node client.js',
+    shell: `${nodeCmd} client.js`,
     help: 'Start electron with hot reloading against a debugged main process',
   },
   'debug-main': {
@@ -79,21 +82,21 @@ const commands = {
     env: {NO_SERVER: 'true'},
     nodeEnv: 'production',
     nodePathDesktop: true,
-    shell: 'node server.js',
+    shell: `${nodeCmd} server.js`,
     help: 'Make a development build of the js code',
   },
   'watch-test-file': {
     env: {WATCH: 'true'},
     nodeEnv: 'staging',
     nodePathDesktop: true,
-    shell: 'node test.js',
+    shell: `${nodeCmd} test.js`,
     help: 'test code',
   },
   'test': {
     env: {},
     nodeEnv: 'staging',
     nodePathDesktop: true,
-    shell: 'node test.js',
+    shell: `${nodeCmd} test.js`,
     help: 'test code',
   },
   'build-prod': {
@@ -102,17 +105,36 @@ const commands = {
     shell: 'webpack --config webpack.config.production.js --progress --profile --colors',
     help: 'Make a production build of the js code',
   },
-  'package': {
-    nodeEnv: 'production',
-    nodePathDesktop: true,
-    shell: 'node package.js',
-    help: 'Package up the production js code',
-  },
-  'hot-server': {
+  'build-main-thread': {
     env: {HOT: 'true'},
     nodeEnv: 'development',
     nodePathDesktop: true,
-    shell: 'webpack-dashboard -- node server.js',
+    shell: 'webpack --config webpack.config.main-thread-only.js --progress --profile --colors',
+    help: 'Bundle the code that the main node thread uses',
+  },
+  'build-wpdll': {
+    nodeEnv: 'development',
+    nodePathDesktop: true,
+    shell: 'webpack --config webpack.config.dll-build.js --progress',
+    help: 'Make a production build of the js code',
+  },
+  'build-profile': {
+    nodeEnv: 'development',
+    nodePathDesktop: true,
+    shell: 'webpack --config webpack.config.development.js --progress --profile --json > /tmp/stats.json',
+    help: 'Make a production build of the js code',
+  },
+  'package': {
+    nodeEnv: 'production',
+    nodePathDesktop: true,
+    shell: `${nodeCmd} package.js`,
+    help: 'Package up the production js code',
+  },
+  'hot-server': {
+    env: {HOT: 'true', USING_DLL: 'true'},
+    nodeEnv: 'development',
+    nodePathDesktop: true,
+    shell: `webpack-dashboard -- ${nodeCmd} server.js`,
     help: 'Start the webpack hot reloading code server (needed by npm run start-hot)',
   },
   'inject-sourcemaps-prod': {
@@ -177,6 +199,7 @@ function postInstall () {
 function setupDebugMain () {
   let electronVer = null
   try {
+    // $FlowIssue we catch this error
     electronVer = childProcess.execSync('npm list --dev electron-prebuilt', {encoding: 'utf8'}).match(/electron-prebuilt@([0-9.]+)/)[1]
     console.log(`Found electron-prebuilt version: ${electronVer}`)
   } catch (err) {
@@ -186,8 +209,8 @@ function setupDebugMain () {
 
   exec('npm install node-inspector')
   exec('npm install git+https://git@github.com/enlight/node-pre-gyp.git#detect-electron-runtime-in-find')
-  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer} --runtime=electron --fallback-to-build --directory node_modules/v8-debug/ --dist-url=https://atom.io/download/atom-shell reinstall`)
-  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer} --runtime=electron --fallback-to-build --directory node_modules/v8-profiler/ --dist-url=https://atom.io/download/atom-shell reinstall`)
+  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer || ''} --runtime=electron --fallback-to-build --directory node_modules/v8-debug/ --dist-url=https://atom.io/download/atom-shell reinstall`)
+  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer || ''} --runtime=electron --fallback-to-build --directory node_modules/v8-profiler/ --dist-url=https://atom.io/download/atom-shell reinstall`)
 }
 
 function fixupSymlinks () {
@@ -205,7 +228,7 @@ function fixupSymlinks () {
 }
 
 // Edit this function to filter down the store in the undiff log
-function storeFilter (store) {
+function storeFilter (store: any) {
   // Example
   // try {
     // return {mike: store.tracker.trackers.mike}
@@ -217,7 +240,7 @@ function storeFilter (store) {
 }
 
 // Edit this function to filter down actions, return null to filter out entirely
-function actionFilter (action) {
+function actionFilter (action: any) {
   // Example
   // if (action.type.startsWith('gregor')) {
     // return null
@@ -256,11 +279,11 @@ function undiff () {
   }
 
   const buildStore = part => {
-    if (part.hasOwnProperty('action')) {
+    if (part && part.hasOwnProperty('action')) {
       return part
     }
 
-    part.diff.forEach(diff => {
+    part && part.diff && part.diff.forEach(diff => {
       try {
         deepdiff.applyChange(store, store, diff)
       } catch (err) {
@@ -271,7 +294,7 @@ function undiff () {
   }
 
   const filterStore = part => {
-    if (part.hasOwnProperty('action')) {
+    if (part && part.hasOwnProperty('action')) {
       return part
     }
 
@@ -279,7 +302,8 @@ function undiff () {
   }
 
   const filterActions = part => {
-    if (part.hasOwnProperty('action')) {
+    if (part && part.hasOwnProperty('action')) {
+      // $FlowIssue
       const action = actionFilter(part.action)
       if (action) return {action}
       return null
@@ -361,7 +385,7 @@ const iconMeta_ = {
 ${
   // eslint really doesn't understand embedded backticks
 /* eslint-disable */
-Object.keys(icons).map(name => {
+Object.keys(icons).sort().map(name => {
     const icon = icons[name]
     const meta = [`isFont: ${icon.isFont},`]
     if (icon.gridSize) {
@@ -397,6 +421,7 @@ function exec (command, env, options) {
     env = process.env
   }
 
+  // $FlowIssue
   console.log(execSync(command, {env: env, stdio: 'inherit', encoding: 'utf8', ...options}))
 }
 

@@ -1,3 +1,4 @@
+// @flow
 /* eslint-disable no-native-reassign, no-global-assign */
 
 // __DEV__

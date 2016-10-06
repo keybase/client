@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import * as Constants from '../constants/config'
 import type {BootStatus} from '../constants/config'
 import * as CommonConstants from '../constants/common'
@@ -8,6 +7,10 @@ import type {Action} from '../constants/types/flux'
 import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
 
 export type ConfigState = {
+  globalError: ?{
+    summary: ?string,
+    details: ?string,
+  },
   status: ?GetCurrentStatusRes,
   config: ?Config,
   extendedConfig: ?ExtendedStatus,
@@ -23,6 +26,10 @@ export type ConfigState = {
 }
 
 const initialState: ConfigState = {
+  globalError: {
+    summary: null,
+    details: null,
+  },
   status: null,
   config: null,
   extendedConfig: null,
@@ -121,6 +128,24 @@ export default function (state: ConfigState = initialState, action: Action): Con
       return {
         ...state,
         followers: action.payload.followers,
+      }
+    }
+    case Constants.globalErrorDismiss: {
+      return {
+        ...state,
+        globalError: {
+          summary: null,
+          details: null,
+        },
+      }
+    }
+    case Constants.globalError: {
+      return {
+        ...state,
+        globalError: {
+          summary: action.payload.summary,
+          details: action.payload.details,
+        },
       }
     }
 

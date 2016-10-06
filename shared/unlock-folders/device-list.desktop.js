@@ -8,7 +8,7 @@ import type {Device} from '../constants/unlock-folders'
 
 export type Props = {
   devices: ?Array<Device>,
-  toPaperKeyInput: () => void
+  toPaperKeyInput: () => void,
 }
 
 class DeviceRow extends Component<void, {device: Device}, void> {

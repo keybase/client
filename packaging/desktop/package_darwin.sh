@@ -36,6 +36,8 @@ updater_version=`$updater_binpath -version`
 
 icon_path="$client_dir/media/icons/Keybase.icns"
 
+skip_update_json=${SKIP_UPDATE_JSON:-}
+
 echo "Loading release tool"
 "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$GOPATH/bin/release"
@@ -243,7 +245,7 @@ kbsign() {(
 
 update_json() {(
   cd "$out_dir"
-  if [ -n "$s3host" ]; then
+  if [ -n "$s3host" ] && [ ! "$skip_update_json" = "1"]; then
     echo "Generating $update_json_name"
     "$release_bin" update-json --version="$app_version" --src="$zip_name" \
       --uri="$s3host/$platform-updates" --signature="$out_dir/$sig_name" --description="$client_dir/desktop/CHANGELOG.txt" > "$update_json_name"

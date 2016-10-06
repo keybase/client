@@ -1,3 +1,4 @@
+// @flow
 const webpack = require('webpack')
 const path = require('path')
 const getenv = require('getenv')

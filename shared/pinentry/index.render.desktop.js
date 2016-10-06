@@ -10,7 +10,7 @@ import type {Props, DefaultProps} from './index.render'
 type State = {
   features: {[key: string]: boolean},
   passphrase: string,
-  showTyping: boolean
+  showTyping: boolean,
 }
 
 export default class PinentryRender extends Component<DefaultProps, Props, State> {

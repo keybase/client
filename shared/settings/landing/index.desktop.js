@@ -7,7 +7,8 @@ import {Stars} from '../common.desktop.js'
 import SubHeading from '../subheading'
 
 import type {Props, AccountProps, PlanProps} from './index'
-import type {PlanLevel, PaymentInfo as PaymentInfoType} from '../../constants/settings'
+import type {PlanLevel} from '../../constants/settings'
+import type {PaymentInfo as PaymentInfoType} from '../../constants/plan-billing'
 
 const ROW_HEIGHT = 48
 
@@ -28,7 +29,7 @@ type PlanLevelProps = {
   style?: Object,
   level: PlanLevel,
   onInfo: () => void,
-    variants: PlanActionVariantsProps
+    variants: PlanActionVariantsProps,
 }
 
 function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, onDowngrade: (l: PlanLevel) => void, onUpgrade: (l: PlanLevel) => void, freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean): PlanActionVariantsProps {
