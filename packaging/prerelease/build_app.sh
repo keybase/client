@@ -86,6 +86,8 @@ if [ -n "$kbfs_commit" ]; then
   function reset_kbfs {
     (cd "$kbfs_dir" && git checkout $kbfs_branch)
   }
+  # FIXME: Jack points out that this trap will stomp on the previous one.
+  # We should have one trap function that looks at variables.
   trap reset_kbfs EXIT
   echo "Checking out $kbfs_commit on kbfs"
   git checkout "$kbfs_commit"
@@ -128,7 +130,7 @@ for i in {1..$number_of_builds}; do
 
   skip_update_json=""
   if [ "$i" = "2" ]; then
-    skip_update_json = "1"
+    skip_update_json="1"
   fi
 
   if [ "$platform" = "darwin" ]; then
@@ -142,9 +144,9 @@ for i in {1..$number_of_builds}; do
   fi
 
   if [ "$i" = "1" ]; then
-    buildA = version
+    buildA=$version
   elif [ "$i" = "2" ]; then
-    buildB = version
+    buildB=$version
   fi
 
   BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
