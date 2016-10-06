@@ -168,8 +168,8 @@ protocol local {
 
 
   // topicName in GetInboxLocalQuery is ignored
-  GetInboxNoUnboxLocalRes getInboxNoUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
-  record GetInboxNoUnboxLocalRes {
+  GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
+  record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;
     union { null, Pagination } pagination;
     array<RateLimit> rateLimits;

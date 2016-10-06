@@ -146,7 +146,7 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 		return c.errReply(err)
 	}
 
-	inbox, err := client.GetInboxNoUnboxLocal(ctx, chat1.GetInboxNoUnboxLocalArg{})
+	inbox, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{})
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -223,21 +223,21 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	if opts.ConversationID == 0 {
 		// resolve conversation id
 		query := c.getInboxLocalQuery(opts.ConversationID, opts.Channel)
-		gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+		gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
 			Query: &query,
 		})
 		if err != nil {
 			return c.errReply(err)
 		}
 		rlimits = append(rlimits, gilres.RateLimits...)
-		existing := gilres.Conversations
+		existing := gilres.ConversationsUnverified
 		if len(existing) > 1 {
 			return c.errReply(fmt.Errorf("multiple conversations matched %q", opts.Channel.Name))
 		}
 		if len(existing) == 0 {
 			return c.errReply(fmt.Errorf("no conversations matched %q", opts.Channel.Name))
 		}
-		opts.ConversationID = existing[0].Info.Id
+		opts.ConversationID = existing[0].Metadata.ConversationID
 	}
 
 	arg := chat1.GetThreadLocalArg{
@@ -364,7 +364,7 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 	}
 
 	// find the conversation
-	gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
+	gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
 		Query: &arg.convQuery,
 	})
 	if err != nil {
@@ -372,8 +372,11 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 	}
 	rlimits = append(rlimits, gilres.RateLimits...)
 
-	var conversation chat1.ConversationInfoLocal
-	existing := gilres.Conversations
+	var (
+		convTriple chat1.ConversationIDTriple
+		convID     chat1.ConversationID
+	)
+	existing := gilres.ConversationsUnverified
 	switch len(existing) {
 	case 0:
 		ncres, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
@@ -386,20 +389,20 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 			return c.errReply(err)
 		}
 		rlimits = append(rlimits, ncres.RateLimits...)
-		conversation = ncres.Conv.Info
+		convTriple, convID = ncres.Conv.Info.Triple, ncres.Conv.Info.Id
 	case 1:
-		conversation = existing[0].Info
+		convTriple, convID = existing[0].Metadata.IdTriple, existing[0].Metadata.ConversationID
 	default:
 		return c.errReply(fmt.Errorf("multiple conversations matched"))
 	}
 
 	postArg := chat1.PostLocalArg{
-		ConversationID: conversation.Id,
+		ConversationID: convID,
 		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
-				Conv:        conversation.Triple,
-				TlfName:     conversation.TlfName,
-				TlfPublic:   conversation.Visibility == chat1.TLFVisibility_PUBLIC,
+				Conv:        convTriple,
+				TlfName:     *arg.convQuery.TlfName,
+				TlfPublic:   *arg.convQuery.TlfVisibility == chat1.TLFVisibility_PUBLIC,
 				MessageType: arg.mtype,
 				Supersedes:  arg.supersedes,
 			},

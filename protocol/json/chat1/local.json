@@ -467,7 +467,7 @@
     },
     {
       "type": "record",
-      "name": "GetInboxNoUnboxLocalRes",
+      "name": "GetInboxLocalRes",
       "fields": [
         {
           "type": {
@@ -754,7 +754,7 @@
       ],
       "response": "GetThreadLocalRes"
     },
-    "getInboxNoUnboxLocal": {
+    "getInboxLocal": {
       "request": [
         {
           "name": "query",
@@ -771,7 +771,7 @@
           ]
         }
       ],
-      "response": "GetInboxNoUnboxLocalRes"
+      "response": "GetInboxLocalRes"
     },
     "getInboxAndUnboxLocal": {
       "request": [

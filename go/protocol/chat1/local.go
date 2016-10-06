@@ -416,7 +416,7 @@ type GetThreadLocalRes struct {
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 }
 
-type GetInboxNoUnboxLocalRes struct {
+type GetInboxLocalRes struct {
 	ConversationsUnverified []Conversation `codec:"conversationsUnverified" json:"conversationsUnverified"`
 	Pagination              *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	RateLimits              []RateLimit    `codec:"rateLimits" json:"rateLimits"`
@@ -485,7 +485,7 @@ type GetThreadLocalArg struct {
 	Pagination     *Pagination     `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
-type GetInboxNoUnboxLocalArg struct {
+type GetInboxLocalArg struct {
 	Query      *GetInboxLocalQuery `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
@@ -517,7 +517,7 @@ type GetConversationForCLILocalArg struct {
 
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
-	GetInboxNoUnboxLocal(context.Context, GetInboxNoUnboxLocalArg) (GetInboxNoUnboxLocalRes, error)
+	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
@@ -545,18 +545,18 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getInboxNoUnboxLocal": {
+			"getInboxLocal": {
 				MakeArg: func() interface{} {
-					ret := make([]GetInboxNoUnboxLocalArg, 1)
+					ret := make([]GetInboxLocalArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetInboxNoUnboxLocalArg)
+					typedArgs, ok := args.(*[]GetInboxLocalArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetInboxNoUnboxLocalArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetInboxLocalArg)(nil), args)
 						return
 					}
-					ret, err = i.GetInboxNoUnboxLocal(ctx, (*typedArgs)[0])
+					ret, err = i.GetInboxLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -654,8 +654,8 @@ func (c LocalClient) GetThreadLocal(ctx context.Context, __arg GetThreadLocalArg
 	return
 }
 
-func (c LocalClient) GetInboxNoUnboxLocal(ctx context.Context, __arg GetInboxNoUnboxLocalArg) (res GetInboxNoUnboxLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getInboxNoUnboxLocal", []interface{}{__arg}, &res)
+func (c LocalClient) GetInboxLocal(ctx context.Context, __arg GetInboxLocalArg) (res GetInboxLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getInboxLocal", []interface{}{__arg}, &res)
 	return
 }
 

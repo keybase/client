@@ -140,23 +140,23 @@ func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquer
 	return rquery, nil
 }
 
-func (h *chatLocalHandler) GetInboxNoUnboxLocal(ctx context.Context, arg chat1.GetInboxNoUnboxLocalArg) (inbox chat1.GetInboxNoUnboxLocalRes, err error) {
+func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInboxLocalArg) (inbox chat1.GetInboxLocalRes, err error) {
 	if err := h.assertLoggedIn(ctx); err != nil {
-		return chat1.GetInboxNoUnboxLocalRes{}, err
+		return chat1.GetInboxLocalRes{}, err
 	}
 
 	rquery, err := h.getInboxQueryLocalToRemote(ctx, arg.Query)
 	if err != nil {
-		return chat1.GetInboxNoUnboxLocalRes{}, err
+		return chat1.GetInboxLocalRes{}, err
 	}
 	ib, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query:      rquery,
 		Pagination: arg.Pagination,
 	})
 	if err != nil {
-		return chat1.GetInboxNoUnboxLocalRes{}, err
+		return chat1.GetInboxLocalRes{}, err
 	}
-	return chat1.GetInboxNoUnboxLocalRes{
+	return chat1.GetInboxLocalRes{
 		ConversationsUnverified: ib.Inbox.Conversations,
 		Pagination:              ib.Inbox.Pagination,
 		RateLimits:              h.aggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
