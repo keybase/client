@@ -15,6 +15,7 @@ bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
 platform=${PLATFORM:-} # darwin,linux,windows (Only darwin is supported in this script)
 nos3=${NOS3:-} # Don't sync to S3
 nowait=${NOWAIT:-} # Don't wait for CI
+smoke_test=${SMOKE_TEST:-} # If set to 1, enable smoke testing
 build_desc="build"
 
 if [ "$gopath" = "" ]; then
@@ -103,7 +104,8 @@ if [ ! "$nowait" = "1" ]; then
 fi
 
 number_of_builds=1
-if [ -n "$SMOKE_TEST" ]; then
+if [ "$smoke_test" = "1" ]; then
+  echo "Enabling smoke testing"
   number_of_builds=2
 fi
 
