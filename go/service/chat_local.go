@@ -576,7 +576,6 @@ func (h *chatLocalHandler) getSenderInfoLocal(uimap *chat.UserInfoMapper, messag
 	}
 }
 
-// GetMessagesLocal implements keybase.chatLocal.GetMessagesLocal protocol.
 func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg chat1.GetConversationForCLILocalQuery) (res chat1.GetConversationForCLILocalRes, err error) {
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetConversationForCLILocalRes{}, err
@@ -628,6 +627,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	}
 	rlimits = append(rlimits, tv.RateLimits...)
 
+	// apply message count limits
 	var messages []chat1.MessageFromServerOrError
 	for _, m := range tv.Thread.Messages {
 		messages = append(messages, m)
