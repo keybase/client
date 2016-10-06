@@ -1,7 +1,6 @@
 'use strict' // eslint-disable-line
 
-function rpcChannelMap (name, callbackType, innerParamType, responseType) {
-  return `export function ${name}RpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>): ChannelMap<*> {
+const channelMapPrelude = `function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (incomingCallMap: any, callback: Function) => void): ChannelMap<*> {
   const channelMap = createChannelMap(channelConfig)
   const incomingCallMap = Object.keys(channelMap).reduce((acc, k) => {
     acc[k] = (params, response) => {
@@ -13,12 +12,14 @@ function rpcChannelMap (name, callbackType, innerParamType, responseType) {
     channelMap['finished'] && putOnChannelMap(channelMap, 'finished', {error})
     closeChannelMap(channelMap)
   }
-  ${name}Rpc({
-    ...request,
-    incomingCallMap,
-    callback,
-  })
+  partialRpcCall(incomingCallMap, callback)
   return channelMap
+}
+`
+
+function rpcChannelMap (name, callbackType, innerParamType, responseType) {
+  return `export function ${name}RpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => ${name}Rpc({...request, incomingCallMap, callback}))
 }`
 }
 
@@ -29,6 +30,7 @@ function rpcPromiseGen (name, callbackType, innerParamType, responseType) {
 }
 
 module.exports = {
+  channelMapPrelude,
   rpcPromiseGen,
   rpcChannelMap,
 }

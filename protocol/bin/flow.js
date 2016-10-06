@@ -372,6 +372,6 @@ type CommonResponseHandler = {
 
   const incomingMap = `export type incomingCallMapType = Exact<{\n` +
   Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',\n') + '\n}>\n'
-  const toWrite = [typePrelude, typeDefs.join('\n\n'), incomingMap].join('\n')
+  const toWrite = [typePrelude, codeGenerators.channelMapPrelude, typeDefs.join('\n\n'), incomingMap].join('\n')
   fs.writeFileSync(project.out, toWrite)
 }
