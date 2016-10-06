@@ -65,19 +65,19 @@ func ctlStart(g *libkb.GlobalContext, components map[string]bool) error {
 	g.Log.Debug("Components: %v", components)
 	errs := []error{}
 	if ok := components[install.ComponentNameService.String()]; ok {
-		if err := install.InstallService(g, "", false, g.Log); err != nil {
+		if err := install.InstallService(g, "", false, defaultLaunchdWait, g.Log); err != nil {
 			errs = append(errs, err)
 			g.Log.Errorf("%s", err)
 		}
 	}
 	if ok := components[install.ComponentNameKBFS.String()]; ok {
-		if err := install.InstallKBFS(g, "", false, g.Log); err != nil {
+		if err := install.InstallKBFS(g, "", false, defaultLaunchdWait, g.Log); err != nil {
 			errs = append(errs, err)
 			g.Log.Errorf("%s", err)
 		}
 	}
 	if ok := components[install.ComponentNameUpdater.String()]; ok {
-		if err := install.InstallUpdater(g, "", false, g.Log); err != nil {
+		if err := install.InstallUpdater(g, "", false, defaultLaunchdWait, g.Log); err != nil {
 			errs = append(errs, err)
 			g.Log.Errorf("%s", err)
 		}

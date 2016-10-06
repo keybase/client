@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 )
@@ -50,7 +51,7 @@ func autostartFilePath(context Context) string {
 }
 
 // AutoInstall installs auto start on unix
-func AutoInstall(context Context, _ string, _ bool, log Log) ( /* newProc */ bool, error) {
+func AutoInstall(context Context, _ string, _ bool, timeout time.Duration, log Log) ( /* newProc */ bool, error) {
 	// If the desktop file already exists and has been disabled by the user, short circuit.
 	if file, err := os.Open(autostartFilePath(context)); err == nil {
 		defer file.Close()
