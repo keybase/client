@@ -15,6 +15,8 @@ class PaperKeyRender extends Component<void, Props, void> {
           <Text type='Header' style={stylesHeader}>Type in your paper key:</Text>
           <Icon type='icon-paper-key-48' style={stylesIcon} />
           <Input
+            multiline={true}
+            rows={2}
             autoCorrect={true}
             autoFocus={true}
             style={stylesInput}
