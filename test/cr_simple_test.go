@@ -1085,6 +1085,35 @@ func TestCrUnmergedBothRmfile(t *testing.T) {
 	)
 }
 
+// bob moves a file, and then deletes its parents.
+func TestCrUnmergedMoveAndDelete(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			write("a/b/c/d", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("foo", "bar"),
+		),
+		as(bob, noSync(),
+			rename("a/b/c/d", "a/b/c/e"),
+			rm("a/b/c/e"),
+			rmdir("a/b/c"),
+			rmdir("a/b"),
+			reenableUpdates(),
+			lsdir("a/", m{}),
+			read("foo", "bar"),
+		),
+		as(alice,
+			lsdir("a/", m{}),
+			read("foo", "bar"),
+		),
+	)
+}
+
 // bob exclusively creates a file while on an unmerged branch.
 func TestCrCreateFileExclOnStaged(t *testing.T) {
 	test(t,
