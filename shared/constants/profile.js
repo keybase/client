@@ -74,6 +74,15 @@ export type OnClickAvatar = NoErrorTypedAction<'profile:onClickAvatar', {usernam
 export const submitRevokeProof = 'profile:submitRevokeProof'
 export type SubmitRevokeProof = NoErrorTypedAction<'profile:submitRevokeProof', {proofId: string}>
 
+export const onUserClick = 'profile:onUserClick'
+export type OnUserClick = NoErrorTypedAction<'profile:onUserClick', {username: string, uid: string}>
+
+export const finishRevoking = 'profile:finishRevoking'
+export type FinishRevoking = NoErrorTypedAction<'profile:finishRevoking', void>
+
+export const editProfile = 'profile:editProfile'
+export type EditProfile = NoErrorTypedAction<'profile:editProfile', {bio: string, fullname: string, location: string}>
+
 export const maxProfileBioChars = 256
 
 export type Actions = Waiting

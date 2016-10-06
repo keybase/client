@@ -4,7 +4,7 @@ import flags from '../../util/feature-flags'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, checkSpecificProof} from './proofs'
-import {apiserverPostRpc, revokeRevokeSigsRpcPromise} from '../../constants/types/flow-types'
+import {apiserverPostRpcPromise, revokeRevokeSigsRpcPromise} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
 import {navigateUp, routeAppend, switchTab} from '../../actions/router'
@@ -12,103 +12,74 @@ import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
 import {takeEvery} from 'redux-saga'
 
-import type {AsyncAction} from '../../constants/types/flux'
+import type {BackToProfile, EditProfile, FinishRevokeProof, FinishRevoking, OnClickAvatar, OnClickFollowers, OnClickFollowing, OnUserClick, OutputInstructionsActionLink, State, SubmitRevokeProof, UpdateUsername, WaitingRevokeProof} from '../../constants/profile'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
-import type {UpdateUsername, WaitingRevokeProof, FinishRevokeProof, BackToProfile, OutputInstructionsActionLink, State, OnClickFollowing, OnClickFollowers, OnClickAvatar, SubmitRevokeProof} from '../../constants/profile'
 
-function editProfile (bio: string, fullname: string, location: string): AsyncAction {
-  return (dispatch) => {
-    dispatch({
-      type: Constants.editingProfile,
-      payload: {bio, fullname, location},
-    })
+function editProfile (bio: string, fullname: string, location: string): EditProfile {
+  return {type: Constants.editProfile, payload: {bio, fullname, location}}
+}
 
-    apiserverPostRpc({
+function * _editProfile (action: EditProfile): SagaGenerator<any, any> {
+  try {
+    yield put({type: Constants.editingProfile, payload: action.payload})
+    yield call(apiserverPostRpcPromise, {
       param: {
         endpoint: 'profile-edit',
         args: [
-          {key: 'bio', value: bio},
-          {key: 'full_name', value: fullname},
-          {key: 'location', value: location},
+          {key: 'bio', value: action.payload.bio},
+          {key: 'full_name', value: action.payload.fullname},
+          {key: 'location', value: action.payload.location},
         ],
       },
-      incomingCallMap: {},
-      callback: (error, status) => {
-        // Flow is weird here, we have to give it true or false directly
-        // instead of just giving it !!error
-        if (error) {
-          dispatch({
-            type: Constants.editedProfile,
-            payload: error,
-            error: true,
-          })
-        } else {
-          dispatch({
-            type: Constants.editedProfile,
-            payload: null,
-            error: false,
-          })
-          dispatch(navigateUp())
-        }
-      },
     })
+
+    yield put({type: Constants.editedProfile, payload: null})
+    yield put(navigateUp())
+  } catch (error) {
+    yield put({type: Constants.editedProfile, payload: error, error: true})
   }
 }
 
 function updateUsername (username: string): UpdateUsername {
-  return {
-    type: Constants.updateUsername,
-    payload: {username},
-  }
+  return {type: Constants.updateUsername, payload: {username}}
 }
 
 function _revokedWaitingForResponse (waiting: boolean): WaitingRevokeProof {
-  return {
-    type: Constants.waitingRevokeProof,
-    payload: {waiting},
-  }
+  return {type: Constants.waitingRevokeProof, payload: {waiting}}
 }
 
 function _revokedErrorResponse (error: string): FinishRevokeProof {
-  return {
-    type: Constants.finishRevokeProof,
-    payload: {error},
-    error: true,
-  }
+  return {type: Constants.finishRevokeProof, payload: {error}, error: true}
 }
 
 function _revokedFinishResponse (): FinishRevokeProof {
-  return {
-    type: Constants.finishRevokeProof,
-    payload: undefined,
-    error: false,
-  }
+  return {type: Constants.finishRevokeProof, payload: undefined}
 }
 
-function finishRevoking (): AsyncAction {
-  return (dispatch) => {
-    dispatch(getMyProfile(true))
-    dispatch(_revokedFinishResponse())
-    dispatch(navigateUp())
-  }
+function finishRevoking (): FinishRevoking {
+  return {type: Constants.finishRevoking, payload: undefined}
 }
 
-function onUserClick (username: string, uid: string): AsyncAction {
-  return dispatch => {
-    dispatch(routeAppend({path: 'profile', userOverride: {username, uid}}, profileTab))
-    dispatch(switchTab(profileTab))
-  }
+function * _finishRevoking (): SagaGenerator<any, any> {
+  yield put(getMyProfile(true))
+  yield put(_revokedFinishResponse())
+  yield put(navigateUp())
+}
+
+function onUserClick (username: string, uid: string): OnUserClick {
+  return {type: Constants.onUserClick, payload: {username, uid}}
+}
+
+function * _onUserClick (action: OnUserClick): SagaGenerator<any, any> {
+  yield put(routeAppend({path: 'profile', userOverride: action.payload}, profileTab))
+  yield put(switchTab(profileTab))
 }
 
 function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): OnClickAvatar {
   return {
     type: Constants.onClickAvatar,
-    payload: {
-      username,
-      uid,
-      openWebsite,
-    },
+    payload: {username, uid, openWebsite},
   }
 }
 
@@ -152,11 +123,7 @@ function * _onClickFollowers (action: OnClickFollowers): SagaGenerator<any, any>
 function onClickFollowing (username: ?string, uid: string, openWebsite?: boolean): OnClickFollowing {
   return {
     type: Constants.onClickFollowing,
-    payload: {
-      username,
-      uid,
-      openWebsite,
-    },
+    payload: {username, uid, openWebsite},
   }
 }
 
@@ -239,10 +206,13 @@ function * _backToProfile (): SagaGenerator<any, any> {
 function * _profileSaga (): SagaGenerator<any, any> {
   yield [
     takeEvery(Constants.backToProfile, _backToProfile),
-    takeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink),
-    takeEvery(Constants.onClickFollowing, _onClickFollowing),
-    takeEvery(Constants.onClickFollowers, _onClickFollowers),
+    takeEvery(Constants.editProfile, _editProfile),
+    takeEvery(Constants.finishRevoking, _finishRevoking),
     takeEvery(Constants.onClickAvatar, _onClickAvatar),
+    takeEvery(Constants.onClickFollowers, _onClickFollowers),
+    takeEvery(Constants.onClickFollowing, _onClickFollowing),
+    takeEvery(Constants.onUserClick, _onUserClick),
+    takeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink),
     takeEvery(Constants.submitRevokeProof, _submitRevokeProof),
   ]
 }
