@@ -13,7 +13,7 @@ class PaperKeyRender extends Component<void, Props, void> {
           style={stylesContainer}
           onBack={this.props.onBack}>
           <Text type='Header' style={stylesHeader}>Type in your paper key:</Text>
-          <Icon type='icon-paper-key-48' style={stylesIcon} />
+          <Icon type='icon-paper-key-48' />
           <Input
             multiline={true}
             rows={3}
@@ -46,24 +46,20 @@ const stylesBox = {
   padding: 10,
 }
 
+const stylesButton = {
+  marginTop: globalMargins.tiny,
+}
+
 const stylesContainer = {
   alignItems: 'center',
 }
 
-const stylesButton = {
-  marginBottom: globalMargins.medium,
+const stylesHeader = {
+  marginTop: globalMargins.small,
 }
 
 const stylesInput = {
   alignSelf: 'stretch',
-}
-
-const stylesIcon = {
-  marginTop: globalMargins.small,
-}
-
-const stylesHeader = {
-  marginTop: globalMargins.small,
 }
 
 export default PaperKeyRender
