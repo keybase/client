@@ -140,6 +140,7 @@ func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquer
 	return rquery, nil
 }
 
+// GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
 func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInboxLocalArg) (inbox chat1.GetInboxLocalRes, err error) {
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetInboxLocalRes{}, err
@@ -163,7 +164,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 	}, nil
 }
 
-// GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
+// GetInboxAndUnboxLocal implements keybase.chatLocal.getInboxAndUnboxLocal protocol.
 func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAndUnboxLocalArg) (inbox chat1.GetInboxAndUnboxLocalRes, err error) {
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
