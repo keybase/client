@@ -237,4 +237,11 @@ protocol local {
     array<MessageFromServerOrError> messages;
     array<RateLimit> rateLimits;
   }
+
+  // Get messages by ID.
+  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs);
+  record GetMessagesLocalRes {
+    array<MessageFromServerOrError> messages;
+    array<RateLimit> rateLimits;
+  }
 }

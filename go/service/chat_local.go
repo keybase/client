@@ -650,6 +650,37 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	}, nil
 }
 
+func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLocalArg) (res chat1.GetMessagesLocalRes, err error) {
+	deflt := chat1.GetMessagesLocalRes{}
+
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return deflt, err
+	}
+	rarg := chat1.GetMessagesRemoteArg{
+		ConversationID: arg.ConversationID,
+		MessageIDs:     arg.MessageIDs,
+	}
+	boxed, err := h.remoteClient().GetMessagesRemote(ctx, rarg)
+	if err != nil {
+		return deflt, err
+	}
+
+	messages, err := h.unboxMessages(ctx, boxed.Msgs)
+	if err != nil {
+		return deflt, err
+	}
+
+	var rlimits []chat1.RateLimit
+	if boxed.RateLimit != nil {
+		rlimits = append(rlimits, *boxed.RateLimit)
+	}
+
+	return chat1.GetMessagesLocalRes{
+		Messages:   messages,
+		RateLimits: h.aggRateLimits(rlimits),
+	}, nil
+}
+
 func (h *chatLocalHandler) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, error) {
 	uid := h.G().Env.GetUID()
 	if uid.IsNil() {
