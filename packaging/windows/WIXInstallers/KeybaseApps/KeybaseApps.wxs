@@ -32,8 +32,9 @@
       <Custom Action="StopUpdater" Before="InstallValidate"/>
       <Custom Action="StopGUI" Before="InstallValidate"/>
       <Custom Action="StopMainApp" Before="InstallValidate"/>
-      <Custom Action="RunMainApp" Before="InstallFinalize">NOT RESTART_PENDING AND NOT (REMOVE ~= "ALL")</Custom>
-      <Custom Action="RunGUI" Before="InstallFinalize">NOT RESTART_PENDING AND NOT (REMOVE ~= "ALL")</Custom>
+      <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+      <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+      
     </InstallExecuteSequence>
 
 

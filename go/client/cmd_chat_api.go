@@ -210,12 +210,13 @@ type MsgContent struct {
 }
 
 type MsgSummary struct {
-	ID       chat1.MessageID `json:"id"`
-	Channel  ChatChannel     `json:"channel"`
-	Sender   MsgSender       `json:"sender"`
-	SentAt   int64           `json:"sent_at"`
-	SentAtMs int64           `json:"sent_at_ms"`
-	Content  MsgContent      `json:"content"`
+	ID       chat1.MessageID                `json:"id"`
+	Channel  ChatChannel                    `json:"channel"`
+	Sender   MsgSender                      `json:"sender"`
+	SentAt   int64                          `json:"sent_at"`
+	SentAtMs int64                          `json:"sent_at_ms"`
+	Content  MsgContent                     `json:"content"`
+	Prev     []chat1.MessagePreviousPointer `json:"prev"`
 }
 
 type MsgFromServer struct {
@@ -289,6 +290,11 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 					// skip TLFNAME messages
 					continue
 				}
+				prev := v1.ClientHeader.Prev
+				// Avoid having null show up in the output JSON.
+				if prev == nil {
+					prev = []chat1.MessagePreviousPointer{}
+				}
 				msg := MsgSummary{
 					ID: m.Message.ServerHeader.MessageID,
 					Channel: ChatChannel{
@@ -302,6 +308,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 					},
 					SentAt:   m.Message.ServerHeader.Ctime.UnixSeconds(),
 					SentAtMs: m.Message.ServerHeader.Ctime.UnixMilliseconds(),
+					Prev:     prev,
 				}
 				msg.Content = c.convertMsgBody(v1.MessageBody)
 

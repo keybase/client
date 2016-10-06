@@ -11,7 +11,6 @@ class PgpAdd extends Component<void, Props, void> {
     const emailInputProps = {
       style: styleEmailInput,
       autoCapitalize: 'none',
-      autoCorrect: false,
     }
     return (
       <NativeKeyboardAvoidingView behavior='position'>

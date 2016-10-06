@@ -67,7 +67,6 @@ class Input extends Component<void, Props, State> {
     const isIOS = Platform.OS_IOS === OS
     const isShowingFloatingLabel = this.state.text.length > 0
     const password = this.props.type === 'password'
-    const passwordVisible = this.props.type === 'passwordVisible'
     const autoGrow = this.props.autoGrow
       ? {onContentSizeChange: (event) => this._onContentSizeChange(event)}
       : {}
@@ -89,7 +88,7 @@ class Input extends Component<void, Props, State> {
           }}
           keyboardType={this.props.keyboardType}
           ref={component => { this._textInput = component }}
-          autoCorrect={!(password || passwordVisible)}
+          autoCorrect={this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect}
           defaultValue={this.props.value}
           secureTextEntry={password}
           autoFocus={this.props.autoFocus}
