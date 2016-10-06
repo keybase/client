@@ -19,7 +19,7 @@ RUN apt-get install -y fakeroot reprepro rpm createrepo git wget build-essential
 RUN pip install s3cmd
 
 # Install a recent version of Node.
-RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
 RUN apt-get update
 RUN apt-get install -y nodejs
 RUN npm install -g npm
