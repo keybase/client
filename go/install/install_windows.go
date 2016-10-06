@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
@@ -22,7 +23,7 @@ import (
 )
 
 // AutoInstall is not supported on Windows
-func AutoInstall(context Context, binPath string, force bool, log Log) (newProc bool, err error) {
+func AutoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (newProc bool, err error) {
 	return false, fmt.Errorf("Auto install not supported for this build or platform")
 }
 
