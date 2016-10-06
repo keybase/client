@@ -6,10 +6,11 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 	"runtime/debug"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // PassphraseGeneration represents which generation of the passphrase is
@@ -316,9 +317,8 @@ func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (pps *PassphraseStre
 			stream.SetGeneration(lks.Generation())
 			s.G().Log.Debug("| got passphrase stream from secret store")
 			return stream, nil
-		} else {
-			s.G().Log.Debug("| failed to get passphrase stream from secret store: %s", err)
 		}
+		s.G().Log.Debug("| failed to get passphrase stream from secret store: %s", err)
 	}
 
 	// 3. login and get it
