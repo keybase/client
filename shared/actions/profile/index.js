@@ -4,7 +4,7 @@ import flags from '../../util/feature-flags'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
 import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, checkSpecificProof} from './proofs'
-import {apiserverPostRpc, revokeRevokeSigsRpc} from '../../constants/types/flow-types'
+import {apiserverPostRpc, revokeRevokeSigsRpcPromise} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
 import {navigateUp, routeAppend, switchTab} from '../../actions/router'
@@ -12,10 +12,10 @@ import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
 import {takeEvery} from 'redux-saga'
 
-import type {Dispatch, AsyncAction} from '../../constants/types/flux'
+import type {AsyncAction} from '../../constants/types/flux'
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {TypedState}  from '../../constants/reducer'
-import type {UpdateUsername, WaitingRevokeProof, FinishRevokeProof, BackToProfile, OutputInstructionsActionLink, State, OnClickFollowing, OnClickFollowers, OnClickAvatar} from '../../constants/profile'
+import type {TypedState} from '../../constants/reducer'
+import type {UpdateUsername, WaitingRevokeProof, FinishRevokeProof, BackToProfile, OutputInstructionsActionLink, State, OnClickFollowing, OnClickFollowers, OnClickAvatar, SubmitRevokeProof} from '../../constants/profile'
 
 function editProfile (bio: string, fullname: string, location: string): AsyncAction {
   return (dispatch) => {
@@ -75,12 +75,6 @@ function _revokedErrorResponse (error: string): FinishRevokeProof {
     type: Constants.finishRevokeProof,
     payload: {error},
     error: true,
-  }
-}
-
-function _makeRevokeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
-  return {
-    waitingHandler: (waiting: boolean) => { dispatch(_revokedWaitingForResponse(waiting)) },
   }
 }
 
@@ -179,23 +173,21 @@ function * _onClickFollowing (action: OnClickFollowing): SagaGenerator<any, any>
   }
 }
 
-function submitRevokeProof (proofId: string): AsyncAction {
-  return (dispatch) => {
-    revokeRevokeSigsRpc({
-      ..._makeRevokeWaitingHandler(dispatch),
-      param: {
-        sigIDQueries: [proofId],
-      },
-      incomingCallMap: { },
-      callback: error => {
-        if (error) {
-          console.warn(`Error when revoking proof ${proofId}`, error)
-          dispatch(_revokedErrorResponse('There was an error revoking your proof. You can click the button to try again.'))
-        } else {
-          dispatch(finishRevoking())
-        }
-      },
-    })
+function submitRevokeProof (proofId: string): SubmitRevokeProof {
+  return {type: Constants.submitRevokeProof, payload: {proofId}}
+}
+
+function * _submitRevokeProof (action: SubmitRevokeProof): SagaGenerator<any, any> {
+  try {
+    yield put(_revokedWaitingForResponse(true))
+    yield call(revokeRevokeSigsRpcPromise, {param: {sigIDQueries: [action.payload.proofId]}})
+    yield put(_revokedWaitingForResponse(false))
+
+    yield put(finishRevoking())
+  } catch (error) {
+    console.warn(`Error when revoking proof ${action.payload.proofId}`, error)
+    yield put(_revokedWaitingForResponse(false))
+    yield put(_revokedErrorResponse('There was an error revoking your proof. You can click the button to try again.'))
   }
 }
 
@@ -251,6 +243,7 @@ function * _profileSaga (): SagaGenerator<any, any> {
     takeEvery(Constants.onClickFollowing, _onClickFollowing),
     takeEvery(Constants.onClickFollowers, _onClickFollowers),
     takeEvery(Constants.onClickAvatar, _onClickAvatar),
+    takeEvery(Constants.submitRevokeProof, _submitRevokeProof),
   ]
 }
 

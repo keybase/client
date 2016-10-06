@@ -71,6 +71,9 @@ export type OnClickFollowers = NoErrorTypedAction<'profile:onClickFollowers', {u
 export const onClickAvatar = 'profile:onClickAvatar'
 export type OnClickAvatar = NoErrorTypedAction<'profile:onClickAvatar', {username: ?string, uid: string, openWebsite: ?boolean}>
 
+export const submitRevokeProof = 'profile:submitRevokeProof'
+export type SubmitRevokeProof = NoErrorTypedAction<'profile:submitRevokeProof', {proofId: string}>
+
 export const maxProfileBioChars = 256
 
 export type Actions = Waiting
