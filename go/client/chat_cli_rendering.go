@@ -1,12 +1,13 @@
 package client
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/flexibletable"
 	"github.com/keybase/client/go/libkb"
