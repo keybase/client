@@ -138,7 +138,6 @@ class Render extends Component<void, Props, any> {
             style={inputStyle}
             onChange={filter => this._onFilterChange(filter.toLowerCase())}
             hintText=''
-            autoCorrect={false}
             autoCapitalize='none'
             value={this.state.localFilter} />
           <Button type='Primary' style={stylesButton} label='-' onClick={() => { this._incremement(false) }} />
@@ -150,7 +149,6 @@ class Render extends Component<void, Props, any> {
               dumbIndex: parseInt(filter, 10) || 0,
             })}
             hintText=''
-            autoCorrect={false}
             autoCapitalize='none'
           />
           <Button type='Primary' style={stylesButton} label='+' onClick={() => { this._incremement(true) }} />

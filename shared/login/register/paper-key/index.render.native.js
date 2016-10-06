@@ -15,6 +15,7 @@ class PaperKeyRender extends Component<void, Props, void> {
           <Text type='Header' style={stylesHeader}>Type in your paper key:</Text>
           <Icon type='icon-paper-key-48' style={stylesIcon} />
           <Input
+            autoCorrect={true}
             autoFocus={true}
             style={stylesInput}
             floatingLabelText='Paper key'
