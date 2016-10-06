@@ -104,6 +104,8 @@ if [ ! "$nowait" = "1" ]; then
 fi
 
 number_of_builds=1
+buildA=""
+buildB=""
 if [ "$smoke_test" = "1" ]; then
   echo "Enabling smoke testing"
   number_of_builds=2
