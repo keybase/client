@@ -272,7 +272,7 @@ type messageView struct {
 	AuthorAndTimeWithDeviceName string
 	Body                        string
 
-	// Used internally for superseeders
+	// Used internally for supersedeers
 	messageType chat1.MessageType
 }
 
@@ -290,7 +290,7 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 
 	mv.MessageID = m.Message.ServerHeader.MessageID
 
-	// Check what message superseeds this one.
+	// Check what message supersedes this one.
 	var mvsup *messageView
 	supersededBy := m.Message.ServerHeader.SupersededBy
 	if supersededBy != 0 {
@@ -337,7 +337,7 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 				case chat1.MessageType_DELETE:
 					mv.Body = deletedTextCLI
 				default:
-					// Some unknown superseeder type
+					// Some unknown supersedeer type
 				}
 			}
 		case chat1.MessageType_TEXT:
@@ -351,7 +351,7 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 					// This is unlikely because deleted messages are usually NONE
 					mv.Body = deletedTextCLI
 				default:
-					// Some unknown superseeder type
+					// Some unknown supersedeer type
 				}
 			}
 		case chat1.MessageType_ATTACHMENT:
@@ -365,7 +365,7 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 				case chat1.MessageType_DELETE:
 					mv.Body = deletedTextCLI
 				default:
-					// Some unknown superseeder type
+					// Some unknown supersedeer type
 				}
 			}
 		case chat1.MessageType_EDIT:
