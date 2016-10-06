@@ -46,20 +46,20 @@ const stylesBox = {
   padding: 10,
 }
 
-const stylesButton = {
-  marginTop: globalMargins.tiny,
-}
-
 const stylesContainer = {
   alignItems: 'center',
 }
 
-const stylesHeader = {
-  marginTop: globalMargins.small,
+const stylesButton = {
+  marginTop: globalMargins.tiny,
 }
 
 const stylesInput = {
   alignSelf: 'stretch',
+}
+
+const stylesHeader = {
+  marginTop: globalMargins.small,
 }
 
 export default PaperKeyRender
