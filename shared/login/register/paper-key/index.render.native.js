@@ -16,7 +16,7 @@ class PaperKeyRender extends Component<void, Props, void> {
           <Icon type='icon-paper-key-48' style={stylesIcon} />
           <Input
             multiline={true}
-            rows={2}
+            rows={3}
             autoCorrect={true}
             autoFocus={true}
             style={stylesInput}
@@ -52,16 +52,17 @@ const stylesContainer = {
 
 const stylesButton = {
   marginTop: globalMargins.medium,
-  marginBottom: 20,
+  marginBottom: globalMargins.medium,
 }
 
 const stylesInput = {
   alignSelf: 'stretch',
-  height: 80,
+  height: 64,
+  marginBottom: globalMargins.large,
 }
 
 const stylesIcon = {
-  marginTop: 30,
+  marginTop: globalMargins.small,
 }
 
 const stylesHeader = {
