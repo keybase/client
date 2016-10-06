@@ -155,7 +155,7 @@ done
 if [ "$istest" = "" ]; then
   if [ "$number_of_builds" = "2" ]; then
     echo "Made: $buildA and $buildB."
-    BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-new-build-to-server --build-a="$buildA" --build-b="$buildB" --platform="darwin"
+    BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-build --build-a="$buildA" --build-b="$buildB" --platform="darwin"
   fi
 
   BUCKET_NAME="$bucket_name" "$dir/report.sh"
