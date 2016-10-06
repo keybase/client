@@ -332,7 +332,7 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 			},
 		}
 	}
-	return h.prepareMessageForRemote(ctx, chat1.NewMessagePlaintextWithV1(v1))
+	return h.prepareMessageForRemote(ctx, chat1.NewMessagePlaintextWithV1(v1), nil)
 }
 
 func (h *chatLocalHandler) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation) ([]chat1.ConversationLocal, error) {
@@ -691,10 +691,53 @@ func (h *chatLocalHandler) addSenderToMessage(msg chat1.MessagePlaintext) (chat1
 
 }
 
-func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintext chat1.MessagePlaintext) (*chat1.MessageBoxed, error) {
+func (h *chatLocalHandler) addPrevPointersToMessage(msg chat1.MessagePlaintext, convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
+	// Make sure the caller hasn't already assembled this list. For now, this
+	// should never happen, and we'll return an error just in case we make a
+	// mistake in the future. But if there's some use case in the future where
+	// a caller wants to specify custom prevs, we can relax this.
+	if len(msg.V1().ClientHeader.Prev) != 0 {
+		return chat1.MessagePlaintext{}, fmt.Errorf("chatLocalHandler expects an empty prev list")
+	}
+
+	// Currently we do a very inefficient fetch here. Eventually we will do
+	// this using the local cache.
+	arg := chat1.GetThreadLocalArg{
+		ConversationID: convID,
+	}
+	res, err := h.GetThreadLocal(context.TODO(), arg)
+	if err != nil {
+		return chat1.MessagePlaintext{}, err
+	}
+
+	prevs, err := chat.CheckPrevPointersAndGetUnpreved(&res.Thread)
+	if err != nil {
+		return chat1.MessagePlaintext{}, err
+	}
+
+	// Make an attempt to avoid changing anything in the input message. There
+	// are a lot of shared pointers though, so this is
+	header := msg.V1().ClientHeader
+	header.Prev = prevs
+	updated := chat1.MessagePlaintextV1{
+		ClientHeader: header,
+		MessageBody:  msg.V1().MessageBody,
+	}
+	return chat1.NewMessagePlaintextWithV1(updated), nil
+}
+
+func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
 	msg, err := h.addSenderToMessage(plaintext)
 	if err != nil {
 		return nil, err
+	}
+
+	// convID will be nil in makeFirstMessage, for example
+	if convID != nil {
+		msg, err = h.addPrevPointersToMessage(msg, *convID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// encrypt the message
@@ -717,7 +760,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.PostLocalRes{}, err
 	}
-	boxed, err := h.prepareMessageForRemote(ctx, arg.MessagePlaintext)
+	boxed, err := h.prepareMessageForRemote(ctx, arg.MessagePlaintext, &arg.ConversationID)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}

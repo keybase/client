@@ -12,7 +12,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -94,17 +93,11 @@ func (c *cmdChatSend) Run() (err error) {
 	var args chat1.PostLocalArg
 	args.ConversationID = conversationInfo.Id
 
-	prev, err := getPrevPointers(chatClient, conversationInfo.Id)
-	if err != nil {
-		return err
-	}
-
 	var msgV1 chat1.MessagePlaintextV1
 	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
 	msgV1.ClientHeader.Conv = conversationInfo.Triple
 	msgV1.ClientHeader.TlfName = conversationInfo.TlfName
 	msgV1.ClientHeader.MessageType = chat1.MessageType_TEXT
-	msgV1.ClientHeader.Prev = prev
 	msgV1.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{Body: c.message})
 
 	args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
@@ -118,14 +111,6 @@ func (c *cmdChatSend) Run() (err error) {
 			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet. Ignoring --set-topic-name >.<")
 		}
 		msgV1.ClientHeader.MessageType = chat1.MessageType_METADATA
-		// Recompute the prev pointers again from scratch. Right now this is
-		// hilariously expensive, but in the future when everything is from
-		// cache it might be a reasonable thing to do?
-		prev, err := getPrevPointers(chatClient, conversationInfo.Id)
-		if err != nil {
-			return err
-		}
-		msgV1.ClientHeader.Prev = prev
 		msgV1.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
 		args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
 		if _, err := chatClient.PostLocal(ctx, args); err != nil {
@@ -134,22 +119,6 @@ func (c *cmdChatSend) Run() (err error) {
 	}
 
 	return nil
-}
-
-// We need to fetch the set of messages that have not yet been pointed to by
-// anything else.
-// TODO: All of this should happen in the cache instead of doing any fetching.
-func getPrevPointers(client chat1.LocalClient, convID chat1.ConversationID) ([]chat1.MessagePreviousPointer, error) {
-	// For now, fetch essentially all messages (10k by default).
-	arg := chat1.GetThreadLocalArg{
-		ConversationID: convID,
-	}
-	res, err := client.GetThreadLocal(context.TODO(), arg)
-	if err != nil {
-		return nil, err
-	}
-
-	return chat.CheckPrevPointersAndGetUnpreved(&res.Thread)
 }
 
 func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
