@@ -82,12 +82,20 @@ export function localGetConversationForCLILocalRpcPromise (request: $Exact<reque
   return new Promise((resolve, reject) => { localGetConversationForCLILocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function localGetInboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxLocalResult) => void} & {param: localGetInboxLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.getInboxLocal'})
+export function localGetInboxAndUnboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxAndUnboxLocalResult) => void} & {param: localGetInboxAndUnboxLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'local.getInboxAndUnboxLocal'})
 }
 
-export function localGetInboxLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxLocalResult) => void} & {param: localGetInboxLocalRpcParam}>): Promise<localGetInboxLocalResult> {
-  return new Promise((resolve, reject) => { localGetInboxLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+export function localGetInboxAndUnboxLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxAndUnboxLocalResult) => void} & {param: localGetInboxAndUnboxLocalRpcParam}>): Promise<localGetInboxAndUnboxLocalResult> {
+  return new Promise((resolve, reject) => { localGetInboxAndUnboxLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function localGetInboxNoUnboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxNoUnboxLocalResult) => void} & {param: localGetInboxNoUnboxLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'local.getInboxNoUnboxLocal'})
+}
+
+export function localGetInboxNoUnboxLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxNoUnboxLocalResult) => void} & {param: localGetInboxNoUnboxLocalRpcParam}>): Promise<localGetInboxNoUnboxLocalResult> {
+  return new Promise((resolve, reject) => { localGetInboxNoUnboxLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function localGetInboxSummaryForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxSummaryForCLILocalResult) => void} & {param: localGetInboxSummaryForCLILocalRpcParam}>) {
@@ -268,6 +276,12 @@ export type GetConversationMetadataRemoteRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type GetInboxAndUnboxLocalRes = {
+  conversations?: ?Array<ConversationLocal>,
+  pagination?: ?Pagination,
+  rateLimits?: ?Array<RateLimit>,
+}
+
 export type GetInboxByTLFIDRemoteRes = {
   convs?: ?Array<Conversation>,
   rateLimit?: ?RateLimit,
@@ -286,8 +300,8 @@ export type GetInboxLocalQuery = {
   readOnly: boolean,
 }
 
-export type GetInboxLocalRes = {
-  conversations?: ?Array<ConversationLocal>,
+export type GetInboxNoUnboxLocalRes = {
+  conversationsUnverified?: ?Array<Conversation>,
   pagination?: ?Pagination,
   rateLimits?: ?Array<RateLimit>,
 }
@@ -560,7 +574,12 @@ export type localGetConversationForCLILocalRpcParam = Exact<{
   query: GetConversationForCLILocalQuery
 }>
 
-export type localGetInboxLocalRpcParam = Exact<{
+export type localGetInboxAndUnboxLocalRpcParam = Exact<{
+  query?: ?GetInboxLocalQuery,
+  pagination?: ?Pagination
+}>
+
+export type localGetInboxNoUnboxLocalRpcParam = Exact<{
   query?: ?GetInboxLocalQuery,
   pagination?: ?Pagination
 }>
@@ -628,7 +647,9 @@ export type remoteTlfFinalizeRpcParam = Exact<{
 
 type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
 
-type localGetInboxLocalResult = GetInboxLocalRes
+type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
+
+type localGetInboxNoUnboxLocalResult = GetInboxNoUnboxLocalRes
 
 type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
 
@@ -654,7 +675,8 @@ type remotePostRemoteResult = PostRemoteRes
 
 export type rpc =
     localGetConversationForCLILocalRpc
-  | localGetInboxLocalRpc
+  | localGetInboxAndUnboxLocalRpc
+  | localGetInboxNoUnboxLocalRpc
   | localGetInboxSummaryForCLILocalRpc
   | localGetThreadLocalRpc
   | localNewConversationLocalRpc

@@ -467,6 +467,33 @@
     },
     {
       "type": "record",
+      "name": "GetInboxNoUnboxLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Conversation"
+          },
+          "name": "conversationsUnverified"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetInboxLocalQuery",
       "fields": [
         {
@@ -537,7 +564,7 @@
     },
     {
       "type": "record",
-      "name": "GetInboxLocalRes",
+      "name": "GetInboxAndUnboxLocalRes",
       "fields": [
         {
           "type": {
@@ -727,7 +754,7 @@
       ],
       "response": "GetThreadLocalRes"
     },
-    "getInboxLocal": {
+    "getInboxNoUnboxLocal": {
       "request": [
         {
           "name": "query",
@@ -744,7 +771,26 @@
           ]
         }
       ],
-      "response": "GetInboxLocalRes"
+      "response": "GetInboxNoUnboxLocalRes"
+    },
+    "getInboxAndUnboxLocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        }
+      ],
+      "response": "GetInboxAndUnboxLocalRes"
     },
     "postLocal": {
       "request": [

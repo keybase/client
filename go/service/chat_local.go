@@ -140,24 +140,47 @@ func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquer
 	return rquery, nil
 }
 
-// GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
-func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInboxLocalArg) (inbox chat1.GetInboxLocalRes, err error) {
+func (h *chatLocalHandler) GetInboxNoUnboxLocal(ctx context.Context, arg chat1.GetInboxNoUnboxLocalArg) (inbox chat1.GetInboxNoUnboxLocalRes, err error) {
 	if err := h.assertLoggedIn(ctx); err != nil {
-		return chat1.GetInboxLocalRes{}, err
+		return chat1.GetInboxNoUnboxLocalRes{}, err
 	}
 
 	rquery, err := h.getInboxQueryLocalToRemote(ctx, arg.Query)
 	if err != nil {
-		return chat1.GetInboxLocalRes{}, err
+		return chat1.GetInboxNoUnboxLocalRes{}, err
 	}
 	ib, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query:      rquery,
 		Pagination: arg.Pagination,
 	})
 	if err != nil {
-		return chat1.GetInboxLocalRes{}, err
+		return chat1.GetInboxNoUnboxLocalRes{}, err
 	}
-	inbox = chat1.GetInboxLocalRes{
+	return chat1.GetInboxNoUnboxLocalRes{
+		ConversationsUnverified: ib.Inbox.Conversations,
+		Pagination:              ib.Inbox.Pagination,
+		RateLimits:              h.aggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
+	}, nil
+}
+
+// GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
+func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAndUnboxLocalArg) (inbox chat1.GetInboxAndUnboxLocalRes, err error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return chat1.GetInboxAndUnboxLocalRes{}, err
+	}
+
+	rquery, err := h.getInboxQueryLocalToRemote(ctx, arg.Query)
+	if err != nil {
+		return chat1.GetInboxAndUnboxLocalRes{}, err
+	}
+	ib, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query:      rquery,
+		Pagination: arg.Pagination,
+	})
+	if err != nil {
+		return chat1.GetInboxAndUnboxLocalRes{}, err
+	}
+	inbox = chat1.GetInboxAndUnboxLocalRes{
 		Pagination: arg.Pagination,
 		RateLimits: h.aggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 	}
@@ -165,17 +188,17 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 	ctx, _ = chat.GetUserInfoMapper(ctx, h.G())
 	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Conversations)
 	if err != nil {
-		return chat1.GetInboxLocalRes{}, err
+		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}
 	for _, convLocal := range convLocals {
 		if rquery != nil && rquery.TlfID != nil {
 			// verify using signed TlfName to make sure server returned genuine conversation
 			signedTlfID, _, err := h.cryptKeysWrapper(ctx, convLocal.Info.TlfName)
 			if err != nil {
-				return chat1.GetInboxLocalRes{}, err
+				return chat1.GetInboxAndUnboxLocalRes{}, err
 			}
 			if !signedTlfID.Eq(*rquery.TlfID) {
-				return chat1.GetInboxLocalRes{}, errors.New("server returned conversations for different TLF than query")
+				return chat1.GetInboxAndUnboxLocalRes{}, errors.New("server returned conversations for different TLF than query")
 			}
 		}
 
@@ -273,7 +296,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 
 		// create succeeded; grabbing the conversation and returning
 
-		gilres, err := h.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+		gilres, err := h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 			Query: &chat1.GetInboxLocalQuery{
 				ConvID: &convID,
 			},
@@ -421,14 +444,14 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		queryBase.TlfVisibility = &arg.Visibility
 	}
 
-	var gires chat1.GetInboxLocalRes
+	var gires chat1.GetInboxAndUnboxLocalRes
 	if arg.UnreadFirst {
 		if arg.UnreadFirstLimit.AtMost <= 0 {
 			arg.UnreadFirstLimit.AtMost = int(^uint(0) >> 1) // maximum int
 		}
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = true, false
-		if gires, err = h.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 			Pagination: &chat1.Pagination{Num: arg.UnreadFirstLimit.AtMost},
 			Query:      &query,
 		}); err != nil {
@@ -445,7 +468,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		if more > 0 {
 			query := queryBase
 			query.UnreadOnly, query.ReadOnly = false, true
-			if gires, err = h.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+			if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 				Pagination: &chat1.Pagination{Num: more},
 				Query:      &query,
 			}); err != nil {
@@ -460,7 +483,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		}
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = false, false
-		if gires, err = h.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 			Pagination: &chat1.Pagination{Num: arg.ActivitySortedLimit},
 			Query:      &query,
 		}); err != nil {
@@ -579,7 +602,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 		arg.Limit.AtMost = int(^uint(0) >> 1) // maximum int
 	}
 
-	ibres, err := h.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+	ibres, err := h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			ConvID: &arg.ConversationId,
 		},

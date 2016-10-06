@@ -154,7 +154,6 @@ protocol local {
     array<MessageFromServerOrError> maxMessages;
   }
 
-
   GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
   record GetThreadQuery {
     boolean markAsRead;
@@ -168,7 +167,15 @@ protocol local {
   }
 
 
-  GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
+  // topicName in GetInboxLocalQuery is ignored
+  GetInboxNoUnboxLocalRes getInboxNoUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
+  record GetInboxNoUnboxLocalRes {
+    array<Conversation> conversationsUnverified;
+    union { null, Pagination } pagination;
+    array<RateLimit> rateLimits;
+  }
+
+  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
   record GetInboxLocalQuery {
     union { null, string } tlfName;
     union { null, string } topicName;
@@ -182,7 +189,7 @@ protocol local {
     boolean unreadOnly;
     boolean readOnly;
   }
-  record GetInboxLocalRes {
+  record GetInboxAndUnboxLocalRes {
     array<ConversationLocal> conversations;
     union { null, Pagination } pagination;
     array<RateLimit> rateLimits;

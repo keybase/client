@@ -146,46 +146,30 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 		return c.errReply(err)
 	}
 
-	inbox, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{})
+	inbox, err := client.GetInboxNoUnboxLocal(ctx, chat1.GetInboxNoUnboxLocalArg{})
 	if err != nil {
 		return c.errReply(err)
 	}
 	rlimits = append(rlimits, inbox.RateLimits...)
 
 	var cl ChatList
-	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
-	for i, conv := range inbox.Conversations {
-		found := false
-		for _, msg := range conv.MaxMessages {
-			if msg.Message != nil {
-				var v1 chat1.MessagePlaintextV1
-				version, err := msg.Message.MessagePlaintext.Version()
-				if err != nil {
-					return c.errReply(err)
-				}
-				switch version {
-				case chat1.MessagePlaintextVersion_V1:
-					v1 = msg.Message.MessagePlaintext.V1()
-				default:
-					return c.errReply(libkb.NewChatMessageVersionError(version))
-				}
-
-				tlf := v1.ClientHeader.TlfName
-				pub := v1.ClientHeader.TlfPublic
+	cl.Conversations = make([]ConvSummary, len(inbox.ConversationsUnverified))
+	for i, conv := range inbox.ConversationsUnverified {
+		maxID := chat1.MessageID(0)
+		for _, msg := range conv.MaxMsgs {
+			if msg.ServerHeader.MessageID > maxID {
+				tlf := msg.ClientHeader.TlfName
+				pub := msg.ClientHeader.TlfPublic
 				cl.Conversations[i] = ConvSummary{
-					ID: conv.Info.Id,
+					ID: conv.Metadata.ConversationID,
 					Channel: ChatChannel{
 						Name:      tlf,
 						Public:    pub,
-						TopicType: strings.ToLower(conv.Info.Triple.TopicType.String()),
+						TopicType: strings.ToLower(conv.Metadata.IdTriple.TopicType.String()),
 					},
 				}
-				found = true
-				break
+				maxID = msg.ServerHeader.MessageID
 			}
-		}
-		if !found {
-			return c.errReply(fmt.Errorf("conversation %d had no valid max msg", conv.Info.Id))
 		}
 	}
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
@@ -239,7 +223,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	if opts.ConversationID == 0 {
 		// resolve conversation id
 		query := c.getInboxLocalQuery(opts.ConversationID, opts.Channel)
-		gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+		gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 			Query: &query,
 		})
 		if err != nil {
@@ -380,7 +364,7 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 	}
 
 	// find the conversation
-	gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+	gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &arg.convQuery,
 	})
 	if err != nil {

@@ -30,7 +30,7 @@ func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.Glob
 		r.TlfName = string(cname)
 	}
 
-	gilres, err := chatClient.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+	gilres, err := chatClient.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			TlfName:       &r.TlfName,
 			TopicName:     &r.TopicName,
