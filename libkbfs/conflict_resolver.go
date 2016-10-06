@@ -1298,7 +1298,7 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 			// existed in both branches.
 			if !unmergedChains.isCreated(info.originalNewParent) {
 				// There should definitely be a merged path for this
-				// parent, since it has a create operation.
+				// parent, since it doesn't have a create operation.
 				return nil, fmt.Errorf("fixRenameConflicts: couldn't find "+
 					"merged path for %v", parent)
 			}
