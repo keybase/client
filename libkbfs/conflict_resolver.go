@@ -1266,6 +1266,10 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 	var removeRenames []BlockPointer
 	var doubleRenames []BlockPointer // merged most recent ptrs
 	for ptr, info := range unmergedChains.renamedOriginals {
+		if unmergedChains.isDeleted(ptr) {
+			continue
+		}
+
 		// Also, we need to get the merged paths for anything that was
 		// renamed in both branches, if they are different.
 		if mergedInfo, ok := mergedChains.renamedOriginals[ptr]; ok &&
@@ -2722,7 +2726,7 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 	}
 
 	// Subtract bytes for every unref'd block that wasn't created in
-	// the unmerged branch
+	// the unmerged branch.
 	for ptr := range unrefs {
 		original, ok := unmergedChains.originals[ptr]
 		if !ok {
@@ -2734,12 +2738,15 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 			// were created as part of the merged branch.
 			continue
 		}
-		// Also make sure this wasn't already removed on the merged branch.
+		// Also make sure this wasn't already removed or overwritten
+		// on the merged branch.
 		original, ok = mergedChains.originals[ptr]
 		if !ok {
 			original = ptr
 		}
-		if mergedChains.isDeleted(original) {
+		mergedChain, ok := mergedChains.byOriginal[original]
+		if (ok && original != mergedChain.mostRecent && original == ptr) ||
+			mergedChains.isDeleted(original) {
 			continue
 		}
 
