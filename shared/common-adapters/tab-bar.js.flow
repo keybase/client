@@ -42,7 +42,6 @@ export type TabBarButtonProps = Exact<{
   styleIcon?: Object,
   styleBadgeNumber?: Object,
   styleLabel?: Object,
-  styleLabelType?: ?TextType
 }>
 
 export class TabBarButton extends Component<void, TabBarButtonProps, void> { }

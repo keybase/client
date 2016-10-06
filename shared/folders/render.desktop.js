@@ -23,7 +23,8 @@ class Render extends Component<void, Props, void> {
       style={{
         ...styleItem,
         borderBottom: `solid 2px ${isSelected ? selectedColor : 'transparent'}`,
-        paddingLeft: 0,
+        paddingLeft: 20,
+        paddingRight: 4,
       }}
       styleBadge={styleBadge}
       styleIcon={{...styleIcon, ...iconStyle}}
@@ -53,9 +54,10 @@ class Render extends Component<void, Props, void> {
       onClick: this.props.onClick,
     }
 
+    let styleTabBar = this.props.smallMode ? tabBarSmallStyle : tabBarStyle
     return (
       <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue3 : globalColors.lightGrey, paddingTop: 0, minHeight: 32}}>
-        <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, minHeight: this.props.smallMode ? 32 : 64, paddingTop: this.props.smallMode ? 0 : 32}}>
+        <TabBar styleTabBar={{...styleTabBar, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
           {
             [false, true].map(isPublic => (
               <TabBarItem
@@ -119,6 +121,11 @@ const itemContainerStyle = {
 }
 
 const tabBarStyle = {
+  ...globalStyles.flexBoxRow,
+  minHeight: 48,
+}
+
+const tabBarSmallStyle = {
   ...globalStyles.flexBoxRow,
   minHeight: 32,
   flexShrink: 1,
