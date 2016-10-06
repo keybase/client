@@ -841,7 +841,7 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 }
 
 func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
-	config Config, mdOps journalMDOps, blocks *folderBlockOps) (
+	config Config, mdOps journalMDOps, cpp chainsPathPopulator) (
 	TLFJournalStatus, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
@@ -875,7 +875,7 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 		if err != nil {
 			return TLFJournalStatus{}, err
 		}
-		_, err = chains.getPaths(ctx, blocks, j.log, blocks.nodeCache, true)
+		err = cpp.populateChainPaths(ctx, j.log, chains, true)
 		if err != nil {
 			return TLFJournalStatus{}, err
 		}

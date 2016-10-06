@@ -510,7 +510,7 @@ func (j *JournalServer) JournalStatus(tlfID TlfID) (
 // given TLF suitable for diagnostics, including paths for all the
 // unflushed entries.
 func (j *JournalServer) JournalStatusWithPaths(ctx context.Context, tlfID TlfID,
-	blocks *folderBlockOps) (
+	cpp chainsPathPopulator) (
 	TLFJournalStatus, error) {
 	tlfJournal, ok := j.getTLFJournal(tlfID)
 	if !ok {
@@ -519,7 +519,7 @@ func (j *JournalServer) JournalStatusWithPaths(ctx context.Context, tlfID TlfID,
 	}
 
 	return tlfJournal.getJournalStatusWithPaths(ctx, j.config, j.mdOps(),
-		blocks)
+		cpp)
 }
 
 // shutdownExistingJournalsLocked shuts down all write journals, sets
