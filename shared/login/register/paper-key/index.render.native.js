@@ -51,14 +51,11 @@ const stylesContainer = {
 }
 
 const stylesButton = {
-  marginTop: globalMargins.medium,
   marginBottom: globalMargins.medium,
 }
 
 const stylesInput = {
   alignSelf: 'stretch',
-  height: 64,
-  marginBottom: globalMargins.large,
 }
 
 const stylesIcon = {
