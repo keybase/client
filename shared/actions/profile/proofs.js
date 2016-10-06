@@ -1,16 +1,33 @@
 // @flow
 import * as Constants from '../../constants/profile'
-import engine from '../../engine'
-import {BTCRegisterBTCRpc, ConstantsStatusCode, ProveCommonProofStatus, proveCheckProofRpc, proveStartProofRpc} from '../../constants/types/flow-types'
+import engine, {Engine} from '../../engine'
+import {BTCRegisterBTCRpcPromise, proveStartProofRpcPromise, ConstantsStatusCode, ProveCommonProofStatus, proveCheckProofRpcPromise} from '../../constants/types/flow-types'
+import {call, put, select} from 'redux-saga/effects'
 import {navigateUp, navigateTo, routeAppend} from '../../actions/router'
 import {profileTab} from '../../constants/tabs'
+import {takeEvery} from 'redux-saga'
 
+import type {SagaGenerator, ChannelConfig, ChannelMap} from '../../constants/types/saga'
 import type {Dispatch, AsyncAction} from '../../constants/types/flux'
 import type {PlatformsExpandedType, ProvablePlatformsType} from '../../constants/types/more'
 import type {SigID} from '../../constants/types/flow-types'
-import type {UpdatePlatform, Waiting, UpdateProofText, UpdateErrorText, UpdateProofStatus, UpdateSigID, CleanupUsername} from '../../constants/profile'
+import type {
+  CancelAddProof,
+  CleanupUsername,
+  SubmitBTCAddress,
+  UpdateErrorText,
+  UpdatePlatform,
+  UpdateProofStatus,
+  UpdateProofText,
+  UpdateSigID,
+  Waiting,
+AddServiceProof,
+} from '../../constants/profile'
+import type {SagaGenerator} from '../../constants/types/saga'
+import type {TypedState} from '../../constants/reducer'
 
 // Soon to be saga-ed away. We bookkeep the respsonse object in the incomingCallMap so we can call it in our actions
+// TODO kill this
 let _promptUsernameResponse: ?Object = null
 let _outputInstructionsResponse: ?Object = null
 
@@ -167,118 +184,156 @@ function _registerBTC (): AsyncAction {
   }
 }
 
-function _addServiceProof (service: ProvablePlatformsType): AsyncAction {
-  return (dispatch) => {
-    proveStartProofRpc({
-      ..._makeWaitingHandler(dispatch),
-      param: {
-        service,
-        username: '',
-        force: true,
-        promptPosted: false,
-        auto: false,
-      },
-      incomingCallMap: {
-        'keybase.1.proveUi.promptUsername': ({prompt, prevError}, response) => {
-          _promptUsernameResponse = response
-          if (prevError) {
-            dispatch(_updateErrorText(prevError.desc, prevError.code))
-          }
-          dispatch(navigateTo([{path: 'ProveEnterUsername'}], profileTab))
-        },
-        'keybase.1.proveUi.outputInstructions': ({instructions, proof}, response) => {
-          if (service === 'dnsOrGenericWebSite') { // We don't get this directly (yet) so we parse this out
-            try {
-              const match = instructions.data.match(/<url>(http[s]+):\/\//)
-              const protocol = match && match[1]
-              _updatePlatform(protocol === 'https' ? 'https' : 'http')
-            } catch (_) {
-              _updatePlatform('http')
-            }
-          }
+function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any, any> {
+  // TODO // ..._makeWaitingHandler(dispatch),
+  //
+  const channelConfig = singleFixedChannelConfig([
+    'keybase.1.proveUi.promptUsername',
+    'keybase.1.proveUi.outputInstructions',
+    'keybase.1.proveUi.promptOverwrite',
+    'keybase.1.proveUi.outputPrechecks',
+    'keybase.1.proveUi.preProofWarning',
+    'keybase.1.proveUi.okToCheck',
+    'keybase.1.proveUi.displayRecheckWarning',
+  ])
 
-          dispatch(_updateProofText(proof))
-          _outputInstructionsResponse = response
-          dispatch(navigateTo([{path: 'PostProof'}], profileTab))
-        },
-        'keybase.1.proveUi.promptOverwrite': (_, response) => { response.result(true) },
-        'keybase.1.proveUi.outputPrechecks': (_, response) => { response.result() },
-        'keybase.1.proveUi.preProofWarning': (_, response) => { response.result(true) },
-        'keybase.1.proveUi.okToCheck': (_, response) => { response.result(true) },
-        'keybase.1.proveUi.displayRecheckWarning': (_, response) => { response.result() },
+  const proveStartProofChanMap: ChannelMap<any> = createChannelMap(channelConfig)
+  proveStartProofRpc({
+    param: {
+      auto: false,
+      force: true,
+      promptPosted: false,
+      service,
+      username: '',
+    },
+    incomingCallMap: {
+      'keybase.1.proveUi.promptUsername': ({prompt, prevError}, response) => {
+        putOnChannelMap(channelMap, 'keybase.1.proveUi.promptUsername', {params: {prompt, prevError}, response})
+        // _promptUsernameResponse = response
+        // if (prevError) {
+        // dispatch(_updateErrorText(prevError.desc, prevError.code))
+        // }
+        // dispatch(navigateTo([{path: 'ProveEnterUsername'}], profileTab))
       },
-      callback: (error, {sigID}) => {
-        dispatch(_updateSigID(sigID))
+      'keybase.1.proveUi.outputInstructions': ({instructions, proof}, response) => {
+        putOnChannelMap(channelMap, 'keybase.1.proveUi.outputInstructions', {params: {instructions, proof}, response})
+        // if (service === 'dnsOrGenericWebSite') { // We don't get this directly (yet) so we parse this out
+        // try {
+        // const match = instructions.data.match(/<url>(http[s]+):\/\//)
+        // const protocol = match && match[1]
+        // _updatePlatform(protocol === 'https' ? 'https' : 'http')
+        // } catch (_) {
+        // _updatePlatform('http')
+        // }
+        // }
 
-        if (error) {
-          console.warn('Error making proof')
-          dispatch(_updateErrorText(error.desc, error.code))
-        } else {
-          console.log('Start Proof done: ', sigID)
-          dispatch(checkProof())
-        }
+        // dispatch(_updateProofText(proof))
+        // _outputInstructionsResponse = response
+        // dispatch(navigateTo([{path: 'PostProof'}], profileTab))
       },
-    })
+      'keybase.1.proveUi.promptOverwrite': (_, response) => response.result(true),
+      'keybase.1.proveUi.outputPrechecks': (_, response) => response.result(),
+      'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
+      'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
+      'keybase.1.proveUi.displayRecheckWarning': (_, response) => response.result(),
+    },
+    callback: (error) => {
+      putOnChannelMap(channelMap, 'finished', {error})
+      closeChannelMap(channelMap)
+    },
+  })
+
+  try {
+  } catch (error) {
+    closeChannelMap(proveStartProofChanMap)
+    console.log('error in addServiceProof', error)
+  }
+  }
+
+   // takeFromChannelMap(proveStartProofChanMap, 'keybase.1.pgpUi.keyGenerated'),
+
+// success stuff TODO
+    yield put(_updateSigID(sigID))
+    console.log('Start Proof done: ', sigID)
+    yield put(checkProof())
+
+// fail stuff TODO
+  } catch (error) {
+    console.warn('Error making proof')
+    yield put(_updateSigID(sigID))
+    yield put(_updateErrorText(error.desc, error.code))
   }
 }
 
 function _cleanupUsername (): CleanupUsername {
-  return {
-    type: Constants.cleanupUsername,
-    payload: undefined,
+  return {type: Constants.cleanupUsername, payload: undefined}
+}
+
+function submitUsername (): SubmitUsername {
+  return {type: Constants.submitUsername, payload: undefined}
+}
+
+function * _submitUsername (): SagaGenerator<any, any> {
+  yield put(_cleanupUsername())
+  if (_promptUsernameResponse) {
+    yield put(_updateErrorText(null))
+    const username = yield select(state => state.profile.username)
+    _promptUsernameResponse.result(username)
+    _promptUsernameResponse = null
   }
 }
 
-function submitUsername (): AsyncAction {
-  return (dispatch, getState) => {
-    dispatch(_cleanupUsername())
-    if (_promptUsernameResponse) {
-      dispatch(_updateErrorText(null))
-      _promptUsernameResponse.result(getState().profile.username)
-      _promptUsernameResponse = null
-    }
+function cancelAddProof (): CancelAddProof {
+  return {type: Constants.cancelAddProof, payload: undefined}
+}
+
+function * _cancelAddProof (): SagaGenerator<any, any> {
+  const InputCancelError = {desc: 'Cancel Add Proof', code: ConstantsStatusCode.scinputcanceled}
+  yield put(_updateErrorText(null))
+
+  // $ForceType
+  const engineInst: Engine = yield call(engine)
+
+  if (_promptUsernameResponse) {
+    yield call([engineInst, engineInst.cancelRPC], _promptUsernameResponse, InputCancelError)
+    _promptUsernameResponse = null
+  }
+
+  if (_outputInstructionsResponse) {
+    yield call([engineInst, engineInst.cancelRPC], _outputInstructionsResponse, InputCancelError)
+    _outputInstructionsResponse = null
+  }
+
+  yield put(navigateUp())
+}
+
+function submitBTCAddress (): SubmitBTCAddress {
+  return {type: Constants.submitBTCAddress, payload: undefined}
+}
+
+function * _submitBTCAddress (): SagaGenerator<any, any> {
+  yield put(_cleanupUsername())
+  const address = yield select(state => state.profile.username)
+  try {
+    yield put(_waitingForResponse(true))
+    yield call(BTCRegisterBTCRpcPromise, {param: {address, force: true}})
+    yield put(_waitingForResponse(false))
+    yield put(_updateProofStatus(true, ProveCommonProofStatus.ok))
+    yield put(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
+  } catch (error) {
+    console.warn('Error making proof')
+    yield put(_waitingForResponse(false))
+    yield put(_updateErrorText(error.desc, error.code))
   }
 }
 
-function cancelAddProof (): AsyncAction {
-  return (dispatch) => {
-    const InputCancelError = {desc: 'Cancel Add Proof', code: ConstantsStatusCode.scinputcanceled}
+function * proofsSaga (): SagaGenerator<any, any> {
+  yield [
+    takeEvery(Constants.submitBTCAddress, _submitBTCAddress),
+    takeEvery(Constants.cancelAddProof, _cancelAddProof),
+    takeEvery(Constants.submitUsername, _submitUsername),
 
-    dispatch(_updateErrorText(null))
-    if (_promptUsernameResponse) {
-      engine().cancelRPC(_promptUsernameResponse, InputCancelError)
-      _promptUsernameResponse = null
-    }
-
-    if (_outputInstructionsResponse) {
-      engine().cancelRPC(_outputInstructionsResponse, InputCancelError)
-      _outputInstructionsResponse = null
-    }
-
-    dispatch(navigateUp())
-  }
-}
-
-function submitBTCAddress (): AsyncAction {
-  return (dispatch, getState) => {
-    dispatch(_cleanupUsername())
-    BTCRegisterBTCRpc({
-      ..._makeWaitingHandler(dispatch),
-      param: {
-        address: getState().profile.username,
-        force: true,
-      },
-      callback: (error) => {
-        if (error) {
-          console.warn('Error making proof')
-          dispatch(_updateErrorText(error.desc, error.code))
-        } else {
-          dispatch(_updateProofStatus(true, ProveCommonProofStatus.ok))
-          dispatch(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
-        }
-      },
-    })
-  }
+  ]
 }
 
 export {
@@ -288,4 +343,5 @@ export {
   checkSpecificProof,
   submitBTCAddress,
   submitUsername,
+  proofsSaga,
 }

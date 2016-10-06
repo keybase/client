@@ -1,107 +1,95 @@
 // @flow
-import type {PlatformsExpandedType} from '../constants/types/more'
-import type {TypedAction, NoErrorTypedAction} from '../constants/types/flux'
-import type {ProofStatus, SigID, KID} from '../constants/types/flow-types'
+import type {PlatformsExpandedType, ProvablePlatformsType} from './types/more'
+import type {ProofStatus, SigID, KID} from './types/flow-types'
+import type {TypedAction, NoErrorTypedAction} from './types/flux'
 
-export const editingProfile = 'profile:editingProfile'
-export const editedProfile = 'profile:editedProfile'
+const addProof = 'profile:addProof'
+const askTextOrDNS = 'profile:askTextOrDNS'
+const backToProfile = 'profile:backToProfile'
+const cancelAddProof = 'profile:cancelAddProof'
+const cancelPgpGen = 'profile:cancelPgpGen'
+const checkProof = 'profile:checkProof'
+const checkSpecificProof = 'profile:checkSpecificProof'
+const cleanupUsername = 'profile:cleanupUsername'
+const dropPgp = 'profile:dropPgp'
+const editProfile = 'profile:editProfile'
+const editedProfile = 'profile:editedProfile'
+const editingProfile = 'profile:editingProfile'
+const finishRevokeProof = 'profile:revoke:finish'
+const finishRevoking = 'profile:finishRevoking'
+const finishedWithKeyGen = 'profile:FinishedWithKeyGen'
+const generatePgp = 'profile:generatePgp'
+const maxProfileBioChars = 256
+const onClickAvatar = 'profile:onClickAvatar'
+const onClickFollowers = 'profile:onClickFollowers'
+const onClickFollowing = 'profile:onClickFollowing'
+const onUserClick = 'profile:onUserClick'
+const outputInstructionsActionLink = 'profile:outputInstructionsActionLink'
+const registerBTC = 'profile:registerBTC'
+const submitBTCAddress = 'profile:submitBTCAddress'
+const submitRevokeProof = 'profile:submitRevokeProof'
+const submitUsername = 'profile:submitUsername'
+const updateErrorText = 'profile:updateErrorText'
+const updatePgpInfo = 'profile:updatePgpInfo'
+const updatePgpPublicKey = 'profile:updatePgpPublicKey'
+const updatePlatform = 'profile:updatePlatform'
+const updateProofStatus = 'profile:updateProofStatus'
+const updateProofText = 'profile:updateProofText'
+const updateSigID = 'profile:updateSigID'
+const updateUsername = 'profile:updateUsername'
+const waiting = 'profile:waiting'
+const waitingRevokeProof = 'profile:revoke:waiting'
+type AddProof = NoErrorTypedAction<'profile:addProof', {platform: PlatformsExpandedType}>
+type AskTextOrDNS = NoErrorTypedAction<'profile:askTextOrDNS', void>
+type BackToProfile = NoErrorTypedAction<'profile:backToProfile', void>
+type CancelAddProof = NoErrorTypedAction<'profile:cancelAddProof', void>
+type CancelPgpGen = NoErrorTypedAction<'profile:cancelPgpGen', {}>
+type CheckProof = NoErrorTypedAction<'profile:checkProof', {sigID: string, currentlyAdding: boolean}>
+type CheckSpecificProof = NoErrorTypedAction<'profile:checkSpecificProof', {sigID: ?string}>
+type CleanupUsername = TypedAction<'profile:cleanupUsername', void, void>
+type DropPgp = TypedAction<'profile:dropPgp', {kid: KID}, {}>
+type EditProfile = NoErrorTypedAction<'profile:editProfile', {bio: string, fullname: string, location: string}>
+type FinishRevokeProof = TypedAction<'profile:revoke:finish', void, {error: string}>
+type FinishRevoking = NoErrorTypedAction<'profile:finishRevoking', void>
+type FinishedWithKeyGen = NoErrorTypedAction<'profile:FinishedWithKeyGen', {shouldStoreKeyOnServer: boolean}>
+type GeneratePgp = TypedAction<'profile:generatePgp', void, void>
+type OnClickAvatar = NoErrorTypedAction<'profile:onClickAvatar', {username: ?string, uid: string, openWebsite: ?boolean}>
+type OnClickFollowers = NoErrorTypedAction<'profile:onClickFollowers', {username: ?string, uid: string, openWebsite: ?boolean}>
+type OnClickFollowing = NoErrorTypedAction<'profile:onClickFollowing', {username: ?string, uid: string, openWebsite: ?boolean}>
+type OnUserClick = NoErrorTypedAction<'profile:onUserClick', {username: string, uid: string}>
+type OutputInstructionsActionLink = NoErrorTypedAction<'profile:outputInstructionsActionLink', void>
+type RegisterBTC = NoErrorTypedAction<'profile:registerBTC', void>
+type SubmitBTCAddress = NoErrorTypedAction<'profile:submitBTCAddress', void>
+type SubmitRevokeProof = NoErrorTypedAction<'profile:submitRevokeProof', {proofId: string}>
+type SubmitUsername = NoErrorTypedAction<'profile:submitUsername', void>
+type UpdateErrorText = TypedAction<'profile:updateErrorText', {errorText: ?string, errorCode: ?number}, void>
+type UpdatePgpInfo = TypedAction<'profile:updatePgpInfo', $Shape<PgpInfo>, PgpInfoError> // $Shape is meant here instead of exact, because you can supply only the parts you want to update
+type UpdatePgpPublicKey = TypedAction<'profile:updatePgpPublicKey', {publicKey: string}, {}>
+type UpdatePlatform = TypedAction<'profile:updatePlatform', {platform: PlatformsExpandedType}, void>
+type UpdateProofStatus = TypedAction<'profile:updateProofStatus', {found: boolean, status: ProofStatus}, void>
+type UpdateProofText = TypedAction<'profile:updateProofText', {proof: string}, void>
+type UpdateSigID = TypedAction<'profile:updateSigID', {sigID: SigID}, void>
+type UpdateUsername = TypedAction<'profile:updateUsername', {username: string}, void>
+type Waiting = TypedAction<'profile:waiting', {waiting: boolean}, void>
+type WaitingRevokeProof = TypedAction<'profile:revoke:waiting', {waiting: boolean}, void>
 
-export const waiting = 'profile:waiting'
-export type Waiting = TypedAction<'profile:waiting', {waiting: boolean}, void>
-
-export const updatePlatform = 'profile:updatePlatform'
-export type UpdatePlatform = TypedAction<'profile:updatePlatform', {platform: PlatformsExpandedType}, void>
-
-export const updateUsername = 'profile:updateUsername'
-export type UpdateUsername = TypedAction<'profile:updateUsername', {username: string}, void>
-
-export const cleanupUsername = 'profile:cleanupUsername'
-export type CleanupUsername = TypedAction<'profile:cleanupUsername', void, void>
-
-export const waitingRevokeProof = 'profile:revoke:waiting'
-export type WaitingRevokeProof = TypedAction<'profile:revoke:waiting', {waiting: boolean}, void>
-
-export const finishRevokeProof = 'profile:revoke:finish'
-export type FinishRevokeProof = TypedAction<'profile:revoke:finish', void, {error: string}>
-
-export const updateProofText = 'profile:updateProofText'
-export type UpdateProofText = TypedAction<'profile:updateProofText', {proof: string}, void>
-
-export const updateErrorText = 'profile:updateErrorText'
-export type UpdateErrorText = TypedAction<'profile:updateErrorText', {errorText: ?string, errorCode: ?number}, void>
-
-export const updateProofStatus = 'profile:updateProofStatus'
-export type UpdateProofStatus = TypedAction<'profile:updateProofStatus', {found: boolean, status: ProofStatus}, void>
-
-export const updateSigID = 'profile:updateSigID'
-export type UpdateSigID = TypedAction<'profile:updateSigID', {sigID: SigID}, void>
-
-// $Shape is meant here instead of exact, because you can supply only the
-// parts you want to update
-export const updatePgpInfo = 'profile:updatePgpInfo'
-export type UpdatePgpInfo = TypedAction<'profile:updatePgpInfo', $Shape<PgpInfo>, PgpInfoError>
-
-export const generatePgp = 'profile:generatePgp'
-export type GeneratePgp = TypedAction<'profile:generatePgp', void, void>
-
-export const updatePgpPublicKey = 'profile:updatePgpPublicKey'
-export type UpdatePgpPublicKey = TypedAction<'profile:updatePgpPublicKey', {publicKey: string}, {}>
-
-export const finishedWithKeyGen = 'profile:FinishedWithKeyGen'
-export type FinishedWithKeyGen = NoErrorTypedAction<'profile:FinishedWithKeyGen', {shouldStoreKeyOnServer: boolean}>
-
-export const cancelPgpGen = 'profile:cancelPgpGen'
-export type CancelPgpGen = NoErrorTypedAction<'profile:cancelPgpGen', {}>
-
-export const dropPgp = 'profile:dropPgp'
-export type DropPgp = TypedAction<'profile:dropPgp', {kid: KID}, {}>
-
-export const backToProfile = 'profile:backToProfile'
-export type BackToProfile = NoErrorTypedAction<'profile:backToProfile', void>
-
-export const outputInstructionsActionLink = 'profile:outputInstructionsActionLink'
-export type OutputInstructionsActionLink = NoErrorTypedAction<'profile:outputInstructionsActionLink', void>
-
-export const onClickFollowing = 'profile:onClickFollowing'
-export type OnClickFollowing = NoErrorTypedAction<'profile:onClickFollowing', {username: ?string, uid: string, openWebsite: ?boolean}>
-
-export const onClickFollowers = 'profile:onClickFollowers'
-export type OnClickFollowers = NoErrorTypedAction<'profile:onClickFollowers', {username: ?string, uid: string, openWebsite: ?boolean}>
-
-export const onClickAvatar = 'profile:onClickAvatar'
-export type OnClickAvatar = NoErrorTypedAction<'profile:onClickAvatar', {username: ?string, uid: string, openWebsite: ?boolean}>
-
-export const submitRevokeProof = 'profile:submitRevokeProof'
-export type SubmitRevokeProof = NoErrorTypedAction<'profile:submitRevokeProof', {proofId: string}>
-
-export const onUserClick = 'profile:onUserClick'
-export type OnUserClick = NoErrorTypedAction<'profile:onUserClick', {username: string, uid: string}>
-
-export const finishRevoking = 'profile:finishRevoking'
-export type FinishRevoking = NoErrorTypedAction<'profile:finishRevoking', void>
-
-export const editProfile = 'profile:editProfile'
-export type EditProfile = NoErrorTypedAction<'profile:editProfile', {bio: string, fullname: string, location: string}>
-
-export const maxProfileBioChars = 256
-
-export type Actions = Waiting
-  | UpdatePlatform
-  | UpdateUsername
-  | CleanupUsername
-  | WaitingRevokeProof
+export type Actions = CleanupUsername
   | FinishRevokeProof
-  | UpdateProofText
   | UpdateErrorText
+  | UpdatePlatform
   | UpdateProofStatus
+  | UpdateProofText
   | UpdateSigID
+  | UpdateUsername
+  | Waiting
+  | WaitingRevokeProof
 
 export type PgpInfo = {
-  fullName: ?string,
-  errorText: ?string,
   email1: ?string,
   email2: ?string,
   email3: ?string,
+  errorText: ?string,
+  fullName: ?string,
 }
 
 export type PgpInfoError = {
@@ -112,20 +100,96 @@ export type PgpInfoError = {
 }
 
 export type State = {
-  errorText: ?string,
   errorCode: ?number,
-  waiting: boolean,
-  username: string,
-  platform: ?PlatformsExpandedType,
-  usernameValid: boolean,
-  revoke: {
-    waiting?: boolean,
-    error?: string,
-  },
-  proofFound: boolean,
-  proofStatus: ?ProofStatus,
-  sigID: ?SigID,
+  errorText: ?string,
   pgpInfo: PgpInfo & PgpInfoError,
   pgpPublicKey: ?string,
+  platform: ?PlatformsExpandedType,
+  proofFound: boolean,
+  proofStatus: ?ProofStatus,
   proofText: ?string,
+  revoke: {
+    error?: string,
+    waiting?: boolean,
+  },
+  sigID: ?SigID,
+  username: string,
+  usernameValid: boolean,
+  waiting: boolean,
+}
+
+export {
+  addProof,
+  askTextOrDNS,
+  backToProfile,
+  cancelAddProof,
+  cancelPgpGen,
+  checkProof,
+  checkSpecificProof,
+  cleanupUsername,
+  dropPgp,
+  editProfile,
+  editedProfile,
+  editingProfile,
+  finishRevokeProof,
+  finishRevoking,
+  finishedWithKeyGen,
+  generatePgp,
+  maxProfileBioChars,
+  onClickAvatar,
+  onClickFollowers,
+  onClickFollowing,
+  onUserClick,
+  outputInstructionsActionLink,
+  registerBTC,
+  submitBTCAddress,
+  submitRevokeProof,
+  submitUsername,
+  updateErrorText,
+  updatePgpInfo,
+  updatePgpPublicKey,
+  updatePlatform,
+  updateProofStatus,
+  updateProofText,
+  updateSigID,
+  updateUsername,
+  waiting,
+  waitingRevokeProof,
+}
+
+export type {
+  AddProof,
+  AddServiceProof,
+  AskTextOrDNS,
+  BackToProfile,
+  CancelAddProof,
+  CancelPgpGen,
+  CheckProof,
+  CheckSpecificProof,
+  CleanupUsername,
+  DropPgp,
+  EditProfile,
+  FinishRevokeProof,
+  FinishRevoking,
+  FinishedWithKeyGen,
+  GeneratePgp,
+  OnClickAvatar,
+  OnClickFollowers,
+  OnClickFollowing,
+  OnUserClick,
+  OutputInstructionsActionLink,
+  RegisterBTC,
+  SubmitBTCAddress,
+  SubmitRevokeProof,
+  SubmitUsername,
+  UpdateErrorText,
+  UpdatePgpInfo,
+  UpdatePgpPublicKey,
+  UpdatePlatform,
+  UpdateProofStatus,
+  UpdateProofText,
+  UpdateSigID,
+  UpdateUsername,
+  Waiting,
+  WaitingRevokeProof,
 }

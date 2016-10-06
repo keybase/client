@@ -9,6 +9,7 @@ import {call, put, select} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
 import {navigateUp, routeAppend, switchTab} from '../../actions/router'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
+import {proofsSaga} from './proofs'
 import {profileTab} from '../../constants/tabs'
 import {takeEvery} from 'redux-saga'
 
@@ -221,6 +222,7 @@ function * profileSaga (): SagaGenerator<any, any> {
   yield [
     call(_profileSaga),
     call(pgpSaga),
+    call(proofsSaga),
   ]
 }
 
