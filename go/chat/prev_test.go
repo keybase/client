@@ -13,11 +13,11 @@ type dummyMessage struct {
 	prevs []chat1.MessagePreviousPointer
 }
 
-func expectCode(t *testing.T, err *libkb.ChatThreadConsistencyError, code libkb.ConsistencyErrorCode) {
+func expectCode(t *testing.T, err libkb.ChatThreadConsistencyError, code libkb.ConsistencyErrorCode) {
 	if err == nil {
 		t.Fatalf("Expected an error. Got nil.")
 	}
-	if err.Code != code {
+	if err.Code() != code {
 		t.Fatalf("Expected a code %d, but found %d.", code, err.Code)
 	}
 }

@@ -13,7 +13,7 @@ import (
 // 3. All prev pointers to a message agree on that message's header hash.
 // 4. For all messages we have locally, the hashes pointing to them are actually correct.
 // TODO: All of this should happen in the cache instead of here all at once.
-func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessagePreviousPointer, *libkb.ChatThreadConsistencyError) {
+func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessagePreviousPointer, libkb.ChatThreadConsistencyError) {
 	// Filter out the messages that gave unboxing errors, and index the rest by
 	// ID. Enforce that there are no duplicate IDs.
 	// TODO: What should we really be doing with unboxing errors? Do we worry

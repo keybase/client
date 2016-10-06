@@ -1540,19 +1540,28 @@ const (
 	IncorrectHash
 )
 
-type ChatThreadConsistencyError struct {
-	Msg  string
-	Code ConsistencyErrorCode
+type ChatThreadConsistencyError interface {
+	error
+	Code() ConsistencyErrorCode
 }
 
-func (e ChatThreadConsistencyError) Error() string {
-	return e.Msg
+type chatThreadConsistencyErrorImpl struct {
+	msg  string
+	code ConsistencyErrorCode
 }
 
-func NewChatThreadConsistencyError(code ConsistencyErrorCode, msg string, formatArgs ...interface{}) *ChatThreadConsistencyError {
-	return &ChatThreadConsistencyError{
-		Code: code,
-		Msg:  fmt.Sprintf(msg, formatArgs...),
+func (e chatThreadConsistencyErrorImpl) Error() string {
+	return e.msg
+}
+
+func (e chatThreadConsistencyErrorImpl) Code() ConsistencyErrorCode {
+	return e.code
+}
+
+func NewChatThreadConsistencyError(code ConsistencyErrorCode, msg string, formatArgs ...interface{}) ChatThreadConsistencyError {
+	return &chatThreadConsistencyErrorImpl{
+		code: code,
+		msg:  fmt.Sprintf(msg, formatArgs...),
 	}
 }
 
