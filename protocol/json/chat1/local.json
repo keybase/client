@@ -58,7 +58,7 @@
     },
     {
       "type": "record",
-      "name": "MessageAttachment",
+      "name": "Asset",
       "fields": [
         {
           "type": "string",
@@ -70,15 +70,28 @@
         },
         {
           "type": "string",
-          "name": "previewPath"
-        },
-        {
-          "type": "int",
-          "name": "previewSize"
-        },
-        {
-          "type": "string",
           "name": "mimeType"
+        },
+        {
+          "type": "Hash",
+          "name": "encHash"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageAttachment",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "object"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "preview"
         },
         {
           "type": "bytes",
@@ -87,14 +100,6 @@
         {
           "type": "bytes",
           "name": "key"
-        },
-        {
-          "type": "Hash",
-          "name": "attachmentHash"
-        },
-        {
-          "type": "Hash",
-          "name": "previewHash"
         }
       ]
     },

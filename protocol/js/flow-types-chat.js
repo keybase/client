@@ -190,6 +190,13 @@ export function remoteTlfFinalizeRpcPromise (request: $Exact<requestCommon & req
   return new Promise((resolve, reject) => { remoteTlfFinalizeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export type Asset = {
+  path: string,
+  size: int,
+  mimeType: string,
+  encHash: Hash,
+}
+
 export type BodyPlaintext = 
     { version : 1, v1 : ?BodyPlaintextV1 }
 
@@ -385,15 +392,10 @@ export type MarkAsReadRes = {
 }
 
 export type MessageAttachment = {
-  path: string,
-  size: int,
-  previewPath: string,
-  previewSize: int,
-  mimeType: string,
+  object: Asset,
+  preview?: ?Asset,
   metadata: bytes,
   key: bytes,
-  attachmentHash: Hash,
-  previewHash: Hash,
 }
 
 export type MessageBody = 

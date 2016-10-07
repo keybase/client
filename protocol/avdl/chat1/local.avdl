@@ -21,16 +21,18 @@ protocol local {
     MessageID messageID;
   }
 
+  record Asset {
+    string path;               // path to the object in storage
+    int size;                  // size of the object
+    string mimeType;           // mime type of the object
+    Hash encHash;              // hash of ciphertext object 
+  }
+
   record MessageAttachment {
-    string path;               // path to the attachment object
-    int size;                  // size of the attachment object (bytes)
-    string previewPath;        // path to the preview object (optional)
-    int previewSize;           // size of the preview object (required if previewPath set)
-    string mimeType;           // mime type of the attachment
-    bytes metadata;            // generic metadata (msgpack)
-    bytes key;                 // encryption key
-    Hash attachmentHash;       // hash on attachment object 
-    Hash previewHash;	       // hash on preview object
+    Asset object;                // the primary attachment object
+    union {null, Asset} preview; // the (optional) preview of object
+    bytes metadata;              // generic metadata (msgpack)
+    bytes key;                   // encryption key
   }
 
   variant MessageBody switch (MessageType messageType) {

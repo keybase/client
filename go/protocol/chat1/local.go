@@ -27,16 +27,18 @@ type MessageDelete struct {
 	MessageID MessageID `codec:"messageID" json:"messageID"`
 }
 
+type Asset struct {
+	Path     string `codec:"path" json:"path"`
+	Size     int    `codec:"size" json:"size"`
+	MimeType string `codec:"mimeType" json:"mimeType"`
+	EncHash  Hash   `codec:"encHash" json:"encHash"`
+}
+
 type MessageAttachment struct {
-	Path           string `codec:"path" json:"path"`
-	Size           int    `codec:"size" json:"size"`
-	PreviewPath    string `codec:"previewPath" json:"previewPath"`
-	PreviewSize    int    `codec:"previewSize" json:"previewSize"`
-	MimeType       string `codec:"mimeType" json:"mimeType"`
-	Metadata       []byte `codec:"metadata" json:"metadata"`
-	Key            []byte `codec:"key" json:"key"`
-	AttachmentHash Hash   `codec:"attachmentHash" json:"attachmentHash"`
-	PreviewHash    Hash   `codec:"previewHash" json:"previewHash"`
+	Object   Asset  `codec:"object" json:"object"`
+	Preview  *Asset `codec:"preview,omitempty" json:"preview,omitempty"`
+	Metadata []byte `codec:"metadata" json:"metadata"`
+	Key      []byte `codec:"key" json:"key"`
 }
 
 type MessageBody struct {
