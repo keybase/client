@@ -125,7 +125,7 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
     })
 
     const results: {
-      invitations: [{
+      invitations: Array<{
         assertion: ?string,
         ctime: number,
         email: string,
@@ -134,7 +134,7 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
         type: string,
         uid: string,
         username: string,
-      }],
+      }>,
     } = JSON.parse(json && json.body || '')
 
     const acceptedInvites = []
