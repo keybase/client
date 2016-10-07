@@ -72,6 +72,10 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
       <Box>
         <style>{navRealCSS}</style>
         <Box style={{...stylesTabBarNavIcon, ...this.props.style}} className='nav-item'>
+          {badgeNumber > 0 &&
+          <Box style={{...styleBadgeNav}}>
+            <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
+          </Box>}
           <Icon type={this.props.source.icon} style={{...navIconStyle, ...this.props.styleIcon}} />
           {!!this.props.label &&
             <Text type='BodySmall' style={{...stylesNavText, ...this.props.styleLabel}}>
@@ -80,7 +84,6 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
               </span>
             </Text>
           }
-          {badgeNumber > 0 && <Badge badgeNumber={badgeNumber} badgeStyle={this.props.styleBadge} badgeNumberStyle={this.props.styleBadgeNumber} />}
         </Box>
       </Box>
     )
@@ -189,6 +192,7 @@ const stylesTabBarNavIcon = {
   flex: 1,
   alignItems: 'center',
   justifyContent: 'center',
+  position: 'relative',
   width: 80,
   height: 56,
 }
@@ -209,6 +213,12 @@ const stylesNavIcon = {
 
 const stylesNavIconSelected = {
   color: globalColors.white,
+}
+
+const styleBadgeNav = {
+  position: 'relative',
+  left: 20,
+  top: 10,
 }
 
 export {

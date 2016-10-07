@@ -136,6 +136,7 @@ const stylesTabBar = {
   ...globalStyles.flexBoxColumn,
   justifyContent: 'flex-start',
   backgroundColor: globalColors.midnightBlue,
+  paddingTop: 10,
   width: 80,
 }
 
