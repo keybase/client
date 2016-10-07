@@ -106,15 +106,15 @@ if [ ! "$nowait" = "1" ]; then
 fi
 
 number_of_builds=1
-buildA=""
-buildB=""
+build_a=""
+build_b=""
 if [ "$smoke_test" = "1" ]; then
   echo "Enabling smoke testing"
   number_of_builds=2
 fi
 
 # Okay, here's where we start generating version numbers and doing builds.
-for i in {1..$number_of_builds}; do
+for ((i=1; i<=$number_of_builds; i++)); do
   if [ ! "$nobuild" = "1" ]; then
     BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
     BUILD_DIR=$build_dir_kbfs "$dir/build_kbfs.sh"
@@ -144,9 +144,11 @@ for i in {1..$number_of_builds}; do
   fi
 
   if [ "$i" = "1" ]; then
-    buildA=$version
+    build_a="$version"
   elif [ "$i" = "2" ]; then
-    buildB=$version
+    build_b="$version"
+  else
+    echo "Invalid build count: $i"
   fi
 
   BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
@@ -154,8 +156,8 @@ done
 
 if [ "$istest" = "" ]; then
   if [ "$number_of_builds" = "2" ]; then
-    echo "Made: $buildA and $buildB."
-    BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-new-build-to-server --build-a="$buildA" --build-b="$buildB" --platform="darwin"
+    echo "Annoucing builds: $build_a and $build_b."
+    BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-build --build-a="$build_a" --build-b="$build_b" --platform="darwin"
   fi
 
   BUCKET_NAME="$bucket_name" "$dir/report.sh"

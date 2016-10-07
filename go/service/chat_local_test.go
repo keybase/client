@@ -481,3 +481,38 @@ func TestChatGetInboxSummaryForCLILocal(t *testing.T) {
 		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
 	}
 }
+
+func TestGetMessagesLocal(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetMessagesLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "Sometimes you eat the bar"}))
+	mustPostLocalForTest(t, ctc, users[1], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "and sometimes"}))
+	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "the bar eats you."}))
+
+	// GetMessagesLocal currently seems to return messages descending ID order.
+	// It would probably be good if this changed to return either in req order or ascending.
+	getIDs := []chat1.MessageID{3, 2, 1}
+
+	res, err := ctc.as(t, users[0]).chatLocalHandler().GetMessagesLocal(context.Background(), chat1.GetMessagesLocalArg{
+		ConversationID: created.Id,
+		MessageIDs:     getIDs,
+	})
+	if err != nil {
+		t.Fatalf("GetMessagesLocal error: %v", err)
+	}
+	for i, msg := range res.Messages {
+		if msg.Message == nil {
+			t.Fatalf("Missing message: %v", getIDs[i])
+		}
+		msgID := msg.Message.ServerHeader.MessageID
+		if msgID != getIDs[i] {
+			t.Fatalf("Wrong message ID: got %v but expected %v", msgID, getIDs[i])
+		}
+	}
+	if len(res.Messages) != len(getIDs) {
+		t.Fatalf("GetMessagesLocal got %v items but expected %v", len(res.Messages), len(getIDs))
+	}
+}

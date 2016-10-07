@@ -152,9 +152,8 @@ protocol local {
     union { null, string } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
-    array<MessageFromServerOrError> maxMessages;
+    array<MessageFromServerOrError> maxMessages; // the latest message for each message type
   }
-
 
   GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
   record GetThreadQuery {
@@ -234,6 +233,13 @@ protocol local {
   }
   record GetConversationForCLILocalRes {
     ConversationLocal conversation;
+    array<MessageFromServerOrError> messages;
+    array<RateLimit> rateLimits;
+  }
+
+  // Get messages by ID.
+  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs);
+  record GetMessagesLocalRes {
     array<MessageFromServerOrError> messages;
     array<RateLimit> rateLimits;
   }

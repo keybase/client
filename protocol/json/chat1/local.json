@@ -705,6 +705,26 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetMessagesLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageFromServerOrError"
+          },
+          "name": "messages"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
@@ -804,6 +824,22 @@
         }
       ],
       "response": "GetConversationForCLILocalRes"
+    },
+    "GetMessagesLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "messageIDs",
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          }
+        }
+      ],
+      "response": "GetMessagesLocalRes"
     }
   },
   "namespace": "chat.1"

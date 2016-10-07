@@ -16,6 +16,19 @@ typedef NS_ENUM (NSInteger, KBRunMode) {
   KBRunModeDevel,
 };
 
+typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
+  KBInstallOptionNone = 0,
+  KBInstallOptionService = 1 << 1,
+  KBInstallOptionHelper = 1 << 2,
+  KBInstallOptionFuse = 1 << 3,
+  KBInstallOptionKBFS = 1 << 4,
+  KBInstallOptionUpdater = 1 << 5,
+  KBInstallOptionMountDir = 1 << 6,
+  KBInstallOptionCLI = 1 << 10,
+
+  KBInstallOptionAll = KBInstallOptionService | KBInstallOptionHelper | KBInstallOptionFuse | KBInstallOptionMountDir | KBInstallOptionKBFS | KBInstallOptionUpdater | KBInstallOptionCLI,
+};
+
 @interface KBEnvConfig : NSObject
 
 @property (nonatomic, readonly) NSString *homeDir;
@@ -26,11 +39,14 @@ typedef NS_ENUM (NSInteger, KBRunMode) {
 @property (readonly) NSImage *image;
 @property (readonly) KBRunMode runMode;
 @property (readonly, getter=isInstallDisabled) BOOL installDisabled;
+@property (readonly) KBInstallOptions installOptions;
+@property (readonly) NSTimeInterval installTimeout;
 
 - (instancetype)initWithRunMode:(KBRunMode)runMode;
 
 + (instancetype)envConfigWithHomeDir:(NSString *)homeDir mountDir:(NSString *)mountDir runMode:(KBRunMode)runMode;
 + (instancetype)envConfigWithRunMode:(KBRunMode)runMode;
++ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout;
 + (instancetype)envConfigFromUserDefaults:(NSUserDefaults *)userDefaults;
 
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults;
