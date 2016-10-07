@@ -576,7 +576,6 @@ func (h *chatLocalHandler) getSenderInfoLocal(uimap *chat.UserInfoMapper, messag
 	}
 }
 
-// GetMessagesLocal implements keybase.chatLocal.GetMessagesLocal protocol.
 func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg chat1.GetConversationForCLILocalQuery) (res chat1.GetConversationForCLILocalRes, err error) {
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetConversationForCLILocalRes{}, err
@@ -628,6 +627,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	}
 	rlimits = append(rlimits, tv.RateLimits...)
 
+	// apply message count limits
 	var messages []chat1.MessageFromServerOrError
 	for _, m := range tv.Thread.Messages {
 		messages = append(messages, m)
@@ -647,6 +647,37 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 		Conversation: convLocal,
 		Messages:     messages,
 		RateLimits:   h.aggRateLimits(rlimits),
+	}, nil
+}
+
+func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLocalArg) (res chat1.GetMessagesLocalRes, err error) {
+	deflt := chat1.GetMessagesLocalRes{}
+
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return deflt, err
+	}
+	rarg := chat1.GetMessagesRemoteArg{
+		ConversationID: arg.ConversationID,
+		MessageIDs:     arg.MessageIDs,
+	}
+	boxed, err := h.remoteClient().GetMessagesRemote(ctx, rarg)
+	if err != nil {
+		return deflt, err
+	}
+
+	messages, err := h.unboxMessages(ctx, boxed.Msgs)
+	if err != nil {
+		return deflt, err
+	}
+
+	var rlimits []chat1.RateLimit
+	if boxed.RateLimit != nil {
+		rlimits = append(rlimits, *boxed.RateLimit)
+	}
+
+	return chat1.GetMessagesLocalRes{
+		Messages:   messages,
+		RateLimits: h.aggRateLimits(rlimits),
 	}, nil
 }
 

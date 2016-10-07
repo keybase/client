@@ -92,7 +92,7 @@ protocol common {
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
     MessageID supersededBy;
-    MessageID supersedes;
+    MessageID supersedes; // not populated
     gregor1.Time ctime;
   }
 
