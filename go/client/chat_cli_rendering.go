@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/flexibletable"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -236,29 +234,6 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	}
 
 	return nil
-}
-
-// TODO what is this doing here?
-func fetchOneMessage(g *libkb.GlobalContext, conversationID chat1.ConversationID, messageID chat1.MessageID) (chat1.MessageFromServerOrError, error) {
-	deflt := chat1.MessageFromServerOrError{}
-
-	chatClient, err := GetChatLocalClient(g)
-	if err != nil {
-		return deflt, err
-	}
-
-	arg := chat1.GetMessagesLocalArg{
-		ConversationID: conversationID,
-		MessageIDs:     []chat1.MessageID{messageID},
-	}
-	res, err := chatClient.GetMessagesLocal(context.TODO(), arg)
-	if err != nil {
-		return deflt, err
-	}
-	if len(res.Messages) < 0 {
-		return deflt, fmt.Errorf("empty messages list")
-	}
-	return res.Messages[0], nil
 }
 
 const deletedTextCLI = "[deleted]"
