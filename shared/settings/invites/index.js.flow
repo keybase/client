@@ -23,7 +23,6 @@ export type PendingInvite = PendingEmailInvite | PendingURLInvite
 export type AcceptedInvite = {
   username: string,
   fullname: string,
-  avatar: string,
   currentlyFollowing: boolean,
   trackerState: SimpleProofState,
 } & InviteBase
@@ -39,6 +38,7 @@ export type Props = {
   onChangeInviteMessage: (inviteMessage: string) => void,
   onClickUser: (username: string) => void,
   onReclaimInvitation: (invitationId: string) => void,
+  onRefresh: () => void,
   onGenerateInvitation: () => void,
 }
 
