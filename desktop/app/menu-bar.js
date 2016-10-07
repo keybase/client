@@ -29,7 +29,7 @@ const getIcon = (invertColors) => {
 
 export default function () {
   const mb = menubar({
-    index: `${resolveRootAsURL('renderer', 'launcher.html')}?src=${hotPath('launcher.bundle.js')}&dev=${__DEV__ ? 'true' : 'false'}&selectorParams=menubar`,
+    index: `${resolveRootAsURL('renderer', 'renderer.html')}?src=${hotPath('launcher.bundle.js')}&dev=${__DEV__ ? 'true' : 'false'}&selectorParams=menubar`,
     width: 320,
     height: 350,
     frame: false,

@@ -84,7 +84,7 @@ const store = configureStore()
 
 setupApp(store)
 
-const appEl = document.getElementById('app')
+const appEl = document.getElementById('root')
 
 ReactDOM.render(
   <AppContainer><Root store={store} /></AppContainer>,

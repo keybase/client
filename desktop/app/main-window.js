@@ -6,7 +6,7 @@ import hotPath from '../hot-path'
 import {app, ipcMain} from 'electron'
 import {forceMainWindowPosition} from '../shared/local-debug.desktop'
 import {hideDockIcon} from './dock-icon'
-import {resolveRoot} from '../resolve-root'
+import {resolveRootAsURL} from '../resolve-root'
 // $FlowIssue
 import {windowStyle} from '../shared/styles'
 
@@ -18,7 +18,7 @@ export default function () {
   appState.checkOpenAtLogin()
 
   const mainWindow = new Window(
-    resolveRoot('renderer', `index.html?src=${hotPath('index.bundle.js')}&dev=${__DEV__ ? 'true' : 'false'}`), {
+    resolveRootAsURL('renderer', `renderer.html?src=${hotPath('index.bundle.js')}&dev=${__DEV__ ? 'true' : 'false'}`), {
       x: appState.state.x,
       y: appState.state.y,
       width: appState.state.width,

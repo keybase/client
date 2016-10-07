@@ -199,4 +199,4 @@ const styles = {
   },
 }
 
-ReactDOM.render(<RemoteComponentLoader />, document.getElementById('remoteComponent'))
+ReactDOM.render(<RemoteComponentLoader />, document.getElementById('root'))

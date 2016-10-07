@@ -2,14 +2,12 @@
 <html>
   <head>
     <meta charset="utf-8"/>
-    <title>Keybase-RemoteComponent</title>
-    <link rel="stylesheet" type="text/css" href="./style.css" />
-    <link rel="stylesheet" type="text/css" href="./fonticon.css" />
+    <title>Keybase</title>
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./fonticon.css" />
   </head>
   <body>
-    <div id="remoteComponent">
-      <div title="loading..." style="flex: 1;background-color: #f5f5f5"></div>
-    </div>
+    <div id="root"><div title="loading..." style="flex: 1;background-color: #f5f5f5"></div>
     <script>
       const ipcRenderer = require('electron').ipcRenderer
       const util = require('util')
@@ -36,6 +34,7 @@
           }
         return false
       }
+
       const __DEV__ = getQueryVariable('dev') === 'true'
 
       function loadEntryChunk () {
