@@ -66,10 +66,6 @@ export const LocalHeaderPlaintextVersion = {
   v1: 1,
 }
 
-export const LocalMessageAttachmentVersion = {
-  v1: 1,
-}
-
 export const LocalMessagePlaintextVersion = {
   v1: 1,
 }
@@ -192,6 +188,14 @@ export function remoteTlfFinalizeRpc (request: Exact<requestCommon & requestErro
 
 export function remoteTlfFinalizeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { remoteTlfFinalizeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export type Asset = {
+  path: string,
+  size: int,
+  mimeType: string,
+  encHash: Hash,
+  key: bytes,
 }
 
 export type BodyPlaintext = 
@@ -388,16 +392,11 @@ export type MarkAsReadRes = {
   rateLimit?: ?RateLimit,
 }
 
-export type MessageAttachment = 
-    { version : 1, v1 : ?MessageAttachmentV1 }
-
-export type MessageAttachmentV1 = {
-  path: string,
-  key: bytes,
+export type MessageAttachment = {
+  object: Asset,
+  preview?: ?Asset,
+  metadata: bytes,
 }
-
-export type MessageAttachmentVersion = 
-    1 // V1_1
 
 export type MessageBody = 
     { messageType : 1, text : ?MessageText }

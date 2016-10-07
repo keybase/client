@@ -20,6 +20,7 @@ type handlerTracker struct {
 	sendV1   int
 	editV1   int
 	deleteV1 int
+	attachV1 int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -44,6 +45,11 @@ func (h *handlerTracker) EditV1(context.Context, Call, io.Writer) error {
 
 func (h *handlerTracker) DeleteV1(context.Context, Call, io.Writer) error {
 	h.deleteV1++
+	return nil
+}
+
+func (h *handlerTracker) AttachV1(context.Context, Call, io.Writer) error {
+	h.attachV1++
 	return nil
 }
 
@@ -75,6 +81,10 @@ func (c *chatEcho) EditV1(context.Context, editOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) AttachV1(context.Context, attachOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 type topTest struct {
 	input    string
 	err      error
@@ -83,6 +93,7 @@ type topTest struct {
 	sendV1   int
 	editV1   int
 	deleteV1 int
+	attachV1 int
 }
 
 var topTests = []topTest{
@@ -103,6 +114,7 @@ var topTests = []topTest{
 	{input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1}}`, listV1: 1, readV1: 1},
 	{input: `{"id": 29, "method": "edit", "params":{"version": 1}}`, editV1: 1},
 	{input: `{"id": 30, "method": "delete", "params":{"version": 1}}`, deleteV1: 1},
+	{input: `{"method": "attach", "params":{"version": 1}}`, attachV1: 1},
 }
 
 // TestChatAPIDecoderTop tests that the "top-level" of the chat json makes it to
@@ -136,6 +148,9 @@ func TestChatAPIDecoderTop(t *testing.T) {
 		}
 		if h.deleteV1 != test.deleteV1 {
 			t.Errorf("test %d: input %s => deleteV1 = %d, expected %d", i, test.input, h.deleteV1, test.deleteV1)
+		}
+		if h.attachV1 != test.attachV1 {
+			t.Errorf("test %d: input %s => attachV1 = %d, expected %d", i, test.input, h.attachV1, test.attachV1)
 		}
 	}
 }

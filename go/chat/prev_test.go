@@ -18,7 +18,7 @@ func expectCode(t *testing.T, err libkb.ChatThreadConsistencyError, code libkb.C
 		t.Fatalf("Expected an error. Got nil.")
 	}
 	if err.Code() != code {
-		t.Fatalf("Expected a code %d, but found %d.", code, err.Code)
+		t.Fatalf("Expected a code %d, but found %d.", code, err.Code())
 	}
 }
 

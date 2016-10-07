@@ -57,19 +57,24 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "MessageAttachmentVersion",
-      "symbols": [
-        "V1_1"
-      ]
-    },
-    {
       "type": "record",
-      "name": "MessageAttachmentV1",
+      "name": "Asset",
       "fields": [
         {
           "type": "string",
           "name": "path"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
+        },
+        {
+          "type": "Hash",
+          "name": "encHash"
         },
         {
           "type": "bytes",
@@ -78,19 +83,23 @@
       ]
     },
     {
-      "type": "variant",
+      "type": "record",
       "name": "MessageAttachment",
-      "switch": {
-        "type": "MessageAttachmentVersion",
-        "name": "version"
-      },
-      "cases": [
+      "fields": [
         {
-          "label": {
-            "name": "V1",
-            "def": false
-          },
-          "body": "MessageAttachmentV1"
+          "type": "Asset",
+          "name": "object"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "preview"
+        },
+        {
+          "type": "bytes",
+          "name": "metadata"
         }
       ]
     },

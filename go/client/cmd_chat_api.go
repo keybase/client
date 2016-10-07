@@ -371,6 +371,12 @@ func (c *CmdChatAPI) EditV1(ctx context.Context, opts editOptionsV1) Reply {
 	return c.sendV1(ctx, arg)
 }
 
+// AttachV1 implements ChatServiceHandler.AttachV1.
+func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
+	// TODO: implement
+	return Reply{}
+}
+
 type sendArgV1 struct {
 	convQuery  chat1.GetInboxLocalQuery
 	body       chat1.MessageBody

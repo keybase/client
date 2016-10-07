@@ -27,56 +27,18 @@ type MessageDelete struct {
 	MessageID MessageID `codec:"messageID" json:"messageID"`
 }
 
-type MessageAttachmentVersion int
-
-const (
-	MessageAttachmentVersion_V1 MessageAttachmentVersion = 1
-)
-
-var MessageAttachmentVersionMap = map[string]MessageAttachmentVersion{
-	"V1": 1,
-}
-
-var MessageAttachmentVersionRevMap = map[MessageAttachmentVersion]string{
-	1: "V1",
-}
-
-type MessageAttachmentV1 struct {
-	Path string `codec:"path" json:"path"`
-	Key  []byte `codec:"key" json:"key"`
+type Asset struct {
+	Path     string `codec:"path" json:"path"`
+	Size     int    `codec:"size" json:"size"`
+	MimeType string `codec:"mimeType" json:"mimeType"`
+	EncHash  Hash   `codec:"encHash" json:"encHash"`
+	Key      []byte `codec:"key" json:"key"`
 }
 
 type MessageAttachment struct {
-	Version__ MessageAttachmentVersion `codec:"version" json:"version"`
-	V1__      *MessageAttachmentV1     `codec:"v1,omitempty" json:"v1,omitempty"`
-}
-
-func (o *MessageAttachment) Version() (ret MessageAttachmentVersion, err error) {
-	switch o.Version__ {
-	case MessageAttachmentVersion_V1:
-		if o.V1__ == nil {
-			err = errors.New("unexpected nil value for V1__")
-			return ret, err
-		}
-	}
-	return o.Version__, nil
-}
-
-func (o MessageAttachment) V1() MessageAttachmentV1 {
-	if o.Version__ != MessageAttachmentVersion_V1 {
-		panic("wrong case accessed")
-	}
-	if o.V1__ == nil {
-		return MessageAttachmentV1{}
-	}
-	return *o.V1__
-}
-
-func NewMessageAttachmentWithV1(v MessageAttachmentV1) MessageAttachment {
-	return MessageAttachment{
-		Version__: MessageAttachmentVersion_V1,
-		V1__:      &v,
-	}
+	Object   Asset  `codec:"object" json:"object"`
+	Preview  *Asset `codec:"preview,omitempty" json:"preview,omitempty"`
+	Metadata []byte `codec:"metadata" json:"metadata"`
 }
 
 type MessageBody struct {
