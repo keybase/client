@@ -1,12 +1,14 @@
-import Window from './window'
-import {app, ipcMain} from 'electron'
-import {resolveRoot} from '../resolve-root'
-import hotPath from '../hot-path'
-import {windowStyle} from '../shared/styles'
-import {forceMainWindowPosition} from '../shared/local-debug.desktop'
+// @flow
 import AppState from './app-state'
+import Window from './window'
 import getenv from 'getenv'
+import hotPath from '../hot-path'
+import {app, ipcMain} from 'electron'
+import {forceMainWindowPosition} from '../shared/local-debug.desktop'
 import {hideDockIcon} from './dock-icon'
+import {resolveRoot} from '../resolve-root'
+// $FlowIssue
+import {windowStyle} from '../shared/styles'
 
 export default function () {
   let appState = new AppState({
@@ -16,7 +18,7 @@ export default function () {
   appState.checkOpenAtLogin()
 
   const mainWindow = new Window(
-    resolveRoot('renderer', `index.html?src=${hotPath('index.bundle.js')}&dev=${__DEV__}`), {
+    resolveRoot('renderer', `index.html?src=${hotPath('index.bundle.js')}&dev=${__DEV__ ? 'true' : 'false'}`), {
       x: appState.state.x,
       y: appState.state.y,
       width: appState.state.width,

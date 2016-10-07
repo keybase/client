@@ -4,7 +4,7 @@ import type {SmallInputProps} from './small-input'
 import {Box, Text, NativeTextInput} from './index.native'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
-export default function SmallInput ({autoCapitalize, autoCorrect, errorState, hintText, label, onChange, style, value, autoFocus}: SmallInputProps) {
+export default function SmallInput ({autoCapitalize, autoCorrect = false, errorState, hintText, label, onChange, style, value, autoFocus}: SmallInputProps) {
   return (
     <Box style={{...styleContainer(!!errorState), ...style}}>
       <Text type='BodySmall' style={styleLabel(!!errorState)}>{label}</Text>

@@ -1,6 +1,8 @@
+// @flow
 const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
+// $FlowIssue
 const config = Object.assign({}, baseConfig)
 const getenv = require('getenv')
 

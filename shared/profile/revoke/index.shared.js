@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import {capitalize} from 'lodash'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 

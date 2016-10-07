@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
 import RemoteTracker from './remote-tracker'
 import RemotePinentry from './remote-pinentry'

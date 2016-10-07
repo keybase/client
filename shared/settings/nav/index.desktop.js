@@ -34,7 +34,7 @@ class SettingsNav extends Component<void, Props, void> {
           <Box style={globalStyles.flexBoxColumn}>
             {items.map(i => <SettingsItem key={i.text} {...i} />)}
           </Box>
-          <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
+          <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>
             {content}
           </Box>
         </Box>

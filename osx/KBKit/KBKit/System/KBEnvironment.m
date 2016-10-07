@@ -32,43 +32,43 @@
 
 @implementation KBEnvironment
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath options:(KBInstallOptions)options {
+- (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath {
   if ((self = [super init])) {
     _config = config;
 
     _installables = [NSMutableArray array];
 
     _helperTool = [[KBHelperTool alloc] initWithConfig:config];
-    if (options&KBInstallOptionHelper) {
+    if (config.installOptions&KBInstallOptionHelper) {
       [_installables addObject:_helperTool];
     }
 
     _updater = [[KBUpdaterService alloc] initWithConfig:config label:[config launchdUpdaterLabel] servicePath:servicePath];
-    if (options&KBInstallOptionUpdater) {
+    if (config.installOptions&KBInstallOptionUpdater) {
       [_installables addObject:_updater];
     }
 
     _service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel] servicePath:servicePath];
-    if (options&KBInstallOptionService) {
+    if (config.installOptions&KBInstallOptionService) {
       [_installables addObject:_service];
     }
 
     _fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
-    if (options&KBInstallOptionFuse) {
+    if (config.installOptions&KBInstallOptionFuse) {
       [_installables addObject:_fuse];
     }
 
-    if (options&KBInstallOptionMountDir) {
+    if (config.installOptions&KBInstallOptionMountDir) {
       KBMountDir *mountDir = [[KBMountDir alloc] initWithConfig:config helperTool:_helperTool];
       [_installables addObject:mountDir];
     }
 
     _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel] servicePath:servicePath];
-    if (options&KBInstallOptionKBFS) {
+    if (config.installOptions&KBInstallOptionKBFS) {
       [_installables addObject:_kbfs];
     }
 
-    if (options&KBInstallOptionCLI) {
+    if (config.installOptions&KBInstallOptionCLI) {
       KBCommandLine *cli = [[KBCommandLine alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
       [_installables addObject:cli];
     }
@@ -81,17 +81,6 @@
 
 - (NSArray *)componentsForControlPanel {
   return _components;
-}
-
-+ (instancetype)environmentForRunModeString:(NSString *)runModeString servicePath:(NSString *)servicePath options:(KBInstallOptions)options {
-  if ([runModeString isEqualToString:@"prod"]) {
-    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeProd] servicePath:servicePath options:options];
-  } else if ([runModeString isEqualToString:@"staging"]) {
-    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeStaging] servicePath:servicePath options:options];
-  } else if ([runModeString isEqualToString:@"devel"]) {
-    return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeDevel] servicePath:servicePath options:options];
-  }
-  return nil;
 }
 
 - (NSString *)debugInstallables {

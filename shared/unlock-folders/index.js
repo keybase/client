@@ -14,7 +14,7 @@ import * as actions from '../actions/unlock-folders'
 import Render from './render'
 
 type OwnProps = {
-  onCancel: () => void
+  onCancel: () => void,
 }
 
 export type Props = {
@@ -26,7 +26,7 @@ export type Props = {
   onContinueFromPaperKey: (paperkey: HiddenString) => void,
   paperkeyError: ?string,
   waiting: boolean,
-  onFinish: () => void
+  onFinish: () => void,
 }
 
 class UnlockFolders extends Component<void, Props, void> {

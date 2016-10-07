@@ -870,7 +870,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %d sender: %s",
 			nm.ConvID, nm.Message.ServerHeader.Sender)
 		boxer := chat.NewBoxer(g.G(), newTlfHandler(nil, g.G()))
-		msg, err := boxer.UnboxMessage(ctx, chat.NewKeyFinder(), nm.Message)
+		msg, headerHash, err := boxer.UnboxMessage(ctx, chat.NewKeyFinder(), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to unbox message: %s", err.Error())
 			return err
@@ -881,6 +881,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 				SenderDeviceName: "", // TODO
 				MessagePlaintext: msg,
 				ServerHeader:     *nm.Message.ServerHeader,
+				HeaderHash:       headerHash,
 			},
 		}
 		activity.ActivityType = keybase1.ChatActivityType_INCOMING_MESSAGE

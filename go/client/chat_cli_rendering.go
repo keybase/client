@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -102,6 +101,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		}
 
 		unread := "*"
+		// show the last TEXT message
 		var msg chat1.MessageFromServerOrError
 		for _, m := range conv.MaxMessages {
 			if m.Message != nil {
@@ -114,10 +114,22 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			}
 		}
 
-		authorAndTime := messageFormatter(msg).authorAndTime(showDeviceName)
-		body, err := messageFormatter(msg).body(g)
+		mv, err := newMessageView(g, conv.Info.Id, msg)
 		if err != nil {
-			return fmt.Errorf("rendering message body error: %v\n", err)
+			g.Log.Error("Message render error: %s", err)
+		}
+
+		var authorAndTime string
+		if showDeviceName {
+			authorAndTime = mv.AuthorAndTimeWithDeviceName
+		} else {
+			authorAndTime = mv.AuthorAndTime
+		}
+
+		// This will show a blank link for convs whose last message cannot be displayed.
+		body := ""
+		if mv.Renderable {
+			body = mv.Body
 		}
 
 		table.Insert(flexibletable.Row{
@@ -169,19 +181,31 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	w, _ := ui.TerminalSize()
 
 	table := &flexibletable.Table{}
-	for i, m := range v.messages {
+	i := -1
+	for _, m := range v.messages {
+		mv, err := newMessageView(g, v.conversation.Info.Id, m)
+		if err != nil {
+			g.Log.Error("Message render error: %s", err)
+		}
+
+		if !mv.Renderable {
+			continue
+		}
+
 		unread := ""
 		if m.Message != nil &&
 			v.conversation.ReaderInfo.ReadMsgid < m.Message.ServerHeader.MessageID {
 			unread = "*"
 		}
 
-		authorAndTime := messageFormatter(m).authorAndTime(showDeviceName)
-		body, err := messageFormatter(m).body(g)
-		if err != nil {
-			return fmt.Errorf("rendering message body error: %v\n", err)
+		var authorAndTime string
+		if showDeviceName {
+			authorAndTime = mv.AuthorAndTimeWithDeviceName
+		} else {
+			authorAndTime = mv.AuthorAndTime
 		}
 
+		i++
 		table.Insert(flexibletable.Row{
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
@@ -199,7 +223,7 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.SingleCell{Item: body},
+				Content:   flexibletable.SingleCell{Item: mv.Body},
 			},
 		})
 	}
@@ -212,54 +236,131 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	return nil
 }
 
-type messageFormatter chat1.MessageFromServerOrError
+const deletedTextCLI = "[deleted]"
 
-func (f messageFormatter) authorAndTime(showDeviceName bool) string {
-	m := chat1.MessageFromServerOrError(f)
-	if m.Message == nil {
-		return ""
-	}
-	t := gregor1.FromTime(m.Message.ServerHeader.Ctime)
-	if showDeviceName {
-		return fmt.Sprintf("%s <%s> %s", m.Message.SenderUsername, m.Message.SenderDeviceName, shortDurationFromNow(t))
-	}
-	return fmt.Sprintf("%s %s", m.Message.SenderUsername, shortDurationFromNow(t))
+// Everything you need to show a message.
+// Takes into account superseding edits and deletions.
+type messageView struct {
+	MessageID chat1.MessageID
+	// Whether to show this message. Show texts, but not edits or deletes.
+	Renderable                  bool
+	AuthorAndTime               string
+	AuthorAndTimeWithDeviceName string
+	Body                        string
+
+	// Used internally for supersedeers
+	messageType chat1.MessageType
 }
 
-func (f messageFormatter) body(g *libkb.GlobalContext) (string, error) {
-	m := chat1.MessageFromServerOrError(f)
-	if m.Message != nil {
-		version, err := m.Message.MessagePlaintext.Version()
+// newMessageView extracts from a message the parts for display
+// It may fetch the superseding message. So that for example a TEXT message will show its EDIT text.
+func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageFromServerOrError) (messageView, error) {
+	mv := messageView{}
+
+	if m.Message == nil {
+		if m.UnboxingError != nil {
+			return mv, fmt.Errorf(fmt.Sprintf("<%s>", *m.UnboxingError))
+		}
+		return mv, fmt.Errorf("unexpected data")
+	}
+
+	mv.MessageID = m.Message.ServerHeader.MessageID
+
+	// Check what message supersedes this one.
+	var mvsup *messageView
+	supersededBy := m.Message.ServerHeader.SupersededBy
+	if supersededBy != 0 {
+		msup, err := fetchOneMessage(g, conversationID, supersededBy)
 		if err != nil {
-			g.Log.Warning("MessagePlaintext version error: %s", err)
-			return "", err
+			return mv, err
 		}
-		switch version {
-		case chat1.MessagePlaintextVersion_V1:
-			body := m.Message.MessagePlaintext.V1().MessageBody
-			typ, err := body.MessageType()
-			if err != nil {
-				return "", err
+		mvsupInner, err := newMessageView(g, conversationID, msup)
+		if err != nil {
+			return mv, err
+		}
+		mvsup = &mvsupInner
+	}
+
+	t := gregor1.FromTime(m.Message.ServerHeader.Ctime)
+	mv.AuthorAndTime = fmt.Sprintf("%s %s",
+		m.Message.SenderUsername, shortDurationFromNow(t))
+	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s <%s> %s",
+		m.Message.SenderUsername, m.Message.SenderDeviceName, shortDurationFromNow(t))
+
+	version, err := m.Message.MessagePlaintext.Version()
+	if err != nil {
+		g.Log.Warning("MessagePlaintext version error: %s", err)
+		return mv, err
+	}
+	switch version {
+	case chat1.MessagePlaintextVersion_V1:
+		plaintext := m.Message.MessagePlaintext.V1()
+		body := plaintext.MessageBody
+		typ, err := plaintext.MessageBody.MessageType()
+		mv.messageType = typ
+		if err != nil {
+			return mv, err
+		}
+		switch typ {
+		case chat1.MessageType_NONE:
+			// NONE is what you get when a message has been deleted.
+			mv.Renderable = true
+			if mvsup != nil {
+				switch mvsup.messageType {
+				case chat1.MessageType_EDIT:
+					// Use the edited body
+					mv.Body = mvsup.Body
+				case chat1.MessageType_DELETE:
+					mv.Body = deletedTextCLI
+				default:
+					// Some unknown supersedeer type
+				}
 			}
-			switch typ {
-			case chat1.MessageType_TEXT:
-				return body.Text().Body, nil
-			case chat1.MessageType_ATTACHMENT:
-				return fmt.Sprintf("{Attachment} | Caption: <unimplemented> | KBFS: %s", body.Attachment().Path), nil
-			default:
-				return fmt.Sprintf("unsupported MessageType: %s", typ.String()), nil
+		case chat1.MessageType_TEXT:
+			mv.Renderable = true
+			mv.Body = body.Text().Body
+			if mvsup != nil {
+				switch mvsup.messageType {
+				case chat1.MessageType_EDIT:
+					mv.Body = mvsup.Body
+				case chat1.MessageType_DELETE:
+					// This is unlikely because deleted messages are usually NONE
+					mv.Body = deletedTextCLI
+				default:
+					// Some unknown supersedeer type
+				}
 			}
+		case chat1.MessageType_ATTACHMENT:
+			mv.Renderable = true
+			// TODO: will fix this in CORE-3899
+			mv.Body = fmt.Sprintf("{Attachment} | Caption: <unimplemented>")
+			if mvsup != nil {
+				switch mvsup.messageType {
+				case chat1.MessageType_EDIT:
+					// Editing attachments is not supported, ignore the edit
+				case chat1.MessageType_DELETE:
+					mv.Body = deletedTextCLI
+				default:
+					// Some unknown supersedeer type
+				}
+			}
+		case chat1.MessageType_EDIT:
+			mv.Renderable = false
+			// Return the edit body for display in the original
+			mv.Body = fmt.Sprintf("%v [edited]", body.Edit().Body)
+		case chat1.MessageType_DELETE:
+			mv.Renderable = false
+		case chat1.MessageType_METADATA:
+			mv.Renderable = false
+		case chat1.MessageType_TLFNAME:
+			mv.Renderable = false
 		default:
-			g.Log.Warning("messageFormatter.body unhandled MessagePlaintext version %v", version)
-			return "", err
+			return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 		}
+	default:
+		return mv, fmt.Errorf(fmt.Sprintf("MessagePlaintext version error: %s", err))
 	}
-
-	if m.UnboxingError != nil {
-		return fmt.Sprintf("<%s>", *m.UnboxingError), nil
-	}
-
-	return "", errors.New("unexpected data")
+	return mv, nil
 }
 
 func shortDurationFromNow(t time.Time) string {

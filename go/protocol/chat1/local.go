@@ -27,8 +27,18 @@ type MessageDelete struct {
 	MessageID MessageID `codec:"messageID" json:"messageID"`
 }
 
+type Asset struct {
+	Path     string `codec:"path" json:"path"`
+	Size     int    `codec:"size" json:"size"`
+	MimeType string `codec:"mimeType" json:"mimeType"`
+	EncHash  Hash   `codec:"encHash" json:"encHash"`
+	Key      []byte `codec:"key" json:"key"`
+}
+
 type MessageAttachment struct {
-	Path string `codec:"path" json:"path"`
+	Object   Asset  `codec:"object" json:"object"`
+	Preview  *Asset `codec:"preview,omitempty" json:"preview,omitempty"`
+	Metadata []byte `codec:"metadata" json:"metadata"`
 }
 
 type MessageBody struct {
@@ -323,6 +333,7 @@ type MessageFromServer struct {
 	MessagePlaintext MessagePlaintext    `codec:"messagePlaintext" json:"messagePlaintext"`
 	SenderUsername   string              `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName string              `codec:"senderDeviceName" json:"senderDeviceName"`
+	HeaderHash       Hash                `codec:"headerHash" json:"headerHash"`
 }
 
 type MessageFromServerOrError struct {
@@ -425,6 +436,11 @@ type GetConversationForCLILocalRes struct {
 	RateLimits   []RateLimit                `codec:"rateLimits" json:"rateLimits"`
 }
 
+type GetMessagesLocalRes struct {
+	Messages   []MessageFromServerOrError `codec:"messages" json:"messages"`
+	RateLimits []RateLimit                `codec:"rateLimits" json:"rateLimits"`
+}
+
 type GetThreadLocalArg struct {
 	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
 	Query          *GetThreadQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -456,6 +472,11 @@ type GetConversationForCLILocalArg struct {
 	Query GetConversationForCLILocalQuery `codec:"query" json:"query"`
 }
 
+type GetMessagesLocalArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	MessageIDs     []MessageID    `codec:"messageIDs" json:"messageIDs"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
@@ -463,6 +484,7 @@ type LocalInterface interface {
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
+	GetMessagesLocal(context.Context, GetMessagesLocalArg) (GetMessagesLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -565,6 +587,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"GetMessagesLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMessagesLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMessagesLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMessagesLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMessagesLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -602,5 +640,10 @@ func (c LocalClient) GetInboxSummaryForCLILocal(ctx context.Context, query GetIn
 func (c LocalClient) GetConversationForCLILocal(ctx context.Context, query GetConversationForCLILocalQuery) (res GetConversationForCLILocalRes, err error) {
 	__arg := GetConversationForCLILocalArg{Query: query}
 	err = c.Cli.Call(ctx, "chat.1.local.getConversationForCLILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetMessagesLocal(ctx context.Context, __arg GetMessagesLocalArg) (res GetMessagesLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.GetMessagesLocal", []interface{}{__arg}, &res)
 	return
 }

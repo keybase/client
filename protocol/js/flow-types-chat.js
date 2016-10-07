@@ -94,6 +94,14 @@ export function localGetInboxSummaryForCLILocalRpcPromise (request: $Exact<reque
   return new Promise((resolve, reject) => { localGetInboxSummaryForCLILocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localGetMessagesLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetMessagesLocalResult) => void} & {param: localGetMessagesLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'local.GetMessagesLocal'})
+}
+
+export function localGetMessagesLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetMessagesLocalResult) => void} & {param: localGetMessagesLocalRpcParam}>): Promise<localGetMessagesLocalResult> {
+  return new Promise((resolve, reject) => { localGetMessagesLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localGetThreadLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetThreadLocalResult) => void} & {param: localGetThreadLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'local.getThreadLocal'})
 }
@@ -180,6 +188,14 @@ export function remoteTlfFinalizeRpc (request: Exact<requestCommon & requestErro
 
 export function remoteTlfFinalizeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { remoteTlfFinalizeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export type Asset = {
+  path: string,
+  size: int,
+  mimeType: string,
+  encHash: Hash,
+  key: bytes,
 }
 
 export type BodyPlaintext = 
@@ -320,6 +336,11 @@ export type GetInboxSummaryForCLILocalRes = {
   rateLimits?: ?Array<RateLimit>,
 }
 
+export type GetMessagesLocalRes = {
+  messages?: ?Array<MessageFromServerOrError>,
+  rateLimits?: ?Array<RateLimit>,
+}
+
 export type GetMessagesRemoteRes = {
   msgs?: ?Array<MessageBoxed>,
   rateLimit?: ?RateLimit,
@@ -372,7 +393,9 @@ export type MarkAsReadRes = {
 }
 
 export type MessageAttachment = {
-  path: string,
+  object: Asset,
+  preview?: ?Asset,
+  metadata: bytes,
 }
 
 export type MessageBody = 
@@ -420,6 +443,7 @@ export type MessageFromServer = {
   messagePlaintext: MessagePlaintext,
   senderUsername: string,
   senderDeviceName: string,
+  headerHash: Hash,
 }
 
 export type MessageFromServerOrError = {
@@ -558,6 +582,11 @@ export type localGetInboxSummaryForCLILocalRpcParam = Exact<{
   query: GetInboxSummaryForCLILocalQuery
 }>
 
+export type localGetMessagesLocalRpcParam = Exact<{
+  conversationID: ConversationID,
+  messageIDs?: ?Array<MessageID>
+}>
+
 export type localGetThreadLocalRpcParam = Exact<{
   conversationID: ConversationID,
   query?: ?GetThreadQuery,
@@ -621,6 +650,8 @@ type localGetInboxLocalResult = GetInboxLocalRes
 
 type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
 
+type localGetMessagesLocalResult = GetMessagesLocalRes
+
 type localGetThreadLocalResult = GetThreadLocalRes
 
 type localNewConversationLocalResult = NewConversationLocalRes
@@ -645,6 +676,7 @@ export type rpc =
     localGetConversationForCLILocalRpc
   | localGetInboxLocalRpc
   | localGetInboxSummaryForCLILocalRpc
+  | localGetMessagesLocalRpc
   | localGetThreadLocalRpc
   | localNewConversationLocalRpc
   | localPostLocalRpc

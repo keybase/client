@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 
 // Like join, but doesn't convert to string at the end
 export function intersperse (separator: any, arr: Array<any>): Array<any> {

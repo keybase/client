@@ -5,6 +5,10 @@ import type {Actions, State} from '../constants/settings'
 
 const initialState: State = {
   allowDeleteAccount: false,
+  invites: {
+    pendingInvites: [],
+    acceptedInvites: [],
+  },
   notifications: {
     settings: null,
     unsubscribedFromAll: null,
@@ -82,6 +86,13 @@ function reducer (state: State = initialState, action: Actions): State {
           ...action.payload,
           allowSave: false,
           allowEdit: true,
+        },
+      }
+    case Constants.invitesRefreshed:
+      return {
+        ...state,
+        invites: {
+          ...action.payload,
         },
       }
   }

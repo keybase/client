@@ -4,7 +4,7 @@ import {Box, Text} from '../../common-adapters'
 import {globalColors, globalMargins} from '../../styles'
 
 export type Props = {
-  username: string
+  username: string,
 }
 
 export default function Loading ({username}: Props) {

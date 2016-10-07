@@ -111,7 +111,6 @@ func (c *cmdChatSend) Run() (err error) {
 			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet. Ignoring --set-topic-name >.<")
 		}
 		msgV1.ClientHeader.MessageType = chat1.MessageType_METADATA
-		msgV1.ClientHeader.Prev = nil // TODO
 		msgV1.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
 		args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
 		if _, err := chatClient.PostLocal(ctx, args); err != nil {

@@ -1,3 +1,4 @@
+// @flow
 import logger from './logger'
 import {forwardLogs} from '../local-debug'
 

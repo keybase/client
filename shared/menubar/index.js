@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
 import Render from './index.render'
 import {bindActionCreators} from 'redux'
@@ -23,7 +23,7 @@ export type Props = $Shape<{
   openInKBFS: (target?: any) => void,
   loggedIn: ?boolean,
   switchTab: (tab: string) => void,
-  folderProps: ?FolderProps
+  folderProps: ?FolderProps,
 }>
 
 const REQUEST_DELAY = 5000

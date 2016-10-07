@@ -7,14 +7,14 @@ import {generatePaperKey, loadDevices} from '../../actions/devices'
 import {navigateUp} from '../../actions/router'
 
 type State = {
-  loading: boolean
+  loading: boolean,
 }
 
 type Props = {
   paperKey: HiddenString,
   generatePaperKey: () => void,
   onBack: () => void,
-  onFinish: () => void
+  onFinish: () => void,
 }
 
 class GenPaperKey extends Component<void, Props, State> {

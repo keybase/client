@@ -23,7 +23,7 @@ type PlanInfoAPI = {
   num_groups: number,
   folders_with_writes: number,
   billing_status: number,
-  test_mode: ?any
+  test_mode: ?any,
 }
 
 type UsageInfoAPI = {
@@ -67,7 +67,7 @@ export type PaymentInfo = {
 type PaymentInfoAPI = {
   last4: string,
   name: string,
-  cvc_check: 'pass' | any
+  cvc_check: 'pass' | any,
 }
 
 export type AvailablePlans = Array<AvailablePlan>

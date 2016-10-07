@@ -1,7 +1,7 @@
+// @flow
 const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
-const config = Object.assign({}, baseConfig)
 const getenv = require('getenv')
 const UnusedFilesWebpackPlugin = require('unused-files-webpack-plugin').default
 const DashboardPlugin = require('webpack-dashboard/plugin')
@@ -15,6 +15,9 @@ const defines = {
   'process.env.NODE_ENV': JSON.stringify('development'),
   '__VERSION__': JSON.stringify('Development'),
 }
+
+// $FlowIssue
+const config = Object.assign({}, baseConfig)
 
 console.warn('Injecting dev defines: ', defines)
 

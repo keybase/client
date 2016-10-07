@@ -1,11 +1,18 @@
 #!/usr/bin/env node
+/* eslint-disable flowtype/require-valid-file-annotation */
+// (we can't strip flowtypes on this before flow is installed)
 
 var os = require('os')
 var path = require('path')
 var fs = require('fs')
 var spawnSync = require('child_process').spawnSync
 
-var VENDOR_DIR = process.env.KEYBASE_JS_VENDOR_DIR
+var VENDOR_DIR = process.env.KEYBASE_JS_VENDOR_DIR || ''
+if (!VENDOR_DIR) {
+  console.log('Error: KEYBASE_JS_VENDOR_DIR unset. Please specify a location for the vendoring repo.')
+  process.exit(1)
+}
+
 const NPM_CMD = os.platform() === 'win32' ? 'npm.cmd' : 'npm'
 
 function ensureSymlink (target, dest) {
@@ -89,9 +96,9 @@ function updateVendored () {
   // force HTTPS for more efficient cloning
   vendorURL = vendorURL.replace(/^git@github.com:/, 'https://github.com/')
   var vendorCommit = spawn('git', ['rev-parse', 'HEAD'], {cwd: VENDOR_DIR, stdio: 'pipe'}).stdout.trim()
-  var packageInfo = JSON.parse(fs.readFileSync('./package.json'))
+  var packageInfo = JSON.parse(fs.readFileSync('./package.json', {encoding: 'utf8'}))
   packageInfo.keybaseVendoredDependencies = `${vendorURL}#${vendorCommit}`
-  fs.writeFileSync('./package.json', JSON.stringify(packageInfo, 2, 2))
+  fs.writeFileSync('./package.json', JSON.stringify(packageInfo, null, 2))
   spawn('git', ['add', './package.json'])
   spawn('git', ['commit', '-n', '-m', 'Update vendored deps'])
 
@@ -102,7 +109,7 @@ function updateVendored () {
 }
 
 function installVendored () {
-  var packageInfo = JSON.parse(fs.readFileSync('./package.json'))
+  var packageInfo = JSON.parse(fs.readFileSync('./package.json', {encoding: 'utf8'}))
   var parts = packageInfo.keybaseVendoredDependencies.split('#')
   var url = parts[0]
   var commit = parts[1]
@@ -122,11 +129,6 @@ function installVendored () {
       ELECTRON_ONLY_CACHE: 1,
     }),
   })
-}
-
-if (!VENDOR_DIR) {
-  console.log('Error: KEYBASE_JS_VENDOR_DIR unset. Please specify a location for the vendoring repo.')
-  process.exit(1)
 }
 
 var npmVersionRes = spawn(NPM_CMD, ['-v'], {stdio: 'pipe'})

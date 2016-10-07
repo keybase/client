@@ -11,7 +11,7 @@ const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new 
 
 export default connector.connect(
   (state, dispatch, ownProps) => {
-    const currentDevice = state.devices.devices.find(d => d.currentDevice)
+    const currentDevice = state.devices.devices && state.devices.devices.find(d => d.currentDevice)
 
     return {
       onRevokeCurrentDevice: () => { dispatch(routeAppend({path: 'removeDevice', device: currentDevice})) },

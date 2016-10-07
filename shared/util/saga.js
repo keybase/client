@@ -1,5 +1,4 @@
 // @flow
-
 import {mapValues, forEach} from 'lodash'
 import type {ChannelConfig, ChannelMap} from '../constants/types/saga'
 import {buffers, channel} from 'redux-saga'

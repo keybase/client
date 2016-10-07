@@ -1,12 +1,14 @@
 // @flow
 import React from 'react'
-import type {Props} from './render'
 import {Button, Input, StandardScreen} from '../../common-adapters'
 import {globalMargins} from '../../styles'
+
+import type {Props} from './render'
 
 const EditProfileRender = (props: Props) => (
   <StandardScreen style={styleContainer} onClose={props.onBack}>
     <Input
+      autoCorrect={true}
       autoFocus={true}
       style={styleInput}
       floatingLabelText='Full name'
@@ -15,6 +17,7 @@ const EditProfileRender = (props: Props) => (
       onEnterKeyDown={props.onSubmit}
       onChangeText={fullname => props.onFullnameChange(fullname)} />
     <Input
+      autoCorrect={true}
       style={styleInput}
       floatingLabelText='Location'
       hintText='Location'
@@ -22,6 +25,7 @@ const EditProfileRender = (props: Props) => (
       onEnterKeyDown={props.onSubmit}
       onChangeText={location => props.onLocationChange(location)} />
     <Input
+      autoCorrect={true}
       style={styleInput}
       floatingLabelText='Bio'
       hintText='Bio'

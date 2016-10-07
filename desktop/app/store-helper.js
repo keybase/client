@@ -1,9 +1,10 @@
+// @flow
 import {ipcMain} from 'electron'
 import {selector as trackerSelector} from '../shared/tracker'
 import {selector as menubarSelector} from '../shared/menubar'
 import {selector as unlockFoldersSelector} from '../shared/unlock-folders'
 
-export default function (mainWindow) {
+export default function (mainWindow: any) {
   const subscribeStoreSubscribers = []
   let store = {}
 
@@ -46,7 +47,7 @@ export default function (mainWindow) {
 
     // Reverse so the indexes don't shift
     dead.reverse().forEach(idx => {
-      subscribeStoreSubscribers.splice(dead, 1)
+      subscribeStoreSubscribers.splice(idx, 1)
     })
   })
 

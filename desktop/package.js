@@ -1,3 +1,4 @@
+// @flow
 const os = require('os')
 const webpack = require('webpack')
 const cfg = require('./webpack.config.production.js')
@@ -59,6 +60,7 @@ const DEFAULT_OPTS = {
 const icon = argv.icon
 
 if (icon) {
+  // $FlowIssue
   DEFAULT_OPTS.icon = icon
 }
 
@@ -67,6 +69,7 @@ console.log('Finding electron version')
 exec('npm list --dev electron-prebuilt', (err, stdout, stderr) => {
   if (!err) {
     try {
+      // $FlowIssue
       DEFAULT_OPTS.version = stdout.match(/electron-prebuilt@([0-9.]+)/)[1]
       console.log('Found electron-prebuilt version: ', DEFAULT_OPTS.version)
     } catch (err) {

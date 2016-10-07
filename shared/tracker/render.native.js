@@ -1,6 +1,5 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
-
 import {UserBio, UserProofs, Box} from '../common-adapters'
 import Header from './header.render'
 import Action from './action.render'

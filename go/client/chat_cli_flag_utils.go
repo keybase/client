@@ -126,7 +126,10 @@ func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver chatC
 }
 
 func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher chatCLIConversationFetcher, err error) {
-	fetcher.query.MessageTypes = []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT}
+	fetcher.query.MessageTypes = []chat1.MessageType{
+		chat1.MessageType_TEXT,
+		chat1.MessageType_ATTACHMENT,
+	}
 	fetcher.query.Limit = chat1.UnreadFirstNumLimit{
 		NumRead: 2,
 		AtLeast: ctx.Int("at-least"),

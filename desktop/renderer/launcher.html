@@ -59,6 +59,9 @@ body {
       if (__DEV__) {
         var vendor = document.createElement('script')
         vendor.onload = loadEntryChunk
+        // In case we don't have a dll, we just load the main entry chunk
+        // This happens when we don't use a DLL
+        vendor.onerror = loadEntryChunk
         vendor.src = '../dist/dll/dll.vendor.js'
         document.head.appendChild(vendor)
       } else {

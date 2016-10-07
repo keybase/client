@@ -16,22 +16,22 @@ export type ExtraInfo = {
   icon: ?IconType,
   serviceUsername: string, // i.e. with twitter it would be malgorithms
   serviceAvatar: string, // i.e. with twitter it would be their twitter avatar url
-  fullNameOnService: string // Say with twitter we know malgorithms is "Chris Coyne"
+  fullNameOnService: string, // Say with twitter we know malgorithms is "Chris Coyne"
 } | {
   service: 'keybase',
   username: string,
   fullName: string,
-  isFollowing: boolean
+  isFollowing: boolean,
 } | {
   service: 'none',
-  fullName: string
+  fullName: string,
 }
 
 export type SearchResult = {
   service: 'keybase',
   username: string,
   isFollowing: boolean,
-  extraInfo: ExtraInfo
+  extraInfo: ExtraInfo,
 } | {
   service: 'external',
   icon: IconType,

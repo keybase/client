@@ -20,6 +20,7 @@ const (
 	methodSend   = "send"
 	methodEdit   = "edit"
 	methodDelete = "delete"
+	methodAttach = "attach"
 )
 
 // ErrInvalidOptions is returned when the options aren't valid.
@@ -80,6 +81,7 @@ type ChatAPIHandler interface {
 	SendV1(context.Context, Call, io.Writer) error
 	EditV1(context.Context, Call, io.Writer) error
 	DeleteV1(context.Context, Call, io.Writer) error
+	AttachV1(context.Context, Call, io.Writer) error
 }
 
 // ChatServiceHandler can call the service.
@@ -89,6 +91,7 @@ type ChatServiceHandler interface {
 	SendV1(context.Context, sendOptionsV1) Reply
 	EditV1(context.Context, editOptionsV1) Reply
 	DeleteV1(context.Context, deleteOptionsV1) Reply
+	AttachV1(context.Context, attachOptionsV1) Reply
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -202,6 +205,18 @@ func (d deleteOptionsV1) Check() error {
 	return nil
 }
 
+type attachOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID chat1.ConversationID `json:"conversation_id"`
+}
+
+func (a attachOptionsV1) Check() error {
+	if err := checkChannelConv(methodDelete, a.Channel, a.ConversationID); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) != 0 {
 		return ErrInvalidOptions{version: 1, method: methodList, err: errors.New("unexpected options, should be empty")}
@@ -276,6 +291,23 @@ func (a *ChatAPI) DeleteV1(ctx context.Context, c Call, w io.Writer) error {
 	// opts are valid for delete v1
 
 	return a.encodeReply(c, a.svcHandler.DeleteV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) AttachV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodAttach, err: errors.New("empty options")}
+	}
+	var opts attachOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+
+	// opts are valid for attach v1
+
+	return a.encodeReply(c, a.svcHandler.AttachV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

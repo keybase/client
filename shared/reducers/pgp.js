@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import * as Constants from '../constants/pgp'
 import * as CommonConstants from '../constants/common'
 import type {Actions} from '../constants/pgp'

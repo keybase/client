@@ -19,7 +19,7 @@ type RawResult = {
     uid: string,
     picture_url: ?string,
     full_name: ?string,
-    is_followee: boolean
+    is_followee: boolean,
   },
   service: ?{
     service_name: string,
@@ -27,8 +27,8 @@ type RawResult = {
     picture_url: ?string,
     bio: ?string,
     location: ?string,
-    full_name: ?string
-  }
+    full_name: ?string,
+  },
 }
 
 function parseExtraInfo (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean): ExtraInfo {

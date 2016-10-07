@@ -1,6 +1,7 @@
+// @flow
 import getenv from 'getenv'
 
-export function updateConfig (config) {
+export function updateConfig (config: any) {
   let newConfig = {...config}
 
   if (getenv.boolish('KEYBASE_SHOW_DEVTOOLS', false)) {

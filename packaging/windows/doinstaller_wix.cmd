@@ -14,6 +14,9 @@ set PathName=%Folder%keybase.exe
 if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
 echo DOKAN_PATH %DOKAN_PATH%
 
+for /F delims^=^"^ tokens^=2 %%x in ('findstr ProductCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanProductCodeX64=%%x
+for /F delims^=^"^ tokens^=2 %%x in ('findstr ProductCodeX86 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanProductCodeX86=%%x
+
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
 
 :: Capture the windows style version
@@ -94,6 +97,14 @@ IF %ERRORLEVEL% NEQ 0 (
 if NOT DEFINED BUILD_TAG set BUILD_TAG=%SEMVER%
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
+
+echo ^<?xml version=^"1.0^" encoding=^"utf-8^"?^> > dokanver.xml
+echo ^<Include^> >> dokanver.xml
+echo ^<?define DokanProductCodeX86=^"%DokanProductCodeX86%^" ?^> >> dokanver.xml
+echo ^<?define DokanProductCodeX64=^"%DokanProductCodeX64%^" ?^> >> dokanver.xml
+echo ^<?define DOKAN_PATH=^"%DOKAN_PATH%^" ?^> >> dokanver.xml
+echo ^</Include^>  >> dokanver.xml
+
 msbuild WIX_Installers.sln  /p:Configuration=Release /p:Platform=x86 /t:Build
 popd
 IF %ERRORLEVEL% NEQ 0 (
@@ -126,4 +137,4 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\desktop\CHANGELOG.txt > %JSON_UPDATE_FILENAME%
+%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > %JSON_UPDATE_FILENAME%

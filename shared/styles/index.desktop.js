@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 // Styles from our designers
 import globalColors from './colors'
 import {resolveImageAsURL} from '../../desktop/resolve-root'

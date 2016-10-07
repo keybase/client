@@ -29,7 +29,7 @@ type PlanLevelProps = {
   style?: Object,
   level: PlanLevel,
   onInfo: () => void,
-    variants: PlanActionVariantsProps
+    variants: PlanActionVariantsProps,
 }
 
 function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, onDowngrade: (l: PlanLevel) => void, onUpgrade: (l: PlanLevel) => void, freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean): PlanActionVariantsProps {

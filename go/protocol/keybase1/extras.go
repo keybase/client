@@ -406,6 +406,22 @@ func FromTime(t Time) time.Time {
 	return time.Unix(0, int64(t)*1000000)
 }
 
+func (t Time) Time() time.Time {
+	return FromTime(t)
+}
+
+func (t Time) UnixSeconds() int64 {
+	return t.Time().Unix()
+}
+
+func (t Time) UnixMilliseconds() int64 {
+	return t.Time().UnixNano() / 1e6
+}
+
+func (t Time) UnixMicroseconds() int64 {
+	return t.Time().UnixNano() / 1e3
+}
+
 func ToTime(t time.Time) Time {
 	// the result of calling UnixNano on the zero Time is undefined.
 	// https://golang.org/pkg/time/#Time.UnixNano

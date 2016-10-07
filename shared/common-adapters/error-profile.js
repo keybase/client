@@ -5,7 +5,7 @@ import Text from './text'
 import {globalColors, globalMargins} from '../styles'
 
 export type Props = {
-  error: string
+  error: string,
 }
 
 export default function ErrorLoadingProfile ({error}: Props) {

@@ -58,11 +58,48 @@
     },
     {
       "type": "record",
-      "name": "MessageAttachment",
+      "name": "Asset",
       "fields": [
         {
           "type": "string",
           "name": "path"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
+        },
+        {
+          "type": "Hash",
+          "name": "encHash"
+        },
+        {
+          "type": "bytes",
+          "name": "key"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageAttachment",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "object"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "preview"
+        },
+        {
+          "type": "bytes",
+          "name": "metadata"
         }
       ]
     },
@@ -274,6 +311,10 @@
         {
           "type": "string",
           "name": "senderDeviceName"
+        },
+        {
+          "type": "Hash",
+          "name": "headerHash"
         }
       ]
     },
@@ -673,6 +714,26 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetMessagesLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageFromServerOrError"
+          },
+          "name": "messages"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
@@ -772,6 +833,22 @@
         }
       ],
       "response": "GetConversationForCLILocalRes"
+    },
+    "GetMessagesLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "messageIDs",
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          }
+        }
+      ],
+      "response": "GetMessagesLocalRes"
     }
   },
   "namespace": "chat.1"
