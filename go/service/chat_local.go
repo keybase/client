@@ -219,6 +219,9 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 		return chat1.GetThreadLocalRes{}, err
 	}
 
+	// Run type filter if it exists
+	thread.Messages = chat.FilterByType(thread.Messages, arg.Query)
+
 	return chat1.GetThreadLocalRes{
 		Thread:     thread,
 		RateLimits: h.aggRateLimitsP([]*chat1.RateLimit{boxed.RateLimit}),
