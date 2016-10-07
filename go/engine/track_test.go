@@ -80,7 +80,7 @@ func trackAliceWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.
 		tc.T.Fatal(err)
 	}
 	checkAliceProofs(tc.T, idUI, res)
-	assertTracking(tc, "t_alice")
+	assertTracking(tc, "t_not_alice")
 	return
 }
 
