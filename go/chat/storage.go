@@ -13,9 +13,9 @@ import (
 
 // TODO:
 // ***
-// Supersedes
 // Error handling
 // Gregor OOBM integration
+// TEST!!!!1111!!!!one!
 // ***
 
 const maxBlockSize = 100
@@ -206,13 +206,11 @@ func (s *Storage) createBlock(bi *blockIndex) (block, error) {
 
 	// Write out new block
 	b := block{BlockID: bi.MaxBlock}
-	key := s.makeBlockKey(bi.ConvID, bi.UID, bi.MaxBlock)
-	dat, err = s.encode(b)
-	if err != nil {
+	if err = s.writeBlock(bi, b); err != nil {
 		return block{}, err
 	}
 
-	return b, s.G().LocalDb.PutRaw(key, dat)
+	return b, nil
 }
 
 func (s *Storage) readBlock(bi *blockIndex, id int) (block, bool, error) {
@@ -235,6 +233,17 @@ func (s *Storage) readBlock(bi *blockIndex, id int) (block, bool, error) {
 	return b, found, nil
 }
 
+func (s *Storage) writeBlock(bi *blockIndex, b block) error {
+	dat, err := s.encode(b)
+	if err != nil {
+		return err
+	}
+	if err = s.G().LocalDb.PutRaw(s.makeBlockKey(bi.ConvID, bi.UID, b.BlockID), dat); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *Storage) Merge(convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageFromServerOrError) error {
 	s.Lock()
 	defer s.Unlock()
@@ -251,7 +260,47 @@ func (s *Storage) Merge(convID chat1.ConversationID, uid gregor1.UID, msgs []cha
 	}
 
 	// Write out new data into blocks
-	return s.writeMessages(&bi, msgs)
+	if err = s.writeMessages(&bi, msgs); err != nil {
+		return err
+	}
+
+	// Update supersededBy pointers
+	if err = s.updateSupersededBy(&bi, msgs); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Storage) updateSupersededBy(bi *blockIndex, msgs []chat1.MessageFromServerOrError) error {
+
+	// Do a pass over all the messages and update supersededBy pointers
+	for _, msg := range msgs {
+		superID := msg.Message.MessagePlaintext.V1().ClientHeader.Supersedes
+		if superID == 0 {
+			continue
+		}
+
+		// Read block with super msg on it
+		b, found, err := s.getBlock(bi, superID)
+		if err != nil {
+			return err
+		}
+		if !found {
+			continue
+		}
+
+		// Update supersededBy on the target message if we have it
+		superMsg := &b.Msgs[s.getBlockPosition(superID)]
+		if superMsg.Message != nil {
+			superMsg.Message.ServerHeader.SupersededBy = superID
+			if err = s.writeBlock(bi, b); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (s *Storage) writeMessages(bi *blockIndex, msgs []chat1.MessageFromServerOrError) error {
@@ -294,11 +343,7 @@ func (s *Storage) writeMessages(bi *blockIndex, msgs []chat1.MessageFromServerOr
 	}
 
 	// Write the block
-	dat, err := s.encode(newBlock)
-	if err != nil {
-		return err
-	}
-	if err = s.G().LocalDb.PutRaw(s.makeBlockKey(bi.ConvID, bi.UID, maxB.BlockID), dat); err != nil {
+	if err = s.writeBlock(bi, newBlock); err != nil {
 		return err
 	}
 
