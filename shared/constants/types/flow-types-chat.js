@@ -392,6 +392,8 @@ export type MessageAttachment = {
   mimeType: string,
   metadata: bytes,
   key: bytes,
+  attachmentHash: Hash,
+  previewHash: Hash,
 }
 
 export type MessageBody = 

@@ -28,13 +28,15 @@ type MessageDelete struct {
 }
 
 type MessageAttachment struct {
-	Path        string `codec:"path" json:"path"`
-	Size        int    `codec:"size" json:"size"`
-	PreviewPath string `codec:"previewPath" json:"previewPath"`
-	PreviewSize int    `codec:"previewSize" json:"previewSize"`
-	MimeType    string `codec:"mimeType" json:"mimeType"`
-	Metadata    []byte `codec:"metadata" json:"metadata"`
-	Key         []byte `codec:"key" json:"key"`
+	Path           string `codec:"path" json:"path"`
+	Size           int    `codec:"size" json:"size"`
+	PreviewPath    string `codec:"previewPath" json:"previewPath"`
+	PreviewSize    int    `codec:"previewSize" json:"previewSize"`
+	MimeType       string `codec:"mimeType" json:"mimeType"`
+	Metadata       []byte `codec:"metadata" json:"metadata"`
+	Key            []byte `codec:"key" json:"key"`
+	AttachmentHash Hash   `codec:"attachmentHash" json:"attachmentHash"`
+	PreviewHash    Hash   `codec:"previewHash" json:"previewHash"`
 }
 
 type MessageBody struct {

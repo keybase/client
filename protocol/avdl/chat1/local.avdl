@@ -29,6 +29,8 @@ protocol local {
     string mimeType;           // mime type of the attachment
     bytes metadata;            // generic metadata (msgpack)
     bytes key;                 // encryption key
+    Hash attachmentHash;       // hash on attachment object 
+    Hash previewHash;	       // hash on preview object
   }
 
   variant MessageBody switch (MessageType messageType) {

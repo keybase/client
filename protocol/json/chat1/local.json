@@ -87,6 +87,14 @@
         {
           "type": "bytes",
           "name": "key"
+        },
+        {
+          "type": "Hash",
+          "name": "attachmentHash"
+        },
+        {
+          "type": "Hash",
+          "name": "previewHash"
         }
       ]
     },
