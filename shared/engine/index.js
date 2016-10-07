@@ -70,6 +70,8 @@ class Engine {
 
   _setupIgnoredHandlers () {
     this.setIncomingHandler('keybase.1.NotifyTracking.trackingChanged', () => {})
+    // TODO handle these out of band messages from gregor
+    this.setIncomingHandler('keybase.1.gregorUI.pushOutOfBandMessages', () => {})
   }
 
   // Called when we reconnect to the server
