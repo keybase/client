@@ -17,7 +17,6 @@ class PaperKeyRender extends Component<void, Props, void> {
           <Input
             multiline={true}
             rows={3}
-            autoCorrect={true}
             autoFocus={true}
             style={stylesInput}
             floatingLabelText='Paper key'

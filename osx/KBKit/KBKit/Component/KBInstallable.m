@@ -10,8 +10,8 @@
 #import <GHKit/GHKit.h>
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
-// This should be larger than the default timeout we use in install/status commands (> 10 seconds)
-const NSTimeInterval KBDefaultInstallableTimeout = 11.0;
+// This should be larger than any timeouts a task uses internally
+const NSTimeInterval KBDefaultTaskTimeout = 60.0;
 
 @interface KBInstallable ()
 @property KBEnvConfig *config;

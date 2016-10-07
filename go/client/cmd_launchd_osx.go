@@ -36,7 +36,7 @@ func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 }
 
 // defaultLaunchdWait is how long we should wait after install, start, for launchd services
-const defaultLaunchdWait = 5 * time.Second
+const defaultLaunchdWait = 10 * time.Second
 
 func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{

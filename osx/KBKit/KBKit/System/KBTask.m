@@ -69,8 +69,8 @@
     self.completed = YES;
     DDLogDebug(@"Completed");
     dispatch_async(dispatch_get_main_queue(), ^{
-      DDLogDebug(@"Task (out): %@", ([[NSString alloc] initWithData:self.taskReader.outData encoding:NSUTF8StringEncoding]));
       DDLogDebug(@"Task (err): %@", ([[NSString alloc] initWithData:self.taskReader.errData encoding:NSUTF8StringEncoding]));
+      DDLogDebug(@"Task (out): %@", ([[NSString alloc] initWithData:self.taskReader.outData encoding:NSUTF8StringEncoding]));
       self.completion(nil, self.taskReader.outData, self.taskReader.errData);
     });
   });

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
@@ -43,6 +44,10 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "c, components",
 				Usage: "Components to install, comma separated. Specify 'cli' for command line, 'service' for service, kbfs for 'kbfs', or blank for all.",
 			},
+			cli.DurationFlag{
+				Name:  "t, timeout",
+				Usage: "Timeout as duration, such as '10s' or '1m'.",
+			},
 		},
 		ArgumentHelp: "",
 		Usage:        "Installs Keybase components",
@@ -60,6 +65,7 @@ type CmdInstall struct {
 	format     string
 	binPath    string
 	installer  string
+	timeout    time.Duration
 	components []string
 }
 
@@ -78,6 +84,10 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 	v.format = ctx.String("format")
 	v.binPath = ctx.String("bin-path")
 	v.installer = ctx.String("installer")
+	v.timeout = ctx.Duration("timeout")
+	if v.timeout == 0 {
+		v.timeout = 11 * time.Second
+	}
 	if ctx.String("components") == "" {
 		v.components = []string{"updater", "service", "kbfs"}
 	} else {
@@ -100,9 +110,9 @@ func (v *CmdInstall) runInstall() keybase1.InstallResult {
 	}
 
 	if v.installer == "auto" {
-		return install.AutoInstallWithStatus(v.G(), v.binPath, v.force, v.G().Log)
+		return install.AutoInstallWithStatus(v.G(), v.binPath, v.force, v.timeout, v.G().Log)
 	} else if v.installer == "" {
-		return install.Install(v.G(), v.binPath, v.components, v.force, v.G().Log)
+		return install.Install(v.G(), v.binPath, v.components, v.force, v.timeout, v.G().Log)
 	}
 
 	return keybase1.InstallResult{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, fmt.Sprintf("Invalid installer: %s", v.installer))}

@@ -302,6 +302,10 @@
         {
           "type": "string",
           "name": "senderDeviceName"
+        },
+        {
+          "type": "Hash",
+          "name": "headerHash"
         }
       ]
     },
