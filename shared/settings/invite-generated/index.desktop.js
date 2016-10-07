@@ -5,7 +5,7 @@ import {Box, Button, Icon, Text} from '../../common-adapters'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/router'
 
-import type {Props} from './index'
+import type {OwnProps, Props} from './index'
 
 class InviteGenerated extends Component<void, Props, void> {
   render () {
@@ -47,10 +47,6 @@ const linkContainerStyle = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   backgroundColor: globalColors.green3,
-}
-
-export type OwnProps = {
-  onClose: () => void,
 }
 
 export default connect(
