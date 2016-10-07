@@ -86,15 +86,11 @@ public class KeyStore implements ExternalKeyStore {
         try {
             entry = ks.getEntry(keyStoreAlias(serviceName), null);
         } catch (Exception e) {
-            return null;
-        }
-
-        if (wrappedSecret == null) {
-            return null;
+            throw new KeyStoreException("Failed to get the RSA keys from the keystore");
         }
 
         if (!(entry instanceof PrivateKeyEntry)){
-            return null;
+            throw new KeyStoreException("No RSA keys in the keystore");
         }
 
         return unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
@@ -151,10 +147,10 @@ public class KeyStore implements ExternalKeyStore {
     }
 
 
-    private static byte[] readWrappedSecret(SharedPreferences prefs, String prefsKey) {
+    private static byte[] readWrappedSecret(SharedPreferences prefs, String prefsKey) throws Exception {
         final String wrappedKey = prefs.getString(prefsKey,"");
         if (wrappedKey.isEmpty()) {
-            return null;
+            throw new KeyStoreException("No secret for " + prefsKey);
         }
         return Base64.decode(wrappedKey, Base64.NO_WRAP);
     }
