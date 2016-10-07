@@ -556,7 +556,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
           waiting={false}
           onFinish={() => { response.result() }}
           onBack={() => onBack(response)}
-          title={"Your new paper key!"} />))
+          title={'Your new paper key!'} />))
     },
     'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
       response.result()

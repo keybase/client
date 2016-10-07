@@ -9,16 +9,20 @@
   <body>
     <div id="app"><div title="loading..." style="flex: 1;background-color: #f5f5f5"></div>
     <script>
+      const ipcRenderer = require('electron').ipcRenderer
+      const util = require('util')
       function logToElectron() {
         ['log', 'warn', 'error'].forEach(key => {
           window.console[`_${key}`] = window.console[key]
-          window.console[key] = function() {
-            window.console[`_${key}`](...arguments)
-            require('electron').ipcRenderer.send('console.' + key, Array.prototype.slice.call(arguments))
+          window.console[key] = (...args) => {
+            window.console[`_${key}`](...args)
+            const toSend = util.inspect(args)
+            ipcRenderer.send('console.' + key, toSend)
           }
         })
       }
       logToElectron()
+
       function getQueryVariable(variable) {
         var query = window.location.search.substring(1)
           var vars = query.split("&")

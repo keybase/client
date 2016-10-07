@@ -64,14 +64,14 @@ if (icon) {
   DEFAULT_OPTS.icon = icon
 }
 
-// use the same version as the currently-installed electron-prebuilt
+// use the same version as the currently-installed electron
 console.log('Finding electron version')
-exec('npm list --dev electron-prebuilt', (err, stdout, stderr) => {
+exec('npm list --dev electron', (err, stdout, stderr) => {
   if (!err) {
     try {
       // $FlowIssue
-      DEFAULT_OPTS.version = stdout.match(/electron-prebuilt@([0-9.]+)/)[1]
-      console.log('Found electron-prebuilt version: ', DEFAULT_OPTS.version)
+      DEFAULT_OPTS.version = stdout.match(/electron@([0-9.]+)/)[1]
+      console.log('Found electron version: ', DEFAULT_OPTS.version)
     } catch (err) {
       console.log("Couldn't parse npm list to find electron: ", err)
       process.exit(1)
