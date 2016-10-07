@@ -306,8 +306,8 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 						UID:      v1.ClientHeader.Sender.String(),
 						DeviceID: v1.ClientHeader.SenderDevice.String(),
 					},
-					SentAt:   int64(m.Message.ServerHeader.Ctime / 1000),
-					SentAtMs: int64(m.Message.ServerHeader.Ctime),
+					SentAt:   m.Message.ServerHeader.Ctime.UnixSeconds(),
+					SentAtMs: m.Message.ServerHeader.Ctime.UnixMilliseconds(),
 					Prev:     prev,
 				}
 				msg.Content = c.convertMsgBody(v1.MessageBody)
