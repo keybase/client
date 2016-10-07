@@ -45,9 +45,8 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
   _renderAvatar (color: string, badgeNumber: number) {
     if (this.props.source.type !== 'avatar') return // needed to make flow happy
-    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
     return (
-      <Box style={{...globalStyles.flexBoxColumn, backgroundColor, paddingBottom: 21, paddingTop: 21, ...this.props.style}}>
+      <Box style={{...globalStyles.flexBoxColumn, paddingBottom: 21, paddingTop: 21, ...this.props.style}}>
         <Box style={{...stylesTabBarButtonIcon, paddingLeft: 0, height: undefined, justifyContent: 'center', ...this.props.styleContainer}}>
           {this.props.source.avatar}
           {badgeNumber > 0 &&
