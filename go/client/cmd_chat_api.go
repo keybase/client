@@ -373,16 +373,7 @@ func (c *CmdChatAPI) EditV1(ctx context.Context, opts editOptionsV1) Reply {
 
 // AttachV1 implements ChatServiceHandler.AttachV1.
 func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
-	/*
-		arg := sendArgV1{
-			convQuery:  c.getInboxLocalQuery(opts.ConversationID, opts.Channel),
-			body:       chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
-			mtype:      chat1.MessageType_EDIT,
-			supersedes: opts.MessageID,
-			response:   "message edited",
-		}
-		return c.sendV1(ctx, arg)
-	*/
+	// TODO: implement
 	return Reply{}
 }
 

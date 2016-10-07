@@ -318,6 +318,7 @@ func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (pps *PassphraseStre
 			s.G().Log.Debug("| got passphrase stream from secret store")
 			return stream, nil
 		}
+
 		s.G().Log.Debug("| failed to get passphrase stream from secret store: %s", err)
 	}
 
