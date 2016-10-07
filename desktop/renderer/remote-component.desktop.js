@@ -4,6 +4,7 @@ import hotPath from '../hot-path'
 import menuHelper from '../app/menu-helper'
 import {remote, ipcRenderer, screen as electronScreen} from 'electron'
 import {resolveRootAsURL} from '../resolve-root'
+import {showDevTools, skipSecondaryDevtools} from '../shared/local-debug.desktop'
 
 const {BrowserWindow} = remote
 const remoteIdsToComponents = {}
@@ -63,8 +64,23 @@ class RemoteComponent extends Component {
     ipcRenderer.send('showDockIconForRemoteWindow', this.remoteWindowId)
     ipcRenderer.send('listenForRemoteWindowClosed', this.remoteWindowId)
 
-    const componentRequireName = this.props.component
-    this.remoteWindow.loadURL(`${resolveRootAsURL('renderer', 'renderer.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}&dev=${__DEV__}&selectorParams=${this.props.selectorParams}&title=${encodeURI(this.props.title || '')}`)
+    this.remoteWindow.loadURL(resolveRootAsURL('renderer', `renderer.html?${this.props.component || ''}`))
+
+    const webContents = this.remoteWindow.webContents
+    webContents.once('did-finish-load', () => {
+      webContents.send('load', {
+        scripts: [
+          ...(__DEV__ ? [resolveRootAsURL('dist', 'dll', 'dll.vendor.js')] : []),
+          ...[hotPath('remote-component-loader.bundle.js')]],
+        selectorParams: this.props.selectorParams,
+        title: this.props.title,
+        component: this.props.component,
+      })
+    })
+
+    if (showDevTools && !skipSecondaryDevtools) {
+      webContents.openDevTools('detach')
+    }
   }
 
   componentWillUnmount () {

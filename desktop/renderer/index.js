@@ -3,8 +3,10 @@
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
 
+import Nav from '../shared/nav.desktop'
 import React from 'react'
 import ReactDOM from 'react-dom'
+import RemoteManager from './remote-manager'
 import Root from './container'
 import configureStore from '../shared/store/configure-store'
 import electron, {ipcRenderer} from 'electron'
@@ -12,12 +14,12 @@ import engine, {makeEngine} from '../shared/engine'
 import hello from '../shared/util/hello'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import loadPerf from '../shared/util/load-perf'
-import {merge} from 'lodash'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../shared/actions/config'
 import {devEditAction} from '../shared/reducers/dev-edit'
-import {devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {listenForNotifications} from '../shared/actions/notifications'
+import {merge} from 'lodash'
+import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {setupContextMenu} from '../app/menu-helper'
 // $FlowIssue
 import {setupSource} from '../shared/util/forward-logs'
@@ -81,22 +83,43 @@ function setupApp (store) {
 }
 
 const store = configureStore()
-
 setupApp(store)
 
 const appEl = document.getElementById('root')
 
-ReactDOM.render(
-  <AppContainer><Root store={store} /></AppContainer>,
-  appEl,
-)
+let dt = null
+if (__DEV__ && reduxDevToolsEnable) { // eslint-disable-line no-undef
+  const DevTools = require('./redux-dev-tools').default
+  dt = <DevTools />
+}
+
+function load () {
+  ReactDOM.render((
+    <AppContainer>
+      <Root store={store}>
+        <div style={{display: 'flex', flex: 1}}>
+          <RemoteManager />
+          <Nav />
+          {dt}
+        </div>
+      </Root>
+    </AppContainer>), appEl)
+}
 
 module.hot && typeof module.hot.accept === 'function' && module.hot.accept('./container', () => {
   try {
     store.dispatch({type: updateReloading, payload: {reloading: true}})
     const NewRoot = require('./container').default
     ReactDOM.render(
-      <AppContainer><NewRoot store={store} /></AppContainer>,
+      <AppContainer>
+        <NewRoot store={store}>
+          <div style={{display: 'flex', flex: 1}}>
+            <RemoteManager />
+            <Nav />
+            {dt}
+          </div>
+        </NewRoot>
+      </AppContainer>,
       appEl,
     )
     engine().reset()
@@ -108,3 +131,6 @@ module.hot && typeof module.hot.accept === 'function' && module.hot.accept('./co
 module.hot && typeof module.hot.accept === 'function' && module.hot.accept('../shared/local-debug-live', () => {
   store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
 })
+
+window.load = load
+

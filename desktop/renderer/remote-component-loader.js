@@ -3,16 +3,14 @@ import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 // $FlowIssue
 import RemoteStore from './remote-store'
+import Root from './container'
 import engine, {makeEngine} from '../shared/engine'
 import hello from '../shared/util/hello'
 import loadPerf from '../shared/util/load-perf'
-import materialTheme from '../shared/styles/material-theme.desktop'
 import pinentry from '../shared/pinentry'
 import purgeMessage from '../shared/pgp/container.desktop'
 import tracker from '../shared/tracker'
 import unlockFolders from '../shared/unlock-folders'
-import {MuiThemeProvider} from 'material-ui/styles'
-import {Provider} from 'react-redux'
 // $FlowIssue
 import {globalColors} from '../shared/styles'
 import {remote, ipcRenderer} from 'electron'
@@ -54,18 +52,6 @@ const showOnLoad = currentWindow => {
   })
 }
 
-function getQueryVariable (variable) {
-  var query = window.location.search.substring(1)
-  var vars = query.split('&')
-  for (var i = 0; i < vars.length; i++) {
-    var pair = vars[i].split('=')
-    if (pair[0] === variable) {
-      return pair[1]
-    }
-  }
-  return false
-}
-
 type State = {
   loaded: boolean,
   unmounted: boolean,
@@ -75,7 +61,7 @@ type State = {
 class RemoteComponentLoader extends Component<void, any, State> {
   state: State;
   store: any;
-  Component: any;
+  ComponentClass: any;
 
   constructor (props) {
     super(props)
@@ -86,30 +72,23 @@ class RemoteComponentLoader extends Component<void, any, State> {
 
     loadPerf()
 
-    const componentToLoad = getQueryVariable('component')
-    const selectorParams = getQueryVariable('selectorParams')
-    let title = getQueryVariable('title')
-    title = title && decodeURI(title)
-
-    if (title) {
-      document.title = title
-    }
-
+    const title = this.props.title
     hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__) // eslint-disable-line no-undef
 
-    const component = {tracker, pinentry, unlockFolders, purgeMessage}
+    const component = this.props.component
+    const selectorParams = this.props.selectorParams
+    const components = {tracker, pinentry, unlockFolders, purgeMessage}
 
-    if (!componentToLoad || !component[componentToLoad]) {
+    if (!component || !components[component]) {
       throw new TypeError('Invalid Remote Component passed through')
     }
 
-    this.store = new RemoteStore({component: componentToLoad, selectorParams})
-    this.Component = component[componentToLoad]
+    this.store = new RemoteStore({component, selectorParams})
+    this.ComponentClass = components[component]
   }
 
   componentWillMount () {
     const currentWindow = getCurrentWindow()
-
     setupContextMenu(currentWindow)
 
     currentWindow.on('hasProps', props => {
@@ -170,7 +149,6 @@ class RemoteComponentLoader extends Component<void, any, State> {
   }
 
   render () {
-    const Component = this.Component
     if (!this.state.loaded) {
       return <div style={styles.loading} />
     }
@@ -179,11 +157,9 @@ class RemoteComponentLoader extends Component<void, any, State> {
     }
     return (
       <div style={styles.container}>
-        <MuiThemeProvider muiTheme={materialTheme}>
-          <Provider store={this.store}>
-            <Component {...this.state.props} />
-          </Provider>
-        </MuiThemeProvider>
+        <Root store={this.store}>
+          <this.ComponentClass {...this.state.props} />
+        </Root>
       </div>
     )
   }
@@ -199,4 +175,12 @@ const styles = {
   },
 }
 
-ReactDOM.render(<RemoteComponentLoader />, document.getElementById('root'))
+function load (options) {
+  ReactDOM.render(<RemoteComponentLoader
+    title={options.title}
+    component={options.component}
+    selectorParams={options.selectorParams}
+    />, document.getElementById('root'))
+}
+
+window.load = load

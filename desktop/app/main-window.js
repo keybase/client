@@ -4,7 +4,7 @@ import Window from './window'
 import getenv from 'getenv'
 import hotPath from '../hot-path'
 import {app, ipcMain} from 'electron'
-import {forceMainWindowPosition} from '../shared/local-debug.desktop'
+import {forceMainWindowPosition, showDevTools} from '../shared/local-debug.desktop'
 import {hideDockIcon} from './dock-icon'
 import {resolveRootAsURL} from '../resolve-root'
 // $FlowIssue
@@ -18,7 +18,7 @@ export default function () {
   appState.checkOpenAtLogin()
 
   const mainWindow = new Window(
-    resolveRootAsURL('renderer', `renderer.html?src=${hotPath('index.bundle.js')}&dev=${__DEV__ ? 'true' : 'false'}`), {
+    resolveRootAsURL('renderer', 'renderer.html?mainWindow'), {
       x: appState.state.x,
       y: appState.state.y,
       width: appState.state.width,
@@ -28,6 +28,19 @@ export default function () {
       show: false,
     }
   )
+
+  const webContents = mainWindow.window.webContents
+  webContents.once('did-finish-load', () => {
+    webContents.send('load', {
+      scripts: [
+        ...(__DEV__ ? [resolveRootAsURL('dist', 'dll/dll.vendor.js')] : []),
+        ...[hotPath('index.bundle.js')]],
+    })
+  })
+
+  if (showDevTools) {
+    webContents.openDevTools('detach')
+  }
 
   appState.manageWindow(mainWindow.window)
 
