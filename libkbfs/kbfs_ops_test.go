@@ -5038,6 +5038,14 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	config.mockBserv.EXPECT().Put(gomock.Any(), rmd.TlfID(), changeBlockID,
 		gomock.Any(), changeReadyBlockData.buf,
 		changeReadyBlockData.serverHalf).Return(nil)
+	// For now, fake the amount copied by using a large number, since
+	// we don't have easy access here to the actual encoded data.  The
+	// exact return value doesn't matter as long as it's large enough.
+	config.mockBsplit.EXPECT().CopyUntilSplit(
+		gomock.Any(), gomock.Any(), gomock.Any(), int64(0)).
+		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
+			block.Contents = data
+		}).Return(int64(100 * 1024 * 1024))
 
 	if err := config.KBFSOps().Sync(ctx, n); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)

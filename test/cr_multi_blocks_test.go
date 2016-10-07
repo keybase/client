@@ -190,7 +190,7 @@ func TestCrUnmergedWriteMultiblockFileWithSmallBlockChangeSize(t *testing.T) {
 		as(alice,
 			write("a/foo", "hello"),
 		),
-		as(bob,
+		as(bob, noSync(),
 			write("a/b", ntimesString(15, "0123456789")),
 			reenableUpdates(),
 			lsdir("a/", m{"b": "FILE", "foo": "FILE"}),

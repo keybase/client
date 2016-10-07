@@ -184,6 +184,18 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 			sc.log.CDebugf(ctx, "Unembedded block change: %v, %d",
 				info.BlockPointer, info.EncodedSize)
 			actualLiveBlocks[info.BlockPointer] = info.EncodedSize
+
+			// Any child block change pointers?
+			fblock, err := ops.blocks.GetFileBlockForReading(ctx, lState,
+				rmd.ReadOnly(), info.BlockPointer, MasterBranch, path{})
+			if err != nil {
+				return err
+			}
+			for _, iptr := range fblock.IPtrs {
+				sc.log.CDebugf(ctx, "Unembedded child block change: %v, %d",
+					iptr.BlockPointer, iptr.EncodedSize)
+				actualLiveBlocks[iptr.BlockPointer] = iptr.EncodedSize
+			}
 		}
 
 		var hasGCOp bool
@@ -198,7 +210,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 					opRefs[ptr] = true
 				}
 			}
-			if _, ok := op.(*gcOp); !ok {
+			if !isGCOp {
 				for _, ptr := range op.Unrefs() {
 					delete(expectedLiveBlocks, ptr)
 					if ptr != zeroPtr {
