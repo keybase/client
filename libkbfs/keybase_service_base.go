@@ -290,6 +290,9 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 		UserAssertion: assertion,
 		UseDelegateUI: true,
 		Reason:        keybase1.IdentifyReason{Reason: reason},
+		// No need to go back and forth with the UI until the service
+		// knows for sure there's a need for a dialogue.
+		CanSuppressUI: true,
 	}
 	res, err := k.identifyClient.Identify2(ctx, arg)
 	// Identify2 still returns keybase1.UserPlusKeys data (sans keys),
