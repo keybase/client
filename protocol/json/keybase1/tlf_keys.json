@@ -45,11 +45,27 @@
       "name": "TLFBreak",
       "fields": [
         {
+          "type": {
+            "type": "array",
+            "items": "TLFUserBreak"
+          },
+          "name": "breaks"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TLFUserBreak",
+      "fields": [
+        {
           "type": "User",
           "name": "user"
         },
         {
-          "type": "IdentifyTrackBreaks",
+          "type": [
+            null,
+            "IdentifyTrackBreaks"
+          ],
           "name": "breaks"
         }
       ]
@@ -98,10 +114,7 @@
           "name": "CanonicalName"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "TLFBreak"
-          },
+          "type": "TLFBreak",
           "name": "breaks"
         }
       ]

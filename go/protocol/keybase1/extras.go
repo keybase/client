@@ -729,3 +729,11 @@ func (t TLFID) ToBytes() []byte {
 	}
 	return b
 }
+
+func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
+	return b == TLFIdentifyBehavior_CHAT_GUI || b == TLFIdentifyBehavior_CHAT_CLI
+}
+
+func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
+	return b == TLFIdentifyBehavior_CHAT_GUI
+}

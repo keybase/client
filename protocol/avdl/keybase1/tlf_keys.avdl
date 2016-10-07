@@ -21,8 +21,12 @@ protocol tlfKeys {
   }
 
   record TLFBreak {
+    array<TLFUserBreak> breaks;
+  }
+
+  record TLFUserBreak {
     User user;
-    IdentifyTrackBreaks breaks;
+    union { null, IdentifyTrackBreaks } breaks;
   }
 
   record GetTLFCryptKeysRes {
@@ -48,7 +52,7 @@ protocol tlfKeys {
     TLFID tlfID;
     CanonicalTlfName CanonicalName;
 
-    array<TLFBreak> breaks;
+    TLFBreak breaks;
   }
 
   /**

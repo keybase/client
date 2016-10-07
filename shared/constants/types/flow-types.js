@@ -1824,7 +1824,7 @@ export type Bytes32 = any
 export type CanonicalTLFNameAndIDWithBreaks = {
   tlfID: TLFID,
   CanonicalName: CanonicalTlfName,
-  breaks?: ?Array<TLFBreak>,
+  breaks: TLFBreak,
 }
 
 export type CanonicalTlfName = string
@@ -3037,8 +3037,7 @@ export type TLF = {
 }
 
 export type TLFBreak = {
-  user: User,
-  breaks: IdentifyTrackBreaks,
+  breaks?: ?Array<TLFUserBreak>,
 }
 
 export type TLFID = string
@@ -3051,6 +3050,11 @@ export type TLFIdentifyBehavior =
 export type TLFQuery = {
   tlfName: string,
   identifyBehavior: TLFIdentifyBehavior,
+}
+
+export type TLFUserBreak = {
+  user: User,
+  breaks?: ?IdentifyTrackBreaks,
 }
 
 export type Test = {

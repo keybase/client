@@ -35,8 +35,12 @@ type CryptKey struct {
 }
 
 type TLFBreak struct {
-	User   User                `codec:"user" json:"user"`
-	Breaks IdentifyTrackBreaks `codec:"breaks" json:"breaks"`
+	Breaks []TLFUserBreak `codec:"breaks" json:"breaks"`
+}
+
+type TLFUserBreak struct {
+	User   User                 `codec:"user" json:"user"`
+	Breaks *IdentifyTrackBreaks `codec:"breaks,omitempty" json:"breaks,omitempty"`
 }
 
 type GetTLFCryptKeysRes struct {
@@ -52,7 +56,7 @@ type TLFQuery struct {
 type CanonicalTLFNameAndIDWithBreaks struct {
 	TlfID         TLFID            `codec:"tlfID" json:"tlfID"`
 	CanonicalName CanonicalTlfName `codec:"CanonicalName" json:"CanonicalName"`
-	Breaks        []TLFBreak       `codec:"breaks" json:"breaks"`
+	Breaks        TLFBreak         `codec:"breaks" json:"breaks"`
 }
 
 type GetTLFCryptKeysArg struct {
