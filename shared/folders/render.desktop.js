@@ -24,7 +24,7 @@ class Render extends Component<void, Props, void> {
         ...styleItem,
         borderBottom: `solid 2px ${isSelected ? selectedColor : 'transparent'}`,
         paddingLeft: 20,
-        paddingRight: 4,
+        paddingRight: 20,
       }}
       styleBadge={styleBadge}
       styleIcon={{...styleIcon, ...iconStyle}}
@@ -94,7 +94,6 @@ const styleBadge = {
   borderRadius: 20,
   flex: 'initial',
   justifyContent: 'center',
-  marginRight: 15,
   marginLeft: 2,
 }
 
@@ -122,7 +121,6 @@ const itemContainerStyle = {
 
 const tabBarStyle = {
   ...globalStyles.flexBoxRow,
-  minHeight: 48,
 }
 
 const tabBarSmallStyle = {

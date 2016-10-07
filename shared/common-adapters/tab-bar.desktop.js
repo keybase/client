@@ -45,8 +45,9 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
   _renderAvatar (color: string, badgeNumber: number) {
     if (this.props.source.type !== 'avatar') return // needed to make flow happy
+    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
     return (
-      <Box style={{...globalStyles.flexBoxColumn, paddingBottom: 21, paddingTop: 21, ...this.props.style}}>
+      <Box style={{...globalStyles.flexBoxColumn, backgroundColor, paddingBottom: 21, paddingTop: 21, ...this.props.style}}>
         <Box style={{...stylesTabBarButtonIcon, paddingLeft: 0, height: undefined, justifyContent: 'center', ...this.props.styleContainer}}>
           {this.props.source.avatar}
           {badgeNumber > 0 &&
@@ -92,14 +93,21 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
 
   _renderIcon (color: string, badgeNumber: number) {
     if (this.props.source.type !== 'icon') return // needed to make flow happy
+    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
     return (
-      <Box style={{...stylesTabBarButtonIcon, ...this.props.style}}>
+      <Box style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}>
         <Icon type={this.props.source.icon} style={{...stylesIcon, color, ...this.props.styleIcon}} />
         {!!this.props.label &&
           <Text type='BodySemibold' style={{color, textAlign: 'center', ...globalStyles.clickable, ...this.props.styleLabel}}>
             {this.props.label}
-          </Text>}
-        {badgeNumber > 0 && <Badge badgeNumber={badgeNumber} badgeStyle={this.props.styleBadge} badgeNumberStyle={this.props.styleBadgeNumber} />}
+          </Text>
+        }
+        {badgeNumber > 0 &&
+          <Box style={{...styleBadgeIcon}}>
+            <Badge badgeNumber={badgeNumber} badgeStyle={this.props.styleBadge} badgeNumberStyle={this.props.styleBadgeNumber} />
+          </Box>
+        }
+
       </Box>
     )
   }
@@ -220,6 +228,11 @@ const styleBadgeNav = {
   position: 'relative',
   left: 20,
   top: 10,
+}
+
+const styleBadgeIcon = {
+  marginLeft: 'auto',
+  marginRight: 8,
 }
 
 export {
