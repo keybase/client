@@ -195,6 +195,7 @@ export type Asset = {
   size: int,
   mimeType: string,
   encHash: Hash,
+  key: bytes,
 }
 
 export type BodyPlaintext = 
@@ -395,7 +396,6 @@ export type MessageAttachment = {
   object: Asset,
   preview?: ?Asset,
   metadata: bytes,
-  key: bytes,
 }
 
 export type MessageBody = 

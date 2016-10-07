@@ -26,13 +26,13 @@ protocol local {
     int size;                  // size of the object
     string mimeType;           // mime type of the object
     Hash encHash;              // hash of ciphertext object 
+    bytes key;                 // encryption key
   }
 
   record MessageAttachment {
     Asset object;                // the primary attachment object
     union {null, Asset} preview; // the (optional) preview of object
     bytes metadata;              // generic metadata (msgpack)
-    bytes key;                   // encryption key
   }
 
   variant MessageBody switch (MessageType messageType) {

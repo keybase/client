@@ -32,13 +32,13 @@ type Asset struct {
 	Size     int    `codec:"size" json:"size"`
 	MimeType string `codec:"mimeType" json:"mimeType"`
 	EncHash  Hash   `codec:"encHash" json:"encHash"`
+	Key      []byte `codec:"key" json:"key"`
 }
 
 type MessageAttachment struct {
 	Object   Asset  `codec:"object" json:"object"`
 	Preview  *Asset `codec:"preview,omitempty" json:"preview,omitempty"`
 	Metadata []byte `codec:"metadata" json:"metadata"`
-	Key      []byte `codec:"key" json:"key"`
 }
 
 type MessageBody struct {

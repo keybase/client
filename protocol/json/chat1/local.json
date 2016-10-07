@@ -75,6 +75,10 @@
         {
           "type": "Hash",
           "name": "encHash"
+        },
+        {
+          "type": "bytes",
+          "name": "key"
         }
       ]
     },
@@ -96,10 +100,6 @@
         {
           "type": "bytes",
           "name": "metadata"
-        },
-        {
-          "type": "bytes",
-          "name": "key"
         }
       ]
     },
