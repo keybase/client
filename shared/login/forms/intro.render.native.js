@@ -18,7 +18,7 @@ class Render extends Component {
         }
         <Icon type='icon-keybase-logo-160' />
         <Text style={stylesHeader} type='HeaderJumbo'>Join Keybase</Text>
-        <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the world.</Text>
+        <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the house.</Text>
         <Button style={stylesButton} type='Primary' onClick={this.props.onSignup} label='Create an account' />
         <Text style={stylesLoginHeader} type='Body' onClick={this.props.onLogin}>Already on Keybase?</Text>
         <Button style={stylesButton} type='Secondary' onClick={this.props.onLogin} label='Log in' />
