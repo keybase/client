@@ -66,10 +66,6 @@ export const LocalHeaderPlaintextVersion = {
   v1: 1,
 }
 
-export const LocalMessageAttachmentVersion = {
-  v1: 1,
-}
-
 export const LocalMessagePlaintextVersion = {
   v1: 1,
 }
@@ -388,16 +384,15 @@ export type MarkAsReadRes = {
   rateLimit?: ?RateLimit,
 }
 
-export type MessageAttachment = 
-    { version : 1, v1 : ?MessageAttachmentV1 }
-
-export type MessageAttachmentV1 = {
+export type MessageAttachment = {
   path: string,
+  size: int,
+  previewPath: string,
+  previewSize: int,
+  mimeType: string,
+  metadata: bytes,
   key: bytes,
 }
-
-export type MessageAttachmentVersion = 
-    1 // V1_1
 
 export type MessageBody = 
     { messageType : 1, text : ?MessageText }

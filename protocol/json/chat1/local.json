@@ -57,40 +57,36 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "MessageAttachmentVersion",
-      "symbols": [
-        "V1_1"
-      ]
-    },
-    {
       "type": "record",
-      "name": "MessageAttachmentV1",
+      "name": "MessageAttachment",
       "fields": [
         {
           "type": "string",
           "name": "path"
         },
         {
+          "type": "int",
+          "name": "size"
+        },
+        {
+          "type": "string",
+          "name": "previewPath"
+        },
+        {
+          "type": "int",
+          "name": "previewSize"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
+        },
+        {
+          "type": "bytes",
+          "name": "metadata"
+        },
+        {
           "type": "bytes",
           "name": "key"
-        }
-      ]
-    },
-    {
-      "type": "variant",
-      "name": "MessageAttachment",
-      "switch": {
-        "type": "MessageAttachmentVersion",
-        "name": "version"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "V1",
-            "def": false
-          },
-          "body": "MessageAttachmentV1"
         }
       ]
     },

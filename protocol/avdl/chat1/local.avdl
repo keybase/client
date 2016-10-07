@@ -21,22 +21,14 @@ protocol local {
     MessageID messageID;
   }
 
-  enum MessageAttachmentVersion {
-    V1_1
-  }
-
-  // MessageAttachmentV1 is version 1 of MessageAttachment.
-  // This record is immutable.  To modify, create a new
-  // record type with a new version.
-  record MessageAttachmentV1 {
-    string path;         // path to the attachment object
-    bytes key;           // encryption key
-  }
-
-  // MessageAttachment is a variant container for all the versions
-  // of MessageAttachment.
-  variant MessageAttachment switch (MessageAttachmentVersion version ) {
-    case V1: MessageAttachmentV1;   
+  record MessageAttachment {
+    string path;               // path to the attachment object
+    int size;                  // size of the attachment object (bytes)
+    string previewPath;        // path to the preview object (optional)
+    int previewSize;           // size of the preview object (required if previewPath set)
+    string mimeType;           // mime type of the attachment
+    bytes metadata;            // generic metadata (msgpack)
+    bytes key;                 // encryption key
   }
 
   variant MessageBody switch (MessageType messageType) {
