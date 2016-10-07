@@ -1,7 +1,8 @@
 // @flow
 
 import * as Constants from '../constants/gregor'
-import {canonicalizeTLF, folderFromPath} from '../constants/favorite.js'
+import {usernameSelector} from '../constants/selectors'
+import {folderFromPath} from '../constants/favorite.js'
 import {call, put, select} from 'redux-saga/effects'
 import {takeEvery} from 'redux-saga'
 import {favoriteList, markTLFCreated} from './favorite'
@@ -101,8 +102,9 @@ function * handleKbfsFavoritesOOBM (kbfsFavoriteMessages: Array<OutOfBandMessage
   const msgsWithParsedBodies = kbfsFavoriteMessages.map(m => ({...m, body: JSON.parse(m.body.toString())}))
   const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
 
+  const username: string = ((yield select(usernameSelector)): any)
   yield createdTLFs.map(m => {
-    const folder = m.body.tlf ? markTLFCreated(pathFromFolder(canonicalizeTLF(m.body.tlf))) : null
+    const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
     if (folder != null) {
       return put(folder)
     }
