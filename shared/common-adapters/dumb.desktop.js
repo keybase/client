@@ -504,7 +504,7 @@ const tabBarCustomButtons = selectedIndex => {
 
   return {
     style: {flex: 1, display: 'flex', ...globalStyles.flexBoxRow, height: 580},
-    styleTabBar: {justifyContent: 'flex-start', width: 80, backgroundColor: globalColors.midnightBlue, ...globalStyles.flexBoxColumn},
+    styleTabBar: {justifyContent: 'flex-start', width: 160, backgroundColor: globalColors.midnightBlue, ...globalStyles.flexBoxColumn},
     children: [
       {avatar: <Avatar size={32} onClick={null} username='max' />},
       {icon: 'iconfont-people', label: 'PEOPLE', badgeNumber: 3},
