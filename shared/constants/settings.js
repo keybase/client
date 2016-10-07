@@ -49,10 +49,9 @@ export type Invitation = {
   created: number,
   email: string,
   id: string,
-  key: string,
   type: string,
-  username: string,
-  uid: string,
+  username?: string,
+  uid?: string,
   url: string,
 }
 

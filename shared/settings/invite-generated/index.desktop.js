@@ -8,18 +8,6 @@ import {navigateUp} from '../../actions/router'
 import type {Props} from './index'
 
 class InviteGenerated extends Component<void, Props, void> {
-  static parseRoute (currentPath) {
-    return {
-      componentAtTop: {
-        title: 'Invite generated',
-        props: {
-          email: currentPath.get('email'),
-          link: currentPath.get('link'),
-        },
-      },
-    }
-  }
-
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', justifyContent: 'center', alignItems: 'center'}}>
@@ -61,8 +49,12 @@ const linkContainerStyle = {
   backgroundColor: globalColors.green3,
 }
 
+export type OwnProps = {
+  onClose: () => void,
+}
+
 export default connect(
-  (state: any, ownProps) => {
+  (state: any, ownProps: OwnProps) => {
     return ownProps
   },
   (dispatch: any) => {

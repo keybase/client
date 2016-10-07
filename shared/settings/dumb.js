@@ -392,6 +392,7 @@ const invitesBase = {
     {
       id: '223456',
       created: 1469565223,
+      uid: 1,
       username: 'chris',
       fullname: 'Chris Coyne',
       currentlyFollowing: false,
@@ -400,6 +401,7 @@ const invitesBase = {
     {
       id: '223457',
       created: 1469566223,
+      uid: 2,
       username: 'cecileb',
       fullname: 'Cécile Boucheron',
       currentlyFollowing: true,
@@ -408,6 +410,7 @@ const invitesBase = {
     {
       id: '223458',
       created: 1469567223,
+      uid: 3,
       username: 'chromakode',
       fullname: 'Max Goodman',
       currentlyFollowing: false,
