@@ -27,7 +27,7 @@ func (s *SimpleTimer) Start() {
 // the total duration spent in the timer.
 func (s *SimpleTimer) Stop() time.Duration {
 	if s.start != nil {
-		s.total += time.Now().Sub(*s.start)
+		s.total += time.Since(*s.start)
 	} else {
 		panic("SimpleTimer Stop()'ed without being started")
 	}
