@@ -58,7 +58,18 @@ export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showi
 export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
 export type FavoriteToggleIgnored = TypedAction<'favorite:favoriteToggleIgnored', {isPrivate: boolean}, void>
 
+export const markTLFCreated = 'favorite:markTLFCreated'
+export type MarkTLFCreated = TypedAction<'favorite:markTLFCreated', {folder: FolderRPC}, void>
+
 export type FavoriteAction = FavoriteAdd | FavoriteAdded | FavoriteList | FavoriteListed | FavoriteIgnore | FavoriteIgnored | FavoriteSwitchTab | FavoriteToggleIgnored
+
+// Sometimes we have paths that are just private/foo instead of /keybase/private/foo
+function canonicalizeTLF (tlf: string): string {
+  if (tlf.indexOf(defaultKBFSPath) === -1) {
+    return `${defaultKBFSPath}/${tlf}`
+  }
+  return tlf
+}
 
 function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
   const rwers = users.filter(u => !u.readOnly).map(u => u.username)
@@ -99,4 +110,5 @@ export type {Folder as FolderRPC} from '../constants/types/flow-types'
 export {
   folderFromPath,
   pathFromFolder,
+  canonicalizeTLF,
 }

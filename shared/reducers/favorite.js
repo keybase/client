@@ -26,6 +26,13 @@ export default function (state: FavoriteState = initialState, action: FavoriteAc
     case CommonConstants.resetStore:
       return {...initialState}
 
+    case Constants.markTLFCreated: {
+      if (action.error) { break }
+      // TODO(mm) implement this
+      // const folderCreated = action.payload.folder
+      break
+    }
+
     case Constants.favoriteListed:
       if (action.error) {
         break
