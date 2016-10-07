@@ -1717,3 +1717,63 @@ type ChatTLFFinalizedError struct {
 func (e ChatTLFFinalizedError) Error() string {
 	return fmt.Sprintf("unable to create conversation on finalized TLF: %s", e.TlfID)
 }
+
+//=============================================================================
+
+type ChatStorageError interface {
+	error
+	ShouldClear() bool
+	Message() string
+}
+
+type ChatStorageInternalError struct {
+	Msg string
+}
+
+func (e ChatStorageInternalError) ShouldClear() bool {
+	return true
+}
+
+func (e ChatStorageInternalError) Error() string {
+	return fmt.Sprintf("internal chat storage error: %s", e.Msg)
+}
+
+func (e ChatStorageInternalError) Message() string {
+	return e.Msg
+}
+
+func NewChatStorageInternalError(g *GlobalContext, msg string, args ...interface{}) ChatStorageInternalError {
+	g.Log.Debug("internal chat storage error: "+msg, args...)
+	return ChatStorageInternalError{Msg: msg}
+}
+
+type ChatStorageMissError struct {
+}
+
+func (e ChatStorageMissError) Error() string {
+	return "chat cache miss"
+}
+
+func (e ChatStorageMissError) ShouldClear() bool {
+	return false
+}
+
+func (e ChatStorageMissError) Message() string {
+	return e.Error()
+}
+
+type ChatStorageRemoteError struct {
+	Msg string
+}
+
+func (e ChatStorageRemoteError) Error() string {
+	return fmt.Sprintf("chat remote error: %s", e.Msg)
+}
+
+func (e ChatStorageRemoteError) ShouldClear() bool {
+	return false
+}
+
+func (e ChatStorageRemoteError) Message() string {
+	return e.Msg
+}
