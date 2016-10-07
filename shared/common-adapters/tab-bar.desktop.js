@@ -73,9 +73,10 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
         <style>{navRealCSS}</style>
         <Box style={{...stylesTabBarNavIcon, ...this.props.style}} className='nav-item'>
           {badgeNumber > 0 &&
-          <Box style={{...styleBadgeNav}}>
-            <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
-          </Box>}
+            <Box style={{...styleBadgeNav}}>
+              <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
+            </Box>
+          }
           <Icon type={this.props.source.icon} style={{...navIconStyle, ...this.props.styleIcon}} />
           {!!this.props.label &&
             <Text type='BodySmall' style={{...stylesNavText, ...this.props.styleLabel}}>
