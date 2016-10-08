@@ -510,7 +510,7 @@ var errJournalStatusRetry = errors.New("Retry journal status")
 
 func (j *JournalServer) getUnflushedPaths(ctx context.Context, tlfID TlfID,
 	cpp chainsPathPopulator, branchStr string, start MetadataRevision,
-	end MetadataRevision) ([]string, error) {
+	end MetadataRevision, key kbfscrypto.VerifyingKey) ([]string, error) {
 	// Get the range of revisions.  Note that since we're not doing
 	// this under lock, the journal could enter conflict mode, and we
 	// could end up fetching merged revisions from some other device.
@@ -529,17 +529,12 @@ func (j *JournalServer) getUnflushedPaths(ctx context.Context, tlfID TlfID,
 		}
 		irmds, err := getMDRange(ctx, j.config, tlfID, bid, start, end, mStatus)
 		if err != nil {
-			return nil, err
-		}
-
-		// Make sure that all of them were signed by this device.
-		key, err := j.config.KBPKI().GetCurrentVerifyingKey(ctx)
-		if err != nil {
 			// TODO: if the error is that the branch ID no longer
 			// exists, we should retry, since the conflict was
 			// resolved since we fetched the status.
 			return nil, err
 		}
+
 		for _, irmd := range irmds {
 			if key.KID() != irmd.LastModifyingWriterKID() {
 				j.log.CDebugf(ctx, "Found an MD in our journal range "+
@@ -591,7 +586,7 @@ func (j *JournalServer) JournalStatusWithPaths(ctx context.Context, tlfID TlfID,
 
 		status.UnflushedPaths, err = j.getUnflushedPaths(ctx, tlfID,
 			cpp, status.BranchID, status.RevisionStart,
-			status.RevisionEnd)
+			status.RevisionEnd, tlfJournal.key)
 		if err == errJournalStatusRetry {
 			continue
 		} else if err != nil {
