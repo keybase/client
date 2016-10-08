@@ -2932,3 +2932,17 @@ func (fbo *folderBlockOps) UpdatePointers(lState *lockState, op op) {
 		fbo.nodeCache.UpdatePointer(oldRef, update.Ref)
 	}
 }
+
+type chainsPathPopulator interface {
+	populateChainPaths(context.Context, logger.Logger, *crChains, bool) error
+}
+
+// populateChainPaths updates all the paths in all the ops tracked by
+// `chains`, using the main nodeCache.
+func (fbo *folderBlockOps) populateChainPaths(ctx context.Context,
+	log logger.Logger, chains *crChains, includeCreates bool) error {
+	_, err := chains.getPaths(ctx, fbo, log, fbo.nodeCache, includeCreates)
+	return err
+}
+
+var _ chainsPathPopulator = (*folderBlockOps)(nil)

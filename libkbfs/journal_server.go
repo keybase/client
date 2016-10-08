@@ -495,7 +495,8 @@ func (j *JournalServer) Status() JournalServerStatus {
 
 // JournalStatus returns a TLFServerStatus object for the given TLF
 // suitable for diagnostics.
-func (j *JournalServer) JournalStatus(tlfID TlfID) (TLFJournalStatus, error) {
+func (j *JournalServer) JournalStatus(tlfID TlfID) (
+	TLFJournalStatus, error) {
 	tlfJournal, ok := j.getTLFJournal(tlfID)
 	if !ok {
 		return TLFJournalStatus{},
@@ -503,6 +504,97 @@ func (j *JournalServer) JournalStatus(tlfID TlfID) (TLFJournalStatus, error) {
 	}
 
 	return tlfJournal.getJournalStatus()
+}
+
+var errJournalStatusRetry = errors.New("Retry journal status")
+
+func (j *JournalServer) getUnflushedPaths(ctx context.Context, tlfID TlfID,
+	cpp chainsPathPopulator, branchStr string, start MetadataRevision,
+	end MetadataRevision, key kbfscrypto.VerifyingKey) ([]string, error) {
+	// Get the range of revisions.  Note that since we're not doing
+	// this under lock, the journal could enter conflict mode, and we
+	// could end up fetching merged revisions from some other device.
+	// So we need to check that all the revisions were written by this
+	// device.  If not, retry.
+	var unflushedPaths []string
+	if end != MetadataRevisionUninitialized {
+		bid, err := ParseBranchID(branchStr)
+		if err != nil {
+			return nil, err
+		}
+
+		mStatus := Merged
+		if bid != NullBranchID {
+			mStatus = Unmerged
+		}
+		irmds, err := getMDRange(ctx, j.config, tlfID, bid, start, end, mStatus)
+		if err != nil {
+			// TODO: if the error is that the branch ID no longer
+			// exists, we should retry, since the conflict was
+			// resolved since we fetched the status.
+			return nil, err
+		}
+
+		for _, irmd := range irmds {
+			if key.KID() != irmd.LastModifyingWriterKID() {
+				j.log.CDebugf(ctx, "Found an MD in our journal range "+
+					"signed by another device (%v); retrying",
+					irmd.LastModifyingWriterKID())
+				return nil, errJournalStatusRetry
+			}
+		}
+
+		// Make chains over the entire range to get the unflushed files.
+		// TODO: cache this chains object and update it when new revisions
+		// appear and when revisions are flushed, instead of rebuilding
+		// every time.
+		chains, err := newCRChains(ctx, j.config, irmds, nil, false)
+		if err != nil {
+			return nil, err
+		}
+		err = cpp.populateChainPaths(ctx, j.log, chains, true)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, chain := range chains.byOriginal {
+			if len(chain.ops) > 0 {
+				unflushedPaths = append(unflushedPaths,
+					chain.ops[0].getFinalPath().String())
+			}
+		}
+	}
+	return unflushedPaths, nil
+}
+
+// JournalStatusWithPaths returns a TLFServerStatus object for the
+// given TLF suitable for diagnostics, including paths for all the
+// unflushed entries.
+func (j *JournalServer) JournalStatusWithPaths(ctx context.Context, tlfID TlfID,
+	cpp chainsPathPopulator) (TLFJournalStatus, error) {
+	tlfJournal, ok := j.getTLFJournal(tlfID)
+	if !ok {
+		return TLFJournalStatus{},
+			fmt.Errorf("Journal not enabled for %s", tlfID)
+	}
+
+	for i := 0; i < 10; i++ {
+		status, err := tlfJournal.getJournalStatus()
+		if err != nil {
+			return TLFJournalStatus{}, err
+		}
+
+		status.UnflushedPaths, err = j.getUnflushedPaths(ctx, tlfID,
+			cpp, status.BranchID, status.RevisionStart,
+			status.RevisionEnd, tlfJournal.key)
+		if err == errJournalStatusRetry {
+			continue
+		} else if err != nil {
+			return TLFJournalStatus{}, err
+		}
+		return status, nil
+	}
+	return TLFJournalStatus{}, errors.New("Couldn't get a consistent status")
 }
 
 // shutdownExistingJournalsLocked shuts down all write journals, sets

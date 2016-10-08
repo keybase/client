@@ -3375,7 +3375,7 @@ func (fbo *folderBranchOps) FolderStatus(
 			WrongOpsError{fbo.folderBranch, folderBranch}
 	}
 
-	return fbo.status.getStatus(ctx)
+	return fbo.status.getStatus(ctx, &fbo.blocks)
 }
 
 func (fbo *folderBranchOps) Status(

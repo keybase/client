@@ -3434,7 +3434,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	if status, _, err := cr.fbo.status.getStatus(ctx); err == nil {
+	if status, _, err := cr.fbo.status.getStatus(ctx, nil); err == nil {
 		if statusString, err := json.Marshal(status); err == nil {
 			ci := func() conflictInput {
 				cr.inputLock.Lock()

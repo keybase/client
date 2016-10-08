@@ -62,6 +62,7 @@ type TLFJournalStatus struct {
 	BranchID       string
 	BlockOpCount   uint64
 	UnflushedBytes int64 // (signed because os.FileInfo.Size() is signed)
+	UnflushedPaths []string
 }
 
 // TLFJournalBackgroundWorkStatus indicates whether a journal should
