@@ -31,14 +31,14 @@ public class MainActivity extends ReactActivity {
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected void onCreate(Bundle savedInstanceState) {
-        logFile = this.getFileStreamPath("android.log");
-        initOnce(this.getFilesDir().getPath(), logFile.getAbsolutePath(), "staging", false);
-
         try {
             Keybase.setGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
         } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+
+        logFile = this.getFileStreamPath("android.log");
+        initOnce(this.getFilesDir().getPath(), logFile.getAbsolutePath(), "staging", false);
 
         super.onCreate(savedInstanceState);
     }
