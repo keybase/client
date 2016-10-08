@@ -45,9 +45,13 @@ func (cc *crChain) collapse() {
 		case *rmOp:
 			if prevCreateIndex, ok := createsSeen[realOp.OldName]; ok {
 				delete(createsSeen, realOp.OldName)
-				// The rm cancels out the create, so remove both.
+				// The rm cancels out the create, so remove it.
 				indicesToRemove[prevCreateIndex] = true
-				indicesToRemove[i] = true
+				// Also remove the rmOp if it was part of a rename
+				// (i.e., it wasn't a "real" rm).
+				if len(op.Unrefs()) == 0 {
+					indicesToRemove[i] = true
+				}
 			}
 		case *setAttrOp:
 			// TODO: Collapse opposite setex pairs

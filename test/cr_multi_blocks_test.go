@@ -204,3 +204,32 @@ func TestCrUnmergedWriteMultiblockFileWithSmallBlockChangeSize(t *testing.T) {
 		),
 	)
 }
+
+// bob moves a multi-block file, and then deletes its parents.
+func TestCrUnmergedMoveAndDeleteMultiblockFile(t *testing.T) {
+	test(t,
+		blockSize(20), users("alice", "bob"),
+		as(alice,
+			write("a/b/c/d", ntimesString(15, "0123456789")),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("foo", "bar"),
+		),
+		as(bob, noSync(),
+			rename("a/b/c/d", "a/b/c/e"),
+			rm("a/b/c/e"),
+			rmdir("a/b/c"),
+			rmdir("a/b"),
+			reenableUpdates(),
+			lsdir("a/", m{}),
+			read("foo", "bar"),
+		),
+		as(alice,
+			lsdir("a/", m{}),
+			read("foo", "bar"),
+		),
+	)
+}
