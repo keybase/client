@@ -245,6 +245,16 @@ func (fbo *folderBlockOps) getBlockFromDirtyOrCleanCache(ptr BlockPointer,
 	return fbo.config.BlockCache().Get(ptr)
 }
 
+func (fbo *folderBlockOps) checkDataVersion(p path, ptr BlockPointer) error {
+	if ptr.DataVer < FirstValidDataVer {
+		return InvalidDataVersionError{ptr.DataVer}
+	}
+	if ptr.DataVer > fbo.config.DataVersion() {
+		return NewDataVersionError{p, ptr.DataVer}
+	}
+	return nil
+}
+
 // getBlockHelperLocked retrieves the block pointed to by ptr, which
 // must be valid, either from the cache or from the server. If
 // notifyPath is valid and the block isn't cached, trigger a read
@@ -264,6 +274,10 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	if block, err := fbo.getBlockFromDirtyOrCleanCache(
 		ptr, branch); err == nil {
 		return block, nil
+	}
+
+	if err := fbo.checkDataVersion(notifyPath, ptr); err != nil {
+		return nil, err
 	}
 
 	// TODO: add an optimization here that will avoid fetching the

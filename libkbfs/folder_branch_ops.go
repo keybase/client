@@ -509,17 +509,6 @@ func (fbo *folderBranchOps) setBranchIDLocked(lState *lockState, bid BranchID) {
 	}
 }
 
-func (fbo *folderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
-	if ptr.DataVer < FirstValidDataVer {
-		return InvalidDataVersionError{ptr.DataVer}
-	}
-	// TODO: migrate back to fbo.config.DataVersion
-	if ptr.DataVer > FilesWithHolesDataVer {
-		return NewDataVersionError{p, ptr.DataVer}
-	}
-	return nil
-}
-
 func (fbo *folderBranchOps) setHeadLocked(
 	ctx context.Context, lState *lockState, md ImmutableRootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -1482,7 +1471,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 		if de.Type == Sym {
 			node = nil
 		} else {
-			err = fbo.checkDataVersion(childPath, de.BlockPointer)
+			err = fbo.blocks.checkDataVersion(childPath, de.BlockPointer)
 			if err != nil {
 				return err
 			}
