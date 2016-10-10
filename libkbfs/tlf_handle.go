@@ -742,6 +742,10 @@ func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase
 	return assertions
 }
 
+// splitAndNormalizeTLFName takes a tlf name as a string
+// and tries to normalize it offline. In addition to other
+// checks it returns TlfNameNotCanonical if it does not
+// look canonical.
 func splitAndNormalizeTLFName(name string, public bool) (
 	writerNames, readerNames []string,
 	extensionSuffix string, err error) {
@@ -907,26 +911,12 @@ func ParseTlfHandle(
 	// real user lookup for "head" (KBFS-531).  Note that the name
 	// might still contain assertions, which will result in
 	// another alias in a subsequent lookup.
+	// This also contains an offline check for canonicality and
+	// that a public folder has readers.
 	writerNames, readerNames, extensionSuffix, err :=
 		splitAndNormalizeTLFName(name, public)
 	if err != nil {
 		return nil, err
-	}
-
-	hasPublic := len(readerNames) == 0
-
-	if public && !hasPublic {
-		// No public folder exists for this folder.
-		return nil, NoSuchNameError{Name: name}
-	}
-
-	normalizedName, err := normalizeNamesInTLF(
-		writerNames, readerNames, extensionSuffix)
-	if err != nil {
-		return nil, err
-	}
-	if normalizedName != name {
-		return nil, TlfNameNotCanonical{name, normalizedName}
 	}
 
 	writers := make([]resolvableUser, len(writerNames))
