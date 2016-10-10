@@ -110,6 +110,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				}
 				if m.Message.ServerHeader.MessageType == chat1.MessageType_TEXT {
 					msg = &m
+					break
 				}
 			}
 		}
