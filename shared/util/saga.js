@@ -6,7 +6,7 @@ import {take} from 'redux-saga/effects'
 
 export function createChannelMap<T> (channelConfig: ChannelConfig<T>): ChannelMap<T> {
   return mapValues(channelConfig, v => {
-    return channel(v)
+    return channel(v())
   })
 }
 
@@ -20,13 +20,17 @@ export function putOnChannelMap<T> (channelMap: ChannelMap<T>, k: string, v: T):
 }
 
 // TODO type this properly
-export function takeFromChannelMap<T> (channelMap: ChannelMap<T>, k: string): any {
+export function effectOnChannelMap<T> (effect: any, channelMap: ChannelMap<T>, k: string): any {
   const c = channelMap[k]
   if (c) {
-    return take(c)
+    return effect(c)
   } else {
     console.error('Trying to take, but no registered channel for', k)
   }
+}
+
+export function takeFromChannelMap<T> (channelMap: ChannelMap<T>, k: string): any {
+  return effectOnChannelMap(take, channelMap, k)
 }
 
 export function closeChannelMap<T> (channelMap: ChannelMap<T>): void {
@@ -35,7 +39,7 @@ export function closeChannelMap<T> (channelMap: ChannelMap<T>): void {
 
 export function singleFixedChannelConfig<T> (ks: Array<string>): ChannelConfig<T> {
   return ks.reduce((acc, k) => {
-    acc[k] = buffers.fixed(1)
+    acc[k] = () => buffers.fixed(1)
     return acc
   }, {})
 }
