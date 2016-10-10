@@ -61,9 +61,12 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		t.Fatalf("user %s is not found", user.Username)
 	}
 	h := newChatLocalHandler(nil, tc.G, nil)
-	h.rc = kbtest.NewChatRemoteMock(c.world)
+	mockRemote := kbtest.NewChatRemoteMock(c.world)
 	h.tlf = kbtest.NewTlfMock(c.world)
 	h.boxer = chat.NewBoxer(tc.G, h.tlf)
+	chat.SetConversationSource(chat.NewRemoteConversationSource(tc.G, h.boxer, mockRemote))
+	h.setTestRemoteClient(mockRemote)
+
 	tuc := &chatTestUserContext{
 		h: h,
 		u: user,

@@ -27,6 +27,9 @@ type chatLocalHandler struct {
 	gh    *gregorHandler
 	tlf   keybase1.TlfInterface
 	boxer *chat.Boxer
+
+	// Only for testing
+	rc chat1.RemoteInterface
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
@@ -39,7 +42,9 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		tlf:          tlf,
 		boxer:        chat.NewBoxer(g, tlf),
 	}
-	chat.SetConversationSource(chat.NewHybridConversationSource(g, h.boxer, h.remoteClient()))
+	if gh != nil {
+		chat.SetConversationSource(chat.NewHybridConversationSource(g, h.boxer, h.remoteClient()))
+	}
 	return h
 }
 
@@ -787,7 +792,14 @@ func (h *chatLocalHandler) getSecretUI() libkb.SecretUI {
 
 // remoteClient returns a client connection to gregord.
 func (h *chatLocalHandler) remoteClient() chat1.RemoteInterface {
+	if h.rc != nil {
+		return h.rc
+	}
 	return &chat1.RemoteClient{Cli: h.gh.cli}
+}
+
+func (h *chatLocalHandler) setTestRemoteClient(ri chat1.RemoteInterface) {
+	h.rc = ri
 }
 
 func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {

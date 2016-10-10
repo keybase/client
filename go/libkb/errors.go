@@ -1744,7 +1744,7 @@ func (e ChatStorageInternalError) Message() string {
 
 func NewChatStorageInternalError(g *GlobalContext, msg string, args ...interface{}) ChatStorageInternalError {
 	g.Log.Debug("internal chat storage error: "+msg, args...)
-	return ChatStorageInternalError{Msg: msg}
+	return ChatStorageInternalError{Msg: fmt.Sprintf(msg, args...)}
 }
 
 type ChatStorageMissError struct {

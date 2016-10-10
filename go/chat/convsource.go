@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -94,19 +95,43 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	return decmsg, nil
 }
 
+func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID chat1.ConversationID,
+	rl *[]*chat1.RateLimit) (chat1.Conversation, error) {
+
+	conv, err := s.ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
+		Query: &chat1.GetInboxQuery{
+			ConvID: &convID,
+		},
+	})
+	*rl = append(*rl, conv.RateLimit)
+	if err != nil {
+		return chat1.Conversation{}, libkb.ChatStorageRemoteError{Msg: err.Error()}
+	}
+	if len(conv.Inbox.Conversations) == 0 {
+		return chat1.Conversation{}, libkb.ChatStorageRemoteError{Msg: fmt.Sprintf("conv not found: %d", convID)}
+	}
+	return conv.Inbox.Conversations[0], nil
+}
+
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
 
 	var err error
 	var rl []*chat1.RateLimit
 
-	// Try locally first
-	localData, err := s.storage.Fetch(ctx, s.ri, convID, uid, query, pagination, &rl)
-	if err == nil {
-		// If found, then return the stuff
-		s.G().Log.Debug("Pull: cache hit: convID: %d uid: %s", convID, uid)
-		localData.Messages = FilterByType(localData.Messages, query)
-		return localData, rl, nil
+	// Get conversation metadata
+	if conv, err := s.getConvMetadata(ctx, convID, &rl); err == nil {
+		// Try locally first
+		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination, &rl)
+		if err == nil {
+			// If found, then return the stuff
+			s.G().Log.Debug("Pull: cache hit: convID: %d uid: %s", convID, uid)
+			localData.Messages = FilterByType(localData.Messages, query)
+			return localData, rl, nil
+		}
+	} else {
+		s.G().Log.Debug("Pull: error fetching conv metadata: convID: %d uid: %s err: %s", convID, uid,
+			err.Error())
 	}
 
 	// Fetch the entire request on failure

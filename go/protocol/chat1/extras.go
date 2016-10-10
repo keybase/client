@@ -103,3 +103,10 @@ func (hash Hash) String() string {
 func (hash Hash) Eq(other Hash) bool {
 	return bytes.Equal(hash, other)
 }
+
+func (m MessageFromServerOrError) GetMessageID() MessageID {
+	if m.Message != nil {
+		return m.Message.ServerHeader.MessageID
+	}
+	return 0
+}

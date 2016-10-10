@@ -5,18 +5,12 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-codec/codec"
 )
-
-// TODO:
-// ***
-// Gregor OOBM integration
-// Pagination
-// TEST!!!!1111!!!!one!
-// ***
 
 const maxBlockSize = 100
 
@@ -47,7 +41,7 @@ func NewStorage(g *libkb.GlobalContext) *Storage {
 }
 
 func (s *Storage) debug(format string, args ...interface{}) {
-	s.G().Log.Debug("+ chatcache: "+format, args...)
+	s.G().Log.Debug("+ chatstorage: "+format, args...)
 }
 
 func (s *Storage) makeBlockKey(convID chat1.ConversationID, uid gregor1.UID, blockID int) libkb.DbKey {
@@ -61,13 +55,6 @@ func (s *Storage) makeBlockIndexKey(convID chat1.ConversationID, uid gregor1.UID
 	return libkb.DbKey{
 		Typ: libkb.DBChatBlockIndex,
 		Key: fmt.Sprintf("bi:%s:%s", convID, uid),
-	}
-}
-
-func (s *Storage) makeConvIndexKey(uid gregor1.UID) libkb.DbKey {
-	return libkb.DbKey{
-		Typ: libkb.DBChatConvIndex,
-		Key: uid.String(),
 	}
 }
 
@@ -93,69 +80,22 @@ func (s *Storage) getBlockNumber(id chat1.MessageID) int {
 }
 
 func (s *Storage) getBlockPosition(id chat1.MessageID) int {
-	// We subtract off 1 here because there is no msgID == 0
-	return int(id)%maxBlockSize - 1
+	return int(id) % maxBlockSize
 }
 
 func (s *Storage) getMsgID(blockNum, blockPos int) chat1.MessageID {
-	return chat1.MessageID(blockNum*maxBlockSize + blockPos + 1)
-}
-
-func (s *Storage) getIndex(uid gregor1.UID) (convIndex, bool, error) {
-	raw, found, err := s.G().LocalDb.GetRaw(s.makeConvIndexKey(uid))
-	if err != nil {
-		return convIndex{}, false, err
-	}
-	if found {
-		var si convIndex
-		if err := s.decode(raw, &si); err == nil {
-			return si, true, nil
-		}
-	}
-	return convIndex{}, found, nil
-}
-
-func (s *Storage) mergeConvIndex(convID chat1.ConversationID, uid gregor1.UID) libkb.ChatStorageError {
-	// Get current index
-	si, found, err := s.getIndex(uid)
-	if err != nil {
-		return libkb.NewChatStorageInternalError(s.G(), "failed to fetch conv index: %s", err.Error())
-	}
-
-	// Add new convID to index if it is not there
-	var res convIndex
-	if !found {
-		res.ConvIDs = []chat1.ConversationID{convID}
-	} else {
-		for _, cid := range si.ConvIDs {
-			if cid == convID {
-				return nil
-			}
-		}
-		res.ConvIDs = append(si.ConvIDs, convID)
-	}
-
-	// Write index out
-	dat, err := s.encode(res)
-	if err != nil {
-		return libkb.NewChatStorageInternalError(s.G(), "failed to encode conv index: %s", err.Error())
-	}
-	err = s.G().LocalDb.PutRaw(s.makeConvIndexKey(uid), dat)
-	if err != nil {
-		return libkb.NewChatStorageInternalError(s.G(), "failed to write conv index: %s", err.Error())
-	}
-	return nil
+	return chat1.MessageID(blockNum*maxBlockSize + blockPos)
 }
 
 func (s *Storage) createBlockIndex(key libkb.DbKey, convID chat1.ConversationID, uid gregor1.UID) (blockIndex, libkb.ChatStorageError) {
 	bi := blockIndex{
 		ConvID:   convID,
 		UID:      uid,
-		MaxBlock: -1,
+		MaxBlock: 0,
 	}
 
 	s.debug("createBlockIndex: creating new block index: convID: %d uid: %s", convID, uid)
-	_, err := s.createBlock(&bi)
+	_, err := s.createBlock(&bi, 0)
 	if err != nil {
 		return bi, libkb.NewChatStorageInternalError(s.G(), "createBlockIndex: failed to create block: %s", err.Message())
 	}
@@ -190,42 +130,54 @@ func (s *Storage) readBlockIndex(convID chat1.ConversationID, uid gregor1.UID) (
 	return bi, nil
 }
 
-func (s *Storage) createBlock(bi *blockIndex) (block, libkb.ChatStorageError) {
+func (s *Storage) createBlockSingle(bi blockIndex, blockID int) (block, libkb.ChatStorageError) {
+	s.debug("createBlockSingle: creating block: %d", blockID)
+	// Write out new block
+	b := block{BlockID: blockID}
+	if cerr := s.writeBlock(bi, b); cerr != nil {
+		return block{}, libkb.NewChatStorageInternalError(s.G(), "createBlockSingle: failed to write block: %s", cerr.Message())
+	}
+	return b, nil
+}
+
+func (s *Storage) createBlock(bi *blockIndex, blockID int) (block, libkb.ChatStorageError) {
+
+	// Create all the blocks up to the one we want
+	var b block
+	for i := bi.MaxBlock; i <= blockID; i++ {
+		b, err := s.createBlockSingle(*bi, i)
+		if err != nil {
+			return b, err
+		}
+	}
 
 	// Update block index with new block
-	bi.MaxBlock++
+	bi.MaxBlock = blockID
 	dat, err := s.encode(bi)
 	if err != nil {
 		return block{}, libkb.NewChatStorageInternalError(s.G(), "createBlock: failed to encode block: %s", err.Error())
 	}
-	s.debug("createBlock: creating block: %d", bi.MaxBlock)
 	err = s.G().LocalDb.PutRaw(s.makeBlockIndexKey(bi.ConvID, bi.UID), dat)
 	if err != nil {
 		return block{}, libkb.NewChatStorageInternalError(s.G(), "createBlock: failed to write index: %s", err.Error())
 	}
 
-	// Write out new block
-	b := block{BlockID: bi.MaxBlock}
-	if cerr := s.writeBlock(bi, b); err != nil {
-		return block{}, libkb.NewChatStorageInternalError(s.G(), "createBlock: failed to write block: %s", cerr.Message())
-	}
-
 	return b, nil
 }
 
-func (s *Storage) getBlock(bi *blockIndex, id chat1.MessageID) (block, libkb.ChatStorageError) {
+func (s *Storage) getBlock(bi blockIndex, id chat1.MessageID) (block, libkb.ChatStorageError) {
 	if id == 0 {
 		return block{}, libkb.NewChatStorageInternalError(s.G(), "getBlock: invalid block id: %d", id)
 	}
 	bn := s.getBlockNumber(id)
 	if bn > bi.MaxBlock {
-		s.debug("getBlock(): missed high: id: %d max: %d", bn, bi.MaxBlock)
+		s.debug("getBlock(): missed high: id: %d maxblock: %d", bn, bi.MaxBlock)
 		return block{}, libkb.ChatStorageMissError{}
 	}
 	return s.readBlock(bi, bn)
 }
 
-func (s *Storage) readBlock(bi *blockIndex, id int) (block, libkb.ChatStorageError) {
+func (s *Storage) readBlock(bi blockIndex, id int) (block, libkb.ChatStorageError) {
 
 	s.debug("readBlock: reading block: %d", id)
 	key := s.makeBlockKey(bi.ConvID, bi.UID, id)
@@ -245,7 +197,8 @@ func (s *Storage) readBlock(bi *blockIndex, id int) (block, libkb.ChatStorageErr
 	return b, nil
 }
 
-func (s *Storage) writeBlock(bi *blockIndex, b block) libkb.ChatStorageError {
+func (s *Storage) writeBlock(bi blockIndex, b block) libkb.ChatStorageError {
+	s.debug("writeBlock: writing out block: %d", b.BlockID)
 	dat, err := s.encode(b)
 	if err != nil {
 		return libkb.NewChatStorageInternalError(s.G(), "writeBlock: failed to encode: %s", err.Error())
@@ -275,11 +228,6 @@ func (s *Storage) Merge(convID chat1.ConversationID, uid gregor1.UID, msgs []cha
 
 	s.debug("Merge: convID: %d uid: %s num msgs: %d", convID, uid, len(msgs))
 
-	// Merge convID into uid index
-	if err := s.mergeConvIndex(convID, uid); err != nil {
-		return s.mustNuke(false, err, convID, uid)
-	}
-
 	// Get block index first
 	bi, err := s.readBlockIndex(convID, uid)
 	if err != nil {
@@ -287,27 +235,30 @@ func (s *Storage) Merge(convID chat1.ConversationID, uid gregor1.UID, msgs []cha
 	}
 
 	// Write out new data into blocks
-	if err = s.writeMessages(&bi, msgs); err != nil {
+	if err = s.writeMessages(bi, msgs); err != nil {
 		return s.mustNuke(false, err, convID, uid)
 	}
 
 	// Update supersededBy pointers
-	if err = s.updateSupersededBy(&bi, msgs); err != nil {
+	if err = s.updateSupersededBy(bi, msgs); err != nil {
 		return s.mustNuke(false, err, convID, uid)
 	}
 
 	return nil
 }
 
-func (s *Storage) updateSupersededBy(bi *blockIndex, msgs []chat1.MessageFromServerOrError) libkb.ChatStorageError {
+func (s *Storage) updateSupersededBy(bi blockIndex, msgs []chat1.MessageFromServerOrError) libkb.ChatStorageError {
 
+	s.debug("updateSupersededBy: num msgs: %d", len(msgs))
 	// Do a pass over all the messages and update supersededBy pointers
 	for _, msg := range msgs {
+		msgid := msg.Message.ServerHeader.MessageID
 		superID := msg.Message.MessagePlaintext.V1().ClientHeader.Supersedes
 		if superID == 0 {
 			continue
 		}
 
+		s.debug("updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, superID)
 		// Read block with super msg on it
 		b, err := s.getBlock(bi, superID)
 		if err != nil {
@@ -319,9 +270,12 @@ func (s *Storage) updateSupersededBy(bi *blockIndex, msgs []chat1.MessageFromSer
 		}
 
 		// Update supersededBy on the target message if we have it
-		superMsg := &b.Msgs[s.getBlockPosition(superID)]
+		pos := s.getBlockPosition(superID)
+		superMsg := &b.Msgs[pos]
 		if superMsg.Message != nil {
-			superMsg.Message.ServerHeader.SupersededBy = superID
+			s.debug("updateSupersededBy: writing: id: %d superseded: %d blockID: %d pos: %d",
+				msgid, superID, b.BlockID, pos)
+			superMsg.Message.ServerHeader.SupersededBy = msgid
 			if err = s.writeBlock(bi, b); err != nil {
 				return err
 			}
@@ -331,7 +285,7 @@ func (s *Storage) updateSupersededBy(bi *blockIndex, msgs []chat1.MessageFromSer
 	return nil
 }
 
-func (s *Storage) writeMessages(bi *blockIndex, msgs []chat1.MessageFromServerOrError) libkb.ChatStorageError {
+func (s *Storage) writeMessages(bi blockIndex, msgs []chat1.MessageFromServerOrError) libkb.ChatStorageError {
 	var err libkb.ChatStorageError
 	var maxB block
 	var newBlock block
@@ -348,9 +302,9 @@ func (s *Storage) writeMessages(bi *blockIndex, msgs []chat1.MessageFromServerOr
 		docreate = true
 	}
 	if docreate {
-		s.debug("writeMessages: block not found (creating): maxID: %d id: %d", maxID,
-			s.getBlockNumber(maxID))
-		if _, err = s.createBlock(bi); err != nil {
+		newBlockID := s.getBlockNumber(maxID)
+		s.debug("writeMessages: block not found (creating): maxID: %d id: %d", maxID, newBlockID)
+		if _, err = s.createBlock(&bi, newBlockID); err != nil {
 			return libkb.NewChatStorageInternalError(s.G(), "writeMessages: failed to create block: %s", err.Message())
 		}
 		if maxB, err = s.getBlock(bi, maxID); err != nil {
@@ -359,10 +313,10 @@ func (s *Storage) writeMessages(bi *blockIndex, msgs []chat1.MessageFromServerOr
 	}
 
 	// Append to the block
-	newBlock.Msgs = maxB.Msgs
+	newBlock = maxB
 	for index, msg := range msgs {
 		msgID := msg.Message.ServerHeader.MessageID
-		if s.getBlockNumber(msgID) != maxB.BlockID {
+		if s.getBlockNumber(msgID) != newBlock.BlockID {
 			s.debug("writeMessages: crossed block boundary, aborting and writing out: msgID: %d", msgID)
 			break
 		}
@@ -384,7 +338,7 @@ func (s *Storage) writeMessages(bi *blockIndex, msgs []chat1.MessageFromServerOr
 
 type doneFunc func(*[]chat1.MessageFromServerOrError, int) bool
 
-func (s *Storage) readMessages(res *[]chat1.MessageFromServerOrError, bi *blockIndex,
+func (s *Storage) readMessages(res *[]chat1.MessageFromServerOrError, bi blockIndex,
 	maxID chat1.MessageID, num int, df doneFunc) libkb.ChatStorageError {
 
 	// Get the current block where max ID is found
@@ -399,6 +353,10 @@ func (s *Storage) readMessages(res *[]chat1.MessageFromServerOrError, bi *blockI
 
 	s.debug("readMessages: BID: %d maxPos: %d maxID: %d num: %d", b.BlockID, maxPos, maxID, num)
 	for index := maxPos; len(*res) < num && index >= 0; index-- {
+		if b.BlockID == 0 && index == 0 {
+			// Short circuit out of here if we are on the null message
+			break
+		}
 
 		msg := b.Msgs[index]
 		if msg.Message == nil {
@@ -412,7 +370,8 @@ func (s *Storage) readMessages(res *[]chat1.MessageFromServerOrError, bi *blockI
 			return libkb.NewChatStorageInternalError(s.G(), "chat entry corruption: bMsgID: %d != %d (block: %d pos: %d)", bMsgID, s.getMsgID(b.BlockID, index), b.BlockID, index)
 		}
 
-		s.debug("readMessages: adding msg_id: %d", msg.Message.ServerHeader.MessageID)
+		s.debug("readMessages: adding msg_id: %d (blockid: %d pos: %d)",
+			msg.Message.ServerHeader.MessageID, b.BlockID, index)
 		*res = append(*res, msg)
 		lastAdded = msg.Message.ServerHeader.MessageID
 	}
@@ -424,25 +383,7 @@ func (s *Storage) readMessages(res *[]chat1.MessageFromServerOrError, bi *blockI
 	return nil
 }
 
-func (s *Storage) getRemoteMaxID(ctx context.Context, ri chat1.RemoteInterface, convID chat1.ConversationID, rl *[]*chat1.RateLimit) (chat1.MessageID, libkb.ChatStorageError) {
-
-	s.debug("getRemoteMaxID: fetching remote max for: %d", convID)
-	conv, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query: &chat1.GetInboxQuery{
-			ConvID: &convID,
-		},
-	})
-	*rl = append(*rl, conv.RateLimit)
-	if err != nil {
-		return 0, libkb.ChatStorageRemoteError{Msg: err.Error()}
-	}
-	if len(conv.Inbox.Conversations) == 0 {
-		return 0, libkb.ChatStorageRemoteError{Msg: fmt.Sprintf("conv not found: %d", convID)}
-	}
-	return conv.Inbox.Conversations[0].ReaderInfo.MaxMsgid, nil
-}
-
-func (s *Storage) Fetch(ctx context.Context, ri chat1.RemoteInterface, convID chat1.ConversationID,
+func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
 	rl *[]*chat1.RateLimit) (chat1.ThreadView, libkb.ChatStorageError) {
 
@@ -450,6 +391,7 @@ func (s *Storage) Fetch(ctx context.Context, ri chat1.RemoteInterface, convID ch
 	defer s.Unlock()
 
 	// Get block index first
+	convID := conv.Metadata.ConversationID
 	bi, err := s.readBlockIndex(convID, uid)
 	if err != nil {
 		return chat1.ThreadView{}, s.mustNuke(false, err, convID, uid)
@@ -459,23 +401,19 @@ func (s *Storage) Fetch(ctx context.Context, ri chat1.RemoteInterface, convID ch
 	var maxID chat1.MessageID
 	var num int
 	if pagination == nil {
-		if maxID, err = s.getRemoteMaxID(ctx, ri, convID, rl); err != nil {
-			return chat1.ThreadView{}, s.mustNuke(false, err, convID, uid)
-		}
+		maxID = conv.ReaderInfo.MaxMsgid
 		num = 10000
 	} else {
 		var pid chat1.MessageID
 		num = pagination.Num
 		if len(pagination.Next) == 0 && len(pagination.Previous) == 0 {
-			if maxID, err = s.getRemoteMaxID(ctx, ri, convID, rl); err != nil {
-				return chat1.ThreadView{}, s.mustNuke(false, err, convID, uid)
-			}
+			maxID = conv.ReaderInfo.MaxMsgid
 		} else if len(pagination.Next) > 0 {
 			if derr := s.decode(pagination.Next, &pid); derr != nil {
 				err = libkb.ChatStorageRemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
 				return chat1.ThreadView{}, s.mustNuke(false, err, convID, uid)
 			}
-			maxID = pid
+			maxID = pid - 1
 		} else {
 			if derr := s.decode(pagination.Previous, &pid); derr != nil {
 				err = libkb.ChatStorageRemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
@@ -517,10 +455,22 @@ func (s *Storage) Fetch(ctx context.Context, ri chat1.RemoteInterface, convID ch
 
 	// Run seek looking for all the messages
 	var res []chat1.MessageFromServerOrError
-	if err = s.readMessages(&res, &bi, maxID, num, df); err != nil {
+	if err = s.readMessages(&res, bi, maxID, num, df); err != nil {
 		return chat1.ThreadView{}, err
 	}
 
+	// Form paged result
+	var tres chat1.ThreadView
+	var ierr error
+	var pmsgs []pager.Message
+	for _, m := range res {
+		pmsgs = append(pmsgs, m)
+	}
+	if tres.Pagination, ierr = pager.NewThreadPager().MakePage(pmsgs, num); ierr != nil {
+		return chat1.ThreadView{}, libkb.NewChatStorageInternalError(s.G(), "Fetch: failed to encode pager: %s", ierr.Error())
+	}
+	tres.Messages = res
+
 	s.debug("Fetch: cache hit: num: %d", len(res))
-	return chat1.ThreadView{Messages: res}, nil
+	return tres, nil
 }
