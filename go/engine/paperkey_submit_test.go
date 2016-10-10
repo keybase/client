@@ -7,7 +7,8 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestPaperKeySubmit(t *testing.T) {
@@ -83,16 +84,16 @@ type nlistener struct {
 	paperEncKIDs []keybase1.KID
 }
 
-func (n *nlistener) Logout()                                                          {}
-func (n *nlistener) Login(username string)                                            {}
-func (n *nlistener) ClientOutOfDate(to, uri, msg string)                              {}
-func (n *nlistener) UserChanged(uid keybase1.UID)                                     {}
-func (n *nlistener) TrackingChanged(uid keybase1.UID, username string)                {}
-func (n *nlistener) FSActivity(activity keybase1.FSNotification)                      {}
-func (n *nlistener) FSEditListResponse(arg keybase1.FSEditListArg)                    {}
-func (n *nlistener) FSEditListRequest(arg keybase1.FSEditListRequest)                 {}
-func (n *nlistener) FavoritesChanged(uid keybase1.UID)                                {}
-func (n *nlistener) NewChatActivity(uid keybase1.UID, activity keybase1.ChatActivity) {}
+func (n *nlistener) Logout()                                                       {}
+func (n *nlistener) Login(username string)                                         {}
+func (n *nlistener) ClientOutOfDate(to, uri, msg string)                           {}
+func (n *nlistener) UserChanged(uid keybase1.UID)                                  {}
+func (n *nlistener) TrackingChanged(uid keybase1.UID, username string)             {}
+func (n *nlistener) FSActivity(activity keybase1.FSNotification)                   {}
+func (n *nlistener) FSEditListResponse(arg keybase1.FSEditListArg)                 {}
+func (n *nlistener) FSEditListRequest(arg keybase1.FSEditListRequest)              {}
+func (n *nlistener) FavoritesChanged(uid keybase1.UID)                             {}
+func (n *nlistener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {}
 func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID) {
 	n.paperEncKIDs = append(n.paperEncKIDs, encKID)
 }
