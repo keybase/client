@@ -185,6 +185,14 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
+	headline, err := v.headline(g)
+	if err != nil {
+		return err
+	}
+	if headline != "" {
+		g.UI.GetTerminalUI().Printf("headline: %s\n\n", headline)
+	}
+
 	table := &flexibletable.Table{}
 	i := -1
 	for _, m := range v.messages {
@@ -239,6 +247,38 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	}
 
 	return nil
+}
+
+// Read the headline off the HEADLINE message in MaxMessages.
+// Returns "" when there is no headline set.
+func (v conversationView) headline(g *libkb.GlobalContext) (string, error) {
+	for _, m := range v.conversation.MaxMessages {
+		if m.Message == nil {
+			continue
+		}
+		version, err := m.Message.MessagePlaintext.Version()
+		if err != nil {
+			continue
+		}
+		switch version {
+		case chat1.MessagePlaintextVersion_V1:
+			body := m.Message.MessagePlaintext.V1().MessageBody
+			typ, err := body.MessageType()
+			if err != nil {
+				continue
+			}
+			switch typ {
+			case chat1.MessageType_HEADLINE:
+				return body.Headline().Headline, nil
+			default:
+				continue
+			}
+		default:
+			continue
+		}
+	}
+
+	return "", nil
 }
 
 const deletedTextCLI = "[deleted]"

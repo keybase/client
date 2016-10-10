@@ -21,6 +21,10 @@ protocol local {
     MessageID messageID;
   }
 
+  record MessageHeadline {
+    string headline;
+  }
+
   record Asset {
     string path;               // path to the object in storage
     int size;                  // size of the object
@@ -41,6 +45,7 @@ protocol local {
     case EDIT: MessageEdit;
     case DELETE: MessageDelete;
     case METADATA: MessageConversationMetadata;
+    case HEADLINE: MessageHeadline;
   }
 
   enum MessagePlaintextVersion {
