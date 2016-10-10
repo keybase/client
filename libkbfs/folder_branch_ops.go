@@ -2090,6 +2090,10 @@ func (fbo *folderBranchOps) waitForJournalLocked(ctx context.Context,
 		return fmt.Errorf("Couldn't flush all MD revisions; current "+
 			"revision end for the journal is %d", jStatus.RevisionEnd)
 	}
+	if jStatus.LastFlushErr != "" {
+		return fmt.Errorf("Couldn't flush the journal: %s",
+			jStatus.LastFlushErr)
+	}
 
 	return nil
 }
