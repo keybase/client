@@ -78,6 +78,14 @@ export function localGetConversationForCLILocalRpcPromise (request: $Exact<reque
   return new Promise((resolve, reject) => { localGetConversationForCLILocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localGetInboxAndUnboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxAndUnboxLocalResult) => void} & {param: localGetInboxAndUnboxLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'local.getInboxAndUnboxLocal'})
+}
+
+export function localGetInboxAndUnboxLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxAndUnboxLocalResult) => void} & {param: localGetInboxAndUnboxLocalRpcParam}>): Promise<localGetInboxAndUnboxLocalResult> {
+  return new Promise((resolve, reject) => { localGetInboxAndUnboxLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localGetInboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxLocalResult) => void} & {param: localGetInboxLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'local.getInboxLocal'})
 }
@@ -280,6 +288,12 @@ export type GetConversationMetadataRemoteRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type GetInboxAndUnboxLocalRes = {
+  conversations?: ?Array<ConversationLocal>,
+  pagination?: ?Pagination,
+  rateLimits?: ?Array<RateLimit>,
+}
+
 export type GetInboxByTLFIDRemoteRes = {
   convs?: ?Array<Conversation>,
   rateLimit?: ?RateLimit,
@@ -299,7 +313,7 @@ export type GetInboxLocalQuery = {
 }
 
 export type GetInboxLocalRes = {
-  conversations?: ?Array<ConversationLocal>,
+  conversationsUnverified?: ?Array<Conversation>,
   pagination?: ?Pagination,
   rateLimits?: ?Array<RateLimit>,
 }
@@ -573,6 +587,11 @@ export type localGetConversationForCLILocalRpcParam = Exact<{
   query: GetConversationForCLILocalQuery
 }>
 
+export type localGetInboxAndUnboxLocalRpcParam = Exact<{
+  query?: ?GetInboxLocalQuery,
+  pagination?: ?Pagination
+}>
+
 export type localGetInboxLocalRpcParam = Exact<{
   query?: ?GetInboxLocalQuery,
   pagination?: ?Pagination
@@ -646,6 +665,8 @@ export type remoteTlfFinalizeRpcParam = Exact<{
 
 type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
 
+type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
+
 type localGetInboxLocalResult = GetInboxLocalRes
 
 type localGetInboxSummaryForCLILocalResult = GetInboxSummaryForCLILocalRes
@@ -674,6 +695,7 @@ type remotePostRemoteResult = PostRemoteRes
 
 export type rpc =
     localGetConversationForCLILocalRpc
+  | localGetInboxAndUnboxLocalRpc
   | localGetInboxLocalRpc
   | localGetInboxSummaryForCLILocalRpc
   | localGetMessagesLocalRpc

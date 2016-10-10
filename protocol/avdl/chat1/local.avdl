@@ -164,7 +164,15 @@ protocol local {
   }
 
 
+  // topicName in GetInboxLocalQuery is ignored
   GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
+  record GetInboxLocalRes {
+    array<Conversation> conversationsUnverified;
+    union { null, Pagination } pagination;
+    array<RateLimit> rateLimits;
+  }
+
+  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
   record GetInboxLocalQuery {
     union { null, string } tlfName;
     union { null, string } topicName;
@@ -178,7 +186,7 @@ protocol local {
     boolean unreadOnly;
     boolean readOnly;
   }
-  record GetInboxLocalRes {
+  record GetInboxAndUnboxLocalRes {
     array<ConversationLocal> conversations;
     union { null, Pagination } pagination;
     array<RateLimit> rateLimits;
