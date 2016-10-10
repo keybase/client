@@ -102,19 +102,24 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 
 		unread := "*"
 		// show the last TEXT message
-		var msg chat1.MessageFromServerOrError
+		var msg *chat1.MessageFromServerOrError
 		for _, m := range conv.MaxMessages {
 			if m.Message != nil {
 				if conv.ReaderInfo.ReadMsgid == m.Message.ServerHeader.MessageID {
 					unread = ""
 				}
 				if m.Message.ServerHeader.MessageType == chat1.MessageType_TEXT {
-					msg = m
+					msg = &m
 				}
 			}
 		}
+		if msg == nil {
+			// Skip conversations with no TEXT messages.
+			g.Log.Debug("Skipped conversation with no TEXT: %v", conv.Info.Id)
+			continue
+		}
 
-		mv, err := newMessageView(g, conv.Info.Id, msg)
+		mv, err := newMessageView(g, conv.Info.Id, *msg)
 		if err != nil {
 			g.Log.Error("Message render error: %s", err)
 		}
