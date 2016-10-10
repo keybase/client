@@ -44,6 +44,7 @@ export const CommonMessageType = {
   delete: 4,
   metadata: 5,
   tlfname: 6,
+  headline: 7,
 }
 
 export const CommonTLFVisibility = {
@@ -432,6 +433,7 @@ export type MessageBody =
   | { messageType : 3, edit : ?MessageEdit }
   | { messageType : 4, delete : ?MessageDelete }
   | { messageType : 5, metadata : ?MessageConversationMetadata }
+  | { messageType : 7, headline : ?MessageHeadline }
 
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
@@ -479,6 +481,10 @@ export type MessageFromServerOrError = {
   message?: ?MessageFromServer,
 }
 
+export type MessageHeadline = {
+  headline: string,
+}
+
 export type MessageID = uint
 
 export type MessagePlaintext = 
@@ -519,6 +525,7 @@ export type MessageType =
   | 4 // DELETE_4
   | 5 // METADATA_5
   | 6 // TLFNAME_6
+  | 7 // HEADLINE_7
 
 export type NewConversationLocalRes = {
   conv: ConversationLocal,

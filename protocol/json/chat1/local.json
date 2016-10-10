@@ -58,6 +58,16 @@
     },
     {
       "type": "record",
+      "name": "MessageHeadline",
+      "fields": [
+        {
+          "type": "string",
+          "name": "headline"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Asset",
       "fields": [
         {
@@ -145,6 +155,13 @@
             "def": false
           },
           "body": "MessageConversationMetadata"
+        },
+        {
+          "label": {
+            "name": "HEADLINE",
+            "def": false
+          },
+          "body": "MessageHeadline"
         }
       ]
     },

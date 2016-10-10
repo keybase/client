@@ -27,6 +27,10 @@ type MessageDelete struct {
 	MessageID MessageID `codec:"messageID" json:"messageID"`
 }
 
+type MessageHeadline struct {
+	Headline string `codec:"headline" json:"headline"`
+}
+
 type Asset struct {
 	Path     string `codec:"path" json:"path"`
 	Size     int    `codec:"size" json:"size"`
@@ -48,6 +52,7 @@ type MessageBody struct {
 	Edit__        *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
 	Delete__      *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
 	Metadata__    *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	Headline__    *MessageHeadline             `codec:"headline,omitempty" json:"headline,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -75,6 +80,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_METADATA:
 		if o.Metadata__ == nil {
 			err = errors.New("unexpected nil value for Metadata__")
+			return ret, err
+		}
+	case MessageType_HEADLINE:
+		if o.Headline__ == nil {
+			err = errors.New("unexpected nil value for Headline__")
 			return ret, err
 		}
 	}
@@ -131,6 +141,16 @@ func (o MessageBody) Metadata() MessageConversationMetadata {
 	return *o.Metadata__
 }
 
+func (o MessageBody) Headline() MessageHeadline {
+	if o.MessageType__ != MessageType_HEADLINE {
+		panic("wrong case accessed")
+	}
+	if o.Headline__ == nil {
+		return MessageHeadline{}
+	}
+	return *o.Headline__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -163,6 +183,13 @@ func NewMessageBodyWithMetadata(v MessageConversationMetadata) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_METADATA,
 		Metadata__:    &v,
+	}
+}
+
+func NewMessageBodyWithHeadline(v MessageHeadline) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_HEADLINE,
+		Headline__:    &v,
 	}
 }
 
