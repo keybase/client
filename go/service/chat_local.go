@@ -754,6 +754,12 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	}, nil
 }
 
+// PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
+func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
+
+	return chat1.PostLocalRes{}, nil
+}
+
 func (h *chatLocalHandler) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {
 	// get device signing key for this user
 	signingKey, err := engine.GetMySecretKey(h.G(), h.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
