@@ -109,7 +109,8 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 					unread = ""
 				}
 				if m.Message.ServerHeader.MessageType == chat1.MessageType_TEXT {
-					msg = &m
+					mCopy := m
+					msg = &mCopy
 				}
 			}
 		}
