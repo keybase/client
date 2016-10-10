@@ -277,6 +277,8 @@ func makeTLFJournal(
 	}
 
 	j := &tlfJournal{
+		uid:                  uid,
+		key:                  key,
 		tlfID:                tlfID,
 		dir:                  dir,
 		config:               config,
