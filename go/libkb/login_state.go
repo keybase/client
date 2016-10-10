@@ -283,18 +283,18 @@ func (s *LoginState) GetPassphraseStreamWithPassphrase(passphrase string) (pps *
 	return nil, err
 }
 
-func (s *LoginState) getStoredPassphraseStream(username NormalizedUsername) (pps *PassphraseStream, err error) {
+func (s *LoginState) getStoredPassphraseStream(username NormalizedUsername) (*PassphraseStream, error) {
 	secret, err := s.G().SecretStoreAll.RetrieveSecret(s.G().Env.GetUsername())
 	if err != nil {
-		return pps, err
+		return nil, err
 	}
 	lks := NewLKSecWithFullSecret(secret, s.G().Env.GetUID(), s.G())
 	if err = lks.LoadServerHalf(nil); err != nil {
-		return pps, err
+		return nil, err
 	}
 	stream, err := NewPassphraseStreamLKSecOnly(secret)
 	if err != nil {
-		return pps, err
+		return nil, err
 	}
 	stream.SetGeneration(lks.Generation())
 	return stream, nil
