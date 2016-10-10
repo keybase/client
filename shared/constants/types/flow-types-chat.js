@@ -179,6 +179,14 @@ export function localNewConversationLocalRpcPromise (request: $Exact<requestComm
   return new Promise((resolve, reject) => { localNewConversationLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localPostAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostAttachmentLocalResult) => void} & {param: localPostAttachmentLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'local.postAttachmentLocal'})
+}
+
+export function localPostAttachmentLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostAttachmentLocalResult) => void} & {param: localPostAttachmentLocalRpcParam}>): Promise<localPostAttachmentLocalResult> {
+  return new Promise((resolve, reject) => { localPostAttachmentLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localPostLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostLocalResult) => void} & {param: localPostLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'local.postLocal'})
 }
@@ -288,6 +296,7 @@ export function remoteTlfFinalizeRpcPromise (request: $Exact<requestCommon & req
 }
 
 export type Asset = {
+  filename: string,
   path: string,
   size: int,
   mimeType: string,
@@ -727,6 +736,12 @@ export type localNewConversationLocalRpcParam = Exact<{
   topicName?: ?string
 }>
 
+export type localPostAttachmentLocalRpcParam = Exact<{
+  conversationID: ConversationID,
+  source: keybase1.Stream,
+  filename: string
+}>
+
 export type localPostLocalRpcParam = Exact<{
   conversationID: ConversationID,
   msg: MessagePlaintext
@@ -785,6 +800,8 @@ type localGetThreadLocalResult = GetThreadLocalRes
 
 type localNewConversationLocalResult = NewConversationLocalRes
 
+type localPostAttachmentLocalResult = PostLocalRes
+
 type localPostLocalResult = PostLocalRes
 
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
@@ -809,6 +826,7 @@ export type rpc =
   | localGetMessagesLocalRpc
   | localGetThreadLocalRpc
   | localNewConversationLocalRpc
+  | localPostAttachmentLocalRpc
   | localPostLocalRpc
   | remoteGetInboxRemoteRpc
   | remoteGetMessagesRemoteRpc

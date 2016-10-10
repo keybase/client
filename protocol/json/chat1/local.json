@@ -72,6 +72,10 @@
       "fields": [
         {
           "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "string",
           "name": "path"
         },
         {
@@ -861,6 +865,23 @@
         {
           "name": "msg",
           "type": "MessagePlaintext"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
+    "postAttachmentLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "source",
+          "type": "keybase1.Stream"
+        },
+        {
+          "name": "filename",
+          "type": "string"
         }
       ],
       "response": "PostLocalRes"

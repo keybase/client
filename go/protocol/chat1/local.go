@@ -32,6 +32,7 @@ type MessageHeadline struct {
 }
 
 type Asset struct {
+	Filename string `codec:"filename" json:"filename"`
 	Path     string `codec:"path" json:"path"`
 	Size     int    `codec:"size" json:"size"`
 	MimeType string `codec:"mimeType" json:"mimeType"`
@@ -523,6 +524,12 @@ type PostLocalArg struct {
 	Msg            MessagePlaintext `codec:"msg" json:"msg"`
 }
 
+type PostAttachmentLocalArg struct {
+	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
+	Source         keybase1.Stream `codec:"source" json:"source"`
+	Filename       string          `codec:"filename" json:"filename"`
+}
+
 type NewConversationLocalArg struct {
 	TlfName       string        `codec:"tlfName" json:"tlfName"`
 	TopicType     TopicType     `codec:"topicType" json:"topicType"`
@@ -548,6 +555,7 @@ type LocalInterface interface {
 	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
+	PostAttachmentLocal(context.Context, PostAttachmentLocalArg) (PostLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
@@ -618,6 +626,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postAttachmentLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]PostAttachmentLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostAttachmentLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostAttachmentLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.PostAttachmentLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -711,6 +735,11 @@ func (c LocalClient) GetInboxAndUnboxLocal(ctx context.Context, __arg GetInboxAn
 
 func (c LocalClient) PostLocal(ctx context.Context, __arg PostLocalArg) (res PostLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostAttachmentLocal(ctx context.Context, __arg PostAttachmentLocalArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postAttachmentLocal", []interface{}{__arg}, &res)
 	return
 }
 

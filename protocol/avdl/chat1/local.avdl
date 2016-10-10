@@ -2,6 +2,7 @@
 
 protocol local {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "common.avdl";
 
   record MessageText {
@@ -26,6 +27,7 @@ protocol local {
   }
 
   record Asset {
+    string filename;           // original filename of the object
     string path;               // path to the object in storage
     int size;                  // size of the object
     string mimeType;           // mime type of the object
@@ -202,6 +204,7 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
+  PostLocalRes postAttachmentLocal(ConversationID conversationID, keybase1.Stream source, string filename);
 
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName);
   record NewConversationLocalRes {
