@@ -11,7 +11,6 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -25,85 +24,23 @@ import (
 type chatLocalHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	gh      *gregorHandler
-	tlf     keybase1.TlfInterface
-	boxer   *chat.Boxer
-	storage *chat.Storage
-	udCache *lru.Cache
-
-	// for test only
-	rc chat1.RemoteInterface
+	gh    *gregorHandler
+	tlf   keybase1.TlfInterface
+	boxer *chat.Boxer
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
-	udc, _ := lru.New(10000)
 	tlf := newTlfHandler(nil, g)
-	return &chatLocalHandler{
+	h := &chatLocalHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		gh:           gh,
 		tlf:          tlf,
 		boxer:        chat.NewBoxer(g, tlf),
-		storage:      chat.NewStorage(g),
-		udCache:      udc,
 	}
-}
-
-type udCacheKey struct {
-	UID      keybase1.UID
-	DeviceID keybase1.DeviceID
-}
-
-type udCacheValue struct {
-	Username   string
-	DeviceName string
-}
-
-func (h *chatLocalHandler) getUsernameAndDeviceName(uid keybase1.UID, deviceID keybase1.DeviceID,
-	uimap *chat.UserInfoMapper) (string, string, error) {
-
-	if val, ok := h.udCache.Get(udCacheKey{UID: uid, DeviceID: deviceID}); ok {
-		if udval, ok := val.(udCacheValue); ok {
-			h.G().Log.Debug("getUsernameAndDeviceName: lru hit: u: %s d: %s", udval.Username,
-				udval.DeviceName)
-			return udval.Username, udval.DeviceName, nil
-		}
-	}
-
-	username, deviceName, err := uimap.Lookup(uid, deviceID)
-	if err != nil {
-		return username, deviceName, err
-	}
-	h.udCache.Add(udCacheKey{UID: uid, DeviceID: deviceID},
-		udCacheValue{Username: username, DeviceName: deviceName})
-	return username, deviceName, err
-}
-
-// aggregateRateLimits takes a list of rate limit responses and dedups them to the last one received
-// of each category
-func (h *chatLocalHandler) aggRateLimitsP(rlimits []*chat1.RateLimit) (res []chat1.RateLimit) {
-	m := make(map[string]chat1.RateLimit)
-	for _, l := range rlimits {
-		if l != nil {
-			m[l.Name] = *l
-		}
-	}
-	for _, v := range m {
-		res = append(res, v)
-	}
-	return res
-}
-
-func (h *chatLocalHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
-	m := make(map[string]chat1.RateLimit)
-	for _, l := range rlimits {
-		m[l.Name] = l
-	}
-	for _, v := range m {
-		res = append(res, v)
-	}
-	return res
+	chat.SetConversationSource(chat.NewHybridConversationSource(g, h.boxer, h.remoteClient()))
+	return h
 }
 
 func (h *chatLocalHandler) cryptKeysWrapper(ctx context.Context, tlfName string) (tlfID chat1.TLFID, canonicalTlfName string, err error) {
@@ -188,7 +125,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	}
 	inbox = chat1.GetInboxAndUnboxLocalRes{
 		Pagination: arg.Pagination,
-		RateLimits: h.aggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
+		RateLimits: chat.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 	}
 
 	ctx, _ = chat.GetUserInfoMapper(ctx, h.G())
@@ -226,33 +163,13 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 		return chat1.GetThreadLocalRes{}, err
 	}
 
-	// Try locally first
-	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
-	localData, err := h.storage.Fetch(ctx, h.remoteClient(), arg.ConversationID,
-		uid, arg.Query, arg.Pagination)
-	if err == nil {
-		// If found, then return the stuff
-		// TODO: pagination and query support
-		h.G().Log.Debug("GetThreadLocal cache hit: convID: %d uid: %s", arg.ConversationID, uid)
-		return chat1.GetThreadLocalRes{
-			Thread: chat1.ThreadView{
-				Messages: chat.FilterByType(localData, arg.Query),
-			},
-		}, nil
+	// Get messages from the source
+	uid := h.G().Env.GetUID()
+	if uid.IsNil() {
+		return chat1.GetThreadLocalRes{}, libkb.LoginRequiredError{}
 	}
-	h.G().Log.Debug("chat cache miss: %s", err.Error())
-
-	rarg := chat1.GetThreadRemoteArg{
-		ConversationID: arg.ConversationID,
-		Query:          arg.Query,
-		Pagination:     arg.Pagination,
-	}
-	boxed, err := h.remoteClient().GetThreadRemote(ctx, rarg)
-	if err != nil {
-		return chat1.GetThreadLocalRes{}, err
-	}
-
-	thread, err := h.unboxThread(ctx, boxed.Thread, arg.ConversationID)
+	thread, rl, err := chat.GetConversationSource().Pull(ctx, arg.ConversationID,
+		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
@@ -266,17 +183,12 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 		return chat1.GetThreadLocalRes{}, err
 	}
 
-	// Store locally (just warn on error, don't abort the whole thing)
-	if err = h.storage.Merge(arg.ConversationID, uid, thread.Messages); err != nil {
-		h.G().Log.Warning("unable to commit thread locally: convID: %d uid: %s", arg.ConversationID, uid)
-	}
-
 	// Run type filter if it exists
 	thread.Messages = chat.FilterByType(thread.Messages, arg.Query)
 
 	return chat1.GetThreadLocalRes{
 		Thread:     thread,
-		RateLimits: h.aggRateLimitsP([]*chat1.RateLimit{boxed.RateLimit}),
+		RateLimits: chat.AggRateLimitsP(rl),
 	}, nil
 }
 
@@ -534,7 +446,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		res.Conversations = append(res.Conversations, gires.Conversations...)
 	}
 
-	res.RateLimits = h.aggRateLimits(res.RateLimits)
+	res.RateLimits = chat.AggRateLimits(res.RateLimits)
 
 	return res, nil
 }
@@ -551,7 +463,7 @@ func (h *chatLocalHandler) localizeConversation(
 		errMsg := "conversation has an empty MaxMsgs field"
 		return chat1.ConversationLocal{Error: &errMsg}, nil
 	}
-	if conversationLocal.MaxMessages, err = h.unboxMessages(ctx, conversationRemote.MaxMsgs); err != nil {
+	if conversationLocal.MaxMessages, err = h.boxer.UnboxMessages(ctx, conversationRemote.MaxMsgs); err != nil {
 		errMsg := err.Error()
 		return chat1.ConversationLocal{Error: &errMsg}, nil
 	}
@@ -607,28 +519,6 @@ func (h *chatLocalHandler) localizeConversation(
 	}
 
 	return conversationLocal, nil
-}
-
-func (h *chatLocalHandler) getSenderInfoLocal(uimap *chat.UserInfoMapper, messagePlaintext chat1.MessagePlaintext) (senderUsername string, senderDeviceName string, err error) {
-	version, err := messagePlaintext.Version()
-	if err != nil {
-		return "", "", err
-	}
-	switch version {
-	case chat1.MessagePlaintextVersion_V1:
-		v1 := messagePlaintext.V1()
-		uid := keybase1.UID(v1.ClientHeader.Sender.String())
-		did := keybase1.DeviceID(v1.ClientHeader.SenderDevice.String())
-		username, deviceName, err := h.getUsernameAndDeviceName(uid, did, uimap)
-		if err != nil {
-			return "", "", err
-		}
-
-		return username, deviceName, nil
-
-	default:
-		return "", "", libkb.NewChatMessageVersionError(version)
-	}
 }
 
 func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg chat1.GetConversationForCLILocalQuery) (res chat1.GetConversationForCLILocalRes, err error) {
@@ -701,7 +591,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	return chat1.GetConversationForCLILocalRes{
 		Conversation: convLocal,
 		Messages:     messages,
-		RateLimits:   h.aggRateLimits(rlimits),
+		RateLimits:   chat.AggRateLimits(rlimits),
 	}, nil
 }
 
@@ -720,7 +610,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 		return deflt, err
 	}
 
-	messages, err := h.unboxMessages(ctx, boxed.Msgs)
+	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs)
 	if err != nil {
 		return deflt, err
 	}
@@ -732,7 +622,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 
 	return chat1.GetMessagesLocalRes{
 		Messages:   messages,
-		RateLimits: h.aggRateLimits(rlimits),
+		RateLimits: chat.AggRateLimits(rlimits),
 	}, nil
 }
 
@@ -865,7 +755,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 		return chat1.PostLocalRes{}, err
 	}
 	return chat1.PostLocalRes{
-		RateLimits: h.aggRateLimitsP([]*chat1.RateLimit{plres.RateLimit}),
+		RateLimits: chat.AggRateLimitsP([]*chat1.RateLimit{plres.RateLimit}),
 	}, nil
 }
 
@@ -897,57 +787,7 @@ func (h *chatLocalHandler) getSecretUI() libkb.SecretUI {
 
 // remoteClient returns a client connection to gregord.
 func (h *chatLocalHandler) remoteClient() chat1.RemoteInterface {
-	if h.rc != nil {
-		return h.rc
-	}
 	return &chat1.RemoteClient{Cli: h.gh.cli}
-}
-
-// unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
-func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, convID chat1.ConversationID) (thread chat1.ThreadView, err error) {
-	thread = chat1.ThreadView{
-		Pagination: boxed.Pagination,
-	}
-
-	if thread.Messages, err = h.unboxMessages(ctx, boxed.Messages); err != nil {
-		return chat1.ThreadView{}, err
-	}
-
-	return thread, nil
-}
-
-func (h *chatLocalHandler) unboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageFromServerOrError, err error) {
-	finder := chat.NewKeyFinder()
-	var uimap *chat.UserInfoMapper
-	ctx, uimap = chat.GetUserInfoMapper(ctx, h.G())
-	for _, msg := range boxed {
-		messagePlaintext, headerHash, err := h.boxer.UnboxMessage(ctx, finder, msg)
-		if err != nil {
-			errMsg := err.Error()
-			h.G().Log.Warning("failed to unbox message: msgID: %d err: %s", msg.ServerHeader.MessageID, errMsg)
-			unboxed = append(unboxed, chat1.MessageFromServerOrError{
-				UnboxingError: &errMsg,
-			})
-			continue
-		}
-
-		username, deviceName, err := h.getSenderInfoLocal(uimap, messagePlaintext)
-		if err != nil {
-			return nil, err
-		}
-
-		unboxed = append(unboxed, chat1.MessageFromServerOrError{
-			Message: &chat1.MessageFromServer{
-				SenderUsername:   username,
-				SenderDeviceName: deviceName,
-				ServerHeader:     *msg.ServerHeader,
-				MessagePlaintext: messagePlaintext,
-				HeaderHash:       headerHash,
-			},
-		})
-	}
-
-	return unboxed, nil
 }
 
 func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {

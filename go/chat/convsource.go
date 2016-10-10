@@ -1,0 +1,151 @@
+package chat
+
+import (
+	"context"
+
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+)
+
+type ConversationSource interface {
+	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		msg chat1.MessageBoxed) (chat1.MessageFromServerOrError, error)
+	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
+		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
+	Clear(convID chat1.ConversationID, uid gregor1.UID) error
+}
+
+type RemoteConversationSource struct {
+	libkb.Contextified
+	ri    chat1.RemoteInterface
+	boxer *Boxer
+}
+
+func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri chat1.RemoteInterface) *RemoteConversationSource {
+	return &RemoteConversationSource{
+		Contextified: libkb.NewContextified(g),
+		ri:           ri,
+		boxer:        b,
+	}
+}
+
+func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageFromServerOrError, error) {
+	// Do nothing here, we don't care about pushed messages
+	return chat1.MessageFromServerOrError{}, nil
+}
+
+func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
+
+	rarg := chat1.GetThreadRemoteArg{
+		ConversationID: convID,
+		Query:          query,
+		Pagination:     pagination,
+	}
+	boxed, err := s.ri.GetThreadRemote(ctx, rarg)
+	rl := []*chat1.RateLimit{boxed.RateLimit}
+	if err != nil {
+		return chat1.ThreadView{}, rl, err
+	}
+
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
+	if err != nil {
+		return chat1.ThreadView{}, rl, err
+	}
+
+	return thread, rl, nil
+}
+
+func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
+	return nil
+}
+
+type HybridConversationSource struct {
+	libkb.Contextified
+	ri      chat1.RemoteInterface
+	boxer   *Boxer
+	storage *Storage
+}
+
+func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, ri chat1.RemoteInterface) *HybridConversationSource {
+	return &HybridConversationSource{
+		Contextified: libkb.NewContextified(g),
+		ri:           ri,
+		boxer:        b,
+		storage:      NewStorage(g),
+	}
+}
+
+func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageFromServerOrError, error) {
+
+	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(), msg)
+	if err != nil {
+		return decmsg, err
+	}
+
+	// Store the message
+	if err = s.storage.Merge(convID, uid, []chat1.MessageFromServerOrError{decmsg}); err != nil {
+		return decmsg, err
+	}
+
+	return decmsg, nil
+}
+
+func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
+
+	var err error
+	var rl []*chat1.RateLimit
+
+	// Try locally first
+	localData, err := s.storage.Fetch(ctx, s.ri, convID, uid, query, pagination, &rl)
+	if err == nil {
+		// If found, then return the stuff
+		s.G().Log.Debug("Pull: cache hit: convID: %d uid: %s", convID, uid)
+		localData.Messages = FilterByType(localData.Messages, query)
+		return localData, rl, nil
+	}
+
+	// Fetch the entire request on failure
+	rarg := chat1.GetThreadRemoteArg{
+		ConversationID: convID,
+		Query:          query,
+		Pagination:     pagination,
+	}
+	boxed, err := s.ri.GetThreadRemote(ctx, rarg)
+	rl = append(rl, boxed.RateLimit)
+	if err != nil {
+		return chat1.ThreadView{}, rl, err
+	}
+
+	// Unbox
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
+	if err != nil {
+		return chat1.ThreadView{}, rl, err
+	}
+
+	// Store locally (just warn on error, don't abort the whole thing)
+	if err = s.storage.Merge(convID, uid, thread.Messages); err != nil {
+		s.G().Log.Warning("Pull: unable to commit thread locally: convID: %d uid: %s", convID, uid)
+	}
+
+	return thread, rl, nil
+}
+
+func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
+	return s.storage.mustNuke(true, nil, convID, uid)
+}
+
+// Default conversation source to be used outside of the chat package
+var convSource ConversationSource
+
+func SetConversationSource(source ConversationSource) {
+	convSource = source
+}
+
+func GetConversationSource() ConversationSource {
+	return convSource
+}

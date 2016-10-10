@@ -866,25 +866,15 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			g.G().Log.Error("push handler: chat activity: error decoding newMessage: %s", err.Error())
 			return err
 		}
-
 		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %d sender: %s",
 			nm.ConvID, nm.Message.ServerHeader.Sender)
-		boxer := chat.NewBoxer(g.G(), newTlfHandler(nil, g.G()))
-		msg, headerHash, err := boxer.UnboxMessage(ctx, chat.NewKeyFinder(), nm.Message)
+		uid := m.UID().Bytes()
+		decmsg, err := chat.GetConversationSource().Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
-			g.G().Log.Error("push handler: chat activity: unable to unbox message: %s", err.Error())
-			return err
-		}
-		activity.IncomingMessage = &chat1.MessageFromServerOrError{
-			Message: &chat1.MessageFromServer{
-				SenderUsername:   "", // TODO
-				SenderDeviceName: "", // TODO
-				MessagePlaintext: msg,
-				ServerHeader:     *nm.Message.ServerHeader,
-				HeaderHash:       headerHash,
-			},
+			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
 		}
 		activity.ActivityType = chat1.ChatActivityType_INCOMING_MESSAGE
+		activity.IncomingMessage = &decmsg
 
 	default:
 		return fmt.Errorf("unhandled chat.activity action %q", action)

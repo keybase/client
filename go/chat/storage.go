@@ -13,8 +13,8 @@ import (
 
 // TODO:
 // ***
-// Error handling
 // Gregor OOBM integration
+// Pagination
 // TEST!!!!1111!!!!one!
 // ***
 
@@ -256,9 +256,9 @@ func (s *Storage) writeBlock(bi *blockIndex, b block) libkb.ChatStorageError {
 	return nil
 }
 
-func (s *Storage) mustNuke(err libkb.ChatStorageError, convID chat1.ConversationID, uid gregor1.UID) libkb.ChatStorageError {
+func (s *Storage) mustNuke(force bool, err libkb.ChatStorageError, convID chat1.ConversationID, uid gregor1.UID) libkb.ChatStorageError {
 	// Clear index
-	if err.ShouldClear() {
+	if force || err.ShouldClear() {
 		s.G().Log.Warning("chat local storage corrupted: clearing")
 		if err := s.G().LocalDb.Delete(s.makeBlockIndexKey(convID, uid)); err != nil {
 			if _, err = s.G().LocalDb.Nuke(); err != nil {
@@ -273,25 +273,27 @@ func (s *Storage) Merge(convID chat1.ConversationID, uid gregor1.UID, msgs []cha
 	s.Lock()
 	defer s.Unlock()
 
+	s.debug("Merge: convID: %d uid: %s num msgs: %d", convID, uid, len(msgs))
+
 	// Merge convID into uid index
 	if err := s.mergeConvIndex(convID, uid); err != nil {
-		return s.mustNuke(err, convID, uid)
+		return s.mustNuke(false, err, convID, uid)
 	}
 
 	// Get block index first
 	bi, err := s.readBlockIndex(convID, uid)
 	if err != nil {
-		return s.mustNuke(err, convID, uid)
+		return s.mustNuke(false, err, convID, uid)
 	}
 
 	// Write out new data into blocks
 	if err = s.writeMessages(&bi, msgs); err != nil {
-		return s.mustNuke(err, convID, uid)
+		return s.mustNuke(false, err, convID, uid)
 	}
 
 	// Update supersededBy pointers
 	if err = s.updateSupersededBy(&bi, msgs); err != nil {
-		return s.mustNuke(err, convID, uid)
+		return s.mustNuke(false, err, convID, uid)
 	}
 
 	return nil
@@ -422,7 +424,7 @@ func (s *Storage) readMessages(res *[]chat1.MessageFromServerOrError, bi *blockI
 	return nil
 }
 
-func (s *Storage) getRemoteMaxID(ctx context.Context, ri chat1.RemoteInterface, convID chat1.ConversationID) (chat1.MessageID, libkb.ChatStorageError) {
+func (s *Storage) getRemoteMaxID(ctx context.Context, ri chat1.RemoteInterface, convID chat1.ConversationID, rl *[]*chat1.RateLimit) (chat1.MessageID, libkb.ChatStorageError) {
 
 	s.debug("getRemoteMaxID: fetching remote max for: %d", convID)
 	conv, err := ri.GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
@@ -430,6 +432,7 @@ func (s *Storage) getRemoteMaxID(ctx context.Context, ri chat1.RemoteInterface, 
 			ConvID: &convID,
 		},
 	})
+	*rl = append(*rl, conv.RateLimit)
 	if err != nil {
 		return 0, libkb.ChatStorageRemoteError{Msg: err.Error()}
 	}
@@ -440,8 +443,8 @@ func (s *Storage) getRemoteMaxID(ctx context.Context, ri chat1.RemoteInterface, 
 }
 
 func (s *Storage) Fetch(ctx context.Context, ri chat1.RemoteInterface, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery,
-	pagination *chat1.Pagination) ([]chat1.MessageFromServerOrError, libkb.ChatStorageError) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
+	rl *[]*chat1.RateLimit) (chat1.ThreadView, libkb.ChatStorageError) {
 
 	s.Lock()
 	defer s.Unlock()
@@ -449,34 +452,34 @@ func (s *Storage) Fetch(ctx context.Context, ri chat1.RemoteInterface, convID ch
 	// Get block index first
 	bi, err := s.readBlockIndex(convID, uid)
 	if err != nil {
-		return nil, s.mustNuke(err, convID, uid)
+		return chat1.ThreadView{}, s.mustNuke(false, err, convID, uid)
 	}
 
 	// Calculate seek parameters
 	var maxID chat1.MessageID
 	var num int
 	if pagination == nil {
-		if maxID, err = s.getRemoteMaxID(ctx, ri, convID); err != nil {
-			return nil, s.mustNuke(err, convID, uid)
+		if maxID, err = s.getRemoteMaxID(ctx, ri, convID, rl); err != nil {
+			return chat1.ThreadView{}, s.mustNuke(false, err, convID, uid)
 		}
 		num = 10000
 	} else {
 		var pid chat1.MessageID
 		num = pagination.Num
 		if len(pagination.Next) == 0 && len(pagination.Previous) == 0 {
-			if maxID, err = s.getRemoteMaxID(ctx, ri, convID); err != nil {
-				return nil, s.mustNuke(err, convID, uid)
+			if maxID, err = s.getRemoteMaxID(ctx, ri, convID, rl); err != nil {
+				return chat1.ThreadView{}, s.mustNuke(false, err, convID, uid)
 			}
 		} else if len(pagination.Next) > 0 {
 			if derr := s.decode(pagination.Next, &pid); derr != nil {
 				err = libkb.ChatStorageRemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return nil, s.mustNuke(err, convID, uid)
+				return chat1.ThreadView{}, s.mustNuke(false, err, convID, uid)
 			}
 			maxID = pid
 		} else {
 			if derr := s.decode(pagination.Previous, &pid); derr != nil {
 				err = libkb.ChatStorageRemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
-				return nil, s.mustNuke(err, convID, uid)
+				return chat1.ThreadView{}, s.mustNuke(false, err, convID, uid)
 			}
 			maxID = chat1.MessageID(int(pid) + num)
 		}
@@ -515,9 +518,9 @@ func (s *Storage) Fetch(ctx context.Context, ri chat1.RemoteInterface, convID ch
 	// Run seek looking for all the messages
 	var res []chat1.MessageFromServerOrError
 	if err = s.readMessages(&res, &bi, maxID, num, df); err != nil {
-		return nil, err
+		return chat1.ThreadView{}, err
 	}
 
 	s.debug("Fetch: cache hit: num: %d", len(res))
-	return res, nil
+	return chat1.ThreadView{Messages: res}, nil
 }
