@@ -7,7 +7,8 @@ import (
 	"sync"
 	"time"
 
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -37,7 +38,7 @@ type NotifyListener interface {
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
-	NewChatActivity(uid keybase1.UID, activity keybase1.ChatActivity)
+	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)
 	PGPKeyInSecretStoreFile()
 }
 
@@ -365,7 +366,7 @@ func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
 	n.G().Log.Debug("- Sent favorites changed notfication")
 }
 
-func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.UID, activity *keybase1.ChatActivity) {
+func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.UID, activity *chat1.ChatActivity) {
 	if n == nil {
 		return
 	}
@@ -378,9 +379,9 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 			// In the background do...
 			go func() {
 				// A send of a `NewChatActivity` RPC with the user's UID
-				(keybase1.NotifyChatClient{
+				(chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).NewChatActivity(ctx, keybase1.NewChatActivityArg{
+				}).NewChatActivity(ctx, chat1.NewChatActivityArg{
 					Uid:      uid,
 					Activity: *activity,
 				})

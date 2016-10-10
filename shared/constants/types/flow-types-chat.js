@@ -23,7 +23,7 @@ const engineRpcOutgoing = (...args) => engine()._rpcOutgoing(...args)
 
 type requestCommon = {
   waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: any,
+  incomingCallMap?: incomingCallMapType,
 }
 
 type requestErrorCallback = {
@@ -68,6 +68,11 @@ export const LocalHeaderPlaintextVersion = {
 
 export const LocalMessagePlaintextVersion = {
   v1: 1,
+}
+
+export const NotifyChatChatActivityType = {
+  reserved: 0,
+  incomingMessage: 1,
 }
 
 export function localGetConversationForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>) {
@@ -207,6 +212,15 @@ export type BodyPlaintextV1 = {
 
 export type BodyPlaintextVersion = 
     1 // V1_1
+
+export type ChatActivity = {
+  ActivityType: ChatActivityType,
+  IncomingMessage?: ?MessageFromServerOrError,
+}
+
+export type ChatActivityType = 
+    0 // RESERVED_0
+  | 1 // INCOMING_MESSAGE_1
 
 export type Conversation = {
   metadata: ConversationMetadata,
@@ -508,6 +522,11 @@ export type NewMessagePayload = {
   message: MessageBoxed,
 }
 
+export type NotifyChatNewChatActivityRpcParam = Exact<{
+  uid: keybase1.UID,
+  activity: ChatActivity
+}>
+
 export type Pagination = {
   next: bytes,
   previous: bytes,
@@ -689,5 +708,12 @@ export type rpc =
   | remotePostRemoteRpc
   | remoteTlfFinalizeRpc
 export type incomingCallMapType = Exact<{
-
+  'keybase.1.NotifyChat.NewChatActivity'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      activity: ChatActivity
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void
 }>

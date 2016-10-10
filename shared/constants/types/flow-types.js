@@ -255,11 +255,6 @@ export const KbfsCommonFSStatusCode = {
   error: 2,
 }
 
-export const NotifyChatChatActivityType = {
-  reserved: 0,
-  incomingMessage: 1,
-}
-
 export const PassphraseCommonPassphraseType = {
   none: 0,
   paperKey: 1,
@@ -1827,15 +1822,6 @@ export type ChallengeInfo = {
   challenge: string,
 }
 
-export type ChatActivity = {
-  ActivityType: ChatActivityType,
-  IncomingMessage?: ?chat1.MessageFromServerOrError,
-}
-
-export type ChatActivityType = 
-    0 // RESERVED_0
-  | 1 // INCOMING_MESSAGE_1
-
 export type CheckProofStatus = {
   found: boolean,
   status: ProofStatus,
@@ -2405,11 +2391,6 @@ export type NotificationChannels = {
   pgp: boolean,
   kbfsrequest: boolean,
 }
-
-export type NotifyChatNewChatActivityRpcParam = Exact<{
-  uid: UID,
-  activity: ChatActivity
-}>
 
 export type NotifyFSFSActivityRpcParam = Exact<{
   notification: FSNotification
@@ -4673,14 +4654,6 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyApp.exit'?: (
     params: Exact<{}>,
     response: CommonResponseHandler
-  ) => void,
-  'keybase.1.NotifyChat.NewChatActivity'?: (
-    params: Exact<{
-      uid: UID,
-      activity: ChatActivity
-    }> /* ,
-    response: {} // Notify call
-    */
   ) => void,
   'keybase.1.NotifyFavorites.favoritesChanged'?: (
     params: Exact<{
