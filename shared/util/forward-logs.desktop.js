@@ -2,6 +2,7 @@
 import fs from 'fs'
 import mkdirp from 'mkdirp'
 import path from 'path'
+import util from 'util'
 import {forwardLogs} from '../local-debug'
 import {ipcMain, ipcRenderer} from 'electron'
 import {logFileName} from '../constants/platform.specific.desktop.js'
@@ -91,9 +92,14 @@ function setupSource () {
     return
   }
 
-  console.log = (...args) => { try { localLog(...args); ipcRenderer.send('console.log', args) } catch (_) {} }
-  console.warn = (...args) => { try { localWarn(...args); ipcRenderer.send('console.warn', args) } catch (_) {} }
-  console.error = (...args) => { try { localError(...args); ipcRenderer.send('console.error', args) } catch (_) {} }
+  ['log', 'warn', 'error'].forEach(key => {
+    console[key] = (...args) => {
+      try {
+        const toSend = util.inspect(args)
+        ipcRenderer.send('console.' + key, toSend + '\n')
+      } catch (_) {}
+    }
+  })
 }
 
 export {
