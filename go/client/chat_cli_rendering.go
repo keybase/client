@@ -400,6 +400,8 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 			mv.Renderable = false
 		case chat1.MessageType_TLFNAME:
 			mv.Renderable = false
+		case chat1.MessageType_HEADLINE:
+			mv.Renderable = false
 		default:
 			return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 		}
