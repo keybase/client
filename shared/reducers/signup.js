@@ -191,6 +191,8 @@ export default function (state: SignupState = initialState, action: SignupAction
       return {
         ...state,
         phase: 'inviteCode',
+        passphraseError: null,
+        inviteCodeError: null,
       }
 
     default:
