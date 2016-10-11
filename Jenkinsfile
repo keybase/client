@@ -224,6 +224,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                         bat "echo %errorlevel%"
                                                     }
                                                     bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
+                                                    bat "go get \"github.com/stretchr/testify/require\""
+                                                    bat "go get \"github.com/stretchr/testify/assert\""
                                                     helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
                                                     def testlist = readFile('testlist.txt')
                                                     def tests = testlist.tokenize()
