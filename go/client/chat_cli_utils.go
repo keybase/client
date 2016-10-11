@@ -23,11 +23,14 @@ type chatCLIConversationResolver struct {
 
 func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.GlobalContext, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
 	if len(r.TlfName) > 0 {
-		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, r.TlfName)
+		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, keybase1.TLFQuery{
+			TlfName:          r.TlfName,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
 		if err != nil {
 			return nil, false, fmt.Errorf("completing TLF name error: %v", err)
 		}
-		r.TlfName = string(cname)
+		r.TlfName = string(cname.CanonicalName)
 	}
 
 	gilres, err := chatClient.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
