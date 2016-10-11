@@ -656,7 +656,7 @@ func newCRChainsEmpty() *crChains {
 	}
 }
 
-func (ccs *crChains) addOpsToChains(codec kbfscodec.Codec,
+func (ccs *crChains) addOps(codec kbfscodec.Codec,
 	privateMD PrivateMetadata, winfo writerInfo,
 	localTimestamp time.Time) error {
 	// Copy the ops since CR will change them.
@@ -697,8 +697,7 @@ func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 			return nil, err
 		}
 
-		err = ccs.addOpsToChains(cfg.Codec(), rmd.data, winfo,
-			rmd.localTimestamp)
+		err = ccs.addOps(cfg.Codec(), rmd.data, winfo, rmd.localTimestamp)
 
 		if ptr := rmd.data.cachedChanges.Info.BlockPointer; ptr != zeroPtr {
 			ccs.blockChangePointers[ptr] = true

@@ -844,9 +844,7 @@ func (j *tlfJournal) getJournalEntryCounts() (
 	return blockEntryCount, mdEntryCount, nil
 }
 
-func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
-	j.journalLock.RLock()
-	defer j.journalLock.RUnlock()
+func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 	if err := j.checkEnabledLocked(); err != nil {
 		return TLFJournalStatus{}, err
 	}
@@ -876,6 +874,101 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 		UnflushedBytes: j.blockJournal.unflushedBytes,
 		LastFlushErr:   lastFlushErr,
 	}, nil
+}
+
+func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	return j.getJournalStatusLocked()
+}
+
+func (j *tlfJournal) getJournalStatusWithRange() (
+	TLFJournalStatus, []ImmutableBareRootMetadata, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	jStatus, err := j.getJournalStatusLocked()
+	if err != nil {
+		return TLFJournalStatus{}, nil, err
+	}
+
+	if jStatus.RevisionEnd == MetadataRevisionUninitialized {
+		return jStatus, nil, nil
+	}
+
+	ibrmds, err := j.mdJournal.getRange(
+		jStatus.RevisionStart, jStatus.RevisionEnd)
+	if err != nil {
+		return TLFJournalStatus{}, nil, err
+	}
+	return jStatus, ibrmds, nil
+}
+
+func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
+	cpp chainsPathPopulator) (TLFJournalStatus, error) {
+	jStatus, ibrmds, err := j.getJournalStatusWithRange()
+	if err != nil {
+		return TLFJournalStatus{}, err
+	}
+
+	if len(ibrmds) == 0 {
+		return jStatus, nil
+	}
+
+	ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandle(nil)
+	if err != nil {
+		return TLFJournalStatus{}, err
+	}
+
+	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
+	handle, err := MakeTlfHandle(
+		ctx, ibrmdBareHandle, j.config.usernameGetter())
+	if err != nil {
+		return TLFJournalStatus{}, err
+	}
+
+	for _, ibrmd := range ibrmds {
+		rmd, err := j.convertImmutableBareRMDToRMD(ctx, ibrmd, handle)
+		if err != nil {
+			return TLFJournalStatus{}, err
+		}
+
+		irmds = append(irmds, MakeImmutableRootMetadata(
+			rmd, ibrmd.mdID, ibrmd.localTimestamp))
+	}
+
+	// Make chains over the entire range to get the unflushed files.
+	// TODO: cache this chains object and update it when new revisions
+	// appear and when revisions are flushed, instead of rebuilding
+	// every time.
+	chains := newCRChainsEmpty()
+	for _, irmd := range irmds {
+		winfo := writerInfo{
+			uid:      j.uid,
+			kid:      j.key.KID(),
+			revision: irmd.Revision(),
+			// There won't be any conflicts, so no need for the
+			// username/devicename.
+		}
+		err := chains.addOps(j.config.Codec(), irmd.data, winfo,
+			irmd.localTimestamp)
+		if err != nil {
+			return TLFJournalStatus{}, nil
+		}
+	}
+	chains.mostRecentMD = irmds[len(irmds)-1]
+
+	err = cpp.populateChainPaths(ctx, j.log, chains, true)
+	if err != nil {
+		return TLFJournalStatus{}, err
+	}
+
+	for _, chain := range chains.byOriginal {
+		if len(chain.ops) > 0 {
+			jStatus.UnflushedPaths = append(jStatus.UnflushedPaths,
+				chain.ops[0].getFinalPath().String())
+		}
+	}
+	return jStatus, nil
 }
 
 func (j *tlfJournal) getUnflushedBytes() int64 {
