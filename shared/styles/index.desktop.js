@@ -78,7 +78,7 @@ const util = {
     overflowY: 'auto',
   },
   selectable: {
-    WebkitUserSelect: 'initial',
+    WebkitUserSelect: 'text',
     cursor: 'text',
   },
   noSelect: {
