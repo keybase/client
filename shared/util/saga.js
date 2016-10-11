@@ -25,7 +25,7 @@ export function effectOnChannelMap<T> (effect: any, channelMap: ChannelMap<T>, k
   if (c) {
     return effect(c)
   } else {
-    console.error('Trying to take, but no registered channel for', k)
+    console.error('Trying to do effect, but no registered channel for', k)
   }
 }
 
