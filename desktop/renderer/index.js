@@ -26,10 +26,17 @@ import {setupSource} from '../shared/util/forward-logs'
 import {updateDebugConfig} from '../shared/actions/dev'
 import {updateReloading} from '../shared/constants/dev'
 
+let _store
+function setupStore () {
+  if (!_store) {
+    _store = configureStore()
+  }
+  return _store
+}
+
 function setupApp (store) {
   setupSource()
   makeEngine()
-
   loadPerf()
 
   if (devStoreChangingFunctions) {
@@ -82,55 +89,52 @@ function setupApp (store) {
   window.addEventListener('online', () => store.dispatch(bootstrap()))
 }
 
-const store = configureStore()
-setupApp(store)
+function render (store, NavComponent) {
+  let dt
+  if (__DEV__ && reduxDevToolsEnable) { // eslint-disable-line no-undef
+    const DevTools = require('./redux-dev-tools').default
+    dt = <DevTools />
+  }
 
-const appEl = document.getElementById('root')
-
-let dt = null
-if (__DEV__ && reduxDevToolsEnable) { // eslint-disable-line no-undef
-  const DevTools = require('./redux-dev-tools').default
-  dt = <DevTools />
-}
-
-function load () {
   ReactDOM.render((
     <AppContainer>
       <Root store={store}>
         <div style={{display: 'flex', flex: 1}}>
           <RemoteManager />
-          <Nav />
+          <NavComponent />
           {dt}
         </div>
       </Root>
-    </AppContainer>), appEl)
+    </AppContainer>), document.getElementById('root'))
 }
 
-module.hot && typeof module.hot.accept === 'function' && module.hot.accept('./container', () => {
-  try {
-    store.dispatch({type: updateReloading, payload: {reloading: true}})
-    const NewRoot = require('./container').default
-    ReactDOM.render(
-      <AppContainer>
-        <NewRoot store={store}>
-          <div style={{display: 'flex', flex: 1}}>
-            <RemoteManager />
-            <Nav />
-            {dt}
-          </div>
-        </NewRoot>
-      </AppContainer>,
-      appEl,
-    )
-    engine().reset()
-  } finally {
-    setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
+function setupHMR (store) {
+  if (!module || !module.hot || typeof module.hot.accept !== 'function') {
+    return
   }
-})
 
-module.hot && typeof module.hot.accept === 'function' && module.hot.accept('../shared/local-debug-live', () => {
-  store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
-})
+  module.hot.accept('../shared/nav.desktop', () => {
+    try {
+      store.dispatch({type: updateReloading, payload: {reloading: true}})
+      const NewNav = require('../shared/nav.desktop').default
+      render(store, NewNav)
+      engine().reset()
+    } finally {
+      setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
+    }
+  })
+
+  // $FlowIssue
+  module.hot.accept('../shared/local-debug-live', () => {
+    store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
+  })
+}
+
+function load () {
+  const store = setupStore()
+  setupApp(store)
+  setupHMR(store)
+  render(store, Nav)
+}
 
 window.load = load
-
