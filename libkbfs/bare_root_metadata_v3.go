@@ -94,6 +94,12 @@ type ExtraMetadataV3 struct {
 	rkb *TLFReaderKeyBundleV3
 }
 
+// NewExtraMetadataV3 creates a new ExtraMetadataV3 given a pair of key bundles
+func NewExtraMetadataV3(
+	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3) *ExtraMetadataV3 {
+	return &ExtraMetadataV3{wkb: wkb, rkb: rkb}
+}
+
 // MetadataVersion implements the ExtraMetadata interface for ExtraMetadataV3.
 func (extra ExtraMetadataV3) MetadataVersion() MetadataVer {
 	return SegregatedKeyBundlesVer
