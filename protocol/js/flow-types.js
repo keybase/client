@@ -415,6 +415,12 @@ export const SaltpackUiSaltpackSenderType = {
   self: 5,
 }
 
+export const TlfKeysTLFIdentifyBehavior = {
+  defaultKbfs: 0,
+  chatCli: 1,
+  chatGui: 2,
+}
+
 export const UiPromptDefault = {
   none: 0,
   yes: 1,
@@ -2511,9 +2517,10 @@ export type BoxPublicKey = any
 
 export type Bytes32 = any
 
-export type CanonicalTLFNameAndID = {
+export type CanonicalTLFNameAndIDWithBreaks = {
   tlfID: TLFID,
   CanonicalName: CanonicalTlfName,
+  breaks: TLFBreak,
 }
 
 export type CanonicalTlfName = string
@@ -2869,6 +2876,11 @@ export type GetCurrentStatusRes = {
 export type GetPassphraseRes = {
   passphrase: string,
   storeSecret: boolean,
+}
+
+export type GetTLFCryptKeysRes = {
+  nameIDBreaks: CanonicalTLFNameAndIDWithBreaks,
+  CryptKeys?: ?Array<CryptKey>,
 }
 
 export type Hello2Res = {
@@ -3706,13 +3718,26 @@ export type TLF = {
   isPrivate: boolean,
 }
 
-export type TLFCryptKeys = {
-  tlfID: TLFID,
-  CanonicalName: CanonicalTlfName,
-  CryptKeys?: ?Array<CryptKey>,
+export type TLFBreak = {
+  breaks?: ?Array<TLFUserBreak>,
 }
 
 export type TLFID = string
+
+export type TLFIdentifyBehavior = 
+    0 // DEFAULT_KBFS_0
+  | 1 // CHAT_CLI_1
+  | 2 // CHAT_GUI_2
+
+export type TLFQuery = {
+  tlfName: string,
+  identifyBehavior: TLFIdentifyBehavior,
+}
+
+export type TLFUserBreak = {
+  user: User,
+  breaks?: ?IdentifyTrackBreaks,
+}
 
 export type Test = {
   reply: string,
@@ -4627,23 +4652,23 @@ export type testTestRpcParam = Exact<{
 }>
 
 export type tlfCompleteAndCanonicalizeTlfNameRpcParam = Exact<{
-  tlfName: string
+  query: TLFQuery
 }>
 
 export type tlfCryptKeysRpcParam = Exact<{
-  tlfName: string
+  query: TLFQuery
 }>
 
 export type tlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = Exact<{
-  tlfName: string
+  query: TLFQuery
 }>
 
 export type tlfKeysGetTLFCryptKeysRpcParam = Exact<{
-  tlfName: string
+  query: TLFQuery
 }>
 
 export type tlfPublicCanonicalTLFNameAndIDRpcParam = Exact<{
-  tlfName: string
+  query: TLFQuery
 }>
 
 export type trackDismissWithTokenRpcParam = Exact<{
@@ -4912,15 +4937,15 @@ type testTestCallbackResult = string
 
 type testTestResult = Test
 
-type tlfCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
+type tlfCompleteAndCanonicalizeTlfNameResult = CanonicalTLFNameAndIDWithBreaks
 
-type tlfCryptKeysResult = TLFCryptKeys
+type tlfCryptKeysResult = GetTLFCryptKeysRes
 
-type tlfKeysGetPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndID
+type tlfKeysGetPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 
-type tlfKeysGetTLFCryptKeysResult = TLFCryptKeys
+type tlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 
-type tlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndID
+type tlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 
 type uiPromptYesNoResult = boolean
 
