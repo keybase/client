@@ -97,31 +97,12 @@ func (j journalMDOps) getHeadFromJournal(
 		}
 	}
 
-	brmd, ok := head.BareRootMetadata.(MutableBareRootMetadata)
-	if !ok {
-		return ImmutableRootMetadata{}, MutableBareRootMetadataNoImplError{}
-	}
-
-	rmd := RootMetadata{
-		bareMd:    brmd,
-		tlfHandle: handle,
-	}
-
-	_, uid, err := j.jServer.config.KBPKI().GetCurrentUserInfo(ctx)
+	rmd, err := tlfJournal.convertImmutableBareRMDToRMD(ctx, head, handle)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
 
-	err = decryptMDPrivateData(
-		ctx, j.jServer.config.Codec(), j.jServer.config.Crypto(),
-		j.jServer.config.BlockCache(), j.jServer.config.BlockOps(),
-		j.jServer.config.KeyManager(), uid, &rmd, rmd.ReadOnly())
-	if err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-
-	return MakeImmutableRootMetadata(&rmd, head.mdID,
-		head.localTimestamp), nil
+	return MakeImmutableRootMetadata(rmd, head.mdID, head.localTimestamp), nil
 }
 
 func (j journalMDOps) getRangeFromJournal(
@@ -169,31 +150,13 @@ func (j journalMDOps) getRangeFromJournal(
 
 	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
 
-	_, uid, err := j.jServer.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	for _, ibrmd := range ibrmds {
-		brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
-		if !ok {
-			return nil, MutableBareRootMetadataNoImplError{}
-		}
-		rmd := RootMetadata{
-			bareMd:    brmd,
-			tlfHandle: handle,
-		}
-
-		err = decryptMDPrivateData(
-			ctx, j.jServer.config.Codec(), j.jServer.config.Crypto(),
-			j.jServer.config.BlockCache(), j.jServer.config.BlockOps(),
-			j.jServer.config.KeyManager(), uid, &rmd, rmd.ReadOnly())
+		rmd, err := tlfJournal.convertImmutableBareRMDToRMD(ctx, ibrmd, handle)
 		if err != nil {
 			return nil, err
 		}
 
-		irmd := MakeImmutableRootMetadata(&rmd, ibrmd.mdID,
-			ibrmd.localTimestamp)
+		irmd := MakeImmutableRootMetadata(rmd, ibrmd.mdID, ibrmd.localTimestamp)
 		irmds = append(irmds, irmd)
 	}
 

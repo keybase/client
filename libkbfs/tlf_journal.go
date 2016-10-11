@@ -1067,6 +1067,31 @@ func (j *tlfJournal) archiveBlockReferences(
 	return nil
 }
 
+// convertImmutableBareRMDToRMD decrypts the MD in the given bare root
+// MD.  The caller must NOT hold `j.journalLock`, because blocks
+// from the journal may need to be read as part of the decryption.
+func (j *tlfJournal) convertImmutableBareRMDToRMD(ctx context.Context,
+	ibrmd ImmutableBareRootMetadata, handle *TlfHandle) (*RootMetadata, error) {
+	brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
+	if !ok {
+		return nil, MutableBareRootMetadataNoImplError{}
+	}
+
+	rmd := RootMetadata{
+		bareMd:    brmd,
+		tlfHandle: handle,
+	}
+
+	err := decryptMDPrivateData(
+		ctx, j.config.Codec(), j.config.Crypto(),
+		j.config.BlockCache(), j.config.BlockOps(),
+		j.config.mdDecryptionKeyGetter(), j.uid, &rmd, rmd.ReadOnly())
+	if err != nil {
+		return nil, err
+	}
+	return &rmd, nil
+}
+
 func (j *tlfJournal) getMDHead(
 	ctx context.Context) (ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
