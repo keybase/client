@@ -128,15 +128,9 @@ for ((i=1; i<=$number_of_builds; i++)); do
   save_dir="/tmp/build_desktop"
   rm -rf $save_dir
 
-  skip_update_json=""
-  if [ "$i" = "2" ]; then
-    skip_update_json="1"
-  fi
-
   if [ "$platform" = "darwin" ]; then
     SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" \
-      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" \
-      SKIP_UPDATE_JSON="$skip_update_json" "$dir/../desktop/package_darwin.sh"
+      UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$dir/../desktop/package_darwin.sh"
   else
     # TODO: Support linux build here?
     echo "Unknown platform: $platform"
@@ -154,8 +148,13 @@ for ((i=1; i<=$number_of_builds; i++)); do
   BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
 done
 
+# Promote the build we just made to the test channel -- if smoketest, then
+# promote the first build; if not, then promote the only build.
+S3HOST="$s3host""$release_bin" promote-test-releases --bucket-name="$bucket_name" --platform="$platform" --release="$build_a"
+
 if [ "$istest" = "" ]; then
   if [ "$number_of_builds" = "2" ]; then
+    # Announce the new builds to the API server.
     echo "Annoucing builds: $build_a and $build_b."
     BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-build --build-a="$build_a" --build-b="$build_b" --platform="darwin"
   fi
