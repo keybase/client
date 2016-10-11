@@ -176,7 +176,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
                                             archive("kbclient.tar.gz")
                                             build([
-                                                job: "/kbfs/master",
+                                                job: "/kbfs/PR-411",
                                                 parameters: [
                                                     [$class: 'StringParameterValue',
                                                         name: 'clientProjectName',
