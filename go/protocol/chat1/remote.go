@@ -4,6 +4,7 @@
 package chat1
 
 import (
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -99,6 +100,11 @@ type TlfFinalizeArg struct {
 	TlfID TLFID `codec:"tlfID" json:"tlfID"`
 }
 
+type PostAttachmentRemoteArg struct {
+	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
+	Source         keybase1.Stream `codec:"source" json:"source"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -108,6 +114,7 @@ type RemoteInterface interface {
 	GetMessagesRemote(context.Context, GetMessagesRemoteArg) (GetMessagesRemoteRes, error)
 	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes, error)
 	TlfFinalize(context.Context, TLFID) error
+	PostAttachmentRemote(context.Context, PostAttachmentRemoteArg) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -242,6 +249,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"postAttachmentRemote": {
+				MakeArg: func() interface{} {
+					ret := make([]PostAttachmentRemoteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostAttachmentRemoteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostAttachmentRemoteArg)(nil), args)
+						return
+					}
+					err = i.PostAttachmentRemote(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -289,5 +312,10 @@ func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (res 
 func (c RemoteClient) TlfFinalize(ctx context.Context, tlfID TLFID) (err error) {
 	__arg := TlfFinalizeArg{TlfID: tlfID}
 	err = c.Cli.Call(ctx, "chat.1.remote.tlfFinalize", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) PostAttachmentRemote(ctx context.Context, __arg PostAttachmentRemoteArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.postAttachmentRemote", []interface{}{__arg}, nil)
 	return
 }

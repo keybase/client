@@ -757,6 +757,21 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
 
+	rarg := chat1.PostAttachmentRemoteArg{
+		ConversationID: arg.ConversationID,
+		Source:         arg.Source,
+	}
+	// XXX need more results probably, with rate limit...
+	err := h.remoteClient().PostAttachmentRemote(ctx, rarg)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	/*
+		return chat1.PostLocalRes{
+			RateLimits: h.aggRateLimitsP([]*chat1.RateLimit{plres.RateLimit}),
+		}, nil
+	*/
+
 	return chat1.PostLocalRes{}, nil
 }
 

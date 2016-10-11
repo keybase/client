@@ -271,6 +271,14 @@ export function remoteNewConversationRemoteRpcPromise (request: $Exact<requestCo
   return new Promise((resolve, reject) => { remoteNewConversationRemoteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remotePostAttachmentRemoteRpc (request: Exact<requestCommon & requestErrorCallback & {param: remotePostAttachmentRemoteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.postAttachmentRemote'})
+}
+
+export function remotePostAttachmentRemoteRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: remotePostAttachmentRemoteRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { remotePostAttachmentRemoteRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remotePostRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remotePostRemoteResult) => void} & {param: remotePostRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.postRemote'})
 }
@@ -777,6 +785,11 @@ export type remoteNewConversationRemoteRpcParam = Exact<{
   idTriple: ConversationIDTriple
 }>
 
+export type remotePostAttachmentRemoteRpcParam = Exact<{
+  conversationID: ConversationID,
+  source: keybase1.Stream
+}>
+
 export type remotePostRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   messageBoxed: MessageBoxed
@@ -834,6 +847,7 @@ export type rpc =
   | remoteMarkAsReadRpc
   | remoteNewConversationRemote2Rpc
   | remoteNewConversationRemoteRpc
+  | remotePostAttachmentRemoteRpc
   | remotePostRemoteRpc
   | remoteTlfFinalizeRpc
 export type incomingCallMapType = Exact<{

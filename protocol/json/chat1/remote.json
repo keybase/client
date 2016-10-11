@@ -1,6 +1,12 @@
 {
   "protocol": "remote",
-  "imports": [],
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
+    }
+  ],
   "types": [
     {
       "type": "record",
@@ -302,6 +308,19 @@
         {
           "name": "tlfID",
           "type": "TLFID"
+        }
+      ],
+      "response": null
+    },
+    "postAttachmentRemote": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "source",
+          "type": "keybase1.Stream"
         }
       ],
       "response": null
