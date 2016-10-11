@@ -11,7 +11,7 @@ import (
 // API call. Meant to be very simple.  It is not meant to be goroutine safe
 // and should only be called from one Goroutine.
 type SimpleTimer struct {
-	total int64
+	total time.Duration
 	start *time.Time
 }
 
@@ -25,11 +25,9 @@ func (s *SimpleTimer) Start() {
 
 // Stop the timer; panic if it hasn't been previously started.  Return
 // the total duration spent in the timer.
-func (s *SimpleTimer) Stop() int64 {
+func (s *SimpleTimer) Stop() time.Duration {
 	if s.start != nil {
-		tmp := time.Now()
-		dur := tmp.Sub(*s.start)
-		s.total += dur.Nanoseconds()
+		s.total += time.Since(*s.start)
 	} else {
 		panic("SimpleTimer Stop()'ed without being started")
 	}
@@ -37,7 +35,7 @@ func (s *SimpleTimer) Stop() int64 {
 }
 
 // GetTotal gets the total duration spent in the timer.
-func (s *SimpleTimer) GetTotal() int64 {
+func (s *SimpleTimer) GetTotal() time.Duration {
 	return s.total
 }
 
@@ -69,7 +67,7 @@ func NewReportingTimerReal(ctx Contextified) *ReportingTimerReal {
 func (r *ReportingTimerReal) Report(prefix string) {
 	dur := r.Stop()
 	r.Reset()
-	r.G().Log.Info("timer: %s [%d ms]", prefix, dur/1000/1000)
+	r.G().Log.Info("timer: %s [%d ms]", prefix, dur/time.Millisecond)
 }
 
 // ReportingTimerDummy fulfills the ReportingTimer interface but doesn't

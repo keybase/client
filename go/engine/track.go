@@ -33,7 +33,7 @@ func NewTrackEngine(arg *TrackEngineArg, g *libkb.GlobalContext) *TrackEngine {
 }
 
 func (e *TrackEngine) Name() string {
-	return "Track"
+	return "Follow"
 }
 
 func (e *TrackEngine) Prereqs() Prereqs {
@@ -79,7 +79,7 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	confirmResult := ieng.ConfirmResult()
 	if !confirmResult.IdentityConfirmed {
 		e.G().Log.Debug("confirmResult: %+v", confirmResult)
-		return errors.New("Track not confirmed")
+		return errors.New("Follow not confirmed")
 	}
 
 	// if they didn't specify local only on the command line, then if they answer no to posting

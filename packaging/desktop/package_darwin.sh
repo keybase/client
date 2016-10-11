@@ -36,6 +36,8 @@ updater_version=`$updater_binpath -version`
 
 icon_path="$client_dir/media/icons/Keybase.icns"
 
+skip_update_json=${SKIP_UPDATE_JSON:-}
+
 echo "Loading release tool"
 "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$GOPATH/bin/release"
@@ -76,7 +78,7 @@ shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 # The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
-installer_url="https://github.com/keybase/client/releases/download/v1.0.17/KeybaseInstaller-1.1.42-darwin.tgz"
+installer_url="https://github.com/keybase/client/releases/download/v1.0.17/KeybaseInstaller-1.1.43-darwin.tgz"
 # KeybaseUpdater.app is the native updater UI (prompt dialogs)
 updater_url="https://github.com/keybase/client/releases/download/v1.0.16/KeybaseUpdater-1.0.3-darwin.tgz"
 
@@ -243,7 +245,7 @@ kbsign() {(
 
 update_json() {(
   cd "$out_dir"
-  if [ -n "$s3host" ]; then
+  if [ -n "$s3host" ] && [ ! "$skip_update_json" = "1" ]; then
     echo "Generating $update_json_name"
     "$release_bin" update-json --version="$app_version" --src="$zip_name" \
       --uri="$s3host/$platform-updates" --signature="$out_dir/$sig_name" --description="$client_dir/desktop/CHANGELOG.txt" > "$update_json_name"
@@ -271,7 +273,9 @@ save() {(
   mv "$out_dir/$sourcemap_name" "$save_dir/electron-sourcemaps"
   # Support files
   mkdir -p "$platform_dir-support"
-  mv "$out_dir/$update_json_name" "$platform_dir-support"
+  if [ ! "$skip_update_json" = "1" ]; then
+    mv "$out_dir/$update_json_name" "$platform_dir-support"
+  fi
 )}
 
 s3sync() {

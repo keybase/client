@@ -277,7 +277,7 @@ func keybasePlist(context Context, binPath string, label string, log Log) (launc
 }
 
 func installKeybaseService(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, defaultLaunchdWait, log)
+	err := launchd.Install(plist, wait, log)
 	if err != nil {
 		return nil, err
 	}
@@ -330,7 +330,7 @@ func kbfsPlist(context Context, kbfsBinPath string, label string) (plist launchd
 }
 
 func installKBFSService(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, defaultLaunchdWait, log)
+	err := launchd.Install(plist, wait, log)
 	if err != nil {
 		return nil, err
 	}
@@ -339,7 +339,7 @@ func installKBFSService(context Context, service launchd.Service, plist launchd.
 	return &st, err
 }
 
-// UninstallUninstallKBFSServicesBFS removes KBFS service (including homebrew)
+// UninstallKBFSServices removes KBFS service (including homebrew)
 func UninstallKBFSServices(runMode libkb.RunMode, log Log) error {
 	err1 := launchd.Uninstall(defaultKBFSLabel(runMode, false), defaultLaunchdWait, log)
 	err2 := launchd.Uninstall(defaultKBFSLabel(runMode, true), defaultLaunchdWait, log)
@@ -398,14 +398,14 @@ func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log 
 }
 
 // Install installs all keybase components
-func Install(context Context, binPath string, components []string, force bool, log Log) keybase1.InstallResult {
+func Install(context Context, binPath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
 	var err error
 	componentResults := []keybase1.ComponentResult{}
 
 	log.Debug("Installing components: %s", components)
 
 	if libkb.IsIn(string(ComponentNameUpdater), components, false) {
-		err = InstallUpdater(context, binPath, force, log)
+		err = InstallUpdater(context, binPath, force, timeout, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameUpdater), err))
 	}
 
@@ -415,12 +415,12 @@ func Install(context Context, binPath string, components []string, force bool, l
 	}
 
 	if libkb.IsIn(string(ComponentNameService), components, false) {
-		err = InstallService(context, binPath, force, log)
+		err = InstallService(context, binPath, force, timeout, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		err = InstallKBFS(context, binPath, force, log)
+		err = InstallKBFS(context, binPath, force, timeout, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 	}
 
@@ -476,7 +476,7 @@ func installCommandLineForBinPath(binPath string, linkPath string, force bool) e
 }
 
 // InstallService installs the launchd service
-func InstallService(context Context, binPath string, force bool, log Log) error {
+func InstallService(context Context, binPath string, force bool, timeout time.Duration, log Log) error {
 	resolvedBinPath, err := chooseBinPath(binPath)
 	if err != nil {
 		return err
@@ -489,37 +489,17 @@ func InstallService(context Context, binPath string, force bool, log Log) error 
 	if err != nil {
 		return err
 	}
-	log.Debug("Checking service: %s", label)
-	keybaseStatus := KeybaseServiceStatus(context, label, time.Second, log)
-	log.Debug("Service: %s (Action: %s); %#v", keybaseStatus.InstallStatus.String(), keybaseStatus.InstallAction.String(), keybaseStatus)
-	needsInstall := keybaseStatus.NeedsInstall()
-
-	if !needsInstall {
-		plistValid, err := service.CheckPlist(plist)
-		if err != nil {
-			return err
-		}
-		if !plistValid {
-			log.Debug("Needs plist upgrade: %s", service.PlistDestination())
-			needsInstall = true
-		}
+	UninstallKeybaseServices(context.GetRunMode(), log)
+	log.Debug("Installing Keybase service (%s, timeout=%s)", label, timeout)
+	if _, err := installKeybaseService(context, service, plist, timeout, log); err != nil {
+		log.Errorf("Error installing Keybase service: %s", err)
+		return err
 	}
-
-	if needsInstall || force {
-		UninstallKeybaseServices(context.GetRunMode(), log)
-		log.Debug("Installing Keybase service")
-		_, err := installKeybaseService(context, service, plist, defaultLaunchdWait, log)
-		if err != nil {
-			log.Errorf("Error installing Keybase service: %s", err)
-			return err
-		}
-	}
-
 	return nil
 }
 
 // InstallKBFS installs the KBFS launchd service
-func InstallKBFS(context Context, binPath string, force bool, log Log) error {
+func InstallKBFS(context Context, binPath string, force bool, timeout time.Duration, log Log) error {
 	runMode := context.GetRunMode()
 	label := DefaultKBFSLabel(runMode)
 	kbfsService := launchd.NewService(label)
@@ -532,31 +512,12 @@ func InstallKBFS(context Context, binPath string, force bool, log Log) error {
 		return err
 	}
 
-	log.Debug("Checking KBFS")
-	kbfsStatus := KBFSServiceStatus(context, label, time.Second, log)
-	log.Debug("KBFS: %s (Action: %s); %#v", kbfsStatus.InstallStatus.String(), kbfsStatus.InstallAction.String(), kbfsStatus)
-	needsInstall := kbfsStatus.NeedsInstall()
-
-	if !needsInstall {
-		plistValid, err := kbfsService.CheckPlist(plist)
-		if err != nil {
-			return err
-		}
-		if !plistValid {
-			log.Debug("Needs plist upgrade: %s", kbfsService.PlistDestination())
-			needsInstall = true
-		}
+	UninstallKBFSServices(context.GetRunMode(), log)
+	log.Debug("Installing KBFS (%s, timeout=%s)", label, timeout)
+	if _, err := installKBFSService(context, kbfsService, plist, timeout, log); err != nil {
+		log.Errorf("Error installing KBFS: %s", err)
+		return err
 	}
-	if needsInstall || force {
-		UninstallKBFSServices(context.GetRunMode(), log)
-		log.Debug("Installing KBFS")
-		_, err := installKBFSService(context, kbfsService, plist, defaultLaunchdWait, log)
-		if err != nil {
-			log.Errorf("Error installing KBFS: %s", err)
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -677,8 +638,8 @@ func execNativeInstallerWithArg(arg string, runMode libkb.RunMode, log Log) erro
 }
 
 // AutoInstallWithStatus runs the auto install and returns a result
-func AutoInstallWithStatus(context Context, binPath string, force bool, log Log) keybase1.InstallResult {
-	_, res, err := autoInstall(context, binPath, force, log)
+func AutoInstallWithStatus(context Context, binPath string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
+	_, res, err := autoInstall(context, binPath, force, timeout, log)
 	if err != nil {
 		return keybase1.InstallResult{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
 	}
@@ -686,16 +647,16 @@ func AutoInstallWithStatus(context Context, binPath string, force bool, log Log)
 }
 
 // AutoInstall runs the auto install
-func AutoInstall(context Context, binPath string, force bool, log Log) (newProc bool, err error) {
+func AutoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (newProc bool, err error) {
 	if context.GetRunMode() != libkb.ProductionRunMode {
 		return false, fmt.Errorf("Auto install is only supported in production")
 	}
 
-	newProc, _, err = autoInstall(context, binPath, force, log)
+	newProc, _, err = autoInstall(context, binPath, force, timeout, log)
 	return
 }
 
-func autoInstall(context Context, binPath string, force bool, log Log) (newProc bool, componentResults []keybase1.ComponentResult, err error) {
+func autoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (newProc bool, componentResults []keybase1.ComponentResult, err error) {
 	log.Debug("+ AutoInstall for launchd")
 	defer func() {
 		log.Debug("- AutoInstall -> %v, %v", newProc, err)
@@ -723,7 +684,7 @@ func autoInstall(context Context, binPath string, force bool, log Log) (newProc 
 		return
 	}
 
-	err = InstallService(context, binPath, true, log)
+	err = InstallService(context, binPath, true, timeout, log)
 	componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 	if err != nil {
 		return
@@ -880,7 +841,7 @@ func OSVersion() (semver.Version, error) {
 }
 
 // InstallUpdater installs the updater launchd service
-func InstallUpdater(context Context, keybaseBinPath string, force bool, log Log) error {
+func InstallUpdater(context Context, keybaseBinPath string, force bool, timeout time.Duration, log Log) error {
 	if context.GetRunMode() != libkb.ProductionRunMode {
 		return fmt.Errorf("Updater not supported in this run mode")
 	}
@@ -901,38 +862,12 @@ func InstallUpdater(context Context, keybaseBinPath string, force bool, log Log)
 		return err
 	}
 
-	launchdStatus, err := service.LoadStatus()
-	if err != nil {
+	UninstallUpdaterService(context.GetRunMode(), log)
+	log.Debug("Installing updater service (%s, timeout=%s)", label, timeout)
+	if _, err := installUpdaterService(service, plist, timeout, log); err != nil {
+		log.Errorf("Error installing updater service: %s", err)
 		return err
 	}
-
-	needsInstall := false
-	if launchdStatus == nil {
-		log.Debug("No status, needs install")
-		needsInstall = true
-	}
-
-	if !needsInstall {
-		plistValid, err := service.CheckPlist(plist)
-		if err != nil {
-			return err
-		}
-		if !plistValid {
-			log.Debug("Plist needs update: %s", service.PlistDestination())
-			needsInstall = true
-		}
-	}
-
-	if needsInstall || force {
-		UninstallUpdaterService(context.GetRunMode(), log)
-		log.Debug("Installing updater service")
-		_, err := installUpdaterService(service, plist, defaultLaunchdWait, log)
-		if err != nil {
-			log.Errorf("Error installing updater service: %s", err)
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -949,7 +884,7 @@ func updaterPlist(context Context, label string, serviceBinPath string, keybaseB
 }
 
 func installUpdaterService(service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, defaultLaunchdWait, log)
+	err := launchd.Install(plist, wait, log)
 	if err != nil {
 		return nil, err
 	}

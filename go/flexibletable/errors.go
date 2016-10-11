@@ -15,6 +15,14 @@ func (e InconsistentRowsError) Error() string {
 		e.existingRows, e.newRow)
 }
 
+// NoRowsError indicates no rows in the table.
+type NoRowsError struct{}
+
+// Error implements the error interface
+func (e NoRowsError) Error() string {
+	return "no rows"
+}
+
 // WidthTooSmallError indicates the width constraints is too small.
 type WidthTooSmallError struct{}
 

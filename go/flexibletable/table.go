@@ -130,6 +130,9 @@ func (t Table) renderSecondPass(constraints []ColumnConstraint, widths []int) (r
 // how each column should be constrained while being rendered. Positive values
 // limit the maximum width.
 func (t Table) Render(w io.Writer, cellSep string, maxWidth int, constraints []ColumnConstraint) error {
+	if len(t.rows) == 0 {
+		return NoRowsError{}
+	}
 	if len(constraints) != len(t.rows[0]) {
 		return InconsistentRowsError{existingRows: len(t.rows[0]), newRow: len(constraints)}
 	}

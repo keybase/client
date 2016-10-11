@@ -13,8 +13,10 @@ class PaperKeyRender extends Component<void, Props, void> {
           style={stylesContainer}
           onBack={this.props.onBack}>
           <Text type='Header' style={stylesHeader}>Type in your paper key:</Text>
-          <Icon type='icon-paper-key-48' style={stylesIcon} />
+          <Icon type='icon-paper-key-48' />
           <Input
+            multiline={true}
+            rows={3}
             autoFocus={true}
             style={stylesInput}
             floatingLabelText='Paper key'
@@ -48,17 +50,11 @@ const stylesContainer = {
 }
 
 const stylesButton = {
-  marginTop: globalMargins.medium,
-  marginBottom: 20,
+  marginTop: globalMargins.tiny,
 }
 
 const stylesInput = {
   alignSelf: 'stretch',
-  height: 80,
-}
-
-const stylesIcon = {
-  marginTop: 30,
 }
 
 const stylesHeader = {

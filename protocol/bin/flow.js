@@ -7,7 +7,7 @@ var path = require('path')
 var projects = {
   "chat1" : {
     root: './json/chat1',
-    import: "import * as gregor1 from './flow-types-gregor'\n",
+    import: "import * as gregor1 from './flow-types-gregor'\nimport * as keybase1 from './flow-types'",
     out: 'js/flow-types-chat.js',
     incomingMaps: {},
     seenTypes: {},
@@ -16,7 +16,7 @@ var projects = {
   "keybase1" : {
     root: 'json/keybase1',
     out: 'js/flow-types.js',
-    import: "import * as gregor1 from './flow-types-gregor'\nimport * as chat1 from './flow-types-chat'\n",
+    import: "import * as gregor1 from './flow-types-gregor'\n",
     incomingMaps: {},
     seenTypes: {},
     enums : {},

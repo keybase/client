@@ -153,39 +153,23 @@ func (c *CmdChatAPI) ListV1(ctx context.Context) Reply {
 	rlimits = append(rlimits, inbox.RateLimits...)
 
 	var cl ChatList
-	cl.Conversations = make([]ConvSummary, len(inbox.Conversations))
-	for i, conv := range inbox.Conversations {
-		found := false
-		for _, msg := range conv.MaxMessages {
-			if msg.Message != nil {
-				var v1 chat1.MessagePlaintextV1
-				version, err := msg.Message.MessagePlaintext.Version()
-				if err != nil {
-					return c.errReply(err)
-				}
-				switch version {
-				case chat1.MessagePlaintextVersion_V1:
-					v1 = msg.Message.MessagePlaintext.V1()
-				default:
-					return c.errReply(libkb.NewChatMessageVersionError(version))
-				}
-
-				tlf := v1.ClientHeader.TlfName
-				pub := v1.ClientHeader.TlfPublic
+	cl.Conversations = make([]ConvSummary, len(inbox.ConversationsUnverified))
+	for i, conv := range inbox.ConversationsUnverified {
+		maxID := chat1.MessageID(0)
+		for _, msg := range conv.MaxMsgs {
+			if msg.ServerHeader.MessageID > maxID {
+				tlf := msg.ClientHeader.TlfName
+				pub := msg.ClientHeader.TlfPublic
 				cl.Conversations[i] = ConvSummary{
-					ID: conv.Info.Id,
+					ID: conv.Metadata.ConversationID,
 					Channel: ChatChannel{
 						Name:      tlf,
 						Public:    pub,
-						TopicType: strings.ToLower(conv.Info.Triple.TopicType.String()),
+						TopicType: strings.ToLower(conv.Metadata.IdTriple.TopicType.String()),
 					},
 				}
-				found = true
-				break
+				maxID = msg.ServerHeader.MessageID
 			}
-		}
-		if !found {
-			return c.errReply(fmt.Errorf("conversation %d had no valid max msg", conv.Info.Id))
 		}
 	}
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
@@ -210,12 +194,13 @@ type MsgContent struct {
 }
 
 type MsgSummary struct {
-	ID       chat1.MessageID `json:"id"`
-	Channel  ChatChannel     `json:"channel"`
-	Sender   MsgSender       `json:"sender"`
-	SentAt   int64           `json:"sent_at"`
-	SentAtMs int64           `json:"sent_at_ms"`
-	Content  MsgContent      `json:"content"`
+	ID       chat1.MessageID                `json:"id"`
+	Channel  ChatChannel                    `json:"channel"`
+	Sender   MsgSender                      `json:"sender"`
+	SentAt   int64                          `json:"sent_at"`
+	SentAtMs int64                          `json:"sent_at_ms"`
+	Content  MsgContent                     `json:"content"`
+	Prev     []chat1.MessagePreviousPointer `json:"prev"`
 }
 
 type MsgFromServer struct {
@@ -246,14 +231,14 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 			return c.errReply(err)
 		}
 		rlimits = append(rlimits, gilres.RateLimits...)
-		existing := gilres.Conversations
+		existing := gilres.ConversationsUnverified
 		if len(existing) > 1 {
 			return c.errReply(fmt.Errorf("multiple conversations matched %q", opts.Channel.Name))
 		}
 		if len(existing) == 0 {
 			return c.errReply(fmt.Errorf("no conversations matched %q", opts.Channel.Name))
 		}
-		opts.ConversationID = existing[0].Info.Id
+		opts.ConversationID = existing[0].Metadata.ConversationID
 	}
 
 	arg := chat1.GetThreadLocalArg{
@@ -289,6 +274,11 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 					// skip TLFNAME messages
 					continue
 				}
+				prev := v1.ClientHeader.Prev
+				// Avoid having null show up in the output JSON.
+				if prev == nil {
+					prev = []chat1.MessagePreviousPointer{}
+				}
 				msg := MsgSummary{
 					ID: m.Message.ServerHeader.MessageID,
 					Channel: ChatChannel{
@@ -300,8 +290,9 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 						UID:      v1.ClientHeader.Sender.String(),
 						DeviceID: v1.ClientHeader.SenderDevice.String(),
 					},
-					SentAt:   int64(m.Message.ServerHeader.Ctime / 1000),
-					SentAtMs: int64(m.Message.ServerHeader.Ctime),
+					SentAt:   m.Message.ServerHeader.Ctime.UnixSeconds(),
+					SentAtMs: m.Message.ServerHeader.Ctime.UnixMilliseconds(),
+					Prev:     prev,
 				}
 				msg.Content = c.convertMsgBody(v1.MessageBody)
 
@@ -364,6 +355,12 @@ func (c *CmdChatAPI) EditV1(ctx context.Context, opts editOptionsV1) Reply {
 	return c.sendV1(ctx, arg)
 }
 
+// AttachV1 implements ChatServiceHandler.AttachV1.
+func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
+	// TODO: implement
+	return Reply{}
+}
+
 type sendArgV1 struct {
 	convQuery  chat1.GetInboxLocalQuery
 	body       chat1.MessageBody
@@ -388,8 +385,11 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 	}
 	rlimits = append(rlimits, gilres.RateLimits...)
 
-	var conversation chat1.ConversationInfoLocal
-	existing := gilres.Conversations
+	var (
+		convTriple chat1.ConversationIDTriple
+		convID     chat1.ConversationID
+	)
+	existing := gilres.ConversationsUnverified
 	switch len(existing) {
 	case 0:
 		ncres, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
@@ -402,20 +402,20 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 			return c.errReply(err)
 		}
 		rlimits = append(rlimits, ncres.RateLimits...)
-		conversation = ncres.Conv.Info
+		convTriple, convID = ncres.Conv.Info.Triple, ncres.Conv.Info.Id
 	case 1:
-		conversation = existing[0].Info
+		convTriple, convID = existing[0].Metadata.IdTriple, existing[0].Metadata.ConversationID
 	default:
 		return c.errReply(fmt.Errorf("multiple conversations matched"))
 	}
 
 	postArg := chat1.PostLocalArg{
-		ConversationID: conversation.Id,
+		ConversationID: convID,
 		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
 			ClientHeader: chat1.MessageClientHeader{
-				Conv:        conversation.Triple,
-				TlfName:     conversation.TlfName,
-				TlfPublic:   conversation.Visibility == chat1.TLFVisibility_PUBLIC,
+				Conv:        convTriple,
+				TlfName:     *arg.convQuery.TlfName,
+				TlfPublic:   *arg.convQuery.TlfVisibility == chat1.TLFVisibility_PUBLIC,
 				MessageType: arg.mtype,
 				Supersedes:  arg.supersedes,
 			},

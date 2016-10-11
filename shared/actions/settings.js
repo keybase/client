@@ -1,12 +1,37 @@
 // @flow
 import * as Constants from '../constants/settings'
-import {apiserverGetRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise} from '../constants/types/flow-types'
 import {setDeletedSelf} from '../actions/login'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
-import {takeLatest, delay} from 'redux-saga'
+import {takeEvery, takeLatest, delay} from 'redux-saga'
+import {routeAppend} from '../actions/router'
 
 import type {SagaGenerator} from '../constants/types/saga'
-import type {NotificationsRefresh, NotificationsSave, NotificationsToggle, SetAllowDeleteAccount, DeleteAccountForever} from '../constants/settings'
+import type {
+  DeleteAccountForever,
+  InvitesReclaim,
+  InvitesReclaimed,
+  InvitesRefresh,
+  InvitesSend,
+  InvitesSent,
+  Invitation,
+  NotificationsRefresh,
+  NotificationsSave,
+  NotificationsToggle,
+  SetAllowDeleteAccount,
+} from '../constants/settings'
+
+function invitesReclaim (inviteId: string): InvitesReclaim {
+  return {type: Constants.invitesReclaim, payload: {inviteId}}
+}
+
+function invitesRefresh (): InvitesRefresh {
+  return {type: Constants.invitesRefresh, payload: undefined}
+}
+
+function invitesSend (email: string, message: ?string): InvitesSend {
+  return {type: Constants.invitesSend, payload: {email, message}}
+}
 
 function notificationsRefresh (): NotificationsRefresh {
   return {type: Constants.notificationsRefresh, payload: undefined}
@@ -64,6 +89,130 @@ function * saveNotificationsSaga (): SagaGenerator<any, any> {
     // TODO hook into global error handler
     console.error(err)
   }
+}
+
+function * reclaimInviteSaga (invitesReclaimAction: InvitesReclaim): SagaGenerator<any, any> {
+  const {inviteId} = invitesReclaimAction.payload
+  try {
+    yield call(apiserverPostRpcPromise, {
+      param: {
+        endpoint: 'cancel_invitation',
+        args: [{key: 'invitation_id', value: inviteId}],
+      },
+    })
+    yield put(({
+      type: Constants.invitesReclaimed,
+      payload: undefined,
+    }: InvitesReclaimed))
+  } catch (e) {
+    console.warn('Error reclaiming an invite:', e)
+    yield put(({
+      type: Constants.invitesReclaimed,
+      payload: {errorText: e.desc + e.name, errorObj: e},
+      error: true,
+    }: InvitesReclaimed))
+  }
+  yield put(invitesRefresh())
+}
+
+function * refreshInvitesSaga (): SagaGenerator<any, any> {
+  try {
+    const json: ?{body: string} = yield call(apiserverGetRpcPromise, {
+      param: {
+        endpoint: 'invitations_sent',
+        args: [],
+      },
+    })
+
+    const results: {
+      invitations: Array<{
+        assertion: ?string,
+        ctime: number,
+        email: string,
+        invitation_id: string,
+        short_code: string,
+        type: string,
+        uid: string,
+        username: string,
+      }>,
+    } = JSON.parse(json && json.body || '')
+
+    const acceptedInvites = []
+    const pendingInvites = []
+
+    results.invitations.forEach(i => {
+      const invite: Invitation = {
+        created: i.ctime,
+        email: i.email,
+        id: i.invitation_id,
+        key: i.invitation_id,
+        // type will get filled in later
+        type: '',
+        username: i.username,
+        uid: i.uid,
+        // First ten chars of invite code is sufficient
+        url: 'keybase.io/inv/' + i.invitation_id.slice(0, 10),
+      }
+      // Here's an algorithm for interpreting invitation entries.
+      // 1: username+uid => accepted invite, else
+      // 2: email set => pending email invite, else
+      // 3: pending invitation code invite
+      if (i.username && i.uid) {
+        invite.type = 'accepted'
+        acceptedInvites.push(invite)
+      } else {
+        invite.type = i.email ? 'pending-email' : 'pending-url'
+        pendingInvites.push(invite)
+      }
+    })
+    yield put({
+      type: Constants.invitesRefreshed,
+      payload: {
+        acceptedInvites,
+        pendingInvites,
+      },
+    })
+  } catch (err) {
+    // TODO hook into global error handler
+    console.error(err)
+  }
+}
+
+function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, any> {
+  const {email, message} = invitesSendAction.payload
+  const args = [{key: 'email', value: email}]
+  if (message) {
+    args.push({key: 'invitation_message', value: message})
+  }
+  try {
+    const response: ?{body: string} = yield call(apiserverPostRpcPromise, {
+      param: {
+        endpoint: 'send_invitation',
+        args,
+      },
+    })
+    if (response) {
+      const parsedBody = JSON.parse(response.body)
+      const invitationId = parsedBody.invitation_id.slice(0, 10)
+      const link = 'keybase.io/inv/' + invitationId
+      yield put(({
+        type: Constants.invitesSent,
+        payload: {email, invitationId},
+      }: InvitesSent))
+      yield put(routeAppend({
+        path: 'inviteSent',
+        props: {email, link},
+      }))
+    }
+  } catch (e) {
+    console.warn('Error sending an invite:', e)
+    yield put(({
+      type: Constants.invitesSent,
+      payload: {errorText: e.desc + e.name, errorObj: e},
+      error: true,
+    }: InvitesSent))
+  }
+  yield put(invitesRefresh())
 }
 
 function * refreshNotificationsSaga (): SagaGenerator<any, any> {
@@ -145,6 +294,9 @@ function * deleteAccountForeverSaga (): SagaGenerator<any, any> {
 
 function * settingsSaga (): SagaGenerator<any, any> {
   yield [
+    takeEvery(Constants.invitesReclaim, reclaimInviteSaga),
+    takeLatest(Constants.invitesRefresh, refreshInvitesSaga),
+    takeEvery(Constants.invitesSend, sendInviteSaga),
     takeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
     takeLatest(Constants.notificationsSave, saveNotificationsSaga),
     takeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga),
@@ -152,6 +304,9 @@ function * settingsSaga (): SagaGenerator<any, any> {
 }
 
 export {
+  invitesReclaim,
+  invitesRefresh,
+  invitesSend,
   notificationsRefresh,
   notificationsSave,
   notificationsToggle,
