@@ -61,6 +61,16 @@ type udCacheValue struct {
 	DeviceName string
 }
 
+func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.MessageFromServerOrError {
+	return chat1.MessageFromServerOrError{
+		UnboxingError: &chat1.MessageError{
+			Errmsg:      err.Error(),
+			MessageID:   msg.ServerHeader.MessageID,
+			MessageType: msg.ServerHeader.MessageType,
+		},
+	}
+}
+
 // unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
 func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1.MessageBoxed) (res chat1.MessageFromServerOrError, err error) {
@@ -68,7 +78,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := finder.Find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
-		return chat1.MessageFromServerOrError{}, libkb.ChatUnboxingError{Msg: err.Error()}
+		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
 	var matchKey *keybase1.CryptKey
@@ -80,12 +90,15 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1
 	}
 
 	if matchKey == nil {
-		return chat1.MessageFromServerOrError{}, libkb.ChatUnboxingError{Msg: fmt.Sprintf("no key found for generation %d", boxed.KeyGeneration)}
+		err := fmt.Errorf("no key found for generation %d", boxed.KeyGeneration)
+		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
 	messagePlaintext, headerHash, err := b.unboxMessageWithKey(ctx, boxed, matchKey)
 	if err != nil {
-		return chat1.MessageFromServerOrError{}, libkb.ChatUnboxingError{Msg: err.Error()}
+		b.G().Log.Warning("failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
+			err.Error())
+		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
 	_, uimap := GetUserInfoMapper(ctx, b.G())
@@ -260,20 +273,7 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (
 	finder := NewKeyFinder()
 	ctx, _ = GetUserInfoMapper(ctx, b.G())
 	for _, msg := range boxed {
-		decmsg, err := b.UnboxMessage(ctx, finder, msg)
-		if err != nil {
-			errMsg := err.Error()
-			b.G().Log.Warning("failed to unbox message: msgID: %d err: %s", msg.ServerHeader.MessageID, errMsg)
-			unboxed = append(unboxed, chat1.MessageFromServerOrError{
-				UnboxingError: &chat1.MessageError{
-					Errmsg:      errMsg,
-					MessageID:   msg.ServerHeader.MessageID,
-					MessageType: msg.ServerHeader.MessageType,
-				},
-			})
-			continue
-		}
-
+		decmsg, _ := b.UnboxMessage(ctx, finder, msg)
 		unboxed = append(unboxed, decmsg)
 	}
 
