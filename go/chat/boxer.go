@@ -194,11 +194,17 @@ func (b *Boxer) boxMessageV1(ctx context.Context, msg chat1.MessagePlaintextV1, 
 
 	if msg.ClientHeader.TlfPublic {
 		recentKey = &publicCryptKey
+		res, err := b.tlf.PublicCanonicalTLFNameAndID(ctx, tlfName)
+		if err != nil {
+			return nil, libkb.ChatBoxingError{Msg: err.Error()}
+		}
+		msg.ClientHeader.TlfName = string(res.CanonicalName)
 	} else {
 		keys, err := b.tlf.CryptKeys(ctx, tlfName)
 		if err != nil {
 			return nil, libkb.ChatBoxingError{Msg: err.Error()}
 		}
+		msg.ClientHeader.TlfName = string(keys.CanonicalName)
 
 		for _, key := range keys.CryptKeys {
 			if recentKey == nil || key.KeyGeneration > recentKey.KeyGeneration {

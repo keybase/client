@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -235,10 +236,21 @@ func TestChatPostLocal(t *testing.T) {
 	users := ctc.users()
 
 	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+
+	// un-canonicalize TLF name
+	parts := strings.Split(created.TlfName, ",")
+	sort.Sort(sort.Reverse(sort.StringSlice(parts)))
+	created.TlfName = strings.Join(parts, ",")
+
 	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
 	// we just posted this message, so should be the first one.
 	msg := ctc.world.Msgs[created.Id][0]
+
+	if msg.ClientHeader.TlfName == created.TlfName {
+		t.Fatalf("PostLocal didn't canonicalize TLF name")
+	}
+
 	if len(msg.ClientHeader.Sender.Bytes()) == 0 || len(msg.ClientHeader.SenderDevice.Bytes()) == 0 {
 		t.Fatalf("PostLocal didn't populate ClientHeader.Sender and/or ClientHeader.SenderDevice\n")
 	}
