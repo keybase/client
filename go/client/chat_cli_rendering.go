@@ -102,19 +102,25 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 
 		unread := "*"
 		// show the last TEXT message
-		var msg chat1.MessageFromServerOrError
+		var msg *chat1.MessageFromServerOrError
 		for _, m := range conv.MaxMessages {
 			if m.Message != nil {
 				if conv.ReaderInfo.ReadMsgid == m.Message.ServerHeader.MessageID {
 					unread = ""
 				}
 				if m.Message.ServerHeader.MessageType == chat1.MessageType_TEXT {
-					msg = m
+					mCopy := m
+					msg = &mCopy
 				}
 			}
 		}
+		if msg == nil {
+			// Skip conversations with no TEXT messages.
+			g.Log.Debug("Skipped conversation with no TEXT: %v", conv.Info.Id)
+			continue
+		}
 
-		mv, err := newMessageView(g, conv.Info.Id, msg)
+		mv, err := newMessageView(g, conv.Info.Id, *msg)
 		if err != nil {
 			g.Log.Error("Message render error: %s", err)
 		}
@@ -180,6 +186,14 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
+	headline, err := v.headline(g)
+	if err != nil {
+		return err
+	}
+	if headline != "" {
+		g.UI.GetTerminalUI().Printf("headline: %s\n\n", headline)
+	}
+
 	table := &flexibletable.Table{}
 	i := -1
 	for _, m := range v.messages {
@@ -234,6 +248,38 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	}
 
 	return nil
+}
+
+// Read the headline off the HEADLINE message in MaxMessages.
+// Returns "" when there is no headline set.
+func (v conversationView) headline(g *libkb.GlobalContext) (string, error) {
+	for _, m := range v.conversation.MaxMessages {
+		if m.Message == nil {
+			continue
+		}
+		version, err := m.Message.MessagePlaintext.Version()
+		if err != nil {
+			continue
+		}
+		switch version {
+		case chat1.MessagePlaintextVersion_V1:
+			body := m.Message.MessagePlaintext.V1().MessageBody
+			typ, err := body.MessageType()
+			if err != nil {
+				continue
+			}
+			switch typ {
+			case chat1.MessageType_HEADLINE:
+				return body.Headline().Headline, nil
+			default:
+				continue
+			}
+		default:
+			continue
+		}
+	}
+
+	return "", nil
 }
 
 const deletedTextCLI = "[deleted]"

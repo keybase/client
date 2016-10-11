@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -166,38 +167,38 @@ func TestChatNewDevConversationLocalTwice(t *testing.T) {
 	mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_DEV, ctc.as(t, users[1]).user().Username)
 }
 
-func TestChatInboxLocal(t *testing.T) {
+func TestChatGetInboxAndUnboxLocal(t *testing.T) {
 	ctc := makeChatTestContext(t, "ResolveConversationLocal", 2)
 	defer ctc.cleanup()
 	users := ctc.users()
 
 	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
-	gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxLocal(context.Background(), chat1.GetInboxLocalArg{
+	gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(context.Background(), chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			ConvID: &created.Id,
 		},
 	})
 	if err != nil {
-		t.Fatalf("GetInboxLocal error: %v", err)
+		t.Fatalf("GetInboxAndUnboxLocal error: %v", err)
 	}
 	conversations := gilres.Conversations
 	if len(conversations) != 1 {
-		t.Fatalf("unexpected response from GetInboxLocal. expected 1 items, got %d\n", len(conversations))
+		t.Fatalf("unexpected response from GetInboxAndUnboxLocal. expected 1 items, got %d\n", len(conversations))
 	}
 	conv := ctc.world.GetConversationByID(created.Id)
 	if conversations[0].Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
-		t.Fatalf("unexpected TlfName in response from GetInboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
+		t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
 	}
 	if conversations[0].Info.Id != created.Id {
-		t.Fatalf("unexpected Id in response from GetInboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
+		t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
 	}
 	if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
-		t.Fatalf("unexpected topicType in response from GetInboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
+		t.Fatalf("unexpected topicType in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
 	}
 }
 
-func TestChatGetInboxLocalTlfName(t *testing.T) {
+func TestChatGetInboxAndUnboxLocalTlfName(t *testing.T) {
 	ctc := makeChatTestContext(t, "ResolveConversationLocal", 2)
 	defer ctc.cleanup()
 	users := ctc.users()
@@ -205,7 +206,7 @@ func TestChatGetInboxLocalTlfName(t *testing.T) {
 	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
 	tlfName := ctc.as(t, users[1]).user().Username + "," + ctc.as(t, users[0]).user().Username // not canonical
-	gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxLocal(context.Background(), chat1.GetInboxLocalArg{
+	gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(context.Background(), chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			TlfName: &tlfName,
 		},
@@ -215,17 +216,17 @@ func TestChatGetInboxLocalTlfName(t *testing.T) {
 	}
 	conversations := gilres.Conversations
 	if len(conversations) != 1 {
-		t.Fatalf("unexpected response from GetInboxLocal. expected 1 items, got %d\n", len(conversations))
+		t.Fatalf("unexpected response from GetInboxAndUnboxLocal. expected 1 items, got %d\n", len(conversations))
 	}
 	conv := ctc.world.GetConversationByID(created.Id)
 	if conversations[0].Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
-		t.Fatalf("unexpected TlfName in response from GetInboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
+		t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
 	}
 	if conversations[0].Info.Id != created.Id {
-		t.Fatalf("unexpected Id in response from GetInboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
+		t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
 	}
 	if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
-		t.Fatalf("unexpected topicType in response from GetInboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
+		t.Fatalf("unexpected topicType in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
 	}
 }
 
@@ -235,10 +236,21 @@ func TestChatPostLocal(t *testing.T) {
 	users := ctc.users()
 
 	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+
+	// un-canonicalize TLF name
+	parts := strings.Split(created.TlfName, ",")
+	sort.Sort(sort.Reverse(sort.StringSlice(parts)))
+	created.TlfName = strings.Join(parts, ",")
+
 	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
 	// we just posted this message, so should be the first one.
 	msg := ctc.world.Msgs[created.Id][0]
+
+	if msg.ClientHeader.TlfName == created.TlfName {
+		t.Fatalf("PostLocal didn't canonicalize TLF name")
+	}
+
 	if len(msg.ClientHeader.Sender.Bytes()) == 0 || len(msg.ClientHeader.SenderDevice.Bytes()) == 0 {
 		t.Fatalf("PostLocal didn't populate ClientHeader.Sender and/or ClientHeader.SenderDevice\n")
 	}

@@ -26,6 +26,14 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "set-topic-name",
 		Usage: `Set topic name for the conversation`,
 	},
+	"set-headline": cli.StringFlag{
+		Name:  "set-headline",
+		Usage: `Set the headline for the conversation`,
+	},
+	"clear-headline": cli.BoolFlag{
+		Name:  "clear-headline",
+		Usage: `Clear the headline for the conversation`,
+	},
 	"stdin": cli.BoolFlag{
 		Name:  "stdin",
 		Usage: "Use STDIN for message content. [conversation] is required and [message] is ignored.",
