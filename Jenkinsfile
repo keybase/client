@@ -212,7 +212,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
             }
 
             stage("Push") {
-                if (env.BRANCH_NAME == "master" && cause != "upstream") {
+                def isUpstreamMaster = binding.variables.containsKey("clientProjectName") && clientProjectName == "client/master"
+                if (env.BRANCH_NAME == "master" && (cause != "upstream" || isUpstreamMaster)) {
                     docker.withRegistry("", "docker-hub-creds") {
                         kbfsImage.push()
                     }
