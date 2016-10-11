@@ -66,7 +66,7 @@ export type FavoriteAction = FavoriteAdd | FavoriteAdded | FavoriteList | Favori
 
 // Sometimes we have paths that are just private/foo instead of /keybase/private/foo
 function canonicalizeTLF (tlf: string): string {
-  if (tlf.indexOf(defaultKBFSPath) === -1) {
+  if (tlf.indexOf(defaultKBFSPath) !== 0) {
     return `${defaultKBFSPath}/${tlf}`
   }
   return tlf

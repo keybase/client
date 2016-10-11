@@ -60,9 +60,11 @@ function registerGregorListeners () {
     })
 
     engine().setIncomingHandler('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
-      if (oobm) {
+      if (oobm && oobm.length) {
         const filteredOOBM = oobm.filter(oobm => !!oobm)
-        dispatch(pushOOBM(filteredOOBM))
+        if (filteredOOBM.length) {
+          dispatch(pushOOBM(filteredOOBM))
+        }
       }
       response && response.result()
     })
