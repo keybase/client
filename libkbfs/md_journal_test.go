@@ -31,6 +31,12 @@ func (g singleEncryptionKeyGetter) GetTLFCryptKeyForEncryption(
 	return g.k, nil
 }
 
+func (g singleEncryptionKeyGetter) GetTLFCryptKeyForMDDecryption(
+	ctx context.Context, kmdToDecrypt, kmdWithKeys KeyMetadata) (
+	kbfscrypto.TLFCryptKey, error) {
+	return g.k, nil
+}
+
 func getMDJournalLength(t *testing.T, j *mdJournal) int {
 	len, err := j.length()
 	require.NoError(t, err)

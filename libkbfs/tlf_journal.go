@@ -30,10 +30,13 @@ type tlfJournalConfig interface {
 	Codec() kbfscodec.Codec
 	Crypto() Crypto
 	BlockCache() BlockCache
+	BlockOps() BlockOps
 	MDCache() MDCache
 	Reporter() Reporter
 	encryptionKeyGetter() encryptionKeyGetter
+	mdDecryptionKeyGetter() mdDecryptionKeyGetter
 	MDServer() MDServer
+	usernameGetter() normalizedUsernameGetter
 	MakeLogger(module string) logger.Logger
 }
 
@@ -45,6 +48,14 @@ type tlfJournalConfigAdapter struct {
 
 func (ca tlfJournalConfigAdapter) encryptionKeyGetter() encryptionKeyGetter {
 	return ca.Config.KeyManager()
+}
+
+func (ca tlfJournalConfigAdapter) mdDecryptionKeyGetter() mdDecryptionKeyGetter {
+	return ca.Config.KeyManager()
+}
+
+func (ca tlfJournalConfigAdapter) usernameGetter() normalizedUsernameGetter {
+	return ca.Config.KBPKI()
 }
 
 const (
