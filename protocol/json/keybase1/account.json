@@ -42,6 +42,20 @@
         }
       ],
       "response": "GetPassphraseRes"
+    },
+    "emailChange": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "newEmail",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "* change email to the new given email by signing a statement."
     }
   },
   "namespace": "keybase.1"

@@ -538,3 +538,19 @@ func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen Passphras
 	body.SetKey("update_passphrase_hash", pp)
 	return ret, nil
 }
+
+func (u *User) UpdateEmailProof(key GenericKey, newEmail string) (*jsonw.Wrapper, error) {
+	ret, err := ProofMetadata{
+		Me:         u,
+		LinkType:   UpdateSettingsType,
+		SigningKey: key,
+	}.ToJSON(u.G())
+	if err != nil {
+		return nil, err
+	}
+	body := ret.AtKey("body")
+	settings := jsonw.NewDictionary()
+	settings.SetKey("email", jsonw.NewString(newEmail))
+	body.SetKey("update_settings", settings)
+	return ret, nil
+}

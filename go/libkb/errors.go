@@ -352,6 +352,20 @@ func (p PassphraseError) Error() string {
 
 //=============================================================================
 
+type BadEmailError struct {
+	Msg string
+}
+
+func (e BadEmailError) Error() string {
+	msg := "Bad email"
+	if len(e.Msg) != 0 {
+		msg = msg + ": " + e.Msg
+	}
+	return msg
+}
+
+//=============================================================================
+
 type BadKeyError struct {
 	Msg string
 }
