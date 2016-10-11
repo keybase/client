@@ -150,7 +150,7 @@ done
 
 # Promote the build we just made to the test channel -- if smoketest, then
 # promote the first build; if not, then promote the only build.
-S3HOST="$s3host""$release_bin" promote-test-releases --bucket-name="$bucket_name" --platform="$platform" --release="$build_a"
+S3HOST="$s3host" "$release_bin" promote-test-releases --bucket-name="$bucket_name" --platform="$platform" --release="$build_a"
 
 if [ "$istest" = "" ]; then
   if [ "$number_of_builds" = "2" ]; then
