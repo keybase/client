@@ -337,14 +337,15 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 
-	// The channel is not buffered, when the second value is received
-	// the first round of marking for reidentify will be done.
+	// Mark everything for reidentifying, and wait for it to finish
+	// before checking.
 	kop := config.KBFSOps().(*KBFSOpsStandard)
-	kop.reIdentifyControlChan <- struct{}{}
-	kop.reIdentifyControlChan <- struct{}{}
+	returnCh := make(chan struct{})
+	kop.reIdentifyControlChan <- returnCh
+	<-returnCh
 	assert.False(t, fboIdentityDone(ops))
 
-	// Trigger identify.
+	// Trigger new identify.
 	lState = makeFBOLockState()
 	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	require.NoError(t, err)

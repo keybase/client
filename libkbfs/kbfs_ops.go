@@ -31,7 +31,7 @@ type KBFSOpsStandard struct {
 	// to be marked for revalidation.
 	// Closing this channel will shutdown the reidentification
 	// watcher.
-	reIdentifyControlChan chan struct{}
+	reIdentifyControlChan chan chan<- struct{}
 
 	favs *Favorites
 
@@ -49,7 +49,7 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 		deferLog:              log.CloneWithAddedDepth(1),
 		ops:                   make(map[FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[Favorite]*folderBranchOps),
-		reIdentifyControlChan: make(chan struct{}),
+		reIdentifyControlChan: make(chan chan<- struct{}),
 		favs: NewFavorites(config),
 	}
 	kops.currentStatus.Init()
@@ -67,18 +67,23 @@ func (fs *KBFSOpsStandard) markForReIdentifyIfNeededLoop() {
 	ticker := time.NewTicker(maxValid / 10)
 	for {
 		var now time.Time
+		var returnCh chan<- struct{}
+		var ok bool
 		select {
 		// Normal case: feed the current time from config and mark fbos needing validation.
 		case <-ticker.C:
 			now = fs.config.Clock().Now()
 		// Mark everything for reidentification via now being the empty value or quit.
-		case _, ok := <-fs.reIdentifyControlChan:
+		case returnCh, ok = <-fs.reIdentifyControlChan:
 			if !ok {
 				ticker.Stop()
 				return
 			}
 		}
 		fs.markForReIdentifyIfNeeded(now, maxValid)
+		if returnCh != nil {
+			returnCh <- struct{}{}
+		}
 	}
 }
 
