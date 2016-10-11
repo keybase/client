@@ -4,7 +4,6 @@ import React, {Component} from 'react'
 import Render from './invite-code.render'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import {restartSignup} from '../../actions/signup'
 
 class InviteCode extends Component {
   render () {
@@ -34,6 +33,5 @@ export default connect(
   }),
     dispatch => bindActionCreators({
       ...signupActions,
-      restartSignup,
     }, dispatch)
 )(InviteCode)
