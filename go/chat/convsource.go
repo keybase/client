@@ -1,21 +1,13 @@
 package chat
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"golang.org/x/net/context"
 )
-
-type ConversationSource interface {
-	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		msg chat1.MessageBoxed) (chat1.MessageFromServerOrError, error)
-	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
-		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
-	Clear(convID chat1.ConversationID, uid gregor1.UID) error
-}
 
 type RemoteConversationSource struct {
 	libkb.Contextified
@@ -164,13 +156,10 @@ func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor
 	return s.storage.mustNuke(true, nil, convID, uid)
 }
 
-// Default conversation source to be used outside of the chat package
-var convSource ConversationSource
-
-func SetConversationSource(source ConversationSource) {
-	convSource = source
-}
-
-func GetConversationSource() ConversationSource {
-	return convSource
+func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer,
+	ri chat1.RemoteInterface) libkb.ConversationSource {
+	if typ == "hybrid" {
+		return NewHybridConversationSource(g, boxer, ri)
+	}
+	return NewRemoteConversationSource(g, boxer, ri)
 }

@@ -11,7 +11,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/jonboulle/clockwork"
-	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -869,7 +868,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %d sender: %s",
 			nm.ConvID, nm.Message.ServerHeader.Sender)
 		uid := m.UID().Bytes()
-		decmsg, err := chat.GetConversationSource().Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
+		decmsg, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
 		}

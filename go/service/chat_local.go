@@ -43,7 +43,8 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		boxer:        chat.NewBoxer(g, tlf),
 	}
 	if gh != nil {
-		chat.SetConversationSource(chat.NewHybridConversationSource(g, h.boxer, h.remoteClient()))
+		g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(), h.boxer,
+			h.remoteClient())
 	}
 	return h
 }
@@ -173,7 +174,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	if uid.IsNil() {
 		return chat1.GetThreadLocalRes{}, libkb.LoginRequiredError{}
 	}
-	thread, rl, err := chat.GetConversationSource().Pull(ctx, arg.ConversationID,
+	thread, rl, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
 		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err

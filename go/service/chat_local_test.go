@@ -64,7 +64,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	mockRemote := kbtest.NewChatRemoteMock(c.world)
 	h.tlf = kbtest.NewTlfMock(c.world)
 	h.boxer = chat.NewBoxer(tc.G, h.tlf)
-	chat.SetConversationSource(chat.NewHybridConversationSource(tc.G, h.boxer, mockRemote))
+	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, mockRemote)
 	h.setTestRemoteClient(mockRemote)
 
 	tuc := &chatTestUserContext{
