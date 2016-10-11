@@ -803,6 +803,9 @@ func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintex
 	if err != nil {
 		return nil, err
 	}
+
+	// For now, BoxMessage canonicalizes the TLF name. We should try to refactor
+	// it a bit to do it here.
 	boxed, err := h.boxer.BoxMessage(ctx, msg, skp)
 	if err != nil {
 		return nil, err
