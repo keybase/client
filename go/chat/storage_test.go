@@ -2,7 +2,6 @@ package chat
 
 import (
 	"bytes"
-	"context"
 	"crypto/rand"
 	"encoding/binary"
 	"testing"
@@ -13,6 +12,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 func setupStorageTest(t *testing.T, name string) (libkb.TestContext, *Storage) {

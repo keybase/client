@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-codec/codec"
+	"golang.org/x/net/context"
 )
 
 const maxBlockSize = 100
