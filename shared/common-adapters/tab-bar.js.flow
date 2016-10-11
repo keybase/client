@@ -32,8 +32,8 @@ export type ItemProps = Exact<{
 export class TabBarItem extends Component<void, ItemProps, void> { }
 
 export type TabBarButtonProps = Exact<{
-  selected?: boolean,
-  source: {type: 'icon', icon: IconType} | {type: 'avatar', avatar: Avatar},
+  selected: boolean,
+  source: {type: 'icon', icon: IconType} | {type: 'avatar', avatar: Avatar} | {type: 'nav', icon: IconType},
   label?: string,
   badgeNumber?: ?number,
   style?: Object,
@@ -42,7 +42,6 @@ export type TabBarButtonProps = Exact<{
   styleIcon?: Object,
   styleBadgeNumber?: Object,
   styleLabel?: Object,
-  styleLabelType?: ?TextType
 }>
 
 export class TabBarButton extends Component<void, TabBarButtonProps, void> { }
