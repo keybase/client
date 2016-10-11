@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import Render from './invite-code.render'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import {navigateUp} from '../../actions/router'
+import {restartSignup} from '../../actions/signup'
 
 class InviteCode extends Component {
   render () {
@@ -14,7 +14,7 @@ class InviteCode extends Component {
         onRequestInvite={this.props.startRequestInvite}
         onInviteCodeSubmit={this.props.checkInviteCode}
         inviteCodeErrorText={this.props.errorText}
-        onBack={this.props.navigateUp}
+        onBack={this.props.restartSignup}
         waiting={this.props.waiting} />
     )
   }
@@ -34,6 +34,6 @@ export default connect(
   }),
     dispatch => bindActionCreators({
       ...signupActions,
-      navigateUp,
+      restartSignup,
     }, dispatch)
 )(InviteCode)
