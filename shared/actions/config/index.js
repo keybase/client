@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
 

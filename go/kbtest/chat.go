@@ -1,4 +1,4 @@
-package chat
+package kbtest
 
 import (
 	"crypto/rand"
@@ -12,7 +12,6 @@ import (
 
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/externals"
-	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -24,7 +23,7 @@ type ChatMockWorld struct {
 	Fc clockwork.FakeClock
 
 	Tcs     map[string]*libkb.TestContext
-	Users   map[string]*kbtest.FakeUser
+	Users   map[string]*FakeUser
 	tlfs    map[keybase1.CanonicalTlfName]chat1.TLFID
 	tlfKeys map[keybase1.CanonicalTlfName][]keybase1.CryptKey
 
@@ -39,7 +38,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 	world = &ChatMockWorld{
 		Fc:      clockwork.NewFakeClockAt(time.Now()),
 		Tcs:     make(map[string]*libkb.TestContext),
-		Users:   make(map[string]*kbtest.FakeUser),
+		Users:   make(map[string]*FakeUser),
 		tlfs:    make(map[keybase1.CanonicalTlfName]chat1.TLFID),
 		tlfKeys: make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
 		Msgs:    make(map[chat1.ConversationID][]*chat1.MessageBoxed),
@@ -47,7 +46,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 	for i := 0; i < numUsers; i++ {
 		tc := externals.SetupTest(t, "chat_"+name, 0)
 		tc.G.SetClock(world.Fc)
-		u, err := kbtest.CreateAndSignupFakeUser("chat", tc.G)
+		u, err := CreateAndSignupFakeUser("chat", tc.G)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -117,36 +116,42 @@ func CanonicalTlfNameForTest(tlfName string) keybase1.CanonicalTlfName {
 	return keybase1.CanonicalTlfName(strings.Join(names, ","))
 }
 
-func (m TlfMock) CryptKeys(ctx context.Context, tlfName string) (res keybase1.TLFCryptKeys, err error) {
-	res.CanonicalName = CanonicalTlfNameForTest(tlfName)
-	tlfID, ok := m.world.tlfs[res.CanonicalName]
+func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, error) {
+	tlfID, ok := m.world.tlfs[cname]
 	if !ok {
-		for _, n := range strings.Split(string(res.CanonicalName), ",") {
+		for _, n := range strings.Split(string(cname), ",") {
 			if m.world.Users[n] == nil {
-				err = fmt.Errorf("user %s not found", n)
-				return keybase1.TLFCryptKeys{}, err
+				return "", fmt.Errorf("user %s not found", n)
 			}
 		}
 		tlfID = mustGetRandBytesWithControlledFirstByte(16, byte(len(m.world.tlfs)+1))
-		m.world.tlfs[res.CanonicalName] = tlfID
-		m.world.tlfKeys[res.CanonicalName] = mustGetRandCryptKeys(byte(len(m.world.tlfKeys) + 1))
+		m.world.tlfs[cname] = tlfID
+		m.world.tlfKeys[cname] = mustGetRandCryptKeys(byte(len(m.world.tlfKeys) + 1))
 	}
-	res.TlfID = keybase1.TLFID(hex.EncodeToString([]byte(tlfID)))
-	if res.CryptKeys, ok = m.world.tlfKeys[res.CanonicalName]; !ok {
-		err = fmt.Errorf("CryptKeys for TLF %s not found", res.CanonicalName)
+	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
+}
+
+func (m TlfMock) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.GetTLFCryptKeysRes, err error) {
+	res.NameIDBreaks.CanonicalName = CanonicalTlfNameForTest(arg.TlfName)
+	if res.NameIDBreaks.TlfID, err = m.getTlfID(res.NameIDBreaks.CanonicalName); err != nil {
+		return keybase1.GetTLFCryptKeysRes{}, err
+	}
+	var ok bool
+	if res.CryptKeys, ok = m.world.tlfKeys[res.NameIDBreaks.CanonicalName]; !ok {
+		err = fmt.Errorf("CryptKeys for TLF %s not found", res.NameIDBreaks.CanonicalName)
 		return res, err
 	}
 	return res, nil
 }
 
 // Not used by service tests
-func (m TlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
-	return keybase1.CanonicalTlfName(""), errors.New("unimplemented")
+func (m TlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, errors.New("unimplemented")
 }
 
-func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (keybase1.CanonicalTLFNameAndID, error) {
-	res := keybase1.CanonicalTLFNameAndID{
-		CanonicalName: keybase1.CanonicalTlfName(tlfName),
+func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
+	res := keybase1.CanonicalTLFNameAndIDWithBreaks{
+		CanonicalName: keybase1.CanonicalTlfName(arg.TlfName),
 		TlfID:         "abcdefg",
 	}
 	return res, nil
@@ -237,8 +242,12 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 		}
 	}
 
-	// TODO: add pagination support
+	// TODO: add *real* pagination support
+	if arg.Pagination == nil {
+		arg.Pagination = &chat1.Pagination{Num: 10000}
+	}
 	msgs := m.world.Msgs[arg.ConversationID]
+	count := 0
 	for _, msg := range msgs {
 		if arg.Query != nil {
 			if arg.Query.After != nil && msg.ServerHeader.Ctime < *arg.Query.After {
@@ -247,11 +256,17 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 			if arg.Query.Before != nil && msg.ServerHeader.Ctime > *arg.Query.Before {
 				continue
 			}
-			if mts != nil && !mts[msg.ServerHeader.MessageType] {
-				continue
-			}
+
 		}
 		res.Thread.Messages = append(res.Thread.Messages, *msg)
+		if mts != nil && mts[msg.ServerHeader.MessageType] {
+			count++
+		} else if mts == nil {
+			count++
+		}
+		if count >= arg.Pagination.Num {
+			break
+		}
 	}
 	if arg.Query != nil && arg.Query.MarkAsRead {
 		m.readMsgid[arg.ConversationID] = msgs[0].ServerHeader.MessageID

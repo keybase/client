@@ -1,3 +1,4 @@
+// @flow
 // Builds our code, serves changes if NO_SERVER is false
 const express = require('express')
 const webpack = require('webpack')
@@ -32,6 +33,7 @@ if (NO_SERVER) {
   const app = express()
 
   app.use(require('webpack-dev-middleware')(compiler, {
+    // $FlowIssue
     publicPath: config.output.publicPath,
     hot: true,
     lazy: false,

@@ -6,12 +6,13 @@ import {devicesTab, loginTab} from '../constants/tabs'
 
 import {navigateTo, navigateUp, switchTab} from './router'
 import {setRevokedSelf} from './login'
-import {buffers, eventChannel, END, takeEvery, takeLatest} from 'redux-saga'
-import {call, put, select, take} from 'redux-saga/effects'
+import {takeEvery, takeLatest} from 'redux-saga'
+import {call, put, select, fork} from 'redux-saga/effects'
+import {singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
 import {
   deviceDeviceHistoryListRpcPromise,
   loginDeprovisionRpcPromise,
-  loginPaperKeyRpc,
+  loginPaperKeyRpcChannelMap,
   revokeRevokeDeviceRpcPromise,
 } from '../constants/types/flow-types'
 
@@ -51,7 +52,6 @@ function * _deviceListSaga (): SagaGenerator<any, any> {
     yield put(({
       type: Constants.showDevices,
       payload: devices,
-      error: false,
     }: ShowDevices))
   } catch (e) {
     yield put(({
@@ -88,7 +88,6 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
       yield put(({
         type: Constants.deviceRemoved,
         payload: undefined,
-        error: false,
       }: DeviceRemoved))
     } catch (e) {
       console.warn('Error removing the current device:', e)
@@ -107,7 +106,6 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
       yield put(({
         type: Constants.deviceRemoved,
         payload: undefined,
-        error: false,
       }: DeviceRemoved))
     } catch (e) {
       console.warn('Error removing a device:', e)
@@ -126,34 +124,12 @@ function * _deviceRemoveSaga (removeAction: RemoveDevice): SagaGenerator<any, an
   }
 }
 
-function _generatePaperKey () {
-  return eventChannel(emit => {
-    loginPaperKeyRpc({
-      incomingCallMap: {
-        'keybase.1.loginUi.promptRevokePaperKeys': (param, response) => {
-          // We only pretend to support this RPC.
-          response.result(false)
-        },
-        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase: paperKey}, response) => {
-          emit(({
-            type: 'keybase.1.loginUi.displayPaperKeyPhrase',
-            payload: {params: {paperKey: new HiddenString(paperKey)}, response},
-          }: IncomingDisplayPaperKeyPhrase))
-        },
-      },
-      callback: (error) => {
-        emit({
-          type: 'finished',
-          payload: {error},
-        })
-        emit(END)
-      },
-    })
+function _generatePaperKey (channelConfig) {
+  return loginPaperKeyRpcChannelMap(channelConfig, {})
+}
 
-    // TODO(MM) this is the unsubscribe function, not sure what we can do here,
-    // maybe cancel ongoing rpc requests?
-    return () => {}
-  }, buffers.fixed())
+function * _handlePromptRevokePaperKeys (chanMap): SagaGenerator<any, any> {
+  yield effectOnChannelMap(c => takeEvery(c, ({response}) => response.result(false)), chanMap, 'keybase.1.loginUi.promptRevokePaperKeys')
 }
 
 function * _devicePaperKeySaga (): SagaGenerator<any, any> {
@@ -162,10 +138,13 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
     payload: undefined,
   }: PaperKeyLoading))
 
-  const generatePaperKeyChan = yield call(_generatePaperKey)
+  const channelConfig = singleFixedChannelConfig(['keybase.1.loginUi.promptRevokePaperKeys', 'keybase.1.loginUi.displayPaperKeyPhrase'])
+
+  const generatePaperKeyChanMap = ((yield call(_generatePaperKey, channelConfig)): any)
   try {
+    yield fork(_handlePromptRevokePaperKeys, generatePaperKeyChanMap)
     const displayPaperKeyPhrase:
-    ?IncomingDisplayPaperKeyPhrase = yield take(generatePaperKeyChan, 'keybase.1.loginUi.displayPaperKeyPhrase')
+      ?IncomingDisplayPaperKeyPhrase = ((yield takeFromChannelMap(generatePaperKeyChanMap, 'keybase.1.loginUi.displayPaperKeyPhrase')): any)
     if (!displayPaperKeyPhrase) {
       const error = {errorText: 'no displayPaperKeyPhrase response'}
       console.warn(error.errorText)
@@ -178,12 +157,11 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
     }
     yield put(({
       type: Constants.paperKeyLoaded,
-      payload: displayPaperKeyPhrase.payload.params.paperKey,
-      error: false,
+      payload: new HiddenString(displayPaperKeyPhrase.params.phrase),
     }: PaperKeyLoaded))
-    displayPaperKeyPhrase.payload.response.result()
+    displayPaperKeyPhrase.response.result()
   } catch (e) {
-    generatePaperKeyChan && generatePaperKeyChan.close()
+    closeChannelMap(generatePaperKeyChanMap)
     console.warn('error in generating paper key', e)
     yield put(({
       type: Constants.paperKeyLoaded,

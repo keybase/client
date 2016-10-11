@@ -1,9 +1,8 @@
 // @flow
-
 import React, {Component} from 'react'
+import RemoteComponent from './remote-component'
 import {connect} from 'react-redux'
 import {onClose, startTimer, stopTimer, getProfile} from '../shared/actions/tracker'
-import RemoteComponent from './remote-component'
 
 import type {TypedState} from '../shared/constants/reducer'
 import type {TrackerOrNonUserState} from '../shared/constants/tracker'

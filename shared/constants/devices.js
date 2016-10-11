@@ -2,6 +2,7 @@
 import HiddenString from '../util/hidden-string'
 
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
+import type {DeviceDetail} from './types/flow-types'
 
 export const loadDevices = 'devices:loadDevices'
 export type LoadDevices = NoErrorTypedAction<'devices:loadDevices', void>
@@ -31,4 +32,11 @@ export type ShowDevices = TypedAction<'devices:showDevices', void, {errorText: s
 export const generatePaperKey = 'devices:generatePaperKey'
 export type GeneratePaperKey = NoErrorTypedAction<'devices:generatePaperKey', void>
 
-export type IncomingDisplayPaperKeyPhrase = NoErrorTypedAction<'keybase.1.loginUi.displayPaperKeyPhrase', {params: {paperKey: HiddenString}, response: {result: () => void}}>
+export type IncomingDisplayPaperKeyPhrase = {params: {phrase: string}, response: {result: () => void}}
+
+export type State = {
+  waitingForServer: boolean,
+  devices: ?Array<DeviceDetail>,
+  error: any,
+  paperKey: ?string,
+}

@@ -1,5 +1,7 @@
+// @flow
 import {ipcMain} from 'electron'
 import keybaseUrl from '../shared/constants/urls'
+// $FlowIssue
 import openUrl from '../shared/util/open-url'
 
 const linkFuncs = {

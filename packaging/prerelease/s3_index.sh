@@ -38,6 +38,3 @@ else
   echo "Invalid platform: $platform"
   exit 1
 fi
-
-echo "Checking if we need to promote a release for testing ($platform)"
-"$release_bin" promote-test-releases --bucket-name="$bucket_name" --platform="$platform"

@@ -1,12 +1,13 @@
 // @flow
+import FacebookDescription from './facebook-description'
 import React from 'react'
 import openUrl from '../util/open-url'
-import type {IconType} from '../common-adapters/icon.constants'
-import type {Props} from './post-proof'
 import {Box, LinkWithIcon, Text} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 import {subtitle} from '../util/platforms'
-import FacebookDescription from './facebook-description'
+
+import type {IconType} from '../common-adapters/icon.constants'
+import type {Props} from './post-proof'
 
 type MoreProps = {
   descriptionView?: ?any,

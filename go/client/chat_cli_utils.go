@@ -23,14 +23,17 @@ type chatCLIConversationResolver struct {
 
 func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.GlobalContext, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
 	if len(r.TlfName) > 0 {
-		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, r.TlfName)
+		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, keybase1.TLFQuery{
+			TlfName:          r.TlfName,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
 		if err != nil {
 			return nil, false, fmt.Errorf("completing TLF name error: %v", err)
 		}
-		r.TlfName = string(cname)
+		r.TlfName = string(cname.CanonicalName)
 	}
 
-	gilres, err := chatClient.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+	gilres, err := chatClient.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			TlfName:       &r.TlfName,
 			TopicName:     &r.TopicName,
@@ -132,4 +135,26 @@ func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) 
 	}
 
 	return res.Conversations, nil
+}
+
+func fetchOneMessage(g *libkb.GlobalContext, conversationID chat1.ConversationID, messageID chat1.MessageID) (chat1.MessageFromServerOrError, error) {
+	deflt := chat1.MessageFromServerOrError{}
+
+	chatClient, err := GetChatLocalClient(g)
+	if err != nil {
+		return deflt, err
+	}
+
+	arg := chat1.GetMessagesLocalArg{
+		ConversationID: conversationID,
+		MessageIDs:     []chat1.MessageID{messageID},
+	}
+	res, err := chatClient.GetMessagesLocal(context.TODO(), arg)
+	if err != nil {
+		return deflt, err
+	}
+	if len(res.Messages) < 0 {
+		return deflt, fmt.Errorf("empty messages list")
+	}
+	return res.Messages[0], nil
 }

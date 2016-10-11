@@ -1,13 +1,14 @@
 // @flow
 import ConfirmOrPending from './confirm-or-pending'
 import React, {Component} from 'react'
-import type {Props} from './confirm-or-pending'
-import type {TypedDispatch} from '../constants/types/flux'
-import type {TypedState} from '../constants/reducer'
+import {ProveCommonProofStatus} from '../constants/types/flow-types'
 import {TypedConnector} from '../util/typed-connect'
 import {cancelAddProof, backToProfile} from '../actions/profile'
 import {globalColors} from '../styles'
-import {ProveCommonProofStatus} from '../constants/types/flow-types'
+
+import type {Props} from './confirm-or-pending'
+import type {TypedDispatch} from '../constants/types/flux'
+import type {TypedState} from '../constants/reducer'
 
 class ConfirmOrPendingContainer extends Component<void, any, void> {
   static parseRoute (currentPath, uri) {

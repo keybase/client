@@ -27,8 +27,22 @@ type MessageDelete struct {
 	MessageID MessageID `codec:"messageID" json:"messageID"`
 }
 
+type MessageHeadline struct {
+	Headline string `codec:"headline" json:"headline"`
+}
+
+type Asset struct {
+	Path     string `codec:"path" json:"path"`
+	Size     int    `codec:"size" json:"size"`
+	MimeType string `codec:"mimeType" json:"mimeType"`
+	EncHash  Hash   `codec:"encHash" json:"encHash"`
+	Key      []byte `codec:"key" json:"key"`
+}
+
 type MessageAttachment struct {
-	Path string `codec:"path" json:"path"`
+	Object   Asset  `codec:"object" json:"object"`
+	Preview  *Asset `codec:"preview,omitempty" json:"preview,omitempty"`
+	Metadata []byte `codec:"metadata" json:"metadata"`
 }
 
 type MessageBody struct {
@@ -38,6 +52,7 @@ type MessageBody struct {
 	Edit__        *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
 	Delete__      *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
 	Metadata__    *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	Headline__    *MessageHeadline             `codec:"headline,omitempty" json:"headline,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -65,6 +80,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_METADATA:
 		if o.Metadata__ == nil {
 			err = errors.New("unexpected nil value for Metadata__")
+			return ret, err
+		}
+	case MessageType_HEADLINE:
+		if o.Headline__ == nil {
+			err = errors.New("unexpected nil value for Headline__")
 			return ret, err
 		}
 	}
@@ -121,6 +141,16 @@ func (o MessageBody) Metadata() MessageConversationMetadata {
 	return *o.Metadata__
 }
 
+func (o MessageBody) Headline() MessageHeadline {
+	if o.MessageType__ != MessageType_HEADLINE {
+		panic("wrong case accessed")
+	}
+	if o.Headline__ == nil {
+		return MessageHeadline{}
+	}
+	return *o.Headline__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -153,6 +183,13 @@ func NewMessageBodyWithMetadata(v MessageConversationMetadata) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_METADATA,
 		Metadata__:    &v,
+	}
+}
+
+func NewMessageBodyWithHeadline(v MessageHeadline) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_HEADLINE,
+		Headline__:    &v,
 	}
 }
 
@@ -323,6 +360,7 @@ type MessageFromServer struct {
 	MessagePlaintext MessagePlaintext    `codec:"messagePlaintext" json:"messagePlaintext"`
 	SenderUsername   string              `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName string              `codec:"senderDeviceName" json:"senderDeviceName"`
+	HeaderHash       Hash                `codec:"headerHash" json:"headerHash"`
 }
 
 type MessageFromServerOrError struct {
@@ -368,6 +406,12 @@ type GetThreadLocalRes struct {
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 }
 
+type GetInboxLocalRes struct {
+	ConversationsUnverified []Conversation `codec:"conversationsUnverified" json:"conversationsUnverified"`
+	Pagination              *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	RateLimits              []RateLimit    `codec:"rateLimits" json:"rateLimits"`
+}
+
 type GetInboxLocalQuery struct {
 	TlfName           *string         `codec:"tlfName,omitempty" json:"tlfName,omitempty"`
 	TopicName         *string         `codec:"topicName,omitempty" json:"topicName,omitempty"`
@@ -381,7 +425,7 @@ type GetInboxLocalQuery struct {
 	ReadOnly          bool            `codec:"readOnly" json:"readOnly"`
 }
 
-type GetInboxLocalRes struct {
+type GetInboxAndUnboxLocalRes struct {
 	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
 	Pagination    *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	RateLimits    []RateLimit         `codec:"rateLimits" json:"rateLimits"`
@@ -425,6 +469,11 @@ type GetConversationForCLILocalRes struct {
 	RateLimits   []RateLimit                `codec:"rateLimits" json:"rateLimits"`
 }
 
+type GetMessagesLocalRes struct {
+	Messages   []MessageFromServerOrError `codec:"messages" json:"messages"`
+	RateLimits []RateLimit                `codec:"rateLimits" json:"rateLimits"`
+}
+
 type GetThreadLocalArg struct {
 	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
 	Query          *GetThreadQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -432,6 +481,11 @@ type GetThreadLocalArg struct {
 }
 
 type GetInboxLocalArg struct {
+	Query      *GetInboxLocalQuery `codec:"query,omitempty" json:"query,omitempty"`
+	Pagination *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+type GetInboxAndUnboxLocalArg struct {
 	Query      *GetInboxLocalQuery `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
@@ -456,13 +510,20 @@ type GetConversationForCLILocalArg struct {
 	Query GetConversationForCLILocalQuery `codec:"query" json:"query"`
 }
 
+type GetMessagesLocalArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	MessageIDs     []MessageID    `codec:"messageIDs" json:"messageIDs"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
+	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
+	GetMessagesLocal(context.Context, GetMessagesLocalArg) (GetMessagesLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -497,6 +558,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetInboxLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getInboxAndUnboxLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetInboxAndUnboxLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetInboxAndUnboxLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetInboxAndUnboxLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInboxAndUnboxLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -565,6 +642,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"GetMessagesLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMessagesLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMessagesLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMessagesLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMessagesLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -580,6 +673,11 @@ func (c LocalClient) GetThreadLocal(ctx context.Context, __arg GetThreadLocalArg
 
 func (c LocalClient) GetInboxLocal(ctx context.Context, __arg GetInboxLocalArg) (res GetInboxLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getInboxLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetInboxAndUnboxLocal(ctx context.Context, __arg GetInboxAndUnboxLocalArg) (res GetInboxAndUnboxLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getInboxAndUnboxLocal", []interface{}{__arg}, &res)
 	return
 }
 
@@ -602,5 +700,10 @@ func (c LocalClient) GetInboxSummaryForCLILocal(ctx context.Context, query GetIn
 func (c LocalClient) GetConversationForCLILocal(ctx context.Context, query GetConversationForCLILocalQuery) (res GetConversationForCLILocalRes, err error) {
 	__arg := GetConversationForCLILocalArg{Query: query}
 	err = c.Cli.Call(ctx, "chat.1.local.getConversationForCLILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetMessagesLocal(ctx context.Context, __arg GetMessagesLocalArg) (res GetMessagesLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.GetMessagesLocal", []interface{}{__arg}, &res)
 	return
 }

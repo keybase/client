@@ -12,7 +12,7 @@ class Render extends Component<void, Props, void> {
         <UserCard>
           <Input autoFocus={true} hintText='Create a username' floatingLabelText='Create a username' value={this.props.username} errorText={this.props.usernameErrorText} onChangeText={username => this.props.usernameChange(username)} />
           <Input style={stylesInput2} hintText='Email address' floatingLabelText='Email address' value={this.props.email} errorText={this.props.emailErrorText} onEnterKeyDown={this.props.onSubmit} onChangeText={email => this.props.emailChange(email)} keyboardType='email-address' />
-          <Button waiting={this.props.waiting} style={{marginTop: 40}} fullWidth={true} type='Primary' label='Continue' onClick={this.props.onSubmit} />
+          <Button waiting={this.props.waiting} style={stylesButton} fullWidth={true} type='Primary' label='Continue' onClick={this.props.onSubmit} />
         </UserCard>
       </Container>
     )
@@ -24,7 +24,11 @@ const stylesOuter = {
 }
 
 const stylesInput2 = {
-  marginTop: globalMargins.medium,
+  marginTop: globalMargins.tiny,
+}
+
+const stylesButton = {
+  marginTop: globalMargins.small,
 }
 
 export default Render

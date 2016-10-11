@@ -1,3 +1,4 @@
+// @flow
 import React, {Component} from 'react'
 import {List, ListItem} from 'material-ui'
 import {Box} from '../common-adapters'
@@ -15,12 +16,4 @@ export default class MenuList extends Component {
       </Box>
     )
   }
-}
-
-MenuList.propTypes = {
-  items: React.PropTypes.arrayOf(React.PropTypes.shape({
-    name: React.PropTypes.string.isRequired,
-    hasChildren: React.PropTypes.bool,
-    onClick: React.PropTypes.func.isRequired,
-  })),
 }

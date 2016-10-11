@@ -1,3 +1,4 @@
+// @flow
 import Box from './box'
 import React from 'react'
 import Text from './text'
@@ -27,7 +28,6 @@ const defaultBadgeStyle = {
   borderRadius: 10,
   flex: 0,
   marginLeft: 'auto',
-  marginRight: 8,
 }
 
 export default Badge

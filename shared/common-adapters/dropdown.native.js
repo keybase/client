@@ -18,7 +18,7 @@ const pickItemValue = 'pickItemValue'
 
 type State = {
   modalVisible: boolean,
-  value: ?string
+  value: ?string,
 }
 
 class Dropdown extends Component<void, Props, State> {

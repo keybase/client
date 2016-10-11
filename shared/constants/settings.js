@@ -1,5 +1,25 @@
 // @flow
-import type {NoErrorTypedAction} from '../constants/types/flux'
+import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
+
+export const invitesReclaim = 'settings:invitesReclaim'
+export type InvitesReclaim = NoErrorTypedAction<'settings:invitesReclaim', {inviteId: string}>
+
+export const invitesReclaimed = 'settings:invitesReclaimed'
+export type InvitesReclaimed = TypedAction<'settings:invitesReclaimed', void, {errorText: string}>
+
+export const invitesRefresh = 'settings:invitesRefresh'
+export type InvitesRefresh = NoErrorTypedAction<'settings:invitesRefresh', void>
+export const invitesRefreshed = 'settings:invitesRefreshed'
+export type InvitesRefreshed = NoErrorTypedAction<'settings:invitesRefreshed', InvitesState>
+
+export const invitesSend = 'settings:invitesSend'
+export type InvitesSend = NoErrorTypedAction<'settings:invitesSend', {
+  email: string,
+  message: ?string,
+}>
+
+export const invitesSent = 'settings:invitesSent'
+export type InvitesSent = TypedAction<'settings:invitesSent', {email: string}, {errorText: string}>
 
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export type NotificationsRefresh = NoErrorTypedAction<'settings:notificationsRefresh', void>
@@ -23,13 +43,22 @@ export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountFor
 export type PlanLevel = 'Basic' | 'Gold' | 'Friend'
 const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
 
-export type PaymentInfo = {
-  name: string,
-  last4Digits: string,
-  isBroken: boolean,
+export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
+
+export type Invitation = {
+  created: number,
+  email: string,
+  id: string,
+  type: string,
+  username?: string,
+  uid?: string,
+  url: string,
 }
 
-export type Actions = NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
+export type InvitesState = {
+  pendingInvites: Array<Invitation>,
+  acceptedInvites: Array<Invitation>,
+}
 
 export type NotificationsState = {
   settings: ?Array<{
@@ -44,6 +73,7 @@ export type NotificationsState = {
 
 export type State = {
   allowDeleteAccount: boolean,
+  invites: InvitesState,
   notifications: NotificationsState,
 }
 

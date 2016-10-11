@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import {Box, TabBar, Avatar, Icon} from '../common-adapters'
+import {Box, TabBar, Avatar} from '../common-adapters'
 import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import flags from '../util/feature-flags'
@@ -20,10 +20,10 @@ const icons: {[key: VisibleTab]: IconType} = {
 }
 
 const labels: {[key: VisibleTab]: IconType} = {
-  [peopleTab]: 'PEOPLE',
-  [folderTab]: 'FOLDERS',
-  [devicesTab]: 'DEVICES',
-  [settingsTab]: 'SETTINGS',
+  [peopleTab]: 'People',
+  [folderTab]: 'Folders',
+  [devicesTab]: 'Devices',
+  [settingsTab]: 'Settings',
 }
 
 export type SearchButton = 'TabBar:searchButton'
@@ -39,13 +39,12 @@ function tabToLabel (t: VisibleTab): string {
 
 export default class Render extends Component<void, Props, void> {
   _renderSearch (onClick: () => void) {
-    const backgroundColor = this.props.searchActive ? globalColors.orange : globalColors.darkBlue
+    const source = {type: 'nav', icon: 'iconfont-nav-search'}
     const button = (
-      <Box style={{...globalStyles.flexBoxColumn, padding: 24}}>
-        <Box style={{...stylesSearchButton, backgroundColor}}>
-          <Icon type='iconfont-search' style={{color: globalColors.white, fontSize: 32}} />
-        </Box>
-      </Box>
+      <TabBarButton
+        label='Search'
+        selected={this.props.searchActive}
+        source={source} />
     )
 
     return (
@@ -69,7 +68,6 @@ export default class Render extends Component<void, Props, void> {
     return (
       <TabBarButton
         label={label}
-        styleLabel={{fontSize: 14, marginTop: 4}}
         selected={selected}
         badgeNumber={this.props.badgeNumbers[tab]}
         source={source} />
@@ -77,13 +75,11 @@ export default class Render extends Component<void, Props, void> {
   }
 
   _renderNormalButton (tab: VisibleTab, selected: boolean, onClick: () => void) {
-    const source = {type: 'icon', icon: tabToIcon(tab)}
+    const source = {type: 'nav', icon: tabToIcon(tab)}
     const label = tabToLabel(tab)
     return (
       <TabBarButton
         style={stylesTabButton}
-        styleLabel={{fontSize: 13}}
-        styleLabelType='BodySemibold'
         label={label}
         selected={selected}
         badgeNumber={this.props.badgeNumbers[tab]}
@@ -123,7 +119,7 @@ export default class Render extends Component<void, Props, void> {
 
     return (
       <TabBar style={stylesTabBarContainer}
-        styleTabBar={{...stylesTabBar, backgroundColor: globalColors.midnightBlue}}>
+        styleTabBar={{...stylesTabBar}}>
         {tabItems}
       </TabBar>
     )
@@ -139,25 +135,15 @@ const stylesTabBarContainer = {
 const stylesTabBar = {
   ...globalStyles.flexBoxColumn,
   justifyContent: 'flex-start',
-  width: 160,
+  backgroundColor: globalColors.midnightBlue,
+  paddingTop: 10,
+  width: 80,
 }
 
 const stylesTabButton = {
-  height: 40,
+  height: 56,
 }
 
 const stylesTabBarItem = {
   ...globalStyles.flexBoxColumn,
-}
-
-const stylesSearchButton = {
-  ...globalStyles.flexBoxColumn,
-  ...globalStyles.clickable,
-  justifyContent: 'center',
-  alignItems: 'center',
-  alignSelf: 'center',
-  height: 80,
-  width: 80,
-  borderRadius: 100,
-  boxShadow: `0 2px 10px 0 ${globalColors.black_20}`,
 }

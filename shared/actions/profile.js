@@ -4,14 +4,14 @@ import * as Constants from '../constants/profile'
 import engine from '../engine'
 import openURL from '../util/open-url'
 import flags from '../util/feature-flags'
-import {BTCRegisterBTCRpc, ConstantsStatusCode, ProveCommonProofStatus, apiserverPostRpc, pgpPgpKeyGenDefaultRpc, proveCheckProofRpc, proveStartProofRpc, revokeRevokeKeyRpc, revokeRevokeSigsRpc} from '../constants/types/flow-types'
+import {BTCRegisterBTCRpc, ConstantsStatusCode, ProveCommonProofStatus, apiserverPostRpc, pgpPgpKeyGenDefaultRpcChannelMap, proveCheckProofRpc, proveStartProofRpc, revokeRevokeKeyRpc, revokeRevokeSigsRpc} from '../constants/types/flow-types'
 import {call, put, take, race, select} from 'redux-saga/effects'
 import {getMyProfile} from './tracker'
 import {isValidEmail, isValidName} from '../util/simple-validators'
 import {navigateUp, navigateTo, routeAppend, switchTab} from '../actions/router'
 import {profileTab} from '../constants/tabs'
 import {takeLatest, takeEvery} from 'redux-saga'
-import {createChannelMap, putOnChannelMap, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap} from '../util/saga'
+import {singleFixedChannelConfig, closeChannelMap, takeFromChannelMap} from '../util/saga'
 
 import type {SagaGenerator, ChannelConfig, ChannelMap} from '../constants/types/saga'
 import type {Dispatch, AsyncAction} from '../constants/types/flux'
@@ -525,32 +525,14 @@ function generatePgpKey (channelConfig: ChannelConfig<*>, pgpInfo: PgpInfo): any
     email: email || '',
   }))
 
-  const channelMap = createChannelMap(channelConfig)
-  pgpPgpKeyGenDefaultRpc({
+  return pgpPgpKeyGenDefaultRpcChannelMap(channelConfig, {
     param: {
       createUids: {
         useDefault: false,
         ids: identities,
       },
     },
-    incomingCallMap: {
-      'keybase.1.pgpUi.keyGenerated': ({kid, key}, response) => {
-        putOnChannelMap(channelMap, 'keybase.1.pgpUi.keyGenerated', {params: {kid, key}, response})
-      },
-      'keybase.1.pgpUi.shouldPushPrivate': (p, response) => {
-        putOnChannelMap(channelMap, 'keybase.1.pgpUi.shouldPushPrivate', {response})
-      },
-      'keybase.1.pgpUi.finished': (p, response) => {
-        putOnChannelMap(channelMap, 'keybase.1.pgpUi.finished', {response})
-      },
-    },
-    callback: (error) => {
-      putOnChannelMap(channelMap, 'finished', {error})
-      closeChannelMap(channelMap)
-    },
   })
-
-  return channelMap
 }
 
 // Resolves if the pgp key was dropped successfully

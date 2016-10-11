@@ -149,13 +149,13 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                     variable: 'VISDIFF_GH_TOKEN',
                                             ]]) {
                                             withEnv([
+                                                "VISDIFF_WORK_DIR=${env.BASEDIR}/visdiff",
                                                 "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                             ]) {
                                                 dir("visdiff") {
                                                     sh "npm install"
                                                 }
                                                 sh "npm install ./visdiff"
-                                                sh "git rev-parse HEAD > ${env.BASEDIR}/visdiff_orig_revision"
                                                 try {
                                                     timeout(time: 10, unit: 'MINUTES') {
                                                         dir("desktop") {
@@ -165,7 +165,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                 } catch (e) {
                                                     helpers.slackMessage("#breaking-visdiff", "warning", "<@mgood>: visdiff failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>")
                                                 }
-                                                sh "git checkout \$(< ${env.BASEDIR}/visdiff_orig_revision)"
                                             }}}
                                         }
                                     }},
@@ -176,23 +175,23 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             clientImage = docker.build("keybaseprivate/kbclient")
                                             sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
                                             archive("kbclient.tar.gz")
-                                            //build([
-                                            //    job: "/kbfs/master",
-                                            //    parameters: [
-                                            //        [$class: 'StringParameterValue',
-                                            //            name: 'clientProjectName',
-                                            //            value: env.JOB_NAME,
-                                            //        ],
-                                            //        [$class: 'StringParameterValue',
-                                            //            name: 'kbwebNodePrivateIP',
-                                            //            value: kbwebNodePrivateIP,
-                                            //        ],
-                                            //        [$class: 'StringParameterValue',
-                                            //            name: 'kbwebNodePublicIP',
-                                            //            value: kbwebNodePublicIP,
-                                            //        ],
-                                            //    ]
-                                            //])
+                                            build([
+                                                job: "/kbfs/master",
+                                                parameters: [
+                                                    [$class: 'StringParameterValue',
+                                                        name: 'clientProjectName',
+                                                        value: env.JOB_NAME,
+                                                    ],
+                                                    [$class: 'StringParameterValue',
+                                                        name: 'kbwebNodePrivateIP',
+                                                        value: kbwebNodePrivateIP,
+                                                    ],
+                                                    [$class: 'StringParameterValue',
+                                                        name: 'kbwebNodePublicIP',
+                                                        value: kbwebNodePublicIP,
+                                                    ],
+                                                ]
+                                            ])
                                         }
                                     },
                                 )
@@ -225,6 +224,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                         bat "echo %errorlevel%"
                                                     }
                                                     bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
+                                                    bat "go get \"github.com/stretchr/testify/require\""
+                                                    bat "go get \"github.com/stretchr/testify/assert\""
                                                     helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
                                                     def testlist = readFile('testlist.txt')
                                                     def tests = testlist.tokenize()

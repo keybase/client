@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import type {SimpleProofState} from '../constants/tracker'
 import {globalColors} from '../styles'
 import {warning, error} from '../constants/tracker'
@@ -7,9 +6,9 @@ import {warning, error} from '../constants/tracker'
 type StateColors = {
   header: {
     background: string,
-    text: string
+    text: string,
   },
-  username: string
+  username: string,
 }
 
 export function stateColors (currentlyFollowing: boolean, trackerState: SimpleProofState, defaultColor?: string): StateColors {

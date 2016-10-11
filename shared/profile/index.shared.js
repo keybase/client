@@ -1,13 +1,16 @@
+// @flow
 import _ from 'lodash'
 import {globalColors} from '../styles'
 import {proveMessage} from '../util/platforms.js'
 import {PlatformsExpanded} from '../constants/types/more'
 import flags from '../util/feature-flags'
 
-import type {Proof, MissingProof} from './render'
+import type {MissingProof} from '../common-adapters/user-proofs'
+import type {Proof} from '../constants/tracker'
 import type {PlatformsExpandedType} from '../constants/types/more'
+import type {Folder} from '../constants/folders'
 
-export function folderIconProps (folder, style = {}) {
+export function folderIconProps (folder: Folder, style: ?Object = {}) {
   const type = folder.isPublic
     ? (folder.hasData ? 'iconfont-folder-public-has-files' : 'iconfont-folder-public')
     : (folder.hasData ? 'iconfont-folder-private-has-files' : 'iconfont-folder-private')

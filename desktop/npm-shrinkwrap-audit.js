@@ -1,3 +1,4 @@
+// @flow
 import fs from 'fs'
 
 // Allow for callers to change execution directory

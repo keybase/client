@@ -6,7 +6,7 @@ import type {TypedAction} from '../constants/types/flux'
 export type Device = {
   type: DeviceType,
   name: string,
-  deviceID: DeviceID
+  deviceID: DeviceID,
 }
 
 // transistions to the next paper key phase

@@ -15,6 +15,7 @@
         ['log', 'warn', 'error'].forEach(key => {
           window.console[`_${key}`] = window.console[key]
           window.console[key] = function() {
+            window.console[`_${key}`](...arguments)
             require('electron').ipcRenderer.send('console.' + key, Array.prototype.slice.call(arguments))
           }
         })
@@ -32,11 +33,26 @@
           }
         return false
       }
+      const __DEV__ = getQueryVariable('dev') === 'true'
 
-      var script = document.createElement('script')
-      script.src = getQueryVariable('src')
-      script.async = true
-      document.getElementsByTagName('head')[0].appendChild(script)
+      function loadEntryChunk () {
+        var script = document.createElement('script')
+        script.src = getQueryVariable('src')
+        document.head.appendChild(script)
+      }
+
+      // Use vendor.js
+      if (__DEV__) {
+        var vendor = document.createElement('script')
+        vendor.onload = loadEntryChunk
+        // In case we don't have a dll, we just load the main entry chunk
+        // This happens when we don't use a DLL
+        vendor.onerror = loadEntryChunk
+        vendor.src = '../dist/dll/dll.vendor.js'
+        document.head.appendChild(vendor)
+      } else {
+        loadEntryChunk()
+      }
     </script>
   </body>
 </html>

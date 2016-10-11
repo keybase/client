@@ -1,4 +1,6 @@
-import React, {Component, requireNativeComponent} from 'react'
+// @flow
+import React, {Component} from 'react'
+import {requireNativeComponent} from 'react-native'
 
 const tabBarProps = {
   name: 'TabBar',
@@ -26,7 +28,7 @@ const NativeTabBar = requireNativeComponent(
 )
 
 export default class TabBar extends Component {
-  shouldComponentUpdate (nextProps, nextState) {
+  shouldComponentUpdate (nextProps: any, nextState: any) {
     // If the titles are the same, then we aren't going to rerender.
     const oldTabs = this.props.children
     const newTabs = nextProps.children
@@ -69,4 +71,5 @@ export default class TabBar extends Component {
   }
 }
 
+// $FlowIssue
 TabBar.Item = TabBarItem

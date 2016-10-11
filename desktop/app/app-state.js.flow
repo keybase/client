@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 
 export type State = {
   x: ?number,
@@ -37,5 +37,8 @@ export type Managed = {
 declare export default class AppState {
   state: State,
   config: Config,
-  managed: Managed
+  managed: Managed,
+  saveState: () => void,
+  manageWindow: (window: any) => void,
+  checkOpenAtLogin: () => void,
 }

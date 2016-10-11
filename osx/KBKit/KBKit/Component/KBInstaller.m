@@ -24,7 +24,7 @@
 - (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force stopOnError:(BOOL)stopOnError completion:(void (^)(NSError *error, NSArray *installables))completion {
   // TODO force
 
-  DDLogDebug(@"Installables: %@", environment.installables);
+  DDLogDebug(@"Installables: %@", [environment.installables valueForKey:@"name"]);
 
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.enumerator = [environment.installables objectEnumerator];

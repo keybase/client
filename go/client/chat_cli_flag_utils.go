@@ -26,6 +26,14 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "set-topic-name",
 		Usage: `Set topic name for the conversation`,
 	},
+	"set-headline": cli.StringFlag{
+		Name:  "set-headline",
+		Usage: `Set the headline for the conversation`,
+	},
+	"clear-headline": cli.BoolFlag{
+		Name:  "clear-headline",
+		Usage: `Clear the headline for the conversation`,
+	},
 	"stdin": cli.BoolFlag{
 		Name:  "stdin",
 		Usage: "Use STDIN for message content. [conversation] is required and [message] is ignored.",
@@ -126,7 +134,10 @@ func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver chatC
 }
 
 func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher chatCLIConversationFetcher, err error) {
-	fetcher.query.MessageTypes = []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT}
+	fetcher.query.MessageTypes = []chat1.MessageType{
+		chat1.MessageType_TEXT,
+		chat1.MessageType_ATTACHMENT,
+	}
 	fetcher.query.Limit = chat1.UnreadFirstNumLimit{
 		NumRead: 2,
 		AtLeast: ctx.Int("at-least"),

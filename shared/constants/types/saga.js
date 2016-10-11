@@ -18,9 +18,9 @@ export type Channel<T> = {
 
 // TODO (mm) it might be possible to type these better instead of just key: string
 export type ChannelConfig<T> = {
-  [key: string]: Buffer<T>
+  [key: string]: () => Buffer<T>,
 }
 
 export type ChannelMap<T> = {
-  [key: string]: Channel<T>
+  [key: string]: Channel<T>,
 }

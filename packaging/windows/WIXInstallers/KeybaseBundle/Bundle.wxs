@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated during build -->
+<?include "..\dokanver.xml"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
@@ -6,9 +8,6 @@
   <Bundle Name="Keybase" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="418432ab-0366-40fd-a396-8cc0c4200252">
 
     <Variable Name="DokanInstallFolder" Type="string" Value="[ProgramFiles6432Folder]Dokan\Dokan Library-1.0.0"/>
-    <!-- These match Keybase's Dokany Build 71 Sept 7 2016 -->
-    <Variable Name="DokanProduct86" Type="string" Value="{65A3A986-3DC3-0100-0000-160907182735}"/>
-    <Variable Name="DokanProduct64" Type="string" Value="{65A3A964-3DC3-0100-0000-160907182735}"/>
 
     <Log PathVariable="LOGPATH_PROP"/>
     <util:FileSearchRef Id='WINTRUST_FileSearch' />
@@ -34,7 +33,7 @@
     <util:RegistrySearch Id="DokanUninstall"
              Variable="DokanUninstallString"
              Root="HKLM"
-             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[DokanProduct86]"
+             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(var.DokanProductCodeX86)"
              Value="UninstallString"
              Format="raw"
              />
@@ -43,7 +42,7 @@
                  Condition="NOT DokanUninstallString"
                  Variable="DokanUninstallString"
                  Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[DokanProduct64]"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(var.DokanProductCodeX64)"
                  Value="UninstallString"
                  Format="raw"
                  Win64="yes"
@@ -216,7 +215,7 @@
                   DownloadUrl="https://download.microsoft.com/download/9/6/F/96FD0525-3DDF-423D-8845-5F92F4A6883E/Windows8.1-KB2999226-x64.msu"
                   />
 
-      <MsiPackage SourceFile="$(env.DOKAN_PATH)\dokan_wix\bin\x86\$(var.Configuration)\Dokan_x86.msi"
+      <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x86\$(var.Configuration)\Dokan_x86.msi"
                   InstallCondition="NOT VersionNT64"
                   Compressed="yes"
                   Visible="yes"
@@ -228,7 +227,7 @@
         <MsiProperty Name="INSTALLDEVFILES" Value="0" />
       </MsiPackage>
 
-      <MsiPackage SourceFile="$(env.DOKAN_PATH)\dokan_wix\bin\x64\$(var.Configuration)\Dokan_x64.msi"
+      <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x64\$(var.Configuration)\Dokan_x64.msi"
                   InstallCondition="VersionNT64"
                   Compressed="yes"
                   Visible="yes"
@@ -244,8 +243,8 @@
                   SourceFile="$(var.KeybaseApps.TargetPath)"
                   DisplayInternalUI='no'
                   Permanent="no">
-        <MsiProperty Name="DOKANPRODUCT86" Value="[DokanProduct86]" />
-        <MsiProperty Name="DOKANPRODUCT64" Value="[DokanProduct64]" />
+        <MsiProperty Name="DOKANPRODUCT86" Value="$(var.DokanProductCodeX86)" />
+        <MsiProperty Name="DOKANPRODUCT64" Value="$(var.DokanProductCodeX64)" />
       </MsiPackage>
 
     </Chain>

@@ -19,7 +19,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
@@ -845,7 +845,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		return errors.New("gregor handler for chat.activity: nil message body")
 	}
 
-	var activity keybase1.ChatActivity
+	var activity chat1.ChatActivity
 	var gm chat1.GenericPayload
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
@@ -870,7 +870,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %d sender: %s",
 			nm.ConvID, nm.Message.ServerHeader.Sender)
 		boxer := chat.NewBoxer(g.G(), newTlfHandler(nil, g.G()))
-		msg, err := boxer.UnboxMessage(ctx, chat.NewKeyFinder(), nm.Message)
+		msg, headerHash, err := boxer.UnboxMessage(ctx, chat.NewKeyFinder(), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to unbox message: %s", err.Error())
 			return err
@@ -881,9 +881,10 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 				SenderDeviceName: "", // TODO
 				MessagePlaintext: msg,
 				ServerHeader:     *nm.Message.ServerHeader,
+				HeaderHash:       headerHash,
 			},
 		}
-		activity.ActivityType = keybase1.ChatActivityType_INCOMING_MESSAGE
+		activity.ActivityType = chat1.ChatActivityType_INCOMING_MESSAGE
 
 	default:
 		return fmt.Errorf("unhandled chat.activity action %q", action)
@@ -892,7 +893,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 	return g.notifyNewChatActivity(ctx, m.UID(), &activity)
 }
 
-func (g *gregorHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID, activity *keybase1.ChatActivity) error {
+func (g *gregorHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID, activity *chat1.ChatActivity) error {
 	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
 	if err != nil {
 		return err

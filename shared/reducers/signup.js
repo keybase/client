@@ -1,13 +1,10 @@
-/* @flow */
-
-import * as Constants from '../constants/signup'
+// @flow
 import * as CommonConstants from '../constants/common'
-
+import * as Constants from '../constants/signup'
 import HiddenString from '../util/hidden-string'
+import {isMobile} from '../constants/platform'
 
 import type {SignupActions} from '../constants/signup'
-
-import {isMobile} from '../constants/platform'
 
 export type SignupState = {
   inviteCode: ?string,
@@ -24,7 +21,7 @@ export type SignupState = {
   paperkey: ?HiddenString,
   signupError: ?HiddenString,
   waiting: boolean,
-  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess'
+  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess',
 }
 
 const initialState: SignupState = {
@@ -194,6 +191,8 @@ export default function (state: SignupState = initialState, action: SignupAction
       return {
         ...state,
         phase: 'inviteCode',
+        passphraseError: null,
+        inviteCodeError: null,
       }
 
     default:

@@ -1,8 +1,8 @@
 // @flow
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import RemoteComponent from './remote-component'
 import * as Constants from '../../shared/constants/pgp'
+import React, {Component} from 'react'
+import RemoteComponent from './remote-component'
+import {connect} from 'react-redux'
 
 import type {TypedState} from '../../shared/constants/reducer'
 

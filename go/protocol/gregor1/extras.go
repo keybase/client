@@ -338,6 +338,22 @@ func FromTime(t Time) time.Time {
 	return time.Unix(0, int64(t)*1000000)
 }
 
+func (t Time) Time() time.Time {
+	return FromTime(t)
+}
+
+func (t Time) UnixSeconds() int64 {
+	return t.Time().Unix()
+}
+
+func (t Time) UnixMilliseconds() int64 {
+	return t.Time().UnixNano() / 1e6
+}
+
+func (t Time) UnixMicroseconds() int64 {
+	return t.Time().UnixNano() / 1e3
+}
+
 // copied from keybase/client/go/protocol/extras.go. Consider eventually a
 // refactor to allow this code to be shared.
 func ToTime(t time.Time) Time {

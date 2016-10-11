@@ -1,9 +1,10 @@
 // @flow
 import {defaultKBFSPath} from './config'
 
+import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
 import type {Exact} from '../constants/types/more'
 import type {Folder as FolderRPC} from '../constants/types/flow-types'
-import type {Folder, ParticipantUnlock, Device, MetaType} from './folders'
+import type {Folder, MetaType, FolderRPCWithMeta} from './folders'
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
 import type {UserList} from '../common-adapters/usernames'
 
@@ -16,7 +17,7 @@ type ListState = Exact<{
   onClick?: (path: string) => void,
   onRekey?: (path: string) => void,
   onOpen?: (path: string) => void,
-  extraRows?: Array<React$Element<*>>
+  extraRows?: Array<React$Element<*>>,
 }>
 
 export type FolderState = Exact<{
@@ -58,9 +59,20 @@ export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showi
 export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
 export type FavoriteToggleIgnored = TypedAction<'favorite:favoriteToggleIgnored', {isPrivate: boolean}, void>
 
+export const markTLFCreated = 'favorite:markTLFCreated'
+export type MarkTLFCreated = TypedAction<'favorite:markTLFCreated', {folder: Folder}, void>
+
 export type FavoriteAction = FavoriteAdd | FavoriteAdded | FavoriteList | FavoriteListed | FavoriteIgnore | FavoriteIgnored | FavoriteSwitchTab | FavoriteToggleIgnored
 
-function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
+// Sometimes we have paths that are just private/foo instead of /keybase/private/foo
+function canonicalizeTLF (tlf: string): string {
+  if (tlf.indexOf(defaultKBFSPath) !== 0) {
+    return `${defaultKBFSPath}/${tlf}`
+  }
+  return tlf
+}
+
+function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}): {sortName: string, path: string} {
   const rwers = users.filter(u => !u.readOnly).map(u => u.username)
   const readers = users.filter(u => !!u.readOnly).map(u => u.username)
   const sortName = rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
@@ -68,13 +80,7 @@ function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}
   return {sortName, path}
 }
 
-export type FolderWithMeta = {
-  meta: MetaType,
-  waitingForParticipantUnlock: Array<ParticipantUnlock>,
-  youCanUnlock: Array<Device>,
-} & FolderRPC
-
-function folderFromPath (path: string): ?FolderRPC {
+function folderRPCFromPath (path: string): ?FolderRPC {
   if (path.startsWith(`${defaultKBFSPath}/private/`)) {
     return {
       name: path.replace(`${defaultKBFSPath}/private/`, ''),
@@ -94,9 +100,51 @@ function folderFromPath (path: string): ?FolderRPC {
   }
 }
 
+function folderFromFolderRPCWithMeta (username: string, f: FolderRPCWithMeta): Folder {
+  const users = sortUserList(parseFolderNameToUsers(username, f.name))
+
+  const {sortName, path} = pathFromFolder({users, isPublic: !f.private})
+  const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
+  const userAvatar = groupAvatar ? null : users[users.length - 1].username
+  const meta: MetaType = f.meta
+  const ignored = f.meta === 'ignored'
+
+  return {
+    path,
+    users,
+    sortName,
+    hasData: false, // TODO don't have this info
+    isPublic: !f.private,
+    groupAvatar,
+    userAvatar,
+    ignored,
+    meta,
+    recentFiles: [],
+    waitingForParticipantUnlock: f.waitingForParticipantUnlock,
+    youCanUnlock: f.youCanUnlock,
+  }
+}
+
+function folderFromFolderRPC (username: string, f: FolderRPC): Folder {
+  return folderFromFolderRPCWithMeta(username, {...f, waitingForParticipantUnlock: [], youCanUnlock: [], meta: null})
+}
+
+function folderFromPath (username: string, path: string): ?Folder {
+  const folderRPC = folderRPCFromPath(canonicalizeTLF(path))
+  if (folderRPC == null) {
+    return null
+  } else {
+    return folderFromFolderRPC(username, folderRPC)
+  }
+}
+
 export type {Folder as FolderRPC} from '../constants/types/flow-types'
 
 export {
+  canonicalizeTLF,
+  folderFromFolderRPCWithMeta,
+  folderFromFolderRPC,
   folderFromPath,
+  folderRPCFromPath,
   pathFromFolder,
 }

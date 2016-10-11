@@ -1,3 +1,4 @@
+// @flow
 /*
  * Components which could show up at any point in a route.
  */

@@ -115,7 +115,7 @@ func TestChatMessageUnbox(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	messagePlaintext, err := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	messagePlaintext, _, err := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +163,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 	// put original hash fn back
 	boxer.hashV1 = origHashFn
 
-	_, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, _, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := err.(libkb.ChatBodyHashInvalid); !ok {
 		t.Fatalf("unexpected error for invalid body hash: %s", err)
 	}
@@ -213,7 +213,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 	// put original signing fn back
 	boxer.sign = origSign
 
-	_, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, _, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := err.(libkb.BadSigError); !ok {
 		t.Fatalf("unexpected error for invalid header signature: %s", err)
 	}
@@ -247,7 +247,7 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	_, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, _, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := err.(libkb.NoKeyError); !ok {
 		t.Fatalf("unexpected error for invalid sender key: %v", err)
 	}
@@ -264,8 +264,8 @@ func TestChatMessagePublic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	world := NewChatMockWorld(t, "unbox", 4)
-	boxer.tlf = NewTlfMock(world)
+	world := kbtest.NewChatMockWorld(t, "unbox", 4)
+	boxer.tlf = kbtest.NewTlfMock(world)
 
 	header := chat1.MessageClientHeader{
 		Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
@@ -288,7 +288,7 @@ func TestChatMessagePublic(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	messagePlaintext, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed)
+	messagePlaintext, _, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed)
 	if err != nil {
 		t.Fatal(err)
 	}

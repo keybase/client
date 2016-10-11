@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import {OS} from '../constants/platform'
 import {OS_IOS, OS_ANDROID} from '../constants/platform.shared'
 import NavigatorNavigationBarStyles from 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS'

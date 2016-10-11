@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import {remote} from 'electron'
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'

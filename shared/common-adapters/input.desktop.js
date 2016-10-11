@@ -7,7 +7,7 @@ import {styles as TextStyles, specialStyles} from './text'
 
 type State = {
   value: ?string,
-  focused: boolean
+  focused: boolean,
 }
 
 class Input extends Component<void, Props, State> {

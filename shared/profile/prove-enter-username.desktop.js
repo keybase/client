@@ -1,12 +1,13 @@
 // @flow
 import React, {Component} from 'react'
-import type {PlatformsExpandedType} from '../constants/types/more'
-import type {Props} from './prove-enter-username'
+import openURL from '../util/open-url'
 import {Box, Icon, Text, Button, Input, PlatformIcon} from '../common-adapters'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import openURL from '../util/open-url'
 import {platformText} from './prove-enter-username.shared'
+
+import type {PlatformsExpandedType} from '../constants/types/more'
+import type {Props} from './prove-enter-username'
 
 function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
@@ -24,7 +25,7 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
 }
 
 type State = {
-  username: string
+  username: string,
 }
 
 function customError (error: string, code: ?number) {

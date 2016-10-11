@@ -6,10 +6,11 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"golang.org/x/net/context"
 	"runtime/debug"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // PassphraseGeneration represents which generation of the passphrase is
@@ -282,11 +283,29 @@ func (s *LoginState) GetPassphraseStreamWithPassphrase(passphrase string) (pps *
 	return nil, err
 }
 
-// GetPassphraseStreamExport either returns a cached, verified passphrase stream
-// export, or generates a new one via login.
-func (s *LoginState) GetPassphraseStreamExport(ui SecretUI) (pps keybase1.PassphraseStream, err error) {
-	s.G().Log.Debug("+ GetPassphraseStreamExport() called")
-	defer func() { s.G().Log.Debug("- GetPassphraseStreamExport() -> %s", ErrToOk(err)) }()
+func (s *LoginState) getStoredPassphraseStream(username NormalizedUsername) (*PassphraseStream, error) {
+	secret, err := s.G().SecretStoreAll.RetrieveSecret(s.G().Env.GetUsername())
+	if err != nil {
+		return nil, err
+	}
+	lks := NewLKSecWithFullSecret(secret, s.G().Env.GetUID(), s.G())
+	if err = lks.LoadServerHalf(nil); err != nil {
+		return nil, err
+	}
+	stream, err := NewPassphraseStreamLKSecOnly(secret)
+	if err != nil {
+		return nil, err
+	}
+	stream.SetGeneration(lks.Generation())
+	return stream, nil
+}
+
+// GetPassphraseStreamStored either returns a cached, verified passphrase
+// stream from a previous login, the secret store, or generates a new one via
+// login.
+func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (pps *PassphraseStream, err error) {
+	s.G().Log.Debug("+ GetPassphraseStreamStored() called")
+	defer func() { s.G().Log.Debug("- GetPassphraseStreamStored() -> %s", ErrToOk(err)) }()
 
 	// 1. try cached
 	s.G().Log.Debug("| trying cached passphrase stream")
@@ -296,28 +315,20 @@ func (s *LoginState) GetPassphraseStreamExport(ui SecretUI) (pps keybase1.Passph
 	}
 	if full != nil {
 		s.G().Log.Debug("| cached passphrase stream ok, using it")
-		return full.Export(), nil
+		return full, nil
 	}
 
 	// 2. try from secret store
 	if s.G().SecretStoreAll != nil {
 		s.G().Log.Debug("| trying to get passphrase stream from secret store")
-		secret, err := s.G().SecretStoreAll.RetrieveSecret(s.G().Env.GetUsername())
-		if err != nil {
-			return pps, err
+		pps, err = s.getStoredPassphraseStream(s.G().Env.GetUsername())
+		if err == nil {
+			s.G().Log.Debug("| got passphrase stream from secret store")
+			return pps, nil
 		}
-		lks := NewLKSecWithFullSecret(secret, s.G().Env.GetUID(), s.G())
-		if err = lks.LoadServerHalf(nil); err != nil {
-			return pps, err
-		}
-		stream, err := NewPassphraseStreamLKSecOnly(secret)
-		if err != nil {
-			return pps, err
-		}
-		stream.SetGeneration(lks.Generation())
-		return stream.Export(), nil
+
+		s.G().Log.Debug("| failed to get passphrase stream from secret store: %s", err)
 	}
-	s.G().Log.Debug("| no secret store available")
 
 	// 3. login and get it
 	s.G().Log.Debug("| using full GetPassphraseStream")
@@ -327,7 +338,7 @@ func (s *LoginState) GetPassphraseStreamExport(ui SecretUI) (pps keybase1.Passph
 	}
 	if full != nil {
 		s.G().Log.Debug("| success using full GetPassphraseStream")
-		return full.Export(), nil
+		return full, nil
 	}
 	return pps, nil
 }

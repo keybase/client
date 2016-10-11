@@ -1,12 +1,12 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
+import Render from './render'
 import {connect} from 'react-redux'
 import {editProfile} from '../../actions/profile'
 import {maxProfileBioChars} from '../../constants/profile'
-
-import Render from './render'
-import type {Props} from './render'
 import {navigateUp} from '../../actions/router'
+
+import type {Props} from './render'
 
 type State = {
   bio: string,

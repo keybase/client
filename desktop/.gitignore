@@ -1,5 +1,6 @@
 node_modules
 dist
+dll
 release
 build
 log.txt

@@ -16,8 +16,9 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestGregorHandler(t *testing.T) {
@@ -80,9 +81,9 @@ func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID
 func (n *nlistener) FavoritesChanged(uid keybase1.UID) {
 	n.favoritesChanged = append(n.favoritesChanged, uid)
 }
-func (n *nlistener) NewChatActivity(uid keybase1.UID, activity keybase1.ChatActivity) {}
-func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                                {}
-func (n *nlistener) PGPKeyInSecretStoreFile()                                         {}
+func (n *nlistener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {}
+func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                             {}
+func (n *nlistener) PGPKeyInSecretStoreFile()                                      {}
 
 type showTrackerPopupIdentifyUI struct {
 	kbtest.FakeIdentifyUI
