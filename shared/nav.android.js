@@ -218,7 +218,7 @@ export default connect(
       provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
       username,
       dumbFullscreen,
-      folderBadge: flags.tabFoldersEnabled ? privateBadge + publicBadge : 0,
+      folderBadge: privateBadge + publicBadge,
     }),
   dispatch => {
     return {

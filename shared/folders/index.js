@@ -38,7 +38,6 @@ class Folders extends Component<void, Props, void> {
         onOpen={path => this.props.openInKBFS(path)}
         onSwitchTab={showingPrivate => this.props.switchTab(showingPrivate)}
         showingPrivate={this.props.showingPrivate}
-        showComingSoon={!flags.tabFoldersEnabled}
         username={this.props.username}
         onToggleShowIgnored={this.props.onToggleShowIgnored}
         publicShowingIgnored={this.props.publicShowingIgnored}
