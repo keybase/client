@@ -506,11 +506,7 @@ type encryptionKeyGetter interface {
 		kbfscrypto.TLFCryptKey, error)
 }
 
-// KeyManager fetches and constructs the keys needed for KBFS file
-// operations.
-type KeyManager interface {
-	encryptionKeyGetter
-
+type mdDecryptionKeyGetter interface {
 	// GetTLFCryptKeyForMDDecryption gets the crypt key to use for the
 	// TLF with the given metadata to decrypt the private portion of
 	// the metadata.  It finds the appropriate key from mdWithKeys
@@ -519,6 +515,13 @@ type KeyManager interface {
 	GetTLFCryptKeyForMDDecryption(ctx context.Context,
 		kmdToDecrypt, kmdWithKeys KeyMetadata) (
 		kbfscrypto.TLFCryptKey, error)
+}
+
+// KeyManager fetches and constructs the keys needed for KBFS file
+// operations.
+type KeyManager interface {
+	encryptionKeyGetter
+	mdDecryptionKeyGetter
 
 	// GetTLFCryptKeyForBlockDecryption gets the crypt key to use
 	// for the TLF with the given metadata to decrypt the block

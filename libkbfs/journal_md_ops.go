@@ -107,8 +107,15 @@ func (j journalMDOps) getHeadFromJournal(
 		tlfHandle: handle,
 	}
 
+	_, uid, err := j.jServer.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
 	err = decryptMDPrivateData(
-		ctx, j.jServer.config, &rmd, rmd.ReadOnly())
+		ctx, j.jServer.config.Codec(), j.jServer.config.Crypto(),
+		j.jServer.config.BlockCache(), j.jServer.config.BlockOps(),
+		j.jServer.config.KeyManager(), uid, &rmd, rmd.ReadOnly())
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -162,6 +169,11 @@ func (j journalMDOps) getRangeFromJournal(
 
 	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
 
+	_, uid, err := j.jServer.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, ibrmd := range ibrmds {
 		brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
 		if !ok {
@@ -173,7 +185,9 @@ func (j journalMDOps) getRangeFromJournal(
 		}
 
 		err = decryptMDPrivateData(
-			ctx, j.jServer.config, &rmd, rmd.ReadOnly())
+			ctx, j.jServer.config.Codec(), j.jServer.config.Crypto(),
+			j.jServer.config.BlockCache(), j.jServer.config.BlockOps(),
+			j.jServer.config.KeyManager(), uid, &rmd, rmd.ReadOnly())
 		if err != nil {
 			return nil, err
 		}
