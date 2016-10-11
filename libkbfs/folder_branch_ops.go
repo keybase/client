@@ -1011,7 +1011,7 @@ func (fbo *folderBranchOps) nowUnixNano() int64 {
 	return fbo.config.Clock().Now().UnixNano()
 }
 
-func (fbo *folderBranchOps) maybeUnembedAndPutOneBlock(ctx context.Context,
+func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 	md *RootMetadata) (*blockPutState, error) {
 	if fbo.config.BlockSplitter().ShouldEmbedBlockChanges(&md.data.Changes) {
 		return nil, nil
@@ -1119,7 +1119,7 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
-	bps, err := fbo.maybeUnembedAndPutOneBlock(ctx, md)
+	bps, err := fbo.maybeUnembedAndPutBlocks(ctx, md)
 	if err != nil {
 		return err
 	}
@@ -1130,7 +1130,7 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
-	md.swapCachedBlockChanges(bps)
+	md.loadCachedBlockChanges(bps)
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -1638,10 +1638,32 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 		return err
 	}
 
-	// Split up the block into child blocks if necessary.
-	var topBlock *FileBlock
-	copiedSize := int64(0)
+	block := NewFileBlock().(*FileBlock)
+	copied := fbo.config.BlockSplitter().CopyUntilSplit(block, false, buf, 0)
+	info, _, err := fbo.readyBlockMultiple(ctx, md.ReadOnly(), block, uid, bps)
+	if err != nil {
+		return err
+	}
+	md.AddRefBytes(uint64(info.EncodedSize))
+	md.AddDiskUsage(uint64(info.EncodedSize))
+
+	// Everything fits in one block.
 	toCopy := int64(len(buf))
+	if copied >= toCopy {
+		changes.Info = info
+		md.data.cachedChanges = *changes
+		changes.Ops = nil
+		return nil
+	}
+
+	// Otherwise make a top block and split up the remaining buffer.
+	topBlock := NewFileBlock().(*FileBlock)
+	topBlock.IsInd = true
+	topBlock.IPtrs = append(topBlock.IPtrs, IndirectFilePtr{
+		BlockInfo: info,
+		Off:       0,
+	})
+	copiedSize := copied
 	for copiedSize < toCopy {
 		block := NewFileBlock().(*FileBlock)
 		currOff := copiedSize
@@ -1654,33 +1676,22 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 			return err
 		}
 
-		if copiedSize < toCopy || topBlock != nil {
-			if topBlock == nil {
-				topBlock = NewFileBlock().(*FileBlock)
-				topBlock.IsInd = true
-			}
-			topBlock.IPtrs = append(topBlock.IPtrs, IndirectFilePtr{
-				BlockInfo: info,
-				Off:       currOff,
-			})
-		} else {
-			changes.Info = info
-		}
+		topBlock.IPtrs = append(topBlock.IPtrs, IndirectFilePtr{
+			BlockInfo: info,
+			Off:       currOff,
+		})
 		md.AddRefBytes(uint64(info.EncodedSize))
 		md.AddDiskUsage(uint64(info.EncodedSize))
 	}
 
-	if topBlock != nil {
-		info, _, err := fbo.readyBlockMultiple(
-			ctx, md.ReadOnly(), topBlock, uid, bps)
-		if err != nil {
-			return err
-		}
-		changes.Info = info
-		md.AddRefBytes(uint64(info.EncodedSize))
-		md.AddDiskUsage(uint64(info.EncodedSize))
+	info, _, err = fbo.readyBlockMultiple(
+		ctx, md.ReadOnly(), topBlock, uid, bps)
+	if err != nil {
+		return err
 	}
-
+	changes.Info = info
+	md.AddRefBytes(uint64(info.EncodedSize))
+	md.AddDiskUsage(uint64(info.EncodedSize))
 	md.data.cachedChanges = *changes
 	changes.Ops = nil
 	return nil
@@ -2071,7 +2082,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		}
 	}
 
-	md.swapCachedBlockChanges(bps)
+	md.loadCachedBlockChanges(bps)
 
 	err = fbo.finalizeBlocks(bps)
 	if err != nil {
@@ -2180,7 +2191,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
 	}
 
-	md.swapCachedBlockChanges(nil)
+	md.loadCachedBlockChanges(nil)
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -2207,7 +2218,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 
 	md.AddOp(gco)
 
-	bps, err := fbo.maybeUnembedAndPutOneBlock(ctx, md)
+	bps, err := fbo.maybeUnembedAndPutBlocks(ctx, md)
 	if err != nil {
 		return err
 	}
@@ -2222,7 +2233,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 	}
 
 	fbo.setBranchIDLocked(lState, NullBranchID)
-	md.swapCachedBlockChanges(bps)
+	md.loadCachedBlockChanges(bps)
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
@@ -4734,7 +4745,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		defer fbo.config.RekeyQueue().Enqueue(md.TlfID())
 	}
 
-	md.swapCachedBlockChanges(bps)
+	md.loadCachedBlockChanges(bps)
 
 	// Set the head to the new MD.
 	fbo.headLock.Lock(lState)

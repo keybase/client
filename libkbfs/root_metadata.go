@@ -374,10 +374,10 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 	return nil
 }
 
-// swapCachedBlockChanges swaps any cached block changes so that
+// loadCachedBlockChanges swaps any cached block changes so that
 // future local accesses to this MD (from the cache) can directly
 // access the ops without needing to re-embed the block changes.
-func (md *RootMetadata) swapCachedBlockChanges(bps *blockPutState) {
+func (md *RootMetadata) loadCachedBlockChanges(bps *blockPutState) {
 	if md.data.Changes.Ops == nil {
 		md.data.Changes, md.data.cachedChanges =
 			md.data.cachedChanges, md.data.Changes

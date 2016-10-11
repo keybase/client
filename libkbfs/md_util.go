@@ -381,10 +381,10 @@ func signMD(
 
 func getFileBlockForMD(ctx context.Context, config Config, ptr BlockPointer,
 	rmdToDecrypt *RootMetadata, rmdWithKeys KeyMetadata) (*FileBlock, error) {
-	//We don't have a convenient way to
-	// fetch the block from here via folderBlockOps, so just go
-	// directly via the BlockCache/BlockOps.  No locking around the
-	// blocks is needed since these change blocks are read-only.
+	// We don't have a convenient way to fetch the block from here via
+	// folderBlockOps, so just go directly via the
+	// BlockCache/BlockOps.  No locking around the blocks is needed
+	// since these change blocks are read-only.
 	block, err := config.BlockCache().Get(ptr)
 	if err != nil {
 		block = NewFileBlock()
