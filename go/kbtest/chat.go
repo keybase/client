@@ -236,8 +236,12 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 		}
 	}
 
-	// TODO: add pagination support
+	// TODO: add *real* pagination support
+	if arg.Pagination == nil {
+		arg.Pagination = &chat1.Pagination{Num: 10000}
+	}
 	msgs := m.world.Msgs[arg.ConversationID]
+	count := 0
 	for _, msg := range msgs {
 		if arg.Query != nil {
 			if arg.Query.After != nil && msg.ServerHeader.Ctime < *arg.Query.After {
@@ -246,11 +250,17 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 			if arg.Query.Before != nil && msg.ServerHeader.Ctime > *arg.Query.Before {
 				continue
 			}
-			if mts != nil && !mts[msg.ServerHeader.MessageType] {
-				continue
-			}
+
 		}
 		res.Thread.Messages = append(res.Thread.Messages, *msg)
+		if mts != nil && mts[msg.ServerHeader.MessageType] {
+			count++
+		} else if mts == nil {
+			count++
+		}
+		if count >= arg.Pagination.Num {
+			break
+		}
 	}
 	if arg.Query != nil && arg.Query.MarkAsRead {
 		m.readMsgid[arg.ConversationID] = msgs[0].ServerHeader.MessageID

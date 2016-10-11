@@ -13,6 +13,7 @@
 @property NSString *runMode;
 @property UninstallOptions uninstallOptions;
 @property KBInstallOptions installOptions;
+@property NSInteger installTimeout; // In (whole) seconds
 @property GBSettings *settings;
 @end
 
@@ -34,8 +35,9 @@
 - (BOOL)parseArgs:(NSError **)error {
   NSArray *args = NSProcessInfo.processInfo.arguments;
   GBCommandLineParser *parser = [[GBCommandLineParser alloc] init];
-  [parser registerOption:@"app-path" shortcut:'a' requirement:GBValueRequired];
-  [parser registerOption:@"run-mode" shortcut:'r' requirement:GBValueRequired];
+  [parser registerOption:@"app-path" requirement:GBValueRequired];
+  [parser registerOption:@"run-mode" requirement:GBValueRequired];
+  [parser registerOption:@"timeout" requirement:GBValueRequired];
   [parser registerSwitch:@"uninstall-app"];
   [parser registerSwitch:@"uninstall-fuse"];
   [parser registerSwitch:@"uninstall-mountdir"];
@@ -49,9 +51,15 @@
     return NO;
   }
   self.runMode = [self.settings objectForKey:@"run-mode"];
-  NSAssert(self.runMode, @"No run mode");
+  if (!self.runMode) {
+    if (error) *error = KBMakeError(-1, @"No run mode");
+    return NO;
+  }
   self.appPath = [self.settings objectForKey:@"app-path"];
-  NSAssert(self.appPath, @"No app path");
+  if (!self.appPath) {
+    if (error) *error = KBMakeError(-1, @"No app path");
+    return NO;
+  }
   if ([[self.settings objectForKey:@"uninstall-app"] boolValue]) {
     self.uninstallOptions |= UninstallOptionApp;
   }
@@ -74,13 +82,19 @@
   if (self.installOptions == 0) {
     self.installOptions = KBInstallOptionAll;
   }
+  self.installTimeout = [[self.settings objectForKey:@"timeout"] intValue];
+  if (self.installTimeout <= 0) {
+    if (error) *error = KBMakeError(-1, @"Invalid timeout: %@", @(self.installTimeout));
+    return NO;
+  }
+
   return YES;
 }
 
 - (KBEnvironment *)environment {
-  NSAssert(self.runMode, @"No run mode");
   NSString *servicePath = [self.appPath stringByAppendingPathComponent:@"Contents/SharedSupport/bin"];
-  KBEnvironment *environment = [KBEnvironment environmentForRunModeString:self.runMode servicePath:servicePath options:self.installOptions];
+  KBEnvConfig *envConfig = [KBEnvConfig envConfigWithRunModeString:self.runMode installOptions:self.installOptions installTimeout:self.installTimeout];
+  KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig servicePath:servicePath];
   return environment;
 }
 

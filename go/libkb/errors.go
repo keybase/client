@@ -1529,6 +1529,44 @@ func (e ChatUnboxingError) Error() string {
 	return fmt.Sprintf("error unboxing chat message: %s", e.Msg)
 }
 
+//=============================================================================
+
+type ConsistencyErrorCode int
+
+const (
+	DuplicateID ConsistencyErrorCode = iota
+	OutOfOrderID
+	InconsistentHash
+	IncorrectHash
+)
+
+type ChatThreadConsistencyError interface {
+	error
+	Code() ConsistencyErrorCode
+}
+
+type chatThreadConsistencyErrorImpl struct {
+	msg  string
+	code ConsistencyErrorCode
+}
+
+func (e chatThreadConsistencyErrorImpl) Error() string {
+	return e.msg
+}
+
+func (e chatThreadConsistencyErrorImpl) Code() ConsistencyErrorCode {
+	return e.code
+}
+
+func NewChatThreadConsistencyError(code ConsistencyErrorCode, msg string, formatArgs ...interface{}) ChatThreadConsistencyError {
+	return &chatThreadConsistencyErrorImpl{
+		code: code,
+		msg:  fmt.Sprintf(msg, formatArgs...),
+	}
+}
+
+//=============================================================================
+
 type ChatVersionError struct {
 	Kind    string
 	Version int
@@ -1558,6 +1596,8 @@ func NewChatMessageVersionError(version chat1.MessagePlaintextVersion) ChatVersi
 		Version: int(version),
 	}
 }
+
+//=============================================================================
 
 type ChatBodyHashInvalid struct{}
 

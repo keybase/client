@@ -21,6 +21,9 @@
 @property NSImage *image;
 @property KBRunMode runMode;
 @property BOOL installDisabled;
+@property KBInstallOptions installOptions;
+@property NSTimeInterval installTimeout;
+
 @end
 
 @implementation KBEnvConfig
@@ -60,6 +63,22 @@
     }
   }
   return self;
+}
+
++ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout {
+  KBEnvConfig *envConfig;
+  if ([runModeString isEqualToString:@"prod"]) {
+    envConfig = [KBEnvConfig envConfigWithRunMode:KBRunModeProd];
+  } else if ([runModeString isEqualToString:@"staging"]) {
+    envConfig = [KBEnvConfig envConfigWithRunMode:KBRunModeStaging];
+  } else if ([runModeString isEqualToString:@"devel"]) {
+    envConfig = [KBEnvConfig envConfigWithRunMode:KBRunModeDevel];
+  } else {
+    return nil;
+  }
+  envConfig.installOptions = installOptions;
+  envConfig.installTimeout = installTimeout;
+  return envConfig;
 }
 
 + (NSString *)groupContainer:(NSString *)path {

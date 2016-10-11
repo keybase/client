@@ -62,7 +62,7 @@ func (v *CmdTrack) SetOptions(options keybase1.TrackOptions) {
 
 func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("Track only takes one argument, the user to follow.")
+		return fmt.Errorf("Follow only takes one argument, the user to follow.")
 	}
 	v.user = ctx.Args()[0]
 	v.options = keybase1.TrackOptions{LocalOnly: ctx.Bool("local"), BypassConfirm: ctx.Bool("y")}
