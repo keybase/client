@@ -107,7 +107,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 	return chat1.GetInboxLocalRes{
 		ConversationsUnverified: ib.Inbox.Conversations,
 		Pagination:              ib.Inbox.Pagination,
-		RateLimits:              h.aggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
+		RateLimits:              chat.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 	}, nil
 }
 

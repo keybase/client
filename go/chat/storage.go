@@ -252,7 +252,13 @@ func (s *Storage) updateSupersededBy(bi blockIndex, msgs []chat1.MessageFromServ
 	s.debug("updateSupersededBy: num msgs: %d", len(msgs))
 	// Do a pass over all the messages and update supersededBy pointers
 	for _, msg := range msgs {
-		msgid := msg.Message.ServerHeader.MessageID
+
+		msgid := msg.GetMessageID()
+		if msg.UnboxingError != nil {
+			s.debug("updateSupersededBy: skipping potential superseder marked as error: %d", msgid)
+			continue
+		}
+
 		superID := msg.Message.MessagePlaintext.V1().ClientHeader.Supersedes
 		if superID == 0 {
 			continue
@@ -279,6 +285,8 @@ func (s *Storage) updateSupersededBy(bi blockIndex, msgs []chat1.MessageFromServ
 			if err = s.writeBlock(bi, b); err != nil {
 				return err
 			}
+		} else {
+			s.debug("updateSupersededBy: skipping id: %d, it is stored as an error", msgid)
 		}
 	}
 
@@ -292,8 +300,13 @@ func (s *Storage) writeMessages(bi blockIndex, msgs []chat1.MessageFromServerOrE
 	var lastWritten int
 	docreate := false
 
+	// Sanity check
+	if len(msgs) == 0 {
+		return nil
+	}
+
 	// Get the maximum  block (create it if we need to)
-	maxID := msgs[0].Message.ServerHeader.MessageID
+	maxID := msgs[0].GetMessageID()
 	s.debug("writeMessages: maxID: %d num: %d", maxID, len(msgs))
 	if maxB, err = s.getBlock(bi, maxID); err != nil {
 		if _, ok := err.(libkb.ChatStorageMissError); !ok {
@@ -315,7 +328,7 @@ func (s *Storage) writeMessages(bi blockIndex, msgs []chat1.MessageFromServerOrE
 	// Append to the block
 	newBlock = maxB
 	for index, msg := range msgs {
-		msgID := msg.Message.ServerHeader.MessageID
+		msgID := msg.GetMessageID()
 		if s.getBlockNumber(msgID) != newBlock.BlockID {
 			s.debug("writeMessages: crossed block boundary, aborting and writing out: msgID: %d", msgID)
 			break
@@ -363,7 +376,7 @@ func (s *Storage) readMessages(res *[]chat1.MessageFromServerOrError, bi blockIn
 			s.debug("readMessages: cache entry empty: index: %d block: %d msgID: %d", index, b.BlockID, s.getMsgID(b.BlockID, index))
 			return libkb.ChatStorageMissError{}
 		}
-		bMsgID := msg.Message.ServerHeader.MessageID
+		bMsgID := msg.GetMessageID()
 
 		// Sanity check
 		if bMsgID != s.getMsgID(b.BlockID, index) {
@@ -371,9 +384,9 @@ func (s *Storage) readMessages(res *[]chat1.MessageFromServerOrError, bi blockIn
 		}
 
 		s.debug("readMessages: adding msg_id: %d (blockid: %d pos: %d)",
-			msg.Message.ServerHeader.MessageID, b.BlockID, index)
+			msg.GetMessageID(), b.BlockID, index)
 		*res = append(*res, msg)
-		lastAdded = msg.Message.ServerHeader.MessageID
+		lastAdded = msg.GetMessageID()
 	}
 
 	// Check if we read anything, otherwise move to another block and try again
@@ -439,7 +452,7 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	typedDoneFunc := func(msgs *[]chat1.MessageFromServerOrError, num int) bool {
 		count := 0
 		for _, msg := range *msgs {
-			if _, ok := typmap[msg.Message.ServerHeader.MessageType]; ok {
+			if _, ok := typmap[msg.GetMessageType()]; ok {
 				count++
 			}
 		}

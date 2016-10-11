@@ -265,7 +265,11 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (
 			errMsg := err.Error()
 			b.G().Log.Warning("failed to unbox message: msgID: %d err: %s", msg.ServerHeader.MessageID, errMsg)
 			unboxed = append(unboxed, chat1.MessageFromServerOrError{
-				UnboxingError: &errMsg,
+				UnboxingError: &chat1.MessageError{
+					Errmsg:      errMsg,
+					MessageID:   msg.ServerHeader.MessageID,
+					MessageType: msg.ServerHeader.MessageType,
+				},
 			})
 			continue
 		}

@@ -363,8 +363,14 @@ type MessageFromServer struct {
 	HeaderHash       Hash                `codec:"headerHash" json:"headerHash"`
 }
 
+type MessageError struct {
+	Errmsg      string      `codec:"errmsg" json:"errmsg"`
+	MessageID   MessageID   `codec:"messageID" json:"messageID"`
+	MessageType MessageType `codec:"messageType" json:"messageType"`
+}
+
 type MessageFromServerOrError struct {
-	UnboxingError *string            `codec:"unboxingError,omitempty" json:"unboxingError,omitempty"`
+	UnboxingError *MessageError      `codec:"unboxingError,omitempty" json:"unboxingError,omitempty"`
 	Message       *MessageFromServer `codec:"message,omitempty" json:"message,omitempty"`
 }
 
