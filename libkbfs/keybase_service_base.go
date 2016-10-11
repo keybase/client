@@ -294,6 +294,12 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 		// knows for sure there's a need for a dialogue.
 		CanSuppressUI: true,
 	}
+
+	ei := getExtendedIdentify(ctx)
+	if ei.behavior.WarningInsteadOfErrorOnBrokenTracks() {
+		arg.ChatGUIMode = true
+	}
+
 	res, err := k.identifyClient.Identify2(ctx, arg)
 	// Identify2 still returns keybase1.UserPlusKeys data (sans keys),
 	// even if it gives a NoSigChainError, and in KBFS it's fine if
@@ -307,7 +313,16 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 		return UserInfo{}, ConvertIdentifyError(assertion, err)
 	}
 
-	return k.processUserPlusKeys(res.Upk)
+	userInfo, err := k.processUserPlusKeys(res.Upk)
+	if err != nil {
+		return UserInfo{}, err
+	}
+
+	// This is required for every identify call. The userBreak function will take
+	// care of checking if res.TrackBreaks is nil or not.
+	ei.userBreak(userInfo.Name, userInfo.UID, res.TrackBreaks)
+
+	return userInfo, nil
 }
 
 // LoadUserPlusKeys implements the KeybaseService interface for KeybaseServiceBase.
@@ -595,21 +610,28 @@ func (k *KeybaseServiceBase) FSSyncStatusRequest(ctx context.Context,
 // GetTLFCryptKeys implements the TlfKeysInterface interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
-	tlfName string) (res keybase1.TLFCryptKeys, err error) {
-	ctx = ctxWithRandomIDReplayable(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
-		k.log)
-	tlfHandle, err := k.getHandleFromFolderName(ctx, tlfName, false)
+	query keybase1.TLFQuery) (res keybase1.GetTLFCryptKeysRes, err error) {
+	if ctx, err = makeExtendedIdentify(
+		ctxWithRandomIDReplayable(ctx,
+			CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID, k.log),
+		query.IdentifyBehavior,
+	); err != nil {
+		return keybase1.GetTLFCryptKeysRes{}, err
+	}
+
+	tlfHandle, err := k.getHandleFromFolderName(ctx, query.TlfName, false)
 	if err != nil {
 		return res, err
 	}
 
-	res.CanonicalName = keybase1.CanonicalTlfName(tlfHandle.GetCanonicalName())
+	res.NameIDBreaks.CanonicalName = keybase1.CanonicalTlfName(
+		tlfHandle.GetCanonicalName())
 
 	keys, id, err := k.config.KBFSOps().GetTLFCryptKeys(ctx, tlfHandle)
 	if err != nil {
 		return res, err
 	}
-	res.TlfID = keybase1.TLFID(id.String())
+	res.NameIDBreaks.TlfID = keybase1.TLFID(id.String())
 
 	for i, key := range keys {
 		res.CryptKeys = append(res.CryptKeys, keybase1.CryptKey{
@@ -618,27 +640,44 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 		})
 	}
 
+	if query.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
+		res.NameIDBreaks.Breaks = getExtendedIdentify(ctx).getTlfBreakOrBust()
+	}
+
 	return res, nil
 }
 
 // GetPublicCanonicalTLFNameAndID implements the TlfKeysInterface interface for
 // KeybaseServiceBase.
-func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(ctx context.Context,
-	tlfName string) (res keybase1.CanonicalTLFNameAndID, err error) {
-	ctx = ctxWithRandomIDReplayable(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
-		k.log)
-	tlfHandle, err := k.getHandleFromFolderName(ctx, tlfName, true /* public */)
+func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
+	ctx context.Context, query keybase1.TLFQuery) (
+	res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+	if ctx, err = makeExtendedIdentify(
+		ctxWithRandomIDReplayable(ctx,
+			CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID, k.log),
+		query.IdentifyBehavior,
+	); err != nil {
+		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
+	}
+
+	tlfHandle, err := k.getHandleFromFolderName(
+		ctx, query.TlfName, true /* public */)
 	if err != nil {
 		return res, err
 	}
 
-	res.CanonicalName = keybase1.CanonicalTlfName(tlfHandle.GetCanonicalName())
+	res.CanonicalName = keybase1.CanonicalTlfName(
+		tlfHandle.GetCanonicalName())
 
 	id, err := k.config.KBFSOps().GetTLFID(ctx, tlfHandle)
 	if err != nil {
 		return res, err
 	}
 	res.TlfID = keybase1.TLFID(id.String())
+
+	if query.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
+		res.Breaks = getExtendedIdentify(ctx).getTlfBreakOrBust()
+	}
 
 	return res, nil
 }

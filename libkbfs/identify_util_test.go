@@ -30,14 +30,28 @@ func (g testNormalizedUsernameGetter) GetNormalizedUsername(
 }
 
 type testIdentifier struct {
-	assertions         map[string]UserInfo
-	identifiedUidsLock sync.Mutex
-	identifiedUids     map[keybase1.UID]bool
+	assertions             map[string]UserInfo
+	assertionsBrokenTracks map[string]UserInfo
+	identifiedUidsLock     sync.Mutex
+	identifiedUids         map[keybase1.UID]bool
 }
 
 func (ti *testIdentifier) Identify(
 	ctx context.Context, assertion, reason string) (UserInfo, error) {
-	userInfo, ok := ti.assertions[assertion]
+	ei := getExtendedIdentify(ctx)
+	userInfo, ok := ti.assertionsBrokenTracks[assertion]
+	if ok {
+		if !ei.behavior.WarningInsteadOfErrorOnBrokenTracks() {
+			return UserInfo{}, libkb.UnmetAssertionError{
+				User:   "imtotalllymakingthisup",
+				Remote: true,
+			}
+		}
+		ei.userBreak(userInfo.Name, userInfo.UID, &keybase1.IdentifyTrackBreaks{})
+		return userInfo, nil
+	}
+
+	userInfo, ok = ti.assertions[assertion]
 	if !ok {
 		return UserInfo{}, NoSuchUserError{assertion}
 	}
@@ -51,32 +65,34 @@ func (ti *testIdentifier) Identify(
 		ti.identifiedUids[userInfo.UID] = true
 	}()
 
+	ei.userBreak(userInfo.Name, userInfo.UID, nil)
 	return userInfo, nil
 }
 
+func makeNugAndTIForTest() (testNormalizedUsernameGetter, *testIdentifier) {
+	return testNormalizedUsernameGetter{
+			keybase1.MakeTestUID(1): "alice",
+			keybase1.MakeTestUID(2): "bob",
+			keybase1.MakeTestUID(3): "charlie",
+		}, &testIdentifier{
+			assertions: map[string]UserInfo{
+				"alice": {
+					Name: "alice",
+					UID:  keybase1.MakeTestUID(1),
+				},
+				"bob": {
+					Name: "bob",
+					UID:  keybase1.MakeTestUID(2),
+				},
+				"charlie": {
+					Name: "charlie",
+					UID:  keybase1.MakeTestUID(3),
+				},
+			},
+		}
+}
 func TestIdentify(t *testing.T) {
-	nug := testNormalizedUsernameGetter{
-		keybase1.MakeTestUID(1): "alice",
-		keybase1.MakeTestUID(2): "bob",
-		keybase1.MakeTestUID(3): "charlie",
-	}
-
-	ti := &testIdentifier{
-		assertions: map[string]UserInfo{
-			"alice": {
-				Name: "alice",
-				UID:  keybase1.MakeTestUID(1),
-			},
-			"bob": {
-				Name: "bob",
-				UID:  keybase1.MakeTestUID(2),
-			},
-			"charlie": {
-				Name: "charlie",
-				UID:  keybase1.MakeTestUID(3),
-			},
-		},
-	}
+	nug, ti := makeNugAndTIForTest()
 
 	uids := make(map[keybase1.UID]bool, len(nug))
 	uidList := make([]keybase1.UID, 0, len(nug))
@@ -85,7 +101,39 @@ func TestIdentify(t *testing.T) {
 		uidList = append(uidList, u)
 	}
 
-	err := identifyUserList(context.Background(), nug, ti, uidList, false)
+	err := identifyUserListForTLF(context.Background(), nug, ti, uidList, false)
 	require.NoError(t, err)
 	require.Equal(t, uids, ti.identifiedUids)
+}
+
+func TestIdentifyAlternativeBehaviors(t *testing.T) {
+	nug, ti := makeNugAndTIForTest()
+	nug[keybase1.MakeTestUID(1001)] = "zebra"
+	ti.assertionsBrokenTracks = map[string]UserInfo{
+		"zebra": {
+			Name: "zebra",
+			UID:  keybase1.MakeTestUID(1001),
+		},
+	}
+
+	uidList := make([]keybase1.UID, 0, len(nug))
+	for u := range nug {
+		uidList = append(uidList, u)
+	}
+
+	ctx, err := makeExtendedIdentify(context.Background(),
+		keybase1.TLFIdentifyBehavior_CHAT_CLI)
+	require.NoError(t, err)
+	err = identifyUserListForTLF(ctx, nug, ti, uidList, false)
+	require.Error(t, err)
+
+	ctx, err = makeExtendedIdentify(context.Background(),
+		keybase1.TLFIdentifyBehavior_CHAT_GUI)
+	require.NoError(t, err)
+	err = identifyUserListForTLF(ctx, nug, ti, uidList, false)
+	require.NoError(t, err)
+	tb := getExtendedIdentify(ctx).getTlfBreakOrBust()
+	require.Len(t, tb.Breaks, 1)
+	require.Equal(t, "zebra", tb.Breaks[0].User.Username)
+	require.NotNil(t, tb.Breaks[0].Breaks)
 }

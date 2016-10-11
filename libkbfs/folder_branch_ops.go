@@ -774,9 +774,16 @@ func (fbo *folderBranchOps) identifyOnce(
 		return err
 	}
 
-	fbo.log.CDebugf(ctx, "Identify finished successfully")
-	fbo.identifyDone = true
-	fbo.identifyTime = fbo.config.Clock().Now()
+	ei := getExtendedIdentify(ctx)
+	if ei.behavior.WarningInsteadOfErrorOnBrokenTracks() &&
+		len(ei.getTlfBreakOrBust().Breaks) > 0 {
+		fbo.log.CDebugf(ctx,
+			"Identify finished with no error but broken proof warnings")
+	} else {
+		fbo.log.CDebugf(ctx, "Identify finished successfully")
+		fbo.identifyDone = true
+		fbo.identifyTime = fbo.config.Clock().Now()
+	}
 	return nil
 }
 

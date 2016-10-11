@@ -5,12 +5,124 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
+
+type extendedIdentify struct {
+	behavior   keybase1.TLFIdentifyBehavior
+	userBreaks chan keybase1.TLFUserBreak
+
+	tlfBreaksLock sync.Mutex
+	tlfBreaks     *keybase1.TLFBreak
+}
+
+func (ei *extendedIdentify) userBreak(username libkb.NormalizedUsername, uid keybase1.UID, breaks *keybase1.IdentifyTrackBreaks) {
+	if ei.userBreaks == nil {
+		return
+	}
+
+	ei.userBreaks <- keybase1.TLFUserBreak{
+		Breaks: breaks,
+		User: keybase1.User{
+			Uid:      uid,
+			Username: string(username),
+		},
+	}
+}
+
+func (ei *extendedIdentify) makeTlfBreaksIfNeeded(
+	ctx context.Context, numUserInTlf int) error {
+	if ei.userBreaks == nil {
+		return nil
+	}
+
+	b := &keybase1.TLFBreak{}
+	for i := 0; i < numUserInTlf; i++ {
+		select {
+		case ub, ok := <-ei.userBreaks:
+			if !ok {
+				return errors.New("makeTlfBreaksIfNeeded called on extendedIdentify" +
+					" with closed userBreaks channel.")
+			}
+			if ub.Breaks != nil {
+				b.Breaks = append(b.Breaks, ub)
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+
+	ei.tlfBreaksLock.Lock()
+	defer ei.tlfBreaksLock.Unlock()
+	ei.tlfBreaks = b
+
+	return nil
+}
+
+// getTlfBreakOrBust returns a keybase1.TLFBreak. This should only be called
+// for behavior.WarningInsteadOfErrorOnBrokenTracks() == true, and after
+// makeTlfBreaksIfNeeded is called. Otherwise it panics.
+func (ei *extendedIdentify) getTlfBreakOrBust() keybase1.TLFBreak {
+	ei.tlfBreaksLock.Lock()
+	defer ei.tlfBreaksLock.Unlock()
+	close(ei.userBreaks)
+	return *ei.tlfBreaks
+}
+
+// ctxExtendedIdentifyKeyType is a type for the context key for using
+// extendedIdentify
+type ctxExtendedIdentifyKeyType int
+
+const (
+	// ctxExtendedIdentifyKeyType is a context key for using extendedIdentify
+	ctxExtendedIdentifyKey ctxExtendedIdentifyKeyType = iota
+)
+
+// ExtendedIdentifyAlreadyExists is returned when makeExtendedIdentify is
+// called on a context already with extendedIdentify.
+type ExtendedIdentifyAlreadyExists struct{}
+
+func (e ExtendedIdentifyAlreadyExists) Error() string {
+	return "extendedIdentify already exists"
+}
+
+func makeExtendedIdentify(ctx context.Context,
+	behavior keybase1.TLFIdentifyBehavior) (context.Context, error) {
+	if _, ok := ctx.Value(ctxExtendedIdentifyKey).(*extendedIdentify); ok {
+		return nil, ExtendedIdentifyAlreadyExists{}
+	}
+
+	if !behavior.WarningInsteadOfErrorOnBrokenTracks() {
+		return NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+			return context.WithValue(ctx, ctxExtendedIdentifyKey, &extendedIdentify{
+				behavior: behavior,
+			})
+		}), nil
+	}
+
+	return NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, ctxExtendedIdentifyKey, &extendedIdentify{
+			behavior:   behavior,
+			userBreaks: make(chan keybase1.TLFUserBreak),
+		})
+	}), nil
+}
+
+func getExtendedIdentify(ctx context.Context) (ei *extendedIdentify) {
+	if ei, ok := ctx.Value(ctxExtendedIdentifyKey).(*extendedIdentify); ok {
+		return ei
+	}
+	return &extendedIdentify{
+		behavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	}
+}
 
 func identifyUID(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, uid keybase1.UID, isPublic bool) error {
 	username, err := nug.GetNormalizedUsername(ctx, uid)
@@ -47,7 +159,8 @@ func identifyUserList(ctx context.Context, nug normalizedUsernameGetter, identif
 	defer cancel()
 
 	errChan := make(chan error, len(uids))
-	// TODO: limit the number of concurrent identifies?
+	// TODO: limit the number of concurrent identifies? Otherwise we can use
+	// errgroup.Group here.
 	for _, uid := range uids {
 		go func(uid keybase1.UID) {
 			err := identifyUID(ctx, nug, identifier, uid, public)
@@ -65,8 +178,23 @@ func identifyUserList(ctx context.Context, nug normalizedUsernameGetter, identif
 	return nil
 }
 
+func identifyUserListForTLF(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, uids []keybase1.UID, public bool) error {
+	eg, ctx := errgroup.WithContext(ctx)
+
+	eg.Go(func() error {
+		ei := getExtendedIdentify(ctx)
+		return ei.makeTlfBreaksIfNeeded(ctx, len(uids))
+	})
+
+	eg.Go(func() error {
+		return identifyUserList(ctx, nug, identifier, uids, public)
+	})
+
+	return eg.Wait()
+}
+
 // identifyHandle identifies the canonical names in the given handle.
 func identifyHandle(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, h *TlfHandle) error {
 	uids := append(h.ResolvedWriters(), h.ResolvedReaders()...)
-	return identifyUserList(ctx, nug, identifier, uids, h.IsPublic())
+	return identifyUserListForTLF(ctx, nug, identifier, uids, h.IsPublic())
 }

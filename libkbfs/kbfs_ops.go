@@ -276,6 +276,16 @@ func (fs *KBFSOpsStandard) GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (
 func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
 	ctx context.Context, mdops MDOps, h *TlfHandle, create bool) (initialized bool,
 	md ImmutableRootMetadata, id TlfID, err error) {
+	defer func() {
+		if getExtendedIdentify(ctx).behavior.AlwaysRunIdentify() &&
+			!initialized && err == nil {
+			kbpki := fs.config.KBPKI()
+			// We are not running identify for existing TLFs in KBFS. This makes sure
+			// if requested, identify runs even for existing TLFs.
+			err = identifyHandle(ctx, kbpki, kbpki, h)
+		}
+	}()
+
 	id, md, err = mdops.GetForHandle(ctx, h, Merged)
 	if err != nil {
 		return false, ImmutableRootMetadata{}, id, err
