@@ -537,7 +537,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		var mountDir string
 		mountDir, err = context.GetMountDir()
 		if err == nil {
-			err = UninstallKBFS(context.GetRunMode(), mountDir, true, log)
+			err = UninstallKBFS(context.GetRunMode(), mountDir, true, true, log)
 		}
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 	}
@@ -565,8 +565,18 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	return newUninstallResult(componentResults)
 }
 
-// UninstallKBFS uninstalls all KBFS services, unmounts and removes the directory
-func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, log Log) error {
+// UninstallKBFSOnStop removes KBFS services and unmounts
+func UninstallKBFSOnStop(context Context, log Log) error {
+	runMode := context.GetRunMode()
+	mountDir, err := context.GetMountDir()
+	if err != nil {
+		return err
+	}
+	return UninstallKBFS(runMode, mountDir, false, true, log)
+}
+
+// UninstallKBFS uninstalls all KBFS services, unmounts and optionally removes the directory
+func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, removeDir bool, log Log) error {
 	err := UninstallKBFSServices(runMode, log)
 	if err != nil {
 		return err
@@ -595,9 +605,11 @@ func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, lo
 		return fmt.Errorf("Mount has files after unmounting: %s", mountDir)
 	}
 
-	log.Info("Removing %s", mountDir)
-	if err := uninstallMountDir(runMode, log); err != nil {
-		return fmt.Errorf("Error removing mount dir: %s", err)
+	if removeDir {
+		log.Info("Removing %s", mountDir)
+		if err := uninstallMountDir(runMode, log); err != nil {
+			return fmt.Errorf("Error removing mount dir: %s", err)
+		}
 	}
 
 	return nil
