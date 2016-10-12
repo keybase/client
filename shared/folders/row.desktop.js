@@ -8,12 +8,9 @@ import {globalStyles, globalColors, backgroundURL, globalMargins} from '../style
 
 const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, isPublic}) => {
   let boxStyle: Object = {
-    width: smallMode ? globalMargins.medium : globalMargins.large,
-    minHeight: smallMode ? 40 : globalMargins.large,
-    paddingTop: smallMode ? globalMargins.tiny : 12,
-    paddingBottom: smallMode ? globalMargins.tiny : 12,
-    paddingLeft: smallMode ? globalMargins.xtiny : globalMargins.tiny,
-    paddingRight: smallMode ? globalMargins.xtiny : globalMargins.tiny,
+    width: smallMode ? globalMargins.large : 48,
+    minHeight: smallMode ? globalMargins.large : 48,
+    padding: globalMargins.tiny,
   }
 
   if (isPublic) {

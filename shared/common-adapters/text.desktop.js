@@ -57,11 +57,27 @@ class Text extends Component<void, Props, void> {
   }
 }
 
+function _defaultColor (backgroundMode: ?Background) {
+  if (!backgroundMode) {
+    backgroundMode = 'Normal'
+  }
+
+  return {
+    'Normal': globalColors.white,
+    'Announcements': globalColors.white,
+    'Success': globalColors.white,
+    'Information': globalColors.brown_60,
+    'HighRisk': globalColors.white,
+    'Documentation': globalColors.white,
+    'Terminal': globalColors.white,
+  }[backgroundMode]
+}
+
 function getStyle (type: TextType, backgroundMode?: ?Background, lineClamp?: ?number, clickable?: ?boolean) {
   const meta = _metaData[type] || _metaData['HeaderBig']
 
   const sizeStyle = _fontSizeToSizeStyle(meta.fontSize)
-  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode || 'Normal'] || globalColors.white}
+  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode || 'Normal'] || _defaultColor(backgroundMode)}
   const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClamp ? _lineClamp(lineClamp) : null
   const clickableStyle = clickable ? globalStyles.clickable : null

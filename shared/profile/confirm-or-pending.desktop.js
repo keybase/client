@@ -15,7 +15,7 @@ const Render = (props: Props) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', backgroundColor: titleColor, height: globalMargins.large}}>
-        <Text backgroundMode='Terminal' type='BodySmallSemibold'>{title}</Text>
+        <Text backgroundMode='Success' type='BodySmallSemibold'>{title}</Text>
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.large}}>
         <PlatformIcon platform={platform} overlay={platformIconOverlay} overlayColor={platformIconOverlayColor} />
