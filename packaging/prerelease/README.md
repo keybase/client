@@ -23,20 +23,12 @@ To build and deploy the app:
 PLATFORM=darwin ./build_app.sh
 ```
 
-### Scheduling Builds
-
-There is an example of a plist for scheduled builds.
-
-```
-launchctl load ~/Library/LaunchAgents/keybase.prerelease.plist
-```
-
 ### Dev/Local Builds
 
-To build a version of the app using the local repo without uploading to S3:
+To build a version of the app using the local repo without uploading to S3 or checking CI:
 
 ```
-NOWAIT=1 NOPULL=1 NOS3=1 PLATFORM=darwin ./build_app.sh
+NOWAIT=1 NOS3=1 PLATFORM=darwin ./build_app.sh
 ```
 
 For faster debugging/testing, you can build Keybase services (go binaries)
