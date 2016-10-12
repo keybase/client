@@ -212,8 +212,8 @@ type attachOptionsV1 struct {
 }
 
 func (a attachOptionsV1) Check() error {
-	if !a.Channel.Valid() {
-		return ErrInvalidOptions{version: 1, method: methodAttach, err: errors.New("invalid channel")}
+	if err := checkChannelConv(methodAttach, a.Channel, a.ConversationID); err != nil {
+		return err
 	}
 	if len(strings.TrimSpace(a.Filename)) == 0 {
 		return ErrInvalidOptions{version: 1, method: methodAttach, err: errors.New("empty filename")}

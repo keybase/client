@@ -48,6 +48,7 @@ func UploadS3(log logger.Logger, r io.Reader, filename string, params chat1.S3At
 	if err != nil {
 		return nil, err
 	}
+
 	n, err := io.Copy(part, r)
 	if err != nil {
 		return nil, err
@@ -63,19 +64,19 @@ func UploadS3(log logger.Logger, r io.Reader, filename string, params chat1.S3At
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("response: %+v", resp)
+	log.Debug("s3 post response: %+v", resp)
 	bstr, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 	resp.Body.Close()
-	log.Debug("response body:  %s", bstr)
+	log.Debug("s3 post response body:  %s", bstr)
 
 	// XXX check response
 	res := UploadS3Result{
 		S3Bucket: params.Bucket,
 		S3Path:   params.ObjectKey,
-		Size:     n,
+		Size:     int64(n),
 	}
 
 	return &res, nil

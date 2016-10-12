@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -362,6 +363,10 @@ func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 	}
 
 	fsource := NewFileSource(opts.Filename)
+	if err := fsource.Open(); err != nil {
+		return c.errReply(err)
+	}
+	defer fsource.Close()
 	src := c.G().XStreams.ExportReader(fsource)
 
 	arg := chat1.PostAttachmentLocalArg{
@@ -372,6 +377,12 @@ func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 	}
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
+		return c.errReply(err)
+	}
+	protocols := []rpc.Protocol{
+		NewStreamUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
 	}
 	pres, err := client.PostAttachmentLocal(ctx, arg)

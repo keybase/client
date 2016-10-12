@@ -773,6 +773,8 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		return chat1.PostLocalRes{}, err
 	}
 
+	h.G().Log.Debug("chat attachment upload: %+v", upRes)
+
 	// send an attachment message
 	attachment := chat1.MessageAttachment{
 		Object: chat1.Asset{
