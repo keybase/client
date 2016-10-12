@@ -153,7 +153,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 }
 
 func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
-	return s.storage.mustNuke(true, nil, convID, uid)
+	return s.storage.maybeNuke(true, nil, convID, uid)
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer,
