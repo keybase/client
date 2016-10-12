@@ -654,6 +654,26 @@ func (k *LibKBFS) FlushJournal(u User, tlfName string, isPublic bool) error {
 	return jServer.Flush(ctx, dir.GetFolderBranch().Tlf)
 }
 
+// UnflushedPaths implements the Engine interface.
+func (k *LibKBFS) UnflushedPaths(u User, tlfName string, isPublic bool) (
+	[]string, error) {
+	config := u.(*libkbfs.ConfigLocal)
+
+	ctx, cancel := k.newContext()
+	defer cancel()
+	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	if err != nil {
+		return nil, err
+	}
+
+	status, _, err := config.KBFSOps().FolderStatus(ctx, dir.GetFolderBranch())
+	if err != nil {
+		return nil, err
+	}
+
+	return status.Journal.UnflushedPaths, nil
+}
+
 // Shutdown implements the Engine interface.
 func (k *LibKBFS) Shutdown(u User) error {
 	config := u.(*libkbfs.ConfigLocal)

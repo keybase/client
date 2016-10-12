@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"path"
+	"reflect"
 	"regexp"
 	"sort"
 	"strings"
@@ -613,6 +614,23 @@ func resumeJournal() fileOp {
 func flushJournal() fileOp {
 	return fileOp{func(c *ctx) error {
 		return c.engine.FlushJournal(c.user, c.tlfName, c.tlfIsPublic)
+	}, IsInit}
+}
+
+func checkUnflushedPaths(expectedPaths []string) fileOp {
+	return fileOp{func(c *ctx) error {
+		paths, err := c.engine.UnflushedPaths(c.user, c.tlfName, c.tlfIsPublic)
+		if err != nil {
+			return err
+		}
+
+		sort.Strings(expectedPaths)
+		sort.Strings(paths)
+		if !reflect.DeepEqual(expectedPaths, paths) {
+			return fmt.Errorf("Expected unflushed paths %v, got %v",
+				expectedPaths, paths)
+		}
+		return nil
 	}, IsInit}
 }
 
