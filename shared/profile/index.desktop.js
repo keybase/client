@@ -201,7 +201,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
           <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
           <Box className='hover-underline'>
             <Text type='Body' style={{color: 'inherit'}}>{folder.isPublic ? 'public/' : 'private/'}</Text>
-            <Usernames users={folder.users} type='Body' style={{color: 'inherit'}} />
+            <Usernames inline={true} users={folder.users} type='Body' style={{color: 'inherit'}} />
           </Box>
         </Box>
       ))
