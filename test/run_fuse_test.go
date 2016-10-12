@@ -31,7 +31,7 @@ func createEngine() Engine {
 }
 
 func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
-	opTimeout time.Duration) User {
+	opTimeout time.Duration) *fsUser {
 	log := logger.NewTestLogger(t)
 	debugLog := log.CloneWithAddedDepth(1)
 	fuse.Debug = func(msg interface{}) {

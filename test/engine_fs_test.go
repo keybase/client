@@ -28,7 +28,7 @@ import (
 )
 
 type createUserFn func(t testing.TB, ith int, config *libkbfs.ConfigLocal,
-	opTimeout time.Duration) User
+	opTimeout time.Duration) *fsUser
 
 type fsEngine struct {
 	name       string
@@ -42,10 +42,11 @@ type fsNode struct {
 }
 
 type fsUser struct {
-	mntDir string
-	config *libkbfs.ConfigLocal
-	cancel func()
-	close  func()
+	mntDir   string
+	username libkb.NormalizedUsername
+	config   *libkbfs.ConfigLocal
+	cancel   func()
+	close    func()
 }
 
 // Perform Init for the engine
@@ -104,6 +105,14 @@ func (e *fsEngine) GetFavorites(user User, public bool) (map[string]bool, error)
 // GetRootDir implements the Engine interface.
 func (e *fsEngine) GetRootDir(user User, tlfName string, isPublic bool, expectedCanonicalTlfName string) (dir Node, err error) {
 	u := user.(*fsUser)
+	tlfName, err = libkbfs.FavoriteNameToPreferredTLFNameFormatAs(u.username, tlfName)
+	if err != nil {
+		return nil, err
+	}
+	expectedCanonicalTlfName, err = libkbfs.FavoriteNameToPreferredTLFNameFormatAs(u.username, expectedCanonicalTlfName)
+	if err != nil {
+		return nil, err
+	}
 	path := buildTlfPath(u, tlfName, isPublic)
 	var realPath string
 	// TODO currently we pretend that Dokan has no symbolic links
@@ -517,7 +526,9 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 	}
 
 	for i, name := range users {
-		res[name] = e.createUser(t, i, cfgs[i], opTimeout)
+		u := e.createUser(t, i, cfgs[i], opTimeout)
+		u.username = name
+		res[name] = u
 	}
 
 	if journal {
