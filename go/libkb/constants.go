@@ -207,6 +207,7 @@ const (
 	SCChatAlreadySuperseded  = int(keybase1.StatusCode_SCChatAlreadySuperseded)
 	SCChatAlreadyDeleted     = int(keybase1.StatusCode_SCChatAlreadyDeleted)
 	SCChatTLFFinalized       = int(keybase1.StatusCode_SCChatTLFFinalized)
+	SCBadEmail               = int(keybase1.StatusCode_SCBadEmail)
 )
 
 const (
@@ -228,6 +229,7 @@ const (
 	TrackType                      = "track"
 	UntrackType                    = "untrack"
 	UpdatePassphraseType           = "update_passphrase_hash"
+	UpdateSettingsType             = "update_settings"
 	WebServiceBindingType          = "web_service_binding"
 
 	EldestType    DelegationType = "eldest"
