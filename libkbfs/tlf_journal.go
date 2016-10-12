@@ -927,13 +927,12 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 	}
 
 	for _, ibrmd := range ibrmds {
-		rmd, err := j.convertImmutableBareRMDToRMD(ctx, ibrmd, handle)
+		irmd, err := j.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
 		if err != nil {
 			return TLFJournalStatus{}, err
 		}
 
-		irmds = append(irmds, MakeImmutableRootMetadata(
-			rmd, ibrmd.mdID, ibrmd.localTimestamp))
+		irmds = append(irmds, irmd)
 	}
 
 	// Make chains over the entire range to get the unflushed files.
@@ -1160,14 +1159,15 @@ func (j *tlfJournal) archiveBlockReferences(
 	return nil
 }
 
-// convertImmutableBareRMDToRMD decrypts the MD in the given bare root
+// convertImmutableBareRMDToIRMD decrypts the MD in the given bare root
 // MD.  The caller must NOT hold `j.journalLock`, because blocks
 // from the journal may need to be read as part of the decryption.
-func (j *tlfJournal) convertImmutableBareRMDToRMD(ctx context.Context,
-	ibrmd ImmutableBareRootMetadata, handle *TlfHandle) (*RootMetadata, error) {
+func (j *tlfJournal) convertImmutableBareRMDToIRMD(ctx context.Context,
+	ibrmd ImmutableBareRootMetadata, handle *TlfHandle) (
+	ImmutableRootMetadata, error) {
 	brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
 	if !ok {
-		return nil, MutableBareRootMetadataNoImplError{}
+		return ImmutableRootMetadata{}, MutableBareRootMetadataNoImplError{}
 	}
 
 	rmd := RootMetadata{
@@ -1180,9 +1180,10 @@ func (j *tlfJournal) convertImmutableBareRMDToRMD(ctx context.Context,
 		j.config.BlockCache(), j.config.BlockOps(),
 		j.config.mdDecryptionKeyGetter(), j.uid, &rmd, rmd.ReadOnly())
 	if err != nil {
-		return nil, err
+		return ImmutableRootMetadata{}, err
 	}
-	return &rmd, nil
+	irmd := MakeImmutableRootMetadata(&rmd, ibrmd.mdID, ibrmd.localTimestamp)
+	return irmd, nil
 }
 
 func (j *tlfJournal) getMDHead(

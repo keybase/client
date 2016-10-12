@@ -97,12 +97,12 @@ func (j journalMDOps) getHeadFromJournal(
 		}
 	}
 
-	rmd, err := tlfJournal.convertImmutableBareRMDToRMD(ctx, head, handle)
+	irmd, err := tlfJournal.convertImmutableBareRMDToIRMD(ctx, head, handle)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
 
-	return MakeImmutableRootMetadata(rmd, head.mdID, head.localTimestamp), nil
+	return irmd, nil
 }
 
 func (j journalMDOps) getRangeFromJournal(
@@ -151,12 +151,12 @@ func (j journalMDOps) getRangeFromJournal(
 	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
 
 	for _, ibrmd := range ibrmds {
-		rmd, err := tlfJournal.convertImmutableBareRMDToRMD(ctx, ibrmd, handle)
+		irmd, err :=
+			tlfJournal.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
 		if err != nil {
 			return nil, err
 		}
 
-		irmd := MakeImmutableRootMetadata(rmd, ibrmd.mdID, ibrmd.localTimestamp)
 		irmds = append(irmds, irmd)
 	}
 
