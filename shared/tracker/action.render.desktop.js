@@ -36,9 +36,9 @@ export default class ActionRender extends PureComponent<void, ActionProps, void>
       <div style={styleLoggedOutContainer}>
         <Icon type='icon-terminal-32' style={{marginBottom: -5, marginTop: -5}} />
         <div style={{textAlign: 'center'}}>
-          <Text type='Terminal'>keybase login</Text>
+          <Text type='TerminalInline'>keybase login</Text>
           <Text type='BodySmall'> or </Text>
-          <Text type='Terminal'>keybase signup</Text>
+          <Text type='TerminalInline'>keybase signup</Text>
           <Text type='BodySmall'> from the terminal for more options.</Text>
         </div>
         <Button style={{...styleActionButton, alignSelf: 'flex-end'}} type='Secondary' label='Close' onClick={() => this.props.onClose()} />

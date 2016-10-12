@@ -120,6 +120,10 @@ class Render extends Component<void, Props, any> {
                 <Text type='Header' onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
               </Box>
               {items}
+              <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginTop: 5}}>
+                <Text type='Header' onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
+                <Text type='Header' onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+              </Box>
             </Box>
           )
         })}
