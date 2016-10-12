@@ -10,7 +10,7 @@ class Intro extends Component<void, IntroProps, void> {
     return (
       <Box style={stylesLoginForm}>
         <Icon type='icon-keybase-logo-160' />
-        <Text style={stylesHeader} type='HeaderJumbo'>Keybase</Text>
+        <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
         <Text style={stylesHeaderSub} type='Body'>Loading…</Text>
       </Box>
     )
@@ -20,7 +20,7 @@ class Intro extends Component<void, IntroProps, void> {
     return (
       <Box style={stylesLoginForm}>
         <Icon type='icon-keybase-logo-160' />
-        <Text style={stylesHeader} type='HeaderJumbo'>Keybase</Text>
+        <Text style={stylesHeader} type='HeaderBig'>Keybase</Text>
         <Text style={stylesMessage} type='Body'>
           Oops, we had a problem communicating with our services.<br />
           This might be because you lost connectivity.
@@ -47,7 +47,7 @@ class Intro extends Component<void, IntroProps, void> {
           <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>This device has been revoked, please log in again.</Text>
         </Box>}
         <Icon type='icon-keybase-logo-160' />
-        <Text style={stylesHeader} type='HeaderJumbo'>Join Keybase</Text>
+        <Text style={stylesHeader} type='HeaderBig'>Join Keybase</Text>
         <Text style={stylesHeaderSub} type='Body'>Public key crypto for everyone</Text>
         <Button style={stylesButton} type='Primary' onClick={this.props.onSignup} label='Create an account' />
         <Box style={stylesFooter}>

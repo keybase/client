@@ -38,13 +38,13 @@ const RenderHelp = ({username}: Props) => (
           <Text type='Terminal'>{`cd /keybase/private/${username}`}</Text>
           <Text type='Terminal'>{`cd /keybase/private/${username},chris`}</Text>
           <Text type='TerminalEmpty' />
-          <Text type='TerminalComment'>works even before maxtaco@twitter has joined keybase:</Text>
+          <Text type='TerminalComment'># works even before maxtaco@twitter has joined keybase:</Text>
           <Text type='Terminal'>{`cd /keybase/private/${username},maxtaco@twitter`}</Text>
           <Text type='TerminalEmpty' />
-          <Text type='TerminalComment'>OSX tip: this opens Finder</Text>
+          <Text type='TerminalComment'># OSX tip: this opens Finder</Text>
           <Text type='Terminal'>{`open /keybase/private/${username}`}</Text>
           <Text type='TerminalEmpty' />
-          <Text type='TerminalComment'>to hide a folder in your Finder</Text>
+          <Text type='TerminalComment'># to hide a folder in your Finder</Text>
           <Text type='Terminal'>{`rmdir /keybase/private/${username},some_enemy`}</Text>
         </Terminal>
       </Box>

@@ -85,7 +85,7 @@ class Render extends Component<void, Props, any> {
 
         components.push(
           <Box key={mockKey} style={styleBox}>
-            <Text type='BodyXSmall'>{key}: {mockKey}</Text>
+            <Text type='BodySmall'>{key}: {mockKey}</Text>
             <Box {...parentProps}>
               <Component key={mockKey} {...mock} />
             </Box>

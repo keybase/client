@@ -16,7 +16,7 @@ const Banner = ({type, desc}: BannerItem) => {
     'WillUnlock': globalColors.white,
   }[type]
 
-  return <Text inline={true} type='BodySmall' style={{...stylesBanner, color, backgroundColor}}>{desc}</Text>
+  return <Text type='BodySmall' style={{...stylesBanner, color, backgroundColor}}>{desc}</Text>
 }
 
 const Header = ({name, isCurrent, isRevoked}) => {

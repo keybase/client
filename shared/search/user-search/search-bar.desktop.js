@@ -34,7 +34,7 @@ class ServiceIcon extends Component<void, ServiceIconProps, ServiceIconState> {
         onClick={() => onClickService(serviceName)} >
         <Icon type={iconType} style={{...serviceIconStyle,
           opacity: selected || this.state.showingTooltip ? 1.0 : 0.6}} />
-        <Text type='BodyXSmall' style={{...serviceTooltipStyle,
+        <Text type='BodySmall' style={{...serviceTooltipStyle,
           opacity: this.state.showingTooltip ? 1 : 0}}>{tooltip}</Text>
       </Box>
     )

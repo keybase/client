@@ -108,7 +108,7 @@ class Input extends Component<void, Props, State> {
           <HorizontalLine focused={this.state.inputFocused} />}
         {!!(this.props.errorText) &&
           <Text
-            type='Error'
+            type='BodyError'
             style={{...errorText, ...this.props.errorStyle}}>
             {this.props.errorText}
           </Text>}

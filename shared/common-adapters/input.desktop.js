@@ -1,9 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './input'
 import {TextField} from 'material-ui'
 import {globalStyles, globalColors} from '../styles'
-import {styles as TextStyles, specialStyles} from './text'
+import {getStyle} from './text'
+
+import type {Props} from './input'
 
 type State = {
   value: ?string,
@@ -131,11 +132,12 @@ export const styles = {
     marginTop: 2,
   },
   input: {
-    ...specialStyles.textInput,
+    ...getStyle('HeaderBig', 'Normal'),
+    color: globalColors.black_10,
   },
   inputSmall: {
-    ...TextStyles.textBody,
-    ...TextStyles.textSmallMixin,
+    ...getStyle('BodySmall', 'Normal'),
+    color: globalColors.black_10,
     lineHeight: '16px',
   },
   underlineFocusStyle: {

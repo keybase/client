@@ -3,6 +3,7 @@ import React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
 import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
+import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors, backgroundURL, globalMargins} from '../styles'
 
 const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, isPublic}) => {
@@ -33,7 +34,7 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, is
 }
 
 const Modified = ({smallMode, styles, modified}) => {
-  const iconColor = Text._colorStyleBackgroundMode(styles.modifiedMode, 'BodyXSmall')
+  const iconColor = {color: getStyle('BodySmall', styles.modifiedMode).color}
   const boltStyle = {
     fontSize: smallMode ? 12 : 14,
     alignSelf: 'center',
@@ -44,8 +45,8 @@ const Modified = ({smallMode, styles, modified}) => {
   return (
     <Box style={stylesModified}>
       <Icon type='iconfont-thunderbolt' style={boltStyle} hint='Modified' />
-      <Text type={smallMode ? 'BodyXSmall' : 'BodySmall'} backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-      <Text type={smallMode ? 'BodyXSmallLink' : 'BodySmallLink'} backgroundMode={styles.modifiedMode}>{modified.username}</Text>
+      <Text type='BodySmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
+      <Text type='BodySmallInlineLink' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
     </Box>
   )
 }

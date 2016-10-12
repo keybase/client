@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Box, Text, Button, Checkbox, Icon} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
-import {specialStyles as textStyles} from '../../../common-adapters/text'
+import {getStyle} from '../../../common-adapters/text'
 
 type State = {
   inWallet: boolean,
@@ -71,10 +71,13 @@ const stylesButton = {
   alignSelf: 'flex-end',
 }
 const stylesPaperkey = {
-  ...textStyles.paperKey,
+  ...getStyle('Header', 'Normal'),
   ...globalStyles.selectable,
-  marginBottom: 15,
+  color: globalColors.darkBlue,
   display: 'inline-block',
+  lineHeight: '24px',
+  marginTop: 30,
+  textAlign: 'center',
 }
 
 export default Render

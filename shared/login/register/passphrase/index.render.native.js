@@ -1,10 +1,10 @@
 // @flow
 import Container from '../../forms/container'
 import React, {Component} from 'react'
-import type {Props} from './index.render'
 import {Button, UserCard, Text, FormWithCheckbox} from '../../../common-adapters'
 import {globalColors, globalMargins} from '../../../styles'
-import {specialStyles} from '../../../common-adapters/text'
+
+import type {Props} from './index.render'
 
 class Render extends Component<void, Props, void> {
   render () {
@@ -16,7 +16,7 @@ class Render extends Component<void, Props, void> {
         outerStyle={{backgroundColor: globalColors.lightGrey, padding: 0}}
         onBack={this.props.onBack}>
         <UserCard style={stylesCard} username={this.props.username}>
-          <Text type='HeaderBig' style={{...specialStyles.username, ...usernameStyle}}>{this.props.username}</Text>
+          <Text type='HeaderBig' style={{color: globalColors.orange, ...usernameStyle}}>{this.props.username}</Text>
           <FormWithCheckbox
             style={stylesInput}
             inputProps={{

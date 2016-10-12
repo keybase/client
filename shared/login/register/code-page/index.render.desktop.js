@@ -11,7 +11,7 @@ import {Text, Icon, Input, Button} from '../../../common-adapters'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
   codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
 import {globalStyles, globalColors} from '../../../styles'
-import {specialStyles as textStyles} from '../../../common-adapters/text'
+import {getStyle} from '../../../common-adapters/text'
 
 const SubTitle = ({usePhone}) => (
   <p>
@@ -30,7 +30,7 @@ class CodePageRender extends Component<void, Props, void> {
 
         <Text type='Header' style={{marginTop: 60}}>Type in text code</Text>
         <p style={{marginTop: 10}}>
-          <Text type='BodySmall' inline={true}>Run&nbsp;</Text><Text type='Terminal' inline={true}>keybase device add</Text><Text type='BodySmall' inline={true}>&nbsp;on your other device and type this code there: </Text>
+          <Text type='BodySmall'>Run&nbsp;</Text><Text type='Terminal'>keybase device add</Text><Text type='BodySmall'>&nbsp;on your other device and type this code there: </Text>
         </p>
         <Icon type='icon-computer-bw-48' style={{marginTop: 28}} />
 
@@ -109,11 +109,13 @@ const stylesContainer = {
   alignItems: 'center',
 }
 const stylesPaperkey = {
-  ...textStyles.paperKey,
+  ...getStyle('Header', 'Normal'),
   ...globalStyles.selectable,
-  textAlign: 'center',
-  marginTop: 30,
+  color: globalColors.darkBlue,
   display: 'inline-block',
+  lineHeight: '24px',
+  marginTop: 30,
+  textAlign: 'center',
 }
 const stylesQrContainer = {
   ...globalStyles.flexBoxColumn,

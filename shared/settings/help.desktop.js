@@ -21,9 +21,9 @@ const RenderHelp = () => (
         </Text>
         <Terminal style={styleTerminal}>
           <Text type='Terminal'>keybase passphrase [change|recover]</Text>
-          <Text type='Terminal'>keybase deprovision <Text type='TerminalComment'>deprovision this install</Text></Text>
+          <Text type='Terminal'>keybase deprovision <Text type='TerminalComment'># deprovision this install</Text></Text>
           <Text type='Terminal'>keybase help</Text>
-          <Text type='TerminalComment'>etc.</Text>
+          <Text type='TerminalComment'># etc.</Text>
         </Terminal>
       </Box>
     </Box>

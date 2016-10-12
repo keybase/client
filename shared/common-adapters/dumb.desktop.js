@@ -102,14 +102,14 @@ backgroundModes.forEach(backgroundMode => {
     'BodySmallSecondaryLink',
     'BodySmallError',
     'BodySmallSuccess',
+    'BodySemiboldItalic',
+    'BodySmallItalic',
+    'BodySmallInlineLink',
+    'BodySmallSemiboldInlineLink',
     'Terminal',
-    'TerminalUsername',
-    'TerminalPublic',
-    'TerminalPrivate',
-    'TerminalCommand',
+    'TerminalInline',
     'TerminalComment',
     'TerminalEmpty',
-    'TerminalSmall',
   ]
 
   types.forEach(type => {
@@ -138,28 +138,16 @@ const terminalMap: DumbComponentMap<Box> = {
         <Box key='a' style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
           <p>
             <Text type='BodySmall'>Word word </Text>
-            <Text type='Terminal'>inline command line </Text>
-            <Text type='TerminalUsername'>username </Text>
-            <Text type='TerminalPrivate'>'secret'</Text>
+            <Text type='TerminalInline'>inline command line </Text>
             <Text type='BodySmall'> word word word word word </Text>
-            <Text type='Terminal'>inline command line</Text>
+            <Text type='TerminalInline'>inline command line</Text>
           </p>
         </Box>,
         <Terminal key='b' style={{flex: 1, overflow: 'scroll'}}>
-          <p>
-            <Text type='Terminal'>command line stuff </Text>
-            <Text type='TerminalUsername'>username </Text>
-            <Text type='TerminalPrivate'>'something secret'</Text>
-          </p>
-
-          <p>
-            <Text type='Terminal'>command line stuff </Text>
-            <Text type='TerminalUsername'>username </Text>
-            <Text type='TerminalPublic'>'something public'</Text>
-          </p>
-
-          <Text type='TerminalComment'>comment</Text>
-          <Text type='TerminalComment'>comment</Text>
+          <Text type='Terminal'>command line thing</Text>
+          <Text type='TerminalComment'># comment</Text>
+          <Text type='Terminal'>command line thing</Text>
+          <Text type='TerminalComment'># comment</Text>
         </Terminal>,
       ],
     },
@@ -400,7 +388,7 @@ class IconHolder extends Component<void, {iconFont: boolean}, void> {
     const icons: Array<IconType> = keys.filter(name => iconMeta[name].isFont === this.props.iconFont)
     return (
       <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
-      {icons.map(i => <Box key={i}><Text type='BodyXSmall'>{i}</Text><Icon type={i} style={{margin: 10, border: 'solid 1px #777777'}} /></Box>)}
+      {icons.map(i => <Box key={i}><Text type='BodySmall'>{i}</Text><Icon type={i} style={{margin: 10, border: 'solid 1px #777777'}} /></Box>)}
       </Box>
     )
   }

@@ -10,14 +10,9 @@ export type TextType =
   | 'BodyBig' | 'BodyBigLink'
   | 'Body' | 'BodySemibold' | 'BodyPrimaryLink' | 'BodySecondaryLink' | 'BodyError' | 'BodySuccess'
   | 'BodySmall' | 'BodySmallSemibold' | 'BodySmallPrimaryLink' | 'BodySmallSecondaryLink' | 'BodySmallError' | 'BodySmallSuccess'
-// Special styles
   | 'BodySemiboldItalic'
-  | 'BodySmallInlineLink' | 'BodySmallSemiboldInlineLink'
-  | 'Terminal' | 'TerminalComment' | 'TerminalEmpty'
-  // 'BodySmallItalic' | 'BodySmallLink'
-  // | 'BodyXSmall' | 'BodyXSmallLink'
-  // | 'BadgeNumber'
-  // | 'Error'
+  | 'BodySmallItalic' | 'BodySmallInlineLink' | 'BodySmallSemiboldInlineLink'
+  | 'Terminal' | 'TerminalInline' | 'TerminalComment' | 'TerminalEmpty'
 
 export type Props = {
   type: TextType,
@@ -33,26 +28,19 @@ export type Props = {
   className?: string,
   contentEditable?: boolean,
   onKeyDown?: (e: SyntheticEvent) => void,
-  onKeyUp?: (e: SyntheticEvent) => void
+  onKeyUp?: (e: SyntheticEvent) => void,
 }
 
-declare export default class Text extends Component<void, Props, void> {
-  // static _colorStyleBackgroundMode: (backgroundMode: Background, type: $PropertyType<Props, 'type'>) => {color?: string};
-  // static _inlineStyle: (type: $PropertyType<Props, 'type'>, context: Context) => Object;
-  // static textStyle: (props: Props, context: Context) => Object;
-}
+declare export default class Text extends Component<void, Props, void> { }
 
-// declare export var styles: Object
-// declare export var specialStyles: Object
-
-// declare function lineClamp (lines: number): Object
 export type MetaType = {
   fontSize: number,
   colorForBackgroundMode: {[key: Background]: ?string},
   isLink?: true,
-  prefix?: ?string,
   styleOverride?: ?Object,
   isTerminal?: true,
 }
 
-export var metaData: {[key: $PropertyType<Props, 'type'>]: MetaType} = {}
+export function getStyle (type: TextType, backgroundMode?: ?Background, lineClamp?: ?number, clickable?: ?boolean): Object {
+  return {}
+}

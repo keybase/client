@@ -17,7 +17,7 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
       <Icon className='user-proof-row__icon' style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Text inline={true} className='user-proof-row__name' type='Body' style={styleProofName}>
+          <Text className='user-proof-row__name' type='Body' style={styleProofName}>
             {missingProof.message}
           </Text>
         </Box>
@@ -68,9 +68,9 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
         <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
         <Box style={styleProofNameSection}>
           <Box style={styleProofNameLabelContainer}>
-            <Text inline={true} className='hover-underline-container' type='Body' onClick={() => onClickProfile(proof)} style={styleProofName}>
-              <Text inline={true} type='Body' className='underline' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
-              {proof.id && <Text className='no-underline' inline={true} type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>}
+            <Text className='hover-underline-container' type='Body' onClick={() => onClickProfile(proof)} style={styleProofName}>
+              <Text type='Body' className='underline' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
+              {proof.id && <Text className='no-underline' type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>}
             </Text>
             {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
           </Box>

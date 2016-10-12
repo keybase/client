@@ -7,6 +7,7 @@ import type {Props as FilesProps} from './files/render'
 import type {PropsOf, DumbComponentMap} from '../constants/types/more'
 import {globalStyles} from '../styles'
 import {pathFromFolder} from '../constants/favorite'
+import Help from './help'
 
 function createFolder (partialFolder: $Shape<Folder>) {
   return {...partialFolder, path: pathFromFolder(partialFolder).path}
@@ -335,6 +336,14 @@ const commonUnlock = {
   ],
 }
 
+const help: DumbComponentMap<Help> = {
+  component: Help,
+  mocks: {
+    'Normal': {
+    },
+  },
+}
+
 const files: DumbComponentMap<Files> = {
   component: Files,
   mocks: {
@@ -400,6 +409,7 @@ export default {
   'Folders TLF': map,
   'Files': files,
   'File': file,
+  'Help': help,
 }
 
 export {

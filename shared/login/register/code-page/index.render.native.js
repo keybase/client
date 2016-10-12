@@ -8,16 +8,13 @@ import Container from '../../forms/container'
 import Platform, {OS} from '../../../constants/platform'
 import Qr from './qr'
 import React, {Component} from 'react'
+import {Box, ProgressIndicator, Text, Icon, NativeStyleSheet, ClickableBox} from '../../../common-adapters/index.native'
+import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer, codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
+import {globalStyles, globalColors} from '../../../styles'
+
 import type {IconType} from '../../../common-adapters/icon'
 import type {Mode, DeviceRole} from '../../../constants/login'
 import type {Props} from './index.render'
-import {Box, ProgressIndicator, Text, Icon, NativeStyleSheet, ClickableBox} from '../../../common-adapters/index.native'
-import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
-  codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer,
-  codePageModeScanCode, codePageModeShowCode, codePageModeEnterText,
-  codePageModeShowText} from '../../../constants/login'
-import {globalStyles, globalColors} from '../../../styles'
-import {specialStyles} from '../../../common-adapters/text'
 
 const isIOS = Platform.OS_IOS === OS
 
@@ -110,10 +107,10 @@ class CodePageRender extends Component<void, Props, void> {
   renderIntroTextCode () {
     return (
       <Box style={stylesIntro}>
-        <Text type='Header' style={{marginBottom: 10}} inline={true}>Type in text code</Text>
-        <Text type='BodySmall' inline={true}>Please run </Text>
-        <Text type='Terminal' inline={true}>keybase device add</Text>
-        <Text type='BodySmall' inline={true}> in the terminal on your computer.</Text>
+        <Text type='Header' style={{marginBottom: 10}}>Type in text code</Text>
+        <Text type='BodySmall' >Please run </Text>
+        <Text type='Terminal'>keybase device add</Text>
+        <Text type='BodySmall'> in the terminal on your computer.</Text>
       </Box>
     )
   }
@@ -121,9 +118,9 @@ class CodePageRender extends Component<void, Props, void> {
   renderIntroScanQR () {
     return (
       <Box style={stylesIntro}>
-        <Text type='Header' style={{marginBottom: 10}} inline={true}>Scan QR code</Text>
-        <Text type='BodySmall' inline={true}>In the Keybase App</Text>
-        <Text type='BodySmall' inline={true}>{'go to Devices > Add a new device'}</Text>
+        <Text type='Header' style={{marginBottom: 10}}>Scan QR code</Text>
+        <Text type='BodySmall'>In the Keybase App</Text>
+        <Text type='BodySmall'>{'go to Devices > Add a new device'}</Text>
       </Box>
     )
   }
@@ -131,8 +128,8 @@ class CodePageRender extends Component<void, Props, void> {
   renderIntroShowQR () {
     return (
       <Box style={stylesIntro}>
-        <Text type='Header' style={{marginBottom: 10}} inline={true}>Scan this QR code</Text>
-        <Text type='BodySmall' inline={true}>{'When adding a new mobile device'}</Text>
+        <Text type='Header' style={{marginBottom: 10}}>Scan this QR code</Text>
+        <Text type='BodySmall'>{'When adding a new mobile device'}</Text>
       </Box>
     )
   }
@@ -150,7 +147,7 @@ class CodePageRender extends Component<void, Props, void> {
   renderText () {
     return (
       <Box style={stylesControl}>
-        <Text type='Body' style={specialStyles.paperKey}>{this.props.textCode}</Text>
+        <Text type='Body' style={{color: globalColors.darkBlue}}>{this.props.textCode}</Text>
         <ProgressIndicator type='Large' style={stylesSpinner} />
       </Box>
     )

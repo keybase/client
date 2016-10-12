@@ -17,7 +17,7 @@ class Render extends Component {
           <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>This device has been revoked, please log in again.</Text>
         }
         <Icon type='icon-keybase-logo-160' />
-        <Text style={stylesHeader} type='HeaderJumbo'>Join Keybase</Text>
+        <Text style={stylesHeader} type='HeaderBig'>Join Keybase</Text>
         <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the world.</Text>
         <Button style={stylesButton} type='Primary' onClick={this.props.onSignup} label='Create an account' />
         <Text style={stylesLoginHeader} type='Body' onClick={this.props.onLogin}>Already on Keybase?</Text>

@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
-import {Box, Icon, Text, NativeTouchableWithoutFeedback} from './index.native'
+import {Box, Icon, Text, NativeTouchableWithoutFeedback, Badge} from './index.native'
 import {globalStyles, globalColors} from '../styles'
 
 class TabBarItem extends Component<void, ItemProps, void> {
@@ -36,41 +36,14 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
         {this.props.source.type === 'icon'
           ? <Icon type={this.props.source.icon} style={{fontSize: 48, width: 48, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
           : this.props.source.avatar}
-        {badgeNumber > 0 &&
-          <Box style={{...styleBadgeOuter, borderColor: backgroundColor, backgroundColor}}>
-            <Box style={styleBadge}>
-              <Text style={{flex: 0}} type='BadgeNumber'>{badgeNumber}</Text>
-            </Box>
-          </Box>}
+        {badgeNumber > 0 && <Badge badgeNumber={badgeNumber} />}
         {!!this.props.label && <Text type='BodySemibold' style={{textAlign: 'center', ...this.props.styleLabel}}>{this.props.label}</Text>}
       </Box>
     )
   }
 }
 
-const styleBadgeOuter = {
-  borderColor: globalColors.midnightBlue,
-  borderWidth: 2,
-  borderRadius: 10,
-  position: 'absolute',
-  top: 10,
-  left: 40,
-}
-
-const styleBadge = {
-  ...globalStyles.flexBoxRow,
-  backgroundColor: globalColors.orange,
-  borderColor: globalColors.orange,
-  borderWidth: 2,
-  paddingLeft: 2,
-  paddingRight: 2,
-  borderRadius: 10,
-  flex: 0,
-}
-
-class TabBar extends Component {
-  props: Props;
-
+class TabBar extends Component<void, Props, void> {
   _labels (): Array<React$Element<*>> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item: {props: ItemProps}, i) => {

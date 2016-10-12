@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Box, Checkbox, Button, Text, Icon} from '../../../common-adapters'
 import {globalColors, globalStyles} from '../../../styles'
-import {specialStyles} from '../../../common-adapters/text'
+import {getStyle} from '../../../common-adapters/text'
 
 /* types:
   paperkey: HiddenString,
@@ -83,7 +83,8 @@ const paperKeyContainerStyle = {
 }
 
 const paperkeyStyle = {
-  ...specialStyles.paperKey,
+  ...getStyle('Body'),
+  color: globalColors.darkBlue,
 }
 
 const paperCornerStyle = {

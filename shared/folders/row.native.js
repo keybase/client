@@ -3,7 +3,7 @@ import React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
 import {Box, Text, Icon, Avatar, Meta, NativeImage, ClickableBox} from '../common-adapters/index.native'
-import {metaData as textMetaData} from '../common-adapters/text'
+import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from '../common-adapters/icon.constants'
 
@@ -50,7 +50,7 @@ const Names = ({styles, users, nameColor, redColor}) => {
 }
 
 const Modified = ({styles, modified}) => {
-  const iconColor = {color: textMetaData['BodySmallInlineLink'].colorForBackgroundMode[styles.modifiedMode]}
+  const iconColor = {color: getStyle('BodySmallInlineLink', styles.modifiedMode)}
   return (
     <Box style={stylesModified}>
       <Icon type='iconfont-thunderbolt' style={{alignSelf: 'center', marginLeft: -2, marginRight: 2, ...iconColor}} hint='Modified' />

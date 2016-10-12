@@ -4,7 +4,6 @@ import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Text, Input, Button, UserCard} from '../../../common-adapters'
 import {globalColors} from '../../../styles'
-import {specialStyles} from '../../../common-adapters/text'
 
 class Render extends Component<void, Props, void> {
   render () {
@@ -14,7 +13,7 @@ class Render extends Component<void, Props, void> {
         outerStyle={{backgroundColor: globalColors.lightGrey}}
         onBack={() => this.props.onBack()}>
         <UserCard style={stylesCard} username={this.props.username}>
-          <Text type='HeaderBig' style={{...specialStyles.username}}>{this.props.username}</Text>
+          <Text type='HeaderBig' style={{color: globalColors.orange}}>{this.props.username}</Text>
           <Input
             autoFocus={true}
             style={stylesInput}

@@ -117,7 +117,7 @@ class Render extends Component<void, Props, void> {
       return (
         <Box style={styleNoFiles}>
           <Text type='BodySmall' backgroundMode={backgroundMode}>This folder is empty.</Text>
-          <Text type='BodySmallLink' onClick={this.props.openCurrentFolder} backgroundMode={backgroundMode}>Open folder</Text>
+          <Text type='BodySmallInlineLink' onClick={this.props.openCurrentFolder} backgroundMode={backgroundMode}>Open folder</Text>
         </Box>
       )
     }

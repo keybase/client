@@ -11,7 +11,7 @@ export type Props = {
 class PgpPurgeMessage extends Component<void, Props, void> {
   _toItalics (s: string) {
     return (
-      <Text inline={true} type='BodySemiboldItalic'>{s}</Text>
+      <Text type='BodySemiboldItalic'>{s}</Text>
     )
   }
 

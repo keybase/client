@@ -18,7 +18,7 @@ const Render = ({isPrivate, users, avatar, onSubmit, onCancel}: Props) => {
     <Box style={{textAlign: 'center'}}>
       <Box style={{marginBottom: 8}}>
         <Text type='Header' style={textColorThemed[theme]}>Ignore {isPrivate ? 'private/' : 'public/'}</Text>
-        <Usernames type='Header' style={textColorThemed[theme]} inline={true} users={users} />
+        <Usernames type='Header' style={textColorThemed[theme]} users={users} />
         <Text type='Header' style={textColorThemed[theme]}>?</Text>
       </Box>
       <Text type='Body' style={textColorThemed[theme]}>This folder will no longer show up on your computer and you won't receive alerts about it.</Text>

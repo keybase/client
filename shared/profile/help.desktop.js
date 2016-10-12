@@ -43,12 +43,12 @@ const RenderHelp = ({username}: Props) => (
             <Text type='Terminal'>keybase btc</Text>
           </Box>
           <Box style={{...styleTerminalGroups, marginLeft: '2em'}}>
-            <Text type='TerminalComment'>prove twitter</Text>
-            <Text type='TerminalComment'>prove reddit</Text>
-            <Text type='TerminalComment'>prove other stuff</Text>
-            <Text type='TerminalComment'>PGP key mgmt</Text>
-            <Text type='TerminalComment'>manage existing proofs</Text>
-            <Text type='TerminalComment'>add a bitcoin address</Text>
+            <Text type='TerminalComment'># prove twitter</Text>
+            <Text type='TerminalComment'># prove reddit</Text>
+            <Text type='TerminalComment'># prove other stuff</Text>
+            <Text type='TerminalComment'># PGP key mgmt</Text>
+            <Text type='TerminalComment'># manage existing proofs</Text>
+            <Text type='TerminalComment'># add a bitcoin address</Text>
           </Box>
         </Terminal>
       </Box>

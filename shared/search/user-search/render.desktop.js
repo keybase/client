@@ -25,7 +25,7 @@ function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
         <Text type='BodySmall'
           style={{color: isFollowing ? globalColors.green2 : globalColors.orange}}>{username}</Text>
       </Box>
-      {!!fullName && <Text type='BodyXSmall' style={{...fullNameStyle, color: globalColors.black_40}}>{fullName}</Text>}
+      {!!fullName && <Text type='BodySmall' style={{...fullNameStyle, color: globalColors.black_40}}>{fullName}</Text>}
     </Box>
   )
 }
@@ -38,7 +38,7 @@ function ExternalExtraInfo ({fullNameOnService, icon, serviceAvatar, serviceUser
         {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
         {!!serviceUsername && <Text type='BodySmall'>{serviceUsername}</Text>}
       </Box>
-      {!!fullNameOnService && <Text type='BodyXSmall'
+      {!!fullNameOnService && <Text type='BodySmall'
         style={{...fullNameStyle, color: globalColors.black_40}}>{fullNameOnService}</Text>}
     </Box>
   )
@@ -79,7 +79,7 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
       extraInfo = <KeybaseExtraInfo {...result.extraInfo} searchText={searchText} />
       break
     case 'none':
-      extraInfo = <Text type='BodyXSmall' style={{...fullNameStyle, color: globalColors.black_40, alignSelf: 'center'}}>{result.extraInfo.fullName}</Text>
+      extraInfo = <Text type='BodySmall' style={{...fullNameStyle, color: globalColors.black_40, alignSelf: 'center'}}>{result.extraInfo.fullName}</Text>
       break
   }
 
