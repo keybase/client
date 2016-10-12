@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -426,15 +425,14 @@ func reembedBlockChanges(ctx context.Context, config Config,
 			numFetchers = maxParallelBlockGets
 		}
 
-		// We don't yet know the plaintext size of the buffer, so size
-		// it to be the size of the first n-1 child blocks, and we'll
-		// append the final block to it once we have it.
-		lastOff := fblock.IPtrs[len(fblock.IPtrs)-1].Off
-		var bufLock sync.Mutex
-		buf = make([]byte, lastOff, lastOff*2)
+		type iptrAndBlock struct {
+			ptr   IndirectFilePtr
+			block *FileBlock
+		}
 
 		// Fetch all the child blocks in parallel.
 		iptrsToFetch := make(chan IndirectFilePtr, len(fblock.IPtrs))
+		indirectBlocks := make(chan iptrAndBlock, len(fblock.IPtrs))
 		eg, groupCtx := errgroup.WithContext(ctx)
 		fetchFn := func() error {
 			for iptr := range iptrsToFetch {
@@ -450,17 +448,7 @@ func reembedBlockChanges(ctx context.Context, config Config,
 					return err
 				}
 
-				func() {
-					bufLock.Lock()
-					defer bufLock.Unlock()
-					if iptr.Off == lastOff {
-						buf = append(buf, fblock.Contents...)
-					} else {
-						blockLen := int64(len(fblock.Contents))
-						copy(buf[iptr.Off:iptr.Off+blockLen],
-							fblock.Contents)
-					}
-				}()
+				indirectBlocks <- iptrAndBlock{iptr, fblock}
 			}
 			return nil
 		}
@@ -473,6 +461,20 @@ func reembedBlockChanges(ctx context.Context, config Config,
 		close(iptrsToFetch)
 		if err := eg.Wait(); err != nil {
 			return err
+		}
+		close(indirectBlocks)
+
+		// Reconstruct the buffer by appending bytes in order of offset.
+		blocks := make(map[int64]*FileBlock)
+		for iab := range indirectBlocks {
+			blocks[iab.ptr.Off] = iab.block
+		}
+		lastOff := fblock.IPtrs[len(fblock.IPtrs)-1].Off
+		buf = make([]byte, lastOff+int64(len(blocks[lastOff].Contents)))
+		for _, iptr := range fblock.IPtrs {
+			block := blocks[iptr.Off]
+			blockSize := int64(len(block.Contents))
+			copy(buf[iptr.Off:iptr.Off+blockSize], block.Contents)
 		}
 	}
 
