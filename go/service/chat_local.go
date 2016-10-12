@@ -125,7 +125,7 @@ func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquer
 		return nil, nil
 	}
 	rquery = &chat1.GetInboxQuery{}
-	if lquery.TlfName != nil {
+	if lquery.TlfName != nil && len(*lquery.TlfName) > 0 {
 		tlfID, _, err := h.cryptKeysWrapper(ctx, *lquery.TlfName)
 		if err != nil {
 			return nil, err
