@@ -26,8 +26,9 @@ type Folder struct {
 	fs   *FS
 	list *FolderList
 
-	handleMu sync.RWMutex
-	h        *libkbfs.TlfHandle
+	handleMu       sync.RWMutex
+	h              *libkbfs.TlfHandle
+	hPreferredName string
 
 	folderBranchMu sync.Mutex
 	folderBranch   libkbfs.FolderBranch
@@ -52,12 +53,15 @@ type Folder struct {
 	updateChan chan<- struct{}
 }
 
-func newFolder(fl *FolderList, h *libkbfs.TlfHandle) *Folder {
+func newFolder(ctx context.Context, fl *FolderList, h *libkbfs.TlfHandle) *Folder {
+	// Ignore error here.
+	cuser, _, _ := fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
 	f := &Folder{
-		fs:    fl.fs,
-		list:  fl,
-		h:     h,
-		nodes: map[libkbfs.NodeID]fs.Node{},
+		fs:             fl.fs,
+		list:           fl,
+		h:              h,
+		hPreferredName: h.GetPreferredFormat(cuser),
+		nodes:          map[libkbfs.NodeID]fs.Node{},
 	}
 	return f
 }
@@ -65,7 +69,7 @@ func newFolder(fl *FolderList, h *libkbfs.TlfHandle) *Folder {
 func (f *Folder) name() libkbfs.CanonicalTlfName {
 	f.handleMu.RLock()
 	defer f.handleMu.RUnlock()
-	return f.h.GetCanonicalName()
+	return libkbfs.CanonicalTlfName(f.hPreferredName)
 }
 
 func (f *Folder) reportErr(ctx context.Context,
@@ -298,16 +302,19 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 
 func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
-	oldName := func() libkbfs.CanonicalTlfName {
+	// If this fails cuser will be empty.
+	cuser, _, _ := f.fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	oldName, newName := func() (string, string) {
 		f.handleMu.Lock()
 		defer f.handleMu.Unlock()
-		oldName := f.h.GetCanonicalName()
+		oldName := f.hPreferredName
 		f.h = newHandle
-		return oldName
+		f.hPreferredName = f.h.GetPreferredFormat(cuser)
+		return oldName, f.hPreferredName
 	}()
 
 	f.list.updateTlfName(ctx, string(oldName),
-		string(newHandle.GetCanonicalName()))
+		newName)
 }
 
 // TODO: Expire TLF nodes periodically. See
