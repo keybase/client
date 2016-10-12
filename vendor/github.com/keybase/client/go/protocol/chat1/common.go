@@ -24,6 +24,7 @@ const (
 	MessageType_DELETE     MessageType = 4
 	MessageType_METADATA   MessageType = 5
 	MessageType_TLFNAME    MessageType = 6
+	MessageType_HEADLINE   MessageType = 7
 )
 
 var MessageTypeMap = map[string]MessageType{
@@ -34,6 +35,7 @@ var MessageTypeMap = map[string]MessageType{
 	"DELETE":     4,
 	"METADATA":   5,
 	"TLFNAME":    6,
+	"HEADLINE":   7,
 }
 
 var MessageTypeRevMap = map[MessageType]string{
@@ -44,6 +46,7 @@ var MessageTypeRevMap = map[MessageType]string{
 	4: "DELETE",
 	5: "METADATA",
 	6: "TLFNAME",
+	7: "HEADLINE",
 }
 
 type TopicType int
@@ -110,13 +113,6 @@ type GetInboxQuery struct {
 	OneChatTypePerTLF *bool           `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
 	UnreadOnly        bool            `codec:"unreadOnly" json:"unreadOnly"`
 	ReadOnly          bool            `codec:"readOnly" json:"readOnly"`
-}
-
-type GetThreadQuery struct {
-	MarkAsRead   bool          `codec:"markAsRead" json:"markAsRead"`
-	MessageTypes []MessageType `codec:"messageTypes" json:"messageTypes"`
-	Before       *gregor1.Time `codec:"before,omitempty" json:"before,omitempty"`
-	After        *gregor1.Time `codec:"after,omitempty" json:"after,omitempty"`
 }
 
 type ConversationIDTriple struct {

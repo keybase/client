@@ -95,3 +95,11 @@ func (me ConversationIDTriple) Eq(other ConversationIDTriple) bool {
 		bytes.Equal([]byte(me.TopicID), []byte(other.TopicID)) &&
 		me.TopicType == other.TopicType
 }
+
+func (hash Hash) String() string {
+	return hex.EncodeToString(hash)
+}
+
+func (hash Hash) Eq(other Hash) bool {
+	return bytes.Equal(hash, other)
+}
