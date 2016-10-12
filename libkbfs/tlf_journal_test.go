@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -979,4 +980,69 @@ func TestTLFJournalFlushInterleaving(t *testing.T) {
 	}
 	require.NotZero(t, md1Slot)
 	require.NotZero(t, md2Slot)
+}
+
+type testImmediateBackOff struct {
+	numBackOffs int
+	resetCh     chan<- struct{}
+}
+
+func (t *testImmediateBackOff) NextBackOff() time.Duration {
+	t.numBackOffs++
+	return 1 * time.Nanosecond
+}
+
+func (t *testImmediateBackOff) Reset() {
+	close(t.resetCh)
+}
+
+func TestTLFJournalFlushRetry(t *testing.T) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	// Stop the current background loop; replace with one that retries
+	// immediately.
+	tlfJournal.needShutdownCh <- struct{}{}
+	<-tlfJournal.backgroundShutdownCh
+	resetCh := make(chan struct{})
+	b := &testImmediateBackOff{resetCh: resetCh}
+	tlfJournal.backgroundShutdownCh = make(chan struct{})
+	go tlfJournal.doBackgroundWorkLoop(TLFJournalBackgroundWorkPaused, b)
+	select {
+	case <-delegate.shutdownCh:
+	case <-ctx.Done():
+		assert.Fail(config.t, ctx.Err().Error())
+	}
+
+	firstRevision := MetadataRevision(10)
+	firstPrevRoot := fakeMdID(1)
+	mdCount := 10
+
+	prevRoot := firstPrevRoot
+	for i := 0; i < mdCount; i++ {
+		revision := firstRevision + MetadataRevision(i)
+		md := config.makeMD(revision, prevRoot)
+		mdID, err := tlfJournal.putMD(ctx, md)
+		require.NoError(t, err)
+		prevRoot = mdID
+	}
+
+	var mdserver shimMDServer
+	mdserver.nextErr = errors.New("Error to force a retry")
+	config.mdserver = &mdserver
+
+	delegate.requireNextState(ctx, bwPaused)
+	tlfJournal.resumeBackgroundWork()
+	delegate.requireNextState(ctx, bwIdle)
+	delegate.requireNextState(ctx, bwBusy)
+	delegate.requireNextState(ctx, bwIdle)
+	delegate.requireNextState(ctx, bwBusy)
+	delegate.requireNextState(ctx, bwIdle)
+	<-resetCh
+
+	require.Equal(t, b.numBackOffs, 1)
+	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+	testMDJournalGCd(t, tlfJournal.mdJournal)
 }

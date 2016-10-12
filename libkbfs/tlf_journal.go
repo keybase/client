@@ -12,7 +12,9 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
+	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -299,7 +301,7 @@ func makeTLFJournal(
 		bwDelegate:           bwDelegate,
 	}
 
-	go j.doBackgroundWorkLoop(bws)
+	go j.doBackgroundWorkLoop(bws, backoff.NewExponentialBackOff())
 
 	// Signal work to pick up any existing journal entries.
 	j.signalWork()
@@ -335,16 +337,22 @@ const CtxJournalOpID = "JID"
 // goroutine. It spawns off a worker goroutine to call
 // doBackgroundWork whenever there is work, and can be paused and
 // resumed.
-func (j *tlfJournal) doBackgroundWorkLoop(bws TLFJournalBackgroundWorkStatus) {
+func (j *tlfJournal) doBackgroundWorkLoop(
+	bws TLFJournalBackgroundWorkStatus, retry backoff.BackOff) {
 	ctx := context.Background()
 	if j.bwDelegate != nil {
 		ctx = j.bwDelegate.GetBackgroundContext()
 	}
 
+	// Non-nil when a retry has been scheduled for the future.
+	var retryTimer *time.Timer
 	defer func() {
 		close(j.backgroundShutdownCh)
 		if j.bwDelegate != nil {
 			j.bwDelegate.OnShutdown(ctx)
+		}
+		if retryTimer != nil {
+			retryTimer.Stop()
 		}
 	}()
 
@@ -388,8 +396,11 @@ func (j *tlfJournal) doBackgroundWorkLoop(bws TLFJournalBackgroundWorkStatus) {
 				j.tlfID)
 			select {
 			case <-j.hasWorkCh:
-				j.log.CDebugf(
-					ctx, "Got work signal for %s", j.tlfID)
+				j.log.CDebugf(ctx, "Got work signal for %s", j.tlfID)
+				if retryTimer != nil {
+					retryTimer.Stop()
+					retryTimer = nil
+				}
 				bwCtx, cancel := context.WithCancel(ctx)
 				errCh = j.doBackgroundWork(bwCtx)
 				bwCancel = cancel
@@ -416,14 +427,22 @@ func (j *tlfJournal) doBackgroundWorkLoop(bws TLFJournalBackgroundWorkStatus) {
 			needShutdown := false
 			select {
 			case err := <-errCh:
+				if retryTimer != nil {
+					panic("Retry timer should be nil after work is done")
+				}
+
 				if err != nil {
 					j.log.CWarningf(ctx,
 						"Background work error for %s: %v",
 						j.tlfID, err)
 
-					// TODO: Perhaps backoff and
-					// retry the background work
-					// again?
+					bTime := retry.NextBackOff()
+					if bTime != backoff.Stop {
+						j.log.CWarningf(ctx, "Retrying in %s", bTime)
+						retryTimer = time.AfterFunc(bTime, j.signalWork)
+					}
+				} else {
+					retry.Reset()
 				}
 
 			case <-j.needPauseCh:
