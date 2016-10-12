@@ -21,8 +21,9 @@ type Folder struct {
 	fs   *FS
 	list *FolderList
 
-	handleMu sync.RWMutex
-	h        *libkbfs.TlfHandle
+	handleMu       sync.RWMutex
+	h              *libkbfs.TlfHandle
+	hPreferredName string
 
 	folderBranchMu sync.Mutex
 	folderBranch   libkbfs.FolderBranch
@@ -51,12 +52,15 @@ type Folder struct {
 	noForget bool
 }
 
-func newFolder(fl *FolderList, h *libkbfs.TlfHandle) *Folder {
+func newFolder(ctx context.Context, fl *FolderList, h *libkbfs.TlfHandle) *Folder {
+	// Ignore error here.
+	cuser, _, _ := fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
 	f := &Folder{
-		fs:    fl.fs,
-		list:  fl,
-		h:     h,
-		nodes: map[libkbfs.NodeID]dokan.File{},
+		fs:             fl.fs,
+		list:           fl,
+		h:              h,
+		hPreferredName: h.GetPreferredFormat(cuser),
+		nodes:          map[libkbfs.NodeID]dokan.File{},
 	}
 	return f
 }
@@ -64,7 +68,7 @@ func newFolder(fl *FolderList, h *libkbfs.TlfHandle) *Folder {
 func (f *Folder) name() libkbfs.CanonicalTlfName {
 	f.handleMu.RLock()
 	defer f.handleMu.RUnlock()
-	return f.h.GetCanonicalName()
+	return libkbfs.CanonicalTlfName(f.hPreferredName)
 }
 
 func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
@@ -151,19 +155,21 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 // TlfHandleChange is called when the name of a folder changes.
 func (f *Folder) TlfHandleChange(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
+
 	// Handle in the background because we shouldn't lock during
 	// the notification
 	f.fs.queueNotification(func() {
-		oldName := func() libkbfs.CanonicalTlfName {
+		cuser, _, _ := f.fs.config.KBPKI().GetCurrentUserInfo(ctx)
+		oldName, newName := func() (string, string) {
 			f.handleMu.Lock()
 			defer f.handleMu.Unlock()
-			oldName := f.h.GetCanonicalName()
+			oldName := f.hPreferredName
 			f.h = newHandle
-			return oldName
+			f.hPreferredName = f.h.GetPreferredFormat(cuser)
+			return oldName, f.hPreferredName
 		}()
 
-		f.list.updateTlfName(ctx, string(oldName),
-			string(newHandle.GetCanonicalName()))
+		f.list.updateTlfName(ctx, oldName, newName)
 	})
 }
 
