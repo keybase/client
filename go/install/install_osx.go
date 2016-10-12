@@ -565,7 +565,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	return newUninstallResult(componentResults)
 }
 
-// UninstallKBFSOnStop removes KBFS services and unmounts
+// UninstallKBFSOnStop removes KBFS services and unmounts and removes /keybase from the system
 func UninstallKBFSOnStop(context Context, log Log) error {
 	runMode := context.GetRunMode()
 	mountDir, err := context.GetMountDir()
@@ -575,8 +575,8 @@ func UninstallKBFSOnStop(context Context, log Log) error {
 	return UninstallKBFS(runMode, mountDir, false, true, log)
 }
 
-// UninstallKBFS uninstalls all KBFS services, unmounts and optionally removes the directory
-func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, removeDir bool, log Log) error {
+// UninstallKBFS uninstalls all KBFS services, unmounts and optionally removes the mount directory
+func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, removeMountDir bool, log Log) error {
 	err := UninstallKBFSServices(runMode, log)
 	if err != nil {
 		return err
@@ -605,7 +605,7 @@ func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, re
 		return fmt.Errorf("Mount has files after unmounting: %s", mountDir)
 	}
 
-	if removeDir {
+	if removeMountDir {
 		log.Info("Removing %s", mountDir)
 		if err := uninstallMountDir(runMode, log); err != nil {
 			return fmt.Errorf("Error removing mount dir: %s", err)
