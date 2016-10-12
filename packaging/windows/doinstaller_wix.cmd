@@ -130,13 +130,13 @@ IF %ERRORLEVEL% NEQ 0 (
 :: UpdateChannel Smoke Test None
 echo UpdateChannel: %UpdateChannel%
 set JSON_UPDATE_FILENAME=update-windows-prod-v2.json
-IF %UpdateChannel% EQ Test (
+IF %UpdateChannel% EQU Test (
   set JSON_UPDATE_FILENAME=update-windows-prod-test-v2.json
 )
-IF %UpdateChannel% EQ Smoke (
+IF %UpdateChannel% EQU Smoke (
   set JSON_UPDATE_FILENAME=update-windows-prod-KEYBASE_VERSION.json
 )
-
+echo %JSON_UPDATE_FILENAME%
 
 :: Run keybase sign to get signature of update
 set KeybaseBin="%APPDATA%\Keybase\keybase.exe"
