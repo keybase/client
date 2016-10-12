@@ -4,7 +4,6 @@
 package chat1
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -61,6 +60,17 @@ type MarkAsReadRes struct {
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
+type S3AttachmentParams struct {
+	Endpoint   string `codec:"endpoint" json:"endpoint"`
+	ObjectKey  string `codec:"objectKey" json:"objectKey"`
+	Acl        string `codec:"acl" json:"acl"`
+	Credential string `codec:"credential" json:"credential"`
+	Algorithm  string `codec:"algorithm" json:"algorithm"`
+	Date       string `codec:"date" json:"date"`
+	Policy     string `codec:"policy" json:"policy"`
+	Signature  string `codec:"signature" json:"signature"`
+}
+
 type GetInboxRemoteArg struct {
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -100,9 +110,8 @@ type TlfFinalizeArg struct {
 	TlfID TLFID `codec:"tlfID" json:"tlfID"`
 }
 
-type PostAttachmentRemoteArg struct {
-	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
-	Source         keybase1.Stream `codec:"source" json:"source"`
+type GetS3AttachmentParamsArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 }
 
 type RemoteInterface interface {
@@ -114,7 +123,7 @@ type RemoteInterface interface {
 	GetMessagesRemote(context.Context, GetMessagesRemoteArg) (GetMessagesRemoteRes, error)
 	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes, error)
 	TlfFinalize(context.Context, TLFID) error
-	PostAttachmentRemote(context.Context, PostAttachmentRemoteArg) error
+	GetS3AttachmentParams(context.Context, ConversationID) (S3AttachmentParams, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -249,18 +258,18 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"postAttachmentRemote": {
+			"getS3AttachmentParams": {
 				MakeArg: func() interface{} {
-					ret := make([]PostAttachmentRemoteArg, 1)
+					ret := make([]GetS3AttachmentParamsArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PostAttachmentRemoteArg)
+					typedArgs, ok := args.(*[]GetS3AttachmentParamsArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]PostAttachmentRemoteArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetS3AttachmentParamsArg)(nil), args)
 						return
 					}
-					err = i.PostAttachmentRemote(ctx, (*typedArgs)[0])
+					ret, err = i.GetS3AttachmentParams(ctx, (*typedArgs)[0].ConversationID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -315,7 +324,8 @@ func (c RemoteClient) TlfFinalize(ctx context.Context, tlfID TLFID) (err error) 
 	return
 }
 
-func (c RemoteClient) PostAttachmentRemote(ctx context.Context, __arg PostAttachmentRemoteArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.remote.postAttachmentRemote", []interface{}{__arg}, nil)
+func (c RemoteClient) GetS3AttachmentParams(ctx context.Context, conversationID ConversationID) (res S3AttachmentParams, err error) {
+	__arg := GetS3AttachmentParamsArg{ConversationID: conversationID}
+	err = c.Cli.Call(ctx, "chat.1.remote.getS3AttachmentParams", []interface{}{__arg}, &res)
 	return
 }

@@ -1,12 +1,6 @@
 {
   "protocol": "remote",
-  "imports": [
-    {
-      "path": "github.com/keybase/client/go/protocol/keybase1",
-      "type": "idl",
-      "import_as": "keybase1"
-    }
-  ],
+  "imports": [],
   "types": [
     {
       "type": "record",
@@ -194,6 +188,44 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "S3AttachmentParams",
+      "fields": [
+        {
+          "type": "string",
+          "name": "endpoint"
+        },
+        {
+          "type": "string",
+          "name": "objectKey"
+        },
+        {
+          "type": "string",
+          "name": "acl"
+        },
+        {
+          "type": "string",
+          "name": "credential"
+        },
+        {
+          "type": "string",
+          "name": "algorithm"
+        },
+        {
+          "type": "string",
+          "name": "date"
+        },
+        {
+          "type": "string",
+          "name": "policy"
+        },
+        {
+          "type": "string",
+          "name": "signature"
+        }
+      ]
     }
   ],
   "messages": {
@@ -312,18 +344,14 @@
       ],
       "response": null
     },
-    "postAttachmentRemote": {
+    "getS3AttachmentParams": {
       "request": [
         {
           "name": "conversationID",
           "type": "ConversationID"
-        },
-        {
-          "name": "source",
-          "type": "keybase1.Stream"
         }
       ],
-      "response": null
+      "response": "S3AttachmentParams"
     }
   },
   "namespace": "chat.1"

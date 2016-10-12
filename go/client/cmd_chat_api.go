@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -351,8 +352,33 @@ func (c *CmdChatAPI) EditV1(ctx context.Context, opts editOptionsV1) Reply {
 
 // AttachV1 implements ChatServiceHandler.AttachV1.
 func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
-	// TODO: implement
-	return Reply{}
+	var rlimits []chat1.RateLimit
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	fsource := NewFileSource(opts.Filename)
+	src := c.G().XStreams.ExportReader(fsource)
+
+	arg := chat1.PostAttachmentLocalArg{
+		Filename: filepath.Base(opts.Filename),
+		Source:   src,
+	}
+	pres, err := client.PostAttachmentLocal(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+	rlimits = append(rlimits, pres.RateLimits...)
+
+	res := SendRes{
+		Message: "attachment sent",
+		RateLimits: RateLimits{
+			RateLimits: c.aggRateLimits(rlimits),
+		},
+	}
+
+	return Reply{Result: res}
 }
 
 type sendArgV1 struct {

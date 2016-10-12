@@ -1,6 +1,5 @@
 @namespace("chat.1")
 protocol remote {
-  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
 
   record MessageBoxed {
     // Only set when returned from the server; on the way up to the
@@ -78,6 +77,16 @@ protocol remote {
   // conversation per TLF ID on GetInboxRemote.
   void tlfFinalize(TLFID tlfID);
 
-  void postAttachmentRemote(ConversationID conversationID, keybase1.Stream source);
+  record S3AttachmentParams {
+    string endpoint;
+    string objectKey;
+    string acl;
+    string credential;
+    string algorithm;
+    string date;
+    string policy;
+    string signature;
+  }
 
+  S3AttachmentParams getS3AttachmentParams(ConversationID conversationID);
 }

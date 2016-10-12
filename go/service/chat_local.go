@@ -757,20 +757,21 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
 
-	rarg := chat1.PostAttachmentRemoteArg{
-		ConversationID: arg.ConversationID,
-		Source:         arg.Source,
-	}
-	// XXX need more results probably, with rate limit...
-	err := h.remoteClient().PostAttachmentRemote(ctx, rarg)
+	// get s3 upload params from server
+	params, err := h.remoteClient().GetS3AttachmentParams(ctx, arg.ConversationID)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
-	/*
-		return chat1.PostLocalRes{
-			RateLimits: h.aggRateLimitsP([]*chat1.RateLimit{plres.RateLimit}),
-		}, nil
-	*/
+
+	// post to s3
+	// first version:  doing the whole thing in one post
+	cli := h.getStreamUICli()
+	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
+	if err := chat.UploadS3(h.G().Log, src, arg.Filename, params); err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+
+	// send an attachment message
 
 	return chat1.PostLocalRes{}, nil
 }

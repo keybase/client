@@ -206,14 +206,13 @@ func (d deleteOptionsV1) Check() error {
 }
 
 type attachOptionsV1 struct {
-	Channel        ChatChannel
-	ConversationID chat1.ConversationID `json:"conversation_id"`
-	Filename       string
+	Channel  ChatChannel
+	Filename string
 }
 
 func (a attachOptionsV1) Check() error {
-	if err := checkChannelConv(methodDelete, a.Channel, a.ConversationID); err != nil {
-		return err
+	if !a.Channel.Valid() {
+		return ErrInvalidOptions{version: 1, method: methodAttach, err: errors.New("invalid channel")}
 	}
 	if len(strings.TrimSpace(a.Filename)) == 0 {
 		return ErrInvalidOptions{version: 1, method: methodAttach, err: errors.New("empty filename")}

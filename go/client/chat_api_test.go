@@ -282,6 +282,17 @@ var optTests = []optTest{
 	{
 		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
 	},
+	{
+		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png"}}}`,
+	},
+	{
+		input: `{"method": "attach", "params":{"options": {"filename": "photo.png"}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}}}}`,
+		err:   ErrInvalidOptions{},
+	},
 }
 
 // TestChatAPIDecoderOptions tests the option decoding.
@@ -293,6 +304,7 @@ func TestChatAPIDecoderOptions(t *testing.T) {
 		err := d.Decode(context.Background(), strings.NewReader(test.input), &buf)
 		if test.err != nil {
 			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
+				t.Errorf("test %d: input: %s", i, test.input)
 				t.Errorf("test %d: error type %T, expected %T (%s)", i, err, test.err, err)
 				continue
 			}
@@ -344,6 +356,10 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "delete", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png"}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 }
