@@ -22,12 +22,12 @@ servers).
 The code is organized as follows:
 
 * [dokan](dokan/): Helper code for running Dokan filesystems on Windows.
-* [kbfs](kbfs/): A thin command line utility for interacting with KBFS
-  without using a filesystem mountpoint.
 * [kbfsdokan](kbfsdokan/): The main executable for running KBFS on
   Windows.
 * [kbfsfuse](kbfsfuse/): The main executable for running KBFS on Linux
   and OS X.
+* [kbfstool](kbfstool/): A thin command line utility for interacting with KBFS
+  without using a filesystem mountpoint.
 * [libdokan](libdokan/): Library code gluing together KBFS and the
   Dokan protocol.
 * [libfs](libfs/): Common library code useful to any filesystem
