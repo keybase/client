@@ -28,7 +28,7 @@ PLATFORM=darwin ./build_app.sh
 To build a version of the app using the local repo without uploading to S3 or checking CI:
 
 ```
-NOWAIT=1 NOS3=1 PLATFORM=darwin ./build_app.sh
+NOWAIT=1 NOS3=1 NOCI=1 PLATFORM=darwin ./build_app.sh
 ```
 
 For faster debugging/testing, you can build Keybase services (go binaries)
