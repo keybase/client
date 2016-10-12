@@ -33,10 +33,17 @@ func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.Glob
 		r.TlfName = string(cname.CanonicalName)
 	}
 
+	var tlfName, topicName *string
+	if len(r.TlfName) > 0 {
+		tlfName = &r.TlfName
+	}
+	if len(r.TopicName) > 0 {
+		topicName = &r.TopicName
+	}
 	gilres, err := chatClient.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
-			TlfName:       &r.TlfName,
-			TopicName:     &r.TopicName,
+			TlfName:       tlfName,
+			TopicName:     topicName,
 			TopicType:     &r.TopicType,
 			TlfVisibility: &r.Visibility,
 		},
@@ -54,6 +61,11 @@ func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.Glob
 	case 0:
 		return nil, false, nil
 	case 1:
+		if conversations[0].Triple.TopicType == chat1.TopicType_CHAT {
+			g.UI.GetTerminalUI().Printf("Found %s conversation: %s\n", conversations[0].Triple.TopicType.String(), conversations[0].TlfName)
+		} else {
+			g.UI.GetTerminalUI().Printf("Found %s [%s] conversation: %s\n", conversations[0].Triple.TopicType.String(), conversations[0].TopicName, conversations[0].TlfName)
+		}
 		return &conversations[0], false, nil
 	default:
 		g.UI.GetTerminalUI().Printf(

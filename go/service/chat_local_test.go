@@ -61,9 +61,12 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		t.Fatalf("user %s is not found", user.Username)
 	}
 	h := newChatLocalHandler(nil, tc.G, nil)
-	h.rc = kbtest.NewChatRemoteMock(c.world)
+	mockRemote := kbtest.NewChatRemoteMock(c.world)
 	h.tlf = kbtest.NewTlfMock(c.world)
 	h.boxer = chat.NewBoxer(tc.G, h.tlf)
+	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, mockRemote)
+	h.setTestRemoteClient(mockRemote)
+
 	tuc := &chatTestUserContext{
 		h: h,
 		u: user,
@@ -373,7 +376,7 @@ func TestChatGracefulUnboxing(t *testing.T) {
 		t.Fatalf("unexpected response from GetThreadLocal. expected 3 items, got %d\n", len(tv.Thread.Messages))
 	}
 	if tv.Thread.Messages[0].Message != nil ||
-		tv.Thread.Messages[0].UnboxingError == nil || len(*tv.Thread.Messages[0].UnboxingError) == 0 {
+		tv.Thread.Messages[0].UnboxingError == nil || len(tv.Thread.Messages[0].UnboxingError.Errmsg) == 0 {
 		t.Fatalf("unexpected response from GetThreadLocal. expected an error message from bad msg, got %#+v\n", tv.Thread.Messages[0])
 	}
 	if tv.Thread.Messages[1].Message == nil || tv.Thread.Messages[1].Message.MessagePlaintext.V1().MessageBody.Text().Body != "innocent hello" {
