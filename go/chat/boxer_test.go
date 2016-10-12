@@ -270,6 +270,7 @@ func TestChatMessagePublic(t *testing.T) {
 	header := chat1.MessageClientHeader{
 		Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
 		TlfPublic: true,
+		TlfName:   "hi",
 	}
 	msg := textMsgWithHeader(t, text, header)
 
