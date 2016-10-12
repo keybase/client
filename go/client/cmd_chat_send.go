@@ -60,7 +60,7 @@ func (c *cmdChatSend) Run() (err error) {
 
 	if resolved == nil {
 		if len(c.resolver.TlfName) == 0 {
-			c.G().UI.GetTerminalUI().Printf("No conversation is found. Type `keybase chat send <tlf> [message]` to create a new one.\n")
+			c.G().UI.GetTerminalUI().Printf("No conversation found. Type `keybase chat send <tlf> [message]` to create a new one.\n")
 			return nil
 		}
 
