@@ -2,7 +2,6 @@
 import Files from './files'
 import React, {Component} from 'react'
 import Render from './render'
-import flags from '../util/feature-flags'
 import {connect} from 'react-redux'
 import {favoriteList, switchTab, toggleShowIgnored as onToggleShowIgnored} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
