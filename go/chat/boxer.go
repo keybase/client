@@ -192,6 +192,9 @@ func (b *Boxer) boxMessageV1(ctx context.Context, msg chat1.MessagePlaintextV1, 
 	tlfName := msg.ClientHeader.TlfName
 	var recentKey *keybase1.CryptKey
 
+	if len(tlfName) == 0 {
+		return nil, libkb.ChatBoxingError{Msg: "blank TLF name given"}
+	}
 	if msg.ClientHeader.TlfPublic {
 		recentKey = &publicCryptKey
 		res, err := b.tlf.PublicCanonicalTLFNameAndID(ctx, keybase1.TLFQuery{
@@ -211,6 +214,9 @@ func (b *Boxer) boxMessageV1(ctx context.Context, msg chat1.MessagePlaintextV1, 
 			return nil, libkb.ChatBoxingError{Msg: err.Error()}
 		}
 		msg.ClientHeader.TlfName = string(keys.NameIDBreaks.CanonicalName)
+		if len(msg.ClientHeader.TlfName) == 0 {
+			return nil, libkb.ChatBoxingError{Msg: fmt.Sprintf("blank TLF name received: original: %s canonical: %s", tlfName, msg.ClientHeader.TlfName)}
+		}
 
 		for _, key := range keys.CryptKeys {
 			if recentKey == nil || key.KeyGeneration > recentKey.KeyGeneration {
