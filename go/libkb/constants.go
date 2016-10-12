@@ -465,3 +465,7 @@ const (
 	NotificationDismissPGPPrefix = "pgp_secret_store"
 	NotificationDismissPGPValue  = "dismissed"
 )
+
+const (
+	EncryptionReasonChatLocalStorage EncryptionReason = "Keybase-Chat-Local-Storage-1"
+)

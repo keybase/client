@@ -62,12 +62,12 @@ type HybridConversationSource struct {
 	storage *Storage
 }
 
-func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, ri chat1.RemoteInterface) *HybridConversationSource {
+func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *Storage, ri chat1.RemoteInterface) *HybridConversationSource {
 	return &HybridConversationSource{
 		Contextified: libkb.NewContextified(g),
 		ri:           ri,
 		boxer:        b,
-		storage:      NewStorage(g),
+		storage:      storage,
 	}
 }
 
@@ -80,7 +80,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 
 	// Store the message
-	if err = s.storage.Merge(convID, uid, []chat1.MessageFromServerOrError{decmsg}); err != nil {
+	if err = s.storage.Merge(ctx, convID, uid, []chat1.MessageFromServerOrError{decmsg}); err != nil {
 		return decmsg, err
 	}
 
@@ -159,7 +159,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Store locally (just warn on error, don't abort the whole thing)
-	if err = s.storage.Merge(convID, uid, thread.Messages); err != nil {
+	if err = s.storage.Merge(ctx, convID, uid, thread.Messages); err != nil {
 		s.G().Log.Warning("Pull: unable to commit thread locally: convID: %d uid: %s", convID, uid)
 	}
 
@@ -170,10 +170,10 @@ func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor
 	return s.storage.maybeNuke(true, nil, convID, uid)
 }
 
-func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer,
+func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *Storage,
 	ri chat1.RemoteInterface) libkb.ConversationSource {
 	if typ == "hybrid" {
-		return NewHybridConversationSource(g, boxer, ri)
+		return NewHybridConversationSource(g, boxer, storage, ri)
 	}
 	return NewRemoteConversationSource(g, boxer, ri)
 }

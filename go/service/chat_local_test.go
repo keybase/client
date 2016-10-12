@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -64,7 +65,11 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	mockRemote := kbtest.NewChatRemoteMock(c.world)
 	h.tlf = kbtest.NewTlfMock(c.world)
 	h.boxer = chat.NewBoxer(tc.G, h.tlf)
-	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, mockRemote)
+	f := func() libkb.SecretUI {
+		return &libkb.TestSecretUI{Passphrase: user.Passphrase}
+	}
+	storage := chat.NewStorage(tc.G, f)
+	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage, mockRemote)
 	h.setTestRemoteClient(mockRemote)
 
 	tuc := &chatTestUserContext{

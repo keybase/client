@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -15,9 +16,14 @@ import (
 	"golang.org/x/net/context"
 )
 
-func setupStorageTest(t *testing.T, name string) (libkb.TestContext, *Storage) {
+func setupStorageTest(t *testing.T, name string) (libkb.TestContext, *Storage, gregor1.UID) {
 	tc := externals.SetupTest(t, name, 2)
-	return tc, NewStorage(tc.G)
+	u, err := kbtest.CreateAndSignupFakeUser("cs", tc.G)
+	require.NoError(t, err)
+	f := func() libkb.SecretUI {
+		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	}
+	return tc, NewStorage(tc.G, f), gregor1.UID(u.User.GetUID().ToBytes())
 }
 
 func randBytes(n int) []byte {
@@ -63,11 +69,6 @@ func makeConvID(t *testing.T) chat1.ConversationID {
 	return chat1.ConversationID(res)
 }
 
-func makeUID() gregor1.UID {
-	raw := randBytes(16)
-	return gregor1.UID(raw)
-}
-
 func makeConversation(t *testing.T, maxID chat1.MessageID) chat1.Conversation {
 	convID := makeConvID(t)
 	return chat1.Conversation{
@@ -81,13 +82,12 @@ func makeConversation(t *testing.T, maxID chat1.MessageID) chat1.Conversation {
 }
 
 func TestStorageBasic(t *testing.T) {
-	_, storage := setupStorageTest(t, "basic")
+	_, storage, uid := setupStorageTest(t, "basic")
 
 	msgs := makeMsgRange(10)
 	conv := makeConversation(t, msgs[0].GetMessageID())
-	uid := makeUID()
 
-	require.NoError(t, storage.Merge(conv.Metadata.ConversationID, uid, msgs))
+	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
@@ -97,13 +97,12 @@ func TestStorageBasic(t *testing.T) {
 }
 
 func TestStorageLargeList(t *testing.T) {
-	_, storage := setupStorageTest(t, "large list")
+	_, storage, uid := setupStorageTest(t, "large list")
 
 	msgs := makeMsgRange(2000)
 	conv := makeConversation(t, msgs[0].GetMessageID())
-	uid := makeUID()
 
-	require.NoError(t, storage.Merge(conv.Metadata.ConversationID, uid, msgs))
+	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
@@ -113,16 +112,15 @@ func TestStorageLargeList(t *testing.T) {
 }
 
 func TestStorageSupersedes(t *testing.T) {
-	_, storage := setupStorageTest(t, "suprsedes")
+	_, storage, uid := setupStorageTest(t, "suprsedes")
 
 	msgs := makeMsgRange(110)
 	superseder := makeMsg(chat1.MessageID(111), 6)
 	superseder2 := makeMsg(chat1.MessageID(112), 11)
 	msgs = append([]chat1.MessageFromServerOrError{superseder}, msgs...)
 	conv := makeConversation(t, msgs[0].GetMessageID())
-	uid := makeUID()
 
-	require.NoError(t, storage.Merge(conv.Metadata.ConversationID, uid, msgs))
+	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
@@ -133,7 +131,7 @@ func TestStorageSupersedes(t *testing.T) {
 	require.Equal(t, chat1.MessageID(6), sheader.MessageID, "MessageID incorrect")
 	require.Equal(t, chat1.MessageID(111), sheader.SupersededBy, "supersededBy incorrect")
 
-	require.NoError(t, storage.Merge(conv.Metadata.ConversationID, uid,
+	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid,
 		[]chat1.MessageFromServerOrError{superseder2}))
 	conv.ReaderInfo.MaxMsgid = 112
 	msgs = append([]chat1.MessageFromServerOrError{superseder2}, msgs...)
@@ -146,13 +144,12 @@ func TestStorageSupersedes(t *testing.T) {
 }
 
 func TestStorageMiss(t *testing.T) {
-	_, storage := setupStorageTest(t, "miss")
+	_, storage, uid := setupStorageTest(t, "miss")
 
 	msgs := makeMsgRange(10)
 	conv := makeConversation(t, 15)
-	uid := makeUID()
 
-	require.NoError(t, storage.Merge(conv.Metadata.ConversationID, uid, msgs))
+	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 	_, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.Error(t, err, "expected error")
 	require.IsType(t, libkb.ChatStorageMissError{}, err, "wrong error type")
@@ -160,12 +157,11 @@ func TestStorageMiss(t *testing.T) {
 
 func TestStoragePagination(t *testing.T) {
 
-	_, storage := setupStorageTest(t, "basic")
+	_, storage, uid := setupStorageTest(t, "basic")
 
 	msgs := makeMsgRange(300)
 	conv := makeConversation(t, msgs[0].GetMessageID())
-	uid := makeUID()
-	require.NoError(t, storage.Merge(conv.Metadata.ConversationID, uid, msgs))
+	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 
 	t.Logf("test next input")
 	tp := pager.NewThreadPager()
@@ -227,10 +223,9 @@ func mkarray(m chat1.MessageFromServerOrError) []chat1.MessageFromServerOrError 
 }
 
 func TestStorageTypeFilter(t *testing.T) {
-	_, storage := setupStorageTest(t, "basic")
+	_, storage, uid := setupStorageTest(t, "basic")
 
 	textmsgs := makeMsgRange(300)
-	uid := makeUID()
 	msgs := append(mkarray(makeMsgWithType(chat1.MessageID(301), 0, chat1.MessageType_EDIT)), textmsgs...)
 	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(302), 0, chat1.MessageType_TLFNAME)), msgs...)
 	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(303), 0, chat1.MessageType_ATTACHMENT)), msgs...)
@@ -242,7 +237,7 @@ func TestStorageTypeFilter(t *testing.T) {
 		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 	}
 
-	require.NoError(t, storage.Merge(conv.Metadata.ConversationID, uid, msgs))
+	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 	res, err := storage.Fetch(context.TODO(), conv, uid, &query, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")

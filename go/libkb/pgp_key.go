@@ -783,6 +783,10 @@ func (k *PGPKeyBundle) ExportPublicAndPrivate() (public RawPublicKey, private Ra
 	return RawPublicKey(publicKey.Bytes()), RawPrivateKey(privateKey.Bytes()), nil
 }
 
+func (k *PGPKeyBundle) SecretSymmetricKey(reason EncryptionReason) ([]byte, error) {
+	return nil, KeyCannotEncryptError{}
+}
+
 //===================================================
 
 // Fulfill the TrackIdComponent interface
