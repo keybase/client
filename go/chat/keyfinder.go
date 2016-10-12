@@ -1,10 +1,10 @@
 package chat
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // keyFinder remembers results from previous calls to CryptKeys().

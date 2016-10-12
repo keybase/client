@@ -87,3 +87,29 @@ func FilterByType(msgs []chat1.MessageFromServerOrError, query *chat1.GetThreadQ
 	}
 	return res
 }
+
+// AggRateLimitsP takes a list of rate limit responses and dedups them to the last one received
+// of each category
+func AggRateLimitsP(rlimits []*chat1.RateLimit) (res []chat1.RateLimit) {
+	m := make(map[string]chat1.RateLimit)
+	for _, l := range rlimits {
+		if l != nil {
+			m[l.Name] = *l
+		}
+	}
+	for _, v := range m {
+		res = append(res, v)
+	}
+	return res
+}
+
+func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
+	m := make(map[string]chat1.RateLimit)
+	for _, l := range rlimits {
+		m[l.Name] = l
+	}
+	for _, v := range m {
+		res = append(res, v)
+	}
+	return res
+}

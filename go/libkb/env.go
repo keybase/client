@@ -852,6 +852,13 @@ func (e *Env) GetTimers() string {
 	)
 }
 
+func (e *Env) GetConvSourceType() string {
+	return e.GetString(
+		func() string { return os.Getenv("KEYBASE_CONV_SOURCE_TYPE") },
+		func() string { return "hybrid" },
+	)
+}
+
 func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.config.GetDeviceID()
 }
