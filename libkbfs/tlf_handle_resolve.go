@@ -383,6 +383,36 @@ func (h TlfHandle) MutuallyResolvesTo(
 	return nil
 }
 
+type resolvableAssertionWithChangeReport struct {
+	resolvableAssertion
+	changed chan struct{}
+}
+
+func (ra resolvableAssertionWithChangeReport) resolve(ctx context.Context) (
+	nameUIDPair, keybase1.SocialAssertion, error) {
+	nuid, sa, err := ra.resolvableAssertion.resolve(ctx)
+	if err != nil {
+		return nuid, sa, err
+	}
+	if nuid.name.String() != "" {
+		if nuid.name.String() != ra.assertion {
+			sendIfPossible(ra.changed)
+		}
+	} else if sa != (keybase1.SocialAssertion{}) {
+		if sa.String() != ra.assertion {
+			sendIfPossible(ra.changed)
+		}
+	}
+	return nuid, sa, nil
+}
+
+func sendIfPossible(ch chan struct{}) {
+	select {
+	case ch <- struct{}{}:
+	default:
+	}
+}
+
 type resolvableAssertion struct {
 	resolver   resolver
 	assertion  string
@@ -447,13 +477,16 @@ func ParseTlfHandle(
 		return nil, err
 	}
 
+	changesCh := make(chan struct{}, 1)
 	writers := make([]resolvableUser, len(writerNames))
 	for i, w := range writerNames {
-		writers[i] = resolvableAssertion{kbpki, w, keybase1.UID("")}
+		writers[i] = resolvableAssertionWithChangeReport{
+			resolvableAssertion{kbpki, w, keybase1.UID("")}, changesCh}
 	}
 	readers := make([]resolvableUser, len(readerNames))
 	for i, r := range readerNames {
-		readers[i] = resolvableAssertion{kbpki, r, keybase1.UID("")}
+		readers[i] = resolvableAssertionWithChangeReport{
+			resolvableAssertion{kbpki, r, keybase1.UID("")}, changesCh}
 	}
 
 	var extensions []TlfHandleExtension
@@ -480,10 +513,19 @@ func ParseTlfHandle(
 		}
 	}
 
-	if string(h.GetCanonicalName()) == name {
-		// Name is already canonical (i.e., all usernames and
-		// no assertions) so we can delay the identify until
-		// the node is actually used.
+	if extensionSuffix != "" {
+		extensionList := tlfHandleExtensionList(extensions)
+		sort.Sort(extensionList)
+		var canonExtensionString = extensionList.Suffix()
+		if canonExtensionString != TlfHandleExtensionSep+extensionSuffix {
+			return nil, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
+		}
+	}
+
+	select {
+	case <-changesCh:
+	default:
+		// No changes were performed because of resolver.
 		return h, nil
 	}
 
@@ -494,4 +536,25 @@ func ParseTlfHandle(
 	}
 
 	return nil, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
+}
+
+// ParseTlfHandlePreferred returns TlfNameNotCanonical if not
+// in the preferred format.
+func ParseTlfHandlePreferred(
+	ctx context.Context, kbpki KBPKI, name string, public bool) (
+	*TlfHandle, error) {
+	h, err := ParseTlfHandle(ctx, kbpki, name, public)
+	if err != nil {
+		return nil, err
+	}
+	uname, _, err := kbpki.GetCurrentUserInfo(ctx)
+	// TODO is ignoring the error here the best way...
+	if err != nil {
+		return h, nil
+	}
+	pref := h.GetPreferredFormat(uname)
+	if pref != name {
+		return nil, TlfNameNotCanonical{name, pref}
+	}
+	return h, nil
 }

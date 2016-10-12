@@ -385,26 +385,11 @@ func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase
 // and tries to normalize it offline. In addition to other
 // checks it returns TlfNameNotCanonical if it does not
 // look canonical.
+// Note that ordering differences are not returned as TlfNameNotCanonical here.
 func splitAndNormalizeTLFName(name string, public bool) (
 	writerNames, readerNames []string,
 	extensionSuffix string, err error) {
-
-	names := strings.SplitN(name, TlfHandleExtensionSep, 2)
-	if len(names) > 2 {
-		return nil, nil, "", BadTLFNameError{name}
-	}
-	if len(names) > 1 {
-		extensionSuffix = names[1]
-	}
-
-	splitNames := strings.SplitN(names[0], ReaderSep, 3)
-	if len(splitNames) > 2 {
-		return nil, nil, "", BadTLFNameError{name}
-	}
-	writerNames = strings.Split(splitNames[0], ",")
-	if len(splitNames) > 1 {
-		readerNames = strings.Split(splitNames[1], ",")
-	}
+	writerNames, readerNames, extensionSuffix, err = splitTLFName(name)
 
 	hasPublic := len(readerNames) == 0
 
@@ -413,16 +398,38 @@ func splitAndNormalizeTLFName(name string, public bool) (
 		return nil, nil, "", NoSuchNameError{Name: name}
 	}
 
-	normalizedName, err := normalizeNamesInTLF(
+	normalizedName, changes, err := normalizeNamesInTLF(
 		writerNames, readerNames, extensionSuffix)
 	if err != nil {
 		return nil, nil, "", err
 	}
-	if normalizedName != name {
+	// Check for changes - not just ordering differences here.
+	if changes {
 		return nil, nil, "", TlfNameNotCanonical{name, normalizedName}
 	}
 
 	return writerNames, readerNames, strings.ToLower(extensionSuffix), nil
+}
+
+func splitTLFName(name string) (wnames []string, rnames []string, ext string, err error) {
+	names := strings.SplitN(name, TlfHandleExtensionSep, 2)
+	if len(names) > 2 {
+		return nil, nil, "", BadTLFNameError{name}
+	}
+	if len(names) > 1 {
+		ext = names[1]
+	}
+
+	splitNames := strings.SplitN(names[0], ReaderSep, 3)
+	if len(splitNames) > 2 {
+		return nil, nil, "", BadTLFNameError{name}
+	}
+	wnames = strings.Split(splitNames[0], ",")
+	if len(splitNames) > 1 {
+		rnames = strings.Split(splitNames[1], ",")
+	}
+
+	return wnames, rnames, ext, nil
 }
 
 // TODO: this function can likely be replaced with a call to
@@ -459,39 +466,53 @@ func normalizeAssertionOrName(s string) (string, error) {
 	return "", BadTLFNameError{s}
 }
 
-// normalizeNamesInTLF takes a split TLF name and, without doing any
-// resolutions or identify calls, normalizes all elements of the
-// name. It then returns the normalized name.
-func normalizeNamesInTLF(writerNames, readerNames []string,
-	extensionSuffix string) (string, error) {
-	sortedWriterNames := make([]string, len(writerNames))
-	var err error
-	for i, w := range writerNames {
-		sortedWriterNames[i], err = normalizeAssertionOrName(w)
+// normalizeNames normalizes a slice of names and returns
+// whether any of them changed.
+func normalizeNames(names []string) (changesMade bool, err error) {
+	for i, name := range names {
+		x, err := normalizeAssertionOrName(name)
 		if err != nil {
-			return "", err
+			return changesMade, err
+		}
+		if x != name {
+			names[i] = x
+			changesMade = true
 		}
 	}
-	sort.Strings(sortedWriterNames)
-	normalizedName := strings.Join(sortedWriterNames, ",")
+	return changesMade, nil
+}
+
+// normalizeNamesInTLF takes a split TLF name and, without doing any
+// resolutions or identify calls, normalizes all elements of the
+// name. It then returns the normalized name and a boolean flag
+// whether any names were modified.
+// This modifies the slices passed as arguments.
+func normalizeNamesInTLF(writerNames, readerNames []string,
+	extensionSuffix string) (canon string, changes bool, err error) {
+	changes, err = normalizeNames(writerNames)
+	if err != nil {
+		return "", false, err
+	}
+	sort.Strings(writerNames)
+	normalizedName := strings.Join(writerNames, ",")
 	if len(readerNames) > 0 {
-		sortedReaderNames := make([]string, len(readerNames))
-		for i, r := range readerNames {
-			sortedReaderNames[i], err = normalizeAssertionOrName(r)
-			if err != nil {
-				return "", err
-			}
+		rchanges, err := normalizeNames(readerNames)
+		if err != nil {
+			return "", false, err
 		}
-		sort.Strings(sortedReaderNames)
-		normalizedName += ReaderSep + strings.Join(sortedReaderNames, ",")
+		changes = changes || rchanges
+		sort.Strings(readerNames)
+		normalizedName += ReaderSep + strings.Join(readerNames, ",")
 	}
 	if len(extensionSuffix) != 0 {
 		// This *should* be normalized already but make sure.  I can see not
 		// doing so might surprise a caller.
-		normalizedName += TlfHandleExtensionSep + strings.ToLower(extensionSuffix)
+		nExt := strings.ToLower(extensionSuffix)
+		normalizedName += TlfHandleExtensionSep + nExt
+		changes = changes || nExt != extensionSuffix
 	}
 
-	return normalizedName, nil
+	return normalizedName, changes, nil
 }
 
 // CheckTlfHandleOffline does light checks whether a TLF handle looks ok,
@@ -512,4 +533,48 @@ func (h TlfHandle) IsFinal() bool {
 // top-level folder.
 func (h TlfHandle) IsConflict() bool {
 	return h.conflictInfo != nil
+}
+
+// GetPreferredFormat returns a TLF name formatted with the username given
+// as the parameter first.
+func (h TlfHandle) GetPreferredFormat(username libkb.NormalizedUsername) string {
+	s, err := FavoriteNameToPreferredTLFNameFormatAs(
+		username, string(h.GetCanonicalName()))
+	if err != nil {
+		panic("TlfHandle.GetPreferredFormat: Parsing canonical username failed!")
+	}
+	return s
+}
+
+// FavoriteNameToPreferredTLFNameFormatAs formats a favorite names for display with the
+// username given.
+func FavoriteNameToPreferredTLFNameFormatAs(username libkb.NormalizedUsername,
+	tlfname string) (string, error) {
+	if len(username) == 0 {
+		return tlfname, nil
+	}
+	ws, rs, ext, err := splitTLFName(tlfname)
+	if err != nil {
+		return "", err
+	}
+	if len(ws) == 0 {
+		return "", fmt.Errorf("TLF name %q with no writers?!", tlfname)
+	}
+	uname := username.String()
+	for i, w := range ws {
+		if i != 0 && w == uname {
+			ws0 := ws[i]
+			copy(ws[1:i+1], ws[0:i])
+			ws[0] = ws0
+			tlfname = strings.Join(ws, ",")
+			if len(rs) > 0 {
+				tlfname += ReaderSep + strings.Join(rs, ",")
+			}
+			if len(ext) > 0 {
+				tlfname += TlfHandleExtensionSep + ext
+			}
+			break
+		}
+	}
+	return tlfname, nil
 }
