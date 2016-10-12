@@ -744,15 +744,53 @@ func (j *tlfJournal) convertMDsToBranchAndGetNextEntry(
 		j.config.Crypto())
 }
 
+func (j *tlfJournal) maybeWaitForUnflushedReady(ctx context.Context) error {
+	// If something is already making the unflushed paths, wait for
+	// them to finish.
+	readyCh := func() <-chan struct{} {
+		j.journalLock.RLock()
+		defer j.journalLock.RUnlock()
+		return j.unflushedReady
+	}()
+	if readyCh != nil {
+		j.log.CDebugf(ctx, "Waiting for initial unflushed paths")
+		select {
+		case <-readyCh:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+		j.log.CDebugf(ctx, "Initial unflushed paths are ready")
+	}
+	return nil
+}
+
+var errRetryUnflushedPaths = errors.New("Retry with unflushed paths")
+
 func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
 	mdID MdID, rmds *RootMetadataSigned) error {
+	if err := j.maybeWaitForUnflushedReady(ctx); err != nil {
+		return err
+	}
+
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
 		return err
 	}
 
-	return j.mdJournal.removeFlushedEntry(ctx, mdID, rmds)
+	if j.unflushedReady != nil {
+		// Initialization started in between the wait and taking the lock.
+		return errRetryUnflushedPaths
+	}
+
+	if err := j.mdJournal.removeFlushedEntry(ctx, mdID, rmds); err != nil {
+		return err
+	}
+
+	if j.unflushedPaths != nil {
+		delete(j.unflushedPaths, rmds.MD.RevisionNumber())
+	}
+	return nil
 }
 
 func (j *tlfJournal) flushOneMDOp(
@@ -829,6 +867,11 @@ func (j *tlfJournal) flushOneMDOp(
 	}
 
 	err = j.removeFlushedMDEntry(ctx, mdID, rmds)
+	if err == errRetryUnflushedPaths {
+		j.log.CDebugf(ctx,
+			"Retry flush removal due to unflushed paths initialization")
+		err = j.removeFlushedMDEntry(ctx, mdID, rmds)
+	}
 	if err != nil {
 		return false, err
 	}
@@ -972,26 +1015,6 @@ func (j *tlfJournal) addUnflushedPaths(ctx context.Context,
 			}
 			revPaths[op.getFinalPath().String()] = true
 		}
-	}
-	return nil
-}
-
-func (j *tlfJournal) maybeWaitForUnflushedReady(ctx context.Context) error {
-	// If something is already making the unflushed paths, wait for
-	// them to finish.
-	readyCh := func() <-chan struct{} {
-		j.journalLock.RLock()
-		defer j.journalLock.RUnlock()
-		return j.unflushedReady
-	}()
-	if readyCh != nil {
-		j.log.CDebugf(ctx, "Waiting for initial unflushed paths")
-		select {
-		case <-readyCh:
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-		j.log.CDebugf(ctx, "Initial unflushed paths are ready")
 	}
 	return nil
 }
@@ -1307,8 +1330,6 @@ func (j *tlfJournal) getMDRange(
 	return j.mdJournal.getRange(start, stop)
 }
 
-var errRetryPutWithUnflushedPaths = errors.New("Retry put with unflushed paths")
-
 func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	newUnflushedPaths map[string]bool) (MdID, error) {
 	// Now take the lock and put the MD, merging in the unfluhed paths
@@ -1322,7 +1343,7 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	// Someone initialize unflushed paths since the put started, so retry.
 	if newUnflushedPaths == nil &&
 		(j.unflushedPaths != nil || j.unflushedReady != nil) {
-		return MdID{}, errRetryPutWithUnflushedPaths
+		return MdID{}, errRetryUnflushedPaths
 	}
 
 	mdID, err := j.mdJournal.put(ctx, j.config.Crypto(),
@@ -1396,7 +1417,7 @@ func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata) (
 
 	// If someone initialized j.unflushedPaths, then try prepping the
 	// unflushed paths one more time.
-	if err == errRetryPutWithUnflushedPaths {
+	if err == errRetryUnflushedPaths {
 		err := j.maybeWaitForUnflushedReady(ctx)
 		if err != nil {
 			return MdID{}, err
