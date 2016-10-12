@@ -6,6 +6,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"golang.org/x/net/context"
@@ -767,13 +768,27 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	// first version:  doing the whole thing in one post
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
-	if err := chat.UploadS3(h.G().Log, src, arg.Filename, params); err != nil {
+	upRes, err := chat.UploadS3(h.G().Log, src, arg.Filename, params)
+	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
 
 	// send an attachment message
-
-	return chat1.PostLocalRes{}, nil
+	attachment := chat1.MessageAttachment{
+		Object: chat1.Asset{
+			Filename: filepath.Base(arg.Filename),
+			Path:     fmt.Sprintf("s3://%s/%s", upRes.S3Bucket, upRes.S3Path),
+			Size:     int(upRes.Size),
+		},
+	}
+	postArg := chat1.PostLocalArg{
+		ConversationID: arg.ConversationID,
+		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
+			ClientHeader: arg.ClientHeader,
+			MessageBody:  chat1.NewMessageBodyWithAttachment(attachment),
+		}),
+	}
+	return h.PostLocal(ctx, postArg)
 }
 
 func (h *chatLocalHandler) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {

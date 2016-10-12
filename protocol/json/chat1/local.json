@@ -885,6 +885,10 @@
           "type": "ConversationID"
         },
         {
+          "name": "clientHeader",
+          "type": "MessageClientHeader"
+        },
+        {
           "name": "source",
           "type": "keybase1.Stream"
         },

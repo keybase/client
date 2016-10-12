@@ -352,8 +352,11 @@ func (c *CmdChatAPI) EditV1(ctx context.Context, opts editOptionsV1) Reply {
 
 // AttachV1 implements ChatServiceHandler.AttachV1.
 func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
-	var rlimits []chat1.RateLimit
-	client, err := GetChatLocalClient(c.G())
+	sarg := sendArgV1{
+		convQuery: c.getInboxLocalQuery(opts.ConversationID, opts.Channel),
+		mtype:     chat1.MessageType_ATTACHMENT,
+	}
+	header, err := c.makePostHeader(ctx, sarg)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -362,19 +365,25 @@ func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 	src := c.G().XStreams.ExportReader(fsource)
 
 	arg := chat1.PostAttachmentLocalArg{
-		Filename: filepath.Base(opts.Filename),
-		Source:   src,
+		ConversationID: header.conversationID,
+		ClientHeader:   header.clientHeader,
+		Filename:       filepath.Base(opts.Filename),
+		Source:         src,
+	}
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
 	}
 	pres, err := client.PostAttachmentLocal(ctx, arg)
 	if err != nil {
 		return c.errReply(err)
 	}
-	rlimits = append(rlimits, pres.RateLimits...)
+	header.rateLimits = append(header.rateLimits, pres.RateLimits...)
 
 	res := SendRes{
 		Message: "attachment sent",
 		RateLimits: RateLimits{
-			RateLimits: c.aggRateLimits(rlimits),
+			RateLimits: c.aggRateLimits(header.rateLimits),
 		},
 	}
 
@@ -390,25 +399,59 @@ type sendArgV1 struct {
 }
 
 func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
-	var rlimits []chat1.RateLimit
+	header, err := c.makePostHeader(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	postArg := chat1.PostLocalArg{
+		ConversationID: header.conversationID,
+		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
+			ClientHeader: header.clientHeader,
+			MessageBody:  arg.body,
+		}),
+	}
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
-
-	// find the conversation
-	gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
-		Query: &arg.convQuery,
-	})
+	plres, err := client.PostLocal(ctx, postArg)
 	if err != nil {
 		return c.errReply(err)
 	}
-	rlimits = append(rlimits, gilres.RateLimits...)
+	header.rateLimits = append(header.rateLimits, plres.RateLimits...)
 
-	var (
-		convTriple chat1.ConversationIDTriple
-		convID     chat1.ConversationID
-	)
+	res := SendRes{
+		Message: arg.response,
+		RateLimits: RateLimits{
+			RateLimits: c.aggRateLimits(header.rateLimits),
+		},
+	}
+
+	return Reply{Result: res}
+}
+
+type postHeader struct {
+	conversationID chat1.ConversationID
+	clientHeader   chat1.MessageClientHeader
+	rateLimits     []chat1.RateLimit
+}
+
+func (c *CmdChatAPI) makePostHeader(ctx context.Context, arg sendArgV1) (*postHeader, error) {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return nil, err
+	}
+
+	// find the conversation
+	gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{Query: &arg.convQuery})
+	if err != nil {
+		return nil, err
+	}
+	var header postHeader
+	header.rateLimits = append(header.rateLimits, gilres.RateLimits...)
+
+	var convTriple chat1.ConversationIDTriple
 	existing := gilres.ConversationsUnverified
 	switch len(existing) {
 	case 0:
@@ -419,43 +462,25 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 			TopicType:     *arg.convQuery.TopicType,
 		})
 		if err != nil {
-			return c.errReply(err)
+			return nil, err
 		}
-		rlimits = append(rlimits, ncres.RateLimits...)
-		convTriple, convID = ncres.Conv.Info.Triple, ncres.Conv.Info.Id
+		header.rateLimits = append(header.rateLimits, ncres.RateLimits...)
+		convTriple, header.conversationID = ncres.Conv.Info.Triple, ncres.Conv.Info.Id
 	case 1:
-		convTriple, convID = existing[0].Metadata.IdTriple, existing[0].Metadata.ConversationID
+		convTriple, header.conversationID = existing[0].Metadata.IdTriple, existing[0].Metadata.ConversationID
 	default:
-		return c.errReply(fmt.Errorf("multiple conversations matched"))
+		return nil, fmt.Errorf("multiple conversations matched")
 	}
 
-	postArg := chat1.PostLocalArg{
-		ConversationID: convID,
-		Msg: chat1.MessagePlaintext{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:        convTriple,
-				TlfName:     *arg.convQuery.TlfName,
-				TlfPublic:   *arg.convQuery.TlfVisibility == chat1.TLFVisibility_PUBLIC,
-				MessageType: arg.mtype,
-				Supersedes:  arg.supersedes,
-			},
-			MessageBody: arg.body,
-		},
-	}
-	plres, err := client.PostLocal(ctx, postArg)
-	if err != nil {
-		return c.errReply(err)
-	}
-	rlimits = append(rlimits, plres.RateLimits...)
-
-	res := SendRes{
-		Message: arg.response,
-		RateLimits: RateLimits{
-			RateLimits: c.aggRateLimits(rlimits),
-		},
+	header.clientHeader = chat1.MessageClientHeader{
+		Conv:        convTriple,
+		TlfName:     *arg.convQuery.TlfName,
+		TlfPublic:   *arg.convQuery.TlfVisibility == chat1.TLFVisibility_PUBLIC,
+		MessageType: arg.mtype,
+		Supersedes:  arg.supersedes,
 	}
 
-	return Reply{Result: res}
+	return &header, nil
 }
 
 func (c *CmdChatAPI) errReply(err error) Reply {

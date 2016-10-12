@@ -79,6 +79,7 @@ protocol remote {
 
   record S3AttachmentParams {
     string endpoint;
+    string bucket;
     string objectKey;
     string acl;
     string credential;

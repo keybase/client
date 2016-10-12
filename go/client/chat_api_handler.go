@@ -206,8 +206,9 @@ func (d deleteOptionsV1) Check() error {
 }
 
 type attachOptionsV1 struct {
-	Channel  ChatChannel
-	Filename string
+	Channel        ChatChannel
+	ConversationID chat1.ConversationID `json:"conversation_id"`
+	Filename       string
 }
 
 func (a attachOptionsV1) Check() error {

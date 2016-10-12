@@ -526,10 +526,11 @@ type PostLocalArg struct {
 }
 
 type PostAttachmentLocalArg struct {
-	SessionID      int             `codec:"sessionID" json:"sessionID"`
-	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
-	Source         keybase1.Stream `codec:"source" json:"source"`
-	Filename       string          `codec:"filename" json:"filename"`
+	SessionID      int                 `codec:"sessionID" json:"sessionID"`
+	ConversationID ConversationID      `codec:"conversationID" json:"conversationID"`
+	ClientHeader   MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
+	Source         keybase1.Stream     `codec:"source" json:"source"`
+	Filename       string              `codec:"filename" json:"filename"`
 }
 
 type NewConversationLocalArg struct {

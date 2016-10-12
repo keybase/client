@@ -62,6 +62,7 @@ type MarkAsReadRes struct {
 
 type S3AttachmentParams struct {
 	Endpoint   string `codec:"endpoint" json:"endpoint"`
+	Bucket     string `codec:"bucket" json:"bucket"`
 	ObjectKey  string `codec:"objectKey" json:"objectKey"`
 	Acl        string `codec:"acl" json:"acl"`
 	Credential string `codec:"credential" json:"credential"`

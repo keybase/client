@@ -183,8 +183,12 @@ export function localPostAttachmentLocalRpc (request: Exact<requestCommon & {cal
   engineRpcOutgoing({...request, method: 'local.postAttachmentLocal'})
 }
 
+export function localPostAttachmentLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostAttachmentLocalResult) => void} & {param: localPostAttachmentLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localPostAttachmentLocalRpc({...request, incomingCallMap, callback}))
+}
+
 export function localPostAttachmentLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostAttachmentLocalResult) => void} & {param: localPostAttachmentLocalRpcParam}>): Promise<localPostAttachmentLocalResult> {
-  return new Promise((resolve, reject) => { localPostAttachmentLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+  return new Promise((resolve, reject) => { localPostAttachmentLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function localPostLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostLocalResult) => void} & {param: localPostLocalRpcParam}>) {
@@ -227,8 +231,12 @@ export function remoteGetS3AttachmentParamsRpc (request: Exact<requestCommon & {
   engineRpcOutgoing({...request, method: 'remote.getS3AttachmentParams'})
 }
 
+export function remoteGetS3AttachmentParamsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3AttachmentParamsResult) => void} & {param: remoteGetS3AttachmentParamsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteGetS3AttachmentParamsRpc({...request, incomingCallMap, callback}))
+}
+
 export function remoteGetS3AttachmentParamsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3AttachmentParamsResult) => void} & {param: remoteGetS3AttachmentParamsRpcParam}>): Promise<remoteGetS3AttachmentParamsResult> {
-  return new Promise((resolve, reject) => { remoteGetS3AttachmentParamsRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+  return new Promise((resolve, reject) => { remoteGetS3AttachmentParamsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function remoteGetThreadRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>) {
@@ -672,6 +680,7 @@ export type RateLimit = {
 
 export type S3AttachmentParams = {
   endpoint: string,
+  bucket: string,
   objectKey: string,
   acl: string,
   credential: string,
@@ -757,6 +766,7 @@ export type localNewConversationLocalRpcParam = Exact<{
 
 export type localPostAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
+  clientHeader: MessageClientHeader,
   source: keybase1.Stream,
   filename: string
 }>

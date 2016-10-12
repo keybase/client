@@ -199,6 +199,10 @@
         },
         {
           "type": "string",
+          "name": "bucket"
+        },
+        {
+          "type": "string",
           "name": "objectKey"
         },
         {
