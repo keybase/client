@@ -182,10 +182,12 @@ type tlfJournal struct {
 	// instead.
 	journalLock sync.RWMutex
 	// both of these are nil after shutdown() is called.
-	blockJournal *blockJournal
-	mdJournal    *mdJournal
-	disabled     bool
-	lastFlushErr error
+	blockJournal   *blockJournal
+	mdJournal      *mdJournal
+	disabled       bool
+	lastFlushErr   error
+	unflushedPaths map[MetadataRevision]map[string]bool
+	unflushedReady chan struct{}
 
 	bwDelegate tlfJournalBWDelegate
 }
@@ -886,16 +888,17 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 }
 
 func (j *tlfJournal) getJournalStatusWithRange() (
-	TLFJournalStatus, []ImmutableBareRootMetadata, bool, error) {
-	j.journalLock.RLock()
-	defer j.journalLock.RUnlock()
+	TLFJournalStatus, []ImmutableBareRootMetadata,
+	map[MetadataRevision]map[string]bool, bool, error) {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
 	jStatus, err := j.getJournalStatusLocked()
 	if err != nil {
-		return TLFJournalStatus{}, nil, false, err
+		return TLFJournalStatus{}, nil, nil, false, err
 	}
 
 	if jStatus.RevisionEnd == MetadataRevisionUninitialized {
-		return jStatus, nil, true, nil
+		return jStatus, nil, nil, true, nil
 	}
 
 	stop := jStatus.RevisionEnd
@@ -908,75 +911,130 @@ func (j *tlfJournal) getJournalStatusWithRange() (
 	ibrmds, err := j.mdJournal.getRange(
 		jStatus.RevisionStart, stop)
 	if err != nil {
-		return TLFJournalStatus{}, nil, false, err
+		return TLFJournalStatus{}, nil, nil, false, err
 	}
-	return jStatus, ibrmds, complete, nil
+
+	unflushedPaths := j.unflushedPaths
+	if unflushedPaths == nil {
+		if j.unflushedReady != nil {
+			return TLFJournalStatus{}, nil, nil, false, errors.New(
+				"unflushedReady is not nil when unflushedPaths is nil")
+		}
+		j.unflushedReady = make(chan struct{})
+	}
+
+	return jStatus, ibrmds, unflushedPaths, complete, nil
 }
 
 func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 	cpp chainsPathPopulator) (TLFJournalStatus, error) {
-	jStatus, ibrmds, complete, err := j.getJournalStatusWithRange()
+	// If something is already making the unflushed paths, wait for
+	// them to finish.
+	readyCh := func() <-chan struct{} {
+		j.journalLock.RLock()
+		defer j.journalLock.RUnlock()
+		return j.unflushedReady
+	}()
+	j.log.CDebugf(ctx, "Ready ch: %v", readyCh)
+	if readyCh != nil {
+		j.log.CDebugf(ctx, "Waiting for initial unflushed paths")
+		select {
+		case <-readyCh:
+		case <-ctx.Done():
+			return TLFJournalStatus{}, ctx.Err()
+		}
+		j.log.CDebugf(ctx, "Initial unflushed paths are ready")
+	}
+
+	jStatus, ibrmds, unflushedPaths, complete, err :=
+		j.getJournalStatusWithRange()
 	if err != nil {
 		return TLFJournalStatus{}, err
 	}
 
-	if len(ibrmds) == 0 {
-		return jStatus, nil
-	}
+	// We are responsible for making the unflushed paths.
+	if unflushedPaths == nil && len(ibrmds) > 0 {
+		unflushedPaths = make(map[MetadataRevision]map[string]bool)
+		j.log.CDebugf(ctx, "Making initial unflushed paths")
+		// After we finish, release any waiters.  If there's an error,
+		// they will attempt to build the unflushedPaths.
+		defer func() {
+			j.journalLock.Lock()
+			defer j.journalLock.Unlock()
+			close(j.unflushedReady)
+			j.unflushedReady = nil
+			j.unflushedPaths = unflushedPaths
+		}()
 
-	ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandle(nil)
-	if err != nil {
-		return TLFJournalStatus{}, err
-	}
-
-	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
-	handle, err := MakeTlfHandle(
-		ctx, ibrmdBareHandle, j.config.usernameGetter())
-	if err != nil {
-		return TLFJournalStatus{}, err
-	}
-
-	for _, ibrmd := range ibrmds {
-		irmd, err := j.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
+		ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandle(nil)
 		if err != nil {
 			return TLFJournalStatus{}, err
 		}
 
-		irmds = append(irmds, irmd)
-	}
-
-	// Make chains over the entire range to get the unflushed files.
-	// TODO: cache this chains object and update it when new revisions
-	// appear and when revisions are flushed, instead of rebuilding
-	// every time.
-	chains := newCRChainsEmpty()
-	for _, irmd := range irmds {
-		winfo := writerInfo{
-			uid:      j.uid,
-			kid:      j.key.KID(),
-			revision: irmd.Revision(),
-			// There won't be any conflicts, so no need for the
-			// username/devicename.
-		}
-		err := chains.addOps(j.config.Codec(), irmd.data, winfo,
-			irmd.localTimestamp)
+		irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
+		handle, err := MakeTlfHandle(
+			ctx, ibrmdBareHandle, j.config.usernameGetter())
 		if err != nil {
-			return TLFJournalStatus{}, nil
+			return TLFJournalStatus{}, err
+		}
+
+		for _, ibrmd := range ibrmds {
+			irmd, err := j.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
+			if err != nil {
+				return TLFJournalStatus{}, err
+			}
+
+			irmds = append(irmds, irmd)
+		}
+
+		// Make chains over the entire range to get the unflushed files.
+		// TODO: cache this chains object and update it when new revisions
+		// appear and when revisions are flushed, instead of rebuilding
+		// every time.
+		chains := newCRChainsEmpty()
+		for _, irmd := range irmds {
+			winfo := writerInfo{
+				uid:      j.uid,
+				kid:      j.key.KID(),
+				revision: irmd.Revision(),
+				// There won't be any conflicts, so no need for the
+				// username/devicename.
+			}
+			err := chains.addOps(j.config.Codec(), irmd.data, winfo,
+				irmd.localTimestamp)
+			if err != nil {
+				return TLFJournalStatus{}, nil
+			}
+		}
+		chains.mostRecentMD = irmds[len(irmds)-1]
+
+		err = cpp.populateChainPaths(ctx, j.log, chains, true)
+		if err != nil {
+			return TLFJournalStatus{}, err
+		}
+
+		for _, chain := range chains.byOriginal {
+			for _, op := range chain.ops {
+				revPaths := unflushedPaths[op.getWriterInfo().revision]
+				if revPaths == nil {
+					revPaths = make(map[string]bool)
+					unflushedPaths[op.getWriterInfo().revision] = revPaths
+				}
+				revPaths[op.getFinalPath().String()] = true
+			}
 		}
 	}
-	chains.mostRecentMD = irmds[len(irmds)-1]
 
-	err = cpp.populateChainPaths(ctx, j.log, chains, true)
-	if err != nil {
-		return TLFJournalStatus{}, err
-	}
-
-	for _, chain := range chains.byOriginal {
-		if len(chain.ops) > 0 {
-			jStatus.UnflushedPaths = append(jStatus.UnflushedPaths,
-				chain.ops[0].getFinalPath().String())
+	pathsSeen := make(map[string]bool)
+	for _, revPaths := range unflushedPaths {
+		for path := range revPaths {
+			if !pathsSeen[path] {
+				jStatus.UnflushedPaths = append(jStatus.UnflushedPaths, path)
+				pathsSeen[path] = true
+			}
 		}
 	}
+
 	if !complete {
 		jStatus.UnflushedPaths =
 			append(jStatus.UnflushedPaths, incompleteUnflushedPathsMarker)
