@@ -51,12 +51,10 @@ class Render extends Component<void, Props, any> {
 
   componentWillReceiveProps (nextProps: Props) {
     // FIXME: desktop <Input> element keeps internal state, need to set its value manually
-    console.log('bbbb', this.props, nextProps)
     this.refs.filterInput.setValue(nextProps.dumbFilter)
   }
 
   render () {
-    console.log('aaa', this.props)
     const parts = this.props.dumbFilter.toLowerCase().split(':')
     let numItemsLeftWeCanShow = 10
     let filter = parts.join(':')
