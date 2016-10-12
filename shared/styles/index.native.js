@@ -14,7 +14,6 @@ const globalMargins = {
 }
 
 const fontCommon = {
-  letterSpacing: 0.3,
 }
 
 const font = {

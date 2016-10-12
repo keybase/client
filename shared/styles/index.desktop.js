@@ -14,27 +14,23 @@ const windowStyle = {
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
   textRendering: 'optimizeLegibility',
-  letterSpacing: '0.3px',
 }
 
 const font = {
   fontRegular: {
     ...fontCommon,
-    fontFamily: 'Lato',
+    fontFamily: 'OpenSans',
     fontWeight: 400,
   },
   fontSemibold: {
     ...fontCommon,
-    fontFamily: 'Lato',
+    fontFamily: 'OpenSans',
     fontWeight: 600,
   },
   fontBold: {
     ...fontCommon,
-    fontFamily: 'Lato',
-    fontWeight: 700,
-  },
-  italic: {
-    fontStyle: 'italic',
+    fontFamily: 'OpenSans',
+    fontWeight: '700',
   },
   fontTerminal: {
     ...fontCommon,

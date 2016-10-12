@@ -72,32 +72,44 @@ backgroundModes.forEach(backgroundMode => {
     parentProps: {
       style: {
         backgroundColor,
-        padding: 10,
-        minWidth: 320,
       },
     },
     backgroundMode,
+    style: {
+      margin: 10,
+      minWidth: 320,
+      display: 'block',
+    },
   }
 
   const mocks = {}
 
   const types = [
+    'HeaderBig',
+    'Header',
+    'HeaderLink',
+    'BodyBig',
+    'BodyBigLink',
     'Body',
-    'BodyPrimaryLink',
     'BodySemibold',
+    'BodyPrimaryLink',
+    'BodySecondaryLink',
+    'BodyError',
+    'BodySuccess',
     'BodySmall',
-    'BodySmallError',
-    'BodySmallLink',
+    'BodySmallSemibold',
     'BodySmallPrimaryLink',
     'BodySmallSecondaryLink',
-    'BodySmallSemibold',
-    'BodyXSmall',
-    'BodyXSmallLink',
-    'Header',
-    'HeaderBig',
-    'HeaderError',
-    'HeaderJumbo',
-    'HeaderLink',
+    'BodySmallError',
+    'BodySmallSuccess',
+    'Terminal',
+    'TerminalUsername',
+    'TerminalPublic',
+    'TerminalPrivate',
+    'TerminalCommand',
+    'TerminalComment',
+    'TerminalEmpty',
+    'TerminalSmall',
   ]
 
   types.forEach(type => {

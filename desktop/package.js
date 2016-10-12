@@ -32,6 +32,7 @@ fs.copySync('./Icon.png', 'build/desktop/Icon.png')
 fs.copySync('./Icon@2x.png', 'build/desktop/Icon@2x.png')
 fs.copySync('../shared/native', 'build/desktop/shared/native', {filter: f => f.endsWith('.html')})
 fs.copySync('../shared/images', 'build/desktop/shared/images')
+fs.copySync('../shared/fonts', 'build/desktop/shared/fonts')
 fs.copySync('./renderer', 'build/desktop/renderer', {filter: f => !f.endsWith('.js')})
 
 fs.writeJsonSync('build/package.json', {

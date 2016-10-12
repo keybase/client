@@ -30,7 +30,7 @@ class CodePageRender extends Component<void, Props, void> {
 
         <Text type='Header' style={{marginTop: 60}}>Type in text code</Text>
         <p style={{marginTop: 10}}>
-          <Text type='BodySmall' inline={true}>Run&nbsp;</Text><Text type='TerminalSmall' inline={true}>keybase device add</Text><Text type='BodySmall' inline={true}>&nbsp;on your other device and type this code there: </Text>
+          <Text type='BodySmall' inline={true}>Run&nbsp;</Text><Text type='Terminal' inline={true}>keybase device add</Text><Text type='BodySmall' inline={true}>&nbsp;on your other device and type this code there: </Text>
         </p>
         <Icon type='icon-computer-bw-48' style={{marginTop: 28}} />
 

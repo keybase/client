@@ -112,7 +112,7 @@ class CodePageRender extends Component<void, Props, void> {
       <Box style={stylesIntro}>
         <Text type='Header' style={{marginBottom: 10}} inline={true}>Type in text code</Text>
         <Text type='BodySmall' inline={true}>Please run </Text>
-        <Text type='TerminalSmall' inline={true}>keybase device add</Text>
+        <Text type='Terminal' inline={true}>keybase device add</Text>
         <Text type='BodySmall' inline={true}> in the terminal on your computer.</Text>
       </Box>
     )

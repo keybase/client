@@ -13,7 +13,7 @@ export type Props = {
 function Badge ({badgeStyle, badgeNumber, badgeNumberStyle}: Props) {
   return (
     <Box style={{...defaultBadgeStyle, ...badgeStyle}}>
-      <Text style={{flex: 0, ...badgeNumberStyle}} type='BadgeNumber'>{badgeNumber}</Text>
+      <Text style={{...textStyle, ...badgeNumberStyle}} type='HeaderBig'>{badgeNumber}</Text>
     </Box>
   )
 }
@@ -29,6 +29,13 @@ const defaultBadgeStyle = {
   flex: 0,
   marginLeft: 'auto',
   marginRight: 8,
+}
+
+const textStyle = {
+  flex: 0,
+  lineHeight: '10px',
+  fontSize: 9,
+  color: globalColors.white,
 }
 
 export default Badge

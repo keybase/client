@@ -118,9 +118,9 @@ class Text extends Component {
 
     const style = {
       ...typeStyle,
-      ...Text._colorStyleBackgroundMode(props.backgroundMode || 'Normal', props.type, !!context.inTerminal),
+      // ...Text._colorStyleBackgroundMode(props.backgroundMode || 'Normal', props.type, !!context.inTerminal),
       ...(props.onClick ? globalStyles.clickable : {}),
-      ...(inline ? {...Text._inlineStyle(props.type, context)} : {}),
+      // ...(inline ? {...Text._inlineStyle(props.type, context)} : {}),
       ...props.style,
     }
 
@@ -186,7 +186,6 @@ const sizeGroups: { [key: '40' | '30' | '22' | '18' | '15' | '13']: Object } = {
 const textCommon = {
   ...globalStyles.fontRegular,
   textAlignVertical: 'center',
-  letterSpacing: 0.3,
 }
 
 const textTerminal = {
