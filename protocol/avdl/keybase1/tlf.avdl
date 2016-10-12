@@ -7,16 +7,16 @@ protocol tlf {
   /**
    CryptKeys returns TLF crypt keys from all generations.
    */
-  TLFCryptKeys CryptKeys(string tlfName);
+  GetTLFCryptKeysRes CryptKeys(TLFQuery query);
 
   /**
    * tlfCanonicalID returns the canonical name and TLFID for tlfName.
    * TLFID should not be cached or stored persistently.
    */
-  CanonicalTLFNameAndID publicCanonicalTLFNameAndID(string tlfName);
+  CanonicalTLFNameAndIDWithBreaks publicCanonicalTLFNameAndID(TLFQuery query);
 
   // The tlfName can be either complete or partial. If the user's username is
   // not present in tlfName, it gets appended automatically. The canonical TLF
   // name is returned.
-  CanonicalTlfName completeAndCanonicalizeTlfName(string tlfName);
+  CanonicalTLFNameAndIDWithBreaks completeAndCanonicalizeTlfName(TLFQuery query);
 }

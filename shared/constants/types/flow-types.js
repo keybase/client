@@ -106,6 +106,7 @@ export const ConstantsStatusCode = {
   sctrackingbroke: 278,
   scwrongcryptoformat: 279,
   scdecryptionerror: 280,
+  scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
   scmissingresult: 801,
@@ -415,6 +416,12 @@ export const SaltpackUiSaltpackSenderType = {
   self: 5,
 }
 
+export const TlfKeysTLFIdentifyBehavior = {
+  defaultKbfs: 0,
+  chatCli: 1,
+  chatGui: 2,
+}
+
 export const UiPromptDefault = {
   none: 0,
   yes: 1,
@@ -515,6 +522,18 @@ export function SecretKeysGetSecretKeysRpcChannelMap (channelConfig: ChannelConf
 
 export function SecretKeysGetSecretKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>): Promise<SecretKeysGetSecretKeysResult> {
   return new Promise((resolve, reject) => { SecretKeysGetSecretKeysRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function accountEmailChangeRpc (request: Exact<requestCommon & requestErrorCallback & {param: accountEmailChangeRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'account.emailChange'})
+}
+
+export function accountEmailChangeRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: accountEmailChangeRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => accountEmailChangeRpc({...request, incomingCallMap, callback}))
+}
+
+export function accountEmailChangeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: accountEmailChangeRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { accountEmailChangeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function accountPassphraseChangeRpc (request: Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>) {
@@ -2511,9 +2530,10 @@ export type BoxPublicKey = any
 
 export type Bytes32 = any
 
-export type CanonicalTLFNameAndID = {
+export type CanonicalTLFNameAndIDWithBreaks = {
   tlfID: TLFID,
   CanonicalName: CanonicalTlfName,
+  breaks: TLFBreak,
 }
 
 export type CanonicalTlfName = string
@@ -2869,6 +2889,11 @@ export type GetCurrentStatusRes = {
 export type GetPassphraseRes = {
   passphrase: string,
   storeSecret: boolean,
+}
+
+export type GetTLFCryptKeysRes = {
+  nameIDBreaks: CanonicalTLFNameAndIDWithBreaks,
+  CryptKeys?: ?Array<CryptKey>,
 }
 
 export type Hello2Res = {
@@ -3630,6 +3655,7 @@ export type StatusCode =
   | 278 // SCTrackingBroke_278
   | 279 // SCWrongCryptoFormat_279
   | 280 // SCDecryptionError_280
+  | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
   | 801 // SCMissingResult_801
@@ -3706,13 +3732,26 @@ export type TLF = {
   isPrivate: boolean,
 }
 
-export type TLFCryptKeys = {
-  tlfID: TLFID,
-  CanonicalName: CanonicalTlfName,
-  CryptKeys?: ?Array<CryptKey>,
+export type TLFBreak = {
+  breaks?: ?Array<TLFUserBreak>,
 }
 
 export type TLFID = string
+
+export type TLFIdentifyBehavior = 
+    0 // DEFAULT_KBFS_0
+  | 1 // CHAT_CLI_1
+  | 2 // CHAT_GUI_2
+
+export type TLFQuery = {
+  tlfName: string,
+  identifyBehavior: TLFIdentifyBehavior,
+}
+
+export type TLFUserBreak = {
+  user: User,
+  breaks?: ?IdentifyTrackBreaks,
+}
 
 export type Test = {
   reply: string,
@@ -3870,6 +3909,10 @@ export type WebProof = {
   hostname: string,
   protocols?: ?Array<string>,
 }
+
+export type accountEmailChangeRpcParam = Exact<{
+  newEmail: string
+}>
 
 export type accountPassphraseChangeRpcParam = Exact<{
   oldPassphrase: string,
@@ -4627,23 +4670,23 @@ export type testTestRpcParam = Exact<{
 }>
 
 export type tlfCompleteAndCanonicalizeTlfNameRpcParam = Exact<{
-  tlfName: string
+  query: TLFQuery
 }>
 
 export type tlfCryptKeysRpcParam = Exact<{
-  tlfName: string
+  query: TLFQuery
 }>
 
 export type tlfKeysGetPublicCanonicalTLFNameAndIDRpcParam = Exact<{
-  tlfName: string
+  query: TLFQuery
 }>
 
 export type tlfKeysGetTLFCryptKeysRpcParam = Exact<{
-  tlfName: string
+  query: TLFQuery
 }>
 
 export type tlfPublicCanonicalTLFNameAndIDRpcParam = Exact<{
-  tlfName: string
+  query: TLFQuery
 }>
 
 export type trackDismissWithTokenRpcParam = Exact<{
@@ -4912,15 +4955,15 @@ type testTestCallbackResult = string
 
 type testTestResult = Test
 
-type tlfCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
+type tlfCompleteAndCanonicalizeTlfNameResult = CanonicalTLFNameAndIDWithBreaks
 
-type tlfCryptKeysResult = TLFCryptKeys
+type tlfCryptKeysResult = GetTLFCryptKeysRes
 
-type tlfKeysGetPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndID
+type tlfKeysGetPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 
-type tlfKeysGetTLFCryptKeysResult = TLFCryptKeys
+type tlfKeysGetTLFCryptKeysResult = GetTLFCryptKeysRes
 
-type tlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndID
+type tlfPublicCanonicalTLFNameAndIDResult = CanonicalTLFNameAndIDWithBreaks
 
 type uiPromptYesNoResult = boolean
 
@@ -4961,6 +5004,7 @@ export type rpc =
   | Kex2ProvisionerKexStartRpc
   | ScanProofsScanProofsRpc
   | SecretKeysGetSecretKeysRpc
+  | accountEmailChangeRpc
   | accountPassphraseChangeRpc
   | accountPassphrasePromptRpc
   | apiserverGetRpc

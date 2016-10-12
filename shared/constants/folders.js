@@ -3,6 +3,7 @@
 import type {UserList} from '../common-adapters/usernames'
 import type {Props as FileProps} from '../folders/files/file/render'
 import type {DeviceType} from '../constants/types/more'
+import type {Folder as FolderRPC} from '../constants/types/flow-types'
 
 export type FileSection = {
   name: string,
@@ -26,6 +27,7 @@ export type MetaType = 'new' | 'rekey' | 'ignored' | null
 export type Folder = {
   users: UserList,
   path: string,
+  sortName: string,
   meta?: MetaType,
   modified?: {
     when: string,
@@ -40,3 +42,9 @@ export type Folder = {
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<Device>,
 }
+
+export type FolderRPCWithMeta = {
+  meta: MetaType,
+  waitingForParticipantUnlock: Array<ParticipantUnlock>,
+  youCanUnlock: Array<Device>,
+} & FolderRPC

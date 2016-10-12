@@ -105,16 +105,19 @@ func (h *chatLocalHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []chat1
 }
 
 func (h *chatLocalHandler) cryptKeysWrapper(ctx context.Context, tlfName string) (tlfID chat1.TLFID, canonicalTlfName string, err error) {
-	resp, err := h.tlf.CryptKeys(ctx, tlfName)
+	resp, err := h.tlf.CryptKeys(ctx, keybase1.TLFQuery{
+		TlfName:          tlfName,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
 	if err != nil {
 		return nil, "", err
 	}
-	tlfIDb := resp.TlfID.ToBytes()
+	tlfIDb := resp.NameIDBreaks.TlfID.ToBytes()
 	if tlfIDb == nil {
 		return nil, "", errors.New("invalid TLF ID acquired")
 	}
 	tlfID = chat1.TLFID(tlfIDb)
-	return tlfID, string(resp.CanonicalName), nil
+	return tlfID, string(resp.NameIDBreaks.CanonicalName), nil
 }
 
 func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, err error) {

@@ -22,6 +22,7 @@ protocol constants {
     SCTrackingBroke_278,
     SCWrongCryptoFormat_279,
     SCDecryptionError_280,
+    SCBadEmail_472,
     SCBadSignupUsernameTaken_701,
     SCBadInvitationCode_707,
     SCMissingResult_801,
