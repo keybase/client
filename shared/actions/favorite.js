@@ -100,8 +100,9 @@ function _folderToState (txt: string = '', username: string, loggedIn: boolean):
 
   const converted = folders.map(f => folderFromFolderRPCWithMeta(username, f)).sort((a, b) => _folderSort(username, a, b))
 
-  const privateBadge = converted.reduce((acc, f) => !f.isPublic ? acc + 1 : acc, 0)
-  const publicBadge = converted.reduce((acc, f) => f.isPublic ? acc + 1 : acc, 0)
+  const newFolders = converted.filter(f => f.meta === 'new')
+  const privateBadge = newFolders.reduce((acc, f) => !f.isPublic ? acc + 1 : acc, 0)
+  const publicBadge = newFolders.reduce((acc, f) => f.isPublic ? acc + 1 : acc, 0)
 
   const [priFolders, pubFolders] = _.partition(converted, {isPublic: false})
   const [privIgnored, priv] = _.partition(priFolders, {ignored: true})
