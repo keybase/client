@@ -14,7 +14,7 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
     <Box style={{textAlign: 'center'}}>
       <Box style={{marginBottom: 8}}>
         <Text type='Header' style={textColorThemed[theme]}>Delete files and clear history for {isPrivate ? 'private/' : 'public/'}</Text>
-        <Usernames type='Header' style={textColorThemed[theme]} users={users} />
+        <Usernames type='Header' inline={true} style={textColorThemed[theme]} users={users} />
         <Text type='Header' style={textColorThemed[theme]}>?</Text>
         <Text type='Header' style={{...textColorThemed[theme], whiteSpace: 'pre'}}> ({folderSize})</Text>
       </Box>

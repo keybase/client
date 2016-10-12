@@ -10,6 +10,7 @@ import {globalStyles} from '../../styles'
 
 class Render extends Component<void, Props, any> {
   _onFilterChange: (a: any) => void;
+  _onNext: (a: any, offset: 1 | -1) => void;
 
   constructor (props: Props) {
     super(props)
@@ -19,6 +20,27 @@ class Render extends Component<void, Props, any> {
         dumbFilter: filter,
       })
     }, 300)
+  }
+
+  _onNext = (key, offset) => {
+    const keys = Object.keys(dumbComponentMap)
+    const idx = keys.indexOf(key)
+
+    if (idx === -1) {
+      return
+    }
+
+    const nextIdx = idx + offset
+
+    if (nextIdx < 0 || nextIdx >= keys.length) {
+      return
+    }
+
+    const filter = keys[nextIdx]
+
+    this.props.onDebugConfigChange({
+      dumbFilter: filter,
+    })
   }
 
   componentDidMount () {
@@ -74,7 +96,11 @@ class Render extends Component<void, Props, any> {
 
           return (
             <Box key={key} style={styleBox}>
-              <Text type='Header' style={{marginBottom: 5}} onClick={() => this._onFilterChange(key)}>{key}</Text>
+              <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginBottom: 5}}>
+                <Text type='Header' onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
+                <Text type='Header' onClick={() => this._onFilterChange(key)}>{key}</Text>
+                <Text type='Header' onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+              </Box>
               {items}
             </Box>
           )
