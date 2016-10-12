@@ -558,7 +558,7 @@ func FavoriteNameToPreferredTLFNameFormatAs(username libkb.NormalizedUsername,
 		return "", err
 	}
 	if len(ws) == 0 {
-		return "", fmt.Errorf("TLF name %q with no writers?!", tlfname)
+		return "", fmt.Errorf("TLF name %q with no writers", tlfname)
 	}
 	uname := username.String()
 	for i, w := range ws {
