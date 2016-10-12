@@ -127,14 +127,14 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-:: UpdateChannel Smoke Test None
+:: UpdateChannel is a Jenkins select parameter, one of: Smoke, Test, None
 echo UpdateChannel: %UpdateChannel%
 set JSON_UPDATE_FILENAME=update-windows-prod-v2.json
 IF %UpdateChannel% EQU Test (
   set JSON_UPDATE_FILENAME=update-windows-prod-test-v2.json
 )
 IF %UpdateChannel% EQU Smoke (
-  set JSON_UPDATE_FILENAME=update-windows-prod-KEYBASE_VERSION.json
+  set JSON_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
 )
 echo %JSON_UPDATE_FILENAME%
 
