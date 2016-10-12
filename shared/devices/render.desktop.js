@@ -3,6 +3,7 @@ import React, {Component} from 'react'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
 import {Box, Text, Icon, PopupMenu} from '../common-adapters'
+import flags from '../util/feature-flags'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 type RevokedHeaderProps = {children?: Array<any>}
@@ -108,11 +109,16 @@ class Render extends Component<void, Props, State> {
   }
 
   _items () {
-    return [
-      {title: 'New Phone', onClick: () => this.props.addNewPhone()},
+    const items = [
       {title: 'New Computer', onClick: () => this.props.addNewComputer()},
       {title: 'New Paper Key', onClick: () => this.props.addNewPaperKey()},
     ]
+    if (flags.mobileAppsExist) {
+      items.unshift(
+        {title: 'New Phone', onClick: () => this.props.addNewPhone()},
+      )
+    }
+    return items
   }
 
   render () {
