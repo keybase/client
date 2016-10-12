@@ -374,15 +374,34 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 	return nil
 }
 
-// swapCachedBlockChanges swaps any cached block changes so that
+// loadCachedBlockChanges swaps any cached block changes so that
 // future local accesses to this MD (from the cache) can directly
 // access the ops without needing to re-embed the block changes.
-func (md *RootMetadata) swapCachedBlockChanges() {
+func (md *RootMetadata) loadCachedBlockChanges(bps *blockPutState) {
 	if md.data.Changes.Ops == nil {
 		md.data.Changes, md.data.cachedChanges =
 			md.data.cachedChanges, md.data.Changes
 		md.data.Changes.Ops[0].
 			AddRefBlock(md.data.cachedChanges.Info.BlockPointer)
+		// Find the block and ref any children, if any.
+		if bps == nil {
+			panic("Must provide blocks when changes are unembedded")
+		}
+		found := false
+		for _, bs := range bps.blockStates {
+			if bs.blockPtr != md.data.cachedChanges.Info.BlockPointer {
+				continue
+			}
+			found = true
+			for _, iptr := range bs.block.(*FileBlock).IPtrs {
+				md.data.Changes.Ops[0].AddRefBlock(iptr.BlockPointer)
+			}
+			break
+		}
+		if !found {
+			panic(fmt.Sprintf("Couldn't find top change block %v",
+				md.data.cachedChanges.Info.BlockPointer))
+		}
 	}
 }
 

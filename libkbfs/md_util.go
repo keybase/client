@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"golang.org/x/sync/errgroup"
 
 	"golang.org/x/net/context"
 )
@@ -377,6 +378,119 @@ func signMD(
 	return nil
 }
 
+func getFileBlockForMD(ctx context.Context, config Config, ptr BlockPointer,
+	rmdToDecrypt *RootMetadata, rmdWithKeys KeyMetadata) (*FileBlock, error) {
+	// We don't have a convenient way to fetch the block from here via
+	// folderBlockOps, so just go directly via the
+	// BlockCache/BlockOps.  No locking around the blocks is needed
+	// since these change blocks are read-only.
+	block, err := config.BlockCache().Get(ptr)
+	if err != nil {
+		block = NewFileBlock()
+		if err := config.BlockOps().Get(
+			ctx, rmdWithKeys, ptr, block); err != nil {
+			return nil, err
+		}
+		if err := config.BlockCache().Put(
+			ptr, rmdToDecrypt.TlfID(), block, TransientEntry); err != nil {
+			return nil, err
+		}
+	}
+
+	fblock, ok := block.(*FileBlock)
+	if !ok {
+		return nil, NotFileBlockError{ptr, MasterBranch, path{}}
+	}
+	return fblock, nil
+}
+
+func reembedBlockChanges(ctx context.Context, config Config,
+	rmdToDecrypt *RootMetadata, rmdWithKeys KeyMetadata) error {
+	info := rmdToDecrypt.data.Changes.Info
+	if info.BlockPointer == zeroPtr {
+		return nil
+	}
+
+	// Fetch the top-level block.
+	fblock, err := getFileBlockForMD(
+		ctx, config, info.BlockPointer, rmdToDecrypt, rmdWithKeys)
+	if err != nil {
+		return err
+	}
+
+	buf := fblock.Contents
+	if fblock.IsInd {
+		numFetchers := len(fblock.IPtrs)
+		if numFetchers > maxParallelBlockGets {
+			numFetchers = maxParallelBlockGets
+		}
+
+		type iptrAndBlock struct {
+			ptr   IndirectFilePtr
+			block *FileBlock
+		}
+
+		// Fetch all the child blocks in parallel.
+		iptrsToFetch := make(chan IndirectFilePtr, len(fblock.IPtrs))
+		indirectBlocks := make(chan iptrAndBlock, len(fblock.IPtrs))
+		eg, groupCtx := errgroup.WithContext(ctx)
+		fetchFn := func() error {
+			for iptr := range iptrsToFetch {
+				select {
+				case <-groupCtx.Done():
+					return groupCtx.Err()
+				default:
+				}
+
+				fblock, err := getFileBlockForMD(groupCtx, config,
+					iptr.BlockPointer, rmdToDecrypt, rmdWithKeys)
+				if err != nil {
+					return err
+				}
+
+				indirectBlocks <- iptrAndBlock{iptr, fblock}
+			}
+			return nil
+		}
+		for i := 0; i < numFetchers; i++ {
+			eg.Go(fetchFn)
+		}
+		for _, iptr := range fblock.IPtrs {
+			iptrsToFetch <- iptr
+		}
+		close(iptrsToFetch)
+		if err := eg.Wait(); err != nil {
+			return err
+		}
+		close(indirectBlocks)
+
+		// Reconstruct the buffer by appending bytes in order of offset.
+		blocks := make(map[int64]*FileBlock)
+		for iab := range indirectBlocks {
+			blocks[iab.ptr.Off] = iab.block
+		}
+		lastOff := fblock.IPtrs[len(fblock.IPtrs)-1].Off
+		buf = make([]byte, lastOff+int64(len(blocks[lastOff].Contents)))
+		for _, iptr := range fblock.IPtrs {
+			block := blocks[iptr.Off]
+			blockSize := int64(len(block.Contents))
+			copy(buf[iptr.Off:iptr.Off+blockSize], block.Contents)
+		}
+	}
+
+	err = config.Codec().Decode(buf, &rmdToDecrypt.data.Changes)
+	if err != nil {
+		return err
+	}
+	// The changes block pointers are implicit ref blocks.
+	rmdToDecrypt.data.Changes.Ops[0].AddRefBlock(info.BlockPointer)
+	for _, iptr := range fblock.IPtrs {
+		rmdToDecrypt.data.Changes.Ops[0].AddRefBlock(iptr.BlockPointer)
+	}
+	rmdToDecrypt.data.cachedChanges.Info = info
+	return nil
+}
+
 func decryptMDPrivateData(ctx context.Context, config Config,
 	rmdToDecrypt *RootMetadata, rmdWithKeys KeyMetadata) error {
 	handle := rmdToDecrypt.GetTlfHandle()
@@ -427,37 +541,5 @@ func decryptMDPrivateData(ctx context.Context, config Config,
 	}
 
 	// Re-embed the block changes if it's needed.
-	if info := rmdToDecrypt.data.Changes.Info; info.BlockPointer != zeroPtr {
-		// We don't have a convenient way to fetch the block from here
-		// via folderBlockOps, so just go directly via the
-		// BlockCache/BlockOps.  No locking around the blocks is
-		// needed since these change blocks are read-only.
-		block, err := config.BlockCache().Get(info.BlockPointer)
-		if err != nil {
-			block = NewFileBlock()
-			if err := config.BlockOps().Get(ctx, rmdWithKeys,
-				info.BlockPointer, block); err != nil {
-				return err
-			}
-			if err := config.BlockCache().Put(info.BlockPointer,
-				rmdToDecrypt.TlfID(), block, TransientEntry); err != nil {
-				return err
-			}
-		}
-
-		fblock, ok := block.(*FileBlock)
-		if !ok {
-			return NotFileBlockError{info.BlockPointer, MasterBranch, path{}}
-		}
-
-		err = config.Codec().Decode(fblock.Contents, &rmdToDecrypt.data.Changes)
-		if err != nil {
-			return err
-		}
-		// The changes block pointer is an implicit ref block
-		rmdToDecrypt.data.Changes.Ops[0].AddRefBlock(info.BlockPointer)
-		rmdToDecrypt.data.cachedChanges.Info = info
-	}
-
-	return nil
+	return reembedBlockChanges(ctx, config, rmdToDecrypt, rmdWithKeys)
 }

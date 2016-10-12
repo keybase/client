@@ -67,6 +67,8 @@ const (
 	MaxBlockSizeBytesDefault = 512 << 10
 	// Maximum number of blocks that can be sent in parallel
 	maxParallelBlockPuts = 100
+	// Maximum number of blocks that can be fetched in parallel
+	maxParallelBlockGets = 10
 	// Max response size for a single DynamoDB query is 1MB.
 	maxMDsAtATime = 10
 	// Time between checks for dirty files to flush, in case Sync is
@@ -505,17 +507,6 @@ func (fbo *folderBranchOps) setBranchIDLocked(lState *lockState, bid BranchID) {
 	if bid == NullBranchID {
 		fbo.status.setCRSummary(nil, nil)
 	}
-}
-
-func (fbo *folderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
-	if ptr.DataVer < FirstValidDataVer {
-		return InvalidDataVersionError{ptr.DataVer}
-	}
-	// TODO: migrate back to fbo.config.DataVersion
-	if ptr.DataVer > FilesWithHolesDataVer {
-		return NewDataVersionError{p, ptr.DataVer}
-	}
-	return nil
 }
 
 func (fbo *folderBranchOps) setHeadLocked(
@@ -1020,21 +1011,21 @@ func (fbo *folderBranchOps) nowUnixNano() int64 {
 	return fbo.config.Clock().Now().UnixNano()
 }
 
-func (fbo *folderBranchOps) maybeUnembedAndPutOneBlock(ctx context.Context,
-	md *RootMetadata) error {
+func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
+	md *RootMetadata) (*blockPutState, error) {
 	if fbo.config.BlockSplitter().ShouldEmbedBlockChanges(&md.data.Changes) {
-		return nil
+		return nil, nil
 	}
 
 	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	bps := newBlockPutState(1)
 	err = fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes, uid)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer func() {
@@ -1047,13 +1038,13 @@ func (fbo *folderBranchOps) maybeUnembedAndPutOneBlock(ctx context.Context,
 		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, md.TlfID(),
 		md.GetTlfHandle().GetCanonicalName(), *bps)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if len(ptrsToDelete) > 0 {
-		return fmt.Errorf("Unexpected pointers to delete after "+
+		return nil, fmt.Errorf("Unexpected pointers to delete after "+
 			"unembedding block changes in gc op: %v", ptrsToDelete)
 	}
-	return nil
+	return bps, nil
 }
 
 func (fbo *folderBranchOps) initMDLocked(
@@ -1128,7 +1119,8 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
-	if err := fbo.maybeUnembedAndPutOneBlock(ctx, md); err != nil {
+	bps, err := fbo.maybeUnembedAndPutBlocks(ctx, md)
+	if err != nil {
 		return err
 	}
 
@@ -1137,6 +1129,8 @@ func (fbo *folderBranchOps) initMDLocked(
 	if err != nil {
 		return err
 	}
+
+	md.loadCachedBlockChanges(bps)
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -1477,7 +1471,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 		if de.Type == Sym {
 			node = nil
 		} else {
-			err = fbo.checkDataVersion(childPath, de.BlockPointer)
+			err = fbo.blocks.checkDataVersion(childPath, de.BlockPointer)
 			if err != nil {
 				return err
 			}
@@ -1638,24 +1632,69 @@ func (fbo *folderBranchOps) readyBlockMultiple(ctx context.Context,
 
 func (fbo *folderBranchOps) unembedBlockChanges(
 	ctx context.Context, bps *blockPutState, md *RootMetadata,
-	changes *BlockChanges, uid keybase1.UID) (err error) {
+	changes *BlockChanges, uid keybase1.UID) error {
 	buf, err := fbo.config.Codec().Encode(changes)
 	if err != nil {
-		return
+		return err
 	}
+
 	block := NewFileBlock().(*FileBlock)
-	block.Contents = buf
-	info, _, err := fbo.readyBlockMultiple(
-		ctx, md.ReadOnly(), block, uid, bps)
+	copied := fbo.config.BlockSplitter().CopyUntilSplit(block, false, buf, 0)
+	info, _, err := fbo.readyBlockMultiple(ctx, md.ReadOnly(), block, uid, bps)
 	if err != nil {
-		return
+		return err
 	}
-	md.data.cachedChanges = *changes
-	changes.Info = info
-	changes.Ops = nil
 	md.AddRefBytes(uint64(info.EncodedSize))
 	md.AddDiskUsage(uint64(info.EncodedSize))
-	return
+
+	// Everything fits in one block.
+	toCopy := int64(len(buf))
+	if copied >= toCopy {
+		changes.Info = info
+		md.data.cachedChanges = *changes
+		changes.Ops = nil
+		return nil
+	}
+
+	// Otherwise make a top block and split up the remaining buffer.
+	topBlock := NewFileBlock().(*FileBlock)
+	topBlock.IsInd = true
+	topBlock.IPtrs = append(topBlock.IPtrs, IndirectFilePtr{
+		BlockInfo: info,
+		Off:       0,
+	})
+	copiedSize := copied
+	for copiedSize < toCopy {
+		block := NewFileBlock().(*FileBlock)
+		currOff := copiedSize
+		copied := fbo.config.BlockSplitter().CopyUntilSplit(block, false,
+			buf[currOff:], 0)
+		copiedSize += copied
+		info, _, err := fbo.readyBlockMultiple(
+			ctx, md.ReadOnly(), block, uid, bps)
+		if err != nil {
+			return err
+		}
+
+		topBlock.IPtrs = append(topBlock.IPtrs, IndirectFilePtr{
+			BlockInfo: info,
+			Off:       currOff,
+		})
+		md.AddRefBytes(uint64(info.EncodedSize))
+		md.AddDiskUsage(uint64(info.EncodedSize))
+	}
+
+	info, _, err = fbo.readyBlockMultiple(
+		ctx, md.ReadOnly(), topBlock, uid, bps)
+	if err != nil {
+		return err
+	}
+	changes.Info = info
+	md.AddRefBytes(uint64(info.EncodedSize))
+	md.AddDiskUsage(uint64(info.EncodedSize))
+	md.data.cachedChanges = *changes
+	changes.Ops = nil
+	return nil
 }
 
 type localBcache map[BlockPointer]*DirBlock
@@ -2043,7 +2082,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		}
 	}
 
-	md.swapCachedBlockChanges()
+	md.loadCachedBlockChanges(bps)
 
 	err = fbo.finalizeBlocks(bps)
 	if err != nil {
@@ -2152,7 +2191,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
 	}
 
-	md.swapCachedBlockChanges()
+	md.loadCachedBlockChanges(nil)
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -2179,7 +2218,8 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 
 	md.AddOp(gco)
 
-	if err := fbo.maybeUnembedAndPutOneBlock(ctx, md); err != nil {
+	bps, err := fbo.maybeUnembedAndPutBlocks(ctx, md)
+	if err != nil {
 		return err
 	}
 	oldPrevRoot := md.PrevRoot()
@@ -2193,7 +2233,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 	}
 
 	fbo.setBranchIDLocked(lState, NullBranchID)
-	md.swapCachedBlockChanges()
+	md.loadCachedBlockChanges(bps)
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
@@ -4705,7 +4745,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		defer fbo.config.RekeyQueue().Enqueue(md.TlfID())
 	}
 
-	md.swapCachedBlockChanges()
+	md.loadCachedBlockChanges(bps)
 
 	// Set the head to the new MD.
 	fbo.headLock.Lock(lState)

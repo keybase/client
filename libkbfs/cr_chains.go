@@ -677,6 +677,16 @@ func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 
 		if ptr := rmd.data.cachedChanges.Info.BlockPointer; ptr != zeroPtr {
 			ccs.blockChangePointers[ptr] = true
+
+			// Any child block change pointers?
+			fblock, err := fbo.GetFileBlockForReading(ctx, makeFBOLockState(),
+				rmd.ReadOnly(), ptr, MasterBranch, path{})
+			if err != nil {
+				return nil, err
+			}
+			for _, iptr := range fblock.IPtrs {
+				ccs.blockChangePointers[iptr.BlockPointer] = true
+			}
 		}
 
 		// Copy the ops since CR will change them.
