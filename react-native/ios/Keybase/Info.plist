@@ -31,11 +31,11 @@
 	<string></string>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Lato_bold.ttf</string>
-		<string>Lato_italic.ttf</string>
-		<string>Lato-Semi_bold.ttf</string>
-		<string>Lato-Semibold_Italic.ttf</string>
-		<string>Lato.ttf</string>
+		<string>OpenSans_bold.ttf</string>
+		<string>OpenSans_italic.ttf</string>
+		<string>OpenSans-Semi_bold.ttf</string>
+		<string>OpenSans-Semibold_Italic.ttf</string>
+		<string>OpenSans.ttf</string>
 		<string>SourceCodePro.ttf</string>
 		<string>SourceCodePro-Semi_bold.ttf</string>
 		<string>kb.ttf</string>
@@ -58,7 +58,7 @@
 	<string>63ff6926-88f0-4db0-8886-a4bb56bd4ad5</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-  <key>NSCameraUsageDescription</key>
-  <string>Scanning codes</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Scanning codes</string>
 </dict>
 </plist>

@@ -8,8 +8,8 @@ const globalMargins = {
   xtiny: 4,
   tiny: 8,
   small: 16,
-  medium: 32,
-  large: 48,
+  medium: 24,
+  large: 40,
   xlarge: 64,
 }
 
@@ -20,21 +20,18 @@ const font = {
   [OS_IOS]: {
     fontRegular: {
       ...fontCommon,
-      fontFamily: 'Lato',
+      fontFamily: 'OpenSans',
       fontWeight: '400',
     },
     fontSemibold: {
       ...fontCommon,
-      fontFamily: 'Lato',
+      fontFamily: 'OpenSans',
       fontWeight: '600',
     },
     fontBold: {
       ...fontCommon,
-      fontFamily: 'Lato',
+      fontFamily: 'OpenSans',
       fontWeight: '700',
-    },
-    italic: {
-      fontStyle: 'italic',
     },
     fontTerminal: {
       ...fontCommon,
@@ -49,20 +46,20 @@ const font = {
   [OS_ANDROID]: {
     fontRegular: {
       ...fontCommon,
-      fontFamily: 'Lato',
+      fontFamily: 'OpenSans',
     },
     fontSemibold: {
       ...fontCommon,
-      fontFamily: 'Lato-Semi',
+      fontFamily: 'OpenSans-Semi',
       fontWeight: 'bold',
     },
     fontBold: {
       ...fontCommon,
-      fontFamily: 'Lato',
+      fontFamily: 'OpenSans',
       fontWeight: 'bold',
     },
     italic: {
-      fontFamily: 'Lato-Semibold',
+      fontFamily: 'OpenSans-Semibold',
       fontStyle: 'italic',
     },
     fontTerminal: {
