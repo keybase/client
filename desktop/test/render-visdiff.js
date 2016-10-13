@@ -80,7 +80,7 @@ app.on('ready', () => {
 
       // TODO: once we're on electron v1.2.3, try ready-to-show event.
       workerWin.webContents.once('did-finish-load', () => renderNext(workerWin.webContents))
-      const workerURL = resolveRootAsURL('renderer', `index.html?src=${scriptPath}`)
+      const workerURL = resolveRootAsURL('renderer', `renderer.html?src=${scriptPath}`)
       console.log('Loading worker', i, workerURL)
       workerWin.loadURL(workerURL)
       console.log('Loaded worker', i, workerURL)

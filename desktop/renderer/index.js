@@ -3,8 +3,10 @@
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
 
+import Nav from '../shared/nav.desktop'
 import React from 'react'
 import ReactDOM from 'react-dom'
+import RemoteManager from './remote-manager'
 import Root from './container'
 import configureStore from '../shared/store/configure-store'
 import electron, {ipcRenderer} from 'electron'
@@ -12,22 +14,29 @@ import engine, {makeEngine} from '../shared/engine'
 import hello from '../shared/util/hello'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import loadPerf from '../shared/util/load-perf'
-import {merge} from 'lodash'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../shared/actions/config'
 import {devEditAction} from '../shared/reducers/dev-edit'
-import {devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {listenForNotifications} from '../shared/actions/notifications'
+import {merge} from 'lodash'
+import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {setupContextMenu} from '../app/menu-helper'
 // $FlowIssue
 import {setupSource} from '../shared/util/forward-logs'
 import {updateDebugConfig} from '../shared/actions/dev'
 import {updateReloading} from '../shared/constants/dev'
 
+let _store
+function setupStore () {
+  if (!_store) {
+    _store = configureStore()
+  }
+  return _store
+}
+
 function setupApp (store) {
   setupSource()
   makeEngine()
-
   loadPerf()
 
   if (devStoreChangingFunctions) {
@@ -80,31 +89,52 @@ function setupApp (store) {
   window.addEventListener('online', () => store.dispatch(bootstrap()))
 }
 
-const store = configureStore()
-
-setupApp(store)
-
-const appEl = document.getElementById('app')
-
-ReactDOM.render(
-  <AppContainer><Root store={store} /></AppContainer>,
-  appEl,
-)
-
-module.hot && typeof module.hot.accept === 'function' && module.hot.accept('./container', () => {
-  try {
-    store.dispatch({type: updateReloading, payload: {reloading: true}})
-    const NewRoot = require('./container').default
-    ReactDOM.render(
-      <AppContainer><NewRoot store={store} /></AppContainer>,
-      appEl,
-    )
-    engine().reset()
-  } finally {
-    setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
+function render (store, NavComponent) {
+  let dt
+  if (__DEV__ && reduxDevToolsEnable) { // eslint-disable-line no-undef
+    const DevTools = require('./redux-dev-tools').default
+    dt = <DevTools />
   }
-})
 
-module.hot && typeof module.hot.accept === 'function' && module.hot.accept('../shared/local-debug-live', () => {
-  store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
-})
+  ReactDOM.render((
+    <AppContainer>
+      <Root store={store}>
+        <div style={{display: 'flex', flex: 1}}>
+          <RemoteManager />
+          <NavComponent />
+          {dt}
+        </div>
+      </Root>
+    </AppContainer>), document.getElementById('root'))
+}
+
+function setupHMR (store) {
+  if (!module || !module.hot || typeof module.hot.accept !== 'function') {
+    return
+  }
+
+  module.hot.accept('../shared/nav.desktop', () => {
+    try {
+      store.dispatch({type: updateReloading, payload: {reloading: true}})
+      const NewNav = require('../shared/nav.desktop').default
+      render(store, NewNav)
+      engine().reset()
+    } finally {
+      setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
+    }
+  })
+
+  // $FlowIssue
+  module.hot.accept('../shared/local-debug-live', () => {
+    store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
+  })
+}
+
+function load () {
+  const store = setupStore()
+  setupApp(store)
+  setupHMR(store)
+  render(store, Nav)
+}
+
+window.load = load
