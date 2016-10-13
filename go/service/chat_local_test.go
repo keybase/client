@@ -283,6 +283,9 @@ func TestChatGetThreadLocal(t *testing.T) {
 }
 
 func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
+	// TODO: investigate LocalDb in TestContext and make it behave the same way
+	// as in real context / docker tests. This test should fail without the fix
+	// in ConvSource for marking is read, but does not currently.
 	ctc := makeChatTestContext(t, "GetThreadLocalMarkAsRead", 2)
 	defer ctc.cleanup()
 	users := ctc.users()
@@ -290,6 +293,7 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 	withUser1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 	mustPostLocalForTest(t, ctc, users[0], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello0"}))
 	mustPostLocalForTest(t, ctc, users[1], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello1"}))
+	mustPostLocalForTest(t, ctc, users[0], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello2"}))
 
 	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
 		TopicType: chat1.TopicType_CHAT,
@@ -318,14 +322,14 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: withUser1.Id,
 		Query: &chat1.GetThreadQuery{
-			MarkAsRead:   true,
-			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			MarkAsRead: true,
 		},
 	})
 	if err != nil {
 		t.Fatalf("GetThreadLocal error: %v", err)
 	}
-	if len(tv.Thread.Messages) != 2 {
+	if len(tv.Thread.Messages) != 4 {
+		// 3 messages and 1 TLF
 		t.Fatalf("unexpected response from GetThreadLocal. expected 2 items, got %d\n", len(tv.Thread.Messages))
 	}
 
