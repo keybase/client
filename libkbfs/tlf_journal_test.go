@@ -72,10 +72,12 @@ type testTLFJournalConfig struct {
 	codec    kbfscodec.Codec
 	crypto   CryptoLocal
 	bcache   BlockCache
+	bops     BlockOps
 	mdcache  MDCache
 	reporter Reporter
 	uid      keybase1.UID
 	ekg      singleEncryptionKeyGetter
+	nug      normalizedUsernameGetter
 	mdserver MDServer
 }
 
@@ -95,6 +97,10 @@ func (c testTLFJournalConfig) BlockCache() BlockCache {
 	return c.bcache
 }
 
+func (c testTLFJournalConfig) BlockOps() BlockOps {
+	return c.bops
+}
+
 func (c testTLFJournalConfig) MDCache() MDCache {
 	return c.mdcache
 }
@@ -109,6 +115,14 @@ func (c testTLFJournalConfig) cryptoPure() cryptoPure {
 
 func (c testTLFJournalConfig) encryptionKeyGetter() encryptionKeyGetter {
 	return c.ekg
+}
+
+func (c testTLFJournalConfig) mdDecryptionKeyGetter() mdDecryptionKeyGetter {
+	return c.ekg
+}
+
+func (c testTLFJournalConfig) usernameGetter() normalizedUsernameGetter {
+	return c.nug
 }
 
 func (c testTLFJournalConfig) MDServer() MDServer {
@@ -188,8 +202,8 @@ func setupTLFJournalTest(
 
 	config = &testTLFJournalConfig{
 		t, FakeTlfID(1, false), bsplitter, codec, crypto,
-		nil, NewMDCacheStandard(10),
-		NewReporterSimple(newTestClockNow(), 10), uid, ekg, mdserver,
+		nil, nil, NewMDCacheStandard(10),
+		NewReporterSimple(newTestClockNow(), 10), uid, ekg, nil, mdserver,
 	}
 
 	// Time out individual tests after 10 seconds.

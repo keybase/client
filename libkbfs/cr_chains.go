@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -655,6 +656,27 @@ func newCRChainsEmpty() *crChains {
 	}
 }
 
+func (ccs *crChains) addOps(codec kbfscodec.Codec,
+	privateMD PrivateMetadata, winfo writerInfo,
+	localTimestamp time.Time) error {
+	// Copy the ops since CR will change them.
+	ops := make(opsList, len(privateMD.Changes.Ops))
+	err := kbfscodec.Update(codec, &ops, privateMD.Changes.Ops)
+	if err != nil {
+		return err
+	}
+
+	for _, op := range ops {
+		op.setWriterInfo(winfo)
+		op.setLocalTimestamp(localTimestamp)
+		err := ccs.makeChainForOp(op)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 	fbo *folderBlockOps, identifyTypes bool) (
 	ccs *crChains, err error) {
@@ -675,6 +697,8 @@ func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 			return nil, err
 		}
 
+		err = ccs.addOps(cfg.Codec(), rmd.data, winfo, rmd.localTimestamp)
+
 		if ptr := rmd.data.cachedChanges.Info.BlockPointer; ptr != zeroPtr {
 			ccs.blockChangePointers[ptr] = true
 
@@ -689,20 +713,8 @@ func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 			}
 		}
 
-		// Copy the ops since CR will change them.
-		ops := make(opsList, len(rmd.data.Changes.Ops))
-		err = kbfscodec.Update(cfg.Codec(), &ops, rmd.data.Changes.Ops)
 		if err != nil {
 			return nil, err
-		}
-
-		for _, op := range ops {
-			op.setWriterInfo(winfo)
-			op.setLocalTimestamp(rmd.localTimestamp)
-			err := ccs.makeChainForOp(op)
-			if err != nil {
-				return nil, err
-			}
 		}
 
 		if !ccs.originalRoot.IsInitialized() {

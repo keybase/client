@@ -97,24 +97,12 @@ func (j journalMDOps) getHeadFromJournal(
 		}
 	}
 
-	brmd, ok := head.BareRootMetadata.(MutableBareRootMetadata)
-	if !ok {
-		return ImmutableRootMetadata{}, MutableBareRootMetadataNoImplError{}
-	}
-
-	rmd := RootMetadata{
-		bareMd:    brmd,
-		tlfHandle: handle,
-	}
-
-	err = decryptMDPrivateData(
-		ctx, j.jServer.config, &rmd, rmd.ReadOnly())
+	irmd, err := tlfJournal.convertImmutableBareRMDToIRMD(ctx, head, handle)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
 
-	return MakeImmutableRootMetadata(&rmd, head.mdID,
-		head.localTimestamp), nil
+	return irmd, nil
 }
 
 func (j journalMDOps) getRangeFromJournal(
@@ -163,23 +151,12 @@ func (j journalMDOps) getRangeFromJournal(
 	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
 
 	for _, ibrmd := range ibrmds {
-		brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
-		if !ok {
-			return nil, MutableBareRootMetadataNoImplError{}
-		}
-		rmd := RootMetadata{
-			bareMd:    brmd,
-			tlfHandle: handle,
-		}
-
-		err = decryptMDPrivateData(
-			ctx, j.jServer.config, &rmd, rmd.ReadOnly())
+		irmd, err :=
+			tlfJournal.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
 		if err != nil {
 			return nil, err
 		}
 
-		irmd := MakeImmutableRootMetadata(&rmd, ibrmd.mdID,
-			ibrmd.localTimestamp)
 		irmds = append(irmds, irmd)
 	}
 
