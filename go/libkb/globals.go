@@ -708,3 +708,9 @@ func (g *GlobalContext) MakeAssertionContext() AssertionContext {
 func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
 	g.Services = s
 }
+
+func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
+	arg := NewLoadUserByUIDArg(g, uid)
+	arg.PublicKeyOptional = true
+	return LoadUser(arg)
+}

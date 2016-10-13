@@ -15,6 +15,7 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -37,17 +38,17 @@ type Boxer struct {
 	hashV1  func(data []byte) chat1.Hash
 	sign    func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
 	udCache *lru.Cache
-	libkb.Contextified
+	kbCtx   KeybaseContext
 }
 
-func NewBoxer(g *libkb.GlobalContext, tlf keybase1.TlfInterface) *Boxer {
+func NewBoxer(kbCtx KeybaseContext, tlf keybase1.TlfInterface) *Boxer {
 	udc, _ := lru.New(10000)
 	return &Boxer{
-		tlf:          tlf,
-		hashV1:       hashSha256V1,
-		sign:         sign,
-		udCache:      udc,
-		Contextified: libkb.NewContextified(g),
+		tlf:     tlf,
+		hashV1:  hashSha256V1,
+		sign:    sign,
+		udCache: udc,
+		kbCtx:   kbCtx,
 	}
 }
 
@@ -61,6 +62,10 @@ type udCacheValue struct {
 	DeviceName string
 }
 
+func (b *Boxer) log() logger.Logger {
+	return b.kbCtx.GetLog()
+}
+
 func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.MessageFromServerOrError {
 	return chat1.MessageFromServerOrError{
 		UnboxingError: &chat1.MessageError{
@@ -71,7 +76,7 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.Messag
 	}
 }
 
-// unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
+// UnboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
 func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1.MessageBoxed) (res chat1.MessageFromServerOrError, err error) {
 	tlfName := boxed.ClientHeader.TlfName
@@ -96,15 +101,15 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1
 
 	messagePlaintext, headerHash, err := b.unboxMessageWithKey(ctx, boxed, matchKey)
 	if err != nil {
-		b.G().Log.Warning("failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
+		b.log().Warning("failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			err.Error())
 		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
-	_, uimap := GetUserInfoMapper(ctx, b.G())
+	_, uimap := GetUserInfoMapper(ctx, b.kbCtx)
 	username, deviceName, err := b.getSenderInfoLocal(uimap, messagePlaintext)
 	if err != nil {
-		b.G().Log.Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
+		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
 			boxed.ServerHeader.Sender, boxed.ServerHeader.SenderDevice)
 	}
 
@@ -232,7 +237,7 @@ func (b *Boxer) getUsernameAndDeviceName(uid keybase1.UID, deviceID keybase1.Dev
 
 	if val, ok := b.udCache.Get(udCacheKey{UID: uid, DeviceID: deviceID}); ok {
 		if udval, ok := val.(udCacheValue); ok {
-			b.G().Log.Debug("getUsernameAndDeviceName: lru hit: u: %s d: %s", udval.Username,
+			b.log().Debug("getUsernameAndDeviceName: lru hit: u: %s d: %s", udval.Username,
 				udval.DeviceName)
 			return udval.Username, udval.DeviceName, nil
 		}
@@ -271,7 +276,7 @@ func (b *Boxer) getSenderInfoLocal(uimap *UserInfoMapper, messagePlaintext chat1
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageFromServerOrError, err error) {
 	finder := NewKeyFinder()
-	ctx, _ = GetUserInfoMapper(ctx, b.G())
+	ctx, _ = GetUserInfoMapper(ctx, b.kbCtx)
 	for _, msg := range boxed {
 		decmsg, _ := b.UnboxMessage(ctx, finder, msg)
 		unboxed = append(unboxed, decmsg)
@@ -530,7 +535,7 @@ func (b *Boxer) validSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	t := gregor1.FromTime(ctime)
 
 	var uimap *UserInfoMapper
-	ctx, uimap = GetUserInfoMapper(ctx, b.G())
+	ctx, uimap = GetUserInfoMapper(ctx, b.kbCtx)
 	user, err := uimap.User(kbSender)
 	if err != nil {
 		return false, err
