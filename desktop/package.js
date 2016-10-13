@@ -28,11 +28,14 @@ console.log('Injecting __VERSION__: ', appVersion)
 del.sync('dist')
 del.sync('build')
 
+const filterAllowOnlyTypes = (...types) => ({
+  filter: f => types.some(type => f.endsWith(`.${type}`)),
+})
+
 fs.copySync('./Icon.png', 'build/desktop/Icon.png')
 fs.copySync('./Icon@2x.png', 'build/desktop/Icon@2x.png')
-fs.copySync('../shared/native', 'build/desktop/shared/native', {filter: f => f.endsWith('.html')})
-fs.copySync('../shared/images', 'build/desktop/shared/images')
-fs.copySync('./renderer', 'build/desktop/renderer', {filter: f => !f.endsWith('.js')})
+fs.copySync('../shared/images', 'build/desktop/shared/images', filterAllowOnlyTypes('gif', 'png'))
+fs.copySync('./renderer', 'build/desktop/renderer', filterAllowOnlyTypes('ttf', 'css', 'html'))
 
 fs.writeJsonSync('build/package.json', {
   name: appName,
@@ -92,8 +95,8 @@ function startPack () {
       process.exit(1)
     }
 
-    fs.copySync('./dist', 'build/desktop/sourcemaps', {filter: f => f.endsWith('.map')})
-    fs.copySync('./dist', 'build/desktop/dist', {filter: f => f.endsWith('.js')})
+    fs.copySync('./dist', 'build/desktop/sourcemaps', filterAllowOnlyTypes('map'))
+    fs.copySync('./dist', 'build/desktop/dist', filterAllowOnlyTypes('js'))
 
     del('release')
     .then(paths => {
