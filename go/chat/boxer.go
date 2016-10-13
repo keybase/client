@@ -15,6 +15,7 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -61,6 +62,10 @@ type udCacheValue struct {
 	DeviceName string
 }
 
+func (b *Boxer) log() logger.Logger {
+	return b.kbCtx.GetLog()
+}
+
 func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.MessageFromServerOrError {
 	return chat1.MessageFromServerOrError{
 		UnboxingError: &chat1.MessageError{
@@ -96,7 +101,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1
 
 	messagePlaintext, headerHash, err := b.unboxMessageWithKey(ctx, boxed, matchKey)
 	if err != nil {
-		b.kbCtx.GetLog().Warning("failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
+		b.log().Warning("failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			err.Error())
 		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
 	}
@@ -104,7 +109,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1
 	_, uimap := GetUserInfoMapper(ctx, b.kbCtx)
 	username, deviceName, err := b.getSenderInfoLocal(uimap, messagePlaintext)
 	if err != nil {
-		b.kbCtx.GetLog().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
+		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
 			boxed.ServerHeader.Sender, boxed.ServerHeader.SenderDevice)
 	}
 
@@ -232,7 +237,7 @@ func (b *Boxer) getUsernameAndDeviceName(uid keybase1.UID, deviceID keybase1.Dev
 
 	if val, ok := b.udCache.Get(udCacheKey{UID: uid, DeviceID: deviceID}); ok {
 		if udval, ok := val.(udCacheValue); ok {
-			b.kbCtx.GetLog().Debug("getUsernameAndDeviceName: lru hit: u: %s d: %s", udval.Username,
+			b.log().Debug("getUsernameAndDeviceName: lru hit: u: %s d: %s", udval.Username,
 				udval.DeviceName)
 			return udval.Username, udval.DeviceName, nil
 		}
