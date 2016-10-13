@@ -155,7 +155,7 @@ export const styles = {
     ...globalStyles.fontRegular,
     color: globalColors.red,
     alignSelf: 'center',
-    fontSize: 14,
+    fontSize: 13,
     lineHeight: '17px',
     position: 'initial',
     marginTop: 4,

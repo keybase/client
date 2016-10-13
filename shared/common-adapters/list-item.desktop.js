@@ -7,11 +7,11 @@ import type {Props} from './list-item'
 class ListItem extends Component<void, Props, void> {
   render () {
     const clickable = !!this.props.onClick
-    const minHeight = ({'Large': 64, 'Small': 48})[this.props.type]
+    const minHeight = ({'Large': 48, 'Small': 40})[this.props.type]
     return (
       <Box style={{...globalStyles.flexBoxRow, ...containerStyle(this.props.type, clickable), minHeight, ...this.props.containerStyle}}>
         <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start'}}>
-          <Box style={{...globalStyles.flexBoxColumn, ...iconContainerThemed[this.props.type], minHeight, alignItems: 'center', justifyContent: 'center'}}>
+          <Box style={{...globalStyles.flexBoxColumn, ...iconContainerThemed[this.props.type], height: minHeight, width: minHeight, alignItems: 'center', justifyContent: 'center'}}>
             {this.props.icon}
           </Box>
         </Box>
@@ -45,10 +45,7 @@ function actionStyle (extraMargin) {
 
 const bodyContainerStyle = {
   flex: 2,
-  marginLeft: 8,
-  marginRight: 16,
-  marginBottom: 8,
-  marginTop: 8,
+  margin: 8,
   justifyContent: 'center',
 }
 
