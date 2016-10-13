@@ -67,6 +67,9 @@ class Input extends Component<void, Props, State> {
   render () {
     const style = this.props.small ? styles.containerSmall : styles.container
     const textStyle = this.props.small ? styles.inputSmall : styles.input
+    if (!this.props.small && !this.props.floatingLabelText) {
+      textStyle.paddingTop = 10
+    }
     const textHeight = this.props.small ? 32 : (this.props.floatingLabelText ? 79 : 50)
     const hintBottom = this.props.small ? 11 : (this.props.multiline ? 16 : 14)
 

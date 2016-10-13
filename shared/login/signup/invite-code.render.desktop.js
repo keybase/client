@@ -62,7 +62,7 @@ const stylesIcon = {
   marginTop: 75 - 14,
 }
 const stylesInput = {
-  height: 45,
+  // height: 45,
   marginTop: 75 - 14,
   width: 450,
 }
