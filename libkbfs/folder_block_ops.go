@@ -5,7 +5,9 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/keybase/client/go/logger"
@@ -2945,6 +2947,122 @@ func (fbo *folderBlockOps) UpdatePointers(lState *lockState, op op) {
 		oldRef := update.Unref.ref()
 		fbo.nodeCache.UpdatePointer(oldRef, update.Ref)
 	}
+}
+
+func (fbo *folderBlockOps) unlinkDuringFastForwardLocked(ctx context.Context,
+	lState *lockState, ref blockRef) {
+	fbo.blockLock.AssertLocked(lState)
+	oldNode := fbo.nodeCache.Get(ref)
+	if oldNode == nil {
+		return
+	}
+	oldPath := fbo.nodeCache.PathFromNode(oldNode)
+	fbo.log.CDebugf(ctx, "Unlinking missing node %s/%v during "+
+		"fast-forward", oldPath, ref)
+	fbo.nodeCache.Unlink(ref, oldPath)
+}
+
+func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
+	lState *lockState, currDir path, children map[string]map[pathNode]bool,
+	kmd KeyMetadata) error {
+	fbo.blockLock.AssertLocked(lState)
+	dirBlock, err := fbo.getDirLocked(ctx, lState, kmd, currDir, blockRead)
+	if err != nil {
+		return err
+	}
+
+	prefix := currDir.String()
+
+	// TODO: parallelize me?
+	for child := range children[prefix] {
+		entry, ok := dirBlock.Children[child.Name]
+		if !ok {
+			fbo.unlinkDuringFastForwardLocked(
+				ctx, lState, child.BlockPointer.ref())
+			continue
+		}
+
+		fbo.log.CDebugf(ctx, "Fast-forwarding %v -> %v",
+			child.BlockPointer, entry.BlockPointer)
+		fbo.nodeCache.UpdatePointer(child.BlockPointer.ref(),
+			entry.BlockPointer)
+		if entry.Type == Dir {
+			newPath := currDir.ChildPath(child.Name, entry.BlockPointer)
+			err := fbo.fastForwardDirAndChildrenLocked(ctx, lState,
+				newPath, children, kmd)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	delete(children, prefix)
+	return nil
+}
+
+// FastForwardAllNodes attempts to update the block pointers
+// associated with nodes in the cache by searching for their paths in
+// the current version of the TLF.  If it can't find a corresponding
+// node, it assumes it's been deleted and unlinks it.  Returns the set
+// of updated nodes, which now need to be invalidated.
+func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
+	lState *lockState, md ReadOnlyRootMetadata) (nodes []Node, err error) {
+	defer func() { fbo.log.CDebugf(ctx, "Fast-forward complete: %v", err) }()
+
+	// Take a hard lock through this whole process.  TODO: is there
+	// any way relax this?  It could lead to file system operation
+	// timeouts, even on reads, if we hold it too long.
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+
+	nodes = fbo.nodeCache.AllNodes()
+	fbo.log.CDebugf(ctx, "Fast-forwarding %d nodes", len(nodes))
+
+	// Build a "tree" representation for each interesting path prefix.
+	children := make(map[string]map[pathNode]bool)
+	var rootPath path
+	for _, n := range nodes {
+		p := fbo.nodeCache.PathFromNode(n)
+		if len(p.path) == 1 {
+			rootPath = p
+		}
+		prevPath := ""
+		for _, pn := range p.path {
+			if prevPath != "" {
+				childPNs := children[prevPath]
+				if childPNs == nil {
+					childPNs = make(map[pathNode]bool)
+					children[prevPath] = childPNs
+				}
+				childPNs[pn] = true
+			}
+			prevPath = filepath.Join(prevPath, pn.Name)
+		}
+	}
+
+	if !rootPath.isValid() {
+		return nil, errors.New("Couldn't find the root path")
+	}
+
+	fbo.log.CDebugf(ctx, "Fast-forwarding root %v -> %v",
+		rootPath.path[0].BlockPointer, md.data.Dir.BlockPointer)
+	fbo.nodeCache.UpdatePointer(rootPath.path[0].BlockPointer.ref(),
+		md.data.Dir.BlockPointer)
+	rootPath.path[0].BlockPointer = md.data.Dir.BlockPointer
+
+	err = fbo.fastForwardDirAndChildrenLocked(
+		ctx, lState, rootPath, children, md)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unlink any children that remain.
+	for _, childPNs := range children {
+		for child := range childPNs {
+			fbo.unlinkDuringFastForwardLocked(
+				ctx, lState, child.BlockPointer.ref())
+		}
+	}
+	return nodes, nil
 }
 
 type chainsPathPopulator interface {
