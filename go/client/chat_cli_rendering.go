@@ -195,8 +195,9 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	}
 
 	table := &flexibletable.Table{}
-	i := -1
-	for _, m := range v.messages {
+	visualIndex := 0
+	sortedMessages := messageSorter{Messages: v.messages}.ascending()
+	for _, m := range sortedMessages {
 		mv, err := newMessageView(g, v.conversation.Info.Id, m)
 		if err != nil {
 			g.Log.Error("Message render error: %s", err)
@@ -219,12 +220,12 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 			authorAndTime = mv.AuthorAndTime
 		}
 
-		i++
+		visualIndex++
 		table.Insert(flexibletable.Row{
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
 				Alignment: flexibletable.Right,
-				Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
+				Content:   flexibletable.SingleCell{Item: strconv.Itoa(visualIndex)},
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Center,
@@ -307,7 +308,7 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 		if m.UnboxingError != nil {
 			return mv, fmt.Errorf(fmt.Sprintf("<%s>", *m.UnboxingError))
 		}
-		return mv, fmt.Errorf("unexpected data")
+		return mv, fmt.Errorf("unexpected empty message")
 	}
 
 	mv.MessageID = m.Message.ServerHeader.MessageID
