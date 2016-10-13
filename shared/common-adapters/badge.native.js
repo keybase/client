@@ -4,11 +4,7 @@ import React from 'react'
 import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 
-export type Props = {
-  badgeNumber: number,
-  badgeStyle?: Object,
-  badgeNumberStyle?: Object,
-}
+import type {Props} from './badge'
 
 function Badge ({badgeStyle, badgeNumber, badgeNumberStyle}: Props) {
   return (
@@ -27,13 +23,12 @@ const defaultBadgeStyle = {
   paddingRight: 5,
   borderRadius: 10,
   flex: 0,
-  marginLeft: 'auto',
   marginRight: 8,
 }
 
 const textStyle = {
   flex: 0,
-  lineHeight: '10px',
+  lineHeight: 10,
   fontSize: 9,
   color: globalColors.white,
 }

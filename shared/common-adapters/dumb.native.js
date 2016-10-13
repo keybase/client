@@ -33,8 +33,9 @@ const IconButton = ({selected, icon, badgeNumber}: any) => <TabBarButton source=
 const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', avatar}} selected={selected} badgeNumber={badgeNumber} />
 
 const tabBarCustomButtons = selectedIndex => ({
-  style: {flex: 1},
-  styleTabBar: {justifyContent: 'space-between', height: 56},
+  style: {flex: 1, alignItems: 'stretch', height: 200},
+  styleTabBar: {height: 56},
+  styleContainer: {flex: 1},
   children: [
     {avatar: <Avatar size={32} onClick={null} username='max' />},
     {icon: 'iconfont-people', badgeNumber: 3},
@@ -47,7 +48,7 @@ const tabBarCustomButtons = selectedIndex => ({
       : <IconButton icon={buttonInfo.icon} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
 
     return (
-      <TabBarItem key={i} tabBarButton={button} style={{flex: 1}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
+      <TabBarItem key={i} tabBarButton={button} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
         <Text type='Header' style={{flex: 2}}>Content here at: {i}</Text>
       </TabBarItem>
     )

@@ -32,11 +32,13 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     const badgeNumber = this.props.badgeNumber || 0
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, backgroundColor, ...stylesTabBarButtonIcon, ...this.props.style}}>
+      <Box style={{backgroundColor, ...stylesTabBarButtonIcon, ...this.props.style, flex: 1}}>
         {this.props.source.type === 'icon'
           ? <Icon type={this.props.source.icon} style={{fontSize: 48, width: 48, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
           : this.props.source.avatar}
-        {badgeNumber > 0 && <Badge badgeNumber={badgeNumber} />}
+          {badgeNumber > 0 && <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
+            <Badge badgeNumber={badgeNumber} badgeStyle={{marginRight: -40, marginTop: -20}} />
+          </Box>}
         {!!this.props.label && <Text type='BodySemibold' style={{textAlign: 'center', ...this.props.styleLabel}}>{this.props.label}</Text>}
       </Box>
     )
@@ -50,7 +52,7 @@ class TabBar extends Component<void, Props, void> {
       const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
       return (
         <NativeTouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
-          <Box style={item.props.styleContainer}>
+          <Box style={{...item.props.styleContainer, flex: 1}}>
             {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
           </Box>
         </NativeTouchableWithoutFeedback>
@@ -90,9 +92,11 @@ const stylesTab = {
 }
 
 const stylesTabBarButtonIcon = {
+  ...globalStyles.flexBoxColumn,
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
+  position: 'relative',
 }
 
 const stylesLabel = {
