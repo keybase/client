@@ -401,6 +401,12 @@
 			"revisionTime": "2015-07-28T12:55:38-05:00"
 		},
 		{
+			"checksumSHA1": "y/oIaxq2d3WPizRZfVjo8RCRYTU=",
+			"path": "golang.org/x/crypto/ripemd160",
+			"revision": "bc89c496413265e715159bdc8478ee9a92fdc265",
+			"revisionTime": "2016-07-08T11:45:45Z"
+		},
+		{
 			"path": "golang.org/x/crypto/salsa20",
 			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
 			"revisionTime": "2015-07-28T12:55:38-05:00"
