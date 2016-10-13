@@ -1,12 +1,14 @@
-package chat
+package storage
 
 import (
 	"bytes"
 	"crypto/rand"
 	"encoding/binary"
+	"math/big"
 	"testing"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -16,14 +18,14 @@ import (
 	"golang.org/x/net/context"
 )
 
-func setupStorageTest(t *testing.T, name string) (libkb.TestContext, *Storage, gregor1.UID) {
+func setupStorageTest(t testing.TB, name string) (libkb.TestContext, *Storage, gregor1.UID) {
 	tc := externals.SetupTest(t, name, 2)
 	u, err := kbtest.CreateAndSignupFakeUser("cs", tc.G)
 	require.NoError(t, err)
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}
-	return tc, NewStorage(tc.G, f), gregor1.UID(u.User.GetUID().ToBytes())
+	return tc, New(tc.G, f), gregor1.UID(u.User.GetUID().ToBytes())
 }
 
 func randBytes(n int) []byte {
@@ -59,18 +61,26 @@ func makeMsgRange(max int) (res []chat1.MessageFromServerOrError) {
 	return res
 }
 
-func makeConvID(t *testing.T) chat1.ConversationID {
+func addMsgs(num int, msgs []chat1.MessageFromServerOrError) []chat1.MessageFromServerOrError {
+	maxID := msgs[0].GetMessageID()
+	for i := 0; i < num; i++ {
+		msgs = append([]chat1.MessageFromServerOrError{makeMsg(chat1.MessageID(int(maxID)+i+1), 0)},
+			msgs...)
+	}
+	return msgs
+}
+
+func makeConvID() chat1.ConversationID {
 	// Read into int64
 	var res uint64
 	rbytes := randBytes(8)
 	buf := bytes.NewReader(rbytes)
-	err := binary.Read(buf, binary.LittleEndian, &res)
-	require.NoError(t, err)
+	binary.Read(buf, binary.LittleEndian, &res)
 	return chat1.ConversationID(res)
 }
 
-func makeConversation(t *testing.T, maxID chat1.MessageID) chat1.Conversation {
-	convID := makeConvID(t)
+func makeConversation(maxID chat1.MessageID) chat1.Conversation {
+	convID := makeConvID()
 	return chat1.Conversation{
 		Metadata: chat1.ConversationMetadata{
 			ConversationID: convID,
@@ -81,11 +91,120 @@ func makeConversation(t *testing.T, maxID chat1.MessageID) chat1.Conversation {
 	}
 }
 
+func doSimpleBench(b *testing.B, storage *Storage, uid gregor1.UID) {
+	msgs := makeMsgRange(100000)
+	conv := makeConversation(msgs[0].GetMessageID())
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		require.NoError(b, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+		_, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
+		require.NoError(b, err)
+		storage.MaybeNuke(true, nil, conv.Metadata.ConversationID, uid)
+	}
+}
+
+func doCommonBench(b *testing.B, storage *Storage, uid gregor1.UID) {
+	msgs := makeMsgRange(107)
+	conv := makeConversation(msgs[0].GetMessageID())
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		require.NoError(b, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+		_, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
+		require.NoError(b, err)
+
+		// Add some msgs
+		b.StopTimer()
+		newmsgs := addMsgs(15, msgs)
+		newconv := makeConversation(newmsgs[0].GetMessageID())
+		b.StartTimer()
+
+		require.NoError(b, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, newmsgs))
+		storage.Fetch(context.TODO(), newconv, uid, nil, nil, nil)
+	}
+}
+
+func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, len int) {
+	msgs := makeMsgRange(num)
+	conv := makeConversation(msgs[0].GetMessageID())
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		require.NoError(b, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+		for j := 0; j < 300; j++ {
+
+			b.StopTimer()
+			bi, err := rand.Int(rand.Reader, big.NewInt(int64(num)))
+			if bi.Int64() == 0 {
+				continue
+			}
+			require.NoError(b, err)
+			next, err := encode(chat1.MessageID(bi.Int64()))
+			require.NoError(b, err)
+			p := chat1.Pagination{
+				Num:  len,
+				Next: next,
+			}
+			b.StartTimer()
+
+			_, err = storage.Fetch(context.TODO(), conv, uid, nil, &p, nil)
+			require.NoError(b, err)
+		}
+	}
+}
+
+func BenchmarkStorageSimpleBlockEngine(b *testing.B) {
+	tc, storage, uid := setupStorageTest(b, "basic")
+	storage.setEngine(newBlockEngine(tc.G))
+	doSimpleBench(b, storage, uid)
+}
+
+func BenchmarkStorageSimpleMsgEngine(b *testing.B) {
+	tc, storage, uid := setupStorageTest(b, "basic")
+	storage.setEngine(newMsgEngine(tc.G))
+	doSimpleBench(b, storage, uid)
+}
+
+func BenchmarkStorageCommonBlockEngine(b *testing.B) {
+	tc, storage, uid := setupStorageTest(b, "basic")
+	storage.setEngine(newBlockEngine(tc.G))
+	doCommonBench(b, storage, uid)
+}
+
+func BenchmarkStorageCommonMsgEngine(b *testing.B) {
+	tc, storage, uid := setupStorageTest(b, "basic")
+	storage.setEngine(newMsgEngine(tc.G))
+	doCommonBench(b, storage, uid)
+}
+
+func BenchmarkStorageRandomBlockEngine(b *testing.B) {
+	tc, storage, uid := setupStorageTest(b, "basic")
+	storage.setEngine(newBlockEngine(tc.G))
+	doRandomBench(b, storage, uid, 127, 1)
+}
+
+func BenchmarkStorageRandomMsgEngine(b *testing.B) {
+	tc, storage, uid := setupStorageTest(b, "basic")
+	storage.setEngine(newMsgEngine(tc.G))
+	doRandomBench(b, storage, uid, 127, 1)
+}
+
+func BenchmarkStorageRandomLongBlockEngine(b *testing.B) {
+	tc, storage, uid := setupStorageTest(b, "basic")
+	storage.setEngine(newBlockEngine(tc.G))
+	doRandomBench(b, storage, uid, 127, 1)
+}
+
+func BenchmarkStorageRandomLongMsgEngine(b *testing.B) {
+	tc, storage, uid := setupStorageTest(b, "basic")
+	storage.setEngine(newMsgEngine(tc.G))
+	doRandomBench(b, storage, uid, 1757, 50)
+}
+
 func TestStorageBasic(t *testing.T) {
 	_, storage, uid := setupStorageTest(t, "basic")
 
 	msgs := makeMsgRange(10)
-	conv := makeConversation(t, msgs[0].GetMessageID())
+	conv := makeConversation(msgs[0].GetMessageID())
 
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
@@ -100,7 +219,7 @@ func TestStorageLargeList(t *testing.T) {
 	_, storage, uid := setupStorageTest(t, "large list")
 
 	msgs := makeMsgRange(2000)
-	conv := makeConversation(t, msgs[0].GetMessageID())
+	conv := makeConversation(msgs[0].GetMessageID())
 
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
@@ -118,7 +237,7 @@ func TestStorageSupersedes(t *testing.T) {
 	superseder := makeMsg(chat1.MessageID(111), 6)
 	superseder2 := makeMsg(chat1.MessageID(112), 11)
 	msgs = append([]chat1.MessageFromServerOrError{superseder}, msgs...)
-	conv := makeConversation(t, msgs[0].GetMessageID())
+	conv := makeConversation(msgs[0].GetMessageID())
 
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 	res, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
@@ -147,7 +266,7 @@ func TestStorageMiss(t *testing.T) {
 	_, storage, uid := setupStorageTest(t, "miss")
 
 	msgs := makeMsgRange(10)
-	conv := makeConversation(t, 15)
+	conv := makeConversation(15)
 
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 	_, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
@@ -160,7 +279,7 @@ func TestStoragePagination(t *testing.T) {
 	_, storage, uid := setupStorageTest(t, "basic")
 
 	msgs := makeMsgRange(300)
-	conv := makeConversation(t, msgs[0].GetMessageID())
+	conv := makeConversation(msgs[0].GetMessageID())
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
 
 	t.Logf("test next input")
@@ -231,7 +350,7 @@ func TestStorageTypeFilter(t *testing.T) {
 	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(303), 0, chat1.MessageType_ATTACHMENT)), msgs...)
 	msgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), 0, chat1.MessageType_TEXT)), msgs...)
 	textmsgs = append(mkarray(makeMsgWithType(chat1.MessageID(304), 0, chat1.MessageType_TEXT)), textmsgs...)
-	conv := makeConversation(t, msgs[0].GetMessageID())
+	conv := makeConversation(msgs[0].GetMessageID())
 
 	query := chat1.GetThreadQuery{
 		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -241,7 +360,7 @@ func TestStorageTypeFilter(t *testing.T) {
 	res, err := storage.Fetch(context.TODO(), conv, uid, &query, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, len(msgs), len(res.Messages), "wrong amount of messages")
-	restexts := FilterByType(res.Messages, &query)
+	restexts := utils.FilterByType(res.Messages, &query)
 	require.Equal(t, len(textmsgs), len(restexts), "wrong amount of text messages")
 	for i := 0; i < len(restexts); i++ {
 		require.Equal(t, textmsgs[i].GetMessageID(), restexts[i].GetMessageID(), "msg mismatch")
