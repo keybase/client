@@ -212,13 +212,12 @@ func (tlf *TLF) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) (err
 func (tlf *TLF) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	var err error
 	if fi != nil && fi.IsDeleteOnClose() {
-		name := string(tlf.folder.name())
-		tlf.folder.fs.log.CDebugf(ctx, "TLF Removing favorite %q", name)
+		tlf.folder.handleMu.Lock()
+		fav := tlf.folder.h.ToFavorite()
+		tlf.folder.handleMu.Unlock()
+		tlf.folder.fs.log.CDebugf(ctx, "TLF Removing favorite %q", fav.Name)
 		defer tlf.folder.reportErr(ctx, libkbfs.WriteMode, err)
-		err = tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx, libkbfs.Favorite{
-			Name:   name,
-			Public: tlf.isPublic(),
-		})
+		err = tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx, fav)
 	}
 
 	if tlf.refcount.Decrease() {
