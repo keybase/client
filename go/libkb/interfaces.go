@@ -272,7 +272,7 @@ type ExternalAPI interface {
 }
 
 type IdentifyUI interface {
-	Start(string, keybase1.IdentifyReason) error
+	Start(string, keybase1.IdentifyReason, bool) error
 	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
 	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
 	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)

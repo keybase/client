@@ -392,7 +392,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.remotesReceived = e.them.BaseProofSet()
 
 	iui := ctx.IdentifyUI
-	if e.useTracking && e.arg.CanSuppressUI {
+	if e.useTracking && e.arg.CanSuppressUI && !e.arg.ForceDisplay {
 		iui = newBufferedIdentifyUI(e.G(), iui, keybase1.ConfirmResult{
 			IdentityConfirmed: true,
 		})
@@ -401,7 +401,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	}
 
 	e.G().Log.Debug("| IdentifyUI.Start(%s)", e.them.GetName())
-	if err = iui.Start(e.them.GetName(), e.arg.Reason); err != nil {
+	if err = iui.Start(e.them.GetName(), e.arg.Reason, e.arg.ForceDisplay); err != nil {
 		return err
 	}
 	for _, k := range e.identifyKeys {

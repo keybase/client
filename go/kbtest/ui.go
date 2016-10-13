@@ -140,7 +140,7 @@ func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) error {
 func (ui *FakeIdentifyUI) ReportLastTrack(*keybase1.TrackSummary) error {
 	return nil
 }
-func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason) error {
+func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason, forceDisplay bool) error {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.StartCount++

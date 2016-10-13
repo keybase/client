@@ -259,10 +259,10 @@ func (u *RemoteIdentifyUI) DisplayUserCard(card keybase1.UserCard) error {
 	return u.uicli.DisplayUserCard(ctx, keybase1.DisplayUserCardArg{SessionID: u.sessionID, Card: card})
 }
 
-func (u *RemoteIdentifyUI) Start(username string, reason keybase1.IdentifyReason) error {
+func (u *RemoteIdentifyUI) Start(username string, reason keybase1.IdentifyReason, force bool) error {
 	ctx, cancel := u.newContext()
 	defer cancel()
-	return u.uicli.Start(ctx, keybase1.StartArg{SessionID: u.sessionID, Username: username, Reason: reason})
+	return u.uicli.Start(ctx, keybase1.StartArg{SessionID: u.sessionID, Username: username, Reason: reason, ForceDisplay: force})
 }
 
 func (u *RemoteIdentifyUI) Finish() error {
