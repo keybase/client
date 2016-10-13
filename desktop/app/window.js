@@ -67,7 +67,7 @@ export default class Window {
     }
 
     this.window = new BrowserWindow({show: false, ...this.opts})
-    this.window.loadURL(`file://${this.filename}`)
+    this.window.loadURL(this.filename)
     this.bindWindowListeners()
     this.window.once('show', () => this.onFirstTimeBeingShown())
   }

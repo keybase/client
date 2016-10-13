@@ -14,7 +14,7 @@ type MenuItemProps = MenuItem & {
 
 const MenuRow = (props: MenuItemProps) => (
   <TouchableOpacity activeOpacity={0.8} disabled={!props.onClick} onPress={props.onClick} style={{...styleRow(props), ...props.style}}>
-  {props.view || <Text type={props.isHeader ? 'BodySmall' : 'Body'} style={styleRowText(props)}>{props.title}</Text>}
+    {props.view || <Text type={props.isHeader ? 'BodySmall' : 'Body'} style={styleRowText(props)}>{props.title}</Text>}
   </TouchableOpacity>
 )
 
