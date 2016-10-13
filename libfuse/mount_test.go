@@ -327,12 +327,12 @@ func TestReaddirPrivate(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
+		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", false)
+		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", true)
 	}
 
 	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
-		"janedoe,jdoe": mustBeDir,
+		"jdoe,janedoe": mustBeDir,
 		"jdoe":         mustBeDir, // default home directory
 	})
 }
@@ -354,11 +354,11 @@ func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
+		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", false)
+		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", true)
 	}
 
-	err := os.Remove(path.Join(mnt.Dir, PrivateName, "janedoe,jdoe"))
+	err := os.Remove(path.Join(mnt.Dir, PrivateName, "jdoe,janedoe"))
 	if err != nil {
 		t.Fatalf("Removing favorite failed: %v", err)
 	}
@@ -368,11 +368,11 @@ func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 	})
 
 	// Re-add the favorite by doing a readdir
-	checkDir(t, path.Join(mnt.Dir, PrivateName, "janedoe,jdoe"),
+	checkDir(t, path.Join(mnt.Dir, PrivateName, "jdoe,janedoe"),
 		map[string]fileInfoCheck{})
 
 	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
-		"janedoe,jdoe": mustBeDir,
+		"jdoe,janedoe": mustBeDir,
 		"jdoe":         mustBeDir, // default home directory
 	})
 }
@@ -388,12 +388,12 @@ func TestReaddirPublic(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
+		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", false)
+		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", true)
 	}
 
 	checkDir(t, path.Join(mnt.Dir, PublicName), map[string]fileInfoCheck{
-		"janedoe,jdoe": mustBeDir,
+		"jdoe,janedoe": mustBeDir,
 		"jdoe":         mustBeDir, // default personal public directory
 	})
 }
