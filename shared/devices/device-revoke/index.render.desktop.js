@@ -15,7 +15,7 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props
   const header = (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Icon type={icon} />
-      <Text type='Body' style={stylesName}>{name}</Text>
+      <Text type='BodySemibold' style={stylesName}>{name}</Text>
     </Box>
   )
 
