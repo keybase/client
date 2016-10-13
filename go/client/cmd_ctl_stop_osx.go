@@ -85,7 +85,7 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool, wait time.Durat
 		}
 	}
 	if ok := components[install.ComponentNameKBFS.String()]; ok {
-		if err := install.UninstallKBFSServices(runMode, g.Log); err != nil {
+		if err := install.UninstallKBFSOnStop(g, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}
