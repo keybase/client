@@ -4,15 +4,14 @@
 package client
 
 import (
+	"errors"
 	"fmt"
-
-	"golang.org/x/net/context"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
 type CmdDeviceRemove struct {
@@ -21,12 +20,59 @@ type CmdDeviceRemove struct {
 	libkb.Contextified
 }
 
+func (c *CmdDeviceRemove) SetIDOrName(s string) {
+	c.idOrName = s
+}
+
 func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return fmt.Errorf("Device remove only takes one argument: the device ID or name.")
 	}
 	c.idOrName = ctx.Args()[0]
 	c.force = ctx.Bool("force")
+	return nil
+}
+
+func (c *CmdDeviceRemove) confirmDelete(id keybase1.DeviceID) error {
+	if c.force {
+		return nil
+	}
+	rkcli, err := GetRekeyClient(c.G())
+	if err != nil {
+		return err
+	}
+	arg := keybase1.GetRevokeWarningArg{TargetDevice: id}
+	res, err := rkcli.GetRevokeWarning(context.TODO(), arg)
+	if err != nil {
+		return err
+	}
+	if len(res.EndangeredTLFs) == 0 {
+		return nil
+	}
+	tui := c.G().UI.GetTerminalUI()
+	if tui == nil {
+		return errors.New("Need a terminal UI to prompt for TLF data loss override")
+	}
+
+	out := "Are you sure you want to delete this device? If you do, you can lose KBFS access to:\n"
+	n := len(res.EndangeredTLFs)
+	for i, tlf := range res.EndangeredTLFs {
+		if i == 10 && n > 11 {
+			out += fmt.Sprintf("   .... and %d others\n", (n - 10))
+			break
+		}
+		out += fmt.Sprintf(" * %s\n", tlf.Name)
+	}
+
+	tui.OutputDesc(OutputDescriptorEndageredTLFs, out)
+	ok, err := tui.PromptYesNo(PromptDescriptorDeviceRevoke, "Go ahead anyway", libkb.PromptDefaultNo)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.New("not confirmed")
+	}
+
 	return nil
 }
 
@@ -45,6 +91,10 @@ func (c *CmdDeviceRemove) Run() (err error) {
 		if err != nil {
 			return err
 		}
+	}
+
+	if err = c.confirmDelete(id); err != nil {
+		return err
 	}
 
 	cli, err := GetRevokeClient(c.G())
@@ -88,8 +138,14 @@ func NewCmdDeviceRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDeviceRemove{Contextified: libkb.NewContextified(g)}, "remove", c)
+			cl.ChooseCommand(NewCmdDeviceRemoveRunner(g), "remove", c)
 		},
+	}
+}
+
+func NewCmdDeviceRemoveRunner(g *libkb.GlobalContext) *CmdDeviceRemove {
+	return &CmdDeviceRemove{
+		Contextified: libkb.NewContextified(g),
 	}
 }
 

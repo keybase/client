@@ -52,9 +52,11 @@ const (
 	PromptDescriptorTrackExpireLocal
 	PromptDescriptorChooseConversation
 	PromptDescriptorEnterChatMessage
+	PromptDescriptorDeviceRevoke
 )
 
 const (
 	OutputDescriptorGeneric libkb.OutputDescriptor = iota
 	OutputDescriptorPrimaryPaperKey
+	OutputDescriptorEndageredTLFs
 )

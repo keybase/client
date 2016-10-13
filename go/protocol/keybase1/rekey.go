@@ -57,6 +57,10 @@ var OutcomeRevMap = map[Outcome]string{
 	2: "IGNORED",
 }
 
+type RevokeWarning struct {
+	EndangeredTLFs []TLF `codec:"endangeredTLFs" json:"endangeredTLFs"`
+}
+
 type ShowPendingRekeyStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -78,6 +82,12 @@ type RekeySyncArg struct {
 	Force     bool `codec:"force" json:"force"`
 }
 
+type GetRevokeWarningArg struct {
+	Session      int      `codec:"session" json:"session"`
+	ActingDevice DeviceID `codec:"actingDevice" json:"actingDevice"`
+	TargetDevice DeviceID `codec:"targetDevice" json:"targetDevice"`
+}
+
 type RekeyInterface interface {
 	// ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments
 	// or nothing if none were pending.
@@ -94,6 +104,9 @@ type RekeyInterface interface {
 	// to assert state. Good for race-free testing, not very useful in production.
 	// Force overrides a long-snooze.
 	RekeySync(context.Context, RekeySyncArg) error
+	// GetRevokeWarning computes the TLFs that will be endangered if actingDevice
+	// revokes targetDevice.
+	GetRevokeWarning(context.Context, GetRevokeWarningArg) (RevokeWarning, error)
 }
 
 func RekeyProtocol(i RekeyInterface) rpc.Protocol {
@@ -180,6 +193,22 @@ func RekeyProtocol(i RekeyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getRevokeWarning": {
+				MakeArg: func() interface{} {
+					ret := make([]GetRevokeWarningArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetRevokeWarningArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetRevokeWarningArg)(nil), args)
+						return
+					}
+					ret, err = i.GetRevokeWarning(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -224,5 +253,12 @@ func (c RekeyClient) RekeyStatusFinish(ctx context.Context, sessionID int) (res 
 // Force overrides a long-snooze.
 func (c RekeyClient) RekeySync(ctx context.Context, __arg RekeySyncArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.rekey.rekeySync", []interface{}{__arg}, nil)
+	return
+}
+
+// GetRevokeWarning computes the TLFs that will be endangered if actingDevice
+// revokes targetDevice.
+func (c RekeyClient) GetRevokeWarning(ctx context.Context, __arg GetRevokeWarningArg) (res RevokeWarning, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.rekey.getRevokeWarning", []interface{}{__arg}, &res)
 	return
 }
