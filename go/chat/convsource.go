@@ -119,6 +119,20 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// If found, then return the stuff
 			s.G().Log.Debug("Pull: cache hit: convID: %d uid: %s", convID, uid)
 			localData.Messages = FilterByType(localData.Messages, query)
+
+			// Before returning the stuff, send remote request to mark as read if
+			// requested.
+			if query != nil && query.MarkAsRead && len(localData.Messages) > 0 {
+				res, err := s.ri.MarkAsRead(ctx, chat1.MarkAsReadArg{
+					ConversationID: convID,
+					MsgID:          localData.Messages[0].GetMessageID(),
+				})
+				if err != nil {
+					return chat1.ThreadView{}, nil, err
+				}
+				rl = append(rl, res.RateLimit)
+			}
+
 			return localData, rl, nil
 		}
 	} else {
