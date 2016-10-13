@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import type {Props} from './render'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class Render extends Component<void, Props, void> {
   _renderComingSoon () {
@@ -23,7 +23,6 @@ class Render extends Component<void, Props, void> {
       style={{
         ...styleItem,
         borderBottom: `solid 2px ${isSelected ? selectedColor : 'transparent'}`,
-        paddingLeft: 0,
       }}
       styleBadge={styleBadge}
       styleIcon={{...styleIcon, ...iconStyle}}
@@ -31,7 +30,7 @@ class Render extends Component<void, Props, void> {
         color: isPublic
           ? (isSelected ? globalColors.black_75 : globalColors.white_75)
           : (isSelected ? globalColors.white : globalColors.black_60),
-        fontSize: 14,
+        fontSize: 12,
       }}
       styleBadgeNumber={styleBadgeNumber}
       selected={isSelected}
@@ -55,7 +54,7 @@ class Render extends Component<void, Props, void> {
 
     return (
       <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue3 : globalColors.lightGrey, paddingTop: 0, minHeight: 32}}>
-        <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, minHeight: this.props.smallMode ? 32 : 64, paddingTop: this.props.smallMode ? 0 : 32}}>
+        <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, minHeight: this.props.smallMode ? 32 : 48, paddingTop: this.props.smallMode ? 0 : 8}}>
           {
             [false, true].map(isPublic => (
               <TabBarItem
@@ -85,15 +84,13 @@ const stylesContainer = {
 
 const styleBadge = {
   borderWidth: 0,
-  paddingLeft: 2,
-  paddingRight: 3,
   minWidth: 13,
   minHeight: 13,
   borderRadius: 20,
   flex: 'initial',
   justifyContent: 'center',
-  marginRight: 15,
-  marginLeft: 2,
+  marginRight: 2,
+  marginLeft: 4,
 }
 
 const styleIcon = {
@@ -104,7 +101,9 @@ const styleItem = {
   ...globalStyles.flexBoxRow,
   paddingTop: 8,
   paddingBottom: 8,
-  justifyContent: 'center',
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  justifyContent: 'flex-start',
   backgroundColor: globalColors.transparent,
 }
 
@@ -115,7 +114,7 @@ const styleBadgeNumber = {
 
 const itemContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  minWidth: 110,
+  marginBottom: -1,
 }
 
 const tabBarStyle = {
