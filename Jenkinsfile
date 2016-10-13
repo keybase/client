@@ -218,7 +218,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                         kbfsImage.push()
                     }
                 } else {
-                    println "Not pushing docker"
+                    println "Not pushing docker. Branch: \"${env.BRANCH_NAME}\", Cause: \"${cause}\", Client project: \"${clientProjectName}\""
                 }
             }
         }
