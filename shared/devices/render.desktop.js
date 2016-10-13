@@ -109,16 +109,11 @@ class Render extends Component<void, Props, State> {
   }
 
   _items () {
-    const items = [
+    return [
+      ...(flags.mobileAppsExist ? [{title: 'New Phone', onClick: () => this.props.addNewPhone()}] : []),
       {title: 'New Computer', onClick: () => this.props.addNewComputer()},
       {title: 'New Paper Key', onClick: () => this.props.addNewPaperKey()},
     ]
-    if (flags.mobileAppsExist) {
-      items.unshift(
-        {title: 'New Phone', onClick: () => this.props.addNewPhone()},
-      )
-    }
-    return items
   }
 
   render () {
