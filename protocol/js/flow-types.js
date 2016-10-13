@@ -536,6 +536,18 @@ export function accountEmailChangeRpcPromise (request: $Exact<requestCommon & re
   return new Promise((resolve, reject) => { accountEmailChangeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function accountHasServerKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: accountHasServerKeysResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'account.hasServerKeys'})
+}
+
+export function accountHasServerKeysRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountHasServerKeysResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => accountHasServerKeysRpc({...request, incomingCallMap, callback}))
+}
+
+export function accountHasServerKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountHasServerKeysResult) => void}>): Promise<accountHasServerKeysResult> {
+  return new Promise((resolve, reject) => { accountHasServerKeysRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function accountPassphraseChangeRpc (request: Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'account.passphraseChange'})
 }
@@ -2896,6 +2908,10 @@ export type GetTLFCryptKeysRes = {
   CryptKeys?: ?Array<CryptKey>,
 }
 
+export type HasServerKeysRes = {
+  hasServerKeys: bool,
+}
+
 export type Hello2Res = {
   encryptionKey: KID,
   sigPayload: HelloRes,
@@ -4777,6 +4793,8 @@ type Kex2ProvisioneeHelloResult = HelloRes
 
 type SecretKeysGetSecretKeysResult = SecretKeys
 
+type accountHasServerKeysResult = HasServerKeysRes
+
 type accountPassphrasePromptResult = GetPassphraseRes
 
 type apiserverGetResult = APIRes
@@ -5007,6 +5025,7 @@ export type rpc =
   | ScanProofsScanProofsRpc
   | SecretKeysGetSecretKeysRpc
   | accountEmailChangeRpc
+  | accountHasServerKeysRpc
   | accountPassphraseChangeRpc
   | accountPassphrasePromptRpc
   | apiserverGetRpc

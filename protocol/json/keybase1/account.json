@@ -6,7 +6,18 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "HasServerKeysRes",
+      "fields": [
+        {
+          "type": "bool",
+          "name": "hasServerKeys"
+        }
+      ]
+    }
+  ],
   "messages": {
     "passphraseChange": {
       "request": [
@@ -56,6 +67,16 @@
       ],
       "response": null,
       "doc": "* change email to the new given email by signing a statement."
+    },
+    "hasServerKeys": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "HasServerKeysRes",
+      "doc": "* Whether the logged-in user has uploaded private keys\n   * Will error if not logged in."
     }
   },
   "namespace": "keybase.1"
