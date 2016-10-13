@@ -208,18 +208,18 @@ const (
 
 // Stat is for GetFileInformation and friends.
 type Stat struct {
-	// FileAttributes bitmask holds the file attributes.
-	FileAttributes FileAttribute
 	// Timestamps for the file
 	Creation, LastAccess, LastWrite time.Time
-	// VolumeSerialNumber is the serial number of the volume (0 is fine)
-	VolumeSerialNumber uint32
 	// FileSize is the size of the file in bytes
 	FileSize int64
-	// NumberOfLinks can be omitted, if zero set to 1.
-	NumberOfLinks uint32
 	// FileIndex is a 64 bit (nearly) unique ID of the file
 	FileIndex uint64
+	// FileAttributes bitmask holds the file attributes.
+	FileAttributes FileAttribute
+	// VolumeSerialNumber is the serial number of the volume (0 is fine)
+	VolumeSerialNumber uint32
+	// NumberOfLinks can be omitted, if zero set to 1.
+	NumberOfLinks uint32
 	// ReparsePointTag is for WIN32_FIND_DATA dwReserved0 for reparse point tags, typically it can be omitted.
 	ReparsePointTag uint32
 }

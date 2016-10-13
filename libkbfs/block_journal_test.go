@@ -39,7 +39,7 @@ func makeFakeBlockJournalEntryFuture(t *testing.T) blockJournalEntryFuture {
 		blockJournalEntry{
 			blockPutOp,
 			map[BlockID][]BlockContext{
-				fakeBlockID(1): []BlockContext{
+				fakeBlockID(1): {
 					makeFakeBlockContext(t),
 					makeFakeBlockContext(t),
 					makeFakeBlockContext(t),
