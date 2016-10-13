@@ -531,6 +531,7 @@ type PostAttachmentLocalArg struct {
 	ClientHeader   MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
 	Source         keybase1.Stream     `codec:"source" json:"source"`
 	Filename       string              `codec:"filename" json:"filename"`
+	Size           int                 `codec:"size" json:"size"`
 }
 
 type NewConversationLocalArg struct {

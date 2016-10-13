@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -362,6 +361,14 @@ func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 		return c.errReply(err)
 	}
 
+	info, err := os.Stat(opts.Filename)
+	if err != nil {
+		return c.errReply(err)
+	}
+	if info.IsDir() {
+		return c.errReply(fmt.Errorf("%s is a directory", opts.Filename))
+	}
+
 	fsource := NewFileSource(opts.Filename)
 	if err := fsource.Open(); err != nil {
 		return c.errReply(err)
@@ -372,7 +379,8 @@ func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 	arg := chat1.PostAttachmentLocalArg{
 		ConversationID: header.conversationID,
 		ClientHeader:   header.clientHeader,
-		Filename:       filepath.Base(opts.Filename),
+		Filename:       info.Name(),
+		Size:           int(info.Size()),
 		Source:         src,
 	}
 	client, err := GetChatLocalClient(c.G())

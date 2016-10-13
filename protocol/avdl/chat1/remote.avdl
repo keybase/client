@@ -90,4 +90,18 @@ protocol remote {
   }
 
   S3AttachmentParams getS3AttachmentParams(ConversationID conversationID);
+
+  record S3Params {
+    string bucket;
+    string objectKey;
+    string accessKey;
+    string acl;
+    string regionName;
+    string regionEndpoint;
+    string regionBucketEndpoint;
+  }
+
+  S3Params getS3Params(ConversationID conversationID);
+  
+  bytes s3Sign(bytes payload);
 }

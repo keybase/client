@@ -759,20 +759,28 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
 
 	// get s3 upload params from server
-	params, err := h.remoteClient().GetS3AttachmentParams(ctx, arg.ConversationID)
+	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
 
 	// post to s3
-	// first version:  doing the whole thing in one post
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
-	upRes, err := chat.UploadS3(h.G().Log, src, arg.Filename, params)
+
+	/*
+		upRes, err := chat.UploadS3(h.G().Log, src, arg.Filename, params)
+		if err != nil {
+			return chat1.PostLocalRes{}, err
+		}
+
+		h.G().Log.Debug("chat attachment upload: %+v", upRes)
+	*/
+
+	upRes, err := chat.PutS3(h.G().Log, src, int64(arg.Size), params, h)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
-
 	h.G().Log.Debug("chat attachment upload: %+v", upRes)
 
 	// send an attachment message
@@ -840,4 +848,14 @@ func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {
 		return libkb.LoginRequiredError{}
 	}
 	return nil
+}
+
+func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
+	h.G().Log.Warning("payload: %s", string(payload))
+	sig, err := h.remoteClient().S3Sign(context.Background(), payload)
+	if err != nil {
+		return nil, err
+	}
+	h.G().Log.Warning("signature: %s", string(sig))
+	return sig, nil
 }

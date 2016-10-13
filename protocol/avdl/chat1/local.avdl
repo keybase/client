@@ -204,7 +204,7 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, keybase1.Stream source, string filename);
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, keybase1.Stream source, string filename, int size);
 
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName);
   record NewConversationLocalRes {

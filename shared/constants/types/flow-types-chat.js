@@ -239,6 +239,18 @@ export function remoteGetS3AttachmentParamsRpcPromise (request: $Exact<requestCo
   return new Promise((resolve, reject) => { remoteGetS3AttachmentParamsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteGetS3ParamsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3ParamsResult) => void} & {param: remoteGetS3ParamsRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.getS3Params'})
+}
+
+export function remoteGetS3ParamsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3ParamsResult) => void} & {param: remoteGetS3ParamsRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteGetS3ParamsRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteGetS3ParamsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3ParamsResult) => void} & {param: remoteGetS3ParamsRpcParam}>): Promise<remoteGetS3ParamsResult> {
+  return new Promise((resolve, reject) => { remoteGetS3ParamsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteGetThreadRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.getThreadRemote'})
 }
@@ -297,6 +309,18 @@ export function remotePostRemoteRpcChannelMap (channelConfig: ChannelConfig<*>, 
 
 export function remotePostRemoteRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remotePostRemoteResult) => void} & {param: remotePostRemoteRpcParam}>): Promise<remotePostRemoteResult> {
   return new Promise((resolve, reject) => { remotePostRemoteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function remoteS3SignRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteS3SignResult) => void} & {param: remoteS3SignRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.s3Sign'})
+}
+
+export function remoteS3SignRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteS3SignResult) => void} & {param: remoteS3SignRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteS3SignRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteS3SignRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteS3SignResult) => void} & {param: remoteS3SignRpcParam}>): Promise<remoteS3SignResult> {
+  return new Promise((resolve, reject) => { remoteS3SignRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function remoteTlfFinalizeRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>) {
@@ -690,6 +714,16 @@ export type S3AttachmentParams = {
   signature: string,
 }
 
+export type S3Params = {
+  bucket: string,
+  objectKey: string,
+  accessKey: string,
+  acl: string,
+  regionName: string,
+  regionEndpoint: string,
+  regionBucketEndpoint: string,
+}
+
 export type SignatureInfo = {
   v: int,
   s: bytes,
@@ -768,7 +802,8 @@ export type localPostAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   clientHeader: MessageClientHeader,
   source: keybase1.Stream,
-  filename: string
+  filename: string,
+  size: int
 }>
 
 export type localPostLocalRpcParam = Exact<{
@@ -787,6 +822,10 @@ export type remoteGetMessagesRemoteRpcParam = Exact<{
 }>
 
 export type remoteGetS3AttachmentParamsRpcParam = Exact<{
+  conversationID: ConversationID
+}>
+
+export type remoteGetS3ParamsRpcParam = Exact<{
   conversationID: ConversationID
 }>
 
@@ -813,6 +852,10 @@ export type remoteNewConversationRemoteRpcParam = Exact<{
 export type remotePostRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   messageBoxed: MessageBoxed
+}>
+
+export type remoteS3SignRpcParam = Exact<{
+  payload: bytes
 }>
 
 export type remoteTlfFinalizeRpcParam = Exact<{
@@ -843,6 +886,8 @@ type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
 
 type remoteGetS3AttachmentParamsResult = S3AttachmentParams
 
+type remoteGetS3ParamsResult = S3Params
+
 type remoteGetThreadRemoteResult = GetThreadRemoteRes
 
 type remoteMarkAsReadResult = MarkAsReadRes
@@ -852,6 +897,8 @@ type remoteNewConversationRemote2Result = NewConversationRemoteRes
 type remoteNewConversationRemoteResult = NewConversationRemoteRes
 
 type remotePostRemoteResult = PostRemoteRes
+
+type remoteS3SignResult = bytes
 
 export type rpc =
     localGetConversationForCLILocalRpc
@@ -866,11 +913,13 @@ export type rpc =
   | remoteGetInboxRemoteRpc
   | remoteGetMessagesRemoteRpc
   | remoteGetS3AttachmentParamsRpc
+  | remoteGetS3ParamsRpc
   | remoteGetThreadRemoteRpc
   | remoteMarkAsReadRpc
   | remoteNewConversationRemote2Rpc
   | remoteNewConversationRemoteRpc
   | remotePostRemoteRpc
+  | remoteS3SignRpc
   | remoteTlfFinalizeRpc
 export type incomingCallMapType = Exact<{
   'keybase.1.NotifyChat.NewChatActivity'?: (

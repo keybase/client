@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/goamz/goamz/aws"
+	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 )
@@ -77,6 +79,30 @@ func UploadS3(log logger.Logger, r io.Reader, filename string, params chat1.S3At
 		S3Bucket: params.Bucket,
 		S3Path:   params.ObjectKey,
 		Size:     int64(n),
+	}
+
+	return &res, nil
+}
+
+func PutS3(log logger.Logger, r io.Reader, size int64, params chat1.S3Params, signer s3.Signer) (*UploadS3Result, error) {
+	region := aws.Region{
+		Name:             params.RegionName,
+		S3Endpoint:       params.RegionEndpoint,
+		S3BucketEndpoint: params.RegionBucketEndpoint,
+	}
+	conn := s3.New(signer, region)
+	conn.AccessKey = params.AccessKey
+
+	b := conn.Bucket(params.Bucket)
+	err := b.PutReader(params.ObjectKey, r, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
+	if err != nil {
+		return nil, err
+	}
+
+	res := UploadS3Result{
+		S3Bucket: params.Bucket,
+		S3Path:   params.ObjectKey,
+		Size:     size,
 	}
 
 	return &res, nil
