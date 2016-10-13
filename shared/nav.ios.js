@@ -10,7 +10,6 @@ import React, {Component} from 'react'
 import Search from './search'
 import Settings from './settings'
 import TabBar from './tab-bar/index.render.native'
-import flags from './util/feature-flags'
 import globalRoutes from './router/global-routes'
 import hello from './util/hello'
 import {Box, NativeNavigator, Text, ClickableBox, Icon} from './common-adapters/index.native'
@@ -200,7 +199,7 @@ export default connect(
     provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
     username,
     dumbFullscreen,
-    folderBadge: flags.tabFoldersEnabled ? privateBadge + publicBadge : 0,
+    folderBadge: privateBadge + publicBadge,
   }),
   dispatch => ({
     switchTab: tab => dispatch(switchTab(tab)),

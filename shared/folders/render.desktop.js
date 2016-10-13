@@ -1,5 +1,4 @@
 // @flow
-import FoldersHelp from './help.desktop'
 import List from './list'
 import React, {Component} from 'react'
 import type {Props} from './render'
@@ -8,10 +7,6 @@ import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 
 class Render extends Component<void, Props, void> {
-  _renderComingSoon () {
-    return <FoldersHelp username={this.props.username} />
-  }
-
   _makeItem (isPublic: boolean, isSelected: boolean) {
     const icon = isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
     const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
@@ -42,10 +37,6 @@ class Render extends Component<void, Props, void> {
   }
 
   render () {
-    if (this.props.showComingSoon) {
-      return this._renderComingSoon()
-    }
-
     const sharedListProps = {
       style: this.props.listStyle,
       smallMode: this.props.smallMode,

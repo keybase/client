@@ -184,7 +184,6 @@ const commonFolders = {
   onRekey: path => console.log(`open rekey page: ${path}`),
   onToggleShowIgnored,
   username: 'cecileb',
-  showComingSoon: false,
   private: {tlfs, ignored, isPublic: false, parentProps, onToggleShowIgnored, showIgnored: true},
   public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps, onToggleShowIgnored, showIgnored: false},
   showingPrivate: true,
@@ -199,10 +198,6 @@ const map: DumbComponentMap<Folders> = {
     'Normal Public': {
       ...commonFolders,
       showingPrivate: false,
-    },
-    'ComingSoon': {
-      ...commonFolders,
-      showComingSoon: true,
     },
   },
 }
