@@ -304,6 +304,9 @@ func (j mdJournal) putMD(rmd BareRootMetadata) (MdID, error) {
 		return MdID{}, err
 	}
 
+	// TODO: Consider consulting a Clock object and using it to
+	// set the ModTime.
+
 	return id, nil
 }
 

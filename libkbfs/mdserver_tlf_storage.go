@@ -52,6 +52,7 @@ import (
 type mdServerTlfStorage struct {
 	codec  kbfscodec.Codec
 	crypto cryptoPure
+	clock  Clock
 	dir    string
 
 	// Protects any IO operations in dir or any of its children,
@@ -61,10 +62,11 @@ type mdServerTlfStorage struct {
 }
 
 func makeMDServerTlfStorage(codec kbfscodec.Codec,
-	crypto cryptoPure, dir string) *mdServerTlfStorage {
+	crypto cryptoPure, clock Clock, dir string) *mdServerTlfStorage {
 	journal := &mdServerTlfStorage{
 		codec:          codec,
 		crypto:         crypto,
+		clock:          clock,
 		dir:            dir,
 		branchJournals: make(map[BranchID]mdIDJournal),
 	}
@@ -157,6 +159,12 @@ func (s *mdServerTlfStorage) putMDLocked(rmds *RootMetadataSigned) (MdID, error)
 	}
 
 	err = ioutil.WriteFile(path, buf, 0600)
+	if err != nil {
+		return MdID{}, err
+	}
+
+	now := s.clock.Now()
+	err = os.Chtimes(path, now, now)
 	if err != nil {
 		return MdID{}, err
 	}

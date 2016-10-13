@@ -37,7 +37,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	s := makeMDServerTlfStorage(codec, crypto, tempdir)
+	s := makeMDServerTlfStorage(codec, crypto, wallClock{}, tempdir)
 	defer s.shutdown()
 
 	require.Equal(t, 0, getMDStorageLength(t, s, NullBranchID))

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
@@ -353,6 +354,22 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	err = c.KeyfamilyChanged(context.Background(), uid2)
 }
 
+// truncateNotificationTimestamps is a helper function to truncate
+// timestamps to second resolution. This is needed because some
+// methods of storing timestamps (e.g., relying on the filesystem) are
+// lossy.
+func truncateNotificationTimestamps(
+	notifications []keybase1.FSNotification) []keybase1.FSNotification {
+	roundedNotifications := make(
+		[]keybase1.FSNotification, len(notifications))
+	for i, n := range notifications {
+		n.LocalTime = keybase1.ToTime(
+			n.LocalTime.Time().Truncate(time.Second))
+		roundedNotifications[i] = n
+	}
+	return roundedNotifications
+}
+
 func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
@@ -432,5 +449,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 		edits[0], edits[1] = edits[1], edits[0]
 	}
 
-	require.Equal(t, expectedEdits, edits, "User1 has unexpected edit history")
+	require.Equal(t, truncateNotificationTimestamps(expectedEdits),
+		truncateNotificationTimestamps(edits),
+		"User1 has unexpected edit history")
 }
