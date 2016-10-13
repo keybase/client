@@ -33,7 +33,7 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, is
 const Modified = ({smallMode, styles, modified}) => {
   const iconColor = {color: getStyle('BodySmall', styles.modifiedMode).color}
   const boltStyle = {
-    fontSize: smallMode ? 12 : 14,
+    fontSize: smallMode ? 10 : 10,
     alignSelf: 'center',
     ...(smallMode ? {marginTop: 2} : {marginLeft: -2, marginRight: 1, marginTop: 2}),
     ...iconColor,
@@ -111,7 +111,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
           {!smallMode && meta !== 'rekey' && <Text
             type='BodySmall' className='folder-row-hover-action' onClick={onOpenClick} style={styles.action}>Open</Text>}
           {meta === 'rekey' && <Button
-            backgroundMode={styles.modifiedMode} small={smallMode} type='Secondary'
+            backgroundMode={styles.modifiedMode} small={true} type='Secondary'
             onClick={e => {
               if (onRekey) {
                 e.stopPropagation()

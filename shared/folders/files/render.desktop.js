@@ -152,8 +152,8 @@ class Render extends Component<void, Props, void> {
             {this.props.users.map(u => <Box key={u.username} style={{height: 32, width: 28}}><Avatar username={u.username} size={32} /></Box>)}
           </Box>
           <Box style={styleTLFNameContainer}>
-            <Text type='BodySmallSemibold' style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
-            <Usernames users={this.props.users} type='BodySemibold' style={tlfTextStyle} />
+            <Text type='BodySemibold' style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
+            <Usernames users={this.props.users} type='Header' style={tlfTextStyle} />
           </Box>
         </Box>
         {this.props.visiblePopupMenu && <PopupMenu style={{marginLeft: 'auto', marginRight: 8, marginTop: 36, width: 320}} items={this.props.popupMenuItems} onHidden={this.props.onTogglePopupMenu} />}

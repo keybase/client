@@ -15,7 +15,7 @@ const RenderHelp = ({username}: Props) => (
         <Icon type='icon-fancy-folders-138-x-48' />
       </Box>
       <Box style={styleTextHeader}>
-        <Text type='Body'>
+        <Text type='BodySemibold'>
           Soon, this is where you'll manage and learn about folders in the Keybase
           filesystem. It will be <Text
             type='BodyPrimaryLink'
@@ -25,12 +25,12 @@ const RenderHelp = ({username}: Props) => (
         </Text>
       </Box>
       <Box style={styleBody}>
-        <Text type='BodySmall' style={{...styleBodyText}}>
+        <Text type='Body' style={{...styleBodyText}}>
           Here are a few terminal examples in the meantime. Note you can share with
           people who haven't joined Keybase yet, and your computer will rekey the
           data for them the moment they establish keys.
         </Text>
-        <Text type='BodySmall' style={{...styleBodyText, ...globalStyles.italic}}>
+        <Text type='Body' style={{...styleBodyText, ...globalStyles.italic}}>
           True end-to-end crypto.
         </Text>
         <Terminal style={styleTerminal}>

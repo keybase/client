@@ -16,7 +16,7 @@ const RenderHelp = ({username}: Props) => (
         <Box style={styleIconWrapper}><Avatar size={48} username={username} /></Box>
       </Box>
       <Box style={styleTextHeader}>
-        <Text type='Body'>
+        <Text type='BodySemibold'>
           Until this tab is ready, you must use <Text
             type='BodyPrimaryLink'
             onClick={() => shell.openExternal(`https://keybase.io/${username}`)}>
@@ -25,10 +25,10 @@ const RenderHelp = ({username}: Props) => (
         </Text>
       </Box>
       <Box style={styleBody}>
-        <Text type='BodySmall' style={{...styleBodyText}}>
+        <Text type='Body' style={{...styleBodyText}}>
           However, you can use the terminal to manage your keys and identity.
           When you run the commands below, you’ll see your <Text
-            type='BodySmallPrimaryLink'
+            type='BodyPrimaryLink'
             onClick={() => shell.openExternal(`https://keybase.io/${username}/graph`)}>
             identity graph
           </Text> update on the site.
