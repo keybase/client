@@ -21,22 +21,22 @@ protocol local {
     MessageID messageID;
   }
 
-  enum MessageAttachmentVersion {
-    V1_1
+  record MessageHeadline {
+    string headline;
   }
 
-  // MessageAttachmentV1 is version 1 of MessageAttachment.
-  // This record is immutable.  To modify, create a new
-  // record type with a new version.
-  record MessageAttachmentV1 {
-    string path;         // path to the attachment object
-    bytes key;           // encryption key
+  record Asset {
+    string path;               // path to the object in storage
+    int size;                  // size of the object
+    string mimeType;           // mime type of the object
+    Hash encHash;              // hash of ciphertext object 
+    bytes key;                 // encryption key
   }
 
-  // MessageAttachment is a variant container for all the versions
-  // of MessageAttachment.
-  variant MessageAttachment switch (MessageAttachmentVersion version ) {
-    case V1: MessageAttachmentV1;   
+  record MessageAttachment {
+    Asset object;                // the primary attachment object
+    union {null, Asset} preview; // the (optional) preview of object
+    bytes metadata;              // generic metadata (msgpack)
   }
 
   variant MessageBody switch (MessageType messageType) {
@@ -45,6 +45,7 @@ protocol local {
     case EDIT: MessageEdit;
     case DELETE: MessageDelete;
     case METADATA: MessageConversationMetadata;
+    case HEADLINE: MessageHeadline;
   }
 
   enum MessagePlaintextVersion {
@@ -112,10 +113,17 @@ protocol local {
     MessagePlaintext messagePlaintext;
     string senderUsername;
     string senderDeviceName;
+    Hash headerHash;
+  }
+  
+  record MessageError {
+    string errmsg;
+    MessageID messageID;
+    MessageType messageType;
   }
 
   record MessageFromServerOrError {
-    union { null, string } unboxingError;
+    union { null, MessageError } unboxingError;
     union { null, MessageFromServer } message;
   }
 
@@ -151,9 +159,8 @@ protocol local {
     union { null, string } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
-    array<MessageFromServerOrError> maxMessages;
+    array<MessageFromServerOrError> maxMessages; // the latest message for each message type
   }
-
 
   GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
   record GetThreadQuery {
@@ -168,7 +175,15 @@ protocol local {
   }
 
 
+  // topicName in GetInboxLocalQuery is ignored
   GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
+  record GetInboxLocalRes {
+    array<Conversation> conversationsUnverified;
+    union { null, Pagination } pagination;
+    array<RateLimit> rateLimits;
+  }
+
+  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
   record GetInboxLocalQuery {
     union { null, string } tlfName;
     union { null, string } topicName;
@@ -182,7 +197,7 @@ protocol local {
     boolean unreadOnly;
     boolean readOnly;
   }
-  record GetInboxLocalRes {
+  record GetInboxAndUnboxLocalRes {
     array<ConversationLocal> conversations;
     union { null, Pagination } pagination;
     array<RateLimit> rateLimits;
@@ -233,6 +248,13 @@ protocol local {
   }
   record GetConversationForCLILocalRes {
     ConversationLocal conversation;
+    array<MessageFromServerOrError> messages;
+    array<RateLimit> rateLimits;
+  }
+
+  // Get messages by ID.
+  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs);
+  record GetMessagesLocalRes {
     array<MessageFromServerOrError> messages;
     array<RateLimit> rateLimits;
   }

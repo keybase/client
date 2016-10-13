@@ -16,7 +16,6 @@ class NotificationsContainer extends Component {
   }
 }
 
-// TODO real integration
 export default connect(
   (state: TypedState, ownProps: {}) => state.settings.notifications,
   (dispatch: any, ownProps: {}) => ({

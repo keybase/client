@@ -57,19 +57,34 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "MessageAttachmentVersion",
-      "symbols": [
-        "V1_1"
+      "type": "record",
+      "name": "MessageHeadline",
+      "fields": [
+        {
+          "type": "string",
+          "name": "headline"
+        }
       ]
     },
     {
       "type": "record",
-      "name": "MessageAttachmentV1",
+      "name": "Asset",
       "fields": [
         {
           "type": "string",
           "name": "path"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
+        },
+        {
+          "type": "Hash",
+          "name": "encHash"
         },
         {
           "type": "bytes",
@@ -78,19 +93,23 @@
       ]
     },
     {
-      "type": "variant",
+      "type": "record",
       "name": "MessageAttachment",
-      "switch": {
-        "type": "MessageAttachmentVersion",
-        "name": "version"
-      },
-      "cases": [
+      "fields": [
         {
-          "label": {
-            "name": "V1",
-            "def": false
-          },
-          "body": "MessageAttachmentV1"
+          "type": "Asset",
+          "name": "object"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "preview"
+        },
+        {
+          "type": "bytes",
+          "name": "metadata"
         }
       ]
     },
@@ -136,6 +155,13 @@
             "def": false
           },
           "body": "MessageConversationMetadata"
+        },
+        {
+          "label": {
+            "name": "HEADLINE",
+            "def": false
+          },
+          "body": "MessageHeadline"
         }
       ]
     },
@@ -302,6 +328,28 @@
         {
           "type": "string",
           "name": "senderDeviceName"
+        },
+        {
+          "type": "Hash",
+          "name": "headerHash"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "errmsg"
+        },
+        {
+          "type": "MessageID",
+          "name": "messageID"
+        },
+        {
+          "type": "MessageType",
+          "name": "messageType"
         }
       ]
     },
@@ -312,7 +360,7 @@
         {
           "type": [
             null,
-            "string"
+            "MessageError"
           ],
           "name": "unboxingError"
         },
@@ -467,6 +515,33 @@
     },
     {
       "type": "record",
+      "name": "GetInboxLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Conversation"
+          },
+          "name": "conversationsUnverified"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetInboxLocalQuery",
       "fields": [
         {
@@ -537,7 +612,7 @@
     },
     {
       "type": "record",
-      "name": "GetInboxLocalRes",
+      "name": "GetInboxAndUnboxLocalRes",
       "fields": [
         {
           "type": {
@@ -701,6 +776,26 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetMessagesLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageFromServerOrError"
+          },
+          "name": "messages"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
@@ -745,6 +840,25 @@
         }
       ],
       "response": "GetInboxLocalRes"
+    },
+    "getInboxAndUnboxLocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        }
+      ],
+      "response": "GetInboxAndUnboxLocalRes"
     },
     "postLocal": {
       "request": [
@@ -800,6 +914,22 @@
         }
       ],
       "response": "GetConversationForCLILocalRes"
+    },
+    "GetMessagesLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "messageIDs",
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          }
+        }
+      ],
+      "response": "GetMessagesLocalRes"
     }
   },
   "namespace": "chat.1"

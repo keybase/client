@@ -11,4 +11,9 @@ protocol account {
   void passphraseChange(int sessionID, string oldPassphrase, string passphrase, boolean force);
 
   GetPassphraseRes passphrasePrompt(int sessionID, GUIEntryArg guiArg);
+
+  /**
+   * change email to the new given email by signing a statement.
+   */
+  void emailChange(int sessionID, string newEmail);
 }

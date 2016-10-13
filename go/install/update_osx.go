@@ -16,7 +16,7 @@ func AfterUpdateApply(context Context, willRestart bool, force bool, log Log) er
 	}
 	if reinstallKBFS {
 		log.Info("Re-installing KBFS")
-		err := InstallKBFS(context, "", false, log)
+		err := InstallKBFS(context, "", false, defaultLaunchdWait, log)
 		if err != nil {
 			log.Errorf("Error re-installing KBFS (after Fuse upgrade): %s", err)
 		}

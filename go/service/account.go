@@ -47,3 +47,13 @@ func (h *AccountHandler) PassphrasePrompt(_ context.Context, arg keybase1.Passph
 
 	return ui.GetPassphrase(arg.GuiArg, nil)
 }
+
+func (h *AccountHandler) EmailChange(nctx context.Context, arg keybase1.EmailChangeArg) error {
+	ctx := &engine.Context{
+		SessionID:  arg.SessionID,
+		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
+		NetContext: nctx,
+	}
+	eng := engine.NewEmailChange(&arg, h.G())
+	return engine.RunEngine(eng, ctx)
+}

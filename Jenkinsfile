@@ -130,7 +130,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                         "KEYBASE_JS_VENDOR_DIR=${env.BASEDIR}/js-vendor-desktop",
                                     ]) {
                                         dir("desktop") {
-                                            sh "npm run babel-install"
                                             sh "npm run vendor-install"
                                             sh "unzip ${env.KEYBASE_JS_VENDOR_DIR}/flow/flow-linux64*.zip -d ${env.BASEDIR}"
                                             sh "${env.BASEDIR}/flow/flow status shared"
@@ -176,23 +175,23 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             clientImage = docker.build("keybaseprivate/kbclient")
                                             sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
                                             archive("kbclient.tar.gz")
-                                            //build([
-                                            //    job: "/kbfs/master",
-                                            //    parameters: [
-                                            //        [$class: 'StringParameterValue',
-                                            //            name: 'clientProjectName',
-                                            //            value: env.JOB_NAME,
-                                            //        ],
-                                            //        [$class: 'StringParameterValue',
-                                            //            name: 'kbwebNodePrivateIP',
-                                            //            value: kbwebNodePrivateIP,
-                                            //        ],
-                                            //        [$class: 'StringParameterValue',
-                                            //            name: 'kbwebNodePublicIP',
-                                            //            value: kbwebNodePublicIP,
-                                            //        ],
-                                            //    ]
-                                            //])
+                                            build([
+                                                job: "/kbfs/master",
+                                                parameters: [
+                                                    [$class: 'StringParameterValue',
+                                                        name: 'clientProjectName',
+                                                        value: env.JOB_NAME,
+                                                    ],
+                                                    [$class: 'StringParameterValue',
+                                                        name: 'kbwebNodePrivateIP',
+                                                        value: kbwebNodePrivateIP,
+                                                    ],
+                                                    [$class: 'StringParameterValue',
+                                                        name: 'kbwebNodePublicIP',
+                                                        value: kbwebNodePublicIP,
+                                                    ],
+                                                ]
+                                            ])
                                         }
                                     },
                                 )
@@ -225,6 +224,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                         bat "echo %errorlevel%"
                                                     }
                                                     bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
+                                                    bat "go get \"github.com/stretchr/testify/require\""
+                                                    bat "go get \"github.com/stretchr/testify/assert\""
                                                     helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
                                                     def testlist = readFile('testlist.txt')
                                                     def tests = testlist.tokenize()

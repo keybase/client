@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 )
 
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
@@ -64,4 +65,51 @@ func Collar(lower int, ideal int, upper int) int {
 		return lower
 	}
 	return ideal
+}
+
+func FilterByType(msgs []chat1.MessageFromServerOrError, query *chat1.GetThreadQuery) (res []chat1.MessageFromServerOrError) {
+	if query != nil && len(query.MessageTypes) > 0 {
+		typmap := make(map[chat1.MessageType]bool)
+		for _, mt := range query.MessageTypes {
+			typmap[mt] = true
+		}
+		for _, msg := range msgs {
+			if msg.Message != nil {
+				if _, ok := typmap[msg.Message.ServerHeader.MessageType]; ok {
+					res = append(res, msg)
+				}
+			} else {
+				res = append(res, msg)
+			}
+		}
+	} else {
+		res = msgs
+	}
+	return res
+}
+
+// AggRateLimitsP takes a list of rate limit responses and dedups them to the last one received
+// of each category
+func AggRateLimitsP(rlimits []*chat1.RateLimit) (res []chat1.RateLimit) {
+	m := make(map[string]chat1.RateLimit)
+	for _, l := range rlimits {
+		if l != nil {
+			m[l.Name] = *l
+		}
+	}
+	for _, v := range m {
+		res = append(res, v)
+	}
+	return res
+}
+
+func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
+	m := make(map[string]chat1.RateLimit)
+	for _, l := range rlimits {
+		m[l.Name] = l
+	}
+	for _, v := range m {
+		res = append(res, v)
+	}
+	return res
 }

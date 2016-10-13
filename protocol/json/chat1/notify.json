@@ -2,13 +2,9 @@
   "protocol": "NotifyChat",
   "imports": [
     {
-      "path": "common.avdl",
-      "type": "idl"
-    },
-    {
-      "path": "github.com/keybase/client/go/protocol/chat1",
+      "path": "github.com/keybase/client/go/protocol/keybase1",
       "type": "idl",
-      "import_as": "chat1"
+      "import_as": "keybase1"
     }
   ],
   "types": [
@@ -31,7 +27,7 @@
         {
           "type": [
             null,
-            "chat1.MessageFromServerOrError"
+            "MessageFromServerOrError"
           ],
           "name": "IncomingMessage"
         }
@@ -43,7 +39,7 @@
       "request": [
         {
           "name": "uid",
-          "type": "UID"
+          "type": "keybase1.UID"
         },
         {
           "name": "activity",
@@ -54,5 +50,5 @@
       "notify": ""
     }
   },
-  "namespace": "keybase.1"
+  "namespace": "chat.1"
 }

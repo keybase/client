@@ -3,10 +3,12 @@ import React, {Component} from 'react'
 import Render from './render'
 import DeleteConfirm from './delete-confirm/container'
 import RemoveDevice from '../devices/device-revoke'
+import InviteGenerated from './invite-generated'
 import devMenu from '../dev/dev-menu'
 import flags from '../util/feature-flags'
 import {connect} from 'react-redux'
 import {routeAppend} from '../actions/router'
+import Routable from '../util/routable'
 
 class Settings extends Component {
   static parseRoute () {
@@ -16,6 +18,12 @@ class Settings extends Component {
         devMenu,
         deleteConfirm: DeleteConfirm,
         removeDevice: RemoveDevice,
+        inviteSent: Routable((uri) => ({
+          componentAtTop: {
+            title: '',
+            props: uri.get('props') || {},
+          },
+        }), InviteGenerated),
       },
     }
   }

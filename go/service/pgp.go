@@ -239,7 +239,7 @@ func (h *PGPHandler) PGPDeletePrimary(_ context.Context, sessionID int) (err err
 	return libkb.DeletePrimary()
 }
 
-func (h *PGPHandler) PGPSelect(_ context.Context, sarg keybase1.PGPSelectArg) error {
+func (h *PGPHandler) PGPSelect(nctx context.Context, sarg keybase1.PGPSelectArg) error {
 	arg := engine.GPGImportKeyArg{
 		Query:      sarg.FingerprintQuery,
 		AllowMulti: sarg.AllowMulti,
@@ -248,11 +248,12 @@ func (h *PGPHandler) PGPSelect(_ context.Context, sarg keybase1.PGPSelectArg) er
 	}
 	gpg := engine.NewGPGImportKeyEngine(&arg, h.G())
 	ctx := &engine.Context{
-		GPGUI:     h.getGPGUI(sarg.SessionID),
-		SecretUI:  h.getSecretUI(sarg.SessionID, h.G()),
-		LogUI:     h.getLogUI(sarg.SessionID),
-		LoginUI:   h.getLoginUI(sarg.SessionID),
-		SessionID: sarg.SessionID,
+		GPGUI:      h.getGPGUI(sarg.SessionID),
+		SecretUI:   h.getSecretUI(sarg.SessionID, h.G()),
+		LogUI:      h.getLogUI(sarg.SessionID),
+		LoginUI:    h.getLoginUI(sarg.SessionID),
+		SessionID:  sarg.SessionID,
+		NetContext: nctx,
 	}
 	return engine.RunEngine(gpg, ctx)
 }

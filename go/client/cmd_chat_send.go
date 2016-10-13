@@ -4,7 +4,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -19,9 +18,12 @@ import (
 
 type cmdChatSend struct {
 	libkb.Contextified
-	message      string
-	resolver     chatCLIConversationResolver
-	setTopicName string
+	resolver chatCLIConversationResolver
+	// Only one of these should be set
+	message       string
+	setTopicName  string
+	setHeadline   string
+	clearHeadline bool
 }
 
 func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -32,7 +34,8 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatSend{Contextified: libkb.NewContextified(g)}, "send", c)
 		},
-		Flags: mustGetChatFlags("topic-type", "topic-name", "set-topic-name", "stdin"),
+		Flags: mustGetChatFlags(
+			"topic-type", "topic-name", "set-topic-name", "set-headline", "clear-headline", "stdin"),
 	}
 }
 
@@ -56,6 +59,18 @@ func (c *cmdChatSend) Run() (err error) {
 	}
 
 	if resolved == nil {
+		if len(c.resolver.TlfName) == 0 {
+			c.G().UI.GetTerminalUI().Printf("No conversation found. Type `keybase chat send <tlf> [message]` to create a new one.\n")
+			return nil
+		}
+
+		// creating a new conversation!
+
+		if len(c.resolver.TopicName) > 0 && c.resolver.TopicType == chat1.TopicType_CHAT {
+			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet.\n")
+			return nil
+		}
+
 		var tnp *string
 		if len(c.resolver.TopicName) > 0 {
 			tnp = &c.resolver.TopicName
@@ -74,22 +89,6 @@ func (c *cmdChatSend) Run() (err error) {
 		conversationInfo = *resolved
 	}
 
-	switch {
-	case userChosen && len(c.message) == 0:
-		c.message, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter message content to send: ", conversationInfo.TlfName))
-		if err != nil {
-			return err
-		}
-	case userChosen:
-		return errors.New("potential command line argument parsing error: we had a message before letting user choose a conversation")
-	case len(c.message) == 0:
-		c.message, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, "Please enter message content: ")
-		if err != nil {
-			return err
-		}
-	default:
-	}
-
 	var args chat1.PostLocalArg
 	args.ConversationID = conversationInfo.Id
 
@@ -97,8 +96,52 @@ func (c *cmdChatSend) Run() (err error) {
 	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
 	msgV1.ClientHeader.Conv = conversationInfo.Triple
 	msgV1.ClientHeader.TlfName = conversationInfo.TlfName
-	msgV1.ClientHeader.MessageType = chat1.MessageType_TEXT
-	msgV1.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{Body: c.message})
+
+	// Whether the user is really sure they want to send to the selected conversation.
+	// We require an additional confirmation if the choose menu was used.
+	confirmed := !userChosen
+
+	// Do one of set topic name, set headline, or send message
+	switch {
+	case c.setTopicName != "":
+		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT {
+			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet. Ignoring --set-topic-name >.<\n")
+			return nil
+		}
+		msgV1.ClientHeader.MessageType = chat1.MessageType_METADATA
+		msgV1.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
+	case c.setHeadline != "":
+		msgV1.ClientHeader.MessageType = chat1.MessageType_HEADLINE
+		msgV1.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: c.setHeadline})
+	case c.clearHeadline:
+		msgV1.ClientHeader.MessageType = chat1.MessageType_HEADLINE
+		msgV1.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: ""})
+	default:
+		// Ask for message contents
+		if len(c.message) == 0 {
+			promptText := "Please enter message content: "
+			if !confirmed {
+				promptText = fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter message content to send: ", conversationInfo.TlfName)
+			}
+			c.message, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
+			if err != nil {
+				return err
+			}
+			confirmed = true
+		}
+
+		msgV1.ClientHeader.MessageType = chat1.MessageType_TEXT
+		msgV1.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{Body: c.message})
+	}
+
+	if !confirmed {
+		promptText := fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter to send.", conversationInfo.TlfName)
+		c.message, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
+		if err != nil {
+			return err
+		}
+		confirmed = true
+	}
 
 	args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
 
@@ -106,52 +149,89 @@ func (c *cmdChatSend) Run() (err error) {
 		return err
 	}
 
-	if len(c.setTopicName) > 0 {
-		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT {
-			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet. Ignoring --set-topic-name >.<")
-		}
-		msgV1.ClientHeader.MessageType = chat1.MessageType_METADATA
-		msgV1.ClientHeader.Prev = nil // TODO
-		msgV1.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
-		args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
-		if _, err := chatClient.PostLocal(ctx, args); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
 func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
-	switch len(ctx.Args()) {
-	case 2:
-		c.message = ctx.Args().Get(1)
-		fallthrough
-	case 1:
-		tlfName := ctx.Args().Get(0)
-		if c.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
-			return err
-		}
-	case 0:
-		if ctx.Bool("stdin") {
-			return fmt.Errorf("--stdin requires 1 argument [conversation]")
-		}
-		if c.resolver, err = parseConversationResolver(ctx, ""); err != nil {
-			return err
-		}
-	default:
-		return fmt.Errorf("keybase chat send takes 1 or 2 args")
-	}
-
-	if ctx.Bool("stdin") {
-		bytes, err := ioutil.ReadAll(os.Stdin)
-		if err != nil {
-			return err
-		}
-		c.message = string(bytes)
-	}
-
 	c.setTopicName = ctx.String("set-topic-name")
+	c.setHeadline = ctx.String("set-headline")
+	c.clearHeadline = ctx.Bool("clear-headline")
+	useStdin := ctx.Bool("stdin")
+
+	var tlfName string
+	// Get the TLF name from the first position arg
+	if len(ctx.Args()) >= 1 {
+		tlfName = ctx.Args().Get(0)
+	}
+	if c.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
+		return err
+	}
+
+	nActions := 0
+
+	if c.setTopicName != "" {
+		nActions++
+		if useStdin {
+			return fmt.Errorf("stdin not supported when setting topic name")
+		}
+		if len(ctx.Args()) > 1 {
+			return fmt.Errorf("cannot send message and set topic name simultaneously")
+		}
+	}
+
+	if c.setHeadline != "" {
+		nActions++
+		if useStdin {
+			return fmt.Errorf("stdin not supported with --set-headline")
+		}
+		if len(ctx.Args()) > 1 {
+			return fmt.Errorf("cannot send message and set headline name simultaneously")
+		}
+	}
+
+	if c.clearHeadline {
+		nActions++
+		if useStdin {
+			return fmt.Errorf("stdin not supported with --clear-headline")
+		}
+		if len(ctx.Args()) > 1 {
+			return fmt.Errorf("cannot send message and clear headline name simultaneously")
+		}
+	}
+
+	// Send a normal message.
+	if nActions == 0 {
+		nActions++
+		if useStdin {
+			if len(ctx.Args()) > 1 {
+				return fmt.Errorf("too many args for sending from stdin")
+			}
+			bytes, err := ioutil.ReadAll(os.Stdin)
+			if err != nil {
+				return err
+			}
+			c.message = string(bytes)
+		} else {
+			switch len(ctx.Args()) {
+			case 0, 1:
+				c.message = ""
+			case 2:
+				c.message = ctx.Args().Get(1)
+			default:
+				cli.ShowCommandHelp(ctx, "send")
+				return fmt.Errorf("chat send takes 1 or 2 args")
+			}
+		}
+	}
+
+	if nActions < 1 {
+		cli.ShowCommandHelp(ctx, "send")
+		return fmt.Errorf("Incorrect Usage.")
+	}
+	if nActions > 1 {
+		cli.ShowCommandHelp(ctx, "send")
+		return fmt.Errorf("only one of message, --set-headline, --clear-headline, or --set-topic-name allowed")
+	}
 
 	return nil
 }

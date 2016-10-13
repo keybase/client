@@ -4,17 +4,16 @@ import _ from 'lodash'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
 import {navigateBack} from '../actions/router'
 import {call, put, select} from 'redux-saga/effects'
 import {takeLatest, takeEvery} from 'redux-saga'
 
 import type {Action} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, FolderWithMeta} from '../constants/favorite'
-import type {Folder as FoldersFolder, MetaType} from '../constants/folders'
+import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, MarkTLFCreated} from '../constants/favorite'
+import type {FolderRPCWithMeta} from '../constants/folders'
 import type {SagaGenerator} from '../constants/types/saga'
 
-const {pathFromFolder, folderFromPath} = Constants
+const {folderFromFolderRPCWithMeta, folderRPCFromPath} = Constants
 
 function switchTab (showingPrivate: boolean): FavoriteSwitchTab {
   return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
@@ -36,9 +35,14 @@ function ignoreFolder (path: string): FavoriteIgnore {
   return {type: Constants.favoriteIgnore, payload: {path}}
 }
 
+// TODO(mm) type properly
+function markTLFCreated (folder: any): MarkTLFCreated {
+  return {type: Constants.markTLFCreated, payload: {folder}}
+}
+
 const injectMeta = type => f => { f.meta = type }
 
-const _jsonToFolders = (json: Object, myKID: any): Array<FolderWithMeta> => {
+const _jsonToFolders = (json: Object, myKID: any): Array<FolderRPCWithMeta> => {
   const folderSets = [json.favorites, json.ignored, json.new]
   const fillFolder = folder => {
     folder.waitingForParticipantUnlock = []
@@ -92,40 +96,13 @@ function _folderSort (username, a, b) {
 }
 
 function _folderToState (txt: string = '', username: string, loggedIn: boolean): FolderState {
-  const folders: Array<FolderWithMeta> = _getFavoritesRPCToFolders(txt, username, loggedIn)
-  let privateBadge = 0
-  let publicBadge = 0
+  const folders: Array<FolderRPCWithMeta> = _getFavoritesRPCToFolders(txt, username, loggedIn)
 
-  const converted: Array<FoldersFolder & {sortName: string}> = folders.map(f => {
-    const users = sortUserList(parseFolderNameToUsers(username, f.name))
+  const converted = folders.map(f => folderFromFolderRPCWithMeta(username, f)).sort((a, b) => _folderSort(username, a, b))
 
-    const {sortName, path} = pathFromFolder({users, isPublic: !f.private})
-    const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
-    const userAvatar = groupAvatar ? null : users[users.length - 1].username
-    const meta: MetaType = f.meta
-    if (meta === 'new') {
-      if (f.private) {
-        privateBadge++
-      } else {
-        publicBadge++
-      }
-    }
-    const ignored = f.meta === 'ignored'
-    return {
-      path,
-      users,
-      sortName,
-      hasData: false, // TODO don't have this info
-      isPublic: !f.private,
-      groupAvatar,
-      userAvatar,
-      ignored,
-      meta,
-      recentFiles: [],
-      waitingForParticipantUnlock: f.waitingForParticipantUnlock,
-      youCanUnlock: f.youCanUnlock,
-    }
-  }).sort((a, b) => _folderSort(username, a, b))
+  const newFolders = converted.filter(f => f.meta === 'new')
+  const privateBadge = newFolders.reduce((acc, f) => !f.isPublic ? acc + 1 : acc, 0)
+  const publicBadge = newFolders.reduce((acc, f) => f.isPublic ? acc + 1 : acc, 0)
 
   const [priFolders, pubFolders] = _.partition(converted, {isPublic: false})
   const [privIgnored, priv] = _.partition(priFolders, {ignored: true})
@@ -146,7 +123,7 @@ function _folderToState (txt: string = '', username: string, loggedIn: boolean):
   }
 }
 
-function _getFavoritesRPCToFolders (txt: string, username: string = '', loggedIn: boolean): Array<FolderWithMeta> {
+function _getFavoritesRPCToFolders (txt: string, username: string = '', loggedIn: boolean): Array<FolderRPCWithMeta> {
   let json
   try {
     json = JSON.parse(txt)
@@ -163,7 +140,7 @@ function _getFavoritesRPCToFolders (txt: string, username: string = '', loggedIn
   json.new && json.new.forEach(injectMeta('new'))
 
   // figure out who can solve the rekey
-  const folders: Array<FolderWithMeta> = _jsonToFolders(json, myKID)
+  const folders: Array<FolderRPCWithMeta> = _jsonToFolders(json, myKID)
 
   // Ensure private/public folders exist for us
   if (username && loggedIn) {
@@ -192,7 +169,7 @@ function _getFavoritesRPCToFolders (txt: string, username: string = '', loggedIn
 }
 
 function * _addSaga (action: FavoriteAdd): SagaGenerator<any, any> {
-  const folder = folderFromPath(action.payload.path)
+  const folder = folderRPCFromPath(action.payload.path)
   if (!folder) {
     const action: FavoriteAdded = {type: Constants.favoriteAdded, error: true, payload: {errorText: 'No folder specified'}}
     yield put(action)
@@ -211,7 +188,7 @@ function * _addSaga (action: FavoriteAdd): SagaGenerator<any, any> {
 }
 
 function * _ignoreSaga (action: FavoriteAdd): SagaGenerator<any, any> {
-  const folder = folderFromPath(action.payload.path)
+  const folder = folderRPCFromPath(action.payload.path)
   if (!folder) {
     const action: FavoriteIgnored = {type: Constants.favoriteIgnored, error: true, payload: {errorText: 'No folder specified'}}
     yield put(action)
@@ -294,11 +271,12 @@ function * favoriteSaga (): SagaGenerator<any, any> {
 }
 
 export {
-  favoriteList,
-  toggleShowIgnored,
-  switchTab,
   favoriteFolder,
+  favoriteList,
   ignoreFolder,
+  markTLFCreated,
+  switchTab,
+  toggleShowIgnored,
 }
 
 export default favoriteSaga

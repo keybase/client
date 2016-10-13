@@ -130,7 +130,6 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
 const rowContainer = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
-  minHeight: 48,
   position: 'relative',
 }
 

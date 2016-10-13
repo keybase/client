@@ -13,19 +13,6 @@
 #import "KBFSService.h"
 #import "KBFuseComponent.h"
 
-typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
-  KBInstallOptionNone = 0,
-  KBInstallOptionService = 1 << 1,
-  KBInstallOptionHelper = 1 << 2,
-  KBInstallOptionFuse = 1 << 3,
-  KBInstallOptionKBFS = 1 << 4,
-  KBInstallOptionUpdater = 1 << 5,
-  KBInstallOptionMountDir = 1 << 6,
-  KBInstallOptionCLI = 1 << 10,
-
-  KBInstallOptionAll = KBInstallOptionService | KBInstallOptionHelper | KBInstallOptionFuse | KBInstallOptionMountDir | KBInstallOptionKBFS | KBInstallOptionUpdater | KBInstallOptionCLI,
-};
-
 @interface KBEnvironment : NSObject
 
 @property (readonly) KBHelperTool *helperTool;
@@ -35,9 +22,7 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 @property (readonly) KBFuseComponent *fuse;
 @property (readonly) NSArray */*of KBInstallable*/installables;
 
-- (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath options:(KBInstallOptions)options;
-
-+ (instancetype)environmentForRunModeString:(NSString *)runModeString servicePath:(NSString *)servicePath options:(KBInstallOptions)options;
+- (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath;
 
 - (NSArray *)componentsForControlPanel;
 

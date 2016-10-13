@@ -95,3 +95,29 @@ func (me ConversationIDTriple) Eq(other ConversationIDTriple) bool {
 		bytes.Equal([]byte(me.TopicID), []byte(other.TopicID)) &&
 		me.TopicType == other.TopicType
 }
+
+func (hash Hash) String() string {
+	return hex.EncodeToString(hash)
+}
+
+func (hash Hash) Eq(other Hash) bool {
+	return bytes.Equal(hash, other)
+}
+
+func (m MessageFromServerOrError) GetMessageID() MessageID {
+	if m.Message != nil {
+		return m.Message.ServerHeader.MessageID
+	} else if m.UnboxingError != nil {
+		return m.UnboxingError.MessageID
+	}
+	return 0
+}
+
+func (m MessageFromServerOrError) GetMessageType() MessageType {
+	if m.Message != nil {
+		return m.Message.ServerHeader.MessageType
+	} else if m.UnboxingError != nil {
+		return m.UnboxingError.MessageType
+	}
+	return MessageType_NONE
+}
