@@ -6,14 +6,16 @@ import {globalStyles, globalColors} from '../styles'
 import type {Props, MetaType, TextType, Background} from './text'
 
 class Text extends Component<void, Props, void> {
+  _span: any
+
   focus () {
-    if (this.refs && this.refs.text) {
-      this.refs.text.focus()
+    if (this._span) {
+      this._span.focus()
     }
   }
 
   highlightText () {
-    const el = findDOMNode(this.refs.text)
+    const el = findDOMNode(this._span)
     const range = document.createRange()
     range.selectNodeContents(el)
 
@@ -35,25 +37,11 @@ class Text extends Component<void, Props, void> {
       meta.isLink ? 'hover-underline' : null,
     ].filter(Boolean).join(' ')
 
-    if (this.props.contentEditable) {
-      return (
-        <span
-          ref='text'
-          className={className}
-          style={style}
-          contentEditable={true}
-          onKeyUp={this.props.onKeyUp}
-          onKeyDown={this.props.onKeyDown}
-          onClick={this.props.onClick} />)
-    } else {
-      return (
-        <span
-          ref='text'
-          className={className}
-          style={style}
-          onClick={this.props.onClick}>{this.props.children}
-        </span>)
-    }
+    return <span
+      ref={ref => { this._span = ref }}
+      className={className}
+      style={style}
+      onClick={this.props.onClick}>{this.props.children}</span>
   }
 }
 

@@ -1,39 +1,54 @@
 // @flow
 import {Component} from 'react'
-import type {Context} from './terminal'
 
-export type Background = 'Normal' | 'Announcements' | 'Success' | 'Information' | 'HighRisk' | 'Documentation' | 'Terminal'
+type Background =
+  'Announcements'
+| 'Documentation'
+| 'HighRisk'
+| 'Information'
+| 'Normal'
+| 'Success'
+| 'Terminal'
 
-export type TextType =
-  'HeaderBig'
-  | 'Header' | 'HeaderLink'
-  | 'BodyBig' | 'BodyBigLink'
-  | 'Body' | 'BodySemibold' | 'BodyPrimaryLink' | 'BodySecondaryLink' | 'BodyError' | 'BodySuccess'
-  | 'BodySmall' | 'BodySmallSemibold' | 'BodySmallPrimaryLink' | 'BodySmallSecondaryLink' | 'BodySmallError' | 'BodySmallSuccess'
-  | 'BodySemiboldItalic'
-  | 'BodySmallItalic' | 'BodySmallInlineLink' | 'BodySmallSemiboldInlineLink'
-  | 'Terminal' | 'TerminalInline' | 'TerminalComment' | 'TerminalEmpty'
+type TextType =
+  'Body'
+| 'BodyBig'
+| 'BodyBigLink'
+| 'BodyError'
+| 'BodyPrimaryLink'
+| 'BodySecondaryLink'
+| 'BodySemibold'
+| 'BodySemiboldItalic'
+| 'BodySmall'
+| 'BodySmallError'
+| 'BodySmallInlineLink'
+| 'BodySmallItalic'
+| 'BodySmallPrimaryLink'
+| 'BodySmallSecondaryLink'
+| 'BodySmallSemibold'
+| 'BodySmallSemiboldInlineLink'
+| 'BodySmallSuccess'
+| 'BodySuccess'
+| 'Header'
+| 'HeaderBig'
+| 'HeaderLink'
+| 'Terminal'
+| 'TerminalComment'
+| 'TerminalEmpty'
+| 'TerminalInline'
 
-export type Props = {
-  type: TextType,
+type Props = {
   backgroundMode?: Background,
-  inline?: boolean,
-  link?: boolean,
-  reversed?: boolean,
-  onClick?: ?(e: SyntheticEvent) => void,
-  onPress?: void,
-  lineClamp?: number,
-  style?: Object,
   children?: React$Element<*>,
   className?: string,
-  contentEditable?: boolean,
-  onKeyDown?: (e: SyntheticEvent) => void,
-  onKeyUp?: (e: SyntheticEvent) => void,
+  lineClamp?: number,
+  onClick?: ?(e: SyntheticEvent) => void,
+  onPress?: void,
+  style?: Object,
+  type: TextType,
 }
 
-declare export default class Text extends Component<void, Props, void> { }
-
-export type MetaType = {
+type MetaType = {
   fontSize: number,
   colorForBackgroundMode: {[key: Background]: ?string},
   isLink?: true,
@@ -41,6 +56,22 @@ export type MetaType = {
   isTerminal?: true,
 }
 
-export function getStyle (type: TextType, backgroundMode?: ?Background, lineClamp?: ?number, clickable?: ?boolean): Object {
+class Text extends Component<void, Props, void> {
+}
+
+function getStyle (type: TextType, backgroundMode?: ?Background, lineClamp?: ?number, clickable?: ?boolean): Object {
   return {}
 }
+
+export {
+  getStyle,
+}
+
+export type {
+  Background,
+  MetaType,
+  Props,
+  TextType,
+}
+
+export default Text
