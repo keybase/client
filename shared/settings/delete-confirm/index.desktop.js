@@ -13,7 +13,7 @@ function DeleteConfirm (props: Props) {
         username={props.username}>
         <Icon type='iconfont-remove' style={iconStyle} />
       </Avatar>
-      <Text type='BodyError' style={{...globalStyles.italic, textDecoration: 'line-through'}}>{props.username}</Text>
+      <Text type='BodyError' style={{...globalStyles.italic, textDecoration: 'line-through', ...globalStyles.fontSemibold}}>{props.username}</Text>
       <Text type='Header' style={{marginTop: globalMargins.medium, width: 320, textAlign: 'center'}}>Are you sure you want to permanently delete your account?</Text>
       <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.medium}}>
         <Button

@@ -17,7 +17,7 @@ const ChoiceList = ({options}: Props) => {
           </Box>
           <Box style={styleInfoContainer}>
             <Text style={styleInfoTitle} type='Header'>{op.title}</Text>
-            <Text style={styleInfoDescription} type='BodySmall'>{op.description}</Text>
+            <Text style={styleInfoDescription} type='Body'>{op.description}</Text>
           </Box>
         </Box>
       ))}

@@ -3,7 +3,7 @@ import ProgressIndicator from './progress-indicator'
 import React, {Component} from 'react'
 import type {Props} from './button'
 import {FlatButton} from 'material-ui'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class Button extends Component<void, Props, void> {
   _styles (type: $PropertyType<Props, 'type'>): Object {
@@ -192,21 +192,21 @@ const stylesButtonSmall = {
 }
 const stylesButtonLabel = {
   ...globalStyles.fontSemibold,
-  paddingLeft: 25,
-  paddingRight: 25,
-  verticalAlign: 'initial',
   color: globalColors.white,
-  whiteSpace: 'nowrap',
-  fontSize: 16,
+  fontSize: 14,
   height: 'auto',
   lineHeight: 0,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
   textTransform: 'none',
+  verticalAlign: 'initial',
+  whiteSpace: 'nowrap',
 }
 const stylesButtonSmallLabel = {
   ...globalStyles.fontSemibold,
-  fontSize: 14,
-  paddingLeft: 20,
-  paddingRight: 20,
+  fontSize: 13,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
   lineHeight: 0,
 }
 const stylesProgress = {
