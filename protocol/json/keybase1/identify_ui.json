@@ -409,6 +409,11 @@
         {
           "name": "reason",
           "type": "IdentifyReason"
+        },
+        {
+          "name": "forceDisplay",
+          "type": "boolean",
+          "default": false
         }
       ],
       "response": null

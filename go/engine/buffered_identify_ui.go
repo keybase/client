@@ -14,6 +14,7 @@ import (
 type start struct {
 	s string
 	r keybase1.IdentifyReason
+	f bool
 }
 
 type proofCheck struct {
@@ -53,10 +54,10 @@ func newBufferedIdentifyUI(g *libkb.GlobalContext, u libkb.IdentifyUI, c keybase
 	}
 }
 
-func (b *bufferedIdentifyUI) Start(s string, r keybase1.IdentifyReason) error {
+func (b *bufferedIdentifyUI) Start(s string, r keybase1.IdentifyReason, f bool) error {
 	b.Lock()
 	defer b.Unlock()
-	b.start = &start{s, r}
+	b.start = &start{s, r, f}
 	return b.flush(false)
 }
 
@@ -81,7 +82,7 @@ func (b *bufferedIdentifyUI) flush(trackingBroke bool) (err error) {
 	}()
 
 	if b.start != nil {
-		err = b.raw.Start(b.start.s, b.start.r)
+		err = b.raw.Start(b.start.s, b.start.r, b.start.f)
 		if err != nil {
 			return err
 		}

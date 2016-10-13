@@ -4108,7 +4108,8 @@ export type identifyIdentify2RpcParam = Exact<{
   allowEmptySelfID?: boolean,
   noSkipSelf?: boolean,
   canSuppressUI?: boolean,
-  chatGUIMode?: boolean
+  chatGUIMode?: boolean,
+  forceDisplay?: boolean
 }>
 
 export type identifyIdentifyRpcParam = Exact<{
@@ -4186,7 +4187,8 @@ export type identifyUiReportTrackTokenRpcParam = Exact<{
 
 export type identifyUiStartRpcParam = Exact<{
   username: string,
-  reason: IdentifyReason
+  reason: IdentifyReason,
+  forceDisplay?: boolean
 }>
 
 export type kbfsFSEditListRpcParam = Exact<{
@@ -5260,7 +5262,8 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       sessionID: int,
       username: string,
-      reason: IdentifyReason
+      reason: IdentifyReason,
+      forceDisplay?: boolean
     }>,
     response: CommonResponseHandler
   ) => void,

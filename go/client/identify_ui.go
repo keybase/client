@@ -76,7 +76,7 @@ func (i *IdentifyUIServer) DisplayUserCard(_ context.Context, arg keybase1.Displ
 }
 
 func (i *IdentifyUIServer) Start(_ context.Context, arg keybase1.StartArg) error {
-	i.ui.Start(arg.Username, arg.Reason)
+	i.ui.Start(arg.Username, arg.Reason, arg.ForceDisplay)
 	return nil
 }
 

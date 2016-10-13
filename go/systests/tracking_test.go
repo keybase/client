@@ -31,7 +31,7 @@ func (*identifyUI) Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, e
 		RemoteConfirmed:   true,
 	}, nil
 }
-func (*identifyUI) Start(string, keybase1.IdentifyReason) error {
+func (*identifyUI) Start(string, keybase1.IdentifyReason, bool) error {
 	return nil
 }
 func (*identifyUI) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
