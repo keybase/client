@@ -121,6 +121,16 @@ func (extra ExtraMetadataV3) DeepCopy(codec kbfscodec.Codec) (
 	return &ExtraMetadataV3{wkb: &wkb, rkb: &rkb}, nil
 }
 
+// GetWriterKeyBundle returns the contained writer key bundle.
+func (extra ExtraMetadataV3) GetWriterKeyBundle() *TLFWriterKeyBundleV3 {
+	return extra.wkb
+}
+
+// GetReaderKeyBundle returns the contained reader key bundle.
+func (extra ExtraMetadataV3) GetReaderKeyBundle() *TLFReaderKeyBundleV3 {
+	return extra.rkb
+}
+
 // Helper function to extract key bundles for the ExtraMetadata interface.
 func getKeyBundlesV3(extra ExtraMetadata) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, bool) {
