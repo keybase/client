@@ -50,7 +50,7 @@ const Names = ({styles, users, nameColor, redColor}) => {
 }
 
 const Modified = ({styles, modified}) => {
-  const iconColor = {color: getStyle('BodySmallInlineLink', styles.modifiedMode)}
+  const iconColor = {color: getStyle('BodySmallInlineLink', styles.modifiedMode).color}
   return (
     <Box style={stylesModified}>
       <Icon type='iconfont-thunderbolt' style={{alignSelf: 'center', marginLeft: -2, marginRight: 2, ...iconColor}} hint='Modified' />

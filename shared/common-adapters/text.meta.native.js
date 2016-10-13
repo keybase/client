@@ -238,11 +238,9 @@ const metaData: {[key: TextType]: MetaType} = {
       ...globalStyles.fontTerminal,
       backgroundColor: globalColors.blue4,
       borderRadius: 2,
-      display: 'inline-block',
       lineHeight: 14,
       height: 16,
       padding: 2,
-      wordWrap: 'break-word',
     },
   },
 }

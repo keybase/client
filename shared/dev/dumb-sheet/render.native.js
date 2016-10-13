@@ -109,7 +109,7 @@ class Render extends Component<void, Props, any> {
     }
     const {componentsOnly} = this._getComponents()
     const sub = componentsOnly.slice(this.state.testIndex, this.state.testIndex + 1)
-    console.log('test render idx', this.state.testIndex)
+    console.log('test render idx', this.state.testIndex, sub)
     return <Box>{sub}</Box>
   }
 
