@@ -71,6 +71,7 @@ const stylesMenuCatcher = {
 const stylesMenu = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
+  minWidth: 200,
   justifyContent: 'flex-start',
   alignItems: 'stretch',
   backgroundColor: globalColors.white,
