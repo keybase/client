@@ -409,6 +409,62 @@ func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 	return Reply{Result: res}
 }
 
+// DownloadV1 implements ChatServiceHandler.DownloadV1.
+func (c *CmdChatAPI) DownloadV1(ctx context.Context, opts downloadOptionsV1) Reply {
+	var fsink Sink
+	if opts.Output == "-" {
+		fsink = &StdoutSink{}
+	} else {
+		fsink = NewFileSink(opts.Output)
+	}
+	defer fsink.Close()
+	sink := c.G().XStreams.ExportWriter(fsink)
+
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	protocols := []rpc.Protocol{
+		NewStreamUIProtocol(c.G()),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
+
+	if opts.ConversationID == 0 {
+		// resolve conversation id
+		query := c.getInboxLocalQuery(opts.ConversationID, opts.Channel)
+		gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+			Query: &query,
+		})
+		if err != nil {
+			return c.errReply(err)
+		}
+		rlimits = append(rlimits, gilres.RateLimits...)
+		existing := gilres.ConversationsUnverified
+		if len(existing) > 1 {
+			return c.errReply(fmt.Errorf("multiple conversations matched %q", opts.Channel.Name))
+		}
+		if len(existing) == 0 {
+			return c.errReply(fmt.Errorf("no conversations matched %q", opts.Channel.Name))
+		}
+		opts.ConversationID = existing[0].Metadata.ConversationID
+	}
+
+	arg := chat1.DownloadAttachmentLocalArg{
+		ConversationID: opts.ConversationID,
+		MessageID:      opts.MessageID,
+		Sink:           sink,
+	}
+
+	res, err := client.DownloadAttachmentLocal(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	return Reply{}
+}
+
 type sendArgV1 struct {
 	convQuery  chat1.GetInboxLocalQuery
 	body       chat1.MessageBody

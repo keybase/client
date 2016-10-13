@@ -15,12 +15,13 @@ import (
 )
 
 type handlerTracker struct {
-	listV1   int
-	readV1   int
-	sendV1   int
-	editV1   int
-	deleteV1 int
-	attachV1 int
+	listV1     int
+	readV1     int
+	sendV1     int
+	editV1     int
+	deleteV1   int
+	attachV1   int
+	downloadV1 int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -50,6 +51,11 @@ func (h *handlerTracker) DeleteV1(context.Context, Call, io.Writer) error {
 
 func (h *handlerTracker) AttachV1(context.Context, Call, io.Writer) error {
 	h.attachV1++
+	return nil
+}
+
+func (h *handlerTracker) DownloadV1(context.Context, Call, io.Writer) error {
+	h.downloadV1++
 	return nil
 }
 
@@ -85,15 +91,20 @@ func (c *chatEcho) AttachV1(context.Context, attachOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) DownloadV1(context.Context, downloadOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 type topTest struct {
-	input    string
-	err      error
-	listV1   int
-	readV1   int
-	sendV1   int
-	editV1   int
-	deleteV1 int
-	attachV1 int
+	input      string
+	err        error
+	listV1     int
+	readV1     int
+	sendV1     int
+	editV1     int
+	deleteV1   int
+	attachV1   int
+	downloadV1 int
 }
 
 var topTests = []topTest{
@@ -115,6 +126,7 @@ var topTests = []topTest{
 	{input: `{"id": 29, "method": "edit", "params":{"version": 1}}`, editV1: 1},
 	{input: `{"id": 30, "method": "delete", "params":{"version": 1}}`, deleteV1: 1},
 	{input: `{"method": "attach", "params":{"version": 1}}`, attachV1: 1},
+	{input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`, downloadV1: 1},
 }
 
 // TestChatAPIDecoderTop tests that the "top-level" of the chat json makes it to
@@ -151,6 +163,9 @@ func TestChatAPIDecoderTop(t *testing.T) {
 		}
 		if h.attachV1 != test.attachV1 {
 			t.Errorf("test %d: input %s => attachV1 = %d, expected %d", i, test.input, h.attachV1, test.attachV1)
+		}
+		if h.downloadV1 != test.downloadV1 {
+			t.Errorf("test %d: input %s => downloadV1 = %d, expected %d", i, test.input, h.downloadV1, test.downloadV1)
 		}
 	}
 }
@@ -293,6 +308,9 @@ var optTests = []optTest{
 		input: `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}}}}`,
 		err:   ErrInvalidOptions{},
 	},
+	{
+		input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`,
+	},
 }
 
 // TestChatAPIDecoderOptions tests the option decoding.
@@ -360,6 +378,10 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 }
