@@ -100,6 +100,11 @@ func (h *TLFReaderKeyBundleID) UnmarshalBinary(data []byte) error {
 	return h.h.UnmarshalBinary(data)
 }
 
+// IsNil returns true if the ID is unset.
+func (h TLFReaderKeyBundleID) IsNil() bool {
+	return h == TLFReaderKeyBundleID{}
+}
+
 // TLFWriterKeyBundleID is the hash of a serialized TLFWriterKeyBundle.
 type TLFWriterKeyBundleID struct {
 	h kbfshash.Hash
@@ -150,4 +155,9 @@ func (h TLFWriterKeyBundleID) MarshalBinary() (data []byte, err error) {
 // the TLFWriterKeyBundleID is invalid.
 func (h *TLFWriterKeyBundleID) UnmarshalBinary(data []byte) error {
 	return h.h.UnmarshalBinary(data)
+}
+
+// IsNil returns true if the ID is unset.
+func (h TLFWriterKeyBundleID) IsNil() bool {
+	return h == TLFWriterKeyBundleID{}
 }
