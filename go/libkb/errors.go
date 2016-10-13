@@ -1777,3 +1777,19 @@ func (e ChatStorageRemoteError) ShouldClear() bool {
 func (e ChatStorageRemoteError) Message() string {
 	return e.Msg
 }
+
+type ChatStorageMiscError struct {
+	Msg string
+}
+
+func (e ChatStorageMiscError) Error() string {
+	return e.Msg
+}
+
+func (e ChatStorageMiscError) ShouldClear() bool {
+	return false
+}
+
+func (e ChatStorageMiscError) Message() string {
+	return e.Msg
+}

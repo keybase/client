@@ -44,7 +44,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 	}
 	if gh != nil {
 		g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(), h.boxer,
-			h.remoteClient())
+			chat.NewStorage(g, h.getSecretUI), h.remoteClient())
 	}
 	return h
 }
@@ -77,6 +77,7 @@ func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquer
 		}
 		rquery.TlfID = &tlfID
 	}
+
 	rquery.After = lquery.After
 	rquery.Before = lquery.Before
 	rquery.TlfVisibility = lquery.TlfVisibility

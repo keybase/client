@@ -5,7 +5,9 @@ package libkb
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -309,7 +311,12 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSigInfo, err error) {
 	return
 }
 
+func (k NaclSigningKeyPair) SecretSymmetricKey(reason EncryptionReason) ([]byte, error) {
+	return nil, KeyCannotEncryptError{}
+}
+
 type SignaturePrefix string
+type EncryptionReason string
 
 func (p SignaturePrefix) hasNullByte() bool {
 	return bytes.IndexByte([]byte(p), byte(0)) != -1
@@ -318,6 +325,10 @@ func (p SignaturePrefix) hasNullByte() bool {
 func (p SignaturePrefix) Prefix(msg []byte) []byte {
 	prefix := append([]byte(p), 0)
 	return append(prefix, msg...)
+}
+
+func (r EncryptionReason) Bytes() []byte {
+	return []byte(r)
 }
 
 func (k NaclSigningKeyPair) SignV2(msg []byte, prefix SignaturePrefix) (ret *NaclSigInfo, err error) {
@@ -678,6 +689,22 @@ func (k NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (str
 	}
 
 	return PacketArmoredEncode(info)
+}
+
+func (k NaclDHKeyPair) SecretSymmetricKey(reason EncryptionReason) ([]byte, error) {
+
+	if !k.CanDecrypt() {
+		return nil, NoSecretKeyError{}
+	}
+	if len(reason) < 8 {
+		return nil, KeyGenError{Msg: "reason must be at least 8 bytes"}
+	}
+
+	mac := hmac.New(sha256.New, k.Private[:])
+	mac.Write(reason.Bytes())
+	symmetricKey := mac.Sum(nil)
+
+	return symmetricKey, nil
 }
 
 // ToPacket implements the Packetable interface.
