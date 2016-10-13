@@ -106,6 +106,7 @@ export const ConstantsStatusCode = {
   sctrackingbroke: 278,
   scwrongcryptoformat: 279,
   scdecryptionerror: 280,
+  scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
   scmissingresult: 801,
@@ -521,6 +522,30 @@ export function SecretKeysGetSecretKeysRpcChannelMap (channelConfig: ChannelConf
 
 export function SecretKeysGetSecretKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>): Promise<SecretKeysGetSecretKeysResult> {
   return new Promise((resolve, reject) => { SecretKeysGetSecretKeysRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function accountEmailChangeRpc (request: Exact<requestCommon & requestErrorCallback & {param: accountEmailChangeRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'account.emailChange'})
+}
+
+export function accountEmailChangeRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: accountEmailChangeRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => accountEmailChangeRpc({...request, incomingCallMap, callback}))
+}
+
+export function accountEmailChangeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: accountEmailChangeRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { accountEmailChangeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function accountHasServerKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: accountHasServerKeysResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'account.hasServerKeys'})
+}
+
+export function accountHasServerKeysRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountHasServerKeysResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => accountHasServerKeysRpc({...request, incomingCallMap, callback}))
+}
+
+export function accountHasServerKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountHasServerKeysResult) => void}>): Promise<accountHasServerKeysResult> {
+  return new Promise((resolve, reject) => { accountHasServerKeysRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function accountPassphraseChangeRpc (request: Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>) {
@@ -2883,6 +2908,10 @@ export type GetTLFCryptKeysRes = {
   CryptKeys?: ?Array<CryptKey>,
 }
 
+export type HasServerKeysRes = {
+  hasServerKeys: bool,
+}
+
 export type Hello2Res = {
   encryptionKey: KID,
   sigPayload: HelloRes,
@@ -3642,6 +3671,7 @@ export type StatusCode =
   | 278 // SCTrackingBroke_278
   | 279 // SCWrongCryptoFormat_279
   | 280 // SCDecryptionError_280
+  | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
   | 801 // SCMissingResult_801
@@ -3896,6 +3926,10 @@ export type WebProof = {
   protocols?: ?Array<string>,
 }
 
+export type accountEmailChangeRpcParam = Exact<{
+  newEmail: string
+}>
+
 export type accountPassphraseChangeRpcParam = Exact<{
   oldPassphrase: string,
   passphrase: string,
@@ -4090,7 +4124,8 @@ export type identifyIdentify2RpcParam = Exact<{
   allowEmptySelfID?: boolean,
   noSkipSelf?: boolean,
   canSuppressUI?: boolean,
-  chatGUIMode?: boolean
+  chatGUIMode?: boolean,
+  forceDisplay?: boolean
 }>
 
 export type identifyIdentifyRpcParam = Exact<{
@@ -4168,7 +4203,8 @@ export type identifyUiReportTrackTokenRpcParam = Exact<{
 
 export type identifyUiStartRpcParam = Exact<{
   username: string,
-  reason: IdentifyReason
+  reason: IdentifyReason,
+  forceDisplay?: boolean
 }>
 
 export type kbfsFSEditListRpcParam = Exact<{
@@ -4757,6 +4793,8 @@ type Kex2ProvisioneeHelloResult = HelloRes
 
 type SecretKeysGetSecretKeysResult = SecretKeys
 
+type accountHasServerKeysResult = HasServerKeysRes
+
 type accountPassphrasePromptResult = GetPassphraseRes
 
 type apiserverGetResult = APIRes
@@ -4986,6 +5024,8 @@ export type rpc =
   | Kex2ProvisionerKexStartRpc
   | ScanProofsScanProofsRpc
   | SecretKeysGetSecretKeysRpc
+  | accountEmailChangeRpc
+  | accountHasServerKeysRpc
   | accountPassphraseChangeRpc
   | accountPassphrasePromptRpc
   | apiserverGetRpc
@@ -5241,7 +5281,8 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       sessionID: int,
       username: string,
-      reason: IdentifyReason
+      reason: IdentifyReason,
+      forceDisplay?: boolean
     }>,
     response: CommonResponseHandler
   ) => void,

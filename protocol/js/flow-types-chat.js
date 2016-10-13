@@ -550,6 +550,12 @@ export type MessageEdit = {
   body: string,
 }
 
+export type MessageError = {
+  errmsg: string,
+  messageID: MessageID,
+  messageType: MessageType,
+}
+
 export type MessageFromServer = {
   serverHeader: MessageServerHeader,
   messagePlaintext: MessagePlaintext,
@@ -559,7 +565,7 @@ export type MessageFromServer = {
 }
 
 export type MessageFromServerOrError = {
-  unboxingError?: ?string,
+  unboxingError?: ?MessageError,
   message?: ?MessageFromServer,
 }
 

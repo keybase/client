@@ -178,6 +178,11 @@
           "name": "chatGUIMode",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "forceDisplay",
+          "type": "boolean",
+          "default": false
         }
       ],
       "response": "Identify2Res"

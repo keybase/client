@@ -61,13 +61,13 @@ class Avatar extends PureComponent<void, Props, State> {
           onError={() => this.setState({errored: true})}
           onLoad={() => this.setState({avatarLoaded: true})} />
         <div>
-        {size > 16 && (this.props.following || this.props.followsYou) &&
-          <div>
-            {this.props.followsYou && <div style={{...followTop(size, globalColors.green)}}> <div style={{...followInner(size, globalColors.white)}} /></div>}
-            <div style={{...followBottom(size, this.props.following ? globalColors.green : globalColors.grey)}} />
-          </div>
-        }
-        {this.props.children}
+          {size > 16 && (this.props.following || this.props.followsYou) &&
+            <div>
+              {this.props.followsYou && <div style={{...followTop(size, globalColors.green)}}> <div style={{...followInner(size, globalColors.white)}} /></div>}
+              <div style={{...followBottom(size, this.props.following ? globalColors.green : globalColors.grey)}} />
+            </div>
+          }
+          {this.props.children}
         </div>
       </div>
     )

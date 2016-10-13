@@ -250,7 +250,7 @@ func (ui *FakeIdentifyUI) ReportLastTrack(*keybase1.TrackSummary) error {
 	return nil
 }
 
-func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason) error {
+func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason, _ bool) error {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.StartCount++

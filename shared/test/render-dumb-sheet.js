@@ -26,7 +26,7 @@ ipcRenderer.on('display', (ev, msg) => {
     </MuiThemeProvider>
   )
 
-  const appEl = document.getElementById('app')
+  const appEl = document.getElementById('root')
   ReactDOM.render(displayTree, appEl, () => {
     // Remove pesky blinking cursors
     if (document.activeElement.tagName === 'INPUT') {

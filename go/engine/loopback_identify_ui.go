@@ -23,7 +23,7 @@ func newLoopbackIdentifyUI(g *libkb.GlobalContext, tb **keybase1.IdentifyTrackBr
 	}
 }
 
-func (b *loopbackIdentifyUI) Start(s string, r keybase1.IdentifyReason) error {
+func (b *loopbackIdentifyUI) Start(s string, r keybase1.IdentifyReason, f bool) error {
 	return nil
 }
 

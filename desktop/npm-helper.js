@@ -200,8 +200,8 @@ function setupDebugMain () {
   let electronVer = null
   try {
     // $FlowIssue we catch this error
-    electronVer = childProcess.execSync('npm list --dev electron-prebuilt', {encoding: 'utf8'}).match(/electron-prebuilt@([0-9.]+)/)[1]
-    console.log(`Found electron-prebuilt version: ${electronVer}`)
+    electronVer = childProcess.execSync('npm list --dev electron', {encoding: 'utf8'}).match(/electron@([0-9.]+)/)[1]
+    console.log(`Found electron version: ${electronVer}`)
   } catch (err) {
     console.log("Couldn't figure out electron")
     process.exit(1)

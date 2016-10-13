@@ -337,12 +337,30 @@
     },
     {
       "type": "record",
+      "name": "MessageError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "errmsg"
+        },
+        {
+          "type": "MessageID",
+          "name": "messageID"
+        },
+        {
+          "type": "MessageType",
+          "name": "messageType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageFromServerOrError",
       "fields": [
         {
           "type": [
             null,
-            "string"
+            "MessageError"
           ],
           "name": "unboxingError"
         },

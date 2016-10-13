@@ -114,7 +114,7 @@ protocol identifyUi {
   // following exchange. Return 0 on failure.
   int delegateIdentifyUI();
 
-  void start(int sessionID, string username, IdentifyReason reason);
+  void start(int sessionID, string username, IdentifyReason reason, boolean forceDisplay=false);
   void displayKey(int sessionID, IdentifyKey key);
   void reportLastTrack(int sessionID, union { null, TrackSummary } track);
   void launchNetworkChecks(int sessionID, Identity identity, User user);

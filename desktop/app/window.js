@@ -2,8 +2,6 @@
 import {showDockIcon} from './dock-icon'
 import menuHelper from './menu-helper'
 import {ipcMain, BrowserWindow} from 'electron'
-// $FlowIssue
-import {focusOnShow} from '../shared/local-debug'
 
 export default class Window {
   filename: string;
@@ -67,7 +65,7 @@ export default class Window {
     }
 
     this.window = new BrowserWindow({show: false, ...this.opts})
-    this.window.loadURL(`file://${this.filename}`)
+    this.window.loadURL(this.filename)
     this.bindWindowListeners()
     this.window.once('show', () => this.onFirstTimeBeingShown())
   }
@@ -82,9 +80,6 @@ export default class Window {
     if (this.window) {
       if (!this.window.isVisible()) {
         this.window.show()
-      }
-      if (!this.window.isFocused() && focusOnShow) {
-        this.window.focus()
       }
       return
     } else {

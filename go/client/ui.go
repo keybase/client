@@ -50,7 +50,7 @@ type IdentifyUI struct {
 	BaseIdentifyUI
 }
 
-func (ui BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason) error {
+func (ui BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason, forceDisplay bool) error {
 	msg := "Identifying "
 	switch reason.Type {
 	case keybase1.IdentifyReasonType_TRACK:
