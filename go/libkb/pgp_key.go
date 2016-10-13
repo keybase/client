@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/keybase/go-crypto/openpgp/packet"
 	jsonw "github.com/keybase/go-jsonw"
+	_ "golang.org/x/crypto/ripemd160" // imported so that keybase/go-crypto/openpgp supports ripemd160
 )
 
 var _ GenericKey = (*PGPKeyBundle)(nil)
