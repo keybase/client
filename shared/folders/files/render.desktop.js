@@ -7,6 +7,12 @@ import {Box, Text, BackButton, Avatar, PopupMenu, Icon, Usernames, ListItem, But
 import {globalStyles, globalColors, globalMargins, backgroundURL} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
+const Divider = ({theme, backgroundColor, color}) => (
+  <Box style={{...globalStyles.flexBoxRow, height: 1, backgroundColor}}>
+    <Box style={{marginLeft: 48 + 8, backgroundColor: color, flex: 1}} />
+  </Box>
+)
+
 const Section = ({section, theme}) => (
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: globalMargins.medium}}>
@@ -15,21 +21,19 @@ const Section = ({section, theme}) => (
         <Text type='BodySmallSemibold' style={{...styleSectionTextThemed[theme]}}>{section.name}</Text>
       </Box>
     </Box>
-    {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: globalColors.black_10}} />,
-      section.files.map(f => <File key={f.name} {...f} />))}
+    {intersperseFn(i => <Divider key={i} backgroundColor={styleDividerThemed[theme].backgroundColor} color={styleDividerThemed[theme].color} />, section.files.map(f => <File key={f.name} {...f} />))}
   </Box>
 )
 
-const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode}) => {
+const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode, theme}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
-      <Text type='BodySmallSemibold' style={styleWarningBanner}>This folder is waiting for either participant to turn on a device.</Text>
+      <Text type='BodySemibold' style={styleWarningBanner}>This folder is waiting for either participant to turn on a device.</Text>
       <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: globalMargins.xlarge, paddingRight: globalMargins.xlarge}}>
-        {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: globalColors.black_10}} />,
-        waitingForParticipantUnlock.map(p => (
+        {intersperseFn(i => <Divider key={i} color={isPrivate ? globalColors.black_10 : globalColors.black_05} backgroundColor={isPrivate ? globalColors.darkBlue3 : globalColors.lightGrey} />, waitingForParticipantUnlock.map(p => (
           <ListItem
             key={p.name}
-            type='Large' action={<Box />} icon={<Avatar size={48} username={p.name} />}
+            type='Large' action={<Box />} icon={<Avatar size={40} username={p.name} />}
             body={<Box style={{...globalStyles.flexBoxColumn}}>
               <Text type='Body' backgroundMode={backgroundMode}>{p.name}</Text>
               <Text type='BodySmall' backgroundMode={backgroundMode}>{p.devices}</Text>
@@ -53,12 +57,12 @@ const deviceIcon: (isPrivate: boolean, type: string) => IconType = (isPrivate, t
   },
 }[isPrivate ? 'private' : 'public'][type])
 
-const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey}) => {
+const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey, theme}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
-      <Text type='BodySmallSemibold' style={styleWarningBanner}>Until you take one of the steps below, you're at risk of losing data forever.</Text>
+      <Text type='BodySemibold' style={styleWarningBanner}>Until you take one of the steps below, you're at risk of losing data forever.</Text>
       <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: globalMargins.xlarge, paddingRight: globalMargins.xlarge}}>
-        {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
+        {intersperseFn(i => <Divider key={i} theme={theme} />,
         youCanUnlock.map(device => (
           <ListItem
             key={device.name}
@@ -85,6 +89,7 @@ class Render extends Component<void, Props, void> {
         youCanUnlock={this.props.youCanUnlock}
         isPrivate={isPrivate}
         backgroundMode={backgroundMode}
+        theme={this.props.theme}
         onClickPaperkey={this.props.onClickPaperkey} />
     }
 
@@ -92,6 +97,7 @@ class Render extends Component<void, Props, void> {
       return <ParticipantUnlock
         waitingForParticipantUnlock={this.props.waitingForParticipantUnlock}
         isPrivate={isPrivate}
+        theme={this.props.theme}
         backgroundMode={backgroundMode} />
     }
 
@@ -116,8 +122,8 @@ class Render extends Component<void, Props, void> {
     } else {
       return (
         <Box style={styleNoFiles}>
-          <Text type='BodySmall' backgroundMode={backgroundMode}>This folder is empty.</Text>
-          <Text type='BodySmallInlineLink' onClick={this.props.openCurrentFolder} backgroundMode={backgroundMode}>Open folder</Text>
+          <Text type='Body' backgroundMode={backgroundMode}>This folder is empty.</Text>
+          <Text type='BodyPrimaryLink' onClick={this.props.openCurrentFolder} backgroundMode={backgroundMode}>Open folder</Text>
         </Box>
       )
     }
@@ -183,6 +189,17 @@ const styleTLFNameContainer = {
   paddingBottom: 20,
 }
 
+const styleDividerThemed = {
+  'private': {
+    color: globalColors.black_10,
+    backgroundColor: globalColors.darkBlue,
+  },
+
+  'public': {
+    color: globalColors.black_05,
+    backgroundColor: globalColors.white,
+  },
+}
 const styleTLFHeaderThemed = {
   'private': {
     backgroundColor: globalColors.darkBlue,
