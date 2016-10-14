@@ -6,7 +6,7 @@ import type {Props} from './render'
 import {Box, Text, SmallInput, Button, NativeScrollView, Icon} from '../../common-adapters/index.native'
 import {globalStyles, globalColors} from '../../styles'
 
-class Render extends Component<void, Props, any> {
+class DumbSheetRender extends Component<void, Props, any> {
   state: any;
   _onFilterChange: (a: any) => void;
   _onFilterChangeProp: (a: any) => void;
@@ -85,7 +85,7 @@ class Render extends Component<void, Props, any> {
 
         components.push(
           <Box key={mockKey} style={styleBox}>
-            <Text type='BodyXSmall'>{key}: {mockKey}</Text>
+            <Text type='BodySmall'>{key}: {mockKey}</Text>
             <Box {...parentProps}>
               <Component key={mockKey} {...mock} />
             </Box>
@@ -109,7 +109,7 @@ class Render extends Component<void, Props, any> {
     }
     const {componentsOnly} = this._getComponents()
     const sub = componentsOnly.slice(this.state.testIndex, this.state.testIndex + 1)
-    console.log('test render idx', this.state.testIndex)
+    console.log('test render idx', this.state.testIndex, sub)
     return <Box>{sub}</Box>
   }
 
@@ -206,4 +206,4 @@ const stylesButton = {
   borderRadius: 10,
 }
 
-export default Render
+export default DumbSheetRender

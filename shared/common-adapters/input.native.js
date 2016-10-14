@@ -3,6 +3,7 @@ import Platform, {OS} from '../constants/platform'
 import React, {Component} from 'react'
 import type {Props} from './input'
 import {Box, Text, NativeTextInput} from './index.native'
+import {getStyle} from './text'
 import {globalColors, globalStyles} from '../styles'
 
 /* ==========
@@ -82,7 +83,7 @@ class Input extends Component<void, Props, State> {
           </Text>}
         <NativeTextInput
           style={{
-            ...Text.textStyle({type: 'BodySemibold'}, {}),
+            ...getStyle('BodySemibold'),
             ...textInputStyle({...this.state, ...this.props, isShowingFloatingLabel, autoGrowActive}),
             ...this.props.inputStyle,
           }}
@@ -108,7 +109,7 @@ class Input extends Component<void, Props, State> {
           <HorizontalLine focused={this.state.inputFocused} />}
         {!!(this.props.errorText) &&
           <Text
-            type='Error'
+            type='BodyError'
             style={{...errorText, ...this.props.errorStyle}}>
             {this.props.errorText}
           </Text>}
@@ -142,7 +143,7 @@ const textInputStyle = ({isShowingFloatingLabel, textHeight, rows, multiline, au
   multiline?: boolean,
   autoGrowActive?: boolean,
 }) => {
-  const MIN_TEXT_HEIGHT = Text.textStyle({type: 'BodySemibold'}, {}).lineHeight + TEXT_INPUT_PLATFORM_PADDING
+  const MIN_TEXT_HEIGHT = (getStyle('BodySemibold') ? getStyle('BodySemibold').lineHeight : 0) + TEXT_INPUT_PLATFORM_PADDING
   return {
     marginTop: (isShowingFloatingLabel ? 0 : FLOATING_LABEL_HEIGHT) + FLOATING_LABEL_OFFSET,
     height: Math.max(textHeight, (autoGrowActive ? 1 : rows || 1) * MIN_TEXT_HEIGHT),

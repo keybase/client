@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {Props as CheckboxProps} from './checkbox'
 import type {Props} from './form-with-checkbox'
 import {Checkbox, Input, Box, Text} from './index'
-import {globalStyles} from '../styles'
+import {globalStyles, globalMargins} from '../styles'
 
 class FormWithCheckbox extends Component<void, Props, void> {
   render () {
@@ -20,7 +20,7 @@ class FormWithCheckbox extends Component<void, Props, void> {
             return <Checkbox key={p.label} {...checkProps} />
           })}
         </Box>
-        {!!errorText && <Text type='BodySmallError' style={{textAlign: 'center'}}>{errorText}</Text>}
+        {!!errorText && <Text type='BodyError' style={{textAlign: 'center', marginTop: globalMargins.tiny}}>{errorText}</Text>}
       </Box>
     )
   }

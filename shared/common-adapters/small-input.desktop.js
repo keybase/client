@@ -44,7 +44,7 @@ const styleInputContainer = {
 const styleInputHint = {
   textAlign: 'left',
   marginLeft: 60,
-  marginTop: 6,
+  marginTop: 0,
   bottom: undefined,
 }
 

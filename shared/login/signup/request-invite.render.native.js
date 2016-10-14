@@ -5,7 +5,7 @@ import type {Props} from './request-invite.render'
 import {Text, Icon, Input, Button, Box} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 
-class Render extends Component {
+class RequestInviteRender extends Component {
   props: Props;
 
   render () {
@@ -57,4 +57,4 @@ const stylesIcon = {
   alignSelf: 'center',
 }
 
-export default Render
+export default RequestInviteRender

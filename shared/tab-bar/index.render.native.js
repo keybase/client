@@ -21,7 +21,7 @@ function tabToIcon (t: VisibleTab): IconType {
   return icons[t]
 }
 
-export default class Render extends Component<void, Props, void> {
+export default class TabBarRender extends Component<void, Props, void> {
   render () {
     const badgeNumbers = this.props.badgeNumbers
     const tabs = [profileTab, peopleTab, folderTab, devicesTab, settingsTab]

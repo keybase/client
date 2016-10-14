@@ -16,7 +16,7 @@ function Banner ({element, type}: {element: React$Element<*>, type: BannerType})
 function SettingsItem ({text, selected, onClick, badgeNumber}: SettingsItemType) {
   return (
     <ClickableBox onClick={onClick} style={itemStyle}>
-      <Text style={{color: selected ? globalColors.black_75 : globalColors.black_60}} type={'BodySmallSemibold'}>{text}</Text>
+      <Text style={{color: selected ? globalColors.black_75 : globalColors.black_60, textTransform: 'uppercase'}} type={'BodySmallSemibold'}>{text}</Text>
       {!!selected && <Box style={selectedStyle} />}
       {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
     </ClickableBox>

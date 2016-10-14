@@ -7,7 +7,7 @@ import {globalColors} from '../../../styles'
 
 type State = {usernameOrEmail: string}
 
-class Render extends Component<void, Props, State> {
+class UsernameOrEmailRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -42,9 +42,9 @@ class Render extends Component<void, Props, State> {
             value={this.state.usernameOrEmail}
           />
           <Button
-            fullWidth={true}
             label='Continue'
             type='Primary'
+            style={{alignSelf: 'center'}}
             onClick={() => this.onSubmit()}
             enabled={this.state.usernameOrEmail}
             waiting={this.props.waitingForResponse}
@@ -69,4 +69,4 @@ const stylesCard = {
   alignItems: 'stretch',
 }
 
-export default Render
+export default UsernameOrEmailRender

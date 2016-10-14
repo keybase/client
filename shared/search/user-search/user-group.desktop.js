@@ -22,7 +22,7 @@ function User ({selected, user, insertSpacing, onRemove, onClickUser}: {selected
   if (user.service === 'keybase') {
     name = (
       <Box style={{...globalStyles.flexBoxColumn}}>
-        <Text type={'BodySemibold'} style={{color: user.isFollowing ? globalColors.green2 : globalColors.orange}}>{user.username}</Text>
+        <Text type={'BodySemibold'} style={{color: user.isFollowing ? globalColors.green2 : globalColors.blue}}>{user.username}</Text>
         <Text type={'BodySmall'}>{fullName(user.extraInfo)}</Text>
       </Box>
     )

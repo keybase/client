@@ -15,13 +15,13 @@ const Render = (props: Props) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', backgroundColor: titleColor, height: globalMargins.large}}>
-        <Text backgroundMode='Terminal' type='BodySmallSemibold'>{title}</Text>
+        <Text backgroundMode='Success' type='BodySemibold'>{title}</Text>
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.large}}>
         <PlatformIcon platform={platform} overlay={platformIconOverlay} overlayColor={platformIconOverlayColor} />
         <Text type='Header' style={{color: globalColors.blue}}>{username}</Text>
-        {!!usernameSubtitle && <Text type='Body' style={{color: globalColors.black_10}}>{usernameSubtitle}</Text>}
-        <Text type='Body' style={{marginTop: globalMargins.xlarge, textAlign: 'center'}}>{message}</Text>
+        {!!usernameSubtitle && <Text type='Body' style={{color: globalColors.black_20}}>{usernameSubtitle}</Text>}
+        <Text type='Body' style={{marginTop: globalMargins.large, textAlign: 'center', maxWidth: 560}}>{message}</Text>
         {!!messageSubtitle && <Text type='BodySmall' style={{textAlign: 'center'}}>{messageSubtitle}</Text>}
         <Button type='Primary' onClick={onReloadProfile} label='Reload profile' style={{marginTop: globalMargins.medium}} />
       </Box>

@@ -20,8 +20,8 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
         <Icon style={{...stylesService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
         <Box style={stylesProofNameSection}>
           <Box style={stylesProofNameLabelContainer}>
-            <Text inline={true} type='Body' style={stylesProofName}>
-              <Text inline={true} type='Body' style={{color: missingColor}}>{missingProof.message}</Text>
+            <Text type='Body' style={stylesProofName}>
+              <Text type='Body' style={{color: missingColor}}>{missingProof.message}</Text>
             </Text>
           </Box>
         </Box>
@@ -49,9 +49,9 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
       <Icon style={stylesService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
       <Box style={stylesProofNameSection}>
         <Box style={stylesProofNameLabelContainer}>
-          <Text inline={true} type='Body' onClick={() => onClickProfile(proof)} style={stylesProofName}>
-            <Text inline={true} type='Body' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
-            <Text inline={true} type='Body' style={stylesProofType}>@{proof.type}</Text>
+          <Text type='Body' onClick={() => onClickProfile(proof)} style={stylesProofName}>
+            <Text type='Body' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
+            <Text type='Body' style={stylesProofType}>@{proof.type}</Text>
           </Text>
           {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
         </Box>
