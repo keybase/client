@@ -34,7 +34,8 @@ class Avatar extends PureComponent<void, Props, State> {
     const width = size
     const height = size
     const url = shared.createAvatarUrl(this.props) || noAvatar
-    const avatarStyle = {width, height, borderRadius: size / 2, position: 'absolute'}
+    const avatarStyle = {width, height, position: 'absolute'}
+    const borderStyle = this.props.borderColor ? {borderRadius: '50%', borderWidth: 2, borderStyle: 'solid', borderColor: this.props.borderColor} : {borderRadius: '50%'}
 
     const showLoadingColor = (this.props.loadingColor && !this.state.avatarLoaded) || this.props.forceLoading
     const showNoAvatar = !showLoadingColor && (!this.state.avatarLoaded || this.state.errored)
@@ -52,7 +53,9 @@ class Avatar extends PureComponent<void, Props, State> {
         {showLoadingColor && <div style={{...avatarStyle, backgroundColor: this.props.loadingColor}} />}
         <img
           src={url}
-          style={{...avatarStyle,
+          style={{
+            ...avatarStyle,
+            ...borderStyle,
             display: (!showNoAvatar && !showLoadingColor) ? 'block' : 'none',
             backgroundColor: globalColors.white,
             opacity: this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0,
