@@ -7,7 +7,7 @@ import Passphrase from './passphrase/index.render'
 import RequestInviteSuccess from './request-invite-success.render'
 import RequesteInvite from './request-invite.render'
 import Success from './success/index.render'
-import usernameEmail from './username-email-form.render'
+import UsernameEmail from './username-email-form.render'
 
 const nullFunc = () => {}
 
@@ -51,6 +51,8 @@ const userEmailShared = {
   emailErrorText: null,
   submitUserEmail: nullFunc,
   waiting: false,
+  usernameChange: (username: string) => console.log(username),
+  emailChange: (email: string) => console.log(email),
 }
 
 const passphraseShared = {
@@ -142,7 +144,7 @@ export default {
     },
   },
   'UsernameEmail (Login)': {
-    component: usernameEmail,
+    component: UsernameEmail,
     mocks: {
       'Start': {
         ...userEmailShared,

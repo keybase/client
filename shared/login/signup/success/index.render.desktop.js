@@ -51,7 +51,7 @@ const stylesPaperKeyContainer = {
   position: 'relative',
   width: 400,
   marginBottom: 35,
-  paddingTop: 12,
+  paddingTop: 15,
   paddingLeft: 30,
   paddingRight: 45,
   paddingBottom: 15,
@@ -76,7 +76,6 @@ const stylesPaperkey = {
   color: globalColors.darkBlue,
   display: 'inline-block',
   lineHeight: '24px',
-  marginTop: 30,
   textAlign: 'center',
 }
 
