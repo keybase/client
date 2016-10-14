@@ -157,7 +157,7 @@ IF %UpdateChannel% EQU Smoke (
 
 IF %UpdateChannel% EQU Smoke2 (
   :: SmokeABuildID is a build parameter provided by the first smoke build
-  for /F delims^=^"^ tokens^=4 %%x in ('findstr version %GOPATH%\src\github.com\keybase\client\packaging\windows\%SmokeABuildID%\update-windows-prod.json') do set SmokeAVersion=%%x
+  for /F delims^=^"^ tokens^=4 %%x in ('findstr version %GOPATH%\src\github.com\keybase\client\packaging\windows\%SmokeABuildID%\update-*.json') do set SmokeAVersion=%%x
 
   echo %ReleaseBin% announce-build --build-a="%SmokeAVersion%" --build-b="%SEMVER%" --platform="windows"
 )
