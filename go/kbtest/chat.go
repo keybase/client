@@ -22,10 +22,11 @@ import (
 type ChatMockWorld struct {
 	Fc clockwork.FakeClock
 
-	Tcs     map[string]*libkb.TestContext
-	Users   map[string]*FakeUser
-	tlfs    map[keybase1.CanonicalTlfName]chat1.TLFID
-	tlfKeys map[keybase1.CanonicalTlfName][]keybase1.CryptKey
+	Tcs         map[string]*libkb.TestContext
+	Users       map[string]*FakeUser
+	tlfs        map[keybase1.CanonicalTlfName]chat1.TLFID
+	tlfKeys     map[keybase1.CanonicalTlfName][]keybase1.CryptKey
+	brokenProof map[string]keybase1.TLFUserBreak
 
 	// should always be sorted by newly updated conversation first
 	conversations []*chat1.Conversation
@@ -36,12 +37,13 @@ type ChatMockWorld struct {
 
 func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockWorld) {
 	world = &ChatMockWorld{
-		Fc:      clockwork.NewFakeClockAt(time.Now()),
-		Tcs:     make(map[string]*libkb.TestContext),
-		Users:   make(map[string]*FakeUser),
-		tlfs:    make(map[keybase1.CanonicalTlfName]chat1.TLFID),
-		tlfKeys: make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
-		Msgs:    make(map[chat1.ConversationID][]*chat1.MessageBoxed),
+		Fc:          clockwork.NewFakeClockAt(time.Now()),
+		Tcs:         make(map[string]*libkb.TestContext),
+		Users:       make(map[string]*FakeUser),
+		tlfs:        make(map[keybase1.CanonicalTlfName]chat1.TLFID),
+		tlfKeys:     make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
+		Msgs:        make(map[chat1.ConversationID][]*chat1.MessageBoxed),
+		brokenProof: make(map[string]keybase1.TLFUserBreak),
 	}
 	for i := 0; i < numUsers; i++ {
 		tc := externals.SetupTest(t, "chat_"+name, 0)
@@ -71,6 +73,16 @@ func (w *ChatMockWorld) GetConversationByID(convID chat1.ConversationID) *chat1.
 		}
 	}
 	return nil
+}
+
+func (w *ChatMockWorld) BreakUserProof(u *FakeUser) {
+	w.brokenProof[u.Username] = keybase1.TLFUserBreak{
+		User: keybase1.User{
+			Uid:      u.User.GetUID(),
+			Username: u.Username,
+		},
+		Breaks: &keybase1.IdentifyTrackBreaks{},
+	}
 }
 
 func mustDecodeHex(h string) (b []byte) {
@@ -116,6 +128,21 @@ func CanonicalTlfNameForTest(tlfName string) keybase1.CanonicalTlfName {
 	return keybase1.CanonicalTlfName(strings.Join(names, ","))
 }
 
+func (m TlfMock) identifyTlfIfNecessary(
+	cname keybase1.CanonicalTlfName, identifyBehavior keybase1.TLFIdentifyBehavior) (breaks keybase1.TLFBreak, err error) {
+	if identifyBehavior.AlwaysRunIdentify() {
+		for _, uname := range strings.Split(string(cname), ",") {
+			if b, ok := m.world.brokenProof[uname]; ok {
+				breaks.Breaks = append(breaks.Breaks, b)
+			}
+		}
+		if len(breaks.Breaks) > 0 && !identifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
+			return breaks, &libkb.ProofErrorImpl{}
+		}
+	}
+	return breaks, nil
+}
+
 func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, error) {
 	tlfID, ok := m.world.tlfs[cname]
 	if !ok {
@@ -133,6 +160,12 @@ func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, erro
 
 func (m TlfMock) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.GetTLFCryptKeysRes, err error) {
 	res.NameIDBreaks.CanonicalName = CanonicalTlfNameForTest(arg.TlfName)
+
+	res.NameIDBreaks.Breaks, err = m.identifyTlfIfNecessary(res.NameIDBreaks.CanonicalName, arg.IdentifyBehavior)
+	if err != nil {
+		return keybase1.GetTLFCryptKeysRes{}, err
+	}
+
 	if res.NameIDBreaks.TlfID, err = m.getTlfID(res.NameIDBreaks.CanonicalName); err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
@@ -149,11 +182,17 @@ func (m TlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, arg keybase
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, errors.New("unimplemented")
 }
 
-func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.TLFQuery) (keybase1.CanonicalTLFNameAndIDWithBreaks, error) {
-	res := keybase1.CanonicalTLFNameAndIDWithBreaks{
-		CanonicalName: keybase1.CanonicalTlfName(arg.TlfName),
+func (m TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+	res = keybase1.CanonicalTLFNameAndIDWithBreaks{
+		CanonicalName: CanonicalTlfNameForTest(arg.TlfName),
 		TlfID:         "abcdefg",
 	}
+
+	res.Breaks, err = m.identifyTlfIfNecessary(res.CanonicalName, arg.IdentifyBehavior)
+	if err != nil {
+		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
+	}
+
 	return res, nil
 }
 

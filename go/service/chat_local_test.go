@@ -91,12 +91,6 @@ func (c *chatTestContext) users() (users []*kbtest.FakeUser) {
 	return users
 }
 
-func mustCreateConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
-	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType, others...)
-	ctc.advanceFakeClock(time.Second)
-	return created
-}
-
 func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
 	var err error
 	ncres, err := ctc.as(t, creator).chatLocalHandler().NewConversationLocal(context.Background(), chat1.NewConversationLocalArg{
@@ -110,12 +104,13 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	return ncres.Conv.Info
 }
 
-func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
-	mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
+func mustCreateConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser, topicType chat1.TopicType, others ...string) (created chat1.ConversationInfoLocal) {
+	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType, others...)
 	ctc.advanceFakeClock(time.Second)
+	return created
 }
 
-func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
+func postLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) error {
 	mt, err := msg.MessageType()
 	if err != nil {
 		t.Fatalf("msg.MessageType() error: %v\n", err)
@@ -131,9 +126,48 @@ func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUs
 			MessageBody: msg,
 		}),
 	})
+
+	return err
+}
+
+func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
+	err := postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
 	if err != nil {
 		t.Fatalf("PostLocal error: %v", err)
 	}
+}
+
+func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
+	mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
+	ctc.advanceFakeClock(time.Second)
+}
+
+func TestChatTLFWithBrokenProof(t *testing.T) {
+	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+
+	ctc.world.BreakUserProof(users[1])
+
+	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
+		ConversationID: created.Id,
+	})
+	if err != nil {
+		t.Fatalf("GetThreadLocal returned error on broken proof; expected the error to be wrapped inside MessageFromServerOrError\n")
+	}
+	for _, m := range tv.Thread.Messages {
+		if m.UnboxingError == nil {
+			t.Fatalf("Message unboxed with no error when there is broken proof\n")
+		}
+	}
+
+	err = postLocalForTestNoAdvanceClock(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "this should not go through"}))
+	if err == nil {
+		t.Fatalf("PostLocal went through when there is broken proof\n")
+	}
+
 }
 
 func TestChatNewConversationLocal(t *testing.T) {
