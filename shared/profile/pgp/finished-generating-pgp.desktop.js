@@ -57,8 +57,8 @@ const stylePgpKeyString = {
   border: `solid 1px ${globalColors.black_10}`,
   borderRadius: 3,
   ...globalStyles.fontTerminal,
-  fontSize: 14,
-  lineHeight: '21px',
+  fontSize: 13,
+  lineHeight: '17px',
   whiteSpace: 'pre-wrap',
   wordWrap: 'break-word',
   overflowY: 'auto',
@@ -75,7 +75,6 @@ const styleUploadContainer = {
 }
 
 const styleUploadTextSublabel = {
-  marginTop: globalMargins.tiny,
   color: globalColors.black_40,
   marginLeft: CHECKBOX_SIZE + CHECKBOX_MARGIN,
 }

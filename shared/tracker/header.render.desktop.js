@@ -54,11 +54,11 @@ const styleOuter = {
 
 const styleHeader = {
   ...globalStyles.windowDragging,
+  ...globalStyles.flexBoxRow,
   cursor: 'default',
+  height: 90,
   position: 'absolute',
   top: 0,
-  ...globalStyles.flexBoxRow,
-  height: 90,
   width: 320,
 }
 
@@ -79,8 +79,7 @@ const styleText = {
   color: globalColors.white,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-  marginBottom: globalMargins.medium,
-  fontSize: 14,
+  marginBottom: 40,
   textAlign: 'center',
   lineHeight: 'normal',
 }

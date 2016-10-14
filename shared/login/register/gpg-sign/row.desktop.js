@@ -27,7 +27,7 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
         <Icon className='register-icon' type={icon} style={stylesIcon} />
       </div>
       <div>
-        <Text type='Header' inline={false} style={stylesHeader}>{title}</Text>
+        <Text type='Header' style={stylesHeader}>{title}</Text>
         <Text type='BodySmall'>{subTitle}</Text>
         {children}
       </div>

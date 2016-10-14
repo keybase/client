@@ -27,7 +27,7 @@ const Ignored = ({rows, showIgnored, ignored, styles, onToggle, isPublic}) => {
   )
 }
 
-class Render extends Component<void, Props, void> {
+class ListRender extends Component<void, Props, void> {
   render () {
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
     const ignoredRows = (this.props.ignored || []).map((i, idx) => (
@@ -132,4 +132,4 @@ const stylesPublic = {
     backgroundColor: globalColors.lightGrey,
   },
 }
-export default Render
+export default ListRender

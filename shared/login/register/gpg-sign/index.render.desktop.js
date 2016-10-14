@@ -5,7 +5,7 @@ import Row, {RowCSS} from './row'
 import type {Props} from './index.render'
 import {Text} from '../../../common-adapters'
 
-class Render extends Component<void, Props, void> {
+class GPGSignRender extends Component<void, Props, void> {
   render () {
     return (
       <Container
@@ -20,9 +20,9 @@ class Render extends Component<void, Props, void> {
           title='Export your secret key from GPG'>
           <p>
             <Text type='BodySmall'>This copies your PGP pair into Keybase's local encrypted keyring. Later, you can </Text>
-            <Text type='Terminal' inline={true}>keybase pgp sign</Text>
+            <Text type='Terminal'>keybase pgp sign</Text>
             <Text type='BodySmall'> and </Text>
-            <Text type='Terminal' inline={true}>keybase pgp decrypt</Text>
+            <Text type='Terminal'>keybase pgp decrypt</Text>
             <Text type='BodySmall'> messages and files.</Text>
           </p>
         </Row>
@@ -32,7 +32,7 @@ class Render extends Component<void, Props, void> {
           title='One-time shell to GPG'>
           <p>
             <Text type='BodySmall'>Keybase can ask GPG to sign this install. You won't be able to use </Text>
-            <Text type='Terminal' inline={true}>keybase pgp</Text>
+            <Text type='Terminal'>keybase pgp</Text>
             <Text type='BodySmall'> commands on this computer.</Text>
           </p>
         </Row>
@@ -54,4 +54,4 @@ const styles = {
   },
 }
 
-export default Render
+export default GPGSignRender

@@ -3,7 +3,7 @@ import ProgressIndicator from './progress-indicator'
 import React, {Component} from 'react'
 import type {Props} from './button'
 import {FlatButton} from 'material-ui'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class Button extends Component<void, Props, void> {
   _styles (type: $PropertyType<Props, 'type'>): Object {
@@ -94,14 +94,9 @@ class Button extends Component<void, Props, void> {
     }
 
     if (this.props.fullWidth) {
-        // Using minWidth here means we can't have a full-width button on the
-        // same line/row as another button, the right thing is very unlikely to
-        // happen.  The alternative is 'flex: 1' here, which would work but is
-        // dangerous, because we'd be modifying our container.
-        //
-        // So let's just say that a fullWidth button can't have siblings.
-      outerStyle = {...outerStyle, minWidth: '100%'}
-      backgroundStyle = {...backgroundStyle, minWidth: '100%', height: 38}
+      if (__DEV__) {
+        console.warn('fullwidth disabled on desktop buttons')
+      }
     }
 
     if (this.props.waiting) {
@@ -192,21 +187,20 @@ const stylesButtonSmall = {
 }
 const stylesButtonLabel = {
   ...globalStyles.fontSemibold,
-  paddingLeft: 25,
-  paddingRight: 25,
-  verticalAlign: 'initial',
+  display: 'block',
   color: globalColors.white,
-  whiteSpace: 'nowrap',
-  fontSize: 16,
-  height: 'auto',
-  lineHeight: 0,
+  fontSize: 14,
+  height: '100%',
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
   textTransform: 'none',
+  whiteSpace: 'nowrap',
 }
 const stylesButtonSmallLabel = {
   ...globalStyles.fontSemibold,
-  fontSize: 14,
-  paddingLeft: 20,
-  paddingRight: 20,
+  fontSize: 13,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
   lineHeight: 0,
 }
 const stylesProgress = {

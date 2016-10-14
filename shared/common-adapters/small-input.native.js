@@ -2,6 +2,7 @@
 import React from 'react'
 import type {SmallInputProps} from './small-input'
 import {Box, Text, NativeTextInput} from './index.native'
+import {getStyle} from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
 export default function SmallInput ({autoCapitalize, autoCorrect = false, errorState, hintText, label, onChange, style, value, autoFocus}: SmallInputProps) {
@@ -9,7 +10,7 @@ export default function SmallInput ({autoCapitalize, autoCorrect = false, errorS
     <Box style={{...styleContainer(!!errorState), ...style}}>
       <Text type='BodySmall' style={styleLabel(!!errorState)}>{label}</Text>
       <NativeTextInput
-        style={{...Text.textStyle({type: 'BodySemibold'}, {}), ...styleInput}}
+        style={{...getStyle('BodySemibold'), ...styleInput}}
         placeholder={hintText}
         placeholderTextColor={globalColors.black_10}
         underlineColorAndroid={'transparent'}

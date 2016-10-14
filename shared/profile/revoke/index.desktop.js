@@ -14,7 +14,7 @@ const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
   return (
     <Box style={styleContainer}>
       {!isWaiting && <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />}
-      {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
+      {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
         <PlatformIcon platform={platform} overlay={'icon-proof-broken'} overlayColor={globalColors.red} />
         <Text style={stylePlatformUsername} type='Header'>{platformHandle}</Text>
@@ -82,7 +82,7 @@ const stylePlatformUsername = {
 }
 
 const stylePlatformSubtitle = {
-  color: globalColors.black_10,
+  color: globalColors.black_20,
 }
 
 const styleDescriptionText = {

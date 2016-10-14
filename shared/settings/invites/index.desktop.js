@@ -68,7 +68,7 @@ function PendingInviteItem ({invite, onReclaim}: {invite: PendingInvite, onRecla
       {invite.type === 'pending-email' ? <PendingEmailContent invite={invite} /> : <PendingURLContent invite={invite} />}
       <Box style={{flex: 1}} />
       <Text
-        type='BodySmallLink'
+        type='BodySmallInlineLink'
         onClick={() => onReclaim(invite.id)}
         style={{color: globalColors.red}}
       >
