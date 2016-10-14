@@ -2964,16 +2964,17 @@ func (fbo *folderBlockOps) unlinkDuringFastForwardLocked(ctx context.Context,
 
 func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 	lState *lockState, currDir path, children map[string]map[pathNode]bool,
-	kmd KeyMetadata) error {
+	kmd KeyMetadata) ([]NodeChange, error) {
 	fbo.blockLock.AssertLocked(lState)
 	dirBlock, err := fbo.getDirLocked(ctx, lState, kmd, currDir, blockRead)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	prefix := currDir.String()
 
 	// TODO: parallelize me?
+	var changes []NodeChange
 	for child := range children[prefix] {
 		entry, ok := dirBlock.Children[child.Name]
 		if !ok {
@@ -2986,26 +2987,43 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 			child.BlockPointer, entry.BlockPointer)
 		fbo.nodeCache.UpdatePointer(child.BlockPointer.ref(),
 			entry.BlockPointer)
+		node := fbo.nodeCache.Get(entry.BlockPointer.ref())
+		newPath := fbo.nodeCache.PathFromNode(node)
 		if entry.Type == Dir {
-			newPath := currDir.ChildPath(child.Name, entry.BlockPointer)
-			err := fbo.fastForwardDirAndChildrenLocked(ctx, lState,
-				newPath, children, kmd)
-			if err != nil {
-				return err
+			if node != nil {
+				change := NodeChange{Node: node}
+				for subchild := range children[newPath.String()] {
+					change.DirUpdated = append(change.DirUpdated, subchild.Name)
+				}
+				changes = append(changes, change)
 			}
+
+			childChanges, err := fbo.fastForwardDirAndChildrenLocked(
+				ctx, lState, newPath, children, kmd)
+			if err != nil {
+				return nil, err
+			}
+			changes = append(changes, childChanges...)
+		} else if node != nil {
+			// File.
+			changes = append(changes, NodeChange{
+				Node:        node,
+				FileUpdated: []WriteRange{{Len: 0, Off: 0}},
+			})
 		}
 	}
 	delete(children, prefix)
-	return nil
+	return changes, nil
 }
 
 // FastForwardAllNodes attempts to update the block pointers
 // associated with nodes in the cache by searching for their paths in
 // the current version of the TLF.  If it can't find a corresponding
 // node, it assumes it's been deleted and unlinks it.  Returns the set
-// of updated nodes, which now need to be invalidated.
+// of node changes that resulted.
 func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
-	lState *lockState, md ReadOnlyRootMetadata) (nodes []Node, err error) {
+	lState *lockState, md ReadOnlyRootMetadata) (
+	changes []NodeChange, err error) {
 	defer func() { fbo.log.CDebugf(ctx, "Fast-forward complete: %v", err) }()
 
 	// Take a hard lock through this whole process.  TODO: is there
@@ -3014,7 +3032,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 
-	nodes = fbo.nodeCache.AllNodes()
+	nodes := fbo.nodeCache.AllNodes()
 	fbo.log.CDebugf(ctx, "Fast-forwarding %d nodes", len(nodes))
 
 	// Build a "tree" representation for each interesting path prefix.
@@ -3048,12 +3066,21 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	fbo.nodeCache.UpdatePointer(rootPath.path[0].BlockPointer.ref(),
 		md.data.Dir.BlockPointer)
 	rootPath.path[0].BlockPointer = md.data.Dir.BlockPointer
+	rootNode := fbo.nodeCache.Get(md.data.Dir.BlockPointer.ref())
+	if rootNode != nil {
+		change := NodeChange{Node: rootNode}
+		for child := range children[rootPath.String()] {
+			change.DirUpdated = append(change.DirUpdated, child.Name)
+		}
+		changes = append(changes, change)
+	}
 
-	err = fbo.fastForwardDirAndChildrenLocked(
+	childChanges, err := fbo.fastForwardDirAndChildrenLocked(
 		ctx, lState, rootPath, children, md)
 	if err != nil {
 		return nil, err
 	}
+	changes = append(changes, childChanges...)
 
 	// Unlink any children that remain.
 	for _, childPNs := range children {
@@ -3062,7 +3089,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 				ctx, lState, child.BlockPointer.ref())
 		}
 	}
-	return nodes, nil
+	return changes, nil
 }
 
 type chainsPathPopulator interface {

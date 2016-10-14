@@ -4558,7 +4558,7 @@ func (fbo *folderBranchOps) checkFastForward(ctx context.Context,
 
 	fbo.log.CDebugf(ctx, "Fast-forwarding from rev %d to rev %d",
 		fbo.latestMergedRevision, currHead.Revision())
-	nodes, err := fbo.blocks.FastForwardAllNodes(
+	changes, err := fbo.blocks.FastForwardAllNodes(
 		ctx, lState, currHead.ReadOnly())
 	if err != nil {
 		return false, time.Time{}, err
@@ -4570,10 +4570,6 @@ func (fbo *folderBranchOps) checkFastForward(ctx context.Context,
 	}
 
 	// Invalidate all the affected nodes.
-	changes := make([]NodeChange, 0, len(nodes))
-	for _, n := range nodes {
-		changes = append(changes, NodeChange{Node: n})
-	}
 	fbo.observers.batchChanges(ctx, changes)
 	return true, now, nil
 }
