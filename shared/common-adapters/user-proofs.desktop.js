@@ -99,12 +99,11 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
 }
 
 function LoadingProofRow ({textBlockWidth, style}: {textBlockWidth: number, style: Object}) {
-  // TODO(mm) make iconfont-proof-pending the unfinished one instead
   return (
     <Box style={{...styleRow, ...style}}>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Box style={{...globalStyles.loadingTextStyle, width: textBlockWidth}} />
+          <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 2, width: textBlockWidth}} />
         </Box>
       </Box>
       <Icon style={{...styleStatusIcon, color: globalStyles.loadingTextStyle.backgroundColor}} type={'iconfont-proof-placeholder'} />
@@ -196,8 +195,6 @@ const styleLoading = {
   right: 0,
   // We don't want the hidden loading state to affect sizings.
   height: 0,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
 }
 
 const styleRow = {
