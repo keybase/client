@@ -239,18 +239,6 @@ export function remoteGetMessagesRemoteRpcPromise (request: $Exact<requestCommon
   return new Promise((resolve, reject) => { remoteGetMessagesRemoteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function remoteGetS3AttachmentParamsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3AttachmentParamsResult) => void} & {param: remoteGetS3AttachmentParamsRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.getS3AttachmentParams'})
-}
-
-export function remoteGetS3AttachmentParamsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3AttachmentParamsResult) => void} & {param: remoteGetS3AttachmentParamsRpcParam}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteGetS3AttachmentParamsRpc({...request, incomingCallMap, callback}))
-}
-
-export function remoteGetS3AttachmentParamsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3AttachmentParamsResult) => void} & {param: remoteGetS3AttachmentParamsRpcParam}>): Promise<remoteGetS3AttachmentParamsResult> {
-  return new Promise((resolve, reject) => { remoteGetS3AttachmentParamsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
 export function remoteGetS3ParamsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3ParamsResult) => void} & {param: remoteGetS3ParamsRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.getS3Params'})
 }
@@ -721,18 +709,6 @@ export type RateLimit = {
   maxCalls: int,
 }
 
-export type S3AttachmentParams = {
-  endpoint: string,
-  bucket: string,
-  objectKey: string,
-  acl: string,
-  credential: string,
-  algorithm: string,
-  date: string,
-  policy: string,
-  signature: string,
-}
-
 export type S3Params = {
   bucket: string,
   objectKey: string,
@@ -846,10 +822,6 @@ export type remoteGetMessagesRemoteRpcParam = Exact<{
   messageIDs?: ?Array<MessageID>
 }>
 
-export type remoteGetS3AttachmentParamsRpcParam = Exact<{
-  conversationID: ConversationID
-}>
-
 export type remoteGetS3ParamsRpcParam = Exact<{
   conversationID: ConversationID
 }>
@@ -880,6 +852,7 @@ export type remotePostRemoteRpcParam = Exact<{
 }>
 
 export type remoteS3SignRpcParam = Exact<{
+  version: int,
   payload: bytes
 }>
 
@@ -911,8 +884,6 @@ type remoteGetInboxRemoteResult = GetInboxRemoteRes
 
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
 
-type remoteGetS3AttachmentParamsResult = S3AttachmentParams
-
 type remoteGetS3ParamsResult = S3Params
 
 type remoteGetThreadRemoteResult = GetThreadRemoteRes
@@ -940,7 +911,6 @@ export type rpc =
   | localPostLocalRpc
   | remoteGetInboxRemoteRpc
   | remoteGetMessagesRemoteRpc
-  | remoteGetS3AttachmentParamsRpc
   | remoteGetS3ParamsRpc
   | remoteGetThreadRemoteRpc
   | remoteMarkAsReadRpc

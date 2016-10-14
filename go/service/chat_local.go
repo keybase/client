@@ -764,19 +764,11 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		return chat1.PostLocalRes{}, err
 	}
 
-	// post to s3
+	// create a buffered stream
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 
-	/*
-		upRes, err := chat.UploadS3(h.G().Log, src, arg.Filename, params)
-		if err != nil {
-			return chat1.PostLocalRes{}, err
-		}
-
-		h.G().Log.Debug("chat attachment upload: %+v", upRes)
-	*/
-
+	// post to s3
 	upRes, err := chat.PutS3(ctx, h.G().Log, src, int64(arg.Size), params, h)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
@@ -904,10 +896,11 @@ func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {
 	return nil
 }
 
+// Sign implements github.com/keybase/go/chat/s3.Signer interface.
 func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
-	sig, err := h.remoteClient().S3Sign(context.Background(), payload)
-	if err != nil {
-		return nil, err
+	arg := chat1.S3SignArg{
+		Payload: payload,
+		Version: 1,
 	}
-	return sig, nil
+	return h.remoteClient().S3Sign(context.Background(), arg)
 }

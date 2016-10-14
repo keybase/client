@@ -191,48 +191,6 @@
     },
     {
       "type": "record",
-      "name": "S3AttachmentParams",
-      "fields": [
-        {
-          "type": "string",
-          "name": "endpoint"
-        },
-        {
-          "type": "string",
-          "name": "bucket"
-        },
-        {
-          "type": "string",
-          "name": "objectKey"
-        },
-        {
-          "type": "string",
-          "name": "acl"
-        },
-        {
-          "type": "string",
-          "name": "credential"
-        },
-        {
-          "type": "string",
-          "name": "algorithm"
-        },
-        {
-          "type": "string",
-          "name": "date"
-        },
-        {
-          "type": "string",
-          "name": "policy"
-        },
-        {
-          "type": "string",
-          "name": "signature"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "S3Params",
       "fields": [
         {
@@ -382,15 +340,6 @@
       ],
       "response": null
     },
-    "getS3AttachmentParams": {
-      "request": [
-        {
-          "name": "conversationID",
-          "type": "ConversationID"
-        }
-      ],
-      "response": "S3AttachmentParams"
-    },
     "getS3Params": {
       "request": [
         {
@@ -402,6 +351,10 @@
     },
     "s3Sign": {
       "request": [
+        {
+          "name": "version",
+          "type": "int"
+        },
         {
           "name": "payload",
           "type": "bytes"

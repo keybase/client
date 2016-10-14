@@ -60,18 +60,6 @@ type MarkAsReadRes struct {
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
-type S3AttachmentParams struct {
-	Endpoint   string `codec:"endpoint" json:"endpoint"`
-	Bucket     string `codec:"bucket" json:"bucket"`
-	ObjectKey  string `codec:"objectKey" json:"objectKey"`
-	Acl        string `codec:"acl" json:"acl"`
-	Credential string `codec:"credential" json:"credential"`
-	Algorithm  string `codec:"algorithm" json:"algorithm"`
-	Date       string `codec:"date" json:"date"`
-	Policy     string `codec:"policy" json:"policy"`
-	Signature  string `codec:"signature" json:"signature"`
-}
-
 type S3Params struct {
 	Bucket               string `codec:"bucket" json:"bucket"`
 	ObjectKey            string `codec:"objectKey" json:"objectKey"`
@@ -121,15 +109,12 @@ type TlfFinalizeArg struct {
 	TlfID TLFID `codec:"tlfID" json:"tlfID"`
 }
 
-type GetS3AttachmentParamsArg struct {
-	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-}
-
 type GetS3ParamsArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 }
 
 type S3SignArg struct {
+	Version int    `codec:"version" json:"version"`
 	Payload []byte `codec:"payload" json:"payload"`
 }
 
@@ -142,9 +127,8 @@ type RemoteInterface interface {
 	GetMessagesRemote(context.Context, GetMessagesRemoteArg) (GetMessagesRemoteRes, error)
 	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes, error)
 	TlfFinalize(context.Context, TLFID) error
-	GetS3AttachmentParams(context.Context, ConversationID) (S3AttachmentParams, error)
 	GetS3Params(context.Context, ConversationID) (S3Params, error)
-	S3Sign(context.Context, []byte) ([]byte, error)
+	S3Sign(context.Context, S3SignArg) ([]byte, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -279,22 +263,6 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getS3AttachmentParams": {
-				MakeArg: func() interface{} {
-					ret := make([]GetS3AttachmentParamsArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetS3AttachmentParamsArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetS3AttachmentParamsArg)(nil), args)
-						return
-					}
-					ret, err = i.GetS3AttachmentParams(ctx, (*typedArgs)[0].ConversationID)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"getS3Params": {
 				MakeArg: func() interface{} {
 					ret := make([]GetS3ParamsArg, 1)
@@ -322,7 +290,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]S3SignArg)(nil), args)
 						return
 					}
-					ret, err = i.S3Sign(ctx, (*typedArgs)[0].Payload)
+					ret, err = i.S3Sign(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -377,20 +345,13 @@ func (c RemoteClient) TlfFinalize(ctx context.Context, tlfID TLFID) (err error) 
 	return
 }
 
-func (c RemoteClient) GetS3AttachmentParams(ctx context.Context, conversationID ConversationID) (res S3AttachmentParams, err error) {
-	__arg := GetS3AttachmentParamsArg{ConversationID: conversationID}
-	err = c.Cli.Call(ctx, "chat.1.remote.getS3AttachmentParams", []interface{}{__arg}, &res)
-	return
-}
-
 func (c RemoteClient) GetS3Params(ctx context.Context, conversationID ConversationID) (res S3Params, err error) {
 	__arg := GetS3ParamsArg{ConversationID: conversationID}
 	err = c.Cli.Call(ctx, "chat.1.remote.getS3Params", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) S3Sign(ctx context.Context, payload []byte) (res []byte, err error) {
-	__arg := S3SignArg{Payload: payload}
+func (c RemoteClient) S3Sign(ctx context.Context, __arg S3SignArg) (res []byte, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.s3Sign", []interface{}{__arg}, &res)
 	return
 }
