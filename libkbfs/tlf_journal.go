@@ -883,29 +883,36 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 }
 
 func (j *tlfJournal) getJournalStatusWithRange() (
-	TLFJournalStatus, []ImmutableBareRootMetadata, error) {
+	TLFJournalStatus, []ImmutableBareRootMetadata, bool, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	jStatus, err := j.getJournalStatusLocked()
 	if err != nil {
-		return TLFJournalStatus{}, nil, err
+		return TLFJournalStatus{}, nil, false, err
 	}
 
 	if jStatus.RevisionEnd == MetadataRevisionUninitialized {
-		return jStatus, nil, nil
+		return jStatus, nil, true, nil
+	}
+
+	stop := jStatus.RevisionEnd
+	complete := true
+	if stop > jStatus.RevisionStart+1000 {
+		stop = jStatus.RevisionStart + 1000
+		complete = false
 	}
 
 	ibrmds, err := j.mdJournal.getRange(
-		jStatus.RevisionStart, jStatus.RevisionEnd)
+		jStatus.RevisionStart, stop)
 	if err != nil {
-		return TLFJournalStatus{}, nil, err
+		return TLFJournalStatus{}, nil, false, err
 	}
-	return jStatus, ibrmds, nil
+	return jStatus, ibrmds, complete, nil
 }
 
 func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 	cpp chainsPathPopulator) (TLFJournalStatus, error) {
-	jStatus, ibrmds, err := j.getJournalStatusWithRange()
+	jStatus, ibrmds, complete, err := j.getJournalStatusWithRange()
 	if err != nil {
 		return TLFJournalStatus{}, err
 	}
@@ -966,6 +973,9 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 			jStatus.UnflushedPaths = append(jStatus.UnflushedPaths,
 				chain.ops[0].getFinalPath().String())
 		}
+	}
+	if !complete {
+		jStatus.UnflushedPaths = append(jStatus.UnflushedPaths, "...")
 	}
 	return jStatus, nil
 }
