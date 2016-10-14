@@ -153,17 +153,14 @@ IF %ERRORLEVEL% NEQ 0 (
 
 IF %UpdateChannel% EQU Smoke (
   %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > update-windows-prod-test-v2.json
+  :: Generate the command file containing the BuildA version
+  echo %ReleaseBin% announce-build --build-a="%SEMVER%" --build-b="%%1" --platform="windows" > doannounce.bat
 )
 
 IF %UpdateChannel% EQU Smoke2 (
-  pushd ..\%SmokeABuildID%
-  dir
   :: SmokeABuildID is a build parameter provided by the first smoke build
-  for /F delims^=^"^ tokens^=4 %%x in ('findstr version update-*.json') do set SmokeAVersion=%%x
-  IF _%SmokeAVersion%_ EQU __ (
-    EXIT /B 1
-  )
+  pushd ..\%SmokeABuildID%
+  :: Give the BuildB argument to the BuildA command file
+  doannounce.bat %SEMVER%
   popd
-  echo Doing release announce-build --build-a="%SmokeAVersion%" --build-b="%SEMVER%" 
-  %ReleaseBin% announce-build --build-a="%SmokeAVersion%" --build-b="%SEMVER%" --platform="windows"
 )
