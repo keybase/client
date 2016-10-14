@@ -133,11 +133,15 @@ func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, len int
 		for j := 0; j < 300; j++ {
 
 			b.StopTimer()
-			bi, err := rand.Int(rand.Reader, big.NewInt(int64(num)))
-			if bi.Int64() == 0 {
-				continue
+			var bi *big.Int
+			var err error
+			for {
+				bi, err = rand.Int(rand.Reader, big.NewInt(int64(num)))
+				require.NoError(b, err)
+				if bi.Int64() > 1 {
+					break
+				}
 			}
-			require.NoError(b, err)
 			next, err := encode(chat1.MessageID(bi.Int64()))
 			require.NoError(b, err)
 			p := chat1.Pagination{

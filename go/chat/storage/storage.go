@@ -239,11 +239,7 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 				err = libkb.ChatStorageRemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
 				return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
 			}
-			if pid <= 1 {
-				maxID = 1
-			} else {
-				maxID = pid - 1
-			}
+			maxID = pid - 1
 		} else {
 			if derr := decode(pagination.Previous, &pid); derr != nil {
 				err = libkb.ChatStorageRemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
