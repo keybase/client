@@ -271,7 +271,6 @@ class ProfileRender extends PureComponent<void, Props, State> {
               {!loading && !this.props.serverActive && missingProofs.length > 0 &&
                 <UserProofs
                   type={'missingProofs'}
-                  style={styleMissingProofs(this.props.proofs.length > 0)}
                   username={this.props.username}
                   missingProofs={missingProofs}
                 />}
@@ -361,10 +360,6 @@ const userProofsTopPadding = globalMargins.small + globalMargins.tiny
 const styleProofs = {
   marginTop: userProofsTopPadding,
 }
-
-const styleMissingProofs = (hasProofs) => ({
-  marginTop: hasProofs ? globalMargins.tiny : userProofsTopPadding,
-})
 
 const styleFolderLine = {
   ...globalStyles.flexBoxRow,
