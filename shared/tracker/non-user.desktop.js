@@ -39,8 +39,8 @@ const Bottom = ({onClose, name, serviceName}) => (
       <Text type='BodySmall' style={{marginRight: 8}}>•</Text>
       <Text type='BodySmall'>In the meantime, you can continue to work in the folder.</Text>
     </Box>
-    <Box style={{flex: 1}} />
-    <Button style={{alignSelf: 'flex-end', width: 122}} type='Secondary' label='Close' onClick={onClose} />
+    <Box style={{flex: 1, alignItems: 'center'}} />
+    <Button style={{width: 122}} type='Secondary' label='Close' onClick={onClose} />
   </Box>
 )
 
