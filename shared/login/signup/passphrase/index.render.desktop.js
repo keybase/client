@@ -21,7 +21,7 @@ class Render extends Component<void, Props, void> {
           <Input type='password' style={stylesInput} hintText='Confirm passphrase' onEnterKeyDown={this.props.onSubmit}
             ref={input => { confirmInput = input }}
             onChangeText={pass2 => this.props.pass2Update(pass2)} />
-          <Button fullWidth={true} type='Primary' label='Continue' onClick={this.props.onSubmit} />
+          <Button type='Primary' label='Continue' onClick={this.props.onSubmit} style={{alignSelf: 'center'}}/>
         </UserCard>
       </Container>
     )

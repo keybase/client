@@ -42,9 +42,9 @@ class Render extends Component<void, Props, State> {
             value={this.state.usernameOrEmail}
           />
           <Button
-            fullWidth={true}
             label='Continue'
             type='Primary'
+            style={{alignSelf: 'center'}}
             onClick={() => this.onSubmit()}
             enabled={this.state.usernameOrEmail}
             waiting={this.props.waitingForResponse}

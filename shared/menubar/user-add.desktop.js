@@ -16,7 +16,6 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void
     backgroundColor: isPublic ? globalColors.white : globalColors.darkBlue}}>
     <Button
       type='Primary'
-      fullWidth={true}
       small={true}
       onClick={onClick}
       labelStyle={{color: globalColors.white}}

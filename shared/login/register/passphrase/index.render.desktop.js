@@ -24,7 +24,6 @@ class Render extends Component<void, Props, void> {
             value={this.props.passphrase}
             errorText={this.props.error} />
           <Button
-            fullWidth={true}
             waiting={this.props.waitingForResponse}
             label='Continue'
             type='Primary'
