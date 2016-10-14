@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Text, Icon} from '../common-adapters'
-import {globalMargins} from '../styles'
+import {globalMargins, globalStyles} from '../styles'
 import type {Props} from './link-with-icon'
 
 const LinkWithIcon = ({label, icon, color, onClick, style}: Props) => (
@@ -9,11 +9,12 @@ const LinkWithIcon = ({label, icon, color, onClick, style}: Props) => (
 )
 
 const styleLabel = {
-  display: 'block',
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
 }
 
 const styleIcon = {
-  marginRight: globalMargins.xtiny,
+  marginRight: globalMargins.tiny,
 }
 
 export default LinkWithIcon
