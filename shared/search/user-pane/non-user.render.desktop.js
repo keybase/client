@@ -36,7 +36,7 @@ function InviteSection ({inviteLink, outOfInvites, onSendInvite, username, servi
 
   return (
     <Box style={styleInviteLink} onClick={onSendInvite}>
-      <Icon type='icon-invite-link-24' />
+      <Icon type='icon-invite-link-16' />
       <Text type='BodyPrimaryLink' style={styleInviteLinkText}>Send invite link</Text>
     </Box>
   )
@@ -134,6 +134,7 @@ const styleInviteLink = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   justifyContent: 'center',
+  alignItems: 'center',
   marginBottom: globalMargins.medium,
 }
 

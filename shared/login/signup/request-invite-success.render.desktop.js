@@ -34,6 +34,7 @@ const stylesBody = {
   paddingLeft: 15,
   paddingRight: 15,
   marginBottom: 35,
+  maxWidth: 560,
   textAlign: 'center',
 }
 

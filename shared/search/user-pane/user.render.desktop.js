@@ -72,7 +72,7 @@ const styleHeader = {
 
 const styleActionBox = {
   ...globalStyles.flexBoxRow,
-  justifyContent: 'flex-end',
+  justifyContent: 'center',
   padding: globalMargins.small,
   boxShadow: `0 0 5px ${globalColors.black_10}`,
   zIndex: 1,
