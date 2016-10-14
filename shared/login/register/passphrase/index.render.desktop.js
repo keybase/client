@@ -5,7 +5,7 @@ import type {Props} from './index.render'
 import {Text, Input, Button, UserCard} from '../../../common-adapters'
 import {globalColors} from '../../../styles'
 
-class Render extends Component<void, Props, void> {
+class PassphraseRender extends Component<void, Props, void> {
   render () {
     return (
       <Container
@@ -52,4 +52,4 @@ const stylesCard = {
   alignSelf: 'stretch',
 }
 
-export default Render
+export default PassphraseRender

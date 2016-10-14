@@ -16,7 +16,7 @@ type State = {
   checked: boolean,
 }
 
-class Render extends Component<void, Props, State> {
+class SuccessRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -93,4 +93,4 @@ const paperCornerStyle = {
   top: -4,
 }
 
-export default Render
+export default SuccessRender

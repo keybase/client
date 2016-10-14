@@ -42,7 +42,7 @@ function InviteSection ({inviteLink, outOfInvites, onSendInvite, username, servi
   )
 }
 
-export default class Render extends Component<void, Props, void> {
+export default class NonUserRender extends Component<void, Props, void> {
   _onClickAvatar () {
     shell.openExternal(this.props.profileUrl)
   }

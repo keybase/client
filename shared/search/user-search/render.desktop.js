@@ -105,7 +105,7 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   )
 }
 
-class Render extends Component<void, Props, void> {
+class UserSearchRender extends Component<void, Props, void> {
   render () {
     return (
       <Box style={{overflowY: 'auto', flex: 1, position: 'relative', minHeight: 40}}>
@@ -127,4 +127,4 @@ const fullNameStyle = {
   textAlign: 'right',
 }
 
-export default Render
+export default UserSearchRender

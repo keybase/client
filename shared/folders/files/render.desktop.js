@@ -80,7 +80,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
   )
 }
 
-class Render extends Component<void, Props, void> {
+class FilesRender extends Component<void, Props, void> {
   _renderContents (isPrivate: boolean, ignored: boolean, allowIgnore: boolean) {
     const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
 
@@ -277,4 +277,4 @@ function styleMenuColorThemed (theme, showingMenu): string {
     : (showingMenu ? globalColors.blue3 : globalColors.white)
 }
 
-export default Render
+export default FilesRender

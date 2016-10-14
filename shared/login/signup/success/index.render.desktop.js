@@ -10,7 +10,7 @@ type State = {
   inWallet: boolean,
 }
 
-class Render extends Component<void, Props, State> {
+class SuccessRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -77,4 +77,4 @@ const stylesPaperkey = {
   textAlign: 'center',
 }
 
-export default Render
+export default SuccessRender

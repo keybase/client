@@ -93,7 +93,7 @@ function Result ({result, searchText, onClickResult}: {result: SearchResult, sea
   )
 }
 
-export default class Render extends Component<void, Props, void> {
+export default class UserSearchRender extends Component<void, Props, void> {
   render () {
     return (
       <Box style={globalStyles.flexBoxColumn}>

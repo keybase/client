@@ -7,7 +7,7 @@ import {globalColors} from '../../../styles'
 
 type State = {usernameOrEmail: string}
 
-class Render extends Component<void, Props, State> {
+class UsernameOrEmailRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -69,4 +69,4 @@ const stylesCard = {
   alignItems: 'stretch',
 }
 
-export default Render
+export default UsernameOrEmailRender

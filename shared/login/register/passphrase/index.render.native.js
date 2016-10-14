@@ -6,7 +6,7 @@ import {globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from './index.render'
 
-class Render extends Component<void, Props, void> {
+class PassphraseRender extends Component<void, Props, void> {
   render () {
     const {showTyping, toggleShowTyping} = this.props
 
@@ -63,4 +63,4 @@ const usernameStyle = {
   paddingBottom: globalMargins.small,
 }
 
-export default Render
+export default PassphraseRender

@@ -41,7 +41,7 @@ function customError (error: string, code: ?number) {
   return <Text style={styleErrorBannerText} type='BodySemibold'>{error}</Text>
 }
 
-class Render extends Component<void, Props, State> {
+class PrivateEnterUsernameRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -144,4 +144,4 @@ const styleInfoBanner = {
   padding: globalMargins.tiny,
 }
 
-export default Render
+export default PrivateEnterUsernameRender

@@ -8,7 +8,7 @@ type State = {
   copiedToClipboard: boolean,
 }
 
-class Render extends Component<void, Props, State> {
+class LogSendRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -63,4 +63,4 @@ const stylesInfoText = {
   marginTop: 20,
 }
 
-export default Render
+export default LogSendRender

@@ -7,7 +7,7 @@ import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView
 import {globalStyles, globalColors} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
-class Render extends Component<void, Props, void> {
+class FilesRender extends Component<void, Props, void> {
   _renderSection (section: FileSection) {
     return (
       <Box key={section.name} style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[this.props.theme]}}>
@@ -143,4 +143,4 @@ function styleMenuColorThemed (theme, showingMenu): string {
     : (showingMenu ? globalColors.blue3 : globalColors.white)
 }
 
-export default Render
+export default FilesRender

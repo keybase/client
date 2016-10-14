@@ -17,7 +17,7 @@ type DefaultProps = {
   openWithMenuShowing: boolean,
 }
 
-class Render extends Component<DefaultProps, Props, State> {
+class MenubarRender extends Component<DefaultProps, Props, State> {
   static defaultProps: DefaultProps;
   state: State;
 
@@ -181,4 +181,4 @@ const styleMenu = {
   marginLeft: 4,
 }
 
-export default Render
+export default MenubarRender

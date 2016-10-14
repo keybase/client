@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {ComingSoon} from '../common-adapters'
 import type {Props} from './render'
 
-class Render extends Component<void, Props, void> {
+class SettingsRender extends Component<void, Props, void> {
   _renderComingSoon () {
     return <ComingSoon />
   }
@@ -18,4 +18,4 @@ class Render extends Component<void, Props, void> {
 
 }
 
-export default Render
+export default SettingsRender

@@ -9,7 +9,7 @@ type State = {
   inviteCode: ?string,
 }
 
-class Render extends Component<void, Props, State> {
+class InviteCodeRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -70,4 +70,4 @@ const stylesText = {
   marginTop: 40,
 }
 
-export default Render
+export default InviteCodeRender
