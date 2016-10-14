@@ -43,7 +43,6 @@ class Render extends Component<void, Props, void> {
       onClick: this.props.onClick,
     }
 
-    let styleTabBar = this.props.smallMode ? tabBarSmallStyle : tabBarStyle
     return (
       <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue3 : globalColors.lightGrey, paddingTop: 0, minHeight: 32}}>
         <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, minHeight: this.props.smallMode ? 32 : 48, paddingTop: this.props.smallMode ? 0 : 8}}>
@@ -111,12 +110,6 @@ const itemContainerStyle = {
 
 const tabBarStyle = {
   ...globalStyles.flexBoxRow,
-}
-
-const tabBarSmallStyle = {
-  ...globalStyles.flexBoxRow,
-  minHeight: 32,
-  flexShrink: 1,
 }
 
 export default Render

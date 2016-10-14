@@ -97,7 +97,7 @@ const stylesButtonContainer = {
   justifyContent: 'center',
   paddingLeft: 4,
   paddingRight: 4,
-  alignItems: 'stretch',
+  alignItems: 'center',
   flex: 1,
   height: 40,
 }
