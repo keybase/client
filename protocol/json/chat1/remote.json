@@ -14,13 +14,6 @@
           "name": "serverHeader"
         },
         {
-          "type": [
-            null,
-            "MessageBoxed"
-          ],
-          "name": "supersededBy"
-        },
-        {
           "type": "MessageClientHeader",
           "name": "clientHeader"
         },
