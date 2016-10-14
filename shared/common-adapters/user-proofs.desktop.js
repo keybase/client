@@ -75,7 +75,7 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
               <Text inline={true} type='Body' className='underline' style={{...shared.proofNameStyle(proof), ...globalStyles.selectable, ...globalStyles.clickable}}>{proof.name}</Text>
               {proof.id && <Text className='no-underline' type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>}
             </Text>
-            {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
+            {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof), marginTop: 1}} />}
           </Box>
         </Box>
         <Box style={styleProofMenuButton} onClick={() => onClickStatus(proof)}>
