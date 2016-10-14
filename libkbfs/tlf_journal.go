@@ -948,30 +948,33 @@ func (j *tlfJournal) getJournalStatusWithRange() (
 		return TLFJournalStatus{}, nil, nil, false, err
 	}
 
-	if jStatus.RevisionEnd == MetadataRevisionUninitialized {
-		return jStatus, nil, nil, true, nil
-	}
-
-	stop := jStatus.RevisionEnd
 	complete := true
-	if stop > jStatus.RevisionStart+1000 {
-		stop = jStatus.RevisionStart + 1000
-		complete = false
+	if jStatus.RevisionEnd == MetadataRevisionUninitialized {
+		return jStatus, nil, nil, complete, nil
 	}
 
-	ibrmds, err := j.mdJournal.getRange(
-		jStatus.RevisionStart, stop)
-	if err != nil {
-		return TLFJournalStatus{}, nil, nil, false, err
-	}
-
+	var ibrmds []ImmutableBareRootMetadata
 	unflushedPaths := j.unflushedPaths
 	if unflushedPaths == nil {
 		if j.unflushedReady != nil {
 			return TLFJournalStatus{}, nil, nil, false, errors.New(
 				"unflushedReady is not nil when unflushedPaths is nil")
 		}
-		j.unflushedReady = make(chan struct{})
+
+		stop := jStatus.RevisionEnd
+		if stop > jStatus.RevisionStart+1000 {
+			stop = jStatus.RevisionStart + 1000
+			complete = false
+		}
+
+		ibrmds, err = j.mdJournal.getRange(jStatus.RevisionStart, stop)
+		if err != nil {
+			return TLFJournalStatus{}, nil, nil, false, err
+		}
+
+		if complete {
+			j.unflushedReady = make(chan struct{})
+		}
 	}
 
 	return jStatus, ibrmds, unflushedPaths, complete, nil
@@ -1035,17 +1038,21 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 	// We are responsible for making the unflushed paths.
 	if unflushedPaths == nil && len(ibrmds) > 0 {
 		unflushedPaths = make(map[MetadataRevision]map[string]bool)
-		j.log.CDebugf(ctx, "Making initial unflushed paths")
+		j.log.CDebugf(ctx, "Making unflushed paths (complete=%t)", complete)
+
 		// After we finish, release any waiters.  If there's an error,
-		// they will attempt to build the unflushedPaths.
-		defer func() {
-			j.journalLock.Lock()
-			defer j.journalLock.Unlock()
-			close(j.unflushedReady)
-			j.unflushedReady = nil
-			j.unflushedPaths = unflushedPaths
-			j.chainsPopulator = cpp
-		}()
+		// they will attempt to build the unflushedPaths.  If the
+		// range isn't complete, don't save the results.
+		if complete {
+			defer func() {
+				j.journalLock.Lock()
+				defer j.journalLock.Unlock()
+				close(j.unflushedReady)
+				j.unflushedReady = nil
+				j.unflushedPaths = unflushedPaths
+				j.chainsPopulator = cpp
+			}()
+		}
 
 		ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandle(nil)
 		if err != nil {
