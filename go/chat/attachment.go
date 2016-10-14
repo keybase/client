@@ -2,11 +2,13 @@ package chat
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/goamz/goamz/aws"
 	"github.com/keybase/client/go/chat/s3"
@@ -218,7 +220,8 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		eg.Go(func() error {
 			for b := range blockCh {
 				log.Debug("start: upload part %d", b.index)
-				part, putErr := multi.PutPart(b.index, bytes.NewReader(b.block))
+				// part, putErr := multi.PutPart(b.index, bytes.NewReader(b.block))
+				part, putErr := putRetry(ctx, log, multi, b.index, b.block)
 				if putErr != nil {
 					return putErr
 				}
@@ -254,6 +257,26 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 	}
 	log.Debug("s3 putMulti success, %d parts", len(parts))
 	return nil
+}
+
+func putRetry(ctx context.Context, log logger.Logger, multi *s3.Multi, partNumber int, block []byte) (s3.Part, error) {
+	var lastErr error
+	for i := 0; i < 10; i++ {
+		select {
+		case <-ctx.Done():
+			return s3.Part{}, ctx.Err()
+		case <-time.After(BackoffDefault.Duration(i)):
+		}
+		log.Debug("attempt %d to upload part %d", i+1, partNumber)
+		part, putErr := multi.PutPart(partNumber, bytes.NewReader(block))
+		if putErr == nil {
+			log.Debug("success in attempt %d to upload part %d", i+1, partNumber)
+			return part, nil
+		}
+		log.Debug("error in attempt %d to upload part %d: %s", putErr)
+		lastErr = putErr
+	}
+	return s3.Part{}, fmt.Errorf("failed to put part %d (last error: %s)", partNumber, lastErr)
 }
 
 func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer) error {
