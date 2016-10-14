@@ -69,10 +69,15 @@ export default class Render extends PureComponent<void, RenderProps, void> {
           <UserProofs
             type='proofs'
             style={{
+              paddingLeft: 24,
+              paddingRight: 24,
               paddingTop: 8,
-              paddingLeft: 30,
-              paddingRight: 30,
+              position: 'relative',
               width: 325,  // FIXME (mbg): fixed width to line up with existing layout which doesn't take scrollbar into account
+            }}
+            loadingStyle={{
+              left: 24,
+              right: 24,
             }}
             username={this.props.username}
             proofs={this.props.proofs}

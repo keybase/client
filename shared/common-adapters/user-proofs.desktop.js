@@ -135,7 +135,7 @@ class ProofsRender extends Component<void, Props, void> {
   }
 
   render () {
-    const {loading, onClickProofMenu, showingMenuIndex, style} = this.props
+    const {loading, onClickProofMenu, showingMenuIndex, style, loadingStyle} = this.props
     const missingProofsRealCSS = `
       .user-proof-row .user-proof-row__name {
         text-underline: none;
@@ -155,7 +155,7 @@ class ProofsRender extends Component<void, Props, void> {
         <ReactCSSTransitionGroup transitionName='fade-anim' transitionEnterTimeout={250} transitionLeaveTimeout={250}>
           {loading
           ? (
-            <Box key='loading' style={styleLoading}>
+            <Box key='loading' style={{...styleLoading, ...loadingStyle}}>
               {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} />)}
             </Box>)
           : (

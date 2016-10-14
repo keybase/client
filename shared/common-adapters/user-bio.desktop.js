@@ -89,13 +89,13 @@ class BioRender extends Component<void, Props, void> {
               onClick={() => this.props.onClickAvatar(username)}>
               {username}
             </Text>
-            <Text type='BodySemibold' style={stylesFullname} {...nameTweaks}>{userInfo.fullname}</Text>
+            <Text type='BodyBig' style={stylesFullname} {...nameTweaks}>{userInfo.fullname}</Text>
             {!userInfo.fullname && editFns &&
               <Text type='BodySemibold' style={{...stylesFullname, color: globalColors.black_20}} {...nameTweaks}>Your full name</Text>}
             {!editFns && followLabel &&
-              <Text type='BodySmall' style={stylesFollowLabel}>{followLabel}</Text>
+              <Text type='BodySmall' style={{...stylesFollowLabel, marginTop: 4}}>{followLabel}</Text>
             }
-            <Box style={{...globalStyles.flexBoxRow}}>
+            <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
               <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}
                 onClick={() => this.props.onClickFollowers(username)}>{userInfo.followersCount}
                 <Text type='BodySmallSecondaryLink'>&nbsp;Follower{userInfo.followersCount === 1 ? '' : 's'}</Text>

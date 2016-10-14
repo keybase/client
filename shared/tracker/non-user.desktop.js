@@ -15,10 +15,10 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
   return (
     <Box style={stylesContainer}>
       <Icon style={stylesClose} type='iconfont-close' onClick={onClose} />
-      <Text type='BodySmallSemibold' style={stylesMessage}>{reason}</Text>
+      <Text type='BodySemibold' style={stylesMessage}>{reason}</Text>
       <Icon type={icon} />
       <Box style={globalStyles.flexBoxColumn}>
-        <Text type='BodySmallSemibold' style={{...stylesMessage, ...(inviteLink ? {} : {marginBottom: 16})}}>{message}</Text>
+        <Text type='Body' style={{...stylesMessage, ...(inviteLink ? {} : {marginBottom: 16})}}>{message}</Text>
         {inviteLink && <Box style={stylesLinkBox}>
           <Icon style={{color: globalColors.black_10, marginTop: 3}} type='iconfont-link' onClick={() => textRef && textRef.highlightText()} />
           <Text ref={r => { textRef = r }} style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
@@ -32,12 +32,12 @@ const Bottom = ({onClose, name, serviceName}) => (
   <Box style={stylesNext}>
     <Text style={{marginBottom: 16}} type='Header'>What's next?</Text>
     <Box style={stylesBullet}>
-      <Text type='BodySmall' style={{marginRight: 8}}>•</Text>
-      <Text type='BodySmall'>When {name} connects Keybase and their {serviceName || 'other'} account, your computer will verify them and rekey the folder.</Text>
+      <Text type='Body' style={{marginRight: 8}}>•</Text>
+      <Text type='Body'>When {name} connects Keybase and their {serviceName || 'other'} account, your computer will verify them and rekey the folder.</Text>
     </Box>
     <Box style={{...stylesBullet, marginTop: 5}}>
-      <Text type='BodySmall' style={{marginRight: 8}}>•</Text>
-      <Text type='BodySmall'>In the meantime, you can continue to work in the folder.</Text>
+      <Text type='Body' style={{marginRight: 8}}>•</Text>
+      <Text type='Body'>In the meantime, you can continue to work in the folder.</Text>
     </Box>
     <Box style={{flex: 1, alignItems: 'center'}} />
     <Button style={{width: 122}} type='Secondary' label='Close' onClick={onClose} />
@@ -67,7 +67,7 @@ const stylesContainer = {
   position: 'relative',
   backgroundColor: globalColors.blue,
   height: 235,
-  padding: 16,
+  padding: 24,
 }
 
 const stylesClose = {
@@ -100,16 +100,12 @@ const stylesNext = {
   flex: 1,
   backgroundColor: globalColors.white,
   alignItems: 'center',
-  paddingTop: 24,
-  paddingBottom: 16,
+  padding: 24,
 }
 
 const stylesBullet = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  marginLeft: 16,
-  marginRight: 16,
-
 }
 
 export default Render
