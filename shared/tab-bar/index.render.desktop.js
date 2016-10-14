@@ -62,7 +62,7 @@ export default class Render extends Component<void, Props, void> {
 
   _renderProfileButton (tab: VisibleTab, selected: boolean, onClick: () => void) {
     // $FlowIssue
-    const avatar: Avatar = <Avatar size={32} onClick={onClick} username={this.props.username} borderColor={selected ? globalColors.white : globalColors.blue3_40}/>
+    const avatar: Avatar = <Avatar size={32} onClick={onClick} username={this.props.username} borderColor={selected ? globalColors.white : globalColors.blue3_40} />
     const source = {type: 'avatar', avatar}
     const label = this.props.username
     return (
