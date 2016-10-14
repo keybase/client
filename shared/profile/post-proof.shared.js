@@ -3,7 +3,7 @@ import FacebookDescription from './facebook-description'
 import React from 'react'
 import openUrl from '../util/open-url'
 import {Box, LinkWithIcon, Text} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {subtitle} from '../util/platforms'
 
 import type {IconType} from '../common-adapters/icon.constants'
@@ -34,7 +34,7 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'twitter':
       return {
         ...base,
-        descriptionView: <Text type='Body' {...styleCentered}>Please tweet the text below <Text type='Body' style={globalStyles.italic}>exactly as it appears.</Text></Text>,
+        descriptionView: <Text type='BodySemibold' {...styleCentered}>Please tweet the text below <Text type='BodySemiboldItalic' style={globalStyles.italic}>exactly as it appears.</Text></Text>,
         proofActionText: 'Tweet it now',
         proofText: props.proofText,
         proofActionIcon: 'iconfont-tweet',
@@ -44,7 +44,7 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'reddit':
       return {
         ...base,
-        descriptionView: <Text type='Body' {...styleCentered}>Click the link below and post the form in the subreddit <Text type='Body' style={globalStyles.italic}>KeybaseProofs.</Text></Text>,
+        descriptionView: <Text type='BodySemibold' {...styleCentered}>Click the link below and post the form in the subreddit <Text type='BodySemiboldItalic'>KeybaseProofs</Text>.</Text>,
         noteText: 'Make sure you\'re signed in to Reddit, and don\'t edit the text or title before submitting.',
         proofText: null,
         proofActionText: 'Reddit form',
@@ -63,7 +63,7 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'github':
       return {
         ...base,
-        descriptionView: <Text type='Body' {...styleCentered}>Login to GitHub and paste the text below into a <Text type='BodySemibold'>public</Text> gist called <Text type='Body' style={globalStyles.italic}>keybase.md.</Text></Text>,
+        descriptionView: <Text type='BodySemibold' {...styleCentered}>Login to GitHub and paste the text below into a <Text type='BodySemiboldItalic'>public</Text> gist called <Text type='BodySemiboldItalic'>keybase.md.</Text></Text>,
         proofActionText: 'Create gist now',
         proofText: props.proofText,
         proofActionIcon: 'iconfont-open-browser',
@@ -73,7 +73,7 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'coinbase':
       return {
         ...base,
-        descriptionView: <Text type='Body' {...styleCentered}>Please paste the below text <Text type='Body' style={globalStyles.italic}>exactly as it appears</Text> as your "public key" on Coinbase.</Text>,
+        descriptionView: <Text type='BodySemibold' {...styleCentered}>Please paste the below text <Text type='BodySemiboldItalic' style={globalStyles.italic}>exactly as it appears</Text> as your "public key" on Coinbase.</Text>,
         proofActionText: 'Go to Coinbase to add as "public key"',
         proofText: props.proofText,
         proofActionIcon: 'iconfont-open-browser',
@@ -83,7 +83,7 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'hackernews':
       return {
         ...base,
-        descriptionView: <Text type='Body' {...styleCentered}>Please add the below text <Text type='Body' style={globalStyles.italic}>exactly as it appears</Text> to your profile.</Text>,
+        descriptionView: <Text type='BodySemibold' {...styleCentered}>Please add the below text <Text type='BodySemibold' style={globalStyles.italic}>exactly as it appears</Text> to your profile.</Text>,
         proofActionText: 'Go to Hacker News',
         proofActionIcon: 'iconfont-open-browser',
         proofText: props.proofText,
@@ -93,7 +93,7 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'dns':
       return {
         ...base,
-        descriptionView: <Text type='Body' {...styleCentered}>Enter the following as a TXT entry in your DNS zone, <Text type='Body' style={globalStyles.italic}>exactly as it appears</Text>. If you need a "name" for you entry, give it "@".</Text>,
+        descriptionView: <Text type='BodySemibold' {...styleCentered}>Enter the following as a TXT entry in your DNS zone, <Text type='BodySemibold'>exactly as it appears</Text>. If you need a "name" for you entry, give it "@".</Text>,
         onCompleteText: 'OK posted! Check for it!',
         proofText: props.proofText,
         noteText: null,
@@ -110,8 +110,8 @@ export function propsForPlatform (props: Props): MoreProps {
         proofActionIcon: null,
         descriptionView: (
           <Box>
-            <Text type='Body' {...styleCentered}>Please serve the text below <Text type='Body' style={globalStyles.italic}>exactly as it appears</Text> at one of these URL's.</Text>
-            <LinkWithIcon icon='iconfont-open-browser' onClick={() => openUrl(urlRoot)} label={urlRoot} color={globalColors.blue} />
+            <Text type='BodySemibold' {...styleCentered}>Please serve the text below <Text type='BodySemiboldItalic'>exactly as it appears</Text> at one of these URL's.</Text>
+            <LinkWithIcon icon='iconfont-open-browser' onClick={() => openUrl(urlRoot)} label={urlRoot} color={globalColors.blue} style={{marginTop: globalMargins.tiny}} />
             <LinkWithIcon icon='iconfont-open-browser' onClick={() => openUrl(urlWellKnown)} label={urlWellKnown} color={globalColors.blue} />
           </Box>
         ),

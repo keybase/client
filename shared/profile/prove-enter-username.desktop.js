@@ -13,7 +13,7 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
     return (
       <Box style={styleInfoBanner}>
-        <Text backgroundMode='Information' type='BodySmall'>
+        <Text backgroundMode='Information' type='BodySemibold'>
           &bull; You must have karma &ge; 2<br />
           &bull; You must enter your uSeRName with exact case
         </Text>
@@ -31,14 +31,14 @@ type State = {
 function customError (error: string, code: ?number) {
   if (code === ConstantsStatusCode.scprofilenotpublic) {
     return <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
-      <Text style={styleErrorBannerText} type='BodySmallSemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
+      <Text style={styleErrorBannerText} type='BodySemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}>
-        <Text style={styleErrorBannerText} type='BodySmallSemibold'>Go to Coinbase</Text>
+        <Text style={styleErrorBannerText} type='BodySemibold'>Go to Coinbase</Text>
         <Icon type='iconfont-open-browser' style={{color: globalColors.white_40, marginLeft: 4}} />
       </Box>
     </Box>
   }
-  return <Text style={styleErrorBannerText} type='BodySmallSemibold'>{error}</Text>
+  return <Text style={styleErrorBannerText} type='BodySemibold'>{error}</Text>
 }
 
 class Render extends Component<void, Props, State> {
@@ -77,7 +77,7 @@ class Render extends Component<void, Props, State> {
         <Icon style={styleClose} type='iconfont-close' onClick={this.props.onCancel} />
         {this.props.errorText && <Box style={styleErrorBanner}>{customError(this.props.errorText, this.props.errorCode)}</Box>}
         <Text type='Header' style={{marginBottom: globalMargins.medium}}>{headerText}</Text>
-        <PlatformIcon platform={this.props.platform} overlay={'icon-proof-pending'} overlayColor={globalColors.grey} />
+        <PlatformIcon platform={this.props.platform} overlay={'icon-proof-unfinished'} overlayColor={globalColors.grey} />
         <Input
           autoFocus={true}
           style={styleInput}
@@ -130,11 +130,10 @@ const styleClose = {
 }
 
 const styleInput = {
-  alignSelf: 'stretch',
-  marginLeft: 90,
-  marginRight: 90,
+  alignSelf: 'center',
   marginTop: globalMargins.small,
   marginBottom: 0,
+  width: 460,
 }
 
 const styleInfoBanner = {

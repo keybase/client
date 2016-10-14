@@ -6,7 +6,7 @@ import type {Props} from './checkbox'
 import {globalStyles, globalColors, transition} from '../styles'
 
 export const CHECKBOX_SIZE = 13
-export const CHECKBOX_MARGIN = 6
+export const CHECKBOX_MARGIN = 8
 
 class Checkbox extends Component<void, Props, void> {
   render () {
