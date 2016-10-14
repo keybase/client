@@ -51,8 +51,11 @@ func (c *cmdTlfCryptKeys) Run() error {
 		return err
 	}
 
-	var results keybase1.TLFCryptKeys
-	if results, err = tlfClient.CryptKeys(context.TODO(), c.tlfName); err != nil {
+	var results keybase1.GetTLFCryptKeysRes
+	if results, err = tlfClient.CryptKeys(context.TODO(), keybase1.TLFQuery{
+		TlfName:          c.tlfName,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}); err != nil {
 		return err
 	}
 

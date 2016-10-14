@@ -69,7 +69,7 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
         <Box style={styleProofNameSection}>
           <Box style={styleProofNameLabelContainer}>
             <Text className='hover-underline-container' type='Body' onClick={() => onClickProfile(proof)} style={styleProofName}>
-              <Text type='Body' className='underline' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
+              <Text inline={true} type='Body' className='underline' style={{...shared.proofNameStyle(proof), ...globalStyles.selectable, ...globalStyles.clickable}}>{proof.name}</Text>
               {proof.id && <Text className='no-underline' type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>}
             </Text>
             {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
@@ -238,8 +238,8 @@ const styleProofNameLabelContainer = {
 }
 
 const styleProofName = {
-  ...globalStyles.clickable,
   ...globalStyles.selectable,
+  ...globalStyles.clickable,
   display: 'inline-block',
   wordBreak: 'break-all',
   flex: 1,

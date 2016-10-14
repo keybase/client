@@ -115,9 +115,15 @@ protocol local {
     string senderDeviceName;
     Hash headerHash;
   }
+  
+  record MessageError {
+    string errmsg;
+    MessageID messageID;
+    MessageType messageType;
+  }
 
   record MessageFromServerOrError {
-    union { null, string } unboxingError;
+    union { null, MessageError } unboxingError;
     union { null, MessageFromServer } message;
   }
 

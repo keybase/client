@@ -202,7 +202,7 @@ func checkFuseUpgrade(context Context, appPath string, force bool, log Log) (rei
 		if hasKBFuseMounts {
 			log.Info("We have mounts, let's uninstall KBFS so the installer can upgrade")
 			reinstallKBFS = true
-			err = UninstallKBFS(runMode, mountDir, true, log)
+			err = UninstallKBFS(runMode, mountDir, true, true, log)
 			if err != nil {
 				return
 			}

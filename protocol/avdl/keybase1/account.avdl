@@ -11,4 +11,18 @@ protocol account {
   void passphraseChange(int sessionID, string oldPassphrase, string passphrase, boolean force);
 
   GetPassphraseRes passphrasePrompt(int sessionID, GUIEntryArg guiArg);
+
+  /**
+   * change email to the new given email by signing a statement.
+   */
+  void emailChange(int sessionID, string newEmail);
+
+  /**
+   * Whether the logged-in user has uploaded private keys
+   * Will error if not logged in.
+   */
+  HasServerKeysRes hasServerKeys(int sessionID);
+  record HasServerKeysRes {
+    bool hasServerKeys;
+  }
 }

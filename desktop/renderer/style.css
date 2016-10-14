@@ -112,7 +112,7 @@ body {
     overflow: hidden;
 }
 
-#app {
+#root {
     position: absolute;
     display: flex;
     top: 0;

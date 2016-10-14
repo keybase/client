@@ -14,13 +14,13 @@ type uictxkey int
 
 var uiKey uictxkey = 1
 
-// userInfoMapper looks up usernames and device names, memoizing the results.
+// UserInfoMapper looks up usernames and device names, memoizing the results.
 // Only intended to be used for a single request (i.e., getting all the
 // users and devices for a thread).
 type UserInfoMapper struct {
 	users       map[keybase1.UID]*libkb.User
 	deviceNames map[string]string
-	libkb.Contextified
+	kbCtx       KeybaseContext
 	sync.Mutex
 }
 
@@ -29,20 +29,20 @@ func userInfoFromContext(ctx context.Context) (*UserInfoMapper, bool) {
 	return ui, ok
 }
 
-func GetUserInfoMapper(ctx context.Context, g *libkb.GlobalContext) (context.Context, *UserInfoMapper) {
+func GetUserInfoMapper(ctx context.Context, kbCtx KeybaseContext) (context.Context, *UserInfoMapper) {
 	ui, ok := userInfoFromContext(ctx)
 	if ok {
 		return ctx, ui
 	}
-	ui = newUserInfoMapper(g)
+	ui = newUserInfoMapper(kbCtx)
 	return context.WithValue(ctx, uiKey, ui), ui
 }
 
-func newUserInfoMapper(g *libkb.GlobalContext) *UserInfoMapper {
+func newUserInfoMapper(kbCtx KeybaseContext) *UserInfoMapper {
 	return &UserInfoMapper{
-		users:        make(map[keybase1.UID]*libkb.User),
-		deviceNames:  make(map[string]string),
-		Contextified: libkb.NewContextified(g),
+		users:       make(map[keybase1.UID]*libkb.User),
+		deviceNames: make(map[string]string),
+		kbCtx:       kbCtx,
 	}
 }
 
@@ -78,11 +78,9 @@ func (u *UserInfoMapper) User(uid keybase1.UID) (*libkb.User, error) {
 
 	user, ok := u.users[uid]
 	if !ok {
-		u.G().Log.Debug("userInfoMapper: missed user cache: uid: %s", uid)
-		arg := libkb.NewLoadUserByUIDArg(u.G(), uid)
-		arg.PublicKeyOptional = true
+		u.kbCtx.GetLog().Debug("userInfoMapper: missed user cache: uid: %s", uid)
 		var err error
-		user, err = libkb.LoadUser(arg)
+		user, err = u.kbCtx.LoadUserByUID(uid)
 		if err != nil {
 			return nil, err
 		}

@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -37,7 +36,7 @@ func ParseDurationExtended(s string) (d time.Duration, err error) {
 	return d, nil
 }
 
-func ParseTimeFromRFC3339OrDurationFromPast(g *libkb.GlobalContext, s string) (t time.Time, err error) {
+func ParseTimeFromRFC3339OrDurationFromPast(kbCtx KeybaseContext, s string) (t time.Time, err error) {
 	var errt, errd error
 	var d time.Duration
 
@@ -49,11 +48,10 @@ func ParseTimeFromRFC3339OrDurationFromPast(g *libkb.GlobalContext, s string) (t
 		return t, nil
 	}
 	if d, errd = ParseDurationExtended(s); errd == nil {
-		return g.Clock().Now().Add(-d), nil
+		return kbCtx.Clock().Now().Add(-d), nil
 	}
 
 	return time.Time{}, fmt.Errorf("given string is neither a valid time (%s) nor a valid duration (%v)", errt, errd)
-
 }
 
 // upper bounds takes higher priority
@@ -84,6 +82,32 @@ func FilterByType(msgs []chat1.MessageFromServerOrError, query *chat1.GetThreadQ
 		}
 	} else {
 		res = msgs
+	}
+	return res
+}
+
+// AggRateLimitsP takes a list of rate limit responses and dedups them to the last one received
+// of each category
+func AggRateLimitsP(rlimits []*chat1.RateLimit) (res []chat1.RateLimit) {
+	m := make(map[string]chat1.RateLimit)
+	for _, l := range rlimits {
+		if l != nil {
+			m[l.Name] = *l
+		}
+	}
+	for _, v := range m {
+		res = append(res, v)
+	}
+	return res
+}
+
+func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
+	m := make(map[string]chat1.RateLimit)
+	for _, l := range rlimits {
+		m[l.Name] = l
+	}
+	for _, v := range m {
+		res = append(res, v)
 	}
 	return res
 }

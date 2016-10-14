@@ -21,7 +21,6 @@ let config: {[key:string]: any} = {
   printOutstandingRPCs: false,
   reactPerf: false,
   overrideLoggedInTab: null,
-  focusOnShow: true,
   printRoutes: false,
   skipSecondaryDevtools: true,
   initialTabState: {},
@@ -48,7 +47,6 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.printOutstandingRPCs = true
   config.reactPerf = false
   config.overrideLoggedInTab = Tabs.settingsTab
-  config.focusOnShow = false
   config.printRoutes = true
   config.initialTabState = {
     [Tabs.loginTab]: [],
@@ -70,7 +68,6 @@ export const {
   devStoreChangingFunctions,
   enableActionLogging,
   enableStoreLogging,
-  focusOnShow,
   forceMainWindowPosition,
   forwardLogs,
   isTesting,

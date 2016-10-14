@@ -155,7 +155,7 @@ func (i *Identify2WithUIDTester) Dismiss(_ string, _ keybase1.DismissReason) err
 	return nil
 }
 
-func (i *Identify2WithUIDTester) Start(string, keybase1.IdentifyReason) error {
+func (i *Identify2WithUIDTester) Start(string, keybase1.IdentifyReason, bool) error {
 	i.startCh <- struct{}{}
 	return nil
 }

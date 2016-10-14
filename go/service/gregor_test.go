@@ -93,7 +93,7 @@ type showTrackerPopupIdentifyUI struct {
 
 var _ libkb.IdentifyUI = (*showTrackerPopupIdentifyUI)(nil)
 
-func (ui *showTrackerPopupIdentifyUI) Start(name string, reason keybase1.IdentifyReason) error {
+func (ui *showTrackerPopupIdentifyUI) Start(name string, reason keybase1.IdentifyReason, force bool) error {
 	ui.startedUsername = name
 	return nil
 }

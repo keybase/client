@@ -270,6 +270,7 @@ func TestChatMessagePublic(t *testing.T) {
 	header := chat1.MessageClientHeader{
 		Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
 		TlfPublic: true,
+		TlfName:   "hi",
 	}
 	msg := textMsgWithHeader(t, text, header)
 
@@ -288,11 +289,11 @@ func TestChatMessagePublic(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	messagePlaintext, _, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed)
+	decmsg, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed)
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := messagePlaintext.V1().MessageBody
+	body := decmsg.Message.MessagePlaintext.V1().MessageBody
 	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
 		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
 	}

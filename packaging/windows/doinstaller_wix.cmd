@@ -127,7 +127,19 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-if NOT DEFINED JSON_UPDATE_FILENAME set JSON_UPDATE_FILENAME=update-windows-prod-v2.json
+:: UpdateChannel is a Jenkins select parameter, one of: Smoke, Test, None
+echo UpdateChannel: %UpdateChannel%
+set JSON_UPDATE_FILENAME=update-windows-prod-v2.json
+IF %UpdateChannel% EQU Test (
+  set JSON_UPDATE_FILENAME=update-windows-prod-test-v2.json
+)
+IF %UpdateChannel% EQU Smoke (
+  set JSON_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
+)
+IF %UpdateChannel% EQU Smoke2 (
+  set JSON_UPDATE_FILENAME=update-windows-prod-%KEYBASE_VERSION%.json
+)
+echo %JSON_UPDATE_FILENAME%
 
 :: Run keybase sign to get signature of update
 set KeybaseBin="%APPDATA%\Keybase\keybase.exe"
@@ -138,3 +150,7 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > %JSON_UPDATE_FILENAME%
+
+IF %UpdateChannel% EQU Smoke (
+  copy %JSON_UPDATE_FILENAME% update-windows-prod-v2.json
+)

@@ -43,46 +43,86 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
 }
 
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
-  _renderAvatar (backgroundColor: string, color: string, badgeNumber: number) {
+  _renderAvatar (color: string, badgeNumber: number) {
     if (this.props.source.type !== 'avatar') return // needed to make flow happy
     return (
-      <Box style={{...globalStyles.flexBoxColumn, backgroundColor, paddingBottom: 21, paddingTop: 21, ...this.props.style}}>
+      <Box style={{...globalStyles.flexBoxColumn, paddingBottom: 21, paddingTop: 21, ...this.props.style}}>
         <Box style={{...stylesTabBarButtonIcon, paddingLeft: 0, height: undefined, justifyContent: 'center', ...this.props.styleContainer}}>
           {this.props.source.avatar}
           {badgeNumber > 0 &&
             <Box style={{width: 0, display: 'flex'}}>
-              <Box style={{...styleBadgeOutline, borderColor: backgroundColor, backgroundColor}}>
+              <Box style={{...styleBadgeOutline}}>
                 <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
               </Box>
             </Box>}
         </Box>
-        {!!this.props.label && <Text type='BodySemiboldItalic' style={{color, textAlign: 'center', ...this.props.styleLabel}}>{this.props.label}</Text>}
+        {!!this.props.label &&
+          <Text type='BodySmall' style={{color, fontSize: 11, textAlign: 'center', ...globalStyles.clickable, ...this.props.styleLabel}}>
+            {this.props.label}
+          </Text>
+        }
       </Box>
     )
   }
 
-  _renderIcon (backgroundColor: string, color: string, badgeNumber: number) {
+  _renderNav (badgeNumber: number) {
+    if (this.props.source.type !== 'nav') return // needed to make flow happy
+    const navIconStyle = this.props.selected ? stylesNavIconSelected : stylesNavIcon
+    return (
+      <Box>
+        <style>{navRealCSS}</style>
+        <Box style={{...stylesTabBarNavIcon, ...this.props.style}} className='nav-item'>
+          {badgeNumber > 0 &&
+            <Box style={{...styleBadgeNav}}>
+              <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 0, marginRight: 0}} />
+            </Box>
+          }
+          <Icon type={this.props.source.icon} style={{...navIconStyle, ...this.props.styleIcon}} />
+          {!!this.props.label &&
+            <Text type='BodySmall' style={{...stylesNavText, ...this.props.styleLabel}}>
+              <span className={'title' + (this.props.selected ? ' selected' : '')}>
+                {this.props.label}
+              </span>
+            </Text>
+          }
+        </Box>
+      </Box>
+    )
+  }
+
+  _renderIcon (color: string, badgeNumber: number) {
     if (this.props.source.type !== 'icon') return // needed to make flow happy
+    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
     return (
       <Box style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}>
         <Icon type={this.props.source.icon} style={{...stylesIcon, color, ...this.props.styleIcon}} />
-        {!!this.props.label && <Text type={this.props.styleLabelType || 'BodySmallSemibold'} style={{color, ...this.props.styleLabel}}>{this.props.label}</Text>}
-        {badgeNumber > 0 && <Badge badgeNumber={badgeNumber} badgeStyle={this.props.styleBadge} badgeNumberStyle={this.props.styleBadgeNumber} /> }
+        {!!this.props.label &&
+          <Text type='BodySemibold' style={{color, textAlign: 'center', ...globalStyles.clickable, ...this.props.styleLabel}}>
+            {this.props.label}
+          </Text>
+        }
+        {badgeNumber > 0 &&
+          <Box style={{...styleBadgeIcon}}>
+            <Badge badgeNumber={badgeNumber} badgeStyle={this.props.styleBadge} badgeNumberStyle={this.props.styleBadgeNumber} />
+          </Box>
+        }
+
       </Box>
     )
   }
 
   render () {
-    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
     const color = this.props.selected ? globalColors.white : globalColors.blue3_40
     const badgeNumber = this.props.badgeNumber || 0
 
     switch (this.props.source.type) {
       case 'avatar':
-        return this._renderAvatar(backgroundColor, color, badgeNumber)
+        return this._renderAvatar(color, badgeNumber)
+      case 'nav':
+        return this._renderNav(badgeNumber)
       case 'icon':
       default:
-        return this._renderIcon(backgroundColor, color, badgeNumber)
+        return this._renderIcon(color, badgeNumber)
     }
   }
 }
@@ -152,6 +192,46 @@ const stylesIcon = {
   lineHeight: '16px',
   marginBottom: 2,
   textAlign: 'center',
+}
+
+const stylesTabBarNavIcon = {
+  ...globalStyles.flexBoxColumn,
+  ...globalStyles.clickable,
+  flex: 1,
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'relative',
+  width: 80,
+  height: 56,
+}
+
+const navRealCSS = `
+  .nav-item .title { color: transparent; }
+  .nav-item:hover .title { color: ${globalColors.blue3_40}; }
+  .nav-item .title.selected { color: ${globalColors.white}; }
+`
+
+const stylesNavText = {
+  fontSize: 11,
+}
+
+const stylesNavIcon = {
+  color: globalColors.blue3_40,
+}
+
+const stylesNavIconSelected = {
+  color: globalColors.white,
+}
+
+const styleBadgeNav = {
+  position: 'relative',
+  left: 20,
+  top: 10,
+}
+
+const styleBadgeIcon = {
+  marginLeft: 'auto',
+  marginRight: 8,
 }
 
 export {

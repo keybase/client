@@ -59,6 +59,18 @@ func (c *cmdChatSend) Run() (err error) {
 	}
 
 	if resolved == nil {
+		if len(c.resolver.TlfName) == 0 {
+			c.G().UI.GetTerminalUI().Printf("No conversation found. Type `keybase chat send <tlf> [message]` to create a new one.\n")
+			return nil
+		}
+
+		// creating a new conversation!
+
+		if len(c.resolver.TopicName) > 0 && c.resolver.TopicType == chat1.TopicType_CHAT {
+			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet.\n")
+			return nil
+		}
+
 		var tnp *string
 		if len(c.resolver.TopicName) > 0 {
 			tnp = &c.resolver.TopicName
@@ -93,7 +105,7 @@ func (c *cmdChatSend) Run() (err error) {
 	switch {
 	case c.setTopicName != "":
 		if conversationInfo.Triple.TopicType == chat1.TopicType_CHAT {
-			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet. Ignoring --set-topic-name >.<")
+			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet. Ignoring --set-topic-name >.<\n")
 			return nil
 		}
 		msgV1.ClientHeader.MessageType = chat1.MessageType_METADATA
@@ -146,12 +158,13 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.clearHeadline = ctx.Bool("clear-headline")
 	useStdin := ctx.Bool("stdin")
 
+	var tlfName string
 	// Get the TLF name from the first position arg
 	if len(ctx.Args()) >= 1 {
-		tlfName := ctx.Args().Get(0)
-		if c.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
-			return err
-		}
+		tlfName = ctx.Args().Get(0)
+	}
+	if c.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
+		return err
 	}
 
 	nActions := 0

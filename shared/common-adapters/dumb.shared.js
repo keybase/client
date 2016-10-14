@@ -392,7 +392,7 @@ class IconHolder extends Component<void, {iconFont: boolean}, void> {
     const icons: Array<IconType> = keys.filter(name => iconMeta[name].isFont === this.props.iconFont)
     return (
       <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
-      {icons.map(i => <Box key={i}><Text type='BodySmall'>{i}</Text><Icon type={i} style={{margin: 10, ...(isMobile ? {} : {border: 'solid 1px #777777'})}} /></Box>)}
+        {icons.map(i => <Box key={i}><Text type='BodySmall'>{i}</Text><Icon type={i} style={{margin: 10, ...(isMobile ? {} : {border: 'solid 1px #777777'})}} /></Box>)}
       </Box>
     )
   }

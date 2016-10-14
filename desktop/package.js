@@ -28,12 +28,15 @@ console.log('Injecting __VERSION__: ', appVersion)
 del.sync('dist')
 del.sync('build')
 
+const filterAllowOnlyTypes = (...types) => ({
+  filter: f => types.some(type => f.endsWith(`.${type}`)),
+})
+
 fs.copySync('./Icon.png', 'build/desktop/Icon.png')
 fs.copySync('./Icon@2x.png', 'build/desktop/Icon@2x.png')
-fs.copySync('../shared/native', 'build/desktop/shared/native', {filter: f => f.endsWith('.html')})
-fs.copySync('../shared/images', 'build/desktop/shared/images')
-fs.copySync('../shared/fonts', 'build/desktop/shared/fonts')
-fs.copySync('./renderer', 'build/desktop/renderer', {filter: f => !f.endsWith('.js')})
+fs.copySync('../shared/images', 'build/desktop/shared/images', filterAllowOnlyTypes('gif', 'png'))
+fs.copySync('../shared/fonts', 'build/desktop/shared/fonts', filterAllowOnlyTypes('ttf'))
+fs.copySync('./renderer', 'build/desktop/renderer', filterAllowOnlyTypes('css', 'html'))
 
 fs.writeJsonSync('build/package.json', {
   name: appName,
@@ -65,14 +68,14 @@ if (icon) {
   DEFAULT_OPTS.icon = icon
 }
 
-// use the same version as the currently-installed electron-prebuilt
+// use the same version as the currently-installed electron
 console.log('Finding electron version')
-exec('npm list --dev electron-prebuilt', (err, stdout, stderr) => {
+exec('npm list --dev electron', (err, stdout, stderr) => {
   if (!err) {
     try {
       // $FlowIssue
-      DEFAULT_OPTS.version = stdout.match(/electron-prebuilt@([0-9.]+)/)[1]
-      console.log('Found electron-prebuilt version: ', DEFAULT_OPTS.version)
+      DEFAULT_OPTS.version = stdout.match(/electron@([0-9.]+)/)[1]
+      console.log('Found electron version: ', DEFAULT_OPTS.version)
     } catch (err) {
       console.log("Couldn't parse npm list to find electron: ", err)
       process.exit(1)
@@ -93,8 +96,8 @@ function startPack () {
       process.exit(1)
     }
 
-    fs.copySync('./dist', 'build/desktop/sourcemaps', {filter: f => f.endsWith('.map')})
-    fs.copySync('./dist', 'build/desktop/dist', {filter: f => f.endsWith('.js')})
+    fs.copySync('./dist', 'build/desktop/sourcemaps', filterAllowOnlyTypes('map'))
+    fs.copySync('./dist', 'build/desktop/dist', filterAllowOnlyTypes('js'))
 
     del('release')
     .then(paths => {

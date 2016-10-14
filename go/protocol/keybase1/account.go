@@ -8,6 +8,10 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type HasServerKeysRes struct {
+	HasServerKeys bool `codec:"hasServerKeys" json:"hasServerKeys"`
+}
+
 type PassphraseChangeArg struct {
 	SessionID     int    `codec:"sessionID" json:"sessionID"`
 	OldPassphrase string `codec:"oldPassphrase" json:"oldPassphrase"`
@@ -20,12 +24,26 @@ type PassphrasePromptArg struct {
 	GuiArg    GUIEntryArg `codec:"guiArg" json:"guiArg"`
 }
 
+type EmailChangeArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	NewEmail  string `codec:"newEmail" json:"newEmail"`
+}
+
+type HasServerKeysArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type AccountInterface interface {
 	// Change the passphrase from old to new. If old isn't set, and force is false,
 	// then prompt at the UI for it. If old isn't set and force is true, then we'll
 	// try to force a passphrase change.
 	PassphraseChange(context.Context, PassphraseChangeArg) error
 	PassphrasePrompt(context.Context, PassphrasePromptArg) (GetPassphraseRes, error)
+	// * change email to the new given email by signing a statement.
+	EmailChange(context.Context, EmailChangeArg) error
+	// * Whether the logged-in user has uploaded private keys
+	// * Will error if not logged in.
+	HasServerKeys(context.Context, int) (HasServerKeysRes, error)
 }
 
 func AccountProtocol(i AccountInterface) rpc.Protocol {
@@ -64,6 +82,38 @@ func AccountProtocol(i AccountInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"emailChange": {
+				MakeArg: func() interface{} {
+					ret := make([]EmailChangeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]EmailChangeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]EmailChangeArg)(nil), args)
+						return
+					}
+					err = i.EmailChange(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"hasServerKeys": {
+				MakeArg: func() interface{} {
+					ret := make([]HasServerKeysArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]HasServerKeysArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]HasServerKeysArg)(nil), args)
+						return
+					}
+					ret, err = i.HasServerKeys(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -82,5 +132,19 @@ func (c AccountClient) PassphraseChange(ctx context.Context, __arg PassphraseCha
 
 func (c AccountClient) PassphrasePrompt(ctx context.Context, __arg PassphrasePromptArg) (res GetPassphraseRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.account.passphrasePrompt", []interface{}{__arg}, &res)
+	return
+}
+
+// * change email to the new given email by signing a statement.
+func (c AccountClient) EmailChange(ctx context.Context, __arg EmailChangeArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.account.emailChange", []interface{}{__arg}, nil)
+	return
+}
+
+// * Whether the logged-in user has uploaded private keys
+// * Will error if not logged in.
+func (c AccountClient) HasServerKeys(ctx context.Context, sessionID int) (res HasServerKeysRes, err error) {
+	__arg := HasServerKeysArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.account.hasServerKeys", []interface{}{__arg}, &res)
 	return
 }

@@ -1,10 +1,10 @@
 package chat
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // keyFinder remembers results from previous calls to CryptKeys().
@@ -12,12 +12,12 @@ import (
 // or held onto for very long, just to remember the keys while
 // unboxing a thread of messages.
 type KeyFinder struct {
-	keys map[string]keybase1.TLFCryptKeys
+	keys map[string]keybase1.GetTLFCryptKeysRes
 }
 
 // newKeyFinder creates a keyFinder.
 func NewKeyFinder() *KeyFinder {
-	return &KeyFinder{keys: make(map[string]keybase1.TLFCryptKeys)}
+	return &KeyFinder{keys: make(map[string]keybase1.GetTLFCryptKeysRes)}
 }
 
 func (k *KeyFinder) cacheKey(tlfName string, tlfPublic bool) string {
@@ -26,27 +26,31 @@ func (k *KeyFinder) cacheKey(tlfName string, tlfPublic bool) string {
 
 // find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
-func (k *KeyFinder) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.TLFCryptKeys, error) {
+func (k *KeyFinder) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
 	ckey := k.cacheKey(tlfName, tlfPublic)
 	existing, ok := k.keys[ckey]
 	if ok {
 		return existing, nil
 	}
 
-	var keys keybase1.TLFCryptKeys
+	query := keybase1.TLFQuery{
+		TlfName:          tlfName,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+
+	var keys keybase1.GetTLFCryptKeysRes
 	if tlfPublic {
-		cid, err := tlf.PublicCanonicalTLFNameAndID(ctx, tlfName)
+		res, err := tlf.PublicCanonicalTLFNameAndID(ctx, query)
 		if err != nil {
-			return keybase1.TLFCryptKeys{}, err
+			return keybase1.GetTLFCryptKeysRes{}, err
 		}
-		keys.CanonicalName = cid.CanonicalName
-		keys.TlfID = cid.TlfID
+		keys.NameIDBreaks = res
 		keys.CryptKeys = []keybase1.CryptKey{publicCryptKey}
 	} else {
 		var err error
-		keys, err = tlf.CryptKeys(ctx, tlfName)
+		keys, err = tlf.CryptKeys(ctx, query)
 		if err != nil {
-			return keybase1.TLFCryptKeys{}, err
+			return keybase1.GetTLFCryptKeysRes{}, err
 		}
 	}
 

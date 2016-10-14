@@ -13,7 +13,9 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -32,29 +34,56 @@ func init() {
 }
 
 type Boxer struct {
-	tlf    keybase1.TlfInterface
-	hashV1 func(data []byte) chat1.Hash
-	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
-	libkb.Contextified
+	tlf     keybase1.TlfInterface
+	hashV1  func(data []byte) chat1.Hash
+	sign    func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
+	udCache *lru.Cache
+	kbCtx   KeybaseContext
 }
 
-func NewBoxer(g *libkb.GlobalContext, tlf keybase1.TlfInterface) *Boxer {
+func NewBoxer(kbCtx KeybaseContext, tlf keybase1.TlfInterface) *Boxer {
+	udc, _ := lru.New(10000)
 	return &Boxer{
-		tlf:          tlf,
-		hashV1:       hashSha256V1,
-		sign:         sign,
-		Contextified: libkb.NewContextified(g),
+		tlf:     tlf,
+		hashV1:  hashSha256V1,
+		sign:    sign,
+		udCache: udc,
+		kbCtx:   kbCtx,
 	}
 }
 
-// unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
+type udCacheKey struct {
+	UID      keybase1.UID
+	DeviceID keybase1.DeviceID
+}
+
+type udCacheValue struct {
+	Username   string
+	DeviceName string
+}
+
+func (b *Boxer) log() logger.Logger {
+	return b.kbCtx.GetLog()
+}
+
+func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.MessageFromServerOrError {
+	return chat1.MessageFromServerOrError{
+		UnboxingError: &chat1.MessageError{
+			Errmsg:      err.Error(),
+			MessageID:   msg.ServerHeader.MessageID,
+			MessageType: msg.ServerHeader.MessageType,
+		},
+	}
+}
+
+// UnboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
-func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1.MessageBoxed) (messagePlaintext chat1.MessagePlaintext, headerHash chat1.Hash, err error) {
+func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1.MessageBoxed) (res chat1.MessageFromServerOrError, err error) {
 	tlfName := boxed.ClientHeader.TlfName
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := finder.Find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
-		return chat1.MessagePlaintext{}, nil, libkb.ChatUnboxingError{Msg: err.Error()}
+		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
 	var matchKey *keybase1.CryptKey
@@ -66,14 +95,33 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1
 	}
 
 	if matchKey == nil {
-		return chat1.MessagePlaintext{}, nil, libkb.ChatUnboxingError{Msg: fmt.Sprintf("no key found for generation %d", boxed.KeyGeneration)}
+		err := fmt.Errorf("no key found for generation %d", boxed.KeyGeneration)
+		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
-	if messagePlaintext, headerHash, err = b.unboxMessageWithKey(ctx, boxed, matchKey); err != nil {
-		return chat1.MessagePlaintext{}, nil, libkb.ChatUnboxingError{Msg: err.Error()}
+	messagePlaintext, headerHash, err := b.unboxMessageWithKey(ctx, boxed, matchKey)
+	if err != nil {
+		b.log().Warning("failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
+			err.Error())
+		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
-	return messagePlaintext, headerHash, nil
+	_, uimap := GetUserInfoMapper(ctx, b.kbCtx)
+	username, deviceName, err := b.getSenderInfoLocal(uimap, messagePlaintext)
+	if err != nil {
+		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
+			boxed.ServerHeader.Sender, boxed.ServerHeader.SenderDevice)
+	}
+
+	res.Message = &chat1.MessageFromServer{
+		ServerHeader:     *boxed.ServerHeader,
+		MessagePlaintext: messagePlaintext,
+		SenderDeviceName: deviceName,
+		SenderUsername:   username,
+		HeaderHash:       headerHash,
+	}
+
+	return res, nil
 }
 
 // unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given
@@ -171,6 +219,72 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 	}
 }
 
+// unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
+func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, convID chat1.ConversationID) (thread chat1.ThreadView, err error) {
+	thread = chat1.ThreadView{
+		Pagination: boxed.Pagination,
+	}
+
+	if thread.Messages, err = b.UnboxMessages(ctx, boxed.Messages); err != nil {
+		return chat1.ThreadView{}, err
+	}
+
+	return thread, nil
+}
+
+func (b *Boxer) getUsernameAndDeviceName(uid keybase1.UID, deviceID keybase1.DeviceID,
+	uimap *UserInfoMapper) (string, string, error) {
+
+	if val, ok := b.udCache.Get(udCacheKey{UID: uid, DeviceID: deviceID}); ok {
+		if udval, ok := val.(udCacheValue); ok {
+			b.log().Debug("getUsernameAndDeviceName: lru hit: u: %s d: %s", udval.Username,
+				udval.DeviceName)
+			return udval.Username, udval.DeviceName, nil
+		}
+	}
+
+	username, deviceName, err := uimap.Lookup(uid, deviceID)
+	if err != nil {
+		return username, deviceName, err
+	}
+	b.udCache.Add(udCacheKey{UID: uid, DeviceID: deviceID},
+		udCacheValue{Username: username, DeviceName: deviceName})
+	return username, deviceName, err
+}
+
+func (b *Boxer) getSenderInfoLocal(uimap *UserInfoMapper, messagePlaintext chat1.MessagePlaintext) (senderUsername string, senderDeviceName string, err error) {
+	version, err := messagePlaintext.Version()
+	if err != nil {
+		return "", "", err
+	}
+	switch version {
+	case chat1.MessagePlaintextVersion_V1:
+		v1 := messagePlaintext.V1()
+		uid := keybase1.UID(v1.ClientHeader.Sender.String())
+		did := keybase1.DeviceID(v1.ClientHeader.SenderDevice.String())
+		username, deviceName, err := b.getUsernameAndDeviceName(uid, did, uimap)
+		if err != nil {
+			return "", "", err
+		}
+
+		return username, deviceName, nil
+
+	default:
+		return "", "", libkb.NewChatMessageVersionError(version)
+	}
+}
+
+func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageFromServerOrError, err error) {
+	finder := NewKeyFinder()
+	ctx, _ = GetUserInfoMapper(ctx, b.kbCtx)
+	for _, msg := range boxed {
+		decmsg, _ := b.UnboxMessage(ctx, finder, msg)
+		unboxed = append(unboxed, decmsg)
+	}
+
+	return unboxed, nil
+}
+
 // boxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
 // finds the most recent key for the TLF.
 func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
@@ -192,25 +306,38 @@ func (b *Boxer) boxMessageV1(ctx context.Context, msg chat1.MessagePlaintextV1, 
 	tlfName := msg.ClientHeader.TlfName
 	var recentKey *keybase1.CryptKey
 
+	if len(tlfName) == 0 {
+		return nil, libkb.ChatBoxingError{Msg: "blank TLF name given"}
+	}
 	if msg.ClientHeader.TlfPublic {
 		recentKey = &publicCryptKey
-		res, err := b.tlf.PublicCanonicalTLFNameAndID(ctx, tlfName)
+		res, err := b.tlf.PublicCanonicalTLFNameAndID(ctx, keybase1.TLFQuery{
+			TlfName:          tlfName,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
 		if err != nil {
-			return nil, libkb.ChatBoxingError{Msg: err.Error()}
+			return nil, libkb.ChatBoxingError{Msg: "PublicCanonicalTLFNameAndID: " + err.Error()}
 		}
 		msg.ClientHeader.TlfName = string(res.CanonicalName)
 	} else {
-		keys, err := b.tlf.CryptKeys(ctx, tlfName)
+		keys, err := b.tlf.CryptKeys(ctx, keybase1.TLFQuery{
+			TlfName:          tlfName,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
 		if err != nil {
-			return nil, libkb.ChatBoxingError{Msg: err.Error()}
+			return nil, libkb.ChatBoxingError{Msg: "CryptKeys: " + err.Error()}
 		}
-		msg.ClientHeader.TlfName = string(keys.CanonicalName)
+		msg.ClientHeader.TlfName = string(keys.NameIDBreaks.CanonicalName)
 
 		for _, key := range keys.CryptKeys {
 			if recentKey == nil || key.KeyGeneration > recentKey.KeyGeneration {
 				recentKey = &key
 			}
 		}
+	}
+
+	if len(msg.ClientHeader.TlfName) == 0 {
+		return nil, libkb.ChatBoxingError{Msg: fmt.Sprintf("blank TLF name received: original: %s canonical: %s", tlfName, msg.ClientHeader.TlfName)}
 	}
 
 	if recentKey == nil {
@@ -408,7 +535,7 @@ func (b *Boxer) validSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	t := gregor1.FromTime(ctime)
 
 	var uimap *UserInfoMapper
-	ctx, uimap = GetUserInfoMapper(ctx, b.G())
+	ctx, uimap = GetUserInfoMapper(ctx, b.kbCtx)
 	user, err := uimap.User(kbSender)
 	if err != nil {
 		return false, err
