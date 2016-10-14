@@ -10,7 +10,6 @@ import (
 
 type MessageBoxed struct {
 	ServerHeader     *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
-	SupersededBy     *MessageBoxed        `codec:"supersededBy,omitempty" json:"supersededBy,omitempty"`
 	ClientHeader     MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
 	HeaderCiphertext EncryptedData        `codec:"headerCiphertext" json:"headerCiphertext"`
 	BodyCiphertext   EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
