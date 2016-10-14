@@ -10,10 +10,10 @@ import {defaultColor} from '../common-adapters/icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
-function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
+function MissingProofRow ({missingProof}: {missingProof: MissingProof}): React$Element<*> {
   const missingColor = globalColors.black_20
   return (
-    <Box style={{...styleMissingProofRow, ...style}} className='user-proof-row' key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
+    <Box style={styleMissingProofRow} className='user-proof-row' key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
       <Box style={iconContainer}>
         <Icon className='user-proof-row__icon' style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
       </Box>
@@ -35,7 +35,6 @@ type ProofRowProps = {
   showingMenu: boolean,
   onClickStatus: (proof: Proof) => void,
   onClickProfile: (proof: Proof) => void,
-  style: Object,
 }
 
 type ProofRowState = {
@@ -61,12 +60,12 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
   }
 
   render () {
-    const {proof, hasMenu, showingMenu, onClickProfile, onClickStatus, style} = this.props
+    const {proof, hasMenu, showingMenu, onClickProfile, onClickStatus} = this.props
     const proofStatusIconType = shared.proofStatusIcon(proof)
     const menuButtonVisible = this.state.hovering || showingMenu
 
     return (
-      <Box style={{...styleRow, ...style}} onMouseEnter={this._onMouseEnter} onMouseLeave={this._onMouseLeave}>
+      <Box style={styleRow} onMouseEnter={this._onMouseEnter} onMouseLeave={this._onMouseLeave}>
         <Box style={iconContainer}>
           <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
         </Box>
@@ -98,9 +97,9 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
   }
 }
 
-function LoadingProofRow ({textBlockWidth, style}: {textBlockWidth: number, style: Object}) {
+function LoadingProofRow ({textBlockWidth}: {textBlockWidth: number}) {
   return (
-    <Box style={{...styleRow, ...style}}>
+    <Box style={styleRow}>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
           <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 2, width: textBlockWidth}} />
