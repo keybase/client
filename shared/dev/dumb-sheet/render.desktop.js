@@ -8,17 +8,39 @@ import type {Props} from './render'
 import {Box, Text, Input, BackButton} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
-class Render extends Component<void, Props, any> {
+class DumbSheetRender extends Component<void, Props, any> {
   _onFilterChange: (a: any) => void;
+  _onNext: (a: any, offset: 1 | -1) => void;
+  _box: any;
 
   constructor (props: Props) {
     super(props)
 
     this._onFilterChange = debounce(filter => {
-      this.props.onDebugConfigChange({
-        dumbFilter: filter,
-      })
+      this.props.onDebugConfigChange({dumbFilter: filter})
     }, 300)
+  }
+
+  _onNext = (key, offset) => {
+    const keys = Object.keys(dumbComponentMap).map(k => k.toLowerCase()).sort()
+    const idx = keys.indexOf(key.toLowerCase())
+
+    if (idx === -1) {
+      return
+    }
+
+    const nextIdx = idx + offset
+
+    if (nextIdx < 0 || nextIdx >= keys.length) {
+      return
+    }
+
+    const filter = `'${keys[nextIdx]}':50`
+
+    this.props.onDebugConfigChange({dumbFilter: filter})
+    setImmediate(() => {
+      ReactDOM.findDOMNode(this.refs.scrollBox).scrollTop = 0
+    })
   }
 
   componentDidMount () {
@@ -34,11 +56,29 @@ class Render extends Component<void, Props, any> {
 
   render () {
     const parts = this.props.dumbFilter.toLowerCase().split(':')
-    const filter = parts[0]
-    let numItemsLeftWeCanShow = parseInt(parts[1], 10) || 10
+    let numItemsLeftWeCanShow = 10
+    let filter = parts.join(':')
+
+    if (parts.length > 1) {
+      try {
+        numItemsLeftWeCanShow = parseInt(parts[parts.length - 1], 10)
+        filter = parts.slice(0, parts.length - 1).join(':')
+      } catch (_) { }
+    }
+
+    let keys
+    let exact = false
+    // exact match
+    if (filter.startsWith("'") && filter.endsWith("'")) {
+      const toFind = filter.substring(1, filter.length - 1)
+      keys = Object.keys(dumbComponentMap).filter(key => key.toLowerCase() === toFind)
+      exact = true
+    } else {
+      keys = Object.keys(dumbComponentMap).sort()
+    }
 
     return (
-      <Box style={{...globalStyles.scrollable, padding: 20}}>
+      <Box style={{...globalStyles.scrollable, padding: 20}} ref='scrollBox'>
         <BackButton onClick={this.props.onBack} />
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text type='Header'>Filter:</Text>
@@ -48,9 +88,9 @@ class Render extends Component<void, Props, any> {
             onChange={event => this._onFilterChange(event.target.value.toLowerCase())}
           />
         </Box>
-        {Object.keys(dumbComponentMap).map(key => {
+        {keys.map(key => {
           const map = dumbComponentMap[key]
-          const includeAllChildren = !filter || key.toLowerCase().indexOf(filter) !== -1
+          const includeAllChildren = exact || !filter || key.toLowerCase().indexOf(filter) !== -1
           const items = Object.keys(map.mocks)
             .filter(mockKey => !filter || includeAllChildren || (key.toLowerCase() + mockKey.toLowerCase()).indexOf(filter) !== -1)
             .map((mockKey, idx) => {
@@ -74,8 +114,16 @@ class Render extends Component<void, Props, any> {
 
           return (
             <Box key={key} style={styleBox}>
-              <Text type='Header' style={{marginBottom: 5}} onClick={() => this._onFilterChange(key)}>{key}</Text>
+              <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginBottom: 5}}>
+                <Text type='Header' onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
+                <Text type='Header' onClick={() => this._onFilterChange(`'${key}'`)}>{key}</Text>
+                <Text type='Header' onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+              </Box>
               {items}
+              <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginTop: 5}}>
+                <Text type='Header' onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
+                <Text type='Header' onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+              </Box>
             </Box>
           )
         })}
@@ -92,4 +140,4 @@ export const styleBox = {
   boxShadow: '5px 5px lightgray',
 }
 
-export default Render
+export default DumbSheetRender
