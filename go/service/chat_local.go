@@ -777,7 +777,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		h.G().Log.Debug("chat attachment upload: %+v", upRes)
 	*/
 
-	upRes, err := chat.PutS3(h.G().Log, src, int64(arg.Size), params, h)
+	upRes, err := chat.PutS3(ctx, h.G().Log, src, int64(arg.Size), params, h)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}

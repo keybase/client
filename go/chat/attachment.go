@@ -2,7 +2,6 @@ package chat
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -13,6 +12,8 @@ import (
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
+	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 type UploadS3Result struct {
@@ -87,7 +88,7 @@ func UploadS3(log logger.Logger, r io.Reader, filename string, params chat1.S3At
 	return &res, nil
 }
 
-func PutS3(log logger.Logger, r io.Reader, size int64, params chat1.S3Params, signer s3.Signer) (*UploadS3Result, error) {
+func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, signer s3.Signer) (*UploadS3Result, error) {
 	region := aws.Region{
 		Name:             params.RegionName,
 		S3Endpoint:       params.RegionEndpoint,
@@ -97,9 +98,15 @@ func PutS3(log logger.Logger, r io.Reader, size int64, params chat1.S3Params, si
 	conn.AccessKey = params.AccessKey
 
 	b := conn.Bucket(params.Bucket)
-	err := b.PutReader(params.ObjectKey, r, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
-	if err != nil {
-		return nil, err
+
+	if size <= 5*1024*1024 {
+		if err := putSingle(log, r, size, params, b); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := putMultiPipeline(ctx, log, r, size, params, b); err != nil {
+			return nil, err
+		}
 	}
 
 	res := UploadS3Result{
@@ -111,6 +118,142 @@ func PutS3(log logger.Logger, r io.Reader, size int64, params chat1.S3Params, si
 	}
 
 	return &res, nil
+}
+
+func putSingle(log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket) error {
+	log.Debug("s3 putSingle (size = %d)", size)
+	return b.PutReader(params.ObjectKey, r, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
+
+}
+
+func putMulti(log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket) error {
+	log.Debug("s3 putMulti (size = %d)", size)
+	multi, err := b.InitMulti(params.ObjectKey, "application/octet-stream", s3.ACL(params.Acl))
+	if err != nil {
+		log.Debug("InitMulti error: %s", err)
+		return err
+	}
+
+	blockSize := 5 * 1024 * 1024
+	var parts []s3.Part
+	var partNumber int
+	for {
+		partNumber++
+		block := make([]byte, 5*1024*1024)
+		n, err := r.Read(block)
+		if err != nil && err != io.EOF {
+			return err
+		}
+		if n < blockSize {
+			block = block[:n]
+		}
+		if n > 0 {
+			log.Debug("start: upload part %d", partNumber)
+			part, putErr := multi.PutPart(partNumber, bytes.NewReader(block))
+			if putErr != nil {
+				return putErr
+			}
+			parts = append(parts, part)
+			log.Debug("finish: upload part %d", partNumber)
+		}
+		if err == io.EOF {
+			break
+		}
+	}
+
+	log.Debug("s3 putMulti all parts uploaded, completing request")
+
+	if err = multi.Complete(parts); err != nil {
+		log.Debug("multi.Complete error: %s", err)
+		return err
+	}
+	log.Debug("s3 putMulti success, %d parts", len(parts))
+	return nil
+}
+
+func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket) error {
+	log.Debug("s3 putMultiPipeline (size = %d)", size)
+	multi, err := b.InitMulti(params.ObjectKey, "application/octet-stream", s3.ACL(params.Acl))
+	if err != nil {
+		log.Debug("InitMulti error: %s", err)
+		return err
+	}
+
+	const blockSize = 5 * 1024 * 1024
+
+	type job struct {
+		block []byte
+		index int
+	}
+	eg, ctx := errgroup.WithContext(ctx)
+	blockCh := make(chan job)
+	retCh := make(chan s3.Part)
+	eg.Go(func() error {
+		defer close(blockCh)
+		var partNumber int
+		for {
+			partNumber++
+			block := make([]byte, 5*1024*1024)
+			n, err := r.Read(block)
+			if err != nil && err != io.EOF {
+				return err
+			}
+			if n < blockSize {
+				block = block[:n]
+			}
+			if n > 0 {
+				select {
+				case blockCh <- job{block: block, index: partNumber}:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+			}
+			if err == io.EOF {
+				break
+			}
+		}
+		return nil
+	})
+	for i := 0; i < 10; i++ {
+		eg.Go(func() error {
+			for b := range blockCh {
+				log.Debug("start: upload part %d", b.index)
+				part, putErr := multi.PutPart(b.index, bytes.NewReader(b.block))
+				if putErr != nil {
+					return putErr
+				}
+				select {
+				case retCh <- part:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+				log.Debug("finish: upload part %d", b.index)
+			}
+			return nil
+		})
+	}
+
+	go func() {
+		eg.Wait()
+		close(retCh)
+	}()
+
+	var parts []s3.Part
+	for p := range retCh {
+		parts = append(parts, p)
+	}
+	if err := eg.Wait(); err != nil {
+		return err
+	}
+
+	log.Debug("s3 putMulti all parts uploaded, completing request")
+
+	if err = multi.Complete(parts); err != nil {
+		log.Debug("multi.Complete error: %s", err)
+		return err
+	}
+	log.Debug("s3 putMulti success, %d parts", len(parts))
+	return nil
 }
 
 func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer) error {
