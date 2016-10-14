@@ -116,8 +116,10 @@ func (be *blockEngine) readBlockIndex(ctx context.Context, convID chat1.Conversa
 	return bi, nil
 }
 
-const bebikey = "bebi"
-const beskkey = "besk"
+type bekey string
+
+var bebikey bekey = "bebi"
+var beskkey bekey = "besk"
 
 func (be *blockEngine) init(ctx context.Context, key [32]byte, convID chat1.ConversationID,
 	uid gregor1.UID) (context.Context, libkb.ChatStorageError) {
