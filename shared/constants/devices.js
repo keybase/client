@@ -32,7 +32,7 @@ export type ShowDevices = TypedAction<'devices:showDevices', void, {errorText: s
 export const generatePaperKey = 'devices:generatePaperKey'
 export type GeneratePaperKey = NoErrorTypedAction<'devices:generatePaperKey', void>
 
-export type IncomingDisplayPaperKeyPhrase = NoErrorTypedAction<'keybase.1.loginUi.displayPaperKeyPhrase', {params: {paperKey: HiddenString}, response: {result: () => void}}>
+export type IncomingDisplayPaperKeyPhrase = {params: {phrase: string}, response: {result: () => void}}
 
 export type State = {
   waitingForServer: boolean,

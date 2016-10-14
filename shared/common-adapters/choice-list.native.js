@@ -39,9 +39,9 @@ class ChoiceList extends Component<void, Props, State> {
             onPressOut={() => this.setState({activeIndex: null})}>
             <Box style={styleEntry}>
               <Box style={styleIconContainer(this.state.activeIndex === idx)}>
-              {typeof op.icon === 'string'
-                ? <Icon style={styleIcon} type={op.icon} />
-                : <Box style={styleIcon}>{op.icon}</Box>}
+                {typeof op.icon === 'string'
+                  ? <Icon style={styleIcon} type={op.icon} />
+                  : <Box style={styleIcon}>{op.icon}</Box>}
               </Box>
               <Box style={styleInfoContainer}>
                 <Text style={styleInfoTitle} type='Body'>{op.title}</Text>

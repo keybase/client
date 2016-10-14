@@ -20,6 +20,7 @@ type CmdID struct {
 	user           string
 	useDelegateUI  bool
 	skipProofCache bool
+	forceDisplay   bool
 }
 
 func (v *CmdID) ParseArgv(ctx *cli.Context) error {
@@ -33,13 +34,15 @@ func (v *CmdID) ParseArgv(ctx *cli.Context) error {
 	}
 	v.useDelegateUI = ctx.Bool("ui")
 	v.skipProofCache = ctx.Bool("skip-proof-cache")
+	v.forceDisplay = ctx.Bool("force-display")
 	return nil
 }
 
 func (v *CmdID) makeArg() keybase1.Identify2Arg {
 	return keybase1.Identify2Arg{
 		UserAssertion:    v.user,
-		UseDelegateUI:    v.useDelegateUI,
+		UseDelegateUI:    v.useDelegateUI || v.forceDisplay,
+		ForceDisplay:     v.forceDisplay,
 		Reason:           keybase1.IdentifyReason{Reason: "CLI id command"},
 		ForceRemoteCheck: v.skipProofCache,
 		AlwaysBlock:      true,
@@ -87,6 +90,11 @@ func NewCmdID(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 			cli.BoolFlag{
 				Name:      "ui",
 				Usage:     "Use identify UI.",
+				HideUsage: !develUsage,
+			},
+			cli.BoolFlag{
+				Name:      "force-display",
+				Usage:     "Force identify UI to draw (even if still fresh)",
 				HideUsage: !develUsage,
 			},
 			cli.BoolFlag{

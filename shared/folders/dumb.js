@@ -9,7 +9,7 @@ import {globalStyles} from '../styles'
 import {pathFromFolder} from '../constants/favorite'
 
 function createFolder (partialFolder: $Shape<Folder>) {
-  return {...partialFolder, path: pathFromFolder(partialFolder).path}
+  return {...partialFolder, ...pathFromFolder(partialFolder)}
 }
 
 const f1: Folder = createFolder({
@@ -115,7 +115,7 @@ const f5: Folder = createFolder({
   youCanUnlock: [],
 })
 
-const f6: Folder = {
+const f6: Folder = createFolder({
   path: '/keybase/private/cecileb,jenbeeb',
   users: [
     {username: 'cecileb', you: true},
@@ -124,14 +124,13 @@ const f6: Folder = {
   meta: 'rekey',
   ignored: false,
   isPublic: false,
-  isFirst: false,
   hasData: false,
   groupAvatar: false,
   userAvatar: 'jenbee',
   recentFiles: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
-}
+})
 
 const tlfs: Array<Folder> = [f1, f2, f3, f4, f5, f6]
 
@@ -185,7 +184,6 @@ const commonFolders = {
   onRekey: path => console.log(`open rekey page: ${path}`),
   onToggleShowIgnored,
   username: 'cecileb',
-  showComingSoon: false,
   private: {tlfs, ignored, isPublic: false, parentProps, onToggleShowIgnored, showIgnored: true},
   public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps, onToggleShowIgnored, showIgnored: false},
   showingPrivate: true,
@@ -200,10 +198,6 @@ const map: DumbComponentMap<Folders> = {
     'Normal Public': {
       ...commonFolders,
       showingPrivate: false,
-    },
-    'ComingSoon': {
-      ...commonFolders,
-      showComingSoon: true,
     },
   },
 }

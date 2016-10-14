@@ -86,6 +86,8 @@ type GlobalContext struct {
 
 	CardCache *UserCardCache // cache of keybase1.UserCard objects
 
+	ConvSource ConversationSource // source of remote message bodies for chat
+
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
 }
@@ -705,4 +707,10 @@ func (g *GlobalContext) MakeAssertionContext() AssertionContext {
 
 func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
 	g.Services = s
+}
+
+func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
+	arg := NewLoadUserByUIDArg(g, uid)
+	arg.PublicKeyOptional = true
+	return LoadUser(arg)
 }

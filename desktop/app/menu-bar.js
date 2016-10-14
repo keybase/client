@@ -3,6 +3,7 @@ import hotPath from '../hot-path'
 import menubar from 'menubar'
 import {ipcMain, systemPreferences} from 'electron'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
+import {showDevTools, skipSecondaryDevtools} from '../shared/local-debug.desktop'
 
 let iconType: 'regular' | 'update' | 'badged' = 'regular'
 
@@ -29,7 +30,7 @@ const getIcon = (invertColors) => {
 
 export default function () {
   const mb = menubar({
-    index: `${resolveRootAsURL('renderer', 'launcher.html')}?src=${hotPath('launcher.bundle.js')}&dev=${__DEV__ ? 'true' : 'false'}&selectorParams=menubar`,
+    index: resolveRootAsURL('renderer', 'renderer.html?menubar'),
     width: 320,
     height: 350,
     frame: false,
@@ -92,6 +93,20 @@ export default function () {
       setImmediate(() => mb.tray.emit('click', {...e}, {...bounds}))
     })
     mb.tray.on('double-click', e => e.preventDefault())
+
+    const webContents = mb.window.webContents
+    webContents.once('did-finish-load', () => {
+      webContents.send('load', {
+        scripts: [
+          ...(__DEV__ ? [resolveRootAsURL('dist', 'dll/dll.vendor.js')] : []),
+          ...[hotPath('launcher.bundle.js')]],
+        selectorParams: 'menubar',
+      })
+    })
+
+    if (showDevTools && !skipSecondaryDevtools) {
+      webContents.openDevTools('detach')
+    }
 
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window

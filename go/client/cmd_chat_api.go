@@ -257,7 +257,7 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	for _, m := range threadView.Thread.Messages {
 		if m.UnboxingError != nil {
 			thread.Messages = append(thread.Messages, MsgFromServer{
-				Error: m.UnboxingError,
+				Error: &m.UnboxingError.Errmsg,
 			})
 			continue
 		}

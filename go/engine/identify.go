@@ -119,7 +119,7 @@ func (e *Identify) Run(ctx *Context) error {
 		}
 	}
 
-	ctx.IdentifyUI.Start(e.user.GetName(), e.arg.Reason)
+	ctx.IdentifyUI.Start(e.user.GetName(), e.arg.Reason, false /* force display */)
 
 	e.outcome, err = e.run(ctx)
 	if err != nil {

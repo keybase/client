@@ -22,6 +22,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -271,7 +272,7 @@ type ExternalAPI interface {
 }
 
 type IdentifyUI interface {
-	Start(string, keybase1.IdentifyReason) error
+	Start(string, keybase1.IdentifyReason, bool) error
 	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
 	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
 	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
@@ -515,4 +516,12 @@ type ServiceType interface {
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers(mode RunMode) []string
+}
+
+type ConversationSource interface {
+	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		msg chat1.MessageBoxed) (chat1.MessageFromServerOrError, error)
+	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
+		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
+	Clear(convID chat1.ConversationID, uid gregor1.UID) error
 }

@@ -28,7 +28,6 @@ const defaultBadgeStyle = {
   borderRadius: 10,
   flex: 0,
   marginLeft: 'auto',
-  marginRight: 8,
 }
 
 export default Badge

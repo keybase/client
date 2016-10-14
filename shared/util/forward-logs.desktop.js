@@ -93,12 +93,12 @@ function setupTarget () {
   keys.forEach(key => {
     const override = (...args) => {
       if (args.length) {
-        output[key](`${key}: ${Date()} (${Date.now()}): ${util.format.apply(util, args)}\n`)
+        output[key](`${key}: ${Date()} (${Date.now()}): ${util.format('%s', ...args)}\n`)
       }
     }
 
     console[key] = override
-    ipcMain.on(`console.${key}`, (event, args) => {
+    ipcMain.on(`console.${key}`, (event, ...args) => {
       const prologue = `From ${event.sender.getTitle()}: `
       output[key](prologue)
       override(...args)
@@ -111,9 +111,14 @@ function setupSource () {
     return
   }
 
-  console.log = (...args) => { try { localLog(...args); ipcRenderer.send('console.log', args) } catch (_) {} }
-  console.warn = (...args) => { try { localWarn(...args); ipcRenderer.send('console.warn', args) } catch (_) {} }
-  console.error = (...args) => { try { localError(...args); ipcRenderer.send('console.error', args) } catch (_) {} }
+  ['log', 'warn', 'error'].forEach(key => {
+    console[key] = (...args) => {
+      try {
+        const toSend = util.format('%j', args)
+        ipcRenderer.send('console.' + key, toSend + '\n')
+      } catch (_) {}
+    }
+  })
 }
 
 export {

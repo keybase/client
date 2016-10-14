@@ -2,12 +2,10 @@
 import Menubar from '../shared/menubar'
 import React, {Component} from 'react'
 import RemoteStore from './remote-store.desktop'
+import Root from './container'
 import hello from '../shared/util/hello'
 import loadPerf from '../shared/util/load-perf'
-import materialTheme from '../shared/styles/material-theme.desktop'
 import reactDOM from 'react-dom'
-import {MuiThemeProvider} from 'material-ui/styles'
-import {Provider} from 'react-redux'
 import {makeEngine} from '../shared/engine'
 import {remote} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
@@ -32,14 +30,17 @@ class RemoteMenubar extends Component {
   }
   render () {
     return (
-      <MuiThemeProvider muiTheme={materialTheme}>
-        <Provider store={store}>
-          <Menubar />
-        </Provider>
-      </MuiThemeProvider>
+      <Root store={store}>
+        <Menubar />
+      </Root>
     )
   }
 }
 
-reactDOM.render(React.createElement(RemoteMenubar), document.getElementById('root'))
 setupContextMenu(remote.getCurrentWindow())
+
+function load () {
+  reactDOM.render(<RemoteMenubar />, document.getElementById('root'))
+}
+
+window.load = load

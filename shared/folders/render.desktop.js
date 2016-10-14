@@ -1,5 +1,4 @@
 // @flow
-import FoldersHelp from './help.desktop'
 import List from './list'
 import React, {Component} from 'react'
 import type {Props} from './render'
@@ -8,10 +7,6 @@ import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 
 class Render extends Component<void, Props, void> {
-  _renderComingSoon () {
-    return <FoldersHelp username={this.props.username} />
-  }
-
   _makeItem (isPublic: boolean, isSelected: boolean) {
     const icon = isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
     const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
@@ -23,7 +18,8 @@ class Render extends Component<void, Props, void> {
       style={{
         ...styleItem,
         borderBottom: `solid 2px ${isSelected ? selectedColor : 'transparent'}`,
-        paddingLeft: 0,
+        paddingLeft: 20,
+        paddingRight: 20,
       }}
       styleBadge={styleBadge}
       styleIcon={{...styleIcon, ...iconStyle}}
@@ -41,10 +37,6 @@ class Render extends Component<void, Props, void> {
   }
 
   render () {
-    if (this.props.showComingSoon) {
-      return this._renderComingSoon()
-    }
-
     const sharedListProps = {
       style: this.props.listStyle,
       smallMode: this.props.smallMode,
@@ -53,9 +45,10 @@ class Render extends Component<void, Props, void> {
       onClick: this.props.onClick,
     }
 
+    let styleTabBar = this.props.smallMode ? tabBarSmallStyle : tabBarStyle
     return (
       <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue3 : globalColors.lightGrey, paddingTop: 0, minHeight: 32}}>
-        <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, minHeight: this.props.smallMode ? 32 : 64, paddingTop: this.props.smallMode ? 0 : 32}}>
+        <TabBar styleTabBar={{...styleTabBar, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
           {
             [false, true].map(isPublic => (
               <TabBarItem
@@ -85,14 +78,13 @@ const stylesContainer = {
 
 const styleBadge = {
   borderWidth: 0,
-  paddingLeft: 2,
+  paddingLeft: 3,
   paddingRight: 3,
   minWidth: 13,
   minHeight: 13,
   borderRadius: 20,
   flex: 'initial',
   justifyContent: 'center',
-  marginRight: 15,
   marginLeft: 2,
 }
 
@@ -119,6 +111,10 @@ const itemContainerStyle = {
 }
 
 const tabBarStyle = {
+  ...globalStyles.flexBoxRow,
+}
+
+const tabBarSmallStyle = {
   ...globalStyles.flexBoxRow,
   minHeight: 32,
   flexShrink: 1,

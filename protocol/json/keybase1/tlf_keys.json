@@ -4,9 +4,22 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "identify.avdl",
+      "type": "idl"
     }
   ],
   "types": [
+    {
+      "type": "enum",
+      "name": "TLFIdentifyBehavior",
+      "symbols": [
+        "DEFAULT_KBFS_0",
+        "CHAT_CLI_1",
+        "CHAT_GUI_2"
+      ]
+    },
     {
       "type": "record",
       "name": "CanonicalTlfName",
@@ -29,15 +42,41 @@
     },
     {
       "type": "record",
-      "name": "TLFCryptKeys",
+      "name": "TLFBreak",
       "fields": [
         {
-          "type": "TLFID",
-          "name": "tlfID"
+          "type": {
+            "type": "array",
+            "items": "TLFUserBreak"
+          },
+          "name": "breaks"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TLFUserBreak",
+      "fields": [
+        {
+          "type": "User",
+          "name": "user"
         },
         {
-          "type": "CanonicalTlfName",
-          "name": "CanonicalName"
+          "type": [
+            null,
+            "IdentifyTrackBreaks"
+          ],
+          "name": "breaks"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetTLFCryptKeysRes",
+      "fields": [
+        {
+          "type": "CanonicalTLFNameAndIDWithBreaks",
+          "name": "nameIDBreaks"
         },
         {
           "type": {
@@ -50,7 +89,21 @@
     },
     {
       "type": "record",
-      "name": "CanonicalTLFNameAndID",
+      "name": "TLFQuery",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tlfName"
+        },
+        {
+          "type": "TLFIdentifyBehavior",
+          "name": "identifyBehavior"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CanonicalTLFNameAndIDWithBreaks",
       "fields": [
         {
           "type": "TLFID",
@@ -59,6 +112,10 @@
         {
           "type": "CanonicalTlfName",
           "name": "CanonicalName"
+        },
+        {
+          "type": "TLFBreak",
+          "name": "breaks"
         }
       ]
     }
@@ -67,21 +124,21 @@
     "getTLFCryptKeys": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
+          "name": "query",
+          "type": "TLFQuery"
         }
       ],
-      "response": "TLFCryptKeys",
+      "response": "GetTLFCryptKeysRes",
       "doc": "getTLFCryptKeys returns TLF crypt keys from all generations and the TLF ID.\n   TLF ID should not be cached or stored persistently."
     },
     "getPublicCanonicalTLFNameAndID": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
+          "name": "query",
+          "type": "TLFQuery"
         }
       ],
-      "response": "CanonicalTLFNameAndID",
+      "response": "CanonicalTLFNameAndIDWithBreaks",
       "doc": "getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.\n   TLF ID should not be cached or stored persistently."
     }
   },

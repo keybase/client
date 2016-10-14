@@ -13,7 +13,9 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -61,9 +63,16 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 		t.Fatalf("user %s is not found", user.Username)
 	}
 	h := newChatLocalHandler(nil, tc.G, nil)
-	h.rc = kbtest.NewChatRemoteMock(c.world)
+	mockRemote := kbtest.NewChatRemoteMock(c.world)
 	h.tlf = kbtest.NewTlfMock(c.world)
 	h.boxer = chat.NewBoxer(tc.G, h.tlf)
+	f := func() libkb.SecretUI {
+		return &libkb.TestSecretUI{Passphrase: user.Passphrase}
+	}
+	storage := storage.New(tc.G, f)
+	tc.G.ConvSource = chat.NewHybridConversationSource(tc.G, h.boxer, storage, mockRemote)
+	h.setTestRemoteClient(mockRemote)
+
 	tuc := &chatTestUserContext{
 		h: h,
 		u: user,
@@ -280,6 +289,9 @@ func TestChatGetThreadLocal(t *testing.T) {
 }
 
 func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
+	// TODO: investigate LocalDb in TestContext and make it behave the same way
+	// as in real context / docker tests. This test should fail without the fix
+	// in ConvSource for marking is read, but does not currently.
 	ctc := makeChatTestContext(t, "GetThreadLocalMarkAsRead", 2)
 	defer ctc.cleanup()
 	users := ctc.users()
@@ -287,6 +299,7 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 	withUser1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 	mustPostLocalForTest(t, ctc, users[0], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello0"}))
 	mustPostLocalForTest(t, ctc, users[1], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello1"}))
+	mustPostLocalForTest(t, ctc, users[0], withUser1, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello2"}))
 
 	res, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxSummaryForCLILocal(context.Background(), chat1.GetInboxSummaryForCLILocalQuery{
 		TopicType: chat1.TopicType_CHAT,
@@ -315,14 +328,14 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: withUser1.Id,
 		Query: &chat1.GetThreadQuery{
-			MarkAsRead:   true,
-			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			MarkAsRead: true,
 		},
 	})
 	if err != nil {
 		t.Fatalf("GetThreadLocal error: %v", err)
 	}
-	if len(tv.Thread.Messages) != 2 {
+	if len(tv.Thread.Messages) != 4 {
+		// 3 messages and 1 TLF
 		t.Fatalf("unexpected response from GetThreadLocal. expected 2 items, got %d\n", len(tv.Thread.Messages))
 	}
 
@@ -373,7 +386,7 @@ func TestChatGracefulUnboxing(t *testing.T) {
 		t.Fatalf("unexpected response from GetThreadLocal. expected 3 items, got %d\n", len(tv.Thread.Messages))
 	}
 	if tv.Thread.Messages[0].Message != nil ||
-		tv.Thread.Messages[0].UnboxingError == nil || len(*tv.Thread.Messages[0].UnboxingError) == 0 {
+		tv.Thread.Messages[0].UnboxingError == nil || len(tv.Thread.Messages[0].UnboxingError.Errmsg) == 0 {
 		t.Fatalf("unexpected response from GetThreadLocal. expected an error message from bad msg, got %#+v\n", tv.Thread.Messages[0])
 	}
 	if tv.Thread.Messages[1].Message == nil || tv.Thread.Messages[1].Message.MessagePlaintext.V1().MessageBody.Text().Body != "innocent hello" {

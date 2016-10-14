@@ -30,6 +30,7 @@ const (
 	StatusCode_SCTrackingBroke          StatusCode = 278
 	StatusCode_SCWrongCryptoFormat      StatusCode = 279
 	StatusCode_SCDecryptionError        StatusCode = 280
+	StatusCode_SCBadEmail               StatusCode = 472
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
 	StatusCode_SCBadInvitationCode      StatusCode = 707
 	StatusCode_SCMissingResult          StatusCode = 801
@@ -111,6 +112,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTrackingBroke":          278,
 	"SCWrongCryptoFormat":      279,
 	"SCDecryptionError":        280,
+	"SCBadEmail":               472,
 	"SCBadSignupUsernameTaken": 701,
 	"SCBadInvitationCode":      707,
 	"SCMissingResult":          801,
@@ -192,6 +194,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	278:  "SCTrackingBroke",
 	279:  "SCWrongCryptoFormat",
 	280:  "SCDecryptionError",
+	472:  "SCBadEmail",
 	701:  "SCBadSignupUsernameTaken",
 	707:  "SCBadInvitationCode",
 	801:  "SCMissingResult",

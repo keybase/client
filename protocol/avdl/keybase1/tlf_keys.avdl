@@ -4,6 +4,13 @@
 // getting TLF keys
 protocol tlfKeys {
   import idl "common.avdl";
+  import idl "identify.avdl";
+
+  enum TLFIdentifyBehavior {
+    DEFAULT_KBFS_0,
+    CHAT_CLI_1,
+    CHAT_GUI_2
+  }
 
   @typedef("string")
   record CanonicalTlfName {}
@@ -13,32 +20,44 @@ protocol tlfKeys {
     Bytes32 Key;
   }
 
-  record TLFCryptKeys {
-    
-    TLFID tlfID;
+  record TLFBreak {
+    array<TLFUserBreak> breaks;
+  }
 
-    // canonical name of the TLF
-    CanonicalTlfName CanonicalName;
+  record TLFUserBreak {
+    User user;
+    union { null, IdentifyTrackBreaks } breaks;
+  }
+
+  record GetTLFCryptKeysRes {
+    CanonicalTLFNameAndIDWithBreaks nameIDBreaks;
 
     // crypt keys of all generations for this TLF, in order, starting from
     // FirstValidKeyGen
     array<CryptKey> CryptKeys;
   }
 
+  record TLFQuery {
+    string tlfName;
+    TLFIdentifyBehavior identifyBehavior;
+  }
+
   /**
    getTLFCryptKeys returns TLF crypt keys from all generations and the TLF ID.
    TLF ID should not be cached or stored persistently.
    */
-  TLFCryptKeys getTLFCryptKeys(string tlfName);
+  GetTLFCryptKeysRes getTLFCryptKeys(TLFQuery query);
 
-  record CanonicalTLFNameAndID {
+  record CanonicalTLFNameAndIDWithBreaks {
     TLFID tlfID;
     CanonicalTlfName CanonicalName;
+
+    TLFBreak breaks;
   }
 
   /**
    getPublicCanonicalTLFNameAndID return the canonical name and TLFID for tlfName.
    TLF ID should not be cached or stored persistently.
    */   
-  CanonicalTLFNameAndID getPublicCanonicalTLFNameAndID(string tlfName);
+  CanonicalTLFNameAndIDWithBreaks getPublicCanonicalTLFNameAndID(TLFQuery query);
 }

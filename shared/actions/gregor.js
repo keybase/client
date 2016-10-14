@@ -1,21 +1,27 @@
 // @flow
 
 import * as Constants from '../constants/gregor'
+import {usernameSelector} from '../constants/selectors'
+import {folderFromPath} from '../constants/favorite.js'
 import {call, put, select} from 'redux-saga/effects'
 import {takeEvery} from 'redux-saga'
-import {favoriteList} from './favorite'
+import {favoriteList, markTLFCreated} from './favorite'
 import engine from '../engine'
 import {delegateUiCtlRegisterGregorFirehoseRpc} from '../constants/types/flow-types'
 
-import type {PushState, UpdateSeenMsgs, MsgMap, NonNullGregorItem} from '../constants/gregor'
+import type {PushState, PushOOBM, UpdateSeenMsgs, MsgMap, NonNullGregorItem} from '../constants/gregor'
 import type {Dispatch} from '../constants/types/flux'
 import type {PushReason} from '../constants/types/flow-types'
-import type {State as GregorState, ItemAndMetadata as GregorItem} from '../constants/types/flow-types-gregor'
+import type {State as GregorState, ItemAndMetadata as GregorItem, OutOfBandMessage} from '../constants/types/flow-types-gregor'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
 function pushState (state: GregorState, reason: PushReason): PushState {
   return {type: Constants.pushState, payload: {state, reason}}
+}
+
+function pushOOBM (messages: Array<OutOfBandMessage>): PushOOBM {
+  return {type: Constants.pushOOBM, payload: {messages}}
 }
 
 function updateSeenMsgs (seenMsgs: Array<NonNullGregorItem>): UpdateSeenMsgs {
@@ -52,6 +58,16 @@ function registerGregorListeners () {
       dispatch(pushState(state, reason))
       response && response.result()
     })
+
+    engine().setIncomingHandler('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
+      if (oobm && oobm.length) {
+        const filteredOOBM = oobm.filter(oobm => !!oobm)
+        if (filteredOOBM.length) {
+          dispatch(pushOOBM(filteredOOBM))
+        }
+      }
+      response && response.result()
+    })
   }
 }
 
@@ -84,8 +100,37 @@ function * handlePushState (pushAction: PushState): SagaGenerator<any, any> {
   }
 }
 
+function * handleKbfsFavoritesOOBM (kbfsFavoriteMessages: Array<OutOfBandMessage>) {
+  const msgsWithParsedBodies = kbfsFavoriteMessages.map(m => ({...m, body: JSON.parse(m.body.toString())}))
+  const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
+
+  const username: string = ((yield select(usernameSelector)): any)
+  yield createdTLFs.map(m => {
+    const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
+    if (folder != null) {
+      return put(folder)
+    }
+    console.warn('Failed to parse tlf for oobm:', m)
+  }).filter(i => !!i)
+}
+
+function * handlePushOOBM (pushOOBM: pushOOBM) {
+  if (!pushOOBM.error) {
+    const {payload: {messages}} = pushOOBM
+
+    yield [
+      call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites')),
+    ]
+  } else {
+    console.log('Error in gregor oobm', pushOOBM.payload)
+  }
+}
+
 function * gregorSaga (): SagaGenerator<any, any> {
-  yield takeEvery(Constants.pushState, handlePushState)
+  yield [
+    takeEvery(Constants.pushState, handlePushState),
+    takeEvery(Constants.pushOOBM, handlePushOOBM),
+  ]
 }
 
 export {

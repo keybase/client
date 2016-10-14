@@ -2,7 +2,7 @@
 const http = require('http')
 const fs = require('fs')
 const spawn = require('child_process').spawn
-const electron = require('electron-prebuilt')
+const electron = require('electron')
 
 try {
   fs.mkdirSync('dist')
