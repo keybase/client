@@ -15,13 +15,14 @@ import type {
   CancelAddProof,
   CleanupUsername,
   SubmitBTCAddress,
+  SubmitUsername,
   UpdateErrorText,
   UpdatePlatform,
   UpdateProofStatus,
   UpdateProofText,
   UpdateSigID,
   Waiting,
-AddServiceProof,
+  AddServiceProof,
 } from '../../constants/profile'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -184,86 +185,85 @@ function _registerBTC (): AsyncAction {
   }
 }
 
-function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any, any> {
-  // TODO // ..._makeWaitingHandler(dispatch),
-  //
-  const channelConfig = singleFixedChannelConfig([
-    'keybase.1.proveUi.promptUsername',
-    'keybase.1.proveUi.outputInstructions',
-    'keybase.1.proveUi.promptOverwrite',
-    'keybase.1.proveUi.outputPrechecks',
-    'keybase.1.proveUi.preProofWarning',
-    'keybase.1.proveUi.okToCheck',
-    'keybase.1.proveUi.displayRecheckWarning',
-  ])
+// function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any, any> {
+  // // TODO // ..._makeWaitingHandler(dispatch),
+  // //
+  // const channelConfig = singleFixedChannelConfig([
+    // 'keybase.1.proveUi.promptUsername',
+    // 'keybase.1.proveUi.outputInstructions',
+    // 'keybase.1.proveUi.promptOverwrite',
+    // 'keybase.1.proveUi.outputPrechecks',
+    // 'keybase.1.proveUi.preProofWarning',
+    // 'keybase.1.proveUi.okToCheck',
+    // 'keybase.1.proveUi.displayRecheckWarning',
+  // ])
 
-  const proveStartProofChanMap: ChannelMap<any> = createChannelMap(channelConfig)
-  proveStartProofRpc({
-    param: {
-      auto: false,
-      force: true,
-      promptPosted: false,
-      service,
-      username: '',
-    },
-    incomingCallMap: {
-      'keybase.1.proveUi.promptUsername': ({prompt, prevError}, response) => {
-        putOnChannelMap(channelMap, 'keybase.1.proveUi.promptUsername', {params: {prompt, prevError}, response})
-        // _promptUsernameResponse = response
-        // if (prevError) {
-        // dispatch(_updateErrorText(prevError.desc, prevError.code))
-        // }
-        // dispatch(navigateTo([{path: 'ProveEnterUsername'}], profileTab))
-      },
-      'keybase.1.proveUi.outputInstructions': ({instructions, proof}, response) => {
-        putOnChannelMap(channelMap, 'keybase.1.proveUi.outputInstructions', {params: {instructions, proof}, response})
-        // if (service === 'dnsOrGenericWebSite') { // We don't get this directly (yet) so we parse this out
-        // try {
-        // const match = instructions.data.match(/<url>(http[s]+):\/\//)
-        // const protocol = match && match[1]
-        // _updatePlatform(protocol === 'https' ? 'https' : 'http')
-        // } catch (_) {
-        // _updatePlatform('http')
-        // }
-        // }
+  // const proveStartProofChanMap: ChannelMap<any> = createChannelMap(channelConfig)
+  // proveStartProofRpc({
+    // param: {
+      // auto: false,
+      // force: true,
+      // promptPosted: false,
+      // service,
+      // username: '',
+    // },
+    // incomingCallMap: {
+      // 'keybase.1.proveUi.promptUsername': ({prompt, prevError}, response) => {
+        // putOnChannelMap(channelMap, 'keybase.1.proveUi.promptUsername', {params: {prompt, prevError}, response})
+        // // _promptUsernameResponse = response
+        // // if (prevError) {
+        // // dispatch(_updateErrorText(prevError.desc, prevError.code))
+        // // }
+        // // dispatch(navigateTo([{path: 'ProveEnterUsername'}], profileTab))
+      // },
+      // 'keybase.1.proveUi.outputInstructions': ({instructions, proof}, response) => {
+        // putOnChannelMap(channelMap, 'keybase.1.proveUi.outputInstructions', {params: {instructions, proof}, response})
+        // // if (service === 'dnsOrGenericWebSite') { // We don't get this directly (yet) so we parse this out
+        // // try {
+        // // const match = instructions.data.match(/<url>(http[s]+):\/\//)
+        // // const protocol = match && match[1]
+        // // _updatePlatform(protocol === 'https' ? 'https' : 'http')
+        // // } catch (_) {
+        // // _updatePlatform('http')
+        // // }
+        // // }
 
-        // dispatch(_updateProofText(proof))
-        // _outputInstructionsResponse = response
-        // dispatch(navigateTo([{path: 'PostProof'}], profileTab))
-      },
-      'keybase.1.proveUi.promptOverwrite': (_, response) => response.result(true),
-      'keybase.1.proveUi.outputPrechecks': (_, response) => response.result(),
-      'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
-      'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
-      'keybase.1.proveUi.displayRecheckWarning': (_, response) => response.result(),
-    },
-    callback: (error) => {
-      putOnChannelMap(channelMap, 'finished', {error})
-      closeChannelMap(channelMap)
-    },
-  })
+        // // dispatch(_updateProofText(proof))
+        // // _outputInstructionsResponse = response
+        // // dispatch(navigateTo([{path: 'PostProof'}], profileTab))
+      // },
+      // 'keybase.1.proveUi.promptOverwrite': (_, response) => response.result(true),
+      // 'keybase.1.proveUi.outputPrechecks': (_, response) => response.result(),
+      // 'keybase.1.proveUi.preProofWarning': (_, response) => response.result(true),
+      // 'keybase.1.proveUi.okToCheck': (_, response) => response.result(true),
+      // 'keybase.1.proveUi.displayRecheckWarning': (_, response) => response.result(),
+    // },
+    // callback: (error) => {
+      // putOnChannelMap(channelMap, 'finished', {error})
+      // closeChannelMap(channelMap)
+    // },
+  // })
 
-  try {
-  } catch (error) {
-    closeChannelMap(proveStartProofChanMap)
-    console.log('error in addServiceProof', error)
-  }
-  }
+  // try {
+  // } catch (error) {
+    // closeChannelMap(proveStartProofChanMap)
+    // console.log('error in addServiceProof', error)
+  // }
 
-   // takeFromChannelMap(proveStartProofChanMap, 'keybase.1.pgpUi.keyGenerated'),
+   // // takeFromChannelMap(proveStartProofChanMap, 'keybase.1.pgpUi.keyGenerated'),
 
-// success stuff TODO
-    yield put(_updateSigID(sigID))
-    console.log('Start Proof done: ', sigID)
-    yield put(checkProof())
+// // success stuff TODO
+    // // yield put(_updateSigID(sigID))
+    // // console.log('Start Proof done: ', sigID)
+    // // yield put(checkProof())
 
-// fail stuff TODO
-  } catch (error) {
-    console.warn('Error making proof')
-    yield put(_updateSigID(sigID))
-    yield put(_updateErrorText(error.desc, error.code))
-  }
-}
+// // fail stuff TODO
+  // // } catch (error) {
+    // // console.warn('Error making proof')
+    // // yield put(_updateSigID(sigID))
+    // // yield put(_updateErrorText(error.desc, error.code))
+  // // }
+// }
 
 function _cleanupUsername (): CleanupUsername {
   return {type: Constants.cleanupUsername, payload: undefined}
