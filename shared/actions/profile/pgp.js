@@ -1,10 +1,10 @@
 // @flow
 import * as Constants from '../../constants/profile'
 import {call, put, take, race, select} from 'redux-saga/effects'
-import {createChannelMap, putOnChannelMap, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap} from '../../util/saga'
+import {singleFixedChannelConfig, closeChannelMap, takeFromChannelMap} from '../../util/saga'
 import {isValidEmail, isValidName} from '../../util/simple-validators'
 import {navigateTo, routeAppend} from '../../actions/router'
-import {pgpPgpKeyGenDefaultRpc, revokeRevokeKeyRpcPromise} from '../../constants/types/flow-types'
+import {pgpPgpKeyGenDefaultRpcChannelMap, revokeRevokeKeyRpcPromise} from '../../constants/types/flow-types'
 import {takeLatest, takeEvery} from 'redux-saga'
 
 import type {KID} from '../../constants/types/flow-types'
@@ -78,32 +78,14 @@ function _generatePgpKey (channelConfig: ChannelConfig<*>, pgpInfo: PgpInfo): an
     email: email || '',
   }))
 
-  const channelMap = createChannelMap(channelConfig)
-  pgpPgpKeyGenDefaultRpc({
+  return pgpPgpKeyGenDefaultRpcChannelMap(channelConfig, {
     param: {
       createUids: {
         useDefault: false,
         ids: identities,
       },
     },
-    incomingCallMap: {
-      'keybase.1.pgpUi.keyGenerated': ({kid, key}, response) => {
-        putOnChannelMap(channelMap, 'keybase.1.pgpUi.keyGenerated', {params: {kid, key}, response})
-      },
-      'keybase.1.pgpUi.shouldPushPrivate': (p, response) => {
-        putOnChannelMap(channelMap, 'keybase.1.pgpUi.shouldPushPrivate', {response})
-      },
-      'keybase.1.pgpUi.finished': (p, response) => {
-        putOnChannelMap(channelMap, 'keybase.1.pgpUi.finished', {response})
-      },
-    },
-    callback: (error) => {
-      putOnChannelMap(channelMap, 'finished', {error})
-      closeChannelMap(channelMap)
-    },
   })
-
-  return channelMap
 }
 
 function * _checkPgpInfo (action: UpdatePgpInfo): SagaGenerator<any, any> {
