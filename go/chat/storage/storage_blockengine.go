@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 )
 
+const blockIndexVersion = 1
 const blockSize = 100
 
 type blockEngine struct {
@@ -23,6 +24,7 @@ func newBlockEngine(g *libkb.GlobalContext) *blockEngine {
 }
 
 type blockIndex struct {
+	Version   int
 	ConvID    chat1.ConversationID
 	UID       gregor1.UID
 	MaxBlock  int
@@ -67,6 +69,7 @@ func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
 	convID chat1.ConversationID, uid gregor1.UID) (blockIndex, libkb.ChatStorageError) {
 
 	bi := blockIndex{
+		Version:   blockIndexVersion,
 		ConvID:    convID,
 		UID:       uid,
 		MaxBlock:  0,
@@ -106,6 +109,10 @@ func (be *blockEngine) readBlockIndex(ctx context.Context, convID chat1.Conversa
 	if err = decode(raw, &bi); err != nil {
 		return bi, libkb.NewChatStorageInternalError(be.G(), "readBlockIndex: failed to decode: %s", err.Error())
 	}
+	if bi.Version > blockIndexVersion {
+		return bi, libkb.NewChatStorageInternalError(be.G(), "readBlockIndex: incompatible index version")
+	}
+
 	return bi, nil
 }
 
