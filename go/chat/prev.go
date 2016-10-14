@@ -18,11 +18,11 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 	// ID. Enforce that there are no duplicate IDs.
 	// TODO: What should we really be doing with unboxing errors? Do we worry
 	//       about an evil server causing them intentionally?
-	knownMessages := make(map[chat1.MessageID]chat1.MessageFromServer)
+	knownMessages := make(map[chat1.MessageID]chat1.MessageUnboxedValid)
 	unprevedIDs := make(map[chat1.MessageID]struct{})
 	for _, messageOrError := range thread.Messages {
-		if messageOrError.Message != nil {
-			msg := *messageOrError.Message
+		if messageOrError.IsValid() {
+			msg := messageOrError.Valid()
 			id := msg.ServerHeader.MessageID
 
 			// Check for IDs that show up more than once. IDs are assigned
@@ -48,8 +48,7 @@ func CheckPrevPointersAndGetUnpreved(thread *chat1.ThreadView) ([]chat1.MessageP
 	// pointing to it.
 	seenHashes := make(map[chat1.MessageID]chat1.Hash)
 	for id, msg := range knownMessages {
-		plaintext := msg.MessagePlaintext.V1()
-		for _, prev := range plaintext.ClientHeader.Prev {
+		for _, prev := range msg.ClientHeader.Prev {
 			// Check that the prev's ID doesn't come after us. That would make no sense.
 			if prev.Id > id {
 				return nil, libkb.NewChatThreadConsistencyError(

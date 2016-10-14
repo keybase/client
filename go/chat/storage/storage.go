@@ -29,8 +29,8 @@ type storageEngine interface {
 	init(ctx context.Context, key [32]byte, convID chat1.ConversationID,
 		uid gregor1.UID) (context.Context, libkb.ChatStorageError)
 	writeMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		msgs []chat1.MessageFromServerOrError) libkb.ChatStorageError
-	readMessages(ctx context.Context, res *[]chat1.MessageFromServerOrError,
+		msgs []chat1.MessageUnboxed) libkb.ChatStorageError
+	readMessages(ctx context.Context, res *[]chat1.MessageUnboxed,
 		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID, num int,
 		df doneFunc) libkb.ChatStorageError
 }
@@ -71,7 +71,7 @@ func decode(data []byte, res interface{}) error {
 	return err
 }
 
-func simpleDone(msgs *[]chat1.MessageFromServerOrError, num int) bool {
+func simpleDone(msgs *[]chat1.MessageUnboxed, num int) bool {
 	return len(*msgs) >= num
 }
 
@@ -93,7 +93,7 @@ func (s *Storage) MaybeNuke(force bool, err libkb.ChatStorageError, convID chat1
 	return err
 }
 
-func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageFromServerOrError) libkb.ChatStorageError {
+func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) libkb.ChatStorageError {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
@@ -127,26 +127,26 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 }
 
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageFromServerOrError) libkb.ChatStorageError {
+	uid gregor1.UID, msgs []chat1.MessageUnboxed) libkb.ChatStorageError {
 
 	s.debug("updateSupersededBy: num msgs: %d", len(msgs))
 	// Do a pass over all the messages and update supersededBy pointers
 	for _, msg := range msgs {
 
 		msgid := msg.GetMessageID()
-		if msg.UnboxingError != nil {
+		if !msg.IsValid() {
 			s.debug("updateSupersededBy: skipping potential superseder marked as error: %d", msgid)
 			continue
 		}
 
-		superID := msg.Message.MessagePlaintext.V1().ClientHeader.Supersedes
+		superID := msg.Valid().ClientHeader.Supersedes
 		if superID == 0 {
 			continue
 		}
 
 		s.debug("updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, superID)
 		// Read super msg
-		var superMsgs []chat1.MessageFromServerOrError
+		var superMsgs []chat1.MessageUnboxed
 		err := s.engine.readMessages(ctx, &superMsgs, convID, uid, superID, 1, simpleDone)
 		if err != nil {
 			// If we don't have the message, just keep going
@@ -160,10 +160,12 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 		}
 
 		// Update supersededBy on the target message if we have it
-		superMsg := &superMsgs[0]
-		if superMsg.Message != nil {
+		superMsg := superMsgs[0]
+		if superMsg.IsValid() {
 			s.debug("updateSupersededBy: writing: id: %d superseded: %d", msgid, superID)
-			superMsg.Message.ServerHeader.SupersededBy = msgid
+			mvalid := superMsg.Valid()
+			mvalid.ServerHeader.SupersededBy = msgid
+			superMsgs[0] = chat1.NewMessageUnboxedWithValid(mvalid)
 			if err = s.engine.writeMessages(ctx, convID, uid, superMsgs); err != nil {
 				return err
 			}
@@ -198,7 +200,7 @@ func (s *Storage) getSecretBoxKey() (fkey [32]byte, err error) {
 	return fkey, nil
 }
 
-type doneFunc func(*[]chat1.MessageFromServerOrError, int) bool
+type doneFunc func(*[]chat1.MessageUnboxed, int) bool
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
@@ -259,7 +261,7 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 			typmap[mt] = true
 		}
 	}
-	typedDoneFunc := func(msgs *[]chat1.MessageFromServerOrError, num int) bool {
+	typedDoneFunc := func(msgs *[]chat1.MessageUnboxed, num int) bool {
 		count := 0
 		for _, msg := range *msgs {
 			if _, ok := typmap[msg.GetMessageType()]; ok {
@@ -277,7 +279,7 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	}
 
 	// Run seek looking for all the messages
-	var res []chat1.MessageFromServerOrError
+	var res []chat1.MessageUnboxed
 	if err = s.engine.readMessages(ctx, &res, convID, uid, maxID, num, df); err != nil {
 		return chat1.ThreadView{}, err
 	}

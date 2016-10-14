@@ -1604,13 +1604,6 @@ func NewChatBodyVersionError(version chat1.BodyPlaintextVersion) ChatVersionErro
 	}
 }
 
-func NewChatMessageVersionError(version chat1.MessagePlaintextVersion) ChatVersionError {
-	return ChatVersionError{
-		Kind:    "message",
-		Version: int(version),
-	}
-}
-
 //=============================================================================
 
 type ChatBodyHashInvalid struct{}

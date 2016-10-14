@@ -255,60 +255,54 @@ func (c *CmdChatAPI) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 
 	var thread Thread
 	for _, m := range threadView.Thread.Messages {
-		if m.UnboxingError != nil {
+		st, err := m.State()
+		if err != nil {
+			return c.errReply(errors.New("invalid message: unknown state"))
+		}
+
+		if st == chat1.MessageUnboxedState_ERROR {
+			em := m.Error().ErrMsg
 			thread.Messages = append(thread.Messages, MsgFromServer{
-				Error: &m.UnboxingError.Errmsg,
+				Error: &em,
 			})
 			continue
 		}
 
-		if m.Message != nil {
-			version, err := m.Message.MessagePlaintext.Version()
-			if err != nil {
-				return c.errReply(err)
-			}
-			switch version {
-			case chat1.MessagePlaintextVersion_V1:
-				v1 := m.Message.MessagePlaintext.V1()
-				if v1.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
-					// skip TLFNAME messages
-					continue
-				}
-				prev := v1.ClientHeader.Prev
-				// Avoid having null show up in the output JSON.
-				if prev == nil {
-					prev = []chat1.MessagePreviousPointer{}
-				}
-				msg := MsgSummary{
-					ID: m.Message.ServerHeader.MessageID,
-					Channel: ChatChannel{
-						Name:      v1.ClientHeader.TlfName,
-						Public:    v1.ClientHeader.TlfPublic,
-						TopicType: strings.ToLower(v1.ClientHeader.Conv.TopicType.String()),
-					},
-					Sender: MsgSender{
-						UID:      v1.ClientHeader.Sender.String(),
-						DeviceID: v1.ClientHeader.SenderDevice.String(),
-					},
-					SentAt:   m.Message.ServerHeader.Ctime.UnixSeconds(),
-					SentAtMs: m.Message.ServerHeader.Ctime.UnixMilliseconds(),
-					Prev:     prev,
-				}
-				msg.Content = c.convertMsgBody(v1.MessageBody)
-
-				msg.Sender.Username = m.Message.SenderUsername
-				msg.Sender.DeviceName = m.Message.SenderDeviceName
-
-				thread.Messages = append(thread.Messages, MsgFromServer{
-					Msg: &msg,
-				})
-				continue
-			default:
-				return c.errReply(libkb.NewChatMessageVersionError(version))
-			}
+		mv := m.Valid()
+		if mv.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
+			// skip TLFNAME messages
+			continue
 		}
+		prev := mv.ClientHeader.Prev
+		// Avoid having null show up in the output JSON.
+		if prev == nil {
+			prev = []chat1.MessagePreviousPointer{}
+		}
+		msg := MsgSummary{
+			ID: mv.ServerHeader.MessageID,
+			Channel: ChatChannel{
+				Name:      mv.ClientHeader.TlfName,
+				Public:    mv.ClientHeader.TlfPublic,
+				TopicType: strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
+			},
+			Sender: MsgSender{
+				UID:      mv.ClientHeader.Sender.String(),
+				DeviceID: mv.ClientHeader.SenderDevice.String(),
+			},
+			SentAt:   mv.ServerHeader.Ctime.UnixSeconds(),
+			SentAtMs: mv.ServerHeader.Ctime.UnixMilliseconds(),
+			Prev:     prev,
+		}
+		msg.Content = c.convertMsgBody(mv.MessageBody)
 
-		return c.errReply(errors.New("unexpected response from service: UnboxingError and Message are both empty"))
+		msg.Sender.Username = mv.SenderUsername
+		msg.Sender.DeviceName = mv.SenderDeviceName
+
+		thread.Messages = append(thread.Messages, MsgFromServer{
+			Msg: &msg,
+		})
+		continue
+
 	}
 
 	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
@@ -411,7 +405,7 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 
 	postArg := chat1.PostLocalArg{
 		ConversationID: convID,
-		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
+		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        convTriple,
 				TlfName:     *arg.convQuery.TlfName,
@@ -420,7 +414,7 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 				Supersedes:  arg.supersedes,
 			},
 			MessageBody: arg.body,
-		}),
+		},
 	}
 	plres, err := client.PostLocal(ctx, postArg)
 	if err != nil {
