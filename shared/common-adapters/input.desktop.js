@@ -1,9 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './input'
 import {TextField} from 'material-ui'
 import {globalStyles, globalColors} from '../styles'
-import {styles as TextStyles, specialStyles} from './text'
+import {getStyle} from './text'
+
+import type {Props} from './input'
 
 type State = {
   value: ?string,
@@ -67,7 +68,19 @@ class Input extends Component<void, Props, State> {
     const style = this.props.small ? styles.containerSmall : styles.container
     const textStyle = this.props.small ? styles.inputSmall : styles.input
     const textHeight = this.props.small ? 32 : (this.props.floatingLabelText ? 79 : 50)
-    const hintBottom = this.props.small ? 11 : (this.props.multiline ? 16 : 14)
+    const hintStyle = {bottom: this.props.small ? 11 : (this.props.multiline ? 16 : 14)}
+
+    // HACK to make this cr*p line up. let's :fire: this whole file soon
+    if (!this.props.small && !this.props.floatingLabelText && this.props.hintText) {
+      // $FlowIssue this whole class needs to be cleaned up
+      hintStyle.bottom = 'initial'
+      // $FlowIssue this whole class needs to be cleaned up
+      hintStyle.top = 7
+    }
+    if (!this.props.small && this.props.floatingLabelText && this.props.hintText) {
+      // $FlowIssue this whole class needs to be cleaned up
+      hintStyle.top = 32
+    }
 
     // HACK: We can't reset the text area style, so we need to counteract it by moving the wrapper up
     const multilineStyleFix = {
@@ -97,7 +110,7 @@ class Input extends Component<void, Props, State> {
           floatingLabelStyle={styles.floatingLabelStyle}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
           fullWidth={true}
-          hintStyle={{bottom: hintBottom, ...styles.hintStyle, ...this.props.hintStyle}}
+          hintStyle={{...hintStyle, ...styles.hintStyle, ...this.props.hintStyle}}
           hintText={this.props.hintText}
           inputStyle={{...(this.props.small ? {} : {marginTop: 4}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
           textareaStyle={{...alignStyle, overflow: 'overlay'}}
@@ -131,11 +144,12 @@ export const styles = {
     marginTop: 2,
   },
   input: {
-    ...specialStyles.textInput,
+    ...getStyle('Header', 'Normal'),
+    color: globalColors.black_10,
   },
   inputSmall: {
-    ...TextStyles.textBody,
-    ...TextStyles.textSmallMixin,
+    ...getStyle('BodySmall', 'Normal'),
+    color: globalColors.black_10,
     lineHeight: '16px',
   },
   underlineFocusStyle: {
@@ -153,7 +167,7 @@ export const styles = {
     ...globalStyles.fontRegular,
     color: globalColors.red,
     alignSelf: 'center',
-    fontSize: 14,
+    fontSize: 13,
     lineHeight: '17px',
     position: 'initial',
     marginTop: 4,
@@ -172,10 +186,10 @@ export const styles = {
     ...globalStyles.fontSemibold,
     alignSelf: 'center',
     color: globalColors.black_10,
-    fontSize: 24,
+    fontSize: 16,
     lineHeight: '29px',
     position: 'inherit',
-    top: 36,
+    top: 30,
     transform: 'scale(1) translate3d(0, 0, 0)',
     transition: 'color 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms',
   },
@@ -183,7 +197,7 @@ export const styles = {
     ...globalStyles.fontSemibold,
     alignSelf: 'center',
     color: globalColors.blue,
-    fontSize: 14,
+    fontSize: 11,
     lineHeight: '29px',
     position: 'inherit',
     transform: 'perspective(1px) scale(1) translate3d(2px, -26px, 0)',
