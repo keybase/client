@@ -51,8 +51,8 @@ const Divider = () => <Box style={{height: 1, backgroundColor: globalColors.blac
 
 const stylesRow = {
   ...globalStyles.flexBoxColumn,
-  paddingTop: 8,
-  paddingBottom: 8,
+  paddingTop: 4,
+  paddingBottom: 4,
   paddingLeft: 15,
   paddingRight: 15,
 }

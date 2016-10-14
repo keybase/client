@@ -119,7 +119,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
               borderBottom: `1px solid ${globalColors.black_05}`,
             }}>
             <PlatformIcon platform={proof.type} overlay='icon-proof-success' overlayColor={globalColors.blue} />
-            {!!proof.mTime && <Text type='Body' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
+            {!!proof.mTime && <Text type='BodySmall' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
           </Box>,
         },
         items: [
@@ -212,9 +212,11 @@ class ProfileRender extends PureComponent<void, Props, State> {
     if (!this.state.foldersExpanded && folders.length > 4) {
       folders = folders.slice(0, 4)
       folders.push(
-        <Box key='more' style={styleFolderLine} onClick={() => this.setState({foldersExpanded: true})}>
-          <Icon type='iconfont-ellipsis' style={styleFolderIcon} />
-          <Text type='BodySmall' style={{color: globalColors.black_60}}>+ {this.props.tlfs.length - folders.length} more</Text>
+        <Box key='more' style={{...styleFolderLine, alignItems: 'center'}} onClick={() => this.setState({foldersExpanded: true})}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
+            <Icon type='iconfont-ellipsis' style={{...styleFolderIcon}} />
+          </Box>
+          <Text type='BodySmall' style={{color: globalColors.black_60, marginBottom: 2}}>+ {this.props.tlfs.length - folders.length} more</Text>
         </Box>
       )
     }

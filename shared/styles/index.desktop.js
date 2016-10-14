@@ -112,6 +112,9 @@ const util = {
 const globalStyles = {
   ...font,
   ...util,
+  italic: {
+    fontStyle: 'italic',
+  },
 }
 
 function transition (...properties: Array<string>) : Object {
