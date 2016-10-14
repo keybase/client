@@ -81,6 +81,18 @@
         },
         {
           "type": "string",
+          "name": "region"
+        },
+        {
+          "type": "string",
+          "name": "endpoint"
+        },
+        {
+          "type": "string",
+          "name": "bucket"
+        },
+        {
+          "type": "string",
           "name": "path"
         },
         {
@@ -797,6 +809,19 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "DownloadAttachmentLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
     }
   ],
   "messages": {
@@ -960,6 +985,27 @@
         }
       ],
       "response": "GetMessagesLocalRes"
+    },
+    "DownloadAttachmentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "messageID",
+          "type": "MessageID"
+        },
+        {
+          "name": "sink",
+          "type": "keybase1.Stream"
+        }
+      ],
+      "response": "DownloadAttachmentLocalRes"
     }
   },
   "namespace": "chat.1"

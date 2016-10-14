@@ -787,7 +787,10 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	attachment := chat1.MessageAttachment{
 		Object: chat1.Asset{
 			Filename: filepath.Base(arg.Filename),
-			Path:     fmt.Sprintf("s3://%s/%s", upRes.S3Bucket, upRes.S3Path),
+			Region:   upRes.Region,
+			Endpoint: upRes.Endpoint,
+			Bucket:   upRes.Bucket,
+			Path:     upRes.Path,
 			Size:     int(upRes.Size),
 		},
 	}
@@ -799,6 +802,57 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		}),
 	}
 	return h.PostLocal(ctx, postArg)
+}
+
+// DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
+func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat1.DownloadAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
+	// get s3 params from server
+	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
+	if err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+
+	marg := chat1.GetMessagesLocalArg{
+		ConversationID: arg.ConversationID,
+		MessageIDs:     []chat1.MessageID{arg.MessageID},
+	}
+	msgs, err := h.GetMessagesLocal(ctx, marg)
+	if err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+	if len(msgs.Messages) == 0 {
+		return chat1.DownloadAttachmentLocalRes{}, libkb.NotFoundError{}
+	}
+	first := msgs.Messages[0]
+	if first.UnboxingError != nil {
+		return chat1.DownloadAttachmentLocalRes{}, libkb.ChatUnboxingError{Msg: *first.UnboxingError}
+	}
+
+	cli := h.getStreamUICli()
+	sink := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
+
+	msg := first.Message.MessagePlaintext
+	version, err := msg.Version()
+	if err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+	switch version {
+	case chat1.MessagePlaintextVersion_V1:
+		body := msg.V1().MessageBody
+		if t, err := body.MessageType(); err != nil {
+			return chat1.DownloadAttachmentLocalRes{}, err
+		} else if t != chat1.MessageType_ATTACHMENT {
+			return chat1.DownloadAttachmentLocalRes{}, errors.New("not an attachment message")
+		}
+
+		attachment := msg.V1().MessageBody.Attachment()
+		// XXX handle preview
+		if err := chat.DownloadAsset(ctx, h.G().Log, params, attachment.Object, sink, h); err != nil {
+			return chat1.DownloadAttachmentLocalRes{}, err
+		}
+	}
+
+	return chat1.DownloadAttachmentLocalRes{RateLimits: msgs.RateLimits}, nil
 }
 
 func (h *chatLocalHandler) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {
@@ -851,11 +905,9 @@ func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {
 }
 
 func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
-	h.G().Log.Warning("payload: %s", string(payload))
 	sig, err := h.remoteClient().S3Sign(context.Background(), payload)
 	if err != nil {
 		return nil, err
 	}
-	h.G().Log.Warning("signature: %s", string(sig))
 	return sig, nil
 }

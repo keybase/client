@@ -34,6 +34,9 @@ type MessageHeadline struct {
 
 type Asset struct {
 	Filename string `codec:"filename" json:"filename"`
+	Region   string `codec:"region" json:"region"`
+	Endpoint string `codec:"endpoint" json:"endpoint"`
+	Bucket   string `codec:"bucket" json:"bucket"`
 	Path     string `codec:"path" json:"path"`
 	Size     int    `codec:"size" json:"size"`
 	MimeType string `codec:"mimeType" json:"mimeType"`
@@ -504,6 +507,10 @@ type GetMessagesLocalRes struct {
 	RateLimits []RateLimit      `codec:"rateLimits" json:"rateLimits"`
 }
 
+type DownloadAttachmentLocalRes struct {
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
 type GetThreadLocalArg struct {
 	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
 	Query          *GetThreadQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -554,6 +561,13 @@ type GetMessagesLocalArg struct {
 	MessageIDs     []MessageID    `codec:"messageIDs" json:"messageIDs"`
 }
 
+type DownloadAttachmentLocalArg struct {
+	SessionID      int             `codec:"sessionID" json:"sessionID"`
+	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
+	MessageID      MessageID       `codec:"messageID" json:"messageID"`
+	Sink           keybase1.Stream `codec:"sink" json:"sink"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
@@ -564,6 +578,7 @@ type LocalInterface interface {
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
 	GetMessagesLocal(context.Context, GetMessagesLocalArg) (GetMessagesLocalRes, error)
+	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -714,6 +729,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"DownloadAttachmentLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]DownloadAttachmentLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DownloadAttachmentLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DownloadAttachmentLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.DownloadAttachmentLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -766,5 +797,10 @@ func (c LocalClient) GetConversationForCLILocal(ctx context.Context, query GetCo
 
 func (c LocalClient) GetMessagesLocal(ctx context.Context, __arg GetMessagesLocalArg) (res GetMessagesLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.GetMessagesLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) DownloadAttachmentLocal(ctx context.Context, __arg DownloadAttachmentLocalArg) (res DownloadAttachmentLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.DownloadAttachmentLocal", []interface{}{__arg}, &res)
 	return
 }

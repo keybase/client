@@ -431,6 +431,7 @@ func (c *CmdChatAPI) DownloadV1(ctx context.Context, opts downloadOptionsV1) Rep
 		return c.errReply(err)
 	}
 
+	var rlimits []chat1.RateLimit
 	if opts.ConversationID == 0 {
 		// resolve conversation id
 		query := c.getInboxLocalQuery(opts.ConversationID, opts.Channel)
@@ -457,12 +458,20 @@ func (c *CmdChatAPI) DownloadV1(ctx context.Context, opts downloadOptionsV1) Rep
 		Sink:           sink,
 	}
 
-	res, err := client.DownloadAttachmentLocal(ctx, arg)
+	dres, err := client.DownloadAttachmentLocal(ctx, arg)
 	if err != nil {
 		return c.errReply(err)
 	}
+	rlimits = append(rlimits, dres.RateLimits...)
 
-	return Reply{}
+	res := SendRes{
+		Message: fmt.Sprintf("attachment downloaded to %s", opts.Output),
+		RateLimits: RateLimits{
+			RateLimits: c.aggRateLimits(rlimits),
+		},
+	}
+
+	return Reply{Result: res}
 }
 
 type sendArgV1 struct {

@@ -95,6 +95,18 @@ export const NotifyChatChatActivityType = {
   incomingMessage: 1,
 }
 
+export function localDownloadAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'local.DownloadAttachmentLocal'})
+}
+
+export function localDownloadAttachmentLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localDownloadAttachmentLocalRpc({...request, incomingCallMap, callback}))
+}
+
+export function localDownloadAttachmentLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>): Promise<localDownloadAttachmentLocalResult> {
+  return new Promise((resolve, reject) => { localDownloadAttachmentLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localGetConversationForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'local.getConversationForCLILocal'})
 }
@@ -337,6 +349,9 @@ export function remoteTlfFinalizeRpcPromise (request: $Exact<requestCommon & req
 
 export type Asset = {
   filename: string,
+  region: string,
+  endpoint: string,
+  bucket: string,
   path: string,
   size: int,
   mimeType: string,
@@ -404,6 +419,10 @@ export type ConversationReaderInfo = {
   mtime: gregor1.Time,
   readMsgid: MessageID,
   maxMsgid: MessageID,
+}
+
+export type DownloadAttachmentLocalRes = {
+  rateLimits?: ?Array<RateLimit>,
 }
 
 export type EncryptedData = {
@@ -762,6 +781,12 @@ export type UnreadFirstNumLimit = {
   AtMost: int,
 }
 
+export type localDownloadAttachmentLocalRpcParam = Exact<{
+  conversationID: ConversationID,
+  messageID: MessageID,
+  sink: keybase1.Stream
+}>
+
 export type localGetConversationForCLILocalRpcParam = Exact<{
   query: GetConversationForCLILocalQuery
 }>
@@ -862,6 +887,8 @@ export type remoteTlfFinalizeRpcParam = Exact<{
   tlfID: TLFID
 }>
 
+type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
+
 type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
 
 type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
@@ -901,7 +928,8 @@ type remotePostRemoteResult = PostRemoteRes
 type remoteS3SignResult = bytes
 
 export type rpc =
-    localGetConversationForCLILocalRpc
+    localDownloadAttachmentLocalRpc
+  | localGetConversationForCLILocalRpc
   | localGetInboxAndUnboxLocalRpc
   | localGetInboxLocalRpc
   | localGetInboxSummaryForCLILocalRpc

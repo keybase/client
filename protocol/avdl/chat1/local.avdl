@@ -28,7 +28,10 @@ protocol local {
 
   record Asset {
     string filename;           // original filename of the object
-    string path;               // path to the object in storage
+    string region;             // storage region name
+    string endpoint;           // storage endpoint
+    string bucket;             // storage bucket
+    string path;               // path to the object in bucket
     int size;                  // size of the object
     string mimeType;           // mime type of the object
     Hash encHash;              // hash of ciphertext object 
@@ -254,4 +257,9 @@ protocol local {
     array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;
   }
+
+  record DownloadAttachmentLocalRes {
+    array<RateLimit> rateLimits;
+  }
+  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink);
 }

@@ -2,6 +2,7 @@ package chat
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -15,8 +16,10 @@ import (
 )
 
 type UploadS3Result struct {
-	S3Bucket string
-	S3Path   string
+	Region   string
+	Endpoint string
+	Bucket   string
+	Path     string
 	Size     int64
 }
 
@@ -76,9 +79,9 @@ func UploadS3(log logger.Logger, r io.Reader, filename string, params chat1.S3At
 
 	// XXX check response
 	res := UploadS3Result{
-		S3Bucket: params.Bucket,
-		S3Path:   params.ObjectKey,
-		Size:     int64(n),
+		Bucket: params.Bucket,
+		Path:   params.ObjectKey,
+		Size:   int64(n),
 	}
 
 	return &res, nil
@@ -100,10 +103,42 @@ func PutS3(log logger.Logger, r io.Reader, size int64, params chat1.S3Params, si
 	}
 
 	res := UploadS3Result{
-		S3Bucket: params.Bucket,
-		S3Path:   params.ObjectKey,
+		Region:   params.RegionName,
+		Endpoint: params.RegionEndpoint,
+		Bucket:   params.Bucket,
+		Path:     params.ObjectKey,
 		Size:     size,
 	}
 
 	return &res, nil
+}
+
+func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer) error {
+	region := aws.Region{
+		Name:       asset.Region,
+		S3Endpoint: asset.Endpoint,
+	}
+	conn := s3.New(signer, region)
+	conn.AccessKey = params.AccessKey
+
+	b := conn.Bucket(asset.Bucket)
+
+	body, err := b.GetReader(asset.Path)
+	defer func() {
+		if body != nil {
+			body.Close()
+		}
+	}()
+	if err != nil {
+		return err
+	}
+
+	n, err := io.Copy(w, body)
+	if err != nil {
+		return err
+	}
+
+	log.Debug("downloaded %d bytes", n)
+
+	return nil
 }
