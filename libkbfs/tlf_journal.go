@@ -949,10 +949,6 @@ func (j *tlfJournal) getJournalStatusWithRange() (
 	}
 
 	complete := true
-	if jStatus.RevisionEnd == MetadataRevisionUninitialized {
-		return jStatus, nil, nil, complete, nil
-	}
-
 	var ibrmds []ImmutableBareRootMetadata
 	unflushedPaths := j.unflushedPaths
 	if unflushedPaths == nil {
@@ -961,15 +957,17 @@ func (j *tlfJournal) getJournalStatusWithRange() (
 				"unflushedReady is not nil when unflushedPaths is nil")
 		}
 
-		stop := jStatus.RevisionEnd
-		if stop > jStatus.RevisionStart+1000 {
-			stop = jStatus.RevisionStart + 1000
-			complete = false
-		}
+		if jStatus.RevisionEnd != MetadataRevisionUninitialized {
+			stop := jStatus.RevisionEnd
+			if stop > jStatus.RevisionStart+1000 {
+				stop = jStatus.RevisionStart + 1000
+				complete = false
+			}
 
-		ibrmds, err = j.mdJournal.getRange(jStatus.RevisionStart, stop)
-		if err != nil {
-			return TLFJournalStatus{}, nil, nil, false, err
+			ibrmds, err = j.mdJournal.getRange(jStatus.RevisionStart, stop)
+			if err != nil {
+				return TLFJournalStatus{}, nil, nil, false, err
+			}
 		}
 
 		if complete {
@@ -1036,7 +1034,7 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 	}
 
 	// We are responsible for making the unflushed paths.
-	if unflushedPaths == nil && len(ibrmds) > 0 {
+	if unflushedPaths == nil {
 		unflushedPaths = make(map[MetadataRevision]map[string]bool)
 		j.log.CDebugf(ctx, "Making unflushed paths (complete=%t)", complete)
 
@@ -1054,30 +1052,32 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 			}()
 		}
 
-		ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandle(nil)
-		if err != nil {
-			return TLFJournalStatus{}, err
-		}
-
-		irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
-		handle, err := MakeTlfHandle(
-			ctx, ibrmdBareHandle, j.config.usernameGetter())
-		if err != nil {
-			return TLFJournalStatus{}, err
-		}
-
-		for _, ibrmd := range ibrmds {
-			irmd, err := j.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
+		if len(ibrmds) > 0 {
+			ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandle(nil)
 			if err != nil {
 				return TLFJournalStatus{}, err
 			}
 
-			irmds = append(irmds, irmd)
-		}
+			irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
+			handle, err := MakeTlfHandle(
+				ctx, ibrmdBareHandle, j.config.usernameGetter())
+			if err != nil {
+				return TLFJournalStatus{}, err
+			}
 
-		err = j.addUnflushedPaths(ctx, irmds, cpp, unflushedPaths)
-		if err != nil {
-			return TLFJournalStatus{}, err
+			for _, ibrmd := range ibrmds {
+				irmd, err := j.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
+				if err != nil {
+					return TLFJournalStatus{}, err
+				}
+
+				irmds = append(irmds, irmd)
+			}
+
+			err = j.addUnflushedPaths(ctx, irmds, cpp, unflushedPaths)
+			if err != nil {
+				return TLFJournalStatus{}, err
+			}
 		}
 	}
 
