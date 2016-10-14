@@ -137,7 +137,7 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
   }
 }
 
-Render.defaultProps = {
+MenubarRender.defaultProps = {
   openToPrivate: true,
   openWithMenuShowing: false,
 }
