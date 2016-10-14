@@ -6,7 +6,7 @@ import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 
-class Render extends Component<void, Props, void> {
+class FoldersRender extends Component<void, Props, void> {
   _makeItem (isPublic: boolean, isSelected: boolean) {
     const icon = isPublic ? 'icon-folder-public-24' : 'icon-folder-private-24'
     return <TabBarButton
@@ -101,4 +101,4 @@ const tabBarStyle = {
   ...globalStyles.flexBoxRow,
 }
 
-export default Render
+export default FoldersRender

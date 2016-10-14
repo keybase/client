@@ -16,7 +16,7 @@ const Banner = ({type, desc}: BannerItem) => {
     'WillUnlock': globalColors.white,
   }[type]
 
-  return <Box style={{...stylesBanner, backgroundColor}}><Text type='BodySmall' style={{color}}>{desc}</Text></Box>
+  return <Box style={{...stylesBanner, backgroundColor}}><Text type='BodySemibold' style={{color}}>{desc}</Text></Box>
 }
 
 const Header = ({name, currentDevice, revokedAt}) => {
@@ -35,7 +35,7 @@ const Header = ({name, currentDevice, revokedAt}) => {
 
 const TimelineMarker = ({idx, max}) => (
   <Box style={{...globalStyles.flexBoxColumn, marginRight: 16, alignItems: 'center'}}>
-    <Box style={{...stylesLine, height: 8, opacity: idx ? 1 : 0}} />
+    <Box style={{...stylesLine, height: 5, opacity: idx ? 1 : 0}} />
     <Box style={stylesCircle} />
     <Box style={{...stylesLine, flex: 1, opacity: idx < max ? 1 : 0}} />
   </Box>

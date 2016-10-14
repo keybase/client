@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {Box, Text} from '../../common-adapters'
 
-class Render extends Component {
+class LogSendRender extends Component {
   render () {
     return (
       <Box>
@@ -14,4 +14,4 @@ class Render extends Component {
   }
 }
 
-export default Render
+export default LogSendRender

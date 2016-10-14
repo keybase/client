@@ -29,7 +29,6 @@ class PaperKeyRender extends Component<void, Props, void> {
           <Button
             style={stylesButton}
             type='Primary'
-            fullWidth={true}
             enabled={this.props.paperKey}
             label='Continue'
             waiting={this.props.waitingForResponse}

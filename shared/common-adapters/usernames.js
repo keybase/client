@@ -7,22 +7,12 @@ import {isMobile} from '../constants/platform'
 
 function usernameText ({type, users, style, inline, redColor}: Props) {
   return users.map((u, i) => {
-    const userStyle = {...style}
-
-    if (!isMobile) {
-      userStyle.textDecoration = 'inherit'
-    }
-
-    if (u.broken) {
-      userStyle.color = redColor || globalColors.red
-    }
-
-    if (inline) {
-      userStyle.display = 'inline-block'
-    }
-
-    if (u.you) {
-      Object.assign(userStyle, globalStyles.italic)
+    const userStyle = {
+      ...style,
+      ...(!isMobile ? {textDecoration: 'inherit'} : null),
+      ...(u.broken ? {color: redColor || globalColors.red} : null),
+      ...(inline ? {display: 'inline-block'} : null),
+      ...(u.you ? globalStyles.italic : null),
     }
 
     return (

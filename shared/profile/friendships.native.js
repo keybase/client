@@ -49,7 +49,7 @@ const userEntryUsernameStyle = followsYou => ({
   textAlign: 'center',
 })
 
-class Render extends Component<void, Props, void> {
+class FriendshipsRender extends Component<void, Props, void> {
   render () {
     return (
       <TabBar>
@@ -101,4 +101,4 @@ const tabItemContainerUsers = {
   paddingTop: 8,
 }
 
-export default Render
+export default FriendshipsRender

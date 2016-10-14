@@ -16,7 +16,6 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void
     backgroundColor: isPublic ? globalColors.white : globalColors.darkBlue}}>
     <Button
       type='Primary'
-      fullWidth={true}
       small={true}
       onClick={onClick}
       labelStyle={{color: globalColors.white}}
@@ -98,7 +97,7 @@ const stylesButtonContainer = {
   justifyContent: 'center',
   paddingLeft: 4,
   paddingRight: 4,
-  alignItems: 'stretch',
+  alignItems: 'center',
   flex: 1,
   height: 40,
 }

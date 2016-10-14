@@ -10,20 +10,20 @@ const RenderHelp = () => (
         <Icon type='icon-fancy-settings-64' />
       </Box>
       <Box style={styleTextHeader}>
-        <Text type='Body'>
+        <Text type='BodySemibold'>
           There are no GUI settings for Keybase right now. This app is perfect.
           But soon, once the bloat sets in, who knows.
         </Text>
       </Box>
       <Box style={styleBody}>
-        <Text type='BodySmall' style={{...styleBodyText}}>
+        <Text type='Body' style={{...styleBodyText}}>
           Terminal commands:
         </Text>
         <Terminal style={styleTerminal}>
           <Text type='Terminal'>keybase passphrase [change|recover]</Text>
-          <Text type='Terminal'>keybase deprovision <Text type='TerminalComment'>deprovision this install</Text></Text>
+          <Text type='Terminal'>keybase deprovision <Text type='TerminalComment'># deprovision this install</Text></Text>
           <Text type='Terminal'>keybase help</Text>
-          <Text type='TerminalComment'>etc.</Text>
+          <Text type='TerminalComment'># etc.</Text>
         </Terminal>
       </Box>
     </Box>

@@ -47,12 +47,12 @@ class PopupMenu extends Component<void, Props, void> {
   }
 }
 
-const Divider = () => <Box style={{height: 1, backgroundColor: globalColors.black_10, marginTop: 8, marginBottom: 8}} />
+const Divider = () => <Box style={{height: 1, backgroundColor: globalColors.black_05, marginTop: 8, marginBottom: 8}} />
 
 const stylesRow = {
   ...globalStyles.flexBoxColumn,
-  paddingTop: 8,
-  paddingBottom: 8,
+  paddingTop: 4,
+  paddingBottom: 4,
   paddingLeft: 15,
   paddingRight: 15,
 }
@@ -71,6 +71,7 @@ const stylesMenuCatcher = {
 const stylesMenu = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
+  minWidth: 200,
   justifyContent: 'flex-start',
   alignItems: 'stretch',
   backgroundColor: globalColors.white,

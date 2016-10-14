@@ -1,0 +1,10 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  badgeNumber: number,
+  badgeStyle?: Object,
+  badgeNumberStyle?: Object,
+}
+
+declare export default class Badget extends Component<void, Props, void> { }

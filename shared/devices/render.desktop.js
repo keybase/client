@@ -97,7 +97,7 @@ const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
 
 type State = {showingMenu: boolean}
 
-class Render extends Component<void, Props, State> {
+class DevicesRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -167,4 +167,4 @@ const stylesPopup = {
   marginTop: 50,
 }
 
-export default Render
+export default DevicesRender

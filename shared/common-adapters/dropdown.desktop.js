@@ -98,6 +98,7 @@ class MenuItem extends Component<void, MenuItemProps, void> {
       case 'Normal':
         break
       case 'Username':
+        textType = 'Header'
         textStyle = {color: globalColors.orange}
         break
       case 'Other':
@@ -189,7 +190,7 @@ const styles = {
 
   menuItem: {
     ...globalStyles.clickable,
-    height: 50,
+    height: 40,
     textAlign: 'center',
     display: 'flex',
     alignItems: 'center',

@@ -11,6 +11,7 @@ export type MissingProof = {
 
 type CommonProps = {
   style?: Object,
+  loadingStyle?: ?Object,
   loading?: boolean,
   username: ?string,
   onClickProofMenu?: ?(idx: number) => void,

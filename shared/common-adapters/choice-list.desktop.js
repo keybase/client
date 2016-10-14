@@ -16,8 +16,8 @@ const ChoiceList = ({options}: Props) => {
               : <Box style={styleIcon} className='cl-icon'>{op.icon}</Box>}
           </Box>
           <Box style={styleInfoContainer}>
-            <Text style={styleInfoTitle} type='Header'>{op.title}</Text>
-            <Text style={styleInfoDescription} type='BodySmall'>{op.description}</Text>
+            <Text type='BodyBigLink'>{op.title}</Text>
+            <Text type='Body'>{op.description}</Text>
           </Box>
         </Box>
       ))}
@@ -78,14 +78,6 @@ const styleInfoContainer = {
   alignItems: 'left', // TODO (AW): invalid prop value
   textAlign: 'left',
   marginLeft: globalMargins.small,
-}
-
-const styleInfoTitle = {
-  color: globalColors.blue,
-}
-
-const styleInfoDescription = {
-  color: globalColors.black_40,
 }
 
 export default ChoiceList

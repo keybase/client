@@ -35,7 +35,8 @@ const filterAllowOnlyTypes = (...types) => ({
 fs.copySync('./Icon.png', 'build/desktop/Icon.png')
 fs.copySync('./Icon@2x.png', 'build/desktop/Icon@2x.png')
 fs.copySync('../shared/images', 'build/desktop/shared/images', filterAllowOnlyTypes('gif', 'png'))
-fs.copySync('./renderer', 'build/desktop/renderer', filterAllowOnlyTypes('ttf', 'css', 'html'))
+fs.copySync('../shared/fonts', 'build/desktop/shared/fonts', filterAllowOnlyTypes('ttf'))
+fs.copySync('./renderer', 'build/desktop/renderer', filterAllowOnlyTypes('css', 'html'))
 
 fs.writeJsonSync('build/package.json', {
   name: appName,

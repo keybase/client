@@ -106,7 +106,7 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
         <Header icon={true} title='' onClose={() => this.props.onCancel()} />
         <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
           <Text type='Body' style={{textAlign: 'center'}}>{this.props.prompt}</Text>
-          {isPaperKey && <Icon type='icon-paper-key-64' style={{alignSelf: 'center'}} />}
+          {isPaperKey && <Icon type='icon-paper-key-48' style={{alignSelf: 'center'}} />}
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}
