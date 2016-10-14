@@ -47,7 +47,7 @@ class PopupMenu extends Component<void, Props, void> {
   }
 }
 
-const Divider = () => <Box style={{height: 1, backgroundColor: globalColors.black_10, marginTop: 8, marginBottom: 8}} />
+const Divider = () => <Box style={{height: 1, backgroundColor: globalColors.black_05, marginTop: 8, marginBottom: 8}} />
 
 const stylesRow = {
   ...globalStyles.flexBoxColumn,
