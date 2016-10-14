@@ -12,6 +12,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -44,7 +46,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 	}
 	if gh != nil {
 		g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(), h.boxer,
-			chat.NewStorage(g, h.getSecretUI), h.remoteClient())
+			storage.New(g, h.getSecretUI), h.remoteClient())
 	}
 	return h
 }
@@ -109,7 +111,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 	return chat1.GetInboxLocalRes{
 		ConversationsUnverified: ib.Inbox.Conversations,
 		Pagination:              ib.Inbox.Pagination,
-		RateLimits:              chat.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
+		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 	}, nil
 }
 
@@ -132,10 +134,10 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	}
 	inbox = chat1.GetInboxAndUnboxLocalRes{
 		Pagination: arg.Pagination,
-		RateLimits: chat.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
+		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 	}
 
-	ctx, _ = chat.GetUserInfoMapper(ctx, h.G())
+	ctx, _ = utils.GetUserInfoMapper(ctx, h.G())
 	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Conversations)
 	if err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
@@ -191,11 +193,11 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	}
 
 	// Run type filter if it exists
-	thread.Messages = chat.FilterByType(thread.Messages, arg.Query)
+	thread.Messages = utils.FilterByType(thread.Messages, arg.Query)
 
 	return chat1.GetThreadLocalRes{
 		Thread:     thread,
-		RateLimits: chat.AggRateLimitsP(rl),
+		RateLimits: utils.AggRateLimitsP(rl),
 	}, nil
 }
 
@@ -311,7 +313,7 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 
 func (h *chatLocalHandler) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation) ([]chat1.ConversationLocal, error) {
 	// Fetch conversation local information in parallel
-	ctx, _ = chat.GetUserInfoMapper(ctx, h.G())
+	ctx, _ = utils.GetUserInfoMapper(ctx, h.G())
 	type jobRes struct {
 		conv  chat1.ConversationLocal
 		index int
@@ -375,14 +377,14 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 
 	var after time.Time
 	if len(arg.After) > 0 {
-		after, err = chat.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
+		after, err = utils.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.After)
 		if err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.After, err)
 		}
 	}
 	var before time.Time
 	if len(arg.Before) > 0 {
-		before, err = chat.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.Before)
+		before, err = utils.ParseTimeFromRFC3339OrDurationFromPast(h.G(), arg.Before)
 		if err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", arg.Before, err)
 		}
@@ -420,7 +422,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		res.RateLimits = append(res.RateLimits, gires.RateLimits...)
 		res.Conversations = append(res.Conversations, gires.Conversations...)
 
-		more := chat.Collar(
+		more := utils.Collar(
 			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
 			arg.UnreadFirstLimit.NumRead,
 			arg.UnreadFirstLimit.AtMost-len(res.Conversations),
@@ -453,7 +455,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		res.Conversations = append(res.Conversations, gires.Conversations...)
 	}
 
-	res.RateLimits = chat.AggRateLimits(res.RateLimits)
+	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 
 	return res, nil
 }
@@ -555,7 +557,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 
 	var since time.Time
 	if arg.Since != nil {
-		since, err = chat.ParseTimeFromRFC3339OrDurationFromPast(h.G(), *arg.Since)
+		since, err = utils.ParseTimeFromRFC3339OrDurationFromPast(h.G(), *arg.Since)
 		if err != nil {
 			return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("parsing time or duration (%s) error: %s", *arg.Since, since)
 		}
@@ -598,7 +600,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	return chat1.GetConversationForCLILocalRes{
 		Conversation: convLocal,
 		Messages:     messages,
-		RateLimits:   chat.AggRateLimits(rlimits),
+		RateLimits:   utils.AggRateLimits(rlimits),
 	}, nil
 }
 
@@ -629,7 +631,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 
 	return chat1.GetMessagesLocalRes{
 		Messages:   messages,
-		RateLimits: chat.AggRateLimits(rlimits),
+		RateLimits: utils.AggRateLimits(rlimits),
 	}, nil
 }
 
@@ -762,7 +764,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 		return chat1.PostLocalRes{}, err
 	}
 	return chat1.PostLocalRes{
-		RateLimits: chat.AggRateLimitsP([]*chat1.RateLimit{plres.RateLimit}),
+		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{plres.RateLimit}),
 	}, nil
 }
 

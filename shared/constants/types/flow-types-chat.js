@@ -519,7 +519,6 @@ export type MessageBody =
 
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader,
-  supersededBy?: ?MessageBoxed,
   clientHeader: MessageClientHeader,
   headerCiphertext: EncryptedData,
   bodyCiphertext: EncryptedData,

@@ -3,6 +3,8 @@ package chat
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -59,10 +61,10 @@ type HybridConversationSource struct {
 	libkb.Contextified
 	ri      chat1.RemoteInterface
 	boxer   *Boxer
-	storage *Storage
+	storage *storage.Storage
 }
 
-func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *Storage, ri chat1.RemoteInterface) *HybridConversationSource {
+func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *storage.Storage, ri chat1.RemoteInterface) *HybridConversationSource {
 	return &HybridConversationSource{
 		Contextified: libkb.NewContextified(g),
 		ri:           ri,
@@ -118,7 +120,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		if err == nil {
 			// If found, then return the stuff
 			s.G().Log.Debug("Pull: cache hit: convID: %d uid: %s", convID, uid)
-			localData.Messages = FilterByType(localData.Messages, query)
+			localData.Messages = utils.FilterByType(localData.Messages, query)
 
 			// Before returning the stuff, send remote request to mark as read if
 			// requested.
@@ -167,10 +169,10 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 }
 
 func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
-	return s.storage.maybeNuke(true, nil, convID, uid)
+	return s.storage.MaybeNuke(true, nil, convID, uid)
 }
 
-func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *Storage,
+func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,
 	ri chat1.RemoteInterface) libkb.ConversationSource {
 	if typ == "hybrid" {
 		return NewHybridConversationSource(g, boxer, storage, ri)
