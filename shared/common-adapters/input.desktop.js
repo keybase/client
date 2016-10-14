@@ -67,11 +67,20 @@ class Input extends Component<void, Props, State> {
   render () {
     const style = this.props.small ? styles.containerSmall : styles.container
     const textStyle = this.props.small ? styles.inputSmall : styles.input
-    if (!this.props.small && !this.props.floatingLabelText) {
-      textStyle.paddingTop = 10
-    }
     const textHeight = this.props.small ? 32 : (this.props.floatingLabelText ? 79 : 50)
-    const hintBottom = this.props.small ? 11 : (this.props.multiline ? 16 : 14)
+    const hintStyle = {bottom: this.props.small ? 11 : (this.props.multiline ? 16 : 14)}
+
+    // HACK to make this cr*p line up. let's :fire: this whole file soon
+    if (!this.props.small && !this.props.floatingLabelText && this.props.hintText) {
+      // $FlowIssue this whole class needs to be cleaned up
+      hintStyle.bottom = 'initial'
+      // $FlowIssue this whole class needs to be cleaned up
+      hintStyle.top = 7
+    }
+    if (!this.props.small && this.props.floatingLabelText && this.props.hintText) {
+      // $FlowIssue this whole class needs to be cleaned up
+      hintStyle.top = 32
+    }
 
     // HACK: We can't reset the text area style, so we need to counteract it by moving the wrapper up
     const multilineStyleFix = {
@@ -101,7 +110,7 @@ class Input extends Component<void, Props, State> {
           floatingLabelStyle={styles.floatingLabelStyle}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
           fullWidth={true}
-          hintStyle={{bottom: hintBottom, ...styles.hintStyle, ...this.props.hintStyle}}
+          hintStyle={{...hintStyle, ...styles.hintStyle, ...this.props.hintStyle}}
           hintText={this.props.hintText}
           inputStyle={{...(this.props.small ? {} : {marginTop: 4}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
           textareaStyle={{...alignStyle, overflow: 'overlay'}}

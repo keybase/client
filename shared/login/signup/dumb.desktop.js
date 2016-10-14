@@ -39,6 +39,8 @@ const requestShared = {
   emailErrorText: null,
   onRequestInvite: nullFunc,
   waiting: false,
+  nameChange: (name: string) => console.log(name),
+  emailChange: (email: string) => console.log(email),
 }
 
 const userEmailShared = {
@@ -55,6 +57,10 @@ const passphraseShared = {
   ...signupShared,
   passphraseError: null,
   checkPassphrase: nullFunc,
+  pass1Update: (pass1: string) => console.log('pass1'),
+  pass2Update: (pass2: string) => console.log('pass2'),
+  onSubmit: () => console.log('onsubmit'),
+  onBack: () => console.log('onback'),
 }
 
 const deviceNameShared = {
