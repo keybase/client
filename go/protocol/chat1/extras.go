@@ -121,3 +121,11 @@ func (m MessageFromServerOrError) GetMessageType() MessageType {
 	}
 	return MessageType_NONE
 }
+
+func (m MessageBoxed) GetMessageID() MessageID {
+	return m.ServerHeader.MessageID
+}
+
+func (m MessageBoxed) GetMessageType() MessageType {
+	return m.ServerHeader.MessageType
+}
