@@ -5,7 +5,7 @@ import {globalStyles} from '../../styles'
 
 import type {Props} from './render'
 
-class Render extends Component<void, Props, void> {
+class EditProfileRender extends Component<void, Props, void> {
   render () {
     return (
       <Box style={styleOuterContainer}>
@@ -64,4 +64,4 @@ const styleEditProfile = {
   minWidth: 450,
 }
 
-export default Render
+export default EditProfileRender

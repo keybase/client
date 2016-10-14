@@ -5,7 +5,7 @@ import type {Props} from './invite-code.render'
 import {Text, Input, Button, Icon, Box} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 
-class Render extends Component {
+class InviteCodeRender extends Component {
   props: Props;
 
   state: {
@@ -56,4 +56,4 @@ const stylesButton = {
   marginTop: globalMargins.medium,
   marginBottom: globalMargins.small,
 }
-export default Render
+export default InviteCodeRender

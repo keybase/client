@@ -6,7 +6,7 @@ import type {Props} from './render'
 import {Box, Text, SmallInput, Button, NativeScrollView, Icon} from '../../common-adapters/index.native'
 import {globalStyles, globalColors} from '../../styles'
 
-class Render extends Component<void, Props, any> {
+class DumbSheetRender extends Component<void, Props, any> {
   state: any;
   _onFilterChange: (a: any) => void;
   _onFilterChangeProp: (a: any) => void;
@@ -206,4 +206,4 @@ const stylesButton = {
   borderRadius: 10,
 }
 
-export default Render
+export default DumbSheetRender

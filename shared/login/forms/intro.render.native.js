@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
-class Render extends Component {
+class IntroRender extends Component {
   render () {
     return (
       <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf || this.props.justDeletedSelf ? 0 : 55}}>
@@ -61,4 +61,4 @@ const stylesRevoked = {
   backgroundColor: globalColors.green,
 }
 
-export default Render
+export default IntroRender

@@ -10,7 +10,7 @@ type State = {
   inWallet: boolean,
 }
 
-class Render extends Component<void, Props, State> {
+class SuccessRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -24,11 +24,11 @@ class Render extends Component<void, Props, State> {
         <Text type='Header' style={stylesHeader}>{this.props.title || 'Congratulations, you’ve just joined Keybase!'}</Text>
         <Text type='Body' style={stylesBody}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you’ll see this so be sure to write it down.</Text>
         <Box style={stylesPaperKeyContainer}>
-          <Text type='Body' style={stylesPaperkey}>{this.props.paperkey.stringValue()}</Text>
+          <Text type='Header' style={stylesPaperkey}>{this.props.paperkey.stringValue()}</Text>
           <Icon type='icon-paper-key-corner' style={stylesPaperCorner} />
         </Box>
         {this.props.onFinish && <Checkbox style={stylesCheck} label='Yes, I wrote this down.' checked={this.state.inWallet} onCheck={inWallet => this.setState({inWallet})} />}
-        {this.props.onFinish && <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Done' onClick={this.props.onFinish} disabled={!this.state.inWallet} />}
+        {this.props.onFinish && <Button waiting={this.props.waiting} type='Primary' label='Done' onClick={this.props.onFinish} disabled={!this.state.inWallet} />}
       </Container>
     )
   }
@@ -45,16 +45,17 @@ const stylesBody = {
   paddingLeft: 15,
   paddingRight: 15,
   marginBottom: 35,
+  maxWidth: 560,
   textAlign: 'center',
 }
 const stylesPaperKeyContainer = {
   position: 'relative',
   width: 400,
   marginBottom: 35,
-  paddingTop: 12,
-  paddingLeft: 30,
-  paddingRight: 45,
-  paddingBottom: 15,
+  paddingTop: 8,
+  paddingLeft: 24,
+  paddingRight: 24 * 2,
+  paddingBottom: 8,
   borderRadius: 1,
   backgroundColor: globalColors.white,
   border: `solid 4px ${globalColors.darkBlue}`,
@@ -67,17 +68,13 @@ const stylesPaperCorner = {
 const stylesCheck = {
   marginBottom: 60,
 }
-const stylesButton = {
-  alignSelf: 'flex-end',
-}
 const stylesPaperkey = {
   ...getStyle('Header', 'Normal'),
   ...globalStyles.selectable,
+  ...globalStyles.fontTerminal,
   color: globalColors.darkBlue,
   display: 'inline-block',
-  lineHeight: '24px',
-  marginTop: 30,
   textAlign: 'center',
 }
 
-export default Render
+export default SuccessRender

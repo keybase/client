@@ -46,7 +46,7 @@ const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onClick, onRekey, smallMo
   </Box>
 )
 
-class Render extends Component<void, Props, void> {
+class ListRender extends Component<void, Props, void> {
   _scrollContainer: ?Object;
 
   constructor (props: Props) {
@@ -155,4 +155,4 @@ const stylesPublic = {
     color: globalColors.black_40,
   },
 }
-export default Render
+export default ListRender

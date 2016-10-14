@@ -65,9 +65,8 @@ const backStyle = {
 }
 
 const continueStyle = {
-  marginRight: 30,
   marginTop: 38,
   height: 32,
   width: 116,
-  alignSelf: 'flex-end',
+  alignSelf: 'center',
 }

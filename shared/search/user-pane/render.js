@@ -25,7 +25,7 @@ export type Props = {
   mode: 'nothingSelected',
 }
 
-class Render extends Component<void, Props, void> {
+class UserPaneRender extends Component<void, Props, void> {
   render () {
     if (this.props.mode === 'keybase') {
       return <UserInfo {...this.props.userInfoProps} />
@@ -49,4 +49,4 @@ class Render extends Component<void, Props, void> {
   }
 }
 
-export default Render
+export default UserPaneRender

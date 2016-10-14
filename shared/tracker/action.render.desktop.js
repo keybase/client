@@ -37,11 +37,11 @@ export default class ActionRender extends PureComponent<void, ActionProps, void>
         <Icon type='icon-terminal-32' style={{marginBottom: -5, marginTop: -5}} />
         <div style={{textAlign: 'center'}}>
           <Text type='TerminalInline'>keybase login</Text>
-          <Text type='BodySmall'> or </Text>
+          <Text type='Body'> or </Text>
           <Text type='TerminalInline'>keybase signup</Text>
-          <Text type='BodySmall'> from the terminal for more options.</Text>
+          <Text type='Body'> from the terminal for more options.</Text>
         </div>
-        <Button style={{...styleActionButton, alignSelf: 'flex-end'}} type='Secondary' label='Close' onClick={() => this.props.onClose()} />
+        <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />
       </div>
     )
   }
@@ -87,7 +87,7 @@ const styleContainer = {
   height: calcFooterHeight(true),
   boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
   alignItems: 'center',
-  justifyContent: 'flex-end',
+  justifyContent: 'center',
   paddingTop: globalMargins.small,
   paddingBottom: globalMargins.small,
   paddingRight: globalMargins.small,

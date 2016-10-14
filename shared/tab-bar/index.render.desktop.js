@@ -37,7 +37,7 @@ function tabToLabel (t: VisibleTab): string {
   return labels[t]
 }
 
-export default class Render extends Component<void, Props, void> {
+export default class TabBarRender extends Component<void, Props, void> {
   _renderSearch (onClick: () => void) {
     const source = {type: 'nav', icon: 'iconfont-nav-search'}
     const button = (

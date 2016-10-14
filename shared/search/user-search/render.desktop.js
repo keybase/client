@@ -8,12 +8,12 @@ import type {SearchResult} from '../../constants/search'
 import type {Props, SearchResultFn} from './render'
 
 function KeybaseResultBody ({username, searchText, isFollowing}) {
-  return <Text type='Body'
-    style={{color: isFollowing ? globalColors.green2 : globalColors.orange}}>{username}</Text>
+  return <Text type='BodySemibold'
+    style={{color: isFollowing ? globalColors.green2 : globalColors.blue}}>{username}</Text>
 }
 
 function ExternalResultBody ({username, searchText}) {
-  return <Text type='Body'
+  return <Text type='BodySemibold'
     style={{color: globalColors.black_75}}>{username}</Text>
 }
 
@@ -22,8 +22,8 @@ function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Avatar size={16} style={{width: 16, marginRight: 4}} username={username} />
-        <Text type='BodySmall'
-          style={{color: isFollowing ? globalColors.green2 : globalColors.orange}}>{username}</Text>
+        <Text type='BodySmallSemibold'
+          style={{color: isFollowing ? globalColors.green2 : globalColors.blue}}>{username}</Text>
       </Box>
       {!!fullName && <Text type='BodySmall' style={{...fullNameStyle, color: globalColors.black_40}}>{fullName}</Text>}
     </Box>
@@ -36,7 +36,7 @@ function ExternalExtraInfo ({fullNameOnService, icon, serviceAvatar, serviceUser
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         {!!icon && <Icon type={icon} style={{width: 17, marginRight: 4}} />}
         {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
-        {!!serviceUsername && <Text type='BodySmall'>{serviceUsername}</Text>}
+        {!!serviceUsername && <Text type='BodySmallSemibold'>{serviceUsername}</Text>}
       </Box>
       {!!fullNameOnService && <Text type='BodySmall'
         style={{...fullNameStyle, color: globalColors.black_40}}>{fullNameOnService}</Text>}
@@ -105,7 +105,7 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   )
 }
 
-class Render extends Component<void, Props, void> {
+class UserSearchRender extends Component<void, Props, void> {
   render () {
     return (
       <Box style={{overflowY: 'auto', flex: 1, position: 'relative', minHeight: 40}}>
@@ -127,4 +127,4 @@ const fullNameStyle = {
   textAlign: 'right',
 }
 
-export default Render
+export default UserSearchRender

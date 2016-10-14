@@ -8,7 +8,7 @@ import type {Props} from './render'
 import {Box, Text, Input, BackButton} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
-class Render extends Component<void, Props, any> {
+class DumbSheetRender extends Component<void, Props, any> {
   _onFilterChange: (a: any) => void;
   _onNext: (a: any, offset: 1 | -1) => void;
   _box: any;
@@ -140,4 +140,4 @@ export const styleBox = {
   boxShadow: '5px 5px lightgray',
 }
 
-export default Render
+export default DumbSheetRender

@@ -5,7 +5,7 @@ import type {Props} from './index.render'
 import {UserCard, Input, Button} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
-class Render extends Component<void, Props, void> {
+class PassphraseRender extends Component<void, Props, void> {
 
   render () {
     const passphraseError = this.props.passphraseError && this.props.passphraseError.stringValue()
@@ -21,7 +21,7 @@ class Render extends Component<void, Props, void> {
           <Input type='password' style={stylesInput} hintText='Confirm passphrase' onEnterKeyDown={this.props.onSubmit}
             ref={input => { confirmInput = input }}
             onChangeText={pass2 => this.props.pass2Update(pass2)} />
-          <Button fullWidth={true} type='Primary' label='Continue' onClick={this.props.onSubmit} />
+          <Button type='Primary' label='Continue' onClick={this.props.onSubmit} style={{alignSelf: 'center'}} />
         </UserCard>
       </Container>
     )
@@ -51,4 +51,4 @@ const stylesCard = {
   alignItems: 'stretch',
 }
 
-export default Render
+export default PassphraseRender

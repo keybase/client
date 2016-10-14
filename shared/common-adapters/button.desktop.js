@@ -94,14 +94,9 @@ class Button extends Component<void, Props, void> {
     }
 
     if (this.props.fullWidth) {
-        // Using minWidth here means we can't have a full-width button on the
-        // same line/row as another button, the right thing is very unlikely to
-        // happen.  The alternative is 'flex: 1' here, which would work but is
-        // dangerous, because we'd be modifying our container.
-        //
-        // So let's just say that a fullWidth button can't have siblings.
-      outerStyle = {...outerStyle, minWidth: '100%'}
-      backgroundStyle = {...backgroundStyle, minWidth: '100%', height: 38}
+      if (__DEV__) {
+        console.warn('fullwidth disabled on desktop buttons')
+      }
     }
 
     if (this.props.waiting) {

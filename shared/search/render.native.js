@@ -4,7 +4,7 @@ import UserSearch from './user-search/render'
 import UserGroup from './user-search/user-group'
 import type {Props} from './render'
 
-class Render extends Component<void, Props, void> {
+class SearchRender extends Component<void, Props, void> {
   render () {
     if (this.props.showUserGroup) {
       return (
@@ -27,4 +27,4 @@ class Render extends Component<void, Props, void> {
   }
 }
 
-export default Render
+export default SearchRender

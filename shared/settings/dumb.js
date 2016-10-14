@@ -219,12 +219,12 @@ const settingsNavMap: DumbComponentMap<SettingsNav> = {
     'Normal': settingsNavBase,
     'Normal - Good Banner': {
       ...settingsNavBase,
-      bannerElement: <Text type='BodySmallSemibold' style={bannerTextStyle} backgroundMode='Success'>Success! You have just upgraded to the Gold plan. </Text>,
+      bannerElement: <Text type='BodySemibold' style={bannerTextStyle} backgroundMode='Success'>Success! You have just upgraded to the Gold plan. </Text>,
       bannerType: 'green',
     },
     'Normal - Bad Banner': {
       ...settingsNavBase,
-      bannerElement: <Text type='BodySmallSemibold' style={bannerTextStyle} backgroundMode='HighRisk'>Your Visa **** 4242 has broken. Please update your preferred payment method.</Text>,
+      bannerElement: <Text type='BodySemibold' style={bannerTextStyle} backgroundMode='HighRisk'>Your Visa **** 4242 has broken. Please update your preferred payment method.</Text>,
       bannerType: 'red',
     },
   },

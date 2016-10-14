@@ -5,7 +5,7 @@ import Row, {RowCSS} from './row'
 import type {Props} from './index.render'
 import {Text} from '../../../common-adapters'
 
-class Render extends Component<void, Props, void> {
+class GPGSignRender extends Component<void, Props, void> {
   render () {
     return (
       <Container
@@ -54,4 +54,4 @@ const styles = {
   },
 }
 
-export default Render
+export default GPGSignRender
