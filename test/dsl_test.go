@@ -566,6 +566,80 @@ func undoStallOnMDPut() fileOp {
 	}, IsInit}
 }
 
+func stallDelegateOnMDGetForTLF() fileOp {
+	return fileOp{func(c *ctx) error {
+		// TODO: Allow test to pass in a more precise maxStalls limit.
+		c.staller.StallMDOp(libkbfs.StallableMDGetForTLF, 100, true)
+		return nil
+	}, Defaults}
+}
+
+func stallOnMDGetForTLF() fileOp {
+	return fileOp{func(c *ctx) error {
+		// TODO: Allow test to pass in a more precise maxStalls limit.
+		c.staller.StallMDOp(libkbfs.StallableMDGetForTLF, 100, false)
+		return nil
+	}, Defaults}
+}
+
+func waitForStalledMDGetForTLF() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.WaitForStallMDOp(libkbfs.StallableMDGetForTLF)
+		return nil
+	}, IsInit}
+}
+
+func unstallOneMDGetForTLF() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.UnstallOneMDOp(libkbfs.StallableMDGetForTLF)
+		return nil
+	}, IsInit}
+}
+
+func undoStallOnMDGetForTLF() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.UndoStallMDOp(libkbfs.StallableMDGetForTLF)
+		return nil
+	}, IsInit}
+}
+
+func stallDelegateOnMDGetRange() fileOp {
+	return fileOp{func(c *ctx) error {
+		// TODO: Allow test to pass in a more precise maxStalls limit.
+		c.staller.StallMDOp(libkbfs.StallableMDGetRange, 100, true)
+		return nil
+	}, Defaults}
+}
+
+func stallOnMDGetRange() fileOp {
+	return fileOp{func(c *ctx) error {
+		// TODO: Allow test to pass in a more precise maxStalls limit.
+		c.staller.StallMDOp(libkbfs.StallableMDGetRange, 100, false)
+		return nil
+	}, Defaults}
+}
+
+func waitForStalledMDGetRange() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.WaitForStallMDOp(libkbfs.StallableMDGetRange)
+		return nil
+	}, IsInit}
+}
+
+func unstallOneMDGetRange() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.UnstallOneMDOp(libkbfs.StallableMDGetRange)
+		return nil
+	}, IsInit}
+}
+
+func undoStallOnMDGetRange() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.UndoStallMDOp(libkbfs.StallableMDGetRange)
+		return nil
+	}, IsInit}
+}
+
 func reenableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
 		err := c.engine.ReenableUpdates(c.user, c.tlfName, c.tlfIsPublic)
@@ -573,6 +647,12 @@ func reenableUpdates() fileOp {
 			return err
 		}
 		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
+	}, IsInit}
+}
+
+func reenableUpdatesNoSync() fileOp {
+	return fileOp{func(c *ctx) error {
+		return c.engine.ReenableUpdates(c.user, c.tlfName, c.tlfIsPublic)
 	}, IsInit}
 }
 
