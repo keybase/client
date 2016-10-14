@@ -23,7 +23,7 @@ class PgpPurgeMessage extends Component<void, Props, void> {
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, margin: globalMargins.medium, marginTop: globalMargins.tiny}}>
           <Text style={{textAlign: 'center'}} type='Header'>Policy change on passphrases</Text>
-          <Text style={{marginTop: globalMargins.small, textIndent: 20}} type='Body'>
+          <Text style={{marginTop: globalMargins.small}} type='Body'>
             {`
               We've gotten lots of feedback that it's annoying as all hell to enter a Keybase passphrase
               after restarts and updates. The consensus is you can trust a device's storage to keep a secret
@@ -31,16 +31,16 @@ class PgpPurgeMessage extends Component<void, Props, void> {
             `}
           </Text>
 
-          <Text style={{marginTop: globalMargins.small, textIndent: 20}} type='Body'>
+          <Text style={{marginTop: globalMargins.small}} type='Body'>
             {`
               Note, however: on this device you've got a PGP private key in Keybase's local keychain.
               Some people `} {this._toItalics('want')} {` to type a passphrase to unlock their PGP key, and this new policy would bypass that.
               If you're such a person, you can run the following command to remove your PGP private key. If you do it, you'll have to use GPG for your PGP operations.
             `}
           </Text>
-          <Text style={{marginTop: globalMargins.small, textIndent: 20}} type='Terminal'>keybase pgp purge</Text>
+          <Text style={{marginTop: globalMargins.small}} type='TerminalInline'>keybase pgp purge</Text>
         </Box>
-        <Button style={{marginRight: globalMargins.medium, marginBottom: globalMargins.small, alignSelf: 'flex-end'}} type='Primary' onClick={this.props.onOk} label='ok, got it!' />
+        <Button style={{marginRight: globalMargins.medium, marginBottom: globalMargins.small, alignSelf: 'flex-end'}} type='Primary' onClick={this.props.onOk} label='Ok, got it!' />
       </Box>
     )
   }
