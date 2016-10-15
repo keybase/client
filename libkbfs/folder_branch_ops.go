@@ -4571,6 +4571,11 @@ func (fbo *folderBranchOps) checkFastForward(ctx context.Context,
 
 	// Invalidate all the affected nodes.
 	fbo.observers.batchChanges(ctx, changes)
+
+	// Reset the edit history.  TODO: notify any listeners that we've
+	// done this.
+	fbo.editHistory.Shutdown()
+	fbo.editHistory = NewTlfEditHistory(fbo.config, fbo, fbo.log)
 	return true, now, nil
 }
 
