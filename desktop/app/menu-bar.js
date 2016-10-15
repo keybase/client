@@ -95,7 +95,7 @@ export default function () {
     mb.tray.on('double-click', e => e.preventDefault())
 
     const webContents = mb.window.webContents
-    webContents.once('did-finish-load', () => {
+    webContents.on('did-finish-load', () => {
       webContents.send('load', {
         scripts: [
           ...(__DEV__ ? [resolveRootAsURL('dist', 'dll/dll.vendor.js')] : []),

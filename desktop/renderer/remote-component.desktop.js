@@ -67,7 +67,7 @@ class RemoteComponent extends Component {
     this.remoteWindow.loadURL(resolveRootAsURL('renderer', `renderer.html?${this.props.component || ''}`))
 
     const webContents = this.remoteWindow.webContents
-    webContents.once('did-finish-load', () => {
+    webContents.on('did-finish-load', () => {
       webContents.send('load', {
         scripts: [
           ...(__DEV__ ? [resolveRootAsURL('dist', 'dll', 'dll.vendor.js')] : []),

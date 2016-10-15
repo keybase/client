@@ -11,6 +11,7 @@ type CommonProps = {
   onPress?: void,
   // Use a solid color instead of a noAvatar image initially
   loadingColor?: string,
+  borderColor?: string,
   forceLoading?: boolean,
   following?: ?boolean,
   followsYou?: ?boolean,
@@ -22,4 +23,3 @@ type CommonProps = {
 export type Props = ({url: ?string} & CommonProps) | ({username: ?string} & CommonProps)
 
 export default class Avatar extends Component<void, Props, void> { }
-
