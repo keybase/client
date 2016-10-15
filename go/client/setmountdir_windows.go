@@ -86,18 +86,19 @@ func getDriveLetter(log logger.Logger) (string, error) {
 // This makes a guess about what letter to use, starting at K,
 // and saving it in the settings.
 // Assume the caller has tested whether "mountdir" is set
-func probeForAvailableMountDir(G *libkb.GlobalContext) error {
+func probeForAvailableMountDir(G *libkb.GlobalContext) (string, error) {
+	G.Log.Info("probeForAvailableMountDir\n")
 	drive, err := getDriveLetter(G.Log)
 	if err != nil {
-		return err
+		return "", err
 	}
 	cli, err := GetConfigClient(G)
 	if err != nil {
-		return err
+		return "", err
 	}
 	V := keybase1.ConfigValue{IsNull: false, S: &drive}
 	err = cli.SetValue(context.TODO(), keybase1.SetValueArg{Path: "mountdir", Value: V})
-	return err
+	return drive, err
 }
 
 // Program is a program at path with arguments
@@ -116,9 +117,9 @@ func (p *KBFSProgram) GetArgs() []string {
 	p.mountDir, err = p.G().Env.GetMountDir()
 	if err != nil || p.mountDir == "" {
 		// for Windows
-		probeForAvailableMountDir(p.G())
-		p.mountDir, err = p.G().Env.GetMountDir()
+		p.mountDir, err = probeForAvailableMountDir(p.G())
 	}
+	p.G().Log.Info("KBFSProgram.GetArgs() - mount dir %s", p.mountDir)
 
 	return []string{
 		"-debug",
