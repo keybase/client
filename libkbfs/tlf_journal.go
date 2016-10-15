@@ -1339,8 +1339,8 @@ func (j *tlfJournal) getMDRange(
 
 func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	newUnflushedPaths map[string]bool) (MdID, error) {
-	// Now take the lock and put the MD, merging in the unfluhed paths
-	// while under the lock.
+	// Now take the lock and put the MD, merging in the unflushed
+	// paths while under the lock.
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
