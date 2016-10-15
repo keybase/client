@@ -86,7 +86,7 @@ func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
 	if rerr != nil {
 		return bi, libkb.NewChatStorageInternalError(be.G(), "createBlockIndex: failed to encode %s", err.Error())
 	}
-	if rerr = be.G().LocalDb.PutRaw(key, dat); rerr != nil {
+	if rerr = be.G().LocalChatDb.PutRaw(key, dat); rerr != nil {
 		return bi, libkb.NewChatStorageInternalError(be.G(), "createBlockIndex: failed to write: %s", rerr.Error())
 	}
 	return bi, nil
@@ -94,7 +94,7 @@ func (be *blockEngine) createBlockIndex(ctx context.Context, key libkb.DbKey,
 
 func (be *blockEngine) readBlockIndex(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (blockIndex, libkb.ChatStorageError) {
 	key := makeBlockIndexKey(convID, uid)
-	raw, found, err := be.G().LocalDb.GetRaw(key)
+	raw, found, err := be.G().LocalChatDb.GetRaw(key)
 	if err != nil {
 		return blockIndex{}, libkb.NewChatStorageInternalError(be.G(), "readBlockIndex: failed to read index block: %s", err.Error())
 	}
@@ -185,7 +185,7 @@ func (be *blockEngine) createBlock(ctx context.Context, bi *blockIndex, blockID 
 	if err != nil {
 		return block{}, libkb.NewChatStorageInternalError(be.G(), "createBlock: failed to encode block: %s", err.Error())
 	}
-	err = be.G().LocalDb.PutRaw(makeBlockIndexKey(bi.ConvID, bi.UID), dat)
+	err = be.G().LocalChatDb.PutRaw(makeBlockIndexKey(bi.ConvID, bi.UID), dat)
 	if err != nil {
 		return block{}, libkb.NewChatStorageInternalError(be.G(), "createBlock: failed to write index: %s", err.Error())
 	}
@@ -209,7 +209,7 @@ func (be *blockEngine) readBlock(ctx context.Context, bi blockIndex, id int) (bl
 
 	be.debug("readBlock: reading block: %d", id)
 	key := be.makeBlockKey(bi.ConvID, bi.UID, id)
-	raw, found, err := be.G().LocalDb.GetRaw(key)
+	raw, found, err := be.G().LocalChatDb.GetRaw(key)
 	if err != nil {
 		return block{}, libkb.NewChatStorageInternalError(be.G(), "readBlock: failed to read raw: %s", err.Error())
 	}
@@ -281,7 +281,7 @@ func (be *blockEngine) writeBlock(ctx context.Context, bi blockIndex, b block) l
 	}
 
 	// Write out encrypted block
-	if err = be.G().LocalDb.PutRaw(be.makeBlockKey(bi.ConvID, bi.UID, b.BlockID), bpayload); err != nil {
+	if err = be.G().LocalChatDb.PutRaw(be.makeBlockKey(bi.ConvID, bi.UID, b.BlockID), bpayload); err != nil {
 		return libkb.NewChatStorageInternalError(be.G(), "writeBlock: failed to write: %s", err.Error())
 	}
 	return nil

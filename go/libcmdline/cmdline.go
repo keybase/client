@@ -79,6 +79,9 @@ func (p CommandLine) GetSessionFilename() string {
 func (p CommandLine) GetDbFilename() string {
 	return p.GetGString("db")
 }
+func (p CommandLine) GetChatDbFilename() string {
+	return p.GetGString("chat-db")
+}
 func (p CommandLine) GetDebug() (bool, bool) {
 	// --no-debug suppresses --debug. Note that although we don't define a
 	// separate GetNoDebug() accessor, fork_server.go still looks for
@@ -341,6 +344,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "db",
 			Usage: "Specify an alternate local DB location.",
+		},
+		cli.StringFlag{
+			Name:  "chat-db",
+			Usage: "Specify an alternate local Chat DB location.",
 		},
 		cli.BoolFlag{
 			Name:  "debug, d",
