@@ -971,4 +971,10 @@ func TestFavoriteNameToPreferredTLFNameFormatAs(t *testing.T) {
 
 	r, _ = FavoriteNameToPreferredTLFNameFormatAs("c", "a,b,c")
 	assert.Equal(t, "c,a,b", r)
+
+	r, _ = FavoriteNameToPreferredTLFNameFormatAs("b", "a,b,c#d,e")
+	assert.Equal(t, "b,a,c#d,e", r)
+
+	r, _ = FavoriteNameToPreferredTLFNameFormatAs("d", "a,b,c#d,e")
+	assert.Equal(t, "a,b,c#d,e", r)
 }
