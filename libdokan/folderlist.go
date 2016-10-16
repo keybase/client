@@ -161,7 +161,11 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
-		child = newTLF(ctx, fl, h)
+		cuser, _, err := libkbfs.GetCurrentUserIfLoggedIn(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+		if err != nil {
+			return nil, false, err
+		}
+		child = newTLF(fl, h, h.GetPreferredFormat(cuser))
 		fl.lockedAddChild(name, child)
 		return child.open(ctx, oc, path[1:])
 	}
