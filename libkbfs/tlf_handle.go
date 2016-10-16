@@ -381,6 +381,27 @@ func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase
 	return assertions
 }
 
+func splitTLFName(name string) (wnames []string, rnames []string, ext string, err error) {
+	names := strings.SplitN(name, TlfHandleExtensionSep, 2)
+	if len(names) > 2 {
+		return nil, nil, "", BadTLFNameError{name}
+	}
+	if len(names) > 1 {
+		ext = names[1]
+	}
+
+	splitNames := strings.SplitN(names[0], ReaderSep, 3)
+	if len(splitNames) > 2 {
+		return nil, nil, "", BadTLFNameError{name}
+	}
+	wnames = strings.Split(splitNames[0], ",")
+	if len(splitNames) > 1 {
+		rnames = strings.Split(splitNames[1], ",")
+	}
+
+	return wnames, rnames, ext, nil
+}
+
 // splitAndNormalizeTLFName takes a tlf name as a string
 // and tries to normalize it offline. In addition to other
 // checks it returns TlfNameNotCanonical if it does not
@@ -409,27 +430,6 @@ func splitAndNormalizeTLFName(name string, public bool) (
 	}
 
 	return writerNames, readerNames, strings.ToLower(extensionSuffix), nil
-}
-
-func splitTLFName(name string) (wnames []string, rnames []string, ext string, err error) {
-	names := strings.SplitN(name, TlfHandleExtensionSep, 2)
-	if len(names) > 2 {
-		return nil, nil, "", BadTLFNameError{name}
-	}
-	if len(names) > 1 {
-		ext = names[1]
-	}
-
-	splitNames := strings.SplitN(names[0], ReaderSep, 3)
-	if len(splitNames) > 2 {
-		return nil, nil, "", BadTLFNameError{name}
-	}
-	wnames = strings.Split(splitNames[0], ",")
-	if len(splitNames) > 1 {
-		rnames = strings.Split(splitNames[1], ",")
-	}
-
-	return wnames, rnames, ext, nil
 }
 
 // TODO: this function can likely be replaced with a call to
