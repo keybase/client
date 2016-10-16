@@ -172,7 +172,11 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, err
 	}
 
-	child := newTLF(ctx, fl, h)
+	cname, _, err := libkbfs.GetCurrentUserIfLoggedIn(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+	if err != nil {
+		return nil, err
+	}
+	child := newTLF(fl, h, h.GetPreferredFormat(cname))
 	fl.folders[req.Name] = child
 	return child, nil
 }

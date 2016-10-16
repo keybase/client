@@ -53,14 +53,12 @@ type Folder struct {
 	updateChan chan<- struct{}
 }
 
-func newFolder(ctx context.Context, fl *FolderList, h *libkbfs.TlfHandle) *Folder {
-	// Ignore error here.
-	cuser, _, _ := fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
+func newFolder(fl *FolderList, h *libkbfs.TlfHandle, hname string) *Folder {
 	f := &Folder{
 		fs:             fl.fs,
 		list:           fl,
 		h:              h,
-		hPreferredName: h.GetPreferredFormat(cuser),
+		hPreferredName: hname,
 		nodes:          map[libkbfs.NodeID]fs.Node{},
 	}
 	return f
@@ -302,8 +300,13 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 
 func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
-	// If this fails cuser will be empty.
-	cuser, _, _ := f.fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	cuser, _, err := libkbfs.GetCurrentUserIfLoggedIn(ctx, f.fs.config.KBPKI(), f.list.public)
+	// Here we get an error, but there is little that can be done.
+	// cuser will be empty in the error case in which case we will default to the
+	// canonical format.
+	if err != nil {
+		f.fs.log.Errorf("tlfHandleChangeInvalidate: GetCurrentUserIfLoggedIn failed: %v", err)
+	}
 	oldName, newName := func() (string, string) {
 		f.handleMu.Lock()
 		defer f.handleMu.Unlock()
@@ -313,8 +316,7 @@ func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 		return oldName, f.hPreferredName
 	}()
 
-	f.list.updateTlfName(ctx, string(oldName),
-		newName)
+	f.list.updateTlfName(ctx, string(oldName), newName)
 }
 
 // TODO: Expire TLF nodes periodically. See
