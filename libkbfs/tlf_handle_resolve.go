@@ -446,19 +446,9 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 	}
 }
 
-// ParseTlfHandle parses a TlfHandle from an encoded string. See
-// TlfHandle.GetCanonicalName() for the opposite direction.
-//
-// Some errors that may be returned and can be specially handled:
-//
-// TlfNameNotCanonical: Returned when the given name is not canonical
-// -- another name to try (which itself may not be canonical) is in
-// the error. Usually, you want to treat this as a symlink to the name
-// to try.
-//
-// NoSuchNameError: Returned when public is set and the given folder
-// has no public folder.
-func ParseTlfHandle(
+// parseTlfHandleLoose parses a TLF handle but leaves some of the canonicality
+// checking to public routines like ParseTlfHandle and ParseTlfHandlePreferred.
+func parseTlfHandleLoose(
 	ctx context.Context, kbpki KBPKI, name string, public bool) (
 	*TlfHandle, error) {
 	// Before parsing the tlf handle (which results in identify
@@ -535,26 +525,71 @@ func ParseTlfHandle(
 		return nil, err
 	}
 
-	return nil, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
+	// In this case return both the handle and the error,
+	// ParseTlfHandlePreferred uses this to make the redirection
+	// better.
+	return h, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
+}
+
+// ParseTlfHandle parses a TlfHandle from an encoded string. See
+// TlfHandle.GetCanonicalName() for the opposite direction.
+//
+// Some errors that may be returned and can be specially handled:
+//
+// TlfNameNotCanonical: Returned when the given name is not canonical
+// -- another name to try (which itself may not be canonical) is in
+// the error. Usually, you want to treat this as a symlink to the name
+// to try.
+//
+// NoSuchNameError: Returned when public is set and the given folder
+// has no public folder.
+func ParseTlfHandle(
+	ctx context.Context, kbpki KBPKI, name string, public bool) (
+	*TlfHandle, error) {
+	h, err := parseTlfHandleLoose(ctx, kbpki, name, public)
+	if err != nil {
+		return nil, err
+	}
+	if name != string(h.GetCanonicalName()) {
+		return nil, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
+	}
+	return h, nil
 }
 
 // ParseTlfHandlePreferred returns TlfNameNotCanonical if not
 // in the preferred format.
+// Preferred format means that the users own username (from kbpki)
+// as a writer is put before other usernames in the tlf name.
+// i.e.
+// Canon            Preferred
+// myname,other     myname,other
+// another,myname   myname,another
+// This function also can return NoSuchNameError or TlfNameNotCanonical.
+// TlfNameNotCanonical is returned from this function when the name is
+// not the *preferred* name.
 func ParseTlfHandlePreferred(
 	ctx context.Context, kbpki KBPKI, name string, public bool) (
 	*TlfHandle, error) {
-	h, err := ParseTlfHandle(ctx, kbpki, name, public)
-	if err != nil {
+	h, err := parseTlfHandleLoose(ctx, kbpki, name, public)
+	// Return an early if there is an error, except in the case
+	// where both h is not nil and it is a TlfNameNotCanonicalError.
+	// In that case continue and return TlfNameNotCanonical later
+	// with the right symlink target.
+	if err != nil && (h == nil || !isTlfNameNotCanonical(err)) {
 		return nil, err
 	}
-	uname, _, err := kbpki.GetCurrentUserInfo(ctx)
-	// TODO is ignoring the error here the best way...
+	uname, _, err := GetCurrentUserIfLoggedIn(ctx, kbpki, h.IsPublic())
 	if err != nil {
-		return h, nil
+		return nil, err
 	}
 	pref := h.GetPreferredFormat(uname)
 	if pref != name {
 		return nil, TlfNameNotCanonical{name, pref}
 	}
 	return h, nil
+}
+
+func isTlfNameNotCanonical(err error) bool {
+	_, ok := err.(TlfNameNotCanonical)
+	return ok
 }
