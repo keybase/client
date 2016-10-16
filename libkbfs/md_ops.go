@@ -197,13 +197,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 	_, uid, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
-		// If this is a public folder, it's ok to proceed if we have
-		// no current session.
-		if _, ok := err.(NoCurrentSessionError); ok && !handle.IsPublic() {
-			return ImmutableRootMetadata{}, err
-		} else if !ok {
-			return ImmutableRootMetadata{}, err
-		}
+		return ImmutableRootMetadata{}, err
 	}
 
 	// TODO: Avoid having to do this type assertion.

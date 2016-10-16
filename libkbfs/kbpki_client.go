@@ -243,3 +243,21 @@ func (k *KBPKIClient) loadUnverifiedKeys(ctx context.Context, uid keybase1.UID) 
 	[]keybase1.PublicKey, error) {
 	return k.config.KeybaseService().LoadUnverifiedKeys(ctx, uid)
 }
+
+// GetCurrentUserIfLoggedIn returns the current username and uid from
+// kbpki.GetCurrentUserInfo if the user is logged in or empty ones
+// if they are not logged in.
+func GetCurrentUserIfLoggedIn(ctx context.Context, kbpki KBPKI, isPublic bool) (libkb.NormalizedUsername, keybase1.UID, error) {
+	name, uid, err := kbpki.GetCurrentUserInfo(ctx)
+	if err != nil {
+		// If this is not a public folder
+		if !isPublic {
+			return name, uid, err
+		}
+		// If the error is something else than NoCurrentSession then
+		if _, notLoggedIn := err.(NoCurrentSessionError); !notLoggedIn {
+			return name, uid, err
+		}
+	}
+	return name, uid, nil
+}
