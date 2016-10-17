@@ -28,7 +28,7 @@ class RemoteTracker extends Component<void, Props, void> {
 
     return (
       <div>
-        {Object.keys(trackers).filter(username => !trackers[username].closed && trackers[username].type === 'tracker').map(username => (
+        {Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
           <RemoteComponent
             positionBottomRight={true}
             windowsOpts={windowsOpts}
