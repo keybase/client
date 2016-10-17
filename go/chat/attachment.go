@@ -112,6 +112,8 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket, progress ProgressReporter) error {
 	log.Debug("s3 putSingle (size = %d)", size)
 
+	// XXX read everything into memory for retry
+
 	var lastErr error
 	for i := 0; i < 10; i++ {
 		select {
@@ -127,6 +129,9 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 		}
 		log.Debug("putSingle attempt %d error: %s", i+1, err)
 		lastErr = err
+
+		// XXX this isn't going to work without Seek(0) support on r.
+
 	}
 	return fmt.Errorf("failed putSingle (last error: %s)", lastErr)
 }
