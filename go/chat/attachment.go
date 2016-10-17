@@ -81,7 +81,14 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 		return err
 	}
 
-	n, err := io.Copy(w, body)
+	// decrypt body
+	dec := NewPassThrough()
+	decBody, err := dec.Decrypt(body, asset.Key)
+	if err != nil {
+		return err
+	}
+
+	n, err := io.Copy(w, decBody)
 	if err != nil {
 		return err
 	}

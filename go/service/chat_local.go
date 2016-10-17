@@ -768,8 +768,13 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 
+	// encrypt the stream
+	enc := chat.NewPassThrough()
+	len := enc.EncryptedLen(arg.Size)
+	encReader := enc.Encrypt(src)
+
 	// post to s3
-	upRes, err := chat.PutS3(ctx, h.G().Log, src, int64(arg.Size), params, h)
+	upRes, err := chat.PutS3(ctx, h.G().Log, encReader, int64(len), params, h)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
@@ -784,6 +789,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 			Bucket:   upRes.Bucket,
 			Path:     upRes.Path,
 			Size:     int(upRes.Size),
+			Key:      enc.Key(),
 		},
 	}
 	postArg := chat1.PostLocalArg{
@@ -842,6 +848,9 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		if err := chat.DownloadAsset(ctx, h.G().Log, params, attachment.Object, sink, h); err != nil {
 			return chat1.DownloadAttachmentLocalRes{}, err
 		}
+	}
+	if err := sink.Close(); err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
 	return chat1.DownloadAttachmentLocalRes{RateLimits: msgs.RateLimits}, nil
