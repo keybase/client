@@ -39,7 +39,7 @@ const (
 	// How long must something be unreferenced before we reclaim it?
 	qrUnrefAgeDefault = 1 * time.Minute
 	// How old must the most recent revision be before we run QR?
-	qrMinHeadAgeDefault = 1 * time.Minute
+	qrMinHeadAgeDefault = 5 * time.Minute
 	// tlfValidDurationDefault is the default for tlf validity before redoing identify.
 	tlfValidDurationDefault = 6 * time.Hour
 )
