@@ -99,7 +99,7 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 		}
 
 		// Store
-		if err = ms.G().LocalDb.PutRaw(ms.makeMsgKey(convID, uid, msg.GetMessageID()), dat); err != nil {
+		if err = ms.G().LocalChatDb.PutRaw(ms.makeMsgKey(convID, uid, msg.GetMessageID()), dat); err != nil {
 			return libkb.NewChatStorageInternalError(ms.G(), "writeMessages: failed to write msg: %s",
 				err.Error())
 		}
@@ -113,7 +113,7 @@ func (ms *msgEngine) readMessages(ctx context.Context, res *[]chat1.MessageUnbox
 
 	// Read all msgs in reverse order
 	for msgID := maxID; !df(res, num) && msgID > 0; msgID-- {
-		raw, found, err := ms.G().LocalDb.GetRaw(ms.makeMsgKey(convID, uid, msgID))
+		raw, found, err := ms.G().LocalChatDb.GetRaw(ms.makeMsgKey(convID, uid, msgID))
 		if err != nil {
 			return libkb.NewChatStorageInternalError(ms.G(), "readMessages: failed to read msg: %s", err.Error())
 		}

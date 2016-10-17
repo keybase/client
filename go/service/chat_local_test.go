@@ -310,12 +310,15 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 	if len(res.Conversations) != 1 {
 		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
 	}
+	if res.Conversations[0].Info.Id.String() != withUser1.Id.String() {
+		t.Fatalf("unexpected conversation returned. Expect %s, got %s", withUser1.Id.String(), res.Conversations[0].Info.Id.String())
+	}
 
 	var found bool
 	for _, m := range res.Conversations[0].MaxMessages {
 		if m.GetMessageType() == chat1.MessageType_TEXT {
 			if res.Conversations[0].ReaderInfo.ReadMsgid == m.GetMessageID() {
-				t.Fatalf("conversation was not marked as read\n")
+				t.Fatalf("conversation was marked as read before requesting so\n")
 			}
 			found = true
 			break
@@ -323,6 +326,32 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 	}
 	if !found {
 		t.Fatalf("no TEXT message in returned inbox")
+	}
+
+	// Do a get thread local without requesting marking as read first. This
+	// should cause HybridConversationSource to cache the thread. Then we do
+	// another call requesting marking as read before checking if the thread is
+	// marked as read. This is to ensure that when the query requests for a
+	// mark-as-read, and the thread gets a cache hit, the
+	// HybridConversationSource should not just return the thread, but also send
+	// a MarkAsRead RPC to remote. (Currently this is done in
+	// HybridConversationSource.Pull)
+	//
+	// TODO: This doesn't make sense! In integration tests, this isn't necessary
+	// since a Pull() is called during PostLocal (when populating the Prev
+	// pointers).  However it seems in this test, it doesn't do so. This first
+	// GetThreadLocal always gets a cache miss, resulting a remote call. If
+	// PostLocal had worked like integration, this shouldn't be necessary. We
+	// should find out where the problem is and fix it! Although after that fix,
+	// this should probably still stay here just in case.
+	_, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
+		ConversationID: withUser1.Id,
+		Query: &chat1.GetThreadQuery{
+			MarkAsRead: false,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
