@@ -361,16 +361,8 @@ func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 		return c.errReply(err)
 	}
 
-	info, err := os.Stat(opts.Filename)
+	info, fsource, err := c.fileInfo(opts.Filename)
 	if err != nil {
-		return c.errReply(err)
-	}
-	if info.IsDir() {
-		return c.errReply(fmt.Errorf("%s is a directory", opts.Filename))
-	}
-
-	fsource := NewFileSource(opts.Filename)
-	if err := fsource.Open(); err != nil {
 		return c.errReply(err)
 	}
 	defer fsource.Close()
@@ -379,10 +371,29 @@ func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 	arg := chat1.PostAttachmentLocalArg{
 		ConversationID: header.conversationID,
 		ClientHeader:   header.clientHeader,
-		Filename:       info.Name(),
-		Size:           int(info.Size()),
-		Source:         src,
+		Attachment: chat1.LocalSource{
+			Filename: info.Name(),
+			Size:     int(info.Size()),
+			Source:   src,
+		},
 	}
+
+	// check for preview
+	if len(opts.Preview) > 0 {
+		pinfo, psource, err := c.fileInfo(opts.Preview)
+		if err != nil {
+			return c.errReply(err)
+		}
+		defer psource.Close()
+		psrc := c.G().XStreams.ExportReader(psource)
+		plocal := chat1.LocalSource{
+			Filename: pinfo.Name(),
+			Size:     int(pinfo.Size()),
+			Source:   psrc,
+		}
+		arg.Preview = &plocal
+	}
+
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
@@ -602,4 +613,21 @@ func (c *CmdChatAPI) getInboxLocalQuery(id chat1.ConversationID, channel ChatCha
 		TopicType:     &tt,
 		TopicName:     &channel.TopicName,
 	}
+}
+
+func (c *CmdChatAPI) fileInfo(filename string) (os.FileInfo, *FileSource, error) {
+	info, err := os.Stat(filename)
+	if err != nil {
+		return nil, nil, err
+	}
+	if info.IsDir() {
+		return nil, nil, fmt.Errorf("%s is a directory", filename)
+	}
+
+	fsource := NewFileSource(filename)
+	if err := fsource.Open(); err != nil {
+		return nil, nil, err
+	}
+
+	return info, fsource, nil
 }

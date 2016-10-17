@@ -212,6 +212,7 @@ type attachOptionsV1 struct {
 	Channel        ChatChannel
 	ConversationID chat1.ConversationID `json:"conversation_id"`
 	Filename       string
+	Preview        string
 }
 
 func (a attachOptionsV1) Check() error {

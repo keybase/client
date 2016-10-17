@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -764,33 +765,39 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		return chat1.PostLocalRes{}, err
 	}
 
-	// create a buffered stream
-	cli := h.getStreamUICli()
-	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
-
-	// encrypt the stream
-	enc := chat.NewPassThrough()
-	len := enc.EncryptedLen(arg.Size)
-	encReader := enc.Encrypt(src)
-
-	// post to s3
-	upRes, err := chat.PutS3(ctx, h.G().Log, encReader, int64(len), params, h)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
+	// upload attachment and (optional preview) concurrently
+	var wg sync.WaitGroup
+	var objectErr, previewErr error
+	var object chat1.Asset
+	var preview *chat1.Asset
+	wg.Add(1)
+	go func() {
+		object, objectErr = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment)
+		wg.Done()
+	}()
+	if arg.Preview != nil {
+		wg.Add(1)
+		go func() {
+			var prev chat1.Asset
+			prev, previewErr = h.uploadAsset(ctx, arg.SessionID, params, *arg.Preview)
+			if previewErr == nil {
+				preview = &prev
+			}
+			wg.Done()
+		}()
 	}
-	h.G().Log.Debug("chat attachment upload: %+v", upRes)
+	wg.Wait()
+	if objectErr != nil {
+		return chat1.PostLocalRes{}, objectErr
+	}
+	if previewErr != nil {
+		return chat1.PostLocalRes{}, previewErr
+	}
 
 	// send an attachment message
 	attachment := chat1.MessageAttachment{
-		Object: chat1.Asset{
-			Filename: filepath.Base(arg.Filename),
-			Region:   upRes.Region,
-			Endpoint: upRes.Endpoint,
-			Bucket:   upRes.Bucket,
-			Path:     upRes.Path,
-			Size:     int(upRes.Size),
-			Key:      enc.Key(),
-		},
+		Object:  object,
+		Preview: preview,
 	}
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
@@ -912,4 +919,34 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 		Version: 1,
 	}
 	return h.remoteClient().S3Sign(context.Background(), arg)
+}
+
+func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource) (chat1.Asset, error) {
+	// create a buffered stream
+	cli := h.getStreamUICli()
+	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
+
+	// encrypt the stream
+	enc := chat.NewPassThrough()
+	len := enc.EncryptedLen(local.Size)
+	encReader := enc.Encrypt(src)
+
+	// post to s3
+	upRes, err := chat.PutS3(ctx, h.G().Log, encReader, int64(len), params, h)
+	if err != nil {
+		return chat1.Asset{}, err
+	}
+	h.G().Log.Debug("chat attachment upload: %+v", upRes)
+
+	asset := chat1.Asset{
+		Filename: filepath.Base(local.Filename),
+		Region:   upRes.Region,
+		Endpoint: upRes.Endpoint,
+		Bucket:   upRes.Bucket,
+		Path:     upRes.Path,
+		Size:     int(upRes.Size),
+		Key:      enc.Key(),
+	}
+	return asset, nil
+
 }

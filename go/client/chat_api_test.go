@@ -311,6 +311,9 @@ var optTests = []optTest{
 	{
 		input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`,
 	},
+	{
+		input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "preview": true, "output": "/tmp/file"}}}`,
+	},
 }
 
 // TestChatAPIDecoderOptions tests the option decoding.
@@ -378,6 +381,10 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "preview": "preview.png"}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 	{

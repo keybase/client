@@ -468,6 +468,12 @@ type PostLocalRes struct {
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 }
 
+type LocalSource struct {
+	Source   keybase1.Stream `codec:"source" json:"source"`
+	Filename string          `codec:"filename" json:"filename"`
+	Size     int             `codec:"size" json:"size"`
+}
+
 type NewConversationLocalRes struct {
 	Conv       ConversationLocal `codec:"conv" json:"conv"`
 	RateLimits []RateLimit       `codec:"rateLimits" json:"rateLimits"`
@@ -536,9 +542,8 @@ type PostAttachmentLocalArg struct {
 	SessionID      int                 `codec:"sessionID" json:"sessionID"`
 	ConversationID ConversationID      `codec:"conversationID" json:"conversationID"`
 	ClientHeader   MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
-	Source         keybase1.Stream     `codec:"source" json:"source"`
-	Filename       string              `codec:"filename" json:"filename"`
-	Size           int                 `codec:"size" json:"size"`
+	Attachment     LocalSource         `codec:"attachment" json:"attachment"`
+	Preview        *LocalSource        `codec:"preview,omitempty" json:"preview,omitempty"`
 }
 
 type NewConversationLocalArg struct {

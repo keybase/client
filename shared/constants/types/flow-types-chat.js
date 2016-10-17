@@ -556,6 +556,12 @@ export type InboxView = {
   pagination?: ?Pagination,
 }
 
+export type LocalSource = {
+  source: keybase1.Stream,
+  filename: string,
+  size: int,
+}
+
 export type MarkAsReadRes = {
   rateLimit?: ?RateLimit,
 }
@@ -802,9 +808,8 @@ export type localNewConversationLocalRpcParam = Exact<{
 export type localPostAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   clientHeader: MessageClientHeader,
-  source: keybase1.Stream,
-  filename: string,
-  size: int
+  attachment: LocalSource,
+  preview?: ?LocalSource
 }>
 
 export type localPostLocalRpcParam = Exact<{

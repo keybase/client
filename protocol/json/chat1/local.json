@@ -665,6 +665,24 @@
     },
     {
       "type": "record",
+      "name": "LocalSource",
+      "fields": [
+        {
+          "type": "keybase1.Stream",
+          "name": "source"
+        },
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "NewConversationLocalRes",
       "fields": [
         {
@@ -914,16 +932,15 @@
           "type": "MessageClientHeader"
         },
         {
-          "name": "source",
-          "type": "keybase1.Stream"
+          "name": "attachment",
+          "type": "LocalSource"
         },
         {
-          "name": "filename",
-          "type": "string"
-        },
-        {
-          "name": "size",
-          "type": "int"
+          "name": "preview",
+          "type": [
+            null,
+            "LocalSource"
+          ]
         }
       ],
       "response": "PostLocalRes"
