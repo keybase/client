@@ -84,7 +84,6 @@ type RekeySyncArg struct {
 
 type GetRevokeWarningArg struct {
 	Session      int      `codec:"session" json:"session"`
-	ActingDevice DeviceID `codec:"actingDevice" json:"actingDevice"`
 	TargetDevice DeviceID `codec:"targetDevice" json:"targetDevice"`
 }
 

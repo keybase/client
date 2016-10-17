@@ -4582,7 +4582,6 @@ export type quotaVerifySessionRpcParam = Exact<{
 
 export type rekeyGetRevokeWarningRpcParam = Exact<{
   session: int,
-  actingDevice: DeviceID,
   targetDevice: DeviceID
 }>
 
