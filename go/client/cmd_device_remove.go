@@ -65,7 +65,7 @@ func (c *CmdDeviceRemove) confirmDelete(id keybase1.DeviceID) error {
 	}
 
 	tui.OutputDesc(OutputDescriptorEndageredTLFs, out)
-	ok, err := tui.PromptYesNo(PromptDescriptorDeviceRevoke, "Go ahead anyway", libkb.PromptDefaultNo)
+	ok, err := tui.PromptYesNo(PromptDescriptorDeviceRevoke, "Go ahead anyway?", libkb.PromptDefaultNo)
 	if err != nil {
 		return err
 	}
