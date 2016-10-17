@@ -18,6 +18,13 @@ import (
 // ***
 const cryptoVersion = 1
 
+type resultCollector interface {
+	push(msg chat1.MessageUnboxed)
+	done() bool
+	result() []chat1.MessageUnboxed
+	String() string
+}
+
 type Storage struct {
 	sync.Mutex
 	libkb.Contextified
@@ -30,9 +37,8 @@ type storageEngine interface {
 		uid gregor1.UID) (context.Context, libkb.ChatStorageError)
 	writeMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgs []chat1.MessageUnboxed) libkb.ChatStorageError
-	readMessages(ctx context.Context, res *[]chat1.MessageUnboxed,
-		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID, num int,
-		df doneFunc) libkb.ChatStorageError
+	readMessages(ctx context.Context, res resultCollector,
+		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) libkb.ChatStorageError
 }
 
 func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
@@ -71,8 +77,68 @@ func decode(data []byte, res interface{}) error {
 	return err
 }
 
-func simpleDone(msgs *[]chat1.MessageUnboxed, num int) bool {
-	return len(*msgs) >= num
+type simpleResultCollector struct {
+	res    []chat1.MessageUnboxed
+	target int
+}
+
+func (s *simpleResultCollector) push(msg chat1.MessageUnboxed) {
+	s.res = append(s.res, msg)
+}
+
+func (s *simpleResultCollector) done() bool {
+	return len(s.res) >= s.target
+}
+
+func (s *simpleResultCollector) result() []chat1.MessageUnboxed {
+	return s.res
+}
+
+func (s *simpleResultCollector) String() string {
+	return fmt.Sprintf("[ simple: t: %d c: %d]", s.target, len(s.res))
+}
+
+func newSimpleResultCollector(num int) *simpleResultCollector {
+	return &simpleResultCollector{
+		target: num,
+	}
+}
+
+type typedResultCollector struct {
+	res         []chat1.MessageUnboxed
+	typ         chat1.MessageType
+	target, cur int
+	typmap      map[chat1.MessageType]bool
+}
+
+func newTypedResultCollector(num int, typs []chat1.MessageType) *typedResultCollector {
+	c := typedResultCollector{
+		target: num,
+		typmap: make(map[chat1.MessageType]bool),
+	}
+	for _, typ := range typs {
+		c.typmap[typ] = true
+	}
+	return &c
+}
+
+func (t *typedResultCollector) push(msg chat1.MessageUnboxed) {
+	t.res = append(t.res, msg)
+	if t.typmap[msg.GetMessageType()] {
+		t.cur++
+	}
+}
+
+func (t *typedResultCollector) done() bool {
+	return t.cur >= t.target
+}
+
+func (t *typedResultCollector) result() []chat1.MessageUnboxed {
+	return t.res
+}
+
+func (t *typedResultCollector) String() string {
+	return fmt.Sprintf("[ typed: t: %d c: %d (%d types) ]", t.target, t.cur, len(t.typmap))
 }
 
 func (s *Storage) debug(format string, args ...interface{}) {
@@ -147,7 +213,8 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 		s.debug("updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, superID)
 		// Read super msg
 		var superMsgs []chat1.MessageUnboxed
-		err := s.engine.readMessages(ctx, &superMsgs, convID, uid, superID, 1, simpleDone)
+		rc := newSimpleResultCollector(1)
+		err := s.engine.readMessages(ctx, rc, convID, uid, superID)
 		if err != nil {
 			// If we don't have the message, just keep going
 			if _, ok := err.(libkb.ChatStorageMissError); ok {
@@ -155,6 +222,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			}
 			return err
 		}
+		superMsgs = rc.result()
 		if len(superMsgs) == 0 {
 			continue
 		}
@@ -199,8 +267,6 @@ func (s *Storage) getSecretBoxKey() (fkey [32]byte, err error) {
 	copy(fkey[:], skey)
 	return fkey, nil
 }
-
-type doneFunc func(*[]chat1.MessageUnboxed, int) bool
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
@@ -253,36 +319,20 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	s.debug("Fetch: maxID: %d num: %d", maxID, num)
 
 	// Figure out how to determine we are done seeking
-	var df doneFunc
-	var typmap map[chat1.MessageType]bool
+	var rc resultCollector
 	if query != nil && len(query.MessageTypes) > 0 {
-		typmap = make(map[chat1.MessageType]bool)
-		for _, mt := range query.MessageTypes {
-			typmap[mt] = true
-		}
-	}
-	typedDoneFunc := func(msgs *[]chat1.MessageUnboxed, num int) bool {
-		count := 0
-		for _, msg := range *msgs {
-			if _, ok := typmap[msg.GetMessageType()]; ok {
-				count++
-			}
-		}
-		return count >= num
-	}
-	if len(typmap) > 0 {
-		s.debug("Fetch: using typed done function: types: %d", len(typmap))
-		df = typedDoneFunc
+		rc = newTypedResultCollector(num, query.MessageTypes)
 	} else {
-		s.debug("Fetch: using simple done function")
-		df = simpleDone
+		rc = newSimpleResultCollector(num)
 	}
+	s.debug("Fetch: using result collector: %s", rc)
 
 	// Run seek looking for all the messages
 	var res []chat1.MessageUnboxed
-	if err = s.engine.readMessages(ctx, &res, convID, uid, maxID, num, df); err != nil {
+	if err = s.engine.readMessages(ctx, rc, convID, uid, maxID); err != nil {
 		return chat1.ThreadView{}, err
 	}
+	res = rc.result()
 
 	// Form paged result
 	var tres chat1.ThreadView

@@ -351,8 +351,8 @@ func (be *blockEngine) writeMessages(ctx context.Context, convID chat1.Conversat
 	return nil
 }
 
-func (be *blockEngine) readMessages(ctx context.Context, res *[]chat1.MessageUnboxed,
-	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID, num int, df doneFunc) libkb.ChatStorageError {
+func (be *blockEngine) readMessages(ctx context.Context, res resultCollector,
+	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) libkb.ChatStorageError {
 
 	// Get block index
 	bi, err := be.fetchBlockIndex(ctx, convID, uid)
@@ -370,8 +370,8 @@ func (be *blockEngine) readMessages(ctx context.Context, res *[]chat1.MessageUnb
 	var lastAdded chat1.MessageID
 	maxPos := be.getBlockPosition(maxID)
 
-	be.debug("readMessages: BID: %d maxPos: %d maxID: %d num: %d", b.BlockID, maxPos, maxID, num)
-	for index := maxPos; !df(res, num) && index >= 0; index-- {
+	be.debug("readMessages: BID: %d maxPos: %d maxID: %d rc: %s", b.BlockID, maxPos, maxID, res)
+	for index := maxPos; !res.done() && index >= 0; index-- {
 		if b.BlockID == 0 && index == 0 {
 			// Short circuit out of here if we are on the null message
 			break
@@ -391,13 +391,13 @@ func (be *blockEngine) readMessages(ctx context.Context, res *[]chat1.MessageUnb
 
 		be.debug("readMessages: adding msg_id: %d (blockid: %d pos: %d)",
 			msg.GetMessageID(), b.BlockID, index)
-		*res = append(*res, msg)
 		lastAdded = msg.GetMessageID()
+		res.push(msg)
 	}
 
 	// Check if we read anything, otherwise move to another block and try again
-	if !df(res, num) && b.BlockID > 0 {
-		return be.readMessages(ctx, res, convID, uid, lastAdded-1, num, df)
+	if !res.done() && b.BlockID > 0 {
+		return be.readMessages(ctx, res, convID, uid, lastAdded-1)
 	}
 	return nil
 }

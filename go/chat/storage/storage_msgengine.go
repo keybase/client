@@ -108,11 +108,11 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 	return nil
 }
 
-func (ms *msgEngine) readMessages(ctx context.Context, res *[]chat1.MessageUnboxed,
-	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID, num int, df doneFunc) libkb.ChatStorageError {
+func (ms *msgEngine) readMessages(ctx context.Context, rc resultCollector,
+	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) libkb.ChatStorageError {
 
 	// Read all msgs in reverse order
-	for msgID := maxID; !df(res, num) && msgID > 0; msgID-- {
+	for msgID := maxID; !rc.done() && msgID > 0; msgID-- {
 		raw, found, err := ms.G().LocalChatDb.GetRaw(ms.makeMsgKey(convID, uid, msgID))
 		if err != nil {
 			return libkb.NewChatStorageInternalError(ms.G(), "readMessages: failed to read msg: %s", err.Error())
@@ -149,7 +149,7 @@ func (ms *msgEngine) readMessages(ctx context.Context, res *[]chat1.MessageUnbox
 			return libkb.NewChatStorageInternalError(ms.G(), "readMessages: failed to decode: %s", err.Error())
 		}
 
-		*res = append(*res, msg)
+		rc.push(msg)
 	}
 
 	return nil
