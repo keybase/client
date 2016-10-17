@@ -33,7 +33,7 @@ type blockIndex struct {
 
 type block struct {
 	BlockID int
-	Msgs    [blockSize]chat1.MessageFromServerOrError
+	Msgs    [blockSize]chat1.MessageUnboxed
 }
 
 type boxedBlock struct {
@@ -288,7 +288,7 @@ func (be *blockEngine) writeBlock(ctx context.Context, bi blockIndex, b block) l
 }
 
 func (be *blockEngine) writeMessages(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageFromServerOrError) libkb.ChatStorageError {
+	msgs []chat1.MessageUnboxed) libkb.ChatStorageError {
 
 	var err libkb.ChatStorageError
 	var maxB block
@@ -351,7 +351,7 @@ func (be *blockEngine) writeMessages(ctx context.Context, convID chat1.Conversat
 	return nil
 }
 
-func (be *blockEngine) readMessages(ctx context.Context, res *[]chat1.MessageFromServerOrError,
+func (be *blockEngine) readMessages(ctx context.Context, res *[]chat1.MessageUnboxed,
 	convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID, num int, df doneFunc) libkb.ChatStorageError {
 
 	// Get block index

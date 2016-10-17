@@ -65,18 +65,14 @@ func Collar(lower int, ideal int, upper int) int {
 	return ideal
 }
 
-func FilterByType(msgs []chat1.MessageFromServerOrError, query *chat1.GetThreadQuery) (res []chat1.MessageFromServerOrError) {
+func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery) (res []chat1.MessageUnboxed) {
 	if query != nil && len(query.MessageTypes) > 0 {
 		typmap := make(map[chat1.MessageType]bool)
 		for _, mt := range query.MessageTypes {
 			typmap[mt] = true
 		}
 		for _, msg := range msgs {
-			if msg.Message != nil {
-				if _, ok := typmap[msg.Message.ServerHeader.MessageType]; ok {
-					res = append(res, msg)
-				}
-			} else {
+			if _, ok := typmap[msg.GetMessageType()]; ok {
 				res = append(res, msg)
 			}
 		}

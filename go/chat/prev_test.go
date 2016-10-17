@@ -25,22 +25,18 @@ func expectCode(t *testing.T, err libkb.ChatThreadConsistencyError, code libkb.C
 func threadViewFromDummies(dummies []dummyMessage) chat1.ThreadView {
 	threadView := chat1.ThreadView{}
 	for _, dummy := range dummies {
-		messageFromServer := chat1.MessageFromServer{
+		messageValid := chat1.MessageUnboxedValid{
 			HeaderHash: dummy.hash,
 			ServerHeader: chat1.MessageServerHeader{
 				MessageID: dummy.id,
 			},
-			MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
-				ClientHeader: chat1.MessageClientHeader{
-					Prev: dummy.prevs,
-				},
-				// no need for a body
-			}),
+			ClientHeader: chat1.MessageClientHeader{
+				Prev: dummy.prevs,
+			},
+			// no need for a body
 		}
-		messageFromServerOrError := chat1.MessageFromServerOrError{
-			Message: &messageFromServer,
-		}
-		threadView.Messages = append(threadView.Messages, messageFromServerOrError)
+		msg := chat1.NewMessageUnboxedWithValid(messageValid)
+		threadView.Messages = append(threadView.Messages, msg)
 	}
 	return threadView
 }
