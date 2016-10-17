@@ -567,12 +567,8 @@ export type MessagePreviousPointer = {
 }
 
 export type MessageServerHeader = {
-  messageType: MessageType,
   messageID: MessageID,
-  sender: gregor1.UID,
-  senderDevice: gregor1.DeviceID,
   supersededBy: MessageID,
-  supersedes: MessageID,
   ctime: gregor1.Time,
 }
 
@@ -646,7 +642,7 @@ export type PostLocalRes = {
 }
 
 export type PostRemoteRes = {
-  msgID: MessageID,
+  msgHeader: MessageServerHeader,
   rateLimit?: ?RateLimit,
 }
 

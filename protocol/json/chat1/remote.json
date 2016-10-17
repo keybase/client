@@ -127,8 +127,8 @@
       "name": "PostRemoteRes",
       "fields": [
         {
-          "type": "MessageID",
-          "name": "msgID"
+          "type": "MessageServerHeader",
+          "name": "msgHeader"
         },
         {
           "type": [
