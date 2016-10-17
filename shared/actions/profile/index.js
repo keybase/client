@@ -3,13 +3,12 @@ import * as Constants from '../../constants/profile'
 import flags from '../../util/feature-flags'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
-import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress} from './proofs'
+import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, proofsSaga} from './proofs'
 import {apiserverPostRpcPromise, revokeRevokeSigsRpcPromise} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
 import {navigateUp, routeAppend, switchTab} from '../../actions/router'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
-import {proofsSaga} from './proofs'
 import {profileTab} from '../../constants/tabs'
 import {takeEvery} from 'redux-saga'
 
@@ -189,6 +188,9 @@ function * _outputInstructionsActionLink (): SagaGenerator<any, any> {
       break
     case 'facebook':
       yield call(_openURLIfNotNull, profile.proofText, profile.proofText, 'facebook url')
+      break
+    case 'hackernews':
+      yield call(openURL, `https://news.ycombinator.com/user?id=${profile.username}`)
       break
     default:
       break
