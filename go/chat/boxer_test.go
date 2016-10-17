@@ -46,10 +46,10 @@ func textMsgWithSender(t *testing.T, text string, uid gregor1.UID) chat1.Message
 }
 
 func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHeader) chat1.MessagePlaintext {
-	return chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
+	return chat1.MessagePlaintext{
 		ClientHeader: header,
 		MessageBody:  chat1.NewMessageBodyWithText(chat1.MessageText{Body: text}),
-	})
+	}
 }
 
 func setupChatTest(t *testing.T, name string) (libkb.TestContext, *Boxer) {
@@ -81,7 +81,7 @@ func TestChatMessageBox(t *testing.T) {
 	msg := textMsg(t, "hello")
 	tc, boxer := setupChatTest(t, "box")
 	defer tc.Cleanup()
-	boxed, err := boxer.boxMessageWithKeysV1(msg.V1(), key, getSigningKeyPairForTest(t, tc, nil))
+	boxed, err := boxer.boxMessageWithKeysV1(msg, key, getSigningKeyPairForTest(t, tc, nil))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +105,7 @@ func TestChatMessageUnbox(t *testing.T) {
 
 	signKP := getSigningKeyPairForTest(t, tc, u)
 
-	boxed, err := boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestChatMessageUnbox(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := messagePlaintext.V1().MessageBody
+	body := messagePlaintext.MessageBody
 	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
 		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
 	}
@@ -150,7 +150,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 		return sum[:]
 	}
 
-	boxed, err := boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -200,7 +200,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 		return sigInfo, nil
 	}
 
-	boxed, err := boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,7 +238,7 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	boxed, err := boxer.boxMessageWithKeysV1(msg.V1(), key, signKP)
+	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -278,7 +278,7 @@ func TestChatMessagePublic(t *testing.T) {
 
 	ctx := context.Background()
 
-	boxed, err := boxer.boxMessageV1(ctx, msg.V1(), signKP)
+	boxed, err := boxer.BoxMessage(ctx, msg, signKP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -293,7 +293,10 @@ func TestChatMessagePublic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := decmsg.Message.MessagePlaintext.V1().MessageBody
+	if !decmsg.IsValid() {
+		t.Fatalf("decmsg is not valid")
+	}
+	body := decmsg.Valid().MessageBody
 	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
 		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
 	}

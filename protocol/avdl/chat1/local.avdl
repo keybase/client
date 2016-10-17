@@ -48,24 +48,6 @@ protocol local {
     case HEADLINE: MessageHeadline;
   }
 
-  enum MessagePlaintextVersion {
-    V1_1
-  }
-
-  // MessagePlaintextV1 is version 1 of MessagePlaintext.
-  // The fields here cannot change.  To modify,
-  // create a new record type with a new version.
-  record MessagePlaintextV1 {
-    MessageClientHeader clientHeader;
-    MessageBody messageBody;
-  }
-
-  // MessagePlaintext is a variant container for all the 
-  // versions of MessagePlaintext.
-  variant MessagePlaintext switch (MessagePlaintextVersion version) {
-    case V1: MessagePlaintextV1;
-  }
-
   enum HeaderPlaintextVersion {
     V1_1
   }
@@ -108,27 +90,38 @@ protocol local {
     case V1: BodyPlaintextV1;
   }
 
-  record MessageFromServer {
+  record MessagePlaintext {
+    MessageClientHeader clientHeader;
+    MessageBody messageBody;
+  }
+
+  enum MessageUnboxedState {
+    VALID_1,
+    ERROR_2
+  }
+
+  record MessageUnboxedValid {
+    MessageClientHeader clientHeader;
     MessageServerHeader serverHeader;
-    MessagePlaintext messagePlaintext;
+    MessageBody messageBody;
     string senderUsername;
     string senderDeviceName;
     Hash headerHash;
   }
-  
-  record MessageError {
-    string errmsg;
+
+  record MessageUnboxedError {
+    string errMsg;
     MessageID messageID;
     MessageType messageType;
-  }
+  } 
 
-  record MessageFromServerOrError {
-    union { null, MessageError } unboxingError;
-    union { null, MessageFromServer } message;
+  variant MessageUnboxed switch (MessageUnboxedState state) {
+    case VALID: MessageUnboxedValid;
+    case ERROR: MessageUnboxedError;
   }
-
+  
   record ThreadView {
-    array<MessageFromServerOrError> messages;
+    array<MessageUnboxed> messages;
     union { null, Pagination } pagination;
   }
 
@@ -159,7 +152,7 @@ protocol local {
     union { null, string } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
-    array<MessageFromServerOrError> maxMessages; // the latest message for each message type
+    array<MessageUnboxed> maxMessages; // the latest message for each message type
   }
 
   GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
@@ -204,7 +197,7 @@ protocol local {
   }
 
 
-  PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext messagePlaintext);
+  PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg);
   record PostLocalRes {
     array<RateLimit> rateLimits;
   }
@@ -248,14 +241,14 @@ protocol local {
   }
   record GetConversationForCLILocalRes {
     ConversationLocal conversation;
-    array<MessageFromServerOrError> messages;
+    array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;
   }
 
   // Get messages by ID.
   GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs);
   record GetMessagesLocalRes {
-    array<MessageFromServerOrError> messages;
+    array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;
   }
 }

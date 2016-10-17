@@ -67,19 +67,17 @@ func (b *Boxer) log() logger.Logger {
 	return b.kbCtx.GetLog()
 }
 
-func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.MessageFromServerOrError {
-	return chat1.MessageFromServerOrError{
-		UnboxingError: &chat1.MessageError{
-			Errmsg:      err.Error(),
-			MessageID:   msg.ServerHeader.MessageID,
-			MessageType: msg.ServerHeader.MessageType,
-		},
-	}
+func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.MessageUnboxed {
+	return chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
+		ErrMsg:      err.Error(),
+		MessageID:   msg.GetMessageID(),
+		MessageType: msg.GetMessageType(),
+	})
 }
 
 // UnboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
-func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1.MessageBoxed) (res chat1.MessageFromServerOrError, err error) {
+func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1.MessageBoxed) (res chat1.MessageUnboxed, err error) {
 	tlfName := boxed.ClientHeader.TlfName
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := finder.Find(ctx, b.tlf, tlfName, tlfPublic)
@@ -100,7 +98,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1
 		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
-	messagePlaintext, headerHash, err := b.unboxMessageWithKey(ctx, boxed, matchKey)
+	pt, headerHash, err := b.unboxMessageWithKey(ctx, boxed, matchKey)
 	if err != nil {
 		b.log().Warning("failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			err.Error())
@@ -108,32 +106,34 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1
 	}
 
 	_, uimap := utils.GetUserInfoMapper(ctx, b.kbCtx)
-	username, deviceName, err := b.getSenderInfoLocal(uimap, messagePlaintext)
+	username, deviceName, err := b.getSenderInfoLocal(uimap, pt.ClientHeader)
 	if err != nil {
 		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
 			boxed.ServerHeader.Sender, boxed.ServerHeader.SenderDevice)
 	}
 
-	res.Message = &chat1.MessageFromServer{
+	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
+		ClientHeader:     pt.ClientHeader,
 		ServerHeader:     *boxed.ServerHeader,
-		MessagePlaintext: messagePlaintext,
-		SenderDeviceName: deviceName,
+		MessageBody:      pt.MessageBody,
 		SenderUsername:   username,
+		SenderDeviceName: deviceName,
 		HeaderHash:       headerHash,
-	}
+	}), nil
 
-	return res, nil
 }
 
 // unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given
 // a keybase1.CryptKey.
-func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed, key *keybase1.CryptKey) (messagePlaintext chat1.MessagePlaintext, headerHash chat1.Hash, err error) {
+func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed, key *keybase1.CryptKey) (chat1.MessagePlaintext, chat1.Hash, error) {
+
+	var err error
 	if msg.ServerHeader == nil {
 		return chat1.MessagePlaintext{}, nil, errors.New("nil ServerHeader in MessageBoxed")
 	}
 
 	// compute the header hash
-	headerHash = b.hashV1(msg.HeaderCiphertext.E)
+	headerHash := b.hashV1(msg.HeaderCiphertext.E)
 
 	// decrypt body
 	var body chat1.BodyPlaintext
@@ -194,10 +194,7 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 		// body was deleted, so return empty body that matches header version
 		switch headerVersion {
 		case chat1.HeaderPlaintextVersion_V1:
-			msgPlainV1 := chat1.MessagePlaintextV1{
-				ClientHeader: clientHeader,
-			}
-			return chat1.NewMessagePlaintextWithV1(msgPlainV1), headerHash, nil
+			return chat1.MessagePlaintext{ClientHeader: clientHeader}, headerHash, nil
 		default:
 			return chat1.MessagePlaintext{}, nil, libkb.NewChatHeaderVersionError(headerVersion)
 		}
@@ -210,11 +207,10 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 	}
 	switch bodyVersion {
 	case chat1.BodyPlaintextVersion_V1:
-		msgPlainV1 := chat1.MessagePlaintextV1{
+		return chat1.MessagePlaintext{
 			ClientHeader: clientHeader,
 			MessageBody:  body.V1().MessageBody,
-		}
-		return chat1.NewMessagePlaintextWithV1(msgPlainV1), headerHash, nil
+		}, headerHash, nil
 	default:
 		return chat1.MessagePlaintext{}, nil, libkb.NewChatBodyVersionError(bodyVersion)
 	}
@@ -253,29 +249,18 @@ func (b *Boxer) getUsernameAndDeviceName(uid keybase1.UID, deviceID keybase1.Dev
 	return username, deviceName, err
 }
 
-func (b *Boxer) getSenderInfoLocal(uimap *utils.UserInfoMapper, messagePlaintext chat1.MessagePlaintext) (senderUsername string, senderDeviceName string, err error) {
-	version, err := messagePlaintext.Version()
+func (b *Boxer) getSenderInfoLocal(uimap *utils.UserInfoMapper, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, err error) {
+	uid := keybase1.UID(clientHeader.Sender.String())
+	did := keybase1.DeviceID(clientHeader.SenderDevice.String())
+	username, deviceName, err := b.getUsernameAndDeviceName(uid, did, uimap)
 	if err != nil {
 		return "", "", err
 	}
-	switch version {
-	case chat1.MessagePlaintextVersion_V1:
-		v1 := messagePlaintext.V1()
-		uid := keybase1.UID(v1.ClientHeader.Sender.String())
-		did := keybase1.DeviceID(v1.ClientHeader.SenderDevice.String())
-		username, deviceName, err := b.getUsernameAndDeviceName(uid, did, uimap)
-		if err != nil {
-			return "", "", err
-		}
 
-		return username, deviceName, nil
-
-	default:
-		return "", "", libkb.NewChatMessageVersionError(version)
-	}
+	return username, deviceName, nil
 }
 
-func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageFromServerOrError, err error) {
+func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageUnboxed, err error) {
 	finder := NewKeyFinder()
 	ctx, _ = utils.GetUserInfoMapper(ctx, b.kbCtx)
 	for _, msg := range boxed {
@@ -289,21 +274,6 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (
 // boxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
 // finds the most recent key for the TLF.
 func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
-	version, err := msg.Version()
-	if err != nil {
-		return nil, err
-	}
-
-	switch version {
-	case chat1.MessagePlaintextVersion_V1:
-		return b.boxMessageV1(ctx, msg.V1(), signingKeyPair)
-	default:
-		return nil, fmt.Errorf("invalid MessagePlaintext version %v", version)
-	}
-}
-
-// boxMessageV1 encrypts and signs a keybase1.MessagePlaintextV1 into a chat1.MessageBoxed.
-func (b *Boxer) boxMessageV1(ctx context.Context, msg chat1.MessagePlaintextV1, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
 	tlfName := msg.ClientHeader.TlfName
 	var recentKey *keybase1.CryptKey
 
@@ -355,7 +325,9 @@ func (b *Boxer) boxMessageV1(ctx context.Context, msg chat1.MessagePlaintextV1, 
 
 // boxMessageWithKeysV1 encrypts and signs a keybase1.MessagePlaintextV1 into a
 // chat1.MessageBoxed given a keybase1.CryptKey.
-func (b *Boxer) boxMessageWithKeysV1(msg chat1.MessagePlaintextV1, key *keybase1.CryptKey, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+func (b *Boxer) boxMessageWithKeysV1(msg chat1.MessagePlaintext, key *keybase1.CryptKey,
+	signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+
 	body := chat1.BodyPlaintextV1{
 		MessageBody: msg.MessageBody,
 	}
