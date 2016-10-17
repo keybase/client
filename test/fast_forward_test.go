@@ -44,10 +44,15 @@ func TestFastForwardBasic(t *testing.T) {
 				// Wait for the background update to fetch the head.
 				waitForStalledMDGetForTLF(),
 				unstallOneMDGetForTLF(),
+				// Disable updates as a hack to make sure we wait for
+				// the fast foward to complete (the unpause channel
+				// isn't buffered).
+				disableUpdates(),
 			),
 		),
 		as(bob, noSync(),
 			undoStallOnMDGetForTLF(),
+			reenableUpdatesNoSync(),
 			// Make sure the next sync only calls GetRange once.
 			stallOnMDGetRange(),
 		),
