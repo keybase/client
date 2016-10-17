@@ -9,7 +9,7 @@ const backToProfile = 'profile:backToProfile'
 const cancelAddProof = 'profile:cancelAddProof'
 const cancelPgpGen = 'profile:cancelPgpGen'
 const checkProof = 'profile:checkProof'
-const checkSpecificProof = 'profile:checkSpecificProof'
+// const checkSpecificProof = 'profile:checkSpecificProof'
 const cleanupUsername = 'profile:cleanupUsername'
 const dropPgp = 'profile:dropPgp'
 const editProfile = 'profile:editProfile'
@@ -44,8 +44,8 @@ type AskTextOrDNS = NoErrorTypedAction<'profile:askTextOrDNS', void>
 type BackToProfile = NoErrorTypedAction<'profile:backToProfile', void>
 type CancelAddProof = NoErrorTypedAction<'profile:cancelAddProof', void>
 type CancelPgpGen = NoErrorTypedAction<'profile:cancelPgpGen', {}>
-type CheckProof = NoErrorTypedAction<'profile:checkProof', {sigID: string, currentlyAdding: boolean}>
-type CheckSpecificProof = NoErrorTypedAction<'profile:checkSpecificProof', {sigID: ?string}>
+type CheckProof = NoErrorTypedAction<'profile:checkProof', {sigID: ?string}>
+// type CheckSpecificProof = NoErrorTypedAction<'profile:checkSpecificProof', {sigID: ?string}>
 type CleanupUsername = TypedAction<'profile:cleanupUsername', void, void>
 type DropPgp = TypedAction<'profile:dropPgp', {kid: KID}, {}>
 type EditProfile = NoErrorTypedAction<'profile:editProfile', {bio: string, fullname: string, location: string}>
@@ -125,7 +125,7 @@ export {
   cancelAddProof,
   cancelPgpGen,
   checkProof,
-  checkSpecificProof,
+  // checkSpecificProof,
   cleanupUsername,
   dropPgp,
   editProfile,
@@ -159,13 +159,13 @@ export {
 
 export type {
   AddProof,
-  AddServiceProof,
+  // AddServiceProof,
   AskTextOrDNS,
   BackToProfile,
   CancelAddProof,
   CancelPgpGen,
   CheckProof,
-  CheckSpecificProof,
+  // CheckSpecificProof,
   CleanupUsername,
   DropPgp,
   EditProfile,

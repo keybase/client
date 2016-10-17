@@ -11,7 +11,7 @@ import React, {PureComponent} from 'react'
 import RevokeContainer from './revoke/container'
 import flags from '../util/feature-flags'
 import pgpRouter from './pgp'
-import {addProof, checkSpecificProof, onUserClick, onClickAvatar, onClickFollowers, onClickFollowing} from '../actions/profile'
+import {addProof, onUserClick, onClickAvatar, onClickFollowers, onClickFollowing, checkProof} from '../actions/profile'
 import {connect} from 'react-redux'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
@@ -93,7 +93,7 @@ export default connect(
     onEditProfile: () => { dispatch(routeAppend({path: 'editprofile'})) },
     onEditAvatar: () => { dispatch(routeAppend({path: 'editavatar'})) },
     onMissingProofClick: (missingProof: MissingProof) => { dispatch(addProof(missingProof.type)) },
-    onRecheckProof: (proof: Proof) => { dispatch(checkSpecificProof(proof && proof.id)) },
+    onRecheckProof: (proof: Proof) => { dispatch(checkProof(proof && proof.id)) },
     onRevokeProof: (proof: Proof) => {
       dispatch(routeAppend({path: 'Revoke', platform: proof.type, platformHandle: proof.name, proofId: proof.id}))
     },
