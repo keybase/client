@@ -1469,6 +1469,19 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 			return err
 		}
 
+		// If the MD doesn't match the MD expected by the path, that
+		// implies we are using a cached path, which implies the node
+		// has been unlinked.  Probably we have fast-forwarded, and
+		// missed all the updates deleting the children in this
+		// directory.  In that case, just return an empty set of
+		// children so we don't return an incorrect set from the
+		// cache.
+		if md.data.Dir.BlockPointer != dirPath.path[0].BlockPointer {
+			fbo.log.CDebugf(ctx, "Returning an empty children set for "+
+				"unlinked directory %v", dirPath.tailPointer())
+			return nil
+		}
+
 		children, err = fbo.blocks.GetDirtyDirChildren(
 			ctx, lState, md.ReadOnly(), dirPath)
 		if err != nil {
