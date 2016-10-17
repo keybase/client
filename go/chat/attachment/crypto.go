@@ -126,6 +126,7 @@ import (
 	"crypto/sha512"
 	"encoding/binary"
 	"fmt"
+	"io"
 
 	"github.com/agl/ed25519"
 	"golang.org/x/crypto/nacl/secretbox"
@@ -391,6 +392,55 @@ func OpenWholeAttachment(sealed []byte, encKey SecretboxKey, verifyKey VerifyKey
 		return nil, err
 	}
 	return append(output, moreOutput...), nil
+}
+
+// =====================
+// Reader-based wrappers
+// =====================
+
+type AttachmentEncodingReader struct {
+	inner   io.Reader
+	encoder AttachmentEncoder
+	buf     []byte
+}
+
+// implements Reader
+var _ io.Reader = (*AttachmentEncodingReader)(nil)
+
+func NewAttachmentEncodingReader(encKey SecretboxKey, signKey SignKey, nonce AttachmentNonce, inner io.Reader) *AttachmentEncodingReader {
+	return &AttachmentEncodingReader{
+		inner:   inner,
+		encoder: NewAttachmentEncoder(encKey, signKey, nonce),
+		buf:     nil,
+	}
+}
+
+func (r *AttachmentEncodingReader) Read(output []byte) (int, error) {
+	// Check to see whether we're already EOF.
+	if encoder == nil {
+		return 0, io.EOF
+	}
+	// If we don't have any data, read and decode until we get some.
+	if len(r.buf) == 0 {
+		innerBuf := [4096]byte
+		for {
+			n, err := r.inner.Read(innerBuf[:])
+			if n
+
+		}
+	}
+	// Now try to return some of the data we have.
+	if len(r.buf) < len(output) {
+		// We can return everything we have.
+		copy(output, r.buf)
+		r.buf = nil
+		return len(r.buf), nil
+	} else {
+		// We can only return some of what we have.
+		copy(output, r.buf)
+		r.buf = r.buf[len(output):len(r.buf)]
+		return len(output), nil
+	}
 }
 
 // ======
