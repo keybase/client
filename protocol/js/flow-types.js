@@ -1964,6 +1964,18 @@ export function rekeyGetPendingRekeyStatusRpcPromise (request: $Exact<requestCom
   return new Promise((resolve, reject) => { rekeyGetPendingRekeyStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function rekeyGetRevokeWarningRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetRevokeWarningResult) => void} & {param: rekeyGetRevokeWarningRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'rekey.getRevokeWarning'})
+}
+
+export function rekeyGetRevokeWarningRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetRevokeWarningResult) => void} & {param: rekeyGetRevokeWarningRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => rekeyGetRevokeWarningRpc({...request, incomingCallMap, callback}))
+}
+
+export function rekeyGetRevokeWarningRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetRevokeWarningResult) => void} & {param: rekeyGetRevokeWarningRpcParam}>): Promise<rekeyGetRevokeWarningResult> {
+  return new Promise((resolve, reject) => { rekeyGetRevokeWarningRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function rekeyRekeyStatusFinishRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyRekeyStatusFinishResult) => void}>) {
   engineRpcOutgoing({...request, method: 'rekey.rekeyStatusFinish'})
 }
@@ -3439,6 +3451,10 @@ export type RemoteProof = {
   mTime: Time,
 }
 
+export type RevokeWarning = {
+  endangeredTLFs?: ?Array<TLF>,
+}
+
 export type RevokedKey = {
   key: PublicKey,
   time: KeybaseTime,
@@ -4564,6 +4580,12 @@ export type quotaVerifySessionRpcParam = Exact<{
   session: string
 }>
 
+export type rekeyGetRevokeWarningRpcParam = Exact<{
+  session: int,
+  actingDevice: DeviceID,
+  targetDevice: DeviceID
+}>
+
 export type rekeyRekeySyncRpcParam = Exact<{
   force: boolean
 }>
@@ -4951,6 +4973,8 @@ type quotaVerifySessionResult = VerifySessionRes
 
 type rekeyGetPendingRekeyStatusResult = ProblemSetDevices
 
+type rekeyGetRevokeWarningResult = RevokeWarning
+
 type rekeyRekeyStatusFinishResult = Outcome
 
 type rekeyUIDelegateRekeyUIResult = int
@@ -5144,6 +5168,7 @@ export type rpc =
   | quotaVerifySessionRpc
   | rekeyDebugShowRekeyStatusRpc
   | rekeyGetPendingRekeyStatusRpc
+  | rekeyGetRevokeWarningRpc
   | rekeyRekeyStatusFinishRpc
   | rekeyRekeySyncRpc
   | rekeyShowPendingRekeyStatusRpc

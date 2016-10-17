@@ -569,6 +569,34 @@ func (r *RekeyHandler2) DebugShowRekeyStatus(ctx context.Context, sessionID int)
 	return rekeyUI.Refresh(ctx, arg)
 }
 
+type unkeyedTLFsQueryResult struct {
+	Status libkb.AppStatus `json:"status"`
+	TLFs   []keybase1.TLF  `json:"tlfs"`
+}
+
+func (u *unkeyedTLFsQueryResult) GetAppStatus() *libkb.AppStatus {
+	return &u.Status
+}
+
+func (r *RekeyHandler2) GetRevokeWarning(_ context.Context, arg keybase1.GetRevokeWarningArg) (res keybase1.RevokeWarning, err error) {
+	var u unkeyedTLFsQueryResult
+	actingDevice := arg.ActingDevice
+	if actingDevice.IsNil() {
+		actingDevice = r.G().Env.GetDeviceID()
+	}
+
+	err = r.G().API.GetDecode(libkb.APIArg{
+		Endpoint:    "kbfs/unkeyed_tlfs_from_pair",
+		NeedSession: true,
+		Args: libkb.HTTPArgs{
+			"self_device_id":   libkb.S{Val: string(actingDevice)},
+			"target_device_id": libkb.S{Val: string(arg.TargetDevice)},
+		},
+	}, &u)
+	res.EndangeredTLFs = u.TLFs
+	return res, err
+}
+
 func (r *RekeyHandler2) RekeySync(_ context.Context, arg keybase1.RekeySyncArg) error {
 	ch := make(chan struct{})
 	ri := RekeyInterruptSync
