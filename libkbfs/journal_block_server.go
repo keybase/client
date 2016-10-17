@@ -87,34 +87,22 @@ func (j journalBlockServer) RemoveBlockReferences(
 	ctx context.Context, tlfID TlfID,
 	contexts map[BlockID][]BlockContext) (
 	liveCounts map[BlockID]int, err error) {
-	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
-		defer func() {
-			err = translateToBlockServerError(err)
-		}()
-		// TODO: Get server counts without making a
-		// RemoveBlockReferences call and merge it.
-		liveCounts, err := tlfJournal.removeBlockReferences(ctx, contexts)
-		if err != errTLFJournalDisabled {
-			return liveCounts, err
-		}
-	}
-
+	// Deletes always go straight to the server, since they slow down
+	// the journal and already only happen in the background anyway.
+	// Note that this means delete operations must be issued after the
+	// corresponding MD that unreferenced the block was flushed from
+	// the journal.
 	return j.BlockServer.RemoveBlockReferences(ctx, tlfID, contexts)
 }
 
 func (j journalBlockServer) ArchiveBlockReferences(
 	ctx context.Context, tlfID TlfID,
 	contexts map[BlockID][]BlockContext) (err error) {
-	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
-		defer func() {
-			err = translateToBlockServerError(err)
-		}()
-		err := tlfJournal.archiveBlockReferences(ctx, contexts)
-		if err != errTLFJournalDisabled {
-			return err
-		}
-	}
-
+	// Archives always go straight to the server, since they slow down
+	// the journal and already only happen in the background anyway.
+	// Note that this means delete operations must be issued after the
+	// corresponding MD that unreferenced the block was flushed from
+	// the journal.
 	return j.BlockServer.ArchiveBlockReferences(ctx, tlfID, contexts)
 }
 
