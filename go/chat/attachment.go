@@ -83,17 +83,23 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 		return err
 	}
 
+	// to keep track of download progress
+	progWriter := newProgressWriter(progress, asset.Size)
+	tee := io.TeeReader(body, progWriter)
+
 	// decrypt body
 	dec := NewPassThrough()
-	decBody, err := dec.Decrypt(body, asset.Key)
+	decBody, err := dec.Decrypt(tee, asset.Key)
 	if err != nil {
 		return err
 	}
 
+	log.Warning("copy start")
 	n, err := io.Copy(w, decBody)
 	if err != nil {
 		return err
 	}
+	log.Warning("copy done")
 
 	log.Debug("downloaded %d bytes", n)
 
@@ -234,4 +240,28 @@ func putRetry(ctx context.Context, log logger.Logger, multi *s3.Multi, partNumbe
 		lastErr = putErr
 	}
 	return s3.Part{}, fmt.Errorf("failed to put part %d (last error: %s)", partNumber, lastErr)
+}
+
+type progressWriter struct {
+	complete   int
+	total      int
+	lastReport int
+	progress   ProgressReporter
+}
+
+func newProgressWriter(p ProgressReporter, size int) *progressWriter {
+	return &progressWriter{progress: p, total: size}
+}
+
+func (p *progressWriter) Write(data []byte) (n int, err error) {
+	n = len(data)
+	p.complete += n
+	percent := (100 * p.complete) / p.total
+	if percent > p.lastReport {
+		if p.progress != nil {
+			p.progress(p.complete, p.total)
+		}
+		p.lastReport = percent
+	}
+	return n, nil
 }

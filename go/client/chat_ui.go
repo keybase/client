@@ -73,10 +73,13 @@ func (c *ChatUI) ChatAttachmentDownloadStart(context.Context, int) error {
 	return nil
 }
 
-func (c *ChatUI) ChatAttachmentDownloadProgress(context.Context, chat1.ChatAttachmentDownloadProgressArg) error {
+func (c *ChatUI) ChatAttachmentDownloadProgress(ctx context.Context, arg chat1.ChatAttachmentDownloadProgressArg) error {
 	if c.noOutput {
 		return nil
 	}
+	percent := (100 * arg.BytesComplete) / arg.BytesTotal
+	w := c.terminal.ErrorWriter()
+	fmt.Fprintf(w, "Attachment download progress %d%% (%d of %d bytes downloaded)\n", percent, arg.BytesComplete, arg.BytesTotal)
 	return nil
 }
 
