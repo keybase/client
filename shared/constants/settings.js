@@ -1,5 +1,6 @@
 // @flow
 import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
+import HiddenString from '../util/hidden-string'
 
 export const invitesReclaim = 'settings:invitesReclaim'
 export type InvitesReclaim = NoErrorTypedAction<'settings:invitesReclaim', {inviteId: string}>
@@ -40,6 +41,27 @@ export type SetAllowDeleteAccount = NoErrorTypedAction<'settings:setAllowDeleteA
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountForever', void>
 
+export const onChangeNewPassphrase = 'settings:onChangeNewPassphrase'
+export type OnChangeNewPassphrase = NoErrorTypedAction<'settings:onChangeNewPassphrase', {passphrase: HiddenString}>
+
+export const onChangeNewPassphraseConfirm = 'settings:onChangeNewPassphraseConfirm'
+export type OnChangeNewPassphraseConfirm = NoErrorTypedAction<'settings:onChangeNewPassphraseConfirm', {passphrase: HiddenString}>
+
+export const onChangeShowPassphrase = 'settings:onChangeShowPassphrase'
+export type OnChangeShowPassphrase = NoErrorTypedAction<'settings:onChangeShowPassphrase', void>
+
+export const onSubmitNewPassphrase = 'settings:onSubmitNewPassphrase'
+export type OnSubmitNewPassphrase = NoErrorTypedAction<'settings:onSubmitNewPassphrase', void>
+
+export const onUpdatePassphraseError = 'settings:onUpdatePassphraseError'
+export type OnUpdatePassphraseError = NoErrorTypedAction<'settings:onUpdatePassphraseError', {error: string}>
+
+export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
+export type OnUpdatePGPSettings = NoErrorTypedAction<'settings:onUpdatePGPSettings', void>
+
+export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
+export type OnUpdatedPGPSettings = NoErrorTypedAction<'settings:onUpdatedPGPSettings', {hasKeys: boolean}>
+
 export type PlanLevel = 'Basic' | 'Gold' | 'Friend'
 const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
 
@@ -71,10 +93,22 @@ export type NotificationsState = {
   allowEdit: boolean,
 }
 
+export type PassphraseState = {
+  newPassphrase: HiddenString,
+  newPassphraseConfirm: HiddenString,
+  showTyping: boolean,
+  errorMessage: ?HiddenString,
+  newPassphraseError: ?HiddenString,
+  newPassphraseConfirmError: ?HiddenString,
+  hasPGPKeyOnServer: ?boolean,
+  canSave: boolean,
+}
+
 export type State = {
   allowDeleteAccount: boolean,
   invites: InvitesState,
   notifications: NotificationsState,
+  passphrase: PassphraseState,
 }
 
 const levelToPrice: {[key: PlanLevel]: string} = {

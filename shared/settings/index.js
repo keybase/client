@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import Render from './render'
 import DeleteConfirm from './delete-confirm/container'
+import Passphrase from './passphrase/container'
 import RemoveDevice from '../devices/device-revoke'
 import InviteGenerated from './invite-generated'
 import devMenu from '../dev/dev-menu'
@@ -18,6 +19,7 @@ class Settings extends Component {
         devMenu,
         deleteConfirm: DeleteConfirm,
         removeDevice: RemoveDevice,
+        changePassphrase: Passphrase,
         inviteSent: Routable((uri) => ({
           componentAtTop: {
             title: '',

@@ -1,25 +1,56 @@
 // @flow
 import * as Constants from '../constants/settings'
-import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise} from '../constants/types/flow-types'
-import {setDeletedSelf} from '../actions/login'
+import HiddenString from '../util/hidden-string'
+import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise, accountPassphraseChangeRpcPromise, accountHasServerKeysRpcPromise} from '../constants/types/flow-types'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
+import {routeAppend, navigateUp} from '../actions/router'
+import {setDeletedSelf} from '../actions/login'
 import {takeEvery, takeLatest, delay} from 'redux-saga'
-import {routeAppend} from '../actions/router'
 
 import type {SagaGenerator} from '../constants/types/saga'
 import type {
   DeleteAccountForever,
+  Invitation,
   InvitesReclaim,
   InvitesReclaimed,
   InvitesRefresh,
   InvitesSend,
   InvitesSent,
-  Invitation,
   NotificationsRefresh,
   NotificationsSave,
   NotificationsToggle,
+  OnChangeNewPassphrase,
+  OnChangeNewPassphraseConfirm,
+  OnChangeShowPassphrase,
+  OnSubmitNewPassphrase,
+  OnUpdatePGPSettings,
+  OnUpdatedPGPSettings,
   SetAllowDeleteAccount,
 } from '../constants/settings'
+
+function onChangeNewPassphrase (passphrase: HiddenString): OnChangeNewPassphrase {
+  return {type: Constants.onChangeNewPassphrase, payload: {passphrase}}
+}
+
+function onChangeNewPassphraseConfirm (passphrase: HiddenString): OnChangeNewPassphraseConfirm {
+  return {type: Constants.onChangeNewPassphraseConfirm, payload: {passphrase}}
+}
+
+function onChangeShowPassphrase (): OnChangeShowPassphrase {
+  return {type: Constants.onChangeShowPassphrase, payload: undefined}
+}
+
+function onSubmitNewPassphrase (): OnSubmitNewPassphrase {
+  return {type: Constants.onSubmitNewPassphrase, payload: undefined}
+}
+
+function onUpdatePGPSettings (): OnUpdatePGPSettings {
+  return {type: Constants.onUpdatePGPSettings, payload: undefined}
+}
+
+function _onUpdatedPGPSettings (hasKeys: boolean): OnUpdatedPGPSettings {
+  return {type: Constants.onUpdatedPGPSettings, payload: {hasKeys}}
+}
 
 function invitesReclaim (inviteId: string): InvitesReclaim {
   return {type: Constants.invitesReclaim, payload: {inviteId}}
@@ -51,6 +82,37 @@ function setAllowDeleteAccount (allow: boolean): SetAllowDeleteAccount {
 
 function deleteAccountForever (): DeleteAccountForever {
   return {type: Constants.deleteAccountForever, payload: undefined}
+}
+
+function * _onUpdatePGPSettings (): SagaGenerator<any, any> {
+  try {
+    // $ForceType
+    const {hasServerKeys} = yield call(accountHasServerKeysRpcPromise)
+    yield put(_onUpdatedPGPSettings(hasServerKeys))
+  } catch (error) {
+    yield put({type: Constants.onUpdatePassphraseError, payload: {error: error.message}})
+  }
+}
+
+function * _onSubmitNewPassphrase (): SagaGenerator<any, any> {
+  try {
+    // $ForceType
+    const {newPassphrase, newPassphraseConfirm} = yield select(state => state.settings.passphrase)
+    if (newPassphrase.stringValue() !== newPassphraseConfirm.stringValue()) {
+      yield put({type: Constants.onUpdatePassphraseError, payload: {error: "Passphrases don't match"}})
+      return
+    }
+    yield call(accountPassphraseChangeRpcPromise, {
+      param: {
+        oldPassphrase: '',
+        passphrase: newPassphrase.stringValue(),
+        force: true,
+      },
+    })
+    yield put(navigateUp())
+  } catch (error) {
+    yield put({type: Constants.onUpdatePassphraseError, payload: {error: error.message}})
+  }
 }
 
 function * saveNotificationsSaga (): SagaGenerator<any, any> {
@@ -300,18 +362,25 @@ function * settingsSaga (): SagaGenerator<any, any> {
     takeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
     takeLatest(Constants.notificationsSave, saveNotificationsSaga),
     takeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga),
+    takeEvery(Constants.onSubmitNewPassphrase, _onSubmitNewPassphrase),
+    takeEvery(Constants.onUpdatePGPSettings, _onUpdatePGPSettings),
   ]
 }
 
 export {
+  deleteAccountForever,
   invitesReclaim,
   invitesRefresh,
   invitesSend,
   notificationsRefresh,
   notificationsSave,
   notificationsToggle,
+  onChangeNewPassphrase,
+  onChangeNewPassphraseConfirm,
+  onChangeShowPassphrase,
+  onSubmitNewPassphrase,
+  onUpdatePGPSettings,
   setAllowDeleteAccount,
-  deleteAccountForever,
 }
 
 export default settingsSaga
