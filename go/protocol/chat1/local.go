@@ -571,6 +571,7 @@ type DownloadAttachmentLocalArg struct {
 	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
 	MessageID      MessageID       `codec:"messageID" json:"messageID"`
 	Sink           keybase1.Stream `codec:"sink" json:"sink"`
+	Preview        bool            `codec:"preview" json:"preview"`
 }
 
 type LocalInterface interface {

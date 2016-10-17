@@ -1020,6 +1020,10 @@
         {
           "name": "sink",
           "type": "keybase1.Stream"
+        },
+        {
+          "name": "preview",
+          "type": "boolean"
         }
       ],
       "response": "DownloadAttachmentLocalRes"

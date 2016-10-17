@@ -851,8 +851,14 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		}
 
 		attachment := msg.V1().MessageBody.Attachment()
-		// XXX handle preview
-		if err := chat.DownloadAsset(ctx, h.G().Log, params, attachment.Object, sink, h); err != nil {
+		obj := attachment.Object
+		if arg.Preview {
+			if attachment.Preview == nil {
+				return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
+			}
+			obj = *attachment.Preview
+		}
+		if err := chat.DownloadAsset(ctx, h.G().Log, params, obj, sink, h); err != nil {
 			return chat1.DownloadAttachmentLocalRes{}, err
 		}
 	}

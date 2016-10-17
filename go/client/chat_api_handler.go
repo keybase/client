@@ -230,6 +230,7 @@ type downloadOptionsV1 struct {
 	ConversationID chat1.ConversationID `json:"conversation_id"`
 	MessageID      chat1.MessageID      `json:"message_id"`
 	Output         string
+	Preview        bool
 }
 
 func (a downloadOptionsV1) Check() error {

@@ -268,5 +268,5 @@ protocol local {
   record DownloadAttachmentLocalRes {
     array<RateLimit> rateLimits;
   }
-  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink);
+  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview);
 }

@@ -766,7 +766,8 @@ export type UnreadFirstNumLimit = {
 export type localDownloadAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   messageID: MessageID,
-  sink: keybase1.Stream
+  sink: keybase1.Stream,
+  preview: boolean
 }>
 
 export type localGetConversationForCLILocalRpcParam = Exact<{

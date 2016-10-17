@@ -467,6 +467,7 @@ func (c *CmdChatAPI) DownloadV1(ctx context.Context, opts downloadOptionsV1) Rep
 		ConversationID: opts.ConversationID,
 		MessageID:      opts.MessageID,
 		Sink:           sink,
+		Preview:        opts.Preview,
 	}
 
 	dres, err := client.DownloadAttachmentLocal(ctx, arg)
