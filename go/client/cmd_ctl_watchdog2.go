@@ -62,7 +62,7 @@ func (c *CmdWatchdog2) Run() error {
 	if err != nil {
 		return err
 	}
-	kbfsProgram, err := GetkbfsProgram(c.G(), kbfsPath)
+	kbfsProgram, err := getkbfsProgram(c.G(), kbfsPath)
 	if err != nil {
 		return err
 	}

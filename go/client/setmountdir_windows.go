@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"github.com/keybase/client/go/libkb"
@@ -86,13 +87,13 @@ func getDriveLetter(log logger.Logger) (string, error) {
 // This makes a guess about what letter to use, starting at K,
 // and saving it in the settings.
 // Assume the caller has tested whether "mountdir" is set
-func probeForAvailableMountDir(G *libkb.GlobalContext) (string, error) {
-	G.Log.Info("probeForAvailableMountDir\n")
-	drive, err := getDriveLetter(G.Log)
+func probeForAvailableMountDir(g *libkb.GlobalContext) (string, error) {
+	g.Log.Info("probeForAvailableMountDir\n")
+	drive, err := getDriveLetter(g.Log)
 	if err != nil {
 		return "", err
 	}
-	cli, err := GetConfigClient(G)
+	cli, err := GetConfigClient(g)
 	if err != nil {
 		return "", err
 	}
@@ -112,14 +113,33 @@ func (p KBFSProgram) GetPath() string {
 	return p.Path
 }
 
+// Look for an available drive letter if
+// none has been configured
 func (p *KBFSProgram) GetArgs() []string {
 	var err error
-	p.mountDir, err = p.G().Env.GetMountDir()
+	// Try checking the environment
+	if p.mountDir == "" {
+		p.mountDir, err = p.G().Env.GetMountDir()
+		p.G().Log.Info("KBFSProgram.GetArgs() - Env.GetMountDir() - %s", p.mountDir)
+	}
+
+	// Then try checking persistent config
 	if err != nil || p.mountDir == "" {
-		// for Windows
+		cli, err := GetConfigClient(p.G())
+		if err == nil {
+			var val keybase1.ConfigValue
+			val, err = cli.GetValue(context.TODO(), "mountdir")
+
+			if err == nil && val.S != nil {
+				p.mountDir = *val.S
+			}
+			p.G().Log.Info("KBFSProgram.GetArgs() - cli.GetConfigClient() - mountDir = %s, err = %s", p.mountDir, err)
+		}
+	}
+	if p.mountDir == "" {
+		// Set default and use it
 		p.mountDir, err = probeForAvailableMountDir(p.G())
 	}
-	p.G().Log.Info("KBFSProgram.GetArgs() - mount dir %s", p.mountDir)
 
 	return []string{
 		"-debug",
@@ -136,17 +156,20 @@ func (p KBFSProgram) DoStop(ospid int, log watchdog.Log) {
 	// open special "file". Errors not relevant.
 	log.Debugf("KillKBFS: opening .kbfs_unmount")
 	os.Open(filepath.Join(p.mountDir, ".kbfs_unmount"))
+	// Give a bit of time for kbfs to close itself,
+	// then terminate as a backup
+	time.Sleep(100 * time.Millisecond)
+	watchdog.StopMatching(p.Path, ospid, log)
 }
 
-func GetkbfsProgram(G *libkb.GlobalContext, kbfsPath string) (watchdog.Program, error) {
+func getkbfsProgram(g *libkb.GlobalContext, kbfsPath string) (watchdog.Program, error) {
+	// An error here is ignored so we can retry
+	// in GetArgs()
+	mountDir, _ := g.Env.GetMountDir()
 
 	return &KBFSProgram{
-		Contextified: libkb.NewContextified(G),
+		Contextified: libkb.NewContextified(g),
 		Path:         kbfsPath,
+		mountDir:     mountDir,
 	}, nil
-}
-
-func doMountDirChange(oldDir string) {
-	// open special "file". Errors not relevant.
-	os.Open(filepath.Join(oldDir, ".kbfs_unmount"))
 }

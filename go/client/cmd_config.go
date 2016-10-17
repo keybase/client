@@ -158,18 +158,6 @@ func (v *CmdConfigSet) Run() error {
 	if err != nil {
 		return err
 	}
-	// Might need to locate this in the service for GUI access
-	if v.Path == "mountdir" {
-		var val keybase1.ConfigValue
-		val, err = cli.GetValue(context.TODO(), v.Path)
-		if v.Value.S != nil {
-			v.G().Log.Info("config set mountdir to %s",*v.Value.S)
-		}
-		v.G().Log.Info("config set mountdir from %s", *val.S)
-		if v.Value.S != nil && v.Value.S != val.S {
-			defer doMountDirChange(*val.S)
-		}
-	}
 	if v.DoClear {
 		err = cli.ClearValue(context.TODO(), v.Path)
 	} else {

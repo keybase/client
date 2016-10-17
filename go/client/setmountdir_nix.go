@@ -9,17 +9,13 @@ import (
 	"github.com/keybase/go-updater/watchdog"
 )
 
-func (c *CmdWatchdog2) probeForAvailableMountDir() error {
-	return nil
-}
+func getkbfsProgram(g *GlobalContext, kbfsPath string) (watchdog.Program, err) {
 
-func getkbfsProgram(G *GlobalContext, kbfsPath string) watchdog.Program, err {
-
-	mountDir, err := G.env.GetMountDir()
+	mountDir, err := g.env.GetMountDir()
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return watchdog.ProgramNormal{
 		Path: kbfsPath,
 		Args: []string{
@@ -29,7 +25,4 @@ func getkbfsProgram(G *GlobalContext, kbfsPath string) watchdog.Program, err {
 		},
 		ExitOn: watchdog.ExitOnSuccess,
 	}, nil
-}
-
-func doMountDirChange(oldDir string) {	
 }
