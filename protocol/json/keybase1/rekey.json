@@ -184,6 +184,10 @@
           "type": "int"
         },
         {
+          "name": "actingDevice",
+          "type": "DeviceID"
+        },
+        {
           "name": "targetDevice",
           "type": "DeviceID"
         }
