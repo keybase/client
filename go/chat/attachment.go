@@ -14,6 +14,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+type ProgressReporter func(bytesCompleted, bytesTotal int)
+
 const minMultiSize = 5 * 1024 * 1024 // can't use Multi API with parts less than 5MB
 const blockSize = 5 * 1024 * 1024    // 5MB is the minimum Multi part size
 
@@ -28,7 +30,7 @@ type PutS3Result struct {
 
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use
 // putSingle or putMultiPipeline based on the size of the object.
-func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, signer s3.Signer) (*PutS3Result, error) {
+func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, signer s3.Signer, progress ProgressReporter) (*PutS3Result, error) {
 	region := aws.Region{
 		Name:             params.RegionName,
 		S3Endpoint:       params.RegionEndpoint,
@@ -40,11 +42,11 @@ func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, para
 	b := conn.Bucket(params.Bucket)
 
 	if size <= minMultiSize {
-		if err := putSingle(ctx, log, r, size, params, b); err != nil {
+		if err := putSingle(ctx, log, r, size, params, b, progress); err != nil {
 			return nil, err
 		}
 	} else {
-		if err := putMultiPipeline(ctx, log, r, size, params, b); err != nil {
+		if err := putMultiPipeline(ctx, log, r, size, params, b, progress); err != nil {
 			return nil, err
 		}
 	}
@@ -61,7 +63,7 @@ func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, para
 }
 
 // DownloadAsset gets an object from S3 as described in asset.
-func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer) error {
+func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer, progress ProgressReporter) error {
 	region := aws.Region{
 		Name:       asset.Region,
 		S3Endpoint: asset.Endpoint,
@@ -101,7 +103,7 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 // putSingle uploads data in r to S3 with the Put API.  It has to be
 // used for anything less than 5MB.  It can be used for anything up
 // to 5GB, but putMultiPipeline best for anything over 5MB.
-func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket) error {
+func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket, progress ProgressReporter) error {
 	log.Debug("s3 putSingle (size = %d)", size)
 
 	var lastErr error
@@ -125,7 +127,7 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 
 // putMultiPipeline uploads data in r to S3 using the Multi API.  It uses a
 // pipeline to upload 10 blocks of data concurrently.  Each block is 5MB.
-func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket) error {
+func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket, progress ProgressReporter) error {
 	log.Debug("s3 putMultiPipeline (size = %d)", size)
 	multi, err := b.InitMulti(params.ObjectKey, "application/octet-stream", s3.ACL(params.Acl))
 	if err != nil {
@@ -190,9 +192,14 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		close(retCh)
 	}()
 
+	var complete int64
 	var parts []s3.Part
 	for p := range retCh {
 		parts = append(parts, p)
+		complete += p.Size
+		if progress != nil {
+			progress(int(complete), int(size))
+		}
 	}
 	if err := eg.Wait(); err != nil {
 		return err

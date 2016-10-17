@@ -759,6 +759,16 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
 
+	chatUI := h.getChatUI(arg.SessionID)
+	progress := func(bytesComplete, bytesTotal int) {
+		parg := chat1.ChatAttachmentUploadProgressArg{
+			SessionID:     arg.SessionID,
+			BytesComplete: bytesComplete,
+			BytesTotal:    bytesTotal,
+		}
+		chatUI.ChatAttachmentUploadProgress(ctx, parg)
+	}
+
 	// get s3 upload params from server
 	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
 	if err != nil {
@@ -772,14 +782,18 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	var preview *chat1.Asset
 	wg.Add(1)
 	go func() {
-		object, objectErr = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment)
+		chatUI.ChatAttachmentUploadStart(ctx)
+		object, objectErr = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, progress)
+		chatUI.ChatAttachmentUploadDone(ctx)
 		wg.Done()
 	}()
 	if arg.Preview != nil {
 		wg.Add(1)
 		go func() {
 			var prev chat1.Asset
-			prev, previewErr = h.uploadAsset(ctx, arg.SessionID, params, *arg.Preview)
+			chatUI.ChatAttachmentPreviewUploadStart(ctx)
+			prev, previewErr = h.uploadAsset(ctx, arg.SessionID, params, *arg.Preview, nil)
+			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if previewErr == nil {
 				preview = &prev
 			}
@@ -811,6 +825,16 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
 func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat1.DownloadAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
+	chatUI := h.getChatUI(arg.SessionID)
+	progress := func(bytesComplete, bytesTotal int) {
+		parg := chat1.ChatAttachmentDownloadProgressArg{
+			SessionID:     arg.SessionID,
+			BytesComplete: bytesComplete,
+			BytesTotal:    bytesTotal,
+		}
+		chatUI.ChatAttachmentDownloadProgress(ctx, parg)
+	}
+
 	// get s3 params from server
 	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
 	if err != nil {
@@ -858,9 +882,11 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 			}
 			obj = *attachment.Preview
 		}
-		if err := chat.DownloadAsset(ctx, h.G().Log, params, obj, sink, h); err != nil {
+		chatUI.ChatAttachmentDownloadStart(ctx)
+		if err := chat.DownloadAsset(ctx, h.G().Log, params, obj, sink, h, progress); err != nil {
 			return chat1.DownloadAttachmentLocalRes{}, err
 		}
+		chatUI.ChatAttachmentDownloadDone(ctx)
 	}
 	if err := sink.Close(); err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
@@ -927,7 +953,7 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 	return h.remoteClient().S3Sign(context.Background(), arg)
 }
 
-func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource) (chat1.Asset, error) {
+func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource, progress chat.ProgressReporter) (chat1.Asset, error) {
 	// create a buffered stream
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
@@ -938,7 +964,7 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	encReader := enc.Encrypt(src)
 
 	// post to s3
-	upRes, err := chat.PutS3(ctx, h.G().Log, encReader, int64(len), params, h)
+	upRes, err := chat.PutS3(ctx, h.G().Log, encReader, int64(len), params, h, progress)
 	if err != nil {
 		return chat1.Asset{}, err
 	}

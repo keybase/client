@@ -394,12 +394,18 @@ func (c *CmdChatAPI) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 		arg.Preview = &plocal
 	}
 
+	ui := &ChatUI{
+		Contextified: libkb.NewContextified(c.G()),
+		terminal:     c.G().UI.GetTerminalUI(),
+	}
+
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
+		chat1.ChatUiProtocol(ui),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)
@@ -431,12 +437,17 @@ func (c *CmdChatAPI) DownloadV1(ctx context.Context, opts downloadOptionsV1) Rep
 	defer fsink.Close()
 	sink := c.G().XStreams.ExportWriter(fsink)
 
+	ui := &ChatUI{
+		Contextified: libkb.NewContextified(c.G()),
+		terminal:     c.G().UI.GetTerminalUI(),
+	}
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return c.errReply(err)
 	}
 	protocols := []rpc.Protocol{
 		NewStreamUIProtocol(c.G()),
+		chat1.ChatUiProtocol(ui),
 	}
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return c.errReply(err)

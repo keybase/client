@@ -763,6 +763,16 @@ export type UnreadFirstNumLimit = {
   AtMost: int,
 }
 
+export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
+  bytesComplete: int,
+  bytesTotal: int
+}>
+
+export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
+  bytesComplete: int,
+  bytesTotal: int
+}>
+
 export type localDownloadAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   messageID: MessageID,
@@ -926,6 +936,58 @@ export type rpc =
   | remoteS3SignRpc
   | remoteTlfFinalizeRpc
 export type incomingCallMapType = Exact<{
+  'keybase.1.chatUi.chatAttachmentUploadStart'?: (
+    params: Exact<{
+      sessionID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatAttachmentUploadProgress'?: (
+    params: Exact<{
+      sessionID: int,
+      bytesComplete: int,
+      bytesTotal: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatAttachmentUploadDone'?: (
+    params: Exact<{
+      sessionID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatAttachmentPreviewUploadStart'?: (
+    params: Exact<{
+      sessionID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatAttachmentPreviewUploadDone'?: (
+    params: Exact<{
+      sessionID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatAttachmentDownloadStart'?: (
+    params: Exact<{
+      sessionID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatAttachmentDownloadProgress'?: (
+    params: Exact<{
+      sessionID: int,
+      bytesComplete: int,
+      bytesTotal: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatAttachmentDownloadDone'?: (
+    params: Exact<{
+      sessionID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
   'keybase.1.NotifyChat.NewChatActivity'?: (
     params: Exact<{
       uid: keybase1.UID,

@@ -1,0 +1,96 @@
+{
+  "protocol": "chatUi",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "chatAttachmentUploadStart": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatAttachmentUploadProgress": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "bytesComplete",
+          "type": "int"
+        },
+        {
+          "name": "bytesTotal",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatAttachmentUploadDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatAttachmentPreviewUploadStart": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatAttachmentPreviewUploadDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatAttachmentDownloadStart": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatAttachmentDownloadProgress": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "bytesComplete",
+          "type": "int"
+        },
+        {
+          "name": "bytesTotal",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatAttachmentDownloadDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "chat.1"
+}
