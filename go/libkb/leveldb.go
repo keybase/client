@@ -14,9 +14,16 @@ import (
 )
 
 type LevelDb struct {
-	db       *leveldb.DB
+	// We use a RWMutes here to ensure close doesn't happen in the middle of
+	// other DB operations, and DB operations doesn't happen after close. The
+	// lock should be considered for the db pointer and dbOpenerOnce pointer,
+	// rather than the DB itself.  More specifically, close does Lock(), while
+	// other DB operations does RLock().
+	sync.RWMutex
+	db           *leveldb.DB
+	dbOpenerOnce *sync.Once
+
 	filename string
-	sync.Mutex
 	Contextified
 }
 
@@ -24,35 +31,57 @@ func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
 	return &LevelDb{
 		Contextified: NewContextified(g),
 		filename:     filename(),
+		dbOpenerOnce: new(sync.Once),
 	}
 }
 
 // Explicit open does nothing we'll wait for a lazy open
 func (l *LevelDb) Open() error { return nil }
 
-func (l *LevelDb) open() error {
-	l.Lock()
-	defer l.Unlock()
+func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error) {
+	err = func() error {
+		l.RLock()
+		defer l.RUnlock()
 
-	var err error
-	if l.db == nil {
-		l.G().Log.Debug("+ LevelDb.open")
-		fn := l.GetFilename()
-		l.G().Log.Debug("| Opening LevelDB for local cache: %v %s", l, fn)
-		l.db, err = leveldb.OpenFile(fn, nil)
-		if err != nil {
-			if _, ok := err.(*errors.ErrCorrupted); ok {
-				l.G().Log.Debug("| LevelDB was corrupted; attempting recovery (%v)", err)
-				l.db, err = leveldb.RecoverFile(fn, nil)
-				if err != nil {
-					l.G().Log.Debug("| Recovery failed: %v", err)
-				} else {
-					l.G().Log.Debug("| Recovery succeeded!")
+		// This only happens at first ever doWhileOpenAndNukeIfCorrupted call, or
+		// when doOpenerOnce is just reset in Nuke()
+		l.dbOpenerOnce.Do(func() {
+			l.G().Log.Debug("+ LevelDb.open")
+			fn := l.GetFilename()
+			l.G().Log.Debug("| Opening LevelDB for local cache: %v %s", l, fn)
+			l.db, err = leveldb.OpenFile(fn, nil)
+			if err != nil {
+				if _, ok := err.(*errors.ErrCorrupted); ok {
+					l.G().Log.Debug("| LevelDB was corrupted; attempting recovery (%v)", err)
+					l.db, err = leveldb.RecoverFile(fn, nil)
+					if err != nil {
+						l.G().Log.Debug("| Recovery failed: %v", err)
+					} else {
+						l.G().Log.Debug("| Recovery succeeded!")
+					}
 				}
 			}
+			l.G().Log.Debug("- LevelDb.open -> %s", ErrToOk(err))
+		})
+
+		if err != nil {
+			return err
 		}
-		l.G().Log.Debug("- LevelDb.open -> %s", ErrToOk(err))
+
+		if l.db == nil {
+			// This means DB is already closed. We are preventing lazy-opening after
+			// closing, so just return error here.
+			return errors.New("opening a closed DB")
+		}
+
+		return action()
+	}()
+
+	// If the file is corrupt, just nuke and act like we didn't find anything
+	if l.nukeIfCorrupt(err) {
+		err = nil
 	}
+
 	return err
 }
 
@@ -60,7 +89,7 @@ func (l *LevelDb) open() error {
 // where we want to get around the lazy open and make sure we can
 // use it later.
 func (l *LevelDb) ForceOpen() error {
-	return l.open()
+	return l.doWhileOpenAndNukeIfCorrupted(func() error { return nil })
 }
 
 func (l *LevelDb) GetFilename() string {
@@ -71,20 +100,21 @@ func (l *LevelDb) GetFilename() string {
 }
 
 func (l *LevelDb) Close() error {
-	return l.close(true)
+	l.Lock()
+	defer l.Unlock()
+	return l.closeLocked()
 }
 
-func (l *LevelDb) close(doLock bool) error {
-	if doLock {
-		l.Lock()
-		defer l.Unlock()
-	}
-
+func (l *LevelDb) closeLocked() error {
 	var err error
 	if l.db != nil {
 		l.G().Log.Debug("Closing LevelDB local cache: %s", l.GetFilename())
 		err = l.db.Close()
 		l.db = nil
+
+		// In case we just nuked DB and reset the dbOpenerOnce, this makes sure it
+		// doesn't open the DB again.
+		l.dbOpenerOnce.Do(func() {})
 	}
 	return err
 }
@@ -108,6 +138,28 @@ func (l *LevelDb) isCorrupt(err error) bool {
 	return false
 }
 
+func (l *LevelDb) Nuke() (string, error) {
+	l.Lock()
+	// We need to do defered Unlock here in Nuke rather than delegating to
+	// l.Close() because we'll be re-opening the database later, and it's
+	// necesary to block other doWhileOpenAndNukeIfCorrupted() calls.
+	defer l.Unlock()
+
+	err := l.closeLocked()
+	if err == nil {
+		fn := l.GetFilename()
+		err = os.RemoveAll(fn)
+		if err != nil {
+			return fn, err
+		}
+		// reset dbOpenerOnce since this is not a explicit close and there might be
+		// more legitimate DB operations coming in
+		l.dbOpenerOnce = new(sync.Once)
+		return fn, err
+	}
+	return "", err
+}
+
 func (l *LevelDb) nukeIfCorrupt(err error) bool {
 	if l.isCorrupt(err) {
 		l.G().Log.Debug("LevelDB file corrupted, nuking database and starting fresh")
@@ -120,101 +172,65 @@ func (l *LevelDb) nukeIfCorrupt(err error) bool {
 	return false
 }
 
-func (l *LevelDb) Nuke() (string, error) {
-	l.Lock()
-	defer l.Unlock()
-
-	err := l.close(false)
-	if err == nil {
-		fn := l.GetFilename()
-		err = os.RemoveAll(fn)
-		return fn, err
-	}
-	return "", err
-}
-
 func (l *LevelDb) Put(id DbKey, aliases []DbKey, value []byte) error {
-
-	// Lazy Open
-	if err := l.open(); err != nil {
-		return err
-	}
-
-	batch := new(leveldb.Batch)
-	idb := id.ToBytes("kv")
-	batch.Put(idb, value)
-	if aliases != nil {
-		for _, alias := range aliases {
-			batch.Put(alias.ToBytes("lo"), idb)
+	err := l.doWhileOpenAndNukeIfCorrupted(func() error {
+		batch := new(leveldb.Batch)
+		idb := id.ToBytes("kv")
+		batch.Put(idb, value)
+		if aliases != nil {
+			for _, alias := range aliases {
+				batch.Put(alias.ToBytes("lo"), idb)
+			}
 		}
-	}
 
-	err := l.db.Write(batch, nil)
-
-	// If the file is corrupt, just nuke and act like we didn't find anything
-	if l.nukeIfCorrupt(err) {
-		err = nil
-	}
+		return l.db.Write(batch, nil)
+	})
 
 	return err
 }
 
-func (l *LevelDb) get(id DbKey, which string) ([]byte, bool, error) {
+func (l *LevelDb) getRLocked(id DbKey, which string) ([]byte, bool, error) {
 	val, err := l.db.Get(id.ToBytes(which), nil)
 	found := false
 	if err == nil {
 		found = true
 	} else if err == leveldb.ErrNotFound {
 		err = nil
-	} else {
-		// If the file is corrupt, just nuke and act like we didn't find anything
-		if l.nukeIfCorrupt(err) {
-			err = nil
-		}
 	}
 	return val, found, err
 }
 
-func (l *LevelDb) Get(id DbKey) ([]byte, bool, error) {
-	// Lazy Open
-	if err := l.open(); err != nil {
-		return nil, false, err
-	}
+func (l *LevelDb) Get(id DbKey) (val []byte, found bool, err error) {
+	err = l.doWhileOpenAndNukeIfCorrupted(func() error {
+		val, found, err = l.getRLocked(id, "kv")
+		return err
+	})
 
-	return l.get(id, "kv")
+	return val, found, err
 }
 
-func (l *LevelDb) Lookup(id DbKey) ([]byte, bool, error) {
-	// Lazy Open
-	if err := l.open(); err != nil {
-		return nil, false, err
-	}
-
-	val, found, err := l.get(id, "lo")
-	if found {
-		if tab, id2, err2 := DbKeyParse(string(val)); err2 != nil {
-			err = err2
-		} else if tab != "kv" {
-			err = fmt.Errorf("bad alias; expected 'kv' but got '%s'", tab)
-		} else {
-			val, found, err = l.Get(*id2)
+func (l *LevelDb) Lookup(id DbKey) (val []byte, found bool, err error) {
+	err = l.doWhileOpenAndNukeIfCorrupted(func() error {
+		val, found, err = l.getRLocked(id, "lo")
+		if found {
+			if tab, id2, err2 := DbKeyParse(string(val)); err2 != nil {
+				err = err2
+			} else if tab != "kv" {
+				err = fmt.Errorf("bad alias; expected 'kv' but got '%s'", tab)
+			} else {
+				val, found, err = l.getRLocked(*id2, "kv")
+			}
 		}
-	}
+		return err
+	})
+
 	return val, found, err
 }
 
 func (l *LevelDb) Delete(id DbKey) error {
-	// Lazy Open
-	if err := l.open(); err != nil {
-		return err
-	}
-
-	err := l.db.Delete(id.ToBytes("kv"), nil)
-
-	// If the file is corrupt, just nuke and act like we didn't find anything
-	if l.nukeIfCorrupt(err) {
-		err = nil
-	}
+	err := l.doWhileOpenAndNukeIfCorrupted(func() error {
+		return l.db.Delete(id.ToBytes("kv"), nil)
+	})
 
 	return err
 }
