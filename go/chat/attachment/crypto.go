@@ -18,7 +18,7 @@
 // - a globally unique (with respect to these keys) 16-byte nonce
 //
 // Seal steps:
-// 1) Chunk the message into exactly-one-megabyte (2^20 bytes) chunks, with
+// 1) Chunk the message into chunks exactly one megabyte long (2^20 bytes), with
 //    exactly one short chunk at the end, which might be zero bytes.
 // 2) Compute the SHA512 hash of each plaintext chunk.
 // 3) Concatenate the 16-byte nonce above with the 8-byte unsigned big-endian
@@ -34,10 +34,7 @@
 // 6) Concatenate the signature from #4 + the plaintext chunk.
 // 7) Encrypt the concatenation from #5 with the crypto_secretbox key and the
 //    chunk nonce from #3.
-// 8) Prepend the ciphertext from #7 with the byte 0xc6 + its own length as a
-//    4-byte unsigned big-endian integer. (This encodes a MessagePack bin32
-//    object.)
-// 9) Concatenate all the bin32 objects from #8 into the output.
+// 8) Concatenate all the ciphertexts from #8 into the output.
 //
 // Open inputs:
 // - ciphertext bytes (streaming is fine)
@@ -46,9 +43,8 @@
 // - the same nonce
 //
 // Open steps:
-// 1) MessagePack unpack the input stream into a series of bin objects.
-//    (Because the encoder is strict, it's also safe to assume a known
-//    constant length for all chunks before the last one.)
+// 1) Chop the input stream into chunks of exactly 2^20 bytes, with exactly one
+//    short chunk at the end, which might be zero bytes.
 // 2) Decrypt each binary chunk with the crypto_secretbox key and chunk
 //    nonce as in seal step #7.
 // 3) Split the chunk into a 64-byte signature and the following plaintext.
@@ -130,7 +126,6 @@ import (
 	"crypto/sha512"
 	"encoding/binary"
 	"fmt"
-	"math"
 
 	"github.com/agl/ed25519"
 	"golang.org/x/crypto/nacl/secretbox"
@@ -146,9 +141,7 @@ const AttachmentNonceSize = 16
 const SecretboxKeySize = 32
 const SecretboxNonceSize = 24
 const SignaturePrefix = "keybase chat attachment\x00"
-const DefaultPlaintextChunkLength = 1048576 // 2^20
-const Bin32Tag = 0xc6
-const Bin32Overhead = 5 // The bin32 tag plus 4 length bytes
+const DefaultPlaintextChunkLength = 1 << 20
 
 // ===================================
 // single packet encoding and decoding
@@ -173,23 +166,8 @@ func makeSignatureInput(plaintext []byte, encKey SecretboxKey, chunkNonce Secret
 	return ret
 }
 
-// When serializing ciphertext chunks, we always use the bin32 MessagePack
-// format, regardless of the size of the chunk. That lets us predict the
-// ciphertext size given the plaintext size.
-func packCiphertext(ciphertext []byte) []byte {
-	if len(ciphertext) > math.MaxUint32 {
-		panic("ciphertext chunk is too long")
-	}
-	len32 := uint32(len(ciphertext))
-	// A bin32 object is byte 0xc6 followed by a 32-bit big-endian length.
-	packet := []byte{0xc6, 0, 0, 0, 0}
-	binary.BigEndian.PutUint32(packet[1:5], len32)
-	packet = append(packet, ciphertext...)
-	return packet
-}
-
 func getPacketLen(plaintextChunkLen int) int {
-	return plaintextChunkLen + secretbox.Overhead + ed25519.SignatureSize + Bin32Overhead
+	return plaintextChunkLen + secretbox.Overhead + ed25519.SignatureSize
 }
 
 func sealPacket(plaintext []byte, chunkNum uint64, encKey SecretboxKey, signKey SignKey, attachmentNonce AttachmentNonce) []byte {
@@ -197,39 +175,13 @@ func sealPacket(plaintext []byte, chunkNum uint64, encKey SecretboxKey, signKey 
 	signatureInput := makeSignatureInput(plaintext, encKey, chunkNonce)
 	signature := ed25519.Sign(signKey, signatureInput)
 	signedChunk := append(signature[:], plaintext...)
-	ciphertextChunk := secretbox.Seal(nil, signedChunk, chunkNonce, encKey)
-	packet := packCiphertext(ciphertextChunk)
+	packet := secretbox.Seal(nil, signedChunk, chunkNonce, encKey)
 	return packet
 }
 
-func unpackCiphertext(packet []byte) ([]byte, error) {
-	// This function could just chop off the first 5 bytes and be done with
-	// it, but we do extra checks to be as strict as possible, so that
-	// implementations that want to use an actual MessagePack decoder have
-	// that option.
-	if len(packet) < Bin32Overhead {
-		return nil, NewAttachmentError(ShortMessagePackObject,
-			"can't unpack bin object less than length 5, found %d", len(packet))
-	}
-	if packet[0] != Bin32Tag {
-		return nil, NewAttachmentError(WrongMessagePackFormat,
-			"expected tag byte 0xc6, found %#x", packet[0])
-	}
-	length := binary.BigEndian.Uint32(packet[1:5])
-	if uint64(length+5) != uint64(len(packet)) {
-		return nil, NewAttachmentError(WrongMessagePackLength,
-			"encoded length doesn't match packet size: %d + 5 != %d", length, len(packet))
-	}
-	return packet[Bin32Overhead:len(packet)], nil
-}
-
 func openPacket(packet []byte, chunkNum uint64, encKey SecretboxKey, verifyKey VerifyKey, attachmentNonce AttachmentNonce) ([]byte, error) {
-	ciphertext, err := unpackCiphertext(packet)
-	if err != nil {
-		return nil, err
-	}
 	chunkNonce := makeChunkNonce(attachmentNonce, chunkNum)
-	signedChunk, secretboxValid := secretbox.Open(nil, ciphertext, chunkNonce, encKey)
+	signedChunk, secretboxValid := secretbox.Open(nil, packet, chunkNonce, encKey)
 	if !secretboxValid {
 		return nil, NewAttachmentError(BadSecretbox, "secretbox failed to open")
 	}
@@ -451,9 +403,6 @@ const (
 	BadSecretbox AttachmentCryptoErrorType = iota
 	ShortSignature
 	BadSignature
-	ShortMessagePackObject
-	WrongMessagePackFormat
-	WrongMessagePackLength
 )
 
 type AttachmentCryptoError struct {

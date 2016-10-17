@@ -94,8 +94,6 @@ func TestPacketRoundtrips(t *testing.T) {
 			t.Fatal("opened bytes don't equal the input")
 		}
 
-		// We hardcode the bin32 MessagePack format to make our packet sizes
-		// predictable. Make sure that's working.
 		if len(sealed) != getPacketLen(len(input)) {
 			t.Fatalf("Expected len %d but found %d", getPacketLen(len(input)), len(sealed))
 		}
@@ -113,8 +111,6 @@ func TestWholeAttachmentRoundtrips(t *testing.T) {
 			t.Fatal("opened bytes don't equal the input")
 		}
 
-		// We hardcode the bin32 MessagePack format and use a fixed chunk size
-		// to make our sealed size predictable. Make sure that's working.
 		if len(sealed) != GetSealedSize(len(input)) {
 			t.Fatalf("Expected len %d but found %d", GetSealedSize(len(input)), len(sealed))
 		}
@@ -150,34 +146,10 @@ func TestByteAtATimeRoundtrips(t *testing.T) {
 			t.Fatal("opened bytes don't equal the input")
 		}
 
-		// We hardcode the bin32 MessagePack format and use a fixed chunk size
-		// to make our sealed size predictable. Make sure that's working.
 		if len(sealed) != GetSealedSize(len(input)) {
 			t.Fatalf("Expected len %d but found %d", GetSealedSize(len(input)), len(sealed))
 		}
 	}
-}
-
-func TestMessagePackTooShort(t *testing.T) {
-	// Expects 4 length bytes, but there are only 3.
-	badPacket := []byte{0xc6, 0, 0, 0}
-	_, err := openPacket(badPacket, 0, zeroSecretboxKey(), zeroVerifyKey(), zeroAttachmentNonce())
-	assertErrorType(t, err, ShortMessagePackObject)
-}
-
-func TestMessagePackWrongFormat(t *testing.T) {
-	// Expects 0xc6 as the first byte.
-	badPacket := []byte{0xc5, 0, 0, 0, 0}
-	_, err := openPacket(badPacket, 0, zeroSecretboxKey(), zeroVerifyKey(), zeroAttachmentNonce())
-	assertErrorType(t, err, WrongMessagePackFormat)
-}
-
-func TestMessagePackWrongLength(t *testing.T) {
-	// Expects encoded length to match the number of trailing bytes, but we've
-	// encoded a length of 1 and there are 2 bytes following.
-	badPacket := []byte{0xc6, 0, 0, 0, 1, 42, 42}
-	_, err := openPacket(badPacket, 0, zeroSecretboxKey(), zeroVerifyKey(), zeroAttachmentNonce())
-	assertErrorType(t, err, WrongMessagePackLength)
 }
 
 func TestBadSecretbox(t *testing.T) {
@@ -209,8 +181,7 @@ func TestShortSignature(t *testing.T) {
 	shortSignedChunk := []byte{1, 2, 3, 4, 5, 6, 7}
 	var chunkNum uint64 = 999
 	chunkNonce := makeChunkNonce(zeroAttachmentNonce(), chunkNum)
-	ciphertextChunk := secretbox.Seal(nil, shortSignedChunk, chunkNonce, zeroSecretboxKey())
-	packet := packCiphertext(ciphertextChunk)
+	packet := secretbox.Seal(nil, shortSignedChunk, chunkNonce, zeroSecretboxKey())
 	_, err := openPacket(packet, chunkNum, zeroSecretboxKey(), zeroVerifyKey(), zeroAttachmentNonce())
 	assertErrorType(t, err, ShortSignature)
 }
@@ -221,8 +192,7 @@ func TestInvalidSignature(t *testing.T) {
 	invalidSignedChunk := bytes.Repeat([]byte{42}, 100)
 	var chunkNum uint64 = 999
 	chunkNonce := makeChunkNonce(zeroAttachmentNonce(), chunkNum)
-	ciphertextChunk := secretbox.Seal(nil, invalidSignedChunk, chunkNonce, zeroSecretboxKey())
-	packet := packCiphertext(ciphertextChunk)
+	packet := secretbox.Seal(nil, invalidSignedChunk, chunkNonce, zeroSecretboxKey())
 	_, err := openPacket(packet, chunkNum, zeroSecretboxKey(), zeroVerifyKey(), zeroAttachmentNonce())
 	assertErrorType(t, err, BadSignature)
 }
@@ -233,21 +203,21 @@ func TestErrorsReturnedFromDecoder(t *testing.T) {
 	badPacket := bytes.Repeat([]byte{0}, getPacketLen(DefaultPlaintextChunkLength))
 	decoder := zeroDecoder()
 	_, err := decoder.Write(badPacket)
-	assertErrorType(t, err, WrongMessagePackFormat)
+	assertErrorType(t, err, BadSecretbox)
 
 	// Make sure we get the same error again for any subsequent writes, even
 	// empty ones.
 	_, err = decoder.Write([]byte{})
-	assertErrorType(t, err, WrongMessagePackFormat)
+	assertErrorType(t, err, BadSecretbox)
 
 	// And also for Finish().
 	_, err = decoder.Finish()
-	assertErrorType(t, err, WrongMessagePackFormat)
+	assertErrorType(t, err, BadSecretbox)
 
 	// And make sure we get the same error independently for an all at once
 	// decode.
 	_, err = zeroOpenWhole(badPacket)
-	assertErrorType(t, err, WrongMessagePackFormat)
+	assertErrorType(t, err, BadSecretbox)
 }
 
 func TestErrorsReturnedFromDecoderDuringFinish(t *testing.T) {
