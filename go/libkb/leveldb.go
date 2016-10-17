@@ -20,10 +20,10 @@ type LevelDb struct {
 	Contextified
 }
 
-func NewLevelDb(g *GlobalContext, filename string) *LevelDb {
+func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
 	return &LevelDb{
 		Contextified: NewContextified(g),
-		filename:     filename,
+		filename:     filename(),
 	}
 }
 
