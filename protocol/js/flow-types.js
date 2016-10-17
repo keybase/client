@@ -251,6 +251,7 @@ export const KbfsCommonFSErrorType = {
   oldVersion: 8,
   overQuota: 9,
   noSigChain: 10,
+  tooManyFolders: 11,
 }
 
 export const KbfsCommonFSNotificationType = {
@@ -2758,6 +2759,7 @@ export type FSErrorType =
   | 8 // OLD_VERSION_8
   | 9 // OVER_QUOTA_9
   | 10 // NO_SIG_CHAIN_10
+  | 11 // TOO_MANY_FOLDERS_11
 
 export type FSNotification = {
   publicTopLevelFolder: boolean,
