@@ -146,10 +146,9 @@ const AttachmentNonceSize = 16
 const SecretboxKeySize = 32
 const SecretboxNonceSize = 24
 const SignaturePrefix = "keybase chat attachment\x00"
-const PlaintextChunkLength = 1048576 // 2^20
+const DefaultPlaintextChunkLength = 1048576 // 2^20
 const Bin32Tag = 0xc6
 const Bin32Overhead = 5 // The bin32 tag plus 4 length bytes
-const PacketLength = PlaintextChunkLength + ed25519.SignatureSize + secretbox.Overhead + Bin32Overhead
 
 // ===================================
 // single packet encoding and decoding
@@ -189,8 +188,8 @@ func packCiphertext(ciphertext []byte) []byte {
 	return packet
 }
 
-func getPacketLen(plaintextLen int) int {
-	return plaintextLen + secretbox.Overhead + ed25519.SignatureSize + Bin32Overhead
+func getPacketLen(plaintextChunkLen int) int {
+	return plaintextChunkLen + secretbox.Overhead + ed25519.SignatureSize + Bin32Overhead
 }
 
 func sealPacket(plaintext []byte, chunkNum uint64, encKey SecretboxKey, signKey SignKey, attachmentNonce AttachmentNonce) []byte {
@@ -254,31 +253,33 @@ func openPacket(packet []byte, chunkNum uint64, encKey SecretboxKey, verifyKey V
 // =============================
 
 type AttachmentEncoder struct {
-	encKey   SecretboxKey
-	signKey  SignKey
-	nonce    AttachmentNonce
-	buf      []byte
-	chunkNum uint64
+	encKey            SecretboxKey
+	signKey           SignKey
+	nonce             AttachmentNonce
+	buf               []byte
+	chunkNum          uint64
+	plaintextChunkLen int
 }
 
 func NewAttachmentEncoder(encKey SecretboxKey, signKey SignKey, nonce AttachmentNonce) *AttachmentEncoder {
 	return &AttachmentEncoder{
-		encKey:   encKey,
-		signKey:  signKey,
-		nonce:    nonce,
-		buf:      nil,
-		chunkNum: 0,
+		encKey:            encKey,
+		signKey:           signKey,
+		nonce:             nonce,
+		buf:               nil,
+		chunkNum:          0,
+		plaintextChunkLen: DefaultPlaintextChunkLength,
 	}
 }
 
-func (e *AttachmentEncoder) sealOnePacket(plaintextLen int) []byte {
-	// Note that this function handles the `plaintextLen == 0` case.
-	if plaintextLen > len(e.buf) {
+func (e *AttachmentEncoder) sealOnePacket(plaintextChunkLen int) []byte {
+	// Note that this function handles the `plaintextChunkLen == 0` case.
+	if plaintextChunkLen > len(e.buf) {
 		panic("encoder tried to seal a packet that was too big")
 	}
-	plaintextChunk := e.buf[0:plaintextLen]
+	plaintextChunk := e.buf[0:plaintextChunkLen]
 	packet := sealPacket(plaintextChunk, e.chunkNum, e.encKey, e.signKey, e.nonce)
-	e.buf = e.buf[plaintextLen:len(e.buf)]
+	e.buf = e.buf[plaintextChunkLen:len(e.buf)]
 	e.chunkNum++
 	return packet
 }
@@ -292,8 +293,8 @@ func (e *AttachmentEncoder) Write(plaintext []byte) []byte {
 	e.buf = append(e.buf, plaintext...)
 	var output []byte
 	// If buf is big enough to make new packets, make as many as we can.
-	for len(e.buf) >= PlaintextChunkLength {
-		packet := e.sealOnePacket(PlaintextChunkLength)
+	for len(e.buf) >= e.plaintextChunkLen {
+		packet := e.sealOnePacket(e.plaintextChunkLen)
 		output = append(output, packet...)
 	}
 	return output
@@ -303,11 +304,15 @@ func (e *AttachmentEncoder) Write(plaintext []byte) []byte {
 // short chunk. This should only be called once, and after that you can't
 // use this encoder again.
 func (e *AttachmentEncoder) Finish() []byte {
-	if len(e.buf) >= PlaintextChunkLength {
+	if len(e.buf) >= e.plaintextChunkLen {
 		panic("encoder buffer has more bytes than expected")
 	}
 	packet := e.sealOnePacket(len(e.buf))
 	return packet
+}
+
+func (e *AttachmentEncoder) ChangePlaintextChunkLenForTesting(plaintextChunkLen int) {
+	e.plaintextChunkLen = plaintextChunkLen
 }
 
 // =============================
@@ -321,6 +326,7 @@ type AttachmentDecoder struct {
 	buf       []byte
 	chunkNum  uint64
 	err       error
+	packetLen int
 }
 
 func NewAttachmentDecoder(encKey SecretboxKey, verifyKey VerifyKey, nonce AttachmentNonce) *AttachmentDecoder {
@@ -331,6 +337,7 @@ func NewAttachmentDecoder(encKey SecretboxKey, verifyKey VerifyKey, nonce Attach
 		buf:       nil,
 		chunkNum:  0,
 		err:       nil,
+		packetLen: getPacketLen(DefaultPlaintextChunkLength),
 	}
 }
 
@@ -364,9 +371,9 @@ func (d *AttachmentDecoder) Write(ciphertext []byte) ([]byte, error) {
 	// We assume that every packet other than the last (which we handle in
 	// Finish) is the same length, which makes this loop very simple.
 	var output []byte
-	for len(d.buf) >= PacketLength {
+	for len(d.buf) >= d.packetLen {
 		var plaintext []byte
-		plaintext, d.err = d.openOnePacket(PacketLength)
+		plaintext, d.err = d.openOnePacket(d.packetLen)
 		if d.err != nil {
 			return nil, d.err
 		}
@@ -384,7 +391,7 @@ func (d *AttachmentDecoder) Finish() ([]byte, error) {
 	if d.err != nil {
 		return nil, d.err
 	}
-	if len(d.buf) >= PacketLength {
+	if len(d.buf) >= d.packetLen {
 		panic("decoder buffer has more bytes than expected")
 	}
 	// If we've been truncated at a packet boundary, this open will fail on a
@@ -395,16 +402,20 @@ func (d *AttachmentDecoder) Finish() ([]byte, error) {
 	return plaintext, d.err
 }
 
+func (d *AttachmentDecoder) ChangePlaintextChunkLenForTesting(plaintextChunkLen int) {
+	d.packetLen = getPacketLen(plaintextChunkLen)
+}
+
 // =============================
 // all-at-once wrapper functions
 // =============================
 
 func GetSealedSize(plaintextLen int) int {
 	// All the full packets.
-	fullChunks := plaintextLen / PlaintextChunkLength
-	totalLen := fullChunks * getPacketLen(PlaintextChunkLength)
+	fullChunks := plaintextLen / DefaultPlaintextChunkLength
+	totalLen := fullChunks * getPacketLen(DefaultPlaintextChunkLength)
 	// Maybe a partial packet.
-	remainingPlaintext := plaintextLen % PlaintextChunkLength
+	remainingPlaintext := plaintextLen % DefaultPlaintextChunkLength
 	totalLen += getPacketLen(remainingPlaintext)
 	// And finally, an empty packet.
 	return totalLen

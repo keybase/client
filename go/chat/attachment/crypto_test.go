@@ -230,7 +230,7 @@ func TestInvalidSignature(t *testing.T) {
 func TestErrorsReturnedFromDecoder(t *testing.T) {
 	// We need bad bytes long enough to trigger an open. This indirectly tests
 	// that the exact packet length is enough for that.
-	badPacket := bytes.Repeat([]byte{0}, PacketLength)
+	badPacket := bytes.Repeat([]byte{0}, getPacketLen(DefaultPlaintextChunkLength))
 	decoder := zeroDecoder()
 	_, err := decoder.Write(badPacket)
 	assertErrorType(t, err, WrongMessagePackFormat)

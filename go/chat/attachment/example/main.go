@@ -2,20 +2,26 @@ package main
 
 import (
 	"encoding/hex"
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/agl/ed25519"
 	docopt "github.com/docopt/docopt-go"
 	"github.com/keybase/client/go/chat/attachment"
 )
 
+func fail(args ...interface{}) {
+	log.Print(fmt.Sprintln(args...))
+	os.Exit(1)
+}
+
 func decodeHexArg(arg string) []byte {
 	decoded, err := hex.DecodeString(arg)
 	if err != nil {
-		log.Printf("'%s' is not valid hex: %s", arg, err)
-		os.Exit(1)
+		fail("'%s' is not valid hex: %s", arg, err)
 	}
 	return decoded
 }
@@ -44,8 +50,11 @@ func zeroSignKey() attachment.SignKey {
 	return &key
 }
 
-func seal(enckey attachment.SecretboxKey, signkey attachment.SignKey, nonce attachment.AttachmentNonce) error {
+func seal(enckey attachment.SecretboxKey, signkey attachment.SignKey, nonce attachment.AttachmentNonce, chunklen int) error {
 	encoder := attachment.NewAttachmentEncoder(enckey, signkey, nonce)
+	if chunklen != 0 {
+		encoder.ChangePlaintextChunkLenForTesting(chunklen)
+	}
 	var buf [4096]byte
 	for {
 		num, err := os.Stdin.Read(buf[:])
@@ -68,8 +77,11 @@ func seal(enckey attachment.SecretboxKey, signkey attachment.SignKey, nonce atta
 	return nil
 }
 
-func open(enckey attachment.SecretboxKey, verifykey attachment.VerifyKey, nonce attachment.AttachmentNonce) error {
+func open(enckey attachment.SecretboxKey, verifykey attachment.VerifyKey, nonce attachment.AttachmentNonce, chunklen int) error {
 	decoder := attachment.NewAttachmentDecoder(enckey, verifykey, nonce)
+	if chunklen != 0 {
+		decoder.ChangePlaintextChunkLenForTesting(chunklen)
+	}
 	var buf [4096]byte
 	for {
 		num, err := os.Stdin.Read(buf[:])
@@ -100,14 +112,15 @@ func open(enckey attachment.SecretboxKey, verifykey attachment.VerifyKey, nonce 
 
 func main() {
 	usage := `Usage:
-    example seal [--enckey=<enckey>] [--signkey=<signkey>] [--nonce=<nonce>]
-    example open [--enckey=<enckey>] [--verifykey=<signkey>] [--nonce=<nonce>]
+    example seal [--enckey=<enckey>] [--signkey=<signkey>] [--nonce=<nonce>] [--chunklen=<chunklen>]
+    example open [--enckey=<enckey>] [--verifykey=<signkey>] [--nonce=<nonce>] [--chunklen=<chunklen>]
 
 Options:
     --enckey=<enckey>        the 32-byte encryption key (in hex)
     --signkey=<signkey>      the 64-byte signing private key (in hex)
     --verifykey=<verifykey>  the 32-byte signing public  key (in hex)
     --nonce=<nonce>          the 16-byte nonce
+    --chunklen=<chunklen>    the size of plaintext chunks, for testing, default 2^20 bytes
 `
 	arguments, _ := docopt.Parse(usage, nil, true, "attachment crypto example", false)
 
@@ -131,14 +144,22 @@ Options:
 		copy(nonce[:], decodeHexArg(arguments["--nonce"].(string)))
 	}
 
+	chunklen := 0
+	if arguments["--chunklen"] != nil {
+		parsed, err := strconv.Atoi(arguments["--chunklen"].(string))
+		if err != nil {
+			fail(err)
+		}
+		chunklen = parsed
+	}
+
 	var err error
 	if arguments["seal"].(bool) {
-		err = seal(enckey, signkey, nonce)
+		err = seal(enckey, signkey, nonce, chunklen)
 	} else {
-		err = open(enckey, verifykey, nonce)
+		err = open(enckey, verifykey, nonce, chunklen)
 	}
 	if err != nil {
-		log.Println(err)
-		os.Exit(1)
+		fail(err)
 	}
 }
