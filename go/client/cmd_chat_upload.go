@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 
 	"github.com/keybase/cli"
@@ -12,6 +13,7 @@ type CmdChatUpload struct {
 	libkb.Contextified
 	tlf      string
 	filename string
+	public   bool
 }
 
 func newCmdChatUpload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -23,6 +25,12 @@ func newCmdChatUpload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cmd := &CmdChatUpload{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "upload", c)
 		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "public",
+				Usage: "Send to public conversation (default private)",
+			},
+		},
 	}
 }
 
@@ -32,11 +40,26 @@ func (c *CmdChatUpload) ParseArgv(ctx *cli.Context) error {
 	}
 	c.tlf = ctx.Args()[0]
 	c.filename = ctx.Args()[1]
+	c.public = ctx.Bool("public")
 
 	return nil
 }
 
 func (c *CmdChatUpload) Run() error {
+	opts := attachOptionsV1{
+		Channel: ChatChannel{
+			Name:   c.tlf,
+			Public: c.public,
+		},
+		Filename: c.filename,
+	}
+	api := &CmdChatAPI{
+		Contextified: libkb.NewContextified(c.G()),
+	}
+	reply := api.AttachV1(context.Background(), opts)
+	if reply.Error != nil {
+		return errors.New(reply.Error.Message)
+	}
 	return nil
 }
 
