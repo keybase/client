@@ -1537,26 +1537,39 @@ func (e ChatBoxingError) Error() string {
 
 type ChatUnboxingError interface {
 	Error() string
-	IsChatUnboxingError()
+	Inner() error
+	IsPermanent() bool
 }
 
 var _ error = (ChatUnboxingError)(nil)
 
-func NewChatUnboxingError(msg string) ChatUnboxingError {
-	return &ChatUnboxingErrorImpl{
-		msg: msg,
-	}
+func NewPermanentChatUnboxingError(inner error) ChatUnboxingError {
+	return &PermanentChatUnboxingError{inner}
 }
 
-type ChatUnboxingErrorImpl struct {
-	msg string
+type PermanentChatUnboxingError struct{ inner error }
+
+func (e PermanentChatUnboxingError) Error() string {
+	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
 }
 
-func (e ChatUnboxingErrorImpl) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", e.msg)
+func (e PermanentChatUnboxingError) IsPermanent() bool { return true }
+
+func (e PermanentChatUnboxingError) Inner() error { return e.inner }
+
+func NewTransientChatUnboxingError(inner error) ChatUnboxingError {
+	return &TransientChatUnboxingError{inner}
 }
 
-func (e ChatUnboxingErrorImpl) IsChatUnboxingError() {}
+type TransientChatUnboxingError struct{ inner error }
+
+func (e TransientChatUnboxingError) Error() string {
+	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
+}
+
+func (e TransientChatUnboxingError) IsPermanent() bool { return false }
+
+func (e TransientChatUnboxingError) Inner() error { return e.inner }
 
 //=============================================================================
 

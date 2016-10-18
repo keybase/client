@@ -5,6 +5,7 @@ package chat
 
 import (
 	"crypto/sha256"
+	"strings"
 	"testing"
 	"time"
 
@@ -163,9 +164,9 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 	// put original hash fn back
 	boxer.hashV1 = origHashFn
 
-	_, _, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
-	if _, ok := err.(libkb.ChatBodyHashInvalid); !ok {
-		t.Fatalf("unexpected error for invalid body hash: %s", err)
+	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	if _, ok := ierr.Inner().(libkb.ChatBodyHashInvalid); !ok {
+		t.Fatalf("unexpected error for invalid body hash: %s", ierr)
 	}
 }
 
@@ -258,9 +259,9 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 	}
 
 	// This should produce a non-permanent error. So err will be set.
-	decmsg, err := boxer.UnboxMessage(ctx, NewKeyFinderMock(), *boxed)
-	if _, ok := err.(libkb.ChatUnboxingError); !ok {
-		t.Fatal(err)
+	decmsg, ierr := boxer.UnboxMessage(ctx, NewKeyFinderMock(), *boxed)
+	if !strings.Contains(ierr.Error(), "no key found") {
+		t.Fatalf("error should contain 'no key found': %v", ierr)
 	}
 	if decmsg.IsValid() {
 		t.Fatalf("message should not be unboxable")
@@ -310,9 +311,9 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 	// put original signing fn back
 	boxer.sign = origSign
 
-	_, _, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
-	if _, ok := err.(libkb.BadSigError); !ok {
-		t.Fatalf("unexpected error for invalid header signature: %s", err)
+	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	if _, ok := ierr.Inner().(libkb.BadSigError); !ok {
+		t.Fatalf("unexpected error for invalid header signature: %s", ierr)
 	}
 }
 
@@ -344,9 +345,9 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	_, _, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
-	if _, ok := err.(libkb.NoKeyError); !ok {
-		t.Fatalf("unexpected error for invalid sender key: %v", err)
+	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	if _, ok := ierr.Inner().(libkb.NoKeyError); !ok {
+		t.Fatalf("unexpected error for invalid sender key: %v", ierr)
 	}
 }
 
