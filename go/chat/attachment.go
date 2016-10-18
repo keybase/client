@@ -94,12 +94,10 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 		return err
 	}
 
-	log.Warning("copy start")
 	n, err := io.Copy(w, decBody)
 	if err != nil {
 		return err
 	}
-	log.Warning("copy done")
 
 	log.Debug("downloaded %d bytes", n)
 
