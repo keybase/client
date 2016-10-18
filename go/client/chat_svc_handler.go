@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -82,7 +83,10 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 
 	if opts.ConversationID == 0 {
 		// resolve conversation id
-		query := c.getInboxLocalQuery(opts.ConversationID, opts.Channel)
+		query, err := c.getInboxLocalQuery(ctx, opts.ConversationID, opts.Channel)
+		if err != nil {
+			return c.errReply(err)
+		}
 		gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
 			Query: &query,
 		})
@@ -171,10 +175,11 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 // SendV1 implements ChatServiceHandler.SendV1.
 func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
 	arg := sendArgV1{
-		convQuery: c.getInboxLocalQuery(opts.ConversationID, opts.Channel),
-		body:      chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
-		mtype:     chat1.MessageType_TEXT,
-		response:  "message sent",
+		conversationID: opts.ConversationID,
+		channel:        opts.Channel,
+		body:           chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
+		mtype:          chat1.MessageType_TEXT,
+		response:       "message sent",
 	}
 	return c.sendV1(ctx, arg)
 }
@@ -182,11 +187,12 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Rep
 // DeleteV1 implements ChatServiceHandler.DeleteV1.
 func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
 	arg := sendArgV1{
-		convQuery:  c.getInboxLocalQuery(opts.ConversationID, opts.Channel),
-		body:       chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageID: opts.MessageID}),
-		mtype:      chat1.MessageType_DELETE,
-		supersedes: opts.MessageID,
-		response:   "message deleted",
+		conversationID: opts.ConversationID,
+		channel:        opts.Channel,
+		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageID: opts.MessageID}),
+		mtype:          chat1.MessageType_DELETE,
+		supersedes:     opts.MessageID,
+		response:       "message deleted",
 	}
 	return c.sendV1(ctx, arg)
 }
@@ -194,11 +200,12 @@ func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1)
 // EditV1 implements ChatServiceHandler.EditV1.
 func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Reply {
 	arg := sendArgV1{
-		convQuery:  c.getInboxLocalQuery(opts.ConversationID, opts.Channel),
-		body:       chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
-		mtype:      chat1.MessageType_EDIT,
-		supersedes: opts.MessageID,
-		response:   "message edited",
+		conversationID: opts.ConversationID,
+		channel:        opts.Channel,
+		body:           chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
+		mtype:          chat1.MessageType_EDIT,
+		supersedes:     opts.MessageID,
+		response:       "message edited",
 	}
 	return c.sendV1(ctx, arg)
 }
@@ -206,10 +213,15 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 // AttachV1 implements ChatServiceHandler.AttachV1.
 func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
 	sarg := sendArgV1{
-		convQuery: c.getInboxLocalQuery(opts.ConversationID, opts.Channel),
-		mtype:     chat1.MessageType_ATTACHMENT,
+		conversationID: opts.ConversationID,
+		channel:        opts.Channel,
+		mtype:          chat1.MessageType_ATTACHMENT,
 	}
-	header, err := c.makePostHeader(ctx, sarg)
+	query, err := c.getInboxLocalQuery(ctx, sarg.conversationID, sarg.channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	header, err := c.makePostHeader(ctx, sarg, query)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -309,7 +321,10 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	var rlimits []chat1.RateLimit
 	if opts.ConversationID == 0 {
 		// resolve conversation id
-		query := c.getInboxLocalQuery(opts.ConversationID, opts.Channel)
+		query, err := c.getInboxLocalQuery(ctx, opts.ConversationID, opts.Channel)
+		if err != nil {
+			return c.errReply(err)
+		}
 		gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
 			Query: &query,
 		})
@@ -351,15 +366,21 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 }
 
 type sendArgV1 struct {
-	convQuery  chat1.GetInboxLocalQuery
-	body       chat1.MessageBody
-	mtype      chat1.MessageType
-	supersedes chat1.MessageID
-	response   string
+	// convQuery  chat1.GetInboxLocalQuery
+	conversationID chat1.ConversationID
+	channel        ChatChannel
+	body           chat1.MessageBody
+	mtype          chat1.MessageType
+	supersedes     chat1.MessageID
+	response       string
 }
 
 func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1) Reply {
-	header, err := c.makePostHeader(ctx, arg)
+	query, err := c.getInboxLocalQuery(ctx, arg.conversationID, arg.channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	header, err := c.makePostHeader(ctx, arg, query)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -397,15 +418,16 @@ type postHeader struct {
 	rateLimits     []chat1.RateLimit
 }
 
-func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1) (*postHeader, error) {
+func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, query chat1.GetInboxLocalQuery) (*postHeader, error) {
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return nil, err
 	}
 
 	// find the conversation
-	gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{Query: &arg.convQuery})
+	gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{Query: &query})
 	if err != nil {
+		c.G().Log.Warning("GetInboxLocal error: %s", err)
 		return nil, err
 	}
 	var header postHeader
@@ -416,10 +438,10 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1) 
 	switch len(existing) {
 	case 0:
 		ncres, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
-			TlfName:       *arg.convQuery.TlfName,
-			TlfVisibility: *arg.convQuery.TlfVisibility,
-			TopicName:     arg.convQuery.TopicName,
-			TopicType:     *arg.convQuery.TopicType,
+			TlfName:       *query.TlfName,
+			TlfVisibility: *query.TlfVisibility,
+			TopicName:     query.TopicName,
+			TopicType:     *query.TopicType,
 		})
 		if err != nil {
 			return nil, err
@@ -434,8 +456,8 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1) 
 
 	header.clientHeader = chat1.MessageClientHeader{
 		Conv:        convTriple,
-		TlfName:     *arg.convQuery.TlfName,
-		TlfPublic:   *arg.convQuery.TlfVisibility == chat1.TLFVisibility_PUBLIC,
+		TlfName:     *query.TlfName,
+		TlfPublic:   *query.TlfVisibility == chat1.TLFVisibility_PUBLIC,
 		MessageType: arg.mtype,
 		Supersedes:  arg.supersedes,
 	}
@@ -443,9 +465,22 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1) 
 	return &header, nil
 }
 
-func (c *chatServiceHandler) getInboxLocalQuery(id chat1.ConversationID, channel ChatChannel) chat1.GetInboxLocalQuery {
+func (c *chatServiceHandler) getInboxLocalQuery(ctx context.Context, id chat1.ConversationID, channel ChatChannel) (chat1.GetInboxLocalQuery, error) {
 	if id > 0 {
-		return chat1.GetInboxLocalQuery{ConvID: &id}
+		return chat1.GetInboxLocalQuery{ConvID: &id}, nil
+	}
+
+	// canonicalize the tlf name (no visibility necessary?)
+	tlfClient, err := GetTlfClient(c.G())
+	if err != nil {
+		return chat1.GetInboxLocalQuery{}, err
+	}
+	cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, keybase1.TLFQuery{
+		TlfName:          channel.Name,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
+	if err != nil {
+		return chat1.GetInboxLocalQuery{}, err
 	}
 
 	vis := chat1.TLFVisibility_PRIVATE
@@ -453,12 +488,13 @@ func (c *chatServiceHandler) getInboxLocalQuery(id chat1.ConversationID, channel
 		vis = chat1.TLFVisibility_PUBLIC
 	}
 	tt := channel.TopicTypeEnum()
+	tlfName := cname.CanonicalName.String()
 	return chat1.GetInboxLocalQuery{
-		TlfName:       &channel.Name,
+		TlfName:       &tlfName,
 		TlfVisibility: &vis,
 		TopicType:     &tt,
 		TopicName:     &channel.TopicName,
-	}
+	}, nil
 }
 
 // need this to get message type name
