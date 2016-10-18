@@ -5,6 +5,7 @@ package chat
 
 import (
 	"crypto/sha256"
+	"strings"
 	"testing"
 	"time"
 
@@ -163,12 +164,109 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 	// put original hash fn back
 	boxer.hashV1 = origHashFn
 
-	_, _, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
-	if _, ok := err.(libkb.ChatBodyHashInvalid); !ok {
-		t.Fatalf("unexpected error for invalid body hash: %s", err)
+	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	if _, ok := ierr.Inner().(libkb.ChatBodyHashInvalid); !ok {
+		t.Fatalf("unexpected error for invalid body hash: %s", ierr)
 	}
 }
 
+func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	world := kbtest.NewChatMockWorld(t, "unbox", 4)
+	boxer.tlf = kbtest.NewTlfMock(world)
+
+	header := chat1.MessageClientHeader{
+		Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
+		TlfPublic: true,
+		TlfName:   "hi",
+	}
+	text := "hi"
+	msg := textMsgWithHeader(t, text, header)
+
+	signKP := getSigningKeyPairForTest(t, tc, u)
+
+	ctx := context.Background()
+
+	origHashFn := boxer.hashV1
+	boxer.hashV1 = func(data []byte) chat1.Hash {
+		data = append(data, []byte{1, 2, 3}...)
+		sum := sha256.Sum256(data)
+		return sum[:]
+	}
+
+	boxed, err := boxer.BoxMessage(ctx, msg, signKP)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// need to give it a server header...
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+
+	// put original hash fn back
+	boxer.hashV1 = origHashFn
+
+	// This should produce a permanent error. So err will be nil, but the decmsg will be state=error.
+	decmsg, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if decmsg.IsValid() {
+		t.Fatalf("message should not be unboxable")
+	}
+}
+
+func TestChatMessageUnboxNoCryptKey(t *testing.T) {
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	world := kbtest.NewChatMockWorld(t, "unbox", 4)
+	boxer.tlf = kbtest.NewTlfMock(world)
+
+	header := chat1.MessageClientHeader{
+		Sender:    gregor1.UID(u.User.GetUID().ToBytes()),
+		TlfPublic: true,
+		TlfName:   "hi",
+	}
+	text := "hi"
+	msg := textMsgWithHeader(t, text, header)
+
+	signKP := getSigningKeyPairForTest(t, tc, u)
+
+	ctx := context.Background()
+
+	boxed, err := boxer.BoxMessage(ctx, msg, signKP)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// need to give it a server header...
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+
+	// This should produce a non-permanent error. So err will be set.
+	decmsg, ierr := boxer.UnboxMessage(ctx, NewKeyFinderMock(), *boxed)
+	if !strings.Contains(ierr.Error(), "no key found") {
+		t.Fatalf("error should contain 'no key found': %v", ierr)
+	}
+	if decmsg.IsValid() {
+		t.Fatalf("message should not be unboxable")
+	}
+}
 func TestChatMessageInvalidHeaderSig(t *testing.T) {
 	key := cryptKey(t)
 	text := "hi"
@@ -213,9 +311,9 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 	// put original signing fn back
 	boxer.sign = origSign
 
-	_, _, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
-	if _, ok := err.(libkb.BadSigError); !ok {
-		t.Fatalf("unexpected error for invalid header signature: %s", err)
+	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	if _, ok := ierr.Inner().(libkb.BadSigError); !ok {
+		t.Fatalf("unexpected error for invalid header signature: %s", ierr)
 	}
 }
 
@@ -247,9 +345,9 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	_, _, err = boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
-	if _, ok := err.(libkb.NoKeyError); !ok {
-		t.Fatalf("unexpected error for invalid sender key: %v", err)
+	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	if _, ok := ierr.Inner().(libkb.NoKeyError); !ok {
+		t.Fatalf("unexpected error for invalid sender key: %v", ierr)
 	}
 }
 
@@ -303,4 +401,14 @@ func TestChatMessagePublic(t *testing.T) {
 	if body.Text().Body != text {
 		t.Errorf("body text: %q, expected %q", body.Text().Body, text)
 	}
+}
+
+type KeyFinderMock struct{}
+
+func NewKeyFinderMock() KeyFinder {
+	return &KeyFinderMock{}
+}
+
+func (k *KeyFinderMock) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
+	return keybase1.GetTLFCryptKeysRes{}, nil
 }
