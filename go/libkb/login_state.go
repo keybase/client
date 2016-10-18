@@ -303,7 +303,7 @@ func (s *LoginState) getStoredPassphraseStream(username NormalizedUsername) (*Pa
 // GetPassphraseStreamStored either returns a cached, verified passphrase
 // stream from a previous login, the secret store, or generates a new one via
 // login.
-func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (pps *PassphraseStream, err error) {
+func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (x *PassphraseStream, err error) {
 	s.G().Log.Debug("+ GetPassphraseStreamStored() called")
 	defer func() { s.G().Log.Debug("- GetPassphraseStreamStored() -> %s", ErrToOk(err)) }()
 
@@ -311,7 +311,7 @@ func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (pps *PassphraseStre
 	s.G().Log.Debug("| trying cached passphrase stream")
 	full, err := s.PassphraseStream()
 	if err != nil {
-		return pps, err
+		return nil, err
 	}
 	if full != nil {
 		s.G().Log.Debug("| cached passphrase stream ok, using it")
@@ -321,7 +321,7 @@ func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (pps *PassphraseStre
 	// 2. try from secret store
 	if s.G().SecretStoreAll != nil {
 		s.G().Log.Debug("| trying to get passphrase stream from secret store")
-		pps, err = s.getStoredPassphraseStream(s.G().Env.GetUsername())
+		pps, err := s.getStoredPassphraseStream(s.G().Env.GetUsername())
 		if err == nil {
 			s.G().Log.Debug("| got passphrase stream from secret store")
 			return pps, nil
@@ -334,13 +334,13 @@ func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (pps *PassphraseStre
 	s.G().Log.Debug("| using full GetPassphraseStream")
 	full, err = s.GetPassphraseStream(ui)
 	if err != nil {
-		return pps, err
+		return nil, err
 	}
 	if full != nil {
 		s.G().Log.Debug("| success using full GetPassphraseStream")
 		return full, nil
 	}
-	return pps, nil
+	return nil, nil
 }
 
 // GetVerifiedTripleSec either returns a cached, verified Triplesec
