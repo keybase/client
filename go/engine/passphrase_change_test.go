@@ -156,27 +156,33 @@ func TestPassphraseChangeKnownPrompt(t *testing.T) {
 		a.ClearStreamCache()
 	}, "clear stream cache")
 
+	// Test changing passphrase 3 times; so that old passphrase
+	// cache is properly busted.
 	newPassphrase := "password1234"
-	arg := &keybase1.PassphraseChangeArg{
-		Passphrase: newPassphrase,
-	}
-	secui := u.NewSecretUI()
-	ctx := &Context{
-		SecretUI: secui,
-	}
-	eng := NewPassphraseChange(arg, tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
+	for i := 0; i < 3; i++ {
 
-	verifyPassphraseChange(tc, u, newPassphrase)
+		arg := &keybase1.PassphraseChangeArg{
+			Passphrase: newPassphrase,
+		}
+		secui := u.NewSecretUI()
+		ctx := &Context{
+			SecretUI: secui,
+		}
+		eng := NewPassphraseChange(arg, tc.G)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
 
-	if !secui.CalledGetPassphrase {
-		t.Errorf("get passphrase not called")
+		verifyPassphraseChange(tc, u, newPassphrase)
+
+		if !secui.CalledGetPassphrase {
+			t.Errorf("get passphrase not called")
+		}
+
+		u.Passphrase = newPassphrase
+		assertLoadSecretKeys(tc, u, "passphrase change known prompt")
+		newPassphrase += "-xo"
 	}
-
-	u.Passphrase = newPassphrase
-	assertLoadSecretKeys(tc, u, "passphrase change known prompt")
 }
 
 // Test changing the passphrase after logging in via pubkey.
