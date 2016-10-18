@@ -18,7 +18,7 @@ const renderError = (error: RPCError) => {
       return (
         <div>
           <p style={{marginBottom: 10}}><Text type='Body'>Sorry!</Text></p>
-          <p style={{marginBottom: 10}}><Text type='Body'>You can’t authorize by passphrase, since you have established device or paper keys.</Text></p>
+          <p style={{marginBottom: 10}}><Text type='Body'>You can't authorize by passphrase, since you have established device or paper keys.</Text></p>
           <p>
             <Text type='Body'>What you can do:</Text>
             <Text type='Body'> - Go back and pick a device or paper key</Text>
@@ -32,7 +32,7 @@ const renderError = (error: RPCError) => {
         return (
           <div>
             <p style={{marginBottom: 10}}><Text type='Body'>Sorry!</Text></p>
-            <p style={{marginBottom: 10}}><Text type='Body'>You can’t provision using solely a passphrase, since you have active device keys.</Text></p>
+            <p style={{marginBottom: 10}}><Text type='Body'>You can't provision using solely a passphrase, since you have active device keys.</Text></p>
             <p>
               <Text type='Body'>You have options:</Text>
               <Text type='Body'> - Go back and select a device or paper key</Text>
@@ -45,7 +45,7 @@ const renderError = (error: RPCError) => {
         return (
           <div>
             <p style={{marginBottom: 10}}><Text type='Body'>Sorry!</Text></p>
-            <p style={{marginBottom: 10}}><Text type='Body'>You can’t provision using a passphrase, since you’ve established a PGP key.</Text></p>
+            <p style={{marginBottom: 10}}><Text type='Body'>You can't provision using a passphrase, since you've established a PGP key.</Text></p>
             <p>
               <Text type='Body'>You have options:</Text>
               <Text type='Body'> - Install GPG on this machine and import your PGP private key into it</Text>

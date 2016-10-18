@@ -33,7 +33,7 @@ class FinishedGeneratedPgp extends Component<void, Props, State> {
           <textInput style={stylePgpKeyString} readOnly={true}>{this.props.pgpKeyString}</textInput>
         </Box>
         <Box style={styleUploadContainer}>
-          <Checkbox onCheck={(newVal) => this._onCheckToggle(newVal)} checked={this.state.shouldStoreKeyOnServer} label='Store encrypted private key on Keybase’s server (recommended)' />
+          <Checkbox onCheck={(newVal) => this._onCheckToggle(newVal)} checked={this.state.shouldStoreKeyOnServer} label="Store encrypted private key on Keybase's server (recommended)" />
           <Text style={styleUploadTextSublabel} type='BodySmall'>{'Allows you to download & import your key to other devices.'}</Text>
         </Box>
         <Button style={styleDoneButton} type='Primary' onClick={() => this.props.onDone(this.state.shouldStoreKeyOnServer)} label={this.state.shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'} />

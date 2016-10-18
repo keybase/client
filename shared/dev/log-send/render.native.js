@@ -30,7 +30,7 @@ class LogSendRender extends Component<void, Props, State> {
       return (
         <Box style={stylesContainer}>
           <Text type='Body'>Send debug logs?</Text>
-          <Text type='Body' style={stylesInfoText}>This command will send recent Keybase log entries to keybase.io for debugging purposes only. These logs don’t include your private keys or encrypted data, but they will include filenames and other metadata Keybase normally can’t read, for debugging purposes.</Text>
+          <Text type='Body' style={stylesInfoText}>This command will send recent Keybase log entries to keybase.io for debugging purposes only. These logs don't include your private keys or encrypted data, but they will include filenames and other metadata Keybase normally can't read, for debugging purposes.</Text>
           <Button type='Primary' label='Send a log!' onClick={this.props.onLogSend} />
         </Box>
       )
@@ -44,7 +44,7 @@ class LogSendRender extends Component<void, Props, State> {
           </Text>
           {this.state.copiedToClipboard && <Text type='Body'>Copied to clipboard!</Text>}
 
-          <Text type='Body'>Send us the log id along with a description of what’s going on in this Github issue:</Text>
+          <Text type='Body'>Send us the log id along with a description of what's going on in this Github issue:</Text>
           <Button type='Primary' label='File a Github issue:' onClick={onSubmitIssue} />
         </Box>
       )

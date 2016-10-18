@@ -7,4 +7,4 @@ export type Props = {
   badgeNumberStyle?: Object,
 }
 
-declare export default class Badget extends Component<void, Props, void> { }
+declare export default class Badge extends Component<void, Props, void> { }

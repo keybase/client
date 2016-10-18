@@ -38,6 +38,8 @@ class DumbSheetRender extends Component<void, Props, any> {
     const filter = `'${keys[nextIdx]}':50`
 
     this.props.onDebugConfigChange({dumbFilter: filter})
+    // Scroll the screen to the top when you are arrowing around using the exact filter match. Kinda
+    // hacky and just to make things simple.
     setImmediate(() => {
       ReactDOM.findDOMNode(this.refs.scrollBox).scrollTop = 0
     })
@@ -54,28 +56,41 @@ class DumbSheetRender extends Component<void, Props, any> {
     this.refs.filterInput.setValue(nextProps.dumbFilter)
   }
 
-  render () {
-    const parts = this.props.dumbFilter.toLowerCase().split(':')
-    let numItemsLeftWeCanShow = 10
-    let filter = parts.join(':')
+  _filterToParams () {
+    let filter = this.props.dumbFilter.toLowerCase()
+    let numItemsLeftWeCanShowMax = 10
 
-    if (parts.length > 1) {
-      try {
-        numItemsLeftWeCanShow = parseInt(parts[parts.length - 1], 10)
-        filter = parts.slice(0, parts.length - 1).join(':')
-      } catch (_) { }
+    const itemsMatch = filter.match(/(.*):(\d+)/)
+
+    if (itemsMatch && itemsMatch[2]) {
+      filter = itemsMatch[1]
+      numItemsLeftWeCanShowMax = parseInt(itemsMatch[2], 10)
     }
 
     let keys
-    let exact = false
-    // exact match
-    if (filter.startsWith("'") && filter.endsWith("'")) {
-      const toFind = filter.substring(1, filter.length - 1)
+    let isExact
+
+    const exatchMatch = filter.match(/^'(.*)'$/)
+    if (exatchMatch && exatchMatch[1]) {
+      const toFind = exatchMatch[1]
       keys = Object.keys(dumbComponentMap).filter(key => key.toLowerCase() === toFind)
-      exact = true
+      isExact = true
     } else {
       keys = Object.keys(dumbComponentMap).sort()
+      isExact = false
     }
+
+    return {
+      filter,
+      numItemsLeftWeCanShowMax,
+      keys,
+      isExact,
+    }
+  }
+
+  render () {
+    const {filter, numItemsLeftWeCanShowMax, keys, isExact} = this._filterToParams()
+    let numItemsLeftWeCanShow = numItemsLeftWeCanShowMax
 
     return (
       <Box style={{...globalStyles.scrollable, padding: 20}} ref='scrollBox'>
@@ -90,7 +105,7 @@ class DumbSheetRender extends Component<void, Props, any> {
         </Box>
         {keys.map(key => {
           const map = dumbComponentMap[key]
-          const includeAllChildren = exact || !filter || key.toLowerCase().indexOf(filter) !== -1
+          const includeAllChildren = isExact || !filter || key.toLowerCase().indexOf(filter) !== -1
           const items = Object.keys(map.mocks)
             .filter(mockKey => !filter || includeAllChildren || (key.toLowerCase() + mockKey.toLowerCase()).indexOf(filter) !== -1)
             .map((mockKey, idx) => {

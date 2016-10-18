@@ -27,7 +27,7 @@ const RenderHelp = ({username}: Props) => (
       <Box style={styleBody}>
         <Text type='Body' style={{...styleBodyText}}>
           However, you can use the terminal to manage your keys and identity.
-          When you run the commands below, you’ll see your <Text
+          When you run the commands below, you'll see your <Text
             type='BodyPrimaryLink'
             onClick={() => shell.openExternal(`https://keybase.io/${username}/graph`)}>
             identity graph

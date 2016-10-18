@@ -1,5 +1,5 @@
 // @flow
-import CommonMap from '../../common-adapters/dumb.native'
+import CommonMap from '../../common-adapters/dumb'
 import RegisterMap from '../../login/register/dumb'
 import SignupMap from '../../login/signup/dumb.native'
 import DevicesMap from '../../devices/dumb'

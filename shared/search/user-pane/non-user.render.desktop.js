@@ -17,7 +17,7 @@ function InviteSection ({inviteLink, outOfInvites, onSendInvite, username, servi
   if (outOfInvites) {
     return (
       <Box style={stylesLinkContainer}>
-        <Text type='Body' style={{textAlign: 'center'}}>Since you’re out of invites, {`${username}@${serviceName}`} will need to request a signup on Keybase.io. Encourage them to join.</Text>
+        <Text type='Body' style={{textAlign: 'center'}}>Since you're out of invites, {`${username}@${serviceName}`} will need to request a signup on Keybase.io. Encourage them to join.</Text>
       </Box>
     )
   }

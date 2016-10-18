@@ -56,12 +56,8 @@ type MetaType = {
   isTerminal?: true,
 }
 
-class Text extends Component<void, Props, void> {
-}
-
-function getStyle (type: TextType, backgroundMode?: ?Background, lineClamp?: ?number, clickable?: ?boolean): Object {
-  return {}
-}
+declare class Text extends Component<void, Props, void> {}
+declare function getStyle (type: TextType, backgroundMode?: ?Background, lineClamp?: ?number, clickable?: ?boolean): Object
 
 export {
   getStyle,

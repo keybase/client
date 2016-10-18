@@ -21,8 +21,8 @@ class SuccessRender extends Component<void, Props, State> {
   render () {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
-        <Text type='Header' style={stylesHeader}>{this.props.title || 'Congratulations, you’ve just joined Keybase!'}</Text>
-        <Text type='Body' style={stylesBody}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you’ll see this so be sure to write it down.</Text>
+        <Text type='Header' style={stylesHeader}>{this.props.title || "Congratulations, you've just joined Keybase!"}</Text>
+        <Text type='Body' style={stylesBody}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.</Text>
         <Box style={stylesPaperKeyContainer}>
           <Text type='Header' style={stylesPaperkey}>{this.props.paperkey.stringValue()}</Text>
           <Icon type='icon-paper-key-corner' style={stylesPaperCorner} />
