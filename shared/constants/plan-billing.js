@@ -56,6 +56,7 @@ export type AvailablePlan = {
   planLevel: PlanLevel,
   planId: string,
   gigabytes: number,
+  price_pennies: number,
 }
 
 export type PaymentInfo = {
@@ -75,6 +76,7 @@ export type AvailablePlans = Array<AvailablePlan>
 type AvailablePlanAPI = {
   plan_name: string,
   plan_id: string,
+  price_pennies: number,
   gigabytes: number,
   is_default_plan: 0 | 1,
 }
@@ -88,11 +90,12 @@ export type BillingState = {
   errorMessage: ?string,
 }
 
-export function parseAvailablePlan ({plan_name, gigabytes, plan_id}: AvailablePlanAPI): AvailablePlan {
+export function parseAvailablePlan ({plan_name, gigabytes, plan_id, price_pennies}: AvailablePlanAPI): AvailablePlan {
   return {
     planLevel: capitalize(plan_name.toLowerCase()),
     planId: plan_id,
     gigabytes,
+    price_pennies,
   }
 }
 

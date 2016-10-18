@@ -19,6 +19,10 @@ export type PaymentVariants = {
 export type Props = {
   plan: PlanLevel,
   paymentOption: PaymentVariants,
+  price: string,
+  gigabytes: number,
+  onBack: () => void,
+  numStars: number,
 }
 
 export default class PlanDetails extends Component<void, Props, void> {}

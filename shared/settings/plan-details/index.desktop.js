@@ -1,9 +1,8 @@
 // @flow
 import React from 'react'
 import {globalStyles, globalMargins} from '../../styles'
-import {Box, Button, Text} from '../../common-adapters'
+import {Box, Button, Text, StandardScreen} from '../../common-adapters'
 import {Stars} from '../common.desktop'
-import {levelToPriceLong, levelToDetails} from '../../constants/settings'
 
 import type {Props, PaymentVariants} from './'
 
@@ -34,15 +33,17 @@ function PaymentOption ({paymentOption}: {paymentOption: PaymentVariants}) {
   }
 }
 
-function PlanDetails ({plan, paymentOption}: Props) {
+function PlanDetails ({plan, price, paymentOption, onBack, gigabytes, numStars}: Props) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-      <Stars level={plan} />
-      <Text type={'Header'} style={{textAlign: 'center', marginTop: globalMargins.small}}>{plan}</Text>
-      <Text type={'BodySmall'} style={{textAlign: 'center', marginBottom: globalMargins.medium}}>{levelToPriceLong[plan]}</Text>
-      <Text type={'Body'} style={{textAlign: 'center', marginBottom: globalMargins.large}}>{levelToDetails(plan)}</Text>
-      <PaymentOption paymentOption={paymentOption} />
-    </Box>
+    <StandardScreen onBack={onBack}>
+      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', flex: 1}}>
+        <Stars count={numStars} />
+        <Text type={'Header'} style={{textAlign: 'center', marginTop: globalMargins.small}}>{plan}</Text>
+        <Text type={'BodySmall'} style={{textAlign: 'center', marginBottom: globalMargins.medium}}>{price}</Text>
+        <Text type={'Body'} style={{textAlign: 'center', marginBottom: globalMargins.large}}>{`You will be able to use up to ${gigabytes}GB of data.`}</Text>
+        <PaymentOption paymentOption={paymentOption} />
+      </Box>
+    </StandardScreen>
   )
 }
 

@@ -2,7 +2,6 @@
 import * as actions from '../../actions/plan-billing'
 import Bootstrapable from '../../util/bootstrapable'
 import Landing from './index'
-import {comparePlans} from '../../constants/settings'
 import {connect} from 'react-redux'
 import {routeAppend} from '../../actions/router'
 
@@ -37,14 +36,16 @@ export default connect(
           lowSpaceWarning: false,
           paymentInfo,
           onChangePaymentInfo: () => console.log('todo'),
+          planInfo: availablePlans[0], // TODO wrong
         },
+        plans: availablePlans,
       },
     }
   },
   (dispatch: (a: any) => void, ownProps: OwnProps) => ({
     onBootstrap: () => { dispatch(actions.bootstrapData()) },
     onChangePassphrase: () => dispatch(routeAppend('changePassphrase')),
-    onInfo: (selectedLevel, comparison) => dispatch(routeAppend({path: 'changePlan', selectedLevel, comparison})),
+    onInfo: (selectedLevel) => dispatch(routeAppend({path: 'changePlan', selectedLevel})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     if (stateProps.bootstrapDone === false) {
@@ -65,9 +66,7 @@ export default connect(
         plan: {
           ...stateProps.originalProps.plan,
           onInfo: (selectedLevel) => {
-            // $ForceType
-            const comparison = comparePlans(stateProps.originalProps.plan.selectedLevel, selectedLevel)
-            dispatchProps.onInfo(selectedLevel, comparison)
+            dispatchProps.onInfo(selectedLevel)
           },
         },
       },

@@ -2,20 +2,18 @@
 import React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
-import {comparePlans, levelToPrice, levelToSpace, plans} from '../../constants/settings'
 import {Stars} from '../common.desktop.js'
 import SubHeading from '../subheading'
 
 import type {Props, AccountProps, PlanProps} from './index'
 import type {PlanLevel} from '../../constants/settings'
-import type {PaymentInfo as PaymentInfoType} from '../../constants/plan-billing'
+import type {PaymentInfo as PaymentInfoType, AvailablePlan} from '../../constants/plan-billing'
 
 const ROW_HEIGHT = 48
 
 type PlanActionVariantsProps = {
-  type: 'downgrade',
-} | {
-  type: 'upgrade',
+  type: 'change',
+  direction: 'upgrade' | 'downgrade',
 } | {
   type: 'spaceInfo',
   freeSpace: string,
@@ -26,30 +24,25 @@ type PlanActionVariantsProps = {
 type PlanLevelProps = {
   style?: Object,
   level: PlanLevel,
+  price: string,
+  gigabytes: number,
   onInfo: () => void,
     variants: PlanActionVariantsProps,
 }
 
-function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean): PlanActionVariantsProps {
-  const comparison = comparePlans(selectedLevel, otherLevel)
+function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean, isUpgrade: boolean): PlanActionVariantsProps {
+  if (selectedLevel === otherLevel) {
+    return {
+      type: 'spaceInfo',
+      freeSpace,
+      freeSpacePercentage,
+      lowSpaceWarning,
+    }
+  }
 
-  switch (comparison) {
-    case -1:
-      return {
-        type: 'downgrade',
-      }
-    case 0:
-      return {
-        type: 'spaceInfo',
-        freeSpace,
-        freeSpacePercentage,
-        lowSpaceWarning,
-      }
-    case 1:
-    default:
-      return {
-        type: 'upgrade',
-      }
+  return {
+    type: 'change',
+    direction: isUpgrade ? 'upgrade' : 'downgrade',
   }
 }
 
@@ -88,16 +81,14 @@ const DowngradeLink = ({onClick}) => (
 
 function PlanActionVariants ({variants, onClick}: {variants: PlanActionVariantsProps, onClick: () => void}) {
   switch (variants.type) {
-    case 'downgrade':
-      return <DowngradeLink onClick={onClick} />
-    case 'upgrade':
-      return <UpgradeButton onClick={onClick} />
+    case 'change':
+      return variants.direction === 'upgrade' ? <UpgradeButton onClick={onClick} /> : <DowngradeLink onClick={onClick} />
     case 'spaceInfo':
       return <SpaceInfo {...variants} />
   }
 }
 
-function PlanLevelRow ({level, onInfo, variants, style}: PlanLevelProps) {
+function PlanLevelRow ({level, price, onInfo, variants, style, gigabytes}: PlanLevelProps) {
   const selected = variants.type === 'spaceInfo'
   return (
     <Box style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, ...planLevelRowStyle, backgroundColor: selected ? globalColors.blue4 : globalColors.white, ...style}} onClick={() => onInfo()}>
@@ -106,17 +97,19 @@ function PlanLevelRow ({level, onInfo, variants, style}: PlanLevelProps) {
           <Text type={'BodySemibold'} link={true} style={{marginRight: globalMargins.xtiny, color: globalColors.blue}}>
             {level}
           </Text>
-          <Text type={'BodySmall'}>
-            ({levelToPrice[level]})
-          </Text>
+          <Text type={'BodySmall'}>({price})</Text>
         </Box>
         {selected && <Meta title='Your Plan' style={{backgroundColor: globalColors.blue2}} />}
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <Text style={{...globalStyles.fontSemibold, marginRight: globalMargins.xtiny}} type={'BodyXSmall'}>
-          {levelToSpace[level]}
+          {`${gigabytes}GB`}
         </Text>
-        <Stars level={level} />
+        <Stars count={{
+          'Basic': 1,
+          'Gold': 3,
+          'Friend': 5,
+        }[level]} />
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'flex-end'}}>
         <PlanActionVariants variants={variants} onClick={onInfo} />
@@ -150,7 +143,15 @@ function PaymentInfo ({name, last4Digits, isBroken, onChangePaymentInfo}: Paymen
   )
 }
 
-function Plan ({onInfo, freeSpace, freeSpacePercentage, selectedLevel, paymentInfo, onChangePaymentInfo, lowSpaceWarning}: PlanProps) {
+function priceToString (pennies: number): string {
+  if (!pennies) {
+    return 'Free'
+  } else {
+    return `\$${pennies / 100}/month`
+  }
+}
+
+function Plan ({onInfo, freeSpace, freeSpacePercentage, selectedLevel, paymentInfo, onChangePaymentInfo, lowSpaceWarning, planInfo, plans}: PlanProps & {plans: Array<AvailablePlan>}) {
   return (
     <Box style={globalStyles.flexBoxColumn}>
       <Box style={globalStyles.flexBoxColumn}>
@@ -158,10 +159,12 @@ function Plan ({onInfo, freeSpace, freeSpacePercentage, selectedLevel, paymentIn
       </Box>
       {plans.map(p => (
         <PlanLevelRow
-          key={p}
-          level={p}
-          onInfo={() => onInfo(p)}
-          variants={variantPropsHelper(selectedLevel, p, freeSpace, freeSpacePercentage, lowSpaceWarning)} />))}
+          key={p.planLevel}
+          level={p.planLevel}
+          onInfo={() => onInfo(p.planLevel)}
+          price={priceToString(p.price_pennies)}
+          gigabytes={p.gigabytes}
+          variants={variantPropsHelper(selectedLevel, p.planLevel, freeSpace, freeSpacePercentage, lowSpaceWarning, p.price_pennies > planInfo.price_pennies)} />))}
       {!!paymentInfo && <PaymentInfo {...paymentInfo} onChangePaymentInfo={onChangePaymentInfo} />}
       {!!paymentInfo &&
         <Text style={{marginTop: globalMargins.small}} type='BodySmall'>
@@ -215,7 +218,7 @@ function Landing (props: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, padding: 32}}>
       <Account {...props.account} />
-      <Plan {...props.plan} />
+      <Plan {...props.plan} plans={props.plans} />
     </Box>
   )
 }
