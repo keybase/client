@@ -537,6 +537,9 @@ func (h TlfHandle) IsConflict() bool {
 
 // GetPreferredFormat returns a TLF name formatted with the username given
 // as the parameter first.
+// This calls FavoriteNameToPreferredTLFNameFormatAs with the canonical
+// tlf name which will be reordered into the preferred format.
+// An empty username is allowed here and results in the canonical ordering.
 func (h TlfHandle) GetPreferredFormat(username libkb.NormalizedUsername) string {
 	s, err := FavoriteNameToPreferredTLFNameFormatAs(
 		username, string(h.GetCanonicalName()))
@@ -548,6 +551,7 @@ func (h TlfHandle) GetPreferredFormat(username libkb.NormalizedUsername) string 
 
 // FavoriteNameToPreferredTLFNameFormatAs formats a favorite names for display with the
 // username given.
+// An empty username is allowed here and results in tlfname being returned unmodified.
 func FavoriteNameToPreferredTLFNameFormatAs(username libkb.NormalizedUsername,
 	tlfname string) (string, error) {
 	if len(username) == 0 {
