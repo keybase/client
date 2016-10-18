@@ -513,10 +513,10 @@ func (c *CmdChatAPI) sendV1(ctx context.Context, arg sendArgV1) Reply {
 
 	postArg := chat1.PostLocalArg{
 		ConversationID: header.conversationID,
-		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
+		Msg: chat1.MessagePlaintext{
 			ClientHeader: header.clientHeader,
 			MessageBody:  arg.body,
-		}),
+		},
 	}
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {

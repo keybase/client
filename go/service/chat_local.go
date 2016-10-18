@@ -815,10 +815,10 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	}
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
-		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
+		Msg: chat1.MessagePlaintext{
 			ClientHeader: arg.ClientHeader,
 			MessageBody:  chat1.NewMessageBodyWithAttachment(attachment),
-		}),
+		},
 	}
 	return h.PostLocal(ctx, postArg)
 }
@@ -853,41 +853,40 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		return chat1.DownloadAttachmentLocalRes{}, libkb.NotFoundError{}
 	}
 	first := msgs.Messages[0]
-	if first.UnboxingError != nil {
-		return chat1.DownloadAttachmentLocalRes{}, libkb.ChatUnboxingError{Msg: *first.UnboxingError}
+	st, err := first.State()
+	if err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+	if st == chat1.MessageUnboxedState_ERROR {
+		em := first.Error().ErrMsg
+		return chat1.DownloadAttachmentLocalRes{}, libkb.ChatUnboxingError{Msg: em}
 	}
 
 	cli := h.getStreamUICli()
 	sink := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 
-	msg := first.Message.MessagePlaintext
-	version, err := msg.Version()
-	if err != nil {
+	msg := first.Valid()
+	body := msg.MessageBody
+	if t, err := body.MessageType(); err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	} else if t != chat1.MessageType_ATTACHMENT {
+		return chat1.DownloadAttachmentLocalRes{}, errors.New("not an attachment message")
+	}
+
+	attachment := msg.MessageBody.Attachment()
+	obj := attachment.Object
+	if arg.Preview {
+		if attachment.Preview == nil {
+			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
+		}
+		obj = *attachment.Preview
+	}
+	chatUI.ChatAttachmentDownloadStart(ctx)
+	if err := chat.DownloadAsset(ctx, h.G().Log, params, obj, sink, h, progress); err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
-	switch version {
-	case chat1.MessagePlaintextVersion_V1:
-		body := msg.V1().MessageBody
-		if t, err := body.MessageType(); err != nil {
-			return chat1.DownloadAttachmentLocalRes{}, err
-		} else if t != chat1.MessageType_ATTACHMENT {
-			return chat1.DownloadAttachmentLocalRes{}, errors.New("not an attachment message")
-		}
+	chatUI.ChatAttachmentDownloadDone(ctx)
 
-		attachment := msg.V1().MessageBody.Attachment()
-		obj := attachment.Object
-		if arg.Preview {
-			if attachment.Preview == nil {
-				return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
-			}
-			obj = *attachment.Preview
-		}
-		chatUI.ChatAttachmentDownloadStart(ctx)
-		if err := chat.DownloadAsset(ctx, h.G().Log, params, obj, sink, h, progress); err != nil {
-			return chat1.DownloadAttachmentLocalRes{}, err
-		}
-		chatUI.ChatAttachmentDownloadDone(ctx)
-	}
 	if err := sink.Close(); err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
