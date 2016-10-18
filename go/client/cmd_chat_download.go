@@ -57,6 +57,9 @@ func (c *CmdChatDownload) ParseArgv(ctx *cli.Context) error {
 	}
 	c.messageID = id
 	c.outputFile = ctx.String("outfile")
+	if len(c.outputFile) == 0 {
+		c.outputFile = "-" // stdout
+	}
 	c.preview = ctx.Bool("preview")
 	c.public = ctx.Bool("public")
 
