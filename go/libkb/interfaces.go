@@ -94,15 +94,26 @@ type DbKey struct {
 	Key string
 }
 
-type LocalDb interface {
-	Open() error
-	ForceOpen() error
-	Close() error
-	Nuke() (string, error)
+type LocalDbOps interface {
 	Put(id DbKey, aliases []DbKey, value []byte) error
 	Delete(id DbKey) error
 	Get(id DbKey) ([]byte, bool, error)
 	Lookup(alias DbKey) ([]byte, bool, error)
+}
+
+type LocalDbTransaction interface {
+	LocalDbOps
+	Commit() error
+	Discard()
+}
+
+type LocalDb interface {
+	LocalDbOps
+	Open() error
+	ForceOpen() error
+	Close() error
+	Nuke() (string, error)
+	OpenTransaction() (LocalDbTransaction, error)
 }
 
 type ConfigReader interface {

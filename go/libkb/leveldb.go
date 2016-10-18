@@ -11,7 +11,67 @@ import (
 
 	"github.com/syndtr/goleveldb/leveldb"
 	errors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 )
+
+// table names
+const (
+	levelDbTableLo = "lo"
+	levelDbTableKv = "kv"
+)
+
+type levelDBOps interface {
+	Delete(key []byte, wo *opt.WriteOptions) error
+	Get(key []byte, ro *opt.ReadOptions) (value []byte, err error)
+	Put(key, value []byte, wo *opt.WriteOptions) error
+	Write(b *leveldb.Batch, wo *opt.WriteOptions) error
+}
+
+func levelDbPut(ops levelDBOps, id DbKey, aliases []DbKey, value []byte) error {
+	batch := new(leveldb.Batch)
+	idb := id.ToBytes(levelDbTableKv)
+	batch.Put(idb, value)
+	if aliases != nil {
+		for _, alias := range aliases {
+			batch.Put(alias.ToBytes(levelDbTableLo), idb)
+		}
+	}
+
+	return ops.Write(batch, nil)
+}
+
+func levelDbGetWhich(ops levelDBOps, id DbKey, which string) (val []byte, found bool, err error) {
+	val, err = ops.Get(id.ToBytes(which), nil)
+	found = false
+	if err == nil {
+		found = true
+	} else if err == leveldb.ErrNotFound {
+		err = nil
+	}
+	return val, found, err
+}
+
+func levelDbGet(ops levelDBOps, id DbKey) (val []byte, found bool, err error) {
+	return levelDbGetWhich(ops, id, levelDbTableKv)
+}
+
+func levelDbLookup(ops levelDBOps, id DbKey) (val []byte, found bool, err error) {
+	val, found, err = levelDbGetWhich(ops, id, levelDbTableLo)
+	if found {
+		if tab, id2, err2 := DbKeyParse(string(val)); err2 != nil {
+			err = err2
+		} else if tab != levelDbTableKv {
+			err = fmt.Errorf("bad alias; expected 'kv' but got '%s'", tab)
+		} else {
+			val, found, err = levelDbGetWhich(ops, *id2, levelDbTableKv)
+		}
+	}
+	return val, found, err
+}
+
+func levelDbDelete(ops levelDBOps, id DbKey) error {
+	return ops.Delete(id.ToBytes(levelDbTableKv), nil)
+}
 
 type LevelDb struct {
 	// We use a RWMutes here to ensure close doesn't happen in the middle of
@@ -173,36 +233,14 @@ func (l *LevelDb) nukeIfCorrupt(err error) bool {
 }
 
 func (l *LevelDb) Put(id DbKey, aliases []DbKey, value []byte) error {
-	err := l.doWhileOpenAndNukeIfCorrupted(func() error {
-		batch := new(leveldb.Batch)
-		idb := id.ToBytes("kv")
-		batch.Put(idb, value)
-		if aliases != nil {
-			for _, alias := range aliases {
-				batch.Put(alias.ToBytes("lo"), idb)
-			}
-		}
-
-		return l.db.Write(batch, nil)
+	return l.doWhileOpenAndNukeIfCorrupted(func() error {
+		return levelDbPut(l.db, id, aliases, value)
 	})
-
-	return err
-}
-
-func (l *LevelDb) getRLocked(id DbKey, which string) ([]byte, bool, error) {
-	val, err := l.db.Get(id.ToBytes(which), nil)
-	found := false
-	if err == nil {
-		found = true
-	} else if err == leveldb.ErrNotFound {
-		err = nil
-	}
-	return val, found, err
 }
 
 func (l *LevelDb) Get(id DbKey) (val []byte, found bool, err error) {
 	err = l.doWhileOpenAndNukeIfCorrupted(func() error {
-		val, found, err = l.getRLocked(id, "kv")
+		val, found, err = levelDbGet(l.db, id)
 		return err
 	})
 
@@ -211,16 +249,7 @@ func (l *LevelDb) Get(id DbKey) (val []byte, found bool, err error) {
 
 func (l *LevelDb) Lookup(id DbKey) (val []byte, found bool, err error) {
 	err = l.doWhileOpenAndNukeIfCorrupted(func() error {
-		val, found, err = l.getRLocked(id, "lo")
-		if found {
-			if tab, id2, err2 := DbKeyParse(string(val)); err2 != nil {
-				err = err2
-			} else if tab != "kv" {
-				err = fmt.Errorf("bad alias; expected 'kv' but got '%s'", tab)
-			} else {
-				val, found, err = l.getRLocked(*id2, "kv")
-			}
-		}
+		val, found, err = levelDbLookup(l.db, id)
 		return err
 	})
 
@@ -229,8 +258,47 @@ func (l *LevelDb) Lookup(id DbKey) (val []byte, found bool, err error) {
 
 func (l *LevelDb) Delete(id DbKey) error {
 	err := l.doWhileOpenAndNukeIfCorrupted(func() error {
-		return l.db.Delete(id.ToBytes("kv"), nil)
+		return levelDbDelete(l.db, id)
 	})
 
 	return err
+}
+
+func (l *LevelDb) OpenTransaction() (LocalDbTransaction, error) {
+	var (
+		ltr LevelDbTransaction
+		err error
+	)
+	if ltr.tr, err = l.db.OpenTransaction(); err != nil {
+		return LevelDbTransaction{}, err
+	}
+	return ltr, nil
+}
+
+type LevelDbTransaction struct {
+	tr *leveldb.Transaction
+}
+
+func (l LevelDbTransaction) Put(id DbKey, aliases []DbKey, value []byte) error {
+	return levelDbPut(l.tr, id, aliases, value)
+}
+
+func (l LevelDbTransaction) Get(id DbKey) (val []byte, found bool, err error) {
+	return levelDbGet(l.tr, id)
+}
+
+func (l LevelDbTransaction) Lookup(id DbKey) (val []byte, found bool, err error) {
+	return levelDbLookup(l.tr, id)
+}
+
+func (l LevelDbTransaction) Delete(id DbKey) error {
+	return levelDbDelete(l.tr, id)
+}
+
+func (l LevelDbTransaction) Commit() error {
+	return l.tr.Commit()
+}
+
+func (l LevelDbTransaction) Discard() {
+	l.tr.Discard()
 }
