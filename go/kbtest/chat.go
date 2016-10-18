@@ -408,3 +408,11 @@ func (m *ChatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1
 	sort.Sort(msgByMessageIDDesc{world: m.world, convID: convID})
 	return msg
 }
+
+func (m *ChatRemoteMock) GetS3Params(context.Context, chat1.ConversationID) (chat1.S3Params, error) {
+	return chat1.S3Params{}, errors.New("GetS3Params not mocked")
+}
+
+func (m *ChatRemoteMock) S3Sign(context.Context, chat1.S3SignArg) ([]byte, error) {
+	return nil, errors.New("GetS3Params not mocked")
+}
