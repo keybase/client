@@ -149,8 +149,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                     variable: 'VISDIFF_GH_TOKEN',
                                             ]]) {
                                             withEnv([
-                                                "VISDIFF_BUCKET_S3=keybase-app-visdiff",
-                                                "VISDIFF_BUCKET_http=https://keybase-app-visdiff.s3.amazonaws.com",
+                                                "VISDIFF_BUCKET_S3=keybase-jenkins-visdiff",
+                                                "VISDIFF_BUCKET_http=https://keybase-jenkins-visdiff.s3.amazonaws.com",
                                                 "VISDIFF_WORK_DIR=${env.BASEDIR}/visdiff",
                                                 "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                             ]) {
