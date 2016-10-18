@@ -12,6 +12,8 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 
@@ -195,9 +197,19 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		return ImmutableRootMetadata{}, md.convertVerifyingKeyError(ctx, rmds, handle, err)
 	}
 
-	_, uid, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return ImmutableRootMetadata{}, err
+	rmd := RootMetadata{
+		bareMd:    rmds.MD,
+		tlfHandle: handle,
+		extra:     extra,
+	}
+
+	// Get the UID unless this is a public tlf - then proceed with empty uid.
+	var uid keybase1.UID
+	if !handle.IsPublic() {
+		_, uid, err = md.config.KBPKI().GetCurrentUserInfo(ctx)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
 	}
 
 	// TODO: Avoid having to do this type assertion.

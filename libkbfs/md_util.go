@@ -483,6 +483,7 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 	return nil
 }
 
+// decryptMDPrivateData does not use uid if the handle is a public one.
 func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	crypto Crypto, bcache BlockCache, bops BlockOps,
 	keyGetter mdDecryptionKeyGetter, uid keybase1.UID,
