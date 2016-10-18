@@ -109,7 +109,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1
 	username, deviceName, err := b.getSenderInfoLocal(uimap, pt.ClientHeader)
 	if err != nil {
 		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
-			boxed.ServerHeader.Sender, boxed.ServerHeader.SenderDevice)
+			pt.ClientHeader.Sender, pt.ClientHeader.SenderDevice)
 	}
 
 	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
