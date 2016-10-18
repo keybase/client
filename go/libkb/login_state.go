@@ -322,12 +322,12 @@ func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (x *PassphraseStream
 	if s.G().SecretStoreAll != nil {
 		s.G().Log.Debug("| trying to get passphrase stream from secret store")
 		pps, err := s.getStoredPassphraseStream(s.G().Env.GetUsername())
-		if err == nil {
-			s.G().Log.Debug("| got passphrase stream from secret store")
-			return pps, nil
+		if err != nil {
+			s.G().Log.Debug("| failed to get passphrase stream from secret store: %s", err)
+			return nil, err
 		}
-
-		s.G().Log.Debug("| failed to get passphrase stream from secret store: %s", err)
+		s.G().Log.Debug("| got passphrase stream from secret store")
+		return pps, nil
 	}
 
 	// 3. login and get it
