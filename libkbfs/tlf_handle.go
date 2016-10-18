@@ -140,6 +140,15 @@ func (h TlfHandle) ConflictInfo() *TlfHandleExtension {
 	return &conflictInfoCopy
 }
 
+func (h TlfHandle) recomputeNameWithExtensions() CanonicalTlfName {
+	components := strings.Split(string(h.name), TlfHandleExtensionSep)
+	newName := components[0]
+	extensionList := tlfHandleExtensionList(h.Extensions())
+	sort.Sort(extensionList)
+	newName += extensionList.Suffix()
+	return CanonicalTlfName(newName)
+}
+
 // WithUpdatedConflictInfo returns a new handle with the conflict info set to
 // the given one, if the existing one is nil. (In this case, the given one may
 // also be nil.) Otherwise, the given conflict info must match the existing
@@ -154,6 +163,7 @@ func (h TlfHandle) WithUpdatedConflictInfo(
 		}
 		conflictInfoCopy := *info
 		newHandle.conflictInfo = &conflictInfoCopy
+		newHandle.name = newHandle.recomputeNameWithExtensions()
 		return newHandle, nil
 	}
 	// Make sure conflict info is the same; the conflict info for
@@ -186,10 +196,11 @@ func (h TlfHandle) FinalizedInfo() *TlfHandleExtension {
 func (h *TlfHandle) SetFinalizedInfo(info *TlfHandleExtension) {
 	if info == nil {
 		h.finalizedInfo = nil
-		return
+	} else {
+		finalizedInfoCopy := *info
+		h.finalizedInfo = &finalizedInfoCopy
 	}
-	finalizedInfoCopy := *info
-	h.finalizedInfo = &finalizedInfoCopy
+	h.name = h.recomputeNameWithExtensions()
 }
 
 // Extensions returns a list of extensions for the given handle.

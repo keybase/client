@@ -290,13 +290,26 @@ func TestTlfHandleAccessorsPublic(t *testing.T) {
 }
 
 func TestTlfHandleConflictInfo(t *testing.T) {
-	h := &TlfHandle{}
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	codec := kbfscodec.NewMsgpack()
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, codec)
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name := "u1,u2,u3"
+	cname := CanonicalTlfName(name)
+	h, err := ParseTlfHandle(ctx, kbpki, name, true)
+	require.NoError(t, err)
 
 	require.Nil(t, h.ConflictInfo())
 
-	codec := kbfscodec.NewMsgpack()
-	h, err := h.WithUpdatedConflictInfo(codec, nil)
+	h, err = h.WithUpdatedConflictInfo(codec, nil)
 	require.NoError(t, err)
+	require.Equal(t, h.GetCanonicalName(), cname)
 
 	info := TlfHandleExtension{
 		Date:   100,
@@ -306,13 +319,17 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 	h, err = h.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 	require.Equal(t, info, *h.ConflictInfo())
+	cname2 := CanonicalTlfName(name + TlfHandleExtensionSep + info.String())
+	require.Equal(t, h.GetCanonicalName(), cname2)
 
 	info.Date = 101
 	require.NotEqual(t, info, *h.ConflictInfo())
 
 	info.Date = 100
 	h, err = h.WithUpdatedConflictInfo(codec, &info)
+	cname3 := CanonicalTlfName(name + TlfHandleExtensionSep + info.String())
 	require.NoError(t, err)
+	require.Equal(t, h.GetCanonicalName(), cname3)
 
 	expectedErr := TlfHandleExtensionMismatchError{
 		Expected: *h.ConflictInfo(),
@@ -335,7 +352,20 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 }
 
 func TestTlfHandleFinalizedInfo(t *testing.T) {
-	var h TlfHandle
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	codec := kbfscodec.NewMsgpack()
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, codec)
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name := "u1,u2,u3"
+	cname := CanonicalTlfName(name)
+	h, err := ParseTlfHandle(ctx, kbpki, name, true)
+	require.NoError(t, err)
 
 	require.Nil(t, h.FinalizedInfo())
 	info := TlfHandleExtension{
@@ -346,12 +376,55 @@ func TestTlfHandleFinalizedInfo(t *testing.T) {
 
 	h.SetFinalizedInfo(&info)
 	require.Equal(t, info, *h.FinalizedInfo())
+	cname2 := CanonicalTlfName(name + TlfHandleExtensionSep + info.String())
+	require.Equal(t, h.GetCanonicalName(), cname2)
 
 	info.Date = 101
 	require.NotEqual(t, info, *h.FinalizedInfo())
 
 	h.SetFinalizedInfo(nil)
 	require.Nil(t, h.FinalizedInfo())
+	require.Equal(t, h.GetCanonicalName(), cname)
+}
+
+func TestTlfHandleConflictAndFinalizedInfo(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	codec := kbfscodec.NewMsgpack()
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, codec)
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name := "u1,u2,u3"
+	h, err := ParseTlfHandle(ctx, kbpki, name, true)
+	require.NoError(t, err)
+
+	require.Nil(t, h.ConflictInfo())
+
+	cInfo := TlfHandleExtension{
+		Date:   100,
+		Number: 50,
+		Type:   TlfHandleExtensionConflict,
+	}
+	h, err = h.WithUpdatedConflictInfo(codec, &cInfo)
+	require.NoError(t, err)
+	require.Equal(t, cInfo, *h.ConflictInfo())
+	cname2 := CanonicalTlfName(name + TlfHandleExtensionSep + cInfo.String())
+	require.Equal(t, h.GetCanonicalName(), cname2)
+
+	fInfo := TlfHandleExtension{
+		Date:   101,
+		Number: 51,
+		Type:   TlfHandleExtensionFinalized,
+	}
+	h.SetFinalizedInfo(&fInfo)
+	require.Equal(t, fInfo, *h.FinalizedInfo())
+	require.Equal(t, cInfo, *h.ConflictInfo())
+	cname3 := cname2 + CanonicalTlfName(TlfHandleExtensionSep+fInfo.String())
+	require.Equal(t, h.GetCanonicalName(), cname3)
 }
 
 func TestTlfHandlEqual(t *testing.T) {
