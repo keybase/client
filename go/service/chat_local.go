@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -775,37 +774,33 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		return chat1.PostLocalRes{}, err
 	}
 
-	// upload attachment and (optional preview) concurrently
-	var wg sync.WaitGroup
-	var objectErr, previewErr error
+	// upload attachment and (optional) preview concurrently
 	var object chat1.Asset
 	var preview *chat1.Asset
-	wg.Add(1)
-	go func() {
+	var g errgroup.Group
+
+	g.Go(func() error {
 		chatUI.ChatAttachmentUploadStart(ctx)
-		object, objectErr = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, progress)
+		var err error
+		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
-		wg.Done()
-	}()
+		return err
+	})
+
 	if arg.Preview != nil {
-		wg.Add(1)
-		go func() {
-			var prev chat1.Asset
+		g.Go(func() error {
 			chatUI.ChatAttachmentPreviewUploadStart(ctx)
-			prev, previewErr = h.uploadAsset(ctx, arg.SessionID, params, *arg.Preview, nil)
+			prev, err := h.uploadAsset(ctx, arg.SessionID, params, *arg.Preview, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
-			if previewErr == nil {
+			if err == nil {
 				preview = &prev
 			}
-			wg.Done()
-		}()
+			return err
+		})
 	}
-	wg.Wait()
-	if objectErr != nil {
-		return chat1.PostLocalRes{}, objectErr
-	}
-	if previewErr != nil {
-		return chat1.PostLocalRes{}, previewErr
+
+	if err := g.Wait(); err != nil {
+		return chat1.PostLocalRes{}, err
 	}
 
 	// send an attachment message
