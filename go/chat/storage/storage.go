@@ -77,6 +77,7 @@ func decode(data []byte, res interface{}) error {
 	return err
 }
 
+// simpleResultCollector aggregates all results in a the basic way. It is not thread safe.
 type simpleResultCollector struct {
 	res    []chat1.MessageUnboxed
 	target int
@@ -104,9 +105,9 @@ func newSimpleResultCollector(num int) *simpleResultCollector {
 	}
 }
 
+// typedResultCollector aggregates results with a type contraints. It is not thread safe.
 type typedResultCollector struct {
 	res         []chat1.MessageUnboxed
-	typ         chat1.MessageType
 	target, cur int
 	typmap      map[chat1.MessageType]bool
 }
