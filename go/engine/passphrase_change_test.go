@@ -192,6 +192,58 @@ func TestPassphraseChangeKnownPrompt(t *testing.T) {
 	}
 }
 
+// Test changing the passphrase when user knows current
+// passphrase, prompt for it.
+func TestPassphraseChangeKnownPromptRepeatOld(t *testing.T) {
+	tc := SetupEngineTest(t, "PassphraseChange")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+
+	// clear the passphrase stream cache to force a prompt
+	// for the existing passphrase.
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
+	// Test changing passphrase 3 times; so that old passphrase
+	// cache is properly busted.
+	newPassphrase := "password1234"
+	numChanges := 3
+	for i := 0; i < numChanges; i++ {
+
+		arg := &keybase1.PassphraseChangeArg{
+			Passphrase: newPassphrase,
+		}
+		secui := u.NewSecretUI()
+		ctx := &Context{
+			SecretUI: secui,
+		}
+		eng := NewPassphraseChange(arg, tc.G)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
+
+		// We only call this the last time through, since internally,
+		// verifyPassphraseChange calls ClearStreamCache(), which is
+		// the bug fix that we're actually trying to test by doing multiple
+		// passphrase changes.
+		if i == numChanges-1 {
+			_, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		if !secui.CalledGetPassphrase {
+			t.Errorf("get passphrase not called")
+		}
+
+		u.Passphrase = newPassphrase
+		assertLoadSecretKeys(tc, u, "passphrase change known prompt")
+	}
+}
+
 // Test changing the passphrase after logging in via pubkey.
 func TestPassphraseChangeAfterPubkeyLogin(t *testing.T) {
 	tc := SetupEngineTest(t, "PassphraseChange")
