@@ -245,7 +245,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
           inviteCode,
           passphrase: passphrase.stringValue(),
           skipMail,
-          storeSecret: true,
+          storeSecret: false,
           username,
         },
         incomingCallMap: {
