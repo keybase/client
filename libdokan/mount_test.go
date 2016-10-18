@@ -274,8 +274,8 @@ func TestReaddirPrivate(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", false)
-		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", true)
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
 	}
 
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
@@ -295,8 +295,8 @@ func TestReaddirPublic(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", false)
-		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", true)
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
 	}
 
 	checkDir(t, filepath.Join(mnt.Dir, PublicName), map[string]fileInfoCheck{
@@ -1379,8 +1379,8 @@ func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", false)
-		libkbfs.GetRootNodeOrBust(t, config, "jdoe,janedoe", true)
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
 	}
 
 	err := os.Remove(filepath.Join(mnt.Dir, PrivateName, "jdoe,janedoe"))
