@@ -60,7 +60,7 @@ class DumbSheetRender extends Component<void, Props, any> {
     let filter = this.props.dumbFilter.toLowerCase()
     let numItemsLeftWeCanShowMax = 10
 
-    const itemsMatch = filter.match(/(.*):(\d+)/)
+    const itemsMatch = filter.match(/^(.*):(\d+)$/)
 
     if (itemsMatch && itemsMatch[2]) {
       filter = itemsMatch[1]
