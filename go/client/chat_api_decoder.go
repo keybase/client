@@ -74,18 +74,20 @@ func (d *ChatAPIDecoder) Decode(ctx context.Context, r io.Reader, w io.Writer) e
 
 func (d *ChatAPIDecoder) handleV1(ctx context.Context, c Call, w io.Writer) error {
 	switch c.Method {
-	case "list":
+	case methodList:
 		return d.handler.ListV1(ctx, c, w)
-	case "read":
+	case methodRead:
 		return d.handler.ReadV1(ctx, c, w)
-	case "send":
+	case methodSend:
 		return d.handler.SendV1(ctx, c, w)
-	case "edit":
+	case methodEdit:
 		return d.handler.EditV1(ctx, c, w)
-	case "delete":
+	case methodDelete:
 		return d.handler.DeleteV1(ctx, c, w)
-	case "attach":
+	case methodAttach:
 		return d.handler.AttachV1(ctx, c, w)
+	case methodDownload:
+		return d.handler.DownloadV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

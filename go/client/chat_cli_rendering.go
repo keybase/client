@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"math"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -363,8 +364,11 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 		}
 	case chat1.MessageType_ATTACHMENT:
 		mv.Renderable = true
-		// TODO: will fix this in CORE-3899
-		mv.Body = fmt.Sprintf("{Attachment} | Caption: <unimplemented>")
+		att := body.Attachment()
+		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", filepath.Base(att.Object.Filename), m.GetMessageID())
+		if att.Preview != nil {
+			mv.Body += " [preview available]"
+		}
 		if mvsup != nil {
 			switch mvsup.messageType {
 			case chat1.MessageType_EDIT:

@@ -2,6 +2,7 @@
 
 protocol local {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "common.avdl";
 
   record MessageText {
@@ -26,7 +27,11 @@ protocol local {
   }
 
   record Asset {
-    string path;               // path to the object in storage
+    string filename;           // original filename of the object
+    string region;             // storage region name
+    string endpoint;           // storage endpoint
+    string bucket;             // storage bucket
+    string path;               // path to the object in bucket
     int size;                  // size of the object
     string mimeType;           // mime type of the object
     Hash encHash;              // hash of ciphertext object 
@@ -196,12 +201,19 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
-
   PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg);
   record PostLocalRes {
     array<RateLimit> rateLimits;
   }
 
+  record LocalSource {
+    keybase1.Stream source;
+    string filename;
+    int size;
+  }
+
+  // Post an attachment in source to conversationID.
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview);
 
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName);
   record NewConversationLocalRes {
@@ -251,4 +263,10 @@ protocol local {
     array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;
   }
+
+  // Download an attachment from a message into sink.
+  record DownloadAttachmentLocalRes {
+    array<RateLimit> rateLimits;
+  }
+  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview);
 }

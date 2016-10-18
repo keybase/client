@@ -6,6 +6,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"golang.org/x/net/context"
@@ -754,6 +755,140 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	}, nil
 }
 
+// PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
+func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
+
+	chatUI := h.getChatUI(arg.SessionID)
+	progress := func(bytesComplete, bytesTotal int) {
+		parg := chat1.ChatAttachmentUploadProgressArg{
+			SessionID:     arg.SessionID,
+			BytesComplete: bytesComplete,
+			BytesTotal:    bytesTotal,
+		}
+		chatUI.ChatAttachmentUploadProgress(ctx, parg)
+	}
+
+	// get s3 upload params from server
+	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+
+	// upload attachment and (optional) preview concurrently
+	var object chat1.Asset
+	var preview *chat1.Asset
+	var g errgroup.Group
+
+	g.Go(func() error {
+		chatUI.ChatAttachmentUploadStart(ctx)
+		var err error
+		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, progress)
+		chatUI.ChatAttachmentUploadDone(ctx)
+		return err
+	})
+
+	if arg.Preview != nil {
+		g.Go(func() error {
+			chatUI.ChatAttachmentPreviewUploadStart(ctx)
+			prev, err := h.uploadAsset(ctx, arg.SessionID, params, *arg.Preview, nil)
+			chatUI.ChatAttachmentPreviewUploadDone(ctx)
+			if err == nil {
+				preview = &prev
+			}
+			return err
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+
+	// send an attachment message
+	attachment := chat1.MessageAttachment{
+		Object:  object,
+		Preview: preview,
+	}
+	postArg := chat1.PostLocalArg{
+		ConversationID: arg.ConversationID,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: arg.ClientHeader,
+			MessageBody:  chat1.NewMessageBodyWithAttachment(attachment),
+		},
+	}
+	return h.PostLocal(ctx, postArg)
+}
+
+// DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
+func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat1.DownloadAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
+	chatUI := h.getChatUI(arg.SessionID)
+	progress := func(bytesComplete, bytesTotal int) {
+		parg := chat1.ChatAttachmentDownloadProgressArg{
+			SessionID:     arg.SessionID,
+			BytesComplete: bytesComplete,
+			BytesTotal:    bytesTotal,
+		}
+		chatUI.ChatAttachmentDownloadProgress(ctx, parg)
+	}
+
+	// get s3 params from server
+	params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
+	if err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+
+	marg := chat1.GetMessagesLocalArg{
+		ConversationID: arg.ConversationID,
+		MessageIDs:     []chat1.MessageID{arg.MessageID},
+	}
+	msgs, err := h.GetMessagesLocal(ctx, marg)
+	if err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+	if len(msgs.Messages) == 0 {
+		return chat1.DownloadAttachmentLocalRes{}, libkb.NotFoundError{}
+	}
+	first := msgs.Messages[0]
+	st, err := first.State()
+	if err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+	if st == chat1.MessageUnboxedState_ERROR {
+		em := first.Error().ErrMsg
+		return chat1.DownloadAttachmentLocalRes{}, libkb.ChatUnboxingError{Msg: em}
+	}
+
+	cli := h.getStreamUICli()
+	sink := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
+
+	msg := first.Valid()
+	body := msg.MessageBody
+	if t, err := body.MessageType(); err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	} else if t != chat1.MessageType_ATTACHMENT {
+		return chat1.DownloadAttachmentLocalRes{}, errors.New("not an attachment message")
+	}
+
+	attachment := msg.MessageBody.Attachment()
+	obj := attachment.Object
+	if arg.Preview {
+		if attachment.Preview == nil {
+			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
+		}
+		obj = *attachment.Preview
+	}
+	chatUI.ChatAttachmentDownloadStart(ctx)
+	if err := chat.DownloadAsset(ctx, h.G().Log, params, obj, sink, h, progress); err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+	chatUI.ChatAttachmentDownloadDone(ctx)
+
+	if err := sink.Close(); err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+
+	return chat1.DownloadAttachmentLocalRes{RateLimits: msgs.RateLimits}, nil
+}
+
 func (h *chatLocalHandler) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {
 	// get device signing key for this user
 	signingKey, err := engine.GetMySecretKey(h.G(), h.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
@@ -801,4 +936,43 @@ func (h *chatLocalHandler) assertLoggedIn(ctx context.Context) error {
 		return libkb.LoginRequiredError{}
 	}
 	return nil
+}
+
+// Sign implements github.com/keybase/go/chat/s3.Signer interface.
+func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
+	arg := chat1.S3SignArg{
+		Payload: payload,
+		Version: 1,
+	}
+	return h.remoteClient().S3Sign(context.Background(), arg)
+}
+
+func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource, progress chat.ProgressReporter) (chat1.Asset, error) {
+	// create a buffered stream
+	cli := h.getStreamUICli()
+	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
+
+	// encrypt the stream
+	enc := chat.NewPassThrough()
+	len := enc.EncryptedLen(local.Size)
+	encReader := enc.Encrypt(src)
+
+	// post to s3
+	upRes, err := chat.PutS3(ctx, h.G().Log, encReader, int64(len), params, h, progress)
+	if err != nil {
+		return chat1.Asset{}, err
+	}
+	h.G().Log.Debug("chat attachment upload: %+v", upRes)
+
+	asset := chat1.Asset{
+		Filename: filepath.Base(local.Filename),
+		Region:   upRes.Region,
+		Endpoint: upRes.Endpoint,
+		Bucket:   upRes.Bucket,
+		Path:     upRes.Path,
+		Size:     int(upRes.Size),
+		Key:      enc.Key(),
+	}
+	return asset, nil
+
 }
