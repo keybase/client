@@ -7,7 +7,7 @@ import {app, BrowserWindow, ipcMain} from 'electron'
 import {resolveRoot, resolveRootAsURL} from '../resolve-root'
 import dumbComponentMap from '../shared/dev/dumb-sheet/component-map.desktop'
 
-const WORKER_COUNT = 10
+const WORKER_COUNT = 1
 const CANVAS_SIZE = 1000
 
 if (process.argv.length !== 3) {
