@@ -6,7 +6,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/goamz/goamz/aws"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -31,7 +30,7 @@ type PutS3Result struct {
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use
 // putSingle or putMultiPipeline based on the size of the object.
 func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, signer s3.Signer, progress ProgressReporter) (*PutS3Result, error) {
-	region := aws.Region{
+	region := s3.Region{
 		Name:             params.RegionName,
 		S3Endpoint:       params.RegionEndpoint,
 		S3BucketEndpoint: params.RegionBucketEndpoint,
@@ -64,7 +63,7 @@ func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, para
 
 // DownloadAsset gets an object from S3 as described in asset.
 func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer, progress ProgressReporter) error {
-	region := aws.Region{
+	region := s3.Region{
 		Name:       asset.Region,
 		S3Endpoint: asset.Endpoint,
 	}

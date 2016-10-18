@@ -27,8 +27,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/goamz/goamz/aws"
 )
 
 const debug = false
@@ -39,7 +37,7 @@ type Signer interface {
 
 // The S3 type encapsulates operations with an S3 region.
 type S3 struct {
-	aws.Region
+	Region
 
 	// This is needed for payload construction.  It's
 	// ok for clients to know it.
@@ -77,7 +75,7 @@ type S3 struct {
 	RequestTimeout time.Duration
 
 	// AttemptStrategy is the attempt strategy used for requests.
-	aws.AttemptStrategy
+	AttemptStrategy
 
 	// Reserve the right of using private data.
 	private byte
@@ -126,14 +124,14 @@ type CopyObjectResult struct {
 }
 
 // DefaultAttemptStrategy is the default AttemptStrategy used by S3 objects created by New.
-var DefaultAttemptStrategy = aws.AttemptStrategy{
+var DefaultAttemptStrategy = AttemptStrategy{
 	Min:   5,
 	Total: 5 * time.Second,
 	Delay: 200 * time.Millisecond,
 }
 
 // New creates a new S3.  Optional client argument allows for custom http.clients to be used.
-func New(signer Signer, region aws.Region, client ...*http.Client) *S3 {
+func New(signer Signer, region Region, client ...*http.Client) *S3 {
 
 	var httpclient *http.Client
 

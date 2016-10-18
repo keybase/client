@@ -81,12 +81,6 @@
 			"revisionTime": "2015-08-24T01:38:10-07:00"
 		},
 		{
-			"checksumSHA1": "9HwBlV3wDKzGlnFGO7wa5hAPe5U=",
-			"path": "github.com/goamz/goamz/aws",
-			"revision": "fb002ae75f50beb93874fa6ce2c861e488ce08a0",
-			"revisionTime": "2016-09-17T07:53:18Z"
-		},
-		{
 			"path": "github.com/golang/groupcache/singleflight",
 			"revision": "604ed5785183e59ae2789449d89e73f3a2a77987",
 			"revisionTime": "2015-01-25T10:08:32-08:00"
