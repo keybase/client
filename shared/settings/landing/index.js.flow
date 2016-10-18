@@ -5,8 +5,6 @@ import type {PlanLevel} from '../../constants/settings'
 import type {PaymentInfo} from '../../constants/plan-billing'
 
 export type PlanProps = {
-  onUpgrade: (toLevel: PlanLevel) => void,
-  onDowngrade: (toLevel: PlanLevel) => void,
   onInfo: (level: PlanLevel) => void,
   selectedLevel: PlanLevel,
   freeSpace: string,

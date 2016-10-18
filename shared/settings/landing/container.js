@@ -1,10 +1,10 @@
 // @flow
-import {connect} from 'react-redux'
-import Bootstrapable from '../../util/bootstrapable'
-
-import {routeAppend} from '../../actions/router'
 import * as actions from '../../actions/plan-billing'
+import Bootstrapable from '../../util/bootstrapable'
 import Landing from './index'
+import {comparePlans} from '../../constants/settings'
+import {connect} from 'react-redux'
+import {routeAppend} from '../../actions/router'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -31,9 +31,6 @@ export default connect(
           onChangeEmail: () => console.log('todo'),
         },
         plan: {
-          onUpgrade: () => console.log('todo'),
-          onDowngrade: () => console.log('todo'),
-          onInfo: () => console.log('todo'),
           selectedLevel: plan.planLevel,
           freeSpace: freeSpaceGB + 'GB',
           freeSpacePercentage,
@@ -47,6 +44,7 @@ export default connect(
   (dispatch: (a: any) => void, ownProps: OwnProps) => ({
     onBootstrap: () => { dispatch(actions.bootstrapData()) },
     onChangePassphrase: () => dispatch(routeAppend('changePassphrase')),
+    onInfo: (selectedLevel, comparison) => dispatch(routeAppend({path: 'changePlan', selectedLevel, comparison})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     if (stateProps.bootstrapDone === false) {
@@ -63,6 +61,14 @@ export default connect(
         account: {
           ...stateProps.originalProps.account,
           onChangePassphrase: dispatchProps.onChangePassphrase,
+        },
+        plan: {
+          ...stateProps.originalProps.plan,
+          onInfo: (selectedLevel) => {
+            // $ForceType
+            const comparison = comparePlans(stateProps.originalProps.plan.selectedLevel, selectedLevel)
+            dispatchProps.onInfo(selectedLevel, comparison)
+          },
         },
       },
     }
