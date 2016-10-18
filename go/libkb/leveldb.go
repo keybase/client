@@ -74,7 +74,7 @@ func levelDbDelete(ops levelDBOps, id DbKey) error {
 }
 
 type LevelDb struct {
-	// We use a RWMutes here to ensure close doesn't happen in the middle of
+	// We use a RWMutex here to ensure close doesn't happen in the middle of
 	// other DB operations, and DB operations doesn't happen after close. The
 	// lock should be considered for the db pointer and dbOpenerOnce pointer,
 	// rather than the DB itself.  More specifically, close does Lock(), while
