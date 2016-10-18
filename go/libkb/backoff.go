@@ -1,4 +1,4 @@
-package chat
+package libkb
 
 // from here:
 // https://blog.gopheracademy.com/advent-2014/backoff/

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
@@ -127,7 +128,7 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(BackoffDefault.Duration(i)):
+		case <-time.After(libkb.BackoffDefault.Duration(i)):
 		}
 		log.Debug("s3 putSingle attempt %d", i+1)
 		err := b.PutReader(params.ObjectKey, sr, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
@@ -242,7 +243,7 @@ func putRetry(ctx context.Context, log logger.Logger, multi *s3.Multi, partNumbe
 		select {
 		case <-ctx.Done():
 			return s3.Part{}, ctx.Err()
-		case <-time.After(BackoffDefault.Duration(i)):
+		case <-time.After(libkb.BackoffDefault.Duration(i)):
 		}
 		log.Debug("attempt %d to upload part %d", i+1, partNumber)
 		part, putErr := multi.PutPart(partNumber, bytes.NewReader(block))
