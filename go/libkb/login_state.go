@@ -283,23 +283,6 @@ func (s *LoginState) GetPassphraseStreamWithPassphrase(passphrase string) (pps *
 	return nil, err
 }
 
-func (s *LoginState) getStoredPassphraseStream(username NormalizedUsername) (*PassphraseStream, error) {
-	secret, err := s.G().SecretStoreAll.RetrieveSecret(s.G().Env.GetUsername())
-	if err != nil {
-		return nil, err
-	}
-	lks := NewLKSecWithFullSecret(secret, s.G().Env.GetUID(), s.G())
-	if err = lks.LoadServerHalf(nil); err != nil {
-		return nil, err
-	}
-	stream, err := NewPassphraseStreamLKSecOnly(secret)
-	if err != nil {
-		return nil, err
-	}
-	stream.SetGeneration(lks.Generation())
-	return stream, nil
-}
-
 // GetPassphraseStreamStored either returns a cached, verified passphrase
 // stream from a previous login, the secret store, or generates a new one via
 // login.
@@ -321,10 +304,19 @@ func (s *LoginState) GetPassphraseStreamStored(ui SecretUI) (pps *PassphraseStre
 	// 2. try from secret store
 	if s.G().SecretStoreAll != nil {
 		s.G().Log.Debug("| trying to get passphrase stream from secret store")
-		pps, err = s.getStoredPassphraseStream(s.G().Env.GetUsername())
+		secret, err := s.G().SecretStoreAll.RetrieveSecret(s.G().Env.GetUsername())
 		if err == nil {
+			lks := NewLKSecWithFullSecret(secret, s.G().Env.GetUID(), s.G())
+			if err = lks.LoadServerHalf(nil); err != nil {
+				return pps, err
+			}
+			stream, err := NewPassphraseStreamLKSecOnly(secret)
+			if err != nil {
+				return pps, err
+			}
+			stream.SetGeneration(lks.Generation())
 			s.G().Log.Debug("| got passphrase stream from secret store")
-			return pps, nil
+			return stream, nil
 		}
 
 		s.G().Log.Debug("| failed to get passphrase stream from secret store: %s", err)
