@@ -854,7 +854,9 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 	}
 	if st == chat1.MessageUnboxedState_ERROR {
 		em := first.Error().ErrMsg
-		return chat1.DownloadAttachmentLocalRes{}, libkb.ChatUnboxingError{Msg: em}
+		// XXX temporary to fix master:
+		// (wanted to return ChatUnboxingError)
+		return chat1.DownloadAttachmentLocalRes{}, errors.New(em)
 	}
 
 	cli := h.getStreamUICli()
