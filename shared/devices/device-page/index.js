@@ -1,28 +1,13 @@
 // @flow
 import * as devicesActions from '../../actions/devices'
 import React, {Component} from 'react'
-import RemoveDevice from '../device-revoke'
 import Render from './index.render'
 import moment from 'moment'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import {navigateUp} from '../../actions/router'
+import {navigateUp} from '../../actions/route-tree'
 
 class DevicePage extends Component {
-  static parseRoute (currentPath) {
-    return {
-      componentAtTop: {
-        title: 'Device page',
-        props: {
-          device: currentPath.get('device'),
-        },
-      },
-      subRoutes: {
-        removeDevice: RemoveDevice,
-      },
-    }
-  }
-
   _buildTimeline (device) {
     const added = moment(device.created)
     const timeline = []
@@ -69,10 +54,10 @@ class DevicePage extends Component {
 
 export default connect(
   (state: any, ownProps) => {
-    const devices = state.devices.devices.find(d => d.name === ownProps.device.name)
+    const devices = state.devices.devices.find(d => d.name === ownProps.routeProps.device.name)
     return ({
       ...devices,
-      ...ownProps,
+      ...ownProps.routeProps,
     })
   },
   (dispatch: any) => {

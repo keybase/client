@@ -46,7 +46,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
   _renderAvatar (color: string, badgeNumber: number) {
     if (this.props.source.type !== 'avatar') return // needed to make flow happy
     return (
-      <Box style={{...globalStyles.flexBoxColumn, paddingBottom: 21, paddingTop: 21, ...this.props.style}}>
+      <Box style={{...globalStyles.flexBoxColumn, paddingBottom: 21, paddingTop: 21, ...this.props.style}} onClick={this.props.onClick}>
         <Box style={{...stylesTabBarButtonIcon, paddingLeft: 0, height: undefined, justifyContent: 'center', ...this.props.styleContainer}}>
           {this.props.source.avatar}
           {badgeNumber > 0 &&
@@ -69,7 +69,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     if (this.props.source.type !== 'nav') return // needed to make flow happy
     const navIconStyle = this.props.selected ? stylesNavIconSelected : stylesNavIcon
     return (
-      <Box>
+      <Box onClick={this.props.onClick}>
         <style>{navRealCSS}</style>
         <Box style={{...stylesTabBarNavIcon, ...this.props.style}} className='nav-item'>
           {badgeNumber > 0 &&
@@ -94,7 +94,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     if (this.props.source.type !== 'icon') return // needed to make flow happy
     const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
     return (
-      <Box style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}>
+      <Box style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}} onClick={this.props.onClick}>
         <Icon type={this.props.source.icon} style={{...stylesIcon, color, ...this.props.styleIcon}} />
         {!!this.props.label &&
           <Text type='BodySemibold' style={{color, textAlign: 'center', ...globalStyles.clickable, ...this.props.styleLabel}}>
