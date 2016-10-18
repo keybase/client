@@ -1535,13 +1535,28 @@ func (e ChatBoxingError) Error() string {
 
 //=============================================================================
 
-type ChatUnboxingError struct {
-	Msg string
+type ChatUnboxingError interface {
+	Error() string
+	IsChatUnboxingError()
 }
 
-func (e ChatUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", e.Msg)
+var _ error = (ChatUnboxingError)(nil)
+
+func NewChatUnboxingError(msg string) ChatUnboxingError {
+	return &ChatUnboxingErrorImpl{
+		msg: msg,
+	}
 }
+
+type ChatUnboxingErrorImpl struct {
+	msg string
+}
+
+func (e ChatUnboxingErrorImpl) Error() string {
+	return fmt.Sprintf("error unboxing chat message: %s", e.msg)
+}
+
+func (e ChatUnboxingErrorImpl) IsChatUnboxingError() {}
 
 //=============================================================================
 

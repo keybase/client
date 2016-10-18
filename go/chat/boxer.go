@@ -77,12 +77,17 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.Messag
 
 // UnboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
-func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1.MessageBoxed) (res chat1.MessageUnboxed, err error) {
+// The first return value is unusable if the err != nil
+// Returns (_, err) for non-permanent errors, and (MessageUnboxedError, nil) for permanent errors.
+// Permanent errors can be cached and must be treated as a value to deal with.
+// Whereas temporary errors are transient failures.
+func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.MessageBoxed) (res chat1.MessageUnboxed, err error) {
 	tlfName := boxed.ClientHeader.TlfName
 	tlfPublic := boxed.ClientHeader.TlfPublic
 	keys, err := finder.Find(ctx, b.tlf, tlfName, tlfPublic)
 	if err != nil {
-		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
+		// transient error
+		return chat1.MessageUnboxed{}, libkb.NewChatUnboxingError(err.Error())
 	}
 
 	var matchKey *keybase1.CryptKey
@@ -95,14 +100,16 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1
 
 	if matchKey == nil {
 		err := fmt.Errorf("no key found for generation %d", boxed.KeyGeneration)
-		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
+		// transient error
+		return chat1.MessageUnboxed{}, libkb.NewChatUnboxingError(err.Error())
 	}
 
 	pt, headerHash, err := b.unboxMessageWithKey(ctx, boxed, matchKey)
 	if err != nil {
 		b.log().Warning("failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			err.Error())
-		return b.makeErrorMessage(boxed, err), libkb.ChatUnboxingError{Msg: err.Error()}
+		// permanent error
+		return b.makeErrorMessage(boxed, err), nil
 	}
 
 	_, uimap := utils.GetUserInfoMapper(ctx, b.kbCtx)
@@ -110,6 +117,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder *KeyFinder, boxed chat1
 	if err != nil {
 		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
 			pt.ClientHeader.Sender, pt.ClientHeader.SenderDevice)
+		// ignore non-fatal error
 	}
 
 	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
@@ -264,7 +272,10 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (
 	finder := NewKeyFinder()
 	ctx, _ = utils.GetUserInfoMapper(ctx, b.kbCtx)
 	for _, msg := range boxed {
-		decmsg, _ := b.UnboxMessage(ctx, finder, msg)
+		decmsg, err := b.UnboxMessage(ctx, finder, msg)
+		if err != nil {
+			return unboxed, err
+		}
 		unboxed = append(unboxed, decmsg)
 	}
 
