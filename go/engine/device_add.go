@@ -67,7 +67,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	// provisioner needs ppstream, and UI is confusing when it asks for
 	// it at the same time as asking for the secret, so get it first
 	// before prompting for the kex2 secret:
-	pps, err := e.G().LoginState().GetPassphraseStreamStored(ctx.SecretUI)
+	pps, err := e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
 	if err != nil {
 		return err
 	}
