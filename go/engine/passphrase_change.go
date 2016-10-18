@@ -223,6 +223,10 @@ func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKe
 			acctErr = fmt.Errorf("api post to passphrase/sign error: %s", err)
 			return
 		}
+
+		// Reset passphrase stream cache so that subsequent updates go through
+		// without a problem (seee CORE-3933)
+		a.ClearStreamCache()
 	}, "PassphraseChange.runForcedUpdate")
 	if acctErr != nil {
 		return acctErr
@@ -312,6 +316,10 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 			acctErr = err
 			return
 		}
+
+		// Reset passphrase stream cache so that subsequent updates go through
+		// without a problem (seee CORE-3933)
+		a.ClearStreamCache()
 	}, "PassphraseChange.runStandardUpdate")
 	if acctErr != nil {
 		err = acctErr

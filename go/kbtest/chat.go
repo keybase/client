@@ -259,7 +259,7 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 
 		}
 		res.Thread.Messages = append(res.Thread.Messages, *msg)
-		if mts != nil && mts[msg.ServerHeader.MessageType] {
+		if mts != nil && mts[msg.GetMessageType()] {
 			count++
 		} else if mts == nil {
 			count++
@@ -387,8 +387,8 @@ func (s msgByMessageIDDesc) Less(i, j int) bool {
 func (m *ChatRemoteMock) getMaxMsgs(convID chat1.ConversationID) (maxMsgs []chat1.MessageBoxed) {
 	finder := make(map[chat1.MessageType]*chat1.MessageBoxed)
 	for _, msg := range m.world.Msgs[convID] {
-		if existing, ok := finder[msg.ServerHeader.MessageType]; !ok || existing.ServerHeader.MessageID < msg.ServerHeader.MessageID {
-			finder[msg.ServerHeader.MessageType] = msg
+		if existing, ok := finder[msg.GetMessageType()]; !ok || existing.GetMessageID() < msg.GetMessageID() {
+			finder[msg.GetMessageType()] = msg
 		}
 	}
 
@@ -401,13 +401,18 @@ func (m *ChatRemoteMock) getMaxMsgs(convID chat1.ConversationID) (maxMsgs []chat
 
 func (m *ChatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1.MessageBoxed) (inserted chat1.MessageBoxed) {
 	msg.ServerHeader = &chat1.MessageServerHeader{
-		Ctime:        gregor1.ToTime(m.world.Fc.Now()),
-		MessageID:    chat1.MessageID(len(m.world.Msgs[convID]) + 1),
-		MessageType:  msg.ClientHeader.MessageType,
-		Sender:       msg.ClientHeader.Sender,
-		SenderDevice: msg.ClientHeader.SenderDevice,
+		Ctime:     gregor1.ToTime(m.world.Fc.Now()),
+		MessageID: chat1.MessageID(len(m.world.Msgs[convID]) + 1),
 	}
 	m.world.Msgs[convID] = append(m.world.Msgs[convID], &msg)
 	sort.Sort(msgByMessageIDDesc{world: m.world, convID: convID})
 	return msg
+}
+
+func (m *ChatRemoteMock) GetS3Params(context.Context, chat1.ConversationID) (chat1.S3Params, error) {
+	return chat1.S3Params{}, errors.New("GetS3Params not mocked")
+}
+
+func (m *ChatRemoteMock) S3Sign(context.Context, chat1.S3SignArg) ([]byte, error) {
+	return nil, errors.New("GetS3Params not mocked")
 }

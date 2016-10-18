@@ -116,6 +116,10 @@ func (h *BaseHandler) getSaltpackUI(sessionID int) libkb.SaltpackUI {
 	return NewRemoteSaltpackUI(sessionID, h.rpcClient())
 }
 
+func (h *BaseHandler) getChatUI(sessionID int) libkb.ChatUI {
+	return NewRemoteChatUI(sessionID, h.rpcClient())
+}
+
 func (h *BaseHandler) NewRemoteIdentifyUI(sessionID int, g *libkb.GlobalContext) *RemoteIdentifyUI {
 	c := h.rpcClient()
 	return &RemoteIdentifyUI{

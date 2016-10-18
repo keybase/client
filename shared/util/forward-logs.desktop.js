@@ -114,8 +114,11 @@ function setupSource () {
   ['log', 'warn', 'error'].forEach(key => {
     console[key] = (...args) => {
       try {
+        key === 'log' && localLog(...args)
+        key === 'warn' && localWarn(...args)
+        key === 'error' && localError(...args)
         const toSend = util.format('%j', args)
-        ipcRenderer.send('console.' + key, toSend + '\n')
+        ipcRenderer.send('console.' + key, toSend)
       } catch (_) {}
     }
   })

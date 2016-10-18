@@ -142,13 +142,9 @@ type Conversation struct {
 }
 
 type MessageServerHeader struct {
-	MessageType  MessageType      `codec:"messageType" json:"messageType"`
-	MessageID    MessageID        `codec:"messageID" json:"messageID"`
-	Sender       gregor1.UID      `codec:"sender" json:"sender"`
-	SenderDevice gregor1.DeviceID `codec:"senderDevice" json:"senderDevice"`
-	SupersededBy MessageID        `codec:"supersededBy" json:"supersededBy"`
-	Supersedes   MessageID        `codec:"supersedes" json:"supersedes"`
-	Ctime        gregor1.Time     `codec:"ctime" json:"ctime"`
+	MessageID    MessageID    `codec:"messageID" json:"messageID"`
+	SupersededBy MessageID    `codec:"supersededBy" json:"supersededBy"`
+	Ctime        gregor1.Time `codec:"ctime" json:"ctime"`
 }
 
 type MessagePreviousPointer struct {

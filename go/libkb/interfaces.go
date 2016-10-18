@@ -326,6 +326,17 @@ type ProvisionUI interface {
 	keybase1.ProvisionUiInterface
 }
 
+type ChatUI interface {
+	ChatAttachmentUploadStart(context.Context) error
+	ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error
+	ChatAttachmentUploadDone(context.Context) error
+	ChatAttachmentPreviewUploadStart(context.Context) error
+	ChatAttachmentPreviewUploadDone(context.Context) error
+	ChatAttachmentDownloadStart(context.Context) error
+	ChatAttachmentDownloadProgress(context.Context, chat1.ChatAttachmentDownloadProgressArg) error
+	ChatAttachmentDownloadDone(context.Context) error
+}
+
 type PromptDefault int
 
 const (

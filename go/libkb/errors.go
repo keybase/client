@@ -1535,13 +1535,41 @@ func (e ChatBoxingError) Error() string {
 
 //=============================================================================
 
-type ChatUnboxingError struct {
-	Msg string
+type ChatUnboxingError interface {
+	Error() string
+	Inner() error
+	IsPermanent() bool
 }
 
-func (e ChatUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", e.Msg)
+var _ error = (ChatUnboxingError)(nil)
+
+func NewPermanentChatUnboxingError(inner error) ChatUnboxingError {
+	return &PermanentChatUnboxingError{inner}
 }
+
+type PermanentChatUnboxingError struct{ inner error }
+
+func (e PermanentChatUnboxingError) Error() string {
+	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
+}
+
+func (e PermanentChatUnboxingError) IsPermanent() bool { return true }
+
+func (e PermanentChatUnboxingError) Inner() error { return e.inner }
+
+func NewTransientChatUnboxingError(inner error) ChatUnboxingError {
+	return &TransientChatUnboxingError{inner}
+}
+
+type TransientChatUnboxingError struct{ inner error }
+
+func (e TransientChatUnboxingError) Error() string {
+	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
+}
+
+func (e TransientChatUnboxingError) IsPermanent() bool { return false }
+
+func (e TransientChatUnboxingError) Inner() error { return e.inner }
 
 //=============================================================================
 

@@ -37,11 +37,11 @@ func randBytes(n int) []byte {
 func makeMsgWithType(id chat1.MessageID, supersedes chat1.MessageID, typ chat1.MessageType) chat1.MessageUnboxed {
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
-			MessageID:   id,
-			MessageType: typ,
+			MessageID: id,
 		},
 		ClientHeader: chat1.MessageClientHeader{
-			Supersedes: supersedes,
+			MessageType: typ,
+			Supersedes:  supersedes,
 		},
 	}
 	return chat1.NewMessageUnboxedWithValid(msg)

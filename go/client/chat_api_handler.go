@@ -15,12 +15,13 @@ import (
 )
 
 const (
-	methodList   = "list"
-	methodRead   = "read"
-	methodSend   = "send"
-	methodEdit   = "edit"
-	methodDelete = "delete"
-	methodAttach = "attach"
+	methodList     = "list"
+	methodRead     = "read"
+	methodSend     = "send"
+	methodEdit     = "edit"
+	methodDelete   = "delete"
+	methodAttach   = "attach"
+	methodDownload = "download"
 )
 
 // ErrInvalidOptions is returned when the options aren't valid.
@@ -82,16 +83,7 @@ type ChatAPIHandler interface {
 	EditV1(context.Context, Call, io.Writer) error
 	DeleteV1(context.Context, Call, io.Writer) error
 	AttachV1(context.Context, Call, io.Writer) error
-}
-
-// ChatServiceHandler can call the service.
-type ChatServiceHandler interface {
-	ListV1(context.Context) Reply
-	ReadV1(context.Context, readOptionsV1) Reply
-	SendV1(context.Context, sendOptionsV1) Reply
-	EditV1(context.Context, editOptionsV1) Reply
-	DeleteV1(context.Context, deleteOptionsV1) Reply
-	AttachV1(context.Context, attachOptionsV1) Reply
+	DownloadV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -208,12 +200,39 @@ func (d deleteOptionsV1) Check() error {
 type attachOptionsV1 struct {
 	Channel        ChatChannel
 	ConversationID chat1.ConversationID `json:"conversation_id"`
+	Filename       string
+	Preview        string
 }
 
 func (a attachOptionsV1) Check() error {
-	if err := checkChannelConv(methodDelete, a.Channel, a.ConversationID); err != nil {
+	if err := checkChannelConv(methodAttach, a.Channel, a.ConversationID); err != nil {
 		return err
 	}
+	if len(strings.TrimSpace(a.Filename)) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodAttach, err: errors.New("empty filename")}
+	}
+	return nil
+}
+
+type downloadOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID chat1.ConversationID `json:"conversation_id"`
+	MessageID      chat1.MessageID      `json:"message_id"`
+	Output         string
+	Preview        bool
+}
+
+func (a downloadOptionsV1) Check() error {
+	if err := checkChannelConv(methodDownload, a.Channel, a.ConversationID); err != nil {
+		return err
+	}
+	if a.MessageID == 0 {
+		return ErrInvalidOptions{version: 1, method: methodDownload, err: errors.New("invalid message id")}
+	}
+	if len(strings.TrimSpace(a.Output)) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodDownload, err: errors.New("empty output filename")}
+	}
+
 	return nil
 }
 
@@ -308,6 +327,23 @@ func (a *ChatAPI) AttachV1(ctx context.Context, c Call, w io.Writer) error {
 	// opts are valid for attach v1
 
 	return a.encodeReply(c, a.svcHandler.AttachV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) DownloadV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodDownload, err: errors.New("empty options")}
+	}
+	var opts downloadOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+
+	// opts are valid for download v1
+
+	return a.encodeReply(c, a.svcHandler.DownloadV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

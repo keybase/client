@@ -42,7 +42,7 @@ protocol remote {
   }
 
   record PostRemoteRes {
-    MessageID msgID;
+    MessageServerHeader msgHeader;
     union { null, RateLimit } rateLimit;
   }
 
@@ -77,4 +77,20 @@ protocol remote {
   // conversation per TLF ID on GetInboxRemote.
   void tlfFinalize(TLFID tlfID);
 
+  record S3Params {
+    string bucket;
+    string objectKey;
+    string accessKey;
+    string acl;
+    string regionName;
+    string regionEndpoint;
+    string regionBucketEndpoint;
+  }
+
+  // getS3Params returns S3 params that the client needs to make S3
+  // requests.
+  S3Params getS3Params(ConversationID conversationID);
+  
+  // s3Sign signs a payload for S3 requests.
+  bytes s3Sign(int version, bytes payload);
 }
