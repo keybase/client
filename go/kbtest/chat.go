@@ -296,10 +296,6 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	return
 }
 
-func (m *ChatRemoteMock) PostAttachmentRemote(ctx context.Context, arg chat1.PostAttachmentRemoteArg) error {
-	return nil
-}
-
 func (m *ChatRemoteMock) NewConversationRemote(ctx context.Context, arg chat1.ConversationIDTriple) (res chat1.NewConversationRemoteRes, err error) {
 	return res, errors.New("not implemented anymore")
 }

@@ -110,7 +110,18 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket, progress ProgressReporter) error {
 	log.Debug("s3 putSingle (size = %d)", size)
 
-	// XXX read everything into memory for retry
+	// In order to be able to retry the upload, need to read in the entire
+	// attachment.  But putSingle is only called for attachments <= 5MB, so
+	// this isn't horrible.
+	buf := make([]byte, size)
+	n, err := r.Read(buf)
+	if err != nil {
+		return err
+	}
+	if int64(n) != size {
+		return fmt.Errorf("invalid read attachment size: %d (expected %d)", n, size)
+	}
+	sr := bytes.NewReader(buf)
 
 	var lastErr error
 	for i := 0; i < 10; i++ {
@@ -120,7 +131,7 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 		case <-time.After(BackoffDefault.Duration(i)):
 		}
 		log.Debug("s3 putSingle attempt %d", i+1)
-		err := b.PutReader(params.ObjectKey, r, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
+		err := b.PutReader(params.ObjectKey, sr, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
 		if err == nil {
 			log.Debug("putSingle attempt %d success", i+1)
 			return nil
@@ -128,7 +139,8 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 		log.Debug("putSingle attempt %d error: %s", i+1, err)
 		lastErr = err
 
-		// XXX this isn't going to work without Seek(0) support on r.
+		// move back to beginning of sr buffer for retry
+		sr.Seek(0, io.SeekStart)
 
 	}
 	return fmt.Errorf("failed putSingle (last error: %s)", lastErr)
