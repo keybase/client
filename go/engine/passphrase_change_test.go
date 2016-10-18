@@ -159,7 +159,8 @@ func TestPassphraseChangeKnownPrompt(t *testing.T) {
 	// Test changing passphrase 3 times; so that old passphrase
 	// cache is properly busted.
 	newPassphrase := "password1234"
-	for i := 0; i < 3; i++ {
+	numChanges := 3
+	for i := 0; i < numChanges; i++ {
 
 		arg := &keybase1.PassphraseChangeArg{
 			Passphrase: newPassphrase,
@@ -173,7 +174,13 @@ func TestPassphraseChangeKnownPrompt(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		verifyPassphraseChange(tc, u, newPassphrase)
+		// We only call this the last time through, since internally,
+		// verifyPassphraseChange calls ClearStreamCache(), which is
+		// the bug fix that we're actually trying to test by doing multiple
+		// passphrase changes.
+		if i == numChanges-1 {
+			verifyPassphraseChange(tc, u, newPassphrase)
+		}
 
 		if !secui.CalledGetPassphrase {
 			t.Errorf("get passphrase not called")
