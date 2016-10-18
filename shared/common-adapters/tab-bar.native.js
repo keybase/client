@@ -35,7 +35,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
     const badgeNumber = this.props.badgeNumber || 0
 
-    return (
+    const content = (
       <Box style={{backgroundColor, ...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
         {this.props.source.type === 'icon'
           ? <Icon type={this.props.source.icon} style={{fontSize: 48, width: 48, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
@@ -47,6 +47,15 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
         {!!this.props.label && <Text type='BodySemibold' style={{textAlign: 'center', ...this.props.styleLabel}}>{this.props.label}</Text>}
       </Box>
     )
+
+    if (this.props.onClick) {
+      return (
+        <NativeTouchableWithoutFeedback onPress={this.props.onClick}>
+          {content}
+        </NativeTouchableWithoutFeedback>
+      )
+    }
+    return content
   }
 }
 

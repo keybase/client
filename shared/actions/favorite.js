@@ -5,8 +5,8 @@ import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise, NotifyFSRequestFSSyncStatusRequestRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
+import {navigateUp} from '../actions/route-tree'
 import {call, put, select} from 'redux-saga/effects'
-import {navigateBack} from '../actions/router'
 import {safeTakeLatest, safeTakeEvery} from '../util/saga'
 
 import type {Action} from '../constants/types/flux'
@@ -184,10 +184,10 @@ function * _addSaga (action: FavoriteAdd): SagaGenerator<any, any> {
       yield call(favoriteFavoriteAddRpcPromise, {param: {folder}})
       const action: FavoriteAdded = {type: Constants.favoriteAdded, payload: undefined}
       yield put(action)
-      yield put(navigateBack())
+      yield put(navigateUp())
     } catch (error) {
       console.warn('Err in favorite.favoriteAdd', error)
-      yield put(navigateBack())
+      yield put(navigateUp())
     }
   }
 }
@@ -203,10 +203,10 @@ function * _ignoreSaga (action: FavoriteAdd): SagaGenerator<any, any> {
       yield call(favoriteFavoriteIgnoreRpcPromise, {param: {folder}})
       const action: FavoriteIgnored = {type: Constants.favoriteIgnored, payload: undefined}
       yield put(action)
-      yield put(navigateBack())
+      yield put(navigateUp())
     } catch (error) {
       console.warn('Err in favorite.favoriteIgnore', error)
-      yield put(navigateBack())
+      yield put(navigateUp())
     }
   }
 }

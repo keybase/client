@@ -1,56 +1,65 @@
 // @flow
-import React, {Component} from 'react'
+import React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text} from '../../common-adapters'
+import {
+  landingTab,
+  updatePaymentTab,
+  invitationsTab,
+  notificationsTab,
+  deleteMeTab,
+  devMenuTab,
+} from '../../constants/settings'
 
-import type {Props, BannerType, SettingsItem as SettingsItemType} from './index'
+import type {Props, SettingsItem as SettingsItemType} from './index'
 
-function Banner ({element, type}: {element: React$Element<*>, type: BannerType}) {
-  return (
-    <Box style={{...commonBannerStyle, ...variantBannerStyle[type]}}>
-      {element}
-    </Box>
-  )
-}
-
-function SettingsItem ({text, selected, onClick, badgeNumber}: SettingsItemType) {
+export function SettingsItem ({text, selected, onClick, badgeNumber}: SettingsItemType) {
   return (
     <ClickableBox onClick={onClick} style={itemStyle}>
       <Text style={{color: selected ? globalColors.black_75 : globalColors.black_60, textTransform: 'uppercase'}} type={'BodySmallSemibold'}>{text}</Text>
       {!!selected && <Box style={selectedStyle} />}
       {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
     </ClickableBox>
-
   )
 }
 
-class SettingsNav extends Component<void, Props, void> {
-  render () {
-    const {content, bannerElement, bannerType, items} = this.props
-    return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        {!!bannerElement && <Banner element={bannerElement} type={bannerType || 'green'} />}
-        <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-          <Box style={globalStyles.flexBoxColumn}>
-            {items.map(i => <SettingsItem key={i.text} {...i} />)}
-          </Box>
-          <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>
-            {content}
-          </Box>
-        </Box>
-      </Box>
-    )
-  }
-}
-
-const commonBannerStyle = {
-  ...globalStyles.flexBoxRow,
-  minHeight: 48,
-}
-
-const variantBannerStyle = {
-  'red': {backgroundColor: globalColors.red},
-  'green': {backgroundColor: globalColors.green},
+function SettingsNav ({selectedTab, onTabChange}: Props) {
+  return (
+    <Box style={globalStyles.flexBoxColumn}>
+      <SettingsItem
+        text='Your Account'
+        selected={selectedTab === landingTab}
+        onClick={() => onTabChange(landingTab)}
+      />
+      <SettingsItem
+        text='Update Payment'
+        selected={selectedTab === updatePaymentTab}
+        onClick={() => onTabChange(updatePaymentTab)}
+      />
+      <SettingsItem
+        text='Invitations'
+        selected={selectedTab === invitationsTab}
+        onClick={() => onTabChange(invitationsTab)}
+      />
+      <SettingsItem
+        text='Notifications'
+        selected={selectedTab === notificationsTab}
+        onClick={() => onTabChange(notificationsTab)}
+      />
+      <SettingsItem
+        text='Delete Me'
+        selected={selectedTab === deleteMeTab}
+        onClick={() => onTabChange(deleteMeTab)}
+      />
+      {__DEV__ &&
+        <SettingsItem
+          text='😎 Dev Menu'
+          selected={selectedTab === devMenuTab}
+          onClick={() => onTabChange(devMenuTab)}
+        />
+      }
+    </Box>
+  )
 }
 
 const itemStyle = {

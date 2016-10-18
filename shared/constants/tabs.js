@@ -14,6 +14,8 @@ type DevicesTab = 'tabs:devicesTab'
 export const devicesTab = 'tabs:devicesTab'
 type FolderTab = 'tabs:folderTab'
 export const folderTab = 'tabs:folderTab'
+type SearchTab = 'tabs:searchTab'
+export const searchTab = 'tabs:searchTab'
 type SettingsTab = 'tabs:settingsTab'
 export const settingsTab = 'tabs:settingsTab'
 
@@ -35,8 +37,4 @@ export type Tab = ChatTab
 | PeopleTab
 | ProfileTab
 | SettingsTab
-| StartupTab
-
-export function tabPrettify (tab: Tab) {
-  return prettyNames[tab] || ''
-}
+| SearchTab

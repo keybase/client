@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import Render from './index.render'
+import RenderPassphrase from './index.render'
 import {connect} from 'react-redux'
 import {openAccountResetPage} from '../../../actions/login'
 
@@ -32,7 +32,7 @@ class Passphrase extends Component<void, Props, State> {
   }
 
   render () {
-    return <Render
+    return <RenderPassphrase
       onBack={this.props.onBack}
       prompt={this.props.prompt}
       username={this.props.username}
@@ -54,5 +54,5 @@ export default connect(
   (dispatch: any, op: any) => ({
     onForgotPassphrase: () => { dispatch(openAccountResetPage()) },
   }),
-  (stateProps, dispatchProps, ownProps) => ({...stateProps, ...dispatchProps, ...ownProps}),
+  (stateProps, dispatchProps, {routeProps}) => ({...stateProps, ...dispatchProps, ...routeProps}),
 )(Passphrase)

@@ -1,8 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import Render from './index.render'
+import RenderPaperKey from './index.render'
 import {connect} from 'react-redux'
 
+import type {RouteProps} from '../../../route-tree/render-route'
 import type {Props, State} from './index'
 import type {TypedState} from '../../../constants/reducer'
 
@@ -19,7 +20,7 @@ class PaperKey extends Component<void, Props, State> {
 
   render () {
     return (
-      <Render
+      <RenderPaperKey
         onSubmit={() => this.props.onSubmit(this.state.paperKey)}
         onChangePaperKey={paperKey => this.setState({paperKey})}
         onBack={this.props.onBack}
@@ -31,12 +32,15 @@ class PaperKey extends Component<void, Props, State> {
   }
 }
 
-type OwnProps = {
+type OwnProps = RouteProps<{
   error: string,
   onBack: () => void,
   onSubmit: (paperkey: string) => void,
-}
+}, *>
 
 export default connect(
-  (state: TypedState, ownProps: OwnProps) => ({waitingForResponse: state.login.waitingForResponse})
+  (state: TypedState, {routeProps}: OwnProps) => ({
+    ...routeProps,
+    waitingForResponse: state.login.waitingForResponse,
+  })
 )(PaperKey)

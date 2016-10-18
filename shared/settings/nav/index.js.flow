@@ -1,6 +1,8 @@
 // @flow
 import {Component} from 'react'
 
+import type {Tab} from '../../constants/settings'
+
 export type SettingsItem = {
   text: string,
   onClick: () => void,
@@ -8,13 +10,9 @@ export type SettingsItem = {
   selected?: boolean,
 }
 
-export type BannerType = 'red' | 'green'
-
 export type Props = {
-  items: Array<SettingsItem>,
-  bannerElement?: React$Element<*>,
-  bannerType?: BannerType,
-  content: React$Element<*>,
+  selectedTab: Tab,
+  onTabChange: (tab: Tab) => void,
 }
 
 export default class SettingsNav extends Component<void, Props, void> { }

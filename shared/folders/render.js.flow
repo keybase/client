@@ -9,15 +9,14 @@ export type Props = {
   publicBadge?: number,
   public: ListProps,
   showingPrivate: boolean,
+  showingIgnored: boolean,
   onSwitchTab?: (showingPrivate: boolean) => void,
   listStyle?: any,
   smallMode?: boolean,
   onClick?: (path: string) => void,
   onOpen?: (path: string) => void,
   onRekey: (path: string) => void,
-  onToggleShowIgnored: (isPrivate: boolean) => void,
-  publicShowingIgnored: boolean,
-  privateShowingIgnored: boolean,
+  onToggleShowIgnored: () => void,
 }
 
 export default class Render extends Component<void, Props, void> { }

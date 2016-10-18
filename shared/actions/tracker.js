@@ -6,7 +6,6 @@ import engine from '../engine'
 import openUrl from '../util/open-url'
 import {apiserverGetRpc, delegateUiCtlRegisterIdentifyUIRpc, identifyIdentify2Rpc, trackCheckTrackingRpc, trackDismissWithTokenRpc, trackTrackWithTokenRpc, trackUntrackRpc, IdentifyCommonIdentifyReasonType} from '../constants/types/flow-types'
 import {requestIdleCallback} from '../util/idle-callback'
-import {routeAppend} from './router'
 import {showAllTrackers} from '../local-debug'
 
 import type {Action, Dispatch, AsyncAction} from '../constants/types/flux'
@@ -190,17 +189,6 @@ function registerIdentifyUi (): TrackerActionCreator {
       type: Constants.registerIdentifyUi,
       payload: {started: true},
     })
-  }
-}
-
-function pushDebugTracker (username: string): (dispatch: Dispatch) => void {
-  return dispatch => {
-    dispatch({
-      type: Constants.updateUsername,
-      payload: {username},
-    })
-
-    dispatch(routeAppend([{path: 'tracker', username}]))
   }
 }
 
@@ -776,7 +764,6 @@ export {
   onUnfollow,
   openProofUrl,
   pendingIdentify,
-  pushDebugTracker,
   registerIdentifyUi,
   setupUserChangedHandler,
   startTimer,

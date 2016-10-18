@@ -8,7 +8,7 @@ import {isFollowing as isFollowing_} from './config'
 
 import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
   AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult,
-  SearchPlatforms, Reset, Waiting, SetActive} from '../constants/search'
+  SearchPlatforms, Reset, Waiting} from '../constants/search'
 
 const {platformToLogo16, platformToLogo32, searchResultKeys} = Constants
 
@@ -237,12 +237,5 @@ export function reset (): Reset {
   return {
     type: Constants.reset,
     payload: {},
-  }
-}
-
-export function setActive (active: boolean): SetActive {
-  return {
-    type: Constants.setActive,
-    payload: {active},
   }
 }

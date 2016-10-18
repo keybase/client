@@ -2,7 +2,7 @@
 import EditAvatar from './edit-avatar'
 import React, {Component} from 'react'
 import {TypedConnector} from '../util/typed-connect'
-import {navigateUp} from '../actions/router'
+import {navigateUp} from '../actions/route-tree'
 
 import type {Props} from './edit-avatar'
 import type {TypedDispatch} from '../constants/types/flux'

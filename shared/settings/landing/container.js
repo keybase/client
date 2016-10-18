@@ -3,7 +3,7 @@ import * as actions from '../../actions/settings'
 import Bootstrapable from '../../util/bootstrapable'
 import Landing from './index'
 import {connect} from 'react-redux'
-import {routeAppend} from '../../actions/router'
+import {navigateAppend} from '../../actions/route-tree'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -53,9 +53,9 @@ export default connect(
   },
   (dispatch: (a: any) => void, ownProps: {}) => ({
     onBootstrap: () => { dispatch(actions.loadSettings()) },
-    onChangePassphrase: () => dispatch(routeAppend('changePassphrase')),
-    onChangeEmail: () => dispatch(routeAppend('changeEmail')),
-    onInfo: (selectedLevel) => dispatch(routeAppend({path: 'changePlan', selectedLevel})),
+    onChangePassphrase: () => dispatch(navigateAppend(['changePassphrase'])),
+    onChangeEmail: () => dispatch(navigateAppend(['changeEmail'])),
+    onInfo: selectedLevel => dispatch(navigateAppend([{selected: 'changePlan', selectedLevel}])),
   }),
   (stateProps, dispatchProps, ownProps: {}) => {
     if (!stateProps.bootstrapDone) {

@@ -1,12 +1,12 @@
 // @flow
-import Files from './files'
 import React, {Component} from 'react'
 import Render from './render'
 import {connect} from 'react-redux'
-import {favoriteList, switchTab, toggleShowIgnored as onToggleShowIgnored} from '../actions/favorite'
+import {favoriteList} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
-import {routeAppend} from '../actions/router'
+import {switchTo, navigateAppend} from '../actions/route-tree'
 
+import type {RouteProps} from '../route-tree/render-route'
 import type {TypedState} from '../constants/reducer'
 import type {FolderState} from '../constants/favorite'
 
@@ -16,11 +16,11 @@ export type Props = {
   openInKBFS: (path: string) => void,
   showingPrivate: boolean,
   username: ?string,
-  routeAppend: (path: any) => void,
+  onOpenFolder: (path: any) => void,
+  onRekeyFolder: (path: any) => void,
   switchTab: (showingPrivate: boolean) => void,
-  onToggleShowIgnored: (isPrivate: boolean) => void,
-  publicShowingIgnored: boolean,
-  privateShowingIgnored: boolean,
+  onToggleShowIgnored: () => void,
+  showingIgnored: boolean,
 }
 
 class Folders extends Component<void, Props, void> {
@@ -32,41 +32,43 @@ class Folders extends Component<void, Props, void> {
     return (
       <Render
         {...this.props.folderState}
-        onClick={path => this.props.routeAppend(path)}
-        onRekey={path => this.props.routeAppend(path)}
+        onClick={path => this.props.onOpenFolder(path)}
+        onRekey={path => this.props.onRekeyFolder(path)}
         onOpen={path => this.props.openInKBFS(path)}
         onSwitchTab={showingPrivate => this.props.switchTab(showingPrivate)}
         showingPrivate={this.props.showingPrivate}
         username={this.props.username}
         onToggleShowIgnored={this.props.onToggleShowIgnored}
-        publicShowingIgnored={this.props.publicShowingIgnored}
-        privateShowingIgnored={this.props.privateShowingIgnored}
+        showingIgnored={this.props.showingIgnored}
       />
     )
   }
-
-  static parseRoute () {
-    return {
-      componentAtTop: {title: 'Folders'},
-      // $FlowIssue
-      parseNextRoute: Files.parseRoute,
-    }
-  }
 }
 
-export default connect(
-  (state: TypedState) => ({
+type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
+type OwnProps = FoldersRouteProps & {showingPrivate: boolean}
+
+const ConnectedFolders = connect(
+  (state: TypedState, {routeState, showingPrivate}: OwnProps) => ({
     username: state.config.username,
     folderState: state.favorite ? state.favorite.folderState : null,
-    showingPrivate: !!state.favorite && state.favorite.viewState.showingPrivate,
-    publicShowingIgnored: !!state.favorite && state.favorite.viewState.publicIgnoredOpen,
-    privateShowingIgnored: !!state.favorite && state.favorite.viewState.privateIgnoredOpen,
+    showingPrivate: !!state.favorite && showingPrivate,
+    showingIgnored: !!state.favorite && routeState.showingIgnored,
   }),
-  (dispatch: any) => ({
+  (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({
     favoriteList: () => { dispatch(favoriteList()) },
-    routeAppend: path => { dispatch(routeAppend(path)) },
+    onOpenFolder: path => { dispatch(navigateAppend([{selected: 'files', path}])) },
+    onRekeyFolder: path => { dispatch(navigateAppend([{selected: 'files', path}])) },
     openInKBFS: path => { dispatch(openInKBFS(path)) },
-    switchTab: showingPrivate => { dispatch(switchTab(showingPrivate)) },
-    onToggleShowIgnored: isPrivate => { dispatch(onToggleShowIgnored(isPrivate)) },
+    switchTab: showingPrivate => { dispatch(switchTo(routePath.pop().push(showingPrivate ? 'private' : 'public'))) },
+    onToggleShowIgnored: () => { setRouteState({showingIgnored: !routeState.showingIgnored}) },
   })
 )(Folders)
+
+export function PrivateFolders (props: FoldersRouteProps) {
+  return <ConnectedFolders showingPrivate={true} {...props} />
+}
+
+export function PublicFolders (props: FoldersRouteProps) {
+  return <ConnectedFolders showingPrivate={false} {...props} />
+}

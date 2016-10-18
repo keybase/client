@@ -50,7 +50,7 @@ class FoldersRender extends Component<void, Props, void> {
                   smallMode={this.props.smallMode}
                   onClick={this.props.onClick}
                   isPublic={isPublic}
-                  showIgnored={isPublic ? this.props.publicShowingIgnored : this.props.privateShowingIgnored}
+                  showIgnored={this.props.showingIgnored}
                   onToggleShowIgnored={() => this.props.onToggleShowIgnored(!isPublic)} />
               </TabBarItem>
             ))}

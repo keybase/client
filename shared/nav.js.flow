@@ -1,0 +1,20 @@
+// @flow
+import * as I from 'immutable'
+import {Component} from 'react'
+
+import type {RouteRenderStack} from './route-tree/render-route'
+import type {Tab} from './constants/tabs'
+
+export type Props = {
+  menuBadge: boolean,
+  provisioned: boolean,
+  username: string,
+  switchTab: (tab: Tab) => void,
+  navigateUp: () => void,
+  folderBadge: number,
+  children: React$Element<*>,
+  routeSelected: Tab,
+  routeStack: RouteRenderStack,
+}
+
+export default class Nav extends Component<void, Props, void> {}
