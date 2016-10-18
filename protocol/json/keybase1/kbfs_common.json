@@ -116,6 +116,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "FSPathSyncState",
+      "symbols": [
+        "NOT_SYNCING_0",
+        "SYNCING_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "FSPathSyncStatus",
       "fields": [
@@ -128,16 +136,8 @@
           "name": "path"
         },
         {
-          "type": "int64",
-          "name": "syncingBytes"
-        },
-        {
-          "type": "int64",
-          "name": "syncingOps"
-        },
-        {
-          "type": "int64",
-          "name": "syncedBytes"
+          "type": "FSPathSyncState",
+          "name": "state"
         }
       ]
     },

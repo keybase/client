@@ -268,6 +268,11 @@ export const KbfsCommonFSNotificationType = {
   fileRenamed: 10,
 }
 
+export const KbfsCommonFSPathSyncState = {
+  notSyncing: 0,
+  syncing: 1,
+}
+
 export const KbfsCommonFSStatusCode = {
   start: 0,
   finish: 1,
@@ -2786,12 +2791,14 @@ export type FSNotificationType =
   | 9 // FILE_DELETED_9
   | 10 // FILE_RENAMED_10
 
+export type FSPathSyncState = 
+    0 // NOT_SYNCING_0
+  | 1 // SYNCING_1
+
 export type FSPathSyncStatus = {
   publicTopLevelFolder: boolean,
   path: string,
-  syncingBytes: int64,
-  syncingOps: int64,
-  syncedBytes: int64,
+  state: FSPathSyncState,
 }
 
 export type FSStatusCode = 

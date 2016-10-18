@@ -139,12 +139,27 @@ type FSSyncStatusRequest struct {
 	RequestID int `codec:"requestID" json:"requestID"`
 }
 
+type FSPathSyncState int
+
+const (
+	FSPathSyncState_NOT_SYNCING FSPathSyncState = 0
+	FSPathSyncState_SYNCING     FSPathSyncState = 1
+)
+
+var FSPathSyncStateMap = map[string]FSPathSyncState{
+	"NOT_SYNCING": 0,
+	"SYNCING":     1,
+}
+
+var FSPathSyncStateRevMap = map[FSPathSyncState]string{
+	0: "NOT_SYNCING",
+	1: "SYNCING",
+}
+
 type FSPathSyncStatus struct {
-	PublicTopLevelFolder bool   `codec:"publicTopLevelFolder" json:"publicTopLevelFolder"`
-	Path                 string `codec:"path" json:"path"`
-	SyncingBytes         int64  `codec:"syncingBytes" json:"syncingBytes"`
-	SyncingOps           int64  `codec:"syncingOps" json:"syncingOps"`
-	SyncedBytes          int64  `codec:"syncedBytes" json:"syncedBytes"`
+	PublicTopLevelFolder bool            `codec:"publicTopLevelFolder" json:"publicTopLevelFolder"`
+	Path                 string          `codec:"path" json:"path"`
+	State                FSPathSyncState `codec:"state" json:"state"`
 }
 
 type FSSyncStatus struct {

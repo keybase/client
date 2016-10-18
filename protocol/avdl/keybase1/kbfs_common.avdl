@@ -57,18 +57,15 @@ protocol kbfsCommon {
     int requestID;
   }
 
+  enum FSPathSyncState {
+    NOT_SYNCING_0,
+    SYNCING_1
+  }
+
   record FSPathSyncStatus {
     boolean publicTopLevelFolder;
     string path;  // could be a file or directory
-    // How many total encrypted, padded bytes are still syncing, as part of
-    // operations on this path.
-    int64 syncingBytes;
-    // How many outstanding operations are there for this path?
-    int64 syncingOps;
-
-    // If this notification happened due to a completed sync for this
-    // path, how many bytes just finished syncing?
-    int64 syncedBytes;
+    FSPathSyncState state; // syncing or not?
   }
 
   record FSSyncStatus {
