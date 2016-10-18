@@ -73,10 +73,8 @@ func (c *CmdChatDownload) Run() error {
 		Output:    c.outputFile,
 		Preview:   c.preview,
 	}
-	api := &CmdChatAPI{
-		Contextified: libkb.NewContextified(c.G()),
-	}
-	reply := api.DownloadV1(context.Background(), opts)
+	h := newChatServiceHandler(c.G())
+	reply := h.DownloadV1(context.Background(), opts)
 	if reply.Error != nil {
 		return errors.New(reply.Error.Message)
 	}

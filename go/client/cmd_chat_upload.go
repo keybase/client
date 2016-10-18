@@ -53,10 +53,8 @@ func (c *CmdChatUpload) Run() error {
 		},
 		Filename: c.filename,
 	}
-	api := &CmdChatAPI{
-		Contextified: libkb.NewContextified(c.G()),
-	}
-	reply := api.AttachV1(context.Background(), opts)
+	h := newChatServiceHandler(c.G())
+	reply := h.AttachV1(context.Background(), opts)
 	if reply.Error != nil {
 		return errors.New(reply.Error.Message)
 	}

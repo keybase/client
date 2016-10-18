@@ -86,17 +86,6 @@ type ChatAPIHandler interface {
 	DownloadV1(context.Context, Call, io.Writer) error
 }
 
-// ChatServiceHandler can call the service.
-type ChatServiceHandler interface {
-	ListV1(context.Context) Reply
-	ReadV1(context.Context, readOptionsV1) Reply
-	SendV1(context.Context, sendOptionsV1) Reply
-	EditV1(context.Context, editOptionsV1) Reply
-	DeleteV1(context.Context, deleteOptionsV1) Reply
-	AttachV1(context.Context, attachOptionsV1) Reply
-	DownloadV1(context.Context, downloadOptionsV1) Reply
-}
-
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
 // to do all the work.
 type ChatAPI struct {
