@@ -35,6 +35,7 @@ type JournalServerStatus struct {
 	EnableAuto          bool
 	JournalCount        int
 	UnflushedBytes      int64 // (signed because os.FileInfo.Size() is signed)
+	UnflushedPaths      []string
 
 	journalTlfIDs []TlfID
 }

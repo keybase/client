@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
 // GetJournalServer returns the JournalServer tied to a particular
@@ -40,6 +41,87 @@ func WaitForTLFJournal(ctx context.Context, config Config, tlfID TlfID,
 		log.CDebugf(ctx, "Waiting for journal to flush")
 		if err := jServer.Wait(ctx, tlfID); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func fillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
+	jStatus *JournalServerStatus) error {
+	if len(jStatus.journalTlfIDs) == 0 {
+		// Nothing to do.
+		return nil
+	}
+
+	// Get the folder statuses in parallel.
+	eg, groupCtx := errgroup.WithContext(ctx)
+	statusesToFetch := make(chan TlfID, len(jStatus.journalTlfIDs))
+	unflushedPaths := make(chan []string, len(jStatus.journalTlfIDs))
+	unflushedBytes := make(chan int64, len(jStatus.journalTlfIDs))
+	errIncomplete := errors.New("Incomplete status")
+	statusFn := func() error {
+		for tlfID := range statusesToFetch {
+			select {
+			case <-groupCtx.Done():
+				return groupCtx.Err()
+			default:
+			}
+
+			status, _, err := config.KBFSOps().FolderStatus(
+				groupCtx, FolderBranch{Tlf: tlfID, Branch: MasterBranch})
+			if err != nil {
+				return err
+			}
+			if status.Journal == nil {
+				continue
+			}
+			up := status.Journal.UnflushedPaths
+			unflushedPaths <- up
+			if len(up) > 0 && up[len(up)-1] == incompleteUnflushedPathsMarker {
+				// There were too many paths to process.  Return an
+				// error to stop the other statuses since we have
+				// enough to return now.
+				return errIncomplete
+			}
+			unflushedBytes <- status.Journal.UnflushedBytes
+		}
+		return nil
+	}
+	// Do up to 10 statuses at a time.
+	for i := 0; i < 10; i++ {
+		eg.Go(statusFn)
+	}
+	for _, tlfID := range jStatus.journalTlfIDs {
+		statusesToFetch <- tlfID
+	}
+	close(statusesToFetch)
+	if err := eg.Wait(); err != nil && err != errIncomplete {
+		return err
+	}
+	close(unflushedPaths)
+	close(unflushedBytes)
+
+	// Aggregate all the paths together, but only allow one incomplete
+	// marker, at the very end.
+	incomplete := false
+	for up := range unflushedPaths {
+		for _, p := range up {
+			if p == incompleteUnflushedPathsMarker {
+				incomplete = true
+				continue
+			}
+			jStatus.UnflushedPaths = append(jStatus.UnflushedPaths, p)
+		}
+	}
+	if incomplete {
+		jStatus.UnflushedPaths = append(jStatus.UnflushedPaths,
+			incompleteUnflushedPathsMarker)
+	} else {
+		// Replace the existing unflushed byte count with one that's
+		// guaranteed consistent with the unflushed paths.
+		jStatus.UnflushedBytes = 0
+		for ub := range unflushedBytes {
+			jStatus.UnflushedBytes += ub
 		}
 	}
 	return nil
