@@ -33,6 +33,10 @@
         {
           "name": "query",
           "type": "TLFQuery"
+        },
+        {
+          "name": "isPublic",
+          "type": "bool"
         }
       ],
       "response": "CanonicalTLFNameAndIDWithBreaks"

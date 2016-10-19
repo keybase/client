@@ -23,9 +23,12 @@ type chatCLIConversationResolver struct {
 
 func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.GlobalContext, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
 	if len(r.TlfName) > 0 {
-		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, keybase1.TLFQuery{
-			TlfName:          r.TlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, keybase1.CompleteAndCanonicalizeTlfNameArg{
+			Query: keybase1.TLFQuery{
+				TlfName:          r.TlfName,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			},
+			IsPublic: false,
 		})
 		if err != nil {
 			return nil, false, fmt.Errorf("completing TLF name error: %v", err)

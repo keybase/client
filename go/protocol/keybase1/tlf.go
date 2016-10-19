@@ -17,7 +17,8 @@ type PublicCanonicalTLFNameAndIDArg struct {
 }
 
 type CompleteAndCanonicalizeTlfNameArg struct {
-	Query TLFQuery `codec:"query" json:"query"`
+	Query    TLFQuery `codec:"query" json:"query"`
+	IsPublic bool     `codec:"isPublic" json:"isPublic"`
 }
 
 type TlfInterface interface {
@@ -26,7 +27,7 @@ type TlfInterface interface {
 	// * tlfCanonicalID returns the canonical name and TLFID for tlfName.
 	// * TLFID should not be cached or stored persistently.
 	PublicCanonicalTLFNameAndID(context.Context, TLFQuery) (CanonicalTLFNameAndIDWithBreaks, error)
-	CompleteAndCanonicalizeTlfName(context.Context, TLFQuery) (CanonicalTLFNameAndIDWithBreaks, error)
+	CompleteAndCanonicalizeTlfName(context.Context, CompleteAndCanonicalizeTlfNameArg) (CanonicalTLFNameAndIDWithBreaks, error)
 }
 
 func TlfProtocol(i TlfInterface) rpc.Protocol {
@@ -76,7 +77,7 @@ func TlfProtocol(i TlfInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]CompleteAndCanonicalizeTlfNameArg)(nil), args)
 						return
 					}
-					ret, err = i.CompleteAndCanonicalizeTlfName(ctx, (*typedArgs)[0].Query)
+					ret, err = i.CompleteAndCanonicalizeTlfName(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -104,8 +105,7 @@ func (c TlfClient) PublicCanonicalTLFNameAndID(ctx context.Context, query TLFQue
 	return
 }
 
-func (c TlfClient) CompleteAndCanonicalizeTlfName(ctx context.Context, query TLFQuery) (res CanonicalTLFNameAndIDWithBreaks, err error) {
-	__arg := CompleteAndCanonicalizeTlfNameArg{Query: query}
+func (c TlfClient) CompleteAndCanonicalizeTlfName(ctx context.Context, __arg CompleteAndCanonicalizeTlfNameArg) (res CanonicalTLFNameAndIDWithBreaks, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.tlf.completeAndCanonicalizeTlfName", []interface{}{__arg}, &res)
 	return
 }
