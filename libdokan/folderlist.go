@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -270,7 +271,9 @@ func (fl *FolderList) userChanged(ctx context.Context, oldName, newName libkb.No
 		fl.mu.Lock()
 		defer fl.mu.Unlock()
 		for _, tlf := range fl.folders {
-			fs = append(fs, tlf.folder)
+			if tlf, ok := tlf.(*TLF); ok {
+				fs = append(fs, tlf.folder)
+			}
 		}
 	}()
 	for _, f := range fs {
