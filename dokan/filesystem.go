@@ -87,7 +87,7 @@ func (cd *CreateData) ReturningFileAllowed() error {
 	return nil
 }
 
-// ReturningFileAllowed answers whether returning a directory is allowed by
+// ReturningDirAllowed answers whether returning a directory is allowed by
 // CreateOptions.
 func (cd *CreateData) ReturningDirAllowed() error {
 	if cd.CreateOptions&FileNonDirectoryFile != 0 {
