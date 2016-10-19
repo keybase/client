@@ -54,7 +54,7 @@ type SKB struct {
 	// TODO(akalin): Remove this in favor of making LKSec
 	// Contextified (see
 	// https://github.com/keybase/client/issues/329 ).
-	newLKSecForTest func(clientHalf []byte) *LKSec
+	newLKSecForTest func(clientHalf LKSecClientHalf) *LKSec
 
 	sync.Mutex // currently only for uid
 }
@@ -371,7 +371,7 @@ func (s *SKB) lksUnlock(lctx LoginContext, pps *PassphraseStream, secretStorer S
 	pps.SetGeneration(ppGen)
 
 	if secretStorer != nil {
-		var secret []byte
+		var secret LKSecFullSecret
 		secret, err = lks.GetSecret(lctx)
 		if err != nil {
 			unlocked = nil

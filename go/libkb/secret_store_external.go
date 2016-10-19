@@ -13,8 +13,8 @@ import "sync"
 
 // ExternalKeyStore is the interface for the actual (external) keystore.
 type ExternalKeyStore interface {
-	RetrieveSecret(serviceName string, key string) ([]byte, error)
-	StoreSecret(serviceName string, key string, secret []byte) error
+	RetrieveSecret(serviceName string, key string) (LKSecFullSecret, error)
+	StoreSecret(serviceName string, key string, secret LKSecFullSecret) error
 	ClearSecret(serviceName string, key string) error
 	GetUsersWithStoredSecretsMsgPack(serviceName string) ([]byte, error)
 	SetupKeyStore(serviceName string, key string) error
@@ -49,12 +49,12 @@ type secretStoreAccountName struct {
 
 var _ SecretStoreAll = secretStoreAccountName{}
 
-func (s secretStoreAccountName) StoreSecret(username NormalizedUsername, secret []byte) (err error) {
+func (s secretStoreAccountName) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) (err error) {
 	s.externalKeyStore.SetupKeyStore(s.serviceName(), string(username))
 	return s.externalKeyStore.StoreSecret(s.serviceName(), string(username), secret)
 }
 
-func (s secretStoreAccountName) RetrieveSecret(username NormalizedUsername) ([]byte, error) {
+func (s secretStoreAccountName) RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error) {
 	s.externalKeyStore.SetupKeyStore(s.serviceName(), string(username))
 	return s.externalKeyStore.RetrieveSecret(s.serviceName(), string(username))
 }
