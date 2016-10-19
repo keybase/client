@@ -288,9 +288,11 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 }
 
 // TlfHandleChange is called when the name of a folder changes.
+// Note that newHandle may be nil. Then the handle in the folder is used.
+// This is used on e.g. logout/login.
 func (f *Folder) TlfHandleChange(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
-	f.fs.log.CDebugf(ctx, "TlfHandleChange called %v", newHandle.GetCanonicalName())
+	f.fs.log.CDebugf(ctx, "TlfHandleChange called")
 	// Handle in the background because we shouldn't lock during the
 	// notification
 	f.fs.queueNotification(func() {
@@ -311,12 +313,16 @@ func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 		f.handleMu.Lock()
 		defer f.handleMu.Unlock()
 		oldName := f.hPreferredName
-		f.h = newHandle
+		if newHandle != nil {
+			f.h = newHandle
+		}
 		f.hPreferredName = f.h.GetPreferredFormat(cuser)
 		return oldName, f.hPreferredName
 	}()
 
-	f.list.updateTlfName(ctx, string(oldName), newName)
+	if oldName != newName {
+		f.list.updateTlfName(ctx, string(oldName), newName)
+	}
 }
 
 // TODO: Expire TLF nodes periodically. See

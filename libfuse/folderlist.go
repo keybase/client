@@ -12,6 +12,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -301,5 +302,20 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 		// TODO we have no mechanism to do anything about this
 		fl.fs.log.CErrorf(ctx, "FUSE invalidate error for newName=%s: %v",
 			newName, err)
+	}
+}
+
+// update things after user changed.
+func (fl *FolderList) userChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername) {
+	var fs []*Folder
+	func() {
+		fl.mu.Lock()
+		defer fl.mu.Unlock()
+		for _, tlf := range fl.folders {
+			fs = append(fs, tlf.folder)
+		}
+	}()
+	for _, f := range fs {
+		f.TlfHandleChange(ctx, nil)
 	}
 }

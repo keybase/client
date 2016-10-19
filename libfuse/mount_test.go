@@ -45,6 +45,15 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 		errLog:        log,
 		notifications: libfs.NewFSNotifications(log),
 	}
+	filesys.root.private = &FolderList{
+		fs:      filesys,
+		folders: make(map[string]*TLF),
+	}
+	filesys.root.public = &FolderList{
+		fs:      filesys,
+		public:  true,
+		folders: make(map[string]*TLF),
+	}
 	filesys.execAfterDelay = func(d time.Duration, f func()) {
 		time.AfterFunc(d, f)
 	}
