@@ -37,7 +37,7 @@ func (pl ProfileList) open(ctx context.Context, oc *openContext, path []string) 
 	if f == nil {
 		return nil, false, dokan.ErrObjectNameNotFound
 	}
-	return &SpecialReadFile{read: f, fs: pl.fs}, false, nil
+	return oc.returnFileNoCleanup(&SpecialReadFile{read: f, fs: pl.fs})
 }
 
 // FindFiles does readdir for dokan.

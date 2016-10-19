@@ -161,8 +161,8 @@ func (tlf *TLF) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (st 
 // open tries to open a file.
 func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (dokan.File, bool, error) {
 	if len(path) == 0 {
-		if oc.mayNotBeDirectory() {
-			return nil, true, dokan.ErrFileIsADirectory
+		if err := oc.ReturningDirAllowed(); err != nil {
+			return nil, true, err
 		}
 		tlf.refcount.Increase()
 		return tlf, true, nil

@@ -238,7 +238,7 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 
 	specialNode := handleTLFSpecialFile(lastStr(path), d.folder)
 	if specialNode != nil {
-		return specialNode, false, nil
+		return oc.returnFileNoCleanup(specialNode)
 	}
 
 	origPath := path
@@ -266,6 +266,9 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		// Check if this is a per-file metainformation file, if so
 		// return the corresponding SpecialReadFile.
 		if leaf && strings.HasPrefix(path[0], libfs.FileInfoPrefix) {
+			if err := oc.ReturningFileAllowed(); err != nil {
+				return nil, false, err
+			}
 			node, _, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, path[0][len(libfs.FileInfoPrefix):])
 			if err != nil {
 				return nil, false, err
@@ -307,6 +310,9 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 				return nil, false, fmt.Errorf("unhandled node type: %T", f)
 			case nil:
 			case *File:
+				if err := oc.ReturningFileAllowed(); err != nil {
+					return nil, false, err
+				}
 				x.refcount.Increase()
 				return openFile(ctx, oc, path, x)
 			case *Dir:
@@ -319,6 +325,9 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		default:
 			return nil, false, fmt.Errorf("unhandled entry type: %v", de.Type)
 		case libkbfs.File, libkbfs.Exec:
+			if err := oc.ReturningFileAllowed(); err != nil {
+				return nil, false, err
+			}
 			child := newFile(d.folder, newNode, path[0], d.node)
 			f, _, err := openFile(ctx, oc, path, child)
 			if err == nil {
@@ -334,8 +343,8 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 			return openSymlink(ctx, oc, d, rootDir, origPath, path, de.SymPath)
 		}
 	}
-	if oc.mayNotBeDirectory() {
-		return nil, true, dokan.ErrFileIsADirectory
+	if err := oc.ReturningDirAllowed(); err != nil {
+		return nil, false, err
 	}
 	d.refcount.Increase()
 	return d, true, nil
@@ -364,6 +373,7 @@ func openFile(ctx context.Context, oc *openContext, path []string, f *File) (dok
 }
 
 func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir, origPath, path []string, target string) (dokan.File, bool, error) {
+	// TODO handle file/directory type flags here from CreateOptions.
 	if !oc.reduceRedirectionsLeft() {
 		return nil, false, dokan.ErrObjectNameNotFound
 	}
