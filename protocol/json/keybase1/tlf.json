@@ -28,7 +28,7 @@
       "response": "CanonicalTLFNameAndIDWithBreaks",
       "doc": "* tlfCanonicalID returns the canonical name and TLFID for tlfName.\n   * TLFID should not be cached or stored persistently."
     },
-    "completeAndCanonicalizeTlfName": {
+    "completeAndCanonicalizePrivateTlfName": {
       "request": [
         {
           "name": "query",

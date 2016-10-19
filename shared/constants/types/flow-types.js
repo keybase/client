@@ -2217,16 +2217,16 @@ export function testTestRpcPromise (request: $Exact<requestCommon & {callback?: 
   return new Promise((resolve, reject) => { testTestRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function tlfCompleteAndCanonicalizeTlfNameRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizeTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizeTlfNameRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'tlf.completeAndCanonicalizeTlfName'})
+export function tlfCompleteAndCanonicalizePrivateTlfNameRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizePrivateTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizePrivateTlfNameRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'tlf.completeAndCanonicalizePrivateTlfName'})
 }
 
-export function tlfCompleteAndCanonicalizeTlfNameRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizeTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizeTlfNameRpcParam}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => tlfCompleteAndCanonicalizeTlfNameRpc({...request, incomingCallMap, callback}))
+export function tlfCompleteAndCanonicalizePrivateTlfNameRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizePrivateTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizePrivateTlfNameRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => tlfCompleteAndCanonicalizePrivateTlfNameRpc({...request, incomingCallMap, callback}))
 }
 
-export function tlfCompleteAndCanonicalizeTlfNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizeTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizeTlfNameRpcParam}>): Promise<tlfCompleteAndCanonicalizeTlfNameResult> {
-  return new Promise((resolve, reject) => { tlfCompleteAndCanonicalizeTlfNameRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+export function tlfCompleteAndCanonicalizePrivateTlfNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizePrivateTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizePrivateTlfNameRpcParam}>): Promise<tlfCompleteAndCanonicalizePrivateTlfNameResult> {
+  return new Promise((resolve, reject) => { tlfCompleteAndCanonicalizePrivateTlfNameRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function tlfCryptKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>) {
@@ -4711,7 +4711,7 @@ export type testTestRpcParam = Exact<{
   name: string
 }>
 
-export type tlfCompleteAndCanonicalizeTlfNameRpcParam = Exact<{
+export type tlfCompleteAndCanonicalizePrivateTlfNameRpcParam = Exact<{
   query: TLFQuery
 }>
 
@@ -5001,7 +5001,7 @@ type testTestCallbackResult = string
 
 type testTestResult = Test
 
-type tlfCompleteAndCanonicalizeTlfNameResult = CanonicalTLFNameAndIDWithBreaks
+type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
 
 type tlfCryptKeysResult = GetTLFCryptKeysRes
 
@@ -5191,7 +5191,7 @@ export type rpc =
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc
-  | tlfCompleteAndCanonicalizeTlfNameRpc
+  | tlfCompleteAndCanonicalizePrivateTlfNameRpc
   | tlfCryptKeysRpc
   | tlfKeysGetPublicCanonicalTLFNameAndIDRpc
   | tlfKeysGetTLFCryptKeysRpc
