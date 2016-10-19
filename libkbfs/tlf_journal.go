@@ -182,20 +182,11 @@ type tlfJournal struct {
 	// instead.
 	journalLock sync.RWMutex
 	// both of these are nil after shutdown() is called.
-	blockJournal *blockJournal
-	mdJournal    *mdJournal
-	disabled     bool
-	lastFlushErr error
-	// The cache of unflushed paths.  If `unflushedReady` is not nil,
-	// then any callers must wait for it to be closed before accessing
-	// `unflushedPaths`.  `unflushedReady` only transitions
-	// nil->non-nil->nil at most one time during the lifetime of the
-	// journal. If `unflushedPaths` is non-nil, then `chainsPopulator`
-	// must also be non-nil.  These three fields are protected by
-	// `journalLock`.
-	unflushedPaths  map[MetadataRevision]map[string]bool
-	unflushedReady  chan struct{}
-	chainsPopulator chainsPathPopulator
+	blockJournal   *blockJournal
+	mdJournal      *mdJournal
+	disabled       bool
+	lastFlushErr   error
+	unflushedPaths unflushedPathCache
 
 	bwDelegate tlfJournalBWDelegate
 }
@@ -744,52 +735,19 @@ func (j *tlfJournal) convertMDsToBranchAndGetNextEntry(
 		j.config.Crypto())
 }
 
-func (j *tlfJournal) maybeWaitForUnflushedReady(ctx context.Context) error {
-	// If something is already making the unflushed paths, wait for
-	// them to finish.
-	readyCh := func() <-chan struct{} {
-		j.journalLock.RLock()
-		defer j.journalLock.RUnlock()
-		return j.unflushedReady
-	}()
-	if readyCh != nil {
-		j.log.CDebugf(ctx, "Waiting for initial unflushed paths")
-		select {
-		case <-readyCh:
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-		j.log.CDebugf(ctx, "Initial unflushed paths are ready")
-	}
-	return nil
-}
-
-var errRetryUnflushedPaths = errors.New("Retry with unflushed paths")
-
 func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
 	mdID MdID, rmds *RootMetadataSigned) error {
-	if err := j.maybeWaitForUnflushedReady(ctx); err != nil {
-		return err
-	}
-
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
 		return err
 	}
 
-	if j.unflushedReady != nil {
-		// Initialization started in between the wait and taking the lock.
-		return errRetryUnflushedPaths
-	}
-
 	if err := j.mdJournal.removeFlushedEntry(ctx, mdID, rmds); err != nil {
 		return err
 	}
 
-	if j.unflushedPaths != nil {
-		delete(j.unflushedPaths, rmds.MD.RevisionNumber())
-	}
+	j.unflushedPaths.removeFromCache(rmds.MD.RevisionNumber())
 	return nil
 }
 
@@ -867,11 +825,6 @@ func (j *tlfJournal) flushOneMDOp(
 	}
 
 	err = j.removeFlushedMDEntry(ctx, mdID, rmds)
-	if err == errRetryUnflushedPaths {
-		j.log.CDebugf(ctx,
-			"Retry flush removal due to unflushed paths initialization")
-		err = j.removeFlushedMDEntry(ctx, mdID, rmds)
-	}
 	if err != nil {
 		return false, err
 	}
@@ -940,9 +893,9 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 
 func (j *tlfJournal) getJournalStatusWithRange() (
 	TLFJournalStatus, []ImmutableBareRootMetadata,
-	map[MetadataRevision]map[string]bool, bool, error) {
-	j.journalLock.Lock()
-	defer j.journalLock.Unlock()
+	unflushedPathsMap, bool, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
 	jStatus, err := j.getJournalStatusLocked()
 	if err != nil {
 		return TLFJournalStatus{}, nil, nil, false, err
@@ -950,135 +903,120 @@ func (j *tlfJournal) getJournalStatusWithRange() (
 
 	complete := true
 	var ibrmds []ImmutableBareRootMetadata
-	unflushedPaths := j.unflushedPaths
-	if unflushedPaths == nil {
-		if j.unflushedReady != nil {
-			return TLFJournalStatus{}, nil, nil, false, errors.New(
-				"unflushedReady is not nil when unflushedPaths is nil")
+	unflushedPaths := j.unflushedPaths.getUnflushedPaths()
+	if unflushedPaths == nil &&
+		jStatus.RevisionEnd != MetadataRevisionUninitialized {
+		stop := jStatus.RevisionEnd
+		if stop > jStatus.RevisionStart+1000 {
+			stop = jStatus.RevisionStart + 1000
+			complete = false
 		}
 
-		if jStatus.RevisionEnd != MetadataRevisionUninitialized {
-			stop := jStatus.RevisionEnd
-			if stop > jStatus.RevisionStart+1000 {
-				stop = jStatus.RevisionStart + 1000
-				complete = false
-			}
-
-			ibrmds, err = j.mdJournal.getRange(jStatus.RevisionStart, stop)
-			if err != nil {
-				return TLFJournalStatus{}, nil, nil, false, err
-			}
-		}
-
-		if complete {
-			j.unflushedReady = make(chan struct{})
+		// It would be nice to avoid getting this range if we are not
+		// the initializer, but at this point we don't know if we'll
+		// need to initialize or not.
+		ibrmds, err = j.mdJournal.getRange(jStatus.RevisionStart, stop)
+		if err != nil {
+			return TLFJournalStatus{}, nil, nil, false, err
 		}
 	}
 
 	return jStatus, ibrmds, unflushedPaths, complete, nil
 }
 
-// addUnflushedPaths populates the given unflushed paths object.  The
-// caller should NOT be holding journalLock, as it's possible that
-// blocks will need to be fetched from the journal.
-func (j *tlfJournal) addUnflushedPaths(ctx context.Context,
-	irmds []ImmutableRootMetadata, cpp chainsPathPopulator,
-	unflushedPaths map[MetadataRevision]map[string]bool) error {
-	// Make chains over the entire range to get the unflushed files.
-	chains := newCRChainsEmpty()
-	for _, irmd := range irmds {
-		winfo := writerInfo{
-			uid:      j.uid,
-			kid:      j.key.KID(),
-			revision: irmd.Revision(),
-			// There won't be any conflicts, so no need for the
-			// username/devicename.
-		}
-		err := chains.addOps(j.config.Codec(), irmd.data, winfo,
-			irmd.localTimestamp)
+func (j *tlfJournal) batchConvertImmutables(ctx context.Context,
+	ibrmds []ImmutableBareRootMetadata) ([]ImmutableRootMetadata, error) {
+	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
+	if len(ibrmds) > 0 {
+		ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandle(nil)
 		if err != nil {
-			return err
+			return nil, err
 		}
-	}
-	chains.mostRecentMD = irmds[len(irmds)-1]
 
-	err := cpp.populateChainPaths(ctx, j.log, chains, true)
-	if err != nil {
-		return err
-	}
+		handle, err := MakeTlfHandle(
+			ctx, ibrmdBareHandle, j.config.usernameGetter())
+		if err != nil {
+			return nil, err
+		}
 
-	for _, chain := range chains.byOriginal {
-		for _, op := range chain.ops {
-			revPaths := unflushedPaths[op.getWriterInfo().revision]
-			if revPaths == nil {
-				revPaths = make(map[string]bool)
-				unflushedPaths[op.getWriterInfo().revision] = revPaths
+		for _, ibrmd := range ibrmds {
+			irmd, err := j.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
+			if err != nil {
+				return nil, err
 			}
-			revPaths[op.getFinalPath().String()] = true
+
+			irmds = append(irmds, irmd)
 		}
 	}
-	return nil
+
+	return irmds, nil
 }
 
 func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
-	cpp chainsPathPopulator) (TLFJournalStatus, error) {
-	err := j.maybeWaitForUnflushedReady(ctx)
-	if err != nil {
-		return TLFJournalStatus{}, err
-	}
-
-	jStatus, ibrmds, unflushedPaths, complete, err :=
-		j.getJournalStatusWithRange()
-	if err != nil {
-		return TLFJournalStatus{}, err
-	}
-
-	// We are responsible for making the unflushed paths.
-	if unflushedPaths == nil {
-		unflushedPaths = make(map[MetadataRevision]map[string]bool)
-		j.log.CDebugf(ctx, "Making unflushed paths (complete=%t)", complete)
-
-		// After we finish, release any waiters.  If there's an error,
-		// they will attempt to build the unflushedPaths.  If the
-		// range isn't complete, don't save the results.
-		if complete {
-			defer func() {
-				j.journalLock.Lock()
-				defer j.journalLock.Unlock()
-				close(j.unflushedReady)
-				j.unflushedReady = nil
-				j.unflushedPaths = unflushedPaths
-				j.chainsPopulator = cpp
-			}()
+	cpp chainsPathPopulator) (jStatus TLFJournalStatus, err error) {
+	// This loop is limited only by the lifetime of `ctx`.
+	var unflushedPaths unflushedPathsMap
+	var complete bool
+	for {
+		var ibrmds []ImmutableBareRootMetadata
+		jStatus, ibrmds, unflushedPaths, complete, err =
+			j.getJournalStatusWithRange()
+		if err != nil {
+			return TLFJournalStatus{}, err
 		}
 
-		if len(ibrmds) > 0 {
-			ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandle(nil)
-			if err != nil {
-				return TLFJournalStatus{}, err
-			}
-
-			irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
-			handle, err := MakeTlfHandle(
-				ctx, ibrmdBareHandle, j.config.usernameGetter())
-			if err != nil {
-				return TLFJournalStatus{}, err
-			}
-
-			for _, ibrmd := range ibrmds {
-				irmd, err := j.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
+		// We need to make or initialize the unflushed paths.
+		if unflushedPaths == nil {
+			if !complete {
+				// Figure out the paths for the truncated MD range,
+				// but don't cache it.
+				unflushedPaths = make(unflushedPathsMap)
+				j.log.CDebugf(ctx, "Making incomplete unflushed path cache")
+				irmds, err := j.batchConvertImmutables(ctx, ibrmds)
 				if err != nil {
 					return TLFJournalStatus{}, err
 				}
-
-				irmds = append(irmds, irmd)
+				err = addUnflushedPaths(ctx, j.uid, j.key.KID(),
+					j.config.Codec(), j.log, irmds, cpp,
+					unflushedPaths)
+				if err != nil {
+					return TLFJournalStatus{}, err
+				}
+				break
 			}
 
-			err = j.addUnflushedPaths(ctx, irmds, cpp, unflushedPaths)
+			// We need to init it ourselves, or wait for someone else
+			// to do it.
+			doInit, err := j.unflushedPaths.startInitializeOrWait(ctx)
 			if err != nil {
 				return TLFJournalStatus{}, err
 			}
+
+			if doInit {
+				defer func() {
+					if err != nil {
+						j.unflushedPaths.abortInitialization()
+					}
+				}()
+
+				j.log.CDebugf(ctx, "Initializing unflushed paths")
+				irmds, err := j.batchConvertImmutables(ctx, ibrmds)
+				if err != nil {
+					return TLFJournalStatus{}, err
+				}
+				unflushedPaths, err = j.unflushedPaths.initialize(
+					ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, cpp,
+					irmds)
+				if err != nil {
+					return TLFJournalStatus{}, err
+				}
+			} else {
+				j.log.CDebugf(ctx, "Waited for unflushed paths "+
+					"initialization, trying again to get the status")
+				continue
+			}
 		}
+		break
 	}
 
 	pathsSeen := make(map[string]bool)
@@ -1338,112 +1276,75 @@ func (j *tlfJournal) getMDRange(
 }
 
 func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
-	newUnflushedPaths map[string]bool) (MdID, error) {
+	irmd ImmutableRootMetadata, perRevMap unflushedPathsPerRevMap) (
+	MdID, bool, error) {
 	// Now take the lock and put the MD, merging in the unflushed
 	// paths while under the lock.
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return MdID{}, err
+		return MdID{}, false, err
 	}
 
-	// Someone initialize unflushed paths since the put started, so retry.
-	if newUnflushedPaths == nil &&
-		(j.unflushedPaths != nil || j.unflushedReady != nil) {
-		return MdID{}, errRetryUnflushedPaths
+	if !j.unflushedPaths.appendToCache(irmd, perRevMap) {
+		return MdID{}, true, nil
 	}
+	// TODO: remove the revision from the cache on any errors below?
+	// Tricky when the append is only queued.
 
 	mdID, err := j.mdJournal.put(ctx, j.config.Crypto(),
 		j.config.encryptionKeyGetter(), j.config.BlockSplitter(), rmd)
 	if err != nil {
-		return MdID{}, err
+		return MdID{}, false, err
 	}
 
 	err = j.blockJournal.markMDRevision(ctx, rmd.Revision())
 	if err != nil {
-		return MdID{}, err
-	}
-
-	// Merge the unflushed paths.
-	if newUnflushedPaths != nil {
-		if _, ok := j.unflushedPaths[rmd.Revision()]; ok {
-			return MdID{}, fmt.Errorf("Revision %d already has unflushed paths",
-				rmd.Revision())
-		}
-		j.unflushedPaths[rmd.Revision()] = newUnflushedPaths
+		return MdID{}, false, err
 	}
 
 	j.signalWork()
 
-	return mdID, nil
-}
-
-// prepUnflushedPaths returns a set of paths that were updated in this
-// revision.  The caller must NOT already hold `journalLock`.
-func (j *tlfJournal) prepUnflushedPaths(ctx context.Context,
-	rmd *RootMetadata) (map[string]bool, error) {
-	cpp := func() chainsPathPopulator {
-		j.journalLock.RLock()
-		defer j.journalLock.RUnlock()
-		return j.chainsPopulator
-	}()
-
-	// The unflushed paths haven't been initialized yet.
-	if cpp == nil {
-		return nil, nil
-	}
-
-	newUnflushedPaths := make(map[MetadataRevision]map[string]bool)
-	irmds := []ImmutableRootMetadata{
-		// Revision and timestamp don't matter for finding the
-		// unflushed paths.
-		MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now()),
-	}
-
-	err := j.addUnflushedPaths(ctx, irmds, cpp, newUnflushedPaths)
-	if err != nil {
-		return nil, err
-	}
-	if len(newUnflushedPaths) > 1 {
-		return nil, fmt.Errorf("%d unflushed revisions on a single put",
-			len(newUnflushedPaths))
-	}
-
-	return newUnflushedPaths[rmd.Revision()], nil
+	return mdID, false, nil
 }
 
 func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
-	// Before we take the lock, get the unflushed paths ready (which
-	// might require taking the lock).
-	newUnflushedPaths, err := j.prepUnflushedPaths(ctx, rmd)
+	// Prepare the paths without holding the lock, as it might need to
+	// take the lock.  Note that the md ID and timestamp don't matter
+	// for the unflushed path cache.  This is a no-op if the unflushed
+	// path cache is uninitialized.  TODO: avoid doing this if we can
+	// somehow be sure the cache won't be initialized by the time we
+	// finish this put.
+	irmd := MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
+	perRevMap, err := j.unflushedPaths.prepUnflushedPaths(
+		ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, irmd)
 	if err != nil {
 		return MdID{}, err
 	}
-	mdID, err := j.doPutMD(ctx, rmd, newUnflushedPaths)
 
-	// If someone initialized j.unflushedPaths, then try prepping the
-	// unflushed paths one more time.
-	if err == errRetryUnflushedPaths {
-		err := j.maybeWaitForUnflushedReady(ctx)
+	mdID, retry, err := j.doPutMD(ctx, rmd, irmd, perRevMap)
+	if err != nil {
+		return MdID{}, err
+	}
+
+	if retry {
+		// The cache was initialized after the last time we tried to
+		// prepare the unflushed paths.
+		perRevMap, err = j.unflushedPaths.prepUnflushedPaths(
+			ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, irmd)
 		if err != nil {
 			return MdID{}, err
 		}
 
-		j.log.CDebugf(ctx, "Retrying put with unflushed paths")
-		newUnflushedPaths, err = j.prepUnflushedPaths(ctx, rmd)
+		mdID, retry, err = j.doPutMD(ctx, rmd, irmd, perRevMap)
 		if err != nil {
 			return MdID{}, err
 		}
-		if newUnflushedPaths == nil {
-			return MdID{},
-				errors.New("Couldn't prepare unflushed paths on a retry")
+		if retry {
+			return MdID{}, errors.New("Unexpectedly asked to retry " +
+				"MD put more than once")
 		}
-
-		mdID, err = j.doPutMD(ctx, rmd, newUnflushedPaths)
-	}
-	if err != nil {
-		return MdID{}, err
 	}
 	return mdID, nil
 }
