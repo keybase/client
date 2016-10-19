@@ -272,10 +272,15 @@ func (upc *unflushedPathCache) setCacheIfPossible(cache unflushedPathsMap,
 	return nil
 }
 
+// initialize should only be called when the caller saw a `true` value
+// from `startInitializeOrWait()`.  It returns the unflushed paths
+// associated with `irmds`.  If it returns a `false` boolean, the
+// caller must abort the initialization (although as long as `err` is
+// nil, the returns unflushed paths may be used).
 func (upc *unflushedPathCache) initialize(ctx context.Context,
 	uid keybase1.UID, kid keybase1.KID, codec kbfscodec.Codec,
 	log logger.Logger, cpp chainsPathPopulator,
-	irmds []ImmutableRootMetadata) (unflushedPathsMap, error) {
+	irmds []ImmutableRootMetadata) (unflushedPathsMap, bool, error) {
 	// First get all the paths for the given range.  On the first try
 	unflushedPaths := make(unflushedPathsMap)
 	log.CDebugf(ctx, "Initializing unflushed path cache with %d revisions",
@@ -283,7 +288,7 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 	err := addUnflushedPaths(ctx, uid, kid, codec, log, irmds, cpp,
 		unflushedPaths)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	initialUnflushedPaths := make(unflushedPathsMap)
@@ -293,20 +298,19 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 		initialUnflushedPaths[k] = v
 	}
 
-	// This loop is limited only by the lifetime of `ctx`.  TODO: we
-	// might want to add a way to block appendToCache calls if we loop
-	// too many times here waiting for an empty queue.
-	for {
+	// Try to drain the queue a few times.  We may be unable to if we
+	// are continuously racing with MD puts.
+	for i := 0; i < 10; i++ {
 		queue := upc.setCacheIfPossible(unflushedPaths, cpp)
 		if len(queue) == 0 {
 			// Return the paths corresponding only to the original set
 			// of RMDs, not to anything from the queue.
-			return initialUnflushedPaths, nil
+			return initialUnflushedPaths, true, nil
 		}
 
 		select {
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return nil, false, ctx.Err()
 		default:
 		}
 
@@ -315,7 +319,10 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 		err := addUnflushedPaths(ctx, uid, kid, codec, log, queue, cpp,
 			unflushedPaths)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 	}
+	// If we can't catch up to the queue, then instruct the caller to
+	// abort the initialization.
+	return initialUnflushedPaths, false, nil
 }

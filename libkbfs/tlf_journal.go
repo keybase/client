@@ -993,8 +993,9 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 			}
 
 			if doInit {
+				initSuccess := false
 				defer func() {
-					if err != nil {
+					if !initSuccess || err != nil {
 						j.unflushedPaths.abortInitialization()
 					}
 				}()
@@ -1004,7 +1005,7 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 				if err != nil {
 					return TLFJournalStatus{}, err
 				}
-				unflushedPaths, err = j.unflushedPaths.initialize(
+				unflushedPaths, initSuccess, err = j.unflushedPaths.initialize(
 					ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, cpp,
 					irmds)
 				if err != nil {
