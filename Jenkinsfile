@@ -22,26 +22,27 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
             [$class: 'RebuildSettings',
                 autoRebuild: true,
             ],
-            [$class: "ParametersDefinitionProperty",
-                parameterDefinitions: [
-                    [$class: 'StringParameterDefinition',
-                        name: 'kbwebNodePrivateIP',
-                        defaultValue: '',
-                        description: 'The private IP of the node running kbweb',
-                    ],
-                    [$class: 'StringParameterDefinition',
-                        name: 'kbwebNodePublicIP',
-                        defaultValue: '',
-                        description: 'The public IP of the node running kbweb',
-                    ],
-                    [$class: 'StringParameterDefinition',
-                        name: 'clientProjectName',
-                        defaultValue: '',
-                        description: 'The project name of the upstream client',
-                    ],
-                ]
-            ],
+            parameters([
+                string(
+                    name: 'kbwebNodePrivateIP',
+                    defaultValue: '',
+                    description: 'The private IP of the node running kbweb',
+                ),
+                string(
+                    name: 'kbwebNodePublicIP',
+                    defaultValue: '',
+                    description: 'The public IP of the node running kbweb',
+                ),
+                string(
+                    name: 'clientProjectName',
+                    defaultValue: '',
+                    description: 'The project name of the upstream client',
+                ),
+            ]),
         ])
+        def kbwebNodePrivateIP = params.kbwebNodePrivateIP
+        def kbwebNodePublicIP = params.kbwebNodePublicIP
+        def clientProjectName = params.clientProjectName
 
         env.BASEDIR=pwd()
         env.GOPATH="${env.BASEDIR}/go"
@@ -57,7 +58,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
             println "Setting up build: ${env.BUILD_TAG}"
             def cause = helpers.getCauseString(currentBuild)
             println "Cause: ${cause}"
-            def startKbweb = !binding.variables.containsKey("kbwebNodePrivateIP") || kbwebNodePrivateIP == '' || kbwebNodePublicIP == ''
+            def startKbweb = kbwebNodePrivateIP == '' || kbwebNodePublicIP == ''
 
             stage("Setup") {
                 sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
@@ -212,7 +213,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
             }
 
             stage("Push") {
-                def isUpstreamMaster = binding.variables.containsKey("clientProjectName") && clientProjectName == "client/master"
+                def isUpstreamMaster = clientProjectName == "client/master"
                 if (env.BRANCH_NAME == "master" && (cause != "upstream" || isUpstreamMaster)) {
                     docker.withRegistry("", "docker-hub-creds") {
                         kbfsImage.push()
