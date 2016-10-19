@@ -5,7 +5,6 @@ package engine
 
 import (
 	"bytes"
-	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -137,22 +136,23 @@ func (e *PaperKeyGen) makeEncKey(seed []byte) error {
 	return nil
 }
 
-func (e *PaperKeyGen) getClientHalfFromSecretStore() ([]byte, libkb.PassphraseGeneration, error) {
+func (e *PaperKeyGen) getClientHalfFromSecretStore() (libkb.LKSecClientHalf, libkb.PassphraseGeneration, error) {
 	zeroGen := libkb.PassphraseGeneration(0)
+	var dummy libkb.LKSecClientHalf
 
 	secretStore := libkb.NewSecretStore(e.G(), e.arg.Me.GetNormalizedName())
 	if secretStore == nil {
-		return nil, zeroGen, errors.New("No secret store available")
+		return dummy, zeroGen, errors.New("No secret store available")
 	}
 
 	secret, err := secretStore.RetrieveSecret()
 	if err != nil {
-		return nil, zeroGen, err
+		return dummy, zeroGen, err
 	}
 
 	devid := e.G().Env.GetDeviceID()
 	if devid.IsNil() {
-		return nil, zeroGen, fmt.Errorf("no device id set")
+		return dummy, zeroGen, fmt.Errorf("no device id set")
 	}
 
 	var dev libkb.DeviceKey
@@ -163,23 +163,17 @@ func (e *PaperKeyGen) getClientHalfFromSecretStore() ([]byte, libkb.PassphraseGe
 		dev, err = a.SecretSyncer().FindDevice(devid)
 	}, "BackupKeygen.Run() -- retrieving passphrase generation)")
 	if aerr != nil {
-		return nil, zeroGen, aerr
+		return dummy, zeroGen, aerr
 	}
 	if err != nil {
-		return nil, zeroGen, err
+		return dummy, zeroGen, err
 	}
-
-	serverHalf, err := hex.DecodeString(dev.LksServerHalf)
+	serverHalf, err := libkb.NewLKSecServerHalfFromHex(dev.LksServerHalf)
 	if err != nil {
-		return nil, zeroGen, err
+		return dummy, zeroGen, err
 	}
 
-	if len(secret) != len(serverHalf) {
-		return nil, zeroGen, fmt.Errorf("secret has length %d, server half has length %d", len(secret), len(serverHalf))
-	}
-
-	clientHalf := make([]byte, len(secret))
-	libkb.XORBytes(clientHalf, secret, serverHalf)
+	clientHalf := serverHalf.ComputeClientHalf(secret)
 
 	return clientHalf, dev.PPGen, nil
 }
@@ -203,7 +197,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 
 	foundStream := false
 	var ppgen libkb.PassphraseGeneration
-	var clientHalf []byte
+	var clientHalf libkb.LKSecClientHalf
 	if ctx.LoginContext != nil {
 		stream := ctx.LoginContext.PassphraseStreamCache().PassphraseStream()
 		if stream != nil {
@@ -233,8 +227,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 	}
 
 	backupLks := libkb.NewLKSecWithClientHalf(clientHalf, ppgen, e.arg.Me.GetUID(), e.G())
-	// Set the server half to be empty, as we don't need it.
-	backupLks.SetServerHalf(make([]byte, len(clientHalf)))
+	backupLks.SetServerHalf(libkb.NewLKSecServerHalfZeros())
 
 	ctext, err := backupLks.EncryptClientHalfRecovery(e.encKey)
 	if err != nil {

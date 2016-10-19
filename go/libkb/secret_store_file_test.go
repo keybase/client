@@ -25,8 +25,8 @@ func testSSDir(t *testing.T) (string, func()) {
 	}
 
 	// create some ss files
-	create("alice", "alice_secret")
-	create("bob", "bob_secret")
+	create("alice", "alicealicealicealicealicealiceal")
+	create("bob", "bobbobbobbobbobbobbobbobbobbobbo")
 
 	cleanup := func() {
 		if err := os.RemoveAll(td); err != nil {
@@ -46,8 +46,8 @@ func TestSecretStoreFileRetrieveSecret(t *testing.T) {
 		secret   []byte
 		err      error
 	}{
-		"alice":     {"alice", []byte("alice_secret"), nil},
-		"bob":       {"bob", []byte("bob_secret"), nil},
+		"alice":     {"alice", []byte("alicealicealicealicealicealiceal"), nil},
+		"bob":       {"bob", []byte("bobbobbobbobbobbobbobbobbobbobbo"), nil},
 		"not found": {"nobody", nil, ErrSecretForUserNotFound},
 	}
 
@@ -58,8 +58,8 @@ func TestSecretStoreFileRetrieveSecret(t *testing.T) {
 		if err != test.err {
 			t.Fatalf("%s: err: %v, expected %v", name, err, test.err)
 		}
-		if !bytes.Equal(secret, test.secret) {
-			t.Errorf("%s: secret: %x, expected %x", name, secret, test.secret)
+		if !bytes.Equal(secret.Bytes(), test.secret) {
+			t.Errorf("%s: secret: %x, expected %x", name, secret.Bytes(), test.secret)
 		}
 	}
 }
@@ -72,21 +72,25 @@ func TestSecretStoreFileStoreSecret(t *testing.T) {
 		username NormalizedUsername
 		secret   []byte
 	}{
-		"new entry": {"charlie", []byte("charlie_secret")},
-		"replace":   {"alice", []byte("alice_next_secret")},
+		"new entry": {"charlie", []byte("charliecharliecharliecharliechar")},
+		"replace":   {"alice", []byte("alice_next_secret_alice_next_sec")},
 	}
 
 	ss := NewSecretStoreFile(td)
 
 	for name, test := range cases {
-		if err := ss.StoreSecret(test.username, test.secret); err != nil {
+		fs, err := newLKSecFullSecretFromBytes(test.secret)
+		if err != nil {
+			t.Fatalf("failed to make new full secret: %s", err)
+		}
+		if err := ss.StoreSecret(test.username, fs); err != nil {
 			t.Fatalf("%s: %s", name, err)
 		}
 		secret, err := ss.RetrieveSecret(test.username)
 		if err != nil {
 			t.Fatalf("%s: %s", name, err)
 		}
-		if !bytes.Equal(secret, test.secret) {
+		if !bytes.Equal(secret.Bytes(), test.secret) {
 			t.Errorf("%s: secret: %x, expected %x", name, secret, test.secret)
 		}
 	}
@@ -106,8 +110,8 @@ func TestSecretStoreFileClearSecret(t *testing.T) {
 	if err != ErrSecretForUserNotFound {
 		t.Fatalf("err: %v, expected %v", err, ErrSecretForUserNotFound)
 	}
-	if secret != nil {
-		t.Errorf("secret: %x, expected nil", secret)
+	if !secret.IsNil() {
+		t.Errorf("secret: %+v, expected nil", secret)
 	}
 }
 
@@ -132,7 +136,12 @@ func TestSecretStoreFileGetUsersWithStoredSecrets(t *testing.T) {
 		t.Errorf("user 1: %s, expected bob", users[1])
 	}
 
-	if err := ss.StoreSecret("xavier", []byte("xavier_secret")); err != nil {
+	fs, err := newLKSecFullSecretFromBytes([]byte("xavierxavierxavierxavierxavierxa"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := ss.StoreSecret("xavier", fs); err != nil {
 		t.Fatal(err)
 	}
 

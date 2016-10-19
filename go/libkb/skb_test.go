@@ -94,7 +94,7 @@ func makeTestSKB(t *testing.T, lks *LKSec, g *GlobalContext) *SKB {
 	}
 	skb.uid = lks.uid
 
-	skb.newLKSecForTest = func(_ []byte) *LKSec {
+	skb.newLKSecForTest = func(_ LKSecClientHalf) *LKSec {
 		return lks
 	}
 
@@ -148,7 +148,7 @@ func TestBasicSecretStore(t *testing.T) {
 	testPromptAndUnlock(t, skb)
 
 	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
-	if string(secret) != string(expectedSecret) {
+	if !secret.Equal(expectedSecret) {
 		t.Errorf("secret doesn't match expected value")
 	}
 
@@ -156,7 +156,7 @@ func TestBasicSecretStore(t *testing.T) {
 	// store and not call skb.newLKSecForTest.
 
 	skb = makeTestSKB(t, lks, tc.G)
-	skb.newLKSecForTest = func(_ []byte) *LKSec {
+	skb.newLKSecForTest = func(_ LKSecClientHalf) *LKSec {
 		t.Errorf("newLKSecForTest unexpectedly called")
 		return lks
 	}
@@ -174,13 +174,14 @@ func TestCorruptSecretStore(t *testing.T) {
 	}
 
 	skb := makeTestSKB(t, lks, tc.G)
-	tc.G.SecretStoreAll.StoreSecret("testusername", []byte("corrupt"))
+	fs, _ := newLKSecFullSecretFromBytes([]byte("corruptcorruptcorruptcorruptcorr"))
+	tc.G.SecretStoreAll.StoreSecret("testusername", fs)
 	testPromptAndUnlock(t, skb)
 
 	// The corrupt secret value should be overwritten by the new
 	// correct one.
 	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
-	if string(secret) != string(expectedSecret) {
+	if !secret.Equal(expectedSecret) {
 		t.Errorf("secret doesn't match expected value")
 	}
 }
@@ -207,7 +208,7 @@ func TestUnusedSecretStore(t *testing.T) {
 	// state, nothing should be stored in the secret store (since
 	// no prompt was shown).
 	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
-	if len(secret) > 0 {
+	if !secret.IsNil() {
 		t.Errorf("secret unexpectedly non-empty")
 	}
 }

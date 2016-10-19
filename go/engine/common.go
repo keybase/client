@@ -121,7 +121,7 @@ func matchPaperKey(ctx *Context, g *libkb.GlobalContext, me *libkb.User, paper s
 // fetchLKS gets the encrypted LKS client half from the server.
 // It uses encKey to decrypt it.  It also returns the passphrase
 // generation.
-func fetchLKS(ctx *Context, g *libkb.GlobalContext, encKey libkb.GenericKey) (libkb.PassphraseGeneration, []byte, error) {
+func fetchLKS(ctx *Context, g *libkb.GlobalContext, encKey libkb.GenericKey) (libkb.PassphraseGeneration, libkb.LKSecClientHalf, error) {
 	arg := libkb.APIArg{
 		Endpoint:    "passphrase/recover",
 		NeedSession: true,
@@ -133,23 +133,28 @@ func fetchLKS(ctx *Context, g *libkb.GlobalContext, encKey libkb.GenericKey) (li
 		arg.SessionR = ctx.LoginContext.LocalSession()
 	}
 	res, err := g.API.Get(arg)
+	var dummy libkb.LKSecClientHalf
 	if err != nil {
-		return 0, nil, err
+		return 0, dummy, err
 	}
 	ctext, err := res.Body.AtKey("ctext").GetString()
 	if err != nil {
-		return 0, nil, err
+		return 0, dummy, err
 	}
 	ppGen, err := res.Body.AtKey("passphrase_generation").GetInt()
 	if err != nil {
-		return 0, nil, err
+		return 0, dummy, err
 	}
 
 	//  Now try to decrypt with the unlocked device key
 	msg, _, err := encKey.DecryptFromString(ctext)
 	if err != nil {
-		return 0, nil, err
+		return 0, dummy, err
+	}
+	clientHalf, err := libkb.NewLKSecClientHalfFromBytes(msg)
+	if err != nil {
+		return 0, dummy, err
 	}
 
-	return libkb.PassphraseGeneration(ppGen), msg, nil
+	return libkb.PassphraseGeneration(ppGen), clientHalf, nil
 }
