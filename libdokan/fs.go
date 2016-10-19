@@ -568,9 +568,12 @@ func (f *FS) stringReadFile(contents string) dokan.File {
 
 // UserChanged is called from libfs.
 func (f *FS) UserChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername) {
+	f.log.CDebugf(ctx, "User changed: %q -> %q", oldName, newName)
 	f.root.public.userChanged(ctx, oldName, newName)
 	f.root.private.userChanged(ctx, oldName, newName)
 }
+
+var _ libfs.RemoteStatusUpdater = (*FS)(nil)
 
 // Root represents the root of the KBFS file system.
 type Root struct {

@@ -155,15 +155,18 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 // This is used on e.g. logout/login.
 func (f *Folder) TlfHandleChange(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
+	f.fs.log.CDebugf(ctx, "TlfHandleChange called on %q",
+		canonicalNameIfNotNill(newHandle))
+
 	// Handle in the background because we shouldn't lock during
 	// the notification
 	f.fs.queueNotification(func() {
-		cuser, _, err := libkbfs.GetCurrentUserIfLoggedIn(ctx, f.fs.config.KBPKI(), f.list.public)
+		cuser, _, err := libkbfs.GetCurrentUserIfPossible(ctx, f.fs.config.KBPKI(), f.list.public)
 		// Here we get an error, but there is little that can be done.
 		// cuser will be empty in the error case in which case we will default to the
 		// canonical format.
 		if err != nil {
-			f.fs.log.Errorf("tlfHandleChange: GetCurrentUserIfLoggedIn failed: %v", err)
+			f.fs.log.CDebugf(ctx, "tlfHandleChange: GetCurrentUserIfPossible failed: %v", err)
 		}
 		oldName, newName := func() (string, string) {
 			f.handleMu.Lock()
@@ -180,6 +183,13 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 			f.list.updateTlfName(ctx, oldName, newName)
 		}
 	})
+}
+
+func canonicalNameIfNotNill(h *libkbfs.TlfHandle) string {
+	if h == nil {
+		return "(nil)"
+	}
+	return string(h.GetCanonicalName())
 }
 
 func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {

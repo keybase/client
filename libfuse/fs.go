@@ -167,6 +167,8 @@ func (f *FS) UserChanged(ctx context.Context, oldName, newName libkb.NormalizedU
 	f.root.private.userChanged(ctx, oldName, newName)
 }
 
+var _ libfs.RemoteStatusUpdater = (*FS)(nil)
+
 var _ fs.FS = (*FS)(nil)
 
 var _ fs.FSStatfser = (*FS)(nil)

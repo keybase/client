@@ -27,7 +27,7 @@ const (
 // when kbfs status changes in interesting ways.
 type RemoteStatusUpdater interface {
 	// UserChanged is called when the kbfs user is changed.
-	// either oldName or newName may be empty.
+	// Either oldName or newName, or both may be empty.
 	UserChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername)
 }
 
@@ -78,7 +78,9 @@ func (r *RemoteStatus) update(ctx context.Context, st libkbfs.KBFSStatus) {
 	if newUser := libkb.NormalizedUsername(st.CurrentUser); r.currentUser != newUser {
 		oldUser := libkb.NormalizedUsername(r.currentUser)
 		r.currentUser = newUser
-		go r.callbacks.UserChanged(ctx, oldUser, newUser)
+		if r.callbacks != nil {
+			go r.callbacks.UserChanged(ctx, oldUser, newUser)
+		}
 	}
 
 	r.failingServices = st.FailingServices

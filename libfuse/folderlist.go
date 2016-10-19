@@ -173,7 +173,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, err
 	}
 
-	cname, _, err := libkbfs.GetCurrentUserIfLoggedIn(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+	cname, _, err := libkbfs.GetCurrentUserIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,8 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 		if fav.Public != fl.public {
 			continue
 		}
-		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(cuser, fav.Name)
+		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(cuser,
+			libkbfs.CanonicalTlfName(fav.Name))
 		if err != nil {
 			fl.fs.log.Errorf("FavoriteNameToPrefferTLFNameFormatAs: %q %v", fav.Name, err)
 			continue
@@ -306,7 +307,7 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 }
 
 // update things after user changed.
-func (fl *FolderList) userChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername) {
+func (fl *FolderList) userChanged(ctx context.Context, _, _ libkb.NormalizedUsername) {
 	var fs []*Folder
 	func() {
 		fl.mu.Lock()

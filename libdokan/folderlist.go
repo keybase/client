@@ -162,7 +162,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
-		cuser, _, err := libkbfs.GetCurrentUserIfLoggedIn(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+		cuser, _, err := libkbfs.GetCurrentUserIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
 		if err != nil {
 			return nil, false, err
 		}
@@ -201,7 +201,8 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 		if fav.Public != fl.public {
 			continue
 		}
-		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(cuser, fav.Name)
+		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(cuser,
+			libkbfs.CanonicalTlfName(fav.Name))
 		if err != nil {
 			fl.fs.log.Errorf("FavoriteNameToPrefferTLFNameFormatAs: %q %v", fav.Name, err)
 			continue
@@ -265,7 +266,7 @@ func clearFolderListCacheLoop(ctx context.Context, r *Root) {
 }
 
 // update things after user changed.
-func (fl *FolderList) userChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername) {
+func (fl *FolderList) userChanged(ctx context.Context, _, _ libkb.NormalizedUsername) {
 	var fs []*Folder
 	func() {
 		fl.mu.Lock()

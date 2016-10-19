@@ -394,23 +394,22 @@ func (ra resolvableAssertionWithChangeReport) resolve(ctx context.Context) (
 	if err != nil {
 		return nuid, sa, err
 	}
+	sendIfPossible := func() {
+		select {
+		case ra.changed <- struct{}{}:
+		default:
+		}
+	}
 	if nuid.name.String() != "" {
 		if nuid.name.String() != ra.assertion {
-			sendIfPossible(ra.changed)
+			sendIfPossible()
 		}
 	} else if sa != (keybase1.SocialAssertion{}) {
 		if sa.String() != ra.assertion {
-			sendIfPossible(ra.changed)
+			sendIfPossible()
 		}
 	}
 	return nuid, sa, nil
-}
-
-func sendIfPossible(ch chan struct{}) {
-	select {
-	case ch <- struct{}{}:
-	default:
-	}
 }
 
 type resolvableAssertion struct {
@@ -460,7 +459,7 @@ func parseTlfHandleLoose(
 	// might still contain assertions, which will result in
 	// another alias in a subsequent lookup.
 	// This also contains an offline check for canonicality and
-	// that a public folder has readers.
+	// whether a public folder has readers.
 	writerNames, readerNames, extensionSuffix, err :=
 		splitAndNormalizeTLFName(name, public)
 	if err != nil {
@@ -578,7 +577,7 @@ func ParseTlfHandlePreferred(
 	if err != nil && (h == nil || !isTlfNameNotCanonical(err)) {
 		return nil, err
 	}
-	uname, _, err := GetCurrentUserIfLoggedIn(ctx, kbpki, h.IsPublic())
+	uname, _, err := GetCurrentUserIfPossible(ctx, kbpki, h.IsPublic())
 	if err != nil {
 		return nil, err
 	}

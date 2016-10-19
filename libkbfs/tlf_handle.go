@@ -542,7 +542,7 @@ func (h TlfHandle) IsConflict() bool {
 // An empty username is allowed here and results in the canonical ordering.
 func (h TlfHandle) GetPreferredFormat(username libkb.NormalizedUsername) string {
 	s, err := FavoriteNameToPreferredTLFNameFormatAs(
-		username, string(h.GetCanonicalName()))
+		username, h.GetCanonicalName())
 	if err != nil {
 		panic("TlfHandle.GetPreferredFormat: Parsing canonical username failed!")
 	}
@@ -553,7 +553,8 @@ func (h TlfHandle) GetPreferredFormat(username libkb.NormalizedUsername) string 
 // username given.
 // An empty username is allowed here and results in tlfname being returned unmodified.
 func FavoriteNameToPreferredTLFNameFormatAs(username libkb.NormalizedUsername,
-	tlfname string) (string, error) {
+	canon CanonicalTlfName) (string, error) {
+	tlfname := string(canon)
 	if len(username) == 0 {
 		return tlfname, nil
 	}
