@@ -32,6 +32,7 @@ func serviceLoggedIn(ctx context.Context, config Config, name string,
 	config.MDServer().RefreshAuthToken(ctx)
 	config.BlockServer().RefreshAuthToken(ctx)
 	config.KBFSOps().RefreshCachedFavorites(ctx)
+	config.KBFSOps().PushConnectionStatusChange(LoginStatusUpdateName, alwaysPushConnectionStatus{})
 }
 
 // serviceLoggedIn should be called when the current user logs out.
@@ -43,4 +44,5 @@ func serviceLoggedOut(ctx context.Context, config Config) {
 	config.MDServer().RefreshAuthToken(ctx)
 	config.BlockServer().RefreshAuthToken(ctx)
 	config.KBFSOps().RefreshCachedFavorites(ctx)
+	config.KBFSOps().PushConnectionStatusChange(LogoutStatusUpdateName, alwaysPushConnectionStatus{})
 }

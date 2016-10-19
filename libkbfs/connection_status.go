@@ -10,9 +10,17 @@ import (
 
 // Service names used in ConnectionStatus.
 const (
-	KeybaseServiceName = "keybase-service"
-	MDServiceName      = "md-server"
+	KeybaseServiceName     = "keybase-service"
+	MDServiceName          = "md-server"
+	LoginStatusUpdateName  = "login"
+	LogoutStatusUpdateName = "logout"
 )
+
+type alwaysPushConnectionStatus struct{}
+
+func (alwaysPushConnectionStatus) Error() string {
+	return "please allways push ConnectionStatus"
+}
 
 type errDisconnected struct{}
 
@@ -48,7 +56,9 @@ func (kcs *kbfsCurrentStatus) PushConnectionStatusChange(service string, err err
 	defer kcs.lock.Unlock()
 
 	if err != nil {
-		kcs.failingServices[service] = err
+		if err != (alwaysPushConnectionStatus{}) {
+			kcs.failingServices[service] = err
+		}
 	} else {
 		// Potentially exit early if nothing changes.
 		_, exist := kcs.failingServices[service]
