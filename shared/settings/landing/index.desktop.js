@@ -1,9 +1,10 @@
 // @flow
 import React from 'react'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import SubHeading from '../subheading'
 import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
 import {Stars} from '../common.desktop.js'
-import SubHeading from '../subheading'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {priceToString, planToStars} from '../../constants/plan-billing'
 
 import type {Props, AccountProps, PlanProps} from './index'
 import type {PlanLevel} from '../../constants/settings'
@@ -105,11 +106,7 @@ function PlanLevelRow ({level, price, onInfo, variants, style, gigabytes}: PlanL
         <Text style={{...globalStyles.fontSemibold, marginRight: globalMargins.xtiny}} type='BodySmall'>
           {`${gigabytes}GB`}
         </Text>
-        <Stars count={{
-          'Basic': 1,
-          'Gold': 3,
-          'Friend': 5,
-        }[level]} />
+        <Stars count={planToStars(level)} />
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'flex-end'}}>
         <PlanActionVariants variants={variants} onClick={onInfo} />
@@ -141,14 +138,6 @@ function PaymentInfo ({name, last4Digits, isBroken, onChangePaymentInfo}: Paymen
     </Box>
 
   )
-}
-
-function priceToString (pennies: number): string {
-  if (!pennies) {
-    return 'Free'
-  } else {
-    return `\$${pennies / 100}/month`
-  }
 }
 
 function Plan ({onInfo, freeSpace, freeSpacePercentage, selectedLevel, paymentInfo, onChangePaymentInfo, lowSpaceWarning, planInfo, plans}: PlanProps & {plans: Array<AvailablePlan>}) {

@@ -1,10 +1,12 @@
 // @flow
-import React, {Component} from 'react'
 import PlanDetails from './index'
+import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/router'
+import {priceToString, planToStars} from '../../constants/plan-billing'
 // import {onChangeNewPassphrase, onChangeNewPassphraseConfirm, onChangeShowPassphrase, onSubmitNewPassphrase, onUpdatePGPSettings} from '../../actions/settings'
 
+import type {AvailablePlan} from '../../constants/plan-billing'
 import type {PlanLevel} from '../../constants/settings'
 import type {Props} from './index'
 import type {TypedState} from '../../constants/reducer'
@@ -32,14 +34,21 @@ type OwnProps = {
 
 export default connect(
   (state: TypedState, ownProps: OwnProps) => {
+    const availablePlan: ?AvailablePlan = state.planBilling.availablePlans
+      ? state.planBilling.availablePlans.find(plan => plan.planLevel === ownProps.selectedLevel)
+      : null
+    if (!availablePlan) {
+      throw new Error(`Error loading plan, can't find ${ownProps.selectedLevel}`)
+    }
+
     return {
       plan: ownProps.selectedLevel,
-      gigabytes: 999,
-      price: '$999/month',
-      numStars: 1, // TODO
+      gigabytes: availablePlan.gigabytes,
+      price: priceToString(availablePlan.price_pennies),
+      numStars: planToStars(ownProps.selectedLevel),
       paymentOption: {
         type: 'credit-card-no-past',
-        onAddCreditCard: () => {}, // to make flow happy
+        onAddCreditCard: () => {}, // TODO
       },
     }
   },

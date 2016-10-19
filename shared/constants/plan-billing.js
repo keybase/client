@@ -157,3 +157,20 @@ export const updateBillingAndQuota = 'plan-billing:updateBillingAndQuota'
 export type UpdateBillingAndQuota = TypedAction<'plan-billing:updateBillingAndQuota', BillingAndQuota, {error: any}>
 
 export type Actions = UpdateBilling | FetchBillingAndQuota | FetchBillingOverview | UpdateAvailablePlans | UpdateBillingAndQuota
+
+export function planToStars (plan: string): number {
+  return {
+    'Basic': 1,
+    'Gold': 3,
+    'Friend': 5,
+  }[plan] || 0
+}
+
+export function priceToString (pennies: number): string {
+  if (!pennies) {
+    return 'Free'
+  } else {
+    return `\$${pennies / 100}/month`
+  }
+}
+
