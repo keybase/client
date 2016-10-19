@@ -36,7 +36,7 @@ func (c *CmdRekeyTrigger) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdRekeyTrigger) Run() error {
-	cli, err := GetRekeyClient()
+	cli, err := GetRekeyClient(c.G())
 	if err != nil {
 		return err
 	}

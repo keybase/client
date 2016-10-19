@@ -167,44 +167,6 @@
     },
     {
       "type": "enum",
-      "name": "MessagePlaintextVersion",
-      "symbols": [
-        "V1_1"
-      ]
-    },
-    {
-      "type": "record",
-      "name": "MessagePlaintextV1",
-      "fields": [
-        {
-          "type": "MessageClientHeader",
-          "name": "clientHeader"
-        },
-        {
-          "type": "MessageBody",
-          "name": "messageBody"
-        }
-      ]
-    },
-    {
-      "type": "variant",
-      "name": "MessagePlaintext",
-      "switch": {
-        "type": "MessagePlaintextVersion",
-        "name": "version"
-      },
-      "cases": [
-        {
-          "label": {
-            "name": "V1",
-            "def": false
-          },
-          "body": "MessagePlaintextV1"
-        }
-      ]
-    },
-    {
-      "type": "enum",
       "name": "HeaderPlaintextVersion",
       "symbols": [
         "V1_1"
@@ -311,15 +273,41 @@
     },
     {
       "type": "record",
-      "name": "MessageFromServer",
+      "name": "MessagePlaintext",
       "fields": [
+        {
+          "type": "MessageClientHeader",
+          "name": "clientHeader"
+        },
+        {
+          "type": "MessageBody",
+          "name": "messageBody"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "MessageUnboxedState",
+      "symbols": [
+        "VALID_1",
+        "ERROR_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageUnboxedValid",
+      "fields": [
+        {
+          "type": "MessageClientHeader",
+          "name": "clientHeader"
+        },
         {
           "type": "MessageServerHeader",
           "name": "serverHeader"
         },
         {
-          "type": "MessagePlaintext",
-          "name": "messagePlaintext"
+          "type": "MessageBody",
+          "name": "messageBody"
         },
         {
           "type": "string",
@@ -337,11 +325,11 @@
     },
     {
       "type": "record",
-      "name": "MessageError",
+      "name": "MessageUnboxedError",
       "fields": [
         {
           "type": "string",
-          "name": "errmsg"
+          "name": "errMsg"
         },
         {
           "type": "MessageID",
@@ -354,22 +342,26 @@
       ]
     },
     {
-      "type": "record",
-      "name": "MessageFromServerOrError",
-      "fields": [
+      "type": "variant",
+      "name": "MessageUnboxed",
+      "switch": {
+        "type": "MessageUnboxedState",
+        "name": "state"
+      },
+      "cases": [
         {
-          "type": [
-            null,
-            "MessageError"
-          ],
-          "name": "unboxingError"
+          "label": {
+            "name": "VALID",
+            "def": false
+          },
+          "body": "MessageUnboxedValid"
         },
         {
-          "type": [
-            null,
-            "MessageFromServer"
-          ],
-          "name": "message"
+          "label": {
+            "name": "ERROR",
+            "def": false
+          },
+          "body": "MessageUnboxedError"
         }
       ]
     },
@@ -380,7 +372,7 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageFromServerOrError"
+            "items": "MessageUnboxed"
           },
           "name": "messages"
         },
@@ -459,7 +451,7 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageFromServerOrError"
+            "items": "MessageUnboxed"
           },
           "name": "maxMessages"
         }
@@ -764,7 +756,7 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageFromServerOrError"
+            "items": "MessageUnboxed"
           },
           "name": "messages"
         },
@@ -784,7 +776,7 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageFromServerOrError"
+            "items": "MessageUnboxed"
           },
           "name": "messages"
         },
@@ -867,7 +859,7 @@
           "type": "ConversationID"
         },
         {
-          "name": "messagePlaintext",
+          "name": "msg",
           "type": "MessagePlaintext"
         }
       ],

@@ -26,9 +26,9 @@ func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri chat1.Remo
 }
 
 func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageFromServerOrError, error) {
+	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, error) {
 	// Do nothing here, we don't care about pushed messages
-	return chat1.MessageFromServerOrError{}, nil
+	return chat1.MessageUnboxed{}, nil
 }
 
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
@@ -74,7 +74,7 @@ func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *stor
 }
 
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageFromServerOrError, error) {
+	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, error) {
 
 	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(), msg)
 	if err != nil {
@@ -82,7 +82,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 
 	// Store the message
-	if err = s.storage.Merge(ctx, convID, uid, []chat1.MessageFromServerOrError{decmsg}); err != nil {
+	if err = s.storage.Merge(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
 		return decmsg, err
 	}
 

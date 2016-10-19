@@ -193,58 +193,6 @@ func NewMessageBodyWithHeadline(v MessageHeadline) MessageBody {
 	}
 }
 
-type MessagePlaintextVersion int
-
-const (
-	MessagePlaintextVersion_V1 MessagePlaintextVersion = 1
-)
-
-var MessagePlaintextVersionMap = map[string]MessagePlaintextVersion{
-	"V1": 1,
-}
-
-var MessagePlaintextVersionRevMap = map[MessagePlaintextVersion]string{
-	1: "V1",
-}
-
-type MessagePlaintextV1 struct {
-	ClientHeader MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
-	MessageBody  MessageBody         `codec:"messageBody" json:"messageBody"`
-}
-
-type MessagePlaintext struct {
-	Version__ MessagePlaintextVersion `codec:"version" json:"version"`
-	V1__      *MessagePlaintextV1     `codec:"v1,omitempty" json:"v1,omitempty"`
-}
-
-func (o *MessagePlaintext) Version() (ret MessagePlaintextVersion, err error) {
-	switch o.Version__ {
-	case MessagePlaintextVersion_V1:
-		if o.V1__ == nil {
-			err = errors.New("unexpected nil value for V1__")
-			return ret, err
-		}
-	}
-	return o.Version__, nil
-}
-
-func (o MessagePlaintext) V1() MessagePlaintextV1 {
-	if o.Version__ != MessagePlaintextVersion_V1 {
-		panic("wrong case accessed")
-	}
-	if o.V1__ == nil {
-		return MessagePlaintextV1{}
-	}
-	return *o.V1__
-}
-
-func NewMessagePlaintextWithV1(v MessagePlaintextV1) MessagePlaintext {
-	return MessagePlaintext{
-		Version__: MessagePlaintextVersion_V1,
-		V1__:      &v,
-	}
-}
-
 type HeaderPlaintextVersion int
 
 const (
@@ -355,28 +303,102 @@ func NewBodyPlaintextWithV1(v BodyPlaintextV1) BodyPlaintext {
 	}
 }
 
-type MessageFromServer struct {
+type MessagePlaintext struct {
+	ClientHeader MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
+	MessageBody  MessageBody         `codec:"messageBody" json:"messageBody"`
+}
+
+type MessageUnboxedState int
+
+const (
+	MessageUnboxedState_VALID MessageUnboxedState = 1
+	MessageUnboxedState_ERROR MessageUnboxedState = 2
+)
+
+var MessageUnboxedStateMap = map[string]MessageUnboxedState{
+	"VALID": 1,
+	"ERROR": 2,
+}
+
+var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
+	1: "VALID",
+	2: "ERROR",
+}
+
+type MessageUnboxedValid struct {
+	ClientHeader     MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
 	ServerHeader     MessageServerHeader `codec:"serverHeader" json:"serverHeader"`
-	MessagePlaintext MessagePlaintext    `codec:"messagePlaintext" json:"messagePlaintext"`
+	MessageBody      MessageBody         `codec:"messageBody" json:"messageBody"`
 	SenderUsername   string              `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName string              `codec:"senderDeviceName" json:"senderDeviceName"`
 	HeaderHash       Hash                `codec:"headerHash" json:"headerHash"`
 }
 
-type MessageError struct {
-	Errmsg      string      `codec:"errmsg" json:"errmsg"`
+type MessageUnboxedError struct {
+	ErrMsg      string      `codec:"errMsg" json:"errMsg"`
 	MessageID   MessageID   `codec:"messageID" json:"messageID"`
 	MessageType MessageType `codec:"messageType" json:"messageType"`
 }
 
-type MessageFromServerOrError struct {
-	UnboxingError *MessageError      `codec:"unboxingError,omitempty" json:"unboxingError,omitempty"`
-	Message       *MessageFromServer `codec:"message,omitempty" json:"message,omitempty"`
+type MessageUnboxed struct {
+	State__ MessageUnboxedState  `codec:"state" json:"state"`
+	Valid__ *MessageUnboxedValid `codec:"valid,omitempty" json:"valid,omitempty"`
+	Error__ *MessageUnboxedError `codec:"error,omitempty" json:"error,omitempty"`
+}
+
+func (o *MessageUnboxed) State() (ret MessageUnboxedState, err error) {
+	switch o.State__ {
+	case MessageUnboxedState_VALID:
+		if o.Valid__ == nil {
+			err = errors.New("unexpected nil value for Valid__")
+			return ret, err
+		}
+	case MessageUnboxedState_ERROR:
+		if o.Error__ == nil {
+			err = errors.New("unexpected nil value for Error__")
+			return ret, err
+		}
+	}
+	return o.State__, nil
+}
+
+func (o MessageUnboxed) Valid() MessageUnboxedValid {
+	if o.State__ != MessageUnboxedState_VALID {
+		panic("wrong case accessed")
+	}
+	if o.Valid__ == nil {
+		return MessageUnboxedValid{}
+	}
+	return *o.Valid__
+}
+
+func (o MessageUnboxed) Error() MessageUnboxedError {
+	if o.State__ != MessageUnboxedState_ERROR {
+		panic("wrong case accessed")
+	}
+	if o.Error__ == nil {
+		return MessageUnboxedError{}
+	}
+	return *o.Error__
+}
+
+func NewMessageUnboxedWithValid(v MessageUnboxedValid) MessageUnboxed {
+	return MessageUnboxed{
+		State__: MessageUnboxedState_VALID,
+		Valid__: &v,
+	}
+}
+
+func NewMessageUnboxedWithError(v MessageUnboxedError) MessageUnboxed {
+	return MessageUnboxed{
+		State__: MessageUnboxedState_ERROR,
+		Error__: &v,
+	}
 }
 
 type ThreadView struct {
-	Messages   []MessageFromServerOrError `codec:"messages" json:"messages"`
-	Pagination *Pagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
+	Pagination *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 type UnreadFirstNumLimit struct {
@@ -394,10 +416,10 @@ type ConversationInfoLocal struct {
 }
 
 type ConversationLocal struct {
-	Error       *string                    `codec:"error,omitempty" json:"error,omitempty"`
-	Info        ConversationInfoLocal      `codec:"info" json:"info"`
-	ReaderInfo  ConversationReaderInfo     `codec:"readerInfo" json:"readerInfo"`
-	MaxMessages []MessageFromServerOrError `codec:"maxMessages" json:"maxMessages"`
+	Error       *string                `codec:"error,omitempty" json:"error,omitempty"`
+	Info        ConversationInfoLocal  `codec:"info" json:"info"`
+	ReaderInfo  ConversationReaderInfo `codec:"readerInfo" json:"readerInfo"`
+	MaxMessages []MessageUnboxed       `codec:"maxMessages" json:"maxMessages"`
 }
 
 type GetThreadQuery struct {
@@ -470,14 +492,14 @@ type GetConversationForCLILocalQuery struct {
 }
 
 type GetConversationForCLILocalRes struct {
-	Conversation ConversationLocal          `codec:"conversation" json:"conversation"`
-	Messages     []MessageFromServerOrError `codec:"messages" json:"messages"`
-	RateLimits   []RateLimit                `codec:"rateLimits" json:"rateLimits"`
+	Conversation ConversationLocal `codec:"conversation" json:"conversation"`
+	Messages     []MessageUnboxed  `codec:"messages" json:"messages"`
+	RateLimits   []RateLimit       `codec:"rateLimits" json:"rateLimits"`
 }
 
 type GetMessagesLocalRes struct {
-	Messages   []MessageFromServerOrError `codec:"messages" json:"messages"`
-	RateLimits []RateLimit                `codec:"rateLimits" json:"rateLimits"`
+	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
+	RateLimits []RateLimit      `codec:"rateLimits" json:"rateLimits"`
 }
 
 type GetThreadLocalArg struct {
@@ -497,8 +519,8 @@ type GetInboxAndUnboxLocalArg struct {
 }
 
 type PostLocalArg struct {
-	ConversationID   ConversationID   `codec:"conversationID" json:"conversationID"`
-	MessagePlaintext MessagePlaintext `codec:"messagePlaintext" json:"messagePlaintext"`
+	ConversationID ConversationID   `codec:"conversationID" json:"conversationID"`
+	Msg            MessagePlaintext `codec:"msg" json:"msg"`
 }
 
 type NewConversationLocalArg struct {

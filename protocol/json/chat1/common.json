@@ -280,28 +280,12 @@
       "name": "MessageServerHeader",
       "fields": [
         {
-          "type": "MessageType",
-          "name": "messageType"
-        },
-        {
           "type": "MessageID",
           "name": "messageID"
         },
         {
-          "type": "gregor1.UID",
-          "name": "sender"
-        },
-        {
-          "type": "gregor1.DeviceID",
-          "name": "senderDevice"
-        },
-        {
           "type": "MessageID",
           "name": "supersededBy"
-        },
-        {
-          "type": "MessageID",
-          "name": "supersedes"
         },
         {
           "type": "gregor1.Time",

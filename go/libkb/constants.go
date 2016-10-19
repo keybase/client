@@ -55,6 +55,7 @@ const (
 	SessionFile       = "session.json"
 	UpdaterConfigFile = "updater.json"
 	DBFile            = "keybase.leveldb"
+	ChatDBFile        = "keybase.chat.leveldb"
 	SocketFile        = "keybased.sock"
 	PIDFile           = "keybased.pid"
 

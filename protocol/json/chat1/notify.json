@@ -27,7 +27,7 @@
         {
           "type": [
             null,
-            "MessageFromServerOrError"
+            "MessageUnboxed"
           ],
           "name": "IncomingMessage"
         }

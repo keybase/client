@@ -43,6 +43,10 @@ protocol rekey {
     IGNORED_2
   }
 
+  record RevokeWarning {
+    array<TLF> endangeredTLFs;
+  }
+
   /**
    ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments
    or nothing if none were pending.
@@ -72,4 +76,10 @@ protocol rekey {
    Force overrides a long-snooze.
    */
   void rekeySync(int sessionID, boolean force);
+
+  /**
+   GetRevokeWarning computes the TLFs that will be endangered if actingDevice
+   revokes targetDevice.
+   */
+  RevokeWarning getRevokeWarning(int session, DeviceID actingDevice, DeviceID targetDevice);
 }
