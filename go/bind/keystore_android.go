@@ -5,7 +5,7 @@
 
 package keybase
 
-import "github.com/keybase/client/go/libkb"
+// import "github.com/keybase/client/go/libkb"
 
 // ExternalKeyStore - We have to duplicate the interface defined in libkb.ExternalKeyStore
 // Otherwise we get an undefined param error when we use this as an argument
