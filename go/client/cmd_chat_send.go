@@ -92,10 +92,10 @@ func (c *cmdChatSend) Run() (err error) {
 	var args chat1.PostLocalArg
 	args.ConversationID = conversationInfo.Id
 
-	var msgV1 chat1.MessagePlaintextV1
+	var msg chat1.MessagePlaintext
 	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
-	msgV1.ClientHeader.Conv = conversationInfo.Triple
-	msgV1.ClientHeader.TlfName = conversationInfo.TlfName
+	msg.ClientHeader.Conv = conversationInfo.Triple
+	msg.ClientHeader.TlfName = conversationInfo.TlfName
 
 	// Whether the user is really sure they want to send to the selected conversation.
 	// We require an additional confirmation if the choose menu was used.
@@ -108,14 +108,14 @@ func (c *cmdChatSend) Run() (err error) {
 			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet. Ignoring --set-topic-name >.<\n")
 			return nil
 		}
-		msgV1.ClientHeader.MessageType = chat1.MessageType_METADATA
-		msgV1.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
+		msg.ClientHeader.MessageType = chat1.MessageType_METADATA
+		msg.MessageBody = chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: c.setTopicName})
 	case c.setHeadline != "":
-		msgV1.ClientHeader.MessageType = chat1.MessageType_HEADLINE
-		msgV1.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: c.setHeadline})
+		msg.ClientHeader.MessageType = chat1.MessageType_HEADLINE
+		msg.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: c.setHeadline})
 	case c.clearHeadline:
-		msgV1.ClientHeader.MessageType = chat1.MessageType_HEADLINE
-		msgV1.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: ""})
+		msg.ClientHeader.MessageType = chat1.MessageType_HEADLINE
+		msg.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: ""})
 	default:
 		// Ask for message contents
 		if len(c.message) == 0 {
@@ -130,8 +130,8 @@ func (c *cmdChatSend) Run() (err error) {
 			confirmed = true
 		}
 
-		msgV1.ClientHeader.MessageType = chat1.MessageType_TEXT
-		msgV1.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{Body: c.message})
+		msg.ClientHeader.MessageType = chat1.MessageType_TEXT
+		msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{Body: c.message})
 	}
 
 	if !confirmed {
@@ -143,7 +143,7 @@ func (c *cmdChatSend) Run() (err error) {
 		confirmed = true
 	}
 
-	args.MessagePlaintext = chat1.NewMessagePlaintextWithV1(msgV1)
+	args.Msg = msg
 
 	if _, err = chatClient.PostLocal(ctx, args); err != nil {
 		return err

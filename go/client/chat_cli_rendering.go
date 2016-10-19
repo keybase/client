@@ -102,13 +102,13 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 
 		unread := "*"
 		// show the last TEXT message
-		var msg *chat1.MessageFromServerOrError
+		var msg *chat1.MessageUnboxed
 		for _, m := range conv.MaxMessages {
-			if m.Message != nil {
-				if conv.ReaderInfo.ReadMsgid == m.Message.ServerHeader.MessageID {
+			if m.IsValid() {
+				if conv.ReaderInfo.ReadMsgid == m.GetMessageID() {
 					unread = ""
 				}
-				if m.Message.ServerHeader.MessageType == chat1.MessageType_TEXT {
+				if m.GetMessageType() == chat1.MessageType_TEXT {
 					mCopy := m
 					msg = &mCopy
 				}
@@ -175,7 +175,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 
 type conversationView struct {
 	conversation chat1.ConversationLocal
-	messages     []chat1.MessageFromServerOrError
+	messages     []chat1.MessageUnboxed
 }
 
 func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) error {
@@ -208,8 +208,8 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 		}
 
 		unread := ""
-		if m.Message != nil &&
-			v.conversation.ReaderInfo.ReadMsgid < m.Message.ServerHeader.MessageID {
+		if m.IsValid() &&
+			v.conversation.ReaderInfo.ReadMsgid < m.GetMessageID() {
 			unread = "*"
 		}
 
@@ -255,26 +255,17 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 // Returns "" when there is no headline set.
 func (v conversationView) headline(g *libkb.GlobalContext) (string, error) {
 	for _, m := range v.conversation.MaxMessages {
-		if m.Message == nil {
+		if !m.IsValid() {
 			continue
 		}
-		version, err := m.Message.MessagePlaintext.Version()
+		body := m.Valid().MessageBody
+		typ, err := body.MessageType()
 		if err != nil {
 			continue
 		}
-		switch version {
-		case chat1.MessagePlaintextVersion_V1:
-			body := m.Message.MessagePlaintext.V1().MessageBody
-			typ, err := body.MessageType()
-			if err != nil {
-				continue
-			}
-			switch typ {
-			case chat1.MessageType_HEADLINE:
-				return body.Headline().Headline, nil
-			default:
-				continue
-			}
+		switch typ {
+		case chat1.MessageType_HEADLINE:
+			return body.Headline().Headline, nil
 		default:
 			continue
 		}
@@ -301,21 +292,22 @@ type messageView struct {
 
 // newMessageView extracts from a message the parts for display
 // It may fetch the superseding message. So that for example a TEXT message will show its EDIT text.
-func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageFromServerOrError) (messageView, error) {
-	mv := messageView{}
+func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID, m chat1.MessageUnboxed) (messageView, error) {
 
-	if m.Message == nil {
-		if m.UnboxingError != nil {
-			return mv, fmt.Errorf(fmt.Sprintf("<%s>", *m.UnboxingError))
-		}
+	mv := messageView{}
+	st, err := m.State()
+	if err != nil {
 		return mv, fmt.Errorf("unexpected empty message")
 	}
+	if st == chat1.MessageUnboxedState_ERROR {
+		return mv, fmt.Errorf("<%s>", m.Error().ErrMsg)
+	}
 
-	mv.MessageID = m.Message.ServerHeader.MessageID
+	mv.MessageID = m.GetMessageID()
 
 	// Check what message supersedes this one.
 	var mvsup *messageView
-	supersededBy := m.Message.ServerHeader.SupersededBy
+	supersededBy := m.Valid().ServerHeader.SupersededBy
 	if supersededBy != 0 {
 		msup, err := fetchOneMessage(g, conversationID, supersededBy)
 		if err != nil {
@@ -328,87 +320,77 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 		mvsup = &mvsupInner
 	}
 
-	t := gregor1.FromTime(m.Message.ServerHeader.Ctime)
+	t := gregor1.FromTime(m.Valid().ServerHeader.Ctime)
 	mv.AuthorAndTime = fmt.Sprintf("%s %s",
-		m.Message.SenderUsername, shortDurationFromNow(t))
+		m.Valid().SenderUsername, shortDurationFromNow(t))
 	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s <%s> %s",
-		m.Message.SenderUsername, m.Message.SenderDeviceName, shortDurationFromNow(t))
+		m.Valid().SenderUsername, m.Valid().SenderDeviceName, shortDurationFromNow(t))
 
-	version, err := m.Message.MessagePlaintext.Version()
+	body := m.Valid().MessageBody
+	typ, err := body.MessageType()
+	mv.messageType = typ
 	if err != nil {
-		g.Log.Warning("MessagePlaintext version error: %s", err)
 		return mv, err
 	}
-	switch version {
-	case chat1.MessagePlaintextVersion_V1:
-		plaintext := m.Message.MessagePlaintext.V1()
-		body := plaintext.MessageBody
-		typ, err := plaintext.MessageBody.MessageType()
-		mv.messageType = typ
-		if err != nil {
-			return mv, err
+	switch typ {
+	case chat1.MessageType_NONE:
+		// NONE is what you get when a message has been deleted.
+		mv.Renderable = true
+		if mvsup != nil {
+			switch mvsup.messageType {
+			case chat1.MessageType_EDIT:
+				// Use the edited body
+				mv.Body = mvsup.Body
+			case chat1.MessageType_DELETE:
+				mv.Body = deletedTextCLI
+			default:
+				// Some unknown supersedeer type
+			}
 		}
-		switch typ {
-		case chat1.MessageType_NONE:
-			// NONE is what you get when a message has been deleted.
-			mv.Renderable = true
-			if mvsup != nil {
-				switch mvsup.messageType {
-				case chat1.MessageType_EDIT:
-					// Use the edited body
-					mv.Body = mvsup.Body
-				case chat1.MessageType_DELETE:
-					mv.Body = deletedTextCLI
-				default:
-					// Some unknown supersedeer type
-				}
+	case chat1.MessageType_TEXT:
+		mv.Renderable = true
+		mv.Body = body.Text().Body
+		if mvsup != nil {
+			switch mvsup.messageType {
+			case chat1.MessageType_EDIT:
+				mv.Body = mvsup.Body
+			case chat1.MessageType_DELETE:
+				// This is unlikely because deleted messages are usually NONE
+				mv.Body = deletedTextCLI
+			default:
+				// Some unknown supersedeer type
 			}
-		case chat1.MessageType_TEXT:
-			mv.Renderable = true
-			mv.Body = body.Text().Body
-			if mvsup != nil {
-				switch mvsup.messageType {
-				case chat1.MessageType_EDIT:
-					mv.Body = mvsup.Body
-				case chat1.MessageType_DELETE:
-					// This is unlikely because deleted messages are usually NONE
-					mv.Body = deletedTextCLI
-				default:
-					// Some unknown supersedeer type
-				}
-			}
-		case chat1.MessageType_ATTACHMENT:
-			mv.Renderable = true
-			// TODO: will fix this in CORE-3899
-			mv.Body = fmt.Sprintf("{Attachment} | Caption: <unimplemented>")
-			if mvsup != nil {
-				switch mvsup.messageType {
-				case chat1.MessageType_EDIT:
-					// Editing attachments is not supported, ignore the edit
-				case chat1.MessageType_DELETE:
-					mv.Body = deletedTextCLI
-				default:
-					// Some unknown supersedeer type
-				}
-			}
-		case chat1.MessageType_EDIT:
-			mv.Renderable = false
-			// Return the edit body for display in the original
-			mv.Body = fmt.Sprintf("%v [edited]", body.Edit().Body)
-		case chat1.MessageType_DELETE:
-			mv.Renderable = false
-		case chat1.MessageType_METADATA:
-			mv.Renderable = false
-		case chat1.MessageType_TLFNAME:
-			mv.Renderable = false
-		case chat1.MessageType_HEADLINE:
-			mv.Renderable = false
-		default:
-			return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 		}
+	case chat1.MessageType_ATTACHMENT:
+		mv.Renderable = true
+		// TODO: will fix this in CORE-3899
+		mv.Body = fmt.Sprintf("{Attachment} | Caption: <unimplemented>")
+		if mvsup != nil {
+			switch mvsup.messageType {
+			case chat1.MessageType_EDIT:
+				// Editing attachments is not supported, ignore the edit
+			case chat1.MessageType_DELETE:
+				mv.Body = deletedTextCLI
+			default:
+				// Some unknown supersedeer type
+			}
+		}
+	case chat1.MessageType_EDIT:
+		mv.Renderable = false
+		// Return the edit body for display in the original
+		mv.Body = fmt.Sprintf("%v [edited]", body.Edit().Body)
+	case chat1.MessageType_DELETE:
+		mv.Renderable = false
+	case chat1.MessageType_METADATA:
+		mv.Renderable = false
+	case chat1.MessageType_TLFNAME:
+		mv.Renderable = false
+	case chat1.MessageType_HEADLINE:
+		mv.Renderable = false
 	default:
-		return mv, fmt.Errorf(fmt.Sprintf("MessagePlaintext version error: %s", err))
+		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 	}
+
 	return mv, nil
 }
 

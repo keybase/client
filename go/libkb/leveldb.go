@@ -20,9 +20,10 @@ type LevelDb struct {
 	Contextified
 }
 
-func NewLevelDb(g *GlobalContext) *LevelDb {
+func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
 	return &LevelDb{
 		Contextified: NewContextified(g),
+		filename:     filename(),
 	}
 }
 
@@ -64,8 +65,7 @@ func (l *LevelDb) ForceOpen() error {
 
 func (l *LevelDb) GetFilename() string {
 	if len(l.filename) == 0 {
-		l.G().Log.Debug("data dir: %s", l.G().Env.GetDataDir())
-		l.filename = l.G().Env.GetDbFilename()
+		l.G().Log.Fatalf("DB filename empty")
 	}
 	return l.filename
 }

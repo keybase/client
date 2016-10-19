@@ -1,7 +1,6 @@
 package systests
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/client"
@@ -61,18 +60,6 @@ func (d *deviceWrapper) popClone() *libkb.TestContext {
 	return ret
 }
 
-type fakeTLF struct {
-	id       string
-	revision int
-}
-
-func newFakeTLF() *fakeTLF {
-	return &fakeTLF{
-		id:       newTLFId(),
-		revision: 0,
-	}
-}
-
 func (rkt *rekeyTester) getFakeTLF() *fakeTLF {
 	if rkt.fakeTLF == nil {
 		rkt.fakeTLF = newFakeTLF()
@@ -83,12 +70,6 @@ func (rkt *rekeyTester) getFakeTLF() *fakeTLF {
 func (tlf *fakeTLF) nextRevision() int {
 	tlf.revision++
 	return tlf.revision
-}
-
-type backupKey struct {
-	KID      keybase1.KID
-	deviceID keybase1.DeviceID
-	secret   string
 }
 
 type rekeyTester struct {
@@ -281,16 +262,6 @@ func (rkt *rekeyTester) confirmNoRekeyUIActivity(dw *deviceWrapper, hours int, f
 	assertNoActivity(hours + 1)
 }
 
-func newTLFId() string {
-	var b []byte
-	b, err := libkb.RandBytes(16)
-	if err != nil {
-		return ""
-	}
-	b[15] = 0x16
-	return hex.EncodeToString(b)
-}
-
 func (rkt *rekeyTester) makeFullyKeyedHomeTLF() {
 	kids := []keybase1.KID{}
 	for _, dev := range rkt.devices {
@@ -319,7 +290,7 @@ func (rkt *rekeyTester) changeKeysOnHomeTLF(kids []keybase1.KID) {
 	fakeTLF := rkt.getFakeTLF()
 	apiArg := libkb.APIArg{
 		Args: libkb.HTTPArgs{
-			"tlfid":          libkb.S{Val: fakeTLF.id},
+			"tlfid":          libkb.S{Val: string(fakeTLF.id)},
 			"kids":           libkb.S{Val: strings.Join(kidStrings, ",")},
 			"folderRevision": libkb.I{Val: fakeTLF.nextRevision()},
 		},

@@ -280,9 +280,9 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 }
 
 func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple, tlfName string, tlfVisibility chat1.TLFVisibility, topicName *string) (*chat1.MessageBoxed, error) {
-	var v1 chat1.MessagePlaintextV1
+	var msg chat1.MessagePlaintext
 	if topicName != nil {
-		v1 = chat1.MessagePlaintextV1{
+		msg = chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,
 				TlfName:     tlfName,
@@ -297,7 +297,7 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 				}),
 		}
 	} else {
-		v1 = chat1.MessagePlaintextV1{
+		msg = chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,
 				TlfName:     tlfName,
@@ -308,7 +308,7 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 			},
 		}
 	}
-	return h.prepareMessageForRemote(ctx, chat1.NewMessagePlaintextWithV1(v1), nil)
+	return h.prepareMessageForRemote(ctx, msg, nil)
 }
 
 func (h *chatLocalHandler) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation) ([]chat1.ConversationLocal, error) {
@@ -485,31 +485,19 @@ func (h *chatLocalHandler) localizeConversation(
 
 	var maxValidID chat1.MessageID
 	for _, mm := range conversationLocal.MaxMessages {
-		if mm.Message != nil {
-			messagePlaintext := mm.Message.MessagePlaintext
-			version, err := messagePlaintext.Version()
-			if err != nil {
+		if mm.IsValid() {
+			body := mm.Valid().MessageBody
+			if t, err := body.MessageType(); err != nil {
 				return chat1.ConversationLocal{}, err
+			} else if t == chat1.MessageType_METADATA {
+				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
 			}
-			switch version {
-			case chat1.MessagePlaintextVersion_V1:
-				body := messagePlaintext.V1().MessageBody
 
-				if t, err := body.MessageType(); err != nil {
-					return chat1.ConversationLocal{}, err
-				} else if t == chat1.MessageType_METADATA {
-					conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
-				}
-
-				if mm.Message.ServerHeader.MessageID >= maxValidID {
-					conversationLocal.Info.TlfName = messagePlaintext.V1().ClientHeader.TlfName
-					maxValidID = mm.Message.ServerHeader.MessageID
-				}
-				conversationLocal.Info.Triple = messagePlaintext.V1().ClientHeader.Conv
-			default:
-				errMsg := libkb.NewChatMessageVersionError(version).Error()
-				return chat1.ConversationLocal{Error: &errMsg}, nil
+			if mm.GetMessageID() >= maxValidID {
+				conversationLocal.Info.TlfName = mm.Valid().ClientHeader.TlfName
+				maxValidID = mm.GetMessageID()
 			}
+			conversationLocal.Info.Triple = mm.Valid().ClientHeader.Conv
 		}
 	}
 
@@ -582,13 +570,13 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	rlimits = append(rlimits, tv.RateLimits...)
 
 	// apply message count limits
-	var messages []chat1.MessageFromServerOrError
+	var messages []chat1.MessageUnboxed
 	for _, m := range tv.Thread.Messages {
 		messages = append(messages, m)
 
 		arg.Limit.AtMost--
 		arg.Limit.AtLeast--
-		if m.Message.ServerHeader.MessageID <= convLocal.ReaderInfo.ReadMsgid {
+		if m.GetMessageID() <= convLocal.ReaderInfo.ReadMsgid {
 			arg.Limit.NumRead--
 		}
 		if arg.Limit.AtMost <= 0 ||
@@ -655,25 +643,14 @@ func (h *chatLocalHandler) addSenderToMessage(msg chat1.MessagePlaintext) (chat1
 		return chat1.MessagePlaintext{}, err
 	}
 
-	version, err := msg.Version()
-	if err != nil {
-		return chat1.MessagePlaintext{}, err
+	header := msg.ClientHeader
+	header.Sender = gregor1.UID(huid)
+	header.SenderDevice = gregor1.DeviceID(hdid)
+	updated := chat1.MessagePlaintext{
+		ClientHeader: header,
+		MessageBody:  msg.MessageBody,
 	}
-
-	switch version {
-	case chat1.MessagePlaintextVersion_V1:
-		header := msg.V1().ClientHeader
-		header.Sender = gregor1.UID(huid)
-		header.SenderDevice = gregor1.DeviceID(hdid)
-		updated := chat1.MessagePlaintextV1{
-			ClientHeader: header,
-			MessageBody:  msg.V1().MessageBody,
-		}
-		return chat1.NewMessagePlaintextWithV1(updated), nil
-	default:
-		return chat1.MessagePlaintext{}, libkb.NewChatMessageVersionError(version)
-	}
-
+	return updated, nil
 }
 
 func (h *chatLocalHandler) addPrevPointersToMessage(msg chat1.MessagePlaintext, convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
@@ -681,7 +658,7 @@ func (h *chatLocalHandler) addPrevPointersToMessage(msg chat1.MessagePlaintext, 
 	// should never happen, and we'll return an error just in case we make a
 	// mistake in the future. But if there's some use case in the future where
 	// a caller wants to specify custom prevs, we can relax this.
-	if len(msg.V1().ClientHeader.Prev) != 0 {
+	if len(msg.ClientHeader.Prev) != 0 {
 		return chat1.MessagePlaintext{}, fmt.Errorf("chatLocalHandler expects an empty prev list")
 	}
 
@@ -702,13 +679,13 @@ func (h *chatLocalHandler) addPrevPointersToMessage(msg chat1.MessagePlaintext, 
 
 	// Make an attempt to avoid changing anything in the input message. There
 	// are a lot of shared pointers though, so this is
-	header := msg.V1().ClientHeader
+	header := msg.ClientHeader
 	header.Prev = prevs
-	updated := chat1.MessagePlaintextV1{
+	updated := chat1.MessagePlaintext{
 		ClientHeader: header,
-		MessageBody:  msg.V1().MessageBody,
+		MessageBody:  msg.MessageBody,
 	}
-	return chat1.NewMessagePlaintextWithV1(updated), nil
+	return updated, nil
 }
 
 func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
@@ -748,21 +725,30 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.PostLocalRes{}, err
 	}
-	boxed, err := h.prepareMessageForRemote(ctx, arg.MessagePlaintext, &arg.ConversationID)
+
+	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
+	boxed, err := h.prepareMessageForRemote(ctx, arg.Msg, &arg.ConversationID)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
 
-	// post to remote gregord
+	// Post to remote gregord
 	rarg := chat1.PostRemoteArg{
 		ConversationID: arg.ConversationID,
 		MessageBoxed:   *boxed,
 	}
-
 	plres, err := h.remoteClient().PostRemote(ctx, rarg)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
+
+	// Write new message out to cache
+	rboxed := *boxed
+	rboxed.ServerHeader = &plres.MsgHeader
+	if _, err := h.G().ConvSource.Push(ctx, arg.ConversationID, boxed.ClientHeader.Sender, rboxed); err != nil {
+		h.G().Log.Debug("PostLocal: failed to write message to cache: %s", err.Error())
+	}
+
 	return chat1.PostLocalRes{
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{plres.RateLimit}),
 	}, nil

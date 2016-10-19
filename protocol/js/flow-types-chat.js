@@ -85,8 +85,9 @@ export const LocalHeaderPlaintextVersion = {
   v1: 1,
 }
 
-export const LocalMessagePlaintextVersion = {
-  v1: 1,
+export const LocalMessageUnboxedState = {
+  valid: 1,
+  error: 2,
 }
 
 export const NotifyChatChatActivityType = {
@@ -306,7 +307,7 @@ export type BodyPlaintextVersion =
 
 export type ChatActivity = {
   ActivityType: ChatActivityType,
-  IncomingMessage?: ?MessageFromServerOrError,
+  IncomingMessage?: ?MessageUnboxed,
 }
 
 export type ChatActivityType = 
@@ -341,7 +342,7 @@ export type ConversationLocal = {
   error?: ?string,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
-  maxMessages?: ?Array<MessageFromServerOrError>,
+  maxMessages?: ?Array<MessageUnboxed>,
 }
 
 export type ConversationMetadata = {
@@ -376,7 +377,7 @@ export type GetConversationForCLILocalQuery = {
 
 export type GetConversationForCLILocalRes = {
   conversation: ConversationLocal,
-  messages?: ?Array<MessageFromServerOrError>,
+  messages?: ?Array<MessageUnboxed>,
   rateLimits?: ?Array<RateLimit>,
 }
 
@@ -448,7 +449,7 @@ export type GetInboxSummaryForCLILocalRes = {
 }
 
 export type GetMessagesLocalRes = {
-  messages?: ?Array<MessageFromServerOrError>,
+  messages?: ?Array<MessageUnboxed>,
   rateLimits?: ?Array<RateLimit>,
 }
 
@@ -549,41 +550,16 @@ export type MessageEdit = {
   body: string,
 }
 
-export type MessageError = {
-  errmsg: string,
-  messageID: MessageID,
-  messageType: MessageType,
-}
-
-export type MessageFromServer = {
-  serverHeader: MessageServerHeader,
-  messagePlaintext: MessagePlaintext,
-  senderUsername: string,
-  senderDeviceName: string,
-  headerHash: Hash,
-}
-
-export type MessageFromServerOrError = {
-  unboxingError?: ?MessageError,
-  message?: ?MessageFromServer,
-}
-
 export type MessageHeadline = {
   headline: string,
 }
 
 export type MessageID = uint
 
-export type MessagePlaintext = 
-    { version : 1, v1 : ?MessagePlaintextV1 }
-
-export type MessagePlaintextV1 = {
+export type MessagePlaintext = {
   clientHeader: MessageClientHeader,
   messageBody: MessageBody,
 }
-
-export type MessagePlaintextVersion = 
-    1 // V1_1
 
 export type MessagePreviousPointer = {
   id: MessageID,
@@ -591,12 +567,8 @@ export type MessagePreviousPointer = {
 }
 
 export type MessageServerHeader = {
-  messageType: MessageType,
   messageID: MessageID,
-  sender: gregor1.UID,
-  senderDevice: gregor1.DeviceID,
   supersededBy: MessageID,
-  supersedes: MessageID,
   ctime: gregor1.Time,
 }
 
@@ -613,6 +585,29 @@ export type MessageType =
   | 5 // METADATA_5
   | 6 // TLFNAME_6
   | 7 // HEADLINE_7
+
+export type MessageUnboxed = 
+    { state : 1, valid : ?MessageUnboxedValid }
+  | { state : 2, error : ?MessageUnboxedError }
+
+export type MessageUnboxedError = {
+  errMsg: string,
+  messageID: MessageID,
+  messageType: MessageType,
+}
+
+export type MessageUnboxedState = 
+    1 // VALID_1
+  | 2 // ERROR_2
+
+export type MessageUnboxedValid = {
+  clientHeader: MessageClientHeader,
+  serverHeader: MessageServerHeader,
+  messageBody: MessageBody,
+  senderUsername: string,
+  senderDeviceName: string,
+  headerHash: Hash,
+}
 
 export type NewConversationLocalRes = {
   conv: ConversationLocal,
@@ -647,7 +642,7 @@ export type PostLocalRes = {
 }
 
 export type PostRemoteRes = {
-  msgID: MessageID,
+  msgHeader: MessageServerHeader,
   rateLimit?: ?RateLimit,
 }
 
@@ -674,7 +669,7 @@ export type TLFVisibility =
 export type ThreadID = bytes
 
 export type ThreadView = {
-  messages?: ?Array<MessageFromServerOrError>,
+  messages?: ?Array<MessageUnboxed>,
   pagination?: ?Pagination,
 }
 
@@ -734,7 +729,7 @@ export type localNewConversationLocalRpcParam = Exact<{
 
 export type localPostLocalRpcParam = Exact<{
   conversationID: ConversationID,
-  messagePlaintext: MessagePlaintext
+  msg: MessagePlaintext
 }>
 
 export type remoteGetInboxRemoteRpcParam = Exact<{

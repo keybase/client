@@ -123,14 +123,14 @@ func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUs
 	}
 	_, err = ctc.as(t, asUser).chatLocalHandler().PostLocal(context.Background(), chat1.PostLocalArg{
 		ConversationID: conv.Id,
-		MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
+		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        conv.Triple,
 				MessageType: mt,
 				TlfName:     conv.TlfName,
 			},
 			MessageBody: msg,
-		}),
+		},
 	})
 	if err != nil {
 		t.Fatalf("PostLocal error: %v", err)
@@ -283,7 +283,7 @@ func TestChatGetThreadLocal(t *testing.T) {
 	if len(tv.Messages) != 2 {
 		t.Fatalf("unexpected response from GetThreadLocal . expected 2 items, got %d\n", len(tv.Messages))
 	}
-	if tv.Messages[0].Message.MessagePlaintext.V1().MessageBody.Text().Body != "hello!" {
+	if tv.Messages[0].Valid().MessageBody.Text().Body != "hello!" {
 		t.Fatalf("unexpected response from GetThreadLocal . expected 'hello!' got %#+v\n", tv.Messages[0])
 	}
 }
@@ -310,12 +310,15 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 	if len(res.Conversations) != 1 {
 		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 1 items, got %d\n", len(res.Conversations))
 	}
+	if res.Conversations[0].Info.Id.String() != withUser1.Id.String() {
+		t.Fatalf("unexpected conversation returned. Expect %s, got %s", withUser1.Id.String(), res.Conversations[0].Info.Id.String())
+	}
 
 	var found bool
 	for _, m := range res.Conversations[0].MaxMessages {
-		if m.Message.ServerHeader.MessageType == chat1.MessageType_TEXT {
-			if res.Conversations[0].ReaderInfo.ReadMsgid == m.Message.ServerHeader.MessageID {
-				t.Fatalf("conversation was not marked as read\n")
+		if m.GetMessageType() == chat1.MessageType_TEXT {
+			if res.Conversations[0].ReaderInfo.ReadMsgid == m.GetMessageID() {
+				t.Fatalf("conversation was marked as read before requesting so\n")
 			}
 			found = true
 			break
@@ -323,6 +326,32 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 	}
 	if !found {
 		t.Fatalf("no TEXT message in returned inbox")
+	}
+
+	// Do a get thread local without requesting marking as read first. This
+	// should cause HybridConversationSource to cache the thread. Then we do
+	// another call requesting marking as read before checking if the thread is
+	// marked as read. This is to ensure that when the query requests for a
+	// mark-as-read, and the thread gets a cache hit, the
+	// HybridConversationSource should not just return the thread, but also send
+	// a MarkAsRead RPC to remote. (Currently this is done in
+	// HybridConversationSource.Pull)
+	//
+	// TODO: This doesn't make sense! In integration tests, this isn't necessary
+	// since a Pull() is called during PostLocal (when populating the Prev
+	// pointers).  However it seems in this test, it doesn't do so. This first
+	// GetThreadLocal always gets a cache miss, resulting a remote call. If
+	// PostLocal had worked like integration, this shouldn't be necessary. We
+	// should find out where the problem is and fix it! Although after that fix,
+	// this should probably still stay here just in case.
+	_, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
+		ConversationID: withUser1.Id,
+		Query: &chat1.GetThreadQuery{
+			MarkAsRead: false,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
@@ -351,8 +380,8 @@ func TestChatGetThreadLocalMarkAsRead(t *testing.T) {
 
 	found = false
 	for _, m := range res.Conversations[0].MaxMessages {
-		if m.Message.ServerHeader.MessageType == chat1.MessageType_TEXT {
-			if res.Conversations[0].ReaderInfo.ReadMsgid != m.Message.ServerHeader.MessageID {
+		if m.GetMessageType() == chat1.MessageType_TEXT {
+			if res.Conversations[0].ReaderInfo.ReadMsgid != m.GetMessageID() {
 				t.Fatalf("conversation was not marked as read\n")
 			}
 			found = true
@@ -385,12 +414,11 @@ func TestChatGracefulUnboxing(t *testing.T) {
 	if len(tv.Thread.Messages) != 3 {
 		t.Fatalf("unexpected response from GetThreadLocal. expected 3 items, got %d\n", len(tv.Thread.Messages))
 	}
-	if tv.Thread.Messages[0].Message != nil ||
-		tv.Thread.Messages[0].UnboxingError == nil || len(tv.Thread.Messages[0].UnboxingError.Errmsg) == 0 {
+	if tv.Thread.Messages[0].IsValid() || len(tv.Thread.Messages[0].Error().ErrMsg) == 0 {
 		t.Fatalf("unexpected response from GetThreadLocal. expected an error message from bad msg, got %#+v\n", tv.Thread.Messages[0])
 	}
-	if tv.Thread.Messages[1].Message == nil || tv.Thread.Messages[1].Message.MessagePlaintext.V1().MessageBody.Text().Body != "innocent hello" {
-		t.Fatalf("unexpected response from GetThreadLocal. expected 'innocent hello' got %#+v\n", tv.Thread.Messages[1].Message)
+	if !tv.Thread.Messages[1].IsValid() || tv.Thread.Messages[1].Valid().MessageBody.Text().Body != "innocent hello" {
+		t.Fatalf("unexpected response from GetThreadLocal. expected 'innocent hello' got %#+v\n", tv.Thread.Messages[1].Valid())
 	}
 }
 
@@ -529,10 +557,10 @@ func TestGetMessagesLocal(t *testing.T) {
 		t.Fatalf("GetMessagesLocal error: %v", err)
 	}
 	for i, msg := range res.Messages {
-		if msg.Message == nil {
+		if !msg.IsValid() {
 			t.Fatalf("Missing message: %v", getIDs[i])
 		}
-		msgID := msg.Message.ServerHeader.MessageID
+		msgID := msg.GetMessageID()
 		if msgID != getIDs[i] {
 			t.Fatalf("Wrong message ID: got %v but expected %v", msgID, getIDs[i])
 		}

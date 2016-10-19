@@ -34,37 +34,34 @@ func randBytes(n int) []byte {
 	return ret
 }
 
-func makeMsgWithType(id chat1.MessageID, supersedes chat1.MessageID, typ chat1.MessageType) chat1.MessageFromServerOrError {
-	return chat1.MessageFromServerOrError{
-		Message: &chat1.MessageFromServer{
-			ServerHeader: chat1.MessageServerHeader{
-				MessageID:   id,
-				MessageType: typ,
-			},
-			MessagePlaintext: chat1.NewMessagePlaintextWithV1(chat1.MessagePlaintextV1{
-				ClientHeader: chat1.MessageClientHeader{
-					Supersedes: supersedes,
-				},
-			}),
+func makeMsgWithType(id chat1.MessageID, supersedes chat1.MessageID, typ chat1.MessageType) chat1.MessageUnboxed {
+	msg := chat1.MessageUnboxedValid{
+		ServerHeader: chat1.MessageServerHeader{
+			MessageID: id,
+		},
+		ClientHeader: chat1.MessageClientHeader{
+			MessageType: typ,
+			Supersedes:  supersedes,
 		},
 	}
+	return chat1.NewMessageUnboxedWithValid(msg)
 }
 
-func makeMsg(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageFromServerOrError {
+func makeMsg(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnboxed {
 	return makeMsgWithType(id, supersedes, chat1.MessageType_TEXT)
 }
 
-func makeMsgRange(max int) (res []chat1.MessageFromServerOrError) {
+func makeMsgRange(max int) (res []chat1.MessageUnboxed) {
 	for i := max; i > 0; i-- {
 		res = append(res, makeMsg(chat1.MessageID(i), chat1.MessageID(0)))
 	}
 	return res
 }
 
-func addMsgs(num int, msgs []chat1.MessageFromServerOrError) []chat1.MessageFromServerOrError {
+func addMsgs(num int, msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
 	maxID := msgs[0].GetMessageID()
 	for i := 0; i < num; i++ {
-		msgs = append([]chat1.MessageFromServerOrError{makeMsg(chat1.MessageID(int(maxID)+i+1), 0)},
+		msgs = append([]chat1.MessageUnboxed{makeMsg(chat1.MessageID(int(maxID)+i+1), 0)},
 			msgs...)
 	}
 	return msgs
@@ -240,7 +237,7 @@ func TestStorageSupersedes(t *testing.T) {
 	msgs := makeMsgRange(110)
 	superseder := makeMsg(chat1.MessageID(111), 6)
 	superseder2 := makeMsg(chat1.MessageID(112), 11)
-	msgs = append([]chat1.MessageFromServerOrError{superseder}, msgs...)
+	msgs = append([]chat1.MessageUnboxed{superseder}, msgs...)
 	conv := makeConversation(msgs[0].GetMessageID())
 
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
@@ -250,18 +247,18 @@ func TestStorageSupersedes(t *testing.T) {
 	for i := 0; i < len(res.Messages); i++ {
 		require.Equal(t, msgs[i].GetMessageID(), res.Messages[i].GetMessageID(), "msg mismatch")
 	}
-	sheader := res.Messages[len(msgs)-6].Message.ServerHeader
+	sheader := res.Messages[len(msgs)-6].Valid().ServerHeader
 	require.Equal(t, chat1.MessageID(6), sheader.MessageID, "MessageID incorrect")
 	require.Equal(t, chat1.MessageID(111), sheader.SupersededBy, "supersededBy incorrect")
 
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid,
-		[]chat1.MessageFromServerOrError{superseder2}))
+		[]chat1.MessageUnboxed{superseder2}))
 	conv.ReaderInfo.MaxMsgid = 112
-	msgs = append([]chat1.MessageFromServerOrError{superseder2}, msgs...)
+	msgs = append([]chat1.MessageUnboxed{superseder2}, msgs...)
 	res, err = storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 	require.NoError(t, err)
 
-	sheader = res.Messages[len(msgs)-11].Message.ServerHeader
+	sheader = res.Messages[len(msgs)-11].Valid().ServerHeader
 	require.Equal(t, chat1.MessageID(11), sheader.MessageID, "MessageID incorrect")
 	require.Equal(t, chat1.MessageID(112), sheader.SupersededBy, "supersededBy incorrect")
 }
@@ -341,8 +338,8 @@ func TestStoragePagination(t *testing.T) {
 	}
 }
 
-func mkarray(m chat1.MessageFromServerOrError) []chat1.MessageFromServerOrError {
-	return []chat1.MessageFromServerOrError{m}
+func mkarray(m chat1.MessageUnboxed) []chat1.MessageUnboxed {
+	return []chat1.MessageUnboxed{m}
 }
 
 func TestStorageTypeFilter(t *testing.T) {

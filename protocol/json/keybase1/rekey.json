@@ -107,6 +107,19 @@
         "FIXED_1",
         "IGNORED_2"
       ]
+    },
+    {
+      "type": "record",
+      "name": "RevokeWarning",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "TLF"
+          },
+          "name": "endangeredTLFs"
+        }
+      ]
     }
   ],
   "messages": {
@@ -163,6 +176,24 @@
       ],
       "response": null,
       "doc": "RekeySync flushes the current rekey loop and gets to a good stopping point\n   to assert state. Good for race-free testing, not very useful in production.\n   Force overrides a long-snooze."
+    },
+    "getRevokeWarning": {
+      "request": [
+        {
+          "name": "session",
+          "type": "int"
+        },
+        {
+          "name": "actingDevice",
+          "type": "DeviceID"
+        },
+        {
+          "name": "targetDevice",
+          "type": "DeviceID"
+        }
+      ],
+      "response": "RevokeWarning",
+      "doc": "GetRevokeWarning computes the TLFs that will be endangered if actingDevice\n   revokes targetDevice."
     }
   },
   "namespace": "keybase.1"

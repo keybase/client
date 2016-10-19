@@ -42,7 +42,7 @@ protocol remote {
   }
 
   record PostRemoteRes {
-    MessageID msgID;
+    MessageServerHeader msgHeader;
     union { null, RateLimit } rateLimit;
   }
 

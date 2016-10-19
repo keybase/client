@@ -94,7 +94,7 @@ type chatCLIConversationFetcher struct {
 	chatClient chat1.LocalInterface // for testing only
 }
 
-func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations chat1.ConversationLocal, messages []chat1.MessageFromServerOrError, err error) {
+func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations chat1.ConversationLocal, messages []chat1.MessageUnboxed, err error) {
 	chatClient := f.chatClient // should be nil unless in test
 	if chatClient == nil {
 		chatClient, err = GetChatLocalClient(g)
@@ -149,8 +149,8 @@ func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) 
 	return res.Conversations, nil
 }
 
-func fetchOneMessage(g *libkb.GlobalContext, conversationID chat1.ConversationID, messageID chat1.MessageID) (chat1.MessageFromServerOrError, error) {
-	deflt := chat1.MessageFromServerOrError{}
+func fetchOneMessage(g *libkb.GlobalContext, conversationID chat1.ConversationID, messageID chat1.MessageID) (chat1.MessageUnboxed, error) {
+	deflt := chat1.MessageUnboxed{}
 
 	chatClient, err := GetChatLocalClient(g)
 	if err != nil {
