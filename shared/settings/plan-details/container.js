@@ -4,7 +4,6 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/router'
 import {priceToString, planToStars} from '../../constants/plan-billing'
-// import {onChangeNewPassphrase, onChangeNewPassphraseConfirm, onChangeShowPassphrase, onSubmitNewPassphrase, onUpdatePGPSettings} from '../../actions/settings'
 
 import type {AvailablePlan} from '../../constants/plan-billing'
 import type {PlanLevel} from '../../constants/settings'
@@ -48,7 +47,7 @@ export default connect(
       numStars: planToStars(ownProps.selectedLevel),
       paymentOption: {
         type: 'credit-card-no-past',
-        onAddCreditCard: () => {}, // TODO
+        onAddCreditCard: () => console.log('onadd credit'), // TODO
       },
     }
   },
@@ -60,7 +59,7 @@ export default connect(
     ...dispatchProps,
     paymentOption: {
       ...stateProps.paymentOption,
-      onAddCreditCard: () => console.log('onadd credit'),
+      onAddCreditCard: () => console.log('onadd credit'), // TODO
     },
   }),
 )(PlanDetailsContainer)

@@ -166,6 +166,19 @@ export function planToStars (plan: string): number {
   }[plan] || 0
 }
 
+export type ChangeType = 'change' | 'upgrade' | 'downgrade'
+
+export function comparePlans (from: AvailablePlan, to: AvailablePlan): ChangeType {
+  if (!from.price_pennies && to.price_pennies) {
+    return 'upgrade'
+  }
+  if (from.price_pennies && !to.price_pennies) {
+    return 'downgrade'
+  }
+
+  return 'change'
+}
+
 export function priceToString (pennies: number): string {
   if (!pennies) {
     return 'Free'

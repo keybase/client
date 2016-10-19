@@ -4,17 +4,17 @@ import SubHeading from '../subheading'
 import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
 import {Stars} from '../common.desktop.js'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {priceToString, planToStars} from '../../constants/plan-billing'
+import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
 
 import type {Props, AccountProps, PlanProps} from './index'
 import type {PlanLevel} from '../../constants/settings'
-import type {PaymentInfo as PaymentInfoType, AvailablePlan} from '../../constants/plan-billing'
+import type {PaymentInfo as PaymentInfoType, AvailablePlan, ChangeType} from '../../constants/plan-billing'
 
 const ROW_HEIGHT = 48
 
 type PlanActionVariantsProps = {
   type: 'change',
-  direction: 'upgrade' | 'downgrade',
+  changeType: ChangeType,
 } | {
   type: 'spaceInfo',
   freeSpace: string,
@@ -31,7 +31,7 @@ type PlanLevelProps = {
     variants: PlanActionVariantsProps,
 }
 
-function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean, isUpgrade: boolean): PlanActionVariantsProps {
+function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean, changeType: ChangeType): PlanActionVariantsProps {
   if (selectedLevel === otherLevel) {
     return {
       type: 'spaceInfo',
@@ -43,7 +43,7 @@ function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, fr
 
   return {
     type: 'change',
-    direction: isUpgrade ? 'upgrade' : 'downgrade',
+    changeType: changeType,
   }
 }
 
@@ -64,8 +64,8 @@ function SpaceInfo ({freeSpace, freeSpacePercentage, lowSpaceWarning}: {freeSpac
   )
 }
 
-const UpgradeButton = ({onClick}) => (
-  <Button style={{marginRight: 0}} type='Follow' label='Upgrade' onClick={e => {
+const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 'change'}) => (
+  <Button style={{marginRight: 0}} type='Follow' label={{'upgrade': 'Upgrade', 'change': 'Change'}[type]} onClick={e => {
     onClick()
     e.stopPropagation()
   }} />
@@ -83,7 +83,9 @@ const DowngradeLink = ({onClick}) => (
 function PlanActionVariants ({variants, onClick}: {variants: PlanActionVariantsProps, onClick: () => void}) {
   switch (variants.type) {
     case 'change':
-      return variants.direction === 'upgrade' ? <UpgradeButton onClick={onClick} /> : <DowngradeLink onClick={onClick} />
+      return variants.changeType === 'downgrade'
+        ? <DowngradeLink onClick={onClick} />
+        : <UpgradeButton onClick={onClick} type={variants.changeType} />
     case 'spaceInfo':
       return <SpaceInfo {...variants} />
   }
@@ -141,6 +143,11 @@ function PaymentInfo ({name, last4Digits, isBroken, onChangePaymentInfo}: Paymen
 }
 
 function Plan ({onInfo, freeSpace, freeSpacePercentage, selectedLevel, paymentInfo, onChangePaymentInfo, lowSpaceWarning, planInfo, plans}: PlanProps & {plans: Array<AvailablePlan>}) {
+  const from: ?AvailablePlan = plans.find((plan: AvailablePlan) => plan.planLevel === selectedLevel)
+  if (!from) {
+    throw new Error("Can't find existing plan")
+  }
+
   return (
     <Box style={globalStyles.flexBoxColumn}>
       <Box style={globalStyles.flexBoxColumn}>
@@ -153,7 +160,7 @@ function Plan ({onInfo, freeSpace, freeSpacePercentage, selectedLevel, paymentIn
           onInfo={() => onInfo(p.planLevel)}
           price={priceToString(p.price_pennies)}
           gigabytes={p.gigabytes}
-          variants={variantPropsHelper(selectedLevel, p.planLevel, freeSpace, freeSpacePercentage, lowSpaceWarning, p.price_pennies > planInfo.price_pennies)} />))}
+          variants={variantPropsHelper(selectedLevel, p.planLevel, freeSpace, freeSpacePercentage, lowSpaceWarning, comparePlans(from, p))} />))}
       {!!paymentInfo && <PaymentInfo {...paymentInfo} onChangePaymentInfo={onChangePaymentInfo} />}
       {!!paymentInfo &&
         <Text style={{marginTop: globalMargins.small}} type='BodySmall'>
