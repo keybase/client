@@ -2,17 +2,20 @@
 import Devices from './devices'
 import DumbSheet from './dev/dumb-sheet'
 import Folders from './folders'
+import GlobalError from './global-errors/container'
 import Login from './login'
 import MetaNavigator from './router/meta-navigator'
 import NoTab from './no-tab'
 import ProfileContainer from './profile/container'
+import PushNotification from 'react-native-push-notification'
 import React, {Component} from 'react'
+// import {PushNotificationIOS} from 'react-native'
 import Search from './search'
 import Settings from './settings'
 import TabBar from './tab-bar/index.render.native'
 import globalRoutes from './router/global-routes'
 import hello from './util/hello'
-import {Box, NativeNavigator, Text, ClickableBox, Icon} from './common-adapters/index.native'
+import {Box, NativeNavigator, Text, ClickableBox, Icon, Button} from './common-adapters/index.native'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {globalStyles, globalColors, navBarHeight} from './styles/index.native'
@@ -20,7 +23,6 @@ import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
 import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
-import GlobalError from './global-errors/container'
 
 import type {VisibleTab} from './constants/tabs'
 
@@ -87,15 +89,58 @@ function NavigationBarRouteMapper (navigateTo, navigateUp) {
   }
 }
 
-class Nav extends Component {
-  constructor (props) {
+type State = {
+  askForPush: boolean,
+}
+
+type Props = any
+
+class Nav extends Component<void, Props, State> {
+  state: State;
+
+  constructor (props: Props) {
     super(props)
+
+    this.state = {
+      askForPush: true,
+    }
 
     this.props.bootstrap()
     this.props.listenForNotifications()
 
     // Introduce ourselves to the service
     hello(0, 'iOS app', [], '0.0.0') // TODO real version
+
+    // PushNotificationIOS.addEventListener('register', token => this.props.pushGotToken(token))
+
+    PushNotification.configure({
+      onRegister: token => this.props.pushGotToken(token),
+      onNotification: notification => this.props.pushGotNotification(notification),
+      permissions: {
+        alert: true,
+        badge: true,
+        sound: true,
+      },
+      popInitialNotification: true,
+      requestPermissions: true,
+    })
+
+    PushNotification.checkPermissions(permissions => {
+      console.log('aaaa', permissions)
+      if (permissions.alert) {
+        this.setState({askForPush: false})
+
+        console.log('requesting persmissions')
+        PushNotification.requestPermissions()
+
+        console.log('aaa sending local notification')
+        setTimeout(() => {
+          PushNotification.localNotification({
+            message: 'My Notification Message', // (required)
+          })
+        }, 2000)
+      }
+    })
   }
 
   navBar () {
@@ -126,13 +171,37 @@ class Nav extends Component {
     )
   }
 
+  _onSeenPushWarning () {
+    this.setState({askForPush: false})
+
+    console.log('requesting persmissions')
+    PushNotification.requestPermissions()
+  }
+
+  _renderAskForPush () {
+    return (
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, backgroundColor: globalColors.black_75, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, justifyContent: 'center', alignItems: 'center'}}>
+        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch', backgroundColor: globalColors.darkBlue3, padding: 20, margin: 40, borderRadius: 10}}>
+          <Text type='Body' backgroundMode='Terminal' style={{textAlign: 'center'}}>It's <Text type='BodySemibold' backgroundMode='Terminal' >very</Text> important you enable notifications.</Text>
+          <Text type='Body' backgroundMode='Terminal' style={{textAlign: 'center', marginTop: 20}}>
+              This phone may need to perform crypto for you, which the Keybase servers cannot do. For example, if you provision a new device, this phone will be contacted.
+          </Text>
+          <Box style={{alignSelf: 'flex-end', marginTop: 20}}>
+            <Button type='Primary' onClick={() => this._onSeenPushWarning()} label='Got it!' />
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
+
   _activeTab () {
     return this.props.router.get('activeTab')
   }
 
   shouldComponentUpdate (nextProps, nextState) {
     return (nextProps.router.get('activeTab') !== this._activeTab() ||
-            nextProps.dumbFullscreen !== this.props.dumbFullscreen)
+      nextProps.dumbFullscreen !== this.props.dumbFullscreen ||
+      nextState !== this.state)
   }
 
   render () {
@@ -156,6 +225,7 @@ class Nav extends Component {
     return (
       <Box style={{flex: 1}}>
         <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />
+        {this.state.askForPush && this._renderAskForPush()}
       </Box>
     )
   }
@@ -207,5 +277,7 @@ export default connect(
     navigateTo: uri => dispatch(navigateTo(uri)),
     bootstrap: () => dispatch(bootstrap()),
     listenForNotifications: () => dispatch(listenForNotifications()),
+    pushGotToken: token => console.log('Got token: ', token),
+    pushGotNotification: notification => console.log('Got notification: ', notification),
   })
 )(Nav)
