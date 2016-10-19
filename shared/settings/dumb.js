@@ -171,7 +171,6 @@ const planBase = {
   lowSpaceWarning: false,
   onChangePaymentInfo: () => console.log('onChangePaymentInfo'),
   paymentInfo: null,
-  planInfo: planInfoBasic,
 }
 
 const landingBase = {

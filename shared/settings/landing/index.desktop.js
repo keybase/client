@@ -142,7 +142,7 @@ function PaymentInfo ({name, last4Digits, isBroken, onChangePaymentInfo}: Paymen
   )
 }
 
-function Plan ({onInfo, freeSpace, freeSpacePercentage, selectedLevel, paymentInfo, onChangePaymentInfo, lowSpaceWarning, planInfo, plans}: PlanProps & {plans: Array<AvailablePlan>}) {
+function Plan ({onInfo, freeSpace, freeSpacePercentage, selectedLevel, paymentInfo, onChangePaymentInfo, lowSpaceWarning, plans}: PlanProps & {plans: Array<AvailablePlan>}) {
   const from: ?AvailablePlan = plans.find((plan: AvailablePlan) => plan.planLevel === selectedLevel)
   if (!from) {
     throw new Error("Can't find existing plan")

@@ -36,7 +36,6 @@ export default connect(
           lowSpaceWarning: false,
           paymentInfo,
           onChangePaymentInfo: () => console.log('todo'),
-          planInfo: availablePlans[0], // TODO wrong
         },
         plans: availablePlans,
       },
