@@ -92,10 +92,10 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 	if e.pps.PassphraseStream == nil {
 		e.G().Log.Debug("kex2 provisioner needs passphrase stream, getting it from LoginState")
 		pps, err := e.G().LoginState().GetPassphraseStreamStored(ctx.SecretUI)
-		e.pps = pps.Export()
 		if err != nil {
 			return err
 		}
+		e.pps = pps.Export()
 	}
 
 	// ctx needed by some kex2 functions
