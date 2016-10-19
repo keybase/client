@@ -145,7 +145,7 @@ func (m TlfMock) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (res keyb
 }
 
 // Not used by service tests
-func (m TlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, arg keybase1.CompleteAndCanonicalizeTlfNameArg) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+func (m TlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, errors.New("unimplemented")
 }
 

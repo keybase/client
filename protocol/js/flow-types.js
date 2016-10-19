@@ -4712,8 +4712,7 @@ export type testTestRpcParam = Exact<{
 }>
 
 export type tlfCompleteAndCanonicalizeTlfNameRpcParam = Exact<{
-  query: TLFQuery,
-  isPublic: bool
+  query: TLFQuery
 }>
 
 export type tlfCryptKeysRpcParam = Exact<{
