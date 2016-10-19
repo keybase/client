@@ -1327,6 +1327,8 @@ type Config interface {
 	MDCache() MDCache
 	SetMDCache(MDCache)
 	KeyCache() KeyCache
+	SetKeyBundleCache(KeyBundleCache)
+	KeyBundleCache() KeyBundleCache
 	SetKeyCache(KeyCache)
 	BlockCache() BlockCache
 	SetBlockCache(BlockCache)
@@ -1749,11 +1751,11 @@ type MutableBareRootMetadata interface {
 // KeyBundleCache is an interface to a key bundle cache for use with v3 metadata.
 type KeyBundleCache interface {
 	// GetTLFReaderKeyBundle returns the TLFReaderKeyBundleV2 for the given TLFReaderKeyBundleID.
-	GetTLFReaderKeyBundle(TLFReaderKeyBundleID) (TLFReaderKeyBundleV3, bool)
+	GetTLFReaderKeyBundle(TlfID, TLFReaderKeyBundleID) (*TLFReaderKeyBundleV3, error)
 	// GetTLFWriterKeyBundle returns the TLFWriterKeyBundleV3 for the given TLFWriterKeyBundleID.
-	GetTLFWriterKeyBundle(TLFWriterKeyBundleID) (TLFWriterKeyBundleV3, bool)
-	// PutTLFReaderKeyBundle stores the given TLFReaderKeyBundleV2.
-	PutTLFReaderKeyBundle(TLFReaderKeyBundleV3)
+	GetTLFWriterKeyBundle(TlfID, TLFWriterKeyBundleID) (*TLFWriterKeyBundleV3, error)
+	// PutTLFReaderKeyBundle stores the given TLFReaderKeyBundleV3.
+	PutTLFReaderKeyBundle(TlfID, TLFReaderKeyBundleID, *TLFReaderKeyBundleV3)
 	// PutTLFWriterKeyBundle stores the given TLFWriterKeyBundleV3.
-	PutTLFWriterKeyBundle(TLFWriterKeyBundleV3)
+	PutTLFWriterKeyBundle(TlfID, TLFWriterKeyBundleID, *TLFWriterKeyBundleV3)
 }

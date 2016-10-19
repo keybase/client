@@ -20,6 +20,8 @@ type mdCacheKey struct {
 	bid BranchID
 }
 
+const defaultMDCacheCapacity = 5000
+
 // NewMDCacheStandard constructs a new MDCacheStandard using the given
 // cache capacity.
 func NewMDCacheStandard(capacity int) *MDCacheStandard {

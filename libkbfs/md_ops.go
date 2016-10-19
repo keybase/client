@@ -567,18 +567,45 @@ func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
 	return md.config.MDServer().GetLatestHandleForTLF(ctx, id)
 }
 
-// MDv3 TODO: cache extra metadata
 func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) (
-	ExtraMetadata, error) {
+	extra ExtraMetadata, err error) {
 	wkbID, rkbID := brmd.GetTLFWriterKeyBundleID(), brmd.GetTLFReaderKeyBundleID()
 	if (wkbID == TLFWriterKeyBundleID{}) || (rkbID == TLFReaderKeyBundleID{}) {
-		// pre-v3 metadata embed key bundles and as such won't set any IDs
+		// Pre-v3 metadata embed key bundles and as such won't set any IDs.
 		return nil, nil
 	}
 	mdserv := md.config.MDServer()
-	wkb, rkb, err := mdserv.GetKeyBundles(ctx, brmd.TlfID(), wkbID, rkbID)
+	kbcache := md.config.KeyBundleCache()
+	tlf := brmd.TlfID()
+	// Check the cache.
+	wkb, err2 := kbcache.GetTLFWriterKeyBundle(tlf, wkbID)
+	if err2 != nil {
+		md.log.CDebugf(ctx, "Error fetching writer key bundle %s from cache for TLF %s: %s",
+			wkbID, tlf, err2)
+	}
+	rkb, err2 := kbcache.GetTLFReaderKeyBundle(tlf, rkbID)
+	if err2 != nil {
+		md.log.CDebugf(ctx, "Error fetching reader key bundle %s from cache for TLF %s: %s",
+			rkbID, tlf, err2)
+	}
+	if wkb != nil && rkb != nil {
+		return &ExtraMetadataV3{wkb: wkb, rkb: rkb}, nil
+	}
+	if wkb != nil {
+		// Don't need the writer bundle.
+		_, rkb, err = mdserv.GetKeyBundles(ctx, tlf, TLFWriterKeyBundleID{}, rkbID)
+	} else if rkb != nil {
+		// Don't need the reader bundle.
+		wkb, _, err = mdserv.GetKeyBundles(ctx, tlf, wkbID, TLFReaderKeyBundleID{})
+	} else {
+		// Need them both.
+		wkb, rkb, err = mdserv.GetKeyBundles(ctx, tlf, wkbID, rkbID)
+	}
 	if err != nil {
 		return nil, err
 	}
+	// Cache the results.
+	kbcache.PutTLFWriterKeyBundle(tlf, wkbID, wkb)
+	kbcache.PutTLFReaderKeyBundle(tlf, rkbID, rkb)
 	return &ExtraMetadataV3{wkb: wkb, rkb: rkb}, nil
 }

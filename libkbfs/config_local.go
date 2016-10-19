@@ -52,6 +52,7 @@ type ConfigLocal struct {
 	keyman      KeyManager
 	rep         Reporter
 	kcache      KeyCache
+	kbcache     KeyBundleCache
 	bcache      BlockCache
 	dirtyBcache DirtyBlockCache
 	codec       kbfscodec.Codec
@@ -303,6 +304,20 @@ func (c *ConfigLocal) SetKeyCache(k KeyCache) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.kcache = k
+}
+
+// KeyBundleCache implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) KeyBundleCache() KeyBundleCache {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.kbcache
+}
+
+// SetKeyBundleCache implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetKeyBundleCache(k KeyBundleCache) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.kbcache = k
 }
 
 // BlockCache implements the Config interface for ConfigLocal.
@@ -610,8 +625,9 @@ func (c *ConfigLocal) MaxDirBytes() uint64 {
 func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	c.mdcache = NewMDCacheStandard(5000)
-	c.kcache = NewKeyCacheStandard(5000)
+	c.mdcache = NewMDCacheStandard(defaultMDCacheCapacity)
+	c.kcache = NewKeyCacheStandard(defaultMDCacheCapacity)
+	c.kbcache = NewKeyBundleCacheStandard(defaultMDCacheCapacity * 2)
 	// Limit the block cache to 10K entries or 1024 blocks (currently 512MiB)
 	c.bcache = NewBlockCacheStandard(10000, MaxBlockSizeBytesDefault*1024)
 	oldDirtyBcache := c.dirtyBcache

@@ -286,6 +286,10 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 		keyCache := config.KeyCache()
 		keyCache = NewKeyCacheMeasured(keyCache, registry)
 		config.SetKeyCache(keyCache)
+
+		keyBundleCache := config.KeyBundleCache()
+		keyBundleCache = NewKeyBundleCacheMeasured(keyBundleCache, registry)
+		config.SetKeyBundleCache(keyBundleCache)
 	}
 
 	// Set logging

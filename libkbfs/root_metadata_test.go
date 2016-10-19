@@ -109,6 +109,15 @@ func newRootMetadataOrBust(
 	return rmd
 }
 
+func newRootMetadataV3OrBust(
+	t *testing.T, tlfID TlfID, h *TlfHandle) *RootMetadata {
+	rmd := &RootMetadata{bareMd: &BareRootMetadataV3{}}
+	err := rmd.Update(tlfID, h.ToBareHandleOrBust())
+	require.NoError(t, err)
+	rmd.tlfHandle = h
+	return rmd
+}
+
 // Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
 // public TLFs.
 func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
