@@ -262,3 +262,18 @@ func clearFolderListCacheLoop(ctx context.Context, r *Root) {
 		r.public.clearAliasCache()
 	}
 }
+
+// update things after user changed.
+func (fl *FolderList) userChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername) {
+	var fs []*Folder
+	func() {
+		fl.mu.Lock()
+		defer fl.mu.Unlock()
+		for _, tlf := range fl.folders {
+			fs = append(fs, tlf.folder)
+		}
+	}()
+	for _, f := range fs {
+		f.TlfHandleChange(ctx, nil)
+	}
+}

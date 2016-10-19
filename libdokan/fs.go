@@ -69,7 +69,7 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 
 	ctx = wrapContext(ctx, f)
 
-	f.remoteStatus.Init(ctx, f.log, f.config)
+	f.remoteStatus.Init(ctx, f.log, f.config, f)
 	f.notifications.LaunchProcessor(ctx)
 	go clearFolderListCacheLoop(ctx, f.root)
 
@@ -563,6 +563,12 @@ func (f *FS) stringReadFile(contents string) dokan.File {
 		},
 		fs: f,
 	}
+}
+
+// UserChanged is called from libfs.
+func (f *FS) UserChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername) {
+	f.root.public.userChanged(ctx, oldName, newName)
+	f.root.private.userChanged(ctx, oldName, newName)
 }
 
 // Root represents the root of the KBFS file system.
