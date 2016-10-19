@@ -583,7 +583,12 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	if jErr == nil {
 		status := jServer.Status()
 		jServerStatus = &status
+		err := fillInJournalStatusUnflushedPaths(ctx, fs.config, jServerStatus)
+		if err != nil {
+			return KBFSStatus{}, nil, err
+		}
 	}
+
 	return KBFSStatus{
 		CurrentUser:     username.String(),
 		IsConnected:     fs.config.MDServer().IsConnected(),
