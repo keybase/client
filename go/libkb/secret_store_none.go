@@ -45,7 +45,7 @@ func (t TestSecretStoreAll) RetrieveSecret(accountName NormalizedUsername) (ret 
 
 	ret, ok := t.secretStoreNoneMap[accountName]
 
-	t.G().Log.Debug("| TestSecretStore::RetrieveSecret(%d)", len(ret))
+	t.G().Log.Debug("| TestSecretStore::RetrieveSecret(isNil=%v)", ret.IsNil())
 
 	if !ok {
 		return LKSecFullSecret{}, errors.New("No secret to retrieve")
