@@ -22,7 +22,6 @@ function editProfile (bio: string, fullname: string, location: string): EditProf
 
 function * _editProfile (action: EditProfile): SagaGenerator<any, any> {
   try {
-    yield put({type: Constants.editingProfile, payload: action.payload})
     yield call(apiserverPostRpcPromise, {
       param: {
         endpoint: 'profile-edit',
@@ -34,11 +33,8 @@ function * _editProfile (action: EditProfile): SagaGenerator<any, any> {
       },
     })
 
-    yield put({type: Constants.editedProfile, payload: null})
     yield put(navigateUp())
-  } catch (error) {
-    yield put({type: Constants.editedProfile, payload: error, error: true})
-  }
+  } catch (_) { }
 }
 
 function updateUsername (username: string): UpdateUsername {
@@ -171,8 +167,9 @@ function outputInstructionsActionLink (): OutputInstructionsActionLink {
 }
 
 function * _outputInstructionsActionLink (): SagaGenerator<any, any> {
-  // $FlowIssue @marco dunno why this isn't working
-  const profile: State = yield select((state: TypedState) => state.profile)
+  const getProfile = (state: TypedState) => state.profile
+  const profile: State = ((yield select(getProfile)): any)
+
   switch (profile.platform) {
     case 'coinbase':
       yield call(openURL, `https://coinbase.com/${profile.username}#settings`)

@@ -12,6 +12,7 @@ import type {AddProof, AskTextOrDNS, CancelAddProof, CheckProof, CleanupUsername
 import type {PlatformsExpandedType, ProvablePlatformsType} from '../../constants/types/more'
 import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
 import type {SigID} from '../../constants/types/flow-types'
+import type {TypedState} from '../../constants/reducer'
 
 function _updatePlatform (platform: PlatformsExpandedType): UpdatePlatform {
   return {type: Constants.updatePlatform, payload: {platform}}
@@ -70,7 +71,8 @@ function checkProof (): CheckProof {
 }
 
 function * _checkProof (action: CheckProof): SagaGenerator<any, any> {
-  const sigID = yield select(state => state.profile.sigID)
+  const getSigID = (state: TypedState) => state.profile.sigID
+  const sigID = ((yield select(getSigID)): any)
   if (!sigID) {
     return
   }
@@ -82,7 +84,8 @@ function * _checkProof (action: CheckProof): SagaGenerator<any, any> {
     // $ForceType
     const {found, status} = yield call(proveCheckProofRpcPromise, {param: {sigID}})
     yield put(_waitingForResponse(false))
-    // this enum value is the divider between soft and hard errors
+
+    // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
     if (!found && status >= ProveCommonProofStatus.baseHardError) {
       yield put(_updateErrorText("We couldn't find your proof. Please retry!"))
     } else {
