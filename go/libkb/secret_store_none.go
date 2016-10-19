@@ -12,7 +12,7 @@ import (
 // Used by tests that want to mock out the secret store.
 type TestSecretStoreAll struct {
 	context            SecretStoreContext
-	secretStoreNoneMap map[NormalizedUsername]LKSFullSecret
+	secretStoreNoneMap map[NormalizedUsername]LKSecFullSecret
 	Contextified
 }
 
@@ -41,7 +41,7 @@ func (t TestSecretStoreAll) GetAllUserNames() (NormalizedUsername, []NormalizedU
 	return t.context.GetAllUserNames()
 }
 
-func (t TestSecretStoreAll) RetrieveSecret(accountName NormalizedUsername) (ret LKSFullSecret, err error) {
+func (t TestSecretStoreAll) RetrieveSecret(accountName NormalizedUsername) (ret LKSecFullSecret, err error) {
 
 	ret, ok := t.secretStoreNoneMap[accountName]
 
@@ -54,7 +54,7 @@ func (t TestSecretStoreAll) RetrieveSecret(accountName NormalizedUsername) (ret 
 	return
 }
 
-func (t TestSecretStoreAll) StoreSecret(accountName NormalizedUsername, secret LKSFullSecret) error {
+func (t TestSecretStoreAll) StoreSecret(accountName NormalizedUsername, secret LKSecFullSecret) error {
 	t.G().Log.Debug("| TestSecretStore::StoreSecret(%d)", len(secret))
 
 	t.secretStoreNoneMap[accountName] = secret
