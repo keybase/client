@@ -32,7 +32,7 @@ func (t TestSecretStoreAll) GetApprovalPrompt() string {
 }
 
 func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
-	ret := TestSecretStoreAll{context: c, secretStoreNoneMap: map[NormalizedUsername][]byte{}}
+	ret := TestSecretStoreAll{context: c, secretStoreNoneMap: map[NormalizedUsername]LKSecFullSecret}
 	ret.SetGlobalContext(g)
 	return ret
 }
@@ -48,14 +48,14 @@ func (t TestSecretStoreAll) RetrieveSecret(accountName NormalizedUsername) (ret 
 	t.G().Log.Debug("| TestSecretStore::RetrieveSecret(%d)", len(ret))
 
 	if !ok {
-		return nil, errors.New("No secret to retrieve")
+		return LKSecFullSecret{}, errors.New("No secret to retrieve")
 	}
 
-	return
+	return ret, nil
 }
 
 func (t TestSecretStoreAll) StoreSecret(accountName NormalizedUsername, secret LKSecFullSecret) error {
-	t.G().Log.Debug("| TestSecretStore::StoreSecret(%d)", len(secret))
+	t.G().Log.Debug("| TestSecretStore::StoreSecret(isNil=%v)", secret.IsNil())
 
 	t.secretStoreNoneMap[accountName] = secret
 	return nil
