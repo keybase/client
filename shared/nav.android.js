@@ -17,7 +17,7 @@ import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
-import {navigateBack, switchTab} from './actions/router'
+import {navigateUp, switchTab} from './actions/router'
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, prettify} from './constants/tabs'
 import {setupSource} from './util/forward-logs.native'
 import GlobalError from './global-errors/container'
@@ -91,12 +91,12 @@ class Nav extends Component {
 
   componentWillMount () {
     NativeBackAndroid.addEventListener('hardwareBackPress', () => {
-      // TODO Properly handle android back button press
+      // Just going up vs back for now
       const currentRoute = this.props.router.getIn(['tabs', this.props.router.get('activeTab'), 'uri'])
       if (currentRoute == null || currentRoute.count() <= 1) {
         return false
       }
-      this.props.navigateBack()
+      this.props.navigateUp()
       return true
     })
   }
@@ -164,7 +164,6 @@ class Nav extends Component {
           </Box>
         </Box>
       </NativeDrawerLayoutAndroid>
-
     )
   }
 }
@@ -219,12 +218,10 @@ export default connect(
       dumbFullscreen,
       folderBadge: privateBadge + publicBadge,
     }),
-  dispatch => {
-    return {
-      switchTab: tab => dispatch(switchTab(tab)),
-      navigateBack: () => dispatch(navigateBack()),
-      bootstrap: () => dispatch(bootstrap()),
-      listenForNotifications: () => dispatch(listenForNotifications()),
-    }
-  }
+  dispatch => ({
+    switchTab: tab => dispatch(switchTab(tab)),
+    navigateUp: () => dispatch(navigateUp()),
+    bootstrap: () => dispatch(bootstrap()),
+    listenForNotifications: () => dispatch(listenForNotifications()),
+  })
 )(Nav)
