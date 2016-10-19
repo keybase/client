@@ -3,16 +3,14 @@ import React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
 import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
+import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors, backgroundURL, globalMargins} from '../styles'
 
 const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, isPublic}) => {
   let boxStyle: Object = {
-    width: smallMode ? globalMargins.medium : globalMargins.large,
-    minHeight: smallMode ? 40 : globalMargins.large,
-    paddingTop: smallMode ? globalMargins.tiny : 12,
-    paddingBottom: smallMode ? globalMargins.tiny : 12,
-    paddingLeft: smallMode ? globalMargins.xtiny : globalMargins.tiny,
-    paddingRight: smallMode ? globalMargins.xtiny : globalMargins.tiny,
+    width: smallMode ? globalMargins.large : 48,
+    minHeight: smallMode ? globalMargins.large : 48,
+    padding: globalMargins.tiny,
   }
 
   if (isPublic) {
@@ -33,9 +31,9 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, is
 }
 
 const Modified = ({smallMode, styles, modified}) => {
-  const iconColor = Text._colorStyleBackgroundMode(styles.modifiedMode, 'BodyXSmall')
+  const iconColor = {color: getStyle('BodySmall', styles.modifiedMode).color}
   const boltStyle = {
-    fontSize: smallMode ? 12 : 14,
+    fontSize: smallMode ? 10 : 10,
     alignSelf: 'center',
     ...(smallMode ? {marginTop: 2} : {marginLeft: -2, marginRight: 1, marginTop: 2}),
     ...iconColor,
@@ -44,8 +42,8 @@ const Modified = ({smallMode, styles, modified}) => {
   return (
     <Box style={stylesModified}>
       <Icon type='iconfont-thunderbolt' style={boltStyle} hint='Modified' />
-      <Text type={smallMode ? 'BodyXSmall' : 'BodySmall'} backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-      <Text type={smallMode ? 'BodyXSmallLink' : 'BodySmallLink'} backgroundMode={styles.modifiedMode}>{modified.username}</Text>
+      <Text type='BodySmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
+      <Text type='BodySmallInlineLink' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
     </Box>
   )
 }
@@ -113,7 +111,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
           {!smallMode && meta !== 'rekey' && <Text
             type='BodySmall' className='folder-row-hover-action' onClick={onOpenClick} style={styles.action}>Open</Text>}
           {meta === 'rekey' && <Button
-            backgroundMode={styles.modifiedMode} small={smallMode} type='Secondary'
+            backgroundMode={styles.modifiedMode} small={true} type='Secondary'
             onClick={e => {
               if (onRekey) {
                 e.stopPropagation()

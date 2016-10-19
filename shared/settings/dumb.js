@@ -14,6 +14,7 @@ import Notifications from './notifications'
 import InviteGenerated from './invite-generated'
 import PlanDetails from './plan-details'
 import Invites from './invites'
+import Help from './help'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -250,12 +251,12 @@ const settingsNavMap: DumbComponentMap<SettingsNav> = {
     'Normal': settingsNavBase,
     'Normal - Good Banner': {
       ...settingsNavBase,
-      bannerElement: <Text type='BodySmallSemibold' style={bannerTextStyle} backgroundMode='Success'>Success! You have just upgraded to the Gold plan. </Text>,
+      bannerElement: <Text type='BodySemibold' style={bannerTextStyle} backgroundMode='Success'>Success! You have just upgraded to the Gold plan. </Text>,
       bannerType: 'green',
     },
     'Normal - Bad Banner': {
       ...settingsNavBase,
-      bannerElement: <Text type='BodySmallSemibold' style={bannerTextStyle} backgroundMode='HighRisk'>Your Visa **** 4242 has broken. Please update your preferred payment method.</Text>,
+      bannerElement: <Text type='BodySemibold' style={bannerTextStyle} backgroundMode='HighRisk'>Your Visa **** 4242 has broken. Please update your preferred payment method.</Text>,
       bannerType: 'red',
     },
   },
@@ -497,6 +498,13 @@ const invitesMap: DumbComponentMap<Invites> = {
   },
 }
 
+const helpMap: DumbComponentMap<Help> = {
+  component: Help,
+  mocks: {
+    'Normal': {},
+  },
+}
+
 export default {
   UpdateEmail: updateEmailMap,
   UpdatePassphrase: updatePassphraseMap,
@@ -509,4 +517,5 @@ export default {
   InviteGenerated: inviteGeneratedMap,
   PlanDetails: planDetailsMap,
   Invites: invitesMap,
+  Help: helpMap,
 }

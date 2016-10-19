@@ -545,6 +545,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-invite-code-no-more-48.png'),
   },
+  'icon-invite-link-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-invite-link-16.png'),
+  },
   'icon-invite-link-24': {
     isFont: false,
     extension: 'png',

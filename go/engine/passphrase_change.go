@@ -166,7 +166,7 @@ func (c *PassphraseChange) findUpdateKeys(ctx *Context) (*keypair, error) {
 	return kp, nil
 }
 
-func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf []byte) error {
+func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKey, ppGen libkb.PassphraseGeneration, oldClientHalf libkb.LKSecClientHalf) error {
 
 	pgpKeys, err := c.findAndDecryptPrivatePGPKeys(ctx)
 	if err != nil {
@@ -223,6 +223,10 @@ func (c *PassphraseChange) updatePassphrase(ctx *Context, sigKey libkb.GenericKe
 			acctErr = fmt.Errorf("api post to passphrase/sign error: %s", err)
 			return
 		}
+
+		// Reset passphrase stream cache so that subsequent updates go through
+		// without a problem (seee CORE-3933)
+		a.ClearStreamCache()
 	}, "PassphraseChange.runForcedUpdate")
 	if acctErr != nil {
 		return acctErr
@@ -312,6 +316,10 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 			acctErr = err
 			return
 		}
+
+		// Reset passphrase stream cache so that subsequent updates go through
+		// without a problem (seee CORE-3933)
+		a.ClearStreamCache()
 	}, "PassphraseChange.runStandardUpdate")
 	if acctErr != nil {
 		err = acctErr
@@ -323,7 +331,7 @@ func (c *PassphraseChange) runStandardUpdate(ctx *Context) (err error) {
 
 // commonArgs must be called inside a LoginState().Account(...)
 // closure
-func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pgpKeys []libkb.GenericKey, existingGen libkb.PassphraseGeneration) (libkb.JSONPayload, error) {
+func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf libkb.LKSecClientHalf, pgpKeys []libkb.GenericKey, existingGen libkb.PassphraseGeneration) (libkb.JSONPayload, error) {
 	// ensure that the login session is loaded
 	if err := a.LoadLoginSession(c.me.GetName()); err != nil {
 		return nil, err
@@ -344,8 +352,7 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 		return nil, err
 	}
 
-	mask := make([]byte, len(oldClientHalf))
-	libkb.XORBytes(mask, oldClientHalf, newClientHalf)
+	mask := oldClientHalf.ComputeMask(newClientHalf)
 
 	lksch := make(map[keybase1.KID]string)
 	devices := c.me.GetComputedKeyFamily().GetAllDevices()
@@ -357,7 +364,7 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 		if err != nil {
 			return nil, err
 		}
-		ctext, err := key.EncryptToString(newClientHalf, nil)
+		ctext, err := key.EncryptToString(newClientHalf.Bytes(), nil)
 		if err != nil {
 			return nil, err
 		}
@@ -367,7 +374,7 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 	payload := make(libkb.JSONPayload)
 	payload["pwh"] = libkb.HexArg(newPWH).String()
 	payload["pwh_version"] = triplesec.Version
-	payload["lks_mask"] = libkb.HexArg(mask).String()
+	payload["lks_mask"] = mask.EncodeToHex()
 	payload["lks_client_halves"] = lksch
 	payload["pdpka5_kid"] = pdpka5kid.String()
 

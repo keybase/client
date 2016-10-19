@@ -10,11 +10,11 @@ import (
 )
 
 type SecretRetriever interface {
-	RetrieveSecret() ([]byte, error)
+	RetrieveSecret() (LKSecFullSecret, error)
 }
 
 type SecretStorer interface {
-	StoreSecret(secret []byte) error
+	StoreSecret(secret LKSecFullSecret) error
 }
 
 type SecretStore interface {
@@ -23,8 +23,8 @@ type SecretStore interface {
 }
 
 type SecretStoreAll interface {
-	RetrieveSecret(username NormalizedUsername) ([]byte, error)
-	StoreSecret(username NormalizedUsername, secret []byte) error
+	RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error)
+	StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error
 	ClearSecret(username NormalizedUsername) error
 	GetUsersWithStoredSecrets() ([]string, error)
 	GetApprovalPrompt() string
@@ -42,11 +42,11 @@ type SecretStoreImp struct {
 	store    *SecretStoreLocked
 }
 
-func (s *SecretStoreImp) RetrieveSecret() ([]byte, error) {
+func (s *SecretStoreImp) RetrieveSecret() (LKSecFullSecret, error) {
 	return s.store.RetrieveSecret(s.username)
 }
 
-func (s *SecretStoreImp) StoreSecret(secret []byte) error {
+func (s *SecretStoreImp) StoreSecret(secret LKSecFullSecret) error {
 	return s.store.StoreSecret(s.username, secret)
 }
 
@@ -124,16 +124,16 @@ func NewSecretStoreLocked(g *GlobalContext) *SecretStoreLocked {
 	}
 }
 
-func (s *SecretStoreLocked) RetrieveSecret(username NormalizedUsername) ([]byte, error) {
+func (s *SecretStoreLocked) RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error) {
 	if s == nil || s.SecretStoreAll == nil {
-		return nil, nil
+		return LKSecFullSecret{}, nil
 	}
 	s.Lock()
 	defer s.Unlock()
 	return s.SecretStoreAll.RetrieveSecret(username)
 }
 
-func (s *SecretStoreLocked) StoreSecret(username NormalizedUsername, secret []byte) error {
+func (s *SecretStoreLocked) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error {
 	if s == nil || s.SecretStoreAll == nil {
 		return nil
 	}

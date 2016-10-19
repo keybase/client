@@ -145,7 +145,7 @@ func (m TlfMock) CryptKeys(ctx context.Context, arg keybase1.TLFQuery) (res keyb
 }
 
 // Not used by service tests
-func (m TlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+func (m TlfMock) CompleteAndCanonicalizeTlfName(ctx context.Context, arg keybase1.CompleteAndCanonicalizeTlfNameArg) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, errors.New("unimplemented")
 }
 
@@ -407,4 +407,12 @@ func (m *ChatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1
 	m.world.Msgs[convID] = append(m.world.Msgs[convID], &msg)
 	sort.Sort(msgByMessageIDDesc{world: m.world, convID: convID})
 	return msg
+}
+
+func (m *ChatRemoteMock) GetS3Params(context.Context, chat1.ConversationID) (chat1.S3Params, error) {
+	return chat1.S3Params{}, errors.New("GetS3Params not mocked")
+}
+
+func (m *ChatRemoteMock) S3Sign(context.Context, chat1.S3SignArg) ([]byte, error) {
+	return nil, errors.New("GetS3Params not mocked")
 }

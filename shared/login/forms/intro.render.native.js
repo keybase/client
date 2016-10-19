@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
-class Render extends Component {
+class IntroRender extends Component {
   render () {
     return (
       <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf || this.props.justDeletedSelf ? 0 : 55}}>
@@ -17,7 +17,7 @@ class Render extends Component {
           <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>This device has been revoked, please log in again.</Text>
         }
         <Icon type='icon-keybase-logo-160' />
-        <Text style={stylesHeader} type='HeaderJumbo'>Join Keybase</Text>
+        <Text style={stylesHeader} type='HeaderBig'>Join Keybase</Text>
         <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the world.</Text>
         <Button style={stylesButton} type='Primary' onClick={this.props.onSignup} label='Create an account' />
         <Text style={stylesLoginHeader} type='Body' onClick={this.props.onLogin}>Already on Keybase?</Text>
@@ -61,4 +61,4 @@ const stylesRevoked = {
   backgroundColor: globalColors.green,
 }
 
-export default Render
+export default IntroRender

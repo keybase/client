@@ -188,6 +188,40 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "S3Params",
+      "fields": [
+        {
+          "type": "string",
+          "name": "bucket"
+        },
+        {
+          "type": "string",
+          "name": "objectKey"
+        },
+        {
+          "type": "string",
+          "name": "accessKey"
+        },
+        {
+          "type": "string",
+          "name": "acl"
+        },
+        {
+          "type": "string",
+          "name": "regionName"
+        },
+        {
+          "type": "string",
+          "name": "regionEndpoint"
+        },
+        {
+          "type": "string",
+          "name": "regionBucketEndpoint"
+        }
+      ]
     }
   ],
   "messages": {
@@ -305,6 +339,28 @@
         }
       ],
       "response": null
+    },
+    "getS3Params": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "S3Params"
+    },
+    "s3Sign": {
+      "request": [
+        {
+          "name": "version",
+          "type": "int"
+        },
+        {
+          "name": "payload",
+          "type": "bytes"
+        }
+      ],
+      "response": "bytes"
     }
   },
   "namespace": "chat.1"

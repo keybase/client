@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Button, Input, PlatformIcon, SmallInput, StandardScreen, Text} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
+import {globalStyles, globalMargins} from '../../styles'
 import type {Props} from './add'
 
 class PgpAdd extends Component<void, Props, void> {
@@ -18,7 +18,7 @@ class PgpAdd extends Component<void, Props, void> {
           style={styleIcon} />
         <Text
           style={styleHeader}
-          type='Body'>
+          type='BodySemibold'>
           Fill in your public info.
         </Text>
         <Input
@@ -46,7 +46,7 @@ class PgpAdd extends Component<void, Props, void> {
           errorState={this.props.errorEmail3} />
         <Text
           style={styleInfoMessage(!!this.props.errorText)}
-          type='BodySmall'>
+          type={this.props.errorText ? 'BodyError' : 'Body'}>
           {this.props.errorText || 'Include any addresses you plan to use for PGP encrypted email.'}
         </Text>
         <Box style={styleActions}>
@@ -83,7 +83,6 @@ const styleHeader = {
 const styleInfoMessage = (errorText: boolean) => ({
   marginTop: globalMargins.small,
   alignSelf: 'center',
-  ...(errorText ? {color: globalColors.red} : {}),
 })
 
 const styleActions = {

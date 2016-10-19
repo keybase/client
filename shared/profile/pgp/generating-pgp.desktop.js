@@ -10,7 +10,7 @@ class GeneratingPgp extends Component<void, Props, void> {
       <StandardScreen onClose={this.props.onCancel} style={styleContainer}>
         <PlatformIcon platform='pgp' overlay='icon-proof-unfinished' />
         <Text style={styleHeader} type='Header'>Generating your unique key...</Text>
-        <Text style={styleBody} type='BodySmall'>Math time! You are about to discover a <Text type='BodySmallItalic'>4096-bit</Text> key pair.<br />This could take as long as a couple minutes.</Text>
+        <Text style={styleBody} type='Body'>Math time! You are about to discover a 4096-bit key pair.<br />This could take as long as a couple minutes.</Text>
         <Icon type='icon-loader-infinity-64' />
         <Button style={styleCancelButton} type='Secondary' onClick={() => this.props.onCancel()} label={'Cancel'} />
       </StandardScreen>

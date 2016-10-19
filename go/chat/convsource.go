@@ -75,6 +75,7 @@ func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *stor
 
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, error) {
+	var err error
 
 	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(), msg)
 	if err != nil {

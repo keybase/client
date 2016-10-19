@@ -13,7 +13,7 @@ function Notifications (props: Props) {
     </Box>)
     : (
     <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
-      <Text type='Header' style={{marginTop: globalMargins.medium}}>Email me:</Text>
+      <Text type='BodyBig' style={{marginTop: globalMargins.medium}}>Email me:</Text>
       <Box style={globalStyles.flexBoxColumn}>
         {!!props.settings && props.settings.map(s => (
           <Checkbox
@@ -24,7 +24,7 @@ function Notifications (props: Props) {
             checked={s.subscribed}
             label={s.description} />))}
       </Box>
-      <Text type='Header' style={{marginTop: globalMargins.medium}}>Or:</Text>
+      <Text type='BodyBig' style={{marginTop: globalMargins.medium}}>Or:</Text>
       <Checkbox
         style={{marginTop: globalMargins.small, marginBottom: globalMargins.medium}}
         onCheck={() => props.onToggleUnsubscribeAll()}

@@ -15,8 +15,8 @@ func TestSecretStoreOps(t *testing.T) {
 	defer tc.Cleanup()
 
 	nu := NewNormalizedUsername("username")
-	expectedSecret1 := []byte("test secret 1")
-	expectedSecret2 := []byte("test secret 2")
+	expectedSecret1 := []byte("test secret 1test secret 1test s")
+	expectedSecret2 := []byte("test secret 2test secret 2test s")
 
 	var err error
 
@@ -26,16 +26,21 @@ func TestSecretStoreOps(t *testing.T) {
 
 	// TODO: Use platform-independent errors so they can be
 	// checked for.
-	var secret []byte
+	var secret LKSecFullSecret
 	if secret, err = tc.G.SecretStoreAll.RetrieveSecret(nu); err == nil {
 		t.Error("RetrieveSecret unexpectedly returned a nil error")
 	}
 
-	if secret != nil {
-		t.Errorf("Retrieved secret unexpectedly: %s", string(secret))
+	if !secret.IsNil() {
+		t.Errorf("Retrieved secret unexpectedly: %s", string(secret.Bytes()))
 	}
 
-	if err = tc.G.SecretStoreAll.StoreSecret(nu, expectedSecret1); err != nil {
+	secret, err = newLKSecFullSecretFromBytes(expectedSecret1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err = tc.G.SecretStoreAll.StoreSecret(nu, secret); err != nil {
 		t.Error(err)
 	}
 
@@ -43,11 +48,16 @@ func TestSecretStoreOps(t *testing.T) {
 		t.Error(err)
 	}
 
-	if string(secret) != string(expectedSecret1) {
-		t.Errorf("Retrieved secret %s, expected %s", string(secret), string(expectedSecret1))
+	if string(secret.Bytes()) != string(expectedSecret1) {
+		t.Errorf("Retrieved secret %s, expected %s", string(secret.Bytes()), string(expectedSecret1))
 	}
 
-	if err = tc.G.SecretStoreAll.StoreSecret(nu, expectedSecret2); err != nil {
+	secret, err = newLKSecFullSecretFromBytes(expectedSecret2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err = tc.G.SecretStoreAll.StoreSecret(nu, secret); err != nil {
 		t.Error(err)
 	}
 
@@ -55,8 +65,8 @@ func TestSecretStoreOps(t *testing.T) {
 		t.Error(err)
 	}
 
-	if string(secret) != string(expectedSecret2) {
-		t.Errorf("Retrieved secret %s, expected %s", string(secret), string(expectedSecret2))
+	if string(secret.Bytes()) != string(expectedSecret2) {
+		t.Errorf("Retrieved secret %s, expected %s", string(secret.Bytes()), string(expectedSecret2))
 	}
 
 	if err = tc.G.SecretStoreAll.ClearSecret(nu); err != nil {
@@ -77,10 +87,16 @@ func TestGetUsersWithStoredSecrets(t *testing.T) {
 		t.Errorf("Expected no usernames, got %d", len(usernames))
 	}
 
+	fs, err := newLKSecFullSecretFromBytes([]byte("test secret 3test secret 3test s"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	expectedUsernames := make([]string, 10)
 	for i := 0; i < len(expectedUsernames); i++ {
 		expectedUsernames[i] = fmt.Sprintf("account with unicode テスト %d", i)
-		if err := tc.G.SecretStoreAll.StoreSecret(NewNormalizedUsername(expectedUsernames[i]), []byte{}); err != nil {
+
+		if err := tc.G.SecretStoreAll.StoreSecret(NewNormalizedUsername(expectedUsernames[i]), fs); err != nil {
 			t.Error(err)
 		}
 	}

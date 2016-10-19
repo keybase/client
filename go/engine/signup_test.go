@@ -190,7 +190,7 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 		t.Error(err)
 	}
 
-	if string(secret) != string(storedSecret) {
+	if !secret.Equal(storedSecret) {
 		t.Errorf("Expected %v, got %v", secret, storedSecret)
 	}
 

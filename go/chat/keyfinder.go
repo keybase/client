@@ -11,22 +11,26 @@ import (
 // It is not intended to be used by multiple concurrent goroutines
 // or held onto for very long, just to remember the keys while
 // unboxing a thread of messages.
-type KeyFinder struct {
+type KeyFinder interface {
+	Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error)
+}
+
+type KeyFinderImpl struct {
 	keys map[string]keybase1.GetTLFCryptKeysRes
 }
 
 // newKeyFinder creates a keyFinder.
-func NewKeyFinder() *KeyFinder {
-	return &KeyFinder{keys: make(map[string]keybase1.GetTLFCryptKeysRes)}
+func NewKeyFinder() KeyFinder {
+	return &KeyFinderImpl{keys: make(map[string]keybase1.GetTLFCryptKeysRes)}
 }
 
-func (k *KeyFinder) cacheKey(tlfName string, tlfPublic bool) string {
+func (k *KeyFinderImpl) cacheKey(tlfName string, tlfPublic bool) string {
 	return fmt.Sprintf("%s|%v", tlfName, tlfPublic)
 }
 
 // find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
-func (k *KeyFinder) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
+func (k *KeyFinderImpl) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
 	ckey := k.cacheKey(tlfName, tlfPublic)
 	existing, ok := k.keys[ckey]
 	if ok {

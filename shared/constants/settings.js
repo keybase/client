@@ -62,7 +62,7 @@ export type OnUpdatePGPSettings = NoErrorTypedAction<'settings:onUpdatePGPSettin
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export type OnUpdatedPGPSettings = NoErrorTypedAction<'settings:onUpdatedPGPSettings', {hasKeys: boolean}>
 
-export type PlanLevel = string //'Basic' | 'Gold' | 'Friend'
+export type PlanLevel = string // 'Basic' | 'Gold' | 'Friend'
 // const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
 
 export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount

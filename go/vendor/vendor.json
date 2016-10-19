@@ -76,6 +76,12 @@
 			"revisionTime": "2015-08-27T15:34:15+03:00"
 		},
 		{
+			"checksumSHA1": "F+YOz/6ymsuIxUy511OAdxjyhRI=",
+			"path": "github.com/docopt/docopt-go",
+			"revision": "784ddc588536785e7299f7272f39101f7faccc3f",
+			"revisionTime": "2016-02-16T23:20:12Z"
+		},
+		{
 			"path": "github.com/dustin/go-humanize",
 			"revision": "c20a8bde38c8f5ba06f6600edf473705c96829d1",
 			"revisionTime": "2015-08-24T01:38:10-07:00"

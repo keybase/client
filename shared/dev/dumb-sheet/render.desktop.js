@@ -8,17 +8,41 @@ import type {Props} from './render'
 import {Box, Text, Input, BackButton} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
-class Render extends Component<void, Props, any> {
+class DumbSheetRender extends Component<void, Props, any> {
   _onFilterChange: (a: any) => void;
+  _onNext: (a: any, offset: 1 | -1) => void;
+  _box: any;
 
   constructor (props: Props) {
     super(props)
 
     this._onFilterChange = debounce(filter => {
-      this.props.onDebugConfigChange({
-        dumbFilter: filter,
-      })
+      this.props.onDebugConfigChange({dumbFilter: filter})
     }, 300)
+  }
+
+  _onNext = (key, offset) => {
+    const keys = Object.keys(dumbComponentMap).map(k => k.toLowerCase()).sort()
+    const idx = keys.indexOf(key.toLowerCase())
+
+    if (idx === -1) {
+      return
+    }
+
+    const nextIdx = idx + offset
+
+    if (nextIdx < 0 || nextIdx >= keys.length) {
+      return
+    }
+
+    const filter = `'${keys[nextIdx]}':50`
+
+    this.props.onDebugConfigChange({dumbFilter: filter})
+    // Scroll the screen to the top when you are arrowing around using the exact filter match. Kinda
+    // hacky and just to make things simple.
+    setImmediate(() => {
+      ReactDOM.findDOMNode(this.refs.scrollBox).scrollTop = 0
+    })
   }
 
   componentDidMount () {
@@ -32,13 +56,44 @@ class Render extends Component<void, Props, any> {
     this.refs.filterInput.setValue(nextProps.dumbFilter)
   }
 
+  _filterToParams () {
+    let filter = this.props.dumbFilter.toLowerCase()
+    let numItemsLeftWeCanShowMax = 10
+
+    const itemsMatch = filter.match(/^(.*):(\d+)$/)
+
+    if (itemsMatch && itemsMatch[2]) {
+      filter = itemsMatch[1]
+      numItemsLeftWeCanShowMax = parseInt(itemsMatch[2], 10)
+    }
+
+    let keys
+    let isExact
+
+    const exatchMatch = filter.match(/^'(.*)'$/)
+    if (exatchMatch && exatchMatch[1]) {
+      const toFind = exatchMatch[1]
+      keys = Object.keys(dumbComponentMap).filter(key => key.toLowerCase() === toFind)
+      isExact = true
+    } else {
+      keys = Object.keys(dumbComponentMap).sort()
+      isExact = false
+    }
+
+    return {
+      filter,
+      numItemsLeftWeCanShowMax,
+      keys,
+      isExact,
+    }
+  }
+
   render () {
-    const parts = this.props.dumbFilter.toLowerCase().split(':')
-    const filter = parts[0]
-    let numItemsLeftWeCanShow = parseInt(parts[1], 10) || 10
+    const {filter, numItemsLeftWeCanShowMax, keys, isExact} = this._filterToParams()
+    let numItemsLeftWeCanShow = numItemsLeftWeCanShowMax
 
     return (
-      <Box style={{...globalStyles.scrollable, padding: 20}}>
+      <Box style={{...globalStyles.scrollable, padding: 20}} ref='scrollBox'>
         <BackButton onClick={this.props.onBack} />
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text type='Header'>Filter:</Text>
@@ -48,9 +103,9 @@ class Render extends Component<void, Props, any> {
             onChange={event => this._onFilterChange(event.target.value.toLowerCase())}
           />
         </Box>
-        {Object.keys(dumbComponentMap).map(key => {
+        {keys.map(key => {
           const map = dumbComponentMap[key]
-          const includeAllChildren = !filter || key.toLowerCase().indexOf(filter) !== -1
+          const includeAllChildren = isExact || !filter || key.toLowerCase().indexOf(filter) !== -1
           const items = Object.keys(map.mocks)
             .filter(mockKey => !filter || includeAllChildren || (key.toLowerCase() + mockKey.toLowerCase()).indexOf(filter) !== -1)
             .map((mockKey, idx) => {
@@ -74,8 +129,16 @@ class Render extends Component<void, Props, any> {
 
           return (
             <Box key={key} style={styleBox}>
-              <Text type='Header' style={{marginBottom: 5}} onClick={() => this._onFilterChange(key)}>{key}</Text>
+              <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginBottom: 5}}>
+                <Text type='Header' onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
+                <Text type='Header' onClick={() => this._onFilterChange(`'${key}'`)}>{key}</Text>
+                <Text type='Header' onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+              </Box>
               {items}
+              <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', marginTop: 5}}>
+                <Text type='Header' onClick={() => this._onNext(key, -1)}>&lt;&nbsp;</Text>
+                <Text type='Header' onClick={() => this._onNext(key, 1)}>&nbsp;&gt;</Text>
+              </Box>
             </Box>
           )
         })}
@@ -92,4 +155,4 @@ export const styleBox = {
   boxShadow: '5px 5px lightgray',
 }
 
-export default Render
+export default DumbSheetRender
