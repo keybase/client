@@ -42,8 +42,8 @@ type GetConversationMetadataRemoteRes struct {
 }
 
 type PostRemoteRes struct {
-	MsgID     MessageID  `codec:"msgID" json:"msgID"`
-	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	MsgHeader MessageServerHeader `codec:"msgHeader" json:"msgHeader"`
+	RateLimit *RateLimit          `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 type NewConversationRemoteRes struct {

@@ -88,12 +88,8 @@ protocol common {
   }
 
   record MessageServerHeader {
-    MessageType messageType;
     MessageID messageID;
-    gregor1.UID sender;
-    gregor1.DeviceID senderDevice;
     MessageID supersededBy;
-    MessageID supersedes; // not populated
     gregor1.Time ctime;
   }
 

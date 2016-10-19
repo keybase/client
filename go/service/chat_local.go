@@ -725,21 +725,30 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.PostLocalRes{}, err
 	}
+
+	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 	boxed, err := h.prepareMessageForRemote(ctx, arg.Msg, &arg.ConversationID)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
 
-	// post to remote gregord
+	// Post to remote gregord
 	rarg := chat1.PostRemoteArg{
 		ConversationID: arg.ConversationID,
 		MessageBoxed:   *boxed,
 	}
-
 	plres, err := h.remoteClient().PostRemote(ctx, rarg)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
+
+	// Write new message out to cache
+	rboxed := *boxed
+	rboxed.ServerHeader = &plres.MsgHeader
+	if _, err := h.G().ConvSource.Push(ctx, arg.ConversationID, boxed.ClientHeader.Sender, rboxed); err != nil {
+		h.G().Log.Debug("PostLocal: failed to write message to cache: %s", err.Error())
+	}
+
 	return chat1.PostLocalRes{
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{plres.RateLimit}),
 	}, nil

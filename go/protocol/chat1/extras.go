@@ -119,7 +119,7 @@ func (m MessageUnboxed) GetMessageID() MessageID {
 func (m MessageUnboxed) GetMessageType() MessageType {
 	if state, err := m.State(); err == nil {
 		if state == MessageUnboxedState_VALID {
-			return m.Valid().ServerHeader.MessageType
+			return m.Valid().ClientHeader.MessageType
 		}
 		if state == MessageUnboxedState_ERROR {
 			return m.Error().MessageType
