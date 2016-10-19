@@ -32,7 +32,7 @@ func (t TestSecretStoreAll) GetApprovalPrompt() string {
 }
 
 func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
-	ret := TestSecretStoreAll{context: c, secretStoreNoneMap: map[NormalizedUsername]LKSecFullSecret}
+	ret := TestSecretStoreAll{context: c, secretStoreNoneMap: map[NormalizedUsername]LKSecFullSecret }
 	ret.SetGlobalContext(g)
 	return ret
 }
