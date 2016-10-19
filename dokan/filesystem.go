@@ -78,6 +78,24 @@ type CreateData struct {
 	CreateOptions     uint32
 }
 
+// ReturningFileAllowed answers whether returning a file is allowed by
+// CreateOptions.
+func (cd *CreateData) ReturningFileAllowed() error {
+	if cd.CreateOptions&FileDirectoryFile != 0 {
+		return ErrNotADirectory
+	}
+	return nil
+}
+
+// ReturningFileAllowed answers whether returning a directory is allowed by
+// CreateOptions.
+func (cd *CreateData) ReturningDirAllowed() error {
+	if cd.CreateOptions&FileNonDirectoryFile != 0 {
+		return ErrFileIsADirectory
+	}
+	return nil
+}
+
 // CreateDisposition marks whether to create or open a file. Not a bitmask.
 type CreateDisposition uint32
 
@@ -257,6 +275,8 @@ const (
 	ErrFileIsADirectory = NtStatus(0xC00000BA)
 	// ErrDirectoryNotEmpty - wanted an empty dir - it is not empty.
 	ErrDirectoryNotEmpty = NtStatus(0xC0000101)
+	// ErrNotADirectory - wanted a directory - it is not a directory.
+	ErrNotADirectory = NtStatus(0xC0000103)
 	// ErrFileAlreadyExists - file already exists - fatal.
 	ErrFileAlreadyExists = NtStatus(0xC0000035)
 	// ErrNotSameDevice - MoveFile is denied, please use copy+delete.
