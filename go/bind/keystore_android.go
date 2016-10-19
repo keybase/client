@@ -12,7 +12,7 @@ import "github.com/keybase/client/go/libkb"
 // in an exported func
 type ExternalKeyStore interface {
 	RetrieveSecret(serviceName string, key string) (libkb.LKSecFullSecret, error)
-	StoreSecret(serviceName string, key string, libkb.LKSecFullSecret) error
+	StoreSecret(serviceName string, key string, secret libkb.LKSecFullSecret) error
 	ClearSecret(serviceName string, key string) error
 	GetUsersWithStoredSecretsMsgPack(serviceName string) ([]byte, error)
 	SetupKeyStore(serviceName string, key string) error
