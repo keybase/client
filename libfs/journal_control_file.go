@@ -29,6 +29,8 @@ const (
 	JournalResumeBackgroundWork
 	// JournalDisable is to disable the journal.
 	JournalDisable
+	// JournalEnableAuto is to turn on journals for all TLFs, persistently.
+	JournalEnableAuto
 )
 
 func (a JournalAction) String() string {
@@ -43,6 +45,8 @@ func (a JournalAction) String() string {
 		return "Resume journal background work"
 	case JournalDisable:
 		return "Disable journal"
+	case JournalEnableAuto:
+		return "Enable auto-journals"
 	}
 	return fmt.Sprintf("JournalAction(%d)", int(a))
 }
@@ -52,7 +56,7 @@ func (a JournalAction) String() string {
 func (a JournalAction) Execute(
 	ctx context.Context, jServer *libkbfs.JournalServer,
 	tlf libkbfs.TlfID) error {
-	if tlf == (libkbfs.TlfID{}) {
+	if tlf == (libkbfs.TlfID{}) && a != JournalEnableAuto {
 		panic("zero TlfID in JournalAction.Execute")
 	}
 
@@ -78,6 +82,12 @@ func (a JournalAction) Execute(
 
 	case JournalDisable:
 		_, err := jServer.Disable(ctx, tlf)
+		if err != nil {
+			return err
+		}
+
+	case JournalEnableAuto:
+		err := jServer.EnableAuto(ctx)
 		if err != nil {
 			return err
 		}

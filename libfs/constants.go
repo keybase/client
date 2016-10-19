@@ -61,6 +61,10 @@ const ResumeJournalBackgroundWorkFileName = ".kbfs_resume_journal_background_wor
 // file. It can be reached anywhere within a top-level folder.
 const DisableJournalFileName = ".kbfs_disable_journal"
 
+// EnableAutoJournalsFileName is the name of the KBFS-wide
+// journal-enabling file.  It's accessible anywhere outside a TLF.
+const EnableAutoJournalsFileName = ".kbfs_enable_auto_journals"
+
 // EditHistoryName is the name of the KBFS TLF edit history file --
 // it can be reached anywhere within a top-level folder.
 const EditHistoryName = ".kbfs_edit_history"
