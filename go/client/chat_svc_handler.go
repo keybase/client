@@ -475,9 +475,12 @@ func (c *chatServiceHandler) getInboxLocalQuery(ctx context.Context, id chat1.Co
 	if err != nil {
 		return chat1.GetInboxLocalQuery{}, err
 	}
-	cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, keybase1.TLFQuery{
-		TlfName:          channel.Name,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, keybase1.CompleteAndCanonicalizeTlfNameArg{
+		Query: keybase1.TLFQuery{
+			TlfName:          channel.Name,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		},
+		IsPublic: channel.Public,
 	})
 	if err != nil {
 		return chat1.GetInboxLocalQuery{}, err
