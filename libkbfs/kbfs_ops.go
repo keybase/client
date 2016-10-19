@@ -552,7 +552,7 @@ func (fs *KBFSOpsStandard) Sync(ctx context.Context, file Node) error {
 func (fs *KBFSOpsStandard) FolderStatus(
 	ctx context.Context, folderBranch FolderBranch) (
 	FolderBranchStatus, <-chan StatusUpdate, error) {
-	ops := fs.getOps(ctx, folderBranch)
+	ops := fs.getOpsNoAdd(folderBranch)
 	return ops.FolderStatus(ctx, folderBranch)
 }
 
