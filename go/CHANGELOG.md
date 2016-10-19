@@ -1,16 +1,22 @@
+
 ## 1.0.18
-- Some people (like @brentmaxwell) had broken sigchains due to bad 
+- Some people (like @brentmaxwell) had broken sigchains due to bad
   short signature IDs. Ignore those. (via vendored PR: keybase/go-crypto#36)
 - Preliminary ECDH support so that people can import/export these
   keys (though not currently possible to decrypt/encrypt with them)
   (Via vendored PR: keybase/go-crypto#37)
+- Fix for keybase/client#4661 and keybase/client#4634 via PR keybase/client#4667
+  - The bug was that some people were encrypting their local secret keys with
+    the wrong symmetric key, if provisioned by a buggy device. We still need
+    to roll out further fixes to unbreak devices broken by this change. PR
+    #4667 just ensures that it won't continue to happen.
 
 ## 1.0.17
 - Allow signatures with DSA keys without needing to specify explicit signing flags
   in the Public key. Also, better tie-breaking if there are two self-signatures
   at the same time; use the one with the valid flags.
    (via vendored PR: keybase/go-crypto#31 and keybase/go-crypto#32 respectively)
-- Don't overwrite valid flags with empty flags, and assume lots of power for a 
+- Don't overwrite valid flags with empty flags, and assume lots of power for a
   primary key without flags
    (via vendored PR: keybase/go-crypto#33 and keybase/go-crypto#34, respectively)
 
