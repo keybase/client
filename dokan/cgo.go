@@ -54,6 +54,26 @@ func loadDokanDLL(fullpath string) error {
 
 const ntstatusOk = C.NTSTATUS(0)
 
+func checkFileDirectoryFile(err error, isDir bool, createOptions uint32) {
+	if createOptions&createOptions&FileDirectoryFile != 0 && createOptions&FileNonDirectoryFile != 0 {
+		debugf("checkFileDirectoryFile both FileDirectoryFile FileNonDirectoryFile set")
+	}
+	if err == nil {
+		if (!isDir && createOptions&FileDirectoryFile != 0) ||
+			(isDir && createOptions&FileNonDirectoryFile != 0) {
+			debugf("checkFileDirectoryFile INCONSISTENCY %v %08X", isDir, createOptions)
+		}
+	} else if err == ErrNotADirectory {
+		if createOptions&FileDirectoryFile == 0 {
+			debugf("checkFileDirectoryFile ErrNotADirectory but no createOptions&FileDirectoryFile")
+		}
+	} else if err == ErrFileIsADirectory {
+		if createOptions&FileNonDirectoryFile == 0 {
+			debugf("checkFileDirectoryFile ErrFileIsADirectory but no createOptions&FileNonDirectoryFile")
+		}
+	}
+}
+
 //export kbfsLibdokanCreateFile
 func kbfsLibdokanCreateFile(
 	fname C.LPCWSTR,
@@ -79,6 +99,9 @@ func kbfsLibdokanCreateFile(
 		defer cancel()
 	}
 	fi, isDir, err := fs.CreateFile(ctx, makeFI(fname, pfi), &cd)
+	if isDebug {
+		checkFileDirectoryFile(err, isDir, uint32(CreateOptions))
+	}
 	if isDir {
 		pfi.IsDirectory = 1
 	}

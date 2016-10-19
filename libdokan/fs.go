@@ -216,10 +216,19 @@ func (oc *openContext) isOpenReparsePoint() bool {
 // returnDirNoCleanup returns a dir or nothing depending on the open
 // flags and does not call .Cleanup on error.
 func (oc *openContext) returnDirNoCleanup(f dokan.File) (dokan.File, bool, error) {
-	if oc.mayNotBeDirectory() {
-		return nil, false, dokan.ErrFileIsADirectory
+	if err := oc.ReturningDirAllowed(); err != nil {
+		return nil, true, err
 	}
 	return f, true, nil
+}
+
+// returnFileNoCleanup returns a file or nothing depending on the open
+// flags and does not call .Cleanup on error.
+func (oc *openContext) returnFileNoCleanup(f dokan.File) (dokan.File, bool, error) {
+	if err := oc.ReturningFileAllowed(); err != nil {
+		return nil, false, err
+	}
+	return f, false, nil
 }
 
 func (oc *openContext) mayNotBeDirectory() bool {
@@ -271,15 +280,15 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		// This section is equivalent to
 		// handleCommonSpecialFile in libfuse.
 	case libkbfs.ErrorFile == ps[psl-1]:
-		return NewErrorFile(f), false, nil
+		return oc.returnFileNoCleanup(NewErrorFile(f))
 	case libfs.MetricsFileName == ps[psl-1]:
-		return NewMetricsFile(f), false, nil
+		return oc.returnFileNoCleanup(NewMetricsFile(f))
 		// TODO: Make the two cases below available from any
 		// directory.
 	case libfs.ProfileListDirName == ps[0]:
 		return (ProfileList{fs: f}).open(ctx, oc, ps[1:])
 	case libfs.ResetCachesFileName == ps[0]:
-		return &ResetCachesFile{fs: f.root.private.fs}, false, nil
+		return oc.returnFileNoCleanup(&ResetCachesFile{fs: f.root.private.fs})
 
 		// This section is equivalent to
 		// handleNonTLFSpecialFile in libfuse.
@@ -287,16 +296,17 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		// TODO: Make the two cases below available from any
 		// non-TLF directory.
 	case libfs.StatusFileName == ps[0]:
-		return NewNonTLFStatusFile(f.root.private.fs), false, nil
+		return oc.returnFileNoCleanup(NewNonTLFStatusFile(f.root.private.fs))
 	case libfs.HumanErrorFileName == ps[0], libfs.HumanNoLoginFileName == ps[0]:
-		return &SpecialReadFile{
+		return oc.returnFileNoCleanup(&SpecialReadFile{
 			read: f.remoteStatus.NewSpecialReadFunc,
-			fs:   f}, false, nil
+			fs:   f})
 
 	case ".kbfs_unmount" == ps[0]:
 		os.Exit(0)
 	case ".kbfs_number_of_handles" == ps[0]:
-		return f.stringReadFile(strconv.Itoa(int(oc.fi.NumberOfFileHandles())))
+		x := f.stringReadFile(strconv.Itoa(int(oc.fi.NumberOfFileHandles())))
+		return oc.returnFileNoCleanup(x)
 	// TODO
 	// Unfortunately sometimes we end up in this case while using
 	// reparse points.
@@ -535,13 +545,13 @@ func (f *FS) logEnterf(ctx context.Context, fmt string, args ...interface{}) {
 	f.log.CDebugf(ctx, "=> "+fmt, args...)
 }
 
-func (f *FS) stringReadFile(contents string) (dokan.File, bool, error) {
+func (f *FS) stringReadFile(contents string) dokan.File {
 	return &SpecialReadFile{
 		read: func(context.Context) ([]byte, time.Time, error) {
 			return []byte(contents), time.Time{}, nil
 		},
 		fs: f,
-	}, false, nil
+	}
 }
 
 // Root represents the root of the KBFS file system.

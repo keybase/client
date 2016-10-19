@@ -118,6 +118,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		if aliasTarget != "" {
 			fl.fs.log.CDebugf(ctx, "FL Lookup aliasCache hit: %q -> %q", name, aliasTarget)
 			if len(path) == 1 && oc.isOpenReparsePoint() {
+				// TODO handle dir/non-dir here, semantics?
 				return &Alias{canon: aliasTarget}, true, nil
 			}
 			path[0] = aliasTarget
@@ -144,6 +145,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			fl.mu.Unlock()
 
 			if len(path) == 1 && oc.isOpenReparsePoint() {
+				// TODO handle dir/non-dir here, semantics?
 				fl.fs.log.CDebugf(ctx, "FL Lookup ret alias, oc: %#v", oc.CreateData)
 				return &Alias{canon: aliasTarget}, true, nil
 			}
