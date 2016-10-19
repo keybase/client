@@ -416,6 +416,22 @@ func (j *JournalServer) EnableAuto(ctx context.Context) error {
 	return j.writeConfig()
 }
 
+// DisableAuto turns off automatic write journal for any
+// newly-accessed TLFs.  Existing journaled TLFs need to be disabled
+// manually.
+func (j *JournalServer) DisableAuto(ctx context.Context) error {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	if !j.serverConfig.EnableAuto {
+		// Nothing to do.
+		return nil
+	}
+
+	j.log.CDebugf(ctx, "Disabling auto-journaling")
+	j.serverConfig.EnableAuto = false
+	return j.writeConfig()
+}
+
 func (j *JournalServer) dirtyOpStart(tlfID TlfID) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
