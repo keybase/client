@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -19,6 +20,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+type journalServerConfig struct {
+	EnableAuto bool
+}
+
 // JournalServerStatus represents the overall status of the
 // JournalServer for display in diagnostics. It is suitable for
 // encoding directly as JSON.
@@ -27,6 +32,7 @@ type JournalServerStatus struct {
 	Version             int
 	CurrentUID          keybase1.UID
 	CurrentVerifyingKey kbfscrypto.VerifyingKey
+	EnableAuto          bool
 	JournalCount        int
 	UnflushedBytes      int64 // (signed because os.FileInfo.Size() is signed)
 }
@@ -87,6 +93,7 @@ type JournalServer struct {
 	tlfJournals         map[TlfID]*tlfJournal
 	dirtyOps            uint
 	dirtyOpsDone        *sync.Cond
+	serverConfig        journalServerConfig
 }
 
 func makeJournalServer(
@@ -113,6 +120,37 @@ func makeJournalServer(
 
 func (j *JournalServer) rootPath() string {
 	return filepath.Join(j.dir, "v1")
+}
+
+func (j *JournalServer) configPath() string {
+	return filepath.Join(j.rootPath(), "config.json")
+}
+
+func (j *JournalServer) readConfig() error {
+	configJSON, err := ioutil.ReadFile(j.configPath())
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(configJSON, &j.serverConfig)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (j *JournalServer) writeConfig() error {
+	configJSON, err := json.Marshal(j.serverConfig)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(j.rootPath(), 0700)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(j.configPath(), configJSON, 0600)
 }
 
 func (j *JournalServer) tlfJournalPathLocked(tlfID TlfID) string {
@@ -145,9 +183,23 @@ func (j *JournalServer) tlfJournalPathLocked(tlfID TlfID) string {
 }
 
 func (j *JournalServer) getTLFJournal(tlfID TlfID) (*tlfJournal, bool) {
-	j.lock.RLock()
-	defer j.lock.RUnlock()
-	tlfJournal, ok := j.tlfJournals[tlfID]
+	getJournalFn := func() (*tlfJournal, bool, bool) {
+		j.lock.RLock()
+		defer j.lock.RUnlock()
+		tlfJournal, ok := j.tlfJournals[tlfID]
+		return tlfJournal, j.serverConfig.EnableAuto, ok
+	}
+	tlfJournal, enableAuto, ok := getJournalFn()
+	if !ok && enableAuto {
+		ctx := context.TODO() // plumb through from callers
+		j.log.CDebugf(ctx, "Enabling a new journal for %s", tlfID)
+		err := j.Enable(ctx, tlfID, TLFJournalBackgroundWorkEnabled)
+		if err != nil {
+			j.log.CWarningf(ctx, "Couldn't enable journal for %s", tlfID)
+			return nil, false
+		}
+		tlfJournal, _, ok = getJournalFn()
+	}
 	return tlfJournal, ok
 }
 
@@ -180,6 +232,18 @@ func (j *JournalServer) EnableExistingJournals(
 
 	j.lock.Lock()
 	defer j.lock.Unlock()
+
+	err = j.readConfig()
+	switch {
+	case os.IsNotExist(err):
+		// Config file doesn't exist, so write it.
+		err := j.writeConfig()
+		if err != nil {
+			return err
+		}
+	case err != nil:
+		return err
+	}
 
 	if j.currentUID != keybase1.UID("") {
 		return fmt.Errorf("Trying to set current UID from %s to %s",
@@ -337,6 +401,21 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID TlfID,
 	return j.enableLocked(ctx, tlfID, bws, false)
 }
 
+// EnableAuto turns on the write journal for all TLFs, even new ones,
+// persistently.
+func (j *JournalServer) EnableAuto(ctx context.Context) error {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	if j.serverConfig.EnableAuto {
+		// Nothing to do.
+		return nil
+	}
+
+	j.log.CDebugf(ctx, "Enabling auto-journaling")
+	j.serverConfig.EnableAuto = true
+	return j.writeConfig()
+}
+
 func (j *JournalServer) dirtyOpStart(tlfID TlfID) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
@@ -472,8 +551,8 @@ func (j *JournalServer) mdOps() journalMDOps {
 // Status returns a JournalServerStatus object suitable for
 // diagnostics.
 func (j *JournalServer) Status() JournalServerStatus {
-	journalCount, unflushedBytes, currentUID, currentVerifyingKey :=
-		func() (int, int64, keybase1.UID, kbfscrypto.VerifyingKey) {
+	journalCount, unflushedBytes, currentUID, currentVerifyingKey, enableAuto :=
+		func() (int, int64, keybase1.UID, kbfscrypto.VerifyingKey, bool) {
 			j.lock.RLock()
 			defer j.lock.RUnlock()
 			var unflushedBytes int64
@@ -481,13 +560,14 @@ func (j *JournalServer) Status() JournalServerStatus {
 				unflushedBytes += tlfJournal.getUnflushedBytes()
 			}
 			return len(j.tlfJournals), unflushedBytes,
-				j.currentUID, j.currentVerifyingKey
+				j.currentUID, j.currentVerifyingKey, j.serverConfig.EnableAuto
 		}()
 	return JournalServerStatus{
 		RootDir:             j.rootPath(),
 		Version:             1,
 		CurrentUID:          currentUID,
 		CurrentVerifyingKey: currentVerifyingKey,
+		EnableAuto:          enableAuto,
 		JournalCount:        journalCount,
 		UnflushedBytes:      unflushedBytes,
 	}
