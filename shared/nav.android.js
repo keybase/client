@@ -92,6 +92,10 @@ class Nav extends Component {
   componentWillMount () {
     NativeBackAndroid.addEventListener('hardwareBackPress', () => {
       // Just going up vs back for now
+      const currentRoute = this.props.router.getIn(['tabs', this.props.router.get('activeTab'), 'uri'])
+      if (currentRoute == null || currentRoute.count() <= 1) {
+        return false
+      }
       this.props.navigateUp()
       return true
     })
