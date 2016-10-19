@@ -4899,12 +4899,6 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 		return
 	}
 
-	// We must take the lock so that other users, like exclusive file
-	// creation, can wait for the journal to flush while holding the
-	// lock, and be guaranteed it will stay flushed.
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-
 	fbo.fbm.archiveUnrefBlocks(rmd.ReadOnly())
 }
 
