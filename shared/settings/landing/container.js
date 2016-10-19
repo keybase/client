@@ -2,6 +2,7 @@
 import {connect} from 'react-redux'
 import Bootstrapable from '../../util/bootstrapable'
 
+import {routeAppend} from '../../actions/router'
 import * as actions from '../../actions/plan-billing'
 import Landing from './index'
 
@@ -28,7 +29,6 @@ export default connect(
           email: '',
           isVerified: false,
           onChangeEmail: () => console.log('todo'),
-          onChangePassphrase: () => console.log('todo'),
         },
         plan: {
           onUpgrade: () => console.log('todo'),
@@ -46,6 +46,7 @@ export default connect(
   },
   (dispatch: (a: any) => void, ownProps: OwnProps) => ({
     onBootstrap: () => { dispatch(actions.bootstrapData()) },
+    onChangePassphrase: () => dispatch(routeAppend('changePassphrase')),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     if (stateProps.bootstrapDone === false) {
@@ -57,6 +58,13 @@ export default connect(
 
     return {
       ...stateProps,
+      originalProps: {
+        ...stateProps.originalProps,
+        account: {
+          ...stateProps.originalProps.account,
+          onChangePassphrase: dispatchProps.onChangePassphrase,
+        },
+      },
     }
   }
 )(Bootstrapable(Landing))

@@ -47,13 +47,12 @@ const updateEmailMap: DumbComponentMap<UpdateEmail> = {
 }
 
 const updatePassphraseBase = {
-  onChangeCurrentPassphrase: currentPassphrase => console.log('onChangeCurrentPassphrase', currentPassphrase),
   onChangeNewPassphrase: newPassphrase => console.log('onChangeNewPassphrase', newPassphrase),
   onChangeNewPassphraseConfirm: newPassphraseConfirm => console.log('onChangeNewPassphraseConfirm', newPassphraseConfirm),
   onChangeShowPassphrase: showPassphrase => console.log('onChangeShowPassphrase', showPassphrase),
-  currentPassphrase: 'swordfish',
   newPassphrase: 'open sesame',
   newPassphraseConfirm: 'open sesame',
+  hasPGPKeyOnServer: false,
   showTyping: false,
   errorMessage: null,
   newPassphraseError: null,
@@ -61,7 +60,7 @@ const updatePassphraseBase = {
   canSave: true,
   onBack: () => console.log('onBack'),
   onSave: () => console.log('onSave'),
-  onForgotPassphrase: () => console.log('onForgotPassphrase'),
+  onUpdatePGPSettings: () => console.log('onUpdatePGPSettings'),
 }
 
 const updatePassphraseMap: DumbComponentMap<UpdatePassphrase> = {
@@ -69,9 +68,15 @@ const updatePassphraseMap: DumbComponentMap<UpdatePassphrase> = {
   mocks: {
     'Normal - Empty': {
       ...updatePassphraseBase,
-      currentPassphrase: '',
       newPassphrase: '',
       newPassphraseConfirm: '',
+      canSave: false,
+    },
+    'Normal - Has PGP on server': {
+      ...updatePassphraseBase,
+      newPassphrase: '',
+      newPassphraseConfirm: '',
+      hasPGPKeyOnServer: true,
       canSave: false,
     },
     'Normal': updatePassphraseBase,
