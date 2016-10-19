@@ -14,27 +14,23 @@ const windowStyle = {
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
   textRendering: 'optimizeLegibility',
-  letterSpacing: '0.3px',
 }
 
 const font = {
   fontRegular: {
     ...fontCommon,
-    fontFamily: 'Lato',
+    fontFamily: 'OpenSans',
     fontWeight: 400,
   },
   fontSemibold: {
     ...fontCommon,
-    fontFamily: 'Lato',
+    fontFamily: 'OpenSans',
     fontWeight: 600,
   },
   fontBold: {
     ...fontCommon,
-    fontFamily: 'Lato',
-    fontWeight: 700,
-  },
-  italic: {
-    fontStyle: 'italic',
+    fontFamily: 'OpenSans',
+    fontWeight: '700',
   },
   fontTerminal: {
     ...fontCommon,
@@ -55,8 +51,8 @@ const globalMargins = {
   xtiny: 4,
   tiny: 8,
   small: 16,
-  medium: 32,
-  large: 48,
+  medium: 24,
+  large: 40,
   xlarge: 64,
 }
 
@@ -116,6 +112,9 @@ const util = {
 const globalStyles = {
   ...font,
   ...util,
+  italic: {
+    fontStyle: 'italic',
+  },
 }
 
 function transition (...properties: Array<string>) : Object {

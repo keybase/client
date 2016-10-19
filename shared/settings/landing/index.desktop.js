@@ -115,7 +115,7 @@ function PlanLevelRow ({level, onInfo, variants, style}: PlanLevelProps) {
         {selected && <Meta title='Your Plan' style={{backgroundColor: globalColors.blue2}} />}
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
-        <Text style={{...globalStyles.fontSemibold, marginRight: globalMargins.xtiny}} type={'BodyXSmall'}>
+        <Text style={{...globalStyles.fontSemibold, marginRight: globalMargins.xtiny}} type='BodySmall'>
           {levelToSpace[level]}
         </Text>
         <Stars level={level} />
@@ -197,7 +197,7 @@ function AccountPassphrase ({onChangePassphrase}: {onChangePassphrase: () => voi
       <Text type='BodySmall' style={{marginRight: globalMargins.xtiny}}>
         Passphrase:
       </Text>
-      <Text type='Body' inline={true} style={{flex: 1}}>•••••••••</Text>
+      <Text type='Body' style={{flex: 1}}>•••••••••</Text>
       <Text type='BodySmall' style={{color: globalColors.blue}} link={true} onClick={onChangePassphrase}>Edit</Text>
     </Box>
   )

@@ -5,7 +5,7 @@ import type {Props} from './request-invite-success.render'
 import {Text, Icon} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
-class Render extends Component {
+class RequestInviteSuccessRender extends Component {
   props: Props;
 
   render () {
@@ -39,4 +39,4 @@ const stylesBody = {
   textAlign: 'center',
 }
 
-export default Render
+export default RequestInviteSuccessRender

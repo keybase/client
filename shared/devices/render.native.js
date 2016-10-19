@@ -87,7 +87,7 @@ const DeviceHeader = ({onAddNew}) => (
 type State = {
   menuVisible: boolean,
 }
-class Render extends Component<void, Props, State> {
+class DevicesRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -156,4 +156,4 @@ const stylesRevokedDescription = {
   backgroundColor: globalColors.lightGrey,
 }
 
-export default Render
+export default DevicesRender

@@ -33,7 +33,7 @@ class FinishedGeneratedPgp extends Component<void, Props, State> {
           <textInput style={stylePgpKeyString} readOnly={true}>{this.props.pgpKeyString}</textInput>
         </Box>
         <Box style={styleUploadContainer}>
-          <Checkbox onCheck={(newVal) => this._onCheckToggle(newVal)} checked={this.state.shouldStoreKeyOnServer} label='Store encrypted private key on Keybase’s server (recommended)' />
+          <Checkbox onCheck={(newVal) => this._onCheckToggle(newVal)} checked={this.state.shouldStoreKeyOnServer} label="Store encrypted private key on Keybase's server (recommended)" />
           <Text style={styleUploadTextSublabel} type='BodySmall'>{'Allows you to download & import your key to other devices.'}</Text>
         </Box>
         <Button style={styleDoneButton} type='Primary' onClick={() => this.props.onDone(this.state.shouldStoreKeyOnServer)} label={this.state.shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'} />
@@ -57,8 +57,8 @@ const stylePgpKeyString = {
   border: `solid 1px ${globalColors.black_10}`,
   borderRadius: 3,
   ...globalStyles.fontTerminal,
-  fontSize: 14,
-  lineHeight: '21px',
+  fontSize: 13,
+  lineHeight: '17px',
   whiteSpace: 'pre-wrap',
   wordWrap: 'break-word',
   overflowY: 'auto',
@@ -75,7 +75,6 @@ const styleUploadContainer = {
 }
 
 const styleUploadTextSublabel = {
-  marginTop: globalMargins.tiny,
   color: globalColors.black_40,
   marginLeft: CHECKBOX_SIZE + CHECKBOX_MARGIN,
 }

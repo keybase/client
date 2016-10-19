@@ -16,7 +16,7 @@ type State = {
     items: Array<SettingsItem>,
 }
 
-class Render extends Component<void, Props, State> {
+class SettingsRender extends Component<void, Props, State> {
   state: State;
   _textToContent: {[key: string]: any}
 
@@ -92,4 +92,4 @@ class Render extends Component<void, Props, State> {
   }
 }
 
-export default Render
+export default SettingsRender

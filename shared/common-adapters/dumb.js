@@ -7,9 +7,13 @@ import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, SmallInput, List
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
+import {isMobile} from '../constants/platform'
 
 const onCheck = () => console.log('on check!')
 const onClick = () => console.log('on click!')
+
+// So we can share this between mobile and desktop
+const display = type => (isMobile ? {} : {display: type})
 
 const dropdownMap: DumbComponentMap<Dropdown> = {
   component: Dropdown,
@@ -72,32 +76,44 @@ backgroundModes.forEach(backgroundMode => {
     parentProps: {
       style: {
         backgroundColor,
-        padding: 10,
-        minWidth: 320,
       },
     },
     backgroundMode,
+    style: {
+      margin: 10,
+      minWidth: 320,
+      ...display('block'),
+    },
   }
 
   const mocks = {}
 
   const types = [
+    'HeaderBig',
+    'Header',
+    'HeaderLink',
+    'BodyBig',
+    'BodyBigLink',
     'Body',
-    'BodyPrimaryLink',
     'BodySemibold',
+    'BodyPrimaryLink',
+    'BodySecondaryLink',
+    'BodyError',
+    'BodySuccess',
     'BodySmall',
-    'BodySmallError',
-    'BodySmallLink',
+    'BodySmallSemibold',
     'BodySmallPrimaryLink',
     'BodySmallSecondaryLink',
-    'BodySmallSemibold',
-    'BodyXSmall',
-    'BodyXSmallLink',
-    'Header',
-    'HeaderBig',
-    'HeaderError',
-    'HeaderJumbo',
-    'HeaderLink',
+    'BodySmallError',
+    'BodySmallSuccess',
+    'BodySemiboldItalic',
+    'BodySmallItalic',
+    'BodySmallInlineLink',
+    'BodySmallSemiboldInlineLink',
+    'Terminal',
+    'TerminalInline',
+    'TerminalComment',
+    'TerminalEmpty',
   ]
 
   types.forEach(type => {
@@ -124,30 +140,18 @@ const terminalMap: DumbComponentMap<Box> = {
     'Terminal': {
       children: [
         <Box key='a' style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
-          <p>
+          <Text type='BodySmall'>
             <Text type='BodySmall'>Word word </Text>
-            <Text type='Terminal'>inline command line </Text>
-            <Text type='TerminalUsername'>username </Text>
-            <Text type='TerminalPrivate'>'secret'</Text>
+            <Text type='TerminalInline'>inline command line </Text>
             <Text type='BodySmall'> word word word word word </Text>
-            <Text type='Terminal'>inline command line</Text>
-          </p>
+            <Text type='TerminalInline'>inline command line</Text>
+          </Text>
         </Box>,
-        <Terminal key='b' style={{flex: 1, overflow: 'scroll'}}>
-          <p>
-            <Text type='Terminal'>command line stuff </Text>
-            <Text type='TerminalUsername'>username </Text>
-            <Text type='TerminalPrivate'>'something secret'</Text>
-          </p>
-
-          <p>
-            <Text type='Terminal'>command line stuff </Text>
-            <Text type='TerminalUsername'>username </Text>
-            <Text type='TerminalPublic'>'something public'</Text>
-          </p>
-
-          <Text type='TerminalComment'>comment</Text>
-          <Text type='TerminalComment'>comment</Text>
+        <Terminal key='b' style={{flex: 1, ...(isMobile ? {} : {overflow: 'scroll'})}}>
+          <Text type='Terminal'>command line thing</Text>
+          <Text type='TerminalComment'># comment</Text>
+          <Text type='Terminal'>command line thing</Text>
+          <Text type='TerminalComment'># comment</Text>
         </Terminal>,
       ],
     },
@@ -388,7 +392,7 @@ class IconHolder extends Component<void, {iconFont: boolean}, void> {
     const icons: Array<IconType> = keys.filter(name => iconMeta[name].isFont === this.props.iconFont)
     return (
       <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
-        {icons.map(i => <Box key={i}><Text type='BodyXSmall'>{i}</Text><Icon type={i} style={{margin: 10, border: 'solid 1px #777777'}} /></Box>)}
+        {icons.map(i => <Box key={i}><Text type='BodySmall'>{i}</Text><Icon type={i} style={{margin: 10, ...(isMobile ? {} : {border: 'solid 1px #777777'})}} /></Box>)}
       </Box>
     )
   }
@@ -503,7 +507,7 @@ const tabBarCustomButtons = selectedIndex => {
   const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', avatar}} selected={selected} badgeNumber={badgeNumber} style={{flex: 1}} styleContainer={{height: 40}} />
 
   return {
-    style: {flex: 1, display: 'flex', ...globalStyles.flexBoxRow, height: 580},
+    style: {flex: 1, ...display('flex'), ...globalStyles.flexBoxRow, height: 580},
     styleTabBar: {justifyContent: 'flex-start', width: 160, backgroundColor: globalColors.midnightBlue, ...globalStyles.flexBoxColumn},
     children: [
       {avatar: <Avatar size={32} onClick={null} username='max' />},
@@ -516,7 +520,7 @@ const tabBarCustomButtons = selectedIndex => {
         ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />
         : <IconButton icon={buttonInfo.icon} label={buttonInfo.label} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
       return (
-        <TabBarItem key={i} tabBarButton={button} styleContainer={{display: 'flex'}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
+        <TabBarItem key={i} tabBarButton={button} styleContainer={{...display('flex')}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
           <Text type='Header' style={{flex: 1}}>Content here at: {i}</Text>
         </TabBarItem>
       )
@@ -536,14 +540,12 @@ const listItemMap: DumbComponentMap<ListItem> = {
   component: ListItem,
   mocks: {
     'Small list item with button action': {
-      parentProps: {style: {border: 'solid 1px black'}},
       type: 'Small',
       icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Small list item with text action': {
-      parentProps: {style: {border: 'solid 1px black'}},
       type: 'Small',
       icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
@@ -551,14 +553,12 @@ const listItemMap: DumbComponentMap<ListItem> = {
       extraRightMarginAction: true,
     },
     'Large list item with Button': {
-      parentProps: {style: {border: 'solid 1px black'}},
       type: 'Large',
       icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Large list item with text action': {
-      parentProps: {style: {border: 'solid 1px black'}},
       type: 'Large',
       icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
@@ -569,7 +569,7 @@ const listItemMap: DumbComponentMap<ListItem> = {
 }
 
 const popupCommon = {
-  parentProps: {style: {border: 'solid 1px black', position: 'relative', height: 300}},
+  parentProps: isMobile ? {} : {style: {border: 'solid 1px black', position: 'relative', height: 300}},
   onHidden: () => console.log('popup hidden'),
   style: {marginLeft: 100, maxWidth: 320},
 }
@@ -649,7 +649,7 @@ const choiceListMap: DumbComponentMap<ChoiceList> = {
 const standardScreenProps = {
   onClose: () => console.log('StandardScreen: onClose'),
   children: <Text type='Header'>Whoa, look at this centered thing</Text>,
-  parentProps: {style: {display: 'flex', height: 578}},
+  parentProps: {style: {...display('flex'), height: 578}},
 }
 
 const standardScreenMap: DumbComponentMap<StandardScreen> = {
@@ -668,7 +668,7 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
     'Success w/ Custom Notification Element': {
       ...standardScreenProps,
       notification: {
-        message: <Text type='BodySmallSemibold' style={{color: globalColors.white}}>You won a unicorn! <Text type='BodySmallSemibold' style={{color: globalColors.white, textDecoration: 'underline'}}>Make sure to feed it</Text> :-)</Text>,
+        message: <Text type='BodySemibold' style={{color: globalColors.white}}>You won a unicorn! <Text type='BodySemibold' style={{color: globalColors.white}}>Make sure to feed it</Text> :-)</Text>,
         type: 'success',
       },
     },

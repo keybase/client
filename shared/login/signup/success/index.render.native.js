@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Box, Checkbox, Button, Text, Icon} from '../../../common-adapters'
 import {globalColors, globalStyles} from '../../../styles'
-import {specialStyles} from '../../../common-adapters/text'
+import {getStyle} from '../../../common-adapters/text'
 
 /* types:
   paperkey: HiddenString,
@@ -16,7 +16,7 @@ type State = {
   checked: boolean,
 }
 
-class Render extends Component<void, Props, State> {
+class SuccessRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -29,8 +29,8 @@ class Render extends Component<void, Props, State> {
   render () {
     return (
       <Box style={{padding: 32, flex: 1}}>
-        <Text type='Header' style={textCenter}>{this.props.title || 'Congratulations, you’ve just joined Keybase!'}</Text>
-        <Text type='BodySmall' style={{...textCenter, marginTop: 7}}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you’ll see this so be sure to write it down.</Text>
+        <Text type='Header' style={textCenter}>{this.props.title || "Congratulations, you've just joined Keybase!"}</Text>
+        <Text type='BodySmall' style={{...textCenter, marginTop: 7}}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you'll see this so be sure to write it down.</Text>
 
         <Box style={paperKeyContainerStyle}>
           <Text type='Body' style={paperkeyStyle}>{this.props.paperkey.stringValue()}</Text>
@@ -83,7 +83,8 @@ const paperKeyContainerStyle = {
 }
 
 const paperkeyStyle = {
-  ...specialStyles.paperKey,
+  ...getStyle('Body'),
+  color: globalColors.darkBlue,
 }
 
 const paperCornerStyle = {
@@ -92,4 +93,4 @@ const paperCornerStyle = {
   top: -4,
 }
 
-export default Render
+export default SuccessRender

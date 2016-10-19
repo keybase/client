@@ -17,7 +17,7 @@ function TrackerError ({errorMessage, onRetry, onClose}: Props) {
         headerStyle={{position: undefined}}
         loggedIn={false}
       />
-      <Text style={errorTextStyle} type='Error'>
+      <Text style={errorTextStyle} type='BodyError'>
         {errorMessage}
       </Text>
       <Box style={retryStyle}>

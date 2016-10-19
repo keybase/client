@@ -119,7 +119,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
               borderBottom: `1px solid ${globalColors.black_05}`,
             }}>
             <PlatformIcon platform={proof.type} overlay='icon-proof-success' overlayColor={globalColors.blue} />
-            {!!proof.mTime && <Text type='Body' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
+            {!!proof.mTime && <Text type='BodySmall' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
           </Box>,
         },
         items: [
@@ -198,8 +198,10 @@ class ProfileRender extends PureComponent<void, Props, State> {
       .orderBy('isPublic', 'asc')
       .map(folder => (
         <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
-          <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
-          <Box className='hover-underline'>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
+            <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
+          </Box>
+          <Box className='hover-underline' style={{marginTop: 2}}>
             <Text type='Body' style={{color: 'inherit'}}>{folder.isPublic ? 'public/' : 'private/'}</Text>
             <Usernames inline={true} users={folder.users} type='Body' style={{color: 'inherit'}} />
           </Box>
@@ -210,9 +212,11 @@ class ProfileRender extends PureComponent<void, Props, State> {
     if (!this.state.foldersExpanded && folders.length > 4) {
       folders = folders.slice(0, 4)
       folders.push(
-        <Box key='more' style={styleFolderLine} onClick={() => this.setState({foldersExpanded: true})}>
-          <Icon type='iconfont-ellipsis' style={styleFolderIcon} />
-          <Text type='BodySmall' style={{color: globalColors.black_60}}>+ {this.props.tlfs.length - folders.length} more</Text>
+        <Box key='more' style={{...styleFolderLine, alignItems: 'center'}} onClick={() => this.setState({foldersExpanded: true})}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
+            <Icon type='iconfont-ellipsis' style={{...styleFolderIcon}} />
+          </Box>
+          <Text type='BodySmall' style={{color: globalColors.black_60, marginBottom: 2}}>+ {this.props.tlfs.length - folders.length} more</Text>
         </Box>
       )
     }
@@ -271,7 +275,6 @@ class ProfileRender extends PureComponent<void, Props, State> {
               {!loading && !this.props.serverActive && missingProofs.length > 0 &&
                 <UserProofs
                   type={'missingProofs'}
-                  style={styleMissingProofs(this.props.proofs.length > 0)}
                   username={this.props.username}
                   missingProofs={missingProofs}
                 />}
@@ -362,22 +365,17 @@ const styleProofs = {
   marginTop: userProofsTopPadding,
 }
 
-const styleMissingProofs = (hasProofs) => ({
-  marginTop: hasProofs ? globalMargins.tiny : userProofsTopPadding,
-})
-
 const styleFolderLine = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   alignItems: 'flex-start',
-  marginTop: globalMargins.tiny,
+  minHeight: 24,
   color: globalColors.black_60,
 }
 
 const styleFolderIcon = {
   width: 16,
-  marginTop: 5,
-  marginRight: globalMargins.tiny,
+  height: 16,
   textAlign: 'center',
 }
 

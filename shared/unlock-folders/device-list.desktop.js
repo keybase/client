@@ -71,7 +71,7 @@ const styles = {
     ...globalStyles.flexBoxRow,
     marginTop: 15,
     marginRight: 30,
-    alignSelf: 'flex-end',
+    alignSelf: 'center',
   },
 
   enterPaperKey: {

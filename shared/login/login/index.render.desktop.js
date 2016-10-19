@@ -37,7 +37,6 @@ class LoginRender extends Component<void, Props, void> {
           <Button
             waiting={this.props.waitingForResponse}
             style={{marginTop: 0}}
-            fullWidth={true}
             type='Primary'
             label='Log in'
             onClick={() => this.props.onSubmit()} />

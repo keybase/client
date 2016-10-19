@@ -12,7 +12,7 @@ export default function ErrorLoadingProfile ({error}: Props) {
   return (
     <Box style={{width: 320, flex: 1}}>
       <Box style={{marginTop: globalMargins.xlarge, textAlign: 'center'}}>
-        <Text type='Error' style={{textAlign: 'center', color: globalColors.black_40}}>Error loading profile: {error}</Text>
+        <Text type='BodyError' style={{textAlign: 'center', color: globalColors.black_40}}>Error loading profile: {error}</Text>
       </Box>
     </Box>
   )

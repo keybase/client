@@ -715,7 +715,7 @@ function deriveTrackerMessage (
   if (allOk || !currentlyFollowing) {
     return null
   } else if (anyDeletedProofs || anyUnreachableProofs) {
-    return `Some of ${username}’s proofs have changed since you last followed them.`
+    return `Some of ${username}'s proofs have changed since you last followed them.`
   } else if (anyUpgradedProofs) {
     return `${username} added new proofs to their profile since you last followed them.`
   }

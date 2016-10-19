@@ -5,7 +5,7 @@ import type {Props} from './username-email-form.render'
 import {UserCard, Input, Button} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
-class Render extends Component {
+class UsernameEmailFormRender extends Component {
   props: Props;
 
   render () {
@@ -14,7 +14,7 @@ class Render extends Component {
         <UserCard style={stylesCard}>
           <Input autoFocus={true} floatingLabelText='Create a username' value={this.props.username} errorText={this.props.usernameErrorText} onChangeText={username => this.props.usernameChange(username)} />
           <Input floatingLabelText='Email address' value={this.props.email} errorText={this.props.emailErrorText} onEnterKeyDown={this.props.onSubmit} onChangeText={email => this.props.emailChange(email)} />
-          <Button waiting={this.props.waiting} style={{marginTop: 40}} fullWidth={true} type='Primary' label='Continue' onClick={this.props.onSubmit} />
+          <Button waiting={this.props.waiting} style={{marginTop: 40, alignSelf: 'center'}} type='Primary' label='Continue' onClick={this.props.onSubmit} />
         </UserCard>
       </Container>
     )
@@ -34,4 +34,4 @@ const stylesCard = {
   alignItems: 'stretch',
 }
 
-export default Render
+export default UsernameEmailFormRender
