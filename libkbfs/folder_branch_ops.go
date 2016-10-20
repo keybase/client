@@ -4581,12 +4581,11 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 func (fbo *folderBranchOps) registerForUpdates(ctx context.Context) (
 	updateChan <-chan error, err error) {
 	lState := makeFBOLockState()
-	currRev := fbo.getCurrMDRevision(lState)
+	currRev := fbo.getLatestMergedRevision(lState)
 	fbo.log.CDebugf(ctx, "Registering for updates (curr rev = %d)", currRev)
 	defer func() { fbo.deferLog.CDebugf(ctx, "Done: %v", err) }()
 	// RegisterForUpdate will itself retry on connectivity issues
-	return fbo.config.MDServer().RegisterForUpdate(ctx, fbo.id(),
-		fbo.getLatestMergedRevision(lState))
+	return fbo.config.MDServer().RegisterForUpdate(ctx, fbo.id(), currRev)
 }
 
 func (fbo *folderBranchOps) waitForAndProcessUpdates(
