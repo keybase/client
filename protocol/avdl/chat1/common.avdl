@@ -6,7 +6,7 @@ protocol common {
   @typedef("bytes")  record ThreadID {}
   @typedef("uint")   record MessageID {}
   @typedef("bytes")  record TopicID {}
-  @typedef("uint64") record ConversationID {}
+  @typedef("bytes")  record ConversationID {}
   @typedef("bytes")  record TLFID {}
   @typedef("bytes")  record Hash {}
 

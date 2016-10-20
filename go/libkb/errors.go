@@ -1655,7 +1655,7 @@ type ChatConvExistsError struct {
 }
 
 func (e ChatConvExistsError) Error() string {
-	return fmt.Sprintf("conversation already exists: %d", e.ConvID)
+	return fmt.Sprintf("conversation already exists: %s", e.ConvID)
 }
 
 //=============================================================================

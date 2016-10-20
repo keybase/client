@@ -359,10 +359,10 @@ func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
 }
 
 func checkChannelConv(method string, channel ChatChannel, convID chat1.ConversationID) error {
-	if !channel.Valid() && convID == 0 {
+	if !channel.Valid() && convID.IsNil() {
 		return ErrInvalidOptions{version: 1, method: method, err: errors.New("need channel or conversation_id")}
 	}
-	if channel.Valid() && convID > 0 {
+	if channel.Valid() && !convID.IsNil() {
 		return ErrInvalidOptions{version: 1, method: method, err: errors.New("include channel or conversation_id, not both")}
 	}
 	return nil

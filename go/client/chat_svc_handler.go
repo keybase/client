@@ -81,7 +81,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		return c.errReply(err)
 	}
 
-	if opts.ConversationID == 0 {
+	if opts.ConversationID.IsNil() {
 		// resolve conversation id
 		query, err := c.getInboxLocalQuery(ctx, opts.ConversationID, opts.Channel)
 		if err != nil {
@@ -319,7 +319,7 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	}
 
 	var rlimits []chat1.RateLimit
-	if opts.ConversationID == 0 {
+	if opts.ConversationID.IsNil() {
 		// resolve conversation id
 		query, err := c.getInboxLocalQuery(ctx, opts.ConversationID, opts.Channel)
 		if err != nil {
@@ -466,7 +466,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 }
 
 func (c *chatServiceHandler) getInboxLocalQuery(ctx context.Context, id chat1.ConversationID, channel ChatChannel) (chat1.GetInboxLocalQuery, error) {
-	if id > 0 {
+	if !id.IsNil() {
 		return chat1.GetInboxLocalQuery{ConvID: &id}, nil
 	}
 
