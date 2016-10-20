@@ -42,7 +42,9 @@ var errUPCNotInitialized = errors.New("The unflushed path cache is not yet initi
 
 // getUnflushedPaths returns a copy of the unflushed path cache if it
 // has been initialized, otherwise nil.  It must be called under the
-// same lock as the callers of appendToCache/removeFromCache.
+// same lock as the callers of appendToCache/removeFromCache.  The
+// caller must not modify the inner per-revision maps of the return
+// value.
 func (upc *unflushedPathCache) getUnflushedPaths() unflushedPathsMap {
 	upc.lock.RLock()
 	defer upc.lock.RUnlock()
@@ -51,7 +53,8 @@ func (upc *unflushedPathCache) getUnflushedPaths() unflushedPathsMap {
 	}
 	cache := make(unflushedPathsMap)
 	// Only need to deep-copy the outer level of the map; the inner
-	// level (per-revision) is immutable.
+	// level (per-revision) shouldn't be modified us once it's set,
+	// and the caller isn't supposed to modify it.
 	for k, v := range upc.unflushedPaths {
 		cache[k] = v
 	}
@@ -204,7 +207,13 @@ func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
 			len(newUnflushedPaths))
 	}
 
-	return newUnflushedPaths[irmd.Revision()], nil
+	perRevMap, ok := newUnflushedPaths[irmd.Revision()]
+	if !ok {
+		panic(fmt.Errorf("Cannot find per-revision map for revision %d",
+			irmd.Revision()))
+	}
+
+	return perRevMap, nil
 }
 
 // appendToCache returns true when successful, and false if it needs
@@ -276,7 +285,9 @@ func (upc *unflushedPathCache) setCacheIfPossible(cache unflushedPathsMap,
 // from `startInitializeOrWait()`.  It returns the unflushed paths
 // associated with `irmds`.  If it returns a `false` boolean, the
 // caller must abort the initialization (although as long as `err` is
-// nil, the returns unflushed paths may be used).
+// nil, the returns unflushed paths may be used).  The caller should
+// not modify any of the per-revision inner maps of the returned
+// unflushed path map.
 func (upc *unflushedPathCache) initialize(ctx context.Context,
 	uid keybase1.UID, kid keybase1.KID, codec kbfscodec.Codec,
 	log logger.Logger, cpp chainsPathPopulator,
@@ -293,7 +304,8 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 
 	initialUnflushedPaths := make(unflushedPathsMap)
 	// Only need to deep-copy the outer level of the map; the inner
-	// level (per-revision) is immutable.
+	// level (per-revision) shouldn't be modified us once it's set,
+	// and the caller isn't supposed to modify it.
 	for k, v := range unflushedPaths {
 		initialUnflushedPaths[k] = v
 	}

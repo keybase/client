@@ -934,28 +934,29 @@ func (j *tlfJournal) getJournalStatusWithRange() (
 func (j *tlfJournal) batchConvertImmutables(ctx context.Context,
 	ibrmds []ImmutableBareRootMetadata) ([]ImmutableRootMetadata, error) {
 	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
-	if len(ibrmds) > 0 {
-		ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandle(nil)
-		if err != nil {
-			return nil, err
-		}
-
-		handle, err := MakeTlfHandle(
-			ctx, ibrmdBareHandle, j.config.usernameGetter())
-		if err != nil {
-			return nil, err
-		}
-
-		for _, ibrmd := range ibrmds {
-			irmd, err := j.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
-			if err != nil {
-				return nil, err
-			}
-
-			irmds = append(irmds, irmd)
-		}
+	if len(ibrmds) == 0 {
+		return nil, nil
 	}
 
+	ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandle(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	handle, err := MakeTlfHandle(
+		ctx, ibrmdBareHandle, j.config.usernameGetter())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ibrmd := range ibrmds {
+		irmd, err := j.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
+		if err != nil {
+			return nil, err
+		}
+
+		irmds = append(irmds, irmd)
+	}
 	return irmds, nil
 }
 
@@ -1283,7 +1284,7 @@ func (j *tlfJournal) getMDRange(
 
 func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	irmd ImmutableRootMetadata, perRevMap unflushedPathsPerRevMap) (
-	MdID, bool, error) {
+	mdID MdID, retryPut bool, err error) {
 	// Now take the lock and put the MD, merging in the unflushed
 	// paths while under the lock.
 	j.journalLock.Lock()
@@ -1298,7 +1299,7 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	// TODO: remove the revision from the cache on any errors below?
 	// Tricky when the append is only queued.
 
-	mdID, err := j.mdJournal.put(ctx, j.config.Crypto(),
+	mdID, err = j.mdJournal.put(ctx, j.config.Crypto(),
 		j.config.encryptionKeyGetter(), j.config.BlockSplitter(), rmd)
 	if err != nil {
 		return MdID{}, false, err
