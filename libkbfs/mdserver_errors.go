@@ -239,7 +239,7 @@ func (e MDServerErrorConditionFailed) Error() string {
 
 // ToStatus implements the ExportableError interface for MDServerErrorConditionFailed.
 func (e MDServerErrorConditionFailed) ToStatus() (s keybase1.Status) {
-	s.Code = StatusCodeMDServerErrorThrottle
+	s.Code = StatusCodeMDServerErrorConditionFailed
 	s.Name = "CONDITION_FAILED"
 	s.Desc = e.Err.Error()
 	return
