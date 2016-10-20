@@ -891,37 +891,44 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 	return j.getJournalStatusLocked()
 }
 
+// getJournalStatusWithRange returns the journal status, and either a
+// non-nil unflushedPathsMap is returned, which can be used directly
+// to fill in UnflushedPaths, or a list of ImmutableBareRootMetadatas
+// is returned (along with a bool indicating whether that list is
+// complete), which can be used to build an unflushedPathsMap.
 func (j *tlfJournal) getJournalStatusWithRange() (
-	TLFJournalStatus, []ImmutableBareRootMetadata,
-	unflushedPathsMap, bool, error) {
+	jStatus TLFJournalStatus, unflushedPaths unflushedPathsMap,
+	ibrmds []ImmutableBareRootMetadata, complete bool, err error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
-	jStatus, err := j.getJournalStatusLocked()
+	jStatus, err = j.getJournalStatusLocked()
 	if err != nil {
 		return TLFJournalStatus{}, nil, nil, false, err
 	}
 
-	complete := true
-	var ibrmds []ImmutableBareRootMetadata
-	unflushedPaths := j.unflushedPaths.getUnflushedPaths()
-	if unflushedPaths == nil &&
-		jStatus.RevisionEnd != MetadataRevisionUninitialized {
-		stop := jStatus.RevisionEnd
-		if stop > jStatus.RevisionStart+1000 {
-			stop = jStatus.RevisionStart + 1000
-			complete = false
-		}
-
-		// It would be nice to avoid getting this range if we are not
-		// the initializer, but at this point we don't know if we'll
-		// need to initialize or not.
-		ibrmds, err = j.mdJournal.getRange(jStatus.RevisionStart, stop)
-		if err != nil {
-			return TLFJournalStatus{}, nil, nil, false, err
-		}
+	unflushedPaths = j.unflushedPaths.getUnflushedPaths()
+	if unflushedPaths != nil {
+		return jStatus, unflushedPaths, nil, true, nil
 	}
 
-	return jStatus, ibrmds, unflushedPaths, complete, nil
+	if jStatus.RevisionEnd == MetadataRevisionUninitialized {
+		return jStatus, nil, nil, true, nil
+	}
+
+	complete = true
+	stop := jStatus.RevisionEnd
+	if stop > jStatus.RevisionStart+1000 {
+		stop = jStatus.RevisionStart + 1000
+		complete = false
+	}
+	// It would be nice to avoid getting this range if we are not
+	// the initializer, but at this point we don't know if we'll
+	// need to initialize or not.
+	ibrmds, err = j.mdJournal.getRange(jStatus.RevisionStart, stop)
+	if err != nil {
+		return TLFJournalStatus{}, nil, nil, false, err
+	}
+	return jStatus, nil, ibrmds, complete, nil
 }
 
 func (j *tlfJournal) batchConvertImmutables(ctx context.Context,
@@ -959,65 +966,63 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 	var complete bool
 	for {
 		var ibrmds []ImmutableBareRootMetadata
-		jStatus, ibrmds, unflushedPaths, complete, err =
+		jStatus, unflushedPaths, ibrmds, complete, err =
 			j.getJournalStatusWithRange()
 		if err != nil {
 			return TLFJournalStatus{}, err
 		}
 
-		// We need to make or initialize the unflushed paths.
-		if unflushedPaths == nil {
-			if !complete {
-				// Figure out the paths for the truncated MD range,
-				// but don't cache it.
-				unflushedPaths = make(unflushedPathsMap)
-				j.log.CDebugf(ctx, "Making incomplete unflushed path cache")
-				irmds, err := j.batchConvertImmutables(ctx, ibrmds)
-				if err != nil {
-					return TLFJournalStatus{}, err
-				}
-				err = addUnflushedPaths(ctx, j.uid, j.key.KID(),
-					j.config.Codec(), j.log, irmds, cpp,
-					unflushedPaths)
-				if err != nil {
-					return TLFJournalStatus{}, err
-				}
-				break
-			}
+		if unflushedPaths != nil {
+			break
+		}
 
-			// We need to init it ourselves, or wait for someone else
-			// to do it.
-			doInit, err := j.unflushedPaths.startInitializeOrWait(ctx)
+		// We need to make or initialize the unflushed paths.
+		if !complete {
+			// Figure out the paths for the truncated MD range,
+			// but don't cache it.
+			unflushedPaths = make(unflushedPathsMap)
+			j.log.CDebugf(ctx, "Making incomplete unflushed path cache")
+			irmds, err := j.batchConvertImmutables(ctx, ibrmds)
 			if err != nil {
 				return TLFJournalStatus{}, err
 			}
-
-			if doInit {
-				initSuccess := false
-				defer func() {
-					if !initSuccess || err != nil {
-						j.unflushedPaths.abortInitialization()
-					}
-				}()
-
-				j.log.CDebugf(ctx, "Initializing unflushed paths")
-				irmds, err := j.batchConvertImmutables(ctx, ibrmds)
-				if err != nil {
-					return TLFJournalStatus{}, err
-				}
-				unflushedPaths, initSuccess, err = j.unflushedPaths.initialize(
-					ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, cpp,
-					irmds)
-				if err != nil {
-					return TLFJournalStatus{}, err
-				}
-			} else {
-				j.log.CDebugf(ctx, "Waited for unflushed paths "+
-					"initialization, trying again to get the status")
-				continue
+			err = addUnflushedPaths(ctx, j.uid, j.key.KID(),
+				j.config.Codec(), j.log, irmds, cpp,
+				unflushedPaths)
+			if err != nil {
+				return TLFJournalStatus{}, err
 			}
+			break
 		}
-		break
+
+		// We need to init it ourselves, or wait for someone else
+		// to do it.
+		doInit, err := j.unflushedPaths.startInitializeOrWait(ctx)
+		if err != nil {
+			return TLFJournalStatus{}, err
+		}
+		if doInit {
+			initSuccess := false
+			defer func() {
+				if !initSuccess || err != nil {
+					j.unflushedPaths.abortInitialization()
+				}
+			}()
+			irmds, err := j.batchConvertImmutables(ctx, ibrmds)
+			if err != nil {
+				return TLFJournalStatus{}, err
+			}
+			unflushedPaths, initSuccess, err = j.unflushedPaths.initialize(
+				ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, cpp, irmds)
+			if err != nil {
+				return TLFJournalStatus{}, err
+			}
+			// All done!
+			break
+		}
+
+		j.log.CDebugf(ctx, "Waited for unflushed paths initialization, "+
+			"trying again to get the status")
 	}
 
 	pathsSeen := make(map[string]bool)
