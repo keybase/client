@@ -57,9 +57,12 @@ func (h *tlfHandler) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, 
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, libkb.LoginRequiredError{}
 	}
 
-	// Append username in case it's not present. We don't need to check if it
+	// Prepend username in case it's not present. We don't need to check if it
 	// exists already since CryptKeys calls below transforms the TLF name into a
 	// canonical one.
+	//
+	// This makes username a writer on this TLF, which might be unexpected.
+	// TODO: We should think about how to handle read-only TLFs.
 	arg.TlfName = string(username) + "," + arg.TlfName
 
 	// TODO: do some caching so we don't end up calling this RPC
