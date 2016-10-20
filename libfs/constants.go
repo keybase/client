@@ -65,6 +65,11 @@ const DisableJournalFileName = ".kbfs_disable_journal"
 // journal-enabling file.  It's accessible anywhere outside a TLF.
 const EnableAutoJournalsFileName = ".kbfs_enable_auto_journals"
 
+// DisableAutoJournalsFileName is the name of the KBFS-wide
+// auto-journal-disabling file.  It's accessible anywhere outside a
+// TLF.
+const DisableAutoJournalsFileName = ".kbfs_disable_auto_journals"
+
 // EditHistoryName is the name of the KBFS TLF edit history file --
 // it can be reached anywhere within a top-level folder.
 const EditHistoryName = ".kbfs_edit_history"

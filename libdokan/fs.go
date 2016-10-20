@@ -307,6 +307,11 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 			folder: &Folder{fs: f}, // fake Folder for logging, etc.
 			action: libfs.JournalEnableAuto,
 		})
+	case libfs.DisableAutoJournalsFileName == ps[0]:
+		return oc.returnFileNoCleanup(&JournalControlFile{
+			folder: &Folder{fs: f}, // fake Folder for logging, etc.
+			action: libfs.JournalDisableAuto,
+		})
 
 	case ".kbfs_unmount" == ps[0]:
 		os.Exit(0)

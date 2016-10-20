@@ -50,6 +50,11 @@ func handleNonTLFSpecialFile(
 			folder: &Folder{fs: fs}, // fake Folder for logging, etc.
 			action: libfs.JournalEnableAuto,
 		}
+	case libfs.DisableAutoJournalsFileName:
+		return &JournalControlFile{
+			folder: &Folder{fs: fs}, // fake Folder for logging, etc.
+			action: libfs.JournalDisableAuto,
+		}
 	}
 
 	return nil
