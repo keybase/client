@@ -409,3 +409,53 @@ func TestJournalServerMultiUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, uid2, head.LastModifyingWriter())
 }
+
+func TestJournalServerEnableAuto(t *testing.T) {
+	tempdir, config, jServer := setupJournalServerTest(t)
+	defer teardownJournalServerTest(t, tempdir, config)
+
+	ctx := context.Background()
+
+	tlfID := FakeTlfID(2, false)
+	err := jServer.EnableAuto(ctx)
+	require.NoError(t, err)
+
+	status := jServer.Status()
+	require.True(t, status.EnableAuto)
+	require.Zero(t, status.JournalCount)
+
+	blockServer := config.BlockServer()
+	crypto := config.Crypto()
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), "test_user1", false)
+	require.NoError(t, err)
+	uid := h.ResolvedWriters()[0]
+
+	// Access a TLF, which should create a journal automatically.
+	bCtx := BlockContext{uid, "", zeroBlockRefNonce}
+	data := []byte{1, 2, 3, 4}
+	bID, err := crypto.MakePermanentBlockID(data)
+	require.NoError(t, err)
+	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
+	require.NoError(t, err)
+
+	status = jServer.Status()
+	require.True(t, status.EnableAuto)
+	require.Equal(t, status.JournalCount, 1)
+
+	// Simulate a restart.
+	jServer = makeJournalServer(
+		config, jServer.log, tempdir, jServer.delegateBlockCache,
+		jServer.delegateDirtyBlockCache,
+		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil)
+	uid, verifyingKey, err :=
+		getCurrentUIDAndVerifyingKey(ctx, config.KBPKI())
+	require.NoError(t, err)
+	err = jServer.EnableExistingJournals(
+		ctx, uid, verifyingKey, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+	status = jServer.Status()
+	require.True(t, status.EnableAuto)
+	require.Equal(t, status.JournalCount, 1)
+}

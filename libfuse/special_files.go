@@ -45,6 +45,16 @@ func handleNonTLFSpecialFile(
 	case libfs.HumanErrorFileName, libfs.HumanNoLoginFileName:
 		*entryValid = 0
 		return &SpecialReadFile{fs.remoteStatus.NewSpecialReadFunc}
+	case libfs.EnableAutoJournalsFileName:
+		return &JournalControlFile{
+			folder: &Folder{fs: fs}, // fake Folder for logging, etc.
+			action: libfs.JournalEnableAuto,
+		}
+	case libfs.DisableAutoJournalsFileName:
+		return &JournalControlFile{
+			folder: &Folder{fs: fs}, // fake Folder for logging, etc.
+			action: libfs.JournalDisableAuto,
+		}
 	}
 
 	return nil
