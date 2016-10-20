@@ -13,7 +13,6 @@ package libkb
 
 import (
 	"bytes"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -407,161 +406,10 @@ func (s *SKB) lksUnlockWithSecretRetriever(lctx LoginContext, secretRetriever Se
 }
 
 func (s *SKB) SetUID(uid keybase1.UID) {
-	G.Log.Debug("| Setting UID on SKB to %s", uid)
+	s.G().Log.Debug("| Setting UID on SKB to %s", uid)
 	s.Lock()
 	s.uid = uid
 	s.Unlock()
-}
-
-type SKBKeyringFile struct {
-	filename string
-	Blocks   []*SKB
-	fpIndex  map[PGPFingerprint]*SKB
-	kidIndex map[keybase1.KID]*SKB
-	dirty    bool
-}
-
-func NewSKBKeyringFile(n string) *SKBKeyringFile {
-	return &SKBKeyringFile{
-		filename: n,
-		fpIndex:  make(map[PGPFingerprint]*SKB),
-		kidIndex: make(map[keybase1.KID]*SKB),
-		dirty:    false,
-	}
-}
-
-func (k *SKBKeyringFile) Load() (err error) {
-	G.Log.Debug("+ Loading SKB keyring: %s", k.filename)
-	var packets KeybasePackets
-	var file *os.File
-	if file, err = os.OpenFile(k.filename, os.O_RDONLY, 0); err == nil {
-		stream := base64.NewDecoder(base64.StdEncoding, file)
-		packets, err = DecodePacketsUnchecked(stream)
-		tmp := file.Close()
-		if err == nil && tmp != nil {
-			err = tmp
-		}
-	}
-
-	if err != nil {
-		if os.IsNotExist(err) {
-			G.Log.Debug("| Keybase secret keyring doesn't exist: %s", k.filename)
-		} else {
-			G.Log.Warning("Error opening %s: %s", k.filename, err)
-		}
-
-	} else if err == nil {
-		k.Blocks, err = packets.ToListOfSKBs()
-	}
-
-	G.Log.Debug("- Loaded SKB keyring: %s -> %s", k.filename, ErrToOk(err))
-	return
-}
-
-func (k *SKBKeyringFile) addToIndex(g GenericKey, b *SKB) {
-	if g == nil {
-		return
-	}
-	if fp := GetPGPFingerprintFromGenericKey(g); fp != nil {
-		k.fpIndex[*fp] = b
-	}
-	k.kidIndex[g.GetKID()] = b
-}
-
-func (k *SKBKeyringFile) removeFromIndex(g GenericKey) {
-	if g == nil {
-		return
-	}
-	if fp := GetPGPFingerprintFromGenericKey(g); fp != nil {
-		delete(k.fpIndex, *fp)
-	}
-	delete(k.kidIndex, g.GetKID())
-}
-
-func (k *SKBKeyringFile) Index() (err error) {
-	for _, b := range k.Blocks {
-		var key GenericKey
-		key, err = b.GetPubKey()
-		if err != nil {
-			return
-		}
-		// Last-writer wins!
-		k.addToIndex(key, b)
-	}
-	G.Log.Debug("| Indexed %d secret keys", len(k.Blocks))
-	return
-}
-
-func (k SKBKeyringFile) SearchWithComputedKeyFamily(ckf *ComputedKeyFamily, ska SecretKeyArg) []*SKB {
-	var kid keybase1.KID
-	G.Log.Debug("+ SKBKeyringFile.SearchWithComputedKeyFamily")
-	defer func() {
-		var res string
-		if kid.Exists() {
-			res = kid.String()
-		} else {
-			res = "<nil>"
-		}
-		G.Log.Debug("- SKBKeyringFile.SearchWithComputedKeyFamily -> %s\n", res)
-	}()
-	G.Log.Debug("| Searching %d possible blocks", len(k.Blocks))
-	var blocks []*SKB
-	for i := len(k.Blocks) - 1; i >= 0; i-- {
-		G.Log.Debug("| trying key index# -> %d", i)
-		if key, err := k.Blocks[i].GetPubKey(); err == nil && key != nil {
-			kid = key.GetKID()
-			active := ckf.GetKeyRole(kid)
-			G.Log.Debug("| Checking KID: %s -> %d", kid, int(active))
-			if !ska.KeyType.nonDeviceKeyMatches(key) {
-				G.Log.Debug("| Skipped, doesn't match type=%s", ska.KeyType)
-			} else if !KeyMatchesQuery(key, ska.KeyQuery, ska.ExactMatch) {
-				G.Log.Debug("| Skipped, doesn't match query=%s", ska.KeyQuery)
-
-			} else if active != DLGSibkey {
-				G.Log.Debug("| Skipped, active=%d", int(active))
-			} else {
-				blocks = append(blocks, k.Blocks[i])
-			}
-		} else {
-			G.Log.Debug("| failed --> %v", err)
-		}
-	}
-	return blocks
-}
-
-func (k SKBKeyringFile) LookupByFingerprint(fp PGPFingerprint) *SKB {
-	ret, ok := k.fpIndex[fp]
-	if !ok {
-		ret = nil
-	}
-	return ret
-}
-
-// FindSecretKey will, given a list of KIDs, find the first one in the
-// list that has a corresponding secret key in the keyring file.
-func (k SKBKeyringFile) FindSecretKey(kids []keybase1.KID) (ret *SKB) {
-	for _, kid := range kids {
-		if ret = k.LookupByKid(kid); ret != nil {
-			return
-		}
-	}
-	return
-}
-
-func (k SKBKeyringFile) LookupByKid(kid keybase1.KID) *SKB {
-	ret, ok := k.kidIndex[kid]
-	if !ok {
-		ret = nil
-	}
-	return ret
-}
-
-func (k *SKBKeyringFile) LoadAndIndex() error {
-	err := k.Load()
-	if err == nil {
-		err = k.Index()
-	}
-	return err
 }
 
 func (p KeybasePacket) ToSKB() (*SKB, error) {
@@ -574,50 +422,6 @@ func (p KeybasePacket) ToSKB() (*SKB, error) {
 
 func (s *SKB) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
-}
-
-func (k *SKBKeyringFile) Push(skb *SKB) error {
-	key, err := skb.GetPubKey()
-	if err != nil {
-		return fmt.Errorf("Failed to get pubkey: %s", err)
-	}
-	k.dirty = true
-	k.Blocks = append(k.Blocks, skb)
-	k.addToIndex(key, skb)
-	return nil
-}
-
-func (k SKBKeyringFile) GetFilename() string { return k.filename }
-
-func (k SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
-	G.Log.Debug("+ WriteTo")
-	packets := make(KeybasePackets, len(k.Blocks))
-	var err error
-	for i, b := range k.Blocks {
-		if packets[i], err = b.ToPacket(); err != nil {
-			return 0, err
-		}
-	}
-	b64 := base64.NewEncoder(base64.StdEncoding, w)
-	if err = packets.EncodeTo(b64); err != nil {
-		G.Log.Warning("Encoding problem: %s", err)
-		return 0, err
-	}
-	G.Log.Debug("- WriteTo")
-	b64.Close()
-	return 0, nil
-}
-
-func (k *SKBKeyringFile) Save() error {
-	if !k.dirty {
-		return nil
-	}
-	if err := SafeWriteToFile(*k, 0); err != nil {
-		return err
-	}
-	k.dirty = false
-	G.Log.Debug("Updated keyring %s", k.filename)
-	return nil
 }
 
 func (p KeybasePackets) ToListOfSKBs() ([]*SKB, error) {
@@ -763,49 +567,4 @@ func (s *SKB) PromptAndUnlock(arg SecretKeyPromptArg, secretStore SecretStore, m
 	// Prompt necessary:
 	ret, err = s.unlockPrompt(arg, secretStore, me)
 	return
-}
-
-func (k *SKBKeyringFile) PushAndSave(skb *SKB) error {
-	if err := k.Push(skb); err != nil {
-		return err
-	}
-	return k.Save()
-}
-
-func (k *SKBKeyringFile) HasPGPKeys() bool {
-	return len(k.fpIndex) > 0
-}
-
-func (k *SKBKeyringFile) AllPGPBlocks() ([]*SKB, error) {
-	var pgpBlocks []*SKB
-	for _, block := range k.Blocks {
-		k, err := block.GetPubKey()
-		if err != nil {
-			return nil, err
-		}
-		if fp := GetPGPFingerprintFromGenericKey(k); fp != nil {
-			pgpBlocks = append(pgpBlocks, block)
-		}
-	}
-	return pgpBlocks, nil
-}
-
-func (k *SKBKeyringFile) RemoveAllPGPBlocks() error {
-	var blocks []*SKB
-	for _, block := range k.Blocks {
-		k, err := block.GetPubKey()
-		if err != nil {
-			return err
-		}
-		if fp := GetPGPFingerprintFromGenericKey(k); fp == nil {
-			blocks = append(blocks, block)
-		}
-	}
-	k.Blocks = blocks
-	k.fpIndex = make(map[PGPFingerprint]*SKB)
-	k.kidIndex = make(map[keybase1.KID]*SKB)
-	k.Index()
-	k.dirty = true
-
-	return nil
 }
