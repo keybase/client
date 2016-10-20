@@ -51,30 +51,26 @@ func (h *tlfHandler) PublicCanonicalTLFNameAndID(ctx context.Context, arg keybas
 	return tlfClient.GetPublicCanonicalTLFNameAndID(ctx, arg)
 }
 
-func (h *tlfHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, arg keybase1.CompleteAndCanonicalizeTlfNameArg) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
+func (h *tlfHandler) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, arg keybase1.TLFQuery) (res keybase1.CanonicalTLFNameAndIDWithBreaks, err error) {
 	username := h.G().Env.GetUsername()
 	if len(username) == 0 {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, libkb.LoginRequiredError{}
 	}
 
-	// Append username in case it's not present. We don't need to check if it
+	// Prepend username in case it's not present. We don't need to check if it
 	// exists already since CryptKeys calls below transforms the TLF name into a
 	// canonical one.
-	arg.Query.TlfName = arg.Query.TlfName + "," + string(username)
+	//
+	// This makes username a writer on this TLF, which might be unexpected.
+	// TODO: We should think about how to handle read-only TLFs.
+	arg.TlfName = string(username) + "," + arg.TlfName
 
-	if arg.IsPublic {
-		resp, err := h.PublicCanonicalTLFNameAndID(ctx, arg.Query)
-		if err != nil {
-			return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
-		}
-		res = resp
-	} else {
-		resp, err := h.CryptKeys(ctx, arg.Query)
-		if err != nil {
-			return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
-		}
-		res = resp.NameIDBreaks
+	// TODO: do some caching so we don't end up calling this RPC
+	// unnecessarily too often
+	resp, err := h.CryptKeys(ctx, arg)
+	if err != nil {
+		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
 
-	return res, nil
+	return resp.NameIDBreaks, nil
 }
