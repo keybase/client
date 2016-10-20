@@ -11,6 +11,7 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -354,6 +355,24 @@ func (*fsEngine) FlushJournal(user User, tlfName string,
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.FlushJournalFileName),
 		[]byte("on"), 0644)
+}
+
+func (*fsEngine) UnflushedPaths(user User, tlfName string, isPublic bool) (
+	[]string, error) {
+	u := user.(*fsUser)
+	path := buildTlfPath(u, tlfName, isPublic)
+	buf, err := ioutil.ReadFile(filepath.Join(path, libfs.StatusFileName))
+	if err != nil {
+		return nil, err
+	}
+
+	var bufStatus libkbfs.FolderBranchStatus
+	err = json.Unmarshal(buf, &bufStatus)
+	if err != nil {
+		return nil, err
+	}
+
+	return bufStatus.Journal.UnflushedPaths, nil
 }
 
 // Shutdown is called by the test harness when it is done with the

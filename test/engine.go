@@ -130,6 +130,10 @@ type Engine interface {
 	// FlushJournal is called by the test harness as the given
 	// user to wait for the journal to flush, if enabled.
 	FlushJournal(u User, tlfName string, isPublic bool) (err error)
+	// UnflushedPaths called by the test harness to find out which
+	// paths haven't yet been flushed from the journal.
+	UnflushedPaths(u User, tlfName string, isPublic bool) (
+		paths []string, err error)
 	// Shutdown is called by the test harness when it is done with the
 	// given user.
 	Shutdown(u User) error
