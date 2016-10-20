@@ -5,6 +5,7 @@ import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
 import {Stars} from '../common.desktop.js'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
+import flags from '../../util/feature-flags'
 
 import type {Props, AccountProps, PlanProps} from './index'
 import type {PlanLevel} from '../../constants/settings'
@@ -214,7 +215,7 @@ function Landing (props: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, padding: 32}}>
       <Account {...props.account} />
-      <Plan {...props.plan} plans={props.plans} />
+      {flags.plansEnabled && <Plan {...props.plan} plans={props.plans} />}
     </Box>
   )
 }
