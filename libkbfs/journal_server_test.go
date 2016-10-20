@@ -420,9 +420,10 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	err := jServer.EnableAuto(ctx)
 	require.NoError(t, err)
 
-	status := jServer.Status()
+	status, tlfIDs := jServer.Status()
 	require.True(t, status.EnableAuto)
 	require.Zero(t, status.JournalCount)
+	require.Len(t, tlfIDs, 0)
 
 	blockServer := config.BlockServer()
 	crypto := config.Crypto()
@@ -440,9 +441,10 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
 
-	status = jServer.Status()
+	status, tlfIDs = jServer.Status()
 	require.True(t, status.EnableAuto)
 	require.Equal(t, status.JournalCount, 1)
+	require.Len(t, tlfIDs, 1)
 
 	// Simulate a restart.
 	jServer = makeJournalServer(
@@ -455,7 +457,8 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	err = jServer.EnableExistingJournals(
 		ctx, uid, verifyingKey, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
-	status = jServer.Status()
+	status, tlfIDs = jServer.Status()
 	require.True(t, status.EnableAuto)
 	require.Equal(t, status.JournalCount, 1)
+	require.Len(t, tlfIDs, 1)
 }

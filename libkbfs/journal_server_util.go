@@ -47,17 +47,17 @@ func WaitForTLFJournal(ctx context.Context, config Config, tlfID TlfID,
 }
 
 func fillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
-	jStatus *JournalServerStatus) error {
-	if len(jStatus.journalTlfIDs) == 0 {
+	jStatus *JournalServerStatus, tlfIDs []TlfID) error {
+	if len(tlfIDs) == 0 {
 		// Nothing to do.
 		return nil
 	}
 
 	// Get the folder statuses in parallel.
 	eg, groupCtx := errgroup.WithContext(ctx)
-	statusesToFetch := make(chan TlfID, len(jStatus.journalTlfIDs))
-	unflushedPaths := make(chan []string, len(jStatus.journalTlfIDs))
-	unflushedBytes := make(chan int64, len(jStatus.journalTlfIDs))
+	statusesToFetch := make(chan TlfID, len(tlfIDs))
+	unflushedPaths := make(chan []string, len(tlfIDs))
+	unflushedBytes := make(chan int64, len(tlfIDs))
 	errIncomplete := errors.New("Incomplete status")
 	statusFn := func() error {
 		for tlfID := range statusesToFetch {
@@ -87,11 +87,16 @@ func fillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 		}
 		return nil
 	}
+
 	// Do up to 10 statuses at a time.
-	for i := 0; i < 10; i++ {
+	numWorkers := len(tlfIDs)
+	if numWorkers > 10 {
+		numWorkers = 10
+	}
+	for i := 0; i < numWorkers; i++ {
 		eg.Go(statusFn)
 	}
-	for _, tlfID := range jStatus.journalTlfIDs {
+	for _, tlfID := range tlfIDs {
 		statusesToFetch <- tlfID
 	}
 	close(statusesToFetch)

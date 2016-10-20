@@ -36,8 +36,6 @@ type JournalServerStatus struct {
 	JournalCount        int
 	UnflushedBytes      int64 // (signed because os.FileInfo.Size() is signed)
 	UnflushedPaths      []string
-
-	journalTlfIDs []TlfID
 }
 
 // branchChangeListener describes a caller that will get updates via
@@ -568,8 +566,9 @@ func (j *JournalServer) mdOps() journalMDOps {
 }
 
 // Status returns a JournalServerStatus object suitable for
-// diagnostics.
-func (j *JournalServer) Status() JournalServerStatus {
+// diagnostics.  It also returns a list of TLF IDs which have journals
+// enabled.
+func (j *JournalServer) Status() (JournalServerStatus, []TlfID) {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
 	var unflushedBytes int64
@@ -586,8 +585,7 @@ func (j *JournalServer) Status() JournalServerStatus {
 		EnableAuto:          j.serverConfig.EnableAuto,
 		JournalCount:        len(tlfIDs),
 		UnflushedBytes:      unflushedBytes,
-		journalTlfIDs:       tlfIDs,
-	}
+	}, tlfIDs
 }
 
 // JournalStatus returns a TLFServerStatus object for the given TLF
