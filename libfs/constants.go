@@ -62,7 +62,7 @@ const ResumeJournalBackgroundWorkFileName = ".kbfs_resume_journal_background_wor
 const DisableJournalFileName = ".kbfs_disable_journal"
 
 // EnableAutoJournalsFileName is the name of the KBFS-wide
-// journal-enabling file.  It's accessible anywhere outside a TLF.
+// auto-journal-enabling file.  It's accessible anywhere outside a TLF.
 const EnableAutoJournalsFileName = ".kbfs_enable_auto_journals"
 
 // DisableAutoJournalsFileName is the name of the KBFS-wide
