@@ -8,6 +8,7 @@ const ff: FeatureFlags = {
   tabPeopleEnabled: __DEV__,
   tabSettingsEnabled: __DEV__,
   tabProfileEnabled: __DEV__,
+  plansEnabled: __DEV__,
 }
 
 if (__DEV__) {

@@ -1,15 +1,16 @@
 // @flow
-import React, {Component} from 'react'
-import Render from './render'
 import DeleteConfirm from './delete-confirm/container'
-import Passphrase from './passphrase/container'
-import RemoveDevice from '../devices/device-revoke'
 import InviteGenerated from './invite-generated'
+import Passphrase from './passphrase/container'
+import PlanDetails from './plan-details/container'
+import React, {Component} from 'react'
+import RemoveDevice from '../devices/device-revoke'
+import Render from './render'
+import Routable from '../util/routable'
 import devMenu from '../dev/dev-menu'
 import flags from '../util/feature-flags'
 import {connect} from 'react-redux'
 import {routeAppend} from '../actions/router'
-import Routable from '../util/routable'
 
 class Settings extends Component {
   static parseRoute () {
@@ -20,6 +21,7 @@ class Settings extends Component {
         deleteConfirm: DeleteConfirm,
         removeDevice: RemoveDevice,
         changePassphrase: Passphrase,
+        changePlan: PlanDetails,
         inviteSent: Routable((uri) => ({
           componentAtTop: {
             title: '',
