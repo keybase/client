@@ -509,6 +509,45 @@ func (fbo *folderBranchOps) setBranchIDLocked(lState *lockState, bid BranchID) {
 	}
 }
 
+// getJournalPredecessorRevision returns the revision that precedes
+// the current journal head if journaling enabled and there are
+// unflushed MD updates; otherwise it returns
+// MetadataRevisionUninitialized.
+func (fbo *folderBranchOps) getJournalPredecessorRevision(ctx context.Context) (
+	MetadataRevision, error) {
+	jServer, err := GetJournalServer(fbo.config)
+	if err != nil {
+		// Journaling is disabled entirely.
+		return MetadataRevisionUninitialized, nil
+	}
+
+	jStatus, err := jServer.JournalStatus(fbo.id())
+	if err != nil {
+		// Journaling is disabled for this TLF, so use the local head.
+		// TODO: JournalStatus could return other errors (likely
+		// file/disk corruption) that indicate a real problem, so it
+		// might be nice to type those errors so we can distinguish
+		// them.
+		return MetadataRevisionUninitialized, nil
+	}
+
+	if jStatus.BranchID != NullBranchID.String() {
+		return MetadataRevisionUninitialized,
+			errors.New("Cannot find most recent merged revision while staged")
+	}
+
+	if jStatus.RevisionStart == MetadataRevisionUninitialized {
+		// The journal is empty, so the local head must be the most recent.
+		return MetadataRevisionUninitialized, nil
+	} else if jStatus.RevisionStart == MetadataRevisionInitial {
+		// Nothing has been flushed to the servers yet, so don't
+		// return anything.
+		return MetadataRevisionUninitialized, errors.New("No flushed MDs yet")
+	}
+
+	return jStatus.RevisionStart - 1, nil
+}
+
 func (fbo *folderBranchOps) setHeadLocked(
 	ctx context.Context, lState *lockState, md ImmutableRootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -539,20 +578,43 @@ func (fbo *folderBranchOps) setHeadLocked(
 		// revision is enough to trigger conflict resolution.
 		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
 	} else if md.MergedStatus() == Merged {
+		mergedRev := md.Revision()
+
 		journalEnabled := TLFJournalEnabled(fbo.config, fbo.id())
 		var key kbfscrypto.VerifyingKey
 		if journalEnabled {
-			key, err = fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
-			if err != nil {
-				return err
+			if isFirstHead {
+				// If journaling is on, and this is the first head
+				// we're setting, we have to make sure we use the
+				// server's notion of the latest MD, not the one
+				// potentially coming from our journal.
+				journalPred, err := fbo.getJournalPredecessorRevision(ctx)
+				if err != nil {
+					return err
+				}
+				if journalPred != MetadataRevisionUninitialized {
+					mergedRev = journalPred
+				}
+			} else {
+				// If this isn't the first head, set `key` so that
+				// below we can skip revisions that come from our own
+				// device.
+				key, err = fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
+				if err != nil {
+					return err
+				}
 			}
 		}
+
 		// If this is a merged revision, it should be the latest one
 		// we know about.  However, if journaling is enabled, and this
 		// MD was written by this device, it may not be merged yet, so
-		// let onMDFlush take care of setting it in that case.
+		// let onMDFlush take care of setting it in that case.  If
+		// this is the first head, the logic above ensures that even
+		// when journaling is on, we'll set this to the correct value
+		// (because `key` will not be initialized).
 		if !journalEnabled || key.KID() != md.LastModifyingWriterKID() {
-			fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision(), false)
+			fbo.setLatestMergedRevisionLocked(ctx, lState, mergedRev, false)
 		}
 	}
 
@@ -880,40 +942,18 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 // the journal is on a branch, it returns an error.
 func (fbo *folderBranchOps) getMostRecentFullyMergedMD(ctx context.Context) (
 	ImmutableRootMetadata, error) {
-	lState := makeFBOLockState()
-
-	jServer, err := GetJournalServer(fbo.config)
+	mergedRev, err := fbo.getJournalPredecessorRevision(ctx)
 	if err != nil {
-		// Journaling is disabled entirely, so use the local head.
+		return ImmutableRootMetadata{}, err
+	}
+
+	if mergedRev == MetadataRevisionUninitialized {
+		// No unflushed journal entries, so use the local head.
+		lState := makeFBOLockState()
 		return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
 	}
 
-	jStatus, err := jServer.JournalStatus(fbo.id())
-	if err != nil {
-		// Journaling is disabled for this TLF, so use the local head.
-		// TODO: JournalStatus could return other errors (likely
-		// file/disk corruption) that indicate a real problem, so it
-		// might be nice to type those errors so we can distinguish
-		// them.
-		return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
-	}
-
-	if jStatus.BranchID != NullBranchID.String() {
-		return ImmutableRootMetadata{},
-			errors.New("Cannot find most recent merged revision while staged")
-	}
-
-	if jStatus.RevisionStart == MetadataRevisionUninitialized {
-		// The journal is empty, so the local head must be the most recent.
-		return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
-	} else if jStatus.RevisionStart == MetadataRevisionInitial {
-		// Nothing has been flushed to the servers yet, so don't
-		// return anything.
-		return ImmutableRootMetadata{}, errors.New("No flushed MDs yet")
-	}
-
-	// Otherwise, use the revision from before the start of the journal.
-	mergedRev := jStatus.RevisionStart - 1
+	// Otherwise, use the specified revision.
 	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
 		mergedRev, Merged)
 	if err != nil {
