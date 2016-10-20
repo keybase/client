@@ -28,16 +28,16 @@ const prettyNames = {
   [profileTab]: 'Profile',
 }
 
-export type VisibleTab = ProfileTab
-| PeopleTab
-| FolderTab
+export type VisibleTab = ChatTab
 | DevicesTab
+| FolderTab
+| PeopleTab
+| ProfileTab
 | SettingsTab
 
 export type Tabs = VisibleTab
-| StartupTab
-| ChatTab
 | LoginTab
+| StartupTab
 
 export function prettify (tabName: string) {
   return prettyNames[tabName] || 'You have found a bug'

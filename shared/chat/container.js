@@ -1,11 +1,11 @@
 // @flow
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import ChatRender from './render'
+import Chat from './index'
 
-class Chat extends Component {
+class ChatContainer extends Component {
   render () {
-    return <ChatRender />
+    return <Chat />
   }
 
   static parseRoute () {
@@ -13,4 +13,4 @@ class Chat extends Component {
   }
 }
 
-export default connect()(Chat)
+export default connect()(ChatContainer)

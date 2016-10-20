@@ -1,0 +1,5 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = { }
+export default class ConversationList extends Component<void, Props, void> { }
