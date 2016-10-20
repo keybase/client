@@ -134,7 +134,7 @@ const commands = {
     env: {HOT: 'true', USING_DLL: 'true'},
     nodeEnv: 'development',
     nodePathDesktop: true,
-    shell: `webpack-dashboard -- ${nodeCmd} server.js`,
+    shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} server.js` : `webpack-dashboard -- ${nodeCmd} server.js`,
     help: 'Start the webpack hot reloading code server (needed by npm run start-hot)',
   },
   'inject-sourcemaps-prod': {

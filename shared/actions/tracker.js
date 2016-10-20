@@ -441,12 +441,17 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
         dispatch(pendingIdentify(username, false))
       }, 60e3)
 
-      requestIdle(() => {
-        dispatch({
-          type: Constants.updateUsername,
-          payload: {username},
-        })
+      dispatch({
+        type: Constants.updateUsername,
+        payload: {username},
+      })
 
+      dispatch({
+        type: Constants.markActiveIdentifyUi,
+        payload: {username, active: true},
+      })
+
+      requestIdle(() => {
         dispatch({
           type: Constants.resetProofs,
           payload: {username},
@@ -455,11 +460,6 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
         dispatch({
           type: Constants.updateReason,
           payload: {username, reason: reason && reason.reason},
-        })
-
-        dispatch({
-          type: Constants.markActiveIdentifyUi,
-          payload: {username, active: true},
         })
 
         dispatch({
@@ -622,10 +622,7 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
 
         dispatch({
           type: Constants.markActiveIdentifyUi,
-          payload: {
-            active: false,
-            username,
-          },
+          payload: {username, active: false},
         })
 
         // Doing a non-tracker so explicitly cleanup instead of using the timeout

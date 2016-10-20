@@ -32,11 +32,14 @@ const filterAllowOnlyTypes = (...types) => ({
   filter: f => types.some(type => f.endsWith(`.${type}`)),
 })
 
-fs.copySync('./Icon.png', 'build/desktop/Icon.png')
-fs.copySync('./Icon@2x.png', 'build/desktop/Icon@2x.png')
-fs.copySync('../shared/images', 'build/desktop/shared/images', filterAllowOnlyTypes('gif', 'png'))
-fs.copySync('../shared/fonts', 'build/desktop/shared/fonts', filterAllowOnlyTypes('ttf'))
-fs.copySync('./renderer', 'build/desktop/renderer', filterAllowOnlyTypes('css', 'html'))
+const copySync = (src, target, options) => {
+  fs.copySync(src, target, {...options, dereference: true})
+}
+
+copySync('./Icon.png', 'build/desktop/Icon.png')
+copySync('./Icon@2x.png', 'build/desktop/Icon@2x.png')
+copySync('../shared/images', 'build/desktop/shared/images', filterAllowOnlyTypes('gif', 'png'))
+copySync('./renderer', 'build/desktop/renderer', filterAllowOnlyTypes('css', 'html', 'ttf'))
 
 fs.writeJsonSync('build/package.json', {
   name: appName,
@@ -96,8 +99,8 @@ function startPack () {
       process.exit(1)
     }
 
-    fs.copySync('./dist', 'build/desktop/sourcemaps', filterAllowOnlyTypes('map'))
-    fs.copySync('./dist', 'build/desktop/dist', filterAllowOnlyTypes('js'))
+    copySync('./dist', 'build/desktop/sourcemaps', filterAllowOnlyTypes('map'))
+    copySync('./dist', 'build/desktop/dist', filterAllowOnlyTypes('js'))
 
     del('release')
     .then(paths => {

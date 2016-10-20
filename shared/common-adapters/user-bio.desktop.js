@@ -95,7 +95,7 @@ class BioRender extends Component<void, Props, void> {
             {!editFns && followLabel &&
               <Text type='BodySmall' style={{...stylesFollowLabel, marginTop: 4}}>{followLabel}</Text>
             }
-            <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
+            {userInfo.followersCount !== -1 && <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
               <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}
                 onClick={() => this.props.onClickFollowers(username)}>{userInfo.followersCount}
                 <Text type='BodySmallSecondaryLink'>&nbsp;Follower{userInfo.followersCount === 1 ? '' : 's'}</Text>
@@ -104,7 +104,7 @@ class BioRender extends Component<void, Props, void> {
               <Text type='BodySmallSecondaryLink' onClick={() => this.props.onClickFollowing(username)}>Following&nbsp;
                 <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
               </Text>
-            </Box>
+            </Box>}
             {userInfo.bio &&
               <Text type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
                 style={{...stylesBio, ...stylesBioType[this.props.type]}} {...bioLineClamp}

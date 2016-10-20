@@ -475,15 +475,24 @@ func (c *chatServiceHandler) getInboxLocalQuery(ctx context.Context, id chat1.Co
 	if err != nil {
 		return chat1.GetInboxLocalQuery{}, err
 	}
-	cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, keybase1.CompleteAndCanonicalizeTlfNameArg{
-		Query: keybase1.TLFQuery{
-			TlfName:          channel.Name,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		},
-		IsPublic: channel.Public,
-	})
-	if err != nil {
-		return chat1.GetInboxLocalQuery{}, err
+
+	var tlfName string
+	tlfQ := keybase1.TLFQuery{
+		TlfName:          channel.Name,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+	if channel.Public {
+		cname, err := tlfClient.PublicCanonicalTLFNameAndID(ctx, tlfQ)
+		if err != nil {
+			return chat1.GetInboxLocalQuery{}, err
+		}
+		tlfName = cname.CanonicalName.String()
+	} else {
+		cname, err := tlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQ)
+		if err != nil {
+			return chat1.GetInboxLocalQuery{}, err
+		}
+		tlfName = cname.CanonicalName.String()
 	}
 
 	vis := chat1.TLFVisibility_PRIVATE
@@ -491,7 +500,6 @@ func (c *chatServiceHandler) getInboxLocalQuery(ctx context.Context, id chat1.Co
 		vis = chat1.TLFVisibility_PUBLIC
 	}
 	tt := channel.TopicTypeEnum()
-	tlfName := cname.CanonicalName.String()
 	return chat1.GetInboxLocalQuery{
 		TlfName:       &tlfName,
 		TlfVisibility: &vis,

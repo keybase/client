@@ -98,7 +98,7 @@ class SearchBar extends Component<void, Props, void> {
             hintText={this.props.searchHintText}
             hintStyle={{textAlign: 'left'}}
             underlineShow={false}
-            style={{width: '100%', paddingLeft: 20}}
+            style={{width: '100%', paddingLeft: 20, marginBottom: 0, marginTop: 17}}
             inputStyle={stylesInput}
           />
           <Icon type='iconfont-remove' style={{marginRight: 16, opacity: this.props.searchText ? 1 : 0}}
@@ -121,11 +121,6 @@ const stylesInputContainer = {
   alignItems: 'center',
 }
 const stylesInput = {
-  width: '100%',
-  margin: 0,
-  marginTop: 0,
-  top: 0,
-  height: '100%',
   textAlign: 'left',
 }
 const serviceContainerStyle = {
