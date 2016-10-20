@@ -75,8 +75,8 @@ build_one_architecture() {
   # RPM requires us to list every file included in the package. Using `find`
   # could backfire on us if we get weird whitespace in any filename, but
   # hopefully that will never happen. (Maintaining this list by hand would be
-  # much worse.)
-  files="$(cd "$copied_binaries" && find -type f | sed 's/\.//')"
+  # much worse.) Make sure to find *both* regular files and symlinks.
+  files="$(cd "$copied_binaries" && find -type f -o -type l | sed 's/\.//')"
 
   spec="$dest/SPECS/keybase-$rpm_arch.spec"
   mkdir -p "$(dirname "$spec")"
