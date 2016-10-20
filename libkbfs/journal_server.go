@@ -35,6 +35,7 @@ type JournalServerStatus struct {
 	EnableAuto          bool
 	JournalCount        int
 	UnflushedBytes      int64 // (signed because os.FileInfo.Size() is signed)
+	UnflushedPaths      []string
 }
 
 // branchChangeListener describes a caller that will get updates via
@@ -565,28 +566,26 @@ func (j *JournalServer) mdOps() journalMDOps {
 }
 
 // Status returns a JournalServerStatus object suitable for
-// diagnostics.
-func (j *JournalServer) Status() JournalServerStatus {
-	journalCount, unflushedBytes, currentUID, currentVerifyingKey, enableAuto :=
-		func() (int, int64, keybase1.UID, kbfscrypto.VerifyingKey, bool) {
-			j.lock.RLock()
-			defer j.lock.RUnlock()
-			var unflushedBytes int64
-			for _, tlfJournal := range j.tlfJournals {
-				unflushedBytes += tlfJournal.getUnflushedBytes()
-			}
-			return len(j.tlfJournals), unflushedBytes,
-				j.currentUID, j.currentVerifyingKey, j.serverConfig.EnableAuto
-		}()
+// diagnostics.  It also returns a list of TLF IDs which have journals
+// enabled.
+func (j *JournalServer) Status() (JournalServerStatus, []TlfID) {
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+	var unflushedBytes int64
+	tlfIDs := make([]TlfID, 0, len(j.tlfJournals))
+	for _, tlfJournal := range j.tlfJournals {
+		unflushedBytes += tlfJournal.getUnflushedBytes()
+		tlfIDs = append(tlfIDs, tlfJournal.tlfID)
+	}
 	return JournalServerStatus{
 		RootDir:             j.rootPath(),
 		Version:             1,
-		CurrentUID:          currentUID,
-		CurrentVerifyingKey: currentVerifyingKey,
-		EnableAuto:          enableAuto,
-		JournalCount:        journalCount,
+		CurrentUID:          j.currentUID,
+		CurrentVerifyingKey: j.currentVerifyingKey,
+		EnableAuto:          j.serverConfig.EnableAuto,
+		JournalCount:        len(tlfIDs),
 		UnflushedBytes:      unflushedBytes,
-	}
+	}, tlfIDs
 }
 
 // JournalStatus returns a TLFServerStatus object for the given TLF

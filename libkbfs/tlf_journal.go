@@ -63,6 +63,9 @@ const (
 	// by the journal.  TODO: make this configurable, so that users
 	// can choose how much bandwidth is used by the journal.
 	maxJournalBlockFlushBatchSize = 25
+	// This will be the final entry for unflushed paths if there are
+	// too many revisions to process at once.
+	incompleteUnflushedPathsMarker = "..."
 )
 
 // TLFJournalStatus represents the status of a TLF's journal for
@@ -975,7 +978,8 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 		}
 	}
 	if !complete {
-		jStatus.UnflushedPaths = append(jStatus.UnflushedPaths, "...")
+		jStatus.UnflushedPaths =
+			append(jStatus.UnflushedPaths, incompleteUnflushedPathsMarker)
 	}
 	return jStatus, nil
 }

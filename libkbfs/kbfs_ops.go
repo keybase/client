@@ -552,7 +552,7 @@ func (fs *KBFSOpsStandard) Sync(ctx context.Context, file Node) error {
 func (fs *KBFSOpsStandard) FolderStatus(
 	ctx context.Context, folderBranch FolderBranch) (
 	FolderBranchStatus, <-chan StatusUpdate, error) {
-	ops := fs.getOps(ctx, folderBranch)
+	ops := fs.getOpsNoAdd(folderBranch)
 	return ops.FolderStatus(ctx, folderBranch)
 }
 
@@ -581,9 +581,15 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	var jServerStatus *JournalServerStatus
 	jServer, jErr := GetJournalServer(fs.config)
 	if jErr == nil {
-		status := jServer.Status()
+		status, tlfIDs := jServer.Status()
 		jServerStatus = &status
+		err := fillInJournalStatusUnflushedPaths(
+			ctx, fs.config, jServerStatus, tlfIDs)
+		if err != nil {
+			return KBFSStatus{}, nil, err
+		}
 	}
+
 	return KBFSStatus{
 		CurrentUser:     username.String(),
 		IsConnected:     fs.config.MDServer().IsConnected(),
