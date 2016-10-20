@@ -71,6 +71,12 @@ func (c *cmdChatSend) Run() (err error) {
 			return nil
 		}
 
+		if c.resolver.TopicType == chat1.TopicType_CHAT {
+			c.G().UI.GetTerminalUI().Printf("Creating new %s conversation: %s\n", c.resolver.TopicType.String(), c.resolver.TlfName)
+		} else {
+			c.G().UI.GetTerminalUI().Printf("Creating new %s conversation [%s]: %s\n", c.resolver.TopicType.String(), c.resolver.TopicName, c.resolver.TlfName)
+		}
+
 		var tnp *string
 		if len(c.resolver.TopicName) > 0 {
 			tnp = &c.resolver.TopicName

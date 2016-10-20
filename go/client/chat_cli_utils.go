@@ -22,7 +22,7 @@ type chatCLIConversationResolver struct {
 }
 
 func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.GlobalContext, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
-	var cTlfName string
+	requestedTlfName := r.TlfName
 	if len(r.TlfName) > 0 {
 		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, keybase1.CompleteAndCanonicalizeTlfNameArg{
 			Query: keybase1.TLFQuery{
@@ -34,12 +34,12 @@ func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.Glob
 		if err != nil {
 			return nil, false, fmt.Errorf("completing TLF name error: %v", err)
 		}
-		cTlfName = string(cname.CanonicalName)
+		r.TlfName = string(cname.CanonicalName)
 	}
 
 	var tlfName, topicName *string
-	if len(cTlfName) > 0 {
-		tlfName = &cTlfName
+	if len(r.TlfName) > 0 {
+		tlfName = &r.TlfName
 	}
 	if len(r.TopicName) > 0 {
 		topicName = &r.TopicName
@@ -65,7 +65,7 @@ func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.Glob
 	case 0:
 		return nil, false, nil
 	case 1:
-		if r.TlfName != conversations[0].TlfName {
+		if requestedTlfName != conversations[0].TlfName {
 			// This must be:
 			//
 			// 1) a special case where user only has one conversation, and user
@@ -78,7 +78,7 @@ func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.Glob
 			if conversations[0].Triple.TopicType == chat1.TopicType_CHAT {
 				g.UI.GetTerminalUI().Printf("Found %s conversation: %s\n", conversations[0].Triple.TopicType.String(), conversations[0].TlfName)
 			} else {
-				g.UI.GetTerminalUI().Printf("Found %s [%s] conversation: %s\n", conversations[0].Triple.TopicType.String(), conversations[0].TopicName, conversations[0].TlfName)
+				g.UI.GetTerminalUI().Printf("Found %s conversation [%s]: %s\n", conversations[0].Triple.TopicType.String(), conversations[0].TopicName, conversations[0].TlfName)
 			}
 		}
 		return &conversations[0], false, nil
