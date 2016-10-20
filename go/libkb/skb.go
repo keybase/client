@@ -363,7 +363,7 @@ func (s *SKB) lksUnlock(lctx LoginContext, pps *PassphraseStream, secretStorer S
 	lks.SetUID(s.uid)
 	s.Unlock()
 	var ppGen PassphraseGeneration
-	unlocked, ppGen, err = lks.Decrypt(lctx, s.Priv.Data)
+	unlocked, ppGen, _, err = lks.Decrypt(lctx, s.Priv.Data)
 	if err != nil {
 		return
 	}
@@ -395,7 +395,7 @@ func (s *SKB) lksUnlockWithSecretRetriever(lctx LoginContext, secretRetriever Se
 		panic("no uid set in skb")
 	}
 	lks := NewLKSecWithFullSecret(secret, s.uid, s.G())
-	unlocked, _, err = lks.Decrypt(nil, s.Priv.Data)
+	unlocked, _, _, err = lks.Decrypt(nil, s.Priv.Data)
 
 	// if unlock was successful, lks can be saved in the account:
 	if err == nil && lctx != nil {

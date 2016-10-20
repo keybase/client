@@ -138,31 +138,31 @@ type LKSec struct {
 	Contextified
 }
 
-func (s LKSecServerHalf) ComputeFullSecret(c LKSecClientHalf) LKSecFullSecret {
+func xorBytes(x *[LKSecLen]byte, y *[LKSecLen]byte) *[LKSecLen]byte {
 	var ret [LKSecLen]byte
 	for i := 0; i < LKSecLen; i++ {
-		ret[i] = s.s[i] ^ c.c[i]
+		ret[i] = x[i] ^ y[i]
 	}
-	return LKSecFullSecret{f: &ret}
+	return &ret
+}
+
+func (s LKSecServerHalf) ComputeFullSecret(c LKSecClientHalf) LKSecFullSecret {
+	return LKSecFullSecret{f: xorBytes(s.s, c.c)}
 }
 
 func (s LKSecServerHalf) ComputeClientHalf(f LKSecFullSecret) LKSecClientHalf {
-	var ret [LKSecLen]byte
-	for i := 0; i < LKSecLen; i++ {
-		ret[i] = s.s[i] ^ f.f[i]
-	}
-	return LKSecClientHalf{c: &ret}
+	return LKSecClientHalf{c: xorBytes(s.s, f.f)}
+}
+
+func (f LKSecFullSecret) bug3964Remask(s LKSecServerHalf) LKSecFullSecret {
+	return LKSecFullSecret{f: xorBytes(s.s, f.f)}
 }
 
 func (c LKSecClientHalf) ComputeMask(c2 LKSecClientHalf) LKSecMask {
-	var ret [LKSecLen]byte
 	if c.IsNil() || c2.IsNil() {
 		return LKSecMask{}
 	}
-	for i := 0; i < LKSecLen; i++ {
-		ret[i] = c.c[i] ^ c2.c[i]
-	}
-	return LKSecMask{m: &ret}
+	return LKSecMask{m: xorBytes(c.c, c2.c)}
 }
 
 func NewLKSec(pps *PassphraseStream, uid keybase1.UID, gc *GlobalContext) *LKSec {
@@ -326,25 +326,55 @@ func (s *LKSec) Encrypt(src []byte) (res []byte, err error) {
 	return append(nonce, box...), nil
 }
 
-func (s *LKSec) Decrypt(lctx LoginContext, src []byte) (res []byte, gen PassphraseGeneration, err error) {
+func (s *LKSec) attemptBug3964Recovery(lctx LoginContext, data []byte, nonce *[24]byte) (res []byte, gen PassphraseGeneration, erroneousMask LKSecServerHalf, err error) {
+	s.G().Log.Debug("+ LKsec#attemptBug3964Recovery()")
+	defer func() {
+		s.G().Log.Debug("- LKSec#attemptBug3964Recovery() -> %s", ErrToOk(err))
+	}()
+
+	ss, err := s.loadSecretSyncer(lctx)
+	if err != nil {
+		return nil, 0, LKSecServerHalf{}, err
+	}
+
+	devices := ss.AllDevices()
+	for devid, dev := range devices {
+		s.G().Log.Debug("| Trying Bug 3964 Recovery w/ device %q {id: %s, lks: %s...}", dev.Description, devid, dev.LksServerHalf[0:8])
+		serverHalf, err := dev.ToLKSec()
+		if err != nil {
+			s.G().Log.Debug("| Failed with error: %s\n", err)
+			continue
+		}
+		fs := s.secret.bug3964Remask(serverHalf)
+		res, ok := secretbox.Open(nil, data, nonce, fs.f)
+		if ok {
+			s.G().Log.Debug("| Success")
+			return res, s.ppGen, serverHalf, nil
+		}
+	}
+
+	err = PassphraseError{"failed to open secretbox"}
+	return nil, 0, LKSecServerHalf{}, err
+}
+
+func (s *LKSec) Decrypt(lctx LoginContext, src []byte) (res []byte, gen PassphraseGeneration, erroneousMask LKSecServerHalf, err error) {
 	s.G().Log.Debug("+ LKsec:Decrypt()")
 	defer func() {
 		s.G().Log.Debug("- LKSec::Decrypt() -> %s", ErrToOk(err))
 	}()
 
 	if err = s.Load(lctx); err != nil {
-		return nil, 0, err
+		return nil, 0, LKSecServerHalf{}, err
 	}
 	var nonce [24]byte
 	copy(nonce[:], src[0:24])
 	data := src[24:]
 	res, ok := secretbox.Open(nil, data, &nonce, s.secret.f)
 	if !ok {
-		err = PassphraseError{"failed to open secretbox"}
-		return nil, 0, err
+		return s.attemptBug3964Recovery(lctx, data, &nonce)
 	}
 
-	return res, s.ppGen, nil
+	return res, s.ppGen, LKSecServerHalf{}, nil
 }
 
 func (s *LKSec) ComputeClientHalf() (ret LKSecClientHalf, err error) {
@@ -360,30 +390,38 @@ func (s *LKSec) ComputeClientHalf() (ret LKSecClientHalf, err error) {
 	return s.serverHalf.ComputeClientHalf(s.secret), nil
 }
 
+func (s *LKSec) loadSecretSyncer(lctx LoginContext) (ss *SecretSyncer, err error) {
+	if lctx != nil {
+		if err := lctx.RunSecretSyncer(s.uid); err != nil {
+			return nil, err
+		}
+		return lctx.SecretSyncer(), nil
+	}
+	aerr := s.G().LoginState().Account(func(a *Account) {
+		if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
+			return
+		}
+		ss = a.SecretSyncer()
+	}, "LKSec#loadSecretSyncer")
+	if aerr != nil {
+		return nil, aerr
+	}
+	return ss, err
+}
+
 func (s *LKSec) apiServerHalf(lctx LoginContext, devid keybase1.DeviceID) error {
 	var err error
 	var dev DeviceKey
-	if lctx != nil {
-		if err := lctx.RunSecretSyncer(s.uid); err != nil {
-			return err
-		}
-		dev, err = lctx.SecretSyncer().FindDevice(devid)
-	} else {
-		aerr := s.G().LoginState().Account(func(a *Account) {
-			if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
-				return
-			}
-			dev, err = a.SecretSyncer().FindDevice(devid)
-		}, "LKSec apiServerHalf - find device")
-		if aerr != nil {
-			return aerr
-		}
+	ss, err := s.loadSecretSyncer(lctx)
+	if err != nil {
+		return err
 	}
+	dev, err = ss.FindDevice(devid)
 	if err != nil {
 		return err
 	}
 
-	s.serverHalf, err = NewLKSecServerHalfFromHex(dev.LksServerHalf)
+	s.serverHalf, err = dev.ToLKSec()
 	if err != nil {
 		return err
 	}
