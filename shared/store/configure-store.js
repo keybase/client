@@ -63,6 +63,9 @@ const errorToPayload = (error: any): {summary: ?string, details: ?string} => {
 }
 
 const crashHandler = (error) => {
+  if (__DEV__) {
+    throw error
+  }
   if (theStore) {
     theStore.dispatch({
       type: globalError,

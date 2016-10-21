@@ -1,29 +1,49 @@
 // @flow
-import {List, Map} from 'immutable'
+import {List, Map, Record} from 'immutable'
 
 import type {NoErrorTypedAction} from './types/flux'
 
 export type MessageType = 'Text'
+export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
 
 export type Message = {
   type: 'Text',
   message: string,
   author: string,
-  timestamp: Date,
-  messageID: string,
+  timestamp: number,
+  messageID: number,
+  followState: FollowState,
+} | {
+  type: 'Error',
+  reason: string,
+  messageID: number,
+} | {
+  type: 'Unhandled',
+  timestamp: number,
+  messageID: number,
 }
 
-export type ConversationState = {
+export const ConversationStateRecord = Record({
+  messages: List(),
+  moreToLoad: true,
+})
+
+export type ConversationState = Record<{
   messages: List<Message>,
   moreToLoad: boolean,
-}
+}>
 
 export type ConversationID = string
 
-export type State = {
+export const StateRecord = Record({
+  conversationStates: Map(),
+  selectedConversation: null,
+})
+
+export type State = Record<{
   conversationStates: Map<ConversationID, ConversationState>,
   selectedConversation: ?ConversationID,
-}
+}>
 
 export const appendMessages = 'chat:appendMessages'
 export const selectConversation = 'chat:selectConversation'

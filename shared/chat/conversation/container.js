@@ -8,10 +8,10 @@ import type {TypedState} from '../../constants/reducer'
 
 export default connect(
   (state: TypedState) => {
-    const selectedConversation = state.chat.selectedConversation
+    const selectedConversation = state.chat.get('selectedConversation')
 
     if (selectedConversation) {
-      const conversationState = state.chat.conversationStates.get(selectedConversation)
+      const conversationState = state.chat.get('conversationStates').get(selectedConversation)
       if (conversationState) {
         return {
           messages: conversationState.messages,

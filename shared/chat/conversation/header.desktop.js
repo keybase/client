@@ -3,10 +3,10 @@ import React from 'react'
 import {Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
-const Conversation = () => (
+const Header = () => (
   <Box style={{...globalStyles.flexBoxRow, minHeight: 32, borderBottom: `solid 1px ${globalColors.black_05}`}}>
     <Text type='Body'>Header: Todo</Text>
   </Box>
 )
 
-export default Conversation
+export default Header
