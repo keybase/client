@@ -25,8 +25,8 @@ type Encrypter interface {
 }
 
 type Decrypter interface {
-	// Decrypt takes a ciphertext reader and a key and returns a
-	// plaintext reader.
+	// Decrypt takes a ciphertext reader, encryption and verify keys.
+	// It returns a plaintext reader.
 	Decrypt(ciphertext io.Reader, encKey, verifyKey []byte) (plaintext io.Reader)
 }
 

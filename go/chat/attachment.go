@@ -138,6 +138,9 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 	}
 	sr := bytes.NewReader(buf)
 
+	progWriter := newProgressWriter(progress, int(size))
+	tee := io.TeeReader(sr, progWriter)
+
 	var lastErr error
 	for i := 0; i < 10; i++ {
 		select {
@@ -146,7 +149,7 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 		case <-time.After(libkb.BackoffDefault.Duration(i)):
 		}
 		log.Debug("s3 putSingle attempt %d", i+1)
-		err := b.PutReader(params.ObjectKey, sr, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
+		err := b.PutReader(params.ObjectKey, tee, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
 		if err == nil {
 			log.Debug("putSingle attempt %d success", i+1)
 			return nil
@@ -156,7 +159,8 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 
 		// move back to beginning of sr buffer for retry
 		sr.Seek(0, io.SeekStart)
-
+		progWriter = newProgressWriter(progress, int(size))
+		tee = io.TeeReader(sr, progWriter)
 	}
 	return fmt.Errorf("failed putSingle (last error: %s)", lastErr)
 }
