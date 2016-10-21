@@ -1390,6 +1390,94 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 	return j.mdJournal.clear(ctx, bid)
 }
 
+func (j *tlfJournal) doResolveBranch(ctx context.Context,
+	bid BranchID, blocksToDelete []BlockID, rmd *RootMetadata,
+	extra ExtraMetadata, irmd ImmutableRootMetadata,
+	perRevMap unflushedPathsPerRevMap) (mdID MdID, retry bool, err error) {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return MdID{}, false, err
+	}
+
+	// The set of unflushed paths could change as part of the
+	// resolution, and the revision numbers definitely change.
+	if !j.unflushedPaths.reinitializeWithResolution(irmd, perRevMap) {
+		return MdID{}, true, nil
+	}
+
+	// First write the resolution to a new branch, and swap it with
+	// the existing branch, then clear the existing branch.
+	mdID, err = j.mdJournal.resolveAndClear(
+		ctx, j.config.Crypto(), j.config.encryptionKeyGetter(),
+		j.config.BlockSplitter(), bid, rmd, extra)
+	if err != nil {
+		return MdID{}, false, err
+	}
+
+	// Then go through and mark blocks and md rev markers for ignoring.
+	err = j.blockJournal.ignoreBlocksAndMDRevMarkers(ctx, blocksToDelete)
+	if err != nil {
+		return MdID{}, false, err
+	}
+
+	// Finally, append a new, non-ignored md rev marker for the new revision.
+	err = j.blockJournal.markMDRevision(ctx, rmd.Revision())
+	if err != nil {
+		return MdID{}, false, err
+	}
+
+	j.signalWork()
+
+	// TODO: kick off a background goroutine that deletes ignored
+	// block data files before the flush gets to them.
+
+	// No need to signal work in this case.
+	return mdID, false, nil
+}
+
+func (j *tlfJournal) resolveBranch(ctx context.Context,
+	bid BranchID, blocksToDelete []BlockID, rmd *RootMetadata,
+	extra ExtraMetadata) (MdID, error) {
+	// Prepare the paths without holding the lock, as it might need to
+	// take the lock.  Note that the md ID and timestamp don't matter
+	// for the unflushed path cache.  This is a no-op if the unflushed
+	// path cache is uninitialized.  TODO: avoid doing this if we can
+	// somehow be sure the cache won't be initialized by the time we
+	// finish this put.
+	irmd := MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
+	perRevMap, err := j.unflushedPaths.prepUnflushedPaths(
+		ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, irmd)
+	if err != nil {
+		return MdID{}, err
+	}
+
+	mdID, retry, err := j.doResolveBranch(
+		ctx, bid, blocksToDelete, rmd, extra, irmd, perRevMap)
+	if err != nil {
+		return MdID{}, err
+	}
+
+	if retry {
+		perRevMap, err = j.unflushedPaths.prepUnflushedPaths(
+			ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, irmd)
+		if err != nil {
+			return MdID{}, err
+		}
+
+		mdID, retry, err = j.doResolveBranch(
+			ctx, bid, blocksToDelete, rmd, extra, irmd, perRevMap)
+		if err != nil {
+			return MdID{}, err
+		}
+	}
+
+	if j.onBranchChange != nil {
+		j.onBranchChange.onTLFBranchChange(j.tlfID, NullBranchID)
+	}
+	return mdID, nil
+}
+
 func (j *tlfJournal) wait(ctx context.Context) error {
 	workLeft, err := j.wg.WaitUnlessPaused(ctx)
 	if err != nil {
