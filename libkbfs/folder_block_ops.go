@@ -3005,7 +3005,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 			}
 			changes = append(changes, childChanges...)
 		} else if node != nil {
-			// File.
+			// File -- invalidate the entire file contents.
 			changes = append(changes, NodeChange{
 				Node:        node,
 				FileUpdated: []WriteRange{{Len: 0, Off: 0}},
@@ -3027,7 +3027,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	defer func() { fbo.log.CDebugf(ctx, "Fast-forward complete: %v", err) }()
 
 	// Take a hard lock through this whole process.  TODO: is there
-	// any way relax this?  It could lead to file system operation
+	// any way to relax this?  It could lead to file system operation
 	// timeouts, even on reads, if we hold it too long.
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)

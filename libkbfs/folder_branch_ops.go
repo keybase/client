@@ -4536,21 +4536,20 @@ func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error
 	}
 }
 
-func (fbo *folderBranchOps) checkFastForward(ctx context.Context,
-	lState *lockState, lastUpdate time.Time) (
-	bool, time.Time, error) {
-	now := fbo.config.Clock().Now()
+func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
+	lState *lockState, lastUpdate time.Time, currUpdate time.Time) (
+	fastForwardDone bool, err error) {
 	// Has it been long enough to try fast-forwarding?
-	if now.Before(lastUpdate.Add(fastForwardTimeThresh)) ||
+	if currUpdate.Before(lastUpdate.Add(fastForwardTimeThresh)) ||
 		!fbo.isMasterBranch(lState) {
-		return false, now, nil
+		return false, nil
 	}
 
 	fbo.log.CDebugf(ctx, "Checking head for possible "+
 		"fast-forwarding (last update time=%s)", lastUpdate)
 	currHead, err := fbo.config.MDOps().GetForTLF(ctx, fbo.id())
 	if err != nil {
-		return false, time.Time{}, err
+		return false, err
 	}
 	fbo.log.CDebugf(ctx, "Current head is revision %d", currHead.Revision())
 
@@ -4558,7 +4557,7 @@ func (fbo *folderBranchOps) checkFastForward(ctx context.Context,
 	defer fbo.mdWriterLock.Unlock(lState)
 	if !fbo.isMasterBranchLocked(lState) {
 		// Don't update if we're staged.
-		return false, now, nil
+		return false, nil
 	}
 
 	fbo.headLock.Lock(lState)
@@ -4566,7 +4565,7 @@ func (fbo *folderBranchOps) checkFastForward(ctx context.Context,
 
 	if currHead.Revision() < fbo.latestMergedRevision+fastForwardRevThresh {
 		// Might as well fetch all the revisions.
-		return false, now, nil
+		return false, nil
 	}
 
 	fbo.log.CDebugf(ctx, "Fast-forwarding from rev %d to rev %d",
@@ -4574,12 +4573,12 @@ func (fbo *folderBranchOps) checkFastForward(ctx context.Context,
 	changes, err := fbo.blocks.FastForwardAllNodes(
 		ctx, lState, currHead.ReadOnly())
 	if err != nil {
-		return false, time.Time{}, err
+		return false, err
 	}
 
 	err = fbo.setHeadSuccessorLocked(ctx, lState, currHead, true /*rebase*/)
 	if err != nil {
-		return false, time.Time{}, err
+		return false, err
 	}
 
 	// Invalidate all the affected nodes.
@@ -4589,7 +4588,7 @@ func (fbo *folderBranchOps) checkFastForward(ctx context.Context,
 	// done this.
 	fbo.editHistory.Shutdown()
 	fbo.editHistory = NewTlfEditHistory(fbo.config, fbo, fbo.log)
-	return true, now, nil
+	return true, nil
 }
 
 func (fbo *folderBranchOps) registerAndWaitForUpdates() {
@@ -4621,7 +4620,7 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 					}
 				}
 
-				now, err := fbo.waitForAndProcessUpdates(
+				currUpdate, err := fbo.waitForAndProcessUpdates(
 					newCtx, lastUpdate, updateChan)
 				if _, ok := err.(UnmergedError); ok {
 					// skip the back-off timer and continue directly to next
@@ -4634,7 +4633,7 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 					return nil
 				default:
 					if err == nil {
-						lastUpdate = now
+						lastUpdate = currUpdate
 					}
 					return err
 				}
@@ -4671,7 +4670,7 @@ func (fbo *folderBranchOps) registerForUpdates(ctx context.Context) (
 
 func (fbo *folderBranchOps) waitForAndProcessUpdates(
 	ctx context.Context, lastUpdate time.Time,
-	updateChan <-chan error) (now time.Time, err error) {
+	updateChan <-chan error) (currUpdate time.Time, err error) {
 	// successful registration; now, wait for an update or a shutdown
 	fbo.log.CDebugf(ctx, "Waiting for updates")
 	defer func() { fbo.deferLog.CDebugf(ctx, "Done: %v", err) }()
@@ -4690,12 +4689,14 @@ func (fbo *folderBranchOps) waitForAndProcessUpdates(
 			ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
 			defer cancel()
 
-			ff, now, err := fbo.checkFastForward(ctx, lState, lastUpdate)
+			currUpdate := fbo.config.Clock().Now()
+			ffDone, err :=
+				fbo.maybeFastForward(ctx, lState, lastUpdate, currUpdate)
 			if err != nil {
 				return time.Time{}, err
 			}
-			if ff {
-				return now, nil
+			if ffDone {
+				return currUpdate, nil
 			}
 
 			err = fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdates)
@@ -4704,7 +4705,7 @@ func (fbo *folderBranchOps) waitForAndProcessUpdates(
 					"updates: %v", err)
 				return time.Time{}, err
 			}
-			return now, nil
+			return currUpdate, nil
 		case unpause := <-fbo.updatePauseChan:
 			fbo.log.CInfof(ctx, "Updates paused")
 			// wait to be unpaused
