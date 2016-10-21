@@ -35,6 +35,12 @@ func (k *SKBKeyringFile) Load() (err error) {
 	return k.loadLocked()
 }
 
+func (k *SKBKeyringFile) MarkDirty() {
+	k.Lock()
+	defer k.Unlock()
+	k.dirty = true
+}
+
 func (k *SKBKeyringFile) loadLocked() (err error) {
 	k.G().Log.Debug("+ Loading SKB keyring: %s", k.filename)
 	var packets KeybasePackets
@@ -277,6 +283,7 @@ func (k *SKBKeyringFile) GetFilename() string { return k.filename }
 // locking discipline.
 func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	k.G().Log.Debug("+ WriteTo")
+	defer k.G().Log.Debug("- WriteTo")
 	packets := make(KeybasePackets, len(k.Blocks))
 	var err error
 	for i, b := range k.Blocks {
@@ -289,7 +296,66 @@ func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 		k.G().Log.Warning("Encoding problem: %s", err)
 		return 0, err
 	}
-	k.G().Log.Debug("- WriteTo")
 	b64.Close()
 	return 0, nil
+}
+
+func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm DeviceKeyMap) (ret *SKBKeyringFile, err error) {
+	defer k.G().Trace("SKBKeyringFile#Bug3964Repair", func() error { return err })()
+
+	var newBlocks []*SKB
+	var hitBug3964 bool
+
+	for i, b := range k.Blocks {
+		if b.Priv.Data == nil {
+			newBlocks = append(newBlocks, b)
+			continue
+		}
+		var decryption, reencryption []byte
+		var badMask LKSecServerHalf
+		decryption, badMask, err = lks.decryptForBug3964Repair(b.Priv.Data, dkm)
+		if err != nil {
+			k.G().Log.Debug("| Decryption bug at block=%d", i)
+			return nil, err
+		}
+		if badMask.IsNil() {
+			newBlocks = append(newBlocks, b)
+			continue
+		}
+		hitBug3964 = true
+		k.G().Log.Debug("| Hit bug 3964 at SKB block=%d", i)
+
+		reencryption, err = lks.Encrypt(decryption)
+		if err != nil {
+			k.G().Log.Debug("| reencryption bug at block=%d", i)
+			return nil, err
+		}
+
+		newSKB := &SKB{
+			Contextified: NewContextified(k.G()),
+			Pub:          b.Pub,
+			Type:         b.Type,
+			Priv: SKBPriv{
+				Encryption:           b.Priv.Encryption,
+				PassphraseGeneration: b.Priv.PassphraseGeneration,
+				Data:                 reencryption,
+			},
+		}
+
+		newBlocks = append(newBlocks, newSKB)
+	}
+	if !hitBug3964 {
+		return nil, nil
+	}
+
+	ret = NewSKBKeyringFile(k.G(), k.filename)
+	ret.dirty = true
+	ret.Blocks = newBlocks
+
+	err = ret.Index()
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }
