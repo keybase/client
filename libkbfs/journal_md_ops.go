@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -363,4 +364,20 @@ func (j journalMDOps) PruneBranch(
 	}
 
 	return j.MDOps.PruneBranch(ctx, id, bid)
+}
+
+func (j journalMDOps) ResolveBranch(
+	ctx context.Context, id TlfID, bid BranchID,
+	blocksToDelete []BlockID, rmd *RootMetadata) (MdID, error) {
+	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
+		// Prune the journal, too.
+		mdID, err := tlfJournal.resolveBranch(
+			ctx, bid, blocksToDelete, rmd, rmd.extra)
+		if err != nil && err != errTLFJournalDisabled {
+			return MdID{}, err
+		}
+		return mdID, nil
+	}
+
+	return MdID{}, errors.New("ResolveBranch not supported outside of journal")
 }
