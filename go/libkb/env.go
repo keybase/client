@@ -209,9 +209,6 @@ func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
 func (e *Env) GetMountDir() (string, error) {
 	runMode := e.GetRunMode()
 	if runtime.GOOS == "windows" {
-		if runMode != ProductionRunMode {
-			return "", fmt.Errorf("KBFS is currently only supported in production mode on Windows")
-		}
 		return e.GetString(
 			func() string { return e.cmd.GetMountDir() },
 			func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
@@ -1082,35 +1079,6 @@ func (e *Env) GetVDebugSetting() string {
 
 func (e *Env) GetRunModeAsString() string {
 	return string(e.GetRunMode())
-}
-
-func (e *Env) GetMountDir() (string, error) {
-	runMode := e.GetRunMode()
-	if runtime.GOOS == "windows" {
-		if runMode != ProductionRunMode {
-			return "", fmt.Errorf("KBFS is currently only supported in production mode on Windows")
-		}
-		return e.GetString(
-			func() string { return e.cmd.GetMountDir() },
-			func() string { return os.Getenv("KEYBASE_DRIVE_LETTER") },
-			func() string { return e.config.GetMountDir() },
-			func() string { return "k:" },
-		), nil
-	}
-
-	switch runMode {
-	case DevelRunMode:
-		return "/keybase.devel", nil
-
-	case StagingRunMode:
-		return "/keybase.staging", nil
-
-	case ProductionRunMode:
-		return "/keybase", nil
-
-	default:
-		return "", fmt.Errorf("Invalid run mode: %s", runMode)
-	}
 }
 
 // GetServiceInfoPath returns path to info file written by the Keybase service after startup

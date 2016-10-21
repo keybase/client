@@ -6,55 +6,51 @@
 package service
 
 import (
+	"fmt"
+	"golang.org/x/sys/windows"
 	"strings"
 	"syscall"
 	"unsafe"
 )
 
-// Path is supposed to end with a backslash
+var (
+	kernel32DLL        = windows.NewLazySystemDLL("kernel32.dll")
+	getVolumeProc      = kernel32DLL.NewProc("GetVolumeInformationW")
+	queryDosDeviceProc = kernel32DLL.NewProc("QueryDosDeviceW")
+)
+
+// getVolumeName requires a drive letter and colon with a
+// trailing backslash
 func getVolumeName(RootPathName string) (string, error) {
 	var VolumeNameBuffer = make([]uint16, syscall.MAX_PATH+1)
 	var nVolumeNameSize = uint32(len(VolumeNameBuffer))
-	var VolumeSerialNumber uint32
-	var MaximumComponentLength uint32
-	var FileSystemFlags uint32
-	var FileSystemNameBuffer = make([]uint16, 255)
-	var nFileSystemNameSize = syscall.MAX_PATH + 1
 
-	kernel32, _ := syscall.LoadLibrary("kernel32.dll")
-	getVolume, _ := syscall.GetProcAddress(kernel32, "GetVolumeInformationW")
-
-	var nargs uintptr = 8
-	_, _, callErr := syscall.Syscall9(uintptr(getVolume),
-		nargs,
+	_, _, callErr := getVolumeProc.Call(
 		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(RootPathName))),
 		uintptr(unsafe.Pointer(&VolumeNameBuffer[0])),
 		uintptr(nVolumeNameSize),
-		uintptr(unsafe.Pointer(&VolumeSerialNumber)),
-		uintptr(unsafe.Pointer(&MaximumComponentLength)),
-		uintptr(unsafe.Pointer(&FileSystemFlags)),
-		uintptr(unsafe.Pointer(&FileSystemNameBuffer[0])),
-		uintptr(nFileSystemNameSize),
+		uintptr(0),
+		uintptr(0),
+		uintptr(0),
+		uintptr(0),
+		uintptr(0),
 		0)
 
-	if callErr != 0 {
+	if callErr != nil {
 		return "", callErr
 	}
 
 	return syscall.UTF16ToString(VolumeNameBuffer), nil
 }
 
+// getDosVolumeName requires a drive letter and colon with no
+// trailing backslash
 func getDosVolumeName(path string) (string, error) {
-	kernel32, _ := syscall.LoadDLL("kernel32.dll")
-	queryDosDeviceHandle, err := kernel32.FindProc("QueryDosDeviceW")
-	if err != nil {
-		return "", err
-	}
 
 	var VolumeNameBuffer = make([]uint16, syscall.MAX_PATH+1)
 	var nVolumeNameSize = uint32(len(VolumeNameBuffer))
 
-	ret, _, err := queryDosDeviceHandle.Call(
+	ret, _, err := queryDosDeviceProc.Call(
 		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(path))),
 		uintptr(unsafe.Pointer(&VolumeNameBuffer[0])),
 		uintptr(nVolumeNameSize))
@@ -73,10 +69,30 @@ func isCdRom(path string) bool {
 	return false
 }
 
-func getMountDirs() []string {
+func getMountDirs() ([]string, error) {
 	//start with drive D
 	i := uint(3)
 	var drives []string
+	for ; i < 26; i++ {
+		path := string(byte('A')+byte(i)) + ":"
 		// avoid calling GetVolumeInformation() on drives that appear to be cdroms,
 		// since they may need to spin up or prompt to have media inserted.
-		volume, _ := getVolumeName(path)
+		if isCdRom(path) {
+			continue
+		}
+		volume, _ := getVolumeName(path + "\\")
+		// sanity check that it isn't keybase already
+		// Assume that no volume name means we can use it,
+		// including errors retrieving same.
+		// (we plan to change from KBFS to Keybase)
+		if len(volume) > 0 && volume != "KBFS" && volume != "Keybase" {
+			continue
+		}
+		drives = append(drives, path)
+	}
+	var err error
+	if len(drives) == 0 {
+		err = fmt.Errorf("No drive letters available")
+	}
+	return drives, err
+}

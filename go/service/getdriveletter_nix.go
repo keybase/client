@@ -6,9 +6,9 @@
 package service
 
 import (
-	"github.com/keybase/go-updater/watchdog"
+	"errors"
 )
 
-func getMountDirs() []string {
-	return "", fmt.Errorf("getMountDirs is Windows only", runMode)
+func getMountDirs() ([]string, error) {
+	return []string{}, errors.New("getMountDirs is Windows only")
 }

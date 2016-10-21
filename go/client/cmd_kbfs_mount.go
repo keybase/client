@@ -1,11 +1,12 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// +build !darwin
+// +build windows
 
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -37,7 +38,7 @@ func (s *CmdKbfsMount) ParseArgv(ctx *cli.Context) error {
 	s.cmd = ctx.Args()[0]
 	if s.cmd == "set" {
 		if len(ctx.Args()) < 2 {
-			return fmt.Errorf("set needs an argument")
+			return errors.New("set needs an argument")
 		}
 		s.arg = ctx.Args()[1]
 	}
