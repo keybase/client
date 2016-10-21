@@ -96,7 +96,7 @@ export const NotifyChatChatActivityType = {
 }
 
 export function localDownloadAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.DownloadAttachmentLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.DownloadAttachmentLocal'})
 }
 
 export function localDownloadAttachmentLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>): ChannelMap<*> {
@@ -108,7 +108,7 @@ export function localDownloadAttachmentLocalRpcPromise (request: $Exact<requestC
 }
 
 export function localGetConversationForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.getConversationForCLILocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.getConversationForCLILocal'})
 }
 
 export function localGetConversationForCLILocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>): ChannelMap<*> {
@@ -120,7 +120,7 @@ export function localGetConversationForCLILocalRpcPromise (request: $Exact<reque
 }
 
 export function localGetInboxAndUnboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxAndUnboxLocalResult) => void} & {param: localGetInboxAndUnboxLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.getInboxAndUnboxLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.getInboxAndUnboxLocal'})
 }
 
 export function localGetInboxAndUnboxLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxAndUnboxLocalResult) => void} & {param: localGetInboxAndUnboxLocalRpcParam}>): ChannelMap<*> {
@@ -132,7 +132,7 @@ export function localGetInboxAndUnboxLocalRpcPromise (request: $Exact<requestCom
 }
 
 export function localGetInboxLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxLocalResult) => void} & {param: localGetInboxLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.getInboxLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.getInboxLocal'})
 }
 
 export function localGetInboxLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxLocalResult) => void} & {param: localGetInboxLocalRpcParam}>): ChannelMap<*> {
@@ -144,7 +144,7 @@ export function localGetInboxLocalRpcPromise (request: $Exact<requestCommon & {c
 }
 
 export function localGetInboxSummaryForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxSummaryForCLILocalResult) => void} & {param: localGetInboxSummaryForCLILocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.getInboxSummaryForCLILocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.getInboxSummaryForCLILocal'})
 }
 
 export function localGetInboxSummaryForCLILocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetInboxSummaryForCLILocalResult) => void} & {param: localGetInboxSummaryForCLILocalRpcParam}>): ChannelMap<*> {
@@ -156,7 +156,7 @@ export function localGetInboxSummaryForCLILocalRpcPromise (request: $Exact<reque
 }
 
 export function localGetMessagesLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetMessagesLocalResult) => void} & {param: localGetMessagesLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.GetMessagesLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.GetMessagesLocal'})
 }
 
 export function localGetMessagesLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetMessagesLocalResult) => void} & {param: localGetMessagesLocalRpcParam}>): ChannelMap<*> {
@@ -168,7 +168,7 @@ export function localGetMessagesLocalRpcPromise (request: $Exact<requestCommon &
 }
 
 export function localGetThreadLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetThreadLocalResult) => void} & {param: localGetThreadLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.getThreadLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.getThreadLocal'})
 }
 
 export function localGetThreadLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetThreadLocalResult) => void} & {param: localGetThreadLocalRpcParam}>): ChannelMap<*> {
@@ -180,7 +180,7 @@ export function localGetThreadLocalRpcPromise (request: $Exact<requestCommon & {
 }
 
 export function localNewConversationLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localNewConversationLocalResult) => void} & {param: localNewConversationLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.newConversationLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.newConversationLocal'})
 }
 
 export function localNewConversationLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localNewConversationLocalResult) => void} & {param: localNewConversationLocalRpcParam}>): ChannelMap<*> {
@@ -192,7 +192,7 @@ export function localNewConversationLocalRpcPromise (request: $Exact<requestComm
 }
 
 export function localPostAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostAttachmentLocalResult) => void} & {param: localPostAttachmentLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.postAttachmentLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.postAttachmentLocal'})
 }
 
 export function localPostAttachmentLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostAttachmentLocalResult) => void} & {param: localPostAttachmentLocalRpcParam}>): ChannelMap<*> {
@@ -204,7 +204,7 @@ export function localPostAttachmentLocalRpcPromise (request: $Exact<requestCommo
 }
 
 export function localPostLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostLocalResult) => void} & {param: localPostLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'local.postLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.postLocal'})
 }
 
 export function localPostLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostLocalResult) => void} & {param: localPostLocalRpcParam}>): ChannelMap<*> {
@@ -216,7 +216,7 @@ export function localPostLocalRpcPromise (request: $Exact<requestCommon & {callb
 }
 
 export function remoteGetInboxRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.getInboxRemote'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.getInboxRemote'})
 }
 
 export function remoteGetInboxRemoteRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>): ChannelMap<*> {
@@ -228,7 +228,7 @@ export function remoteGetInboxRemoteRpcPromise (request: $Exact<requestCommon & 
 }
 
 export function remoteGetMessagesRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetMessagesRemoteResult) => void} & {param: remoteGetMessagesRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.getMessagesRemote'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.getMessagesRemote'})
 }
 
 export function remoteGetMessagesRemoteRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetMessagesRemoteResult) => void} & {param: remoteGetMessagesRemoteRpcParam}>): ChannelMap<*> {
@@ -240,7 +240,7 @@ export function remoteGetMessagesRemoteRpcPromise (request: $Exact<requestCommon
 }
 
 export function remoteGetS3ParamsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3ParamsResult) => void} & {param: remoteGetS3ParamsRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.getS3Params'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.getS3Params'})
 }
 
 export function remoteGetS3ParamsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetS3ParamsResult) => void} & {param: remoteGetS3ParamsRpcParam}>): ChannelMap<*> {
@@ -252,7 +252,7 @@ export function remoteGetS3ParamsRpcPromise (request: $Exact<requestCommon & {ca
 }
 
 export function remoteGetThreadRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.getThreadRemote'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.getThreadRemote'})
 }
 
 export function remoteGetThreadRemoteRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>): ChannelMap<*> {
@@ -264,7 +264,7 @@ export function remoteGetThreadRemoteRpcPromise (request: $Exact<requestCommon &
 }
 
 export function remoteMarkAsReadRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteMarkAsReadResult) => void} & {param: remoteMarkAsReadRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.markAsRead'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.markAsRead'})
 }
 
 export function remoteMarkAsReadRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteMarkAsReadResult) => void} & {param: remoteMarkAsReadRpcParam}>): ChannelMap<*> {
@@ -276,7 +276,7 @@ export function remoteMarkAsReadRpcPromise (request: $Exact<requestCommon & {cal
 }
 
 export function remoteNewConversationRemote2Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemote2Result) => void} & {param: remoteNewConversationRemote2RpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.newConversationRemote2'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.newConversationRemote2'})
 }
 
 export function remoteNewConversationRemote2RpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemote2Result) => void} & {param: remoteNewConversationRemote2RpcParam}>): ChannelMap<*> {
@@ -288,7 +288,7 @@ export function remoteNewConversationRemote2RpcPromise (request: $Exact<requestC
 }
 
 export function remoteNewConversationRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemoteResult) => void} & {param: remoteNewConversationRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.newConversationRemote'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.newConversationRemote'})
 }
 
 export function remoteNewConversationRemoteRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemoteResult) => void} & {param: remoteNewConversationRemoteRpcParam}>): ChannelMap<*> {
@@ -300,7 +300,7 @@ export function remoteNewConversationRemoteRpcPromise (request: $Exact<requestCo
 }
 
 export function remotePostRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remotePostRemoteResult) => void} & {param: remotePostRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.postRemote'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.postRemote'})
 }
 
 export function remotePostRemoteRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remotePostRemoteResult) => void} & {param: remotePostRemoteRpcParam}>): ChannelMap<*> {
@@ -312,7 +312,7 @@ export function remotePostRemoteRpcPromise (request: $Exact<requestCommon & {cal
 }
 
 export function remoteS3SignRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteS3SignResult) => void} & {param: remoteS3SignRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.s3Sign'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.s3Sign'})
 }
 
 export function remoteS3SignRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteS3SignResult) => void} & {param: remoteS3SignRpcParam}>): ChannelMap<*> {
@@ -324,7 +324,7 @@ export function remoteS3SignRpcPromise (request: $Exact<requestCommon & {callbac
 }
 
 export function remoteTlfFinalizeRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.tlfFinalize'})
+  engineRpcOutgoing({...request, method: 'chat.1.remote.tlfFinalize'})
 }
 
 export function remoteTlfFinalizeRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>): ChannelMap<*> {

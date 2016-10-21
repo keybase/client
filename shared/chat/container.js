@@ -3,11 +3,11 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Chat from './index'
 
-import {selectConversation} from '../actions/chat'
+import {loadInbox} from '../actions/chat'
 
 class ChatContainer extends Component {
   componentWillMount() {
-    this.props.selectConversation()
+    this.props.loadInbox()
   }
 
   render () {
@@ -22,6 +22,6 @@ class ChatContainer extends Component {
 export default connect(
   (state: any) => ({}),
   (dispatch: Dispatch) => ({
-    selectConversation: () => dispatch(selectConversation('TEMPCHAT'))
+    loadInbox: () => dispatch(loadInbox())
   })
 )(ChatContainer)

@@ -162,7 +162,7 @@ class TransportShared extends RobustTransport {
 }
 
 function sharedCreateClient (nativeTransport: any) {
-  const rpcClient = new RpcClient(nativeTransport, 'keybase.1')
+  const rpcClient = new RpcClient(nativeTransport)
 
   if (rpcClient.transport.needsConnect) {
     rpcClient.transport.connect(err => {

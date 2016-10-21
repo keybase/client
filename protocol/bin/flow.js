@@ -210,7 +210,7 @@ function analyzeMessages (json, project) {
     const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'requestErrorCallback'
     const innerParamType = p ? `{param: ${name}RpcParam}` : null
     const rpc = isUIProtocol ? '' : `export function ${name}Rpc (request: Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
-  engineRpcOutgoing({...request, method: '${json.protocol}.${m}'})
+  engineRpcOutgoing({...request, method: '${json.namespace}.${json.protocol}.${m}'})
 }`
 
     const rpcPromise = isUIProtocol ? '' : codeGenerators.rpcPromiseGen(name, callbackType, innerParamType, responseType)
