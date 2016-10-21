@@ -6,11 +6,13 @@ import Header from './header.desktop'
 import List from './list.desktop'
 import Input from './input.desktop'
 
-const Conversation = () => (
+import type {Props} from '.'
+
+const Conversation = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-    <Header />
-    <List />
-    <Input />
+    <Header {...props} />
+    <List {...props} />
+    <Input {...props} />
   </Box>
 )
 
