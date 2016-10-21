@@ -124,7 +124,7 @@ func TestLevelDb(t *testing.T) {
 				go db.doWhileOpenAndNukeIfCorrupted(func() error {
 					defer wg.Done()
 					select {
-					case <-time.After(time.Second):
+					case <-time.After(8 * time.Second):
 						t.Fatalf("doWhileOpenAndNukeIfCorrupted is not concurrent")
 					case <-ch:
 					}
@@ -133,7 +133,7 @@ func TestLevelDb(t *testing.T) {
 				go db.doWhileOpenAndNukeIfCorrupted(func() error {
 					defer wg.Done()
 					select {
-					case <-time.After(time.Second):
+					case <-time.After(8 * time.Second):
 						t.Fatalf("doWhileOpenAndNukeIfCorrupted does not support concurrent ops")
 					case ch <- struct{}{}:
 					}
@@ -227,7 +227,7 @@ func TestLevelDb(t *testing.T) {
 					}
 
 					select {
-					case <-time.After(time.Second):
+					case <-time.After(8 * time.Second):
 						t.Fatalf("timeout")
 					case chOpen <- struct{}{}:
 					}
@@ -240,7 +240,7 @@ func TestLevelDb(t *testing.T) {
 					}
 
 					select {
-					case <-time.After(time.Second):
+					case <-time.After(8 * time.Second):
 						t.Fatalf("timeout")
 					case chCommitted <- struct{}{}:
 					}
@@ -252,7 +252,7 @@ func TestLevelDb(t *testing.T) {
 
 					// wait until the other transaction has opened
 					select {
-					case <-time.After(time.Second):
+					case <-time.After(8 * time.Second):
 						t.Fatalf("timeout")
 					case <-chOpen:
 					}
