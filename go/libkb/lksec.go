@@ -4,23 +4,165 @@
 package libkb
 
 import (
+	"crypto/hmac"
+	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
-
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
 const LKSecVersion = 100
+const LKSecLen = 32
+
+type LKSecClientHalf struct {
+	c *[LKSecLen]byte
+}
+
+func (c LKSecClientHalf) IsNil() bool {
+	return c.c == nil
+}
+
+func (c LKSecClientHalf) Bytes() []byte {
+	if c.c == nil {
+		return nil
+	}
+	return c.c[:]
+}
+
+type LKSecServerHalf struct {
+	s *[LKSecLen]byte
+}
+
+func (s LKSecServerHalf) IsNil() bool {
+	return s.s == nil
+}
+
+type LKSecFullSecret struct {
+	f *[LKSecLen]byte
+}
+
+type LKSecMask struct {
+	m *[LKSecLen]byte
+}
+
+func (f LKSecFullSecret) IsNil() bool {
+	return f.f == nil
+}
+
+func (f LKSecFullSecret) Bytes() []byte {
+	if f.f == nil {
+		return nil
+	}
+	return f.f[:]
+}
+
+func NewLKSecServerHalfFromHex(s string) (ret LKSecServerHalf, err error) {
+	var b []byte
+	b, err = hex.DecodeString(s)
+	if err != nil {
+		return ret, err
+	}
+	if len(b) != LKSecLen {
+		err = fmt.Errorf("Wrong LKSec server length: %d != %d", len(b), LKSecLen)
+		return ret, err
+	}
+	var v [LKSecLen]byte
+	copy(v[:], b)
+	ret = LKSecServerHalf{s: &v}
+	return ret, nil
+}
+
+func newLKSecFullSecretFromBytes(b []byte) (ret LKSecFullSecret, err error) {
+	if len(b) != LKSecLen {
+		err = fmt.Errorf("Wrong LKSecFullSecret len: %d != %d", len(b), LKSecLen)
+		return ret, err
+	}
+	var v [LKSecLen]byte
+	copy(v[:], b)
+	ret = LKSecFullSecret{f: &v}
+	return ret, nil
+}
+
+func NewLKSecClientHalfFromBytes(b []byte) (ret LKSecClientHalf, err error) {
+	if len(b) != LKSecLen {
+		err = fmt.Errorf("Wrong LKSecClientHalf len: %d != %d", len(b), LKSecLen)
+		return ret, err
+	}
+	var v [LKSecLen]byte
+	copy(v[:], b)
+	ret = LKSecClientHalf{c: &v}
+	return ret, nil
+}
+
+func (f LKSecFullSecret) Equal(f2 LKSecFullSecret) bool {
+	if f.IsNil() {
+		return false
+	}
+	if f2.IsNil() {
+		return false
+	}
+	return hmac.Equal(f.f[:], f2.f[:])
+}
+
+func (s LKSecServerHalf) EncodeToHex() string {
+	if s.IsNil() {
+		return ""
+	}
+	return hex.EncodeToString(s.s[:])
+}
+
+func (m LKSecMask) IsNil() bool {
+	return m.m == nil
+}
+
+func (m LKSecMask) EncodeToHex() string {
+	if m.IsNil() {
+		return ""
+	}
+	return hex.EncodeToString(m.m[:])
+}
+
+func NewLKSecServerHalfZeros() LKSecServerHalf {
+	var z [LKSecLen]byte
+	return LKSecServerHalf{s: &z}
+}
 
 type LKSec struct {
-	serverHalf []byte
-	clientHalf []byte
-	secret     []byte
+	serverHalf LKSecServerHalf
+	clientHalf LKSecClientHalf
+	secret     LKSecFullSecret
 	ppGen      PassphraseGeneration
 	uid        keybase1.UID
 	Contextified
+}
+
+func xorBytes(x *[LKSecLen]byte, y *[LKSecLen]byte) *[LKSecLen]byte {
+	var ret [LKSecLen]byte
+	for i := 0; i < LKSecLen; i++ {
+		ret[i] = x[i] ^ y[i]
+	}
+	return &ret
+}
+
+func (s LKSecServerHalf) ComputeFullSecret(c LKSecClientHalf) LKSecFullSecret {
+	return LKSecFullSecret{f: xorBytes(s.s, c.c)}
+}
+
+func (s LKSecServerHalf) ComputeClientHalf(f LKSecFullSecret) LKSecClientHalf {
+	return LKSecClientHalf{c: xorBytes(s.s, f.f)}
+}
+
+func (f LKSecFullSecret) bug3964Remask(s LKSecServerHalf) LKSecFullSecret {
+	return LKSecFullSecret{f: xorBytes(s.s, f.f)}
+}
+
+func (c LKSecClientHalf) ComputeMask(c2 LKSecClientHalf) LKSecMask {
+	if c.IsNil() || c2.IsNil() {
+		return LKSecMask{}
+	}
+	return LKSecMask{m: xorBytes(c.c, c2.c)}
 }
 
 func NewLKSec(pps *PassphraseStream, uid keybase1.UID, gc *GlobalContext) *LKSec {
@@ -36,7 +178,7 @@ func NewLKSec(pps *PassphraseStream, uid keybase1.UID, gc *GlobalContext) *LKSec
 	return res
 }
 
-func NewLKSecWithClientHalf(clientHalf []byte, ppgen PassphraseGeneration, uid keybase1.UID, gc *GlobalContext) *LKSec {
+func NewLKSecWithClientHalf(clientHalf LKSecClientHalf, ppgen PassphraseGeneration, uid keybase1.UID, gc *GlobalContext) *LKSec {
 	return &LKSec{
 		clientHalf:   clientHalf,
 		ppGen:        ppgen,
@@ -45,7 +187,7 @@ func NewLKSecWithClientHalf(clientHalf []byte, ppgen PassphraseGeneration, uid k
 	}
 }
 
-func NewLKSecWithFullSecret(secret []byte, uid keybase1.UID, gc *GlobalContext) *LKSec {
+func NewLKSecWithFullSecret(secret LKSecFullSecret, uid keybase1.UID, gc *GlobalContext) *LKSec {
 	return &LKSec{
 		secret:       secret,
 		ppGen:        PassphraseGeneration(-1),
@@ -58,11 +200,11 @@ func (s *LKSec) SetUID(u keybase1.UID) {
 	s.uid = u
 }
 
-func (s *LKSec) SetClientHalf(b []byte) {
+func (s *LKSec) SetClientHalf(b LKSecClientHalf) {
 	s.clientHalf = b
 }
 
-func (s *LKSec) SetServerHalf(b []byte) {
+func (s *LKSec) SetServerHalf(b LKSecServerHalf) {
 	s.serverHalf = b
 }
 
@@ -73,18 +215,26 @@ func (s LKSec) Generation() PassphraseGeneration {
 }
 
 func (s *LKSec) GenerateServerHalf() error {
-	if s.clientHalf == nil {
+	if s.clientHalf.IsNil() {
 		return errors.New("Can't generate server half without a client half")
 	}
-	if s.serverHalf != nil {
+	if !s.serverHalf.IsNil() {
 		return nil
 	}
+	var v [LKSecLen]byte
+	var n int
 	var err error
-	s.serverHalf, err = RandBytes(len(s.clientHalf))
-	return err
+	if n, err = rand.Read(v[:]); err != nil {
+		return err
+	}
+	if n != LKSecLen {
+		return fmt.Errorf("short random read; wanted %d bytes but only got %d", LKSecLen, n)
+	}
+	s.serverHalf = LKSecServerHalf{s: &v}
+	return nil
 }
 
-func (s *LKSec) GetServerHalf() []byte {
+func (s *LKSec) GetServerHalf() LKSecServerHalf {
 	return s.serverHalf
 }
 
@@ -94,12 +244,12 @@ func (s *LKSec) Load(lctx LoginContext) (err error) {
 		s.G().Log.Debug("- LKSec::Load() -> %s", ErrToOk(err))
 	}()
 
-	if s.secret != nil {
+	if !s.secret.IsNil() {
 		s.G().Log.Debug("| Short-circuit; we already know the full secret")
 		return nil
 	}
 
-	if len(s.clientHalf) == 0 {
+	if s.clientHalf.IsNil() {
 		err = fmt.Errorf("client half not set")
 		return err
 	}
@@ -108,13 +258,7 @@ func (s *LKSec) Load(lctx LoginContext) (err error) {
 		return err
 	}
 
-	if len(s.clientHalf) != len(s.serverHalf) {
-		err = fmt.Errorf("client/server halves len mismatch: len(client) == %d, len(server) = %d", len(s.clientHalf), len(s.serverHalf))
-		return err
-	}
-
-	s.secret = make([]byte, len(s.serverHalf))
-	XORBytes(s.secret, s.serverHalf, s.clientHalf)
+	s.secret = s.serverHalf.ComputeFullSecret(s.clientHalf)
 	s.G().Log.Debug("| Making XOR'ed secret key for Local Key Security (LKS)")
 
 	return nil
@@ -126,7 +270,7 @@ func (s *LKSec) LoadServerHalf(lctx LoginContext) (err error) {
 		s.G().Log.Debug("- LKSec::LoadServerHalf() -> %s", ErrToOk(err))
 	}()
 
-	if len(s.serverHalf) != 0 {
+	if !s.serverHalf.IsNil() {
 		s.G().Log.Debug("| short-circuit: already have serverHalf")
 		return nil
 	}
@@ -140,14 +284,14 @@ func (s *LKSec) LoadServerHalf(lctx LoginContext) (err error) {
 		s.G().Log.Debug("apiServerHalf(%s) error: %s", devid, err)
 		return err
 	}
-	if len(s.serverHalf) == 0 {
+	if s.serverHalf.IsNil() {
 		return fmt.Errorf("after apiServerHalf(%s), serverHalf still empty", devid)
 	}
 
 	return nil
 }
 
-func (s *LKSec) GetSecret(lctx LoginContext) (secret []byte, err error) {
+func (s *LKSec) GetSecret(lctx LoginContext) (secret LKSecFullSecret, err error) {
 	s.G().Log.Debug("+ LKsec:GetSecret()")
 	defer func() {
 		s.G().Log.Debug("- LKSec::GetSecret() -> %s", ErrToOk(err))
@@ -177,68 +321,110 @@ func (s *LKSec) Encrypt(src []byte) (res []byte, err error) {
 	}
 	var fnonce [24]byte
 	copy(fnonce[:], nonce)
-	fs := s.fsecret()
-	box := secretbox.Seal(nil, src, &fnonce, &fs)
+	box := secretbox.Seal(nil, src, &fnonce, s.secret.f)
 
 	return append(nonce, box...), nil
 }
 
-func (s *LKSec) Decrypt(lctx LoginContext, src []byte) (res []byte, gen PassphraseGeneration, err error) {
+func (s *LKSec) attemptBug3964Recovery(lctx LoginContext, data []byte, nonce *[24]byte) (res []byte, gen PassphraseGeneration, erroneousMask LKSecServerHalf, err error) {
+	s.G().Log.Debug("+ LKsec#attemptBug3964Recovery()")
+	defer func() {
+		s.G().Log.Debug("- LKSec#attemptBug3964Recovery() -> %s", ErrToOk(err))
+	}()
+
+	ss, err := s.loadSecretSyncer(lctx)
+	if err != nil {
+		return nil, 0, LKSecServerHalf{}, err
+	}
+
+	devices := ss.AllDevices()
+	for devid, dev := range devices {
+		s.G().Log.Debug("| Trying Bug 3964 Recovery w/ device %q {id: %s, lks: %s...}", dev.Description, devid, dev.LksServerHalf[0:8])
+		serverHalf, err := dev.ToLKSec()
+		if err != nil {
+			s.G().Log.Debug("| Failed with error: %s\n", err)
+			continue
+		}
+		fs := s.secret.bug3964Remask(serverHalf)
+		res, ok := secretbox.Open(nil, data, nonce, fs.f)
+		if ok {
+			s.G().Log.Debug("| Success")
+			return res, s.ppGen, serverHalf, nil
+		}
+	}
+
+	err = PassphraseError{"failed to open secretbox"}
+	return nil, 0, LKSecServerHalf{}, err
+}
+
+func (s *LKSec) Decrypt(lctx LoginContext, src []byte) (res []byte, gen PassphraseGeneration, erroneousMask LKSecServerHalf, err error) {
 	s.G().Log.Debug("+ LKsec:Decrypt()")
 	defer func() {
 		s.G().Log.Debug("- LKSec::Decrypt() -> %s", ErrToOk(err))
 	}()
 
 	if err = s.Load(lctx); err != nil {
-		return nil, 0, err
+		return nil, 0, LKSecServerHalf{}, err
 	}
 	var nonce [24]byte
 	copy(nonce[:], src[0:24])
 	data := src[24:]
-	fs := s.fsecret()
-	res, ok := secretbox.Open(nil, data, &nonce, &fs)
+	res, ok := secretbox.Open(nil, data, &nonce, s.secret.f)
 	if !ok {
-		err = PassphraseError{"failed to open secretbox"}
-		return nil, 0, err
+		return s.attemptBug3964Recovery(lctx, data, &nonce)
 	}
 
-	return res, s.ppGen, nil
+	return res, s.ppGen, LKSecServerHalf{}, nil
 }
 
-func (s *LKSec) fsecret() (res [32]byte) {
-	copy(res[:], s.secret)
-	return res
+func (s *LKSec) ComputeClientHalf() (ret LKSecClientHalf, err error) {
+	if !s.clientHalf.IsNil() {
+		return s.clientHalf, nil
+	}
+	if s.serverHalf.IsNil() {
+		return ret, errors.New("LKSec: tried to compute client half, but no server half loaded")
+	}
+	if s.secret.IsNil() {
+		return ret, errors.New("LKSec: tried to compute client half, but no full secret loaded")
+	}
+	return s.serverHalf.ComputeClientHalf(s.secret), nil
+}
+
+func (s *LKSec) loadSecretSyncer(lctx LoginContext) (ss *SecretSyncer, err error) {
+	if lctx != nil {
+		if err := lctx.RunSecretSyncer(s.uid); err != nil {
+			return nil, err
+		}
+		return lctx.SecretSyncer(), nil
+	}
+	aerr := s.G().LoginState().Account(func(a *Account) {
+		if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
+			return
+		}
+		ss = a.SecretSyncer()
+	}, "LKSec#loadSecretSyncer")
+	if aerr != nil {
+		return nil, aerr
+	}
+	return ss, err
 }
 
 func (s *LKSec) apiServerHalf(lctx LoginContext, devid keybase1.DeviceID) error {
 	var err error
 	var dev DeviceKey
-	if lctx != nil {
-		if err := lctx.RunSecretSyncer(s.uid); err != nil {
-			return err
-		}
-		dev, err = lctx.SecretSyncer().FindDevice(devid)
-	} else {
-		aerr := s.G().LoginState().Account(func(a *Account) {
-			if err = RunSyncer(a.SecretSyncer(), s.uid, a.LoggedIn(), a.LocalSession()); err != nil {
-				return
-			}
-			dev, err = a.SecretSyncer().FindDevice(devid)
-		}, "LKSec apiServerHalf - find device")
-		if aerr != nil {
-			return aerr
-		}
+	ss, err := s.loadSecretSyncer(lctx)
+	if err != nil {
+		return err
 	}
+	dev, err = ss.FindDevice(devid)
 	if err != nil {
 		return err
 	}
 
-	sh, err := hex.DecodeString(dev.LksServerHalf)
+	s.serverHalf, err = dev.ToLKSec()
 	if err != nil {
 		return err
 	}
-
-	s.serverHalf = sh
 	s.ppGen = dev.PPGen
 	return nil
 }
@@ -258,7 +444,10 @@ func NewLKSecForEncrypt(ui SecretUI, uid keybase1.UID, gc *GlobalContext) (ret *
 // and encrypts it for the given key.  This is for recovery of passphrases
 // on device recovery operations.
 func (s *LKSec) EncryptClientHalfRecovery(key GenericKey) (string, error) {
-	return key.EncryptToString(s.clientHalf, nil)
+	if s.clientHalf.IsNil() {
+		return "", errors.New("Nil LKS Client Half")
+	}
+	return key.EncryptToString(s.clientHalf.Bytes(), nil)
 }
 
 // ToSKB exports a generic key with the given LKSec to a SecretKeyBundle,

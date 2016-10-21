@@ -1,6 +1,8 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/settings'
+import HiddenString from '../util/hidden-string'
+
 import type {Actions, State} from '../constants/settings'
 
 const initialState: State = {
@@ -16,6 +18,16 @@ const initialState: State = {
     allowEdit: false,
   },
   emails: [],
+  passphrase: {
+    newPassphrase: new HiddenString(''),
+    newPassphraseConfirm: new HiddenString(''),
+    showTyping: false,
+    errorMessage: null,
+    newPassphraseError: null,
+    newPassphraseConfirmError: null,
+    hasPGPKeyOnServer: null,
+    canSave: false,
+  },
 }
 
 function reducer (state: State = initialState, action: Actions): State {
@@ -102,9 +114,56 @@ function reducer (state: State = initialState, action: Actions): State {
         ...action.payload,
       }
     }
+    case Constants.onChangeNewPassphrase:
+      return {
+        ...state,
+        passphrase: {
+          ...state.passphrase,
+          newPassphrase: action.payload.passphrase,
+          canSave: _canSave(action.payload.passphrase, state.passphrase.newPassphraseConfirm, state.passphrase.hasPGPKeyOnServer !== null),
+          errorMessage: null,
+        },
+      }
+    case Constants.onChangeNewPassphraseConfirm:
+      return {
+        ...state,
+        passphrase: {
+          ...state.passphrase,
+          newPassphraseConfirm: action.payload.passphrase,
+          canSave: _canSave(state.passphrase.newPassphrase, action.payload.passphrase, state.passphrase.hasPGPKeyOnServer !== null),
+          errorMessage: null,
+        },
+      }
+    case Constants.onUpdatedPGPSettings:
+      return {
+        ...state,
+        passphrase: {
+          ...state.passphrase,
+          hasPGPKeyOnServer: action.payload.hasKeys,
+        },
+      }
+    case Constants.onUpdatePassphraseError:
+      return {
+        ...state,
+        passphrase: {
+          ...state.passphrase,
+          errorMessage: action.payload.error,
+        },
+      }
+    case Constants.onChangeShowPassphrase:
+      return {
+        ...state,
+        passphrase: {
+          ...state.passphrase,
+          showTyping: !state.passphrase.showTyping,
+        },
+      }
   }
-
   return state
+}
+
+function _canSave (one: HiddenString, two: HiddenString, downloadedPGPState: boolean): boolean {
+  return downloadedPGPState && one.stringValue() === two.stringValue() && one.stringValue().length >= 12
 }
 
 export default reducer

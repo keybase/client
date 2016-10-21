@@ -275,7 +275,7 @@ func userHasStoredSecretViaSecretStore(tc *libkb.TestContext, username string) b
 	secret, err := tc.G.SecretStoreAll.RetrieveSecret(libkb.NewNormalizedUsername(username))
 	// TODO: Have RetrieveSecret return platform-independent errors
 	// so that we can make sure we got the right one.
-	return (len(secret) > 0 && err == nil)
+	return (!secret.IsNil() && err == nil)
 }
 
 func userHasStoredSecret(tc *libkb.TestContext, username string) bool {

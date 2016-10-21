@@ -24,8 +24,47 @@ func TestDeviceAddV2(t *testing.T) {
 	testDeviceAdd(t, false)
 }
 
-func testDeviceAdd(t *testing.T, v1Only bool) {
+func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, secretY kex2.Secret, v1Only bool) {
+	defer wg.Done()
+	f := func(lctx libkb.LoginContext) error {
+		ctx := &Context{
+			ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
+			LoginContext: lctx,
+			NetContext:   context.TODO(),
+		}
+		deviceID, err := libkb.NewDeviceID()
+		if err != nil {
+			t.Errorf("provisionee device id error: %s", err)
+			return err
+		}
+		suffix, err := libkb.RandBytes(5)
+		if err != nil {
+			t.Errorf("provisionee device suffix error: %s", err)
+			return err
+		}
+		dname := fmt.Sprintf("device_%x", suffix)
+		device := &libkb.Device{
+			ID:          deviceID,
+			Description: &dname,
+			Type:        libkb.DeviceTypeDesktop,
+		}
+		provisionee := NewKex2Provisionee(tcY.G, device, secretY)
+		if v1Only {
+			provisionee.v1Only = true
+		}
+		if err := RunEngine(provisionee, ctx); err != nil {
+			t.Errorf("provisionee error: %s", err)
+			return err
+		}
+		return nil
+	}
 
+	if err := tcY.G.LoginState().ExternalFunc(f, "Test - DeviceAdd"); err != nil {
+		t.Errorf("kex2 provisionee error: %s", err)
+	}
+}
+
+func testDeviceAdd(t *testing.T, v1Only bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
@@ -36,10 +75,6 @@ func testDeviceAdd(t *testing.T, v1Only bool) {
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
-	var secretX kex2.Secret
-	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
-	}
 
 	var secretY kex2.Secret
 	if _, err := rand.Read(secretY[:]); err != nil {
@@ -50,45 +85,7 @@ func testDeviceAdd(t *testing.T, v1Only bool) {
 
 	// start provisionee
 	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		f := func(lctx libkb.LoginContext) error {
-			ctx := &Context{
-				ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
-				LoginContext: lctx,
-				NetContext:   context.TODO(),
-			}
-			deviceID, err := libkb.NewDeviceID()
-			if err != nil {
-				t.Errorf("provisionee device id error: %s", err)
-				return err
-			}
-			suffix, err := libkb.RandBytes(5)
-			if err != nil {
-				t.Errorf("provisionee device suffix error: %s", err)
-				return err
-			}
-			dname := fmt.Sprintf("device_%x", suffix)
-			device := &libkb.Device{
-				ID:          deviceID,
-				Description: &dname,
-				Type:        libkb.DeviceTypeDesktop,
-			}
-			provisionee := NewKex2Provisionee(tcY.G, device, secretY)
-			if v1Only {
-				provisionee.v1Only = true
-			}
-			if err := RunEngine(provisionee, ctx); err != nil {
-				t.Errorf("provisionee error: %s", err)
-				return err
-			}
-			return nil
-		}
-
-		if err := tcY.G.LoginState().ExternalFunc(f, "Test - DeviceAdd"); err != nil {
-			t.Errorf("kex2 provisionee error: %s", err)
-		}
-	}()
+	go runDeviceAddTest(t, &wg, &tcY, secretY, v1Only)
 
 	// run DeviceAdd engine on device X
 	ctx := &Context{
@@ -115,10 +112,6 @@ func TestDeviceAddPhrase(t *testing.T) {
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
-	var secretX kex2.Secret
-	if _, err := rand.Read(secretX[:]); err != nil {
-		t.Fatal(err)
-	}
 
 	secretY, err := libkb.NewKex2Secret()
 	if err != nil {
@@ -129,42 +122,7 @@ func TestDeviceAddPhrase(t *testing.T) {
 
 	// start provisionee
 	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		f := func(lctx libkb.LoginContext) error {
-			ctx := &Context{
-				ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
-				LoginContext: lctx,
-				NetContext:   context.TODO(),
-			}
-			deviceID, err := libkb.NewDeviceID()
-			if err != nil {
-				t.Errorf("provisionee device id error: %s", err)
-				return err
-			}
-			suffix, err := libkb.RandBytes(5)
-			if err != nil {
-				t.Errorf("provisionee device suffix error: %s", err)
-				return err
-			}
-			dname := fmt.Sprintf("device_%x", suffix)
-			device := &libkb.Device{
-				ID:          deviceID,
-				Description: &dname,
-				Type:        libkb.DeviceTypeDesktop,
-			}
-			provisionee := NewKex2Provisionee(tcY.G, device, secretY.Secret())
-			if err := RunEngine(provisionee, ctx); err != nil {
-				t.Errorf("provisionee error: %s", err)
-				return err
-			}
-			return nil
-		}
-
-		if err := tcY.G.LoginState().ExternalFunc(f, "Test - DeviceAdd"); err != nil {
-			t.Errorf("kex2 provisionee error: %s", err)
-		}
-	}()
+	go runDeviceAddTest(t, &wg, &tcY, secretY.Secret(), false)
 
 	// run DeviceAdd engine on device X
 	ctx := &Context{
@@ -178,6 +136,49 @@ func TestDeviceAddPhrase(t *testing.T) {
 	}
 
 	wg.Wait()
+}
+
+func TestDeviceAddStoredSecret(t *testing.T) {
+	// device X (provisioner) context:
+	tcX := SetupEngineTest(t, "kex2provision")
+	defer tcX.Cleanup()
+
+	// device Y (provisionee) context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// provisioner needs to be logged in
+	userX := SignupFakeUserStoreSecret(tcX, "login")
+
+	var secretY kex2.Secret
+	if _, err := rand.Read(secretY[:]); err != nil {
+		t.Fatal(err)
+	}
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	wg.Add(1)
+	go runDeviceAddTest(t, &wg, &tcY, secretY, false)
+
+	testSecretUI := userX.NewSecretUI()
+
+	// run DeviceAdd engine on device X
+	ctx := &Context{
+		SecretUI:    testSecretUI,
+		ProvisionUI: &testXProvisionUI{secret: secretY},
+		NetContext:  context.TODO(),
+	}
+	eng := NewDeviceAdd(tcX.G)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Errorf("device add error: %s", err)
+	}
+
+	wg.Wait()
+
+	if testSecretUI.CalledGetPassphrase {
+		t.Fatal("GetPassphrase() unexpectedly called")
+	}
 }
 
 type testXProvisionUI struct {

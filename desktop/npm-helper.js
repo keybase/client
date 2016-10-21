@@ -134,7 +134,7 @@ const commands = {
     env: {HOT: 'true', USING_DLL: 'true'},
     nodeEnv: 'development',
     nodePathDesktop: true,
-    shell: `webpack-dashboard -- ${nodeCmd} server.js`,
+    shell: process.env['NO_DASHBOARD'] ? `${nodeCmd} server.js` : `webpack-dashboard -- ${nodeCmd} server.js`,
     help: 'Start the webpack hot reloading code server (needed by npm run start-hot)',
   },
   'inject-sourcemaps-prod': {
@@ -214,17 +214,24 @@ function setupDebugMain () {
 }
 
 function fixupSymlinks () {
-  let s = fs.lstatSync('./shared')
-  if (!s.isSymbolicLink()) {
-    console.log('Fixing up shared symlinks')
+  const symlinks = [
+    {srcNode: './shared', srcShell: 'shared', dstShell: '..\\shared'},
+    {srcNode: './renderer/fonts', srcShell: 'renderer\\fonts', dstShell: '..\\shared\\fonts'},
+  ]
 
-    try {
-      exec('del shared', null, {cwd: path.join(process.cwd(), '.')})
-    } catch (_) { }
-    try {
-      exec('mklink /j shared ..\\shared', null, {cwd: path.join(process.cwd(), '.')})
-    } catch (_) { }
-  }
+  symlinks.forEach(symlink => {
+    let s = fs.lstatSync(symlink.srcNode)
+    if (!s.isSymbolicLink()) {
+      console.log(`Fixing up shared ${symlink.srcNode}`)
+
+      try {
+        exec(`del ${symlink.srcShell}`, null, {cwd: path.join(process.cwd(), '.')})
+      } catch (_) { }
+      try {
+        exec(`mklink /j ${symlink.srcShell} ${symlink.dstShell}`, null, {cwd: path.join(process.cwd(), '.')})
+      } catch (_) { }
+    }
+  })
 }
 
 // Edit this function to filter down the store in the undiff log

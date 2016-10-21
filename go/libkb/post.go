@@ -4,7 +4,6 @@
 package libkb
 
 import (
-	"encoding/hex"
 	"fmt"
 	"runtime/debug"
 
@@ -177,10 +176,10 @@ func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.Proo
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
-func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf []byte,
+func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
 	ppGen PassphraseGeneration,
 	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
-	if len(serverHalf) == 0 {
+	if serverHalf.IsNil() {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
 	}
 	if ppGen < 1 {
@@ -193,7 +192,7 @@ func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceI
 		Args: HTTPArgs{
 			"device_id":       S{Val: deviceID.String()},
 			"type":            S{Val: deviceType},
-			"lks_server_half": S{Val: hex.EncodeToString(serverHalf)},
+			"lks_server_half": S{Val: serverHalf.EncodeToHex()},
 			"ppgen":           I{Val: int(ppGen)},
 			"lks_client_half": S{Val: clientHalfRecovery},
 			"kid":             S{Val: clientHalfRecoveryKID.String()},

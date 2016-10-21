@@ -1,6 +1,7 @@
 // @flow
 import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
 import type {Email} from './types/flow-types'
+import HiddenString from '../util/hidden-string'
 
 export const invitesReclaim = 'settings:invitesReclaim'
 export type InvitesReclaim = NoErrorTypedAction<'settings:invitesReclaim', {inviteId: string}>
@@ -41,8 +42,28 @@ export type SetAllowDeleteAccount = NoErrorTypedAction<'settings:setAllowDeleteA
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountForever', void>
 
-export type PlanLevel = 'Basic' | 'Gold' | 'Friend'
-const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
+export const onChangeNewPassphrase = 'settings:onChangeNewPassphrase'
+export type OnChangeNewPassphrase = NoErrorTypedAction<'settings:onChangeNewPassphrase', {passphrase: HiddenString}>
+
+export const onChangeNewPassphraseConfirm = 'settings:onChangeNewPassphraseConfirm'
+export type OnChangeNewPassphraseConfirm = NoErrorTypedAction<'settings:onChangeNewPassphraseConfirm', {passphrase: HiddenString}>
+
+export const onChangeShowPassphrase = 'settings:onChangeShowPassphrase'
+export type OnChangeShowPassphrase = NoErrorTypedAction<'settings:onChangeShowPassphrase', void>
+
+export const onSubmitNewPassphrase = 'settings:onSubmitNewPassphrase'
+export type OnSubmitNewPassphrase = NoErrorTypedAction<'settings:onSubmitNewPassphrase', void>
+
+export const onUpdatePassphraseError = 'settings:onUpdatePassphraseError'
+export type OnUpdatePassphraseError = NoErrorTypedAction<'settings:onUpdatePassphraseError', {error: string}>
+
+export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
+export type OnUpdatePGPSettings = NoErrorTypedAction<'settings:onUpdatePGPSettings', void>
+
+export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
+export type OnUpdatedPGPSettings = NoErrorTypedAction<'settings:onUpdatedPGPSettings', {hasKeys: boolean}>
+
+export type PlanLevel = string
 
 export const loadSettings = 'settings:loadSettings'
 export type LoadSettings = NoErrorTypedAction<'settings:loadSettings', void>
@@ -75,6 +96,17 @@ export type NotificationsState = {
   unsubscribedFromAll: ?boolean,
   allowSave: boolean,
   allowEdit: boolean,
+}
+
+export type PassphraseState = {
+  newPassphrase: HiddenString,
+  newPassphraseConfirm: HiddenString,
+  showTyping: boolean,
+  errorMessage: ?HiddenString,
+  newPassphraseError: ?HiddenString,
+  newPassphraseConfirmError: ?HiddenString,
+  hasPGPKeyOnServer: ?boolean,
+  canSave: boolean,
 }
 
 export type State = {
@@ -135,4 +167,5 @@ export {
   levelToSpace,
   levelToStars,
   plans,
+  passphrase: PassphraseState,
 }

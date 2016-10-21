@@ -46,8 +46,8 @@ function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (
     }
     return acc
   }, {})
-  const callback = (error) => {
-    channelMap['finished'] && putOnChannelMap(channelMap, 'finished', {error})
+  const callback = (error, params) => {
+    channelMap['finished'] && putOnChannelMap(channelMap, 'finished', {error, params})
     closeChannelMap(channelMap)
   }
   partialRpcCall(incomingCallMap, callback)
@@ -374,7 +374,7 @@ export type Conversation = {
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
-export type ConversationID = uint64
+export type ConversationID = bytes
 
 export type ConversationIDTriple = {
   tlfid: TLFID,

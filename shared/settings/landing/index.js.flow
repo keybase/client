@@ -2,11 +2,9 @@
 import {Component} from 'react'
 
 import type {PlanLevel} from '../../constants/settings'
-import type {PaymentInfo} from '../../constants/plan-billing'
+import type {PaymentInfo, AvailablePlan} from '../../constants/plan-billing'
 
 export type PlanProps = {
-  onUpgrade: (toLevel: PlanLevel) => void,
-  onDowngrade: (toLevel: PlanLevel) => void,
   onInfo: (level: PlanLevel) => void,
   selectedLevel: PlanLevel,
   freeSpace: string,
@@ -25,6 +23,7 @@ export type AccountProps = {
 
 export type Props = {
   plan: PlanProps,
+  plans: Array<AvailablePlan>,
   account: AccountProps,
 }
 

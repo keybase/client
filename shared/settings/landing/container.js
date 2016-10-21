@@ -1,9 +1,9 @@
 // @flow
-import {connect} from 'react-redux'
-import Bootstrapable from '../../util/bootstrapable'
-
 import * as actions from '../../actions/settings'
+import Bootstrapable from '../../util/bootstrapable'
 import Landing from './index'
+import {connect} from 'react-redux'
+import {routeAppend} from '../../actions/router'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -48,11 +48,14 @@ export default connect(
       originalProps: {
         account: accountProps,
         plan: planProps,
+        plans: availablePlans,
       },
     }
   },
   (dispatch: (a: any) => void, ownProps: OwnProps) => ({
     onBootstrap: () => { dispatch(actions.loadSettings()) },
+    onChangePassphrase: () => dispatch(routeAppend('changePassphrase')),
+    onInfo: (selectedLevel) => dispatch(routeAppend({path: 'changePlan', selectedLevel})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     if (!stateProps.bootstrapDone) {
@@ -64,6 +67,19 @@ export default connect(
 
     return {
       ...stateProps,
+      originalProps: {
+        ...stateProps.originalProps,
+        account: {
+          ...stateProps.originalProps.account,
+          onChangePassphrase: dispatchProps.onChangePassphrase,
+        },
+        plan: {
+          ...stateProps.originalProps.plan,
+          onInfo: (selectedLevel) => {
+            dispatchProps.onInfo(selectedLevel)
+          },
+        },
+      },
     }
   }
 )(Bootstrapable(Landing))

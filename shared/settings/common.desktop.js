@@ -3,15 +3,11 @@ import React from 'react'
 import {Box, Icon} from '../common-adapters'
 import {range} from 'lodash'
 import {globalStyles, globalColors} from '../styles'
-import {levelToStars} from '../constants/settings'
 
-import type {PlanLevel} from '../constants/settings'
-
-function Stars ({level}: {level: PlanLevel}) {
-  const starCount = levelToStars[level]
+function Stars ({count}: {count: number}) {
   return (
     <Box style={globalStyles.flexBoxRow}>
-      {range(starCount).map(i => <Icon key={i} style={{color: globalColors.green}} type='iconfont-star' />)}
+      {range(count).map(i => <Icon key={i} style={{color: globalColors.green}} type='iconfont-star' />)}
     </Box>
   )
 }

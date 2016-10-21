@@ -24,20 +24,20 @@ func NewSecretStoreFile(dir string) *SecretStoreFile {
 	return &SecretStoreFile{dir: dir}
 }
 
-func (s *SecretStoreFile) RetrieveSecret(username NormalizedUsername) ([]byte, error) {
+func (s *SecretStoreFile) RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error) {
 	secret, err := ioutil.ReadFile(s.userpath(username))
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, ErrSecretForUserNotFound
+			return LKSecFullSecret{}, ErrSecretForUserNotFound
 		}
 
-		return nil, err
+		return LKSecFullSecret{}, err
 	}
 
-	return secret, nil
+	return newLKSecFullSecretFromBytes(secret)
 }
 
-func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret []byte) error {
+func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) error {
 	if err := os.MkdirAll(s.dir, 0700); err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret []byte
 			return err
 		}
 	}
-	if _, err := f.Write(secret); err != nil {
+	if _, err := f.Write(secret.Bytes()); err != nil {
 		return err
 	}
 	if err := f.Close(); err != nil {

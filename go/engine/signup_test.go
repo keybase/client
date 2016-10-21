@@ -150,7 +150,7 @@ func TestLocalKeySecurity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	dec, _, err := lks.Decrypt(nil, enc)
+	dec, _, _, err := lks.Decrypt(nil, enc)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -190,7 +190,7 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 		t.Error(err)
 	}
 
-	if string(secret) != string(storedSecret) {
+	if !secret.Equal(storedSecret) {
 		t.Errorf("Expected %v, got %v", secret, storedSecret)
 	}
 

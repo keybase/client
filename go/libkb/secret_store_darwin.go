@@ -21,9 +21,9 @@ func (k KeychainSecretStore) serviceName() string {
 	return k.context.GetStoredSecretServiceName()
 }
 
-func (k KeychainSecretStore) StoreSecret(accountName NormalizedUsername, secret []byte) (err error) {
+func (k KeychainSecretStore) StoreSecret(accountName NormalizedUsername, secret LKSecFullSecret) (err error) {
 	// Base64 encode to make it easy to work with Keychain Access (since we are using a password item and secret is not utf-8)
-	encodedSecret := base64.StdEncoding.EncodeToString(secret)
+	encodedSecret := base64.StdEncoding.EncodeToString(secret.Bytes())
 	item := keychain.NewGenericPassword(k.serviceName(), string(accountName), "", []byte(encodedSecret), k.accessGroup())
 	item.SetSynchronizable(k.synchronizable())
 	item.SetAccessible(k.accessible())
@@ -31,21 +31,21 @@ func (k KeychainSecretStore) StoreSecret(accountName NormalizedUsername, secret 
 	return keychain.AddItem(item)
 }
 
-func (k KeychainSecretStore) RetrieveSecret(accountName NormalizedUsername) ([]byte, error) {
+func (k KeychainSecretStore) RetrieveSecret(accountName NormalizedUsername) (LKSecFullSecret, error) {
 	encodedSecret, err := keychain.GetGenericPassword(k.serviceName(), string(accountName), "", "")
 	if err != nil {
-		return nil, err
+		return LKSecFullSecret{}, err
 	}
 	if encodedSecret == nil {
-		return nil, SecretStoreError{Msg: "No secret for " + string(accountName)}
+		return LKSecFullSecret{}, SecretStoreError{Msg: "No secret for " + string(accountName)}
 	}
 
 	secret, err := base64.StdEncoding.DecodeString(string(encodedSecret))
 	if err != nil {
-		return nil, err
+		return LKSecFullSecret{}, err
 	}
 
-	return secret, nil
+	return newLKSecFullSecretFromBytes(secret)
 }
 
 func (k KeychainSecretStore) ClearSecret(accountName NormalizedUsername) error {

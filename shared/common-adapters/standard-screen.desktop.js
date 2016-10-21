@@ -65,6 +65,9 @@ const styleBanner = (notificationType: NotificationType) => ({
   justifyContent: 'center',
   alignItems: 'center',
   width: '100%',
+  paddingLeft: 20,
+  paddingRight: 20,
+  textAlign: 'center',
   zIndex: 1,
   height: globalMargins.large,
   backgroundColor: notificationType === 'error'

@@ -48,7 +48,7 @@ function initialTrackerState (username: string): TrackerState {
     needTrackTokenDismiss: false,
     proofs: [],
     reason: null,
-    serverActive: false,
+    serverActive: true,
     shouldFollow: true,
     trackToken: null,
     trackerState: initialProofState,

@@ -45,12 +45,13 @@ class Avatar extends PureComponent<void, Props, State> {
         {this.props.backgroundColor &&
           <div
             style={{...avatarStyle,
+              ...borderStyle,
               backgroundColor: this.props.backgroundColor,
               backgroundSize: 'cover',
             }} />}
         {showNoAvatar &&
           <img src={noAvatar} style={{...avatarStyle, display: 'block'}} />}
-        {showLoadingColor && <div style={{...avatarStyle, backgroundColor: this.props.loadingColor}} />}
+        {showLoadingColor && <div style={{...avatarStyle, ...borderStyle, backgroundColor: this.props.loadingColor}} />}
         <img
           src={url}
           style={{

@@ -1,23 +1,21 @@
 // @flow
 import React from 'react'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
-import {comparePlans, levelToPrice, levelToSpace, plans} from '../../constants/settings'
-import {Stars} from '../common.desktop.js'
 import SubHeading from '../subheading'
+import {Box, Button, Divider, Icon, Text, Meta} from '../../common-adapters'
+import {Stars} from '../common.desktop.js'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {priceToString, planToStars, comparePlans} from '../../constants/plan-billing'
+import flags from '../../util/feature-flags'
 
 import type {Props, AccountProps, PlanProps} from './index'
 import type {PlanLevel} from '../../constants/settings'
-import type {PaymentInfo as PaymentInfoType} from '../../constants/plan-billing'
+import type {PaymentInfo as PaymentInfoType, AvailablePlan, ChangeType} from '../../constants/plan-billing'
 
 const ROW_HEIGHT = 48
 
 type PlanActionVariantsProps = {
-  type: 'downgrade',
-  onDowngrade: () => void,
-} | {
-  type: 'upgrade',
-  onUpgrade: () => void,
+  type: 'change',
+  changeType: ChangeType,
 } | {
   type: 'spaceInfo',
   freeSpace: string,
@@ -28,32 +26,25 @@ type PlanActionVariantsProps = {
 type PlanLevelProps = {
   style?: Object,
   level: PlanLevel,
+  price: string,
+  gigabytes: number,
   onInfo: () => void,
     variants: PlanActionVariantsProps,
 }
 
-function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, onDowngrade: (l: PlanLevel) => void, onUpgrade: (l: PlanLevel) => void, freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean): PlanActionVariantsProps {
-  const comparison = comparePlans(selectedLevel, otherLevel)
+function variantPropsHelper (selectedLevel: PlanLevel, otherLevel: PlanLevel, freeSpace: string, freeSpacePercentage: number, lowSpaceWarning: boolean, changeType: ChangeType): PlanActionVariantsProps {
+  if (selectedLevel === otherLevel) {
+    return {
+      type: 'spaceInfo',
+      freeSpace,
+      freeSpacePercentage,
+      lowSpaceWarning,
+    }
+  }
 
-  switch (comparison) {
-    case -1:
-      return {
-        type: 'downgrade',
-        onDowngrade: () => onDowngrade(otherLevel),
-      }
-    case 0:
-      return {
-        type: 'spaceInfo',
-        freeSpace,
-        freeSpacePercentage,
-        lowSpaceWarning,
-      }
-    case 1:
-    default:
-      return {
-        type: 'upgrade',
-        onUpgrade: () => onUpgrade(otherLevel),
-      }
+  return {
+    type: 'change',
+    changeType: changeType,
   }
 }
 
@@ -74,54 +65,54 @@ function SpaceInfo ({freeSpace, freeSpacePercentage, lowSpaceWarning}: {freeSpac
   )
 }
 
-function UpgradeButton ({onUpgrade}: {onUpgrade: () => void}) {
-  return (
-    <Button style={{marginRight: 0}} type='Follow' label='Upgrade' onClick={onUpgrade} />
-  )
-}
+const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 'change'}) => (
+  <Button style={{marginRight: 0}} type='Follow' label={{'upgrade': 'Upgrade', 'change': 'Change'}[type]} onClick={e => {
+    onClick()
+    e.stopPropagation()
+  }} />
+)
 
-function DowngradeLink ({onDowngrade}: {onDowngrade: () => void}) {
-  return (
-    <Text type={'BodySmall'} link={true} style={{color: globalColors.blue}} onClick={onDowngrade}>
-      Downgrade
-    </Text>
-  )
-}
+const DowngradeLink = ({onClick}) => (
+  <Text type={'BodySmall'} link={true} style={{color: globalColors.blue}} onClick={e => {
+    onClick()
+    e.stopPropagation()
+  }}>
+    Downgrade
+  </Text>
+)
 
-function PlanActionVariants ({variants}: {variants: PlanActionVariantsProps}) {
+function PlanActionVariants ({variants, onClick}: {variants: PlanActionVariantsProps, onClick: () => void}) {
   switch (variants.type) {
-    case 'downgrade':
-      return <DowngradeLink onDowngrade={variants.onDowngrade} />
-    case 'upgrade':
-      return <UpgradeButton onUpgrade={variants.onUpgrade} />
+    case 'change':
+      return variants.changeType === 'downgrade'
+        ? <DowngradeLink onClick={onClick} />
+        : <UpgradeButton onClick={onClick} type={variants.changeType} />
     case 'spaceInfo':
       return <SpaceInfo {...variants} />
   }
 }
 
-function PlanLevelRow ({level, onInfo, variants, style}: PlanLevelProps) {
+function PlanLevelRow ({level, price, onInfo, variants, style, gigabytes}: PlanLevelProps) {
   const selected = variants.type === 'spaceInfo'
   return (
-    <Box style={{...globalStyles.flexBoxRow, ...planLevelRowStyle, backgroundColor: selected ? globalColors.blue4 : globalColors.white, ...style}}>
+    <Box style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, ...planLevelRowStyle, backgroundColor: selected ? globalColors.blue4 : globalColors.white, ...style}} onClick={() => onInfo()}>
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Text onClick={() => onInfo()} type={'BodySemibold'} link={true} style={{marginRight: globalMargins.xtiny, color: globalColors.blue}}>
+          <Text type={'BodySemibold'} link={true} style={{marginRight: globalMargins.xtiny, color: globalColors.blue}}>
             {level}
           </Text>
-          <Text type={'BodySmall'}>
-            ({levelToPrice[level]})
-          </Text>
+          <Text type={'BodySmall'}>({price})</Text>
         </Box>
         {selected && <Meta title='Your Plan' style={{backgroundColor: globalColors.blue2}} />}
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <Text style={{...globalStyles.fontSemibold, marginRight: globalMargins.xtiny}} type='BodySmall'>
-          {levelToSpace[level]}
+          {`${gigabytes}GB`}
         </Text>
-        <Stars level={level} />
+        <Stars count={planToStars(level)} />
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'flex-end'}}>
-        <PlanActionVariants variants={variants} />
+        <PlanActionVariants variants={variants} onClick={onInfo} />
       </Box>
     </Box>
   )
@@ -152,7 +143,12 @@ function PaymentInfo ({name, last4Digits, isBroken, onChangePaymentInfo}: Paymen
   )
 }
 
-function Plan ({onInfo, onUpgrade, onDowngrade, freeSpace, freeSpacePercentage, selectedLevel, paymentInfo, onChangePaymentInfo, lowSpaceWarning}: PlanProps) {
+function Plan ({onInfo, freeSpace, freeSpacePercentage, selectedLevel, paymentInfo, onChangePaymentInfo, lowSpaceWarning, plans}: PlanProps & {plans: Array<AvailablePlan>}) {
+  const from: ?AvailablePlan = plans.find((plan: AvailablePlan) => plan.planLevel === selectedLevel)
+  if (!from) {
+    throw new Error("Can't find existing plan")
+  }
+
   return (
     <Box style={globalStyles.flexBoxColumn}>
       <Box style={globalStyles.flexBoxColumn}>
@@ -160,10 +156,12 @@ function Plan ({onInfo, onUpgrade, onDowngrade, freeSpace, freeSpacePercentage, 
       </Box>
       {plans.map(p => (
         <PlanLevelRow
-          key={p}
-          level={p}
-          onInfo={() => onInfo(p)}
-          variants={variantPropsHelper(selectedLevel, p, onDowngrade, onUpgrade, freeSpace, freeSpacePercentage, lowSpaceWarning)} />))}
+          key={p.planLevel}
+          level={p.planLevel}
+          onInfo={() => onInfo(p.planLevel)}
+          price={priceToString(p.price_pennies)}
+          gigabytes={p.gigabytes}
+          variants={variantPropsHelper(selectedLevel, p.planLevel, freeSpace, freeSpacePercentage, lowSpaceWarning, comparePlans(from, p))} />))}
       {!!paymentInfo && <PaymentInfo {...paymentInfo} onChangePaymentInfo={onChangePaymentInfo} />}
       {!!paymentInfo &&
         <Text style={{marginTop: globalMargins.small}} type='BodySmall'>
@@ -215,9 +213,9 @@ function Account ({email, isVerified, onChangeEmail, onChangePassphrase}: Accoun
 
 function Landing (props: Props) {
   return (
-    <Box style={globalStyles.flexBoxColumn}>
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1, padding: 32}}>
       <Account {...props.account} />
-      <Plan {...props.plan} />
+      {flags.plansEnabled && <Plan {...props.plan} plans={props.plans} />}
     </Box>
   )
 }

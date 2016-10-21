@@ -47,13 +47,12 @@ const updateEmailMap: DumbComponentMap<UpdateEmail> = {
 }
 
 const updatePassphraseBase = {
-  onChangeCurrentPassphrase: currentPassphrase => console.log('onChangeCurrentPassphrase', currentPassphrase),
   onChangeNewPassphrase: newPassphrase => console.log('onChangeNewPassphrase', newPassphrase),
   onChangeNewPassphraseConfirm: newPassphraseConfirm => console.log('onChangeNewPassphraseConfirm', newPassphraseConfirm),
   onChangeShowPassphrase: showPassphrase => console.log('onChangeShowPassphrase', showPassphrase),
-  currentPassphrase: 'swordfish',
   newPassphrase: 'open sesame',
   newPassphraseConfirm: 'open sesame',
+  hasPGPKeyOnServer: false,
   showTyping: false,
   errorMessage: null,
   newPassphraseError: null,
@@ -61,7 +60,7 @@ const updatePassphraseBase = {
   canSave: true,
   onBack: () => console.log('onBack'),
   onSave: () => console.log('onSave'),
-  onForgotPassphrase: () => console.log('onForgotPassphrase'),
+  onUpdatePGPSettings: () => console.log('onUpdatePGPSettings'),
 }
 
 const updatePassphraseMap: DumbComponentMap<UpdatePassphrase> = {
@@ -69,9 +68,15 @@ const updatePassphraseMap: DumbComponentMap<UpdatePassphrase> = {
   mocks: {
     'Normal - Empty': {
       ...updatePassphraseBase,
-      currentPassphrase: '',
       newPassphrase: '',
       newPassphraseConfirm: '',
+      canSave: false,
+    },
+    'Normal - Has PGP on server': {
+      ...updatePassphraseBase,
+      newPassphrase: '',
+      newPassphraseConfirm: '',
+      hasPGPKeyOnServer: true,
       canSave: false,
     },
     'Normal': updatePassphraseBase,
@@ -128,6 +133,34 @@ const paymentFormMap: DumbComponentMap<PaymentForm> = {
   },
 }
 
+const accountBase = {
+  email: 'party@mypla.ce',
+  isVerified: true,
+  onChangeEmail: () => console.log('onChangeEmail'),
+  onChangePassphrase: () => console.log('onChangePassphrase'),
+}
+
+const planInfoBasic = {
+  planLevel: 'Basic',
+  planId: 'Basic',
+  gigabytes: 10,
+  price_pennies: 0,
+}
+
+const planInfoGold = {
+  planLevel: 'Gold',
+  planId: 'Gold',
+  gigabytes: 50,
+  price_pennies: 700,
+}
+
+const planInfoFriend = {
+  planLevel: 'Friend',
+  planId: 'Friend',
+  gigabytes: 250,
+  price_pennies: 900,
+}
+
 const planBase = {
   onUpgrade: l => console.log('onUpgrade to', l),
   onDowngrade: l => console.log('onDowngrade to', l),
@@ -140,16 +173,14 @@ const planBase = {
   paymentInfo: null,
 }
 
-const accountBase = {
-  email: 'party@mypla.ce',
-  isVerified: true,
-  onChangeEmail: () => console.log('onChangeEmail'),
-  onChangePassphrase: () => console.log('onChangePassphrase'),
-}
-
 const landingBase = {
   plan: planBase,
   account: accountBase,
+  plans: [
+    planInfoBasic,
+    planInfoGold,
+    planInfoFriend,
+  ],
 }
 
 const goldBase = {
@@ -358,14 +389,26 @@ const planDetailsMap: DumbComponentMap<PlanDetails> = {
     'Credit Card No Past': {
       plan: 'Basic',
       paymentOption: creditCardNoPast,
+      gigabytes: 10,
+      numStars: 1,
+      price: 'Free',
+      onBack: () => {},
     },
     'Credit Card With Past': {
       plan: 'Gold',
       paymentOption: creditCardWithPast,
+      gigabytes: 50,
+      numStars: 3,
+      price: '$7/month',
+      onBack: () => {},
     },
     'Apple Pay': {
       plan: 'Friend',
       paymentOption: applePay,
+      gigabytes: 250,
+      numStars: 5,
+      price: '$9/month',
+      onBack: () => {},
     },
   },
 }

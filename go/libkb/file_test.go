@@ -15,7 +15,7 @@ func TestFileSave(t *testing.T) {
 
 	file := NewFile(filename, []byte("test data"), 0644)
 	t.Logf("Saving")
-	err := file.Save()
+	err := file.Save(G.Log)
 	if err != nil {
 		t.Fatal(err)
 	}

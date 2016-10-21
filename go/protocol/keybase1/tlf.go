@@ -16,7 +16,7 @@ type PublicCanonicalTLFNameAndIDArg struct {
 	Query TLFQuery `codec:"query" json:"query"`
 }
 
-type CompleteAndCanonicalizeTlfNameArg struct {
+type CompleteAndCanonicalizePrivateTlfNameArg struct {
 	Query TLFQuery `codec:"query" json:"query"`
 }
 
@@ -26,7 +26,7 @@ type TlfInterface interface {
 	// * tlfCanonicalID returns the canonical name and TLFID for tlfName.
 	// * TLFID should not be cached or stored persistently.
 	PublicCanonicalTLFNameAndID(context.Context, TLFQuery) (CanonicalTLFNameAndIDWithBreaks, error)
-	CompleteAndCanonicalizeTlfName(context.Context, TLFQuery) (CanonicalTLFNameAndIDWithBreaks, error)
+	CompleteAndCanonicalizePrivateTlfName(context.Context, TLFQuery) (CanonicalTLFNameAndIDWithBreaks, error)
 }
 
 func TlfProtocol(i TlfInterface) rpc.Protocol {
@@ -65,18 +65,18 @@ func TlfProtocol(i TlfInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"completeAndCanonicalizeTlfName": {
+			"completeAndCanonicalizePrivateTlfName": {
 				MakeArg: func() interface{} {
-					ret := make([]CompleteAndCanonicalizeTlfNameArg, 1)
+					ret := make([]CompleteAndCanonicalizePrivateTlfNameArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]CompleteAndCanonicalizeTlfNameArg)
+					typedArgs, ok := args.(*[]CompleteAndCanonicalizePrivateTlfNameArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]CompleteAndCanonicalizeTlfNameArg)(nil), args)
+						err = rpc.NewTypeError((*[]CompleteAndCanonicalizePrivateTlfNameArg)(nil), args)
 						return
 					}
-					ret, err = i.CompleteAndCanonicalizeTlfName(ctx, (*typedArgs)[0].Query)
+					ret, err = i.CompleteAndCanonicalizePrivateTlfName(ctx, (*typedArgs)[0].Query)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -104,8 +104,8 @@ func (c TlfClient) PublicCanonicalTLFNameAndID(ctx context.Context, query TLFQue
 	return
 }
 
-func (c TlfClient) CompleteAndCanonicalizeTlfName(ctx context.Context, query TLFQuery) (res CanonicalTLFNameAndIDWithBreaks, err error) {
-	__arg := CompleteAndCanonicalizeTlfNameArg{Query: query}
-	err = c.Cli.Call(ctx, "keybase.1.tlf.completeAndCanonicalizeTlfName", []interface{}{__arg}, &res)
+func (c TlfClient) CompleteAndCanonicalizePrivateTlfName(ctx context.Context, query TLFQuery) (res CanonicalTLFNameAndIDWithBreaks, err error) {
+	__arg := CompleteAndCanonicalizePrivateTlfNameArg{Query: query}
+	err = c.Cli.Call(ctx, "keybase.1.tlf.completeAndCanonicalizePrivateTlfName", []interface{}{__arg}, &res)
 	return
 }
