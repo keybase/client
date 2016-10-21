@@ -548,10 +548,24 @@ func (j *tlfJournal) resumeBackgroundWork() {
 	}
 }
 
+func (j *tlfJournal) checkEnabledLocked() error {
+	if j.blockJournal == nil || j.mdJournal == nil {
+		return errTLFJournalShutdown
+	}
+	if j.disabled {
+		return errTLFJournalDisabled
+	}
+	return nil
+}
+
 func (j *tlfJournal) getJournalEnds(ctx context.Context) (
 	blockEnd journalOrdinal, mdEnd MetadataRevision, err error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return 0, MetadataRevisionUninitialized, err
+	}
+
 	blockEnd, err = j.blockJournal.end()
 	if err != nil {
 		return 0, 0, err
@@ -636,16 +650,6 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 var errTLFJournalShutdown = errors.New("tlfJournal is shutdown")
 var errTLFJournalDisabled = errors.New("tlfJournal is disabled")
 var errTLFJournalNotEmpty = errors.New("tlfJournal is not empty")
-
-func (j *tlfJournal) checkEnabledLocked() error {
-	if j.blockJournal == nil || j.mdJournal == nil {
-		return errTLFJournalShutdown
-	}
-	if j.disabled {
-		return errTLFJournalDisabled
-	}
-	return nil
-}
 
 func (j *tlfJournal) getNextBlockEntriesToFlush(
 	ctx context.Context, end journalOrdinal) (
@@ -1046,6 +1050,10 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 func (j *tlfJournal) getUnflushedBytes() int64 {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return 0
+	}
+
 	return j.blockJournal.unflushedBytes
 }
 
