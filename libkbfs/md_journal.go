@@ -1171,3 +1171,104 @@ func (j *mdJournal) clear(
 	}
 	return nil
 }
+
+func (j *mdJournal) resolveAndClear(
+	ctx context.Context, signer cryptoSigner, ekg encryptionKeyGetter,
+	bsplit BlockSplitter, bid BranchID, rmd *RootMetadata,
+	extra ExtraMetadata) (mdID MdID, err error) {
+	j.log.CDebugf(ctx, "Resolve and clear, branch %s, resolve rev %d",
+		bid, rmd.Revision())
+	defer func() {
+		if err != nil {
+			j.deferLog.CDebugf(ctx,
+				"Resolving journal for branch %s failed with %v",
+				bid, err)
+		}
+	}()
+
+	// The resolution must not have a branch ID.
+	if rmd.BID() != NullBranchID {
+		return MdID{}, fmt.Errorf("Resolution MD has branch ID: %s", rmd.BID())
+	}
+
+	// The branch ID must match our current state.
+	if bid == NullBranchID {
+		return MdID{}, errors.New("Cannot resolve master branch")
+	}
+	if j.branchID != bid {
+		return MdID{}, fmt.Errorf("Resolve and clear for branch %s "+
+			"while on branch %s", bid, j.branchID)
+	}
+
+	// First make a new journal to hold the block.
+	otherJournal, err := makeMDJournal(j.uid, j.key, j.codec, j.crypto,
+		j.clock, j.tlfID, j.mdVer, j.dir, j.log)
+	if err != nil {
+		return MdID{}, err
+	}
+
+	// Give this new journal a new ID journal.
+	idJournalTempDir, err := ioutil.TempDir(j.dir, "md_journal")
+	if err != nil {
+		return MdID{}, err
+	}
+	j.log.CDebugf(ctx, "Using temp dir %s for new IDs", idJournalTempDir)
+	otherJournal.j = makeMdIDJournal(j.codec, idJournalTempDir)
+	defer func() {
+		j.log.CDebugf(ctx, "Removing temp dir %s", idJournalTempDir)
+		removeErr := os.RemoveAll(idJournalTempDir)
+		if removeErr != nil {
+			j.log.CWarningf(ctx,
+				"Error when removing temp dir %s: %v",
+				idJournalTempDir, removeErr)
+		}
+	}()
+
+	otherJournal.branchID = NullBranchID
+	mdID, err = otherJournal.put(ctx, signer, ekg, bsplit, rmd, extra)
+	if err != nil {
+		return MdID{}, err
+	}
+
+	// Transform this journal into the new one.
+	oldIDJournal := j.j
+
+	// TODO: Do the below atomically on the filesystem
+	// level. Specifically, make "md_journal" always be a symlink,
+	// and then perform the swap by atomically changing the
+	// symlink to point to the new journal directory.
+
+	oldIDJournalTempDir := idJournalTempDir + ".old"
+	dir, err := oldIDJournal.move(oldIDJournalTempDir)
+	if err != nil {
+		return MdID{}, err
+	}
+
+	j.log.CDebugf(ctx, "Moved old journal from %s to %s",
+		dir, oldIDJournalTempDir)
+
+	otherIDJournalOldDir, err := otherJournal.j.move(dir)
+	if err != nil {
+		return MdID{}, err
+	}
+
+	// Set new journal to one with the new revision.
+	j.log.CDebugf(ctx, "Moved new journal from %s to %s",
+		otherIDJournalOldDir, dir)
+	j.j = otherJournal.j
+
+	// Transform the other journal into the old journal, so we can
+	// clear it out.
+	otherJournal.j = oldIDJournal
+	otherJournal.branchID = j.branchID
+	err = otherJournal.clear(ctx, bid)
+	if err != nil {
+		return MdID{}, err
+	}
+	j.branchID = NullBranchID
+
+	// Make the defer above remove the old temp dir.
+	idJournalTempDir = oldIDJournalTempDir
+
+	return mdID, nil
+}

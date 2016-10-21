@@ -522,6 +522,36 @@ func TestMDJournalBranchConversion(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestMDJournalResolveAndClear(t *testing.T) {
+	_, _, id, signer, ekg, bsplit, tempdir, j :=
+		setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	firstRevision := MetadataRevision(10)
+	firstPrevRoot := fakeMdID(1)
+	mdCount := 10
+	putMDRange(t, id, signer, ekg, bsplit,
+		firstRevision, firstPrevRoot, mdCount, j)
+
+	ctx := context.Background()
+
+	bid, err := j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(), id,
+		NewMDCacheStandard(10))
+	require.NoError(t, err)
+
+	resolveRev := firstRevision
+	md := makeMDForTest(t, id, resolveRev, j.uid, firstPrevRoot)
+	_, err = j.resolveAndClear(ctx, signer, ekg, bsplit, bid, md, nil)
+	require.NoError(t, err)
+
+	require.Equal(t, 1, getMDJournalLength(t, j))
+	head, err := j.getHead()
+	require.NoError(t, err)
+	require.Equal(t, md.Revision(), head.RevisionNumber())
+
+	flushAllMDs(t, ctx, signer, j)
+}
+
 type limitedCryptoSigner struct {
 	cryptoSigner
 	remaining int
