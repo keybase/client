@@ -581,7 +581,7 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) 
 		return nil, nil
 	}
 	mdserv := md.config.MDServer()
-	wkb, rkb, err := mdserv.GetKeyBundles(ctx, wkbID, rkbID)
+	wkb, rkb, err := mdserv.GetKeyBundles(ctx, brmd.TlfID(), wkbID, rkbID)
 	if err != nil {
 		return nil, err
 	}

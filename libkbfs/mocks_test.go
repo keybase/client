@@ -2864,16 +2864,16 @@ func (_mr *_MockMDServerRecorder) OffsetFromServerTime() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "OffsetFromServerTime")
 }
 
-func (_m *MockMDServer) GetKeyBundles(ctx context.Context, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
-	ret := _m.ctrl.Call(_m, "GetKeyBundles", ctx, wkbID, rkbID)
+func (_m *MockMDServer) GetKeyBundles(ctx context.Context, tlfID TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	ret := _m.ctrl.Call(_m, "GetKeyBundles", ctx, tlfID, wkbID, rkbID)
 	ret0, _ := ret[0].(*TLFWriterKeyBundleV3)
 	ret1, _ := ret[1].(*TLFReaderKeyBundleV3)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockMDServerRecorder) GetKeyBundles(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetKeyBundles", arg0, arg1, arg2)
+func (_mr *_MockMDServerRecorder) GetKeyBundles(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetKeyBundles", arg0, arg1, arg2, arg3)
 }
 
 // Mock of mdServerLocal interface
@@ -3050,16 +3050,16 @@ func (_mr *_MockmdServerLocalRecorder) OffsetFromServerTime() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "OffsetFromServerTime")
 }
 
-func (_m *MockmdServerLocal) GetKeyBundles(ctx context.Context, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
-	ret := _m.ctrl.Call(_m, "GetKeyBundles", ctx, wkbID, rkbID)
+func (_m *MockmdServerLocal) GetKeyBundles(ctx context.Context, tlfID TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	ret := _m.ctrl.Call(_m, "GetKeyBundles", ctx, tlfID, wkbID, rkbID)
 	ret0, _ := ret[0].(*TLFWriterKeyBundleV3)
 	ret1, _ := ret[1].(*TLFReaderKeyBundleV3)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockmdServerLocalRecorder) GetKeyBundles(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetKeyBundles", arg0, arg1, arg2)
+func (_mr *_MockmdServerLocalRecorder) GetKeyBundles(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetKeyBundles", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockmdServerLocal) addNewAssertionForTest(uid keybase1.UID, newAssertion keybase1.SocialAssertion) error {

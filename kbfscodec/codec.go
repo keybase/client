@@ -6,6 +6,9 @@ package kbfscodec
 
 import (
 	"bytes"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
 )
 
@@ -59,15 +62,53 @@ func Equal(c Codec, x, y interface{}) (bool, error) {
 	return bytes.Equal(xBuf, yBuf), nil
 }
 
-// Update encodes src into a byte string, and then decode it into dst.
-func Update(c Codec, dst interface{}, src interface{}) error {
+// Update encodes src into a byte string, and then decode it into the
+// object pointed to by dstPtr.
+func Update(c Codec, dstPtr interface{}, src interface{}) error {
 	buf, err := c.Encode(src)
 	if err != nil {
 		return err
 	}
-	err = c.Decode(buf, dst)
+	err = c.Decode(buf, dstPtr)
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+// SerializeToFile serializes the given object and writes it to the
+// given file, making its parent directory first if necessary.
+func SerializeToFile(c Codec, obj interface{}, path string) error {
+	err := os.MkdirAll(filepath.Dir(path), 0700)
+	if err != nil {
+		return err
+	}
+
+	buf, err := c.Encode(obj)
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(path, buf, 0600)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeserializeFromFile deserializes the given file into the object
+// pointed to by objPtr.
+func DeserializeFromFile(c Codec, path string, objPtr interface{}) error {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	err = c.Decode(data, objPtr)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

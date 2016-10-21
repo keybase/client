@@ -27,11 +27,13 @@ import (
 // tlfJournal (for ease of testing).
 type tlfJournalConfig interface {
 	BlockSplitter() BlockSplitter
+	Clock() Clock
 	Codec() kbfscodec.Codec
 	Crypto() Crypto
 	BlockCache() BlockCache
 	BlockOps() BlockOps
 	MDCache() MDCache
+	MetadataVersion() MetadataVer
 	Reporter() Reporter
 	encryptionKeyGetter() encryptionKeyGetter
 	mdDecryptionKeyGetter() mdDecryptionKeyGetter
@@ -195,6 +197,8 @@ func getTLFJournalInfoFilePath(dir string) string {
 	return filepath.Join(dir, "info.json")
 }
 
+// tlfJournalInfo is the structure stored in
+// getTLFJournalInfoFilePath(dir).
 type tlfJournalInfo struct {
 	UID          keybase1.UID
 	VerifyingKey kbfscrypto.VerifyingKey
@@ -290,7 +294,8 @@ func makeTLFJournal(
 	}
 
 	mdJournal, err := makeMDJournal(
-		uid, key, config.Codec(), config.Crypto(), dir, log)
+		uid, key, config.Codec(), config.Crypto(), config.Clock(),
+		tlfID, config.MetadataVersion(), dir, log)
 	if err != nil {
 		return nil, err
 	}
@@ -1291,7 +1296,8 @@ func (j *tlfJournal) getMDRange(
 }
 
 func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
-	irmd ImmutableRootMetadata, perRevMap unflushedPathsPerRevMap) (
+	extra ExtraMetadata, irmd ImmutableRootMetadata,
+	perRevMap unflushedPathsPerRevMap) (
 	mdID MdID, retryPut bool, err error) {
 	// Now take the lock and put the MD, merging in the unflushed
 	// paths while under the lock.
@@ -1308,7 +1314,8 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	// Tricky when the append is only queued.
 
 	mdID, err = j.mdJournal.put(ctx, j.config.Crypto(),
-		j.config.encryptionKeyGetter(), j.config.BlockSplitter(), rmd)
+		j.config.encryptionKeyGetter(), j.config.BlockSplitter(),
+		rmd, extra)
 	if err != nil {
 		return MdID{}, false, err
 	}
@@ -1323,7 +1330,8 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	return mdID, false, nil
 }
 
-func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata) (
+func (j *tlfJournal) putMD(
+	ctx context.Context, rmd *RootMetadata, extra ExtraMetadata) (
 	MdID, error) {
 	// Prepare the paths without holding the lock, as it might need to
 	// take the lock.  Note that the md ID and timestamp don't matter
@@ -1338,7 +1346,7 @@ func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata) (
 		return MdID{}, err
 	}
 
-	mdID, retry, err := j.doPutMD(ctx, rmd, irmd, perRevMap)
+	mdID, retry, err := j.doPutMD(ctx, rmd, extra, irmd, perRevMap)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -1352,7 +1360,7 @@ func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata) (
 			return MdID{}, err
 		}
 
-		mdID, retry, err = j.doPutMD(ctx, rmd, irmd, perRevMap)
+		mdID, retry, err = j.doPutMD(ctx, rmd, extra, irmd, perRevMap)
 		if err != nil {
 			return MdID{}, err
 		}

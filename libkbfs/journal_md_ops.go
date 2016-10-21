@@ -300,7 +300,7 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		// Just route to the journal.
-		mdID, err := tlfJournal.putMD(ctx, rmd)
+		mdID, err := tlfJournal.putMD(ctx, rmd, rmd.extra)
 		if err != errTLFJournalDisabled {
 			return mdID, err
 		}
@@ -313,7 +313,7 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		rmd.SetUnmerged()
-		mdID, err := tlfJournal.putMD(ctx, rmd)
+		mdID, err := tlfJournal.putMD(ctx, rmd, rmd.extra)
 		if err != errTLFJournalDisabled {
 			return mdID, err
 		}

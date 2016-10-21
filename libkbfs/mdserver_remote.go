@@ -837,7 +837,7 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 
 // GetKeyBundles implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetKeyBundles(_ context.Context,
-	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
+	tlfID TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
 	// MDv3 TODO: implement this
 	return nil, nil, nil

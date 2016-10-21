@@ -136,7 +136,7 @@ func (md *MDServerDisk) getStorage(tlfID TlfID) (*mdServerTlfStorage, error) {
 	path := filepath.Join(md.dirPath, tlfID.String())
 	storage = makeMDServerTlfStorage(
 		md.config.Codec(), md.config.cryptoPure(),
-		md.config.Clock(), path)
+		md.config.Clock(), tlfID, md.config.MetadataVersion(), path)
 
 	md.tlfStorage[tlfID] = storage
 	return storage, nil
@@ -625,11 +625,19 @@ func (md *MDServerDisk) OffsetFromServerTime() (time.Duration, bool) {
 
 // GetKeyBundles implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetKeyBundles(_ context.Context,
-	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
+	tlfID TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
-	// MDv3 TODO: implement this
-	if (wkbID != TLFWriterKeyBundleID{}) || (rkbID != TLFReaderKeyBundleID{}) {
-		panic("Bundle IDs are unexpectedly set")
+	md.lock.RLock()
+	defer md.lock.RUnlock()
+
+	if md.handleDb == nil {
+		return nil, nil, errMDServerDiskShutdown
 	}
-	return nil, nil, nil
+
+	tlfStorage, err := md.getStorage(tlfID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return tlfStorage.getKeyBundles(wkbID, rkbID)
 }

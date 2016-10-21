@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -63,8 +64,16 @@ func MakeImmutableBareRootMetadata(
 // dir/md_journal/0...002
 // dir/md_journal/0...fff
 // dir/mds/0100/0...01/data
+// dir/mds/0100/0...01/info.json
 // ...
 // dir/mds/01ff/f...ff/data
+// dir/mds/01ff/f...ff/info.json
+// dir/wkbv3/0100...01
+// ...
+// dir/wkbv3/0100...ff
+// dir/rkbv3/0100...01
+// ...
+// dir/rkbv3/0100...ff
 //
 // There's a single journal subdirectory; the journal ordinals are
 // just MetadataRevisions, and the journal entries are just MdIDs.
@@ -77,15 +86,22 @@ func MakeImmutableBareRootMetadata(
 // using the first four characters of the name to keep the number of
 // directories in dir itself to a manageable number, similar to git.
 // Each block directory has data, which is the raw MD data that should
-// hash to the MD ID. Future versions of the journal might add more
-// files to this directory; if any code is written to move MDs around,
-// it should be careful to preserve any unknown files in an MD
-// directory.
+// hash to the MD ID, and info.json, which contains the version and
+// timestamp info for that MD. Future versions of the journal might
+// add more files to this directory; if any code is written to move
+// MDs around, it should be careful to preserve any unknown files in
+// an MD directory.
+//
+// Writer (reader) key bundles for V3 metadata objects are stored
+// separately in dir/wkbv3 (dir/rkbv3). The number of bundles is
+// small, so no need to splay them.
+//
+// TODO: Garbage-collect unreferenced key bundles.
 //
 // The maximum number of characters added to the root dir by an MD
-// journal is 45:
+// journal is 50:
 //
-//   /mds/01ff/f...(30 characters total)...ff/data
+//   /mds/01ff/f...(30 characters total)...ff/info.json
 //
 // This covers even the temporary files created in convertToBranch,
 // which create paths like
@@ -105,6 +121,9 @@ type mdJournal struct {
 
 	codec  kbfscodec.Codec
 	crypto cryptoPure
+	clock  Clock
+	tlfID  TlfID
+	mdVer  MetadataVer
 	dir    string
 
 	log      logger.Logger
@@ -125,7 +144,9 @@ type mdJournal struct {
 
 func makeMDJournal(
 	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	crypto cryptoPure, dir string, log logger.Logger) (*mdJournal, error) {
+	crypto cryptoPure, clock Clock, tlfID TlfID,
+	mdVer MetadataVer, dir string,
+	log logger.Logger) (*mdJournal, error) {
 	if uid == keybase1.UID("") {
 		return nil, errors.New("Empty user")
 	}
@@ -141,6 +162,9 @@ func makeMDJournal(
 		key:      key,
 		codec:    codec,
 		crypto:   crypto,
+		clock:    clock,
+		tlfID:    tlfID,
+		mdVer:    mdVer,
 		dir:      dir,
 		log:      log,
 		deferLog: deferLog,
@@ -182,20 +206,73 @@ func (j mdJournal) mdsPath() string {
 	return filepath.Join(j.dir, "mds")
 }
 
+// The final components of the paths below are truncated to 34
+// characters, which corresponds to 16 random bytes (since the first
+// byte is a hash type) or 128 random bits, which means that the
+// expected number of MDs generated before getting a path collision is
+// 2^64 (see
+// https://en.wikipedia.org/wiki/Birthday_problem#Cast_as_a_collision_problem
+// ). The full ID can be recovered just by hashing the data again with
+// the same hash type.
+
+func (j mdJournal) writerKeyBundleV3Path(id TLFWriterKeyBundleID) string {
+	idStr := id.String()
+	return filepath.Join(j.dir, "wkbv3", idStr[:34])
+}
+
+func (j mdJournal) readerKeyBundleV3Path(id TLFReaderKeyBundleID) string {
+	idStr := id.String()
+	return filepath.Join(j.dir, "rkbv3", idStr[:34])
+}
+
 func (j mdJournal) mdPath(id MdID) string {
-	// Truncate to 34 characters, which corresponds to 16 random
-	// bytes (since the first byte is a hash type) or 128 random
-	// bits, which means that the expected number of MDs generated
-	// before getting a path collision is 2^64 (see
-	// https://en.wikipedia.org/wiki/Birthday_problem#Cast_as_a_collision_problem
-	// ). The full ID can be recovered just by hashing the data
-	// again with the same hash type.
 	idStr := id.String()
 	return filepath.Join(j.mdsPath(), idStr[:4], idStr[4:34])
 }
 
 func (j mdJournal) mdDataPath(id MdID) string {
 	return filepath.Join(j.mdPath(id), "data")
+}
+
+func (j mdJournal) mdInfoPath(id MdID) string {
+	return filepath.Join(j.mdPath(id), "info.json")
+}
+
+// mdInfo is the structure stored in mdInfoPath(id).
+//
+// TODO: Handle unknown fields? We'd have to build a handler for this,
+// since the Go JSON library doesn't support it natively.
+type mdInfo struct {
+	Timestamp time.Time
+	Version   MetadataVer
+}
+
+func (j mdJournal) getMDInfo(id MdID) (time.Time, MetadataVer, error) {
+	infoJSON, err := ioutil.ReadFile(j.mdInfoPath(id))
+	if err != nil {
+		return time.Time{}, MetadataVer(-1), err
+	}
+
+	var info mdInfo
+	err = json.Unmarshal(infoJSON, &info)
+	if err != nil {
+		return time.Time{}, MetadataVer(-1), err
+	}
+
+	return info.Timestamp, info.Version, nil
+}
+
+// putMDInfo assumes that the parent directory of j.mdInfoPath(id)
+// (which is j.mdPath(id)) has already been created.
+func (j mdJournal) putMDInfo(
+	id MdID, timestamp time.Time, version MetadataVer) error {
+	info := mdInfo{timestamp, version}
+	infoJSON, err := json.Marshal(info)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(j.mdInfoPath(id), infoJSON, 0600)
 }
 
 // getMD verifies the MD data and the writer signature (but not the
@@ -205,6 +282,13 @@ func (j mdJournal) mdDataPath(id MdID) string {
 // set j.branchID in the first place.
 func (j mdJournal) getMD(id MdID, verifyBranchID bool) (
 	BareRootMetadata, time.Time, error) {
+	// Read info.
+
+	timestamp, version, err := j.getMDInfo(id)
+	if err != nil {
+		return nil, time.Time{}, err
+	}
+
 	// Read data.
 
 	data, err := ioutil.ReadFile(j.mdDataPath(id))
@@ -212,18 +296,15 @@ func (j mdJournal) getMD(id MdID, verifyBranchID bool) (
 		return nil, time.Time{}, err
 	}
 
-	// TODO: Read version info.
-	// MDv3 TODO: the file needs to encode the version
-	var rmd BareRootMetadataV2
-	err = j.codec.Decode(data, &rmd)
+	rmd, err := DecodeRootMetadata(
+		j.codec, j.tlfID, version, j.mdVer, data)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
 
 	// Check integrity.
 
-	// TODO: MakeMdID serializes rmd -- use data instead.
-	mdID, err := j.crypto.MakeMdID(&rmd)
+	mdID, err := j.crypto.MakeMdID(rmd)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
@@ -238,8 +319,13 @@ func (j mdJournal) getMD(id MdID, verifyBranchID bool) (
 		return nil, time.Time{}, err
 	}
 
-	// MDv3 TODO: pass key bundles when needed
-	err = rmd.IsValidAndSigned(j.codec, j.crypto, nil)
+	extra, err := j.getExtraMetadata(
+		rmd.GetTLFWriterKeyBundleID(), rmd.GetTLFReaderKeyBundleID())
+	if err != nil {
+		return nil, time.Time{}, err
+	}
+
+	err = rmd.IsValidAndSigned(j.codec, j.crypto, extra)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
@@ -250,24 +336,13 @@ func (j mdJournal) getMD(id MdID, verifyBranchID bool) (
 			j.branchID, rmd.BID())
 	}
 
-	fi, err := os.Stat(j.mdPath(id))
-	if err != nil {
-		return nil, time.Time{}, err
-	}
-
-	return &rmd, fi.ModTime(), nil
+	return rmd, timestamp, nil
 }
 
 // putMD stores the given metadata under its ID, if it's not already
 // stored.
 func (j mdJournal) putMD(rmd BareRootMetadata) (MdID, error) {
-	// MDv3 TODO: pass key bundles when needed
-	err := rmd.IsValidAndSigned(j.codec, j.crypto, nil)
-	if err != nil {
-		return MdID{}, err
-	}
-
-	err = rmd.IsLastModifiedBy(j.uid, j.key)
+	err := rmd.IsLastModifiedBy(j.uid, j.key)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -297,15 +372,15 @@ func (j mdJournal) putMD(rmd BareRootMetadata) (MdID, error) {
 		return MdID{}, err
 	}
 
-	// TODO: Write version info.
-
 	err = ioutil.WriteFile(j.mdDataPath(id), buf, 0600)
 	if err != nil {
 		return MdID{}, err
 	}
 
-	// TODO: Consider consulting a Clock object and using it to
-	// set the ModTime.
+	err = j.putMDInfo(id, j.clock.Now(), rmd.Version())
+	if err != nil {
+		return MdID{}, err
+	}
 
 	return id, nil
 }
@@ -369,7 +444,7 @@ func (j mdJournal) checkGetParams() (
 	}
 
 	if head != (ImmutableBareRootMetadata{}) {
-		extra, err := j.getExtraMD(
+		extra, err := j.getExtraMetadata(
 			head.GetTLFWriterKeyBundleID(),
 			head.GetTLFReaderKeyBundleID())
 		if err != nil {
@@ -662,6 +737,78 @@ func getMdID(ctx context.Context, mdserver MDServer, crypto cryptoPure,
 	return crypto.MakeMdID(rmdses[0].MD)
 }
 
+func (j mdJournal) getExtraMetadata(
+	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
+	ExtraMetadata, error) {
+	if wkbID == (TLFWriterKeyBundleID{}) ||
+		rkbID == (TLFReaderKeyBundleID{}) {
+		return nil, nil
+	}
+
+	var wkb TLFWriterKeyBundleV3
+	err := kbfscodec.DeserializeFromFile(
+		j.codec, j.writerKeyBundleV3Path(wkbID), &wkb)
+	if err != nil {
+		return nil, err
+	}
+
+	var rkb TLFReaderKeyBundleV3
+	err = kbfscodec.DeserializeFromFile(
+		j.codec, j.readerKeyBundleV3Path(rkbID), &rkb)
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkKeyBundlesV3(j.crypto, wkbID, rkbID, &wkb, &rkb)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ExtraMetadataV3{wkb: &wkb, rkb: &rkb}, nil
+}
+
+func (j mdJournal) putExtraMetadata(
+	rmd BareRootMetadata, extra ExtraMetadata) error {
+	if extra == nil {
+		return nil
+	}
+
+	wkbID := rmd.GetTLFWriterKeyBundleID()
+	if wkbID == (TLFWriterKeyBundleID{}) {
+		panic("writer key bundle ID is empty")
+	}
+
+	rkbID := rmd.GetTLFReaderKeyBundleID()
+	if rkbID == (TLFReaderKeyBundleID{}) {
+		panic("reader key bundle ID is empty")
+	}
+
+	extraV3, ok := extra.(*ExtraMetadataV3)
+	if !ok {
+		return errors.New("Invalid extra metadata")
+	}
+
+	err := checkKeyBundlesV3(
+		j.crypto, wkbID, rkbID, extraV3.wkb, extraV3.rkb)
+	if err != nil {
+		return err
+	}
+
+	err = kbfscodec.SerializeToFile(
+		j.codec, extraV3.wkb, j.writerKeyBundleV3Path(wkbID))
+	if err != nil {
+		return err
+	}
+
+	err = kbfscodec.SerializeToFile(
+		j.codec, extraV3.rkb, j.readerKeyBundleV3Path(rkbID))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // All functions below are public functions.
 
 func (j mdJournal) readEarliestRevision() (MetadataRevision, error) {
@@ -768,7 +915,8 @@ func (e MDJournalConflictError) Error() string {
 // rmd becomes the initial entry.
 func (j *mdJournal) put(
 	ctx context.Context, signer cryptoSigner,
-	ekg encryptionKeyGetter, bsplit BlockSplitter, rmd *RootMetadata) (
+	ekg encryptionKeyGetter, bsplit BlockSplitter, rmd *RootMetadata,
+	extra ExtraMetadata) (
 	mdID MdID, err error) {
 	j.log.CDebugf(ctx, "Putting MD for TLF=%s with rev=%s bid=%s",
 		rmd.TlfID(), rmd.Revision(), rmd.BID())
@@ -779,6 +927,21 @@ func (j *mdJournal) put(
 				rmd.TlfID(), rmd.Revision(), rmd.BID(), err)
 		}
 	}()
+
+	if extra == nil {
+		// TODO: This could fail if the key bundle isn't part
+		// of the journal. Always mandate that the extra field
+		// be plumbed through with a RootMetadata, and keep
+		// around a flag as to whether it should be sent up to
+		// the remote MDServer.
+		var err error
+		extra, err = j.getExtraMetadata(
+			rmd.bareMd.GetTLFWriterKeyBundleID(),
+			rmd.bareMd.GetTLFReaderKeyBundleID())
+		if err != nil {
+			return MdID{}, err
+		}
+	}
 
 	head, err := j.getLatest(true)
 	if err != nil {
@@ -853,13 +1016,13 @@ func (j *mdJournal) put(
 
 	// Check permissions and consistency with head, if it exists.
 	if head != (ImmutableBareRootMetadata{}) {
-		prevExtra, err := j.getExtraMD(
+		prevExtra, err := j.getExtraMetadata(
 			head.GetTLFWriterKeyBundleID(),
 			head.GetTLFReaderKeyBundleID())
 		ok, err := isWriterOrValidRekey(
 			j.codec, j.uid,
 			head.BareRootMetadata, rmd.bareMd,
-			prevExtra, rmd.extra)
+			prevExtra, extra)
 		if err != nil {
 			return MdID{}, err
 		}
@@ -891,7 +1054,17 @@ func (j *mdJournal) put(
 		return MdID{}, err
 	}
 
+	err = brmd.IsValidAndSigned(j.codec, j.crypto, extra)
+	if err != nil {
+		return MdID{}, err
+	}
+
 	id, err := j.putMD(brmd)
+	if err != nil {
+		return MdID{}, err
+	}
+
+	err = j.putExtraMetadata(brmd, extra)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -997,13 +1170,4 @@ func (j *mdJournal) clear(
 		}
 	}
 	return nil
-}
-
-func (j mdJournal) getExtraMD(wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
-	ExtraMetadata, error) {
-	// MDv3 TODO: implement this
-	if (wkbID != TLFWriterKeyBundleID{}) || (rkbID != TLFReaderKeyBundleID{}) {
-		panic("Bundle IDs are unexpectedly set")
-	}
-	return nil, nil
 }

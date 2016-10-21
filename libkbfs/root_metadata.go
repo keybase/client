@@ -916,7 +916,36 @@ func (rmds *RootMetadataSigned) IsLastModifiedBy(
 	return nil
 }
 
-// DecodeRootMetadataSigned deserializes a metaddata block into the specified versioned structure.
+// DecodeRootMetadata deserializes a metadata block into the specified
+// versioned structure.
+func DecodeRootMetadata(
+	codec kbfscodec.Codec, tlf TlfID, ver, max MetadataVer, buf []byte) (
+	BareRootMetadata, error) {
+	if ver < FirstValidMetadataVer {
+		return nil, InvalidMetadataVersionError{tlf, ver}
+	} else if ver > max {
+		return nil, NewMetadataVersionError{tlf, ver}
+	}
+	if ver > SegregatedKeyBundlesVer {
+		// Shouldn't be possible at the moment.
+		panic("Invalid metadata version")
+	}
+	if ver < SegregatedKeyBundlesVer {
+		var brmd BareRootMetadataV2
+		if err := codec.Decode(buf, &brmd); err != nil {
+			return nil, err
+		}
+		return &brmd, nil
+	}
+	var brmd BareRootMetadataV3
+	if err := codec.Decode(buf, &brmd); err != nil {
+		return nil, err
+	}
+	return &brmd, nil
+}
+
+// DecodeRootMetadataSigned deserializes a metadata block into the
+// specified versioned structure.
 func DecodeRootMetadataSigned(
 	codec kbfscodec.Codec, tlf TlfID, ver, max MetadataVer, buf []byte) (
 	*RootMetadataSigned, error) {

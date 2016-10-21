@@ -37,13 +37,14 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	s := makeMDServerTlfStorage(codec, crypto, wallClock{}, tempdir)
+	tlfID := FakeTlfID(1, false)
+	s := makeMDServerTlfStorage(codec, crypto, wallClock{}, tlfID,
+		SegregatedKeyBundlesVer, tempdir)
 	defer s.shutdown()
 
 	require.Equal(t, 0, getMDStorageLength(t, s, NullBranchID))
 
 	uid := keybase1.MakeTestUID(1)
-	id := FakeTlfID(1, false)
 	h, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
@@ -60,7 +61,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	prevRoot := MdID{}
 	middleRoot := MdID{}
 	for i := MetadataRevision(1); i <= 10; i++ {
-		rmds := makeRMDSForTest(t, crypto, id, h, i, uid, prevRoot)
+		rmds := makeRMDSForTest(t, crypto, tlfID, h, i, uid, prevRoot)
 		signRMDSForTest(t, codec, signer, rmds)
 		// MDv3 TODO: pass extra metadata
 		recordBranchID, err := s.put(uid, verifyingKey, rmds, nil)
@@ -77,7 +78,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (3) Trigger a conflict.
 
-	rmds := makeRMDSForTest(t, crypto, id, h, 10, uid, prevRoot)
+	rmds := makeRMDSForTest(t, crypto, tlfID, h, 10, uid, prevRoot)
 	signRMDSForTest(t, codec, signer, rmds)
 	// MDv3 TODO: pass extra metadata
 	_, err = s.put(uid, verifyingKey, rmds, nil)
@@ -91,7 +92,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	prevRoot = middleRoot
 	bid := FakeBranchID(1)
 	for i := MetadataRevision(6); i < 41; i++ {
-		rmds := makeRMDSForTest(t, crypto, id, h, i, uid, prevRoot)
+		rmds := makeRMDSForTest(t, crypto, tlfID, h, i, uid, prevRoot)
 		rmds.MD.SetUnmerged()
 		rmds.MD.SetBranchID(bid)
 		signRMDSForTest(t, codec, signer, rmds)

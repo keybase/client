@@ -225,7 +225,8 @@ func TestMDOpsGetForHandlePublicSuccess(t *testing.T) {
 
 func expectGetKeyBundles(ctx context.Context, config *ConfigMock, extra ExtraMetadata) {
 	if extraV3, ok := extra.(*ExtraMetadataV3); ok {
-		config.mockMdserv.EXPECT().GetKeyBundles(ctx, gomock.Any(), gomock.Any()).
+		config.mockMdserv.EXPECT().GetKeyBundles(
+			ctx, gomock.Any(), gomock.Any(), gomock.Any()).
 			Return(extraV3.wkb, extraV3.rkb, nil)
 	}
 }
