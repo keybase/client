@@ -5,6 +5,7 @@ helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-help
 if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
     println "Skipping build because PR title contains [ci-skip]"
 } else {
+    println "${env.JENKINS_HOME}/${env.BUILD_TAG}"
     helpers.nodeWithCleanup("linux", {
         helpers.slackOnError("client", env, currentBuild)
     }, {
