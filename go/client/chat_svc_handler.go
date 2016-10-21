@@ -58,7 +58,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context) Reply {
 				tlf := msg.ClientHeader.TlfName
 				pub := msg.ClientHeader.TlfPublic
 				cl.Conversations[i] = ConvSummary{
-					ID: conv.Metadata.ConversationID,
+					ID: conv.Metadata.ConversationID.String(),
 					Channel: ChatChannel{
 						Name:      tlf,
 						Public:    pub,
@@ -81,9 +81,10 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		return c.errReply(err)
 	}
 
-	if opts.ConversationID.IsNil() {
+	var convID chat1.ConversationID
+	if len(opts.ConversationID) == 0 {
 		// resolve conversation id
-		query, err := c.getInboxLocalQuery(ctx, opts.ConversationID, opts.Channel)
+		query, err := c.getInboxLocalQuery(ctx, chat1.ConversationID{}, opts.Channel)
 		if err != nil {
 			return c.errReply(err)
 		}
@@ -101,11 +102,16 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		if len(existing) == 0 {
 			return c.errReply(fmt.Errorf("no conversations matched %q", opts.Channel.Name))
 		}
-		opts.ConversationID = existing[0].Metadata.ConversationID
+		convID = existing[0].Metadata.ConversationID
+	} else {
+		convID, err = chat1.MakeConvID(opts.ConversationID)
+		if err != nil {
+			return c.errReply(fmt.Errorf("invalid conversation ID: %s", opts.ConversationID))
+		}
 	}
 
 	arg := chat1.GetThreadLocalArg{
-		ConversationID: opts.ConversationID,
+		ConversationID: convID,
 		Query: &chat1.GetThreadQuery{
 			MarkAsRead: true,
 		},
@@ -174,8 +180,12 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 
 // SendV1 implements ChatServiceHandler.SendV1.
 func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Reply {
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
 	arg := sendArgV1{
-		conversationID: opts.ConversationID,
+		conversationID: convID,
 		channel:        opts.Channel,
 		body:           chat1.NewMessageBodyWithText(chat1.MessageText{Body: opts.Message.Body}),
 		mtype:          chat1.MessageType_TEXT,
@@ -186,8 +196,12 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Rep
 
 // DeleteV1 implements ChatServiceHandler.DeleteV1.
 func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
 	arg := sendArgV1{
-		conversationID: opts.ConversationID,
+		conversationID: convID,
 		channel:        opts.Channel,
 		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageID: opts.MessageID}),
 		mtype:          chat1.MessageType_DELETE,
@@ -199,8 +213,12 @@ func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1)
 
 // EditV1 implements ChatServiceHandler.EditV1.
 func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Reply {
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
 	arg := sendArgV1{
-		conversationID: opts.ConversationID,
+		conversationID: convID,
 		channel:        opts.Channel,
 		body:           chat1.NewMessageBodyWithEdit(chat1.MessageEdit{MessageID: opts.MessageID, Body: opts.Message.Body}),
 		mtype:          chat1.MessageType_EDIT,
@@ -212,8 +230,12 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 
 // AttachV1 implements ChatServiceHandler.AttachV1.
 func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
 	sarg := sendArgV1{
-		conversationID: opts.ConversationID,
+		conversationID: convID,
 		channel:        opts.Channel,
 		mtype:          chat1.MessageType_ATTACHMENT,
 	}
@@ -319,9 +341,10 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	}
 
 	var rlimits []chat1.RateLimit
-	if opts.ConversationID.IsNil() {
+	var convID chat1.ConversationID
+	if len(opts.ConversationID) == 0 {
 		// resolve conversation id
-		query, err := c.getInboxLocalQuery(ctx, opts.ConversationID, opts.Channel)
+		query, err := c.getInboxLocalQuery(ctx, chat1.ConversationID{}, opts.Channel)
 		if err != nil {
 			return c.errReply(err)
 		}
@@ -339,11 +362,16 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 		if len(existing) == 0 {
 			return c.errReply(fmt.Errorf("no conversations matched %q", opts.Channel.Name))
 		}
-		opts.ConversationID = existing[0].Metadata.ConversationID
+		convID = existing[0].Metadata.ConversationID
+	} else {
+		convID, err = chat1.MakeConvID(opts.ConversationID)
+		if err != nil {
+			return c.errReply(fmt.Errorf("invalid conversation id: %s", opts.ConversationID))
+		}
 	}
 
 	arg := chat1.DownloadAttachmentLocalArg{
-		ConversationID: opts.ConversationID,
+		ConversationID: convID,
 		MessageID:      opts.MessageID,
 		Sink:           sink,
 		Preview:        opts.Preview,
@@ -605,8 +633,8 @@ type Thread struct {
 
 // ConvSummary is used for JSON output of a conversation in the inbox.
 type ConvSummary struct {
-	ID      chat1.ConversationID `json:"id"`
-	Channel ChatChannel          `json:"channel"`
+	ID      string      `json:"id"`
+	Channel ChatChannel `json:"channel"`
 }
 
 // ChatList is a list of conversations in the inbox.
