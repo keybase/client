@@ -56,6 +56,7 @@ type LoginContext interface {
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
 
 	Keyring() (*SKBKeyringFile, error)
+	ClearKeyring()
 	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
 
 	SecretSyncer() *SecretSyncer
@@ -1081,6 +1082,25 @@ func (s *LoginState) Keyring(h func(*SKBKeyringFile), name string) error {
 		return aerr
 	}
 	return err
+}
+
+func (s *LoginState) MutateKeyring(h func(*SKBKeyringFile) *SKBKeyringFile, name string) error {
+	var err error
+	aerr := s.Account(func(a *Account) {
+		var kr *SKBKeyringFile
+		kr, err = a.Keyring()
+		if err != nil {
+			return
+		}
+		if h(kr) != nil {
+			a.ClearKeyring()
+		}
+	}, name)
+	if aerr != nil {
+		return aerr
+	}
+	return err
+
 }
 
 func (s *LoginState) LoggedIn() bool {

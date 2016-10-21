@@ -302,7 +302,10 @@ func testEngineWithSecretStore(
 }
 
 func SetupTwoDevices(t *testing.T, nm string) (user *FakeUser, dev1 libkb.TestContext, dev2 libkb.TestContext, cleanup func()) {
+	return SetupTwoDevicesWithHook(t, nm, nil)
+}
 
+func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestContext)) (user *FakeUser, dev1 libkb.TestContext, dev2 libkb.TestContext, cleanup func()) {
 	if len(nm) > 5 {
 		t.Fatalf("Sorry, test name must be fewer than 6 chars (got %q)", nm)
 	}
@@ -312,6 +315,9 @@ func SetupTwoDevices(t *testing.T, nm string) (user *FakeUser, dev1 libkb.TestCo
 
 	// device Y (provisionee) context:
 	dev2 = SetupEngineTest(t, nm)
+	if hook != nil {
+		hook(&dev2)
+	}
 
 	user = NewFakeUserOrBust(t, nm)
 	arg := MakeTestSignupEngineRunArg(user)

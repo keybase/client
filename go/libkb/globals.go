@@ -42,6 +42,7 @@ type GlobalContext struct {
 	Log               logger.Logger  // Handles all logging
 	VDL               *VDebugLog     // verbose debug log
 	Env               *Env           // Env variables, cmdline args & config
+	SKBKeyringMu      sync.Mutex     // Protects all attempts to mutate the SKBKeyringFile
 	Keyrings          *Keyrings      // Gpg Keychains holding keys
 	API               API            // How to make a REST call to the server
 	Resolver          *Resolver      // cache of resolve results
