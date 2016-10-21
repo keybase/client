@@ -515,10 +515,13 @@ func (fbo *folderBranchOps) setBranchIDLocked(lState *lockState, bid BranchID) {
 	}
 }
 
+var errNoFlushedRevisions = errors.New("No flushed MDs yet")
+
 // getJournalPredecessorRevision returns the revision that precedes
 // the current journal head if journaling enabled and there are
 // unflushed MD updates; otherwise it returns
-// MetadataRevisionUninitialized.
+// MetadataRevisionUninitialized.  If there aren't any flushed MD
+// revisions, it returns errNoFlushedRevisions.
 func (fbo *folderBranchOps) getJournalPredecessorRevision(ctx context.Context) (
 	MetadataRevision, error) {
 	jServer, err := GetJournalServer(fbo.config)
@@ -548,7 +551,7 @@ func (fbo *folderBranchOps) getJournalPredecessorRevision(ctx context.Context) (
 	} else if jStatus.RevisionStart == MetadataRevisionInitial {
 		// Nothing has been flushed to the servers yet, so don't
 		// return anything.
-		return MetadataRevisionUninitialized, errors.New("No flushed MDs yet")
+		return MetadataRevisionUninitialized, errNoFlushedRevisions
 	}
 
 	return jStatus.RevisionStart - 1, nil
@@ -584,8 +587,6 @@ func (fbo *folderBranchOps) setHeadLocked(
 		// revision is enough to trigger conflict resolution.
 		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
 	} else if md.MergedStatus() == Merged {
-		mergedRev := md.Revision()
-
 		journalEnabled := TLFJournalEnabled(fbo.config, fbo.id())
 		var key kbfscrypto.VerifyingKey
 		if journalEnabled {
@@ -593,34 +594,42 @@ func (fbo *folderBranchOps) setHeadLocked(
 				// If journaling is on, and this is the first head
 				// we're setting, we have to make sure we use the
 				// server's notion of the latest MD, not the one
-				// potentially coming from our journal.
+				// potentially coming from our journal.  If there are
+				// no flushed revisions, it's not a hard error, and we
+				// just leave the latest merged revision
+				// uninitialized.
 				journalPred, err := fbo.getJournalPredecessorRevision(ctx)
-				if err != nil {
+				switch err {
+				case nil:
+					fbo.setLatestMergedRevisionLocked(
+						ctx, lState, journalPred, false)
+				case errNoFlushedRevisions:
+					// The server has no revisions, so leave the
+					// latest merged revision uninitialized.
+				default:
 					return err
 				}
-				if journalPred != MetadataRevisionUninitialized {
-					mergedRev = journalPred
-				}
 			} else {
-				// If this isn't the first head, set `key` so that
-				// below we can skip revisions that come from our own
-				// device.
+				// If this isn't the first head, then this is either
+				// an update from the server, or an update just
+				// written by the client.  But since journaling is on,
+				// then latter case will be handled by onMDFlush when
+				// the update is properly flushed to the server.  So
+				// ignore updates written by this device.
 				key, err = fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
 				if err != nil {
 					return err
 				}
+				if key.KID() != md.LastModifyingWriterKID() {
+					fbo.setLatestMergedRevisionLocked(
+						ctx, lState, md.Revision(), false)
+				}
 			}
-		}
-
-		// If this is a merged revision, it should be the latest one
-		// we know about.  However, if journaling is enabled, and this
-		// MD was written by this device, it may not be merged yet, so
-		// let onMDFlush take care of setting it in that case.  If
-		// this is the first head, the logic above ensures that even
-		// when journaling is on, we'll set this to the correct value
-		// (because `key` will not be initialized).
-		if !journalEnabled || key.KID() != md.LastModifyingWriterKID() {
-			fbo.setLatestMergedRevisionLocked(ctx, lState, mergedRev, false)
+		} else {
+			// This is a merged revision, and journaling is disabled,
+			// so it's definitely the latest revision on the server as
+			// well.
+			fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision(), false)
 		}
 	}
 
