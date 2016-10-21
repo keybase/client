@@ -30,34 +30,6 @@ type Decrypter interface {
 	Decrypt(ciphertext io.Reader, encKey, verifyKey []byte) (plaintext io.Reader)
 }
 
-// PassThrough implements Encrypter and Decrypter.  It does no encryption
-// or decryption.
-type PassThrough struct{}
-
-func NewPassThrough() *PassThrough {
-	return &PassThrough{}
-}
-
-func (p *PassThrough) EncryptedLen(size int) int {
-	return size
-}
-
-func (p *PassThrough) Encrypt(r io.Reader) io.Reader {
-	return r
-}
-
-func (p *PassThrough) EncryptKey() []byte {
-	return nil
-}
-
-func (p *PassThrough) VerifyKey() []byte {
-	return nil
-}
-
-func (p *PassThrough) Decrypt(r io.Reader, encKey, verifyKey []byte) io.Reader {
-	return r
-}
-
 var nonce = &[signencrypt.NonceSize]byte{
 	0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
 	0x30, 0x30, 0x30, 0x30, 0x40, 0x40, 0x40, 0x40,

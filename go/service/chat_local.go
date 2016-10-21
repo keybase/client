@@ -4,8 +4,10 @@
 package service
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
 	"time"
 
@@ -880,6 +882,7 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
 	if err := chat.DownloadAsset(ctx, h.G().Log, params, obj, sink, h, progress); err != nil {
+		sink.Close()
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 	chatUI.ChatAttachmentDownloadDone(ctx)
@@ -955,25 +958,34 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
 
 	// encrypt the stream
-	enc := chat.NewPassThrough()
+	enc, err := chat.NewSignEncrypter()
+	if err != nil {
+		return chat1.Asset{}, err
+	}
 	len := enc.EncryptedLen(local.Size)
 	encReader := enc.Encrypt(src)
 
+	// compute hash
+	hash := sha256.New()
+	tee := io.TeeReader(encReader, hash)
+
 	// post to s3
-	upRes, err := chat.PutS3(ctx, h.G().Log, encReader, int64(len), params, h, progress)
+	upRes, err := chat.PutS3(ctx, h.G().Log, tee, int64(len), params, h, progress)
 	if err != nil {
 		return chat1.Asset{}, err
 	}
 	h.G().Log.Debug("chat attachment upload: %+v", upRes)
 
 	asset := chat1.Asset{
-		Filename: filepath.Base(local.Filename),
-		Region:   upRes.Region,
-		Endpoint: upRes.Endpoint,
-		Bucket:   upRes.Bucket,
-		Path:     upRes.Path,
-		Size:     int(upRes.Size),
-		Key:      enc.EncryptKey(),
+		Filename:  filepath.Base(local.Filename),
+		Region:    upRes.Region,
+		Endpoint:  upRes.Endpoint,
+		Bucket:    upRes.Bucket,
+		Path:      upRes.Path,
+		Size:      int(upRes.Size),
+		Key:       enc.EncryptKey(),
+		VerifyKey: enc.VerifyKey(),
+		EncHash:   hash.Sum(nil),
 	}
 	return asset, nil
 

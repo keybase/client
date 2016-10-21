@@ -34,7 +34,7 @@ func TestSignEncrypter(t *testing.T) {
 	}
 
 	d := NewSignDecrypter()
-	dr := d.Decrypt(bytes.NewReader(ct), e.EncKey(), e.VerifyKey())
+	dr := d.Decrypt(bytes.NewReader(ct), e.EncryptKey(), e.VerifyKey())
 	ptOut, err := ioutil.ReadAll(dr)
 	if err != nil {
 		t.Fatal(err)

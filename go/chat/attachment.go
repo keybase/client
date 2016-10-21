@@ -2,6 +2,8 @@ package chat
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"time"
@@ -64,6 +66,9 @@ func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, para
 
 // DownloadAsset gets an object from S3 as described in asset.
 func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer, progress ProgressReporter) error {
+	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
+		return fmt.Errorf("unencrypted attachments not supported")
+	}
 	region := s3.Region{
 		Name:       asset.Region,
 		S3Endpoint: asset.Endpoint,
@@ -83,13 +88,17 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 		return err
 	}
 
+	// compute hash
+	hash := sha256.New()
+	verify := io.TeeReader(body, hash)
+
 	// to keep track of download progress
 	progWriter := newProgressWriter(progress, asset.Size)
-	tee := io.TeeReader(body, progWriter)
+	tee := io.TeeReader(verify, progWriter)
 
 	// decrypt body
-	dec := NewPassThrough()
-	decBody := dec.Decrypt(tee, asset.Key, nil)
+	dec := NewSignDecrypter()
+	decBody := dec.Decrypt(tee, asset.Key, asset.VerifyKey)
 	if err != nil {
 		return err
 	}
@@ -99,7 +108,13 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 		return err
 	}
 
-	log.Debug("downloaded %d bytes", n)
+	log.Debug("downloaded and decrypted to %d plaintext bytes", n)
+
+	// validate the EncHash
+	if !hmac.Equal(asset.EncHash, hash.Sum(nil)) {
+		return fmt.Errorf("invalid attachment content hash")
+	}
+	log.Debug("attachment content hash is valid")
 
 	return nil
 }
@@ -114,7 +129,7 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 	// attachment.  But putSingle is only called for attachments <= 5MB, so
 	// this isn't horrible.
 	buf := make([]byte, size)
-	n, err := r.Read(buf)
+	n, err := io.ReadFull(r, buf)
 	if err != nil {
 		return err
 	}

@@ -345,6 +345,7 @@ export type Asset = {
   mimeType: string,
   encHash: Hash,
   key: bytes,
+  verifyKey: bytes,
 }
 
 export type BodyPlaintext = 
