@@ -21,8 +21,15 @@
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
-		DB1D5FEC1CA99E67006DC784 /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE21CA99E67006DC784 /* kb.ttf */; };
 		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
+		DB4447E61DAD4F58004AC1D6 /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB4447DE1DAD4F58004AC1D6 /* kb.ttf */; };
+		DB4447E71DAD4F58004AC1D6 /* OpenSans-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB4447DF1DAD4F58004AC1D6 /* OpenSans-Semi_bold.ttf */; };
+		DB4447E81DAD4F58004AC1D6 /* OpenSans-Semibold_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB4447E01DAD4F58004AC1D6 /* OpenSans-Semibold_italic.ttf */; };
+		DB4447E91DAD4F58004AC1D6 /* OpenSans.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB4447E11DAD4F58004AC1D6 /* OpenSans.ttf */; };
+		DB4447EA1DAD4F58004AC1D6 /* OpenSans_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB4447E21DAD4F58004AC1D6 /* OpenSans_bold.ttf */; };
+		DB4447EB1DAD4F58004AC1D6 /* OpenSans_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB4447E31DAD4F58004AC1D6 /* OpenSans_italic.ttf */; };
+		DB4447EC1DAD4F58004AC1D6 /* SourceCodePro-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB4447E41DAD4F58004AC1D6 /* SourceCodePro-Semi_bold.ttf */; };
+		DB4447ED1DAD4F58004AC1D6 /* SourceCodePro.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB4447E51DAD4F58004AC1D6 /* SourceCodePro.ttf */; };
 		DB7538FD1D776CC400AFA61B /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB7539071D776CC400AFA61B /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */; };
 		DB7539081D776CC400AFA61B /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
@@ -35,28 +42,13 @@
 		DB75390F1D776CC400AFA61B /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		DB7539101D776CC400AFA61B /* libRCTVibration.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302E41ABCB9EE00DB3ED1 /* libRCTVibration.a */; };
 		DB7539121D776CC400AFA61B /* libRCTWebSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 139FDEF41B06529B00C62182 /* libRCTWebSocket.a */; };
-		DB7539141D776CC400AFA61B /* Lato_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */; };
-		DB7539151D776CC400AFA61B /* Lato_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */; };
-		DB7539161D776CC400AFA61B /* Lato-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC91CD3AA1000A226BC /* Lato-Semi_bold.ttf */; };
-		DB7539171D776CC400AFA61B /* Lato-Semibold_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCA1CD3AA1000A226BC /* Lato-Semibold_italic.ttf */; };
-		DB7539181D776CC400AFA61B /* Lato.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCB1CD3AA1000A226BC /* Lato.ttf */; };
-		DB7539191D776CC400AFA61B /* SourceCodePro-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCC1CD3AA1000A226BC /* SourceCodePro-Semi_bold.ttf */; };
-		DB75391A1D776CC400AFA61B /* SourceCodePro.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCD1CD3AA1000A226BC /* SourceCodePro.ttf */; };
 		DB75391B1D776CC400AFA61B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
-		DB75391C1D776CC400AFA61B /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE21CA99E67006DC784 /* kb.ttf */; };
 		DB75391D1D776CC400AFA61B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
 		DB7539351D777E7100AFA61B /* Engine-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539341D777E7100AFA61B /* Engine-Test.m */; };
 		DB7539371D777E8400AFA61B /* LogSend-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539361D777E8400AFA61B /* LogSend-Test.m */; };
 		DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6121D9C4A8100312652 /* AppDelegate.m */; };
 		DBBCC6161D9C4BA700312652 /* KeyListener.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6151D9C4BA700312652 /* KeyListener.m */; };
 		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
-		DBC44FCE1CD3AF9400A226BC /* Lato_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */; };
-		DBC44FCF1CD3AF9400A226BC /* Lato_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */; };
-		DBC44FD01CD3AF9400A226BC /* Lato-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC91CD3AA1000A226BC /* Lato-Semi_bold.ttf */; };
-		DBC44FD11CD3AF9400A226BC /* Lato-Semibold_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCA1CD3AA1000A226BC /* Lato-Semibold_italic.ttf */; };
-		DBC44FD21CD3AF9400A226BC /* Lato.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCB1CD3AA1000A226BC /* Lato.ttf */; };
-		DBC44FD31CD3AF9400A226BC /* SourceCodePro-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCC1CD3AA1000A226BC /* SourceCodePro-Semi_bold.ttf */; };
-		DBC44FD41CD3AF9400A226BC /* SourceCodePro.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FCD1CD3AA1000A226BC /* SourceCodePro.ttf */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
 		DBF20EC41BB34AF00048BC26 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */; };
@@ -169,9 +161,16 @@
 		A969A4091CF65C9C00F273F2 /* LogSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogSend.m; sourceTree = "<group>"; };
 		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
 		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
-		DB1D5FE21CA99E67006DC784 /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = kb.ttf; path = ../../../desktop/renderer/fonts/kb.ttf; sourceTree = "<group>"; };
 		DB27DE551D747A6B003DE8BC /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
 		DB27DE561D747A6C003DE8BC /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
+		DB4447DE1DAD4F58004AC1D6 /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = kb.ttf; sourceTree = "<group>"; };
+		DB4447DF1DAD4F58004AC1D6 /* OpenSans-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-Semi_bold.ttf"; sourceTree = "<group>"; };
+		DB4447E01DAD4F58004AC1D6 /* OpenSans-Semibold_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-Semibold_italic.ttf"; sourceTree = "<group>"; };
+		DB4447E11DAD4F58004AC1D6 /* OpenSans.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = OpenSans.ttf; sourceTree = "<group>"; };
+		DB4447E21DAD4F58004AC1D6 /* OpenSans_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = OpenSans_bold.ttf; sourceTree = "<group>"; };
+		DB4447E31DAD4F58004AC1D6 /* OpenSans_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = OpenSans_italic.ttf; sourceTree = "<group>"; };
+		DB4447E41DAD4F58004AC1D6 /* SourceCodePro-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semi_bold.ttf"; sourceTree = "<group>"; };
+		DB4447E51DAD4F58004AC1D6 /* SourceCodePro.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SourceCodePro.ttf; sourceTree = "<group>"; };
 		DB7539221D776CC400AFA61B /* Keybase For Tests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Keybase For Tests.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB7539311D77753600AFA61B /* Keybase_For_Tests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase_For_Tests-Bridging-Header.h"; sourceTree = "<group>"; };
 		DB7539341D777E7100AFA61B /* Engine-Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Engine-Test.m"; sourceTree = "<group>"; };
@@ -181,13 +180,6 @@
 		DBBCC6141D9C4BA700312652 /* KeyListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyListener.h; sourceTree = "<group>"; };
 		DBBCC6151D9C4BA700312652 /* KeyListener.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeyListener.m; sourceTree = "<group>"; };
 		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Lato_bold.ttf; path = ../../../desktop/renderer/fonts/Lato_bold.ttf; sourceTree = "<group>"; };
-		DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Lato_italic.ttf; path = ../../../desktop/renderer/fonts/Lato_italic.ttf; sourceTree = "<group>"; };
-		DBC44FC91CD3AA1000A226BC /* Lato-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Lato-Semi_bold.ttf"; path = "../../../desktop/renderer/fonts/Lato-Semi_bold.ttf"; sourceTree = "<group>"; };
-		DBC44FCA1CD3AA1000A226BC /* Lato-Semibold_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Lato-Semibold_italic.ttf"; path = "../../../desktop/renderer/fonts/Lato-Semibold_italic.ttf"; sourceTree = "<group>"; };
-		DBC44FCB1CD3AA1000A226BC /* Lato.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Lato.ttf; path = ../../../desktop/renderer/fonts/Lato.ttf; sourceTree = "<group>"; };
-		DBC44FCC1CD3AA1000A226BC /* SourceCodePro-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "SourceCodePro-Semi_bold.ttf"; path = "../../../desktop/renderer/fonts/SourceCodePro-Semi_bold.ttf"; sourceTree = "<group>"; };
-		DBC44FCD1CD3AA1000A226BC /* SourceCodePro.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = SourceCodePro.ttf; path = ../../../desktop/renderer/fonts/SourceCodePro.ttf; sourceTree = "<group>"; };
 		DBCE36231B90F14800ECADDE /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
 		DBCE36241B90F14800ECADDE /* Engine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Engine.m; sourceTree = "<group>"; };
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
@@ -390,30 +382,30 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		DB1D5FD61CA99DF4006DC784 /* Fonts */ = {
+		DB4447DD1DAD4F58004AC1D6 /* fonts */ = {
 			isa = PBXGroup;
 			children = (
-				DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */,
-				DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */,
-				DBC44FC91CD3AA1000A226BC /* Lato-Semi_bold.ttf */,
-				DBC44FCA1CD3AA1000A226BC /* Lato-Semibold_italic.ttf */,
-				DBC44FCB1CD3AA1000A226BC /* Lato.ttf */,
-				DBC44FCC1CD3AA1000A226BC /* SourceCodePro-Semi_bold.ttf */,
-				DBC44FCD1CD3AA1000A226BC /* SourceCodePro.ttf */,
-				DB1D5FE21CA99E67006DC784 /* kb.ttf */,
+				DB4447DE1DAD4F58004AC1D6 /* kb.ttf */,
+				DB4447DF1DAD4F58004AC1D6 /* OpenSans-Semi_bold.ttf */,
+				DB4447E01DAD4F58004AC1D6 /* OpenSans-Semibold_italic.ttf */,
+				DB4447E11DAD4F58004AC1D6 /* OpenSans.ttf */,
+				DB4447E21DAD4F58004AC1D6 /* OpenSans_bold.ttf */,
+				DB4447E31DAD4F58004AC1D6 /* OpenSans_italic.ttf */,
+				DB4447E41DAD4F58004AC1D6 /* SourceCodePro-Semi_bold.ttf */,
+				DB4447E51DAD4F58004AC1D6 /* SourceCodePro.ttf */,
 			);
-			name = Fonts;
+			path = fonts;
 			sourceTree = "<group>";
 		};
 		DBDCF3031B8D03DD00BA95D8 /* Keybase */ = {
 			isa = PBXGroup;
 			children = (
-				DB1D5FD61CA99DF4006DC784 /* Fonts */,
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
 				DBBCC6111D9C4A8100312652 /* AppDelegate.h */,
 				DBBCC6121D9C4A8100312652 /* AppDelegate.m */,
 				DBBCC6141D9C4BA700312652 /* KeyListener.h */,
 				DBBCC6151D9C4BA700312652 /* KeyListener.m */,
+				DB4447DD1DAD4F58004AC1D6 /* fonts */,
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
 				DBCE36231B90F14800ECADDE /* Engine.h */,
@@ -692,16 +684,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DBC44FCE1CD3AF9400A226BC /* Lato_bold.ttf in Resources */,
-				DBC44FCF1CD3AF9400A226BC /* Lato_italic.ttf in Resources */,
-				DBC44FD01CD3AF9400A226BC /* Lato-Semi_bold.ttf in Resources */,
-				DBC44FD11CD3AF9400A226BC /* Lato-Semibold_italic.ttf in Resources */,
-				DBC44FD21CD3AF9400A226BC /* Lato.ttf in Resources */,
-				DBC44FD31CD3AF9400A226BC /* SourceCodePro-Semi_bold.ttf in Resources */,
-				DBC44FD41CD3AF9400A226BC /* SourceCodePro.ttf in Resources */,
+				DB4447EA1DAD4F58004AC1D6 /* OpenSans_bold.ttf in Resources */,
+				DB4447E71DAD4F58004AC1D6 /* OpenSans-Semi_bold.ttf in Resources */,
+				DB4447ED1DAD4F58004AC1D6 /* SourceCodePro.ttf in Resources */,
+				DB4447E81DAD4F58004AC1D6 /* OpenSans-Semibold_italic.ttf in Resources */,
+				DB4447EB1DAD4F58004AC1D6 /* OpenSans_italic.ttf in Resources */,
+				DB4447EC1DAD4F58004AC1D6 /* SourceCodePro-Semi_bold.ttf in Resources */,
 				0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */,
-				DB1D5FEC1CA99E67006DC784 /* kb.ttf in Resources */,
+				DB4447E61DAD4F58004AC1D6 /* kb.ttf in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
+				DB4447E91DAD4F58004AC1D6 /* OpenSans.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -709,15 +701,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DB7539141D776CC400AFA61B /* Lato_bold.ttf in Resources */,
-				DB7539151D776CC400AFA61B /* Lato_italic.ttf in Resources */,
-				DB7539161D776CC400AFA61B /* Lato-Semi_bold.ttf in Resources */,
-				DB7539171D776CC400AFA61B /* Lato-Semibold_italic.ttf in Resources */,
-				DB7539181D776CC400AFA61B /* Lato.ttf in Resources */,
-				DB7539191D776CC400AFA61B /* SourceCodePro-Semi_bold.ttf in Resources */,
-				DB75391A1D776CC400AFA61B /* SourceCodePro.ttf in Resources */,
 				DB75391B1D776CC400AFA61B /* LaunchScreen.storyboard in Resources */,
-				DB75391C1D776CC400AFA61B /* kb.ttf in Resources */,
 				DB75391D1D776CC400AFA61B /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

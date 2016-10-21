@@ -113,7 +113,10 @@ function * fetchBillingOverviewSaga (): SagaGenerator<any, any> {
     const action: UpdateAvailablePlans = {
       type: Constants.updateAvailablePlans,
       payload: {
-        availablePlans: parsed.available_plans.map(Constants.parseAvailablePlan),
+        availablePlans: parsed.available_plans.map(Constants.parseAvailablePlan).sort((a, b) => {
+          if (a.price_pennies === b.price_pennies) return 0
+          return (a.price_pennies < b.price_pennies) ? -1 : 1
+        }),
       },
     }
 

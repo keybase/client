@@ -60,7 +60,6 @@ updater_dir="$gopath/src/github.com/keybase/go-updater"
 "$client_dir/packaging/slack/send.sh" "Starting $platform $build_desc"
 
 if [ ! "$nopull" = "1" ]; then
-  "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
   "$client_dir/packaging/check_status_and_pull.sh" "$kbfs_dir"
   "$client_dir/packaging/check_status_and_pull.sh" "$updater_dir"
 fi

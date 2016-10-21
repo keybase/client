@@ -12,7 +12,7 @@ const Render = ({keybaseUsername, hasAvatar, onAck}: Props) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'center', padding: globalMargins.large}}>
       <Avatar size={176} username={keybaseUsername} />
-      <Text type='Body' style={{marginTop: globalMargins.medium, textAlign: 'center'}}>{text}</Text>
+      <Text type='Body' style={{marginTop: globalMargins.medium, textAlign: 'center', maxWidth: 560}}>{text}</Text>
       <Button type='Primary' onClick={onAck} label='Got it!' style={{marginTop: globalMargins.medium}} />
     </Box>
   )

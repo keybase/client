@@ -29,9 +29,10 @@ const styles = {
   },
   inside: {
     ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColors.white,
     alignItems: 'center',
     alignSelf: 'stretch',
+    backgroundColor: globalColors.white,
+    borderRadius: 4,
     marginTop: -avatarSize / 2,
     padding: 30,
     paddingTop: 30 + avatarSize / 2,

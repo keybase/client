@@ -1,5 +1,6 @@
 // @flow
 import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
+import HiddenString from '../util/hidden-string'
 
 export const invitesReclaim = 'settings:invitesReclaim'
 export type InvitesReclaim = NoErrorTypedAction<'settings:invitesReclaim', {inviteId: string}>
@@ -40,8 +41,28 @@ export type SetAllowDeleteAccount = NoErrorTypedAction<'settings:setAllowDeleteA
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountForever', void>
 
-export type PlanLevel = 'Basic' | 'Gold' | 'Friend'
-const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
+export const onChangeNewPassphrase = 'settings:onChangeNewPassphrase'
+export type OnChangeNewPassphrase = NoErrorTypedAction<'settings:onChangeNewPassphrase', {passphrase: HiddenString}>
+
+export const onChangeNewPassphraseConfirm = 'settings:onChangeNewPassphraseConfirm'
+export type OnChangeNewPassphraseConfirm = NoErrorTypedAction<'settings:onChangeNewPassphraseConfirm', {passphrase: HiddenString}>
+
+export const onChangeShowPassphrase = 'settings:onChangeShowPassphrase'
+export type OnChangeShowPassphrase = NoErrorTypedAction<'settings:onChangeShowPassphrase', void>
+
+export const onSubmitNewPassphrase = 'settings:onSubmitNewPassphrase'
+export type OnSubmitNewPassphrase = NoErrorTypedAction<'settings:onSubmitNewPassphrase', void>
+
+export const onUpdatePassphraseError = 'settings:onUpdatePassphraseError'
+export type OnUpdatePassphraseError = NoErrorTypedAction<'settings:onUpdatePassphraseError', {error: string}>
+
+export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
+export type OnUpdatePGPSettings = NoErrorTypedAction<'settings:onUpdatePGPSettings', void>
+
+export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
+export type OnUpdatedPGPSettings = NoErrorTypedAction<'settings:onUpdatedPGPSettings', {hasKeys: boolean}>
+
+export type PlanLevel = string
 
 export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
 
@@ -71,61 +92,20 @@ export type NotificationsState = {
   allowEdit: boolean,
 }
 
+export type PassphraseState = {
+  newPassphrase: HiddenString,
+  newPassphraseConfirm: HiddenString,
+  showTyping: boolean,
+  errorMessage: ?HiddenString,
+  newPassphraseError: ?HiddenString,
+  newPassphraseConfirmError: ?HiddenString,
+  hasPGPKeyOnServer: ?boolean,
+  canSave: boolean,
+}
+
 export type State = {
   allowDeleteAccount: boolean,
   invites: InvitesState,
   notifications: NotificationsState,
-}
-
-const levelToPrice: {[key: PlanLevel]: string} = {
-  'Basic': 'Free',
-  'Gold': '$7/mo',
-  'Friend': '$9/mo',
-}
-
-const levelToPriceLong: {[key: PlanLevel]: string} = {
-  'Basic': 'Free',
-  'Gold': '$7/month',
-  'Friend': '$9/month',
-}
-
-const levelToStars: {[key: PlanLevel]: number} = {
-  'Basic': 1,
-  'Gold': 3,
-  'Friend': 5,
-}
-
-const levelToSpace: {[key: PlanLevel]: string} = {
-  'Basic': '10GB',
-  'Gold': '50GB',
-  'Friend': '250GB',
-}
-
-function levelToDetails (p: PlanLevel) {
-  return `You will be able to use up to ${levelToSpace[p]} of data.`
-}
-
-// Compare weather another plan is an upgrade, downgrade or the same
-// -1 : otherLevel is a downgrade from level
-// 0 : otherLevel is the same as level
-// 1 : otherLevel is an upgrade from level
-function comparePlans (level: PlanLevel, otherLevel: PlanLevel): -1 | 0 | 1 {
-  const levelIndex = plans.indexOf(level)
-  const otherLevelIndex = plans.indexOf(otherLevel)
-  if (levelIndex === otherLevelIndex) return 0
-  if (levelIndex < otherLevelIndex) return 1
-  if (levelIndex > otherLevelIndex) return -1
-
-  // make flow happy
-  return 0
-}
-
-export {
-  comparePlans,
-  levelToDetails,
-  levelToPrice,
-  levelToPriceLong,
-  levelToSpace,
-  levelToStars,
-  plans,
+  passphrase: PassphraseState,
 }

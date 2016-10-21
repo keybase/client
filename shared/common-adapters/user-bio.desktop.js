@@ -25,9 +25,9 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
               followsYou={false} />
           </Box>
           <Box style={{...stylesContent, ...globalStyles.fadeOpacity, opacity: this.props.loading ? 1 : 0}}>
-            <Box style={{...globalStyles.loadingTextStyle, width: 157}} />
-            <Box style={{...globalStyles.loadingTextStyle, width: 87}} />
-            <Box style={{...globalStyles.loadingTextStyle, width: 117}} />
+            <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 11, width: 157}} />
+            <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 11, width: 87}} />
+            <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 11, width: 117}} />
           </Box>
         </Box>
       </Box>
@@ -89,13 +89,13 @@ class BioRender extends Component<void, Props, void> {
               onClick={() => this.props.onClickAvatar(username)}>
               {username}
             </Text>
-            <Text type='BodySemibold' style={stylesFullname} {...nameTweaks}>{userInfo.fullname}</Text>
+            <Text type='BodyBig' style={stylesFullname} {...nameTweaks}>{userInfo.fullname}</Text>
             {!userInfo.fullname && editFns &&
               <Text type='BodySemibold' style={{...stylesFullname, color: globalColors.black_20}} {...nameTweaks}>Your full name</Text>}
             {!editFns && followLabel &&
-              <Text type='BodySmall' style={stylesFollowLabel}>{followLabel}</Text>
+              <Text type='BodySmall' style={{...stylesFollowLabel, marginTop: 4}}>{followLabel}</Text>
             }
-            <Box style={{...globalStyles.flexBoxRow}}>
+            {userInfo.followersCount !== -1 && <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
               <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}
                 onClick={() => this.props.onClickFollowers(username)}>{userInfo.followersCount}
                 <Text type='BodySmallSecondaryLink'>&nbsp;Follower{userInfo.followersCount === 1 ? '' : 's'}</Text>
@@ -104,7 +104,7 @@ class BioRender extends Component<void, Props, void> {
               <Text type='BodySmallSecondaryLink' onClick={() => this.props.onClickFollowing(username)}>Following&nbsp;
                 <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
               </Text>
-            </Box>
+            </Box>}
             {userInfo.bio &&
               <Text type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
                 style={{...stylesBio, ...stylesBioType[this.props.type]}} {...bioLineClamp}

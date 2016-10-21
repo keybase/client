@@ -18,10 +18,10 @@ const renderError = (error: RPCError) => {
       return (
         <div>
           <p style={{marginBottom: 10}}><Text type='Body'>Sorry!</Text></p>
-          <p style={{marginBottom: 10}}><Text type='Body' inline={false}>You can’t authorize by passphrase, since you have established device or paper keys.</Text></p>
+          <p style={{marginBottom: 10}}><Text type='Body'>You can't authorize by passphrase, since you have established device or paper keys.</Text></p>
           <p>
-            <Text type='Body' inline={false}>What you can do:</Text>
-            <Text type='Body' inline={false}> - Go back and pick a device or paper key</Text>
+            <Text type='Body'>What you can do:</Text>
+            <Text type='Body'> - Go back and pick a device or paper key</Text>
             <Text type='Body'> - Reset your account entirely: </Text><Text type='BodyPrimaryLink' onClick={() => openURL('https://keybase.io/#account-reset')}>https://keybase.io/#account-reset</Text>
           </p>
         </div>)
@@ -32,12 +32,12 @@ const renderError = (error: RPCError) => {
         return (
           <div>
             <p style={{marginBottom: 10}}><Text type='Body'>Sorry!</Text></p>
-            <p style={{marginBottom: 10}}><Text type='Body' inline={false}>You can’t provision using solely a passphrase, since you have active device keys.</Text></p>
+            <p style={{marginBottom: 10}}><Text type='Body'>You can't provision using solely a passphrase, since you have active device keys.</Text></p>
             <p>
-              <Text type='Body' inline={false}>You have options:</Text>
-              <Text type='Body' inline={false}> - Go back and select a device or paper key</Text>
-              <Text type='Body' inline={false}> - Install Keybase on a machine that has your PGP private key in it</Text>
-              <Text type='Body' inline={false}> - Login to the website and host an encrypted copy of your PGP private key</Text>
+              <Text type='Body'>You have options:</Text>
+              <Text type='Body'> - Go back and select a device or paper key</Text>
+              <Text type='Body'> - Install Keybase on a machine that has your PGP private key in it</Text>
+              <Text type='Body'> - Login to the website and host an encrypted copy of your PGP private key</Text>
               <Text type='Body'> - or, reset your account entirely: </Text><Text type='BodyPrimaryLink' onClick={() => openURL('https://keybase.io/#account-reset')}>https://keybase.io/#account-reset</Text>
             </p>
           </div>)
@@ -45,12 +45,12 @@ const renderError = (error: RPCError) => {
         return (
           <div>
             <p style={{marginBottom: 10}}><Text type='Body'>Sorry!</Text></p>
-            <p style={{marginBottom: 10}}><Text type='Body' inline={false}>You can’t provision using a passphrase, since you’ve established a PGP key.</Text></p>
+            <p style={{marginBottom: 10}}><Text type='Body'>You can't provision using a passphrase, since you've established a PGP key.</Text></p>
             <p>
-              <Text type='Body' inline={false}>You have options:</Text>
-              <Text type='Body' inline={false}> - Install GPG on this machine and import your PGP private key into it</Text>
-              <Text type='Body' inline={false}> - Install Keybase on a different machine that has your PGP key</Text>
-              <Text type='Body' inline={false}> - Login to the website and host an encrypted copy of your PGP private key</Text>
+              <Text type='Body'>You have options:</Text>
+              <Text type='Body'> - Install GPG on this machine and import your PGP private key into it</Text>
+              <Text type='Body'> - Install Keybase on a different machine that has your PGP key</Text>
+              <Text type='Body'> - Login to the website and host an encrypted copy of your PGP private key</Text>
               <Text type='Body'> - Or, reset your account entirely: </Text><Text type='BodyPrimaryLink' onClick={() => openURL('https://keybase.io/#account-reset')}>https://keybase.io/#account-reset</Text>
             </p>
           </div>)

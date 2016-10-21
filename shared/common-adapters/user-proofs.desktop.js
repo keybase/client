@@ -10,14 +10,16 @@ import {defaultColor} from '../common-adapters/icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
-function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
+function MissingProofRow ({missingProof}: {missingProof: MissingProof}): React$Element<*> {
   const missingColor = globalColors.black_20
   return (
-    <Box style={{...styleMissingProofRow, ...style}} className='user-proof-row' key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
-      <Icon className='user-proof-row__icon' style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
+    <Box style={styleMissingProofRow} className='user-proof-row' key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
+      <Box style={iconContainer}>
+        <Icon className='user-proof-row__icon' style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
+      </Box>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Text inline={true} className='user-proof-row__name' type='Body' style={styleProofName}>
+          <Text className='user-proof-row__name' type='Body' style={styleProofName}>
             {missingProof.message}
           </Text>
         </Box>
@@ -33,7 +35,6 @@ type ProofRowProps = {
   showingMenu: boolean,
   onClickStatus: (proof: Proof) => void,
   onClickProfile: (proof: Proof) => void,
-  style: Object,
 }
 
 type ProofRowState = {
@@ -59,20 +60,22 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
   }
 
   render () {
-    const {proof, hasMenu, showingMenu, onClickProfile, onClickStatus, style} = this.props
+    const {proof, hasMenu, showingMenu, onClickProfile, onClickStatus} = this.props
     const proofStatusIconType = shared.proofStatusIcon(proof)
     const menuButtonVisible = this.state.hovering || showingMenu
 
     return (
-      <Box style={{...styleRow, ...style}} onMouseEnter={this._onMouseEnter} onMouseLeave={this._onMouseLeave}>
-        <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
+      <Box style={styleRow} onMouseEnter={this._onMouseEnter} onMouseLeave={this._onMouseLeave}>
+        <Box style={iconContainer}>
+          <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
+        </Box>
         <Box style={styleProofNameSection}>
           <Box style={styleProofNameLabelContainer}>
-            <Text inline={true} className='hover-underline-container' type='Body' onClick={() => onClickProfile(proof)} style={styleProofName}>
+            <Text className='hover-underline-container' type='Body' onClick={() => onClickProfile(proof)} style={styleProofName}>
               <Text inline={true} type='Body' className='underline' style={{...shared.proofNameStyle(proof), ...globalStyles.selectable, ...globalStyles.clickable}}>{proof.name}</Text>
-              {proof.id && <Text className='no-underline' inline={true} type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>}
+              {proof.id && <Text className='no-underline' type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>}
             </Text>
-            {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
+            {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof), marginTop: 1}} />}
           </Box>
         </Box>
         <Box style={styleProofMenuButton} onClick={() => onClickStatus(proof)}>
@@ -83,7 +86,7 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
               style={{
                 transition: 'all .15s ease',
                 color: proofStatusIconType && defaultColor(proofStatusIconType),
-                marginLeft: menuButtonVisible ? globalMargins.xtiny - 2 : -8,
+                marginLeft: menuButtonVisible ? globalMargins.xtiny - 2 : -12,
                 opacity: menuButtonVisible ? 1 : 0,
               }}
             />
@@ -94,13 +97,12 @@ class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
   }
 }
 
-function LoadingProofRow ({textBlockWidth, style}: {textBlockWidth: number, style: Object}) {
-  // TODO(mm) make iconfont-proof-pending the unfinished one instead
+function LoadingProofRow ({textBlockWidth}: {textBlockWidth: number}) {
   return (
-    <Box style={{...styleRow, ...style}}>
+    <Box style={styleRow}>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Box style={{...globalStyles.loadingTextStyle, width: textBlockWidth}} />
+          <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 2, width: textBlockWidth}} />
         </Box>
       </Box>
       <Icon style={{...styleStatusIcon, color: globalStyles.loadingTextStyle.backgroundColor}} type={'iconfont-proof-placeholder'} />
@@ -133,8 +135,7 @@ class ProofsRender extends Component<void, Props, void> {
   }
 
   render () {
-    const {loading, onClickProofMenu, showingMenuIndex, style} = this.props
-    const pad = idx => idx > 0 ? {marginTop: globalMargins.tiny} : {}
+    const {loading, onClickProofMenu, showingMenuIndex, style, loadingStyle} = this.props
     const missingProofsRealCSS = `
       .user-proof-row .user-proof-row__name {
         text-underline: none;
@@ -154,8 +155,8 @@ class ProofsRender extends Component<void, Props, void> {
         <ReactCSSTransitionGroup transitionName='fade-anim' transitionEnterTimeout={250} transitionLeaveTimeout={250}>
           {loading
           ? (
-            <Box key='loading' style={styleLoading}>
-              {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} style={pad(idx)} />)}
+            <Box key='loading' style={{...styleLoading, ...loadingStyle}}>
+              {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} />)}
             </Box>)
           : (
             <Box key='non-loading'>
@@ -168,10 +169,9 @@ class ProofsRender extends Component<void, Props, void> {
                   onClickProfile={this._onClickProfile}
                   hasMenu={!!onClickProofMenu}
                   showingMenu={idx === showingMenuIndex}
-                  style={pad(idx)}
                 />
               )}
-              {this.props.type === 'missingProofs' && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} style={pad(idx)} />)}
+              {this.props.type === 'missingProofs' && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} />)}
               {this.props.type === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
             </Box>)}
         </ReactCSSTransitionGroup>
@@ -194,14 +194,13 @@ const styleLoading = {
   right: 0,
   // We don't want the hidden loading state to affect sizings.
   height: 0,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
 }
 
 const styleRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
+  minHeight: 24,
 }
 
 const styleMissingProofRow = {
@@ -209,26 +208,42 @@ const styleMissingProofRow = {
   ...globalStyles.clickable,
 }
 
+const iconContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  height: 24,
+  minHeight: 24,
+  minWidth: 24,
+  width: 24,
+}
+
 const styleService = {
   ...globalStyles.clickable,
-  width: 15,
-  flexShrink: 0,
-  textAlign: 'center',
   color: globalColors.black_75,
   marginRight: globalMargins.tiny,
-  marginTop: 5,
+  height: 16,
+  minHeight: 16,
+  minWidth: 16,
+  width: 16,
+  textAlign: 'center',
   transition: '0.15s color',
 }
 
 const styleStatusIcon = {
   ...globalStyles.clickable,
+  width: 20,
+  height: 20,
+  minWidth: 20,
+  minHeight: 20,
   marginLeft: 10,
-  marginTop: 1,
+  marginRight: 2,
 }
 
 const styleProofNameSection = {
   ...globalStyles.flexBoxRow,
+  alignSelf: 'flex-start',
   alignItems: 'flex-start',
+  marginTop: 2,
   flex: 1,
 }
 
@@ -247,7 +262,7 @@ const styleProofName = {
 }
 
 const styleProofType = {
-  color: globalColors.black_10,
+  color: globalColors.black_20,
   wordBreak: 'normal',
 }
 
@@ -256,7 +271,6 @@ const styleProofMenuButton = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   marginLeft: 10,
-  marginTop: 1,
   minWidth: 34,  // reserve space for menu dropdown caret
   alignItems: 'center',
   justifyContent: 'flex-end',

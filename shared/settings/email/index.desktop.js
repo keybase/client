@@ -12,7 +12,7 @@ function VerifiedText ({isVerified, style}: {isVerified: boolean, style?: Object
       <Icon
         type={isVerified ? 'iconfont-check' : 'iconfont-close'}
         style={{color, marginRight: 3, marginTop: 2}} />
-      <Text type='BodySmall' style={{color}}>
+      <Text type='Body' style={{color}}>
         {isVerified ? 'Verified' : 'Not verified'}
       </Text>
     </Box>

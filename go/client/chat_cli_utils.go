@@ -22,8 +22,9 @@ type chatCLIConversationResolver struct {
 }
 
 func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.GlobalContext, chatClient chat1.LocalInterface, tlfClient keybase1.TlfInterface) (conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
+	requestedTlfName := r.TlfName
 	if len(r.TlfName) > 0 {
-		cname, err := tlfClient.CompleteAndCanonicalizeTlfName(ctx, keybase1.TLFQuery{
+		cname, err := tlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, keybase1.TLFQuery{
 			TlfName:          r.TlfName,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
@@ -61,10 +62,21 @@ func (r *chatCLIConversationResolver) Resolve(ctx context.Context, g *libkb.Glob
 	case 0:
 		return nil, false, nil
 	case 1:
-		if conversations[0].Triple.TopicType == chat1.TopicType_CHAT {
-			g.UI.GetTerminalUI().Printf("Found %s conversation: %s\n", conversations[0].Triple.TopicType.String(), conversations[0].TlfName)
-		} else {
-			g.UI.GetTerminalUI().Printf("Found %s [%s] conversation: %s\n", conversations[0].Triple.TopicType.String(), conversations[0].TopicName, conversations[0].TlfName)
+		if requestedTlfName != conversations[0].TlfName {
+			// This must be:
+			//
+			// 1) a special case where user only has one conversation, and user
+			//    didn't specify TLF name; or
+			// 2) user specified TLF name but we auto-completed it or canonicalized
+			//    it.
+			//
+			// Either way, we present a visual confirmation so that user knows chich
+			// conversation she's sending into or reading from.
+			if conversations[0].Triple.TopicType == chat1.TopicType_CHAT {
+				g.UI.GetTerminalUI().Printf("Found %s conversation: %s\n", conversations[0].Triple.TopicType.String(), conversations[0].TlfName)
+			} else {
+				g.UI.GetTerminalUI().Printf("Found %s conversation [%s]: %s\n", conversations[0].Triple.TopicType.String(), conversations[0].TopicName, conversations[0].TlfName)
+			}
 		}
 		return &conversations[0], false, nil
 	default:
@@ -115,7 +127,6 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 	if conversationInfo == nil {
 		return chat1.ConversationLocal{}, nil, nil
 	}
-	g.UI.GetTerminalUI().Printf("fetching conversation %s ...\n", conversationInfo.TlfName)
 	f.query.ConversationId = conversationInfo.Id
 
 	gcfclres, err := chatClient.GetConversationForCLILocal(ctx, f.query)

@@ -64,7 +64,7 @@ func TestTSPassKey(t *testing.T) {
 		if hex.EncodeToString(dk.DHSeed()) != test.dkey {
 			t.Errorf("%s: dh = %x, expected %q", test.name, dk.DHSeed(), test.dkey)
 		}
-		if hex.EncodeToString(dk.LksClientHalf()) != test.lkey {
+		if hex.EncodeToString(dk.LksClientHalf().Bytes()) != test.lkey {
 			t.Errorf("%s: lks = %x, expected %q", test.name, dk.LksClientHalf(), test.lkey)
 		}
 	}

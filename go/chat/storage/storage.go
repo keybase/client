@@ -167,7 +167,7 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 	defer s.Unlock()
 
 	var err libkb.ChatStorageError
-	s.debug("Merge: convID: %d uid: %s num msgs: %d", convID, uid, len(msgs))
+	s.debug("Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
 	// Fetch secret key
 	key, ierr := s.getSecretBoxKey()

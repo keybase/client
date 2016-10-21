@@ -236,7 +236,7 @@ func (s Service) install(p Plist, plistDest string, wait time.Duration) error {
 
 	s.log.Info("Saving %s", plistDest)
 	file := libkb.NewFile(plistDest, []byte(plist), 0644)
-	if err := file.Save(); err != nil {
+	if err := file.Save(s.log); err != nil {
 		return err
 	}
 
@@ -575,9 +575,11 @@ func (p Plist) plistXML() string {
 type Log interface {
 	Debug(s string, args ...interface{})
 	Info(s string, args ...interface{})
+	Errorf(s string, args ...interface{})
 }
 
 type emptyLog struct{}
 
-func (l emptyLog) Debug(s string, args ...interface{}) {}
-func (l emptyLog) Info(s string, args ...interface{})  {}
+func (l emptyLog) Debug(s string, args ...interface{})  {}
+func (l emptyLog) Info(s string, args ...interface{})   {}
+func (l emptyLog) Errorf(s string, args ...interface{}) {}

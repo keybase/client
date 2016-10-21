@@ -392,8 +392,8 @@ const files: DumbComponentMap<Files> = {
 
 export default {
   'Folders TLF': map,
-  'Files': files,
-  'File': file,
+  Files: files,
+  File: file,
 }
 
 export {

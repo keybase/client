@@ -20,6 +20,7 @@ const ff: FeatureFlags = {
   tabProfileEnabled: featureOn('tabProfileEnabled', true),
   recentFilesEnabled: featureOn('recentFilesEnabled'),
   serviceFacebookEnabled: featureOn('serviceFacebookEnabled', true),
+  plansEnabled: featureOn('plansEnabled'),
 }
 
 if (__DEV__) {

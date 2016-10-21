@@ -260,7 +260,7 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	}
 
 	serverHalf := e.args.Lks.GetServerHalf()
-	if len(serverHalf) == 0 {
+	if serverHalf.IsNil() {
 		e.pushErr = fmt.Errorf("LKS server half is empty, and should not be")
 		return
 	}

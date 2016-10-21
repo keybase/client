@@ -35,7 +35,9 @@ function proofColor (proof: Proof): string {
       color = globalColors.red
       break
   }
-  if (proof.state === proofChecking) color = globalColors.black_20
+  if (proof.state === proofChecking) {
+    color = globalColors.black_40
+  }
   return color
 }
 

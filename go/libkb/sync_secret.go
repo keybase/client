@@ -222,6 +222,13 @@ func (ss *SecretSyncer) FindDevice(id keybase1.DeviceID) (DeviceKey, error) {
 	return dev, nil
 }
 
+func (ss *SecretSyncer) AllDevices() DeviceKeyMap {
+	if ss.keys == nil {
+		return nil
+	}
+	return ss.keys.Devices
+}
+
 func (ss *SecretSyncer) HasDevices() bool {
 	if ss.keys == nil {
 		return false
@@ -331,3 +338,7 @@ func (k ServerPrivateKey) ToSKB(gc *GlobalContext) (*SKB, error) {
 }
 
 func (ss *SecretSyncer) needsLogin() bool { return true }
+
+func (d DeviceKey) ToLKSec() (LKSecServerHalf, error) {
+	return NewLKSecServerHalfFromHex(d.LksServerHalf)
+}

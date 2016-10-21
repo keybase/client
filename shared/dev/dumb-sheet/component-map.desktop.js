@@ -1,5 +1,5 @@
 // @flow
-import CommonMap from '../../common-adapters/dumb.desktop'
+import CommonMap from '../../common-adapters/dumb'
 import DevicePageMap from '../../devices/device-page/dumb.desktop'
 import DeviceRevokeMap from '../../devices/device-revoke/dumb.desktop'
 import DevicesMap from '../../devices/dumb'

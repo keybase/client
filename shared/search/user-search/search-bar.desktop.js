@@ -34,7 +34,7 @@ class ServiceIcon extends Component<void, ServiceIconProps, ServiceIconState> {
         onClick={() => onClickService(serviceName)} >
         <Icon type={iconType} style={{...serviceIconStyle,
           opacity: selected || this.state.showingTooltip ? 1.0 : 0.6}} />
-        <Text type='BodyXSmall' style={{...serviceTooltipStyle,
+        <Text type='BodySmall' style={{...serviceTooltipStyle,
           opacity: this.state.showingTooltip ? 1 : 0}}>{tooltip}</Text>
       </Box>
     )
@@ -74,7 +74,7 @@ class SearchBar extends Component<void, Props, void> {
     const tooltips: {[key: string]: ?string} = {'Hackernews': 'Hacker News'}
 
     return (
-      <Box>
+      <Box style={{...globalStyles.flexBoxColumn}}>
         <Box style={stylesServicesContainer}>
           {services.map(s => (
             <ServiceIcon
@@ -98,9 +98,11 @@ class SearchBar extends Component<void, Props, void> {
             hintText={this.props.searchHintText}
             hintStyle={{textAlign: 'left'}}
             underlineShow={false}
-            style={stylesInput} />
-          {this.props.searchText && <Icon type='iconfont-remove' style={{marginRight: 16}}
-            onClick={() => this.refs.searchBox.clearValue()} />}
+            style={{width: '100%', paddingLeft: 20, marginBottom: 0, marginTop: 17}}
+            inputStyle={stylesInput}
+          />
+          <Icon type='iconfont-remove' style={{marginRight: 16, opacity: this.props.searchText ? 1 : 0}}
+            onClick={() => this.refs.searchBox.clearValue()} />
         </Box>
       </Box>
     )
@@ -117,14 +119,9 @@ const stylesInputContainer = {
   ...globalStyles.flexBoxRow,
   height: 48,
   alignItems: 'center',
-  marginBottom: 8,
 }
 const stylesInput = {
-  flex: 1,
   textAlign: 'left',
-  marginLeft: 16,
-  marginRight: 30,
-  marginBottom: 0,
 }
 const serviceContainerStyle = {
   ...globalStyles.flexBoxColumn,

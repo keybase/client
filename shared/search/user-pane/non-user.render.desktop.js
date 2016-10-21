@@ -17,7 +17,7 @@ function InviteSection ({inviteLink, outOfInvites, onSendInvite, username, servi
   if (outOfInvites) {
     return (
       <Box style={stylesLinkContainer}>
-        <Text type='Body' style={{textAlign: 'center'}}>Since you’re out of invites, {`${username}@${serviceName}`} will need to request a signup on Keybase.io. Encourage them to join.</Text>
+        <Text type='Body' style={{textAlign: 'center'}}>Since you're out of invites, {`${username}@${serviceName}`} will need to request a signup on Keybase.io. Encourage them to join.</Text>
       </Box>
     )
   }
@@ -36,13 +36,13 @@ function InviteSection ({inviteLink, outOfInvites, onSendInvite, username, servi
 
   return (
     <Box style={styleInviteLink} onClick={onSendInvite}>
-      <Icon type='icon-invite-link-24' />
+      <Icon type='icon-invite-link-16' />
       <Text type='BodyPrimaryLink' style={styleInviteLinkText}>Send invite link</Text>
     </Box>
   )
 }
 
-export default class Render extends Component<void, Props, void> {
+export default class NonUserRender extends Component<void, Props, void> {
   _onClickAvatar () {
     shell.openExternal(this.props.profileUrl)
   }
@@ -134,6 +134,7 @@ const styleInviteLink = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   justifyContent: 'center',
+  alignItems: 'center',
   marginBottom: globalMargins.medium,
 }
 

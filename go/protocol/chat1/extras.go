@@ -22,20 +22,28 @@ func (id TLFID) String() string {
 	return hex.EncodeToString(id)
 }
 
+func MakeConvID(val string) (ConversationID, error) {
+	return hex.DecodeString(val)
+}
+
+func (cid ConversationID) Bytes() []byte {
+	return []byte(cid)
+}
+
 func (cid ConversationID) String() string {
-	return strconv.FormatUint(uint64(cid), 10)
+	return hex.EncodeToString(cid)
 }
 
-func MakeConversationID(val uint64) ConversationID {
-	return ConversationID(val)
+func (cid ConversationID) IsNil() bool {
+	return len(cid) == 0
 }
 
-func ConvertConversationID(val string) (ConversationID, error) {
-	raw, err := strconv.ParseUint(val, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return MakeConversationID(raw), nil
+func (cid ConversationID) Eq(c ConversationID) bool {
+	return bytes.Equal(cid, c)
+}
+
+func (cid ConversationID) Less(c ConversationID) bool {
+	return bytes.Compare(cid, c) < 0
 }
 
 func MakeTLFID(val string) (TLFID, error) {

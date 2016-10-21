@@ -17,7 +17,7 @@ const ClearSearch = ({onReset, showUserGroup}) => (
   </Box>
 )
 
-class Render extends Component<void, Props, void> {
+class SearchRender extends Component<void, Props, void> {
   render () {
     const userSearchProps: UserSearchProps = this.props
     const userGroupProps: UserGroupProps = this.props
@@ -42,4 +42,4 @@ class Render extends Component<void, Props, void> {
   }
 }
 
-export default Render
+export default SearchRender

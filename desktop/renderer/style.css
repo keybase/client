@@ -55,65 +55,60 @@ table {
 @font-face {
     font-family: 'Source Code Pro';
     font-weight: 400;
-    src: url(fonts/SourceCodePro.ttf);
-    src: local('Source Code Pro'), local('SourceCodePro-Regular'), format('truetype');
+    src: url('fonts/SourceCodePro.ttf') format('truetype');
 }
 
 @font-face {
     font-family: 'Source Code Pro';
     font-weight: 600;
-    src: url(fonts/SourceCodePro-Semi_bold.ttf);
-    src: local('Source Code Pro'), local('SourceCodePro-Semibold'), format('truetype');
+    src: url('fonts/SourceCodePro-Semi_bold.ttf') format('truetype');
 }
+/* End Source Code Pro */
 
-/* Lato */
+/* OpenSans */
 @font-face {
-    font-family: 'Lato';
+    font-family: 'OpenSans';
     font-weight: 400;
-    src: url(fonts/Lato.ttf);
-    src: local('Lato'), local('Lato-Regular'), format('truetype');
+    src: url('fonts/OpenSans.ttf') format('truetype');
 }
 
 @font-face {
-    font-family: 'Lato';
+    font-family: 'OpenSans';
     font-weight: 400;
     font-style: italic;
-    src: url(fonts/Lato_italic.ttf);
-    src: local('Lato'), local('Lato-Italic'), format('truetype');
+    src: url('fonts/OpenSans_italic.ttf') format('truetype');
 }
 
 @font-face {
-    font-family: 'Lato';
+    font-family: 'OpenSans';
     font-weight: 600;
-    src: url(fonts/Lato-Semi_bold.ttf);
-    src: local('Lato'), local('Lato-Semibold'), format('truetype');
+    src: url('fonts/OpenSans-Semi_bold.ttf') format('truetype');
 }
 
 @font-face {
-    font-family: 'Lato';
+    font-family: 'OpenSans';
     font-weight: 600;
     font-style: italic;
-    src: url(fonts/Lato-Semibold_italic.ttf);
-    src: local('Lato'), local('Lato-SemiboldItalic'), format('truetype');
+    src: url('fonts/OpenSans-Semibold_italic.ttf') format('truetype');
 }
 
 @font-face {
-    font-family: 'Lato';
+    font-family: 'OpenSans';
     font-weight: 700;
-    src: url(fonts/Lato_bold.ttf);
-    src: local('Lato'), local('Lato-Bold'), format('truetype');
+    src: url('fonts/OpenSans_bold.ttf') format('truetype');
 }
+/* End OpenSans */
 
 html {
-  box-sizing: border-box;
-  cursor: default;
+    box-sizing: border-box;
+    cursor: default;
 }
+
 *, *:before, *:after {
-  box-sizing: inherit;
+    box-sizing: inherit;
 }
 
 body {
-    font-family: 'Roboto';
     overflow: hidden;
 }
 
@@ -127,34 +122,36 @@ body {
 }
 
 .hover-underline {
-  text-decoration: none;
+    text-decoration: none;
 }
+
 .hover-underline:hover {
-  text-decoration: underline;
+    text-decoration: underline;
 }
+
 .hover-underline-container:hover .underline{
-  text-decoration: underline;
+    text-decoration: underline;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
-	display: none;
-	width: 0;
+    display: none;
+    width: 0;
 }
 
 .fade-anim-enter {
-  opacity: 0;
+    opacity: 0;
 }
 
 .fade-anim-enter.fade-anim-enter-active {
-  opacity: 1;
-  transition: opacity 250ms ease-in-out;
+    opacity: 1;
+    transition: opacity 250ms ease-in-out;
 }
 
 .fade-anim-leave {
-  opacity: 1;
+    opacity: 1;
 }
 
 .fade-anim-leave.fade-anim-leave-active {
-  opacity: 0;
-  transition: opacity 250ms ease-in-out;
+    opacity: 0;
+    transition: opacity 250ms ease-in-out;
 }

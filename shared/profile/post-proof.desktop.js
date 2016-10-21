@@ -23,14 +23,14 @@ const PostProof = (props: Props) => {
       clipboard.writeText(proofText)
     }}>
       <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />
-      {!!errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
+      {!!errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
         <PlatformIcon platform={platform} overlay='icon-proof-unfinished' overlayColor={globalColors.grey} />
         <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
         {!!platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
         {descriptionView || (descriptionText && <Text type='Body'>{descriptionText}</Text>)}
         {!!proofText && <CopyableText style={styleProofText} value={proofText} />}
-        {!!noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
+        {!!noteText && <Text style={styleNoteText} type='Body'>{noteText}</Text>}
         {!!proofAction && !!proofActionText && !!proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
         <Box style={styleButtonsContainer}>
           {!!onCancelText && <Button type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
@@ -93,7 +93,7 @@ const stylePlatformUsername = {
 }
 
 const stylePlatformSubtitle = {
-  color: globalColors.black_10,
+  color: globalColors.black_20,
   marginBottom: globalMargins.medium,
 }
 
@@ -110,7 +110,7 @@ const styleNoteText = {
 }
 
 const styleProofAction = {
-  marginTop: globalMargins.tiny,
+  marginTop: globalMargins.small,
 }
 
 const styleButtonsContainer = {

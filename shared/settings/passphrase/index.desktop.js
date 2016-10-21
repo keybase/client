@@ -7,30 +7,23 @@ import type {Props} from './index'
 
 function UpdatePassphrase (props: Props) {
   const inputType = props.showTyping ? 'passwordVisible' : 'password'
+  const error = props.errorMessage
+    ? {message: props.errorMessage, type: 'error'}
+    : props.hasPGPKeyOnServer ? {message: 'Forgot your passphrase?  That\'s ok, but you will need to make a new PGP key, assuming you don\'t have a backup of your old private one.', type: 'error'} : null
   return (
     <StandardScreen
       onBack={props.onBack}
-      notification={props.errorMessage ? {message: props.errorMessage, type: 'error'} : null}
-    >
-      <Input
-        floatingLabelText='Current passphrase'
-        value={props.currentPassphrase}
-        type={inputType}
-        onChangeText={props.onChangeCurrentPassphrase}
-        style={styleInput}
-      />
+      notification={error} >
       <Input
         floatingLabelText='New passphrase'
         value={props.newPassphrase}
         type={inputType}
         errorText={props.newPassphraseError}
         onChangeText={props.onChangeNewPassphrase}
-        style={styleInput}
-      />
+        style={styleInput} />
       {!props.newPassphraseError && <Text
         type='BodySmall'
-        style={stylePasswordNote}
-      >
+        style={stylePasswordNote} >
         (Minimum 12 characters)
       </Text>}
       <Input
@@ -39,28 +32,17 @@ function UpdatePassphrase (props: Props) {
         type={inputType}
         errorText={props.newPassphraseConfirmError}
         onChangeText={props.onChangeNewPassphraseConfirm}
-        style={styleInput}
-      />
+        style={styleInput} />
       <Checkbox
         label='Show typing'
         onCheck={props.onChangeShowPassphrase}
         checked={props.showTyping}
-        style={{marginBottom: globalMargins.medium}}
-      />
+        style={{marginBottom: globalMargins.medium}} />
       <Button
         type='Primary'
         label='Save'
         disabled={!props.canSave}
-        onClick={props.onSave}
-      />
-      <Text
-        onClick={props.onForgotPassphrase}
-        link={true}
-        type='BodyPrimaryLink'
-        style={{marginTop: globalMargins.medium}}
-      >
-        Forgot passphrase?
-      </Text>
+        onClick={props.onSave} />
     </StandardScreen>
   )
 }

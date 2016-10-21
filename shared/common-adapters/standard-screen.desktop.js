@@ -9,7 +9,7 @@ const StandardScreen = (props: Props) => {
     !!props.onBack && <BackButton key='back' onClick={props.onBack} style={{...styleBack, ...props.styleBack}} />,
     !!props.notification && (<Box key='banner' style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
       {typeof props.notification.message === 'string'
-        ? <Text style={styleBannerText} type='BodySmallSemibold'>{props.notification.message}</Text>
+        ? <Text style={styleBannerText} type='BodySemibold'>{props.notification.message}</Text>
         : props.notification.message
       }
     </Box>),
@@ -65,6 +65,9 @@ const styleBanner = (notificationType: NotificationType) => ({
   justifyContent: 'center',
   alignItems: 'center',
   width: '100%',
+  paddingLeft: 20,
+  paddingRight: 20,
+  textAlign: 'center',
   zIndex: 1,
   height: globalMargins.large,
   backgroundColor: notificationType === 'error'
