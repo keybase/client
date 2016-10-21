@@ -11,7 +11,7 @@ import (
 type ThreadID []byte
 type MessageID uint
 type TopicID []byte
-type ConversationID uint64
+type ConversationID []byte
 type TLFID []byte
 type Hash []byte
 type MessageType int

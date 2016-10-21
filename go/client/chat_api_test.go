@@ -195,10 +195,10 @@ var optTests = []optTest{
 		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"conversation_id": 123}}}`,
+		input: `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "conversation_id": 999111}}}`,
+		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "conversation_id": "999111"}}}`,
 		err:   ErrInvalidOptions{},
 	},
 	{
@@ -217,17 +217,17 @@ var optTests = []optTest{
 		input: `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": 123, "message": {"body": "hi"}}}}`,
+		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}}}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": 222, "channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
+		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
 		err:   ErrInvalidOptions{},
 	},
 	{
 		input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
 	},
 	{
-		input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": 7777}}}`,
+		input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "7777"}}}`,
 	},
 	{
 		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}`, /* missing closing bracket at end */
@@ -280,7 +280,7 @@ var optTests = []optTest{
 		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": "edited"}}}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": 333, "message_id": 123, "message": {"body": "edited"}}}}`,
+		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": "edited"}}}}`,
 	},
 	{
 		input: `{"id": 30, "method": "delete", "params":{"version": 1, "options": {}}}`,
@@ -360,7 +360,7 @@ var echoTests = []echoTest{
 		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input:  `{"method": "read", "params":{"version": 1, "options": {"conversation_id": 123}}}`,
+		input:  `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 	{
@@ -372,7 +372,7 @@ var echoTests = []echoTest{
 		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
 	{
-		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": 123}}}`,
+		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
 		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
 	{

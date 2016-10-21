@@ -1,9 +1,7 @@
 package storage
 
 import (
-	"bytes"
 	"crypto/rand"
-	"encoding/binary"
 	"math/big"
 	"testing"
 
@@ -68,12 +66,8 @@ func addMsgs(num int, msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
 }
 
 func makeConvID() chat1.ConversationID {
-	// Read into int64
-	var res uint64
 	rbytes := randBytes(8)
-	buf := bytes.NewReader(rbytes)
-	binary.Read(buf, binary.LittleEndian, &res)
-	return chat1.ConversationID(res)
+	return chat1.ConversationID(rbytes)
 }
 
 func makeConversation(maxID chat1.MessageID) chat1.Conversation {

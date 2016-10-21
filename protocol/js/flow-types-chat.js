@@ -374,7 +374,7 @@ export type Conversation = {
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
-export type ConversationID = uint64
+export type ConversationID = bytes
 
 export type ConversationIDTriple = {
   tlfid: TLFID,
