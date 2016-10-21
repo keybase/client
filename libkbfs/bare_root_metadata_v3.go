@@ -95,9 +95,12 @@ type ExtraMetadataV3 struct {
 }
 
 // NewExtraMetadataV3 creates a new ExtraMetadataV3 given a pair of key bundles
-func NewExtraMetadataV3(
-	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3) *ExtraMetadataV3 {
-	return &ExtraMetadataV3{wkb: wkb, rkb: rkb}
+func NewExtraMetadataV3(wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3) (
+	*ExtraMetadataV3, error) {
+	if wkb == nil || rkb == nil {
+		return nil, errors.New("Nil key bundle passed")
+	}
+	return &ExtraMetadataV3{wkb: wkb, rkb: rkb}, nil
 }
 
 // MetadataVersion implements the ExtraMetadata interface for ExtraMetadataV3.
