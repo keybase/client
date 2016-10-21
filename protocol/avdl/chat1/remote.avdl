@@ -60,6 +60,10 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
 
+  record SetConversationStatusRes {
+    union { null, RateLimit } rateLimit;
+  }
+
   GetInboxRemoteRes getInboxRemote(union { null, GetInboxQuery } query, union { null, Pagination } pagination);
   GetThreadRemoteRes getThreadRemote(ConversationID conversationID, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
 
@@ -71,6 +75,8 @@ protocol remote {
   GetMessagesRemoteRes getMessagesRemote(ConversationID conversationID, array<MessageID> messageIDs);
 
   MarkAsReadRes markAsRead(ConversationID conversationID, MessageID msgID);
+
+  SetConversationStatusRes SetConversationStatus(ConversationID conversationID, ConversationStatus status);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest

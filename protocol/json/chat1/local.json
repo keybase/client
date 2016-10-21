@@ -614,6 +614,13 @@
           "name": "oneChatTypePerTLF"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "ConversationStatus"
+          },
+          "name": "statusOverrideDefault"
+        },
+        {
           "type": "boolean",
           "name": "unreadOnly"
         },
@@ -653,6 +660,19 @@
     {
       "type": "record",
       "name": "PostLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetConversationStatusLocalRes",
       "fields": [
         {
           "type": {
@@ -916,6 +936,19 @@
         }
       ],
       "response": "PostLocalRes"
+    },
+    "SetConversationStatusLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "status",
+          "type": "ConversationStatus"
+        }
+      ],
+      "response": "SetConversationStatusLocalRes"
     },
     "postAttachmentLocal": {
       "request": [

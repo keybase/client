@@ -88,6 +88,8 @@ func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquer
 	rquery.UnreadOnly = lquery.UnreadOnly
 	rquery.ReadOnly = lquery.ReadOnly
 	rquery.ConvID = lquery.ConvID
+	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
+	rquery.Status = lquery.StatusOverrideDefault
 
 	return rquery, nil
 }
@@ -719,6 +721,24 @@ func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintex
 	// TODO: populate plaintext.ClientHeader.Conv
 
 	return boxed, nil
+}
+
+func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg chat1.SetConversationStatusLocalArg) (chat1.SetConversationStatusLocalRes, error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return chat1.SetConversationStatusLocalRes{}, err
+	}
+
+	scsres, err := h.remoteClient().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
+		ConversationID: arg.ConversationID,
+		Status:         arg.Status,
+	})
+	if err != nil {
+		return chat1.SetConversationStatusLocalRes{}, err
+	}
+
+	return chat1.SetConversationStatusLocalRes{
+		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{scsres.RateLimit}),
+	}, nil
 }
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.

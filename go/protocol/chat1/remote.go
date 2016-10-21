@@ -60,6 +60,10 @@ type MarkAsReadRes struct {
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
+type SetConversationStatusRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
 type S3Params struct {
 	Bucket               string `codec:"bucket" json:"bucket"`
 	ObjectKey            string `codec:"objectKey" json:"objectKey"`
@@ -105,6 +109,11 @@ type MarkAsReadArg struct {
 	MsgID          MessageID      `codec:"msgID" json:"msgID"`
 }
 
+type SetConversationStatusArg struct {
+	ConversationID ConversationID     `codec:"conversationID" json:"conversationID"`
+	Status         ConversationStatus `codec:"status" json:"status"`
+}
+
 type TlfFinalizeArg struct {
 	TlfID TLFID `codec:"tlfID" json:"tlfID"`
 }
@@ -126,6 +135,7 @@ type RemoteInterface interface {
 	NewConversationRemote2(context.Context, NewConversationRemote2Arg) (NewConversationRemoteRes, error)
 	GetMessagesRemote(context.Context, GetMessagesRemoteArg) (GetMessagesRemoteRes, error)
 	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes, error)
+	SetConversationStatus(context.Context, SetConversationStatusArg) (SetConversationStatusRes, error)
 	TlfFinalize(context.Context, TLFID) error
 	GetS3Params(context.Context, ConversationID) (S3Params, error)
 	S3Sign(context.Context, S3SignArg) ([]byte, error)
@@ -247,6 +257,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"SetConversationStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]SetConversationStatusArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetConversationStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetConversationStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.SetConversationStatus(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"tlfFinalize": {
 				MakeArg: func() interface{} {
 					ret := make([]TlfFinalizeArg, 1)
@@ -336,6 +362,11 @@ func (c RemoteClient) GetMessagesRemote(ctx context.Context, __arg GetMessagesRe
 
 func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (res MarkAsReadRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.markAsRead", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SetConversationStatus(ctx context.Context, __arg SetConversationStatusArg) (res SetConversationStatusRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.SetConversationStatus", []interface{}{__arg}, &res)
 	return
 }
 

@@ -150,3 +150,10 @@ func (m MessageBoxed) GetMessageID() MessageID {
 func (m MessageBoxed) GetMessageType() MessageType {
 	return m.ClientHeader.MessageType
 }
+
+var ConversationStatusGregorMap = map[ConversationStatus]string{
+	ConversationStatus_UNFILED:  "unfiled",
+	ConversationStatus_FAVORITE: "favorite",
+	ConversationStatus_IGNORED:  "ignored",
+	ConversationStatus_BLOCKED:  "blocked",
+}

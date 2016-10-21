@@ -68,6 +68,16 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "ConversationStatus",
+      "symbols": [
+        "UNFILED_0",
+        "FAVORITE_1",
+        "IGNORED_2",
+        "BLOCKED_3"
+      ]
+    },
+    {
       "type": "record",
       "name": "Pagination",
       "fields": [
@@ -172,6 +182,13 @@
             "boolean"
           ],
           "name": "oneChatTypePerTLF"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationStatus"
+          },
+          "name": "status"
         },
         {
           "type": "boolean",
