@@ -109,9 +109,11 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				if conv.ReaderInfo.ReadMsgid == m.GetMessageID() {
 					unread = ""
 				}
-				if m.GetMessageType() == chat1.MessageType_TEXT {
-					mCopy := m
-					msg = &mCopy
+				if m.GetMessageType() == chat1.MessageType_TEXT || m.GetMessageType() == chat1.MessageType_ATTACHMENT {
+					if msg == nil || m.GetMessageID() > msg.GetMessageID() {
+						mCopy := m
+						msg = &mCopy
+					}
 				}
 			}
 		}
