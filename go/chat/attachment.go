@@ -89,7 +89,7 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 
 	// decrypt body
 	dec := NewPassThrough()
-	decBody, err := dec.Decrypt(tee, asset.Key)
+	decBody := dec.Decrypt(tee, asset.Key, nil)
 	if err != nil {
 		return err
 	}
