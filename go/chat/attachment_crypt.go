@@ -16,8 +16,8 @@ type Encrypter interface {
 	// Encrypt takes a plaintext reader and returns a ciphertext reader.
 	Encrypt(plaintext io.Reader) (ciphertext io.Reader)
 
-	// EncKey returns the ephemeral key that was used during Encrypt.
-	EncKey() []byte
+	// EncryptKey returns the ephemeral key that was used during Encrypt.
+	EncryptKey() []byte
 
 	// VerifyKey returns the public portion of the signing key that
 	// can be used for signature verification.
@@ -103,7 +103,7 @@ func (s *SignEncrypter) Encrypt(r io.Reader) io.Reader {
 	return signencrypt.NewEncodingReader(s.encKey, s.signKey, nonce, r)
 }
 
-func (s *SignEncrypter) EncKey() []byte {
+func (s *SignEncrypter) EncryptKey() []byte {
 	return []byte((*s.encKey)[:])
 }
 

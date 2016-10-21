@@ -973,7 +973,7 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 		Bucket:   upRes.Bucket,
 		Path:     upRes.Path,
 		Size:     int(upRes.Size),
-		Key:      enc.Key(),
+		Key:      enc.EncryptKey(),
 	}
 	return asset, nil
 
