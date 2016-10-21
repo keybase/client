@@ -69,6 +69,9 @@ func TLFReaderKeyBundleIDFromBytes(data []byte) (TLFReaderKeyBundleID, error) {
 // TLFReaderKeyBundleIDFromString creates a new TLFReaderKeyBundleID from the given string.
 // If the returned error is nil, the returned TLFReaderKeyBundleID is valid.
 func TLFReaderKeyBundleIDFromString(id string) (TLFReaderKeyBundleID, error) {
+	if len(id) == 0 {
+		return TLFReaderKeyBundleID{}, nil
+	}
 	h, err := kbfshash.HashFromString(id)
 	if err != nil {
 		return TLFReaderKeyBundleID{}, err
@@ -126,6 +129,9 @@ func TLFWriterKeyBundleIDFromBytes(data []byte) (TLFWriterKeyBundleID, error) {
 // TLFWriterKeyBundleIDFromString creates a new TLFWriterKeyBundleID from the given string.
 // If the returned error is nil, the returned TLFWriterKeyBundleID is valid.
 func TLFWriterKeyBundleIDFromString(id string) (TLFWriterKeyBundleID, error) {
+	if len(id) == 0 {
+		return TLFWriterKeyBundleID{}, nil
+	}
 	h, err := kbfshash.HashFromString(id)
 	if err != nil {
 		return TLFWriterKeyBundleID{}, err
