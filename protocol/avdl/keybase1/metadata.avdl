@@ -15,6 +15,11 @@ protocol metadata {
          bytes block;
   }
 
+  record KeyBundle {
+         int version;
+         bytes bundle;
+  }
+
   record MetadataResponse {
          string folderID;
          array<MDBlock> mdBlocks;
@@ -29,9 +34,15 @@ protocol metadata {
          Time timestamp;
   }
 
+  record KeyBundleResponse {
+         KeyBundle WriterBundle;
+         KeyBundle ReaderBundle;
+  }
+
   ChallengeInfo getChallenge();
   int authenticate(string signature);
   void putMetadata(MDBlock mdBlock, map<string> logTags);
+  void putMetadataV3(MDBlock mdBlock, KeyBundle readerKeyBundle, KeyBundle writerKeyBundle, map<string> logTags);
   MetadataResponse getMetadata(string folderID, bytes folderHandle, string branchID, boolean unmerged, long startRevision, long stopRevision, map<string> logTags);
   void registerForUpdates(string folderID, long currRevision, map<string> logTags);
   void pruneBranch(string folderID, string branchID, map<string> logTags);
@@ -45,6 +56,7 @@ protocol metadata {
   void ping();
   PingResponse ping2();
   bytes getLatestFolderHandle(string folderID);
+  KeyBundleResponse getKeyBundles(string folderID, string writerBundleID, string readerBundleID);
 
   // Merkle tree specific commands
   // todo: we probably also want a method which will return a minmum set of interior nodes
