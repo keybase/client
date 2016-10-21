@@ -1,5 +1,6 @@
 // @flow
 import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
+import type {Email} from './types/flow-types'
 
 export const invitesReclaim = 'settings:invitesReclaim'
 export type InvitesReclaim = NoErrorTypedAction<'settings:invitesReclaim', {inviteId: string}>
@@ -43,6 +44,11 @@ export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountFor
 export type PlanLevel = 'Basic' | 'Gold' | 'Friend'
 const plans: Array<PlanLevel> = ['Basic', 'Gold', 'Friend']
 
+export const loadSettings = 'settings:loadSettings'
+export type LoadSettings = NoErrorTypedAction<'settings:loadSettings', void>
+
+export const loadedSettings = 'settings:loadedSettings'
+
 export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
 
 export type Invitation = {
@@ -75,6 +81,7 @@ export type State = {
   allowDeleteAccount: boolean,
   invites: InvitesState,
   notifications: NotificationsState,
+  emails: ?Array<Email>,
 }
 
 const levelToPrice: {[key: PlanLevel]: string} = {

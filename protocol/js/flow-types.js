@@ -2445,6 +2445,18 @@ export function userLoadMyPublicKeysRpcPromise (request: $Exact<requestCommon & 
   return new Promise((resolve, reject) => { userLoadMyPublicKeysRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function userLoadMySettingsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMySettingsResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'user.loadMySettings'})
+}
+
+export function userLoadMySettingsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMySettingsResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => userLoadMySettingsRpc({...request, incomingCallMap, callback}))
+}
+
+export function userLoadMySettingsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMySettingsResult) => void}>): Promise<userLoadMySettingsResult> {
+  return new Promise((resolve, reject) => { userLoadMySettingsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function userLoadPublicKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadPublicKeysResult) => void} & {param: userLoadPublicKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadPublicKeys'})
 }
@@ -2712,6 +2724,11 @@ export type ED25519Signature = any
 export type ED25519SignatureInfo = {
   sig: ED25519Signature,
   publicKey: ED25519PublicKey,
+}
+
+export type Email = {
+  email: string,
+  isVerified: boolean,
 }
 
 export type EncryptedBytes32 = any
@@ -3897,6 +3914,10 @@ export type UserResolution = {
   userID: UID,
 }
 
+export type UserSettings = {
+  emails?: ?Array<Email>,
+}
+
 export type UserSummary = {
   uid: UID,
   username: string,
@@ -5029,6 +5050,8 @@ type userLoadAllPublicKeysUnverifiedResult = ?Array<PublicKey>
 
 type userLoadMyPublicKeysResult = ?Array<PublicKey>
 
+type userLoadMySettingsResult = UserSettings
+
 type userLoadPublicKeysResult = ?Array<PublicKey>
 
 type userLoadUncheckedUserSummariesResult = ?Array<UserSummary>
@@ -5210,6 +5233,7 @@ export type rpc =
   | userListTrackingRpc
   | userLoadAllPublicKeysUnverifiedRpc
   | userLoadMyPublicKeysRpc
+  | userLoadMySettingsRpc
   | userLoadPublicKeysRpc
   | userLoadUncheckedUserSummariesRpc
   | userLoadUserByNameRpc

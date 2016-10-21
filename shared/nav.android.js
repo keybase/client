@@ -18,13 +18,13 @@ import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
 import {navigateBack, switchTab} from './actions/router'
-import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, prettify} from './constants/tabs'
+import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, tabPrettify} from './constants/tabs'
 import {setupSource} from './util/forward-logs.native'
 import GlobalError from './global-errors/container'
 
-import type {VisibleTab} from './constants/tabs'
+import type {Tab} from './constants/tabs'
 
-const tabs: {[key: VisibleTab]: {module: any}} = {
+const tabs: {[key: Tab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
   [profileTab]: {module: ProfileContainer, name: 'Profile'},
   [folderTab]: {module: Folders, name: 'Folders'},
@@ -144,7 +144,7 @@ class Nav extends Component {
               </Box>
 
               <Box style={{marginLeft: 40}}>
-                <Text type='Body' style={styles.toolbarName}>{prettify(activeTab)}</Text>
+                <Text type='Body' style={styles.toolbarName}>{tabPrettify(activeTab)}</Text>
               </Box>
 
               <Box style={styles.toolbarSearchWrapper}>

@@ -15,6 +15,7 @@ const initialState: State = {
     allowSave: false,
     allowEdit: false,
   },
+  emails: [],
 }
 
 function reducer (state: State = initialState, action: Actions): State {
@@ -95,6 +96,12 @@ function reducer (state: State = initialState, action: Actions): State {
           ...action.payload,
         },
       }
+    case Constants.loadedSettings: {
+      return {
+        ...state,
+        ...action.payload,
+      }
+    }
   }
 
   return state

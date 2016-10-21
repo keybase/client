@@ -1,10 +1,12 @@
 // @flow
 import * as Constants from '../constants/settings'
-import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise, userLoadMySettingsRpcPromise} from '../constants/types/flow-types'
 import {setDeletedSelf} from '../actions/login'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {takeEvery, takeLatest, delay} from 'redux-saga'
 import {routeAppend} from '../actions/router'
+
+import {fetchBillingOverview} from './plan-billing'
 
 import type {SagaGenerator} from '../constants/types/saga'
 import type {
@@ -15,6 +17,7 @@ import type {
   InvitesSend,
   InvitesSent,
   Invitation,
+  LoadSettings,
   NotificationsRefresh,
   NotificationsSave,
   NotificationsToggle,
@@ -51,6 +54,10 @@ function setAllowDeleteAccount (allow: boolean): SetAllowDeleteAccount {
 
 function deleteAccountForever (): DeleteAccountForever {
   return {type: Constants.deleteAccountForever, payload: undefined}
+}
+
+function loadSettings (): LoadSettings {
+  return {type: Constants.loadSettings, payload: undefined}
 }
 
 function * saveNotificationsSaga (): SagaGenerator<any, any> {
@@ -277,7 +284,7 @@ function * deleteAccountForeverSaga (): SagaGenerator<any, any> {
     const allowDeleteAccount = yield select(state => state.settings.allowDeleteAccount)
 
     if (!username) {
-      throw new Error('Unable to delete account: not username set')
+      throw new Error('Unable to delete account: no username set')
     }
 
     if (!allowDeleteAccount) {
@@ -292,6 +299,12 @@ function * deleteAccountForeverSaga (): SagaGenerator<any, any> {
   }
 }
 
+function * loadSettingsSaga (action: LoadSettings): SagaGenerator<any, any> {
+  const userSettings = yield call(userLoadMySettingsRpcPromise)
+  yield put(fetchBillingOverview())
+  yield put({type: Constants.loadedSettings, payload: userSettings})
+}
+
 function * settingsSaga (): SagaGenerator<any, any> {
   yield [
     takeEvery(Constants.invitesReclaim, reclaimInviteSaga),
@@ -300,6 +313,7 @@ function * settingsSaga (): SagaGenerator<any, any> {
     takeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
     takeLatest(Constants.notificationsSave, saveNotificationsSaga),
     takeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga),
+    takeLatest(Constants.loadSettings, loadSettingsSaga),
   ]
 }
 
@@ -312,6 +326,7 @@ export {
   notificationsToggle,
   setAllowDeleteAccount,
   deleteAccountForever,
+  loadSettings,
 }
 
 export default settingsSaga

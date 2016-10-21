@@ -134,6 +134,15 @@ func (h *UserHandler) Search(_ context.Context, arg keybase1.SearchArg) (results
 	return
 }
 
+func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us keybase1.UserSettings, err error) {
+	emails, err := libkb.LoadUserEmails(h.G())
+	if err != nil {
+		return
+	}
+	us.Emails = emails
+	return
+}
+
 func (h *UserHandler) LoadPublicKeys(ctx context.Context, arg keybase1.LoadPublicKeysArg) (keys []keybase1.PublicKey, err error) {
 	larg := libkb.LoadUserArg{UID: arg.Uid, Contextified: libkb.NewContextified(h.G())}
 	return h.loadPublicKeys(ctx, larg)

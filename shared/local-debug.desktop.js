@@ -41,7 +41,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.redirectOnLogout = false
   config.reduxDevToolsSelect = state => state.tracker
   config.enableStoreLogging = true
-  config.enableActionLogging = false
+  config.enableActionLogging = true
   config.forwardLogs = false
   config.devStoreChangingFunctions = true
   config.printOutstandingRPCs = true
@@ -50,7 +50,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.printRoutes = true
   config.initialTabState = {
     [Tabs.loginTab]: [],
-    [Tabs.settingsTab]: ['devMenu', 'dumbSheet'],
+    [Tabs.settingsTab]: [],
   }
   config.logStatFrequency = 0.8
   config.actionStatFrequency = 0.8
