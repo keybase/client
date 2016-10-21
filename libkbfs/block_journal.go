@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -120,6 +121,8 @@ type blockJournalEntry struct {
 	Contexts map[BlockID][]BlockContext `codec:",omitempty"`
 	// Only used for mdRevMarkerOps.
 	Revision MetadataRevision `codec:",omitempty"`
+	// Ignore this entry if flushing if this is true.
+	Ignore bool `codec:",omitempty"`
 
 	codec.UnknownFieldSetHandler
 }
@@ -803,6 +806,15 @@ func (j *blockJournal) getNextEntriesToFlush(
 			return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
 		}
 
+		if entry.Ignore {
+			if loopEnd < end {
+				loopEnd++
+			}
+			entries.other = append(entries.other, entry)
+			entries.all = append(entries.all, entry)
+			continue
+		}
+
 		var data []byte
 		var serverHalf kbfscrypto.BlockCryptKeyServerHalf
 
@@ -875,6 +887,12 @@ func flushNonBPSBlockJournalEntry(
 			return err
 		}
 
+	case blockPutOp:
+		if !entry.Ignore {
+			return errors.New("Trying to flush unignored blockPut as other")
+		}
+		// Otherwise nothing to do.
+
 	case mdRevMarkerOp:
 		// Nothing to do.
 
@@ -938,7 +956,7 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 	ordinal journalOrdinal, entry blockJournalEntry) (
 	flushedBytes int64, err error) {
 	// Fix up the block byte count if we've finished a Put.
-	if entry.Op == blockPutOp {
+	if entry.Op == blockPutOp && !entry.Ignore {
 		id, _, err := entry.getSingleContext()
 		if err != nil {
 			return 0, err
@@ -1020,6 +1038,70 @@ func (j *blockJournal) removeFlushedEntries(ctx context.Context,
 			SyncedBytes: flushedBytes,
 		})
 	}
+	return nil
+}
+
+func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
+	blocksToIgnore []BlockID) error {
+	first, err := j.j.readEarliestOrdinal()
+	if os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	last, err := j.j.readLatestOrdinal()
+	if err != nil {
+		return err
+	}
+
+	idsToIgnore := make(map[BlockID]bool)
+	for _, id := range blocksToIgnore {
+		idsToIgnore[id] = true
+	}
+
+	for i := first; i <= last; i++ {
+		e, err := j.readJournalEntry(i)
+		if err != nil {
+			return err
+		}
+
+		switch e.Op {
+		case blockPutOp, addRefOp:
+			id, _, err := e.getSingleContext()
+			if err != nil {
+				return err
+			}
+
+			if !idsToIgnore[id] {
+				continue
+			}
+
+			e.Ignore = true
+			err = j.j.writeJournalEntry(i, e)
+			if err != nil {
+				return nil
+			}
+
+			if e.Op == blockPutOp {
+				b, err := j.getDataSize(id)
+				// Ignore ENOENT errors, since users like
+				// BlockServerDisk can remove block data without
+				// deleting the corresponding addRef.
+				if err != nil {
+					return err
+				}
+				j.unflushedBytes -= b
+			}
+
+		case mdRevMarkerOp:
+			e.Ignore = true
+			err = j.j.writeJournalEntry(i, e)
+			if err != nil {
+				return nil
+			}
+		}
+	}
+
 	return nil
 }
 
