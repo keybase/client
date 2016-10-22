@@ -325,7 +325,6 @@ function * deleteAccountForeverSaga (): SagaGenerator<any, any> {
 
 function * loadSettingsSaga (action: LoadSettings): SagaGenerator<any, any> {
   const userSettings = yield call(userLoadMySettingsRpcPromise)
-  yield put(fetchBillingOverview())
   yield put({type: Constants.loadedSettings, payload: userSettings})
 }
 
