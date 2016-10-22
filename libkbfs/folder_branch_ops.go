@@ -601,8 +601,13 @@ func (fbo *folderBranchOps) setHeadLocked(
 				journalPred, err := fbo.getJournalPredecessorRevision(ctx)
 				switch err {
 				case nil:
-					fbo.setLatestMergedRevisionLocked(
-						ctx, lState, journalPred, false)
+					// journalPred will be
+					// MetadataRevisionUninitialized
+					// when the journal is empty.
+					if journalPred >= MetadataRevisionInitial {
+						fbo.setLatestMergedRevisionLocked(
+							ctx, lState, journalPred, false)
+					}
 				case errNoFlushedRevisions:
 					// The server has no revisions, so leave the
 					// latest merged revision uninitialized.
