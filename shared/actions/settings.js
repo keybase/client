@@ -357,7 +357,6 @@ export {
   onSubmitNewPassphrase,
   onUpdatePGPSettings,
   setAllowDeleteAccount,
-  deleteAccountForever,
   loadSettings,
 }
 
