@@ -626,9 +626,7 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["a"] = DirEntry{EntryInfo: EntryInfo{Type: File}}
 	dirBlock.Children["b"] = DirEntry{EntryInfo: EntryInfo{Type: Dir}}
-	blockPtr := makeBP(rootID, rmd, config, u)
-	rmd.data.Dir.BlockPointer = blockPtr
-	node := pathNode{blockPtr, "p"}
+	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	testPutBlockInCache(t, config, node.BlockPointer, id, dirBlock)
 	ops := getOps(config, id)
@@ -658,7 +656,6 @@ func TestKBFSOpsGetBaseDirChildrenUncachedSuccess(t *testing.T) {
 	rootID := fakeBlockID(42)
 	dirBlock := NewDirBlock().(*DirBlock)
 	blockPtr := makeBP(rootID, rmd, config, u)
-	rmd.data.Dir.BlockPointer = blockPtr
 	node := pathNode{blockPtr, "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
@@ -714,7 +711,6 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
 	rootID := fakeBlockID(42)
 	dirBlock := NewDirBlock().(*DirBlock)
 	blockPtr := makeBP(rootID, rmd, config, u)
-	rmd.data.Dir.BlockPointer = blockPtr
 	node := pathNode{blockPtr, "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
@@ -748,9 +744,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	dirBlock := NewDirBlock().(*DirBlock)
 	dirBlock.Children["a"] = DirEntry{EntryInfo: EntryInfo{Type: Exec}}
 	dirBlock.Children["b"] = DirEntry{EntryInfo: EntryInfo{Type: Sym}}
-	blockPtr := makeBP(rootID, rmd, config, u)
-	rmd.data.Dir.BlockPointer = blockPtr
-	node := pathNode{blockPtr, "p"}
+	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	aNode := pathNode{makeBP(aID, rmd, config, u), "a"}
 	bNode := pathNode{makeBP(bID, rmd, config, u), "b"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode, bNode}}

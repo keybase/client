@@ -279,14 +279,3 @@ func (ncs *nodeCacheStandard) PathFromNode(node Node) (p path) {
 	p.FolderBranch = ncs.folderBranch
 	return
 }
-
-// AllNodes implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) AllNodes() []Node {
-	ncs.lock.Lock()
-	defer ncs.lock.Unlock()
-	var nodes []Node
-	for _, entry := range ncs.nodes {
-		nodes = append(nodes, makeNodeStandardForEntry(entry))
-	}
-	return nodes
-}

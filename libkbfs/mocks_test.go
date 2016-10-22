@@ -1176,38 +1176,6 @@ func (_mr *_MockencryptionKeyGetterRecorder) GetTLFCryptKeyForEncryption(arg0, a
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForEncryption", arg0, arg1)
 }
 
-// Mock of mdDecryptionKeyGetter interface
-type MockmdDecryptionKeyGetter struct {
-	ctrl     *gomock.Controller
-	recorder *_MockmdDecryptionKeyGetterRecorder
-}
-
-// Recorder for MockmdDecryptionKeyGetter (not exported)
-type _MockmdDecryptionKeyGetterRecorder struct {
-	mock *MockmdDecryptionKeyGetter
-}
-
-func NewMockmdDecryptionKeyGetter(ctrl *gomock.Controller) *MockmdDecryptionKeyGetter {
-	mock := &MockmdDecryptionKeyGetter{ctrl: ctrl}
-	mock.recorder = &_MockmdDecryptionKeyGetterRecorder{mock}
-	return mock
-}
-
-func (_m *MockmdDecryptionKeyGetter) EXPECT() *_MockmdDecryptionKeyGetterRecorder {
-	return _m.recorder
-}
-
-func (_m *MockmdDecryptionKeyGetter) GetTLFCryptKeyForMDDecryption(ctx context.Context, kmdToDecrypt KeyMetadata, kmdWithKeys KeyMetadata) (kbfscrypto.TLFCryptKey, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForMDDecryption", ctx, kmdToDecrypt, kmdWithKeys)
-	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockmdDecryptionKeyGetterRecorder) GetTLFCryptKeyForMDDecryption(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForMDDecryption", arg0, arg1, arg2)
-}
-
 // Mock of KeyManager interface
 type MockKeyManager struct {
 	ctrl     *gomock.Controller
@@ -4286,16 +4254,6 @@ func (_m *MockNodeCache) PathFromNode(node Node) path {
 
 func (_mr *_MockNodeCacheRecorder) PathFromNode(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PathFromNode", arg0)
-}
-
-func (_m *MockNodeCache) AllNodes() []Node {
-	ret := _m.ctrl.Call(_m, "AllNodes")
-	ret0, _ := ret[0].([]Node)
-	return ret0
-}
-
-func (_mr *_MockNodeCacheRecorder) AllNodes() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "AllNodes")
 }
 
 // Mock of crAction interface
