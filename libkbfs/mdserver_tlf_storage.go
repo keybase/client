@@ -305,8 +305,15 @@ func (s *mdServerTlfStorage) getExtraMetadataReadLocked(
 func (s *mdServerTlfStorage) getKeyBundlesReadLocked(
 	wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
-	if wkbID == (TLFWriterKeyBundleID{}) ||
-		rkbID == (TLFReaderKeyBundleID{}) {
+	if (wkbID == TLFWriterKeyBundleID{}) !=
+		(rkbID == TLFReaderKeyBundleID{}) {
+		return nil, nil, fmt.Errorf(
+			"wkbID is empty (%t) != rkbID is empty (%t)",
+			wkbID == TLFWriterKeyBundleID{},
+			rkbID == TLFReaderKeyBundleID{})
+	}
+
+	if wkbID == (TLFWriterKeyBundleID{}) {
 		return nil, nil, nil
 	}
 

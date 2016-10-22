@@ -106,6 +106,10 @@ type ExtraMetadata interface {
 type RootMetadata struct {
 	bareMd MutableBareRootMetadata
 
+	// ExtraMetadata currently contains key bundles for post-v2
+	// metadata.
+	extra ExtraMetadata
+
 	// The plaintext, deserialized PrivateMetadata
 	//
 	// TODO: This should really be a pointer so that it's more
@@ -115,15 +119,31 @@ type RootMetadata struct {
 	// The TLF handle for this MD. May be nil if this object was
 	// deserialized (more common on the server side).
 	tlfHandle *TlfHandle
-
-	// ExtraMetadata currently contains key bundles for post-v2
-	// metadata.
-	extra ExtraMetadata
 }
 
 var _ KeyMetadata = (*RootMetadata)(nil)
 
-// NewRootMetadata returns a new RootMetadata object at the latest known version.
+// MakeRootMetadata makes a RootMetadata object from the given parameters.
+func MakeRootMetadata(bareMd MutableBareRootMetadata,
+	extra ExtraMetadata, handle *TlfHandle) *RootMetadata {
+	if bareMd == nil {
+		panic("nil MutableBareRootMetadata")
+	}
+	// extra can be nil.
+	if handle == nil {
+		panic("nil handle")
+	}
+	return &RootMetadata{
+		bareMd:    bareMd,
+		extra:     extra,
+		tlfHandle: handle,
+	}
+}
+
+// NewRootMetadata returns a new RootMetadata object at the latest
+// known version.
+//
+// TODO: This is used only for testing. Get rid of it.
 func NewRootMetadata() *RootMetadata {
 	return &RootMetadata{bareMd: &BareRootMetadataV2{}}
 	// MDv3 TODO: uncomment the below when we're ready for MDv3
@@ -920,7 +940,7 @@ func (rmds *RootMetadataSigned) IsLastModifiedBy(
 // versioned structure.
 func DecodeRootMetadata(
 	codec kbfscodec.Codec, tlf TlfID, ver, max MetadataVer, buf []byte) (
-	BareRootMetadata, error) {
+	MutableBareRootMetadata, error) {
 	if ver < FirstValidMetadataVer {
 		return nil, InvalidMetadataVersionError{tlf, ver}
 	} else if ver > max {

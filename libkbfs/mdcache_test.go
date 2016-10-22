@@ -31,8 +31,8 @@ func mdCacheShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 
 func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	mStatus MergeStatus, bid BranchID, h *TlfHandle, config *ConfigMock) {
-	rmd := &RootMetadata{
-		bareMd: &BareRootMetadataV2{
+	rmd := MakeRootMetadata(
+		&BareRootMetadataV2{
 			WriterMetadataV2: WriterMetadataV2{
 				ID:    tlf,
 				WKeys: make(TLFWriterKeyGenerations, 0, 1),
@@ -40,8 +40,7 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 			},
 			Revision: rev,
 			RKeys:    make(TLFReaderKeyGenerations, 1, 1),
-		},
-	}
+		}, nil, h)
 	rmd.AddNewKeysForTesting(config.Crypto(),
 		NewEmptyUserDeviceKeyInfoMap(), NewEmptyUserDeviceKeyInfoMap())
 	if mStatus == Unmerged {

@@ -70,8 +70,7 @@ func (j journalMDOps) getHeadFromJournal(
 				bid, head.BID())
 	}
 
-	// MDv3 TODO: pass key bundles when needed
-	headBareHandle, err := head.MakeBareTlfHandle(nil)
+	headBareHandle, err := head.MakeBareTlfHandleWithExtra()
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -138,8 +137,7 @@ func (j journalMDOps) getRangeFromJournal(
 			bid, head.BID())
 	}
 
-	// MDv3 TODO: pass key bundles when needed
-	bareHandle, err := head.MakeBareTlfHandle(nil)
+	bareHandle, err := head.MakeBareTlfHandleWithExtra()
 	if err != nil {
 		return nil, err
 	}
@@ -151,8 +149,8 @@ func (j journalMDOps) getRangeFromJournal(
 	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
 
 	for _, ibrmd := range ibrmds {
-		irmd, err :=
-			tlfJournal.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
+		irmd, err := tlfJournal.convertImmutableBareRMDToIRMD(
+			ctx, ibrmd, handle)
 		if err != nil {
 			return nil, err
 		}
@@ -300,7 +298,7 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		// Just route to the journal.
-		mdID, err := tlfJournal.putMD(ctx, rmd, rmd.extra)
+		mdID, err := tlfJournal.putMD(ctx, rmd)
 		if err != errTLFJournalDisabled {
 			return mdID, err
 		}
@@ -313,7 +311,7 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		rmd.SetUnmerged()
-		mdID, err := tlfJournal.putMD(ctx, rmd, rmd.extra)
+		mdID, err := tlfJournal.putMD(ctx, rmd)
 		if err != errTLFJournalDisabled {
 			return mdID, err
 		}

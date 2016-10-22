@@ -172,12 +172,6 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		return ImmutableRootMetadata{}, md.convertVerifyingKeyError(ctx, rmds, handle, err)
 	}
 
-	rmd := RootMetadata{
-		bareMd:    rmds.MD,
-		tlfHandle: handle,
-		extra:     extra,
-	}
-
 	_, uid, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		// If this is a public folder, it's ok to proceed if we have
@@ -189,12 +183,13 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		}
 	}
 
+	rmd := MakeRootMetadata(rmds.MD, extra, handle)
 	// Try to decrypt using the keys available in this md.  If that
 	// doesn't work, a future MD may contain more keys and will be
 	// tried later.
 	err = decryptMDPrivateData(
 		ctx, md.config.Codec(), md.config.Crypto(), md.config.BlockCache(),
-		md.config.BlockOps(), md.config.KeyManager(), uid, &rmd, rmd.ReadOnly())
+		md.config.BlockOps(), md.config.KeyManager(), uid, rmd, rmd.ReadOnly())
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -209,7 +204,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		localTimestamp = localTimestamp.Add(offset)
 	}
 
-	return MakeImmutableRootMetadata(&rmd, mdID, localTimestamp), nil
+	return MakeImmutableRootMetadata(rmd, mdID, localTimestamp), nil
 }
 
 // GetForHandle implements the MDOps interface for MDOpsStandard.

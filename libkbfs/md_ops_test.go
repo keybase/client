@@ -156,7 +156,8 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 }
 
 func verifyMDForPrivateHelper(
-	config *ConfigMock, rmds *RootMetadataSigned, minTimes int, maxTimes int) {
+	config *ConfigMock, rmds *RootMetadataSigned, h *TlfHandle,
+	minTimes int, maxTimes int) {
 	packedData := []byte{4, 3, 2, 1}
 	config.mockCodec.EXPECT().Encode(gomock.Any()).
 		Return(packedData, nil).AnyTimes()
@@ -164,10 +165,8 @@ func verifyMDForPrivateHelper(
 	config.mockCodec.EXPECT().
 		Decode(rmds.MD.GetSerializedPrivateMetadata(), gomock.Any()).
 		MinTimes(minTimes).MaxTimes(maxTimes).Return(nil)
-	fakeRMD := RootMetadata{
-		bareMd: rmds.MD,
-	}
-	expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config, &fakeRMD)
+	fakeRMD := MakeRootMetadata(rmds.MD, nil, h)
+	expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config, fakeRMD)
 	var pmd PrivateMetadata
 	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
 		gomock.Any(), kbfscrypto.TLFCryptKey{}).
@@ -191,8 +190,8 @@ func verifyMDForPrivateHelper(
 }
 
 func verifyMDForPrivate(
-	config *ConfigMock, rmds *RootMetadataSigned) {
-	verifyMDForPrivateHelper(config, rmds, 1, 1)
+	config *ConfigMock, rmds *RootMetadataSigned, h *TlfHandle) {
+	verifyMDForPrivateHelper(config, rmds, h, 1, 1)
 }
 
 func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
@@ -237,7 +236,7 @@ func TestMDOpsGetForHandlePrivateSuccess(t *testing.T) {
 
 	rmds, h, extra := newRMDS(t, config, false)
 
-	verifyMDForPrivate(config, rmds)
+	verifyMDForPrivate(config, rmds, h)
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 	expectGetKeyBundles(ctx, config, extra)
@@ -442,10 +441,10 @@ func TestMDOpsGetSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds, _, extra := newRMDS(t, config, false)
+	rmds, h, extra := newRMDS(t, config, false)
 
 	// Do this before setting tlfHandle to nil.
-	verifyMDForPrivate(config, rmds)
+	verifyMDForPrivate(config, rmds, h)
 
 	config.mockMdserv.EXPECT().GetForTLF(ctx, rmds.MD.TlfID(), NullBranchID, Merged).Return(rmds, nil)
 	expectGetKeyBundles(ctx, config, extra)
@@ -506,9 +505,12 @@ func TestMDOpsGetFailIdCheck(t *testing.T) {
 
 func makeRMDSRange(t *testing.T, config Config,
 	start MetadataRevision, count int, prevID MdID) (
-	rmdses []*RootMetadataSigned, extras []ExtraMetadata) {
+	rmdses []*RootMetadataSigned, h *TlfHandle, extras []ExtraMetadata) {
 	for i := 0; i < count; i++ {
-		rmds, _, extra := newRMDS(t, config, false)
+		rmds, rmdsH, extra := newRMDS(t, config, false)
+		if h == nil {
+			h = rmdsH
+		}
 		rmds.MD.SetPrevRoot(prevID)
 		rmds.MD.SetRevision(start + MetadataRevision(i))
 		currID, err := config.Crypto().MakeMdID(rmds.MD)
@@ -517,14 +519,14 @@ func makeRMDSRange(t *testing.T, config Config,
 		rmdses = append(rmdses, rmds)
 		extras = append(extras, extra)
 	}
-	return rmdses, extras
+	return rmdses, h, extras
 }
 
 func testMDOpsGetRangeSuccess(t *testing.T, fromStart bool) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmdses, extras := makeRMDSRange(t, config, 100, 5, fakeMdID(1))
+	rmdses, h, extras := makeRMDSRange(t, config, 100, 5, fakeMdID(1))
 
 	start := MetadataRevision(100)
 	stop := start + MetadataRevision(len(rmdses))
@@ -533,7 +535,7 @@ func testMDOpsGetRangeSuccess(t *testing.T, fromStart bool) {
 	}
 
 	for _, rmds := range rmdses {
-		verifyMDForPrivate(config, rmds)
+		verifyMDForPrivate(config, rmds, h)
 	}
 
 	config.mockMdserv.EXPECT().GetRange(ctx, rmdses[0].MD.TlfID(), NullBranchID, Merged, start,
@@ -562,7 +564,7 @@ func TestMDOpsGetRangeFailBadPrevRoot(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmdses, extras := makeRMDSRange(t, config, 100, 5, fakeMdID(1))
+	rmdses, h, extras := makeRMDSRange(t, config, 100, 5, fakeMdID(1))
 
 	rmdses[2].MD.SetPrevRoot(fakeMdID(1))
 
@@ -572,7 +574,7 @@ func TestMDOpsGetRangeFailBadPrevRoot(t *testing.T) {
 	// Verification is parallelized, so we have to expect at most one
 	// verification for each rmds.
 	for _, rmds := range rmdses {
-		verifyMDForPrivateHelper(config, rmds, 0, 1)
+		verifyMDForPrivateHelper(config, rmds, h, 0, 1)
 	}
 
 	config.mockMdserv.EXPECT().GetRange(ctx, rmdses[0].MD.TlfID(), NullBranchID, Merged, start,
@@ -715,7 +717,7 @@ func TestMDOpsGetRangeFailFinal(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmdses, extras := makeRMDSRange(t, config, 100, 5, fakeMdID(1))
+	rmdses, h, extras := makeRMDSRange(t, config, 100, 5, fakeMdID(1))
 	rmdses[2].MD.SetFinalBit()
 	rmdses[2].MD.SetPrevRoot(rmdses[1].MD.GetPrevRoot())
 
@@ -725,7 +727,7 @@ func TestMDOpsGetRangeFailFinal(t *testing.T) {
 	// Verification is parallelized, so we have to expect at most one
 	// verification for each rmds.
 	for _, rmds := range rmdses {
-		verifyMDForPrivateHelper(config, rmds, 0, 1)
+		verifyMDForPrivateHelper(config, rmds, h, 0, 1)
 	}
 
 	config.mockMdserv.EXPECT().GetRange(

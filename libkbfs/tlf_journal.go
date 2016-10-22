@@ -710,11 +710,11 @@ func (j *tlfJournal) flushBlockEntries(
 }
 
 func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
-	end MetadataRevision) (MdID, *RootMetadataSigned, error) {
+	end MetadataRevision) (MdID, *RootMetadataSigned, ExtraMetadata, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return MdID{}, nil, err
+		return MdID{}, nil, nil, err
 	}
 
 	return j.mdJournal.getNextEntryToFlush(ctx, end, j.config.Crypto())
@@ -722,17 +722,17 @@ func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
 
 func (j *tlfJournal) convertMDsToBranchAndGetNextEntry(
 	ctx context.Context, nextEntryEnd MetadataRevision) (
-	MdID, *RootMetadataSigned, error) {
+	MdID, *RootMetadataSigned, ExtraMetadata, error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return MdID{}, nil, err
+		return MdID{}, nil, nil, err
 	}
 
 	bid, err := j.mdJournal.convertToBranch(
 		ctx, j.config.Crypto(), j.config.Codec(), j.tlfID, j.config.MDCache())
 	if err != nil {
-		return MdID{}, nil, err
+		return MdID{}, nil, nil, err
 	}
 
 	if j.onBranchChange != nil {
@@ -740,8 +740,7 @@ func (j *tlfJournal) convertMDsToBranchAndGetNextEntry(
 	}
 
 	return j.mdJournal.getNextEntryToFlush(
-		ctx, nextEntryEnd,
-		j.config.Crypto())
+		ctx, nextEntryEnd, j.config.Crypto())
 }
 
 func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
@@ -772,7 +771,7 @@ func (j *tlfJournal) flushOneMDOp(
 
 	mdServer := j.config.MDServer()
 
-	mdID, rmds, err := j.getNextMDEntryToFlush(ctx, end)
+	mdID, rmds, extra, err := j.getNextMDEntryToFlush(ctx, end)
 	if err != nil {
 		return false, err
 	}
@@ -791,8 +790,7 @@ func (j *tlfJournal) flushOneMDOp(
 
 	j.log.CDebugf(ctx, "Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
 		rmds.MD.TlfID(), mdID, rmds.MD.RevisionNumber(), rmds.MD.BID())
-	// MDv3 TODO: pass actual key bundles
-	pushErr := mdServer.Put(ctx, rmds, nil)
+	pushErr := mdServer.Put(ctx, rmds, extra)
 	if isRevisionConflict(pushErr) {
 		headMdID, err := getMdID(ctx, mdServer, j.mdJournal.crypto,
 			rmds.MD.TlfID(), rmds.MD.BID(), rmds.MD.MergedStatus(),
@@ -810,8 +808,8 @@ func (j *tlfJournal) flushOneMDOp(
 		} else if rmds.MD.MergedStatus() == Merged {
 			j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
 			// Convert MDs to a branch and retry the put.
-			mdID, rmds, err = j.convertMDsToBranchAndGetNextEntry(
-				ctx, end)
+			mdID, rmds, extra, err =
+				j.convertMDsToBranchAndGetNextEntry(ctx, end)
 			if err != nil {
 				return false, err
 			}
@@ -821,7 +819,7 @@ func (j *tlfJournal) flushOneMDOp(
 			j.log.CDebugf(ctx, "Flushing newly-unmerged MD for TLF=%s with id=%s, rev=%s, bid=%s",
 				rmds.MD.TlfID(), mdID, rmds.MD.RevisionNumber(), rmds.MD.BID())
 			// MDv3 TODO: pass actual key bundles
-			pushErr = mdServer.Put(ctx, rmds, nil)
+			pushErr = mdServer.Put(ctx, rmds, extra)
 		}
 	}
 	if pushErr != nil {
@@ -947,7 +945,7 @@ func (j *tlfJournal) batchConvertImmutables(ctx context.Context,
 		return nil, nil
 	}
 
-	ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandle(nil)
+	ibrmdBareHandle, err := ibrmds[0].MakeBareTlfHandleWithExtra()
 	if err != nil {
 		return nil, err
 	}
@@ -1251,24 +1249,22 @@ func (j *tlfJournal) archiveBlockReferences(
 func (j *tlfJournal) convertImmutableBareRMDToIRMD(ctx context.Context,
 	ibrmd ImmutableBareRootMetadata, handle *TlfHandle) (
 	ImmutableRootMetadata, error) {
+	// TODO: Avoid having to do this type assertion.
 	brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
 	if !ok {
 		return ImmutableRootMetadata{}, MutableBareRootMetadataNoImplError{}
 	}
 
-	rmd := RootMetadata{
-		bareMd:    brmd,
-		tlfHandle: handle,
-	}
+	rmd := MakeRootMetadata(brmd, ibrmd.extra, handle)
 
 	err := decryptMDPrivateData(
 		ctx, j.config.Codec(), j.config.Crypto(),
 		j.config.BlockCache(), j.config.BlockOps(),
-		j.config.mdDecryptionKeyGetter(), j.uid, &rmd, rmd.ReadOnly())
+		j.config.mdDecryptionKeyGetter(), j.uid, rmd, rmd.ReadOnly())
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
-	irmd := MakeImmutableRootMetadata(&rmd, ibrmd.mdID, ibrmd.localTimestamp)
+	irmd := MakeImmutableRootMetadata(rmd, ibrmd.mdID, ibrmd.localTimestamp)
 	return irmd, nil
 }
 
@@ -1296,8 +1292,7 @@ func (j *tlfJournal) getMDRange(
 }
 
 func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
-	extra ExtraMetadata, irmd ImmutableRootMetadata,
-	perRevMap unflushedPathsPerRevMap) (
+	irmd ImmutableRootMetadata, perRevMap unflushedPathsPerRevMap) (
 	mdID MdID, retryPut bool, err error) {
 	// Now take the lock and put the MD, merging in the unflushed
 	// paths while under the lock.
@@ -1315,7 +1310,7 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 
 	mdID, err = j.mdJournal.put(ctx, j.config.Crypto(),
 		j.config.encryptionKeyGetter(), j.config.BlockSplitter(),
-		rmd, extra)
+		rmd)
 	if err != nil {
 		return MdID{}, false, err
 	}
@@ -1331,7 +1326,7 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 }
 
 func (j *tlfJournal) putMD(
-	ctx context.Context, rmd *RootMetadata, extra ExtraMetadata) (
+	ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
 	// Prepare the paths without holding the lock, as it might need to
 	// take the lock.  Note that the md ID and timestamp don't matter
@@ -1346,7 +1341,7 @@ func (j *tlfJournal) putMD(
 		return MdID{}, err
 	}
 
-	mdID, retry, err := j.doPutMD(ctx, rmd, extra, irmd, perRevMap)
+	mdID, retry, err := j.doPutMD(ctx, rmd, irmd, perRevMap)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -1360,7 +1355,7 @@ func (j *tlfJournal) putMD(
 			return MdID{}, err
 		}
 
-		mdID, retry, err = j.doPutMD(ctx, rmd, extra, irmd, perRevMap)
+		mdID, retry, err = j.doPutMD(ctx, rmd, irmd, perRevMap)
 		if err != nil {
 			return MdID{}, err
 		}

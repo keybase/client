@@ -781,8 +781,15 @@ func (md *MDServerMemory) putExtraMetadataLocked(rmds *RootMetadataSigned,
 func (md *MDServerMemory) getKeyBundles(
 	tlfID TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
-	if wkbID == (TLFWriterKeyBundleID{}) ||
-		rkbID == (TLFReaderKeyBundleID{}) {
+	if (wkbID == TLFWriterKeyBundleID{}) !=
+		(rkbID == TLFReaderKeyBundleID{}) {
+		return nil, nil, fmt.Errorf(
+			"wkbID is empty (%t) != rkbID is empty (%t)",
+			wkbID == TLFWriterKeyBundleID{},
+			rkbID == TLFReaderKeyBundleID{})
+	}
+
+	if wkbID == (TLFWriterKeyBundleID{}) {
 		return nil, nil, nil
 	}
 
