@@ -16,10 +16,13 @@ const (
 	LogoutStatusUpdateName = "logout"
 )
 
+// alwaysPushConnectionStatus is pushed every time to Status receivers,
+// unlike most errors which are just sent down if they change from
+// the previous state of a service.
 type alwaysPushConnectionStatus struct{}
 
 func (alwaysPushConnectionStatus) Error() string {
-	return "please allways push ConnectionStatus"
+	return "please always push ConnectionStatus"
 }
 
 type errDisconnected struct{}

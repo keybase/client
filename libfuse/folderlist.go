@@ -173,7 +173,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, err
 	}
 
-	cname, _, err := libkbfs.GetCurrentUserIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+	cname, err := libkbfs.GetCurrentUsernameIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +226,7 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 		}
 		res = append(res, fuse.Dirent{
 			Type: fuse.DT_Dir,
-			Name: pname,
+			Name: string(pname),
 		})
 	}
 	return res, nil

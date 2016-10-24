@@ -381,36 +381,42 @@ func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase
 	return assertions
 }
 
-func splitTLFName(name string) (wnames []string, rnames []string, ext string, err error) {
+// splitTLFName splits a TLF name into components.
+func splitTLFName(name string) (writerNames, readerNames []string,
+	extensionSuffix string, err error) {
 	names := strings.SplitN(name, TlfHandleExtensionSep, 2)
 	if len(names) > 2 {
 		return nil, nil, "", BadTLFNameError{name}
 	}
 	if len(names) > 1 {
-		ext = names[1]
+		extensionSuffix = names[1]
 	}
 
 	splitNames := strings.SplitN(names[0], ReaderSep, 3)
 	if len(splitNames) > 2 {
 		return nil, nil, "", BadTLFNameError{name}
 	}
-	wnames = strings.Split(splitNames[0], ",")
+	writerNames = strings.Split(splitNames[0], ",")
 	if len(splitNames) > 1 {
-		rnames = strings.Split(splitNames[1], ",")
+		readerNames = strings.Split(splitNames[1], ",")
 	}
 
-	return wnames, rnames, ext, nil
+	return writerNames, readerNames, extensionSuffix, nil
 }
 
 // splitAndNormalizeTLFName takes a tlf name as a string
 // and tries to normalize it offline. In addition to other
 // checks it returns TlfNameNotCanonical if it does not
 // look canonical.
-// Note that ordering differences are not returned as TlfNameNotCanonical here.
+// Note that ordering differences do not result in TlfNameNotCanonical
+// being returned.
 func splitAndNormalizeTLFName(name string, public bool) (
 	writerNames, readerNames []string,
 	extensionSuffix string, err error) {
 	writerNames, readerNames, extensionSuffix, err = splitTLFName(name)
+	if err != nil {
+		return nil, nil, "", err
+	}
 
 	hasPublic := len(readerNames) == 0
 
@@ -472,7 +478,7 @@ func normalizeNames(names []string) (changesMade bool, err error) {
 	for i, name := range names {
 		x, err := normalizeAssertionOrName(name)
 		if err != nil {
-			return changesMade, err
+			return false, err
 		}
 		if x != name {
 			names[i] = x
@@ -488,19 +494,20 @@ func normalizeNames(names []string) (changesMade bool, err error) {
 // whether any names were modified.
 // This modifies the slices passed as arguments.
 func normalizeNamesInTLF(writerNames, readerNames []string,
-	extensionSuffix string) (canon string, changes bool, err error) {
-	changes, err = normalizeNames(writerNames)
+	extensionSuffix string) (normalizedName string,
+	changesMade bool, err error) {
+	changesMade, err = normalizeNames(writerNames)
 	if err != nil {
 		return "", false, err
 	}
 	sort.Strings(writerNames)
-	normalizedName := strings.Join(writerNames, ",")
+	normalizedName = strings.Join(writerNames, ",")
 	if len(readerNames) > 0 {
 		rchanges, err := normalizeNames(readerNames)
 		if err != nil {
 			return "", false, err
 		}
-		changes = changes || rchanges
+		changesMade = changesMade || rchanges
 		sort.Strings(readerNames)
 		normalizedName += ReaderSep + strings.Join(readerNames, ",")
 	}
@@ -509,10 +516,10 @@ func normalizeNamesInTLF(writerNames, readerNames []string,
 		// doing so might surprise a caller.
 		nExt := strings.ToLower(extensionSuffix)
 		normalizedName += TlfHandleExtensionSep + nExt
-		changes = changes || nExt != extensionSuffix
+		changesMade = changesMade || nExt != extensionSuffix
 	}
 
-	return normalizedName, changes, nil
+	return normalizedName, changesMade, nil
 }
 
 // CheckTlfHandleOffline does light checks whether a TLF handle looks ok,
@@ -535,12 +542,16 @@ func (h TlfHandle) IsConflict() bool {
 	return h.conflictInfo != nil
 }
 
+// PreferredTlfName is a preferred Tlf name.
+type PreferredTlfName string
+
 // GetPreferredFormat returns a TLF name formatted with the username given
 // as the parameter first.
 // This calls FavoriteNameToPreferredTLFNameFormatAs with the canonical
 // tlf name which will be reordered into the preferred format.
 // An empty username is allowed here and results in the canonical ordering.
-func (h TlfHandle) GetPreferredFormat(username libkb.NormalizedUsername) string {
+func (h TlfHandle) GetPreferredFormat(
+	username libkb.NormalizedUsername) PreferredTlfName {
 	s, err := FavoriteNameToPreferredTLFNameFormatAs(
 		username, h.GetCanonicalName())
 	if err != nil {
@@ -553,10 +564,10 @@ func (h TlfHandle) GetPreferredFormat(username libkb.NormalizedUsername) string 
 // username given.
 // An empty username is allowed here and results in tlfname being returned unmodified.
 func FavoriteNameToPreferredTLFNameFormatAs(username libkb.NormalizedUsername,
-	canon CanonicalTlfName) (string, error) {
+	canon CanonicalTlfName) (PreferredTlfName, error) {
 	tlfname := string(canon)
 	if len(username) == 0 {
-		return tlfname, nil
+		return PreferredTlfName(tlfname), nil
 	}
 	ws, rs, ext, err := splitTLFName(tlfname)
 	if err != nil {
@@ -567,19 +578,20 @@ func FavoriteNameToPreferredTLFNameFormatAs(username libkb.NormalizedUsername,
 	}
 	uname := username.String()
 	for i, w := range ws {
-		if i != 0 && w == uname {
-			ws0 := ws[i]
-			copy(ws[1:i+1], ws[0:i])
-			ws[0] = ws0
-			tlfname = strings.Join(ws, ",")
-			if len(rs) > 0 {
-				tlfname += ReaderSep + strings.Join(rs, ",")
-			}
-			if len(ext) > 0 {
-				tlfname += TlfHandleExtensionSep + ext
+		if w == uname {
+			if i != 0 {
+				copy(ws[1:i+1], ws[0:i])
+				ws[0] = w
+				tlfname = strings.Join(ws, ",")
+				if len(rs) > 0 {
+					tlfname += ReaderSep + strings.Join(rs, ",")
+				}
+				if len(ext) > 0 {
+					tlfname += TlfHandleExtensionSep + ext
+				}
 			}
 			break
 		}
 	}
-	return tlfname, nil
+	return PreferredTlfName(tlfname), nil
 }

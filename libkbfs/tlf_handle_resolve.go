@@ -392,7 +392,7 @@ func (ra resolvableAssertionWithChangeReport) resolve(ctx context.Context) (
 	nameUIDPair, keybase1.SocialAssertion, error) {
 	nuid, sa, err := ra.resolvableAssertion.resolve(ctx)
 	if err != nil {
-		return nuid, sa, err
+		return nameUIDPair{}, keybase1.SocialAssertion{}, err
 	}
 	sendIfPossible := func() {
 		select {
@@ -542,6 +542,9 @@ func parseTlfHandleLoose(
 //
 // NoSuchNameError: Returned when public is set and the given folder
 // has no public folder.
+//
+// TODO In future perhaps all code should switch over to preferred handles,
+// and rename TlfNameNotCanonical to TlfNameNotPreferred.
 func ParseTlfHandle(
 	ctx context.Context, kbpki KBPKI, name string, public bool) (
 	*TlfHandle, error) {
@@ -577,13 +580,13 @@ func ParseTlfHandlePreferred(
 	if err != nil && (h == nil || !isTlfNameNotCanonical(err)) {
 		return nil, err
 	}
-	uname, _, err := GetCurrentUserIfPossible(ctx, kbpki, h.IsPublic())
+	uname, err := GetCurrentUsernameIfPossible(ctx, kbpki, h.IsPublic())
 	if err != nil {
 		return nil, err
 	}
 	pref := h.GetPreferredFormat(uname)
-	if pref != name {
-		return nil, TlfNameNotCanonical{name, pref}
+	if string(pref) != name {
+		return nil, TlfNameNotCanonical{name, string(pref)}
 	}
 	return h, nil
 }

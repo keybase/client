@@ -162,7 +162,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
-		cuser, _, err := libkbfs.GetCurrentUserIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+		cuser, err := libkbfs.GetCurrentUsernameIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
 		if err != nil {
 			return nil, false, err
 		}
@@ -208,7 +208,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 			continue
 		}
 		empty = false
-		ns.Name = pname
+		ns.Name = string(pname)
 		err = callback(&ns)
 		if err != nil {
 			return err

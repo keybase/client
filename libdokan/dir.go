@@ -23,7 +23,7 @@ type Folder struct {
 
 	handleMu       sync.RWMutex
 	h              *libkbfs.TlfHandle
-	hPreferredName string
+	hPreferredName libkbfs.PreferredTlfName
 
 	folderBranchMu sync.Mutex
 	folderBranch   libkbfs.FolderBranch
@@ -52,12 +52,13 @@ type Folder struct {
 	noForget bool
 }
 
-func newFolder(fl *FolderList, h *libkbfs.TlfHandle, hname string) *Folder {
+func newFolder(fl *FolderList, h *libkbfs.TlfHandle,
+	hPrefferedName libkbfs.PreferredTlfName) *Folder {
 	f := &Folder{
 		fs:             fl.fs,
 		list:           fl,
 		h:              h,
-		hPreferredName: hname,
+		hPreferredName: hPrefferedName,
 		nodes:          map[libkbfs.NodeID]dokan.File{},
 	}
 	return f
@@ -156,19 +157,19 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 func (f *Folder) TlfHandleChange(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
 	f.fs.log.CDebugf(ctx, "TlfHandleChange called on %q",
-		canonicalNameIfNotNill(newHandle))
+		canonicalNameIfNotNil(newHandle))
 
 	// Handle in the background because we shouldn't lock during
 	// the notification
 	f.fs.queueNotification(func() {
-		cuser, _, err := libkbfs.GetCurrentUserIfPossible(ctx, f.fs.config.KBPKI(), f.list.public)
+		cuser, err := libkbfs.GetCurrentUsernameIfPossible(ctx, f.fs.config.KBPKI(), f.list.public)
 		// Here we get an error, but there is little that can be done.
 		// cuser will be empty in the error case in which case we will default to the
 		// canonical format.
 		if err != nil {
 			f.fs.log.CDebugf(ctx, "tlfHandleChange: GetCurrentUserIfPossible failed: %v", err)
 		}
-		oldName, newName := func() (string, string) {
+		oldName, newName := func() (libkbfs.PreferredTlfName, libkbfs.PreferredTlfName) {
 			f.handleMu.Lock()
 			defer f.handleMu.Unlock()
 			oldName := f.hPreferredName
@@ -180,12 +181,12 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 		}()
 
 		if oldName != newName {
-			f.list.updateTlfName(ctx, oldName, newName)
+			f.list.updateTlfName(ctx, string(oldName), string(newName))
 		}
 	})
 }
 
-func canonicalNameIfNotNill(h *libkbfs.TlfHandle) string {
+func canonicalNameIfNotNil(h *libkbfs.TlfHandle) string {
 	if h == nil {
 		return "(nil)"
 	}

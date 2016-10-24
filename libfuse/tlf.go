@@ -26,8 +26,9 @@ type TLF struct {
 	dir     *Dir
 }
 
-func newTLF(fl *FolderList, h *libkbfs.TlfHandle, hname string) *TLF {
-	folder := newFolder(fl, h, hname)
+func newTLF(fl *FolderList, h *libkbfs.TlfHandle,
+	name libkbfs.PreferredTlfName) *TLF {
+	folder := newFolder(fl, h, name)
 	tlf := &TLF{
 		folder: folder,
 	}
