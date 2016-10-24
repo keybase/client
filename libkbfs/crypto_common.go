@@ -322,7 +322,7 @@ func (c CryptoCommon) encryptData(data []byte, key [32]byte) (encryptedData, err
 
 // EncryptPrivateMetadata implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) EncryptPrivateMetadata(
-	pmd *PrivateMetadata, key kbfscrypto.TLFCryptKey) (
+	pmd PrivateMetadata, key kbfscrypto.TLFCryptKey) (
 	encryptedPmd EncryptedPrivateMetadata, err error) {
 	encodedPmd, err := c.codec.Encode(pmd)
 	if err != nil {
@@ -360,19 +360,19 @@ func (c CryptoCommon) decryptData(encryptedData encryptedData, key [32]byte) ([]
 // DecryptPrivateMetadata implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) DecryptPrivateMetadata(
 	encryptedPmd EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (
-	*PrivateMetadata, error) {
+	PrivateMetadata, error) {
 	encodedPmd, err := c.decryptData(encryptedData(encryptedPmd), key.Data())
 	if err != nil {
-		return nil, err
+		return PrivateMetadata{}, err
 	}
 
 	var pmd PrivateMetadata
 	err = c.codec.Decode(encodedPmd, &pmd)
 	if err != nil {
-		return nil, err
+		return PrivateMetadata{}, err
 	}
 
-	return &pmd, nil
+	return pmd, nil
 }
 
 const minBlockSize = 256

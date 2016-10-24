@@ -23,6 +23,7 @@ func crTestInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock,
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
 	config.SetCodec(kbfscodec.NewMsgpack())
+	config.SetClock(wallClock{})
 	id := FakeTlfID(1, false)
 	fbo := newFolderBranchOps(config, FolderBranch{id, MasterBranch}, standard)
 	// usernames don't matter for these tests
@@ -40,6 +41,14 @@ func crTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock,
 	config.ctr.CheckForFailures()
 	cr.fbo.Shutdown()
 	mockCtrl.Finish()
+}
+
+type failingCodec struct {
+	kbfscodec.Codec
+}
+
+func (fc failingCodec) Encode(interface{}) ([]byte, error) {
+	return nil, errors.New("Stopping resolution process early")
 }
 
 func TestCRInput(t *testing.T) {
@@ -113,8 +122,7 @@ func TestCRInput(t *testing.T) {
 
 	// CR doesn't see any operations and so it does resolution early.
 	// Just cause an error so it doesn't bother the mocks too much.
-	config.mockCrypto.EXPECT().MakeMdID(gomock.Any()).Return(MdID{},
-		errors.New("Stopping resolution process early"))
+	config.SetCodec(failingCodec{config.Codec()})
 	config.mockRep.EXPECT().ReportErr(gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any(), gomock.Any())
 
@@ -219,8 +227,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 
 	// CR doesn't see any operations and so it does resolution early.
 	// Just cause an error so it doesn't bother the mocks too much.
-	config.mockCrypto.EXPECT().MakeMdID(gomock.Any()).Return(MdID{},
-		errors.New("Stopping resolution process early"))
+	config.SetCodec(failingCodec{config.Codec()})
 	config.mockRep.EXPECT().ReportErr(gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any(), gomock.Any())
 
@@ -288,7 +295,7 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 
 	// Step 1 -- check the chains and paths
 	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
-		recreateOps, _, _, err := cr.buildChainsAndPaths(ctx, lState, false)
+		recreateOps, _, err := cr.buildChainsAndPaths(ctx, lState, false)
 	if err != nil {
 		t.Fatalf("Couldn't build chains and paths: %v", err)
 	}
@@ -332,8 +339,9 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 	}
 
 	// Now for step 2 -- check the actions
-	actionMap, _, err := cr.computeActions(ctx, unmergedChains, mergedChains,
-		unmergedPaths, mergedPaths, recreateOps)
+	actionMap, _, err := cr.computeActions(
+		ctx, unmergedChains, mergedChains,
+		unmergedPaths, mergedPaths, recreateOps, writerInfo{})
 	if err != nil {
 		t.Fatalf("Couldn't compute actions: %v", err)
 	}
@@ -1178,13 +1186,13 @@ func TestCRDoActionsSimple(t *testing.T) {
 
 	// Now run through conflict resolution manually for user2.
 	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
-		recreateOps, _, _, err := cr2.buildChainsAndPaths(ctx, lState, false)
+		recreateOps, _, err := cr2.buildChainsAndPaths(ctx, lState, false)
 	if err != nil {
 		t.Fatalf("Couldn't build chains and paths: %v", err)
 	}
 
 	actionMap, _, err := cr2.computeActions(ctx, unmergedChains, mergedChains,
-		unmergedPaths, mergedPaths, recreateOps)
+		unmergedPaths, mergedPaths, recreateOps, writerInfo{})
 	if err != nil {
 		t.Fatalf("Couldn't compute actions: %v", err)
 	}
@@ -1294,13 +1302,13 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 
 	// Now run through conflict resolution manually for user2.
 	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
-		recreateOps, _, _, err := cr2.buildChainsAndPaths(ctx, lState, false)
+		recreateOps, _, err := cr2.buildChainsAndPaths(ctx, lState, false)
 	if err != nil {
 		t.Fatalf("Couldn't build chains and paths: %v", err)
 	}
 
 	actionMap, _, err := cr2.computeActions(ctx, unmergedChains, mergedChains,
-		unmergedPaths, mergedPaths, recreateOps)
+		unmergedPaths, mergedPaths, recreateOps, writerInfo{})
 	if err != nil {
 		t.Fatalf("Couldn't compute actions: %v", err)
 	}

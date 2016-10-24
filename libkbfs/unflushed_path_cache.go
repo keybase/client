@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -34,7 +35,7 @@ type unflushedPathCache struct {
 	unflushedPaths  unflushedPathsMap
 	ready           chan struct{}
 	chainsPopulator chainsPathPopulator
-	appendQueue     []ImmutableRootMetadata
+	appendQueue     []unflushedPathMDInfo
 	removeQueue     []MetadataRevision
 }
 
@@ -118,38 +119,47 @@ func (upc *unflushedPathCache) abortInitialization() {
 	upc.ready = nil
 }
 
+// unflushedPathMDInfo is the subset of metadata info needed by
+// unflushedPathCache.
+type unflushedPathMDInfo struct {
+	revision       MetadataRevision
+	kmd            KeyMetadata
+	pmd            PrivateMetadata
+	localTimestamp time.Time
+}
+
 // addUnflushedPaths populates the given unflushed paths object.  The
 // caller should NOT be holding any locks, as it's possible that
 // blocks will need to be fetched.
 func addUnflushedPaths(ctx context.Context,
 	uid keybase1.UID, kid keybase1.KID, codec kbfscodec.Codec,
-	log logger.Logger, irmds []ImmutableRootMetadata, cpp chainsPathPopulator,
-	unflushedPaths unflushedPathsMap) error {
+	log logger.Logger, mdInfos []unflushedPathMDInfo,
+	cpp chainsPathPopulator, unflushedPaths unflushedPathsMap) error {
 	// Make chains over the entire range to get the unflushed files.
 	chains := newCRChainsEmpty()
 	processedOne := false
-	for _, irmd := range irmds {
-		if _, ok := unflushedPaths[irmd.Revision()]; ok {
-			if processedOne {
-				return fmt.Errorf("Couldn't skip revision %d after "+
-					"already processing one", irmd.Revision())
-			}
-
-			log.CDebugf(ctx, "Skipping unflushed paths for revision %d "+
-				"since it's already in the cache", irmd.Revision())
-			continue
-		}
-		unflushedPaths[irmd.Revision()] = make(map[string]bool)
-
-		processedOne = true
+	for _, mdInfo := range mdInfos {
 		winfo := writerInfo{
 			uid:      uid,
 			kid:      kid,
-			revision: irmd.Revision(),
+			revision: mdInfo.revision,
 			// There won't be any conflicts, so no need for the
 			// username/devicename.
 		}
-		err := chains.addOps(codec, irmd.data, winfo, irmd.localTimestamp)
+		if _, ok := unflushedPaths[mdInfo.revision]; ok {
+			if processedOne {
+				return fmt.Errorf("Couldn't skip revision %d after "+
+					"already processing one", mdInfo.revision)
+			}
+
+			log.CDebugf(ctx, "Skipping unflushed paths for revision %d "+
+				"since it's already in the cache", mdInfo.revision)
+			continue
+		}
+		unflushedPaths[mdInfo.revision] = make(map[string]bool)
+
+		processedOne = true
+		err := chains.addOps(codec, mdInfo.pmd, winfo, mdInfo.localTimestamp)
 		if err != nil {
 			return err
 		}
@@ -158,7 +168,11 @@ func addUnflushedPaths(ctx context.Context,
 		return nil
 	}
 
-	chains.mostRecentMD = irmds[len(irmds)-1]
+	mostRecentMDInfo := mdInfos[len(mdInfos)-1]
+	chains.mostRecentChainMDInfo = mostRecentChainMetadataInfo{
+		kmd:     mostRecentMDInfo.kmd,
+		rootPtr: mostRecentMDInfo.pmd.Dir.BlockPointer,
+	}
 
 	err := cpp.populateChainPaths(ctx, log, chains, true)
 	if err != nil {
@@ -182,7 +196,7 @@ func addUnflushedPaths(ctx context.Context,
 // given revision.
 func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
 	uid keybase1.UID, kid keybase1.KID, codec kbfscodec.Codec,
-	log logger.Logger, irmd ImmutableRootMetadata) (
+	log logger.Logger, mdInfo unflushedPathMDInfo) (
 	unflushedPathsPerRevMap, error) {
 	cpp := func() chainsPathPopulator {
 		upc.lock.Lock()
@@ -196,9 +210,9 @@ func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
 	}
 
 	newUnflushedPaths := make(unflushedPathsMap)
-	irmds := []ImmutableRootMetadata{irmd}
+	mdInfos := []unflushedPathMDInfo{mdInfo}
 
-	err := addUnflushedPaths(ctx, uid, kid, codec, log, irmds, cpp,
+	err := addUnflushedPaths(ctx, uid, kid, codec, log, mdInfos, cpp,
 		newUnflushedPaths)
 	if err != nil {
 		return nil, err
@@ -208,10 +222,10 @@ func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
 			len(newUnflushedPaths))
 	}
 
-	perRevMap, ok := newUnflushedPaths[irmd.Revision()]
+	perRevMap, ok := newUnflushedPaths[mdInfo.revision]
 	if !ok {
 		panic(fmt.Errorf("Cannot find per-revision map for revision %d",
-			irmd.Revision()))
+			mdInfo.revision))
 	}
 
 	return perRevMap, nil
@@ -219,7 +233,7 @@ func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
 
 // appendToCache returns true when successful, and false if it needs
 // to be retried after the per-revision map is recomputed.
-func (upc *unflushedPathCache) appendToCache(irmd ImmutableRootMetadata,
+func (upc *unflushedPathCache) appendToCache(mdInfo unflushedPathMDInfo,
 	perRevMap unflushedPathsPerRevMap) bool {
 	upc.lock.Lock()
 	defer upc.lock.Unlock()
@@ -228,7 +242,7 @@ func (upc *unflushedPathCache) appendToCache(irmd ImmutableRootMetadata,
 		// Nothing to do.
 	case upcInitializing:
 		// Append to queue for processing at the end of initialization.
-		upc.appendQueue = append(upc.appendQueue, irmd)
+		upc.appendQueue = append(upc.appendQueue, mdInfo)
 	case upcInitialized:
 		if perRevMap == nil {
 			// This was prepared before `upc.chainsPopulator` was set,
@@ -236,7 +250,7 @@ func (upc *unflushedPathCache) appendToCache(irmd ImmutableRootMetadata,
 			return false
 		}
 		// Update the cache with the prepared paths.
-		upc.unflushedPaths[irmd.Revision()] = perRevMap
+		upc.unflushedPaths[mdInfo.revision] = perRevMap
 	default:
 		panic(fmt.Sprintf("Unknown unflushedPathsCache state: %v", upc.state))
 	}
@@ -260,7 +274,7 @@ func (upc *unflushedPathCache) removeFromCache(rev MetadataRevision) {
 }
 
 func (upc *unflushedPathCache) setCacheIfPossible(cache unflushedPathsMap,
-	cpp chainsPathPopulator) []ImmutableRootMetadata {
+	cpp chainsPathPopulator) []unflushedPathMDInfo {
 	upc.lock.Lock()
 	defer upc.lock.Unlock()
 	if len(upc.appendQueue) > 0 {
@@ -292,12 +306,12 @@ func (upc *unflushedPathCache) setCacheIfPossible(cache unflushedPathsMap,
 func (upc *unflushedPathCache) initialize(ctx context.Context,
 	uid keybase1.UID, kid keybase1.KID, codec kbfscodec.Codec,
 	log logger.Logger, cpp chainsPathPopulator,
-	irmds []ImmutableRootMetadata) (unflushedPathsMap, bool, error) {
+	mdInfos []unflushedPathMDInfo) (unflushedPathsMap, bool, error) {
 	// First get all the paths for the given range.  On the first try
 	unflushedPaths := make(unflushedPathsMap)
 	log.CDebugf(ctx, "Initializing unflushed path cache with %d revisions",
-		len(irmds))
-	err := addUnflushedPaths(ctx, uid, kid, codec, log, irmds, cpp,
+		len(mdInfos))
+	err := addUnflushedPaths(ctx, uid, kid, codec, log, mdInfos, cpp,
 		unflushedPaths)
 	if err != nil {
 		return nil, false, err

@@ -803,6 +803,12 @@ func (irmd ImmutableRootMetadata) MdID() MdID {
 	return irmd.mdID
 }
 
+// LocalTimestamp returns the timestamp associated with this
+// RootMetadata object.
+func (irmd ImmutableRootMetadata) LocalTimestamp() time.Time {
+	return irmd.localTimestamp
+}
+
 // RootMetadataSigned is the top-level MD object stored in MD server
 type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key

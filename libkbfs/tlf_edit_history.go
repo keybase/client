@@ -231,7 +231,8 @@ func (teh *TlfEditHistory) updateRmds(rmds []ImmutableRootMetadata,
 
 func (teh *TlfEditHistory) calculateEditCounts(ctx context.Context,
 	rmds []ImmutableRootMetadata) (TlfWriterEdits, *crChains, error) {
-	chains, err := newCRChains(ctx, teh.config, rmds, &teh.fbo.blocks, false)
+	chains, err := newCRChainsForIRMDs(
+		ctx, teh.config, rmds, &teh.fbo.blocks, false)
 	if err != nil {
 		return nil, nil, err
 	}

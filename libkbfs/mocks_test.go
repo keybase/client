@@ -1867,7 +1867,7 @@ func (_mr *_MockcryptoPureRecorder) EncryptTLFCryptKeyClientHalf(arg0, arg1, arg
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "EncryptTLFCryptKeyClientHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockcryptoPure) EncryptPrivateMetadata(pmd *PrivateMetadata, key kbfscrypto.TLFCryptKey) (EncryptedPrivateMetadata, error) {
+func (_m *MockcryptoPure) EncryptPrivateMetadata(pmd PrivateMetadata, key kbfscrypto.TLFCryptKey) (EncryptedPrivateMetadata, error) {
 	ret := _m.ctrl.Call(_m, "EncryptPrivateMetadata", pmd, key)
 	ret0, _ := ret[0].(EncryptedPrivateMetadata)
 	ret1, _ := ret[1].(error)
@@ -1878,9 +1878,9 @@ func (_mr *_MockcryptoPureRecorder) EncryptPrivateMetadata(arg0, arg1 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "EncryptPrivateMetadata", arg0, arg1)
 }
 
-func (_m *MockcryptoPure) DecryptPrivateMetadata(encryptedPMD EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (*PrivateMetadata, error) {
+func (_m *MockcryptoPure) DecryptPrivateMetadata(encryptedPMD EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (PrivateMetadata, error) {
 	ret := _m.ctrl.Call(_m, "DecryptPrivateMetadata", encryptedPMD, key)
-	ret0, _ := ret[0].(*PrivateMetadata)
+	ret0, _ := ret[0].(PrivateMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2240,7 +2240,7 @@ func (_mr *_MockCryptoRecorder) EncryptTLFCryptKeyClientHalf(arg0, arg1, arg2 in
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "EncryptTLFCryptKeyClientHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockCrypto) EncryptPrivateMetadata(pmd *PrivateMetadata, key kbfscrypto.TLFCryptKey) (EncryptedPrivateMetadata, error) {
+func (_m *MockCrypto) EncryptPrivateMetadata(pmd PrivateMetadata, key kbfscrypto.TLFCryptKey) (EncryptedPrivateMetadata, error) {
 	ret := _m.ctrl.Call(_m, "EncryptPrivateMetadata", pmd, key)
 	ret0, _ := ret[0].(EncryptedPrivateMetadata)
 	ret1, _ := ret[1].(error)
@@ -2251,9 +2251,9 @@ func (_mr *_MockCryptoRecorder) EncryptPrivateMetadata(arg0, arg1 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "EncryptPrivateMetadata", arg0, arg1)
 }
 
-func (_m *MockCrypto) DecryptPrivateMetadata(encryptedPMD EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (*PrivateMetadata, error) {
+func (_m *MockCrypto) DecryptPrivateMetadata(encryptedPMD EncryptedPrivateMetadata, key kbfscrypto.TLFCryptKey) (PrivateMetadata, error) {
 	ret := _m.ctrl.Call(_m, "DecryptPrivateMetadata", encryptedPMD, key)
-	ret0, _ := ret[0].(*PrivateMetadata)
+	ret0, _ := ret[0].(PrivateMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

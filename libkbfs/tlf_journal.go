@@ -902,7 +902,9 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 // non-nil unflushedPathsMap is returned, which can be used directly
 // to fill in UnflushedPaths, or a list of ImmutableBareRootMetadatas
 // is returned (along with a bool indicating whether that list is
-// complete), which can be used to build an unflushedPathsMap.
+// complete), which can be used to build an unflushedPathsMap. If
+// complete is true, then the list may be empty; otherwise, it is
+// guaranteed to not be empty.
 func (j *tlfJournal) getJournalStatusWithRange() (
 	jStatus TLFJournalStatus, unflushedPaths unflushedPathsMap,
 	ibrmds []ImmutableBareRootMetadata, complete bool, err error) {
@@ -938,9 +940,12 @@ func (j *tlfJournal) getJournalStatusWithRange() (
 	return jStatus, nil, ibrmds, complete, nil
 }
 
-func (j *tlfJournal) batchConvertImmutables(ctx context.Context,
-	ibrmds []ImmutableBareRootMetadata) ([]ImmutableRootMetadata, error) {
-	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
+// getUnflushedPathMDInfos converts the given list of bare root
+// metadatas into unflushedPathMDInfo objects. The caller must NOT
+// hold `j.journalLock`, because blocks from the journal may need to
+// be read as part of the decryption.
+func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
+	ibrmds []ImmutableBareRootMetadata) ([]unflushedPathMDInfo, error) {
 	if len(ibrmds) == 0 {
 		return nil, nil
 	}
@@ -956,15 +961,35 @@ func (j *tlfJournal) batchConvertImmutables(ctx context.Context,
 		return nil, err
 	}
 
+	mdInfos := make([]unflushedPathMDInfo, 0, len(ibrmds))
+
 	for _, ibrmd := range ibrmds {
-		irmd, err := j.convertImmutableBareRMDToIRMD(ctx, ibrmd, handle)
+		// TODO: Avoid having to do this type assertion and
+		// convert to RootMetadata.
+		brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
+		if !ok {
+			return nil, MutableBareRootMetadataNoImplError{}
+		}
+		rmd := MakeRootMetadata(brmd, ibrmd.extra, handle)
+
+		pmd, err := decryptMDPrivateData(
+			ctx, j.config.Codec(), j.config.Crypto(),
+			j.config.BlockCache(), j.config.BlockOps(),
+			j.config.mdDecryptionKeyGetter(), j.uid,
+			rmd.GetSerializedPrivateMetadata(), rmd, rmd)
 		if err != nil {
 			return nil, err
 		}
 
-		irmds = append(irmds, irmd)
+		mdInfo := unflushedPathMDInfo{
+			revision:       ibrmd.RevisionNumber(),
+			kmd:            rmd,
+			pmd:            pmd,
+			localTimestamp: ibrmd.localTimestamp,
+		}
+		mdInfos = append(mdInfos, mdInfo)
 	}
-	return irmds, nil
+	return mdInfos, nil
 }
 
 func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
@@ -990,12 +1015,12 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 			// but don't cache it.
 			unflushedPaths = make(unflushedPathsMap)
 			j.log.CDebugf(ctx, "Making incomplete unflushed path cache")
-			irmds, err := j.batchConvertImmutables(ctx, ibrmds)
+			mdInfos, err := j.getUnflushedPathMDInfos(ctx, ibrmds)
 			if err != nil {
 				return TLFJournalStatus{}, err
 			}
 			err = addUnflushedPaths(ctx, j.uid, j.key.KID(),
-				j.config.Codec(), j.log, irmds, cpp,
+				j.config.Codec(), j.log, mdInfos, cpp,
 				unflushedPaths)
 			if err != nil {
 				return TLFJournalStatus{}, err
@@ -1016,12 +1041,13 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 					j.unflushedPaths.abortInitialization()
 				}
 			}()
-			irmds, err := j.batchConvertImmutables(ctx, ibrmds)
+			mdInfos, err := j.getUnflushedPathMDInfos(ctx, ibrmds)
 			if err != nil {
 				return TLFJournalStatus{}, err
 			}
 			unflushedPaths, initSuccess, err = j.unflushedPaths.initialize(
-				ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, cpp, irmds)
+				ctx, j.uid, j.key.KID(), j.config.Codec(),
+				j.log, cpp, mdInfos)
 			if err != nil {
 				return TLFJournalStatus{}, err
 			}
@@ -1243,31 +1269,6 @@ func (j *tlfJournal) archiveBlockReferences(
 	return nil
 }
 
-// convertImmutableBareRMDToIRMD decrypts the MD in the given bare root
-// MD.  The caller must NOT hold `j.journalLock`, because blocks
-// from the journal may need to be read as part of the decryption.
-func (j *tlfJournal) convertImmutableBareRMDToIRMD(ctx context.Context,
-	ibrmd ImmutableBareRootMetadata, handle *TlfHandle) (
-	ImmutableRootMetadata, error) {
-	// TODO: Avoid having to do this type assertion.
-	brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
-	if !ok {
-		return ImmutableRootMetadata{}, MutableBareRootMetadataNoImplError{}
-	}
-
-	rmd := MakeRootMetadata(brmd, ibrmd.extra, handle)
-
-	err := decryptMDPrivateData(
-		ctx, j.config.Codec(), j.config.Crypto(),
-		j.config.BlockCache(), j.config.BlockOps(),
-		j.config.mdDecryptionKeyGetter(), j.uid, rmd, rmd.ReadOnly())
-	if err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-	irmd := MakeImmutableRootMetadata(rmd, ibrmd.mdID, ibrmd.localTimestamp)
-	return irmd, nil
-}
-
 func (j *tlfJournal) getMDHead(
 	ctx context.Context) (ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
@@ -1292,7 +1293,8 @@ func (j *tlfJournal) getMDRange(
 }
 
 func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
-	irmd ImmutableRootMetadata, perRevMap unflushedPathsPerRevMap) (
+	mdInfo unflushedPathMDInfo,
+	perRevMap unflushedPathsPerRevMap) (
 	mdID MdID, retryPut bool, err error) {
 	// Now take the lock and put the MD, merging in the unflushed
 	// paths while under the lock.
@@ -1302,7 +1304,7 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 		return MdID{}, false, err
 	}
 
-	if !j.unflushedPaths.appendToCache(irmd, perRevMap) {
+	if !j.unflushedPaths.appendToCache(mdInfo, perRevMap) {
 		return MdID{}, true, nil
 	}
 	// TODO: remove the revision from the cache on any errors below?
@@ -1329,19 +1331,25 @@ func (j *tlfJournal) putMD(
 	ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
 	// Prepare the paths without holding the lock, as it might need to
-	// take the lock.  Note that the md ID and timestamp don't matter
-	// for the unflushed path cache.  This is a no-op if the unflushed
+	// take the lock.  Note that the timestamp doesn't matter for
+	// the unflushed path cache.  This is a no-op if the unflushed
 	// path cache is uninitialized.  TODO: avoid doing this if we can
 	// somehow be sure the cache won't be initialized by the time we
 	// finish this put.
-	irmd := MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
+	mdInfo := unflushedPathMDInfo{
+		revision: rmd.Revision(),
+		kmd:      rmd,
+		pmd:      *rmd.Data(),
+		// TODO: Plumb through clock?
+		localTimestamp: time.Now(),
+	}
 	perRevMap, err := j.unflushedPaths.prepUnflushedPaths(
-		ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, irmd)
+		ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, mdInfo)
 	if err != nil {
 		return MdID{}, err
 	}
 
-	mdID, retry, err := j.doPutMD(ctx, rmd, irmd, perRevMap)
+	mdID, retry, err := j.doPutMD(ctx, rmd, mdInfo, perRevMap)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -1350,12 +1358,13 @@ func (j *tlfJournal) putMD(
 		// The cache was initialized after the last time we tried to
 		// prepare the unflushed paths.
 		perRevMap, err = j.unflushedPaths.prepUnflushedPaths(
-			ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, irmd)
+			ctx, j.uid, j.key.KID(), j.config.Codec(), j.log,
+			mdInfo)
 		if err != nil {
 			return MdID{}, err
 		}
 
-		mdID, retry, err = j.doPutMD(ctx, rmd, irmd, perRevMap)
+		mdID, retry, err = j.doPutMD(ctx, rmd, mdInfo, perRevMap)
 		if err != nil {
 			return MdID{}, err
 		}

@@ -805,12 +805,12 @@ type cryptoPure interface {
 
 	// EncryptPrivateMetadata encrypts a PrivateMetadata object.
 	EncryptPrivateMetadata(
-		pmd *PrivateMetadata, key kbfscrypto.TLFCryptKey) (
+		pmd PrivateMetadata, key kbfscrypto.TLFCryptKey) (
 		EncryptedPrivateMetadata, error)
 	// DecryptPrivateMetadata decrypts a PrivateMetadata object.
 	DecryptPrivateMetadata(
 		encryptedPMD EncryptedPrivateMetadata,
-		key kbfscrypto.TLFCryptKey) (*PrivateMetadata, error)
+		key kbfscrypto.TLFCryptKey) (PrivateMetadata, error)
 
 	// EncryptBlocks encrypts a block. plainSize is the size of the encoded
 	// block; EncryptBlock() must guarantee that plainSize <=

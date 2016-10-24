@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
@@ -161,7 +162,7 @@ func (cc *crChain) isFile() bool {
 // state, but setAttr(mtime) can apply to either type; in that case,
 // we need to fetch the block to figure out the type.
 func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
-	md ImmutableRootMetadata, chains *crChains) error {
+	kmd KeyMetadata, chains *crChains) error {
 	if len(cc.ops) == 0 {
 		return nil
 	}
@@ -209,8 +210,7 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 	// If we get down here, we have an ambiguity, and need to fetch
 	// the block to figure out the file type.
 	dblock, err := fbo.GetDirBlockForReading(ctx, makeFBOLockState(),
-		md.ReadOnly(),
-		parentMostRecent, fbo.folderBranch.Branch, path{})
+		kmd, parentMostRecent, fbo.folderBranch.Branch, path{})
 	if err != nil {
 		return err
 	}
@@ -248,12 +248,12 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 }
 
 func (cc *crChain) remove(ctx context.Context, log logger.Logger,
-	rmd ImmutableRootMetadata) bool {
+	revision MetadataRevision) bool {
 	anyRemoved := false
 	var newOps []op
 	for i, currOp := range cc.ops {
 		info := currOp.getWriterInfo()
-		if info.revision == rmd.Revision() {
+		if info.revision == revision {
 			log.CDebugf(ctx, "Removing op %s from chain with mostRecent=%v",
 				currOp, cc.mostRecent)
 			if !anyRemoved {
@@ -286,6 +286,13 @@ func (ri renameInfo) String() string {
 		ri.originalNewParent, ri.newName)
 }
 
+// mostRecentChainMetadataInfo contains the subset of information for
+// the most recent chainMetadata that is needed for crChains.
+type mostRecentChainMetadataInfo struct {
+	kmd     KeyMetadata
+	rootPtr BlockPointer
+}
+
 // crChains contains a crChain for every KBFS node affected by the
 // operations over a given set of MD updates.  The chains are indexed
 // by both the starting (original) and ending (most recent) pointers.
@@ -311,9 +318,9 @@ type crChains struct {
 	// Pointers that should be explicitly cleaned up in the resolution.
 	toUnrefPointers map[BlockPointer]bool
 
-	// Also keep a reference to the most recent MD that's part of this
-	// chain.
-	mostRecentMD ImmutableRootMetadata
+	// Also keep the info for the most recent chain MD used to
+	// build these chains.
+	mostRecentChainMDInfo mostRecentChainMetadataInfo
 
 	// We need to be able to track ANY BlockPointer, at any point in
 	// the chain, back to its original.
@@ -677,7 +684,23 @@ func (ccs *crChains) addOps(codec kbfscodec.Codec,
 	return nil
 }
 
-func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
+// chainMetadata is the interface for metadata objects that can be
+// used in building crChains. It is implemented by
+// ImmutableRootMetadata, but is also mostly implemented by
+// RootMetadata (just need LocalTimestamp).
+type chainMetadata interface {
+	KeyMetadata
+	IsWriterMetadataCopiedSet() bool
+	LastModifyingWriter() keybase1.UID
+	LastModifyingWriterKID() keybase1.KID
+	Revision() MetadataRevision
+	Data() *PrivateMetadata
+	LocalTimestamp() time.Time
+}
+
+// newCRChains builds a new crChains object from the given list of
+// chainMetadatas, which must be non-empty.
+func newCRChains(ctx context.Context, cfg Config, cmds []chainMetadata,
 	fbo *folderBlockOps, identifyTypes bool) (
 	ccs *crChains, err error) {
 	ccs = newCRChainsEmpty()
@@ -685,26 +708,29 @@ func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 	// For each MD update, turn each update in each op into map
 	// entries and create chains for the BlockPointers that are
 	// affected directly by the operation.
-	for _, rmd := range rmds {
+	for _, cmd := range cmds {
 		// No new operations in these.
-		if rmd.IsWriterMetadataCopiedSet() {
+		if cmd.IsWriterMetadataCopiedSet() {
 			continue
 		}
 
-		winfo, err := newWriterInfo(ctx, cfg, rmd.LastModifyingWriter(),
-			rmd.LastModifyingWriterKID(), rmd.Revision())
+		winfo, err := newWriterInfo(
+			ctx, cfg, cmd.LastModifyingWriter(),
+			cmd.LastModifyingWriterKID(), cmd.Revision())
 		if err != nil {
 			return nil, err
 		}
 
-		err = ccs.addOps(cfg.Codec(), rmd.data, winfo, rmd.localTimestamp)
+		data := *cmd.Data()
 
-		if ptr := rmd.data.cachedChanges.Info.BlockPointer; ptr != zeroPtr {
+		err = ccs.addOps(cfg.Codec(), data, winfo, cmd.LocalTimestamp())
+
+		if ptr := data.cachedChanges.Info.BlockPointer; ptr != zeroPtr {
 			ccs.blockChangePointers[ptr] = true
 
 			// Any child block change pointers?
 			fblock, err := fbo.GetFileBlockForReading(ctx, makeFBOLockState(),
-				rmd.ReadOnly(), ptr, MasterBranch, path{})
+				cmd, ptr, MasterBranch, path{})
 			if err != nil {
 				return nil, err
 			}
@@ -720,11 +746,13 @@ func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 		if !ccs.originalRoot.IsInitialized() {
 			// Find the original pointer for the root directory
 			if rootChain, ok :=
-				ccs.byMostRecent[rmd.data.Dir.BlockPointer]; ok {
+				ccs.byMostRecent[data.Dir.BlockPointer]; ok {
 				ccs.originalRoot = rootChain.original
 			}
 		}
 	}
+
+	mostRecentMD := cmds[len(cmds)-1]
 
 	for _, chain := range ccs.byOriginal {
 		chain.collapse()
@@ -736,19 +764,33 @@ func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 		// need to do this for chains that represent a resolution in
 		// progress, since in that case all actions are already
 		// completed.
-		if len(rmds) > 0 && identifyTypes {
-			err := chain.identifyType(ctx, fbo, rmds[len(rmds)-1], ccs)
+		if identifyTypes {
+			err := chain.identifyType(ctx, fbo, mostRecentMD, ccs)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
 
-	if len(rmds) > 0 {
-		ccs.mostRecentMD = rmds[len(rmds)-1]
+	ccs.mostRecentChainMDInfo = mostRecentChainMetadataInfo{
+		kmd:     mostRecentMD,
+		rootPtr: mostRecentMD.Data().Dir.BlockPointer,
 	}
 
 	return ccs, nil
+}
+
+// newCRChainsForIRMDs simply builds a list of chainMetadatas from the
+// given list of ImmutableRootMetadatas and calls newCRChains with it.
+func newCRChainsForIRMDs(
+	ctx context.Context, cfg Config, irmds []ImmutableRootMetadata,
+	fbo *folderBlockOps, identifyTypes bool) (
+	ccs *crChains, err error) {
+	cmds := make([]chainMetadata, len(irmds))
+	for i, irmd := range irmds {
+		cmds[i] = irmd
+	}
+	return newCRChains(ctx, cfg, cmds, fbo, identifyTypes)
 }
 
 type crChainSummary struct {
@@ -898,7 +940,8 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 	}
 
 	pathMap, err := blocks.SearchForPaths(ctx, nodeCache, ptrs,
-		newPtrs, ccs.mostRecentMD.ReadOnly())
+		newPtrs, ccs.mostRecentChainMDInfo.kmd,
+		ccs.mostRecentChainMDInfo.rootPtr)
 	if err != nil {
 		return nil, err
 	}
@@ -928,15 +971,15 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 	return paths, nil
 }
 
-// remove deletes all operations associated with `rmd` from the chains.
-// It leaves original block pointers in place though, even when
-// removing operations from the head of the chain.  It returns the set
-// of chains with at least one operation removed.
+// remove deletes all operations associated with the given revision
+// from the chains.  It leaves original block pointers in place
+// though, even when removing operations from the head of the chain.
+// It returns the set of chains with at least one operation removed.
 func (ccs *crChains) remove(ctx context.Context, log logger.Logger,
-	rmd ImmutableRootMetadata) []*crChain {
+	revision MetadataRevision) []*crChain {
 	var chainsWithRemovals []*crChain
 	for _, chain := range ccs.byOriginal {
-		if chain.remove(ctx, log, rmd) {
+		if chain.remove(ctx, log, revision) {
 			chainsWithRemovals = append(chainsWithRemovals, chain)
 		}
 	}

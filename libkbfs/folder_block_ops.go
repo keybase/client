@@ -2660,7 +2660,7 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 
 func (fbo *folderBlockOps) trySearchWithCacheLocked(ctx context.Context,
 	lState *lockState, cache NodeCache, ptrs []BlockPointer,
-	newPtrs map[BlockPointer]bool, md ReadOnlyRootMetadata) (
+	newPtrs map[BlockPointer]bool, kmd KeyMetadata, rootPtr BlockPointer) (
 	map[BlockPointer]Node, error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 
@@ -2673,7 +2673,6 @@ func (fbo *folderBlockOps) trySearchWithCacheLocked(ctx context.Context,
 		return nodeMap, nil
 	}
 
-	rootPtr := md.data.Dir.BlockPointer
 	var node Node
 	// The node cache used by the main part of KBFS is
 	// fbo.nodeCache. This basically maps from BlockPointers to
@@ -2714,7 +2713,7 @@ func (fbo *folderBlockOps) trySearchWithCacheLocked(ctx context.Context,
 		// Root node may or may not exist.
 		var err error
 		node, err = cache.GetOrCreate(rootPtr,
-			string(md.GetTlfHandle().GetCanonicalName()), nil)
+			string(kmd.GetTlfHandle().GetCanonicalName()), nil)
 		if err != nil {
 			return nil, err
 		}
@@ -2737,11 +2736,11 @@ func (fbo *folderBlockOps) trySearchWithCacheLocked(ctx context.Context,
 	rootPath := cache.PathFromNode(node)
 	if len(rootPath.path) != 1 {
 		return nil, fmt.Errorf("Invalid root path for %v: %s",
-			md.data.Dir.BlockPointer, rootPath)
+			rootPtr, rootPath)
 	}
 
-	_, err := fbo.searchForNodesInDirLocked(ctx, lState, cache, newPtrs, md,
-		node, rootPath, nodeMap, numNodesFound)
+	_, err := fbo.searchForNodesInDirLocked(ctx, lState, cache, newPtrs,
+		kmd, node, rootPath, nodeMap, numNodesFound)
 	if err != nil {
 		return nil, err
 	}
@@ -2755,23 +2754,23 @@ func (fbo *folderBlockOps) trySearchWithCacheLocked(ctx context.Context,
 
 func (fbo *folderBlockOps) searchForNodesLocked(ctx context.Context,
 	lState *lockState, cache NodeCache, ptrs []BlockPointer,
-	newPtrs map[BlockPointer]bool, md ReadOnlyRootMetadata) (
+	newPtrs map[BlockPointer]bool, kmd KeyMetadata, rootPtr BlockPointer) (
 	map[BlockPointer]Node, NodeCache, error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 
 	// First try the passed-in cache.  If it doesn't work because the
 	// cache is out of date, try again with a clean cache.
 	nodeMap, err := fbo.trySearchWithCacheLocked(ctx, lState, cache, ptrs,
-		newPtrs, md)
+		newPtrs, kmd, rootPtr)
 	if _, ok := err.(searchWithOutOfDateCacheError); ok {
 		// The md is out-of-date, so use a throwaway cache so we
 		// don't pollute the real node cache with stale nodes.
 		fbo.log.CDebugf(ctx, "Root node %v doesn't exist in the node "+
 			"cache; using a throwaway node cache instead",
-			md.data.Dir.BlockPointer)
+			rootPtr)
 		cache = newNodeCacheStandard(fbo.folderBranch)
 		nodeMap, err = fbo.trySearchWithCacheLocked(ctx, lState, cache, ptrs,
-			newPtrs, md)
+			newPtrs, kmd, rootPtr)
 	}
 
 	if err != nil {
@@ -2792,24 +2791,27 @@ func (fbo *folderBlockOps) searchForNodesLocked(ctx context.Context,
 // root pointer specified in md.
 func (fbo *folderBlockOps) SearchForNodes(ctx context.Context,
 	cache NodeCache, ptrs []BlockPointer, newPtrs map[BlockPointer]bool,
-	md ReadOnlyRootMetadata) (map[BlockPointer]Node, NodeCache, error) {
+	kmd KeyMetadata, rootPtr BlockPointer) (
+	map[BlockPointer]Node, NodeCache, error) {
 	lState := makeFBOLockState()
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	return fbo.searchForNodesLocked(ctx, lState, cache, ptrs, newPtrs, md)
+	return fbo.searchForNodesLocked(
+		ctx, lState, cache, ptrs, newPtrs, kmd, rootPtr)
 }
 
 // SearchForPaths is like SearchForNodes, except it returns a
 // consistent view of all the paths of the searched-for pointers.
 func (fbo *folderBlockOps) SearchForPaths(ctx context.Context,
 	cache NodeCache, ptrs []BlockPointer, newPtrs map[BlockPointer]bool,
-	md ReadOnlyRootMetadata) (map[BlockPointer]path, error) {
+	kmd KeyMetadata, rootPtr BlockPointer) (map[BlockPointer]path, error) {
 	lState := makeFBOLockState()
 	// Hold the lock while processing the paths so they can't be changed.
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	nodeMap, cache, err :=
-		fbo.searchForNodesLocked(ctx, lState, cache, ptrs, newPtrs, md)
+		fbo.searchForNodesLocked(
+			ctx, lState, cache, ptrs, newPtrs, kmd, rootPtr)
 	if err != nil {
 		return nil, err
 	}

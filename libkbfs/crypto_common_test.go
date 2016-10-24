@@ -452,7 +452,7 @@ func TestEncryptPrivateMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(&privateMetadata, cryptKey)
+	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(privateMetadata, cryptKey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -536,7 +536,7 @@ func TestDecryptEncryptedPrivateMetadata(t *testing.T) {
 		TLFPrivateKey: tlfPrivateKey,
 	}
 
-	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(&privateMetadata, cryptKey)
+	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(privateMetadata, cryptKey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -615,7 +615,7 @@ func TestDecryptPrivateMetadataFailures(t *testing.T) {
 		TLFPrivateKey: tlfPrivateKey,
 	}
 
-	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(&privateMetadata, cryptKey)
+	encryptedPrivateMetadata, err := c.EncryptPrivateMetadata(privateMetadata, cryptKey)
 	if err != nil {
 		t.Fatal(err)
 	}

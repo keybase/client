@@ -710,13 +710,14 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	// decryptMDPrivateData assumes that the MD is always encrypted
 	// using the latest key gen.
 	if !md.IsReadable() && len(md.GetSerializedPrivateMetadata()) > 0 {
-		err := decryptMDPrivateData(
+		pmd, err := decryptMDPrivateData(
 			ctx, km.config.Codec(), km.config.Crypto(),
 			km.config.BlockCache(), km.config.BlockOps(),
-			km, uid, md, md.ReadOnly())
+			km, uid, md.GetSerializedPrivateMetadata(), md, md)
 		if err != nil {
 			return false, nil, err
 		}
+		md.data = pmd
 	}
 
 	defer func() {

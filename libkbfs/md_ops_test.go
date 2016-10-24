@@ -170,7 +170,7 @@ func verifyMDForPrivateHelper(
 	var pmd PrivateMetadata
 	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
 		gomock.Any(), kbfscrypto.TLFCryptKey{}).
-		MinTimes(minTimes).MaxTimes(maxTimes).Return(&pmd, nil)
+		MinTimes(minTimes).MaxTimes(maxTimes).Return(pmd, nil)
 
 	if rmds.MD.IsFinal() {
 		config.mockKbpki.EXPECT().HasUnverifiedVerifyingKey(gomock.Any(), gomock.Any(),
@@ -197,7 +197,7 @@ func verifyMDForPrivate(
 func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
 	expectGetTLFCryptKeyForEncryption(config, rmd)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
-		&rmd.data, kbfscrypto.TLFCryptKey{}).Return(
+		rmd.data, kbfscrypto.TLFCryptKey{}).Return(
 		EncryptedPrivateMetadata{}, nil)
 	config.mockCrypto.EXPECT().Sign(
 		gomock.Any(), gomock.Any()).Times(2).Return(
@@ -700,7 +700,7 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 
 	expectGetTLFCryptKeyForEncryption(config, rmd)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
-		&rmd.data, kbfscrypto.TLFCryptKey{}).Return(
+		rmd.data, kbfscrypto.TLFCryptKey{}).Return(
 		EncryptedPrivateMetadata{}, nil)
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
 		Return(true)

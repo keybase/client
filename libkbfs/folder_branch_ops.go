@@ -3556,7 +3556,7 @@ func (fbo *folderBranchOps) searchForNode(ctx context.Context,
 	}
 
 	nodeMap, _, err := fbo.blocks.SearchForNodes(ctx, fbo.nodeCache,
-		[]BlockPointer{ptr}, newPtrs, md)
+		[]BlockPointer{ptr}, newPtrs, md, md.data.Dir.BlockPointer)
 	if err != nil {
 		return nil, err
 	}
