@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 )
 
 type SKBKeyringFile struct {
@@ -33,6 +34,17 @@ func (k *SKBKeyringFile) Load() (err error) {
 	k.Lock()
 	defer k.Unlock()
 	return k.loadLocked()
+}
+
+func (k *SKBKeyringFile) MTime() (mtime time.Time, err error) {
+	k.Lock()
+	defer k.Unlock()
+	var fi os.FileInfo
+	fi, err = os.Stat(k.filename)
+	if err != nil {
+		return mtime, err
+	}
+	return fi.ModTime(), err
 }
 
 func (k *SKBKeyringFile) MarkDirty() {

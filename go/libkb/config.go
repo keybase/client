@@ -291,7 +291,7 @@ func (f *JSONConfigFile) SetDeviceID(did keybase1.DeviceID) (err error) {
 		err = NoUserConfigError{}
 	} else {
 		u.SetDevice(did)
-		f.setUserConfigWithLock(u, true)
+		err = f.setUserConfigWithLock(u, true)
 	}
 	return
 }
@@ -706,10 +706,26 @@ func (f JSONConfigFile) GetMountDir() string {
 	return f.GetTopLevelString("mountdir")
 }
 
-func (f JSONConfigFile) GetBug3964RepairmanVisit() (bool, bool) {
-	return f.GetBoolAtPath("maintenance.bug3964_repairman_visit")
+func (f JSONConfigFile) GetBug3964RepairTime() time.Time {
+	if uc, _ := f.GetUserConfig(); uc != nil {
+		return uc.GetBug3964RepairTime()
+	}
+	return time.Time{}
 }
 
-func (f JSONConfigFile) SetBug3964RepairmanVisit(b bool) error {
-	return f.SetBoolAtPath("maintenance.bug3964_repairman_visit", b)
+func (f JSONConfigFile) SetBug3964RepairTime(t time.Time) (err error) {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+
+	f.G().Log.Debug("| Setting Bug3964 repair time to %s", t)
+
+	var u *UserConfig
+	if u, err = f.getUserConfigWithLock(); err != nil {
+	} else if u == nil {
+		err = NoUserConfigError{}
+	} else {
+		u.SetBug3964RepairTime(t)
+		err = f.setUserConfigWithLock(u, true)
+	}
+	return err
 }

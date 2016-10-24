@@ -5,6 +5,7 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	"time"
 )
 
 type Bug3964Repairman struct {
@@ -111,7 +112,7 @@ func (b *Bug3964Repairman) saveRepairmanVisit() (err error) {
 	if err != nil {
 		return err
 	}
-	err = cw.SetBug3964RepairmanVisit(true)
+	err = cw.SetBug3964RepairTime(time.Now())
 	if err == nil {
 		err = cwt.Commit()
 	} else {
@@ -133,6 +134,23 @@ func (b *Bug3964Repairman) postToServer() (err error) {
 	return err
 }
 
+func (b *Bug3964Repairman) computeShortCircuit(me *libkb.User) (ss bool, err error) {
+	defer b.G().Trace("Bug3964Repairman#computeShortCircuit", func() error { return err })()
+	repairTime := b.G().Env.GetConfig().GetBug3964RepairTime()
+	if repairTime.IsZero() {
+		b.G().Log.Debug("| repair time is zero or wasn't set")
+		return false, nil
+	}
+	var fileTime time.Time
+	fileTime, err = libkb.StatSKBKeyringMTime(me.GetNormalizedName(), b.G())
+	if err != nil {
+		return false, err
+	}
+	ss = fileTime.After(repairTime)
+	b.G().Log.Debug("| Checking repair-time (%s) v file-write-time (%s): shortCircuit=%v", repairTime, fileTime, ss)
+	return ss, nil
+}
+
 // Run the engine
 func (b *Bug3964Repairman) Run(ctx *Context) (err error) {
 	traceDone := b.G().Trace("Bug3964Repairman#Run", func() error { return err })
@@ -148,18 +166,21 @@ func (b *Bug3964Repairman) Run(ctx *Context) (err error) {
 	var lksec *libkb.LKSec
 	var ran bool
 	var dkm libkb.DeviceKeyMap
-
-	if found, visited := b.G().Env.GetConfig().GetBug3964RepairmanVisit(); found && visited {
-		b.G().Log.Debug("| Repairman already visited; bailing out")
-		return nil
-	}
-
-	b.G().Log.Debug("| Repairman wasn't short-circuited")
+	var ss bool
 
 	if me, err = b.loadMe(); err != nil {
 		return err
 	}
 
+	if ss, err = b.computeShortCircuit(me); err != nil {
+		return err
+	}
+	if ss {
+		b.G().Log.Debug("| Repairman already visited after file update; bailing out")
+		return nil
+	}
+
+	b.G().Log.Debug("| Repairman wasn't short-circuited")
 	if encKey, err = b.loadUnlockedEncryptionKey(ctx, me); err != nil {
 		return err
 	}

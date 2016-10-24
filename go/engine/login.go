@@ -159,5 +159,5 @@ func (e *Login) notProvisionedErr(err error) bool {
 func (e *Login) sendNotification() {
 	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
 	e.G().CallLoginHooks()
-	RunBug3964Repairman(e.G())
+	// RunBug3964Repairman(e.G())
 }

@@ -76,7 +76,7 @@ func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)  { retu
 func (n NullConfiguration) IsAdmin() (bool, bool)                         { return false, false }
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetMountDir() string                           { return "" }
-func (n NullConfiguration) GetBug3964RepairmanVisit() (bool, bool)        { return false, false }
+func (n NullConfiguration) GetBug3964RepairTime() time.Time               { return time.Time{} }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
