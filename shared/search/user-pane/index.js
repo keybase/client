@@ -30,10 +30,7 @@ export default connector.connect(
       if (username && trackerState && trackerState.type === 'tracker') {
         const {userInfo: {uid}} = trackerState
         const currentlyFollowing = trackerState.lastAction === 'followed' || trackerState.lastAction === 'refollowed' || trackerState.currentlyFollowing
-        // TODO (mm) ideally userInfo should be null until we get a response from the server
-        // Same with proofs (instead of empty array). So we know the difference between
-        // not having data and having empty data.
-        const loading = trackerState.userInfo.followersCount === -1
+        const loading = trackerState.serverActive
         return {
           mode: 'keybase',
           userInfoProps: {
@@ -61,6 +58,7 @@ export default connector.connect(
         return {
           mode: 'loading',
           username,
+          loading: true,
         }
       }
     } else if (userForInfoPane && userForInfoPane.service === 'external') {

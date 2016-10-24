@@ -113,7 +113,7 @@
 // Apart from these signing gymnastics, all the large-encrypted-message
 // considerations from https://www.imperialviolet.org/2015/05/16/aeads.html
 // apply here. Namely we use a chunk number to prevent reordering, and we
-// use an empty chunk at the end to detect truncation. A globally unique
+// require a short chunk at the end to detect truncation. A globally unique
 // nonce (for encryption *and* signing) prevents chunk swapping in between
 // messages, and is required for encryption in any case. (It's expected
 // that the chat client will pass in all zeroes for the nonce, because both
@@ -474,10 +474,9 @@ func GetSealedSize(plaintextLen int) int {
 	// All the full packets.
 	fullChunks := plaintextLen / DefaultPlaintextChunkLength
 	totalLen := fullChunks * getPacketLen(DefaultPlaintextChunkLength)
-	// Maybe a partial packet.
+	// Exactly one short packet, even if it's empty.
 	remainingPlaintext := plaintextLen % DefaultPlaintextChunkLength
 	totalLen += getPacketLen(remainingPlaintext)
-	// And finally, an empty packet.
 	return totalLen
 }
 

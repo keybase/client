@@ -84,12 +84,23 @@ const loggerMiddleware: any = enableStoreLogging ? createLogger({
   logger,
 }) : null
 
+let lastError = new Error('')
+
 const errorCatching = store => next => action => {
   try {
     return next(action)
   } catch (error) {
+    // Don't let the same error keep getting caught
+    if (lastError.message === error.message) {
+      return
+    }
+    lastError = error
     console.warn(`Caught a middleware exception ${error}`)
-    crashHandler(error)
+
+    try {
+      crashHandler(error) // don't let this thing crash us forever
+    } catch (_) {
+    }
   }
 }
 

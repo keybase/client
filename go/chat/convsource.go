@@ -103,7 +103,7 @@ func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID c
 		return chat1.Conversation{}, libkb.ChatStorageRemoteError{Msg: err.Error()}
 	}
 	if len(conv.Inbox.Conversations) == 0 {
-		return chat1.Conversation{}, libkb.ChatStorageRemoteError{Msg: fmt.Sprintf("conv not found: %d", convID)}
+		return chat1.Conversation{}, libkb.ChatStorageRemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
 	}
 	return conv.Inbox.Conversations[0], nil
 }
@@ -120,7 +120,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination, &rl)
 		if err == nil {
 			// If found, then return the stuff
-			s.G().Log.Debug("Pull: cache hit: convID: %d uid: %s", convID, uid)
+			s.G().Log.Debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
 			localData.Messages = utils.FilterByType(localData.Messages, query)
 
 			// Before returning the stuff, send remote request to mark as read if
@@ -139,7 +139,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			return localData, rl, nil
 		}
 	} else {
-		s.G().Log.Debug("Pull: error fetching conv metadata: convID: %d uid: %s err: %s", convID, uid,
+		s.G().Log.Debug("Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
 			err.Error())
 	}
 
@@ -163,7 +163,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 
 	// Store locally (just warn on error, don't abort the whole thing)
 	if err = s.storage.Merge(ctx, convID, uid, thread.Messages); err != nil {
-		s.G().Log.Warning("Pull: unable to commit thread locally: convID: %d uid: %s", convID, uid)
+		s.G().Log.Warning("Pull: unable to commit thread locally: convID: %s uid: %s", convID, uid)
 	}
 
 	return thread, rl, nil

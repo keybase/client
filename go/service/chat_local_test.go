@@ -162,7 +162,7 @@ func TestChatNewChatConversationLocalTwice(t *testing.T) {
 	c1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 	c2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
 
-	if c2.Id != c1.Id {
+	if !c2.Id.Eq(c1.Id) {
 		t.Fatalf("2nd call to NewConversationLocal for a chat conversation did not return the same conversation ID")
 	}
 }
@@ -199,7 +199,7 @@ func TestChatGetInboxAndUnboxLocal(t *testing.T) {
 	if conversations[0].Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
 		t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
 	}
-	if conversations[0].Info.Id != created.Id {
+	if !conversations[0].Info.Id.Eq(created.Id) {
 		t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
 	}
 	if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
@@ -231,7 +231,7 @@ func TestChatGetInboxAndUnboxLocalTlfName(t *testing.T) {
 	if conversations[0].Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
 		t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
 	}
-	if conversations[0].Info.Id != created.Id {
+	if !conversations[0].Info.Id.Eq(created.Id) {
 		t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
 	}
 	if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
@@ -254,7 +254,7 @@ func TestChatPostLocal(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 
 	// we just posted this message, so should be the first one.
-	msg := ctc.world.Msgs[created.Id][0]
+	msg := ctc.world.Msgs[created.Id.String()][0]
 
 	if msg.ClientHeader.TlfName == created.TlfName {
 		t.Fatalf("PostLocal didn't canonicalize TLF name")
@@ -403,7 +403,7 @@ func TestChatGracefulUnboxing(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
 
 	// make evil hello evil
-	ctc.world.Msgs[created.Id][0].BodyCiphertext.E[0]++
+	ctc.world.Msgs[created.Id.String()][0].BodyCiphertext.E[0]++
 
 	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: created.Id,
@@ -453,7 +453,7 @@ func TestChatGetInboxSummaryForCLILocal(t *testing.T) {
 	if len(res.Conversations) != 5 {
 		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 3 items, got %d\n", len(res.Conversations))
 	}
-	if res.Conversations[0].Info.Id != withUser123.Id {
+	if !res.Conversations[0].Info.Id.Eq(withUser123.Id) {
 		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal; newest updated conversation is not the first in response.\n")
 	}
 	// TODO: fix this when merging master back in
@@ -498,7 +498,7 @@ func TestChatGetInboxSummaryForCLILocal(t *testing.T) {
 	if len(res.Conversations) != 2 {
 		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal . expected 2 items, got %d\n", len(res.Conversations))
 	}
-	if res.Conversations[0].Info.Id != withUser1.Id {
+	if !res.Conversations[0].Info.Id.Eq(withUser1.Id) {
 		t.Fatalf("unexpected response from GetInboxSummaryForCLILocal; unread conversation is not the first in response.\n")
 	}
 

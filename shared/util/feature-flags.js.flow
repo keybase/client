@@ -8,6 +8,7 @@ export type FeatureKeys = 'admin'
  | 'tabPeopleEnabled'
  | 'tabProfileEnabled'
  | 'tabSettingsEnabled'
+ | 'plansEnabled'
 
 export type FeatureFlags = {[key: FeatureKeys]: boolean}
 

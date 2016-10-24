@@ -1485,6 +1485,18 @@ export function metadataGetFoldersForRekeyRpcPromise (request: $Exact<requestCom
   return new Promise((resolve, reject) => { metadataGetFoldersForRekeyRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function metadataGetKeyBundlesRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyBundlesResult) => void} & {param: metadataGetKeyBundlesRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.metadata.getKeyBundles'})
+}
+
+export function metadataGetKeyBundlesRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyBundlesResult) => void} & {param: metadataGetKeyBundlesRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => metadataGetKeyBundlesRpc({...request, incomingCallMap, callback}))
+}
+
+export function metadataGetKeyBundlesRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyBundlesResult) => void} & {param: metadataGetKeyBundlesRpcParam}>): Promise<metadataGetKeyBundlesResult> {
+  return new Promise((resolve, reject) => { metadataGetKeyBundlesRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataGetKeyRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyResult) => void} & {param: metadataGetKeyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.metadata.getKey'})
 }
@@ -1627,6 +1639,18 @@ export function metadataPutMetadataRpcChannelMap (channelConfig: ChannelConfig<*
 
 export function metadataPutMetadataRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { metadataPutMetadataRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function metadataPutMetadataV3Rpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataV3RpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.metadata.putMetadataV3'})
+}
+
+export function metadataPutMetadataV3RpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataV3RpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => metadataPutMetadataV3Rpc({...request, incomingCallMap, callback}))
+}
+
+export function metadataPutMetadataV3RpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataV3RpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataPutMetadataV3Rpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataRegisterForUpdatesRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>) {
@@ -2217,16 +2241,16 @@ export function testTestRpcPromise (request: $Exact<requestCommon & {callback?: 
   return new Promise((resolve, reject) => { testTestRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function tlfCompleteAndCanonicalizeTlfNameRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizeTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizeTlfNameRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'keybase.1.tlf.completeAndCanonicalizeTlfName'})
+export function tlfCompleteAndCanonicalizePrivateTlfNameRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizePrivateTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizePrivateTlfNameRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.tlf.completeAndCanonicalizePrivateTlfName'})
 }
 
-export function tlfCompleteAndCanonicalizeTlfNameRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizeTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizeTlfNameRpcParam}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => tlfCompleteAndCanonicalizeTlfNameRpc({...request, incomingCallMap, callback}))
+export function tlfCompleteAndCanonicalizePrivateTlfNameRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizePrivateTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizePrivateTlfNameRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => tlfCompleteAndCanonicalizePrivateTlfNameRpc({...request, incomingCallMap, callback}))
 }
 
-export function tlfCompleteAndCanonicalizeTlfNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizeTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizeTlfNameRpcParam}>): Promise<tlfCompleteAndCanonicalizeTlfNameResult> {
-  return new Promise((resolve, reject) => { tlfCompleteAndCanonicalizeTlfNameRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+export function tlfCompleteAndCanonicalizePrivateTlfNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCompleteAndCanonicalizePrivateTlfNameResult) => void} & {param: tlfCompleteAndCanonicalizePrivateTlfNameRpcParam}>): Promise<tlfCompleteAndCanonicalizePrivateTlfNameResult> {
+  return new Promise((resolve, reject) => { tlfCompleteAndCanonicalizePrivateTlfNameRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function tlfCryptKeysRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>) {
@@ -3054,6 +3078,16 @@ export type Kex2ProvisioneeHelloRpcParam = Exact<{
   pps: PassphraseStream,
   sigBody: string
 }>
+
+export type KeyBundle = {
+  version: int,
+  bundle: bytes,
+}
+
+export type KeyBundleResponse = {
+  WriterBundle: KeyBundle,
+  ReaderBundle: KeyBundle,
+}
 
 export type KeyHalf = {
   user: UID,
@@ -4320,6 +4354,12 @@ export type metadataGetFoldersForRekeyRpcParam = Exact<{
   deviceKID: KID
 }>
 
+export type metadataGetKeyBundlesRpcParam = Exact<{
+  folderID: string,
+  writerBundleID: string,
+  readerBundleID: string
+}>
+
 export type metadataGetKeyRpcParam = Exact<{
   keyHalfID: bytes,
   deviceKID: string,
@@ -4371,6 +4411,13 @@ export type metadataPutKeysRpcParam = Exact<{
 
 export type metadataPutMetadataRpcParam = Exact<{
   mdBlock: MDBlock,
+  logTags: {[key: string]: string}
+}>
+
+export type metadataPutMetadataV3RpcParam = Exact<{
+  mdBlock: MDBlock,
+  readerKeyBundle: KeyBundle,
+  writerKeyBundle: KeyBundle,
   logTags: {[key: string]: string}
 }>
 
@@ -4711,9 +4758,8 @@ export type testTestRpcParam = Exact<{
   name: string
 }>
 
-export type tlfCompleteAndCanonicalizeTlfNameRpcParam = Exact<{
-  query: TLFQuery,
-  isPublic: bool
+export type tlfCompleteAndCanonicalizePrivateTlfNameRpcParam = Exact<{
+  query: TLFQuery
 }>
 
 export type tlfCryptKeysRpcParam = Exact<{
@@ -4912,6 +4958,8 @@ type metadataGetChallengeResult = ChallengeInfo
 
 type metadataGetFolderHandleResult = bytes
 
+type metadataGetKeyBundlesResult = KeyBundleResponse
+
 type metadataGetKeyResult = bytes
 
 type metadataGetLatestFolderHandleResult = bytes
@@ -5002,7 +5050,7 @@ type testTestCallbackResult = string
 
 type testTestResult = Test
 
-type tlfCompleteAndCanonicalizeTlfNameResult = CanonicalTLFNameAndIDWithBreaks
+type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
 
 type tlfCryptKeysResult = GetTLFCryptKeysRes
 
@@ -5131,6 +5179,7 @@ export type rpc =
   | metadataGetChallengeRpc
   | metadataGetFolderHandleRpc
   | metadataGetFoldersForRekeyRpc
+  | metadataGetKeyBundlesRpc
   | metadataGetKeyRpc
   | metadataGetLatestFolderHandleRpc
   | metadataGetMerkleNodeRpc
@@ -5143,6 +5192,7 @@ export type rpc =
   | metadataPruneBranchRpc
   | metadataPutKeysRpc
   | metadataPutMetadataRpc
+  | metadataPutMetadataV3Rpc
   | metadataRegisterForUpdatesRpc
   | metadataTruncateLockRpc
   | metadataTruncateUnlockRpc
@@ -5192,7 +5242,7 @@ export type rpc =
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc
-  | tlfCompleteAndCanonicalizeTlfNameRpc
+  | tlfCompleteAndCanonicalizePrivateTlfNameRpc
   | tlfCryptKeysRpc
   | tlfKeysGetPublicCanonicalTLFNameAndIDRpc
   | tlfKeysGetTLFCryptKeysRpc

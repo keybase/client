@@ -347,14 +347,14 @@ export type Asset = {
   key: bytes,
 }
 
-export type BodyPlaintext =
+export type BodyPlaintext = 
     { version : 1, v1 : ?BodyPlaintextV1 }
 
 export type BodyPlaintextV1 = {
   messageBody: MessageBody,
 }
 
-export type BodyPlaintextVersion =
+export type BodyPlaintextVersion = 
     1 // V1_1
 
 export type ChatActivity = {
@@ -362,7 +362,7 @@ export type ChatActivity = {
   IncomingMessage?: ?MessageUnboxed,
 }
 
-export type ChatActivityType =
+export type ChatActivityType = 
     0 // RESERVED_0
   | 1 // INCOMING_MESSAGE_1
 
@@ -374,7 +374,7 @@ export type Conversation = {
   maxMsgs?: ?Array<MessageBoxed>,
 }
 
-export type ConversationID = uint64
+export type ConversationID = bytes
 
 export type ConversationIDTriple = {
   tlfid: TLFID,
@@ -533,7 +533,7 @@ export type GetThreadRemoteRes = {
 
 export type Hash = bytes
 
-export type HeaderPlaintext =
+export type HeaderPlaintext = 
     { version : 1, v1 : ?HeaderPlaintextV1 }
 
 export type HeaderPlaintextV1 = {
@@ -548,7 +548,7 @@ export type HeaderPlaintextV1 = {
   headerSignature?: ?SignatureInfo,
 }
 
-export type HeaderPlaintextVersion =
+export type HeaderPlaintextVersion = 
     1 // V1_1
 
 export type InboxView = {
@@ -572,7 +572,7 @@ export type MessageAttachment = {
   metadata: bytes,
 }
 
-export type MessageBody =
+export type MessageBody = 
     { messageType : 1, text : ?MessageText }
   | { messageType : 2, attachment : ?MessageAttachment }
   | { messageType : 3, edit : ?MessageEdit }
@@ -638,7 +638,7 @@ export type MessageText = {
   body: string,
 }
 
-export type MessageType =
+export type MessageType = 
     0 // NONE_0
   | 1 // TEXT_1
   | 2 // ATTACHMENT_2
@@ -648,7 +648,7 @@ export type MessageType =
   | 6 // TLFNAME_6
   | 7 // HEADLINE_7
 
-export type MessageUnboxed =
+export type MessageUnboxed = 
     { state : 1, valid : ?MessageUnboxedValid }
   | { state : 2, error : ?MessageUnboxedError }
 
@@ -658,7 +658,7 @@ export type MessageUnboxedError = {
   messageType: MessageType,
 }
 
-export type MessageUnboxedState =
+export type MessageUnboxedState = 
     1 // VALID_1
   | 2 // ERROR_2
 
@@ -733,7 +733,7 @@ export type SignatureInfo = {
 
 export type TLFID = bytes
 
-export type TLFVisibility =
+export type TLFVisibility = 
     0 // ANY_0
   | 1 // PUBLIC_1
   | 2 // PRIVATE_2
@@ -752,7 +752,7 @@ export type ThreadViewBoxed = {
 
 export type TopicID = bytes
 
-export type TopicType =
+export type TopicType = 
     0 // NONE_0
   | 1 // CHAT_1
   | 2 // DEV_2

@@ -21,8 +21,8 @@ func NewFile(filename string, data []byte, perm os.FileMode) File {
 }
 
 // Save file
-func (f File) Save() error {
-	return SafeWriteToFile(f, f.perm)
+func (f File) Save(g SafeWriteLogger) error {
+	return SafeWriteToFile(g, f, f.perm)
 }
 
 // GetFilename is for SafeWriter

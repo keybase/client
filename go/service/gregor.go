@@ -865,7 +865,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			g.G().Log.Error("push handler: chat activity: error decoding newMessage: %s", err.Error())
 			return err
 		}
-		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %d sender: %s",
+		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %s sender: %s",
 			nm.ConvID, nm.Message.ClientHeader.Sender)
 		uid := m.UID().Bytes()
 		decmsg, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
