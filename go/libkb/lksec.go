@@ -358,7 +358,7 @@ func (s *LKSec) attemptBug3964Recovery(lctx LoginContext, data []byte, nonce *[2
 }
 
 func (s *LKSec) tryAllDevicesForBug3964Recovery(devices DeviceKeyMap, data []byte, nonce *[24]byte) (res []byte, erroneousMask LKSecServerHalf, err error) {
-	defer s.G().Trace("LKsec#tryAllDevicesForBug3964Recovery()", func() error { return err })()
+	defer s.G().Trace("LKSec#tryAllDevicesForBug3964Recovery()", func() error { return err })()
 
 	for devid, dev := range devices {
 		s.G().Log.Debug("| Trying Bug 3964 Recovery w/ device %q {id: %s, lks: %s...}", dev.Description, devid, dev.LksServerHalf[0:8])
@@ -403,9 +403,11 @@ func (s *LKSec) Decrypt(lctx LoginContext, src []byte) (res []byte, gen Passphra
 }
 
 func (s *LKSec) decryptForBug3964Repair(src []byte, dkm DeviceKeyMap) (res []byte, erroneousMask LKSecServerHalf, err error) {
+	defer s.G().Trace("LKSec#decryptForBug3964Repair()", func() error { return err })()
 	data, nonce := splitCiphertext(src)
 	res, ok := secretbox.Open(nil, data, nonce, s.secret.f)
 	if ok {
+		s.G().Log.Debug("| Succeeded with intended mask")
 		return res, LKSecServerHalf{}, nil
 	}
 	return s.tryAllDevicesForBug3964Recovery(dkm, data, nonce)

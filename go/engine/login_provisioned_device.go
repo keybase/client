@@ -131,9 +131,6 @@ func (e *LoginProvisionedDevice) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-
-	RunBug3964Repairman(e.G())
-
 	return nil
 }
 

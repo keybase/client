@@ -306,6 +306,8 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 	var newBlocks []*SKB
 	var hitBug3964 bool
 
+	k.G().Log.Debug("| # of blocks=%d", len(k.Blocks))
+
 	for i, b := range k.Blocks {
 		if b.Priv.Data == nil {
 			newBlocks = append(newBlocks, b)
@@ -320,6 +322,7 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 		}
 		if badMask.IsNil() {
 			newBlocks = append(newBlocks, b)
+			k.G().Log.Debug("| Nil badmask at block=%d", i)
 			continue
 		}
 		hitBug3964 = true

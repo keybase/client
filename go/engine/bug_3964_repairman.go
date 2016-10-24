@@ -105,7 +105,7 @@ func (b *Bug3964Repairman) updateSecretStore(me *libkb.User, lksec *libkb.LKSec)
 }
 
 func (b *Bug3964Repairman) saveRepairmanVisit() (err error) {
-	defer b.G().Trace("Bug3964Repairman#setRepairmanVisit", func() error { return err })()
+	defer b.G().Trace("Bug3964Repairman#saveRepairmanVisit", func() error { return err })()
 	cw := b.G().Env.GetConfigWriter()
 	cwt, err := cw.BeginTransaction()
 	if err != nil {
@@ -126,8 +126,8 @@ func (b *Bug3964Repairman) postToServer() (err error) {
 		Endpoint:    "user/bug_3964_repair",
 		NeedSession: true,
 		Args: libkb.HTTPArgs{
-			"device_id":             libkb.S{Val: b.G().Env.GetDeviceID().String()},
-			"passphrase_generation": libkb.I{Val: int(b.passphraseGeneration)},
+			"device_id": libkb.S{Val: b.G().Env.GetDeviceID().String()},
+			"ppgen":     libkb.I{Val: int(b.passphraseGeneration)},
 		},
 	})
 	return err
@@ -192,6 +192,8 @@ func (b *Bug3964Repairman) Run(ctx *Context) (err error) {
 	} else {
 		b.saveRepairmanVisit()
 	}
+
+	err = b.postToServer()
 
 	return err
 }
