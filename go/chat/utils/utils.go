@@ -111,10 +111,17 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 }
 
 // Reorder participants based on the order in activeList.
+// Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
 func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname string, activeList []gregor1.UID) []string {
-	usedUsers := make(map[string]bool)
+	tlfnameList := splitTlfName(tlfname)
+	allowedUsers := make(map[string]bool)
 	var users []string
+
+	// Allow all users from tlfname.
+	for _, user := range tlfnameList {
+		allowedUsers[user] = true
+	}
 
 	// Fill from the active list first.
 	for _, uid := range activeList {
@@ -123,17 +130,18 @@ func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname st
 		if err != nil {
 			continue
 		}
-		if _, used := usedUsers[user]; !used {
+		if allowed, _ := allowedUsers[user]; allowed {
 			users = append(users, user)
-			usedUsers[user] = true
+			// Allow only one occurrence.
+			allowedUsers[user] = false
 		}
 	}
 
-	// Include participants even if they're not in the active list, in stable order.
-	for _, user := range splitTlfName(tlfname) {
-		if _, used := usedUsers[user]; !used {
+	// Include participants even if they weren't in the active list, in stable order.
+	for _, user := range tlfnameList {
+		if allowed, _ := allowedUsers[user]; allowed {
 			users = append(users, user)
-			usedUsers[user] = true
+			allowedUsers[user] = false
 		}
 	}
 
