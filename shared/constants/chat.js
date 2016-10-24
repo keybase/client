@@ -60,3 +60,16 @@ export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conver
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationID: ConversationID}>
 
 export type Actions = AppendMessages | LoadMoreMessages | PrependMessages | SelectConversation | LoadInbox | LoadedInbox
+
+function conversationIDToKey (conversationID: ConversationID): string {
+  return conversationID.toString('base64')
+}
+
+function keyToConversationID (key: string): ConversationID {
+  return Buffer.from(key, 'base64')
+}
+
+export {
+  conversationIDToKey,
+  keyToConversationID,
+}

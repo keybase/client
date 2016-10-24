@@ -24,7 +24,7 @@ class ConversationList extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      isLockedToBottom: true,
+      isLockedToBottom: false,
       // isMoving: false,
       scrollTop: 0,
       // prepending:
@@ -38,6 +38,14 @@ class ConversationList extends Component<void, Props, State> {
       this.props.loadMoreMessages()
     }, 2000)
   }
+
+  // componentDidUpdate (prevProps, prevState) {
+    // if (prevState.inTransaction && !this.state.inTransaction && this.state.prepending) {
+      // // 1 - 11 because you are prepending 10, and there is a loading message.
+      // const scrollTop = this.state.scrollTop + _.range(1,11).map(index => this._cellMeasurer.getRowHeight({index})).reduce((acc, h) => acc + h, 0)
+      // this.setState({scrollTop, prepending: false})
+    // }
+  // }
 
   componentWillReceiveProps (nextProps: Props) {
     if (nextProps.messages !== this.props.messages) {
@@ -57,17 +65,17 @@ class ConversationList extends Component<void, Props, State> {
 
   _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
     const newState = {
-      isLockedToBottom: scrollTop + clientHeight === scrollHeight,
-      // scrollTop,
+      // isLockedToBottom: scrollTop + clientHeight === scrollHeight,
+      scrollTop,
       // moving: true,
     }
-    console.log('aaa', newState)
-    // this.setState(newState)
+    // console.log('aaa', newState)
+    this.setState(newState)
     // this._stoppedMoving()
     // if (scrollTop === 0 && this.props.moreToLoad) {
       // this.props.loadMoreMessages()
     // }
-  }, 1000)
+  }, 100)
 
   render () {
     const countWithLoading = this.props.messages.size + 1 // Loading row on top always for now
@@ -77,18 +85,18 @@ class ConversationList extends Component<void, Props, State> {
         <AutoSizer>
           {({height, width}) => (
             <CellMeasurer
-              cellRenderer={params => this._rowRenderer(params)}
+              cellRenderer={({rowIndex, ...rest}) => this._rowRenderer({index: rowIndex, ...rest})}
               columnCount={1}
               cellSizeCache={this._cellCache}
               ref={r => { this._cellMeasurer = r }}
               rowCount={countWithLoading} >
               {({getRowHeight}) => (
-                  // scrollTop={this.state.scrollTop}
                 <List
                   height={height}
                   width={width}
                   onScroll={this._onScroll}
                   scrollToIndex={this.state.isLockedToBottom ? this.props.messages.size : undefined}
+                  scrollTop={this.state.scrollTop}
                   rowCount={countWithLoading}
                   rowHeight={getRowHeight}
                   rowRenderer={this._rowRenderer}

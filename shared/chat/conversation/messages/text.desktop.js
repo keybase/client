@@ -15,7 +15,7 @@ const _marginColor = (followState) => ({
 // const MessageText = ({author, message, followState}: Props) => (
 class MessageText extends Component<void, Props, void> {
   componentWillReceiveProps (nextProps: Props) {
-    console.log('aaaa', this.props, nextProps, this.props === nextProps)
+    // console.log('aaaa', this.props, nextProps, this.props === nextProps)
   }
 
   render () {

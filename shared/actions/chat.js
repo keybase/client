@@ -2,6 +2,7 @@
 import * as Constants from '../constants/chat'
 import _ from 'lodash'
 import {call, put, select} from 'redux-saga/effects'
+import {conversationIDToKey} from '../constants/chat'
 import {localGetInboxLocalRpcPromise, CommonMessageType} from '../constants/types/flow-types-chat'
 import {takeLatest} from 'redux-saga'
 
@@ -34,7 +35,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
   if (!selectedConversation) {
     if (inbox && inbox.conversationsUnverified.length) {
       const mostRecentConversation = inbox.conversationsUnverified[0]
-      yield put(selectConversation(mostRecentConversation.metadata.conversationID))
+      yield put(selectConversation(conversationIDToKey(mostRecentConversation.metadata.conversationID)))
     }
   }
 
