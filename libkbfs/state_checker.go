@@ -123,7 +123,7 @@ func (sc *StateChecker) getLastGCData(ctx context.Context,
 func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	// Blow away MD cache so we don't have any lingering re-embedded
 	// block changes (otherwise we won't be able to learn their sizes).
-	sc.config.SetMDCache(NewMDCacheStandard(5000))
+	sc.config.SetMDCache(NewMDCacheStandard(defaultMDCacheCapacity))
 
 	// Fetch all the MD updates for this folder, and use the block
 	// change lists to build up the set of currently referenced blocks.
