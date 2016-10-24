@@ -418,6 +418,7 @@ type ConversationInfoLocal struct {
 	TlfName    string               `codec:"tlfName" json:"tlfName"`
 	TopicName  string               `codec:"topicName" json:"topicName"`
 	Visibility TLFVisibility        `codec:"visibility" json:"visibility"`
+	Usernames  []string             `codec:"usernames" json:"usernames"`
 }
 
 type ConversationLocal struct {
@@ -456,6 +457,7 @@ type GetInboxLocalQuery struct {
 	OneChatTypePerTLF *bool           `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
 	UnreadOnly        bool            `codec:"unreadOnly" json:"unreadOnly"`
 	ReadOnly          bool            `codec:"readOnly" json:"readOnly"`
+	ComputeActiveList bool            `codec:"computeActiveList" json:"computeActiveList"`
 }
 
 type GetInboxAndUnboxLocalRes struct {

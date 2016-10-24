@@ -388,6 +388,7 @@ export type ConversationInfoLocal = {
   tlfName: string,
   topicName: string,
   visibility: TLFVisibility,
+  usernames?: ?Array<string>,
 }
 
 export type ConversationLocal = {
@@ -401,6 +402,7 @@ export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
   isFinalized: bool,
+  activeList?: ?Array<gregor1.UID>,
 }
 
 export type ConversationReaderInfo = {
@@ -464,6 +466,7 @@ export type GetInboxLocalQuery = {
   oneChatTypePerTLF?: ?boolean,
   unreadOnly: boolean,
   readOnly: boolean,
+  computeActiveList: boolean,
 }
 
 export type GetInboxLocalRes = {
@@ -482,6 +485,7 @@ export type GetInboxQuery = {
   oneChatTypePerTLF?: ?boolean,
   unreadOnly: boolean,
   readOnly: boolean,
+  computeActiveList: boolean,
 }
 
 export type GetInboxRemoteRes = {

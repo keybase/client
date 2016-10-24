@@ -447,6 +447,13 @@
         {
           "type": "TLFVisibility",
           "name": "visibility"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "usernames"
         }
       ]
     },
@@ -620,6 +627,10 @@
         {
           "type": "boolean",
           "name": "readOnly"
+        },
+        {
+          "type": "boolean",
+          "name": "computeActiveList"
         }
       ]
     },
