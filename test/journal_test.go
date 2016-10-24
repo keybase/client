@@ -7,6 +7,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -104,6 +105,52 @@ func TestJournalCrSimple(t *testing.T) {
 			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
 			read("a/b", "hello"),
 			read(crname("a/b", bob), "uh oh"),
+		),
+	)
+}
+
+// bob creates many conflicting files while running the journal.
+func TestJournalCrManyFiles(t *testing.T) {
+	var busyWork []fileOp
+	iters := 20
+	for i := 0; i < iters; i++ {
+		name := fmt.Sprintf("a%d", i)
+		busyWork = append(busyWork, mkfile(name, "hello"), rm(name))
+	}
+
+	test(t, journal(),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+		),
+		as(bob, busyWork...),
+		as(bob,
+			checkUnflushedPaths([]string{
+				"",
+				"alice,bob",
+			}),
+			// Don't flush yet.
+		),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob, noSync(),
+			resumeJournal(),
+			// This should kick off conflict resolution.
+			flushJournal(),
+		),
+		as(bob,
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", "hello"),
+			checkUnflushedPaths(nil),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", "hello"),
 		),
 	)
 }
