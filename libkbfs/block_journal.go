@@ -394,6 +394,11 @@ func (j *blockJournal) putRefEntry(
 	return j.refs[id].put(refEntry.context, refEntry.status, ordinal)
 }
 
+func (j *blockJournal) exists(id BlockID) error {
+	_, err := os.Stat(j.blockDataPath(id))
+	return err
+}
+
 func (j *blockJournal) getDataSize(id BlockID) (int64, error) {
 	fi, err := os.Stat(j.blockDataPath(id))
 	if err != nil {

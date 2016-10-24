@@ -1270,6 +1270,21 @@ func (j *tlfJournal) archiveBlockReferences(
 	return nil
 }
 
+func (j *tlfJournal) isBlockUnflushed(id BlockID) (bool, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return false, err
+	}
+
+	err := j.blockJournal.exists(id)
+	if err != nil {
+		// Might exist on the server
+		return false, nil
+	}
+	return true, nil
+}
+
 func (j *tlfJournal) getMDHead(
 	ctx context.Context) (ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
