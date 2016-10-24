@@ -1,14 +1,13 @@
 // @flow
 
 import {call, put, select} from 'redux-saga/effects'
-import {takeLatest, delay} from 'redux-saga'
+import {takeLatest} from 'redux-saga'
 import * as Constants from '../constants/plan-billing'
 import {apiserverGetRpcPromise, apiserverPostRpcPromise} from '../constants/types/flow-types'
 
 import type {UpdateBillingArgs, UpdateBilling, FetchBillingAndQuota, FetchBillingOverview, UpdateBillingAndQuota, UpdateAvailablePlans, BillingState, BootstrapData, UpdatePaymentInfo, BillingError} from '../constants/plan-billing'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
-import type {BootStatus} from '../constants/config'
 
 function updateBilling (updateBillingArgs: UpdateBillingArgs): UpdateBilling {
   return {
