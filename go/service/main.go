@@ -201,8 +201,7 @@ func (d *Service) Run() (err error) {
 		return
 	}
 
-	d.checkTrackingEveryHour()
-	d.checkRevokedPeriodic()
+	d.hourlyChecks()
 	d.startupGregor()
 	d.addGlobalHooks()
 	d.configurePath()
@@ -297,36 +296,28 @@ func (d *Service) writeServiceInfo() error {
 	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath())
 }
 
-func (d *Service) checkTrackingEveryHour() {
+func (d *Service) hourlyChecks() {
 	ticker := time.NewTicker(1 * time.Hour)
 	d.G().PushShutdownHook(func() error {
-		d.G().Log.Debug("stopping checkTrackingEveryHour timer")
+		d.G().Log.Debug("stopping hourlyChecks loop")
 		ticker.Stop()
 		return nil
 	})
 	go func() {
 		for {
 			<-ticker.C
-			d.G().Log.Debug("Checking tracks on an hour timer.")
+			d.G().Log.Debug("+ hourly check loop")
+			d.G().Log.Debug("| checking tracks on an hour timer")
 			libkb.CheckTracking(d.G())
-		}
-	}()
-}
-
-func (d *Service) checkRevokedPeriodic() {
-	ticker := time.NewTicker(1 * time.Hour)
-	d.G().PushShutdownHook(func() error {
-		d.G().Log.Debug("stopping checkRevokedPeriodic timer")
-		ticker.Stop()
-		return nil
-	})
-	go func() {
-		for {
-			<-ticker.C
-			d.G().Log.Debug("Checking if current device revoked")
+			d.G().Log.Debug("| checking if current device revoked")
 			if err := d.G().LogoutIfRevoked(); err != nil {
 				d.G().Log.Debug("LogoutIfRevoked error: %s", err)
 			}
+			d.G().Log.Debug("| checking for bug 3964 repairs")
+			if err := engine.RunBug3964Repairman(d.G()); err != nil {
+				d.G().Log.Warning("Error in Bug 3964 repair: %s\n", err)
+			}
+			d.G().Log.Debug("- hourly check loop")
 		}
 	}()
 }

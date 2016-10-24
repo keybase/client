@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/keybase/go-crypto/openpgp"
 )
@@ -63,6 +64,13 @@ func LoadSKBKeyring(un NormalizedUsername, g *GlobalContext) (*SKBKeyringFile, e
 		return nil, err
 	}
 	return skbfile, nil
+}
+
+func StatSKBKeyringMTime(un NormalizedUsername, g *GlobalContext) (mtime time.Time, err error) {
+	if un.IsNil() {
+		return mtime, NoUsernameError{}
+	}
+	return NewSKBKeyringFile(g, g.SKBFilenameForUser(un)).MTime()
 }
 
 func (k *KeyringFile) LoadAndIndex() error {

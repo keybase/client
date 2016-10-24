@@ -1093,6 +1093,7 @@ func (s *LoginState) MutateKeyring(h func(*SKBKeyringFile) *SKBKeyringFile, name
 			return
 		}
 		if h(kr) != nil {
+			// Clear out the in-memory cache of this keyring.
 			a.ClearKeyring()
 		}
 	}, name)

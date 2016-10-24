@@ -101,7 +101,7 @@ func corruptDevice2(dev1 libkb.TestContext, dev2 libkb.TestContext) (*libkb.Devi
 	}
 	var goodLksec *libkb.LKSec
 
-	// Dev1 has a passphrase cached, but dev2 doesn (since it was provisioned).
+	// Dev1 has a passphrase cached, but dev2 doesn't (since it was provisioned).
 	// For this test though it's fine to take the passphrase from dev1.
 	err = ls1.PassphraseStreamCache(func(ppc *libkb.PassphraseStreamCache) {
 		if !ppc.Valid() {
@@ -181,7 +181,7 @@ func limitToTrace(lines []string, which string) []string {
 }
 
 func checkAuditLogForBug3964Login(t *testing.T, log []string, deviceID keybase1.DeviceID, dev1Key *libkb.DeviceKey) {
-	log = limitToTrace(log, "LKsec#tryAllDevicesForBug3964Recovery()")
+	log = limitToTrace(log, "LKSec#tryAllDevicesForBug3964Recovery()")
 	needle := fmt.Sprintf("| Trying Bug 3964 Recovery w/ device %q {id: %s, lks: %s...}",
 		dev1Key.Description, deviceID, dev1Key.LksServerHalf[0:8])
 	for i, line := range log {
@@ -216,9 +216,33 @@ func checkAuditLogCleanLogin(t *testing.T, log []string) {
 		t.Fatalf("at least expected a login call")
 	}
 	for _, line := range log {
-		if strings.HasPrefix(line, "LKsec#tryAllDevicesForBug3964Recovery()") {
+		if strings.HasPrefix(line, "+ LKSec#tryAllDevicesForBug3964Recovery()") {
 			t.Fatalf("found attempt to try bug 3964 recovery after a full repair")
 		}
+	}
+}
+
+func checkAuditLogForRepairmanShortCircuit(t *testing.T, log []string) {
+	for _, line := range log {
+		if strings.HasPrefix(line, "| Repairman wasn't short-circuited") {
+			t.Fatalf("short-circuit mechanism failed")
+		}
+	}
+	found := false
+	for _, line := range log {
+		if strings.HasPrefix(line, "| Repairman already visited after file update; bailing out") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("Didn't find a mention of short-circuiting")
+	}
+}
+
+func runRepairman(t *testing.T, dev libkb.TestContext) {
+	if err := RunBug3964Repairman(dev.G); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -240,13 +264,14 @@ func TestBug3964Repairman(t *testing.T) {
 
 	checkAuditLogForBug3964Login(t, log.lines, dev1.G.Env.GetDeviceID(), dev1Key)
 
-	ctx := &Context{}
-	beng := NewBug3964Repairman(dev2.G)
-	if err := RunEngine(beng, ctx); err != nil {
-		t.Fatal(err)
-	}
+	runRepairman(t, dev2)
 
 	log.lines = nil
 	logoutLogin(t, user, dev2)
 	checkAuditLogCleanLogin(t, log.lines)
+
+	log.lines = nil
+	runRepairman(t, dev2)
+
+	checkAuditLogForRepairmanShortCircuit(t, log.lines)
 }
