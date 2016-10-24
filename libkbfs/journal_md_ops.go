@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -379,5 +378,5 @@ func (j journalMDOps) ResolveBranch(
 		}
 	}
 
-	return MdID{}, errors.New("ResolveBranch not supported outside of journal")
+	return j.MDOps.ResolveBranch(ctx, id, bid, blocksToDelete, rmd)
 }

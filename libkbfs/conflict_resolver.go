@@ -3250,9 +3250,10 @@ func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 	cr.log.CDebugf(ctx, "Local notifications: %v", newOps)
 
 	if writerLocked {
-		return cr.fbo.finalizeResolutionLocked(ctx, lState, md, bps, newOps)
+		return cr.fbo.finalizeResolutionLocked(
+			ctx, lState, md, bps, newOps, nil)
 	}
-	return cr.fbo.finalizeResolution(ctx, lState, md, bps, newOps)
+	return cr.fbo.finalizeResolution(ctx, lState, md, bps, newOps, nil)
 }
 
 // completeResolution pushes all the resolved blocks to the servers,
@@ -3420,17 +3421,6 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		ctx, cancel = context.WithTimeout(ctx, crMaxWriteLockTime)
 		defer cancel()
 		cr.log.CDebugf(ctx, "Unmerged writes blocked")
-	}
-
-	// Wait for the journal to flush, if there is one.  We don't want
-	// to do conflict resolution until we're sure all the necessary
-	// blocks made it to the server (since the resolution could
-	// reference them without re-uploading them).  If any new unmerged
-	// puts happen, our context will get cancelled and we'll try
-	// again.
-	if err = WaitForTLFJournal(ctx, cr.config, cr.fbo.id(),
-		cr.log); err != nil {
-		return
 	}
 
 	// Step 1: Build the chains for each branch, as well as the paths

@@ -597,9 +597,22 @@ func (md *MDOpsStandard) PruneBranch(
 
 // ResolveBranch implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) ResolveBranch(
-	ctx context.Context, id tlf.ID, bid BranchID,
-	blocksToDelete []BlockID, rmd *RootMetadata) (MdID, error) {
-	return MdID{}, errors.New("ResolveBranch not supported by MDOpsStandard")
+	ctx context.Context, id tlf.ID, bid BranchID, _ []BlockID,
+	rmd *RootMetadata) (MdID, error) {
+	// Put the MD first.
+	mdID, err := md.Put(ctx, rmd)
+	if err != nil {
+		return MdID{}, err
+	}
+
+	// Prune the branch ia the journal, if there is one.  If the
+	// client fails before this is completed, we'll need to check for
+	// resolutions on the next restart (see KBFS-798).
+	err = md.PruneBranch(ctx, id, bid)
+	if err != nil {
+		return MdID{}, err
+	}
+	return mdID, nil
 }
 
 // GetLatestHandleForTLF implements the MDOps interface for MDOpsStandard.
