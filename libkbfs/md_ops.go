@@ -197,12 +197,6 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		return ImmutableRootMetadata{}, md.convertVerifyingKeyError(ctx, rmds, handle, err)
 	}
 
-	rmd := RootMetadata{
-		bareMd:    rmds.MD,
-		tlfHandle: handle,
-		extra:     extra,
-	}
-
 	// Get the UID unless this is a public tlf - then proceed with empty uid.
 	var uid keybase1.UID
 	if !handle.IsPublic() {
