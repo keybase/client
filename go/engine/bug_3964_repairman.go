@@ -5,10 +5,12 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
+	"time"
 )
 
 type Bug3964Repairman struct {
 	libkb.Contextified
+	passphraseGeneration libkb.PassphraseGeneration
 }
 
 func NewBug3964Repairman(g *libkb.GlobalContext) *Bug3964Repairman {
@@ -59,6 +61,7 @@ func (b *Bug3964Repairman) decryptPassphrase(ctx *Context, me *libkb.User, encKe
 		return nil, err
 	}
 	ret = libkb.NewLKSecWithClientHalf(clientHalf, ppgen, me.GetUID(), b.G())
+	b.passphraseGeneration = ppgen
 	return ret, nil
 }
 
@@ -102,6 +105,58 @@ func (b *Bug3964Repairman) updateSecretStore(me *libkb.User, lksec *libkb.LKSec)
 	return ss.StoreSecret(nun, fs)
 }
 
+func (b *Bug3964Repairman) saveRepairmanVisit(me *libkb.User) (err error) {
+	defer b.G().Trace("Bug3964Repairman#saveRepairmanVisit", func() error { return err })()
+	cw := b.G().Env.GetConfigWriter()
+	cwt, err := cw.BeginTransaction()
+	if err != nil {
+		return err
+	}
+	err = cw.SetBug3964RepairTime(me.GetNormalizedName(), time.Now())
+	if err == nil {
+		err = cwt.Commit()
+	} else {
+		cwt.Abort()
+	}
+	return err
+}
+
+func (b *Bug3964Repairman) postToServer() (err error) {
+	defer b.G().Trace("Bug3964Repairman#postToServer", func() error { return err })()
+	_, err = b.G().API.Post(libkb.APIArg{
+		Endpoint:    "user/bug_3964_repair",
+		NeedSession: true,
+		Args: libkb.HTTPArgs{
+			"device_id": libkb.S{Val: b.G().Env.GetDeviceID().String()},
+			"ppgen":     libkb.I{Val: int(b.passphraseGeneration)},
+		},
+	})
+	return err
+}
+
+func (b *Bug3964Repairman) computeShortCircuit(me *libkb.User) (ss bool, err error) {
+	defer b.G().Trace("Bug3964Repairman#computeShortCircuit", func() error { return err })()
+	repairTime, tmpErr := b.G().Env.GetConfig().GetBug3964RepairTime(me.GetNormalizedName())
+
+	// Ignore any decoding errors
+	if tmpErr != nil {
+		b.G().Log.Warning("Problem reading previous bug 3964 repair time: %s", tmpErr)
+	}
+
+	if repairTime.IsZero() {
+		b.G().Log.Debug("| repair time is zero or wasn't set")
+		return false, nil
+	}
+	var fileTime time.Time
+	fileTime, err = libkb.StatSKBKeyringMTime(me.GetNormalizedName(), b.G())
+	if err != nil {
+		return false, err
+	}
+	ss = !repairTime.Before(fileTime)
+	b.G().Log.Debug("| Checking repair-time (%s) v file-write-time (%s): shortCircuit=%v", repairTime, fileTime, ss)
+	return ss, nil
+}
+
 // Run the engine
 func (b *Bug3964Repairman) Run(ctx *Context) (err error) {
 	traceDone := b.G().Trace("Bug3964Repairman#Run", func() error { return err })
@@ -117,11 +172,23 @@ func (b *Bug3964Repairman) Run(ctx *Context) (err error) {
 	var lksec *libkb.LKSec
 	var ran bool
 	var dkm libkb.DeviceKeyMap
+	var ss bool
 
 	if me, err = b.loadMe(); err != nil {
 		return err
 	}
 
+	if ss, err = b.computeShortCircuit(me); err != nil {
+		return err
+	}
+	if ss {
+		// This logline is asserted in testing in bug_3964_repairman_test
+		b.G().Log.Debug("| Repairman already visited after file update; bailing out")
+		return nil
+	}
+
+	// This logline is asserted in testing in bug_3964_repairman_test
+	b.G().Log.Debug("| Repairman wasn't short-circuited")
 	if encKey, err = b.loadUnlockedEncryptionKey(ctx, me); err != nil {
 		return err
 	}
@@ -137,14 +204,35 @@ func (b *Bug3964Repairman) Run(ctx *Context) (err error) {
 	if ran, err = b.attemptRepair(ctx, lksec, dkm); err != nil {
 		return err
 	}
-	if !ran {
+
+	if err != nil {
 		return err
 	}
-	b.G().Log.Debug("| Successfully ran SKB keyring repair")
 
-	if tmp := b.updateSecretStore(me, lksec); tmp != nil {
-		b.G().Log.Warning("Error in secret store manipulation: %s", tmp)
+	b.G().Log.Debug("| SKB keyring repair completed; edits=%v", ran)
+
+	if !ran {
+		b.saveRepairmanVisit(me)
+		return nil
 	}
 
+	if ussErr := b.updateSecretStore(me, lksec); ussErr != nil {
+		b.G().Log.Warning("Error in secret store manipulation: %s", ussErr)
+	} else {
+		b.saveRepairmanVisit(me)
+	}
+
+	err = b.postToServer()
+
+	return err
+}
+
+func RunBug3964Repairman(g *libkb.GlobalContext) error {
+	ctx := &Context{}
+	beng := NewBug3964Repairman(g)
+	err := RunEngine(beng, ctx)
+	if err != nil {
+		g.Log.Warning("Error running Bug 3964 repairman: %s", err)
+	}
 	return err
 }

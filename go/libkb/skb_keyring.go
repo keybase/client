@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 )
 
 type SKBKeyringFile struct {
@@ -33,6 +34,17 @@ func (k *SKBKeyringFile) Load() (err error) {
 	k.Lock()
 	defer k.Unlock()
 	return k.loadLocked()
+}
+
+func (k *SKBKeyringFile) MTime() (mtime time.Time, err error) {
+	k.Lock()
+	defer k.Unlock()
+	var fi os.FileInfo
+	fi, err = os.Stat(k.filename)
+	if err != nil {
+		return mtime, err
+	}
+	return fi.ModTime(), err
 }
 
 func (k *SKBKeyringFile) MarkDirty() {
@@ -306,11 +318,22 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 	var newBlocks []*SKB
 	var hitBug3964 bool
 
+	k.G().Log.Debug("| # of blocks=%d", len(k.Blocks))
+
 	for i, b := range k.Blocks {
+
 		if b.Priv.Data == nil {
+			k.G().Log.Debug("| Null private data at block=%d", i)
 			newBlocks = append(newBlocks, b)
 			continue
 		}
+
+		if b.Priv.Encryption != LKSecVersion {
+			k.G().Log.Debug("| Skipping non-LKSec encryption (%d) at block=%d", b.Priv.Encryption, i)
+			newBlocks = append(newBlocks, b)
+			continue
+		}
+
 		var decryption, reencryption []byte
 		var badMask LKSecServerHalf
 		decryption, badMask, err = lks.decryptForBug3964Repair(b.Priv.Data, dkm)
@@ -320,6 +343,7 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 		}
 		if badMask.IsNil() {
 			newBlocks = append(newBlocks, b)
+			k.G().Log.Debug("| Nil badmask at block=%d", i)
 			continue
 		}
 		hitBug3964 = true
