@@ -139,6 +139,7 @@ func addUnflushedPaths(ctx context.Context,
 				"since it's already in the cache", irmd.Revision())
 			continue
 		}
+		unflushedPaths[irmd.Revision()] = make(map[string]bool)
 
 		processedOne = true
 		winfo := writerInfo{
@@ -166,10 +167,10 @@ func addUnflushedPaths(ctx context.Context,
 
 	for _, chain := range chains.byOriginal {
 		for _, op := range chain.ops {
-			revPaths := unflushedPaths[op.getWriterInfo().revision]
-			if revPaths == nil {
-				revPaths = make(map[string]bool)
-				unflushedPaths[op.getWriterInfo().revision] = revPaths
+			revPaths, ok := unflushedPaths[op.getWriterInfo().revision]
+			if !ok {
+				panic(fmt.Sprintf("No rev map for revision %d",
+					op.getWriterInfo().revision))
 			}
 			revPaths[op.getFinalPath().String()] = true
 		}
