@@ -321,10 +321,19 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 	k.G().Log.Debug("| # of blocks=%d", len(k.Blocks))
 
 	for i, b := range k.Blocks {
+
 		if b.Priv.Data == nil {
+			k.G().Log.Debug("| Null private data at block=%d", i)
 			newBlocks = append(newBlocks, b)
 			continue
 		}
+
+		if b.Priv.Encryption != LKSecVersion {
+			k.G().Log.Debug("| Skipping non-LKSec encryption (%d) at block=%d", b.Priv.Encryption, i)
+			newBlocks = append(newBlocks, b)
+			continue
+		}
+
 		var decryption, reencryption []byte
 		var badMask LKSecServerHalf
 		decryption, badMask, err = lks.decryptForBug3964Repair(b.Priv.Data, dkm)
