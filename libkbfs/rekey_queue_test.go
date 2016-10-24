@@ -14,25 +14,24 @@ import (
 
 func TestRekeyQueueBasic(t *testing.T) {
 	var u1, u2, u3, u4 libkb.NormalizedUsername = "u1", "u2", "u3", "u4"
-	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2, u3, u4)
-	defer CleanupCancellationDelayer(ctx)
-	defer config1.Shutdown()
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2, u3, u4)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	config2 := ConfigAsUser(config1, u2)
 	defer config2.Shutdown()
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	config3 := ConfigAsUser(config1.(*ConfigLocal), u3)
+	config3 := ConfigAsUser(config1, u3)
 	defer config3.Shutdown()
 	_, _, err = config3.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	config4 := ConfigAsUser(config1.(*ConfigLocal), u4)
+	config4 := ConfigAsUser(config1, u4)
 	defer config4.Shutdown()
 	_, _, err = config4.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
@@ -63,7 +62,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 	}
 
 	// Create a new device for user 2
-	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	config2Dev2 := ConfigAsUser(config1, u2)
 	defer config2Dev2.Shutdown()
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
 	AddDeviceForLocalUserOrBust(t, config2, uid2)

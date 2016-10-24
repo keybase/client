@@ -385,11 +385,10 @@ func testCRGetCROrBust(t *testing.T, config Config,
 // merged path.
 func TestCRMergedChainsSimple(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -446,11 +445,10 @@ func TestCRMergedChainsSimple(t *testing.T) {
 // mostly original block pointers when constructing the merged path.
 func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -509,11 +507,10 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 // some recreateOps.
 func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -607,11 +604,10 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 // path across the rename.
 func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -688,11 +684,10 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 // directories, etc).
 func TestCRMergedChainsComplex(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -871,14 +866,13 @@ func TestCRMergedChainsComplex(t *testing.T) {
 // Tests that conflict resolution detects and can fix rename cycles.
 func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	clock, now := newTestClockAndTimeNow()
 	config1.SetClock(clock)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -961,11 +955,10 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 // Tests that conflict resolution detects and renames conflicts.
 func TestCRMergedChainsConflictSimple(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -1030,11 +1023,10 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 // Tests that conflict resolution detects and renames conflicts.
 func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -1140,11 +1132,10 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 // files being created simultaneously in the same directory.
 func TestCRDoActionsSimple(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -1229,11 +1220,10 @@ func TestCRDoActionsSimple(t *testing.T) {
 // simultaneous writes to the same file.
 func TestCRDoActionsWriteConflict(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {

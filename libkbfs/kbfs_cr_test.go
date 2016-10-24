@@ -73,11 +73,10 @@ func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
 func TestBasicMDUpdate(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
 	name := userName1.String() + "," + userName2.String()
@@ -127,11 +126,10 @@ func TestBasicMDUpdate(t *testing.T) {
 func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
 	if unembedChanges {
@@ -204,11 +202,10 @@ func TestMultipleMDUpdatesUnembedChanges(t *testing.T) {
 func TestUnmergedAfterRestart(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
 	name := userName1.String() + "," + userName2.String()
@@ -272,9 +269,9 @@ func TestUnmergedAfterRestart(t *testing.T) {
 
 	// now re-login the users, and make sure 1 can see the changes,
 	// but 2 can't
-	config1B := ConfigAsUser(config1.(*ConfigLocal), userName1)
+	config1B := ConfigAsUser(config1, userName1)
 	defer CheckConfigAndShutdown(t, config1B)
-	config2B := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2B := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2B)
 
 	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
@@ -367,11 +364,10 @@ func TestUnmergedAfterRestart(t *testing.T) {
 func TestMultiUserWrite(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
 	name := userName1.String() + "," + userName2.String()
@@ -434,11 +430,10 @@ func TestMultiUserWrite(t *testing.T) {
 func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
 	if unembedChanges {
@@ -594,11 +589,10 @@ func (md mdServerLocalRecordingRegisterForUpdate) RegisterForUpdate(
 func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	mdServ, chForMdServer2 := newMDServerLocalRecordingRegisterForUpdate(
 		config2.MDServer().(mdServerLocal))
 	config2.SetMDServer(mdServ)
@@ -702,11 +696,10 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 func TestBasicCRFileConflict(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
 	clock, now := newTestClockAndTimeNow()
@@ -828,11 +821,10 @@ func TestBasicCRFileConflict(t *testing.T) {
 func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
 	config2.SetClock(newTestClockNow())
@@ -939,12 +931,11 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 func TestCRDouble(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
@@ -1113,12 +1104,11 @@ func waitForRekey(t *testing.T, config Config, id TlfID) {
 func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
@@ -1156,7 +1146,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 		t.Fatalf("Couldn't lookup file: %v", err)
 	}
 
-	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2Dev2 := ConfigAsUser(config1, userName2)
 	// we don't check the config because this device can't read all of the md blocks.
 	defer config2Dev2.Shutdown()
 	config2Dev2.MDServer().DisableRekeyUpdatesForTesting()
@@ -1306,12 +1296,11 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
@@ -1344,7 +1333,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 		t.Fatalf("Couldn't lookup dir: %v", err)
 	}
 
-	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2Dev2 := ConfigAsUser(config1, userName2)
 	// we don't check the config because this device can't read all of the md blocks.
 	defer config2Dev2.Shutdown()
 	config2Dev2.MDServer().DisableRekeyUpdatesForTesting()
@@ -1486,12 +1475,11 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
@@ -1635,12 +1623,11 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 func TestCRCanceledAfterNewOperation(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
@@ -1712,7 +1699,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 		StallMDOp(context.Background(), config2, StallableMDPut, 1)
 
 	var wg sync.WaitGroup
-	putCtx, cancel := context.WithCancel(putCtx)
+	putCtx, cancel2 := context.WithCancel(putCtx)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -1732,7 +1719,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 		}
 	}()
 	<-onPutStalledCh
-	cancel()
+	cancel2()
 	close(putUnstallCh)
 	wg.Wait()
 
@@ -1790,11 +1777,10 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
 	name := userName1.String() + "," + userName2.String()
@@ -1950,12 +1936,11 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
@@ -2020,7 +2005,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 		StallMDOp(ctx, config2, StallableMDAfterPutUnmerged, 1)
 
 	var wg sync.WaitGroup
-	putCtx, cancel := context.WithCancel(putCtx)
+	putCtx, cancel2 := context.WithCancel(putCtx)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -2030,7 +2015,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 		}
 	}()
 	<-onPutStalledCh
-	cancel()
+	cancel2()
 	close(putUnstallCh)
 	wg.Wait()
 

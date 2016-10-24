@@ -214,8 +214,8 @@ func setupTLFJournalTest(
 		NewReporterSimple(newTestClockNow(), 10), uid, ekg, nil, mdserver,
 	}
 
-	// Time out individual tests after 10 seconds.
-	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel = context.WithTimeout(
+		context.Background(), individualTestTimeout)
 
 	// Clean up the context if the rest of the setup fails.
 	setupSucceeded := false

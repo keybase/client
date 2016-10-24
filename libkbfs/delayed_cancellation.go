@@ -140,7 +140,7 @@ func newCancellationDelayer() *cancellationDelayer {
 }
 
 // NewContextWithCancellationDelayer creates a new context out of ctx. All replay
-// functions attached to ctx are run on the new new context. In addition, the
+// functions attached to ctx are run on the new context. In addition, the
 // new context is made "cancellation delayable". That is, it disconnects the cancelFunc
 // from ctx, and watch for the cancellation. When cancellation happens, it
 // checks if delayed cancellation is enabled for the associated context. If so,
@@ -149,7 +149,7 @@ func newCancellationDelayer() *cancellationDelayer {
 //
 // Note that, it's important to call context.WithCancel (or its friends) before
 // this function if those cancellations need to be controllable ("cancellation
-// delayable"). Otherwise, the new cancelFunc is inheriently NOT ("cancellation
+// delayable"). Otherwise, the new cancelFunc is inherently NOT ("cancellation
 // delayable").
 //
 // If this function is called, it is caller's responsibility to either 1)

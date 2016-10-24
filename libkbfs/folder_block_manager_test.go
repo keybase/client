@@ -111,9 +111,8 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 
 func TestQuotaReclamationSimple(t *testing.T) {
 	var userName libkb.NormalizedUsername = "test_user"
-	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config)
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	testQuotaReclamation(t, ctx, config, userName)
 }
@@ -122,9 +121,8 @@ func TestQuotaReclamationSimple(t *testing.T) {
 // of pointers correctly.
 func TestQuotaReclamationUnembedded(t *testing.T) {
 	var userName libkb.NormalizedUsername = "test_user"
-	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config)
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	config.bsplit.(*BlockSplitterSimple).blockChangeEmbedMaxSize = 32
 
@@ -145,9 +143,8 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 // much quota at once.
 func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	var userName libkb.NormalizedUsername = "test_user"
-	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config)
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	now := time.Now()
 	var clock TestClock
@@ -223,9 +220,8 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 // Test that deleted blocks are correctly flushed from the user cache.
 func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsInitNoMocks(t, u1, u2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsInitNoMocks(t, u1, u2)
+	defer kbfsTestShutdownNoMocks(t, config1, ctx, cancel)
 
 	clock, now := newTestClockAndTimeNow()
 	config1.SetClock(clock)
@@ -457,13 +453,12 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 // requested rekey.
 func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	clock := newTestClockNow()
 	config1.SetClock(clock)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
@@ -474,7 +469,7 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 	name := u1.String() + "," + u2.String()
 	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
 
-	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(t, config2Dev2)
 
 	// Now give u2 a new device.  The configs don't share a Keybase
@@ -536,9 +531,8 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 // at least the minimum needed age.
 func TestQuotaReclamationMinHeadAge(t *testing.T) {
 	var userName libkb.NormalizedUsername = "test_user"
-	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config)
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
+	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	clock := newTestClockNow()
 	config.SetClock(clock)

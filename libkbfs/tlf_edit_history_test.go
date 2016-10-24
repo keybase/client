@@ -35,14 +35,13 @@ func truncateTLFWriterEditsTimestamps(edits TlfWriterEdits) TlfWriterEdits {
 
 func TestBasicTlfEditHistory(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	clock, now := newTestClockAndTimeNow()
 	config1.SetClock(clock)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
 	name := userName1.String() + "," + userName2.String()
@@ -145,14 +144,27 @@ func testDoTlfEdit(t *testing.T, ctx context.Context, tlfName string,
 
 func TestLongTlfEditHistory(t *testing.T) {
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
-	defer CleanupCancellationDelayer(ctx)
-	defer CheckConfigAndShutdown(t, config1)
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	// Need to increase the timeout, since this test takes longer
+	// than usual.
+	//
+	// TODO: Make this test not take so long.
+	timeoutCtx, cancel := context.WithTimeout(
+		context.Background(), 3*individualTestTimeout)
+	ctx, err := NewContextWithCancellationDelayer(NewContextReplayable(
+		timeoutCtx, func(c context.Context) context.Context {
+			return c
+		}))
+	if err != nil {
+		cancel()
+		panic(err)
+	}
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
 	clock, now := newTestClockAndTimeNow()
 	config1.SetClock(clock)
 
-	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
 	name := userName1.String() + "," + userName2.String()
