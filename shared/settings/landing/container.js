@@ -43,8 +43,12 @@ export default connect(
       }
     }
 
+    // When enabling planProps, we should check both for bootstrapDone:
+    // let bootstrapDone = accountProps && planProps
+    let bootstrapDone = !!accountProps
+
     return {
-      bootstrapDone: accountProps && planProps,
+      bootstrapDone: bootstrapDone,
       originalProps: {
         account: accountProps,
         plan: planProps,
