@@ -127,7 +127,14 @@ func (e *LoginProvisionedDevice) Run(ctx *Context) error {
 	}
 
 	// login was successful, unlock the device keys
-	return e.unlockDeviceKeys(ctx, me)
+	err = e.unlockDeviceKeys(ctx, me)
+	if err != nil {
+		return err
+	}
+
+	RunBug3964Repairman(e.G())
+
+	return nil
 }
 
 func (e *LoginProvisionedDevice) unlockDeviceKeys(ctx *Context, me *libkb.User) error {

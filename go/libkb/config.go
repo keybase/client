@@ -705,3 +705,11 @@ func (f JSONConfigFile) GetLocalTrackMaxAge() (time.Duration, bool) {
 func (f JSONConfigFile) GetMountDir() string {
 	return f.GetTopLevelString("mountdir")
 }
+
+func (f JSONConfigFile) GetBug3964RepairmanVisit() (bool, bool) {
+	return f.GetBoolAtPath("maintenance.bug3964_repairman_visit")
+}
+
+func (f JSONConfigFile) SetBug3964RepairmanVisit(b bool) error {
+	return f.SetBoolAtPath("maintenance.bug3964_repairman_visit", b)
+}

@@ -139,6 +139,7 @@ type ConfigReader interface {
 	GetUID() keybase1.UID
 	GetProxyCACerts() ([]string, error)
 	GetSecurityAccessGroupOverride() (bool, bool)
+	GetBug3964RepairmanVisit() (bool, bool)
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
@@ -173,6 +174,7 @@ type ConfigWriter interface {
 	SetUpdatePreferenceSkip(string) error
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
 	SetUpdateLastChecked(keybase1.Time) error
+	SetBug3964RepairmanVisit(b bool) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
 }

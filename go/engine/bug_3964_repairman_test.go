@@ -222,6 +222,30 @@ func checkAuditLogCleanLogin(t *testing.T, log []string) {
 	}
 }
 
+func checkAuditLogForRepairmanShortCircuit(t *testing.T, log []string) {
+	for _, line := range log {
+		if strings.HasPrefix(line, "| Repairman wasn't short-circuited") {
+			t.Fatalf("short-circuit mechanism failed")
+		}
+	}
+	found := false
+	for _, line := range log {
+		if strings.HasPrefix(line, "| Repairman already visited; bailing out") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("Didn't find a mention of short-circuiting")
+	}
+}
+
+func runRepairman(t *testing.T, dev libkb.TestContext) {
+	if err := RunBug3964Repairman(dev.G); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestBug3964Repairman(t *testing.T) {
 	var log *auditLog
 
@@ -240,13 +264,14 @@ func TestBug3964Repairman(t *testing.T) {
 
 	checkAuditLogForBug3964Login(t, log.lines, dev1.G.Env.GetDeviceID(), dev1Key)
 
-	ctx := &Context{}
-	beng := NewBug3964Repairman(dev2.G)
-	if err := RunEngine(beng, ctx); err != nil {
-		t.Fatal(err)
-	}
+	runRepairman(t, dev2)
 
 	log.lines = nil
 	logoutLogin(t, user, dev2)
 	checkAuditLogCleanLogin(t, log.lines)
+
+	log.lines = nil
+	runRepairman(t, dev2)
+
+	checkAuditLogForRepairmanShortCircuit(t, log.lines)
 }

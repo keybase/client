@@ -9,6 +9,7 @@ import (
 
 type Bug3964Repairman struct {
 	libkb.Contextified
+	passphraseGeneration libkb.PassphraseGeneration
 }
 
 func NewBug3964Repairman(g *libkb.GlobalContext) *Bug3964Repairman {
@@ -59,6 +60,7 @@ func (b *Bug3964Repairman) decryptPassphrase(ctx *Context, me *libkb.User, encKe
 		return nil, err
 	}
 	ret = libkb.NewLKSecWithClientHalf(clientHalf, ppgen, me.GetUID(), b.G())
+	b.passphraseGeneration = ppgen
 	return ret, nil
 }
 
@@ -102,6 +104,35 @@ func (b *Bug3964Repairman) updateSecretStore(me *libkb.User, lksec *libkb.LKSec)
 	return ss.StoreSecret(nun, fs)
 }
 
+func (b *Bug3964Repairman) saveRepairmanVisit() (err error) {
+	defer b.G().Trace("Bug3964Repairman#setRepairmanVisit", func() error { return err })()
+	cw := b.G().Env.GetConfigWriter()
+	cwt, err := cw.BeginTransaction()
+	if err != nil {
+		return err
+	}
+	err = cw.SetBug3964RepairmanVisit(true)
+	if err == nil {
+		err = cwt.Commit()
+	} else {
+		cwt.Abort()
+	}
+	return err
+}
+
+func (b *Bug3964Repairman) postToServer() (err error) {
+	defer b.G().Trace("Bug3964Repairman#postToServer", func() error { return err })()
+	_, err = b.G().API.Post(libkb.APIArg{
+		Endpoint:    "user/bug_3964_repair",
+		NeedSession: true,
+		Args: libkb.HTTPArgs{
+			"device_id":             libkb.S{Val: b.G().Env.GetDeviceID().String()},
+			"passphrase_generation": libkb.I{Val: int(b.passphraseGeneration)},
+		},
+	})
+	return err
+}
+
 // Run the engine
 func (b *Bug3964Repairman) Run(ctx *Context) (err error) {
 	traceDone := b.G().Trace("Bug3964Repairman#Run", func() error { return err })
@@ -117,6 +148,13 @@ func (b *Bug3964Repairman) Run(ctx *Context) (err error) {
 	var lksec *libkb.LKSec
 	var ran bool
 	var dkm libkb.DeviceKeyMap
+
+	if found, visited := b.G().Env.GetConfig().GetBug3964RepairmanVisit(); found && visited {
+		b.G().Log.Debug("| Repairman already visited; bailing out")
+		return nil
+	}
+
+	b.G().Log.Debug("| Repairman wasn't short-circuited")
 
 	if me, err = b.loadMe(); err != nil {
 		return err
@@ -137,14 +175,33 @@ func (b *Bug3964Repairman) Run(ctx *Context) (err error) {
 	if ran, err = b.attemptRepair(ctx, lksec, dkm); err != nil {
 		return err
 	}
-	if !ran {
+
+	if err != nil {
 		return err
 	}
-	b.G().Log.Debug("| Successfully ran SKB keyring repair")
 
-	if tmp := b.updateSecretStore(me, lksec); tmp != nil {
-		b.G().Log.Warning("Error in secret store manipulation: %s", tmp)
+	b.G().Log.Debug("| SKB keyring repair completed; edits=%v", ran)
+
+	if !ran {
+		b.saveRepairmanVisit()
+		return nil
 	}
 
+	if ussErr := b.updateSecretStore(me, lksec); ussErr != nil {
+		b.G().Log.Warning("Error in secret store manipulation: %s", ussErr)
+	} else {
+		b.saveRepairmanVisit()
+	}
+
+	return err
+}
+
+func RunBug3964Repairman(g *libkb.GlobalContext) error {
+	ctx := &Context{}
+	beng := NewBug3964Repairman(g)
+	err := RunEngine(beng, ctx)
+	if err != nil {
+		g.Log.Warning("Error running Bug 3964 repairman: %s", err)
+	}
 	return err
 }
