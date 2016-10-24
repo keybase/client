@@ -182,10 +182,12 @@ func (b *Bug3964Repairman) Run(ctx *Context) (err error) {
 		return err
 	}
 	if ss {
+		// This logline is asserted in testing in bug_3964_repairman_test
 		b.G().Log.Debug("| Repairman already visited after file update; bailing out")
 		return nil
 	}
 
+	// This logline is asserted in testing in bug_3964_repairman_test
 	b.G().Log.Debug("| Repairman wasn't short-circuited")
 	if encKey, err = b.loadUnlockedEncryptionKey(ctx, me); err != nil {
 		return err
