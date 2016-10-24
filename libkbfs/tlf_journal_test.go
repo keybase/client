@@ -1093,7 +1093,7 @@ func TestTLFJournalResolveBranch(t *testing.T) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := config.makeMD(revision, prevRoot)
-		mdID, err := tlfJournal.putMD(ctx, md, nil)
+		mdID, err := tlfJournal.putMD(ctx, md)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
