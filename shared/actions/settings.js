@@ -9,7 +9,7 @@ import {takeEvery, takeLatest, delay} from 'redux-saga'
 
 import {fetchBillingOverview} from './plan-billing'
 
-import type {DeleteAccountForever, Invitation, InvitesReclaim, InvitesReclaimed, InvitesRefresh, InvitesSend, InvitesSent, NotificationsRefresh, NotificationsSave, NotificationsToggle, OnChangeNewPassphrase, OnChangeNewPassphraseConfirm, OnChangeShowPassphrase, OnSubmitNewPassphrase, OnUpdatePGPSettings, OnUpdatedPGPSettings, SetAllowDeleteAccount} from '../constants/settings'
+import type {DeleteAccountForever, Invitation, InvitesReclaim, InvitesReclaimed, InvitesRefresh, InvitesSend, InvitesSent, LoadSettings, NotificationsRefresh, NotificationsSave, NotificationsToggle, OnChangeNewPassphrase, OnChangeNewPassphraseConfirm, OnChangeShowPassphrase, OnSubmitNewPassphrase, OnUpdatePGPSettings, OnUpdatedPGPSettings, SetAllowDeleteAccount} from '../constants/settings'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
