@@ -5440,6 +5440,12 @@ export type incomingCallMapType = Exact<{
       result: (result: identifyUiConfirmResult) => void,
     }
   ) => void,
+  'keybase.1.identifyUi.cancel'?: (
+    params: Exact<{
+      sessionID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
   'keybase.1.identifyUi.finish'?: (
     params: Exact<{
       sessionID: int

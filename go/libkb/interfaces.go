@@ -259,6 +259,7 @@ type IdentifyUI interface {
 	DisplayTrackStatement(string) error
 	DisplayUserCard(keybase1.UserCard) error
 	ReportTrackToken(keybase1.TrackToken) error
+	Cancel() error
 	Finish() error
 	DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error
 	Dismiss(string, keybase1.DismissReason) error

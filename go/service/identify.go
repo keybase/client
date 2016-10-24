@@ -265,6 +265,12 @@ func (u *RemoteIdentifyUI) Start(username string, reason keybase1.IdentifyReason
 	return u.uicli.Start(ctx, keybase1.StartArg{SessionID: u.sessionID, Username: username, Reason: reason, ForceDisplay: force})
 }
 
+func (u *RemoteIdentifyUI) Cancel() error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.Cancel(ctx, u.sessionID)
+}
+
 func (u *RemoteIdentifyUI) Finish() error {
 	ctx, cancel := u.newContext()
 	defer cancel()
