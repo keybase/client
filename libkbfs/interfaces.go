@@ -1465,6 +1465,8 @@ type NodeCache interface {
 	Unlink(ref blockRef, oldPath path)
 	// PathFromNode creates the path up to a given Node.
 	PathFromNode(node Node) path
+	// AllNodes returns the complete set of nodes currently in the cache.
+	AllNodes() []Node
 }
 
 // fileBlockDeepCopier fetches a file block, makes a deep copy of it

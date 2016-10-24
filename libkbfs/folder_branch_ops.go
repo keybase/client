@@ -80,6 +80,12 @@ const (
 	dirtyBytesThreshold = maxParallelBlockPuts * MaxBlockSizeBytesDefault
 	// The timeout for any background task.
 	backgroundTaskTimeout = 1 * time.Minute
+	// If it's been more than this long since our last update, check
+	// the current head before downloading all of the new revisions.
+	fastForwardTimeThresh = 15 * time.Minute
+	// If there are more than this many new revisions, fast forward
+	// rather than downloading them all.
+	fastForwardRevThresh = 50
 )
 
 type fboMutexLevel mutexLevel
@@ -1478,6 +1484,19 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 		dirPath, err := fbo.pathFromNodeForRead(dir)
 		if err != nil {
 			return err
+		}
+
+		// If the MD doesn't match the MD expected by the path, that
+		// implies we are using a cached path, which implies the node
+		// has been unlinked.  Probably we have fast-forwarded, and
+		// missed all the updates deleting the children in this
+		// directory.  In that case, just return an empty set of
+		// children so we don't return an incorrect set from the
+		// cache.
+		if md.data.Dir.BlockPointer != dirPath.path[0].BlockPointer {
+			fbo.log.CDebugf(ctx, "Returning an empty children set for "+
+				"unlinked directory %v", dirPath.tailPointer())
+			return nil
 		}
 
 		children, err = fbo.blocks.GetDirtyDirChildren(
@@ -4534,9 +4553,65 @@ func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error
 	}
 }
 
+func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
+	lState *lockState, lastUpdate time.Time, currUpdate time.Time) (
+	fastForwardDone bool, err error) {
+	// Has it been long enough to try fast-forwarding?
+	if currUpdate.Before(lastUpdate.Add(fastForwardTimeThresh)) ||
+		!fbo.isMasterBranch(lState) {
+		return false, nil
+	}
+
+	fbo.log.CDebugf(ctx, "Checking head for possible "+
+		"fast-forwarding (last update time=%s)", lastUpdate)
+	currHead, err := fbo.config.MDOps().GetForTLF(ctx, fbo.id())
+	if err != nil {
+		return false, err
+	}
+	fbo.log.CDebugf(ctx, "Current head is revision %d", currHead.Revision())
+
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	if !fbo.isMasterBranchLocked(lState) {
+		// Don't update if we're staged.
+		return false, nil
+	}
+
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+
+	if currHead.Revision() < fbo.latestMergedRevision+fastForwardRevThresh {
+		// Might as well fetch all the revisions.
+		return false, nil
+	}
+
+	fbo.log.CDebugf(ctx, "Fast-forwarding from rev %d to rev %d",
+		fbo.latestMergedRevision, currHead.Revision())
+	changes, err := fbo.blocks.FastForwardAllNodes(
+		ctx, lState, currHead.ReadOnly())
+	if err != nil {
+		return false, err
+	}
+
+	err = fbo.setHeadSuccessorLocked(ctx, lState, currHead, true /*rebase*/)
+	if err != nil {
+		return false, err
+	}
+
+	// Invalidate all the affected nodes.
+	fbo.observers.batchChanges(ctx, changes)
+
+	// Reset the edit history.  TODO: notify any listeners that we've
+	// done this.
+	fbo.editHistory.Shutdown()
+	fbo.editHistory = NewTlfEditHistory(fbo.config, fbo, fbo.log)
+	return true, nil
+}
+
 func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 	defer close(fbo.updateDoneChan)
 	childDone := make(chan struct{})
+	var lastUpdate time.Time
 	err := fbo.runUnlessShutdown(func(ctx context.Context) error {
 		defer close(childDone)
 		// If we fail to register for or process updates, try again
@@ -4561,7 +4636,9 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 						return err
 					}
 				}
-				err = fbo.waitForAndProcessUpdates(newCtx, updateChan)
+
+				currUpdate, err := fbo.waitForAndProcessUpdates(
+					newCtx, lastUpdate, updateChan)
 				if _, ok := err.(UnmergedError); ok {
 					// skip the back-off timer and continue directly to next
 					// registerForUpdates
@@ -4572,6 +4649,9 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 					// Shortcut the retry, we're done.
 					return nil
 				default:
+					if err == nil {
+						lastUpdate = currUpdate
+					}
 					return err
 				}
 			},
@@ -4606,7 +4686,8 @@ func (fbo *folderBranchOps) registerForUpdates(ctx context.Context) (
 }
 
 func (fbo *folderBranchOps) waitForAndProcessUpdates(
-	ctx context.Context, updateChan <-chan error) (err error) {
+	ctx context.Context, lastUpdate time.Time,
+	updateChan <-chan error) (currUpdate time.Time, err error) {
 	// successful registration; now, wait for an update or a shutdown
 	fbo.log.CDebugf(ctx, "Waiting for updates")
 	defer func() { fbo.deferLog.CDebugf(ctx, "Done: %v", err) }()
@@ -4618,19 +4699,30 @@ func (fbo *folderBranchOps) waitForAndProcessUpdates(
 		case err := <-updateChan:
 			fbo.log.CDebugf(ctx, "Got an update: %v", err)
 			if err != nil {
-				return err
+				return time.Time{}, err
 			}
 			// Getting and applying the updates requires holding
 			// locks, so make sure it doesn't take too long.
 			ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
 			defer cancel()
+
+			currUpdate := fbo.config.Clock().Now()
+			ffDone, err :=
+				fbo.maybeFastForward(ctx, lState, lastUpdate, currUpdate)
+			if err != nil {
+				return time.Time{}, err
+			}
+			if ffDone {
+				return currUpdate, nil
+			}
+
 			err = fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdates)
 			if err != nil {
 				fbo.log.CDebugf(ctx, "Got an error while applying "+
 					"updates: %v", err)
-				return err
+				return time.Time{}, err
 			}
-			return nil
+			return currUpdate, nil
 		case unpause := <-fbo.updatePauseChan:
 			fbo.log.CInfof(ctx, "Updates paused")
 			// wait to be unpaused
@@ -4638,10 +4730,10 @@ func (fbo *folderBranchOps) waitForAndProcessUpdates(
 			case <-unpause:
 				fbo.log.CInfof(ctx, "Updates unpaused")
 			case <-ctx.Done():
-				return ctx.Err()
+				return time.Time{}, ctx.Err()
 			}
 		case <-ctx.Done():
-			return ctx.Err()
+			return time.Time{}, ctx.Err()
 		}
 	}
 }
