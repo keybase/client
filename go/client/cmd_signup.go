@@ -242,6 +242,7 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		Passphrase:  s.passphrase,
 		StoreSecret: s.storeSecret,
 		DeviceName:  s.fields.deviceName.GetValue(),
+		DeviceType:  keybase1.DeviceType_DESKTOP,
 		SkipMail:    s.skipMail,
 		GenPGPBatch: s.genPGP,
 	}

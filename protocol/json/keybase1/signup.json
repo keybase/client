@@ -67,6 +67,10 @@
           "type": "string"
         },
         {
+          "name": "deviceType",
+          "type": "DeviceType"
+        },
+        {
           "name": "storeSecret",
           "type": "boolean"
         },

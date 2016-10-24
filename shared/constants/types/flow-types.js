@@ -61,6 +61,11 @@ export const CommonClientType = {
   kbfs: 3,
 }
 
+export const CommonDeviceType = {
+  desktop: 0,
+  mobile: 1,
+}
+
 export const CommonLogLevel = {
   none: 0,
   debug: 1,
@@ -369,11 +374,6 @@ export const ProveUiPromptOverwriteType = {
 export const ProvisionUiChooseType = {
   existingDevice: 0,
   newDevice: 1,
-}
-
-export const ProvisionUiDeviceType = {
-  desktop: 0,
-  mobile: 1,
 }
 
 export const ProvisionUiGPGMethod = {
@@ -4719,6 +4719,7 @@ export type signupSignupRpcParam = Exact<{
   passphrase: string,
   username: string,
   deviceName: string,
+  deviceType: DeviceType,
   storeSecret: boolean,
   skipMail: boolean,
   genPGPBatch: boolean
