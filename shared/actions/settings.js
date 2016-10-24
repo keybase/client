@@ -1,13 +1,13 @@
 // @flow
 import * as Constants from '../constants/settings'
 import HiddenString from '../util/hidden-string'
-import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise, accountPassphraseChangeRpcPromise, accountHasServerKeysRpcPromise, userLoadMySettingsRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPromise, loginAccountDeleteRpcPromise, accountEmailChangeRpcPromise, accountPassphraseChangeRpcPromise, accountHasServerKeysRpcPromise, userLoadMySettingsRpcPromise} from '../constants/types/flow-types'
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {routeAppend, navigateUp} from '../actions/router'
 import {setDeletedSelf} from '../actions/login'
 import {takeEvery, takeLatest, delay} from 'redux-saga'
 
-import type {DeleteAccountForever, Invitation, InvitesReclaim, InvitesReclaimed, InvitesRefresh, InvitesSend, InvitesSent, LoadSettings, NotificationsRefresh, NotificationsSave, NotificationsToggle, OnChangeNewPassphrase, OnChangeNewPassphraseConfirm, OnChangeShowPassphrase, OnSubmitNewPassphrase, OnUpdatePGPSettings, OnUpdatedPGPSettings, SetAllowDeleteAccount} from '../constants/settings'
+import type {DeleteAccountForever, Invitation, InvitesReclaim, InvitesReclaimed, InvitesRefresh, InvitesSend, InvitesSent, LoadSettings, NotificationsRefresh, NotificationsSave, NotificationsToggle, OnChangeNewEmail, OnChangeNewPassphrase, OnChangeNewPassphraseConfirm, OnChangeShowPassphrase, OnSubmitNewEmail, OnSubmitNewPassphrase, OnUpdatePGPSettings, OnUpdatedPGPSettings, SetAllowDeleteAccount} from '../constants/settings'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
@@ -25,6 +25,14 @@ function onChangeShowPassphrase (): OnChangeShowPassphrase {
 
 function onSubmitNewPassphrase (): OnSubmitNewPassphrase {
   return {type: Constants.onSubmitNewPassphrase, payload: undefined}
+}
+
+function onChangeNewEmail (email: string): OnChangeNewEmail {
+  return {type: Constants.onChangeNewEmail, payload: {email}}
+}
+
+function onSubmitNewEmail (): OnSubmitNewEmail {
+  return {type: Constants.onSubmitNewEmail, payload: undefined}
 }
 
 function onUpdatePGPSettings (): OnUpdatePGPSettings {
@@ -78,6 +86,24 @@ function * _onUpdatePGPSettings (): SagaGenerator<any, any> {
     yield put(_onUpdatedPGPSettings(hasServerKeys))
   } catch (error) {
     yield put({type: Constants.onUpdatePassphraseError, payload: {error: error.message}})
+  }
+}
+
+function * _onSubmitNewEmail (): SagaGenerator<any, any> {
+  try {
+    const selector = (state: TypedState) => state.settings.email
+    const {newEmail} = ((yield select(selector)): any)
+    yield call(accountEmailChangeRpcPromise, {
+      param: {
+        newEmail,
+      },
+    })
+    // Reload settings
+    const userSettings = yield call(userLoadMySettingsRpcPromise)
+    yield put({type: Constants.loadedSettings, payload: userSettings})
+    yield put(navigateUp())
+  } catch (error) {
+    yield put({type: Constants.onUpdateEmailError, payload: {error: error.message}})
   }
 }
 
@@ -321,7 +347,7 @@ function * deleteAccountForeverSaga (): SagaGenerator<any, any> {
   yield put(setDeletedSelf(username))
 }
 
-function * loadSettingsSaga (action: LoadSettings): SagaGenerator<any, any> {
+function * loadSettingsSaga (): SagaGenerator<any, any> {
   const userSettings = yield call(userLoadMySettingsRpcPromise)
   yield put({type: Constants.loadedSettings, payload: userSettings})
 }
@@ -335,6 +361,7 @@ function * settingsSaga (): SagaGenerator<any, any> {
     takeLatest(Constants.notificationsSave, saveNotificationsSaga),
     takeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga),
     takeLatest(Constants.loadSettings, loadSettingsSaga),
+    takeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail),
     takeEvery(Constants.onSubmitNewPassphrase, _onSubmitNewPassphrase),
     takeEvery(Constants.onUpdatePGPSettings, _onUpdatePGPSettings),
   ]
@@ -348,9 +375,11 @@ export {
   notificationsRefresh,
   notificationsSave,
   notificationsToggle,
+  onChangeNewEmail,
   onChangeNewPassphrase,
   onChangeNewPassphraseConfirm,
   onChangeShowPassphrase,
+  onSubmitNewEmail,
   onSubmitNewPassphrase,
   onUpdatePGPSettings,
   setAllowDeleteAccount,

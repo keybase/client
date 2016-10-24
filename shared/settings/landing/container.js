@@ -7,25 +7,20 @@ import {routeAppend} from '../../actions/router'
 
 import type {TypedState} from '../../constants/reducer'
 
-type OwnProps = {}
-
 export default connect(
-  (state: TypedState, ownProps: OwnProps) => {
-    const {planBilling: {availablePlans, usage, plan, paymentInfo}, settings} = state
-
+  (state: TypedState, ownProps: {}) => {
+    const {emails} = state.settings.email
     let accountProps
-    if (settings.emails && settings.emails.length > 0) {
-      let primary = settings.emails[0]
-      if (primary) {
-        accountProps = {
-          email: primary.email,
-          isVerified: primary.isVerified,
-          onChangeEmail: () => console.log('todo'),
-          onChangePassphrase: () => console.log('todo'),
-        }
+    if (emails.length > 0) {
+      accountProps = {
+        email: emails[0].email,
+        isVerified: emails[0].isVerified,
+        onChangeEmail: () => console.log('todo'),
+        onChangePassphrase: () => console.log('todo'),
       }
     }
 
+    const {planBilling: {availablePlans, usage, plan, paymentInfo}} = state
     let planProps
     if (plan && usage) {
       const freeSpaceGB = plan.gigabytes - usage.gigabytes
@@ -56,12 +51,13 @@ export default connect(
       },
     }
   },
-  (dispatch: (a: any) => void, ownProps: OwnProps) => ({
+  (dispatch: (a: any) => void, ownProps: {}) => ({
     onBootstrap: () => { dispatch(actions.loadSettings()) },
     onChangePassphrase: () => dispatch(routeAppend('changePassphrase')),
+    onChangeEmail: () => dispatch(routeAppend('changeEmail')),
     onInfo: (selectedLevel) => dispatch(routeAppend({path: 'changePlan', selectedLevel})),
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
+  (stateProps, dispatchProps, ownProps: {}) => {
     if (!stateProps.bootstrapDone) {
       return {
         ...stateProps,
@@ -75,6 +71,7 @@ export default connect(
         ...stateProps.originalProps,
         account: {
           ...stateProps.originalProps.account,
+          onChangeEmail: dispatchProps.onChangeEmail,
           onChangePassphrase: dispatchProps.onChangePassphrase,
         },
         plan: {

@@ -17,7 +17,11 @@ const initialState: State = {
     allowSave: false,
     allowEdit: false,
   },
-  emails: [],
+  email: {
+    emails: [],
+    newEmail: '',
+    errorMessage: null,
+  },
   passphrase: {
     newPassphrase: new HiddenString(''),
     newPassphraseConfirm: new HiddenString(''),
@@ -111,7 +115,9 @@ function reducer (state: State = initialState, action: Actions): State {
     case Constants.loadedSettings: {
       return {
         ...state,
-        ...action.payload,
+        email: {
+          ...action.payload,
+        },
       }
     }
     case Constants.onChangeNewPassphrase:
@@ -156,6 +162,23 @@ function reducer (state: State = initialState, action: Actions): State {
         passphrase: {
           ...state.passphrase,
           showTyping: !state.passphrase.showTyping,
+        },
+      }
+    case Constants.onChangeNewEmail:
+      return {
+        ...state,
+        email: {
+          ...state.email,
+          newEmail: action.payload.email,
+          errorMessage: null,
+        },
+      }
+    case Constants.onUpdateEmailError:
+      return {
+        ...state,
+        email: {
+          ...state.email,
+          errorMessage: action.payload.error,
         },
       }
   }

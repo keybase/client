@@ -57,6 +57,15 @@ export type OnSubmitNewPassphrase = NoErrorTypedAction<'settings:onSubmitNewPass
 export const onUpdatePassphraseError = 'settings:onUpdatePassphraseError'
 export type OnUpdatePassphraseError = NoErrorTypedAction<'settings:onUpdatePassphraseError', {error: string}>
 
+export const onChangeNewEmail = 'settings:onChangeNewEmail'
+export type OnChangeNewEmail = NoErrorTypedAction<'settings:onChangeNewEmail', {email: string}>
+
+export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
+export type OnSubmitNewEmail = NoErrorTypedAction<'settings:onSubmitNewEmail', void>
+
+export const onUpdateEmailError = 'settings:onUpdateEmailError'
+export type OnUpdateEmailError = NoErrorTypedAction<'settings:onUpdateEmailError', {error: string}>
+
 export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export type OnUpdatePGPSettings = NoErrorTypedAction<'settings:onUpdatePGPSettings', void>
 
@@ -109,10 +118,16 @@ export type PassphraseState = {
   canSave: boolean,
 }
 
+export type EmailState = {
+  emails: Array<Email>,
+  newEmail: string,
+  errorMessage: ?string,
+}
+
 export type State = {
   allowDeleteAccount: boolean,
   invites: InvitesState,
   notifications: NotificationsState,
-  emails: ?Array<Email>,
+  email: EmailState,
   passphrase: PassphraseState,
 }
