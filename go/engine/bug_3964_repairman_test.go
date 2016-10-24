@@ -230,7 +230,7 @@ func checkAuditLogForRepairmanShortCircuit(t *testing.T, log []string) {
 	}
 	found := false
 	for _, line := range log {
-		if strings.HasPrefix(line, "| Repairman already visited; bailing out") {
+		if strings.HasPrefix(line, "| Repairman already visited after file update; bailing out") {
 			found = true
 			break
 		}

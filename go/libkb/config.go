@@ -706,26 +706,25 @@ func (f JSONConfigFile) GetMountDir() string {
 	return f.GetTopLevelString("mountdir")
 }
 
-func (f JSONConfigFile) GetBug3964RepairTime() time.Time {
-	if uc, _ := f.GetUserConfig(); uc != nil {
-		return uc.GetBug3964RepairTime()
-	}
-	return time.Time{}
+func bug3964path(un NormalizedUsername) string {
+	return fmt.Sprintf("maintenance.%s.bug_3964_repair_time", un)
 }
 
-func (f JSONConfigFile) SetBug3964RepairTime(t time.Time) (err error) {
-	f.userConfigWrapper.Lock()
-	defer f.userConfigWrapper.Unlock()
-
-	f.G().Log.Debug("| Setting Bug3964 repair time to %s", t)
-
-	var u *UserConfig
-	if u, err = f.getUserConfigWithLock(); err != nil {
-	} else if u == nil {
-		err = NoUserConfigError{}
-	} else {
-		u.SetBug3964RepairTime(t)
-		err = f.setUserConfigWithLock(u, true)
+func (f JSONConfigFile) GetBug3964RepairTime(un NormalizedUsername) (time.Time, error) {
+	if un == "" {
+		return time.Time{}, NoUserConfigError{}
 	}
-	return err
+	s, _ := f.GetStringAtPath(bug3964path(un))
+	if s == "" {
+		return time.Time{}, nil
+	}
+	i, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return keybase1.FromTime(keybase1.Time(i)), nil
+}
+
+func (f JSONConfigFile) SetBug3964RepairTime(un NormalizedUsername, t time.Time) (err error) {
+	return f.SetStringAtPath(bug3964path(un), fmt.Sprintf("%d", int64(keybase1.ToTime(t))))
 }

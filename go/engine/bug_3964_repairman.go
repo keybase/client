@@ -105,14 +105,14 @@ func (b *Bug3964Repairman) updateSecretStore(me *libkb.User, lksec *libkb.LKSec)
 	return ss.StoreSecret(nun, fs)
 }
 
-func (b *Bug3964Repairman) saveRepairmanVisit() (err error) {
+func (b *Bug3964Repairman) saveRepairmanVisit(me *libkb.User) (err error) {
 	defer b.G().Trace("Bug3964Repairman#saveRepairmanVisit", func() error { return err })()
 	cw := b.G().Env.GetConfigWriter()
 	cwt, err := cw.BeginTransaction()
 	if err != nil {
 		return err
 	}
-	err = cw.SetBug3964RepairTime(time.Now())
+	err = cw.SetBug3964RepairTime(me.GetNormalizedName(), time.Now())
 	if err == nil {
 		err = cwt.Commit()
 	} else {
@@ -136,7 +136,13 @@ func (b *Bug3964Repairman) postToServer() (err error) {
 
 func (b *Bug3964Repairman) computeShortCircuit(me *libkb.User) (ss bool, err error) {
 	defer b.G().Trace("Bug3964Repairman#computeShortCircuit", func() error { return err })()
-	repairTime := b.G().Env.GetConfig().GetBug3964RepairTime()
+	repairTime, tmpErr := b.G().Env.GetConfig().GetBug3964RepairTime(me.GetNormalizedName())
+
+	// Ignore any decoding errors
+	if tmpErr != nil {
+		b.G().Log.Warning("Problem reading previous bug 3964 repair time: %s", tmpErr)
+	}
+
 	if repairTime.IsZero() {
 		b.G().Log.Debug("| repair time is zero or wasn't set")
 		return false, nil
@@ -146,7 +152,7 @@ func (b *Bug3964Repairman) computeShortCircuit(me *libkb.User) (ss bool, err err
 	if err != nil {
 		return false, err
 	}
-	ss = fileTime.After(repairTime)
+	ss = !repairTime.Before(fileTime)
 	b.G().Log.Debug("| Checking repair-time (%s) v file-write-time (%s): shortCircuit=%v", repairTime, fileTime, ss)
 	return ss, nil
 }
@@ -204,14 +210,14 @@ func (b *Bug3964Repairman) Run(ctx *Context) (err error) {
 	b.G().Log.Debug("| SKB keyring repair completed; edits=%v", ran)
 
 	if !ran {
-		b.saveRepairmanVisit()
+		b.saveRepairmanVisit(me)
 		return nil
 	}
 
 	if ussErr := b.updateSecretStore(me, lksec); ussErr != nil {
 		b.G().Log.Warning("Error in secret store manipulation: %s", ussErr)
 	} else {
-		b.saveRepairmanVisit()
+		b.saveRepairmanVisit(me)
 	}
 
 	err = b.postToServer()
