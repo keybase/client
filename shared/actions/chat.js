@@ -47,30 +47,34 @@ let _fakeTime = Date.now() - 60 * 60 * 24
 function fakeGetThreadLocalCall (num, last) {
   return {
     thread: {
-      messages: _.range(0, num).map(i => ({
-        state: 1,
-        valid: {
-          clientHeader: {
-            tlfName: 'chris,chrisnojima',
-            tlfPublic: false,
-            messageType: 1,
-            supersedes: null,
-            prev: null,
+      messages: _.range(0, num).map(i => {
+        _fakeMessageID--
+        _fakeTime -= 10
+        return {
+          state: 1,
+          valid: {
+            clientHeader: {
+              tlfName: 'chris,chrisnojima',
+              tlfPublic: false,
+              messageType: 1,
+              supersedes: null,
+              prev: null,
+            },
+            serverHeader: {
+              messageID: _fakeMessageID,
+              supersededBy: '0',
+              ctime: _fakeTime,
+            },
+            messageBody: {
+              messageType: 1,
+              text: `${_fakeMessageID}`,
+            },
+            senderUsername: _.sample(['chris', 'chrisnojima']), // TODO
+            senderDeviceName: 'chris computer',
+            headerHash: i,
           },
-          serverHeader: {
-            messageID: _fakeMessageID--,
-            supersededBy: '0',
-            ctime: _fakeTime -= 10,
-          },
-          messageBody: {
-            messageType: 1,
-            text: `${_fakeMessageID}`,
-          },
-          senderUsername: _.sample(['chris', 'chrisnojima']), // TODO
-          senderDeviceName: 'chris computer',
-          headerHash: i,
-        },
-      })).reverse(),
+        }
+      }).reverse(),
       pagination: {
         next: 0,
         previous: 0,

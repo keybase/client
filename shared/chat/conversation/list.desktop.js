@@ -32,6 +32,11 @@ class ConversationList extends Component<void, Props, State> {
 
     this._cellCache = new TimeBasedCellSizeCache({uniformColumnWidth: true})
     this._cellCache.updateLoadedMessages([])
+
+
+    setTimeout(() => {
+      this.props.loadMoreMessages()
+    }, 2000)
   }
 
   componentWillReceiveProps (nextProps: Props) {
@@ -51,20 +56,21 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
-    this.setState({
+    const newState = {
       isLockedToBottom: scrollTop + clientHeight === scrollHeight,
-      scrollTop,
+      // scrollTop,
       // moving: true,
-    })
-    // this._stoppedMoving()
-    if (scrollTop === 0 && this.props.moreToLoad) {
-      this.props.loadMoreMessages()
     }
-  }, 100)
+    console.log('aaa', newState)
+    // this.setState(newState)
+    // this._stoppedMoving()
+    // if (scrollTop === 0 && this.props.moreToLoad) {
+      // this.props.loadMoreMessages()
+    // }
+  }, 1000)
 
   render () {
-    const rowCount = this.props.messages.size + 1 // Loading row on top always for now
-    const countWithLoading = rowCount + 1
+    const countWithLoading = this.props.messages.size + 1 // Loading row on top always for now
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
@@ -75,14 +81,14 @@ class ConversationList extends Component<void, Props, State> {
               columnCount={1}
               cellSizeCache={this._cellCache}
               ref={r => { this._cellMeasurer = r }}
-              rowCount={rowCount} >
+              rowCount={countWithLoading} >
               {({getRowHeight}) => (
+                  // scrollTop={this.state.scrollTop}
                 <List
                   height={height}
                   width={width}
                   onScroll={this._onScroll}
                   scrollToIndex={this.state.isLockedToBottom ? this.props.messages.size : undefined}
-                  scrollTop={this.state.scrollTop}
                   rowCount={countWithLoading}
                   rowHeight={getRowHeight}
                   rowRenderer={this._rowRenderer}

@@ -15,7 +15,7 @@ export default connect(
       if (conversationState) {
         return {
           messages: conversationState.messages,
-          moreToLoad: conversationState.moreToLoad,
+          moreToLoad: false, // conversationState.moreToLoad,
         }
       }
     }
