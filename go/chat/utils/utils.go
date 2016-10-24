@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
@@ -106,4 +108,50 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 		res = append(res, v)
 	}
 	return res
+}
+
+// Reorder participants based on the order in activeList.
+// This never fails, worse comes to worst it just returns the split of tlfname.
+func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname string, activeList []gregor1.UID) []string {
+	usedUsers := make(map[string]bool)
+	var users []string
+
+	// Fill from the active list first.
+	for _, uid := range activeList {
+		kbUID := keybase1.UID(uid.String())
+		user, err := udc.LookupUsername(uimap, kbUID)
+		if err != nil {
+			continue
+		}
+		if _, used := usedUsers[user]; !used {
+			users = append(users, user)
+			usedUsers[user] = true
+		}
+	}
+
+	// Include participants even if they're not in the active list, in stable order.
+	for _, user := range splitTlfName(tlfname) {
+		if _, used := usedUsers[user]; !used {
+			users = append(users, user)
+			usedUsers[user] = true
+		}
+	}
+
+	return users
+}
+
+// Split a tlf name into its users.
+// Does not validate the usernames.
+func splitTlfName(tlfname string) []string {
+	writerSep := ","
+	readerSep := "#"
+	extensionSep := " "
+
+	// Strip off the suffix
+	s2 := strings.Split(tlfname, extensionSep)
+	tlfname = s2[0]
+	// Replace "#" with ","
+	tlfname = strings.Replace(tlfname, writerSep, readerSep, -1)
+	// Split on ","
+	return strings.Split(tlfname, readerSep)
 }

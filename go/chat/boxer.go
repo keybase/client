@@ -13,7 +13,6 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
-	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -35,32 +34,21 @@ func init() {
 }
 
 type Boxer struct {
-	tlf     keybase1.TlfInterface
-	hashV1  func(data []byte) chat1.Hash
-	sign    func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
-	udCache *lru.Cache
-	kbCtx   utils.KeybaseContext
+	tlf    keybase1.TlfInterface
+	hashV1 func(data []byte) chat1.Hash
+	sign   func(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) // replaceable for testing
+	udc    *utils.UserDeviceCache
+	kbCtx  utils.KeybaseContext
 }
 
-func NewBoxer(kbCtx utils.KeybaseContext, tlf keybase1.TlfInterface) *Boxer {
-	udc, _ := lru.New(10000)
+func NewBoxer(kbCtx utils.KeybaseContext, tlf keybase1.TlfInterface, udc *utils.UserDeviceCache) *Boxer {
 	return &Boxer{
-		tlf:     tlf,
-		hashV1:  hashSha256V1,
-		sign:    sign,
-		udCache: udc,
-		kbCtx:   kbCtx,
+		tlf:    tlf,
+		hashV1: hashSha256V1,
+		sign:   sign,
+		udc:    udc,
+		kbCtx:  kbCtx,
 	}
-}
-
-type udCacheKey struct {
-	UID      keybase1.UID
-	DeviceID keybase1.DeviceID
-}
-
-type udCacheValue struct {
-	Username   string
-	DeviceName string
 }
 
 func (b *Boxer) log() logger.Logger {
@@ -241,20 +229,7 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 func (b *Boxer) getUsernameAndDeviceName(uid keybase1.UID, deviceID keybase1.DeviceID,
 	uimap *utils.UserInfoMapper) (string, string, error) {
 
-	if val, ok := b.udCache.Get(udCacheKey{UID: uid, DeviceID: deviceID}); ok {
-		if udval, ok := val.(udCacheValue); ok {
-			b.log().Debug("getUsernameAndDeviceName: lru hit: u: %s d: %s", udval.Username,
-				udval.DeviceName)
-			return udval.Username, udval.DeviceName, nil
-		}
-	}
-
-	username, deviceName, err := uimap.Lookup(uid, deviceID)
-	if err != nil {
-		return username, deviceName, err
-	}
-	b.udCache.Add(udCacheKey{UID: uid, DeviceID: deviceID},
-		udCacheValue{Username: username, DeviceName: deviceName})
+	username, deviceName, err := b.udc.LookupUsernameAndDeviceName(uimap, uid, deviceID)
 	return username, deviceName, err
 }
 
