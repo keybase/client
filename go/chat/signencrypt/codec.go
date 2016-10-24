@@ -474,10 +474,9 @@ func GetSealedSize(plaintextLen int) int {
 	// All the full packets.
 	fullChunks := plaintextLen / DefaultPlaintextChunkLength
 	totalLen := fullChunks * getPacketLen(DefaultPlaintextChunkLength)
-	// Maybe a partial packet.
+	// Exactly one short packet, even if it's empty.
 	remainingPlaintext := plaintextLen % DefaultPlaintextChunkLength
 	totalLen += getPacketLen(remainingPlaintext)
-	// And finally, an empty packet.
 	return totalLen
 }
 
