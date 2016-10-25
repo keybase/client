@@ -23,6 +23,11 @@ protocol crypto {
   ED25519SignatureInfo signED25519(int sessionID, bytes msg, string reason);
 
   /**
+    Same as the above except a KBFS-specific prefix is added to the payload to be signed.
+    */
+  ED25519SignatureInfo signED25519ForKBFS(int sessionID, bytes msg, string reason);
+
+  /**
     Same as the above except the full marsheled and encoded NaclSigInfo.
     */
   string signToString(int sessionID, bytes msg, string reason);
