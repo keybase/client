@@ -1392,7 +1392,7 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 
 func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	bid BranchID, blocksToDelete []BlockID, rmd *RootMetadata,
-	extra ExtraMetadata, irmd ImmutableRootMetadata,
+	extra ExtraMetadata, mdInfo unflushedPathMDInfo,
 	perRevMap unflushedPathsPerRevMap) (mdID MdID, retry bool, err error) {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
@@ -1402,7 +1402,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 
 	// The set of unflushed paths could change as part of the
 	// resolution, and the revision numbers definitely change.
-	if !j.unflushedPaths.reinitializeWithResolution(irmd, perRevMap) {
+	if !j.unflushedPaths.reinitializeWithResolution(mdInfo, perRevMap) {
 		return MdID{}, true, nil
 	}
 
@@ -1445,28 +1445,34 @@ func (j *tlfJournal) resolveBranch(ctx context.Context,
 	// path cache is uninitialized.  TODO: avoid doing this if we can
 	// somehow be sure the cache won't be initialized by the time we
 	// finish this put.
-	irmd := MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
+	mdInfo := unflushedPathMDInfo{
+		revision: rmd.Revision(),
+		kmd:      rmd,
+		pmd:      *rmd.Data(),
+		// TODO: Plumb through clock?
+		localTimestamp: time.Now(),
+	}
 	perRevMap, err := j.unflushedPaths.prepUnflushedPaths(
-		ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, irmd)
+		ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, mdInfo)
 	if err != nil {
 		return MdID{}, err
 	}
 
 	mdID, retry, err := j.doResolveBranch(
-		ctx, bid, blocksToDelete, rmd, extra, irmd, perRevMap)
+		ctx, bid, blocksToDelete, rmd, extra, mdInfo, perRevMap)
 	if err != nil {
 		return MdID{}, err
 	}
 
 	if retry {
 		perRevMap, err = j.unflushedPaths.prepUnflushedPaths(
-			ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, irmd)
+			ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, mdInfo)
 		if err != nil {
 			return MdID{}, err
 		}
 
 		mdID, retry, err = j.doResolveBranch(
-			ctx, bid, blocksToDelete, rmd, extra, irmd, perRevMap)
+			ctx, bid, blocksToDelete, rmd, extra, mdInfo, perRevMap)
 		if err != nil {
 			return MdID{}, err
 		}
