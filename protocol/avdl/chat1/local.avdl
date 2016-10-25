@@ -151,6 +151,8 @@ protocol local {
     string tlfName;
     string topicName;
     TLFVisibility visibility;
+    // List of usernames, sometimes sorted by activity.
+    array<string> usernames;
   }
 
   record ConversationLocal {
@@ -194,6 +196,7 @@ protocol local {
     union { null, boolean } oneChatTypePerTLF;
     boolean unreadOnly;
     boolean readOnly;
+    boolean computeActiveList;
   }
   record GetInboxAndUnboxLocalRes {
     array<ConversationLocal> conversations;

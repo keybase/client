@@ -29,6 +29,7 @@ type chatLocalHandler struct {
 	libkb.Contextified
 	gh    *gregorHandler
 	tlf   keybase1.TlfInterface
+	udc   *utils.UserDeviceCache
 	boxer *chat.Boxer
 
 	// Only for testing
@@ -38,12 +39,14 @@ type chatLocalHandler struct {
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
 	tlf := newTlfHandler(nil, g)
+	udc := utils.NewUserDeviceCache(g)
 	h := &chatLocalHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		gh:           gh,
 		tlf:          tlf,
-		boxer:        chat.NewBoxer(g, tlf),
+		udc:          udc,
+		boxer:        chat.NewBoxer(g, tlf, udc),
 	}
 	if gh != nil {
 		g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(), h.boxer,
@@ -87,6 +90,7 @@ func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquer
 	rquery.TopicType = lquery.TopicType
 	rquery.UnreadOnly = lquery.UnreadOnly
 	rquery.ReadOnly = lquery.ReadOnly
+	rquery.ComputeActiveList = lquery.ComputeActiveList
 	rquery.ConvID = lquery.ConvID
 
 	return rquery, nil
@@ -392,6 +396,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 	}
 
 	var queryBase chat1.GetInboxLocalQuery
+	queryBase.ComputeActiveList = true
 	if !after.IsZero() {
 		gafter := gregor1.ToTime(after)
 		queryBase.After = &gafter
@@ -465,6 +470,8 @@ func (h *chatLocalHandler) localizeConversation(
 	ctx context.Context, conversationRemote chat1.Conversation) (
 	conversationLocal chat1.ConversationLocal, err error) {
 
+	ctx, uimap := utils.GetUserInfoMapper(ctx, h.G())
+
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id: conversationRemote.Metadata.ConversationID,
 	}
@@ -510,6 +517,12 @@ func (h *chatLocalHandler) localizeConversation(
 	if _, conversationLocal.Info.TlfName, err = h.cryptKeysWrapper(ctx, conversationLocal.Info.TlfName); err != nil {
 		return chat1.ConversationLocal{}, err
 	}
+
+	conversationLocal.Info.Usernames = utils.ReorderParticipants(
+		h.udc,
+		uimap,
+		conversationLocal.Info.TlfName,
+		conversationRemote.Metadata.ActiveList)
 
 	// verify Conv matches ConversationIDTriple in MessageClientHeader
 	if !conversationRemote.Metadata.IdTriple.Eq(conversationLocal.Info.Triple) {

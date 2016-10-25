@@ -57,6 +57,7 @@ protocol common {
     union { null, boolean } oneChatTypePerTLF;
     boolean unreadOnly;
     boolean readOnly;
+    boolean computeActiveList;
   }
 
   record ConversationIDTriple {
@@ -69,6 +70,9 @@ protocol common {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
     bool isFinalized;
+    // List of users sorted by recency of last [intentional] post.
+    // Most recent first. May be incomplete or empty.
+    array<gregor1.UID> activeList;
   }
 
   record ConversationReaderInfo {

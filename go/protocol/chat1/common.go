@@ -113,6 +113,7 @@ type GetInboxQuery struct {
 	OneChatTypePerTLF *bool           `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
 	UnreadOnly        bool            `codec:"unreadOnly" json:"unreadOnly"`
 	ReadOnly          bool            `codec:"readOnly" json:"readOnly"`
+	ComputeActiveList bool            `codec:"computeActiveList" json:"computeActiveList"`
 }
 
 type ConversationIDTriple struct {
@@ -125,6 +126,7 @@ type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID       `codec:"conversationID" json:"conversationID"`
 	IsFinalized    bool                 `codec:"isFinalized" json:"isFinalized"`
+	ActiveList     []gregor1.UID        `codec:"activeList" json:"activeList"`
 }
 
 type ConversationReaderInfo struct {

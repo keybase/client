@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
@@ -106,4 +108,58 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 		res = append(res, v)
 	}
 	return res
+}
+
+// Reorder participants based on the order in activeList.
+// Only allows usernames from tlfname in the output.
+// This never fails, worse comes to worst it just returns the split of tlfname.
+func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname string, activeList []gregor1.UID) []string {
+	tlfnameList := splitTlfName(tlfname)
+	allowedUsers := make(map[string]bool)
+	var users []string
+
+	// Allow all users from tlfname.
+	for _, user := range tlfnameList {
+		allowedUsers[user] = true
+	}
+
+	// Fill from the active list first.
+	for _, uid := range activeList {
+		kbUID := keybase1.UID(uid.String())
+		user, err := udc.LookupUsername(uimap, kbUID)
+		if err != nil {
+			continue
+		}
+		if allowed, _ := allowedUsers[user]; allowed {
+			users = append(users, user)
+			// Allow only one occurrence.
+			allowedUsers[user] = false
+		}
+	}
+
+	// Include participants even if they weren't in the active list, in stable order.
+	for _, user := range tlfnameList {
+		if allowed, _ := allowedUsers[user]; allowed {
+			users = append(users, user)
+			allowedUsers[user] = false
+		}
+	}
+
+	return users
+}
+
+// Split a tlf name into its users.
+// Does not validate the usernames.
+func splitTlfName(tlfname string) []string {
+	writerSep := ","
+	readerSep := "#"
+	extensionSep := " "
+
+	// Strip off the suffix
+	s2 := strings.Split(tlfname, extensionSep)
+	tlfname = s2[0]
+	// Replace "#" with ","
+	tlfname = strings.Replace(tlfname, writerSep, readerSep, -1)
+	// Split on ","
+	return strings.Split(tlfname, readerSep)
 }

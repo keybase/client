@@ -11,6 +11,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -55,7 +56,8 @@ func textMsgWithHeader(t *testing.T, text string, header chat1.MessageClientHead
 
 func setupChatTest(t *testing.T, name string) (libkb.TestContext, *Boxer) {
 	tc := externals.SetupTest(t, name, 2)
-	return tc, NewBoxer(tc.G, nil)
+	udc := utils.NewUserDeviceCache(tc.G)
+	return tc, NewBoxer(tc.G, nil, udc)
 }
 
 func getSigningKeyPairForTest(t *testing.T, tc libkb.TestContext, u *kbtest.FakeUser) libkb.NaclSigningKeyPair {
