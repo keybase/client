@@ -1,6 +1,8 @@
 package chat
 
 import (
+	"crypto/rand"
+	"errors"
 	"io"
 
 	"github.com/agl/ed25519"
@@ -42,17 +44,20 @@ type SignEncrypter struct {
 }
 
 func NewSignEncrypter() (*SignEncrypter, error) {
-	enc, err := libkb.GenerateNaclDHKeyPair()
+	var encKey [signencrypt.SecretboxKeySize]byte
+	n, err := rand.Read(encKey[:])
 	if err != nil {
 		return nil, err
 	}
+	if n != signencrypt.SecretboxKeySize {
+		return nil, errors.New("failed to rand.Read the correct number of bytes")
+	}
+
 	sign, err := libkb.GenerateNaclSigningKeyPair()
 	if err != nil {
 		return nil, err
 	}
 
-	var encKey [signencrypt.SecretboxKeySize]byte
-	copy(encKey[:], (*enc.Private)[:])
 	var signKey [ed25519.PrivateKeySize]byte
 	copy(signKey[:], (*sign.Private)[:])
 	var verifyKey [ed25519.PublicKeySize]byte
