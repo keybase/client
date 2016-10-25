@@ -40,6 +40,9 @@ func (b *bug3964Repairman) attemptRepair(lctx LoginContext, lksec *LKSec, dkm De
 func (b *bug3964Repairman) loadLKSecServerDetails(lctx LoginContext, lksec *LKSec) (ret DeviceKeyMap, err error) {
 	defer b.G().Trace("bug3964Repairman#loadLKSecServerDetails", func() error { return err })()
 	ret, err = lksec.LoadServerDetails(lctx)
+	if err != nil {
+		return nil, err
+	}
 	lksec.SetFullSecret()
 	return ret, err
 }
