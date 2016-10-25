@@ -11,11 +11,11 @@ const {ChatClass} = TEMP
 
 import type {Props} from '.'
 
+    // <ChatClass />
 const Conversation = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
     <Header {...props} />
     <List {...props} />
-    <ChatClass />
     <Input {...props} />
   </Box>
 )

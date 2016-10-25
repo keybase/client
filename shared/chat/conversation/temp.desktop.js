@@ -13,7 +13,7 @@ function ChatMessage ({username, messageLengths, i, style}): {username: string} 
     return null
   }
   return (
-    <Box style={{...globalStyles.flexBoxRow, ...style}}>
+    <Box className={'demo'} style={{...globalStyles.flexBoxRow, ...style}}>
       <Avatar size={24} username={username}/>
       <Box style={globalStyles.flexBoxColumn}>
       <Box>{username} - {i}</Box>
@@ -35,44 +35,48 @@ function LoadingMessage ({style}): {} {
 
 const usernames = ['marcopolo', 'cecileb']
 
-class TimeBasedCellSizeCache extends defaultCellMeasurerCellSizeCache{
+// This should just take a mapper from index -> id. Doesn't need loadedMessages
+class IdBasedCellSizeCache extends defaultCellMeasurerCellSizeCache{
   updateLoadedMessages (newLoadedMessages) {
     this.loadedMessages = newLoadedMessages
   }
 
-  getRowHeight (index) {
+  _toId (index) {
     let id
     // loader message
     if (index === 0) {
       id = 0
     } else {
       // minus one because loader message is there
-      const m = this.loadedMessages[index - 1]
-      id = m && m.timestamp
+      const m = index && this.loadedMessages[index - 1]
+      id = m && m.id
       if (id == null) {
         console.warn('id is null for index:', index - 1)
       }
     }
-    return super.getRowHeight(id)
+
+    return id
+  }
+
+  getRowHeight (index) {
+    return super.getRowHeight(this._toId(index))
   }
 
   setRowHeight (index, height) {
-    let id
-    // loader message
-    if (index === 0) {
-      console.warn('setting height of cell 0', height)
-      id = 0
-    } else {
-      // minus one because loader message is there
-      const m = this.loadedMessages[index - 1]
-      id = m && m.timestamp
-      if (id == null) {
-        console.warn('id is null for index:', index - 1)
-      }
-    }
-    super.setRowHeight(id, height)
+    super.setRowHeight(this._toId(index), height)
+  }
+
+  hasRowHeight (index) {
+    return super.hasRowHeight(this._toId(index))
+  }
+
+  clearRowHeight (index) {
+    return super.clearRowHeight(this._toId(index))
   }
 }
+
+let id = 1
+const idMaker = () => id++
 
 class ChatDemo extends Component {
   constructor () {
@@ -83,7 +87,7 @@ class ChatDemo extends Component {
       prepending: false
     }
 
-    this._cellCache = new TimeBasedCellSizeCache({uniformColumnWidth: true})
+    this._cellCache = new IdBasedCellSizeCache({uniformColumnWidth: true})
     this._cellCache.updateLoadedMessages([])
     window._cellCache = this._cellCache
     this._stoppedMoving = _.debounce(() => {
@@ -102,50 +106,66 @@ class ChatDemo extends Component {
   _genRandomMessage (i: number) {
     const username = usernames[_.random(0, usernames.length - 1)]
     const messageLengths = _.range(0, _.random(1, 5)).map(i => _.random(5, 18))
-    return {username, messageLengths, i, timestamp: Date.now() + i}
+    return {username, messageLengths, i, id: i}
   }
 
   componentWillMount () {
     if (!this.state.loadedMessages.length) {
-      this._getMoreMessages(0, 20, 30).then(() => {
+      this._getMoreMessages(0, 20, 0).then(() => {
         window._cm = this._cellMeasurer
-      })
-      setInterval(() => {
-        if (this._transactions.length === 0) {
-          this._appendMoreMessages(1, 0)
-        }
-      }, 1e3)
+        this.setState({isOnBottom: true})
 
-      setInterval(() => {
-        const [nextTransaction, ...restTransactions] = this._transactions
-        if (this.state.inTransaction || this._transactions.length === 0) {
-          return
-        }
-        this.setState({inTransaction: true})
-        this._transactions = restTransactions
-        nextTransaction().then(() => {
-          this.setState({inTransaction: false})
-        })
-      }, 500)
+        setInterval(() => {
+          if (this.state.inTransaction || this._transactions.length === 0) {
+            return
+          }
+          const [nextTransaction, ...restTransactions] = this._transactions
+          this.setState({inTransaction: true})
+          this._transactions = restTransactions
+          nextTransaction().then(() => {
+            this.setState({inTransaction: false})
+          })
+        }, 100)
+      })
+      // setInterval(() => {
+        // if (Math.random() > 0.50) {
+          // this._appendMoreMessages(1, 0)
+        // } else {
+          // if (this._transactions.length === 0 && this.state.loadedMessages.length > 20) {
+            // this._insertMiddleMoreMessages(20, 1, 0)
+          // }
+        // }
+      // }, 1e3)
+
     }
   }
 
   _prependMoreMessages (count, timeout = 3e3) {
-    // this._transactions = this._transactions.concat(() => {
-      // let loadedMessages = [...this.state.loadedMessages]
-      // loadedMessages.unshift.apply(loadedMessages, _.range(0, count).map(() => undefined))
-      // this.setState({prepending: true})
-      // return this._getMoreMessages(0, count, timeout, loadedMessages, true)
-    // })
+    this._transactions = this._transactions.concat(() => {
+      let loadedMessages = [...this.state.loadedMessages]
+      console.log('prepending messages, i know:', loadedMessages)
+      loadedMessages.unshift.apply(loadedMessages, _.range(0, count).map(() => undefined))
+      this.setState({prepending: true})
+      return this._getMoreMessages(0, count, timeout, loadedMessages, true)
+    })
+  }
+
+  _insertMiddleMoreMessages (insertAt, count, timeout = 3e3) {
+    this._transactions = this._transactions.concat(() => {
+      let loadedMessages = [...this.state.loadedMessages]
+      loadedMessages.splice.apply(loadedMessages, [insertAt, 0].concat(_.range(0, count).map(() => undefined)))
+      this.setState({insertingAtMiddle: {insertAt, count}})
+      return this._getMoreMessages(insertAt, insertAt + count, timeout, loadedMessages, true)
+    })
   }
 
   _appendMoreMessages (count, timeout = 3e3) {
-    // this._transactions = this._transactions.concat(() => {
-      // let loadedMessages = [...this.state.loadedMessages]
-      // const startIndex = loadedMessages.length
-      // loadedMessages = loadedMessages.concat(_.range(0, count).map(() => undefined))
-      // return this._getMoreMessages(startIndex, startIndex + count, timeout, loadedMessages, false)
-    // })
+    this._transactions = this._transactions.concat(() => {
+      let loadedMessages = [...this.state.loadedMessages]
+      const startIndex = loadedMessages.length
+      loadedMessages = loadedMessages.concat(_.range(0, count).map(() => undefined))
+      return this._getMoreMessages(startIndex, startIndex + count, timeout, loadedMessages, false)
+    })
   }
 
   _getMoreMessages (startIndex, endIndex, timeout = 3e3, loadedMessages = null) {
@@ -155,7 +175,7 @@ class ChatDemo extends Component {
       setTimeout(() => {
         _.range(startIndex, endIndex).forEach(i => {
           if (!loadedMessages[i]) {
-            loadedMessages[i] = this._genRandomMessage(i)
+            loadedMessages[i] = this._genRandomMessage(idMaker())
           }
         })
 
@@ -177,9 +197,23 @@ class ChatDemo extends Component {
 
   componentDidUpdate (prevProps, prevState) {
     if (prevState.inTransaction && !this.state.inTransaction && this.state.prepending) {
-      // 1 - 11 because you are prepending 10, and there is a loading message.
-      const scrollTop = this.state.scrollTop + _.range(1,11).map(index => this._cellMeasurer.getRowHeight({index})).reduce((acc, h) => acc + h, 0)
+      // +1 because there is a loading message.
+      const scrollTop = this.state.scrollTop + _.range(0,10).map(index => this._cellMeasurer.getRowHeight({index: index + 1})).reduce((acc, h) => acc + h, 0)
       this.setState({scrollTop, prepending: false})
+    }
+
+    if (prevState.inTransaction && !this.state.inTransaction && this.state.insertingAtMiddle) {
+      const {insertAt, count} = this.state.insertingAtMiddle
+      const scrollTopToFirstInsertion = _.range(0, insertAt).map(index => this._cellMeasurer.getRowHeight({index: index + 1})).reduce((acc, h) => acc + h, 0)
+
+      // We are scrolled above the where we inserted
+      if (this.state.scrollTop > scrollTopToFirstInsertion) {
+        const scrollTopDeltaOfInsertion = _.range(insertAt, insertAt + count).map(index => this._cellMeasurer.getRowHeight({index: index + 1})).reduce((acc, h) => acc + h, 0)
+        const scrollTop = this.state.scrollTop + scrollTopDeltaOfInsertion
+        this.setState({scrollTop, insertingAtMiddle: null})
+      } else {
+        this.setState({insertingAtMiddle: null})
+      }
     }
   }
 
@@ -197,16 +231,17 @@ class ChatDemo extends Component {
     const isOnBottom = scrollTop + clientHeight === scrollHeight
     this.setState({scrollTop, moving: true, isOnBottom})
     this._stoppedMoving()
-    if (scrollTop === 0) {
-      this._prependMoreMessages(10, 2e3)
-    }
+    // if (scrollTop === 0) {
+      // this._prependMoreMessages(10, 2e3)
+    // }
   }
 
   _indexToKey (i) {
-    return this.state.loadedMessages[i].timestamp
+    return this.state.loadedMessages[i].id
   }
 
   _renderWithCellMeasurer () {
+    console.log('on bottom', this.state.isOnBottom)
     const rowRenderer = ({index: i, style, key}) => this._isRowLoaded({index: i}) ? <ChatMessage style={style} key={this._indexToKey(i)} {...this.state.loadedMessages[i]} /> : <Box />
     const loadingRenderer = ({index, style, key, ...rest}) => index === 0 ? (<LoadingMessage style={style} key={key || index} {...rest} />) : rowRenderer({index: index - 1, style, key, ...rest})
     const rowCount = this.state.loadedMessages.length
@@ -227,6 +262,7 @@ class ChatDemo extends Component {
                 width={width}
                 onScroll={this._throttledOnScroll}
                 scrollToIndex={this.state.isOnBottom ? this.state.loadedMessages.length : undefined}
+                scrollToAlignment={'end'}
                 scrollTop={this.state.scrollTop}
                 rowCount={countWithLoading}
                 rowHeight={getRowHeight}
@@ -243,10 +279,12 @@ class ChatDemo extends Component {
     return this.state.loadedMessages[index] != null
   }
 
+
   // Further optimization is to make the CellMeasurer's cache be smarter about prepending things
   render () {
     return (
       <Box style={{flex: 1}}>
+        <style>{demoAnimation}</style>
         {false && this.state.loadedMessages.map((m, i) => <ChatMessage key={i} {...m} />)}
         {this._renderWithCellMeasurer()}
       </Box>
@@ -254,6 +292,28 @@ class ChatDemo extends Component {
   }
 
 }
+
+const demoAnimation = `
+@-webkit-keyframes demo {
+    0% {
+        background-color: white;
+        opacity:1;
+    }
+    50% {
+        background-color: red;
+    }
+    100% {
+        background-color: white;
+    }
+}
+
+.demo {
+    -webkit-animation-name: demo;
+    -webkit-animation-duration: 900ms;
+    -webkit-animation-iteration-count: 1;
+    -webkit-animation-timing-function: ease-in-out;
+}
+`
 
 const chatMessageMap = {
   component: ChatMessage,

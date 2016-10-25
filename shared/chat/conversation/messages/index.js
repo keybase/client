@@ -11,7 +11,7 @@ const factory = (message: Message, index: number, key: string, style: Object, is
   }
 
   // switch (message.type) {} // TODO types
-  return <MessageText style={style} key={message.messageID} {...message} />
+  return <MessageText style={style} key={key} {...message} />
 }
 
 export default factory

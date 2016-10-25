@@ -30,13 +30,27 @@ class ConversationList extends Component<void, Props, State> {
       // prepending:
     }
 
-    this._cellCache = new TimeBasedCellSizeCache({uniformColumnWidth: true})
-    this._cellCache.updateLoadedMessages([])
+    this._cellCache = new CellSizeCache(this._indexToID)
 
-
-    setTimeout(() => {
+    setInterval(() => {
       this.props.loadMoreMessages()
     }, 2000)
+  }
+
+  _indexToID = index => {
+    // loader message
+    if (index === 0) {
+      return 0
+    } else {
+      // minus one because loader message is there
+      const messageIndex = index - 1
+      const message = this.props.messages.get(messageIndex)
+      const id = message && message.messageID
+      if (id == null) {
+        console.warn('id is null for index:', messageIndex)
+      }
+      return id
+    }
   }
 
   // componentDidUpdate (prevProps, prevState) {
@@ -47,11 +61,11 @@ class ConversationList extends Component<void, Props, State> {
     // }
   // }
 
-  componentWillReceiveProps (nextProps: Props) {
-    if (nextProps.messages !== this.props.messages) {
-      this._cellCache.updateLoadedMessages(nextProps.messages)
-    }
-  }
+  // componentWillReceiveProps (nextProps: Props) {
+    // if (nextProps.messages !== this.props.messages) {
+      // this._cellCache.updateLoadedMessages(nextProps.messages)
+    // }
+  // }
 
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
     // TODO make this smarter, don't just make this the top item
@@ -66,7 +80,7 @@ class ConversationList extends Component<void, Props, State> {
   _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
     const newState = {
       // isLockedToBottom: scrollTop + clientHeight === scrollHeight,
-      scrollTop,
+      // scrollTop,
       // moving: true,
     }
     // console.log('aaa', newState)
@@ -80,8 +94,10 @@ class ConversationList extends Component<void, Props, State> {
   render () {
     const countWithLoading = this.props.messages.size + 1 // Loading row on top always for now
 
+                  // scrollTop={this.state.scrollTop}
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <style>{demoAnimation}</style>
         <AutoSizer>
           {({height, width}) => (
             <CellMeasurer
@@ -96,7 +112,6 @@ class ConversationList extends Component<void, Props, State> {
                   width={width}
                   onScroll={this._onScroll}
                   scrollToIndex={this.state.isLockedToBottom ? this.props.messages.size : undefined}
-                  scrollTop={this.state.scrollTop}
                   rowCount={countWithLoading}
                   rowHeight={getRowHeight}
                   rowRenderer={this._rowRenderer}
@@ -110,28 +125,34 @@ class ConversationList extends Component<void, Props, State> {
   }
 }
 
-class TimeBasedCellSizeCache extends defaultCellMeasurerCellSizeCache {
-  updateLoadedMessages (newLoadedMessages) {
-    this.loadedMessages = newLoadedMessages
-  }
+// This should just take a mapper from index -> id. Doesn't need loadedMessages
+class CellSizeCache extends defaultCellMeasurerCellSizeCache {
+  _indexToID: (index: number) => number;
 
-  _indexToID (index) {
-    let id
-    // loader message
-    if (index === 0) {
-      id = 0
-    } else {
-      // minus one because loader message is there
-      const messageIndex = index - 1
-      const m = this.loadedMessages.get(messageIndex)
-      id = m && m.messageID
-      if (id == null) {
-        console.warn('id is null for index:', messageIndex)
-      }
-    }
-
-    return id
+  constructor (indexToID) {
+    super({uniformColumnWidth: true})
+    this._indexToID = indexToID
   }
+  // updateLoadedMessages (newLoadedMessages) {
+    // this.loadedMessages = newLoadedMessages
+  // }
+
+  // _toId (index) {
+    // let id
+    // // loader message
+    // if (index === 0) {
+      // id = 0
+    // } else {
+      // // minus one because loader message is there
+      // const m = index && this.loadedMessages.get(index - 1)
+      // id = m && m.messageID
+      // if (id == null) {
+        // console.warn('id is null for index:', index - 1)
+      // }
+    // }
+
+    // return id
+  // }
 
   getRowHeight (index) {
     return super.getRowHeight(this._indexToID(index))
@@ -140,6 +161,35 @@ class TimeBasedCellSizeCache extends defaultCellMeasurerCellSizeCache {
   setRowHeight (index, height) {
     super.setRowHeight(this._indexToID(index), height)
   }
+
+  hasRowHeight (index) {
+    return super.hasRowHeight(this._indexToID(index))
+  }
+
+  clearRowHeight (index) {
+    return super.clearRowHeight(this._indexToID(index))
+  }
 }
 
+const demoAnimation = `
+@-webkit-keyframes demo {
+    0% {
+        background-color: white;
+        opacity:1;
+    }
+    50% {
+        background-color: red;
+    }
+    100% {
+        background-color: white;
+    }
+}
+
+.demo {
+    -webkit-animation-name: demo;
+    -webkit-animation-duration: 900ms;
+    -webkit-animation-iteration-count: 1;
+    -webkit-animation-timing-function: ease-in-out;
+}
+`
 export default ConversationList
