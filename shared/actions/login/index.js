@@ -18,7 +18,7 @@ import {isMobile} from '../../constants/platform'
 import {loadDevices} from '../devices'
 import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
   deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, CommonClientType,
-  ConstantsStatusCode, ProvisionUiGPGMethod, ProvisionUiDeviceType,
+  ConstantsStatusCode, ProvisionUiGPGMethod, CommonDeviceType,
   PassphraseCommonPassphraseType,
 } from '../../constants/types/flow-types'
 import {navigateTo, routeAppend, navigateUp, switchTab} from '../router'
@@ -394,8 +394,8 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
     const incomingCallMap = makeKex2IncomingMap(dispatch, getState, onBack, onBack)
     incomingCallMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response: {result: (type: RPCDeviceType) => void}) => {
       const deviceTypeMap: {[key: string]: any} = {
-        [Constants.codePageDeviceRoleNewComputer]: ProvisionUiDeviceType.desktop,
-        [Constants.codePageDeviceRoleNewPhone]: ProvisionUiDeviceType.mobile,
+        [Constants.codePageDeviceRoleNewComputer]: CommonDeviceType.desktop,
+        [Constants.codePageDeviceRoleNewPhone]: CommonDeviceType.mobile,
       }
       let deviceType = deviceTypeMap[kind]
 
