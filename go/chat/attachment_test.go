@@ -68,4 +68,13 @@ func TestSignEncrypter(t *testing.T) {
 	if bytes.Equal(firstVerifyKey, e.VerifyKey()) {
 		t.Fatal("first verify key reused")
 	}
+
+	dr2 := d.Decrypt(bytes.NewReader(ct2), e.EncryptKey(), e.VerifyKey())
+	ptOut2, err := ioutil.ReadAll(dr2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(ptOut2) != pt {
+		t.Errorf("decrypted ciphertext doesn't match plaintext: %q, expected %q", ptOut2, pt)
+	}
 }
