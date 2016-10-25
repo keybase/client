@@ -85,6 +85,7 @@ const (
 	FSErrorType_OLD_VERSION           FSErrorType = 8
 	FSErrorType_OVER_QUOTA            FSErrorType = 9
 	FSErrorType_NO_SIG_CHAIN          FSErrorType = 10
+	FSErrorType_TOO_MANY_FOLDERS      FSErrorType = 11
 )
 
 var FSErrorTypeMap = map[string]FSErrorType{
@@ -99,6 +100,7 @@ var FSErrorTypeMap = map[string]FSErrorType{
 	"OLD_VERSION":           8,
 	"OVER_QUOTA":            9,
 	"NO_SIG_CHAIN":          10,
+	"TOO_MANY_FOLDERS":      11,
 }
 
 var FSErrorTypeRevMap = map[FSErrorType]string{
@@ -113,6 +115,7 @@ var FSErrorTypeRevMap = map[FSErrorType]string{
 	8:  "OLD_VERSION",
 	9:  "OVER_QUOTA",
 	10: "NO_SIG_CHAIN",
+	11: "TOO_MANY_FOLDERS",
 }
 
 type FSNotification struct {
