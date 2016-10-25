@@ -518,7 +518,6 @@ func (h *chatLocalHandler) localizeConversation(
 		return chat1.ConversationLocal{}, err
 	}
 
-	// TODO need this more validation to make sure it's not a trick?
 	conversationLocal.Info.Usernames = utils.ReorderParticipants(
 		h.udc,
 		uimap,
