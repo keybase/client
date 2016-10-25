@@ -288,10 +288,7 @@ helpers.rootLinuxNode(env, {
                                     //},
                                     test_osx: {
                                         println "Test OS X"
-                                        // Retry to protect against flakes
-                                        retry(3) {
-                                            testNixGo("OS X")
-                                        }
+                                        testNixGo("OS X")
                                     }
                                 )
                             }}
