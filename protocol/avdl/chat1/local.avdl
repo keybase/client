@@ -194,6 +194,7 @@ protocol local {
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
+    array<ConversationStatus> statusOverrideDefault;
     boolean unreadOnly;
     boolean readOnly;
     boolean computeActiveList;
@@ -206,6 +207,11 @@ protocol local {
 
   PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg);
   record PostLocalRes {
+    array<RateLimit> rateLimits;
+  }
+
+  SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status);
+  record SetConversationStatusLocalRes {
     array<RateLimit> rateLimits;
   }
 

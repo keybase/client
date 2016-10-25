@@ -447,17 +447,18 @@ type GetInboxLocalRes struct {
 }
 
 type GetInboxLocalQuery struct {
-	TlfName           *string         `codec:"tlfName,omitempty" json:"tlfName,omitempty"`
-	TopicName         *string         `codec:"topicName,omitempty" json:"topicName,omitempty"`
-	ConvID            *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
-	TopicType         *TopicType      `codec:"topicType,omitempty" json:"topicType,omitempty"`
-	TlfVisibility     *TLFVisibility  `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
-	Before            *gregor1.Time   `codec:"before,omitempty" json:"before,omitempty"`
-	After             *gregor1.Time   `codec:"after,omitempty" json:"after,omitempty"`
-	OneChatTypePerTLF *bool           `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
-	UnreadOnly        bool            `codec:"unreadOnly" json:"unreadOnly"`
-	ReadOnly          bool            `codec:"readOnly" json:"readOnly"`
-	ComputeActiveList bool            `codec:"computeActiveList" json:"computeActiveList"`
+	TlfName               *string              `codec:"tlfName,omitempty" json:"tlfName,omitempty"`
+	TopicName             *string              `codec:"topicName,omitempty" json:"topicName,omitempty"`
+	ConvID                *ConversationID      `codec:"convID,omitempty" json:"convID,omitempty"`
+	TopicType             *TopicType           `codec:"topicType,omitempty" json:"topicType,omitempty"`
+	TlfVisibility         *TLFVisibility       `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
+	Before                *gregor1.Time        `codec:"before,omitempty" json:"before,omitempty"`
+	After                 *gregor1.Time        `codec:"after,omitempty" json:"after,omitempty"`
+	OneChatTypePerTLF     *bool                `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
+	StatusOverrideDefault []ConversationStatus `codec:"statusOverrideDefault" json:"statusOverrideDefault"`
+	UnreadOnly            bool                 `codec:"unreadOnly" json:"unreadOnly"`
+	ReadOnly              bool                 `codec:"readOnly" json:"readOnly"`
+	ComputeActiveList     bool                 `codec:"computeActiveList" json:"computeActiveList"`
 }
 
 type GetInboxAndUnboxLocalRes struct {
@@ -467,6 +468,10 @@ type GetInboxAndUnboxLocalRes struct {
 }
 
 type PostLocalRes struct {
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+type SetConversationStatusLocalRes struct {
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 }
 
@@ -540,6 +545,11 @@ type PostLocalArg struct {
 	Msg            MessagePlaintext `codec:"msg" json:"msg"`
 }
 
+type SetConversationStatusLocalArg struct {
+	ConversationID ConversationID     `codec:"conversationID" json:"conversationID"`
+	Status         ConversationStatus `codec:"status" json:"status"`
+}
+
 type PostAttachmentLocalArg struct {
 	SessionID      int                 `codec:"sessionID" json:"sessionID"`
 	ConversationID ConversationID      `codec:"conversationID" json:"conversationID"`
@@ -581,6 +591,7 @@ type LocalInterface interface {
 	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
+	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
 	PostAttachmentLocal(context.Context, PostAttachmentLocalArg) (PostLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
@@ -653,6 +664,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"SetConversationStatusLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]SetConversationStatusLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetConversationStatusLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetConversationStatusLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SetConversationStatusLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -778,6 +805,11 @@ func (c LocalClient) GetInboxAndUnboxLocal(ctx context.Context, __arg GetInboxAn
 
 func (c LocalClient) PostLocal(ctx context.Context, __arg PostLocalArg) (res PostLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) SetConversationStatusLocal(ctx context.Context, __arg SetConversationStatusLocalArg) (res SetConversationStatusLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.SetConversationStatusLocal", []interface{}{__arg}, &res)
 	return
 }
 

@@ -360,6 +360,10 @@ func (m *ChatRemoteMock) MarkAsRead(ctx context.Context, arg chat1.MarkAsReadArg
 	return res, nil
 }
 
+func (m *ChatRemoteMock) SetConversationStatus(ctx context.Context, arg chat1.SetConversationStatusArg) (res chat1.SetConversationStatusRes, err error) {
+	return chat1.SetConversationStatusRes{}, errors.New("not implemented")
+}
+
 func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, tlfID chat1.TLFID) error {
 	return nil
 }

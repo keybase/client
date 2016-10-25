@@ -27,6 +27,26 @@ protocol common {
     DEV_2
   }
 
+  enum ConversationStatus {
+    // default status of the conversation
+    UNFILED_0,
+
+    // ???
+    FAVORITE_1,
+
+    // This status is useful for temporarily muting a conversation. Unless told
+    // otherwise in GetInboxQuery, gregor doesn't include conversation with
+    // this status in results from GetInboxRemote. Whenever some post activity
+    // (post, edit, delete, etc.) happens for the conversation with this
+    // status, it's automatically changed back to UNFILED.
+    IGNORED_2,
+
+    // The conversation is muted (i.e. not included in GetInboxRemote results
+    // by default), until SetConversationStatus is called with a different
+    // status.
+    BLOCKED_3
+  }
+
   record Pagination {
     bytes next;
     bytes previous;
@@ -55,6 +75,10 @@ protocol common {
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
+
+    // If left empty, default is to show unfiled and favorite
+    array<ConversationStatus> status;
+
     boolean unreadOnly;
     boolean readOnly;
     boolean computeActiveList;
