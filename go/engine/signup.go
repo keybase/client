@@ -184,13 +184,19 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	args := &DeviceWrapArgs{
 		Me:         s.me,
 		DeviceName: deviceName,
-		DeviceType: libkb.DeviceTypeDesktop,
 		Lks:        s.lks,
 		IsEldest:   true,
 	}
-	if s.arg.DeviceType == keybase1.DeviceType_MOBILE {
+
+	switch s.arg.DeviceType {
+	case keybase1.DeviceType_DESKTOP:
+		args.DeviceType = libkb.DeviceTypeDesktop
+	case keybase1.DeviceType_MOBILE:
 		args.DeviceType = libkb.DeviceTypeMobile
+	default:
+		return fmt.Errorf("unknown device type: %v", args.DeviceType)
 	}
+
 	eng := NewDeviceWrap(args, s.G())
 	ctx.LoginContext = a
 	if err := RunEngine(eng, ctx); err != nil {
