@@ -457,7 +457,14 @@
             "type": "array",
             "items": "string"
           },
-          "name": "usernames"
+          "name": "writerNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "readerNames"
         }
       ]
     },
