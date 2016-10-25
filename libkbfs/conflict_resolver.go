@@ -223,6 +223,18 @@ func (cr *ConflictResolver) Restart(baseCtx context.Context) {
 	cr.startProcessing(baseCtx)
 }
 
+// BeginNewBranch resets any internal state to be ready to accept
+// resolutions from a new branch.
+func (cr *ConflictResolver) BeginNewBranch() {
+	cr.inputLock.Lock()
+	defer cr.inputLock.Unlock()
+	// Reset the curr input so we don't ignore a future CR
+	// request that uses the same revision number (i.e.,
+	// because the previous CR failed to flush due to a
+	// conflict).
+	cr.currInput = conflictInput{}
+}
+
 func (cr *ConflictResolver) checkDone(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
