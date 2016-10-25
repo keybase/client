@@ -146,6 +146,10 @@ func (i *Identify2WithUIDTester) DisplayTLFCreateWithInvite(keybase1.DisplayTLFC
 	return nil
 }
 
+func (i *Identify2WithUIDTester) Cancel() error {
+	return nil
+}
+
 func (i *Identify2WithUIDTester) Finish() error {
 	i.finishCh <- struct{}{}
 	return nil
