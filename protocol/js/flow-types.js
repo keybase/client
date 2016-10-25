@@ -1641,18 +1641,6 @@ export function metadataPutMetadataRpcPromise (request: $Exact<requestCommon & r
   return new Promise((resolve, reject) => { metadataPutMetadataRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
-export function metadataPutMetadataV3Rpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataV3RpcParam}>) {
-  engineRpcOutgoing({...request, method: 'metadata.putMetadataV3'})
-}
-
-export function metadataPutMetadataV3RpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataV3RpcParam}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => metadataPutMetadataV3Rpc({...request, incomingCallMap, callback}))
-}
-
-export function metadataPutMetadataV3RpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataV3RpcParam}>): Promise<any> {
-  return new Promise((resolve, reject) => { metadataPutMetadataV3Rpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
 export function metadataRegisterForUpdatesRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.registerForUpdates'})
 }
@@ -4411,11 +4399,6 @@ export type metadataPutKeysRpcParam = Exact<{
 
 export type metadataPutMetadataRpcParam = Exact<{
   mdBlock: MDBlock,
-  logTags: {[key: string]: string}
-}>
-
-export type metadataPutMetadataV3RpcParam = Exact<{
-  mdBlock: MDBlock,
   readerKeyBundle: KeyBundle,
   writerKeyBundle: KeyBundle,
   logTags: {[key: string]: string}
@@ -5192,7 +5175,6 @@ export type rpc =
   | metadataPruneBranchRpc
   | metadataPutKeysRpc
   | metadataPutMetadataRpc
-  | metadataPutMetadataV3Rpc
   | metadataRegisterForUpdatesRpc
   | metadataTruncateLockRpc
   | metadataTruncateUnlockRpc
