@@ -54,7 +54,6 @@ type Identify2Arg struct {
 	NoSkipSelf            bool           `codec:"noSkipSelf" json:"noSkipSelf"`
 	CanSuppressUI         bool           `codec:"canSuppressUI" json:"canSuppressUI"`
 	ChatGUIMode           bool           `codec:"chatGUIMode" json:"chatGUIMode"`
-	ForceDisplay          bool           `codec:"forceDisplay" json:"forceDisplay"`
 }
 
 type IdentifyInterface interface {

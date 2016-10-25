@@ -20,11 +20,6 @@ type MDBlock struct {
 	Block     []byte `codec:"block" json:"block"`
 }
 
-type KeyBundle struct {
-	Version int    `codec:"version" json:"version"`
-	Bundle  []byte `codec:"bundle" json:"bundle"`
-}
-
 type MetadataResponse struct {
 	FolderID string    `codec:"folderID" json:"folderID"`
 	MdBlocks []MDBlock `codec:"mdBlocks" json:"mdBlocks"`
@@ -39,11 +34,6 @@ type PingResponse struct {
 	Timestamp Time `codec:"timestamp" json:"timestamp"`
 }
 
-type KeyBundleResponse struct {
-	WriterBundle KeyBundle `codec:"WriterBundle" json:"WriterBundle"`
-	ReaderBundle KeyBundle `codec:"ReaderBundle" json:"ReaderBundle"`
-}
-
 type GetChallengeArg struct {
 }
 
@@ -54,13 +44,6 @@ type AuthenticateArg struct {
 type PutMetadataArg struct {
 	MdBlock MDBlock           `codec:"mdBlock" json:"mdBlock"`
 	LogTags map[string]string `codec:"logTags" json:"logTags"`
-}
-
-type PutMetadataV3Arg struct {
-	MdBlock         MDBlock           `codec:"mdBlock" json:"mdBlock"`
-	ReaderKeyBundle KeyBundle         `codec:"readerKeyBundle" json:"readerKeyBundle"`
-	WriterKeyBundle KeyBundle         `codec:"writerKeyBundle" json:"writerKeyBundle"`
-	LogTags         map[string]string `codec:"logTags" json:"logTags"`
 }
 
 type GetMetadataArg struct {
@@ -131,12 +114,6 @@ type GetLatestFolderHandleArg struct {
 	FolderID string `codec:"folderID" json:"folderID"`
 }
 
-type GetKeyBundlesArg struct {
-	FolderID       string `codec:"folderID" json:"folderID"`
-	WriterBundleID string `codec:"writerBundleID" json:"writerBundleID"`
-	ReaderBundleID string `codec:"readerBundleID" json:"readerBundleID"`
-}
-
 type GetMerkleRootArg struct {
 	TreeID MerkleTreeID `codec:"treeID" json:"treeID"`
 	SeqNo  int64        `codec:"seqNo" json:"seqNo"`
@@ -159,7 +136,6 @@ type MetadataInterface interface {
 	GetChallenge(context.Context) (ChallengeInfo, error)
 	Authenticate(context.Context, string) (int, error)
 	PutMetadata(context.Context, PutMetadataArg) error
-	PutMetadataV3(context.Context, PutMetadataV3Arg) error
 	GetMetadata(context.Context, GetMetadataArg) (MetadataResponse, error)
 	RegisterForUpdates(context.Context, RegisterForUpdatesArg) error
 	PruneBranch(context.Context, PruneBranchArg) error
@@ -173,7 +149,6 @@ type MetadataInterface interface {
 	Ping(context.Context) error
 	Ping2(context.Context) (PingResponse, error)
 	GetLatestFolderHandle(context.Context, string) ([]byte, error)
-	GetKeyBundles(context.Context, GetKeyBundlesArg) (KeyBundleResponse, error)
 	GetMerkleRoot(context.Context, GetMerkleRootArg) (MerkleRoot, error)
 	GetMerkleRootLatest(context.Context, MerkleTreeID) (MerkleRoot, error)
 	GetMerkleRootSince(context.Context, GetMerkleRootSinceArg) (MerkleRoot, error)
@@ -223,22 +198,6 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						return
 					}
 					err = i.PutMetadata(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"putMetadataV3": {
-				MakeArg: func() interface{} {
-					ret := make([]PutMetadataV3Arg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PutMetadataV3Arg)
-					if !ok {
-						err = rpc.NewTypeError((*[]PutMetadataV3Arg)(nil), args)
-						return
-					}
-					err = i.PutMetadataV3(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -441,22 +400,6 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getKeyBundles": {
-				MakeArg: func() interface{} {
-					ret := make([]GetKeyBundlesArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetKeyBundlesArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]GetKeyBundlesArg)(nil), args)
-						return
-					}
-					ret, err = i.GetKeyBundles(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"getMerkleRoot": {
 				MakeArg: func() interface{} {
 					ret := make([]GetMerkleRootArg, 1)
@@ -545,11 +488,6 @@ func (c MetadataClient) PutMetadata(ctx context.Context, __arg PutMetadataArg) (
 	return
 }
 
-func (c MetadataClient) PutMetadataV3(ctx context.Context, __arg PutMetadataV3Arg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.metadata.putMetadataV3", []interface{}{__arg}, nil)
-	return
-}
-
 func (c MetadataClient) GetMetadata(ctx context.Context, __arg GetMetadataArg) (res MetadataResponse, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadata.getMetadata", []interface{}{__arg}, &res)
 	return
@@ -616,11 +554,6 @@ func (c MetadataClient) Ping2(ctx context.Context) (res PingResponse, err error)
 func (c MetadataClient) GetLatestFolderHandle(ctx context.Context, folderID string) (res []byte, err error) {
 	__arg := GetLatestFolderHandleArg{FolderID: folderID}
 	err = c.Cli.Call(ctx, "keybase.1.metadata.getLatestFolderHandle", []interface{}{__arg}, &res)
-	return
-}
-
-func (c MetadataClient) GetKeyBundles(ctx context.Context, __arg GetKeyBundlesArg) (res KeyBundleResponse, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.metadata.getKeyBundles", []interface{}{__arg}, &res)
 	return
 }
 

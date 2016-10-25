@@ -151,10 +151,9 @@ type DelegateIdentifyUIArg struct {
 }
 
 type StartArg struct {
-	SessionID    int            `codec:"sessionID" json:"sessionID"`
-	Username     string         `codec:"username" json:"username"`
-	Reason       IdentifyReason `codec:"reason" json:"reason"`
-	ForceDisplay bool           `codec:"forceDisplay" json:"forceDisplay"`
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Username  string         `codec:"username" json:"username"`
+	Reason    IdentifyReason `codec:"reason" json:"reason"`
 }
 
 type DisplayKeyArg struct {

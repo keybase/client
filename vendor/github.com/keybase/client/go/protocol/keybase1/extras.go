@@ -753,7 +753,3 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	return b == TLFIdentifyBehavior_CHAT_GUI
 }
-
-func (c CanonicalTlfName) String() string {
-	return string(c)
-}

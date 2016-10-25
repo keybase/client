@@ -482,38 +482,14 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 	}
 
 	// put request
-	arg := keybase1.PutMetadataV3Arg{
+	arg := keybase1.PutMetadataArg{
 		MdBlock: keybase1.MDBlock{
 			Version: int(rmds.Version()),
 			Block:   rmdsBytes,
 		},
 		LogTags: nil,
 	}
-
-	// add any new key bundles
-	wkb, rkb := getAnyKeyBundlesV3(extra)
-	if wkb != nil {
-		wkbBytes, err := md.config.Codec().Encode(wkb)
-		if err != nil {
-			return err
-		}
-		arg.WriterKeyBundle = keybase1.KeyBundle{
-			Version: int(rmds.Version()),
-			Bundle:  wkbBytes,
-		}
-	}
-	if rkb != nil {
-		rkbBytes, err := md.config.Codec().Encode(rkb)
-		if err != nil {
-			return err
-		}
-		arg.ReaderKeyBundle = keybase1.KeyBundle{
-			Version: int(rmds.Version()),
-			Bundle:  rkbBytes,
-		}
-	}
-
-	return md.client.PutMetadataV3(ctx, arg)
+	return md.client.PutMetadata(ctx, arg)
 }
 
 // PruneBranch implements the MDServer interface for MDServerRemote.
@@ -860,68 +836,9 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 }
 
 // GetKeyBundles implements the MDServer interface for MDServerRemote.
-func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
-	tlf TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
+func (md *MDServerRemote) GetKeyBundles(_ context.Context,
+	tlfID TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
-
-	arg := keybase1.GetKeyBundlesArg{
-		FolderID:       tlf.String(),
-		WriterBundleID: wkbID.String(),
-		ReaderBundleID: rkbID.String(),
-	}
-
-	response, err := md.client.GetKeyBundles(ctx, arg)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var wkb *TLFWriterKeyBundleV3
-	if response.WriterBundle.Bundle != nil {
-		if response.WriterBundle.Version != int(SegregatedKeyBundlesVer) {
-			err = fmt.Errorf("Unsupported writer bundle version: %d",
-				response.WriterBundle.Version)
-			return nil, nil, err
-		}
-		wkb = new(TLFWriterKeyBundleV3)
-		err = md.config.Codec().Decode(response.WriterBundle.Bundle, wkb)
-		if err != nil {
-			return nil, nil, err
-		}
-		// Verify it's what we expect.
-		bundleID, err := md.config.Crypto().MakeTLFWriterKeyBundleID(wkb)
-		if err != nil {
-			return nil, nil, err
-		}
-		if bundleID != wkbID {
-			err = fmt.Errorf("Expected writer bundle ID %s, got: %s",
-				wkbID, bundleID)
-			return nil, nil, err
-		}
-	}
-
-	var rkb *TLFReaderKeyBundleV3
-	if response.ReaderBundle.Bundle != nil {
-		if response.ReaderBundle.Version != int(SegregatedKeyBundlesVer) {
-			err = fmt.Errorf("Unsupported reader bundle version: %d",
-				response.ReaderBundle.Version)
-			return nil, nil, err
-		}
-		rkb = new(TLFReaderKeyBundleV3)
-		err = md.config.Codec().Decode(response.ReaderBundle.Bundle, rkb)
-		if err != nil {
-			return nil, nil, err
-		}
-		// Verify it's what we expect.
-		bundleID, err := md.config.Crypto().MakeTLFReaderKeyBundleID(rkb)
-		if err != nil {
-			return nil, nil, err
-		}
-		if bundleID != rkbID {
-			err = fmt.Errorf("Expected reader bundle ID %s, got: %s",
-				rkbID, bundleID)
-			return nil, nil, err
-		}
-	}
-
-	return wkb, rkb, nil
+	// MDv3 TODO: implement this
+	return nil, nil, nil
 }

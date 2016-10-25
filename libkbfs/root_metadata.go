@@ -97,7 +97,6 @@ func (p PrivateMetadata) ChangesBlockInfo() BlockInfo {
 type ExtraMetadata interface {
 	MetadataVersion() MetadataVer
 	DeepCopy(kbfscodec.Codec) (ExtraMetadata, error)
-	Copy(includeWkb, includeRkb bool) ExtraMetadata
 }
 
 // A RootMetadata is a BareRootMetadata but with a deserialized
@@ -120,10 +119,6 @@ type RootMetadata struct {
 	// The TLF handle for this MD. May be nil if this object was
 	// deserialized (more common on the server side).
 	tlfHandle *TlfHandle
-
-	// ExtraMetadata contains any newly created key bundles for
-	// post-v2 metadata.
-	extraNew ExtraMetadata
 }
 
 var _ KeyMetadata = (*RootMetadata)(nil)
@@ -719,15 +714,7 @@ func (md *RootMetadata) fillInDevices(crypto Crypto,
 
 func (md *RootMetadata) finalizeRekey(
 	crypto cryptoPure, prevKey, currKey kbfscrypto.TLFCryptKey) error {
-	wkbID := md.bareMd.GetTLFWriterKeyBundleID()
-	rkbID := md.bareMd.GetTLFReaderKeyBundleID()
-	err := md.bareMd.FinalizeRekey(crypto, prevKey, currKey, md.extra)
-	if err == nil && md.extra != nil {
-		includeWkb := wkbID != md.bareMd.GetTLFWriterKeyBundleID()
-		includeRkb := rkbID != md.bareMd.GetTLFReaderKeyBundleID()
-		md.extraNew = md.extra.Copy(includeWkb, includeRkb)
-	}
-	return err
+	return md.bareMd.FinalizeRekey(crypto, prevKey, currKey, md.extra)
 }
 
 func (md *RootMetadata) getUserDeviceKeyInfoMaps(keyGen KeyGen) (
@@ -774,11 +761,6 @@ func (md ReadOnlyRootMetadata) CheckValidSuccessor(
 // *RootMetadata.
 func (md *RootMetadata) ReadOnly() ReadOnlyRootMetadata {
 	return ReadOnlyRootMetadata{md}
-}
-
-// NewExtra returns any new extra metadata.
-func (md *RootMetadata) NewExtra() ExtraMetadata {
-	return md.extraNew
 }
 
 // ImmutableRootMetadata is a thin wrapper around a
