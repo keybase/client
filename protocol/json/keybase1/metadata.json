@@ -134,22 +134,6 @@
           "type": "MDBlock"
         },
         {
-          "name": "logTags",
-          "type": {
-            "type": "map",
-            "values": "string"
-          }
-        }
-      ],
-      "response": null
-    },
-    "putMetadataV3": {
-      "request": [
-        {
-          "name": "mdBlock",
-          "type": "MDBlock"
-        },
-        {
           "name": "readerKeyBundle",
           "type": "KeyBundle"
         },

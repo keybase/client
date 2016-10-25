@@ -41,8 +41,7 @@ protocol metadata {
 
   ChallengeInfo getChallenge();
   int authenticate(string signature);
-  void putMetadata(MDBlock mdBlock, map<string> logTags);
-  void putMetadataV3(MDBlock mdBlock, KeyBundle readerKeyBundle, KeyBundle writerKeyBundle, map<string> logTags);
+  void putMetadata(MDBlock mdBlock, KeyBundle readerKeyBundle, KeyBundle writerKeyBundle, map<string> logTags);
   MetadataResponse getMetadata(string folderID, bytes folderHandle, string branchID, boolean unmerged, long startRevision, long stopRevision, map<string> logTags);
   void registerForUpdates(string folderID, long currRevision, map<string> logTags);
   void pruneBranch(string folderID, string branchID, map<string> logTags);
