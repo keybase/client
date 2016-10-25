@@ -32,9 +32,12 @@ type Decrypter interface {
 	Decrypt(ciphertext io.Reader, encKey, verifyKey []byte) (plaintext io.Reader)
 }
 
-var nonce = &[signencrypt.NonceSize]byte{
-	0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
-	0x30, 0x30, 0x30, 0x30, 0x40, 0x40, 0x40, 0x40,
+var nonce signencrypt.Nonce
+
+func init() {
+	var n [signencrypt.NonceSize]byte
+	copy(n[:], "kbchatattachment")
+	nonce = &n
 }
 
 type SignEncrypter struct {
