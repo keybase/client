@@ -19,11 +19,13 @@ type Encrypter interface {
 	// It generates new keys every time it is called.
 	Encrypt(plaintext io.Reader) (ciphertext io.Reader, err error)
 
-	// EncryptKey returns the ephemeral key that was used during Encrypt.
+	// EncryptKey returns the ephemeral key that was used during the
+	// last invocation of Encrypt.
 	EncryptKey() []byte
 
-	// VerifyKey returns the public portion of the signing key that
-	// can be used for signature verification.
+	// VerifyKey returns the public portion of the signing key used during
+	// the last invocation of Encrypt.  It can be used for signature
+	// verification.
 	VerifyKey() []byte
 }
 
@@ -33,13 +35,8 @@ type Decrypter interface {
 	Decrypt(ciphertext io.Reader, encKey, verifyKey []byte) (plaintext io.Reader)
 }
 
-var nonce signencrypt.Nonce
-
-func init() {
-	var n [signencrypt.NonceSize]byte
-	copy(n[:], "kbchatattachment")
-	nonce = &n
-}
+// The ASCII bytes "kbchatattachment".
+var nonce signencrypt.Nonce = &[16]byte{0x6b, 0x62, 0x63, 0x68, 0x61, 0x74, 0x61, 0x74, 0x74, 0x61, 0x63, 0x68, 0x6d, 0x65, 0x6e, 0x74}
 
 type SignEncrypter struct {
 	encKey    signencrypt.SecretboxKey
@@ -56,6 +53,9 @@ func (s *SignEncrypter) EncryptedLen(size int) int {
 }
 
 func (s *SignEncrypter) Encrypt(r io.Reader) (io.Reader, error) {
+	// It is *very* important that Encrypt calls makeKeys() to make
+	// new keys every time it runs.  The keys it uses cannot be reused
+	// since we are using a constant nonce.
 	if err := s.makeKeys(); err != nil {
 		return nil, err
 	}
