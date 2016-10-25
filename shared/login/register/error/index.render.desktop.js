@@ -2,6 +2,7 @@
 import Container from '../../forms/container.desktop'
 import React from 'react'
 import openURL from '../../../util/open-url'
+import parseMarkdown from '../../../util/simple-md'
 import type {Props} from './index.render'
 import type {RPCError} from '../../../constants/types/flow-types'
 import {ConstantsStatusCode} from '../../../constants/types/flow-types'
@@ -58,7 +59,9 @@ const renderError = (error: RPCError) => {
     case ConstantsStatusCode.sckeynotfound:
       return (
         <p>
-          <Text type='Body'>Your PGP keychain has multiple keys installed, and we're not sure which one to use to provision your account. Please run <Text type='Terminal'>keybase login</Text> on the command line to continue.</Text>
+          {error.desc ? parseMarkdown(error.desc) : (
+            <Text type='Body'>Your PGP keychain has multiple keys installed, and we're not sure which one to use to provision your account. Please run <Text type='Terminal'>keybase login</Text> on the command line to continue.</Text>
+          )}
         </p>
       )
     case ConstantsStatusCode.scnotfound:
