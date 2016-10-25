@@ -42,4 +42,30 @@ func TestSignEncrypter(t *testing.T) {
 	if string(ptOut) != pt {
 		t.Errorf("decrypted ciphertext doesn't match plaintext: %q, expected %q", ptOut, pt)
 	}
+
+	// reuse e to do another Encrypt, make sure keys change:
+	firstEncKey := e.EncryptKey()
+	firstVerifyKey := e.VerifyKey()
+
+	er2, err := e.Encrypt(strings.NewReader(pt))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ct2, err := ioutil.ReadAll(er2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(ct2) == pt {
+		t.Fatal("Encrypt did not change plaintext")
+	}
+	if bytes.Equal(ct, ct2) {
+		t.Fatal("second Encrypt result same as first")
+	}
+	if bytes.Equal(firstEncKey, e.EncryptKey()) {
+		t.Fatal("first enc key reused")
+	}
+	if bytes.Equal(firstVerifyKey, e.VerifyKey()) {
+		t.Fatal("first verify key reused")
+	}
 }
