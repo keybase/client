@@ -482,7 +482,7 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 	}
 
 	// put request
-	arg := keybase1.PutMetadataV3Arg{
+	arg := keybase1.PutMetadataArg{
 		MdBlock: keybase1.MDBlock{
 			Version: int(rmds.Version()),
 			Block:   rmdsBytes,
@@ -513,7 +513,7 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 		}
 	}
 
-	return md.client.PutMetadataV3(ctx, arg)
+	return md.client.PutMetadata(ctx, arg)
 }
 
 // PruneBranch implements the MDServer interface for MDServerRemote.
