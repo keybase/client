@@ -2,6 +2,7 @@ package chat1
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"strconv"
@@ -156,4 +157,28 @@ var ConversationStatusGregorMap = map[ConversationStatus]string{
 	ConversationStatus_FAVORITE: "favorite",
 	ConversationStatus_IGNORED:  "ignored",
 	ConversationStatus_BLOCKED:  "blocked",
+}
+
+func (t ConversationIDTriple) Hash10B() []byte {
+	h := sha256.New()
+	h.Write(t.Tlfid)
+	h.Write(t.TopicID)
+	h.Write([]byte(strconv.Itoa(int(t.TopicType))))
+	hash := h.Sum(nil)
+
+	return hash[:10]
+}
+
+func (t ConversationIDTriple) ToConversationID(shardID [2]byte) ConversationID {
+	h := t.Hash10B()
+	h[0], h[1] = shardID[0], shardID[1]
+	return ConversationID(h)
+}
+
+func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
+	if len(cid) != 10 {
+		return false
+	}
+	h10 := t.Hash10B()
+	return bytes.Equal(h10[2:], []byte(cid[2:]))
 }
