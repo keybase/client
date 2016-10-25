@@ -75,6 +75,8 @@ type blockJournal struct {
 	j    diskJournal
 	refs map[BlockID]blockRefMap
 
+	saveUntilMDFlush *diskJournal
+
 	// Tracks the total size of on-disk blocks that will be flushed to
 	// the server (i.e., does not count reference adds).  It is only
 	// accurate for users of this journal that properly flush entries;
@@ -958,6 +960,59 @@ func flushBlockEntries(ctx context.Context, log logger.Logger,
 	return nil
 }
 
+func (j *blockJournal) removeFlushedEntryFromDisk(ordinal journalOrdinal,
+	entry blockJournalEntry, removeData bool, dj diskJournal) error {
+	earliestOrdinal, err := dj.readEarliestOrdinal()
+	if err != nil {
+		return err
+	}
+
+	if ordinal != earliestOrdinal {
+		return fmt.Errorf("Expected ordinal %d, got %d",
+			ordinal, earliestOrdinal)
+	}
+
+	_, err = dj.removeEarliest()
+	if err != nil {
+		return err
+	}
+
+	// Remove any of the entry's refs that hasn't been modified by
+	// a subsequent block op (i.e., that has earliestOrdinal as a
+	// tag).
+	isLiveDiskJournal := j.j.dir == dj.dir
+	for id, idContexts := range entry.Contexts {
+		refs := j.refs[id]
+		if len(refs) == 0 && isLiveDiskJournal {
+			continue
+		}
+		for _, context := range idContexts {
+			// Only remove the reference if this is the live disk journal.
+			if isLiveDiskJournal {
+				err := refs.remove(context, earliestOrdinal)
+				if err != nil {
+					return err
+				}
+			}
+			if len(refs) == 0 {
+				delete(j.refs, id)
+
+				if removeData {
+					// Garbage-collect the old entry.  TODO: we'll
+					// eventually need a sweeper to clean up entries left
+					// behind if we crash here.
+					err = j.removeBlockData(id)
+					if err != nil {
+						return err
+					}
+				}
+				break
+			}
+		}
+	}
+	return nil
+}
+
 func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 	ordinal journalOrdinal, entry blockJournalEntry) (
 	flushedBytes int64, err error) {
@@ -980,47 +1035,12 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 		j.unflushedBytes -= flushedBytes
 	}
 
-	earliestOrdinal, err := j.j.readEarliestOrdinal()
+	// Only remove data if we're not trying to save the blocks until
+	// the next MD flush.
+	removeData := j.saveUntilMDFlush == nil
+	err = j.removeFlushedEntryFromDisk(ordinal, entry, removeData, j.j)
 	if err != nil {
 		return 0, err
-	}
-
-	if ordinal != earliestOrdinal {
-		return 0, fmt.Errorf("Expected ordinal %d, got %d",
-			ordinal, earliestOrdinal)
-	}
-
-	_, err = j.j.removeEarliest()
-	if err != nil {
-		return 0, err
-	}
-
-	// Remove any of the entry's refs that hasn't been modified by
-	// a subsequent block op (i.e., that has earliestOrdinal as a
-	// tag).
-	for id, idContexts := range entry.Contexts {
-		refs := j.refs[id]
-		if len(refs) == 0 {
-			continue
-		}
-		for _, context := range idContexts {
-			err := refs.remove(context, earliestOrdinal)
-			if err != nil {
-				return 0, err
-			}
-			if len(refs) == 0 {
-				delete(j.refs, id)
-
-				// Garbage-collect the old entry.  TODO: we'll
-				// eventually need a sweeper to clean up entries left
-				// behind if we crash here.
-				err = j.removeBlockData(id)
-				if err != nil {
-					return 0, err
-				}
-				break
-			}
-		}
 	}
 
 	return flushedBytes, nil
@@ -1108,6 +1128,96 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 		}
 	}
 
+	return nil
+}
+
+func (j *blockJournal) saveBlocksUntilNextMDFlush() error {
+	// Copy the current journal entries into a new journal.  After the
+	// next MD flush, we can use the saved journal to delete the block
+	// data for all the entries in the saved journal.
+	first, err := j.j.readEarliestOrdinal()
+	if os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	last, err := j.j.readLatestOrdinal()
+	if os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	savedJournal := j.saveUntilMDFlush
+	if savedJournal == nil {
+		savedJournalDir, err := ioutil.TempDir(j.dir, "saved_block_journal")
+		if err != nil {
+			return err
+		}
+
+		sj := makeDiskJournal(
+			j.codec, savedJournalDir, reflect.TypeOf(blockJournalEntry{}))
+		savedJournal = &sj
+	}
+
+	for i := first; i <= last; i++ {
+		e, err := j.readJournalEntry(i)
+		if err != nil {
+			return err
+		}
+
+		savedJournal.appendJournalEntry(nil, e)
+	}
+
+	j.saveUntilMDFlush = savedJournal
+	return nil
+}
+
+func (j *blockJournal) onMDFlush() error {
+	if j.saveUntilMDFlush == nil {
+		return nil
+	}
+
+	// Delete the block data for anything in the saved journal.
+	first, err := j.saveUntilMDFlush.readEarliestOrdinal()
+	if os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	last, err := j.saveUntilMDFlush.readLatestOrdinal()
+	if os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	for i := first; i <= last; i++ {
+		e, err := j.saveUntilMDFlush.readJournalEntry(i)
+		if err != nil {
+			return err
+		}
+
+		entry, ok := e.(blockJournalEntry)
+		if !ok {
+			return errors.New("Unexpected block journal entry type in saved")
+		}
+
+		j.log.CDebugf(nil, "Removing data for entry %d", i)
+		err = j.removeFlushedEntryFromDisk(i, entry, true, *j.saveUntilMDFlush)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = os.RemoveAll(j.saveUntilMDFlush.dir)
+	if err != nil {
+		return err
+	}
+
+	j.saveUntilMDFlush = nil
 	return nil
 }
 
