@@ -522,11 +522,14 @@ func (h *chatLocalHandler) localizeConversation(
 		return chat1.ConversationLocal{}, err
 	}
 
-	conversationLocal.Info.Usernames = utils.ReorderParticipants(
+	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
 		h.udc,
 		uimap,
 		conversationLocal.Info.TlfName,
 		conversationRemote.Metadata.ActiveList)
+	if err != nil {
+		return chat1.ConversationLocal{}, fmt.Errorf("error reordering participants: %v", err.Error())
+	}
 
 	// verify Conv matches ConversationIDTriple in MessageClientHeader
 	if !conversationRemote.Metadata.IdTriple.Eq(conversationLocal.Info.Triple) {

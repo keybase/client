@@ -113,14 +113,17 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 // Reorder participants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname string, activeList []gregor1.UID) []string {
-	tlfnameList := splitTlfName(tlfname)
-	allowedUsers := make(map[string]bool)
-	var users []string
+func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
+	srcWriterNames, srcReaderNames, _, err := splitAndNormalizeTLFName2(tlfname, false)
+	if err != nil {
+		return writerNames, readerNames, err
+	}
 
-	// Allow all users from tlfname.
-	for _, user := range tlfnameList {
-		allowedUsers[user] = true
+	allowedWriters := make(map[string]bool)
+
+	// Allow all writers from tlfname.
+	for _, user := range srcWriterNames {
+		allowedWriters[user] = true
 	}
 
 	// Fill from the active list first.
@@ -130,36 +133,35 @@ func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname st
 		if err != nil {
 			continue
 		}
-		if allowed, _ := allowedUsers[user]; allowed {
-			users = append(users, user)
+		user, err = normalizeAssertionOrName(user)
+		if err != nil {
+			continue
+		}
+		if allowed, _ := allowedWriters[user]; allowed {
+			writerNames = append(writerNames, user)
 			// Allow only one occurrence.
-			allowedUsers[user] = false
+			allowedWriters[user] = false
 		}
 	}
 
 	// Include participants even if they weren't in the active list, in stable order.
-	for _, user := range tlfnameList {
-		if allowed, _ := allowedUsers[user]; allowed {
-			users = append(users, user)
-			allowedUsers[user] = false
+	for _, user := range srcWriterNames {
+		if allowed, _ := allowedWriters[user]; allowed {
+			writerNames = append(writerNames, user)
+			allowedWriters[user] = false
 		}
 	}
 
-	return users
+	readerNames = srcReaderNames
+
+	return writerNames, readerNames, nil
 }
 
-// Split a tlf name into its users.
-// Does not validate the usernames.
-func splitTlfName(tlfname string) []string {
-	writerSep := ","
-	readerSep := "#"
-	extensionSep := " "
-
-	// Strip off the suffix
-	s2 := strings.Split(tlfname, extensionSep)
-	tlfname = s2[0]
-	// Replace "#" with ","
-	tlfname = strings.Replace(tlfname, writerSep, readerSep, -1)
-	// Split on ","
-	return strings.Split(tlfname, readerSep)
+// Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
+func splitAndNormalizeTLFName2(name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
+	writerNames, readerNames, extensionSuffix, err = splitAndNormalizeTLFName(name, public)
+	if retryErr, retry := err.(TlfNameNotCanonical); retry {
+		return splitAndNormalizeTLFName(retryErr.NameToTry, public)
+	}
+	return writerNames, readerNames, extensionSuffix, err
 }
