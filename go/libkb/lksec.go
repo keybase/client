@@ -113,6 +113,16 @@ func (f LKSecFullSecret) Equal(f2 LKSecFullSecret) bool {
 	return hmac.Equal(f.f[:], f2.f[:])
 }
 
+func (c LKSecClientHalf) Equal(c2 LKSecClientHalf) bool {
+	if c.IsNil() {
+		return false
+	}
+	if c2.IsNil() {
+		return false
+	}
+	return hmac.Equal(c.c[:], c2.c[:])
+}
+
 func (s LKSecServerHalf) EncodeToHex() string {
 	if s.IsNil() {
 		return ""
