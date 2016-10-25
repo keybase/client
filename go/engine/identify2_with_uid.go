@@ -164,6 +164,7 @@ func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 func (e *Identify2WithUID) run(ctx *Context) {
 	err := e.runReturnError(ctx)
 	e.unblock( /* isFinal */ true, err)
+	ctx.IdentifyUI.Cancel() // always cancel IdentifyUI to allow clients to clean up
 }
 
 func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
