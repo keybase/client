@@ -10,7 +10,7 @@ helpers.rootLinuxNode(env, {
                 strategy: [$class: "LogRotator",
                     numToKeepStr: "30",
                     daysToKeepStr: "10",
-                    artifactNumToKeepStr: "5",
+                    artifactNumToKeepStr: "10",
                 ]
             ],
             [$class: 'RebuildSettings',
