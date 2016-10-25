@@ -152,7 +152,7 @@ protocol local {
     string tlfName;
     string topicName;
     TLFVisibility visibility;
-    // Lists of usernames, optionally sorted by activity.
+    // Lists of usernames, always complete, optionally sorted by activity.
     array<string> writerNames;
     array<string> readerNames;
   }
