@@ -958,12 +958,12 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
 
 	// encrypt the stream
-	enc, err := chat.NewSignEncrypter()
+	enc := chat.NewSignEncrypter()
+	len := enc.EncryptedLen(local.Size)
+	encReader, err := enc.Encrypt(src)
 	if err != nil {
 		return chat1.Asset{}, err
 	}
-	len := enc.EncryptedLen(local.Size)
-	encReader := enc.Encrypt(src)
 
 	// compute hash
 	hash := sha256.New()

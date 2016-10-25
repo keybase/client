@@ -8,10 +8,7 @@ import (
 )
 
 func TestSignEncrypter(t *testing.T) {
-	e, err := NewSignEncrypter()
-	if err != nil {
-		t.Fatal(err)
-	}
+	e := NewSignEncrypter()
 	el := e.EncryptedLen(100)
 	if el != 180 {
 		t.Errorf("enc len: %d, expected 180", el)
@@ -23,7 +20,10 @@ func TestSignEncrypter(t *testing.T) {
 	}
 
 	pt := "plain text"
-	er := e.Encrypt(strings.NewReader(pt))
+	er, err := e.Encrypt(strings.NewReader(pt))
+	if err != nil {
+		t.Fatal(err)
+	}
 	ct, err := ioutil.ReadAll(er)
 	if err != nil {
 		t.Fatal(err)
