@@ -254,7 +254,10 @@ func (b *BlockServerRemote) resetAuth(
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (b *BlockServerRemote) RefreshAuthToken(ctx context.Context) {
 	if err := b.resetAuth(ctx, b.putClient, b.putAuthToken); err != nil {
-		b.log.CDebugf(ctx, "error refreshing auth token: %v", err)
+		b.log.CDebugf(ctx, "error refreshing put auth token: %v", err)
+	}
+	if err := b.resetAuth(ctx, b.getClient, b.getAuthToken); err != nil {
+		b.log.CDebugf(ctx, "error refreshing get auth token: %v", err)
 	}
 }
 
