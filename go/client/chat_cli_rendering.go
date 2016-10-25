@@ -54,7 +54,7 @@ type conversationListView []chat1.ConversationLocal
 func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	convName := strings.Join(v.without(g, conv.Info.WriterNames, myUsername), ",")
 	if len(conv.Info.ReaderNames) > 0 {
-		convName += "#" + strings.Join(v.without(g, conv.Info.ReaderNames, myUsername), ",")
+		convName += "#" + strings.Join(conv.Info.ReaderNames, ",")
 	}
 	return convName
 }
