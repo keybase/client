@@ -89,7 +89,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			continue
 		}
 
-		participants := strings.Split(conv.Info.TlfName, ",")
+		participants := conv.Info.Usernames
 
 		if len(participants) > 1 {
 			var withoutMe []string

@@ -197,6 +197,10 @@
         {
           "type": "boolean",
           "name": "readOnly"
+        },
+        {
+          "type": "boolean",
+          "name": "computeActiveList"
         }
       ]
     },
@@ -233,6 +237,13 @@
         {
           "type": "bool",
           "name": "isFinalized"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "activeList"
         }
       ]
     },
