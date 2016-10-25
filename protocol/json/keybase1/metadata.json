@@ -45,6 +45,20 @@
     },
     {
       "type": "record",
+      "name": "KeyBundle",
+      "fields": [
+        {
+          "type": "int",
+          "name": "version"
+        },
+        {
+          "type": "bytes",
+          "name": "bundle"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MetadataResponse",
       "fields": [
         {
@@ -83,6 +97,20 @@
           "name": "timestamp"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "KeyBundleResponse",
+      "fields": [
+        {
+          "type": "KeyBundle",
+          "name": "WriterBundle"
+        },
+        {
+          "type": "KeyBundle",
+          "name": "ReaderBundle"
+        }
+      ]
     }
   ],
   "messages": {
@@ -104,6 +132,30 @@
         {
           "name": "mdBlock",
           "type": "MDBlock"
+        },
+        {
+          "name": "logTags",
+          "type": {
+            "type": "map",
+            "values": "string"
+          }
+        }
+      ],
+      "response": null
+    },
+    "putMetadataV3": {
+      "request": [
+        {
+          "name": "mdBlock",
+          "type": "MDBlock"
+        },
+        {
+          "name": "readerKeyBundle",
+          "type": "KeyBundle"
+        },
+        {
+          "name": "writerKeyBundle",
+          "type": "KeyBundle"
         },
         {
           "name": "logTags",
@@ -314,6 +366,23 @@
         }
       ],
       "response": "bytes"
+    },
+    "getKeyBundles": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "writerBundleID",
+          "type": "string"
+        },
+        {
+          "name": "readerBundleID",
+          "type": "string"
+        }
+      ],
+      "response": "KeyBundleResponse"
     },
     "getMerkleRoot": {
       "request": [
