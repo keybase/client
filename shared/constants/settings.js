@@ -111,7 +111,7 @@ export type PassphraseState = {
   newPassphrase: HiddenString,
   newPassphraseConfirm: HiddenString,
   showTyping: boolean,
-  errorMessage: ?HiddenString,
+  error: ?Error,
   newPassphraseError: ?HiddenString,
   newPassphraseConfirmError: ?HiddenString,
   hasPGPKeyOnServer: ?boolean,
@@ -121,7 +121,7 @@ export type PassphraseState = {
 export type EmailState = {
   emails: Array<Email>,
   newEmail: string,
-  errorMessage: ?string,
+  error: ?Error,
 }
 
 export type State = {

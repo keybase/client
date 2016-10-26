@@ -85,7 +85,7 @@ function * _onUpdatePGPSettings (): SagaGenerator<any, any> {
     const {hasServerKeys} = yield call(accountHasServerKeysRpcPromise)
     yield put(_onUpdatedPGPSettings(hasServerKeys))
   } catch (error) {
-    yield put({type: Constants.onUpdatePassphraseError, payload: {error: error.message}})
+    yield put({type: Constants.onUpdatePassphraseError, payload: {error}})
   }
 }
 
@@ -100,7 +100,7 @@ function * _onSubmitNewEmail (): SagaGenerator<any, any> {
     yield put(loadSettings())
     yield put(navigateUp())
   } catch (error) {
-    yield put({type: Constants.onUpdateEmailError, payload: {error: error.message}})
+    yield put({type: Constants.onUpdateEmailError, payload: {error}})
   }
 }
 
@@ -121,7 +121,7 @@ function * _onSubmitNewPassphrase (): SagaGenerator<any, any> {
     })
     yield put(navigateUp())
   } catch (error) {
-    yield put({type: Constants.onUpdatePassphraseError, payload: {error: error.message}})
+    yield put({type: Constants.onUpdatePassphraseError, payload: {error}})
   }
 }
 

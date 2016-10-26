@@ -20,13 +20,13 @@ const initialState: State = {
   email: {
     emails: [],
     newEmail: '',
-    errorMessage: null,
+    error: null,
   },
   passphrase: {
     newPassphrase: new HiddenString(''),
     newPassphraseConfirm: new HiddenString(''),
     showTyping: false,
-    errorMessage: null,
+    error: null,
     newPassphraseError: null,
     newPassphraseConfirmError: null,
     hasPGPKeyOnServer: null,
@@ -127,7 +127,7 @@ function reducer (state: State = initialState, action: Actions): State {
           ...state.passphrase,
           newPassphrase: action.payload.passphrase,
           canSave: _canSave(action.payload.passphrase, state.passphrase.newPassphraseConfirm, state.passphrase.hasPGPKeyOnServer !== null),
-          errorMessage: null,
+          error: null,
         },
       }
     case Constants.onChangeNewPassphraseConfirm:
@@ -137,7 +137,7 @@ function reducer (state: State = initialState, action: Actions): State {
           ...state.passphrase,
           newPassphraseConfirm: action.payload.passphrase,
           canSave: _canSave(state.passphrase.newPassphrase, action.payload.passphrase, state.passphrase.hasPGPKeyOnServer !== null),
-          errorMessage: null,
+          error: null,
         },
       }
     case Constants.onUpdatedPGPSettings:
@@ -153,7 +153,7 @@ function reducer (state: State = initialState, action: Actions): State {
         ...state,
         passphrase: {
           ...state.passphrase,
-          errorMessage: action.payload.error,
+          error: action.payload.error,
         },
       }
     case Constants.onChangeShowPassphrase:
@@ -170,7 +170,7 @@ function reducer (state: State = initialState, action: Actions): State {
         email: {
           ...state.email,
           newEmail: action.payload.email,
-          errorMessage: null,
+          error: null,
         },
       }
     case Constants.onUpdateEmailError:
@@ -178,7 +178,7 @@ function reducer (state: State = initialState, action: Actions): State {
         ...state,
         email: {
           ...state.email,
-          errorMessage: action.payload.error,
+          error: action.payload.error,
         },
       }
   }
