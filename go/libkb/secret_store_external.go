@@ -11,6 +11,17 @@ import "sync"
 // otherwise tests will clobber each other's passwords. See
 // https://keybase.atlassian.net/browse/CORE-1934 .
 
+// UnsafeExternalKeyStore is a simple interface that external clients can implement.
+// It is unsafe because it returns raw bytes instead of the typed LKSecFullSecret
+// Use with TypeSafeExternalKeyStoreProxy
+type UnsafeExternalKeyStore interface {
+	RetrieveSecret(serviceName string, key string) ([]byte, error)
+	StoreSecret(serviceName string, key string, secret []byte) error
+	ClearSecret(serviceName string, key string) error
+	GetUsersWithStoredSecretsMsgPack(serviceName string) ([]byte, error)
+	SetupKeyStore(serviceName string, key string) error
+}
+
 // ExternalKeyStore is the interface for the actual (external) keystore.
 type ExternalKeyStore interface {
 	RetrieveSecret(serviceName string, key string) (LKSecFullSecret, error)
@@ -18,6 +29,37 @@ type ExternalKeyStore interface {
 	ClearSecret(serviceName string, key string) error
 	GetUsersWithStoredSecretsMsgPack(serviceName string) ([]byte, error)
 	SetupKeyStore(serviceName string, key string) error
+}
+
+// TypeSafeExternalKeyStoreProxy wraps the UnsafeExternalKeyStore to provide
+// the type-safe ExternalKeyStore interface to the rest of the code
+type TypeSafeExternalKeyStoreProxy struct {
+	UnsafeExternalKeyStore UnsafeExternalKeyStore
+}
+
+func (w TypeSafeExternalKeyStoreProxy) RetrieveSecret(serviceName string, key string) (LKSecFullSecret, error) {
+	bytes, err := w.UnsafeExternalKeyStore.RetrieveSecret(serviceName, key)
+	if err != nil {
+		return LKSecFullSecret{}, err
+	}
+
+	return newLKSecFullSecretFromBytes(bytes)
+}
+
+func (w TypeSafeExternalKeyStoreProxy) StoreSecret(serviceName string, key string, secret LKSecFullSecret) error {
+	return w.UnsafeExternalKeyStore.StoreSecret(serviceName, key, secret.Bytes())
+}
+
+func (w TypeSafeExternalKeyStoreProxy) ClearSecret(serviceName string, key string) error {
+	return w.UnsafeExternalKeyStore.ClearSecret(serviceName, key)
+}
+
+func (w TypeSafeExternalKeyStoreProxy) GetUsersWithStoredSecretsMsgPack(serviceName string) ([]byte, error) {
+	return w.UnsafeExternalKeyStore.GetUsersWithStoredSecretsMsgPack(serviceName)
+}
+
+func (w TypeSafeExternalKeyStoreProxy) SetupKeyStore(serviceName string, key string) error {
+	return w.SetupKeyStore(serviceName, key)
 }
 
 // externalKeyStore is the reference to some external key store
@@ -30,10 +72,10 @@ func (s secretStoreAccountName) serviceName() string {
 }
 
 // SetGlobalExternalKeyStore is called by Android to register Android's KeyStore with Go
-func SetGlobalExternalKeyStore(s ExternalKeyStore) {
+func SetGlobalExternalKeyStore(s UnsafeExternalKeyStore) {
 	externalKeyStoreMu.Lock()
 	defer externalKeyStoreMu.Unlock()
-	externalKeyStore = s
+	externalKeyStore = TypeSafeExternalKeyStoreProxy{s}
 }
 
 func getGlobalExternalKeyStore() ExternalKeyStore {
