@@ -114,7 +114,7 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
 func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
-	srcWriterNames, srcReaderNames, _, err := splitAndNormalizeTLFName2(tlfname, false)
+	srcWriterNames, srcReaderNames, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
 	if err != nil {
 		return writerNames, readerNames, err
 	}
@@ -158,7 +158,7 @@ func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname st
 }
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
-func splitAndNormalizeTLFName2(name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
+func splitAndNormalizeTLFNameCanonicalize(name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
 	writerNames, readerNames, extensionSuffix, err = splitAndNormalizeTLFName(name, public)
 	if retryErr, retry := err.(TlfNameNotCanonical); retry {
 		return splitAndNormalizeTLFName(retryErr.NameToTry, public)
