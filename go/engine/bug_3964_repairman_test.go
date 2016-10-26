@@ -180,7 +180,7 @@ func limitToTrace(lines []string, which string) []string {
 	return nil
 }
 
-func checkAuditLogForBug3964Login(t *testing.T, log []string, deviceID keybase1.DeviceID, dev1Key *libkb.DeviceKey) {
+func checkAuditLogForBug3964Recovery(t *testing.T, log []string, deviceID keybase1.DeviceID, dev1Key *libkb.DeviceKey) {
 	log = limitToTrace(log, "LKSec#tryAllDevicesForBug3964Recovery()")
 	needle := fmt.Sprintf("| Trying Bug 3964 Recovery w/ device %q {id: %s, lks: %s...}",
 		dev1Key.Description, deviceID, dev1Key.LksServerHalf[0:8])
@@ -193,6 +193,25 @@ func checkAuditLogForBug3964Login(t *testing.T, log []string, deviceID keybase1.
 		}
 	}
 	t.Fatalf("Didn't find evidence of %q", needle)
+}
+
+func findLine(t *testing.T, haystack []string, needle string) []string {
+	for i, line := range haystack {
+		if strings.HasPrefix(line, needle) {
+			return haystack[(i + 1):]
+		}
+	}
+	t.Fatalf("Didnt find line %q", needle)
+	return nil
+}
+
+func checkAuditLogForBug3964Repair(t *testing.T, log []string, deviceID keybase1.DeviceID, dev1Key *libkb.DeviceKey) {
+	log = limitToTrace(log, "bug3964Repairman#Run")
+	if len(log) == 0 {
+		t.Fatal("Didn't find a repairman run")
+	}
+	log = findLine(t, log, "| Repairman wasn't short-circuited")
+	log = findLine(t, log, "+ bug3964Repairman#saveRepairmanVisit")
 }
 
 func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {
@@ -240,9 +259,38 @@ func checkAuditLogForRepairmanShortCircuit(t *testing.T, log []string) {
 	}
 }
 
-func runRepairman(t *testing.T, dev libkb.TestContext) {
-	if err := RunBug3964Repairman(dev.G); err != nil {
+func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
+	ctx := &Context{
+		SecretUI: u.NewSecretUI(),
+	}
+	me, err := libkb.LoadMe(libkb.LoadUserArg{Contextified: libkb.NewContextified(tctx.G)})
+	if err != nil {
 		t.Fatal(err)
+	}
+	// need unlocked signing key
+	ska := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceEncryptionKeyType,
+	}
+	arg := ctx.SecretKeyPromptArg(ska, "tracking signature")
+	encKey, err := tctx.G.Keyrings.GetSecretKeyWithPrompt(arg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if encKey == nil {
+		t.Fatal("got back a nil decryption key")
+	}
+	_, clientHalf, err := fetchLKS(ctx, tctx.G, encKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pps, err := tctx.G.LoginState().GetPassphraseStream(ctx.SecretUI)
+	if err != nil {
+		t.Fatal(err)
+	}
+	clientHalfExpected := pps.LksClientHalf()
+	if !clientHalf.Equal(clientHalfExpected) {
+		t.Fatal("got bad passphrase from LKS recovery")
 	}
 }
 
@@ -260,18 +308,19 @@ func TestBug3964Repairman(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	dev2.G.TestOptions.NoBug3964Repair = true
 	logoutLogin(t, user, dev2)
+	checkAuditLogForBug3964Recovery(t, log.lines, dev1.G.Env.GetDeviceID(), dev1Key)
+	dev2.G.TestOptions.NoBug3964Repair = false
 
-	checkAuditLogForBug3964Login(t, log.lines, dev1.G.Env.GetDeviceID(), dev1Key)
-
-	runRepairman(t, dev2)
+	log.lines = nil
+	logoutLogin(t, user, dev2)
+	checkAuditLogForBug3964Repair(t, log.lines, dev1.G.Env.GetDeviceID(), dev1Key)
 
 	log.lines = nil
 	logoutLogin(t, user, dev2)
 	checkAuditLogCleanLogin(t, log.lines)
-
-	log.lines = nil
-	runRepairman(t, dev2)
-
 	checkAuditLogForRepairmanShortCircuit(t, log.lines)
+
+	checkLKSWorked(t, dev2, user)
 }

@@ -313,10 +313,6 @@ func (d *Service) hourlyChecks() {
 			if err := d.G().LogoutIfRevoked(); err != nil {
 				d.G().Log.Debug("LogoutIfRevoked error: %s", err)
 			}
-			d.G().Log.Debug("| checking for bug 3964 repairs")
-			if err := engine.RunBug3964Repairman(d.G()); err != nil {
-				d.G().Log.Warning("Error in Bug 3964 repair: %s\n", err)
-			}
 			d.G().Log.Debug("- hourly check loop")
 		}
 	}()

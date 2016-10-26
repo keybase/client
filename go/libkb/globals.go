@@ -92,6 +92,13 @@ type GlobalContext struct {
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
+
+	// Options specified for testing only
+	TestOptions GlobalTestOptions
+}
+
+type GlobalTestOptions struct {
+	NoBug3964Repair bool
 }
 
 func (g *GlobalContext) GetLog() logger.Logger       { return g.Log }

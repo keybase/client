@@ -751,6 +751,10 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		}
 	}
 
+	if repairErr := RunBug3964Repairman(s.G(), lctx, lctx.PassphraseStreamCache().PassphraseStream()); repairErr != nil {
+		s.G().Log.Warning("In Bug 3964 repair: %s", repairErr)
+	}
+
 	return nil
 }
 
