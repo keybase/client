@@ -3835,6 +3835,18 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	lState *lockState, rmds []ImmutableRootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
+	// If there's anything in the journal, don't apply these MDs.
+	// Wait for CR to happen.
+	mergedRev, err := fbo.getJournalPredecessorRevision(ctx)
+	if err != nil {
+		return err
+	}
+	if mergedRev != MetadataRevisionUninitialized {
+		fbo.log.CDebugf(ctx,
+			"Ignoring fetched revisions while MDs are in journal")
+		return nil
+	}
+
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
 
@@ -4572,6 +4584,17 @@ func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
+	// If the journal has anything in it, don't fast-forward since we
+	// haven't finished flushing yet.  If there was really a remote
+	// update on the server, we'll end up in CR eventually.
+	mergedRev, err := fbo.getJournalPredecessorRevision(ctx)
+	if err != nil {
+		return false, err
+	}
+	if mergedRev != MetadataRevisionUninitialized {
+		return false, nil
+	}
+
 	if !fbo.isMasterBranchLocked(lState) {
 		// Don't update if we're staged.
 		return false, nil
