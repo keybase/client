@@ -89,6 +89,10 @@ func (b *loopbackIdentifyUI) ReportTrackToken(t keybase1.TrackToken) error {
 	return nil
 }
 
+func (b *loopbackIdentifyUI) Cancel() error {
+	return nil
+}
+
 func (b *loopbackIdentifyUI) Finish() error {
 	return nil
 }

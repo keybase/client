@@ -80,6 +80,11 @@ func (i *IdentifyUIServer) Start(_ context.Context, arg keybase1.StartArg) error
 	return nil
 }
 
+func (i *IdentifyUIServer) Cancel(_ context.Context, sessionID int) error {
+	i.ui.Cancel()
+	return nil
+}
+
 func (i *IdentifyUIServer) Finish(_ context.Context, sessionID int) error {
 	i.ui.Finish()
 	return nil

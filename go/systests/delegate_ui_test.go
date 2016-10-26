@@ -21,6 +21,7 @@ type delegateUI struct {
 	delegated bool
 	started   bool
 	finished  bool
+	canceled  bool
 
 	launchedGithub  bool
 	foundGithub     bool
@@ -50,8 +51,8 @@ func (d *delegateUI) checkStarted() error {
 	if !d.started {
 		return d.setError(fmt.Errorf("Can't run UI since it wasn't properly started"))
 	}
-	if d.finished {
-		return d.setError(fmt.Errorf("Can't run UI after finish() was called"))
+	if d.canceled {
+		return d.setError(fmt.Errorf("Can't run UI after Cancel() was called"))
 	}
 	return nil
 }
@@ -144,12 +145,19 @@ func (d *delegateUI) Confirm(context.Context, keybase1.ConfirmArg) (res keybase1
 	res.RemoteConfirmed = true
 	return res, nil
 }
+func (d *delegateUI) Cancel(context.Context, int) error {
+	if err := d.checkStarted(); err != nil {
+		return err
+	}
+	d.canceled = true
+	close(d.ch)
+	return nil
+}
 func (d *delegateUI) Finish(context.Context, int) error {
 	if err := d.checkStarted(); err != nil {
 		return err
 	}
 	d.finished = true
-	close(d.ch)
 	return nil
 }
 func (d *delegateUI) Dismiss(context.Context, keybase1.DismissArg) error {
@@ -164,7 +172,7 @@ func (d *delegateUI) DisplayTLFCreateWithInvite(context.Context, keybase1.Displa
 }
 
 func (d *delegateUI) checkSuccess() error {
-	if !d.launchedGithub || !d.foundGithub || !d.launchedTwitter || !d.foundTwitter || !d.finished {
+	if !d.launchedGithub || !d.foundGithub || !d.launchedTwitter || !d.foundTwitter || !d.canceled {
 		return fmt.Errorf("Bad final state for delegate UI: %+v", d)
 	}
 	return nil

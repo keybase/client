@@ -4,11 +4,12 @@
 package engine
 
 import (
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"path"
 	"runtime"
 	"sync"
+
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type start struct {
@@ -222,6 +223,14 @@ func (b *bufferedIdentifyUI) ReportTrackToken(t keybase1.TrackToken) error {
 		return nil
 	}
 	return b.raw.ReportTrackToken(t)
+}
+
+func (b *bufferedIdentifyUI) Cancel() error {
+	b.Lock()
+	defer b.Unlock()
+
+	// Cancel should always go through to UI server
+	return b.raw.Cancel()
 }
 
 func (b *bufferedIdentifyUI) Finish() error {
