@@ -440,12 +440,12 @@ func TestRekeyOpUnknownFields(t *testing.T) {
 }
 
 type gcOpFuture struct {
-	gcOp
+	GCOp
 	extra
 }
 
-func (gof gcOpFuture) toCurrent() gcOp {
-	return gof.gcOp
+func (gof gcOpFuture) toCurrent() GCOp {
+	return gof.GCOp
 }
 
 func (gof gcOpFuture) toCurrentStruct() currentStruct {
@@ -454,7 +454,7 @@ func (gof gcOpFuture) toCurrentStruct() currentStruct {
 
 func makeFakeGcOpFuture(t *testing.T) gcOpFuture {
 	gof := gcOpFuture{
-		gcOp{
+		GCOp{
 			makeFakeOpCommon(t, false),
 			100,
 		},

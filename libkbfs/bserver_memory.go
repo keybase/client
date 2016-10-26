@@ -91,7 +91,7 @@ func validateBlockServerPut(
 			context.GetCreator(), context.GetWriter())
 	}
 
-	if context.GetRefNonce() != zeroBlockRefNonce {
+	if context.GetRefNonce() != ZeroBlockRefNonce {
 		return fmt.Errorf("Can't Put() a block with a non-zero refnonce.")
 	}
 

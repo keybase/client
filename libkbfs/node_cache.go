@@ -19,7 +19,7 @@ type nodeCacheEntry struct {
 // fields to construct paths.
 type nodeCacheStandard struct {
 	folderBranch FolderBranch
-	nodes        map[blockRef]*nodeCacheEntry
+	nodes        map[BlockRef]*nodeCacheEntry
 	lock         sync.RWMutex
 }
 
@@ -28,13 +28,13 @@ var _ NodeCache = (*nodeCacheStandard)(nil)
 func newNodeCacheStandard(fb FolderBranch) *nodeCacheStandard {
 	return &nodeCacheStandard{
 		folderBranch: fb,
-		nodes:        make(map[blockRef]*nodeCacheEntry),
+		nodes:        make(map[BlockRef]*nodeCacheEntry),
 	}
 }
 
 // lock must be locked for writing by the caller
 func (ncs *nodeCacheStandard) forgetLocked(core *nodeCore) {
-	ref := core.pathNode.ref()
+	ref := core.pathNode.Ref()
 
 	entry, ok := ncs.nodes[ref]
 	if !ok {
@@ -61,10 +61,10 @@ func (ncs *nodeCacheStandard) forget(core *nodeCore) {
 func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) (*nodeStandard, error) {
 	nodeStandard, ok := parent.(*nodeStandard)
 	if !ok {
-		return nil, ParentNodeNotFoundError{blockRef{}}
+		return nil, ParentNodeNotFoundError{BlockRef{}}
 	}
 
-	ref := nodeStandard.core.pathNode.ref()
+	ref := nodeStandard.core.pathNode.Ref()
 	entry, ok := ncs.nodes[ref]
 	if !ok {
 		return nil, ParentNodeNotFoundError{ref}
@@ -86,16 +86,16 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 	if !ptr.IsValid() {
 		// Temporary code to track down bad block
 		// pointers. Remove when not needed anymore.
-		panic(InvalidBlockRefError{ptr.ref()})
+		panic(InvalidBlockRefError{ptr.Ref()})
 	}
 
 	if name == "" {
-		return nil, EmptyNameError{ptr.ref()}
+		return nil, EmptyNameError{ptr.Ref()}
 	}
 
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
-	entry, ok := ncs.nodes[ptr.ref()]
+	entry, ok := ncs.nodes[ptr.Ref()]
 	if ok {
 		// If the entry happens to be unlinked, we may be in a
 		// situation where a node got unlinked and then recreated, but
@@ -103,7 +103,7 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 		// removed from the cache.  In that case, forcibly remove it
 		// from the cache to make room for the new node.
 		if parent != nil && entry.core.parent == nil {
-			delete(ncs.nodes, ptr.ref())
+			delete(ncs.nodes, ptr.Ref())
 		} else {
 			return makeNodeStandardForEntry(entry), nil
 		}
@@ -121,13 +121,13 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 	entry = &nodeCacheEntry{
 		core: newNodeCore(ptr, name, parentNS, ncs),
 	}
-	ncs.nodes[ptr.ref()] = entry
+	ncs.nodes[ptr.Ref()] = entry
 	return makeNodeStandardForEntry(entry), nil
 }
 
 // Get implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) Get(ref blockRef) Node {
-	if ref == (blockRef{}) {
+func (ncs *nodeCacheStandard) Get(ref BlockRef) Node {
+	if ref == (BlockRef{}) {
 		return nil
 	}
 
@@ -148,8 +148,8 @@ func (ncs *nodeCacheStandard) Get(ref blockRef) Node {
 
 // UpdatePointer implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) UpdatePointer(
-	oldRef blockRef, newPtr BlockPointer) {
-	if oldRef == (blockRef{}) && newPtr == (BlockPointer{}) {
+	oldRef BlockRef, newPtr BlockPointer) {
+	if oldRef == (BlockRef{}) && newPtr == (BlockPointer{}) {
 		return
 	}
 
@@ -175,13 +175,13 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 
 	entry.core.pathNode.BlockPointer = newPtr
 	delete(ncs.nodes, oldRef)
-	ncs.nodes[newPtr.ref()] = entry
+	ncs.nodes[newPtr.Ref()] = entry
 }
 
 // Move implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Move(
-	ref blockRef, newParent Node, newName string) error {
-	if ref == (blockRef{}) {
+	ref BlockRef, newParent Node, newName string) error {
+	if ref == (BlockRef{}) {
 		return nil
 	}
 
@@ -213,8 +213,8 @@ func (ncs *nodeCacheStandard) Move(
 }
 
 // Unlink implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) Unlink(ref blockRef, oldPath path) {
-	if ref == (blockRef{}) {
+func (ncs *nodeCacheStandard) Unlink(ref BlockRef, oldPath path) {
+	if ref == (BlockRef{}) {
 		return
 	}
 

@@ -166,11 +166,11 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		}
 
 		for _, op := range rmd.data.Changes.Ops {
-			gcOp, ok := op.(*gcOp)
+			GCOp, ok := op.(*GCOp)
 			if !ok {
 				continue
 			}
-			gcRevision = gcOp.LatestRev
+			gcRevision = GCOp.LatestRev
 		}
 	}
 
@@ -200,7 +200,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 
 		var hasGCOp bool
 		for _, op := range rmd.data.Changes.Ops {
-			_, isGCOp := op.(*gcOp)
+			_, isGCOp := op.(*GCOp)
 			hasGCOp = hasGCOp || isGCOp
 
 			opRefs := make(map[BlockPointer]bool)
@@ -228,7 +228,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 					}
 				}
 			}
-			for _, update := range op.AllUpdates() {
+			for _, update := range op.allUpdates() {
 				delete(expectedLiveBlocks, update.Unref)
 				if update.Unref != zeroPtr && update.Ref != update.Unref {
 					if rmd.Revision() <= gcRevision {

@@ -101,27 +101,132 @@ func checkFileBlock(ctx context.Context, config libkbfs.Config,
 	return nil
 }
 
-func mdCheckOne(ctx context.Context, config libkbfs.Config,
-	input string, rmd libkbfs.ImmutableRootMetadata, verbose bool) error {
-	data := rmd.Data()
-
-	if data.ChangesBlockInfo() == (libkbfs.BlockInfo{}) {
-		if verbose {
-			fmt.Print("No MD changes block to check; skipping\n")
+// mdCheckChain checks that the given MD object is a valid successor
+// of the previous revision, and so on all the way back to the given
+// revision. Along the way, it also checks that the root blocks that
+// haven't been garbage-collected are present. It returns a list of MD
+// objects with valid roots, in reverse revision order. If multiple MD
+// objects have the same root (which are assumed to all be adjacent),
+// the most recent one is returned.
+func mdCheckChain(ctx context.Context, config libkbfs.Config,
+	irmd libkbfs.ImmutableRootMetadata,
+	minRevision libkbfs.MetadataRevision, verbose bool) (
+	irmdsWithRoots []libkbfs.ImmutableRootMetadata, err error) {
+	fmt.Printf("Checking chain from rev %d to %d...\n",
+		minRevision, irmd.Revision())
+	gcUnrefs := make(map[libkbfs.BlockRef]bool)
+	for {
+		rootPtr := irmd.Data().Dir.BlockPointer
+		if !rootPtr.Ref().IsValid() {
+			// This happens in the wild, but only for
+			// folders used for journal-related testing
+			// early on.
+			fmt.Printf("Skipping checking root for rev %d (is invalid)\n",
+				irmd.Revision())
+		} else if gcUnrefs[rootPtr.Ref()] {
+			if verbose {
+				fmt.Printf("Skipping checking root for rev %d (GCed)\n",
+					irmd.Revision())
+			}
+		} else {
+			fmt.Printf("Checking root for rev %d (%s)...\n",
+				irmd.Revision(), rootPtr.Ref())
+			var dirBlock libkbfs.DirBlock
+			err := config.BlockOps().Get(
+				ctx, irmd, rootPtr, &dirBlock)
+			if err != nil {
+				fmt.Printf("Got error while checking root "+
+					"for rev %d: %v\n",
+					irmd.Revision(), err)
+			} else if len(irmdsWithRoots) == 0 ||
+				irmdsWithRoots[len(irmdsWithRoots)-1].Data().Dir.BlockPointer != rootPtr {
+				irmdsWithRoots = append(irmdsWithRoots, irmd)
+			}
 		}
-	} else {
-		bi := data.ChangesBlockInfo()
-		_ = checkFileBlock(
-			ctx, config, fmt.Sprintf("%s MD changes block", input),
-			rmd, bi, verbose)
-	}
 
-	_ = checkDirBlock(ctx, config, input, rmd, data.Dir.BlockInfo, verbose)
+		for _, op := range irmd.Data().Changes.Ops {
+			if gcOp, ok := op.(*libkbfs.GCOp); ok {
+				for _, unref := range gcOp.Unrefs() {
+					gcUnrefs[unref.Ref()] = true
+				}
+			}
+		}
+
+		if irmd.Revision() <= minRevision {
+			break
+		}
+
+		if verbose {
+			fmt.Printf("Fetching rev %d...\n", irmd.Revision()-1)
+		}
+
+		// TODO: Getting in chunks would be faster.
+		irmdPrev, err := mdGet(ctx, config, irmd.TlfID(),
+			irmd.BID(), irmd.Revision()-1)
+		if err != nil {
+			fmt.Printf("Got error while fetching rev %d: %v\n", irmd.Revision()-1, err)
+			break
+		}
+
+		if irmdPrev == (libkbfs.ImmutableRootMetadata{}) {
+			fmt.Printf("Rev %d missing\n", irmd.Revision()-1)
+			break
+		}
+
+		if verbose {
+			fmt.Printf("Checking %d -> %d link...\n",
+				irmd.Revision()-1, irmd.Revision())
+		}
+		err = irmdPrev.CheckValidSuccessor(
+			irmdPrev.MdID(), irmd.ReadOnly())
+		if err != nil {
+			fmt.Printf("Got error while checking %d -> %d link: %v\n",
+				irmd.Revision()-1, irmd.Revision(), err)
+		}
+
+		irmd = irmdPrev
+	}
+	return irmdsWithRoots, nil
+}
+
+func mdCheckOne(ctx context.Context, config libkbfs.Config,
+	input string, irmd libkbfs.ImmutableRootMetadata,
+	mdLimit int, verbose bool) error {
+	// Subtract one for irmd.
+	mdLimit--
+	if mdLimit < 0 {
+		mdLimit = 0
+	}
+	var minRevision libkbfs.MetadataRevision
+	if irmd.Revision() >= libkbfs.MetadataRevisionInitial+
+		libkbfs.MetadataRevision(mdLimit) {
+		minRevision = irmd.Revision() -
+			libkbfs.MetadataRevision(mdLimit)
+	} else {
+		minRevision = libkbfs.MetadataRevisionInitial
+	}
+	irmdsWithRoots, _ := mdCheckChain(
+		ctx, config, irmd, minRevision, verbose)
+
+	fmt.Printf("Retrieved %d MD objects with roots\n", len(irmdsWithRoots))
+
+	for _, irmd := range irmdsWithRoots {
+		data := irmd.Data()
+
+		// No need to check the blocks for unembedded changes,
+		// since they're already checked upon retrieval.
+
+		_ = checkDirBlock(
+			ctx, config, input, irmd, data.Dir.BlockInfo, verbose)
+	}
 	return nil
 }
 
-func mdCheck(ctx context.Context, config libkbfs.Config, args []string) (exitStatus int) {
+func mdCheck(ctx context.Context, config libkbfs.Config, args []string) (
+	exitStatus int) {
 	flags := flag.NewFlagSet("kbfs md check", flag.ContinueOnError)
+	mdLimit := flags.Int("fetch-limit", 100,
+		"Maximum number of MD objects to fetch (per argument).")
 	verbose := flags.Bool("v", false, "Print verbose output.")
 	flags.Parse(args)
 
@@ -134,8 +239,6 @@ func mdCheck(ctx context.Context, config libkbfs.Config, args []string) (exitSta
 	for _, input := range inputs {
 		// The returned RMD is already verified, so we don't
 		// have to do anything else.
-		//
-		// TODO: Check the validity of the entire MD chain.
 		irmd, err := mdParseAndGet(ctx, config, input)
 		if err != nil {
 			printError("md check", err)
@@ -147,7 +250,7 @@ func mdCheck(ctx context.Context, config libkbfs.Config, args []string) (exitSta
 			continue
 		}
 
-		err = mdCheckOne(ctx, config, input, irmd, *verbose)
+		err = mdCheckOne(ctx, config, input, irmd, *mdLimit, *verbose)
 		if err != nil {
 			printError("md check", err)
 			return 1

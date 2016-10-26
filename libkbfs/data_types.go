@@ -160,29 +160,30 @@ const (
 // (duplicated) block.
 type BlockRefNonce [8]byte
 
-// zeroBlockRefNonce is a special BlockRefNonce used for the initial
+// ZeroBlockRefNonce is a special BlockRefNonce used for the initial
 // reference to a block.
-var zeroBlockRefNonce = BlockRefNonce([8]byte{0, 0, 0, 0, 0, 0, 0, 0})
+var ZeroBlockRefNonce = BlockRefNonce([8]byte{0, 0, 0, 0, 0, 0, 0, 0})
 
 func (nonce BlockRefNonce) String() string {
 	return hex.EncodeToString(nonce[:])
 }
 
-// blockRef is a block ID/ref nonce pair, which defines a unique
+// BlockRef is a block ID/ref nonce pair, which defines a unique
 // reference to a block.
-type blockRef struct {
-	id       BlockID
-	refNonce BlockRefNonce
+type BlockRef struct {
+	ID       BlockID
+	RefNonce BlockRefNonce
 }
 
-func (r blockRef) IsValid() bool {
-	return r.id.IsValid()
+// IsValid returns true exactly when ID.IsValid() does.
+func (r BlockRef) IsValid() bool {
+	return r.ID.IsValid()
 }
 
-func (r blockRef) String() string {
-	s := fmt.Sprintf("blockRef{id: %s", r.id)
-	if r.refNonce != zeroBlockRefNonce {
-		s += fmt.Sprintf(", refNonce: %s", r.refNonce)
+func (r BlockRef) String() string {
+	s := fmt.Sprintf("BlockRef{id: %s", r.ID)
+	if r.RefNonce != ZeroBlockRefNonce {
+		s += fmt.Sprintf(", refNonce: %s", r.RefNonce)
 	}
 	s += "}"
 	return s
@@ -245,7 +246,7 @@ func (c BlockContext) GetRefNonce() BlockRefNonce {
 // IsFirstRef returns whether or not p represents the first reference
 // to the corresponding BlockID.
 func (c BlockContext) IsFirstRef() bool {
-	return c.RefNonce == zeroBlockRefNonce
+	return c.RefNonce == ZeroBlockRefNonce
 }
 
 func (c BlockContext) String() string {
@@ -253,7 +254,7 @@ func (c BlockContext) String() string {
 	if len(c.Writer) > 0 {
 		s += fmt.Sprintf(", Writer: %s", c.Writer)
 	}
-	if c.RefNonce != zeroBlockRefNonce {
+	if c.RefNonce != ZeroBlockRefNonce {
 		s += fmt.Sprintf(", RefNonce: %s", c.RefNonce)
 	}
 	s += "}"
@@ -293,10 +294,11 @@ func (p BlockPointer) IsInitialized() bool {
 	return p.ID != BlockID{}
 }
 
-func (p BlockPointer) ref() blockRef {
-	return blockRef{
-		id:       p.ID,
-		refNonce: p.RefNonce,
+// Ref returns the BlockRef equivalent of this pointer.
+func (p BlockPointer) Ref() BlockRef {
+	return BlockRef{
+		ID:       p.ID,
+		RefNonce: p.RefNonce,
 	}
 }
 
@@ -473,7 +475,7 @@ func (bc *BlockChanges) SizeEstimate() uint64 {
 	if bc.sizeEstimate == 0 {
 		for _, op := range bc.Ops {
 			numPtrs := len(op.Refs()) + len(op.Unrefs()) +
-				2*len(op.AllUpdates())
+				2*len(op.allUpdates())
 			bc.sizeEstimate += uint64(numPtrs)*bpSize + op.SizeExceptUpdates()
 		}
 	}

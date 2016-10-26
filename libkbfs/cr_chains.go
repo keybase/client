@@ -134,7 +134,7 @@ func (cc *crChain) getActionsToMerge(renamer ConflictRenamer, mergedPath path,
 		if mergedChain != nil {
 			for _, mergedOp := range mergedChain.ops {
 				action, err :=
-					unmergedOp.CheckConflict(renamer, mergedOp, cc.isFile())
+					unmergedOp.checkConflict(renamer, mergedOp, cc.isFile())
 				if err != nil {
 					return nil, err
 				}
@@ -146,7 +146,7 @@ func (cc *crChain) getActionsToMerge(renamer ConflictRenamer, mergedPath path,
 		}
 		// no conflicts!
 		if !conflict {
-			actions = append(actions, unmergedOp.GetDefaultAction(mergedPath))
+			actions = append(actions, unmergedOp.getDefaultAction(mergedPath))
 		}
 	}
 
@@ -342,13 +342,13 @@ func (ccs *crChains) makeChainForOp(op op) error {
 	// ops.  Note that this only matters for old gcOps: new gcOps
 	// only unref the block ID, and not the whole pointer, so they
 	// wouldn't confuse chain creation.
-	if _, isGCOp := op.(*gcOp); isGCOp {
+	if _, isGCOp := op.(*GCOp); isGCOp {
 		return nil
 	}
 
 	// First set the pointers for all updates, and track what's been
 	// created and destroyed.
-	for _, update := range op.AllUpdates() {
+	for _, update := range op.allUpdates() {
 		chain, ok := ccs.byMostRecent[update.Unref]
 		if !ok {
 			// No matching chain means it's time to start a new chain
@@ -517,7 +517,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		// ignore resolution op
 	case *rekeyOp:
 		// ignore rekey op
-	case *gcOp:
+	case *GCOp:
 		// ignore gc op
 	}
 
@@ -811,7 +811,7 @@ func (ccs *crChains) summary(identifyChains *crChains,
 		}
 
 		// find the path name using the identified most recent pointer
-		n := nodeCache.Get(chain.mostRecent.ref())
+		n := nodeCache.Get(chain.mostRecent.Ref())
 		if n == nil {
 			summary.Path = fmt.Sprintf("Unknown path: %v", chain.mostRecent)
 			continue
@@ -861,8 +861,8 @@ func (ccs *crChains) copyOpAndRevertUnrefsToOriginals(currOp op) op {
 		newSetAttrOp := *realOp
 		unrefs = append(unrefs, &newSetAttrOp.Dir.Unref, &newSetAttrOp.File)
 		newOp = &newSetAttrOp
-	case *gcOp:
-		// No need to copy a gcOp, it won't be modified
+	case *GCOp:
+		// No need to copy a GCOp, it won't be modified
 		newOp = realOp
 	}
 	for _, unref := range unrefs {

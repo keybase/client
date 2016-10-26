@@ -197,7 +197,7 @@ func (b *BlockCacheStandard) Put(
 
 		key := idCacheKey{tlf, *fBlock.hash}
 		// zero out the refnonce, it doesn't matter
-		ptr.RefNonce = zeroBlockRefNonce
+		ptr.RefNonce = ZeroBlockRefNonce
 		b.ids.Add(key, ptr)
 	}
 

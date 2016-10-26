@@ -108,7 +108,7 @@ func putBlockData(
 	require.NoError(t, err)
 
 	uid1 := keybase1.MakeTestUID(1)
-	bCtx := BlockContext{uid1, "", zeroBlockRefNonce}
+	bCtx := BlockContext{uid1, "", ZeroBlockRefNonce}
 	serverHalf, err := j.crypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
 
@@ -249,7 +249,7 @@ func TestBlockJournalArchiveNonExistentReference(t *testing.T) {
 
 	uid1 := keybase1.MakeTestUID(1)
 
-	bCtx := BlockContext{uid1, "", zeroBlockRefNonce}
+	bCtx := BlockContext{uid1, "", ZeroBlockRefNonce}
 
 	data := []byte{1, 2, 3, 4}
 	bID, err := j.crypto.MakePermanentBlockID(data)

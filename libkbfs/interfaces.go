@@ -1448,23 +1448,23 @@ type NodeCache interface {
 	GetOrCreate(ptr BlockPointer, name string, parent Node) (Node, error)
 	// Get returns the Node associated with the given ptr if one
 	// already exists.  Otherwise, it returns nil.
-	Get(ref blockRef) Node
+	Get(ref BlockRef) Node
 	// UpdatePointer updates the BlockPointer for the corresponding
 	// Node.  NodeCache ignores this call when oldRef is not cached in
 	// any Node.
-	UpdatePointer(oldRef blockRef, newPtr BlockPointer)
+	UpdatePointer(oldRef BlockRef, newPtr BlockPointer)
 	// Move swaps the parent node for the corresponding Node, and
 	// updates the node's name.  NodeCache ignores the call when ptr
 	// is not cached.  Returns an error if newParent cannot be found.
 	// If newParent is nil, it treats the ptr's corresponding node as
 	// being unlinked from the old parent completely.
-	Move(ref blockRef, newParent Node, newName string) error
+	Move(ref BlockRef, newParent Node, newName string) error
 	// Unlink set the corresponding node's parent to nil and caches
 	// the provided path in case the node is still open. NodeCache
 	// ignores the call when ptr is not cached.  The path is required
 	// because the caller may have made changes to the parent nodes
 	// already that shouldn't be reflected in the cached path.
-	Unlink(ref blockRef, oldPath path)
+	Unlink(ref BlockRef, oldPath path)
 	// PathFromNode creates the path up to a given Node.
 	PathFromNode(node Node) path
 	// AllNodes returns the complete set of nodes currently in the cache.

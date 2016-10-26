@@ -79,7 +79,7 @@ func TestJournalBlockServerPutGetAddReference(t *testing.T) {
 	crypto := config.Crypto()
 
 	uid1 := keybase1.MakeTestUID(1)
-	bCtx := BlockContext{uid1, "", zeroBlockRefNonce}
+	bCtx := BlockContext{uid1, "", ZeroBlockRefNonce}
 	data := []byte{1, 2, 3, 4}
 	bID, err := crypto.MakePermanentBlockID(data)
 	require.NoError(t, err)

@@ -3052,7 +3052,7 @@ func checkSyncOp(t *testing.T, codec kbfscodec.Codec,
 func checkSyncOpInCache(t *testing.T, codec kbfscodec.Codec,
 	ops *folderBranchOps, filePtr BlockPointer, writes []WriteRange) {
 	// check the in-progress syncOp
-	si, ok := ops.blocks.unrefCache[filePtr.ref()]
+	si, ok := ops.blocks.unrefCache[filePtr.Ref()]
 	if !ok {
 		t.Error("No sync info for written file!")
 	}
@@ -3375,7 +3375,7 @@ func mergeUnrefCache(
 	ops *folderBranchOps, lState *lockState, file path, md *RootMetadata) {
 	ops.blocks.blockLock.RLock(lState)
 	defer ops.blocks.blockLock.RUnlock(lState)
-	ops.blocks.unrefCache[file.tailPointer().ref()].mergeUnrefCache(md)
+	ops.blocks.unrefCache[file.tailPointer().Ref()].mergeUnrefCache(md)
 }
 
 func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {

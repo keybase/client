@@ -81,7 +81,7 @@ func (e BadTLFNameError) Error() string {
 // InvalidBlockRefError indicates an invalid block reference was
 // encountered.
 type InvalidBlockRefError struct {
-	ref blockRef
+	ref BlockRef
 }
 
 func (e InvalidBlockRefError) Error() string {
@@ -674,7 +674,7 @@ func (e NodeNotFoundError) Error() string {
 // ParentNodeNotFoundError indicates that we tried to update a Node's
 // parent with a BlockPointer that we don't yet know about.
 type ParentNodeNotFoundError struct {
-	parent blockRef
+	parent BlockRef
 }
 
 // Error implements the error interface for ParentNodeNotFoundError.
@@ -683,9 +683,9 @@ func (e ParentNodeNotFoundError) Error() string {
 }
 
 // EmptyNameError indicates that the user tried to use an empty name
-// for the given blockRef.
+// for the given BlockRef.
 type EmptyNameError struct {
-	ref blockRef
+	ref BlockRef
 }
 
 // Error implements the error interface for EmptyNameError.
