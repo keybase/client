@@ -210,6 +210,10 @@ type ConfirmArg struct {
 	Outcome   IdentifyOutcome `codec:"outcome" json:"outcome"`
 }
 
+type CancelArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type FinishArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -234,6 +238,7 @@ type IdentifyUiInterface interface {
 	ReportTrackToken(context.Context, ReportTrackTokenArg) error
 	DisplayUserCard(context.Context, DisplayUserCardArg) error
 	Confirm(context.Context, ConfirmArg) (ConfirmResult, error)
+	Cancel(context.Context, int) error
 	Finish(context.Context, int) error
 	Dismiss(context.Context, DismissArg) error
 }
@@ -445,6 +450,22 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"cancel": {
+				MakeArg: func() interface{} {
+					ret := make([]CancelArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CancelArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CancelArg)(nil), args)
+						return
+					}
+					err = i.Cancel(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"finish": {
 				MakeArg: func() interface{} {
 					ret := make([]FinishArg, 1)
@@ -547,6 +568,12 @@ func (c IdentifyUiClient) DisplayUserCard(ctx context.Context, __arg DisplayUser
 
 func (c IdentifyUiClient) Confirm(ctx context.Context, __arg ConfirmArg) (res ConfirmResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identifyUi.confirm", []interface{}{__arg}, &res)
+	return
+}
+
+func (c IdentifyUiClient) Cancel(ctx context.Context, sessionID int) (err error) {
+	__arg := CancelArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.cancel", []interface{}{__arg}, nil)
 	return
 }
 

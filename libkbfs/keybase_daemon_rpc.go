@@ -189,6 +189,11 @@ func (d daemonIdentifyUI) Dismiss(ctx context.Context,
 	return nil
 }
 
+func (d daemonIdentifyUI) Cancel(ctx context.Context, sessionID int) error {
+	d.log.CDebugf(ctx, "Cancel(%d)", sessionID)
+	return nil
+}
+
 func (d daemonIdentifyUI) Finish(ctx context.Context, sessionID int) error {
 	d.log.CDebugf(ctx, "Finish(%d)", sessionID)
 	return nil

@@ -80,6 +80,23 @@ type Device struct {
 	Status       int      `codec:"status" json:"status"`
 }
 
+type DeviceType int
+
+const (
+	DeviceType_DESKTOP DeviceType = 0
+	DeviceType_MOBILE  DeviceType = 1
+)
+
+var DeviceTypeMap = map[string]DeviceType{
+	"DESKTOP": 0,
+	"MOBILE":  1,
+}
+
+var DeviceTypeRevMap = map[DeviceType]string{
+	0: "DESKTOP",
+	1: "MOBILE",
+}
+
 type Stream struct {
 	Fd int `codec:"fd" json:"fd"`
 }

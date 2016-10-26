@@ -20,15 +20,16 @@ type CheckUsernameAvailableArg struct {
 }
 
 type SignupArg struct {
-	SessionID   int    `codec:"sessionID" json:"sessionID"`
-	Email       string `codec:"email" json:"email"`
-	InviteCode  string `codec:"inviteCode" json:"inviteCode"`
-	Passphrase  string `codec:"passphrase" json:"passphrase"`
-	Username    string `codec:"username" json:"username"`
-	DeviceName  string `codec:"deviceName" json:"deviceName"`
-	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
-	SkipMail    bool   `codec:"skipMail" json:"skipMail"`
-	GenPGPBatch bool   `codec:"genPGPBatch" json:"genPGPBatch"`
+	SessionID   int        `codec:"sessionID" json:"sessionID"`
+	Email       string     `codec:"email" json:"email"`
+	InviteCode  string     `codec:"inviteCode" json:"inviteCode"`
+	Passphrase  string     `codec:"passphrase" json:"passphrase"`
+	Username    string     `codec:"username" json:"username"`
+	DeviceName  string     `codec:"deviceName" json:"deviceName"`
+	DeviceType  DeviceType `codec:"deviceType" json:"deviceType"`
+	StoreSecret bool       `codec:"storeSecret" json:"storeSecret"`
+	SkipMail    bool       `codec:"skipMail" json:"skipMail"`
+	GenPGPBatch bool       `codec:"genPGPBatch" json:"genPGPBatch"`
 }
 
 type InviteRequestArg struct {
