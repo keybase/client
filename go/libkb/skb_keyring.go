@@ -312,7 +312,7 @@ func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	return 0, nil
 }
 
-func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm DeviceKeyMap) (ret *SKBKeyringFile, err error) {
+func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm DeviceKeyMap) (ret *SKBKeyringFile, serverHalfSet *LKSecServerHalfSet, err error) {
 	defer k.G().Trace("SKBKeyringFile#Bug3964Repair", func() error { return err })()
 
 	var newBlocks []*SKB
@@ -339,7 +339,7 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 		decryption, badMask, err = lks.decryptForBug3964Repair(b.Priv.Data, dkm)
 		if err != nil {
 			k.G().Log.Debug("| Decryption bug at block=%d", i)
-			return nil, err
+			return nil, nil, err
 		}
 		if badMask.IsNil() {
 			newBlocks = append(newBlocks, b)
@@ -348,11 +348,15 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 		}
 		hitBug3964 = true
 		k.G().Log.Debug("| Hit bug 3964 at SKB block=%d", i)
+		if serverHalfSet == nil {
+			serverHalfSet = NewLKSecServerHalfSet()
+		}
+		serverHalfSet.Add(badMask)
 
 		reencryption, err = lks.Encrypt(decryption)
 		if err != nil {
 			k.G().Log.Debug("| reencryption bug at block=%d", i)
-			return nil, err
+			return nil, nil, err
 		}
 
 		newSKB := &SKB{
@@ -369,7 +373,7 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 		newBlocks = append(newBlocks, newSKB)
 	}
 	if !hitBug3964 {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	ret = NewSKBKeyringFile(k.G(), k.filename)
@@ -378,8 +382,8 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 
 	err = ret.Index()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return ret, nil
+	return ret, serverHalfSet, nil
 }
