@@ -16,15 +16,6 @@ const (
 	LogoutStatusUpdateName = "logout"
 )
 
-// alwaysPushConnectionStatus is pushed every time to Status receivers,
-// unlike most errors which are just sent down if they change from
-// the previous state of a service.
-type alwaysPushConnectionStatus struct{}
-
-func (alwaysPushConnectionStatus) Error() string {
-	return "please always push ConnectionStatus"
-}
-
 type errDisconnected struct{}
 
 func (errDisconnected) Error() string { return "Disconnected" }
@@ -59,9 +50,7 @@ func (kcs *kbfsCurrentStatus) PushConnectionStatusChange(service string, err err
 	defer kcs.lock.Unlock()
 
 	if err != nil {
-		if err != (alwaysPushConnectionStatus{}) {
-			kcs.failingServices[service] = err
-		}
+		kcs.failingServices[service] = err
 	} else {
 		// Potentially exit early if nothing changes.
 		_, exist := kcs.failingServices[service]
@@ -71,6 +60,14 @@ func (kcs *kbfsCurrentStatus) PushConnectionStatusChange(service string, err err
 		delete(kcs.failingServices, service)
 	}
 
+	close(kcs.invalidateChan)
+	kcs.invalidateChan = make(chan StatusUpdate)
+}
+
+// PushStatusChange forces a new status be fetched by status listeners.
+func (kcs *kbfsCurrentStatus) PushStatusChange() {
+	kcs.lock.Lock()
+	defer kcs.lock.Unlock()
 	close(kcs.invalidateChan)
 	kcs.invalidateChan = make(chan StatusUpdate)
 }
