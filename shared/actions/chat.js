@@ -31,7 +31,6 @@ function * _loadInbox (): SagaGenerator<any, any> {
   // TEMP Just select the most recent conversation
   const selector = (state: TypedState) => state.chat.get('selectedConversation')
   const selectedConversation = yield select(selector)
-  debugger
 
   if (!selectedConversation) {
     if (inbox && inbox.conversationsUnverified.length) {

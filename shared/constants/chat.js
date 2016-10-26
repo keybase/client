@@ -2,6 +2,7 @@
 import {List, Map, Record} from 'immutable'
 import Buffer from 'buffer'
 
+import type {ConversationID as RPCConversationID} from './types/flow-types-chat'
 import type {NoErrorTypedAction} from './types/flux'
 
 export type MessageType = 'Text'
@@ -34,7 +35,7 @@ export type ConversationState = Record<{
   moreToLoad: boolean,
 }>
 
-export type ConversationID = typeof Buffer
+export type ConversationID = RPCConversationID
 
 export const StateRecord = Record({
   conversationStates: Map(),
