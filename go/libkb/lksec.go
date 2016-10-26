@@ -11,6 +11,7 @@ import (
 	"fmt"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/secretbox"
+	"strings"
 )
 
 const LKSecVersion = 100
@@ -553,4 +554,28 @@ func (s LKSec) ServerHalf() LKSecServerHalf {
 
 func (s LKSec) ClientHalf() LKSecClientHalf {
 	return s.clientHalf
+}
+
+type LKSecServerHalfSet struct {
+	index map[[LKSecLen]byte]bool
+}
+
+func NewLKSecServerHalfSet() *LKSecServerHalfSet {
+	return &LKSecServerHalfSet{
+		index: make(map[[LKSecLen]byte]bool),
+	}
+}
+
+func (l *LKSecServerHalfSet) Add(s LKSecServerHalf) {
+	if !s.IsNil() {
+		l.index[*s.s] = true
+	}
+}
+
+func (l *LKSecServerHalfSet) EncodeToHexList() string {
+	var s []string
+	for k := range l.index {
+		s = append(s, hex.EncodeToString(k[:]))
+	}
+	return strings.Join(s, ",")
 }

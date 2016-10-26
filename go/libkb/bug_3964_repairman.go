@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"errors"
 	"time"
 )
 
@@ -15,26 +16,26 @@ func newBug3964Repairman(g *GlobalContext) *bug3964Repairman {
 	return &bug3964Repairman{Contextified: NewContextified(g)}
 }
 
-func (b *bug3964Repairman) attemptRepair(lctx LoginContext, lksec *LKSec, dkm DeviceKeyMap) (ran bool, err error) {
+func (b *bug3964Repairman) attemptRepair(lctx LoginContext, lksec *LKSec, dkm DeviceKeyMap) (ran bool, serverHalfSet *LKSecServerHalfSet, err error) {
 	defer b.G().Trace("bug3964Repairman#attemptRepair", func() error { return err })()
 	var oldKeyring, newKeyring *SKBKeyringFile
 	oldKeyring, err = lctx.Keyring()
 	if err != nil {
-		return false, err
+		return false, nil, err
 	}
-	newKeyring, err = oldKeyring.Bug3964Repair(lctx, lksec, dkm)
+	newKeyring, serverHalfSet, err = oldKeyring.Bug3964Repair(lctx, lksec, dkm)
 	if err != nil {
-		return false, err
+		return false, nil, err
 	}
 	if newKeyring == nil {
-		return false, nil
+		return false, nil, nil
 	}
 	if err = newKeyring.Save(); err != nil {
 		b.G().Log.Debug("Error saving new keyring: %s", err)
-		return false, err
+		return false, nil, err
 	}
 	lctx.ClearKeyring()
-	return true, err
+	return true, serverHalfSet, err
 }
 
 func (b *bug3964Repairman) loadLKSecServerDetails(lctx LoginContext, lksec *LKSec) (ret DeviceKeyMap, err error) {
@@ -73,14 +74,18 @@ func (b *bug3964Repairman) saveRepairmanVisit(nun NormalizedUsername) (err error
 	return err
 }
 
-func (b *bug3964Repairman) postToServer(lctx LoginContext, ppgen PassphraseGeneration) (err error) {
+func (b *bug3964Repairman) postToServer(lctx LoginContext, serverHalfSet *LKSecServerHalfSet, ppgen PassphraseGeneration) (err error) {
 	defer b.G().Trace("bug3964Repairman#postToServer", func() error { return err })()
+	if serverHalfSet == nil {
+		return errors.New("internal error --- had nil server half set")
+	}
 	_, err = b.G().API.Post(APIArg{
 		Endpoint:    "user/bug_3964_repair",
 		NeedSession: true,
 		Args: HTTPArgs{
-			"device_id": S{Val: b.G().Env.GetDeviceID().String()},
-			"ppgen":     I{Val: int(ppgen)},
+			"device_id":         S{Val: b.G().Env.GetDeviceID().String()},
+			"ppgen":             I{Val: int(ppgen)},
+			"lks_server_halves": S{Val: serverHalfSet.EncodeToHexList()},
 		},
 		SessionR: lctx.LocalSession(),
 	})
@@ -153,6 +158,7 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 	var ran bool
 	var dkm DeviceKeyMap
 	var ss bool
+	var serverHalfSet *LKSecServerHalfSet
 	nun := b.G().Env.GetUsername()
 
 	if b.G().TestOptions.NoBug3964Repair {
@@ -187,7 +193,7 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 		return err
 	}
 
-	if ran, err = b.attemptRepair(lctx, lksec, dkm); err != nil {
+	if ran, serverHalfSet, err = b.attemptRepair(lctx, lksec, dkm); err != nil {
 		return err
 	}
 
@@ -212,7 +218,7 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 		b.saveRepairmanVisit(nun)
 	}
 
-	err = b.postToServer(lctx, pps.Generation())
+	err = b.postToServer(lctx, serverHalfSet, pps.Generation())
 
 	return err
 }
