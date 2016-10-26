@@ -50,6 +50,24 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 
 type conversationListView []chat1.ConversationLocal
 
+// Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
+func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
+	convName := strings.Join(v.without(g, conv.Info.WriterNames, myUsername), ",")
+	if len(conv.Info.ReaderNames) > 0 {
+		convName += "#" + strings.Join(conv.Info.ReaderNames, ",")
+	}
+	return convName
+}
+
+func (v conversationListView) without(g *libkb.GlobalContext, slice []string, el string) (res []string) {
+	for _, x := range slice {
+		if x != el {
+			res = append(res, x)
+		}
+	}
+	return res
+}
+
 func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, showDeviceName bool) error {
 	if len(v) == 0 {
 		return nil
@@ -87,18 +105,6 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 				},
 			})
 			continue
-		}
-
-		participants := conv.Info.Usernames
-
-		if len(participants) > 1 {
-			var withoutMe []string
-			for _, p := range participants {
-				if p != myUsername {
-					withoutMe = append(withoutMe, p)
-				}
-			}
-			participants = withoutMe
 		}
 
 		unread := "*"
@@ -153,7 +159,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.MultiCell{Sep: ",", Items: participants},
+				Content:   flexibletable.SingleCell{Item: v.convName(g, conv, myUsername)},
 			},
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},

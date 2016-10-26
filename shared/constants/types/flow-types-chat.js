@@ -420,7 +420,8 @@ export type ConversationInfoLocal = {
   tlfName: string,
   topicName: string,
   visibility: TLFVisibility,
-  usernames?: ?Array<string>,
+  writerNames?: ?Array<string>,
+  readerNames?: ?Array<string>,
 }
 
 export type ConversationLocal = {

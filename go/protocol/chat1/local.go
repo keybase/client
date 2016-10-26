@@ -414,12 +414,13 @@ type UnreadFirstNumLimit struct {
 }
 
 type ConversationInfoLocal struct {
-	Id         ConversationID       `codec:"id" json:"id"`
-	Triple     ConversationIDTriple `codec:"triple" json:"triple"`
-	TlfName    string               `codec:"tlfName" json:"tlfName"`
-	TopicName  string               `codec:"topicName" json:"topicName"`
-	Visibility TLFVisibility        `codec:"visibility" json:"visibility"`
-	Usernames  []string             `codec:"usernames" json:"usernames"`
+	Id          ConversationID       `codec:"id" json:"id"`
+	Triple      ConversationIDTriple `codec:"triple" json:"triple"`
+	TlfName     string               `codec:"tlfName" json:"tlfName"`
+	TopicName   string               `codec:"topicName" json:"topicName"`
+	Visibility  TLFVisibility        `codec:"visibility" json:"visibility"`
+	WriterNames []string             `codec:"writerNames" json:"writerNames"`
+	ReaderNames []string             `codec:"readerNames" json:"readerNames"`
 }
 
 type ConversationLocal struct {
