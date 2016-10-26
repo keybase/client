@@ -111,7 +111,7 @@ func (b *bug3964Repairman) computeShortCircuit(nun NormalizedUsername) (ss bool,
 }
 
 func (b *bug3964Repairman) fixLKSClientHalf(lctx LoginContext, lksec *LKSec, ppgen PassphraseGeneration) (err error) {
-	defer b.G().Trace("bug3964Repairman#fixLKSClientHalf", func() error { return err })
+	defer b.G().Trace("bug3964Repairman#fixLKSClientHalf", func() error { return err })()
 	var me *User
 	var encKey GenericKey
 	var ctext string
@@ -147,13 +147,18 @@ func (b *bug3964Repairman) fixLKSClientHalf(lctx LoginContext, lksec *LKSec, ppg
 
 // Run the engine
 func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err error) {
-	defer b.G().Trace("bug3964Repairman#Run", func() error { return err })
+	defer b.G().Trace("bug3964Repairman#Run", func() error { return err })()
 
 	var lksec *LKSec
 	var ran bool
 	var dkm DeviceKeyMap
 	var ss bool
 	nun := b.G().Env.GetUsername()
+
+	if b.G().TestOptions.NoBug3964Repair {
+		b.G().Log.Debug("| short circuit due to test options")
+		return nil
+	}
 
 	if pps == nil {
 		b.G().Log.Debug("| Can't run repairman without a passphrase stream")
