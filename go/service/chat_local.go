@@ -153,12 +153,15 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	}
 	for _, convLocal := range convLocals {
 		if rquery != nil && rquery.TlfID != nil {
-			// verify using signed TlfName to make sure server returned genuine conversation
+			// Verify using signed TlfName to make sure server returned genuine
+			// conversation.
 			signedTlfID, _, err := h.cryptKeysWrapper(ctx, convLocal.Info.TlfName)
 			if err != nil {
 				return chat1.GetInboxAndUnboxLocalRes{}, err
 			}
-			if !signedTlfID.Eq(*rquery.TlfID) {
+			// The *rquery.TlfID is trusted source of TLF ID here since it's derived
+			// from the TLF name in the query.
+			if !signedTlfID.Eq(*rquery.TlfID) || !signedTlfID.Eq(convLocal.Info.Triple.Tlfid) {
 				return chat1.GetInboxAndUnboxLocalRes{}, errors.New("server returned conversations for different TLF than query")
 			}
 		}
@@ -281,6 +284,10 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("unexpected number (%d) of conversation; need 1", len(gilres.Conversations))
 		}
 		res.Conv = gilres.Conversations[0]
+
+		if res.Conv.Error != nil {
+			return chat1.NewConversationLocalRes{}, errors.New(*res.Conv.Error)
+		}
 
 		return res, nil
 	}
@@ -515,6 +522,12 @@ func (h *chatLocalHandler) localizeConversation(
 
 	if len(conversationLocal.Info.TlfName) == 0 {
 		errMsg := "no valid message in the conversation"
+		return chat1.ConversationLocal{Error: &errMsg}, nil
+	}
+
+	// Verify ConversationID is derivable from ConversationIDTriple
+	if !conversationLocal.Info.Triple.Derivable(conversationLocal.Info.Id) {
+		errMsg := "unexpected response from server: conversation ID is not derivable from conversation triple."
 		return chat1.ConversationLocal{Error: &errMsg}, nil
 	}
 
