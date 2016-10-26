@@ -110,6 +110,10 @@
         {
           "type": "bytes",
           "name": "key"
+        },
+        {
+          "type": "bytes",
+          "name": "verifyKey"
         }
       ]
     },

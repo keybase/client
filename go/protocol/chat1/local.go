@@ -33,15 +33,16 @@ type MessageHeadline struct {
 }
 
 type Asset struct {
-	Filename string `codec:"filename" json:"filename"`
-	Region   string `codec:"region" json:"region"`
-	Endpoint string `codec:"endpoint" json:"endpoint"`
-	Bucket   string `codec:"bucket" json:"bucket"`
-	Path     string `codec:"path" json:"path"`
-	Size     int    `codec:"size" json:"size"`
-	MimeType string `codec:"mimeType" json:"mimeType"`
-	EncHash  Hash   `codec:"encHash" json:"encHash"`
-	Key      []byte `codec:"key" json:"key"`
+	Filename  string `codec:"filename" json:"filename"`
+	Region    string `codec:"region" json:"region"`
+	Endpoint  string `codec:"endpoint" json:"endpoint"`
+	Bucket    string `codec:"bucket" json:"bucket"`
+	Path      string `codec:"path" json:"path"`
+	Size      int    `codec:"size" json:"size"`
+	MimeType  string `codec:"mimeType" json:"mimeType"`
+	EncHash   Hash   `codec:"encHash" json:"encHash"`
+	Key       []byte `codec:"key" json:"key"`
+	VerifyKey []byte `codec:"verifyKey" json:"verifyKey"`
 }
 
 type MessageAttachment struct {
