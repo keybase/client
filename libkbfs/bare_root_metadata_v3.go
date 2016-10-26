@@ -557,6 +557,7 @@ func (md *BareRootMetadataV3) GetTLFCryptKeyParams(
 			TLFCryptKeyServerHalfID{}, false,
 			errors.New("Missing key bundles")
 	}
+	isWriter := true
 	dkim := wkb.Keys[user]
 	if dkim == nil {
 		dkim = rkb.RKeys[user]
@@ -565,6 +566,7 @@ func (md *BareRootMetadataV3) GetTLFCryptKeyParams(
 				EncryptedTLFCryptKeyClientHalf{},
 				TLFCryptKeyServerHalfID{}, false, nil
 		}
+		isWriter = false
 	}
 	info, ok := dkim[key.KID()]
 	if !ok {
@@ -573,19 +575,17 @@ func (md *BareRootMetadataV3) GetTLFCryptKeyParams(
 			TLFCryptKeyServerHalfID{}, false, nil
 	}
 
-	var index int
 	var publicKeys kbfscrypto.TLFEphemeralPublicKeys
 	var keyType string
-	if info.EPubKeyIndex >= 0 {
-		index = info.EPubKeyIndex
+	if isWriter {
 		publicKeys = wkb.TLFEphemeralPublicKeys
 		keyType = "writer"
 	} else {
-		index = -1 - info.EPubKeyIndex
 		publicKeys = rkb.TLFReaderEphemeralPublicKeys
 		keyType = "reader"
 	}
 	keyCount := len(publicKeys)
+	index := info.EPubKeyIndex
 	if index >= keyCount {
 		return kbfscrypto.TLFEphemeralPublicKey{},
 			EncryptedTLFCryptKeyClientHalf{},
@@ -1048,29 +1048,26 @@ func (md *BareRootMetadataV3) fillInDevices(crypto Crypto,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (
 	serverKeyMap, error) {
-	var newIndex int
-	if len(wKeys) == 0 {
-		// This is VERY ugly, but we need it in order to avoid having to
-		// version the metadata. The index will be strictly negative for reader
-		// ephemeral public keys
-		// MDv3 TODO: get rid of this hack after getting everything else working.
+	var newReaderIndex, newWriterIndex int
+	if len(rKeys) > 0 {
 		rkb.TLFReaderEphemeralPublicKeys =
 			append(rkb.TLFReaderEphemeralPublicKeys, ePubKey)
-		newIndex = -len(rkb.TLFReaderEphemeralPublicKeys)
-	} else {
+		newReaderIndex = len(rkb.TLFReaderEphemeralPublicKeys) - 1
+	}
+	if len(wKeys) > 0 {
 		wkb.TLFEphemeralPublicKeys =
 			append(wkb.TLFEphemeralPublicKeys, ePubKey)
-		newIndex = len(wkb.TLFEphemeralPublicKeys) - 1
+		newWriterIndex = len(wkb.TLFEphemeralPublicKeys) - 1
 	}
 
 	// now fill in the secret keys as needed
 	newServerKeys := serverKeyMap{}
-	err := fillInDevicesAndServerMap(crypto, newIndex, wKeys, wkb.Keys,
+	err := fillInDevicesAndServerMap(crypto, newWriterIndex, wKeys, wkb.Keys,
 		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
 	if err != nil {
 		return nil, err
 	}
-	err = fillInDevicesAndServerMap(crypto, newIndex, rKeys, rkb.RKeys,
+	err = fillInDevicesAndServerMap(crypto, newReaderIndex, rKeys, rkb.RKeys,
 		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
 	if err != nil {
 		return nil, err
