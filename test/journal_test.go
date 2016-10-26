@@ -266,6 +266,82 @@ func TestJournalCrConflictUnmergedWriteMultiblockFile(t *testing.T) {
 	)
 }
 
+// bob creates a conflicting file while running the journal, but then
+// its resolution also conflicts.
+func testJournalCrResolutionHitsConflict(t *testing.T, options []optionOp) {
+	test(t, append(options,
+		journal(),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+			mkfile("a/b", "uh oh"),
+			checkUnflushedPaths([]string{
+				"alice,bob/a",
+				"alice,bob/a/b",
+			}),
+			// Don't flush yet.
+		),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob, noSync(),
+			stallOnMDResolveBranch(),
+			resumeJournal(),
+			// Wait for CR to finish before introducing new commit
+			// from alice.
+			waitForStalledMDResolveBranch(),
+		),
+		as(alice,
+			mkfile("a/c", "new file"),
+		),
+		as(bob, noSync(),
+			// Wait for one more, and cause another conflict, just to
+			// be sadistic.
+			unstallOneMDResolveBranch(),
+			waitForStalledMDResolveBranch(),
+		),
+		as(alice,
+			mkfile("a/d", "new file2"),
+		),
+		as(bob, noSync(),
+			// Let bob's CR proceed, which should trigger CR again on
+			// top of the resolution.
+			unstallOneMDResolveBranch(),
+			waitForStalledMDResolveBranch(),
+			undoStallOnMDResolveBranch(),
+			flushJournal(),
+		),
+		as(bob,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE", "c$": "FILE", "d$": "FILE"}),
+			read("a/b", "hello"),
+			read(crname("a/b", bob), "uh oh"),
+			read("a/c", "new file"),
+			read("a/d", "new file2"),
+			checkUnflushedPaths(nil),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE", "c$": "FILE", "d$": "FILE"}),
+			read("a/b", "hello"),
+			read(crname("a/b", bob), "uh oh"),
+			read("a/c", "new file"),
+			read("a/d", "new file2"),
+		),
+	)...)
+}
+
+func TestJournalCrResolutionHitsConflict(t *testing.T) {
+	testJournalCrResolutionHitsConflict(t, nil)
+}
+
+func TestJournalCrResolutionHitsConflictWithIndirectBlocks(t *testing.T) {
+	testJournalCrResolutionHitsConflict(t,
+		[]optionOp{blockChangeSize(20), blockChangeSize(5)})
+}
+
 // Check that simple quota reclamation works when journaling is enabled.
 func TestJournalQRSimple(t *testing.T) {
 	test(t, journal(),
