@@ -1,12 +1,10 @@
 // @flow
-import React, {Component} from 'react'
 import UpdateEmail from './index'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/router'
 import {onSubmitNewEmail, onChangeNewEmail} from '../../actions/settings'
 import Routable from '../../util/routable'
 
-import type {Props} from './index'
 import type {TypedState} from '../../constants/reducer'
 
 const UserEmailContainer = Routable(() => ({componentAtTop: {title: 'Change Email'}}), UpdateEmail)
@@ -27,7 +25,7 @@ export default connect(
       email: null,
       isVerified: false,
       edited: false,
-      errorMessage: "",
+      errorMessage: '',
     }
   },
   (dispatch: any, ownProps: {}) => ({
