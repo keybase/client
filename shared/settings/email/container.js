@@ -4,35 +4,31 @@ import UpdateEmail from './index'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/router'
 import {onSubmitNewEmail, onChangeNewEmail} from '../../actions/settings'
+import Routable from '../../util/routable'
 
 import type {Props} from './index'
 import type {TypedState} from '../../constants/reducer'
 
-class UserEmailContainer extends Component<void, Props, void> {
-  static parseRoute () {
-    return {
-      componentAtTop: {title: 'Change Email'},
-    }
-  }
-
-  render () {
-    return <UpdateEmail {...this.props} />
-  }
-}
+const UserEmailContainer = Routable(() => ({componentAtTop: {title: 'Change Email'}}), UpdateEmail)
 
 export default connect(
   (state: TypedState, ownProps: {}) => {
     const {emails, errorMessage, newEmail} = state.settings.email
     if (emails.length > 0) {
-      const email = emails[0].email
+      const {email, isVerified} = emails[0]
       return {
         email,
-        isVerified: emails[0].isVerified,
+        isVerified,
         edited: newEmail && newEmail !== email,
         errorMessage,
       }
     }
-    return {}
+    return {
+      email: null,
+      isVerified: false,
+      edited: false,
+      errorMessage: "",
+    }
   },
   (dispatch: any, ownProps: {}) => ({
     onChangeNewEmail: (email: string) => dispatch(onChangeNewEmail(email)),

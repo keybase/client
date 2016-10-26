@@ -91,16 +91,13 @@ function * _onUpdatePGPSettings (): SagaGenerator<any, any> {
 
 function * _onSubmitNewEmail (): SagaGenerator<any, any> {
   try {
-    const selector = (state: TypedState) => state.settings.email
-    const {newEmail} = ((yield select(selector)): any)
+    const newEmail = yield select(state => state.settings.email.newEmail)
     yield call(accountEmailChangeRpcPromise, {
       param: {
         newEmail,
       },
     })
-    // Reload settings
-    const userSettings = yield call(userLoadMySettingsRpcPromise)
-    yield put({type: Constants.loadedSettings, payload: userSettings})
+    yield put(loadSettings())
     yield put(navigateUp())
   } catch (error) {
     yield put({type: Constants.onUpdateEmailError, payload: {error: error.message}})
