@@ -5,7 +5,7 @@ import * as gregor1 from './flow-types-gregor'
 
 import engine from '../../engine'
 import {putOnChannelMap, createChannelMap, closeChannelMap} from '../../util/saga'
-import Buffer from 'buffer'
+import {Buffer} from 'buffer'
 import type {Exact} from './more'
 import type {ChannelConfig, ChannelMap} from './saga'
 export type int = number

@@ -30,11 +30,11 @@ class ConversationList extends Component<void, Props, State> {
     this._cellCache = new CellSizeCache(this._indexToID)
 
     // TEMP
-    setInterval(() => {
-      if (this.props.moreToLoad) {
-        this.props.loadMoreMessages()
-      }
-    }, 5000)
+    // setInterval(() => {
+      // if (this.props.moreToLoad) {
+        // this.props.loadMoreMessages()
+      // }
+    // }, 5000)
   }
 
   _indexToID = index => {
@@ -80,6 +80,11 @@ class ConversationList extends Component<void, Props, State> {
     // not really loaded
     if (!clientHeight) {
       return
+    }
+
+    // TODO do this if you're sitting on zero for awhile and cancel otherwise...
+    if (scrollTop === 0) {
+      this.props.loadMoreMessages()
     }
 
     const isLockedToBottom = scrollTop + clientHeight === scrollHeight
