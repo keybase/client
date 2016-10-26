@@ -20,7 +20,7 @@ function VerifiedText ({isVerified, style}: {isVerified: boolean, style?: Object
 }
 
 function UpdateEmail (props: Props) {
-  const error = props.errorMessage ? {message: props.errorMessage, type: 'error'} : null
+  const error = props.error ? {message: props.error.message, type: 'error'} : null
   return (
     <StandardScreen
       onBack={props.onBack}
@@ -29,9 +29,9 @@ function UpdateEmail (props: Props) {
         floatingLabelText='Email'
         value={props.email}
         onChangeText={props.onChangeNewEmail}
-        textStyle={{height: undefined}} />
+        textStyle={{height: undefined}} style={{width: 400}} />
       {!props.edited &&
-        <VerifiedText isVerified={props.isVerified} style={{marginTop: 2}} />
+        <VerifiedText isVerified={props.isVerified} style={{marginTop: 2, justifyContent: 'center'}} />
       }
       <Button
         style={{alignSelf: 'center', marginTop: globalMargins.medium}}

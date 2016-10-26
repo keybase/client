@@ -2,8 +2,7 @@
 import {Component} from 'react'
 
 export type Props = {
-  summary: ?string,
-  details: ?string,
+  error: ?Error,
   onDismiss: () => void,
   setTimeout: (cb: () => void, delay: number) => any,
   clearTimeout: (id: any) => void,

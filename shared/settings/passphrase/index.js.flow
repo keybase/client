@@ -8,7 +8,7 @@ export type Props = {
   newPassphrase: string,
   newPassphraseConfirm: string,
   showTyping: boolean,
-  errorMessage?: ?string,
+  error?: ?Error,
   newPassphraseError: ?string,
   newPassphraseConfirmError: ?string,
   hasPGPKeyOnServer: boolean,

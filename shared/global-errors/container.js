@@ -7,8 +7,7 @@ import type {TypedState} from '../constants/reducer'
 
 export default connect(
   (state: TypedState) => ({
-    summary: state.config.globalError && state.config.globalError.summary,
-    details: state.config.globalError && state.config.globalError.details,
+    error: state.config.globalError,
   }),
   (dispatch: any) => ({
     onDismiss: () => dispatch({type: globalErrorDismiss}),

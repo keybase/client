@@ -22,14 +22,14 @@ class UserEmailContainer extends Component<void, Props, void> {
 
 export default connect(
   (state: TypedState, ownProps: {}) => {
-    const {emails, errorMessage, newEmail} = state.settings.email
+    const {emails, error, newEmail} = state.settings.email
     if (emails.length > 0) {
       const email = emails[0].email
       return {
         email,
         isVerified: emails[0].isVerified,
         edited: newEmail && newEmail !== email,
-        errorMessage,
+        error,
       }
     }
     return {}
