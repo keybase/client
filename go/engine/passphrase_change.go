@@ -64,7 +64,10 @@ func (c *PassphraseChange) Run(ctx *Context) (err error) {
 	c.G().Log.Debug("+ PassphraseChange.Run")
 	defer func() {
 		c.G().Log.Debug("- PassphraseChange.Run -> %s", libkb.ErrToOk(err))
+		c.G().SKBKeyringMu.Unlock()
 	}()
+	c.G().SKBKeyringMu.Lock()
+	c.G().Log.Debug("| Acquired SKBKeyringMu mutex")
 
 	if len(c.arg.Passphrase) < libkb.MinPassphraseLength {
 		return libkb.PassphraseError{Msg: "too short"}
