@@ -33,14 +33,6 @@
     },
     {
       "type": "enum",
-      "name": "DeviceType",
-      "symbols": [
-        "DESKTOP_0",
-        "MOBILE_1"
-      ]
-    },
-    {
-      "type": "enum",
       "name": "ChooseType",
       "symbols": [
         "EXISTING_DEVICE_0",

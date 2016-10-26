@@ -9,8 +9,9 @@ import type {RouteAppend} from '../constants/router'
 import type {TypedAsyncAction, AsyncAction} from '../constants/types/flux'
 import {Map} from 'immutable'
 import {loginTab} from '../constants/tabs'
+import {isMobile} from '../constants/platform'
 import {routeAppend, navigateUp} from '../actions/router'
-import {signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
+import {CommonDeviceType, signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
   signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../constants/types/flow-types'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 
@@ -234,12 +235,14 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const {email, username, inviteCode, passphrase, deviceName} = getState().signup
     paperKeyResponse = null
+    const deviceType = isMobile ? CommonDeviceType.mobile : CommonDeviceType.desktop
 
     if (email && username && inviteCode && passphrase && deviceName) {
       signupSignupRpc({
         waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
         param: {
           deviceName,
+          deviceType,
           email,
           genPGPBatch: false,
           inviteCode,
