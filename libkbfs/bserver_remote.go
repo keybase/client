@@ -214,10 +214,15 @@ func (b *BlockServerRemote) RemoteAddress() string {
 // connection.
 func (b *BlockServerRemote) resetAuth(
 	ctx context.Context, c keybase1.BlockInterface,
-	authToken *kbfscrypto.AuthToken) error {
-	_, _, err := b.config.KBPKI().GetCurrentUserInfo(ctx)
+	authToken *kbfscrypto.AuthToken) (err error) {
+
+	defer func() {
+		b.log.Debug("BlockServerRemote: resetAuth called, err: %#v", err)
+	}()
+
+	_, _, err = b.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
-		b.log.Debug("BServerRemote: User logged out, skipping resetAuth")
+		b.log.Debug("BlockServerRemote: User logged out, skipping resetAuth")
 		return nil
 	}
 
@@ -249,7 +254,10 @@ func (b *BlockServerRemote) resetAuth(
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (b *BlockServerRemote) RefreshAuthToken(ctx context.Context) {
 	if err := b.resetAuth(ctx, b.putClient, b.putAuthToken); err != nil {
-		b.log.CDebugf(ctx, "error refreshing auth token: %v", err)
+		b.log.CDebugf(ctx, "error refreshing put auth token: %v", err)
+	}
+	if err := b.resetAuth(ctx, b.getClient, b.getAuthToken); err != nil {
+		b.log.CDebugf(ctx, "error refreshing get auth token: %v", err)
 	}
 }
 
