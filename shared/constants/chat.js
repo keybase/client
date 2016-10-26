@@ -1,5 +1,6 @@
 // @flow
 import {List, Map, Record} from 'immutable'
+import Buffer from 'buffer'
 
 import type {NoErrorTypedAction} from './types/flux'
 
@@ -33,7 +34,7 @@ export type ConversationState = Record<{
   moreToLoad: boolean,
 }>
 
-export type ConversationID = string
+export type ConversationID = typeof Buffer
 
 export const StateRecord = Record({
   conversationStates: Map(),

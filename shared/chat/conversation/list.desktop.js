@@ -1,9 +1,10 @@
 // @flow
 import LoadingMore from './messages/loading-more'
+import ReactDOM from 'react-dom'
 import React, {Component} from 'react'
 import _ from 'lodash'
 import messageFactory from './messages'
-import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
+import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache, WindowScroller} from 'react-virtualized'
 import {Box} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
@@ -11,7 +12,6 @@ import type {Props} from './'
 
 type State = {
   isLockedToBottom: boolean,
-  // isMoving: boolean,
   scrollTop: number,
 }
 
@@ -24,17 +24,16 @@ class ConversationList extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      isLockedToBottom: false,
-      // isMoving: false,
+      isLockedToBottom: true,
       scrollTop: 0,
-      // prepending:
     }
 
     this._cellCache = new CellSizeCache(this._indexToID)
 
+    // TEMP
     setInterval(() => {
       this.props.loadMoreMessages()
-    }, 2000)
+    }, 10000)
   }
 
   _indexToID = index => {
@@ -53,22 +52,20 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  // componentDidUpdate (prevProps, prevState) {
-    // if (prevState.inTransaction && !this.state.inTransaction && this.state.prepending) {
-      // // 1 - 11 because you are prepending 10, and there is a loading message.
-      // const scrollTop = this.state.scrollTop + _.range(1,11).map(index => this._cellMeasurer.getRowHeight({index})).reduce((acc, h) => acc + h, 0)
-      // this.setState({scrollTop, prepending: false})
-    // }
-  // }
-
-  // componentWillReceiveProps (nextProps: Props) {
-    // if (nextProps.messages !== this.props.messages) {
-      // this._cellCache.updateLoadedMessages(nextProps.messages)
-    // }
-  // }
+  componentDidUpdate (prevProps: Props) {
+    if (!this.state.isLockedToBottom && this.props.messages !== prevProps.messages && prevProps.messages.count() > 1) {
+      // find diff where the subset is
+      const prependedCount = this.props.messages.indexOf(prevProps.messages.first())
+      if (prependedCount !== -1) {
+        // mesaure new items
+        this.setState({scrollTop: this.state.scrollTop + _.range(0, prependedCount)
+          .map(index => this._cellMeasurer.getRowHeight({index: index + 1})) // +1 since 0 is the loading message
+          .reduce((total, height) => total + height, 0)})
+      }
+    }
+  }
 
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
-    // TODO make this smarter, don't just make this the top item
     if (!index) {
       return <LoadingMore style={style} key={key || index} loading={this.props.moreToLoad} />
     }
@@ -78,23 +75,19 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
+    const isLockedToBottom = scrollTop + clientHeight === scrollHeight
     const newState = {
-      // isLockedToBottom: scrollTop + clientHeight === scrollHeight,
-      // scrollTop,
-      // moving: true,
+      isLockedToBottom,
+      scrollTop,
     }
-    // console.log('aaa', newState)
     this.setState(newState)
-    // this._stoppedMoving()
-    // if (scrollTop === 0 && this.props.moreToLoad) {
-      // this.props.loadMoreMessages()
-    // }
   }, 100)
 
   render () {
     const countWithLoading = this.props.messages.size + 1 // Loading row on top always for now
+    let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined
+    let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
-                  // scrollTop={this.state.scrollTop}
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <style>{demoAnimation}</style>
@@ -103,19 +96,19 @@ class ConversationList extends Component<void, Props, State> {
             <CellMeasurer
               cellRenderer={({rowIndex, ...rest}) => this._rowRenderer({index: rowIndex, ...rest})}
               columnCount={1}
-              cellSizeCache={this._cellCache}
               ref={r => { this._cellMeasurer = r }}
+              cellSizeCache={this._cellCache}
               rowCount={countWithLoading} >
               {({getRowHeight}) => (
                 <List
                   height={height}
                   width={width}
                   onScroll={this._onScroll}
-                  scrollToIndex={this.state.isLockedToBottom ? this.props.messages.size : undefined}
+                  scrollTop={scrollTop}
+                  scrollToIndex={scrollToIndex}
                   rowCount={countWithLoading}
                   rowHeight={getRowHeight}
-                  rowRenderer={this._rowRenderer}
-                 />
+                  rowRenderer={this._rowRenderer} />
               )}
             </CellMeasurer>
           )}

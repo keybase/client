@@ -31,6 +31,7 @@ function * _loadInbox (): SagaGenerator<any, any> {
   // TEMP Just select the most recent conversation
   const selector = (state: TypedState) => state.chat.get('selectedConversation')
   const selectedConversation = yield select(selector)
+  debugger
 
   if (!selectedConversation) {
     if (inbox && inbox.conversationsUnverified.length) {
@@ -101,7 +102,7 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
   // running into trouble with this due to identify failures due to dns problems
   // const thread = yield call(localGetThreadLocalRpcPromise, {param: {conversationID}})
   const thread = fakeGetThreadLocalCall(50, false)
-  console.log('aaaa got thread', thread)
+  // console.log('aaaa got thread', thread)
 
   const messages = thread.thread.messages.map((message, idx) => _threadToStorable(message, idx, yourName))
   yield put({type: Constants.prependMessages, payload: {conversationID, messages}})

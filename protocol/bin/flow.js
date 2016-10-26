@@ -336,6 +336,7 @@ function write (typeDefs, project) {
 ${project.import || ''}
 import engine from '../../engine'
 import {putOnChannelMap, createChannelMap, closeChannelMap} from '../../util/saga'
+import Buffer from 'buffer'
 import type {Exact} from './more'
 import type {ChannelConfig, ChannelMap} from './saga'
 export type int = number
@@ -344,7 +345,7 @@ export type uint = number
 export type uint64 = number
 export type long = number
 export type double = number
-export type bytes = any
+export type bytes = Buffer
 export type RPCError = {
   code: number,
   desc: string
