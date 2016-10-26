@@ -960,27 +960,20 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 }
 
 func TestFavoriteNameToPreferredTLFNameFormatAs(t *testing.T) {
-	r, err := FavoriteNameToPreferredTLFNameFormatAs("", "a,b,c")
-	assert.Equal(t, "a,b,c", r)
-	assert.Nil(t, err)
-
-	r, err = FavoriteNameToPreferredTLFNameFormatAs("a", "a,b,c")
-	assert.Equal(t, "a,b,c", r)
-	assert.Nil(t, err)
-
-	r, err = FavoriteNameToPreferredTLFNameFormatAs("b", "a,b,c")
-	assert.Equal(t, "b,a,c", r)
-	assert.Nil(t, err)
-
-	r, err = FavoriteNameToPreferredTLFNameFormatAs("c", "a,b,c")
-	assert.Equal(t, "c,a,b", r)
-	assert.Nil(t, err)
-
-	r, err = FavoriteNameToPreferredTLFNameFormatAs("b", "a,b,c#d,e")
-	assert.Equal(t, "b,a,c#d,e", r)
-	assert.Nil(t, err)
-
-	r, err = FavoriteNameToPreferredTLFNameFormatAs("d", "a,b,c#d,e")
-	assert.Equal(t, "a,b,c#d,e", r)
-	assert.Nil(t, err)
+	for _, q := range []struct {
+		As     libkb.NormalizedUsername
+		Try    CanonicalTlfName
+		Answer PreferredTlfName
+	}{
+		{"", "a,b,c", "a,b,c"},
+		{"a", "a,b,c", "a,b,c"},
+		{"b", "a,b,c", "b,a,c"},
+		{"c", "a,b,c", "c,a,b"},
+		{"b", "a,b,c#d,e", "b,a,c#d,e"},
+		{"d", "a,b,c#d,e", "a,b,c#d,e"},
+	} {
+		r, err := FavoriteNameToPreferredTLFNameFormatAs(q.As, q.Try)
+		assert.Equal(t, q.Answer, r)
+		assert.NoError(t, err)
+	}
 }
