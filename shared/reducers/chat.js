@@ -15,7 +15,10 @@ function reducer (state: State = initialState, action: Actions) {
     case Constants.prependMessages:
       const prependMessages = action.payload.messages
       return state.set('conversationStates', state.get('conversationStates').update(action.payload.conversationID, initialConversation,
-        conversation => conversation.set('messages', conversation.get('messages').unshift(...prependMessages))))
+        conversation => {
+          const c1 = conversation.set('messages', conversation.get('messages').unshift(...prependMessages))
+          return c1.set('moreToLoad', action.payload.moreToLoad)
+        }))
     case Constants.appendMessages:
       const appendMessages = action.payload.messages
       return state.set('conversationStates', state.get('conversationStates').update(action.payload.conversationID, initialConversation,

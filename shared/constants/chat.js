@@ -58,7 +58,7 @@ export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversa
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {TODO: any}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
-export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationID: ConversationID, messages: Array<Message>}>
+export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationID: ConversationID, messages: Array<Message>, moreToLoad: boolean}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationID: ConversationID}>
 
 export type Actions = AppendMessages | LoadMoreMessages | PrependMessages | SelectConversation | LoadInbox | LoadedInbox
@@ -68,6 +68,7 @@ function conversationIDToKey (conversationID: ConversationID): string {
 }
 
 function keyToConversationID (key: string): ConversationID {
+  // $FlowIssue not sure why this isn't working
   return Buffer.from(key, 'base64')
 }
 

@@ -86,6 +86,7 @@ function fakeGetThreadLocalCall (num, last) {
   }
 }
 
+let _numFakeLeft = 3
 function * _loadMoreMessages (): SagaGenerator<any, any> {
   // TODO need chat api conversation id change to string. core is working on it
   const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
@@ -100,11 +101,12 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
 
   // running into trouble with this due to identify failures due to dns problems
   // const thread = yield call(localGetThreadLocalRpcPromise, {param: {conversationID}})
-  const thread = fakeGetThreadLocalCall(50, false)
+  _numFakeLeft--
+  const thread = fakeGetThreadLocalCall(50, _numFakeLeft <= 0)
   // console.log('aaaa got thread', thread)
 
   const messages = thread.thread.messages.map((message, idx) => _threadToStorable(message, idx, yourName))
-  yield put({type: Constants.prependMessages, payload: {conversationID, messages}})
+  yield put({type: Constants.prependMessages, payload: {conversationID, messages, moreToLoad: !thread.thread.pagination.last}})
 }
 
 function _threadToStorable (message: MessageUnboxed, idx: number, yourName): Message {

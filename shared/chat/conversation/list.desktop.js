@@ -1,10 +1,9 @@
 // @flow
 import LoadingMore from './messages/loading-more'
-import ReactDOM from 'react-dom'
 import React, {Component} from 'react'
 import _ from 'lodash'
 import messageFactory from './messages'
-import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache, WindowScroller} from 'react-virtualized'
+import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {Box} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
@@ -32,8 +31,10 @@ class ConversationList extends Component<void, Props, State> {
 
     // TEMP
     setInterval(() => {
-      this.props.loadMoreMessages()
-    }, 10000)
+      if (this.props.moreToLoad) {
+        this.props.loadMoreMessages()
+      }
+    }, 5000)
   }
 
   _indexToID = index => {
@@ -57,8 +58,9 @@ class ConversationList extends Component<void, Props, State> {
       // find diff where the subset is
       const prependedCount = this.props.messages.indexOf(prevProps.messages.first())
       if (prependedCount !== -1) {
-        // mesaure new items
-        this.setState({scrollTop: this.state.scrollTop + _.range(0, prependedCount)
+        // measure new items
+        // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
+        this.setState({scrollTop: this.state.scrollTop + _.range(0, prependedCount) // eslint-disable-line react/no-did-update-set-state
           .map(index => this._cellMeasurer.getRowHeight({index: index + 1})) // +1 since 0 is the loading message
           .reduce((total, height) => total + height, 0)})
       }
@@ -75,6 +77,11 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
+    // not really loaded
+    if (!clientHeight) {
+      return
+    }
+
     const isLockedToBottom = scrollTop + clientHeight === scrollHeight
     const newState = {
       isLockedToBottom,
