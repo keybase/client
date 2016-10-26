@@ -121,7 +121,7 @@ type blockJournalEntry struct {
 	Contexts map[BlockID][]BlockContext `codec:",omitempty"`
 	// Only used for mdRevMarkerOps.
 	Revision MetadataRevision `codec:",omitempty"`
-	// Ignore this entry if flushing if this is true.
+	// Ignore this entry while flushing if this is true.
 	Ignore bool `codec:",omitempty"`
 
 	codec.UnknownFieldSetHandler
