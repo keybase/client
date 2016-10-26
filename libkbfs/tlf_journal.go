@@ -1432,7 +1432,6 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	// TODO: kick off a background goroutine that deletes ignored
 	// block data files before the flush gets to them.
 
-	// No need to signal work in this case.
 	return mdID, false, nil
 }
 
@@ -1440,9 +1439,9 @@ func (j *tlfJournal) resolveBranch(ctx context.Context,
 	bid BranchID, blocksToDelete []BlockID, rmd *RootMetadata,
 	extra ExtraMetadata) (MdID, error) {
 	// Prepare the paths without holding the lock, as it might need to
-	// take the lock.  Note that the md ID and timestamp don't matter
-	// for the unflushed path cache.  This is a no-op if the unflushed
-	// path cache is uninitialized.  TODO: avoid doing this if we can
+	// take the lock.  Note that the timestamp don't matter for the
+	// unflushed path cache.  This is a no-op if the unflushed path
+	// cache is uninitialized.  TODO: avoid doing this if we can
 	// somehow be sure the cache won't be initialized by the time we
 	// finish this put.
 	mdInfo := unflushedPathMDInfo{
