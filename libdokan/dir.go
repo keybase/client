@@ -53,12 +53,12 @@ type Folder struct {
 }
 
 func newFolder(fl *FolderList, h *libkbfs.TlfHandle,
-	hPrefferedName libkbfs.PreferredTlfName) *Folder {
+	hPreferredName libkbfs.PreferredTlfName) *Folder {
 	f := &Folder{
 		fs:             fl.fs,
 		list:           fl,
 		h:              h,
-		hPreferredName: hPrefferedName,
+		hPreferredName: hPreferredName,
 		nodes:          map[libkbfs.NodeID]dokan.File{},
 	}
 	return f
