@@ -10,9 +10,10 @@ package keybase
 // ExternalKeyStore - We have to duplicate the interface defined in libkb.ExternalKeyStore
 // Otherwise we get an undefined param error when we use this as an argument
 // in an exported func
+
 type ExternalKeyStore interface {
-	RetrieveSecret(serviceName string, key string) ([]byte, error)
-	StoreSecret(serviceName string, key string, secret []byte) error
+	RetrieveSecret(serviceName string, key string) (LKSecFullSecret, error)
+	StoreSecret(serviceName string, key string, secret LKSecFullSecret) error
 	ClearSecret(serviceName string, key string) error
 	GetUsersWithStoredSecretsMsgPack(serviceName string) ([]byte, error)
 	SetupKeyStore(serviceName string, key string) error
