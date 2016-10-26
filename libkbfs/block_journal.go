@@ -268,7 +268,7 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 			// refs won't have to upload any new bytes.  (This might
 			// be wrong if all references to a block were deleted
 			// since the addref entry was appended.)
-			if e.Op == blockPutOp {
+			if e.Op == blockPutOp && !e.Ignore {
 				b, err := j.getDataSize(id)
 				// Ignore ENOENT errors, since users like
 				// BlockServerDisk can remove block data without
