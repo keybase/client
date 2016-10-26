@@ -283,6 +283,10 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		}
 		res.Conv = gilres.Conversations[0]
 
+		if res.Conv.Error != nil {
+			return chat1.NewConversationLocalRes{}, errors.New(*res.Conv.Error)
+		}
+
 		return res, nil
 	}
 
@@ -520,7 +524,7 @@ func (h *chatLocalHandler) localizeConversation(
 	}
 
 	// Verify ConversationID is derivable from ConversationIDTriple
-	if conversationLocal.Info.Triple.Derivable(conversationLocal.Info.Id) {
+	if !conversationLocal.Info.Triple.Derivable(conversationLocal.Info.Id) {
 		errMsg := "unexpected response from server: conversation ID is not derivable from conversation triple."
 		return chat1.ConversationLocal{Error: &errMsg}, nil
 	}
