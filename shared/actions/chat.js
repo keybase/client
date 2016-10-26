@@ -99,7 +99,7 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
   const yourNameSelector = (state: TypedState) => state.config.username
   const yourName = yield select(yourNameSelector)
 
-  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _threadToStorable(message, idx, yourName))
+  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _threadToStorable(message, idx, yourName)).reverse()
   console.log('aaaa got messages', messages)
   const moreToLoad = thread && thread.thread && thread.thread.pagination && !thread.thread.pagination.last
   const paginationNext = thread && thread.thread && thread.thread.pagination && thread.thread.pagination.next
