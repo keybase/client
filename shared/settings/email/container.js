@@ -25,7 +25,7 @@ export default connect(
       email: null,
       isVerified: false,
       edited: false,
-      errorMessage: '',
+      error: null,
     }
   },
   (dispatch: any, ownProps: {}) => ({

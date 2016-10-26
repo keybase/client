@@ -19,5 +19,5 @@ export function convertToError (err: Object): Error {
     return new RPCError(err.desc, err.code)
   }
 
-  return new Error('Unknown error: ${err}')
+  return new Error(`Unknown error: ${JSON.stringify(err)}`)
 }
