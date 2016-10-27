@@ -84,7 +84,6 @@ export const prependMessages = 'chat:prependMessages'
 export const setupNewChatHandler = 'chat:setupNewChatHandler'
 export const incomingMessage = 'chat:incomingMessage'
 
-// TODO paginationprevious
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxStateRecord>}>
