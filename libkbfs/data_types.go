@@ -740,7 +740,6 @@ type TLFUpdateHistory struct {
 type writerInfo struct {
 	name       libkb.NormalizedUsername
 	uid        keybase1.UID
-	kid        keybase1.KID
 	deviceName string
 	revision   MetadataRevision
 }

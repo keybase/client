@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -132,7 +133,7 @@ type unflushedPathMDInfo struct {
 // caller should NOT be holding any locks, as it's possible that
 // blocks will need to be fetched.
 func addUnflushedPaths(ctx context.Context,
-	uid keybase1.UID, kid keybase1.KID, codec kbfscodec.Codec,
+	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
 	log logger.Logger, mdInfos []unflushedPathMDInfo,
 	cpp chainsPathPopulator, unflushedPaths unflushedPathsMap) error {
 	// Make chains over the entire range to get the unflushed files.
@@ -141,7 +142,6 @@ func addUnflushedPaths(ctx context.Context,
 	for _, mdInfo := range mdInfos {
 		winfo := writerInfo{
 			uid:      uid,
-			kid:      kid,
 			revision: mdInfo.revision,
 			// There won't be any conflicts, so no need for the
 			// username/devicename.
@@ -195,7 +195,7 @@ func addUnflushedPaths(ctx context.Context,
 // prepUnflushedPaths returns a set of paths that were updated in the
 // given revision.
 func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
-	uid keybase1.UID, kid keybase1.KID, codec kbfscodec.Codec,
+	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
 	log logger.Logger, mdInfo unflushedPathMDInfo) (
 	unflushedPathsPerRevMap, error) {
 	cpp := func() chainsPathPopulator {
@@ -212,7 +212,7 @@ func (upc *unflushedPathCache) prepUnflushedPaths(ctx context.Context,
 	newUnflushedPaths := make(unflushedPathsMap)
 	mdInfos := []unflushedPathMDInfo{mdInfo}
 
-	err := addUnflushedPaths(ctx, uid, kid, codec, log, mdInfos, cpp,
+	err := addUnflushedPaths(ctx, uid, key, codec, log, mdInfos, cpp,
 		newUnflushedPaths)
 	if err != nil {
 		return nil, err
@@ -304,14 +304,14 @@ func (upc *unflushedPathCache) setCacheIfPossible(cache unflushedPathsMap,
 // not modify any of the per-revision inner maps of the returned
 // unflushed path map.
 func (upc *unflushedPathCache) initialize(ctx context.Context,
-	uid keybase1.UID, kid keybase1.KID, codec kbfscodec.Codec,
+	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
 	log logger.Logger, cpp chainsPathPopulator,
 	mdInfos []unflushedPathMDInfo) (unflushedPathsMap, bool, error) {
 	// First get all the paths for the given range.  On the first try
 	unflushedPaths := make(unflushedPathsMap)
 	log.CDebugf(ctx, "Initializing unflushed path cache with %d revisions",
 		len(mdInfos))
-	err := addUnflushedPaths(ctx, uid, kid, codec, log, mdInfos, cpp,
+	err := addUnflushedPaths(ctx, uid, key, codec, log, mdInfos, cpp,
 		unflushedPaths)
 	if err != nil {
 		return nil, false, err
@@ -343,7 +343,7 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 
 		log.CDebugf(ctx, "Processing unflushed paths for %d items in "+
 			"the append queue", len(queue))
-		err := addUnflushedPaths(ctx, uid, kid, codec, log, queue, cpp,
+		err := addUnflushedPaths(ctx, uid, key, codec, log, queue, cpp,
 			unflushedPaths)
 		if err != nil {
 			return nil, false, err

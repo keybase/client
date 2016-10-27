@@ -93,7 +93,7 @@ func (fbsk *folderBranchStatusKeeper) signalChangeLocked() {
 func (fbsk *folderBranchStatusKeeper) setRootMetadata(md ImmutableRootMetadata) {
 	fbsk.dataMutex.Lock()
 	defer fbsk.dataMutex.Unlock()
-	if fbsk.md == md {
+	if fbsk.md.MdID() == md.MdID() {
 		return
 	}
 	fbsk.md = md

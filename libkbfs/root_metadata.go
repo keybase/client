@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -171,65 +172,30 @@ func (md *RootMetadata) clearLastRevision() {
 	md.clearWriterMetadataCopiedBit()
 }
 
-func (md *RootMetadata) makeSuccessor(
-	codec kbfscodec.Codec) (*RootMetadata, error) {
-	var newMd RootMetadata
-	if err := md.deepCopyInPlace(codec, true, true, &newMd); err != nil {
-		return nil, err
-	}
-	return &newMd, nil
-}
-
-func (md *RootMetadata) deepCopy(
-	codec kbfscodec.Codec, copyHandle bool) (*RootMetadata, error) {
-	var newMd RootMetadata
-	if err := md.deepCopyInPlace(codec, copyHandle, false, &newMd); err != nil {
-		return nil, err
-	}
-	return &newMd, nil
-}
-
-func (md *RootMetadata) deepCopyInPlace(
-	codec kbfscodec.Codec, copyHandle, successorCopy bool,
-	newMd *RootMetadata) error {
-	if err := kbfscodec.Update(codec, newMd, md); err != nil {
-		return err
-	}
-	if err := kbfscodec.Update(codec, &newMd.data, md.data); err != nil {
-		return err
-	}
-	var err error
-	var brmdCopy BareRootMetadata
-	if successorCopy {
-		brmdCopy, err = md.bareMd.MakeSuccessorCopy(codec)
-	} else {
-		brmdCopy, err = md.bareMd.DeepCopy(codec)
-	}
+func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
+	brmdCopy, err := md.bareMd.DeepCopy(codec)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	mutableBrmdCopy, ok := brmdCopy.(MutableBareRootMetadata)
-	if !ok {
-		return MutableBareRootMetadataNoImplError{}
-	}
-	newMd.bareMd = mutableBrmdCopy
-
+	var extraCopy ExtraMetadata
 	if md.extra != nil {
-		extraCopy, err := md.extra.DeepCopy(codec)
+		extraCopy, err = md.extra.DeepCopy(codec)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		newMd.extra = extraCopy
 	}
 
-	if copyHandle {
-		newMd.tlfHandle = md.tlfHandle.deepCopy()
+	handleCopy := md.tlfHandle.deepCopy()
+
+	rmd := MakeRootMetadata(brmdCopy, extraCopy, handleCopy)
+
+	err = kbfscodec.Update(codec, &rmd.data, md.data)
+	if err != nil {
+		return nil, err
 	}
 
-	// No need to copy mdID.
-
-	return nil
+	return rmd, nil
 }
 
 // MakeSuccessor returns a complete copy of this RootMetadata (but
@@ -244,12 +210,30 @@ func (md *RootMetadata) MakeSuccessor(
 	if md.IsFinal() {
 		return nil, MetadataIsFinalError{}
 	}
-	newMd, err := md.makeSuccessor(codec)
+
+	isReadableAndWriter := md.IsReadable() && isWriter
+
+	brmdCopy, err := md.bareMd.MakeSuccessorCopy(codec, isReadableAndWriter)
 	if err != nil {
 		return nil, err
 	}
 
-	if md.IsReadable() && isWriter {
+	var extraCopy ExtraMetadata
+	if md.extra != nil {
+		extraCopy, err = md.extra.DeepCopy(codec)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	handleCopy := md.tlfHandle.deepCopy()
+
+	newMd := MakeRootMetadata(brmdCopy, extraCopy, handleCopy)
+	if err := kbfscodec.Update(codec, &newMd.data, md.data); err != nil {
+		return nil, err
+	}
+
+	if isReadableAndWriter {
 		newMd.clearLastRevision()
 		// clear the serialized data.
 		newMd.SetSerializedPrivateMetadata(nil)
@@ -448,11 +432,6 @@ func (md *RootMetadata) TlfID() TlfID {
 	return md.bareMd.TlfID()
 }
 
-// LastModifyingWriterKID wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) LastModifyingWriterKID() keybase1.KID {
-	return md.bareMd.LastModifyingWriterKID()
-}
-
 // LastModifyingWriter wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) LastModifyingWriter() keybase1.UID {
 	return md.bareMd.LastModifyingWriter()
@@ -575,17 +554,6 @@ func (md *RootMetadata) GetSerializedPrivateMetadata() []byte {
 func (md *RootMetadata) GetSerializedWriterMetadata(
 	codec kbfscodec.Codec) ([]byte, error) {
 	return md.bareMd.GetSerializedWriterMetadata(codec)
-}
-
-// GetWriterMetadataSigInfo wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) GetWriterMetadataSigInfo() kbfscrypto.SignatureInfo {
-	return md.bareMd.GetWriterMetadataSigInfo()
-}
-
-// SetWriterMetadataSigInfo wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) SetWriterMetadataSigInfo(
-	sigInfo kbfscrypto.SignatureInfo) {
-	md.bareMd.SetWriterMetadataSigInfo(sigInfo)
 }
 
 // IsFinal wraps the respective method of the underlying BareRootMetadata for convenience.
@@ -788,7 +756,8 @@ func (md *RootMetadata) NewExtra() ExtraMetadata {
 // can be assumed to never alias a (modifiable) *RootMetadata.
 type ImmutableRootMetadata struct {
 	ReadOnlyRootMetadata
-	mdID MdID
+	mdID                   MdID
+	lastWriterVerifyingKey kbfscrypto.VerifyingKey
 	// localTimestamp represents the time at which the MD update was
 	// applied at the server, adjusted for the local clock.  So for
 	// example, it can be used to show how long ago a particular
@@ -804,15 +773,29 @@ type ImmutableRootMetadata struct {
 // MakeImmutableRootMetadata makes a new ImmutableRootMetadata from
 // the given RMD and its corresponding MdID.
 func MakeImmutableRootMetadata(
-	rmd *RootMetadata, mdID MdID,
-	localTimestamp time.Time) ImmutableRootMetadata {
+	rmd *RootMetadata, writerVerifyingKey kbfscrypto.VerifyingKey,
+	mdID MdID, localTimestamp time.Time) ImmutableRootMetadata {
 	if mdID == (MdID{}) {
 		panic("zero mdID passed to MakeImmutableRootMetadata")
 	}
 	if localTimestamp == (time.Time{}) {
 		panic("zero localTimestamp passed to MakeImmutableRootMetadata")
 	}
-	return ImmutableRootMetadata{rmd.ReadOnly(), mdID, localTimestamp}
+	if writerVerifyingKey == (kbfscrypto.VerifyingKey{}) {
+		panic("zero writerVerifyingKey passed to MakeImmutableRootMetadata")
+	}
+	if bareMDV2, ok := rmd.bareMd.(*BareRootMetadataV2); ok {
+		writerSig := bareMDV2.WriterMetadataSigInfo
+		if writerSig.IsNil() {
+			panic("MDV2 with nil writer signature")
+		}
+		if writerSig.VerifyingKey != writerVerifyingKey {
+			panic(fmt.Sprintf("key mismatch: sig has %s, expected %s",
+				writerSig.VerifyingKey, writerVerifyingKey))
+		}
+	}
+	return ImmutableRootMetadata{
+		rmd.ReadOnly(), mdID, writerVerifyingKey, localTimestamp}
 }
 
 // MdID returns the pre-computed MdID of the contained RootMetadata
@@ -827,22 +810,85 @@ func (irmd ImmutableRootMetadata) LocalTimestamp() time.Time {
 	return irmd.localTimestamp
 }
 
+// LastModifyingWriterVerifyingKey returns the VerifyingKey used by the last
+// writer of this MD.
+func (irmd ImmutableRootMetadata) LastModifyingWriterVerifyingKey() kbfscrypto.VerifyingKey {
+	return irmd.lastWriterVerifyingKey
+}
+
 // RootMetadataSigned is the top-level MD object stored in MD server
+//
+// TODO: Have separate types for:
+//
+// - The in-memory client representation (needs untrustedServerTimestamp);
+// - the type sent over RPC;
+// - the type stored in the journal;
+// - and the type stored in the MD server.
 type RootMetadataSigned struct {
-	// signature over the root metadata by the private signing key
-	SigInfo kbfscrypto.SignatureInfo `codec:",omitempty"`
+	// SigInfo is the signature over the root metadata by the
+	// last modifying user's private signing key.
+	SigInfo kbfscrypto.SignatureInfo
+	// WriterSigInfo is the signature over the writer metadata by
+	// the last modifying writer's private signing key.
+	WriterSigInfo kbfscrypto.SignatureInfo
 	// all the metadata
-	MD MutableBareRootMetadata
+	MD BareRootMetadata
 	// When does the server say this MD update was received?  (This is
 	// not necessarily trustworthy, just for informational purposes.)
 	untrustedServerTimestamp time.Time
 }
 
-// NewRootMetadataSigned returns a new RootMetadataSigned object at the latest known version.
-func NewRootMetadataSigned() *RootMetadataSigned {
-	return &RootMetadataSigned{MD: &BareRootMetadataV2{}}
-	// MDv3 TODO: uncomment the below when we're ready for MDv3
-	//return &RootMetadataSigned{MD: &BareRootMetadataV3{}}
+// MakeRootMetadataSigned makes a RootMetadataSigned object from the
+// given info. If md stores the writer signature info internally, it
+// must match the given one.
+func MakeRootMetadataSigned(sigInfo, writerSigInfo kbfscrypto.SignatureInfo,
+	md BareRootMetadata,
+	untrustedServerTimestamp time.Time) (*RootMetadataSigned, error) {
+	if mdv2, ok := md.(*BareRootMetadataV2); ok {
+		if !mdv2.WriterMetadataSigInfo.Equals(writerSigInfo) {
+			return nil, fmt.Errorf(
+				"Expected writer sig info %v, got %v",
+				mdv2.WriterMetadataSigInfo, writerSigInfo)
+		}
+	}
+	return &RootMetadataSigned{
+		MD:                       md,
+		SigInfo:                  sigInfo,
+		WriterSigInfo:            writerSigInfo,
+		untrustedServerTimestamp: untrustedServerTimestamp,
+	}, nil
+}
+
+func signMD(
+	ctx context.Context, codec kbfscodec.Codec, signer cryptoSigner,
+	brmd BareRootMetadata, untrustedServerTimestamp time.Time) (
+	*RootMetadataSigned, error) {
+	// encode the root metadata and sign it
+	buf, err := codec.Encode(brmd)
+	if err != nil {
+		return nil, err
+	}
+
+	// Sign normally using the local device private key
+	sigInfo, err := signer.Sign(ctx, buf)
+	if err != nil {
+		return nil, err
+	}
+	var writerSigInfo kbfscrypto.SignatureInfo
+	if mdv2, ok := brmd.(*BareRootMetadataV2); ok {
+		writerSigInfo = mdv2.WriterMetadataSigInfo
+	} else {
+		// TODO: Implement this!
+		panic("not implemented")
+	}
+	return MakeRootMetadataSigned(
+		sigInfo, writerSigInfo, brmd, untrustedServerTimestamp)
+}
+
+// GetWriterMetadataSigInfo returns the signature of the writer
+// metadata.
+func (rmds *RootMetadataSigned) GetWriterMetadataSigInfo() kbfscrypto.SignatureInfo {
+	return rmds.WriterSigInfo
 }
 
 // MerkleHash computes a hash of this RootMetadataSigned object for inclusion
@@ -859,26 +905,18 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 
 // MakeFinalCopy returns a complete copy of this RootMetadataSigned
 // with the revision incremented and the final bit set.
-func (rmds *RootMetadataSigned) MakeFinalCopy(codec kbfscodec.Codec) (
+func (rmds *RootMetadataSigned) MakeFinalCopy(
+	codec kbfscodec.Codec, clock Clock) (
 	*RootMetadataSigned, error) {
 	if rmds.MD.IsFinal() {
 		return nil, MetadataIsFinalError{}
 	}
-	newRmds := RootMetadataSigned{}
 	newBareMd, err := rmds.MD.DeepCopy(codec)
 	if err != nil {
 		return nil, err
 	}
-	newMutableBareMd, ok := newBareMd.(MutableBareRootMetadata)
-	if !ok {
-		return nil, MutableBareRootMetadataNoImplError{}
-	}
-	// Set the bare metadata.
-	newRmds.MD = newMutableBareMd
-	// Copy the signature.
-	newRmds.SigInfo = rmds.SigInfo.DeepCopy()
 	// Set the final flag.
-	newRmds.MD.SetFinalBit()
+	newBareMd.SetFinalBit()
 	// Increment revision but keep the PrevRoot --
 	// We want the client to be able to verify the signature by masking out the final
 	// bit, decrementing the revision, and nulling out the finalized extension info.
@@ -886,8 +924,10 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(codec kbfscodec.Codec) (
 	// creating the final metadata block. Note that PrevRoot isn't being updated. This
 	// is to make verification easier for the client as otherwise it'd need to request
 	// the head revision - 1.
-	newRmds.MD.SetRevision(rmds.MD.RevisionNumber() + 1)
-	return &newRmds, nil
+	newBareMd.SetRevision(rmds.MD.RevisionNumber() + 1)
+	return MakeRootMetadataSigned(
+		rmds.SigInfo.DeepCopy(), rmds.WriterSigInfo.DeepCopy(),
+		newBareMd, clock.Now())
 }
 
 // IsValidAndSigned verifies the RootMetadataSigned, checks the root
@@ -902,6 +942,11 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 	// will fail verification.
 	if rmds.SigInfo.IsNil() {
 		return errors.New("Missing RootMetadata signature")
+	}
+	// Optimization -- if the WriterMetadata signature is nil, it
+	// will fail verification.
+	if rmds.WriterSigInfo.IsNil() {
+		return errors.New("Missing WriterMetadata signature")
 	}
 
 	err := rmds.MD.IsValidAndSigned(codec, crypto, extra)
@@ -939,6 +984,16 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 		return fmt.Errorf("Could not verify root metadata: %v", err)
 	}
 
+	buf, err = md.GetSerializedWriterMetadata(codec)
+	if err != nil {
+		return err
+	}
+
+	err = crypto.Verify(buf, rmds.WriterSigInfo)
+	if err != nil {
+		return fmt.Errorf("Could not verify writer metadata: %v", err)
+	}
+
 	return nil
 }
 
@@ -955,6 +1010,18 @@ func (rmds *RootMetadataSigned) IsLastModifiedBy(
 	if rmds.SigInfo.VerifyingKey != key {
 		return fmt.Errorf("Last modifier verifying key %v != %v",
 			rmds.SigInfo.VerifyingKey, key)
+	}
+
+	writer := rmds.MD.LastModifyingWriter()
+	if !rmds.MD.IsWriterMetadataCopiedSet() {
+		if writer != uid {
+			return fmt.Errorf("Last writer %s != %s", writer, uid)
+		}
+		if rmds.WriterSigInfo.VerifyingKey != key {
+			panic(fmt.Errorf(
+				"Last writer verifying key %v != %v",
+				rmds.WriterSigInfo.VerifyingKey, key))
+		}
 	}
 
 	return nil
@@ -991,7 +1058,8 @@ func DecodeRootMetadata(
 // DecodeRootMetadataSigned deserializes a metadata block into the
 // specified versioned structure.
 func DecodeRootMetadataSigned(
-	codec kbfscodec.Codec, tlf TlfID, ver, max MetadataVer, buf []byte) (
+	codec kbfscodec.Codec, tlf TlfID, ver, max MetadataVer, buf []byte,
+	untrustedServerTimestamp time.Time) (
 	*RootMetadataSigned, error) {
 	if ver < FirstValidMetadataVer {
 		return nil, InvalidMetadataVersionError{tlf, ver}
@@ -1002,22 +1070,15 @@ func DecodeRootMetadataSigned(
 		// Shouldn't be possible at the moment.
 		panic("Invalid metadata version")
 	}
+	var rmds RootMetadataSigned
 	if ver < SegregatedKeyBundlesVer {
-		var brmds BareRootMetadataSignedV2
-		if err := codec.Decode(buf, &brmds); err != nil {
-			return nil, err
-		}
-		return &RootMetadataSigned{
-			MD:      &brmds.MD,
-			SigInfo: brmds.SigInfo,
-		}, nil
+		rmds.MD = &BareRootMetadataV2{}
+	} else {
+		rmds.MD = &BareRootMetadataV3{}
 	}
-	var brmds BareRootMetadataSignedV3
-	if err := codec.Decode(buf, &brmds); err != nil {
+	if err := codec.Decode(buf, &rmds); err != nil {
 		return nil, err
 	}
-	return &RootMetadataSigned{
-		MD:      &brmds.MD,
-		SigInfo: brmds.SigInfo,
-	}, nil
+	rmds.untrustedServerTimestamp = untrustedServerTimestamp
+	return &rmds, nil
 }

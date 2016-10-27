@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -60,7 +61,8 @@ func splitExtension(path string) (string, string) {
 }
 
 func newWriterInfo(ctx context.Context, cfg Config, uid keybase1.UID,
-	kid keybase1.KID, revision MetadataRevision) (writerInfo, error) {
+	key kbfscrypto.VerifyingKey,
+	revision MetadataRevision) (writerInfo, error) {
 	ui, err := cfg.KeybaseService().LoadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return writerInfo{}, err
@@ -69,8 +71,7 @@ func newWriterInfo(ctx context.Context, cfg Config, uid keybase1.UID,
 	return writerInfo{
 		name:       ui.Name,
 		uid:        uid,
-		kid:        kid,
-		deviceName: ui.KIDNames[kid],
+		deviceName: ui.KIDNames[key.KID()],
 		revision:   revision,
 	}, nil
 }
