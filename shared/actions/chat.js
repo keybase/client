@@ -1,17 +1,21 @@
 // @flow
 import * as Constants from '../constants/chat'
-import _ from 'lodash'
+import engine, {Engine} from '../engine'
 import {List, Map} from 'immutable'
 import {call, put, select} from 'redux-saga/effects'
 import {localGetInboxAndUnboxLocalRpcPromise, CommonMessageType, localGetThreadLocalRpcPromise} from '../constants/types/flow-types-chat'
-import {takeLatest} from 'redux-saga'
+import {takeLatest, takeEvery} from 'redux-saga'
 
-import type {LoadMoreMessages, ConversationIDKey, SelectConversation, LoadInbox, Message, InboxState, LoadedInbox} from '../constants/chat'
+import type {LoadMoreMessages, ConversationIDKey, SelectConversation, LoadInbox, Message, InboxState, LoadedInbox, SetupNewChatHandler, IncomingMessage} from '../constants/chat'
 import type {MessageUnboxed, GetInboxAndUnboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
 const {conversationIDToKey, keyToConversationID, InboxStateRecord} = Constants
+
+function setupNewChatHandler (): SetupNewChatHandler {
+  return {type: Constants.setupNewChatHandler, payload: undefined}
+}
 
 function loadInbox (): LoadInbox {
   return {type: Constants.loadInbox, payload: undefined}
@@ -47,11 +51,36 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxStat
   }))
 }
 
+function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
+  if (action.payload.activity.ActivityType === 1) {
+    const messageUnboxed: ?MessageUnboxed = action.payload.activity.IncomingMessage
+    if (messageUnboxed) {
+      const yourNameSelector = (state: TypedState) => state.config.username
+      const yourName = yield select(yourNameSelector)
+      const message = _threadToStorable(messageUnboxed, 0, yourName)
+
+      yield put({
+        type: Constants.appendMessages,
+        payload: {
+          conversationIDKey: 'AADL8hDaPudD3g==', // TEMP hardcoded until we get this plumbed through
+          messages: [message],
+        },
+      })
+    }
+  }
+}
+
+function * _setupNewChatHandler (): SagaGenerator<any, any> {
+  yield put((dispatch: Dispatch) => {
+    engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({uid, activity}) => {
+      dispatch({type: Constants.incomingMessage, payload: {activity}})
+    })
+  })
+}
+
 function * _loadInbox (): SagaGenerator<any, any> {
   // $ForceType
   const inbox: GetInboxAndUnboxLocalRes = yield call(localGetInboxAndUnboxLocalRpcPromise, {params: {}})
-  console.log('aaaa got inbox', inbox)
-
   const conversations: List<InboxState> = _inboxToConversations(inbox)
   yield put({type: Constants.loadedInbox, payload: {inbox: conversations}})
 }
@@ -177,8 +206,10 @@ function * chatSaga (): SagaGenerator<any, any> {
   yield [
     takeLatest(Constants.loadInbox, _loadInbox),
     takeLatest(Constants.loadedInbox, _loadedInbox),
-    takeLatest(Constants.loadMoreMessages, _loadMoreMessages),
+    takeEvery(Constants.loadMoreMessages, _loadMoreMessages),
     takeLatest(Constants.selectConversation, _selectConversation),
+    takeEvery(Constants.setupNewChatHandler, _setupNewChatHandler),
+    takeEvery(Constants.incomingMessage, _incomingMessage),
   ]
 }
 
@@ -188,4 +219,5 @@ export {
   loadInbox,
   loadMoreMessages,
   selectConversation,
+  setupNewChatHandler,
 }

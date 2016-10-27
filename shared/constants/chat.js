@@ -2,7 +2,7 @@
 import {List, Map, Record} from 'immutable'
 import {Buffer} from 'buffer'
 
-import type {ConversationID as RPCConversationID} from './types/flow-types-chat'
+import type {ConversationID as RPCConversationID, ChatActivity} from './types/flow-types-chat'
 import type {NoErrorTypedAction} from './types/flux'
 
 export type MessageType = 'Text'
@@ -81,6 +81,8 @@ export const loadedInbox = 'chat:loadedInbox'
 export const loadMoreMessages = 'chat:loadMoreMessages'
 export const loadingMessages = 'chat:loadingMessages'
 export const prependMessages = 'chat:prependMessages'
+export const setupNewChatHandler = 'chat:setupNewChatHandler'
+export const incomingMessage = 'chat:incomingMessage'
 
 // TODO paginationprevious
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
@@ -90,6 +92,8 @@ export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey}>
+export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
+export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 
 export type Actions = AppendMessages | LoadMoreMessages | PrependMessages | SelectConversation | LoadInbox | LoadedInbox
 
