@@ -3,11 +3,11 @@ import * as Constants from '../constants/chat'
 import _ from 'lodash'
 import {List, Map} from 'immutable'
 import {call, put, select} from 'redux-saga/effects'
-import {localGetInboxLocalRpcPromise, CommonMessageType, localGetThreadLocalRpcPromise} from '../constants/types/flow-types-chat'
+import {localGetInboxAndUnboxLocalRpcPromise, CommonMessageType, localGetThreadLocalRpcPromise} from '../constants/types/flow-types-chat'
 import {takeLatest} from 'redux-saga'
 
 import type {LoadMoreMessages, ConversationIDKey, SelectConversation, LoadInbox, Message, InboxState, LoadedInbox} from '../constants/chat'
-import type {MessageUnboxed, GetInboxLocalRes} from '../constants/types/flow-types-chat'
+import type {MessageUnboxed, GetInboxAndUnboxLocalRes} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
@@ -25,26 +25,31 @@ function selectConversation (conversationIDKey: ConversationIDKey): SelectConver
   return {type: Constants.selectConversation, payload: {conversationIDKey}}
 }
 
-function _inboxToConversations (inbox: GetInboxLocalRes): List<InboxState> {
-  return List((inbox.conversationsUnverified || []).map(convo => {
+function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxState> {
+  return List((inbox.conversations || []).map(convo => {
+    const recentMessage: ?MessageUnboxed = (convo.maxMessages || []).find(message => (
+      message.state === 1 && message.valid && message.valid.messageBody.messageType === 1
+    ))
+
+    let snippet
+    try {
+      // $FlowIssue
+      snippet = recentMessage.valid.messageBody.text.body
+    } catch (_) { }
+
     return new InboxStateRecord({
-      conversationIDKey: conversationIDToKey(convo.metadata.conversationID),
-      participants:
-        convo.maxMsgs &&
-        convo.maxMsgs.length &&
-        convo.maxMsgs[0].clientHeader &&
-        convo.maxMsgs[0].clientHeader.tlfName &&
-        List(convo.maxMsgs[0].clientHeader.tlfName.split(',')) || List(), // TODO in recent order... somehow
+      conversationIDKey: conversationIDToKey(convo.info.id),
+      participants: List(convo.info.tlfName.split(',')) || List(), // TODO in recent order... somehow
       muted: false,
-      time: 'TODO',
-      snippet: 'TODO',
+      time: 'Time',
+      snippet,
     })
   }))
 }
 
 function * _loadInbox (): SagaGenerator<any, any> {
   // $ForceType
-  const inbox: GetInboxLocalRes = yield call(localGetInboxLocalRpcPromise, {params: {}})
+  const inbox: GetInboxAndUnboxLocalRes = yield call(localGetInboxAndUnboxLocalRpcPromise, {params: {}})
   console.log('aaaa got inbox', inbox)
 
   const conversations: List<InboxState> = _inboxToConversations(inbox)
