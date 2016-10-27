@@ -3,7 +3,7 @@ import Container from '../../forms/container.desktop'
 import React from 'react'
 import openURL from '../../../util/open-url'
 import type {Props} from './index.render'
-import type {RPCError} from '../../../constants/types/flow-types'
+import {RPCError} from '../../../util/errors'
 import {ConstantsStatusCode} from '../../../constants/types/flow-types'
 import {Text} from '../../../common-adapters'
 
@@ -84,7 +84,7 @@ const renderError = (error: RPCError) => {
           <Text type='BodySmall' style={{display: 'inline-block'}}> - Go back and provision with another device or paper key</Text>
         </p>)
     default:
-      return <Text type='Body'>Unknown error: {error.desc}</Text>
+      return <Text type='Body'>Unknown error: {error.message}</Text>
   }
 }
 

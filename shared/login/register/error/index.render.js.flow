@@ -1,6 +1,6 @@
 // @flow
 import {Component} from 'react'
-import type {RPCError} from '../../../constants/types/flow-types'
+import type {RPCError} from '../../../util/errors'
 
 export type Props = {
   error: RPCError,

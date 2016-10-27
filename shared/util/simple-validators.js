@@ -1,5 +1,6 @@
 // @flow
 import _ from 'lodash'
+import {ValidationError} from './errors'
 
 function isBlank (s: string): boolean {
   return _.trim(s).length === 0
@@ -21,34 +22,34 @@ function isEmptyOrBlank (thing: ?string): boolean {
 }
 
 // Returns an error string if not valid
-function isValidCommon (thing: ?string): ?string {
-  if (isEmptyOrBlank(thing)) return 'Cannot be blank'
-  if (thing && hasSpaces(thing)) return 'No spaces allowed'
+function isValidCommon (thing: ?string): ?Error {
+  if (isEmptyOrBlank(thing)) return new ValidationError('Cannot be blank')
+  if (thing && hasSpaces(thing)) return new ValidationError('No spaces allowed')
 }
 
 // Returns an error string if not valid
-function isValidUsername (username: ?string): ?string {
+function isValidUsername (username: ?string): ?Error {
   const commonError = isValidCommon(username)
   if (commonError) {
     return commonError
   }
 }
 
-// Returns an error string if not valid
-function isValidEmail (email: ?string): ?string {
+// Returns an error if not valid
+function isValidEmail (email: ?string): ?Error {
   const commonError = isValidCommon(email)
   if (commonError) {
     return commonError
   }
 
   if (email && !hasAtSign(email)) {
-    return 'Invalid email address.'
+    return new ValidationError('Invalid email address.')
   }
 }
 
 // Returns an error string if not valid
-function isValidName (name: ?string): ?string {
-  if (isEmptyOrBlank(name)) return 'Please provide your name.'
+function isValidName (name: ?string): ?Error {
+  if (isEmptyOrBlank(name)) return new ValidationError('Please provide your name.')
 }
 
 export {
