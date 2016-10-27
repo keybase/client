@@ -72,7 +72,6 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
   }
 
   const conversationID = keyToConversationID(conversationIDKey)
-
   const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
   const oldConversationState = yield select(conversationStateSelector)
 
@@ -91,29 +90,42 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
     next = oldConversationState.get('paginationNext', undefined)
   }
 
-  // const paginationNextSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey, Map()).get('paginationNext', undefined)
-  // const next = yield select(paginationNextSelector)
-
-  const query = {markAsRead: true}
-  const pagination = {
-    next,
-    num: Constants.maxMessagesToLoadAtATime,
-  }
-
   yield put({type: Constants.loadingMessages, payload: {conversationIDKey}})
 
-  const thread = yield call(localGetThreadLocalRpcPromise, {param: {conversationID, query, pagination}})
-  console.log('aaaa got thread', thread)
+  const thread = yield call(localGetThreadLocalRpcPromise, {param: {
+    conversationID,
+    query: {markAsRead: true},
+    pagination: {
+      next,
+      num: Constants.maxMessagesToLoadAtATime,
+    },
+  }})
 
   const yourNameSelector = (state: TypedState) => state.config.username
   const yourName = yield select(yourNameSelector)
 
   const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _threadToStorable(message, idx, yourName)).reverse()
-  console.log('aaaa got messages', messages)
-  const moreToLoad = thread && thread.thread && thread.thread.pagination && !thread.thread.pagination.last
-  const paginationNext = thread && thread.thread && thread.thread.pagination && thread.thread.pagination.next
-  // const paginationPrevious = thread && thread.thread && thread.thread.pagination && thread.thread.pagination.previous
-  yield put({type: Constants.prependMessages, payload: {conversationIDKey, messages, moreToLoad, paginationNext/*, paginationPrevious*/}})
+  const pagination = _threadToPagination(thread)
+
+  yield put({
+    type: Constants.prependMessages,
+    payload: {
+      conversationIDKey,
+      messages,
+      moreToLoad: !pagination.last,
+      paginationNext: pagination.next,
+    },
+  })
+}
+
+function _threadToPagination (thread) {
+  if (thread && thread.thread && thread.thread.pagination) {
+    return thread.thread.pagination
+  }
+  return {
+    last: undefined,
+    next: undefined,
+  }
 }
 
 function _threadToStorable (message: MessageUnboxed, idx: number, yourName): Message {
