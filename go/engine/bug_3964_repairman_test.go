@@ -296,6 +296,7 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 
 func TestBug3964Repairman(t *testing.T) {
 	var log *auditLog
+	t.Skip()
 
 	user, dev1, dev2, cleanup := SetupTwoDevicesWithHook(t, "bug", func(tc *libkb.TestContext) {
 		log = &auditLog{l: tc.G.Log}
