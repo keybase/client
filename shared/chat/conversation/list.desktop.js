@@ -1,4 +1,8 @@
 // @flow
+// An infinite scrolling chat list. Using react-virtualized which doens't really handle this case out of the box
+// We control which set of messages we render in our state object
+// We load that in in our constructor, after you stop scrolling or if we get an update and we're not currently scrolling
+
 import LoadingMore from './messages/loading-more'
 import React, {Component} from 'react'
 import _ from 'lodash'
@@ -7,10 +11,13 @@ import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'r
 import {Box} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
+import type {Message} from '../../constants/chat'
 import type {Props} from './'
 
 type State = {
   isLockedToBottom: boolean,
+  isScrolling: boolean,
+  messages: List<Message>,
   scrollTop: number,
 }
 
@@ -24,17 +31,12 @@ class ConversationList extends Component<void, Props, State> {
 
     this.state = {
       isLockedToBottom: true,
+      isScrolling: false,
+      messages: props.messages,
       scrollTop: 0,
     }
 
     this._cellCache = new CellSizeCache(this._indexToID)
-
-    // TEMP
-    // setInterval(() => {
-      // if (this.props.moreToLoad) {
-        // this.props.loadMoreMessages()
-      // }
-    // }, 5000)
   }
 
   _indexToID = index => {
@@ -44,7 +46,7 @@ class ConversationList extends Component<void, Props, State> {
     } else {
       // minus one because loader message is there
       const messageIndex = index - 1
-      const message = this.props.messages.get(messageIndex)
+      const message = this.state.messages.get(messageIndex)
       const id = message && message.messageID
       if (id == null) {
         console.warn('id is null for index:', messageIndex)
@@ -53,12 +55,12 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  componentDidUpdate (prevProps: Props) {
-    if (!this.state.isLockedToBottom && this.props.messages !== prevProps.messages && prevProps.messages.count() > 1) {
-      // find diff where the subset is
-      const prependedCount = this.props.messages.indexOf(prevProps.messages.first())
+  componentDidUpdate (prevProps: Props, prevState: State) {
+    if (!this.state.isLockedToBottom && this.state.messages !== prevState.messages && prevState.messages.count() > 1) {
+      // Figure out how many new items we have
+      const prependedCount = this.state.messages.indexOf(prevState.messages.first())
       if (prependedCount !== -1) {
-        // measure new items
+        // Measure the new items so we can adjust our scrollTop so your position doesn't jump
         // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
         this.setState({scrollTop: this.state.scrollTop + _.range(0, prependedCount) // eslint-disable-line react/no-did-update-set-state
           .map(index => this._cellMeasurer.getRowHeight({index: index + 1})) // +1 since 0 is the loading message
@@ -67,43 +69,61 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
-    if (!index) {
-      return <LoadingMore style={style} key={key || index} loading={this.props.moreToLoad} />
+  componentWillReceiveProps (nextProps: Props) {
+    // If we're not scrolling let's update our internal messages
+    if (!this.state.isScrolling) {
+      this.setState({
+        messages: nextProps.messages,
+      })
     }
-
-    const message = this.props.messages.get(index - 1)
-    return messageFactory(message, index, key, style, isScrolling)
   }
 
+  _onScrollSettled = _.debounce(() => {
+    // If we've stopped scrolling let's update our internal messages
+    this.setState({
+      isScrolling: false,
+      ...(this.state.messages !== this.props.messages ? {messages: this.props.messages} : null),
+    })
+  }, 1000)
+
   _onScroll = _.throttle(({clientHeight, scrollHeight, scrollTop}) => {
-    // not really loaded
+    // Do nothing if we haven't really loaded anything
     if (!clientHeight) {
       return
     }
 
-    // TODO do this if you're sitting on zero for awhile and cancel otherwise...
-    // if (scrollTop === 0 && !this.props.isLoading && this.props.moreToLoad) {
+    // At the top, load more messages. Action handles loading state and if there's actually any more
     if (scrollTop === 0) {
       this.props.loadMoreMessages()
     }
 
     const isLockedToBottom = scrollTop + clientHeight === scrollHeight
-    const newState = {
+    this.setState({
       isLockedToBottom,
+      isScrolling: true,
       scrollTop,
-    }
-    this.setState(newState)
+    })
+
+    // This is debounced so it resets the call
+    this._onScrollSettled()
   }, 100)
 
+  _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
+    if (!index) {
+      return <LoadingMore style={style} key={key || index} loading={this.props.moreToLoad} />
+    }
+
+    const message = this.state.messages.get(index - 1)
+    return messageFactory(message, index, key, style, isScrolling)
+  }
+
   render () {
-    const countWithLoading = this.props.messages.size + 1 // Loading row on top always for now
+    const countWithLoading = this.state.messages.size + 1 // Loading row on top always
     let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <style>{demoAnimation}</style>
         <AutoSizer>
           {({height, width}) => (
             <CellMeasurer
@@ -139,26 +159,6 @@ class CellSizeCache extends defaultCellMeasurerCellSizeCache {
     super({uniformColumnWidth: true})
     this._indexToID = indexToID
   }
-  // updateLoadedMessages (newLoadedMessages) {
-    // this.loadedMessages = newLoadedMessages
-  // }
-
-  // _toId (index) {
-    // let id
-    // // loader message
-    // if (index === 0) {
-      // id = 0
-    // } else {
-      // // minus one because loader message is there
-      // const m = index && this.loadedMessages.get(index - 1)
-      // id = m && m.messageID
-      // if (id == null) {
-        // console.warn('id is null for index:', index - 1)
-      // }
-    // }
-
-    // return id
-  // }
 
   getRowHeight (index) {
     return super.getRowHeight(this._indexToID(index))
@@ -177,25 +177,4 @@ class CellSizeCache extends defaultCellMeasurerCellSizeCache {
   }
 }
 
-const demoAnimation = `
-@-webkit-keyframes demo {
-    0% {
-        background-color: white;
-        opacity:1;
-    }
-    50% {
-        background-color: red;
-    }
-    100% {
-        background-color: white;
-    }
-}
-
-.demo {
-    -webkit-animation-name: demo;
-    -webkit-animation-duration: 900ms;
-    -webkit-animation-iteration-count: 1;
-    -webkit-animation-timing-function: ease-in-out;
-}
-`
 export default ConversationList
