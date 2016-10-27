@@ -391,7 +391,7 @@ export type BodyPlaintextVersion =
 
 export type ChatActivity = {
   ActivityType: ChatActivityType,
-  IncomingMessage?: ?MessageUnboxed,
+  IncomingMessage?: ?IncomingMessage,
 }
 
 export type ChatActivityType = 
@@ -599,6 +599,11 @@ export type HeaderPlaintextVersion =
 export type InboxView = {
   conversations?: ?Array<Conversation>,
   pagination?: ?Pagination,
+}
+
+export type IncomingMessage = {
+  message: MessageUnboxed,
+  convID: ConversationID,
 }
 
 export type LocalSource = {
