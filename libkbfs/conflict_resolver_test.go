@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,6 +52,28 @@ func (fc failingCodec) Encode(interface{}) ([]byte, error) {
 	return nil, errors.New("Stopping resolution process early")
 }
 
+func crMakeFakeRMD(rev MetadataRevision, bid BranchID) ImmutableRootMetadata {
+	var writerFlags WriterFlags
+	if bid != NullBranchID {
+		writerFlags = MetadataFlagUnmerged
+	}
+	key := MakeFakeVerifyingKeyOrBust("fake key")
+	return MakeImmutableRootMetadata(&RootMetadata{
+		bareMd: &BareRootMetadataV2{
+			WriterMetadataV2: WriterMetadataV2{
+				ID:     FakeTlfID(0x1, false),
+				WFlags: writerFlags,
+				BID:    bid,
+			},
+			WriterMetadataSigInfo: kbfscrypto.SignatureInfo{
+				VerifyingKey: key,
+			},
+			Revision: rev,
+		},
+		tlfHandle: &TlfHandle{name: "fake"},
+	}, key, fakeMdID(byte(rev)), time.Now())
+}
+
 func TestCRInput(t *testing.T) {
 	mockCtrl, config, cr := crTestInit(t)
 	defer crTestShutdown(mockCtrl, config, cr)
@@ -68,31 +91,12 @@ func TestCRInput(t *testing.T) {
 	unmergedHead := MetadataRevision(5)
 	mergedHead := MetadataRevision(15)
 
-	cr.fbo.head = MakeImmutableRootMetadata(&RootMetadata{
-		bareMd: &BareRootMetadataV2{
-			WriterMetadataV2: WriterMetadataV2{
-				ID:     FakeTlfID(0x1, false),
-				WFlags: MetadataFlagUnmerged,
-			},
-			Revision: unmergedHead,
-		},
-		tlfHandle: &TlfHandle{name: "fake"},
-	}, fakeMdID(1), time.Now())
+	cr.fbo.head = crMakeFakeRMD(unmergedHead, cr.fbo.bid)
 	// serve all the MDs from the cache
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
 	for i := unmergedHead; i >= branchPoint+1; i-- {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(
-			MakeImmutableRootMetadata(&RootMetadata{
-				bareMd: &BareRootMetadataV2{
-					WriterMetadataV2: WriterMetadataV2{
-						ID:     FakeTlfID(0x1, false),
-						WFlags: MetadataFlagUnmerged,
-						BID:    cr.fbo.bid,
-					},
-					Revision: i,
-				},
-				tlfHandle: &TlfHandle{name: "fake"},
-			}, fakeMdID(byte(i)), time.Now()), nil)
+			crMakeFakeRMD(i, cr.fbo.bid), nil)
 	}
 	for i := MetadataRevisionInitial; i <= branchPoint; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(
@@ -103,15 +107,7 @@ func TestCRInput(t *testing.T) {
 
 	for i := branchPoint + 1; i <= mergedHead; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
-			MakeImmutableRootMetadata(&RootMetadata{
-				bareMd: &BareRootMetadataV2{
-					WriterMetadataV2: WriterMetadataV2{
-						ID: FakeTlfID(0x1, false),
-					},
-					Revision: i,
-				},
-				tlfHandle: &TlfHandle{name: "fake"},
-			}, fakeMdID(byte(i)), time.Now()), nil)
+			crMakeFakeRMD(i, NullBranchID), nil)
 	}
 	for i := mergedHead + 1; i <= branchPoint+2*maxMDsAtATime; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
@@ -152,31 +148,11 @@ func TestCRInputFracturedRange(t *testing.T) {
 	unmergedHead := MetadataRevision(5)
 	mergedHead := MetadataRevision(15)
 
-	cr.fbo.head = MakeImmutableRootMetadata(&RootMetadata{
-		bareMd: &BareRootMetadataV2{
-			WriterMetadataV2: WriterMetadataV2{
-				ID:     FakeTlfID(0x1, false),
-				WFlags: MetadataFlagUnmerged,
-			},
-			Revision: unmergedHead,
-		},
-		tlfHandle: &TlfHandle{name: "fake"},
-	}, fakeMdID(1), time.Now())
+	cr.fbo.head = crMakeFakeRMD(unmergedHead, cr.fbo.bid)
 	// serve all the MDs from the cache
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
 	for i := unmergedHead; i >= branchPoint+1; i-- {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(
-			MakeImmutableRootMetadata(&RootMetadata{
-				bareMd: &BareRootMetadataV2{
-					Revision: i,
-					WriterMetadataV2: WriterMetadataV2{
-						ID:     FakeTlfID(0x1, false),
-						WFlags: MetadataFlagUnmerged,
-						BID:    cr.fbo.bid,
-					},
-				},
-				tlfHandle: &TlfHandle{name: "fake"},
-			}, fakeMdID(byte(i)), time.Now()), nil)
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(crMakeFakeRMD(i, cr.fbo.bid), nil)
 	}
 	for i := MetadataRevisionInitial; i <= branchPoint; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(
@@ -191,16 +167,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 		// be fetched from the server.
 		if i != skipCacheRevision {
 			config.mockMdcache.EXPECT().Get(cr.fbo.id(), i,
-				NullBranchID).Return(
-				MakeImmutableRootMetadata(&RootMetadata{
-					bareMd: &BareRootMetadataV2{
-						WriterMetadataV2: WriterMetadataV2{
-							ID: FakeTlfID(0x1, false),
-						},
-						Revision: i,
-					},
-					tlfHandle: &TlfHandle{name: "fake"},
-				}, fakeMdID(byte(i)), time.Now()), nil)
+				NullBranchID).Return(crMakeFakeRMD(i, NullBranchID), nil)
 		} else {
 			config.mockMdcache.EXPECT().Get(cr.fbo.id(), i,
 				NullBranchID).Return(
@@ -209,15 +176,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 	}
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(),
 		skipCacheRevision, skipCacheRevision).Return(
-		[]ImmutableRootMetadata{MakeImmutableRootMetadata(&RootMetadata{
-			bareMd: &BareRootMetadataV2{
-				WriterMetadataV2: WriterMetadataV2{
-					ID: FakeTlfID(0x1, false),
-				},
-				Revision: skipCacheRevision,
-			},
-			tlfHandle: &TlfHandle{name: "fake"},
-		}, fakeMdID(byte(skipCacheRevision)), time.Now())}, nil)
+		[]ImmutableRootMetadata{crMakeFakeRMD(skipCacheRevision, NullBranchID)}, nil)
 	for i := mergedHead + 1; i <= branchPoint+2*maxMDsAtATime; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
 			ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), i, NullBranchID})

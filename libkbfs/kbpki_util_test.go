@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -28,6 +29,16 @@ func (d *daemonKBPKI) GetCurrentUserInfo(ctx context.Context) (
 		return libkb.NormalizedUsername(""), keybase1.UID(""), err
 	}
 	return session.Name, session.UID, nil
+}
+
+func (d *daemonKBPKI) GetCurrentVerifyingKey(ctx context.Context) (
+	kbfscrypto.VerifyingKey, error) {
+	const sessionID = 0
+	session, err := d.daemon.CurrentSession(ctx, sessionID)
+	if err != nil {
+		return kbfscrypto.VerifyingKey{}, err
+	}
+	return session.VerifyingKey, nil
 }
 
 func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (

@@ -5,12 +5,15 @@
 package libkbfs
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/stretchr/testify/require"
 )
 
 func mdCacheInit(t *testing.T, cap int) (
@@ -31,12 +34,20 @@ func mdCacheShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 
 func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	mStatus MergeStatus, bid BranchID, h *TlfHandle, config *ConfigMock) {
+	key, err := config.KBPKI().GetCurrentVerifyingKey(context.Background())
+	if err != nil {
+		t.Fatalf("Couldn't get verifying key: %v", err)
+	}
+
 	rmd := MakeRootMetadata(
 		&BareRootMetadataV2{
 			WriterMetadataV2: WriterMetadataV2{
 				ID:    tlf,
 				WKeys: make(TLFWriterKeyGenerations, 0, 1),
 				BID:   bid,
+			},
+			WriterMetadataSigInfo: kbfscrypto.SignatureInfo{
+				VerifyingKey: key,
 			},
 			Revision: rev,
 			RKeys:    make(TLFReaderKeyGenerations, 1, 1),
@@ -48,17 +59,15 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	}
 
 	// put the md
-	irmd := MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
+	irmd := MakeImmutableRootMetadata(rmd, key, fakeMdID(1), time.Now())
 	if err := config.MDCache().Put(irmd); err != nil {
 		t.Errorf("Got error on put on md %v: %v", tlf, err)
 	}
 
 	// make sure we can get it successfully
-	if irmd2, err := config.MDCache().Get(tlf, rev, bid); err != nil {
-		t.Errorf("Got error on get for md %v: %v", tlf, err)
-	} else if irmd2 != irmd {
-		t.Errorf("Got back unexpected metadata: %v", irmd2)
-	}
+	irmd2, err := config.MDCache().Get(tlf, rev, bid)
+	require.NoError(t, err)
+	require.Equal(t, irmd, irmd2)
 }
 
 func TestMdcachePut(t *testing.T) {
@@ -117,14 +126,14 @@ func TestMdcacheReplace(t *testing.T) {
 
 	// Change the BID
 	bid := FakeBranchID(1)
-	newRmd, err := irmd.deepCopy(kbfscodec.NewMsgpack(), false)
+	newRmd, err := irmd.deepCopy(kbfscodec.NewMsgpack())
 	if err != nil {
 		t.Fatalf("Deep-copy error: %v", err)
 	}
 
 	newRmd.SetBranchID(bid)
 	err = config.MDCache().Replace(MakeImmutableRootMetadata(newRmd,
-		fakeMdID(2), time.Now()), NullBranchID)
+		irmd.LastModifyingWriterVerifyingKey(), fakeMdID(2), time.Now()), NullBranchID)
 	if err != nil {
 		t.Fatalf("Replace error: %v", err)
 	}

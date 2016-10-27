@@ -424,11 +424,12 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID,
 	rmdses := make([]*RootMetadataSigned, len(response.MdBlocks))
 	for i, block := range response.MdBlocks {
 		ver, max := MetadataVer(block.Version), md.config.MetadataVersion()
-		rmds, err := DecodeRootMetadataSigned(md.config.Codec(), id, ver, max, block.Block)
+		rmds, err := DecodeRootMetadataSigned(
+			md.config.Codec(), id, ver, max, block.Block,
+			keybase1.FromTime(block.Timestamp))
 		if err != nil {
 			return id, nil, err
 		}
-		rmds.untrustedServerTimestamp = keybase1.FromTime(block.Timestamp)
 		rmdses[i] = rmds
 	}
 	return id, rmdses, nil
@@ -476,7 +477,7 @@ func (md *MDServerRemote) GetRange(ctx context.Context, id TlfID,
 func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 	extra ExtraMetadata) error {
 	// encode MD block
-	rmdsBytes, err := md.config.Codec().Encode(rmds)
+	rmdsBytes, err := EncodeRootMetadataSigned(md.config.Codec(), rmds)
 	if err != nil {
 		return err
 	}

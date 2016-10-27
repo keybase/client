@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"golang.org/x/net/context"
 )
 
 // WriterMetadataV2 stores the metadata for a TLF that is
@@ -266,9 +267,8 @@ func (md *BareRootMetadataV2) Update(id TlfID, h BareTlfHandle) error {
 	return nil
 }
 
-// DeepCopy implements the BareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) DeepCopy(
-	codec kbfscodec.Codec) (BareRootMetadata, error) {
+func (md *BareRootMetadataV2) deepCopy(
+	codec kbfscodec.Codec) (*BareRootMetadataV2, error) {
 	var newMd BareRootMetadataV2
 	if err := kbfscodec.Update(codec, &newMd, md); err != nil {
 		return nil, err
@@ -276,11 +276,25 @@ func (md *BareRootMetadataV2) DeepCopy(
 	return &newMd, nil
 }
 
+// DeepCopy implements the BareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) DeepCopy(
+	codec kbfscodec.Codec) (MutableBareRootMetadata, error) {
+	return md.deepCopy(codec)
+}
+
 // MakeSuccessorCopy implements the ImmutableBareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) MakeSuccessorCopy(
-	codec kbfscodec.Codec) (BareRootMetadata, error) {
+	codec kbfscodec.Codec, isReadableAndWriter bool) (
+	MutableBareRootMetadata, error) {
 	// MDv3 TODO: Make a v3 successor.
-	return md.DeepCopy(codec)
+	mdCopy, err := md.deepCopy(codec)
+	if err != nil {
+		return nil, err
+	}
+	if isReadableAndWriter {
+		mdCopy.WriterMetadataSigInfo = kbfscrypto.SignatureInfo{}
+	}
+	return mdCopy, nil
 }
 
 // CheckValidSuccessor implements the BareRootMetadata interface for BareRootMetadataV2.
@@ -653,11 +667,6 @@ func (md *BareRootMetadataV2) LastModifyingWriter() keybase1.UID {
 	return md.WriterMetadataV2.LastModifyingWriter
 }
 
-// LastModifyingWriterKID implements the BareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) LastModifyingWriterKID() keybase1.KID {
-	return md.WriterMetadataSigInfo.VerifyingKey.KID()
-}
-
 // GetLastModifyingUser implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) GetLastModifyingUser() keybase1.UID {
 	return md.LastModifyingUser
@@ -769,15 +778,20 @@ func (md *BareRootMetadataV2) GetSerializedWriterMetadata(
 	return codec.Encode(md.WriterMetadataV2)
 }
 
-// GetWriterMetadataSigInfo implements the BareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) GetWriterMetadataSigInfo() kbfscrypto.SignatureInfo {
-	return md.WriterMetadataSigInfo
-}
+// SignWriterMetadataInternally implements the MutableBareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) SignWriterMetadataInternally(
+	ctx context.Context, codec kbfscodec.Codec, signer cryptoSigner) error {
+	buf, err := codec.Encode(md.WriterMetadataV2)
+	if err != nil {
+		return err
+	}
 
-// SetWriterMetadataSigInfo implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) SetWriterMetadataSigInfo(
-	sigInfo kbfscrypto.SignatureInfo) {
+	sigInfo, err := signer.Sign(ctx, buf)
+	if err != nil {
+		return err
+	}
 	md.WriterMetadataSigInfo = sigInfo
+	return nil
 }
 
 // SetLastModifyingWriter implements the MutableBareRootMetadata interface for BareRootMetadataV2.
@@ -1038,14 +1052,4 @@ func (md *BareRootMetadataV2) GetHistoricTLFCryptKey(
 	kbfscrypto.TLFCryptKey, error) {
 	return kbfscrypto.TLFCryptKey{}, errors.New(
 		"TLF crypt key not symmetrically encrypted")
-}
-
-// BareRootMetadataSignedV2 is the MD that is signed by the reader or
-// writer including the signature info. Unlike RootMetadataSigned,
-// it contains exactly the serializable metadata and signature info.
-type BareRootMetadataSignedV2 struct {
-	// signature over the root metadata by the private signing key
-	SigInfo kbfscrypto.SignatureInfo `codec:",omitempty"`
-	// all the metadata
-	MD BareRootMetadataV2
 }

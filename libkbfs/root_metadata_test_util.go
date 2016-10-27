@@ -4,15 +4,41 @@
 
 package libkbfs
 
+import (
+	"context"
+	"time"
+
+	"github.com/keybase/kbfs/kbfscodec"
+)
+
 // This file contains test functions related to RootMetadata that need
 // to be exported for use by other modules' tests.
 
-// NewRootMetadataSignedForTest returns a new RootMetadataSigned for testing.
-func NewRootMetadataSignedForTest(id TlfID, h BareTlfHandle) (*RootMetadataSigned, error) {
-	rmds := NewRootMetadataSigned()
-	err := rmds.MD.Update(id, h)
+// NewRootMetadataSignedForTest returns a new RootMetadataSigned
+// object at the latest known version for testing.
+func NewRootMetadataSignedForTest(
+	id TlfID, h BareTlfHandle, codec kbfscodec.Codec,
+	signer cryptoSigner) (*RootMetadataSigned, error) {
+	var md BareRootMetadataV2
+	// MDv3 TODO: uncomment the below when we're ready for MDv3
+	// var md BareRootMetadataV3
+	err := md.Update(id, h)
 	if err != nil {
 		return nil, err
 	}
+
+	ctx := context.Background()
+
+	// Encode and sign writer metadata.
+	err = md.SignWriterMetadataInternally(ctx, codec, signer)
+	if err != nil {
+		return nil, err
+	}
+
+	rmds, err := signMD(ctx, codec, signer, &md, time.Time{})
+	if err != nil {
+		return nil, err
+	}
+
 	return rmds, nil
 }

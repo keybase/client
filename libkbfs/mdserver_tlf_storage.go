@@ -60,10 +60,10 @@ import (
 // separately in dir/wkbv3 (dir/rkbv3). The number of bundles is
 // small, so no need to splay them.
 type mdServerTlfStorage struct {
+	tlfID  TlfID
 	codec  kbfscodec.Codec
 	crypto cryptoPure
 	clock  Clock
-	tlfID  TlfID
 	mdVer  MetadataVer
 	dir    string
 
@@ -73,14 +73,14 @@ type mdServerTlfStorage struct {
 	branchJournals map[BranchID]mdIDJournal
 }
 
-func makeMDServerTlfStorage(codec kbfscodec.Codec,
-	crypto cryptoPure, clock Clock, tlfID TlfID,
-	mdVer MetadataVer, dir string) *mdServerTlfStorage {
+func makeMDServerTlfStorage(tlfID TlfID, codec kbfscodec.Codec,
+	crypto cryptoPure, clock Clock, mdVer MetadataVer,
+	dir string) *mdServerTlfStorage {
 	journal := &mdServerTlfStorage{
+		tlfID:          tlfID,
 		codec:          codec,
 		crypto:         crypto,
 		clock:          clock,
-		tlfID:          tlfID,
 		mdVer:          mdVer,
 		dir:            dir,
 		branchJournals: make(map[BranchID]mdIDJournal),
@@ -135,13 +135,11 @@ func (s *mdServerTlfStorage) getMDReadLocked(id MdID) (
 	}
 
 	rmds, err := DecodeRootMetadataSigned(
-		s.codec, s.tlfID, srmds.Version, s.mdVer,
-		srmds.EncodedRMDS)
+		s.codec, s.tlfID, srmds.Version, s.mdVer, srmds.EncodedRMDS,
+		srmds.Timestamp)
 	if err != nil {
 		return nil, err
 	}
-
-	rmds.untrustedServerTimestamp = srmds.Timestamp
 
 	// Check integrity.
 
@@ -176,7 +174,7 @@ func (s *mdServerTlfStorage) putMDLocked(
 		return id, nil
 	}
 
-	encodedRMDS, err := s.codec.Encode(rmds)
+	encodedRMDS, err := EncodeRootMetadataSigned(s.codec, rmds)
 	if err != nil {
 		return MdID{}, err
 	}
