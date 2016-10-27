@@ -104,6 +104,19 @@ func (ps PassphraseStream) LksClientHalf() LKSecClientHalf {
 	return ret
 }
 
+func (ps PassphraseStream) ToLKSec(g *GlobalContext, uid keybase1.UID) (*LKSec, error) {
+	ch, err := NewLKSecClientHalfFromBytes(ps.stream[lksIndex:])
+	if err != nil {
+		return nil, err
+	}
+	return &LKSec{
+		Contextified: NewContextified(g),
+		clientHalf:   ch,
+		ppGen:        ps.Generation(),
+		uid:          uid,
+	}, nil
+}
+
 func (ps PassphraseStream) PDPKA5KID() (keybase1.KID, error) {
 	return seedToPDPKAKID(ps.EdDSASeed())
 }

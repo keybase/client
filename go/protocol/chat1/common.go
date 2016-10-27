@@ -69,6 +69,29 @@ var TopicTypeRevMap = map[TopicType]string{
 	2: "DEV",
 }
 
+type ConversationStatus int
+
+const (
+	ConversationStatus_UNFILED  ConversationStatus = 0
+	ConversationStatus_FAVORITE ConversationStatus = 1
+	ConversationStatus_IGNORED  ConversationStatus = 2
+	ConversationStatus_BLOCKED  ConversationStatus = 3
+)
+
+var ConversationStatusMap = map[string]ConversationStatus{
+	"UNFILED":  0,
+	"FAVORITE": 1,
+	"IGNORED":  2,
+	"BLOCKED":  3,
+}
+
+var ConversationStatusRevMap = map[ConversationStatus]string{
+	0: "UNFILED",
+	1: "FAVORITE",
+	2: "IGNORED",
+	3: "BLOCKED",
+}
+
 type Pagination struct {
 	Next     []byte `codec:"next" json:"next"`
 	Previous []byte `codec:"previous" json:"previous"`
@@ -104,15 +127,17 @@ var TLFVisibilityRevMap = map[TLFVisibility]string{
 }
 
 type GetInboxQuery struct {
-	ConvID            *ConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
-	TopicType         *TopicType      `codec:"topicType,omitempty" json:"topicType,omitempty"`
-	TlfID             *TLFID          `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
-	TlfVisibility     *TLFVisibility  `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
-	Before            *gregor1.Time   `codec:"before,omitempty" json:"before,omitempty"`
-	After             *gregor1.Time   `codec:"after,omitempty" json:"after,omitempty"`
-	OneChatTypePerTLF *bool           `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
-	UnreadOnly        bool            `codec:"unreadOnly" json:"unreadOnly"`
-	ReadOnly          bool            `codec:"readOnly" json:"readOnly"`
+	ConvID            *ConversationID      `codec:"convID,omitempty" json:"convID,omitempty"`
+	TopicType         *TopicType           `codec:"topicType,omitempty" json:"topicType,omitempty"`
+	TlfID             *TLFID               `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
+	TlfVisibility     *TLFVisibility       `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
+	Before            *gregor1.Time        `codec:"before,omitempty" json:"before,omitempty"`
+	After             *gregor1.Time        `codec:"after,omitempty" json:"after,omitempty"`
+	OneChatTypePerTLF *bool                `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
+	Status            []ConversationStatus `codec:"status" json:"status"`
+	UnreadOnly        bool                 `codec:"unreadOnly" json:"unreadOnly"`
+	ReadOnly          bool                 `codec:"readOnly" json:"readOnly"`
+	ComputeActiveList bool                 `codec:"computeActiveList" json:"computeActiveList"`
 }
 
 type ConversationIDTriple struct {
@@ -125,6 +150,7 @@ type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID       `codec:"conversationID" json:"conversationID"`
 	IsFinalized    bool                 `codec:"isFinalized" json:"isFinalized"`
+	ActiveList     []gregor1.UID        `codec:"activeList" json:"activeList"`
 }
 
 type ConversationReaderInfo struct {

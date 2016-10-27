@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 )
 
 type SKBKeyringFile struct {
@@ -33,6 +34,23 @@ func (k *SKBKeyringFile) Load() (err error) {
 	k.Lock()
 	defer k.Unlock()
 	return k.loadLocked()
+}
+
+func (k *SKBKeyringFile) MTime() (mtime time.Time, err error) {
+	k.Lock()
+	defer k.Unlock()
+	var fi os.FileInfo
+	fi, err = os.Stat(k.filename)
+	if err != nil {
+		return mtime, err
+	}
+	return fi.ModTime(), err
+}
+
+func (k *SKBKeyringFile) MarkDirty() {
+	k.Lock()
+	defer k.Unlock()
+	k.dirty = true
 }
 
 func (k *SKBKeyringFile) loadLocked() (err error) {
@@ -277,6 +295,7 @@ func (k *SKBKeyringFile) GetFilename() string { return k.filename }
 // locking discipline.
 func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	k.G().Log.Debug("+ WriteTo")
+	defer k.G().Log.Debug("- WriteTo")
 	packets := make(KeybasePackets, len(k.Blocks))
 	var err error
 	for i, b := range k.Blocks {
@@ -289,7 +308,85 @@ func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 		k.G().Log.Warning("Encoding problem: %s", err)
 		return 0, err
 	}
-	k.G().Log.Debug("- WriteTo")
 	b64.Close()
 	return 0, nil
+}
+
+func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm DeviceKeyMap) (ret *SKBKeyringFile, serverHalfSet *LKSecServerHalfSet, err error) {
+	defer k.G().Trace("SKBKeyringFile#Bug3964Repair", func() error { return err })()
+
+	var newBlocks []*SKB
+	var hitBug3964 bool
+
+	k.G().Log.Debug("| # of blocks=%d", len(k.Blocks))
+
+	for i, b := range k.Blocks {
+
+		if b.Priv.Data == nil {
+			k.G().Log.Debug("| Null private data at block=%d", i)
+			newBlocks = append(newBlocks, b)
+			continue
+		}
+
+		if b.Priv.Encryption != LKSecVersion {
+			k.G().Log.Debug("| Skipping non-LKSec encryption (%d) at block=%d", b.Priv.Encryption, i)
+			newBlocks = append(newBlocks, b)
+			continue
+		}
+
+		var decryption, reencryption []byte
+		var badMask LKSecServerHalf
+		decryption, badMask, err = lks.decryptForBug3964Repair(b.Priv.Data, dkm)
+		if err != nil {
+			k.G().Log.Debug("| Decryption failed at block=%d; keeping as is (%s)", i, err)
+			newBlocks = append(newBlocks, b)
+			continue
+		}
+
+		if badMask.IsNil() {
+			k.G().Log.Debug("| Nil badmask at block=%d", i)
+			newBlocks = append(newBlocks, b)
+			continue
+		}
+
+		hitBug3964 = true
+		k.G().Log.Debug("| Hit bug 3964 at SKB block=%d", i)
+		if serverHalfSet == nil {
+			serverHalfSet = NewLKSecServerHalfSet()
+		}
+		serverHalfSet.Add(badMask)
+
+		reencryption, err = lks.Encrypt(decryption)
+		if err != nil {
+			k.G().Log.Debug("| reencryption bug at block=%d", i)
+			return nil, nil, err
+		}
+
+		newSKB := &SKB{
+			Contextified: NewContextified(k.G()),
+			Pub:          b.Pub,
+			Type:         b.Type,
+			Priv: SKBPriv{
+				Encryption:           b.Priv.Encryption,
+				PassphraseGeneration: b.Priv.PassphraseGeneration,
+				Data:                 reencryption,
+			},
+		}
+
+		newBlocks = append(newBlocks, newSKB)
+	}
+	if !hitBug3964 {
+		return nil, nil, nil
+	}
+
+	ret = NewSKBKeyringFile(k.G(), k.filename)
+	ret.dirty = true
+	ret.Blocks = newBlocks
+
+	err = ret.Index()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return ret, serverHalfSet, nil
 }

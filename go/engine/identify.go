@@ -94,6 +94,10 @@ func (e *Identify) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Identify) Run(ctx *Context) error {
+
+	// always call Cancel to allow UI servers to cleanup.
+	defer ctx.IdentifyUI.Cancel()
+
 	if err := e.loadUser(); err != nil {
 		return err
 	}

@@ -62,6 +62,9 @@ func (*identifyUI) ReportTrackToken(keybase1.TrackToken) error {
 	return nil
 }
 func (*identifyUI) SetStrict(b bool) {}
+func (*identifyUI) Cancel() error {
+	return nil
+}
 func (*identifyUI) Finish() error {
 	return nil
 }

@@ -262,6 +262,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "DeviceType",
+      "symbols": [
+        "DESKTOP_0",
+        "MOBILE_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "Stream",
       "fields": [

@@ -110,6 +110,10 @@
         {
           "type": "bytes",
           "name": "key"
+        },
+        {
+          "type": "bytes",
+          "name": "verifyKey"
         }
       ]
     },
@@ -447,6 +451,20 @@
         {
           "type": "TLFVisibility",
           "name": "visibility"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writerNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "readerNames"
         }
       ]
     },
@@ -614,12 +632,23 @@
           "name": "oneChatTypePerTLF"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "ConversationStatus"
+          },
+          "name": "statusOverrideDefault"
+        },
+        {
           "type": "boolean",
           "name": "unreadOnly"
         },
         {
           "type": "boolean",
           "name": "readOnly"
+        },
+        {
+          "type": "boolean",
+          "name": "computeActiveList"
         }
       ]
     },
@@ -653,6 +682,19 @@
     {
       "type": "record",
       "name": "PostLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetConversationStatusLocalRes",
       "fields": [
         {
           "type": {
@@ -916,6 +958,19 @@
         }
       ],
       "response": "PostLocalRes"
+    },
+    "SetConversationStatusLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "status",
+          "type": "ConversationStatus"
+        }
+      ],
+      "response": "SetConversationStatusLocalRes"
     },
     "postAttachmentLocal": {
       "request": [

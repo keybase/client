@@ -7,7 +7,7 @@ import {localGetInboxAndUnboxLocalRpcPromise, CommonMessageType, localGetThreadL
 import {takeLatest, takeEvery} from 'redux-saga'
 
 import type {LoadMoreMessages, ConversationIDKey, SelectConversation, LoadInbox, Message, InboxState, LoadedInbox, SetupNewChatHandler, IncomingMessage} from '../constants/chat'
-import type {MessageUnboxed, GetInboxAndUnboxLocalRes} from '../constants/types/flow-types-chat'
+import type {MessageUnboxed, GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
@@ -53,8 +53,9 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxStat
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
   if (action.payload.activity.ActivityType === 1) {
-    const messageUnboxed: ?MessageUnboxed = action.payload.activity.IncomingMessage
-    if (messageUnboxed) {
+    const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.IncomingMessage
+    if (incomingMessage) {
+      const messageUnboxed: MessageUnboxed = incomingMessage.message
       const yourNameSelector = (state: TypedState) => state.config.username
       const yourName = yield select(yourNameSelector)
       const message = _threadToStorable(messageUnboxed, 0, yourName)
@@ -62,7 +63,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       yield put({
         type: Constants.appendMessages,
         payload: {
-          conversationIDKey: 'AADL8hDaPudD3g==', // TEMP hardcoded until we get this plumbed through
+          conversationIDKey: conversationIDToKey(incomingMessage.convID),
           messages: [message],
         },
       })

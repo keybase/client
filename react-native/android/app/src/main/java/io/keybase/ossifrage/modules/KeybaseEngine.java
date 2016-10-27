@@ -14,8 +14,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import go.keybase.Keybase;
+
 import static go.keybase.Keybase.readB64;
-import static go.keybase.Keybase.reset;
 import static go.keybase.Keybase.writeB64;
 import static go.keybase.Keybase.version;
 
@@ -108,7 +109,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     @ReactMethod
     public void reset() {
       try {
-          reset();
+          Keybase.reset();
       } catch (Exception e) {
           e.printStackTrace();
       }

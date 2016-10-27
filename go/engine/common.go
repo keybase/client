@@ -146,7 +146,7 @@ func fetchLKS(ctx *Context, g *libkb.GlobalContext, encKey libkb.GenericKey) (li
 		return 0, dummy, err
 	}
 
-	//  Now try to decrypt with the unlocked device key
+	// Now try to decrypt with the unlocked device key
 	msg, _, err := encKey.DecryptFromString(ctext)
 	if err != nil {
 		return 0, dummy, err

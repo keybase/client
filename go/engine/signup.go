@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
 )
 
@@ -31,6 +31,7 @@ type SignupEngineRunArg struct {
 	Passphrase  string
 	StoreSecret bool
 	DeviceName  string
+	DeviceType  keybase1.DeviceType
 	SkipGPG     bool
 	SkipMail    bool
 	SkipPaper   bool
@@ -183,10 +184,19 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 	args := &DeviceWrapArgs{
 		Me:         s.me,
 		DeviceName: deviceName,
-		DeviceType: libkb.DeviceTypeDesktop,
 		Lks:        s.lks,
 		IsEldest:   true,
 	}
+
+	switch s.arg.DeviceType {
+	case keybase1.DeviceType_DESKTOP:
+		args.DeviceType = libkb.DeviceTypeDesktop
+	case keybase1.DeviceType_MOBILE:
+		args.DeviceType = libkb.DeviceTypeMobile
+	default:
+		return fmt.Errorf("unknown device type: %v", args.DeviceType)
+	}
+
 	eng := NewDeviceWrap(args, s.G())
 	ctx.LoginContext = a
 	if err := RunEngine(eng, ctx); err != nil {

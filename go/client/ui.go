@@ -73,6 +73,10 @@ func (ui BaseIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
 	return nil
 }
 
+func (ui BaseIdentifyUI) Cancel() error {
+	return nil
+}
+
 func (ui BaseIdentifyUI) Finish() error {
 	return nil
 }

@@ -54,23 +54,6 @@ var GPGMethodRevMap = map[GPGMethod]string{
 	2: "GPG_SIGN",
 }
 
-type DeviceType int
-
-const (
-	DeviceType_DESKTOP DeviceType = 0
-	DeviceType_MOBILE  DeviceType = 1
-)
-
-var DeviceTypeMap = map[string]DeviceType{
-	"DESKTOP": 0,
-	"MOBILE":  1,
-}
-
-var DeviceTypeRevMap = map[DeviceType]string{
-	0: "DESKTOP",
-	1: "MOBILE",
-}
-
 type ChooseType int
 
 const (

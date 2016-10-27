@@ -55,6 +55,13 @@ function _channelMapRpcHelper(channelConfig: ChannelConfig<*>, partialRpcCall: (
   return channelMap
 }
 
+export const CommonConversationStatus = {
+  unfiled: 0,
+  favorite: 1,
+  ignored: 2,
+  blocked: 3,
+}
+
 export const CommonMessageType = {
   none: 0,
   text: 1,
@@ -216,6 +223,18 @@ export function localPostLocalRpcPromise (request: $Exact<requestCommon & {callb
   return new Promise((resolve, reject) => { localPostLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localSetConversationStatusLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localSetConversationStatusLocalResult) => void} & {param: localSetConversationStatusLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.SetConversationStatusLocal'})
+}
+
+export function localSetConversationStatusLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localSetConversationStatusLocalResult) => void} & {param: localSetConversationStatusLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localSetConversationStatusLocalRpc({...request, incomingCallMap, callback}))
+}
+
+export function localSetConversationStatusLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localSetConversationStatusLocalResult) => void} & {param: localSetConversationStatusLocalRpcParam}>): Promise<localSetConversationStatusLocalResult> {
+  return new Promise((resolve, reject) => { localSetConversationStatusLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteGetInboxRemoteRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.remote.getInboxRemote'})
 }
@@ -324,6 +343,18 @@ export function remoteS3SignRpcPromise (request: $Exact<requestCommon & {callbac
   return new Promise((resolve, reject) => { remoteS3SignRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteSetConversationStatusRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetConversationStatusResult) => void} & {param: remoteSetConversationStatusRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.SetConversationStatus'})
+}
+
+export function remoteSetConversationStatusRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetConversationStatusResult) => void} & {param: remoteSetConversationStatusRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteSetConversationStatusRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteSetConversationStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteSetConversationStatusResult) => void} & {param: remoteSetConversationStatusRpcParam}>): Promise<remoteSetConversationStatusResult> {
+  return new Promise((resolve, reject) => { remoteSetConversationStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteTlfFinalizeRpc (request: Exact<requestCommon & requestErrorCallback & {param: remoteTlfFinalizeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.remote.tlfFinalize'})
 }
@@ -346,6 +377,7 @@ export type Asset = {
   mimeType: string,
   encHash: Hash,
   key: bytes,
+  verifyKey: bytes,
 }
 
 export type BodyPlaintext = 
@@ -360,7 +392,7 @@ export type BodyPlaintextVersion =
 
 export type ChatActivity = {
   ActivityType: ChatActivityType,
-  IncomingMessage?: ?MessageUnboxed,
+  IncomingMessage?: ?IncomingMessage,
 }
 
 export type ChatActivityType = 
@@ -389,6 +421,8 @@ export type ConversationInfoLocal = {
   tlfName: string,
   topicName: string,
   visibility: TLFVisibility,
+  writerNames?: ?Array<string>,
+  readerNames?: ?Array<string>,
 }
 
 export type ConversationLocal = {
@@ -402,6 +436,7 @@ export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
   isFinalized: bool,
+  activeList?: ?Array<gregor1.UID>,
 }
 
 export type ConversationReaderInfo = {
@@ -409,6 +444,12 @@ export type ConversationReaderInfo = {
   readMsgid: MessageID,
   maxMsgid: MessageID,
 }
+
+export type ConversationStatus = 
+    0 // UNFILED_0
+  | 1 // FAVORITE_1
+  | 2 // IGNORED_2
+  | 3 // BLOCKED_3
 
 export type DownloadAttachmentLocalRes = {
   rateLimits?: ?Array<RateLimit>,
@@ -463,8 +504,10 @@ export type GetInboxLocalQuery = {
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
   oneChatTypePerTLF?: ?boolean,
+  statusOverrideDefault?: ?Array<ConversationStatus>,
   unreadOnly: boolean,
   readOnly: boolean,
+  computeActiveList: boolean,
 }
 
 export type GetInboxLocalRes = {
@@ -481,8 +524,10 @@ export type GetInboxQuery = {
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
   oneChatTypePerTLF?: ?boolean,
+  status?: ?Array<ConversationStatus>,
   unreadOnly: boolean,
   readOnly: boolean,
+  computeActiveList: boolean,
 }
 
 export type GetInboxRemoteRes = {
@@ -555,6 +600,11 @@ export type HeaderPlaintextVersion =
 export type InboxView = {
   conversations?: ?Array<Conversation>,
   pagination?: ?Pagination,
+}
+
+export type IncomingMessage = {
+  message: MessageUnboxed,
+  convID: ConversationID,
 }
 
 export type LocalSource = {
@@ -726,6 +776,14 @@ export type S3Params = {
   regionBucketEndpoint: string,
 }
 
+export type SetConversationStatusLocalRes = {
+  rateLimits?: ?Array<RateLimit>,
+}
+
+export type SetConversationStatusRes = {
+  rateLimit?: ?RateLimit,
+}
+
 export type SignatureInfo = {
   v: int,
   s: bytes,
@@ -829,6 +887,11 @@ export type localPostLocalRpcParam = Exact<{
   msg: MessagePlaintext
 }>
 
+export type localSetConversationStatusLocalRpcParam = Exact<{
+  conversationID: ConversationID,
+  status: ConversationStatus
+}>
+
 export type remoteGetInboxRemoteRpcParam = Exact<{
   query?: ?GetInboxQuery,
   pagination?: ?Pagination
@@ -873,6 +936,11 @@ export type remoteS3SignRpcParam = Exact<{
   payload: bytes
 }>
 
+export type remoteSetConversationStatusRpcParam = Exact<{
+  conversationID: ConversationID,
+  status: ConversationStatus
+}>
+
 export type remoteTlfFinalizeRpcParam = Exact<{
   tlfID: TLFID
 }>
@@ -897,6 +965,8 @@ type localPostAttachmentLocalResult = PostLocalRes
 
 type localPostLocalResult = PostLocalRes
 
+type localSetConversationStatusLocalResult = SetConversationStatusLocalRes
+
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 
 type remoteGetMessagesRemoteResult = GetMessagesRemoteRes
@@ -915,6 +985,8 @@ type remotePostRemoteResult = PostRemoteRes
 
 type remoteS3SignResult = bytes
 
+type remoteSetConversationStatusResult = SetConversationStatusRes
+
 export type rpc =
     localDownloadAttachmentLocalRpc
   | localGetConversationForCLILocalRpc
@@ -926,6 +998,7 @@ export type rpc =
   | localNewConversationLocalRpc
   | localPostAttachmentLocalRpc
   | localPostLocalRpc
+  | localSetConversationStatusLocalRpc
   | remoteGetInboxRemoteRpc
   | remoteGetMessagesRemoteRpc
   | remoteGetS3ParamsRpc
@@ -935,6 +1008,7 @@ export type rpc =
   | remoteNewConversationRemoteRpc
   | remotePostRemoteRpc
   | remoteS3SignRpc
+  | remoteSetConversationStatusRpc
   | remoteTlfFinalizeRpc
 export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatAttachmentUploadStart'?: (

@@ -42,6 +42,7 @@ func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res k
 		Passphrase:  arg.Passphrase,
 		StoreSecret: arg.StoreSecret,
 		DeviceName:  arg.DeviceName,
+		DeviceType:  arg.DeviceType,
 		SkipMail:    arg.SkipMail,
 		GenPGPBatch: arg.GenPGPBatch,
 	}

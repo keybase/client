@@ -26,9 +26,14 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	1: "INCOMING_MESSAGE",
 }
 
+type IncomingMessage struct {
+	Message MessageUnboxed `codec:"message" json:"message"`
+	ConvID  ConversationID `codec:"convID" json:"convID"`
+}
+
 type ChatActivity struct {
 	ActivityType    ChatActivityType `codec:"ActivityType" json:"ActivityType"`
-	IncomingMessage *MessageUnboxed  `codec:"IncomingMessage,omitempty" json:"IncomingMessage,omitempty"`
+	IncomingMessage *IncomingMessage `codec:"IncomingMessage,omitempty" json:"IncomingMessage,omitempty"`
 }
 
 type NewChatActivityArg struct {

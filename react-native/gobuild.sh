@@ -5,10 +5,12 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
+arg=${1:-}
+
 local_client=${LOCAL_CLIENT:-"1"}
 local_kbfs=${LOCAL_KBFS:-}
 skip_gomobile_init=${SKIP_GOMOBILE_INIT:-}
-tmp_gopath=${TMP_GOPATH:-"/tmp/go"}
+tmp_gopath=${TMP_GOPATH:-"/tmp/go-${arg}"}
 
 # Original sources
 client_go_dir="$GOPATH/src/github.com/keybase/client/go"
@@ -78,8 +80,6 @@ fi
 
 
 package="github.com/keybase/client/go/bind"
-
-arg=${1:-}
 
 ## TODO(mm) consolidate this with packaging/prerelease/
 current_date=`date -u +%Y%m%d%H%M%S` # UTC

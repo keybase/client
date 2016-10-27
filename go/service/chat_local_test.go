@@ -65,7 +65,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	h := newChatLocalHandler(nil, tc.G, nil)
 	mockRemote := kbtest.NewChatRemoteMock(c.world)
 	h.tlf = kbtest.NewTlfMock(c.world)
-	h.boxer = chat.NewBoxer(tc.G, h.tlf)
+	h.boxer = chat.NewBoxer(tc.G, h.tlf, h.udc)
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: user.Passphrase}
 	}
