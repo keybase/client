@@ -38,6 +38,8 @@
     "util": "0.10.3"
   },
   "devDependencies": {
+    "babel-preset-react-native": "1.9.0",
+    "babel-plugin-transform-builtin-extend": "1.1.0",
     "redux-logger": "2.7.0"
   }
 }
