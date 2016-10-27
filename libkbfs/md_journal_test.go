@@ -540,7 +540,7 @@ func TestMDJournalResolveAndClear(t *testing.T) {
 	require.NoError(t, err)
 
 	resolveRev := firstRevision
-	md := makeMDForTest(t, id, resolveRev, j.uid, firstPrevRoot)
+	md := makeMDForTest(t, id, resolveRev, j.uid, j.key, firstPrevRoot)
 	_, err = j.resolveAndClear(ctx, signer, ekg, bsplit, bid, md)
 	require.NoError(t, err)
 

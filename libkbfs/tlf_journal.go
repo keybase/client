@@ -1452,7 +1452,7 @@ func (j *tlfJournal) resolveBranch(ctx context.Context,
 		localTimestamp: time.Now(),
 	}
 	perRevMap, err := j.unflushedPaths.prepUnflushedPaths(
-		ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, mdInfo)
+		ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -1465,7 +1465,7 @@ func (j *tlfJournal) resolveBranch(ctx context.Context,
 
 	if retry {
 		perRevMap, err = j.unflushedPaths.prepUnflushedPaths(
-			ctx, j.uid, j.key.KID(), j.config.Codec(), j.log, mdInfo)
+			ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
 		if err != nil {
 			return MdID{}, err
 		}
