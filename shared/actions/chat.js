@@ -71,27 +71,36 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
     return
   }
 
-  const query = {
-    markAsRead: true,
-  }
-
-  // const pagination = {
-    // next: bytes,
-    // previous: bytes,
-    // num: int,
-    // last: boolean,
-  // }
-
-  // next = oldPagination.next
-
   const conversationID = keyToConversationID(conversationIDKey)
 
-  const paginationNextSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey, Map()).get('paginationNext', undefined)
-  const next = yield select(paginationNextSelector)
+  const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+  const oldConversationState = yield select(conversationStateSelector)
+
+  let next
+  if (oldConversationState) {
+    if (oldConversationState.get('isLoading')) {
+      console.log('bailing on load more due to isloading already')
+      return
+    }
+
+    if (!oldConversationState.get('moreToLoad')) {
+      console.log('bailing on load more due to no more to load')
+      return
+    }
+
+    next = oldConversationState.get('paginationNext', undefined)
+  }
+
+  // const paginationNextSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey, Map()).get('paginationNext', undefined)
+  // const next = yield select(paginationNextSelector)
+
+  const query = {markAsRead: true}
   const pagination = {
     next,
     num: Constants.maxMessagesToLoadAtATime,
   }
+
+  yield put({type: Constants.loadingMessages, payload: {conversationIDKey}})
 
   const thread = yield call(localGetThreadLocalRpcPromise, {param: {conversationID, query, pagination}})
   console.log('aaaa got thread', thread)

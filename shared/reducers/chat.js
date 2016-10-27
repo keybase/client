@@ -19,8 +19,10 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('conversationStates', state.get('conversationStates').update(action.payload.conversationIDKey, initialConversation,
         conversation => {
           const c1: ConversationState = conversation.set('messages', conversation.get('messages').unshift(...prependMessages))
-          const c2 =  c1.set('moreToLoad', moreToLoad)
-          return c2.set('paginationNext', paginationNext)
+          const c2 = c1.set('moreToLoad', moreToLoad)
+          const c3 = c2.set('paginationNext', paginationNext)
+          const c4 = c3.set('isLoading', false)
+          return c4
         }))
     case Constants.appendMessages:
       const appendMessages = action.payload.messages
@@ -28,6 +30,9 @@ function reducer (state: State = initialState, action: Actions) {
         conversation => conversation.set('messages', conversation.get('messages').push(...appendMessages))))
     case Constants.selectConversation:
       return state.set('selectedConversation', action.payload.conversationIDKey)
+    case Constants.loadingMessages:
+      return state.set('conversationStates', state.get('conversationStates').update(action.payload.conversationIDKey, initialConversation,
+        conversation => conversation.set('isLoading', true)))
     case Constants.loadedInbox:
       return state.set('inbox', action.payload.inbox)
   }

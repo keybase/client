@@ -27,7 +27,8 @@ export type Message = {
 
 export const ConversationStateRecord = Record({
   messages: List(),
-  moreToLoad: true,
+  moreToLoad: false,
+  isLoading: true,
   paginationNext: undefined,
   paginationPrevious: undefined,
 })
@@ -35,6 +36,7 @@ export const ConversationStateRecord = Record({
 export type ConversationState = Record<{
   messages: List<Message>,
   moreToLoad: boolean,
+  isLoading: boolean,
   paginationNext: ?Buffer,
   paginationPrevious: ?Buffer,
 }>
@@ -77,6 +79,7 @@ export const selectConversation = 'chat:selectConversation'
 export const loadInbox = 'chat:loadInbox'
 export const loadedInbox = 'chat:loadedInbox'
 export const loadMoreMessages = 'chat:loadMoreMessages'
+export const loadingMessages = 'chat:loadingMessages'
 export const prependMessages = 'chat:prependMessages'
 
 // TODO paginationprevious
@@ -84,6 +87,7 @@ export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversa
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxStateRecord>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
+export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey}>
 

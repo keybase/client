@@ -83,6 +83,7 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     // TODO do this if you're sitting on zero for awhile and cancel otherwise...
+    // if (scrollTop === 0 && !this.props.isLoading && this.props.moreToLoad) {
     if (scrollTop === 0) {
       this.props.loadMoreMessages()
     }

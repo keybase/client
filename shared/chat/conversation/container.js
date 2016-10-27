@@ -16,6 +16,7 @@ export default connect(
         return {
           messages: conversationState.messages,
           moreToLoad: conversationState.moreToLoad,
+          isLoading: conversationState.isLoading,
         }
       }
     }
@@ -23,6 +24,7 @@ export default connect(
     return {
       messages: List(),
       moreToLoad: false,
+      isLoading: false,
     }
   },
   (dispatch: Dispatch) => ({

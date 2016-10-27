@@ -8,6 +8,7 @@ export type Props = {
   loadMoreMessages: () => void,
   messages: List<Message>,
   moreToLoad: boolean,
+  isLoading: boolean,
 }
 
 export default class Conversation extends Component<void, Props, void> { }
