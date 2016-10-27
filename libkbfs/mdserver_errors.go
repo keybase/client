@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -288,6 +289,10 @@ func (e MDServerErrorTooManyFoldersCreated) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeMDServerErrorTooManyFoldersCreated
 	s.Name = "TOO_MANY_FOLDERS_CREATED"
 	s.Desc = e.Error()
+	s.Fields = []keybase1.StringKVPair{
+		{Key: "Limit", Value: strconv.FormatUint(e.Limit, 10)},
+		{Key: "Created", Value: strconv.FormatUint(e.Created, 10)},
+	}
 	return
 }
 
@@ -348,7 +353,16 @@ func (eu MDServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, d
 		appError = MDServerErrorConflictFolderMapping{Desc: s.Desc}
 		break
 	case StatusCodeMDServerErrorTooManyFoldersCreated:
-		appError = MDServerErrorTooManyFoldersCreated{}
+		err := MDServerErrorTooManyFoldersCreated{}
+		for _, f := range s.Fields {
+			switch f.Key {
+			case "Limit":
+				err.Limit, _ = strconv.ParseUint(f.Value, 10, 64)
+			case "Created":
+				err.Created, _ = strconv.ParseUint(f.Value, 10, 64)
+			}
+		}
+		appError = err
 		break
 	default:
 		ase := libkb.AppStatusError{

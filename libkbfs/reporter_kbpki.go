@@ -26,6 +26,8 @@ const (
 	errorParamUsageBytes        = "usageBytes"
 	errorParamLimitBytes        = "limitBytes"
 	errorParamRenameOldFilename = "oldFilename"
+	errorParamFoldersCreated    = "foldersCreated"
+	errorParamFolderLimit       = "folderLimit"
 
 	// error operation modes
 	errorModeRead  = "read"
@@ -148,6 +150,10 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case NoSigChainError:
 		code = keybase1.FSErrorType_NO_SIG_CHAIN
 		params[errorParamUsername] = e.User.String()
+	case MDServerErrorTooManyFoldersCreated:
+		code = keybase1.FSErrorType_TOO_MANY_FOLDERS
+		params[errorParamFolderLimit] = strconv.FormatUint(e.Limit, 10)
+		params[errorParamFoldersCreated] = strconv.FormatUint(e.Created, 10)
 	}
 
 	if code < 0 && err == context.DeadlineExceeded {
