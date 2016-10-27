@@ -2227,6 +2227,20 @@ func TestProvisionerSecretStore(t *testing.T) {
 	if err := AssertProvisioned(tcY); err != nil {
 		t.Fatal(err)
 	}
+
+	// On device Y, logout and login. This should tickle Bug3964
+	Logout(tcY)
+	ctx = &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    userX.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng = NewLogin(tcY.G, libkb.DeviceTypeDesktop, userX.Username, keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
 }
 
 type testProvisionUI struct {
