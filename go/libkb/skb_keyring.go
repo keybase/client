@@ -338,14 +338,17 @@ func (k *SKBKeyringFile) Bug3964Repair(lctx LoginContext, lks *LKSec, dkm Device
 		var badMask LKSecServerHalf
 		decryption, badMask, err = lks.decryptForBug3964Repair(b.Priv.Data, dkm)
 		if err != nil {
-			k.G().Log.Debug("| Decryption bug at block=%d", i)
-			return nil, nil, err
-		}
-		if badMask.IsNil() {
+			k.G().Log.Debug("| Decryption failed at block=%d; keeping as is (%s)", i, err)
 			newBlocks = append(newBlocks, b)
-			k.G().Log.Debug("| Nil badmask at block=%d", i)
 			continue
 		}
+
+		if badMask.IsNil() {
+			k.G().Log.Debug("| Nil badmask at block=%d", i)
+			newBlocks = append(newBlocks, b)
+			continue
+		}
+
 		hitBug3964 = true
 		k.G().Log.Debug("| Hit bug 3964 at SKB block=%d", i)
 		if serverHalfSet == nil {
