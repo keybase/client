@@ -130,10 +130,14 @@ KEYDATA
 
 # Set variables for the locations of the apt sources lists.
 find_apt_sources() {
+  # NB: These variables only *sometimes* include a trailing slash. (In
+  # particular, in Ubuntu 16.10 / Debian 9, the default value *stopped*
+  # including the trailing slash.) We have to join them with slashes, even
+  # though that sometimes gives a double slash.
   APTDIR=$(apt_config_val Dir)
   APTETC=$(apt_config_val 'Dir::Etc')
-  APT_SOURCES="$APTDIR$APTETC$(apt_config_val 'Dir::Etc::sourcelist')"
-  APT_SOURCESDIR="$APTDIR$APTETC$(apt_config_val 'Dir::Etc::sourceparts')"
+  APT_SOURCES="$APTDIR/$APTETC/$(apt_config_val 'Dir::Etc::sourcelist')"
+  APT_SOURCESDIR="$APTDIR/$APTETC/$(apt_config_val 'Dir::Etc::sourceparts')"
 }
 
 # Update the Keybase repository if it's not set correctly.
