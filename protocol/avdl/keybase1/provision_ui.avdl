@@ -50,11 +50,6 @@ protocol provisionUi {
 
   DeviceID chooseDevice(int sessionID, array<Device> devices);
 
-  enum DeviceType {
-    DESKTOP_0,
-    MOBILE_1
-  }
-
   enum ChooseType {
     EXISTING_DEVICE_0,
     NEW_DEVICE_1

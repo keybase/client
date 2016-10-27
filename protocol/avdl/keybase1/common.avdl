@@ -92,6 +92,11 @@ protocol Common {
     int status;
   }
 
+  enum DeviceType {
+    DESKTOP_0,
+    MOBILE_1
+  }
+
   record Stream {
     int fd;
   }

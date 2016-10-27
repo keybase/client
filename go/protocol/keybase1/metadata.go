@@ -52,11 +52,6 @@ type AuthenticateArg struct {
 }
 
 type PutMetadataArg struct {
-	MdBlock MDBlock           `codec:"mdBlock" json:"mdBlock"`
-	LogTags map[string]string `codec:"logTags" json:"logTags"`
-}
-
-type PutMetadataV3Arg struct {
 	MdBlock         MDBlock           `codec:"mdBlock" json:"mdBlock"`
 	ReaderKeyBundle KeyBundle         `codec:"readerKeyBundle" json:"readerKeyBundle"`
 	WriterKeyBundle KeyBundle         `codec:"writerKeyBundle" json:"writerKeyBundle"`
@@ -159,7 +154,6 @@ type MetadataInterface interface {
 	GetChallenge(context.Context) (ChallengeInfo, error)
 	Authenticate(context.Context, string) (int, error)
 	PutMetadata(context.Context, PutMetadataArg) error
-	PutMetadataV3(context.Context, PutMetadataV3Arg) error
 	GetMetadata(context.Context, GetMetadataArg) (MetadataResponse, error)
 	RegisterForUpdates(context.Context, RegisterForUpdatesArg) error
 	PruneBranch(context.Context, PruneBranchArg) error
@@ -223,22 +217,6 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 						return
 					}
 					err = i.PutMetadata(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"putMetadataV3": {
-				MakeArg: func() interface{} {
-					ret := make([]PutMetadataV3Arg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PutMetadataV3Arg)
-					if !ok {
-						err = rpc.NewTypeError((*[]PutMetadataV3Arg)(nil), args)
-						return
-					}
-					err = i.PutMetadataV3(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -542,11 +520,6 @@ func (c MetadataClient) Authenticate(ctx context.Context, signature string) (res
 
 func (c MetadataClient) PutMetadata(ctx context.Context, __arg PutMetadataArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadata.putMetadata", []interface{}{__arg}, nil)
-	return
-}
-
-func (c MetadataClient) PutMetadataV3(ctx context.Context, __arg PutMetadataV3Arg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.metadata.putMetadataV3", []interface{}{__arg}, nil)
 	return
 }
 

@@ -2,7 +2,6 @@ package kbtest
 
 import (
 	"crypto/rand"
-	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -310,9 +309,7 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 		}
 	}
 
-	bs := make([]byte, 4)
-	binary.LittleEndian.PutUint32(bs, uint32(len(m.world.conversations)+1))
-	res.ConvID = chat1.ConversationID(bs) // TODO: compute this when we need it
+	res.ConvID = arg.IdTriple.ToConversationID([2]byte{0, 0})
 
 	first := m.insertMsgAndSort(res.ConvID, arg.TLFMessage)
 	m.world.conversations = append(m.world.conversations, &chat1.Conversation{
@@ -358,6 +355,10 @@ func (m *ChatRemoteMock) MarkAsRead(ctx context.Context, arg chat1.MarkAsReadArg
 	}
 	m.readMsgid[conv.Metadata.ConversationID.String()] = arg.MsgID
 	return res, nil
+}
+
+func (m *ChatRemoteMock) SetConversationStatus(ctx context.Context, arg chat1.SetConversationStatusArg) (res chat1.SetConversationStatusRes, err error) {
+	return chat1.SetConversationStatusRes{}, errors.New("not implemented")
 }
 
 func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, tlfID chat1.TLFID) error {

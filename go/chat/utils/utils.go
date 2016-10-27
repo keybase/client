@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
@@ -106,4 +108,60 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 		res = append(res, v)
 	}
 	return res
+}
+
+// Reorder participants based on the order in activeList.
+// Only allows usernames from tlfname in the output.
+// This never fails, worse comes to worst it just returns the split of tlfname.
+func ReorderParticipants(udc *UserDeviceCache, uimap *UserInfoMapper, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
+	srcWriterNames, srcReaderNames, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
+	if err != nil {
+		return writerNames, readerNames, err
+	}
+
+	allowedWriters := make(map[string]bool)
+
+	// Allow all writers from tlfname.
+	for _, user := range srcWriterNames {
+		allowedWriters[user] = true
+	}
+
+	// Fill from the active list first.
+	for _, uid := range activeList {
+		kbUID := keybase1.UID(uid.String())
+		user, err := udc.LookupUsername(uimap, kbUID)
+		if err != nil {
+			continue
+		}
+		user, err = normalizeAssertionOrName(user)
+		if err != nil {
+			continue
+		}
+		if allowed, _ := allowedWriters[user]; allowed {
+			writerNames = append(writerNames, user)
+			// Allow only one occurrence.
+			allowedWriters[user] = false
+		}
+	}
+
+	// Include participants even if they weren't in the active list, in stable order.
+	for _, user := range srcWriterNames {
+		if allowed, _ := allowedWriters[user]; allowed {
+			writerNames = append(writerNames, user)
+			allowedWriters[user] = false
+		}
+	}
+
+	readerNames = srcReaderNames
+
+	return writerNames, readerNames, nil
+}
+
+// Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
+func splitAndNormalizeTLFNameCanonicalize(name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
+	writerNames, readerNames, extensionSuffix, err = splitAndNormalizeTLFName(name, public)
+	if retryErr, retry := err.(TlfNameNotCanonical); retry {
+		return splitAndNormalizeTLFName(retryErr.NameToTry, public)
+	}
+	return writerNames, readerNames, extensionSuffix, err
 }

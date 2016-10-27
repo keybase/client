@@ -191,6 +191,19 @@
     },
     {
       "type": "record",
+      "name": "SetConversationStatusRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "S3Params",
       "fields": [
         {
@@ -330,6 +343,19 @@
         }
       ],
       "response": "MarkAsReadRes"
+    },
+    "SetConversationStatus": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "status",
+          "type": "ConversationStatus"
+        }
+      ],
+      "response": "SetConversationStatusRes"
     },
     "tlfFinalize": {
       "request": [

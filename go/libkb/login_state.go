@@ -56,6 +56,7 @@ type LoginContext interface {
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
 
 	Keyring() (*SKBKeyringFile, error)
+	ClearKeyring()
 	LockedLocalSecretKey(ska SecretKeyArg) (*SKB, error)
 
 	SecretSyncer() *SecretSyncer
@@ -750,6 +751,10 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		}
 	}
 
+	if repairErr := RunBug3964Repairman(s.G(), lctx, lctx.PassphraseStreamCache().PassphraseStream()); repairErr != nil {
+		s.G().Log.Warning("In Bug 3964 repair: %s", repairErr)
+	}
+
 	return nil
 }
 
@@ -1081,6 +1086,26 @@ func (s *LoginState) Keyring(h func(*SKBKeyringFile), name string) error {
 		return aerr
 	}
 	return err
+}
+
+func (s *LoginState) MutateKeyring(h func(*SKBKeyringFile) *SKBKeyringFile, name string) error {
+	var err error
+	aerr := s.Account(func(a *Account) {
+		var kr *SKBKeyringFile
+		kr, err = a.Keyring()
+		if err != nil {
+			return
+		}
+		if h(kr) != nil {
+			// Clear out the in-memory cache of this keyring.
+			a.ClearKeyring()
+		}
+	}, name)
+	if aerr != nil {
+		return aerr
+	}
+	return err
+
 }
 
 func (s *LoginState) LoggedIn() bool {

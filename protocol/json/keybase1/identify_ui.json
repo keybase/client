@@ -563,6 +563,15 @@
       ],
       "response": "ConfirmResult"
     },
+    "cancel": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
     "finish": {
       "request": [
         {

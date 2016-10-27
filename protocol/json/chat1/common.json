@@ -68,6 +68,16 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "ConversationStatus",
+      "symbols": [
+        "UNFILED_0",
+        "FAVORITE_1",
+        "IGNORED_2",
+        "BLOCKED_3"
+      ]
+    },
+    {
       "type": "record",
       "name": "Pagination",
       "fields": [
@@ -174,12 +184,23 @@
           "name": "oneChatTypePerTLF"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "ConversationStatus"
+          },
+          "name": "status"
+        },
+        {
           "type": "boolean",
           "name": "unreadOnly"
         },
         {
           "type": "boolean",
           "name": "readOnly"
+        },
+        {
+          "type": "boolean",
+          "name": "computeActiveList"
         }
       ]
     },
@@ -216,6 +237,13 @@
         {
           "type": "bool",
           "name": "isFinalized"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "activeList"
         }
       ]
     },

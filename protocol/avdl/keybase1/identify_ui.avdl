@@ -126,7 +126,8 @@ protocol identifyUi {
   void reportTrackToken(int sessionID, TrackToken trackToken);
   void displayUserCard(int sessionID, UserCard card);
   ConfirmResult confirm(int sessionID, IdentifyOutcome outcome);
-  void finish(int sessionID);
+  void cancel(int sessionID);  // this will always be called
+  void finish(int sessionID);  // this might not be called if identify short-circuited
 
   void dismiss(int sessionID, string username, DismissReason reason);
 }

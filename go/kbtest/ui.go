@@ -146,6 +146,9 @@ func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason, forc
 	ui.StartCount++
 	return nil
 }
+func (ui *FakeIdentifyUI) Cancel() error {
+	return nil
+}
 func (ui *FakeIdentifyUI) Finish() error {
 	return nil
 }

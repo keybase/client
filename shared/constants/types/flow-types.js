@@ -61,6 +61,11 @@ export const CommonClientType = {
   kbfs: 3,
 }
 
+export const CommonDeviceType = {
+  desktop: 0,
+  mobile: 1,
+}
+
 export const CommonLogLevel = {
   none: 0,
   debug: 1,
@@ -369,11 +374,6 @@ export const ProveUiPromptOverwriteType = {
 export const ProvisionUiChooseType = {
   existingDevice: 0,
   newDevice: 1,
-}
-
-export const ProvisionUiDeviceType = {
-  desktop: 0,
-  mobile: 1,
 }
 
 export const ProvisionUiGPGMethod = {
@@ -1639,18 +1639,6 @@ export function metadataPutMetadataRpcChannelMap (channelConfig: ChannelConfig<*
 
 export function metadataPutMetadataRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { metadataPutMetadataRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
-}
-
-export function metadataPutMetadataV3Rpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataV3RpcParam}>) {
-  engineRpcOutgoing({...request, method: 'metadata.putMetadataV3'})
-}
-
-export function metadataPutMetadataV3RpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataV3RpcParam}>): ChannelMap<*> {
-  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => metadataPutMetadataV3Rpc({...request, incomingCallMap, callback}))
-}
-
-export function metadataPutMetadataV3RpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataV3RpcParam}>): Promise<any> {
-  return new Promise((resolve, reject) => { metadataPutMetadataV3Rpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataRegisterForUpdatesRpc (request: Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>) {
@@ -4432,11 +4420,6 @@ export type metadataPutKeysRpcParam = Exact<{
 
 export type metadataPutMetadataRpcParam = Exact<{
   mdBlock: MDBlock,
-  logTags: {[key: string]: string}
-}>
-
-export type metadataPutMetadataV3RpcParam = Exact<{
-  mdBlock: MDBlock,
   readerKeyBundle: KeyBundle,
   writerKeyBundle: KeyBundle,
   logTags: {[key: string]: string}
@@ -4740,6 +4723,7 @@ export type signupSignupRpcParam = Exact<{
   passphrase: string,
   username: string,
   deviceName: string,
+  deviceType: DeviceType,
   storeSecret: boolean,
   skipMail: boolean,
   genPGPBatch: boolean
@@ -5215,7 +5199,6 @@ export type rpc =
   | metadataPruneBranchRpc
   | metadataPutKeysRpc
   | metadataPutMetadataRpc
-  | metadataPutMetadataV3Rpc
   | metadataRegisterForUpdatesRpc
   | metadataTruncateLockRpc
   | metadataTruncateUnlockRpc
@@ -5463,6 +5446,12 @@ export type incomingCallMapType = Exact<{
       error: RPCErrorHandler,
       result: (result: identifyUiConfirmResult) => void,
     }
+  ) => void,
+  'keybase.1.identifyUi.cancel'?: (
+    params: Exact<{
+      sessionID: int
+    }>,
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.identifyUi.finish'?: (
     params: Exact<{
