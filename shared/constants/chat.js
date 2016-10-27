@@ -72,7 +72,7 @@ export type State = Record<{
   selectedConversation: ?ConversationIDKey,
 }>
 
-const maxMessagesToLoadAtATime = 10
+const maxMessagesToLoadAtATime = 50
 
 export const appendMessages = 'chat:appendMessages'
 export const selectConversation = 'chat:selectConversation'

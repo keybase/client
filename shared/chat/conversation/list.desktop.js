@@ -61,10 +61,12 @@ class ConversationList extends Component<void, Props, State> {
       const prependedCount = this.state.messages.indexOf(prevState.messages.first())
       if (prependedCount !== -1) {
         // Measure the new items so we can adjust our scrollTop so your position doesn't jump
-        // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
-        this.setState({scrollTop: this.state.scrollTop + _.range(0, prependedCount) // eslint-disable-line react/no-did-update-set-state
+        const scrollTop = this.state.scrollTop + _.range(0, prependedCount)
           .map(index => this._cellMeasurer.getRowHeight({index: index + 1})) // +1 since 0 is the loading message
-          .reduce((total, height) => total + height, 0)})
+          .reduce((total, height) => total + height, 0)
+
+        // Disabling eslint as we normally don't want to call setState in a componentDidUpdate in case you infinitely re-render
+        this.setState({scrollTop}) // eslint-disable-line react/no-did-update-set-state
       }
     }
   }

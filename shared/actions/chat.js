@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../constants/chat'
-import engine, {Engine} from '../engine'
+import engine from '../engine'
 import {List, Map} from 'immutable'
 import {call, put, select} from 'redux-saga/effects'
 import {localGetInboxAndUnboxLocalRpcPromise, CommonMessageType, localGetThreadLocalRpcPromise} from '../constants/types/flow-types-chat'
