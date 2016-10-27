@@ -78,12 +78,12 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
   let next
   if (oldConversationState) {
     if (oldConversationState.get('isLoading')) {
-      console.log('bailing on load more due to isloading already')
+      __DEV__ && console.log('Bailing on chat load more due to isloading already')
       return
     }
 
     if (!oldConversationState.get('moreToLoad')) {
-      console.log('bailing on load more due to no more to load')
+      __DEV__ && console.log('Bailing on chat load more due to no more to load')
       return
     }
 
