@@ -9,9 +9,14 @@ protocol NotifyChat {
     INCOMING_MESSAGE_1
   }
 
+  record IncomingMessage {
+    MessageUnboxed message;
+    ConversationID convID;
+  }
+
   record ChatActivity {
     ChatActivityType ActivityType;
-    union { null, MessageUnboxed } IncomingMessage;
+    union { null, IncomingMessage } IncomingMessage;
   }
 
   @notify("")

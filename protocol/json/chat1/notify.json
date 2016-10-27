@@ -18,6 +18,20 @@
     },
     {
       "type": "record",
+      "name": "IncomingMessage",
+      "fields": [
+        {
+          "type": "MessageUnboxed",
+          "name": "message"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ChatActivity",
       "fields": [
         {
@@ -27,7 +41,7 @@
         {
           "type": [
             null,
-            "MessageUnboxed"
+            "IncomingMessage"
           ],
           "name": "IncomingMessage"
         }
