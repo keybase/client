@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfscrypto"
 
 	"golang.org/x/net/context"
 )
@@ -39,8 +38,7 @@ var _ MDOps = journalMDOps{}
 // convertImmutableBareRMDToIRMD decrypts the bare MD into a
 // full-fledged RMD.
 func (j journalMDOps) convertImmutableBareRMDToIRMD(ctx context.Context,
-	ibrmd ImmutableBareRootMetadata, handle *TlfHandle,
-	uid keybase1.UID, key kbfscrypto.VerifyingKey) (
+	ibrmd ImmutableBareRootMetadata, handle *TlfHandle, uid keybase1.UID) (
 	ImmutableRootMetadata, error) {
 	// TODO: Avoid having to do this type assertion.
 	brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
@@ -59,8 +57,7 @@ func (j journalMDOps) convertImmutableBareRMDToIRMD(ctx context.Context,
 	}
 
 	rmd.data = pmd
-	irmd := MakeImmutableRootMetadata(
-		rmd, key, ibrmd.mdID, ibrmd.localTimestamp)
+	irmd := MakeImmutableRootMetadata(rmd, ibrmd.mdID, ibrmd.localTimestamp)
 	return irmd, nil
 }
 
@@ -128,7 +125,7 @@ func (j journalMDOps) getHeadFromJournal(
 	}
 
 	irmd, err := j.convertImmutableBareRMDToIRMD(
-		ctx, head, handle, tlfJournal.uid, tlfJournal.key)
+		ctx, head, handle, tlfJournal.uid)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -182,7 +179,7 @@ func (j journalMDOps) getRangeFromJournal(
 
 	for _, ibrmd := range ibrmds {
 		irmd, err := j.convertImmutableBareRMDToIRMD(
-			ctx, ibrmd, handle, tlfJournal.uid, tlfJournal.key)
+			ctx, ibrmd, handle, tlfJournal.uid)
 		if err != nil {
 			return nil, err
 		}

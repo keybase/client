@@ -251,12 +251,11 @@ func (md *MDServerMemory) getHeadForTLF(ctx context.Context, id TlfID,
 	max := md.config.MetadataVersion()
 	ver := blocks[len(blocks)-1].version
 	buf := blocks[len(blocks)-1].encodedMd
-	timestamp := blocks[len(blocks)-1].timestamp
-	rmds, err := DecodeRootMetadataSigned(
-		md.config.Codec(), id, ver, max, buf, timestamp)
+	rmds, err := DecodeRootMetadataSigned(md.config.Codec(), id, ver, max, buf)
 	if err != nil {
 		return nil, err
 	}
+	rmds.untrustedServerTimestamp = blocks[len(blocks)-1].timestamp
 	return rmds, nil
 }
 
@@ -333,12 +332,11 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id TlfID,
 	for i := startI; i < endI; i++ {
 		ver := blocks[i].version
 		buf := blocks[i].encodedMd
-		rmds, err := DecodeRootMetadataSigned(
-			md.config.Codec(), id, ver, max, buf,
-			blocks[i].timestamp)
+		rmds, err := DecodeRootMetadataSigned(md.config.Codec(), id, ver, max, buf)
 		if err != nil {
 			return nil, MDServerError{err}
 		}
+		rmds.untrustedServerTimestamp = blocks[i].timestamp
 		expectedRevision := blockList.initialRevision + MetadataRevision(i)
 		if expectedRevision != rmds.MD.RevisionNumber() {
 			panic(fmt.Errorf("expected revision %v, got %v",

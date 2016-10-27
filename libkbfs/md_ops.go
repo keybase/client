@@ -8,10 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 
@@ -55,26 +55,18 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 		if handle.IsFinal() {
 			err = md.config.KBPKI().HasUnverifiedVerifyingKey(ctx,
 				rmds.MD.LastModifyingWriter(),
-				rmds.GetWriterMetadataSigInfo().VerifyingKey)
+				rmds.MD.GetWriterMetadataSigInfo().VerifyingKey)
 		} else {
 			err = md.config.KBPKI().HasVerifyingKey(ctx,
 				rmds.MD.LastModifyingWriter(),
-				rmds.GetWriterMetadataSigInfo().VerifyingKey,
+				rmds.MD.GetWriterMetadataSigInfo().VerifyingKey,
 				rmds.untrustedServerTimestamp)
 		}
 		if err != nil {
 			return md.convertVerifyingKeyError(ctx, rmds, handle, err)
 		}
 		return nil
-	}
 
-	// The writer metadata can be copied only for rekeys or
-	// finalizations, neither of which should happen while
-	// unmerged.
-	if rmds.MD.MergedStatus() != Merged {
-		return fmt.Errorf("Revision %d for %s has a copied writer "+
-			"metadata, but is unexpectedly not merged",
-			rmds.MD.RevisionNumber(), rmds.MD.TlfID())
 	}
 
 	if getRangeLock != nil {
@@ -120,30 +112,18 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 
 		for i := len(prevMDs) - 1; i >= 0; i-- {
 			if !prevMDs[i].IsWriterMetadataCopiedSet() {
-				// We want to compare the writer signature of
-				// rmds with that of prevMDs[i]. However, we've
-				// already dropped prevMDs[i]'s writer
-				// signature. We can just verify prevMDs[i]'s
-				// writer metadata with rmds's signature,
-				// though.
-				buf, err := prevMDs[i].GetSerializedWriterMetadata(md.config.Codec())
+				ok, err := kbfscodec.Equal(md.config.Codec(),
+					rmds.MD.GetWriterMetadataSigInfo(),
+					prevMDs[i].GetWriterMetadataSigInfo())
 				if err != nil {
 					return err
 				}
-
-				err = md.config.Crypto().Verify(
-					buf, rmds.GetWriterMetadataSigInfo())
-				if err != nil {
-					return fmt.Errorf("Could not verify "+
-						"uncopied writer metadata "+
-						"from revision %d of folder "+
-						"%s with signature from "+
-						"revision %d: %v",
-						prevMDs[i].Revision(),
-						rmds.MD.TlfID(),
-						rmds.MD.RevisionNumber(), err)
+				if !ok {
+					return fmt.Errorf("Previous uncopied writer MD sig info "+
+						"for revision %d of folder %s doesn't match copied "+
+						"revision %d", prevMDs[i].Revision(), rmds.MD.TlfID(),
+						rmds.MD.RevisionNumber())
 				}
-
 				// The fact the fact that we were able to process this
 				// MD correctly means that we already verified its key
 				// at the correct timestamp, so we're good.
@@ -161,9 +141,6 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 	}
 }
 
-// processMetadata converts the given rmds to an
-// ImmutableRootMetadata. After this function is called, rmds
-// shouldn't be used.
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	handle *TlfHandle, rmds *RootMetadataSigned, extra ExtraMetadata,
 	getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
@@ -206,13 +183,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		}
 	}
 
-	// TODO: Avoid having to do this type assertion.
-	brmd, ok := rmds.MD.(MutableBareRootMetadata)
-	if !ok {
-		return ImmutableRootMetadata{}, MutableBareRootMetadataNoImplError{}
-	}
-
-	rmd := MakeRootMetadata(brmd, extra, handle)
+	rmd := MakeRootMetadata(rmds.MD, extra, handle)
 	// Try to decrypt using the keys available in this md.  If that
 	// doesn't work, a future MD may contain more keys and will be
 	// tried later.
@@ -236,9 +207,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		localTimestamp = localTimestamp.Add(offset)
 	}
 
-	key := rmds.GetWriterMetadataSigInfo().VerifyingKey
-	*rmds = RootMetadataSigned{}
-	return MakeImmutableRootMetadata(rmd, key, mdID, localTimestamp), nil
+	return MakeImmutableRootMetadata(rmd, mdID, localTimestamp), nil
 }
 
 // GetForHandle implements the MDOps interface for MDOpsStandard.
@@ -426,17 +395,10 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 	for i := 0; i < numWorkers; i++ {
 		go worker()
 	}
-
-	// Do this first, since processMetadataWithID consumes its
-	// rmds argument.
-	startRev := rmdses[0].MD.RevisionNumber()
-	rmdsCount := len(rmdses)
-
 	for _, rmds := range rmdses {
 		rmdsChan <- rmds
 	}
 	close(rmdsChan)
-	rmdses = nil
 	go func() {
 		wg.Wait()
 		close(errChan)
@@ -448,7 +410,8 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 	}
 
 	// Sort into slice based on revision.
-	irmds := make([]ImmutableRootMetadata, rmdsCount)
+	irmds := make([]ImmutableRootMetadata, len(rmdses))
+	startRev := rmdses[0].MD.RevisionNumber()
 	numExpected := MetadataRevision(len(irmds))
 	for irmd := range irmdChan {
 		i := irmd.Revision() - startRev
@@ -537,21 +500,26 @@ func (md *MDOpsStandard) put(
 			errors.New("MD has embedded block changes, but shouldn't")
 	}
 
-	err = encryptMDPrivateData(
+	brmd, err := encryptMDPrivateData(
 		ctx, md.config.Codec(), md.config.Crypto(),
-		md.config.Crypto(), md.config.KeyManager(), me, rmd)
+		md.config.Crypto(), md.config.KeyManager(), me, rmd.ReadOnly())
 	if err != nil {
 		return MdID{}, err
 	}
 
-	rmds, err := signMD(
-		ctx, md.config.Codec(), md.config.Crypto(),
-		rmd.bareMd, time.Time{})
+	mbrmd, ok := brmd.(MutableBareRootMetadata)
+	if !ok {
+		return MdID{}, MutableBareRootMetadataNoImplError{}
+	}
+
+	rmds := RootMetadataSigned{MD: mbrmd}
+
+	err = signMD(ctx, md.config.Codec(), md.config.Crypto(), &rmds)
 	if err != nil {
 		return MdID{}, err
 	}
 
-	err = md.config.MDServer().Put(ctx, rmds, rmd.NewExtra())
+	err = md.config.MDServer().Put(ctx, &rmds, rmd.NewExtra())
 	if err != nil {
 		return MdID{}, err
 	}
@@ -561,6 +529,7 @@ func (md *MDOpsStandard) put(
 		return MdID{}, err
 	}
 
+	rmd.bareMd = rmds.MD
 	return mdID, nil
 }
 

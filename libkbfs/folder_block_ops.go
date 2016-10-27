@@ -74,7 +74,7 @@ func (si *syncInfo) DeepCopy(codec kbfscodec.Codec) (*syncInfo, error) {
 		// It might be overkill to deep-copy these MDs and bpses,
 		// which are probably immutable, but for now let's do the safe
 		// thing.
-		copyMd, err := toClean.md.deepCopy(codec)
+		copyMd, err := toClean.md.deepCopy(codec, false)
 		if err != nil {
 			return nil, err
 		}

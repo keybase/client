@@ -12,7 +12,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -688,13 +687,12 @@ func (ccs *crChains) addOps(codec kbfscodec.Codec,
 // chainMetadata is the interface for metadata objects that can be
 // used in building crChains. It is implemented by
 // ImmutableRootMetadata, but is also mostly implemented by
-// RootMetadata (just need LastModifyingWriterVerifyingKey
-// LocalTimestamp).
+// RootMetadata (just need LocalTimestamp).
 type chainMetadata interface {
 	KeyMetadata
 	IsWriterMetadataCopiedSet() bool
 	LastModifyingWriter() keybase1.UID
-	LastModifyingWriterVerifyingKey() kbfscrypto.VerifyingKey
+	LastModifyingWriterKID() keybase1.KID
 	Revision() MetadataRevision
 	Data() *PrivateMetadata
 	LocalTimestamp() time.Time
@@ -702,7 +700,7 @@ type chainMetadata interface {
 
 // newCRChains builds a new crChains object from the given list of
 // chainMetadatas, which must be non-empty.
-func newCRChains(ctx context.Context, cfg Config, chainMDs []chainMetadata,
+func newCRChains(ctx context.Context, cfg Config, cmds []chainMetadata,
 	fbo *folderBlockOps, identifyTypes bool) (
 	ccs *crChains, err error) {
 	ccs = newCRChainsEmpty()
@@ -710,31 +708,29 @@ func newCRChains(ctx context.Context, cfg Config, chainMDs []chainMetadata,
 	// For each MD update, turn each update in each op into map
 	// entries and create chains for the BlockPointers that are
 	// affected directly by the operation.
-	for _, chainMD := range chainMDs {
+	for _, cmd := range cmds {
 		// No new operations in these.
-		if chainMD.IsWriterMetadataCopiedSet() {
+		if cmd.IsWriterMetadataCopiedSet() {
 			continue
 		}
 
-		winfo, err := newWriterInfo(ctx, cfg,
-			chainMD.LastModifyingWriter(),
-			chainMD.LastModifyingWriterVerifyingKey(),
-			chainMD.Revision())
+		winfo, err := newWriterInfo(
+			ctx, cfg, cmd.LastModifyingWriter(),
+			cmd.LastModifyingWriterKID(), cmd.Revision())
 		if err != nil {
 			return nil, err
 		}
 
-		data := *chainMD.Data()
+		data := *cmd.Data()
 
-		err = ccs.addOps(
-			cfg.Codec(), data, winfo, chainMD.LocalTimestamp())
+		err = ccs.addOps(cfg.Codec(), data, winfo, cmd.LocalTimestamp())
 
 		if ptr := data.cachedChanges.Info.BlockPointer; ptr != zeroPtr {
 			ccs.blockChangePointers[ptr] = true
 
 			// Any child block change pointers?
 			fblock, err := fbo.GetFileBlockForReading(ctx, makeFBOLockState(),
-				chainMD, ptr, MasterBranch, path{})
+				cmd, ptr, MasterBranch, path{})
 			if err != nil {
 				return nil, err
 			}
@@ -756,7 +752,7 @@ func newCRChains(ctx context.Context, cfg Config, chainMDs []chainMetadata,
 		}
 	}
 
-	mostRecentMD := chainMDs[len(chainMDs)-1]
+	mostRecentMD := cmds[len(cmds)-1]
 
 	for _, chain := range ccs.byOriginal {
 		chain.collapse()
@@ -790,11 +786,11 @@ func newCRChainsForIRMDs(
 	ctx context.Context, cfg Config, irmds []ImmutableRootMetadata,
 	fbo *folderBlockOps, identifyTypes bool) (
 	ccs *crChains, err error) {
-	chainMDs := make([]chainMetadata, len(irmds))
+	cmds := make([]chainMetadata, len(irmds))
 	for i, irmd := range irmds {
-		chainMDs[i] = irmd
+		cmds[i] = irmd
 	}
-	return newCRChains(ctx, cfg, chainMDs, fbo, identifyTypes)
+	return newCRChains(ctx, cfg, cmds, fbo, identifyTypes)
 }
 
 type crChainSummary struct {

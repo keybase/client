@@ -5,7 +5,6 @@
 package kbfscrypto
 
 import (
-	"bytes"
 	"encoding"
 	"encoding/hex"
 	"encoding/json"
@@ -42,21 +41,6 @@ type SignatureInfo struct {
 // IsNil returns true if this SignatureInfo is nil.
 func (s SignatureInfo) IsNil() bool {
 	return s.Version.IsNil() && len(s.Signature) == 0 && s.VerifyingKey.IsNil()
-}
-
-// Equals returns true if this SignatureInfo matches the given one.
-func (s SignatureInfo) Equals(other SignatureInfo) bool {
-	if s.Version != other.Version {
-		return false
-	}
-	if !bytes.Equal(s.Signature, other.Signature) {
-		return false
-	}
-	if s.VerifyingKey != other.VerifyingKey {
-		return false
-	}
-
-	return true
 }
 
 // DeepCopy makes a complete copy of this SignatureInfo.

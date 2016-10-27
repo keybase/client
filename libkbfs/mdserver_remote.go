@@ -424,12 +424,11 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID,
 	rmdses := make([]*RootMetadataSigned, len(response.MdBlocks))
 	for i, block := range response.MdBlocks {
 		ver, max := MetadataVer(block.Version), md.config.MetadataVersion()
-		rmds, err := DecodeRootMetadataSigned(
-			md.config.Codec(), id, ver, max, block.Block,
-			keybase1.FromTime(block.Timestamp))
+		rmds, err := DecodeRootMetadataSigned(md.config.Codec(), id, ver, max, block.Block)
 		if err != nil {
 			return id, nil, err
 		}
+		rmds.untrustedServerTimestamp = keybase1.FromTime(block.Timestamp)
 		rmdses[i] = rmds
 	}
 	return id, rmdses, nil

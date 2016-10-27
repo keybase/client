@@ -4560,9 +4560,9 @@ func (_mr *_MockBareRootMetadataRecorder) IsReader(arg0, arg1, arg2 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsReader", arg0, arg1, arg2)
 }
 
-func (_m *MockBareRootMetadata) DeepCopy(codec kbfscodec.Codec) (MutableBareRootMetadata, error) {
+func (_m *MockBareRootMetadata) DeepCopy(codec kbfscodec.Codec) (BareRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "DeepCopy", codec)
-	ret0, _ := ret[0].(MutableBareRootMetadata)
+	ret0, _ := ret[0].(BareRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -4571,15 +4571,15 @@ func (_mr *_MockBareRootMetadataRecorder) DeepCopy(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeepCopy", arg0)
 }
 
-func (_m *MockBareRootMetadata) MakeSuccessorCopy(codec kbfscodec.Codec, isReadableAndWriter bool) (MutableBareRootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "MakeSuccessorCopy", codec, isReadableAndWriter)
-	ret0, _ := ret[0].(MutableBareRootMetadata)
+func (_m *MockBareRootMetadata) MakeSuccessorCopy(codec kbfscodec.Codec) (BareRootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "MakeSuccessorCopy", codec)
+	ret0, _ := ret[0].(BareRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockBareRootMetadataRecorder) MakeSuccessorCopy(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0, arg1)
+func (_mr *_MockBareRootMetadataRecorder) MakeSuccessorCopy(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0)
 }
 
 func (_m *MockBareRootMetadata) CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error {
@@ -4688,6 +4688,16 @@ func (_mr *_MockBareRootMetadataRecorder) LastModifyingWriter() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriter")
 }
 
+func (_m *MockBareRootMetadata) LastModifyingWriterKID() keybase1.KID {
+	ret := _m.ctrl.Call(_m, "LastModifyingWriterKID")
+	ret0, _ := ret[0].(keybase1.KID)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) LastModifyingWriterKID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriterKID")
+}
+
 func (_m *MockBareRootMetadata) GetLastModifyingUser() keybase1.UID {
 	ret := _m.ctrl.Call(_m, "GetLastModifyingUser")
 	ret0, _ := ret[0].(keybase1.UID)
@@ -4787,6 +4797,16 @@ func (_m *MockBareRootMetadata) GetSerializedWriterMetadata(codec kbfscodec.Code
 
 func (_mr *_MockBareRootMetadataRecorder) GetSerializedWriterMetadata(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSerializedWriterMetadata", arg0)
+}
+
+func (_m *MockBareRootMetadata) GetWriterMetadataSigInfo() kbfscrypto.SignatureInfo {
+	ret := _m.ctrl.Call(_m, "GetWriterMetadataSigInfo")
+	ret0, _ := ret[0].(kbfscrypto.SignatureInfo)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetWriterMetadataSigInfo() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetWriterMetadataSigInfo")
 }
 
 func (_m *MockBareRootMetadata) Version() MetadataVer {
@@ -4985,9 +5005,9 @@ func (_mr *_MockMutableBareRootMetadataRecorder) IsReader(arg0, arg1, arg2 inter
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsReader", arg0, arg1, arg2)
 }
 
-func (_m *MockMutableBareRootMetadata) DeepCopy(codec kbfscodec.Codec) (MutableBareRootMetadata, error) {
+func (_m *MockMutableBareRootMetadata) DeepCopy(codec kbfscodec.Codec) (BareRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "DeepCopy", codec)
-	ret0, _ := ret[0].(MutableBareRootMetadata)
+	ret0, _ := ret[0].(BareRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -4996,15 +5016,15 @@ func (_mr *_MockMutableBareRootMetadataRecorder) DeepCopy(arg0 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeepCopy", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) MakeSuccessorCopy(codec kbfscodec.Codec, isReadableAndWriter bool) (MutableBareRootMetadata, error) {
-	ret := _m.ctrl.Call(_m, "MakeSuccessorCopy", codec, isReadableAndWriter)
-	ret0, _ := ret[0].(MutableBareRootMetadata)
+func (_m *MockMutableBareRootMetadata) MakeSuccessorCopy(codec kbfscodec.Codec) (BareRootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "MakeSuccessorCopy", codec)
+	ret0, _ := ret[0].(BareRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMutableBareRootMetadataRecorder) MakeSuccessorCopy(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0, arg1)
+func (_mr *_MockMutableBareRootMetadataRecorder) MakeSuccessorCopy(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeSuccessorCopy", arg0)
 }
 
 func (_m *MockMutableBareRootMetadata) CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error {
@@ -5113,6 +5133,16 @@ func (_mr *_MockMutableBareRootMetadataRecorder) LastModifyingWriter() *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriter")
 }
 
+func (_m *MockMutableBareRootMetadata) LastModifyingWriterKID() keybase1.KID {
+	ret := _m.ctrl.Call(_m, "LastModifyingWriterKID")
+	ret0, _ := ret[0].(keybase1.KID)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) LastModifyingWriterKID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriterKID")
+}
+
 func (_m *MockMutableBareRootMetadata) GetLastModifyingUser() keybase1.UID {
 	ret := _m.ctrl.Call(_m, "GetLastModifyingUser")
 	ret0, _ := ret[0].(keybase1.UID)
@@ -5212,6 +5242,16 @@ func (_m *MockMutableBareRootMetadata) GetSerializedWriterMetadata(codec kbfscod
 
 func (_mr *_MockMutableBareRootMetadataRecorder) GetSerializedWriterMetadata(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSerializedWriterMetadata", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) GetWriterMetadataSigInfo() kbfscrypto.SignatureInfo {
+	ret := _m.ctrl.Call(_m, "GetWriterMetadataSigInfo")
+	ret0, _ := ret[0].(kbfscrypto.SignatureInfo)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetWriterMetadataSigInfo() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetWriterMetadataSigInfo")
 }
 
 func (_m *MockMutableBareRootMetadata) Version() MetadataVer {
@@ -5402,14 +5442,12 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetSerializedPrivateMetadata(ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetSerializedPrivateMetadata", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SignWriterMetadataInternally(ctx context.Context, codec kbfscodec.Codec, signer cryptoSigner) error {
-	ret := _m.ctrl.Call(_m, "SignWriterMetadataInternally", ctx, codec, signer)
-	ret0, _ := ret[0].(error)
-	return ret0
+func (_m *MockMutableBareRootMetadata) SetWriterMetadataSigInfo(sigInfo kbfscrypto.SignatureInfo) {
+	_m.ctrl.Call(_m, "SetWriterMetadataSigInfo", sigInfo)
 }
 
-func (_mr *_MockMutableBareRootMetadataRecorder) SignWriterMetadataInternally(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SignWriterMetadataInternally", arg0, arg1, arg2)
+func (_mr *_MockMutableBareRootMetadataRecorder) SetWriterMetadataSigInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetWriterMetadataSigInfo", arg0)
 }
 
 func (_m *MockMutableBareRootMetadata) SetLastModifyingWriter(user keybase1.UID) {

@@ -66,20 +66,19 @@ func (d testBWDelegate) requireNextState(
 // testTLFJournalConfig is the config we pass to the tlfJournal, and
 // also contains some helper functions for testing.
 type testTLFJournalConfig struct {
-	t            *testing.T
-	tlfID        TlfID
-	splitter     BlockSplitter
-	codec        kbfscodec.Codec
-	crypto       CryptoLocal
-	bcache       BlockCache
-	bops         BlockOps
-	mdcache      MDCache
-	reporter     Reporter
-	uid          keybase1.UID
-	verifyingKey kbfscrypto.VerifyingKey
-	ekg          singleEncryptionKeyGetter
-	nug          normalizedUsernameGetter
-	mdserver     MDServer
+	t        *testing.T
+	tlfID    TlfID
+	splitter BlockSplitter
+	codec    kbfscodec.Codec
+	crypto   CryptoLocal
+	bcache   BlockCache
+	bops     BlockOps
+	mdcache  MDCache
+	reporter Reporter
+	uid      keybase1.UID
+	ekg      singleEncryptionKeyGetter
+	nug      normalizedUsernameGetter
+	mdserver MDServer
 }
 
 func (c testTLFJournalConfig) BlockSplitter() BlockSplitter {
@@ -154,7 +153,7 @@ func (c testTLFJournalConfig) makeBlock(data []byte) (
 
 func (c testTLFJournalConfig) makeMD(
 	revision MetadataRevision, prevRoot MdID) *RootMetadata {
-	return makeMDForTest(c.t, c.tlfID, revision, c.uid, c.verifyingKey, prevRoot)
+	return makeMDForTest(c.t, c.tlfID, revision, c.uid, prevRoot)
 }
 
 func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
@@ -212,7 +211,7 @@ func setupTLFJournalTest(
 	config = &testTLFJournalConfig{
 		t, FakeTlfID(1, false), bsplitter, codec, crypto,
 		nil, nil, NewMDCacheStandard(10),
-		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil, mdserver,
+		NewReporterSimple(newTestClockNow(), 10), uid, ekg, nil, mdserver,
 	}
 
 	ctx, cancel = context.WithTimeout(

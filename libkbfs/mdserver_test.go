@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"testing"
-	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -15,34 +14,39 @@ import (
 	"golang.org/x/net/context"
 )
 
-func makeBRMDForTest(t *testing.T, crypto cryptoPure, id TlfID,
+func makeRMDSForTest(t *testing.T, crypto cryptoPure, id TlfID,
 	h BareTlfHandle, revision MetadataRevision, uid keybase1.UID,
-	prevRoot MdID) *BareRootMetadataV2 {
-	var md BareRootMetadataV2
-	// MDv3 TODO: uncomment the below when we're ready for MDv3
-	// md := &BareRootMetadataV3{}
-	md.SetTlfID(id)
-	md.SetSerializedPrivateMetadata([]byte{0x1})
-	md.SetRevision(revision)
-	md.SetLastModifyingWriter(uid)
-	md.SetLastModifyingUser(uid)
-	md.FakeInitialRekey(crypto, h)
-	md.SetPrevRoot(prevRoot)
-	return &md
+	prevRoot MdID) *RootMetadataSigned {
+	rmds, err := NewRootMetadataSignedForTest(id, h)
+	require.NoError(t, err)
+	rmds.MD.SetSerializedPrivateMetadata([]byte{0x1})
+	rmds.MD.SetRevision(revision)
+	rmds.MD.SetLastModifyingWriter(uid)
+	rmds.MD.SetLastModifyingUser(uid)
+	rmds.MD.FakeInitialRekey(crypto, h)
+	rmds.MD.SetPrevRoot(prevRoot)
+	return rmds
 }
 
 func signRMDSForTest(t *testing.T, codec kbfscodec.Codec, signer cryptoSigner,
-	brmd *BareRootMetadataV2) *RootMetadataSigned {
+	rmds *RootMetadataSigned) {
 	ctx := context.Background()
 
 	// Encode and sign writer metadata.
-	err := brmd.SignWriterMetadataInternally(ctx, codec, signer)
+	buf, err := rmds.MD.GetSerializedWriterMetadata(codec)
 	require.NoError(t, err)
 
-	rmds, err := signMD(ctx, codec, signer, brmd, time.Time{})
+	sigInfo, err := signer.Sign(ctx, buf)
+	require.NoError(t, err)
+	rmds.MD.SetWriterMetadataSigInfo(sigInfo)
+
+	// Encode and sign root metadata.
+	buf, err = codec.Encode(rmds.MD)
 	require.NoError(t, err)
 
-	return rmds
+	sigInfo, err = signer.Sign(ctx, buf)
+	require.NoError(t, err)
+	rmds.SigInfo = sigInfo
 }
 
 // This should pass for both local and remote servers.
@@ -68,8 +72,8 @@ func TestMDServerBasics(t *testing.T) {
 	prevRoot := MdID{}
 	middleRoot := MdID{}
 	for i := MetadataRevision(1); i <= 10; i++ {
-		brmd := makeBRMDForTest(t, config.Crypto(), id, h, i, uid, prevRoot)
-		rmds := signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)
+		rmds := makeRMDSForTest(t, config.Crypto(), id, h, i, uid, prevRoot)
+		signRMDSForTest(t, config.Codec(), config.Crypto(), rmds)
 		// MDv3 TODO: pass actual key bundles
 		err = mdServer.Put(ctx, rmds, nil)
 		require.NoError(t, err)
@@ -81,8 +85,8 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (3) trigger a conflict
-	brmd := makeBRMDForTest(t, config.Crypto(), id, h, 10, uid, prevRoot)
-	rmds = signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)
+	rmds = makeRMDSForTest(t, config.Crypto(), id, h, 10, uid, prevRoot)
+	signRMDSForTest(t, config.Codec(), config.Crypto(), rmds)
 	// MDv3 TODO: pass actual key bundles
 	err = mdServer.Put(ctx, rmds, nil)
 	require.IsType(t, MDServerErrorConflictRevision{}, err)
@@ -93,10 +97,10 @@ func TestMDServerBasics(t *testing.T) {
 	bid, err := config.Crypto().MakeRandomBranchID()
 	require.NoError(t, err)
 	for i := MetadataRevision(6); i < 41; i++ {
-		brmd := makeBRMDForTest(t, config.Crypto(), id, h, i, uid, prevRoot)
-		brmd.SetUnmerged()
-		brmd.SetBranchID(bid)
-		rmds := signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)
+		rmds := makeRMDSForTest(t, config.Crypto(), id, h, i, uid, prevRoot)
+		rmds.MD.SetUnmerged()
+		rmds.MD.SetBranchID(bid)
+		signRMDSForTest(t, config.Codec(), config.Crypto(), rmds)
 		// MDv3 TODO: pass actual key bundles
 		err = mdServer.Put(ctx, rmds, nil)
 		require.NoError(t, err)

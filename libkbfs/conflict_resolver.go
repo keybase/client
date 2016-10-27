@@ -14,7 +14,6 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
 	"golang.org/x/net/context"
 )
@@ -1033,7 +1032,8 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 	}
 
 	currUnmergedWriterInfo, err := newWriterInfo(
-		ctx, cr.config, uid, key, unmerged[len(unmerged)-1].Revision())
+		ctx, cr.config, uid, key.KID(),
+		unmerged[len(unmerged)-1].Revision())
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
@@ -2490,17 +2490,12 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 	return resolvedPath, nil
 }
 
-type rootMetadataWithKeyAndTimestamp struct {
+type rootMetadataWithTimestamp struct {
 	*RootMetadata
-	key            kbfscrypto.VerifyingKey
 	localTimestamp time.Time
 }
 
-func (rmd rootMetadataWithKeyAndTimestamp) LastModifyingWriterVerifyingKey() kbfscrypto.VerifyingKey {
-	return rmd.key
-}
-
-func (rmd rootMetadataWithKeyAndTimestamp) LocalTimestamp() time.Time {
+func (rmd rootMetadataWithTimestamp) LocalTimestamp() time.Time {
 	return rmd.localTimestamp
 }
 
@@ -2510,16 +2505,11 @@ func (rmd rootMetadataWithKeyAndTimestamp) LocalTimestamp() time.Time {
 func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 	md *RootMetadata, unmergedChains, mergedChains *crChains,
 	mergedPaths map[BlockPointer]path) (map[BlockPointer]path, error) {
-	key, err := cr.config.KBPKI().GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	// No need to run any identifies on these chains, since we
 	// have already finished all actions.
 	resolvedChains, err := newCRChains(ctx, cr.config,
-		[]chainMetadata{rootMetadataWithKeyAndTimestamp{md,
-			key, cr.config.Clock().Now()}},
+		[]chainMetadata{rootMetadataWithTimestamp{md,
+			cr.config.Clock().Now()}},
 		&cr.fbo.blocks, false)
 	if err != nil {
 		return nil, err
@@ -3487,7 +3477,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 
 	mostRecentMergedWriterInfo, err := newWriterInfo(ctx, cr.config,
 		mostRecentMergedMD.LastModifyingWriter(),
-		mostRecentMergedMD.LastModifyingWriterVerifyingKey(),
+		mostRecentMergedMD.LastModifyingWriterKID(),
 		mostRecentMergedMD.Revision())
 	if err != nil {
 		return

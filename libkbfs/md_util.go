@@ -239,16 +239,15 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 				return nil, err
 			}
 
-			rmdCopy, err := rmd.deepCopy(config.Codec())
+			rmdCopy, err := rmd.deepCopy(config.Codec(), true)
 			if err != nil {
 				return nil, err
 			}
 			rmdCopy.data = pmd
 
 			// Overwrite the cached copy with the new copy
-			irmdCopy := MakeImmutableRootMetadata(rmdCopy,
-				rmd.LastModifyingWriterVerifyingKey(), rmd.MdID(),
-				rmd.LocalTimestamp())
+			irmdCopy := MakeImmutableRootMetadata(rmdCopy, rmd.mdID,
+				rmd.localTimestamp)
 			if err := config.MDCache().Put(irmdCopy); err != nil {
 				return nil, err
 			}
@@ -312,15 +311,17 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 
 // encryptMDPrivateData encrypts the private data of the given
 // RootMetadata and makes other modifications to prepare it for
-// signing (see signMD below). After this function is called, the
-// MetadataID of the RootMetadata's BareRootMetadata can be computed.
+// signing (see signMD below). The returned BareRootMetadata is a
+// shallow copy of the given RootMetadata, so it shouldn't be modified
+// directly. After this function is called, the MetadataID of the
+// returned BareRootMetadata can be computed.
 func encryptMDPrivateData(
 	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
 	signer cryptoSigner, ekg encryptionKeyGetter, me keybase1.UID,
-	rmd *RootMetadata) error {
+	rmd ReadOnlyRootMetadata) (BareRootMetadata, error) {
 	err := rmd.data.checkValid()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	brmd := rmd.bareMd
@@ -334,37 +335,62 @@ func encryptMDPrivateData(
 			// Encode the private metadata
 			encodedPrivateMetadata, err := codec.Encode(privateData)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			brmd.SetSerializedPrivateMetadata(encodedPrivateMetadata)
 		} else if !brmd.IsWriterMetadataCopiedSet() {
 			// Encrypt and encode the private metadata
 			k, err := ekg.GetTLFCryptKeyForEncryption(ctx, rmd)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			encryptedPrivateMetadata, err := crypto.EncryptPrivateMetadata(privateData, k)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			encodedEncryptedPrivateMetadata, err := codec.Encode(encryptedPrivateMetadata)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			brmd.SetSerializedPrivateMetadata(encodedEncryptedPrivateMetadata)
 		}
 
-		// Sign the writer metadata internally. This has to be
-		// done here, instead of in signMD, since the
-		// MetadataID may depend on it.
-		err := brmd.SignWriterMetadataInternally(ctx, codec, signer)
+		// Sign the writer metadata. This has to be done here,
+		// instead of in signMD, since the MetadataID depends
+		// on it.
+		buf, err := brmd.GetSerializedWriterMetadata(codec)
 		if err != nil {
-			return err
+			return nil, err
 		}
+
+		sigInfo, err := signer.Sign(ctx, buf)
+		if err != nil {
+			return nil, err
+		}
+		brmd.SetWriterMetadataSigInfo(sigInfo)
 	}
 
 	// Record the last user to modify this metadata
 	brmd.SetLastModifyingUser(me)
+
+	return brmd, nil
+}
+
+func signMD(
+	ctx context.Context, codec kbfscodec.Codec, signer cryptoSigner,
+	rmds *RootMetadataSigned) error {
+	// encode the root metadata and sign it
+	buf, err := codec.Encode(rmds.MD)
+	if err != nil {
+		return err
+	}
+
+	// Sign normally using the local device private key
+	sigInfo, err := signer.Sign(ctx, buf)
+	if err != nil {
+		return err
+	}
+	rmds.SigInfo = sigInfo
 
 	return nil
 }

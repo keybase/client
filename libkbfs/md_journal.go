@@ -631,12 +631,17 @@ func (j *mdJournal) convertToBranch(
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
 
-		// Re-sign the writer metadata internally, since we
-		// changed it.
-		err = brmd.SignWriterMetadataInternally(ctx, j.codec, signer)
+		// Re-sign the writer metadata.
+		buf, err := brmd.GetSerializedWriterMetadata(j.codec)
 		if err != nil {
 			return NullBranchID, err
 		}
+
+		sigInfo, err := signer.Sign(ctx, buf)
+		if err != nil {
+			return NullBranchID, err
+		}
+		brmd.SetWriterMetadataSigInfo(sigInfo)
 
 		j.log.CDebugf(ctx, "Old prev root of rev=%s is %s",
 			brmd.RevisionNumber(), brmd.GetPrevRoot())
@@ -677,16 +682,14 @@ func (j *mdJournal) convertToBranch(
 		oldIrmd, err := mdcache.Get(
 			tlfID, brmd.RevisionNumber(), NullBranchID)
 		if err == nil {
-			newRmd, err := oldIrmd.deepCopy(codec)
+			newRmd, err := oldIrmd.deepCopy(codec, false)
 			if err != nil {
 				return NullBranchID, err
 			}
 			newRmd.bareMd = brmd
-			// Everything else is the same.
+			// The extra is the same.
 			err = mdcache.Replace(
-				MakeImmutableRootMetadata(newRmd,
-					oldIrmd.LastModifyingWriterVerifyingKey(),
-					newID, ts),
+				MakeImmutableRootMetadata(newRmd, newID, ts),
 				NullBranchID)
 			if err != nil {
 				return NullBranchID, err
@@ -748,12 +751,19 @@ func (j mdJournal) getNextEntryToFlush(
 		return MdID{}, nil, nil, nil
 	}
 
-	rmds, err := signMD(ctx, j.codec, signer, rmd, timestamp)
+	rmds := RootMetadataSigned{
+		MD: rmd,
+		// No need to un-adjust the server timestamp; we can leave it
+		// as a local timestamp since flushed entries don't end up
+		// getting processed (and re-adjusted) again.
+		untrustedServerTimestamp: timestamp,
+	}
+	err = signMD(ctx, j.codec, signer, &rmds)
 	if err != nil {
 		return MdID{}, nil, nil, err
 	}
 
-	return mdID, rmds, extra, nil
+	return mdID, &rmds, extra, nil
 }
 
 func (j *mdJournal) removeFlushedEntry(
@@ -1049,23 +1059,24 @@ func (j *mdJournal) put(
 			errors.New("MD has embedded block changes, but shouldn't")
 	}
 
-	err = encryptMDPrivateData(
-		ctx, j.codec, j.crypto, signer, ekg, j.uid, rmd)
+	brmd, err := encryptMDPrivateData(
+		ctx, j.codec, j.crypto, signer, ekg,
+		j.uid, rmd.ReadOnly())
 	if err != nil {
 		return MdID{}, err
 	}
 
-	err = rmd.bareMd.IsValidAndSigned(j.codec, j.crypto, extra)
+	err = brmd.IsValidAndSigned(j.codec, j.crypto, extra)
 	if err != nil {
 		return MdID{}, err
 	}
 
-	id, err := j.putMD(rmd.bareMd)
+	id, err := j.putMD(brmd)
 	if err != nil {
 		return MdID{}, err
 	}
 
-	err = j.putExtraMetadata(rmd.bareMd, extra)
+	err = j.putExtraMetadata(brmd, extra)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -1085,7 +1096,8 @@ func (j *mdJournal) put(
 			return MdID{}, err
 		}
 	} else {
-		err = j.j.append(rmd.Revision(), mdIDJournalEntry{ID: id})
+		err = j.j.append(
+			brmd.RevisionNumber(), mdIDJournalEntry{ID: id})
 		if err != nil {
 			return MdID{}, err
 		}
