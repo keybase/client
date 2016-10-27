@@ -91,7 +91,9 @@ function * _onUpdatePGPSettings (): SagaGenerator<any, any> {
 
 function * _onSubmitNewEmail (): SagaGenerator<any, any> {
   try {
-    const newEmail = yield select(state => state.settings.email.newEmail)
+    const newEmailSelector = ({settings: {email: {newEmail}}}: TypedState) => newEmail
+    const newEmail: string = ((yield select(newEmailSelector)): any)
+
     yield call(accountEmailChangeRpcPromise, {
       param: {
         newEmail,
