@@ -2686,6 +2686,19 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 	return bps, nil
 }
 
+// addUnrefToFinalResOp makes a resolutionOp at the end of opsList if
+// one doesn't exist yet, and then adds the given pointer as an unref
+// block to it.
+func addUnrefToFinalResOp(ops opsList, ptr BlockPointer) opsList {
+	resOp, ok := ops[len(ops)-1].(*resolutionOp)
+	if !ok {
+		resOp = newResolutionOp()
+		ops = append(ops, resOp)
+	}
+	resOp.AddUnrefBlock(ptr)
+	return ops
+}
+
 // calculateResolutionBytes figured out how many bytes are referenced
 // and unreferenced in the merged branch by this resolution.  It
 // should be called before the block changes are unembedded in md.  It
@@ -2711,14 +2724,27 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 			// pointer.  Also, we shouldn't be referencing this
 			// anymore!
 			if unmergedChains.blockChangePointers[ptr] {
+				cr.log.CDebugf(ctx, "Ignoring block change ptr %v", ptr)
 				op.DelRefBlock(ptr)
 			} else {
 				refs[ptr] = true
 			}
 		}
-		for _, ptr := range op.Unrefs() {
+		// Iterate in reverse since we may be deleting unrefs as we go.
+		for i := len(op.Unrefs()) - 1; i >= 0; i-- {
+			ptr := op.Unrefs()[i]
 			unrefs[ptr] = true
 			delete(refs, ptr)
+			if _, isCreateOp := op.(*createOp); isCreateOp {
+				// The only way a create op should have unref blocks
+				// is if it was created during conflict resolution.
+				// In that case, we should move the unref to a final
+				// resolution op, so it doesn't confuse future
+				// resolutions.
+				op.DelUnrefBlock(ptr)
+				md.data.Changes.Ops =
+					addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
+			}
 		}
 		for _, update := range op.allUpdates() {
 			if update.Unref != update.Ref {
@@ -2795,7 +2821,6 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 			return nil, err
 		}
 
-		cr.log.CDebugf(ctx, "Unref'ing block %v", ptr)
 		size := uint64(block.GetEncodedSize())
 		md.AddUnrefBytes(size)
 		md.SetDiskUsage(md.DiskUsage() - size)
@@ -2831,15 +2856,15 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 			continue
 		}
 
-		// Put the unrefs on the final operations, to cancel out any
-		// stray refs in earlier ops.
+		// Put the unrefs in a new resOp after the final operation, to
+		// cancel out any stray refs in earlier ops.
 		cr.log.CDebugf(ctx, "Unreferencing dropped block %v", ptr)
-		md.data.Changes.Ops[len(md.data.Changes.Ops)-1].AddUnrefBlock(ptr)
+		md.data.Changes.Ops = addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
 	}
 
 	cr.log.CDebugf(ctx, "New md byte usage: %d ref, %d unref, %d total usage "+
-		"(previously %d)", md.RefBytes, md.UnrefBytes, md.DiskUsage,
-		mostRecentMergedMD.DiskUsage)
+		"(previously %d)", md.RefBytes(), md.UnrefBytes(), md.DiskUsage(),
+		mostRecentMergedMD.DiskUsage())
 	return blocksToDelete, nil
 }
 
@@ -3106,7 +3131,38 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 				if unrefOrig, ok := unmergedChains.originals[ptr]; ok {
 					ptr = unrefOrig
 				}
-				resOp.AddUnrefBlock(ptr)
+
+				newOps = addUnrefToFinalResOp(newOps, ptr)
+			}
+		}
+	}
+
+	newBlocks := make(map[BlockPointer]bool)
+	if len(unmergedChains.resOps) > 0 {
+		for _, bs := range bps.blockStates {
+			newBlocks[bs.blockPtr] = true
+		}
+
+		// Look into the previous unmerged resolution ops and decide
+		// which updates we want to keep.  We should only keep those
+		// that correspond to uploaded blocks, or ones that are the
+		// most recent block on a chain and haven't yet been involved
+		// in an update during this resolution.
+		for _, unmergedResOp := range unmergedChains.resOps {
+			// Updates go in the first one.
+			for _, update := range unmergedResOp.allUpdates() {
+				_, isMostRecent := unmergedChains.byMostRecent[update.Ref]
+				_, alreadyUpdated := updates[update.Unref]
+				if newBlocks[update.Ref] || (isMostRecent && !alreadyUpdated) {
+					cr.log.CDebugf(ctx, "Including update from old resOp: "+
+						"%v -> %v", update.Unref, update.Ref)
+					resOp.AddUpdate(update.Unref, update.Ref)
+				} else {
+					cr.log.CDebugf(ctx, "Unrefing an update from old resOp: "+
+						"%v and %v", update.Unref, update.Ref)
+					newOps = addUnrefToFinalResOp(newOps, update.Unref)
+					newOps = addUnrefToFinalResOp(newOps, update.Ref)
+				}
 			}
 		}
 	}
@@ -3130,9 +3186,37 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		return nil, nil, nil, err
 	}
 
+	// Any refs (child block change pointers) and unrefs (dropped
+	// unmerged block pointers) from previous resolutions go in a new
+	// resolutionOp at the end, so we don't attempt to count any of
+	// the bytes in the unref bytes count -- all of these pointers are
+	// guaranteed to have been created purely within the unmerged
+	// branch.
+	for _, unmergedResOp := range unmergedChains.resOps {
+		for i := len(unmergedResOp.Refs()) - 1; i >= 0; i-- {
+			ptr := unmergedResOp.Refs()[i]
+			if unmergedChains.blockChangePointers[ptr] {
+				cr.log.CDebugf(ctx, "Ignoring block change ptr %v", ptr)
+				unmergedResOp.DelRefBlock(ptr)
+				md.data.Changes.Ops =
+					addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
+			}
+		}
+		for _, ptr := range unmergedResOp.Unrefs() {
+			cr.log.CDebugf(ctx, "Unref pointer from old resOp: %v", ptr)
+			md.data.Changes.Ops = addUnrefToFinalResOp(md.data.Changes.Ops, ptr)
+		}
+	}
+
 	// do the block changes need their own blocks?
 	bsplit := cr.config.BlockSplitter()
 	if !bsplit.ShouldEmbedBlockChanges(&md.data.Changes) {
+		// The child blocks should be referenced in the resolution op.
+		_, ok := md.data.Changes.Ops[len(md.data.Changes.Ops)-1].(*resolutionOp)
+		if !ok {
+			md.AddOp(newResolutionOp())
+		}
+
 		err = cr.fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes, uid)
 		if err != nil {
 			return nil, nil, nil, err
