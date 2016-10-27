@@ -9,6 +9,7 @@ export type Props = {
   messages: List<Message>,
   moreToLoad: boolean,
   isLoading: boolean,
+  onPostMessage: (text: string) => void,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

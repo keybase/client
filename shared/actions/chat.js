@@ -3,15 +3,19 @@ import * as Constants from '../constants/chat'
 import engine from '../engine'
 import {List, Map} from 'immutable'
 import {call, put, select} from 'redux-saga/effects'
-import {localGetInboxAndUnboxLocalRpcPromise, CommonMessageType, localGetThreadLocalRpcPromise} from '../constants/types/flow-types-chat'
+import {localGetInboxAndUnboxLocalRpcPromise, CommonMessageType, localGetThreadLocalRpcPromise, localPostLocalRpcPromise} from '../constants/types/flow-types-chat'
 import {takeLatest, takeEvery} from 'redux-saga'
 
-import type {LoadMoreMessages, ConversationIDKey, SelectConversation, LoadInbox, Message, InboxState, LoadedInbox, SetupNewChatHandler, IncomingMessage} from '../constants/chat'
+import type {LoadMoreMessages, ConversationIDKey, SelectConversation, LoadInbox, Message, InboxState, LoadedInbox, SetupNewChatHandler, IncomingMessage, PostMessage} from '../constants/chat'
 import type {MessageUnboxed, GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
 const {conversationIDToKey, keyToConversationID, InboxStateRecord} = Constants
+
+function postMessage (conversationIDKey: ConversationIDKey, text: string): PostMessage {
+  return {type: Constants.postMessage, payload: {conversationIDKey, text}}
+}
 
 function setupNewChatHandler (): SetupNewChatHandler {
   return {type: Constants.setupNewChatHandler, payload: undefined}
@@ -42,6 +46,7 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxStat
     } catch (_) { }
 
     return new InboxStateRecord({
+      info: convo.info,
       conversationIDKey: conversationIDToKey(convo.info.id),
       participants: List(convo.info.tlfName.split(',')) || List(), // TODO in recent order... somehow
       muted: false,
@@ -49,6 +54,50 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxStat
       snippet,
     })
   }))
+}
+
+function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
+  const infoSelector = (state: TypedState) => {
+    const convo = state.chat.get('inbox').find(convo => (
+      convo.get('conversationIDKey') === action.payload.conversationIDKey
+    ))
+    if (convo) {
+      return convo.get('info')
+    }
+    return null
+  }
+
+  const info = yield select(infoSelector)
+  debugger
+  if (!info) {
+    return
+  }
+  const clientHeader = {
+    conv: info.triple,
+    tlfName: info.tlfName,
+    tlfPublic: false,
+    messageType: CommonMessageType.text,
+    supersedes: 0,
+    sender: 0,
+    // gregor1.UID,
+    senderDevice: 0,
+    // gregor1.DeviceID,
+  }
+
+  yield call(localPostLocalRpcPromise, {
+    params: {
+      conversationID: keyToConversationID(action.payload.conversationIDKey),
+      msg: {
+        clientHeader,
+        messageBody: {
+          messageType: CommonMessageType.text,
+          text: {
+            body: action.payload.text,
+          },
+        },
+      },
+    },
+  })
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
@@ -211,6 +260,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     takeLatest(Constants.selectConversation, _selectConversation),
     takeEvery(Constants.setupNewChatHandler, _setupNewChatHandler),
     takeEvery(Constants.incomingMessage, _incomingMessage),
+    takeEvery(Constants.postMessage, _postMessage),
   ]
 }
 
@@ -221,4 +271,5 @@ export {
   loadMoreMessages,
   selectConversation,
   setupNewChatHandler,
+  postMessage,
 }
