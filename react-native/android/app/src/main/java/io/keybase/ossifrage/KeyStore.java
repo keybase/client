@@ -26,10 +26,10 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import go.keybase.Keybase;
-import go.keybase.ExternalKeyStore;
+import go.keybase.UnsafeExternalKeyStore;
 import io.keybase.ossifrage.keystore.KeyStoreHelper;
 
-public class KeyStore implements ExternalKeyStore {
+public class KeyStore implements UnsafeExternalKeyStore {
     private final Context context;
     private final SharedPreferences prefs;
     private final java.security.KeyStore ks;
