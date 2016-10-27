@@ -251,11 +251,6 @@
 			"revisionTime": "2016-06-28T16:50:19-07:00"
 		},
 		{
-			"path": "github.com/keybase/go-updater/sources",
-			"revision": "44e1c9d05e297028aee0434006b7db6ad8ec089b",
-			"revisionTime": "2016-03-23T16:34:55-07:00"
-		},
-		{
 			"path": "github.com/keybase/go-updater/watchdog",
 			"revision": "a05bfa6382513c15afde21392f07617f4ad68de9",
 			"revisionTime": "2016-06-28T16:50:19-07:00"
