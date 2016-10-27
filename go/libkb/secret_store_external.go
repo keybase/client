@@ -59,7 +59,7 @@ func (w TypeSafeExternalKeyStoreProxy) GetUsersWithStoredSecretsMsgPack(serviceN
 }
 
 func (w TypeSafeExternalKeyStoreProxy) SetupKeyStore(serviceName string, key string) error {
-	return w.SetupKeyStore(serviceName, key)
+	return w.UnsafeExternalKeyStore.SetupKeyStore(serviceName, key)
 }
 
 // externalKeyStore is the reference to some external key store
