@@ -280,25 +280,12 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
 }
 
 function * refreshNotificationsSaga (): SagaGenerator<any, any> {
-  // If the rpc is fast don't clear it out first
-  const delayThenEmptyTask = yield fork(function * () {
-    yield call(delay, 500)
-    yield put({
-      type: Constants.notificationsRefreshed,
-      payload: {
-        settings: null,
-        unsubscribedFromAll: null,
-      }})
-  })
-
   const json: ?{body: string} = yield call(apiserverGetRpcPromise, {
     param: {
       endpoint: 'account/subscriptions',
       args: [],
     },
   })
-
-  yield cancel(delayThenEmptyTask)
 
   const results: {
     notifications: {
