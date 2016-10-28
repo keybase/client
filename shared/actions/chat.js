@@ -35,6 +35,7 @@ function selectConversation (conversationIDKey: ConversationIDKey): SelectConver
 
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
 function _makeSnippet (message, max) {
+  // $FlowIssue flow doesn't understand spread + strings
   return [...(message.substring(0, max * 4).replace(/\s+/g, ' '))].slice(0, max).join('')
 }
 
