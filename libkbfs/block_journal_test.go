@@ -46,6 +46,7 @@ func makeFakeBlockJournalEntryFuture(t *testing.T) blockJournalEntryFuture {
 				},
 			},
 			MetadataRevisionInitial,
+			false,
 			codec.UnknownFieldSetHandler{},
 		},
 		makeExtraOrBust("blockJournalEntry", t),
@@ -543,6 +544,62 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, rev, gotRev)
 	require.Equal(t, 2, entries.length())
+	err = flushBlockEntries(ctx, j.log, blockServer,
+		bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
+		entries)
+	require.NoError(t, err)
+	err = j.removeFlushedEntries(ctx, entries, tlfID, reporter)
+	require.NoError(t, err)
+	err = j.checkInSync(ctx)
+	require.NoError(t, err)
+}
+
+func TestBlockJournalIgnoreBlocks(t *testing.T) {
+	ctx, tempdir, j := setupBlockJournalTest(t)
+	defer teardownBlockJournalTest(t, tempdir, j)
+
+	// Put a few blocks
+	data1 := []byte{1, 2, 3, 4}
+	bID1, _, _ := putBlockData(ctx, t, j, data1)
+	data2 := []byte{5, 6, 7, 8}
+	bID2, _, _ := putBlockData(ctx, t, j, data2)
+
+	// Put a revision marker
+	rev := MetadataRevision(10)
+	err := j.markMDRevision(ctx, rev)
+	require.NoError(t, err)
+
+	data3 := []byte{9, 10, 11, 12}
+	bID3, _, _ := putBlockData(ctx, t, j, data3)
+	data4 := []byte{13, 14, 15, 16}
+	bID4, _, _ := putBlockData(ctx, t, j, data4)
+
+	// Put a revision marker
+	rev = MetadataRevision(11)
+	err = j.markMDRevision(ctx, rev)
+	require.NoError(t, err)
+
+	err = j.ignoreBlocksAndMDRevMarkers(ctx, []BlockID{bID2, bID3})
+	require.NoError(t, err)
+
+	blockServer := NewBlockServerMemory(newTestBlockServerLocalConfig(t))
+	tlfID := FakeTlfID(1, false)
+	bcache := NewBlockCacheStandard(0, 0)
+	reporter := NewReporterSimple(nil, 0)
+
+	// Flush and make sure we only flush the non-ignored blocks.
+	last, err := j.j.readLatestOrdinal()
+	require.NoError(t, err)
+	entries, gotRev, err := j.getNextEntriesToFlush(ctx, last+1,
+		maxJournalBlockFlushBatchSize)
+	require.NoError(t, err)
+	require.Equal(t, MetadataRevisionUninitialized, gotRev)
+	require.Equal(t, 6, entries.length())
+	require.Len(t, entries.puts.blockStates, 2)
+	require.Len(t, entries.adds.blockStates, 0)
+	require.Len(t, entries.other, 4)
+	require.Equal(t, bID1, entries.puts.blockStates[0].blockPtr.ID)
+	require.Equal(t, bID4, entries.puts.blockStates[1].blockPtr.ID)
 	err = flushBlockEntries(ctx, j.log, blockServer,
 		bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
 		entries)

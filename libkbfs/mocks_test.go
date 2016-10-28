@@ -2533,6 +2533,17 @@ func (_mr *_MockMDOpsRecorder) PruneBranch(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneBranch", arg0, arg1, arg2)
 }
 
+func (_m *MockMDOps) ResolveBranch(ctx context.Context, id TlfID, bid BranchID, blocksToDelete []BlockID, rmd *RootMetadata) (MdID, error) {
+	ret := _m.ctrl.Call(_m, "ResolveBranch", ctx, id, bid, blocksToDelete, rmd)
+	ret0, _ := ret[0].(MdID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMDOpsRecorder) ResolveBranch(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveBranch", arg0, arg1, arg2, arg3, arg4)
+}
+
 func (_m *MockMDOps) GetLatestHandleForTLF(ctx context.Context, id TlfID) (BareTlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
 	ret0, _ := ret[0].(BareTlfHandle)

@@ -36,6 +36,7 @@ const (
 	StallableMDPutUnmerged           StallableMDOp = "PutUnmerged"
 	StallableMDAfterPutUnmerged      StallableMDOp = "AfterPutUnmerged"
 	StallableMDPruneBranch           StallableMDOp = "PruneBranch"
+	StallableMDResolveBranch         StallableMDOp = "ResolveBranch"
 )
 
 type stallKeyType uint64
@@ -497,4 +498,15 @@ func (m *stallingMDOps) PruneBranch(
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
 		return m.delegate.PruneBranch(ctx, id, bid)
 	})
+}
+
+func (m *stallingMDOps) ResolveBranch(
+	ctx context.Context, id TlfID, bid BranchID, blocksToDelete []BlockID,
+	rmd *RootMetadata) (mdID MdID, err error) {
+	m.maybeStall(ctx, StallableMDResolveBranch)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		mdID, err = m.delegate.ResolveBranch(ctx, id, bid, blocksToDelete, rmd)
+		return err
+	})
+	return mdID, err
 }

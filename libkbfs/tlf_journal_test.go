@@ -1069,3 +1069,66 @@ func TestTLFJournalFlushRetry(t *testing.T) {
 	requireJournalEntryCounts(t, tlfJournal, 0, 0)
 	testMDJournalGCd(t, tlfJournal.mdJournal)
 }
+
+func TestTLFJournalResolveBranch(t *testing.T) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, TLFJournalBackgroundWorkPaused)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	var bids []BlockID
+	for i := 0; i < 3; i++ {
+		data := []byte{byte(i)}
+		bid, bCtx, serverHalf := config.makeBlock(data)
+		bids = append(bids, bid)
+		err := tlfJournal.putBlockData(ctx, bid, bCtx, data, serverHalf)
+		require.NoError(t, err)
+	}
+
+	firstRevision := MetadataRevision(10)
+	firstPrevRoot := fakeMdID(1)
+	mdCount := 3
+
+	prevRoot := firstPrevRoot
+	for i := 0; i < mdCount; i++ {
+		revision := firstRevision + MetadataRevision(i)
+		md := config.makeMD(revision, prevRoot)
+		mdID, err := tlfJournal.putMD(ctx, md)
+		require.NoError(t, err)
+		prevRoot = mdID
+	}
+
+	var mdserver shimMDServer
+	mdserver.nextErr = MDServerErrorConflictRevision{}
+	config.mdserver = &mdserver
+
+	_, mdEnd, err := tlfJournal.getJournalEnds(ctx)
+	require.NoError(t, err)
+
+	// This will convert to a branch.
+	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
+	require.NoError(t, err)
+	require.True(t, flushed)
+
+	// Resolve the branch.
+	resolveMD := config.makeMD(firstRevision, firstPrevRoot)
+	_, err = tlfJournal.resolveBranch(ctx,
+		tlfJournal.mdJournal.getBranchID(), []BlockID{bids[1]}, resolveMD, nil)
+	require.NoError(t, err)
+
+	blockEnd, newMDEnd, err := tlfJournal.getJournalEnds(ctx)
+	require.NoError(t, err)
+	require.Equal(t, firstRevision+1, newMDEnd)
+
+	blocks, maxMD, err := tlfJournal.getNextBlockEntriesToFlush(ctx, blockEnd)
+	require.NoError(t, err)
+	require.Equal(t, firstRevision, maxMD)
+	// 3 blocks, 3 old MD markers, 1 new MD marker
+	require.Equal(t, 7, blocks.length())
+	require.Len(t, blocks.puts.blockStates, 2)
+	require.Len(t, blocks.adds.blockStates, 0)
+	// 1 ignored block, 3 ignored MD markers, 1 real MD marker
+	require.Len(t, blocks.other, 5)
+	require.Equal(t, bids[0], blocks.puts.blockStates[0].blockPtr.ID)
+	require.Equal(t, bids[2], blocks.puts.blockStates[1].blockPtr.ID)
+}

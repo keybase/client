@@ -594,6 +594,13 @@ func (md *MDOpsStandard) PruneBranch(
 	return md.config.MDServer().PruneBranch(ctx, id, bid)
 }
 
+// ResolveBranch implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) ResolveBranch(
+	ctx context.Context, id TlfID, bid BranchID,
+	blocksToDelete []BlockID, rmd *RootMetadata) (MdID, error) {
+	return MdID{}, errors.New("ResolveBranch not supported by MDOpsStandard")
+}
+
 // GetLatestHandleForTLF implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
 	BareTlfHandle, error) {

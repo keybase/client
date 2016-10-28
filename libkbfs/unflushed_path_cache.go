@@ -353,3 +353,25 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 	// abort the initialization.
 	return initialUnflushedPaths, false, nil
 }
+
+// reinitializeWithResolution returns true when successful, and false
+// if it needs to be retried after the per-revision map is recomputed.
+func (upc *unflushedPathCache) reinitializeWithResolution(
+	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) bool {
+	upc.lock.Lock()
+	defer upc.lock.Unlock()
+
+	if perRevMap == nil && upc.state != upcUninitialized {
+		return false
+	}
+
+	upc.unflushedPaths = unflushedPathsMap{mdInfo.revision: perRevMap}
+	upc.appendQueue = nil
+	upc.removeQueue = nil
+	if upc.ready != nil {
+		close(upc.ready)
+		upc.ready = nil
+	}
+	upc.state = upcInitialized
+	return true
+}

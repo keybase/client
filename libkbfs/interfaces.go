@@ -941,6 +941,13 @@ type MDOps interface {
 	// branch.
 	PruneBranch(ctx context.Context, id TlfID, bid BranchID) error
 
+	// ResolveBranch prunes all unmerged history for the given TLF
+	// branch, and also deletes any blocks in `blocksToDelete` that
+	// are still in the local journal.  It also appends the given MD
+	// to the journal.
+	ResolveBranch(ctx context.Context, id TlfID, bid BranchID,
+		blocksToDelete []BlockID, rmd *RootMetadata) (MdID, error)
+
 	// GetLatestHandleForTLF returns the server's idea of the latest handle for the TLF,
 	// which may not yet be reflected in the MD if the TLF hasn't been rekeyed since it
 	// entered into a conflicting state.
