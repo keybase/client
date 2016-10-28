@@ -303,7 +303,7 @@ func (e *Identify2WithUID) CCLCheckCompleted(lcr *libkb.LinkCheckResult) {
 	e.remotesReceived.Add(pf)
 
 	if !e.useRemoteAssertions() || e.useTracking {
-		e.G().Log.Debug("| Early out, since not using remote assertions or is tracking")
+		e.G().Log.Debug("| Not using remote assertions or is tracking")
 		return
 	}
 
@@ -387,6 +387,7 @@ func (e *Identify2WithUID) displayUserCardAsync(ctx *Context) <-chan error {
 
 func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.G().Log.Debug("+ runIdentifyUI(%s)", e.them.GetName())
+	defer e.G().Log.Debug("- runIdentifyUI(%s) -> %s", e.them.GetName(), libkb.ErrToOk(err))
 
 	// RemoteReceived, start with the baseProofSet that has PGP
 	// fingerprints and the user's UID and username.
@@ -423,14 +424,17 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 
 	e.G().Log.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
 	if err = e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, iui, e); err != nil {
+		e.G().Log.Debug("| Failure in running IDTable")
 		return err
 	}
 
 	if waiter != nil {
+		e.G().Log.Debug("+ Waiting for UserCard")
 		if err = <-waiter; err != nil {
+			e.G().Log.Debug("| Failure in showing UserCard")
 			return err
 		}
-		e.G().Log.Debug("| IdentifyUI waited for waiter (%s)", e.them.GetName())
+		e.G().Log.Debug("- Waited for UserCard")
 	}
 
 	// use Confirm to display the IdentifyOutcome
@@ -438,12 +442,14 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	outcome.TrackOptions = e.trackOptions
 	e.confirmResult, err = iui.Confirm(outcome.Export())
 	if err != nil {
+		e.G().Log.Debug("| Failure in iui.Confirm")
 		return err
 	}
 
 	e.insertTrackToken(ctx, outcome, iui)
 
 	if err = iui.Finish(); err != nil {
+		e.G().Log.Debug("| Failure in iui.Finish")
 		return err
 	}
 	e.G().Log.Debug("| IdentifyUI.Finished(%s)", e.them.GetName())
