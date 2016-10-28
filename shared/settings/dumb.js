@@ -21,8 +21,10 @@ import type {DumbComponentMap} from '../constants/types/more'
 const updateEmailBase = {
   email: 'party@mypla.ce',
   isVerified: true,
-  onChangeEmail: () => console.log('onChangeEmail'),
+  edited: false,
+  onChangeNewEmail: () => console.log('onChangeNewEmail'),
   onSave: () => console.log('onSave'),
+  onBack: () => console.log('onBack'),
   onResendConfirmationCode: null,
 }
 

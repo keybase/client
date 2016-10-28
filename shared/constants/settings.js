@@ -1,5 +1,6 @@
 // @flow
 import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
+import type {Email} from './types/flow-types'
 import HiddenString from '../util/hidden-string'
 
 export const invitesReclaim = 'settings:invitesReclaim'
@@ -56,6 +57,15 @@ export type OnSubmitNewPassphrase = NoErrorTypedAction<'settings:onSubmitNewPass
 export const onUpdatePassphraseError = 'settings:onUpdatePassphraseError'
 export type OnUpdatePassphraseError = NoErrorTypedAction<'settings:onUpdatePassphraseError', {error: string}>
 
+export const onChangeNewEmail = 'settings:onChangeNewEmail'
+export type OnChangeNewEmail = NoErrorTypedAction<'settings:onChangeNewEmail', {email: string}>
+
+export const onSubmitNewEmail = 'settings:onSubmitNewEmail'
+export type OnSubmitNewEmail = NoErrorTypedAction<'settings:onSubmitNewEmail', void>
+
+export const onUpdateEmailError = 'settings:onUpdateEmailError'
+export type OnUpdateEmailError = NoErrorTypedAction<'settings:onUpdateEmailError', {error: string}>
+
 export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export type OnUpdatePGPSettings = NoErrorTypedAction<'settings:onUpdatePGPSettings', void>
 
@@ -63,6 +73,11 @@ export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
 export type OnUpdatedPGPSettings = NoErrorTypedAction<'settings:onUpdatedPGPSettings', {hasKeys: boolean}>
 
 export type PlanLevel = string
+
+export const loadSettings = 'settings:loadSettings'
+export type LoadSettings = NoErrorTypedAction<'settings:loadSettings', void>
+
+export const loadedSettings = 'settings:loadedSettings'
 
 export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
 
@@ -96,16 +111,23 @@ export type PassphraseState = {
   newPassphrase: HiddenString,
   newPassphraseConfirm: HiddenString,
   showTyping: boolean,
-  errorMessage: ?HiddenString,
+  error: ?Error,
   newPassphraseError: ?HiddenString,
   newPassphraseConfirmError: ?HiddenString,
   hasPGPKeyOnServer: ?boolean,
   canSave: boolean,
 }
 
+export type EmailState = {
+  emails: Array<Email>,
+  newEmail: string,
+  error: ?Error,
+}
+
 export type State = {
   allowDeleteAccount: boolean,
   invites: InvitesState,
   notifications: NotificationsState,
+  email: EmailState,
   passphrase: PassphraseState,
 }

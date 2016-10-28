@@ -41,6 +41,15 @@ protocol user {
     Time trackTime;
   }
 
+  record Email {
+    string email;
+    boolean isVerified;
+  }
+
+  record UserSettings {
+    array<Email> emails;
+  }
+
   /**
     Load user summaries for the supplied uids.
     They are "unchecked" in that the client is not verifying the info from the server.
@@ -68,6 +77,11 @@ protocol user {
     Load my public keys (for logged in user).
     */
   array<PublicKey> loadMyPublicKeys(int sessionID);
+
+  /**
+    Load user settings (for logged in user).
+    */
+  UserSettings loadMySettings(int sessionID);
 
   /**
     The list-tracking functions get verified data from the tracking statements

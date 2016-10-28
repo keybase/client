@@ -7,6 +7,7 @@ import React, {Component} from 'react'
 import RemoveDevice from '../devices/device-revoke'
 import Render from './render'
 import Routable from '../util/routable'
+import UserEmail from './email/container'
 import devMenu from '../dev/dev-menu'
 import flags from '../util/feature-flags'
 import {connect} from 'react-redux'
@@ -20,6 +21,7 @@ class Settings extends Component {
         devMenu,
         deleteConfirm: DeleteConfirm,
         removeDevice: RemoveDevice,
+        changeEmail: UserEmail,
         changePassphrase: Passphrase,
         changePlan: PlanDetails,
         inviteSent: Routable((uri) => ({

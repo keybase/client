@@ -22,7 +22,7 @@ import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, logi
 import {remote, ipcRenderer} from 'electron'
 import {setActive} from './actions/search'
 
-import type {Tabs} from './constants/tabs'
+import type {Tab} from './constants/tabs'
 
 const tabs = {
   [settingsTab]: {module: Settings, name: 'Settings'},
@@ -35,7 +35,7 @@ const tabs = {
 
 type Props = {
   menuBadge: boolean,
-  switchTab: (tab: Tabs) => void,
+  switchTab: (tab: Tab) => void,
   router: Object,
   provisioned: boolean,
   username: string,
@@ -47,7 +47,7 @@ type Props = {
 }
 
 class Nav extends Component<void, Props, void> {
-  _lastCheckedTab: ?Tabs;
+  _lastCheckedTab: ?Tab;
   _checkingTab: boolean;
   _originalSize: $Shape<{width: number, height: number}>;
   _handleKeyDown: (e: SyntheticKeyboardEvent) => void;

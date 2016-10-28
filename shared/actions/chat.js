@@ -48,7 +48,7 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxStat
     return new InboxStateRecord({
       info: convo.info,
       conversationIDKey: conversationIDToKey(convo.info.id),
-      participants: List(convo.info.writerNames) || List(), // TODO in recent order... somehow
+      participants: List(convo.info.writerNames || []) || List(), // TODO in recent order... somehow
       muted: false,
       time: 'Time',
       snippet,

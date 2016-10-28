@@ -1,14 +1,13 @@
 // @flow
 
 import {call, put, select} from 'redux-saga/effects'
-import {takeLatest, delay} from 'redux-saga'
+import {takeLatest} from 'redux-saga'
 import * as Constants from '../constants/plan-billing'
 import {apiserverGetRpcPromise, apiserverPostRpcPromise} from '../constants/types/flow-types'
 
 import type {UpdateBillingArgs, UpdateBilling, FetchBillingAndQuota, FetchBillingOverview, UpdateBillingAndQuota, UpdateAvailablePlans, BillingState, BootstrapData, UpdatePaymentInfo, BillingError} from '../constants/plan-billing'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
-import type {BootStatus} from '../constants/config'
 
 function updateBilling (updateBillingArgs: UpdateBillingArgs): UpdateBilling {
   return {
@@ -173,17 +172,6 @@ function * fetchBillingAndQuotaSaga (): SagaGenerator<any, any> {
 
 function * bootstrapDataSaga (): SagaGenerator<any, any> {
   const billingStateSelector = ({planBilling}: TypedState) => planBilling
-  const overallBootstrappedSelector = ({config: {bootStatus}}: TypedState) => bootStatus
-  const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
-
-  let bootstrapStatus: BootStatus = ((yield select(overallBootstrappedSelector)): any)
-  let loggedIn: boolean = ((yield select(loggedInSelector)): any)
-
-  while (bootstrapStatus !== 'bootStatusBootstrapped' || !loggedIn) {
-    yield call(delay, 500)
-    bootstrapStatus = ((yield select(overallBootstrappedSelector)): any)
-    loggedIn = ((yield select(loggedInSelector)): any)
-  }
 
   const planBilling: BillingState = ((yield select(billingStateSelector)): any)
 

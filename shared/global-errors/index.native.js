@@ -21,13 +21,13 @@ class GlobalError extends Component<void, Props, State> {
 
     this.state = {
       size: 'Closed',
-      cachedSummary: props.summary,
-      cachedDetails: props.details,
+      cachedSummary: this._summaryForError(props.error),
+      cachedDetails: this._detailsForError(props.error),
     }
   }
 
   componentWillMount () {
-    this._resetError(!!this.props.summary)
+    this._resetError(!!this.props.error)
   }
 
   _onExpandClick = () => {
@@ -51,16 +51,23 @@ class GlobalError extends Component<void, Props, State> {
     }
   }
 
+  _summaryForError (err: ?Error): ?string {
+    return err ? err.message : null
+  }
+
+  _detailsForError (err: ?Error): ?string {
+    return err ? err.stack : null
+  }
+
   componentWillReceiveProps (nextProps: Props) {
-    if (nextProps.summary !== this.props.summary ||
-      nextProps.details !== this.props.details) {
+    if (nextProps.error !== this.props.error) {
       this.props.setTimeout(() => {
         this.setState({
-          cachedSummary: nextProps.summary,
-          cachedDetails: nextProps.details,
+          cachedSummary: this._summaryForError(nextProps.error),
+          cachedDetails: this._detailsForError(nextProps.error),
         })
-      }, nextProps.summary ? 0 : 3000) // if its set, do it immediately, if its cleared set it in a bit
-      this._resetError(!!nextProps.summary)
+      }, nextProps.error ? 0 : 3000) // if its set, do it immediately, if its cleared set it in a bit
+      this._resetError(!!nextProps.error)
     }
   }
 

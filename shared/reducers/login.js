@@ -142,7 +142,7 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       break
     case Constants.loginDone:
       if (action.error) {
-        toMerge = {loginError: action.payload && action.payload.desc}
+        toMerge = {loginError: action.payload && action.payload.message}
       } else {
         return state
       }

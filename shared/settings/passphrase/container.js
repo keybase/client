@@ -30,7 +30,7 @@ export default connect(
     newPassphrase: state.settings.passphrase.newPassphrase.stringValue(),
     newPassphraseConfirm: state.settings.passphrase.newPassphraseConfirm.stringValue(),
     showTyping: state.settings.passphrase.showTyping,
-    errorMessage: state.settings.passphrase.errorMessage ? state.settings.passphrase.errorMessage.stringValue() : null,
+    error: state.settings.passphrase.error,
     newPassphraseError: state.settings.passphrase.newPassphraseError ? state.settings.passphrase.newPassphraseError.stringValue() : null,
     newPassphraseConfirmError: state.settings.passphrase.newPassphraseConfirmError ? state.settings.passphrase.newPassphraseConfirmError.stringValue() : null,
     hasPGPKeyOnServer: state.settings.passphrase.hasPGPKeyOnServer,
@@ -45,4 +45,3 @@ export default connect(
     onSave: () => dispatch(onSubmitNewPassphrase()),
   })
 )(PassphraseContainer)
-

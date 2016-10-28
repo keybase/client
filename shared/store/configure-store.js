@@ -12,6 +12,7 @@ import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../loc
 import {globalError} from '../constants/config'
 import {isMobile} from '../constants/platform'
 import {requestIdleCallback} from '../util/idle-callback'
+import {convertToError} from '../util/errors'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -42,26 +43,6 @@ for (const method in console) {
 
 let theStore: Store
 
-const errorToPayload = (error: any): {summary: ?string, details: ?string} => {
-  let summary
-  let details
-
-  if (error.hasOwnProperty('desc') && error.hasOwnProperty('code')) {
-    summary = `Rpc error: ${error.desc}`
-    details = `Code: ${error.code}`
-  } else {
-    if (error.message && error.message.length < 50) {
-      summary = `Throw error: ${error.message}`
-      details = error.stack
-    } else {
-      summary = `Throw error: ${error.name}`
-      details = `${error.message}. ${error.stack}`
-    }
-  }
-
-  return {summary, details}
-}
-
 const crashHandler = (error) => {
   if (__DEV__) {
     throw error
@@ -69,7 +50,7 @@ const crashHandler = (error) => {
   if (theStore) {
     theStore.dispatch({
       type: globalError,
-      payload: errorToPayload(error),
+      payload: convertToError(error),
     })
   } else {
     console.warn('Got crash before store created?', error)

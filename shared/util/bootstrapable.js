@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {Text} from '../common-adapters'
+import {Box, Text} from '../common-adapters'
+import {globalStyles} from '../styles'
 
 export type BootstrapableProp<P> = {
   bootstrapDone: false,
@@ -22,7 +23,12 @@ export default function Bootstrapable<P> (ComposedComponent: ReactClass<P>): Rea
       }
 
       // TODO(mm) parameterize this
-      return <Text type='Body'>Loading...</Text>
+
+      return (
+        <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', justifyContent: 'center', flex: 1}}>
+          <Text type='Body'>Loading…</Text>
+        </Box>
+      )
     }
   }
 }

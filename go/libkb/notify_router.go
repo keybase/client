@@ -381,7 +381,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 				// A send of a `NewChatActivity` RPC with the user's UID
 				(chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).NewChatActivity(ctx, chat1.NewChatActivityArg{
+				}).NewChatActivity(context.Background(), chat1.NewChatActivityArg{
 					Uid:      uid,
 					Activity: *activity,
 				})

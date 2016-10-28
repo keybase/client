@@ -4,7 +4,10 @@ import {Component} from 'react'
 export type Props = {
   email: ?string,
   isVerified: boolean,
-  onChangeEmail: (nextEmail: string) => void,
+  edited: boolean,
+  error?: ?Error,
+  onBack: () => void,
+  onChangeNewEmail: (nextEmail: string) => void,
   onSave: () => void,
   onResendConfirmationCode: ?(() => void),
 }

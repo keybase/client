@@ -4,6 +4,7 @@
 import * as gregor1 from './flow-types-gregor'
 import * as keybase1 from './flow-types'
 import engine from '../../engine'
+import {RPCError} from '../../util/errors'
 import {putOnChannelMap, createChannelMap, closeChannelMap} from '../../util/saga'
 import {Buffer} from 'buffer'
 import type {Exact} from './more'
@@ -15,10 +16,6 @@ export type uint64 = number
 export type long = number
 export type double = number
 export type bytes = Buffer
-export type RPCError = {
-  code: number,
-  desc: string
-}
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
 
 // $FlowIssue we're calling an internal method on engine that's there just for us
@@ -30,7 +27,7 @@ type requestCommon = {
 }
 
 type requestErrorCallback = {
-  callback?: ?(err: ?any) => void
+  callback?: ?(err: ?RPCError) => void
 }
 
 type RPCErrorHandler = (err: RPCError) => void

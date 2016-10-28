@@ -144,6 +144,20 @@ func TestUserInfo(t *testing.T) {
 	}
 }
 
+func TestUserEmails(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	CreateAndSignupFakeUser(tc, "login")
+	emails, err := libkb.LoadUserEmails(tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(emails) == 0 {
+		t.Errorf("No emails for user")
+	}
+}
+
 func TestProvisionDesktop(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
@@ -2225,6 +2239,20 @@ func TestProvisionerSecretStore(t *testing.T) {
 	}
 
 	if err := AssertProvisioned(tcY); err != nil {
+		t.Fatal(err)
+	}
+
+	// On device Y, logout and login. This should tickle Bug3964
+	Logout(tcY)
+	ctx = &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    userX.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng = NewLogin(tcY.G, libkb.DeviceTypeDesktop, userX.Username, keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
 }
