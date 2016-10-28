@@ -13,7 +13,10 @@ export default connect(
     if (selectedConversation) {
       const conversationState = state.chat.get('conversationStates').get(selectedConversation)
       if (conversationState) {
+        const inbox = state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selectedConversation)
+
         return {
+          participants: inbox && inbox.participants || List(),
           messages: conversationState.messages,
           moreToLoad: conversationState.moreToLoad,
           isLoading: conversationState.isLoading,
@@ -23,6 +26,7 @@ export default connect(
     }
 
     return {
+      participants: List(),
       messages: List(),
       moreToLoad: false,
       isLoading: false,

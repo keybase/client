@@ -3,7 +3,7 @@ import * as Constants from '../constants/chat'
 import engine from '../engine'
 import {List, Map} from 'immutable'
 import {call, put, select} from 'redux-saga/effects'
-import {localGetInboxAndUnboxLocalRpcPromise, CommonMessageType, localGetThreadLocalRpcPromise, localPostLocalRpcPromise} from '../constants/types/flow-types-chat'
+import {localGetInboxAndUnboxLocalRpcPromise, CommonMessageType, localGetThreadLocalRpcPromise, localPostLocalRpcPromise, CommonTLFVisibility} from '../constants/types/flow-types-chat'
 import {takeLatest, takeEvery} from 'redux-saga'
 
 import type {LoadMoreMessages, ConversationIDKey, SelectConversation, LoadInbox, Message, InboxState, LoadedInbox, SetupNewChatHandler, IncomingMessage, PostMessage} from '../constants/chat'
@@ -48,7 +48,7 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxStat
     return new InboxStateRecord({
       info: convo.info,
       conversationIDKey: conversationIDToKey(convo.info.id),
-      participants: List(convo.info.tlfName.split(',')) || List(), // TODO in recent order... somehow
+      participants: List(convo.info.writerNames) || List(), // TODO in recent order... somehow
       muted: false,
       time: 'Time',
       snippet,
@@ -68,24 +68,47 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   }
 
   const info = yield select(infoSelector)
-  debugger
+
   if (!info) {
+    console.warn('No info to postmessage!')
     return
   }
+
+  const configSelector = (state: TypedState) => {
+    try {
+      return {
+        // $FlowIssue doesn't understand try catch
+        deviceID: state.config.extendedConfig.device.deviceID,
+        uid: state.config.uid,
+      }
+    } catch (_) {
+      return {
+        deviceID: null,
+        uid: null,
+      }
+    }
+  }
+
+  // $FlowIssue
+  const {deviceID, uid} = yield select(configSelector)
+
+  if (!deviceID || !uid) {
+    console.warn('No deviceid/uid to postmessage!')
+    return
+  }
+
   const clientHeader = {
     conv: info.triple,
     tlfName: info.tlfName,
-    tlfPublic: false,
+    tlfPublic: info.visibility === CommonTLFVisibility.public,
     messageType: CommonMessageType.text,
     supersedes: 0,
-    sender: 0,
-    // gregor1.UID,
-    senderDevice: 0,
-    // gregor1.DeviceID,
+    sender: Buffer.from(uid, 'hex'),
+    senderDevice: Buffer.from(deviceID, 'hex'),
   }
 
   yield call(localPostLocalRpcPromise, {
-    params: {
+    param: {
       conversationID: keyToConversationID(action.payload.conversationIDKey),
       msg: {
         clientHeader,
