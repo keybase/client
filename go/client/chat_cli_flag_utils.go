@@ -73,6 +73,10 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "show-device-name",
 		Usage: `Show device name next to author username`,
 	},
+	"filename": cli.StringFlag{
+		Name:  "filename",
+		Usage: `Sepcify a filename for attachment upload. This is required if --stdin is present.`,
+	},
 }
 
 func mustGetChatFlags(keys ...string) (flags []cli.Flag) {

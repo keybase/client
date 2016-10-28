@@ -35,8 +35,9 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatSend{Contextified: libkb.NewContextified(g)}, "send", c)
 		},
-		Flags: mustGetChatFlags(
-			"topic-type", "topic-name", "set-topic-name", "set-headline", "clear-headline", "stdin"),
+		Flags: append(getConversationResolverFlags(),
+			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "stdin")...,
+		),
 	}
 }
 
@@ -54,7 +55,7 @@ func (c *cmdChatSend) Run() (err error) {
 	ctx := context.TODO()
 	conversationInfo, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: true,
-		Interactive:       c.useStdin,
+		Interactive:       !c.useStdin,
 	})
 	if err != nil {
 		return err
@@ -107,7 +108,7 @@ func (c *cmdChatSend) Run() (err error) {
 
 	if !confirmed {
 		promptText := fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter to send.", conversationInfo.TlfName)
-		c.message, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
+		_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
 		if err != nil {
 			return err
 		}
