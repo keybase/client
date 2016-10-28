@@ -21,7 +21,6 @@ let config: {[key: string]: any} = {
   printOutstandingRPCs: false,
   reactPerf: false,
   initialTabState: {},
-  overrideLoggedInTab: null,
   printRoutes: false,
   logStatFrequency: 0,
   actionStatFrequency: 0,
@@ -43,7 +42,6 @@ if (__DEV__ && true) {
     [Tabs.loginTab]: [],
     [Tabs.settingsTab]: ['devMenu', 'dumbSheet'],
   }
-  config.overrideLoggedInTab = Tabs.settingsTab
   config.printRoutes = true
 }
 
@@ -59,7 +57,6 @@ export const {
   devStoreChangingFunctions,
   printOutstandingRPCs,
   reactPerf,
-  overrideLoggedInTab,
   printRoutes,
   logStatFrequency,
   actionStatFrequency,

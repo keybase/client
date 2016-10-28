@@ -22,7 +22,6 @@ import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
   PassphraseCommonPassphraseType,
 } from '../../constants/types/flow-types'
 import {navigateTo, routeAppend, navigateUp, switchTab} from '../router'
-import {overrideLoggedInTab} from '../../local-debug'
 import {RPCError} from '../../util/errors'
 
 const InputCancelError = {desc: 'Cancel Login', code: ConstantsStatusCode.scinputcanceled}
@@ -51,12 +50,7 @@ export function navBasedOnLoginState (): AsyncAction {
       dispatch(switchTab(loginTab))
     } else {
       if (status.loggedIn) { // logged in
-        if (overrideLoggedInTab) {
-          console.log('Loading overridden logged in tab')
-          dispatch(switchTab(overrideLoggedInTab))
-        } else {
-          dispatch(switchTab(devicesTab))
-        }
+        dispatch(switchTab(devicesTab))
       } else if (status.registered) { // relogging in
         dispatch(getAccounts())
         dispatch(navigateTo(['login'], loginTab))
