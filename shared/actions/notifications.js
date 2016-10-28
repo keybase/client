@@ -6,6 +6,7 @@ import {NotifyPopup} from '../native/notifications'
 import {log} from '../native/log/logui'
 import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
+import {setupKBFSChangedHandler} from './kbfs'
 import {call, put, take} from 'redux-saga/effects'
 
 import type {LogAction, NotificationKeys, ListenForNotifications, BadgeAppAction} from '../constants/notifications'
@@ -27,7 +28,7 @@ function * _listenSaga (): SagaGenerator<any, any> {
     chat: false,
     favorites: false,
     kbfs: true,
-    kbfsrequest: false,
+    kbfsrequest: true,
     keyfamily: false,
     paperkeys: false,
     pgp: true,
@@ -59,6 +60,7 @@ function * _listenSaga (): SagaGenerator<any, any> {
 
   yield put(registerIdentifyUi())
   yield put(setupUserChangedHandler())
+  yield put(setupKBFSChangedHandler())
 }
 
 function badgeApp (key: NotificationKeys, on: boolean): BadgeAppAction {
