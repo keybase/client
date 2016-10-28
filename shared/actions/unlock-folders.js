@@ -24,9 +24,9 @@ export function checkPaperKey (paperKey: HiddenString): TypedAsyncAction<CheckPa
     loginPaperKeySubmitRpc({
       param: {paperPhrase: paperKey.stringValue()},
       waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
-      callback: error => {
-        if (error) {
-          dispatch(({type: Constants.checkPaperKey, error: true, payload: {error: error.desc}}: CheckPaperKey))
+      callback: (err) => {
+        if (err) {
+          dispatch(({type: Constants.checkPaperKey, error: true, payload: {error: err.message}}: CheckPaperKey))
         } else {
           dispatch({type: Constants.checkPaperKey, payload: {success: true}})
         }

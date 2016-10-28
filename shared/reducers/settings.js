@@ -17,11 +17,16 @@ const initialState: State = {
     allowSave: false,
     allowEdit: false,
   },
+  email: {
+    emails: [],
+    newEmail: '',
+    error: null,
+  },
   passphrase: {
     newPassphrase: new HiddenString(''),
     newPassphraseConfirm: new HiddenString(''),
     showTyping: false,
-    errorMessage: null,
+    error: null,
     newPassphraseError: null,
     newPassphraseConfirmError: null,
     hasPGPKeyOnServer: null,
@@ -107,6 +112,14 @@ function reducer (state: State = initialState, action: Actions): State {
           ...action.payload,
         },
       }
+    case Constants.loadedSettings: {
+      return {
+        ...state,
+        email: {
+          ...action.payload,
+        },
+      }
+    }
     case Constants.onChangeNewPassphrase:
       return {
         ...state,
@@ -114,7 +127,7 @@ function reducer (state: State = initialState, action: Actions): State {
           ...state.passphrase,
           newPassphrase: action.payload.passphrase,
           canSave: _canSave(action.payload.passphrase, state.passphrase.newPassphraseConfirm, state.passphrase.hasPGPKeyOnServer !== null),
-          errorMessage: null,
+          error: null,
         },
       }
     case Constants.onChangeNewPassphraseConfirm:
@@ -124,7 +137,7 @@ function reducer (state: State = initialState, action: Actions): State {
           ...state.passphrase,
           newPassphraseConfirm: action.payload.passphrase,
           canSave: _canSave(state.passphrase.newPassphrase, action.payload.passphrase, state.passphrase.hasPGPKeyOnServer !== null),
-          errorMessage: null,
+          error: null,
         },
       }
     case Constants.onUpdatedPGPSettings:
@@ -140,7 +153,7 @@ function reducer (state: State = initialState, action: Actions): State {
         ...state,
         passphrase: {
           ...state.passphrase,
-          errorMessage: action.payload.error,
+          error: action.payload.error,
         },
       }
     case Constants.onChangeShowPassphrase:
@@ -149,6 +162,23 @@ function reducer (state: State = initialState, action: Actions): State {
         passphrase: {
           ...state.passphrase,
           showTyping: !state.passphrase.showTyping,
+        },
+      }
+    case Constants.onChangeNewEmail:
+      return {
+        ...state,
+        email: {
+          ...state.email,
+          newEmail: action.payload.email,
+          error: null,
+        },
+      }
+    case Constants.onUpdateEmailError:
+      return {
+        ...state,
+        email: {
+          ...state.email,
+          error: action.payload.error,
         },
       }
   }

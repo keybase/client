@@ -1,11 +1,11 @@
 // @flow
 import type {TypedAction} from '../constants/types/flux'
-import type {Tabs} from '../constants/tabs'
+import type {Tab} from '../constants/tabs'
 import {List, Map} from 'immutable'
 
 type History = List<URI>
 
-export type TabbedRouterState = MapADT2<'tabs', Map<Tabs, RouterState>, 'activeTab', Tabs>
+export type TabbedRouterState = MapADT2<'tabs', Map<Tab, RouterState>, 'activeTab', Tab>
 export type RouteAppend = TypedAction<'router:navigateAppend', {route: string}, {}>
 export type URI = List<Map<string, string>>
 export type RouterState = MapADT2<'uri', URI, 'history', History>

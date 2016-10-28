@@ -1,5 +1,5 @@
 // @flow
-import * as actions from '../../actions/plan-billing'
+import * as actions from '../../actions/settings'
 import Bootstrapable from '../../util/bootstrapable'
 import Landing from './index'
 import {connect} from 'react-redux'
@@ -7,47 +7,58 @@ import {routeAppend} from '../../actions/router'
 
 import type {TypedState} from '../../constants/reducer'
 
-type OwnProps = {}
-
 export default connect(
-  (state: TypedState, ownProps: OwnProps) => {
-    const {planBilling: {availablePlans, usage, plan, paymentInfo}} = state
-    if (!availablePlans || !usage || !plan) {
-      return {
-        bootstrapDone: false,
+  (state: TypedState, ownProps: {}) => {
+    const {emails} = state.settings.email
+    let accountProps
+    if (emails.length > 0) {
+      accountProps = {
+        email: emails[0].email,
+        isVerified: emails[0].isVerified,
+        onChangeEmail: () => console.log('todo'),
+        onChangePassphrase: () => console.log('todo'),
       }
     }
 
-    const freeSpaceGB = plan.gigabytes - usage.gigabytes
-    const freeSpacePercentage = freeSpaceGB / plan.gigabytes
+    const {planBilling: {availablePlans, usage, plan, paymentInfo}} = state
+    let planProps
+    if (plan && usage) {
+      const freeSpaceGB = plan.gigabytes - usage.gigabytes
+      const freeSpacePercentage = freeSpaceGB / plan.gigabytes
+      planProps = {
+        onUpgrade: () => console.log('todo'),
+        onDowngrade: () => console.log('todo'),
+        onInfo: () => console.log('todo'),
+        selectedLevel: plan.planLevel,
+        freeSpace: freeSpaceGB + 'GB',
+        freeSpacePercentage,
+        lowSpaceWarning: false,
+        paymentInfo,
+        onChangePaymentInfo: () => console.log('todo'),
+      }
+    }
+
+    // When enabling planProps, we should check both for bootstrapDone:
+    // let bootstrapDone = accountProps && planProps
+    let bootstrapDone = !!accountProps
 
     return {
-      bootstrapDone: true,
+      bootstrapDone: bootstrapDone,
       originalProps: {
-        account: {
-          email: '',
-          isVerified: false,
-          onChangeEmail: () => console.log('todo'),
-        },
-        plan: {
-          selectedLevel: plan.planLevel,
-          freeSpace: freeSpaceGB + 'GB',
-          freeSpacePercentage,
-          lowSpaceWarning: false,
-          paymentInfo,
-          onChangePaymentInfo: () => console.log('todo'),
-        },
+        account: accountProps,
+        plan: planProps,
         plans: availablePlans,
       },
     }
   },
-  (dispatch: (a: any) => void, ownProps: OwnProps) => ({
-    onBootstrap: () => { dispatch(actions.bootstrapData()) },
+  (dispatch: (a: any) => void, ownProps: {}) => ({
+    onBootstrap: () => { dispatch(actions.loadSettings()) },
     onChangePassphrase: () => dispatch(routeAppend('changePassphrase')),
+    onChangeEmail: () => dispatch(routeAppend('changeEmail')),
     onInfo: (selectedLevel) => dispatch(routeAppend({path: 'changePlan', selectedLevel})),
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    if (stateProps.bootstrapDone === false) {
+  (stateProps, dispatchProps, ownProps: {}) => {
+    if (!stateProps.bootstrapDone) {
       return {
         ...stateProps,
         onBootstrap: dispatchProps.onBootstrap,
@@ -60,6 +71,7 @@ export default connect(
         ...stateProps.originalProps,
         account: {
           ...stateProps.originalProps.account,
+          onChangeEmail: dispatchProps.onChangeEmail,
           onChangePassphrase: dispatchProps.onChangePassphrase,
         },
         plan: {

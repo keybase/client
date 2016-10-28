@@ -131,6 +131,33 @@
     },
     {
       "type": "record",
+      "name": "Email",
+      "fields": [
+        {
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "type": "boolean",
+          "name": "isVerified"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserSettings",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Email"
+          },
+          "name": "emails"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SearchComponent",
       "fields": [
         {
@@ -359,6 +386,16 @@
         "items": "PublicKey"
       },
       "doc": "Load my public keys (for logged in user)."
+    },
+    "loadMySettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "UserSettings",
+      "doc": "Load user settings (for logged in user)."
     },
     "listTracking": {
       "request": [

@@ -6,35 +6,24 @@ import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import flags from '../util/feature-flags'
 
-import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'
+import {profileTab, peopleTab, folderTab, devicesTab, settingsTab, tabPrettify} from '../constants/tabs'
 
-import type {VisibleTab} from '../constants/tabs'
+import type {Tab} from '../constants/tabs'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './index.render'
 
-const icons: {[key: VisibleTab]: IconType} = {
+const icons: {[key: Tab]: IconType} = {
   [peopleTab]: 'iconfont-people',
   [folderTab]: 'iconfont-folder',
   [devicesTab]: 'iconfont-device',
   [settingsTab]: 'iconfont-settings',
 }
 
-const labels: {[key: VisibleTab]: IconType} = {
-  [peopleTab]: 'People',
-  [folderTab]: 'Folders',
-  [devicesTab]: 'Devices',
-  [settingsTab]: 'Settings',
-}
-
 export type SearchButton = 'TabBar:searchButton'
 export const searchButton = 'TabBar:searchButton'
 
-function tabToIcon (t: VisibleTab): IconType {
+function tabToIcon (t: Tab): IconType {
   return icons[t]
-}
-
-function tabToLabel (t: VisibleTab): string {
-  return labels[t]
 }
 
 export default class TabBarRender extends Component<void, Props, void> {
@@ -60,7 +49,7 @@ export default class TabBarRender extends Component<void, Props, void> {
     )
   }
 
-  _renderProfileButton (tab: VisibleTab, selected: boolean, onClick: () => void) {
+  _renderProfileButton (tab: Tab, selected: boolean, onClick: () => void) {
     // $FlowIssue
     const avatar: Avatar = <Avatar size={32} onClick={onClick} username={this.props.username} borderColor={selected ? globalColors.white : globalColors.blue3_40} />
     const source = {type: 'avatar', avatar}
@@ -74,9 +63,9 @@ export default class TabBarRender extends Component<void, Props, void> {
     )
   }
 
-  _renderNormalButton (tab: VisibleTab, selected: boolean, onClick: () => void) {
+  _renderNormalButton (tab: Tab, selected: boolean, onClick: () => void) {
     const source = {type: 'nav', icon: tabToIcon(tab)}
-    const label = tabToLabel(tab)
+    const label = tabPrettify(tab)
     return (
       <TabBarButton
         style={stylesTabButton}
@@ -87,9 +76,10 @@ export default class TabBarRender extends Component<void, Props, void> {
     )
   }
 
-  _renderVisibleTabItems () {
-    const tabs = [folderTab, devicesTab, settingsTab, profileTab]
+  _renderTabItems () {
+    const tabs = []
     if (flags.tabPeopleEnabled) tabs.push(peopleTab)
+    tabs.push(folderTab, devicesTab, settingsTab, profileTab)
 
     return tabs.map(t => {
       const onClick = () => this.props.onTabClick(t)
@@ -115,7 +105,7 @@ export default class TabBarRender extends Component<void, Props, void> {
 
   render () {
     let tabItems = [this._renderSearch(this.props.onSearchClick || (() => {}))]
-    tabItems = tabItems.concat(this._renderVisibleTabItems())
+    tabItems = tabItems.concat(this._renderTabItems())
 
     return (
       <TabBar style={stylesTabBarContainer}

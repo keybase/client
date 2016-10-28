@@ -144,6 +144,20 @@ func TestUserInfo(t *testing.T) {
 	}
 }
 
+func TestUserEmails(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	CreateAndSignupFakeUser(tc, "login")
+	emails, err := libkb.LoadUserEmails(tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(emails) == 0 {
+		t.Errorf("No emails for user")
+	}
+}
+
 func TestProvisionDesktop(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
