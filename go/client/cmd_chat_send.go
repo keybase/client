@@ -18,12 +18,13 @@ import (
 
 type cmdChatSend struct {
 	libkb.Contextified
-	resolver chatCLIConversationResolver
+	resolvingRequest chatConversationResolvingRequest
 	// Only one of these should be set
 	message       string
 	setTopicName  string
 	setHeadline   string
 	clearHeadline bool
+	useStdin      bool
 }
 
 func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -44,15 +45,17 @@ func (c *cmdChatSend) Run() (err error) {
 	if err != nil {
 		return err
 	}
-
-	tlfClient, err := GetTlfClient(c.G())
+	resolver := &chatConversationResolver{G: c.G(), ChatClient: chatClient}
+	resolver.TlfClient, err = GetTlfClient(c.G())
 	if err != nil {
 		return err
 	}
 
 	ctx := context.TODO()
-
-	conversationInfo, userChosen, err := c.resolver.ResolveOrCreate(context.TODO(), c.G(), chatClient, tlfClient)
+	conversationInfo, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
+		CreateIfNotExists: true,
+		Interactive:       c.useStdin,
+	})
 	if err != nil {
 		return err
 	}
@@ -124,14 +127,14 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.setTopicName = ctx.String("set-topic-name")
 	c.setHeadline = ctx.String("set-headline")
 	c.clearHeadline = ctx.Bool("clear-headline")
-	useStdin := ctx.Bool("stdin")
+	c.useStdin = ctx.Bool("stdin")
 
 	var tlfName string
 	// Get the TLF name from the first position arg
 	if len(ctx.Args()) >= 1 {
 		tlfName = ctx.Args().Get(0)
 	}
-	if c.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
+	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
 		return err
 	}
 
@@ -139,7 +142,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.setTopicName != "" {
 		nActions++
-		if useStdin {
+		if c.useStdin {
 			return fmt.Errorf("stdin not supported when setting topic name")
 		}
 		if len(ctx.Args()) > 1 {
@@ -149,7 +152,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.setHeadline != "" {
 		nActions++
-		if useStdin {
+		if c.useStdin {
 			return fmt.Errorf("stdin not supported with --set-headline")
 		}
 		if len(ctx.Args()) > 1 {
@@ -159,7 +162,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.clearHeadline {
 		nActions++
-		if useStdin {
+		if c.useStdin {
 			return fmt.Errorf("stdin not supported with --clear-headline")
 		}
 		if len(ctx.Args()) > 1 {
@@ -170,9 +173,9 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	// Send a normal message.
 	if nActions == 0 {
 		nActions++
-		if useStdin {
-			if len(ctx.Args()) > 1 {
-				return fmt.Errorf("too many args for sending from stdin")
+		if c.useStdin {
+			if len(ctx.Args()) != 1 {
+				return fmt.Errorf("need exactly 1 argument to send from stdin")
 			}
 			bytes, err := ioutil.ReadAll(os.Stdin)
 			if err != nil {

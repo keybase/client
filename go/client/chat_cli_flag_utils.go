@@ -114,23 +114,23 @@ func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, er
 	return topicType, err
 }
 
-func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver chatCLIConversationResolver, err error) {
-	resolver.TopicName = ctx.String("topic-name")
-	resolver.TlfName = tlfName
-	if resolver.TopicType, err = parseConversationTopicType(ctx); err != nil {
-		return chatCLIConversationResolver{}, err
+func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req chatConversationResolvingRequest, err error) {
+	req.TopicName = ctx.String("topic-name")
+	req.TlfName = tlfName
+	if req.TopicType, err = parseConversationTopicType(ctx); err != nil {
+		return chatConversationResolvingRequest{}, err
 	}
-	if resolver.TopicType == chat1.TopicType_CHAT && len(resolver.TopicName) != 0 {
-		return chatCLIConversationResolver{}, errors.New("multiple topics are not yet supported")
+	if req.TopicType == chat1.TopicType_CHAT && len(req.TopicName) != 0 {
+		return chatConversationResolvingRequest{}, errors.New("multiple topics are not yet supported")
 	}
 	if ctx.Bool("private") {
-		resolver.Visibility = chat1.TLFVisibility_PRIVATE
+		req.Visibility = chat1.TLFVisibility_PRIVATE
 	} else if ctx.Bool("public") {
-		resolver.Visibility = chat1.TLFVisibility_PUBLIC
+		req.Visibility = chat1.TLFVisibility_PUBLIC
 	} else {
-		resolver.Visibility = chat1.TLFVisibility_ANY
+		req.Visibility = chat1.TLFVisibility_ANY
 	}
-	return resolver, nil
+	return req, nil
 }
 
 func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher chatCLIConversationFetcher, err error) {
@@ -150,7 +150,7 @@ func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead
 
 	fetcher.query.MarkAsRead = markAsRead
 
-	if fetcher.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
+	if fetcher.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
 		return chatCLIConversationFetcher{}, err
 	}
 

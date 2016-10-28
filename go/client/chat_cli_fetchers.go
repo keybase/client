@@ -13,27 +13,25 @@ import (
 )
 
 type chatCLIConversationFetcher struct {
-	query    chat1.GetConversationForCLILocalQuery
-	resolver chatCLIConversationResolver
-
-	chatClient chat1.LocalInterface // for testing only
+	query            chat1.GetConversationForCLILocalQuery
+	resolvingRequest chatConversationResolvingRequest
 }
 
 func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations chat1.ConversationLocal, messages []chat1.MessageUnboxed, err error) {
-	chatClient := f.chatClient // should be nil unless in test
-	if chatClient == nil {
-		chatClient, err = GetChatLocalClient(g)
-		if err != nil {
-			return chat1.ConversationLocal{}, nil, fmt.Errorf("Getting chat service client error: %s", err)
-		}
+	chatClient, err := GetChatLocalClient(g)
+	if err != nil {
+		return chat1.ConversationLocal{}, nil, fmt.Errorf("Getting chat service client error: %s", err)
 	}
-
-	tlfClient, err := GetTlfClient(g)
+	resolver := &chatConversationResolver{G: g, ChatClient: chatClient}
+	resolver.TlfClient, err = GetTlfClient(g)
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, err
 	}
 
-	conversationInfo, _, err := f.resolver.Resolve(ctx, g, chatClient, tlfClient)
+	conversationInfo, _, err := resolver.Resolve(ctx, f.resolvingRequest, chatConversationResolvingBehavior{
+		CreateIfNotExists: false,
+		Interactive:       true,
+	})
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, fmt.Errorf("resolving conversation error: %v\n", err)
 	}
@@ -52,17 +50,12 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 
 type chatCLIInboxFetcher struct {
 	query chat1.GetInboxSummaryForCLILocalQuery
-
-	chatClient chat1.LocalInterface // for testing only
 }
 
 func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations []chat1.ConversationLocal, err error) {
-	chatClient := f.chatClient // should be nil unless in test
-	if chatClient == nil {
-		chatClient, err = GetChatLocalClient(g)
-		if err != nil {
-			return nil, fmt.Errorf("Getting chat service client error: %s", err)
-		}
+	chatClient, err := GetChatLocalClient(g)
+	if err != nil {
+		return nil, fmt.Errorf("Getting chat service client error: %s", err)
 	}
 
 	res, err := chatClient.GetInboxSummaryForCLILocal(ctx, f.query)
