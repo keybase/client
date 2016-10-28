@@ -188,8 +188,11 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		for {
 			partNumber++
 			block := make([]byte, blockSize)
-			n, err := r.Read(block)
-			if err != nil && err != io.EOF {
+			// must call io.ReadFull to ensure full block read
+			n, err := io.ReadFull(r, block)
+			// io.ErrUnexpectedEOF will be returned for last partial block,
+			// which is ok.
+			if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
 				return err
 			}
 			if n < blockSize {
@@ -202,7 +205,7 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 					return ctx.Err()
 				}
 			}
-			if err == io.EOF {
+			if err == io.EOF || err == io.ErrUnexpectedEOF {
 				break
 			}
 		}
