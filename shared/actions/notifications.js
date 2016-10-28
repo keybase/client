@@ -3,10 +3,11 @@ import * as Constants from '../constants/notifications'
 import ListenerCreator from '../native/notification-listeners'
 import engine, {Engine} from '../engine'
 import {NotifyPopup} from '../native/notifications'
+import {call, put, take} from 'redux-saga/effects'
 import {log} from '../native/log/logui'
 import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
-import {call, put, take} from 'redux-saga/effects'
+import {setupNewChatHandler} from './chat'
 
 import type {LogAction, NotificationKeys, ListenForNotifications, BadgeAppAction} from '../constants/notifications'
 import type {SagaGenerator} from '../constants/types/saga'
@@ -24,7 +25,7 @@ function listenForNotifications (): ListenForNotifications {
 function * _listenSaga (): SagaGenerator<any, any> {
   const channels = {
     app: true,
-    chat: false,
+    chat: true,
     favorites: false,
     kbfs: true,
     kbfsrequest: false,
@@ -59,6 +60,7 @@ function * _listenSaga (): SagaGenerator<any, any> {
 
   yield put(registerIdentifyUi())
   yield put(setupUserChangedHandler())
+  yield put(setupNewChatHandler())
 }
 
 function badgeApp (key: NotificationKeys, on: boolean): BadgeAppAction {
