@@ -1327,50 +1327,66 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 	return mdID, false, nil
 }
 
-func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata) (
-	MdID, error) {
-	// Prepare the paths without holding the lock, as it might need to
-	// take the lock.  Note that the timestamp doesn't matter for
-	// the unflushed path cache.  This is a no-op if the unflushed
-	// path cache is uninitialized.  TODO: avoid doing this if we can
-	// somehow be sure the cache won't be initialized by the time we
-	// finish this put.
+// prepAndAddRMDWithRetry prepare the paths without holding the lock,
+// as `f` might need to take the lock.  This is a no-op if the
+// unflushed path cache is uninitialized.  TODO: avoid doing this if
+// we can somehow be sure the cache won't be initialized by the time
+// we finish this operation.
+func (j *tlfJournal) prepAndAddRMDWithRetry(ctx context.Context,
+	rmd *RootMetadata,
+	f func(unflushedPathMDInfo, unflushedPathsPerRevMap) (bool, error)) error {
 	mdInfo := unflushedPathMDInfo{
 		revision: rmd.Revision(),
 		kmd:      rmd,
 		pmd:      *rmd.Data(),
-		// TODO: Plumb through clock?
+		// TODO: Plumb through clock?  Though the timestamp doesn't
+		// matter for the unflushed path cache.
 		localTimestamp: time.Now(),
 	}
 	perRevMap, err := j.unflushedPaths.prepUnflushedPaths(
 		ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
 	if err != nil {
-		return MdID{}, err
+		return err
 	}
 
-	mdID, retry, err := j.doPutMD(ctx, rmd, mdInfo, perRevMap)
+	retry, err := f(mdInfo, perRevMap)
 	if err != nil {
-		return MdID{}, err
+		return err
 	}
 
 	if retry {
 		// The cache was initialized after the last time we tried to
 		// prepare the unflushed paths.
 		perRevMap, err = j.unflushedPaths.prepUnflushedPaths(
-			ctx, j.uid, j.key, j.config.Codec(), j.log,
-			mdInfo)
+			ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
 		if err != nil {
-			return MdID{}, err
+			return err
 		}
 
-		mdID, retry, err = j.doPutMD(ctx, rmd, mdInfo, perRevMap)
+		retry, err := f(mdInfo, perRevMap)
 		if err != nil {
-			return MdID{}, err
+			return err
 		}
+
 		if retry {
-			return MdID{}, errors.New("Unexpectedly asked to retry " +
+			return errors.New("Unexpectedly asked to retry " +
 				"MD put more than once")
 		}
+	}
+	return nil
+}
+
+func (j *tlfJournal) putMD(ctx context.Context, rmd *RootMetadata) (
+	MdID, error) {
+	var mdID MdID
+	err := j.prepAndAddRMDWithRetry(ctx, rmd,
+		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
+			retry bool, err error) {
+			mdID, retry, err = j.doPutMD(ctx, rmd, mdInfo, perRevMap)
+			return retry, err
+		})
+	if err != nil {
+		return MdID{}, err
 	}
 	return mdID, nil
 }
@@ -1438,47 +1454,16 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 func (j *tlfJournal) resolveBranch(ctx context.Context,
 	bid BranchID, blocksToDelete []BlockID, rmd *RootMetadata,
 	extra ExtraMetadata) (MdID, error) {
-	// Prepare the paths without holding the lock, as it might need to
-	// take the lock.  Note that the timestamp don't matter for the
-	// unflushed path cache.  This is a no-op if the unflushed path
-	// cache is uninitialized.  TODO: avoid doing this if we can
-	// somehow be sure the cache won't be initialized by the time we
-	// finish this put.
-	mdInfo := unflushedPathMDInfo{
-		revision: rmd.Revision(),
-		kmd:      rmd,
-		pmd:      *rmd.Data(),
-		// TODO: Plumb through clock?
-		localTimestamp: time.Now(),
-	}
-	perRevMap, err := j.unflushedPaths.prepUnflushedPaths(
-		ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
+	var mdID MdID
+	err := j.prepAndAddRMDWithRetry(ctx, rmd,
+		func(mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) (
+			retry bool, err error) {
+			mdID, retry, err = j.doResolveBranch(
+				ctx, bid, blocksToDelete, rmd, extra, mdInfo, perRevMap)
+			return retry, err
+		})
 	if err != nil {
 		return MdID{}, err
-	}
-
-	mdID, retry, err := j.doResolveBranch(
-		ctx, bid, blocksToDelete, rmd, extra, mdInfo, perRevMap)
-	if err != nil {
-		return MdID{}, err
-	}
-
-	if retry {
-		perRevMap, err = j.unflushedPaths.prepUnflushedPaths(
-			ctx, j.uid, j.key, j.config.Codec(), j.log, mdInfo)
-		if err != nil {
-			return MdID{}, err
-		}
-
-		mdID, retry, err = j.doResolveBranch(
-			ctx, bid, blocksToDelete, rmd, extra, mdInfo, perRevMap)
-		if err != nil {
-			return MdID{}, err
-		}
-	}
-
-	if j.onBranchChange != nil {
-		j.onBranchChange.onTLFBranchChange(j.tlfID, NullBranchID)
 	}
 	return mdID, nil
 }
