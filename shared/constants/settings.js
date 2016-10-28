@@ -134,7 +134,7 @@ export type State = {
 }
 
 export const waitingForResponse = 'settings:waitingForResponse'
-export function waitingForResponseAction (waiting: boolean) : TypedAction<'settings:waitingForResponse', boolean, void> {
+export function waiting (waiting: boolean) : TypedAction<'settings:waitingForResponse', boolean, void> {
   return {
     type: 'settings:waitingForResponse',
     payload: waiting,

@@ -91,7 +91,7 @@ function * _onUpdatePGPSettings (): SagaGenerator<any, any> {
 
 function * _onSubmitNewEmail (): SagaGenerator<any, any> {
   try {
-    yield put(Constants.waitingForResponseAction(true))
+    yield put(Constants.waiting(true))
 
     const newEmailSelector = ({settings: {email: {newEmail}}}: TypedState) => newEmail
     const newEmail: string = ((yield select(newEmailSelector)): any)
@@ -106,13 +106,13 @@ function * _onSubmitNewEmail (): SagaGenerator<any, any> {
   } catch (error) {
     yield put({type: Constants.onUpdateEmailError, payload: {error}})
   } finally {
-    yield put(Constants.waitingForResponseAction(false))
+    yield put(Constants.waiting(false))
   }
 }
 
 function * _onSubmitNewPassphrase (): SagaGenerator<any, any> {
   try {
-    yield put(Constants.waitingForResponseAction(true))
+    yield put(Constants.waiting(true))
 
     const selector = (state: TypedState) => state.settings.passphrase
     const {newPassphrase, newPassphraseConfirm} = ((yield select(selector)): any)
@@ -131,13 +131,13 @@ function * _onSubmitNewPassphrase (): SagaGenerator<any, any> {
   } catch (error) {
     yield put({type: Constants.onUpdatePassphraseError, payload: {error}})
   } finally {
-    yield put(Constants.waitingForResponseAction(false))
+    yield put(Constants.waiting(false))
   }
 }
 
 function * saveNotificationsSaga (): SagaGenerator<any, any> {
   try {
-    yield put(Constants.waitingForResponseAction(true))
+    yield put(Constants.waiting(true))
     const current = yield select(state => state.settings.notifications)
 
     if (!current || !current.settings) {
@@ -169,7 +169,7 @@ function * saveNotificationsSaga (): SagaGenerator<any, any> {
       payload: undefined,
     })
   } finally {
-    yield put(Constants.waitingForResponseAction(false))
+    yield put(Constants.waiting(false))
   }
 }
 
@@ -257,7 +257,7 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
 
 function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, any> {
   try {
-    yield put(Constants.waitingForResponseAction(true))
+    yield put(Constants.waiting(true))
 
     const {email, message} = invitesSendAction.payload
     const args = [{key: 'email', value: email}]
@@ -292,7 +292,7 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
       error: true,
     }: InvitesSent))
   } finally {
-    yield put(Constants.waitingForResponseAction(false))
+    yield put(Constants.waiting(false))
   }
   yield put(invitesRefresh())
 }
