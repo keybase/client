@@ -52,47 +52,9 @@ func (c *cmdChatSend) Run() (err error) {
 
 	ctx := context.TODO()
 
-	var conversationInfo chat1.ConversationInfoLocal
-	resolved, userChosen, err := c.resolver.Resolve(context.TODO(), c.G(), chatClient, tlfClient)
+	conversationInfo, userChosen, err := c.resolver.ResolveOrCreate(context.TODO(), c.G(), chatClient, tlfClient)
 	if err != nil {
 		return err
-	}
-
-	if resolved == nil {
-		if len(c.resolver.TlfName) == 0 {
-			c.G().UI.GetTerminalUI().Printf("No conversation found. Type `keybase chat send <tlf> [message]` to create a new one.\n")
-			return nil
-		}
-
-		// creating a new conversation!
-
-		if len(c.resolver.TopicName) > 0 && c.resolver.TopicType == chat1.TopicType_CHAT {
-			c.G().UI.GetTerminalUI().Printf("We are not supporting setting topic name for chat conversations yet.\n")
-			return nil
-		}
-
-		if c.resolver.TopicType == chat1.TopicType_CHAT {
-			c.G().UI.GetTerminalUI().Printf("Creating new %s conversation: %s\n", c.resolver.TopicType.String(), c.resolver.TlfName)
-		} else {
-			c.G().UI.GetTerminalUI().Printf("Creating new %s conversation [%s]: %s\n", c.resolver.TopicType.String(), c.resolver.TopicName, c.resolver.TlfName)
-		}
-
-		var tnp *string
-		if len(c.resolver.TopicName) > 0 {
-			tnp = &c.resolver.TopicName
-		}
-		ncres, err := chatClient.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
-			TlfName:       c.resolver.TlfName,
-			TopicName:     tnp,
-			TopicType:     c.resolver.TopicType,
-			TlfVisibility: c.resolver.Visibility,
-		})
-		if err != nil {
-			return fmt.Errorf("creating conversation error: %v\n", err)
-		}
-		conversationInfo = ncres.Conv.Info
-	} else {
-		conversationInfo = *resolved
 	}
 
 	var args chat1.PostLocalArg
