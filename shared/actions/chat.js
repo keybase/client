@@ -33,6 +33,11 @@ function selectConversation (conversationIDKey: ConversationIDKey): SelectConver
   return {type: Constants.selectConversation, payload: {conversationIDKey}}
 }
 
+// This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
+function _makeSnippet (message, max) {
+  return [...(message.substring(0, max * 4).replace(/\s+/g, ' '))].slice(0, max).join('')
+}
+
 function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxState> {
   return List((inbox.conversations || []).map(convo => {
     const recentMessage: ?MessageUnboxed = (convo.maxMessages || []).find(message => (
@@ -44,7 +49,7 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxStat
     let snippet
     try {
       // $FlowIssue doens't understand try
-      snippet = recentMessage.valid.messageBody.text.body
+      snippet = _makeSnippet(recentMessage.valid.messageBody.text.body, 100)
     } catch (_) { }
 
     return new InboxStateRecord({
