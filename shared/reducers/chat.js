@@ -12,27 +12,41 @@ function reducer (state: State = initialState, action: Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
       return initialState
-    case Constants.prependMessages:
-      const prependMessages = action.payload.messages
-      const moreToLoad = action.payload.moreToLoad
-      const paginationNext = action.payload.paginationNext
-      return state.set('conversationStates', state.get('conversationStates').update(action.payload.conversationIDKey, initialConversation,
+    case Constants.prependMessages: {
+      const {messages: prependMessages, moreToLoad, paginationNext, conversationIDKey} = action.payload
+
+      const newConversationStates = state.get('conversationStates').update(
+        conversationIDKey,
+        initialConversation,
         conversation => {
-          const c1: ConversationState = conversation.set('messages', conversation.get('messages').unshift(...prependMessages))
-          const c2 = c1.set('moreToLoad', moreToLoad)
-          const c3 = c2.set('paginationNext', paginationNext)
-          const c4 = c3.set('isLoading', false)
-          return c4
-        }))
-    case Constants.appendMessages:
+          return conversation
+            .set('messages', conversation.get('messages').unshift(...prependMessages))
+            .set('moreToLoad', moreToLoad)
+            .set('paginationNext', paginationNext)
+            .set('isLoading', false)
+        })
+
+      return state.set('conversationStates', newConversationStates)
+    }
+    case Constants.appendMessages: {
       const appendMessages = action.payload.messages
-      return state.set('conversationStates', state.get('conversationStates').update(action.payload.conversationIDKey, initialConversation,
-        conversation => conversation.set('messages', conversation.get('messages').push(...appendMessages))))
+      const newConversationStates = state.get('conversationStates').update(
+        action.payload.conversationIDKey,
+        initialConversation,
+        conversation => conversation.set('messages', conversation.get('messages').push(...appendMessages)))
+
+      return state.set('conversationStates', newConversationStates)
+    }
     case Constants.selectConversation:
       return state.set('selectedConversation', action.payload.conversationIDKey)
-    case Constants.loadingMessages:
-      return state.set('conversationStates', state.get('conversationStates').update(action.payload.conversationIDKey, initialConversation,
-        conversation => conversation.set('isLoading', true)))
+    case Constants.loadingMessages: {
+      const newConversationStates = state.get('conversationStates').update(
+        action.payload.conversationIDKey,
+        initialConversation,
+        conversation => conversation.set('isLoading', true))
+
+      return state.set('conversationStates', newConversationStates)
+    }
     case Constants.loadedInbox:
       return state.set('inbox', action.payload.inbox)
   }

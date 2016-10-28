@@ -1,13 +1,13 @@
 // @flow
 import * as Constants from '../constants/chat'
 import engine from '../engine'
+import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalRpcPromise} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
 import {call, put, select} from 'redux-saga/effects'
-import {localGetInboxAndUnboxLocalRpcPromise, CommonMessageType, localGetThreadLocalRpcPromise, localPostLocalRpcPromise, CommonTLFVisibility} from '../constants/types/flow-types-chat'
 import {takeLatest, takeEvery} from 'redux-saga'
 
-import type {LoadMoreMessages, ConversationIDKey, SelectConversation, LoadInbox, Message, InboxState, LoadedInbox, SetupNewChatHandler, IncomingMessage, PostMessage} from '../constants/chat'
-import type {MessageUnboxed, GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType} from '../constants/types/flow-types-chat'
+import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler} from '../constants/chat'
+import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
@@ -36,12 +36,14 @@ function selectConversation (conversationIDKey: ConversationIDKey): SelectConver
 function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxState> {
   return List((inbox.conversations || []).map(convo => {
     const recentMessage: ?MessageUnboxed = (convo.maxMessages || []).find(message => (
-      message.state === 1 && message.valid && message.valid.messageBody.messageType === 1
+      message.state === LocalMessageUnboxedState.valid &&
+      message.valid &&
+      message.valid.messageBody.messageType === CommonMessageType.text
     ))
 
     let snippet
     try {
-      // $FlowIssue
+      // $FlowIssue doens't understand try
       snippet = recentMessage.valid.messageBody.text.body
     } catch (_) { }
 
@@ -58,9 +60,7 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxStat
 
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const infoSelector = (state: TypedState) => {
-    const convo = state.chat.get('inbox').find(convo => (
-      convo.get('conversationIDKey') === action.payload.conversationIDKey
-    ))
+    const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === action.payload.conversationIDKey)
     if (convo) {
       return convo.get('info')
     }
@@ -77,20 +77,19 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const configSelector = (state: TypedState) => {
     try {
       return {
-        // $FlowIssue doesn't understand try catch
+        // $FlowIssue doesn't understand try
         deviceID: state.config.extendedConfig.device.deviceID,
         uid: state.config.uid,
       }
     } catch (_) {
       return {
-        deviceID: null,
-        uid: null,
+        deviceID: '',
+        uid: '',
       }
     }
   }
 
-  // $FlowIssue
-  const {deviceID, uid} = yield select(configSelector)
+  const {deviceID, uid}: {deviceID: string, uid: string} = ((yield select(configSelector)): any)
 
   if (!deviceID || !uid) {
     console.warn('No deviceid/uid to postmessage!')
@@ -124,7 +123,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
-  if (action.payload.activity.ActivityType === 1) {
+  if (action.payload.activity.ActivityType === NotifyChatChatActivityType.incomingMessage) {
     const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.IncomingMessage
     if (incomingMessage) {
       const messageUnboxed: MessageUnboxed = incomingMessage.message
@@ -236,7 +235,7 @@ function _threadToPagination (thread) {
 }
 
 function _threadToStorable (message: MessageUnboxed, idx: number, yourName): Message {
-  if (message.state === 1) {
+  if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
     if (payload) {
       const common = {
