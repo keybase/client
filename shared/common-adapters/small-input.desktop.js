@@ -7,7 +7,7 @@ import {globalStyles, globalColors} from '../styles'
 
 import type {SmallInputProps} from './small-input'
 
-export default function SmallInput ({errorState, hintText, label, onChange, style, value}: SmallInputProps) {
+export default function SmallInput ({errorState, hintText, label, onChange, style, value, onEnterKeyDown}: SmallInputProps) {
   return (
     <Box style={{...styleContainer, ...style}}>
       <Text type='BodySmall' style={styleLabel(!!errorState)}>{label}</Text>
@@ -18,6 +18,7 @@ export default function SmallInput ({errorState, hintText, label, onChange, styl
           value={value}
           textStyle={{height: undefined}}
           underlineStyle={errorState ? {backgroundColor: globalColors.red} : {}}
+          onEnterKeyDown={onEnterKeyDown}
           onChangeText={onChange} />
       </Box>
     </Box>

@@ -6,7 +6,7 @@ import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import flags from '../util/feature-flags'
 
-import {profileTab, peopleTab, folderTab, devicesTab, settingsTab, tabPrettify} from '../constants/tabs'
+import {profileTab, peopleTab, folderTab, devicesTab, settingsTab, chatTab, tabPrettify} from '../constants/tabs'
 
 import type {Tab} from '../constants/tabs'
 import type {IconType} from '../common-adapters/icon'
@@ -14,6 +14,7 @@ import type {Props} from './index.render'
 
 const icons: {[key: Tab]: IconType} = {
   [peopleTab]: 'iconfont-people',
+  ...(flags.tabChatEnabled ? {[chatTab]: 'iconfont-chat'} : null),
   [folderTab]: 'iconfont-folder',
   [devicesTab]: 'iconfont-device',
   [settingsTab]: 'iconfont-settings',
@@ -77,11 +78,17 @@ export default class TabBarRender extends Component<void, Props, void> {
   }
 
   _renderTabItems () {
-    const tabs = []
-    if (flags.tabPeopleEnabled) tabs.push(peopleTab)
-    tabs.push(folderTab, devicesTab, settingsTab, profileTab)
+    // $FlowIssue
+    const tabs: Array<VisibleTab> = [
+      folderTab,
+      ...(flags.tabChatEnabled ? [chatTab] : []),
+      ...(flags.tabPeopleEnabled ? [peopleTab] : []),
+      devicesTab,
+      settingsTab,
+      profileTab,
+    ].filter(Boolean)
 
-    return tabs.map(t => {
+    return tabs.map((t: VisibleTab) => {
       const onClick = () => this.props.onTabClick(t)
       const isProfile = t === profileTab
 

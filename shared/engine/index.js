@@ -193,6 +193,14 @@ class Engine {
     return session
   }
 
+  // Cancel a session
+  cancelSession (sessionID: SessionID) {
+    const session = this._sessionsMap[String(sessionID)]
+    if (session) {
+      session.cancel()
+    }
+  }
+
   // Cleanup a session that ended
   _sessionEnded (session: Session) {
     rpcLog('engineInternal', 'session end', {sessionID: session.id})
@@ -269,6 +277,7 @@ class FakeEngine {
   }
   reset () {}
   cancelRPC () {}
+  cancelSession (sessionID: SessionID) {}
   rpc () {}
   setFailOnError () {}
   listenOnConnect () {}

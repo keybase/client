@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/dev'
+import chat from './chat'
 import config from './config'
 import dev from './dev'
 import devEdit from './dev-edit'
@@ -43,6 +44,7 @@ function timeTravel (state: State, action: any): State {
 }
 
 const combinedReducer = combineReducers({
+  chat,
   config,
   dev,
   devices,
