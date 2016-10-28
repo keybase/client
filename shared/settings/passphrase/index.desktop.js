@@ -42,7 +42,8 @@ function UpdatePassphrase (props: Props) {
         type='Primary'
         label='Save'
         disabled={!props.canSave}
-        onClick={props.onSave} />
+        onClick={props.onSave}
+        waiting={props.waitingForResponse} />
     </StandardScreen>
   )
 }

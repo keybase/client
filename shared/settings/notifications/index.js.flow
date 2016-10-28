@@ -15,6 +15,7 @@ export type Props = {
   onToggle: (name: string) => void,
   onToggleUnsubscribeAll: () => void,
   onSave: () => void,
+  waitingForResponse: boolean,
   onRefresh: () => void,
 }
 

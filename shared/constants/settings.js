@@ -126,8 +126,17 @@ export type EmailState = {
 
 export type State = {
   allowDeleteAccount: boolean,
+  waitingForResponse: boolean,
   invites: InvitesState,
   notifications: NotificationsState,
   email: EmailState,
   passphrase: PassphraseState,
+}
+
+export const waitingForResponse = 'settings:waitingForResponse'
+export function waitingForResponseAction (waiting: boolean) : TypedAction<'settings:waitingForResponse', boolean, void> {
+  return {
+    type: 'settings:waitingForResponse',
+    payload: waiting,
+  }
 }
