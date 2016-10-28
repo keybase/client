@@ -7,13 +7,13 @@ import type {Props} from './index'
 
 function UpdatePassphrase (props: Props) {
   const inputType = props.showTyping ? 'passwordVisible' : 'password'
-  const error = props.errorMessage
-    ? {message: props.errorMessage, type: 'error'}
+  const notification = props.error
+    ? {message: props.error.message, type: 'error'}
     : props.hasPGPKeyOnServer ? {message: 'Forgot your passphrase?  That\'s ok, but you will need to make a new PGP key, assuming you don\'t have a backup of your old private one.', type: 'error'} : null
   return (
     <StandardScreen
       onBack={props.onBack}
-      notification={error} >
+      notification={notification} >
       <Input
         floatingLabelText='New passphrase'
         value={props.newPassphrase}

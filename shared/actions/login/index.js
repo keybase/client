@@ -23,6 +23,7 @@ import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
 } from '../../constants/types/flow-types'
 import {navigateTo, routeAppend, navigateUp, switchTab} from '../router'
 import {overrideLoggedInTab} from '../../local-debug'
+import {RPCError} from '../../util/errors'
 
 const InputCancelError = {desc: 'Cancel Login', code: ConstantsStatusCode.scinputcanceled}
 
@@ -86,7 +87,7 @@ function getAccounts (): AsyncAction {
 export function login (): AsyncAction {
   // See FIXME about HMR at the bottom of this file
   const UsernameOrEmail = require('../../login/register/username-or-email').default
-  const Error = require('../../login/register/error').default
+  const RegisterError = require('../../login/register/error').default
   return (dispatch, getState) => {
     const props = {
       onBack: () => dispatch(cancelLogin()),
@@ -115,7 +116,7 @@ export function login (): AsyncAction {
                 dispatch(routeAppend({
                   parseRoute: {
                     componentAtTop: {
-                      component: Error,
+                      component: RegisterError,
                       props: {error, onBack: () => dispatch(cancelLogin())}}},
                 }))
               }
@@ -259,10 +260,7 @@ export function autoLogin () : AsyncAction {
       },
       incomingCallMap: {
         'keybase.1.loginUi.getEmailOrUsername': (_, response) => {
-          response.error({
-            code: ConstantsStatusCode.scnoui,
-            desc: 'Attempting auto login',
-          })
+          response.error(new RPCError('Attempting auto login', ConstantsStatusCode.scnoui))
         },
       },
       callback: (error, status) => {
@@ -297,10 +295,7 @@ export function relogin (user: string, passphrase: string) : AsyncAction {
         },
         'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
           const message = 'This device is no longer provisioned.'
-          response.error({
-            code: ConstantsStatusCode.scgeneric,
-            desc: message,
-          })
+          response.error(new RPCError(message, ConstantsStatusCode.scgeneric))
           dispatch({
             type: Constants.loginDone,
             error: true,
@@ -524,10 +519,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
               username={username} />))
           break
         default:
-          response.error({
-            code: ConstantsStatusCode.scnotfound,
-            desc: 'Unknown getPassphrase type',
-          })
+          response.error(new RPCError('Unknown getPassphrase type', ConstantsStatusCode.scnotfound))
       }
     },
     'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
@@ -569,10 +561,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
       response.result()
     },
     'keybase.1.gpgUi.selectKey': (param, response) => {
-      response.error({
-        code: ConstantsStatusCode.sckeynotfound,
-        desc: 'Not supported in GUI',
-      })
+      response.error(new RPCError('Not supported in GUI', ConstantsStatusCode.sckeynotfound))
     },
   }
 }

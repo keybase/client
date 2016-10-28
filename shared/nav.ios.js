@@ -22,9 +22,9 @@ import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 import GlobalError from './global-errors/container'
 
-import type {VisibleTab} from './constants/tabs'
+import type {Tab} from './constants/tabs'
 
-const tabs: {[key: VisibleTab]: {module: any}} = {
+const tabs: {[key: Tab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
   [profileTab]: {module: ProfileContainer, name: 'Profile'},
   [folderTab]: {module: Folders, name: 'Folders'},

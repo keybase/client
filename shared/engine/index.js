@@ -10,6 +10,7 @@ import {localLog} from '../util/forward-logs'
 import {log} from '../native/log/logui'
 import {resetClient, createClient, rpcLog} from './index.platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
+import {convertToError} from '../util/errors'
 
 class Engine {
   // Tracking outstanding sessions
@@ -177,7 +178,13 @@ class Engine {
       sessionID,
       incomingCallMap,
       waitingHandler,
-      (method, param, cb) => this._rpcClient.invoke(method, param, cb),
+      (method, param, cb) => this._rpcClient.invoke(method, param, (...args) => {
+        // If first argument is set, convert it to an Error type
+        if (args.length > 0 && !!args[0]) {
+          args[0] = convertToError(args[0])
+        }
+        cb(...args)
+      }),
       (session: Session) => this._sessionEnded(session),
       cancelHandler,
       dangling)

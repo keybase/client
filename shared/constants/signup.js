@@ -9,10 +9,10 @@ export const startRequestInvite = 'signup:startRequestInvite'
 export type StartRequestInvite = TypedAction<'signup:startRequestInvite', {}, {}>
 
 export const requestInvite = 'signup:requestInvite'
-export type RequestInvite = TypedAction<'signup:requestInvite', {email: string, name: string}, {emailError: ?string, nameError: ?string, email: ?string, name: ?string}>
+export type RequestInvite = TypedAction<'signup:requestInvite', {email: string, name: string}, {emailError: ?Error, nameError: ?Error, email: ?string, name: ?string}>
 
 export const checkUsernameEmail = 'signup:checkUsernameEmail'
-export type CheckUsernameEmail = TypedAction<'signup:checkUsernameEmail', {username: string, email: string}, {emailError: ?string, usernameError: ?string, email: ?string, username: ?string}>
+export type CheckUsernameEmail = TypedAction<'signup:checkUsernameEmail', {username: string, email: string}, {emailError: ?Error, usernameError: ?Error, email: ?string, username: ?string}>
 
 export const checkPassphrase = 'signup:checkPassphrase'
 export type CheckPassphrase = TypedAction<'signup:checkPassphrase', {passphrase: HiddenString}, {passphraseError: HiddenString}>

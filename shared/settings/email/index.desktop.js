@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Button, Icon, Input, Text} from '../../common-adapters'
+import {Box, Button, Icon, Input, StandardScreen, Text} from '../../common-adapters'
 
 import type {Props} from './index'
 
@@ -20,14 +20,19 @@ function VerifiedText ({isVerified, style}: {isVerified: boolean, style?: Object
 }
 
 function UpdateEmail (props: Props) {
+  const error = props.error ? {message: props.error.message, type: 'error'} : null
   return (
-    <Box style={globalStyles.flexBoxColumn}>
+    <StandardScreen
+      onBack={props.onBack}
+      notification={error}>
       <Input
         floatingLabelText='Email'
         value={props.email}
-        onChangeText={props.onChangeEmail}
-        textStyle={{height: undefined}} />
-      <VerifiedText isVerified={props.isVerified} style={{marginTop: 2}} />
+        onChangeText={props.onChangeNewEmail}
+        textStyle={{height: undefined}} style={{width: 400}} />
+      {!props.edited &&
+        <VerifiedText isVerified={props.isVerified} style={{marginTop: 2, justifyContent: 'center'}} />
+      }
       <Button
         style={{alignSelf: 'center', marginTop: globalMargins.medium}}
         type='Primary'
@@ -42,7 +47,7 @@ function UpdateEmail (props: Props) {
           type='BodyPrimaryLink'>
           Resend confirmation code
         </Text>}
-    </Box>
+    </StandardScreen>
   )
 }
 

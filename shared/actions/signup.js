@@ -79,7 +79,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
           dispatch(({
             type: Constants.requestInvite,
             error: true,
-            payload: {emailError: err.desc, nameError: null, email, name},
+            payload: {emailError: err, nameError: null, email, name},
           }: RequestInvite))
           reject(err)
         } else {
@@ -117,13 +117,13 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
     signupCheckUsernameAvailableRpc({
       param: {username},
       waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
-      callback: err => {
+      callback: (err) => {
         if (err) {
           console.warn("username isn't available:", err)
           dispatch(({
             type: Constants.checkUsernameEmail,
             error: true,
-            payload: {emailError, usernameError: `Username error: ${err.desc}`, email, username},
+            payload: {emailError, usernameError: err, email, username},
           }: CheckUsernameEmail))
           resolve()
         } else {

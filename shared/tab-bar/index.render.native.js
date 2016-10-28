@@ -6,18 +6,18 @@ import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
 
 import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'
 
-import type {VisibleTab} from '../constants/tabs'
+import type {Tab} from '../constants/tabs'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './index.render'
 
-const icons: {[key: VisibleTab]: IconType} = {
+const icons: {[key: Tab]: IconType} = {
   [peopleTab]: 'iconfont-people',
   [folderTab]: 'iconfont-folder',
   [devicesTab]: 'iconfont-device',
   [settingsTab]: 'iconfont-settings',
 }
 
-function tabToIcon (t: VisibleTab): IconType {
+function tabToIcon (t: Tab): IconType {
   return icons[t]
 }
 

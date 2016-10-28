@@ -1,16 +1,16 @@
 // @flow
 import React, {Component} from 'react'
-import type {VisibleTab} from '../constants/tabs'
+import type {Tab} from '../constants/tabs'
 
 export type Props = {
-  onTabClick: (tab: VisibleTab) => void,
+  onTabClick: (tab: Tab) => void,
   onSearchClick?: () => void,
   searchActive?: boolean,
-  selectedTab: VisibleTab,
+  selectedTab: Tab,
   username: string,
-  badgeNumbers: {[key: VisibleTab]: number},
+  badgeNumbers: {[key: Tab]: number},
   searchContent?: React$Element<*>,
-  tabContent: {[key: VisibleTab]: React$Element<*>}
+  tabContent: {[key: Tab]: React$Element<*>}
 }
 
 export default class TabBar extends Component<void, Props, void> { }

@@ -82,6 +82,15 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		return decmsg, err
 	}
 
+	// Check conversation ID and change to error if it is wrong
+	if decmsg.IsValid() && !decmsg.Valid().ClientHeader.Conv.Derivable(convID) {
+		decmsg = chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
+			ErrMsg:      "invalid conversation ID",
+			MessageID:   msg.GetMessageID(),
+			MessageType: msg.GetMessageType(),
+		})
+	}
+
 	// Store the message
 	if err = s.storage.Merge(ctx, convID, uid, []chat1.MessageUnboxed{decmsg}); err != nil {
 		return decmsg, err

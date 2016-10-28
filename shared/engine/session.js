@@ -1,10 +1,11 @@
 // @flow
 import type {SessionID, WaitingHandlerType, EndHandlerType, MethodKey} from './index'
-import type {incomingCallMapType, RPCError} from '../constants/types/flow-types'
+import type {incomingCallMapType} from '../constants/types/flow-types'
 import type {invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {rpcLog} from './index.platform'
+import {RPCError} from '../util/errors'
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
@@ -84,10 +85,7 @@ class Session {
     if (this._cancelHandler) {
       this._cancelHandler(this)
     } else if (this._startCallback) {
-      this._startCallback({
-        code: ConstantsStatusCode.sccanceled,
-        desc: 'Received RPC cancel for session',
-      })
+      this._startCallback(new RPCError('Received RPC cancel for session', ConstantsStatusCode.sccanceled))
     }
 
     this.end()

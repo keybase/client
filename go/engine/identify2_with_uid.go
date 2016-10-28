@@ -140,6 +140,7 @@ func (e *Identify2WithUID) resetError(err error) error {
 func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 	defer libkb.TimeLog(fmt.Sprintf("Identify2WithUID.Run(UID=%v, Assertion=%s", e.arg.Uid, e.arg.UserAssertion), e.G().Clock().Now(), e.G().Log.Debug)
 	e.G().Log.Debug("+ Identify2WithUID.Run(UID=%v, Assertion=%s)", e.arg.Uid, e.arg.UserAssertion)
+	e.G().Log.Debug("| Full Arg: %+v", e.arg)
 
 	if e.arg.Uid.IsNil() {
 		return libkb.NoUIDError{}
@@ -167,6 +168,22 @@ func (e *Identify2WithUID) run(ctx *Context) {
 	ctx.IdentifyUI.Cancel() // always cancel IdentifyUI to allow clients to clean up
 }
 
+func (e *Identify2WithUID) hitFastCache() bool {
+	if e.useAnyAssertions() {
+		e.G().Log.Debug("| missed fast cache: has assertions")
+		return false
+	}
+	if !e.allowEarlyOuts() {
+		e.G().Log.Debug("| missed fast cache: we don't allow early outs")
+		return false
+	}
+	if !e.checkFastCacheHit() {
+		e.G().Log.Debug("| missed fast cache: didn't hit")
+		return false
+	}
+	return true
+}
+
 func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 
 	e.G().Log.Debug("+ acquire singleflight lock for %s", e.arg.Uid)
@@ -183,7 +200,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return err
 	}
 
-	if !e.useAnyAssertions() && e.allowEarlyOuts() && e.checkFastCacheHit() {
+	if e.hitFastCache() {
 		e.G().Log.Debug("| hit fast cache")
 		return nil
 	}
@@ -199,6 +216,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 
 	if e.isSelfLoad() && !e.arg.NoSkipSelf {
 		e.G().Log.Debug("| was a self load, short-circuiting")
+		e.maybeCacheSelf()
 		return nil
 	}
 
@@ -264,11 +282,21 @@ func (e *Identify2WithUID) unblock(isFinal bool, err error) {
 	}
 }
 
-func (e *Identify2WithUID) maybeCacheResult() {
-	if e.state.Result().IsOK() && e.getCache() != nil {
+func (e *Identify2WithUID) maybeCacheSelf() {
+	if e.getCache() != nil {
 		v := e.toUserPlusKeys()
 		e.getCache().Insert(&v)
 	}
+}
+
+func (e *Identify2WithUID) maybeCacheResult() {
+	e.G().Log.Debug("+ maybeCacheResult")
+	if e.state.Result().IsOK() && e.getCache() != nil {
+		v := e.toUserPlusKeys()
+		e.getCache().Insert(&v)
+		e.G().Log.Debug("| insert %+v", v)
+	}
+	e.G().Log.Debug("- maybeCacheResult")
 }
 
 func (e *Identify2WithUID) insertTrackToken(ctx *Context, outcome *libkb.IdentifyOutcome, ui libkb.IdentifyUI) (err error) {
@@ -303,7 +331,7 @@ func (e *Identify2WithUID) CCLCheckCompleted(lcr *libkb.LinkCheckResult) {
 	e.remotesReceived.Add(pf)
 
 	if !e.useRemoteAssertions() || e.useTracking {
-		e.G().Log.Debug("| Early out, since not using remote assertions or is tracking")
+		e.G().Log.Debug("| Not using remote assertions or is tracking")
 		return
 	}
 
@@ -387,6 +415,7 @@ func (e *Identify2WithUID) displayUserCardAsync(ctx *Context) <-chan error {
 
 func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.G().Log.Debug("+ runIdentifyUI(%s)", e.them.GetName())
+	defer e.G().Log.Debug("- runIdentifyUI(%s) -> %s", e.them.GetName(), libkb.ErrToOk(err))
 
 	// RemoteReceived, start with the baseProofSet that has PGP
 	// fingerprints and the user's UID and username.
@@ -423,14 +452,17 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 
 	e.G().Log.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
 	if err = e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, iui, e); err != nil {
+		e.G().Log.Debug("| Failure in running IDTable")
 		return err
 	}
 
 	if waiter != nil {
+		e.G().Log.Debug("+ Waiting for UserCard")
 		if err = <-waiter; err != nil {
+			e.G().Log.Debug("| Failure in showing UserCard")
 			return err
 		}
-		e.G().Log.Debug("| IdentifyUI waited for waiter (%s)", e.them.GetName())
+		e.G().Log.Debug("- Waited for UserCard")
 	}
 
 	// use Confirm to display the IdentifyOutcome
@@ -438,12 +470,14 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	outcome.TrackOptions = e.trackOptions
 	e.confirmResult, err = iui.Confirm(outcome.Export())
 	if err != nil {
+		e.G().Log.Debug("| Failure in iui.Confirm")
 		return err
 	}
 
 	e.insertTrackToken(ctx, outcome, iui)
 
 	if err = iui.Finish(); err != nil {
+		e.G().Log.Debug("| Failure in iui.Finish")
 		return err
 	}
 	e.G().Log.Debug("| IdentifyUI.Finished(%s)", e.them.GetName())
@@ -603,6 +637,9 @@ func (e *Identify2WithUID) checkSlowCacheHit() bool {
 		return false
 	}
 	e.cachedRes = u
+
+	// Update so that it hits the fast cache the next time
+	u.Uvv.CachedAt = keybase1.ToTime(time.Now())
 	return true
 }
 

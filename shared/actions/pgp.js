@@ -11,7 +11,7 @@ function pgpStorageDismiss () {
   pgpPgpStorageDismissRpc({
     callback: (err) => {
       if (err) {
-        console.warn(`Error in sending pgpPgpStorageDismissRpc: ${err}`)
+        console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
       }
     },
   })
