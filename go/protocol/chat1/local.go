@@ -430,6 +430,12 @@ type ConversationLocal struct {
 	MaxMessages []MessageUnboxed       `codec:"maxMessages" json:"maxMessages"`
 }
 
+type OutboxRecord struct {
+	OutboxID OutboxID         `codec:"outboxID" json:"outboxID"`
+	ConvID   ConversationID   `codec:"convID" json:"convID"`
+	Msg      MessagePlaintext `codec:"Msg" json:"Msg"`
+}
+
 type GetThreadQuery struct {
 	MarkAsRead   bool          `codec:"markAsRead" json:"markAsRead"`
 	MessageTypes []MessageType `codec:"messageTypes" json:"messageTypes"`
@@ -438,8 +444,9 @@ type GetThreadQuery struct {
 }
 
 type GetThreadLocalRes struct {
-	Thread     ThreadView  `codec:"thread" json:"thread"`
-	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+	Thread     ThreadView     `codec:"thread" json:"thread"`
+	Outbox     []OutboxRecord `codec:"outbox" json:"outbox"`
+	RateLimits []RateLimit    `codec:"rateLimits" json:"rateLimits"`
 }
 
 type GetInboxLocalRes struct {
@@ -471,6 +478,12 @@ type GetInboxAndUnboxLocalRes struct {
 
 type PostLocalRes struct {
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+type OutboxID []byte
+type PostLocalNonblockRes struct {
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+	OutboxID   OutboxID    `codec:"outboxID" json:"outboxID"`
 }
 
 type SetConversationStatusLocalRes struct {
@@ -547,6 +560,11 @@ type PostLocalArg struct {
 	Msg            MessagePlaintext `codec:"msg" json:"msg"`
 }
 
+type PostLocalNonblockArg struct {
+	ConversationID ConversationID   `codec:"conversationID" json:"conversationID"`
+	Msg            MessagePlaintext `codec:"msg" json:"msg"`
+}
+
 type SetConversationStatusLocalArg struct {
 	ConversationID ConversationID     `codec:"conversationID" json:"conversationID"`
 	Status         ConversationStatus `codec:"status" json:"status"`
@@ -593,6 +611,7 @@ type LocalInterface interface {
 	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
+	PostLocalNonblock(context.Context, PostLocalNonblockArg) (PostLocalNonblockRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
 	PostAttachmentLocal(context.Context, PostAttachmentLocalArg) (PostLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
@@ -666,6 +685,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postLocalNonblock": {
+				MakeArg: func() interface{} {
+					ret := make([]PostLocalNonblockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostLocalNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostLocalNonblockArg)(nil), args)
+						return
+					}
+					ret, err = i.PostLocalNonblock(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -807,6 +842,11 @@ func (c LocalClient) GetInboxAndUnboxLocal(ctx context.Context, __arg GetInboxAn
 
 func (c LocalClient) PostLocal(ctx context.Context, __arg PostLocalArg) (res PostLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostLocalNonblock(ctx context.Context, __arg PostLocalNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postLocalNonblock", []interface{}{__arg}, &res)
 	return
 }
 

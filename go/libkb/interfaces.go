@@ -515,3 +515,7 @@ type ConversationSource interface {
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
 }
+
+type MessageDeliverer interface {
+	Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, error)
+}

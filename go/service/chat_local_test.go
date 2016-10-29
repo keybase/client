@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/stretchr/testify/require"
 )
 
 type chatTestUserContext struct {
@@ -403,6 +404,7 @@ func TestChatGracefulUnboxing(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "evil hello"}))
 
 	// make evil hello evil
+	ctc.world.Tcs[users[0].Username].G.ConvSource.Clear(created.Id, users[0].User.GetUID().ToBytes())
 	ctc.world.Msgs[created.Id.String()][0].BodyCiphertext.E[0]++
 
 	tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
@@ -568,4 +570,43 @@ func TestGetMessagesLocal(t *testing.T) {
 	if len(res.Messages) != len(getIDs) {
 		t.Fatalf("GetMessagesLocal got %v items but expected %v", len(res.Messages), len(getIDs))
 	}
+}
+
+func TestGetOutbox(t *testing.T) {
+	ctc := makeChatTestContext(t, "GetOutbox", 3)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	var err error
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+	created2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[2]).user().Username)
+
+	u := users[0]
+	h := ctc.as(t, users[0]).h
+	tc := ctc.world.Tcs[ctc.as(t, users[0]).user().Username]
+	outbox := storage.NewOutbox(tc.G, h.getSecretUI)
+
+	obid, err := outbox.Push(created.Id, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Sender:    u.User.GetUID().ToBytes(),
+			TlfName:   u.Username,
+			TlfPublic: false,
+		},
+	})
+	require.NoError(t, err)
+
+	thread, err := h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
+		ConversationID: created.Id,
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, 1, len(thread.Outbox), "wrong size outbox")
+	require.Equal(t, obid, thread.Outbox[0].OutboxID, "wrong outbox ID")
+
+	thread, err = h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
+		ConversationID: created2.Id,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 0, len(thread.Outbox), "non empty outbox")
+
 }

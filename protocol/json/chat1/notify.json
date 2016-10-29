@@ -13,7 +13,8 @@
       "name": "ChatActivityType",
       "symbols": [
         "RESERVED_0",
-        "INCOMING_MESSAGE_1"
+        "INCOMING_MESSAGE_1",
+        "MESSAGE_SENT_2"
       ]
     },
     {
@@ -32,18 +33,43 @@
     },
     {
       "type": "record",
-      "name": "ChatActivity",
+      "name": "MessageSentInfo",
       "fields": [
         {
-          "type": "ChatActivityType",
-          "name": "ActivityType"
+          "type": "ConversationID",
+          "name": "convID"
         },
         {
-          "type": [
-            null,
-            "IncomingMessage"
-          ],
-          "name": "IncomingMessage"
+          "type": "RateLimit",
+          "name": "rateLimit"
+        },
+        {
+          "type": "OutboxID",
+          "name": "outboxID"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ChatActivity",
+      "switch": {
+        "type": "ChatActivityType",
+        "name": "activityType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "INCOMING_MESSAGE",
+            "def": false
+          },
+          "body": "IncomingMessage"
+        },
+        {
+          "label": {
+            "name": "MESSAGE_SENT",
+            "def": false
+          },
+          "body": "MessageSentInfo"
         }
       ]
     }

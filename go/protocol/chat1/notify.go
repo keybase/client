@@ -4,6 +4,7 @@
 package chat1
 
 import (
+	"errors"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -14,16 +15,19 @@ type ChatActivityType int
 const (
 	ChatActivityType_RESERVED         ChatActivityType = 0
 	ChatActivityType_INCOMING_MESSAGE ChatActivityType = 1
+	ChatActivityType_MESSAGE_SENT     ChatActivityType = 2
 )
 
 var ChatActivityTypeMap = map[string]ChatActivityType{
 	"RESERVED":         0,
 	"INCOMING_MESSAGE": 1,
+	"MESSAGE_SENT":     2,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	0: "RESERVED",
 	1: "INCOMING_MESSAGE",
+	2: "MESSAGE_SENT",
 }
 
 type IncomingMessage struct {
@@ -31,9 +35,66 @@ type IncomingMessage struct {
 	ConvID  ConversationID `codec:"convID" json:"convID"`
 }
 
+type MessageSentInfo struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	RateLimit RateLimit      `codec:"rateLimit" json:"rateLimit"`
+	OutboxID  OutboxID       `codec:"outboxID" json:"outboxID"`
+}
+
 type ChatActivity struct {
-	ActivityType    ChatActivityType `codec:"ActivityType" json:"ActivityType"`
-	IncomingMessage *IncomingMessage `codec:"IncomingMessage,omitempty" json:"IncomingMessage,omitempty"`
+	ActivityType__    ChatActivityType `codec:"activityType" json:"activityType"`
+	IncomingMessage__ *IncomingMessage `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
+	MessageSent__     *MessageSentInfo `codec:"messageSent,omitempty" json:"messageSent,omitempty"`
+}
+
+func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
+	switch o.ActivityType__ {
+	case ChatActivityType_INCOMING_MESSAGE:
+		if o.IncomingMessage__ == nil {
+			err = errors.New("unexpected nil value for IncomingMessage__")
+			return ret, err
+		}
+	case ChatActivityType_MESSAGE_SENT:
+		if o.MessageSent__ == nil {
+			err = errors.New("unexpected nil value for MessageSent__")
+			return ret, err
+		}
+	}
+	return o.ActivityType__, nil
+}
+
+func (o ChatActivity) IncomingMessage() IncomingMessage {
+	if o.ActivityType__ != ChatActivityType_INCOMING_MESSAGE {
+		panic("wrong case accessed")
+	}
+	if o.IncomingMessage__ == nil {
+		return IncomingMessage{}
+	}
+	return *o.IncomingMessage__
+}
+
+func (o ChatActivity) MessageSent() MessageSentInfo {
+	if o.ActivityType__ != ChatActivityType_MESSAGE_SENT {
+		panic("wrong case accessed")
+	}
+	if o.MessageSent__ == nil {
+		return MessageSentInfo{}
+	}
+	return *o.MessageSent__
+}
+
+func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
+	return ChatActivity{
+		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
+		IncomingMessage__: &v,
+	}
+}
+
+func NewChatActivityWithMessageSent(v MessageSentInfo) ChatActivity {
+	return ChatActivity{
+		ActivityType__: ChatActivityType_MESSAGE_SENT,
+		MessageSent__:  &v,
+	}
 }
 
 type NewChatActivityArg struct {
