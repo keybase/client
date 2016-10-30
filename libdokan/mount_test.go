@@ -279,7 +279,7 @@ func TestReaddirPrivate(t *testing.T) {
 	}
 
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
-		"janedoe,jdoe": mustBeDir,
+		"jdoe,janedoe": mustBeDir,
 		"jdoe":         mustBeDir, // default home directory
 	})
 }
@@ -300,7 +300,7 @@ func TestReaddirPublic(t *testing.T) {
 	}
 
 	checkDir(t, filepath.Join(mnt.Dir, PublicName), map[string]fileInfoCheck{
-		"janedoe,jdoe": mustBeDir,
+		"jdoe,janedoe": mustBeDir,
 		"jdoe":         mustBeDir, // default personal public directory
 	})
 }
@@ -1383,7 +1383,7 @@ func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
 	}
 
-	err := os.Remove(filepath.Join(mnt.Dir, PrivateName, "janedoe,jdoe"))
+	err := os.Remove(filepath.Join(mnt.Dir, PrivateName, "jdoe,janedoe"))
 	if err != nil {
 		t.Fatalf("Removing favorite failed: %v", err)
 	}
@@ -1393,11 +1393,11 @@ func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 	})
 
 	// Re-add the favorite by doing a readdir
-	checkDir(t, filepath.Join(mnt.Dir, PrivateName, "janedoe,jdoe"),
+	checkDir(t, filepath.Join(mnt.Dir, PrivateName, "jdoe,janedoe"),
 		map[string]fileInfoCheck{})
 
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
-		"janedoe,jdoe": mustBeDir,
+		"jdoe,janedoe": mustBeDir,
 		"jdoe":         mustBeDir, // default home directory
 	})
 }

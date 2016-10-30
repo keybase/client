@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -125,7 +126,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			continue
 		}
 
-		h, err := libkbfs.ParseTlfHandle(
+		h, err := libkbfs.ParseTlfHandlePreferred(
 			ctx, fl.fs.config.KBPKI(), name, fl.public)
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing -> %v,%v", h, err)
 		switch err := err.(type) {
@@ -161,7 +162,11 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
-		child = newTLF(fl, h)
+		cuser, err := libkbfs.GetCurrentUsernameIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+		if err != nil {
+			return nil, false, err
+		}
+		child = newTLF(fl, h, h.GetPreferredFormat(cuser))
 		fl.lockedAddChild(name, child)
 		return child.open(ctx, oc, path[1:])
 	}
@@ -179,7 +184,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 	fl.fs.logEnter(ctx, "FL FindFiles")
 	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
 
-	_, _, err = fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	cuser, _, err := fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
 	isLoggedIn := err == nil
 
 	var favs []libkbfs.Favorite
@@ -196,8 +201,14 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 		if fav.Public != fl.public {
 			continue
 		}
+		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(cuser,
+			libkbfs.CanonicalTlfName(fav.Name))
+		if err != nil {
+			fl.fs.log.Errorf("FavoriteNameToPreferredTLFNameFormatAs: %q %v", fav.Name, err)
+			continue
+		}
 		empty = false
-		ns.Name = fav.Name
+		ns.Name = string(pname)
 		err = callback(&ns)
 		if err != nil {
 			return err
@@ -251,5 +262,22 @@ func clearFolderListCacheLoop(ctx context.Context, r *Root) {
 		}
 		r.private.clearAliasCache()
 		r.public.clearAliasCache()
+	}
+}
+
+// update things after user changed.
+func (fl *FolderList) userChanged(ctx context.Context, _, _ libkb.NormalizedUsername) {
+	var fs []*Folder
+	func() {
+		fl.mu.Lock()
+		defer fl.mu.Unlock()
+		for _, tlf := range fl.folders {
+			if tlf, ok := tlf.(*TLF); ok {
+				fs = append(fs, tlf.folder)
+			}
+		}
+	}()
+	for _, f := range fs {
+		f.TlfHandleChange(ctx, nil)
 	}
 }

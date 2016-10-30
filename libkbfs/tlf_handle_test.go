@@ -20,8 +20,9 @@ import (
 func TestNormalizeNamesInTLF(t *testing.T) {
 	writerNames := []string{"BB", "C@Twitter", "d@twitter", "aa"}
 	readerNames := []string{"EE", "ff", "AA@HackerNews", "aa", "BB", "bb", "ZZ@hackernews"}
-	s, err := normalizeNamesInTLF(writerNames, readerNames, "")
+	s, changes, err := normalizeNamesInTLF(writerNames, readerNames, "")
 	require.NoError(t, err)
+	require.True(t, changes)
 	assert.Equal(t, "aa,bb,c@twitter,d@twitter#AA@hackernews,ZZ@hackernews,aa,bb,bb,ee,ff", s)
 }
 
@@ -29,8 +30,9 @@ func TestNormalizeNamesInTLFWithConflict(t *testing.T) {
 	writerNames := []string{"BB", "C@Twitter", "d@twitter", "aa"}
 	readerNames := []string{"EE", "ff", "AA@HackerNews", "aa", "BB", "bb", "ZZ@hackernews"}
 	conflictSuffix := "(cOnflictED coPy 2015-05-11 #4)"
-	s, err := normalizeNamesInTLF(writerNames, readerNames, conflictSuffix)
+	s, changes, err := normalizeNamesInTLF(writerNames, readerNames, conflictSuffix)
 	require.NoError(t, err)
+	require.True(t, changes)
 	assert.Equal(t, "aa,bb,c@twitter,d@twitter#AA@hackernews,ZZ@hackernews,aa,bb,bb,ee,ff (conflicted copy 2015-05-11 #4)", s)
 }
 
@@ -955,4 +957,23 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 	nonCanonicalName := "u1,u2#u3 (files before u2 account reset 2016-03-14 #2) (conflicted copy 2016-03-14 #3)"
 	_, err = ParseTlfHandle(ctx, kbpki, nonCanonicalName, false)
 	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
+}
+
+func TestFavoriteNameToPreferredTLFNameFormatAs(t *testing.T) {
+	for _, q := range []struct {
+		As     libkb.NormalizedUsername
+		Try    CanonicalTlfName
+		Answer PreferredTlfName
+	}{
+		{"", "a,b,c", "a,b,c"},
+		{"a", "a,b,c", "a,b,c"},
+		{"b", "a,b,c", "b,a,c"},
+		{"c", "a,b,c", "c,a,b"},
+		{"b", "a,b,c#d,e", "b,a,c#d,e"},
+		{"d", "a,b,c#d,e", "a,b,c#d,e"},
+	} {
+		r, err := FavoriteNameToPreferredTLFNameFormatAs(q.As, q.Try)
+		assert.Equal(t, q.Answer, r)
+		assert.NoError(t, err)
+	}
 }

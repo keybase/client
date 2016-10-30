@@ -5213,6 +5213,11 @@ func (fbo *folderBranchOps) GetEditHistory(ctx context.Context,
 	return fbo.editHistory.GetComplete(ctx, head)
 }
 
+// PushStatusChange forces a new status be fetched by status listeners.
+func (fbo *folderBranchOps) PushStatusChange() {
+	fbo.config.KBFSOps().PushStatusChange()
+}
+
 // PushConnectionStatusChange pushes human readable connection status changes.
 func (fbo *folderBranchOps) PushConnectionStatusChange(service string, newStatus error) {
 	fbo.config.KBFSOps().PushConnectionStatusChange(service, newStatus)

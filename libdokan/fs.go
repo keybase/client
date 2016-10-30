@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/dokan/winacl"
@@ -69,7 +70,7 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 
 	ctx = wrapContext(ctx, f)
 
-	f.remoteStatus.Init(ctx, f.log, f.config)
+	f.remoteStatus.Init(ctx, f.log, f.config, f)
 	f.notifications.LaunchProcessor(ctx)
 	go clearFolderListCacheLoop(ctx, f.root)
 
@@ -496,7 +497,7 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	}
 	dstName := dstPath[len(dstPath)-1]
 	// Yes, this is slow, but that is ok here.
-	if _, err := libkbfs.ParseTlfHandle(
+	if _, err := libkbfs.ParseTlfHandlePreferred(
 		ctx, f.config.KBPKI(), dstName, fl.public); err != nil {
 		return dokan.ErrObjectNameNotFound
 	}
@@ -564,6 +565,15 @@ func (f *FS) stringReadFile(contents string) dokan.File {
 		fs: f,
 	}
 }
+
+// UserChanged is called from libfs.
+func (f *FS) UserChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername) {
+	f.log.CDebugf(ctx, "User changed: %q -> %q", oldName, newName)
+	f.root.public.userChanged(ctx, oldName, newName)
+	f.root.private.userChanged(ctx, oldName, newName)
+}
+
+var _ libfs.RemoteStatusUpdater = (*FS)(nil)
 
 // Root represents the root of the KBFS file system.
 type Root struct {
