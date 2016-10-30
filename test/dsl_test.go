@@ -205,7 +205,6 @@ func inPublicTlfNonCanonical(name, expectedCanonicalName string) optionOp {
 
 func addNewAssertion(oldAssertion, newAssertion string) optionOp {
 	return func(o *opt) {
-		o.t.Logf("addNewAssertion: %q -> %q", oldAssertion, newAssertion)
 		for _, u := range o.users {
 			err := o.engine.AddNewAssertion(u, oldAssertion, newAssertion)
 			o.expectSuccess("addNewAssertion", err)
@@ -227,7 +226,6 @@ const (
 type ctx struct {
 	*opt
 	user       User
-	username   libkb.NormalizedUsername
 	rootNode   Node
 	noSyncInit bool
 	staller    *libkbfs.NaïveStaller
@@ -238,7 +236,6 @@ func runFileOp(c *ctx, fop fileOp) (string, error) {
 		initOp := initRoot()
 		err := initOp.operation(c)
 		if err != nil {
-			c.t.Logf("initRoot failed running as %s", c.username)
 			return "initRoot", err
 		}
 	}
@@ -274,9 +271,9 @@ func (o *opt) expectSuccess(reason string, err error) {
 			// FailNow/Fatalf can only be called from the goroutine running the Test
 			// function. In parallel tests, this is not always true. So we use Errorf
 			// to mark the test as failed without an implicit FailNow.
-			o.t.Errorf("Error %s: %v", reason, err)
+			o.t.Errorf("Error: %s: %v", reason, err)
 		} else {
-			o.t.Fatalf("Error %s: %v", reason, err)
+			o.t.Fatalf("Error: %s: %v", reason, err)
 		}
 	}
 }
@@ -290,14 +287,13 @@ func addTime(d time.Duration) fileOp {
 
 func as(user username, fops ...fileOp) optionOp {
 	return func(o *opt) {
-		o.t.Log("as:", user)
+		o.t.Log("as", user)
 		o.runInitOnce()
 		u := libkb.NewNormalizedUsername(string(user))
 		ctx := &ctx{
-			opt:      o,
-			user:     o.users[u],
-			username: u,
-			staller:  o.stallers[u],
+			opt:     o,
+			user:    o.users[u],
+			staller: o.stallers[u],
 		}
 
 		for _, fop := range fops {
@@ -311,7 +307,6 @@ func as(user username, fops ...fileOp) optionOp {
 // not called directly.
 func initRoot() fileOp {
 	return fileOp{func(c *ctx) error {
-		c.t.Logf("initRoot for %s", c.username)
 		if !c.noSyncInit {
 			// Do this before GetRootDir so that we pick
 			// up any TLF name changes.
