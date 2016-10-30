@@ -10,10 +10,8 @@ import (
 
 // Service names used in ConnectionStatus.
 const (
-	KeybaseServiceName     = "keybase-service"
-	MDServiceName          = "md-server"
-	LoginStatusUpdateName  = "login"
-	LogoutStatusUpdateName = "logout"
+	KeybaseServiceName = "keybase-service"
+	MDServiceName      = "md-server"
 )
 
 type errDisconnected struct{}
@@ -60,14 +58,6 @@ func (kcs *kbfsCurrentStatus) PushConnectionStatusChange(service string, err err
 		delete(kcs.failingServices, service)
 	}
 
-	close(kcs.invalidateChan)
-	kcs.invalidateChan = make(chan StatusUpdate)
-}
-
-// PushStatusChange forces a new status be fetched by status listeners.
-func (kcs *kbfsCurrentStatus) PushStatusChange() {
-	kcs.lock.Lock()
-	defer kcs.lock.Unlock()
 	close(kcs.invalidateChan)
 	kcs.invalidateChan = make(chan StatusUpdate)
 }

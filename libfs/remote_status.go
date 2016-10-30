@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -23,30 +23,19 @@ const (
 	failureDisplayThreshold = 5 * time.Second
 )
 
-// RemoteStatusUpdater has callbacks that will be called from libfs
-// when kbfs status changes in interesting ways.
-type RemoteStatusUpdater interface {
-	// UserChanged is called when the kbfs user is changed.
-	// Either oldName or newName, or both may be empty.
-	UserChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername)
-}
-
 // RemoteStatus is for maintaining status of various remote connections like keybase
 // service and md-server.
 type RemoteStatus struct {
 	sync.Mutex
-	currentUser       libkb.NormalizedUsername
 	failingServices   map[string]error
 	extraFileName     string
 	extraFileContents []byte
 	failingSince      time.Time
-	callbacks         RemoteStatusUpdater
 }
 
 // Init a RemoteStatus and register it with libkbfs.
-func (r *RemoteStatus) Init(ctx context.Context, log logger.Logger, config libkbfs.Config, rs RemoteStatusUpdater) {
+func (r *RemoteStatus) Init(ctx context.Context, log logger.Logger, config libkbfs.Config) {
 	r.failingServices = map[string]error{}
-	r.callbacks = rs
 	// A time in the far past that is not IsZero
 	r.failingSince.Add(time.Second)
 	go r.loop(ctx, log, config)
@@ -59,9 +48,9 @@ func (r *RemoteStatus) loop(ctx context.Context, log logger.Logger, config libkb
 		// No deferring inside loops, and no panics either here.
 		cancel()
 		if err != nil {
-			log.Warning("KBFS Status failed: %v,%v,%v", st, ch, err)
+			log.Warning("KBFS Status failed: %v,%v", st, err)
 		}
-		r.update(ctx, st)
+		r.update(st)
 		// Block on the channel or shutdown.
 		select {
 		case <-ctx.Done():
@@ -71,17 +60,9 @@ func (r *RemoteStatus) loop(ctx context.Context, log logger.Logger, config libkb
 	}
 }
 
-func (r *RemoteStatus) update(ctx context.Context, st libkbfs.KBFSStatus) {
+func (r *RemoteStatus) update(st libkbfs.KBFSStatus) {
 	r.Lock()
 	defer r.Unlock()
-
-	if newUser := libkb.NormalizedUsername(st.CurrentUser); r.currentUser != newUser {
-		oldUser := libkb.NormalizedUsername(r.currentUser)
-		r.currentUser = newUser
-		if r.callbacks != nil {
-			go r.callbacks.UserChanged(ctx, oldUser, newUser)
-		}
-	}
 
 	r.failingServices = st.FailingServices
 
@@ -112,7 +93,7 @@ func (r *RemoteStatus) update(ctx context.Context, st libkbfs.KBFSStatus) {
 }
 
 func isNotLoggedInError(err error) bool {
-	_, ok := err.(libkb.LoginRequiredError)
+	_, ok := err.(keybase1.LoginRequiredError)
 	return ok
 }
 
@@ -157,7 +138,7 @@ func (r *RemoteStatus) humanReadableBytesLocked() []byte {
 	needLogin := false
 	for service, err := range r.failingServices {
 		switch err.(type) {
-		case *libkb.LoginRequiredError:
+		case *keybase1.LoginRequiredError:
 			needLogin = true
 		default:
 			ss = append(ss, service+": "+err.Error())

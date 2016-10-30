@@ -28,7 +28,7 @@ import (
 )
 
 type createUserFn func(t testing.TB, ith int, config *libkbfs.ConfigLocal,
-	opTimeout time.Duration) *fsUser
+	opTimeout time.Duration) User
 
 type fsEngine struct {
 	name       string
@@ -42,11 +42,10 @@ type fsNode struct {
 }
 
 type fsUser struct {
-	mntDir   string
-	username libkb.NormalizedUsername
-	config   *libkbfs.ConfigLocal
-	cancel   func()
-	close    func()
+	mntDir string
+	config *libkbfs.ConfigLocal
+	cancel func()
+	close  func()
 }
 
 // Perform Init for the engine
@@ -105,33 +104,23 @@ func (e *fsEngine) GetFavorites(user User, public bool) (map[string]bool, error)
 // GetRootDir implements the Engine interface.
 func (e *fsEngine) GetRootDir(user User, tlfName string, isPublic bool, expectedCanonicalTlfName string) (dir Node, err error) {
 	u := user.(*fsUser)
-	preferredName, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(u.username,
-		libkbfs.CanonicalTlfName(tlfName))
-	if err != nil {
-		return nil, err
-	}
-	expectedPreferredName, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(u.username,
-		libkbfs.CanonicalTlfName(expectedCanonicalTlfName))
-	if err != nil {
-		return nil, err
-	}
 	path := buildTlfPath(u, tlfName, isPublic)
 	var realPath string
 	// TODO currently we pretend that Dokan has no symbolic links
 	// here and end up deferencing them. This works but is not
 	// ideal. (See Lookup.)
-	if preferredName == expectedPreferredName || e.name == "dokan" {
+	if tlfName == expectedCanonicalTlfName || e.name == "dokan" {
 		realPath = path
 	} else {
 		realPath, err = filepath.EvalSymlinks(path)
 		if err != nil {
 			return nil, err
 		}
-		realName := filepath.Base(realPath)
-		if realName != string(expectedPreferredName) {
+		canonicalTlfName := filepath.Base(realPath)
+		if canonicalTlfName != expectedCanonicalTlfName {
 			return nil, fmt.Errorf(
-				"Expected preferred TLF name %s, got %s",
-				expectedPreferredName, realName)
+				"Expected canonical TLF name %s, got %s",
+				expectedCanonicalTlfName, canonicalTlfName)
 		}
 	}
 	return fsNode{realPath}, nil
@@ -528,9 +517,7 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 	}
 
 	for i, name := range users {
-		u := e.createUser(t, i, cfgs[i], opTimeout)
-		u.username = name
-		res[name] = u
+		res[name] = e.createUser(t, i, cfgs[i], opTimeout)
 	}
 
 	if journal {

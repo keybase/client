@@ -4,8 +4,6 @@
 
 package libkbfs
 
-// This file has the type for TlfHandles and offline functionality.
-
 import (
 	"errors"
 	"fmt"
@@ -15,6 +13,7 @@ import (
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
@@ -302,6 +301,196 @@ func (h TlfHandle) ToBareHandleOrBust() BareTlfHandle {
 	return bh
 }
 
+type nameUIDPair struct {
+	name libkb.NormalizedUsername
+	uid  keybase1.UID
+}
+
+type resolvableUser interface {
+	// resolve must do exactly one of the following:
+	//
+	//   - return a non-zero nameUIDPair;
+	//   - return a non-zero keybase1.SocialAssertion;
+	//   - return a non-nil error.
+	resolve(context.Context) (nameUIDPair, keybase1.SocialAssertion, error)
+}
+
+func resolveOneUser(
+	ctx context.Context, user resolvableUser,
+	errCh chan<- error, userInfoResults chan<- nameUIDPair,
+	socialAssertionResults chan<- keybase1.SocialAssertion) {
+	userInfo, socialAssertion, err := user.resolve(ctx)
+	if err != nil {
+		select {
+		case errCh <- err:
+		default:
+			// another worker reported an error before us;
+			// first one wins
+		}
+		return
+	}
+	if userInfo != (nameUIDPair{}) {
+		userInfoResults <- userInfo
+		return
+	}
+
+	if socialAssertion != (keybase1.SocialAssertion{}) {
+		socialAssertionResults <- socialAssertion
+		return
+	}
+
+	errCh <- fmt.Errorf("Resolving %v resulted in empty userInfo and empty socialAssertion", user)
+}
+
+func makeTlfHandleHelper(
+	ctx context.Context, public bool, writers, readers []resolvableUser,
+	extensions []TlfHandleExtension) (*TlfHandle, error) {
+	if public && len(readers) > 0 {
+		return nil, errors.New("public folder cannot have readers")
+	}
+
+	// parallelize the resolutions for each user
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	errCh := make(chan error, 1)
+
+	wc := make(chan nameUIDPair, len(writers))
+	uwc := make(chan keybase1.SocialAssertion, len(writers))
+	for _, writer := range writers {
+		go resolveOneUser(ctx, writer, errCh, wc, uwc)
+	}
+
+	rc := make(chan nameUIDPair, len(readers))
+	urc := make(chan keybase1.SocialAssertion, len(readers))
+	for _, reader := range readers {
+		go resolveOneUser(ctx, reader, errCh, rc, urc)
+	}
+
+	usedWNames := make(map[keybase1.UID]libkb.NormalizedUsername, len(writers))
+	usedRNames := make(map[keybase1.UID]libkb.NormalizedUsername, len(readers))
+	usedUnresolvedWriters := make(map[keybase1.SocialAssertion]bool)
+	usedUnresolvedReaders := make(map[keybase1.SocialAssertion]bool)
+	for i := 0; i < len(writers)+len(readers); i++ {
+		select {
+		case err := <-errCh:
+			return nil, err
+		case userInfo := <-wc:
+			usedWNames[userInfo.uid] = userInfo.name
+		case userInfo := <-rc:
+			usedRNames[userInfo.uid] = userInfo.name
+		case socialAssertion := <-uwc:
+			usedUnresolvedWriters[socialAssertion] = true
+		case socialAssertion := <-urc:
+			usedUnresolvedReaders[socialAssertion] = true
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+
+	for uid := range usedWNames {
+		delete(usedRNames, uid)
+	}
+
+	for sa := range usedUnresolvedWriters {
+		delete(usedUnresolvedReaders, sa)
+	}
+
+	unresolvedWriters := getSortedUnresolved(usedUnresolvedWriters)
+
+	var unresolvedReaders []keybase1.SocialAssertion
+	if !public {
+		unresolvedReaders = getSortedUnresolved(usedUnresolvedReaders)
+	}
+
+	writerNames := getSortedNames(usedWNames, unresolvedWriters)
+	canonicalName := strings.Join(writerNames, ",")
+	if !public && len(usedRNames)+len(unresolvedReaders) > 0 {
+		readerNames := getSortedNames(usedRNames, unresolvedReaders)
+		canonicalName += ReaderSep + strings.Join(readerNames, ",")
+	}
+
+	extensionList := tlfHandleExtensionList(extensions)
+	sort.Sort(extensionList)
+	canonicalName += extensionList.Suffix()
+	conflictInfo, finalizedInfo := extensionList.Splat()
+
+	h := &TlfHandle{
+		public:            public,
+		resolvedWriters:   usedWNames,
+		resolvedReaders:   usedRNames,
+		unresolvedWriters: unresolvedWriters,
+		unresolvedReaders: unresolvedReaders,
+		conflictInfo:      conflictInfo,
+		finalizedInfo:     finalizedInfo,
+		name:              CanonicalTlfName(canonicalName),
+	}
+
+	return h, nil
+}
+
+type resolvableUID struct {
+	nug normalizedUsernameGetter
+	uid keybase1.UID
+}
+
+func (ruid resolvableUID) resolve(ctx context.Context) (nameUIDPair, keybase1.SocialAssertion, error) {
+	name, err := ruid.nug.GetNormalizedUsername(ctx, ruid.uid)
+	if err != nil {
+		return nameUIDPair{}, keybase1.SocialAssertion{}, err
+	}
+	return nameUIDPair{
+		name: name,
+		uid:  ruid.uid,
+	}, keybase1.SocialAssertion{}, nil
+}
+
+type resolvableSocialAssertion keybase1.SocialAssertion
+
+func (rsa resolvableSocialAssertion) resolve(ctx context.Context) (nameUIDPair, keybase1.SocialAssertion, error) {
+	return nameUIDPair{}, keybase1.SocialAssertion(rsa), nil
+}
+
+// MakeTlfHandle creates a TlfHandle from the given BareTlfHandle and
+// the given normalizedUsernameGetter (which is usually a KBPKI).
+func MakeTlfHandle(
+	ctx context.Context, bareHandle BareTlfHandle,
+	nug normalizedUsernameGetter) (*TlfHandle, error) {
+	writers := make([]resolvableUser, 0, len(bareHandle.Writers)+len(bareHandle.UnresolvedWriters))
+	for _, w := range bareHandle.Writers {
+		writers = append(writers, resolvableUID{nug, w})
+	}
+	for _, uw := range bareHandle.UnresolvedWriters {
+		writers = append(writers, resolvableSocialAssertion(uw))
+	}
+
+	var readers []resolvableUser
+	if !bareHandle.IsPublic() {
+		readers = make([]resolvableUser, 0, len(bareHandle.Readers)+len(bareHandle.UnresolvedReaders))
+		for _, r := range bareHandle.Readers {
+			readers = append(readers, resolvableUID{nug, r})
+		}
+		for _, ur := range bareHandle.UnresolvedReaders {
+			readers = append(readers, resolvableSocialAssertion(ur))
+		}
+	}
+
+	h, err := makeTlfHandleHelper(ctx, bareHandle.IsPublic(), writers, readers, bareHandle.Extensions())
+	if err != nil {
+		return nil, err
+	}
+
+	newHandle, err := h.ToBareHandle()
+	if err != nil {
+		return nil, err
+	}
+	if !reflect.DeepEqual(newHandle, bareHandle) {
+		panic(fmt.Errorf("newHandle=%+v unexpectedly not equal to bareHandle=%+v", newHandle, bareHandle))
+	}
+
+	return h, nil
+}
+
 func (h TlfHandle) deepCopy() *TlfHandle {
 	hCopy := TlfHandle{
 		public:            h.public,
@@ -372,6 +561,178 @@ func (h *TlfHandle) toFavToAdd(created bool) favToAdd {
 	}
 }
 
+type resolvableNameUIDPair nameUIDPair
+
+func (rp resolvableNameUIDPair) resolve(ctx context.Context) (nameUIDPair, keybase1.SocialAssertion, error) {
+	return nameUIDPair(rp), keybase1.SocialAssertion{}, nil
+}
+
+// ResolveAgainForUser tries to resolve any unresolved assertions in
+// the given handle and returns a new handle with the results. As an
+// optimization, if h contains no unresolved assertions, it just
+// returns itself.  If uid != keybase1.UID(""), it only allows
+// assertions that resolve to uid.
+func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
+	uid keybase1.UID) (*TlfHandle, error) {
+	if len(h.unresolvedWriters)+len(h.unresolvedReaders) == 0 {
+		return h, nil
+	}
+
+	writers := make([]resolvableUser, 0, len(h.resolvedWriters)+len(h.unresolvedWriters))
+	for uid, w := range h.resolvedWriters {
+		writers = append(writers, resolvableNameUIDPair{w, uid})
+	}
+	for _, uw := range h.unresolvedWriters {
+		writers = append(writers, resolvableAssertion{resolver,
+			uw.String(), uid})
+	}
+
+	var readers []resolvableUser
+	if !h.IsPublic() {
+		readers = make([]resolvableUser, 0, len(h.resolvedReaders)+len(h.unresolvedReaders))
+		for uid, r := range h.resolvedReaders {
+			readers = append(readers, resolvableNameUIDPair{r, uid})
+		}
+		for _, ur := range h.unresolvedReaders {
+			readers = append(readers, resolvableAssertion{resolver,
+				ur.String(), uid})
+		}
+	}
+
+	newH, err := makeTlfHandleHelper(ctx, h.IsPublic(), writers, readers, h.Extensions())
+	if err != nil {
+		return nil, err
+	}
+
+	return newH, nil
+}
+
+// ResolveAgain tries to resolve any unresolved assertions in the
+// given handle and returns a new handle with the results. As an
+// optimization, if h contains no unresolved assertions, it just
+// returns itself.
+func (h *TlfHandle) ResolveAgain(ctx context.Context, resolver resolver) (
+	*TlfHandle, error) {
+	if h.IsFinal() {
+		// Don't attempt to further resolve final handles.
+		return h, nil
+	}
+	return h.ResolveAgainForUser(ctx, resolver, keybase1.UID(""))
+}
+
+type partialResolver struct {
+	unresolvedAssertions map[string]bool
+	delegate             resolver
+}
+
+func (pr partialResolver) Resolve(ctx context.Context, assertion string) (
+	libkb.NormalizedUsername, keybase1.UID, error) {
+	if pr.unresolvedAssertions[assertion] {
+		// Force an unresolved assertion.
+		return libkb.NormalizedUsername(""),
+			keybase1.UID(""), NoSuchUserError{assertion}
+	}
+	return pr.delegate.Resolve(ctx, assertion)
+}
+
+// ResolvesTo returns whether this handle resolves to the given one.
+// It also returns the partially-resolved version of h, i.e. h
+// resolved except for unresolved assertions in other; this should
+// equal other if and only if true is returned.
+func (h TlfHandle) ResolvesTo(
+	ctx context.Context, codec kbfscodec.Codec, resolver resolver,
+	other TlfHandle) (resolvesTo bool, partialResolvedH *TlfHandle,
+	err error) {
+	// Check the conflict extension.
+	var conflictAdded, finalizedAdded bool
+	if !h.IsConflict() && other.IsConflict() {
+		conflictAdded = true
+		// Ignore the added extension for resolution comparison purposes.
+		other.conflictInfo = nil
+	}
+
+	// Check the finalized extension.
+	if h.IsFinal() {
+		if conflictAdded {
+			// Can't add conflict info to a finalized handle.
+			return false, nil, TlfHandleFinalizedError{}
+		}
+	} else if other.IsFinal() {
+		finalizedAdded = true
+		// Ignore the added extension for resolution comparison purposes.
+		other.finalizedInfo = nil
+	}
+
+	unresolvedAssertions := make(map[string]bool)
+	for _, uw := range other.unresolvedWriters {
+		unresolvedAssertions[uw.String()] = true
+	}
+	for _, ur := range other.unresolvedReaders {
+		unresolvedAssertions[ur.String()] = true
+	}
+
+	// TODO: Once we keep track of the original assertions in
+	// TlfHandle, restrict the resolver to use other's assertions
+	// only, so that we don't hit the network at all.
+	partialResolvedH, err = h.ResolveAgain(
+		ctx, partialResolver{unresolvedAssertions, resolver})
+	if err != nil {
+		return false, nil, err
+	}
+
+	if conflictAdded || finalizedAdded {
+		resolvesTo, err = partialResolvedH.EqualsIgnoreName(codec, other)
+	} else {
+		resolvesTo, err = partialResolvedH.Equals(codec, other)
+	}
+	if err != nil {
+		return false, nil, err
+	}
+
+	return resolvesTo, partialResolvedH, nil
+}
+
+// MutuallyResolvesTo checks that the target handle, and the provided
+// `other` handle, resolve to each other.
+func (h TlfHandle) MutuallyResolvesTo(
+	ctx context.Context, codec kbfscodec.Codec,
+	resolver resolver, other TlfHandle, rev MetadataRevision, tlfID TlfID,
+	log logger.Logger) error {
+	handleResolvesToOther, partialResolvedHandle, err :=
+		h.ResolvesTo(ctx, codec, resolver, other)
+	if err != nil {
+		return err
+	}
+
+	// TODO: If h has conflict info, other should, too.
+	otherResolvesToHandle, partialResolvedOther, err :=
+		other.ResolvesTo(ctx, codec, resolver, h)
+	if err != nil {
+		return err
+	}
+
+	handlePath := h.GetCanonicalPath()
+	otherPath := other.GetCanonicalPath()
+	if !handleResolvesToOther && !otherResolvesToHandle {
+		return MDMismatchError{
+			rev, h.GetCanonicalPath(), tlfID,
+			fmt.Errorf(
+				"MD contained unexpected handle path %s (%s -> %s) (%s -> %s)",
+				otherPath,
+				h.GetCanonicalPath(),
+				partialResolvedHandle.GetCanonicalPath(),
+				other.GetCanonicalPath(),
+				partialResolvedOther.GetCanonicalPath()),
+		}
+	}
+
+	if handlePath != otherPath {
+		log.CDebugf(ctx, "handle for %s resolved to %s",
+			handlePath, otherPath)
+	}
+	return nil
+}
+
 func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase1.SocialAssertion {
 	var assertions []keybase1.SocialAssertion
 	for sa := range unresolved {
@@ -381,9 +742,10 @@ func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase
 	return assertions
 }
 
-// splitTLFName splits a TLF name into components.
-func splitTLFName(name string) (writerNames, readerNames []string,
+func splitAndNormalizeTLFName(name string, public bool) (
+	writerNames, readerNames []string,
 	extensionSuffix string, err error) {
+
 	names := strings.SplitN(name, TlfHandleExtensionSep, 2)
 	if len(names) > 2 {
 		return nil, nil, "", BadTLFNameError{name}
@@ -401,23 +763,6 @@ func splitTLFName(name string) (writerNames, readerNames []string,
 		readerNames = strings.Split(splitNames[1], ",")
 	}
 
-	return writerNames, readerNames, extensionSuffix, nil
-}
-
-// splitAndNormalizeTLFName takes a tlf name as a string
-// and tries to normalize it offline. In addition to other
-// checks it returns TlfNameNotCanonical if it does not
-// look canonical.
-// Note that ordering differences do not result in TlfNameNotCanonical
-// being returned.
-func splitAndNormalizeTLFName(name string, public bool) (
-	writerNames, readerNames []string,
-	extensionSuffix string, err error) {
-	writerNames, readerNames, extensionSuffix, err = splitTLFName(name)
-	if err != nil {
-		return nil, nil, "", err
-	}
-
 	hasPublic := len(readerNames) == 0
 
 	if public && !hasPublic {
@@ -425,13 +770,12 @@ func splitAndNormalizeTLFName(name string, public bool) (
 		return nil, nil, "", NoSuchNameError{Name: name}
 	}
 
-	normalizedName, changes, err := normalizeNamesInTLF(
+	normalizedName, err := normalizeNamesInTLF(
 		writerNames, readerNames, extensionSuffix)
 	if err != nil {
 		return nil, nil, "", err
 	}
-	// Check for changes - not just ordering differences here.
-	if changes {
+	if normalizedName != name {
 		return nil, nil, "", TlfNameNotCanonical{name, normalizedName}
 	}
 
@@ -472,54 +816,166 @@ func normalizeAssertionOrName(s string) (string, error) {
 	return "", BadTLFNameError{s}
 }
 
-// normalizeNames normalizes a slice of names and returns
-// whether any of them changed.
-func normalizeNames(names []string) (changesMade bool, err error) {
-	for i, name := range names {
-		x, err := normalizeAssertionOrName(name)
-		if err != nil {
-			return false, err
-		}
-		if x != name {
-			names[i] = x
-			changesMade = true
-		}
-	}
-	return changesMade, nil
-}
-
 // normalizeNamesInTLF takes a split TLF name and, without doing any
 // resolutions or identify calls, normalizes all elements of the
-// name. It then returns the normalized name and a boolean flag
-// whether any names were modified.
-// This modifies the slices passed as arguments.
+// name. It then returns the normalized name.
 func normalizeNamesInTLF(writerNames, readerNames []string,
-	extensionSuffix string) (normalizedName string,
-	changesMade bool, err error) {
-	changesMade, err = normalizeNames(writerNames)
-	if err != nil {
-		return "", false, err
-	}
-	sort.Strings(writerNames)
-	normalizedName = strings.Join(writerNames, ",")
-	if len(readerNames) > 0 {
-		rchanges, err := normalizeNames(readerNames)
+	extensionSuffix string) (string, error) {
+	sortedWriterNames := make([]string, len(writerNames))
+	var err error
+	for i, w := range writerNames {
+		sortedWriterNames[i], err = normalizeAssertionOrName(w)
 		if err != nil {
-			return "", false, err
+			return "", err
 		}
-		changesMade = changesMade || rchanges
-		sort.Strings(readerNames)
-		normalizedName += ReaderSep + strings.Join(readerNames, ",")
+	}
+	sort.Strings(sortedWriterNames)
+	normalizedName := strings.Join(sortedWriterNames, ",")
+	if len(readerNames) > 0 {
+		sortedReaderNames := make([]string, len(readerNames))
+		for i, r := range readerNames {
+			sortedReaderNames[i], err = normalizeAssertionOrName(r)
+			if err != nil {
+				return "", err
+			}
+		}
+		sort.Strings(sortedReaderNames)
+		normalizedName += ReaderSep + strings.Join(sortedReaderNames, ",")
 	}
 	if len(extensionSuffix) != 0 {
 		// This *should* be normalized already but make sure.  I can see not
 		// doing so might surprise a caller.
-		nExt := strings.ToLower(extensionSuffix)
-		normalizedName += TlfHandleExtensionSep + nExt
-		changesMade = changesMade || nExt != extensionSuffix
+		normalizedName += TlfHandleExtensionSep + strings.ToLower(extensionSuffix)
 	}
 
-	return normalizedName, changesMade, nil
+	return normalizedName, nil
+}
+
+type resolvableAssertion struct {
+	resolver   resolver
+	assertion  string
+	mustBeUser keybase1.UID
+}
+
+func (ra resolvableAssertion) resolve(ctx context.Context) (
+	nameUIDPair, keybase1.SocialAssertion, error) {
+	if ra.assertion == PublicUIDName {
+		return nameUIDPair{}, keybase1.SocialAssertion{}, fmt.Errorf("Invalid name %s", ra.assertion)
+	}
+	name, uid, err := ra.resolver.Resolve(ctx, ra.assertion)
+	if err == nil && ra.mustBeUser != keybase1.UID("") && ra.mustBeUser != uid {
+		// Force an unresolved assertion sinced the forced user doesn't match
+		err = NoSuchUserError{ra.assertion}
+	}
+	switch err := err.(type) {
+	default:
+		return nameUIDPair{}, keybase1.SocialAssertion{}, err
+	case nil:
+		return nameUIDPair{
+			name: name,
+			uid:  uid,
+		}, keybase1.SocialAssertion{}, nil
+	case NoSuchUserError:
+		socialAssertion, ok := externals.NormalizeSocialAssertion(ra.assertion)
+		if !ok {
+			return nameUIDPair{}, keybase1.SocialAssertion{}, err
+		}
+		return nameUIDPair{}, socialAssertion, nil
+	}
+}
+
+// ParseTlfHandle parses a TlfHandle from an encoded string. See
+// TlfHandle.GetCanonicalName() for the opposite direction.
+//
+// Some errors that may be returned and can be specially handled:
+//
+// TlfNameNotCanonical: Returned when the given name is not canonical
+// -- another name to try (which itself may not be canonical) is in
+// the error. Usually, you want to treat this as a symlink to the name
+// to try.
+//
+// NoSuchNameError: Returned when public is set and the given folder
+// has no public folder.
+func ParseTlfHandle(
+	ctx context.Context, kbpki KBPKI, name string, public bool) (
+	*TlfHandle, error) {
+	// Before parsing the tlf handle (which results in identify
+	// calls that cause tracker popups), first see if there's any
+	// quick normalization of usernames we can do.  For example,
+	// this avoids an identify in the case of "HEAD" which might
+	// just be a shell trying to look for a git repo rather than a
+	// real user lookup for "head" (KBFS-531).  Note that the name
+	// might still contain assertions, which will result in
+	// another alias in a subsequent lookup.
+	writerNames, readerNames, extensionSuffix, err :=
+		splitAndNormalizeTLFName(name, public)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPublic := len(readerNames) == 0
+
+	if public && !hasPublic {
+		// No public folder exists for this folder.
+		return nil, NoSuchNameError{Name: name}
+	}
+
+	normalizedName, err := normalizeNamesInTLF(
+		writerNames, readerNames, extensionSuffix)
+	if err != nil {
+		return nil, err
+	}
+	if normalizedName != name {
+		return nil, TlfNameNotCanonical{name, normalizedName}
+	}
+
+	writers := make([]resolvableUser, len(writerNames))
+	for i, w := range writerNames {
+		writers[i] = resolvableAssertion{kbpki, w, keybase1.UID("")}
+	}
+	readers := make([]resolvableUser, len(readerNames))
+	for i, r := range readerNames {
+		readers[i] = resolvableAssertion{kbpki, r, keybase1.UID("")}
+	}
+
+	var extensions []TlfHandleExtension
+	if len(extensionSuffix) != 0 {
+		extensions, err = ParseTlfHandleExtensionSuffix(extensionSuffix)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	h, err := makeTlfHandleHelper(ctx, public, writers, readers, extensions)
+	if err != nil {
+		return nil, err
+	}
+
+	if !public {
+		currentUsername, currentUID, err := kbpki.GetCurrentUserInfo(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		if !h.IsReader(currentUID) {
+			return nil, ReadAccessError{currentUsername, h.GetCanonicalName(), public}
+		}
+	}
+
+	if string(h.GetCanonicalName()) == name {
+		// Name is already canonical (i.e., all usernames and
+		// no assertions) so we can delay the identify until
+		// the node is actually used.
+		return h, nil
+	}
+
+	// Otherwise, identify before returning the canonical name.
+	err = identifyHandle(ctx, kbpki, kbpki, h)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
 }
 
 // CheckTlfHandleOffline does light checks whether a TLF handle looks ok,
@@ -540,58 +996,4 @@ func (h TlfHandle) IsFinal() bool {
 // top-level folder.
 func (h TlfHandle) IsConflict() bool {
 	return h.conflictInfo != nil
-}
-
-// PreferredTlfName is a preferred Tlf name.
-type PreferredTlfName string
-
-// GetPreferredFormat returns a TLF name formatted with the username given
-// as the parameter first.
-// This calls FavoriteNameToPreferredTLFNameFormatAs with the canonical
-// tlf name which will be reordered into the preferred format.
-// An empty username is allowed here and results in the canonical ordering.
-func (h TlfHandle) GetPreferredFormat(
-	username libkb.NormalizedUsername) PreferredTlfName {
-	s, err := FavoriteNameToPreferredTLFNameFormatAs(
-		username, h.GetCanonicalName())
-	if err != nil {
-		panic("TlfHandle.GetPreferredFormat: Parsing canonical username failed!")
-	}
-	return s
-}
-
-// FavoriteNameToPreferredTLFNameFormatAs formats a favorite names for display with the
-// username given.
-// An empty username is allowed here and results in tlfname being returned unmodified.
-func FavoriteNameToPreferredTLFNameFormatAs(username libkb.NormalizedUsername,
-	canon CanonicalTlfName) (PreferredTlfName, error) {
-	tlfname := string(canon)
-	if len(username) == 0 {
-		return PreferredTlfName(tlfname), nil
-	}
-	ws, rs, ext, err := splitTLFName(tlfname)
-	if err != nil {
-		return "", err
-	}
-	if len(ws) == 0 {
-		return "", fmt.Errorf("TLF name %q with no writers", tlfname)
-	}
-	uname := username.String()
-	for i, w := range ws {
-		if w == uname {
-			if i != 0 {
-				copy(ws[1:i+1], ws[0:i])
-				ws[0] = w
-				tlfname = strings.Join(ws, ",")
-				if len(rs) > 0 {
-					tlfname += ReaderSep + strings.Join(rs, ",")
-				}
-				if len(ext) > 0 {
-					tlfname += TlfHandleExtensionSep + ext
-				}
-			}
-			break
-		}
-	}
-	return PreferredTlfName(tlfname), nil
 }
