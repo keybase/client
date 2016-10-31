@@ -9,7 +9,7 @@ import (
 
 func TestBlockRetrievalQueueBasic(t *testing.T) {
 	t.Log("Add a block retrieval request to the queue and retrieve it")
-	q := NewBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1)
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -28,7 +28,7 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 
 func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 	t.Log("Preempt a lower-priority block retrieval request with a higher priority request")
-	q := NewBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1)
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -51,7 +51,7 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 
 func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	t.Log("Handle a first request and then preempt another one")
-	q := NewBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1)
 	require.NotNil(t, q)
 
 	ctx := context.Background()

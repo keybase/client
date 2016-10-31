@@ -37,7 +37,7 @@ type blockRetrievalQueue struct {
 	workerQueue chan chan *blockRetrieval
 }
 
-func NewBlockRetrievalQueue(numWorkers int) *blockRetrievalQueue {
+func newBlockRetrievalQueue(numWorkers int) *blockRetrievalQueue {
 	return &blockRetrievalQueue{
 		ptrs:        make(map[BlockPointer]*blockRetrieval),
 		heap:        &blockRetrievalHeap{},
@@ -45,7 +45,7 @@ func NewBlockRetrievalQueue(numWorkers int) *blockRetrievalQueue {
 	}
 }
 
-func (brq *blockRetrievalQueue) notifyWorkerLocked() {
+func (brq *blockRetrievalQueue) notifyWorker() {
 	go func() {
 		// Get the next queued worker
 		ch := <-brq.workerQueue
@@ -74,7 +74,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, ptr B
 		brq.insertionCount++
 		brq.ptrs[ptr] = br
 		heap.Push(brq.heap, br)
-		defer brq.notifyWorkerLocked()
+		defer brq.notifyWorker()
 	}
 	ch := make(chan error, 1)
 	br.requests = append(br.requests, &blockRetrievalRequest{ctx, block, ch})
