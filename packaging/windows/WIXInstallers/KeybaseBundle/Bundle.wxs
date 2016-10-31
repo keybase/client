@@ -114,7 +114,9 @@
                   SourceFile="Redist\VCRedist_2015\vc_redist.x86.exe"
                   DownloadUrl="https://download.microsoft.com/download/2/6/8/268f7be7-8d2a-42d6-a823-5c6941a3d70a/vc_redist.x86.exe"
       >
-        <ExitCode Behavior="scheduleReboot"/>
+        <ExitCode Value="1641" Behavior="scheduleReboot"/>
+        <ExitCode Value="3010" Behavior="scheduleReboot"/>
+        <ExitCode Value="0" Behavior="success" />
       </ExePackage>
 
 
@@ -134,7 +136,9 @@
                   SourceFile="Redist\VCRedist_2015\vc_redist.x64.exe"
                   DownloadUrl="https://download.microsoft.com/download/6/3/a/63abaf83-2ca6-4460-90d7-12de8e815b1a/vc_redist.x64.exe"
                   >
-        <ExitCode Behavior="scheduleReboot"/>
+        <ExitCode Value="1641" Behavior="scheduleReboot"/>
+        <ExitCode Value="3010" Behavior="scheduleReboot"/>
+        <ExitCode Value="0" Behavior="success" />
       </ExePackage>
 
       <MsuPackage Id="Win71_KB2999226_x86"
