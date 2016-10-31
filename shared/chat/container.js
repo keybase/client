@@ -6,7 +6,7 @@ import Chat from './index'
 import {loadInbox} from '../actions/chat'
 
 class ChatContainer extends Component {
-  componentWillMount() {
+  componentWillMount () {
     this.props.loadInbox()
   }
 
@@ -22,6 +22,6 @@ class ChatContainer extends Component {
 export default connect(
   (state: any) => ({}),
   (dispatch: Dispatch) => ({
-    loadInbox: () => dispatch(loadInbox())
+    loadInbox: () => dispatch(loadInbox()),
   })
 )(ChatContainer)

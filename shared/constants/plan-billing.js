@@ -183,7 +183,7 @@ export function priceToString (pennies: number): string {
   if (!pennies) {
     return 'Free'
   } else {
-    return `\$${pennies / 100}/month`
+    return `$${pennies / 100}/month`
   }
 }
 
