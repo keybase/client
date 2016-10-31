@@ -33,7 +33,10 @@ type blockRetrievalQueue struct {
 	// capacity: ~584 years at 1 billion requests/sec
 	insertionCount uint64
 
-	heap        *blockRetrievalHeap
+	heap *blockRetrievalHeap
+	// This is a channel of channels to maximize the time that each request is
+	// in the heap, allowing preemption as long as possible. This way, a
+	// request only exits the heap once a worker is ready.
 	workerQueue chan chan *blockRetrieval
 }
 
@@ -79,7 +82,8 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, ptr B
 	ch := make(chan error, 1)
 	br.requests = append(br.requests, &blockRetrievalRequest{ctx, block, ch})
 	// If the new request priority is higher, elevate the request in the queue
-	if priority > br.priority {
+	// Request might not be in the heap any more (could be processing)
+	if br.index != -1 && priority > br.priority {
 		br.priority = priority
 		heap.Fix(brq.heap, br.index)
 	}

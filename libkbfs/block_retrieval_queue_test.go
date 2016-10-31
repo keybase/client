@@ -79,3 +79,57 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	require.Equal(t, 1, br.priority)
 	require.Equal(t, uint64(1), br.insertionOrder)
 }
+
+func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
+	t.Log("Request the same block multiple times")
+	q := newBlockRetrievalQueue(1)
+	require.NotNil(t, q)
+
+	ctx := context.Background()
+	ptr1 := makeFakeBlockPointer(t)
+	block := &FileBlock{}
+	_ = q.Request(ctx, 1, ptr1, block)
+	_ = q.Request(ctx, 1, ptr1, block)
+
+	br := <-q.WorkOnRequest()
+	require.Equal(t, ptr1, br.blockPtr)
+	require.Equal(t, -1, br.index)
+	require.Equal(t, 1, br.priority)
+	require.Equal(t, uint64(0), br.insertionOrder)
+	require.Len(t, br.requests, 2)
+	require.Equal(t, block, br.requests[0].block)
+	require.Equal(t, block, br.requests[1].block)
+}
+
+func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
+	t.Log("Elevate the priority on an existing request")
+	q := newBlockRetrievalQueue(1)
+	require.NotNil(t, q)
+
+	ctx := context.Background()
+	ptr1 := makeFakeBlockPointer(t)
+	ptr2 := makeFakeBlockPointer(t)
+	ptr3 := makeFakeBlockPointer(t)
+	block := &FileBlock{}
+	_ = q.Request(ctx, 1, ptr1, block)
+	_ = q.Request(ctx, 2, ptr2, block)
+	_ = q.Request(ctx, 3, ptr3, block)
+
+	br := <-q.WorkOnRequest()
+	require.Equal(t, ptr3, br.blockPtr)
+	require.Equal(t, 3, br.priority)
+	require.Equal(t, uint64(2), br.insertionOrder)
+
+	_ = q.Request(ctx, 3, ptr1, block)
+
+	br = <-q.WorkOnRequest()
+	require.Equal(t, ptr1, br.blockPtr)
+	require.Equal(t, 3, br.priority)
+	require.Equal(t, uint64(0), br.insertionOrder)
+	require.Len(t, br.requests, 2)
+
+	br = <-q.WorkOnRequest()
+	require.Equal(t, ptr2, br.blockPtr)
+	require.Equal(t, 2, br.priority)
+	require.Equal(t, uint64(1), br.insertionOrder)
+}
