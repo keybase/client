@@ -56,7 +56,6 @@ export default function () {
   }
 
   ipcMain.on('showTray', (event, type) => {
-    console.log('aaaaaaa', type)
     iconType = type
     updateIcon(false)
   })
