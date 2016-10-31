@@ -18,7 +18,6 @@ class PassphraseRender extends Component<void, Props, void> {
         <UserCard style={stylesCard} username={this.props.username}>
           <Text type='HeaderBig' style={{color: globalColors.orange, ...usernameStyle}}>{this.props.username}</Text>
           <FormWithCheckbox
-            style={stylesInput}
             inputProps={{
               autoFocus: true,
               type: showTyping ? 'passwordVisible' : 'password',
@@ -47,9 +46,6 @@ class PassphraseRender extends Component<void, Props, void> {
 }
 
 const stylesContainer = {
-  flex: 1,
-}
-const stylesInput = {
   flex: 1,
 }
 const stylesForgot = {

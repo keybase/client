@@ -25,7 +25,7 @@
     "purepack": "1.0.4",
     "qrcode-generator": "1.0.5",
     "react": "15.3.2",
-    "react-native": "0.34.1",
+    "react-native": "0.36.0",
     "react-native-barcodescanner": "3.1.1",
     "react-native-camera": "git://github.com/lwansbrough/react-native-camera.git#6074ec3c8275ef5eb5fc39489c9a379f6ced923b",
     "react-redux": "4.4.5",
