@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"crypto/rand"
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
@@ -21,7 +22,10 @@ func makeFakeBlockContext(t *testing.T) BlockContext {
 }
 
 func makeFakeBlockPointer(t *testing.T) BlockPointer {
-	h, err := kbfshash.DefaultHash([]byte("fake buf"))
+	buf := make([]byte, 16)
+	_, err := rand.Read(buf)
+	require.NoError(t, err)
+	h, err := kbfshash.DefaultHash(buf)
 	require.NoError(t, err)
 	return BlockPointer{
 		BlockID{h},
