@@ -32,13 +32,13 @@ function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
 
   // console.log('aaa', results)
 
-  yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {
-    param: {
-      req: {
-        requestID: 0,
-      },
-    },
-  })
+  // yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {
+    // param: {
+      // req: {
+        // requestID: 0,
+      // },
+    // },
+  // })
     // folder: {
       // name,
       // private,

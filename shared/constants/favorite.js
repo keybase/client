@@ -33,9 +33,14 @@ export type ViewState = Exact<{
   privateIgnoredOpen: boolean,
 }>
 
+export type KBFSStatus = {
+  isAsyncWriteHappening: boolean,
+}
+
 export type FavoriteState = Exact<{
   folderState: FolderState,
   viewState: ViewState,
+  kbfsStatus: KBFSStatus,
 }>
 
 export const favoriteAdd = 'favorite:favoriteAdd'

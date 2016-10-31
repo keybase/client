@@ -131,6 +131,11 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
             onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
         </Box>
         <Folders {...mergedProps} />
+        {this.props.kbfsStatus && this.props.kbfsStatus.isAsyncWriteHappening &&
+          <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center', alignItems: 'center', minHeight: 32, backgroundColor: globalColors.white}}>
+            <Text type='BodySmall'>UPLOADING FILES...</Text>
+          </Box>
+        }
         {this.state.showingMenu && <PopupMenu style={styleMenu} items={this._menuItems()} onHidden={() => this.setState({showingMenu: false})} />}
       </Box>
     )

@@ -8,6 +8,9 @@ import {globalStyles} from '../styles'
 const propsNormal = {
   folderProps: map.mocks['Normal Private'],
   username: 'max',
+  kbfsStatus: {
+    isAsyncWriteHappening: false,
+  },
   onFolderClick: () => console.log('folder clicked'),
   openApp: () => console.log('open app'),
   showKBFS: () => console.log('show kbfs'),
@@ -52,6 +55,7 @@ const dumbComponentMap: DumbComponentMap<Menubar> = {
     'Private: Normal': propsNormal,
     'Private: Truncated': propsTruncated,
     'Private: Menu Showing': propsMenuShowing,
+    'Private: Async Writing': {...propsNormal, kbfsStatus: {isAsyncWriteHappening: true}},
     'Public: Normal': {...propsNormal, openToPrivate: false},
     'Public: Truncated': {...propsTruncated, openToPrivate: false},
     'Public: Menu Showing': {...propsMenuShowing, openToPrivate: false},

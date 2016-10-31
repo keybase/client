@@ -21,6 +21,9 @@ const initialState: FavoriteState = {
     publicIgnoredOpen: false,
     privateIgnoredOpen: false,
   },
+  kbfsStatus: {
+    isAsyncWriteHappening: false,
+  },
 }
 
 export default function (state: FavoriteState = initialState, action: FavoriteAction): FavoriteState {
