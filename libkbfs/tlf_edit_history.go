@@ -457,7 +457,7 @@ func (teh *TlfEditHistory) updateHistory(ctx context.Context,
 		return nil
 	}
 	teh.log.CDebugf(ctx, "Processing %d MDs for notifications "+
-		"(most recent revision: %d)", len(rmds), rmds[len(rmds)-1].Revision)
+		"(most recent revision: %d)", len(rmds), rmds[len(rmds)-1].Revision())
 
 	currEdits := teh.getEditsCopy()
 	if currEdits == nil {
