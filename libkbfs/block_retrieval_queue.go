@@ -14,25 +14,26 @@ type blockRetrievalRequest struct {
 
 type blockRetrieval struct {
 	blockPtr       BlockPointer
+	index          int
 	priority       int
-	insertionOrder int
+	insertionOrder uint64
 	requests       []*blockRetrievalRequest
 }
 
 type blockRetrievalQueue struct {
 	mtx sync.RWMutex
 	// uniqueness index
-	ptrs       map[BlockPointer]*blockRetrieval
-	priorities map[int]int
+	ptrs map[BlockPointer]*blockRetrieval
+	// global counter of insertions to queue
+	insertionCount uint64
 	// heap
 	requests *blockRetrievalHeap
 }
 
 func NewBlockRetrievalQueue() *blockRetrievalQueue {
 	return &blockRetrievalQueue{
-		ptrs:       make(map[BlockPointer]*blockRetrieval),
-		priorities: make(map[int]int),
-		requests:   &blockRetrievalHeap{},
+		ptrs:     make(map[BlockPointer]*blockRetrieval),
+		requests: &blockRetrievalHeap{},
 	}
 }
 
@@ -43,8 +44,14 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, ptr B
 	var exists bool
 	if br, exists = brq.ptrs[ptr]; !exists {
 		// Add to the heap
-		br = &blockRetrieval{ptr, priority, brq.priorities[priority], []*blockRetrievalRequest{}}
-		brq.priorities[priority]++
+		br = &blockRetrieval{
+			blockPtr:       ptr,
+			index:          -1,
+			priority:       priority,
+			insertionOrder: brq.insertionCount,
+			requests:       []*blockRetrievalRequest{},
+		}
+		brq.insertionCount++
 		brq.ptrs[ptr] = br
 		heap.Push(brq.requests, br)
 	}
@@ -53,8 +60,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, ptr B
 	// If the new request priority is higher, elevate the request in the queue
 	if priority > br.priority {
 		br.priority = priority
-		// TODO: track the index in each blockRetrieval
-		heap.Fix(brq.requests, 0)
+		heap.Fix(brq.requests, br.index)
 	}
 	return ch
 }
