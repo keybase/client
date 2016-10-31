@@ -11,20 +11,33 @@ const (
 	defaultBlockRetrievalWorkerQueueSize int = 100
 )
 
+// blockRetrievalRequest represents one consumer's request for a block.
 type blockRetrievalRequest struct {
 	ctx    context.Context
 	block  Block
 	doneCh chan error
 }
 
+// blockRetrieval contains the metadata for a given block retrieval. May
+// represent many requests, all of which will be handled at once.
 type blockRetrieval struct {
-	blockPtr       BlockPointer
-	index          int
-	priority       int
+	// The block being retrieved
+	blockPtr BlockPointer
+	// The index of the retrieval in the heap
+	index int
+	// The priority of the retrieval
+	priority int
+	// The count of elements in the heap when this element was inserted.
+	// Maintains FIFO.
 	insertionOrder uint64
-	requests       []*blockRetrievalRequest
+	// All the individual requests for this block. They must be notified once
+	// the block is returned.
+	requests []*blockRetrievalRequest
 }
 
+// blockRetrievalQueue manages block retrieval requests. Higher priority
+// requests are executed first. Requests are executed in FIFO order within a
+// given priority level.
 type blockRetrievalQueue struct {
 	mtx sync.RWMutex
 	// queued or in progress retrievals
@@ -40,6 +53,9 @@ type blockRetrievalQueue struct {
 	workerQueue chan chan *blockRetrieval
 }
 
+// newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
+// parameter determines how many workers can concurrently call WorkOnRequest
+// (more than numWorkers will block).
 func newBlockRetrievalQueue(numWorkers int) *blockRetrievalQueue {
 	return &blockRetrievalQueue{
 		ptrs:        make(map[BlockPointer]*blockRetrieval),
@@ -48,6 +64,7 @@ func newBlockRetrievalQueue(numWorkers int) *blockRetrievalQueue {
 	}
 }
 
+// notifyWorker notifies workers that there is a new request for processing.
 func (brq *blockRetrievalQueue) notifyWorker() {
 	go func() {
 		// Get the next queued worker
@@ -60,6 +77,7 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 	}()
 }
 
+// Request submits a block request to the queue.
 func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, ptr BlockPointer, block Block) <-chan error {
 	brq.mtx.Lock()
 	defer brq.mtx.Unlock()
@@ -90,6 +108,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, ptr B
 	return ch
 }
 
+// WorkOnRequest returns a new channel for a worker to obtain a blockRetrieval.
 func (brq *blockRetrievalQueue) WorkOnRequest() <-chan *blockRetrieval {
 	ch := make(chan *blockRetrieval, 1)
 	brq.workerQueue <- ch
