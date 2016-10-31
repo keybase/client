@@ -64,10 +64,16 @@ export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showi
 export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
 export type FavoriteToggleIgnored = TypedAction<'favorite:favoriteToggleIgnored', {isPrivate: boolean}, void>
 
+export const kbfsStatusUpdated = 'favorite:kbfsStatusUpdated'
+export type KbfsStatusUpdated = TypedAction<'favorite:kbfsStatusUpdated', KBFSStatus, void>
+
 export const markTLFCreated = 'favorite:markTLFCreated'
 export type MarkTLFCreated = TypedAction<'favorite:markTLFCreated', {folder: Folder}, void>
 
-export type FavoriteAction = FavoriteAdd | FavoriteAdded | FavoriteList | FavoriteListed | FavoriteIgnore | FavoriteIgnored | FavoriteSwitchTab | FavoriteToggleIgnored
+export const setupKBFSChangedHandler = 'favorite:setupKBFSChangedHandler'
+export type SetupKBFSChangedHandler = NoErrorTypedAction<'favorite:setupKBFSChangedHandler', void>
+
+export type FavoriteAction = FavoriteAdd | FavoriteAdded | FavoriteList | FavoriteListed | FavoriteIgnore | FavoriteIgnored | FavoriteSwitchTab | FavoriteToggleIgnored | KbfsStatusUpdated
 
 // Sometimes we have paths that are just private/foo instead of /keybase/private/foo
 function canonicalizeTLF (tlf: string): string {

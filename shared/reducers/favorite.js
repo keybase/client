@@ -95,6 +95,12 @@ export default function (state: FavoriteState = initialState, action: FavoriteAc
         },
       }
 
+    case Constants.kbfsStatusUpdated:
+      return {
+        ...state,
+        kbfsStatus: action.payload,
+      }
+
     default:
       break
   }

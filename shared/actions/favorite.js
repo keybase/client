@@ -9,11 +9,15 @@ import {call, put, select} from 'redux-saga/effects'
 import {takeLatest, takeEvery} from 'redux-saga'
 
 import type {Action} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, MarkTLFCreated} from '../constants/favorite'
+import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, MarkTLFCreated, SetupKBFSChangedHandler} from '../constants/favorite'
 import type {FolderRPCWithMeta} from '../constants/folders'
 import type {SagaGenerator} from '../constants/types/saga'
 
 const {folderFromFolderRPCWithMeta, folderRPCFromPath} = Constants
+
+function setupKBFSChangedHandler (): SetupKBFSChangedHandler {
+  return {type: Constants.setupKBFSChangedHandler, payload: undefined}
+}
 
 function switchTab (showingPrivate: boolean): FavoriteSwitchTab {
   return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
@@ -262,11 +266,52 @@ function _notify (state) {
   previousNotifyState = newNotifyState
 }
 
+function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
+  yield put((dispatch: Dispatch) => {
+    let temp = true
+    setInterval(() => {
+      const badgeAction: Action = badgeApp('kbfsUploading', temp)
+      dispatch(badgeAction)
+      dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: temp}})
+      temp = !temp
+    }, 2000)
+  })
+  // const results = yield call(apiserverGetRpcPromise, {
+    // param: {
+      // endpoint: 'kbfs/favorite/list',
+      // args: [],
+    // },
+  // })
+
+  // console.log('aaa', results)
+
+  // yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {
+    // param: {
+      // req: {
+        // requestID: 0,
+      // },
+    // },
+  // })
+    // folder: {
+      // name,
+      // private,
+      // notificationsOn: true,
+      // created: true,
+    // },
+    // requestID: 0,
+  // }})
+  // return (dispatch, getState) => {
+    // engine().setIncomingHandler('keybase.1.NotifyUsers.userChanged', ({}) => {
+    // })
+  // }
+}
+
 function * favoriteSaga (): SagaGenerator<any, any> {
   yield [
     takeLatest(Constants.favoriteList, _listSaga),
     takeEvery(Constants.favoriteAdd, _addSaga),
     takeEvery(Constants.favoriteIgnore, _ignoreSaga),
+    takeEvery(Constants.setupKBFSChangedHandler, _setupKBFSChangedHandler),
   ]
 }
 
@@ -275,6 +320,7 @@ export {
   favoriteList,
   ignoreFolder,
   markTLFCreated,
+  setupKBFSChangedHandler,
   switchTab,
   toggleShowIgnored,
 }

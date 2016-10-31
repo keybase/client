@@ -5,7 +5,9 @@ import {ipcMain, systemPreferences} from 'electron'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import {showDevTools, skipSecondaryDevtools} from '../shared/local-debug.desktop'
 
-let iconType: 'regular' | 'update' | 'badged' = 'regular'
+import type {BadgeType} from '../shared/constants/notifications'
+
+let iconType: BadgeType = 'regular'
 
 const isMacOS = process.platform === 'darwin'
 
@@ -53,18 +55,9 @@ export default function () {
     })
   }
 
-  ipcMain.on('showTrayLoading', () => {
-    iconType = 'update'
-    updateIcon(false)
-  })
-
-  ipcMain.on('showTrayRegular', () => {
-    iconType = 'regular'
-    updateIcon(false)
-  })
-
-  ipcMain.on('showTrayBadged', () => {
-    iconType = 'badged'
+  ipcMain.on('showTray', (event, type) => {
+    console.log('aaaaaaa', type)
+    iconType = type
     updateIcon(false)
   })
 

@@ -6,7 +6,7 @@ import {NotifyPopup} from '../native/notifications'
 import {log} from '../native/log/logui'
 import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
-import {setupKBFSChangedHandler} from './kbfs'
+import {setupKBFSChangedHandler} from './favorite'
 import {call, put, take} from 'redux-saga/effects'
 
 import type {LogAction, NotificationKeys, ListenForNotifications, BadgeAppAction} from '../constants/notifications'
