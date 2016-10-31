@@ -224,6 +224,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 }
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
+// Create a new conversation. Or in the case of CHAT, create-or-get a conversation.
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.NewConversationLocalArg) (res chat1.NewConversationLocalRes, reserr error) {
 	h.G().Log.Debug("NewConversationLocal: %+v", arg)
 	if err := h.assertLoggedIn(ctx); err != nil {
@@ -242,14 +243,9 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 	}
 
 	for i := 0; i < 3; i++ {
-		if triple.TopicType != chat1.TopicType_CHAT {
-			// We only set topic ID if it's not CHAT. We are supporting only one
-			// conversation per TLF now. A topic ID of 0s is intentional as it would
-			// cause insertion failure in database.
-
-			if triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
-				return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
-			}
+		triple.TopicID, err = libkb.NewChatTopicID()
+		if err != nil {
+			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
 		}
 
 		firstMessageBoxed, err := h.makeFirstMessage(ctx, triple, cname, arg.TlfVisibility, arg.TopicName)
@@ -268,14 +264,23 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		}
 		convID := ncrres.ConvID
 		if reserr != nil {
-			if cerr, ok := reserr.(libkb.ChatConvExistsError); ok {
+			switch cerr := reserr.(type) {
+			case libkb.ChatConvExistsError:
+				// This triple already exists.
+
 				if triple.TopicType != chat1.TopicType_CHAT {
 					// Not a chat conversation. Multiples are fine. Just retry with a
 					// different topic ID.
 					continue
 				}
 				// A chat conversation already exists; just reuse it.
+				// Note that from this point on, TopicID is entirely the wrong value.
 				convID = cerr.ConvID
+			case libkb.ChatCollisionError:
+				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
+				continue
+			default:
+				return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating conversation: %s", reserr)
 			}
 		}
 
