@@ -17,7 +17,10 @@ class NotificationsContainer extends Component {
 }
 
 export default connect(
-  (state: TypedState, ownProps: {}) => state.settings.notifications,
+  (state: TypedState, ownProps: {}) => ({
+    ...state.settings.notifications,
+    waitingForResponse: state.settings.waitingForResponse,
+  }),
   (dispatch: any, ownProps: {}) => ({
     onSave: () => dispatch(notificationsSave()),
     onToggle: (name: string) => dispatch(notificationsToggle(name)),

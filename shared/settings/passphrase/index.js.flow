@@ -15,6 +15,7 @@ export type Props = {
   canSave: boolean,
   onBack: () => void,
   onSave: () => void,
+  waitingForResponse: boolean,
   onUpdatePGPSettings: () => void,
 }
 

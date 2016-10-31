@@ -40,6 +40,7 @@ export type Props = {
   onReclaimInvitation: (invitationId: string) => void,
   onRefresh: () => void,
   onGenerateInvitation: () => void,
+  waitingForResponse: boolean,
 }
 
 export default class Invites extends Component<void, Props, void> {}
