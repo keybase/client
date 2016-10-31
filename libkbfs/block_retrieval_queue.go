@@ -1,9 +1,14 @@
 package libkbfs
 
 import (
+	"container/heap"
 	"sync"
 
 	"golang.org/x/net/context"
+)
+
+const (
+	defaultBlockRetrievalWorkerQueueSize int = 100
 )
 
 type blockRetrievalRequest struct {
@@ -22,19 +27,34 @@ type blockRetrieval struct {
 
 type blockRetrievalQueue struct {
 	mtx sync.RWMutex
-	// uniqueness index
+	// queued or in progress retrievals
 	ptrs map[BlockPointer]*blockRetrieval
 	// global counter of insertions to queue
+	// capacity: ~584 years at 1 billion requests/sec
 	insertionCount uint64
-	// heap
-	requests *blockRetrievalHeap
+
+	heap        *blockRetrievalHeap
+	workerQueue chan chan *blockRetrieval
 }
 
-func NewBlockRetrievalQueue() *blockRetrievalQueue {
+func NewBlockRetrievalQueue(numWorkers int) *blockRetrievalQueue {
 	return &blockRetrievalQueue{
-		ptrs:     make(map[BlockPointer]*blockRetrieval),
-		requests: &blockRetrievalHeap{},
+		ptrs:        make(map[BlockPointer]*blockRetrieval),
+		heap:        &blockRetrievalHeap{},
+		workerQueue: make(chan chan *blockRetrieval, numWorkers),
 	}
+}
+
+func (brq *blockRetrievalQueue) notifyWorkerLocked() {
+	go func() {
+		// Get the next queued worker
+		ch := <-brq.workerQueue
+		// Prevent interference with the heap while we're retrieving from it
+		brq.mtx.Lock()
+		defer brq.mtx.Unlock()
+		// Pop from the heap
+		ch <- heap.Pop(brq.heap).(*blockRetrieval)
+	}()
 }
 
 func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, ptr BlockPointer, block Block) <-chan error {
@@ -53,14 +73,33 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, ptr B
 		}
 		brq.insertionCount++
 		brq.ptrs[ptr] = br
-		heap.Push(brq.requests, br)
+		heap.Push(brq.heap, br)
+		defer brq.notifyWorkerLocked()
 	}
 	ch := make(chan error, 1)
 	br.requests = append(br.requests, &blockRetrievalRequest{ctx, block, ch})
 	// If the new request priority is higher, elevate the request in the queue
 	if priority > br.priority {
 		br.priority = priority
-		heap.Fix(brq.requests, br.index)
+		heap.Fix(brq.heap, br.index)
 	}
 	return ch
+}
+
+func (brq *blockRetrievalQueue) WorkOnRequest() <-chan *blockRetrieval {
+	ch := make(chan *blockRetrieval, 1)
+	brq.workerQueue <- ch
+
+	return ch
+}
+
+// FinalizeRequest communicates that any subsequent requestors for this block
+// won't be notified by the current worker processing it.  This must be called
+// before sending out the responses to the blockRetrievalRequests for a given
+// blockRetrieval.
+func (brq *blockRetrievalQueue) FinalizeRequest(ptr BlockPointer) {
+	brq.mtx.Lock()
+	defer brq.mtx.Unlock()
+
+	delete(brq.ptrs, ptr)
 }

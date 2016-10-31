@@ -4,15 +4,18 @@ type blockRetrievalHeap []*blockRetrieval
 
 // Heap methods: do not use directly
 func (brh blockRetrievalHeap) Less(i, j int) bool {
-	reqI = brh[i]
-	reqJ = brh[j]
+	reqI := brh[i]
+	reqJ := brh[j]
 	if reqI.priority > reqJ.priority {
-		return reqI.insertionOrder < reqJ.insertionOrder
+		return true
 	}
-	return false
+	if reqI.priority < reqJ.priority {
+		return false
+	}
+	return reqI.insertionOrder < reqJ.insertionOrder
 }
 
-func (brh blockRetrievalHeap) Len() int { return len(brq.requests) }
+func (brh blockRetrievalHeap) Len() int { return len(brh) }
 
 func (brh blockRetrievalHeap) Swap(i, j int) {
 	brh[i], brh[j] = brh[j], brh[i]
@@ -32,6 +35,6 @@ func (brh *blockRetrievalHeap) Pop() interface{} {
 	n := len(old)
 	x := old[n-1]
 	x.index = -1
-	*h = old[0 : n-1]
+	*brh = old[0 : n-1]
 	return x
 }
