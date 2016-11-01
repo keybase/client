@@ -53,6 +53,8 @@ outer:
 			handle, username, handle.GetCanonicalPath())
 	}
 
+	fmt.Printf("Looking for unmerged branch...\n")
+
 	_, unmergedIRMD, err := config.MDOps().GetForHandle(
 		ctx, handle, libkbfs.Unmerged)
 	if err != nil {
@@ -62,6 +64,8 @@ outer:
 		return fmt.Errorf(
 			"%s has unmerged data; try unstaging it first", path)
 	}
+
+	fmt.Printf("Getting latest metadata...\n")
 
 	_, irmd, err := config.MDOps().GetForHandle(
 		ctx, handle, libkbfs.Merged)
@@ -73,6 +77,9 @@ outer:
 		fmt.Printf("No TLF found for %q\n\n", path)
 		return nil
 	}
+
+	fmt.Printf("Making successor to revision %d...\n",
+		irmd.Revision())
 
 	_, err = irmd.MakeSuccessor(config.Codec(), irmd.MdID(), true)
 	if err != nil {
