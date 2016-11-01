@@ -317,7 +317,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User, outcome *IdentifyOutcome) (ret *jsonw.Wrapper, err error) {
 	ret, err = ProofMetadata{
 		Me:         u,
-		LinkType:   TrackType,
+		LinkType:   LinkTypeTrack,
 		SigningKey: signingKey,
 	}.ToJSON(u.G())
 	if err == nil {
@@ -329,7 +329,7 @@ func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User, outcome *Identi
 func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
 	ret, err = ProofMetadata{
 		Me:         u,
-		LinkType:   UntrackType,
+		LinkType:   LinkTypeUntrack,
 		SigningKey: signingKey,
 	}.ToJSON(u.G())
 	if err == nil {
@@ -344,15 +344,15 @@ func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 	var kp *jsonw.Wrapper
 	includePGPHash := false
 
-	if arg.DelegationType == EldestType {
+	if arg.DelegationType == DelegationTypeEldest {
 		includePGPHash = true
 	} else if arg.NewKey != nil {
 		keySection := KeySection{
 			Key: arg.NewKey,
 		}
-		if arg.DelegationType == PGPUpdateType {
+		if arg.DelegationType == DelegationTypePGPUpdate {
 			keySection.IncludePGPHash = true
-		} else if arg.DelegationType == SibkeyType {
+		} else if arg.DelegationType == DelegationTypeSibkey {
 			keySection.HasRevSig = true
 			keySection.RevSig = arg.RevSig
 			keySection.IncludePGPHash = true
@@ -405,7 +405,7 @@ func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename string) (ret *jsonw.Wrapper, err error) {
 	ret, err = ProofMetadata{
 		Me:         u,
-		LinkType:   WebServiceBindingType,
+		LinkType:   LinkTypeWebServiceBinding,
 		SigningKey: signingKey,
 	}.ToJSON(u.G())
 	if err != nil {
@@ -432,7 +432,7 @@ func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID,
 func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret *jsonw.Wrapper, err error) {
 	if ret, err = (ProofMetadata{
 		Me:         u,
-		LinkType:   AuthenticationType,
+		LinkType:   LinkTypeAuthentication,
 		ExpireIn:   ei,
 		SigningKey: key,
 	}.ToJSON(u.G())); err != nil {
@@ -454,7 +454,7 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []keybase1.KID, deviceToDisable keybase1.DeviceID) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
-		LinkType:   RevokeType,
+		LinkType:   LinkTypeRevoke,
 		SigningKey: key,
 	}.ToJSON(u.G())
 	if err != nil {
@@ -481,7 +481,7 @@ func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []keybase1.KID, devi
 func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
-		LinkType:   RevokeType,
+		LinkType:   LinkTypeRevoke,
 		SigningKey: key,
 	}.ToJSON(u.G())
 	if err != nil {
@@ -501,7 +501,7 @@ func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) 
 func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke keybase1.SigID) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
-		LinkType:   CryptocurrencyType,
+		LinkType:   LinkTypeCryptocurrency,
 		SigningKey: key,
 	}.ToJSON(u.G())
 	if err != nil {
@@ -523,7 +523,7 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke key
 func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen PassphraseGeneration, pdpka5kid string) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
-		LinkType:   UpdatePassphraseType,
+		LinkType:   LinkTypeUpdatePassphrase,
 		SigningKey: key,
 	}.ToJSON(u.G())
 	if err != nil {
@@ -542,7 +542,7 @@ func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen Passphras
 func (u *User) UpdateEmailProof(key GenericKey, newEmail string) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
-		LinkType:   UpdateSettingsType,
+		LinkType:   LinkTypeUpdateSettings,
 		SigningKey: key,
 	}.ToJSON(u.G())
 	if err != nil {

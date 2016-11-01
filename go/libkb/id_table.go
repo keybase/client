@@ -587,7 +587,7 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 
 func (s *SibkeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
 func (s *SibkeyChainLink) GetRole() KeyRole              { return DLGSibkey }
-func (s *SibkeyChainLink) Type() string                  { return SibkeyType }
+func (s *SibkeyChainLink) Type() string                  { return DelegationTypeSibkey }
 func (s *SibkeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device            { return s.device }
 func (s *SibkeyChainLink) GetPGPFullHash() string        { return s.extractPGPFullHash("sibkey") }
@@ -675,7 +675,7 @@ func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) 
 	return
 }
 
-func (s *SubkeyChainLink) Type() string                  { return SubkeyType }
+func (s *SubkeyChainLink) Type() string                  { return DelegationTypeSubkey }
 func (s *SubkeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SubkeyChainLink) GetRole() KeyRole              { return DLGSubkey }
 func (s *SubkeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
@@ -727,7 +727,7 @@ func ParsePGPUpdateChainLink(b GenericChainLink) (ret *PGPUpdateChainLink, err e
 	return
 }
 
-func (l *PGPUpdateChainLink) Type() string                       { return PGPUpdateType }
+func (l *PGPUpdateChainLink) Type() string                       { return DelegationTypePGPUpdate }
 func (l *PGPUpdateChainLink) ToDisplayString() string            { return l.kid.String() }
 func (l *PGPUpdateChainLink) GetPGPFullHash() string             { return l.extractPGPFullHash("pgp_update") }
 func (l *PGPUpdateChainLink) insertIntoTable(tab *IdentityTable) { tab.insertLink(l) }
@@ -1038,11 +1038,11 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseCryptocurrencyChainLink(base)
 		case "revoke":
 			ret, err = ParseRevokeChainLink(base)
-		case SibkeyType:
+		case DelegationTypeSibkey:
 			ret, err = ParseSibkeyChainLink(base)
-		case SubkeyType:
+		case DelegationTypeSubkey:
 			ret, err = ParseSubkeyChainLink(base)
-		case PGPUpdateType:
+		case DelegationTypePGPUpdate:
 			ret, err = ParsePGPUpdateChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)
