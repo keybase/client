@@ -10,6 +10,8 @@ import (
 
 type CryptocurrencyType int
 
+type CryptocurrencyFamily string
+
 const (
 	CryptocurrencyTypeNone                  CryptocurrencyType = -1
 	CryptocurrencyTypeBTC                   CryptocurrencyType = 0    // 0x0
@@ -19,10 +21,40 @@ const (
 	CryptocurrencyTypeZCashTransparentP2SH  CryptocurrencyType = 7357 // 0x1cbd
 )
 
+const (
+	CryptocurrencyFamilyNone    CryptocurrencyFamily = ""
+	CryptocurrencyFamilyBitcoin CryptocurrencyFamily = "bitcoin"
+	CryptocurrencyFamilyZCash   CryptocurrencyFamily = "zcash"
+)
+
 type CryptocurrencyPrefix struct {
 	Type   CryptocurrencyType
 	Prefix []byte
 	Len    int
+}
+
+func (p CryptocurrencyType) String() string {
+	switch p {
+	case CryptocurrencyTypeBTC, CryptocurrencyTypeBTCMultiSig:
+		return "bitcoin"
+	case CryptocurrencyTypeZCashShielded:
+		return "zcash.z"
+	case CryptocurrencyTypeZCashTransparentP2PKH, CryptocurrencyTypeZCashTransparentP2SH:
+		return "zcash.t"
+	default:
+		return ""
+	}
+}
+
+func (p CryptocurrencyType) ToCryptocurrencyFamily() CryptocurrencyFamily {
+	switch p {
+	case CryptocurrencyTypeBTC, CryptocurrencyTypeBTCMultiSig:
+		return CryptocurrencyFamilyBitcoin
+	case CryptocurrencyTypeZCashShielded, CryptocurrencyTypeZCashTransparentP2PKH, CryptocurrencyTypeZCashTransparentP2SH:
+		return CryptocurrencyFamilyZCash
+	default:
+		return CryptocurrencyFamilyNone
+	}
 }
 
 type BtcOpts struct{}

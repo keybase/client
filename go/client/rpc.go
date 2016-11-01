@@ -174,10 +174,10 @@ func GetRevokeClient(g *libkb.GlobalContext) (cli keybase1.RevokeClient, err err
 	return
 }
 
-func GetBTCClient(g *libkb.GlobalContext) (cli keybase1.BTCClient, err error) {
+func GetCryptocurrencyClient(g *libkb.GlobalContext) (cli keybase1.CryptocurrencyClient, err error) {
 	var rcli *rpc.Client
 	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
-		cli = keybase1.BTCClient{Cli: rcli}
+		cli = keybase1.CryptocurrencyClient{Cli: rcli}
 	}
 	return
 }

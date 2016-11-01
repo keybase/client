@@ -10,47 +10,45 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type BTCEngine struct {
+type CryptocurrencyEngine struct {
 	libkb.Contextified
-	address string
-	force   bool
+	arg keybase1.RegisterAddressArg
 }
 
-func NewBTCEngine(address string, force bool, g *libkb.GlobalContext) *BTCEngine {
-	return &BTCEngine{
-		address:      address,
-		force:        force,
+func NewCryptocurrencyEngine(g *libkb.GlobalContext, arg keybase1.RegisterAddressArg) *CryptocurrencyEngine {
+	return &CryptocurrencyEngine{
 		Contextified: libkb.NewContextified(g),
+		arg:          arg,
 	}
 }
 
-func (e *BTCEngine) Name() string {
-	return "BTC"
+func (e *CryptocurrencyEngine) Name() string {
+	return "Cryptocurrency"
 }
 
-func (e *BTCEngine) Prereqs() Prereqs {
+func (e *CryptocurrencyEngine) Prereqs() Prereqs {
 	return Prereqs{
 		Device: true,
 	}
 }
 
-func (e *BTCEngine) RequiredUIs() []libkb.UIKind {
+func (e *CryptocurrencyEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LogUIKind,
 		libkb.SecretUIKind,
 	}
 }
 
-func (e *BTCEngine) SubConsumers() []libkb.UIConsumer {
+func (e *CryptocurrencyEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
-func (e *BTCEngine) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ BTCEngine Run")
-	defer func() {
-		e.G().Log.Debug("- BTCEngine Run")
-	}()
-	_, _, err = libkb.BtcAddrCheck(e.address, nil)
+func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
+	defer e.G().Trace("CryptocurrencyEngine", func() error { return err })()
+
+	var typ libkb.CryptocurrencyType
+	typ, _, err = libkb.CryptocurrencyParseAndCheck(e.arg.Address)
+
 	if err != nil {
 		return err
 	}
@@ -60,9 +58,10 @@ func (e *BTCEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	cryptocurrencyLink := me.IDTable().ActiveCryptocurrency()
-	if cryptocurrencyLink != nil && !e.force {
-		return fmt.Errorf("User already has a cryptocurrency address. To overwrite, use --force.")
+	family := typ.ToCryptocurrencyFamily()
+	cryptocurrencyLink := me.IDTable().ActiveCryptocurrency(typ.ToCryptocurrencyFamily())
+	if cryptocurrencyLink != nil && !e.arg.Force {
+		return fmt.Errorf("You already have a %s cryptocurrency address. To overwrite, use --force", family)
 	}
 	var sigIDToRevoke keybase1.SigID
 	if cryptocurrencyLink != nil {
@@ -81,7 +80,7 @@ func (e *BTCEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	claim, err := me.CryptocurrencySig(sigKey, e.address, sigIDToRevoke)
+	claim, err := me.CryptocurrencySig(sigKey, e.arg.Address, typ, sigIDToRevoke)
 	if err != nil {
 		return err
 	}

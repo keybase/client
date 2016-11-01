@@ -894,6 +894,18 @@ export function cryptoUnboxBytes32RpcPromise (request: $Exact<requestCommon & {c
   return new Promise((resolve, reject) => { cryptoUnboxBytes32Rpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function cryptocurrencyRegisterAddressRpc (request: Exact<requestCommon & requestErrorCallback & {param: cryptocurrencyRegisterAddressRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'cryptocurrency.registerAddress'})
+}
+
+export function cryptocurrencyRegisterAddressRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: cryptocurrencyRegisterAddressRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => cryptocurrencyRegisterAddressRpc({...request, incomingCallMap, callback}))
+}
+
+export function cryptocurrencyRegisterAddressRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: cryptocurrencyRegisterAddressRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { cryptocurrencyRegisterAddressRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function ctlAppExitRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'ctl.appExit'})
 }
@@ -2678,6 +2690,8 @@ export type Cryptocurrency = {
   pkhash: bytes,
   address: string,
   sigID: SigID,
+  type: string,
+  family: string,
 }
 
 export type CsrfToken = string
@@ -4111,6 +4125,11 @@ export type cryptoUnboxBytes32RpcParam = Exact<{
   reason: string
 }>
 
+export type cryptocurrencyRegisterAddressRpcParam = Exact<{
+  address: string,
+  force: boolean
+}>
+
 export type ctlStopRpcParam = Exact<{
   exitCode: ExitCode
 }>
@@ -5134,6 +5153,7 @@ export type rpc =
   | cryptoSignToStringRpc
   | cryptoUnboxBytes32AnyRpc
   | cryptoUnboxBytes32Rpc
+  | cryptocurrencyRegisterAddressRpc
   | ctlAppExitRpc
   | ctlDbNukeRpc
   | ctlLogRotateRpc
