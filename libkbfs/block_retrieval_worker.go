@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"io"
 	"reflect"
 
 	"golang.org/x/net/context"
@@ -52,29 +53,24 @@ func notifyBlockRequestor(req *blockRetrievalRequest, source reflect.Value, err 
 	req.doneCh <- err
 }
 
-// finalizerRetrieval is the last step of a retrieval request once a block has
-// been obtained. It removes the request from the blockRetrievalQueue (using
-// FinalizeRequest), then calls notifyBlockRequestor for all subscribed
-// requests.
-func (brw *blockRetrievalWorker) finalizeRetrieval(retrieval *blockRetrieval, block Block, err error) {
-	brw.queue.FinalizeRequest(retrieval.blockPtr)
-	sourceVal := reflect.ValueOf(block).Elem()
-	for _, req := range retrieval.requests {
-		go notifyBlockRequestor(req, sourceVal, err)
-	}
-}
-
 // HandleRequest is the main work method for the worker. It obtains a
 // blockRetrieval from the queue, retrieves the block using
 // blockGetter.getBlock, and responds to the subscribed requestors with the
 // results.
 func (brw *blockRetrievalWorker) HandleRequest() (err error) {
-	retrieval := <-brw.queue.WorkOnRequest()
+	retrievalCh := brw.queue.WorkOnRequest()
+	var retrieval *blockRetrieval
+	select {
+	case retrieval = <-retrievalCh:
+	case <-brw.stopCh:
+		return io.EOF
+	}
+
 	// Create a new block of the same type as the first request
 	typ := reflect.TypeOf(retrieval.requests[0].block).Elem()
 	block := reflect.New(typ).Interface().(Block)
 	defer func() {
-		brw.finalizeRetrieval(retrieval, block, err)
+		brw.queue.FinalizeRequest(retrieval, block, err)
 	}()
 
 	// Pick one of the still-active contexts to use

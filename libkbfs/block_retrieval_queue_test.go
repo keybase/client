@@ -185,7 +185,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	require.Equal(t, block, br.requests[1].block)
 
 	t.Log("Finalize the existing request for ptr1.")
-	q.FinalizeRequest(ptr1)
+	q.FinalizeRequest(br, nil, nil)
 	t.Log("Make another request for the same block. Verify that this is a new request.")
 	_ = q.Request(ctx, 2, nil, ptr1, block)
 	br = <-q.WorkOnRequest()

@@ -6,6 +6,8 @@ package libkbfs
 
 import (
 	"container/heap"
+	"io"
+	"reflect"
 	"sync"
 
 	"golang.org/x/net/context"
@@ -62,6 +64,8 @@ type blockRetrievalQueue struct {
 	// in the heap, allowing preemption as long as possible. This way, a
 	// request only exits the heap once a worker is ready.
 	workerQueue chan chan *blockRetrieval
+	// Channel to represent whether we're done accepting requests
+	doneCh chan struct{}
 }
 
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
@@ -78,18 +82,38 @@ func newBlockRetrievalQueue(numWorkers int) *blockRetrievalQueue {
 // notifyWorker notifies workers that there is a new request for processing.
 func (brq *blockRetrievalQueue) notifyWorker() {
 	go func() {
-		// Get the next queued worker
-		ch := <-brq.workerQueue
-		// Prevent interference with the heap while we're retrieving from it
-		brq.mtx.Lock()
-		defer brq.mtx.Unlock()
-		// Pop from the heap
-		ch <- heap.Pop(brq.heap).(*blockRetrieval)
+		select {
+		case <-brq.doneCh:
+			// Prevent interference with the heap while we're retrieving from it
+			brq.mtx.Lock()
+			defer brq.mtx.Unlock()
+			if brq.heap.Len() > 0 {
+				retrieval := heap.Pop(brq.heap).(*blockRetrieval)
+				brq.FinalizeRequest(retrieval, nil, io.EOF)
+			}
+		default:
+			// Get the next queued worker
+			ch := <-brq.workerQueue
+			// Prevent interference with the heap while we're retrieving from it
+			brq.mtx.Lock()
+			defer brq.mtx.Unlock()
+			// Pop from the heap
+			ch <- heap.Pop(brq.heap).(*blockRetrieval)
+		}
 	}()
 }
 
 // Request submits a block request to the queue.
 func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block) <-chan error {
+	// Only continue if we haven't been shut down
+	select {
+	case <-brq.doneCh:
+		ch := make(chan error, 1)
+		ch <- io.EOF
+		return ch
+	default:
+	}
+
 	brq.mtx.Lock()
 	defer brq.mtx.Unlock()
 	br, exists := brq.ptrs[ptr]
@@ -127,13 +151,41 @@ func (brq *blockRetrievalQueue) WorkOnRequest() <-chan *blockRetrieval {
 	return ch
 }
 
-// FinalizeRequest communicates that any subsequent requestors for this block
-// won't be notified by the current worker processing it.  This must be called
-// before sending out the responses to the blockRetrievalRequests for a given
-// blockRetrieval.
-func (brq *blockRetrievalQueue) FinalizeRequest(ptr BlockPointer) {
+// FinalizeRequest s the last step of a retrieval request once a block has been
+// obtained. It removes the request from the blockRetrievalQueue, preventing
+// more requests mutating the retrieval, then calls notifyBlockRequestor for
+// all subscribed requests.
+func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block Block, err error) {
 	brq.mtx.Lock()
-	defer brq.mtx.Unlock()
+	delete(brq.ptrs, retrieval.blockPtr)
+	brq.mtx.Unlock()
 
-	delete(brq.ptrs, ptr)
+	if block == nil {
+		for _, r := range retrieval.requests {
+			req := r
+			go func() {
+				req.doneCh <- err
+			}()
+		}
+		return
+	}
+	source := reflect.ValueOf(block).Elem()
+	for _, r := range retrieval.requests {
+		req := r
+		go func() {
+			// Copy the decrypted block to the caller
+			dest := reflect.ValueOf(req.block).Elem()
+			dest.Set(source)
+			req.doneCh <- err
+		}()
+	}
+}
+
+// Shutdown is called when we are no longer accepting requests
+func (brq *blockRetrievalQueue) Shutdown() {
+	select {
+	case <-brq.doneCh:
+	default:
+		close(brq.doneCh)
+	}
 }
