@@ -216,7 +216,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
 	config.ResetCaches()
 	config.SetCodec(kbfscodec.NewMsgpack())
-	config.SetBlockOps(&BlockOpsStandard{config})
+	config.SetBlockOps(NewBlockOpsStandard(config))
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
 
