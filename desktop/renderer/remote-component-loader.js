@@ -11,6 +11,7 @@ import pinentry from '../shared/pinentry'
 import purgeMessage from '../shared/pgp/container.desktop'
 import tracker from '../shared/tracker'
 import unlockFolders from '../shared/unlock-folders'
+import {disable as disableDragDrop} from '../shared/util/drag-drop'
 // $FlowIssue
 import {globalColors} from '../shared/styles'
 import {remote, ipcRenderer} from 'electron'
@@ -19,6 +20,7 @@ import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../shared/util/forward-logs'
 
 setupSource()
+disableDragDrop()
 makeEngine()
 
 // $FlowIssue
