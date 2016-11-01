@@ -6,7 +6,22 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "RegisterAddressRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Type"
+        },
+        {
+          "type": "string",
+          "name": "Family"
+        }
+      ]
+    }
+  ],
   "messages": {
     "registerAddress": {
       "request": [
@@ -23,7 +38,7 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": "RegisterAddressRes"
     }
   },
   "namespace": "keybase.1"

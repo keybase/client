@@ -8,6 +8,11 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type RegisterAddressRes struct {
+	Type   string `codec:"Type" json:"Type"`
+	Family string `codec:"Family" json:"Family"`
+}
+
 type RegisterAddressArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Address   string `codec:"address" json:"address"`
@@ -15,7 +20,7 @@ type RegisterAddressArg struct {
 }
 
 type CryptocurrencyInterface interface {
-	RegisterAddress(context.Context, RegisterAddressArg) error
+	RegisterAddress(context.Context, RegisterAddressArg) (RegisterAddressRes, error)
 }
 
 func CryptocurrencyProtocol(i CryptocurrencyInterface) rpc.Protocol {
@@ -33,7 +38,7 @@ func CryptocurrencyProtocol(i CryptocurrencyInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]RegisterAddressArg)(nil), args)
 						return
 					}
-					err = i.RegisterAddress(ctx, (*typedArgs)[0])
+					ret, err = i.RegisterAddress(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -46,7 +51,7 @@ type CryptocurrencyClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c CryptocurrencyClient) RegisterAddress(ctx context.Context, __arg RegisterAddressArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.cryptocurrency.registerAddress", []interface{}{__arg}, nil)
+func (c CryptocurrencyClient) RegisterAddress(ctx context.Context, __arg RegisterAddressArg) (res RegisterAddressRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.cryptocurrency.registerAddress", []interface{}{__arg}, &res)
 	return
 }

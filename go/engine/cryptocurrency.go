@@ -13,6 +13,7 @@ import (
 type CryptocurrencyEngine struct {
 	libkb.Contextified
 	arg keybase1.RegisterAddressArg
+	res keybase1.RegisterAddressRes
 }
 
 func NewCryptocurrencyEngine(g *libkb.GlobalContext, arg keybase1.RegisterAddressArg) *CryptocurrencyEngine {
@@ -102,5 +103,13 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 	if err != nil {
 		return err
 	}
+
+	e.res.Family = string(family)
+	e.res.Type = typ.String()
+
 	return nil
+}
+
+func (e *CryptocurrencyEngine) Result() keybase1.RegisterAddressRes {
+	return e.res
 }

@@ -3,5 +3,10 @@
 protocol cryptocurrency {
   import idl "common.avdl";
 
-  void registerAddress(int sessionID, string address, boolean force);
+  record RegisterAddressRes {
+  	string Type;
+  	string Family;
+  }
+
+  RegisterAddressRes registerAddress(int sessionID, string address, boolean force);
 }

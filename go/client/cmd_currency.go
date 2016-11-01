@@ -47,14 +47,14 @@ func (c *CmdCurrency) Run() (err error) {
 		return err
 	}
 
-	err = cli.RegisterAddress(context.TODO(), keybase1.RegisterAddressArg{
+	res, err := cli.RegisterAddress(context.TODO(), keybase1.RegisterAddressArg{
 		Address: c.address,
 		Force:   c.force,
 	})
 	if err != nil {
 		return err
 	}
-	c.G().UI.GetTerminalUI().Printf("Added bitcoin address %s\n", c.address)
+	c.G().UI.GetTerminalUI().Printf("Added %s address %s\n", res.Family, c.address)
 	return nil
 }
 
