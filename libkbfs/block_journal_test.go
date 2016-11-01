@@ -690,6 +690,14 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 		require.NoError(t, err)
 	}
 
+	{
+		// Make sure the saved block journal persists after a restart.
+		jRestarted, err := makeBlockJournal(
+			ctx, j.codec, j.crypto, j.dir, j.log)
+		require.NoError(t, err)
+		require.NotNil(t, jRestarted.saveUntilMDFlush)
+	}
+
 	// Now remove all the data.
 	err = j.onMDFlush()
 	require.NoError(t, err)

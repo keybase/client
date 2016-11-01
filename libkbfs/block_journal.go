@@ -155,6 +155,10 @@ func (e blockJournalEntry) getSingleContext() (
 		"getSingleContext() erroneously called on op %s", e.Op)
 }
 
+func savedBlockJournalDir(dir string) string {
+	return filepath.Join(dir, "saved_block_journal")
+}
+
 // makeBlockJournal returns a new blockJournal for the given
 // directory. Any existing journal entries are read.
 func makeBlockJournal(
@@ -176,6 +180,21 @@ func makeBlockJournal(
 	refs, unflushedBytes, err := journal.readJournal(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	// If a saved block journal exists, we need to remove its entries
+	// on the next successful MD flush.
+	savedJournalDir := savedBlockJournalDir(dir)
+	fi, err := os.Stat(savedJournalDir)
+	if err == nil {
+		if !fi.IsDir() {
+			return nil,
+				fmt.Errorf("%s exists, but is not a dir", savedJournalDir)
+		}
+		log.CDebugf(ctx, "A saved block journal exists at %s", savedJournalDir)
+		sj := makeDiskJournal(
+			codec, savedJournalDir, reflect.TypeOf(blockJournalEntry{}))
+		journal.saveUntilMDFlush = &sj
 	}
 
 	journal.refs = refs
@@ -1151,10 +1170,7 @@ func (j *blockJournal) saveBlocksUntilNextMDFlush() error {
 
 	savedJournal := j.saveUntilMDFlush
 	if savedJournal == nil {
-		savedJournalDir, err := ioutil.TempDir(j.dir, "saved_block_journal")
-		if err != nil {
-			return err
-		}
+		savedJournalDir := savedBlockJournalDir(j.dir)
 
 		sj := makeDiskJournal(
 			j.codec, savedJournalDir, reflect.TypeOf(blockJournalEntry{}))
