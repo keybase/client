@@ -498,7 +498,7 @@ func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) 
 	return ret, nil
 }
 
-func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke keybase1.SigID) (*jsonw.Wrapper, error) {
+func (u *User) CryptocurrencySig(key GenericKey, address string, typ CryptocurrencyType, sigToRevoke keybase1.SigID) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
 		LinkType:   LinkTypeCryptocurrency,
@@ -510,7 +510,7 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke key
 	body := ret.AtKey("body")
 	currencySection := jsonw.NewDictionary()
 	currencySection.SetKey("address", jsonw.NewString(address))
-	currencySection.SetKey("type", jsonw.NewString("bitcoin"))
+	currencySection.SetKey("type", jsonw.NewString(typ.String()))
 	body.SetKey("cryptocurrency", currencySection)
 	if len(sigToRevoke) > 0 {
 		revokeSection := jsonw.NewDictionary()

@@ -817,6 +817,7 @@ type CryptocurrencyChainLink struct {
 	GenericChainLink
 	pkhash  []byte
 	address string
+	typ     CryptocurrencyType
 }
 
 func (c CryptocurrencyChainLink) GetAddress() string {
@@ -827,27 +828,28 @@ func ParseCryptocurrencyChainLink(b GenericChainLink) (
 	cl *CryptocurrencyChainLink, err error) {
 
 	jw := b.payloadJSON.AtPath("body.cryptocurrency")
-	var typ, addr string
+	var styp, addr string
 	var pkhash []byte
 
-	jw.AtKey("type").GetStringVoid(&typ, &err)
+	jw.AtKey("type").GetStringVoid(&styp, &err)
 	jw.AtKey("address").GetStringVoid(&addr, &err)
 
 	if err != nil {
 		return
 	}
 
-	if typ != "bitcoin" {
-		err = fmt.Errorf("Can only handle 'bitcoin' addresses for now; got %s", typ)
-		return
-	}
-
-	_, pkhash, err = BtcAddrCheck(addr, nil)
+	var typ CryptocurrencyType
+	typ, pkhash, err = CryptocurrencyParseAndCheck(addr)
 	if err != nil {
 		err = fmt.Errorf("At signature %s: %s", b.ToDebugString(), err)
 		return
 	}
-	cl = &CryptocurrencyChainLink{b, pkhash, addr}
+	if styp != typ.String() {
+		err = fmt.Errorf("Got %q type but wanted %q at: %s", styp, typ.String(), err)
+		return
+	}
+
+	cl = &CryptocurrencyChainLink{b, pkhash, addr, typ}
 	return
 }
 
@@ -1164,13 +1166,25 @@ func (idt *IdentityTable) TrackChainLinkFor(username string, uid keybase1.UID) (
 	return nil, nil
 }
 
-func (idt *IdentityTable) ActiveCryptocurrency() *CryptocurrencyChainLink {
-	var ret *CryptocurrencyChainLink
+func (idt *IdentityTable) ActiveCryptocurrency(family CryptocurrencyFamily) *CryptocurrencyChainLink {
 	tab := idt.cryptocurrency
-	if len(tab) > 0 {
-		last := tab[len(tab)-1]
-		if !last.IsRevoked() {
-			ret = last
+	for i := len(tab) - 1; i >= 0; i-- {
+		link := tab[i]
+		if link.typ.ToCryptocurrencyFamily() == family {
+			if link.IsRevoked() {
+				return nil
+			}
+			return link
+		}
+	}
+	return nil
+}
+
+func (idt *IdentityTable) AllActiveCryptocurrency() []CryptocurrencyChainLink {
+	var ret []CryptocurrencyChainLink
+	for _, link := range idt.cryptocurrency {
+		if !link.IsRevoked() {
+			ret = append(ret, *link)
 		}
 	}
 	return ret
@@ -1202,7 +1216,8 @@ func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui I
 		}(lcr)
 	}
 
-	if acc := idt.ActiveCryptocurrency(); acc != nil {
+	allAcc := idt.AllActiveCryptocurrency()
+	for _, acc := range allAcc {
 		if err := acc.Display(ui); err != nil {
 			return err
 		}

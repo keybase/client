@@ -1,0 +1,12 @@
+@namespace("keybase.1")
+
+protocol cryptocurrency {
+  import idl "common.avdl";
+
+  record RegisterAddressRes {
+  	string Type;
+  	string Family;
+  }
+
+  RegisterAddressRes registerAddress(int sessionID, string address, boolean force);
+}

@@ -57,7 +57,8 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister, g *libkb.GlobalContext) (shutdowners []Shutdowner, err error) {
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
-		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
+		keybase1.BTCProtocol(NewCryptocurrencyHandler(xp, g)),
+		keybase1.CryptocurrencyProtocol(NewCryptocurrencyHandler(xp, g)),
 		keybase1.ConfigProtocol(NewConfigHandler(xp, connID, g, d)),
 		keybase1.CryptoProtocol(NewCryptoHandler(g)),
 		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),

@@ -598,6 +598,8 @@ func (c CryptocurrencyChainLink) Export() (ret keybase1.Cryptocurrency) {
 	ret.Pkhash = c.pkhash
 	ret.Address = c.address
 	ret.SigID = c.GetSigID()
+	ret.Type = c.typ.String()
+	ret.Family = string(c.typ.ToCryptocurrencyFamily())
 	return ret
 }
 

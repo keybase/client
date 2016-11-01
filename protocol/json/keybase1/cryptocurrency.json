@@ -1,0 +1,45 @@
+{
+  "protocol": "cryptocurrency",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "RegisterAddressRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Type"
+        },
+        {
+          "type": "string",
+          "name": "Family"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "registerAddress": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "address",
+          "type": "string"
+        },
+        {
+          "name": "force",
+          "type": "boolean"
+        }
+      ],
+      "response": "RegisterAddressRes"
+    }
+  },
+  "namespace": "keybase.1"
+}
