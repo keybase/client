@@ -15,13 +15,13 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type CmdBTC struct {
+type CmdCurrency struct {
 	libkb.Contextified
 	address string
 	force   bool
 }
 
-func (c *CmdBTC) ParseArgv(ctx *cli.Context) error {
+func (c *CmdCurrency) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return fmt.Errorf("Must provide exactly one address.")
 	}
@@ -30,12 +30,12 @@ func (c *CmdBTC) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdBTC) SetAddress(s string) {
+func (c *CmdCurrency) SetAddress(s string) {
 	c.address = s
 }
 
-func (c *CmdBTC) Run() (err error) {
-	cli, err := GetBTCClient(c.G())
+func (c *CmdCurrency) Run() (err error) {
+	cli, err := GetCryptocurrencyClient(c.G())
 	if err != nil {
 		return err
 	}
@@ -47,21 +47,21 @@ func (c *CmdBTC) Run() (err error) {
 		return err
 	}
 
-	err = cli.RegisterBTC(context.TODO(), keybase1.RegisterBTCArg{
+	res, err := cli.RegisterAddress(context.TODO(), keybase1.RegisterAddressArg{
 		Address: c.address,
 		Force:   c.force,
 	})
 	if err != nil {
 		return err
 	}
-	c.G().UI.GetTerminalUI().Printf("Added bitcoin address %s\n", c.address)
+	c.G().UI.GetTerminalUI().Printf("Added %s address %s\n", res.Family, c.address)
 	return nil
 }
 
-func NewCmdBTC(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func NewCmdCurrency(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "btc",
-		Usage:        "Claim a bitcoin address",
+		Name:         "currency",
+		Usage:        "Claim a bitcoin or zcash address",
 		ArgumentHelp: "<address>",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -69,19 +69,20 @@ func NewCmdBTC(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 				Usage: "Overwrite an existing address.",
 			},
 		},
+		Aliases: []string{"btc"},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdBTCRunner(g), "btc", c)
+			cl.ChooseCommand(NewCmdCurrencyRunner(g), "currency", c)
 		},
 	}
 }
 
-func NewCmdBTCRunner(g *libkb.GlobalContext) *CmdBTC {
-	return &CmdBTC{
+func NewCmdCurrencyRunner(g *libkb.GlobalContext) *CmdCurrency {
+	return &CmdCurrency{
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func (c *CmdBTC) GetUsage() libkb.Usage {
+func (c *CmdCurrency) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: true,

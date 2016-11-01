@@ -894,6 +894,18 @@ export function cryptoUnboxBytes32RpcPromise (request: $Exact<requestCommon & {c
   return new Promise((resolve, reject) => { cryptoUnboxBytes32Rpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function cryptocurrencyRegisterAddressRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: cryptocurrencyRegisterAddressResult) => void} & {param: cryptocurrencyRegisterAddressRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'cryptocurrency.registerAddress'})
+}
+
+export function cryptocurrencyRegisterAddressRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptocurrencyRegisterAddressResult) => void} & {param: cryptocurrencyRegisterAddressRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => cryptocurrencyRegisterAddressRpc({...request, incomingCallMap, callback}))
+}
+
+export function cryptocurrencyRegisterAddressRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptocurrencyRegisterAddressResult) => void} & {param: cryptocurrencyRegisterAddressRpcParam}>): Promise<cryptocurrencyRegisterAddressResult> {
+  return new Promise((resolve, reject) => { cryptocurrencyRegisterAddressRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function ctlAppExitRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'ctl.appExit'})
 }
@@ -2678,6 +2690,8 @@ export type Cryptocurrency = {
   pkhash: bytes,
   address: string,
   sigID: SigID,
+  type: string,
+  family: string,
 }
 
 export type CsrfToken = string
@@ -3464,6 +3478,11 @@ export type PushReason =
   | 1 // RECONNECTED_1
   | 2 // NEW_DATA_2
 
+export type RegisterAddressRes = {
+  Type: string,
+  Family: string,
+}
+
 export type RekeyEvent = {
   eventType: RekeyEventType,
   interruptType: int,
@@ -4109,6 +4128,11 @@ export type cryptoUnboxBytes32RpcParam = Exact<{
   nonce: BoxNonce,
   peersPublicKey: BoxPublicKey,
   reason: string
+}>
+
+export type cryptocurrencyRegisterAddressRpcParam = Exact<{
+  address: string,
+  force: boolean
 }>
 
 export type ctlStopRpcParam = Exact<{
@@ -4906,6 +4930,8 @@ type cryptoUnboxBytes32AnyResult = UnboxAnyRes
 
 type cryptoUnboxBytes32Result = Bytes32
 
+type cryptocurrencyRegisterAddressResult = RegisterAddressRes
+
 type debuggingFirstStepResult = FirstStepResult
 
 type debuggingIncrementResult = int
@@ -5134,6 +5160,7 @@ export type rpc =
   | cryptoSignToStringRpc
   | cryptoUnboxBytes32AnyRpc
   | cryptoUnboxBytes32Rpc
+  | cryptocurrencyRegisterAddressRpc
   | ctlAppExitRpc
   | ctlDbNukeRpc
   | ctlLogRotateRpc
