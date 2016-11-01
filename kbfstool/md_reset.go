@@ -78,8 +78,16 @@ outer:
 		return nil
 	}
 
-	fmt.Printf("Making successor to revision %d...\n",
-		irmd.Revision())
+	rootPtr := irmd.Data().Dir.BlockInfo.BlockPointer
+	var dirBlock libkbfs.DirBlock
+	err = config.BlockOps().Get(ctx, irmd, rootPtr, &dirBlock)
+	if err == nil {
+		fmt.Printf("Got no error when getting root block %s; aborting\n", rootPtr)
+		return nil
+	}
+
+	fmt.Printf("Got error %s when getting root block %s, so revision %d is broken. Making successor...\n",
+		err, rootPtr, irmd.Revision())
 
 	_, err = irmd.MakeSuccessor(config.Codec(), irmd.MdID(), true)
 	if err != nil {
