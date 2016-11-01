@@ -794,14 +794,14 @@ type ImmutableRootMetadata struct {
 func MakeImmutableRootMetadata(
 	rmd *RootMetadata, writerVerifyingKey kbfscrypto.VerifyingKey,
 	mdID MdID, localTimestamp time.Time) ImmutableRootMetadata {
+	if writerVerifyingKey == (kbfscrypto.VerifyingKey{}) {
+		panic("zero writerVerifyingKey passed to MakeImmutableRootMetadata")
+	}
 	if mdID == (MdID{}) {
 		panic("zero mdID passed to MakeImmutableRootMetadata")
 	}
 	if localTimestamp == (time.Time{}) {
 		panic("zero localTimestamp passed to MakeImmutableRootMetadata")
-	}
-	if writerVerifyingKey == (kbfscrypto.VerifyingKey{}) {
-		panic("zero writerVerifyingKey passed to MakeImmutableRootMetadata")
 	}
 	if bareMDV2, ok := rmd.bareMd.(*BareRootMetadataV2); ok {
 		writerSig := bareMDV2.WriterMetadataSigInfo

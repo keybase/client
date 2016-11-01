@@ -137,7 +137,8 @@ outer:
 	fmt.Printf("Putting block %s...\n", ptr)
 
 	if dryRun {
-		fmt.Printf("Skipping block put (dry run)\n")
+		fmt.Printf("Dry run: would call BlockServer.Put(tlfID=%s, ptr=%s, bufLen=%d)\n",
+			rmdNext.TlfID(), ptr, len(readyBlockData.Buf))
 	} else {
 		err := config.BlockServer().Put(
 			ctx, rmdNext.TlfID(), ptr.ID, ptr.BlockContext,
@@ -152,7 +153,11 @@ outer:
 	fmt.Printf("Putting revision %d...\n", rmdNext.Revision())
 
 	if dryRun {
-		fmt.Printf("Skipping MD put (dry run)\n")
+		fmt.Printf("Dry run: would put:\n")
+		err := mdDumpOneReadOnly(ctx, config, rmdNext.ReadOnly())
+		if err != nil {
+			return err
+		}
 	} else {
 		mdID, err := config.MDOps().Put(ctx, rmdNext)
 		if err != nil {
