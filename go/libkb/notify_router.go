@@ -34,6 +34,8 @@ type NotifyListener interface {
 	TrackingChanged(uid keybase1.UID, username string)
 	FSActivity(activity keybase1.FSNotification)
 	FSEditListResponse(arg keybase1.FSEditListArg)
+	FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)
+	FSSyncEvent(arg keybase1.FSPathSyncStatus)
 	FSEditListRequest(arg keybase1.FSEditListRequest)
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
@@ -352,6 +354,54 @@ func (n *NotifyRouter) HandleFSEditListRequest(ctx context.Context, arg keybase1
 
 	if n.listener != nil {
 		n.listener.FSEditListRequest(arg)
+	}
+}
+
+// HandleFSSyncStatus is called for KBFS sync status notifications.
+func (n *NotifyRouter) HandleFSSyncStatus(ctx context.Context, arg keybase1.FSSyncStatusArg) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Kbfs` notification type
+		if n.getNotificationChannels(id).Kbfs {
+			// In the background do...
+			go func() {
+				// A send of a `FSSyncStatusResponse` RPC with the notification
+				(keybase1.NotifyFSClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).FSSyncStatusResponse(ctx, keybase1.FSSyncStatusResponseArg{Status: arg.Status, RequestID: arg.RequestID})
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.FSSyncStatusResponse(arg)
+	}
+}
+
+// HandleFSSyncEvent is called for KBFS sync event notifications.
+func (n *NotifyRouter) HandleFSSyncEvent(ctx context.Context, arg keybase1.FSPathSyncStatus) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Kbfs` notification type
+		if n.getNotificationChannels(id).Kbfs {
+			// In the background do...
+			go func() {
+				// A send of a `FSSyncActivity` RPC with the notification
+				(keybase1.NotifyFSClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).FSSyncActivity(ctx, arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.FSSyncEvent(arg)
 	}
 }
 

@@ -97,5 +97,7 @@ func (n *nlistener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivit
 func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID) {
 	n.paperEncKIDs = append(n.paperEncKIDs, encKID)
 }
-func (n *nlistener) KeyfamilyChanged(uid keybase1.UID) {}
-func (n *nlistener) PGPKeyInSecretStoreFile()          {}
+func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                 {}
+func (n *nlistener) PGPKeyInSecretStoreFile()                          {}
+func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg) {}
+func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)         {}

@@ -84,6 +84,8 @@ func (n *nlistener) FavoritesChanged(uid keybase1.UID) {
 func (n *nlistener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {}
 func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                             {}
 func (n *nlistener) PGPKeyInSecretStoreFile()                                      {}
+func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)             {}
+func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                     {}
 
 type showTrackerPopupIdentifyUI struct {
 	kbtest.FakeIdentifyUI
