@@ -346,11 +346,11 @@ func (n *NotifyRouter) HandleFSSyncStatus(ctx context.Context, arg keybase1.FSSy
 	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Kbfsrequest` notification type
-		if n.getNotificationChannels(id).Kbfsrequest {
+		// If the connection wants the `Kbfs` notification type
+		if n.getNotificationChannels(id).Kbfs {
 			// In the background do...
 			go func() {
-				// A send of a `FSEditListRequest` RPC with the notification
+				// A send of a `FSSyncStatusResponse` RPC with the notification
 				(keybase1.NotifyFSClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
 				}).FSSyncStatusResponse(ctx, keybase1.FSSyncStatusResponseArg{Status: arg.Status, RequestID: arg.RequestID})
@@ -370,11 +370,11 @@ func (n *NotifyRouter) HandleFSSyncEvent(ctx context.Context, arg keybase1.FSPat
 	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Kbfsrequest` notification type
-		if n.getNotificationChannels(id).Kbfsrequest {
+		// If the connection wants the `Kbfs` notification type
+		if n.getNotificationChannels(id).Kbfs {
 			// In the background do...
 			go func() {
-				// A send of a `FSEditListRequest` RPC with the notification
+				// A send of a `FSSyncActivity` RPC with the notification
 				(keybase1.NotifyFSClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
 				}).FSSyncActivity(ctx, arg)
