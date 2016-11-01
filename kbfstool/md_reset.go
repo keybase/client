@@ -56,7 +56,13 @@ func mdReset(ctx context.Context, config libkbfs.Config, args []string) (exitSta
 	}
 
 	input := inputs[0]
-	irmd, err := mdParseAndGet(ctx, config, input)
+	tlfID, err := getTlfID(ctx, config, input)
+	if err != nil {
+		printError("md reset", err)
+		return 1
+	}
+
+	irmd, err := config.MDOps().GetForTLF(ctx, tlfID)
 	if err != nil {
 		printError("md reset", err)
 		return 1
