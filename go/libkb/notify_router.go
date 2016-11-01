@@ -134,7 +134,7 @@ func (n *NotifyRouter) HandleLogout() {
 				// A send of a `LoggedOut` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).LoggedOut(context.TODO())
+				}).LoggedOut(context.Background())
 			}()
 		}
 		return true
@@ -161,7 +161,7 @@ func (n *NotifyRouter) HandleLogin(u string) {
 				// A send of a `LoggedIn` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).LoggedIn(context.TODO(), u)
+				}).LoggedIn(context.Background(), u)
 			}()
 		}
 		return true
@@ -189,7 +189,7 @@ func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo, upgradeURI, upgradeMsg s
 				// A send of a `ClientOutOfDate` RPC
 				(keybase1.NotifySessionClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).ClientOutOfDate(context.TODO(), keybase1.ClientOutOfDateArg{
+				}).ClientOutOfDate(context.Background(), keybase1.ClientOutOfDateArg{
 					UpgradeTo:  upgradeTo,
 					UpgradeURI: upgradeURI,
 					UpgradeMsg: upgradeMsg,
@@ -220,7 +220,7 @@ func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
 				// A send of a `UserChanged` RPC with the user's UID
 				(keybase1.NotifyUsersClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).UserChanged(context.TODO(), uid)
+				}).UserChanged(context.Background(), uid)
 			}()
 		}
 		return true
@@ -250,7 +250,7 @@ func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username string) 
 				// A send of a `TrackingChanged` RPC with the user's UID
 				(keybase1.NotifyTrackingClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).TrackingChanged(context.TODO(), arg)
+				}).TrackingChanged(context.Background(), arg)
 			}()
 		}
 		return true
@@ -276,7 +276,7 @@ func (n *NotifyRouter) HandleFSActivity(activity keybase1.FSNotification) {
 				// A send of a `FSActivity` RPC with the notification
 				(keybase1.NotifyFSClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).FSActivity(context.TODO(), activity)
+				}).FSActivity(context.Background(), activity)
 			}()
 		}
 		return true
@@ -291,11 +291,18 @@ func (n *NotifyRouter) HandleFSEditListResponse(ctx context.Context, arg keybase
 	if n == nil {
 		return
 	}
+
+	// We have to make sure the context survives until all subsequent
+	// RPCs launched in this method are done.  So we wait until
+	// the last completes before returning.
+	var wg sync.WaitGroup
+
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Kbfs` notification type
 		if n.getNotificationChannels(id).Kbfs {
 			// In the background do...
+			wg.Add(1)
 			go func() {
 				// A send of a `FSEditListResponse` RPC with the notification
 				(keybase1.NotifyFSClient{
@@ -304,10 +311,12 @@ func (n *NotifyRouter) HandleFSEditListResponse(ctx context.Context, arg keybase
 					Edits:     arg.Edits,
 					RequestID: arg.RequestID,
 				})
+				wg.Done()
 			}()
 		}
 		return true
 	})
+	wg.Wait()
 	if n.listener != nil {
 		n.listener.FSEditListResponse(arg)
 	}
@@ -318,20 +327,29 @@ func (n *NotifyRouter) HandleFSEditListRequest(ctx context.Context, arg keybase1
 	if n == nil {
 		return
 	}
+
+	// See above
+	var wg sync.WaitGroup
+
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Kbfsrequest` notification type
 		if n.getNotificationChannels(id).Kbfsrequest {
+			wg.Add(1)
 			// In the background do...
 			go func() {
 				// A send of a `FSEditListRequest` RPC with the notification
 				(keybase1.NotifyFSRequestClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
 				}).FSEditListRequest(ctx, arg)
+				wg.Done()
 			}()
 		}
 		return true
 	})
+
+	wg.Wait()
+
 	if n.listener != nil {
 		n.listener.FSEditListRequest(arg)
 	}
@@ -355,7 +373,7 @@ func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
 				// A send of a `FavoritesChanged` RPC with the user's UID
 				(keybase1.NotifyFavoritesClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).FavoritesChanged(context.TODO(), uid)
+				}).FavoritesChanged(context.Background(), uid)
 			}()
 		}
 		return true
@@ -371,11 +389,15 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 		return
 	}
 
+	var wg sync.WaitGroup
+
 	n.G().Log.Debug("+ Sending NewChatActivity notfication")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Chat` notification type
 		if n.getNotificationChannels(id).Chat {
+
+			wg.Add(1)
 			// In the background do...
 			go func() {
 				// A send of a `NewChatActivity` RPC with the user's UID
@@ -385,10 +407,12 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 					Uid:      uid,
 					Activity: *activity,
 				})
+				wg.Done()
 			}()
 		}
 		return true
 	})
+	wg.Wait()
 	if n.listener != nil {
 		n.listener.NewChatActivity(uid, *activity)
 	}
@@ -408,19 +432,24 @@ func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KI
 		EncKID: encKID,
 		SigKID: sigKID,
 	}
+	var wg sync.WaitGroup
+
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Favorites` notification type
 		if n.getNotificationChannels(id).Paperkeys {
+			wg.Add(1)
 			// In the background do...
 			go func() {
 				(keybase1.NotifyPaperKeyClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).PaperKeyCached(context.TODO(), arg)
+				}).PaperKeyCached(context.Background(), arg)
+				wg.Done()
 			}()
 		}
 		return true
 	})
+	wg.Wait()
 	if n.listener != nil {
 		n.listener.PaperKeyCached(uid, encKID, sigKID)
 	}
@@ -442,7 +471,7 @@ func (n *NotifyRouter) HandleKeyfamilyChanged(uid keybase1.UID) {
 			go func() {
 				(keybase1.NotifyKeyfamilyClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).KeyfamilyChanged(context.TODO(), uid)
+				}).KeyfamilyChanged(context.Background(), uid)
 			}()
 		}
 		return true
@@ -472,7 +501,7 @@ func (n *NotifyRouter) HandleServiceShutdown() {
 			go func() {
 				(keybase1.NotifyServiceClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).Shutdown(context.TODO())
+				}).Shutdown(context.Background())
 				wg.Done()
 			}()
 		}
@@ -506,7 +535,7 @@ func (n *NotifyRouter) HandleAppExit() {
 			go func() {
 				(keybase1.NotifyAppClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).Exit(context.TODO())
+				}).Exit(context.Background())
 			}()
 		}
 		return true
@@ -523,7 +552,7 @@ func (n *NotifyRouter) HandlePGPKeyInSecretStoreFile() {
 			go func() {
 				(keybase1.NotifyPGPClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
-				}).PGPKeyInSecretStoreFile(context.TODO())
+				}).PGPKeyInSecretStoreFile(context.Background())
 			}()
 		}
 		return true
