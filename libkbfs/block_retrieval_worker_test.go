@@ -37,7 +37,7 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	ch1 := bg.setBlockToReturn(ptr1, block1)
 
 	block := &FileBlock{}
-	ch := q.Request(context.Background(), 1, ptr1, block)
+	ch := q.Request(context.Background(), 1, nil, ptr1, block)
 	ch1 <- struct{}{}
 	err := <-ch
 	require.NoError(t, err)
@@ -63,8 +63,8 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 
 	t.Log("Make 2 requests for 2 different blocks")
 	block := &FileBlock{}
-	req1Ch := q.Request(context.Background(), 1, ptr1, block)
-	req2Ch := q.Request(context.Background(), 1, ptr2, block)
+	req1Ch := q.Request(context.Background(), 1, nil, ptr1, block)
+	req2Ch := q.Request(context.Background(), 1, nil, ptr2, block)
 
 	t.Log("Allow the second request to complete before the first")
 	ch2 <- struct{}{}
@@ -73,7 +73,7 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	require.Equal(t, block2, block)
 
 	t.Log("Make another request for ptr2")
-	req2Ch = q.Request(context.Background(), 1, ptr2, block)
+	req2Ch = q.Request(context.Background(), 1, nil, ptr2, block)
 	ch2 <- struct{}{}
 	err = <-req2Ch
 	require.NoError(t, err)
@@ -106,13 +106,13 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	block := &FileBlock{}
 	testBlock1 := &FileBlock{}
 	testBlock2 := &FileBlock{}
-	req1Ch := q.Request(context.Background(), 1, ptr1, block)
-	req2Ch := q.Request(context.Background(), 1, ptr2, block)
-	req3Ch := q.Request(context.Background(), 1, ptr3, testBlock1)
+	req1Ch := q.Request(context.Background(), 1, nil, ptr1, block)
+	req2Ch := q.Request(context.Background(), 1, nil, ptr2, block)
+	req3Ch := q.Request(context.Background(), 1, nil, ptr3, testBlock1)
 	// Ensure the worker picks up the request
 	time.Sleep(50 * time.Millisecond)
 	t.Log("Make a high priority request for the third block, which should complete next.")
-	req4Ch := q.Request(context.Background(), 2, ptr3, testBlock2)
+	req4Ch := q.Request(context.Background(), 2, nil, ptr3, testBlock2)
 
 	t.Log("Allow the ptr1 retrieval to complete.")
 	ch1 <- struct{}{}
@@ -153,7 +153,7 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	block := &FileBlock{}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	ch := q.Request(ctx, 1, ptr1, block)
+	ch := q.Request(ctx, 1, nil, ptr1, block)
 	err := <-ch
 	require.EqualError(t, err, context.Canceled.Error())
 }
@@ -174,7 +174,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 
 	w.Shutdown()
 	block := &FileBlock{}
-	ch := q.Request(context.Background(), 1, ptr1, block)
+	ch := q.Request(context.Background(), 1, nil, ptr1, block)
 	shutdown := false
 	select {
 	case <-ch:
