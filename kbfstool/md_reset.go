@@ -89,10 +89,47 @@ outer:
 	fmt.Printf("Got error %s when getting root block %s, so revision %d is broken. Making successor...\n",
 		err, rootPtr, irmd.Revision())
 
-	_, err = irmd.MakeSuccessor(config.Codec(), irmd.MdID(), true)
+	rmdNext, err := irmd.MakeSuccessor(config.Codec(), irmd.MdID(), true)
 	if err != nil {
 		return err
 	}
+
+	newDblock := &libkbfs.DirBlock{
+		Children: make(map[string]libkbfs.DirEntry),
+	}
+	id, plainSize, readyBlockData, err :=
+		config.BlockOps().Ready(ctx, rmdNext, newDblock)
+	if err != nil {
+		return err
+	}
+	ptr := libkbfs.BlockPointer{
+		ID:      id,
+		KeyGen:  rmdNext.LatestKeyGeneration(),
+		DataVer: newDblock.DataVersion(),
+		BlockContext: libkbfs.BlockContext{
+			Creator:  uid,
+			RefNonce: libkbfs.ZeroBlockRefNonce,
+		},
+	}
+
+	now := config.Clock().Now().UnixNano()
+	pmd := rmdNext.Data()
+	pmd.Dir = libkbfs.DirEntry{
+		BlockInfo: libkbfs.BlockInfo{
+			BlockPointer: ptr,
+			EncodedSize:  uint32(readyBlockData.GetEncodedSize()),
+		},
+		EntryInfo: libkbfs.EntryInfo{
+			Type:  libkbfs.Dir,
+			Size:  uint64(plainSize),
+			Mtime: now,
+			Ctime: now,
+		},
+	}
+	co := libkbfs.NewCreateOpForRootDir()
+	rmdNext.AddOp(co)
+	rmdNext.AddRefBlock(pmd.Dir.BlockInfo)
+	rmdNext.SetUnrefBytes(0)
 
 	panic("not implemented")
 

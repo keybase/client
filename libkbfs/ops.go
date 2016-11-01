@@ -282,7 +282,7 @@ func newCreateOp(name string, oldDir BlockPointer, t EntryType) (*createOp, erro
 	return co, nil
 }
 
-func newCreateOpForRootDir() *createOp {
+func NewCreateOpForRootDir() *createOp {
 	return &createOp{
 		Type: Dir,
 	}

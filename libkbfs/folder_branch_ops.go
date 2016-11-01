@@ -1182,7 +1182,7 @@ func (fbo *folderBranchOps) initMDLocked(
 			Ctime: now,
 		},
 	}
-	co := newCreateOpForRootDir()
+	co := NewCreateOpForRootDir()
 	md.AddOp(co)
 	md.AddRefBlock(md.data.Dir.BlockInfo)
 	md.SetUnrefBytes(0)
