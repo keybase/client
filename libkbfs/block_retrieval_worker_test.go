@@ -32,10 +32,11 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 
 	ptr1 := makeFakeBlockPointer(t)
 	block1 := makeFakeFileBlock(t)
-	bg.setBlockToReturn(ptr1, block1)
+	ch1 := bg.setBlockToReturn(ptr1, block1)
 
 	block := &FileBlock{}
 	ch := q.Request(context.Background(), 1, ptr1, block)
+	ch1 <- struct{}{}
 	err := <-ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)

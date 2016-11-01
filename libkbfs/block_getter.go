@@ -74,31 +74,43 @@ func (bg *realBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 // Mocked test types
 //
 
+type blockReturner struct {
+	val reflect.Value
+	ch  chan struct{}
+}
+
 type fakeBlockGetter struct {
 	mtx      sync.RWMutex
-	blockMap map[BlockPointer]reflect.Value
+	blockMap map[BlockPointer]blockReturner
 }
 
 func newFakeBlockGetter() *fakeBlockGetter {
 	return &fakeBlockGetter{
-		blockMap: make(map[BlockPointer]reflect.Value),
+		blockMap: make(map[BlockPointer]blockReturner),
 	}
 }
 
-func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) {
+func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) chan<- struct{} {
 	bg.mtx.Lock()
 	defer bg.mtx.Unlock()
-	bg.blockMap[blockPtr] = reflect.ValueOf(block).Elem()
+	ch := make(chan struct{})
+	bg.blockMap[blockPtr] = blockReturner{
+		val: reflect.ValueOf(block).Elem(),
+		ch:  ch,
+	}
+	return ch
 }
 
 func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block) error {
 	bg.mtx.RLock()
 	defer bg.mtx.RUnlock()
-	sourceVal, ok := bg.blockMap[blockPtr]
+	source, ok := bg.blockMap[blockPtr]
 	if !ok {
 		return errors.New("Block doesn't exist in fake block map")
 	}
+	// Wait until the caller tells us to continue
+	<-source.ch
 	destVal := reflect.ValueOf(block).Elem()
-	destVal.Set(sourceVal)
+	destVal.Set(source.val)
 	return nil
 }

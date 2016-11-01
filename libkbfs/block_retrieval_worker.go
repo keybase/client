@@ -16,13 +16,24 @@ type blockRetrievalWorker struct {
 	queue  *blockRetrievalQueue
 }
 
+func (brw *blockRetrievalWorker) run() {
+	for {
+		select {
+		case <-brw.stopCh:
+			return
+		default:
+			brw.HandleRequest()
+		}
+	}
+}
+
 func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue) *blockRetrievalWorker {
 	brw := &blockRetrievalWorker{
 		blockGetter: bg,
 		stopCh:      make(chan struct{}),
 		queue:       q,
 	}
-	go brw.Run()
+	go brw.run()
 	return brw
 }
 
@@ -45,6 +56,8 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	defer brw.finalizeRetrieval(retrieval, block, err)
 
 	// Pick one of the still-active contexts to use
+	// FIXME: this will be racy because retrieval.requests can mutate until
+	// brw.queue.FinalizeRequest is called
 	var ctx context.Context
 	canceled := true
 	for _, req := range retrieval.requests {
@@ -61,17 +74,6 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	}
 
 	return brw.getBlock(ctx, retrieval.kmd, retrieval.blockPtr, block)
-}
-
-func (brw *blockRetrievalWorker) Run() {
-	for {
-		select {
-		case <-brw.stopCh:
-			return
-		default:
-			brw.HandleRequest()
-		}
-	}
 }
 
 func (brw *blockRetrievalWorker) Shutdown() {
