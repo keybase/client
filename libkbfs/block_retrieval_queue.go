@@ -13,6 +13,7 @@ import (
 
 const (
 	defaultBlockRetrievalWorkerQueueSize int = 100
+	defaultOnDemandRequestPriority       int = 100
 )
 
 // blockRetrievalRequest represents one consumer's request for a block.
@@ -84,7 +85,7 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 }
 
 // Request submits a block request to the queue.
-func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, ptr BlockPointer, block Block) <-chan error {
+func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block) <-chan error {
 	brq.mtx.Lock()
 	defer brq.mtx.Unlock()
 	var br *blockRetrieval
@@ -93,6 +94,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, ptr B
 		// Add to the heap
 		br = &blockRetrieval{
 			blockPtr:       ptr,
+			kmd:            kmd,
 			index:          -1,
 			priority:       priority,
 			insertionOrder: brq.insertionCount,
