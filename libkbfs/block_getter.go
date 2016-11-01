@@ -13,14 +13,17 @@ import (
 	"golang.org/x/net/context"
 )
 
+// blockGetter provides the API for the block retrieval worker to obtain blocks.
 type blockGetter interface {
 	getBlock(context.Context, KeyMetadata, BlockPointer, Block) error
 }
 
+// realBlockGetter obtains real blocks using the APIs available in Config.
 type realBlockGetter struct {
 	config Config
 }
 
+// getBlock implements the interface for realBlockGetter.
 func (bg *realBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block) error {
 	bserv := bg.config.BlockServer()
 	buf, blockServerHalf, err := bserv.Get(
@@ -74,22 +77,29 @@ func (bg *realBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 // Mocked test types
 //
 
+// blockReturner contains a block value to copy into requested blocks, and a
+// channel to synchronize on with the worker.
 type blockReturner struct {
 	val reflect.Value
 	ch  chan struct{}
 }
 
+// fakeBlockGetter allows specifying and obtaining fake blocks.
 type fakeBlockGetter struct {
 	mtx      sync.RWMutex
 	blockMap map[BlockPointer]blockReturner
 }
 
+// newFakeBlockGetter returns a fakeBlockGetter.
 func newFakeBlockGetter() *fakeBlockGetter {
 	return &fakeBlockGetter{
 		blockMap: make(map[BlockPointer]blockReturner),
 	}
 }
 
+// setBlockToReturn sets the block that will be returned for a given
+// BlockPointer. Returns a writeable channel that getBlock will wait on, to
+// allow test synchronization.
 func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) chan<- struct{} {
 	bg.mtx.Lock()
 	defer bg.mtx.Unlock()
@@ -101,6 +111,7 @@ func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) 
 	return ch
 }
 
+// getBlock implements the interface for realBlockGetter.
 func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block) error {
 	bg.mtx.RLock()
 	defer bg.mtx.RUnlock()
