@@ -17,11 +17,13 @@ type blockRetrievalWorker struct {
 }
 
 func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue) *blockRetrievalWorker {
-	return &blockRetrievalWorker{
+	brw := &blockRetrievalWorker{
 		blockGetter: bg,
 		stopCh:      make(chan struct{}),
 		queue:       q,
 	}
+	go brw.Run()
+	return brw
 }
 
 func (brw *blockRetrievalWorker) finalizeRetrieval(retrieval *blockRetrieval, block Block, err error) {
