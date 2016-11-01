@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -120,7 +121,7 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 
 	case "keybase.1.user.loadAllPublicKeysUnverified":
 		pk := keybase1.PublicKey{
-			KID: MakeFakeVerifyingKeyOrBust("foo").KID(),
+			KID: kbfscrypto.MakeFakeVerifyingKeyOrBust("foo").KID(),
 		}
 		*res.(*[]keybase1.PublicKey) = []keybase1.PublicKey{pk}
 
@@ -222,7 +223,7 @@ func testLoadUnverifiedKeys(
 	require.NoError(t, err)
 
 	assert.Equal(t, 1, len(keys))
-	assert.Equal(t, keys[0].KID, MakeFakeVerifyingKeyOrBust("foo").KID())
+	assert.Equal(t, keys[0].KID, kbfscrypto.MakeFakeVerifyingKeyOrBust("foo").KID())
 	assert.Equal(t, expectedCalled, client.loadAllPublicKeysUnverified)
 }
 

@@ -14,11 +14,10 @@ func getKeyBundlesForTesting(t *testing.T, c Config, tlf byte, handleStr string)
 	TlfID, TLFWriterKeyBundleID, *TLFWriterKeyBundleV3, TLFReaderKeyBundleID, *TLFReaderKeyBundleV3) {
 	tlfID := FakeTlfID(tlf, false)
 	h := parseTlfHandleOrBust(t, c, handleStr, false)
-	rmd := newRootMetadataV3OrBust(t, tlfID, h)
-	err := rmd.FakeInitialRekey(c.Crypto(), h.ToBareHandleOrBust())
-	if err != nil {
-		t.Fatal(err)
-	}
+	rmd, err := makeInitialRootMetadata(SegregatedKeyBundlesVer, tlfID, h)
+	require.NoError(t, err)
+	err = rmd.fakeInitialRekey(c.Crypto())
+	require.NoError(t, err)
 	wkbID := rmd.bareMd.GetTLFWriterKeyBundleID()
 	rkbID := rmd.bareMd.GetTLFReaderKeyBundleID()
 	wkb, rkb, ok := getKeyBundlesV3(rmd.extra)

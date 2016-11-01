@@ -970,7 +970,7 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 		if !ok {
 			return nil, MutableBareRootMetadataNoImplError{}
 		}
-		rmd := MakeRootMetadata(brmd, ibrmd.extra, handle)
+		rmd := makeRootMetadata(brmd, ibrmd.extra, handle)
 
 		pmd, err := decryptMDPrivateData(
 			ctx, j.config.Codec(), j.config.Crypto(),

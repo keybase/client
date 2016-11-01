@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -142,32 +144,38 @@ func testCRCheckOps(t *testing.T, cc *crChains, original BlockPointer,
 	}
 }
 
-func testCRChainsFillInWriter(t *testing.T, rmds []*RootMetadata) (
-	Config, []chainMetadata) {
-	config := MakeTestConfigOrBust(t, "u1")
-	kbpki := config.KBPKI()
+func newChainMDForTest(t *testing.T) rootMetadataWithKeyAndTimestamp {
+	tlfID := FakeTlfID(1, false)
+
+	uid := keybase1.MakeTestUID(1)
+	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	require.NoError(t, err)
+
+	nug := testNormalizedUsernameGetter{
+		uid: "fake_user",
+	}
+
 	ctx := context.Background()
-	_, uid, err := kbpki.GetCurrentUserInfo(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get UID: %v", err)
+	h, err := MakeTlfHandle(ctx, bh, nug)
+	require.NoError(t, err)
+
+	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
+	require.NoError(t, err)
+	rmd.SetLastModifyingWriter(uid)
+	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("fake key")
+	return rootMetadataWithKeyAndTimestamp{
+		rmd, key, time.Unix(0, 0),
 	}
-	key, err := kbpki.GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		t.Fatalf("Couldn't get verifying key: %v", err)
-	}
-	chainMDs := make([]chainMetadata, len(rmds))
-	for i, rmd := range rmds {
-		rmd.SetLastModifyingWriter(uid)
-		rmd.SetTlfID(FakeTlfID(1, false))
-		chainMDs[i] = rootMetadataWithKeyAndTimestamp{
-			rmd, key, time.Unix(0, 0),
-		}
-	}
-	return config, chainMDs
+}
+
+func makeChainCodec() kbfscodec.Codec {
+	codec := kbfscodec.NewMsgpack()
+	RegisterOps(codec)
+	return codec
 }
 
 func TestCRChainsSingleOp(t *testing.T) {
-	rmd := NewRootMetadata()
+	chainMD := newChainMDForTest(t)
 
 	currPtr, ptrs, revPtrs := testCRInitPtrs(3)
 	rootPtrUnref := ptrs[0]
@@ -179,14 +187,12 @@ func TestCRChainsSingleOp(t *testing.T) {
 	require.NoError(t, err)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{rootPtrUnref, dir1Unref, dir2Unref}, co)
-	rmd.AddOp(co)
-	rmd.data.Dir.BlockPointer = expected[rootPtrUnref]
+	chainMD.AddOp(co)
+	chainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
 
-	rmds := []*RootMetadata{rmd}
-	config, chainMDs := testCRChainsFillInWriter(t, rmds)
-	defer config.Shutdown()
+	chainMDs := []chainMetadata{chainMD}
 	cc, err := newCRChains(
-		context.Background(), config, chainMDs, nil, true)
+		context.Background(), makeChainCodec(), chainMDs, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -198,7 +204,7 @@ func TestCRChainsSingleOp(t *testing.T) {
 }
 
 func TestCRChainsRenameOp(t *testing.T) {
-	rmd := NewRootMetadata()
+	chainMD := newChainMDForTest(t)
 
 	currPtr, ptrs, revPtrs := testCRInitPtrs(3)
 	rootPtrUnref := ptrs[0]
@@ -215,14 +221,12 @@ func TestCRChainsRenameOp(t *testing.T) {
 	expectedRenames[filePtr] = renameInfo{dir1Unref, "old", dir2Unref, "new"}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{rootPtrUnref, dir1Unref, dir2Unref}, ro)
-	rmd.AddOp(ro)
-	rmd.data.Dir.BlockPointer = expected[rootPtrUnref]
+	chainMD.AddOp(ro)
+	chainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
 
-	rmds := []*RootMetadata{rmd}
-	config, chainMDs := testCRChainsFillInWriter(t, rmds)
-	defer config.Shutdown()
+	chainMDs := []chainMetadata{chainMD}
 	cc, err := newCRChains(
-		context.Background(), config, chainMDs, nil, true)
+		context.Background(), makeChainCodec(), chainMDs, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -263,8 +267,8 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 	expected := make(map[BlockPointer]BlockPointer)
 	expectedRenames := make(map[BlockPointer]renameInfo)
 
-	bigRmd := NewRootMetadata()
-	var multiRmds []*RootMetadata
+	bigChainMD := newChainMDForTest(t)
+	var multiChainMDs []chainMetadata
 
 	// setex root/dir3/file2
 	op1, err := newSetAttrOp(f2, dir3Unref, exAttr, file2Ptr)
@@ -272,22 +276,22 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{rootPtrUnref, dir3Unref}, op1)
 	expected[file2Ptr] = file2Ptr // no update to the file ptr
-	bigRmd.AddOp(op1)
-	newRmd := NewRootMetadata()
-	newRmd.AddOp(op1)
-	newRmd.data.Dir.BlockPointer = expected[rootPtrUnref]
-	multiRmds = append(multiRmds, newRmd)
+	bigChainMD.AddOp(op1)
+	newChainMD := newChainMDForTest(t)
+	newChainMD.AddOp(op1)
+	newChainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
+	multiChainMDs = append(multiChainMDs, newChainMD)
 
 	// createfile root/dir1/file3
 	op2, err := newCreateOp(f3, dir1Unref, File)
 	require.NoError(t, err)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], dir1Unref}, op2)
-	bigRmd.AddOp(op2)
-	newRmd = NewRootMetadata()
-	newRmd.AddOp(op2)
-	newRmd.data.Dir.BlockPointer = expected[rootPtrUnref]
-	multiRmds = append(multiRmds, newRmd)
+	bigChainMD.AddOp(op2)
+	newChainMD = newChainMDForTest(t)
+	newChainMD.AddOp(op2)
+	newChainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
+	multiChainMDs = append(multiChainMDs, newChainMD)
 
 	// rename root/dir3/file2 root/dir1/file4
 	op3, err := newRenameOp(f2, expected[dir3Unref], f4,
@@ -297,11 +301,11 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref],
 			expected[dir3Unref]}, op3)
-	bigRmd.AddOp(op3)
-	newRmd = NewRootMetadata()
-	newRmd.AddOp(op3)
-	newRmd.data.Dir.BlockPointer = expected[rootPtrUnref]
-	multiRmds = append(multiRmds, newRmd)
+	bigChainMD.AddOp(op3)
+	newChainMD = newChainMDForTest(t)
+	newChainMD.AddOp(op3)
+	newChainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
+	multiChainMDs = append(multiChainMDs, newChainMD)
 
 	// write root/dir1/file4
 	op4, err := newSyncOp(file4Unref)
@@ -309,11 +313,11 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref], file4Unref},
 		op4)
-	bigRmd.AddOp(op4)
-	newRmd = NewRootMetadata()
-	newRmd.AddOp(op4)
-	newRmd.data.Dir.BlockPointer = expected[rootPtrUnref]
-	multiRmds = append(multiRmds, newRmd)
+	bigChainMD.AddOp(op4)
+	newChainMD = newChainMDForTest(t)
+	newChainMD.AddOp(op4)
+	newChainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
+	multiChainMDs = append(multiChainMDs, newChainMD)
 
 	// rm root/dir1/dir2/file1
 	op5, err := newRmOp(f1, dir2Unref)
@@ -321,20 +325,18 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref], dir2Unref},
 		op5)
-	bigRmd.AddOp(op5)
-	newRmd = NewRootMetadata()
-	newRmd.AddOp(op5)
-	newRmd.data.Dir.BlockPointer = expected[rootPtrUnref]
-	multiRmds = append(multiRmds, newRmd)
+	bigChainMD.AddOp(op5)
+	newChainMD = newChainMDForTest(t)
+	newChainMD.AddOp(op5)
+	newChainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
+	multiChainMDs = append(multiChainMDs, newChainMD)
 
-	bigRmd.data.Dir.BlockPointer = expected[rootPtrUnref]
-	rmds := []*RootMetadata{bigRmd}
-	config, chainMDs := testCRChainsFillInWriter(t, rmds)
-	defer config.Shutdown()
+	bigChainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
+	chainMDs := []chainMetadata{bigChainMD}
 	cc, err := newCRChains(
-		context.Background(), config, chainMDs, nil, true)
+		context.Background(), makeChainCodec(), chainMDs, nil, true)
 	if err != nil {
-		t.Fatalf("Error making chains for big RMD: %v", err)
+		t.Fatalf("Error making chains for big chainMD: %v", err)
 	}
 	checkExpectedChains(t, expected, expectedRenames, rootPtrUnref, cc, true)
 
@@ -362,26 +364,24 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 	testCRCheckOps(t, cc, file4Unref, []op{op4})
 
 	// now make sure the chain of MDs gets the same answers
-	config, multiIrmds := testCRChainsFillInWriter(t, multiRmds)
-	defer config.Shutdown()
 	mcc, err := newCRChains(
-		context.Background(), config, multiIrmds, nil, true)
+		context.Background(), makeChainCodec(), multiChainMDs, nil, true)
 	if err != nil {
-		t.Fatalf("Error making chains for multi RMDs: %v", err)
+		t.Fatalf("Error making chains for multi chainMDs: %v", err)
 	}
 	if !reflect.DeepEqual(cc.byOriginal, mcc.byOriginal) {
-		t.Fatalf("Heads for multi RMDs does not match original for big RMD: %v",
+		t.Fatalf("Heads for multi chainMDs does not match original for big chainMD: %v",
 			mcc.byOriginal)
 	}
 	if !reflect.DeepEqual(cc.byMostRecent, mcc.byMostRecent) {
-		t.Fatalf("Tails for multi RMDs does not match most recents for "+
-			"big RMD: %v", mcc.byMostRecent)
+		t.Fatalf("Tails for multi chainMDs does not match most recents for "+
+			"big chainMD: %v", mcc.byMostRecent)
 	}
 	if mcc.originalRoot != rootPtrUnref {
-		t.Fatalf("Root pointer incorrect for multi RMDs, %v vs %v",
+		t.Fatalf("Root pointer incorrect for multi chainMDs, %v vs %v",
 			mcc.originalRoot, rootPtrUnref)
 	}
-	return multiIrmds, file4Unref
+	return multiChainMDs, file4Unref
 }
 
 // Test multiple operations, both in one MD and across multiple MDs
@@ -420,14 +420,14 @@ func TestCRChainsCollapse(t *testing.T) {
 	expected := make(map[BlockPointer]BlockPointer)
 	expectedRenames := make(map[BlockPointer]renameInfo)
 
-	rmd := NewRootMetadata()
+	chainMD := newChainMDForTest(t)
 
 	// createfile root/dir1/file2
 	op1, err := newCreateOp(f2, dir1Unref, File)
 	require.NoError(t, err)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{rootPtrUnref, dir1Unref}, op1)
-	rmd.AddOp(op1)
+	chainMD.AddOp(op1)
 
 	// setex root/dir2/file1
 	op2, err := newSetAttrOp(f1, dir2Unref, exAttr, file1Ptr)
@@ -435,28 +435,28 @@ func TestCRChainsCollapse(t *testing.T) {
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], dir2Unref}, op2)
 	expected[file1Ptr] = file1Ptr
-	rmd.AddOp(op2)
+	chainMD.AddOp(op2)
 
 	// createfile root/dir1/file3
 	op3, err := newCreateOp(f3, expected[dir1Unref], File)
 	require.NoError(t, err)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op3)
-	rmd.AddOp(op3)
+	chainMD.AddOp(op3)
 
 	// createfile root/dir1/file4
 	op4, err := newCreateOp(f4, expected[dir1Unref], File)
 	require.NoError(t, err)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op4)
-	rmd.AddOp(op4)
+	chainMD.AddOp(op4)
 
 	// rm root/dir1/file2
 	op5, err := newRmOp(f2, expected[dir1Unref])
 	require.NoError(t, err)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op5)
-	rmd.AddOp(op5)
+	chainMD.AddOp(op5)
 
 	// rename root/dir2/file1 root/dir1/file3
 	op6, err := newRenameOp(f1, expected[dir2Unref], f3, expected[dir1Unref],
@@ -466,14 +466,14 @@ func TestCRChainsCollapse(t *testing.T) {
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref],
 			expected[dir2Unref]}, op6)
-	rmd.AddOp(op6)
+	chainMD.AddOp(op6)
 
 	// rm root/dir1/file3
 	op7, err := newRmOp(f3, expected[dir1Unref])
 	require.NoError(t, err)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op7)
-	rmd.AddOp(op7)
+	chainMD.AddOp(op7)
 
 	// rename root/dir1/file4 root/dir1/file5
 	op8, err := newRenameOp(f4, expected[dir1Unref], f5, expected[dir1Unref],
@@ -481,7 +481,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	require.NoError(t, err)
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op8)
-	rmd.AddOp(op8)
+	chainMD.AddOp(op8)
 
 	// rename root/dir1/file5 root/dir1/file3
 	op9, err := newRenameOp(f5, expected[dir1Unref], f3, expected[dir1Unref],
@@ -491,14 +491,12 @@ func TestCRChainsCollapse(t *testing.T) {
 	expectedRenames[file4Ptr] = renameInfo{dir1Unref, f4, dir1Unref, f3}
 	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op9)
-	rmd.AddOp(op9)
+	chainMD.AddOp(op9)
 
-	rmd.data.Dir.BlockPointer = expected[rootPtrUnref]
-	rmds := []*RootMetadata{rmd}
-	config, chainMDs := testCRChainsFillInWriter(t, rmds)
-	defer config.Shutdown()
+	chainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
+	chainMDs := []chainMetadata{chainMD}
 	cc, err := newCRChains(
-		context.Background(), config, chainMDs, nil, true)
+		context.Background(), makeChainCodec(), chainMDs, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -531,10 +529,8 @@ func TestCRChainsRemove(t *testing.T) {
 			MetadataRevision(i))
 	}
 
-	config := MakeTestConfigOrBust(t, "u1")
-	defer config.Shutdown()
 	ccs, err := newCRChains(
-		context.Background(), config, chainMDs, nil, true)
+		context.Background(), makeChainCodec(), chainMDs, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}

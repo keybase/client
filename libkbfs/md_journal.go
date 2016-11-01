@@ -568,7 +568,7 @@ func (j mdJournal) checkGetParams() (ImmutableBareRootMetadata, error) {
 }
 
 func (j *mdJournal) convertToBranch(
-	ctx context.Context, signer cryptoSigner, codec kbfscodec.Codec,
+	ctx context.Context, signer kbfscrypto.Signer, codec kbfscodec.Codec,
 	tlfID TlfID, mdcache MDCache) (bid BranchID, err error) {
 	if j.branchID != NullBranchID {
 		return NullBranchID, fmt.Errorf(
@@ -748,7 +748,7 @@ func (j *mdJournal) convertToBranch(
 // no next journal entry to flush, the returned MdID will be zero, and
 // the returned *RootMetadataSigned will be nil.
 func (j mdJournal) getNextEntryToFlush(
-	ctx context.Context, end MetadataRevision, signer cryptoSigner) (
+	ctx context.Context, end MetadataRevision, signer kbfscrypto.Signer) (
 	MdID, *RootMetadataSigned, ExtraMetadata, error) {
 	mdID, rmd, extra, timestamp, err := j.getEarliestWithExtra(true)
 	if err != nil {
@@ -758,7 +758,8 @@ func (j mdJournal) getNextEntryToFlush(
 		return MdID{}, nil, nil, nil
 	}
 
-	rmds, err := signMD(ctx, j.codec, signer, rmd, timestamp)
+	rmds, err := SignBareRootMetadata(
+		ctx, j.codec, signer, signer, rmd, timestamp)
 	if err != nil {
 		return MdID{}, nil, nil, err
 	}
@@ -929,7 +930,7 @@ func (e MDJournalConflictError) Error() string {
 // assumed to be correct, i.e. retrieved from the remote MDServer, and
 // rmd becomes the initial entry.
 func (j *mdJournal) put(
-	ctx context.Context, signer cryptoSigner,
+	ctx context.Context, signer kbfscrypto.Signer,
 	ekg encryptionKeyGetter, bsplit BlockSplitter, rmd *RootMetadata) (
 	mdID MdID, err error) {
 	j.log.CDebugf(ctx, "Putting MD for TLF=%s with rev=%s bid=%s",
@@ -1183,7 +1184,7 @@ func (j *mdJournal) clear(
 }
 
 func (j *mdJournal) resolveAndClear(
-	ctx context.Context, signer cryptoSigner, ekg encryptionKeyGetter,
+	ctx context.Context, signer kbfscrypto.Signer, ekg encryptionKeyGetter,
 	bsplit BlockSplitter, bid BranchID, rmd *RootMetadata) (
 	mdID MdID, err error) {
 	j.log.CDebugf(ctx, "Resolve and clear, branch %s, resolve rev %d",

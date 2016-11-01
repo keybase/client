@@ -49,7 +49,7 @@ func (j journalMDOps) convertImmutableBareRMDToIRMD(ctx context.Context,
 		return ImmutableRootMetadata{}, MutableBareRootMetadataNoImplError{}
 	}
 
-	rmd := MakeRootMetadata(brmd, ibrmd.extra, handle)
+	rmd := makeRootMetadata(brmd, ibrmd.extra, handle)
 
 	config := j.jServer.config
 	pmd, err := decryptMDPrivateData(ctx, config.Codec(), config.Crypto(),

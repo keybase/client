@@ -40,7 +40,7 @@ func (c shimCrypto) Verify(
 }
 
 func injectShimCrypto(config Config) {
-	signingKey := MakeFakeSigningKeyOrBust("test key")
+	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("test key")
 	crypto := shimCrypto{
 		config.Crypto(),
 		MakeCryptoCommon(kbfscodec.NewMsgpack()),
@@ -76,64 +76,43 @@ func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	mockCtrl.Finish()
 }
 
-func addFakeBRMDData(t *testing.T,
-	codec kbfscodec.Codec, crypto cryptoPure, brmd *BareRootMetadataV2,
-	h *TlfHandle) ExtraMetadata {
-	brmd.SetRevision(MetadataRevision(1))
+func addFakeRMDData(t *testing.T,
+	codec kbfscodec.Codec, crypto cryptoPure, rmd *RootMetadata,
+	h *TlfHandle) {
+	rmd.SetRevision(MetadataRevision(1))
 	pmd := PrivateMetadata{}
 	// TODO: Will have to change this for private folders if we
 	// un-mock out those tests.
 	buf, err := codec.Encode(pmd)
 	require.NoError(t, err)
-	brmd.SetSerializedPrivateMetadata(buf)
-	brmd.SetLastModifyingWriter(h.FirstResolvedWriter())
-	brmd.SetLastModifyingUser(h.FirstResolvedWriter())
-	var extra ExtraMetadata
+	rmd.SetSerializedPrivateMetadata(buf)
+	rmd.SetLastModifyingWriter(h.FirstResolvedWriter())
+	rmd.SetLastModifyingUser(h.FirstResolvedWriter())
 	if !h.IsPublic() {
-		extra, err = brmd.FakeInitialRekey(crypto, h.ToBareHandleOrBust())
+		err = rmd.fakeInitialRekey(crypto)
 		require.NoError(t, err)
 	}
-	return extra
 }
-
-func newRMD(t *testing.T, config Config, public bool) (
-	*RootMetadata, *TlfHandle) {
-	id := FakeTlfID(1, public)
-
-	h := parseTlfHandleOrBust(t, config, "alice,bob", public)
-	var brmd BareRootMetadataV2
-	err := brmd.Update(id, h.ToBareHandleOrBust())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	extra := addFakeBRMDData(t, config.Codec(), config.Crypto(), &brmd, h)
-
-	return &RootMetadata{
-		bareMd: &brmd,
-		extra:  extra,
-	}, h
-}
-
-// TODO: Add test coverage for MDv3.
 
 func newRMDS(t *testing.T, config Config, h *TlfHandle) (
 	*RootMetadataSigned, ExtraMetadata) {
 	id := FakeTlfID(1, h.IsPublic())
 
-	var brmd BareRootMetadataV2
-	err := brmd.Update(id, h.ToBareHandleOrBust())
+	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, id, h)
 	require.NoError(t, err)
-	extra := addFakeBRMDData(t, config.Codec(), config.Crypto(), &brmd, h)
+
+	addFakeRMDData(t, config.Codec(), config.Crypto(), rmd, h)
 	ctx := context.Background()
 
 	// Encode and sign writer metadata.
-	err = brmd.SignWriterMetadataInternally(ctx, config.Codec(), config.Crypto())
+	err = rmd.bareMd.SignWriterMetadataInternally(ctx, config.Codec(), config.Crypto())
 	require.NoError(t, err)
 
-	rmds, err := signMD(ctx, config.Codec(), config.Crypto(), &brmd, (wallClock{}).Now())
+	rmds, err := SignBareRootMetadata(
+		ctx, config.Codec(), config.Crypto(), config.Crypto(),
+		rmd.bareMd, time.Now())
 	require.NoError(t, err)
-	return rmds, extra
+	return rmds, rmd.extra
 }
 
 func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
@@ -251,9 +230,7 @@ func TestMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T) {
 
 	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(),
 		"alice,bob@twitter", true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, hUnresolved.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil).Times(2)
 
@@ -300,9 +277,7 @@ func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
 
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), "alice,bob,charlie@twitter", true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds1, nil)
 
@@ -339,9 +314,7 @@ func TestMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T) {
 
 	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(),
 		"alice,bob@github,bob@twitter", true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
@@ -512,26 +485,30 @@ func makeRMDSRange(t *testing.T, config Config,
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice,bob", false)
 	for i := 0; i < count; i++ {
-		var brmd BareRootMetadataV2
-		err := brmd.Update(id, h.ToBareHandleOrBust())
-		require.NoError(t, err)
-		extra := addFakeBRMDData(t, config.Codec(), config.Crypto(), &brmd, h)
-		brmd.SetPrevRoot(prevID)
-		brmd.SetRevision(start + MetadataRevision(i))
+		rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, id, h)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		addFakeRMDData(t, config.Codec(), config.Crypto(), rmd, h)
+		rmd.SetPrevRoot(prevID)
+		rmd.SetRevision(start + MetadataRevision(i))
 
 		ctx := context.Background()
 
 		// Encode and sign writer metadata.
-		err = brmd.SignWriterMetadataInternally(ctx, config.Codec(), config.Crypto())
+		err = rmd.bareMd.SignWriterMetadataInternally(ctx, config.Codec(), config.Crypto())
 		require.NoError(t, err)
 
-		rmds, err := signMD(ctx, config.Codec(), config.Crypto(), &brmd, (wallClock{}).Now())
+		rmds, err := SignBareRootMetadata(
+			ctx, config.Codec(), config.Crypto(), config.Crypto(),
+			rmd.bareMd, time.Now())
 		require.NoError(t, err)
 		currID, err := config.Crypto().MakeMdID(rmds.MD)
 		require.NoError(t, err)
 		prevID = currID
 		rmdses = append(rmdses, rmds)
-		extras = append(extras, extra)
+		extras = append(extras, rmd.extra)
 	}
 	return rmdses, extras
 }
@@ -682,8 +659,7 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 	id := FakeTlfID(1, true)
 	h := parseTlfHandleOrBust(t, config, "alice,bob", true)
 
-	rmd := NewRootMetadata()
-	err := rmd.Update(id, h.ToBareHandleOrBust())
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 	rmd.data = makeFakePrivateMetadataFuture(t).toCurrent()
 	rmd.tlfHandle = h
@@ -701,7 +677,12 @@ func TestMDOpsPutPrivateSuccess(t *testing.T) {
 
 	config.SetCodec(kbfscodec.NewMsgpack())
 
-	rmd, _ := newRMD(t, config, false)
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", false)
+	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, id, h)
+	require.NoError(t, err)
+	addFakeRMDData(t, config.Codec(), config.Crypto(), rmd, h)
+
 	putMDForPrivate(config, rmd)
 
 	if _, err := config.MDOps().Put(ctx, rmd); err != nil {
@@ -724,7 +705,8 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice,bob", false)
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
 
 	expectGetTLFCryptKeyForEncryption(config, rmd)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
@@ -733,7 +715,7 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
 		Return(true)
 
-	err := errors.New("Fake fail")
+	err = errors.New("Fake fail")
 	config.SetCodec(failEncodeCodec{config.Codec(), err})
 
 	if _, err2 := config.MDOps().Put(ctx, rmd); err2 != err {

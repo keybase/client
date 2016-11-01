@@ -61,12 +61,8 @@ func teardownJournalMDOpsTest(t *testing.T, tempdir string, config Config) {
 func makeMDForJournalMDOpsTest(
 	t *testing.T, config Config, tlfID TlfID, h *TlfHandle,
 	revision MetadataRevision) *RootMetadata {
-	rmd := NewRootMetadata()
-	bh, err := h.ToBareHandle()
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
-	err = rmd.Update(tlfID, bh)
-	require.NoError(t, err)
-	rmd.tlfHandle = h
 	rmd.SetRevision(revision)
 	ctx := context.Background()
 	rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd, false)

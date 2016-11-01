@@ -12,43 +12,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-// CryptPrivateKeySecretSize is the size of a CryptPrivateKeySecret.
-const CryptPrivateKeySecretSize = libkb.NaclDHKeySecretSize
-
-// CryptPrivateKeySecret is a secret that can be used to construct a
-// CryptPrivateKey.
-type CryptPrivateKeySecret struct {
-	secret [CryptPrivateKeySecretSize]byte
-}
-
-// CryptPrivateKey is a private key for encryption/decryption.
-type CryptPrivateKey struct {
-	kp libkb.NaclDHKeyPair
-}
-
-// makeCryptPrivateKey makes a new Nacl encryption/decryption key from
-// the given secret.
-func makeCryptPrivateKey(secret CryptPrivateKeySecret) (CryptPrivateKey, error) {
-	kp, err := libkb.MakeNaclDHKeyPairFromSecret(secret.secret)
-	if err != nil {
-		return CryptPrivateKey{}, err
-	}
-
-	return CryptPrivateKey{kp}, nil
-}
-
-// GetPublicKey returns the public key corresponding to this private
-// key.
-func (k CryptPrivateKey) getPublicKey() kbfscrypto.CryptPublicKey {
-	return kbfscrypto.MakeCryptPublicKey(k.kp.Public.GetKID())
-}
-
 // CryptoLocal implements the Crypto interface by using a local
 // signing key and a local crypt private key.
 type CryptoLocal struct {
 	CryptoCommon
 	kbfscrypto.SigningKeySigner
-	cryptPrivateKey CryptPrivateKey
+	cryptPrivateKey kbfscrypto.CryptPrivateKey
 }
 
 var _ Crypto = CryptoLocal{}
@@ -57,7 +26,7 @@ var _ Crypto = CryptoLocal{}
 // signing key.
 func NewCryptoLocal(codec kbfscodec.Codec,
 	signingKey kbfscrypto.SigningKey,
-	cryptPrivateKey CryptPrivateKey) CryptoLocal {
+	cryptPrivateKey kbfscrypto.CryptPrivateKey) CryptoLocal {
 	return CryptoLocal{
 		MakeCryptoCommon(codec),
 		kbfscrypto.SigningKeySigner{Key: signingKey},
@@ -101,7 +70,9 @@ func (c CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	}
 
 	publicKeyData := publicKey.Data()
-	decryptedData, ok := box.Open(nil, encryptedClientHalf.EncryptedData, &nonce, &publicKeyData, (*[32]byte)(c.cryptPrivateKey.kp.Private))
+	privateKeyData := c.cryptPrivateKey.Data()
+	decryptedData, ok := box.Open(nil, encryptedClientHalf.EncryptedData,
+		&nonce, &publicKeyData, &privateKeyData)
 	if !ok {
 		err = libkb.DecryptionError{}
 		return
@@ -131,7 +102,10 @@ func (c CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 			continue
 		}
 		ePubKeyData := k.EPubKey.Data()
-		decryptedData, ok := box.Open(nil, k.ClientHalf.EncryptedData, &nonce, &ePubKeyData, (*[32]byte)(c.cryptPrivateKey.kp.Private))
+		privateKeyData := c.cryptPrivateKey.Data()
+		decryptedData, ok := box.Open(
+			nil, k.ClientHalf.EncryptedData, &nonce,
+			&ePubKeyData, &privateKeyData)
 		if ok {
 			var clientHalfData [32]byte
 			copy(clientHalfData[:], decryptedData)

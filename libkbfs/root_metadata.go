@@ -129,8 +129,9 @@ type RootMetadata struct {
 
 var _ KeyMetadata = (*RootMetadata)(nil)
 
-// MakeRootMetadata makes a RootMetadata object from the given parameters.
-func MakeRootMetadata(bareMd MutableBareRootMetadata,
+// makeRootMetadata makes a RootMetadata object from the given
+// parameters.
+func makeRootMetadata(bareMd MutableBareRootMetadata,
 	extra ExtraMetadata, handle *TlfHandle) *RootMetadata {
 	if bareMd == nil {
 		panic("nil MutableBareRootMetadata")
@@ -146,14 +147,24 @@ func MakeRootMetadata(bareMd MutableBareRootMetadata,
 	}
 }
 
-// NewRootMetadata returns a new RootMetadata object at the latest
-// known version.
-//
-// TODO: This is used only for testing. Get rid of it.
-func NewRootMetadata() *RootMetadata {
-	return &RootMetadata{bareMd: &BareRootMetadataV2{}}
-	// MDv3 TODO: uncomment the below when we're ready for MDv3
-	//return &RootMetadata{bareMd: &BareRootMetadataV3{}}
+// makeInitialRootMetadata creates a new RootMetadata with the given
+// MetadataVer, revision MetadataRevisionInitial, and the given TlfID
+// and BareTlfHandle. Note that if the given ID/handle are private,
+// rekeying must be done separately.
+func makeInitialRootMetadata(
+	ver MetadataVer, tlfID TlfID, h *TlfHandle) (*RootMetadata, error) {
+	bh, err := h.ToBareHandle()
+	if err != nil {
+		return nil, err
+	}
+
+	bareMD, err := MakeInitialBareRootMetadata(ver, tlfID, bh)
+	if err != nil {
+		return nil, err
+	}
+	// Need to keep the TLF handle around long enough to rekey the
+	// metadata for the first time.
+	return makeRootMetadata(bareMD, nil, h), nil
 }
 
 // Data returns the private metadata of this RootMetadata.
@@ -188,7 +199,7 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 
 	handleCopy := md.tlfHandle.deepCopy()
 
-	rmd := MakeRootMetadata(brmdCopy, extraCopy, handleCopy)
+	rmd := makeRootMetadata(brmdCopy, extraCopy, handleCopy)
 
 	err = kbfscodec.Update(codec, &rmd.data, md.data)
 	if err != nil {
@@ -228,7 +239,7 @@ func (md *RootMetadata) MakeSuccessor(
 
 	handleCopy := md.tlfHandle.deepCopy()
 
-	newMd := MakeRootMetadata(brmdCopy, extraCopy, handleCopy)
+	newMd := makeRootMetadata(brmdCopy, extraCopy, handleCopy)
 	if err := kbfscodec.Update(codec, &newMd.data, md.data); err != nil {
 		return nil, err
 	}
@@ -261,7 +272,8 @@ func (md *RootMetadata) AddNewKeysForTesting(crypto cryptoPure,
 		return InvalidPublicTLFOperation{md.TlfID(), "AddNewKeys"}
 	}
 	var extra ExtraMetadata
-	if extra, err = md.bareMd.AddNewKeysForTesting(crypto, wDkim, rDkim); err != nil {
+	if extra, err = md.bareMd.AddNewKeysForTesting(
+		crypto, wDkim, rDkim, kbfscrypto.TLFPublicKey{}); err != nil {
 		return err
 	}
 	md.extra = extra
@@ -631,16 +643,17 @@ func (md *RootMetadata) HasKeyForUser(keyGen KeyGen, user keybase1.UID) bool {
 	return md.bareMd.HasKeyForUser(keyGen, user, md.extra)
 }
 
-// FakeInitialRekey wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) FakeInitialRekey(crypto cryptoPure, h BareTlfHandle) error {
+// fakeInitialRekey wraps the FakeInitialRekey test function for
+// convenience.
+func (md *RootMetadata) fakeInitialRekey(crypto cryptoPure) error {
 	var err error
-	md.extra, err = md.bareMd.FakeInitialRekey(crypto, h)
+	bh, err := md.tlfHandle.ToBareHandle()
+	if err != nil {
+		return err
+	}
+	md.extra, err = FakeInitialRekey(md.bareMd,
+		crypto, bh, kbfscrypto.TLFPublicKey{})
 	return err
-}
-
-// Update wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) Update(id TlfID, h BareTlfHandle) error {
-	return md.bareMd.Update(id, h)
 }
 
 // GetBareRootMetadata returns an interface to the underlying serializeable metadata.
@@ -849,10 +862,10 @@ func checkWriterSig(rmds *RootMetadataSigned) error {
 	return nil
 }
 
-// MakeRootMetadataSigned makes a RootMetadataSigned object from the
+// makeRootMetadataSigned makes a RootMetadataSigned object from the
 // given info. If md stores the writer signature info internally, it
 // must match the given one.
-func MakeRootMetadataSigned(sigInfo, writerSigInfo kbfscrypto.SignatureInfo,
+func makeRootMetadataSigned(sigInfo, writerSigInfo kbfscrypto.SignatureInfo,
 	md BareRootMetadata,
 	untrustedServerTimestamp time.Time) (*RootMetadataSigned, error) {
 	rmds := &RootMetadataSigned{
@@ -868,8 +881,12 @@ func MakeRootMetadataSigned(sigInfo, writerSigInfo kbfscrypto.SignatureInfo,
 	return rmds, nil
 }
 
-func signMD(
-	ctx context.Context, codec kbfscodec.Codec, signer cryptoSigner,
+// SignBareRootMetadata signs the given BareRootMetadata and returns a
+// *RootMetadataSigned object. rootMetadataSigner and
+// writerMetadataSigner should be the same, except in tests.
+func SignBareRootMetadata(
+	ctx context.Context, codec kbfscodec.Codec,
+	rootMetadataSigner, writerMetadataSigner kbfscrypto.Signer,
 	brmd BareRootMetadata, untrustedServerTimestamp time.Time) (
 	*RootMetadataSigned, error) {
 	// encode the root metadata and sign it
@@ -879,18 +896,27 @@ func signMD(
 	}
 
 	// Sign normally using the local device private key
-	sigInfo, err := signer.Sign(ctx, buf)
+	sigInfo, err := rootMetadataSigner.Sign(ctx, buf)
 	if err != nil {
 		return nil, err
 	}
 	var writerSigInfo kbfscrypto.SignatureInfo
 	if mdv2, ok := brmd.(*BareRootMetadataV2); ok {
+		// Assume that writerMetadataSigner has already signed
+		// mdv2 internally. If not, makeRootMetadataSigned
+		// will catch it.
 		writerSigInfo = mdv2.WriterMetadataSigInfo
 	} else {
-		// TODO: Implement this!
-		panic("not implemented")
+		buf, err = brmd.GetSerializedWriterMetadata(codec)
+		if err != nil {
+			return nil, err
+		}
+		writerSigInfo, err = writerMetadataSigner.Sign(ctx, buf)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return MakeRootMetadataSigned(
+	return makeRootMetadataSigned(
 		sigInfo, writerSigInfo, brmd, untrustedServerTimestamp)
 }
 
@@ -915,8 +941,13 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 // MakeFinalCopy returns a complete copy of this RootMetadataSigned
 // with the revision incremented and the final bit set.
 func (rmds *RootMetadataSigned) MakeFinalCopy(
-	codec kbfscodec.Codec, clock Clock) (
-	*RootMetadataSigned, error) {
+	codec kbfscodec.Codec, now time.Time,
+	finalizedInfo *TlfHandleExtension) (*RootMetadataSigned, error) {
+	if finalizedInfo.Type != TlfHandleExtensionFinalized {
+		return nil, fmt.Errorf(
+			"Extension %s does not have finalized type",
+			finalizedInfo)
+	}
 	if rmds.MD.IsFinal() {
 		return nil, MetadataIsFinalError{}
 	}
@@ -934,9 +965,10 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(
 	// is to make verification easier for the client as otherwise it'd need to request
 	// the head revision - 1.
 	newBareMd.SetRevision(rmds.MD.RevisionNumber() + 1)
-	return MakeRootMetadataSigned(
+	newBareMd.SetFinalizedInfo(finalizedInfo)
+	return makeRootMetadataSigned(
 		rmds.SigInfo.DeepCopy(), rmds.WriterSigInfo.DeepCopy(),
-		newBareMd, clock.Now())
+		newBareMd, now)
 }
 
 // IsValidAndSigned verifies the RootMetadataSigned, checks the root

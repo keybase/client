@@ -303,13 +303,13 @@ func (cr *ConflictResolver) makeChains(ctx context.Context,
 	unmerged, merged []ImmutableRootMetadata) (
 	unmergedChains, mergedChains *crChains, err error) {
 	unmergedChains, err = newCRChainsForIRMDs(
-		ctx, cr.config, unmerged, &cr.fbo.blocks, true)
+		ctx, cr.config.Codec(), unmerged, &cr.fbo.blocks, true)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	mergedChains, err = newCRChainsForIRMDs(
-		ctx, cr.config, merged, &cr.fbo.blocks, true)
+		ctx, cr.config.Codec(), merged, &cr.fbo.blocks, true)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -344,7 +344,7 @@ func (sp crSortedPaths) Swap(i, j int) {
 }
 
 func fileWithConflictingWrite(unmergedChains, mergedChains *crChains,
-	unmergedOriginal BlockPointer, mergedOriginal BlockPointer) bool {
+	unmergedOriginal, mergedOriginal BlockPointer) bool {
 	mergedChain := mergedChains.byOriginal[mergedOriginal]
 	unmergedChain := unmergedChains.byOriginal[unmergedOriginal]
 	if mergedChain != nil && unmergedChain != nil {
@@ -374,8 +374,8 @@ func fileWithConflictingWrite(unmergedChains, mergedChains *crChains,
 // unmerged paths that need to be checked for conflicts later in
 // conflict resolution, for all subdirectories of the given path.
 func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
-	unmergedChain *crChain, unmergedPath path, unmergedChains *crChains,
-	mergedChains *crChains) ([]path, error) {
+	unmergedChain *crChain, unmergedPath path,
+	unmergedChains, mergedChains *crChains) ([]path, error) {
 	mergedChain, ok := mergedChains.byOriginal[unmergedChain.original]
 	if !ok {
 		// No corresponding merged chain means we don't have to merge
@@ -574,8 +574,9 @@ func (cr *ConflictResolver) addChildBlocksIfIndirectFile(ctx context.Context,
 // for the conflicts to be resolved; all of these ops have their
 // writer info set to the given one.
 func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
-	lState *lockState, unmergedPath path, unmergedChains *crChains,
-	mergedChains *crChains, currUnmergedWriterInfo writerInfo) (
+	lState *lockState, unmergedPath path,
+	unmergedChains, mergedChains *crChains,
+	currUnmergedWriterInfo writerInfo) (
 	path, BlockPointer, []*createOp, error) {
 	unmergedOriginal, err :=
 		unmergedChains.originalFromMostRecent(unmergedPath.tailPointer())
@@ -810,8 +811,9 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 // deleted unmerged chains that still have relevant operations to
 // resolve.
 func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
-	lState *lockState, unmergedPaths []path, unmergedChains *crChains,
-	mergedChains *crChains, currUnmergedWriterInfo writerInfo) (
+	lState *lockState, unmergedPaths []path,
+	unmergedChains, mergedChains *crChains,
+	currUnmergedWriterInfo writerInfo) (
 	map[BlockPointer]path, []*createOp, []path, error) {
 	// maps each most recent unmerged pointer to the corresponding
 	// most recent merged path.
@@ -1032,11 +1034,8 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	currUnmergedWriterInfo, err := newWriterInfo(
-		ctx, cr.config, uid, key, unmerged[len(unmerged)-1].Revision())
-	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
-	}
+	currUnmergedWriterInfo := newWriterInfo(
+		uid, key, unmerged[len(unmerged)-1].Revision())
 
 	// Find the corresponding path in the merged branch for each of
 	// these unmerged paths, and the set of any createOps needed to
@@ -1135,8 +1134,8 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 // (for directories) or a file copy.  It also removes the
 // corresponding remove operation from the old parent chain.
 func (cr *ConflictResolver) convertCreateIntoSymlinkOrCopy(ctx context.Context,
-	ptr BlockPointer, info renameInfo, chain *crChain, unmergedChains *crChains,
-	mergedChains *crChains, symPath string) error {
+	ptr BlockPointer, info renameInfo, chain *crChain,
+	unmergedChains, mergedChains *crChains, symPath string) error {
 	found := false
 outer:
 	for _, op := range chain.ops {
@@ -1634,8 +1633,9 @@ func (cr *ConflictResolver) addMergedRecreates(ctx context.Context,
 // getActionsToMerge returns the set of actions needed to merge each
 // unmerged chain of operations, in a map keyed by the tail pointer of
 // the corresponding merged path.
-func (cr *ConflictResolver) getActionsToMerge(unmergedChains *crChains,
-	mergedChains *crChains, mergedPaths map[BlockPointer]path) (
+func (cr *ConflictResolver) getActionsToMerge(
+	ctx context.Context, unmergedChains, mergedChains *crChains,
+	mergedPaths map[BlockPointer]path) (
 	map[BlockPointer]crActionList, error) {
 	actionMap := make(map[BlockPointer]crActionList)
 	for unmergedMostRecent, unmergedChain := range unmergedChains.byMostRecent {
@@ -1656,7 +1656,8 @@ func (cr *ConflictResolver) getActionsToMerge(unmergedChains *crChains,
 		}
 
 		actions, err := unmergedChain.getActionsToMerge(
-			cr.config.ConflictRenamer(), mergedPath, mergedChain)
+			ctx, cr.config.ConflictRenamer(), mergedPath,
+			mergedChain)
 		if err != nil {
 			return nil, err
 		}
@@ -1799,8 +1800,8 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 		return nil, nil, err
 	}
 
-	actionMap, err :=
-		cr.getActionsToMerge(unmergedChains, mergedChains, mergedPaths)
+	actionMap, err := cr.getActionsToMerge(
+		ctx, unmergedChains, mergedChains, mergedPaths)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -2398,10 +2399,9 @@ func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer,
 // resolution for it yet.  If there is, complete the path using that
 // resolution.  If not, recurse.
 func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
-	unmergedMostRecent BlockPointer, unmergedChains *crChains,
-	mergedChains *crChains, resolvedChains *crChains,
-	mergedPaths map[BlockPointer]path,
-	resolvedPaths map[BlockPointer]path) (path, error) {
+	unmergedMostRecent BlockPointer,
+	unmergedChains, mergedChains, resolvedChains *crChains,
+	mergedPaths, resolvedPaths map[BlockPointer]path) (path, error) {
 	if p, ok := resolvedPaths[unmergedMostRecent]; ok {
 		return p, nil
 	}
@@ -2517,7 +2517,8 @@ func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 
 	// No need to run any identifies on these chains, since we
 	// have already finished all actions.
-	resolvedChains, err := newCRChains(ctx, cr.config,
+	resolvedChains, err := newCRChains(
+		ctx, cr.config.Codec(),
 		[]chainMetadata{rootMetadataWithKeyAndTimestamp{md,
 			key, cr.config.Clock().Now()}},
 		&cr.fbo.blocks, false)
@@ -3117,8 +3118,9 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 // node will need to send local notifications for, in order to
 // transition from the staged state to the merged state.
 func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
-	lState *lockState, md *RootMetadata, unmergedChains *crChains,
-	mergedChains *crChains, updates map[BlockPointer]BlockPointer) (
+	lState *lockState, md *RootMetadata,
+	unmergedChains, mergedChains *crChains,
+	updates map[BlockPointer]BlockPointer) (
 	[]op, error) {
 	dummyOp := newResolutionOp()
 	newPtrs := make(map[BlockPointer]bool)
@@ -3230,8 +3232,9 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 // resolution visible to any nodes on the merged branch, and taking
 // the local node out of staged mode.
 func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
-	lState *lockState, md *RootMetadata, unmergedChains *crChains,
-	mergedChains *crChains, updates map[BlockPointer]BlockPointer,
+	lState *lockState, md *RootMetadata,
+	unmergedChains, mergedChains *crChains,
+	updates map[BlockPointer]BlockPointer,
 	bps *blockPutState, writerLocked bool) error {
 	// Fix up all the block pointers in the merged ops to work well
 	// for local notifications.  Make a dummy op at the beginning to
@@ -3485,13 +3488,10 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 
 	mostRecentMergedMD := mergedMDs[len(mergedMDs)-1]
 
-	mostRecentMergedWriterInfo, err := newWriterInfo(ctx, cr.config,
+	mostRecentMergedWriterInfo := newWriterInfo(
 		mostRecentMergedMD.LastModifyingWriter(),
 		mostRecentMergedMD.LastModifyingWriterVerifyingKey(),
 		mostRecentMergedMD.Revision())
-	if err != nil {
-		return
-	}
 
 	// Step 2: Figure out which actions need to be taken in the merged
 	// branch to best reflect the unmerged changes.  The result of

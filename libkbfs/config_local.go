@@ -155,7 +155,8 @@ func (lu *LocalUser) GetPublicKeys() []keybase1.PublicKey {
 // MakeLocalUserSigningKeyOrBust returns a unique signing key for this user.
 func MakeLocalUserSigningKeyOrBust(
 	name libkb.NormalizedUsername) kbfscrypto.SigningKey {
-	return MakeFakeSigningKeyOrBust(string(name) + " signing key")
+	return kbfscrypto.MakeFakeSigningKeyOrBust(
+		string(name) + " signing key")
 }
 
 // MakeLocalUserVerifyingKeyOrBust makes a new verifying key
@@ -168,15 +169,16 @@ func MakeLocalUserVerifyingKeyOrBust(
 // MakeLocalUserCryptPrivateKeyOrBust returns a unique private
 // encryption key for this user.
 func MakeLocalUserCryptPrivateKeyOrBust(
-	name libkb.NormalizedUsername) CryptPrivateKey {
-	return MakeFakeCryptPrivateKeyOrBust(string(name) + " crypt key")
+	name libkb.NormalizedUsername) kbfscrypto.CryptPrivateKey {
+	return kbfscrypto.MakeFakeCryptPrivateKeyOrBust(
+		string(name) + " crypt key")
 }
 
 // MakeLocalUserCryptPublicKeyOrBust returns the public key
 // corresponding to the crypt private key for this user.
 func MakeLocalUserCryptPublicKeyOrBust(
 	name libkb.NormalizedUsername) kbfscrypto.CryptPublicKey {
-	return MakeLocalUserCryptPrivateKeyOrBust(name).getPublicKey()
+	return MakeLocalUserCryptPrivateKeyOrBust(name).GetPublicKey()
 }
 
 // MakeLocalUsers is a helper function to generate a list of
@@ -547,9 +549,7 @@ func (c *ConfigLocal) SetConflictRenamer(cr ConflictRenamer) {
 
 // MetadataVersion implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) MetadataVersion() MetadataVer {
-	return InitialExtraMetadataVer
-	// MDv3 TODO: uncomment the below when ready for MDv3.
-	//return SegregatedKeyBundlesVer
+	return defaultClientMetadataVer
 }
 
 // DataVersion implements the Config interface for ConfigLocal.

@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/require"
 
 	"golang.org/x/net/context"
@@ -26,12 +27,13 @@ func makeBRMDForTest(t *testing.T, crypto cryptoPure, id TlfID,
 	md.SetRevision(revision)
 	md.SetLastModifyingWriter(uid)
 	md.SetLastModifyingUser(uid)
-	md.FakeInitialRekey(crypto, h)
+	FakeInitialRekey(&md, crypto, h, kbfscrypto.TLFPublicKey{})
 	md.SetPrevRoot(prevRoot)
 	return &md
 }
 
-func signRMDSForTest(t *testing.T, codec kbfscodec.Codec, signer cryptoSigner,
+func signRMDSForTest(
+	t *testing.T, codec kbfscodec.Codec, signer kbfscrypto.Signer,
 	brmd *BareRootMetadataV2) *RootMetadataSigned {
 	ctx := context.Background()
 
@@ -39,7 +41,8 @@ func signRMDSForTest(t *testing.T, codec kbfscodec.Codec, signer cryptoSigner,
 	err := brmd.SignWriterMetadataInternally(ctx, codec, signer)
 	require.NoError(t, err)
 
-	rmds, err := signMD(ctx, codec, signer, brmd, time.Time{})
+	rmds, err := SignBareRootMetadata(
+		ctx, codec, signer, signer, brmd, time.Time{})
 	require.NoError(t, err)
 
 	return rmds

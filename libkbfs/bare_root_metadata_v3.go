@@ -164,6 +164,46 @@ func getAnyKeyBundlesV3(extra ExtraMetadata) (
 	return extraV3.wkb, extraV3.rkb
 }
 
+// MakeInitialBareRootMetadataV3 creates a new BareRootMetadataV3
+// object with revision MetadataRevisionInitial, and the given TlfID
+// and BareTlfHandle. Note that if the given ID/handle are private,
+// rekeying must be done separately.
+func MakeInitialBareRootMetadataV3(tlfID TlfID, h BareTlfHandle) (
+	*BareRootMetadataV3, error) {
+	if tlfID.IsPublic() != h.IsPublic() {
+		return nil, errors.New(
+			"TlfID and TlfHandle disagree on public status")
+	}
+
+	var writers []keybase1.UID
+	if tlfID.IsPublic() {
+		writers = make([]keybase1.UID, len(h.Writers))
+	}
+
+	var unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion
+	if len(h.UnresolvedWriters) > 0 {
+		unresolvedWriters = make(
+			[]keybase1.SocialAssertion, len(h.UnresolvedWriters))
+		copy(unresolvedWriters, h.UnresolvedWriters)
+	}
+
+	if len(h.UnresolvedReaders) > 0 {
+		unresolvedReaders = make(
+			[]keybase1.SocialAssertion, len(h.UnresolvedReaders))
+		copy(unresolvedReaders, h.UnresolvedReaders)
+	}
+
+	return &BareRootMetadataV3{
+		WriterMetadata: WriterMetadataV3{
+			Writers:           writers,
+			ID:                tlfID,
+			UnresolvedWriters: unresolvedWriters,
+		},
+		Revision:          MetadataRevisionInitial,
+		UnresolvedReaders: unresolvedReaders,
+	}, nil
+}
+
 // TlfID implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) TlfID() TlfID {
 	return md.WriterMetadata.ID
@@ -293,33 +333,6 @@ func (md *BareRootMetadataV3) IsReader(
 		return false
 	}
 	return rkb.IsReader(user, deviceKID)
-}
-
-// Update implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) Update(id TlfID, h BareTlfHandle) error {
-	if id.IsPublic() != h.IsPublic() {
-		return errors.New("TlfID and TlfHandle disagree on public status")
-	}
-
-	var writers []keybase1.UID
-	if id.IsPublic() {
-		writers = make([]keybase1.UID, len(h.Writers))
-		copy(writers, h.Writers)
-	}
-	md.WriterMetadata = WriterMetadataV3{
-		Writers: writers,
-		ID:      id,
-	}
-	if len(h.UnresolvedWriters) > 0 {
-		md.WriterMetadata.UnresolvedWriters = make([]keybase1.SocialAssertion, len(h.UnresolvedWriters))
-		copy(md.WriterMetadata.UnresolvedWriters, h.UnresolvedWriters)
-	}
-	if len(h.UnresolvedReaders) > 0 {
-		md.UnresolvedReaders = make([]keybase1.SocialAssertion, len(h.UnresolvedReaders))
-		copy(md.UnresolvedReaders, h.UnresolvedReaders)
-	}
-	md.Revision = MetadataRevisionInitial
-	return nil
 }
 
 // DeepCopy implements the BareRootMetadata interface for BareRootMetadataV3.
@@ -791,7 +804,8 @@ func (md *BareRootMetadataV3) GetSerializedWriterMetadata(
 
 // SignWriterMetadataInternally implements the MutableBareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV3) SignWriterMetadataInternally(
-	ctx context.Context, codec kbfscodec.Codec, signer cryptoSigner) error {
+	ctx context.Context, codec kbfscodec.Codec,
+	signer kbfscrypto.Signer) error {
 	// Nothing to do.
 	//
 	// TODO: Set a flag, and a way to check it so that we can
@@ -831,13 +845,51 @@ func (md *BareRootMetadataV3) SetRevision(revision MetadataRevision) {
 
 // AddNewKeysForTesting implements the MutableBareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) AddNewKeysForTesting(crypto cryptoPure,
-	wDkim, rDkim UserDeviceKeyInfoMap) (extra ExtraMetadata, err error) {
+	wDkim, rDkim UserDeviceKeyInfoMap,
+	pubKey kbfscrypto.TLFPublicKey) (extra ExtraMetadata, err error) {
+	if md.TlfID().IsPublic() {
+		panic("Called AddNewKeysForTesting on public TLF")
+	}
+	if md.WriterMetadata.LatestKeyGen >= FirstValidKeyGen {
+		// TODO: Relax this if needed (but would have to
+		// retrieve the previous pubkeys below).
+		panic("Cannot add more than one key generation")
+	}
+	for _, dkim := range wDkim {
+		for _, info := range dkim {
+			if info.EPubKeyIndex < 0 {
+				panic("negative EPubKeyIndex for writer (v3)")
+			}
+			// TODO: Allow more if needed.
+			if info.EPubKeyIndex > 0 {
+				panic("EPubKeyIndex for writer > 1 (v3)")
+			}
+		}
+	}
+	for _, dkim := range rDkim {
+		for _, info := range dkim {
+			if info.EPubKeyIndex < 0 {
+				panic("negative EPubKeyIndex for reader (v3)")
+			}
+			// TODO: Allow more if needed.
+			if info.EPubKeyIndex > 0 {
+				panic("EPubKeyIndex for reader > 1 (v3)")
+			}
+		}
+	}
+
 	wkb := &TLFWriterKeyBundleV3{
 		Keys: wDkim,
+		// TODO: Retrieve the previous pubkeys and prepend
+		// them.
+		TLFPublicKeys: []kbfscrypto.TLFPublicKey{pubKey},
+		// TODO: Size this to the max EPubKeyIndex for writers.
+		TLFEphemeralPublicKeys: make([]kbfscrypto.TLFEphemeralPublicKey, 1),
 	}
 	rkb := &TLFReaderKeyBundleV3{
 		TLFReaderKeyBundleV2: TLFReaderKeyBundleV2{
 			RKeys: rDkim,
+			// TODO: Size this to the max EPubKeyIndex for readers.
 			TLFReaderEphemeralPublicKeys: make([]kbfscrypto.TLFEphemeralPublicKey, 1),
 		},
 	}
@@ -911,41 +963,6 @@ func (md *BareRootMetadataV3) ClearFinalBit() {
 // Version implements the MutableBareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) Version() MetadataVer {
 	return SegregatedKeyBundlesVer
-}
-
-// FakeInitialRekey implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) FakeInitialRekey(crypto cryptoPure, h BareTlfHandle) (
-	ExtraMetadata, error) {
-	if md.TlfID().IsPublic() {
-		panic("Called FakeInitialRekey on public TLF")
-	}
-	wkb := &TLFWriterKeyBundleV3{
-		Keys: make(UserDeviceKeyInfoMap),
-	}
-	for _, w := range h.Writers {
-		k := MakeFakeCryptPublicKeyOrBust(string(w))
-		wkb.Keys[w] = DeviceKeyInfoMap{
-			k.KID(): TLFCryptKeyInfo{},
-		}
-	}
-	rkb := &TLFReaderKeyBundleV3{
-		TLFReaderKeyBundleV2: TLFReaderKeyBundleV2{
-			RKeys: make(UserDeviceKeyInfoMap),
-		},
-	}
-	for _, r := range h.Readers {
-		k := MakeFakeCryptPublicKeyOrBust(string(r))
-		rkb.RKeys[r] = DeviceKeyInfoMap{
-			k.KID(): TLFCryptKeyInfo{},
-		}
-	}
-	md.WriterMetadata.LatestKeyGen++
-	extra := &ExtraMetadataV3{rkb: rkb, wkb: wkb}
-	if err := md.FinalizeRekey(crypto, kbfscrypto.TLFCryptKey{},
-		kbfscrypto.TLFCryptKey{}, extra); err != nil {
-		return nil, err
-	}
-	return extra, nil
 }
 
 // GetTLFPublicKey implements the BareRootMetadata interface for BareRootMetadataV3.

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -38,7 +39,8 @@ type op interface {
 	// otherwise).  The resulting action (if any) assumes that this
 	// method's target op is the unmerged op, and the given op is the
 	// merged op.
-	checkConflict(renamer ConflictRenamer, mergedOp op, isFile bool) (
+	checkConflict(ctx context.Context,
+		renamer ConflictRenamer, mergedOp op, isFile bool) (
 		crAction, error)
 	// getDefaultAction should be called on an unmerged op only after
 	// all conflicts with the corresponding change have been checked,
@@ -303,7 +305,8 @@ func (co *createOp) String() string {
 	return res
 }
 
-func (co *createOp) checkConflict(renamer ConflictRenamer, mergedOp op,
+func (co *createOp) checkConflict(
+	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
 	switch realMergedOp := mergedOp.(type) {
 	case *createOp:
@@ -316,16 +319,26 @@ func (co *createOp) checkConflict(renamer ConflictRenamer, mergedOp op,
 				// Rename the merged entry only if the unmerged one is
 				// a directory (or to-be-sympath'd directory) and the
 				// merged one is not.
+				toName, err := renamer.ConflictRename(
+					ctx, mergedOp, co.NewName)
+				if err != nil {
+					return nil, err
+				}
 				return &renameMergedAction{
 					fromName: co.NewName,
-					toName:   renamer.ConflictRename(mergedOp, co.NewName),
+					toName:   toName,
 					symPath:  co.crSymPath,
 				}, nil
 			}
 			// Otherwise rename the unmerged entry (guaranteed to be a file).
+			toName, err := renamer.ConflictRename(
+				ctx, co, co.NewName)
+			if err != nil {
+				return nil, err
+			}
 			return &renameUnmergedAction{
 				fromName: co.NewName,
-				toName:   renamer.ConflictRename(co, co.NewName),
+				toName:   toName,
 				symPath:  co.crSymPath,
 			}, nil
 		}
@@ -339,9 +352,14 @@ func (co *createOp) checkConflict(renamer ConflictRenamer, mergedOp op,
 		if sameName && realMergedOp.Type == Dir && co.Type == Dir &&
 			(realMergedOp.renamed || co.renamed) {
 			// Always rename the unmerged one
+			toName, err := renamer.ConflictRename(
+				ctx, co, co.NewName)
+			if err != nil {
+				return nil, err
+			}
 			return &copyUnmergedEntryAction{
 				fromName: co.NewName,
-				toName:   renamer.ConflictRename(co, co.NewName),
+				toName:   toName,
 				symPath:  co.crSymPath,
 				unique:   true,
 			}, nil
@@ -422,7 +440,8 @@ func (ro *rmOp) String() string {
 	return fmt.Sprintf("rm %s", ro.OldName)
 }
 
-func (ro *rmOp) checkConflict(renamer ConflictRenamer, mergedOp op,
+func (ro *rmOp) checkConflict(
+	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
 	switch realMergedOp := mergedOp.(type) {
 	case *createOp:
@@ -540,7 +559,8 @@ func (ro *renameOp) String() string {
 	return fmt.Sprintf("rename %s -> %s", ro.OldName, ro.NewName)
 }
 
-func (ro *renameOp) checkConflict(renamer ConflictRenamer, mergedOp op,
+func (ro *renameOp) checkConflict(
+	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
 	return nil, fmt.Errorf("Unexpected conflict check on a rename op: %s", ro)
 }
@@ -665,17 +685,22 @@ func (so *syncOp) String() string {
 	return fmt.Sprintf("sync [%s]", strings.Join(writes, ", "))
 }
 
-func (so *syncOp) checkConflict(renamer ConflictRenamer, mergedOp op,
+func (so *syncOp) checkConflict(
+	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
 	switch mergedOp.(type) {
 	case *syncOp:
 		// Any sync on the same file is a conflict.  (TODO: add
 		// type-specific intelligent conflict resolvers for file
 		// contents?)
+		fromName := mergedOp.getFinalPath().tailName()
+		toName, err := renamer.ConflictRename(ctx, so, fromName)
+		if err != nil {
+			return nil, err
+		}
 		return &renameUnmergedAction{
-			fromName: so.getFinalPath().tailName(),
-			toName: renamer.ConflictRename(so, mergedOp.getFinalPath().
-				tailName()),
+			fromName: fromName,
+			toName:   toName,
 			unmergedParentMostRecent: so.getFinalPath().parentPath().
 				tailPointer(),
 			mergedParentMostRecent: mergedOp.getFinalPath().parentPath().
@@ -890,7 +915,8 @@ func (sao *setAttrOp) String() string {
 	return fmt.Sprintf("setAttr %s (%s)", sao.Name, sao.Attr)
 }
 
-func (sao *setAttrOp) checkConflict(renamer ConflictRenamer, mergedOp op,
+func (sao *setAttrOp) checkConflict(
+	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
 	switch realMergedOp := mergedOp.(type) {
 	case *setAttrOp:
@@ -907,10 +933,15 @@ func (sao *setAttrOp) checkConflict(renamer ConflictRenamer, mergedOp op,
 
 			// A set attr for the same attribute on the same file is a
 			// conflict.
+			fromName := sao.getFinalPath().tailName()
+			toName, err := renamer.ConflictRename(
+				ctx, sao, fromName)
+			if err != nil {
+				return nil, err
+			}
 			return &renameUnmergedAction{
-				fromName: sao.getFinalPath().tailName(),
-				toName: renamer.ConflictRename(
-					sao, mergedOp.getFinalPath().tailName()),
+				fromName:     fromName,
+				toName:       toName,
 				symPath:      symPath,
 				causedByAttr: causedByAttr,
 				unmergedParentMostRecent: sao.getFinalPath().parentPath().
@@ -958,7 +989,8 @@ func (ro *resolutionOp) String() string {
 	return "resolution"
 }
 
-func (ro *resolutionOp) checkConflict(renamer ConflictRenamer, mergedOp op,
+func (ro *resolutionOp) checkConflict(
+	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
 	return nil, nil
 }
@@ -993,7 +1025,8 @@ func (ro *rekeyOp) String() string {
 	return "rekey"
 }
 
-func (ro *rekeyOp) checkConflict(renamer ConflictRenamer, mergedOp op,
+func (ro *rekeyOp) checkConflict(
+	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
 	return nil, nil
 }
@@ -1042,7 +1075,8 @@ func (gco *GCOp) String() string {
 }
 
 // checkConflict implements op.
-func (gco *GCOp) checkConflict(renamer ConflictRenamer, mergedOp op,
+func (gco *GCOp) checkConflict(
+	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
 	return nil, nil
 }

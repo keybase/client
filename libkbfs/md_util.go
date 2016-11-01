@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/sync/errgroup"
 
 	"golang.org/x/net/context"
@@ -316,7 +317,7 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 // MetadataID of the RootMetadata's BareRootMetadata can be computed.
 func encryptMDPrivateData(
 	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
-	signer cryptoSigner, ekg encryptionKeyGetter, me keybase1.UID,
+	signer kbfscrypto.Signer, ekg encryptionKeyGetter, me keybase1.UID,
 	rmd *RootMetadata) error {
 	err := rmd.data.checkValid()
 	if err != nil {

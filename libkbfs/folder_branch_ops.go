@@ -92,8 +92,8 @@ type fboMutexLevel mutexLevel
 
 const (
 	fboMDWriter fboMutexLevel = 1
-	fboHead                   = 2
-	fboBlock                  = 3
+	fboHead     fboMutexLevel = 2
+	fboBlock    fboMutexLevel = 3
 )
 
 func (o fboMutexLevel) String() string {
@@ -1357,19 +1357,11 @@ func (fbo *folderBranchOps) SetInitialHeadToNew(
 		fbo.deferLog.CDebugf(ctx, "Done: %v", err)
 	}()
 
-	bh, err := handle.ToBareHandle()
+	rmd, err := makeInitialRootMetadata(
+		fbo.config.MetadataVersion(), id, handle)
 	if err != nil {
 		return err
 	}
-
-	rmd := NewRootMetadata()
-	rmd.Update(id, bh)
-	if err != nil {
-		return err
-	}
-	// Need to keep the TLF handle around long enough to
-	// rekey the metadata for the first time.
-	rmd.tlfHandle = handle
 
 	return runUnlessCanceled(ctx, func() error {
 		fb := FolderBranch{rmd.TlfID(), MasterBranch}

@@ -32,7 +32,9 @@ type TLFWriterKeyBundleV3 struct {
 	// its TLFCryptoKeyInfo struct.
 	TLFEphemeralPublicKeys kbfscrypto.TLFEphemeralPublicKeys `codec:"ePubKey"`
 
-	// M_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
+	// M_f as described in 4.1.1 of
+	// https://keybase.io/blog/kbfs-crypto. Indexed by key
+	// generation.
 	TLFPublicKeys []kbfscrypto.TLFPublicKey `codec:"pubKey"`
 
 	// This is a time-ordered encrypted list of historic key generations.

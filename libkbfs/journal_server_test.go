@@ -74,9 +74,6 @@ func TestJournalServerRestart(t *testing.T) {
 	require.NoError(t, err)
 	uid := h.ResolvedWriters()[0]
 
-	bh, err := h.ToBareHandle()
-	require.NoError(t, err)
-
 	// Put a block.
 
 	bCtx := BlockContext{uid, "", ZeroBlockRefNonce}
@@ -90,11 +87,8 @@ func TestJournalServerRestart(t *testing.T) {
 
 	// Put an MD.
 
-	rmd := NewRootMetadata()
-	err = rmd.Update(tlfID, bh)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
-	rmd.tlfHandle = h
-	rmd.SetRevision(MetadataRevision(1))
 	rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd, false)
 	require.NoError(t, err)
 	require.True(t, rekeyDone)
@@ -154,9 +148,6 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	require.NoError(t, err)
 	uid := h.ResolvedWriters()[0]
 
-	bh, err := h.ToBareHandle()
-	require.NoError(t, err)
-
 	// Put a block.
 
 	bCtx := BlockContext{uid, "", ZeroBlockRefNonce}
@@ -170,11 +161,8 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 
 	// Put an MD.
 
-	rmd := NewRootMetadata()
-	err = rmd.Update(tlfID, bh)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
-	rmd.tlfHandle = h
-	rmd.SetRevision(MetadataRevision(1))
 	rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd, false)
 	require.NoError(t, err)
 	require.True(t, rekeyDone)
@@ -269,9 +257,6 @@ func TestJournalServerMultiUser(t *testing.T) {
 	uid1 := h.ResolvedWriters()[0]
 	uid2 := h.ResolvedWriters()[1]
 
-	bh, err := h.ToBareHandle()
-	require.NoError(t, err)
-
 	// Put a block under user 1.
 
 	bCtx1 := BlockContext{uid1, "", ZeroBlockRefNonce}
@@ -285,11 +270,8 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// Put an MD under user 1.
 
-	rmd1 := NewRootMetadata()
-	err = rmd1.Update(tlfID, bh)
+	rmd1, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
-	rmd1.tlfHandle = h
-	rmd1.SetRevision(MetadataRevision(1))
 	rmd1.SetLastModifyingWriter(uid1)
 	rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd1, false)
 	require.NoError(t, err)
@@ -334,11 +316,8 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	// Put an MD under user 2.
 
-	rmd2 := NewRootMetadata()
-	err = rmd2.Update(tlfID, bh)
+	rmd2, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)
-	rmd2.tlfHandle = h
-	rmd2.SetRevision(MetadataRevision(1))
 	rmd2.SetLastModifyingWriter(uid2)
 	rekeyDone, _, err = config.KeyManager().Rekey(ctx, rmd2, false)
 	require.NoError(t, err)

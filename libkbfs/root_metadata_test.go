@@ -101,23 +101,7 @@ func makeFakeTlfHandle(
 	}
 }
 
-func newRootMetadataOrBust(
-	t *testing.T, tlfID TlfID, h *TlfHandle) *RootMetadata {
-	rmd := NewRootMetadata()
-	err := rmd.Update(tlfID, h.ToBareHandleOrBust())
-	require.NoError(t, err)
-	rmd.tlfHandle = h
-	return rmd
-}
-
-func newRootMetadataV3OrBust(
-	t *testing.T, tlfID TlfID, h *TlfHandle) *RootMetadata {
-	rmd := &RootMetadata{bareMd: &BareRootMetadataV3{}}
-	err := rmd.Update(tlfID, h.ToBareHandleOrBust())
-	require.NoError(t, err)
-	rmd.tlfHandle = h
-	return rmd
-}
+// TODO: Test MDv3.
 
 func makeImmutableRootMetadataForTest(
 	t *testing.T, rmd *RootMetadata, key kbfscrypto.VerifyingKey,
@@ -148,7 +132,8 @@ func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
 	}
 	h := makeFakeTlfHandle(t, 14, true, uw, nil)
 	tlfID := FakeTlfID(0, true)
-	rmd := newRootMetadataOrBust(t, tlfID, h)
+	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
+	require.NoError(t, err)
 
 	dirHandle := rmd.GetTlfHandle()
 	require.Equal(t, h, dirHandle)
@@ -186,8 +171,10 @@ func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 	}
 	h := makeFakeTlfHandle(t, 14, false, uw, ur)
 	tlfID := FakeTlfID(0, false)
-	rmd := newRootMetadataOrBust(t, tlfID, h)
-	rmd.FakeInitialRekey(crypto, h.ToBareHandleOrBust())
+	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
+	require.NoError(t, err)
+
+	rmd.fakeInitialRekey(crypto)
 
 	dirHandle := rmd.GetTlfHandle()
 	require.Equal(t, h, dirHandle)
@@ -204,11 +191,13 @@ func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 	crypto := MakeCryptoCommon(codec)
 	tlfID := FakeTlfID(0, false)
 	h := makeFakeTlfHandle(t, 14, false, nil, nil)
-	rmd := newRootMetadataOrBust(t, tlfID, h)
+	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
+	require.NoError(t, err)
+
 	if rmd.LatestKeyGeneration() != 0 {
 		t.Errorf("Expected key generation to be invalid (0)")
 	}
-	rmd.FakeInitialRekey(crypto, h.ToBareHandleOrBust())
+	rmd.fakeInitialRekey(crypto)
 	if rmd.LatestKeyGeneration() != FirstValidKeyGen {
 		t.Errorf("Expected key generation to be valid(%d)", FirstValidKeyGen)
 	}
@@ -218,7 +207,9 @@ func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 func TestRootMetadataLatestKeyGenerationPublic(t *testing.T) {
 	tlfID := FakeTlfID(0, true)
 	h := makeFakeTlfHandle(t, 14, true, nil, nil)
-	rmd := newRootMetadataOrBust(t, tlfID, h)
+	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
+	require.NoError(t, err)
+
 	if rmd.LatestKeyGeneration() != PublicKeyGen {
 		t.Errorf("Expected key generation to be public (%d)", PublicKeyGen)
 	}
@@ -459,7 +450,7 @@ func makeFakeBareRootMetadataFuture(t *testing.T) *bareRootMetadataFuture {
 				kbfscrypto.SignatureInfo{
 					Version:      100,
 					Signature:    []byte{0xc},
-					VerifyingKey: MakeFakeVerifyingKeyOrBust("fake kid"),
+					VerifyingKey: kbfscrypto.MakeFakeVerifyingKeyOrBust("fake kid"),
 				},
 				"uid1",
 				0xb,
@@ -482,139 +473,16 @@ func TestBareRootMetadataUnknownFields(t *testing.T) {
 	testStructUnknownFields(t, makeFakeBareRootMetadataFuture(t))
 }
 
-// TODO: Have MDV3 version.
-func TestIsValidRekeyRequestBasicV2(t *testing.T) {
-	config := MakeTestConfigOrBust(t, "alice")
-	defer config.Shutdown()
-
-	// Sign the writer metadata
-	tlfID := FakeTlfID(1, false)
-
-	h := parseTlfHandleOrBust(t, config, "alice", false)
-	var brmd BareRootMetadataV2
-	err := brmd.Update(tlfID, h.ToBareHandleOrBust())
-	require.NoError(t, err)
-
-	err = brmd.SignWriterMetadataInternally(
-		context.Background(), config.Codec(), config.Crypto())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Copy bit unset.
-	var newBrmd BareRootMetadataV2
-	err = newBrmd.Update(tlfID, h.ToBareHandleOrBust())
-	require.NoError(t, err)
-	ok, err := newBrmd.IsValidRekeyRequest(
-		config.Codec(), &brmd, newBrmd.LastModifyingWriter(), nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if ok {
-		t.Fatal("Expected invalid rekey request due to unset copy bit")
-	}
-
-	// Set the copy bit; note the writer metadata is the same.
-	newBrmd.SetWriterMetadataCopiedBit()
-
-	// Writer metadata siginfo mismatch.
-	config2 := MakeTestConfigOrBust(t, "bob")
-	defer config2.Shutdown()
-
-	err = newBrmd.SignWriterMetadataInternally(
-		context.Background(), config2.Codec(), config2.Crypto())
-	if err != nil {
-		t.Fatal(err)
-	}
-	ok, err = newBrmd.IsValidRekeyRequest(
-		config.Codec(), &brmd, newBrmd.LastModifyingWriter(), nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if ok {
-		t.Fatal("Expected invalid rekey request due to mismatched writer metadata siginfo")
-	}
-
-	// Replace with copied signature.
-	newBrmd.WriterMetadataSigInfo = brmd.WriterMetadataSigInfo
-	ok, err = newBrmd.IsValidRekeyRequest(
-		config.Codec(), &brmd, newBrmd.LastModifyingWriter(), nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !ok {
-		t.Fatal("Expected valid rekey request")
-	}
-}
-
-func TestRootMetadataVersion(t *testing.T) {
-	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
-	defer config.Shutdown()
-
-	// Sign the writer metadata
-	id := FakeTlfID(1, false)
-	h := parseTlfHandleOrBust(t, config, "alice,bob@twitter", false)
-	rmd := newRootMetadataOrBust(t, id, h)
-	rmds, err := MakeRootMetadataSigned(
-		kbfscrypto.SignatureInfo{}, kbfscrypto.SignatureInfo{},
-		rmd.bareMd, time.Time{})
-	require.NoError(t, err)
-	if g, e := rmds.Version(), config.MetadataVersion(); g != e {
-		t.Errorf("MD with unresolved users got wrong version %d, expected %d",
-			g, e)
-	}
-
-	// All other folders should use the pre-extra MD version.
-	id2 := FakeTlfID(2, false)
-	h2 := parseTlfHandleOrBust(t, config, "alice,charlie", false)
-	rmd2 := newRootMetadataOrBust(t, id2, h2)
-	rmds2, err := MakeRootMetadataSigned(
-		kbfscrypto.SignatureInfo{}, kbfscrypto.SignatureInfo{},
-		rmd2.bareMd, time.Time{})
-	require.NoError(t, err)
-	if g, e := rmds2.Version(), MetadataVer(PreExtraMetadataVer); g != e {
-		t.Errorf("MD without unresolved users got wrong version %d, "+
-			"expected %d", g, e)
-	}
-
-	// ... including if the assertions get resolved.
-	AddNewAssertionForTestOrBust(t, config, "bob", "bob@twitter")
-	rmd.SetSerializedPrivateMetadata([]byte{1}) // MakeSuccessor requires this
-	rmd.FakeInitialRekey(config.Crypto(), h.ToBareHandleOrBust())
-	if rmd.GetSerializedPrivateMetadata() == nil {
-		t.Fatalf("Nil private MD")
-	}
-	h3, err := h.ResolveAgain(context.Background(), config.KBPKI())
-	if err != nil {
-		t.Fatalf("Couldn't resolve again: %v", err)
-	}
-	rmd3, err := rmd.MakeSuccessor(config.Codec(), fakeMdID(1), true)
-	if err != nil {
-		t.Fatalf("Couldn't make MD successor: %v", err)
-	}
-	rmd3.FakeInitialRekey(config.Crypto(), h3.ToBareHandleOrBust())
-	err = rmd3.updateFromTlfHandle(h3)
-	if err != nil {
-		t.Fatalf("Couldn't update TLF handle: %v", err)
-	}
-	rmds3, err := MakeRootMetadataSigned(
-		kbfscrypto.SignatureInfo{}, kbfscrypto.SignatureInfo{},
-		rmd3.bareMd, time.Time{})
-	require.NoError(t, err)
-	if g, e := rmds3.Version(), MetadataVer(PreExtraMetadataVer); g != e {
-		t.Errorf("MD without unresolved users got wrong version %d, "+
-			"expected %d", g, e)
-	}
-}
-
 func TestMakeRekeyReadError(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	defer config.Shutdown()
 
-	id := FakeTlfID(1, false)
+	tlfID := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
-	rmd := newRootMetadataOrBust(t, id, h)
-	rmd.FakeInitialRekey(config.Crypto(), h.ToBareHandleOrBust())
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
+	require.NoError(t, err)
+
+	rmd.fakeInitialRekey(config.Crypto())
 
 	u, uid, err := config.KBPKI().Resolve(context.Background(), "bob")
 	require.NoError(t, err)
@@ -634,13 +502,15 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	defer config.Shutdown()
 
-	id := FakeTlfID(1, false)
+	tlfID := FakeTlfID(1, false)
 	ctx := context.Background()
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), "alice,bob@twitter",
 		false)
 	require.NoError(t, err)
-	rmd := newRootMetadataOrBust(t, id, h)
-	rmd.FakeInitialRekey(config.Crypto(), h.ToBareHandleOrBust())
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
+	require.NoError(t, err)
+
+	rmd.fakeInitialRekey(config.Crypto())
 
 	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
 	require.NoError(t, err)
@@ -662,78 +532,11 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 func TestRootMetadataFinalIsFinal(t *testing.T) {
 	tlfID := FakeTlfID(0, true)
 	h := makeFakeTlfHandle(t, 14, true, nil, nil)
-	rmd := newRootMetadataOrBust(t, tlfID, h)
+	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlfID, h)
+	require.NoError(t, err)
+
 	rmd.SetFinalBit()
-	_, err := rmd.MakeSuccessor(nil, fakeMdID(1), true)
+	_, err = rmd.MakeSuccessor(nil, fakeMdID(1), true)
 	_, isFinalError := err.(MetadataIsFinalError)
 	require.Equal(t, isFinalError, true)
-}
-
-// Test verification of finalized metadata blocks.
-//
-// TODO: have MDV3 version.
-func TestRootMetadataFinalVerifyV3(t *testing.T) {
-	config := MakeTestConfigOrBust(t, "alice")
-	defer config.Shutdown()
-
-	// create and sign a revision
-	id := FakeTlfID(1, false)
-	handle := parseTlfHandleOrBust(t, config, "alice", false)
-	h, err := handle.ToBareHandle()
-	if err != nil {
-		t.Fatal(err)
-	}
-	var md BareRootMetadataV2
-	err = md.Update(id, h)
-	if err != nil {
-		t.Fatal(err)
-	}
-	md.FakeInitialRekey(config.Crypto(), h)
-	md.SetLastModifyingWriter(h.Writers[0])
-	md.SetLastModifyingUser(h.Writers[0])
-	md.SetSerializedPrivateMetadata([]byte{42})
-	err = md.SignWriterMetadataInternally(
-		context.Background(), config.Codec(), config.Crypto())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rmds, err := signMD(context.Background(), config.Codec(),
-		config.Crypto(), &md, time.Time{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// verify it
-	err = rmds.IsValidAndSigned(config.Codec(), config.Crypto(), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// make a final copy
-	rmds2, err := rmds.MakeFinalCopy(config.Codec(), config.Clock())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// add the extension
-	fi, err := NewTestTlfHandleExtensionStaticTime(TlfHandleExtensionFinalized, 1, "test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	rmds2.MD.(MutableBareRootMetadata).SetFinalizedInfo(fi)
-
-	// verify the finalized copy
-	err = rmds2.IsValidAndSigned(config.Codec(), config.Crypto(), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// touch something the server shouldn't be allowed to edit for finalized metadata
-	// and verify verification failure.
-	rmds2.MD.(MutableBareRootMetadata).SetRekeyBit()
-	err = rmds2.IsValidAndSigned(config.Codec(), config.Crypto(), nil)
-	if err == nil {
-		t.Fatalf("expected error")
-	}
 }

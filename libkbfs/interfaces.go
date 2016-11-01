@@ -863,17 +863,14 @@ type cryptoPure interface {
 		[]kbfscrypto.TLFCryptKey, error)
 }
 
-// Duplicate kbfscrypto.Signer here to work around gomock's
-// limitations.
-type cryptoSigner interface {
-	Sign(context.Context, []byte) (kbfscrypto.SignatureInfo, error)
-	SignToString(context.Context, []byte) (string, error)
-}
-
 // Crypto signs, verifies, encrypts, and decrypts stuff.
 type Crypto interface {
 	cryptoPure
-	cryptoSigner
+
+	// Duplicate kbfscrypto.Signer here to work around gomock's
+	// limitations.
+	Sign(context.Context, []byte) (kbfscrypto.SignatureInfo, error)
+	SignToString(context.Context, []byte) (string, error)
 
 	// DecryptTLFCryptKeyClientHalf decrypts a
 	// kbfscrypto.TLFCryptKeyClientHalf using the current device's
@@ -1204,7 +1201,7 @@ type blockRefLocalStatus int
 
 const (
 	liveBlockRef     blockRefLocalStatus = 1
-	archivedBlockRef                     = 2
+	archivedBlockRef blockRefLocalStatus = 2
 )
 
 // blockServerLocal is the interface for BlockServer implementations
@@ -1316,7 +1313,8 @@ type Clock interface {
 // ConflictRenamer deals with names for conflicting directory entries.
 type ConflictRenamer interface {
 	// ConflictRename returns the appropriately modified filename.
-	ConflictRename(op op, original string) string
+	ConflictRename(ctx context.Context, op op, original string) (
+		string, error)
 }
 
 // Config collects all the singleton instance instantiations needed to
@@ -1704,7 +1702,7 @@ type MutableBareRootMetadata interface {
 	// SignWriterMetadataInternally signs the writer metadata, for
 	// versions that store this signature inside the metadata.
 	SignWriterMetadataInternally(ctx context.Context,
-		codec kbfscodec.Codec, signer cryptoSigner) error
+		codec kbfscodec.Codec, signer kbfscrypto.Signer) error
 	// SetLastModifyingWriter sets the UID of the last user to modify the writer metadata.
 	SetLastModifyingWriter(user keybase1.UID)
 	// SetLastModifyingUser sets the UID of the last user to modify any of the metadata.
@@ -1717,9 +1715,12 @@ type MutableBareRootMetadata interface {
 	SetWriterMetadataCopiedBit()
 	// SetRevision sets the revision number of the underlying metadata.
 	SetRevision(revision MetadataRevision)
-	// AddNewKeysForTesting adds new writer and reader TLF key bundles to this revision of metadata.
-	// Note: This is only used for testing at the moment.
-	AddNewKeysForTesting(crypto cryptoPure, wDkim, rDkim UserDeviceKeyInfoMap) (ExtraMetadata, error)
+	// AddNewKeysForTesting adds new writer and reader TLF key
+	// bundles to this revision of metadata.  pubKey is non-empty
+	// only for server-side tests.
+	AddNewKeysForTesting(crypto cryptoPure,
+		wDkim, rDkim UserDeviceKeyInfoMap,
+		pubKey kbfscrypto.TLFPublicKey) (ExtraMetadata, error)
 	// NewKeyGeneration adds a new key generation to this revision of metadata.
 	NewKeyGeneration(pubKey kbfscrypto.TLFPublicKey) (extra ExtraMetadata)
 	// SetUnresolvedReaders sets the list of unresolved readers assoiated with this folder.
@@ -1734,15 +1735,6 @@ type MutableBareRootMetadata interface {
 	SetWriters(writers []keybase1.UID)
 	// SetTlfID sets the ID of the underlying folder in the metadata structure.
 	SetTlfID(tlf TlfID)
-	// FakeInitialRekey fakes the initial rekey for the given
-	// BareRootMetadata. This is necessary since newly-created
-	// BareRootMetadata objects don't have enough data to build a
-	// TlfHandle from until the first rekey.
-	FakeInitialRekey(c cryptoPure, h BareTlfHandle) (ExtraMetadata, error)
-	// Update initializes the given freshly-created BareRootMetadata object with
-	// the given TlfID and BareTlfHandle. Note that if the given ID/handle are private,
-	// rekeying must be done separately.
-	Update(tlf TlfID, h BareTlfHandle) error
 	// Returns the TLF key bundles for this metadata at the given key generation.
 	// MDv3 TODO: Get rid of this.
 	GetTLFKeyBundles(keyGen KeyGen) (*TLFWriterKeyBundleV2, *TLFReaderKeyBundleV2, error)

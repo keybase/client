@@ -21,10 +21,17 @@ type WriterDeviceDateConflictRenamer struct {
 
 // ConflictRename implements the ConflictRename interface for
 // TimeAndWriterConflictRenamer.
-func (cr WriterDeviceDateConflictRenamer) ConflictRename(op op, original string) string {
+func (cr WriterDeviceDateConflictRenamer) ConflictRename(
+	ctx context.Context, op op, original string) (string, error) {
 	now := cr.config.Clock().Now()
 	winfo := op.getWriterInfo()
-	return cr.ConflictRenameHelper(now, string(winfo.name), winfo.deviceName, original)
+	ui, err := cr.config.KeybaseService().LoadUserPlusKeys(ctx, winfo.uid)
+	if err != nil {
+		return "", err
+	}
+	deviceName := ui.KIDNames[winfo.key.KID()]
+	return cr.ConflictRenameHelper(
+		now, string(ui.Name), deviceName, original), nil
 }
 
 // ConflictRenameHelper is a helper for ConflictRename especially useful from
@@ -60,18 +67,11 @@ func splitExtension(path string) (string, string) {
 	return path, ""
 }
 
-func newWriterInfo(ctx context.Context, cfg Config, uid keybase1.UID,
-	key kbfscrypto.VerifyingKey,
-	revision MetadataRevision) (writerInfo, error) {
-	ui, err := cfg.KeybaseService().LoadUserPlusKeys(ctx, uid)
-	if err != nil {
-		return writerInfo{}, err
-	}
-
+func newWriterInfo(uid keybase1.UID, key kbfscrypto.VerifyingKey,
+	revision MetadataRevision) writerInfo {
 	return writerInfo{
-		name:       ui.Name,
-		uid:        uid,
-		deviceName: ui.KIDNames[key.KID()],
-		revision:   revision,
-	}, nil
+		uid:      uid,
+		key:      key,
+		revision: revision,
+	}
 }

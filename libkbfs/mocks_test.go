@@ -1998,49 +1998,6 @@ func (_mr *_MockcryptoPureRecorder) DecryptTLFCryptKeys(arg0, arg1 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptTLFCryptKeys", arg0, arg1)
 }
 
-// Mock of cryptoSigner interface
-type MockcryptoSigner struct {
-	ctrl     *gomock.Controller
-	recorder *_MockcryptoSignerRecorder
-}
-
-// Recorder for MockcryptoSigner (not exported)
-type _MockcryptoSignerRecorder struct {
-	mock *MockcryptoSigner
-}
-
-func NewMockcryptoSigner(ctrl *gomock.Controller) *MockcryptoSigner {
-	mock := &MockcryptoSigner{ctrl: ctrl}
-	mock.recorder = &_MockcryptoSignerRecorder{mock}
-	return mock
-}
-
-func (_m *MockcryptoSigner) EXPECT() *_MockcryptoSignerRecorder {
-	return _m.recorder
-}
-
-func (_m *MockcryptoSigner) Sign(_param0 context.Context, _param1 []byte) (kbfscrypto.SignatureInfo, error) {
-	ret := _m.ctrl.Call(_m, "Sign", _param0, _param1)
-	ret0, _ := ret[0].(kbfscrypto.SignatureInfo)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockcryptoSignerRecorder) Sign(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Sign", arg0, arg1)
-}
-
-func (_m *MockcryptoSigner) SignToString(_param0 context.Context, _param1 []byte) (string, error) {
-	ret := _m.ctrl.Call(_m, "SignToString", _param0, _param1)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockcryptoSignerRecorder) SignToString(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SignToString", arg0, arg1)
-}
-
 // Mock of Crypto interface
 type MockCrypto struct {
 	ctrl     *gomock.Controller
@@ -3576,14 +3533,15 @@ func (_m *MockConflictRenamer) EXPECT() *_MockConflictRenamerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockConflictRenamer) ConflictRename(op op, original string) string {
-	ret := _m.ctrl.Call(_m, "ConflictRename", op, original)
+func (_m *MockConflictRenamer) ConflictRename(ctx context.Context, op op, original string) (string, error) {
+	ret := _m.ctrl.Call(_m, "ConflictRename", ctx, op, original)
 	ret0, _ := ret[0].(string)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (_mr *_MockConflictRenamerRecorder) ConflictRename(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ConflictRename", arg0, arg1)
+func (_mr *_MockConflictRenamerRecorder) ConflictRename(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ConflictRename", arg0, arg1, arg2)
 }
 
 // Mock of Config interface
@@ -5413,7 +5371,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetSerializedPrivateMetadata(ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetSerializedPrivateMetadata", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SignWriterMetadataInternally(ctx context.Context, codec kbfscodec.Codec, signer cryptoSigner) error {
+func (_m *MockMutableBareRootMetadata) SignWriterMetadataInternally(ctx context.Context, codec kbfscodec.Codec, signer kbfscrypto.Signer) error {
 	ret := _m.ctrl.Call(_m, "SignWriterMetadataInternally", ctx, codec, signer)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -5471,15 +5429,15 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetRevision(arg0 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRevision", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) AddNewKeysForTesting(crypto cryptoPure, wDkim UserDeviceKeyInfoMap, rDkim UserDeviceKeyInfoMap) (ExtraMetadata, error) {
-	ret := _m.ctrl.Call(_m, "AddNewKeysForTesting", crypto, wDkim, rDkim)
+func (_m *MockMutableBareRootMetadata) AddNewKeysForTesting(crypto cryptoPure, wDkim UserDeviceKeyInfoMap, rDkim UserDeviceKeyInfoMap, pubKey kbfscrypto.TLFPublicKey) (ExtraMetadata, error) {
+	ret := _m.ctrl.Call(_m, "AddNewKeysForTesting", crypto, wDkim, rDkim, pubKey)
 	ret0, _ := ret[0].(ExtraMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMutableBareRootMetadataRecorder) AddNewKeysForTesting(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddNewKeysForTesting", arg0, arg1, arg2)
+func (_mr *_MockMutableBareRootMetadataRecorder) AddNewKeysForTesting(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddNewKeysForTesting", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockMutableBareRootMetadata) NewKeyGeneration(pubKey kbfscrypto.TLFPublicKey) ExtraMetadata {
@@ -5538,27 +5496,6 @@ func (_m *MockMutableBareRootMetadata) SetTlfID(tlf TlfID) {
 
 func (_mr *_MockMutableBareRootMetadataRecorder) SetTlfID(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetTlfID", arg0)
-}
-
-func (_m *MockMutableBareRootMetadata) FakeInitialRekey(c cryptoPure, h BareTlfHandle) (ExtraMetadata, error) {
-	ret := _m.ctrl.Call(_m, "FakeInitialRekey", c, h)
-	ret0, _ := ret[0].(ExtraMetadata)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockMutableBareRootMetadataRecorder) FakeInitialRekey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "FakeInitialRekey", arg0, arg1)
-}
-
-func (_m *MockMutableBareRootMetadata) Update(tlf TlfID, h BareTlfHandle) error {
-	ret := _m.ctrl.Call(_m, "Update", tlf, h)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockMutableBareRootMetadataRecorder) Update(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Update", arg0, arg1)
 }
 
 func (_m *MockMutableBareRootMetadata) GetTLFKeyBundles(keyGen KeyGen) (*TLFWriterKeyBundleV2, *TLFReaderKeyBundleV2, error) {

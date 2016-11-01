@@ -129,7 +129,7 @@ func expectRekey(config *ConfigMock, bh BareTlfHandle, numDevices int, handleCha
 	config.mockCrypto.EXPECT().MakeRandomTLFCryptKeyServerHalf().Return(
 		kbfscrypto.TLFCryptKeyServerHalf{}, nil).Times(numDevices)
 
-	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(numDevices)
 
@@ -258,7 +258,7 @@ func makeDirRKeyInfoMap(uid keybase1.UID,
 	}
 }
 
-// TODO: Can change the tests below to use a fake KeyMetadata object.
+// TODO: Test with MDv3.
 
 func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
@@ -267,9 +267,10 @@ func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	uid := h.FirstResolvedWriter()
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
 
-	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
 	expectMakeKeyBundleIDs(config)
 	AddNewKeysOrBust(t, config.Crypto(), rmd, NewEmptyUserDeviceKeyInfoMap(), makeDirRKeyInfoMap(uid, subkey))
 
@@ -290,9 +291,10 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	uid := h.FirstResolvedWriter()
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
 
-	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
 	expectMakeKeyBundleIDs(config)
 	AddNewKeysOrBust(t, config.Crypto(), rmd, NewEmptyUserDeviceKeyInfoMap(), makeDirRKeyInfoMap(uid, subkey))
 
@@ -311,9 +313,10 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	uid := h.FirstResolvedWriter()
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
 
-	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
 	expectMakeKeyBundleIDs(config)
 	AddNewKeysOrBust(t, config.Crypto(), rmd, NewEmptyUserDeviceKeyInfoMap(), makeDirRKeyInfoMap(uid, subkey))
 	AddNewKeysOrBust(t, config.Crypto(), rmd, NewEmptyUserDeviceKeyInfoMap(), makeDirRKeyInfoMap(uid, subkey))
@@ -335,7 +338,9 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
+
 	oldKeyGen := rmd.LatestKeyGeneration()
 
 	expectRekey(config, h.ToBareHandleOrBust(), 1, false)
@@ -355,7 +360,8 @@ func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), "alice,bob@twitter", true)
 	require.NoError(t, err)
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
 
 	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
@@ -394,7 +400,8 @@ func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), "alice@twitter,bob,charlie@twitter", true)
 	require.NoError(t, err)
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
 
 	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("alice", "alice@twitter")
@@ -431,7 +438,9 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
+
 	oldKeyGen := rmd.LatestKeyGeneration()
 
 	expectRekey(config, h.ToBareHandleOrBust(), 3, true)
@@ -467,7 +476,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	oldKeyGen = rmd.LatestKeyGeneration()
 	expectCachedGetTLFCryptKey(config, rmd.TlfID(), oldKeyGen)
 	expectRekey(config, oldHandle.ToBareHandleOrBust(), 1, true)
-	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(3)
 	if done, _, err :=
@@ -501,7 +510,9 @@ func TestKeyManagerPromoteReaderSuccessPrivate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
+
 	oldKeyGen := rmd.LatestKeyGeneration()
 
 	expectRekey(config, h.ToBareHandleOrBust(), 2, true)
@@ -535,7 +546,9 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
+
 	oldKeyGen := rmd.LatestKeyGeneration()
 
 	expectRekey(config, h.ToBareHandleOrBust(), 1, true)
@@ -570,7 +583,7 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	// decrypted via bob's paper key)
 	expectCachedGetTLFCryptKey(config, rmd.TlfID(), oldKeyGen)
 	expectRekey(config, h.ToBareHandleOrBust(), 1, false)
-	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil)
 	if done, _, err :=
@@ -606,7 +619,9 @@ func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
+
 	oldKeyGen := rmd.LatestKeyGeneration()
 
 	expectRekey(config, h.ToBareHandleOrBust(), 2, true)
@@ -638,7 +653,7 @@ func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
 		kbfscrypto.TLFEphemeralPrivateKey{},
 		kbfscrypto.TLFCryptKey{}, nil)
 
-	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	subkey := kbfscrypto.MakeFakeCryptPublicKeyOrBust("crypt public key")
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
 		Return([]kbfscrypto.CryptPublicKey{subkey}, nil).Times(2)
 	if done, _, err :=

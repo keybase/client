@@ -6,144 +6,111 @@ package libkbfs
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/stretchr/testify/require"
 )
 
-func mdCacheInit(t *testing.T, cap int) (
-	mockCtrl *gomock.Controller, config *ConfigMock) {
-	ctr := NewSafeTestReporter(t)
-	mockCtrl = gomock.NewController(ctr)
-	config = NewConfigMock(mockCtrl, ctr)
-	mdcache := NewMDCacheStandard(cap)
-	config.SetMDCache(mdcache)
-	interposeDaemonKBPKI(config, "alice", "bob", "charlie")
-	return
-}
+func testMdcacheMakeHandle(t *testing.T, n uint32) *TlfHandle {
+	uid := keybase1.MakeTestUID(n)
+	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	require.NoError(t, err)
 
-func mdCacheShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
-	config.ctr.CheckForFailures()
-	mockCtrl.Finish()
+	nug := testNormalizedUsernameGetter{
+		uid: libkb.NormalizedUsername(fmt.Sprintf("fake_user_%d", n)),
+	}
+
+	ctx := context.Background()
+	h, err := MakeTlfHandle(ctx, bh, nug)
+	require.NoError(t, err)
+	return h
 }
 
 func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
-	mStatus MergeStatus, bid BranchID, h *TlfHandle, config *ConfigMock) {
-	key, err := config.KBPKI().GetCurrentVerifyingKey(context.Background())
-	if err != nil {
-		t.Fatalf("Couldn't get verifying key: %v", err)
+	bid BranchID, h *TlfHandle, mdcache *MDCacheStandard) {
+	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlf, h)
+	require.NoError(t, err)
+	rmd.SetRevision(rev)
+	if bid != NullBranchID {
+		rmd.SetUnmerged()
+		rmd.SetBranchID(bid)
 	}
 
-	rmd := MakeRootMetadata(
-		&BareRootMetadataV2{
-			WriterMetadataV2: WriterMetadataV2{
-				ID:    tlf,
-				WKeys: make(TLFWriterKeyGenerations, 0, 1),
-				BID:   bid,
-			},
-			WriterMetadataSigInfo: kbfscrypto.SignatureInfo{
-				VerifyingKey: key,
-			},
-			Revision: rev,
-			RKeys:    make(TLFReaderKeyGenerations, 1, 1),
-		}, nil, h)
-	rmd.AddNewKeysForTesting(config.Crypto(),
-		NewEmptyUserDeviceKeyInfoMap(), NewEmptyUserDeviceKeyInfoMap())
-	if mStatus == Unmerged {
-		rmd.SetUnmerged()
-	}
+	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("fake signing key")
+	rmd.bareMd.SignWriterMetadataInternally(context.Background(),
+		kbfscodec.NewMsgpack(),
+		kbfscrypto.SigningKeySigner{Key: signingKey})
 
 	// put the md
-	irmd := MakeImmutableRootMetadata(rmd, key, fakeMdID(1), time.Now())
-	if err := config.MDCache().Put(irmd); err != nil {
+	irmd := MakeImmutableRootMetadata(
+		rmd, signingKey.GetVerifyingKey(), fakeMdID(1), time.Now())
+	if err := mdcache.Put(irmd); err != nil {
 		t.Errorf("Got error on put on md %v: %v", tlf, err)
 	}
 
 	// make sure we can get it successfully
-	irmd2, err := config.MDCache().Get(tlf, rev, bid)
+	irmd2, err := mdcache.Get(tlf, rev, bid)
 	require.NoError(t, err)
 	require.Equal(t, irmd, irmd2)
 }
 
 func TestMdcachePut(t *testing.T) {
-	mockCtrl, config := mdCacheInit(t, 100)
-	defer mdCacheShutdown(mockCtrl, config)
+	tlfID := FakeTlfID(1, false)
+	h := testMdcacheMakeHandle(t, 1)
 
-	id := FakeTlfID(1, false)
-	h := parseTlfHandleOrBust(t, config, "alice", false)
-	h.resolvedWriters[keybase1.MakeTestUID(0)] = "test_user0"
-
-	testMdcachePut(t, id, 1, Merged, NullBranchID, h, config)
+	mdcache := NewMDCacheStandard(100)
+	testMdcachePut(t, tlfID, 1, NullBranchID, h, mdcache)
 }
 
 func TestMdcachePutPastCapacity(t *testing.T) {
-	mockCtrl, config := mdCacheInit(t, 2)
-	defer mdCacheShutdown(mockCtrl, config)
-
 	id0 := FakeTlfID(1, false)
-	h0 := parseTlfHandleOrBust(t, config, "alice", false)
+	h0 := testMdcacheMakeHandle(t, 0)
 
 	id1 := FakeTlfID(2, false)
-	h1 := parseTlfHandleOrBust(t, config, "alice,bob", false)
+	h1 := testMdcacheMakeHandle(t, 1)
 
 	id2 := FakeTlfID(3, false)
-	h2 := parseTlfHandleOrBust(t, config, "alice,charlie", false)
+	h2 := testMdcacheMakeHandle(t, 2)
 
-	testMdcachePut(t, id0, 0, Merged, NullBranchID, h0, config)
+	mdcache := NewMDCacheStandard(2)
+	testMdcachePut(t, id0, 0, NullBranchID, h0, mdcache)
 	bid := FakeBranchID(1)
-	testMdcachePut(t, id1, 0, Unmerged, bid, h1, config)
-	testMdcachePut(t, id2, 1, Merged, NullBranchID, h2, config)
+	testMdcachePut(t, id1, 0, bid, h1, mdcache)
+	testMdcachePut(t, id2, 1, NullBranchID, h2, mdcache)
 
 	// id 0 should no longer be in the cache
-	// make sure we can get it successfully
-	expectedErr := NoSuchMDError{id0, 0, NullBranchID}
-	if _, err := config.MDCache().Get(id0, 0, NullBranchID); err == nil {
-		t.Errorf("No expected error on get")
-	} else if err != expectedErr {
-		t.Errorf("Got unexpected error on get: %v", err)
-	}
+	_, err := mdcache.Get(id0, 0, NullBranchID)
+	require.Equal(t, NoSuchMDError{id0, 0, NullBranchID}, err)
 }
 
 func TestMdcacheReplace(t *testing.T) {
-	mockCtrl, config := mdCacheInit(t, 100)
-	defer mdCacheShutdown(mockCtrl, config)
-
 	id := FakeTlfID(1, false)
-	h := parseTlfHandleOrBust(t, config, "alice", false)
-	h.resolvedWriters[keybase1.MakeTestUID(0)] = "test_user0"
+	h := testMdcacheMakeHandle(t, 1)
 
-	testMdcachePut(t, id, 1, Merged, NullBranchID, h, config)
+	mdcache := NewMDCacheStandard(100)
+	testMdcachePut(t, id, 1, NullBranchID, h, mdcache)
 
-	irmd, err := config.MDCache().Get(id, 1, NullBranchID)
-	if err != nil {
-		t.Fatalf("Get error: %v", err)
-	}
+	irmd, err := mdcache.Get(id, 1, NullBranchID)
+	require.NoError(t, err)
 
 	// Change the BID
 	bid := FakeBranchID(1)
 	newRmd, err := irmd.deepCopy(kbfscodec.NewMsgpack())
-	if err != nil {
-		t.Fatalf("Deep-copy error: %v", err)
-	}
+	require.NoError(t, err)
 
 	newRmd.SetBranchID(bid)
-	err = config.MDCache().Replace(MakeImmutableRootMetadata(newRmd,
+	err = mdcache.Replace(MakeImmutableRootMetadata(newRmd,
 		irmd.LastModifyingWriterVerifyingKey(), fakeMdID(2), time.Now()), NullBranchID)
-	if err != nil {
-		t.Fatalf("Replace error: %v", err)
-	}
+	require.NoError(t, err)
 
-	_, err = config.MDCache().Get(id, 1, NullBranchID)
-	if _, ok := err.(NoSuchMDError); !ok {
-		t.Fatalf("Unexpected err after replace: %v", err)
-	}
-	_, err = config.MDCache().Get(id, 1, bid)
-	if err != nil {
-		t.Fatalf("Get error after replace: %v", err)
-	}
+	_, err = mdcache.Get(id, 1, NullBranchID)
+	require.IsType(t, NoSuchMDError{}, err)
+	_, err = mdcache.Get(id, 1, bid)
+	require.NoError(t, err)
 }

@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -158,6 +159,31 @@ var _ encoding.BinaryUnmarshaler = (*TLFEphemeralPrivateKey)(nil)
 // containing the given data.
 func MakeTLFEphemeralPrivateKey(data [32]byte) TLFEphemeralPrivateKey {
 	return TLFEphemeralPrivateKey{byte32Container{data}}
+}
+
+// CryptPrivateKey is a private key for encryption/decryption.
+type CryptPrivateKey struct {
+	kp libkb.NaclDHKeyPair
+}
+
+// NewCryptPrivateKey returns a CryptPrivateKey using the given key
+// pair.
+func NewCryptPrivateKey(kp libkb.NaclDHKeyPair) CryptPrivateKey {
+	return CryptPrivateKey{kp}
+}
+
+// Data returns the private key's data, suitable to be used with
+// box.Open or box.Seal.
+//
+// TODO: Make the CryptPrivateKey handle the Open/Seal itself.
+func (k CryptPrivateKey) Data() [32]byte {
+	return *k.kp.Private
+}
+
+// GetPublicKey returns the public key corresponding to this private
+// key.
+func (k CryptPrivateKey) GetPublicKey() CryptPublicKey {
+	return MakeCryptPublicKey(k.kp.Public.GetKID())
 }
 
 // CryptPublicKey (M_u^i) is used (with a TLFEphemeralPrivateKey) to

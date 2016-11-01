@@ -118,7 +118,7 @@ const (
 	// FirstValidKeyGen is the first value that is considered a
 	// valid key generation. Note that the nil value is not
 	// considered valid.
-	FirstValidKeyGen = 1
+	FirstValidKeyGen KeyGen = 1
 )
 
 // MetadataVer is the type of a version for marshalled KBFS metadata
@@ -129,16 +129,20 @@ const (
 	// FirstValidMetadataVer is the first value that is considered a
 	// valid data version. For historical reasons 0 is considered
 	// valid.
-	FirstValidMetadataVer = 0
+	FirstValidMetadataVer MetadataVer = 0
 	// PreExtraMetadataVer is the latest metadata version that did not include
 	// support for extra MD fields.
-	PreExtraMetadataVer = 1
+	PreExtraMetadataVer MetadataVer = 1
 	// InitialExtraMetadataVer is the first metadata version that did
 	// include support for extra MD fields.
-	InitialExtraMetadataVer = 2
+	InitialExtraMetadataVer MetadataVer = 2
 	// SegregatedKeyBundlesVer is the first metadata version to allow separate
 	// storage of key bundles.
-	SegregatedKeyBundlesVer = 3
+	SegregatedKeyBundlesVer MetadataVer = 3
+
+	// MDv3 TODO: Change the below to SegregatedKeyBundlesVer when
+	// the client is ready for MDv3.
+	defaultClientMetadataVer MetadataVer = InitialExtraMetadataVer
 )
 
 // DataVer is the type of a version for marshalled KBFS data
@@ -149,10 +153,10 @@ const (
 	// FirstValidDataVer is the first value that is considered a
 	// valid data version. Note that the nil value is not
 	// considered valid.
-	FirstValidDataVer = 1
+	FirstValidDataVer DataVer = 1
 	// FilesWithHolesDataVer is the data version for files
 	// with holes.
-	FilesWithHolesDataVer = 2
+	FilesWithHolesDataVer DataVer = 2
 )
 
 // BlockRefNonce is a 64-bit unique sequence of bytes for identifying
@@ -736,12 +740,12 @@ type TLFUpdateHistory struct {
 	Updates []UpdateSummary
 }
 
-// writerInfo is the keybase username and device that generated the operation.
+// writerInfo is the keybase UID and device (represented by its
+// verifying key) that generated the operation at the given revision.
 type writerInfo struct {
-	name       libkb.NormalizedUsername
-	uid        keybase1.UID
-	deviceName string
-	revision   MetadataRevision
+	uid      keybase1.UID
+	key      kbfscrypto.VerifyingKey
+	revision MetadataRevision
 }
 
 // ErrorModeType indicates what type of operation was being attempted

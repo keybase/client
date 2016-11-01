@@ -27,9 +27,9 @@ type testMutexLevel mutexLevel
 
 const (
 	testFirst  testMutexLevel = 1
-	testSecond                = 2
-	testThird                 = 3
-	testFourth                = 4
+	testSecond testMutexLevel = 2
+	testThird  testMutexLevel = 3
+	testFourth testMutexLevel = 4
 )
 
 func (o testMutexLevel) String() string {

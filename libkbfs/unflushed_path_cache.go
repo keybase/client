@@ -140,12 +140,7 @@ func addUnflushedPaths(ctx context.Context,
 	chains := newCRChainsEmpty()
 	processedOne := false
 	for _, mdInfo := range mdInfos {
-		winfo := writerInfo{
-			uid:      uid,
-			revision: mdInfo.revision,
-			// There won't be any conflicts, so no need for the
-			// username/devicename.
-		}
+		winfo := newWriterInfo(uid, key, mdInfo.revision)
 		if _, ok := unflushedPaths[mdInfo.revision]; ok {
 			if processedOne {
 				return fmt.Errorf("Couldn't skip revision %d after "+

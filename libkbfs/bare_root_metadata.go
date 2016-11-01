@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
+// TODO: Rename this to bare_root_metadata_v2.go.
+
 package libkbfs
 
 import (
@@ -99,6 +101,56 @@ type BareRootMetadataV2 struct {
 	FinalizedInfo *TlfHandleExtension `codec:"fi,omitempty"`
 
 	codec.UnknownFieldSetHandler
+}
+
+// MakeInitialBareRootMetadataV2 creates a new BareRootMetadataV2
+// object with revision MetadataRevisionInitial, and the given TlfID
+// and BareTlfHandle. Note that if the given ID/handle are private,
+// rekeying must be done separately.
+func MakeInitialBareRootMetadataV2(tlfID TlfID, h BareTlfHandle) (
+	*BareRootMetadataV2, error) {
+	if tlfID.IsPublic() != h.IsPublic() {
+		return nil, errors.New(
+			"TlfID and TlfHandle disagree on public status")
+	}
+
+	var writers []keybase1.UID
+	var wKeys TLFWriterKeyGenerations
+	var rKeys TLFReaderKeyGenerations
+	if tlfID.IsPublic() {
+		writers = make([]keybase1.UID, len(h.Writers))
+		copy(writers, h.Writers)
+	} else {
+		wKeys = make(TLFWriterKeyGenerations, 0, 1)
+		rKeys = make(TLFReaderKeyGenerations, 0, 1)
+	}
+
+	var unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion
+	if len(h.UnresolvedWriters) > 0 {
+		unresolvedWriters = make(
+			[]keybase1.SocialAssertion, len(h.UnresolvedWriters))
+		copy(unresolvedWriters, h.UnresolvedWriters)
+	}
+
+	if len(h.UnresolvedReaders) > 0 {
+		unresolvedReaders = make(
+			[]keybase1.SocialAssertion, len(h.UnresolvedReaders))
+		copy(unresolvedReaders, h.UnresolvedReaders)
+	}
+
+	return &BareRootMetadataV2{
+		WriterMetadataV2: WriterMetadataV2{
+			Writers: writers,
+			WKeys:   wKeys,
+			ID:      tlfID,
+			Extra: WriterMetadataExtra{
+				UnresolvedWriters: unresolvedWriters,
+			},
+		},
+		Revision:          MetadataRevisionInitial,
+		RKeys:             rKeys,
+		UnresolvedReaders: unresolvedReaders,
+	}, nil
 }
 
 // TlfID implements the BareRootMetadata interface for BareRootMetadataV2.
@@ -230,41 +282,6 @@ func (md *BareRootMetadataV2) IsReader(
 		return true
 	}
 	return md.RKeys.IsReader(user, deviceKID)
-}
-
-// Update implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) Update(id TlfID, h BareTlfHandle) error {
-	if id.IsPublic() != h.IsPublic() {
-		return errors.New("TlfID and TlfHandle disagree on public status")
-	}
-
-	var writers []keybase1.UID
-	var wKeys TLFWriterKeyGenerations
-	var rKeys TLFReaderKeyGenerations
-	if id.IsPublic() {
-		writers = make([]keybase1.UID, len(h.Writers))
-		copy(writers, h.Writers)
-	} else {
-		wKeys = make(TLFWriterKeyGenerations, 0, 1)
-		rKeys = make(TLFReaderKeyGenerations, 0, 1)
-	}
-	md.WriterMetadataV2 = WriterMetadataV2{
-		Writers: writers,
-		WKeys:   wKeys,
-		ID:      id,
-	}
-	if len(h.UnresolvedWriters) > 0 {
-		md.Extra.UnresolvedWriters = make([]keybase1.SocialAssertion, len(h.UnresolvedWriters))
-		copy(md.Extra.UnresolvedWriters, h.UnresolvedWriters)
-	}
-
-	md.Revision = MetadataRevisionInitial
-	md.RKeys = rKeys
-	if len(h.UnresolvedReaders) > 0 {
-		md.UnresolvedReaders = make([]keybase1.SocialAssertion, len(h.UnresolvedReaders))
-		copy(md.UnresolvedReaders, h.UnresolvedReaders)
-	}
-	return nil
 }
 
 func (md *BareRootMetadataV2) deepCopy(
@@ -780,7 +797,8 @@ func (md *BareRootMetadataV2) GetSerializedWriterMetadata(
 
 // SignWriterMetadataInternally implements the MutableBareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) SignWriterMetadataInternally(
-	ctx context.Context, codec kbfscodec.Codec, signer cryptoSigner) error {
+	ctx context.Context, codec kbfscodec.Codec,
+	signer kbfscrypto.Signer) error {
 	buf, err := codec.Encode(md.WriterMetadataV2)
 	if err != nil {
 		return err
@@ -824,14 +842,46 @@ func (md *BareRootMetadataV2) SetRevision(revision MetadataRevision) {
 	md.Revision = revision
 }
 
-// AddNewKeysForTesting implements the MutableBareRootMetadata interface for BareRootMetadataV2.
+// AddNewKeysForTesting implements the MutableBareRootMetadata
+// interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) AddNewKeysForTesting(_ cryptoPure,
-	wDkim, rDkim UserDeviceKeyInfoMap) (extra ExtraMetadata, err error) {
+	wDkim, rDkim UserDeviceKeyInfoMap,
+	pubKey kbfscrypto.TLFPublicKey) (extra ExtraMetadata, err error) {
+	if md.TlfID().IsPublic() {
+		panic("Called AddNewKeysForTesting on public TLF")
+	}
+	for _, dkim := range wDkim {
+		for _, info := range dkim {
+			if info.EPubKeyIndex < 0 {
+				panic("negative EPubKeyIndex for writer (v2)")
+			}
+			// TODO: Allow more if needed.
+			if info.EPubKeyIndex > 0 {
+				panic("EPubKeyIndex for writer > 1 (v2)")
+			}
+		}
+	}
+	for _, dkim := range rDkim {
+		for _, info := range dkim {
+			if info.EPubKeyIndex >= 0 {
+				panic("non-negative EPubKeyIndex for reader (v2)")
+			}
+			// TODO: Allow more if needed.
+			if info.EPubKeyIndex < -1 {
+				panic("EPubKeyIndex for reader < -1 (v2)")
+			}
+		}
+	}
 	wkb := TLFWriterKeyBundleV2{
-		WKeys: wDkim,
+		WKeys:        wDkim,
+		TLFPublicKey: pubKey,
+		// TODO: Size this to the max EPubKeyIndex for writers.
+		TLFEphemeralPublicKeys: make([]kbfscrypto.TLFEphemeralPublicKey, 1),
 	}
 	rkb := TLFReaderKeyBundleV2{
 		RKeys: rDkim,
+		// TODO: Size this to the max EPubKeyIndex (after
+		// undoing the negative hack) for readers.
 		TLFReaderEphemeralPublicKeys: make([]kbfscrypto.TLFEphemeralPublicKey, 1),
 	}
 	md.WKeys = append(md.WKeys, wkb)
@@ -886,36 +936,6 @@ func (md *BareRootMetadataV2) Version() MetadataVer {
 	// Let other types of MD objects use the older version since they
 	// are still compatible with older clients.
 	return PreExtraMetadataVer
-}
-
-// FakeInitialRekey implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) FakeInitialRekey(_ cryptoPure, h BareTlfHandle) (
-	ExtraMetadata, error) {
-	if md.ID.IsPublic() {
-		panic("Called FakeInitialRekey on public TLF")
-	}
-	wkb := TLFWriterKeyBundleV2{
-		WKeys: make(UserDeviceKeyInfoMap),
-	}
-	for _, w := range h.Writers {
-		k := MakeFakeCryptPublicKeyOrBust(string(w))
-		wkb.WKeys[w] = DeviceKeyInfoMap{
-			k.KID(): TLFCryptKeyInfo{},
-		}
-	}
-	md.WKeys = TLFWriterKeyGenerations{wkb}
-
-	rkb := TLFReaderKeyBundleV2{
-		RKeys: make(UserDeviceKeyInfoMap),
-	}
-	for _, r := range h.Readers {
-		k := MakeFakeCryptPublicKeyOrBust(string(r))
-		rkb.RKeys[r] = DeviceKeyInfoMap{
-			k.KID(): TLFCryptKeyInfo{},
-		}
-	}
-	md.RKeys = TLFReaderKeyGenerations{rkb}
-	return nil, nil
 }
 
 // GetTLFPublicKey implements the BareRootMetadata interface for BareRootMetadataV2.

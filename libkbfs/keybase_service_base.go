@@ -635,7 +635,7 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 
 	for i, key := range keys {
 		res.CryptKeys = append(res.CryptKeys, keybase1.CryptKey{
-			KeyGeneration: FirstValidKeyGen + i,
+			KeyGeneration: int(FirstValidKeyGen) + i,
 			Key:           keybase1.Bytes32(key.Data()),
 		})
 	}

@@ -111,7 +111,7 @@ func (c testTLFJournalConfig) MDCache() MDCache {
 }
 
 func (c testTLFJournalConfig) MetadataVersion() MetadataVer {
-	return SegregatedKeyBundlesVer
+	return defaultClientMetadataVer
 }
 
 func (c testTLFJournalConfig) Reporter() Reporter {
@@ -154,7 +154,7 @@ func (c testTLFJournalConfig) makeBlock(data []byte) (
 
 func (c testTLFJournalConfig) makeMD(
 	revision MetadataRevision, prevRoot MdID) *RootMetadata {
-	return makeMDForTest(c.t, c.tlfID, revision, c.uid, c.verifyingKey, prevRoot)
+	return makeMDForTest(c.t, c.tlfID, revision, c.uid, c.crypto, prevRoot)
 }
 
 func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
@@ -194,8 +194,8 @@ func setupTLFJournalTest(
 	// Set up config and dependencies.
 	bsplitter := &BlockSplitterSimple{64 * 1024, 8 * 1024}
 	codec := kbfscodec.NewMsgpack()
-	signingKey := MakeFakeSigningKeyOrBust("client sign")
-	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	crypto := NewCryptoLocal(codec, signingKey, cryptPrivateKey)
 	uid := keybase1.MakeTestUID(1)
 	verifyingKey := signingKey.GetVerifyingKey()

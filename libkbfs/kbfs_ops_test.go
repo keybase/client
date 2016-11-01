@@ -284,7 +284,8 @@ func createNewRMD(t *testing.T, config Config, name string, public bool) (
 	TlfID, *TlfHandle, *RootMetadata) {
 	id := FakeTlfID(1, public)
 	h := parseTlfHandleOrBust(t, config, name, public)
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
 	return id, h, rmd
 }
 
@@ -315,7 +316,7 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 			EncodedSize: 1,
 		},
 	}
-	rmd.FakeInitialRekey(config.Crypto(), h.ToBareHandleOrBust())
+	rmd.fakeInitialRekey(config.Crypto())
 
 	ops := getOps(config, id)
 	ops.head = makeImmutableRMDForTest(
@@ -475,7 +476,7 @@ func (p ptrMatcher) String() string {
 
 func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) {
 	if !rmd.TlfID().IsPublic() {
-		rmd.FakeInitialRekey(config.Crypto(), rmd.GetTlfHandle().ToBareHandleOrBust())
+		rmd.fakeInitialRekey(config.Crypto())
 	}
 	rootPtr := BlockPointer{
 		ID:      fakeBlockID(42),
@@ -721,7 +722,8 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	// Hack around access check in ParseTlfHandle.
 	h.resolvedReaders = nil
 
-	rmd := newRootMetadataOrBust(t, id, h)
+	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
+	require.NoError(t, err)
 
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -2748,11 +2750,13 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 
 	id1 := FakeTlfID(1, false)
 	h1 := parseTlfHandleOrBust(t, config, "alice,bob", false)
-	rmd1 := newRootMetadataOrBust(t, id1, h1)
+	rmd1, err := makeInitialRootMetadata(config.MetadataVersion(), id1, h1)
+	require.NoError(t, err)
 
 	id2 := FakeTlfID(2, false)
 	h2 := parseTlfHandleOrBust(t, config, "alice,bob,charlie", false)
-	rmd2 := newRootMetadataOrBust(t, id1, h2)
+	rmd2, err := makeInitialRootMetadata(config.MetadataVersion(), id2, h2)
+	require.NoError(t, err)
 
 	uid1 := h2.ResolvedWriters()[0]
 	uid2 := h2.ResolvedWriters()[2]
@@ -2788,7 +2792,8 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 
 	id1 := FakeTlfID(1, false)
 	h1 := parseTlfHandleOrBust(t, config, "alice,bob", false)
-	rmd1 := newRootMetadataOrBust(t, id1, h1)
+	rmd1, err := makeInitialRootMetadata(config.MetadataVersion(), id1, h1)
+	require.NoError(t, err)
 
 	uid1 := h1.FirstResolvedWriter()
 	rootID1 := fakeBlockID(41)

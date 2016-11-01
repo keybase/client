@@ -57,7 +57,7 @@ func crMakeFakeRMD(rev MetadataRevision, bid BranchID) ImmutableRootMetadata {
 	if bid != NullBranchID {
 		writerFlags = MetadataFlagUnmerged
 	}
-	key := MakeFakeVerifyingKeyOrBust("fake key")
+	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("fake key")
 	return MakeImmutableRootMetadata(&RootMetadata{
 		bareMd: &BareRootMetadataV2{
 			WriterMetadataV2: WriterMetadataV2{
@@ -906,7 +906,7 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	err = ro.Dir.setRef(unmergedPathRoot.tailPointer())
 	require.NoError(t, err)
 	ro.dropThis = true
-	ro.setWriterInfo(writerInfo{name: "u2"})
+	ro.setWriterInfo(writerInfo{})
 	ro.setFinalPath(unmergedPathRoot)
 	ro.setLocalTimestamp(now)
 	expectedActions := map[BlockPointer]crActionList{

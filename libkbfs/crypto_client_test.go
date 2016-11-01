@@ -24,8 +24,7 @@ type FakeCryptoClient struct {
 }
 
 func NewFakeCryptoClient(config Config, signingKey kbfscrypto.SigningKey,
-	cryptPrivateKey CryptPrivateKey,
-	readyChan chan<- struct{},
+	cryptPrivateKey kbfscrypto.CryptPrivateKey, readyChan chan<- struct{},
 	goChan <-chan struct{}) *FakeCryptoClient {
 	return &FakeCryptoClient{
 		Local: NewCryptoLocal(
@@ -147,8 +146,8 @@ func testCryptoClientConfig(t *testing.T) Config {
 
 // Test that signing a message and then verifying it works.
 func TestCryptoClientSignAndVerify(t *testing.T) {
-	signingKey := MakeFakeSigningKeyOrBust("client sign")
-	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
 	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config, fc)
@@ -182,8 +181,8 @@ func TestCryptoClientSignCanceled(t *testing.T) {
 // Test that decrypting an TLF crypt key client half encrypted with
 // box.Seal works.
 func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
-	signingKey := MakeFakeSigningKeyOrBust("client sign")
-	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
 	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config, fc)
@@ -209,7 +208,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	keypair, err := libkb.ImportKeypairFromKID(cryptPrivateKey.getPublicKey().KID())
+	keypair, err := libkb.ImportKeypairFromKID(cryptPrivateKey.GetPublicKey().KID())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -242,8 +241,8 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 // Test that decrypting a TLF crypt key client half encrypted with the
 // default method (currently nacl/box) works.
 func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
-	signingKey := MakeFakeSigningKeyOrBust("client sign")
-	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
 	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config, fc)
@@ -265,7 +264,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 
 	// See crypto_common_test.go for tests that this actually
 	// performs encryption.
-	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.getPublicKey(), clientHalf)
+	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -287,8 +286,8 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 
 // Test that attempting to decrypt an empty set of client keys fails.
 func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
-	signingKey := MakeFakeSigningKeyOrBust("client sign")
-	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
 	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config, fc)
@@ -305,8 +304,8 @@ func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T)
 // Test that when decrypting set of client keys, the first working one
 // is used to decrypt.
 func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
-	signingKey := MakeFakeSigningKeyOrBust("client sign")
-	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
 	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config, fc)
@@ -331,7 +330,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 
 		// See crypto_common_test.go for tests that this actually
 		// performs encryption.
-		encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.getPublicKey(), clientHalf)
+		encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -340,7 +339,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 			t.Fatalf("Unexpected encryption version %d", encryptedClientHalf.Version)
 		}
 		keys = append(keys, EncryptedTLFCryptKeyClientAndEphemeral{
-			PubKey:     cryptPrivateKey.getPublicKey(),
+			PubKey:     cryptPrivateKey.GetPublicKey(),
 			ClientHalf: encryptedClientHalf,
 			EPubKey:    ephPublicKey,
 		})
@@ -365,8 +364,8 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 // Test various failure cases for DecryptTLFCryptKeyClientHalfAny and that
 // if a working key is present, the decryption succeeds.
 func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
-	signingKey := MakeFakeSigningKeyOrBust("client sign")
-	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
 	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config, fc)
@@ -386,7 +385,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.getPublicKey(), clientHalf)
+	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -416,27 +415,27 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 
 	keys := []EncryptedTLFCryptKeyClientAndEphemeral{
 		{
-			PubKey:     cryptPrivateKey.getPublicKey(),
+			PubKey:     cryptPrivateKey.GetPublicKey(),
 			ClientHalf: encryptedClientHalfWrongVersion,
 			EPubKey:    ephPublicKey,
 		}, {
-			PubKey:     cryptPrivateKey.getPublicKey(),
+			PubKey:     cryptPrivateKey.GetPublicKey(),
 			ClientHalf: encryptedClientHalfWrongSize,
 			EPubKey:    ephPublicKey,
 		}, {
-			PubKey:     cryptPrivateKey.getPublicKey(),
+			PubKey:     cryptPrivateKey.GetPublicKey(),
 			ClientHalf: encryptedClientHalfWrongNonceSize,
 			EPubKey:    ephPublicKey,
 		}, {
-			PubKey:     cryptPrivateKey.getPublicKey(),
+			PubKey:     cryptPrivateKey.GetPublicKey(),
 			ClientHalf: encryptedClientHalf,
 			EPubKey:    ephPublicKeyCorrupt,
 		}, {
-			PubKey:     cryptPrivateKey.getPublicKey(),
+			PubKey:     cryptPrivateKey.GetPublicKey(),
 			ClientHalf: encryptedClientHalfCorruptData,
 			EPubKey:    ephPublicKey,
 		}, {
-			PubKey:     cryptPrivateKey.getPublicKey(),
+			PubKey:     cryptPrivateKey.GetPublicKey(),
 			ClientHalf: encryptedClientHalf,
 			EPubKey:    ephPublicKey,
 		},
@@ -455,8 +454,8 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 
 // Test various failure cases for DecryptTLFCryptKeyClientHalf.
 func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
-	signingKey := MakeFakeSigningKeyOrBust("client sign")
-	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
 	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config, fc)
@@ -476,7 +475,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.getPublicKey(), clientHalf)
+	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -542,7 +541,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 
 // Test that canceling a signing RPC returns the correct error
 func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
-	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
 	serverConn, conn := rpc.MakeConnectionForTest(t)
 	c := newCryptoClientWithClient(config, conn.GetClient())
@@ -562,7 +561,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.getPublicKey(), clientHalf)
+	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.GetPublicKey(), clientHalf)
 	if err != nil {
 		t.Fatal(err)
 	}
