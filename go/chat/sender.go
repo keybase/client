@@ -185,7 +185,7 @@ func NewDeliverer(g *libkb.GlobalContext, sender Sender, outbox *storage.Outbox)
 		Contextified: libkb.NewContextified(g),
 		outbox:       outbox,
 		shutdownCh:   make(chan struct{}),
-		msgSentCh:    make(chan struct{}),
+		msgSentCh:    make(chan struct{}, 100),
 		sender:       sender,
 	}
 
