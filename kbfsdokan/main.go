@@ -25,6 +25,7 @@ var mountType = flag.String("mount-type", defaultMountType, "mount type: default
 var version = flag.Bool("version", false, "Print version")
 var mountFlags = flag.Int64("mount-flags", int64(libdokan.DefaultMountFlags), "Dokan mount flags")
 var dokandll = flag.String("dokan-dll", "", "Absolute path of dokan dll to load")
+var servicemount = flag.Bool("service-mount", false, "get mount path from service")
 
 const usageFormatStr = `Usage:
   kbfsdokan -version
@@ -34,14 +35,14 @@ To run against remote KBFS servers:
     [-bserver=%s] [-mdserver=%s]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
     [-log-to-file] [-log-file=path/to/file]
-    /path/to/mountpoint
+    -service-mount | /path/to/mountpoint
 
 To run in a local testing environment:
   kbfsdokan [-debug] [-cpuprofile=path/to/dir]
     [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
-    [-log-to-file] [-log-file=path/to/file]
-    /path/to/mountpoint
+    [-log-to-file] [-log-file=path/to/file][-service-mount]
+    -service-mount | /path/to/mountpoint
 
 `
 
@@ -73,9 +74,14 @@ func start() *libfs.Error {
 		return nil
 	}
 
+	var mountpoint string
 	if len(flag.Args()) < 1 {
-		fmt.Print(getUsageStr(ctx))
-		return libfs.InitError("no mount specified")
+		if !*servicemount {
+			fmt.Print(getUsageStr(ctx))
+			return libfs.InitError("no mount specified")
+		}
+	} else {
+		mountpoint = flag.Arg(0)
 	}
 
 	if len(flag.Args()) > 1 {
@@ -83,7 +89,6 @@ func start() *libfs.Error {
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
 
-	mountpoint := flag.Arg(0)
 	var mounter libdokan.Mounter
 	if *mountType == "force" {
 		mounter = libdokan.NewForceMounter(mountpoint)

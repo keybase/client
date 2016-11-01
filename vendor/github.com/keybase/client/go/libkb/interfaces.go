@@ -22,57 +22,61 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-type CommandLine interface {
-	GetHome() string
-	GetServerURI() string
+type configGetter interface {
+	GetAPITimeout() (time.Duration, bool)
+	GetAutoFork() (bool, bool)
+	GetChatDbFilename() string
+	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
-	GetUpdaterConfigFilename() string
-	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
-	GetVDebugSetting() string
-	GetProxy() string
-	GetLogFile() string
-	GetLogFormat() string
+	GetGpg() string
 	GetGpgHome() string
-	GetAPIDump() (bool, bool)
-	GetGregorURI() string
-	GetGregorSaveInterval() (time.Duration, bool)
+	GetGpgOptions() []string
 	GetGregorDisabled() (bool, bool)
 	GetGregorPingInterval() (time.Duration, bool)
-	GetUserCacheMaxAge() (time.Duration, bool)
-	GetProofCacheSize() (int, bool)
+	GetGregorSaveInterval() (time.Duration, bool)
+	GetGregorURI() string
+	GetHome() string
 	GetLinkCacheSize() (int, bool)
-	GetMerkleKIDs() []string
-	GetCodeSigningKIDs() []string
-	GetPinentry() string
-	GetGpg() string
-	GetGpgOptions() []string
-	GetPGPFingerprint() *PGPFingerprint
-	GetSecretKeyringTemplate() string
-	GetSocketFile() string
-	GetPidFile() string
-	GetStandalone() (bool, bool)
-	GetAutoFork() (bool, bool)
-	GetNoAutoFork() (bool, bool)
 	GetLocalRPCDebug() string
-	GetTimers() string
-	GetRunMode() (RunMode, error)
-
-	GetScraperTimeout() (time.Duration, bool)
-	GetAPITimeout() (time.Duration, bool)
-
-	GetTorMode() (TorMode, error)
-	GetTorHiddenAddress() string
-	GetTorProxy() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
-
+	GetLogFile() string
+	GetLogFormat() string
+	GetMerkleKIDs() []string
 	GetMountDir() string
+	GetPidFile() string
+	GetPinentry() string
+	GetProofCacheSize() (int, bool)
+	GetProxy() string
+	GetRunMode() (RunMode, error)
+	GetScraperTimeout() (time.Duration, bool)
+	GetSecretKeyringTemplate() string
+	GetServerURI() string
+	GetSessionFilename() string
+	GetSocketFile() string
+	GetStandalone() (bool, bool)
+	GetTimers() string
+	GetTorHiddenAddress() string
+	GetTorMode() (TorMode, error)
+	GetTorProxy() string
+	GetUpdaterConfigFilename() string
+	GetUserCacheMaxAge() (time.Duration, bool)
+	GetVDebugSetting() string
+}
+
+type CommandLine interface {
+	configGetter
+
+	GetAPIDump() (bool, bool)
+	GetPGPFingerprint() *PGPFingerprint
+	GetNoAutoFork() (bool, bool)
 
 	// Lower-level functions
 	GetGString(string) string
@@ -90,73 +94,52 @@ type DbKey struct {
 	Key string
 }
 
-type LocalDb interface {
-	Open() error
-	ForceOpen() error
-	Close() error
-	Nuke() (string, error)
+type LocalDbOps interface {
 	Put(id DbKey, aliases []DbKey, value []byte) error
 	Delete(id DbKey) error
 	Get(id DbKey) ([]byte, bool, error)
 	Lookup(alias DbKey) ([]byte, bool, error)
 }
 
+type LocalDbTransaction interface {
+	LocalDbOps
+	Commit() error
+	Discard()
+}
+
+type LocalDb interface {
+	LocalDbOps
+	Open() error
+	ForceOpen() error
+	Close() error
+	Nuke() (string, error)
+	OpenTransaction() (LocalDbTransaction, error)
+}
+
 type ConfigReader interface {
-	GetHome() string
-	GetServerURI() string
-	GetConfigFilename() string
-	GetUpdaterConfigFilename() string
-	GetSessionFilename() string
-	GetDbFilename() string
-	GetDebug() (bool, bool)
-	GetVDebugSetting() string
-	GetAutoFork() (bool, bool)
+	configGetter
+
 	GetUserConfig() (*UserConfig, error)
 	GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error)
-	GetProxy() string
-	GetLogFormat() string
-	GetGpgHome() string
 	GetBundledCA(host string) string
 	GetStringAtPath(string) (string, bool)
 	GetInterfaceAtPath(string) (interface{}, error)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
 	GetNullAtPath(string) bool
-	GetUserCacheMaxAge() (time.Duration, bool)
-	GetProofCacheSize() (int, bool)
 	GetProofCacheLongDur() (time.Duration, bool)
 	GetProofCacheMediumDur() (time.Duration, bool)
 	GetProofCacheShortDur() (time.Duration, bool)
-	GetLinkCacheSize() (int, bool)
 	GetLinkCacheCleanDur() (time.Duration, bool)
-	GetMerkleKIDs() []string
-	GetCodeSigningKIDs() []string
-	GetPinentry() string
 	GetNoPinentry() (bool, bool)
-	GetGpg() string
-	GetGpgOptions() []string
-	GetSecretKeyringTemplate() string
 	GetSalt() []byte
-	GetSocketFile() string
-	GetPidFile() string
-	GetStandalone() (bool, bool)
-	GetLocalRPCDebug() string
-	GetTimers() string
 	GetDeviceID() keybase1.DeviceID
 	GetUsername() NormalizedUsername
 	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
 	GetUID() keybase1.UID
 	GetProxyCACerts() ([]string, error)
-	GetLogFile() string
-	GetRunMode() (RunMode, error)
-	GetScraperTimeout() (time.Duration, bool)
-	GetAPITimeout() (time.Duration, bool)
 	GetSecurityAccessGroupOverride() (bool, bool)
-	GetGregorURI() string
-	GetGregorSaveInterval() (time.Duration, bool)
-	GetGregorDisabled() (bool, bool)
-	GetGregorPingInterval() (time.Duration, bool)
-	GetMountDir() string
+	GetBug3964RepairTime(NormalizedUsername) (time.Time, error)
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
@@ -164,12 +147,7 @@ type ConfigReader interface {
 	GetUpdateLastChecked() keybase1.Time
 	GetUpdateURL() string
 	GetUpdateDisabled() (bool, bool)
-	GetLocalTrackMaxAge() (time.Duration, bool)
 	IsAdmin() (bool, bool)
-
-	GetTorMode() (TorMode, error)
-	GetTorHiddenAddress() string
-	GetTorProxy() string
 }
 
 type UpdaterConfigReader interface {
@@ -196,6 +174,7 @@ type ConfigWriter interface {
 	SetUpdatePreferenceSkip(string) error
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
 	SetUpdateLastChecked(keybase1.Time) error
+	SetBug3964RepairTime(NormalizedUsername, time.Time) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
 }
@@ -271,7 +250,7 @@ type ExternalAPI interface {
 }
 
 type IdentifyUI interface {
-	Start(string, keybase1.IdentifyReason) error
+	Start(string, keybase1.IdentifyReason, bool) error
 	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
 	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
 	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
@@ -282,6 +261,7 @@ type IdentifyUI interface {
 	DisplayTrackStatement(string) error
 	DisplayUserCard(keybase1.UserCard) error
 	ReportTrackToken(keybase1.TrackToken) error
+	Cancel() error
 	Finish() error
 	DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error
 	Dismiss(string, keybase1.DismissReason) error
@@ -347,6 +327,17 @@ type PgpUI interface {
 
 type ProvisionUI interface {
 	keybase1.ProvisionUiInterface
+}
+
+type ChatUI interface {
+	ChatAttachmentUploadStart(context.Context) error
+	ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error
+	ChatAttachmentUploadDone(context.Context) error
+	ChatAttachmentPreviewUploadStart(context.Context) error
+	ChatAttachmentPreviewUploadDone(context.Context) error
+	ChatAttachmentDownloadStart(context.Context) error
+	ChatAttachmentDownloadProgress(context.Context, chat1.ChatAttachmentDownloadProgressArg) error
+	ChatAttachmentDownloadDone(context.Context) error
 }
 
 type PromptDefault int
@@ -515,4 +506,12 @@ type ServiceType interface {
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers(mode RunMode) []string
+}
+
+type ConversationSource interface {
+	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		msg chat1.MessageBoxed) (chat1.MessageUnboxed, error)
+	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
+		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
+	Clear(convID chat1.ConversationID, uid gregor1.UID) error
 }

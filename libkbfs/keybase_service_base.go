@@ -17,13 +17,14 @@ import (
 // KeybaseServiceBase implements most of KeybaseService from protocol
 // defined clients.
 type KeybaseServiceBase struct {
-	context        Context
-	identifyClient keybase1.IdentifyInterface
-	userClient     keybase1.UserInterface
-	sessionClient  keybase1.SessionInterface
-	favoriteClient keybase1.FavoriteInterface
-	kbfsClient     keybase1.KbfsInterface
-	log            logger.Logger
+	context         Context
+	identifyClient  keybase1.IdentifyInterface
+	userClient      keybase1.UserInterface
+	sessionClient   keybase1.SessionInterface
+	favoriteClient  keybase1.FavoriteInterface
+	kbfsClient      keybase1.KbfsInterface
+	kbfsMountClient keybase1.KbfsMountInterface
+	log             logger.Logger
 
 	config Config
 
@@ -56,12 +57,14 @@ func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *Key
 // FillClients sets the client protocol implementations needed for a KeybaseService.
 func (k *KeybaseServiceBase) FillClients(identifyClient keybase1.IdentifyInterface,
 	userClient keybase1.UserInterface, sessionClient keybase1.SessionInterface,
-	favoriteClient keybase1.FavoriteInterface, kbfsClient keybase1.KbfsInterface) {
+	favoriteClient keybase1.FavoriteInterface, kbfsClient keybase1.KbfsInterface,
+	kbfsMountClient keybase1.KbfsMountInterface) {
 	k.identifyClient = identifyClient
 	k.userClient = userClient
 	k.sessionClient = sessionClient
 	k.favoriteClient = favoriteClient
 	k.kbfsClient = kbfsClient
+	k.kbfsMountClient = kbfsMountClient
 }
 
 type addVerifyingKeyFunc func(kbfscrypto.VerifyingKey)
@@ -680,4 +683,20 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 	}
 
 	return res, nil
+}
+
+// GetMountDir gets the drive letter for Windows.
+func (k *KeybaseServiceBase) GetMountDir(ctx context.Context) (
+	string, error) {
+	dir, err := k.kbfsMountClient.GetCurrentMountDir(ctx)
+	if err != nil || dir == "" {
+		dirs, _ := k.kbfsMountClient.GetAllAvailableMountDirs(ctx)
+		// chooseDefaultMount can handle an emtpy argument
+		dir, err = chooseDefaultMount(dirs)
+		if dir != "" {
+			k.kbfsMountClient.SetCurrentMountDir(ctx, dir)
+		}
+		k.log.CDebugf(ctx, "Choosing mountdir %s from %v", dir, dirs)
+	}
+	return dir, err
 }

@@ -292,6 +292,34 @@ func loadUserFromLocalStorage(g *GlobalContext, uid keybase1.UID) (u *User, err 
 	return
 }
 
+// LoadUserEmails returns emails for logged in user
+func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
+	uid := g.GetMyUID()
+	res, err := g.API.Get(APIArg{
+		Endpoint:    "user/lookup",
+		NeedSession: true,
+		Args: HTTPArgs{
+			"uid": UIDArg(uid),
+		},
+	})
+	if err != nil {
+		return
+	}
+	var email string
+	var isVerified int
+	primary := res.Body.AtKey("them").AtKey("emails").AtKey("primary")
+	email, err = primary.AtKey("email").GetString()
+	if err != nil {
+		return
+	}
+	isVerified, err = primary.AtKey("is_verified").GetInt()
+	if err != nil {
+		return
+	}
+	emails = []keybase1.Email{keybase1.Email{Email: email, IsVerified: isVerified == 1}}
+	return
+}
+
 func LoadUserFromServer(g *GlobalContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
 	g.Log.Debug("+ Load User from server: %s", uid)
 

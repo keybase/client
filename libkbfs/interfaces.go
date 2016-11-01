@@ -349,6 +349,10 @@ type KeybaseService interface {
 	// instance. No other methods may be called after this is
 	// called.
 	Shutdown()
+
+	// GetMountDir allows the service to specify the filesystem mount
+	// location, since it can change on some platforms.
+	GetMountDir(ctx context.Context) (string, error)
 }
 
 // KeybaseServiceCn defines methods needed to construct KeybaseService

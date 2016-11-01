@@ -63,6 +63,14 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 	}
 	options.DokanConfig.FileSystem = fs
 	options.DokanConfig.Path = mounter.Dir()
+	if options.DokanConfig.Path == "" {
+		// The mounter will detect this case and pick up the path from DokanConfig
+		options.DokanConfig.Path, err = config.KeybaseService().GetMountDir(ctx)
+		if err != nil {
+			return libfs.InitError(err.Error())
+		}
+		log.CInfof(ctx, "Got mount dir from service: %s", options.DokanConfig.Path)
+	}
 
 	if newFolderNameErr != nil {
 		log.CWarningf(ctx, "Error guessing new folder name: %v", newFolderNameErr)

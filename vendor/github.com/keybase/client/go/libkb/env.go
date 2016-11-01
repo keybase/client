@@ -24,6 +24,7 @@ func (n NullConfiguration) GetConfigFilename() string                     { retu
 func (n NullConfiguration) GetUpdaterConfigFilename() string              { return "" }
 func (n NullConfiguration) GetSessionFilename() string                    { return "" }
 func (n NullConfiguration) GetDbFilename() string                         { return "" }
+func (n NullConfiguration) GetChatDbFilename() string                     { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername               { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                              { return "" }
 func (n NullConfiguration) GetProxy() string                              { return "" }
@@ -76,6 +77,9 @@ func (n NullConfiguration) IsAdmin() (bool, bool)                         { retu
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetMountDir() string                           { return "" }
 
+func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
+	return time.Time{}, nil
+}
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
 	return nil, nil
@@ -200,6 +204,30 @@ func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
 	e.RLock()
 	defer e.RUnlock()
 	return e.updaterConfig
+}
+
+func (e *Env) GetMountDir() (string, error) {
+	runMode := e.GetRunMode()
+	if runtime.GOOS == "windows" {
+		return e.GetString(
+			func() string { return e.cmd.GetMountDir() },
+			func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
+			func() string { return e.config.GetMountDir() },
+		), nil
+	}
+	switch runMode {
+	case DevelRunMode:
+		return "/keybase.devel", nil
+
+	case StagingRunMode:
+		return "/keybase.staging", nil
+
+	case ProductionRunMode:
+		return "/keybase", nil
+
+	default:
+		return "", fmt.Errorf("Invalid run mode: %s", runMode)
+	}
 }
 
 func NewEnv(cmd CommandLine, config ConfigReader) *Env {
@@ -401,6 +429,15 @@ func (e *Env) GetDbFilename() string {
 		func() string { return os.Getenv("KEYBASE_DB_FILE") },
 		func() string { return e.config.GetDbFilename() },
 		func() string { return filepath.Join(e.GetDataDir(), DBFile) },
+	)
+}
+
+func (e *Env) GetChatDbFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetChatDbFilename() },
+		func() string { return os.Getenv("KEYBASE_CHAT_DB_FILE") },
+		func() string { return e.config.GetChatDbFilename() },
+		func() string { return filepath.Join(e.GetDataDir(), ChatDBFile) },
 	)
 }
 
@@ -852,6 +889,13 @@ func (e *Env) GetTimers() string {
 	)
 }
 
+func (e *Env) GetConvSourceType() string {
+	return e.GetString(
+		func() string { return os.Getenv("KEYBASE_CONV_SOURCE_TYPE") },
+		func() string { return "hybrid" },
+	)
+}
+
 func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.config.GetDeviceID()
 }
@@ -1035,35 +1079,6 @@ func (e *Env) GetVDebugSetting() string {
 
 func (e *Env) GetRunModeAsString() string {
 	return string(e.GetRunMode())
-}
-
-func (e *Env) GetMountDir() (string, error) {
-	runMode := e.GetRunMode()
-	if runtime.GOOS == "windows" {
-		if runMode != ProductionRunMode {
-			return "", fmt.Errorf("KBFS is currently only supported in production mode on Windows")
-		}
-		return e.GetString(
-			func() string { return e.cmd.GetMountDir() },
-			func() string { return os.Getenv("KEYBASE_DRIVE_LETTER") },
-			func() string { return e.config.GetMountDir() },
-			func() string { return "k:" },
-		), nil
-	}
-
-	switch runMode {
-	case DevelRunMode:
-		return "/keybase.devel", nil
-
-	case StagingRunMode:
-		return "/keybase.staging", nil
-
-	case ProductionRunMode:
-		return "/keybase", nil
-
-	default:
-		return "", fmt.Errorf("Invalid run mode: %s", runMode)
-	}
 }
 
 // GetServiceInfoPath returns path to info file written by the Keybase service after startup

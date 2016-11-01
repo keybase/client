@@ -165,3 +165,7 @@ func (k KeybaseServiceMeasured) FlushUserUnverifiedKeysFromLocalCache(
 func (k KeybaseServiceMeasured) Shutdown() {
 	k.delegate.Shutdown()
 }
+
+func (k KeybaseServiceMeasured) GetMountDir(ctx context.Context) (string, error) {
+	return k.delegate.GetMountDir(ctx)
+}

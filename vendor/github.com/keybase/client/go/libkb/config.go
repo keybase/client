@@ -291,7 +291,7 @@ func (f *JSONConfigFile) SetDeviceID(did keybase1.DeviceID) (err error) {
 		err = NoUserConfigError{}
 	} else {
 		u.SetDevice(did)
-		f.setUserConfigWithLock(u, true)
+		err = f.setUserConfigWithLock(u, true)
 	}
 	return
 }
@@ -375,6 +375,9 @@ func (f JSONConfigFile) GetSessionFilename() string {
 }
 func (f JSONConfigFile) GetDbFilename() string {
 	return f.GetTopLevelString("db")
+}
+func (f JSONConfigFile) GetChatDbFilename() string {
+	return f.GetTopLevelString("chat-db")
 }
 func (f JSONConfigFile) GetPinentry() string {
 	res, _ := f.GetStringAtPath("pinentry.path")
@@ -701,4 +704,27 @@ func (f JSONConfigFile) GetLocalTrackMaxAge() (time.Duration, bool) {
 
 func (f JSONConfigFile) GetMountDir() string {
 	return f.GetTopLevelString("mountdir")
+}
+
+func bug3964path(un NormalizedUsername) string {
+	return fmt.Sprintf("maintenance.%s.bug_3964_repair_time", un)
+}
+
+func (f JSONConfigFile) GetBug3964RepairTime(un NormalizedUsername) (time.Time, error) {
+	if un == "" {
+		return time.Time{}, NoUserConfigError{}
+	}
+	s, _ := f.GetStringAtPath(bug3964path(un))
+	if s == "" {
+		return time.Time{}, nil
+	}
+	i, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return keybase1.FromTime(keybase1.Time(i)), nil
+}
+
+func (f JSONConfigFile) SetBug3964RepairTime(un NormalizedUsername, t time.Time) (err error) {
+	return f.SetStringAtPath(bug3964path(un), fmt.Sprintf("%d", int64(keybase1.ToTime(t))))
 }

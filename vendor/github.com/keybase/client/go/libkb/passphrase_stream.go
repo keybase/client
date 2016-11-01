@@ -48,7 +48,7 @@ const (
 	dhIndex    = eddsaIndex + eddsaLen
 	dhLen      = 32
 	lksIndex   = dhIndex + dhLen
-	lksLen     = 32
+	lksLen     = LKSecLen // == 32
 	extraLen   = pwhLen + eddsaLen + dhLen + lksLen
 )
 
@@ -68,15 +68,17 @@ func NewPassphraseStream(s []byte) *PassphraseStream {
 // (stream[lksIndex:]).  The rest of the stream is zeros.
 // This is used to create a passphrase stream from the information in the
 // secret store, which only contains the lksec portion of the stream.
-func NewPassphraseStreamLKSecOnly(s []byte) (*PassphraseStream, error) {
-	if len(s) != lksLen {
-		return nil, fmt.Errorf("invalid lksec stream length %d (expected %d)", len(s), lksLen)
+func NewPassphraseStreamLKSecOnly(s *LKSec) (*PassphraseStream, error) {
+
+	clientHalf, err := s.ComputeClientHalf()
+	if err != nil {
+		return nil, err
 	}
 	stream := make([]byte, extraLen)
-	copy(stream[lksIndex:], s)
+	copy(stream[lksIndex:], clientHalf.Bytes())
 	ps := &PassphraseStream{
 		stream: stream,
-		gen:    PassphraseGeneration(0),
+		gen:    s.Generation(),
 	}
 	return ps, nil
 }
@@ -97,8 +99,22 @@ func (ps PassphraseStream) DHSeed() []byte {
 	return ps.stream[dhIndex:lksIndex]
 }
 
-func (ps PassphraseStream) LksClientHalf() []byte {
-	return ps.stream[lksIndex:]
+func (ps PassphraseStream) LksClientHalf() LKSecClientHalf {
+	ret, _ := NewLKSecClientHalfFromBytes(ps.stream[lksIndex:])
+	return ret
+}
+
+func (ps PassphraseStream) ToLKSec(g *GlobalContext, uid keybase1.UID) (*LKSec, error) {
+	ch, err := NewLKSecClientHalfFromBytes(ps.stream[lksIndex:])
+	if err != nil {
+		return nil, err
+	}
+	return &LKSec{
+		Contextified: NewContextified(g),
+		clientHalf:   ch,
+		ppGen:        ps.Generation(),
+		uid:          uid,
+	}, nil
 }
 
 func (ps PassphraseStream) PDPKA5KID() (keybase1.KID, error) {

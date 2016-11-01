@@ -2,6 +2,7 @@ package chat1
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"strconv"
@@ -22,20 +23,28 @@ func (id TLFID) String() string {
 	return hex.EncodeToString(id)
 }
 
+func MakeConvID(val string) (ConversationID, error) {
+	return hex.DecodeString(val)
+}
+
+func (cid ConversationID) Bytes() []byte {
+	return []byte(cid)
+}
+
 func (cid ConversationID) String() string {
-	return strconv.FormatUint(uint64(cid), 10)
+	return hex.EncodeToString(cid)
 }
 
-func MakeConversationID(val uint64) ConversationID {
-	return ConversationID(val)
+func (cid ConversationID) IsNil() bool {
+	return len(cid) == 0
 }
 
-func ConvertConversationID(val string) (ConversationID, error) {
-	raw, err := strconv.ParseUint(val, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return MakeConversationID(raw), nil
+func (cid ConversationID) Eq(c ConversationID) bool {
+	return bytes.Equal(cid, c)
+}
+
+func (cid ConversationID) Less(c ConversationID) bool {
+	return bytes.Compare(cid, c) < 0
 }
 
 func MakeTLFID(val string) (TLFID, error) {
@@ -102,4 +111,74 @@ func (hash Hash) String() string {
 
 func (hash Hash) Eq(other Hash) bool {
 	return bytes.Equal(hash, other)
+}
+
+func (m MessageUnboxed) GetMessageID() MessageID {
+	if state, err := m.State(); err == nil {
+		if state == MessageUnboxedState_VALID {
+			return m.Valid().ServerHeader.MessageID
+		}
+		if state == MessageUnboxedState_ERROR {
+			return m.Error().MessageID
+		}
+	}
+	return 0
+}
+
+func (m MessageUnboxed) GetMessageType() MessageType {
+	if state, err := m.State(); err == nil {
+		if state == MessageUnboxedState_VALID {
+			return m.Valid().ClientHeader.MessageType
+		}
+		if state == MessageUnboxedState_ERROR {
+			return m.Error().MessageType
+		}
+	}
+	return MessageType_NONE
+}
+
+func (m MessageUnboxed) IsValid() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_VALID
+	}
+	return false
+}
+
+func (m MessageBoxed) GetMessageID() MessageID {
+	return m.ServerHeader.MessageID
+}
+
+func (m MessageBoxed) GetMessageType() MessageType {
+	return m.ClientHeader.MessageType
+}
+
+var ConversationStatusGregorMap = map[ConversationStatus]string{
+	ConversationStatus_UNFILED:  "unfiled",
+	ConversationStatus_FAVORITE: "favorite",
+	ConversationStatus_IGNORED:  "ignored",
+	ConversationStatus_BLOCKED:  "blocked",
+}
+
+func (t ConversationIDTriple) Hash10B() []byte {
+	h := sha256.New()
+	h.Write(t.Tlfid)
+	h.Write(t.TopicID)
+	h.Write([]byte(strconv.Itoa(int(t.TopicType))))
+	hash := h.Sum(nil)
+
+	return hash[:10]
+}
+
+func (t ConversationIDTriple) ToConversationID(shardID [2]byte) ConversationID {
+	h := t.Hash10B()
+	h[0], h[1] = shardID[0], shardID[1]
+	return ConversationID(h)
+}
+
+func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
+	if len(cid) != 10 {
+		return false
+	}
+	h10 := t.Hash10B()
+	return bytes.Equal(h10[2:], []byte(cid[2:]))
 }

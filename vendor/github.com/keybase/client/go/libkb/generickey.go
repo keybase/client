@@ -4,8 +4,9 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"strings"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type AlgoType int
@@ -42,6 +43,9 @@ type GenericKey interface {
 	// Decrypt the output of Encrypt above; provide the plaintext and also
 	// the KID of the key that sent the message (if applicable).
 	DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error)
+
+	// Derive a secret key from a DH secret key
+	SecretSymmetricKey(reason EncryptionReason) ([]byte, error)
 
 	VerboseDescription() string
 	CheckSecretKey() error

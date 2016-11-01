@@ -495,3 +495,7 @@ func newKeybaseDaemonLocal(codec kbfscodec.Codec,
 		favoriteStore: favoriteStore,
 	}
 }
+
+func (k *KeybaseDaemonLocal) GetMountDir(ctx context.Context) (string, error) {
+	return "", nil
+}
