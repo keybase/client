@@ -13,6 +13,7 @@ const mdUsageStr = `Usage:
 The possible subcommands are:
   dump		Dump metadata objects
   check		Check metadata objects and their associated blocks for errors
+  reset		Reset a broken top-level folder
 
 `
 
@@ -30,6 +31,8 @@ func mdMain(ctx context.Context, config libkbfs.Config, args []string) (exitStat
 		return mdDump(ctx, config, args)
 	case "check":
 		return mdCheck(ctx, config, args)
+	case "reset":
+		return mdReset(ctx, config, args)
 	default:
 		printError("md", fmt.Errorf("unknown command '%s'", cmd))
 		return 1
