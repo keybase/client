@@ -23,6 +23,8 @@ type blockRetrievalRequest struct {
 type blockRetrieval struct {
 	// The block being retrieved
 	blockPtr BlockPointer
+	// The key metadata for the request
+	kmd KeyMetadata
 	// The index of the retrieval in the heap
 	index int
 	// The priority of the retrieval
