@@ -4,27 +4,77 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 
-func mdResetOne(ctx context.Context, config libkbfs.Config,
-	rmd libkbfs.ImmutableRootMetadata) error {
-	// create a dblock since one doesn't exist yet
+func mdResetOne(ctx context.Context, config libkbfs.Config, path string) error {
+	var handle *libkbfs.TlfHandle
+	p, err := fsrpc.NewPath(path)
+	if err != nil {
+		return err
+	}
+	if p.PathType != fsrpc.TLFPathType {
+		return fmt.Errorf("%q is not a TLF path", path)
+	}
+	if len(p.TLFComponents) > 0 {
+		return fmt.Errorf("%q is not the root path of a TLF", path)
+	}
+	name := p.TLFName
+outer:
+	for {
+		var err error
+		handle, err = libkbfs.ParseTlfHandle(
+			ctx, config.KBPKI(), name, p.Public)
+		switch err := err.(type) {
+		case nil:
+			// No error.
+			break outer
+
+		case libkbfs.TlfNameNotCanonical:
+			// Non-canonical name, so try again.
+			name = err.NameToTry
+
+		default:
+			// Some other error.
+			return err
+		}
+	}
+
 	username, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return err
 	}
 
-	handle := rmd.GetTlfHandle()
-
-	// make sure we're a writer before rekeying or putting any blocks.
+	// Make sure we're a writer before doing anything else.
 	if !handle.IsWriter(uid) {
 		return libkbfs.NewWriteAccessError(
 			handle, username, handle.GetCanonicalPath())
 	}
 
-	_, err = rmd.MakeSuccessor(config.Codec(), rmd.MdID(), true)
+	_, unmergedIRMD, err := config.MDOps().GetForHandle(
+		ctx, handle, libkbfs.Unmerged)
+	if err != nil {
+		return err
+	}
+	if unmergedIRMD != (libkbfs.ImmutableRootMetadata{}) {
+		return fmt.Errorf(
+			"%s has unmerged data; try unstaging it first", path)
+	}
+
+	_, irmd, err := config.MDOps().GetForHandle(
+		ctx, handle, libkbfs.Merged)
+	if err != nil {
+		return err
+	}
+
+	if irmd == (libkbfs.ImmutableRootMetadata{}) {
+		fmt.Printf("No TLF found for %q\n\n", path)
+		return nil
+	}
+
+	_, err = irmd.MakeSuccessor(config.Codec(), irmd.MdID(), true)
 	if err != nil {
 		return err
 	}
@@ -55,25 +105,7 @@ func mdReset(ctx context.Context, config libkbfs.Config, args []string) (exitSta
 		return 1
 	}
 
-	input := inputs[0]
-	tlfID, err := getTlfID(ctx, config, input)
-	if err != nil {
-		printError("md reset", err)
-		return 1
-	}
-
-	irmd, err := config.MDOps().GetForTLF(ctx, tlfID)
-	if err != nil {
-		printError("md reset", err)
-		return 1
-	}
-
-	if irmd == (libkbfs.ImmutableRootMetadata{}) {
-		fmt.Printf("No result found for %q\n\n", input)
-		return 0
-	}
-
-	err = mdResetOne(ctx, config, irmd)
+	err := mdResetOne(ctx, config, inputs[0])
 	if err != nil {
 		printError("md reset", err)
 		return 1
