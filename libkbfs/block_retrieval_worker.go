@@ -5,23 +5,22 @@
 package libkbfs
 
 import (
-	"fmt"
 	"reflect"
 
 	"golang.org/x/net/context"
 )
 
 type blockRetrievalWorker struct {
+	blockGetter
 	stopCh chan struct{}
 	queue  *blockRetrievalQueue
-	config Config
 }
 
-func newBlockRetrievalWorker(q *blockRetrievalQueue, config Config) *blockRetrievalWorker {
+func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue) *blockRetrievalWorker {
 	return &blockRetrievalWorker{
-		stopCh: make(chan struct{}),
-		queue:  q,
-		config: config,
+		blockGetter: bg,
+		stopCh:      make(chan struct{}),
+		queue:       q,
 	}
 }
 
@@ -34,55 +33,6 @@ func (brw *blockRetrievalWorker) finalizeRetrieval(retrieval *blockRetrieval, bl
 		destVal.Set(sourceVal)
 		req.doneCh <- err
 	}
-}
-
-func (brw *blockRetrievalWorker) getBlock(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block) error {
-	bserv := brw.config.BlockServer()
-	buf, blockServerHalf, err := bserv.Get(
-		ctx, kmd.TlfID(), blockPtr.ID, blockPtr.BlockContext)
-	if err != nil {
-		// Temporary code to track down bad block
-		// requests. Remove when not needed anymore.
-		if _, ok := err.(BServerErrorBadRequest); ok {
-			panic(fmt.Sprintf("Bad BServer request detected: err=%s, blockPtr=%s",
-				err, blockPtr))
-		}
-
-		return err
-	}
-
-	crypto := brw.config.Crypto()
-	if err := crypto.VerifyBlockID(buf, blockPtr.ID); err != nil {
-		return err
-	}
-
-	tlfCryptKey, err := brw.config.KeyManager().
-		GetTLFCryptKeyForBlockDecryption(ctx, kmd, blockPtr)
-	if err != nil {
-		return err
-	}
-
-	// construct the block crypt key
-	blockCryptKey, err := crypto.UnmaskBlockCryptKey(
-		blockServerHalf, tlfCryptKey)
-	if err != nil {
-		return err
-	}
-
-	var encryptedBlock EncryptedBlock
-	err = brw.config.Codec().Decode(buf, &encryptedBlock)
-	if err != nil {
-		return err
-	}
-
-	// decrypt the block
-	err = crypto.DecryptBlock(encryptedBlock, blockCryptKey, block)
-	if err != nil {
-		return err
-	}
-
-	block.SetEncodedSize(uint32(len(buf)))
-	return nil
 }
 
 func (brw *blockRetrievalWorker) HandleRequest() (err error) {
