@@ -30,6 +30,7 @@
 		DB4447EB1DAD4F58004AC1D6 /* OpenSans_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB4447E31DAD4F58004AC1D6 /* OpenSans_italic.ttf */; };
 		DB4447EC1DAD4F58004AC1D6 /* SourceCodePro-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB4447E41DAD4F58004AC1D6 /* SourceCodePro-Semi_bold.ttf */; };
 		DB4447ED1DAD4F58004AC1D6 /* SourceCodePro.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB4447E51DAD4F58004AC1D6 /* SourceCodePro.ttf */; };
+		DB49C80A1DB67A1B008DFB25 /* libRCTPushNotification.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB49C8041DB679F9008DFB25 /* libRCTPushNotification.a */; };
 		DB7538FD1D776CC400AFA61B /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DB7539071D776CC400AFA61B /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */; };
 		DB7539081D776CC400AFA61B /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
@@ -125,6 +126,13 @@
 			remoteGlobalIDString = 58B5119B1A9E6C1200147676;
 			remoteInfo = RCTText;
 		};
+		DB49C8031DB679F9008DFB25 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB49C7F91DB679F9008DFB25 /* RCTPushNotification.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = RCTPushNotification;
+		};
 		DB75392F1D7771DD00AFA61B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
@@ -171,6 +179,7 @@
 		DB4447E31DAD4F58004AC1D6 /* OpenSans_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = OpenSans_italic.ttf; sourceTree = "<group>"; };
 		DB4447E41DAD4F58004AC1D6 /* SourceCodePro-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semi_bold.ttf"; sourceTree = "<group>"; };
 		DB4447E51DAD4F58004AC1D6 /* SourceCodePro.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SourceCodePro.ttf; sourceTree = "<group>"; };
+		DB49C7F91DB679F9008DFB25 /* RCTPushNotification.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTPushNotification.xcodeproj; path = "../node_modules/react-native/Libraries/PushNotificationIOS/RCTPushNotification.xcodeproj"; sourceTree = "<group>"; };
 		DB7539221D776CC400AFA61B /* Keybase For Tests.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Keybase For Tests.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB7539311D77753600AFA61B /* Keybase_For_Tests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase_For_Tests-Bridging-Header.h"; sourceTree = "<group>"; };
 		DB7539341D777E7100AFA61B /* Engine-Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Engine-Test.m"; sourceTree = "<group>"; };
@@ -200,6 +209,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB49C80A1DB67A1B008DFB25 /* libRCTPushNotification.a in Frameworks */,
 				DBF20EC41BB34AF00048BC26 /* libRCTCamera.a in Frameworks */,
 				146834051AC3E58100842450 /* libReact.a in Frameworks */,
 				00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */,
@@ -328,6 +338,7 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				DB49C7F91DB679F9008DFB25 /* RCTPushNotification.xcodeproj */,
 				DBF20EB41BB34AD00048BC26 /* RCTCamera.xcodeproj */,
 				146833FF1AC3E56700842450 /* React.xcodeproj */,
 				00C302A71ABCB8CE00DB3ED1 /* RCTActionSheet.xcodeproj */,
@@ -395,6 +406,14 @@
 				DB4447E51DAD4F58004AC1D6 /* SourceCodePro.ttf */,
 			);
 			path = fonts;
+			sourceTree = "<group>";
+		};
+		DB49C7FA1DB679F9008DFB25 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DB49C8041DB679F9008DFB25 /* libRCTPushNotification.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		DBDCF3031B8D03DD00BA95D8 /* Keybase */ = {
@@ -496,7 +515,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0700;
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = Keybase;
 				TargetAttributes = {
 					00E356ED1AD99517003FC87E = {
@@ -561,6 +580,10 @@
 				{
 					ProductGroup = 00C302D41ABCB9D200DB3ED1 /* Products */;
 					ProjectRef = 00C302D31ABCB9D200DB3ED1 /* RCTNetwork.xcodeproj */;
+				},
+				{
+					ProductGroup = DB49C7FA1DB679F9008DFB25 /* Products */;
+					ProjectRef = DB49C7F91DB679F9008DFB25 /* RCTPushNotification.xcodeproj */;
 				},
 				{
 					ProductGroup = 139105B71AF99BAD00B5F7CC /* Products */;
@@ -661,6 +684,13 @@
 			fileType = archive.ar;
 			path = libRCTText.a;
 			remoteRef = 832341B41AAA6A8300B99B32 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB49C8041DB679F9008DFB25 /* libRCTPushNotification.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTPushNotification.a;
+			remoteRef = DB49C8031DB679F9008DFB25 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */ = {
@@ -831,6 +861,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = NO;
+				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -841,6 +872,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../node_modules/react-native/React/**",
 					"$(SRCROOT)/KeybaseGo",
+					"$(SRCROOT)/../node_modules/react-native/Libraries/PushNotificationIOS",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -852,7 +884,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "7994e38f-35f9-454e-b4cc-f108987c59bd";
+				PROVISIONING_PROFILE_SPECIFIER = 20161131;
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
@@ -869,6 +902,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Keybase, Inc. (99229SGT5K)";
 				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = NO;
+				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -879,6 +913,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../node_modules/react-native/React/**",
 					"$(SRCROOT)/KeybaseGo",
+					"$(SRCROOT)/../node_modules/react-native/Libraries/PushNotificationIOS",
 				);
 				INFOPLIST_FILE = Keybase/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
@@ -890,7 +925,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios;
 				PRODUCT_NAME = Keybase;
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "7994e38f-35f9-454e-b4cc-f108987c59bd";
+				PROVISIONING_PROFILE_SPECIFIER = 20161131;
 				SWIFT_OBJC_BRIDGING_HEADER = "Keybase/Keybase-Bridging-Header.h";
 				SWIFT_VERSION = 3.0;
 			};
@@ -909,8 +945,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -919,6 +957,7 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -936,7 +975,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../node_modules/react-native/React/**",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
@@ -958,8 +997,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -967,6 +1008,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -978,7 +1020,7 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../node_modules/react-native/React/**",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_SWIFT_FLAGS = "";
 				SDKROOT = iphoneos;
