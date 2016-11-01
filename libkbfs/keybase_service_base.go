@@ -685,7 +685,7 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 	return res, nil
 }
 
-// GetMountDir gets the drive letter for Windows.
+// GetMountDir asks the service for the current mount path
 func (k *KeybaseServiceBase) GetMountDir(ctx context.Context) (
 	string, error) {
 	dir, err := k.kbfsMountClient.GetCurrentMountDir(ctx)

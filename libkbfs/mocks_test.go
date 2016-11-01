@@ -670,6 +670,7 @@ func (_mr *_MockKeybaseServiceRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
+// GetMountDir asks the service for the current mount path
 func (_m *MockKeybaseService) GetMountDir(ctx context.Context) (string, error) {
 	ret := _m.ctrl.Call(_m, "GetMountDir", ctx)
 	ret0, _ := ret[0].(string)
@@ -677,6 +678,7 @@ func (_m *MockKeybaseService) GetMountDir(ctx context.Context) (string, error) {
 	return ret0, ret1
 }
 
+// GetMountDir asks the service for the current mount path
 func (_mr *_MockKeybaseServiceRecorder) GetMountDir(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetMountDir", arg0)
 }

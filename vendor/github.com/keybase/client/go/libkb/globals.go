@@ -659,6 +659,7 @@ func (g *GlobalContext) GetConfigDir() string {
 	return g.Env.GetConfigDir()
 }
 
+// GetMountDir returns the stored mount path
 func (g *GlobalContext) GetMountDir() (string, error) {
 	return g.Env.GetMountDir()
 }
