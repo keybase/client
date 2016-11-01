@@ -126,12 +126,41 @@ outer:
 			Ctime: now,
 		},
 	}
+
 	co := libkbfs.NewCreateOpForRootDir()
 	rmdNext.AddOp(co)
 	rmdNext.AddRefBlock(pmd.Dir.BlockInfo)
 	rmdNext.SetUnrefBytes(0)
 
-	panic("not implemented")
+	dryRun := true
+
+	fmt.Printf("Putting block %s...\n", ptr)
+
+	if dryRun {
+		fmt.Printf("Skipping block put (dry run)\n")
+	} else {
+		err := config.BlockServer().Put(
+			ctx, rmdNext.TlfID(), ptr.ID, ptr.BlockContext,
+			readyBlockData.Buf, readyBlockData.ServerHalf)
+		if err != nil {
+			return err
+		}
+	}
+
+	// TODO: Implement maybeUnembedAndPutBlocks.
+
+	fmt.Printf("Putting revision %d...\n", rmdNext.Revision())
+
+	if dryRun {
+		fmt.Printf("Skipping MD put (dry run)\n")
+	} else {
+		mdID, err := config.MDOps().Put(ctx, rmdNext)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("New MD has id %s\n", mdID)
+	}
 
 	return nil
 }

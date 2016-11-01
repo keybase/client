@@ -27,7 +27,7 @@ func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID tlf.ID,
 	var err error
 	if blockPtr.RefNonce == ZeroBlockRefNonce {
 		err = bserv.Put(ctx, tlfID, blockPtr.ID, blockPtr.BlockContext,
-			readyBlockData.buf, readyBlockData.serverHalf)
+			readyBlockData.Buf, readyBlockData.ServerHalf)
 	} else {
 		// non-zero block refnonce means this is a new reference to an
 		// existing block.
