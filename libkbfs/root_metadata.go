@@ -219,8 +219,9 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
 func (md *RootMetadata) MakeSuccessor(
-	codec kbfscodec.Codec, mdID MdID, isWriter bool) (
+	ctx context.Context, config Config, mdID MdID, isWriter bool) (
 	*RootMetadata, error) {
+
 	if mdID == (MdID{}) {
 		return nil, errors.New("Empty MdID in MakeSuccessor")
 	}
@@ -230,24 +231,22 @@ func (md *RootMetadata) MakeSuccessor(
 
 	isReadableAndWriter := md.IsReadable() && isWriter
 
-	brmdCopy, err := md.bareMd.MakeSuccessorCopy(codec, isReadableAndWriter)
+	brmdCopy, extraCopy, extraIsNew, err := md.bareMd.MakeSuccessorCopy(
+		ctx, config, md, md.extra, isReadableAndWriter)
 	if err != nil {
 		return nil, err
-	}
-
-	var extraCopy ExtraMetadata
-	if md.extra != nil {
-		extraCopy, err = md.extra.DeepCopy(codec)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	handleCopy := md.tlfHandle.deepCopy()
 
 	newMd := makeRootMetadata(brmdCopy, extraCopy, handleCopy)
-	if err := kbfscodec.Update(codec, &newMd.data, md.data); err != nil {
+	if err := kbfscodec.Update(config.Codec(), &newMd.data, md.data); err != nil {
 		return nil, err
+	}
+	if extraIsNew {
+		// this is true on upconversion from v2 to v3. we need to set this so
+		// the new extra metadata is uploaded to the mdserver.
+		newMd.extraNew = extraCopy
 	}
 
 	if isReadableAndWriter {

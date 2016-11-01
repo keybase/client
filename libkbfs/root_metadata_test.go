@@ -482,7 +482,6 @@ func TestMakeRekeyReadError(t *testing.T) {
 	require.NoError(t, err)
 
 	rmd.fakeInitialRekey(config.Crypto())
-
 	u, uid, err := config.KBPKI().Resolve(context.Background(), "bob")
 	require.NoError(t, err)
 
@@ -535,7 +534,7 @@ func TestRootMetadataFinalIsFinal(t *testing.T) {
 	require.NoError(t, err)
 
 	rmd.SetFinalBit()
-	_, err = rmd.MakeSuccessor(nil, fakeMdID(1), true)
+	_, err = rmd.MakeSuccessor(context.Background(), nil, fakeMdID(1), true)
 	_, isFinalError := err.(MetadataIsFinalError)
 	require.Equal(t, isFinalError, true)
 }

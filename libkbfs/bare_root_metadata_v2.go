@@ -52,6 +52,41 @@ type WriterMetadataV2 struct {
 	Extra WriterMetadataExtra `codec:"x,omitempty,omitemptycheckstruct"`
 }
 
+// ToWriterMetadataV3 converts the WriterMetadataV2 to a WriterMetadataV3 in place.
+func (wmd *WriterMetadataV2) ToWriterMetadataV3(
+	ctx context.Context, crypto cryptoPure, keyManager KeyManager,
+	kmd KeyMetadata, wmdCopy *WriterMetadataV3) (
+	*TLFWriterKeyBundleV3, error) {
+
+	wmdCopy.Writers = make([]keybase1.UID, len(wmd.Writers))
+	copy(wmdCopy.Writers[:], wmd.Writers)
+
+	wmdCopy.UnresolvedWriters = make([]keybase1.SocialAssertion, len(wmd.Extra.UnresolvedWriters))
+	copy(wmdCopy.UnresolvedWriters[:], wmd.Extra.UnresolvedWriters)
+
+	wmdCopy.LatestKeyGen = wmd.WKeys.LatestKeyGeneration()
+	wmdCopy.ID = wmd.ID
+	wmdCopy.BID = wmd.BID
+	wmdCopy.WFlags = wmd.WFlags
+	wmdCopy.DiskUsage = wmd.DiskUsage
+	wmdCopy.RefBytes = wmd.RefBytes
+	wmdCopy.UnrefBytes = wmd.UnrefBytes
+
+	var wkb *TLFWriterKeyBundleV3
+	if wmdCopy.LatestKeyGen != PublicKeyGen {
+		var err error
+		wkb, err = wmd.WKeys.ToTLFWriterKeyBundleV3(ctx, crypto, keyManager, kmd)
+		if err != nil {
+			return nil, err
+		}
+		wmdCopy.WKeyBundleID, err = crypto.MakeTLFWriterKeyBundleID(wkb)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return wkb, nil
+}
+
 // WriterMetadataExtra stores more fields for WriterMetadata. (See
 // WriterMetadata comments as to why this type is needed.)
 type WriterMetadataExtra struct {
@@ -300,17 +335,65 @@ func (md *BareRootMetadataV2) DeepCopy(
 
 // MakeSuccessorCopy implements the ImmutableBareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) MakeSuccessorCopy(
-	codec kbfscodec.Codec, isReadableAndWriter bool) (
-	MutableBareRootMetadata, error) {
-	// MDv3 TODO: Make a v3 successor.
-	mdCopy, err := md.deepCopy(codec)
+	ctx context.Context, config Config, kmd KeyMetadata,
+	extra ExtraMetadata, isReadableAndWriter bool) (
+	MutableBareRootMetadata, ExtraMetadata, bool, error) {
+
+	if config.MetadataVersion() < SegregatedKeyBundlesVer {
+		// Continue with the current version.
+		mdCopy, err := md.deepCopy(config.Codec())
+		if err != nil {
+			return nil, nil, false, err
+		}
+		if isReadableAndWriter {
+			mdCopy.WriterMetadataSigInfo = kbfscrypto.SignatureInfo{}
+		}
+		return mdCopy, nil, false, nil
+	}
+
+	// Upconvert to the next version.
+	mdCopy := &BareRootMetadataV3{}
+
+	// Fill out the writer metadata and new writer key bundle.
+	wkb, err := md.WriterMetadataV2.ToWriterMetadataV3(
+		ctx, config.Crypto(), config.KeyManager(), kmd, &mdCopy.WriterMetadata)
 	if err != nil {
-		return nil, err
+		return nil, nil, false, err
 	}
-	if isReadableAndWriter {
-		mdCopy.WriterMetadataSigInfo = kbfscrypto.SignatureInfo{}
+
+	var rkb *TLFReaderKeyBundleV3
+	if md.LatestKeyGeneration() != PublicKeyGen {
+		// Fill out the reader key bundle.
+		rkb, err = md.RKeys.ToTLFReaderKeyBundleV3(wkb)
+		if err != nil {
+			return nil, nil, false, err
+		}
+		mdCopy.RKeyBundleID, err = config.Crypto().MakeTLFReaderKeyBundleID(rkb)
+		if err != nil {
+			return nil, nil, false, err
+		}
 	}
-	return mdCopy, nil
+
+	mdCopy.LastModifyingUser = md.LastModifyingUser
+	mdCopy.Flags = md.Flags
+	mdCopy.Revision = md.Revision // Incremented by the caller.
+	// PrevRoot is set by the caller.
+	mdCopy.UnresolvedReaders = make([]keybase1.SocialAssertion, len(md.UnresolvedReaders))
+	copy(mdCopy.UnresolvedReaders[:], md.UnresolvedReaders)
+
+	if md.ConflictInfo != nil {
+		ci := *md.ConflictInfo
+		md.ConflictInfo = &ci
+	}
+
+	// Metadata with finalized info is never succeeded.
+	if md.FinalizedInfo != nil {
+		// Shouldn't be possible.
+		return nil, nil, false, errors.New("Non-nil finalized info")
+	}
+
+	extraCopy := &ExtraMetadataV3{wkb: wkb, rkb: rkb}
+	return mdCopy, extraCopy, true, nil
 }
 
 // CheckValidSuccessor implements the BareRootMetadata interface for BareRootMetadataV2.
