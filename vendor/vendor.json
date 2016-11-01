@@ -472,6 +472,11 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
 		{
+			"path": "golang.org/x/crypto/ripemd160",
+			"revision": "c8b9e6388ef638d5a8a9d865c634befdc46a6784",
+			"revisionTime": "2015-06-18T17:47:17-07:00"
+		},
+		{
 			"path": "golang.org/x/crypto/salsa20",
 			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
 			"revisionTime": "2016-03-16T16:25:20-04:00"
