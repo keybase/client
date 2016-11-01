@@ -37,14 +37,18 @@ func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue) *blockRetri
 	return brw
 }
 
+func notifyBlockRequestor(req *blockRetrievalRequest, source reflect.Value, err error) {
+	// Copy the decrypted block to the caller
+	dest := reflect.ValueOf(req.block).Elem()
+	dest.Set(source)
+	req.doneCh <- err
+}
+
 func (brw *blockRetrievalWorker) finalizeRetrieval(retrieval *blockRetrieval, block Block, err error) {
 	brw.queue.FinalizeRequest(retrieval.blockPtr)
 	sourceVal := reflect.ValueOf(block).Elem()
 	for _, req := range retrieval.requests {
-		// Copy the decrypted block to the caller
-		destVal := reflect.ValueOf(req.block).Elem()
-		destVal.Set(sourceVal)
-		req.doneCh <- err
+		go notifyBlockRequestor(req, sourceVal, err)
 	}
 }
 
@@ -53,7 +57,9 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	// Create a new block of the same type as the first request
 	typ := reflect.TypeOf(retrieval.requests[0].block).Elem()
 	block := reflect.New(typ).Interface().(Block)
-	defer brw.finalizeRetrieval(retrieval, block, err)
+	defer func() {
+		brw.finalizeRetrieval(retrieval, block, err)
+	}()
 
 	// Pick one of the still-active contexts to use
 	// FIXME: this will be racy because retrieval.requests can mutate until
@@ -67,6 +73,7 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		default:
 			ctx = req.ctx
 			canceled = false
+			break
 		}
 	}
 	if canceled {
