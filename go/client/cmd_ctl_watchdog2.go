@@ -45,7 +45,7 @@ func (c *CmdWatchdog2) Run() error {
 		return err
 	}
 	serviceLogPath := filepath.Join(env.GetLogDir(), libkb.ServiceLogFileName)
-	serviceProgram := watchdog.Program{
+	serviceProgram := watchdog.ProgramNormal{
 		Path: keybasePath,
 		Args: []string{
 			"-d",
@@ -55,25 +55,16 @@ func (c *CmdWatchdog2) Run() error {
 		},
 		ExitOn: watchdog.ExitOnSuccess,
 	}
-	programs = append(programs, serviceProgram)
+	programs = append(programs, &serviceProgram)
 
 	// KBFS
 	kbfsPath, err := install.KBFSBinPath(runMode, "")
 	if err != nil {
 		return err
 	}
-	mountDir, err := env.GetMountDir()
+	kbfsProgram, err := getkbfsProgram(c.G(), kbfsPath)
 	if err != nil {
 		return err
-	}
-	kbfsProgram := watchdog.Program{
-		Path: kbfsPath,
-		Args: []string{
-			"-debug",
-			"-log-to-file",
-			mountDir,
-		},
-		ExitOn: watchdog.ExitOnSuccess,
 	}
 	programs = append(programs, kbfsProgram)
 
@@ -83,14 +74,14 @@ func (c *CmdWatchdog2) Run() error {
 		if err != nil {
 			return err
 		}
-		updaterProgram := watchdog.Program{
+		updaterProgram := watchdog.ProgramNormal{
 			Path: updaterPath,
 			Args: []string{
 				"-log-to-file",
 				"-path-to-keybase=" + keybasePath,
 			},
 		}
-		programs = append(programs, updaterProgram)
+		programs = append(programs, &updaterProgram)
 	}
 
 	// Start and monitor all the programs
