@@ -1278,6 +1278,42 @@ export function kbfsFSSyncStatusRpcPromise (request: $Exact<requestCommon & requ
   return new Promise((resolve, reject) => { kbfsFSSyncStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function kbfsMountGetAllAvailableMountDirsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetAllAvailableMountDirsResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'kbfsMount.GetAllAvailableMountDirs'})
+}
+
+export function kbfsMountGetAllAvailableMountDirsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetAllAvailableMountDirsResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => kbfsMountGetAllAvailableMountDirsRpc({...request, incomingCallMap, callback}))
+}
+
+export function kbfsMountGetAllAvailableMountDirsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetAllAvailableMountDirsResult) => void}>): Promise<kbfsMountGetAllAvailableMountDirsResult> {
+  return new Promise((resolve, reject) => { kbfsMountGetAllAvailableMountDirsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function kbfsMountGetCurrentMountDirRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetCurrentMountDirResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'kbfsMount.GetCurrentMountDir'})
+}
+
+export function kbfsMountGetCurrentMountDirRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetCurrentMountDirResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => kbfsMountGetCurrentMountDirRpc({...request, incomingCallMap, callback}))
+}
+
+export function kbfsMountGetCurrentMountDirRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetCurrentMountDirResult) => void}>): Promise<kbfsMountGetCurrentMountDirResult> {
+  return new Promise((resolve, reject) => { kbfsMountGetCurrentMountDirRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function kbfsMountSetCurrentMountDirRpc (request: Exact<requestCommon & requestErrorCallback & {param: kbfsMountSetCurrentMountDirRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'kbfsMount.SetCurrentMountDir'})
+}
+
+export function kbfsMountSetCurrentMountDirRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsMountSetCurrentMountDirRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => kbfsMountSetCurrentMountDirRpc({...request, incomingCallMap, callback}))
+}
+
+export function kbfsMountSetCurrentMountDirRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsMountSetCurrentMountDirRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { kbfsMountSetCurrentMountDirRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function logRegisterLoggerRpc (request: Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>) {
   engineRpcOutgoing({...request, method: 'log.registerLogger'})
 }
@@ -4307,6 +4343,10 @@ export type kbfsFSSyncStatusRpcParam = Exact<{
   requestID: int
 }>
 
+export type kbfsMountSetCurrentMountDirRpcParam = Exact<{
+  dir: string
+}>
+
 export type logRegisterLoggerRpcParam = Exact<{
   name: string,
   level: LogLevel
@@ -4974,6 +5014,10 @@ type identifyUiConfirmResult = ConfirmResult
 
 type identifyUiDelegateIdentifyUIResult = int
 
+type kbfsMountGetAllAvailableMountDirsResult = ?Array<string>
+
+type kbfsMountGetCurrentMountDirResult = string
+
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
 
 type loginUiGetEmailOrUsernameResult = string
@@ -5192,6 +5236,9 @@ export type rpc =
   | kbfsFSEventRpc
   | kbfsFSSyncEventRpc
   | kbfsFSSyncStatusRpc
+  | kbfsMountGetAllAvailableMountDirsRpc
+  | kbfsMountGetCurrentMountDirRpc
+  | kbfsMountSetCurrentMountDirRpc
   | logRegisterLoggerRpc
   | loginAccountDeleteRpc
   | loginClearStoredSecretRpc
