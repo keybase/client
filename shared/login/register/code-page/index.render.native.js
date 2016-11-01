@@ -8,7 +8,7 @@ import Container from '../../forms/container'
 import Platform, {OS} from '../../../constants/platform'
 import Qr from './qr'
 import React, {Component} from 'react'
-import {Box, ProgressIndicator, Text, Icon, NativeStyleSheet, ClickableBox} from '../../../common-adapters/index.native'
+import {Box, Button, ClickableBox, Icon, Input, NativeKeyboardAvoidingView, NativeStyleSheet, ProgressIndicator, Text} from '../../../common-adapters/index.native'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer, codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
 import {globalStyles, globalColors} from '../../../styles'
 
@@ -24,7 +24,7 @@ function determineModes (myDeviceRole: DeviceRole, otherDeviceRole: DeviceRole, 
   switch (myDeviceRole + otherDeviceRole) {
     case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer: // fallthrough
     case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewComputer:
-      controls = [codePageModeScanCode, codePageModeShowText]
+      controls = [codePageModeScanCode, codePageModeEnterText]
       break
     case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewPhone: // fallthrough
     case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
@@ -49,7 +49,8 @@ class CodePageRender extends Component<void, Props, void> {
       <Box style={{flex: 1, ...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
         {mode === codePageModeScanCode && this.renderScanner()}
         {mode === codePageModeShowCode && this.renderCode()}
-        {mode === codePageModeShowText && this.renderText()}
+        {mode === codePageModeShowText && this.renderShowText()}
+        {mode === codePageModeEnterText && this.renderEnterText()}
       </Box>
     )
   }
@@ -66,12 +67,14 @@ class CodePageRender extends Component<void, Props, void> {
       codePageModeScanCode: 'Scan QR code instead',
       codePageModeShowCode: 'Display QR Code here instead',
       codePageModeShowText: 'Type text code instead',
+      codePageModeEnterText: 'Type text code instead',
     }
 
     const iconTypeMap: {[key: Mode]: IconType} = {
       codePageModeScanCode: 'icon-phone-qr-code-48',
       codePageModeShowCode: 'icon-phone-qr-code-48',
       codePageModeShowText: 'icon-phone-text-code-32',
+      codePageModeEnterText: 'icon-phone-text-code-32',
     }
 
     const iconTypeFn = (m: Mode) => iconTypeMap[m] || 'phone-text-code'
@@ -104,7 +107,7 @@ class CodePageRender extends Component<void, Props, void> {
     )
   }
 
-  renderIntroTextCode () {
+  renderIntroShowTextCode () {
     return (
       <Box style={stylesIntro}>
         <Text type='Header' style={{marginBottom: 10}}>Type in text code</Text>
@@ -115,7 +118,17 @@ class CodePageRender extends Component<void, Props, void> {
     )
   }
 
-  renderIntroScanQR () {
+  renderIntroEnterTextCode () {
+    return (
+      <Box style={stylesIntro}>
+        <Text type='Header' style={{marginBottom: 10}}>Enter text code</Text>
+        <Text type='BodySmall'>In the Keybase App</Text>
+        <Text type='BodySmall'>{'go to Devices > Add a new device'}</Text>
+      </Box>
+    )
+  }
+
+  renderIntroScanCode () {
     return (
       <Box style={stylesIntro}>
         <Text type='Header' style={{marginBottom: 10}}>Scan QR code</Text>
@@ -136,19 +149,36 @@ class CodePageRender extends Component<void, Props, void> {
 
   renderIntro () {
     const headerTextMap: {[key: Mode]: React$Element<*>} = {
-      codePageModeScanCode: this.renderIntroScanQR(),
+      codePageModeScanCode: this.renderIntroScanCode(),
       codePageModeShowCode: this.renderIntroShowQR(),
-      codePageModeShowText: this.renderIntroTextCode(),
+      codePageModeShowText: this.renderIntroShowTextCode(),
+      codePageModeEnterText: this.renderIntroEnterTextCode(),
     }
 
     return headerTextMap[this.props.mode] || <Text type='BodySmall'>Good luck</Text>
   }
 
-  renderText () {
+  renderShowText () {
     return (
       <Box style={stylesControl}>
         <Text type='Body' style={{color: globalColors.darkBlue}}>{this.props.textCode}</Text>
         <ProgressIndicator type='Large' style={stylesSpinner} />
+      </Box>
+    )
+  }
+
+  renderEnterText () {
+    return (
+      <Box>
+        <Input
+          hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
+          floatingLabelText='Text code'
+          multiline={true}
+          rows={3}
+          value={this.props.enterText}
+          onChange={event => this.props.onChangeText(event.target.value)}
+        />
+        <Button type='Primary' style={{marginTop: 5, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
       </Box>
     )
   }
