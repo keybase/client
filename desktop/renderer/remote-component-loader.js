@@ -156,7 +156,7 @@ class RemoteComponentLoader extends Component<void, any, State> {
       return <div />
     }
     return (
-      <div style={styles.container}>
+      <div id='RemoteComponentRoot' style={styles.container}>
         <Root store={this.store}>
           <this.ComponentClass {...this.state.props} />
         </Root>
@@ -168,6 +168,7 @@ class RemoteComponentLoader extends Component<void, any, State> {
 const styles = {
   container: {
     overflow: 'hidden',
+    display: 'block',
     backgroundColor: globalColors.white,
   },
   loading: {
