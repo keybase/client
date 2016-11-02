@@ -166,7 +166,8 @@ func (k KeybaseServiceMeasured) Shutdown() {
 	k.delegate.Shutdown()
 }
 
-// GetMountDir asks the service for the current mount path
-func (k KeybaseServiceMeasured) GetMountDir(ctx context.Context) (string, error) {
-	return k.delegate.GetMountDir(ctx)
+// EstablishMountDir asks the service for the current mount path
+// and sets it if not established
+func (k KeybaseServiceMeasured) EstablishMountDir(ctx context.Context) (string, error) {
+	return k.delegate.EstablishMountDir(ctx)
 }

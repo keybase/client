@@ -350,9 +350,9 @@ type KeybaseService interface {
 	// called.
 	Shutdown()
 
-	// GetMountDir allows the service to specify the filesystem mount
-	// location, since it can change on some platforms.
-	GetMountDir(ctx context.Context) (string, error)
+	// EstablishMountDir asks the service for the current mount path
+	// and sets it if not establishe
+	EstablishMountDir(ctx context.Context) (string, error)
 }
 
 // KeybaseServiceCn defines methods needed to construct KeybaseService

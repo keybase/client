@@ -65,7 +65,7 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 	options.DokanConfig.Path = mounter.Dir()
 	if options.DokanConfig.Path == "" {
 		// The mounter will detect this case and pick up the path from DokanConfig
-		options.DokanConfig.Path, err = config.KeybaseService().GetMountDir(ctx)
+		options.DokanConfig.Path, err = config.KeybaseService().EstablishMountDir(ctx)
 		if err != nil {
 			return libfs.InitError(err.Error())
 		}

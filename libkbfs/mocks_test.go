@@ -670,17 +670,15 @@ func (_mr *_MockKeybaseServiceRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
-// GetMountDir asks the service for the current mount path
-func (_m *MockKeybaseService) GetMountDir(ctx context.Context) (string, error) {
-	ret := _m.ctrl.Call(_m, "GetMountDir", ctx)
+func (_m *MockKeybaseService) EstablishMountDir(ctx context.Context) (string, error) {
+	ret := _m.ctrl.Call(_m, "EstablishMountDir", ctx)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetMountDir asks the service for the current mount path
-func (_mr *_MockKeybaseServiceRecorder) GetMountDir(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetMountDir", arg0)
+func (_mr *_MockKeybaseServiceRecorder) EstablishMountDir(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "EstablishMountDir", arg0)
 }
 
 // Mock of KeybaseServiceCn interface

@@ -496,7 +496,8 @@ func newKeybaseDaemonLocal(codec kbfscodec.Codec,
 	}
 }
 
-// GetMountDir asks the service for the current mount path
-func (k *KeybaseDaemonLocal) GetMountDir(ctx context.Context) (string, error) {
+// EstablishMountDir asks the service for the current mount path
+// and sets it if not established
+func (k *KeybaseDaemonLocal) EstablishMountDir(ctx context.Context) (string, error) {
 	return "", nil
 }

@@ -686,7 +686,7 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 }
 
 // GetMountDir asks the service for the current mount path
-func (k *KeybaseServiceBase) GetMountDir(ctx context.Context) (
+func (k *KeybaseServiceBase) EstablishMountDir(ctx context.Context) (
 	string, error) {
 	dir, err := k.kbfsMountClient.GetCurrentMountDir(ctx)
 	if err != nil || dir == "" {
