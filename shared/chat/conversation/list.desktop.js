@@ -111,8 +111,8 @@ class ConversationList extends Component<void, Props, State> {
   }, 100)
 
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
-    if (!index) {
-      return <LoadingMore style={style} key={key || index} loading={this.props.moreToLoad} />
+    if (index === 0) {
+      return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
     }
 
     const message = this.state.messages.get(index - 1)
@@ -153,7 +153,6 @@ class ConversationList extends Component<void, Props, State> {
   }
 }
 
-// This should just take a mapper from index -> id. Doesn't need loadedMessages
 class CellSizeCache extends defaultCellMeasurerCellSizeCache {
   _indexToID: (index: number) => number;
 

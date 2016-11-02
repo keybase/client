@@ -1,10 +1,12 @@
 // @flow
 import * as Constants from '../constants/chat'
+import HiddenString from '../util/hidden-string'
 import engine from '../engine'
 import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalRpcPromise} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
 import {call, put, select} from 'redux-saga/effects'
 import {takeLatest, takeEvery} from 'redux-saga'
+import {usernameSelector} from '../constants/selectors'
 
 import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler} from '../constants/chat'
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
@@ -13,7 +15,7 @@ import type {TypedState} from '../constants/reducer'
 
 const {conversationIDToKey, keyToConversationID, InboxStateRecord} = Constants
 
-function postMessage (conversationIDKey: ConversationIDKey, text: string): PostMessage {
+function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString): PostMessage {
   return {type: Constants.postMessage, payload: {conversationIDKey, text}}
 }
 
@@ -41,6 +43,10 @@ function _makeSnippet (message, max) {
 
 function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxState> {
   return List((inbox.conversations || []).map(convo => {
+    if (!convo.info.id) {
+      return null
+    }
+
     const recentMessage: ?MessageUnboxed = (convo.maxMessages || []).find(message => (
       message.state === LocalMessageUnboxedState.valid &&
       message.valid &&
@@ -56,12 +62,12 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxStat
     return new InboxStateRecord({
       info: convo.info,
       conversationIDKey: conversationIDToKey(convo.info.id),
-      participants: List(convo.info.writerNames || []) || List(), // TODO in recent order... somehow
-      muted: false,
-      time: 'Time',
+      participants: List(convo.info.writerNames || []), // TODO in recent order... somehow
+      muted: false, // TODO
+      time: 'Time', // TODO
       snippet,
     })
-  }))
+  }).filter(Boolean))
 }
 
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
@@ -120,7 +126,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
         messageBody: {
           messageType: CommonMessageType.text,
           text: {
-            body: action.payload.text,
+            body: action.payload.text.stringValue(),
           },
         },
       },
@@ -133,9 +139,8 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
     const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.IncomingMessage
     if (incomingMessage) {
       const messageUnboxed: MessageUnboxed = incomingMessage.message
-      const yourNameSelector = (state: TypedState) => state.config.username
-      const yourName = yield select(yourNameSelector)
-      const message = _threadToStorable(messageUnboxed, 0, yourName)
+      const yourName = yield select(usernameSelector)
+      const message = _unboxedToMessage(messageUnboxed, 0, yourName)
 
       yield put({
         type: Constants.appendMessages,
@@ -213,10 +218,8 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
     },
   }})
 
-  const yourNameSelector = (state: TypedState) => state.config.username
-  const yourName = yield select(yourNameSelector)
-
-  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _threadToStorable(message, idx, yourName)).reverse()
+  const yourName = yield select(usernameSelector)
+  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName)).reverse()
   const pagination = _threadToPagination(thread)
 
   yield put({
@@ -240,7 +243,7 @@ function _threadToPagination (thread) {
   }
 }
 
-function _threadToStorable (message: MessageUnboxed, idx: number, yourName): Message {
+function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Message {
   if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
     if (payload) {
@@ -254,12 +257,11 @@ function _threadToStorable (message: MessageUnboxed, idx: number, yourName): Mes
 
       switch (payload.messageBody.messageType) {
         case CommonMessageType.text:
-          // $FlowIssue dunno
           return {
-            ...common,
             type: 'Text',
-            message: payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || '',
-            followState: isYou ? 'you' : 'following', // TODO get this
+            ...common,
+            message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
+            followState: isYou ? 'You' : 'Following', // TODO get this
           }
         default:
           return {

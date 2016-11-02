@@ -12,7 +12,13 @@ const factory = (message: Message, index: number, key: string, style: Object, is
 
   switch (message.type) {
     case 'Text':
-      return <MessageText style={style} key={key} {...message} />
+      return <MessageText
+        key={key}
+        style={style}
+        author={message.author}
+        message={message.message.stringValue()}
+        followState={message.followState}
+        />
     default:
       return <Box key={key} style={style} />
   }

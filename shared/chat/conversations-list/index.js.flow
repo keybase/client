@@ -2,10 +2,10 @@
 import {Component} from 'react'
 import {List} from 'immutable'
 
-import type {InboxStateRecord, ConversationIDKey} from '../../constants/chat'
+import type {InboxState, ConversationIDKey} from '../../constants/chat'
 
 export type Props = {
-  inbox: List<InboxStateRecord>,
+  inbox: List<InboxState>,
   onSelectConversation: (key: ConversationIDKey) => void,
 }
 

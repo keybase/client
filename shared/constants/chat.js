@@ -1,6 +1,7 @@
 // @flow
-import {List, Map, Record} from 'immutable'
+import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
+import {List, Map, Record} from 'immutable'
 
 import type {ConversationID as RPCConversationID, ChatActivity, ConversationInfoLocal} from './types/flow-types-chat'
 import type {NoErrorTypedAction} from './types/flux'
@@ -10,7 +11,7 @@ export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
 
 export type Message = {
   type: 'Text',
-  message: string,
+  message: HiddenString,
   author: string,
   timestamp: number,
   messageID: number,
@@ -69,7 +70,7 @@ export const StateRecord = Record({
 })
 
 export type State = Record<{
-  inbox: List<InboxStateRecord>,
+  inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   selectedConversation: ?ConversationIDKey,
 }>
@@ -89,14 +90,14 @@ export const postMessage = 'chat:postMessage'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
-export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxStateRecord>}>
+export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey}>
 export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
-export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: string}>
+export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
 
 export type Actions = AppendMessages | LoadMoreMessages | PrependMessages | SelectConversation | LoadInbox | LoadedInbox
 

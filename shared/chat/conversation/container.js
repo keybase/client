@@ -1,10 +1,13 @@
 // @flow
-import {List} from 'immutable'
 import Conversation from './index'
+import HiddenString from '../../util/hidden-string'
+import {List} from 'immutable'
 import {connect} from 'react-redux'
 import {loadMoreMessages, postMessage} from '../../actions/chat'
 
 import type {TypedState} from '../../constants/reducer'
+
+type OwnProps = {}
 
 export default connect(
   (state: TypedState) => {
@@ -35,9 +38,9 @@ export default connect(
   },
   (dispatch: Dispatch) => ({
     loadMoreMessages: () => dispatch(loadMoreMessages()),
-    onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, text)),
+    onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
   }),
-  (stateProps, dispatchProps, ownProps) => ({
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
