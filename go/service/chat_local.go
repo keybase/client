@@ -930,6 +930,7 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		if attachment.Preview == nil {
 			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
 		}
+		h.G().Log.Debug("downloading preview attachment asset")
 		obj = *attachment.Preview
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
