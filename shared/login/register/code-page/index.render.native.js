@@ -8,7 +8,7 @@ import Container from '../../forms/container'
 import Platform, {OS} from '../../../constants/platform'
 import Qr from './qr'
 import React, {Component} from 'react'
-import {Box, Button, ClickableBox, Icon, Input, NativeKeyboardAvoidingView, NativeStyleSheet, ProgressIndicator, Text} from '../../../common-adapters/index.native'
+import {Box, Button, ClickableBox, Icon, Input, NativeStyleSheet, ProgressIndicator, Text} from '../../../common-adapters/index.native'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer, codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
 import {globalStyles, globalColors} from '../../../styles'
 
@@ -46,7 +46,7 @@ function determineModes (myDeviceRole: DeviceRole, otherDeviceRole: DeviceRole, 
 class CodePageRender extends Component<void, Props, void> {
   renderMode (mode: Mode) {
     return (
-      <Box style={{flex: 1, ...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
+      <Box style={{flexGrow: 1, ...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
         {mode === codePageModeScanCode && this.renderScanner()}
         {mode === codePageModeShowCode && this.renderCode()}
         {mode === codePageModeShowText && this.renderShowText()}
@@ -170,13 +170,14 @@ class CodePageRender extends Component<void, Props, void> {
   renderEnterText () {
     return (
       <Box>
+        <Icon type='icon-phone-text-code-32' style={{alignSelf: 'center'}} />
         <Input
           hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
           floatingLabelText='Text code'
           multiline={true}
           rows={3}
           value={this.props.enterText}
-          onChange={event => this.props.onChangeText(event.target.value)}
+          onChangeText={text => this.props.onChangeText(text)}
         />
         <Button type='Primary' style={{marginTop: 5, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
       </Box>
