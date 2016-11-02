@@ -1919,13 +1919,14 @@ func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
 
 // ReadyBlock is a thin wrapper around BlockOps.Ready() that handles
 // checking for duplicates.
-func (fbo *folderBlockOps) ReadyBlock(ctx context.Context, kmd KeyMetadata,
+func ReadyBlock(ctx context.Context, config Config, kmd KeyMetadata,
 	block Block, uid keybase1.UID) (
 	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
 	var ptr BlockPointer
 	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
 		// first see if we are duplicating any known blocks in this folder
-		ptr, err = fbo.config.BlockCache().CheckForKnownPtr(fbo.id(), fBlock)
+		ptr, err = config.BlockCache().CheckForKnownPtr(
+			kmd.TlfID(), fBlock)
 		if err != nil {
 			return
 		}
@@ -1935,13 +1936,13 @@ func (fbo *folderBlockOps) ReadyBlock(ctx context.Context, kmd KeyMetadata,
 	// existing block, just so that we know what the size of the
 	// encrypted data will be.
 	id, plainSize, readyBlockData, err :=
-		fbo.config.BlockOps().Ready(ctx, kmd, block)
+		config.BlockOps().Ready(ctx, kmd, block)
 	if err != nil {
 		return
 	}
 
 	if ptr.IsInitialized() {
-		ptr.RefNonce, err = fbo.config.Crypto().MakeBlockRefNonce()
+		ptr.RefNonce, err = config.Crypto().MakeBlockRefNonce()
 		if err != nil {
 			return
 		}
@@ -1963,6 +1964,14 @@ func (fbo *folderBlockOps) ReadyBlock(ctx context.Context, kmd KeyMetadata,
 		EncodedSize:  uint32(readyBlockData.GetEncodedSize()),
 	}
 	return
+}
+
+// ReadyBlock is a thin wrapper around BlockOps.Ready() that handles
+// checking for duplicates.
+func (fbo *folderBlockOps) ReadyBlock(ctx context.Context, kmd KeyMetadata,
+	block Block, uid keybase1.UID) (
+	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
+	return ReadyBlock(ctx, fbo.config, kmd, block, uid)
 }
 
 // fileSyncState holds state for a sync operation for a single

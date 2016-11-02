@@ -95,28 +95,13 @@ outer:
 	}
 
 	newDblock := libkbfs.NewDirBlock()
-	id, plainSize, readyBlockData, err :=
-		config.BlockOps().Ready(ctx, rmdNext, newDblock)
-	if err != nil {
-		return err
-	}
-	ptr := libkbfs.BlockPointer{
-		ID:      id,
-		KeyGen:  rmdNext.LatestKeyGeneration(),
-		DataVer: newDblock.DataVersion(),
-		BlockContext: libkbfs.BlockContext{
-			Creator:  uid,
-			RefNonce: libkbfs.ZeroBlockRefNonce,
-		},
-	}
+	info, plainSize, readyBlockData, err :=
+		libkbfs.ReadyBlock(ctx, config, rmdNext, newDblock, uid)
 
 	now := config.Clock().Now().UnixNano()
 	pmd := rmdNext.Data()
 	pmd.Dir = libkbfs.DirEntry{
-		BlockInfo: libkbfs.BlockInfo{
-			BlockPointer: ptr,
-			EncodedSize:  uint32(readyBlockData.GetEncodedSize()),
-		},
+		BlockInfo: info,
 		EntryInfo: libkbfs.EntryInfo{
 			Type:  libkbfs.Dir,
 			Size:  uint64(plainSize),
@@ -132,14 +117,14 @@ outer:
 
 	dryRun := true
 
-	fmt.Printf("Putting block %s...\n", ptr)
+	fmt.Printf("Putting block %s...\n", info)
 
 	if dryRun {
-		fmt.Printf("Dry run: would call BlockServer.Put(tlfID=%s, ptr=%s, bufLen=%d)\n",
-			rmdNext.TlfID(), ptr, len(readyBlockData.Buf))
+		fmt.Printf("Dry run: would call BlockServer.Put(tlfID=%s, blockInfo=%s, bufLen=%d)\n",
+			rmdNext.TlfID(), info, len(readyBlockData.Buf))
 	} else {
 		err := config.BlockServer().Put(
-			ctx, rmdNext.TlfID(), ptr.ID, ptr.BlockContext,
+			ctx, rmdNext.TlfID(), info.ID, info.BlockContext,
 			readyBlockData.Buf, readyBlockData.ServerHalf)
 		if err != nil {
 			return err
