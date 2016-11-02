@@ -1125,6 +1125,8 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 	return bps, nil
 }
 
+// ResetRootBlock creates a new empty dir block and sets the given
+// metadata's root block to it.
 func ResetRootBlock(ctx context.Context, config Config,
 	currentUID keybase1.UID, rmd *RootMetadata) (
 	Block, BlockInfo, ReadyBlockData, error) {
@@ -1145,7 +1147,7 @@ func ResetRootBlock(ctx context.Context, config Config,
 			Ctime: now,
 		},
 	}
-	co := NewCreateOpForRootDir()
+	co := newCreateOpForRootDir()
 	rmd.AddOp(co)
 	rmd.AddRefBlock(rmd.data.Dir.BlockInfo)
 	rmd.SetUnrefBytes(0)
