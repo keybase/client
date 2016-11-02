@@ -37,6 +37,9 @@ func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID tlf.ID,
 	return err
 }
 
+// PutBlockCheckQuota is a thin wrapper around putBlockToServer (which
+// calls either bserver.Put or bserver.AddBlockReference) that reports
+// quota errors.
 func PutBlockCheckQuota(ctx context.Context, bserv BlockServer,
 	reporter Reporter, tlfID tlf.ID, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData, tlfName CanonicalTlfName) error {
