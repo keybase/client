@@ -9,7 +9,8 @@ import (
 )
 
 func mdResetOne(
-	ctx context.Context, config libkbfs.Config, tlfPath string) error {
+	ctx context.Context, config libkbfs.Config, tlfPath string,
+	dryRun bool) error {
 	handle, err := parseTLFPath(ctx, config.KBPKI(), tlfPath)
 	if err != nil {
 		return err
@@ -74,8 +75,6 @@ func mdResetOne(
 		return err
 	}
 
-	dryRun := true
-
 	fmt.Printf("Putting block %s...\n", info)
 
 	if dryRun {
@@ -120,6 +119,7 @@ const mdResetUsageStr = `Usage:
 
 func mdReset(ctx context.Context, config libkbfs.Config, args []string) (exitStatus int) {
 	flags := flag.NewFlagSet("kbfs md reset", flag.ContinueOnError)
+	dryRun := flags.Bool("d", false, "Dry run: don't actually do anything.")
 	flags.Parse(args)
 
 	inputs := flags.Args()
@@ -128,7 +128,7 @@ func mdReset(ctx context.Context, config libkbfs.Config, args []string) (exitSta
 		return 1
 	}
 
-	err := mdResetOne(ctx, config, inputs[0])
+	err := mdResetOne(ctx, config, inputs[0], *dryRun)
 	if err != nil {
 		printError("md reset", err)
 		return 1
