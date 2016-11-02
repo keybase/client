@@ -121,7 +121,7 @@ const mdResetUsageStr = `Usage:
 `
 
 func mdReset(ctx context.Context, config libkbfs.Config, args []string) (exitStatus int) {
-	flags := flag.NewFlagSet("kbfs md reset", flag.ExitOnError)
+	flags := flag.NewFlagSet("kbfs md reset", flag.ContinueOnError)
 	dryRun := flags.Bool("d", false, "Dry run: don't actually do anything.")
 	err := flags.Parse(args)
 	if err != nil {
