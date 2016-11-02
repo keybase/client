@@ -211,6 +211,7 @@ func mdCheckOne(ctx context.Context, config libkbfs.Config,
 	fmt.Printf("Retrieved %d MD objects with roots\n", len(irmdsWithRoots))
 
 	for _, irmd := range irmdsWithRoots {
+		fmt.Printf("Checking revision %d...\n", irmd.Revision())
 		data := irmd.Data()
 
 		// No need to check the blocks for unembedded changes,
