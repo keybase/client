@@ -88,9 +88,8 @@ type GlobalContext struct {
 
 	CardCache *UserCardCache // cache of keybase1.UserCard objects
 
-	ConvSource            ConversationSource // source of remote message bodies for chat
-	MessageDeliverer      MessageDeliverer   // background message delivery service
-	StartMessageDeliverer sync.Once
+	ConvSource       ConversationSource // source of remote message bodies for chat
+	MessageDeliverer MessageDeliverer   // background message delivery service
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)

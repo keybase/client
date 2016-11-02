@@ -209,8 +209,8 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	thread.Messages = utils.FilterByType(thread.Messages, arg.Query)
 
 	// Fetch outbox and tack onto the result
-	outbox := storage.NewOutbox(h.G(), h.getSecretUI)
-	obr, err := outbox.PullConv(arg.ConversationID)
+	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
+	obr, err := outbox.PullConversation(arg.ConversationID)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
@@ -335,7 +335,7 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 		}
 	}
 
-	sender := chat.NewBaseSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 	return sender.Prepare(ctx, msg, nil)
 }
 
@@ -690,7 +690,7 @@ func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg c
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (chat1.PostLocalRes, error) {
 
-	sender := chat.NewBaseSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 
 	_, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg)
 	if err != nil {
@@ -704,9 +704,8 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (chat1.PostLocalNonblockRes, error) {
 
 	// Create non block sender
-	sender := chat.NewBaseSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
-	nonblockSender := chat.NewNonblockingSender(h.G(), sender,
-		storage.NewOutbox(h.G(), h.getSecretUI))
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+	nonblockSender := chat.NewNonblockingSender(h.G(), sender)
 
 	obid, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg)
 	if err != nil {

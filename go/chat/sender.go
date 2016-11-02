@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/chat/storage"
@@ -20,7 +21,7 @@ type Sender interface {
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error)
 }
 
-type BaseSender struct {
+type BlockingSender struct {
 	libkb.Contextified
 
 	boxer       *Boxer
@@ -28,9 +29,9 @@ type BaseSender struct {
 	getRi       func() chat1.RemoteInterface
 }
 
-func NewBaseSender(g *libkb.GlobalContext, boxer *Boxer, getRi func() chat1.RemoteInterface,
-	getSecretUI func() libkb.SecretUI) *BaseSender {
-	return &BaseSender{
+func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, getRi func() chat1.RemoteInterface,
+	getSecretUI func() libkb.SecretUI) *BlockingSender {
+	return &BlockingSender{
 		Contextified: libkb.NewContextified(g),
 		getRi:        getRi,
 		getSecretUI:  getSecretUI,
@@ -38,7 +39,7 @@ func NewBaseSender(g *libkb.GlobalContext, boxer *Boxer, getRi func() chat1.Remo
 	}
 }
 
-func (s *BaseSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, error) {
+func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, error) {
 	uid := s.G().Env.GetUID()
 	if uid.IsNil() {
 		return chat1.MessagePlaintext{}, libkb.LoginRequiredError{}
@@ -68,7 +69,7 @@ func (s *BaseSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.Messa
 	return updated, nil
 }
 
-func (s *BaseSender) addPrevPointersToMessage(msg chat1.MessagePlaintext, convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
+func (s *BlockingSender) addPrevPointersToMessage(msg chat1.MessagePlaintext, convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
 	// Make sure the caller hasn't already assembled this list. For now, this
 	// should never happen, and we'll return an error just in case we make a
 	// mistake in the future. But if there's some use case in the future where
@@ -98,7 +99,7 @@ func (s *BaseSender) addPrevPointersToMessage(msg chat1.MessagePlaintext, convID
 	return updated, nil
 }
 
-func (s *BaseSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
+func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
 	msg, err := s.addSenderToMessage(plaintext)
 	if err != nil {
 		return nil, err
@@ -130,7 +131,7 @@ func (s *BaseSender) Prepare(ctx context.Context, plaintext chat1.MessagePlainte
 	return boxed, nil
 }
 
-func (s *BaseSender) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {
+func (s *BlockingSender) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {
 	// get device signing key for this user
 	signingKey, err := engine.GetMySecretKey(s.G(), s.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
 	if err != nil {
@@ -144,7 +145,7 @@ func (s *BaseSender) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error
 	return kp, nil
 }
 
-func (s *BaseSender) Send(ctx context.Context, convID chat1.ConversationID,
+func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext) (chat1.OutboxID, *chat1.RateLimit, error) {
 
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
@@ -172,38 +173,69 @@ func (s *BaseSender) Send(ctx context.Context, convID chat1.ConversationID,
 	return res, plres.RateLimit, nil
 }
 
-type Deliverer struct {
-	libkb.Contextified
-	outbox     *storage.Outbox
-	sender     Sender
-	shutdownCh chan struct{}
-	msgSentCh  chan struct{}
+type DelivererSecretUI struct {
 }
 
-func NewDeliverer(g *libkb.GlobalContext, sender Sender, outbox *storage.Outbox) *Deliverer {
+func (d DelivererSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	return keybase1.GetPassphraseRes{}, fmt.Errorf("no secret UI available")
+}
+
+type Deliverer struct {
+	libkb.Contextified
+	sync.Mutex
+
+	sender     Sender
+	outbox     *storage.Outbox
+	shutdownCh chan struct{}
+	msgSentCh  chan struct{}
+	delivering bool
+}
+
+func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 	d := &Deliverer{
 		Contextified: libkb.NewContextified(g),
-		outbox:       outbox,
-		shutdownCh:   make(chan struct{}),
+		shutdownCh:   make(chan struct{}, 1),
 		msgSentCh:    make(chan struct{}, 100),
 		sender:       sender,
 	}
+	return d
+}
+
+func (s *Deliverer) Start(uid gregor1.UID) {
+	s.Lock()
+	defer s.Unlock()
+
+	if s.delivering {
+		s.Stop()
+	}
 
 	// Shut this thing down on service shutdown
-	g.PushShutdownHook(func() error {
-		d.shutdownCh <- struct{}{}
+	s.G().PushShutdownHook(func() error {
+		s.shutdownCh <- struct{}{}
 		return nil
 	})
 
-	go d.deliverLoop()
+	s.outbox = storage.NewOutbox(s.G(), uid, func() libkb.SecretUI {
+		return DelivererSecretUI{}
+	})
+	s.delivering = true
+	go s.deliverLoop()
+}
 
-	return d
+func (s *Deliverer) Stop() {
+	s.Lock()
+	defer s.Unlock()
+
+	if s.delivering {
+		s.shutdownCh <- struct{}{}
+		s.delivering = false
+	}
 }
 
 func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, error) {
 
 	// Push onto outbox and immediatley return
-	oid, err := s.outbox.Push(convID, msg)
+	oid, err := s.outbox.PushMessage(convID, msg)
 	if err != nil {
 		return oid, err
 	}
@@ -228,7 +260,7 @@ func (s *Deliverer) deliverLoop() {
 		}
 
 		// Fetch outbox
-		obrs, err := s.outbox.Pull()
+		obrs, err := s.outbox.PullAllConversations()
 		if err != nil {
 			s.G().Log.Error("unable to pull outbox: err: %s", err.Error())
 			continue
@@ -259,7 +291,7 @@ func (s *Deliverer) deliverLoop() {
 
 		// Clear out outbox
 		if pops > 0 {
-			if err = s.outbox.PopN(pops); err != nil {
+			if err = s.outbox.PopNOldestMessages(pops); err != nil {
 				s.G().Log.Error("failed to clear messages from outbox: err: %s", err.Error())
 			}
 		}
@@ -271,17 +303,11 @@ type NonblockingSender struct {
 	sender Sender
 }
 
-func NewNonblockingSender(g *libkb.GlobalContext, sender Sender, outbox *storage.Outbox) *NonblockingSender {
-
+func NewNonblockingSender(g *libkb.GlobalContext, sender Sender) *NonblockingSender {
 	s := &NonblockingSender{
 		Contextified: libkb.NewContextified(g),
 		sender:       sender,
 	}
-
-	g.StartMessageDeliverer.Do(func() {
-		g.MessageDeliverer = NewDeliverer(g, sender, outbox)
-	})
-
 	return s
 }
 

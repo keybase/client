@@ -584,9 +584,9 @@ func TestGetOutbox(t *testing.T) {
 	u := users[0]
 	h := ctc.as(t, users[0]).h
 	tc := ctc.world.Tcs[ctc.as(t, users[0]).user().Username]
-	outbox := storage.NewOutbox(tc.G, h.getSecretUI)
+	outbox := storage.NewOutbox(tc.G, users[0].User.GetUID().ToBytes(), h.getSecretUI)
 
-	obid, err := outbox.Push(created.Id, chat1.MessagePlaintext{
+	obid, err := outbox.PushMessage(created.Id, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,

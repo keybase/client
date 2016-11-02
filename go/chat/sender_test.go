@@ -64,13 +64,15 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}
-	baseSender := NewBaseSender(tc.G, boxer, func() chat1.RemoteInterface { return ri }, f)
-	sender := NewNonblockingSender(tc.G, baseSender, storage.NewOutbox(tc.G, f))
+	baseSender := NewBlockingSender(tc.G, boxer, func() chat1.RemoteInterface { return ri }, f)
+	sender := NewNonblockingSender(tc.G, baseSender)
 	listener := chatListener{
 		action: make(chan int),
 	}
 	tc.G.ConvSource = NewRemoteConversationSource(tc.G, boxer, ri)
 	tc.G.NotifyRouter.SetListener(&listener)
+	tc.G.MessageDeliverer = NewDeliverer(tc.G, sender)
+	tc.G.MessageDeliverer.Start(u.User.GetUID().ToBytes())
 
 	return tc, ri, u, sender, &listener, f, world.Fc
 }
@@ -131,10 +133,10 @@ func TestNonblockTimer(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	outbox := storage.NewOutbox(tc.G, f)
+	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes(), f)
 	var obids []chat1.OutboxID
 	for i := 0; i < 5; i++ {
-		obid, err := outbox.Push(res.ConvID, chat1.MessagePlaintext{
+		obid, err := outbox.PushMessage(res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
