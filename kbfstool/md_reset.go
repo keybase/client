@@ -108,9 +108,10 @@ outer:
 		fmt.Printf("Dry run: would call BlockServer.Put(tlfID=%s, blockInfo=%s, bufLen=%d)\n",
 			rmdNext.TlfID(), info, len(readyBlockData.Buf))
 	} else {
-		err := config.BlockServer().Put(
-			ctx, rmdNext.TlfID(), info.ID, info.BlockContext,
-			readyBlockData.Buf, readyBlockData.ServerHalf)
+		err := libkbfs.PutBlockCheckQuota(
+			ctx, config.BlockServer(), config.Reporter(),
+			rmdNext.TlfID(), info.BlockPointer, readyBlockData,
+			handle.GetCanonicalName())
 		if err != nil {
 			return err
 		}

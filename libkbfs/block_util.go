@@ -37,7 +37,7 @@ func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID tlf.ID,
 	return err
 }
 
-func putBlockCheckQuota(ctx context.Context, bserv BlockServer,
+func PutBlockCheckQuota(ctx context.Context, bserv BlockServer,
 	reporter Reporter, tlfID tlf.ID, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData, tlfName CanonicalTlfName) error {
 	err := putBlockToServer(ctx, bserv, tlfID, blockPtr, readyBlockData)
@@ -52,7 +52,7 @@ func putBlockCheckQuota(ctx context.Context, bserv BlockServer,
 func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 	tlfID tlf.ID, tlfName CanonicalTlfName, blockState blockState,
 	errChan chan error, blocksToRemoveChan chan *FileBlock) {
-	err := putBlockCheckQuota(ctx, bserv, reporter, tlfID, blockState.blockPtr,
+	err := PutBlockCheckQuota(ctx, bserv, reporter, tlfID, blockState.blockPtr,
 		blockState.readyBlockData, tlfName)
 	if err == nil && blockState.syncedCb != nil {
 		err = blockState.syncedCb()

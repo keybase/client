@@ -1196,7 +1196,7 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
-	if err = putBlockCheckQuota(ctx, fbo.config.BlockServer(),
+	if err = PutBlockCheckQuota(ctx, fbo.config.BlockServer(),
 		fbo.config.Reporter(), md.TlfID(), info.BlockPointer, readyBlockData,
 		md.GetTlfHandle().GetCanonicalName()); err != nil {
 		return err
