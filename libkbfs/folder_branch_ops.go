@@ -1726,7 +1726,7 @@ func (fbo *folderBranchOps) readyBlockMultiple(ctx context.Context,
 	kmd KeyMetadata, currBlock Block, uid keybase1.UID,
 	bps *blockPutState) (info BlockInfo, plainSize int, err error) {
 	info, plainSize, readyBlockData, err :=
-		fbo.blocks.ReadyBlock(ctx, kmd, currBlock, uid)
+		ReadyBlock(ctx, fbo.config, kmd, currBlock, uid)
 	if err != nil {
 		return
 	}

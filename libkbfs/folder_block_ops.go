@@ -1968,7 +1968,7 @@ func ReadyBlock(ctx context.Context, config Config, kmd KeyMetadata,
 
 // ReadyBlock is a thin wrapper around BlockOps.Ready() that handles
 // checking for duplicates.
-func (fbo *folderBlockOps) ReadyBlock(ctx context.Context, kmd KeyMetadata,
+func (fbo *folderBlockOps) unneededReadyBlock(ctx context.Context, kmd KeyMetadata,
 	block Block, uid keybase1.UID) (
 	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
 	return ReadyBlock(ctx, fbo.config, kmd, block, uid)
@@ -2202,7 +2202,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 				}
 
 				newInfo, _, readyBlockData, err :=
-					fbo.ReadyBlock(ctx, md.ReadOnly(), block, uid)
+					ReadyBlock(ctx, fbo.config, md.ReadOnly(), block, uid)
 				if err != nil {
 					return nil, nil, syncState, nil, err
 				}
