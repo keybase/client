@@ -2040,6 +2040,9 @@ func isRetriableError(err error, retries int) bool {
 }
 
 func (fbo *folderBranchOps) finalizeBlocks(bps *blockPutState) error {
+	if bps == nil {
+		return nil
+	}
 	bcache := fbo.config.BlockCache()
 	for _, blockState := range bps.blockStates {
 		newPtr := blockState.blockPtr
@@ -4216,7 +4219,13 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 		resOp.AddUnrefBlock(ptr)
 	}
 	md.AddOp(resOp)
-	return fbo.finalizeMDWriteLocked(ctx, lState, md, &blockPutState{}, NoExcl)
+
+	bps, err := fbo.maybeUnembedAndPutBlocks(ctx, md)
+	if err != nil {
+		return err
+	}
+
+	return fbo.finalizeMDWriteLocked(ctx, lState, md, bps, NoExcl)
 }
 
 // TODO: remove once we have automatic conflict resolution
