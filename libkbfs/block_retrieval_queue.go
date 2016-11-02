@@ -26,20 +26,23 @@ type blockRetrievalRequest struct {
 // blockRetrieval contains the metadata for a given block retrieval. May
 // represent many requests, all of which will be handled at once.
 type blockRetrieval struct {
-	// The block being retrieved
+	//// Retrieval Metadata
+	// the block pointer to retrieve
 	blockPtr BlockPointer
-	// The key metadata for the request
+	// the key metadata for the request
 	kmd KeyMetadata
-	// The index of the retrieval in the heap
-	index int
-	// The priority of the retrieval
-	priority int
-	// The count of elements in the heap when this element was inserted.
-	// Maintains FIFO.
-	insertionOrder uint64
-	// All the individual requests for this block. They must be notified once
-	// the block is returned.
+	// the individual requests for this block pointer: they must be notified
+	// once the block is returned
 	requests []*blockRetrievalRequest
+
+	//// Queueing Metadata
+	// the index of the retrieval in the heap
+	index int
+	// the priority of the retrieval: larger priorities are processed first
+	priority int
+	// state of global request counter when this retrieval was created;
+	// maintains FIFO
+	insertionOrder uint64
 }
 
 // blockRetrievalQueue manages block retrieval requests. Higher priority
@@ -107,8 +110,9 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 	}
 	ch := make(chan error, 1)
 	br.requests = append(br.requests, &blockRetrievalRequest{ctx, block, ch})
-	// If the new request priority is higher, elevate the request in the queue
-	// Request might not be in the heap any more (could be processing)
+	// If the new request priority is higher, elevate the retrieval in the
+	// queue.  Skip this if the request is no longer in the queue (which means
+	// it's actively being processed).
 	if br.index != -1 && priority > br.priority {
 		br.priority = priority
 		heap.Fix(brq.heap, br.index)

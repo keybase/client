@@ -4,7 +4,11 @@
 
 package libkbfs
 
+import "container/heap"
+
 type blockRetrievalHeap []*blockRetrieval
+
+var _ heap.Interface = (*blockRetrievalHeap)(nil)
 
 // Heap methods: do not use directly
 func (brh blockRetrievalHeap) Less(i, j int) bool {

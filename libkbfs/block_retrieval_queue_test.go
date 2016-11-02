@@ -106,13 +106,14 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	_ = q.Request(ctx, 1, nil, ptr1, block)
 	_ = q.Request(ctx, 1, nil, ptr1, block)
 
-	t.Log("Begin working on the ptr1 retrieval. Verify that it has 2 requests.")
+	t.Log("Begin working on the ptr1 retrieval. Verify that it has 2 requests and that the queue is now empty.")
 	br := <-q.WorkOnRequest()
 	require.Equal(t, ptr1, br.blockPtr)
 	require.Equal(t, -1, br.index)
 	require.Equal(t, 1, br.priority)
 	require.Equal(t, uint64(0), br.insertionOrder)
 	require.Len(t, br.requests, 2)
+	require.Len(t, *q.heap, 0)
 	require.Equal(t, block, br.requests[0].block)
 	require.Equal(t, block, br.requests[1].block)
 }
