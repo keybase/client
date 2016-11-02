@@ -572,7 +572,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	}
 
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockGet, 1)
+		StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	var wg sync.WaitGroup
 
@@ -659,7 +659,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	}
 
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
-		StallBlockOp(ctx, config, StallableBlockGet, 1)
+		StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	var wg sync.WaitGroup
 
