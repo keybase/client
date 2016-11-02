@@ -1210,6 +1210,11 @@ func (fbo *folderBranchOps) initMDLocked(
 
 	md.loadCachedBlockChanges(bps)
 
+	err = fbo.finalizeBlocks(bps)
+	if err != nil {
+		return err
+	}
+
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
 	if fbo.head != (ImmutableRootMetadata{}) {
@@ -2345,6 +2350,11 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 
 	fbo.setBranchIDLocked(lState, NullBranchID)
 	md.loadCachedBlockChanges(bps)
+
+	err = fbo.finalizeBlocks(bps)
+	if err != nil {
+		return err
+	}
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
@@ -4965,6 +4975,11 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	}
 
 	md.loadCachedBlockChanges(bps)
+
+	err = fbo.finalizeBlocks(bps)
+	if err != nil {
+		return err
+	}
 
 	// Set the head to the new MD.
 	fbo.headLock.Lock(lState)
