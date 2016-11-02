@@ -99,6 +99,8 @@
         <ExitCode Value="0" Behavior="success" />
       </ExePackage>
 
+      <!-- Note there are 2 VC redistributable package entries, one for x86 and one for x64,
+ 	   which need to remain in sync -->	    
       <ExePackage Id="vcredist_2015_x86.exe"
                   Name="vc_redist.x86.exe"
                   InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
@@ -119,7 +121,8 @@
         <ExitCode Value="0" Behavior="success" />
       </ExePackage>
 
-
+      <!-- Note there are 2 VC redistributable package entries, one for x86 and one for x64,
+ 	   which need to remain in sync -->	    
       <ExePackage Id="vcredist_2015_x64.exe"
                   Name="vc_redist.x64.exe"
                   InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
