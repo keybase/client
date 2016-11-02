@@ -22,7 +22,6 @@ func getTlfID(
 		return tlfID, nil
 	}
 
-	var handle *libkbfs.TlfHandle
 	p, err := fsrpc.NewPath(tlfStr)
 	if err != nil {
 		return tlf.ID{}, err
@@ -34,25 +33,10 @@ func getTlfID(
 		return tlf.ID{}, fmt.Errorf(
 			"%q is not the root path of a TLF", tlfStr)
 	}
-	name := p.TLFName
-outer:
-	for {
-		var err error
-		handle, err = libkbfs.ParseTlfHandle(
-			ctx, config.KBPKI(), name, p.Public)
-		switch err := err.(type) {
-		case nil:
-			// No error.
-			break outer
-
-		case libkbfs.TlfNameNotCanonical:
-			// Non-canonical name, so try again.
-			name = err.NameToTry
-
-		default:
-			// Some other error.
-			return tlf.ID{}, err
-		}
+	handle, err := fsrpc.ParseTlfHandle(
+		ctx, config.KBPKI(), p.TLFName, p.Public)
+	if err != nil {
+		return tlf.ID{}, err
 	}
 
 	_, irmd, err := config.MDOps().GetForHandle(ctx, handle, libkbfs.Merged)

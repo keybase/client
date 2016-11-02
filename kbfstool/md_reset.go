@@ -10,7 +10,6 @@ import (
 )
 
 func mdResetOne(ctx context.Context, config libkbfs.Config, path string) error {
-	var handle *libkbfs.TlfHandle
 	p, err := fsrpc.NewPath(path)
 	if err != nil {
 		return err
@@ -21,25 +20,10 @@ func mdResetOne(ctx context.Context, config libkbfs.Config, path string) error {
 	if len(p.TLFComponents) > 0 {
 		return fmt.Errorf("%q is not the root path of a TLF", path)
 	}
-	name := p.TLFName
-outer:
-	for {
-		var err error
-		handle, err = libkbfs.ParseTlfHandle(
-			ctx, config.KBPKI(), name, p.Public)
-		switch err := err.(type) {
-		case nil:
-			// No error.
-			break outer
-
-		case libkbfs.TlfNameNotCanonical:
-			// Non-canonical name, so try again.
-			name = err.NameToTry
-
-		default:
-			// Some other error.
-			return err
-		}
+	handle, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), p.TLFName, p.Public)
+	if err != nil {
+		return err
 	}
 
 	username, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
