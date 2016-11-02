@@ -392,6 +392,17 @@ function _updateBTC (username: string, address: string, sigID: string): Action {
   }
 }
 
+function _updateZcash (username: string, address: string, sigID: string): Action {
+  return {
+    type: Constants.updateZcash,
+    payload: {
+      username,
+      address,
+      sigID,
+    },
+  }
+}
+
 function _updatePGPKey (username: string, pgpFingerprint: Buffer, kid: string): Action {
   return {
     type: Constants.updatePGPKey,
@@ -565,10 +576,14 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
         }
       })
     },
-    'keybase.1.identifyUi.displayCryptocurrency': ({c: {address, sigID}}, response) => {
+    'keybase.1.identifyUi.displayCryptocurrency': ({c: {address, sigID, type, family}}, response) => {
       response.result()
       requestIdle(() => {
-        dispatch(_updateBTC(username, address, sigID))
+        if (family === 'zcash') {
+          dispatch(_updateZcash(username, address, sigID))
+        } else {
+          dispatch(_updateBTC(username, address, sigID))
+        }
         dispatch({type: Constants.updateProofState, payload: {username}})
       })
     },

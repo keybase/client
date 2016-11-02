@@ -1000,6 +1000,31 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-website-64.png'),
   },
+  'icon-zcash-logo-16': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-zcash-logo-16.png'),
+  },
+  'icon-zcash-logo-24': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-zcash-logo-24.png'),
+  },
+  'icon-zcash-logo-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-zcash-logo-32.png'),
+  },
+  'icon-zcash-logo-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-zcash-logo-48.png'),
+  },
+  'icon-zcash-logo-64': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-zcash-logo-64.png'),
+  },
   'iconfont-add': {
     isFont: true,
     gridSize: 16,

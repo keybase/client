@@ -30,6 +30,7 @@ const PlatformsExpandedMap = {
   'https': true,
   'rooter': __DEV__,
   'btc': true,
+  'zcash': true,
   'dnsOrGenericWebSite': true,
   'pgp': true,
 }

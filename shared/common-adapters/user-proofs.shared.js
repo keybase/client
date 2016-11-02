@@ -54,6 +54,7 @@ function iconNameForProof ({type}: {type: PlatformsExpandedType}): IconType {
     'hackernews': 'iconfont-identity-hn',
     'rooter': 'iconfont-thunderbolt',
     'btc': 'iconfont-identity-bitcoin',
+    'zcash': 'icon-zcash-logo-16', // TEMP
     'dnsOrGenericWebSite': 'iconfont-identity-website',
     'http': 'iconfont-identity-website',
     'https': 'iconfont-identity-website',

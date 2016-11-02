@@ -1,14 +1,14 @@
 // @flow
 import * as Constants from '../../constants/profile'
 import engine, {Engine} from '../../engine'
-import {BTCRegisterBTCRpcPromise, proveStartProofRpcChannelMap, ConstantsStatusCode, ProveCommonProofStatus, proveCheckProofRpcPromise} from '../../constants/types/flow-types'
+import {cryptocurrencyRegisterAddressRpcPromise, proveStartProofRpcChannelMap, ConstantsStatusCode, ProveCommonProofStatus, proveCheckProofRpcPromise} from '../../constants/types/flow-types'
 import {call, put, select, race, take} from 'redux-saga/effects'
 import {navigateUp, navigateTo, routeAppend} from '../router'
 import {profileTab} from '../../constants/tabs'
 import {singleFixedChannelConfig, closeChannelMap, takeFromChannelMap} from '../../util/saga'
 import {takeEvery} from 'redux-saga'
 
-import type {AddProof, AskTextOrDNS, CancelAddProof, CheckProof, CleanupUsername, RegisterBTC, SubmitBTCAddress, SubmitUsername, UpdateErrorText, UpdatePlatform, UpdateProofStatus, UpdateProofText, UpdateSigID, Waiting} from '../../constants/profile'
+import type {AddProof, AskTextOrDNS, CancelAddProof, CheckProof, CleanupUsername, RegisterBTC, SubmitBTCAddress, SubmitUsername, UpdateErrorText, UpdatePlatform, UpdateProofStatus, UpdateProofText, UpdateSigID, Waiting, RegisterZcash, SubmitZcashAddress} from '../../constants/profile'
 import type {PlatformsExpandedType, ProvablePlatformsType} from '../../constants/types/more'
 import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
 import type {SigID} from '../../constants/types/flow-types'
@@ -23,6 +23,10 @@ function _askTextOrDNS (): AskTextOrDNS {
 }
 
 function _registerBTC (): RegisterBTC {
+  return navigateTo([{path: 'ProveEnterUsername'}], profileTab)
+}
+
+function _registerZcash (): RegisterZcash {
   return navigateTo([{path: 'ProveEnterUsername'}], profileTab)
 }
 
@@ -44,6 +48,10 @@ function cancelAddProof (): CancelAddProof {
 
 function submitBTCAddress (): SubmitBTCAddress {
   return {type: Constants.submitBTCAddress, payload: undefined}
+}
+
+function submitZcashAddress (): SubmitZcashAddress {
+  return {type: Constants.submitZcashAddress, payload: undefined}
 }
 
 function _updateProofText (proof: string): UpdateProofText {
@@ -108,8 +116,11 @@ function * _addProof (action: AddProof): SagaGenerator<any, any> {
     case 'dnsOrGenericWebSite':
       yield put(_askTextOrDNS())
       break
+    case 'zcash':
+      yield put(_registerZcash())
+      break
     case 'btc':
-      yield yield put(_registerBTC())
+      yield put(_registerBTC())
       break
     // flow needs this for some reason
     case 'http':
@@ -252,12 +263,12 @@ function * _cancelAddProof (): SagaGenerator<any, any> {
   yield put(navigateUp())
 }
 
-function * _submitBTCAddress (): SagaGenerator<any, any> {
+function * _submitCryptoAddress (): SagaGenerator<any, any> {
   yield put(_cleanupUsername())
   const address = yield select(state => state.profile.username)
   try {
     yield put(_waitingForResponse(true))
-    yield call(BTCRegisterBTCRpcPromise, {param: {address, force: true}})
+    yield call(cryptocurrencyRegisterAddressRpcPromise, {param: {address, force: true}})
     yield put(_waitingForResponse(false))
     yield put(_updateProofStatus(true, ProveCommonProofStatus.ok))
     yield put(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
@@ -270,7 +281,8 @@ function * _submitBTCAddress (): SagaGenerator<any, any> {
 
 function * proofsSaga (): SagaGenerator<any, any> {
   yield [
-    takeEvery(Constants.submitBTCAddress, _submitBTCAddress),
+    takeEvery(Constants.submitBTCAddress, _submitCryptoAddress),
+    takeEvery(Constants.submitZcashAddress, _submitCryptoAddress),
     takeEvery(Constants.cancelAddProof, _cancelAddProof),
     takeEvery(Constants.addProof, _addProof),
     takeEvery(Constants.checkProof, _checkProof),
@@ -282,6 +294,7 @@ export {
   cancelAddProof,
   checkProof,
   submitBTCAddress,
+  submitZcashAddress,
   submitUsername,
   proofsSaga,
 }
