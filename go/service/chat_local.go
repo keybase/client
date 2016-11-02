@@ -841,6 +841,8 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	if arg.Preview != nil {
 		g.Go(func() error {
 			chatUI.ChatAttachmentPreviewUploadStart(ctx)
+			// add .preview suffix to object key
+			params.ObjectKey += ".preview"
 			prev, err := h.uploadAsset(ctx, arg.SessionID, params, *arg.Preview, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
