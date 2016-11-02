@@ -114,13 +114,7 @@ func mdResetOne(
 }
 
 const mdResetUsageStr = `Usage:
-  kbfstool md reset TLF
-
-where TLF can be:
-
-  - a TLF ID string (32 hex digits),
-  - or a keybase TLF path (e.g., "/keybase/public/user1,user2", or
-    "/keybase/private/user1,assertion2").
+  kbfstool md reset /keybase/[public|private]/user1,assertion2
 
 `
 
