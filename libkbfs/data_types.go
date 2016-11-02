@@ -330,14 +330,14 @@ var bpSize = uint64(reflect.TypeOf(BlockPointer{}).Size())
 
 // ReadyBlockData is a block that has been encoded (and encrypted).
 type ReadyBlockData struct {
-	Buf        []byte
-	ServerHalf kbfscrypto.BlockCryptKeyServerHalf
+	buf        []byte
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf
 }
 
 // GetEncodedSize returns the size of the encoded (and encrypted)
 // block data.
 func (r ReadyBlockData) GetEncodedSize() int {
-	return len(r.Buf)
+	return len(r.buf)
 }
 
 // Favorite is a top-level favorited folder name.

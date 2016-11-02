@@ -106,7 +106,7 @@ outer:
 
 	if dryRun {
 		fmt.Printf("Dry run: would call BlockServer.Put(tlfID=%s, blockInfo=%s, bufLen=%d)\n",
-			rmdNext.TlfID(), info, len(readyBlockData.Buf))
+			rmdNext.TlfID(), info, readyBlockData.GetEncodedSize())
 	} else {
 		err := libkbfs.PutBlockCheckQuota(
 			ctx, config.BlockServer(), config.Reporter(),

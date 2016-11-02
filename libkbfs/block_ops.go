@@ -113,8 +113,8 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 	}
 
 	readyBlockData = ReadyBlockData{
-		Buf:        buf,
-		ServerHalf: serverHalf,
+		buf:        buf,
+		serverHalf: serverHalf,
 	}
 
 	encodedSize := readyBlockData.GetEncodedSize()
