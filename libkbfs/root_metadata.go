@@ -539,6 +539,11 @@ func (md *RootMetadata) PrevRoot() MdID {
 	return md.bareMd.GetPrevRoot()
 }
 
+// Version returns the underlying BareRootMetadata version.
+func (md *RootMetadata) Version() MetadataVer {
+	return md.bareMd.Version()
+}
+
 func (md *RootMetadata) clearRekeyBit() {
 	md.bareMd.ClearRekeyBit()
 }

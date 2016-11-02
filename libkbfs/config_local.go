@@ -91,6 +91,9 @@ type ConfigLocal struct {
 
 	// tlfValidDuration is the time TLFs are valid before redoing identification.
 	tlfValidDuration time.Duration
+
+	// metadataVersion is the version to use when creating new metadata.
+	metadataVersion MetadataVer
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -234,6 +237,7 @@ func NewConfigLocal() *ConfigLocal {
 	}
 
 	config.tlfValidDuration = tlfValidDurationDefault
+	config.metadataVersion = defaultClientMetadataVer
 
 	return config
 }
@@ -549,7 +553,7 @@ func (c *ConfigLocal) SetConflictRenamer(cr ConflictRenamer) {
 
 // MetadataVersion implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) MetadataVersion() MetadataVer {
-	return defaultClientMetadataVer
+	return c.metadataVersion
 }
 
 // DataVersion implements the Config interface for ConfigLocal.

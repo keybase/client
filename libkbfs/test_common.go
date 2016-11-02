@@ -372,6 +372,33 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 		NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey))
 }
 
+// SwitchDeviceOrBust switches to use the given user's device for testing.
+func SwitchDeviceOrBust(t logger.TestLogBackend, config Config, un string, index int) {
+	name, uid, err := config.KBPKI().Resolve(context.Background(), un)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
+	if !ok {
+		t.Fatal("Bad keybase daemon")
+	}
+
+	if err := kbd.switchDeviceForTesting(uid, index); err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if _, ok := config.Crypto().(CryptoLocal); !ok {
+		t.Fatal("Bad crypto")
+	}
+
+	keySalt := keySaltForUserDevice(name, index)
+	signingKey := MakeLocalUserSigningKeyOrBust(keySalt)
+	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(keySalt)
+	config.SetCrypto(
+		NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey))
+}
+
 // AddNewAssertionForTest makes newAssertion, which should be a single
 // assertion that doesn't already resolve to anything, resolve to the
 // same UID as oldAssertion, which should be an arbitrary assertion

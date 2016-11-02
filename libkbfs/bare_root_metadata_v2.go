@@ -64,7 +64,11 @@ func (wmd *WriterMetadataV2) ToWriterMetadataV3(
 	wmdCopy.UnresolvedWriters = make([]keybase1.SocialAssertion, len(wmd.Extra.UnresolvedWriters))
 	copy(wmdCopy.UnresolvedWriters[:], wmd.Extra.UnresolvedWriters)
 
-	wmdCopy.LatestKeyGen = wmd.WKeys.LatestKeyGeneration()
+	if wmd.ID.IsPublic() {
+		wmdCopy.LatestKeyGen = PublicKeyGen
+	} else {
+		wmdCopy.LatestKeyGen = wmd.WKeys.LatestKeyGeneration()
+	}
 	wmdCopy.ID = wmd.ID
 	wmdCopy.BID = wmd.BID
 	wmdCopy.WFlags = wmd.WFlags
