@@ -14,6 +14,22 @@ import (
 
 var mdGetRegexp = regexp.MustCompile("^(.+?)(?::(.*?))?(?:\\^(.*?))?$")
 
+func parseTLFPath(ctx context.Context, kbpki libkbfs.KBPKI, tlfStr string) (
+	*libkbfs.TlfHandle, error) {
+	p, err := fsrpc.NewPath(tlfStr)
+	if err != nil {
+		return nil, err
+	}
+	if p.PathType != fsrpc.TLFPathType {
+		return nil, fmt.Errorf("%q is not a TLF path", tlfStr)
+	}
+	if len(p.TLFComponents) > 0 {
+		return nil, fmt.Errorf(
+			"%q is not the root path of a TLF", tlfStr)
+	}
+	return fsrpc.ParseTlfHandle(ctx, kbpki, p.TLFName, p.Public)
+}
+
 func getTlfID(
 	ctx context.Context, config libkbfs.Config, tlfStr string) (
 	tlf.ID, error) {
@@ -22,19 +38,7 @@ func getTlfID(
 		return tlfID, nil
 	}
 
-	p, err := fsrpc.NewPath(tlfStr)
-	if err != nil {
-		return tlf.ID{}, err
-	}
-	if p.PathType != fsrpc.TLFPathType {
-		return tlf.ID{}, fmt.Errorf("%q is not a TLF path", tlfStr)
-	}
-	if len(p.TLFComponents) > 0 {
-		return tlf.ID{}, fmt.Errorf(
-			"%q is not the root path of a TLF", tlfStr)
-	}
-	handle, err := fsrpc.ParseTlfHandle(
-		ctx, config.KBPKI(), p.TLFName, p.Public)
+	handle, err := parseTLFPath(ctx, config.KBPKI(), tlfStr)
 	if err != nil {
 		return tlf.ID{}, err
 	}

@@ -4,24 +4,13 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 
-func mdResetOne(ctx context.Context, config libkbfs.Config, path string) error {
-	p, err := fsrpc.NewPath(path)
-	if err != nil {
-		return err
-	}
-	if p.PathType != fsrpc.TLFPathType {
-		return fmt.Errorf("%q is not a TLF path", path)
-	}
-	if len(p.TLFComponents) > 0 {
-		return fmt.Errorf("%q is not the root path of a TLF", path)
-	}
-	handle, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), p.TLFName, p.Public)
+func mdResetOne(
+	ctx context.Context, config libkbfs.Config, tlfPath string) error {
+	handle, err := parseTLFPath(ctx, config.KBPKI(), tlfPath)
 	if err != nil {
 		return err
 	}
@@ -46,7 +35,8 @@ func mdResetOne(ctx context.Context, config libkbfs.Config, path string) error {
 	}
 	if unmergedIRMD != (libkbfs.ImmutableRootMetadata{}) {
 		return fmt.Errorf(
-			"%s has unmerged data; try unstaging it first", path)
+			"%s has unmerged data; try unstaging it first",
+			tlfPath)
 	}
 
 	fmt.Printf("Getting latest metadata...\n")
@@ -58,7 +48,7 @@ func mdResetOne(ctx context.Context, config libkbfs.Config, path string) error {
 	}
 
 	if irmd == (libkbfs.ImmutableRootMetadata{}) {
-		fmt.Printf("No TLF found for %q\n\n", path)
+		fmt.Printf("No TLF found for %q\n\n", tlfPath)
 		return nil
 	}
 
