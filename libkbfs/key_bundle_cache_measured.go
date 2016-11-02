@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/kbfs/tlf"
 	metrics "github.com/rcrowley/go-metrics"
 )
 
@@ -51,7 +52,7 @@ func NewKeyBundleCacheMeasured(delegate KeyBundleCache, r metrics.Registry) KeyB
 // GetTLFReaderKeyBundle implements the KeyBundleCache interface for
 // KeyBundleCacheMeasured.
 func (b KeyBundleCacheMeasured) GetTLFReaderKeyBundle(
-	tlfID TlfID, bundleID TLFReaderKeyBundleID) (rkb *TLFReaderKeyBundleV3, err error) {
+	tlfID tlf.ID, bundleID TLFReaderKeyBundleID) (rkb *TLFReaderKeyBundleV3, err error) {
 	b.attemptReaderBundleCountMeter.Mark(1)
 	b.getReaderBundleTimer.Time(func() {
 		rkb, err = b.delegate.GetTLFReaderKeyBundle(tlfID, bundleID)
@@ -65,7 +66,7 @@ func (b KeyBundleCacheMeasured) GetTLFReaderKeyBundle(
 // GetTLFWriterKeyBundle implements the KeyBundleCache interface for
 // KeyBundleCacheMeasured.
 func (b KeyBundleCacheMeasured) GetTLFWriterKeyBundle(
-	tlfID TlfID, bundleID TLFWriterKeyBundleID) (wkb *TLFWriterKeyBundleV3, err error) {
+	tlfID tlf.ID, bundleID TLFWriterKeyBundleID) (wkb *TLFWriterKeyBundleV3, err error) {
 	b.attemptWriterBundleCountMeter.Mark(1)
 	b.getWriterBundleTimer.Time(func() {
 		wkb, err = b.delegate.GetTLFWriterKeyBundle(tlfID, bundleID)
@@ -79,7 +80,7 @@ func (b KeyBundleCacheMeasured) GetTLFWriterKeyBundle(
 // PutTLFReaderKeyBundle implements the KeyBundleCache interface for
 // KeyBundleCacheMeasured.
 func (b KeyBundleCacheMeasured) PutTLFReaderKeyBundle(
-	tlfID TlfID, bundleID TLFReaderKeyBundleID, rkb *TLFReaderKeyBundleV3) {
+	tlfID tlf.ID, bundleID TLFReaderKeyBundleID, rkb *TLFReaderKeyBundleV3) {
 	b.putReaderBundleTimer.Time(func() {
 		b.delegate.PutTLFReaderKeyBundle(tlfID, bundleID, rkb)
 	})
@@ -88,7 +89,7 @@ func (b KeyBundleCacheMeasured) PutTLFReaderKeyBundle(
 // PutTLFWriterKeyBundle implements the KeyBundleCache interface for
 // KeyBundleCacheMeasured.
 func (b KeyBundleCacheMeasured) PutTLFWriterKeyBundle(
-	tlfID TlfID, bundleID TLFWriterKeyBundleID, wkb *TLFWriterKeyBundleV3) {
+	tlfID tlf.ID, bundleID TLFWriterKeyBundleID, wkb *TLFWriterKeyBundleV3) {
 	b.putWriterBundleTimer.Time(func() {
 		b.delegate.PutTLFWriterKeyBundle(tlfID, bundleID, wkb)
 	})

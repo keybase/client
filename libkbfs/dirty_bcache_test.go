@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/kbfs/tlf"
+
 	"golang.org/x/net/context"
 )
 
@@ -17,7 +19,7 @@ func testDirtyBcachePut(t *testing.T, id BlockID, dirtyBcache DirtyBlockCache) {
 	branch := MasterBranch
 
 	// put the block
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 	if err := dirtyBcache.Put(tlfID, ptr, branch, block); err != nil {
 		t.Errorf("Got error on Put for block %s: %v", id, err)
 	}
@@ -39,7 +41,7 @@ func testExpectedMissingDirty(t *testing.T, id BlockID,
 	dirtyBcache DirtyBlockCache) {
 	expectedErr := NoSuchBlockError{id}
 	ptr := BlockPointer{ID: id}
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 	if _, err := dirtyBcache.Get(tlfID, ptr, MasterBranch); err == nil {
 		t.Errorf("No expected error on 1st get: %v", err)
 	} else if err != expectedErr {
@@ -69,7 +71,7 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 		ID:           id1,
 		BlockContext: BlockContext{RefNonce: newNonce},
 	}
-	id := FakeTlfID(1, false)
+	id := tlf.FakeID(1, false)
 	err := dirtyBcache.Put(id, bp2, MasterBranch, newNonceBlock)
 	if err != nil {
 		t.Errorf("Unexpected error on PutDirty: %v", err)
@@ -109,7 +111,7 @@ func TestDirtyBcacheDelete(t *testing.T) {
 	testDirtyBcachePut(t, id1, dirtyBcache)
 	newBranch := BranchName("dirtyBranch")
 	newBranchBlock := NewFileBlock()
-	id := FakeTlfID(1, false)
+	id := tlf.FakeID(1, false)
 	err := dirtyBcache.Put(id, BlockPointer{ID: id1}, newBranch, newBranchBlock)
 	if err != nil {
 		t.Errorf("Unexpected error on PutDirty: %v", err)
@@ -132,7 +134,7 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	ctx := context.Background()
 
 	// The first write should get immediate permission.
-	id := FakeTlfID(1, false)
+	id := tlf.FakeID(1, false)
 	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, id, bufSize*2+1)
 	if err != nil {
 		t.Fatalf("Request permission error: %v", err)
@@ -209,7 +211,7 @@ func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 	}
 
 	// still less
-	id := FakeTlfID(1, false)
+	id := tlf.FakeID(1, false)
 	dirtyBcache.UpdateUnsyncedBytes(id, 9, false)
 	bp = dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
 	if bp != 0 {
@@ -249,7 +251,7 @@ func TestDirtyBcacheResetBufferCap(t *testing.T) {
 	ctx := context.Background()
 
 	// The first write should get immediate permission.
-	id := FakeTlfID(1, false)
+	id := tlf.FakeID(1, false)
 	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, id, bufSize*2+1)
 	if err != nil {
 		t.Fatalf("Request permission error: %v", err)

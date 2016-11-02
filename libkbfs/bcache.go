@@ -10,10 +10,11 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/kbfs/kbfshash"
+	"github.com/keybase/kbfs/tlf"
 )
 
 type idCacheKey struct {
-	tlf           TlfID
+	tlf           tlf.ID
 	plaintextHash kbfshash.RawDefaultHash
 }
 
@@ -115,7 +116,7 @@ func (b *BlockCacheStandard) onEvict(key interface{}, value interface{}) {
 }
 
 // CheckForKnownPtr implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) CheckForKnownPtr(tlf TlfID, block *FileBlock) (
+func (b *BlockCacheStandard) CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (
 	BlockPointer, error) {
 	if block.IsInd {
 		return BlockPointer{}, NotDirectFileBlockError{}
@@ -186,7 +187,7 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 
 // Put implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) Put(
-	ptr BlockPointer, tlf TlfID, block Block, lifetime BlockCacheLifetime) error {
+	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
 	// If it's the right type of block and lifetime, store the
 	// hash -> ID mapping.
 	if fBlock, ok := block.(*FileBlock); b.ids != nil && lifetime == TransientEntry && ok && !fBlock.IsInd {
@@ -241,7 +242,7 @@ func (b *BlockCacheStandard) DeletePermanent(id BlockID) error {
 
 // DeleteTransient implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) DeleteTransient(
-	ptr BlockPointer, tlf TlfID) error {
+	ptr BlockPointer, tlf tlf.ID) error {
 	if b.cleanTransient == nil {
 		return nil
 	}
@@ -268,7 +269,7 @@ func (b *BlockCacheStandard) DeleteTransient(
 }
 
 // DeleteKnownPtr implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) DeleteKnownPtr(tlf TlfID, block *FileBlock) error {
+func (b *BlockCacheStandard) DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error {
 	if block.IsInd {
 		return NotDirectFileBlockError{}
 	}

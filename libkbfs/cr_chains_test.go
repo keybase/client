@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -145,7 +146,7 @@ func testCRCheckOps(t *testing.T, cc *crChains, original BlockPointer,
 }
 
 func newChainMDForTest(t *testing.T) rootMetadataWithKeyAndTimestamp {
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 
 	uid := keybase1.MakeTestUID(1)
 	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)

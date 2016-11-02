@@ -12,6 +12,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -102,7 +103,7 @@ func TestFBStatusAllFields(t *testing.T) {
 	ctx := context.Background()
 
 	// make a new root metadata
-	id := FakeTlfID(1, false)
+	id := tlf.FakeID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	u := h.FirstResolvedWriter()
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)

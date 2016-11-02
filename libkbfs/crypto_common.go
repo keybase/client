@@ -15,23 +15,10 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
 )
-
-// Belt-and-suspenders wrapper around crypto.rand.Read().
-func cryptoRandRead(buf []byte) error {
-	n, err := rand.Read(buf)
-	if err != nil {
-		return err
-	}
-	// This is truly unexpected, as rand.Read() is supposed to
-	// return an error on a short read already!
-	if n != len(buf) {
-		return UnexpectedShortCryptoRandRead{}
-	}
-	return nil
-}
 
 // CryptoCommon contains many of the function implementations need for
 // the Crypto interface, which can be reused by other implementations.
@@ -47,24 +34,14 @@ func MakeCryptoCommon(codec kbfscodec.Codec) CryptoCommon {
 }
 
 // MakeRandomTlfID implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) MakeRandomTlfID(isPublic bool) (TlfID, error) {
-	var id TlfID
-	err := cryptoRandRead(id.id[:])
-	if err != nil {
-		return TlfID{}, err
-	}
-	if isPublic {
-		id.id[TlfIDByteLen-1] = PubTlfIDSuffix
-	} else {
-		id.id[TlfIDByteLen-1] = TlfIDSuffix
-	}
-	return id, nil
+func (c CryptoCommon) MakeRandomTlfID(isPublic bool) (tlf.ID, error) {
+	return tlf.MakeRandomID(isPublic)
 }
 
 // MakeRandomBranchID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakeRandomBranchID() (BranchID, error) {
 	var id BranchID
-	err := cryptoRandRead(id.id[:])
+	err := kbfscrypto.RandRead(id.id[:])
 	if err != nil {
 		return BranchID{}, err
 	}
@@ -135,7 +112,7 @@ func (c CryptoCommon) MakeTLFReaderKeyBundleID(rkb *TLFReaderKeyBundleV3) (
 // MakeTemporaryBlockID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
 	var dh kbfshash.RawDefaultHash
-	err := cryptoRandRead(dh[:])
+	err := kbfscrypto.RandRead(dh[:])
 	if err != nil {
 		return BlockID{}, err
 	}
@@ -162,7 +139,7 @@ func (c CryptoCommon) VerifyBlockID(encodedEncryptedData []byte, id BlockID) err
 
 // MakeBlockRefNonce implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakeBlockRefNonce() (nonce BlockRefNonce, err error) {
-	err = cryptoRandRead(nonce[:])
+	err = kbfscrypto.RandRead(nonce[:])
 	return
 }
 
@@ -203,7 +180,7 @@ func (c CryptoCommon) MakeRandomTLFKeys() (
 		*keyPair.Private)
 
 	var data [32]byte
-	err = cryptoRandRead(data[:])
+	err = kbfscrypto.RandRead(data[:])
 	if err != nil {
 		return
 	}
@@ -217,7 +194,7 @@ func (c CryptoCommon) MakeRandomTLFKeys() (
 func (c CryptoCommon) MakeRandomTLFCryptKeyServerHalf() (
 	serverHalf kbfscrypto.TLFCryptKeyServerHalf, err error) {
 	var data [32]byte
-	err = cryptoRandRead(data[:])
+	err = kbfscrypto.RandRead(data[:])
 	if err != nil {
 		return kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
@@ -230,7 +207,7 @@ func (c CryptoCommon) MakeRandomTLFCryptKeyServerHalf() (
 func (c CryptoCommon) MakeRandomBlockCryptKeyServerHalf() (
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	var data [32]byte
-	err = cryptoRandRead(data[:])
+	err = kbfscrypto.RandRead(data[:])
 	if err != nil {
 		return kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
@@ -276,7 +253,7 @@ func (c CryptoCommon) EncryptTLFCryptKeyClientHalf(
 	clientHalf kbfscrypto.TLFCryptKeyClientHalf) (
 	encryptedClientHalf EncryptedTLFCryptKeyClientHalf, err error) {
 	var nonce [24]byte
-	err = cryptoRandRead(nonce[:])
+	err = kbfscrypto.RandRead(nonce[:])
 	if err != nil {
 		return
 	}
@@ -306,7 +283,7 @@ func (c CryptoCommon) EncryptTLFCryptKeyClientHalf(
 
 func (c CryptoCommon) encryptData(data []byte, key [32]byte) (encryptedData, error) {
 	var nonce [24]byte
-	err := cryptoRandRead(nonce[:])
+	err := kbfscrypto.RandRead(nonce[:])
 	if err != nil {
 		return encryptedData{}, err
 	}
@@ -423,7 +400,7 @@ func (c CryptoCommon) padBlock(block []byte) ([]byte, error) {
 		return nil, err
 	}
 	if n != padLen {
-		return nil, UnexpectedShortCryptoRandRead{}
+		return nil, kbfscrypto.UnexpectedShortCryptoRandRead{}
 	}
 
 	return buf.Bytes(), nil

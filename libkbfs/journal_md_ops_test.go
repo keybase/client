@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -59,7 +60,7 @@ func teardownJournalMDOpsTest(t *testing.T, tempdir string, config Config) {
 }
 
 func makeMDForJournalMDOpsTest(
-	t *testing.T, config Config, tlfID TlfID, h *TlfHandle,
+	t *testing.T, config Config, tlfID tlf.ID, h *TlfHandle,
 	revision MetadataRevision) *RootMetadata {
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), tlfID, h)
 	require.NoError(t, err)

@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfssync"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -420,7 +421,7 @@ func (fbo *folderBranchOps) Shutdown() error {
 	return nil
 }
 
-func (fbo *folderBranchOps) id() TlfID {
+func (fbo *folderBranchOps) id() tlf.ID {
 	return fbo.folderBranch.Tlf
 }
 
@@ -1240,12 +1241,12 @@ func (fbo *folderBranchOps) initMDLocked(
 }
 
 func (fbo *folderBranchOps) GetTLFCryptKeys(ctx context.Context,
-	h *TlfHandle) (keys []kbfscrypto.TLFCryptKey, id TlfID, err error) {
-	return nil, TlfID{}, errors.New("GetTLFCryptKeys is not supported by folderBranchOps")
+	h *TlfHandle) (keys []kbfscrypto.TLFCryptKey, id tlf.ID, err error) {
+	return nil, tlf.ID{}, errors.New("GetTLFCryptKeys is not supported by folderBranchOps")
 }
 
-func (fbo *folderBranchOps) GetTLFID(ctx context.Context, h *TlfHandle) (TlfID, error) {
-	return TlfID{}, errors.New("GetTLFID is not supported by folderBranchOps")
+func (fbo *folderBranchOps) GetTLFID(ctx context.Context, h *TlfHandle) (tlf.ID, error) {
+	return tlf.ID{}, errors.New("GetTLFID is not supported by folderBranchOps")
 }
 
 func (fbo *folderBranchOps) GetOrCreateRootNode(
@@ -1351,7 +1352,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 // SetInitialHeadToNew creates a brand-new ImmutableRootMetadata
 // object and sets the head to that.
 func (fbo *folderBranchOps) SetInitialHeadToNew(
-	ctx context.Context, id TlfID, handle *TlfHandle) (err error) {
+	ctx context.Context, id tlf.ID, handle *TlfHandle) (err error) {
 	fbo.log.CDebugf(ctx, "SetInitialHeadToNew")
 	defer func() {
 		fbo.deferLog.CDebugf(ctx, "Done: %v", err)
@@ -4452,7 +4453,7 @@ func (fbo *folderBranchOps) rekeyWithPrompt() {
 }
 
 // Rekey rekeys the given folder.
-func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
+func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf tlf.ID) (err error) {
 	fbo.log.CDebugf(ctx, "Rekey")
 	defer func() {
 		fbo.deferLog.CDebugf(ctx, "Done: %v", err)

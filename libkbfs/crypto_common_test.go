@@ -478,7 +478,7 @@ func secretboxSeal(t *testing.T, c *CryptoCommon, data interface{}, key [32]byte
 
 func secretboxSealEncoded(t *testing.T, c *CryptoCommon, encodedData []byte, key [32]byte) encryptedData {
 	var nonce [24]byte
-	err := cryptoRandRead(nonce[:])
+	err := kbfscrypto.RandRead(nonce[:])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -642,7 +642,7 @@ func TestDecryptPrivateMetadataFailures(t *testing.T) {
 
 func makeFakeBlockCryptKey(t *testing.T) kbfscrypto.BlockCryptKey {
 	var blockCryptKeyData [32]byte
-	err := cryptoRandRead(blockCryptKeyData[:])
+	err := kbfscrypto.RandRead(blockCryptKeyData[:])
 	blockCryptKey := kbfscrypto.MakeBlockCryptKey(blockCryptKeyData)
 	if err != nil {
 		t.Fatal(err)
@@ -829,7 +829,7 @@ func TestBlockPadMinimum(t *testing.T) {
 	var c CryptoCommon
 	for i := 0; i < 256; i++ {
 		b := make([]byte, i)
-		if err := cryptoRandRead(b); err != nil {
+		if err := kbfscrypto.RandRead(b); err != nil {
 			t.Fatal(err)
 		}
 		padded, err := c.padBlock(b)
@@ -855,7 +855,7 @@ func TestSecretboxEncryptedLen(t *testing.T) {
 	// index into it. Note that we're intentionally re-using most
 	// of the data between iterations intentionally.
 	randomData := make([]byte, endSize+iterations)
-	if err := cryptoRandRead(randomData); err != nil {
+	if err := kbfscrypto.RandRead(randomData); err != nil {
 		t.Fatal(err)
 	}
 
@@ -902,7 +902,7 @@ func TestBlockEncryptedLen(t *testing.T) {
 	// index into it. Note that we're intentionally re-using most
 	// of the data between iterations intentionally.
 	randomData := make(testBlockArray, endSize)
-	if err := cryptoRandRead(randomData); err != nil {
+	if err := kbfscrypto.RandRead(randomData); err != nil {
 		t.Fatal(err)
 	}
 

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
 
@@ -39,7 +40,7 @@ func MakeRandomRequestID() (string, error) {
 	// propagated all the way to the server.  Use a base64-encoded
 	// random 128-bit number.
 	buf := make([]byte, 128/8)
-	err := cryptoRandRead(buf)
+	err := kbfscrypto.RandRead(buf)
 	if err != nil {
 		return "", err
 	}

@@ -1,3 +1,5 @@
+## kbfshash
+
 The Keybase hash type. The package is named `kbfshash` rather than
 `crypto` for two reasons:
 

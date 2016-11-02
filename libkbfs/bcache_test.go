@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfshash"
+	"github.com/keybase/kbfs/tlf"
 )
 
 func blockCacheTestInit(t *testing.T, capacity int,
@@ -20,7 +21,7 @@ func blockCacheTestInit(t *testing.T, capacity int,
 
 func testBcachePutWithBlock(t *testing.T, id BlockID, bcache BlockCache, lifetime BlockCacheLifetime, block Block) {
 	ptr := BlockPointer{ID: id}
-	tlf := FakeTlfID(1, false)
+	tlf := tlf.FakeID(1, false)
 
 	// put the block
 	if err := bcache.Put(ptr, tlf, block, lifetime); err != nil {
@@ -88,7 +89,7 @@ func TestBcacheCheckPtrSuccess(t *testing.T) {
 	block.Contents = []byte{1, 2, 3, 4}
 	id := fakeBlockID(1)
 	ptr := BlockPointer{ID: id}
-	tlf := FakeTlfID(1, false)
+	tlf := tlf.FakeID(1, false)
 
 	err := bcache.Put(ptr, tlf, block, TransientEntry)
 	if err != nil {
@@ -112,7 +113,7 @@ func TestBcacheCheckPtrPermanent(t *testing.T) {
 	block.Contents = []byte{1, 2, 3, 4}
 	id := fakeBlockID(1)
 	ptr := BlockPointer{ID: id}
-	tlf := FakeTlfID(1, false)
+	tlf := tlf.FakeID(1, false)
 
 	err := bcache.Put(ptr, tlf, block, PermanentEntry)
 	if err != nil {
@@ -136,7 +137,7 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 	block.Contents = []byte{1, 2, 3, 4}
 	id := fakeBlockID(1)
 	ptr := BlockPointer{ID: id}
-	tlf := FakeTlfID(1, false)
+	tlf := tlf.FakeID(1, false)
 
 	err := bcache.Put(ptr, tlf, block, TransientEntry)
 	if err != nil {
@@ -162,7 +163,7 @@ func TestBcacheDeleteTransient(t *testing.T) {
 	block.Contents = []byte{1, 2, 3, 4}
 	id := fakeBlockID(1)
 	ptr := BlockPointer{ID: id}
-	tlf := FakeTlfID(1, false)
+	tlf := tlf.FakeID(1, false)
 
 	err := bcache.Put(ptr, tlf, block, TransientEntry)
 	if err != nil {
@@ -214,7 +215,7 @@ func TestBcacheEmptyTransient(t *testing.T) {
 	block := NewFileBlock()
 	id := fakeBlockID(1)
 	ptr := BlockPointer{ID: id}
-	tlf := FakeTlfID(1, false)
+	tlf := tlf.FakeID(1, false)
 
 	// Make sure all the operations work even if the cache has no
 	// transient capacity.
@@ -246,7 +247,7 @@ func TestBcacheEvictOnBytes(t *testing.T) {
 
 	bcache := config.BlockCache()
 
-	tlf := FakeTlfID(1, false)
+	tlf := tlf.FakeID(1, false)
 	for i := byte(0); i < 8; i++ {
 		block := &FileBlock{
 			Contents: make([]byte, 1),
@@ -280,7 +281,7 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 
 	bcache := config.BlockCache()
 
-	tlf := FakeTlfID(1, false)
+	tlf := tlf.FakeID(1, false)
 	idPerm := fakeBlockID(0)
 	ptr := BlockPointer{ID: idPerm}
 	block := &FileBlock{
@@ -366,7 +367,7 @@ func TestPutNoHashCalculation(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 	bcache := config.BlockCache()
 	ptr := BlockPointer{ID: fakeBlockID(1)}
-	tlf := FakeTlfID(1, false)
+	tlf := tlf.FakeID(1, false)
 	block := NewFileBlock().(*FileBlock)
 	block.Contents = []byte{1, 2, 3, 4}
 

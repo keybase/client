@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -92,7 +93,7 @@ func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
 }
 
 func (sc *StateChecker) getLastGCData(ctx context.Context,
-	tlf TlfID) (time.Time, MetadataRevision) {
+	tlf tlf.ID) (time.Time, MetadataRevision) {
 	config, ok := sc.config.(*ConfigLocal)
 	if !ok {
 		return time.Time{}, MetadataRevisionUninitialized
@@ -120,7 +121,7 @@ func (sc *StateChecker) getLastGCData(ctx context.Context,
 
 // CheckMergedState verifies that the state for the given tlf is
 // consistent.
-func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
+func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error {
 	// Blow away MD cache so we don't have any lingering re-embedded
 	// block changes (otherwise we won't be able to learn their sizes).
 	sc.config.SetMDCache(NewMDCacheStandard(defaultMDCacheCapacity))

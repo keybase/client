@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -35,7 +36,7 @@ type BlockServerDisk struct {
 
 	tlfStorageLock sync.RWMutex
 	// tlfStorage is nil after Shutdown() is called.
-	tlfStorage map[TlfID]*blockServerDiskTlfStorage
+	tlfStorage map[tlf.ID]*blockServerDiskTlfStorage
 }
 
 var _ blockServerLocal = (*BlockServerDisk)(nil)
@@ -52,7 +53,7 @@ func newBlockServerDisk(
 		dirPath,
 		shutdownFunc,
 		sync.RWMutex{},
-		make(map[TlfID]*blockServerDiskTlfStorage),
+		make(map[tlf.ID]*blockServerDiskTlfStorage),
 	}
 	return bserv
 }
@@ -82,7 +83,7 @@ func NewBlockServerTempDir(
 
 var errBlockServerDiskShutdown = errors.New("BlockServerDisk is shutdown")
 
-func (b *BlockServerDisk) getStorage(ctx context.Context, tlfID TlfID) (
+func (b *BlockServerDisk) getStorage(ctx context.Context, tlfID tlf.ID) (
 	*blockServerDiskTlfStorage, error) {
 	storage, err := func() (*blockServerDiskTlfStorage, error) {
 		b.tlfStorageLock.RLock()
@@ -127,7 +128,7 @@ func (b *BlockServerDisk) getStorage(ctx context.Context, tlfID TlfID) (
 }
 
 // Get implements the BlockServer interface for BlockServerDisk.
-func (b *BlockServerDisk) Get(ctx context.Context, tlfID TlfID, id BlockID,
+func (b *BlockServerDisk) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
 	context BlockContext) (
 	data []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
 	defer func() {
@@ -156,7 +157,7 @@ func (b *BlockServerDisk) Get(ctx context.Context, tlfID TlfID, id BlockID,
 }
 
 // Put implements the BlockServer interface for BlockServerDisk.
-func (b *BlockServerDisk) Put(ctx context.Context, tlfID TlfID, id BlockID,
+func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 	context BlockContext, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	defer func() {
@@ -184,7 +185,7 @@ func (b *BlockServerDisk) Put(ctx context.Context, tlfID TlfID, id BlockID,
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerDisk.
-func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID TlfID,
+func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	id BlockID, context BlockContext) error {
 	b.log.CDebugf(ctx, "BlockServerDisk.AddBlockReference id=%s "+
 		"tlfID=%s context=%s", id, tlfID, context)
@@ -215,7 +216,7 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID TlfID,
 // RemoveBlockReferences implements the BlockServer interface for
 // BlockServerDisk.
 func (b *BlockServerDisk) RemoveBlockReferences(ctx context.Context,
-	tlfID TlfID, contexts map[BlockID][]BlockContext) (
+	tlfID tlf.ID, contexts map[BlockID][]BlockContext) (
 	liveCounts map[BlockID]int, err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
@@ -253,7 +254,7 @@ func (b *BlockServerDisk) RemoveBlockReferences(ctx context.Context,
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerDisk.
 func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
-	tlfID TlfID, contexts map[BlockID][]BlockContext) (err error) {
+	tlfID tlf.ID, contexts map[BlockID][]BlockContext) (err error) {
 	defer func() {
 		err = translateToBlockServerError(err)
 	}()
@@ -288,7 +289,7 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 
 // getAll returns all the known block references, and should only be
 // used during testing.
-func (b *BlockServerDisk) getAll(ctx context.Context, tlfID TlfID) (
+func (b *BlockServerDisk) getAll(ctx context.Context, tlfID tlf.ID) (
 	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
 	tlfStorage, err := b.getStorage(ctx, tlfID)
 	if err != nil {
@@ -306,7 +307,7 @@ func (b *BlockServerDisk) getAll(ctx context.Context, tlfID TlfID) (
 
 // Shutdown implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) Shutdown() {
-	tlfStorage := func() map[TlfID]*blockServerDiskTlfStorage {
+	tlfStorage := func() map[tlf.ID]*blockServerDiskTlfStorage {
 		b.tlfStorageLock.Lock()
 		defer b.tlfStorageLock.Unlock()
 		// Make further accesses error out.

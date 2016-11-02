@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -62,7 +63,7 @@ func TestJournalServerRestart(t *testing.T) {
 
 	ctx := context.Background()
 
-	tlfID := FakeTlfID(2, false)
+	tlfID := tlf.FakeID(2, false)
 	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
@@ -136,7 +137,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 
 	ctx := context.Background()
 
-	tlfID := FakeTlfID(2, false)
+	tlfID := tlf.FakeID(2, false)
 	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
@@ -208,7 +209,7 @@ func TestJournalServerLogOutDirtyOp(t *testing.T) {
 
 	ctx := context.Background()
 
-	tlfID := FakeTlfID(2, false)
+	tlfID := tlf.FakeID(2, false)
 	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
@@ -243,7 +244,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 
 	ctx := context.Background()
 
-	tlfID := FakeTlfID(2, false)
+	tlfID := tlf.FakeID(2, false)
 	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
@@ -395,7 +396,7 @@ func TestJournalServerEnableAuto(t *testing.T) {
 
 	ctx := context.Background()
 
-	tlfID := FakeTlfID(2, false)
+	tlfID := tlf.FakeID(2, false)
 	err := jServer.EnableAuto(ctx)
 	require.NoError(t, err)
 

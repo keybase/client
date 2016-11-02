@@ -10,6 +10,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	kbfscodec "github.com/keybase/kbfs/kbfscodec"
 	kbfscrypto "github.com/keybase/kbfs/kbfscrypto"
+	tlf "github.com/keybase/kbfs/tlf"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
 	time "time"
@@ -206,10 +207,10 @@ func (_mr *_MockKBFSOpsRecorder) DeleteFavorite(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteFavorite", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) GetTLFCryptKeys(ctx context.Context, tlfHandle *TlfHandle) ([]kbfscrypto.TLFCryptKey, TlfID, error) {
+func (_m *MockKBFSOps) GetTLFCryptKeys(ctx context.Context, tlfHandle *TlfHandle) ([]kbfscrypto.TLFCryptKey, tlf.ID, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeys", ctx, tlfHandle)
 	ret0, _ := ret[0].([]kbfscrypto.TLFCryptKey)
-	ret1, _ := ret[1].(TlfID)
+	ret1, _ := ret[1].(tlf.ID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -218,9 +219,9 @@ func (_mr *_MockKBFSOpsRecorder) GetTLFCryptKeys(arg0, arg1 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeys", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (TlfID, error) {
+func (_m *MockKBFSOps) GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (tlf.ID, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFID", ctx, tlfHandle)
-	ret0, _ := ret[0].(TlfID)
+	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -447,7 +448,7 @@ func (_mr *_MockKBFSOpsRecorder) UnstageForTesting(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnstageForTesting", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) Rekey(ctx context.Context, id TlfID) error {
+func (_m *MockKBFSOps) Rekey(ctx context.Context, id tlf.ID) error {
 	ret := _m.ctrl.Call(_m, "Rekey", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1069,9 +1070,9 @@ func (_m *MockKeyMetadata) EXPECT() *_MockKeyMetadataRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyMetadata) TlfID() TlfID {
+func (_m *MockKeyMetadata) TlfID() tlf.ID {
 	ret := _m.ctrl.Call(_m, "TlfID")
-	ret0, _ := ret[0].(TlfID)
+	ret0, _ := ret[0].(tlf.ID)
 	return ret0
 }
 
@@ -1369,7 +1370,7 @@ func (_m *MockMDCache) EXPECT() *_MockMDCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDCache) Get(tlf TlfID, rev MetadataRevision, bid BranchID) (ImmutableRootMetadata, error) {
+func (_m *MockMDCache) Get(tlf tlf.ID, rev MetadataRevision, bid BranchID) (ImmutableRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "Get", tlf, rev, bid)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -1390,7 +1391,7 @@ func (_mr *_MockMDCacheRecorder) Put(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0)
 }
 
-func (_m *MockMDCache) Delete(tlf TlfID, rev MetadataRevision, bid BranchID) {
+func (_m *MockMDCache) Delete(tlf tlf.ID, rev MetadataRevision, bid BranchID) {
 	_m.ctrl.Call(_m, "Delete", tlf, rev, bid)
 }
 
@@ -1429,7 +1430,7 @@ func (_m *MockKeyCache) EXPECT() *_MockKeyCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyCache) GetTLFCryptKey(_param0 TlfID, _param1 KeyGen) (kbfscrypto.TLFCryptKey, error) {
+func (_m *MockKeyCache) GetTLFCryptKey(_param0 tlf.ID, _param1 KeyGen) (kbfscrypto.TLFCryptKey, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKey", _param0, _param1)
 	ret0, _ := ret[0].(kbfscrypto.TLFCryptKey)
 	ret1, _ := ret[1].(error)
@@ -1440,7 +1441,7 @@ func (_mr *_MockKeyCacheRecorder) GetTLFCryptKey(arg0, arg1 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKey", arg0, arg1)
 }
 
-func (_m *MockKeyCache) PutTLFCryptKey(_param0 TlfID, _param1 KeyGen, _param2 kbfscrypto.TLFCryptKey) error {
+func (_m *MockKeyCache) PutTLFCryptKey(_param0 tlf.ID, _param1 KeyGen, _param2 kbfscrypto.TLFCryptKey) error {
 	ret := _m.ctrl.Call(_m, "PutTLFCryptKey", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1482,7 +1483,7 @@ func (_mr *_MockBlockCacheRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockBlockCache) CheckForKnownPtr(tlf TlfID, block *FileBlock) (BlockPointer, error) {
+func (_m *MockBlockCache) CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (BlockPointer, error) {
 	ret := _m.ctrl.Call(_m, "CheckForKnownPtr", tlf, block)
 	ret0, _ := ret[0].(BlockPointer)
 	ret1, _ := ret[1].(error)
@@ -1493,7 +1494,7 @@ func (_mr *_MockBlockCacheRecorder) CheckForKnownPtr(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForKnownPtr", arg0, arg1)
 }
 
-func (_m *MockBlockCache) Put(ptr BlockPointer, tlf TlfID, block Block, lifetime BlockCacheLifetime) error {
+func (_m *MockBlockCache) Put(ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
 	ret := _m.ctrl.Call(_m, "Put", ptr, tlf, block, lifetime)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1503,7 +1504,7 @@ func (_mr *_MockBlockCacheRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockCache) DeleteTransient(ptr BlockPointer, tlf TlfID) error {
+func (_m *MockBlockCache) DeleteTransient(ptr BlockPointer, tlf tlf.ID) error {
 	ret := _m.ctrl.Call(_m, "DeleteTransient", ptr, tlf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1523,7 +1524,7 @@ func (_mr *_MockBlockCacheRecorder) DeletePermanent(arg0 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeletePermanent", arg0)
 }
 
-func (_m *MockBlockCache) DeleteKnownPtr(tlf TlfID, block *FileBlock) error {
+func (_m *MockBlockCache) DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error {
 	ret := _m.ctrl.Call(_m, "DeleteKnownPtr", tlf, block)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1554,7 +1555,7 @@ func (_m *MockDirtyBlockCache) EXPECT() *_MockDirtyBlockCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockDirtyBlockCache) Get(tlfID TlfID, ptr BlockPointer, branch BranchName) (Block, error) {
+func (_m *MockDirtyBlockCache) Get(tlfID tlf.ID, ptr BlockPointer, branch BranchName) (Block, error) {
 	ret := _m.ctrl.Call(_m, "Get", tlfID, ptr, branch)
 	ret0, _ := ret[0].(Block)
 	ret1, _ := ret[1].(error)
@@ -1565,7 +1566,7 @@ func (_mr *_MockDirtyBlockCacheRecorder) Get(arg0, arg1, arg2 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2)
 }
 
-func (_m *MockDirtyBlockCache) Put(tlfID TlfID, ptr BlockPointer, branch BranchName, block Block) error {
+func (_m *MockDirtyBlockCache) Put(tlfID tlf.ID, ptr BlockPointer, branch BranchName, block Block) error {
 	ret := _m.ctrl.Call(_m, "Put", tlfID, ptr, branch, block)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1575,7 +1576,7 @@ func (_mr *_MockDirtyBlockCacheRecorder) Put(arg0, arg1, arg2, arg3 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockDirtyBlockCache) Delete(tlfID TlfID, ptr BlockPointer, branch BranchName) error {
+func (_m *MockDirtyBlockCache) Delete(tlfID tlf.ID, ptr BlockPointer, branch BranchName) error {
 	ret := _m.ctrl.Call(_m, "Delete", tlfID, ptr, branch)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1585,7 +1586,7 @@ func (_mr *_MockDirtyBlockCacheRecorder) Delete(arg0, arg1, arg2 interface{}) *g
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2)
 }
 
-func (_m *MockDirtyBlockCache) IsDirty(tlfID TlfID, ptr BlockPointer, branch BranchName) bool {
+func (_m *MockDirtyBlockCache) IsDirty(tlfID tlf.ID, ptr BlockPointer, branch BranchName) bool {
 	ret := _m.ctrl.Call(_m, "IsDirty", tlfID, ptr, branch)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -1595,7 +1596,7 @@ func (_mr *_MockDirtyBlockCacheRecorder) IsDirty(arg0, arg1, arg2 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsDirty", arg0, arg1, arg2)
 }
 
-func (_m *MockDirtyBlockCache) IsAnyDirty(tlfID TlfID) bool {
+func (_m *MockDirtyBlockCache) IsAnyDirty(tlfID tlf.ID) bool {
 	ret := _m.ctrl.Call(_m, "IsAnyDirty", tlfID)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -1605,7 +1606,7 @@ func (_mr *_MockDirtyBlockCacheRecorder) IsAnyDirty(arg0 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsAnyDirty", arg0)
 }
 
-func (_m *MockDirtyBlockCache) RequestPermissionToDirty(ctx context.Context, tlfID TlfID, estimatedDirtyBytes int64) (DirtyPermChan, error) {
+func (_m *MockDirtyBlockCache) RequestPermissionToDirty(ctx context.Context, tlfID tlf.ID, estimatedDirtyBytes int64) (DirtyPermChan, error) {
 	ret := _m.ctrl.Call(_m, "RequestPermissionToDirty", ctx, tlfID, estimatedDirtyBytes)
 	ret0, _ := ret[0].(DirtyPermChan)
 	ret1, _ := ret[1].(error)
@@ -1616,7 +1617,7 @@ func (_mr *_MockDirtyBlockCacheRecorder) RequestPermissionToDirty(arg0, arg1, ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RequestPermissionToDirty", arg0, arg1, arg2)
 }
 
-func (_m *MockDirtyBlockCache) UpdateUnsyncedBytes(tlfID TlfID, newUnsyncedBytes int64, wasSyncing bool) {
+func (_m *MockDirtyBlockCache) UpdateUnsyncedBytes(tlfID tlf.ID, newUnsyncedBytes int64, wasSyncing bool) {
 	_m.ctrl.Call(_m, "UpdateUnsyncedBytes", tlfID, newUnsyncedBytes, wasSyncing)
 }
 
@@ -1624,7 +1625,7 @@ func (_mr *_MockDirtyBlockCacheRecorder) UpdateUnsyncedBytes(arg0, arg1, arg2 in
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateUnsyncedBytes", arg0, arg1, arg2)
 }
 
-func (_m *MockDirtyBlockCache) UpdateSyncingBytes(tlfID TlfID, size int64) {
+func (_m *MockDirtyBlockCache) UpdateSyncingBytes(tlfID tlf.ID, size int64) {
 	_m.ctrl.Call(_m, "UpdateSyncingBytes", tlfID, size)
 }
 
@@ -1632,7 +1633,7 @@ func (_mr *_MockDirtyBlockCacheRecorder) UpdateSyncingBytes(arg0, arg1 interface
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateSyncingBytes", arg0, arg1)
 }
 
-func (_m *MockDirtyBlockCache) BlockSyncFinished(tlfID TlfID, size int64) {
+func (_m *MockDirtyBlockCache) BlockSyncFinished(tlfID tlf.ID, size int64) {
 	_m.ctrl.Call(_m, "BlockSyncFinished", tlfID, size)
 }
 
@@ -1640,7 +1641,7 @@ func (_mr *_MockDirtyBlockCacheRecorder) BlockSyncFinished(arg0, arg1 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockSyncFinished", arg0, arg1)
 }
 
-func (_m *MockDirtyBlockCache) SyncFinished(tlfID TlfID, size int64) {
+func (_m *MockDirtyBlockCache) SyncFinished(tlfID tlf.ID, size int64) {
 	_m.ctrl.Call(_m, "SyncFinished", tlfID, size)
 }
 
@@ -1648,7 +1649,7 @@ func (_mr *_MockDirtyBlockCacheRecorder) SyncFinished(arg0, arg1 interface{}) *g
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncFinished", arg0, arg1)
 }
 
-func (_m *MockDirtyBlockCache) ShouldForceSync(tlfID TlfID) bool {
+func (_m *MockDirtyBlockCache) ShouldForceSync(tlfID tlf.ID) bool {
 	ret := _m.ctrl.Call(_m, "ShouldForceSync", tlfID)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -1689,9 +1690,9 @@ func (_m *MockcryptoPure) EXPECT() *_MockcryptoPureRecorder {
 	return _m.recorder
 }
 
-func (_m *MockcryptoPure) MakeRandomTlfID(isPublic bool) (TlfID, error) {
+func (_m *MockcryptoPure) MakeRandomTlfID(isPublic bool) (tlf.ID, error) {
 	ret := _m.ctrl.Call(_m, "MakeRandomTlfID", isPublic)
-	ret0, _ := ret[0].(TlfID)
+	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2019,9 +2020,9 @@ func (_m *MockCrypto) EXPECT() *_MockCryptoRecorder {
 	return _m.recorder
 }
 
-func (_m *MockCrypto) MakeRandomTlfID(isPublic bool) (TlfID, error) {
+func (_m *MockCrypto) MakeRandomTlfID(isPublic bool) (tlf.ID, error) {
 	ret := _m.ctrl.Call(_m, "MakeRandomTlfID", isPublic)
-	ret0, _ := ret[0].(TlfID)
+	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2402,9 +2403,9 @@ func (_m *MockMDOps) EXPECT() *_MockMDOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockMDOps) GetForHandle(ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (TlfID, ImmutableRootMetadata, error) {
+func (_m *MockMDOps) GetForHandle(ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (tlf.ID, ImmutableRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, mStatus)
-	ret0, _ := ret[0].(TlfID)
+	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(ImmutableRootMetadata)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -2414,7 +2415,7 @@ func (_mr *_MockMDOpsRecorder) GetForHandle(arg0, arg1, arg2 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) GetForTLF(ctx context.Context, id TlfID) (ImmutableRootMetadata, error) {
+func (_m *MockMDOps) GetForTLF(ctx context.Context, id tlf.ID) (ImmutableRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "GetForTLF", ctx, id)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -2425,7 +2426,7 @@ func (_mr *_MockMDOpsRecorder) GetForTLF(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1)
 }
 
-func (_m *MockMDOps) GetUnmergedForTLF(ctx context.Context, id TlfID, bid BranchID) (ImmutableRootMetadata, error) {
+func (_m *MockMDOps) GetUnmergedForTLF(ctx context.Context, id tlf.ID, bid BranchID) (ImmutableRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "GetUnmergedForTLF", ctx, id, bid)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -2436,7 +2437,7 @@ func (_mr *_MockMDOpsRecorder) GetUnmergedForTLF(arg0, arg1, arg2 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnmergedForTLF", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) GetRange(ctx context.Context, id TlfID, start MetadataRevision, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
+func (_m *MockMDOps) GetRange(ctx context.Context, id tlf.ID, start MetadataRevision, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, start, stop)
 	ret0, _ := ret[0].([]ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -2447,7 +2448,7 @@ func (_mr *_MockMDOpsRecorder) GetRange(arg0, arg1, arg2, arg3 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRange", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDOps) GetUnmergedRange(ctx context.Context, id TlfID, bid BranchID, start MetadataRevision, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
+func (_m *MockMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID, bid BranchID, start MetadataRevision, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "GetUnmergedRange", ctx, id, bid, start, stop)
 	ret0, _ := ret[0].([]ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
@@ -2480,7 +2481,7 @@ func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1)
 }
 
-func (_m *MockMDOps) PruneBranch(ctx context.Context, id TlfID, bid BranchID) error {
+func (_m *MockMDOps) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
 	ret := _m.ctrl.Call(_m, "PruneBranch", ctx, id, bid)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -2490,7 +2491,7 @@ func (_mr *_MockMDOpsRecorder) PruneBranch(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneBranch", arg0, arg1, arg2)
 }
 
-func (_m *MockMDOps) ResolveBranch(ctx context.Context, id TlfID, bid BranchID, blocksToDelete []BlockID, rmd *RootMetadata) (MdID, error) {
+func (_m *MockMDOps) ResolveBranch(ctx context.Context, id tlf.ID, bid BranchID, blocksToDelete []BlockID, rmd *RootMetadata) (MdID, error) {
 	ret := _m.ctrl.Call(_m, "ResolveBranch", ctx, id, bid, blocksToDelete, rmd)
 	ret0, _ := ret[0].(MdID)
 	ret1, _ := ret[1].(error)
@@ -2501,7 +2502,7 @@ func (_mr *_MockMDOpsRecorder) ResolveBranch(arg0, arg1, arg2, arg3, arg4 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveBranch", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDOps) GetLatestHandleForTLF(ctx context.Context, id TlfID) (BareTlfHandle, error) {
+func (_m *MockMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (BareTlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
 	ret0, _ := ret[0].(BareTlfHandle)
 	ret1, _ := ret[1].(error)
@@ -2608,7 +2609,7 @@ func (_mr *_MockBlockOpsRecorder) Ready(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Ready", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockOps) Delete(ctx context.Context, tlfID TlfID, ptrs []BlockPointer) (map[BlockID]int, error) {
+func (_m *MockBlockOps) Delete(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) (map[BlockID]int, error) {
 	ret := _m.ctrl.Call(_m, "Delete", ctx, tlfID, ptrs)
 	ret0, _ := ret[0].(map[BlockID]int)
 	ret1, _ := ret[1].(error)
@@ -2619,7 +2620,7 @@ func (_mr *_MockBlockOpsRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockOps) Archive(ctx context.Context, tlfID TlfID, ptrs []BlockPointer) error {
+func (_m *MockBlockOps) Archive(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) error {
 	ret := _m.ctrl.Call(_m, "Archive", ctx, tlfID, ptrs)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -2687,9 +2688,9 @@ func (_mr *_MockMDServerRecorder) RefreshAuthToken(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
-func (_m *MockMDServer) GetForHandle(ctx context.Context, handle BareTlfHandle, mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
+func (_m *MockMDServer) GetForHandle(ctx context.Context, handle BareTlfHandle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, mStatus)
-	ret0, _ := ret[0].(TlfID)
+	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -2699,7 +2700,7 @@ func (_mr *_MockMDServerRecorder) GetForHandle(arg0, arg1, arg2 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) GetForTLF(ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
+func (_m *MockMDServer) GetForTLF(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForTLF", ctx, id, bid, mStatus)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -2710,7 +2711,7 @@ func (_mr *_MockMDServerRecorder) GetForTLF(arg0, arg1, arg2, arg3 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockMDServer) GetRange(ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+func (_m *MockMDServer) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, bid, mStatus, start, stop)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -2731,7 +2732,7 @@ func (_mr *_MockMDServerRecorder) Put(arg0, arg1, arg2 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) PruneBranch(ctx context.Context, id TlfID, bid BranchID) error {
+func (_m *MockMDServer) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
 	ret := _m.ctrl.Call(_m, "PruneBranch", ctx, id, bid)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -2741,7 +2742,7 @@ func (_mr *_MockMDServerRecorder) PruneBranch(arg0, arg1, arg2 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneBranch", arg0, arg1, arg2)
 }
 
-func (_m *MockMDServer) RegisterForUpdate(ctx context.Context, id TlfID, currHead MetadataRevision) (<-chan error, error) {
+func (_m *MockMDServer) RegisterForUpdate(ctx context.Context, id tlf.ID, currHead MetadataRevision) (<-chan error, error) {
 	ret := _m.ctrl.Call(_m, "RegisterForUpdate", ctx, id, currHead)
 	ret0, _ := ret[0].(<-chan error)
 	ret1, _ := ret[1].(error)
@@ -2762,7 +2763,7 @@ func (_mr *_MockMDServerRecorder) CheckForRekeys(arg0 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForRekeys", arg0)
 }
 
-func (_m *MockMDServer) TruncateLock(ctx context.Context, id TlfID) (bool, error) {
+func (_m *MockMDServer) TruncateLock(ctx context.Context, id tlf.ID) (bool, error) {
 	ret := _m.ctrl.Call(_m, "TruncateLock", ctx, id)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
@@ -2773,7 +2774,7 @@ func (_mr *_MockMDServerRecorder) TruncateLock(arg0, arg1 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "TruncateLock", arg0, arg1)
 }
 
-func (_m *MockMDServer) TruncateUnlock(ctx context.Context, id TlfID) (bool, error) {
+func (_m *MockMDServer) TruncateUnlock(ctx context.Context, id tlf.ID) (bool, error) {
 	ret := _m.ctrl.Call(_m, "TruncateUnlock", ctx, id)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
@@ -2810,7 +2811,7 @@ func (_mr *_MockMDServerRecorder) IsConnected() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsConnected")
 }
 
-func (_m *MockMDServer) GetLatestHandleForTLF(ctx context.Context, id TlfID) (BareTlfHandle, error) {
+func (_m *MockMDServer) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (BareTlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
 	ret0, _ := ret[0].(BareTlfHandle)
 	ret1, _ := ret[1].(error)
@@ -2832,7 +2833,7 @@ func (_mr *_MockMDServerRecorder) OffsetFromServerTime() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "OffsetFromServerTime")
 }
 
-func (_m *MockMDServer) GetKeyBundles(ctx context.Context, tlfID TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+func (_m *MockMDServer) GetKeyBundles(ctx context.Context, tlfID tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
 	ret := _m.ctrl.Call(_m, "GetKeyBundles", ctx, tlfID, wkbID, rkbID)
 	ret0, _ := ret[0].(*TLFWriterKeyBundleV3)
 	ret1, _ := ret[1].(*TLFReaderKeyBundleV3)
@@ -2873,9 +2874,9 @@ func (_mr *_MockmdServerLocalRecorder) RefreshAuthToken(arg0 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
-func (_m *MockmdServerLocal) GetForHandle(ctx context.Context, handle BareTlfHandle, mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
+func (_m *MockmdServerLocal) GetForHandle(ctx context.Context, handle BareTlfHandle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, mStatus)
-	ret0, _ := ret[0].(TlfID)
+	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -2885,7 +2886,7 @@ func (_mr *_MockmdServerLocalRecorder) GetForHandle(arg0, arg1, arg2 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0, arg1, arg2)
 }
 
-func (_m *MockmdServerLocal) GetForTLF(ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
+func (_m *MockmdServerLocal) GetForTLF(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForTLF", ctx, id, bid, mStatus)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -2896,7 +2897,7 @@ func (_mr *_MockmdServerLocalRecorder) GetForTLF(arg0, arg1, arg2, arg3 interfac
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockmdServerLocal) GetRange(ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+func (_m *MockmdServerLocal) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, bid, mStatus, start, stop)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
@@ -2917,7 +2918,7 @@ func (_mr *_MockmdServerLocalRecorder) Put(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2)
 }
 
-func (_m *MockmdServerLocal) PruneBranch(ctx context.Context, id TlfID, bid BranchID) error {
+func (_m *MockmdServerLocal) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
 	ret := _m.ctrl.Call(_m, "PruneBranch", ctx, id, bid)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -2927,7 +2928,7 @@ func (_mr *_MockmdServerLocalRecorder) PruneBranch(arg0, arg1, arg2 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneBranch", arg0, arg1, arg2)
 }
 
-func (_m *MockmdServerLocal) RegisterForUpdate(ctx context.Context, id TlfID, currHead MetadataRevision) (<-chan error, error) {
+func (_m *MockmdServerLocal) RegisterForUpdate(ctx context.Context, id tlf.ID, currHead MetadataRevision) (<-chan error, error) {
 	ret := _m.ctrl.Call(_m, "RegisterForUpdate", ctx, id, currHead)
 	ret0, _ := ret[0].(<-chan error)
 	ret1, _ := ret[1].(error)
@@ -2948,7 +2949,7 @@ func (_mr *_MockmdServerLocalRecorder) CheckForRekeys(arg0 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForRekeys", arg0)
 }
 
-func (_m *MockmdServerLocal) TruncateLock(ctx context.Context, id TlfID) (bool, error) {
+func (_m *MockmdServerLocal) TruncateLock(ctx context.Context, id tlf.ID) (bool, error) {
 	ret := _m.ctrl.Call(_m, "TruncateLock", ctx, id)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
@@ -2959,7 +2960,7 @@ func (_mr *_MockmdServerLocalRecorder) TruncateLock(arg0, arg1 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "TruncateLock", arg0, arg1)
 }
 
-func (_m *MockmdServerLocal) TruncateUnlock(ctx context.Context, id TlfID) (bool, error) {
+func (_m *MockmdServerLocal) TruncateUnlock(ctx context.Context, id tlf.ID) (bool, error) {
 	ret := _m.ctrl.Call(_m, "TruncateUnlock", ctx, id)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
@@ -2996,7 +2997,7 @@ func (_mr *_MockmdServerLocalRecorder) IsConnected() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsConnected")
 }
 
-func (_m *MockmdServerLocal) GetLatestHandleForTLF(ctx context.Context, id TlfID) (BareTlfHandle, error) {
+func (_m *MockmdServerLocal) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (BareTlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
 	ret0, _ := ret[0].(BareTlfHandle)
 	ret1, _ := ret[1].(error)
@@ -3018,7 +3019,7 @@ func (_mr *_MockmdServerLocalRecorder) OffsetFromServerTime() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "OffsetFromServerTime")
 }
 
-func (_m *MockmdServerLocal) GetKeyBundles(ctx context.Context, tlfID TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+func (_m *MockmdServerLocal) GetKeyBundles(ctx context.Context, tlfID tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
 	ret := _m.ctrl.Call(_m, "GetKeyBundles", ctx, tlfID, wkbID, rkbID)
 	ret0, _ := ret[0].(*TLFWriterKeyBundleV3)
 	ret1, _ := ret[1].(*TLFReaderKeyBundleV3)
@@ -3040,7 +3041,7 @@ func (_mr *_MockmdServerLocalRecorder) addNewAssertionForTest(arg0, arg1 interfa
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "addNewAssertionForTest", arg0, arg1)
 }
 
-func (_m *MockmdServerLocal) getCurrentMergedHeadRevision(ctx context.Context, id TlfID) (MetadataRevision, error) {
+func (_m *MockmdServerLocal) getCurrentMergedHeadRevision(ctx context.Context, id tlf.ID) (MetadataRevision, error) {
 	ret := _m.ctrl.Call(_m, "getCurrentMergedHeadRevision", ctx, id)
 	ret0, _ := ret[0].(MetadataRevision)
 	ret1, _ := ret[1].(error)
@@ -3100,7 +3101,7 @@ func (_mr *_MockBlockServerRecorder) RefreshAuthToken(arg0 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
-func (_m *MockBlockServer) Get(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+func (_m *MockBlockServer) Get(ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	ret := _m.ctrl.Call(_m, "Get", ctx, tlfID, id, context)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(kbfscrypto.BlockCryptKeyServerHalf)
@@ -3112,7 +3113,7 @@ func (_mr *_MockBlockServerRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockServer) Put(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+func (_m *MockBlockServer) Put(ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "Put", ctx, tlfID, id, context, buf, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3122,7 +3123,7 @@ func (_mr *_MockBlockServerRecorder) Put(arg0, arg1, arg2, arg3, arg4, arg5 inte
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-func (_m *MockBlockServer) AddBlockReference(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext) error {
+func (_m *MockBlockServer) AddBlockReference(ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext) error {
 	ret := _m.ctrl.Call(_m, "AddBlockReference", ctx, tlfID, id, context)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3132,7 +3133,7 @@ func (_mr *_MockBlockServerRecorder) AddBlockReference(arg0, arg1, arg2, arg3 in
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddBlockReference", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockServer) RemoveBlockReferences(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) (map[BlockID]int, error) {
+func (_m *MockBlockServer) RemoveBlockReferences(ctx context.Context, tlfID tlf.ID, contexts map[BlockID][]BlockContext) (map[BlockID]int, error) {
 	ret := _m.ctrl.Call(_m, "RemoveBlockReferences", ctx, tlfID, contexts)
 	ret0, _ := ret[0].(map[BlockID]int)
 	ret1, _ := ret[1].(error)
@@ -3143,7 +3144,7 @@ func (_mr *_MockBlockServerRecorder) RemoveBlockReferences(arg0, arg1, arg2 inte
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoveBlockReferences", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockServer) ArchiveBlockReferences(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) error {
+func (_m *MockBlockServer) ArchiveBlockReferences(ctx context.Context, tlfID tlf.ID, contexts map[BlockID][]BlockContext) error {
 	ret := _m.ctrl.Call(_m, "ArchiveBlockReferences", ctx, tlfID, contexts)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3201,7 +3202,7 @@ func (_mr *_MockblockServerLocalRecorder) RefreshAuthToken(arg0 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
-func (_m *MockblockServerLocal) Get(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
+func (_m *MockblockServerLocal) Get(ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext) ([]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	ret := _m.ctrl.Call(_m, "Get", ctx, tlfID, id, context)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(kbfscrypto.BlockCryptKeyServerHalf)
@@ -3213,7 +3214,7 @@ func (_mr *_MockblockServerLocalRecorder) Get(arg0, arg1, arg2, arg3 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockblockServerLocal) Put(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+func (_m *MockblockServerLocal) Put(ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "Put", ctx, tlfID, id, context, buf, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3223,7 +3224,7 @@ func (_mr *_MockblockServerLocalRecorder) Put(arg0, arg1, arg2, arg3, arg4, arg5
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-func (_m *MockblockServerLocal) AddBlockReference(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext) error {
+func (_m *MockblockServerLocal) AddBlockReference(ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext) error {
 	ret := _m.ctrl.Call(_m, "AddBlockReference", ctx, tlfID, id, context)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3233,7 +3234,7 @@ func (_mr *_MockblockServerLocalRecorder) AddBlockReference(arg0, arg1, arg2, ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddBlockReference", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockblockServerLocal) RemoveBlockReferences(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) (map[BlockID]int, error) {
+func (_m *MockblockServerLocal) RemoveBlockReferences(ctx context.Context, tlfID tlf.ID, contexts map[BlockID][]BlockContext) (map[BlockID]int, error) {
 	ret := _m.ctrl.Call(_m, "RemoveBlockReferences", ctx, tlfID, contexts)
 	ret0, _ := ret[0].(map[BlockID]int)
 	ret1, _ := ret[1].(error)
@@ -3244,7 +3245,7 @@ func (_mr *_MockblockServerLocalRecorder) RemoveBlockReferences(arg0, arg1, arg2
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoveBlockReferences", arg0, arg1, arg2)
 }
 
-func (_m *MockblockServerLocal) ArchiveBlockReferences(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) error {
+func (_m *MockblockServerLocal) ArchiveBlockReferences(ctx context.Context, tlfID tlf.ID, contexts map[BlockID][]BlockContext) error {
 	ret := _m.ctrl.Call(_m, "ArchiveBlockReferences", ctx, tlfID, contexts)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3273,7 +3274,7 @@ func (_mr *_MockblockServerLocalRecorder) GetUserQuotaInfo(arg0 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUserQuotaInfo", arg0)
 }
 
-func (_m *MockblockServerLocal) getAll(ctx context.Context, tlfID TlfID) (map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
+func (_m *MockblockServerLocal) getAll(ctx context.Context, tlfID tlf.ID) (map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
 	ret := _m.ctrl.Call(_m, "getAll", ctx, tlfID)
 	ret0, _ := ret[0].(map[BlockID]map[BlockRefNonce]blockRefLocalStatus)
 	ret1, _ := ret[1].(error)
@@ -4369,7 +4370,7 @@ func (_m *MockRekeyQueue) EXPECT() *_MockRekeyQueueRecorder {
 	return _m.recorder
 }
 
-func (_m *MockRekeyQueue) Enqueue(_param0 TlfID) <-chan error {
+func (_m *MockRekeyQueue) Enqueue(_param0 tlf.ID) <-chan error {
 	ret := _m.ctrl.Call(_m, "Enqueue", _param0)
 	ret0, _ := ret[0].(<-chan error)
 	return ret0
@@ -4379,7 +4380,7 @@ func (_mr *_MockRekeyQueueRecorder) Enqueue(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Enqueue", arg0)
 }
 
-func (_m *MockRekeyQueue) IsRekeyPending(_param0 TlfID) bool {
+func (_m *MockRekeyQueue) IsRekeyPending(_param0 tlf.ID) bool {
 	ret := _m.ctrl.Call(_m, "IsRekeyPending", _param0)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -4389,7 +4390,7 @@ func (_mr *_MockRekeyQueueRecorder) IsRekeyPending(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsRekeyPending", arg0)
 }
 
-func (_m *MockRekeyQueue) GetRekeyChannel(id TlfID) <-chan error {
+func (_m *MockRekeyQueue) GetRekeyChannel(id tlf.ID) <-chan error {
 	ret := _m.ctrl.Call(_m, "GetRekeyChannel", id)
 	ret0, _ := ret[0].(<-chan error)
 	return ret0
@@ -4438,9 +4439,9 @@ func (_m *MockBareRootMetadata) EXPECT() *_MockBareRootMetadataRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBareRootMetadata) TlfID() TlfID {
+func (_m *MockBareRootMetadata) TlfID() tlf.ID {
 	ret := _m.ctrl.Call(_m, "TlfID")
-	ret0, _ := ret[0].(TlfID)
+	ret0, _ := ret[0].(tlf.ID)
 	return ret0
 }
 
@@ -4863,9 +4864,9 @@ func (_m *MockMutableBareRootMetadata) EXPECT() *_MockMutableBareRootMetadataRec
 	return _m.recorder
 }
 
-func (_m *MockMutableBareRootMetadata) TlfID() TlfID {
+func (_m *MockMutableBareRootMetadata) TlfID() tlf.ID {
 	ret := _m.ctrl.Call(_m, "TlfID")
-	ret0, _ := ret[0].(TlfID)
+	ret0, _ := ret[0].(tlf.ID)
 	return ret0
 }
 
@@ -5490,7 +5491,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetWriters(arg0 interface{}) *g
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetWriters", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SetTlfID(tlf TlfID) {
+func (_m *MockMutableBareRootMetadata) SetTlfID(tlf tlf.ID) {
 	_m.ctrl.Call(_m, "SetTlfID", tlf)
 }
 
@@ -5553,7 +5554,7 @@ func (_m *MockKeyBundleCache) EXPECT() *_MockKeyBundleCacheRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyBundleCache) GetTLFReaderKeyBundle(_param0 TlfID, _param1 TLFReaderKeyBundleID) (*TLFReaderKeyBundleV3, error) {
+func (_m *MockKeyBundleCache) GetTLFReaderKeyBundle(_param0 tlf.ID, _param1 TLFReaderKeyBundleID) (*TLFReaderKeyBundleV3, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFReaderKeyBundle", _param0, _param1)
 	ret0, _ := ret[0].(*TLFReaderKeyBundleV3)
 	ret1, _ := ret[1].(error)
@@ -5564,7 +5565,7 @@ func (_mr *_MockKeyBundleCacheRecorder) GetTLFReaderKeyBundle(arg0, arg1 interfa
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFReaderKeyBundle", arg0, arg1)
 }
 
-func (_m *MockKeyBundleCache) GetTLFWriterKeyBundle(_param0 TlfID, _param1 TLFWriterKeyBundleID) (*TLFWriterKeyBundleV3, error) {
+func (_m *MockKeyBundleCache) GetTLFWriterKeyBundle(_param0 tlf.ID, _param1 TLFWriterKeyBundleID) (*TLFWriterKeyBundleV3, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFWriterKeyBundle", _param0, _param1)
 	ret0, _ := ret[0].(*TLFWriterKeyBundleV3)
 	ret1, _ := ret[1].(error)
@@ -5575,7 +5576,7 @@ func (_mr *_MockKeyBundleCacheRecorder) GetTLFWriterKeyBundle(arg0, arg1 interfa
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFWriterKeyBundle", arg0, arg1)
 }
 
-func (_m *MockKeyBundleCache) PutTLFReaderKeyBundle(_param0 TlfID, _param1 TLFReaderKeyBundleID, _param2 *TLFReaderKeyBundleV3) {
+func (_m *MockKeyBundleCache) PutTLFReaderKeyBundle(_param0 tlf.ID, _param1 TLFReaderKeyBundleID, _param2 *TLFReaderKeyBundleV3) {
 	_m.ctrl.Call(_m, "PutTLFReaderKeyBundle", _param0, _param1, _param2)
 }
 
@@ -5583,7 +5584,7 @@ func (_mr *_MockKeyBundleCacheRecorder) PutTLFReaderKeyBundle(arg0, arg1, arg2 i
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFReaderKeyBundle", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyBundleCache) PutTLFWriterKeyBundle(_param0 TlfID, _param1 TLFWriterKeyBundleID, _param2 *TLFWriterKeyBundleV3) {
+func (_m *MockKeyBundleCache) PutTLFWriterKeyBundle(_param0 tlf.ID, _param1 TLFWriterKeyBundleID, _param2 *TLFWriterKeyBundleV3) {
 	_m.ctrl.Call(_m, "PutTLFWriterKeyBundle", _param0, _param1, _param2)
 }
 

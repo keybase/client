@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -696,7 +697,7 @@ func (h TlfHandle) ResolvesTo(
 // `other` handle, resolve to each other.
 func (h TlfHandle) MutuallyResolvesTo(
 	ctx context.Context, codec kbfscodec.Codec,
-	resolver resolver, other TlfHandle, rev MetadataRevision, tlfID TlfID,
+	resolver resolver, other TlfHandle, rev MetadataRevision, tlfID tlf.ID,
 	log logger.Logger) error {
 	handleResolvesToOther, partialResolvedHandle, err :=
 		h.ResolvesTo(ctx, codec, resolver, other)

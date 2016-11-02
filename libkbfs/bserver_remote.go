@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -284,7 +285,7 @@ func makeBlockReference(id BlockID, context BlockContext) keybase1.BlockReferenc
 }
 
 // Get implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Get(ctx context.Context, tlfID TlfID, id BlockID,
+func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
 	context BlockContext) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
 	var err error
@@ -320,7 +321,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID TlfID, id BlockID,
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Put(ctx context.Context, tlfID TlfID, id BlockID,
+func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 	context BlockContext, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	var err error
@@ -351,7 +352,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID TlfID, id BlockID,
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
-func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID TlfID,
+func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	id BlockID, context BlockContext) error {
 	var err error
 	defer func() {
@@ -376,7 +377,7 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID TlfID,
 // RemoveBlockReferences implements the BlockServer interface for
 // BlockServerRemote
 func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
-	tlfID TlfID, contexts map[BlockID][]BlockContext) (liveCounts map[BlockID]int, err error) {
+	tlfID tlf.ID, contexts map[BlockID][]BlockContext) (liveCounts map[BlockID]int, err error) {
 	defer func() {
 		if err != nil {
 			b.deferLog.CWarningf(ctx, "RemoveBlockReferences batch size=%d err=%v", len(contexts), err)
@@ -400,7 +401,7 @@ func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerRemote
 func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
-	tlfID TlfID, contexts map[BlockID][]BlockContext) (err error) {
+	tlfID tlf.ID, contexts map[BlockID][]BlockContext) (err error) {
 	defer func() {
 		if err != nil {
 			b.deferLog.CWarningf(ctx, "ArchiveBlockReferences batch size=%d err=%v", len(contexts), err)
@@ -414,7 +415,7 @@ func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 
 // batchDowngradeReferences archives or deletes a batch of references
 func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
-	tlfID TlfID, contexts map[BlockID][]BlockContext, archive bool) (
+	tlfID tlf.ID, contexts map[BlockID][]BlockContext, archive bool) (
 	doneRefs map[BlockID]map[BlockRefNonce]int, finalError error) {
 	doneRefs = make(map[BlockID]map[BlockRefNonce]int)
 	notDone := b.getNotDone(contexts, doneRefs)

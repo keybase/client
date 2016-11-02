@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 
 	"golang.org/x/net/context"
 )
@@ -46,7 +47,7 @@ type JournalServerStatus struct {
 // will be accessing the journal, it must do so from another goroutine
 // to avoid deadlocks.
 type branchChangeListener interface {
-	onTLFBranchChange(TlfID, BranchID)
+	onTLFBranchChange(tlf.ID, BranchID)
 }
 
 // mdFlushListener describes a caller that will ge updates via the
@@ -54,7 +55,7 @@ type branchChangeListener interface {
 // accessing the journal, it must do so from another goroutine to
 // avoid deadlocks.
 type mdFlushListener interface {
-	onMDFlush(TlfID, BranchID, MetadataRevision)
+	onMDFlush(tlf.ID, BranchID, MetadataRevision)
 }
 
 // TODO: JournalServer isn't really a server, although it can create
@@ -91,7 +92,7 @@ type JournalServer struct {
 	lock                sync.RWMutex
 	currentUID          keybase1.UID
 	currentVerifyingKey kbfscrypto.VerifyingKey
-	tlfJournals         map[TlfID]*tlfJournal
+	tlfJournals         map[tlf.ID]*tlfJournal
 	dirtyOps            uint
 	dirtyOpsDone        *sync.Cond
 	serverConfig        journalServerConfig
@@ -113,7 +114,7 @@ func makeJournalServer(
 		delegateMDOps:           mdOps,
 		onBranchChange:          onBranchChange,
 		onMDFlush:               onMDFlush,
-		tlfJournals:             make(map[TlfID]*tlfJournal),
+		tlfJournals:             make(map[tlf.ID]*tlfJournal),
 	}
 	jServer.dirtyOpsDone = sync.NewCond(&jServer.lock)
 	return &jServer
@@ -154,7 +155,7 @@ func (j *JournalServer) writeConfig() error {
 	return ioutil.WriteFile(j.configPath(), configJSON, 0600)
 }
 
-func (j *JournalServer) tlfJournalPathLocked(tlfID TlfID) string {
+func (j *JournalServer) tlfJournalPathLocked(tlfID tlf.ID) string {
 	if j.currentVerifyingKey == (kbfscrypto.VerifyingKey{}) {
 		panic("currentVerifyingKey is zero")
 	}
@@ -183,7 +184,7 @@ func (j *JournalServer) tlfJournalPathLocked(tlfID TlfID) string {
 	return filepath.Join(j.rootPath(), dir)
 }
 
-func (j *JournalServer) getTLFJournal(tlfID TlfID) (*tlfJournal, bool) {
+func (j *JournalServer) getTLFJournal(tlfID tlf.ID) (*tlfJournal, bool) {
 	getJournalFn := func() (*tlfJournal, bool, bool) {
 		j.lock.RLock()
 		defer j.lock.RUnlock()
@@ -204,7 +205,7 @@ func (j *JournalServer) getTLFJournal(tlfID TlfID) (*tlfJournal, bool) {
 	return tlfJournal, ok
 }
 
-func (j *JournalServer) hasTLFJournal(tlfID TlfID) bool {
+func (j *JournalServer) hasTLFJournal(tlfID tlf.ID) bool {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
 	_, ok := j.tlfJournals[tlfID]
@@ -339,7 +340,7 @@ func (j *JournalServer) EnableExistingJournals(
 }
 
 func (j *JournalServer) enableLocked(
-	ctx context.Context, tlfID TlfID, bws TLFJournalBackgroundWorkStatus,
+	ctx context.Context, tlfID tlf.ID, bws TLFJournalBackgroundWorkStatus,
 	allowEnableIfDirty bool) (err error) {
 	j.log.CDebugf(ctx, "Enabling journal for %s (%s)", tlfID, bws)
 	defer func() {
@@ -395,7 +396,7 @@ func (j *JournalServer) enableLocked(
 }
 
 // Enable turns on the write journal for the given TLF.
-func (j *JournalServer) Enable(ctx context.Context, tlfID TlfID,
+func (j *JournalServer) Enable(ctx context.Context, tlfID tlf.ID,
 	bws TLFJournalBackgroundWorkStatus) error {
 	j.lock.Lock()
 	defer j.lock.Unlock()
@@ -433,13 +434,13 @@ func (j *JournalServer) DisableAuto(ctx context.Context) error {
 	return j.writeConfig()
 }
 
-func (j *JournalServer) dirtyOpStart(tlfID TlfID) {
+func (j *JournalServer) dirtyOpStart(tlfID tlf.ID) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
 	j.dirtyOps++
 }
 
-func (j *JournalServer) dirtyOpEnd(tlfID TlfID) {
+func (j *JournalServer) dirtyOpEnd(tlfID tlf.ID) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
 	if j.dirtyOps == 0 {
@@ -453,7 +454,7 @@ func (j *JournalServer) dirtyOpEnd(tlfID TlfID) {
 
 // PauseBackgroundWork pauses the background work goroutine, if it's
 // not already paused.
-func (j *JournalServer) PauseBackgroundWork(ctx context.Context, tlfID TlfID) {
+func (j *JournalServer) PauseBackgroundWork(ctx context.Context, tlfID tlf.ID) {
 	j.log.CDebugf(ctx, "Signaling pause for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID); ok {
 		tlfJournal.pauseBackgroundWork()
@@ -467,7 +468,7 @@ func (j *JournalServer) PauseBackgroundWork(ctx context.Context, tlfID TlfID) {
 
 // ResumeBackgroundWork resumes the background work goroutine, if it's
 // not already resumed.
-func (j *JournalServer) ResumeBackgroundWork(ctx context.Context, tlfID TlfID) {
+func (j *JournalServer) ResumeBackgroundWork(ctx context.Context, tlfID tlf.ID) {
 	j.log.CDebugf(ctx, "Signaling resume for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID); ok {
 		tlfJournal.resumeBackgroundWork()
@@ -480,7 +481,7 @@ func (j *JournalServer) ResumeBackgroundWork(ctx context.Context, tlfID TlfID) {
 }
 
 // Flush flushes the write journal for the given TLF.
-func (j *JournalServer) Flush(ctx context.Context, tlfID TlfID) (err error) {
+func (j *JournalServer) Flush(ctx context.Context, tlfID tlf.ID) (err error) {
 	j.log.CDebugf(ctx, "Flushing journal for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID); ok {
 		return tlfJournal.flush(ctx)
@@ -494,7 +495,7 @@ func (j *JournalServer) Flush(ctx context.Context, tlfID TlfID) (err error) {
 // everything.  It is essentially the same as Flush() when the journal
 // is enabled and unpaused, except that it is safe to cancel the
 // context without leaving the journal in a partially-flushed state.
-func (j *JournalServer) Wait(ctx context.Context, tlfID TlfID) (err error) {
+func (j *JournalServer) Wait(ctx context.Context, tlfID tlf.ID) (err error) {
 	j.log.CDebugf(ctx, "Waiting on journal for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID); ok {
 		return tlfJournal.wait(ctx)
@@ -505,7 +506,7 @@ func (j *JournalServer) Wait(ctx context.Context, tlfID TlfID) (err error) {
 }
 
 // Disable turns off the write journal for the given TLF.
-func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (
+func (j *JournalServer) Disable(ctx context.Context, tlfID tlf.ID) (
 	wasEnabled bool, err error) {
 	j.log.CDebugf(ctx, "Disabling journal for %s", tlfID)
 	defer func() {
@@ -568,11 +569,11 @@ func (j *JournalServer) mdOps() journalMDOps {
 // Status returns a JournalServerStatus object suitable for
 // diagnostics.  It also returns a list of TLF IDs which have journals
 // enabled.
-func (j *JournalServer) Status() (JournalServerStatus, []TlfID) {
+func (j *JournalServer) Status() (JournalServerStatus, []tlf.ID) {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
 	var unflushedBytes int64
-	tlfIDs := make([]TlfID, 0, len(j.tlfJournals))
+	tlfIDs := make([]tlf.ID, 0, len(j.tlfJournals))
 	for _, tlfJournal := range j.tlfJournals {
 		unflushedBytes += tlfJournal.getUnflushedBytes()
 		tlfIDs = append(tlfIDs, tlfJournal.tlfID)
@@ -590,7 +591,7 @@ func (j *JournalServer) Status() (JournalServerStatus, []TlfID) {
 
 // JournalStatus returns a TLFServerStatus object for the given TLF
 // suitable for diagnostics.
-func (j *JournalServer) JournalStatus(tlfID TlfID) (
+func (j *JournalServer) JournalStatus(tlfID tlf.ID) (
 	TLFJournalStatus, error) {
 	tlfJournal, ok := j.getTLFJournal(tlfID)
 	if !ok {
@@ -606,8 +607,8 @@ var errJournalStatusRetry = errors.New("Retry journal status")
 // JournalStatusWithPaths returns a TLFServerStatus object for the
 // given TLF suitable for diagnostics, including paths for all the
 // unflushed entries.
-func (j *JournalServer) JournalStatusWithPaths(ctx context.Context, tlfID TlfID,
-	cpp chainsPathPopulator) (TLFJournalStatus, error) {
+func (j *JournalServer) JournalStatusWithPaths(ctx context.Context,
+	tlfID tlf.ID, cpp chainsPathPopulator) (TLFJournalStatus, error) {
 	tlfJournal, ok := j.getTLFJournal(tlfID)
 	if !ok {
 		return TLFJournalStatus{},
@@ -635,7 +636,7 @@ func (j *JournalServer) shutdownExistingJournalsLocked(ctx context.Context) {
 		tlfJournal.shutdown()
 	}
 
-	j.tlfJournals = make(map[TlfID]*tlfJournal)
+	j.tlfJournals = make(map[tlf.ID]*tlfJournal)
 	j.currentUID = keybase1.UID("")
 	j.currentVerifyingKey = kbfscrypto.VerifyingKey{}
 }

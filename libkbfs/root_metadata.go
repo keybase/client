@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 )
 
 // MetadataFlags bitfield.
@@ -152,7 +153,7 @@ func makeRootMetadata(bareMd MutableBareRootMetadata,
 // and BareTlfHandle. Note that if the given ID/handle are private,
 // rekeying must be done separately.
 func makeInitialRootMetadata(
-	ver MetadataVer, tlfID TlfID, h *TlfHandle) (*RootMetadata, error) {
+	ver MetadataVer, tlfID tlf.ID, h *TlfHandle) (*RootMetadata, error) {
 	bh, err := h.ToBareHandle()
 	if err != nil {
 		return nil, err
@@ -440,7 +441,7 @@ func (md *RootMetadata) LatestKeyGeneration() KeyGen {
 }
 
 // TlfID wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) TlfID() TlfID {
+func (md *RootMetadata) TlfID() tlf.ID {
 	return md.bareMd.TlfID()
 }
 
@@ -634,7 +635,7 @@ func (md *RootMetadata) SetLastModifyingUser(user keybase1.UID) {
 }
 
 // SetTlfID wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) SetTlfID(tlf TlfID) {
+func (md *RootMetadata) SetTlfID(tlf tlf.ID) {
 	md.bareMd.SetTlfID(tlf)
 }
 
@@ -1088,8 +1089,8 @@ func EncodeRootMetadataSigned(
 
 // DecodeRootMetadata deserializes a metadata block into the specified
 // versioned structure.
-func DecodeRootMetadata(
-	codec kbfscodec.Codec, tlf TlfID, ver, max MetadataVer, buf []byte) (
+func DecodeRootMetadata(codec kbfscodec.Codec, tlf tlf.ID,
+	ver, max MetadataVer, buf []byte) (
 	MutableBareRootMetadata, error) {
 	if ver < FirstValidMetadataVer {
 		return nil, InvalidMetadataVersionError{tlf, ver}
@@ -1117,7 +1118,7 @@ func DecodeRootMetadata(
 // DecodeRootMetadataSigned deserializes a metadata block into the
 // specified versioned structure.
 func DecodeRootMetadataSigned(
-	codec kbfscodec.Codec, tlf TlfID, ver, max MetadataVer, buf []byte,
+	codec kbfscodec.Codec, tlf tlf.ID, ver, max MetadataVer, buf []byte,
 	untrustedServerTimestamp time.Time) (
 	*RootMetadataSigned, error) {
 	if ver < FirstValidMetadataVer {

@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 
 	"golang.org/x/net/context"
 )
@@ -254,7 +255,7 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 // KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetTLFCryptKeys(
 	ctx context.Context, tlfHandle *TlfHandle) (
-	keys []kbfscrypto.TLFCryptKey, id TlfID, err error) {
+	keys []kbfscrypto.TLFCryptKey, id tlf.ID, err error) {
 	var rmd ImmutableRootMetadata
 	_, rmd, id, err = fs.getOrInitializeNewMDMaster(
 		ctx, fs.config.MDOps(), tlfHandle, true)
@@ -267,7 +268,7 @@ func (fs *KBFSOpsStandard) GetTLFCryptKeys(
 }
 
 // GetTLFID implements the KBFSOps interface for KBFSOpsStandard.
-func (fs *KBFSOpsStandard) GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (TlfID, error) {
+func (fs *KBFSOpsStandard) GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (tlf.ID, error) {
 	_, _, id, err := fs.getOrInitializeNewMDMaster(ctx, fs.config.MDOps(), tlfHandle,
 		true)
 	return id, err
@@ -275,7 +276,7 @@ func (fs *KBFSOpsStandard) GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (
 
 func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
 	ctx context.Context, mdops MDOps, h *TlfHandle, create bool) (initialized bool,
-	md ImmutableRootMetadata, id TlfID, err error) {
+	md ImmutableRootMetadata, id tlf.ID, err error) {
 	defer func() {
 		if getExtendedIdentify(ctx).behavior.AlwaysRunIdentify() &&
 			!initialized && err == nil {
@@ -294,7 +295,7 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
 		return false, md, id, nil
 	}
 
-	if id == (TlfID{}) {
+	if id == (tlf.ID{}) {
 		return false, ImmutableRootMetadata{}, id, errors.New("No ID or MD")
 	}
 
@@ -338,7 +339,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 	}
 
 	if md == (ImmutableRootMetadata{}) {
-		var id TlfID
+		var id tlf.ID
 		var initialized bool
 		initialized, md, id, err = fs.getOrInitializeNewMDMaster(ctx, mdops, h, create)
 		if err != nil {
@@ -609,7 +610,7 @@ func (fs *KBFSOpsStandard) UnstageForTesting(
 }
 
 // Rekey implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) Rekey(ctx context.Context, id TlfID) error {
+func (fs *KBFSOpsStandard) Rekey(ctx context.Context, id tlf.ID) error {
 	// We currently only support rekeys of master branches.
 	ops := fs.getOpsNoAdd(FolderBranch{Tlf: id, Branch: MasterBranch})
 	return ops.Rekey(ctx, id)
@@ -668,12 +669,12 @@ func (fs *KBFSOpsStandard) UnregisterFromChanges(
 	return nil
 }
 
-func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID TlfID, newBID BranchID) {
+func (fs *KBFSOpsStandard) onTLFBranchChange(tlfID tlf.ID, newBID BranchID) {
 	ops := fs.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch})
 	ops.onTLFBranchChange(newBID) // folderBranchOps makes a goroutine
 }
 
-func (fs *KBFSOpsStandard) onMDFlush(tlfID TlfID, bid BranchID,
+func (fs *KBFSOpsStandard) onMDFlush(tlfID tlf.ID, bid BranchID,
 	rev MetadataRevision) {
 	ops := fs.getOpsNoAdd(FolderBranch{Tlf: tlfID, Branch: MasterBranch})
 	ops.onMDFlush(bid, rev) // folderBranchOps makes a goroutine

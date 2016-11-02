@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,7 +33,7 @@ func testMdcacheMakeHandle(t *testing.T, n uint32) *TlfHandle {
 	return h
 }
 
-func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
+func testMdcachePut(t *testing.T, tlf tlf.ID, rev MetadataRevision,
 	bid BranchID, h *TlfHandle, mdcache *MDCacheStandard) {
 	rmd, err := makeInitialRootMetadata(defaultClientMetadataVer, tlf, h)
 	require.NoError(t, err)
@@ -61,7 +62,7 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 }
 
 func TestMdcachePut(t *testing.T) {
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 	h := testMdcacheMakeHandle(t, 1)
 
 	mdcache := NewMDCacheStandard(100)
@@ -69,13 +70,13 @@ func TestMdcachePut(t *testing.T) {
 }
 
 func TestMdcachePutPastCapacity(t *testing.T) {
-	id0 := FakeTlfID(1, false)
+	id0 := tlf.FakeID(1, false)
 	h0 := testMdcacheMakeHandle(t, 0)
 
-	id1 := FakeTlfID(2, false)
+	id1 := tlf.FakeID(2, false)
 	h1 := testMdcacheMakeHandle(t, 1)
 
-	id2 := FakeTlfID(3, false)
+	id2 := tlf.FakeID(3, false)
 	h2 := testMdcacheMakeHandle(t, 2)
 
 	mdcache := NewMDCacheStandard(2)
@@ -90,7 +91,7 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 }
 
 func TestMdcacheReplace(t *testing.T) {
-	id := FakeTlfID(1, false)
+	id := tlf.FakeID(1, false)
 	h := testMdcacheMakeHandle(t, 1)
 
 	mdcache := NewMDCacheStandard(100)

@@ -12,12 +12,13 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
 
 // Test verification of finalized metadata blocks.
 func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 
 	uid := keybase1.MakeTestUID(1)
 	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)

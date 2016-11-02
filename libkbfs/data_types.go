@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 )
 
 const (
@@ -389,7 +390,7 @@ const (
 // FolderBranch represents a unique pair of top-level folder and a
 // branch of that folder.
 type FolderBranch struct {
-	Tlf    TlfID
+	Tlf    tlf.ID
 	Branch BranchName // master branch, by default
 }
 

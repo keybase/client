@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -25,7 +26,7 @@ func GetJournalServer(config Config) (*JournalServer, error) {
 
 // TLFJournalEnabled returns true if journaling is enabled for the
 // given TLF.
-func TLFJournalEnabled(config Config, tlfID TlfID) bool {
+func TLFJournalEnabled(config Config, tlfID tlf.ID) bool {
 	if jServer, err := GetJournalServer(config); err == nil {
 		_, err := jServer.JournalStatus(tlfID)
 		return err == nil
@@ -35,7 +36,7 @@ func TLFJournalEnabled(config Config, tlfID TlfID) bool {
 
 // WaitForTLFJournal waits for the corresponding journal to flush, if
 // one exists.
-func WaitForTLFJournal(ctx context.Context, config Config, tlfID TlfID,
+func WaitForTLFJournal(ctx context.Context, config Config, tlfID tlf.ID,
 	log logger.Logger) error {
 	if jServer, err := GetJournalServer(config); err == nil {
 		log.CDebugf(ctx, "Waiting for journal to flush")
@@ -47,7 +48,7 @@ func WaitForTLFJournal(ctx context.Context, config Config, tlfID TlfID,
 }
 
 func fillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
-	jStatus *JournalServerStatus, tlfIDs []TlfID) error {
+	jStatus *JournalServerStatus, tlfIDs []tlf.ID) error {
 	if len(tlfIDs) == 0 {
 		// Nothing to do.
 		return nil
@@ -55,7 +56,7 @@ func fillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
 
 	// Get the folder statuses in parallel.
 	eg, groupCtx := errgroup.WithContext(ctx)
-	statusesToFetch := make(chan TlfID, len(tlfIDs))
+	statusesToFetch := make(chan tlf.ID, len(tlfIDs))
 	unflushedPaths := make(chan []string, len(tlfIDs))
 	unflushedBytes := make(chan int64, len(tlfIDs))
 	errIncomplete := errors.New("Incomplete status")

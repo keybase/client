@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/tlf"
 )
 
 // ErrorFile is the name of the virtual file in KBFS that should
@@ -123,7 +124,7 @@ func (e DirNotEmptyError) Error() string {
 // TlfAccessError that the user tried to perform an unpermitted
 // operation on a top-level folder.
 type TlfAccessError struct {
-	ID TlfID
+	ID tlf.ID
 }
 
 // Error implements the error interface for TlfAccessError
@@ -345,7 +346,7 @@ func (e BadCryptoError) Error() string {
 // BadCryptoMDError indicates that KBFS performed a bad crypto
 // operation, specifically on a MD object.
 type BadCryptoMDError struct {
-	ID TlfID
+	ID tlf.ID
 }
 
 // Error implements the error interface for BadCryptoMDError
@@ -356,7 +357,7 @@ func (e BadCryptoMDError) Error() string {
 // BadMDError indicates that the system is storing corrupt MD object
 // for the given TLF ID.
 type BadMDError struct {
-	ID TlfID
+	ID tlf.ID
 }
 
 // Error implements the error interface for BadMDError
@@ -367,7 +368,7 @@ func (e BadMDError) Error() string {
 // MDMissingDataError indicates that we are trying to take get the
 // metadata ID of a MD object with no serialized data field.
 type MDMissingDataError struct {
-	ID TlfID
+	ID tlf.ID
 }
 
 // Error implements the error interface for MDMissingDataError
@@ -381,7 +382,7 @@ func (e MDMissingDataError) Error() string {
 type MDMismatchError struct {
 	Revision MetadataRevision
 	Dir      string
-	TlfID    TlfID
+	TlfID    tlf.ID
 	Err      error
 }
 
@@ -394,7 +395,7 @@ func (e MDMismatchError) Error() string {
 // NoSuchMDError indicates that there is no MD object for the given
 // folder, revision, and merged status.
 type NoSuchMDError struct {
-	Tlf TlfID
+	Tlf tlf.ID
 	Rev MetadataRevision
 	BID BranchID
 }
@@ -408,7 +409,7 @@ func (e NoSuchMDError) Error() string {
 // InvalidMetadataVersionError indicates that an invalid metadata version was
 // used.
 type InvalidMetadataVersionError struct {
-	Tlf         TlfID
+	Tlf         tlf.ID
 	MetadataVer MetadataVer
 }
 
@@ -422,7 +423,7 @@ func (e InvalidMetadataVersionError) Error() string {
 // folder has been written using a new metadata version that our
 // client doesn't understand.
 type NewMetadataVersionError struct {
-	Tlf         TlfID
+	Tlf         tlf.ID
 	MetadataVer MetadataVer
 }
 
@@ -475,7 +476,7 @@ func (e OutdatedVersionError) Error() string {
 // InvalidKeyGenerationError indicates that an invalid key generation
 // was used.
 type InvalidKeyGenerationError struct {
-	TlfID  TlfID
+	TlfID  tlf.ID
 	KeyGen KeyGen
 }
 
@@ -487,7 +488,7 @@ func (e InvalidKeyGenerationError) Error() string {
 // NewKeyGenerationError indicates that the data at the given path has
 // been written using keys that our client doesn't have.
 type NewKeyGenerationError struct {
-	TlfID  TlfID
+	TlfID  tlf.ID
 	KeyGen KeyGen
 }
 
@@ -570,10 +571,10 @@ func (e UnverifiableTlfUpdateError) Error() string {
 		"admins.", e.Tlf, e.User)
 }
 
-// KeyCacheMissError indicates that a key matching the given TlfID
+// KeyCacheMissError indicates that a key matching the given TLF ID
 // and key generation wasn't found in cache.
 type KeyCacheMissError struct {
-	tlf    TlfID
+	tlf    tlf.ID
 	keyGen KeyGen
 }
 
@@ -582,26 +583,16 @@ func (e KeyCacheMissError) Error() string {
 	return fmt.Sprintf("Could not find key with tlf=%s, keyGen=%d", e.tlf, e.keyGen)
 }
 
-// KeyCacheHitError indicates that a key matching the given TlfID
+// KeyCacheHitError indicates that a key matching the given TLF ID
 // and key generation was found in cache but the object type was unknown.
 type KeyCacheHitError struct {
-	tlf    TlfID
+	tlf    tlf.ID
 	keyGen KeyGen
 }
 
 // Error implements the error interface for KeyCacheHitError.
 func (e KeyCacheHitError) Error() string {
 	return fmt.Sprintf("Invalid key with tlf=%s, keyGen=%d", e.tlf, e.keyGen)
-}
-
-// UnexpectedShortCryptoRandRead indicates that fewer bytes were read
-// from crypto.rand.Read() than expected.
-type UnexpectedShortCryptoRandRead struct {
-}
-
-// Error implements the error interface for UnexpectedShortRandRead.
-func (e UnexpectedShortCryptoRandRead) Error() string {
-	return "Unexpected short read from crypto.rand.Read()"
 }
 
 // UnknownEncryptionVer indicates that we can't decrypt an
@@ -637,7 +628,7 @@ func (e NoKeysError) Error() string {
 // InvalidPublicTLFOperation indicates that an invalid operation was
 // attempted on a public TLF.
 type InvalidPublicTLFOperation struct {
-	id     TlfID
+	id     tlf.ID
 	opName string
 }
 
@@ -728,16 +719,6 @@ func (e KeyHalfMismatchError) Error() string {
 		e.Expected, e.Actual)
 }
 
-// InvalidTlfID indicates whether the TLF ID string is not parseable
-// or invalid.
-type InvalidTlfID struct {
-	id string
-}
-
-func (e InvalidTlfID) Error() string {
-	return fmt.Sprintf("Invalid TLF ID %q", e.id)
-}
-
 // InvalidBranchID indicates whether the branch ID string is not
 // parseable or invalid.
 type InvalidBranchID struct {
@@ -774,8 +755,8 @@ func (e MDRevisionMismatch) Error() string {
 // MDTlfIDMismatch indicates that the ID field of a successor MD
 // doesn't match the ID field of its predecessor.
 type MDTlfIDMismatch struct {
-	currID TlfID
-	nextID TlfID
+	currID tlf.ID
+	nextID tlf.ID
 }
 
 func (e MDTlfIDMismatch) Error() string {
@@ -1010,7 +991,7 @@ func (e UnexpectedUnmergedPutError) Error() string {
 // NoSuchTlfHandleError indicates we were unable to resolve a folder
 // ID to a folder handle.
 type NoSuchTlfHandleError struct {
-	ID TlfID
+	ID tlf.ID
 }
 
 // Error implements the error interface for NoSuchTlfHandleError
@@ -1177,7 +1158,7 @@ func (e blockNonExistentError) Error() string {
 // encrypted per-device but rather symmetrically encrypted with the current
 // generation of the TLFCryptKey.
 type TLFCryptKeyNotPerDeviceEncrypted struct {
-	tlf    TlfID
+	tlf    tlf.ID
 	keyGen KeyGen
 }
 

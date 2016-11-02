@@ -203,7 +203,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 	}
 
 	var nonce [24]byte
-	err = cryptoRandRead(nonce[:])
+	err = kbfscrypto.RandRead(nonce[:])
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -67,7 +68,7 @@ func (d testBWDelegate) requireNextState(
 // also contains some helper functions for testing.
 type testTLFJournalConfig struct {
 	t            *testing.T
-	tlfID        TlfID
+	tlfID        tlf.ID
 	splitter     BlockSplitter
 	codec        kbfscodec.Codec
 	crypto       CryptoLocal
@@ -210,7 +211,7 @@ func setupTLFJournalTest(
 	require.NoError(t, err)
 
 	config = &testTLFJournalConfig{
-		t, FakeTlfID(1, false), bsplitter, codec, crypto,
+		t, tlf.FakeID(1, false), bsplitter, codec, crypto,
 		nil, nil, NewMDCacheStandard(10),
 		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil, mdserver,
 	}
@@ -363,7 +364,7 @@ type hangingBlockServer struct {
 }
 
 func (bs hangingBlockServer) Put(
-	ctx context.Context, tlfID TlfID, id BlockID, context BlockContext,
+	ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	close(bs.onPutCh)
 	// Hang until the context is cancelled.
@@ -549,7 +550,7 @@ type shimMDServer struct {
 }
 
 func (s *shimMDServer) GetRange(
-	ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus,
+	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
 	start, stop MetadataRevision) ([]*RootMetadataSigned, error) {
 	rmdses := s.nextGetRange
 	s.nextGetRange = nil
@@ -793,7 +794,7 @@ type orderedBlockServer struct {
 }
 
 func (s *orderedBlockServer) Put(
-	ctx context.Context, tlfID TlfID, id BlockID, context BlockContext,
+	ctx context.Context, tlfID tlf.ID, id BlockID, context BlockContext,
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()

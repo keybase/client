@@ -1,3 +1,5 @@
+## kbfscodec
+
 The serialization logic for KBFS. The package is named `kbfscodec`
 rather than `codec` for two reasons:
 

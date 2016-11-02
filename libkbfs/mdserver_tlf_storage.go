@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 )
 
 // mdServerTlfStorage stores an ordered list of metadata IDs for each
@@ -60,7 +61,7 @@ import (
 // separately in dir/wkbv3 (dir/rkbv3). The number of bundles is
 // small, so no need to splay them.
 type mdServerTlfStorage struct {
-	tlfID  TlfID
+	tlfID  tlf.ID
 	codec  kbfscodec.Codec
 	crypto cryptoPure
 	clock  Clock
@@ -73,7 +74,7 @@ type mdServerTlfStorage struct {
 	branchJournals map[BranchID]mdIDJournal
 }
 
-func makeMDServerTlfStorage(tlfID TlfID, codec kbfscodec.Codec,
+func makeMDServerTlfStorage(tlfID tlf.ID, codec kbfscodec.Codec,
 	crypto cryptoPure, clock Clock, mdVer MetadataVer,
 	dir string) *mdServerTlfStorage {
 	journal := &mdServerTlfStorage{

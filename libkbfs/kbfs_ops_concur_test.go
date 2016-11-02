@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -1089,7 +1090,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	errPtrChan := make(chan BlockPointer)
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).
-		Do(func(ctx context.Context, tlfID TlfID, id BlockID,
+		Do(func(ctx context.Context, tlfID tlf.ID, id BlockID,
 			context BlockContext, buf []byte,
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
 			errPtrChan <- BlockPointer{
@@ -1101,7 +1102,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	proceedChan := make(chan struct{})
 	b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().
-		Do(func(ctx context.Context, tlfID TlfID, id BlockID,
+		Do(func(ctx context.Context, tlfID tlf.ID, id BlockID,
 			context BlockContext, buf []byte,
 			serverHalf kbfscrypto.BlockCryptKeyServerHalf) {
 			<-proceedChan
@@ -1769,7 +1770,7 @@ type blockOpsOverQuota struct {
 	BlockOps
 }
 
-func (booq *blockOpsOverQuota) Put(ctx context.Context, tlfID TlfID,
+func (booq *blockOpsOverQuota) Put(ctx context.Context, tlfID tlf.ID,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	return BServerErrorOverQuota{
 		Throttled: true,

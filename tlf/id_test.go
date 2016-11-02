@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package tlf
 
 import (
 	"testing"
@@ -10,9 +10,9 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 )
 
-func TestTlfIDEncodeDecode(t *testing.T) {
+func TestIDEncodeDecode(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
-	id := FakeTlfID(1, true)
+	id := FakeID(1, true)
 
 	encodedID, err := codec.Encode(id)
 	if err != nil {
@@ -23,12 +23,12 @@ func TestTlfIDEncodeDecode(t *testing.T) {
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
 	// for why there are two bytes of overhead.
 	const overhead = 2
-	if len(encodedID) != TlfIDByteLen+overhead {
+	if len(encodedID) != idByteLen+overhead {
 		t.Errorf("expected encoded length %d, got %d",
-			TlfIDByteLen+overhead, len(encodedID))
+			idByteLen+overhead, len(encodedID))
 	}
 
-	var id2 TlfID
+	var id2 ID
 	err = codec.Decode(encodedID, &id2)
 	if err != nil {
 		t.Fatal(err)

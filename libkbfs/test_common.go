@@ -40,7 +40,7 @@ const (
 // RandomBlockID returns a randomly-generated BlockID for testing.
 func RandomBlockID() BlockID {
 	var dh kbfshash.RawDefaultHash
-	err := cryptoRandRead(dh[:])
+	err := kbfscrypto.RandRead(dh[:])
 	if err != nil {
 		panic(err)
 	}
@@ -260,22 +260,6 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	*c.allKnownConfigsForTesting = append(*c.allKnownConfigsForTesting, c)
 
 	return c
-}
-
-// FakeTlfID creates a fake public or private TLF ID from the given
-// byte.
-func FakeTlfID(b byte, public bool) TlfID {
-	bytes := [TlfIDByteLen]byte{b}
-	if public {
-		bytes[TlfIDByteLen-1] = PubTlfIDSuffix
-	} else {
-		bytes[TlfIDByteLen-1] = TlfIDSuffix
-	}
-	return TlfID{bytes}
-}
-
-func fakeTlfIDByte(id TlfID) byte {
-	return id.id[0]
 }
 
 // FakeBranchID creates a fake branch ID from the given

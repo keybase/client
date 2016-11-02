@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -869,7 +870,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 // parallelized via a blockPutState.
 func flushNonBPSBlockJournalEntry(
 	ctx context.Context, log logger.Logger,
-	bserver BlockServer, tlfID TlfID, entry blockJournalEntry) error {
+	bserver BlockServer, tlfID tlf.ID, entry blockJournalEntry) error {
 	log.CDebugf(ctx, "Flushing other block op %v", entry)
 
 	switch entry.Op {
@@ -904,7 +905,7 @@ func flushNonBPSBlockJournalEntry(
 }
 
 func flushBlockEntries(ctx context.Context, log logger.Logger,
-	bserver BlockServer, bcache BlockCache, reporter Reporter, tlfID TlfID,
+	bserver BlockServer, bcache BlockCache, reporter Reporter, tlfID tlf.ID,
 	tlfName CanonicalTlfName, entries blockEntriesToFlush) error {
 	if !entries.flushNeeded() {
 		// Avoid logging anything when there's nothing to flush.
@@ -1021,7 +1022,7 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 }
 
 func (j *blockJournal) removeFlushedEntries(ctx context.Context,
-	entries blockEntriesToFlush, tlfID TlfID, reporter Reporter) error {
+	entries blockEntriesToFlush, tlfID tlf.ID, reporter Reporter) error {
 	// Remove them all!
 	for i, entry := range entries.all {
 		flushedBytes, err := j.removeFlushedEntry(

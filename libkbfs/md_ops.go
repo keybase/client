@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -243,47 +244,47 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 // GetForHandle implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
-	mStatus MergeStatus) (TlfID, ImmutableRootMetadata, error) {
+	mStatus MergeStatus) (tlf.ID, ImmutableRootMetadata, error) {
 	mdserv := md.config.MDServer()
 	bh, err := handle.ToBareHandle()
 	if err != nil {
-		return TlfID{}, ImmutableRootMetadata{}, err
+		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
 	id, rmds, err := mdserv.GetForHandle(ctx, bh, mStatus)
 	if err != nil {
-		return TlfID{}, ImmutableRootMetadata{}, err
+		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
 	if rmds == nil {
 		if mStatus == Unmerged {
 			// The caller ignores the id argument for
 			// mStatus == Unmerged.
-			return TlfID{}, ImmutableRootMetadata{}, nil
+			return tlf.ID{}, ImmutableRootMetadata{}, nil
 		}
 		return id, ImmutableRootMetadata{}, nil
 	}
 
 	extra, err := md.getExtraMD(ctx, rmds.MD)
 	if err != nil {
-		return TlfID{}, ImmutableRootMetadata{}, err
+		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
 	bareMdHandle, err := rmds.MD.MakeBareTlfHandle(extra)
 	if err != nil {
-		return TlfID{}, ImmutableRootMetadata{}, err
+		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
 	mdHandle, err := MakeTlfHandle(ctx, bareMdHandle, md.config.KBPKI())
 	if err != nil {
-		return TlfID{}, ImmutableRootMetadata{}, err
+		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
 	// Check for mutual handle resolution.
 	if err := mdHandle.MutuallyResolvesTo(ctx, md.config.Codec(),
 		md.config.KBPKI(), *handle, rmds.MD.RevisionNumber(), rmds.MD.TlfID(),
 		md.log); err != nil {
-		return TlfID{}, ImmutableRootMetadata{}, err
+		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
 	// TODO: For now, use the mdHandle that came with rmds for
@@ -292,14 +293,14 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 	// through a rekey.
 	rmd, err := md.processMetadata(ctx, mdHandle, rmds, extra, nil)
 	if err != nil {
-		return TlfID{}, ImmutableRootMetadata{}, err
+		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
 	return id, rmd, nil
 }
 
 func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
-	id TlfID, bid BranchID, handle *TlfHandle, rmds *RootMetadataSigned,
+	id tlf.ID, bid BranchID, handle *TlfHandle, rmds *RootMetadataSigned,
 	extra ExtraMetadata, getRangeLock *sync.Mutex) (ImmutableRootMetadata, error) {
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.TlfID() {
@@ -321,7 +322,7 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	return md.processMetadata(ctx, handle, rmds, extra, getRangeLock)
 }
 
-func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID,
+func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus) (ImmutableRootMetadata, error) {
 	rmds, err := md.config.MDServer().GetForTLF(ctx, id, bid, mStatus)
 	if err != nil {
@@ -351,19 +352,19 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID,
 }
 
 // GetForTLF implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetForTLF(ctx context.Context, id TlfID) (
+func (md *MDOpsStandard) GetForTLF(ctx context.Context, id tlf.ID) (
 	ImmutableRootMetadata, error) {
 	return md.getForTLF(ctx, id, NullBranchID, Merged)
 }
 
 // GetUnmergedForTLF implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetUnmergedForTLF(
-	ctx context.Context, id TlfID, bid BranchID) (
+	ctx context.Context, id tlf.ID, bid BranchID) (
 	ImmutableRootMetadata, error) {
 	return md.getForTLF(ctx, id, bid, Unmerged)
 }
 
-func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
+func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 	bid BranchID, rmdses []*RootMetadataSigned) (
 	[]ImmutableRootMetadata, error) {
 	if len(rmdses) == 0 {
@@ -495,7 +496,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 	return irmds, nil
 }
 
-func (md *MDOpsStandard) getRange(ctx context.Context, id TlfID,
+func (md *MDOpsStandard) getRange(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
 	[]ImmutableRootMetadata, error) {
 	rmds, err := md.config.MDServer().GetRange(
@@ -511,13 +512,13 @@ func (md *MDOpsStandard) getRange(ctx context.Context, id TlfID,
 }
 
 // GetRange implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetRange(ctx context.Context, id TlfID,
+func (md *MDOpsStandard) GetRange(ctx context.Context, id tlf.ID,
 	start, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
 	return md.getRange(ctx, id, NullBranchID, Merged, start, stop)
 }
 
 // GetUnmergedRange implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetUnmergedRange(ctx context.Context, id TlfID,
+func (md *MDOpsStandard) GetUnmergedRange(ctx context.Context, id tlf.ID,
 	bid BranchID, start, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
 	return md.getRange(ctx, id, bid, Unmerged, start, stop)
 }
@@ -590,19 +591,19 @@ func (md *MDOpsStandard) PutUnmerged(
 
 // PruneBranch implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) PruneBranch(
-	ctx context.Context, id TlfID, bid BranchID) error {
+	ctx context.Context, id tlf.ID, bid BranchID) error {
 	return md.config.MDServer().PruneBranch(ctx, id, bid)
 }
 
 // ResolveBranch implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) ResolveBranch(
-	ctx context.Context, id TlfID, bid BranchID,
+	ctx context.Context, id tlf.ID, bid BranchID,
 	blocksToDelete []BlockID, rmd *RootMetadata) (MdID, error) {
 	return MdID{}, errors.New("ResolveBranch not supported by MDOpsStandard")
 }
 
 // GetLatestHandleForTLF implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
+func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 	BareTlfHandle, error) {
 	// TODO: Verify this mapping using a Merkle tree.
 	return md.config.MDServer().GetLatestHandleForTLF(ctx, id)

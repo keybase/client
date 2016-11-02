@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 )
 
 // JournalAction enumerates all the possible actions to take on a
@@ -59,7 +60,7 @@ func (a JournalAction) String() string {
 // given TLF.
 func (a JournalAction) Execute(
 	ctx context.Context, jServer *libkbfs.JournalServer,
-	tlf libkbfs.TlfID) error {
+	tlfID tlf.ID) error {
 	// These actions don't require TLF IDs.
 	switch a {
 	case JournalEnableAuto:
@@ -69,32 +70,32 @@ func (a JournalAction) Execute(
 		return jServer.DisableAuto(ctx)
 	}
 
-	if tlf == (libkbfs.TlfID{}) {
+	if tlfID == (tlf.ID{}) {
 		panic("zero TlfID in JournalAction.Execute")
 	}
 
 	switch a {
 	case JournalEnable:
 		err := jServer.Enable(
-			ctx, tlf, libkbfs.TLFJournalBackgroundWorkEnabled)
+			ctx, tlfID, libkbfs.TLFJournalBackgroundWorkEnabled)
 		if err != nil {
 			return err
 		}
 
 	case JournalFlush:
-		err := jServer.Flush(ctx, tlf)
+		err := jServer.Flush(ctx, tlfID)
 		if err != nil {
 			return err
 		}
 
 	case JournalPauseBackgroundWork:
-		jServer.PauseBackgroundWork(ctx, tlf)
+		jServer.PauseBackgroundWork(ctx, tlfID)
 
 	case JournalResumeBackgroundWork:
-		jServer.ResumeBackgroundWork(ctx, tlf)
+		jServer.ResumeBackgroundWork(ctx, tlfID)
 
 	case JournalDisable:
-		_, err := jServer.Disable(ctx, tlf)
+		_, err := jServer.Disable(ctx, tlfID)
 		if err != nil {
 			return err
 		}

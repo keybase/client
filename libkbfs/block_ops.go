@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"fmt"
 
+	"github.com/keybase/kbfs/tlf"
+
 	"golang.org/x/net/context"
 )
 
@@ -136,7 +138,7 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 }
 
 // Delete implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Delete(ctx context.Context, tlfID TlfID,
+func (b *BlockOpsStandard) Delete(ctx context.Context, tlfID tlf.ID,
 	ptrs []BlockPointer) (liveCounts map[BlockID]int, err error) {
 	contexts := make(map[BlockID][]BlockContext)
 	for _, ptr := range ptrs {
@@ -146,7 +148,7 @@ func (b *BlockOpsStandard) Delete(ctx context.Context, tlfID TlfID,
 }
 
 // Archive implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID TlfID,
+func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID tlf.ID,
 	ptrs []BlockPointer) error {
 	contexts := make(map[BlockID][]BlockContext)
 	for _, ptr := range ptrs {

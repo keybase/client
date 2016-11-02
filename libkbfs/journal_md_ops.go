@@ -11,6 +11,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 
+	"github.com/keybase/kbfs/tlf"
+
 	"golang.org/x/net/context"
 )
 
@@ -71,7 +73,7 @@ func (j journalMDOps) convertImmutableBareRMDToIRMD(ctx context.Context,
 // NullBranchID and mStatus is Unmerged, the branch ID check is
 // skipped.
 func (j journalMDOps) getHeadFromJournal(
-	ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus,
+	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
 	handle *TlfHandle) (
 	ImmutableRootMetadata, error) {
 	tlfJournal, ok := j.jServer.getTLFJournal(id)
@@ -138,7 +140,7 @@ func (j journalMDOps) getHeadFromJournal(
 }
 
 func (j journalMDOps) getRangeFromJournal(
-	ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus,
+	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
 	start, stop MetadataRevision) (
 	[]ImmutableRootMetadata, error) {
 	tlfJournal, ok := j.jServer.getTLFJournal(id)
@@ -196,18 +198,18 @@ func (j journalMDOps) getRangeFromJournal(
 
 func (j journalMDOps) GetForHandle(
 	ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (
-	TlfID, ImmutableRootMetadata, error) {
+	tlf.ID, ImmutableRootMetadata, error) {
 	// Need to always consult the server to get the tlfID. No need
 	// to optimize this, since all subsequent lookups will be by
 	// TLF. Although if we did want to, we could store a handle ->
 	// TLF ID mapping with the journals.
 	tlfID, rmd, err := j.MDOps.GetForHandle(ctx, handle, mStatus)
 	if err != nil {
-		return TlfID{}, ImmutableRootMetadata{}, err
+		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
 	if rmd != (ImmutableRootMetadata{}) && (rmd.TlfID() != tlfID) {
-		return TlfID{}, ImmutableRootMetadata{},
+		return tlf.ID{}, ImmutableRootMetadata{},
 			fmt.Errorf("Expected RMD to have TLF ID %s, but got %s",
 				tlfID, rmd.TlfID())
 	}
@@ -216,10 +218,10 @@ func (j journalMDOps) GetForHandle(
 	irmd, err := j.getHeadFromJournal(
 		ctx, tlfID, NullBranchID, mStatus, handle)
 	if err != nil {
-		return TlfID{}, ImmutableRootMetadata{}, err
+		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 	if irmd != (ImmutableRootMetadata{}) {
-		return TlfID{}, irmd, nil
+		return tlf.ID{}, irmd, nil
 	}
 
 	// Otherwise, use the server's head.
@@ -229,8 +231,8 @@ func (j journalMDOps) GetForHandle(
 // TODO: Combine the two GetForTLF functions in MDOps to avoid the
 // need for this helper function.
 func (j journalMDOps) getForTLF(
-	ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus,
-	delegateFn func(context.Context, TlfID) (ImmutableRootMetadata, error)) (
+	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
+	delegateFn func(context.Context, tlf.ID) (ImmutableRootMetadata, error)) (
 	ImmutableRootMetadata, error) {
 	// If the journal has a head, use that.
 	irmd, err := j.getHeadFromJournal(ctx, id, bid, mStatus, nil)
@@ -246,14 +248,14 @@ func (j journalMDOps) getForTLF(
 }
 
 func (j journalMDOps) GetForTLF(
-	ctx context.Context, id TlfID) (ImmutableRootMetadata, error) {
+	ctx context.Context, id tlf.ID) (ImmutableRootMetadata, error) {
 	return j.getForTLF(ctx, id, NullBranchID, Merged, j.MDOps.GetForTLF)
 }
 
 func (j journalMDOps) GetUnmergedForTLF(
-	ctx context.Context, id TlfID, bid BranchID) (
+	ctx context.Context, id tlf.ID, bid BranchID) (
 	ImmutableRootMetadata, error) {
-	delegateFn := func(ctx context.Context, id TlfID) (
+	delegateFn := func(ctx context.Context, id tlf.ID) (
 		ImmutableRootMetadata, error) {
 		return j.MDOps.GetUnmergedForTLF(ctx, id, bid)
 	}
@@ -263,9 +265,9 @@ func (j journalMDOps) GetUnmergedForTLF(
 // TODO: Combine the two GetRange functions in MDOps to avoid the need
 // for this helper function.
 func (j journalMDOps) getRange(
-	ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus,
+	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
 	start, stop MetadataRevision,
-	delegateFn func(ctx context.Context, id TlfID,
+	delegateFn func(ctx context.Context, id tlf.ID,
 		start, stop MetadataRevision) (
 		[]ImmutableRootMetadata, error)) (
 	[]ImmutableRootMetadata, error) {
@@ -309,16 +311,16 @@ func (j journalMDOps) getRange(
 }
 
 func (j journalMDOps) GetRange(
-	ctx context.Context, id TlfID, start, stop MetadataRevision) (
+	ctx context.Context, id tlf.ID, start, stop MetadataRevision) (
 	[]ImmutableRootMetadata, error) {
 	return j.getRange(ctx, id, NullBranchID, Merged, start, stop,
 		j.MDOps.GetRange)
 }
 
 func (j journalMDOps) GetUnmergedRange(
-	ctx context.Context, id TlfID, bid BranchID,
+	ctx context.Context, id tlf.ID, bid BranchID,
 	start, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
-	delegateFn := func(ctx context.Context, id TlfID,
+	delegateFn := func(ctx context.Context, id tlf.ID,
 		start, stop MetadataRevision) (
 		[]ImmutableRootMetadata, error) {
 		return j.MDOps.GetUnmergedRange(ctx, id, bid, start, stop)
@@ -354,7 +356,7 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 }
 
 func (j journalMDOps) PruneBranch(
-	ctx context.Context, id TlfID, bid BranchID) error {
+	ctx context.Context, id tlf.ID, bid BranchID) error {
 	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
 		// Prune the journal, too.
 		err := tlfJournal.clearMDs(ctx, bid)
@@ -367,7 +369,7 @@ func (j journalMDOps) PruneBranch(
 }
 
 func (j journalMDOps) ResolveBranch(
-	ctx context.Context, id TlfID, bid BranchID,
+	ctx context.Context, id tlf.ID, bid BranchID,
 	blocksToDelete []BlockID, rmd *RootMetadata) (MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
 		mdID, err := tlfJournal.resolveBranch(

@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,7 +26,7 @@ func crTestInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock,
 	config = NewConfigMock(mockCtrl, ctr)
 	config.SetCodec(kbfscodec.NewMsgpack())
 	config.SetClock(wallClock{})
-	id := FakeTlfID(1, false)
+	id := tlf.FakeID(1, false)
 	fbo := newFolderBranchOps(config, FolderBranch{id, MasterBranch}, standard)
 	// usernames don't matter for these tests
 	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), gomock.Any()).
@@ -61,7 +62,7 @@ func crMakeFakeRMD(rev MetadataRevision, bid BranchID) ImmutableRootMetadata {
 	return MakeImmutableRootMetadata(&RootMetadata{
 		bareMd: &BareRootMetadataV2{
 			WriterMetadataV2: WriterMetadataV2{
-				ID:     FakeTlfID(0x1, false),
+				ID:     tlf.FakeID(0x1, false),
 				WFlags: writerFlags,
 				BID:    bid,
 			},

@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -21,7 +22,7 @@ func isRecoverableBlockError(err error) bool {
 
 // putBlockToServer either puts the full block to the block server, or
 // just adds a reference, depending on the refnonce in blockPtr.
-func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID TlfID,
+func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID tlf.ID,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	var err error
 	if blockPtr.RefNonce == ZeroBlockRefNonce {
@@ -37,7 +38,7 @@ func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID TlfID,
 }
 
 func putBlockCheckQuota(ctx context.Context, bserv BlockServer,
-	reporter Reporter, tlfID TlfID, blockPtr BlockPointer,
+	reporter Reporter, tlfID tlf.ID, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData, tlfName CanonicalTlfName) error {
 	err := putBlockToServer(ctx, bserv, tlfID, blockPtr, readyBlockData)
 	if qe, ok := err.(BServerErrorOverQuota); ok && !qe.Throttled {
@@ -49,7 +50,7 @@ func putBlockCheckQuota(ctx context.Context, bserv BlockServer,
 }
 
 func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
-	tlfID TlfID, tlfName CanonicalTlfName, blockState blockState,
+	tlfID tlf.ID, tlfName CanonicalTlfName, blockState blockState,
 	errChan chan error, blocksToRemoveChan chan *FileBlock) {
 	err := putBlockCheckQuota(ctx, bserv, reporter, tlfID, blockState.blockPtr,
 		blockState.readyBlockData, tlfName)
@@ -81,7 +82,7 @@ func doOneBlockPut(ctx context.Context, bserv BlockServer, reporter Reporter,
 // Returns a slice of block pointers that resulted in recoverable
 // errors and should be removed by the caller from any saved state.
 func doBlockPuts(ctx context.Context, bserv BlockServer, bcache BlockCache,
-	reporter Reporter, log logger.Logger, tlfID TlfID, tlfName CanonicalTlfName,
+	reporter Reporter, log logger.Logger, tlfID tlf.ID, tlfName CanonicalTlfName,
 	bps blockPutState) ([]BlockPointer, error) {
 	errChan := make(chan error, 1)
 	ctx, cancel := context.WithCancel(ctx)

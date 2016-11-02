@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -21,22 +22,22 @@ import (
 type mdHandleKey string
 
 type mdBlockKey struct {
-	tlfID    TlfID
+	tlfID    tlf.ID
 	branchID BranchID
 }
 
 type mdBranchKey struct {
-	tlfID     TlfID
+	tlfID     tlf.ID
 	deviceKID keybase1.KID
 }
 
 type mdExtraWriterKey struct {
-	tlfID          TlfID
+	tlfID          tlf.ID
 	writerBundleID TLFWriterKeyBundleID
 }
 
 type mdExtraReaderKey struct {
-	tlfID          TlfID
+	tlfID          tlf.ID
 	readerBundleID TLFReaderKeyBundleID
 }
 
@@ -58,9 +59,9 @@ type mdServerMemShared struct {
 	// truncateLockManager are nil.
 	lock sync.RWMutex
 	// Bare TLF handle -> TLF ID
-	handleDb map[mdHandleKey]TlfID
+	handleDb map[mdHandleKey]tlf.ID
 	// TLF ID -> latest bare TLF handle
-	latestHandleDb map[TlfID]BareTlfHandle
+	latestHandleDb map[tlf.ID]BareTlfHandle
 	// (TLF ID, branch ID) -> list of MDs
 	mdDb map[mdBlockKey]mdBlockMemList
 	// Writer key bundle ID -> writer key bundles
@@ -87,8 +88,8 @@ var _ mdServerLocal = (*MDServerMemory)(nil)
 // NewMDServerMemory constructs a new MDServerMemory object that stores
 // all data in-memory.
 func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
-	handleDb := make(map[mdHandleKey]TlfID)
-	latestHandleDb := make(map[TlfID]BareTlfHandle)
+	handleDb := make(map[mdHandleKey]tlf.ID)
+	latestHandleDb := make(map[tlf.ID]BareTlfHandle)
 	mdDb := make(map[mdBlockKey]mdBlockMemList)
 	branchDb := make(map[mdBranchKey]BranchID)
 	writerKeyBundleDb := make(map[mdExtraWriterKey]*TLFWriterKeyBundleV3)
@@ -112,16 +113,16 @@ func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 var errMDServerMemoryShutdown = errors.New("MDServerMemory is shutdown")
 
 func (md *MDServerMemory) getHandleID(ctx context.Context, handle BareTlfHandle,
-	mStatus MergeStatus) (tlfID TlfID, created bool, err error) {
+	mStatus MergeStatus) (tlfID tlf.ID, created bool, err error) {
 	handleBytes, err := md.config.Codec().Encode(handle)
 	if err != nil {
-		return NullTlfID, false, MDServerError{err}
+		return tlf.NullID, false, MDServerError{err}
 	}
 
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	if md.handleDb == nil {
-		return NullTlfID, false, errMDServerDiskShutdown
+		return tlf.NullID, false, errMDServerDiskShutdown
 	}
 
 	id, ok := md.handleDb[mdHandleKey(handleBytes)]
@@ -132,16 +133,16 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle BareTlfHandle,
 	// Non-readers shouldn't be able to create the dir.
 	_, uid, err := md.config.currentInfoGetter().GetCurrentUserInfo(ctx)
 	if err != nil {
-		return NullTlfID, false, MDServerError{err}
+		return tlf.NullID, false, MDServerError{err}
 	}
 	if !handle.IsReader(uid) {
-		return NullTlfID, false, MDServerErrorUnauthorized{}
+		return tlf.NullID, false, MDServerErrorUnauthorized{}
 	}
 
 	// Allocate a new random ID.
 	id, err = md.config.cryptoPure().MakeRandomTlfID(handle.IsPublic())
 	if err != nil {
-		return NullTlfID, false, MDServerError{err}
+		return tlf.NullID, false, MDServerError{err}
 	}
 
 	md.handleDb[mdHandleKey(handleBytes)] = id
@@ -151,10 +152,10 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle BareTlfHandle,
 
 // GetForHandle implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetForHandle(ctx context.Context, handle BareTlfHandle,
-	mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
+	mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
 	id, created, err := md.getHandleID(ctx, handle, mStatus)
 	if err != nil {
-		return NullTlfID, nil, err
+		return tlf.NullID, nil, err
 	}
 
 	if created {
@@ -163,13 +164,13 @@ func (md *MDServerMemory) GetForHandle(ctx context.Context, handle BareTlfHandle
 
 	rmds, err := md.GetForTLF(ctx, id, NullBranchID, mStatus)
 	if err != nil {
-		return NullTlfID, nil, err
+		return tlf.NullID, nil, err
 	}
 	return id, rmds, nil
 }
 
 func (md *MDServerMemory) checkGetParams(
-	ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus) (
+	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus) (
 	newBid BranchID, err error) {
 	if mStatus == Merged && bid != NullBranchID {
 		return NullBranchID, MDServerErrorBadRequest{Reason: "Invalid branch ID"}
@@ -214,7 +215,7 @@ func (md *MDServerMemory) checkGetParams(
 }
 
 // GetForTLF implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) GetForTLF(ctx context.Context, id TlfID,
+func (md *MDServerMemory) GetForTLF(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
 	bid, err := md.checkGetParams(ctx, id, bid, mStatus)
 	if err != nil {
@@ -231,7 +232,7 @@ func (md *MDServerMemory) GetForTLF(ctx context.Context, id TlfID,
 	return rmds, nil
 }
 
-func (md *MDServerMemory) getHeadForTLF(ctx context.Context, id TlfID,
+func (md *MDServerMemory) getHeadForTLF(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
 	key, err := md.getMDKey(id, bid, mStatus)
 	if err != nil {
@@ -261,7 +262,7 @@ func (md *MDServerMemory) getHeadForTLF(ctx context.Context, id TlfID,
 }
 
 func (md *MDServerMemory) getMDKey(
-	id TlfID, bid BranchID, mStatus MergeStatus) (mdBlockKey, error) {
+	id tlf.ID, bid BranchID, mStatus MergeStatus) (mdBlockKey, error) {
 	if (mStatus == Merged) != (bid == NullBranchID) {
 		return mdBlockKey{},
 			fmt.Errorf("mstatus=%v is inconsistent with bid=%v",
@@ -270,7 +271,7 @@ func (md *MDServerMemory) getMDKey(
 	return mdBlockKey{id, bid}, nil
 }
 
-func (md *MDServerMemory) getBranchKey(ctx context.Context, id TlfID) (
+func (md *MDServerMemory) getBranchKey(ctx context.Context, id tlf.ID) (
 	mdBranchKey, error) {
 	// add device KID
 	deviceKID, err := md.getCurrentDeviceKID(ctx)
@@ -289,7 +290,7 @@ func (md *MDServerMemory) getCurrentDeviceKID(ctx context.Context) (keybase1.KID
 }
 
 // GetRange implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) GetRange(ctx context.Context, id TlfID,
+func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
 	md.log.CDebugf(ctx, "GetRange %d %d (%s)", start, stop, mStatus)
@@ -514,7 +515,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 }
 
 // PruneBranch implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) PruneBranch(ctx context.Context, id TlfID, bid BranchID) error {
+func (md *MDServerMemory) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
 	if bid == NullBranchID {
 		return MDServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
@@ -544,7 +545,7 @@ func (md *MDServerMemory) PruneBranch(ctx context.Context, id TlfID, bid BranchI
 	return nil
 }
 
-func (md *MDServerMemory) getBranchID(ctx context.Context, id TlfID) (BranchID, error) {
+func (md *MDServerMemory) getBranchID(ctx context.Context, id tlf.ID) (BranchID, error) {
 	branchKey, err := md.getBranchKey(ctx, id)
 	if err != nil {
 		return NullBranchID, MDServerError{err}
@@ -563,7 +564,7 @@ func (md *MDServerMemory) getBranchID(ctx context.Context, id TlfID) (BranchID, 
 }
 
 // RegisterForUpdate implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) RegisterForUpdate(ctx context.Context, id TlfID,
+func (md *MDServerMemory) RegisterForUpdate(ctx context.Context, id tlf.ID,
 	currHead MetadataRevision) (<-chan error, error) {
 	// are we already past this revision?  If so, fire observer
 	// immediately
@@ -591,7 +592,7 @@ func (md *MDServerMemory) getCurrentDeviceKIDBytes(ctx context.Context) (
 }
 
 // TruncateLock implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) TruncateLock(ctx context.Context, id TlfID) (
+func (md *MDServerMemory) TruncateLock(ctx context.Context, id tlf.ID) (
 	bool, error) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
@@ -608,7 +609,7 @@ func (md *MDServerMemory) TruncateLock(ctx context.Context, id TlfID) (
 }
 
 // TruncateUnlock implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) TruncateUnlock(ctx context.Context, id TlfID) (
+func (md *MDServerMemory) TruncateUnlock(ctx context.Context, id tlf.ID) (
 	bool, error) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
@@ -705,7 +706,7 @@ func (md *MDServerMemory) addNewAssertionForTest(uid keybase1.UID,
 }
 
 func (md *MDServerMemory) getCurrentMergedHeadRevision(
-	ctx context.Context, id TlfID) (rev MetadataRevision, err error) {
+	ctx context.Context, id tlf.ID) (rev MetadataRevision, err error) {
 	head, err := md.GetForTLF(ctx, id, NullBranchID, Merged)
 	if err != nil {
 		return 0, err
@@ -717,7 +718,7 @@ func (md *MDServerMemory) getCurrentMergedHeadRevision(
 }
 
 // GetLatestHandleForTLF implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) GetLatestHandleForTLF(_ context.Context, id TlfID) (
+func (md *MDServerMemory) GetLatestHandleForTLF(_ context.Context, id tlf.ID) (
 	BareTlfHandle, error) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
@@ -735,7 +736,7 @@ func (md *MDServerMemory) OffsetFromServerTime() (time.Duration, bool) {
 }
 
 func (md *MDServerMemory) getExtraMetadata(
-	tlfID TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
+	tlfID tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	ExtraMetadata, error) {
 	wkb, rkb, err := md.getKeyBundles(tlfID, wkbID, rkbID)
 	if err != nil {
@@ -781,7 +782,7 @@ func (md *MDServerMemory) putExtraMetadataLocked(rmds *RootMetadataSigned,
 }
 
 func (md *MDServerMemory) getKeyBundles(
-	tlfID TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
+	tlfID tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
 	if (wkbID == TLFWriterKeyBundleID{}) !=
 		(rkbID == TLFReaderKeyBundleID{}) {
@@ -810,7 +811,7 @@ func (md *MDServerMemory) getKeyBundles(
 
 // GetKeyBundles implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetKeyBundles(_ context.Context,
-	tlfID TlfID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
+	tlfID tlf.ID, wkbID TLFWriterKeyBundleID, rkbID TLFReaderKeyBundleID) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
 	return md.getKeyBundles(tlfID, wkbID, rkbID)
 }

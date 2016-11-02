@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -300,7 +301,7 @@ func TestBlockJournalFlush(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(newTestBlockServerLocalConfig(t))
 
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
@@ -403,7 +404,7 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 
 	blockServer := NewBlockServerMemory(newTestBlockServerLocalConfig(t))
 
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
@@ -531,7 +532,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	require.NoError(t, err)
 
 	blockServer := NewBlockServerMemory(newTestBlockServerLocalConfig(t))
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 
@@ -583,7 +584,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	require.NoError(t, err)
 
 	blockServer := NewBlockServerMemory(newTestBlockServerLocalConfig(t))
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 	bcache := NewBlockCacheStandard(0, 0)
 	reporter := NewReporterSimple(nil, 0)
 

@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +38,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 	s := makeMDServerTlfStorage(tlfID, codec, crypto, wallClock{},
 		defaultClientMetadataVer, tempdir)
 	defer s.shutdown()

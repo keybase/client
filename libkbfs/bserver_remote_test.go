@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -81,7 +82,7 @@ func (fc *FakeBServerClient) PutBlock(ctx context.Context, arg keybase1.PutBlock
 		return err
 	}
 
-	tlfID, err := ParseTlfID(arg.Folder)
+	tlfID, err := tlf.ParseID(arg.Folder)
 	if err != nil {
 		return err
 	}
@@ -110,7 +111,7 @@ func (fc *FakeBServerClient) GetBlock(ctx context.Context, arg keybase1.GetBlock
 		return keybase1.GetBlockRes{}, err
 	}
 
-	tlfID, err := ParseTlfID(arg.Folder)
+	tlfID, err := tlf.ParseID(arg.Folder)
 	if err != nil {
 		return keybase1.GetBlockRes{}, err
 	}
@@ -140,7 +141,7 @@ func (fc *FakeBServerClient) AddReference(ctx context.Context, arg keybase1.AddR
 		return err
 	}
 
-	tlfID, err := ParseTlfID(arg.Folder)
+	tlfID, err := tlf.ParseID(arg.Folder)
 	if err != nil {
 		return err
 	}
@@ -190,7 +191,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	fc := NewFakeBServerClient(config, nil, nil, nil)
 	b := newBlockServerRemoteWithClient(config, fc)
 
-	tlfID := FakeTlfID(2, false)
+	tlfID := tlf.FakeID(2, false)
 	bCtx := BlockContext{currentUID, "", ZeroBlockRefNonce}
 	data := []byte{1, 2, 3, 4}
 	bID, err := crypto.MakePermanentBlockID(data)
@@ -265,7 +266,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 
 	f := func(ctx context.Context) error {
 		bID := fakeBlockID(1)
-		tlfID := FakeTlfID(2, false)
+		tlfID := tlf.FakeID(2, false)
 		bCtx := BlockContext{currentUID, "", ZeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
 		serverHalf, err :=

@@ -11,12 +11,13 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 
 	"golang.org/x/net/context"
 )
 
-func makeBRMDForTest(t *testing.T, crypto cryptoPure, id TlfID,
+func makeBRMDForTest(t *testing.T, crypto cryptoPure, id tlf.ID,
 	h BareTlfHandle, revision MetadataRevision, uid keybase1.UID,
 	prevRoot MdID) *BareRootMetadataV2 {
 	var md BareRootMetadataV2

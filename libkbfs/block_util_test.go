@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -31,7 +32,7 @@ func TestBlockUtilPutNewBlockSuccess(t *testing.T) {
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
 
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 
 	readyBlockData := ReadyBlockData{
 		buf: encData,
@@ -87,7 +88,7 @@ func TestBlockUtilPutFail(t *testing.T) {
 
 	err := errors.New("Fake fail")
 
-	tlfID := FakeTlfID(1, false)
+	tlfID := tlf.FakeID(1, false)
 
 	readyBlockData := ReadyBlockData{
 		buf: encData,

@@ -9,27 +9,28 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
 )
 
 func TestKeyCacheBasic(t *testing.T) {
 	cache := NewKeyCacheStandard(10)
-	tlf := TlfID{id: [TlfIDByteLen]byte{0xf}}
+	id := tlf.FakeID(100, true)
 	key := kbfscrypto.MakeTLFCryptKey([32]byte{0xf})
 	keyGen := KeyGen(1)
-	_, err := cache.GetTLFCryptKey(tlf, keyGen)
+	_, err := cache.GetTLFCryptKey(id, keyGen)
 	if _, ok := err.(KeyCacheMissError); !ok {
 		t.Fatal(errors.New("expected KeyCacheMissError"))
 	}
-	err = cache.PutTLFCryptKey(tlf, keyGen, key)
+	err = cache.PutTLFCryptKey(id, keyGen, key)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// add the same key twice
-	err = cache.PutTLFCryptKey(tlf, keyGen, key)
+	err = cache.PutTLFCryptKey(id, keyGen, key)
 	if err != nil {
 		t.Fatal(err)
 	}
-	key2, err := cache.GetTLFCryptKey(tlf, keyGen)
+	key2, err := cache.GetTLFCryptKey(id, keyGen)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,16 +38,16 @@ func TestKeyCacheBasic(t *testing.T) {
 		t.Fatal("keys are unequal")
 	}
 	for i := 0; i < 11; i++ {
-		tlf = TlfID{id: [TlfIDByteLen]byte{byte(i)}}
+		id = tlf.FakeID(byte(i), true)
 		key = kbfscrypto.MakeTLFCryptKey([32]byte{byte(i)})
-		err = cache.PutTLFCryptKey(tlf, keyGen, key)
+		err = cache.PutTLFCryptKey(id, keyGen, key)
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
 	for i := 0; i < 11; i++ {
-		tlf = TlfID{id: [TlfIDByteLen]byte{byte(i)}}
-		key, err = cache.GetTLFCryptKey(tlf, keyGen)
+		id = tlf.FakeID(byte(i), true)
+		key, err = cache.GetTLFCryptKey(id, keyGen)
 		if i > 0 && err != nil {
 			t.Fatal(err)
 		}

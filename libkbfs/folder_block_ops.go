@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -218,7 +219,7 @@ type folderBlockOps struct {
 // Although, temporarily, folderBranchOps is allowed to reach in and
 // manipulate folderBlockOps fields and methods directly.
 
-func (fbo *folderBlockOps) id() TlfID {
+func (fbo *folderBlockOps) id() tlf.ID {
 	return fbo.folderBranch.Tlf
 }
 
