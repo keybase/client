@@ -979,16 +979,16 @@ func flushBlockEntries(ctx context.Context, log logger.Logger,
 	return nil
 }
 
-func (j *blockJournal) removeFlushedEntryFromDisk(ordinal journalOrdinal,
+// removeEarliestEntryFromDiskJournal removes the earliest entry from
+// the given disk journal `dj`, which might be different from `j.j`.
+// If `dj` is the same as `j.j`, the entry is also cleared from the
+// in-memory reference map.  If `removeData` is true, the
+// corresponding block data is also removed from disk.
+func (j *blockJournal) removeEarliestEntryFromDiskJournal(
 	entry blockJournalEntry, removeData bool, dj diskJournal) error {
 	earliestOrdinal, err := dj.readEarliestOrdinal()
 	if err != nil {
 		return err
-	}
-
-	if ordinal != earliestOrdinal {
-		return fmt.Errorf("Expected ordinal %d, got %d",
-			ordinal, earliestOrdinal)
 	}
 
 	_, err = dj.removeEarliest()
@@ -1035,6 +1035,16 @@ func (j *blockJournal) removeFlushedEntryFromDisk(ordinal journalOrdinal,
 func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 	ordinal journalOrdinal, entry blockJournalEntry) (
 	flushedBytes int64, err error) {
+	earliestOrdinal, err := j.j.readEarliestOrdinal()
+	if err != nil {
+		return 0, err
+	}
+
+	if ordinal != earliestOrdinal {
+		return 0, fmt.Errorf("Expected ordinal %d, got %d",
+			ordinal, earliestOrdinal)
+	}
+
 	// Fix up the block byte count if we've finished a Put.
 	if entry.Op == blockPutOp && !entry.Ignore {
 		id, _, err := entry.getSingleContext()
@@ -1057,7 +1067,7 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 	// Only remove data if we're not trying to save the blocks until
 	// the next MD flush.
 	removeData := j.saveUntilMDFlush == nil
-	err = j.removeFlushedEntryFromDisk(ordinal, entry, removeData, j.j)
+	err = j.removeEarliestEntryFromDiskJournal(entry, removeData, j.j)
 	if err != nil {
 		return 0, err
 	}
@@ -1222,7 +1232,8 @@ func (j *blockJournal) onMDFlush() error {
 		}
 
 		j.log.CDebugf(nil, "Removing data for entry %d", i)
-		err = j.removeFlushedEntryFromDisk(i, entry, true, *j.saveUntilMDFlush)
+		err = j.removeEarliestEntryFromDiskJournal(
+			entry, true, *j.saveUntilMDFlush)
 		if err != nil {
 			return err
 		}
