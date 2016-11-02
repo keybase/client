@@ -51,7 +51,11 @@ func statNode(ctx context.Context, config libkbfs.Config, nodePathStr string) er
 
 func stat(ctx context.Context, config libkbfs.Config, args []string) (exitStatus int) {
 	flags := flag.NewFlagSet("kbfs stat", flag.ContinueOnError)
-	flags.Parse(args)
+	err := flags.Parse(args)
+	if err != nil {
+		printError("stat", err)
+		return 1
+	}
 
 	nodePaths := flags.Args()
 	if len(nodePaths) == 0 {

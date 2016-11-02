@@ -49,7 +49,10 @@ func (nr *nodeReader) Read(p []byte) (n int, err error) {
 func readHelper(ctx context.Context, config libkbfs.Config, args []string) error {
 	flags := flag.NewFlagSet("kbfs read", flag.ContinueOnError)
 	verbose := flags.Bool("v", false, "Print extra status output.")
-	flags.Parse(args)
+	err := flags.Parse(args)
+	if err != nil {
+		return err
+	}
 
 	if flags.NArg() != 1 {
 		return errExactlyOnePath

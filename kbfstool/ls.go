@@ -198,7 +198,12 @@ func ls(ctx context.Context, config libkbfs.Config, args []string) (exitStatus i
 	longFormat := flags.Bool("l", false, "List in long format.")
 	useSigil := flags.Bool("F", false, "Display sigils after each pathname.")
 	recursive := flags.Bool("R", false, "Recursively list subdirectories encountered.")
-	flags.Parse(args)
+	err := flags.Parse(args)
+	if err != nil {
+		printError("ls", err)
+		exitStatus = 1
+		return
+	}
 
 	nodePathStrs := flags.Args()
 	if len(nodePathStrs) == 0 {

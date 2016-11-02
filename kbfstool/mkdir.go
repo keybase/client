@@ -104,13 +104,16 @@ func mkdir(ctx context.Context, config libkbfs.Config, args []string) (exitStatu
 	flags := flag.NewFlagSet("kbfs mkdir", flag.ContinueOnError)
 	createIntermediate := flags.Bool("p", false, "Create intermediate directories as required.")
 	verbose := flags.Bool("v", false, "Print extra status output.")
-	flags.Parse(args)
+	err := flags.Parse(args)
+	if err != nil {
+		printError("mkdir", err)
+		return 1
+	}
 
 	nodePaths := flags.Args()
 	if len(nodePaths) == 0 {
 		printError("mkdir", errAtLeastOnePath)
-		exitStatus = 1
-		return
+		return 1
 	}
 
 	for _, nodePath := range nodePaths {

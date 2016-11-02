@@ -228,7 +228,11 @@ func mdCheck(ctx context.Context, config libkbfs.Config, args []string) (
 	mdLimit := flags.Int("fetch-limit", 100,
 		"Maximum number of MD objects to fetch (per argument).")
 	verbose := flags.Bool("v", false, "Print verbose output.")
-	flags.Parse(args)
+	err := flags.Parse(args)
+	if err != nil {
+		printError("md check", err)
+		return 1
+	}
 
 	inputs := flags.Args()
 	if len(inputs) < 1 {
