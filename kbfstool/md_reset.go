@@ -94,9 +94,7 @@ outer:
 		return err
 	}
 
-	newDblock := &libkbfs.DirBlock{
-		Children: make(map[string]libkbfs.DirEntry),
-	}
+	newDblock := libkbfs.NewDirBlock()
 	id, plainSize, readyBlockData, err :=
 		config.BlockOps().Ready(ctx, rmdNext, newDblock)
 	if err != nil {

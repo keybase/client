@@ -1142,9 +1142,7 @@ func (fbo *folderBranchOps) initMDLocked(
 		return NewWriteAccessError(handle, username, handle.GetCanonicalPath())
 	}
 
-	newDblock := &DirBlock{
-		Children: make(map[string]DirEntry),
-	}
+	newDblock := NewDirBlock()
 
 	var expectedKeyGen KeyGen
 	var tlfCryptKey *kbfscrypto.TLFCryptKey
