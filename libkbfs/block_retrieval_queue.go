@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	defaultBlockRetrievalWorkerQueueSize int = 100
+	defaultBlockRetrievalWorkerQueueSize int = 20
 	defaultOnDemandRequestPriority       int = 100
 )
 
@@ -153,29 +153,22 @@ func (brq *blockRetrievalQueue) WorkOnRequest() <-chan *blockRetrieval {
 
 // FinalizeRequest s the last step of a retrieval request once a block has been
 // obtained. It removes the request from the blockRetrievalQueue, preventing
-// more requests mutating the retrieval, then calls notifyBlockRequestor for
-// all subscribed requests.
+// more requests mutating the retrieval, then notifies all subscribed
+// requests.
 func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block Block, err error) {
 	brq.mtx.Lock()
 	delete(brq.ptrs, retrieval.blockPtr)
 	brq.mtx.Unlock()
 
-	if block == nil {
-		for _, r := range retrieval.requests {
-			req := r
-			go func() {
-				req.doneCh <- err
-			}()
-		}
-		return
-	}
-	source := reflect.ValueOf(block).Elem()
+	source := reflect.ValueOf(block)
 	for _, r := range retrieval.requests {
 		req := r
 		go func() {
-			// Copy the decrypted block to the caller
-			dest := reflect.ValueOf(req.block).Elem()
-			dest.Set(source)
+			if source.Kind() == reflect.Ptr {
+				// Copy the decrypted block to the caller
+				dest := reflect.ValueOf(req.block).Elem()
+				dest.Set(source.Elem())
+			}
 			req.doneCh <- err
 		}()
 	}
