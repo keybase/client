@@ -330,6 +330,7 @@ var bpSize = uint64(reflect.TypeOf(BlockPointer{}).Size())
 
 // ReadyBlockData is a block that has been encoded (and encrypted).
 type ReadyBlockData struct {
+	// These fields should not be used outside of putBlockToServer.
 	buf        []byte
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf
 }
