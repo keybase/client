@@ -400,8 +400,8 @@ export type BodyPlaintextVersion =
     1 // V1_1
 
 export type ChatActivity = 
-    { activityType : undefined, incoming_message : ?IncomingMessage }
-  | { activityType : undefined, message_sent : ?MessageSentInfo }
+    { activityType : 1, incomingMessage : ?IncomingMessage }
+  | { activityType : 2, messageSent : ?MessageSentInfo }
 
 export type ChatActivityType = 
     0 // RESERVED_0

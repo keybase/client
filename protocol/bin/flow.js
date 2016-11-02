@@ -287,14 +287,13 @@ function parseRecord (t) {
 }
 
 function parseVariant (t, project) {
-
   var parts = t.switch.type.split(".")
   if (parts.length > 1) {
     project = projects[parts.shift()]
   }
   var type = parts.shift()
   return "\n    " + t.cases.map(c => {
-    var label = c.label.name.toLowerCase()
+    var label = fixCase(c.label.name)
     var out = `{ ${t.switch.name} : ${project.enums[type][label]}`
     if (c.body !== null) {
       out += `, ${label} : ?${c.body}`
