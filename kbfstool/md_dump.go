@@ -68,7 +68,7 @@ func mdDumpOne(ctx context.Context, config libkbfs.Config,
 		fmt.Printf("Block changes block: %v\n", data.ChangesBlockInfo())
 	}
 	for i, op := range data.Changes.Ops {
-		fmt.Printf("Op[%d]: %v\n", i, op)
+		fmt.Printf("Op[%d]: %s", i, op.StringWithRefs(1))
 	}
 	// TODO: Print unknown fields.
 

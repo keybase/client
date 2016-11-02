@@ -27,6 +27,7 @@ type op interface {
 	Refs() []BlockPointer
 	Unrefs() []BlockPointer
 	String() string
+	StringWithRefs(numRefIndents int) string
 	setWriterInfo(writerInfo)
 	getWriterInfo() writerInfo
 	setFinalPath(p path)
@@ -219,6 +220,22 @@ func (oc *OpCommon) checkUpdatesValid() error {
 	return nil
 }
 
+func (oc *OpCommon) stringWithRefs(numRefIndents int) string {
+	indent := strings.Repeat("\t", numRefIndents)
+	res := ""
+	for i, update := range oc.Updates {
+		res += indent + fmt.Sprintf(
+			"Update[%d]: %v -> %v\n", i, update.Unref, update.Ref)
+	}
+	for i, ref := range oc.RefBlocks {
+		res += indent + fmt.Sprintf("Ref[%d]: %v\n", i, ref)
+	}
+	for i, unref := range oc.UnrefBlocks {
+		res += indent + fmt.Sprintf("Unref[%d]: %v\n", i, unref)
+	}
+	return res
+}
+
 // createOp is an op representing a file or subdirectory creation
 type createOp struct {
 	OpCommon
@@ -302,6 +319,14 @@ func (co *createOp) String() string {
 	if co.renamed {
 		res += " (renamed)"
 	}
+	return res
+}
+
+func (co *createOp) StringWithRefs(numRefIndents int) string {
+	res := co.String() + "\n"
+	indent := strings.Repeat("\t", numRefIndents)
+	res += indent + fmt.Sprintf("Dir: %v -> %v\n", co.Dir.Unref, co.Dir.Ref)
+	res += co.stringWithRefs(numRefIndents)
 	return res
 }
 
@@ -440,6 +465,14 @@ func (ro *rmOp) String() string {
 	return fmt.Sprintf("rm %s", ro.OldName)
 }
 
+func (ro *rmOp) StringWithRefs(numRefIndents int) string {
+	res := ro.String() + "\n"
+	indent := strings.Repeat("\t", numRefIndents)
+	res += indent + fmt.Sprintf("Dir: %v -> %v\n", ro.Dir.Unref, ro.Dir.Ref)
+	res += ro.stringWithRefs(numRefIndents)
+	return res
+}
+
 func (ro *rmOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
@@ -556,7 +589,24 @@ func (ro *renameOp) checkValid() error {
 }
 
 func (ro *renameOp) String() string {
-	return fmt.Sprintf("rename %s -> %s", ro.OldName, ro.NewName)
+	return fmt.Sprintf("rename %s -> %s (%s)",
+		ro.OldName, ro.NewName, ro.RenamedType)
+}
+
+func (ro *renameOp) StringWithRefs(numRefIndents int) string {
+	res := ro.String() + "\n"
+	indent := strings.Repeat("\t", numRefIndents)
+	res += indent + fmt.Sprintf("OldDir: %v -> %v\n",
+		ro.OldDir.Unref, ro.OldDir.Ref)
+	if ro.NewDir != (blockUpdate{}) {
+		res += indent + fmt.Sprintf("NewDir: %v -> %v\n",
+			ro.NewDir.Unref, ro.NewDir.Ref)
+	} else {
+		res += indent + fmt.Sprintf("NewDir: same as above")
+	}
+	res += indent + fmt.Sprintf("Renamed: %v", ro.Renamed)
+	res += ro.stringWithRefs(numRefIndents)
+	return res
 }
 
 func (ro *renameOp) checkConflict(
@@ -683,6 +733,14 @@ func (so *syncOp) String() string {
 		writes = append(writes, fmt.Sprintf("{off=%d, len=%d}", r.Off, r.Len))
 	}
 	return fmt.Sprintf("sync [%s]", strings.Join(writes, ", "))
+}
+
+func (so *syncOp) StringWithRefs(numRefIndents int) string {
+	res := so.String() + "\n"
+	indent := strings.Repeat("\t", numRefIndents)
+	res += indent + fmt.Sprintf("File: %v -> %v\n", so.File.Unref, so.File.Ref)
+	res += so.stringWithRefs(numRefIndents)
+	return res
 }
 
 func (so *syncOp) checkConflict(
@@ -915,6 +973,15 @@ func (sao *setAttrOp) String() string {
 	return fmt.Sprintf("setAttr %s (%s)", sao.Name, sao.Attr)
 }
 
+func (sao *setAttrOp) StringWithRefs(numRefIndents int) string {
+	res := sao.String() + "\n"
+	indent := strings.Repeat("\t", numRefIndents)
+	res += indent + fmt.Sprintf("Dir: %v -> %v\n", sao.Dir.Unref, sao.Dir.Ref)
+	res += indent + fmt.Sprintf("File: %v\n", sao.File)
+	res += sao.stringWithRefs(numRefIndents)
+	return res
+}
+
 func (sao *setAttrOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
@@ -989,6 +1056,12 @@ func (ro *resolutionOp) String() string {
 	return "resolution"
 }
 
+func (ro *resolutionOp) StringWithRefs(numRefIndents int) string {
+	res := ro.String() + "\n"
+	res += ro.stringWithRefs(numRefIndents)
+	return res
+}
+
 func (ro *resolutionOp) checkConflict(
 	ctx context.Context, renamer ConflictRenamer, mergedOp op,
 	isFile bool) (crAction, error) {
@@ -1023,6 +1096,12 @@ func (ro *rekeyOp) checkValid() error {
 
 func (ro *rekeyOp) String() string {
 	return "rekey"
+}
+
+func (ro *rekeyOp) StringWithRefs(numRefIndents int) string {
+	res := ro.String() + "\n"
+	res += ro.stringWithRefs(numRefIndents)
+	return res
 }
 
 func (ro *rekeyOp) checkConflict(
@@ -1072,6 +1151,13 @@ func (gco *GCOp) checkValid() error {
 
 func (gco *GCOp) String() string {
 	return fmt.Sprintf("gc %d", gco.LatestRev)
+}
+
+// StringWithRefs implements the op interface for GCOp.
+func (gco *GCOp) StringWithRefs(numRefIndents int) string {
+	res := gco.String() + "\n"
+	res += gco.stringWithRefs(numRefIndents)
+	return res
 }
 
 // checkConflict implements op.
