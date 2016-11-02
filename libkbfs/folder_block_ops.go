@@ -1966,14 +1966,6 @@ func ReadyBlock(ctx context.Context, config Config, kmd KeyMetadata,
 	return
 }
 
-// ReadyBlock is a thin wrapper around BlockOps.Ready() that handles
-// checking for duplicates.
-func (fbo *folderBlockOps) unneededReadyBlock(ctx context.Context, kmd KeyMetadata,
-	block Block, uid keybase1.UID) (
-	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
-	return ReadyBlock(ctx, fbo.config, kmd, block, uid)
-}
-
 // fileSyncState holds state for a sync operation for a single
 // file.
 type fileSyncState struct {
