@@ -205,19 +205,12 @@ func (s *Deliverer) Start(uid gregor1.UID) {
 	s.Lock()
 	defer s.Unlock()
 
-	if s.delivering {
-		s.Stop()
-	}
-
-	// Shut this thing down on service shutdown
-	s.G().PushShutdownHook(func() error {
-		s.shutdownCh <- struct{}{}
-		return nil
-	})
+	s.doStop()
 
 	s.outbox = storage.NewOutbox(s.G(), uid, func() libkb.SecretUI {
 		return DelivererSecretUI{}
 	})
+
 	s.delivering = true
 	go s.deliverLoop()
 }
@@ -225,7 +218,10 @@ func (s *Deliverer) Start(uid gregor1.UID) {
 func (s *Deliverer) Stop() {
 	s.Lock()
 	defer s.Unlock()
+	s.doStop()
+}
 
+func (s *Deliverer) doStop() {
 	if s.delivering {
 		s.shutdownCh <- struct{}{}
 		s.delivering = false
