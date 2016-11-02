@@ -16,6 +16,9 @@ func mdResetOne(
 		return err
 	}
 
+	// This function is loosely adapted from
+	// folderBranchOps.initMDLocked.
+
 	username, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return err
@@ -90,7 +93,7 @@ func mdResetOne(
 		}
 	}
 
-	// TODO: Implement maybeUnembedAndPutBlocks.
+	// Assume there's no need to unembed the block changes.
 
 	fmt.Printf("Putting revision %d...\n", rmdNext.Revision())
 

@@ -1158,7 +1158,6 @@ func (fbo *folderBranchOps) initMDLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	// create a dblock since one doesn't exist yet
 	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return err
@@ -1192,6 +1191,7 @@ func (fbo *folderBranchOps) initMDLocked(
 		return InvalidKeyGenerationError{md.TlfID(), keyGen}
 	}
 
+	// create a dblock since one doesn't exist yet
 	newDblock, info, readyBlockData, err :=
 		ResetRootBlock(ctx, fbo.config, uid, md)
 	if err != nil {
