@@ -6,12 +6,64 @@ package libkbfs
 
 import (
 	"crypto/rand"
+	"errors"
+	"reflect"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
+
+// blockReturner contains a block value to copy into requested blocks, and a
+// channel to synchronize on with the worker.
+type blockReturner struct {
+	val reflect.Value
+	ch  chan struct{}
+}
+
+// fakeBlockGetter allows specifying and obtaining fake blocks.
+type fakeBlockGetter struct {
+	mtx      sync.RWMutex
+	blockMap map[BlockPointer]blockReturner
+}
+
+// newFakeBlockGetter returns a fakeBlockGetter.
+func newFakeBlockGetter() *fakeBlockGetter {
+	return &fakeBlockGetter{
+		blockMap: make(map[BlockPointer]blockReturner),
+	}
+}
+
+// setBlockToReturn sets the block that will be returned for a given
+// BlockPointer. Returns a writeable channel that getBlock will wait on, to
+// allow synchronization of tests.
+func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) chan<- struct{} {
+	bg.mtx.Lock()
+	defer bg.mtx.Unlock()
+	ch := make(chan struct{})
+	bg.blockMap[blockPtr] = blockReturner{
+		val: reflect.ValueOf(block).Elem(),
+		ch:  ch,
+	}
+	return ch
+}
+
+// getBlock implements the interface for realBlockGetter.
+func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block) error {
+	bg.mtx.RLock()
+	defer bg.mtx.RUnlock()
+	source, ok := bg.blockMap[blockPtr]
+	if !ok {
+		return errors.New("Block doesn't exist in fake block map")
+	}
+	// Wait until the caller tells us to continue
+	<-source.ch
+	destVal := reflect.ValueOf(block).Elem()
+	destVal.Set(source.val)
+	return nil
+}
 
 func makeFakeFileBlock(t *testing.T) *FileBlock {
 	buf := make([]byte, 16)

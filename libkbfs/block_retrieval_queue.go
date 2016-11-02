@@ -64,7 +64,7 @@ type blockRetrievalQueue struct {
 	// in the heap, allowing preemption as long as possible. This way, a
 	// request only exits the heap once a worker is ready.
 	workerQueue chan chan *blockRetrieval
-	// Channel to represent whether we're done accepting requests
+	// channel to be closed when we're done accepting requests
 	doneCh chan struct{}
 }
 
@@ -86,14 +86,14 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 		case <-brq.doneCh:
 			// Prevent interference with the heap while we're retrieving from it
 			brq.mtx.Lock()
-			defer brq.mtx.Unlock()
 			if brq.heap.Len() > 0 {
 				retrieval := heap.Pop(brq.heap).(*blockRetrieval)
+				// FinalizeRequest locks brq.mtx, so need to unlock it before calling
+				brq.mtx.Unlock()
 				brq.FinalizeRequest(retrieval, nil, io.EOF)
 			}
-		default:
-			// Get the next queued worker
-			ch := <-brq.workerQueue
+		// Get the next queued worker
+		case ch := <-brq.workerQueue:
 			// Prevent interference with the heap while we're retrieving from it
 			brq.mtx.Lock()
 			defer brq.mtx.Unlock()
@@ -151,10 +151,10 @@ func (brq *blockRetrievalQueue) WorkOnRequest() <-chan *blockRetrieval {
 	return ch
 }
 
-// FinalizeRequest s the last step of a retrieval request once a block has been
-// obtained. It removes the request from the blockRetrievalQueue, preventing
-// more requests mutating the retrieval, then notifies all subscribed
-// requests.
+// FinalizeRequest is the last step of a retrieval request once a block has
+// been obtained. It removes the request from the blockRetrievalQueue,
+// preventing more requests from mutating the retrieval, then notifies all
+// subscribed requests.
 func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block Block, err error) {
 	brq.mtx.Lock()
 	delete(brq.ptrs, retrieval.blockPtr)

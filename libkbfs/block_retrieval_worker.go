@@ -74,8 +74,10 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	}()
 
 	// Pick one of the still-active contexts to use
-	// FIXME: this will be racy because retrieval.requests can mutate until
+	// FIXME: this will be racy because retrieval requests can mutate until
 	// brw.queue.FinalizeRequest is called
+	// TODO: address the racy behavior here: make a megacontext for the
+	// retrieval that we can pass in properly.
 	var ctx context.Context
 	canceled := true
 	for _, req := range retrieval.requests {
