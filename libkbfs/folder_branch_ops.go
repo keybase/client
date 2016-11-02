@@ -1125,6 +1125,33 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 	return bps, nil
 }
 
+func ResetRootBlock(ctx context.Context, config Config,
+	currentUID keybase1.UID, rmd *RootMetadata) (
+	Block, BlockInfo, ReadyBlockData, error) {
+	newDblock := NewDirBlock()
+	info, plainSize, readyBlockData, err :=
+		ReadyBlock(ctx, config, rmd.ReadOnly(), newDblock, currentUID)
+	if err != nil {
+		return nil, BlockInfo{}, ReadyBlockData{}, err
+	}
+
+	now := config.Clock().Now().UnixNano()
+	rmd.data.Dir = DirEntry{
+		BlockInfo: info,
+		EntryInfo: EntryInfo{
+			Type:  Dir,
+			Size:  uint64(plainSize),
+			Mtime: now,
+			Ctime: now,
+		},
+	}
+	co := NewCreateOpForRootDir()
+	rmd.AddOp(co)
+	rmd.AddRefBlock(rmd.data.Dir.BlockInfo)
+	rmd.SetUnrefBytes(0)
+	return newDblock, info, readyBlockData, nil
+}
+
 func (fbo *folderBranchOps) initMDLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -1141,8 +1168,6 @@ func (fbo *folderBranchOps) initMDLocked(
 	if !handle.IsWriter(uid) {
 		return NewWriteAccessError(handle, username, handle.GetCanonicalPath())
 	}
-
-	newDblock := NewDirBlock()
 
 	var expectedKeyGen KeyGen
 	var tlfCryptKey *kbfscrypto.TLFCryptKey
@@ -1164,26 +1189,12 @@ func (fbo *folderBranchOps) initMDLocked(
 	if keyGen != expectedKeyGen {
 		return InvalidKeyGenerationError{md.TlfID(), keyGen}
 	}
-	info, plainSize, readyBlockData, err :=
-		fbo.blocks.ReadyBlock(ctx, md.ReadOnly(), newDblock, uid)
+
+	newDblock, info, readyBlockData, err :=
+		ResetRootBlock(ctx, fbo.config, uid, md)
 	if err != nil {
 		return err
 	}
-
-	now := fbo.nowUnixNano()
-	md.data.Dir = DirEntry{
-		BlockInfo: info,
-		EntryInfo: EntryInfo{
-			Type:  Dir,
-			Size:  uint64(plainSize),
-			Mtime: now,
-			Ctime: now,
-		},
-	}
-	co := NewCreateOpForRootDir()
-	md.AddOp(co)
-	md.AddRefBlock(md.data.Dir.BlockInfo)
-	md.SetUnrefBytes(0)
 
 	if err = putBlockCheckQuota(ctx, fbo.config.BlockServer(),
 		fbo.config.Reporter(), md.TlfID(), info.BlockPointer, readyBlockData,

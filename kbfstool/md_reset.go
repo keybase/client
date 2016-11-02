@@ -94,26 +94,11 @@ outer:
 		return err
 	}
 
-	newDblock := libkbfs.NewDirBlock()
-	info, plainSize, readyBlockData, err :=
-		libkbfs.ReadyBlock(ctx, config, rmdNext, newDblock, uid)
-
-	now := config.Clock().Now().UnixNano()
-	pmd := rmdNext.Data()
-	pmd.Dir = libkbfs.DirEntry{
-		BlockInfo: info,
-		EntryInfo: libkbfs.EntryInfo{
-			Type:  libkbfs.Dir,
-			Size:  uint64(plainSize),
-			Mtime: now,
-			Ctime: now,
-		},
+	_, info, readyBlockData, err :=
+		libkbfs.ResetRootBlock(ctx, config, uid, rmdNext)
+	if err != nil {
+		return err
 	}
-
-	co := libkbfs.NewCreateOpForRootDir()
-	rmdNext.AddOp(co)
-	rmdNext.AddRefBlock(pmd.Dir.BlockInfo)
-	rmdNext.SetUnrefBytes(0)
 
 	dryRun := true
 
