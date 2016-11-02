@@ -48,7 +48,7 @@ func mdResetOne(
 	}
 
 	if irmd == (libkbfs.ImmutableRootMetadata{}) {
-		fmt.Printf("No TLF found for %q\n\n", tlfPath)
+		fmt.Printf("No TLF found for %q\n", tlfPath)
 		return nil
 	}
 
