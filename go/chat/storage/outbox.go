@@ -77,6 +77,9 @@ func (o *Outbox) readDiskOutbox() (res diskOutbox, err error) {
 	if err = decode(pt, &res); err != nil {
 		return res, err
 	}
+	if res.Version > outboxVersion {
+		return res, fmt.Errorf("invalid version of outbox")
+	}
 
 	return res, nil
 }

@@ -367,10 +367,11 @@ func (d *Service) OnLogin() error {
 
 func (d *Service) OnLogout() error {
 	if d.gregor == nil {
-		return nil
+		d.gregor.Shutdown()
 	}
-	d.gregor.Shutdown()
-	d.messageDeliverer.Stop()
+	if d.messageDeliverer != nil {
+		d.messageDeliverer.Stop()
+	}
 	d.rekeyMaster.Logout()
 	return nil
 }

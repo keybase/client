@@ -154,11 +154,16 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		return chat1.OutboxID{}, nil, err
 	}
 
+	ri := s.getRi()
+	if ri == nil {
+		return chat1.OutboxID{}, nil, fmt.Errorf("Send(): no remote client found")
+	}
+
 	rarg := chat1.PostRemoteArg{
 		ConversationID: convID,
 		MessageBoxed:   *boxed,
 	}
-	plres, err := s.getRi().PostRemote(ctx, rarg)
+	plres, err := ri.PostRemote(ctx, rarg)
 	if err != nil {
 		return chat1.OutboxID{}, nil, err
 	}
@@ -198,6 +203,12 @@ func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 		msgSentCh:    make(chan struct{}, 100),
 		sender:       sender,
 	}
+
+	g.PushShutdownHook(func() error {
+		d.Stop()
+		return nil
+	})
+
 	return d
 }
 
