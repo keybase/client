@@ -2,7 +2,7 @@
 
 helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
 
-nodeWithDockerCleanup("ec2-fleet-max-test-linux", {}, {}) {
+helpers.nodeWithDockerCleanup("ec2-fleet-max-test-linux", {}, {}) {
     properties([
             [$class: "BuildDiscarderProperty",
                 strategy: [$class: "LogRotator",
