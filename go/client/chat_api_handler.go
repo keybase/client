@@ -15,13 +15,14 @@ import (
 )
 
 const (
-	methodList     = "list"
-	methodRead     = "read"
-	methodSend     = "send"
-	methodEdit     = "edit"
-	methodDelete   = "delete"
-	methodAttach   = "attach"
-	methodDownload = "download"
+	methodList      = "list"
+	methodRead      = "read"
+	methodSend      = "send"
+	methodEdit      = "edit"
+	methodDelete    = "delete"
+	methodAttach    = "attach"
+	methodDownload  = "download"
+	methodSetStatus = "setstatus"
 )
 
 // ErrInvalidOptions is returned when the options aren't valid.
@@ -84,6 +85,7 @@ type ChatAPIHandler interface {
 	DeleteV1(context.Context, Call, io.Writer) error
 	AttachV1(context.Context, Call, io.Writer) error
 	DownloadV1(context.Context, Call, io.Writer) error
+	SetStatusV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -236,6 +238,23 @@ func (a downloadOptionsV1) Check() error {
 	return nil
 }
 
+type setStatusOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID string `json:"conversation_id"`
+	Status         string `json:"status"`
+}
+
+func (o setStatusOptionsV1) Check() error {
+	if err := checkChannelConv(methodDownload, o.Channel, o.ConversationID); err != nil {
+		return err
+	}
+	if _, ok := chat1.ConversationStatusMap[strings.ToUpper(o.Status)]; !ok {
+		return ErrInvalidOptions{version: 1, method: methodSetStatus, err: fmt.Errorf("unsupported status: '%v'", o.Status)}
+	}
+
+	return nil
+}
+
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	if len(c.Params.Options) != 0 {
 		return ErrInvalidOptions{version: 1, method: methodList, err: errors.New("unexpected options, should be empty")}
@@ -344,6 +363,23 @@ func (a *ChatAPI) DownloadV1(ctx context.Context, c Call, w io.Writer) error {
 	// opts are valid for download v1
 
 	return a.encodeReply(c, a.svcHandler.DownloadV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) SetStatusV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodDownload, err: errors.New("empty options")}
+	}
+	var opts setStatusOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+
+	// opts are valid for setstatus v1
+
+	return a.encodeReply(c, a.svcHandler.SetStatusV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

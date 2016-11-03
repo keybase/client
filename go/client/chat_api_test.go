@@ -15,13 +15,14 @@ import (
 )
 
 type handlerTracker struct {
-	listV1     int
-	readV1     int
-	sendV1     int
-	editV1     int
-	deleteV1   int
-	attachV1   int
-	downloadV1 int
+	listV1      int
+	readV1      int
+	sendV1      int
+	editV1      int
+	deleteV1    int
+	attachV1    int
+	downloadV1  int
+	setstatusV1 int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -59,6 +60,11 @@ func (h *handlerTracker) DownloadV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) SetStatusV1(context.Context, Call, io.Writer) error {
+	h.setstatusV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -92,6 +98,10 @@ func (c *chatEcho) AttachV1(context.Context, attachOptionsV1) Reply {
 }
 
 func (c *chatEcho) DownloadV1(context.Context, downloadOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) SetStatusV1(context.Context, setStatusOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -314,6 +324,17 @@ var optTests = []optTest{
 	{
 		input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "preview": true, "output": "/tmp/file"}}}`,
 	},
+	{
+		input: `{"method": "setstatus", "params":{"version": 1, "options": {"channel": {"name": "a123,nfnf,t_bob"}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ONTARIO", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ignored", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
+	},
 }
 
 // TestChatAPIDecoderOptions tests the option decoding.
@@ -389,6 +410,10 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "setstatus", "params":{"version": 1, "options": {"status": "ignored", "channel": {"name": "a123,nfnf,t_bob"}}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 }

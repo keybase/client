@@ -22,6 +22,7 @@ type ChatServiceHandler interface {
 	DeleteV1(context.Context, deleteOptionsV1) Reply
 	AttachV1(context.Context, attachOptionsV1) Reply
 	DownloadV1(context.Context, downloadOptionsV1) Reply
+	SetStatusV1(context.Context, setStatusOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -43,7 +44,11 @@ func (c *chatServiceHandler) ListV1(ctx context.Context) Reply {
 		return c.errReply(err)
 	}
 
-	inbox, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{})
+	inbox, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+		Query: &chat1.GetInboxLocalQuery{
+			Status: libkb.VisibleChatConversationStatuses(),
+		},
+	})
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -81,33 +86,10 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		return c.errReply(err)
 	}
 
-	var convID chat1.ConversationID
-	if len(opts.ConversationID) == 0 {
-		// resolve conversation id
-		query, err := c.getInboxLocalQuery(ctx, chat1.ConversationID{}, opts.Channel)
-		if err != nil {
-			return c.errReply(err)
-		}
-		gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
-			Query: &query,
-		})
-		if err != nil {
-			return c.errReply(err)
-		}
-		rlimits = append(rlimits, gilres.RateLimits...)
-		existing := gilres.ConversationsUnverified
-		if len(existing) > 1 {
-			return c.errReply(fmt.Errorf("multiple conversations matched %q", opts.Channel.Name))
-		}
-		if len(existing) == 0 {
-			return c.errReply(fmt.Errorf("no conversations matched %q", opts.Channel.Name))
-		}
-		convID = existing[0].Metadata.ConversationID
-	} else {
-		convID, err = chat1.MakeConvID(opts.ConversationID)
-		if err != nil {
-			return c.errReply(fmt.Errorf("invalid conversation ID: %s", opts.ConversationID))
-		}
+	// TODO safety argument, is the use of an unverified convID ok here?
+	convID, rlimits, err := c.resolveAPIConvIDUnverified(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
 	}
 
 	arg := chat1.GetThreadLocalArg{
@@ -340,34 +322,10 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 		return c.errReply(err)
 	}
 
-	var rlimits []chat1.RateLimit
-	var convID chat1.ConversationID
-	if len(opts.ConversationID) == 0 {
-		// resolve conversation id
-		query, err := c.getInboxLocalQuery(ctx, chat1.ConversationID{}, opts.Channel)
-		if err != nil {
-			return c.errReply(err)
-		}
-		gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
-			Query: &query,
-		})
-		if err != nil {
-			return c.errReply(err)
-		}
-		rlimits = append(rlimits, gilres.RateLimits...)
-		existing := gilres.ConversationsUnverified
-		if len(existing) > 1 {
-			return c.errReply(fmt.Errorf("multiple conversations matched %q", opts.Channel.Name))
-		}
-		if len(existing) == 0 {
-			return c.errReply(fmt.Errorf("no conversations matched %q", opts.Channel.Name))
-		}
-		convID = existing[0].Metadata.ConversationID
-	} else {
-		convID, err = chat1.MakeConvID(opts.ConversationID)
-		if err != nil {
-			return c.errReply(fmt.Errorf("invalid conversation id: %s", opts.ConversationID))
-		}
+	// TODO safety argument, is the use of an unverified convID ok here?
+	convID, rlimits, err := c.resolveAPIConvIDUnverified(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
 	}
 
 	arg := chat1.DownloadAttachmentLocalArg{
@@ -390,6 +348,43 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 		},
 	}
 
+	return Reply{Result: res}
+}
+
+// SetStatusV1 implements ChatServiceHandler.SetStatusV1.
+func (c *chatServiceHandler) SetStatusV1(ctx context.Context, opts setStatusOptionsV1) Reply {
+	var rlimits []chat1.RateLimit
+
+	// Unverified convID is ok here because status is completely server controlled anyway.
+	convID, rlimits, err := c.resolveAPIConvIDUnverified(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	status, ok := chat1.ConversationStatusMap[strings.ToUpper(opts.Status)]
+	if !ok {
+		return c.errReply(fmt.Errorf("unsupported status: '%v'", opts.Status))
+	}
+
+	setStatusArg := chat1.SetConversationStatusLocalArg{
+		ConversationID: convID,
+		Status:         status,
+	}
+
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	localRes, err := client.SetConversationStatusLocal(ctx, setStatusArg)
+	if err != nil {
+		return c.errReply(err)
+	}
+	rlimits = append(rlimits, localRes.RateLimits...)
+
+	res := EmptyRes{
+		RateLimits: RateLimits{
+			c.aggRateLimits(rlimits),
+		},
+	}
 	return Reply{Result: res}
 }
 
@@ -588,6 +583,53 @@ func (c *chatServiceHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []Rat
 	return res
 }
 
+// Resolve the ConvID of the specified conversation.
+// Note that it could be a server lie, so don't use it for getting keys.
+// Prefers using ChatChannel but if it is blank (default-valued) then uses ConvIDStr.
+// Uses tlfclient and GetInboxLocal's ConversationsUnverified.
+func (c *chatServiceHandler) resolveAPIConvIDUnverified(ctx context.Context, convIDStr string, channel ChatChannel) (chat1.ConversationID, []chat1.RateLimit, error) {
+	var convID chat1.ConversationID
+	var rlimits []chat1.RateLimit
+
+	if (channel == ChatChannel{}) && len(convIDStr) == 0 {
+		return convID, rlimits, fmt.Errorf("missing conversation specificer")
+	}
+
+	if channel == (ChatChannel{}) {
+		// Use ConvID as a fallback if channel is blank.
+		// Support for API usage of ConvIDs is scheduled for termination.
+		convID, err := chat1.MakeConvID(convIDStr)
+		if err != nil {
+			return convID, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
+		}
+	}
+
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return convID, rlimits, err
+	}
+	query, err := c.getInboxLocalQuery(ctx, chat1.ConversationID{}, channel)
+	if err != nil {
+		return convID, rlimits, err
+	}
+	gilres, err := client.GetInboxLocal(ctx, chat1.GetInboxLocalArg{
+		Query: &query,
+	})
+	if err != nil {
+		return convID, rlimits, err
+	}
+	rlimits = append(rlimits, gilres.RateLimits...)
+	existing := gilres.ConversationsUnverified
+	if len(existing) > 1 {
+		return convID, rlimits, fmt.Errorf("multiple conversations matched %q", channel.Name)
+	}
+	if len(existing) == 0 {
+		return convID, rlimits, fmt.Errorf("no conversations matched %q", channel.Name)
+	}
+	convID = existing[0].Metadata.ConversationID
+	return convID, rlimits, nil
+}
+
 // MsgSender is used for JSON output of the sender of a message.
 type MsgSender struct {
 	UID        string `json:"uid"`
@@ -646,5 +688,10 @@ type ChatList struct {
 // SendRes is the result of successfully sending a message.
 type SendRes struct {
 	Message string `json:"message"`
+	RateLimits
+}
+
+// EmptyRes is used for JSON output of a boring command.
+type EmptyRes struct {
 	RateLimits
 }
