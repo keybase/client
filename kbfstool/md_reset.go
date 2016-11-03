@@ -13,7 +13,7 @@ import (
 
 func mdResetOne(
 	ctx context.Context, config libkbfs.Config, tlfPath string,
-	checkValid, dryRun bool) error {
+	checkValid, dryRun, force bool) error {
 	handle, err := parseTLFPath(ctx, config.KBPKI(), tlfPath)
 	if err != nil {
 		return err
@@ -106,15 +106,17 @@ func mdResetOne(
 		return nil
 	}
 
-	fmt.Print("Are you sure you want to continue? [y/N]: ")
-	response, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil {
-		return err
-	}
-	response = strings.ToLower(strings.TrimSpace(response))
-	if response != "y" {
-		fmt.Printf("Didn't confirm; not doing anything\n")
-		return nil
+	if !force {
+		fmt.Print("Are you sure you want to continue? [y/N]: ")
+		response, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		if err != nil {
+			return err
+		}
+		response = strings.ToLower(strings.TrimSpace(response))
+		if response != "y" {
+			fmt.Printf("Didn't confirm; not doing anything\n")
+			return nil
+		}
 	}
 
 	fmt.Printf("Putting block %s...\n", info)
@@ -150,6 +152,7 @@ func mdReset(ctx context.Context, config libkbfs.Config, args []string) (exitSta
 	flags := flag.NewFlagSet("kbfs md reset", flag.ContinueOnError)
 	checkValid := flags.Bool("c", true, "If set, don't do anything if the existing root block is valid")
 	dryRun := flags.Bool("d", false, "Dry run: don't actually do anything.")
+	force := flags.Bool("f", false, "If set, skip confirmation prompt.")
 	err := flags.Parse(args)
 	if err != nil {
 		printError("md reset", err)
@@ -162,7 +165,7 @@ func mdReset(ctx context.Context, config libkbfs.Config, args []string) (exitSta
 		return 1
 	}
 
-	err = mdResetOne(ctx, config, inputs[0], *checkValid, *dryRun)
+	err = mdResetOne(ctx, config, inputs[0], *checkValid, *dryRun, *force)
 	if err != nil {
 		printError("md reset", err)
 		return 1
