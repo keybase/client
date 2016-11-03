@@ -32,7 +32,7 @@ func makeRekeyReadErrorHelper(
 	// If the user is not a legitimate reader of the folder, this is a
 	// normal read access error.
 	if !resolvedHandle.IsReader(uid) {
-		return NewReadAccessError(resolvedHandle, username)
+		return NewReadAccessError(resolvedHandle, username, resolvedHandle.GetCanonicalPath())
 	}
 
 	// Otherwise, this folder needs to be rekeyed for this device.

@@ -155,9 +155,10 @@ func (e ErrorFileAccessError) Error() string {
 // ReadAccessError indicates that the user tried to read from a
 // top-level folder without read permission.
 type ReadAccessError struct {
-	User   libkb.NormalizedUsername
-	Tlf    CanonicalTlfName
-	Public bool
+	User     libkb.NormalizedUsername
+	Filename string
+	Tlf      CanonicalTlfName
+	Public   bool
 }
 
 // Error implements the error interface for ReadAccessError
@@ -195,9 +196,14 @@ func (e WriteUnsupportedError) Error() string {
 
 // NewReadAccessError constructs a ReadAccessError for the given
 // directory and user.
-func NewReadAccessError(h *TlfHandle, username libkb.NormalizedUsername) error {
+func NewReadAccessError(h *TlfHandle, username libkb.NormalizedUsername, filename string) error {
 	tlfname := h.GetCanonicalName()
-	return ReadAccessError{username, tlfname, h.IsPublic()}
+	return ReadAccessError{
+		User:     username,
+		Filename: filename,
+		Tlf:      tlfname,
+		Public:   h.IsPublic(),
+	}
 }
 
 // NewWriteAccessError is an access error trying to write a file

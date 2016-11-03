@@ -740,7 +740,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 	ops.head = makeImmutableRMDForTest(t, config, rmd, fakeMdID(1))
-	expectedErr := ReadAccessError{"alice", h.GetCanonicalName(), false}
+	expectedErr := NewReadAccessError(h, "alice", "/keybase/private/bob#alice")
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")
 	} else if err != expectedErr {

@@ -102,6 +102,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case ReadAccessError:
 		code = keybase1.FSErrorType_ACCESS_DENIED
 		params[errorParamMode] = errorModeRead
+		filename = e.Filename
 	case WriteAccessError:
 		code = keybase1.FSErrorType_ACCESS_DENIED
 		params[errorParamUsername] = e.User.String()

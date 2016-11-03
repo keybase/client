@@ -568,7 +568,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	if !isWriter && incKeyGen {
 		// Readers cannot create the first key generation
-		return false, nil, NewReadAccessError(resolvedHandle, username)
+		return false, nil, NewReadAccessError(resolvedHandle, username, resolvedHandle.GetCanonicalPath())
 	}
 
 	// All writer keys in the desired keyset
