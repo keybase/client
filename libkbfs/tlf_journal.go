@@ -622,7 +622,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 	// block ops. See KBFS-1502.
 
 	for {
-		isConflict, err := j.isOnConflictBranchLocked()
+		isConflict, err := j.isOnConflictBranch()
 		if err != nil {
 			return err
 		}
@@ -881,18 +881,15 @@ func (j *tlfJournal) getJournalEntryCounts() (
 	return blockEntryCount, mdEntryCount, nil
 }
 
-func (j *tlfJournal) isOnConflictBranchLocked() (bool, error) {
+func (j *tlfJournal) isOnConflictBranch() (bool, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+
 	if err := j.checkEnabledLocked(); err != nil {
 		return false, err
 	}
 
 	return j.mdJournal.getBranchID() != NullBranchID, nil
-}
-
-func (j *tlfJournal) isOnConflictBranch() (bool, error) {
-	j.journalLock.RLock()
-	defer j.journalLock.RUnlock()
-	return j.isOnConflictBranchLocked()
 }
 
 func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
