@@ -29,7 +29,7 @@ import type {
   ShowDevices,
   ShowRemovePage,
 } from '../constants/devices'
-import type {DeviceDetail} from '../constants/types/flow-types'
+import type {Device} from '../constants/types/more'
 import type {SagaGenerator} from '../constants/types/saga'
 
 export function loadDevices (): LoadDevices {
@@ -44,7 +44,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
   return {type: Constants.removeDevice, payload: {deviceID, name, currentDevice}}
 }
 
-export function showRemovePage (device: DeviceDetail): ShowRemovePage {
+export function showRemovePage (device: Device): ShowRemovePage {
   return {type: Constants.showRemovePage, payload: {device}}
 }
 
