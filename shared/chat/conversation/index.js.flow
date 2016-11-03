@@ -1,0 +1,16 @@
+// @flow
+import {Component} from 'react'
+import {List} from 'immutable'
+
+import type {Message} from '../../constants/chat'
+
+export type Props = {
+  loadMoreMessages: () => void,
+  messages: List<Message>,
+  participants: List<string>,
+  moreToLoad: boolean,
+  isLoading: boolean,
+  onPostMessage: (text: string) => void,
+}
+
+export default class Conversation extends Component<void, Props, void> { }

@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libcmdline"
@@ -24,15 +26,16 @@ import (
 
 type Service struct {
 	libkb.Contextified
-	isDaemon     bool
-	chdirTo      string
-	lockPid      *libkb.LockPIDFile
-	ForkType     keybase1.ForkType
-	startCh      chan struct{}
-	stopCh       chan keybase1.ExitCode
-	logForwarder *logFwd
-	gregor       *gregorHandler
-	rekeyMaster  *rekeyMaster
+	isDaemon         bool
+	chdirTo          string
+	lockPid          *libkb.LockPIDFile
+	ForkType         keybase1.ForkType
+	startCh          chan struct{}
+	stopCh           chan keybase1.ExitCode
+	logForwarder     *logFwd
+	gregor           *gregorHandler
+	rekeyMaster      *rekeyMaster
+	messageDeliverer *chat.Deliverer
 }
 
 type Shutdowner interface {
@@ -206,6 +209,7 @@ func (d *Service) Run() (err error) {
 
 	d.hourlyChecks()
 	d.startupGregor()
+	d.createMessageDeliverer()
 	d.addGlobalHooks()
 	d.configurePath()
 	d.configureRekey(uir)
@@ -214,6 +218,21 @@ func (d *Service) Run() (err error) {
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
+}
+
+func (d *Service) createMessageDeliverer() {
+	ri := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: d.gregor.cli} }
+	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
+	tlf := newTlfHandler(nil, d.G())
+	udc := utils.NewUserDeviceCache(d.G())
+
+	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf, udc), ri, si)
+	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
+
+	uid := d.G().Env.GetUID()
+	if !uid.IsNil() {
+		d.G().MessageDeliverer.Start(d.G().Env.GetUID().ToBytes())
+	}
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {
@@ -336,14 +355,23 @@ func (d *Service) tryGregordConnect() error {
 
 func (d *Service) OnLogin() error {
 	d.rekeyMaster.Login()
-	return d.gregordConnect()
+	if err := d.gregordConnect(); err != nil {
+		return err
+	}
+	uid := d.G().Env.GetUID()
+	if !uid.IsNil() {
+		d.G().MessageDeliverer.Start(d.G().Env.GetUID().ToBytes())
+	}
+	return nil
 }
 
 func (d *Service) OnLogout() error {
 	if d.gregor == nil {
-		return nil
+		d.gregor.Shutdown()
 	}
-	d.gregor.Shutdown()
+	if d.messageDeliverer != nil {
+		d.messageDeliverer.Stop()
+	}
 	d.rekeyMaster.Logout()
 	return nil
 }

@@ -622,6 +622,10 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
         expiringLocal: false,
       })
     },
+    'keybase.1.identifyUi.cancel': ({sessionID}, response) => {
+      response.result()
+      engine().cancelSession(sessionID)
+    },
     'keybase.1.identifyUi.finish': ({sessionID}, response) => {
       response.result()
       requestIdleCallback(() => {
