@@ -76,10 +76,10 @@ const styleDevicesContainer = {
   width: 300,
   backgroundColor: globalColors.lightGrey,
   alignSelf: 'center',
-  marginTop: 15,
-  marginBottom: 15,
-  paddingTop: 15,
-  paddingBottom: 15,
+  marginTop: globalMargins.small,
+  marginBottom: globalMargins.small,
+  paddingTop: globalMargins.small,
+  paddingBottom: globalMargins.small,
 }
 
 export default Render
