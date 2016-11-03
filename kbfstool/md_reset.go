@@ -13,7 +13,7 @@ import (
 
 func mdResetOne(
 	ctx context.Context, config libkbfs.Config, tlfPath string,
-	dryRun bool) error {
+	checkValid, dryRun bool) error {
 	handle, err := parseTLFPath(ctx, config.KBPKI(), tlfPath)
 	if err != nil {
 		return err
@@ -59,21 +59,24 @@ func mdResetOne(
 		return nil
 	}
 
-	rootPtr := irmd.Data().Dir.BlockPointer
-	if rootPtr.Ref().IsValid() {
-		var dirBlock libkbfs.DirBlock
-		err = config.BlockOps().Get(ctx, irmd, rootPtr, &dirBlock)
-		if err == nil {
-			fmt.Printf("Got no error when getting root block %s; aborting\n", rootPtr)
-			return nil
+	if checkValid {
+		rootPtr := irmd.Data().Dir.BlockPointer
+		if rootPtr.Ref().IsValid() {
+			var dirBlock libkbfs.DirBlock
+			err = config.BlockOps().Get(
+				ctx, irmd, rootPtr, &dirBlock)
+			if err == nil {
+				fmt.Printf("Got no error when getting root block %s; not doing anything\n", rootPtr)
+				return nil
+			}
+			fmt.Printf("Got error %s when getting root block %s, so revision %d is broken. Making successor...\n",
+				err, rootPtr, irmd.Revision())
+		} else {
+			// This happens in the wild, but only for folders used
+			// for journal-related testing early on.
+			fmt.Printf("Root block pointer is invalid, so revision %d is broken. Making successor...\n",
+				irmd.Revision())
 		}
-		fmt.Printf("Got error %s when getting root block %s, so revision %d is broken. Making successor...\n",
-			err, rootPtr, irmd.Revision())
-	} else {
-		// This happens in the wild, but only for folders used
-		// for journal-related testing early on.
-		fmt.Printf("Root block pointer is invalid, so revision %d is broken. Making successor...\n",
-			irmd.Revision())
 	}
 
 	rmdNext, err := irmd.MakeSuccessor(config.Codec(), irmd.MdID(), true)
@@ -145,6 +148,7 @@ const mdResetUsageStr = `Usage:
 
 func mdReset(ctx context.Context, config libkbfs.Config, args []string) (exitStatus int) {
 	flags := flag.NewFlagSet("kbfs md reset", flag.ContinueOnError)
+	checkValid := flags.Bool("c", true, "If set, don't do anything if the existing root block is valid")
 	dryRun := flags.Bool("d", false, "Dry run: don't actually do anything.")
 	err := flags.Parse(args)
 	if err != nil {
@@ -158,7 +162,7 @@ func mdReset(ctx context.Context, config libkbfs.Config, args []string) (exitSta
 		return 1
 	}
 
-	err = mdResetOne(ctx, config, inputs[0], *dryRun)
+	err = mdResetOne(ctx, config, inputs[0], *checkValid, *dryRun)
 	if err != nil {
 		printError("md reset", err)
 		return 1
