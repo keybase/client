@@ -113,7 +113,7 @@ func (e *PGPKeyGen) push(ctx *Context, bundle *libkb.PGPKeyBundle, pushPrivate b
 	del := &libkb.Delegator{
 		Me:             me,
 		Expire:         libkb.KeyExpireIn,
-		DelegationType: libkb.SibkeyType,
+		DelegationType: libkb.DelegationTypeSibkey,
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 	if err := del.LoadSigningKey(ctx.LoginContext, ctx.SecretUI); err != nil {

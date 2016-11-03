@@ -91,6 +91,8 @@ function * _onUpdatePGPSettings (): SagaGenerator<any, any> {
 
 function * _onSubmitNewEmail (): SagaGenerator<any, any> {
   try {
+    yield put(Constants.waiting(true))
+
     const newEmailSelector = ({settings: {email: {newEmail}}}: TypedState) => newEmail
     const newEmail: string = ((yield select(newEmailSelector)): any)
 
@@ -103,11 +105,15 @@ function * _onSubmitNewEmail (): SagaGenerator<any, any> {
     yield put(navigateUp())
   } catch (error) {
     yield put({type: Constants.onUpdateEmailError, payload: {error}})
+  } finally {
+    yield put(Constants.waiting(false))
   }
 }
 
 function * _onSubmitNewPassphrase (): SagaGenerator<any, any> {
   try {
+    yield put(Constants.waiting(true))
+
     const selector = (state: TypedState) => state.settings.passphrase
     const {newPassphrase, newPassphraseConfirm} = ((yield select(selector)): any)
     if (newPassphrase.stringValue() !== newPassphraseConfirm.stringValue()) {
@@ -124,40 +130,47 @@ function * _onSubmitNewPassphrase (): SagaGenerator<any, any> {
     yield put(navigateUp())
   } catch (error) {
     yield put({type: Constants.onUpdatePassphraseError, payload: {error}})
+  } finally {
+    yield put(Constants.waiting(false))
   }
 }
 
 function * saveNotificationsSaga (): SagaGenerator<any, any> {
-  const current = yield select(state => state.settings.notifications)
+  try {
+    yield put(Constants.waiting(true))
+    const current = yield select(state => state.settings.notifications)
 
-  if (!current || !current.settings) {
-    throw new Error('No notifications loaded yet')
+    if (!current || !current.settings) {
+      throw new Error('No notifications loaded yet')
+    }
+
+    const JSONPayload = current.settings
+    .map(s => ({
+      key: `${s.name}|email`,
+      value: s.subscribed ? '1' : '0'}))
+    .concat({
+      key: `unsub|email`,
+      value: current.unsubscribedFromAll ? '1' : '0'})
+
+    const result = yield call(apiserverPostJSONRpcPromise, {
+      param: {
+        endpoint: 'account/subscribe',
+        args: [],
+        JSONPayload,
+      },
+    })
+
+    if (!result || !result.body || JSON.parse(result.body).status.code !== 0) {
+      throw new Error(`Invalid response ${result || '(no result)'}`)
+    }
+
+    yield put({
+      type: Constants.notificationsSaved,
+      payload: undefined,
+    })
+  } finally {
+    yield put(Constants.waiting(false))
   }
-
-  const JSONPayload = current.settings
-  .map(s => ({
-    key: `${s.name}|email`,
-    value: s.subscribed ? '1' : '0'}))
-  .concat({
-    key: `unsub|email`,
-    value: current.unsubscribedFromAll ? '1' : '0'})
-
-  const result = yield call(apiserverPostJSONRpcPromise, {
-    param: {
-      endpoint: 'account/subscribe',
-      args: [],
-      JSONPayload,
-    },
-  })
-
-  if (!result || !result.body || JSON.parse(result.body).status.code !== 0) {
-    throw new Error(`Invalid response ${result || '(no result)'}`)
-  }
-
-  yield put({
-    type: Constants.notificationsSaved,
-    payload: undefined,
-  })
 }
 
 function * reclaimInviteSaga (invitesReclaimAction: InvitesReclaim): SagaGenerator<any, any> {
@@ -243,12 +256,15 @@ function * refreshInvitesSaga (): SagaGenerator<any, any> {
 }
 
 function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, any> {
-  const {email, message} = invitesSendAction.payload
-  const args = [{key: 'email', value: email}]
-  if (message) {
-    args.push({key: 'invitation_message', value: message})
-  }
   try {
+    yield put(Constants.waiting(true))
+
+    const {email, message} = invitesSendAction.payload
+    const args = [{key: 'email', value: email}]
+    if (message) {
+      args.push({key: 'invitation_message', value: message})
+    }
+
     const response: ?{body: string} = yield call(apiserverPostRpcPromise, {
       param: {
         endpoint: 'send_invitation',
@@ -275,6 +291,8 @@ function * sendInviteSaga (invitesSendAction: InvitesSend): SagaGenerator<any, a
       payload: {errorText: e.desc + e.name, errorObj: e},
       error: true,
     }: InvitesSent))
+  } finally {
+    yield put(Constants.waiting(false))
   }
   yield put(invitesRefresh())
 }

@@ -25,8 +25,12 @@ export function convertToError (err: Object): Error {
   }
 
   if (err.hasOwnProperty('desc') && err.hasOwnProperty('code')) {
-    return new RPCError(err.desc, err.code, err.fields)
+    return convertToRPCError(err)
   }
 
   return new Error(`Unknown error: ${JSON.stringify(err)}`)
+}
+
+export function convertToRPCError (err: {code: number, desc: string, fields?: any}): RPCError {
+  return new RPCError(err.desc, err.code, err.fields)
 }

@@ -7,7 +7,7 @@ export function autoResize () {
   // This only works when I delay a frame, unclear what the solution is but this seems fine for now
   setTimeout(() => {
     try {
-      const element = window.document.getElementById('root')
+      const element = window.document.getElementById('RemoteComponentRoot').firstChild
       const browserWindow = remote.getCurrentWindow()
       if (element && (element.scrollHeight != null) && (element.offsetTop != null) && !browserWindow.isDestroyed()) {
         // try 5 times to get a stable window size, doesn't seem like a better way to do this...

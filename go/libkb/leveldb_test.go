@@ -59,6 +59,14 @@ func createTempLevelDbForTest(tc *TestContext, td *teardowner) (*LevelDb, error)
 	return db, nil
 }
 
+func doSomeIO() error {
+	dir, err := ioutil.TempDir("", "level-db-test-")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(filepath.Join(dir, "some-io"), []byte("O_O"), 0666)
+}
+
 func testLevelDbPut(db *LevelDb) (key DbKey, err error) {
 	key = DbKey{Key: "test-key", Typ: 0}
 	v := []byte{1, 2, 3, 4}
@@ -215,7 +223,7 @@ func TestLevelDb(t *testing.T) {
 
 				// channels for communicating from first routine to 2nd.
 				chOpen := make(chan struct{})
-				chCommitted := make(chan struct{})
+				chCommitted := make(chan struct{}, 1)
 
 				go func() {
 					defer wg.Done()
@@ -235,14 +243,24 @@ func TestLevelDb(t *testing.T) {
 					if err = tr.Put(key, nil, []byte{41}); err != nil {
 						t.Fatal(err)
 					}
-					if err = tr.Commit(); err != nil {
+
+					// We do some IO here to give Go's runtime a chance to schedule
+					// different routines and channel operations, to *hopefully* make
+					// sure:
+					// 1) The channel operation is done;
+					// 2) If there exists, any broken OpenTransaction() implementation
+					//		that does not block until this transaction finishes, the broken
+					//		OpenTransaction() would have has returned
+					if err = doSomeIO(); err != nil {
 						t.Fatal(err)
 					}
 
-					select {
-					case <-time.After(8 * time.Second):
-						t.Fatalf("timeout")
-					case chCommitted <- struct{}{}:
+					// we send to a buffered channel right before Commit() to make sure
+					// the channel is ready to read right after the commit
+					chCommitted <- struct{}{}
+
+					if err = tr.Commit(); err != nil {
+						t.Fatal(err)
 					}
 
 				}()

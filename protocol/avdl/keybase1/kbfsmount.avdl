@@ -1,0 +1,6 @@
+@namespace("keybase.1")
+protocol kbfsMount {
+    string GetCurrentMountDir();
+    array<string> GetAllAvailableMountDirs();
+    void SetCurrentMountDir(string dir);
+}

@@ -148,6 +148,8 @@ const (
 	SCAlreadyLoggedIn        = int(keybase1.StatusCode_SCAlreadyLoggedIn)
 	SCCanceled               = int(keybase1.StatusCode_SCCanceled)
 	SCInputCanceled          = int(keybase1.StatusCode_SCInputCanceled)
+	SCExists                 = int(keybase1.StatusCode_SCExists)
+	SCInvalidAddress         = int(keybase1.StatusCode_SCInvalidAddress)
 	SCReloginRequired        = int(keybase1.StatusCode_SCReloginRequired)
 	SCResolutionFailed       = int(keybase1.StatusCode_SCResolutionFailed)
 	SCProfileNotPublic       = int(keybase1.StatusCode_SCProfileNotPublic)
@@ -224,19 +226,19 @@ type LinkType string
 type DelegationType LinkType
 
 const (
-	AuthenticationType    LinkType = "auth"
-	CryptocurrencyType             = "cryptocurrency"
-	RevokeType                     = "revoke"
-	TrackType                      = "track"
-	UntrackType                    = "untrack"
-	UpdatePassphraseType           = "update_passphrase_hash"
-	UpdateSettingsType             = "update_settings"
-	WebServiceBindingType          = "web_service_binding"
+	LinkTypeAuthentication    LinkType = "auth"
+	LinkTypeCryptocurrency             = "cryptocurrency"
+	LinkTypeRevoke                     = "revoke"
+	LinkTypeTrack                      = "track"
+	LinkTypeUntrack                    = "untrack"
+	LinkTypeUpdatePassphrase           = "update_passphrase_hash"
+	LinkTypeUpdateSettings             = "update_settings"
+	LinkTypeWebServiceBinding          = "web_service_binding"
 
-	EldestType    DelegationType = "eldest"
-	PGPUpdateType                = "pgp_update"
-	SibkeyType                   = "sibkey"
-	SubkeyType                   = "subkey"
+	DelegationTypeEldest    DelegationType = "eldest"
+	DelegationTypePGPUpdate                = "pgp_update"
+	DelegationTypeSibkey                   = "sibkey"
+	DelegationTypeSubkey                   = "subkey"
 )
 
 const (

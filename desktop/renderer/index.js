@@ -17,6 +17,7 @@ import loadPerf from '../shared/util/load-perf'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../shared/actions/config'
 import {devEditAction} from '../shared/reducers/dev-edit'
+import {disable as disableDragDrop} from '../shared/util/drag-drop'
 import {listenForNotifications} from '../shared/actions/notifications'
 import {merge} from 'lodash'
 import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-debug.desktop'
@@ -36,6 +37,7 @@ function setupStore () {
 
 function setupApp (store) {
   setupSource()
+  disableDragDrop()
   makeEngine()
   loadPerf()
 

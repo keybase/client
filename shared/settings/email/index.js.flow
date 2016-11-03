@@ -9,6 +9,7 @@ export type Props = {
   onBack: () => void,
   onChangeNewEmail: (nextEmail: string) => void,
   onSave: () => void,
+  waitingForResponse: boolean,
   onResendConfirmationCode: ?(() => void),
 }
 

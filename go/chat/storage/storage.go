@@ -5,18 +5,12 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/chat/pager"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
-
-// ***
-// If we change this, make sure to update libkb.EncryptionReasonChatLocalStorage as well!
-// ***
-const cryptoVersion = 1
 
 type resultCollector interface {
 	push(msg chat1.MessageUnboxed)
@@ -170,7 +164,7 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 	s.debug("Merge: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
 
 	// Fetch secret key
-	key, ierr := s.getSecretBoxKey()
+	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
 		return libkb.ChatStorageMiscError{Msg: "unable to get secret key: " + ierr.Error()}
 	}
@@ -247,28 +241,6 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	return nil
 }
 
-func (s *Storage) getSecretBoxKey() (fkey [32]byte, err error) {
-	// Get secret device key
-	encKey, err := engine.GetMySecretKey(s.G(), s.getSecretUI, libkb.DeviceEncryptionKeyType,
-		"encrypt chat message")
-	if err != nil {
-		return fkey, err
-	}
-	kp, ok := encKey.(libkb.NaclDHKeyPair)
-	if !ok || kp.Private == nil {
-		return fkey, libkb.KeyCannotDecryptError{}
-	}
-
-	// Derive symmetric key from device key
-	skey, err := encKey.SecretSymmetricKey(libkb.EncryptionReasonChatLocalStorage)
-	if err != nil {
-		return fkey, err
-	}
-
-	copy(fkey[:], skey)
-	return fkey, nil
-}
-
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
 	rl *[]*chat1.RateLimit) (chat1.ThreadView, libkb.ChatStorageError) {
@@ -278,7 +250,7 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	defer s.Unlock()
 
 	// Fetch secret key
-	key, ierr := s.getSecretBoxKey()
+	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
 		return chat1.ThreadView{},
 			libkb.ChatStorageMiscError{Msg: "unable to get secret key: " + ierr.Error()}

@@ -22,6 +22,7 @@ const updateEmailBase = {
   email: 'party@mypla.ce',
   isVerified: true,
   edited: false,
+  waitingForResponse: false,
   onChangeNewEmail: () => console.log('onChangeNewEmail'),
   onSave: () => console.log('onSave'),
   onBack: () => console.log('onBack'),
@@ -60,6 +61,7 @@ const updatePassphraseBase = {
   newPassphraseError: null,
   newPassphraseConfirmError: null,
   canSave: true,
+  waitingForResponse: false,
   onBack: () => console.log('onBack'),
   onSave: () => console.log('onSave'),
   onUpdatePGPSettings: () => console.log('onUpdatePGPSettings'),
@@ -324,6 +326,7 @@ const commonSettings = {
   unsubscribedFromAll: false,
   allowSave: true,
   allowEdit: true,
+  waitingForResponse: false,
   onRefresh: () => console.log('onRefresh'),
   onSave: () => console.log('onSave'),
   onToggle: (name: string) => console.log('on toggle', name),
@@ -468,6 +471,7 @@ const invitesBase = {
   onClickUser: username => console.log('onClickUser', username),
   onReclaimInvitation: invitationId => console.log('onReclaimInvitation', invitationId),
   onGenerateInvitation: () => console.log('onGenerateInvitation'),
+  waitingForResponse: false,
   parentProps: {
     style: {
       width: 504,
