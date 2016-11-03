@@ -15,6 +15,7 @@ import (
 func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	ret := []cli.Command{
 		NewCmdBase62(cl, g),
+		NewCmdBTC(cl, g),
 		NewCmdCA(cl, g),
 		NewCmdCert(cl),
 		NewCmdChat(cl, g),
