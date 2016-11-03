@@ -50,7 +50,7 @@ class Icon extends PureComponent<void, Exact<Props>, void> {
       return <FontIcon
         title={this.props.hint}
         style={{...globalStyles.noSelect, ...styles.icon, ...fontSizeHint, ...cleanStyle, ...(this.props.onClick ? globalStyles.clickable : {})}}
-        className={`${this.props.className && ' ' + this.props.className || ''}`}
+        className={this.props.className || ''}
         color={color}
         hoverColor={this.props.onClick ? hoverColor : null}
         onMouseEnter={this.props.onMouseEnter}
