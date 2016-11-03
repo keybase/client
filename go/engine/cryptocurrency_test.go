@@ -4,11 +4,9 @@
 package engine
 
 import (
-	"strings"
-	"testing"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"testing"
 )
 
 func getCurrentCryptocurrencyAddr(tc libkb.TestContext, username string, family libkb.CryptocurrencyFamily) string {
@@ -78,8 +76,8 @@ func TestCryptocurrency(t *testing.T) {
 	err = RunEngine(e, ctx)
 	if err == nil {
 		t.Fatal("Overwriting a Cryptocurrency address should fail without --force.")
-	} else if !strings.Contains(err.Error(), "--force") {
-		t.Fatal("Error should mention the --force flag.")
+	} else if _, ok := err.(libkb.ExistsError); !ok {
+		t.Fatal("Error should by typed 'libkb.ExistsError'")
 	}
 	current = getCurrentCryptocurrencyAddr(tc, u.Username, libkb.CryptocurrencyFamilyBitcoin)
 	if current != firstAddress {
@@ -129,8 +127,8 @@ func TestCryptocurrency(t *testing.T) {
 	err = RunEngine(e, ctx)
 	if err == nil {
 		t.Fatal("Overwriting a second Zcash address should fail without --force.")
-	} else if !strings.Contains(err.Error(), "--force") {
-		t.Fatal("Error should mention the --force flag.")
+	} else if _, ok := err.(libkb.ExistsError); !ok {
+		t.Fatal("Error should by typed 'libkb.ExistsError'")
 	}
 	current = getCurrentCryptocurrencyAddr(tc, u.Username, libkb.CryptocurrencyFamilyBitcoin)
 	if current != secondAddress {
