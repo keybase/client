@@ -252,15 +252,15 @@ func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintex
 }
 
 func (s *Deliverer) deliverLoop() {
-	s.G().Log.Debug("starting non blocking sender deliver loop")
+	s.G().Log.Debug("starting non blocking sender deliver loop: uid: %s", s.outbox.GetUID())
 	for {
 		// Wait for the signal to take action
 		select {
 		case <-s.shutdownCh:
-			s.G().Log.Debug("shuttting down outbox deliver loop")
+			s.G().Log.Debug("shuttting down outbox deliver loop: uid: %s", s.outbox.GetUID())
 			return
 		case <-s.msgSentCh:
-			s.G().Log.Debug("flushing outbox on new message")
+			s.G().Log.Debug("flushing outbox on new message: uid: %s", s.outbox.GetUID())
 		case <-s.G().Clock().After(time.Minute):
 		}
 
@@ -271,7 +271,7 @@ func (s *Deliverer) deliverLoop() {
 			continue
 		}
 		if len(obrs) > 0 {
-			s.G().Log.Debug("flushing %d items from the outbox", len(obrs))
+			s.G().Log.Debug("flushing %d items from the outbox: uid: %s", len(obrs), s.outbox.GetUID())
 		}
 
 		// Send messages
@@ -296,6 +296,7 @@ func (s *Deliverer) deliverLoop() {
 
 		// Clear out outbox
 		if pops > 0 {
+			s.G().Log.Debug("clearing %d message from outbox: uid: %s", pops, s.outbox.GetUID())
 			if err = s.outbox.PopNOldestMessages(pops); err != nil {
 				s.G().Log.Error("failed to clear messages from outbox: err: %s", err.Error())
 			}

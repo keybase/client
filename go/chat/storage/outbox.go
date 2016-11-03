@@ -40,6 +40,10 @@ func NewOutbox(g *libkb.GlobalContext, uid gregor1.UID, getSecretUI func() libkb
 	}
 }
 
+func (o *Outbox) GetUID() gregor1.UID {
+	return o.uid
+}
+
 func (o *Outbox) dbKey() libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatOutbox,
