@@ -21,6 +21,7 @@ const (
 	StatusCode_SCDeleted                StatusCode = 216
 	StatusCode_SCGeneric                StatusCode = 218
 	StatusCode_SCAlreadyLoggedIn        StatusCode = 235
+	StatusCode_SCExists                 StatusCode = 230
 	StatusCode_SCCanceled               StatusCode = 237
 	StatusCode_SCInputCanceled          StatusCode = 239
 	StatusCode_SCReloginRequired        StatusCode = 274
@@ -30,6 +31,7 @@ const (
 	StatusCode_SCTrackingBroke          StatusCode = 278
 	StatusCode_SCWrongCryptoFormat      StatusCode = 279
 	StatusCode_SCDecryptionError        StatusCode = 280
+	StatusCode_SCInvalidAddress         StatusCode = 281
 	StatusCode_SCBadEmail               StatusCode = 472
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
 	StatusCode_SCBadInvitationCode      StatusCode = 707
@@ -103,6 +105,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCDeleted":                216,
 	"SCGeneric":                218,
 	"SCAlreadyLoggedIn":        235,
+	"SCExists":                 230,
 	"SCCanceled":               237,
 	"SCInputCanceled":          239,
 	"SCReloginRequired":        274,
@@ -112,6 +115,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTrackingBroke":          278,
 	"SCWrongCryptoFormat":      279,
 	"SCDecryptionError":        280,
+	"SCInvalidAddress":         281,
 	"SCBadEmail":               472,
 	"SCBadSignupUsernameTaken": 701,
 	"SCBadInvitationCode":      707,
@@ -185,6 +189,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	216:  "SCDeleted",
 	218:  "SCGeneric",
 	235:  "SCAlreadyLoggedIn",
+	230:  "SCExists",
 	237:  "SCCanceled",
 	239:  "SCInputCanceled",
 	274:  "SCReloginRequired",
@@ -194,6 +199,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	278:  "SCTrackingBroke",
 	279:  "SCWrongCryptoFormat",
 	280:  "SCDecryptionError",
+	281:  "SCInvalidAddress",
 	472:  "SCBadEmail",
 	701:  "SCBadSignupUsernameTaken",
 	707:  "SCBadInvitationCode",

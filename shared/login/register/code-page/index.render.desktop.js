@@ -57,9 +57,9 @@ class CodePageRender extends Component<void, Props, void> {
         <div style={stylesQrContainer}>
           <div style={{...qr, ...stylesQr}} />
         </div>
-        <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => this.props.setCodePageMode(codePageModeEnterText)}>
+        <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => this.props.setCodePageMode(codePageModeShowText)}>
           <Icon style={{marginRight: 15}} type='icon-phone-text-code-32' />
-          <Text type='BodyPrimaryLink' onClick={() => this.props.setCodePageMode(codePageModeEnterText)}>Type text code instead</Text>
+          <Text type='BodyPrimaryLink'>Show text code instead</Text>
         </p>
       </Container>
     )

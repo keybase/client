@@ -19,6 +19,7 @@ type CmdCurrency struct {
 	libkb.Contextified
 	address string
 	force   bool
+	wanted  string
 }
 
 func (c *CmdCurrency) ParseArgv(ctx *cli.Context) error {
@@ -27,6 +28,11 @@ func (c *CmdCurrency) ParseArgv(ctx *cli.Context) error {
 	}
 	c.address = ctx.Args()[0]
 	c.force = ctx.Bool("force")
+	w := ctx.String("type")
+	if !(w == "bitcoin" || w == "zcash" || w == "") {
+		return fmt.Errorf("Bad address type; can only handle 'zcash' or 'bitcoin")
+	}
+	c.wanted = w
 	return nil
 }
 
@@ -48,10 +54,14 @@ func (c *CmdCurrency) Run() (err error) {
 	}
 
 	res, err := cli.RegisterAddress(context.TODO(), keybase1.RegisterAddressArg{
-		Address: c.address,
-		Force:   c.force,
+		Address:      c.address,
+		Force:        c.force,
+		WantedFamily: c.wanted,
 	})
 	if err != nil {
+		if _, ok := err.(libkb.ExistsError); ok {
+			err = fmt.Errorf("You already have a %s address; use --force to overwrite", err.Error())
+		}
 		return err
 	}
 	c.G().UI.GetTerminalUI().Printf("Added %s address %s\n", res.Family, c.address)
@@ -67,6 +77,10 @@ func NewCmdCurrency(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cli.BoolFlag{
 				Name:  "f, force",
 				Usage: "Overwrite an existing address.",
+			},
+			cli.StringFlag{
+				Name:  "t, type",
+				Usage: "assert a type of address ('bitcoin' or 'zcash')",
 			},
 		},
 		Aliases: []string{"btc"},

@@ -6,6 +6,7 @@ import Root from './container'
 import hello from '../shared/util/hello'
 import loadPerf from '../shared/util/load-perf'
 import reactDOM from 'react-dom'
+import {disable as disableDragDrop} from '../shared/util/drag-drop'
 import {makeEngine} from '../shared/engine'
 import {remote} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
@@ -13,6 +14,7 @@ import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../shared/util/forward-logs'
 
 setupSource()
+disableDragDrop()
 makeEngine()
 hello(process.pid, 'Menubar', process.argv, __VERSION__) // eslint-disable-line no-undef
 

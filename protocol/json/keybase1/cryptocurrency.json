@@ -13,11 +13,11 @@
       "fields": [
         {
           "type": "string",
-          "name": "Type"
+          "name": "type"
         },
         {
           "type": "string",
-          "name": "Family"
+          "name": "family"
         }
       ]
     }
@@ -36,6 +36,10 @@
         {
           "name": "force",
           "type": "boolean"
+        },
+        {
+          "name": "wantedFamily",
+          "type": "string"
         }
       ],
       "response": "RegisterAddressRes"

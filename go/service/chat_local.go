@@ -841,6 +841,9 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	if arg.Preview != nil {
 		g.Go(func() error {
 			chatUI.ChatAttachmentPreviewUploadStart(ctx)
+			// add preview suffix to object key (P in hex)
+			// the s3path in gregor is expecting hex here
+			params.ObjectKey += "50"
 			prev, err := h.uploadAsset(ctx, arg.SessionID, params, *arg.Preview, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
@@ -927,6 +930,7 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		if attachment.Preview == nil {
 			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
 		}
+		h.G().Log.Debug("downloading preview attachment asset")
 		obj = *attachment.Preview
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
