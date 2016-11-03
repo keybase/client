@@ -73,6 +73,10 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "show-device-name",
 		Usage: `Show device name next to author username`,
 	},
+	"nonblock": cli.BoolFlag{
+		Name:  "nonblock",
+		Usage: `Send message without success confirmation`,
+	},
 }
 
 func mustGetChatFlags(keys ...string) (flags []cli.Flag) {

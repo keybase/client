@@ -498,6 +498,24 @@
     },
     {
       "type": "record",
+      "name": "OutboxRecord",
+      "fields": [
+        {
+          "type": "OutboxID",
+          "name": "outboxID"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "MessagePlaintext",
+          "name": "Msg"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetThreadQuery",
       "fields": [
         {
@@ -534,6 +552,13 @@
         {
           "type": "ThreadView",
           "name": "thread"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "OutboxRecord"
+          },
+          "name": "outbox"
         },
         {
           "type": {
@@ -689,6 +714,29 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "OutboxID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "PostLocalNonblockRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": "OutboxID",
+          "name": "outboxID"
         }
       ]
     },
@@ -958,6 +1006,19 @@
         }
       ],
       "response": "PostLocalRes"
+    },
+    "postLocalNonblock": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msg",
+          "type": "MessagePlaintext"
+        }
+      ],
+      "response": "PostLocalNonblockRes"
     },
     "SetConversationStatusLocal": {
       "request": [

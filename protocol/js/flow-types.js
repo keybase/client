@@ -898,7 +898,7 @@ export function cryptoUnboxBytes32RpcPromise (request: $Exact<requestCommon & {c
 }
 
 export function cryptocurrencyRegisterAddressRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: cryptocurrencyRegisterAddressResult) => void} & {param: cryptocurrencyRegisterAddressRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'cryptocurrency.registerAddress'})
+  engineRpcOutgoing({...request, method: 'keybase.1.cryptocurrency.registerAddress'})
 }
 
 export function cryptocurrencyRegisterAddressRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptocurrencyRegisterAddressResult) => void} & {param: cryptocurrencyRegisterAddressRpcParam}>): ChannelMap<*> {
@@ -1282,7 +1282,7 @@ export function kbfsFSSyncStatusRpcPromise (request: $Exact<requestCommon & requ
 }
 
 export function kbfsMountGetAllAvailableMountDirsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetAllAvailableMountDirsResult) => void}>) {
-  engineRpcOutgoing({...request, method: 'kbfsMount.GetAllAvailableMountDirs'})
+  engineRpcOutgoing({...request, method: 'keybase.1.kbfsMount.GetAllAvailableMountDirs'})
 }
 
 export function kbfsMountGetAllAvailableMountDirsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetAllAvailableMountDirsResult) => void}>): ChannelMap<*> {
@@ -1294,7 +1294,7 @@ export function kbfsMountGetAllAvailableMountDirsRpcPromise (request: $Exact<req
 }
 
 export function kbfsMountGetCurrentMountDirRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetCurrentMountDirResult) => void}>) {
-  engineRpcOutgoing({...request, method: 'kbfsMount.GetCurrentMountDir'})
+  engineRpcOutgoing({...request, method: 'keybase.1.kbfsMount.GetCurrentMountDir'})
 }
 
 export function kbfsMountGetCurrentMountDirRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetCurrentMountDirResult) => void}>): ChannelMap<*> {
@@ -1306,7 +1306,7 @@ export function kbfsMountGetCurrentMountDirRpcPromise (request: $Exact<requestCo
 }
 
 export function kbfsMountSetCurrentMountDirRpc (request: Exact<requestCommon & requestErrorCallback & {param: kbfsMountSetCurrentMountDirRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'kbfsMount.SetCurrentMountDir'})
+  engineRpcOutgoing({...request, method: 'keybase.1.kbfsMount.SetCurrentMountDir'})
 }
 
 export function kbfsMountSetCurrentMountDirRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsMountSetCurrentMountDirRpcParam}>): ChannelMap<*> {

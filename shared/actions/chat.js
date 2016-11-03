@@ -135,8 +135,8 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
-  if (action.payload.activity.ActivityType === NotifyChatChatActivityType.incomingMessage) {
-    const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.IncomingMessage
+  if (action.payload.activity.activityType === NotifyChatChatActivityType.incomingMessage) {
+    const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
     if (incomingMessage) {
       const messageUnboxed: MessageUnboxed = incomingMessage.message
       const yourName = yield select(usernameSelector)
