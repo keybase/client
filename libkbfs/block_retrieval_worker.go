@@ -7,8 +7,6 @@ package libkbfs
 import (
 	"io"
 	"reflect"
-
-	"golang.org/x/net/context"
 )
 
 // blockRetrievalWorker processes blockRetrievalQueue requests
@@ -43,16 +41,6 @@ func newBlockRetrievalWorker(bg blockGetter, q *blockRetrievalQueue) *blockRetri
 	return brw
 }
 
-// notifyBlockRequestor copies the source block into the request's block
-// pointer, and notifies the channel that the request is waiting on. Should be
-// called in a goroutine.
-func notifyBlockRequestor(req *blockRetrievalRequest, source reflect.Value, err error) {
-	// Copy the decrypted block to the caller
-	dest := reflect.ValueOf(req.block).Elem()
-	dest.Set(source)
-	req.doneCh <- err
-}
-
 // HandleRequest is the main work method for the worker. It obtains a
 // blockRetrieval from the queue, retrieves the block using
 // blockGetter.getBlock, and responds to the subscribed requestors with the
@@ -73,28 +61,14 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		brw.queue.FinalizeRequest(retrieval, block, err)
 	}()
 
-	// Pick one of the still-active contexts to use
-	// FIXME: this will be racy because retrieval requests can mutate until
-	// brw.queue.FinalizeRequest is called
-	// TODO: address the racy behavior here: make a megacontext for the
-	// retrieval that we can pass in properly.
-	var ctx context.Context
-	canceled := true
-	for _, req := range retrieval.requests {
-		// Handle canceled contexts
-		select {
-		case <-req.ctx.Done():
-		default:
-			ctx = req.ctx
-			canceled = false
-			break
-		}
-	}
-	if canceled {
-		return context.Canceled
+	// Handle canceled contexts
+	select {
+	case <-retrieval.ctx.Done():
+		return retrieval.ctx.Err()
+	default:
 	}
 
-	return brw.getBlock(ctx, retrieval.kmd, retrieval.blockPtr, block)
+	return brw.getBlock(retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block)
 }
 
 // Shutdown shuts down the blockRetrievalWorker once its current work is done.

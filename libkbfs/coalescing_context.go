@@ -11,6 +11,7 @@ import (
 // added to the list, and will subsequently also be part of the wait condition.
 type CoalescingContext struct {
 	context.Context
+	closeCh  chan struct{}
 	doneCh   chan struct{}
 	mutateCh chan context.Context
 	selects  []reflect.SelectCase
@@ -18,23 +19,23 @@ type CoalescingContext struct {
 
 func (ctx *CoalescingContext) loop() {
 	for {
-		selects := append([]reflect.SelectCase{{
-			Dir:  reflect.SelectRecv,
-			Chan: reflect.ValueOf(ctx.mutateCh),
-		}}, ctx.selects...)
-		chosen, val, _ := reflect.Select(selects)
-		if chosen == 0 {
+		chosen, val, _ := reflect.Select(ctx.selects)
+		switch chosen {
+		case 0:
 			// request to mutate the select list
 			newCase := val.Interface().(context.Context)
 			if newCase != nil {
 				ctx.addContextLocked(newCase)
 			}
-		} else {
-			chosen--
+		case 1:
+			// Done
+			close(ctx.doneCh)
+			return
+		default:
 			// The chosen channel has been closed. Remove it from our select list.
 			ctx.selects = append(ctx.selects[:chosen], ctx.selects[chosen+1:]...)
 			// If we have no more selects available, the request is done.
-			if len(ctx.selects) == 0 {
+			if len(ctx.selects) == 2 {
 				close(ctx.doneCh)
 				return
 			}
@@ -49,22 +50,45 @@ func (ctx *CoalescingContext) addContextLocked(other context.Context) {
 	})
 }
 
-func NewCoalescingContext(parent context.Context) *CoalescingContext {
+// NewCoalescingContext creates a new CoalescingContext. The context _must_ be
+// canceled to avoid a goroutine leak.
+func NewCoalescingContext(parent context.Context) (*CoalescingContext, context.CancelFunc) {
 	ctx := &CoalescingContext{
 		Context:  context.Background(),
+		closeCh:  make(chan struct{}),
 		doneCh:   make(chan struct{}),
 		mutateCh: make(chan context.Context),
-		selects:  make([]reflect.SelectCase, 0, 1),
+	}
+	ctx.selects = []reflect.SelectCase{
+		{
+			Dir:  reflect.SelectRecv,
+			Chan: reflect.ValueOf(ctx.mutateCh),
+		},
+		{
+			Dir:  reflect.SelectRecv,
+			Chan: reflect.ValueOf(ctx.closeCh),
+		},
 	}
 	ctx.addContextLocked(parent)
 	go ctx.loop()
-	return ctx
+	cancelFunc := func() {
+		select {
+		case <-ctx.closeCh:
+		default:
+			close(ctx.closeCh)
+		}
+	}
+	return ctx, cancelFunc
 }
 
+// Done returns a channel that is closed when the CoalescingContext is
+// canceled.
 func (ctx *CoalescingContext) Done() <-chan struct{} {
 	return ctx.doneCh
 }
 
+// Err returns context.Canceled if the CoalescingContext has been canceled, and
+// nil otherwise.
 func (ctx *CoalescingContext) Err() error {
 	select {
 	case <-ctx.doneCh:
@@ -74,6 +98,7 @@ func (ctx *CoalescingContext) Err() error {
 	return nil
 }
 
+// AddContext adds a context to the set of contexts that we're waiting on.
 func (ctx *CoalescingContext) AddContext(other context.Context) error {
 	select {
 	case ctx.mutateCh <- other:

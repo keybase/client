@@ -59,9 +59,13 @@ func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 		return errors.New("Block doesn't exist in fake block map")
 	}
 	// Wait until the caller tells us to continue
-	<-source.ch
-	destVal := reflect.ValueOf(block).Elem()
-	destVal.Set(source.val)
+	select {
+	case <-source.ch:
+		destVal := reflect.ValueOf(block).Elem()
+		destVal.Set(source.val)
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 	return nil
 }
 
@@ -78,11 +82,12 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	t.Log("Test the basic ability of a worker to return a block.")
 	q := newBlockRetrievalQueue(1)
 	require.NotNil(t, q)
+	defer q.Shutdown()
 
 	bg := newFakeBlockGetter()
 	w := newBlockRetrievalWorker(bg, q)
-	require.NotNil(t, q)
 	require.NotNil(t, w)
+	defer w.Shutdown()
 
 	ptr1 := makeFakeBlockPointer(t)
 	block1 := makeFakeFileBlock(t)
@@ -100,13 +105,15 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	t.Log("Test the ability of multiple workers to retrieve concurrently.")
 	q := newBlockRetrievalQueue(2)
 	require.NotNil(t, q)
+	defer q.Shutdown()
 
 	bg := newFakeBlockGetter()
 	w1 := newBlockRetrievalWorker(bg, q)
-	w2 := newBlockRetrievalWorker(bg, q)
-	require.NotNil(t, q)
 	require.NotNil(t, w1)
+	defer w1.Shutdown()
+	w2 := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w2)
+	defer w2.Shutdown()
 
 	ptr1, ptr2 := makeFakeBlockPointer(t), makeFakeBlockPointer(t)
 	block1, block2 := makeFakeFileBlock(t), makeFakeFileBlock(t)
@@ -142,11 +149,12 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	t.Log("Test the ability of a worker and queue to work correctly together.")
 	q := newBlockRetrievalQueue(1)
 	require.NotNil(t, q)
+	defer q.Shutdown()
 
 	bg := newFakeBlockGetter()
 	w1 := newBlockRetrievalWorker(bg, q)
-	require.NotNil(t, q)
 	require.NotNil(t, w1)
+	defer w1.Shutdown()
 
 	ptr1, ptr2, ptr3 := makeFakeBlockPointer(t), makeFakeBlockPointer(t), makeFakeBlockPointer(t)
 	block1, block2, block3 := makeFakeFileBlock(t), makeFakeFileBlock(t), makeFakeFileBlock(t)
@@ -192,11 +200,12 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	t.Log("Test the ability of a worker to handle a request cancelation.")
 	q := newBlockRetrievalQueue(1)
 	require.NotNil(t, q)
+	defer q.Shutdown()
 
 	bg := newFakeBlockGetter()
 	w := newBlockRetrievalWorker(bg, q)
-	require.NotNil(t, q)
 	require.NotNil(t, w)
+	defer w.Shutdown()
 
 	ptr1 := makeFakeBlockPointer(t)
 	block1 := makeFakeFileBlock(t)
@@ -214,10 +223,10 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	t.Log("Test that worker shutdown works.")
 	q := newBlockRetrievalQueue(1)
 	require.NotNil(t, q)
+	defer q.Shutdown()
 
 	bg := newFakeBlockGetter()
 	w := newBlockRetrievalWorker(bg, q)
-	require.NotNil(t, q)
 	require.NotNil(t, w)
 
 	ptr1 := makeFakeBlockPointer(t)

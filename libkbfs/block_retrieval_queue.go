@@ -20,7 +20,6 @@ const (
 
 // blockRetrievalRequest represents one consumer's request for a block.
 type blockRetrievalRequest struct {
-	ctx    context.Context
 	block  Block
 	doneCh chan error
 }
@@ -33,6 +32,10 @@ type blockRetrieval struct {
 	blockPtr BlockPointer
 	// the key metadata for the request
 	kmd KeyMetadata
+	// the context encapsulating all request contexts
+	ctx *CoalescingContext
+	// cancel function for the context
+	cancelFunc context.CancelFunc
 	// the individual requests for this block pointer: they must be notified
 	// once the block is returned
 	requests []*blockRetrievalRequest
@@ -76,6 +79,7 @@ func newBlockRetrievalQueue(numWorkers int) *blockRetrievalQueue {
 		ptrs:        make(map[BlockPointer]*blockRetrieval),
 		heap:        &blockRetrievalHeap{},
 		workerQueue: make(chan chan *blockRetrieval, numWorkers),
+		doneCh:      make(chan struct{}),
 	}
 }
 
@@ -91,6 +95,8 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 				// FinalizeRequest locks brq.mtx, so need to unlock it before calling
 				brq.mtx.Unlock()
 				brq.FinalizeRequest(retrieval, nil, io.EOF)
+			} else {
+				brq.mtx.Unlock()
 			}
 		// Get the next queued worker
 		case ch := <-brq.workerQueue:
@@ -116,31 +122,43 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 
 	brq.mtx.Lock()
 	defer brq.mtx.Unlock()
-	br, exists := brq.ptrs[ptr]
-	if !exists {
-		// Add to the heap
-		br = &blockRetrieval{
-			blockPtr:       ptr,
-			kmd:            kmd,
-			index:          -1,
-			priority:       priority,
-			insertionOrder: brq.insertionCount,
+	// Might have to retry if the context has been canceled
+	for {
+		br, exists := brq.ptrs[ptr]
+		if !exists {
+			// Add to the heap
+			br = &blockRetrieval{
+				blockPtr:       ptr,
+				kmd:            kmd,
+				index:          -1,
+				priority:       priority,
+				insertionOrder: brq.insertionCount,
+			}
+			br.ctx, br.cancelFunc = NewCoalescingContext(ctx)
+			brq.insertionCount++
+			brq.ptrs[ptr] = br
+			heap.Push(brq.heap, br)
+			defer brq.notifyWorker()
+		} else {
+			err := br.ctx.AddContext(ctx)
+			if err == context.Canceled {
+				// We need to delete the request pointer, but we'll still let the
+				// existing request be processed by a worker.
+				delete(brq.ptrs, br.blockPtr)
+				continue
+			}
 		}
-		brq.insertionCount++
-		brq.ptrs[ptr] = br
-		heap.Push(brq.heap, br)
-		defer brq.notifyWorker()
+		ch := make(chan error, 1)
+		br.requests = append(br.requests, &blockRetrievalRequest{block, ch})
+		// If the new request priority is higher, elevate the retrieval in the
+		// queue.  Skip this if the request is no longer in the queue (which means
+		// it's actively being processed).
+		if br.index != -1 && priority > br.priority {
+			br.priority = priority
+			heap.Fix(brq.heap, br.index)
+		}
+		return ch
 	}
-	ch := make(chan error, 1)
-	br.requests = append(br.requests, &blockRetrievalRequest{ctx, block, ch})
-	// If the new request priority is higher, elevate the retrieval in the
-	// queue.  Skip this if the request is no longer in the queue (which means
-	// it's actively being processed).
-	if br.index != -1 && priority > br.priority {
-		br.priority = priority
-		heap.Fix(brq.heap, br.index)
-	}
-	return ch
 }
 
 // WorkOnRequest returns a new channel for a worker to obtain a blockRetrieval.
@@ -157,8 +175,11 @@ func (brq *blockRetrievalQueue) WorkOnRequest() <-chan *blockRetrieval {
 // subscribed requests.
 func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block Block, err error) {
 	brq.mtx.Lock()
+	// This might have already been removed if the context has been canceled.
+	// That's okay, because this will then be a no-op.
 	delete(brq.ptrs, retrieval.blockPtr)
 	brq.mtx.Unlock()
+	retrieval.cancelFunc()
 
 	source := reflect.ValueOf(block)
 	for _, r := range retrieval.requests {
