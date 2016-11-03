@@ -21,11 +21,11 @@ type blockRetrievalWorker struct {
 // run runs the worker loop until Shutdown is called
 func (brw *blockRetrievalWorker) run() {
 	for {
-		select {
-		case <-brw.stopCh:
+		err := brw.HandleRequest()
+		// Only io.EOF is relevant to the loop; other errors are handled in
+		// FinalizeRequest
+		if err == io.EOF {
 			return
-		default:
-			brw.HandleRequest()
 		}
 	}
 }
