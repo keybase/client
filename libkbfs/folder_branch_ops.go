@@ -1147,10 +1147,13 @@ func ResetRootBlock(ctx context.Context, config Config,
 			Ctime: now,
 		},
 	}
+	rmd.SetDiskUsage(0)
+	// Redundant, since this is called only for brand-new or
+	// successor RMDs, but leave in to be defensive.
+	rmd.ClearBlockChanges()
 	co := newCreateOpForRootDir()
 	rmd.AddOp(co)
 	rmd.AddRefBlock(rmd.data.Dir.BlockInfo)
-	rmd.SetUnrefBytes(0)
 	return newDblock, info, readyBlockData, nil
 }
 
