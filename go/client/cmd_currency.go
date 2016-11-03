@@ -24,7 +24,7 @@ type CmdCurrencyAdd struct {
 func NewCmdCurrency(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "currency",
-		Usage:        "Add/delete cryptocurrency addresseses",
+		Usage:        "Manage cryptocurrency addresses",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			NewCmdCurrencyAdd(cl, g),
