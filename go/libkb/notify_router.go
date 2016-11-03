@@ -394,7 +394,6 @@ func (n *NotifyRouter) HandleFSSyncEvent(ctx context.Context, arg keybase1.FSPat
 			go func() {
 				// A send of a `FSSyncActivity` RPC with the notification
 
-				n.G().Log.Debug("aaaaa: %v", arg)
 				(keybase1.NotifyFSClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
 				}).FSSyncActivity(ctx, arg)
