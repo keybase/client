@@ -4,25 +4,66 @@
 package client
 
 import (
+	"errors"
 	"fmt"
-
-	"golang.org/x/net/context"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
-type CmdCurrency struct {
+type CmdCurrencyAdd struct {
 	libkb.Contextified
 	address string
 	force   bool
 	wanted  string
 }
 
-func (c *CmdCurrency) ParseArgv(ctx *cli.Context) error {
+func NewCmdCurrency(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:         "currency",
+		Usage:        "Add/delete cryptocurrency addresseses",
+		ArgumentHelp: "[arguments...]",
+		Subcommands: []cli.Command{
+			NewCmdCurrencyAdd(cl, g),
+		},
+	}
+}
+
+func NewCmdBTC(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name: "btc",
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(NewCmdBTCRunner(g), "btc", c)
+		},
+	}
+}
+
+type CmdBTC struct {
+	libkb.Contextified
+}
+
+func NewCmdBTCRunner(g *libkb.GlobalContext) *CmdBTC {
+	return &CmdBTC{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (c *CmdBTC) Run() (err error) {
+	return errors.New("this command is deprecated; use `keybase currency add` instead")
+}
+
+func (c *CmdBTC) GetUsage() libkb.Usage {
+	return libkb.Usage{}
+}
+
+func (c *CmdBTC) ParseArgv(ctx *cli.Context) error {
+	return nil
+}
+
+func (c *CmdCurrencyAdd) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return fmt.Errorf("Must provide exactly one address.")
 	}
@@ -36,11 +77,11 @@ func (c *CmdCurrency) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdCurrency) SetAddress(s string) {
+func (c *CmdCurrencyAdd) SetAddress(s string) {
 	c.address = s
 }
 
-func (c *CmdCurrency) Run() (err error) {
+func (c *CmdCurrencyAdd) Run() (err error) {
 	cli, err := GetCryptocurrencyClient(c.G())
 	if err != nil {
 		return err
@@ -68,10 +109,10 @@ func (c *CmdCurrency) Run() (err error) {
 	return nil
 }
 
-func NewCmdCurrency(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func NewCmdCurrencyAdd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "currency",
-		Usage:        "Claim a bitcoin or zcash address",
+		Name:         "add",
+		Usage:        "Sign a cryptocurrency (bitcoin or zcash) address into your identity",
 		ArgumentHelp: "<address>",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -83,20 +124,19 @@ func NewCmdCurrency(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 				Usage: "assert a type of address ('bitcoin' or 'zcash')",
 			},
 		},
-		Aliases: []string{"btc"},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdCurrencyRunner(g), "currency", c)
+			cl.ChooseCommand(NewCmdCurrencyAddRunner(g), "add", c)
 		},
 	}
 }
 
-func NewCmdCurrencyRunner(g *libkb.GlobalContext) *CmdCurrency {
-	return &CmdCurrency{
+func NewCmdCurrencyAddRunner(g *libkb.GlobalContext) *CmdCurrencyAdd {
+	return &CmdCurrencyAdd{
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func (c *CmdCurrency) GetUsage() libkb.Usage {
+func (c *CmdCurrencyAdd) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:     true,
 		GpgKeyring: true,

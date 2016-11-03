@@ -294,7 +294,7 @@ func TestSignupLogout(t *testing.T) {
 		tc.G.Log.Debug("Got notification of login for %q", u)
 	}
 
-	btc := client.NewCmdCurrencyRunner(tc2.G)
+	btc := client.NewCmdCurrencyAddRunner(tc2.G)
 	btc.SetAddress("1HUCBSJeHnkhzrVKVjaVmWg2QtZS1mdfaz")
 	if err := btc.Run(); err != nil {
 		t.Fatal(err)
