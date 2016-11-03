@@ -1147,6 +1147,7 @@ func ResetRootBlock(ctx context.Context, config Config,
 			Ctime: now,
 		},
 	}
+	prevDiskUsage := rmd.DiskUsage()
 	rmd.SetDiskUsage(0)
 	// Redundant, since this is called only for brand-new or
 	// successor RMDs, but leave in to be defensive.
@@ -1154,6 +1155,9 @@ func ResetRootBlock(ctx context.Context, config Config,
 	co := newCreateOpForRootDir()
 	rmd.AddOp(co)
 	rmd.AddRefBlock(rmd.data.Dir.BlockInfo)
+	// Set unref bytes to the previous disk usage, so that the
+	// accounting works out.
+	rmd.AddUnrefBytes(prevDiskUsage)
 	return newDblock, info, readyBlockData, nil
 }
 
