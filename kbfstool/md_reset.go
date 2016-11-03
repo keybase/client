@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -97,6 +100,17 @@ func mdResetOne(
 
 	if dryRun {
 		fmt.Print("Dry-run set; not doing anything\n")
+		return nil
+	}
+
+	fmt.Print("Are you sure you want to continue? [y/N]: ")
+	response, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil {
+		return err
+	}
+	response = strings.ToLower(strings.TrimSpace(response))
+	if response != "y" {
+		fmt.Printf("Didn't confirm; not doing anything\n")
 		return nil
 	}
 
