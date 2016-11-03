@@ -41,7 +41,7 @@ To run in a local testing environment:
   kbfsdokan [-debug] [-cpuprofile=path/to/dir]
     [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
-    [-log-to-file] [-log-file=path/to/file][-mount-from-service]
+    [-log-to-file] [-log-file=path/to/file]
     -mount-from-service | /path/to/mountpoint
 
 `

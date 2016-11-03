@@ -7,18 +7,20 @@
 package libkbfs
 
 import (
-	"errors"
+	"github.com/keybase/client/go/logger"
+	"golang.org/x/net/context"
 	"strings"
 )
 
-func chooseDefaultMount(dirs []string) (string, error) {
-	var dir string
+func chooseDefaultMount(ctx context.Context, dirs []string, log logger.Logger) (string, error) {
 	if len(dirs) == 0 {
-		return "K:", errors.New("chooseDefaultMount fails - nothing to choose from")
+		log.CInfof(ctx, "chooseDefaultMount fails - nothing to choose from")
+		return "K:", nil
 	}
+	var dir string
 	for _, dir = range dirs {
 		// Try to use a drive at K or later
-		if strings.Compare(strings.ToUpper(dir), "K:") >= 0 {
+		if strings.ToUpper(dir) >= "K:" {
 			break
 		}
 	}

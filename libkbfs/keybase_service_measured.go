@@ -160,14 +160,13 @@ func (k KeybaseServiceMeasured) FlushUserUnverifiedKeysFromLocalCache(
 	k.delegate.FlushUserUnverifiedKeysFromLocalCache(ctx, uid)
 }
 
+// EstablishMountDir implements the KeybaseDaemon interface for KeybaseDaemonLocal.
+func (k KeybaseServiceMeasured) EstablishMountDir(ctx context.Context) (string, error) {
+	return k.delegate.EstablishMountDir(ctx)
+}
+
 // Shutdown implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) Shutdown() {
 	k.delegate.Shutdown()
-}
-
-// EstablishMountDir asks the service for the current mount path
-// and sets it if not established
-func (k KeybaseServiceMeasured) EstablishMountDir(ctx context.Context) (string, error) {
-	return k.delegate.EstablishMountDir(ctx)
 }

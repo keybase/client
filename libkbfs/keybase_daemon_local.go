@@ -446,6 +446,11 @@ func (k *KeybaseDaemonLocal) FlushUserUnverifiedKeysFromLocalCache(ctx context.C
 	// Do nothing.
 }
 
+// EstablishMountDir implements the KeybaseDaemon interface for KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) EstablishMountDir(ctx context.Context) (string, error) {
+	return "", nil
+}
+
 // Shutdown implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Shutdown() {
 	k.favoriteStore.Shutdown()
@@ -494,10 +499,4 @@ func newKeybaseDaemonLocal(codec kbfscodec.Codec,
 		currentUID:    currentUID,
 		favoriteStore: favoriteStore,
 	}
-}
-
-// EstablishMountDir asks the service for the current mount path
-// and sets it if not established
-func (k *KeybaseDaemonLocal) EstablishMountDir(ctx context.Context) (string, error) {
-	return "", nil
 }
