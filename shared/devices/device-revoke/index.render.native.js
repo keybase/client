@@ -74,7 +74,6 @@ const styleName = {
 const styleDevicesContainer = {
   height: 200,
   width: 300,
-  // overflowY: 'scroll',
   backgroundColor: globalColors.lightGrey,
   alignSelf: 'center',
   marginTop: 15,

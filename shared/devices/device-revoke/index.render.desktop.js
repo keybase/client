@@ -34,7 +34,7 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endang
           <Box style={styleDevicesContainer}>
             <ul>
               {endangeredTLFs.map(tlf => (
-                <Box key={tlf.name} style={stylesTLF}>
+                <Box key={tlf.name} style={styleTLF}>
                   <li>
                     <Text type='BodySemibold'>{tlf.name}</Text>
                   </li>
