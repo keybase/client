@@ -661,7 +661,7 @@
             "type": "array",
             "items": "ConversationStatus"
           },
-          "name": "statusOverrideDefault"
+          "name": "status"
         },
         {
           "type": "boolean",
@@ -807,6 +807,13 @@
         {
           "type": "TLFVisibility",
           "name": "visibility"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationStatus"
+          },
+          "name": "status"
         },
         {
           "type": "boolean",

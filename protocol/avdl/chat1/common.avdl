@@ -69,6 +69,7 @@ protocol common {
 
   record GetInboxQuery {
     union { null, ConversationID } convID;
+
     union { null, TopicType } topicType;
     union { null, TLFID } tlfID;
     union { null, TLFVisibility } tlfVisibility;
@@ -76,7 +77,7 @@ protocol common {
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
 
-    // If left empty, default is to show unfiled and favorite
+    // If left empty, default is to show all.
     array<ConversationStatus> status;
 
     boolean unreadOnly;

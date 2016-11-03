@@ -183,7 +183,6 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
-
   // topicName in GetInboxLocalQuery is ignored
   GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
   record GetInboxLocalRes {
@@ -194,6 +193,8 @@ protocol local {
 
   GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
   record GetInboxLocalQuery {
+    // Local analog of common:GetInboxQuery
+
     union { null, string } tlfName;
     union { null, string } topicName;
 
@@ -203,7 +204,10 @@ protocol local {
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
-    array<ConversationStatus> statusOverrideDefault;
+
+    // If left empty, default is to show all.
+    array<ConversationStatus> status;
+
     boolean unreadOnly;
     boolean readOnly;
     boolean computeActiveList;
@@ -254,6 +258,9 @@ protocol local {
     string after;
     string before;
     TLFVisibility visibility;
+
+    // If left empty, default is to show all.
+    array<ConversationStatus> status;
 
     boolean unreadFirst;
     UnreadFirstNumLimit unreadFirstLimit;
