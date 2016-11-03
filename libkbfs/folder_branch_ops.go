@@ -4922,7 +4922,7 @@ func (fbo *folderBranchOps) unblockUnmergedWrites(lState *lockState) {
 
 func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState,
-	newOps []op) error {
+	newOps []op, blocksToDelete []BlockID) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// Put the blocks into the cache so that, even if we fail below,
@@ -4939,32 +4939,13 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	default:
 	}
 
-	mdOps := fbo.config.MDOps()
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		// Switch to the non-journaled MDOps after flushing all the
-		// resolution block writes -- resolutions must go straight
-		// through to the server or else the journal will get
-		// confused.
-		if err := fbo.waitForJournalLocked(ctx, lState, jServer); err != nil {
-			return err
-		}
-		mdOps = jServer.delegateMDOps
-	}
-
-	// Put the MD.  If there's a conflict, abort the whole process and
-	// let CR restart itself.
-	mdID, err := mdOps.Put(ctx, md)
+	mdID, err := fbo.config.MDOps().ResolveBranch(ctx, fbo.id(), fbo.bid,
+		blocksToDelete, md)
 	doUnmergedPut := isRevisionConflict(err)
 	if doUnmergedPut {
 		fbo.log.CDebugf(ctx, "Got a conflict after resolution; aborting CR")
 		return err
 	}
-	if err != nil {
-		return err
-	}
-
-	// Prune the branch via the journal, if there is one.
-	err = fbo.config.MDOps().PruneBranch(ctx, fbo.id(), fbo.bid)
 	if err != nil {
 		return err
 	}
@@ -4998,9 +4979,10 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	}
 	fbo.setBranchIDLocked(lState, NullBranchID)
 
-	// Archive the old, unref'd blocks (the revision went straight to
-	// the server, so we know it is merged).
-	fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
+	// Archive the old, unref'd blocks if journaling is off.
+	if !TLFJournalEnabled(fbo.config, fbo.id()) {
+		fbo.fbm.archiveUnrefBlocks(irmd.ReadOnly())
+	}
 
 	// notifyOneOp for every fixed-up merged op.
 	for _, op := range newOps {
@@ -5016,11 +4998,12 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 // completing conflict resolution.
 func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState,
-	newOps []op) error {
+	newOps []op, blocksToDelete []BlockID) error {
 	// Take the writer lock.
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
-	return fbo.finalizeResolutionLocked(ctx, lState, md, bps, newOps)
+	return fbo.finalizeResolutionLocked(
+		ctx, lState, md, bps, newOps, blocksToDelete)
 }
 
 func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
@@ -5081,6 +5064,7 @@ func (fbo *folderBranchOps) handleTLFBranchChange(ctx context.Context,
 
 	// Kick off conflict resolution and set the head to the correct branch.
 	fbo.setBranchIDLocked(lState, newBID)
+	fbo.cr.BeginNewBranch()
 	fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
 
 	fbo.headLock.Lock(lState)

@@ -21,6 +21,7 @@ type op interface {
 	AddRefBlock(ptr BlockPointer)
 	DelRefBlock(ptr BlockPointer)
 	AddUnrefBlock(ptr BlockPointer)
+	DelUnrefBlock(ptr BlockPointer)
 	AddUpdate(oldPtr BlockPointer, newPtr BlockPointer)
 	SizeExceptUpdates() uint64
 	allUpdates() []blockUpdate
@@ -162,6 +163,17 @@ func (oc *OpCommon) DelRefBlock(ptr BlockPointer) {
 // for this op.
 func (oc *OpCommon) AddUnrefBlock(ptr BlockPointer) {
 	oc.UnrefBlocks = append(oc.UnrefBlocks, ptr)
+}
+
+// DelUnrefBlock removes the first unreference of the given block from
+// the list of unreferenced blocks for this op.
+func (oc *OpCommon) DelUnrefBlock(ptr BlockPointer) {
+	for i, unref := range oc.UnrefBlocks {
+		if ptr == unref {
+			oc.UnrefBlocks = append(oc.UnrefBlocks[:i], oc.UnrefBlocks[i+1:]...)
+			break
+		}
+	}
 }
 
 // AddUpdate adds a mapping from an old block to the new version of

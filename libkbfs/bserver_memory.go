@@ -339,6 +339,19 @@ func (b *BlockServerMemory) numBlocks() int {
 	return len(b.m)
 }
 
+// IsUnflushed implements the BlockServer interface for BlockServerMemory.
+func (b *BlockServerMemory) IsUnflushed(ctx context.Context, tlfID tlf.ID,
+	_ BlockID) (bool, error) {
+	b.lock.RLock()
+	defer b.lock.RUnlock()
+
+	if b.m == nil {
+		return false, errBlockServerMemoryShutdown
+	}
+
+	return false, nil
+}
+
 // Shutdown implements the BlockServer interface for BlockServerMemory.
 func (b *BlockServerMemory) Shutdown() {
 	b.lock.Lock()

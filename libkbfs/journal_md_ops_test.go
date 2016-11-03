@@ -138,6 +138,8 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	// (3) trigger a conflict
 	rmd.SetRevision(MetadataRevision(8))
 	rmd.SetPrevRoot(prevRoot)
+	resolveMD, err := rmd.deepCopy(config.Codec())
+	require.NoError(t, err)
 	_, err = oldMDOps.Put(ctx, rmd)
 	require.NoError(t, err)
 
@@ -167,11 +169,6 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NotNil(t, head)
 	require.Equal(t, MetadataRevision(10), head.Revision())
 
-	head, err = oldMDOps.GetUnmergedForTLF(ctx, id, NullBranchID)
-	require.NoError(t, err)
-	require.NotNil(t, head)
-	require.Equal(t, MetadataRevision(10), head.Revision())
-
 	// (4) push some new unmerged metadata blocks linking to the
 	//     middle merged block.
 	var bid BranchID
@@ -191,11 +188,6 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NotNil(t, head)
 	require.Equal(t, MetadataRevision(40), head.Revision())
 
-	head, err = oldMDOps.GetUnmergedForTLF(ctx, id, bid)
-	require.NoError(t, err)
-	require.NotNil(t, head)
-	require.Equal(t, MetadataRevision(10), head.Revision())
-
 	// (6a) try to get unmerged range
 	rmdses, err := mdOps.GetUnmergedRange(ctx, id, bid, 1, 100)
 	require.NoError(t, err)
@@ -212,8 +204,8 @@ func TestJournalMDOpsBasics(t *testing.T) {
 		require.Equal(t, i, rmdses[i-8].Revision())
 	}
 
-	// (7) prune unmerged
-	err = mdOps.PruneBranch(ctx, id, bid)
+	// (7) resolve the branch
+	_, err = mdOps.ResolveBranch(ctx, id, bid, nil, resolveMD)
 	require.NoError(t, err)
 
 	// (8) verify head is pruned

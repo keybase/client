@@ -206,6 +206,11 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = kbfscodec.Update(
+		codec, &rmd.data.cachedChanges, md.data.cachedChanges)
+	if err != nil {
+		return nil, err
+	}
 
 	return rmd, nil
 }

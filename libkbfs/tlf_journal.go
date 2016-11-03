@@ -408,6 +408,20 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 			j.log)
 		switch {
 		case bws == TLFJournalBackgroundWorkEnabled && errCh == nil:
+			// If we're now on a branch, pause.  This will pause
+			// until PruneBranch or ResolveBranch is called.
+			isConflict, err := j.isOnConflictBranch()
+			if err != nil {
+				j.log.CDebugf(ctx, "Couldn't get conflict status: %v", err)
+				return
+			}
+			if isConflict {
+				j.log.CDebugf(ctx,
+					"Pausing work while on conflict branch for %s", j.tlfID)
+				bws = TLFJournalBackgroundWorkPaused
+				break
+			}
+
 			// 1) Idle.
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwIdle)
@@ -608,6 +622,15 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 	// block ops. See KBFS-1502.
 
 	for {
+		isConflict, err := j.isOnConflictBranch()
+		if err != nil {
+			return err
+		}
+		if isConflict {
+			j.log.CDebugf(ctx, "Ignoring flush while on conflict branch")
+			return nil
+		}
+
 		blockEnd, mdEnd, err := j.getJournalEnds(ctx)
 		if err != nil {
 			return err
@@ -721,27 +744,25 @@ func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
 	return j.mdJournal.getNextEntryToFlush(ctx, end, j.config.Crypto())
 }
 
-func (j *tlfJournal) convertMDsToBranchAndGetNextEntry(
-	ctx context.Context, nextEntryEnd MetadataRevision) (
-	MdID, *RootMetadataSigned, ExtraMetadata, error) {
+func (j *tlfJournal) convertMDsToBranch(
+	ctx context.Context, nextEntryEnd MetadataRevision) error {
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return MdID{}, nil, nil, err
+		return err
 	}
 
 	bid, err := j.mdJournal.convertToBranch(
 		ctx, j.config.Crypto(), j.config.Codec(), j.tlfID, j.config.MDCache())
 	if err != nil {
-		return MdID{}, nil, nil, err
+		return err
 	}
 
 	if j.onBranchChange != nil {
 		j.onBranchChange.onTLFBranchChange(j.tlfID, bid)
 	}
 
-	return j.mdJournal.getNextEntryToFlush(
-		ctx, nextEntryEnd, j.config.Crypto())
+	return nil
 }
 
 func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
@@ -808,19 +829,13 @@ func (j *tlfJournal) flushOneMDOp(
 			pushErr = nil
 		} else if rmds.MD.MergedStatus() == Merged {
 			j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
-			// Convert MDs to a branch and retry the put.
-			mdID, rmds, extra, err =
-				j.convertMDsToBranchAndGetNextEntry(ctx, end)
+			// Convert MDs to a branch and return -- the journal
+			// pauses until the resolution is complete.
+			err = j.convertMDsToBranch(ctx, end)
 			if err != nil {
 				return false, err
 			}
-			if mdID == (MdID{}) {
-				return false, errors.New("Unexpected nil MdID")
-			}
-			j.log.CDebugf(ctx, "Flushing newly-unmerged MD for TLF=%s with id=%s, rev=%s, bid=%s",
-				rmds.MD.TlfID(), mdID, rmds.MD.RevisionNumber(), rmds.MD.BID())
-			// MDv3 TODO: pass actual key bundles
-			pushErr = mdServer.Put(ctx, rmds, extra)
+			return false, nil
 		}
 	}
 	if pushErr != nil {
@@ -830,6 +845,11 @@ func (j *tlfJournal) flushOneMDOp(
 	if j.onMDFlush != nil {
 		j.onMDFlush.onMDFlush(rmds.MD.TlfID(), rmds.MD.BID(),
 			rmds.MD.RevisionNumber())
+	}
+
+	err = j.blockJournal.onMDFlush()
+	if err != nil {
+		return false, err
 	}
 
 	err = j.removeFlushedMDEntry(ctx, mdID, rmds)
@@ -859,6 +879,17 @@ func (j *tlfJournal) getJournalEntryCounts() (
 	}
 
 	return blockEntryCount, mdEntryCount, nil
+}
+
+func (j *tlfJournal) isOnConflictBranch() (bool, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+
+	if err := j.checkEnabledLocked(); err != nil {
+		return false, err
+	}
+
+	return j.mdJournal.getBranchID() != NullBranchID, nil
 }
 
 func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
@@ -1270,6 +1301,21 @@ func (j *tlfJournal) archiveBlockReferences(
 	return nil
 }
 
+func (j *tlfJournal) isBlockUnflushed(id BlockID) (bool, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return false, err
+	}
+
+	err := j.blockJournal.exists(id)
+	if err != nil {
+		// Might exist on the server
+		return false, nil
+	}
+	return true, nil
+}
+
 func (j *tlfJournal) getMDHead(
 	ctx context.Context) (ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
@@ -1403,8 +1449,13 @@ func (j *tlfJournal) clearMDs(ctx context.Context, bid BranchID) error {
 		return err
 	}
 
-	// No need to signal work in this case.
-	return j.mdJournal.clear(ctx, bid)
+	err := j.mdJournal.clear(ctx, bid)
+	if err != nil {
+		return err
+	}
+
+	j.resumeBackgroundWork()
+	return nil
 }
 
 func (j *tlfJournal) doResolveBranch(ctx context.Context,
@@ -1437,6 +1488,10 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	if err != nil {
 		return MdID{}, false, err
 	}
+	err = j.blockJournal.saveBlocksUntilNextMDFlush()
+	if err != nil {
+		return MdID{}, false, err
+	}
 
 	// Finally, append a new, non-ignored md rev marker for the new revision.
 	err = j.blockJournal.markMDRevision(ctx, rmd.Revision())
@@ -1444,6 +1499,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 		return MdID{}, false, err
 	}
 
+	j.resumeBackgroundWork()
 	j.signalWork()
 
 	// TODO: kick off a background goroutine that deletes ignored

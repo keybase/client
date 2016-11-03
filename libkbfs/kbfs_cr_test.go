@@ -1697,7 +1697,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	}
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(context.Background(), config2, StallableMDPut, 1)
+		StallMDOp(context.Background(), config2, StallableMDResolveBranch, 1)
 
 	var wg sync.WaitGroup
 	putCtx, cancel2 := context.WithCancel(putCtx)
@@ -1844,7 +1844,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	// to it locking next time (since it has seen how many revisions
 	// are outstanding).
 	onPutStalledCh, putUnstallCh, putCtx :=
-		StallMDOp(context.Background(), config2, StallableMDPut, 1)
+		StallMDOp(context.Background(), config2, StallableMDResolveBranch, 1)
 
 	var wg sync.WaitGroup
 	firstPutCtx, cancel := context.WithCancel(putCtx)

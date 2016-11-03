@@ -264,15 +264,12 @@ func TestBlockJournalArchiveNonExistentReference(t *testing.T) {
 }
 
 func testBlockJournalGCd(t *testing.T, j *blockJournal) {
-	filepath.Walk(j.j.dir, func(path string, _ os.FileInfo, _ error) error {
-		// We should only find the root directory here.
-		require.Equal(t, path, j.j.dir)
-		return nil
-	})
-	filepath.Walk(j.blocksPath(),
+	filepath.Walk(j.dir,
 		func(path string, info os.FileInfo, _ error) error {
 			// We should only find the blocks directory here.
-			require.Equal(t, path, j.blocksPath())
+			if path != j.dir && path != j.blocksPath() && path != j.j.dir {
+				t.Errorf("Found unexpected block path: %s", path)
+			}
 			return nil
 		})
 }
@@ -609,4 +606,110 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	require.NoError(t, err)
 	err = j.checkInSync(ctx)
 	require.NoError(t, err)
+}
+
+func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
+	ctx, tempdir, j := setupBlockJournalTest(t)
+	defer teardownBlockJournalTest(t, tempdir, j)
+
+	// Put a few blocks
+	data1 := []byte{1, 2, 3, 4}
+	bID1, _, _ := putBlockData(ctx, t, j, data1)
+	data2 := []byte{5, 6, 7, 8}
+	bID2, _, _ := putBlockData(ctx, t, j, data2)
+
+	// Put a revision marker
+	rev := MetadataRevision(10)
+	err := j.markMDRevision(ctx, rev)
+	require.NoError(t, err)
+
+	data3 := []byte{9, 10, 11, 12}
+	bID3, _, _ := putBlockData(ctx, t, j, data3)
+	data4 := []byte{13, 14, 15, 16}
+	bID4, _, _ := putBlockData(ctx, t, j, data4)
+
+	// Put a revision marker
+	rev = MetadataRevision(11)
+	err = j.markMDRevision(ctx, rev)
+	require.NoError(t, err)
+
+	err = j.saveBlocksUntilNextMDFlush()
+	require.NoError(t, err)
+	savedBlocks := []BlockID{bID1, bID2, bID3, bID4}
+
+	blockServer := NewBlockServerMemory(newTestBlockServerLocalConfig(t))
+	tlfID := tlf.FakeID(1, false)
+	bcache := NewBlockCacheStandard(0, 0)
+	reporter := NewReporterSimple(nil, 0)
+
+	// Flush all the entries, but they should still remain accessible.
+	flushAll := func() {
+		last, err := j.j.readLatestOrdinal()
+		require.NoError(t, err)
+		entries, _, err := j.getNextEntriesToFlush(ctx, last+1,
+			maxJournalBlockFlushBatchSize)
+		require.NoError(t, err)
+		err = flushBlockEntries(ctx, j.log, blockServer,
+			bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
+			entries)
+		require.NoError(t, err)
+		err = j.removeFlushedEntries(ctx, entries, tlfID, reporter)
+		require.NoError(t, err)
+	}
+	flushAll()
+
+	// The blocks can still be fetched from the journal.
+	for _, bid := range savedBlocks {
+		err = j.exists(bid)
+		require.NoError(t, err)
+	}
+
+	// No more blocks to flush though.
+	end, err := j.end()
+	require.NoError(t, err)
+	entries, gotRev, err := j.getNextEntriesToFlush(ctx, end,
+		maxJournalBlockFlushBatchSize)
+	require.NoError(t, err)
+	require.Equal(t, 0, entries.length())
+	require.Equal(t, MetadataRevisionUninitialized, gotRev)
+
+	// Add a few more blocks and save those too.
+	data5 := []byte{17, 18, 19, 20}
+	bID5, _, _ := putBlockData(ctx, t, j, data5)
+	data6 := []byte{21, 22, 23, 24}
+	bID6, _, _ := putBlockData(ctx, t, j, data6)
+	err = j.saveBlocksUntilNextMDFlush()
+	require.NoError(t, err)
+	savedBlocks = append(savedBlocks, bID5, bID6)
+	flushAll()
+
+	// Make sure all the blocks still exist, including both the old
+	// and the new ones.
+	for _, bid := range savedBlocks {
+		err = j.exists(bid)
+		require.NoError(t, err)
+	}
+
+	{
+		// Make sure the saved block journal persists after a restart.
+		jRestarted, err := makeBlockJournal(
+			ctx, j.codec, j.crypto, j.dir, j.log)
+		require.NoError(t, err)
+		require.NotNil(t, jRestarted.saveUntilMDFlush)
+	}
+
+	// Now remove all the data.
+	err = j.onMDFlush()
+	require.NoError(t, err)
+
+	err = j.exists(bID1)
+	require.True(t, os.IsNotExist(err))
+	err = j.exists(bID2)
+	require.True(t, os.IsNotExist(err))
+	err = j.exists(bID3)
+	require.True(t, os.IsNotExist(err))
+	err = j.exists(bID4)
+	require.True(t, os.IsNotExist(err))
+
+	testBlockJournalGCd(t, j)
 }

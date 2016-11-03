@@ -328,6 +328,9 @@ type crChains struct {
 	// We need to be able to track ANY BlockPointer, at any point in
 	// the chain, back to its original.
 	originals map[BlockPointer]BlockPointer
+
+	// All the resolution ops from the branch, in order.
+	resOps []*resolutionOp
 }
 
 func (ccs *crChains) addOp(ptr BlockPointer, op op) error {
@@ -517,7 +520,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			return err
 		}
 	case *resolutionOp:
-		// ignore resolution op
+		ccs.resOps = append(ccs.resOps, realOp)
 	case *rekeyOp:
 		// ignore rekey op
 	case *GCOp:

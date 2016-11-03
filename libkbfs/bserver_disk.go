@@ -305,6 +305,23 @@ func (b *BlockServerDisk) getAll(ctx context.Context, tlfID tlf.ID) (
 	return tlfStorage.journal.getAll()
 }
 
+// IsUnflushed implements the BlockServer interface for BlockServerDisk.
+func (b *BlockServerDisk) IsUnflushed(ctx context.Context, tlfID tlf.ID,
+	_ BlockID) (bool, error) {
+	tlfStorage, err := b.getStorage(ctx, tlfID)
+	if err != nil {
+		return false, err
+	}
+
+	tlfStorage.lock.RLock()
+	defer tlfStorage.lock.RUnlock()
+	if tlfStorage.journal == nil {
+		return false, errBlockServerDiskShutdown
+	}
+
+	return false, nil
+}
+
 // Shutdown implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) Shutdown() {
 	tlfStorage := func() map[tlf.ID]*blockServerDiskTlfStorage {

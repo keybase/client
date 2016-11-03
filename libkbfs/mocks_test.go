@@ -663,14 +663,6 @@ func (_mr *_MockKeybaseServiceRecorder) FlushUserUnverifiedKeysFromLocalCache(ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FlushUserUnverifiedKeysFromLocalCache", arg0, arg1)
 }
 
-func (_m *MockKeybaseService) Shutdown() {
-	_m.ctrl.Call(_m, "Shutdown")
-}
-
-func (_mr *_MockKeybaseServiceRecorder) Shutdown() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
-}
-
 func (_m *MockKeybaseService) EstablishMountDir(ctx context.Context) (string, error) {
 	ret := _m.ctrl.Call(_m, "EstablishMountDir", ctx)
 	ret0, _ := ret[0].(string)
@@ -680,6 +672,14 @@ func (_m *MockKeybaseService) EstablishMountDir(ctx context.Context) (string, er
 
 func (_mr *_MockKeybaseServiceRecorder) EstablishMountDir(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "EstablishMountDir", arg0)
+}
+
+func (_m *MockKeybaseService) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockKeybaseServiceRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
 // Mock of KeybaseServiceCn interface
@@ -3165,6 +3165,17 @@ func (_mr *_MockBlockServerRecorder) ArchiveBlockReferences(arg0, arg1, arg2 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ArchiveBlockReferences", arg0, arg1, arg2)
 }
 
+func (_m *MockBlockServer) IsUnflushed(ctx context.Context, tlfID tlf.ID, id BlockID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsUnflushed", ctx, tlfID, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBlockServerRecorder) IsUnflushed(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsUnflushed", arg0, arg1, arg2)
+}
+
 func (_m *MockBlockServer) Shutdown() {
 	_m.ctrl.Call(_m, "Shutdown")
 }
@@ -3264,6 +3275,17 @@ func (_m *MockblockServerLocal) ArchiveBlockReferences(ctx context.Context, tlfI
 
 func (_mr *_MockblockServerLocalRecorder) ArchiveBlockReferences(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ArchiveBlockReferences", arg0, arg1, arg2)
+}
+
+func (_m *MockblockServerLocal) IsUnflushed(ctx context.Context, tlfID tlf.ID, id BlockID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsUnflushed", ctx, tlfID, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockblockServerLocalRecorder) IsUnflushed(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsUnflushed", arg0, arg1, arg2)
 }
 
 func (_m *MockblockServerLocal) Shutdown() {

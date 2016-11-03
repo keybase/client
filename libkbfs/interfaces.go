@@ -1195,6 +1195,10 @@ type BlockServer interface {
 	ArchiveBlockReferences(ctx context.Context, tlfID tlf.ID,
 		contexts map[BlockID][]BlockContext) error
 
+	// IsUnflushed returns whether a given block is being queued
+	// locally for later flushing to another block server.
+	IsUnflushed(ctx context.Context, tlfID tlf.ID, id BlockID) (bool, error)
+
 	// Shutdown is called to shutdown a BlockServer connection.
 	Shutdown()
 

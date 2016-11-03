@@ -640,6 +640,43 @@ func undoStallOnMDGetRange() fileOp {
 	}, IsInit}
 }
 
+func stallDelegateOnMDResolveBranch() fileOp {
+	return fileOp{func(c *ctx) error {
+		// TODO: Allow test to pass in a more precise maxStalls limit.
+		c.staller.StallMDOp(libkbfs.StallableMDResolveBranch, 100, true)
+		return nil
+	}, Defaults}
+}
+
+func stallOnMDResolveBranch() fileOp {
+	return fileOp{func(c *ctx) error {
+		// TODO: Allow test to pass in a more precise maxStalls limit.
+		c.staller.StallMDOp(libkbfs.StallableMDResolveBranch, 100, false)
+		return nil
+	}, Defaults}
+}
+
+func waitForStalledMDResolveBranch() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.WaitForStallMDOp(libkbfs.StallableMDResolveBranch)
+		return nil
+	}, IsInit}
+}
+
+func unstallOneMDResolveBranch() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.UnstallOneMDOp(libkbfs.StallableMDResolveBranch)
+		return nil
+	}, IsInit}
+}
+
+func undoStallOnMDResolveBranch() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.UndoStallMDOp(libkbfs.StallableMDResolveBranch)
+		return nil
+	}, IsInit}
+}
+
 func reenableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
 		err := c.engine.ReenableUpdates(c.user, c.tlfName, c.tlfIsPublic)

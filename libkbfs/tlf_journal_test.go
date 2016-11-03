@@ -663,7 +663,7 @@ func TestTLFJournalFlushMDConflict(t *testing.T) {
 	{
 		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 		require.NoError(t, err)
-		require.True(t, flushed)
+		require.False(t, flushed)
 
 		revision := firstRevision + MetadataRevision(mdCount/2)
 		md := config.makeMD(revision, prevRoot)
@@ -685,102 +685,8 @@ func TestTLFJournalFlushMDConflict(t *testing.T) {
 		prevRoot = mdID
 	}
 
-	mdEnd = firstRevision + MetadataRevision(mdCount)
-
-	// Flush remaining entries.
-	for i := 0; i < mdCount-1; i++ {
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
-		require.NoError(t, err)
-		require.True(t, flushed)
-	}
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
-	require.NoError(t, err)
-	require.False(t, flushed)
-	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
-	testMDJournalGCd(t, tlfJournal.mdJournal)
-
-	// Check RMDSes on the server.
-
-	rmdses := mdserver.rmdses
-	require.Equal(t, mdCount, len(rmdses))
-	config.checkRange(rmdses, firstRevision, firstPrevRoot,
-		Unmerged, rmdses[0].MD.BID())
-}
-
-// TestTLFJournalPreservesBranchID tests that the branch ID is
-// preserved even if the journal is fully drained. This is a
-// regression test for KBFS-1344.
-func TestTLFJournalPreservesBranchID(t *testing.T) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, TLFJournalBackgroundWorkPaused)
-	defer teardownTLFJournalTest(
-		tempdir, config, ctx, cancel, tlfJournal, delegate)
-
-	firstRevision := MetadataRevision(10)
-	firstPrevRoot := fakeMdID(1)
-	mdCount := 10
-
-	prevRoot := firstPrevRoot
-	for i := 0; i < mdCount-1; i++ {
-		revision := firstRevision + MetadataRevision(i)
-		md := config.makeMD(revision, prevRoot)
-		mdID, err := tlfJournal.putMD(ctx, md)
-		require.NoError(t, err)
-		prevRoot = mdID
-	}
-
-	var mdserver shimMDServer
-	config.mdserver = &mdserver
-	mdserver.nextErr = MDServerErrorConflictRevision{}
-
-	_, mdEnd, err := tlfJournal.getJournalEnds(ctx)
-	require.NoError(t, err)
-
-	// Flush all entries, with the first one encountering a
-	// conflict error.
-	for i := 0; i < mdCount-1; i++ {
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
-		require.NoError(t, err)
-		require.True(t, flushed)
-	}
-
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
-	require.NoError(t, err)
-	require.False(t, flushed)
-	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount)-1, 0)
-	testMDJournalGCd(t, tlfJournal.mdJournal)
-
-	// Put last revision and flush it.
-	{
-		revision := firstRevision + MetadataRevision(mdCount-1)
-		md := config.makeMD(revision, prevRoot)
-		mdID, err := tlfJournal.putMD(ctx, md)
-		require.IsType(t, MDJournalConflictError{}, err)
-
-		md.SetUnmerged()
-		mdID, err = tlfJournal.putMD(ctx, md)
-		require.NoError(t, err)
-		prevRoot = mdID
-
-		mdEnd++
-
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
-		require.NoError(t, err)
-		require.True(t, flushed)
-
-		flushed, err = tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
-		require.NoError(t, err)
-		require.False(t, flushed)
-		requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
-		testMDJournalGCd(t, tlfJournal.mdJournal)
-	}
-
-	// Check RMDSes on the server. In particular, the BranchID of
-	// the last put MD should match the rest.
-	rmdses := mdserver.rmdses
-	require.Equal(t, mdCount, len(rmdses))
-	config.checkRange(rmdses, firstRevision, firstPrevRoot, Unmerged,
-		rmdses[0].MD.BID())
+	// The journal won't flush anything while on a branch.
+	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), uint64(mdCount))
 }
 
 // orderedBlockServer and orderedMDServer appends onto their shared
@@ -1109,7 +1015,7 @@ func TestTLFJournalResolveBranch(t *testing.T) {
 	// This will convert to a branch.
 	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, mdEnd)
 	require.NoError(t, err)
-	require.True(t, flushed)
+	require.False(t, flushed)
 
 	// Resolve the branch.
 	resolveMD := config.makeMD(firstRevision, firstPrevRoot)
@@ -1132,4 +1038,8 @@ func TestTLFJournalResolveBranch(t *testing.T) {
 	require.Len(t, blocks.other, 5)
 	require.Equal(t, bids[0], blocks.puts.blockStates[0].blockPtr.ID)
 	require.Equal(t, bids[2], blocks.puts.blockStates[1].blockPtr.ID)
+
+	// resolveBranch resumes background work.
+	delegate.requireNextState(ctx, bwIdle)
+	delegate.requireNextState(ctx, bwBusy)
 }

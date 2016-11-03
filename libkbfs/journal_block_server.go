@@ -107,6 +107,18 @@ func (j journalBlockServer) ArchiveBlockReferences(
 	return j.BlockServer.ArchiveBlockReferences(ctx, tlfID, contexts)
 }
 
+func (j journalBlockServer) IsUnflushed(ctx context.Context, tlfID tlf.ID,
+	id BlockID) (isLocal bool, err error) {
+	if tlfJournal, ok := j.jServer.getTLFJournal(tlfID); ok {
+		defer func() {
+			err = translateToBlockServerError(err)
+		}()
+		return tlfJournal.isBlockUnflushed(id)
+	}
+
+	return j.BlockServer.IsUnflushed(ctx, tlfID, id)
+}
+
 func (j journalBlockServer) Shutdown() {
 	j.jServer.shutdown()
 	j.BlockServer.Shutdown()

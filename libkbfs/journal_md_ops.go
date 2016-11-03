@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -199,11 +198,17 @@ func (j journalMDOps) getRangeFromJournal(
 func (j journalMDOps) GetForHandle(
 	ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (
 	tlf.ID, ImmutableRootMetadata, error) {
-	// Need to always consult the server to get the tlfID. No need
-	// to optimize this, since all subsequent lookups will be by
-	// TLF. Although if we did want to, we could store a handle ->
-	// TLF ID mapping with the journals.
-	tlfID, rmd, err := j.MDOps.GetForHandle(ctx, handle, mStatus)
+	// Need to always consult the server to get the tlfID. No need to
+	// optimize this, since all subsequent lookups will be by
+	// TLF. Although if we did want to, we could store a handle -> TLF
+	// ID mapping with the journals.  If we are looking for an
+	// unmerged head, that exists only in the journal, so check the
+	// remote server only to get the TLF ID.
+	remoteMStatus := mStatus
+	if mStatus == Unmerged {
+		remoteMStatus = Merged
+	}
+	tlfID, rmd, err := j.MDOps.GetForHandle(ctx, handle, remoteMStatus)
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
@@ -222,6 +227,9 @@ func (j journalMDOps) GetForHandle(
 	}
 	if irmd != (ImmutableRootMetadata{}) {
 		return tlf.ID{}, irmd, nil
+	}
+	if remoteMStatus != mStatus {
+		return tlfID, ImmutableRootMetadata{}, nil
 	}
 
 	// Otherwise, use the server's head.
@@ -379,5 +387,5 @@ func (j journalMDOps) ResolveBranch(
 		}
 	}
 
-	return MdID{}, errors.New("ResolveBranch not supported outside of journal")
+	return j.MDOps.ResolveBranch(ctx, id, bid, blocksToDelete, rmd)
 }
