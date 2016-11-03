@@ -379,6 +379,9 @@ func (g *GlobalContext) Shutdown() error {
 		if g.Resolver != nil {
 			g.Resolver.Shutdown()
 		}
+		if g.MessageDeliverer != nil {
+			g.MessageDeliverer.Stop()
+		}
 
 		for _, hook := range g.ShutdownHooks {
 			epick.Push(hook())

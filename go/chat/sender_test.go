@@ -80,6 +80,7 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 func TestNonblockChannel(t *testing.T) {
 	tc, ri, u, sender, listener, _, _ := setupTest(t)
 	defer tc.Cleanup()
+
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
 		IdTriple: chat1.ConversationIDTriple{
 			Tlfid:     []byte{4, 5, 6},
@@ -117,6 +118,7 @@ func TestNonblockChannel(t *testing.T) {
 func TestNonblockTimer(t *testing.T) {
 	tc, ri, u, _, listener, f, clock := setupTest(t)
 	defer tc.Cleanup()
+
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
 		IdTriple: chat1.ConversationIDTriple{
 			Tlfid:     []byte{4, 5, 6},
