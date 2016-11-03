@@ -210,6 +210,10 @@ func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 	return d
 }
 
+func (s *Deliverer) debug(msg string, args ...interface{}) {
+	s.G().Log.Debug("Deliverer: "+msg, args...)
+}
+
 func (s *Deliverer) Start(uid gregor1.UID) {
 	s.Lock()
 	defer s.Unlock()
@@ -239,6 +243,8 @@ func (s *Deliverer) doStop() {
 
 func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, error) {
 
+	s.debug("queued new message: convID: %s uid: %s", convID, s.outbox.GetUID())
+
 	// Push onto outbox and immediatley return
 	oid, err := s.outbox.PushMessage(convID, msg)
 	if err != nil {
@@ -252,26 +258,26 @@ func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintex
 }
 
 func (s *Deliverer) deliverLoop() {
-	s.G().Log.Debug("starting non blocking sender deliver loop: uid: %s", s.outbox.GetUID())
+	s.debug("starting non blocking sender deliver loop: uid: %s", s.outbox.GetUID())
 	for {
 		// Wait for the signal to take action
 		select {
 		case <-s.shutdownCh:
-			s.G().Log.Debug("shuttting down outbox deliver loop: uid: %s", s.outbox.GetUID())
+			s.debug("shuttting down outbox deliver loop: uid: %s", s.outbox.GetUID())
 			return
 		case <-s.msgSentCh:
-			s.G().Log.Debug("flushing outbox on new message: uid: %s", s.outbox.GetUID())
+			s.debug("flushing outbox on new message: uid: %s", s.outbox.GetUID())
 		case <-s.G().Clock().After(time.Minute):
 		}
 
 		// Fetch outbox
 		obrs, err := s.outbox.PullAllConversations()
 		if err != nil {
-			s.G().Log.Error("unable to pull outbox: err: %s", err.Error())
+			s.G().Log.Error("unable to pull outbox: uid: %s err: %s", s.outbox.GetUID(), err.Error())
 			continue
 		}
 		if len(obrs) > 0 {
-			s.G().Log.Debug("flushing %d items from the outbox: uid: %s", len(obrs), s.outbox.GetUID())
+			s.debug("flushing %d items from the outbox: uid: %s", len(obrs), s.outbox.GetUID())
 		}
 
 		// Send messages
@@ -296,10 +302,12 @@ func (s *Deliverer) deliverLoop() {
 
 		// Clear out outbox
 		if pops > 0 {
-			s.G().Log.Debug("clearing %d message from outbox: uid: %s", pops, s.outbox.GetUID())
+			s.debug("clearing %d message from outbox: uid: %s", pops, s.outbox.GetUID())
 			if err = s.outbox.PopNOldestMessages(pops); err != nil {
-				s.G().Log.Error("failed to clear messages from outbox: err: %s", err.Error())
+				s.G().Log.Error("failed to clear messages from outbox: uid: %s err: %s",
+					s.outbox.GetUID(), err.Error())
 			}
+			s.debug("messages cleared")
 		}
 	}
 }
