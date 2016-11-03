@@ -148,6 +148,8 @@ const (
 	SCAlreadyLoggedIn        = int(keybase1.StatusCode_SCAlreadyLoggedIn)
 	SCCanceled               = int(keybase1.StatusCode_SCCanceled)
 	SCInputCanceled          = int(keybase1.StatusCode_SCInputCanceled)
+	SCExists                 = int(keybase1.StatusCode_SCExists)
+	SCInvalidAddress         = int(keybase1.StatusCode_SCInvalidAddress)
 	SCReloginRequired        = int(keybase1.StatusCode_SCReloginRequired)
 	SCResolutionFailed       = int(keybase1.StatusCode_SCResolutionFailed)
 	SCProfileNotPublic       = int(keybase1.StatusCode_SCProfileNotPublic)

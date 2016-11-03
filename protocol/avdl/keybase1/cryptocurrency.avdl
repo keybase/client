@@ -4,9 +4,9 @@ protocol cryptocurrency {
   import idl "common.avdl";
 
   record RegisterAddressRes {
-  	string Type;
-  	string Family;
+  	string type;
+  	string family;
   }
 
-  RegisterAddressRes registerAddress(int sessionID, string address, boolean force);
+  RegisterAddressRes registerAddress(int sessionID, string address, boolean force, string wantedFamily);
 }

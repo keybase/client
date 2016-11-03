@@ -99,6 +99,7 @@ export const ConstantsStatusCode = {
   scdeleted: 216,
   scgeneric: 218,
   scalreadyloggedin: 235,
+  scexists: 230,
   sccanceled: 237,
   scinputcanceled: 239,
   screloginrequired: 274,
@@ -108,6 +109,7 @@ export const ConstantsStatusCode = {
   sctrackingbroke: 278,
   scwrongcryptoformat: 279,
   scdecryptionerror: 280,
+  scinvalidaddress: 281,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -3515,8 +3517,8 @@ export type PushReason =
   | 2 // NEW_DATA_2
 
 export type RegisterAddressRes = {
-  Type: string,
-  Family: string,
+  type: string,
+  family: string,
 }
 
 export type RekeyEvent = {
@@ -3771,6 +3773,7 @@ export type StatusCode =
   | 216 // SCDeleted_216
   | 218 // SCGeneric_218
   | 235 // SCAlreadyLoggedIn_235
+  | 230 // SCExists_230
   | 237 // SCCanceled_237
   | 239 // SCInputCanceled_239
   | 274 // SCReloginRequired_274
@@ -3780,6 +3783,7 @@ export type StatusCode =
   | 278 // SCTrackingBroke_278
   | 279 // SCWrongCryptoFormat_279
   | 280 // SCDecryptionError_280
+  | 281 // SCInvalidAddress_281
   | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
@@ -4168,7 +4172,8 @@ export type cryptoUnboxBytes32RpcParam = Exact<{
 
 export type cryptocurrencyRegisterAddressRpcParam = Exact<{
   address: string,
-  force: boolean
+  force: boolean,
+  wantedFamily: string
 }>
 
 export type ctlStopRpcParam = Exact<{

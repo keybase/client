@@ -52,8 +52,18 @@ func TestCryptocurrency(t *testing.T) {
 		t.Fatalf("No address should be set")
 	}
 
+	// Now set a real address, but with the wrong family. This should fail
+	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, WantedFamily: "zcash"})
+	err = RunEngine(e, ctx)
+	if err == nil {
+		t.Fatal("Wanted an error for wrong adddress type")
+	}
+	if current != "" {
+		t.Fatalf("No address should be set")
+	}
+
 	// Now set a real address; this should succeed.
-	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress})
+	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, WantedFamily: "bitcoin"})
 	err = RunEngine(e, ctx)
 	if err != nil {
 		t.Fatal(err)

@@ -51,7 +51,12 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 	typ, _, err = libkb.CryptocurrencyParseAndCheck(e.arg.Address)
 
 	if err != nil {
-		return err
+		return libkb.InvalidAddressError{Msg: err.Error()}
+	}
+
+	family := typ.ToCryptocurrencyFamily()
+	if len(e.arg.WantedFamily) > 0 && e.arg.WantedFamily != string(family) {
+		return libkb.InvalidAddressError{Msg: fmt.Sprintf("wanted coin type %q, but got %q", e.arg.WantedFamily, family)}
 	}
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
@@ -59,10 +64,9 @@ func (e *CryptocurrencyEngine) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	family := typ.ToCryptocurrencyFamily()
 	cryptocurrencyLink := me.IDTable().ActiveCryptocurrency(typ.ToCryptocurrencyFamily())
 	if cryptocurrencyLink != nil && !e.arg.Force {
-		return fmt.Errorf("You already have a %s cryptocurrency address. To overwrite, use --force", family)
+		return libkb.ExistsError{Msg: string(family)}
 	}
 	var sigIDToRevoke keybase1.SigID
 	if cryptocurrencyLink != nil {
