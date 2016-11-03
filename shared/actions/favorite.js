@@ -1,8 +1,9 @@
 // @flow
 import * as Constants from '../constants/favorite'
 import _ from 'lodash'
+import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
-import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise, NotifyFSRequestFSSyncStatusRequestRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {navigateBack} from '../actions/router'
 import {call, put, select} from 'redux-saga/effects'
@@ -267,15 +268,15 @@ function _notify (state) {
 }
 
 function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
-  yield put((dispatch: Dispatch) => {
-    let temp = true
-    setInterval(() => {
-      const badgeAction: Action = badgeApp('kbfsUploading', temp)
-      dispatch(badgeAction)
-      dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: temp}})
-      temp = !temp
-    }, 2000)
-  })
+  // yield put((dispatch: Dispatch) => {
+    // let temp = true
+    // setInterval(() => {
+      // const badgeAction: Action = badgeApp('kbfsUploading', temp)
+      // dispatch(badgeAction)
+      // dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: temp}})
+      // temp = !temp
+    // }, 2000)
+  // })
   // const results = yield call(apiserverGetRpcPromise, {
     // param: {
       // endpoint: 'kbfs/favorite/list',
@@ -285,13 +286,24 @@ function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
 
   // console.log('aaa', results)
 
-  // yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {
-    // param: {
-      // req: {
-        // requestID: 0,
-      // },
-    // },
-  // })
+  yield put((dispatch: Dispatch) => {
+    console.log('aaaa registering')
+
+    // engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncStatusResponse', (status) => {
+      // console.log('aaaa response', status)
+    // })
+
+    engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
+      console.log('aaaa', JSON.stringify(status, null, 4))
+      // const upping = status.syncingBytes
+      // const badgeAction: Action = badgeApp('kbfsUploading', temp)
+      // dispatch(badgeAction)
+      // dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: temp}})
+    })
+  })
+
+  yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {param: {req: {requestID: 0}}})
+
     // folder: {
       // name,
       // private,
@@ -301,7 +313,6 @@ function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
     // requestID: 0,
   // }})
   // return (dispatch, getState) => {
-    // engine().setIncomingHandler('keybase.1.NotifyUsers.userChanged', ({}) => {
     // })
   // }
 }

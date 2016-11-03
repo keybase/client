@@ -502,7 +502,7 @@ export function Kex2ProvisionerKexStartRpcPromise (request: $Exact<requestCommon
 }
 
 export function NotifyFSRequestFSEditListRequestRpc (request: Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSEditListRequestRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifyFSRequest.FSEditListRequest'})
+  engineRpcOutgoing({...request, method: 'keybase.1.NotifyFSRequest.FSEditListRequest'})
 }
 
 export function NotifyFSRequestFSEditListRequestRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSEditListRequestRpcParam}>): ChannelMap<*> {
@@ -514,7 +514,7 @@ export function NotifyFSRequestFSEditListRequestRpcPromise (request: $Exact<requ
 }
 
 export function NotifyFSRequestFSSyncStatusRequestRpc (request: Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSSyncStatusRequestRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifyFSRequest.FSSyncStatusRequest'})
+  engineRpcOutgoing({...request, method: 'keybase.1.NotifyFSRequest.FSSyncStatusRequest'})
 }
 
 export function NotifyFSRequestFSSyncStatusRequestRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSSyncStatusRequestRpcParam}>): ChannelMap<*> {
