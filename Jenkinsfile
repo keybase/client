@@ -2,9 +2,7 @@
 
 helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
 
-helpers.rootLinuxNode(env, {
-    helpers.slackOnError("client", env, currentBuild)
-}, {}) {
+nodeWithDockerCleanup("ec2-fleet-max-test-linux", {}, {}) {
     properties([
             [$class: "BuildDiscarderProperty",
                 strategy: [$class: "LogRotator",
@@ -169,23 +167,23 @@ helpers.rootLinuxNode(env, {
                                     clientImage = docker.build("keybaseprivate/kbclient")
                                     sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
                                     archive("kbclient.tar.gz")
-                                    build([
-                                        job: "/kbfs/master",
-                                        parameters: [
-                                            [$class: 'StringParameterValue',
-                                                name: 'clientProjectName',
-                                                value: env.JOB_NAME,
-                                            ],
-                                            [$class: 'StringParameterValue',
-                                                name: 'kbwebNodePrivateIP',
-                                                value: kbwebNodePrivateIP,
-                                            ],
-                                            [$class: 'StringParameterValue',
-                                                name: 'kbwebNodePublicIP',
-                                                value: kbwebNodePublicIP,
-                                            ],
-                                        ]
-                                    ])
+                                    //build([
+                                    //    job: "/kbfs/master",
+                                    //    parameters: [
+                                    //        [$class: 'StringParameterValue',
+                                    //            name: 'clientProjectName',
+                                    //            value: env.JOB_NAME,
+                                    //        ],
+                                    //        [$class: 'StringParameterValue',
+                                    //            name: 'kbwebNodePrivateIP',
+                                    //            value: kbwebNodePrivateIP,
+                                    //        ],
+                                    //        [$class: 'StringParameterValue',
+                                    //            name: 'kbwebNodePublicIP',
+                                    //            value: kbwebNodePublicIP,
+                                    //        ],
+                                    //    ]
+                                    //])
                                 }
                             },
                         )
