@@ -100,6 +100,7 @@ export const ConstantsStatusCode = {
   scdeleted: 216,
   scgeneric: 218,
   scalreadyloggedin: 235,
+  scexists: 230,
   sccanceled: 237,
   scinputcanceled: 239,
   screloginrequired: 274,
@@ -109,6 +110,7 @@ export const ConstantsStatusCode = {
   sctrackingbroke: 278,
   scwrongcryptoformat: 279,
   scdecryptionerror: 280,
+  scinvalidaddress: 281,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -895,6 +897,18 @@ export function cryptoUnboxBytes32RpcPromise (request: $Exact<requestCommon & {c
   return new Promise((resolve, reject) => { cryptoUnboxBytes32Rpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function cryptocurrencyRegisterAddressRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: cryptocurrencyRegisterAddressResult) => void} & {param: cryptocurrencyRegisterAddressRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'cryptocurrency.registerAddress'})
+}
+
+export function cryptocurrencyRegisterAddressRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptocurrencyRegisterAddressResult) => void} & {param: cryptocurrencyRegisterAddressRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => cryptocurrencyRegisterAddressRpc({...request, incomingCallMap, callback}))
+}
+
+export function cryptocurrencyRegisterAddressRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptocurrencyRegisterAddressResult) => void} & {param: cryptocurrencyRegisterAddressRpcParam}>): Promise<cryptocurrencyRegisterAddressResult> {
+  return new Promise((resolve, reject) => { cryptocurrencyRegisterAddressRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function ctlAppExitRpc (request: Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'keybase.1.ctl.appExit'})
 }
@@ -1265,6 +1279,42 @@ export function kbfsFSSyncStatusRpcChannelMap (channelConfig: ChannelConfig<*>, 
 
 export function kbfsFSSyncStatusRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncStatusRpcParam}>): Promise<any> {
   return new Promise((resolve, reject) => { kbfsFSSyncStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function kbfsMountGetAllAvailableMountDirsRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetAllAvailableMountDirsResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'kbfsMount.GetAllAvailableMountDirs'})
+}
+
+export function kbfsMountGetAllAvailableMountDirsRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetAllAvailableMountDirsResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => kbfsMountGetAllAvailableMountDirsRpc({...request, incomingCallMap, callback}))
+}
+
+export function kbfsMountGetAllAvailableMountDirsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetAllAvailableMountDirsResult) => void}>): Promise<kbfsMountGetAllAvailableMountDirsResult> {
+  return new Promise((resolve, reject) => { kbfsMountGetAllAvailableMountDirsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function kbfsMountGetCurrentMountDirRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetCurrentMountDirResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'kbfsMount.GetCurrentMountDir'})
+}
+
+export function kbfsMountGetCurrentMountDirRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetCurrentMountDirResult) => void}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => kbfsMountGetCurrentMountDirRpc({...request, incomingCallMap, callback}))
+}
+
+export function kbfsMountGetCurrentMountDirRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: kbfsMountGetCurrentMountDirResult) => void}>): Promise<kbfsMountGetCurrentMountDirResult> {
+  return new Promise((resolve, reject) => { kbfsMountGetCurrentMountDirRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function kbfsMountSetCurrentMountDirRpc (request: Exact<requestCommon & requestErrorCallback & {param: kbfsMountSetCurrentMountDirRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'kbfsMount.SetCurrentMountDir'})
+}
+
+export function kbfsMountSetCurrentMountDirRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: kbfsMountSetCurrentMountDirRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => kbfsMountSetCurrentMountDirRpc({...request, incomingCallMap, callback}))
+}
+
+export function kbfsMountSetCurrentMountDirRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsMountSetCurrentMountDirRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { kbfsMountSetCurrentMountDirRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function logRegisterLoggerRpc (request: Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>) {
@@ -2679,6 +2729,8 @@ export type Cryptocurrency = {
   pkhash: bytes,
   address: string,
   sigID: SigID,
+  type: string,
+  family: string,
 }
 
 export type CsrfToken = string
@@ -3465,6 +3517,11 @@ export type PushReason =
   | 1 // RECONNECTED_1
   | 2 // NEW_DATA_2
 
+export type RegisterAddressRes = {
+  type: string,
+  family: string,
+}
+
 export type RekeyEvent = {
   eventType: RekeyEventType,
   interruptType: int,
@@ -3717,6 +3774,7 @@ export type StatusCode =
   | 216 // SCDeleted_216
   | 218 // SCGeneric_218
   | 235 // SCAlreadyLoggedIn_235
+  | 230 // SCExists_230
   | 237 // SCCanceled_237
   | 239 // SCInputCanceled_239
   | 274 // SCReloginRequired_274
@@ -3726,6 +3784,7 @@ export type StatusCode =
   | 278 // SCTrackingBroke_278
   | 279 // SCWrongCryptoFormat_279
   | 280 // SCDecryptionError_280
+  | 281 // SCInvalidAddress_281
   | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
@@ -4112,6 +4171,12 @@ export type cryptoUnboxBytes32RpcParam = Exact<{
   reason: string
 }>
 
+export type cryptocurrencyRegisterAddressRpcParam = Exact<{
+  address: string,
+  force: boolean,
+  wantedFamily: string
+}>
+
 export type ctlStopRpcParam = Exact<{
   exitCode: ExitCode
 }>
@@ -4282,6 +4347,10 @@ export type kbfsFSSyncEventRpcParam = Exact<{
 export type kbfsFSSyncStatusRpcParam = Exact<{
   status: FSSyncStatus,
   requestID: int
+}>
+
+export type kbfsMountSetCurrentMountDirRpcParam = Exact<{
+  dir: string
 }>
 
 export type logRegisterLoggerRpcParam = Exact<{
@@ -4907,6 +4976,8 @@ type cryptoUnboxBytes32AnyResult = UnboxAnyRes
 
 type cryptoUnboxBytes32Result = Bytes32
 
+type cryptocurrencyRegisterAddressResult = RegisterAddressRes
+
 type debuggingFirstStepResult = FirstStepResult
 
 type debuggingIncrementResult = int
@@ -4948,6 +5019,10 @@ type identifyResolveResult = UID
 type identifyUiConfirmResult = ConfirmResult
 
 type identifyUiDelegateIdentifyUIResult = int
+
+type kbfsMountGetAllAvailableMountDirsResult = ?Array<string>
+
+type kbfsMountGetCurrentMountDirResult = string
 
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
 
@@ -5135,6 +5210,7 @@ export type rpc =
   | cryptoSignToStringRpc
   | cryptoUnboxBytes32AnyRpc
   | cryptoUnboxBytes32Rpc
+  | cryptocurrencyRegisterAddressRpc
   | ctlAppExitRpc
   | ctlDbNukeRpc
   | ctlLogRotateRpc
@@ -5166,6 +5242,9 @@ export type rpc =
   | kbfsFSEventRpc
   | kbfsFSSyncEventRpc
   | kbfsFSSyncStatusRpc
+  | kbfsMountGetAllAvailableMountDirsRpc
+  | kbfsMountGetCurrentMountDirRpc
+  | kbfsMountSetCurrentMountDirRpc
   | logRegisterLoggerRpc
   | loginAccountDeleteRpc
   | loginClearStoredSecretRpc

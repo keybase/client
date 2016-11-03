@@ -37,7 +37,8 @@ function UpdateEmail (props: Props) {
         style={{alignSelf: 'center', marginTop: globalMargins.medium}}
         type='Primary'
         label='Save'
-        onClick={props.onSave} />
+        onClick={props.onSave}
+        waiting={props.waitingForResponse} />
 
       {!!props.onResendConfirmationCode &&
         <Text

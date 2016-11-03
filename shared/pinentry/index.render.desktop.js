@@ -102,7 +102,7 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
     })
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white, marginBottom: globalMargins.medium}}>
+      <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white, paddingBottom: globalMargins.medium}}>
         <Header icon={true} title='' onClose={() => this.props.onCancel()} />
         <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
           <Text type='Body' style={{textAlign: 'center'}}>{this.props.prompt}</Text>

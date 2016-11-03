@@ -68,28 +68,26 @@ echo "Loading release tool"
 "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$GOPATH/bin/release"
 
+client_branch=`cd "$client_dir" && git rev-parse --abbrev-ref HEAD`
+kbfs_branch=`cd "$kbfs_dir" && git rev-parse --abbrev-ref HEAD`
+function reset {
+  (cd "$client_dir" && git checkout $client_branch)
+  (cd "$kbfs_dir" && git checkout $kbfs_branch)
+}
+trap reset EXIT
+
 if [ -n "$client_commit" ]; then
   cd "$client_dir"
-  client_branch=`git rev-parse --abbrev-ref HEAD`
-  function reset_client {
-    (cd "$client_dir" && git checkout $client_branch)
-  }
-  trap reset_client EXIT
-  echo "Checking out $client_commit on client"
+  echo "Checking out $client_commit on client (will reset to $client_branch)"
   git checkout "$client_commit"
+  git pull
 fi
 
 if [ -n "$kbfs_commit" ]; then
   cd "$kbfs_dir"
-  kbfs_branch=`git rev-parse --abbrev-ref HEAD`
-  function reset_kbfs {
-    (cd "$kbfs_dir" && git checkout $kbfs_branch)
-  }
-  # FIXME: Jack points out that this trap will stomp on the previous one.
-  # We should have one trap function that looks at variables.
-  trap reset_kbfs EXIT
-  echo "Checking out $kbfs_commit on kbfs"
+  echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
   git checkout "$kbfs_commit"
+  git pull
 fi
 
 # NB: This is duplicated in packaging/linux/build_and_push_packages.sh.

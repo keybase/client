@@ -35,7 +35,8 @@ const Notifications = (props: Props) => (
         type='Primary'
         label='Save'
         disabled={!props.allowSave || !props.allowEdit}
-        onClick={props.onSave} />
+        onClick={props.onSave}
+        waiting={props.waitingForResponse} />
     </Box>)
 )
 

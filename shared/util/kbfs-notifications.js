@@ -47,7 +47,7 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
       }
 
     case KbfsCommonFSErrorType.rekeyNeeded:
-      return notification.params.rekeyself ? {
+      return notification.params.rekeyself === 'true' ? {
         title: 'Keybase: Files need to be rekeyed',
         body: `Please open one of your other computers to unlock ${tlf}`,
       } : {

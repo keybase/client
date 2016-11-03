@@ -62,16 +62,22 @@ func (c *CmdWatchdog2) Run() error {
 	if err != nil {
 		return err
 	}
-	mountDir, err := env.GetMountDir()
-	if err != nil {
-		return err
+
+	var mountDirArg string
+	if runtime.GOOS == "windows" {
+		mountDirArg = "-mount-from-service"
+	} else {
+		mountDirArg, err = env.GetMountDir()
+		if err != nil {
+			return err
+		}
 	}
 	kbfsProgram := watchdog.Program{
 		Path: kbfsPath,
 		Args: []string{
 			"-debug",
 			"-log-to-file",
-			mountDir,
+			mountDirArg,
 		},
 		ExitOn: watchdog.ExitOnSuccess,
 	}

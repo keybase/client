@@ -38,15 +38,12 @@ func (h *KBFSHandler) FSEditListRequest(ctx context.Context, arg keybase1.FSEdit
 	return nil
 }
 
-func (h *KBFSHandler) FSSyncStatus(_ context.Context,
-	_ keybase1.FSSyncStatusArg) (err error) {
-	// TODO: route these messages.
+func (h *KBFSHandler) FSSyncStatus(ctx context.Context, arg keybase1.FSSyncStatusArg) (err error) {
+	h.G().NotifyRouter.HandleFSSyncStatus(ctx, arg)
 	return nil
 }
 
-func (h *KBFSHandler) FSSyncEvent(_ context.Context,
-	_ keybase1.FSPathSyncStatus) (
-	err error) {
-	// TODO: route these messages.
+func (h *KBFSHandler) FSSyncEvent(ctx context.Context, arg keybase1.FSPathSyncStatus) (err error) {
+	h.G().NotifyRouter.HandleFSSyncEvent(ctx, arg)
 	return nil
 }

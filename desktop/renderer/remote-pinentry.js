@@ -34,7 +34,7 @@ class RemotePinentry extends Component<void, Props, void> {
           return (
             <RemoteComponent
               title='Pinentry'
-              windowsOpts={{width: 500, height: 260}}
+              windowsOpts={{width: 440, height: 210}}
               waitForState={true}
               onRemoteClose={() => this.props.onCancel(sid)}
               component='pinentry'
