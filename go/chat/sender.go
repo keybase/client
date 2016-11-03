@@ -126,8 +126,6 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		return nil, err
 	}
 
-	// TODO: populate plaintext.ClientHeader.Conv
-
 	return boxed, nil
 }
 
