@@ -1,6 +1,15 @@
 // @flow
 import Render from './index.render'
+import {isMobile} from '../../constants/platform'
 import type {DumbComponentMap} from '../../constants/types/more'
+
+const parent = isMobile ? {
+  parentProps: {
+    style: {
+      height: 667,
+    },
+  },
+} : {}
 
 const common = {
   type: 'desktop',
@@ -14,11 +23,7 @@ const common = {
   lastUsed: 1444423192001,
   onSubmit: () => { console.log('device revoke on submit') },
   onCancel: () => { console.log('device revoke on cancel') },
-  parentProps: {
-    style: {
-      height: 667,
-    },
-  },
+  ...parent,
 }
 
 const endangeredTLFs = [
@@ -37,11 +42,13 @@ const map: DumbComponentMap<Render> = {
       ...common,
       type: 'mobile',
       device: common,
+      endangeredTLFs: [],
     },
     'Current': {
       ...common,
       currentDevice: true,
       device: common,
+      endangeredTLFs: [],
     },
     'Normal with endangered TLFs': {
       ...common,
