@@ -6,34 +6,34 @@ var path = require('path')
 var codeGenerators = require('./js-code-generators.js')
 
 var projects = {
-  "chat1" : {
+  'chat1': {
     root: './json/chat1',
     import: "import * as gregor1 from './flow-types-gregor'\nimport * as keybase1 from './flow-types'",
     out: 'js/flow-types-chat.js',
     incomingMaps: {},
     seenTypes: {},
-    enums : {},
+    enums: {},
   },
-  "keybase1" : {
+  'keybase1': {
     root: 'json/keybase1',
     out: 'js/flow-types.js',
     import: "import * as gregor1 from './flow-types-gregor'\n",
     incomingMaps: {},
     seenTypes: {},
-    enums : {},
+    enums: {},
   },
-  "gregor1" : {
+  'gregor1': {
     root: './json/gregor1',
     out: 'js/flow-types-gregor.js',
     incomingMaps: {},
     seenTypes: {},
-    enums : {},
+    enums: {},
   },
 }
 
 const reduceArray = arr => arr.reduce((acc, cur) => acc.concat(cur), [])
 
-Object.keys(projects).forEach( key => {
+Object.keys(projects).forEach(key => {
   const project = projects[key]
   fs.readdirAsync(project.root)
   .filter(jsonOnly)
@@ -192,7 +192,9 @@ function analyzeMessages (json, project) {
     }
 
     let p = params(true, '      ')
-    if (p) { p = `\n${p}\n    ` }
+    if (p) {
+      p = `\n${p}\n    `
+    }
 
     if (isUIProtocol) {
       project.incomingMaps[`keybase.1.${json.protocol}.${m}`] = `(
@@ -212,7 +214,7 @@ function analyzeMessages (json, project) {
     const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'requestErrorCallback'
     const innerParamType = p ? `{param: ${name}RpcParam}` : null
     const rpc = isUIProtocol ? '' : `export function ${name}Rpc (request: Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
-  engineRpcOutgoing({...request, method: '${json.protocol}.${m}'})
+  engineRpcOutgoing({...request, method: '${json.namespace}.${json.protocol}.${m}'})
 }`
 
     const rpcPromise = isUIProtocol ? '' : codeGenerators.rpcPromiseGen(name, callbackType, innerParamType, responseType)
@@ -289,12 +291,12 @@ function parseRecord (t) {
 }
 
 function parseVariant (t, project) {
-  var parts = t.switch.type.split(".")
+  var parts = t.switch.type.split('.')
   if (parts.length > 1) {
     project = projects[parts.shift()]
   }
   var type = parts.shift()
-  return "\n    " + t.cases.map(c => {
+  return '\n    ' + t.cases.map(c => {
     var label = fixCase(c.label.name)
     var out = `{ ${t.switch.name} : ${project.enums[type][label]}`
     if (c.body !== null) {
@@ -302,7 +304,7 @@ function parseVariant (t, project) {
     }
     out += ` }`
     return out
-  }).join("\n  | ")
+  }).join('\n  | ')
 }
 
 function makeRpcUnionType (typeDefs) {
@@ -338,6 +340,7 @@ ${project.import || ''}
 import engine from '../../engine'
 import {RPCError} from '../../util/errors'
 import {putOnChannelMap, createChannelMap, closeChannelMap} from '../../util/saga'
+import {Buffer} from 'buffer'
 import type {Exact} from './more'
 import type {ChannelConfig, ChannelMap} from './saga'
 export type int = number
@@ -346,7 +349,7 @@ export type uint = number
 export type uint64 = number
 export type long = number
 export type double = number
-export type bytes = any
+export type bytes = Buffer
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
 
 // $FlowIssue we're calling an internal method on engine that's there just for us
