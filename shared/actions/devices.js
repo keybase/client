@@ -54,11 +54,7 @@ export function generatePaperKey (): GeneratePaperKey {
 
 function * _deviceShowRemovePageSaga (showRemovePageAction: ShowRemovePage): SagaGenerator<any, any> {
   const device = showRemovePageAction.payload.device
-  console.warn('device is')
-  console.warn(device)
   const endangeredTLFs = yield call(rekeyGetRevokeWarningRpcPromise, {param: {targetDevice: device.deviceID}})
-  console.warn('endangered tlfs are')
-  console.warn(endangeredTLFs)
   yield put(routeAppend({path: 'removeDevice', device, endangeredTLFs}))
 }
 
