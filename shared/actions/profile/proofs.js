@@ -263,12 +263,16 @@ function * _cancelAddProof (): SagaGenerator<any, any> {
   yield put(navigateUp())
 }
 
-function * _submitCryptoAddress (): SagaGenerator<any, any> {
+function * _submitCryptoAddress (action: SubmitBTCAddress | SubmitZcashAddress): SagaGenerator<any, any> {
   yield put(_cleanupUsername())
   const address = yield select(state => state.profile.username)
+  const wantedFamily = {
+    [Constants.submitBTCAddress]: 'bitcoin',
+    [Constants.submitZcashAddress]: 'zcash',
+  }[action.type]
   try {
     yield put(_waitingForResponse(true))
-    yield call(cryptocurrencyRegisterAddressRpcPromise, {param: {address, force: true}})
+    yield call(cryptocurrencyRegisterAddressRpcPromise, {param: {address, force: true, wantedFamily}})
     yield put(_waitingForResponse(false))
     yield put(_updateProofStatus(true, ProveCommonProofStatus.ok))
     yield put(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
