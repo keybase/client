@@ -24,11 +24,15 @@ func mdDumpOne(ctx context.Context, config libkbfs.Config,
 	rmd libkbfs.ImmutableRootMetadata) error {
 	fmt.Printf("MD ID: %s\n", rmd.MdID())
 
+	return mdDumpOneReadOnly(ctx, config, rmd.ReadOnly())
+}
+
+func mdDumpOneReadOnly(ctx context.Context, config libkbfs.Config,
+	rmd libkbfs.ReadOnlyRootMetadata) error {
 	buf, err := config.Codec().Encode(rmd.GetBareRootMetadata())
 	if err != nil {
 		return err
 	}
-
 	fmt.Printf("MD size: %d bytes\n\n", len(buf))
 
 	fmt.Print("Reader/writer metadata\n")
@@ -112,7 +116,11 @@ and Revision can be:
 
 func mdDump(ctx context.Context, config libkbfs.Config, args []string) (exitStatus int) {
 	flags := flag.NewFlagSet("kbfs md dump", flag.ContinueOnError)
-	flags.Parse(args)
+	err := flags.Parse(args)
+	if err != nil {
+		printError("md dump", err)
+		return 1
+	}
 
 	inputs := flags.Args()
 	if len(inputs) < 1 {

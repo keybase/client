@@ -41,7 +41,10 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) (err
 	flags := flag.NewFlagSet("kbfs write", flag.ContinueOnError)
 	append := flags.Bool("a", false, "Append to an existing file instead of truncating it.")
 	verbose := flags.Bool("v", false, "Print extra status output.")
-	flags.Parse(args)
+	err = flags.Parse(args)
+	if err != nil {
+		return err
+	}
 
 	if flags.NArg() != 1 {
 		return errExactlyOnePath

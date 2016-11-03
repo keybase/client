@@ -228,21 +228,17 @@ func (p Path) Join(childName string) (childPath Path, err error) {
 	return
 }
 
-// GetNode returns a node
-func (p Path) GetNode(ctx context.Context, config libkbfs.Config) (libkbfs.Node, libkbfs.EntryInfo, error) {
-	if p.PathType != TLFPathType {
-		entryInfo := libkbfs.EntryInfo{
-			Type: libkbfs.Dir,
-		}
-		return nil, entryInfo, nil
-	}
-
+// ParseTlfHandle is a wrapper around libkbfs.ParseTlfHandle that
+// automatically resolves non-canonical names.
+func ParseTlfHandle(
+	ctx context.Context, kbpki libkbfs.KBPKI, name string, public bool) (
+	*libkbfs.TlfHandle, error) {
 	var tlfHandle *libkbfs.TlfHandle
-	name := p.TLFName
 outer:
 	for {
 		var parseErr error
-		tlfHandle, parseErr = libkbfs.ParseTlfHandle(ctx, config.KBPKI(), name, p.Public)
+		tlfHandle, parseErr = libkbfs.ParseTlfHandle(
+			ctx, kbpki, name, public)
 		switch parseErr := parseErr.(type) {
 		case nil:
 			// No error.
@@ -254,8 +250,26 @@ outer:
 
 		default:
 			// Some other error.
-			return nil, libkbfs.EntryInfo{}, parseErr
+			return nil, parseErr
 		}
+	}
+
+	return tlfHandle, nil
+}
+
+// GetNode returns a node
+func (p Path) GetNode(ctx context.Context, config libkbfs.Config) (libkbfs.Node, libkbfs.EntryInfo, error) {
+	if p.PathType != TLFPathType {
+		entryInfo := libkbfs.EntryInfo{
+			Type: libkbfs.Dir,
+		}
+		return nil, entryInfo, nil
+	}
+
+	tlfHandle, err := ParseTlfHandle(
+		ctx, config.KBPKI(), p.TLFName, p.Public)
+	if err != nil {
+		return nil, libkbfs.EntryInfo{}, err
 	}
 
 	node, entryInfo, err := config.KBFSOps().GetOrCreateRootNode(ctx, tlfHandle, libkbfs.MasterBranch)

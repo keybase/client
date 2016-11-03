@@ -1125,11 +1125,46 @@ func (fbo *folderBranchOps) maybeUnembedAndPutBlocks(ctx context.Context,
 	return bps, nil
 }
 
+// ResetRootBlock creates a new empty dir block and sets the given
+// metadata's root block to it.
+func ResetRootBlock(ctx context.Context, config Config,
+	currentUID keybase1.UID, rmd *RootMetadata) (
+	Block, BlockInfo, ReadyBlockData, error) {
+	newDblock := NewDirBlock()
+	info, plainSize, readyBlockData, err :=
+		ReadyBlock(ctx, config, rmd.ReadOnly(), newDblock, currentUID)
+	if err != nil {
+		return nil, BlockInfo{}, ReadyBlockData{}, err
+	}
+
+	now := config.Clock().Now().UnixNano()
+	rmd.data.Dir = DirEntry{
+		BlockInfo: info,
+		EntryInfo: EntryInfo{
+			Type:  Dir,
+			Size:  uint64(plainSize),
+			Mtime: now,
+			Ctime: now,
+		},
+	}
+	prevDiskUsage := rmd.DiskUsage()
+	rmd.SetDiskUsage(0)
+	// Redundant, since this is called only for brand-new or
+	// successor RMDs, but leave in to be defensive.
+	rmd.ClearBlockChanges()
+	co := newCreateOpForRootDir()
+	rmd.AddOp(co)
+	rmd.AddRefBlock(rmd.data.Dir.BlockInfo)
+	// Set unref bytes to the previous disk usage, so that the
+	// accounting works out.
+	rmd.AddUnrefBytes(prevDiskUsage)
+	return newDblock, info, readyBlockData, nil
+}
+
 func (fbo *folderBranchOps) initMDLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	// create a dblock since one doesn't exist yet
 	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return err
@@ -1140,10 +1175,6 @@ func (fbo *folderBranchOps) initMDLocked(
 	// make sure we're a writer before rekeying or putting any blocks.
 	if !handle.IsWriter(uid) {
 		return NewWriteAccessError(handle, username, handle.GetCanonicalPath())
-	}
-
-	newDblock := &DirBlock{
-		Children: make(map[string]DirEntry),
 	}
 
 	var expectedKeyGen KeyGen
@@ -1166,28 +1197,15 @@ func (fbo *folderBranchOps) initMDLocked(
 	if keyGen != expectedKeyGen {
 		return InvalidKeyGenerationError{md.TlfID(), keyGen}
 	}
-	info, plainSize, readyBlockData, err :=
-		fbo.blocks.ReadyBlock(ctx, md.ReadOnly(), newDblock, uid)
+
+	// create a dblock since one doesn't exist yet
+	newDblock, info, readyBlockData, err :=
+		ResetRootBlock(ctx, fbo.config, uid, md)
 	if err != nil {
 		return err
 	}
 
-	now := fbo.nowUnixNano()
-	md.data.Dir = DirEntry{
-		BlockInfo: info,
-		EntryInfo: EntryInfo{
-			Type:  Dir,
-			Size:  uint64(plainSize),
-			Mtime: now,
-			Ctime: now,
-		},
-	}
-	co := newCreateOpForRootDir()
-	md.AddOp(co)
-	md.AddRefBlock(md.data.Dir.BlockInfo)
-	md.SetUnrefBytes(0)
-
-	if err = putBlockCheckQuota(ctx, fbo.config.BlockServer(),
+	if err = PutBlockCheckQuota(ctx, fbo.config.BlockServer(),
 		fbo.config.Reporter(), md.TlfID(), info.BlockPointer, readyBlockData,
 		md.GetTlfHandle().GetCanonicalName()); err != nil {
 		return err
@@ -1715,7 +1733,7 @@ func (fbo *folderBranchOps) readyBlockMultiple(ctx context.Context,
 	kmd KeyMetadata, currBlock Block, uid keybase1.UID,
 	bps *blockPutState) (info BlockInfo, plainSize int, err error) {
 	info, plainSize, readyBlockData, err :=
-		fbo.blocks.ReadyBlock(ctx, kmd, currBlock, uid)
+		ReadyBlock(ctx, fbo.config, kmd, currBlock, uid)
 	if err != nil {
 		return
 	}
