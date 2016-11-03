@@ -86,39 +86,40 @@ func mdResetOne(
 		return err
 	}
 
-	fmt.Printf("Putting block %s...\n", info)
+	fmt.Printf(
+		"Will put an empty root block for tlfID=%s with blockInfo=%s and bufLen=%d\n",
+		rmdNext.TlfID(), info, readyBlockData.GetEncodedSize())
+	fmt.Print("Will put MD:\n")
+	err = mdDumpOneReadOnly(ctx, config, rmdNext.ReadOnly())
+	if err != nil {
+		return err
+	}
 
 	if dryRun {
-		fmt.Printf("Dry run: would call BlockServer.Put(tlfID=%s, blockInfo=%s, bufLen=%d)\n",
-			rmdNext.TlfID(), info, readyBlockData.GetEncodedSize())
-	} else {
-		err := libkbfs.PutBlockCheckQuota(
-			ctx, config.BlockServer(), config.Reporter(),
-			rmdNext.TlfID(), info.BlockPointer, readyBlockData,
-			handle.GetCanonicalName())
-		if err != nil {
-			return err
-		}
+		fmt.Print("Dry-run set; not doing anything\n")
+		return nil
+	}
+
+	fmt.Printf("Putting block %s...\n", info)
+
+	err = libkbfs.PutBlockCheckQuota(
+		ctx, config.BlockServer(), config.Reporter(),
+		rmdNext.TlfID(), info.BlockPointer, readyBlockData,
+		handle.GetCanonicalName())
+	if err != nil {
+		return err
 	}
 
 	// Assume there's no need to unembed the block changes.
 
 	fmt.Printf("Putting revision %d...\n", rmdNext.Revision())
 
-	if dryRun {
-		fmt.Printf("Dry run: would put:\n")
-		err := mdDumpOneReadOnly(ctx, config, rmdNext.ReadOnly())
-		if err != nil {
-			return err
-		}
-	} else {
-		mdID, err := config.MDOps().Put(ctx, rmdNext)
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("New MD has id %s\n", mdID)
+	mdID, err := config.MDOps().Put(ctx, rmdNext)
+	if err != nil {
+		return err
 	}
+
+	fmt.Printf("New MD has id %s\n", mdID)
 
 	return nil
 }
