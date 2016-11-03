@@ -268,53 +268,24 @@ function _notify (state) {
 }
 
 function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
-  // yield put((dispatch: Dispatch) => {
-    // let temp = true
-    // setInterval(() => {
-      // const badgeAction: Action = badgeApp('kbfsUploading', temp)
-      // dispatch(badgeAction)
-      // dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: temp}})
-      // temp = !temp
-    // }, 2000)
-  // })
-  // const results = yield call(apiserverGetRpcPromise, {
-    // param: {
-      // endpoint: 'kbfs/favorite/list',
-      // args: [],
-    // },
-  // })
-
-  // console.log('aaa', results)
-
   yield put((dispatch: Dispatch) => {
-    console.log('aaaa registering')
-
-    // engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncStatusResponse', (status) => {
-      // console.log('aaaa response', status)
-    // })
+    const debouncedKBFSStopped = _.debounce(() => {
+      const badgeAction: Action = badgeApp('kbfsUploading', false)
+      dispatch(badgeAction)
+      dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: false}})
+    }, 2000)
 
     engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
-      console.log('aaaa', JSON.stringify(status, null, 4))
-      // const upping = status.syncingBytes
-      // const badgeAction: Action = badgeApp('kbfsUploading', temp)
-      // dispatch(badgeAction)
-      // dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: temp}})
+      // This has a lot of missing data from the KBFS side so for now we just have a timeout that sets this to off
+      // ie. we don't get the syncingBytes or ops correctly (always zero)
+      const badgeAction: Action = badgeApp('kbfsUploading', true)
+      dispatch(badgeAction)
+      dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: true}})
+      debouncedKBFSStopped()
     })
   })
 
   yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {param: {req: {requestID: 0}}})
-
-    // folder: {
-      // name,
-      // private,
-      // notificationsOn: true,
-      // created: true,
-    // },
-    // requestID: 0,
-  // }})
-  // return (dispatch, getState) => {
-    // })
-  // }
 }
 
 function * favoriteSaga (): SagaGenerator<any, any> {
