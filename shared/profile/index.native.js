@@ -169,7 +169,7 @@ class Profile extends Component<void, Props, State> {
         <NativeScrollView style={{flex: 1, backgroundColor: globalColors.white}} contentContainerStyle={{backgroundColor: globalColors.white}}>
           {proofNotice && (
             <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
-              <Text type='BodySmallSemibold' style={{color: globalColors.white}}>{proofNotice}</Text>
+              <Text type='BodySemibold' style={{color: globalColors.white}}>{proofNotice}</Text>
             </Box>
           )}
           <Box style={{...globalStyles.flexBoxColumn, position: 'relative'}}>

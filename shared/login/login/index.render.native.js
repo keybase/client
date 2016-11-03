@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Box, UserCard, Text, Button, FormWithCheckbox, Dropdown} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 class LoginRender extends Component<void, Props, void> {
   render () {
@@ -41,7 +41,7 @@ class LoginRender extends Component<void, Props, void> {
             type='Primary'
             label='Log in'
             onClick={() => this.props.onSubmit()} />
-          <Text link={true} type='BodySmallSecondaryLink' onClick={this.props.onForgotPassphrase} style={{marginTop: 24}}>Forgot passphrase?</Text>
+          <Text link={true} type='BodySecondaryLink' onClick={this.props.onForgotPassphrase} style={{marginTop: globalMargins.medium}}>Forgot passphrase?</Text>
         </UserCard>
         <Text style={{marginTop: 30}} type='BodyPrimaryLink' onClick={this.props.onSignup}>Create an account</Text>
       </Box>

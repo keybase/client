@@ -96,6 +96,7 @@ backgroundModes.forEach(backgroundMode => {
     'BodyBigLink',
     'Body',
     'BodySemibold',
+    'BodySemiboldLink',
     'BodyPrimaryLink',
     'BodySecondaryLink',
     'BodyError',
@@ -140,10 +141,10 @@ const terminalMap: DumbComponentMap<Box> = {
     'Terminal': {
       children: [
         <Box key='a' style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
-          <Text type='BodySmall'>
-            <Text type='BodySmall'>Word word </Text>
+          <Text type='Body'>
+            <Text type='Body'>Word word </Text>
             <Text type='TerminalInline'>inline command line </Text>
-            <Text type='BodySmall'> word word word word word </Text>
+            <Text type='Body'> word word word word word </Text>
             <Text type='TerminalInline'>inline command line</Text>
           </Text>
         </Box>,
@@ -291,26 +292,26 @@ const buttonsMap: DumbComponentMap<Button> = {
     },
     'Primary small': {
       ...commonButton,
-      label: 'Primary',
+      label: 'Primary small',
       type: 'Primary',
       small: true,
     },
     'Secondary small': {
       ...commonButton,
-      label: 'Primary',
-      type: 'Primary',
+      label: 'Secondary small',
+      type: 'Secondary',
       small: true,
     },
     'Danger small': {
       ...commonButton,
-      label: 'Primary',
-      type: 'Primary',
+      label: 'Danger small',
+      type: 'Danger',
       small: true,
     },
     'Follow small': {
       ...commonButton,
-      label: 'Primary',
-      type: 'Primary',
+      label: 'Follow small',
+      type: 'Follow',
       small: true,
     },
     'Primary small waiting': {
@@ -322,22 +323,22 @@ const buttonsMap: DumbComponentMap<Button> = {
     },
     'Secondary small waiting': {
       ...commonButton,
-      label: 'Primary',
-      type: 'Primary',
+      label: 'Secondary small',
+      type: 'Secondary',
       small: true,
       waiting: true,
     },
     'Danger small waiting': {
       ...commonButton,
-      label: 'Primary',
-      type: 'Primary',
+      label: 'Danger small',
+      type: 'Danger',
       small: true,
       waiting: true,
     },
     'Follow small waiting': {
       ...commonButton,
-      label: 'Primary',
-      type: 'Primary',
+      label: 'Follow small',
+      type: 'Follow',
       small: true,
       waiting: true,
     },
@@ -440,6 +441,7 @@ const inputMap: DumbComponentMap<Input> = {
     },
     'Hint Multiline Empty': {
       hintText: 'This is a very long hint that will hopefully wrap to two lines',
+      rows: isMobile ? 2 : undefined,
       multiline: true,
     },
     'Floating Label Multiline Empty': {
@@ -539,10 +541,24 @@ const tabBarMap: DumbComponentMap<TabBar> = {
 const listItemMap: DumbComponentMap<ListItem> = {
   component: ListItem,
   mocks: {
+    'Small list item with icon (desktop only)': {
+      type: 'Small',
+      icon: <Box style={{height: 24, width: 24, backgroundColor: globalColors.black_20}} />,
+      body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
+    },
     'Small list item with button action': {
       type: 'Small',
+      swipeToAction: true,
       icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
+    },
+    'Small list item with avatar 40 (mobile only)': {
+      type: 'Small',
+      icon: <Box style={{height: 40, width: 40, backgroundColor: globalColors.black_20}} />,
+      body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      swipeToAction: true,
       action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Small list item with text action': {
@@ -550,12 +566,14 @@ const listItemMap: DumbComponentMap<ListItem> = {
       icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
+      swipeToAction: true,
       extraRightMarginAction: true,
     },
     'Large list item with Button': {
       type: 'Large',
       icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      swipeToAction: true,
       action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Large list item with text action': {

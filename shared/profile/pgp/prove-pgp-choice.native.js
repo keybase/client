@@ -31,11 +31,11 @@ class ProvePgpChoice extends Component<void, Props, void> {
 }
 
 const styleContainer = {
-  justifyContent: 'center',
+  justifyContent: 'flex-start',
 }
 
 const styleTitle = {
-  marginBottom: globalMargins.small,
+  marginBottom: globalMargins.xlarge,
   textAlign: 'center',
 }
 

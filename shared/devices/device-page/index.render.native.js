@@ -2,7 +2,7 @@
 import React from 'react'
 import type {IconType} from '../../common-adapters/icon'
 import type {Props, BannerItem} from './index.render'
-import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
+import {Box, Text, Icon, Button, BackButton, Meta} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
 const Banner = ({type, desc}: BannerItem) => {
@@ -16,7 +16,7 @@ const Banner = ({type, desc}: BannerItem) => {
     'WillUnlock': globalColors.white,
   }[type]
 
-  return <Text type='BodySmall' style={{...stylesBanner, color, backgroundColor}}>{desc}</Text>
+  return <Text type='BodySemibold' style={{...stylesBanner, color, backgroundColor}}>{desc}</Text>
 }
 
 const Header = ({name, isCurrent, isRevoked}) => {
@@ -25,6 +25,7 @@ const Header = ({name, isCurrent, isRevoked}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginTop: 10, marginBottom: 20}}>
       <Text type='Header' style={textStyle}>{name}</Text>
+      {isRevoked && <Meta title='REVOKED' styel={stylesMeta} />}
       {isRevoked && <Text type='Header' style={stylesMeta}>REVOKED</Text>}
       <Box style={{...globalStyles.flexBoxRow}}>
         {isCurrent && <Text type='BodySmall'>Current device</Text>}
@@ -88,7 +89,8 @@ const Render = ({banner, name, type, deviceID, currentDevice, timeline,
 const stylesBanner = {
   textAlign: 'center',
   alignSelf: 'stretch',
-  padding: 15,
+  minHeight: 48,
+  padding: 8,
 }
 
 const circleSize = 8

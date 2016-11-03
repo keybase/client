@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './confirm'
 import {Box, Button, StandardScreen} from './'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class Confirm extends Component<void, Props, void> {
   render () {
@@ -14,8 +14,8 @@ class Confirm extends Component<void, Props, void> {
           </Box>
           {this.props.body}
         </Box>
-        <Button type={this.props.danger ? 'Danger' : 'Primary'} onClick={this.props.onSubmit} label={this.props.submitLabel} style={{...styleButton, marginBottom: 16}} />
-        <Button type='Secondary' onClick={this.props.onCancel} label='Cancel' style={{...styleButton, ...cancelButtonThemed[this.props.theme]}} labelStyle={cancelButtonLabelThemed[this.props.theme]} />
+        <Button fullWidth={true} type={this.props.danger ? 'Danger' : 'Primary'} onClick={this.props.onSubmit} label={this.props.submitLabel} style={{...styleButton, marginBottom: globalMargins.small}} />
+        <Button fullWidth={true} type='Secondary' onClick={this.props.onCancel} label='Cancel' style={{...styleButton, ...cancelButtonThemed[this.props.theme]}} labelStyle={cancelButtonLabelThemed[this.props.theme]} />
       </StandardScreen>
     )
   }
@@ -24,7 +24,7 @@ class Confirm extends Component<void, Props, void> {
 const styleIconContainer = {
   ...globalStyles.flexBoxColumn,
   height: 112,
-  marginBottom: 16,
+  marginBottom: globalMargins.small,
   alignItems: 'center',
   justifyContent: 'center',
 }
@@ -34,9 +34,9 @@ const styleBodyContainer = {
   flex: 1,
   alignItems: 'center',
   justifyContent: 'center',
-  marginLeft: 16,
-  marginRight: 16,
-  marginBottom: 16,
+  marginLeft: globalMargins.small,
+  marginRight: globalMargins.small,
+  marginBottom: globalMargins.small,
 }
 
 const backgroundColorThemed = {

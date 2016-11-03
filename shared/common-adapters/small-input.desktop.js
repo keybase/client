@@ -10,7 +10,7 @@ import type {SmallInputProps} from './small-input'
 export default function SmallInput ({errorState, hintText, label, onChange, style, value}: SmallInputProps) {
   return (
     <Box style={{...styleContainer, ...style}}>
-      <Text type='BodySmall' style={styleLabel(!!errorState)}>{label}</Text>
+      <Text type='BodySmall' style={styleLabel}>{label}</Text>
       <Box style={styleInputContainer}>
         <Input hintText={hintText}
           hintStyle={styleInputHint}
@@ -29,12 +29,12 @@ const styleContainer = {
   position: 'relative',
 }
 
-const styleLabel = (hasError: boolean) => ({
+const styleLabel = {
   position: 'absolute',
   bottom: 7,
   left: 2,
-  color: (hasError ? globalColors.red : globalColors.blue),
-})
+  color: globalColors.blue,
+}
 
 const styleInputContainer = {
   ...globalStyles.flexBoxColumn,

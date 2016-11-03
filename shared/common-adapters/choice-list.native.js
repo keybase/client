@@ -44,8 +44,8 @@ class ChoiceList extends Component<void, Props, State> {
                   : <Box style={styleIcon}>{op.icon}</Box>}
               </Box>
               <Box style={styleInfoContainer}>
-                <Text style={styleInfoTitle} type='Body'>{op.title}</Text>
-                <Text style={styleInfoDescription} type='BodySmall'>{op.description}</Text>
+                <Text style={styleInfoTitle} type='Header'>{op.title}</Text>
+                <Text type='Body'>{op.description}</Text>
               </Box>
             </Box>
           </ClickableBox>
@@ -89,10 +89,6 @@ const styleInfoContainer = {
 
 const styleInfoTitle = {
   color: globalColors.blue,
-}
-
-const styleInfoDescription = {
-  color: globalColors.black_40,
 }
 
 export default ChoiceList

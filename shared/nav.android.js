@@ -144,7 +144,7 @@ class Nav extends Component {
               </Box>
 
               <Box style={{marginLeft: 40}}>
-                <Text type='Body' style={styles.toolbarName}>{tabPrettify(activeTab)}</Text>
+                <Text type='Header'>{tabPrettify(activeTab)}</Text>
               </Box>
 
               <Box style={styles.toolbarSearchWrapper}>
@@ -183,12 +183,6 @@ const styles = {
     alignItems: 'center',
     paddingLeft: 16,
     paddingRight: 10,
-  },
-
-  toolbarName: {
-    fontWeight: 'bold',
-    fontSize: 24,
-    color: 'black',
   },
 
   toolbarImage: {
