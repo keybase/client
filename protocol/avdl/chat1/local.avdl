@@ -164,6 +164,12 @@ protocol local {
     array<MessageUnboxed> maxMessages; // the latest message for each message type
   }
 
+  record OutboxRecord {
+    OutboxID outboxID;
+    ConversationID convID;
+    MessagePlaintext Msg; 
+  }
+
   GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
   record GetThreadQuery {
     boolean markAsRead;
@@ -173,6 +179,7 @@ protocol local {
   }
   record GetThreadLocalRes {
     ThreadView thread;
+    array<OutboxRecord> outbox;
     array<RateLimit> rateLimits;
   }
 
@@ -211,6 +218,13 @@ protocol local {
   record PostLocalRes {
     array<RateLimit> rateLimits;
   }
+
+  @typedef("bytes") record OutboxID {}
+  record PostLocalNonblockRes {
+    array<RateLimit> rateLimits;
+    OutboxID outboxID;
+  }
+  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg);
 
   SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status);
   record SetConversationStatusLocalRes {
