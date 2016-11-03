@@ -35,6 +35,7 @@ function Invites (props: Props) {
           type='Primary'
           label='Generate invitation'
           onClick={props.onGenerateInvitation}
+          waiting={props.waitingForResponse}
           style={{alignSelf: 'center', marginTop: globalMargins.medium}}
         />
       </Box>

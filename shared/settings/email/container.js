@@ -11,6 +11,7 @@ const UserEmailContainer = Routable(() => ({componentAtTop: {title: 'Change Emai
 
 export default connect(
   (state: TypedState, ownProps: {}) => {
+    const {waitingForResponse} = state.settings
     const {emails, error, newEmail} = state.settings.email
     if (emails.length > 0) {
       const {email, isVerified} = emails[0]
@@ -19,6 +20,7 @@ export default connect(
         isVerified,
         edited: newEmail && newEmail !== email,
         error,
+        waitingForResponse,
       }
     }
     return {
@@ -26,6 +28,7 @@ export default connect(
       isVerified: false,
       edited: false,
       error: null,
+      waitingForResponse,
     }
   },
   (dispatch: any, ownProps: {}) => ({

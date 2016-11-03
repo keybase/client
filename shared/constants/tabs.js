@@ -28,14 +28,14 @@ const prettyNames = {
   [profileTab]: 'Profile',
 }
 
-export type Tab = ProfileTab
-| PeopleTab
-| FolderTab
+export type Tab = ChatTab
 | DevicesTab
+| FolderTab
+| LoginTab
+| PeopleTab
+| ProfileTab
 | SettingsTab
 | StartupTab
-| ChatTab
-| LoginTab
 
 export function tabPrettify (tab: Tab) {
   return prettyNames[tab] || ''

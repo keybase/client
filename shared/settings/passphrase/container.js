@@ -35,6 +35,7 @@ export default connect(
     newPassphraseConfirmError: state.settings.passphrase.newPassphraseConfirmError ? state.settings.passphrase.newPassphraseConfirmError.stringValue() : null,
     hasPGPKeyOnServer: state.settings.passphrase.hasPGPKeyOnServer,
     canSave: state.settings.passphrase.canSave,
+    waitingForResponse: state.settings.waitingForResponse,
   }),
   (dispatch: any, ownProps: {}) => ({
     onChangeNewPassphrase: (passphrase: string) => dispatch(onChangeNewPassphrase(new HiddenString(passphrase))),

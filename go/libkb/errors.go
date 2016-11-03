@@ -1814,3 +1814,21 @@ func (e ChatStorageMiscError) ShouldClear() bool {
 func (e ChatStorageMiscError) Message() string {
 	return e.Msg
 }
+
+//=============================================================================
+
+type InvalidAddressError struct {
+	Msg string
+}
+
+func (e InvalidAddressError) Error() string {
+	return e.Msg
+}
+
+type ExistsError struct {
+	Msg string
+}
+
+func (e ExistsError) Error() string {
+	return e.Msg
+}

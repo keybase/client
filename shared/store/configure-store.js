@@ -44,6 +44,9 @@ for (const method in console) {
 let theStore: Store
 
 const crashHandler = (error) => {
+  if (__DEV__) {
+    throw error
+  }
   if (theStore) {
     theStore.dispatch({
       type: globalError,

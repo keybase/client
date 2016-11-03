@@ -196,7 +196,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		e.G().Log.Debug("- Released singleflight lock")
 	}()
 
-	if e.loadAssertion(); err != nil {
+	if err = e.loadAssertion(); err != nil {
 		return err
 	}
 
@@ -377,6 +377,9 @@ func (e *Identify2WithUID) checkRemoteAssertions(okStates []keybase1.ProofState)
 }
 
 func (e *Identify2WithUID) loadAssertion() (err error) {
+	if len(e.arg.UserAssertion) == 0 {
+		return nil
+	}
 	e.themAssertion, err = libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(), e.arg.UserAssertion)
 	if err == nil {
 		e.remoteAssertion, e.localAssertion = libkb.CollectAssertions(e.themAssertion)
@@ -570,16 +573,16 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 		case libkb.NoKeyError:
 			// convert this error to NoSigChainError
 			return libkb.NoSigChainError{}
-		case libkb.DeletedError:
-			return err
 		case libkb.NotFoundError:
 			return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
+		default: // including libkb.DeletedError
+			return err
 		}
 	}
 	if e.them == nil {
 		return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
 	}
-	return err
+	return nil
 }
 
 func (e *Identify2WithUID) loadUsers(ctx *Context) error {

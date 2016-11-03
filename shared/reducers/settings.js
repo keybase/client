@@ -7,6 +7,7 @@ import type {Actions, State} from '../constants/settings'
 
 const initialState: State = {
   allowDeleteAccount: false,
+  waitingForResponse: false,
   invites: {
     pendingInvites: [],
     acceptedInvites: [],
@@ -180,6 +181,11 @@ function reducer (state: State = initialState, action: Actions): State {
           ...state.email,
           error: action.payload.error,
         },
+      }
+    case Constants.waitingForResponse:
+      return {
+        ...state,
+        waitingForResponse: action.payload,
       }
   }
   return state

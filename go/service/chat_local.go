@@ -17,7 +17,6 @@ import (
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -50,10 +49,12 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		udc:          udc,
 		boxer:        chat.NewBoxer(g, tlf, udc),
 	}
+
 	if gh != nil {
 		g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(), h.boxer,
 			storage.New(g, h.getSecretUI), h.remoteClient())
 	}
+
 	return h
 }
 
@@ -207,8 +208,16 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	// Run type filter if it exists
 	thread.Messages = utils.FilterByType(thread.Messages, arg.Query)
 
+	// Fetch outbox and tack onto the result
+	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
+	obr, err := outbox.PullConversation(arg.ConversationID)
+	if err != nil {
+		return chat1.GetThreadLocalRes{}, err
+	}
+
 	return chat1.GetThreadLocalRes{
 		Thread:     thread,
+		Outbox:     obr,
 		RateLimits: utils.AggRateLimitsP(rl),
 	}, nil
 }
@@ -245,6 +254,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		firstMessageBoxed, err := h.makeFirstMessage(ctx, triple, cname, arg.TlfVisibility, arg.TopicName)
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error preparing message: %s", err)
+
 		}
 
 		var ncrres chat1.NewConversationRemoteRes
@@ -324,7 +334,9 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 			},
 		}
 	}
-	return h.prepareMessageForRemote(ctx, msg, nil)
+
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+	return sender.Prepare(ctx, msg, nil)
 }
 
 func (h *chatLocalHandler) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation) ([]chat1.ConversationLocal, error) {
@@ -657,103 +669,6 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 	}, nil
 }
 
-func (h *chatLocalHandler) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, error) {
-	uid := h.G().Env.GetUID()
-	if uid.IsNil() {
-		return chat1.MessagePlaintext{}, libkb.LoginRequiredError{}
-	}
-	did := h.G().Env.GetDeviceID()
-	if did.IsNil() {
-		return chat1.MessagePlaintext{}, libkb.DeviceRequiredError{}
-	}
-
-	huid := uid.ToBytes()
-	if huid == nil {
-		return chat1.MessagePlaintext{}, errors.New("invalid UID")
-	}
-
-	hdid := make([]byte, libkb.DeviceIDLen)
-	if err := did.ToBytes(hdid); err != nil {
-		return chat1.MessagePlaintext{}, err
-	}
-
-	header := msg.ClientHeader
-	header.Sender = gregor1.UID(huid)
-	header.SenderDevice = gregor1.DeviceID(hdid)
-	updated := chat1.MessagePlaintext{
-		ClientHeader: header,
-		MessageBody:  msg.MessageBody,
-	}
-	return updated, nil
-}
-
-func (h *chatLocalHandler) addPrevPointersToMessage(msg chat1.MessagePlaintext, convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
-	// Make sure the caller hasn't already assembled this list. For now, this
-	// should never happen, and we'll return an error just in case we make a
-	// mistake in the future. But if there's some use case in the future where
-	// a caller wants to specify custom prevs, we can relax this.
-	if len(msg.ClientHeader.Prev) != 0 {
-		return chat1.MessagePlaintext{}, fmt.Errorf("chatLocalHandler expects an empty prev list")
-	}
-
-	// Currently we do a very inefficient fetch here. Eventually we will do
-	// this using the local cache.
-	arg := chat1.GetThreadLocalArg{
-		ConversationID: convID,
-	}
-	res, err := h.GetThreadLocal(context.TODO(), arg)
-	if err != nil {
-		return chat1.MessagePlaintext{}, err
-	}
-
-	prevs, err := chat.CheckPrevPointersAndGetUnpreved(&res.Thread)
-	if err != nil {
-		return chat1.MessagePlaintext{}, err
-	}
-
-	// Make an attempt to avoid changing anything in the input message. There
-	// are a lot of shared pointers though, so this is
-	header := msg.ClientHeader
-	header.Prev = prevs
-	updated := chat1.MessagePlaintext{
-		ClientHeader: header,
-		MessageBody:  msg.MessageBody,
-	}
-	return updated, nil
-}
-
-func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
-	msg, err := h.addSenderToMessage(plaintext)
-	if err != nil {
-		return nil, err
-	}
-
-	// convID will be nil in makeFirstMessage, for example
-	if convID != nil {
-		msg, err = h.addPrevPointersToMessage(msg, *convID)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// encrypt the message
-	skp, err := h.getSigningKeyPair()
-	if err != nil {
-		return nil, err
-	}
-
-	// For now, BoxMessage canonicalizes the TLF name. We should try to refactor
-	// it a bit to do it here.
-	boxed, err := h.boxer.BoxMessage(ctx, msg, skp)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: populate plaintext.ClientHeader.Conv
-
-	return boxed, nil
-}
-
 func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg chat1.SetConversationStatusLocalArg) (chat1.SetConversationStatusLocalRes, error) {
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.SetConversationStatusLocalRes{}, err
@@ -774,35 +689,32 @@ func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg c
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (chat1.PostLocalRes, error) {
-	if err := h.assertLoggedIn(ctx); err != nil {
-		return chat1.PostLocalRes{}, err
-	}
 
-	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-	boxed, err := h.prepareMessageForRemote(ctx, arg.Msg, &arg.ConversationID)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+
+	_, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg)
 	if err != nil {
-		return chat1.PostLocalRes{}, err
+		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
-
-	// Post to remote gregord
-	rarg := chat1.PostRemoteArg{
-		ConversationID: arg.ConversationID,
-		MessageBoxed:   *boxed,
-	}
-	plres, err := h.remoteClient().PostRemote(ctx, rarg)
-	if err != nil {
-		return chat1.PostLocalRes{}, err
-	}
-
-	// Write new message out to cache
-	rboxed := *boxed
-	rboxed.ServerHeader = &plres.MsgHeader
-	if _, err := h.G().ConvSource.Push(ctx, arg.ConversationID, boxed.ClientHeader.Sender, rboxed); err != nil {
-		h.G().Log.Debug("PostLocal: failed to write message to cache: %s", err.Error())
-	}
-
 	return chat1.PostLocalRes{
-		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{plres.RateLimit}),
+		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+	}, nil
+}
+
+func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (chat1.PostLocalNonblockRes, error) {
+
+	// Create non block sender
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+	nonblockSender := chat.NewNonblockingSender(h.G(), sender)
+
+	obid, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg)
+	if err != nil {
+		return chat1.PostLocalNonblockRes{},
+			fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
+	}
+	return chat1.PostLocalNonblockRes{
+		OutboxID:   obid,
+		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
 	}, nil
 }
 
@@ -841,6 +753,9 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	if arg.Preview != nil {
 		g.Go(func() error {
 			chatUI.ChatAttachmentPreviewUploadStart(ctx)
+			// add preview suffix to object key (P in hex)
+			// the s3path in gregor is expecting hex here
+			params.ObjectKey += "50"
 			prev, err := h.uploadAsset(ctx, arg.SessionID, params, *arg.Preview, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
@@ -927,6 +842,7 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		if attachment.Preview == nil {
 			return chat1.DownloadAttachmentLocalRes{}, errors.New("no preview in attachment")
 		}
+		h.G().Log.Debug("downloading preview attachment asset")
 		obj = *attachment.Preview
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
@@ -941,20 +857,6 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 	}
 
 	return chat1.DownloadAttachmentLocalRes{RateLimits: msgs.RateLimits}, nil
-}
-
-func (h *chatLocalHandler) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {
-	// get device signing key for this user
-	signingKey, err := engine.GetMySecretKey(h.G(), h.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
-	if err != nil {
-		return libkb.NaclSigningKeyPair{}, err
-	}
-	kp, ok := signingKey.(libkb.NaclSigningKeyPair)
-	if !ok || kp.Private == nil {
-		return libkb.NaclSigningKeyPair{}, libkb.KeyCannotSignError{}
-	}
-
-	return kp, nil
 }
 
 // getSecretUI returns a SecretUI, preferring a delegated SecretUI if

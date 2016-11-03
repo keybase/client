@@ -23,6 +23,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdCompatPush(cl),
 		NewCmdConfig(cl, g),
 		NewCmdCtl(cl, g),
+		NewCmdCurrency(cl, g),
 		NewCmdDb(cl, g),
 		NewCmdDecrypt(cl, g),
 		NewCmdDeprovision(cl, g),

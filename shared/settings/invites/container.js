@@ -44,7 +44,10 @@ class InvitationsContainer extends Component<void, Props, State> {
 }
 
 export default connect(
-  (state: TypedState, ownProps: {}) => state.settings.invites,
+  (state: TypedState, ownProps: {}) => ({
+    ...state.settings.invites,
+    waitingForResponse: state.settings.waitingForResponse,
+  }),
   (dispatch: any, ownProps: {}) => ({
     onGenerateInvitation: (email: string, message: string) => dispatch(invitesSend(email, message)),
     onRefresh: () => dispatch(invitesRefresh()),

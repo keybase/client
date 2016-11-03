@@ -25,6 +25,7 @@ type cmdChatSend struct {
 	setHeadline   string
 	clearHeadline bool
 	useStdin      bool
+	nonBlock      bool
 }
 
 func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -36,7 +37,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cl.ChooseCommand(&cmdChatSend{Contextified: libkb.NewContextified(g)}, "send", c)
 		},
 		Flags: append(getConversationResolverFlags(),
-			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "stdin")...,
+			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "stdin", "nonblock")...,
 		),
 	}
 }
@@ -117,8 +118,17 @@ func (c *cmdChatSend) Run() (err error) {
 
 	args.Msg = msg
 
-	if _, err = chatClient.PostLocal(ctx, args); err != nil {
-		return err
+	if c.nonBlock {
+		var nbarg chat1.PostLocalNonblockArg
+		nbarg.ConversationID = args.ConversationID
+		nbarg.Msg = args.Msg
+		if _, err = chatClient.PostLocalNonblock(ctx, nbarg); err != nil {
+			return err
+		}
+	} else {
+		if _, err = chatClient.PostLocal(ctx, args); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -129,6 +139,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.setHeadline = ctx.String("set-headline")
 	c.clearHeadline = ctx.Bool("clear-headline")
 	c.useStdin = ctx.Bool("stdin")
+	c.nonBlock = ctx.Bool("nonblock")
 
 	var tlfName string
 	// Get the TLF name from the first position arg

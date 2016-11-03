@@ -88,9 +88,7 @@ const styleContainer = {
   boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
   alignItems: 'center',
   justifyContent: 'center',
-  paddingTop: globalMargins.small,
-  paddingBottom: globalMargins.small,
-  paddingRight: globalMargins.small,
+  padding: globalMargins.small,
   position: 'relative',
   zIndex: 1,
 }

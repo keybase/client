@@ -8,8 +8,23 @@ ios_dir="$gopath/src/github.com/keybase/client/react-native/ios"
 client_dir="$gopath/src/github.com/keybase/client"
 cache_npm=${CACHE_NPM:-}
 cache_go_lib=${CACHE_GO_LIB:-}
+client_commit=${CLIENT_COMMIT:-}
 
 "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
+
+# Reset branch on error
+client_branch=`cd "$client_dir" && git rev-parse --abbrev-ref HEAD`
+function reset {
+  (cd "$client_dir" && git checkout $client_branch)
+}
+trap reset EXIT
+
+if [ -n "$client_commit" ]; then
+  cd "$client_dir"
+  echo "Checking out $client_commit on client (will reset to $client_branch)"
+  git checkout "$client_commit"
+  git pull
+fi
 
 cd "$rn_dir"
 

@@ -7,6 +7,7 @@ export type SmallInputProps = {
   label: string,
   value: ?string,
   onChange: (next: string) => void,
+  onEnterKeyDown?: () => void,
   errorState?: boolean,
   style?: Object,
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters', // Native only
