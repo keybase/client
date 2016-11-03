@@ -151,7 +151,7 @@ func (e MDServerErrorConflictDiskUsage) Error() string {
 	if e.Desc == "" {
 		return fmt.Sprintf("Conflict: expected disk usage %d, actual %d", e.Expected, e.Actual)
 	}
-	return "MDServerConflictDiskUsage{" + e.Desc + "}"
+	return "MDServerErrorConflictDiskUsage{" + e.Desc + "}"
 }
 
 // MDServerErrorLocked is returned when the folder truncation lock is acquired by someone else.
