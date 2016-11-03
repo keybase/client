@@ -79,6 +79,28 @@ export type LoadSettings = NoErrorTypedAction<'settings:loadSettings', void>
 
 export const loadedSettings = 'settings:loadedSettings'
 
+export type PushPermissionsStatus = 'needsPermissions' | 'requestedPermissions'
+
+export const pushPermissionsRequest = 'settings:pushPermissionsRequest'
+export type PushPermissionsRequest = NoErrorTypedAction<'settings:pushPermissionsRequest', void>
+
+export const pushPermissionsRequesting = 'settings:pushPermissionsRequesting'
+export type PushPermissionsRequesting = NoErrorTypedAction<'settings:pushPermissionsRequesting', boolean>
+
+export const pushPermissionsPrompt = 'settings:pushPermissionsPrompt'
+export type PushPermissionsPrompt = NoErrorTypedAction<'settings:pushPermissionsPrompt', boolean>
+
+export type TokenType = '' | 'ios' | 'android'
+
+export const pushToken = 'settings:pushToken'
+export type PushToken = NoErrorTypedAction<'settings:pushToken', {token: string, tokenType: TokenType}>
+
+export const updatePushToken = 'settings:updatePushToken'
+export type UpdatePushToken = NoErrorTypedAction<'settings:updatePushToken', {token: string, tokenType: TokenType}>
+
+export const savePushToken = 'settings:savePushToken'
+export type SavePushToken = NoErrorTypedAction<'settings:savePushToken', void>
+
 export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
 
 export type Invitation = {
@@ -124,6 +146,14 @@ export type EmailState = {
   error: ?Error,
 }
 
+export type PushState = {
+  token: string,
+  tokenType: string,
+  permissionsRequesting: boolean,
+  permissionsStatus: PushPermissionsStatus,
+  permissionsPrompt: boolean,
+}
+
 export type State = {
   allowDeleteAccount: boolean,
   waitingForResponse: boolean,
@@ -131,6 +161,7 @@ export type State = {
   notifications: NotificationsState,
   email: EmailState,
   passphrase: PassphraseState,
+  push: PushState,
 }
 
 export const waitingForResponse = 'settings:waitingForResponse'

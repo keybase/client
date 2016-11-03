@@ -7,8 +7,6 @@ import Login from './login'
 import MetaNavigator from './router/meta-navigator'
 import NoTab from './no-tab'
 import ProfileContainer from './profile/container'
-import PushRequestPermissions from './push/request-permissions.native'
-import PushNotification from 'react-native-push-notification'
 import React, {Component} from 'react'
 import Search from './search'
 import Settings from './settings'
@@ -23,7 +21,9 @@ import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
 import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
-import {Alert, Clipboard} from 'react-native'
+
+import ConfigurePush from './push/configure.native'
+import PushRequestPermissions from './push/request-permissions.native'
 
 import type {Tab} from './constants/tabs'
 
@@ -90,29 +90,18 @@ function NavigationBarRouteMapper (navigateTo, navigateUp) {
   }
 }
 
-type State = {
-  askForPush: boolean,
-}
-
 type Props = any
 
-class Nav extends Component<void, Props, State> {
-  state: State;
+class Nav extends Component<void, Props, void> {
 
   constructor (props: Props) {
     super(props)
-
-    this.state = {
-      askForPush: false,
-    }
 
     this.props.bootstrap()
     this.props.listenForNotifications()
 
     // Introduce ourselves to the service
     hello(0, 'iOS app', [], '0.0.0') // TODO real version
-
-    this.configurePush()
   }
 
   navBar () {
@@ -120,27 +109,6 @@ class Nav extends Component<void, Props, State> {
       <NativeNavigator.NavigationBar
         routeMapper={NavigationBarRouteMapper(this.props.navigateTo, this.props.navigateUp)} />
     )
-  }
-
-  configurePush () {
-    PushNotification.configure({
-      onRegister: token => this.props.pushGotToken(token),
-      onNotification: notification => this.props.pushGotNotification(notification),
-      permissions: {
-        alert: true,
-        badge: true,
-        sound: true,
-      },
-      // Don't request permissions now, we'll ask later
-      requestPermissions: false,
-    })
-
-    PushNotification.checkPermissions(permissions => {
-      console.log('Checked permissions:', permissions)
-      if (!permissions.alert) {
-        this.setState({askForPush: true})
-      }
-    })
   }
 
   _renderContent (tab, module) {
@@ -170,14 +138,7 @@ class Nav extends Component<void, Props, State> {
 
   shouldComponentUpdate (nextProps, nextState) {
     return (nextProps.router.get('activeTab') !== this._activeTab() ||
-      nextProps.dumbFullscreen !== this.props.dumbFullscreen ||
-      nextState !== this.state)
-  }
-
-  showAskForPush () {
-    return (
-      <PushRequestPermissions onClose={() => this.setState({askForPush: false})}/>
-    )
+      nextProps.dumbFullscreen !== this.props.dumbFullscreen)
   }
 
   render () {
@@ -198,10 +159,12 @@ class Nav extends Component<void, Props, State> {
 
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
 
+    console.warn('this.props.permissionsPrompt:', this.props.permissionsPrompt)
     return (
       <Box style={{flex: 1}}>
         <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />
-        {this.state.askForPush && this.showAskForPush()}
+        {this.props.provisioned && <ConfigurePush />}
+        {this.props.provisioned && this.props.permissionsPrompt && <PushRequestPermissions />}
       </Box>
     )
   }
@@ -239,13 +202,13 @@ const styles = {
 
 // $FlowIssue
 export default connect(
-  ({router, favorite: {privateBadge, publicBadge}, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({
+  ({router, favorite: {privateBadge, publicBadge}, config: {bootStatus, extendedConfig, username}, settings: {push: {permissionsPrompt}}, dev: {debugConfig: {dumbFullscreen}}}) => ({
     router,
-    bootstrapped,
     provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
     username,
     dumbFullscreen,
     folderBadge: privateBadge + publicBadge,
+    permissionsPrompt,
   }),
   dispatch => ({
     switchTab: tab => dispatch(switchTab(tab)),
@@ -253,11 +216,5 @@ export default connect(
     navigateTo: uri => dispatch(navigateTo(uri)),
     bootstrap: () => dispatch(bootstrap()),
     listenForNotifications: () => dispatch(listenForNotifications()),
-    pushGotToken: token => {
-      console.warn('Got token:', token)
-      Clipboard.setString(token)
-      Alert.alert('Saved push token to clipboard', token)
-    },
-    pushGotNotification: notification => console.warn('Got notification:', notification),
   })
 )(Nav)

@@ -1,44 +1,22 @@
 // @flow
 import React, {Component} from 'react'
-import {Image} from 'react-native'
-import PushNotification from 'react-native-push-notification'
+import {Alert, Clipboard, Image} from 'react-native'
+import {connect} from 'react-redux'
 import {Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
+
+import {pushPermissionsRequest} from '../actions/settings'
+
 import type {Props} from './request-permissions'
 
-type State = {
-  requesting: boolean,
-}
-
-class Push extends Component<void, Props, State> {
-  state: State;
-
-  constructor (props: Props) {
-    super(props)
-    this.state = {
-      requesting: false,
-    }
-  }
-
-  onRequestPermission () {
-    this.setState({requesting: true})
-    console.log('Requesting permissions')
-    // TODO(gabriel): On iOS, this will only show the OS request dialog on first
-    // request, afterwards it won't come up. So we should tell them to go into
-    // Settings app and change the permissions there in that case.
-    PushNotification.requestPermissions().then((permissions) => {
-      console.log('Requested permissions and got:', permissions)
-      this.setState({requesting: false})
-      this.props.onClose()
-    })
-  }
+class PushRequestPermissions extends Component<void, Props, void> {
 
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, ...modal, flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: globalColors.white}}>
         <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch', margin: globalMargins.small}}>
 
-          <Box style={{marginLeft: 8, marginRight: 8}}>
+          <Box style={{marginLeft: 8, marginRight: 8, marginTop: 40}}>
             <Text type='Header' style={{textAlign: 'center'}}>
               Please turn on notifications!
             </Text>
@@ -58,7 +36,7 @@ class Push extends Component<void, Props, State> {
             </Text>
           </Box>
           <Box style={{marginTop: 24, flex: 1}}>
-            <Button type='Primary' onClick={() => this.onRequestPermission()} label='Got it' waiting={this.state.requesting} />
+            <Button type='Primary' onClick={() => this.props.onRequestPermissions()} label='Got it' waiting={this.props.permissionsRequesting} />
           </Box>
         </Box>
       </Box>
@@ -74,4 +52,18 @@ const modal = {
   bottom: 0,
 }
 
-export default Push
+export default connect(
+  (state: any, ownProps) => {
+    const {permissionsRequesting} = state.settings.push
+    return ({
+      permissionsRequesting,
+    })
+  },
+  (dispatch: any) => {
+    return {
+      onRequestPermissions: () => {
+        dispatch(pushPermissionsRequest())
+      },
+    }
+  }
+)(PushRequestPermissions)

@@ -33,6 +33,13 @@ const initialState: State = {
     hasPGPKeyOnServer: null,
     canSave: false,
   },
+  push: {
+    permissionsStatus: 'needsPermissions',
+    permissionsPrompt: true,
+    permissionsRequesting: false,
+    tokenType: '',
+    token: '',
+  }
 }
 
 function reducer (state: State = initialState, action: Actions): State {
@@ -182,11 +189,39 @@ function reducer (state: State = initialState, action: Actions): State {
           error: action.payload.error,
         },
       }
+    case Constants.pushPermissionsRequesting:
+      const permissionsRequesting = action.payload
+      return {
+        ...state,
+        push: {
+          ...state.push,
+          permissionsRequesting,
+        },
+      }
+    case Constants.pushPermissionsPrompt:
+      return {
+        ...state,
+        push: {
+          ...state.push,
+          permissionsPrompt: action.payload,
+        }
+      }
+    case Constants.updatePushToken:
+      const {token, tokenType} = action.payload
+      return {
+        ...state,
+        push: {
+          ...state.push,
+          token,
+          tokenType,
+        },
+      }
     case Constants.waitingForResponse:
       return {
         ...state,
         waitingForResponse: action.payload,
       }
+
   }
   return state
 }

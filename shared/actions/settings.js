@@ -7,7 +7,9 @@ import {routeAppend, navigateUp} from '../actions/router'
 import {setDeletedSelf} from '../actions/login'
 import {takeEvery, takeLatest, delay} from 'redux-saga'
 
-import type {DeleteAccountForever, Invitation, InvitesReclaim, InvitesReclaimed, InvitesRefresh, InvitesSend, InvitesSent, LoadSettings, NotificationsRefresh, NotificationsSave, NotificationsToggle, OnChangeNewEmail, OnChangeNewPassphrase, OnChangeNewPassphraseConfirm, OnChangeShowPassphrase, OnSubmitNewEmail, OnSubmitNewPassphrase, OnUpdatePGPSettings, OnUpdatedPGPSettings, SetAllowDeleteAccount} from '../constants/settings'
+import PushNotification from 'react-native-push-notification'
+
+import type {DeleteAccountForever, Invitation, InvitesReclaim, InvitesReclaimed, InvitesRefresh, InvitesSend, InvitesSent, LoadSettings, NotificationsRefresh, NotificationsSave, NotificationsToggle, OnChangeNewEmail, OnChangeNewPassphrase, OnChangeNewPassphraseConfirm, OnChangeShowPassphrase, OnSubmitNewEmail, OnSubmitNewPassphrase, OnUpdatePGPSettings, OnUpdatedPGPSettings, PushPermissionsPrompt, PushPermissionsRequest, PushPermissionsRequesting, PushPermissionsStatus, PushToken, SavePushToken, SetAllowDeleteAccount, TokenType, UpdatePushToken} from '../constants/settings'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
@@ -77,6 +79,30 @@ function deleteAccountForever (): DeleteAccountForever {
 
 function loadSettings (): LoadSettings {
   return {type: Constants.loadSettings, payload: undefined}
+}
+
+function pushPermissionsRequest (): PushPermissionsRequest {
+  return {type: Constants.pushPermissionsRequest, payload: undefined}
+}
+
+function pushPermissionsRequesting (enable: boolean): PushPermissionsRequesting {
+  return {type: Constants.pushPermissionsRequesting, payload: enable}
+}
+
+function pushPermissionsPrompt (enable: boolean): PushPermissionsPrompt {
+  return {type: Constants.pushPermissionsPrompt, payload: enable}
+}
+
+function pushToken (token: string, tokenType: TokenType): PushToken {
+  return {type: Constants.pushToken, payload: {token, tokenType}}
+}
+
+function updatePushToken (token: string, tokenType: TokenType): UpdatePushToken {
+  return {type: Constants.updatePushToken, payload: {token, tokenType}}
+}
+
+function savePushToken (): SavePushToken {
+  return {type: Constants.savePushToken, payload: undefined}
 }
 
 function * _onUpdatePGPSettings (): SagaGenerator<any, any> {
@@ -369,6 +395,56 @@ function * loadSettingsSaga (): SagaGenerator<any, any> {
   yield put({type: Constants.loadedSettings, payload: userSettings})
 }
 
+function * pushTokenSaga (token: string, tokenType: TokenType): SagaGenerator<any, any> {
+  yield put(updatePushToken(token, tokenType))
+  yield put(savePushToken())
+}
+
+function * savePushTokenSaga (): SagaGenerator<any, any> {
+  const settingsSelector = (state: TypedState) => state.settings.push
+  const {token, tokenType} = ((yield select(settingsSelector)): any)
+
+  const extendedConfig = yield select(state => state.config.extendedConfig)
+
+  if (!extendedConfig || !extendedConfig.defaultDeviceID) {
+    throw new Error('No device available for saving push token')
+  }
+  const deviceID = extendedConfig.defaultDeviceID
+  if (!token) {
+    throw new Error('No push token available to save')
+  }
+  // if (__DEV__) {
+  //   throw new Error('Push tokens unsupported in dev')
+  // }
+
+  const result = yield call(apiserverPostRpcPromise, {
+    param: {
+      endpoint: 'device/push_token',
+      args: [
+        {key: 'push_token', value: token},
+        {key: 'device_id', value: deviceID},
+        {key: 'token_type', value: tokenType},
+      ],
+    },
+  })
+}
+
+function * pushPermissionsRequestSaga (): SagaGenerator<any, any> {
+  try {
+    yield put({type: Constants.pushPermissionsRequesting, payload: true})
+
+    console.log('Requesting permissions')
+    // TODO(gabriel): On iOS, this will only show the OS request dialog on first
+    // request, afterwards it won't come up. So we should tell them to go into
+    // Settings app and change the permissions there in that case.
+    const permissions = yield call(() => { return PushNotification.requestPermissions() })
+    // TODO(gabriel): Set permissions we have in state, might need it at some point?
+  } finally {
+    yield put({type: Constants.pushPermissionsRequesting, payload: false})
+    yield put({type: Constants.pushPermissionsPrompt, payload: false})
+  }
+}
+
 function * settingsSaga (): SagaGenerator<any, any> {
   yield [
     takeEvery(Constants.invitesReclaim, reclaimInviteSaga),
@@ -381,6 +457,9 @@ function * settingsSaga (): SagaGenerator<any, any> {
     takeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail),
     takeEvery(Constants.onSubmitNewPassphrase, _onSubmitNewPassphrase),
     takeEvery(Constants.onUpdatePGPSettings, _onUpdatePGPSettings),
+    takeLatest(Constants.pushPermissionsRequest, pushPermissionsRequestSaga),
+    takeLatest(Constants.pushToken, pushTokenSaga),
+    takeLatest(Constants.savePushToken, savePushTokenSaga),
   ]
 }
 
@@ -399,8 +478,13 @@ export {
   onSubmitNewEmail,
   onSubmitNewPassphrase,
   onUpdatePGPSettings,
+  pushPermissionsPrompt,
+  pushPermissionsRequest,
   setAllowDeleteAccount,
   loadSettings,
+  pushToken,
+  savePushToken,
+  updatePushToken,
 }
 
 export default settingsSaga

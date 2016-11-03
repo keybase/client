@@ -2,5 +2,7 @@
 import {Component} from 'react'
 
 export type Props = {
+  permissionsRequesting: boolean,
+  onRequestPermissions: () => void,
   onClose: () => void,
 }
