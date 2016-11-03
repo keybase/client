@@ -49,6 +49,7 @@ type blockRetrieval struct {
 // requests are executed first. Requests are executed in FIFO order within a
 // given priority level.
 type blockRetrievalQueue struct {
+	// protects everything in this struct except workerQueue
 	mtx sync.RWMutex
 	// queued or in progress retrievals
 	ptrs map[BlockPointer]*blockRetrieval
@@ -91,9 +92,8 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block) <-chan error {
 	brq.mtx.Lock()
 	defer brq.mtx.Unlock()
-	var br *blockRetrieval
-	var exists bool
-	if br, exists = brq.ptrs[ptr]; !exists {
+	br, exists := brq.ptrs[ptr]
+	if !exists {
 		// Add to the heap
 		br = &blockRetrieval{
 			blockPtr:       ptr,
@@ -101,7 +101,6 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 			index:          -1,
 			priority:       priority,
 			insertionOrder: brq.insertionCount,
-			requests:       []*blockRetrievalRequest{},
 		}
 		brq.insertionCount++
 		brq.ptrs[ptr] = br
