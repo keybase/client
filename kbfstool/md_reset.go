@@ -78,6 +78,8 @@ func mdResetOne(
 		return err
 	}
 
+	// TODO: Add an option to scan for and use the last known good
+	// root block.
 	_, info, readyBlockData, err :=
 		libkbfs.ResetRootBlock(ctx, config, uid, rmdNext)
 	if err != nil {
