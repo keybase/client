@@ -755,8 +755,9 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 			chatUI.ChatAttachmentPreviewUploadStart(ctx)
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
-			params.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, params, *arg.Preview, nil)
+			paramsCopy := params
+			paramsCopy.ObjectKey += "50"
+			prev, err := h.uploadAsset(ctx, arg.SessionID, paramsCopy, *arg.Preview, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
