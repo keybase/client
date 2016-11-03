@@ -17,6 +17,11 @@ export type RemoveDevice = NoErrorTypedAction<'devices:removeDevice', {
   currentDevice: boolean,
 }>
 
+export const showRemovePage = 'devices:showRemovePage'
+export type ShowRemovePage = NoErrorTypedAction<'devices:showRemovePage', {
+  deviceID: string,
+}>
+
 export const deviceRemoved = 'devices:deviceRemoved'
 export type DeviceRemoved = TypedAction<'devices:deviceRemoved', void, {errorText: string}>
 

@@ -21,6 +21,15 @@ const common = {
   },
 }
 
+const endangeredTLFs = [
+  {name: 'private/you,user1'},
+  {name: 'private/you,user2'},
+  {name: 'private/you,user3'},
+  {name: 'public/you,user1'},
+  {name: 'public/you,user2'},
+  {name: 'public/you,user3'},
+]
+
 const map: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
@@ -33,6 +42,17 @@ const map: DumbComponentMap<Render> = {
       ...common,
       currentDevice: true,
       device: common,
+    },
+    'Normal with endangered TLFs': {
+      ...common,
+      device: common,
+      endangeredTLFs,
+    },
+    'Current with endangered TLFs': {
+      ...common,
+      currentDevice: true,
+      device: common,
+      endangeredTLFs,
     },
   },
 }

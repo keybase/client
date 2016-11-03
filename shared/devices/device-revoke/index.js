@@ -14,6 +14,7 @@ class DeviceRevoke extends Component<void, Props, void> {
         title: 'Device revoke',
         props: {
           device: currentPath.get('device'),
+          endangeredTLFs: currentPath.get('endangeredTLFs'),
         },
       },
     }
@@ -21,6 +22,7 @@ class DeviceRevoke extends Component<void, Props, void> {
 
   render () {
     const device = this.props.device
+    const {endangeredTLFs} = this.props.endangeredTLFs
     return <Render
       name={device.name}
       type={device.type}
@@ -29,6 +31,7 @@ class DeviceRevoke extends Component<void, Props, void> {
       device={device}
       onSubmit={this.props.onSubmit}
       onCancel={this.props.onCancel}
+      endangeredTLFs={endangeredTLFs}
     />
   }
 }
