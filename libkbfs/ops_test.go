@@ -556,8 +556,8 @@ func TestOpInversion(t *testing.T) {
 
 	iop3, err := invertOpForLocalNotifications(rop)
 	require.NoError(t, err)
-	renameOp, ok := iop3.(*renameOp)
-	if !ok || !reflect.DeepEqual(*renameOp, *expectedIOp3) {
+	iRenameOp, ok := iop3.(*renameOp)
+	if !ok || !reflect.DeepEqual(*iRenameOp, *expectedIOp3) {
 		t.Errorf("renameOp didn't invert properly, expected %v, got %v",
 			expectedIOp3, iop3)
 	}
@@ -594,6 +594,22 @@ func TestOpInversion(t *testing.T) {
 	if !ok || !reflect.DeepEqual(*sao, *expectedIOp5) {
 		t.Errorf("setAttrOp didn't invert properly, expected %v, got %v",
 			expectedIOp5, iop5)
+	}
+
+	// rename (same dir)
+	rop, err = newRenameOp("old", oldPtr1, "new", oldPtr1, filePtr, File)
+	require.NoError(t, err)
+	rop.AddUpdate(oldPtr1, newPtr1)
+	expectedIOp6, err := newRenameOp("new", newPtr1, "old", newPtr1, filePtr, File)
+	require.NoError(t, err)
+	expectedIOp6.AddUpdate(newPtr1, oldPtr1)
+
+	iop6, err := invertOpForLocalNotifications(rop)
+	require.NoError(t, err)
+	iRenameOp, ok = iop6.(*renameOp)
+	if !ok || !reflect.DeepEqual(*iRenameOp, *expectedIOp6) {
+		t.Errorf("renameOp didn't invert properly, expected %v, got %v",
+			expectedIOp6, iop6)
 	}
 }
 

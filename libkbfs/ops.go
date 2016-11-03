@@ -1194,7 +1194,11 @@ func invertOpForLocalNotifications(oldOp op) (newOp op, err error) {
 			return nil, err
 		}
 	case *renameOp:
-		newOp, err = newRenameOp(op.NewName, op.NewDir.Ref,
+		newDirRef := op.NewDir.Ref
+		if op.NewDir == (blockUpdate{}) {
+			newDirRef = op.OldDir.Ref
+		}
+		newOp, err = newRenameOp(op.NewName, newDirRef,
 			op.OldName, op.OldDir.Ref, op.Renamed, op.RenamedType)
 		if err != nil {
 			return nil, err
