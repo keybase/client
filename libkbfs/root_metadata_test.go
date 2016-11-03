@@ -542,7 +542,6 @@ func TestRootMetadataFinalIsFinal(t *testing.T) {
 
 func getAllUsersKeysForTest(
 	t *testing.T, config Config, rmd *RootMetadata, un string) []kbfscrypto.TLFCryptKey {
-	SwitchDeviceOrBust(t, config, un, 0)
 	var keys []kbfscrypto.TLFCryptKey
 	for i := 1; i <= int(rmd.LatestKeyGeneration()); i++ {
 		key, err := config.KeyManager().(*KeyManagerStandard).getTLFCryptKeyUsingCurrentDevice(
@@ -553,9 +552,22 @@ func getAllUsersKeysForTest(
 	return keys
 }
 
+// We always want misses for the tests below.
+type dummyNoKeyCache struct {
+}
+
+func (kc *dummyNoKeyCache) GetTLFCryptKey(_ tlf.ID, _ KeyGen) (kbfscrypto.TLFCryptKey, error) {
+	return kbfscrypto.TLFCryptKey{}, KeyCacheMissError{}
+}
+
+func (kc *dummyNoKeyCache) PutTLFCryptKey(_ tlf.ID, _ KeyGen, _ kbfscrypto.TLFCryptKey) error {
+	return nil
+}
+
 // Test upconversion from MDv2 to MDv3 for a private folder.
 func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
+	config.SetKeyCache(&dummyNoKeyCache{})
 	defer config.Shutdown()
 
 	tlfID := tlf.FakeID(1, false)
@@ -583,6 +595,14 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	// prove charlie
 	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
 		"charlie", "charlie@twitter")
+
+	// rekey it
+	done, _, err = config.KeyManager().Rekey(context.Background(), rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(1))
+	require.Equal(t, rmd.Revision(), MetadataRevision(1))
+	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
 
 	// revoke bob's device
 	_, bobUID, err := config.KBPKI().Resolve(context.Background(), "bob")
@@ -639,8 +659,11 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, aliceKeys, aliceKeys2)
 
 	// get each key generation for charlie from each version of metadata
-	charlieKeys := getAllUsersKeysForTest(t, config, rmd, "charlie")
-	charlieKeys2 := getAllUsersKeysForTest(t, config, rmd2, "charlie")
+	config2 := ConfigAsUser(config, "charlie")
+	config2.SetKeyCache(&dummyNoKeyCache{})
+	defer config2.Shutdown()
+	charlieKeys := getAllUsersKeysForTest(t, config2, rmd, "charlie")
+	charlieKeys2 := getAllUsersKeysForTest(t, config2, rmd2, "charlie")
 
 	// compare charlie's keys
 	require.Equal(t, len(charlieKeys), 2)
