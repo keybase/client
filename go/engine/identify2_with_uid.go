@@ -573,16 +573,16 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 		case libkb.NoKeyError:
 			// convert this error to NoSigChainError
 			return libkb.NoSigChainError{}
-		case libkb.DeletedError:
-			return err
 		case libkb.NotFoundError:
 			return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
+		default: // including libkb.DeletedError
+			return err
 		}
 	}
 	if e.them == nil {
 		return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
 	}
-	return err
+	return nil
 }
 
 func (e *Identify2WithUID) loadUsers(ctx *Context) error {
