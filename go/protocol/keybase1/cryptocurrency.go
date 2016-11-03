@@ -9,14 +9,15 @@ import (
 )
 
 type RegisterAddressRes struct {
-	Type   string `codec:"Type" json:"Type"`
-	Family string `codec:"Family" json:"Family"`
+	Type   string `codec:"type" json:"type"`
+	Family string `codec:"family" json:"family"`
 }
 
 type RegisterAddressArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Address   string `codec:"address" json:"address"`
-	Force     bool   `codec:"force" json:"force"`
+	SessionID    int    `codec:"sessionID" json:"sessionID"`
+	Address      string `codec:"address" json:"address"`
+	Force        bool   `codec:"force" json:"force"`
+	WantedFamily string `codec:"wantedFamily" json:"wantedFamily"`
 }
 
 type CryptocurrencyInterface interface {

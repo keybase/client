@@ -4,11 +4,9 @@
 package engine
 
 import (
-	"strings"
-	"testing"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"testing"
 )
 
 func getCurrentCryptocurrencyAddr(tc libkb.TestContext, username string, family libkb.CryptocurrencyFamily) string {
@@ -52,8 +50,18 @@ func TestCryptocurrency(t *testing.T) {
 		t.Fatalf("No address should be set")
 	}
 
+	// Now set a real address, but with the wrong family. This should fail
+	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, WantedFamily: "zcash"})
+	err = RunEngine(e, ctx)
+	if err == nil {
+		t.Fatal("Wanted an error for wrong adddress type")
+	}
+	if current != "" {
+		t.Fatalf("No address should be set")
+	}
+
 	// Now set a real address; this should succeed.
-	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress})
+	e = NewCryptocurrencyEngine(tc.G, keybase1.RegisterAddressArg{Address: firstAddress, WantedFamily: "bitcoin"})
 	err = RunEngine(e, ctx)
 	if err != nil {
 		t.Fatal(err)
@@ -68,8 +76,8 @@ func TestCryptocurrency(t *testing.T) {
 	err = RunEngine(e, ctx)
 	if err == nil {
 		t.Fatal("Overwriting a Cryptocurrency address should fail without --force.")
-	} else if !strings.Contains(err.Error(), "--force") {
-		t.Fatal("Error should mention the --force flag.")
+	} else if _, ok := err.(libkb.ExistsError); !ok {
+		t.Fatal("Error should by typed 'libkb.ExistsError'")
 	}
 	current = getCurrentCryptocurrencyAddr(tc, u.Username, libkb.CryptocurrencyFamilyBitcoin)
 	if current != firstAddress {
@@ -119,8 +127,8 @@ func TestCryptocurrency(t *testing.T) {
 	err = RunEngine(e, ctx)
 	if err == nil {
 		t.Fatal("Overwriting a second Zcash address should fail without --force.")
-	} else if !strings.Contains(err.Error(), "--force") {
-		t.Fatal("Error should mention the --force flag.")
+	} else if _, ok := err.(libkb.ExistsError); !ok {
+		t.Fatal("Error should by typed 'libkb.ExistsError'")
 	}
 	current = getCurrentCryptocurrencyAddr(tc, u.Username, libkb.CryptocurrencyFamilyBitcoin)
 	if current != secondAddress {
