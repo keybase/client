@@ -43,6 +43,15 @@ type UserSummary struct {
 	TrackTime    Time   `codec:"trackTime" json:"trackTime"`
 }
 
+type Email struct {
+	Email      string `codec:"email" json:"email"`
+	IsVerified bool   `codec:"isVerified" json:"isVerified"`
+}
+
+type UserSettings struct {
+	Emails []Email `codec:"emails" json:"emails"`
+}
+
 type SearchComponent struct {
 	Key   string  `codec:"key" json:"key"`
 	Value string  `codec:"value" json:"value"`
@@ -114,6 +123,10 @@ type LoadMyPublicKeysArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type LoadMySettingsArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type ListTrackingArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Filter    string `codec:"filter" json:"filter"`
@@ -160,6 +173,8 @@ type UserInterface interface {
 	LoadPublicKeys(context.Context, LoadPublicKeysArg) ([]PublicKey, error)
 	// Load my public keys (for logged in user).
 	LoadMyPublicKeys(context.Context, int) ([]PublicKey, error)
+	// Load user settings (for logged in user).
+	LoadMySettings(context.Context, int) (UserSettings, error)
 	// The list-tracking functions get verified data from the tracking statements
 	// in the user's sigchain.
 	//
@@ -322,6 +337,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"loadMySettings": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadMySettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadMySettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadMySettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadMySettings(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"listTracking": {
 				MakeArg: func() interface{} {
 					ret := make([]ListTrackingArg, 1)
@@ -461,6 +492,13 @@ func (c UserClient) LoadPublicKeys(ctx context.Context, __arg LoadPublicKeysArg)
 func (c UserClient) LoadMyPublicKeys(ctx context.Context, sessionID int) (res []PublicKey, err error) {
 	__arg := LoadMyPublicKeysArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.user.loadMyPublicKeys", []interface{}{__arg}, &res)
+	return
+}
+
+// Load user settings (for logged in user).
+func (c UserClient) LoadMySettings(ctx context.Context, sessionID int) (res UserSettings, err error) {
+	__arg := LoadMySettingsArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.user.loadMySettings", []interface{}{__arg}, &res)
 	return
 }
 

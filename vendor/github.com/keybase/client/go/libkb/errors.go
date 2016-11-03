@@ -352,6 +352,20 @@ func (p PassphraseError) Error() string {
 
 //=============================================================================
 
+type BadEmailError struct {
+	Msg string
+}
+
+func (e BadEmailError) Error() string {
+	msg := "Bad email"
+	if len(e.Msg) != 0 {
+		msg = msg + ": " + e.Msg
+	}
+	return msg
+}
+
+//=============================================================================
+
 type BadKeyError struct {
 	Msg string
 }
@@ -1521,13 +1535,41 @@ func (e ChatBoxingError) Error() string {
 
 //=============================================================================
 
-type ChatUnboxingError struct {
-	Msg string
+type ChatUnboxingError interface {
+	Error() string
+	Inner() error
+	IsPermanent() bool
 }
 
-func (e ChatUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", e.Msg)
+var _ error = (ChatUnboxingError)(nil)
+
+func NewPermanentChatUnboxingError(inner error) ChatUnboxingError {
+	return &PermanentChatUnboxingError{inner}
 }
+
+type PermanentChatUnboxingError struct{ inner error }
+
+func (e PermanentChatUnboxingError) Error() string {
+	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
+}
+
+func (e PermanentChatUnboxingError) IsPermanent() bool { return true }
+
+func (e PermanentChatUnboxingError) Inner() error { return e.inner }
+
+func NewTransientChatUnboxingError(inner error) ChatUnboxingError {
+	return &TransientChatUnboxingError{inner}
+}
+
+type TransientChatUnboxingError struct{ inner error }
+
+func (e TransientChatUnboxingError) Error() string {
+	return fmt.Sprintf("error unboxing chat message: %s", e.inner.Error())
+}
+
+func (e TransientChatUnboxingError) IsPermanent() bool { return false }
+
+func (e TransientChatUnboxingError) Inner() error { return e.inner }
 
 //=============================================================================
 
@@ -1590,13 +1632,6 @@ func NewChatBodyVersionError(version chat1.BodyPlaintextVersion) ChatVersionErro
 	}
 }
 
-func NewChatMessageVersionError(version chat1.MessagePlaintextVersion) ChatVersionError {
-	return ChatVersionError{
-		Kind:    "message",
-		Version: int(version),
-	}
-}
-
 //=============================================================================
 
 type ChatBodyHashInvalid struct{}
@@ -1620,7 +1655,7 @@ type ChatConvExistsError struct {
 }
 
 func (e ChatConvExistsError) Error() string {
-	return fmt.Sprintf("conversation already exists: %d", e.ConvID)
+	return fmt.Sprintf("conversation already exists: %s", e.ConvID)
 }
 
 //=============================================================================
@@ -1702,4 +1737,80 @@ type ChatTLFFinalizedError struct {
 
 func (e ChatTLFFinalizedError) Error() string {
 	return fmt.Sprintf("unable to create conversation on finalized TLF: %s", e.TlfID)
+}
+
+//=============================================================================
+
+type ChatStorageError interface {
+	error
+	ShouldClear() bool
+	Message() string
+}
+
+type ChatStorageInternalError struct {
+	Msg string
+}
+
+func (e ChatStorageInternalError) ShouldClear() bool {
+	return true
+}
+
+func (e ChatStorageInternalError) Error() string {
+	return fmt.Sprintf("internal chat storage error: %s", e.Msg)
+}
+
+func (e ChatStorageInternalError) Message() string {
+	return e.Msg
+}
+
+func NewChatStorageInternalError(g *GlobalContext, msg string, args ...interface{}) ChatStorageInternalError {
+	g.Log.Debug("internal chat storage error: "+msg, args...)
+	return ChatStorageInternalError{Msg: fmt.Sprintf(msg, args...)}
+}
+
+type ChatStorageMissError struct {
+}
+
+func (e ChatStorageMissError) Error() string {
+	return "chat cache miss"
+}
+
+func (e ChatStorageMissError) ShouldClear() bool {
+	return false
+}
+
+func (e ChatStorageMissError) Message() string {
+	return e.Error()
+}
+
+type ChatStorageRemoteError struct {
+	Msg string
+}
+
+func (e ChatStorageRemoteError) Error() string {
+	return fmt.Sprintf("chat remote error: %s", e.Msg)
+}
+
+func (e ChatStorageRemoteError) ShouldClear() bool {
+	return false
+}
+
+func (e ChatStorageRemoteError) Message() string {
+	return e.Msg
+}
+
+type ChatStorageMiscError struct {
+	Msg string
+}
+
+func (e ChatStorageMiscError) Error() string {
+	return e.Msg
+}
+
+func (e ChatStorageMiscError) ShouldClear() bool {
+	return false
+}
+
+func (e ChatStorageMiscError) Message() string {
+	return e.Msg
 }

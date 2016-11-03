@@ -346,6 +346,10 @@ type KeybaseService interface {
 
 	// TODO: Add CryptoClient methods, too.
 
+	// EstablishMountDir asks the service for the current mount path
+	// and sets it if not established.
+	EstablishMountDir(ctx context.Context) (string, error)
+
 	// Shutdown frees any resources associated with this
 	// instance. No other methods may be called after this is
 	// called.

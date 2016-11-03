@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/keybase/go-crypto/openpgp"
 )
@@ -57,12 +58,19 @@ func LoadSKBKeyring(un NormalizedUsername, g *GlobalContext) (*SKBKeyringFile, e
 		return nil, NoUsernameError{}
 	}
 
-	skbfile := NewSKBKeyringFile(g.SKBFilenameForUser(un))
+	skbfile := NewSKBKeyringFile(g, g.SKBFilenameForUser(un))
 	err := skbfile.LoadAndIndex()
 	if err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
 	return skbfile, nil
+}
+
+func StatSKBKeyringMTime(un NormalizedUsername, g *GlobalContext) (mtime time.Time, err error) {
+	if un.IsNil() {
+		return mtime, NoUsernameError{}
+	}
+	return NewSKBKeyringFile(g, g.SKBFilenameForUser(un)).MTime()
 }
 
 func (k *KeyringFile) LoadAndIndex() error {
@@ -137,8 +145,8 @@ func (k KeyringFile) WriteTo(w io.Writer) (int64, error) {
 
 func (k KeyringFile) GetFilename() string { return k.filename }
 
-func (k KeyringFile) Save() error {
-	return SafeWriteToFile(k, 0)
+func (k KeyringFile) Save(g *GlobalContext) error {
+	return SafeWriteToFile(g.Log, k, 0)
 }
 
 type SecretKeyType int

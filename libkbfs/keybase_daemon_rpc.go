@@ -78,7 +78,8 @@ func (k *KeybaseDaemonRPC) fillClients(client rpc.GenericClient) {
 		keybase1.UserClient{Cli: client},
 		keybase1.SessionClient{Cli: client},
 		keybase1.FavoriteClient{Cli: client},
-		keybase1.KbfsClient{Cli: client})
+		keybase1.KbfsClient{Cli: client},
+		keybase1.KbfsMountClient{Cli: client})
 }
 
 type daemonLogUI struct {

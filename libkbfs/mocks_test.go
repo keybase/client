@@ -671,6 +671,17 @@ func (_mr *_MockKeybaseServiceRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
+func (_m *MockKeybaseService) EstablishMountDir(ctx context.Context) (string, error) {
+	ret := _m.ctrl.Call(_m, "EstablishMountDir", ctx)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeybaseServiceRecorder) EstablishMountDir(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "EstablishMountDir", arg0)
+}
+
 // Mock of KeybaseServiceCn interface
 type MockKeybaseServiceCn struct {
 	ctrl     *gomock.Controller

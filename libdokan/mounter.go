@@ -43,6 +43,10 @@ func NewForceMounter(dir string) *DefaultMounter {
 func (m *DefaultMounter) Mount(cfg *dokan.Config, log logger.Logger) error {
 	var err error
 	var h *dokan.MountHandle
+	// See if the path was set after creation of this mounter
+	if m.dir == "" && cfg.Path != "" {
+		m.dir = cfg.Path
+	}
 	// Retry loop
 	for i := 8; true; i *= 2 {
 		h, err = m.mountHelper(cfg)

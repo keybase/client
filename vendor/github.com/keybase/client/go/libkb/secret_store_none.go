@@ -12,7 +12,7 @@ import (
 // Used by tests that want to mock out the secret store.
 type TestSecretStoreAll struct {
 	context            SecretStoreContext
-	secretStoreNoneMap map[NormalizedUsername][]byte
+	secretStoreNoneMap map[NormalizedUsername]LKSecFullSecret
 	Contextified
 }
 
@@ -32,7 +32,7 @@ func (t TestSecretStoreAll) GetApprovalPrompt() string {
 }
 
 func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
-	ret := TestSecretStoreAll{context: c, secretStoreNoneMap: map[NormalizedUsername][]byte{}}
+	ret := TestSecretStoreAll{context: c, secretStoreNoneMap: make(map[NormalizedUsername]LKSecFullSecret)}
 	ret.SetGlobalContext(g)
 	return ret
 }
@@ -41,21 +41,21 @@ func (t TestSecretStoreAll) GetAllUserNames() (NormalizedUsername, []NormalizedU
 	return t.context.GetAllUserNames()
 }
 
-func (t TestSecretStoreAll) RetrieveSecret(accountName NormalizedUsername) (ret []byte, err error) {
+func (t TestSecretStoreAll) RetrieveSecret(accountName NormalizedUsername) (ret LKSecFullSecret, err error) {
 
 	ret, ok := t.secretStoreNoneMap[accountName]
 
-	t.G().Log.Debug("| TestSecretStore::RetrieveSecret(%d)", len(ret))
+	t.G().Log.Debug("| TestSecretStore::RetrieveSecret(isNil=%v)", ret.IsNil())
 
 	if !ok {
-		return nil, errors.New("No secret to retrieve")
+		return LKSecFullSecret{}, errors.New("No secret to retrieve")
 	}
 
-	return
+	return ret, nil
 }
 
-func (t TestSecretStoreAll) StoreSecret(accountName NormalizedUsername, secret []byte) error {
-	t.G().Log.Debug("| TestSecretStore::StoreSecret(%d)", len(secret))
+func (t TestSecretStoreAll) StoreSecret(accountName NormalizedUsername, secret LKSecFullSecret) error {
+	t.G().Log.Debug("| TestSecretStore::StoreSecret(isNil=%v)", secret.IsNil())
 
 	t.secretStoreNoneMap[accountName] = secret
 	return nil

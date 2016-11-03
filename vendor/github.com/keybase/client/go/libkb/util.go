@@ -167,12 +167,17 @@ type SafeWriter interface {
 	WriteTo(io.Writer) (int64, error)
 }
 
+type SafeWriteLogger interface {
+	Debug(format string, args ...interface{})
+	Errorf(format string, args ...interface{})
+}
+
 // SafeWriteToFile to safely write to a file. Use mode=0 for default permissions.
-func SafeWriteToFile(t SafeWriter, mode os.FileMode) error {
+func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	fn := t.GetFilename()
-	G.Log.Debug(fmt.Sprintf("+ Writing to %s", fn))
+	g.Debug(fmt.Sprintf("+ Writing to %s", fn))
 	tmpfn, tmp, err := OpenTempFile(fn, "", mode)
-	G.Log.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
+	g.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
 	if err != nil {
 		return err
 	}
@@ -183,15 +188,15 @@ func SafeWriteToFile(t SafeWriter, mode os.FileMode) error {
 		if err == nil {
 			err = os.Rename(tmpfn, fn)
 		} else {
-			G.Log.Error(fmt.Sprintf("Error closing temporary file %s: %s", tmpfn, err))
+			g.Errorf(fmt.Sprintf("Error closing temporary file %s: %s", tmpfn, err))
 			os.Remove(tmpfn)
 		}
 	} else {
-		G.Log.Error(fmt.Sprintf("Error writing temporary file %s: %s", tmpfn, err))
+		g.Errorf(fmt.Sprintf("Error writing temporary file %s: %s", tmpfn, err))
 		tmp.Close()
 		os.Remove(tmpfn)
 	}
-	G.Log.Debug(fmt.Sprintf("- Wrote to %s -> %s", fn, ErrToOk(err)))
+	g.Debug(fmt.Sprintf("- Wrote to %s -> %s", fn, ErrToOk(err)))
 	return err
 }
 

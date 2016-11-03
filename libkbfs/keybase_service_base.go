@@ -17,13 +17,14 @@ import (
 // KeybaseServiceBase implements most of KeybaseService from protocol
 // defined clients.
 type KeybaseServiceBase struct {
-	context        Context
-	identifyClient keybase1.IdentifyInterface
-	userClient     keybase1.UserInterface
-	sessionClient  keybase1.SessionInterface
-	favoriteClient keybase1.FavoriteInterface
-	kbfsClient     keybase1.KbfsInterface
-	log            logger.Logger
+	context         Context
+	identifyClient  keybase1.IdentifyInterface
+	userClient      keybase1.UserInterface
+	sessionClient   keybase1.SessionInterface
+	favoriteClient  keybase1.FavoriteInterface
+	kbfsClient      keybase1.KbfsInterface
+	kbfsMountClient keybase1.KbfsMountInterface
+	log             logger.Logger
 
 	config Config
 
@@ -56,12 +57,14 @@ func NewKeybaseServiceBase(config Config, kbCtx Context, log logger.Logger) *Key
 // FillClients sets the client protocol implementations needed for a KeybaseService.
 func (k *KeybaseServiceBase) FillClients(identifyClient keybase1.IdentifyInterface,
 	userClient keybase1.UserInterface, sessionClient keybase1.SessionInterface,
-	favoriteClient keybase1.FavoriteInterface, kbfsClient keybase1.KbfsInterface) {
+	favoriteClient keybase1.FavoriteInterface, kbfsClient keybase1.KbfsInterface,
+	kbfsMountClient keybase1.KbfsMountInterface) {
 	k.identifyClient = identifyClient
 	k.userClient = userClient
 	k.sessionClient = sessionClient
 	k.favoriteClient = favoriteClient
 	k.kbfsClient = kbfsClient
+	k.kbfsMountClient = kbfsMountClient
 }
 
 type addVerifyingKeyFunc func(kbfscrypto.VerifyingKey)
@@ -680,4 +683,30 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 	}
 
 	return res, nil
+}
+
+// EstablishMountDir asks the service for the current mount path
+func (k *KeybaseServiceBase) EstablishMountDir(ctx context.Context) (
+	string, error) {
+	dir, err := k.kbfsMountClient.GetCurrentMountDir(ctx)
+	if err != nil {
+		return "", err
+	}
+	if dir == "" {
+		dirs, err2 := k.kbfsMountClient.GetAllAvailableMountDirs(ctx)
+		if err != nil {
+			return "", err2
+		}
+		dir, err = chooseDefaultMount(ctx, dirs, k.log)
+		if err != nil {
+			return "", err
+		}
+		err2 = k.kbfsMountClient.SetCurrentMountDir(ctx, dir)
+		if err2 != nil {
+			k.log.CInfof(ctx, "SetCurrentMount Dir fails - ", err2)
+		}
+		// Continue mounting even if we can't save the mount
+		k.log.CDebugf(ctx, "Choosing mountdir %s from %v", dir, dirs)
+	}
+	return dir, err
 }
