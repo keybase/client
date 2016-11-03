@@ -196,7 +196,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		e.G().Log.Debug("- Released singleflight lock")
 	}()
 
-	if e.loadAssertion(); err != nil {
+	if err = e.loadAssertion(); err != nil {
 		return err
 	}
 
