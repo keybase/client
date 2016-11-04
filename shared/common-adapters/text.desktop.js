@@ -31,16 +31,9 @@ class Text extends Component<void, Props, void> {
       ...this.props.style,
     }
 
-    const meta = metaData[this.props.type]
-
-    const className = [
-      this.props.className,
-      meta.isLink ? 'hover-underline' : null,
-    ].filter(Boolean).join(' ')
-
     return <span
       ref={ref => { this._span = ref }}
-      className={className}
+      className={this.props.className}
       style={style}
       onClick={this.props.onClick}>{this.props.children}</span>
   }
@@ -53,6 +46,7 @@ function getStyle (type: TextType, backgroundMode?: ?Background, lineClampNum?: 
   const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? globalStyles.clickable : null
+  const textDecoration = meta.isLink ? {textDecoration: 'underline'} : null
 
   return {
     ...sizeStyle,
@@ -60,6 +54,7 @@ function getStyle (type: TextType, backgroundMode?: ?Background, lineClampNum?: 
     ...cursorStyle,
     ...lineClampStyle,
     ...clickableStyle,
+    ...textDecoration,
     ...meta.styleOverride,
   }
 }

@@ -1,4 +1,5 @@
 // @flow
+import chatSaga from '../actions/chat'
 import createSagaMiddleware from 'redux-saga'
 import deviceSaga from '../actions/devices'
 import favoriteSaga from '../actions/favorite'
@@ -15,6 +16,7 @@ import type {SagaGenerator} from '../constants/types/saga'
 
 function * mainSaga (): SagaGenerator<any, any> {
   yield [
+    call(chatSaga),
     call(deviceSaga),
     call(favoriteSaga),
     call(gregorSaga),

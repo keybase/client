@@ -37,9 +37,6 @@ export function defaultHoverColor (type: IconType): ?string {
 // Some types are the same underlying icon.
 export function typeToIconMapper (type: IconType): IconType {
   switch (type) {
-    case 'iconfont-proof-new':
-    case 'iconfont-proof-followed':
-      return 'iconfont-proof-good'
     case 'icon-progress-white-animated':
       return __SCREENSHOT__ ? 'icon-progress-white-static' : 'icon-progress-white-animated'
     case 'icon-progress-grey-animated':

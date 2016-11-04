@@ -222,7 +222,7 @@ const styleTLFTextThemed = {
 
 const styleSectionTextThemed = {
   'public': {
-    color: globalColors.black_60,
+    color: globalColors.black_40,
   },
   'private': {
     color: globalColors.blue3_40,

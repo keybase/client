@@ -71,7 +71,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 	}
 
 	del := libkb.Delegator{
-		DelegationType: libkb.PGPUpdateType,
+		DelegationType: libkb.DelegationTypePGPUpdate,
 		Me:             me,
 		Expire:         libkb.KeyExpireIn,
 		Contextified:   libkb.NewContextified(e.G()),

@@ -2,7 +2,7 @@
 import ProveEnterUsername from './prove-enter-username'
 import React, {Component} from 'react'
 import {TypedConnector} from '../util/typed-connect'
-import {submitUsername, cancelAddProof, updateUsername, submitBTCAddress} from '../actions/profile'
+import {submitUsername, cancelAddProof, updateUsername, submitBTCAddress, submitZcashAddress} from '../actions/profile'
 
 import type {Props} from './prove-enter-username'
 import type {TypedDispatch} from '../constants/types/flux'
@@ -33,7 +33,15 @@ export default connector.connect(
       errorCode: profile.errorCode,
       errorText: profile.errorText,
       onCancel: () => { dispatch(cancelAddProof()) },
-      onContinue: profile.platform === 'btc' ? () => { dispatch(submitBTCAddress()) } : () => { dispatch(submitUsername()) },
+      onContinue: () => {
+        if (profile.platform === 'btc') {
+          dispatch(submitBTCAddress())
+        } else if (profile.platform === 'zcash') {
+          dispatch(submitZcashAddress())
+        } else {
+          dispatch(submitUsername())
+        }
+      },
       onUsernameChange: (username: string) => { dispatch(updateUsername(username)) },
       platform: profile.platform,
       username: profile.username,

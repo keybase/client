@@ -18,6 +18,7 @@ type TextType =
 | 'BodyPrimaryLink'
 | 'BodySecondaryLink'
 | 'BodySemibold'
+| 'BodySemiboldLink'
 | 'BodySemiboldItalic'
 | 'BodySmall'
 | 'BodySmallError'

@@ -1,4 +1,5 @@
 // @flow
+import Chat from './chat/container'
 import Devices from './devices'
 import DumbSheet from './dev/dumb-sheet'
 import Folders from './folders'
@@ -7,6 +8,7 @@ import Login from './login'
 import MetaNavigator from './router/meta-navigator'
 import NoTab from './no-tab'
 import ProfileContainer from './profile/container'
+import Push from './push/push.native'
 import React, {Component} from 'react'
 import Search from './search'
 import Settings from './settings'
@@ -22,15 +24,13 @@ import {mapValues} from 'lodash'
 import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 
-import Push from './push/push.native'
-
 import type {Tab} from './constants/tabs'
 
 const tabs: {[key: Tab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
   [profileTab]: {module: ProfileContainer, name: 'Profile'},
   [folderTab]: {module: Folders, name: 'Folders'},
-  [chatTab]: {module: Settings, name: 'Chat'},
+  [chatTab]: {module: Chat, name: 'Chat'},
   [peopleTab]: {module: Search, name: 'People'},
   [devicesTab]: {module: Devices, name: 'Devices'},
 }

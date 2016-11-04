@@ -28,6 +28,8 @@ protocol identifyUi {
     bytes pkhash;
     string address;
     SigID sigID;
+    string type;
+    string family;
   }
 
   record RevokedProof {

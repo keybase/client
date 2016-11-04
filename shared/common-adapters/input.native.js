@@ -18,6 +18,7 @@ import {globalColors, globalStyles} from '../styles'
  *  - Auto grow does not work. (AW 2016-8-26)
  *    - The text will size to the initial dimensions, it just won't expand after a user types.
  *    - onContentSizeChange never gets called again.
+ *    - Multiline hints get truncated
  *  - Cursor is hidden when multiline text exceeds element bounds (AW 2016-08-26)
  *    - Instead of the element focus following the cursor like in single line.
  *  - Multiline flag changes the padding amount required to adjust for native element chrome. (AW 2016-08-26)
@@ -77,13 +78,13 @@ class Input extends Component<void, Props, State> {
       <Box style={{...containerStyle, ...this.props.style}}>
         {isShowingFloatingLabel &&
           <Text
-            type='BodySmall'
+            type='BodySmallSemibold'
             style={{...floatingLabelStyle}}>
             {this.props.floatingLabelText}
           </Text>}
         <NativeTextInput
           style={{
-            ...getStyle('BodySemibold'),
+            ...getStyle('Header'),
             ...textInputStyle({...this.state, ...this.props, isShowingFloatingLabel, autoGrowActive}),
             ...this.props.inputStyle,
           }}
@@ -94,7 +95,7 @@ class Input extends Component<void, Props, State> {
           secureTextEntry={password}
           autoFocus={this.props.autoFocus}
           placeholder={this.props.hintText}
-          placeholderColor={globalColors.black_10}
+          placeholderTextColor={globalColors.black_10}
           underlineColorAndroid={this.state.inputFocused ? globalColors.blue : globalColors.black_10}
           multiline={this.props.multiline}
           numberOfLines={this.props.rows}
@@ -143,7 +144,7 @@ const textInputStyle = ({isShowingFloatingLabel, textHeight, rows, multiline, au
   multiline?: boolean,
   autoGrowActive?: boolean,
 }) => {
-  const MIN_TEXT_HEIGHT = (getStyle('BodySemibold') ? getStyle('BodySemibold').lineHeight : 0) + TEXT_INPUT_PLATFORM_PADDING
+  const MIN_TEXT_HEIGHT = (getStyle('Header') ? getStyle('Header').lineHeight : 0) + TEXT_INPUT_PLATFORM_PADDING
   return {
     marginTop: (isShowingFloatingLabel ? 0 : FLOATING_LABEL_HEIGHT) + FLOATING_LABEL_OFFSET,
     height: Math.max(textHeight, (autoGrowActive ? 1 : rows || 1) * MIN_TEXT_HEIGHT),

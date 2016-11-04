@@ -49,7 +49,9 @@ const stylesContainer = {
   flex: 1,
 }
 const stylesForgot = {
-  marginTop: 20,
+  marginTop: globalMargins.medium,
+  flex: 1,
+  textAlign: 'center',
 }
 const stylesCard = {
   alignItems: 'stretch',

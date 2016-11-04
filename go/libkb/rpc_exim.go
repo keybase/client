@@ -456,6 +456,10 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ChatAlreadyDeletedError{Msg: s.Desc}
 	case SCBadEmail:
 		return BadEmailError{Msg: s.Desc}
+	case SCExists:
+		return ExistsError{Msg: s.Desc}
+	case SCInvalidAddress:
+		return InvalidAddressError{Msg: s.Desc}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -598,6 +602,8 @@ func (c CryptocurrencyChainLink) Export() (ret keybase1.Cryptocurrency) {
 	ret.Pkhash = c.pkhash
 	ret.Address = c.address
 	ret.SigID = c.GetSigID()
+	ret.Type = c.typ.String()
+	ret.Family = string(c.typ.ToCryptocurrencyFamily())
 	return ret
 }
 
@@ -1428,6 +1434,22 @@ func (e BadEmailError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCBadEmail,
 		Name: "SC_BAD_EMAIL",
+		Desc: e.Error(),
+	}
+}
+
+func (e ExistsError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCExists,
+		Name: "SC_EXISTS",
+		Desc: e.Error(),
+	}
+}
+
+func (e InvalidAddressError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCInvalidAddress,
+		Name: "SC_INVALID_ADDRESS",
 		Desc: e.Error(),
 	}
 }

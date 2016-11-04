@@ -32,10 +32,12 @@ function getStyle (type: TextType, backgroundMode?: ?Background, lineClampNum?: 
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode || 'Normal'] || defaultColor(backgroundMode)}
+  const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
 
   return {
     ...sizeStyle,
     ...colorStyle,
+    ...textDecoration,
     ...meta.styleOverride,
   }
 }

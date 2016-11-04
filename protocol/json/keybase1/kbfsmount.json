@@ -1,0 +1,28 @@
+{
+  "protocol": "kbfsMount",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "GetCurrentMountDir": {
+      "request": [],
+      "response": "string"
+    },
+    "GetAllAvailableMountDirs": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "string"
+      }
+    },
+    "SetCurrentMountDir": {
+      "request": [
+        {
+          "name": "dir",
+          "type": "string"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}
