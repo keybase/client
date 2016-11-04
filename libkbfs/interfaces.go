@@ -30,7 +30,7 @@ type Block interface {
 	// NewEmpty returns a new block of the same type as this block
 	NewEmpty() Block
 	// Set sets this block to the same value as the passed-in block
-	Set(other Block, codec kbfscodec.Codec)
+	Set(other Block)
 }
 
 // NodeID is a unique but transient ID for a Node. That is, two Node

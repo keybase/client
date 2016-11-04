@@ -11,7 +11,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -83,7 +82,7 @@ func (tb TestBlock) NewEmpty() Block {
 	return &TestBlock{}
 }
 
-func (tb *TestBlock) Set(other Block, _ kbfscodec.Codec) {
+func (tb *TestBlock) Set(other Block) {
 	otherTb := other.(*TestBlock)
 	tb.A = otherTb.A
 }
