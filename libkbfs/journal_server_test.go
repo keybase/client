@@ -423,8 +423,13 @@ func TestJournalServerEnableAuto(t *testing.T) {
 
 	status, tlfIDs = jServer.Status()
 	require.True(t, status.EnableAuto)
-	require.Equal(t, status.JournalCount, 1)
+	require.Equal(t, 1, status.JournalCount)
 	require.Len(t, tlfIDs, 1)
+
+	// Flush the journal so it's not still being operated on by
+	// another instance after the restart.
+	err = jServer.Flush(ctx, tlfID)
+	require.NoError(t, err)
 
 	// Simulate a restart.
 	jServer = makeJournalServer(
@@ -439,6 +444,6 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	require.NoError(t, err)
 	status, tlfIDs = jServer.Status()
 	require.True(t, status.EnableAuto)
-	require.Equal(t, status.JournalCount, 1)
+	require.Equal(t, 1, status.JournalCount)
 	require.Len(t, tlfIDs, 1)
 }
