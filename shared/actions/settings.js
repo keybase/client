@@ -9,7 +9,7 @@ import {takeEvery, takeLatest, delay} from 'redux-saga'
 
 import PushNotification from 'react-native-push-notification'
 
-import type {DeleteAccountForever, Invitation, InvitesReclaim, InvitesReclaimed, InvitesRefresh, InvitesSend, InvitesSent, LoadSettings, NotificationsRefresh, NotificationsSave, NotificationsToggle, OnChangeNewEmail, OnChangeNewPassphrase, OnChangeNewPassphraseConfirm, OnChangeShowPassphrase, OnSubmitNewEmail, OnSubmitNewPassphrase, OnUpdatePGPSettings, OnUpdatedPGPSettings, PushPermissionsPrompt, PushPermissionsRequest, PushPermissionsRequesting, PushPermissionsStatus, PushToken, SavePushToken, SetAllowDeleteAccount, TokenType, UpdatePushToken} from '../constants/settings'
+import type {DeleteAccountForever, Invitation, InvitesReclaim, InvitesReclaimed, InvitesRefresh, InvitesSend, InvitesSent, LoadSettings, NotificationsRefresh, NotificationsSave, NotificationsToggle, OnChangeNewEmail, OnChangeNewPassphrase, OnChangeNewPassphraseConfirm, OnChangeShowPassphrase, OnSubmitNewEmail, OnSubmitNewPassphrase, OnUpdatePGPSettings, OnUpdatedPGPSettings, PushPermissionsPrompt, PushPermissionsRequest, PushPermissionsRequesting, PushToken, SavePushToken, SetAllowDeleteAccount, TokenType, UpdatePushToken} from '../constants/settings'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
@@ -85,12 +85,12 @@ function pushPermissionsRequest (): PushPermissionsRequest {
   return {type: Constants.pushPermissionsRequest, payload: undefined}
 }
 
-function pushPermissionsRequesting (enable: boolean): PushPermissionsRequesting {
-  return {type: Constants.pushPermissionsRequesting, payload: enable}
+function pushPermissionsRequesting (enabled: boolean): PushPermissionsRequesting {
+  return {type: Constants.pushPermissionsRequesting, payload: enabled}
 }
 
-function pushPermissionsPrompt (enable: boolean): PushPermissionsPrompt {
-  return {type: Constants.pushPermissionsPrompt, payload: enable}
+function pushPermissionsPrompt (enabled: boolean): PushPermissionsPrompt {
+  return {type: Constants.pushPermissionsPrompt, payload: enabled}
 }
 
 function pushToken (token: string, tokenType: TokenType): PushToken {

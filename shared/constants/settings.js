@@ -79,8 +79,6 @@ export type LoadSettings = NoErrorTypedAction<'settings:loadSettings', void>
 
 export const loadedSettings = 'settings:loadedSettings'
 
-export type PushPermissionsStatus = 'needsPermissions' | 'requestedPermissions'
-
 export const pushPermissionsRequest = 'settings:pushPermissionsRequest'
 export type PushPermissionsRequest = NoErrorTypedAction<'settings:pushPermissionsRequest', void>
 
@@ -150,7 +148,6 @@ export type PushState = {
   token: string,
   tokenType: string,
   permissionsRequesting: boolean,
-  permissionsStatus: PushPermissionsStatus,
   permissionsPrompt: boolean,
 }
 

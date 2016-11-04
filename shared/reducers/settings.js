@@ -34,12 +34,11 @@ const initialState: State = {
     canSave: false,
   },
   push: {
-    permissionsStatus: 'needsPermissions',
-    permissionsPrompt: true,
+    permissionsPrompt: false,
     permissionsRequesting: false,
     tokenType: '',
     token: '',
-  }
+  },
 }
 
 function reducer (state: State = initialState, action: Actions): State {
@@ -204,7 +203,7 @@ function reducer (state: State = initialState, action: Actions): State {
         push: {
           ...state.push,
           permissionsPrompt: action.payload,
-        }
+        },
       }
     case Constants.updatePushToken:
       const {token, tokenType} = action.payload

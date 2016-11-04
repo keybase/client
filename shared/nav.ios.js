@@ -13,7 +13,7 @@ import Settings from './settings'
 import TabBar from './tab-bar/index.render.native'
 import globalRoutes from './router/global-routes'
 import hello from './util/hello'
-import {Box, NativeNavigator, Text, ClickableBox, Icon, Button} from './common-adapters/index.native'
+import {Box, NativeNavigator, Text, ClickableBox, Icon} from './common-adapters/index.native'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {globalStyles, globalColors, navBarHeight} from './styles/index.native'
@@ -22,8 +22,7 @@ import {mapValues} from 'lodash'
 import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 
-import ConfigurePush from './push/configure.native'
-import PushRequestPermissions from './push/request-permissions.native'
+import Push from './push/push.native'
 
 import type {Tab} from './constants/tabs'
 
@@ -136,11 +135,6 @@ class Nav extends Component<void, Props, void> {
     return this.props.router.get('activeTab')
   }
 
-  shouldComponentUpdate (nextProps, nextState) {
-    return (nextProps.router.get('activeTab') !== this._activeTab() ||
-      nextProps.dumbFullscreen !== this.props.dumbFullscreen)
-  }
-
   render () {
     if (this.props.dumbFullscreen) {
       return <DumbSheet />
@@ -157,14 +151,12 @@ class Nav extends Component<void, Props, void> {
       return this._renderContent(activeTab, module)
     }
 
+    const enablePushPrompt = this.props.provisioned && this.props.permissionsPrompt
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
-
-    console.warn('this.props.permissionsPrompt:', this.props.permissionsPrompt)
     return (
       <Box style={{flex: 1}}>
-        <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />
-        {this.props.provisioned && <ConfigurePush />}
-        {this.props.provisioned && this.props.permissionsPrompt && <PushRequestPermissions />}
+        {!enablePushPrompt && <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />}
+        <Push prompt={enablePushPrompt} />
       </Box>
     )
   }
@@ -200,21 +192,25 @@ const styles = {
   },
 }
 
-// $FlowIssue
 export default connect(
-  ({router, favorite: {privateBadge, publicBadge}, config: {bootStatus, extendedConfig, username}, settings: {push: {permissionsPrompt}}, dev: {debugConfig: {dumbFullscreen}}}) => ({
-    router,
-    provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
-    username,
-    dumbFullscreen,
-    folderBadge: privateBadge + publicBadge,
-    permissionsPrompt,
-  }),
-  dispatch => ({
-    switchTab: tab => dispatch(switchTab(tab)),
-    navigateUp: () => dispatch(navigateUp()),
-    navigateTo: uri => dispatch(navigateTo(uri)),
-    bootstrap: () => dispatch(bootstrap()),
-    listenForNotifications: () => dispatch(listenForNotifications()),
-  })
+  (state: any) => {
+    const {router, favorite: {privateBadge, publicBadge}, config: {extendedConfig, username}, settings: {push: {permissionsPrompt}}, dev: {debugConfig: {dumbFullscreen}}} = state
+    return ({
+      router,
+      provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
+      username,
+      dumbFullscreen,
+      folderBadge: privateBadge + publicBadge,
+      permissionsPrompt,
+    })
+  },
+  (dispatch: any) => {
+    return {
+      switchTab: tab => dispatch(switchTab(tab)),
+      navigateUp: () => dispatch(navigateUp()),
+      navigateTo: uri => dispatch(navigateTo(uri)),
+      bootstrap: () => dispatch(bootstrap()),
+      listenForNotifications: () => dispatch(listenForNotifications()),
+    }
+  }
 )(Nav)
