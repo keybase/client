@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -77,6 +78,10 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "nonblock",
 		Usage: `Send message without success confirmation`,
 	},
+	"all": cli.BoolFlag{
+		Name:  "all",
+		Usage: `Include hidden conversations`,
+	},
 }
 
 func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
@@ -103,7 +108,7 @@ func getInboxFetcherUnreadFirstFlags() []cli.Flag {
 }
 
 func getInboxFetcherActivitySortedFlags() []cli.Flag {
-	return append(mustGetChatFlags("number", "since"), getConversationResolverFlags()...)
+	return append(mustGetChatFlags("number", "since", "all"), getConversationResolverFlags()...)
 }
 
 func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, err error) {
@@ -178,6 +183,10 @@ func makeChatCLIInboxFetcherActivitySorted(ctx *cli.Context) (fetcher chatCLIInb
 		fetcher.query.Visibility = chat1.TLFVisibility_ANY
 	}
 
+	if !ctx.Bool("all") {
+		fetcher.query.Status = libkb.VisibleChatConversationStatuses()
+	}
+
 	return fetcher, err
 }
 
@@ -200,6 +209,10 @@ func makeChatCLIInboxFetcherUnreadFirst(ctx *cli.Context) (fetcher chatCLIInboxF
 		fetcher.query.Visibility = chat1.TLFVisibility_PUBLIC
 	} else {
 		fetcher.query.Visibility = chat1.TLFVisibility_ANY
+	}
+
+	if !ctx.Bool("all") {
+		fetcher.query.Status = libkb.VisibleChatConversationStatuses()
 	}
 
 	return fetcher, err

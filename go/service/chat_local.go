@@ -96,7 +96,7 @@ func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquer
 	rquery.ComputeActiveList = lquery.ComputeActiveList
 	rquery.ConvID = lquery.ConvID
 	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
-	rquery.Status = lquery.StatusOverrideDefault
+	rquery.Status = lquery.Status
 
 	return rquery, nil
 }
@@ -434,6 +434,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 	if arg.Visibility != chat1.TLFVisibility_ANY {
 		queryBase.TlfVisibility = &arg.Visibility
 	}
+	queryBase.Status = arg.Status
 
 	var gires chat1.GetInboxAndUnboxLocalRes
 	if arg.UnreadFirst {
