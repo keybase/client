@@ -202,6 +202,7 @@ type attachOptionsV1 struct {
 	ConversationID string `json:"conversation_id"`
 	Filename       string
 	Preview        string
+	Title          string
 }
 
 func (a attachOptionsV1) Check() error {

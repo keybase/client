@@ -43,6 +43,7 @@ type Asset struct {
 	EncHash   Hash   `codec:"encHash" json:"encHash"`
 	Key       []byte `codec:"key" json:"key"`
 	VerifyKey []byte `codec:"verifyKey" json:"verifyKey"`
+	Title     string `codec:"title" json:"title"`
 }
 
 type MessageAttachment struct {
@@ -576,6 +577,7 @@ type PostAttachmentLocalArg struct {
 	ClientHeader   MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
 	Attachment     LocalSource         `codec:"attachment" json:"attachment"`
 	Preview        *LocalSource        `codec:"preview,omitempty" json:"preview,omitempty"`
+	Title          string              `codec:"title" json:"title"`
 }
 
 type NewConversationLocalArg struct {

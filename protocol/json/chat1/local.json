@@ -114,6 +114,10 @@
         {
           "type": "bytes",
           "name": "verifyKey"
+        },
+        {
+          "type": "string",
+          "name": "title"
         }
       ]
     },
@@ -1057,6 +1061,10 @@
             null,
             "LocalSource"
           ]
+        },
+        {
+          "name": "title",
+          "type": "string"
         }
       ],
       "response": "PostLocalRes"
