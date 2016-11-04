@@ -48,6 +48,16 @@ export function propsForPlatform (props: Props): Object {
         ? 'DNS proofs can take a few hours to recognize. Check back later.'
         : 'Leave your proof up so other users can identify you!',
       }
+    case 'zcash':
+      return {
+        ...commonConfirm(props),
+        title: 'Verified!',
+        platformIcon: `icon-${props.platform}-logo-48`,
+        platformIconOverlay: 'icon-proof-success',
+        usernameSubtitle: null,
+        message: 'You Zcash address has now been signed onto your profile.',
+        messageSubtitle: null,
+      }
     case 'btc':
       return {
         ...commonConfirm(props),

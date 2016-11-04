@@ -88,6 +88,8 @@ func (d *ChatAPIDecoder) handleV1(ctx context.Context, c Call, w io.Writer) erro
 		return d.handler.AttachV1(ctx, c, w)
 	case methodDownload:
 		return d.handler.DownloadV1(ctx, c, w)
+	case methodSetStatus:
+		return d.handler.SetStatusV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

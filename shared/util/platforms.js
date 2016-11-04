@@ -17,6 +17,7 @@ const FriendlyNames = {
   'pgp': 'PGP',
   'rooter': 'Rooter',
   'btc': 'Bitcoin',
+  'zcash': 'Zcash',
 }
 
 export function friendlyName (platform: PlatformsExpandedType) {
@@ -39,6 +40,7 @@ const ProveMessages = {
   'pgp': 'Add a PGP key',
   'rooter': 'Prove your Rooter',
   'btc': 'Set a Bitcoin address',
+  'zcash': 'Set a Zcash address',
 }
 
 export function proveMessage (platform: PlatformsExpandedType) {
@@ -47,6 +49,7 @@ export function proveMessage (platform: PlatformsExpandedType) {
 
 export function subtitle (platform: PlatformsExpandedType): ?string {
   switch (platform) {
+    case 'zcash':
     case 'btc':
       return null
     case 'dns':

@@ -26,6 +26,7 @@ export default connector.connect(
     const profile = state.profile
 
     if (!profile.platform ||
+      profile.platform === 'zcash' ||
       profile.platform === 'btc' ||
       profile.platform === 'dnsOrGenericWebSite' ||
       profile.platform === 'pgp' ||

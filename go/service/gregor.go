@@ -872,11 +872,10 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
 		}
-		activity.ActivityType = chat1.ChatActivityType_INCOMING_MESSAGE
-		activity.IncomingMessage = &chat1.IncomingMessage{
+		activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 			Message: decmsg,
 			ConvID:  nm.ConvID,
-		}
+		})
 	default:
 		return fmt.Errorf("unhandled chat.activity action %q", action)
 	}

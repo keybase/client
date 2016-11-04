@@ -5,7 +5,7 @@ import {Box, Text, NativeTextInput} from './index.native'
 import {getStyle} from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
-export default function SmallInput ({autoCapitalize, autoCorrect = false, errorState, hintText, label, onChange, style, value, autoFocus}: SmallInputProps) {
+export default function SmallInput ({autoCapitalize, autoCorrect = false, errorState, hintText, label, onChange, style, value, autoFocus, onEnterKeyDown}: SmallInputProps) {
   return (
     <Box style={{...styleContainer(!!errorState), ...style}}>
       <Text type='BodySmall' style={styleLabel(!!errorState)}>{label}</Text>
@@ -18,6 +18,7 @@ export default function SmallInput ({autoCapitalize, autoCorrect = false, errorS
         autoCorrect={autoCorrect}
         autoFocus={autoFocus}
         value={value}
+        onEnterKeyDown={onEnterKeyDown}
         onChangeText={onChange} />
     </Box>
   )

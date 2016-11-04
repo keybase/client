@@ -1,0 +1,12 @@
+// @flow
+import {Component} from 'react'
+import {List} from 'immutable'
+
+import type {InboxState, ConversationIDKey} from '../../constants/chat'
+
+export type Props = {
+  inbox: List<InboxState>,
+  onSelectConversation: (key: ConversationIDKey) => void,
+}
+
+export default class ConversationList extends Component<void, Props, void> { }
