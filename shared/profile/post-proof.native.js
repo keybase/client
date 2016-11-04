@@ -32,7 +32,7 @@ const PostProof = (props: Props) => {
       {!!proofText && <CopyableText style={styleProofContainer} value={proofText} textStyle={styleProofText} />}
       {!!noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
       {!!proofAction && !!proofActionText && !!proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
-      <Button style={styleContinueButton} type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
+      <Button style={styleContinueButton} fullWidth={true} type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
     </StandardScreen>
   )
 }
@@ -47,7 +47,8 @@ const stylePlatformUsername = {
 }
 
 const stylePlatformSubtitle = {
-  color: globalColors.black_10,
+  color: globalColors.black_20,
+  marginBottom: globalMargins.large,
   textAlign: 'center',
 }
 

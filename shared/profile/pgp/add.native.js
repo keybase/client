@@ -24,8 +24,8 @@ class PgpAdd extends Component<void, Props, void> {
             style={styleIcon} />
           <Text
             style={styleHeader}
-            type='Header'>
-            Fill in your public info
+            type='Body'>
+            Fill in your public info:
           </Text>
           <Input
             floatingLabelText='Your full name'
@@ -56,12 +56,13 @@ class PgpAdd extends Component<void, Props, void> {
             errorState={this.props.errorEmail3} />
           <Text
             style={styleInfoMessage(!!this.props.errorText)}
-            type='BodySmall'>
+            type='Body'>
             {this.props.errorText || 'Include any addresses you plan to use for PGP encrypted email.'}
           </Text>
           <Button
             style={styleAction}
             type='Primary'
+            fullWidth={true}
             label='Let the math begin'
             disabled={nextDisabled}
             onClick={this.props.onNext} />
@@ -80,6 +81,7 @@ const styleIcon = {
 
 const styleHeader = {
   marginTop: globalMargins.medium,
+  marginBottom: globalMargins.medium,
   alignSelf: 'center',
 }
 

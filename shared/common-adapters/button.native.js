@@ -3,7 +3,7 @@ import ProgressIndicator from './progress-indicator'
 import React, {Component} from 'react'
 import type {Props} from './button'
 import {Text, ClickableBox, Box} from './index'
-import {globalColors, globalStyles} from '../styles'
+import {globalColors, globalStyles, globalMargins} from '../styles'
 
 const Progress = () => (
   <Box style={{...progress}}>
@@ -42,6 +42,10 @@ class Button extends Component<void, Props, void> {
       style = {...style, ...fullWidth}
     }
 
+    if (this.props.small) {
+      style = {...style, ...smallStyle}
+    }
+
     if (this.props.disabled || this.props.waiting) {
       style = {...style, ...disabled[this.props.type]}
     }
@@ -55,7 +59,7 @@ class Button extends Component<void, Props, void> {
         underlayColor={style.backgroundColor}
         style={{...style, ...this.props.style}}>
         <Box style={{alignItems: 'center', justifyContent: 'center'}}>
-          <Text type='BodySemibold' style={{...labelStyle, ...this.props.labelStyle}}>{this.props.label}</Text>
+          <Text type={this.props.small ? 'BodySemibold' : 'BodyBig'} style={{...labelStyle, ...this.props.labelStyle}}>{this.props.label}</Text>
           {this.props.waiting && <Progress />}
         </Box>
       </ClickableBox>
@@ -63,6 +67,7 @@ class Button extends Component<void, Props, void> {
   }
 }
 
+const smallHeight = 32
 const regularHeight = 40
 const fullWidthHeight = 48
 
@@ -72,8 +77,9 @@ const common = {
   justifyContent: 'center',
   height: regularHeight,
   borderRadius: 50,
-  paddingLeft: 32,
-  paddingRight: 32,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  alignSelf: 'center',
 }
 const commonLabel = {
   color: globalColors.white,
@@ -81,7 +87,14 @@ const commonLabel = {
 }
 const fullWidth = {
   height: fullWidthHeight,
+  alignSelf: undefined,
   width: null,
+}
+
+const smallStyle = {
+  height: smallHeight,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
 }
 
 const disabled = {
@@ -127,9 +140,7 @@ const DangerLabel = {
 }
 
 const followCommon = {
-  width: 154,
-  paddingLeft: 32,
-  paddingRight: 32,
+  width: 142,
 }
 
 const Follow = {
@@ -146,7 +157,6 @@ const Following = {
   ...followCommon,
   backgroundColor: globalColors.white,
   borderColor: globalColors.green,
-  paddingTop: 5,
   borderWidth: 2,
 }
 const FollowingLabel = {

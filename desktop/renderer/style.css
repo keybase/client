@@ -97,7 +97,7 @@ table {
     font-family: 'OpenSans';
     font-weight: 600;
     font-style: italic;
-    src: url('fonts/OpenSans-Semibold_italic.ttf') format('truetype');
+    src: url('fonts/OpenSans-Semi_bold_italic.ttf') format('truetype');
 }
 
 @font-face {

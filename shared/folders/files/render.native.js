@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import type {FileSection} from '../../constants/folders'
 import type {Props} from './render'
 import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView} from '../../common-adapters/index.native'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 class FilesRender extends Component<void, Props, void> {
@@ -12,8 +12,8 @@ class FilesRender extends Component<void, Props, void> {
     return (
       <Box key={section.name} style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[this.props.theme]}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
-          <Box key={section.name} style={{...globalStyles.flexBoxRow, marginLeft: 8}}>
-            {section.modifiedMarker && <Icon type='iconfont-thunderbolt' style={{marginRight: 6, ...styleSectionTextThemed[this.props.theme]}} />}
+          <Box key={section.name} style={{...globalStyles.flexBoxRow, marginLeft: globalMargins.tiny}}>
+            {section.modifiedMarker && <Icon type='iconfont-thunderbolt' style={{marginRight: 6, alignSelf: 'center', fontSize: 10, ...styleSectionTextThemed[this.props.theme]}} />}
             <Text type='BodySmallSemibold' style={{...styleSectionTextThemed[this.props.theme]}}>{section.name}</Text>
           </Box>
         </Box>
@@ -30,10 +30,10 @@ class FilesRender extends Component<void, Props, void> {
 
     const contents = (
       <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', ...styleHeaderThemed[this.props.theme], height: 48}}>
-        <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: 16}} iconStyle={{color: backButtonColor}} textStyle={{color: backButtonColor}} />
+        <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: globalMargins.small}} iconStyle={{color: backButtonColor}} textStyle={{color: backButtonColor}} />
         <Icon
           underlayColor={'transparent'}
-          style={{...styleMenu, color: menuColor, marginRight: 16}}
+          style={{...styleMenu, color: menuColor, marginRight: globalMargins.small}}
           type='iconfont-hamburger'
           onClick={this.props.onTogglePopupMenu} />
       </Box>
@@ -64,12 +64,12 @@ class FilesRender extends Component<void, Props, void> {
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme]}}>
         {this._renderHeader()}
         <Box style={{...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
-          <Box style={{...globalStyles.flexBoxRow, position: 'relative', justifyContent: 'center', alignItems: 'flex-start', marginTop: -16}}>
+          <Box style={{...globalStyles.flexBoxRow, position: 'relative', justifyContent: 'center', alignItems: 'flex-start', marginTop: -1 * globalMargins.small}}>
             {this.props.users.map(u => <Box key={u.username} style={{height: 32, width: 28}}><Avatar username={u.username} size={32} /></Box>)}
           </Box>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', justifyContent: 'center', marginTop: 3, marginBottom: 20, flex: 1}}>
-            <Text type='BodySmallSemibold' style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
-            <Usernames users={this.props.users} type='BodySemibold' style={tlfTextStyle} />
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', justifyContent: 'center', marginTop: 3, marginBottom: 12, flex: 1}}>
+            <Text type='BodySemibold' style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
+            <Usernames users={this.props.users} type='Header' style={tlfTextStyle} />
           </Box>
         </Box>
         {this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
@@ -90,7 +90,7 @@ const styleHeaderThemed = {
 
 const styleTLFHeader = {
   ...globalStyles.flexBoxColumn,
-  minHeight: 64,
+  minHeight: 48,
 }
 
 const styleTLFHeaderThemed = {
@@ -115,7 +115,7 @@ const styleTLFTextThemed = {
 
 const styleSectionTextThemed = {
   'public': {
-    color: globalColors.black_60,
+    color: globalColors.black_40,
   },
   'private': {
     color: globalColors.blue3_40,

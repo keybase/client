@@ -12,7 +12,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
     'backup': 'icon-paper-key-48',
   }[device.type]
 
-  let textStyle = {fontStyle: 'italic', flex: 0}
+  let textStyle = {flex: 0}
   if (revoked) {
     textStyle = {
       ...textStyle,
@@ -27,7 +27,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
       <Box key={device.name} style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'center'}}>
         <Icon type={icon} style={revoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
         <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start', flex: 1}}>
-          <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
+          <Text style={textStyle} type='BodySemiboldItalic'>{device.name}</Text>
           {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
         </Box>
       </Box>
@@ -65,12 +65,14 @@ class RevokedDevices extends Component<void, {revokedDevices: Array<Object>}, Re
       <Box>
         <ClickableBox onClick={e => this._toggleHeader(e)}>
           <Box style={stylesRevokedRow}>
-            <Text type='BodySemibold'>Revoked devices</Text>
-            <Icon type={iconType} style={{padding: 5}} />
+            <Text type='BodySmallSemibold' style={{color: globalColors.black_60}}>Revoked devices</Text>
+            <Icon type={iconType} style={{padding: 5, fontSize: 10, color: globalColors.black_60}} />
           </Box>
         </ClickableBox>
-        {this.state.expanded && <RevokedDescription />}
-        {this.state.expanded && this.props.revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked={true} />)}
+        <Box style={{backgroundColor: globalColors.lightGrey}}>
+          {this.state.expanded && <RevokedDescription />}
+          {this.state.expanded && this.props.revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked={true} />)}
+        </Box>
       </Box>)
   }
 }

@@ -1,20 +1,20 @@
 // @flow
 import React from 'react'
 import type {Props} from './standard-screen'
-import {Box, Text, NativeScrollView} from './index.native'
+import {Box, Text, Icon, NativeScrollView} from './index.native'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
 const StandardScreen = (props: Props) => {
   return (
     <Box style={{...styleContainer, ...props.styleOuter}}>
       <Box style={styleCloseContainer}>
-        {!!props.onClose && <Text type='BodyPrimaryLink' style={{...styleClose, ...props.styleClose}} onClick={props.onClose}>Cancel</Text>}
-        {!!props.onBack && <Text type='BodyPrimaryLink' style={{...styleClose, ...props.styleBack}} onClick={props.onBack}>Back</Text>}
+        {!!props.onClose && <Text type='BodyBig' style={{...styleClose, ...props.styleClose}} onClick={props.onClose}>Cancel</Text>}
+        {!!props.onBack && <Icon type='iconfont-back' style={{...styleClose, ...backArrowStyle, ...props.styleBack}} onClick={props.onBack} />}
       </Box>
       <NativeScrollView style={styleScrollContainer} contentContainerStyle={styleScrollContainer}>
         {!!props.notification &&
           <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
-            {typeof props.notification.message === 'string' ? <Text style={styleBannerText} type='BodySmallSemibold'>{props.notification.message}</Text> : props.notification.message}
+            {typeof props.notification.message === 'string' ? <Text style={styleBannerText} type='BodySemibold'>{props.notification.message}</Text> : props.notification.message}
           </Box>}
         <Box style={{...styleContentContainer(!!props.notification), ...props.style}}>
           {props.children}
@@ -36,11 +36,15 @@ const styleCloseContainer = {
   alignItems: 'center',
 }
 
+const backArrowStyle = {
+  fontSize: 24,
+}
+
 const styleClose = {
   color: globalColors.blue,
 }
 
-const MIN_BANNER_HEIGHT = globalMargins.large
+const MIN_BANNER_HEIGHT = 48
 
 const styleBanner = (type) => ({
   ...globalStyles.flexBoxColumn,

@@ -4,13 +4,14 @@ import type {SmallInputProps} from './small-input'
 import {Box, Text, NativeTextInput} from './index.native'
 import {getStyle} from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
+import {isAndroid} from '../constants/platform'
 
 export default function SmallInput ({autoCapitalize, autoCorrect = false, errorState, hintText, label, onChange, style, value, autoFocus, onEnterKeyDown}: SmallInputProps) {
   return (
     <Box style={{...styleContainer(!!errorState), ...style}}>
-      <Text type='BodySmall' style={styleLabel(!!errorState)}>{label}</Text>
+      <Text type='BodySmallSemibold' style={styleLabel}>{label}</Text>
       <NativeTextInput
-        style={{...getStyle('BodySemibold'), ...styleInput}}
+        style={{...getStyle('Header'), ...styleInput}}
         placeholder={hintText}
         placeholderTextColor={globalColors.black_10}
         underlineColorAndroid={'transparent'}
@@ -31,10 +32,14 @@ const styleContainer = (hasError: boolean) => ({
   paddingBottom: 2,
 })
 
-const styleLabel = (hasError: boolean) => ({
-  color: (hasError ? globalColors.red : globalColors.blue),
+const styleLabel = {
+  alignSelf: 'flex-end',
+  color: globalColors.blue,
   marginRight: globalMargins.xtiny,
-})
+  ...(isAndroid ? {
+    marginBottom: 2,
+  } : null),
+}
 
 const styleInput = {
   textAlign: 'left',
