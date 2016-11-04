@@ -40,6 +40,7 @@ export const updateTrackers = 'tracker:updateTrackers'
 export const setProofs = 'tracker:setProofs'
 export const resetProofs = 'tracker:resetProofs'
 export const updateProof = 'tracker:updateProof'
+export const updateZcash = 'tracker:updateZcash'
 export const updateBTC = 'tracker:updateBTC'
 export const updatePGPKey = 'tracker:updatePGPKey'
 

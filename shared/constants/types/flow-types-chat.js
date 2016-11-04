@@ -388,6 +388,7 @@ export type Asset = {
   encHash: Hash,
   key: bytes,
   verifyKey: bytes,
+  title: string,
 }
 
 export type BodyPlaintext = 
@@ -514,7 +515,7 @@ export type GetInboxLocalQuery = {
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
   oneChatTypePerTLF?: ?boolean,
-  statusOverrideDefault?: ?Array<ConversationStatus>,
+  status?: ?Array<ConversationStatus>,
   unreadOnly: boolean,
   readOnly: boolean,
   computeActiveList: boolean,
@@ -550,6 +551,7 @@ export type GetInboxSummaryForCLILocalQuery = {
   after: string,
   before: string,
   visibility: TLFVisibility,
+  status?: ?Array<ConversationStatus>,
   unreadFirst: boolean,
   unreadFirstLimit: UnreadFirstNumLimit,
   activitySortedLimit: int,
@@ -909,7 +911,9 @@ export type localPostAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   clientHeader: MessageClientHeader,
   attachment: LocalSource,
-  preview?: ?LocalSource
+  preview?: ?LocalSource,
+  title: string,
+  metadata: bytes
 }>
 
 export type localPostLocalNonblockRpcParam = Exact<{

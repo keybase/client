@@ -9,7 +9,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/PuerkitoBio/goquery"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	pvl "github.com/keybase/client/go/pvl"
@@ -38,14 +37,37 @@ func (rc *FacebookChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) li
 		return nil
 	}
 
-	wantedURL := ("https://m.facebook.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/posts/")
-	if !strings.HasPrefix(strings.ToLower(h.GetAPIURL()), wantedURL) {
+	hintDesktopURL := makeDesktopURL(h.GetAPIURL())
+
+	// Checking for the correct username is essential here. We rely on this
+	// check to prove that the user in question actually wrote the post. (Note
+	// that the m-site does *not* enforce this part of the URL. Only the
+	// desktop site does.)
+	//
+	// Facebook usernames don't actually allow any special characters, but it's
+	// still possible for a malicious user to *claim* they have some slashes
+	// and a question mark in their name, in the hopes that that will trick us
+	// into hitting a totally unrelated URL. Guard against that happening by
+	// escaping the name.
+	urlEscapedUsername := url.QueryEscape(rc.proof.GetRemoteUsername())
+
+	// We build a case-insensitive regex (that's the `(?i)` at the front), but
+	// we still want to be very strict about the structure of the whole thing.
+	// No query parameters, no unexpected characters in the post ID. Note that
+	// if we ever allow non-numeric characters in the post ID, we might want to
+	// restrict the case-insensitivity more carefully.
+	expectedPrefix := "https://www.facebook.com/" + urlEscapedUsername + "/posts/"
+	urlRegex := regexp.MustCompile("(?i)^" + regexp.QuoteMeta(expectedPrefix) + "[0-9]+$")
+	if !urlRegex.MatchString(hintDesktopURL) {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-			"Bad hint from server; URL should start with '%s', received '%s'", wantedURL, h.GetAPIURL())
+			"Bad Facebook URL hint: %s", hintDesktopURL)
 	}
 
-	// TODO: We could ignore the checktext portion of the server's hint. Should we?
-
+	// We're enforcing almost the exact contents of the proof text here, so in
+	// theory we could just ignore the server's hint. However, in the future,
+	// if some bug or some change on Facebook's end introduces some
+	// variability, we might want more of the server's help. Keeping this
+	// validation around will help keep things clean in the meantime.
 	checkText := libkb.WhitespaceNormalize(h.GetCheckText())
 	re := regexp.MustCompile("^Verifying myself: I am (\\S+) on Keybase.io. (\\S+)$")
 	match := re.FindStringSubmatch(checkText)
@@ -65,10 +87,6 @@ func (rc *FacebookChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) li
 	return nil
 }
 
-func (rc *FacebookChecker) ScreenNameCompare(s1, s2 string) bool {
-	return normalizeUsername(s1) == normalizeUsername(s2)
-}
-
 func (rc *FacebookChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	if pvl.UsePvl {
 		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_FACEBOOK, pvl.NewProofInfo(rc.proof, h))
@@ -77,91 +95,50 @@ func (rc *FacebookChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) 
 }
 
 func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	apiURL := h.GetAPIURL()
-	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArg(apiURL))
+	// Previously we would parse markup to extract the username and proof text.
+	// We had to switch to the desktop site to validate the usernames of people
+	// with the "no search engine scraping" Facebook privacy setting turned on.
+	// (Since only the desktop site, and not the m-site, enforces that the
+	// author ID in a post URL is correct.) That in turn made it much harder to
+	// parse the markup we get, because what we want comes down in an embedded
+	// comment. However, because the desktop site (again, unlike the m-site)
+	// does not display comments or ads to logged-out users, we can do a simple
+	// string match on the whole page to find the proof text. It's possible
+	// there's some way I haven't thought of for other users to inject strings
+	// somewhere in this page, or break that URL->author relationship, and if
+	// so we'll need to change it.
+
+	desktopURL := makeDesktopURL(h.GetAPIURL())
+
+	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArg(desktopURL))
 	if err != nil {
-		return libkb.XapiError(err, apiURL)
+		return libkb.XapiError(err, desktopURL)
 	}
 
-	notFoundError := checkForPostNotFound(apiURL, res.GoQuery)
-	if notFoundError != nil {
-		return notFoundError
-	}
+	// We require a tiny bit of structure, which is that the proof must appear
+	// as the exact contents of an <a> tag. Again, this is just a textual
+	// search -- the <a> tag in question is actually expected to be in a
+	// comment.
+	escapedProofText := regexp.QuoteMeta(h.GetCheckText())
+	proofTextRegex := regexp.MustCompile("<a[^>]*>\\s*" + escapedProofText + "\\s*</a[^>]*>")
 
-	username, proofErr := extractUsername(res.GoQuery)
-	if proofErr != nil {
-		return proofErr
-	}
-
-	if !rc.ScreenNameCompare(username, rc.proof.GetRemoteUsername()) {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_USERNAME, "Usernames don't match: '%s' != '%s'", username, rc.proof.GetRemoteUsername())
-	}
-
-	proofText, proofErr := extractProofText(res.GoQuery)
-	if proofErr != nil {
-		return proofErr
-	}
-
-	if strings.TrimSpace(proofText) != strings.TrimSpace(h.GetCheckText()) {
-		return libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "Proof text not found: '%s' != '%s'", proofText, h.GetCheckText())
+	if !proofTextRegex.MatchString(res.Body) {
+		errorText := fmt.Sprintf("Couldn't find Facebook proof text at %s. Is it deleted or private?", desktopURL)
+		return libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, errorText)
 	}
 
 	// The proof is good.
 	return nil
 }
 
-func checkForPostNotFound(postURL string, doc *goquery.Document) libkb.ProofError {
-	// m.facebook.com returns 200's for posts you can't see, rather than 404's.
-	// Having a post that's deleted or private is going to be much more common
-	// than the obscure errors below. Do an explicit check for that, to produce
-	// a better error message.
-	if doc.Find("#m_story_permalink_view").Length() == 0 {
-		errorText := fmt.Sprintf("Couldn't find Facebook post %s. Is it deleted or private?", postURL)
-		return libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, errorText)
+func makeDesktopURL(apiURL string) string {
+	mobile := "https://m.facebook.com/"
+	desktop := "https://www.facebook.com/"
+	if strings.HasPrefix(apiURL, mobile) {
+		// Note, only replaces the first occurrence.
+		return strings.Replace(apiURL, mobile, desktop, 1)
 	}
-	return nil
-}
-
-const PostHeadersSelector = "#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3"
-
-func extractUsername(doc *goquery.Document) (string, libkb.ProofError) {
-	// Get the anchor tag from inside the first header.
-	usernameAnchor := doc.Find(PostHeadersSelector).Eq(0).Find("a")
-	if usernameAnchor.Length() == 0 {
-		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find username anchor tag")
-	}
-	// Only consider the first
-	usernameAnchor = usernameAnchor.First()
-
-	usernameLink, ok := usernameAnchor.Attr("href")
-	if !ok {
-		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find username href.")
-	}
-
-	parsedLink, err := url.Parse(usernameLink)
-	if err != nil {
-		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Failed to parse username URL: %s", err)
-	}
-	splitPath := strings.Split(parsedLink.Path, "/")
-	if len(splitPath) < 1 {
-		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Username URL has no path.")
-	}
-	username := splitPath[1]
-	return username, nil
-}
-
-func extractProofText(doc *goquery.Document) (string, libkb.ProofError) {
-	// Get the second header.
-	proofHeader := doc.Find(PostHeadersSelector).Eq(1)
-	if proofHeader.Length() == 0 {
-		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find proof text header")
-	}
-	return proofHeader.Text(), nil
-}
-
-func normalizeUsername(username string) string {
-	// Convert to lowercase and strip out dots.
-	return strings.ToLower(strings.Replace(username, ".", "", -1))
+	return apiURL
 }
 
 //
@@ -177,7 +154,8 @@ func (t FacebookServiceType) NormalizeUsername(s string) (string, error) {
 	if !facebookUsernameRegexp.MatchString(s) {
 		return "", libkb.NewBadUsernameError(s)
 	}
-	return normalizeUsername(s), nil
+	// Convert to lowercase and strip out dots.
+	return strings.ToLower(strings.Replace(s, ".", "", -1)), nil
 }
 
 func (t FacebookServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (string, error) {

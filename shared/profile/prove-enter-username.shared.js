@@ -21,6 +21,11 @@ export const platformText : {[key: PlatformsExpandedType]: {headerText: string, 
     floatingLabelText: 'Your Bitcoin address',
     hintText: 'Your Bitcoin address',
   },
+  'zcash': {
+    headerText: 'Set a Zcash address',
+    floatingLabelText: 'Your Zcash address',
+    hintText: 'Your z_address or t_address',
+  },
   'dns': {
     headerText: 'Prove your domain',
     hintText: 'yourdomain.com',

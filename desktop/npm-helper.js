@@ -179,6 +179,14 @@ const commands = {
     help: 'Undiff log send',
     code: undiff,
   },
+  'generate-font-project': {
+    help: 'Generate the icomoon project file',
+    code: generateIcoMoon,
+  },
+  'apply-new-fonts': {
+    help: 'Copy font output into the right folders',
+    code: applyNewFonts,
+  },
 }
 
 function postInstall () {
@@ -333,25 +341,134 @@ function undiff () {
   console.log('Success! Wrote ./log.json')
 }
 
-function updatedFonts () {
-  const project = JSON.parse(fs.readFileSync('./shared/images/iconfont/kb-icomoon-project.json', 'utf8'))
-  const fontPrefix = 'kb-iconfont-'
-  const icons = {}
+function svgToGridMap () {
+  const grids = {}
 
-  project.iconSets.forEach(set => {
-    set.icons.forEach(icon => {
-      const name = icon.tags[0]
-      if (name.startsWith(fontPrefix)) {
-        const shortName = name.slice(3)
-        icons[shortName] = {
-          isFont: true,
-          gridSize: icon.grid,
-        }
-      } else {
-        console.log('Invalid icon font name!: ', name)
+  fs.readdirSync('../shared/images/iconfont').forEach(i => {
+    const match = i.match(/^kb-iconfont-(.*)-(\d+).svg$/)
+    if (match && match.length === 3) {
+      const name = match[1]
+      const p = path.resolve('../shared/images/iconfont', i)
+      const gridSize = match[2]
+
+      if (!grids[gridSize]) {
+        grids[gridSize] = {}
       }
-    })
+
+      grids[gridSize][name] = {name, gridSize, path: p}
+    }
   })
+
+  return grids
+}
+function generateIcoMoon () {
+  const svgPaths = {}
+  // Need to get the svg info from iconmoon. Couldn't figure out how to derive exactly what they need from the files themselves
+  JSON.parse(fs.readFileSync('../shared/images/iconfont/kb-icomoon-project-app.json', 'utf8')).icons.forEach(icon => {
+    svgPaths[icon.tags[0]] = icon.paths
+  })
+
+  const grids = svgToGridMap()
+
+  let selectionOrder = 1
+  let selectionID = 1
+
+  const iconSets = Object.keys(grids).map((size, idx) => ({
+    id: idx,
+    metadata: {
+      name: `Grid ${size}`,
+    },
+    selection: Object.keys(grids[size]).map((name, idx) => ({
+      order: selectionOrder++,
+      id: selectionID++,
+      prevSize: size,
+      name,
+    })),
+    icons: Object.keys(grids[size]).map((name, idx) => {
+      const paths = svgPaths[`kb-iconfont-${name}-${size}`]
+      if (!paths) {
+        throw new Error(`Can't find path for ${name}. Did you run the svgs through icomoon and update kb-icomoon-project-app.json?`)
+      }
+      return {
+        id: idx,
+        paths,
+        attrs: [],
+        isMulticolor: false,
+        grid: size,
+        selection: [],
+        tags: [name],
+      }
+    }),
+    height: 1024,
+    prevSize: 12,
+    colorThemes: [],
+  }))
+
+  const write = {
+    metadata: {
+      name: 'KB icon fonts',
+      lastOpened: 1478124176910,
+      created: 1478124107835,
+    },
+    iconSets,
+    preferences: {
+      showGlyphs: true,
+      showCodes: false,
+      showQuickUse: true,
+      showQuickUse2: true,
+      showSVGs: true,
+      fontPref: {
+        prefix: 'icon-kb-iconfont-',
+        metadata: {
+          fontFamily: 'kb',
+          majorVersion: 1,
+          minorVersion: 0,
+        },
+        metrics: {
+          emSize: 1024,
+          baseline: 6.25,
+          whitespace: 50,
+        },
+        embed: false,
+        noie8: true,
+        ie7: false,
+        showSelector: true,
+        showMetadata: true,
+        showMetrics: true,
+      },
+      imagePref: {
+        prefix: 'icon-',
+        png: false,
+        useClassSelector: false,
+        color: 0,
+        bgColor: 16777215,
+        classSelector: '.icon',
+        height: 32,
+        columns: 16,
+        margin: 16,
+      },
+      historySize: 100,
+      gridSize: 16,
+      showGrid: true,
+      showLiga: false,
+    },
+    uid: -1,
+  }
+
+  fs.writeFileSync('./shared/images/iconfont/kb-icomoon-project-generated.json', JSON.stringify(write, null, 4), 'utf8')
+  console.log('kb-icomoon-project-generated.json is ready for icomoon')
+  updatedFonts()
+}
+
+function applyNewFonts () {
+  console.log('Moving font to project')
+  fs.writeFileSync('./shared/fonts/kb.ttf', fs.readFileSync('./shared/images/iconfont/kb/fonts/kb.ttf'))
+}
+
+function updatedFonts () {
+  console.log('Updating generated code')
+
+  const icons = {}
 
   fs.readdirSync('../shared/images/icons')
     .filter(i => i.indexOf('@') === -1 && i.startsWith('icon-'))
@@ -364,18 +481,20 @@ function updatedFonts () {
       }
     })
 
-  icons['iconfont-proof-new'] = {isFont: true, gridSize: icons['iconfont-proof-good'].gridSize}
-  icons['iconfont-proof-followed'] = {isFont: true, gridSize: icons['iconfont-proof-good'].gridSize}
+  const grids = svgToGridMap()
+  let charCode = 0xe900
 
-  const findCode = /\.icon-kb-(.*):before {\n {2}content: "\\(.*)";/g
-  while (true) {
-    const match = findCode.exec(fs.readFileSync('./renderer/fonticon.css', {encoding: 'utf8'}))
-    if (!match) {
-      break
-    }
-    const [, name, charCode] = match
-    icons[name].charCode = parseInt(charCode, 16)
-  }
+  Object.keys(grids).forEach(gridSize => {
+    Object.keys(grids[gridSize]).forEach(name => {
+      const info = grids[gridSize][name]
+      icons[`iconfont-${info.name}`] = {
+        isFont: true,
+        gridSize: info.gridSize,
+        charCode,
+      }
+      charCode++
+    })
+  })
 
   const iconConstants = `// @flow
 // This file is GENERATED by npm run updated-fonts. DON'T hand edit
@@ -392,7 +511,7 @@ const iconMeta_ = {
 ${
   // eslint really doesn't understand embedded backticks
 /* eslint-disable */
-Object.keys(icons).sort().map(name => {
+Object.keys(icons).map(name => {
     const icon = icons[name]
     const meta = [`isFont: ${icon.isFont},`]
     if (icon.gridSize) {
@@ -402,7 +521,7 @@ Object.keys(icons).sort().map(name => {
       meta.push(`extension: '${icons[name].extension}',`)
     }
     if (icon.charCode) {
-      meta.push(`charCode: ${icons[name].charCode},`)
+      meta.push(`charCode: 0x${icons[name].charCode.toString(16)},`)
     }
     if (icon.require) {
       meta.push(`require: require(${icons[name].require}),`)

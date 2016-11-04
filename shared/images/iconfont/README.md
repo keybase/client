@@ -1,32 +1,15 @@
 ## How to build the font icon
 
+## Phase 1: Get svg paths
 - Go to https://icomoon.io
-- Import project file kb-icomoon-project.json, using menu -> Projects -> Import Project
-- Save exported svgs from Zeplin to this directory (protip you can export all assets in Zeplin under assets if you don't have anything selected)
-- Add new svgs to icomoon in the correct grid sections
-- Ensure settings:
-
-```
-font name: kb
-class prefix: icon-
-class postfile:
-
-No checkboxes
-
-CSS Selector: Use attribute selectors
-Leave the rest as the defaults
-
-```
-
-- Edit grid size of icons you've added by clicking the pencil in the top right under selection.
-<img width="1308" alt="screen shot 2016-05-24 at 5 07 12 pm" src="https://cloud.githubusercontent.com/assets/594035/15523983/583b52d8-21d3-11e6-8cb7-c146cb30bfb0.png">
-
-- When you get to the font download screen you should see each icon in the correct grid size category (visible in the upper left) like this picture:
-<img width="1323" alt="screen shot 2016-05-24 at 5 10 50 pm" src="https://cloud.githubusercontent.com/assets/594035/15523982/583acab6-21d3-11e6-93af-34b680d02f6c.png">
-
-- Download and replace kb-icomoon-project.json [IcoMoon Hamburger | Manage projects | Download]
-- Copy style.css -> desktop/renderer/fonticon.css
-- Copy font/kb.ttf -> desktop/renderer/fonts/kb.ttf
+- Create a new empty project and import all our svg files using menu -> Manage projects -> New Project
+- Save the project as kb-icomoon-project-app.json
+## Phase 2: Generate fonts
+- run `npm run generate-font-project` (this updates our Icon constants for you)
+- In webapp Import project file kb-icomoon-project-generated.json, using menu -> Projects -> Import Project
+- Copy kb.zip to this folder as `kb`
+- run `npm run apply-new-fonts`
+- Delete `./kb/`
 
 ## Fixing Vertical Metrics
 

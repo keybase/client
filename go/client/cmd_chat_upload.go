@@ -14,6 +14,7 @@ type CmdChatUpload struct {
 	tlf      string
 	filename string
 	public   bool
+	title    string
 }
 
 func newCmdChatUpload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -30,6 +31,10 @@ func newCmdChatUpload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				Name:  "public",
 				Usage: "Send to public conversation (default private)",
 			},
+			cli.StringFlag{
+				Name:  "title",
+				Usage: "Title of attachment (defaults to filename)",
+			},
 		},
 	}
 }
@@ -41,6 +46,7 @@ func (c *CmdChatUpload) ParseArgv(ctx *cli.Context) error {
 	c.tlf = ctx.Args()[0]
 	c.filename = ctx.Args()[1]
 	c.public = ctx.Bool("public")
+	c.title = ctx.String("title")
 
 	return nil
 }
@@ -52,6 +58,7 @@ func (c *CmdChatUpload) Run() error {
 			Public: c.public,
 		},
 		Filename: c.filename,
+		Title:    c.title,
 	}
 	h := newChatServiceHandler(c.G())
 	reply := h.AttachV1(context.Background(), opts)

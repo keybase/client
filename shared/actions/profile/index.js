@@ -3,7 +3,7 @@ import * as Constants from '../../constants/profile'
 import flags from '../../util/feature-flags'
 import keybaseUrl from '../../constants/urls'
 import openURL from '../../util/open-url'
-import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, proofsSaga} from './proofs'
+import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, proofsSaga, submitZcashAddress} from './proofs'
 import {apiserverPostRpcPromise, revokeRevokeSigsRpcPromise} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
@@ -240,6 +240,7 @@ export {
   onUserClick,
   outputInstructionsActionLink,
   submitBTCAddress,
+  submitZcashAddress,
   submitRevokeProof,
   submitUsername,
   updatePgpInfo,

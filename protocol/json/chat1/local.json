@@ -114,6 +114,10 @@
         {
           "type": "bytes",
           "name": "verifyKey"
+        },
+        {
+          "type": "string",
+          "name": "title"
         }
       ]
     },
@@ -661,7 +665,7 @@
             "type": "array",
             "items": "ConversationStatus"
           },
-          "name": "statusOverrideDefault"
+          "name": "status"
         },
         {
           "type": "boolean",
@@ -807,6 +811,13 @@
         {
           "type": "TLFVisibility",
           "name": "visibility"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationStatus"
+          },
+          "name": "status"
         },
         {
           "type": "boolean",
@@ -1057,6 +1068,14 @@
             null,
             "LocalSource"
           ]
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "metadata",
+          "type": "bytes"
         }
       ],
       "response": "PostLocalRes"
