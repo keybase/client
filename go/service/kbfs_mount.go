@@ -32,8 +32,13 @@ func (h *KBFSMountHandler) GetAllAvailableMountDirs(ctx context.Context) (res []
 }
 
 func (h *KBFSMountHandler) SetCurrentMountDir(_ context.Context, drive string) (err error) {
+	oldMount, _ := h.G().Env.GetMountDir()
 	w := h.G().Env.GetConfigWriter()
-	w.SetStringAtPath("mountdir", drive)
+	err = w.SetStringAtPath("mountdir", drive)
+	if err != nil {
+		return err
+	}
 	h.G().ConfigReload()
+	doMountChange(oldMount, drive)
 	return nil
 }
