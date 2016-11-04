@@ -36,6 +36,7 @@ const getSpecForPlatform = (platform: PlatformsExpandedType): IconSpec => {
     'dnsOrGenericWebSite': {icon: 'icon-website-48'},
     'rooter': {icon: 'icon-website-48'},
     'btc': {icon: 'icon-bitcoin-logo-48'},
+    'zcash': {icon: 'icon-zcash-logo-48'},
     'pgp': {icon: 'icon-pgp-key-48', offsetBottom: -2, offsetRight: 4},
   }
   return {...standardOffsets, ...specs[platform]}
