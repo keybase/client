@@ -34,7 +34,7 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endang
           <Box style={styleDevicesContainer}>
               {endangeredTLFs.map(tlf => (
                 <Box key={tlf.name} style={styleTLF}>
-                  <Text type='BodySemibold' style={styleText}>{tlf.name}</Text>
+                  <Text type='BodySemibold' style={styleText}>• {tlf.name}</Text>
                 </Box>
               ))}
           </Box>
@@ -72,14 +72,15 @@ const styleName = {
 }
 
 const styleDevicesContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'flex-start',
   height: 200,
   width: 300,
   backgroundColor: globalColors.lightGrey,
   alignSelf: 'center',
   marginTop: globalMargins.small,
   marginBottom: globalMargins.small,
-  paddingTop: globalMargins.small,
-  paddingBottom: globalMargins.small,
+  padding: globalMargins.small,
 }
 
 export default Render
