@@ -6,7 +6,7 @@ import {Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import PushNotification from 'react-native-push-notification'
-import {pushPermissionsPrompt, pushPermissionsRequest, pushToken} from '../actions/settings'
+import {permissionsPrompt, permissionsRequest, pushToken} from '../actions/push'
 
 import type {Props} from './push'
 
@@ -27,7 +27,7 @@ class Push extends Component<void, Props, void> {
     // It doesn't look like there is a registrationError being set for iOS.
     // https://github.com/zo0r/react-native-push-notification/issues/261
     PushNotificationIOS.addEventListener('registrationError', (err) => {
-      this.props.onPushError(err)
+      this.props.onPushRegistrationError(err)
     })
 
     PushNotification.checkPermissions(permissions => {
@@ -36,7 +36,6 @@ class Push extends Component<void, Props, void> {
         // TODO(gabriel): Detect if we already showed permissions prompt and were denied,
         // in which case we should not show prompt or show different prompt about enabling
         // in Settings (for iOS)
-        console.log('Showing push permissions prompt')
         this.props.onShowPrompt()
       } else {
         // We have permissions, this triggers a token registration in
@@ -100,11 +99,11 @@ export default connect(
   (dispatch: any) => {
     return {
       onRequestPermissions: () => {
-        dispatch(pushPermissionsRequest())
+        dispatch(permissionsRequest())
       },
       onShowPrompt: () => {
         console.log('Showing push prompt')
-        dispatch(pushPermissionsPrompt(true))
+        dispatch(permissionsPrompt(true))
       },
       onPushToken: (token, tokenType) => {
         Clipboard.setString(token)
@@ -114,6 +113,10 @@ export default connect(
       onPushNotification: (notification) => {
         // TODO(gabriel): Craft notification for  app
         Alert.alert('Push notification', notification.message)
+      },
+      onPushRegistrationError: (err) => {
+        console.warn('Push registration error:', err)
+        dispatch(permissionsPrompt(false))
       },
       onPushError: (err) => {
         console.warn('Push notification error:', err)

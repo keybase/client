@@ -10,6 +10,7 @@ import pgpSaga from '../actions/pgp'
 import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
 import settingsSaga from '../actions/settings'
+import pushSaga from '../actions/push'
 import {call} from 'redux-saga/effects'
 
 import type {SagaGenerator} from '../constants/types/saga'
@@ -26,6 +27,7 @@ function * mainSaga (): SagaGenerator<any, any> {
     call(planBillingSaga),
     call(profileSaga),
     call(settingsSaga),
+    call(pushSaga),
   ]
 }
 

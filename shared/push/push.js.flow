@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {TokenType} from '../constants/settings'
+import type {TokenType} from '../constants/push'
 
 export type Props = {
   prompt: boolean,
@@ -11,6 +11,7 @@ export type Props = {
   onPushToken: (token: string, tokenType: TokenType) => void,
   onPushNotification: () => void,
   onPushError: () => void,
+  onPushRegistrationError: () => void,
   onRequestPermissions: () => void,
   onClose: () => void,
 }
