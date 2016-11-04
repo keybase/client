@@ -26,8 +26,8 @@ function * mainSaga (): SagaGenerator<any, any> {
     call(pgpSaga),
     call(planBillingSaga),
     call(profileSaga),
-    call(settingsSaga),
     call(pushSaga),
+    call(settingsSaga),
   ]
 }
 

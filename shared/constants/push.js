@@ -27,3 +27,10 @@ export type State = {
   permissionsRequesting: boolean,
   permissionsPrompt: boolean,
 }
+
+export const initialState: State = {
+  permissionsPrompt: false,
+  permissionsRequesting: false,
+  tokenType: '',
+  token: '',
+}

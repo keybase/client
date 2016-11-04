@@ -3,14 +3,7 @@ import * as Constants from '../constants/push'
 
 import type {State} from '../constants/push'
 
-const initialState: State = {
-  permissionsPrompt: false,
-  permissionsRequesting: false,
-  tokenType: '',
-  token: '',
-}
-
-function reducer (state: State = initialState, action: any): State {
+function reducer (state: State = Constants.initialState, action: any): State {
   switch (action.type) {
     case Constants.permissionsRequesting:
       const permissionsRequesting = action.payload
