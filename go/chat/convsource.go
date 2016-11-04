@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -126,11 +125,10 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	// Get conversation metadata
 	if conv, err := s.getConvMetadata(ctx, convID, &rl); err == nil {
 		// Try locally first
-		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination, &rl)
+		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination)
 		if err == nil {
 			// If found, then return the stuff
 			s.G().Log.Debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
-			localData.Messages = utils.FilterByType(localData.Messages, query)
 
 			// Before returning the stuff, send remote request to mark as read if
 			// requested.

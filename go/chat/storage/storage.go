@@ -242,8 +242,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
-	rl *[]*chat1.RateLimit) (chat1.ThreadView, libkb.ChatStorageError) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, libkb.ChatStorageError) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
