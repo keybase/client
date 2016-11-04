@@ -60,8 +60,8 @@ class Dropdown extends Component<void, Props, State> {
   }
 
   _showModal (show: boolean) {
+    console.warn('in _showModal')
     this.setState({modalVisible: show})
-
     if (show) {
       this._ensureSelected()
     } else {
@@ -93,7 +93,7 @@ class Dropdown extends Component<void, Props, State> {
   _renderLabelAndCaret (): Array<React$Element<*>> {
     return [
       <Text key='text' type='Header' style={{...styleText, ...this._itemStyle()}}>{this._label(this.state.value)}</Text>,
-      <Icon key='icon' type='iconfont-caret-down' style={styleIcon} />,
+      <Icon key='icon' type='iconfont-caret-down' style={{backgroundColor: 'red'}} onPress={() => this._showModal(true)} style={styleIcon} />,
     ]
   }
 
@@ -124,10 +124,12 @@ class Dropdown extends Component<void, Props, State> {
 
   _renderAndroid (): React$Element<*> {
     return (
-      <Box style={{...styleContainer, ...this.props.style}}>
-        {this._renderPicker(stylePickerAndroid, true)}
-        {this._renderLabelAndCaret()}
-      </Box>
+      <NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
+        <Box style={{...styleContainer, ...this.props.style}}>
+          {this._renderPicker(stylePickerAndroid, true)}
+          {this._renderLabelAndCaret()}
+        </Box>
+      </NativeTouchableWithoutFeedback>
     )
   }
 
@@ -150,6 +152,8 @@ class Dropdown extends Component<void, Props, State> {
   }
 
   render (): React$Element<*> {
+    console.warn('modalVisible is')
+    console.warn(this.state.modalVisible)
     return OS === Platform.OS_IOS ? this._renderIOS() : this._renderAndroid()
   }
 }
