@@ -18,17 +18,9 @@ type IconSpec = {
   offsetRight: number,
 }
 
-const standardOffsets = () => {
-  if (isMobile) {
-    return {
-      offsetBottom: -4,
-      offsetRight: -1,
-    }
-  }
-  return {
-    offsetBottom: -2,
-    offsetRight: -5,
-  }
+const standardOffsets = {
+  offsetBottom: isMobile ? -4 : -2,
+  offsetRight: isMobile ? -1 : -5,
 }
 
 function _specsForMobileOrDesktop () {
@@ -52,7 +44,7 @@ function _specsForMobileOrDesktop () {
 
 const getSpecForPlatform = (platform: PlatformsExpandedType): IconSpec => {
   const specs = _specsForMobileOrDesktop()
-  return {...standardOffsets(), ...specs[platform]}
+  return {...standardOffsets, ...specs[platform]}
 }
 
 const Render = ({platform, overlay, overlayColor, style}: Props) => {
