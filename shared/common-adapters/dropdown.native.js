@@ -123,10 +123,14 @@ class Dropdown extends Component<void, Props, State> {
   }
 
   _renderAndroid (): React$Element<*> {
+    // MM: This is super tricky. _renderPicker is an invisible box that, when clicked, opens
+    // the native picker. We need to make sure it's the last thing drawn so it lies on top of
+    // everything else.
+    // TODO: Clean this up to be less tricky
     return (
       <Box style={{...styleContainer, ...this.props.style}}>
-        {this._renderPicker(stylePickerAndroid, true)}
         {this._renderLabelAndCaret()}
+        {this._renderPicker(stylePickerAndroid, true)}
       </Box>
     )
   }
