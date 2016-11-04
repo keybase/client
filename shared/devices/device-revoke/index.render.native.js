@@ -15,7 +15,7 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endang
   const header = (
     <Box style={styleIcon}>
       <Icon type={icon} />
-      <Text type='BodyBig' style={stylesName}>{name}</Text>
+      <Text type='BodyBig' style={styleName}>{name}</Text>
     </Box>
   )
 
