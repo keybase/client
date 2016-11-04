@@ -1,8 +1,10 @@
 package libkbfs
 
 import (
-	"golang.org/x/net/context"
 	"reflect"
+	"time"
+
+	"golang.org/x/net/context"
 )
 
 // CoalescingContext allows many contexts to be treated as one.  It waits on
@@ -60,7 +62,10 @@ func (ctx *CoalescingContext) appendContext(other context.Context) {
 // canceled to avoid a goroutine leak.
 func NewCoalescingContext(parent context.Context) (*CoalescingContext, context.CancelFunc) {
 	ctx := &CoalescingContext{
-		Context:  context.Background(),
+		// Make the parent's `Value()` method available to consumers of this
+		// context.
+		// TODO: Make _all_ parents' values available.
+		Context:  parent,
 		doneCh:   make(chan struct{}),
 		mutateCh: make(chan context.Context),
 	}
@@ -85,6 +90,11 @@ func NewCoalescingContext(parent context.Context) (*CoalescingContext, context.C
 		}
 	}
 	return ctx, cancelFunc
+}
+
+// Deadline overrides the default parent's Deadline()
+func (ctx *CoalescingContext) Deadline() (time.Time, bool) {
+	return time.Time{}, false
 }
 
 // Done returns a channel that is closed when the CoalescingContext is
