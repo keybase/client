@@ -62,6 +62,20 @@ func (cb *CommonBlock) DataVersion() DataVer {
 	return FirstValidDataVer
 }
 
+// NewEmpty implements the Block interface for CommonBlock
+func (cb *CommonBlock) NewEmpty() Block {
+	return NewCommonBlock()
+}
+
+// Set implements the Block interface for CommonBlock
+func (cb *CommonBlock) Set(other Block, codec kbfscodec.Codec) {
+	otherCb := other.(*CommonBlock)
+	err := kbfscodec.Update(codec, cb, otherCb)
+	if err != nil {
+		panic("Unable to Set the CommonBlock")
+	}
+}
+
 // NewCommonBlock returns a generic block, unsuitable for caching.
 func NewCommonBlock() Block {
 	return &CommonBlock{}
@@ -80,6 +94,21 @@ type DirBlock struct {
 func NewDirBlock() Block {
 	return &DirBlock{
 		Children: make(map[string]DirEntry),
+	}
+}
+
+func (db *DirBlock) NewEmpty() Block {
+	return NewDirBlock()
+}
+
+func (db *DirBlock) Set(other Block, codec kbfscodec.Codec) {
+	otherDb := other.(*DirBlock)
+	err := kbfscodec.Update(codec, db, otherDb)
+	if err != nil {
+		panic("Unable to Set the DirBlock")
+	}
+	if db.Children == nil {
+		db.Children = make(map[string]DirEntry)
 	}
 }
 
@@ -116,6 +145,10 @@ func NewFileBlock() Block {
 	}
 }
 
+func (fb *FileBlock) NewEmpty() Block {
+	return NewFileBlock()
+}
+
 // DataVersion returns data version for this block.
 func (fb *FileBlock) DataVersion() DataVer {
 	for i := range fb.IPtrs {
@@ -124,6 +157,14 @@ func (fb *FileBlock) DataVersion() DataVer {
 		}
 	}
 	return FirstValidDataVer
+}
+
+func (fb *FileBlock) Set(other Block, codec kbfscodec.Codec) {
+	otherFb := other.(*FileBlock)
+	err := kbfscodec.Update(codec, fb, otherFb)
+	if err != nil {
+		panic("Unable to Set the FileBlock")
+	}
 }
 
 // DeepCopy makes a complete copy of a FileBlock

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 )
@@ -114,6 +115,14 @@ type dirBlockFuture struct {
 	extra
 }
 
+func (dbf *dirBlockFuture) Set(other Block, codec kbfscodec.Codec) {
+	otherDbf := other.(*dirBlockFuture)
+	err := kbfscodec.Update(codec, dbf, otherDbf)
+	if err != nil {
+		panic("Unable to Set the dirBlockFuture")
+	}
+}
+
 func (dbf dirBlockFuture) toCurrent() dirBlockCurrent {
 	db := dbf.dirBlockCurrent
 	db.Children = make(map[string]DirEntry, len(dbf.Children))
@@ -163,6 +172,14 @@ type fileBlockFuture struct {
 	// Overrides fileBlockCurrent.IPtrs.
 	IPtrs []indirectFilePtrFuture `codec:"i,omitempty"`
 	extra
+}
+
+func (fbf *fileBlockFuture) Set(other Block, codec kbfscodec.Codec) {
+	otherFbf := other.(*fileBlockFuture)
+	err := kbfscodec.Update(codec, fbf, otherFbf)
+	if err != nil {
+		panic("Unable to Set the fileBlockFuture")
+	}
 }
 
 func (fbf fileBlockFuture) toCurrent() fileBlockCurrent {
