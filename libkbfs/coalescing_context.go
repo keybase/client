@@ -17,17 +17,23 @@ type CoalescingContext struct {
 	selects  []reflect.SelectCase
 }
 
+const (
+	mutateChanSelectIndex       int = 0
+	closeChanSelectIndex        int = 1
+	numExplicitlyHandledSelects int = 2
+)
+
 func (ctx *CoalescingContext) loop() {
 	for {
 		chosen, val, _ := reflect.Select(ctx.selects)
 		switch chosen {
-		case 0:
+		case mutateChanSelectIndex:
 			// request to mutate the select list
 			newCase := val.Interface().(context.Context)
 			if newCase != nil {
 				ctx.appendContext(newCase)
 			}
-		case 1:
+		case closeChanSelectIndex:
 			// Done
 			close(ctx.doneCh)
 			return
@@ -35,7 +41,7 @@ func (ctx *CoalescingContext) loop() {
 			// The chosen channel has been closed. Remove it from our select list.
 			ctx.selects = append(ctx.selects[:chosen], ctx.selects[chosen+1:]...)
 			// If we have no more selects available, the request is done.
-			if len(ctx.selects) == 2 {
+			if len(ctx.selects) == numExplicitlyHandledSelects {
 				close(ctx.doneCh)
 				return
 			}
