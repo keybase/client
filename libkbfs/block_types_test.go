@@ -121,8 +121,12 @@ func (dbf *dirBlockFuture) Set(other Block) {
 	for k, v := range otherDbf.Children {
 		dbf.Children[k] = v
 	}
-	dbf.IPtrs = make([]indirectDirPtrFuture, len(otherDbf.IPtrs))
-	copy(dbf.IPtrs, otherDbf.IPtrs)
+	if otherDbf.IPtrs == nil {
+		dbf.IPtrs = nil
+	} else {
+		dbf.IPtrs = make([]indirectDirPtrFuture, len(otherDbf.IPtrs))
+		copy(dbf.IPtrs, otherDbf.IPtrs)
+	}
 	dbf.extra = otherDbf.extra
 }
 
@@ -180,8 +184,12 @@ type fileBlockFuture struct {
 func (fbf *fileBlockFuture) Set(other Block) {
 	otherFbf := other.(*fileBlockFuture)
 	fbf.fileBlockCurrent.Set(&otherFbf.fileBlockCurrent)
-	fbf.IPtrs = make([]indirectFilePtrFuture, len(otherFbf.IPtrs))
-	copy(fbf.IPtrs, otherFbf.IPtrs)
+	if otherFbf.IPtrs == nil {
+		fbf.IPtrs = nil
+	} else {
+		fbf.IPtrs = make([]indirectFilePtrFuture, len(otherFbf.IPtrs))
+		copy(fbf.IPtrs, otherFbf.IPtrs)
+	}
 }
 
 func (fbf fileBlockFuture) toCurrent() fileBlockCurrent {

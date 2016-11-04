@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"io"
-	"reflect"
 )
 
 // blockRetrievalWorker processes blockRetrievalQueue requests
@@ -55,8 +54,7 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	}
 
 	// Create a new block of the same type as the first request
-	typ := reflect.TypeOf(retrieval.requests[0].block).Elem()
-	block := reflect.New(typ).Interface().(Block)
+	block := retrieval.requests[0].block.NewEmpty()
 	defer func() {
 		brw.queue.FinalizeRequest(retrieval, block, err)
 	}()

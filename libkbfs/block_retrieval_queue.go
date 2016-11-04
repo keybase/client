@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"container/heap"
 	"io"
-	"reflect"
 	"sync"
 
 	"golang.org/x/net/context"
@@ -181,14 +180,12 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 	brq.mtx.Unlock()
 	retrieval.cancelFunc()
 
-	source := reflect.ValueOf(block)
 	for _, r := range retrieval.requests {
 		req := r
 		go func() {
-			if source.Kind() == reflect.Ptr {
+			if block != nil {
 				// Copy the decrypted block to the caller
-				dest := reflect.ValueOf(req.block).Elem()
-				dest.Set(source.Elem())
+				req.block.Set(block)
 			}
 			req.doneCh <- err
 		}()

@@ -96,18 +96,24 @@ func NewDirBlock() Block {
 	}
 }
 
+// NewEmpty implements the Block interface for DirBlock
 func (db *DirBlock) NewEmpty() Block {
 	return NewDirBlock()
 }
 
+// Set implements the Block interface for DirBlock
 func (db *DirBlock) Set(other Block) {
 	otherDb := other.(*DirBlock)
 	db.Children = make(map[string]DirEntry, len(otherDb.Children))
 	for k, v := range otherDb.Children {
 		db.Children[k] = v
 	}
-	db.IPtrs = make([]IndirectDirPtr, len(otherDb.IPtrs))
-	copy(db.IPtrs, otherDb.IPtrs)
+	if otherDb.IPtrs == nil {
+		db.IPtrs = nil
+	} else {
+		db.IPtrs = make([]IndirectDirPtr, len(otherDb.IPtrs))
+		copy(db.IPtrs, otherDb.IPtrs)
+	}
 }
 
 // DeepCopy makes a complete copy of a DirBlock
@@ -143,6 +149,7 @@ func NewFileBlock() Block {
 	}
 }
 
+// NewEmpty implements the Block interface for FileBlock
 func (fb *FileBlock) NewEmpty() Block {
 	return NewFileBlock()
 }
@@ -157,13 +164,18 @@ func (fb *FileBlock) DataVersion() DataVer {
 	return FirstValidDataVer
 }
 
+// Set implements the Block interface for FileBlock
 func (fb *FileBlock) Set(other Block) {
 	otherFb := other.(*FileBlock)
 	fb.CommonBlock.Set(&otherFb.CommonBlock)
 	fb.Contents = make([]byte, len(otherFb.Contents))
 	copy(fb.Contents, otherFb.Contents)
-	fb.IPtrs = make([]IndirectFilePtr, len(otherFb.IPtrs))
-	copy(fb.IPtrs, otherFb.IPtrs)
+	if otherFb.IPtrs == nil {
+		fb.IPtrs = nil
+	} else {
+		fb.IPtrs = make([]IndirectFilePtr, len(otherFb.IPtrs))
+		copy(fb.IPtrs, otherFb.IPtrs)
+	}
 	fb.hash = otherFb.hash
 }
 
