@@ -78,6 +78,33 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 	return
 }
 
+// SignForKBFS implements the Crypto interface for CryptoClient.
+func (c *CryptoClient) SignForKBFS(ctx context.Context, msg []byte) (
+	sigInfo kbfscrypto.SignatureInfo, err error) {
+	c.log.CDebugf(ctx, "Signing %d-byte message", len(msg))
+	defer func() {
+		c.deferLog.CDebugf(ctx, "Signed %d-byte message with %s: err=%v", len(msg),
+			sigInfo, err)
+	}()
+
+	timer := c.logAboutTooLongUnlessCancelled(ctx, "SignED25519ForKBFS")
+	defer timer.Stop()
+	ed25519SigInfo, err := c.client.SignED25519ForKBFS(ctx, keybase1.SignED25519ForKBFSArg{
+		Msg:    msg,
+		Reason: "to use kbfs",
+	})
+	if err != nil {
+		return
+	}
+
+	sigInfo = kbfscrypto.SignatureInfo{
+		Version:      kbfscrypto.SigED25519,
+		Signature:    ed25519SigInfo.Sig[:],
+		VerifyingKey: kbfscrypto.MakeVerifyingKey(libkb.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKID()),
+	}
+	return
+}
+
 // SignToString implements the Crypto interface for CryptoClient.
 func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 	signature string, err error) {
