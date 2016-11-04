@@ -9,6 +9,7 @@ import (
 // all its contexts' Context.Done() channels, and when all of them have
 // returned, this CoalescingContext is canceled. At any point, a context can be
 // added to the list, and will subsequently also be part of the wait condition.
+// TODO: add timeout channel in case there is a goroutine leak
 type CoalescingContext struct {
 	context.Context
 	closeCh  chan struct{}
