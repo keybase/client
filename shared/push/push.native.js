@@ -106,7 +106,7 @@ export default connect(
       },
       onPushToken: (token, tokenType) => {
         Clipboard.setString(token)
-        Alert.alert('Registered push token (saved to clipboard):', token, tokenType)
+        console.warn('Registered push token (saved to clipboard):', token, tokenType)
         dispatch(pushToken(token, tokenType))
       },
       onPushNotification: (notification) => {
