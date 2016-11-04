@@ -39,10 +39,28 @@ func (rc *FacebookChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) li
 
 	hintDesktopURL := makeDesktopURL(h.GetAPIURL())
 
-	wantedPrefix := ("https://www.facebook.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/posts/")
-	if !strings.HasPrefix(strings.ToLower(hintDesktopURL), wantedPrefix) {
+	// Checking for the correct username is essential here. We rely on this
+	// check to prove that the user in question actually wrote the post. (Note
+	// that the m-site does *not* enforce this part of the URL. Only the
+	// desktop site does.)
+	//
+	// Facebook usernames don't actually allow any special characters, but it's
+	// still possible for a malicious user to *claim* they have some slashes
+	// and a question mark in their name, in the hopes that that will trick us
+	// into hitting a totally unrelated URL. Guard against that happening by
+	// escaping the name.
+	urlEscapedUsername := url.QueryEscape(rc.proof.GetRemoteUsername())
+
+	// We build a case-insensitive regex (that's the `(?i)` at the front), but
+	// we still want to be very strict about the structure of the whole thing.
+	// No query parameters, no unexpected characters in the post ID. Note that
+	// if we ever allow non-numeric characters in the post ID, we might want to
+	// restrict the case-insensitivity more carefully.
+	expectedPrefix := "https://www.facebook.com/" + urlEscapedUsername + "/posts/"
+	urlRegex := regexp.MustCompile("(?i)^" + regexp.QuoteMeta(expectedPrefix) + "[0-9]+$")
+	if !urlRegex.MatchString(hintDesktopURL) {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-			"Bad hint from server; URL should start with '%s', received '%s'", wantedPrefix, hintDesktopURL)
+			"Bad Facebook URL hint: %s", hintDesktopURL)
 	}
 
 	// We're enforcing almost the exact contents of the proof text here, so in
@@ -80,14 +98,13 @@ func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHin
 	// Previously we would parse markup to extract the username and proof text.
 	// We had to switch to the desktop site to validate the usernames of people
 	// with the "no search engine scraping" Facebook privacy setting turned on.
-	// That in turn made it much harder to parse the markup we get, because
-	// what we want comes down in an embedded comment. However, because the
-	// desktop site (unlike the m-site) does not display comments or ads to
-	// logged-out users, we can do a simple string match on the whole page to
-	// find the proof text. We can't pull the author's username out of the
-	// page, but the desktop site (again, unlike the m-site) will not display a
-	// post of the author's username in the URL is wrong. It's possible there's
-	// some way I haven't thought of for other users to inject strings
+	// (Since only the desktop site, and not the m-site, enforces that the
+	// author ID in a post URL is correct.) That in turn made it much harder to
+	// parse the markup we get, because what we want comes down in an embedded
+	// comment. However, because the desktop site (again, unlike the m-site)
+	// does not display comments or ads to logged-out users, we can do a simple
+	// string match on the whole page to find the proof text. It's possible
+	// there's some way I haven't thought of for other users to inject strings
 	// somewhere in this page, or break that URL->author relationship, and if
 	// so we'll need to change it.
 
