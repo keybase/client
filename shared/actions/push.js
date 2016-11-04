@@ -16,62 +16,6 @@ export function permissionsRequest (): PushPermissionsRequestAction {
   return {type: Constants.permissionsRequest, payload: undefined}
 }
 
-export function permissionsRequesting (enabled: boolean): PushPermissionsRequestingAction {
-  return {type: Constants.permissionsRequesting, payload: enabled}
-}
-
-export function permissionsPrompt (enabled: boolean): PushPermissionsPromptAction {
-  return {type: Constants.permissionsPrompt, payload: enabled}
-}
-
-export function pushNotification (notification: PushNotification): PushNotificationAction {
-  return {type: Constants.pushNotification, payload: notification}
-}
-
-export function pushToken (token: string, tokenType: TokenType): PushTokenAction {
-  return {type: Constants.pushToken, payload: {token, tokenType}}
-}
-
-export function savePushToken (): SavePushTokenAction {
-  return {type: Constants.savePushToken, payload: undefined}
-}
-
-export function updatePushToken (token: string, tokenType: TokenType): UpdatePushTokenAction {
-  return {type: Constants.updatePushToken, payload: {token, tokenType}}
-}
-
-
-function * pushTokenSaga (token: string, tokenType: TokenType): SagaGenerator<any, any> {
-  yield put(updatePushToken(token, tokenType))
-  yield put(savePushToken())
-}
-
-function * savePushTokenSaga (): SagaGenerator<any, any> {
-  const pushSelector = (state: TypedState) => state.push
-  const {token, tokenType} = ((yield select(pushSelector)): any)
-
-  const extendedConfig = yield select(state => state.config.extendedConfig)
-
-  if (!extendedConfig || !extendedConfig.defaultDeviceID) {
-    throw new Error('No device available for saving push token')
-  }
-  const deviceID = extendedConfig.defaultDeviceID
-  if (!token) {
-    throw new Error('No push token available to save')
-  }
-
-  const result = yield call(apiserverPostRpcPromise, {
-    param: {
-      endpoint: 'device/push_token',
-      args: [
-        {key: 'push_token', value: token},
-        {key: 'device_id', value: deviceID},
-        {key: 'token_type', value: tokenType},
-      ],
-    },
-  })
-}
-
 function * permissionsRequestSaga (): SagaGenerator<any, any> {
   try {
     yield put({type: Constants.permissionsRequesting, payload: true})
@@ -85,8 +29,70 @@ function * permissionsRequestSaga (): SagaGenerator<any, any> {
   }
 }
 
+export function permissionsRequesting (enabled: boolean): PushPermissionsRequestingAction {
+  return {type: Constants.permissionsRequesting, payload: enabled}
+}
+
+export function permissionsPrompt (enabled: boolean): PushPermissionsPromptAction {
+  return {type: Constants.permissionsPrompt, payload: enabled}
+}
+
+export function pushNotification (notification: PushNotification): PushNotificationAction {
+  return {type: Constants.pushNotification, payload: notification}
+}
+
 function * pushNotificationSaga (notification: PushNotification): SagaGenerator<any, any> {
   console.warn('Push notification:', notification)
+}
+
+export function pushToken (token: string, tokenType: TokenType): PushTokenAction {
+  return {type: Constants.pushToken, payload: {token, tokenType}}
+}
+
+function * pushTokenSaga (action: PushTokenAction): SagaGenerator<any, any> {
+  const {token, tokenType} = action.payload
+  yield put(updatePushToken(token, tokenType))
+  yield put(savePushToken())
+}
+
+export function savePushToken (): SavePushTokenAction {
+  return {type: Constants.savePushToken, payload: undefined}
+}
+
+function * savePushTokenSaga (): SagaGenerator<any, any> {
+  try {
+    const pushSelector = (state: TypedState) => state.push
+    const {token, tokenType} = ((yield select(pushSelector)): any)
+
+    const extendedConfig = yield select(state => state.config.extendedConfig)
+
+    if (!extendedConfig || !extendedConfig.defaultDeviceID) {
+      throw new Error('No device available for saving push token')
+    }
+    const deviceID = extendedConfig.defaultDeviceID
+    if (!token) {
+      throw new Error('No push token available to save')
+    }
+
+    const args = [
+      {key: 'push_token', value: token},
+      {key: 'device_id', value: deviceID},
+      {key: 'token_type', value: tokenType},
+    ]
+
+    const result = yield call(apiserverPostRpcPromise, {
+      param: {
+        endpoint: 'device/push_token',
+        args: args,
+      },
+    })
+  } catch (err) {
+    console.warn('Error trying to save push token:', err)
+  }
+}
+
+export function updatePushToken (token: string, tokenType: TokenType): UpdatePushTokenAction {
+  return {type: Constants.updatePushToken, payload: {token, tokenType}}
 }
 
 function * pushSaga (): SagaGenerator<any, any> {
