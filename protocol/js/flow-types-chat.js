@@ -388,6 +388,7 @@ export type Asset = {
   encHash: Hash,
   key: bytes,
   verifyKey: bytes,
+  title: string,
 }
 
 export type BodyPlaintext = 
@@ -910,7 +911,9 @@ export type localPostAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   clientHeader: MessageClientHeader,
   attachment: LocalSource,
-  preview?: ?LocalSource
+  preview?: ?LocalSource,
+  title: string,
+  metadata: bytes
 }>
 
 export type localPostLocalNonblockRpcParam = Exact<{

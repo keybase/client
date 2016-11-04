@@ -409,6 +409,10 @@ var echoTests = []echoTest{
 		output: `{"result":{"status":"ok"}}`,
 	},
 	{
+		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "preview": "preview.png", "title": "Check this out!"}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
 		input:  `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},

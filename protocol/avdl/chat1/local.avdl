@@ -37,6 +37,7 @@ protocol local {
     Hash encHash;              // hash of ciphertext object 
     bytes key;                 // encryption key
     bytes verifyKey;           // signature verification key
+    string title;              // title of the asset (defaults to filename if not provided)
   }
 
   record MessageAttachment {
@@ -242,7 +243,7 @@ protocol local {
   }
 
   // Post an attachment in source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview);
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview, string title, bytes metadata);
 
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName);
   record NewConversationLocalRes {
