@@ -194,7 +194,7 @@ const styles = {
 
 export default connect(
   (state: any) => {
-    const {router, favorite: {privateBadge, publicBadge}, config: {extendedConfig, username}, settings: {push: {permissionsPrompt}}, dev: {debugConfig: {dumbFullscreen}}} = state
+    const {router, favorite: {privateBadge, publicBadge}, config: {extendedConfig, username}, push: {permissionsPrompt}, dev: {debugConfig: {dumbFullscreen}}} = state
     return ({
       router,
       provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
