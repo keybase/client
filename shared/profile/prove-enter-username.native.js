@@ -17,8 +17,8 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
     return (
       <Box style={styleInfoBanner}>
-        <Text backgroundMode='Information' type='BodySmallSemibold'>&bull; You must have karma &ge; 2</Text>
-        <Text backgroundMode='Information' type='BodySmallSemibold'>&bull; You must enter your uSeRName with exact case</Text>
+        <Text backgroundMode='Information' type='BodySemibold'>&bull; You must have karma &ge; 2</Text>
+        <Text backgroundMode='Information' type='BodySemibold'>&bull; You must enter your uSeRName with exact case</Text>
       </Box>
     )
   }
@@ -29,14 +29,14 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
 function customError (error: string, code: ?number) {
   if (code === ConstantsStatusCode.scprofilenotpublic) {
     return <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
-      <Text style={{...styleErrorBannerText, marginLeft: globalMargins.small, marginRight: globalMargins.small}} type='BodySmallSemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
+      <Text style={{...styleErrorBannerText, marginLeft: globalMargins.small, marginRight: globalMargins.small}} type='BodySemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}>
         <Text style={styleErrorBannerText} type='BodySmallSemibold'>Go to Coinbase</Text>
         <Icon type='iconfont-open-browser' style={{color: globalColors.white_40, marginLeft: 4}} />
       </Box>
     </Box>
   }
-  return <Text style={styleErrorBannerText} type='BodySmallSemibold'>{error}</Text>
+  return <Text style={styleErrorBannerText} type='BodySemibold'>{error}</Text>
 }
 
 class PrivateEnterUsernameRender extends Component<void, Props, State> {
@@ -78,6 +78,7 @@ class PrivateEnterUsernameRender extends Component<void, Props, State> {
         <Button
           style={styleButton}
           type='Primary'
+          fullWidth={true}
           disabled={!this.props.canContinue}
           onClick={() => this.handleContinue()}
           label='Continue' />

@@ -172,7 +172,7 @@ const styleText = {
 }
 
 const styleIcon = {
-  width: 20,
+  width: 10,
 }
 
 const stylePickerContainer = {

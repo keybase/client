@@ -33,7 +33,7 @@ const proofsChanged: Array<Proof> = [
   {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469665223000},
   {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469565223000},
   {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, meta: metaNone, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469465223000},
-  {name: 'pending', type: 'https', id: 'pendingId', state: normal, meta: metaPending, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469365223000},
+  {name: 'pending', type: 'https', id: 'pendingId', state: checking, meta: metaPending, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469365223000},
   {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469265223000},
 ]
 

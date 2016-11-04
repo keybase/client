@@ -16,7 +16,7 @@ const UserEntry = ({onClick, username, followsYou, following, thumbnailUrl}: Use
   <ClickableBox onClick={() => { onClick && onClick(username) }}>
     <Box style={userEntryContainerStyle}>
       <Avatar style={userEntryAvatarStyle} size={64} url={thumbnailUrl} followsYou={followsYou} following={following} />
-      <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
+      <Text type='BodySemibold' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
     </Box>
   </ClickableBox>
 )

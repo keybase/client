@@ -39,6 +39,7 @@ const EditProfileRender = (props: Props) => (
     <Button
       style={styleButton}
       type='Primary'
+      fullWidth={true}
       onClick={props.onSubmit}
       label='Save' />
   </StandardScreen>

@@ -139,12 +139,14 @@ const stylesFullname = {
 }
 const stylesFollowLabel = {
   fontSize: 12,
+  marginTop: globalMargins.xtiny,
+  marginBottom: globalMargins.xtiny,
   color: globalColors.black_40,
 }
 const stylesFollowing = {
   ...globalStyles.clickable,
   color: globalColors.black_40,
-  marginTop: globalMargins.xtiny,
+  marginBottom: globalMargins.xtiny,
 }
 const stylesFollowingLabel = {
   color: globalColors.black_40,
@@ -157,7 +159,6 @@ const stylesBio = {
   ...globalStyles.selectable,
   textAlign: 'center',
   color: globalColors.black_75,
-  marginTop: globalMargins.tiny,
 }
 const stylesLocation = {
   ...globalStyles.selectable,
