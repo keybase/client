@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"crypto/rand"
 	"errors"
-	"reflect"
 	"sync"
 	"testing"
 	"time"
@@ -19,8 +18,8 @@ import (
 // blockReturner contains a block value to copy into requested blocks, and a
 // channel to synchronize on with the worker.
 type blockReturner struct {
-	val reflect.Value
-	ch  chan struct{}
+	block Block
+	ch    chan struct{}
 }
 
 // fakeBlockGetter allows specifying and obtaining fake blocks.
@@ -44,8 +43,8 @@ func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) 
 	defer bg.mtx.Unlock()
 	ch := make(chan struct{})
 	bg.blockMap[blockPtr] = blockReturner{
-		val: reflect.ValueOf(block).Elem(),
-		ch:  ch,
+		block: block,
+		ch:    ch,
 	}
 	return ch
 }
@@ -61,8 +60,7 @@ func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 	// Wait until the caller tells us to continue
 	select {
 	case <-source.ch:
-		destVal := reflect.ValueOf(block).Elem()
-		destVal.Set(source.val)
+		block.Set(source.block)
 	case <-ctx.Done():
 		return ctx.Err()
 	}

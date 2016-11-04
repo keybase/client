@@ -49,6 +49,9 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	var retrieval *blockRetrieval
 	select {
 	case retrieval = <-retrievalCh:
+		if retrieval == nil {
+			panic("Received a nil block retrieval. This should never happen.")
+		}
 	case <-brw.stopCh:
 		return io.EOF
 	}

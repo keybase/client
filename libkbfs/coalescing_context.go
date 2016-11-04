@@ -9,10 +9,9 @@ import (
 // all its contexts' Context.Done() channels, and when all of them have
 // returned, this CoalescingContext is canceled. At any point, a context can be
 // added to the list, and will subsequently also be part of the wait condition.
-// TODO: add timeout channel in case there is a goroutine leak
+// TODO: add timeout channel in case there is a goroutine leak.
 type CoalescingContext struct {
 	context.Context
-	closeCh  chan struct{}
 	doneCh   chan struct{}
 	mutateCh chan context.Context
 	selects  []reflect.SelectCase
@@ -26,7 +25,7 @@ func (ctx *CoalescingContext) loop() {
 			// request to mutate the select list
 			newCase := val.Interface().(context.Context)
 			if newCase != nil {
-				ctx.addContextLocked(newCase)
+				ctx.appendContext(newCase)
 			}
 		case 1:
 			// Done
@@ -44,7 +43,7 @@ func (ctx *CoalescingContext) loop() {
 	}
 }
 
-func (ctx *CoalescingContext) addContextLocked(other context.Context) {
+func (ctx *CoalescingContext) appendContext(other context.Context) {
 	ctx.selects = append(ctx.selects, reflect.SelectCase{
 		Dir:  reflect.SelectRecv,
 		Chan: reflect.ValueOf(other.Done()),
@@ -56,10 +55,10 @@ func (ctx *CoalescingContext) addContextLocked(other context.Context) {
 func NewCoalescingContext(parent context.Context) (*CoalescingContext, context.CancelFunc) {
 	ctx := &CoalescingContext{
 		Context:  context.Background(),
-		closeCh:  make(chan struct{}),
 		doneCh:   make(chan struct{}),
 		mutateCh: make(chan context.Context),
 	}
+	closeCh := make(chan struct{})
 	ctx.selects = []reflect.SelectCase{
 		{
 			Dir:  reflect.SelectRecv,
@@ -67,16 +66,16 @@ func NewCoalescingContext(parent context.Context) (*CoalescingContext, context.C
 		},
 		{
 			Dir:  reflect.SelectRecv,
-			Chan: reflect.ValueOf(ctx.closeCh),
+			Chan: reflect.ValueOf(closeCh),
 		},
 	}
-	ctx.addContextLocked(parent)
+	ctx.appendContext(parent)
 	go ctx.loop()
 	cancelFunc := func() {
 		select {
-		case <-ctx.closeCh:
+		case <-closeCh:
 		default:
-			close(ctx.closeCh)
+			close(closeCh)
 		}
 	}
 	return ctx, cancelFunc

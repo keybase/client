@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultBlockRetrievalWorkerQueueSize int = 20
+	defaultBlockRetrievalWorkerQueueSize int = 100
 	defaultOnDemandRequestPriority       int = 100
 )
 
@@ -82,28 +82,27 @@ func newBlockRetrievalQueue(numWorkers int) *blockRetrievalQueue {
 	}
 }
 
+func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
+	brq.mtx.Lock()
+	defer brq.mtx.Unlock()
+	if brq.heap.Len() > 0 {
+		return heap.Pop(brq.heap).(*blockRetrieval)
+	}
+	return nil
+}
+
 // notifyWorker notifies workers that there is a new request for processing.
 func (brq *blockRetrievalQueue) notifyWorker() {
 	go func() {
 		select {
 		case <-brq.doneCh:
-			// Prevent interference with the heap while we're retrieving from it
-			brq.mtx.Lock()
-			if brq.heap.Len() > 0 {
-				retrieval := heap.Pop(brq.heap).(*blockRetrieval)
-				// FinalizeRequest locks brq.mtx, so need to unlock it before calling
-				brq.mtx.Unlock()
+			retrieval := brq.popIfNotEmpty()
+			if retrieval != nil {
 				brq.FinalizeRequest(retrieval, nil, io.EOF)
-			} else {
-				brq.mtx.Unlock()
 			}
 		// Get the next queued worker
 		case ch := <-brq.workerQueue:
-			// Prevent interference with the heap while we're retrieving from it
-			brq.mtx.Lock()
-			defer brq.mtx.Unlock()
-			// Pop from the heap
-			ch <- heap.Pop(brq.heap).(*blockRetrieval)
+			ch <- brq.popIfNotEmpty()
 		}
 	}()
 }
@@ -121,7 +120,10 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 
 	brq.mtx.Lock()
 	defer brq.mtx.Unlock()
-	// Might have to retry if the context has been canceled
+	// Might have to retry if the context has been canceled.
+	// This loop will iterate a maximum of 2 times. It either hits the `return`
+	// statement at the bottom on the first iteration, or the `continue`
+	// statement first which causes it to `return` on the next iteration.
 	for {
 		br, exists := brq.ptrs[ptr]
 		if !exists {
@@ -148,7 +150,10 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 			}
 		}
 		ch := make(chan error, 1)
-		br.requests = append(br.requests, &blockRetrievalRequest{block, ch})
+		br.requests = append(br.requests, &blockRetrievalRequest{
+			block:  block,
+			doneCh: ch,
+		})
 		// If the new request priority is higher, elevate the retrieval in the
 		// queue.  Skip this if the request is no longer in the queue (which means
 		// it's actively being processed).
@@ -182,13 +187,12 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 
 	for _, r := range retrieval.requests {
 		req := r
-		go func() {
-			if block != nil {
-				// Copy the decrypted block to the caller
-				req.block.Set(block)
-			}
-			req.doneCh <- err
-		}()
+		if block != nil {
+			// Copy the decrypted block to the caller
+			req.block.Set(block)
+		}
+		// Since we created this channel with a buffer size of 1, this won't block.
+		req.doneCh <- err
 	}
 }
 
