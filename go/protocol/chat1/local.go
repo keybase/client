@@ -578,6 +578,7 @@ type PostAttachmentLocalArg struct {
 	Attachment     LocalSource         `codec:"attachment" json:"attachment"`
 	Preview        *LocalSource        `codec:"preview,omitempty" json:"preview,omitempty"`
 	Title          string              `codec:"title" json:"title"`
+	Metadata       []byte              `codec:"metadata" json:"metadata"`
 }
 
 type NewConversationLocalArg struct {

@@ -1065,6 +1065,10 @@
         {
           "name": "title",
           "type": "string"
+        },
+        {
+          "name": "metadata",
+          "type": "bytes"
         }
       ],
       "response": "PostLocalRes"

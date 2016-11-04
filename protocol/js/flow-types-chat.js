@@ -911,7 +911,8 @@ export type localPostAttachmentLocalRpcParam = Exact<{
   clientHeader: MessageClientHeader,
   attachment: LocalSource,
   preview?: ?LocalSource,
-  title: string
+  title: string,
+  metadata: bytes
 }>
 
 export type localPostLocalNonblockRpcParam = Exact<{

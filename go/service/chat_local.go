@@ -772,10 +772,20 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		return chat1.PostLocalRes{}, err
 	}
 
+	// Title on Asset set to filename in uploadAsset, but if
+	// a title was specified, then use that instead.
+	if arg.Title != "" {
+		object.Title = arg.Title
+		if preview != nil {
+			preview.Title = arg.Title
+		}
+	}
+
 	// send an attachment message
 	attachment := chat1.MessageAttachment{
-		Object:  object,
-		Preview: preview,
+		Object:   object,
+		Preview:  preview,
+		Metadata: arg.Metadata,
 	}
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
@@ -932,6 +942,7 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 
 	asset := chat1.Asset{
 		Filename:  filepath.Base(local.Filename),
+		Title:     filepath.Base(local.Filename),
 		Region:    upRes.Region,
 		Endpoint:  upRes.Endpoint,
 		Bucket:    upRes.Bucket,
