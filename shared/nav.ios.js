@@ -156,7 +156,7 @@ class Nav extends Component<void, Props, void> {
     return (
       <Box style={{flex: 1}}>
         {!enablePushPrompt && <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />}
-        <Push prompt={enablePushPrompt} />
+        <Push prompt={true} />
       </Box>
     )
   }

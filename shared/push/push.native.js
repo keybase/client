@@ -33,7 +33,9 @@ class Push extends Component<void, Props, void> {
     PushNotification.checkPermissions(permissions => {
       console.log('Push checked permissions:', permissions)
       if (!permissions.alert) {
-        // TODO(gabriel): Detect if we already showed permissions prompt and were denied
+        // TODO(gabriel): Detect if we already showed permissions prompt and were denied,
+        // in which case we should not show prompt or show different prompt about enabling
+        // in Settings (for iOS)
         console.log('Showing push permissions prompt')
         this.props.onShowPrompt()
       } else {

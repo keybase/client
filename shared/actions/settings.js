@@ -434,9 +434,6 @@ function * pushPermissionsRequestSaga (): SagaGenerator<any, any> {
     yield put({type: Constants.pushPermissionsRequesting, payload: true})
 
     console.log('Requesting permissions')
-    // TODO(gabriel): On iOS, this will only show the OS request dialog on first
-    // request, afterwards it won't come up. So we should tell them to go into
-    // Settings app and change the permissions there in that case.
     const permissions = yield call(() => { return PushNotification.requestPermissions() })
     // TODO(gabriel): Set permissions we have in state, might need it at some point?
   } finally {
