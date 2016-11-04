@@ -25,20 +25,7 @@ func newCmdChatHide(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cmd := &CmdChatHide{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "hide", c)
 		},
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "b, block",
-				Usage: "Block the conversation (instead of hiding until next activity)",
-			},
-			cli.BoolFlag{
-				Name:  "u, unhide",
-				Usage: "Unhide/unblock the conversation",
-			},
-			cli.BoolFlag{
-				Name:  "public",
-				Usage: "Apply to public conversation (default private)",
-			},
-		},
+		Flags: append(getConversationResolverFlags(), mustGetChatFlags("block", "unhide")...),
 	}
 }
 

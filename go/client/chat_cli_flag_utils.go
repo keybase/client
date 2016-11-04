@@ -82,6 +82,14 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "all",
 		Usage: `Include hidden conversations`,
 	},
+	"block": cli.BoolFlag{
+		Name:  "b, block",
+		Usage: "Block the conversation (instead of hiding until next activity)",
+	},
+	"unhide": cli.BoolFlag{
+		Name:  "u, unhide",
+		Usage: "Unhide/unblock the conversation",
+	},
 }
 
 func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
