@@ -2,13 +2,14 @@
 import './globals.native'
 // $FlowIssue
 import Nav from './nav'
+import DumbSheet from './dev/dumb-sheet'
 import React, {Component} from 'react'
 import configureStore from './store/configure-store'
 import {AppRegistry, NativeAppEventEmitter, AsyncStorage} from 'react-native'
 import {Provider} from 'react-redux'
 import {makeEngine} from './engine'
 import {serializeRestore, serializeSave, timeTravel, timeTravelForward, timeTravelBack} from './constants/dev'
-import {setup as setupLocalDebug} from './local-debug'
+import {setup as setupLocalDebug, dumbSheetOnly} from './local-debug'
 import {stateKey} from './constants/reducer'
 
 makeEngine()
@@ -46,7 +47,7 @@ class Keybase extends Component {
   render () {
     return (
       <Provider store={store}>
-        <Nav />
+        {dumbSheetOnly ? <DumbSheet /> : <Nav />}
       </Provider>
     )
   }
