@@ -3,6 +3,7 @@ import * as shared from './icon.shared'
 import React, {PureComponent} from 'react'
 import {FontIcon} from 'material-ui'
 import {globalStyles, globalColors} from '../styles'
+import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
 import type {Exact} from '../constants/types/more'
@@ -32,7 +33,16 @@ class Icon extends PureComponent<void, Exact<Props>, void> {
     const fontSizeHint = shared.fontSize(iconType)
 
     if (isFontIcon) {
-      const cleanStyle = {...this.props.style}
+      const cleanStyle = {
+        fontFamily: 'kb',
+        speak: 'none',
+        fontStyle: 'normal',
+        fontWeight: 'normal',
+        fontVariant: 'normal',
+        textTransform: 'none',
+        lineHeight: 1,
+        WebkitFontSmoothing: 'antialiased',
+        ...this.props.style}
       // We have to blow these styles away else FontIcon gets confused and will overwrite what it calculates
       delete cleanStyle.color
       delete cleanStyle.hoverColor
@@ -40,12 +50,12 @@ class Icon extends PureComponent<void, Exact<Props>, void> {
       return <FontIcon
         title={this.props.hint}
         style={{...globalStyles.noSelect, ...styles.icon, ...fontSizeHint, ...cleanStyle, ...(this.props.onClick ? globalStyles.clickable : {})}}
-        className={`icon-kb-${iconType}${this.props.className && ' ' + this.props.className || ''}`}
+        className={this.props.className || ''}
         color={color}
         hoverColor={this.props.onClick ? hoverColor : null}
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.props.onMouseLeave}
-        onClick={this.props.onClick} />
+        onClick={this.props.onClick}>{String.fromCharCode(iconMeta[iconType].charCode || 0)}</FontIcon>
     } else {
       return <img
         className={this.props.className}

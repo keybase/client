@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/net/context"
 	"os"
 	"path/filepath"
 )
@@ -60,9 +61,14 @@ func (s *CmdCtlStop) GetUsage() libkb.Usage {
 }
 
 func (s *CmdCtlStop) doKillKBFS() {
-	mountDir, err := s.G().Env.GetMountDir()
+	cli, err := GetKBFSMountClient(s.G())
 	if err != nil {
-		s.G().Log.Errorf("KillKBFS: Error in GetMountDir: %s", err.Error())
+		s.G().Log.Errorf("KillKBFS: Error in GetKBFSMountClient: %s", err.Error())
+	}
+
+	mountDir, err := cli.GetCurrentMountDir(context.TODO())
+	if err != nil {
+		s.G().Log.Errorf("KillKBFS: Error in GetCurrentMountDir: %s", err.Error())
 	} else {
 		// open special "file". Errors not relevant.
 		s.G().Log.Debug("KillKBFS: opening .kbfs_unmount")

@@ -6,7 +6,7 @@ import {getStyle} from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {isAndroid} from '../constants/platform'
 
-export default function SmallInput ({autoCapitalize, autoCorrect = false, errorState, hintText, label, onChange, style, value, autoFocus}: SmallInputProps) {
+export default function SmallInput ({autoCapitalize, autoCorrect = false, errorState, hintText, label, onChange, style, value, autoFocus, onEnterKeyDown}: SmallInputProps) {
   return (
     <Box style={{...styleContainer(!!errorState), ...style}}>
       <Text type='BodySmallSemibold' style={styleLabel}>{label}</Text>
@@ -19,6 +19,7 @@ export default function SmallInput ({autoCapitalize, autoCorrect = false, errorS
         autoCorrect={autoCorrect}
         autoFocus={autoFocus}
         value={value}
+        onEnterKeyDown={onEnterKeyDown}
         onChangeText={onChange} />
     </Box>
   )

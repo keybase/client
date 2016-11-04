@@ -38,6 +38,7 @@ function _specsForMobileOrDesktop () {
     'dnsOrGenericWebSite': {icon: `icon-website-${size}`},
     'rooter': {icon: `icon-website-${size}`},
     'btc': {icon: `icon-bitcoin-logo-${size}`},
+    'zcash': {icon: `icon-zcash-logo-${size}`},
     'pgp': {icon: `icon-pgp-key-${size}`, offsetBottom: -2, offsetRight: 4},
   }): any)
 }

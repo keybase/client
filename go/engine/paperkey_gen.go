@@ -246,7 +246,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 	// push the paper signing key
 	sigDel := libkb.Delegator{
 		NewKey:         e.sigKey,
-		DelegationType: libkb.SibkeyType,
+		DelegationType: libkb.DelegationTypeSibkey,
 		Expire:         libkb.NaclEdDSAExpireIn,
 		ExistingKey:    e.arg.SigningKey,
 		Me:             e.arg.Me,
@@ -257,7 +257,7 @@ func (e *PaperKeyGen) push(ctx *Context) error {
 	// push the paper encryption key
 	sigEnc := libkb.Delegator{
 		NewKey:         e.encKey,
-		DelegationType: libkb.SubkeyType,
+		DelegationType: libkb.DelegationTypeSubkey,
 		Expire:         libkb.NaclDHExpireIn,
 		ExistingKey:    e.sigKey,
 		Me:             e.arg.Me,

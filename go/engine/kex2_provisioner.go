@@ -276,7 +276,7 @@ func (e *Kex2Provisioner) skeletonProof() (string, error) {
 	delg := libkb.Delegator{
 		ExistingKey:    e.signingKey,
 		Me:             e.me,
-		DelegationType: libkb.SibkeyType,
+		DelegationType: libkb.DelegationTypeSibkey,
 		Expire:         libkb.NaclEdDSAExpireIn,
 		Contextified:   libkb.NewContextified(e.G()),
 	}

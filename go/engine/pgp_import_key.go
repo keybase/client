@@ -266,7 +266,7 @@ func (e *PGPKeyImportEngine) loadDelegator(ctx *Context) (err error) {
 		ExistingKey:    e.arg.SigningKey,
 		Me:             e.me,
 		Expire:         libkb.KeyExpireIn,
-		DelegationType: libkb.SibkeyType,
+		DelegationType: libkb.DelegationTypeSibkey,
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 

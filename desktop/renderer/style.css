@@ -51,6 +51,14 @@ table {
 
 /* End reset */
 
+/* KB custom font */
+@font-face {
+  font-family: 'kb';
+  src: url('fonts/kb.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 /* Source Code Pro */
 @font-face {
     font-family: 'Source Code Pro';

@@ -154,15 +154,15 @@ class TransportShared extends RobustTransport {
     const wrappedInvoke = _wrap((args) => {
       super.invoke(args, _wrap((err, data) => {
         cb(err, data)
-      }, 'serverToEngine', KEYBASE_RPC_DELAY_RESULT, 'received'))
-    }, 'engineToServer', KEYBASE_RPC_DELAY, 'sent')
+      }, 'serverToEngine', KEYBASE_RPC_DELAY_RESULT, `received ${arg.method}`))
+    }, 'engineToServer', KEYBASE_RPC_DELAY, `sent ${arg.method}`)
 
     wrappedInvoke(wrappedArgs)
   }
 }
 
 function sharedCreateClient (nativeTransport: any) {
-  const rpcClient = new RpcClient(nativeTransport, 'keybase.1')
+  const rpcClient = new RpcClient(nativeTransport)
 
   if (rpcClient.transport.needsConnect) {
     rpcClient.transport.connect(err => {

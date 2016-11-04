@@ -249,6 +249,31 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       }
     }
 
+    case Constants.updateZcash: {
+      if (!action.payload) {
+        return state
+      }
+
+      const url = `https://keybase.io/${state.username}/sigchain#${action.payload.sigID}`
+      const proof = {
+        state: 'normal',
+        id: action.payload.sigID,
+        meta: null,
+        type: 'zcash',
+        mTime: 0,
+        color: 'green',
+        name: action.payload.address,
+        humanUrl: url,
+        profileUrl: url,
+        isTracked: state.currentlyFollowing,
+      }
+
+      return {
+        ...state,
+        proofs: dedupeProofs(state.proofs.concat([proof])),
+      }
+    }
+
     case Constants.updateBTC: {
       if (!action.payload) {
         return state

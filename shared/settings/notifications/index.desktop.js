@@ -1,17 +1,16 @@
 // @flow
 import React from 'react'
-import {globalStyles, globalMargins} from '../../styles'
 import {Box, Button, Text, Checkbox, ProgressIndicator} from '../../common-adapters'
+import {globalStyles, globalMargins} from '../../styles'
 
 import type {Props} from './index'
 
-function Notifications (props: Props) {
-  return !props.settings
-    ? (
+const Notifications = (props: Props) => (
+  !props.settings ? (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
       <ProgressIndicator type='Small' style={{width: globalMargins.medium}} />
     </Box>)
-    : (
+  : (
     <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium}}>
       <Text type='BodyBig' style={{marginTop: globalMargins.medium}}>Email me:</Text>
       <Box style={globalStyles.flexBoxColumn}>
@@ -39,6 +38,6 @@ function Notifications (props: Props) {
         onClick={props.onSave}
         waiting={props.waitingForResponse} />
     </Box>)
-}
+)
 
 export default Notifications

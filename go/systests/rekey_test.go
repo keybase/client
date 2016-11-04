@@ -774,7 +774,7 @@ func (rkt *rekeyTester) confirmGregorStateIsClean() {
 	defer rkt.log.Debug("- confirmGregorStateIsClean")
 
 	start := time.Now()
-	last := start.Add(10 * time.Second)
+	last := start.Add(3 * time.Second)
 	i := 0
 	var delay time.Duration
 

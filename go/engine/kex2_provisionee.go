@@ -253,11 +253,11 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 	}
 
 	// create the key args for eddsa, dh keys
-	eddsaArgs, err := makeKeyArgs(decSig.sigID, sig, libkb.SibkeyType, e.eddsa, decSig.eldestKID, decSig.signingKID)
+	eddsaArgs, err := makeKeyArgs(decSig.sigID, sig, libkb.DelegationTypeSibkey, e.eddsa, decSig.eldestKID, decSig.signingKID)
 	if err != nil {
 		return err
 	}
-	dhArgs, err := makeKeyArgs(dhSigID, []byte(dhSig), libkb.SubkeyType, e.dh, decSig.eldestKID, e.eddsa.GetKID())
+	dhArgs, err := makeKeyArgs(dhSigID, []byte(dhSig), libkb.DelegationTypeSubkey, e.dh, decSig.eldestKID, e.eddsa.GetKID())
 	if err != nil {
 		return err
 	}
@@ -419,7 +419,7 @@ func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
 	s := libkb.DeviceStatusActive
 	e.device.Status = &s
 	e.device.Kid = e.eddsa.GetKID()
-	dw, err := e.device.Export(libkb.SibkeyType)
+	dw, err := e.device.Export(libkb.DelegationTypeSibkey)
 	if err != nil {
 		return err
 	}
@@ -490,7 +490,7 @@ func (e *Kex2Provisionee) dhKeyProof(dh libkb.GenericKey, eldestKID keybase1.KID
 	delg := libkb.Delegator{
 		ExistingKey:    e.eddsa,
 		NewKey:         dh,
-		DelegationType: libkb.SubkeyType,
+		DelegationType: libkb.DelegationTypeSubkey,
 		Expire:         libkb.NaclDHExpireIn,
 		EldestKID:      eldestKID,
 		Device:         e.device,

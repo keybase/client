@@ -78,6 +78,7 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 
 	b := conn.Bucket(asset.Bucket)
 
+	log.Debug("downloading %s from s3", asset.Path)
 	body, err := b.GetReader(asset.Path)
 	defer func() {
 		if body != nil {

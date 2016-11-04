@@ -7,7 +7,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -26,7 +26,7 @@ func mergeResults(current int, next int) int {
 	return next
 }
 
-func doUninstallAction(uninst string, list bool) int {
+func doUninstallAction(uninst string, list bool, log *log.Logger) int {
 	retval := 1
 
 	// Parse out the command, which may be inside quotes, and arguments
@@ -53,12 +53,12 @@ func doUninstallAction(uninst string, list bool) int {
 	args = append(args, "/norestart")
 
 	if list {
-		fmt.Printf("%s %v\n", command, args)
+		log.Printf("%s %v\n", command, args)
 	} else {
 		uninstCmd := exec.Command(command, args...)
 		err := uninstCmd.Run()
 		if err != nil {
-			fmt.Printf("Error %s uninstalling %s\n", err.Error(), uninst)
+			log.Printf("Error uninstalling %s:  %s\n", uninst, err.Error())
 			if e2, ok := err.(*exec.ExitError); ok {
 				if s, ok := e2.Sys().(syscall.WaitStatus); ok {
 					retval = int(s.ExitCode)
@@ -78,10 +78,9 @@ func removeKeybaseStartupShortcuts() {
 
 // Read all the uninstall subkeys and find the ones with DisplayName starting with "Dokan Library".
 // If not just listing, execute each uninstaller we find and merge return codes.
-// TODO: only delete the one matching the product key the keybase installer writes to the registry
-// https://keybase.atlassian.net/browse/CORE-3743
-func findDokanUninstall(list bool, wow64 bool) (result int) {
-	var access uint32 = registry.ENUMERATE_SUB_KEYS | registry.QUERY_VALUE
+// only delete the one matching the product key the keybase installer writes to the registry
+func findDokanUninstall(list bool, wow64 bool, log *log.Logger) (result int) {
+	var access uint32 = registry.ENUMERATE_SUB_KEYS | registry.QUERY_VALUE | registry.READ
 	// Assume this is build 32 bit, so we need this flag to see 64 but registry
 	//   https://msdn.microsoft.com/en-us/library/windows/desktop/aa384129(v=vs.110).aspx
 	if wow64 {
@@ -90,53 +89,66 @@ func findDokanUninstall(list bool, wow64 bool) (result int) {
 
 	k, err := registry.OpenKey(registry.LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", access)
 	if err != nil {
-		fmt.Printf("Error %s opening uninstall subkeys\n", err.Error())
+		log.Printf("Error opening SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall : %s\n", err.Error())
+		return
+	}
+
+	kb, err := registry.OpenKey(registry.CURRENT_USER, "SOFTWARE\\Keybase\\Keybase", access)
+	if err != nil {
+		log.Printf("Error opening SOFTWARE\\Keybase\\Keybase:  %s\n", err.Error())
 		return
 	}
 	defer k.Close()
+	defer kb.Close()
 
-	names, err := k.ReadSubKeyNames(-1)
-	if err != nil {
-		fmt.Printf("Error %s reading subkeys\n", err.Error())
-		return
+	var codes []string
+	dokanProductCode86, _, err := kb.GetStringValue("DOKANPRODUCT86")
+	if err == nil {
+		codes = append(codes, dokanProductCode86)
 	}
-	for _, name := range names {
-		subKey, err := registry.OpenKey(k, name, registry.QUERY_VALUE)
+
+	dokanProductCode64, _, err := kb.GetStringValue("DOKANPRODUCT64")
+	if err == nil {
+		codes = append(codes, dokanProductCode64)
+	}
+
+	for _, code := range codes {
+		subKey, err := registry.OpenKey(k, code, registry.QUERY_VALUE)
 		if err != nil {
-			fmt.Printf("Error %s opening subkey %s\n", err.Error(), name)
+			// This is not an error; we usually will find only one
+			// fmt.Printf("Error %s opening subkey %s\n", err.Error(), code)
+			continue
 		}
 
 		displayName, _, err := subKey.GetStringValue("DisplayName")
 		if list {
-			fmt.Printf("  %s -- %s\n", name, displayName)
+			log.Printf("  %s -- %s\n", code, displayName)
 		}
-		if err == nil && strings.HasPrefix(displayName, "Dokan Library") {
 
-			fmt.Printf("Found %s  %s\n", displayName, name)
-			uninstall, _, err := subKey.GetStringValue("QuietUninstallString")
-			if err != nil {
-				uninstall, _, err = subKey.GetStringValue("UninstallString")
-			}
-			if err != nil {
-				fmt.Printf("Error %s opening subkey UninstallString", err.Error())
-			} else {
-				result = mergeResults(result, doUninstallAction(uninstall, list))
-			}
+		uninstall, _, err := subKey.GetStringValue("QuietUninstallString")
+		if err != nil {
+			uninstall, _, err = subKey.GetStringValue("UninstallString")
+		}
+		if err != nil {
+			log.Printf("Error opening subkey UninstallString: %s", err.Error())
+		} else {
+			result = mergeResults(result, doUninstallAction(uninstall, list, log))
 		}
 	}
+
 	return
 }
 
 func main() {
-
+	logger := log.New(os.Stdout, "dokanclean: ", log.Lshortfile)
 	listPtr := flag.Bool("l", false, "list only, don't perform uninstall")
 
 	flag.Parse()
-	code := findDokanUninstall(*listPtr, false)
+	code := findDokanUninstall(*listPtr, false, logger)
 	if *listPtr {
-		fmt.Print(" -- wow64 -- \n")
+		logger.Print(" -- wow64 -- \n")
 	}
-	code = mergeResults(code, findDokanUninstall(*listPtr, true))
+	code = mergeResults(code, findDokanUninstall(*listPtr, true, logger))
 	if !*listPtr {
 		removeKeybaseStartupShortcuts()
 	}

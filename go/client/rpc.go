@@ -174,10 +174,10 @@ func GetRevokeClient(g *libkb.GlobalContext) (cli keybase1.RevokeClient, err err
 	return
 }
 
-func GetBTCClient(g *libkb.GlobalContext) (cli keybase1.BTCClient, err error) {
+func GetCryptocurrencyClient(g *libkb.GlobalContext) (cli keybase1.CryptocurrencyClient, err error) {
 	var rcli *rpc.Client
 	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
-		cli = keybase1.BTCClient{Cli: rcli}
+		cli = keybase1.CryptocurrencyClient{Cli: rcli}
 	}
 	return
 }
@@ -229,6 +229,15 @@ func GetKBFSClient(g *libkb.GlobalContext) (cli keybase1.KbfsClient, err error) 
 		return cli, err
 	}
 	cli = keybase1.KbfsClient{Cli: rcli}
+	return cli, nil
+}
+
+func GetKBFSMountClient(g *libkb.GlobalContext) (cli keybase1.KbfsMountClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.KbfsMountClient{Cli: rcli}
 	return cli, nil
 }
 
