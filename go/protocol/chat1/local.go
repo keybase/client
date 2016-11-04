@@ -43,6 +43,7 @@ type Asset struct {
 	EncHash   Hash   `codec:"encHash" json:"encHash"`
 	Key       []byte `codec:"key" json:"key"`
 	VerifyKey []byte `codec:"verifyKey" json:"verifyKey"`
+	Title     string `codec:"title" json:"title"`
 }
 
 type MessageAttachment struct {
@@ -456,18 +457,18 @@ type GetInboxLocalRes struct {
 }
 
 type GetInboxLocalQuery struct {
-	TlfName               *string              `codec:"tlfName,omitempty" json:"tlfName,omitempty"`
-	TopicName             *string              `codec:"topicName,omitempty" json:"topicName,omitempty"`
-	ConvID                *ConversationID      `codec:"convID,omitempty" json:"convID,omitempty"`
-	TopicType             *TopicType           `codec:"topicType,omitempty" json:"topicType,omitempty"`
-	TlfVisibility         *TLFVisibility       `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
-	Before                *gregor1.Time        `codec:"before,omitempty" json:"before,omitempty"`
-	After                 *gregor1.Time        `codec:"after,omitempty" json:"after,omitempty"`
-	OneChatTypePerTLF     *bool                `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
-	StatusOverrideDefault []ConversationStatus `codec:"statusOverrideDefault" json:"statusOverrideDefault"`
-	UnreadOnly            bool                 `codec:"unreadOnly" json:"unreadOnly"`
-	ReadOnly              bool                 `codec:"readOnly" json:"readOnly"`
-	ComputeActiveList     bool                 `codec:"computeActiveList" json:"computeActiveList"`
+	TlfName           *string              `codec:"tlfName,omitempty" json:"tlfName,omitempty"`
+	TopicName         *string              `codec:"topicName,omitempty" json:"topicName,omitempty"`
+	ConvID            *ConversationID      `codec:"convID,omitempty" json:"convID,omitempty"`
+	TopicType         *TopicType           `codec:"topicType,omitempty" json:"topicType,omitempty"`
+	TlfVisibility     *TLFVisibility       `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
+	Before            *gregor1.Time        `codec:"before,omitempty" json:"before,omitempty"`
+	After             *gregor1.Time        `codec:"after,omitempty" json:"after,omitempty"`
+	OneChatTypePerTLF *bool                `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
+	Status            []ConversationStatus `codec:"status" json:"status"`
+	UnreadOnly        bool                 `codec:"unreadOnly" json:"unreadOnly"`
+	ReadOnly          bool                 `codec:"readOnly" json:"readOnly"`
+	ComputeActiveList bool                 `codec:"computeActiveList" json:"computeActiveList"`
 }
 
 type GetInboxAndUnboxLocalRes struct {
@@ -502,13 +503,14 @@ type NewConversationLocalRes struct {
 }
 
 type GetInboxSummaryForCLILocalQuery struct {
-	TopicType           TopicType           `codec:"topicType" json:"topicType"`
-	After               string              `codec:"after" json:"after"`
-	Before              string              `codec:"before" json:"before"`
-	Visibility          TLFVisibility       `codec:"visibility" json:"visibility"`
-	UnreadFirst         bool                `codec:"unreadFirst" json:"unreadFirst"`
-	UnreadFirstLimit    UnreadFirstNumLimit `codec:"unreadFirstLimit" json:"unreadFirstLimit"`
-	ActivitySortedLimit int                 `codec:"activitySortedLimit" json:"activitySortedLimit"`
+	TopicType           TopicType            `codec:"topicType" json:"topicType"`
+	After               string               `codec:"after" json:"after"`
+	Before              string               `codec:"before" json:"before"`
+	Visibility          TLFVisibility        `codec:"visibility" json:"visibility"`
+	Status              []ConversationStatus `codec:"status" json:"status"`
+	UnreadFirst         bool                 `codec:"unreadFirst" json:"unreadFirst"`
+	UnreadFirstLimit    UnreadFirstNumLimit  `codec:"unreadFirstLimit" json:"unreadFirstLimit"`
+	ActivitySortedLimit int                  `codec:"activitySortedLimit" json:"activitySortedLimit"`
 }
 
 type GetInboxSummaryForCLILocalRes struct {
@@ -576,6 +578,8 @@ type PostAttachmentLocalArg struct {
 	ClientHeader   MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
 	Attachment     LocalSource         `codec:"attachment" json:"attachment"`
 	Preview        *LocalSource        `codec:"preview,omitempty" json:"preview,omitempty"`
+	Title          string              `codec:"title" json:"title"`
+	Metadata       []byte              `codec:"metadata" json:"metadata"`
 }
 
 type NewConversationLocalArg struct {

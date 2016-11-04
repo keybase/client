@@ -373,7 +373,11 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 	case chat1.MessageType_ATTACHMENT:
 		mv.Renderable = true
 		att := body.Attachment()
-		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", filepath.Base(att.Object.Filename), m.GetMessageID())
+		title := att.Object.Title
+		if title == "" {
+			title = filepath.Base(att.Object.Filename)
+		}
+		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", title, m.GetMessageID())
 		if att.Preview != nil {
 			mv.Body += " [preview available]"
 		}

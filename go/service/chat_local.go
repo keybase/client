@@ -97,7 +97,7 @@ func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquer
 	rquery.ComputeActiveList = lquery.ComputeActiveList
 	rquery.ConvID = lquery.ConvID
 	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
-	rquery.Status = lquery.StatusOverrideDefault
+	rquery.Status = lquery.Status
 
 	return rquery, nil
 }
@@ -435,6 +435,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 	if arg.Visibility != chat1.TLFVisibility_ANY {
 		queryBase.TlfVisibility = &arg.Visibility
 	}
+	queryBase.Status = arg.Status
 
 	var gires chat1.GetInboxAndUnboxLocalRes
 	if arg.UnreadFirst {
@@ -758,10 +759,13 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	if arg.Preview != nil {
 		g.Go(func() error {
 			chatUI.ChatAttachmentPreviewUploadStart(ctx)
+			// copy the params so as not to mess with the main params above
+			previewParams := params
+
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
-			params.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, params, *arg.Preview, nil)
+			previewParams.ObjectKey += "50"
+			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, *arg.Preview, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
@@ -774,10 +778,20 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		return chat1.PostLocalRes{}, err
 	}
 
+	// Title on Asset set to filename in uploadAsset, but if
+	// a title was specified, then use that instead.
+	if arg.Title != "" {
+		object.Title = arg.Title
+		if preview != nil {
+			preview.Title = arg.Title
+		}
+	}
+
 	// send an attachment message
 	attachment := chat1.MessageAttachment{
-		Object:  object,
-		Preview: preview,
+		Object:   object,
+		Preview:  preview,
+		Metadata: arg.Metadata,
 	}
 	postArg := chat1.PostLocalArg{
 		ConversationID: arg.ConversationID,
@@ -934,6 +948,7 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 
 	asset := chat1.Asset{
 		Filename:  filepath.Base(local.Filename),
+		Title:     filepath.Base(local.Filename),
 		Region:    upRes.Region,
 		Endpoint:  upRes.Endpoint,
 		Bucket:    upRes.Bucket,

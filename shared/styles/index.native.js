@@ -59,7 +59,6 @@ const font = {
       fontWeight: 'bold',
     },
     italic: {
-      fontFamily: 'OpenSans-Semibold',
       fontStyle: 'italic',
     },
     fontTerminal: {

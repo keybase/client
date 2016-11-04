@@ -12,7 +12,7 @@ class FollowButton extends Component<void, Props, void> {
         type='Following'
         label='Following'
         onClick={onUnfollow}
-        style={{...styleButton, ...style}}
+        style={style}
         {...otherProps}
       />
     } else {
@@ -20,15 +20,11 @@ class FollowButton extends Component<void, Props, void> {
         type='Follow'
         label='Follow'
         onClick={onFollow}
-        style={{...styleButton, ...style}}
+        style={style}
         {...otherProps}
       />
     }
   }
-}
-
-const styleButton = {
-  width: 140,
 }
 
 export default FollowButton

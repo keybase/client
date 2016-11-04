@@ -191,7 +191,7 @@ const stylesProofName = {
   flex: 1,
 }
 const stylesProofType = {
-  color: globalColors.black_10,
+  color: globalColors.black_20,
 }
 
 export default ProofsRender

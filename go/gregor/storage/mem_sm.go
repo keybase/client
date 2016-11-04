@@ -42,6 +42,14 @@ type item struct {
 	item  gregor.Item
 	ctime time.Time
 	dtime *time.Time
+
+	// If we received a message from the server that a message should be dimissed,
+	// do so immediately, so as not to introduce clock-skew bugs. We previously
+	// had a bug here --- a message would come in to dismiss a message M at server time T,
+	// but then we would wait around for S seconds before marking that message as
+	// dismissed, where S is the clock skew between the client and server. This seems
+	// unnecessary, we should just mark the message dismissed when it comes in.
+	dismissedImmediate bool
 }
 
 // loggedMsg is a message that we've logged on arrival into this state machine
@@ -60,8 +68,12 @@ type user struct {
 	log   []loggedMsg
 }
 
-// isDismissedAt returns true if item i is dismissed at time t
+// isDismissedAt returns true if item i is dismissed at time t. It will always return
+// true if the `dismissedImmediate` flag was turned out.
 func (i item) isDismissedAt(t time.Time) bool {
+	if i.dismissedImmediate {
+		return true
+	}
 	if i.dtime != nil && isBeforeOrSame(*i.dtime, t) {
 		return true
 	}
@@ -126,6 +138,7 @@ func (u *user) dismissMsgIDs(now time.Time, ids []gregor.MsgID) {
 	for _, i := range u.items {
 		if _, found := set[msgIDtoString(i.item.Metadata().MsgID())]; found {
 			i.dtime = &now
+			i.dismissedImmediate = true
 		}
 	}
 }
@@ -156,6 +169,7 @@ func (u *user) dismissRanges(now time.Time, rs []gregor.MsgRange) {
 			if r.Category().String() == i.item.Category().String() &&
 				isBeforeOrSame(i.ctime, toTime(now, r.EndTime())) {
 				i.dtime = &now
+				i.dismissedImmediate = true
 				break
 			}
 		}

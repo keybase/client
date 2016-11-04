@@ -37,6 +37,7 @@ protocol local {
     Hash encHash;              // hash of ciphertext object 
     bytes key;                 // encryption key
     bytes verifyKey;           // signature verification key
+    string title;              // title of the asset (defaults to filename if not provided)
   }
 
   record MessageAttachment {
@@ -183,7 +184,6 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
-
   // topicName in GetInboxLocalQuery is ignored
   GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
   record GetInboxLocalRes {
@@ -194,6 +194,8 @@ protocol local {
 
   GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
   record GetInboxLocalQuery {
+    // Local analog of common:GetInboxQuery
+
     union { null, string } tlfName;
     union { null, string } topicName;
 
@@ -203,7 +205,10 @@ protocol local {
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
-    array<ConversationStatus> statusOverrideDefault;
+
+    // If left empty, default is to show all.
+    array<ConversationStatus> status;
+
     boolean unreadOnly;
     boolean readOnly;
     boolean computeActiveList;
@@ -238,7 +243,7 @@ protocol local {
   }
 
   // Post an attachment in source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview);
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview, string title, bytes metadata);
 
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName);
   record NewConversationLocalRes {
@@ -254,6 +259,9 @@ protocol local {
     string after;
     string before;
     TLFVisibility visibility;
+
+    // If left empty, default is to show all.
+    array<ConversationStatus> status;
 
     boolean unreadFirst;
     UnreadFirstNumLimit unreadFirstLimit;

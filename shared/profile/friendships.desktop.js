@@ -34,7 +34,7 @@ class UserEntry extends PureComponent<void, UserEntryProps, void> {
 
     return <Box style={userEntryContainerStyle} onClick={this._onClick}>
       <Avatar style={userEntryAvatarStyle} size={64} url={thumbnailUrl} followsYou={followsYou} following={following} />
-      <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
+      <Text type='BodySemibold' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
     </Box>
   }
 }

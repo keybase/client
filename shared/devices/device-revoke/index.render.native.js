@@ -7,15 +7,15 @@ import {globalStyles, globalColors} from '../../styles'
 
 const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props) => {
   const icon: IconType = {
-    'mobile': 'icon-phone-bw-revoke-48',
-    'desktop': 'icon-computer-bw-revoke-48',
-    'backup': 'icon-paper-key-revoke-48',
+    'mobile': 'icon-phone-bw-revoke-64',
+    'desktop': 'icon-computer-bw-revoke-64',
+    'backup': 'icon-paper-key-revoke-64',
   }[type]
 
   const header = (
     <Box style={styleIcon}>
       <Icon type={icon} />
-      <Text type='Body' style={stylesName}>{name}</Text>
+      <Text type='BodyBig' style={stylesName}>{name}</Text>
     </Box>
   )
 
