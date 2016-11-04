@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../constants/push'
-import PushNotification from 'react-native-push-notification'
+import * as PushNotifications from 'react-native-push-notification'
 
 import {apiserverPostRpcPromise} from '../constants/types/flow-types'
 
@@ -10,31 +10,36 @@ import {takeEvery, takeLatest, delay} from 'redux-saga'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
-import type {PushPermissionsPrompt, PushPermissionsRequest, PushPermissionsRequesting, PushToken, SavePushToken, TokenType, UpdatePushToken} from '../constants/push'
+import type {PushNotification, PushNotificationAction, PushPermissionsPromptAction, PushPermissionsRequestAction, PushPermissionsRequestingAction, PushTokenAction, SavePushTokenAction, TokenType, UpdatePushTokenAction} from '../constants/push'
 
-export function permissionsRequest (): PushPermissionsRequest {
+export function permissionsRequest (): PushPermissionsRequestAction {
   return {type: Constants.permissionsRequest, payload: undefined}
 }
 
-export function permissionsRequesting (enabled: boolean): PushPermissionsRequesting {
+export function permissionsRequesting (enabled: boolean): PushPermissionsRequestingAction {
   return {type: Constants.permissionsRequesting, payload: enabled}
 }
 
-export function permissionsPrompt (enabled: boolean): PushPermissionsPrompt {
+export function permissionsPrompt (enabled: boolean): PushPermissionsPromptAction {
   return {type: Constants.permissionsPrompt, payload: enabled}
 }
 
-export function pushToken (token: string, tokenType: TokenType): PushToken {
+export function pushNotification (notification: PushNotification): PushNotificationAction {
+  return {type: Constants.pushNotification, payload: notification}
+}
+
+export function pushToken (token: string, tokenType: TokenType): PushTokenAction {
   return {type: Constants.pushToken, payload: {token, tokenType}}
 }
 
-export function updatePushToken (token: string, tokenType: TokenType): UpdatePushToken {
+export function savePushToken (): SavePushTokenAction {
+  return {type: Constants.savePushToken, payload: undefined}
+}
+
+export function updatePushToken (token: string, tokenType: TokenType): UpdatePushTokenAction {
   return {type: Constants.updatePushToken, payload: {token, tokenType}}
 }
 
-export function savePushToken (): SavePushToken {
-  return {type: Constants.savePushToken, payload: undefined}
-}
 
 function * pushTokenSaga (token: string, tokenType: TokenType): SagaGenerator<any, any> {
   yield put(updatePushToken(token, tokenType))
@@ -72,7 +77,7 @@ function * permissionsRequestSaga (): SagaGenerator<any, any> {
     yield put({type: Constants.permissionsRequesting, payload: true})
 
     console.log('Requesting permissions')
-    const permissions = yield call(() => { return PushNotification.requestPermissions() })
+    const permissions = yield call(() => { return PushNotifications.requestPermissions() })
     // TODO(gabriel): Set permissions we have in state, might need it at some point?
   } finally {
     yield put({type: Constants.permissionsRequesting, payload: false})
@@ -80,11 +85,16 @@ function * permissionsRequestSaga (): SagaGenerator<any, any> {
   }
 }
 
+function * pushNotificationSaga (notification: PushNotification): SagaGenerator<any, any> {
+  console.warn('Push notification:', notification)
+}
+
 function * pushSaga (): SagaGenerator<any, any> {
   yield [
     takeLatest(Constants.permissionsRequest, permissionsRequestSaga),
     takeLatest(Constants.pushToken, pushTokenSaga),
     takeLatest(Constants.savePushToken, savePushTokenSaga),
+    takeEvery(Constants.pushNotification, pushNotificationSaga),
   ]
 }
 

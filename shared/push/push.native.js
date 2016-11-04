@@ -1,12 +1,12 @@
 // @flow
 import React, {Component} from 'react'
-import {Alert, Clipboard, Image, PushNotificationIOS} from 'react-native'
+import {Clipboard, Image, PushNotificationIOS} from 'react-native'
 import {connect} from 'react-redux'
 import {Box, Button, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-import PushNotification from 'react-native-push-notification'
-import {permissionsPrompt, permissionsRequest, pushToken} from '../actions/push'
+import * as PushNotifications from 'react-native-push-notification'
+import {permissionsPrompt, permissionsRequest, pushNotification, pushToken} from '../actions/push'
 
 import type {Props} from './push'
 
@@ -17,7 +17,7 @@ class Push extends Component<void, Props, void> {
   }
 
   configurePush () {
-    PushNotification.configure({
+    PushNotifications.configure({
       onRegister: (token) => this.props.onPushToken(token.token, token.os),
       onNotification: (notification) => this.props.onPushNotification(notification),
       onError: (err) => this.props.onPushError(err),
@@ -30,7 +30,7 @@ class Push extends Component<void, Props, void> {
       this.props.onPushRegistrationError(err)
     })
 
-    PushNotification.checkPermissions(permissions => {
+    PushNotifications.checkPermissions(permissions => {
       console.log('Push checked permissions:', permissions)
       if (!permissions.alert) {
         // TODO(gabriel): Detect if we already showed permissions prompt and were denied,
@@ -40,7 +40,7 @@ class Push extends Component<void, Props, void> {
       } else {
         // We have permissions, this triggers a token registration in
         // case it changed.
-        PushNotification.requestPermissions()
+        PushNotifications.requestPermissions()
       }
     })
   }
@@ -90,8 +90,8 @@ const modal = {
 }
 
 export default connect(
-  (state: any, ownProps) => {
-    const {permissionsRequesting} = state.settings.push
+  (state: any) => {
+    const {permissionsRequesting} = state.push
     return ({
       permissionsRequesting,
     })
@@ -111,8 +111,7 @@ export default connect(
         dispatch(pushToken(token, tokenType))
       },
       onPushNotification: (notification) => {
-        // TODO(gabriel): Craft notification for  app
-        Alert.alert('Push notification', notification.message)
+        dispatch(pushNotification(notification))
       },
       onPushRegistrationError: (err) => {
         console.warn('Push registration error:', err)
