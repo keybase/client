@@ -1075,9 +1075,9 @@ func (rmds *RootMetadataSigned) IsLastModifiedBy(
 			return fmt.Errorf("Last writer %s != %s", writer, uid)
 		}
 		if rmds.WriterSigInfo.VerifyingKey != key {
-			panic(fmt.Errorf(
+			return fmt.Errorf(
 				"Last writer verifying key %v != %v",
-				rmds.WriterSigInfo.VerifyingKey, key))
+				rmds.WriterSigInfo.VerifyingKey, key)
 		}
 	}
 
