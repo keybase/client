@@ -893,7 +893,7 @@ func (tba testBlockArray) NewEmpty() Block {
 	return &testBlockArray{}
 }
 
-func (tba *testBlockArray) Set(other Block) {
+func (tba *testBlockArray) Set(other Block, _ kbfscodec.Codec) {
 	otherTba := other.(*testBlockArray)
 	*tba = *otherTba
 }

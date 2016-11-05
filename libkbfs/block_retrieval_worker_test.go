@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -26,12 +27,14 @@ type blockReturner struct {
 type fakeBlockGetter struct {
 	mtx      sync.RWMutex
 	blockMap map[BlockPointer]blockReturner
+	codec    kbfscodec.Codec
 }
 
 // newFakeBlockGetter returns a fakeBlockGetter.
 func newFakeBlockGetter() *fakeBlockGetter {
 	return &fakeBlockGetter{
 		blockMap: make(map[BlockPointer]blockReturner),
+		codec:    kbfscodec.NewMsgpack(),
 	}
 }
 
@@ -60,7 +63,7 @@ func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 	// Wait until the caller tells us to continue
 	select {
 	case <-source.ch:
-		block.Set(source.block)
+		block.Set(source.block, bg.codec)
 	case <-ctx.Done():
 		return ctx.Err()
 	}
@@ -78,7 +81,7 @@ func makeFakeFileBlock(t *testing.T) *FileBlock {
 
 func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	t.Log("Test the basic ability of a worker to return a block.")
-	q := newBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack())
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -101,7 +104,7 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 
 func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	t.Log("Test the ability of multiple workers to retrieve concurrently.")
-	q := newBlockRetrievalQueue(2)
+	q := newBlockRetrievalQueue(2, kbfscodec.NewMsgpack())
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -145,7 +148,7 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 
 func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	t.Log("Test the ability of a worker and queue to work correctly together.")
-	q := newBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack())
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -196,7 +199,7 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 
 func TestBlockRetrievalWorkerCancel(t *testing.T) {
 	t.Log("Test the ability of a worker to handle a request cancelation.")
-	q := newBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack())
 	require.NotNil(t, q)
 	defer q.Shutdown()
 
@@ -219,7 +222,7 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 
 func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	t.Log("Test that worker shutdown works.")
-	q := newBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack())
 	require.NotNil(t, q)
 	defer q.Shutdown()
 

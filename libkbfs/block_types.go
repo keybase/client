@@ -68,11 +68,12 @@ func (cb *CommonBlock) NewEmpty() Block {
 }
 
 // Set implements the Block interface for CommonBlock
-func (cb *CommonBlock) Set(other Block) {
+func (cb *CommonBlock) Set(other Block, codec kbfscodec.Codec) {
 	otherCb := other.(*CommonBlock)
-	cb.IsInd = otherCb.IsInd
-	cb.UnknownFieldSetHandler = otherCb.UnknownFieldSetHandler
-	cb.cachedEncodedSize = otherCb.cachedEncodedSize
+	err := kbfscodec.Update(codec, cb, otherCb)
+	if err != nil {
+		panic("Unable to CommonBlock.Set")
+	}
 }
 
 // NewCommonBlock returns a generic block, unsuitable for caching.
@@ -102,18 +103,13 @@ func (db *DirBlock) NewEmpty() Block {
 }
 
 // Set implements the Block interface for DirBlock
-func (db *DirBlock) Set(other Block) {
+func (db *DirBlock) Set(other Block, codec kbfscodec.Codec) {
 	otherDb := other.(*DirBlock)
-	db.Children = make(map[string]DirEntry, len(otherDb.Children))
-	for k, v := range otherDb.Children {
-		db.Children[k] = v
+	copy, err := otherDb.DeepCopy(codec)
+	if err != nil {
+		panic("Unable to DirBlock.Set")
 	}
-	if otherDb.IPtrs == nil {
-		db.IPtrs = nil
-	} else {
-		db.IPtrs = make([]IndirectDirPtr, len(otherDb.IPtrs))
-		copy(db.IPtrs, otherDb.IPtrs)
-	}
+	*db = *copy
 }
 
 // DeepCopy makes a complete copy of a DirBlock
@@ -165,18 +161,13 @@ func (fb *FileBlock) DataVersion() DataVer {
 }
 
 // Set implements the Block interface for FileBlock
-func (fb *FileBlock) Set(other Block) {
+func (fb *FileBlock) Set(other Block, codec kbfscodec.Codec) {
 	otherFb := other.(*FileBlock)
-	fb.CommonBlock.Set(&otherFb.CommonBlock)
-	fb.Contents = make([]byte, len(otherFb.Contents))
-	copy(fb.Contents, otherFb.Contents)
-	if otherFb.IPtrs == nil {
-		fb.IPtrs = nil
-	} else {
-		fb.IPtrs = make([]IndirectFilePtr, len(otherFb.IPtrs))
-		copy(fb.IPtrs, otherFb.IPtrs)
+	copy, err := otherFb.DeepCopy(codec)
+	if err != nil {
+		panic("Unable to DirBlock.Set")
 	}
-	fb.hash = otherFb.hash
+	*fb = *copy
 }
 
 // DeepCopy makes a complete copy of a FileBlock

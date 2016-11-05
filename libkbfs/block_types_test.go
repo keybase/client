@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 )
@@ -114,20 +115,15 @@ type dirBlockFuture struct {
 	extra
 }
 
-func (dbf *dirBlockFuture) Set(other Block) {
+func (dbf *dirBlockFuture) Set(other Block, codec kbfscodec.Codec) {
 	otherDbf := other.(*dirBlockFuture)
-	dbf.dirBlockCurrent.Set(&otherDbf.dirBlockCurrent)
-	dbf.Children = make(map[string]dirEntryFuture, len(otherDbf.Children))
-	for k, v := range otherDbf.Children {
-		dbf.Children[k] = v
+	err := kbfscodec.Update(codec, dbf, otherDbf)
+	if err != nil {
+		panic("Unable to dirBlockFuture.Set")
 	}
-	if otherDbf.IPtrs == nil {
-		dbf.IPtrs = nil
-	} else {
-		dbf.IPtrs = make([]indirectDirPtrFuture, len(otherDbf.IPtrs))
-		copy(dbf.IPtrs, otherDbf.IPtrs)
+	if dbf.Children == nil {
+		dbf.Children = make(map[string]dirEntryFuture, len(otherDbf.Children))
 	}
-	dbf.extra = otherDbf.extra
 }
 
 func (dbf dirBlockFuture) toCurrent() dirBlockCurrent {
@@ -181,14 +177,11 @@ type fileBlockFuture struct {
 	extra
 }
 
-func (fbf *fileBlockFuture) Set(other Block) {
+func (fbf *fileBlockFuture) Set(other Block, codec kbfscodec.Codec) {
 	otherFbf := other.(*fileBlockFuture)
-	fbf.fileBlockCurrent.Set(&otherFbf.fileBlockCurrent)
-	if otherFbf.IPtrs == nil {
-		fbf.IPtrs = nil
-	} else {
-		fbf.IPtrs = make([]indirectFilePtrFuture, len(otherFbf.IPtrs))
-		copy(fbf.IPtrs, otherFbf.IPtrs)
+	err := kbfscodec.Update(codec, fbf, otherFbf)
+	if err != nil {
+		panic("Unable to fileBlockFuture.Set")
 	}
 }
 

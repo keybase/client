@@ -9,6 +9,7 @@ import (
 	"io"
 	"sync"
 
+	"github.com/keybase/kbfs/kbfscodec"
 	"golang.org/x/net/context"
 )
 
@@ -53,7 +54,7 @@ type blockRetrieval struct {
 // requests are executed first. Requests are executed in FIFO order within a
 // given priority level.
 type blockRetrievalQueue struct {
-	// protects everything in this struct except workerQueue
+	// protects ptrs, insertionCount, and the heap
 	mtx sync.RWMutex
 	// queued or in progress retrievals
 	ptrs map[BlockPointer]*blockRetrieval
@@ -68,17 +69,19 @@ type blockRetrievalQueue struct {
 	workerQueue chan chan *blockRetrieval
 	// channel to be closed when we're done accepting requests
 	doneCh chan struct{}
+	codec  kbfscodec.Codec
 }
 
 // newBlockRetrievalQueue creates a new block retrieval queue. The numWorkers
 // parameter determines how many workers can concurrently call WorkOnRequest
 // (more than numWorkers will block).
-func newBlockRetrievalQueue(numWorkers int) *blockRetrievalQueue {
+func newBlockRetrievalQueue(numWorkers int, codec kbfscodec.Codec) *blockRetrievalQueue {
 	return &blockRetrievalQueue{
 		ptrs:        make(map[BlockPointer]*blockRetrieval),
 		heap:        &blockRetrievalHeap{},
 		workerQueue: make(chan chan *blockRetrieval, numWorkers),
 		doneCh:      make(chan struct{}),
+		codec:       codec,
 	}
 }
 
@@ -189,7 +192,7 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 		req := r
 		if block != nil {
 			// Copy the decrypted block to the caller
-			req.block.Set(block)
+			req.block.Set(block, brq.codec)
 		}
 		// Since we created this channel with a buffer size of 1, this won't block.
 		req.doneCh <- err
