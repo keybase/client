@@ -179,6 +179,7 @@ func MakeInitialBareRootMetadataV3(tlfID tlf.ID, h BareTlfHandle) (
 	var writers []keybase1.UID
 	if tlfID.IsPublic() {
 		writers = make([]keybase1.UID, len(h.Writers))
+		copy(writers, h.Writers)
 	}
 
 	var unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion
