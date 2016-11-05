@@ -19,10 +19,11 @@ type BlockOpsStandard struct {
 
 var _ BlockOps = (*BlockOpsStandard)(nil)
 
+// NewBlockOpsStandard creates a new BlockOpsStandard
 func NewBlockOpsStandard(config Config) *BlockOpsStandard {
 	bops := &BlockOpsStandard{
 		config:  config,
-		queue:   newBlockRetrievalQueue(defaultBlockRetrievalWorkerQueueSize),
+		queue:   newBlockRetrievalQueue(defaultBlockRetrievalWorkerQueueSize, config.Codec()),
 		workers: make([]*blockRetrievalWorker, 0, defaultBlockRetrievalWorkerQueueSize),
 	}
 	bg := &realBlockGetter{config: config}
