@@ -9,7 +9,8 @@ export type Props = {
   currentDevice: boolean,
   onSubmit: () => void,
   onCancel: () => void,
-  device: Device
+  device: Device,
+  endangeredTLFs: any,
 }
 
 export default class Render extends Component<void, Props, void> { }

@@ -6,7 +6,7 @@ import Render from './index.render'
 import moment from 'moment'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import {routeAppend, navigateUp} from '../../actions/router'
+import {navigateUp} from '../../actions/router'
 
 class DevicePage extends Component {
   static parseRoute (currentPath) {
@@ -78,7 +78,7 @@ export default connect(
   (dispatch: any) => {
     return {
       ...bindActionCreators(devicesActions, dispatch),
-      showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
+      showRemoveDevicePage: device => dispatch(devicesActions.showRemovePage(device)),
       onBack: () => dispatch(navigateUp()),
     }
   }
