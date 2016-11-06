@@ -962,7 +962,7 @@ type MDOps interface {
 	// which may not yet be reflected in the MD if the TLF hasn't been rekeyed since it
 	// entered into a conflicting state.
 	GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-		BareTlfHandle, error)
+		tlf.BareTlfHandle, error)
 }
 
 // KeyOps fetches server-side key halves from the key server.
@@ -1045,7 +1045,7 @@ type MDServer interface {
 	// the logged-in user has read permission on the folder.  It
 	// creates the folder if one doesn't exist yet, and the logged-in
 	// user has permission to do so.
-	GetForHandle(ctx context.Context, handle BareTlfHandle,
+	GetForHandle(ctx context.Context, handle tlf.BareTlfHandle,
 		mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error)
 
 	// GetForTLF returns the current (signed/encrypted) metadata object
@@ -1112,7 +1112,7 @@ type MDServer interface {
 	// entered into a conflicting state.  For the highest level of confidence, the caller
 	// should verify the mapping with a Merkle tree lookup.
 	GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-		BareTlfHandle, error)
+		tlf.BareTlfHandle, error)
 
 	// OffsetFromServerTime is the current estimate for how off our
 	// local clock is from the mdserver clock.  Add this to any
@@ -1604,7 +1604,7 @@ type BareRootMetadata interface {
 	CheckValidSuccessorForServer(currID MdID, nextMd BareRootMetadata) error
 	// MakeBareTlfHandle makes a BareTlfHandle for this
 	// BareRootMetadata. Should be used only by servers and MDOps.
-	MakeBareTlfHandle(extra ExtraMetadata) (BareTlfHandle, error)
+	MakeBareTlfHandle(extra ExtraMetadata) (tlf.BareTlfHandle, error)
 	// TlfHandleExtensions returns a list of handle extensions associated with the TLf.
 	TlfHandleExtensions() (extensions []tlf.TlfHandleExtension)
 	// GetDeviceKIDs returns the KIDs (of

@@ -427,7 +427,7 @@ func (m *stallingMDOps) GetForTLF(ctx context.Context, id tlf.ID) (
 }
 
 func (m *stallingMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-	h BareTlfHandle, err error) {
+	h tlf.BareTlfHandle, err error) {
 	m.maybeStall(ctx, StallableMDGetLatestHandleForTLF)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetLatestHandleForTLF error

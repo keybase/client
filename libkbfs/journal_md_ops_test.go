@@ -83,7 +83,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NoError(t, err)
 
 	// (1) get metadata -- allocates an ID
-	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
@@ -244,7 +244,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	require.NoError(t, err)
 
-	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
@@ -274,7 +274,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	require.NoError(t, err)
 
-	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())

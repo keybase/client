@@ -1,11 +1,10 @@
-package libkbfs
+package tlf
 
 import (
 	"errors"
 	"sort"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/tlf"
 )
 
 // BareTlfHandle uniquely identifies top-level folders by readers and
@@ -17,8 +16,8 @@ type BareTlfHandle struct {
 	Readers           []keybase1.UID             `codec:"r,omitempty"`
 	UnresolvedWriters []keybase1.SocialAssertion `codec:"uw,omitempty"`
 	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
-	ConflictInfo      *tlf.TlfHandleExtension    `codec:"ci,omitempty"`
-	FinalizedInfo     *tlf.TlfHandleExtension    `codec:"fi,omitempty"`
+	ConflictInfo      *TlfHandleExtension        `codec:"ci,omitempty"`
+	FinalizedInfo     *TlfHandleExtension        `codec:"fi,omitempty"`
 }
 
 // ErrNoWriters is the error returned by MakeBareTlfHandle if it is
@@ -33,35 +32,35 @@ var ErrInvalidWriter = errors.New("Cannot make TLF handle with invalid writer")
 // is passed an invalid reader.
 var ErrInvalidReader = errors.New("Cannot make TLF handle with invalid reader")
 
-// uidList can be used to lexicographically sort UIDs.
-type uidList []keybase1.UID
+// UIDList can be used to lexicographically sort UIDs.
+type UIDList []keybase1.UID
 
-func (u uidList) Len() int {
+func (u UIDList) Len() int {
 	return len(u)
 }
 
-func (u uidList) Less(i, j int) bool {
+func (u UIDList) Less(i, j int) bool {
 	return u[i].Less(u[j])
 }
 
-func (u uidList) Swap(i, j int) {
+func (u UIDList) Swap(i, j int) {
 	u[i], u[j] = u[j], u[i]
 }
 
 // socialAssertionList can be used to lexicographically sort SocialAssertions.
-type socialAssertionList []keybase1.SocialAssertion
+type SocialAssertionList []keybase1.SocialAssertion
 
-func (u socialAssertionList) Len() int {
+func (u SocialAssertionList) Len() int {
 	return len(u)
 }
 
-func (u socialAssertionList) Less(i, j int) bool {
+func (u SocialAssertionList) Less(i, j int) bool {
 	si := u[i].String()
 	sj := u[j].String()
 	return si < sj
 }
 
-func (u socialAssertionList) Swap(i, j int) {
+func (u SocialAssertionList) Swap(i, j int) {
 	u[i], u[j] = u[j], u[i]
 }
 
@@ -73,7 +72,7 @@ func (u socialAssertionList) Swap(i, j int) {
 func MakeBareTlfHandle(
 	writers, readers []keybase1.UID,
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
-	extensions []tlf.TlfHandleExtension) (BareTlfHandle, error) {
+	extensions []TlfHandleExtension) (BareTlfHandle, error) {
 	if len(writers) == 0 {
 		return BareTlfHandle{}, ErrNoWriters
 	}
@@ -99,30 +98,30 @@ func MakeBareTlfHandle(
 
 	writersCopy := make([]keybase1.UID, len(writers))
 	copy(writersCopy, writers)
-	sort.Sort(uidList(writersCopy))
+	sort.Sort(UIDList(writersCopy))
 
 	var readersCopy []keybase1.UID
 	if len(readers) > 0 {
 		readersCopy = make([]keybase1.UID, len(readers))
 		copy(readersCopy, readers)
-		sort.Sort(uidList(readersCopy))
+		sort.Sort(UIDList(readersCopy))
 	}
 
 	var unresolvedWritersCopy []keybase1.SocialAssertion
 	if len(unresolvedWriters) > 0 {
 		unresolvedWritersCopy = make([]keybase1.SocialAssertion, len(unresolvedWriters))
 		copy(unresolvedWritersCopy, unresolvedWriters)
-		sort.Sort(socialAssertionList(unresolvedWritersCopy))
+		sort.Sort(SocialAssertionList(unresolvedWritersCopy))
 	}
 
 	var unresolvedReadersCopy []keybase1.SocialAssertion
 	if len(unresolvedReaders) > 0 {
 		unresolvedReadersCopy = make([]keybase1.SocialAssertion, len(unresolvedReaders))
 		copy(unresolvedReadersCopy, unresolvedReaders)
-		sort.Sort(socialAssertionList(unresolvedReadersCopy))
+		sort.Sort(SocialAssertionList(unresolvedReadersCopy))
 	}
 
-	conflictInfo, finalizedInfo := tlf.TlfHandleExtensionList(extensions).Splat()
+	conflictInfo, finalizedInfo := TlfHandleExtensionList(extensions).Splat()
 
 	return BareTlfHandle{
 		Writers:           writersCopy,
@@ -248,15 +247,15 @@ func (h BareTlfHandle) ResolveAssertions(
 		delete(resolvedReaders, u)
 	}
 	h.Readers = uidSetToSlice(resolvedReaders)
-	sort.Sort(uidList(h.Writers))
-	sort.Sort(uidList(h.Readers))
-	sort.Sort(socialAssertionList(h.UnresolvedWriters))
-	sort.Sort(socialAssertionList(h.UnresolvedReaders))
+	sort.Sort(UIDList(h.Writers))
+	sort.Sort(UIDList(h.Readers))
+	sort.Sort(SocialAssertionList(h.UnresolvedWriters))
+	sort.Sort(SocialAssertionList(h.UnresolvedReaders))
 	return h
 }
 
 // Extensions returns a list of extensions for the given handle.
-func (h BareTlfHandle) Extensions() (extensions []tlf.TlfHandleExtension) {
+func (h BareTlfHandle) Extensions() (extensions []TlfHandleExtension) {
 	if h.ConflictInfo != nil {
 		extensions = append(extensions, *h.ConflictInfo)
 	}

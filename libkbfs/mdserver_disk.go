@@ -143,7 +143,7 @@ func (md *MDServerDisk) getStorage(tlfID tlf.ID) (*mdServerTlfStorage, error) {
 	return storage, nil
 }
 
-func (md *MDServerDisk) getHandleID(ctx context.Context, handle BareTlfHandle,
+func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.BareTlfHandle,
 	mStatus MergeStatus) (tlfID tlf.ID, created bool, err error) {
 	handleBytes, err := md.config.Codec().Encode(handle)
 	if err != nil {
@@ -192,7 +192,7 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle BareTlfHandle,
 }
 
 // GetForHandle implements the MDServer interface for MDServerDisk.
-func (md *MDServerDisk) GetForHandle(ctx context.Context, handle BareTlfHandle,
+func (md *MDServerDisk) GetForHandle(ctx context.Context, handle tlf.BareTlfHandle,
 	mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
 	id, created, err := md.getHandleID(ctx, handle, mStatus)
 	if err != nil {
@@ -561,7 +561,7 @@ func (md *MDServerDisk) addNewAssertionForTest(uid keybase1.UID,
 	defer iter.Release()
 	for iter.Next() {
 		handleBytes := iter.Key()
-		var handle BareTlfHandle
+		var handle tlf.BareTlfHandle
 		err := md.config.Codec().Decode(handleBytes, &handle)
 		if err != nil {
 			return err
@@ -587,15 +587,15 @@ func (md *MDServerDisk) addNewAssertionForTest(uid keybase1.UID,
 
 // GetLatestHandleForTLF implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetLatestHandleForTLF(_ context.Context, id tlf.ID) (
-	BareTlfHandle, error) {
+	tlf.BareTlfHandle, error) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
 
 	if md.handleDb == nil {
-		return BareTlfHandle{}, errMDServerDiskShutdown
+		return tlf.BareTlfHandle{}, errMDServerDiskShutdown
 	}
 
-	var handle BareTlfHandle
+	var handle tlf.BareTlfHandle
 	iter := md.handleDb.NewIterator(nil, nil)
 	defer iter.Release()
 	for iter.Next() {
@@ -603,16 +603,16 @@ func (md *MDServerDisk) GetLatestHandleForTLF(_ context.Context, id tlf.ID) (
 		idBytes := iter.Value()
 		err := dbID.UnmarshalBinary(idBytes)
 		if err != nil {
-			return BareTlfHandle{}, err
+			return tlf.BareTlfHandle{}, err
 		}
 		if id != dbID {
 			continue
 		}
 		handleBytes := iter.Key()
-		handle = BareTlfHandle{}
+		handle = tlf.BareTlfHandle{}
 		err = md.config.Codec().Decode(handleBytes, &handle)
 		if err != nil {
-			return BareTlfHandle{}, err
+			return tlf.BareTlfHandle{}, err
 		}
 	}
 	return handle, nil

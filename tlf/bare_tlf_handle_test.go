@@ -1,4 +1,4 @@
-package libkbfs
+package tlf
 
 import (
 	"testing"

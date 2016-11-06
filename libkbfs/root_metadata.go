@@ -296,7 +296,7 @@ func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 
 // MakeBareTlfHandle makes a BareTlfHandle for this
 // RootMetadata. Should be used only by servers and MDOps.
-func (md *RootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
+func (md *RootMetadata) MakeBareTlfHandle() (tlf.BareTlfHandle, error) {
 	if md.tlfHandle != nil {
 		panic(errors.New("MakeBareTlfHandle called when md.tlfHandle exists"))
 	}

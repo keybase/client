@@ -58,7 +58,7 @@ func MakeImmutableBareRootMetadata(
 // MakeBareTlfHandleWithExtra makes a BareTlfHandle for this
 // ImmutableBareRootMetadata. Should be used only by servers and MDOps.
 func (ibrmd ImmutableBareRootMetadata) MakeBareTlfHandleWithExtra() (
-	BareTlfHandle, error) {
+	tlf.BareTlfHandle, error) {
 	return ibrmd.BareRootMetadata.MakeBareTlfHandle(ibrmd.extra)
 }
 

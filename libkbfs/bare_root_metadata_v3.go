@@ -169,7 +169,7 @@ func getAnyKeyBundlesV3(extra ExtraMetadata) (
 // object with revision MetadataRevisionInitial, and the given TlfID
 // and BareTlfHandle. Note that if the given ID/handle are private,
 // rekeying must be done separately.
-func MakeInitialBareRootMetadataV3(tlfID tlf.ID, h BareTlfHandle) (
+func MakeInitialBareRootMetadataV3(tlfID tlf.ID, h tlf.BareTlfHandle) (
 	*BareRootMetadataV3, error) {
 	if tlfID.IsPublic() != h.IsPublic() {
 		return nil, errors.New(
@@ -466,7 +466,7 @@ func (md *BareRootMetadataV3) CheckValidSuccessorForServer(
 
 // MakeBareTlfHandle implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) MakeBareTlfHandle(extra ExtraMetadata) (
-	BareTlfHandle, error) {
+	tlf.BareTlfHandle, error) {
 	var writers, readers []keybase1.UID
 	if md.TlfID().IsPublic() {
 		writers = md.WriterMetadata.Writers
@@ -474,7 +474,7 @@ func (md *BareRootMetadataV3) MakeBareTlfHandle(extra ExtraMetadata) (
 	} else {
 		wkb, rkb, ok := getKeyBundlesV3(extra)
 		if !ok {
-			return BareTlfHandle{}, errors.New("Missing key bundles")
+			return tlf.BareTlfHandle{}, errors.New("Missing key bundles")
 		}
 		writers = make([]keybase1.UID, 0, len(wkb.Keys))
 		readers = make([]keybase1.UID, 0, len(rkb.RKeys))
@@ -493,7 +493,7 @@ func (md *BareRootMetadataV3) MakeBareTlfHandle(extra ExtraMetadata) (
 		}
 	}
 
-	return MakeBareTlfHandle(
+	return tlf.MakeBareTlfHandle(
 		writers, readers,
 		md.WriterMetadata.UnresolvedWriters, md.UnresolvedReaders,
 		md.TlfHandleExtensions())

@@ -2550,9 +2550,9 @@ func (_mr *_MockMDOpsRecorder) ResolveBranch(arg0, arg1, arg2, arg3, arg4 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveBranch", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (BareTlfHandle, error) {
+func (_m *MockMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.BareTlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
-	ret0, _ := ret[0].(BareTlfHandle)
+	ret0, _ := ret[0].(tlf.BareTlfHandle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2744,7 +2744,7 @@ func (_mr *_MockMDServerRecorder) RefreshAuthToken(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
-func (_m *MockMDServer) GetForHandle(ctx context.Context, handle BareTlfHandle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
+func (_m *MockMDServer) GetForHandle(ctx context.Context, handle tlf.BareTlfHandle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, mStatus)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
@@ -2867,9 +2867,9 @@ func (_mr *_MockMDServerRecorder) IsConnected() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsConnected")
 }
 
-func (_m *MockMDServer) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (BareTlfHandle, error) {
+func (_m *MockMDServer) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.BareTlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
-	ret0, _ := ret[0].(BareTlfHandle)
+	ret0, _ := ret[0].(tlf.BareTlfHandle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2930,7 +2930,7 @@ func (_mr *_MockmdServerLocalRecorder) RefreshAuthToken(arg0 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
-func (_m *MockmdServerLocal) GetForHandle(ctx context.Context, handle BareTlfHandle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
+func (_m *MockmdServerLocal) GetForHandle(ctx context.Context, handle tlf.BareTlfHandle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, mStatus)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
@@ -3053,9 +3053,9 @@ func (_mr *_MockmdServerLocalRecorder) IsConnected() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsConnected")
 }
 
-func (_m *MockmdServerLocal) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (BareTlfHandle, error) {
+func (_m *MockmdServerLocal) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.BareTlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
-	ret0, _ := ret[0].(BareTlfHandle)
+	ret0, _ := ret[0].(tlf.BareTlfHandle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -4652,9 +4652,9 @@ func (_mr *_MockBareRootMetadataRecorder) CheckValidSuccessorForServer(arg0, arg
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckValidSuccessorForServer", arg0, arg1)
 }
 
-func (_m *MockBareRootMetadata) MakeBareTlfHandle(extra ExtraMetadata) (BareTlfHandle, error) {
+func (_m *MockBareRootMetadata) MakeBareTlfHandle(extra ExtraMetadata) (tlf.BareTlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "MakeBareTlfHandle", extra)
-	ret0, _ := ret[0].(BareTlfHandle)
+	ret0, _ := ret[0].(tlf.BareTlfHandle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -5079,9 +5079,9 @@ func (_mr *_MockMutableBareRootMetadataRecorder) CheckValidSuccessorForServer(ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckValidSuccessorForServer", arg0, arg1)
 }
 
-func (_m *MockMutableBareRootMetadata) MakeBareTlfHandle(extra ExtraMetadata) (BareTlfHandle, error) {
+func (_m *MockMutableBareRootMetadata) MakeBareTlfHandle(extra ExtraMetadata) (tlf.BareTlfHandle, error) {
 	ret := _m.ctrl.Call(_m, "MakeBareTlfHandle", extra)
-	ret0, _ := ret[0].(BareTlfHandle)
+	ret0, _ := ret[0].(tlf.BareTlfHandle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

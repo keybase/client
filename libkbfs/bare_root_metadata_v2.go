@@ -146,7 +146,7 @@ type BareRootMetadataV2 struct {
 // object with revision MetadataRevisionInitial, and the given TlfID
 // and BareTlfHandle. Note that if the given ID/handle are private,
 // rekeying must be done separately.
-func MakeInitialBareRootMetadataV2(tlfID tlf.ID, h BareTlfHandle) (
+func MakeInitialBareRootMetadataV2(tlfID tlf.ID, h tlf.BareTlfHandle) (
 	*BareRootMetadataV2, error) {
 	if tlfID.IsPublic() != h.IsPublic() {
 		return nil, errors.New(
@@ -516,18 +516,18 @@ func (md *BareRootMetadataV2) CheckValidSuccessorForServer(
 
 // MakeBareTlfHandle implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) MakeBareTlfHandle(_ ExtraMetadata) (
-	BareTlfHandle, error) {
+	tlf.BareTlfHandle, error) {
 	var writers, readers []keybase1.UID
 	if md.ID.IsPublic() {
 		writers = md.Writers
 		readers = []keybase1.UID{keybase1.PublicUID}
 	} else {
 		if len(md.WKeys) == 0 {
-			return BareTlfHandle{}, errors.New("No writer key generations; need rekey?")
+			return tlf.BareTlfHandle{}, errors.New("No writer key generations; need rekey?")
 		}
 
 		if len(md.RKeys) == 0 {
-			return BareTlfHandle{}, errors.New("No reader key generations; need rekey?")
+			return tlf.BareTlfHandle{}, errors.New("No reader key generations; need rekey?")
 		}
 
 		wkb := md.WKeys[len(md.WKeys)-1]
@@ -549,7 +549,7 @@ func (md *BareRootMetadataV2) MakeBareTlfHandle(_ ExtraMetadata) (
 		}
 	}
 
-	return MakeBareTlfHandle(
+	return tlf.MakeBareTlfHandle(
 		writers, readers,
 		md.Extra.UnresolvedWriters, md.UnresolvedReaders,
 		md.TlfHandleExtensions())

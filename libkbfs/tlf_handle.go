@@ -82,7 +82,7 @@ func (h TlfHandle) unsortedResolvedWriters() []keybase1.UID {
 // order.
 func (h TlfHandle) ResolvedWriters() []keybase1.UID {
 	writers := h.unsortedResolvedWriters()
-	sort.Sort(uidList(writers))
+	sort.Sort(tlf.UIDList(writers))
 	return writers
 }
 
@@ -107,7 +107,7 @@ func (h TlfHandle) unsortedResolvedReaders() []keybase1.UID {
 // order. If the handle is public, nil will be returned.
 func (h TlfHandle) ResolvedReaders() []keybase1.UID {
 	readers := h.unsortedResolvedReaders()
-	sort.Sort(uidList(readers))
+	sort.Sort(tlf.UIDList(readers))
 	return readers
 }
 
@@ -280,14 +280,14 @@ func (h TlfHandle) Equals(
 }
 
 // ToBareHandle returns a BareTlfHandle corresponding to this handle.
-func (h TlfHandle) ToBareHandle() (BareTlfHandle, error) {
+func (h TlfHandle) ToBareHandle() (tlf.BareTlfHandle, error) {
 	var readers []keybase1.UID
 	if h.public {
 		readers = []keybase1.UID{keybase1.PUBLIC_UID}
 	} else {
 		readers = h.unsortedResolvedReaders()
 	}
-	return MakeBareTlfHandle(
+	return tlf.MakeBareTlfHandle(
 		h.unsortedResolvedWriters(), readers,
 		h.unresolvedWriters, h.unresolvedReaders,
 		h.Extensions())
@@ -295,7 +295,7 @@ func (h TlfHandle) ToBareHandle() (BareTlfHandle, error) {
 
 // ToBareHandleOrBust returns a BareTlfHandle corresponding to this
 // handle, and panics if there's an error. Used by tests.
-func (h TlfHandle) ToBareHandleOrBust() BareTlfHandle {
+func (h TlfHandle) ToBareHandleOrBust() tlf.BareTlfHandle {
 	bh, err := h.ToBareHandle()
 	if err != nil {
 		panic(err)
@@ -378,7 +378,7 @@ func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase
 	for sa := range unresolved {
 		assertions = append(assertions, sa)
 	}
-	sort.Sort(socialAssertionList(assertions))
+	sort.Sort(tlf.SocialAssertionList(assertions))
 	return assertions
 }
 
