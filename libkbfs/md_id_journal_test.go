@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 type mdIDJournalEntryFuture struct {
@@ -19,7 +20,7 @@ func (ef mdIDJournalEntryFuture) toCurrent() mdIDJournalEntry {
 	return ef.mdIDJournalEntry
 }
 
-func (ef mdIDJournalEntryFuture) toCurrentStruct() currentStruct {
+func (ef mdIDJournalEntryFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return ef.toCurrent()
 }
 

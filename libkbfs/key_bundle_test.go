@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
@@ -24,7 +25,7 @@ func (cki tlfCryptKeyInfoFuture) toCurrent() TLFCryptKeyInfo {
 	return cki.TLFCryptKeyInfo
 }
 
-func (cki tlfCryptKeyInfoFuture) toCurrentStruct() currentStruct {
+func (cki tlfCryptKeyInfoFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return cki.toCurrent()
 }
 
@@ -220,7 +221,7 @@ func (wkbf tlfWriterKeyBundleFuture) toCurrent() TLFWriterKeyBundleV2 {
 	return wkb
 }
 
-func (wkbf tlfWriterKeyBundleFuture) toCurrentStruct() currentStruct {
+func (wkbf tlfWriterKeyBundleFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return wkbf.toCurrent()
 }
 
@@ -265,7 +266,7 @@ func (rkbf tlfReaderKeyBundleFuture) toCurrent() TLFReaderKeyBundleV2 {
 	return rkb
 }
 
-func (rkbf tlfReaderKeyBundleFuture) toCurrentStruct() currentStruct {
+func (rkbf tlfReaderKeyBundleFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return rkbf.toCurrent()
 }
 

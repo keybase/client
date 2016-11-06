@@ -34,7 +34,7 @@ func (pmf privateMetadataFuture) toCurrent() PrivateMetadata {
 	pm.Dir = DirEntry(pmf.Dir.toCurrent())
 	pm.Changes.Ops = make(opsList, len(pmf.Changes.Ops))
 	for i, opFuture := range pmf.Changes.Ops {
-		currentOp := opFuture.(futureStruct).toCurrentStruct()
+		currentOp := opFuture.(kbfscodec.FutureStruct).ToCurrentStruct()
 		// A generic version of "v := currentOp; ...Ops[i] = &v".
 		v := reflect.New(reflect.TypeOf(currentOp))
 		v.Elem().Set(reflect.ValueOf(currentOp))
@@ -43,7 +43,7 @@ func (pmf privateMetadataFuture) toCurrent() PrivateMetadata {
 	return pm
 }
 
-func (pmf privateMetadataFuture) toCurrentStruct() currentStruct {
+func (pmf privateMetadataFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return pmf.toCurrent()
 }
 
@@ -346,7 +346,7 @@ func (wmf writerMetadataFuture) toCurrent() WriterMetadataV2 {
 	return wm
 }
 
-func (wmf writerMetadataFuture) toCurrentStruct() currentStruct {
+func (wmf writerMetadataFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return wmf.toCurrent()
 }
 
@@ -427,7 +427,7 @@ func (brmf *bareRootMetadataFuture) toCurrent() BareRootMetadata {
 	return &rm
 }
 
-func (brmf *bareRootMetadataFuture) toCurrentStruct() currentStruct {
+func (brmf *bareRootMetadataFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return brmf.toCurrent()
 }
 

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 )
 
 type dirEntryFuture struct {
@@ -19,7 +20,7 @@ func (cof dirEntryFuture) toCurrent() DirEntry {
 	return cof.DirEntry
 }
 
-func (cof dirEntryFuture) toCurrentStruct() currentStruct {
+func (cof dirEntryFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return cof.toCurrent()
 }
 

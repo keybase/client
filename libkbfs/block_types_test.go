@@ -54,7 +54,7 @@ func (pf indirectDirPtrFuture) toCurrent() indirectDirPtrCurrent {
 	return pf.indirectDirPtrCurrent
 }
 
-func (pf indirectDirPtrFuture) toCurrentStruct() currentStruct {
+func (pf indirectDirPtrFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return pf.toCurrent()
 }
 
@@ -84,7 +84,7 @@ func (pf indirectFilePtrFuture) toCurrent() indirectFilePtrCurrent {
 	return pf.indirectFilePtrCurrent
 }
 
-func (pf indirectFilePtrFuture) toCurrentStruct() currentStruct {
+func (pf indirectFilePtrFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return pf.toCurrent()
 }
 
@@ -139,7 +139,7 @@ func (dbf dirBlockFuture) toCurrent() dirBlockCurrent {
 	return db
 }
 
-func (dbf dirBlockFuture) toCurrentStruct() currentStruct {
+func (dbf dirBlockFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return dbf.toCurrent()
 }
 
@@ -194,7 +194,7 @@ func (fbf fileBlockFuture) toCurrent() fileBlockCurrent {
 	return fb
 }
 
-func (fbf fileBlockFuture) toCurrentStruct() currentStruct {
+func (fbf fileBlockFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return fbf.toCurrent()
 }
 

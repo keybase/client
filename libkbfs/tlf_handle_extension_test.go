@@ -158,7 +158,7 @@ type tlfHandleExtensionFuture struct {
 	extra
 }
 
-func (ci tlfHandleExtensionFuture) toCurrentStruct() currentStruct {
+func (ci tlfHandleExtensionFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return ci.TlfHandleExtension
 }
 

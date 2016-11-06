@@ -134,7 +134,7 @@ func (wrf writeRangeFuture) toCurrent() WriteRange {
 	return wrf.WriteRange
 }
 
-func (wrf writeRangeFuture) toCurrentStruct() currentStruct {
+func (wrf writeRangeFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return wrf.toCurrent()
 }
 
@@ -203,7 +203,7 @@ func (cof createOpFuture) toCurrent() createOp {
 	return cof.createOp
 }
 
-func (cof createOpFuture) toCurrentStruct() currentStruct {
+func (cof createOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return cof.toCurrent()
 }
 
@@ -260,7 +260,7 @@ func (rof rmOpFuture) toCurrent() rmOp {
 	return rof.rmOp
 }
 
-func (rof rmOpFuture) toCurrentStruct() currentStruct {
+func (rof rmOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return rof.toCurrent()
 }
 
@@ -290,7 +290,7 @@ func (rof renameOpFuture) toCurrent() renameOp {
 	return rof.renameOp
 }
 
-func (rof renameOpFuture) toCurrentStruct() currentStruct {
+func (rof renameOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return rof.toCurrent()
 }
 
@@ -330,7 +330,7 @@ func (sof syncOpFuture) toCurrent() syncOp {
 	return so
 }
 
-func (sof syncOpFuture) toCurrentStruct() currentStruct {
+func (sof syncOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return sof.toCurrent()
 }
 
@@ -364,7 +364,7 @@ func (sof setAttrOpFuture) toCurrent() setAttrOp {
 	return sof.setAttrOp
 }
 
-func (sof setAttrOpFuture) toCurrentStruct() currentStruct {
+func (sof setAttrOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return sof.toCurrent()
 }
 
@@ -396,7 +396,7 @@ func (rof resolutionOpFuture) toCurrent() resolutionOp {
 	return rof.resolutionOp
 }
 
-func (rof resolutionOpFuture) toCurrentStruct() currentStruct {
+func (rof resolutionOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return rof.toCurrent()
 }
 
@@ -423,7 +423,7 @@ func (rof rekeyOpFuture) toCurrent() rekeyOp {
 	return rof.rekeyOp
 }
 
-func (rof rekeyOpFuture) toCurrentStruct() currentStruct {
+func (rof rekeyOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return rof.toCurrent()
 }
 
@@ -450,7 +450,7 @@ func (gof gcOpFuture) toCurrent() GCOp {
 	return gof.GCOp
 }
 
-func (gof gcOpFuture) toCurrentStruct() currentStruct {
+func (gof gcOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return gof.toCurrent()
 }
 
