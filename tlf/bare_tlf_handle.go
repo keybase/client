@@ -47,7 +47,7 @@ func (u UIDList) Swap(i, j int) {
 	u[i], u[j] = u[j], u[i]
 }
 
-// socialAssertionList can be used to lexicographically sort SocialAssertions.
+// SocialAssertionList can be used to lexicographically sort SocialAssertions.
 type SocialAssertionList []keybase1.SocialAssertion
 
 func (u SocialAssertionList) Len() int {
