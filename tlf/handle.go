@@ -16,8 +16,8 @@ type Handle struct {
 	Readers           []keybase1.UID             `codec:"r,omitempty"`
 	UnresolvedWriters []keybase1.SocialAssertion `codec:"uw,omitempty"`
 	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
-	ConflictInfo      *TlfHandleExtension        `codec:"ci,omitempty"`
-	FinalizedInfo     *TlfHandleExtension        `codec:"fi,omitempty"`
+	ConflictInfo      *HandleExtension           `codec:"ci,omitempty"`
+	FinalizedInfo     *HandleExtension           `codec:"fi,omitempty"`
 }
 
 // ErrNoWriters is the error returned by MakeHandle if it is
@@ -72,7 +72,7 @@ func (u SocialAssertionList) Swap(i, j int) {
 func MakeHandle(
 	writers, readers []keybase1.UID,
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
-	extensions []TlfHandleExtension) (Handle, error) {
+	extensions []HandleExtension) (Handle, error) {
 	if len(writers) == 0 {
 		return Handle{}, ErrNoWriters
 	}
@@ -121,7 +121,7 @@ func MakeHandle(
 		sort.Sort(SocialAssertionList(unresolvedReadersCopy))
 	}
 
-	conflictInfo, finalizedInfo := TlfHandleExtensionList(extensions).Splat()
+	conflictInfo, finalizedInfo := HandleExtensionList(extensions).Splat()
 
 	return Handle{
 		Writers:           writersCopy,
@@ -255,7 +255,7 @@ func (h Handle) ResolveAssertions(
 }
 
 // Extensions returns a list of extensions for the given handle.
-func (h Handle) Extensions() (extensions []TlfHandleExtension) {
+func (h Handle) Extensions() (extensions []HandleExtension) {
 	if h.ConflictInfo != nil {
 		extensions = append(extensions, *h.ConflictInfo)
 	}

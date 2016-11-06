@@ -624,12 +624,12 @@ func (md *RootMetadata) SetUnresolvedWriters(writers []keybase1.SocialAssertion)
 }
 
 // SetConflictInfo wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) SetConflictInfo(ci *tlf.TlfHandleExtension) {
+func (md *RootMetadata) SetConflictInfo(ci *tlf.HandleExtension) {
 	md.bareMd.SetConflictInfo(ci)
 }
 
 // SetFinalizedInfo wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) SetFinalizedInfo(fi *tlf.TlfHandleExtension) {
+func (md *RootMetadata) SetFinalizedInfo(fi *tlf.HandleExtension) {
 	md.bareMd.SetFinalizedInfo(fi)
 }
 
@@ -958,8 +958,8 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 // with the revision incremented and the final bit set.
 func (rmds *RootMetadataSigned) MakeFinalCopy(
 	codec kbfscodec.Codec, now time.Time,
-	finalizedInfo *tlf.TlfHandleExtension) (*RootMetadataSigned, error) {
-	if finalizedInfo.Type != tlf.TlfHandleExtensionFinalized {
+	finalizedInfo *tlf.HandleExtension) (*RootMetadataSigned, error) {
+	if finalizedInfo.Type != tlf.HandleExtensionFinalized {
 		return nil, fmt.Errorf(
 			"Extension %s does not have finalized type",
 			finalizedInfo)

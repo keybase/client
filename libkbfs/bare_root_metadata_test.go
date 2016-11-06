@@ -51,8 +51,8 @@ func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
 	err = rmds.IsValidAndSigned(codec, crypto, extra)
 	require.NoError(t, err)
 
-	ext, err := tlf.NewTlfHandleExtension(
-		tlf.TlfHandleExtensionFinalized, 1, "fake user", time.Now())
+	ext, err := tlf.NewHandleExtension(
+		tlf.HandleExtensionFinalized, 1, "fake user", time.Now())
 	require.NoError(t, err)
 
 	// make a final copy

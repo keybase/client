@@ -65,7 +65,7 @@ func resolveOneUser(
 
 func makeTlfHandleHelper(
 	ctx context.Context, public bool, writers, readers []resolvableUser,
-	extensions []tlf.TlfHandleExtension) (*TlfHandle, error) {
+	extensions []tlf.HandleExtension) (*TlfHandle, error) {
 	if public && len(readers) > 0 {
 		return nil, errors.New("public folder cannot have readers")
 	}
@@ -131,7 +131,7 @@ func makeTlfHandleHelper(
 		canonicalName += ReaderSep + strings.Join(readerNames, ",")
 	}
 
-	extensionList := tlf.TlfHandleExtensionList(extensions)
+	extensionList := tlf.HandleExtensionList(extensions)
 	sort.Sort(extensionList)
 	canonicalName += extensionList.Suffix()
 	conflictInfo, finalizedInfo := extensionList.Splat()
@@ -479,9 +479,9 @@ func parseTlfHandleLoose(
 			resolvableAssertion{kbpki, r, keybase1.UID("")}, changesCh}
 	}
 
-	var extensions []tlf.TlfHandleExtension
+	var extensions []tlf.HandleExtension
 	if len(extensionSuffix) != 0 {
-		extensions, err = tlf.ParseTlfHandleExtensionSuffix(extensionSuffix)
+		extensions, err = tlf.ParseHandleExtensionSuffix(extensionSuffix)
 		if err != nil {
 			return nil, err
 		}
@@ -504,10 +504,10 @@ func parseTlfHandleLoose(
 	}
 
 	if extensionSuffix != "" {
-		extensionList := tlf.TlfHandleExtensionList(extensions)
+		extensionList := tlf.HandleExtensionList(extensions)
 		sort.Sort(extensionList)
 		var canonExtensionString = extensionList.Suffix()
-		if canonExtensionString != tlf.TlfHandleExtensionSep+extensionSuffix {
+		if canonExtensionString != tlf.HandleExtensionSep+extensionSuffix {
 			return nil, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
 		}
 	}
