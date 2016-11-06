@@ -5,9 +5,10 @@
 package kbfscodec
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"reflect"
 
-	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,21 +22,21 @@ type fakeEncryptedData struct {
 // struct to test handling of unknown fields.
 type Extra struct {
 	Extra1 fakeEncryptedData
-	Extra2 kbfshash.HMAC
+	Extra2 []byte
 	Extra3 string
 }
 
 func MakeExtraOrBust(prefix string, t require.TestingT) Extra {
-	extraHMAC, err := kbfshash.DefaultHMAC(
-		[]byte("fake extra key"), []byte("fake extra buf"))
-	require.NoError(t, err)
+	mac := hmac.New(sha256.New, []byte("fake extra key"))
+	mac.Write([]byte("fake extra buf"))
+	h := mac.Sum(nil)
 	return Extra{
 		Extra1: fakeEncryptedData{
 			Version:       2,
 			EncryptedData: []byte(prefix + " fake extra encrypted data"),
 			Nonce:         []byte(prefix + " fake extra nonce"),
 		},
-		Extra2: extraHMAC,
+		Extra2: h,
 		Extra3: prefix + " extra string",
 	}
 }
