@@ -6,11 +6,13 @@ package libkbfs
 
 import (
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -313,15 +315,15 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, h.GetCanonicalName(), cname)
 
-	info := TlfHandleExtension{
+	info := tlf.TlfHandleExtension{
 		Date:   100,
 		Number: 50,
-		Type:   TlfHandleExtensionConflict,
+		Type:   tlf.TlfHandleExtensionConflict,
 	}
 	h, err = h.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
 	require.Equal(t, info, *h.ConflictInfo())
-	cname2 := CanonicalTlfName(name + TlfHandleExtensionSep + info.String())
+	cname2 := CanonicalTlfName(name + tlf.TlfHandleExtensionSep + info.String())
 	require.Equal(t, h.GetCanonicalName(), cname2)
 
 	info.Date = 101
@@ -329,11 +331,11 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 
 	info.Date = 100
 	h, err = h.WithUpdatedConflictInfo(codec, &info)
-	cname3 := CanonicalTlfName(name + TlfHandleExtensionSep + info.String())
+	cname3 := CanonicalTlfName(name + tlf.TlfHandleExtensionSep + info.String())
 	require.NoError(t, err)
 	require.Equal(t, h.GetCanonicalName(), cname3)
 
-	expectedErr := TlfHandleExtensionMismatchError{
+	expectedErr := tlf.TlfHandleExtensionMismatchError{
 		Expected: *h.ConflictInfo(),
 		Actual:   nil,
 	}
@@ -341,7 +343,7 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 	require.Equal(t, expectedErr, err)
 	require.Equal(t, "Folder handle extension mismatch, expected: (conflicted copy 1970-01-01 #50), actual: <nil>", err.Error())
 
-	expectedErr = TlfHandleExtensionMismatchError{
+	expectedErr = tlf.TlfHandleExtensionMismatchError{
 		Expected: *h.ConflictInfo(),
 		Actual:   &info,
 	}
@@ -370,15 +372,15 @@ func TestTlfHandleFinalizedInfo(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Nil(t, h.FinalizedInfo())
-	info := TlfHandleExtension{
+	info := tlf.TlfHandleExtension{
 		Date:   100,
 		Number: 50,
-		Type:   TlfHandleExtensionFinalized,
+		Type:   tlf.TlfHandleExtensionFinalized,
 	}
 
 	h.SetFinalizedInfo(&info)
 	require.Equal(t, info, *h.FinalizedInfo())
-	cname2 := CanonicalTlfName(name + TlfHandleExtensionSep + info.String())
+	cname2 := CanonicalTlfName(name + tlf.TlfHandleExtensionSep + info.String())
 	require.Equal(t, h.GetCanonicalName(), cname2)
 
 	info.Date = 101
@@ -406,26 +408,26 @@ func TestTlfHandleConflictAndFinalizedInfo(t *testing.T) {
 
 	require.Nil(t, h.ConflictInfo())
 
-	cInfo := TlfHandleExtension{
+	cInfo := tlf.TlfHandleExtension{
 		Date:   100,
 		Number: 50,
-		Type:   TlfHandleExtensionConflict,
+		Type:   tlf.TlfHandleExtensionConflict,
 	}
 	h, err = h.WithUpdatedConflictInfo(codec, &cInfo)
 	require.NoError(t, err)
 	require.Equal(t, cInfo, *h.ConflictInfo())
-	cname2 := CanonicalTlfName(name + TlfHandleExtensionSep + cInfo.String())
+	cname2 := CanonicalTlfName(name + tlf.TlfHandleExtensionSep + cInfo.String())
 	require.Equal(t, h.GetCanonicalName(), cname2)
 
-	fInfo := TlfHandleExtension{
+	fInfo := tlf.TlfHandleExtension{
 		Date:   101,
 		Number: 51,
-		Type:   TlfHandleExtensionFinalized,
+		Type:   tlf.TlfHandleExtensionFinalized,
 	}
 	h.SetFinalizedInfo(&fInfo)
 	require.Equal(t, fInfo, *h.FinalizedInfo())
 	require.Equal(t, cInfo, *h.ConflictInfo())
-	cname3 := cname2 + CanonicalTlfName(TlfHandleExtensionSep+fInfo.String())
+	cname3 := cname2 + CanonicalTlfName(tlf.TlfHandleExtensionSep+fInfo.String())
 	require.Equal(t, h.GetCanonicalName(), cname3)
 }
 
@@ -482,10 +484,10 @@ func TestTlfHandlEqual(t *testing.T) {
 
 	h2, err = ParseTlfHandle(ctx, kbpki, name1, false)
 	require.NoError(t, err)
-	info := TlfHandleExtension{
+	info := tlf.TlfHandleExtension{
 		Date:   100,
 		Number: 50,
-		Type:   TlfHandleExtensionConflict,
+		Type:   tlf.TlfHandleExtensionConflict,
 	}
 	h2, err = h2.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
@@ -592,10 +594,10 @@ func TestParseTlfHandleConflictSuffix(t *testing.T) {
 		daemon: daemon,
 	}
 
-	ci := &TlfHandleExtension{
+	ci := &tlf.TlfHandleExtension{
 		Date:   1462838400,
 		Number: 1,
-		Type:   TlfHandleExtensionConflict,
+		Type:   tlf.TlfHandleExtensionConflict,
 	}
 
 	a := "u1 " + ci.String()
@@ -731,7 +733,7 @@ func TestResolveAgainConflict(t *testing.T) {
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	daemon.addNewAssertionForTestOrBust("u3", "u3@twitter")
-	ext, err := NewTlfHandleExtension(TlfHandleExtensionConflict, 1, "")
+	ext, err := tlf.NewTlfHandleExtension(tlf.TlfHandleExtensionConflict, 1, "", time.Now())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -739,7 +741,7 @@ func TestResolveAgainConflict(t *testing.T) {
 	newH, err := h.ResolveAgain(ctx, daemon)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1,u2#u3"+
-		TlfHandleExtensionSep+ext.String()), newH.GetCanonicalName())
+		tlf.TlfHandleExtensionSep+ext.String()), newH.GetCanonicalName())
 }
 
 func TestTlfHandleResolvesTo(t *testing.T) {
@@ -781,10 +783,10 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 
 	h2, err = ParseTlfHandle(ctx, kbpki, name1, true)
 	require.NoError(t, err)
-	info := TlfHandleExtension{
+	info := tlf.TlfHandleExtension{
 		Date:   100,
 		Number: 50,
-		Type:   TlfHandleExtensionConflict,
+		Type:   tlf.TlfHandleExtensionConflict,
 	}
 	h2, err = h2.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
@@ -797,10 +799,10 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 
 	h2, err = ParseTlfHandle(ctx, kbpki, name1, true)
 	require.NoError(t, err)
-	info = TlfHandleExtension{
+	info = tlf.TlfHandleExtension{
 		Date:   101,
 		Number: 51,
-		Type:   TlfHandleExtensionFinalized,
+		Type:   tlf.TlfHandleExtensionFinalized,
 	}
 	h2.SetFinalizedInfo(&info)
 
@@ -814,17 +816,17 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 
 	h2, err = ParseTlfHandle(ctx, kbpki, name1, true)
 	require.NoError(t, err)
-	info = TlfHandleExtension{
+	info = tlf.TlfHandleExtension{
 		Date:   100,
 		Number: 50,
-		Type:   TlfHandleExtensionConflict,
+		Type:   tlf.TlfHandleExtensionConflict,
 	}
 	h2, err = h2.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
-	info = TlfHandleExtension{
+	info = tlf.TlfHandleExtension{
 		Date:   99,
 		Number: 49,
-		Type:   TlfHandleExtensionConflict,
+		Type:   tlf.TlfHandleExtensionConflict,
 	}
 	h1, err = h1.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
@@ -838,16 +840,16 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 	h2, err = ParseTlfHandle(ctx, kbpki, name1, true)
 	require.NoError(t, err)
-	info = TlfHandleExtension{
+	info = tlf.TlfHandleExtension{
 		Date:   101,
 		Number: 51,
-		Type:   TlfHandleExtensionFinalized,
+		Type:   tlf.TlfHandleExtensionFinalized,
 	}
 	h2.SetFinalizedInfo(&info)
-	info = TlfHandleExtension{
+	info = tlf.TlfHandleExtension{
 		Date:   102,
 		Number: 52,
-		Type:   TlfHandleExtensionFinalized,
+		Type:   tlf.TlfHandleExtensionFinalized,
 	}
 	h1.SetFinalizedInfo(&info)
 
@@ -859,10 +861,10 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	// Try to add conflict info to a finalized handle.
 
 	h2, err = ParseTlfHandle(ctx, kbpki, name1, true)
-	info = TlfHandleExtension{
+	info = tlf.TlfHandleExtension{
 		Date:   100,
 		Number: 50,
-		Type:   TlfHandleExtensionConflict,
+		Type:   tlf.TlfHandleExtensionConflict,
 	}
 	h2, err = h2.WithUpdatedConflictInfo(codec, &info)
 	require.NoError(t, err)
@@ -942,14 +944,14 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 	name := "u1,u2#u3 (conflicted copy 2016-03-14 #3) (files before u2 account reset 2016-03-14 #2)"
 	h, err := ParseTlfHandle(ctx, kbpki, name, false)
 	require.Nil(t, err)
-	assert.Equal(t, TlfHandleExtension{
-		Type:   TlfHandleExtensionConflict,
-		Date:   TlfHandleExtensionStaticTestDate,
+	assert.Equal(t, tlf.TlfHandleExtension{
+		Type:   tlf.TlfHandleExtensionConflict,
+		Date:   tlf.TlfHandleExtensionStaticTestDate,
 		Number: 3,
 	}, *h.ConflictInfo())
-	assert.Equal(t, TlfHandleExtension{
-		Type:     TlfHandleExtensionFinalized,
-		Date:     TlfHandleExtensionStaticTestDate,
+	assert.Equal(t, tlf.TlfHandleExtension{
+		Type:     tlf.TlfHandleExtensionFinalized,
+		Date:     tlf.TlfHandleExtensionStaticTestDate,
 		Number:   2,
 		Username: "u2",
 	}, *h.FinalizedInfo())

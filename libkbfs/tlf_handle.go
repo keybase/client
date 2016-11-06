@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -36,8 +37,8 @@ type TlfHandle struct {
 	// sorted order.
 	unresolvedWriters []keybase1.SocialAssertion
 	unresolvedReaders []keybase1.SocialAssertion
-	conflictInfo      *TlfHandleExtension
-	finalizedInfo     *TlfHandleExtension
+	conflictInfo      *tlf.TlfHandleExtension
+	finalizedInfo     *tlf.TlfHandleExtension
 	// name can be computed from the other fields, but is cached
 	// for speed.
 	name CanonicalTlfName
@@ -133,7 +134,7 @@ func (h TlfHandle) UnresolvedReaders() []keybase1.SocialAssertion {
 }
 
 // ConflictInfo returns the handle's conflict info, if any.
-func (h TlfHandle) ConflictInfo() *TlfHandleExtension {
+func (h TlfHandle) ConflictInfo() *tlf.TlfHandleExtension {
 	if h.conflictInfo == nil {
 		return nil
 	}
@@ -142,9 +143,9 @@ func (h TlfHandle) ConflictInfo() *TlfHandleExtension {
 }
 
 func (h TlfHandle) recomputeNameWithExtensions() CanonicalTlfName {
-	components := strings.Split(string(h.name), TlfHandleExtensionSep)
+	components := strings.Split(string(h.name), tlf.TlfHandleExtensionSep)
 	newName := components[0]
-	extensionList := tlfHandleExtensionList(h.Extensions())
+	extensionList := tlf.TlfHandleExtensionList(h.Extensions())
 	sort.Sort(extensionList)
 	newName += extensionList.Suffix()
 	return CanonicalTlfName(newName)
@@ -155,7 +156,7 @@ func (h TlfHandle) recomputeNameWithExtensions() CanonicalTlfName {
 // also be nil.) Otherwise, the given conflict info must match the existing
 // one.
 func (h TlfHandle) WithUpdatedConflictInfo(
-	codec kbfscodec.Codec, info *TlfHandleExtension) (*TlfHandle, error) {
+	codec kbfscodec.Codec, info *tlf.TlfHandleExtension) (*TlfHandle, error) {
 	newHandle := h.deepCopy()
 	if newHandle.conflictInfo == nil {
 		if info == nil {
@@ -174,7 +175,7 @@ func (h TlfHandle) WithUpdatedConflictInfo(
 		return newHandle, err
 	}
 	if !equal {
-		return newHandle, TlfHandleExtensionMismatchError{
+		return newHandle, tlf.TlfHandleExtensionMismatchError{
 			Expected: *newHandle.ConflictInfo(),
 			Actual:   info,
 		}
@@ -183,7 +184,7 @@ func (h TlfHandle) WithUpdatedConflictInfo(
 }
 
 // FinalizedInfo returns the handle's finalized info, if any.
-func (h TlfHandle) FinalizedInfo() *TlfHandleExtension {
+func (h TlfHandle) FinalizedInfo() *tlf.TlfHandleExtension {
 	if h.finalizedInfo == nil {
 		return nil
 	}
@@ -194,7 +195,7 @@ func (h TlfHandle) FinalizedInfo() *TlfHandleExtension {
 // SetFinalizedInfo sets the handle's finalized info to the given one,
 // which may be nil.
 // TODO: remove this to make TlfHandle fully immutable
-func (h *TlfHandle) SetFinalizedInfo(info *TlfHandleExtension) {
+func (h *TlfHandle) SetFinalizedInfo(info *tlf.TlfHandleExtension) {
 	if info == nil {
 		h.finalizedInfo = nil
 	} else {
@@ -205,7 +206,7 @@ func (h *TlfHandle) SetFinalizedInfo(info *TlfHandleExtension) {
 }
 
 // Extensions returns a list of extensions for the given handle.
-func (h TlfHandle) Extensions() (extensions []TlfHandleExtension) {
+func (h TlfHandle) Extensions() (extensions []tlf.TlfHandleExtension) {
 	if h.ConflictInfo() != nil {
 		extensions = append(extensions, *h.ConflictInfo())
 	}
@@ -384,7 +385,7 @@ func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase
 // splitTLFName splits a TLF name into components.
 func splitTLFName(name string) (writerNames, readerNames []string,
 	extensionSuffix string, err error) {
-	names := strings.SplitN(name, TlfHandleExtensionSep, 2)
+	names := strings.SplitN(name, tlf.TlfHandleExtensionSep, 2)
 	if len(names) > 2 {
 		return nil, nil, "", BadTLFNameError{name}
 	}
@@ -515,7 +516,7 @@ func normalizeNamesInTLF(writerNames, readerNames []string,
 		// This *should* be normalized already but make sure.  I can see not
 		// doing so might surprise a caller.
 		nExt := strings.ToLower(extensionSuffix)
-		normalizedName += TlfHandleExtensionSep + nExt
+		normalizedName += tlf.TlfHandleExtensionSep + nExt
 		changesMade = changesMade || nExt != extensionSuffix
 	}
 
@@ -587,7 +588,7 @@ func FavoriteNameToPreferredTLFNameFormatAs(username libkb.NormalizedUsername,
 					tlfname += ReaderSep + strings.Join(rs, ",")
 				}
 				if len(ext) > 0 {
-					tlfname += TlfHandleExtensionSep + ext
+					tlfname += tlf.TlfHandleExtensionSep + ext
 				}
 			}
 			break

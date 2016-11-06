@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/tlf"
 )
 
 // BareTlfHandle uniquely identifies top-level folders by readers and
@@ -16,8 +17,8 @@ type BareTlfHandle struct {
 	Readers           []keybase1.UID             `codec:"r,omitempty"`
 	UnresolvedWriters []keybase1.SocialAssertion `codec:"uw,omitempty"`
 	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
-	ConflictInfo      *TlfHandleExtension        `codec:"ci,omitempty"`
-	FinalizedInfo     *TlfHandleExtension        `codec:"fi,omitempty"`
+	ConflictInfo      *tlf.TlfHandleExtension    `codec:"ci,omitempty"`
+	FinalizedInfo     *tlf.TlfHandleExtension    `codec:"fi,omitempty"`
 }
 
 // ErrNoWriters is the error returned by MakeBareTlfHandle if it is
@@ -72,7 +73,7 @@ func (u socialAssertionList) Swap(i, j int) {
 func MakeBareTlfHandle(
 	writers, readers []keybase1.UID,
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
-	extensions []TlfHandleExtension) (BareTlfHandle, error) {
+	extensions []tlf.TlfHandleExtension) (BareTlfHandle, error) {
 	if len(writers) == 0 {
 		return BareTlfHandle{}, ErrNoWriters
 	}
@@ -121,7 +122,7 @@ func MakeBareTlfHandle(
 		sort.Sort(socialAssertionList(unresolvedReadersCopy))
 	}
 
-	conflictInfo, finalizedInfo := tlfHandleExtensionList(extensions).Splat()
+	conflictInfo, finalizedInfo := tlf.TlfHandleExtensionList(extensions).Splat()
 
 	return BareTlfHandle{
 		Writers:           writersCopy,
@@ -255,7 +256,7 @@ func (h BareTlfHandle) ResolveAssertions(
 }
 
 // Extensions returns a list of extensions for the given handle.
-func (h BareTlfHandle) Extensions() (extensions []TlfHandleExtension) {
+func (h BareTlfHandle) Extensions() (extensions []tlf.TlfHandleExtension) {
 	if h.ConflictInfo != nil {
 		extensions = append(extensions, *h.ConflictInfo)
 	}

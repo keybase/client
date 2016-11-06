@@ -4663,9 +4663,9 @@ func (_mr *_MockBareRootMetadataRecorder) MakeBareTlfHandle(arg0 interface{}) *g
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeBareTlfHandle", arg0)
 }
 
-func (_m *MockBareRootMetadata) TlfHandleExtensions() []TlfHandleExtension {
+func (_m *MockBareRootMetadata) TlfHandleExtensions() []tlf.TlfHandleExtension {
 	ret := _m.ctrl.Call(_m, "TlfHandleExtensions")
-	ret0, _ := ret[0].([]TlfHandleExtension)
+	ret0, _ := ret[0].([]tlf.TlfHandleExtension)
 	return ret0
 }
 
@@ -5090,9 +5090,9 @@ func (_mr *_MockMutableBareRootMetadataRecorder) MakeBareTlfHandle(arg0 interfac
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeBareTlfHandle", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) TlfHandleExtensions() []TlfHandleExtension {
+func (_m *MockMutableBareRootMetadata) TlfHandleExtensions() []tlf.TlfHandleExtension {
 	ret := _m.ctrl.Call(_m, "TlfHandleExtensions")
-	ret0, _ := ret[0].([]TlfHandleExtension)
+	ret0, _ := ret[0].([]tlf.TlfHandleExtension)
 	return ret0
 }
 
@@ -5549,7 +5549,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetUnresolvedWriters(arg0 inter
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetUnresolvedWriters", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SetConflictInfo(ci *TlfHandleExtension) {
+func (_m *MockMutableBareRootMetadata) SetConflictInfo(ci *tlf.TlfHandleExtension) {
 	_m.ctrl.Call(_m, "SetConflictInfo", ci)
 }
 
@@ -5557,7 +5557,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetConflictInfo(arg0 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetConflictInfo", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SetFinalizedInfo(fi *TlfHandleExtension) {
+func (_m *MockMutableBareRootMetadata) SetFinalizedInfo(fi *tlf.TlfHandleExtension) {
 	_m.ctrl.Call(_m, "SetFinalizedInfo", fi)
 }
 

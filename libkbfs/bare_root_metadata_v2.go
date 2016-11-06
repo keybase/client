@@ -133,11 +133,11 @@ type BareRootMetadataV2 struct {
 
 	// ConflictInfo is set if there's a conflict for the given folder's
 	// handle after a social assertion resolution.
-	ConflictInfo *TlfHandleExtension `codec:"ci,omitempty"`
+	ConflictInfo *tlf.TlfHandleExtension `codec:"ci,omitempty"`
 
 	// FinalizedInfo is set if there are no more valid writer keys capable
 	// of writing to the given folder.
-	FinalizedInfo *TlfHandleExtension `codec:"fi,omitempty"`
+	FinalizedInfo *tlf.TlfHandleExtension `codec:"fi,omitempty"`
 
 	codec.UnknownFieldSetHandler
 }
@@ -557,7 +557,7 @@ func (md *BareRootMetadataV2) MakeBareTlfHandle(_ ExtraMetadata) (
 
 // TlfHandleExtensions implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) TlfHandleExtensions() (
-	extensions []TlfHandleExtension) {
+	extensions []tlf.TlfHandleExtension) {
 	if md.ConflictInfo != nil {
 		extensions = append(extensions, *md.ConflictInfo)
 	}
@@ -1005,12 +1005,12 @@ func (md *BareRootMetadataV2) SetUnresolvedWriters(writers []keybase1.SocialAsse
 }
 
 // SetConflictInfo implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) SetConflictInfo(ci *TlfHandleExtension) {
+func (md *BareRootMetadataV2) SetConflictInfo(ci *tlf.TlfHandleExtension) {
 	md.ConflictInfo = ci
 }
 
 // SetFinalizedInfo implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) SetFinalizedInfo(fi *TlfHandleExtension) {
+func (md *BareRootMetadataV2) SetFinalizedInfo(fi *tlf.TlfHandleExtension) {
 	md.FinalizedInfo = fi
 }
 

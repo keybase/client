@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package tlf
 
 import (
 	"errors"
@@ -16,6 +16,9 @@ import (
 )
 
 const (
+	// TlfHandleExtensionSep is the string that separates the folder
+	// participants from an extension suffix in the TLF name.
+	TlfHandleExtensionSep = " "
 	// TlfHandleExtensionDateFormat is the date format for the TlfHandleExtension string.
 	TlfHandleExtensionDateFormat = "2006-01-02"
 	// TlfHandleExtensionDateRegex is the regular expression matching the TlfHandleExtension
@@ -130,43 +133,29 @@ func (e TlfHandleExtension) String() string {
 	return fmt.Sprintf(TlfHandleExtensionFormat, e.Type.String(e.Username), date, num)
 }
 
-// NewTlfHandleExtension returns a new TlfHandleExtension struct populated with the current
-// date and conflict number.
-func NewTlfHandleExtension(extType TlfHandleExtensionType, num uint16, un libkb.NormalizedUsername) (
+// NewTlfHandleExtension returns a new TlfHandleExtension struct
+// populated with the date from the given time and conflict number.
+func NewTlfHandleExtension(extType TlfHandleExtensionType, num uint16, un libkb.NormalizedUsername, now time.Time) (
 	*TlfHandleExtension, error) {
-	return newTlfHandleExtension(extType, num, un, wallClock{})
-}
-
-// NewTestTlfHandleExtensionWithClock returns a new TlfHandleExtension using a passed clock.
-func NewTestTlfHandleExtensionWithClock(extType TlfHandleExtensionType,
-	num uint16, un libkb.NormalizedUsername, clock Clock) (*TlfHandleExtension, error) {
-	return newTlfHandleExtension(extType, num, un, clock)
-}
-
-// Implementation of the Clock interface to return a static time for testing.
-type staticTestTlfHandleExtensionClock struct {
-}
-
-// Now implements the Clock interface for staticTestTlfHandleExtensionClock.
-func (c staticTestTlfHandleExtensionClock) Now() time.Time {
-	return time.Unix(TlfHandleExtensionStaticTestDate, 0)
+	return newTlfHandleExtension(extType, num, un, now)
 }
 
 // NewTestTlfHandleExtensionStaticTime returns a new TlfHandleExtension struct populated with
 // a static date for testing.
 func NewTestTlfHandleExtensionStaticTime(extType TlfHandleExtensionType, num uint16, un libkb.NormalizedUsername) (
 	*TlfHandleExtension, error) {
-	return newTlfHandleExtension(extType, num, un, staticTestTlfHandleExtensionClock{})
+	now := time.Unix(TlfHandleExtensionStaticTestDate, 0)
+	return newTlfHandleExtension(extType, num, un, now)
 }
 
 // Helper to instantiate a TlfHandleExtension object.
-func newTlfHandleExtension(extType TlfHandleExtensionType, num uint16, un libkb.NormalizedUsername, clock Clock) (
+func newTlfHandleExtension(extType TlfHandleExtensionType, num uint16, un libkb.NormalizedUsername, now time.Time) (
 	*TlfHandleExtension, error) {
 	if num == 0 {
 		return nil, ErrTlfHandleExtensionInvalidNumber
 	}
 	// mask out everything but the date
-	date := clock.Now().UTC().Format(TlfHandleExtensionDateFormat)
+	date := now.UTC().Format(TlfHandleExtensionDateFormat)
 	now, err := time.Parse(TlfHandleExtensionDateFormat, date)
 	if err != nil {
 		return nil, err
@@ -243,24 +232,24 @@ func NewTlfHandleExtensionSuffix(extensions []TlfHandleExtension) string {
 	return suffix
 }
 
-// tlfHandleExtensionList allows us to sort extensions by type.
-type tlfHandleExtensionList []TlfHandleExtension
+// TlfHandleExtensionList allows us to sort extensions by type.
+type TlfHandleExtensionList []TlfHandleExtension
 
-func (l tlfHandleExtensionList) Len() int {
+func (l TlfHandleExtensionList) Len() int {
 	return len(l)
 }
 
-func (l tlfHandleExtensionList) Less(i, j int) bool {
+func (l TlfHandleExtensionList) Less(i, j int) bool {
 	return l[i].Type < l[j].Type
 }
 
-func (l tlfHandleExtensionList) Swap(i, j int) {
+func (l TlfHandleExtensionList) Swap(i, j int) {
 	l[i], l[j] = l[j], l[i]
 }
 
 // Splat will deconstruct the list for the caller into individual extension
 // pointers (or nil.)
-func (l tlfHandleExtensionList) Splat() (ci, fi *TlfHandleExtension) {
+func (l TlfHandleExtensionList) Splat() (ci, fi *TlfHandleExtension) {
 	for _, extension := range l {
 		tmp := extension
 		if extension.Type == TlfHandleExtensionConflict {
@@ -273,6 +262,6 @@ func (l tlfHandleExtensionList) Splat() (ci, fi *TlfHandleExtension) {
 }
 
 // Suffix outputs a suffix string for this extension list.
-func (l tlfHandleExtensionList) Suffix() string {
+func (l TlfHandleExtensionList) Suffix() string {
 	return NewTlfHandleExtensionSuffix(l)
 }

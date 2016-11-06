@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package tlf
 
 import (
 	"testing"
@@ -18,7 +18,7 @@ func TestTlfHandleExtension(t *testing.T) {
 		TlfHandleExtensionConflict,
 		TlfHandleExtensionFinalized,
 	} {
-		e, err := NewTlfHandleExtension(et, 1, "alice")
+		e, err := NewTlfHandleExtension(et, 1, "alice", time.Now())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -65,7 +65,7 @@ func TestTlfHandleExtensionNumber(t *testing.T) {
 		TlfHandleExtensionConflict,
 		TlfHandleExtensionFinalized,
 	} {
-		e, err := NewTlfHandleExtension(et, 2, "bob")
+		e, err := NewTlfHandleExtension(et, 2, "bob", time.Now())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -127,7 +127,7 @@ func TestTlfHandleExtensionKnownTime(t *testing.T) {
 }
 
 func TestTlfHandleExtensionErrors(t *testing.T) {
-	_, err := NewTlfHandleExtension(TlfHandleExtensionConflict, 0, "")
+	_, err := NewTlfHandleExtension(TlfHandleExtensionConflict, 0, "", time.Now())
 	if err != ErrTlfHandleExtensionInvalidNumber {
 		t.Fatalf("Expected ErrTlfHandleExtensionInvalidNumber, got: %v", err)
 	}
@@ -163,7 +163,11 @@ func (ci tlfHandleExtensionFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 }
 
 func TestTlfHandleExtensionUnknownFields(t *testing.T) {
-	testStructUnknownFields(t,
+	cFuture := kbfscodec.NewMsgpack()
+	cCurrent := kbfscodec.NewMsgpack()
+	cCurrentKnownOnly := kbfscodec.NewMsgpackNoUnknownFields()
+	kbfscodec.TestStructUnknownFields(t,
+		cFuture, cCurrent, cCurrentKnownOnly,
 		tlfHandleExtensionFuture{
 			TlfHandleExtension{
 				time.Now().UTC().Unix(),

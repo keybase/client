@@ -1606,7 +1606,7 @@ type BareRootMetadata interface {
 	// BareRootMetadata. Should be used only by servers and MDOps.
 	MakeBareTlfHandle(extra ExtraMetadata) (BareTlfHandle, error)
 	// TlfHandleExtensions returns a list of handle extensions associated with the TLf.
-	TlfHandleExtensions() (extensions []TlfHandleExtension)
+	TlfHandleExtensions() (extensions []tlf.TlfHandleExtension)
 	// GetDeviceKIDs returns the KIDs (of
 	// kbfscrypto.CryptPublicKeys) for all known devices for the
 	// given user at the given key generation, if any.  Returns an
@@ -1750,9 +1750,9 @@ type MutableBareRootMetadata interface {
 	// SetUnresolvedWriters sets the list of unresolved writers assoiated with this folder.
 	SetUnresolvedWriters(writers []keybase1.SocialAssertion)
 	// SetConflictInfo sets any conflict info associated with this metadata revision.
-	SetConflictInfo(ci *TlfHandleExtension)
+	SetConflictInfo(ci *tlf.TlfHandleExtension)
 	// SetFinalizedInfo sets any finalized info associated with this metadata revision.
-	SetFinalizedInfo(fi *TlfHandleExtension)
+	SetFinalizedInfo(fi *tlf.TlfHandleExtension)
 	// SetWriters sets the list of writers associated with this folder.
 	SetWriters(writers []keybase1.UID)
 	// SetTlfID sets the ID of the underlying folder in the metadata structure.
