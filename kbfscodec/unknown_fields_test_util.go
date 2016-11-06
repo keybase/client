@@ -26,6 +26,8 @@ type Extra struct {
 	Extra3 string
 }
 
+// MakeExtraOrBust returns a filled-in Extra structure based on the
+// given prefix.
 func MakeExtraOrBust(prefix string, t require.TestingT) Extra {
 	mac := hmac.New(sha256.New, []byte("fake extra key"))
 	mac.Write([]byte("fake extra buf"))
@@ -90,11 +92,11 @@ func MakeExtraOrBust(prefix string, t require.TestingT) Extra {
 //   kfscodec.TestStructUnknownFields(t, makeMyTypeFuture(t))
 // }
 
-// currentStruct is an interface for the current version of a struct
+// CurrentStruct is an interface for the current version of a struct
 // type.
 type CurrentStruct interface{}
 
-// futureStruct is an interface for a hypothetical future version of a
+// FutureStruct is an interface for a hypothetical future version of a
 // struct type.
 type FutureStruct interface {
 	// toCurrentStruct returns the fields of the current object
@@ -103,8 +105,9 @@ type FutureStruct interface {
 	ToCurrentStruct() CurrentStruct
 }
 
-// Test that hypothetical future versions of a struct can be
-// deserialized by current clients and preserve unknown fields.
+// TestStructUnknownFields tests that hypothetical future versions of
+// a struct can be deserialized by current clients and preserve
+// unknown fields.
 func TestStructUnknownFields(t require.TestingT,
 	cFuture, cCurrent, cCurrentKnownOnly Codec,
 	sFuture FutureStruct) {
