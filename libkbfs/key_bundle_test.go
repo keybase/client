@@ -18,7 +18,7 @@ import (
 
 type tlfCryptKeyInfoFuture struct {
 	TLFCryptKeyInfo
-	extra
+	kbfscodec.Extra
 }
 
 func (cki tlfCryptKeyInfoFuture) toCurrent() TLFCryptKeyInfo {
@@ -45,7 +45,7 @@ func makeFakeTLFCryptKeyInfoFuture(t *testing.T) tlfCryptKeyInfoFuture {
 	}
 	return tlfCryptKeyInfoFuture{
 		cki,
-		makeExtraOrBust("TLFCryptKeyInfo", t),
+		kbfscodec.MakeExtraOrBust("TLFCryptKeyInfo", t),
 	}
 }
 
@@ -212,7 +212,7 @@ type tlfWriterKeyBundleFuture struct {
 	TLFWriterKeyBundleV2
 	// Override TLFWriterKeyBundleV2.WKeys.
 	WKeys userDeviceKeyInfoMapFuture
-	extra
+	kbfscodec.Extra
 }
 
 func (wkbf tlfWriterKeyBundleFuture) toCurrent() TLFWriterKeyBundleV2 {
@@ -245,7 +245,7 @@ func makeFakeTLFWriterKeyBundleFuture(t *testing.T) tlfWriterKeyBundleFuture {
 	return tlfWriterKeyBundleFuture{
 		wkb,
 		makeFakeDeviceKeyInfoMapFuture(t),
-		makeExtraOrBust("TLFWriterKeyBundleV2", t),
+		kbfscodec.MakeExtraOrBust("TLFWriterKeyBundleV2", t),
 	}
 }
 
@@ -257,7 +257,7 @@ type tlfReaderKeyBundleFuture struct {
 	TLFReaderKeyBundleV2
 	// Override TLFReaderKeyBundleV2.WKeys.
 	RKeys userDeviceKeyInfoMapFuture
-	extra
+	kbfscodec.Extra
 }
 
 func (rkbf tlfReaderKeyBundleFuture) toCurrent() TLFReaderKeyBundleV2 {
@@ -281,7 +281,7 @@ func makeFakeTLFReaderKeyBundleFuture(t *testing.T) tlfReaderKeyBundleFuture {
 	return tlfReaderKeyBundleFuture{
 		rkb,
 		makeFakeDeviceKeyInfoMapFuture(t),
-		makeExtraOrBust("TLFReaderKeyBundleV2", t),
+		kbfscodec.MakeExtraOrBust("TLFReaderKeyBundleV2", t),
 	}
 }
 

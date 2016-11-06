@@ -155,7 +155,7 @@ func TestTlfHandleExtensionErrors(t *testing.T) {
 
 type tlfHandleExtensionFuture struct {
 	TlfHandleExtension
-	extra
+	kbfscodec.Extra
 }
 
 func (ci tlfHandleExtensionFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
@@ -172,7 +172,7 @@ func TestTlfHandleExtensionUnknownFields(t *testing.T) {
 				"",
 				codec.UnknownFieldSetHandler{},
 			},
-			makeExtraOrBust("TlfHandleExtension", t),
+			kbfscodec.MakeExtraOrBust("TlfHandleExtension", t),
 		})
 }
 

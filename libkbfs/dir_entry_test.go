@@ -13,7 +13,7 @@ import (
 
 type dirEntryFuture struct {
 	DirEntry
-	extra
+	kbfscodec.Extra
 }
 
 func (cof dirEntryFuture) toCurrent() DirEntry {
@@ -37,7 +37,7 @@ func makeFakeDirEntryFuture(t *testing.T) dirEntryFuture {
 			},
 			codec.UnknownFieldSetHandler{},
 		},
-		makeExtraOrBust("dirEntry", t),
+		kbfscodec.MakeExtraOrBust("dirEntry", t),
 	}
 	return cof
 }

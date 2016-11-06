@@ -13,7 +13,7 @@ import (
 
 type mdIDJournalEntryFuture struct {
 	mdIDJournalEntry
-	extra
+	kbfscodec.Extra
 }
 
 func (ef mdIDJournalEntryFuture) toCurrent() mdIDJournalEntry {
@@ -30,7 +30,7 @@ func makeFakeMDIDJournalEntryFuture(t *testing.T) mdIDJournalEntryFuture {
 			fakeMdID(1),
 			codec.UnknownFieldSetHandler{},
 		},
-		makeExtraOrBust("mdIDJournalEntry", t),
+		kbfscodec.MakeExtraOrBust("mdIDJournalEntry", t),
 	}
 	return ef
 }

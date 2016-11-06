@@ -26,7 +26,7 @@ import (
 type privateMetadataFuture struct {
 	PrivateMetadata
 	Dir dirEntryFuture
-	extra
+	kbfscodec.Extra
 }
 
 func (pmf privateMetadataFuture) toCurrent() PrivateMetadata {
@@ -79,7 +79,7 @@ func makeFakePrivateMetadataFuture(t *testing.T) privateMetadataFuture {
 			BlockChanges{},
 		},
 		makeFakeDirEntryFuture(t),
-		makeExtraOrBust("PrivateMetadata", t),
+		kbfscodec.MakeExtraOrBust("PrivateMetadata", t),
 	}
 	return pmf
 }
@@ -313,7 +313,7 @@ func TestWriterMetadataEncodedFields(t *testing.T) {
 
 type writerMetadataExtraFuture struct {
 	WriterMetadataExtra
-	extra
+	kbfscodec.Extra
 }
 
 func (wmef writerMetadataExtraFuture) toCurrent() WriterMetadataExtra {
@@ -380,7 +380,7 @@ func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
 				[]keybase1.SocialAssertion{sa},
 				codec.UnknownFieldSetHandler{},
 			},
-			makeExtraOrBust("WriterMetadata", t),
+			kbfscodec.MakeExtraOrBust("WriterMetadata", t),
 		},
 	}
 }
@@ -417,7 +417,7 @@ type bareRootMetadataFuture struct {
 	bareRootMetadataWrapper
 	// Override BareRootMetadata.RKeys.
 	RKeys tlfReaderKeyGenerationsFuture `codec:",omitempty"`
-	extra
+	kbfscodec.Extra
 }
 
 func (brmf *bareRootMetadataFuture) toCurrent() BareRootMetadata {
@@ -464,7 +464,7 @@ func makeFakeBareRootMetadataFuture(t *testing.T) *bareRootMetadataFuture {
 			},
 		},
 		[]*tlfReaderKeyBundleFuture{&rkb},
-		makeExtraOrBust("BareRootMetadata", t),
+		kbfscodec.MakeExtraOrBust("BareRootMetadata", t),
 	}
 	return &rmf
 }

@@ -7,8 +7,38 @@ package kbfscodec
 import (
 	"reflect"
 
+	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
 )
+
+type fakeEncryptedData struct {
+	Version       int
+	EncryptedData []byte
+	Nonce         []byte
+}
+
+// Extra contains some fake extra fields that can be embedded into a
+// struct to test handling of unknown fields.
+type Extra struct {
+	Extra1 fakeEncryptedData
+	Extra2 kbfshash.HMAC
+	Extra3 string
+}
+
+func MakeExtraOrBust(prefix string, t require.TestingT) Extra {
+	extraHMAC, err := kbfshash.DefaultHMAC(
+		[]byte("fake extra key"), []byte("fake extra buf"))
+	require.NoError(t, err)
+	return Extra{
+		Extra1: fakeEncryptedData{
+			Version:       2,
+			EncryptedData: []byte(prefix + " fake extra encrypted data"),
+			Nonce:         []byte(prefix + " fake extra nonce"),
+		},
+		Extra2: extraHMAC,
+		Extra3: prefix + " extra string",
+	}
+}
 
 // Template for implementing the interfaces below for use with
 // TestStructUnknownFields, with MyType being the type to test, and

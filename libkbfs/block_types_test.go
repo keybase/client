@@ -47,7 +47,7 @@ type indirectDirPtrCurrent IndirectDirPtr
 
 type indirectDirPtrFuture struct {
 	indirectDirPtrCurrent
-	extra
+	kbfscodec.Extra
 }
 
 func (pf indirectDirPtrFuture) toCurrent() indirectDirPtrCurrent {
@@ -65,7 +65,7 @@ func makeFakeIndirectDirPtrFuture(t *testing.T) indirectDirPtrFuture {
 			"offset",
 			codec.UnknownFieldSetHandler{},
 		},
-		makeExtraOrBust("IndirectDirPtr", t),
+		kbfscodec.MakeExtraOrBust("IndirectDirPtr", t),
 	}
 }
 
@@ -77,7 +77,7 @@ type indirectFilePtrCurrent IndirectFilePtr
 
 type indirectFilePtrFuture struct {
 	indirectFilePtrCurrent
-	extra
+	kbfscodec.Extra
 }
 
 func (pf indirectFilePtrFuture) toCurrent() indirectFilePtrCurrent {
@@ -96,7 +96,7 @@ func makeFakeIndirectFilePtrFuture(t *testing.T) indirectFilePtrFuture {
 			false,
 			codec.UnknownFieldSetHandler{},
 		},
-		makeExtraOrBust("IndirectFilePtr", t),
+		kbfscodec.MakeExtraOrBust("IndirectFilePtr", t),
 	}
 }
 
@@ -112,7 +112,7 @@ type dirBlockFuture struct {
 	Children map[string]dirEntryFuture `codec:"c,omitempty"`
 	// Overrides dirBlockCurrent.IPtrs.
 	IPtrs []indirectDirPtrFuture `codec:"i,omitempty"`
-	extra
+	kbfscodec.Extra
 }
 
 func (dbf *dirBlockFuture) Set(other Block, codec kbfscodec.Codec) {
@@ -160,7 +160,7 @@ func makeFakeDirBlockFuture(t *testing.T) dirBlockFuture {
 		[]indirectDirPtrFuture{
 			makeFakeIndirectDirPtrFuture(t),
 		},
-		makeExtraOrBust("DirBlock", t),
+		kbfscodec.MakeExtraOrBust("DirBlock", t),
 	}
 }
 
@@ -174,7 +174,7 @@ type fileBlockFuture struct {
 	fileBlockCurrent
 	// Overrides fileBlockCurrent.IPtrs.
 	IPtrs []indirectFilePtrFuture `codec:"i,omitempty"`
-	extra
+	kbfscodec.Extra
 }
 
 func (fbf *fileBlockFuture) Set(other Block, codec kbfscodec.Codec) {
@@ -213,7 +213,7 @@ func makeFakeFileBlockFuture(t *testing.T) fileBlockFuture {
 		[]indirectFilePtrFuture{
 			makeFakeIndirectFilePtrFuture(t),
 		},
-		makeExtraOrBust("FileBlock", t),
+		kbfscodec.MakeExtraOrBust("FileBlock", t),
 	}
 }
 
