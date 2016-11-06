@@ -280,14 +280,14 @@ func (h TlfHandle) Equals(
 }
 
 // ToBareHandle returns a BareTlfHandle corresponding to this handle.
-func (h TlfHandle) ToBareHandle() (tlf.BareTlfHandle, error) {
+func (h TlfHandle) ToBareHandle() (tlf.Handle, error) {
 	var readers []keybase1.UID
 	if h.public {
 		readers = []keybase1.UID{keybase1.PUBLIC_UID}
 	} else {
 		readers = h.unsortedResolvedReaders()
 	}
-	return tlf.MakeBareTlfHandle(
+	return tlf.MakeHandle(
 		h.unsortedResolvedWriters(), readers,
 		h.unresolvedWriters, h.unresolvedReaders,
 		h.Extensions())
@@ -295,7 +295,7 @@ func (h TlfHandle) ToBareHandle() (tlf.BareTlfHandle, error) {
 
 // ToBareHandleOrBust returns a BareTlfHandle corresponding to this
 // handle, and panics if there's an error. Used by tests.
-func (h TlfHandle) ToBareHandleOrBust() tlf.BareTlfHandle {
+func (h TlfHandle) ToBareHandleOrBust() tlf.Handle {
 	bh, err := h.ToBareHandle()
 	if err != nil {
 		panic(err)

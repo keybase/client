@@ -616,7 +616,7 @@ func (md *MDOpsStandard) ResolveBranch(
 
 // GetLatestHandleForTLF implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-	tlf.BareTlfHandle, error) {
+	tlf.Handle, error) {
 	// TODO: Verify this mapping using a Merkle tree.
 	return md.config.MDServer().GetLatestHandleForTLF(ctx, id)
 }

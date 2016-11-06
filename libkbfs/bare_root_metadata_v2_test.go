@@ -22,7 +22,7 @@ func TestRootMetadataVersionV2(t *testing.T) {
 	// InitialExtraMetadataVer.
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := tlf.MakeBareTlfHandle(
+	bh, err := tlf.MakeHandle(
 		[]keybase1.UID{uid}, nil, []keybase1.SocialAssertion{
 			keybase1.SocialAssertion{}},
 		nil, nil)
@@ -34,7 +34,7 @@ func TestRootMetadataVersionV2(t *testing.T) {
 	require.Equal(t, InitialExtraMetadataVer, rmd.Version())
 
 	// All other folders should use PreExtraMetadataVer.
-	bh2, err := tlf.MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh2, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	rmd2, err := MakeInitialBareRootMetadata(
@@ -53,7 +53,7 @@ func TestIsValidRekeyRequestBasicV2(t *testing.T) {
 	tlfID := tlf.FakeID(1, false)
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := tlf.MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	brmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)

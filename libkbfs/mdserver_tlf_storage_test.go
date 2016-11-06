@@ -46,7 +46,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	require.Equal(t, 0, getMDStorageLength(t, s, NullBranchID))
 
 	uid := keybase1.MakeTestUID(1)
-	h, err := tlf.MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	h, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	// (1) Validate merged branch is empty.

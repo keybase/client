@@ -114,7 +114,7 @@ func expectUncachedGetTLFCryptKeyAnyDevice(
 	}
 }
 
-func expectRekey(config *ConfigMock, bh tlf.BareTlfHandle, numDevices int, handleChange bool) {
+func expectRekey(config *ConfigMock, bh tlf.Handle, numDevices int, handleChange bool) {
 	if handleChange {
 		// if the handle changes the key manager checks for a conflict
 		config.mockMdops.EXPECT().GetLatestHandleForTLF(gomock.Any(), gomock.Any()).

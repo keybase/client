@@ -385,7 +385,7 @@ func (md *MDServerRemote) signalObserverLocked(observerChan chan<- error, id tlf
 
 // Helper used to retrieve metadata blocks from the MD server.
 func (md *MDServerRemote) get(ctx context.Context, id tlf.ID,
-	handle *tlf.BareTlfHandle, bid BranchID, mStatus MergeStatus,
+	handle *tlf.Handle, bid BranchID, mStatus MergeStatus,
 	start, stop MetadataRevision) (tlf.ID, []*RootMetadataSigned, error) {
 	// figure out which args to send
 	if id == tlf.NullID && handle == nil {
@@ -438,7 +438,7 @@ func (md *MDServerRemote) get(ctx context.Context, id tlf.ID,
 
 // GetForHandle implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForHandle(ctx context.Context,
-	handle tlf.BareTlfHandle, mStatus MergeStatus) (
+	handle tlf.Handle, mStatus MergeStatus) (
 	tlf.ID, *RootMetadataSigned, error) {
 	id, rmdses, err := md.get(ctx, tlf.NullID, &handle, NullBranchID,
 		mStatus,
@@ -648,14 +648,14 @@ func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id tlf.ID) (
 
 // GetLatestHandleForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-	tlf.BareTlfHandle, error) {
+	tlf.Handle, error) {
 	buf, err := md.client.GetLatestFolderHandle(ctx, id.String())
 	if err != nil {
-		return tlf.BareTlfHandle{}, err
+		return tlf.Handle{}, err
 	}
-	var handle tlf.BareTlfHandle
+	var handle tlf.Handle
 	if err := md.config.Codec().Decode(buf, &handle); err != nil {
-		return tlf.BareTlfHandle{}, err
+		return tlf.Handle{}, err
 	}
 	return handle, nil
 }

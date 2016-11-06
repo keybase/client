@@ -149,7 +149,7 @@ func newChainMDForTest(t *testing.T) rootMetadataWithKeyAndTimestamp {
 	tlfID := tlf.FakeID(1, false)
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := tlf.MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	nug := testNormalizedUsernameGetter{

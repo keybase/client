@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMakeBareTlfHandle(t *testing.T) {
+func TestMakeHandle(t *testing.T) {
 	w := []keybase1.UID{
 		keybase1.MakeTestUID(4),
 		keybase1.MakeTestUID(3),
@@ -41,7 +41,7 @@ func TestMakeBareTlfHandle(t *testing.T) {
 		},
 	}
 
-	h, err := MakeBareTlfHandle(w, r, uw, ur, nil)
+	h, err := MakeHandle(w, r, uw, ur, nil)
 	require.NoError(t, err)
 	require.Equal(t, []keybase1.UID{
 		keybase1.MakeTestUID(3),
@@ -73,8 +73,8 @@ func TestMakeBareTlfHandle(t *testing.T) {
 	}, h.UnresolvedReaders)
 }
 
-func TestMakeBareTlfHandleFailures(t *testing.T) {
-	_, err := MakeBareTlfHandle(nil, nil, nil, nil, nil)
+func TestMakeHandleFailures(t *testing.T) {
+	_, err := MakeHandle(nil, nil, nil, nil, nil)
 	assert.Equal(t, ErrNoWriters, err)
 
 	w := []keybase1.UID{
@@ -87,10 +87,10 @@ func TestMakeBareTlfHandleFailures(t *testing.T) {
 		keybase1.MakeTestUID(2),
 	}
 
-	_, err = MakeBareTlfHandle(r, nil, nil, nil, nil)
+	_, err = MakeHandle(r, nil, nil, nil, nil)
 	assert.Equal(t, ErrInvalidWriter, err)
 
-	_, err = MakeBareTlfHandle(w, r, nil, nil, nil)
+	_, err = MakeHandle(w, r, nil, nil, nil)
 	assert.Equal(t, ErrInvalidReader, err)
 
 	ur := []keybase1.SocialAssertion{
@@ -100,11 +100,11 @@ func TestMakeBareTlfHandleFailures(t *testing.T) {
 		},
 	}
 
-	_, err = MakeBareTlfHandle(w, r[:1], nil, ur, nil)
+	_, err = MakeHandle(w, r[:1], nil, ur, nil)
 	assert.Equal(t, ErrInvalidReader, err)
 }
 
-func TestBareTlfHandleAccessorsPrivate(t *testing.T) {
+func TestHandleAccessorsPrivate(t *testing.T) {
 	w := []keybase1.UID{
 		keybase1.MakeTestUID(4),
 		keybase1.MakeTestUID(3),
@@ -137,7 +137,7 @@ func TestBareTlfHandleAccessorsPrivate(t *testing.T) {
 		},
 	}
 
-	h, err := MakeBareTlfHandle(w, r, uw, ur, nil)
+	h, err := MakeHandle(w, r, uw, ur, nil)
 	require.NoError(t, err)
 
 	require.False(t, h.IsPublic())
@@ -187,7 +187,7 @@ func TestBareTlfHandleAccessorsPrivate(t *testing.T) {
 		})
 }
 
-func TestBareTlfHandleAccessorsPublic(t *testing.T) {
+func TestHandleAccessorsPublic(t *testing.T) {
 	w := []keybase1.UID{
 		keybase1.MakeTestUID(4),
 		keybase1.MakeTestUID(3),
@@ -204,7 +204,7 @@ func TestBareTlfHandleAccessorsPublic(t *testing.T) {
 		},
 	}
 
-	h, err := MakeBareTlfHandle(
+	h, err := MakeHandle(
 		w, []keybase1.UID{keybase1.PUBLIC_UID}, uw, nil, nil)
 	require.NoError(t, err)
 
@@ -240,7 +240,7 @@ func TestBareTlfHandleAccessorsPublic(t *testing.T) {
 		})
 }
 
-func TestBareTlfHandleHasUnresolvedUsers(t *testing.T) {
+func TestHandleHasUnresolvedUsers(t *testing.T) {
 	w := []keybase1.UID{
 		keybase1.MakeTestUID(4),
 		keybase1.MakeTestUID(3),
@@ -268,7 +268,7 @@ func TestBareTlfHandleHasUnresolvedUsers(t *testing.T) {
 		},
 	}
 
-	h, err := MakeBareTlfHandle(w, nil, uw, ur, nil)
+	h, err := MakeHandle(w, nil, uw, ur, nil)
 	require.NoError(t, err)
 	require.True(t, h.HasUnresolvedUsers())
 
@@ -283,7 +283,7 @@ func TestBareTlfHandleHasUnresolvedUsers(t *testing.T) {
 	require.True(t, h.HasUnresolvedUsers())
 }
 
-func TestBareTlfHandleResolveAssertions(t *testing.T) {
+func TestHandleResolveAssertions(t *testing.T) {
 	w := []keybase1.UID{
 		keybase1.MakeTestUID(4),
 		keybase1.MakeTestUID(3),
@@ -336,7 +336,7 @@ func TestBareTlfHandleResolveAssertions(t *testing.T) {
 		},
 	}
 
-	h, err := MakeBareTlfHandle(w, r, uw, ur, nil)
+	h, err := MakeHandle(w, r, uw, ur, nil)
 	require.NoError(t, err)
 
 	assertions := make(map[keybase1.SocialAssertion]keybase1.UID)

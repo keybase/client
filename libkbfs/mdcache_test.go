@@ -20,7 +20,7 @@ import (
 
 func testMdcacheMakeHandle(t *testing.T, n uint32) *TlfHandle {
 	uid := keybase1.MakeTestUID(n)
-	bh, err := tlf.MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	nug := testNormalizedUsernameGetter{
