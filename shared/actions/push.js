@@ -1,5 +1,7 @@
 // @flow
 import * as Constants from '../constants/push'
+
+// $FlowIssue tell flow about this module
 import * as PushNotifications from 'react-native-push-notification'
 
 import {apiserverPostRpcPromise} from '../constants/types/flow-types'
