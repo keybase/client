@@ -108,6 +108,10 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, err
 	}
 
+	if arg.Query != nil && arg.Query.TopicName != nil {
+		return chat1.GetInboxLocalRes{}, fmt.Errorf("cannot query by TopicName without unboxing")
+	}
+
 	rquery, err := h.getInboxQueryLocalToRemote(ctx, arg.Query)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
@@ -168,7 +172,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 			}
 		}
 
-		// server can't query on topic name, so we'd have to do it ourselves in the loop
+		// server can't query on topic name, so we have to do it ourselves in the loop
 		if arg.Query != nil && arg.Query.TopicName != nil && *arg.Query.TopicName != convLocal.Info.TopicName {
 			continue
 		}
