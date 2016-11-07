@@ -101,6 +101,7 @@ func blockOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 
 func blockOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	config.ctr.CheckForFailures()
+	config.BlockOps().Shutdown()
 	mockCtrl.Finish()
 }
 

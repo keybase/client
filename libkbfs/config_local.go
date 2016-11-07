@@ -805,6 +805,7 @@ func (c *ConfigLocal) Shutdown() error {
 		errors = append(errors, err)
 		// Continue with shutdown regardless of err.
 	}
+	c.BlockOps().Shutdown()
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
 	c.KeybaseService().Shutdown()
