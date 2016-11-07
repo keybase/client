@@ -374,17 +374,16 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 }
 
 func ResetAccount(tc libkb.TestContext, u *FakeUser) {
-	pps, err := tc.G.LoginState().GetPassphraseStreamWithPassphrase(u.Passphrase)
+	pdpka, err := tc.G.LoginState().ComputeLoginPackage(u.Username)
 	if err != nil {
-		tc.T.Fatal(err)
+		tc.T.Fatalf("error getting login package: %s", err)
 	}
 	arg := libkb.APIArg{
 		Endpoint:    "nuke",
 		NeedSession: true,
-		Args: libkb.HTTPArgs{
-			"pwh": libkb.HexArg(pps.PWHash()),
-		},
+		Args:        libkb.NewHTTPArgs(),
 	}
+	pdpka.PopulateArgs(&arg.Args)
 	res, err := tc.G.API.Post(arg)
 	if err != nil {
 		tc.T.Fatal(err)

@@ -399,6 +399,19 @@ func ComputeLoginPackage(lctx LoginContext, username string) (ret PDPKALoginPack
 	return computeLoginPackageFromEmailOrUsername(username, ps, loginSession)
 }
 
+func (s *LoginState) ComputeLoginPackage(un string) (ret PDPKALoginPackage, err error) {
+	err = s.loginHandle(func(lctx LoginContext) error {
+		var lerr error
+		lerr = lctx.LoadLoginSession(un)
+		if lerr != nil {
+			return lerr
+		}
+		ret, lerr = ComputeLoginPackage(lctx, un)
+		return lerr
+	}, nil, "ComputeLoginPackage")
+	return ret, err
+}
+
 func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {
 
 	arg := APIArg{
