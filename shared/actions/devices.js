@@ -4,7 +4,7 @@ import HiddenString from '../util/hidden-string'
 import {Map, is} from 'immutable'
 import {devicesTab, loginTab} from '../constants/tabs'
 
-import {navigateTo, navigateUp, switchTab} from './router'
+import {navigateTo, navigateUp, routeAppend, switchTab} from './router'
 import {setRevokedSelf} from './login'
 import {takeEvery, takeLatest} from 'redux-saga'
 import {call, put, select, fork} from 'redux-saga/effects'
@@ -14,6 +14,7 @@ import {
   loginDeprovisionRpcPromise,
   loginPaperKeyRpcChannelMap,
   revokeRevokeDeviceRpcPromise,
+  rekeyGetRevokeWarningRpcPromise,
 } from '../constants/types/flow-types'
 
 import type {
@@ -26,7 +27,9 @@ import type {
   PaperKeyLoading,
   RemoveDevice,
   ShowDevices,
+  ShowRemovePage,
 } from '../constants/devices'
+import type {Device} from '../constants/types/more'
 import type {SagaGenerator} from '../constants/types/saga'
 
 export function loadDevices (): LoadDevices {
@@ -41,8 +44,23 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
   return {type: Constants.removeDevice, payload: {deviceID, name, currentDevice}}
 }
 
+export function showRemovePage (device: Device): ShowRemovePage {
+  return {type: Constants.showRemovePage, payload: {device}}
+}
+
 export function generatePaperKey (): GeneratePaperKey {
   return {type: Constants.generatePaperKey, payload: undefined}
+}
+
+function * _deviceShowRemovePageSaga (showRemovePageAction: ShowRemovePage): SagaGenerator<any, any> {
+  const device = showRemovePageAction.payload.device
+  let endangeredTLFs = {endangeredTLFs: []}
+  try {
+    endangeredTLFs = yield call(rekeyGetRevokeWarningRpcPromise, {param: {targetDevice: device.deviceID}})
+  } catch (e) {
+    console.warn('Error getting endangered TLFs:', e)
+  }
+  yield put(routeAppend({path: 'removeDevice', device, endangeredTLFs}))
 }
 
 function * _deviceListSaga (): SagaGenerator<any, any> {
@@ -176,6 +194,7 @@ function * deviceSaga (): SagaGenerator<any, any> {
     takeLatest(Constants.loadDevices, _deviceListSaga),
     takeEvery(Constants.removeDevice, _deviceRemoveSaga),
     takeEvery(Constants.generatePaperKey, _devicePaperKeySaga),
+    takeEvery(Constants.showRemovePage, _deviceShowRemovePageSaga),
   ]
 }
 
