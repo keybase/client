@@ -535,7 +535,207 @@ func TestRootMetadataFinalIsFinal(t *testing.T) {
 	require.NoError(t, err)
 
 	rmd.SetFinalBit()
-	_, err = rmd.MakeSuccessor(nil, fakeMdID(1), true)
+	_, err = rmd.MakeSuccessor(context.Background(), nil, fakeMdID(1), true)
 	_, isFinalError := err.(MetadataIsFinalError)
 	require.Equal(t, isFinalError, true)
+}
+
+func getAllUsersKeysForTest(
+	t *testing.T, config Config, rmd *RootMetadata, un string) []kbfscrypto.TLFCryptKey {
+	var keys []kbfscrypto.TLFCryptKey
+	for i := 1; i <= int(rmd.LatestKeyGeneration()); i++ {
+		key, err := config.KeyManager().(*KeyManagerStandard).getTLFCryptKeyUsingCurrentDevice(
+			context.Background(), rmd, KeyGen(i), true)
+		require.NoError(t, err)
+		keys = append(keys, key)
+	}
+	return keys
+}
+
+// We always want misses for the tests below.
+type dummyNoKeyCache struct {
+}
+
+func (kc *dummyNoKeyCache) GetTLFCryptKey(_ tlf.ID, _ KeyGen) (kbfscrypto.TLFCryptKey, error) {
+	return kbfscrypto.TLFCryptKey{}, KeyCacheMissError{}
+}
+
+func (kc *dummyNoKeyCache) PutTLFCryptKey(_ tlf.ID, _ KeyGen, _ kbfscrypto.TLFCryptKey) error {
+	return nil
+}
+
+// Test upconversion from MDv2 to MDv3 for a private folder.
+func TestRootMetadataUpconversionPrivate(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
+	config.SetKeyCache(&dummyNoKeyCache{})
+	defer config.Shutdown()
+
+	tlfID := tlf.FakeID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice,alice@twitter#bob,charlie@twitter,eve@reddit", false)
+	rmd, err := makeInitialRootMetadata(InitialExtraMetadataVer, tlfID, h)
+	require.NoError(t, err)
+	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(0))
+	require.Equal(t, rmd.Revision(), MetadataRevision(1))
+	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
+
+	// set some dummy numbers
+	diskUsage, refBytes, unrefBytes := uint64(12345), uint64(4321), uint64(1234)
+	rmd.SetDiskUsage(diskUsage)
+	rmd.SetRefBytes(refBytes)
+	rmd.SetUnrefBytes(unrefBytes)
+
+	// key it once
+	done, _, err := config.KeyManager().Rekey(context.Background(), rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(1))
+	require.Equal(t, rmd.Revision(), MetadataRevision(1))
+	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys), 0)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys), 1)
+
+	// revoke bob's device
+	_, bobUID, err := config.KBPKI().Resolve(context.Background(), "bob")
+	require.NoError(t, err)
+	RevokeDeviceForLocalUserOrBust(t, config, bobUID, 0)
+
+	// rekey it
+	done, _, err = config.KeyManager().Rekey(context.Background(), rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(2))
+	require.Equal(t, rmd.Revision(), MetadataRevision(1))
+	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys), 0)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys), 1)
+
+	// prove charlie
+	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
+		"charlie", "charlie@twitter")
+
+	// rekey it
+	done, _, err = config.KeyManager().Rekey(context.Background(), rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(2))
+	require.Equal(t, rmd.Revision(), MetadataRevision(1))
+	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys), 0)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys), 2)
+
+	// add a device for charlie and rekey as charlie
+	_, charlieUID, err := config.KBPKI().Resolve(context.Background(), "charlie")
+	config2 := ConfigAsUser(config, "charlie")
+	config2.SetKeyCache(&dummyNoKeyCache{})
+	defer config2.Shutdown()
+	AddDeviceForLocalUserOrBust(t, config, charlieUID)
+	AddDeviceForLocalUserOrBust(t, config2, charlieUID)
+
+	// rekey it
+	done, _, err = config2.KeyManager().Rekey(context.Background(), rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(2))
+	require.Equal(t, rmd.Revision(), MetadataRevision(1))
+	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys), 1)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys), 2)
+
+	// override the metadata version
+	config.metadataVersion = SegregatedKeyBundlesVer
+
+	// create an MDv3 successor
+	rmd2, err := rmd.MakeSuccessor(context.Background(), config, fakeMdID(1), true)
+	require.NoError(t, err)
+	require.Equal(t, rmd2.LatestKeyGeneration(), KeyGen(2))
+	require.Equal(t, rmd2.Revision(), MetadataRevision(2))
+	require.Equal(t, rmd2.Version(), SegregatedKeyBundlesVer)
+
+	// compare numbers
+	require.Equal(t, diskUsage, rmd2.DiskUsage())
+	require.Equal(t, refBytes, rmd2.RefBytes())
+	require.Equal(t, unrefBytes, rmd2.UnrefBytes())
+
+	// create and compare bare tlf handles (this verifies unresolved+resolved writer/reader sets are identical)
+	rmd.tlfHandle, rmd2.tlfHandle = nil, nil // avoid a panic due to the handle already existing
+	handle, err := rmd.MakeBareTlfHandle()
+	require.NoError(t, err)
+	handle2, err := rmd2.MakeBareTlfHandle()
+	require.NoError(t, err)
+	require.Equal(t, handle, handle2)
+
+	// compare tlf crypt keys
+	keys, err := config.KeyManager().GetTLFCryptKeyOfAllGenerations(context.Background(), rmd)
+	require.NoError(t, err)
+	require.Equal(t, len(keys), 2)
+
+	keys2, err := config.KeyManager().GetTLFCryptKeyOfAllGenerations(context.Background(), rmd2)
+	require.NoError(t, err)
+	require.Equal(t, len(keys2), 2)
+	require.Equal(t, keys2, keys)
+
+	// get each key generation for alice from each version of metadata
+	aliceKeys := getAllUsersKeysForTest(t, config, rmd, "alice")
+	aliceKeys2 := getAllUsersKeysForTest(t, config, rmd2, "alice")
+
+	// compare alice's keys
+	require.Equal(t, len(aliceKeys), 2)
+	require.Equal(t, aliceKeys, aliceKeys2)
+
+	// get each key generation for charlie from each version of metadata
+	charlieKeys := getAllUsersKeysForTest(t, config2, rmd, "charlie")
+	charlieKeys2 := getAllUsersKeysForTest(t, config2, rmd2, "charlie")
+
+	// compare charlie's keys
+	require.Equal(t, len(charlieKeys), 2)
+	require.Equal(t, charlieKeys, charlieKeys2)
+
+	// compare alice and charlie's keys
+	require.Equal(t, aliceKeys, charlieKeys)
+}
+
+// Test upconversion from MDv2 to MDv3 for a public folder.
+func TestRootMetadataUpconversionPublic(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "alice", "bob")
+	defer config.Shutdown()
+
+	tlfID := tlf.FakeID(1, true)
+	h := parseTlfHandleOrBust(t, config, "alice,bob,charlie@twitter", true)
+	rmd, err := makeInitialRootMetadata(InitialExtraMetadataVer, tlfID, h)
+	require.NoError(t, err)
+	require.Equal(t, rmd.LatestKeyGeneration(), PublicKeyGen)
+	require.Equal(t, rmd.Revision(), MetadataRevision(1))
+	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
+
+	// set some dummy numbers
+	diskUsage, refBytes, unrefBytes := uint64(12345), uint64(4321), uint64(1234)
+	rmd.SetDiskUsage(diskUsage)
+	rmd.SetRefBytes(refBytes)
+	rmd.SetUnrefBytes(unrefBytes)
+
+	// override the metadata version
+	config.metadataVersion = SegregatedKeyBundlesVer
+
+	// create an MDv3 successor
+	rmd2, err := rmd.MakeSuccessor(context.Background(), config, fakeMdID(1), true)
+	require.NoError(t, err)
+	require.Equal(t, rmd2.LatestKeyGeneration(), PublicKeyGen)
+	require.Equal(t, rmd2.Revision(), MetadataRevision(2))
+	require.Equal(t, rmd2.Version(), SegregatedKeyBundlesVer)
+
+	// compare numbers
+	require.Equal(t, diskUsage, rmd2.DiskUsage())
+	// we expect this and the below to be zero this time because the folder is public.
+	// they aren't reset in the private version because the private metadata isn't
+	// initialized therefor it's considered unreadable.
+	require.Equal(t, uint64(0), rmd2.RefBytes())
+	require.Equal(t, uint64(0), rmd2.UnrefBytes())
+
+	// create and compare bare tlf handles (this verifies unresolved+resolved writer sets are identical)
+	rmd.tlfHandle, rmd2.tlfHandle = nil, nil // avoid a panic due to the handle already existing
+	handle, err := rmd.MakeBareTlfHandle()
+	require.NoError(t, err)
+	handle2, err := rmd2.MakeBareTlfHandle()
+	require.NoError(t, err)
+	require.Equal(t, handle, handle2)
 }
