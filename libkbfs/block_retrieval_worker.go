@@ -58,9 +58,11 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 
 	// Create a new block of the same type as the first request
 	var block Block
+	retrieval.reqMtx.RLock()
 	if retrieval.requests[0].block != nil {
 		block = retrieval.requests[0].block.NewEmpty()
 	}
+	retrieval.reqMtx.RUnlock()
 	defer func() {
 		brw.queue.FinalizeRequest(retrieval, block, err)
 	}()

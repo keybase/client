@@ -36,6 +36,9 @@ type blockRetrieval struct {
 	ctx *CoalescingContext
 	// cancel function for the context
 	cancelFunc context.CancelFunc
+
+	// protects requests
+	reqMtx sync.RWMutex
 	// the individual requests for this block pointer: they must be notified
 	// once the block is returned
 	requests []*blockRetrievalRequest
@@ -153,10 +156,12 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 			}
 		}
 		ch := make(chan error, 1)
+		br.reqMtx.Lock()
 		br.requests = append(br.requests, &blockRetrievalRequest{
 			block:  block,
 			doneCh: ch,
 		})
+		br.reqMtx.Unlock()
 		// If the new request priority is higher, elevate the retrieval in the
 		// queue.  Skip this if the request is no longer in the queue (which means
 		// it's actively being processed).
@@ -188,6 +193,12 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 	brq.mtx.Unlock()
 	retrieval.cancelFunc()
 
+	// This is a symbolic lock, since there shouldn't be any other goroutines
+	// accessing requests at this point. But requests had contentious access
+	// earlier, so we'll lock it here as well to maintain the integrity of the
+	// lock.
+	retrieval.reqMtx.Lock()
+	defer retrieval.reqMtx.Unlock()
 	for _, r := range retrieval.requests {
 		req := r
 		if block != nil {
