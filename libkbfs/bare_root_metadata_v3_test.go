@@ -65,3 +65,18 @@ func TestIsValidRekeyRequestBasicV3(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, ok)
 }
+
+func TestRootMetadataPublicVersionV3(t *testing.T) {
+	tlfID := tlf.FakeID(1, true)
+
+	uid := keybase1.MakeTestUID(1)
+	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, []keybase1.UID{keybase1.PublicUID}, nil, nil, nil)
+	require.NoError(t, err)
+
+	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	require.NoError(t, err)
+	require.Equal(t, SegregatedKeyBundlesVer, rmd.Version())
+
+	bh2, err := rmd.MakeBareTlfHandle(nil)
+	require.Equal(t, bh, bh2)
+}
