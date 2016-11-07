@@ -84,7 +84,7 @@ func TestMaxExpires(t *testing.T) {
 	}
 	name := libkb.NewNormalizedUsername("charlie")
 	uid := libkb.UsernameToUID(name.String())
-	expireIn := testMaxTokenExpireIn + 1
+	expireIn := testMaxTokenExpireIn + 10
 	server := "test"
 	clientName := "test_client"
 	clientVersion := "93021"
