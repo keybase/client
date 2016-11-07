@@ -19,8 +19,8 @@ var (
 	kernel32DLL        = windows.NewLazySystemDLL("kernel32.dll")
 	getVolumeProc      = kernel32DLL.NewProc("GetVolumeInformationW")
 	queryDosDeviceProc = kernel32DLL.NewProc("QueryDosDeviceW")
-	shell32DLL		   = windows.NewLazySystemDLL("shell32.dll")
-	shChangeNotifyProc = shell32DLL.NewProc("SHChangeNotify") 
+	shell32DLL         = windows.NewLazySystemDLL("shell32.dll")
+	shChangeNotifyProc = shell32DLL.NewProc("SHChangeNotify")
 )
 
 // getVolumeName requires a drive letter and colon with a
@@ -102,24 +102,24 @@ func getMountDirs() ([]string, error) {
 }
 
 // Notify the shell that the thing located at path has changed
-func notifyShell(path string){
+func notifyShell(path string) {
 	shChangeNotifyProc.Call(
-		uintptr(0x00002000),		// SHCNE_UPDATEITEM
-		uintptr(0x0005),			// SHCNF_PATHW
+		uintptr(0x00002000), // SHCNE_UPDATEITEM
+		uintptr(0x0005),     // SHCNF_PATHW
 		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr(path))),
 		0)
 }
 
 // Manipulate registry entries to reflect the mount point icon in the shell
 func doMountChange(oldMount string, newMount string) error {
-	if len(oldMount) != 0 {
+	if oldMount != "" {
 		// DeleteKey doesn't work if there are subkeys
 		registry.DeleteKey(registry.CURRENT_USER, `SOFTWARE\Classes\Applications\Explorer.exe\Drives\`+oldMount[:1]+`\DefaultIcon`)
 		registry.DeleteKey(registry.CURRENT_USER, `SOFTWARE\Classes\Applications\Explorer.exe\Drives\`+oldMount[:1]+`\DefaultLabel`)
 		registry.DeleteKey(registry.CURRENT_USER, `SOFTWARE\Classes\Applications\Explorer.exe\Drives\`+oldMount[:1])
 		notifyShell(oldMount)
 	}
-	if len(newMount) == 0 {
+	if newMount == "" {
 		return nil
 	}
 	k, _, err := registry.CreateKey(registry.CURRENT_USER, `SOFTWARE\Classes\Applications\Explorer.exe\Drives\`+newMount[:1]+`\DefaultIcon`, registry.SET_VALUE|registry.CREATE_SUB_KEY|registry.WRITE)
