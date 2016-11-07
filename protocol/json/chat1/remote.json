@@ -241,6 +241,10 @@
     "getInboxRemote": {
       "request": [
         {
+          "name": "vers",
+          "type": "InboxVers"
+        },
+        {
           "name": "query",
           "type": [
             null,

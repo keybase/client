@@ -59,6 +59,11 @@ export const CommonConversationStatus = {
   blocked: 3,
 }
 
+export const CommonInboxResType = {
+  versionhit: 0,
+  full: 1,
+}
+
 export const CommonMessageType = {
   none: 0,
   text: 1,
@@ -610,7 +615,18 @@ export type HeaderPlaintextV1 = {
 export type HeaderPlaintextVersion = 
     1 // V1_1
 
-export type InboxView = {
+export type InboxResType = 
+    0 // VERSIONHIT_0
+  | 1 // FULL_1
+
+export type InboxVers = uint64
+
+export type InboxView = 
+    { rtype : 0 }
+  | { rtype : 1, full : ?InboxViewFull }
+
+export type InboxViewFull = {
+  vers: InboxVers,
   conversations?: ?Array<Conversation>,
   pagination?: ?Pagination,
 }
@@ -932,6 +948,7 @@ export type localSetConversationStatusLocalRpcParam = Exact<{
 }>
 
 export type remoteGetInboxRemoteRpcParam = Exact<{
+  vers: InboxVers,
   query?: ?GetInboxQuery,
   pagination?: ?Pagination
 }>
