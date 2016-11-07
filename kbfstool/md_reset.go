@@ -79,7 +79,7 @@ func mdResetOne(
 		}
 	}
 
-	rmdNext, err := irmd.MakeSuccessor(config.Codec(), irmd.MdID(), true)
+	rmdNext, err := irmd.MakeSuccessor(ctx, config, irmd.MdID(), true)
 	if err != nil {
 		return err
 	}
