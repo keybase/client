@@ -125,7 +125,7 @@ type listOptionsV1 struct {
 func (l listOptionsV1) Check() error {
 	_, err := TopicTypeFromStrDefault(l.TopicType)
 	if err != nil {
-		return err
+		return ErrInvalidOptions{version: 1, method: methodList, err: err}
 	}
 	return nil
 }
