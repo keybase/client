@@ -1,7 +1,7 @@
 // @flow
 import CommonMap from '../../common-adapters/dumb'
 import DevicePageMap from '../../devices/device-page/dumb.desktop'
-import DeviceRevokeMap from '../../devices/device-revoke/dumb.desktop'
+import DeviceRevokeMap from '../../devices/device-revoke/dumb'
 import DevicesMap from '../../devices/dumb'
 import EditProfileMap from '../../profile/edit-profile/dumb'
 import FoldersConfirmMap from '../../folders/confirm/dumb'

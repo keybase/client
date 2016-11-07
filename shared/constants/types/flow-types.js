@@ -849,6 +849,18 @@ export function configSetValueRpcPromise (request: $Exact<requestCommon & reques
   return new Promise((resolve, reject) => { configSetValueRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function cryptoSignED25519ForKBFSRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519ForKBFSResult) => void} & {param: cryptoSignED25519ForKBFSRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.crypto.signED25519ForKBFS'})
+}
+
+export function cryptoSignED25519ForKBFSRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519ForKBFSResult) => void} & {param: cryptoSignED25519ForKBFSRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => cryptoSignED25519ForKBFSRpc({...request, incomingCallMap, callback}))
+}
+
+export function cryptoSignED25519ForKBFSRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519ForKBFSResult) => void} & {param: cryptoSignED25519ForKBFSRpcParam}>): Promise<cryptoSignED25519ForKBFSResult> {
+  return new Promise((resolve, reject) => { cryptoSignED25519ForKBFSRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function cryptoSignED25519Rpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519Result) => void} & {param: cryptoSignED25519RpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.crypto.signED25519'})
 }
@@ -4148,6 +4160,11 @@ export type configSetValueRpcParam = Exact<{
   value: ConfigValue
 }>
 
+export type cryptoSignED25519ForKBFSRpcParam = Exact<{
+  msg: bytes,
+  reason: string
+}>
+
 export type cryptoSignED25519RpcParam = Exact<{
   msg: bytes,
   reason: string
@@ -4968,6 +4985,8 @@ type configGetExtendedStatusResult = ExtendedStatus
 
 type configGetValueResult = ConfigValue
 
+type cryptoSignED25519ForKBFSResult = ED25519SignatureInfo
+
 type cryptoSignED25519Result = ED25519SignatureInfo
 
 type cryptoSignToStringResult = string
@@ -5206,6 +5225,7 @@ export type rpc =
   | configSetPathRpc
   | configSetUserConfigRpc
   | configSetValueRpc
+  | cryptoSignED25519ForKBFSRpc
   | cryptoSignED25519Rpc
   | cryptoSignToStringRpc
   | cryptoUnboxBytes32AnyRpc

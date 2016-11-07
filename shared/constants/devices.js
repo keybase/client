@@ -2,6 +2,7 @@
 import HiddenString from '../util/hidden-string'
 
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
+import type {Device} from './types/more'
 import type {DeviceDetail} from './types/flow-types'
 
 export const loadDevices = 'devices:loadDevices'
@@ -15,6 +16,11 @@ export type RemoveDevice = NoErrorTypedAction<'devices:removeDevice', {
   deviceID: string,
   name: string,
   currentDevice: boolean,
+}>
+
+export const showRemovePage = 'devices:showRemovePage'
+export type ShowRemovePage = NoErrorTypedAction<'devices:showRemovePage', {
+  device: Device,
 }>
 
 export const deviceRemoved = 'devices:deviceRemoved'
