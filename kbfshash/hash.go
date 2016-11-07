@@ -81,6 +81,16 @@ func DoRawDefaultHash(p []byte) (HashType, RawDefaultHash) {
 	return DefaultHashType, RawDefaultHash(sha256.Sum256(p))
 }
 
+// Copy returns a copied RawDefaultHash
+func (rdh *RawDefaultHash) Copy() *RawDefaultHash {
+	if rdh == nil {
+		return nil
+	}
+	hashCopy := RawDefaultHash{}
+	copy(hashCopy[:], rdh[:])
+	return &hashCopy
+}
+
 // Hash is the type of a keybase hash.
 type Hash struct {
 	// Stored as a string so that this can be used as a map key.

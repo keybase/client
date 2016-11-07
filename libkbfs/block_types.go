@@ -74,6 +74,7 @@ func (cb *CommonBlock) Set(other Block, codec kbfscodec.Codec) {
 	if err != nil {
 		panic("Unable to CommonBlock.Set")
 	}
+	cb.cachedEncodedSize = otherCb.cachedEncodedSize
 }
 
 // NewCommonBlock returns a generic block, unsuitable for caching.
@@ -122,6 +123,7 @@ func (db DirBlock) DeepCopy(codec kbfscodec.Codec) (*DirBlock, error) {
 	if dirBlockCopy.Children == nil {
 		dirBlockCopy.Children = make(map[string]DirEntry)
 	}
+	dirBlockCopy.cachedEncodedSize = db.cachedEncodedSize
 	return &dirBlockCopy, nil
 }
 
@@ -177,6 +179,8 @@ func (fb FileBlock) DeepCopy(codec kbfscodec.Codec) (*FileBlock, error) {
 	if err != nil {
 		return nil, err
 	}
+	fileBlockCopy.hash = fb.hash.Copy()
+	fileBlockCopy.cachedEncodedSize = fb.cachedEncodedSize
 	return &fileBlockCopy, nil
 }
 
