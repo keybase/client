@@ -8,16 +8,18 @@ import (
 	"golang.org/x/net/context"
 )
 
+type testCtxKey struct{ string }
+
 func TestCoalescingContext(t *testing.T) {
 	t.Parallel()
 	t.Log("Test basic CoalescingContext with 2 parent contexts.")
-	ctx1, cf1 := context.WithCancel(context.WithValue(context.Background(), "hello", "world"))
+	ctx1, cf1 := context.WithCancel(context.WithValue(context.Background(), testCtxKey{"hello"}, "world"))
 	ctx2, cf2 := context.WithCancel(context.Background())
 
 	cc, _ := NewCoalescingContext(ctx1)
 	err := cc.AddContext(ctx2)
 	require.NoError(t, err)
-	require.Equal(t, "world", cc.Value("hello").(string))
+	require.Equal(t, "world", cc.Value(testCtxKey{"hello"}).(string))
 
 	select {
 	case <-cc.Done():
