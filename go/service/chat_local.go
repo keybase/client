@@ -759,7 +759,7 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	tee := io.TeeReader(encReader, hash)
 
 	// post to s3
-	upRes, err := chat.PutS3(ctx, h.G().Log, tee, int64(len), params, h, progress)
+	upRes, err := chat.PutS3(ctx, h.G().Log, tee, int64(len), params, h, progress, local)
 	if err != nil {
 		return chat1.Asset{}, err
 	}

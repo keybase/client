@@ -3,7 +3,9 @@ package chat
 import (
 	"bytes"
 	"crypto/hmac"
+	"crypto/md5"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"time"
@@ -32,7 +34,7 @@ type PutS3Result struct {
 
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use
 // putSingle or putMultiPipeline based on the size of the object.
-func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, signer s3.Signer, progress ProgressReporter) (*PutS3Result, error) {
+func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, signer s3.Signer, progress ProgressReporter, local chat1.LocalSource) (*PutS3Result, error) {
 	region := s3.Region{
 		Name:             params.RegionName,
 		S3Endpoint:       params.RegionEndpoint,
@@ -48,9 +50,11 @@ func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, para
 			return nil, err
 		}
 	} else {
-		if err := putMultiPipeline(ctx, log, r, size, params, b, progress); err != nil {
+		objectKey, err := putMultiPipeline(ctx, log, r, size, params, b, progress, local)
+		if err != nil {
 			return nil, err
 		}
+		params.ObjectKey = objectKey
 	}
 
 	res := PutS3Result{
@@ -168,12 +172,41 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 
 // putMultiPipeline uploads data in r to S3 using the Multi API.  It uses a
 // pipeline to upload 10 blocks of data concurrently.  Each block is 5MB.
-func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket, progress ProgressReporter) error {
+// It returns the object key if no errors.  putMultiPipeline will return
+// a different object key from params.ObjectKey if a previous Put is
+// successfully resumed and completed.
+func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket, progress ProgressReporter, local chat1.LocalSource) (string, error) {
 	log.Debug("s3 putMultiPipeline (size = %d)", size)
+
+	// putMulti operations are resumable
+	book := NewFileAttachmentBook()
+	previous := false
+	previousObjectKey, err := book.Lookup(local.Filename)
+	if err == nil && previousObjectKey != "" {
+		previous = true
+	}
+	if previous {
+		log.Debug("found previous object key for %s: %s", local.Filename, previousObjectKey)
+		params.ObjectKey = previousObjectKey
+	} else {
+		log.Debug("storing object key for %s: %s", local.Filename, params.ObjectKey)
+		if err := book.Start(local.Filename, params.ObjectKey); err != nil {
+			log.Debug("ignoring attachment book Start error: %s", err)
+		}
+	}
+
 	multi, err := b.InitMulti(params.ObjectKey, "application/octet-stream", s3.ACL(params.Acl))
 	if err != nil {
 		log.Debug("InitMulti error: %s", err)
-		return err
+		return "", err
+	}
+
+	var previousParts []s3.Part
+	if previous {
+		previousParts, err = multi.ListParts()
+		if err != nil {
+			log.Debug("ignoring multi.ListParts error: %s", err)
+		}
 	}
 
 	type job struct {
@@ -216,6 +249,21 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		eg.Go(func() error {
 			for b := range blockCh {
 				log.Debug("start: upload part %d", b.index)
+				if previous && len(previousParts) > b.index {
+					// check previousParts for this block
+					p := previousParts[b.index]
+					md5sum := md5.Sum(b.block)
+					md5hex := `"` + hex.EncodeToString(md5sum[:]) + `"`
+					if int(p.Size) == len(b.block) && p.ETag == md5hex {
+						log.Debug("part %d already uploaded")
+						select {
+						case retCh <- p:
+						case <-ctx.Done():
+							return ctx.Err()
+						}
+						continue
+					}
+				}
 				part, putErr := putRetry(ctx, log, multi, b.index, b.block)
 				if putErr != nil {
 					return putErr
@@ -246,17 +294,22 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		}
 	}
 	if err := eg.Wait(); err != nil {
-		return err
+		return "", err
 	}
 
 	log.Debug("s3 putMulti all parts uploaded, completing request")
 
 	if err = multi.Complete(parts); err != nil {
 		log.Debug("multi.Complete error: %s", err)
-		return err
+		return "", err
 	}
 	log.Debug("s3 putMulti success, %d parts", len(parts))
-	return nil
+
+	if err := book.Stop(local.Filename); err != nil {
+		log.Debug("ignoring attachment book.Stop error: %s", err)
+	}
+
+	return params.ObjectKey, nil
 }
 
 // putRetry sends a block to S3, retrying 10 times w/ backoff.
@@ -278,6 +331,19 @@ func putRetry(ctx context.Context, log logger.Logger, multi *s3.Multi, partNumbe
 		lastErr = putErr
 	}
 	return s3.Part{}, fmt.Errorf("failed to put part %d (last error: %s)", partNumber, lastErr)
+}
+
+func checkResumable(local chat1.LocalSource) (string, bool) {
+	book := NewFileAttachmentBook()
+	existing, err := book.Lookup(local.Filename)
+	if err != nil {
+		return "", false
+	}
+	if existing == "" {
+		return "", false
+	}
+
+	return existing, true
 }
 
 type progressWriter struct {
