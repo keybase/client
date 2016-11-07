@@ -237,10 +237,6 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 	defer fsource.Close()
 	src := c.G().XStreams.ExportReader(fsource)
 
-	title := info.Name()
-	if strings.TrimSpace(opts.Title) != "" {
-		title = opts.Title
-	}
 	arg := chat1.PostAttachmentLocalArg{
 		ConversationID: header.conversationID,
 		ClientHeader:   header.clientHeader,
@@ -249,7 +245,7 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 			Size:     int(info.Size()),
 			Source:   src,
 		},
-		Title: title,
+		Title: opts.Title,
 	}
 
 	// check for preview
