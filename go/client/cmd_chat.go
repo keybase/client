@@ -17,6 +17,7 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		Subcommands: []cli.Command{
 			newCmdChatAPI(cl, g),
 			newCmdChatDownload(cl, g),
+			newCmdChatHide(cl, g),
 			newCmdChatList(cl, g),
 			newCmdChatListUnread(cl, g),
 			newCmdChatRead(cl, g),
