@@ -1,5 +1,5 @@
 // @flow
-import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
+import type {NoErrorTypedAction} from '../constants/types/flux'
 
 export type TokenType = '' | 'ios' | 'android'
 

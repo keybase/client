@@ -6,8 +6,8 @@ import * as PushNotifications from 'react-native-push-notification'
 
 import {apiserverPostRpcPromise} from '../constants/types/flow-types'
 
-import {call, put, select, fork, cancel} from 'redux-saga/effects'
-import {takeEvery, takeLatest, delay} from 'redux-saga'
+import {call, put, select} from 'redux-saga/effects'
+import {takeEvery, takeLatest} from 'redux-saga'
 
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
@@ -24,7 +24,8 @@ function * permissionsRequestSaga (): SagaGenerator<any, any> {
 
     console.log('Requesting permissions')
     const permissions = yield call(() => { return PushNotifications.requestPermissions() })
-    // TODO(gabriel): Set permissions we have in state, might need it at some point?
+    console.log('Permissions:', permissions)
+    // TODO(gabriel): Set permissions we have in store, might want it at some point?
   } finally {
     yield put({type: Constants.permissionsRequesting, payload: false})
     yield put({type: Constants.permissionsPrompt, payload: false})
@@ -82,7 +83,7 @@ function * savePushTokenSaga (): SagaGenerator<any, any> {
       {key: 'token_type', value: tokenType},
     ]
 
-    const result = yield call(apiserverPostRpcPromise, {
+    yield call(apiserverPostRpcPromise, {
       param: {
         endpoint: 'device/push_token',
         args: args,
