@@ -4,11 +4,13 @@
 package externals
 
 import (
+	"bytes"
 	"fmt"
 	"net/url"
 	"regexp"
 	"strings"
 
+	"github.com/PuerkitoBio/goquery"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	pvl "github.com/keybase/client/go/pvl"
@@ -95,36 +97,40 @@ func (rc *FacebookChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) 
 }
 
 func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	// Previously we would parse markup to extract the username and proof text.
-	// We had to switch to the desktop site to validate the usernames of people
-	// with the "no search engine scraping" Facebook privacy setting turned on.
-	// (Since only the desktop site, and not the m-site, enforces that the
-	// author ID in a post URL is correct.) That in turn made it much harder to
-	// parse the markup we get, because what we want comes down in an embedded
-	// comment. However, because the desktop site (again, unlike the m-site)
-	// does not display comments or ads to logged-out users, we can do a simple
-	// string match on the whole page to find the proof text. It's possible
-	// there's some way I haven't thought of for other users to inject strings
-	// somewhere in this page, or break that URL->author relationship, and if
-	// so we'll need to change it.
-
 	desktopURL := makeDesktopURL(h.GetAPIURL())
 
-	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArg(desktopURL))
+	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArg(desktopURL))
 	if err != nil {
 		return libkb.XapiError(err, desktopURL)
 	}
 
-	// We require a tiny bit of structure, which is that the proof must appear
-	// as the exact contents of an <a> tag. Again, this is just a textual
-	// search -- the <a> tag in question is actually expected to be in a
-	// comment.
-	escapedProofText := regexp.QuoteMeta(h.GetCheckText())
-	proofTextRegex := regexp.MustCompile("<a[^>]*>\\s*" + escapedProofText + "\\s*</a[^>]*>")
+	// Get the contents of the first (only) comment inside the first <code>
+	// block. Believe it or not, this comment contains the post markup below.
+	firstCodeCommentElements := res.GoQuery.Find("code").Eq(0).Contents().Nodes
+	if len(firstCodeCommentElements) == 0 {
+		return libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "failed to find proof markup comment in Facebook response")
+	}
+	firstCodeComment := firstCodeCommentElements[0].Data
 
-	if !proofTextRegex.MatchString(res.Body) {
-		errorText := fmt.Sprintf("Couldn't find Facebook proof text at %s. Is it deleted or private?", desktopURL)
-		return libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, errorText)
+	// Facebook escapes "--" as "-\-\" and "\" as "\\" when inserting text into
+	// comments. Unescape these.
+	unescapedComment := strings.Replace(firstCodeComment, "-\\-\\", "--", -1)
+	unescapedComment = strings.Replace(unescapedComment, "\\\\", "\\", -1)
+
+	// Re-parse the result as more HTML. This is the markup for the proof post.
+	innerGoQuery, err := goquery.NewDocumentFromReader(bytes.NewBuffer([]byte(unescapedComment)))
+	if err != nil {
+		return libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "failed to parse proof markup comment in Facebook post: %s", err)
+	}
+
+	// This is the selector for the post attachment link, which contains the
+	// proof text. It's the "first <a> tag inside the div that's the immediate
+	// *sibling* of the 'userContet' div".
+	linkText := innerGoQuery.Find("div.userContent+div a").Text()
+
+	// Confirm that the proof text matches the hint.
+	if strings.TrimSpace(linkText) != strings.TrimSpace(h.GetCheckText()) {
+		return libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "Proof text not found: '%s' != '%s'", linkText, h.GetCheckText())
 	}
 
 	// The proof is good.
