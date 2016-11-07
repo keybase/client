@@ -2351,6 +2351,17 @@ func (_mr *_MockCryptoRecorder) Sign(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Sign", arg0, arg1)
 }
 
+func (_m *MockCrypto) SignForKBFS(_param0 context.Context, _param1 []byte) (kbfscrypto.SignatureInfo, error) {
+	ret := _m.ctrl.Call(_m, "SignForKBFS", _param0, _param1)
+	ret0, _ := ret[0].(kbfscrypto.SignatureInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) SignForKBFS(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SignForKBFS", arg0, arg1)
+}
+
 func (_m *MockCrypto) SignToString(_param0 context.Context, _param1 []byte) (string, error) {
 	ret := _m.ctrl.Call(_m, "SignToString", _param0, _param1)
 	ret0, _ := ret[0].(string)

@@ -875,6 +875,7 @@ type Crypto interface {
 	// Duplicate kbfscrypto.Signer here to work around gomock's
 	// limitations.
 	Sign(context.Context, []byte) (kbfscrypto.SignatureInfo, error)
+	SignForKBFS(context.Context, []byte) (kbfscrypto.SignatureInfo, error)
 	SignToString(context.Context, []byte) (string, error)
 
 	// DecryptTLFCryptKeyClientHalf decrypts a
