@@ -591,18 +591,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(1))
 	require.Equal(t, rmd.Revision(), MetadataRevision(1))
 	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
-
-	// prove charlie
-	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
-		"charlie", "charlie@twitter")
-
-	// rekey it
-	done, _, err = config.KeyManager().Rekey(context.Background(), rmd, false)
-	require.NoError(t, err)
-	require.True(t, done)
-	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(1))
-	require.Equal(t, rmd.Revision(), MetadataRevision(1))
-	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys), 0)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys), 1)
 
 	// revoke bob's device
 	_, bobUID, err := config.KBPKI().Resolve(context.Background(), "bob")
@@ -616,6 +606,40 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(2))
 	require.Equal(t, rmd.Revision(), MetadataRevision(1))
 	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys), 0)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys), 1)
+
+	// prove charlie
+	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
+		"charlie", "charlie@twitter")
+
+	// rekey it
+	done, _, err = config.KeyManager().Rekey(context.Background(), rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(2))
+	require.Equal(t, rmd.Revision(), MetadataRevision(1))
+	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys), 0)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys), 2)
+
+	// add a device for charlie and rekey as charlie
+	_, charlieUID, err := config.KBPKI().Resolve(context.Background(), "charlie")
+	config2 := ConfigAsUser(config, "charlie")
+	config2.SetKeyCache(&dummyNoKeyCache{})
+	defer config2.Shutdown()
+	AddDeviceForLocalUserOrBust(t, config, charlieUID)
+	AddDeviceForLocalUserOrBust(t, config2, charlieUID)
+
+	// rekey it
+	done, _, err = config2.KeyManager().Rekey(context.Background(), rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+	require.Equal(t, rmd.LatestKeyGeneration(), KeyGen(2))
+	require.Equal(t, rmd.Revision(), MetadataRevision(1))
+	require.Equal(t, rmd.Version(), InitialExtraMetadataVer)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys), 1)
+	require.Equal(t, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys), 2)
 
 	// override the metadata version
 	config.metadataVersion = SegregatedKeyBundlesVer
@@ -659,9 +683,6 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, aliceKeys, aliceKeys2)
 
 	// get each key generation for charlie from each version of metadata
-	config2 := ConfigAsUser(config, "charlie")
-	config2.SetKeyCache(&dummyNoKeyCache{})
-	defer config2.Shutdown()
 	charlieKeys := getAllUsersKeysForTest(t, config2, rmd, "charlie")
 	charlieKeys2 := getAllUsersKeysForTest(t, config2, rmd2, "charlie")
 

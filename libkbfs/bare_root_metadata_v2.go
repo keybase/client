@@ -59,16 +59,11 @@ func (wmd *WriterMetadataV2) ToWriterMetadataV3(
 	*TLFWriterKeyBundleV3, error) {
 
 	wmdCopy.Writers = make([]keybase1.UID, len(wmd.Writers))
-	copy(wmdCopy.Writers[:], wmd.Writers)
+	copy(wmdCopy.Writers, wmd.Writers)
 
 	wmdCopy.UnresolvedWriters = make([]keybase1.SocialAssertion, len(wmd.Extra.UnresolvedWriters))
-	copy(wmdCopy.UnresolvedWriters[:], wmd.Extra.UnresolvedWriters)
+	copy(wmdCopy.UnresolvedWriters, wmd.Extra.UnresolvedWriters)
 
-	if wmd.ID.IsPublic() {
-		wmdCopy.LatestKeyGen = PublicKeyGen
-	} else {
-		wmdCopy.LatestKeyGen = wmd.WKeys.LatestKeyGeneration()
-	}
 	wmdCopy.ID = wmd.ID
 	wmdCopy.BID = wmd.BID
 	wmdCopy.WFlags = wmd.WFlags
@@ -77,17 +72,23 @@ func (wmd *WriterMetadataV2) ToWriterMetadataV3(
 	wmdCopy.UnrefBytes = wmd.UnrefBytes
 
 	var wkb *TLFWriterKeyBundleV3
-	if wmdCopy.LatestKeyGen != PublicKeyGen {
+	if wmd.ID.IsPublic() {
+		wmdCopy.LatestKeyGen = PublicKeyGen
+	} else {
+		wmdCopy.LatestKeyGen = wmd.WKeys.LatestKeyGeneration()
 		var err error
 		wkb, err = wmd.WKeys.ToTLFWriterKeyBundleV3(ctx, crypto, keyManager, kmd)
 		if err != nil {
 			return nil, err
 		}
+		// wkb is passed because in V2 metadata ephemeral public keys for readers
+		// were sometimes in the writer key bundles
 		wmdCopy.WKeyBundleID, err = crypto.MakeTLFWriterKeyBundleID(wkb)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	return wkb, nil
 }
 
@@ -345,24 +346,42 @@ func (md *BareRootMetadataV2) MakeSuccessorCopy(
 
 	if config.MetadataVersion() < SegregatedKeyBundlesVer {
 		// Continue with the current version.
-		mdCopy, err := md.deepCopy(config.Codec())
+		mdCopy, err := md.makeSuccessorCopyV2(config, isReadableAndWriter)
 		if err != nil {
 			return nil, nil, false, err
-		}
-		if isReadableAndWriter {
-			mdCopy.WriterMetadataSigInfo = kbfscrypto.SignatureInfo{}
 		}
 		return mdCopy, nil, false, nil
 	}
 
-	// Upconvert to the next version.
+	// Upconvert to the new version.
+	mdCopy, extraCopy, err := md.makeSuccessorCopyV3(ctx, config, kmd)
+	if err != nil {
+		return nil, nil, false, err
+	}
+	return mdCopy, extraCopy, true, nil
+}
+
+func (md *BareRootMetadataV2) makeSuccessorCopyV2(config Config, isReadableAndWriter bool) (
+	*BareRootMetadataV2, error) {
+	mdCopy, err := md.deepCopy(config.Codec())
+	if err != nil {
+		return nil, err
+	}
+	if isReadableAndWriter {
+		mdCopy.WriterMetadataSigInfo = kbfscrypto.SignatureInfo{}
+	}
+	return mdCopy, nil
+}
+
+func (md *BareRootMetadataV2) makeSuccessorCopyV3(ctx context.Context, config Config, kmd KeyMetadata) (
+	*BareRootMetadataV3, *ExtraMetadataV3, error) {
 	mdCopy := &BareRootMetadataV3{}
 
 	// Fill out the writer metadata and new writer key bundle.
 	wkb, err := md.WriterMetadataV2.ToWriterMetadataV3(
 		ctx, config.Crypto(), config.KeyManager(), kmd, &mdCopy.WriterMetadata)
 	if err != nil {
-		return nil, nil, false, err
+		return nil, nil, err
 	}
 
 	var rkb *TLFReaderKeyBundleV3
@@ -370,11 +389,11 @@ func (md *BareRootMetadataV2) MakeSuccessorCopy(
 		// Fill out the reader key bundle.
 		rkb, err = md.RKeys.ToTLFReaderKeyBundleV3(wkb)
 		if err != nil {
-			return nil, nil, false, err
+			return nil, nil, err
 		}
 		mdCopy.RKeyBundleID, err = config.Crypto().MakeTLFReaderKeyBundleID(rkb)
 		if err != nil {
-			return nil, nil, false, err
+			return nil, nil, err
 		}
 	}
 
@@ -383,7 +402,7 @@ func (md *BareRootMetadataV2) MakeSuccessorCopy(
 	mdCopy.Revision = md.Revision // Incremented by the caller.
 	// PrevRoot is set by the caller.
 	mdCopy.UnresolvedReaders = make([]keybase1.SocialAssertion, len(md.UnresolvedReaders))
-	copy(mdCopy.UnresolvedReaders[:], md.UnresolvedReaders)
+	copy(mdCopy.UnresolvedReaders, md.UnresolvedReaders)
 
 	if md.ConflictInfo != nil {
 		ci := *md.ConflictInfo
@@ -393,11 +412,11 @@ func (md *BareRootMetadataV2) MakeSuccessorCopy(
 	// Metadata with finalized info is never succeeded.
 	if md.FinalizedInfo != nil {
 		// Shouldn't be possible.
-		return nil, nil, false, errors.New("Non-nil finalized info")
+		return nil, nil, errors.New("Non-nil finalized info")
 	}
 
 	extraCopy := &ExtraMetadataV3{wkb: wkb, rkb: rkb}
-	return mdCopy, extraCopy, true, nil
+	return mdCopy, extraCopy, nil
 }
 
 // CheckValidSuccessor implements the BareRootMetadata interface for BareRootMetadataV2.
