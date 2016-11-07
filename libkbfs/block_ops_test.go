@@ -200,7 +200,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
 		encData, kbfscrypto.BlockCryptKeyServerHalf{}, nil)
 	decData := &TestBlock{42}
 
@@ -226,7 +226,7 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	id := fakeBlockID(1)
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
 		nil, kbfscrypto.BlockCryptKeyServerHalf{}, err)
 
 	if err2 := config.BlockOps().Get(
@@ -245,7 +245,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	err := errors.New("Fake verification fail")
 	blockPtr := BlockPointer{ID: id}
 	encData := []byte{1, 2, 3}
-	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
 		encData, kbfscrypto.BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().VerifyBlockID(encData, id).Return(err)
 
@@ -264,7 +264,7 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(gomock.Any(), kmd.TlfID(), id, blockPtr.BlockContext).Return(
 		encData, kbfscrypto.BlockCryptKeyServerHalf{}, nil)
 	err := errors.New("Fake fail")
 
