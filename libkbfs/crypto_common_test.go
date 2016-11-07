@@ -251,7 +251,7 @@ func TestCryptoCommonEncryptDecryptBlock(t *testing.T) {
 	block := TestBlock{42}
 	key := kbfscrypto.BlockCryptKey{}
 
-	_, encryptedBlock, err := c.EncryptBlock(block, key)
+	_, encryptedBlock, err := c.EncryptBlock(&block, key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -663,7 +663,7 @@ func TestEncryptBlock(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	plainSize, encryptedBlock, err := c.EncryptBlock(block, cryptKey)
+	plainSize, encryptedBlock, err := c.EncryptBlock(&block, cryptKey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -889,6 +889,15 @@ func (tba testBlockArray) SetEncodedSize(size uint32) {
 
 func (testBlockArray) DataVersion() DataVer { return FirstValidDataVer }
 
+func (tba testBlockArray) NewEmpty() Block {
+	return &testBlockArray{}
+}
+
+func (tba *testBlockArray) Set(other Block, _ kbfscodec.Codec) {
+	otherTba := other.(*testBlockArray)
+	*tba = *otherTba
+}
+
 // Test that block encrypted data length is the same for data
 // length within same power of 2.
 func TestBlockEncryptedLen(t *testing.T) {
@@ -909,7 +918,7 @@ func TestBlockEncryptedLen(t *testing.T) {
 	var expectedLen int
 	for i := 1025; i < 2000; i++ {
 		data := randomData[:i]
-		_, encBlock, err := c.EncryptBlock(data, cryptKey)
+		_, encBlock, err := c.EncryptBlock(&data, cryptKey)
 		if err != nil {
 			t.Fatal(err)
 		}

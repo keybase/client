@@ -7,13 +7,14 @@ package libkbfs
 import (
 	"testing"
 
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 func TestBlockRetrievalQueueBasic(t *testing.T) {
 	t.Log("Add a block retrieval request to the queue and retrieve it.")
-	q := newBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack())
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -34,7 +35,7 @@ func TestBlockRetrievalQueueBasic(t *testing.T) {
 
 func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 	t.Log("Preempt a lower-priority block retrieval request with a higher priority request.")
-	q := newBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack())
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -60,7 +61,7 @@ func TestBlockRetrievalQueuePreemptPriority(t *testing.T) {
 
 func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 	t.Log("Handle a first request and then preempt another one.")
-	q := newBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack())
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -96,7 +97,7 @@ func TestBlockRetrievalQueueInterleavedPreemption(t *testing.T) {
 
 func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 	t.Log("Request the same block multiple times.")
-	q := newBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack())
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -120,7 +121,7 @@ func TestBlockRetrievalQueueMultipleRequestsSameBlock(t *testing.T) {
 
 func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 	t.Log("Elevate the priority on an existing request.")
-	q := newBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack())
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -158,7 +159,7 @@ func TestBlockRetrievalQueueElevatePriorityExistingRequest(t *testing.T) {
 
 func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	t.Log("Begin processing a request and then add another one for the same block.")
-	q := newBlockRetrievalQueue(1)
+	q := newBlockRetrievalQueue(1, kbfscodec.NewMsgpack())
 	require.NotNil(t, q)
 
 	ctx := context.Background()
@@ -185,7 +186,7 @@ func TestBlockRetrievalQueueCurrentlyProcessingRequest(t *testing.T) {
 	require.Equal(t, block, br.requests[1].block)
 
 	t.Log("Finalize the existing request for ptr1.")
-	q.FinalizeRequest(ptr1)
+	q.FinalizeRequest(br, nil, nil)
 	t.Log("Make another request for the same block. Verify that this is a new request.")
 	_ = q.Request(ctx, 2, nil, ptr1, block)
 	br = <-q.WorkOnRequest()
