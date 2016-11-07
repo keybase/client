@@ -63,7 +63,7 @@ func (ctx *CoalescingContext) appendContext(other context.Context) {
 func NewCoalescingContext(parent context.Context) (*CoalescingContext, context.CancelFunc) {
 	ctx := &CoalescingContext{
 		// Make the parent's `Value()` method available to consumers of this
-		// context.
+		// context. For example, this maintains the parent's log debug tags.
 		// TODO: Make _all_ parents' values available.
 		Context:  parent,
 		doneCh:   make(chan struct{}),
@@ -92,7 +92,7 @@ func NewCoalescingContext(parent context.Context) (*CoalescingContext, context.C
 	return ctx, cancelFunc
 }
 
-// Deadline overrides the default parent's Deadline()
+// Deadline overrides the default parent's Deadline().
 func (ctx *CoalescingContext) Deadline() (time.Time, bool) {
 	return time.Time{}, false
 }

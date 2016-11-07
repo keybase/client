@@ -61,8 +61,8 @@ type blockRetrievalQueue struct {
 	// global counter of insertions to queue
 	// capacity: ~584 years at 1 billion requests/sec
 	insertionCount uint64
+	heap           *blockRetrievalHeap
 
-	heap *blockRetrievalHeap
 	// This is a channel of channels to maximize the time that each request is
 	// in the heap, allowing preemption as long as possible. This way, a
 	// request only exits the heap once a worker is ready.
