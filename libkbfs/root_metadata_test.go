@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"testing"
@@ -738,4 +739,36 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 	handle2, err := rmd2.MakeBareTlfHandle()
 	require.NoError(t, err)
 	require.Equal(t, handle, handle2)
+}
+
+// The server will be reusing IsLastModifiedBy and we don't want a client
+// to be able to construct an MD that will crash the server.
+func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "alice", "bob")
+	defer config.Shutdown()
+
+	_, uid, err := config.KBPKI().Resolve(context.Background(), "alice")
+	tlfID := tlf.FakeID(0, false)
+	h := makeFakeTlfHandle(t, 14, false, nil, nil)
+	rmd, err := makeInitialRootMetadata(SegregatedKeyBundlesVer, tlfID, h)
+	require.NoError(t, err)
+	rmd.fakeInitialRekey(config.Crypto())
+	rmd.SetLastModifyingWriter(uid)
+	rmd.SetLastModifyingUser(uid)
+
+	// sign with a mismatched writer
+	config2 := ConfigAsUser(config, "bob")
+	defer config2.Shutdown()
+	rmds, err := SignBareRootMetadata(
+		context.Background(), config.Codec(), config.Crypto(), config2.Crypto(), rmd.bareMd, time.Now())
+	require.NoError(t, err)
+
+	// verify last modifier
+	vk, err := config.KBPKI().GetCurrentVerifyingKey(context.Background())
+	require.NoError(t, err)
+	vk2, err := config2.KBPKI().GetCurrentVerifyingKey(context.Background())
+	require.NoError(t, err)
+
+	err = rmds.IsLastModifiedBy(uid, vk)
+	require.Equal(t, fmt.Errorf("Last writer verifying key %s != %s", vk2.String(), vk.String()), err)
 }
