@@ -36,6 +36,7 @@ type Service struct {
 	gregor           *gregorHandler
 	rekeyMaster      *rekeyMaster
 	messageDeliverer *chat.Deliverer
+	badger           *Badger
 }
 
 type Shutdowner interface {
@@ -50,6 +51,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		stopCh:       make(chan keybase1.ExitCode),
 		logForwarder: newLogFwd(),
 		rekeyMaster:  newRekeyMaster(g),
+		badger:       newBadger(g),
 	}
 }
 
@@ -269,6 +271,7 @@ func (d *Service) startupGregor() {
 			d.G().Log.Warning("failed to create push service handler: %s", err)
 			return
 		}
+		d.gregor.badger = d.badger
 		d.G().GregorDismisser = d.gregor
 		d.G().GregorListener = d.gregor
 
@@ -380,6 +383,9 @@ func (d *Service) OnLogout() error {
 		d.messageDeliverer.Stop()
 	}
 	d.rekeyMaster.Logout()
+	if d.badger != nil {
+		d.badger.Clear()
+	}
 	return nil
 }
 
