@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface Utils : NSObject
+@interface Testing : NSObject
 + (BOOL)areWeBeingUnitTested; // in a test context
 + (BOOL)areWeBeingUnitTestedRightNow; // currently in a test
 @end

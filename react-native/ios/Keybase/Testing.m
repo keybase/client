@@ -6,26 +6,19 @@
 //  Copyright © 2016 Keybase. All rights reserved.
 //
 
-#import "Utils.h"
+#import "Testing.h"
 
-@implementation Utils
+@implementation Testing
 
 // Returns YES if we are currently in a unit test context
 + (BOOL)areWeBeingUnitTested {
-  BOOL answer = NO;
-  Class testProbeClass;
-  testProbeClass = NSClassFromString(@"XCTestProbe");
-  if (testProbeClass != Nil) {
-    answer = YES;
-  }
-  return answer;
+  return !!NSClassFromString(@"XCTestProbe");
 }
 
 // Returns YES if we are currently being unittested.
 + (BOOL)areWeBeingUnitTestedRightNow {
   BOOL answer = NO;
-  Class testProbeClass;
-  testProbeClass = NSClassFromString(@"XCTestProbe");
+  Class testProbeClass = NSClassFromString(@"XCTestProbe");
   if (testProbeClass != Nil) {
     SEL selector = NSSelectorFromString(@"isTesting");
     NSMethodSignature *sig = [testProbeClass methodSignatureForSelector:selector];
@@ -36,6 +29,5 @@
   }
   return answer;
 }
-
 
 @end
