@@ -5,6 +5,12 @@ protocol gregor {
         string Action;
     }
 
+    record NewConversationPayload {
+        string Action;
+        ConversationID convID;
+        InboxVers inboxVers;
+    }
+
     record NewMessagePayload {
         string Action;
         ConversationID convID;

@@ -762,6 +762,12 @@ export type NewConversationLocalRes = {
   rateLimits?: ?Array<RateLimit>,
 }
 
+export type NewConversationPayload = {
+  Action: string,
+  convID: ConversationID,
+  inboxVers: InboxVers,
+}
+
 export type NewConversationRemoteRes = {
   convID: ConversationID,
   rateLimit?: ?RateLimit,

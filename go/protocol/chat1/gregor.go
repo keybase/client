@@ -11,6 +11,12 @@ type GenericPayload struct {
 	Action string `codec:"Action" json:"Action"`
 }
 
+type NewConversationPayload struct {
+	Action    string         `codec:"Action" json:"Action"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+}
+
 type NewMessagePayload struct {
 	Action    string         `codec:"Action" json:"Action"`
 	ConvID    ConversationID `codec:"convID" json:"convID"`

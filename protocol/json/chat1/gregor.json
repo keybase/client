@@ -14,6 +14,24 @@
     },
     {
       "type": "record",
+      "name": "NewConversationPayload",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Action"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "NewMessagePayload",
       "fields": [
         {
