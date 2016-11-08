@@ -14,7 +14,7 @@ class Conversation extends Component<void, Props, void> {
 
   render () {
     return (
-      <Box style={{...globalStyles.flexBoxColumn, minHeight: 48, borderTop: `solid 1px ${globalColors.black_05}`}}>
+      <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
         <Box style={{...globalStyles.flexBoxRow}}>
           <Input
             small={true}
@@ -28,8 +28,8 @@ class Conversation extends Component<void, Props, void> {
               this._input.clearValue()
             }}
           />
-          <Icon style={styleIcon} type='iconfont-emoji' />
-          <Icon style={styleIcon} type='iconfont-attachment' />
+          <Icon onClick={() => console.log('emoji callback')} style={styleIcon} type='iconfont-emoji' />
+          <Icon onClick={() => console.log('attachment callback')} style={styleIcon} type='iconfont-attachment' />
         </Box>
         <Text type='BodySmall' style={styleFooter}>*bold*, _italics_, `code`, >quote</Text>
       </Box>
@@ -45,7 +45,10 @@ const styleInput = {
 }
 
 const styleIcon = {
-  padding: 5,
+  paddingTop: globalMargins.xtiny,
+  paddingLeft: globalMargins.xtiny,
+  paddingRight: globalMargins.xtiny,
+
 }
 
 const styleFooter = {
@@ -53,7 +56,7 @@ const styleFooter = {
   color: globalColors.black_20,
   textAlign: 'right',
   marginTop: 0,
-  marginBottom: globalMargins.tiny,
+  marginBottom: globalMargins.xtiny,
   marginRight: globalMargins.tiny,
 }
 
