@@ -31,12 +31,12 @@
 //    - the encryption key (why?! read below)
 //    - the chunk nonce from #3
 //    - the hash from #2.
-// 5) Sign the concatenation from #3, giving a detached 64-byte crypto_sign
+// 5) Sign the concatenation from #4, giving a detached 64-byte crypto_sign
 //    signature.
-// 6) Concatenate the signature from #4 + the plaintext chunk.
-// 7) Encrypt the concatenation from #5 with the crypto_secretbox key and the
+// 6) Concatenate the signature from #5 + the plaintext chunk.
+// 7) Encrypt the concatenation from #6 with the crypto_secretbox key and the
 //    chunk nonce from #3.
-// 8) Concatenate all the ciphertexts from #8 into the output.
+// 8) Concatenate all the ciphertexts from #7 into the output.
 //
 // Open inputs:
 // - ciphertext bytes (streaming is fine)
@@ -45,20 +45,17 @@
 // - the same nonce
 //
 // Open steps:
-// 1) Chop the input stream into chunks of exactly 2^20 bytes, with exactly one
-//    short chunk at the end, which might be zero bytes.
-// 2) Decrypt each binary chunk with the crypto_secretbox key and chunk
-//    nonce as in seal step #7.
-// 3) Split the chunk into a 64-byte signature and the following plaintext.
+// 1) Chop the input stream into chunks of exactly (2^20 + 80) bytes, with
+//    exactly one short chunk at the end. If this short chunk is less than 80
+//    bytes (the size of an Ed25519 signature and a Poly1305 authenticator put
+//    together), return a truncation error.
+// 2) Decrypt each input chunk with the crypto_secretbox key and chunk nonce as
+//    in seal step #7.
+// 3) Split each decrypted chunk into a 64-byte signature and the following
+//    plaintext.
 // 4) Hash that plaintext and make the concatenation from seal step #4.
 // 5) Verify the signature against that concatenation.
 // 6) Emit each verified plaintext chunk as output.
-// 7) If we reach the end of the input without encountering a short chunk,
-//    raise a truncation error.
-// 8) If we've already encountered a short chunk, and we're fed more bytes,
-//    raise an extra bytes error. (Implementations assuming constant chunk
-//    length can't hit this condition. Input with extra bytes will get
-//    mis-chunked and cause a decoding/unboxing/verifying error instead.)
 //
 // Design Notes:
 //
@@ -437,8 +434,9 @@ func (r *codecReadWrapper) Read(callerBuf []byte) (int, error) {
 			r.codec = nil
 			r.innerReader = nil
 		} else if ioErr != nil {
-			// If we see a real IO error, return it immediately. This reader
-			// remains valid, though, and the caller is allowed to retry.
+			// If we have a real IO error, short circuit and return it. This
+			// reader remains valid, though, and the caller is allowed to
+			// retry.
 			return 0, ioErr
 		}
 	}
