@@ -37,6 +37,12 @@ type SignED25519Arg struct {
 	Reason    string `codec:"reason" json:"reason"`
 }
 
+type SignED25519ForKBFSArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Msg       []byte `codec:"msg" json:"msg"`
+	Reason    string `codec:"reason" json:"reason"`
+}
+
 type SignToStringArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Msg       []byte `codec:"msg" json:"msg"`
@@ -65,6 +71,8 @@ type CryptoInterface interface {
 	// is used as part of the SecretEntryArg object passed into
 	// secretUi.getSecret().
 	SignED25519(context.Context, SignED25519Arg) (ED25519SignatureInfo, error)
+	// Same as the above except a KBFS-specific prefix is added to the payload to be signed.
+	SignED25519ForKBFS(context.Context, SignED25519ForKBFSArg) (ED25519SignatureInfo, error)
 	// Same as the above except the full marsheled and encoded NaclSigInfo.
 	SignToString(context.Context, SignToStringArg) (string, error)
 	// Decrypt exactly 32 bytes using nacl/box with the given nonce, the given
@@ -91,6 +99,22 @@ func CryptoProtocol(i CryptoInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SignED25519(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"signED25519ForKBFS": {
+				MakeArg: func() interface{} {
+					ret := make([]SignED25519ForKBFSArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SignED25519ForKBFSArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SignED25519ForKBFSArg)(nil), args)
+						return
+					}
+					ret, err = i.SignED25519ForKBFS(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -158,6 +182,12 @@ type CryptoClient struct {
 // secretUi.getSecret().
 func (c CryptoClient) SignED25519(ctx context.Context, __arg SignED25519Arg) (res ED25519SignatureInfo, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.crypto.signED25519", []interface{}{__arg}, &res)
+	return
+}
+
+// Same as the above except a KBFS-specific prefix is added to the payload to be signed.
+func (c CryptoClient) SignED25519ForKBFS(ctx context.Context, __arg SignED25519ForKBFSArg) (res ED25519SignatureInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.crypto.signED25519ForKBFS", []interface{}{__arg}, &res)
 	return
 }
 
