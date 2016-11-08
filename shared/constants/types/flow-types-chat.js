@@ -771,6 +771,7 @@ export type NewMessagePayload = {
   Action: string,
   convID: ConversationID,
   message: MessageBoxed,
+  inboxVers: InboxVers,
 }
 
 export type NotifyChatNewChatActivityRpcParam = Exact<{
@@ -814,6 +815,13 @@ export type RateLimit = {
   maxCalls: int,
 }
 
+export type ReadMessagePayload = {
+  Action: string,
+  convID: ConversationID,
+  msgID: MessageID,
+  inboxVers: InboxVers,
+}
+
 export type S3Params = {
   bucket: string,
   objectKey: string,
@@ -830,6 +838,13 @@ export type SetConversationStatusLocalRes = {
 
 export type SetConversationStatusRes = {
   rateLimit?: ?RateLimit,
+}
+
+export type SetStatusPayload = {
+  Action: string,
+  convID: ConversationID,
+  status: ConversationStatus,
+  inboxVers: InboxVers,
 }
 
 export type SignatureInfo = {

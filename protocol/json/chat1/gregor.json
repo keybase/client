@@ -27,6 +27,54 @@
         {
           "type": "MessageBoxed",
           "name": "message"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReadMessagePayload",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Action"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetStatusPayload",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Action"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "ConversationStatus",
+          "name": "status"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
         }
       ]
     }

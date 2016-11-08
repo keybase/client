@@ -12,9 +12,24 @@ type GenericPayload struct {
 }
 
 type NewMessagePayload struct {
-	Action  string         `codec:"Action" json:"Action"`
-	ConvID  ConversationID `codec:"convID" json:"convID"`
-	Message MessageBoxed   `codec:"message" json:"message"`
+	Action    string         `codec:"Action" json:"Action"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	Message   MessageBoxed   `codec:"message" json:"message"`
+	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+}
+
+type ReadMessagePayload struct {
+	Action    string         `codec:"Action" json:"Action"`
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	MsgID     MessageID      `codec:"msgID" json:"msgID"`
+	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+}
+
+type SetStatusPayload struct {
+	Action    string             `codec:"Action" json:"Action"`
+	ConvID    ConversationID     `codec:"convID" json:"convID"`
+	Status    ConversationStatus `codec:"status" json:"status"`
+	InboxVers InboxVers          `codec:"inboxVers" json:"inboxVers"`
 }
 
 type GregorInterface interface {
