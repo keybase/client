@@ -48,7 +48,6 @@ const styleIcon = {
   paddingTop: globalMargins.xtiny,
   paddingLeft: globalMargins.xtiny,
   paddingRight: globalMargins.xtiny,
-
 }
 
 const styleFooter = {
