@@ -8,6 +8,7 @@ import Login from './login'
 import MetaNavigator from './router/meta-navigator'
 import NoTab from './no-tab'
 import ProfileContainer from './profile/container'
+import Push from './push/push.native'
 import React, {Component} from 'react'
 import Search from './search'
 import Settings from './settings'
@@ -102,17 +103,7 @@ class Nav extends Component {
     })
   }
 
-  render () {
-    if (this.props.dumbFullscreen) {
-      return <DumbSheet />
-    }
-
-    const activeTab = this.props.router.get('activeTab')
-
-    if (activeTab === loginTab) {
-      return this._renderContent(loginTab, Login)
-    }
-
+  renderMain (activeTab) {
     const drawerContent = (
       <Box style={{flex: 1, backgroundColor: '#fff'}}>
         <Text type='Header' style={{margin: 10, fontSize: 15, textAlign: 'left'}}>I'm in the Drawer!</Text>
@@ -167,6 +158,26 @@ class Nav extends Component {
       </NativeDrawerLayoutAndroid>
     )
   }
+
+  render () {
+    if (this.props.dumbFullscreen) {
+      return <DumbSheet />
+    }
+
+    const activeTab = this.props.router.get('activeTab')
+
+    if (activeTab === loginTab) {
+      return this._renderContent(loginTab, Login)
+    }
+
+    const enablePushPrompt = this.props.provisioned && this.props.permissionsPrompt
+    return (
+      <Box style={{flex: 1}}>
+        {!enablePushPrompt && this.renderMain(activeTab)}
+        <Push prompt={enablePushPrompt} />
+      </Box>
+    )
+  }
 }
 
 const styles = {
@@ -198,25 +209,24 @@ const styles = {
   },
 }
 
-// $FlowIssue
 export default connect(
-  ({
-    router,
-    config: {bootstrapped, extendedConfig, username},
-    dev: {debugConfig: {dumbFullscreen}},
-    favorite: {publicBadge, privateBadge},
-    notifications: {menuBadge}}) => ({
+  (state: any) => {
+    const {router, favorite: {privateBadge, publicBadge}, config: {extendedConfig, username}, push: {permissionsPrompt}, dev: {debugConfig: {dumbFullscreen}}} = state
+    return ({
       router,
-      bootstrapped,
       provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
       username,
       dumbFullscreen,
       folderBadge: privateBadge + publicBadge,
-    }),
-  dispatch => ({
-    switchTab: tab => dispatch(switchTab(tab)),
-    navigateUp: () => dispatch(navigateUp()),
-    bootstrap: () => dispatch(bootstrap()),
-    listenForNotifications: () => dispatch(listenForNotifications()),
-  })
+      permissionsPrompt,
+    })
+  },
+  (dispatch: any) => {
+    return {
+      switchTab: tab => dispatch(switchTab(tab)),
+      navigateUp: () => dispatch(navigateUp()),
+      bootstrap: () => dispatch(bootstrap()),
+      listenForNotifications: () => dispatch(listenForNotifications()),
+    }
+  }
 )(Nav)

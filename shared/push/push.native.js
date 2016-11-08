@@ -19,6 +19,7 @@ class Push extends Component<void, Props, void> {
   }
 
   configurePush () {
+    console.log('Configure push notifications')
     PushNotifications.configure({
       onRegister: (token) => this.props.onPushToken(token.token, token.os),
       onNotification: (notification) => this.props.onPushNotification(notification),
@@ -32,6 +33,7 @@ class Push extends Component<void, Props, void> {
       this.props.onPushRegistrationError(err)
     })
 
+    console.log('Check push permissions')
     PushNotifications.checkPermissions(permissions => {
       console.log('Push checked permissions:', permissions)
       if (!permissions.alert) {

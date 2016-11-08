@@ -18,6 +18,7 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 
 import com.facebook.react.shell.MainReactPackage;
+import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,10 +49,12 @@ public class MainApplication extends Application implements ReactApplication {
 
     @Override
     protected List<ReactPackage> getPackages() {
-      return Arrays.asList(
+      return Arrays.<ReactPackage>asList(
               new MainReactPackage(),
               new BarcodeScannerPackage(),
-              new KBReactPackage(logFile.getAbsolutePath()));
+              new KBReactPackage(logFile.getAbsolutePath()),
+              new ReactNativePushNotificationPackage()
+      );
     }
 
   };
