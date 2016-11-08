@@ -5,70 +5,39 @@
 package libkbfs
 
 import (
-	"fmt"
-
 	"github.com/keybase/kbfs/tlf"
-
 	"golang.org/x/net/context"
 )
 
 // BlockOpsStandard implements the BlockOps interface by relaying
 // requests to the block server.
 type BlockOpsStandard struct {
-	config Config
+	config  Config
+	queue   *blockRetrievalQueue
+	workers []*blockRetrievalWorker
 }
 
 var _ BlockOps = (*BlockOpsStandard)(nil)
 
+// NewBlockOpsStandard creates a new BlockOpsStandard
+func NewBlockOpsStandard(config Config) *BlockOpsStandard {
+	bops := &BlockOpsStandard{
+		config:  config,
+		queue:   newBlockRetrievalQueue(defaultBlockRetrievalWorkerQueueSize, config.Codec()),
+		workers: make([]*blockRetrievalWorker, 0, defaultBlockRetrievalWorkerQueueSize),
+	}
+	bg := &realBlockGetter{config: config}
+	for i := 0; i < defaultBlockRetrievalWorkerQueueSize; i++ {
+		bops.workers = append(bops.workers, newBlockRetrievalWorker(bg, bops.queue))
+	}
+	return bops
+}
+
 // Get implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
 	blockPtr BlockPointer, block Block) error {
-	bserv := b.config.BlockServer()
-	buf, blockServerHalf, err := bserv.Get(
-		ctx, kmd.TlfID(), blockPtr.ID, blockPtr.BlockContext)
-	if err != nil {
-		// Temporary code to track down bad block
-		// requests. Remove when not needed anymore.
-		if _, ok := err.(BServerErrorBadRequest); ok {
-			panic(fmt.Sprintf("Bad BServer request detected: err=%s, blockPtr=%s",
-				err, blockPtr))
-		}
-
-		return err
-	}
-
-	crypto := b.config.Crypto()
-	if err := crypto.VerifyBlockID(buf, blockPtr.ID); err != nil {
-		return err
-	}
-
-	tlfCryptKey, err := b.config.KeyManager().
-		GetTLFCryptKeyForBlockDecryption(ctx, kmd, blockPtr)
-	if err != nil {
-		return err
-	}
-
-	// construct the block crypt key
-	blockCryptKey, err := crypto.UnmaskBlockCryptKey(
-		blockServerHalf, tlfCryptKey)
-	if err != nil {
-		return err
-	}
-
-	var encryptedBlock EncryptedBlock
-	err = b.config.Codec().Decode(buf, &encryptedBlock)
-	if err != nil {
-		return err
-	}
-
-	// decrypt the block
-	err = crypto.DecryptBlock(encryptedBlock, blockCryptKey, block)
-	if err != nil {
-		return err
-	}
-
-	block.SetEncodedSize(uint32(len(buf)))
-	return nil
+	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd, blockPtr, block)
+	return <-errCh
 }
 
 // Ready implements the BlockOps interface for BlockOpsStandard.
@@ -156,4 +125,12 @@ func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID tlf.ID,
 	}
 
 	return b.config.BlockServer().ArchiveBlockReferences(ctx, tlfID, contexts)
+}
+
+// Shutdown implements the BlockOps interface for BlockOpsStandard.
+func (b *BlockOpsStandard) Shutdown() {
+	b.queue.Shutdown()
+	for _, w := range b.workers {
+		w.Shutdown()
+	}
 }

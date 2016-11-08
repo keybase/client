@@ -216,7 +216,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
 	config.ResetCaches()
 	config.SetCodec(kbfscodec.NewMsgpack())
-	config.SetBlockOps(&BlockOpsStandard{config})
+	config.SetBlockOps(NewBlockOpsStandard(config))
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
 
@@ -805,6 +805,7 @@ func (c *ConfigLocal) Shutdown() error {
 		errors = append(errors, err)
 		// Continue with shutdown regardless of err.
 	}
+	c.BlockOps().Shutdown()
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
 	c.KeybaseService().Shutdown()

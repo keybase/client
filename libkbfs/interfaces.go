@@ -1013,6 +1013,9 @@ type BlockOps interface {
 	// view of the folder, and shouldn't be served to anyone other
 	// than folder writers.
 	Archive(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) error
+
+	// Shutdown shuts down all the workers performing Get operations
+	Shutdown()
 }
 
 // Duplicate kbfscrypto.AuthTokenRefreshHandler here to work around
