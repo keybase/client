@@ -91,6 +91,7 @@ const (
 	StatusCode_SCChatAlreadySuperseded  StatusCode = 2507
 	StatusCode_SCChatAlreadyDeleted     StatusCode = 2508
 	StatusCode_SCChatTLFFinalized       StatusCode = 2509
+	StatusCode_SCChatCollision          StatusCode = 2510
 )
 
 var StatusCodeMap = map[string]StatusCode{
@@ -175,6 +176,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCChatAlreadySuperseded":  2507,
 	"SCChatAlreadyDeleted":     2508,
 	"SCChatTLFFinalized":       2509,
+	"SCChatCollision":          2510,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -259,6 +261,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2507: "SCChatAlreadySuperseded",
 	2508: "SCChatAlreadyDeleted",
 	2509: "SCChatTLFFinalized",
+	2510: "SCChatCollision",
 }
 
 type ConstantsInterface interface {
