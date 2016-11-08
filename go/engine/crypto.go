@@ -78,6 +78,34 @@ func SignED25519(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg 
 	return
 }
 
+// SignED25519ForKBFS signs the given message with the current user's private
+// signing key on behalf of KBFS.
+func SignED25519ForKBFS(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.SignED25519ForKBFSArg) (
+	ret keybase1.ED25519SignatureInfo, err error) {
+	signingKey, err := GetMySecretKey(g, getSecretUI, libkb.DeviceSigningKeyType, arg.Reason)
+	if err != nil {
+		return
+	}
+
+	kp, ok := signingKey.(libkb.NaclSigningKeyPair)
+	if !ok || kp.Private == nil {
+		err = libkb.KeyCannotSignError{}
+		return
+	}
+
+	var sigInfo *libkb.NaclSigInfo
+	sigInfo, err = kp.SignV2(arg.Msg, libkb.SignaturePrefixKBFS)
+	if err != nil {
+		return
+	}
+	publicKey := kp.Public
+	ret = keybase1.ED25519SignatureInfo{
+		Sig:       keybase1.ED25519Signature(sigInfo.Sig),
+		PublicKey: keybase1.ED25519PublicKey(publicKey),
+	}
+	return
+}
+
 // SignToString signs the given message with the current user's private
 // signing key and outputs the serialized NaclSigInfo string.
 func SignToString(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.SignToStringArg) (sig string, err error) {
