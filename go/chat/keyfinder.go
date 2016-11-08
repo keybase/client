@@ -12,7 +12,7 @@ import (
 // or held onto for very long, just to remember the keys while
 // unboxing a thread of messages.
 type KeyFinder interface {
-	Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error)
+	Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool, identifyBehavior keybase1.TLFIdentifyBehavior) (keybase1.GetTLFCryptKeysRes, error)
 }
 
 type KeyFinderImpl struct {
@@ -30,7 +30,7 @@ func (k *KeyFinderImpl) cacheKey(tlfName string, tlfPublic bool) string {
 
 // find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
-func (k *KeyFinderImpl) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
+func (k *KeyFinderImpl) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool, identifyBehavior keybase1.TLFIdentifyBehavior) (keybase1.GetTLFCryptKeysRes, error) {
 	ckey := k.cacheKey(tlfName, tlfPublic)
 	existing, ok := k.keys[ckey]
 	if ok {
@@ -39,7 +39,7 @@ func (k *KeyFinderImpl) Find(ctx context.Context, tlf keybase1.TlfInterface, tlf
 
 	query := keybase1.TLFQuery{
 		TlfName:          tlfName,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		IdentifyBehavior: identifyBehavior,
 	}
 
 	var keys keybase1.GetTLFCryptKeysRes

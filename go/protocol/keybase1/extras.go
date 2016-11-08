@@ -757,3 +757,16 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 func (c CanonicalTlfName) String() string {
 	return string(c)
 }
+
+func FlattenTLFUserBreaks(breaks []TLFUserBreak) (flattened []TLFUserBreak) {
+	uids := make(map[string]bool)
+	for _, b := range breaks {
+		uid := b.User.Uid.String()
+		if !uids[uid] {
+			uids[uid] = true
+			flattened = append(flattened, b)
+		}
+	}
+
+	return flattened
+}

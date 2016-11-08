@@ -53,39 +53,40 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 
 	if gh != nil {
 		g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(), h.boxer,
-			storage.New(g, h.getSecretUI), h.remoteClient())
+			storage.New(g, h.getSecretUI), h.remoteClient(), tlf)
 	}
 
 	return h
 }
 
-func (h *chatLocalHandler) cryptKeysWrapper(ctx context.Context, tlfName string) (tlfID chat1.TLFID, canonicalTlfName string, err error) {
+func (h *chatLocalHandler) cryptKeysWrapper(ctx context.Context, tlfName string, identifyBehavior keybase1.TLFIdentifyBehavior) (tlfID chat1.TLFID, canonicalTlfName string, breaks []keybase1.TLFUserBreak, err error) {
 	resp, err := h.tlf.CryptKeys(ctx, keybase1.TLFQuery{
 		TlfName:          tlfName,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		IdentifyBehavior: identifyBehavior,
 	})
 	if err != nil {
-		return nil, "", err
+		return nil, "", nil, err
 	}
 	tlfIDb := resp.NameIDBreaks.TlfID.ToBytes()
 	if tlfIDb == nil {
-		return nil, "", errors.New("invalid TLF ID acquired")
+		return nil, "", breaks, errors.New("invalid TLF ID acquired")
 	}
 	tlfID = chat1.TLFID(tlfIDb)
-	return tlfID, string(resp.NameIDBreaks.CanonicalName), nil
+	return tlfID, string(resp.NameIDBreaks.CanonicalName), resp.NameIDBreaks.Breaks.Breaks, nil
 }
 
-func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, err error) {
+func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquery *chat1.GetInboxLocalQuery, identifyBehavior keybase1.TLFIdentifyBehavior) (rquery *chat1.GetInboxQuery, breaks []keybase1.TLFUserBreak, err error) {
 	if lquery == nil {
-		return nil, nil
+		return nil, nil, nil
 	}
 	rquery = &chat1.GetInboxQuery{}
 	if lquery.TlfName != nil && len(*lquery.TlfName) > 0 {
-		tlfID, _, err := h.cryptKeysWrapper(ctx, *lquery.TlfName)
+		tlfID, _, brks, err := h.cryptKeysWrapper(ctx, *lquery.TlfName, identifyBehavior)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		rquery.TlfID = &tlfID
+		breaks = brks
 	}
 
 	rquery.After = lquery.After
@@ -99,7 +100,7 @@ func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquer
 	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
 	rquery.Status = lquery.Status
 
-	return rquery, nil
+	return rquery, breaks, nil
 }
 
 // GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
@@ -108,7 +109,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, err
 	}
 
-	rquery, err := h.getInboxQueryLocalToRemote(ctx, arg.Query)
+	rquery, breaks, err := h.getInboxQueryLocalToRemote(ctx, arg.Query, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
@@ -123,6 +124,9 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		ConversationsUnverified: ib.Inbox.Conversations,
 		Pagination:              ib.Inbox.Pagination,
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
+
+		// This s only populated if a TLF name is specified in arg.
+		Breaks: breaks,
 	}, nil
 }
 
@@ -132,7 +136,9 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}
 
-	rquery, err := h.getInboxQueryLocalToRemote(ctx, arg.Query)
+	// We ignore the breaks here since the unboxing happening later will populate
+	// the breaks for each conversation.
+	rquery, _, err := h.getInboxQueryLocalToRemote(ctx, arg.Query, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}
@@ -149,7 +155,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	}
 
 	ctx, _ = utils.GetUserInfoMapper(ctx, h.G())
-	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Conversations)
+	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Conversations, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}
@@ -157,7 +163,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 		if rquery != nil && rquery.TlfID != nil {
 			// Verify using signed TlfName to make sure server returned genuine
 			// conversation.
-			signedTlfID, _, err := h.cryptKeysWrapper(ctx, convLocal.Info.TlfName)
+			signedTlfID, _, _, err := h.cryptKeysWrapper(ctx, convLocal.Info.TlfName, arg.IdentifyBehavior)
 			if err != nil {
 				return chat1.GetInboxAndUnboxLocalRes{}, err
 			}
@@ -191,8 +197,8 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	if uid.IsNil() {
 		return chat1.GetThreadLocalRes{}, libkb.LoginRequiredError{}
 	}
-	thread, rl, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
-		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+	thread, rl, breaks, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
+		gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
@@ -220,6 +226,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 		Thread:     thread,
 		Outbox:     obr,
 		RateLimits: utils.AggRateLimitsP(rl),
+		Breaks:     breaks,
 	}, nil
 }
 
@@ -230,10 +237,11 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	tlfID, cname, err := h.cryptKeysWrapper(ctx, arg.TlfName)
+	tlfID, cname, breaks, err := h.cryptKeysWrapper(ctx, arg.TlfName, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
+	res.Breaks = breaks
 
 	triple := chat1.ConversationIDTriple{
 		Tlfid:     tlfID,
@@ -252,7 +260,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 			}
 		}
 
-		firstMessageBoxed, err := h.makeFirstMessage(ctx, triple, cname, arg.TlfVisibility, arg.TopicName)
+		firstMessageBoxed, err := h.makeFirstMessage(ctx, triple, cname, arg.TlfVisibility, arg.TopicName, arg.IdentifyBehavior)
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error preparing message: %s", err)
 
@@ -306,7 +314,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 	return chat1.NewConversationLocalRes{}, reserr
 }
 
-func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple, tlfName string, tlfVisibility chat1.TLFVisibility, topicName *string) (*chat1.MessageBoxed, error) {
+func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple, tlfName string, tlfVisibility chat1.TLFVisibility, topicName *string, identifyBehavior keybase1.TLFIdentifyBehavior) (*chat1.MessageBoxed, error) {
 	var msg chat1.MessagePlaintext
 	if topicName != nil {
 		msg = chat1.MessagePlaintext{
@@ -336,11 +344,15 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 		}
 	}
 
-	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
-	return sender.Prepare(ctx, msg, nil)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI, identifyBehavior)
+	mb, _, err := sender.Prepare(ctx, msg, nil)
+	if err != nil {
+		return nil, err
+	}
+	return mb, nil
 }
 
-func (h *chatLocalHandler) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation) ([]chat1.ConversationLocal, error) {
+func (h *chatLocalHandler) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior) ([]chat1.ConversationLocal, error) {
 	// Fetch conversation local information in parallel
 	ctx, _ = utils.GetUserInfoMapper(ctx, h.G())
 	type jobRes struct {
@@ -368,7 +380,7 @@ func (h *chatLocalHandler) localizeConversationsPipeline(ctx context.Context, co
 	for i := 0; i < 10; i++ {
 		eg.Go(func() error {
 			for conv := range convCh {
-				convLocal, err := h.localizeConversation(ctx, conv.conv)
+				convLocal, err := h.localizeConversation(ctx, conv.conv, identifyBehavior)
 				if err != nil {
 					return err
 				}
@@ -492,7 +504,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 }
 
 func (h *chatLocalHandler) localizeConversation(
-	ctx context.Context, conversationRemote chat1.Conversation) (
+	ctx context.Context, conversationRemote chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior) (
 	conversationLocal chat1.ConversationLocal, err error) {
 
 	ctx, uimap := utils.GetUserInfoMapper(ctx, h.G())
@@ -505,7 +517,7 @@ func (h *chatLocalHandler) localizeConversation(
 		errMsg := "conversation has an empty MaxMsgs field"
 		return chat1.ConversationLocal{Error: &errMsg}, nil
 	}
-	if conversationLocal.MaxMessages, err = h.boxer.UnboxMessages(ctx, conversationRemote.MaxMsgs); err != nil {
+	if conversationLocal.MaxMessages, conversationLocal.Breaks, err = h.boxer.UnboxMessages(ctx, conversationRemote.MaxMsgs, identifyBehavior); err != nil {
 		errMsg := err.Error()
 		return chat1.ConversationLocal{Error: &errMsg}, nil
 	}
@@ -545,7 +557,8 @@ func (h *chatLocalHandler) localizeConversation(
 		return chat1.ConversationLocal{Error: &errMsg}, nil
 	}
 
-	if _, conversationLocal.Info.TlfName, err = h.cryptKeysWrapper(ctx, conversationLocal.Info.TlfName); err != nil {
+	// make sure TLF name is canonicalized
+	if _, conversationLocal.Info.TlfName, _, err = h.cryptKeysWrapper(ctx, conversationLocal.Info.TlfName, identifyBehavior); err != nil {
 		return chat1.ConversationLocal{}, err
 	}
 
@@ -655,7 +668,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 		return deflt, err
 	}
 
-	messages, err := h.boxer.UnboxMessages(ctx, boxed.Msgs)
+	messages, breaks, err := h.boxer.UnboxMessages(ctx, boxed.Msgs, arg.IdentifyBehavior)
 	if err != nil {
 		return deflt, err
 	}
@@ -668,6 +681,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg chat1.GetMe
 	return chat1.GetMessagesLocalRes{
 		Messages:   messages,
 		RateLimits: utils.AggRateLimits(rlimits),
+		Breaks:     breaks,
 	}, nil
 }
 
@@ -696,24 +710,25 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 		return chat1.PostLocalRes{}, err
 	}
 
-	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI, arg.IdentifyBehavior)
 
-	_, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg)
+	_, rl, breaks, err := sender.Send(ctx, arg.ConversationID, arg.Msg)
 	if err != nil {
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
 	return chat1.PostLocalRes{
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		Breaks:     breaks,
 	}, nil
 }
 
 func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (chat1.PostLocalNonblockRes, error) {
 
 	// Create non block sender
-	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
-	nonblockSender := chat.NewNonblockingSender(h.G(), sender)
+	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI, arg.IdentifyBehavior)
+	nonblockSender := chat.NewNonblockingSender(h.G(), sender, h.tlf, arg.IdentifyBehavior)
 
-	obid, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg)
+	obid, rl, breaks, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg)
 	if err != nil {
 		return chat1.PostLocalNonblockRes{},
 			fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
@@ -721,6 +736,7 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	return chat1.PostLocalNonblockRes{
 		OutboxID:   obid,
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
+		Breaks:     breaks,
 	}, nil
 }
 
