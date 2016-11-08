@@ -6,19 +6,19 @@ import (
 	"path/filepath"
 )
 
-type AttachmentBook interface {
+type AttachmentStash interface {
 	Start(filename, s3path string) error
 	Lookup(filename string) (string, error)
 	Stop(filename string) error
 }
 
-type FileAttachmentBook struct{}
+type FileStash struct{}
 
-func NewFileAttachmentBook() *FileAttachmentBook {
-	return &FileAttachmentBook{}
+func NewFileStash() *FileStash {
+	return &FileStash{}
 }
 
-func (f *FileAttachmentBook) Start(filename, s3path string) error {
+func (f *FileStash) Start(filename, s3path string) error {
 	c, err := f.contents()
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func (f *FileAttachmentBook) Start(filename, s3path string) error {
 	return f.serialize(c)
 }
 
-func (f *FileAttachmentBook) Lookup(filename string) (string, error) {
+func (f *FileStash) Lookup(filename string) (string, error) {
 	c, err := f.contents()
 	if err != nil {
 		return "", err
@@ -36,7 +36,7 @@ func (f *FileAttachmentBook) Lookup(filename string) (string, error) {
 	return c[filename], nil
 }
 
-func (f *FileAttachmentBook) Stop(filename string) error {
+func (f *FileStash) Stop(filename string) error {
 	c, err := f.contents()
 	if err != nil {
 		return err
@@ -45,11 +45,11 @@ func (f *FileAttachmentBook) Stop(filename string) error {
 	return f.serialize(c)
 }
 
-func (f *FileAttachmentBook) filename() string {
+func (f *FileStash) filename() string {
 	return filepath.Join(os.TempDir(), "chat_attachment_starts")
 }
 
-func (f *FileAttachmentBook) contents() (map[string]string, error) {
+func (f *FileStash) contents() (map[string]string, error) {
 	x, err := os.Open(f.filename())
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -67,7 +67,7 @@ func (f *FileAttachmentBook) contents() (map[string]string, error) {
 	return v, nil
 }
 
-func (f *FileAttachmentBook) serialize(m map[string]string) error {
+func (f *FileStash) serialize(m map[string]string) error {
 	x, err := os.Create(f.filename())
 	if err != nil {
 		return err

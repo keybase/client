@@ -179,9 +179,9 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 	log.Debug("s3 putMultiPipeline (size = %d)", size)
 
 	// putMulti operations are resumable
-	book := NewFileAttachmentBook()
+	stash := NewFileStash()
 	previous := false
-	previousObjectKey, err := book.Lookup(local.Filename)
+	previousObjectKey, err := stash.Lookup(local.Filename)
 	if err == nil && previousObjectKey != "" {
 		previous = true
 	}
@@ -190,8 +190,8 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		params.ObjectKey = previousObjectKey
 	} else {
 		log.Debug("storing object key for %s: %s", local.Filename, params.ObjectKey)
-		if err := book.Start(local.Filename, params.ObjectKey); err != nil {
-			log.Debug("ignoring attachment book Start error: %s", err)
+		if err := stash.Start(local.Filename, params.ObjectKey); err != nil {
+			log.Debug("ignoring attachment stash Start error: %s", err)
 		}
 	}
 
@@ -305,8 +305,8 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 	}
 	log.Debug("s3 putMulti success, %d parts", len(parts))
 
-	if err := book.Stop(local.Filename); err != nil {
-		log.Debug("ignoring attachment book.Stop error: %s", err)
+	if err := stash.Stop(local.Filename); err != nil {
+		log.Debug("ignoring attachment stash.Stop error: %s", err)
 	}
 
 	return params.ObjectKey, nil
@@ -334,8 +334,8 @@ func putRetry(ctx context.Context, log logger.Logger, multi *s3.Multi, partNumbe
 }
 
 func checkResumable(local chat1.LocalSource) (string, bool) {
-	book := NewFileAttachmentBook()
-	existing, err := book.Lookup(local.Filename)
+	stash := NewFileStash()
+	existing, err := stash.Lookup(local.Filename)
 	if err != nil {
 		return "", false
 	}
