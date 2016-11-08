@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"container/heap"
+	"errors"
 	"io"
 	"sync"
 
@@ -116,12 +117,16 @@ func (brq *blockRetrievalQueue) notifyWorker() {
 // Request submits a block request to the queue.
 func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block) <-chan error {
 	// Only continue if we haven't been shut down
+	ch := make(chan error, 1)
 	select {
 	case <-brq.doneCh:
-		ch := make(chan error, 1)
 		ch <- io.EOF
 		return ch
 	default:
+	}
+	if block == nil {
+		ch <- errors.New("nil block passed to blockRetrievalQueue.Request")
+		return ch
 	}
 
 	brq.mtx.Lock()
@@ -155,7 +160,6 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 				continue
 			}
 		}
-		ch := make(chan error, 1)
 		br.reqMtx.Lock()
 		br.requests = append(br.requests, &blockRetrievalRequest{
 			block:  block,
