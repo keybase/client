@@ -741,6 +741,8 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 	require.Equal(t, handle, handle2)
 }
 
+// The server will be reusing IsLastModifiedBy and we don't want a client
+// to be able to construct an MD that will crash the server.
 func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	defer config.Shutdown()
