@@ -7,10 +7,7 @@ package install
 
 import (
 	"os"
-	"os/exec"
-	"time"
 
-	"github.com/keybase/go-updater/process"
 	"github.com/keybase/client/go/lsof"
 )
 
