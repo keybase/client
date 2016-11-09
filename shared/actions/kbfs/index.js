@@ -1,8 +1,8 @@
 // @flow
 import * as Constants from '../../constants/kbfs'
+import {call, put} from 'redux-saga/effects'
 import {fsListRpcPromise} from '../../constants/types/flow-types'
 import {openSaga} from './index.platform'
-import {call, put} from 'redux-saga/effects'
 import {takeLatest, takeEvery} from 'redux-saga'
 
 import type {ListResult} from '../../constants/types/flow-types'

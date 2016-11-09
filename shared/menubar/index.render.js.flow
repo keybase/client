@@ -1,27 +1,28 @@
 // @flow
-import React, {Component} from 'react'
+import {Component} from 'react'
 
+import type {KBFSStatus} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
 
 export type Props = {
-  username: ?string,
-  openApp: () => void,
-  logIn: () => void,
-  showHelp: () => void,
-  showUser: (username: ?string) => void,
-  showKBFS: () => void,
-  showBug: () => void,
-  onRekey: (path: string) => void,
-  onFolderClick: (path: string) => void,
-  openShell: () => void,
-  refresh: () => void,
-  quit: () => void,
-  username: ?string,
   debug?: boolean,
-  loggedIn: boolean,
   folderProps: ?FolderProps,
+  kbfsStatus: ?KBFSStatus,
+  logIn: () => void,
+  loggedIn: boolean,
+  onFolderClick: (path: string) => void,
+  onRekey: (path: string) => void,
+  openApp: () => void,
+  openShell: () => void,
   openToPrivate?: boolean,
-  openWithMenuShowing?: boolean
+  openWithMenuShowing?: boolean,
+  quit: () => void,
+  refresh: () => void,
+  showBug: () => void,
+  showHelp: () => void,
+  showKBFS: () => void,
+  showUser: (username: ?string) => void,
+  username: ?string,
 }
 
 export default class Render extends Component<void, Props, void> {}

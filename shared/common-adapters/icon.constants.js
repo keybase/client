@@ -635,6 +635,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-loader-infinity-static-80.png'),
   },
+  'icon-loader-uploading-16': {
+    isFont: false,
+    extension: 'gif',
+    require: require('../images/icons/icon-loader-uploading-16.gif'),
+  },
+  'icon-loader-uploading-16-static': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-loader-uploading-16-static.png'),
+  },
   'icon-no-gpg': {
     isFont: false,
     extension: 'png',

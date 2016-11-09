@@ -114,7 +114,7 @@ class Nav extends Component<void, Props, void> {
     }
 
     if (this.props.menuBadge !== nextProps.menuBadge) {
-      ipcRenderer.send(this.props.menuBadge ? 'showTrayRegular' : 'showTrayBadged')
+      ipcRenderer.send('showTray', nextProps.menuBadge)
     }
 
     if (this.props.searchActive !== nextProps.searchActive) {
