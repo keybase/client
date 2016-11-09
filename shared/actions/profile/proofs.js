@@ -208,7 +208,6 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
         _promptUsernameResponse.result(username)
         _promptUsernameResponse = null
         yield put(_waitingForResponse(true))
-
       }
     } else if (incoming.checkProof) {
       if (!incoming.checkProof.sigID && _outputInstructionsResponse) {
