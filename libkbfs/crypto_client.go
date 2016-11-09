@@ -98,7 +98,7 @@ func (c *CryptoClient) SignForKBFS(ctx context.Context, msg []byte) (
 	}
 
 	sigInfo = kbfscrypto.SignatureInfo{
-		Version:      kbfscrypto.SigED25519,
+		Version:      kbfscrypto.SigED25519ForKBFS,
 		Signature:    ed25519SigInfo.Sig[:],
 		VerifyingKey: kbfscrypto.MakeVerifyingKey(libkb.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKID()),
 	}
