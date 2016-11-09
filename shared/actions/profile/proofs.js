@@ -167,7 +167,6 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
   })
 
   while (true) {
-    yield put(_waitingForResponse(false))
     // $ForceType
     const incoming: {[key: string]: any} = yield race({
       promptUsername: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.promptUsername'),
@@ -182,7 +181,7 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
       submitUsername: take(Constants.submitUsername),
       checkProof: take(Constants.checkProof),
     })
-    yield put(_waitingForResponse(true))
+    yield put(_waitingForResponse(false))
 
     if (incoming.cancel) {
       closeChannelMap(proveStartProofChanMap)
@@ -200,6 +199,7 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
         yield call([engineInst, engineInst.cancelRPC], _outputInstructionsResponse, InputCancelError)
         _outputInstructionsResponse = null
       }
+      yield put(_waitingForResponse(false))
     } else if (incoming.submitUsername) {
       yield put(_cleanupUsername())
       if (_promptUsernameResponse) {
@@ -207,11 +207,14 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
         const username = yield select(state => state.profile.username)
         _promptUsernameResponse.result(username)
         _promptUsernameResponse = null
+        yield put(_waitingForResponse(true))
+
       }
     } else if (incoming.checkProof) {
       if (!incoming.checkProof.sigID && _outputInstructionsResponse) {
         _outputInstructionsResponse.result()
         _outputInstructionsResponse = null
+        yield put(_waitingForResponse(true))
       }
     } else if (incoming.promptUsername) {
       _promptUsernameResponse = incoming.promptUsername.response
@@ -246,14 +249,19 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
       break
     } else if (incoming.promptOverwrite) {
       incoming.promptOverwrite.response.result(true)
+      yield put(_waitingForResponse(true))
     } else if (incoming.outputPrechecks) {
       incoming.outputPrechecks.response.result()
+      yield put(_waitingForResponse(true))
     } else if (incoming.preProofWarning) {
       incoming.preProofWarning.response.result(true)
+      yield put(_waitingForResponse(true))
     } else if (incoming.okToCheck) {
       incoming.okToCheck.response.result(true)
+      yield put(_waitingForResponse(true))
     } else if (incoming.displayRecheckWarning) {
       incoming.displayRecheckWarning.response.result()
+      yield put(_waitingForResponse(true))
     }
   }
 }
