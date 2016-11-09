@@ -75,6 +75,7 @@ type S3Params struct {
 }
 
 type GetInboxRemoteArg struct {
+	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }

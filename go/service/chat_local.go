@@ -124,8 +124,8 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, err
 	}
 	return chat1.GetInboxLocalRes{
-		ConversationsUnverified: ib.Inbox.Conversations,
-		Pagination:              ib.Inbox.Pagination,
+		ConversationsUnverified: ib.Inbox.Full().Conversations,
+		Pagination:              ib.Inbox.Full().Pagination,
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 	}, nil
 }
@@ -153,7 +153,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	}
 
 	ctx, _ = utils.GetUserInfoMapper(ctx, h.G())
-	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Conversations)
+	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Full().Conversations)
 	if err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}
