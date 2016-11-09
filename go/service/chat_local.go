@@ -571,7 +571,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	g.Go(func() error {
 		chatUI.ChatAttachmentUploadStart(ctx)
 		var err error
-		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, progress)
+		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
 		return err
 	})
@@ -585,7 +585,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
 			previewParams.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, *arg.Preview, nil)
+			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, *arg.Preview, arg.ConversationID, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
@@ -740,7 +740,7 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 	return h.remoteClient().S3Sign(context.Background(), arg)
 }
 
-func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource, progress chat.ProgressReporter) (chat1.Asset, error) {
+func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource, conversationID chat1.ConversationID, progress chat.ProgressReporter) (chat1.Asset, error) {
 	// create a buffered stream
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
@@ -751,8 +751,6 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	io.Copy(plaintextHasher, src)
 	plaintextHash := plaintextHasher.Sum(nil)
 
-	h.G().Log.Warning("plaintext sha256: %x", plaintextHash)
-
 	// reset the stream to the beginning of the file
 	if err := src.Reset(); err != nil {
 		h.G().Log.Debug("source stream reset error: %s", err)
@@ -760,11 +758,13 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	}
 
 	task := chat.UploadTask{
-		S3Params:  params,
-		LocalSrc:  local,
-		Plaintext: src,
-		S3Signer:  h,
-		Progress:  progress,
+		S3Params:       params,
+		LocalSrc:       local,
+		Plaintext:      src,
+		PlaintextHash:  plaintextHash,
+		S3Signer:       h,
+		ConversationID: conversationID,
+		Progress:       progress,
 	}
 	return chat.UploadAsset(ctx, h.G().Log, &task)
 

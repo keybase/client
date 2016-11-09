@@ -2,14 +2,34 @@ package chat
 
 import (
 	"encoding/gob"
+	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/keybase/client/go/chat/signencrypt"
+	"github.com/keybase/client/go/protocol/chat1"
 )
 
+type AttachmentInfo struct {
+	ObjectKey string
+	EncKey    signencrypt.SecretboxKey
+	SignKey   signencrypt.SignKey
+	VerifyKey signencrypt.VerifyKey
+}
+
 type AttachmentStash interface {
-	Start(filename, s3path string) error
-	Lookup(filename string) (string, error)
-	Stop(filename string) error
+	Start(plaintextHash []byte, conversationID chat1.ConversationID, info AttachmentInfo) error
+	Lookup(plaintextHash []byte, conversationID chat1.ConversationID) (AttachmentInfo, bool, error)
+	Finish(plaintextHash []byte, conversationID chat1.ConversationID) error
+}
+
+type stashKey struct {
+	PlaintextHash  []byte
+	ConversationID chat1.ConversationID
+}
+
+func (s stashKey) String() string {
+	return fmt.Sprintf("%x:%x", s.PlaintextHash, s.ConversationID)
 }
 
 type FileStash struct{}
@@ -18,48 +38,52 @@ func NewFileStash() *FileStash {
 	return &FileStash{}
 }
 
-func (f *FileStash) Start(filename, s3path string) error {
+func (f *FileStash) Start(plaintextHash []byte, conversationID chat1.ConversationID, info AttachmentInfo) error {
 	c, err := f.contents()
 	if err != nil {
 		return err
 	}
-	c[filename] = s3path
+	key := stashKey{PlaintextHash: plaintextHash, ConversationID: conversationID}
+	c[key.String()] = info
 
 	return f.serialize(c)
 }
 
-func (f *FileStash) Lookup(filename string) (string, error) {
+func (f *FileStash) Lookup(plaintextHash []byte, conversationID chat1.ConversationID) (AttachmentInfo, bool, error) {
 	c, err := f.contents()
 	if err != nil {
-		return "", err
+		return AttachmentInfo{}, false, err
 	}
-	return c[filename], nil
+	key := stashKey{PlaintextHash: plaintextHash, ConversationID: conversationID}
+	info, found := c[key.String()]
+	return info, found, nil
 }
 
-func (f *FileStash) Stop(filename string) error {
+func (f *FileStash) Finish(plaintextHash []byte, conversationID chat1.ConversationID) error {
 	c, err := f.contents()
 	if err != nil {
 		return err
 	}
-	delete(c, filename)
+	key := stashKey{PlaintextHash: plaintextHash, ConversationID: conversationID}
+	delete(c, key.String())
 	return f.serialize(c)
 }
 
 func (f *FileStash) filename() string {
-	return filepath.Join(os.TempDir(), "chat_attachment_starts")
+	return filepath.Join(os.TempDir(), "chat_attachment_stash")
 }
 
-func (f *FileStash) contents() (map[string]string, error) {
+func (f *FileStash) contents() (map[string]AttachmentInfo, error) {
 	x, err := os.Open(f.filename())
 	if err != nil {
 		if os.IsNotExist(err) {
-			return make(map[string]string), nil
+			return make(map[string]AttachmentInfo), nil
 		}
 		return nil, err
 	}
 	defer x.Close()
 
-	v := make(map[string]string)
+	v := make(map[string]AttachmentInfo)
 	dec := gob.NewDecoder(x)
 	if err := dec.Decode(&v); err != nil {
 		return nil, err
@@ -67,7 +91,7 @@ func (f *FileStash) contents() (map[string]string, error) {
 	return v, nil
 }
 
-func (f *FileStash) serialize(m map[string]string) error {
+func (f *FileStash) serialize(m map[string]AttachmentInfo) error {
 	x, err := os.Create(f.filename())
 	if err != nil {
 		return err

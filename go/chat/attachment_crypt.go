@@ -62,12 +62,22 @@ func (s *SignEncrypter) Encrypt(r io.Reader) (io.Reader, error) {
 	return signencrypt.NewEncodingReader(s.encKey, s.signKey, nonce, r), nil
 }
 
-func (s *SignEncrypter) EncryptResume(r io.Reader) (io.Reader, error) {
-	return nil, nil
+// EncryptResume is used to create a SignEncrypter to resume an interrupted attachment upload.
+// It is *very* important that the keys passed in are not used to encrypt different plaintext
+// than their original usage.
+func (s *SignEncrypter) EncryptResume(r io.Reader, encKey signencrypt.SecretboxKey, signKey signencrypt.SignKey, verifyKey signencrypt.VerifyKey) (io.Reader, error) {
+	s.encKey = encKey
+	s.signKey = signKey
+	s.verifyKey = verifyKey
+	return signencrypt.NewEncodingReader(s.encKey, s.signKey, nonce, r), nil
 }
 
 func (s *SignEncrypter) EncryptKey() []byte {
 	return []byte((*s.encKey)[:])
+}
+
+func (s *SignEncrypter) SignKey() []byte {
+	return []byte((*s.signKey)[:])
 }
 
 func (s *SignEncrypter) VerifyKey() []byte {
