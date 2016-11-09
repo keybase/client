@@ -62,6 +62,10 @@ func (s *SignEncrypter) Encrypt(r io.Reader) (io.Reader, error) {
 	return signencrypt.NewEncodingReader(s.encKey, s.signKey, nonce, r), nil
 }
 
+func (s *SignEncrypter) EncryptResume(r io.Reader) (io.Reader, error) {
+	return nil, nil
+}
+
 func (s *SignEncrypter) EncryptKey() []byte {
 	return []byte((*s.encKey)[:])
 }

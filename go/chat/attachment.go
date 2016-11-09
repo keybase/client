@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"path/filepath"
 	"time"
 
 	"github.com/keybase/client/go/chat/s3"
@@ -30,6 +31,48 @@ type PutS3Result struct {
 	Bucket   string
 	Path     string
 	Size     int64
+}
+
+type UploadTask struct {
+	S3Params  chat1.S3Params
+	LocalSrc  chat1.LocalSource
+	Plaintext io.Reader
+	S3Signer  s3.Signer
+	Progress  ProgressReporter
+}
+
+func UploadAsset(ctx context.Context, log logger.Logger, task *UploadTask) (chat1.Asset, error) {
+	// encrypt the stream
+	enc := NewSignEncrypter()
+	len := enc.EncryptedLen(task.LocalSrc.Size)
+	encReader, err := enc.Encrypt(task.Plaintext)
+	if err != nil {
+		return chat1.Asset{}, err
+	}
+
+	// compute ciphertext hash
+	hash := sha256.New()
+	tee := io.TeeReader(encReader, hash)
+
+	// post to s3
+	upRes, err := PutS3(ctx, log, tee, int64(len), task.S3Params, task.S3Signer, task.Progress, task.LocalSrc)
+	if err != nil {
+		return chat1.Asset{}, err
+	}
+	log.Debug("chat attachment upload: %+v", upRes)
+
+	asset := chat1.Asset{
+		Filename:  filepath.Base(task.LocalSrc.Filename),
+		Region:    upRes.Region,
+		Endpoint:  upRes.Endpoint,
+		Bucket:    upRes.Bucket,
+		Path:      upRes.Path,
+		Size:      int(upRes.Size),
+		Key:       enc.EncryptKey(),
+		VerifyKey: enc.VerifyKey(),
+		EncHash:   hash.Sum(nil),
+	}
+	return asset, nil
 }
 
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use

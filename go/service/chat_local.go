@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"path/filepath"
 	"time"
 
 	"golang.org/x/net/context"
@@ -746,36 +745,61 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
 
-	// encrypt the stream
-	enc := chat.NewSignEncrypter()
-	len := enc.EncryptedLen(local.Size)
-	encReader, err := enc.Encrypt(src)
-	if err != nil {
+	// compute plaintext hash
+	// XXX don't need to do this if local.Size < 5MB
+	plaintextHasher := sha256.New()
+	io.Copy(plaintextHasher, src)
+	plaintextHash := plaintextHasher.Sum(nil)
+
+	h.G().Log.Warning("plaintext sha256: %x", plaintextHash)
+
+	// reset the stream to the beginning of the file
+	if err := src.Reset(); err != nil {
+		h.G().Log.Debug("source stream reset error: %s", err)
 		return chat1.Asset{}, err
 	}
 
-	// compute hash
-	hash := sha256.New()
-	tee := io.TeeReader(encReader, hash)
-
-	// post to s3
-	upRes, err := chat.PutS3(ctx, h.G().Log, tee, int64(len), params, h, progress, local)
-	if err != nil {
-		return chat1.Asset{}, err
+	task := chat.UploadTask{
+		S3Params:  params,
+		LocalSrc:  local,
+		Plaintext: src,
+		S3Signer:  h,
+		Progress:  progress,
 	}
-	h.G().Log.Debug("chat attachment upload: %+v", upRes)
+	return chat.UploadAsset(ctx, h.G().Log, &task)
 
-	asset := chat1.Asset{
-		Filename:  filepath.Base(local.Filename),
-		Region:    upRes.Region,
-		Endpoint:  upRes.Endpoint,
-		Bucket:    upRes.Bucket,
-		Path:      upRes.Path,
-		Size:      int(upRes.Size),
-		Key:       enc.EncryptKey(),
-		VerifyKey: enc.VerifyKey(),
-		EncHash:   hash.Sum(nil),
-	}
-	return asset, nil
+	/*
+		// encrypt the stream
+		enc := chat.NewSignEncrypter()
+		len := enc.EncryptedLen(local.Size)
+		encReader, err := enc.Encrypt(src)
+		if err != nil {
+			return chat1.Asset{}, err
+		}
 
+		// compute hash
+		hash := sha256.New()
+		tee := io.TeeReader(encReader, hash)
+
+		// post to s3
+		upRes, err := chat.PutS3(ctx, h.G().Log, tee, int64(len), params, h, progress, local)
+		if err != nil {
+			return chat1.Asset{}, err
+		}
+		h.G().Log.Debug("chat attachment upload: %+v", upRes)
+
+		asset := chat1.Asset{
+			Filename:  filepath.Base(local.Filename),
+			Title:     filepath.Base(local.Filename),
+			Region:    upRes.Region,
+			Endpoint:  upRes.Endpoint,
+			Bucket:    upRes.Bucket,
+			Path:      upRes.Path,
+			Size:      int(upRes.Size),
+			Key:       enc.EncryptKey(),
+			VerifyKey: enc.VerifyKey(),
+			EncHash:   hash.Sum(nil),
+		}
+		return asset, nil
+	*/
 }
