@@ -109,6 +109,10 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, err
 	}
 
+	if arg.Query != nil && arg.Query.TopicName != nil {
+		return chat1.GetInboxLocalRes{}, fmt.Errorf("cannot query by TopicName without unboxing")
+	}
+
 	rquery, breaks, err := h.getInboxQueryLocalToRemote(ctx, arg.Query, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
@@ -174,7 +178,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 			}
 		}
 
-		// server can't query on topic name, so we'd have to do it ourselves in the loop
+		// server can't query on topic name, so we have to do it ourselves in the loop
 		if arg.Query != nil && arg.Query.TopicName != nil && *arg.Query.TopicName != convLocal.Info.TopicName {
 			continue
 		}
@@ -231,6 +235,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 }
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
+// Create a new conversation. Or in the case of CHAT, create-or-get a conversation.
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.NewConversationLocalArg) (res chat1.NewConversationLocalRes, reserr error) {
 	h.G().Log.Debug("NewConversationLocal: %+v", arg)
 	if err := h.assertLoggedIn(ctx); err != nil {
@@ -250,14 +255,9 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 	}
 
 	for i := 0; i < 3; i++ {
-		if triple.TopicType != chat1.TopicType_CHAT {
-			// We only set topic ID if it's not CHAT. We are supporting only one
-			// conversation per TLF now. A topic ID of 0s is intentional as it would
-			// cause insertion failure in database.
-
-			if triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
-				return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
-			}
+		triple.TopicID, err = libkb.NewChatTopicID()
+		if err != nil {
+			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
 		}
 
 		firstMessageBoxed, err := h.makeFirstMessage(ctx, triple, cname, arg.TlfVisibility, arg.TopicName, arg.IdentifyBehavior)
@@ -276,14 +276,23 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		}
 		convID := ncrres.ConvID
 		if reserr != nil {
-			if cerr, ok := reserr.(libkb.ChatConvExistsError); ok {
+			switch cerr := reserr.(type) {
+			case libkb.ChatConvExistsError:
+				// This triple already exists.
+
 				if triple.TopicType != chat1.TopicType_CHAT {
 					// Not a chat conversation. Multiples are fine. Just retry with a
 					// different topic ID.
 					continue
 				}
 				// A chat conversation already exists; just reuse it.
+				// Note that from this point on, TopicID is entirely the wrong value.
 				convID = cerr.ConvID
+			case libkb.ChatCollisionError:
+				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
+				continue
+			default:
+				return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating conversation: %s", reserr)
 			}
 		}
 
@@ -794,13 +803,11 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		return chat1.PostLocalRes{}, err
 	}
 
-	// Title on Asset set to filename in uploadAsset, but if
-	// a title was specified, then use that instead.
-	if arg.Title != "" {
-		object.Title = arg.Title
-		if preview != nil {
-			preview.Title = arg.Title
-		}
+	// note that we only want to set the Title to what the user entered,
+	// even if that is nothing.
+	object.Title = arg.Title
+	if preview != nil {
+		preview.Title = arg.Title
 	}
 
 	// send an attachment message
@@ -964,7 +971,6 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 
 	asset := chat1.Asset{
 		Filename:  filepath.Base(local.Filename),
-		Title:     filepath.Base(local.Filename),
 		Region:    upRes.Region,
 		Endpoint:  upRes.Endpoint,
 		Bucket:    upRes.Bucket,

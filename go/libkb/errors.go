@@ -1660,6 +1660,15 @@ func (e ChatConvExistsError) Error() string {
 
 //=============================================================================
 
+type ChatCollisionError struct {
+}
+
+func (e ChatCollisionError) Error() string {
+	return fmt.Sprintf("conversation id collision")
+}
+
+//=============================================================================
+
 type ChatUnknownTLFIDError struct {
 	TlfID chat1.TLFID
 }
