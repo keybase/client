@@ -70,6 +70,7 @@ func crMakeFakeRMD(rev MetadataRevision, bid BranchID) ImmutableRootMetadata {
 				VerifyingKey: key,
 			},
 			Revision: rev,
+			PrevRoot: fakeMdID(byte(rev - 1)),
 		},
 		tlfHandle: &TlfHandle{name: "fake"},
 	}, key, fakeMdID(byte(rev)), time.Now())
@@ -106,11 +107,11 @@ func TestCRInput(t *testing.T) {
 	config.mockMdops.EXPECT().GetUnmergedRange(gomock.Any(), cr.fbo.id(),
 		cr.fbo.bid, MetadataRevisionInitial, branchPoint).Return(nil, nil)
 
-	for i := branchPoint + 1; i <= mergedHead; i++ {
+	for i := branchPoint; i <= mergedHead; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
 			crMakeFakeRMD(i, NullBranchID), nil)
 	}
-	for i := mergedHead + 1; i <= branchPoint+2*maxMDsAtATime; i++ {
+	for i := mergedHead + 1; i <= branchPoint-1+2*maxMDsAtATime; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
 			ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), i, NullBranchID})
 	}
@@ -163,7 +164,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 		cr.fbo.bid, MetadataRevisionInitial, branchPoint).Return(nil, nil)
 
 	skipCacheRevision := MetadataRevision(10)
-	for i := branchPoint + 1; i <= mergedHead; i++ {
+	for i := branchPoint; i <= mergedHead; i++ {
 		// Pretend that revision 10 isn't in the cache, and needs to
 		// be fetched from the server.
 		if i != skipCacheRevision {
@@ -178,7 +179,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(),
 		skipCacheRevision, skipCacheRevision).Return(
 		[]ImmutableRootMetadata{crMakeFakeRMD(skipCacheRevision, NullBranchID)}, nil)
-	for i := mergedHead + 1; i <= branchPoint+2*maxMDsAtATime; i++ {
+	for i := mergedHead + 1; i <= branchPoint-1+2*maxMDsAtATime; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
 			ImmutableRootMetadata{}, NoSuchMDError{cr.fbo.id(), i, NullBranchID})
 	}
