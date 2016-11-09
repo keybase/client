@@ -12,6 +12,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -144,7 +145,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, fuse.ENOENT
 	}
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := libkbfs.ParseTlfHandlePreferred(
 		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
 	switch err := err.(type) {
 	case nil:
@@ -172,7 +173,11 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, err
 	}
 
-	child := newTLF(fl, h)
+	cname, err := libkbfs.GetCurrentUsernameIfPossible(ctx, fl.fs.config.KBPKI(), h.IsPublic())
+	if err != nil {
+		return nil, err
+	}
+	child := newTLF(fl, h, h.GetPreferredFormat(cname))
 	fl.folders[req.Name] = child
 	return child, nil
 }
@@ -197,7 +202,7 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 	defer func() {
 		fl.fs.reportErr(ctx, libkbfs.ReadMode, err)
 	}()
-	_, _, err = fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	cuser, _, err := fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
 	isLoggedIn := err == nil
 
 	var favs []libkbfs.Favorite
@@ -213,9 +218,15 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 		if fav.Public != fl.public {
 			continue
 		}
+		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(cuser,
+			libkbfs.CanonicalTlfName(fav.Name))
+		if err != nil {
+			fl.fs.log.Errorf("FavoriteNameToPreferredTLFNameFormatAs: %q %v", fav.Name, err)
+			continue
+		}
 		res = append(res, fuse.Dirent{
 			Type: fuse.DT_Dir,
-			Name: fav.Name,
+			Name: string(pname),
 		})
 	}
 	return res, nil
@@ -228,7 +239,7 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
 	defer func() { fl.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, err := libkbfs.ParseTlfHandlePreferred(
 		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
 
 	switch err := err.(type) {
@@ -292,5 +303,20 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 		// TODO we have no mechanism to do anything about this
 		fl.fs.log.CErrorf(ctx, "FUSE invalidate error for newName=%s: %v",
 			newName, err)
+	}
+}
+
+// update things after user changed.
+func (fl *FolderList) userChanged(ctx context.Context, _, _ libkb.NormalizedUsername) {
+	var fs []*Folder
+	func() {
+		fl.mu.Lock()
+		defer fl.mu.Unlock()
+		for _, tlf := range fl.folders {
+			fs = append(fs, tlf.folder)
+		}
+	}()
+	for _, f := range fs {
+		f.TlfHandleChange(ctx, nil)
 	}
 }

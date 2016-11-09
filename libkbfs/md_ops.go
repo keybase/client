@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
@@ -196,13 +197,11 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		return ImmutableRootMetadata{}, md.convertVerifyingKeyError(ctx, rmds, handle, err)
 	}
 
-	_, uid, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		// If this is a public folder, it's ok to proceed if we have
-		// no current session.
-		if _, ok := err.(NoCurrentSessionError); ok && !handle.IsPublic() {
-			return ImmutableRootMetadata{}, err
-		} else if !ok {
+	// Get the UID unless this is a public tlf - then proceed with empty uid.
+	var uid keybase1.UID
+	if !handle.IsPublic() {
+		_, uid, err = md.config.KBPKI().GetCurrentUserInfo(ctx)
+		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
 	}

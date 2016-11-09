@@ -125,6 +125,11 @@ func (fs *KBFSOpsStandard) PushConnectionStatusChange(service string, newStatus 
 	fs.currentStatus.PushConnectionStatusChange(service, newStatus)
 }
 
+// PushStatusChange forces a new status be fetched by status listeners.
+func (fs *KBFSOpsStandard) PushStatusChange() {
+	fs.currentStatus.PushStatusChange()
+}
+
 // GetFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (

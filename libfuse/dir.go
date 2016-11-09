@@ -26,8 +26,9 @@ type Folder struct {
 	fs   *FS
 	list *FolderList
 
-	handleMu sync.RWMutex
-	h        *libkbfs.TlfHandle
+	handleMu       sync.RWMutex
+	h              *libkbfs.TlfHandle
+	hPreferredName libkbfs.PreferredTlfName
 
 	folderBranchMu sync.Mutex
 	folderBranch   libkbfs.FolderBranch
@@ -52,12 +53,14 @@ type Folder struct {
 	updateChan chan<- struct{}
 }
 
-func newFolder(fl *FolderList, h *libkbfs.TlfHandle) *Folder {
+func newFolder(fl *FolderList, h *libkbfs.TlfHandle,
+	hPreferredName libkbfs.PreferredTlfName) *Folder {
 	f := &Folder{
-		fs:    fl.fs,
-		list:  fl,
-		h:     h,
-		nodes: map[libkbfs.NodeID]fs.Node{},
+		fs:             fl.fs,
+		list:           fl,
+		h:              h,
+		hPreferredName: hPreferredName,
+		nodes:          map[libkbfs.NodeID]fs.Node{},
 	}
 	return f
 }
@@ -65,7 +68,7 @@ func newFolder(fl *FolderList, h *libkbfs.TlfHandle) *Folder {
 func (f *Folder) name() libkbfs.CanonicalTlfName {
 	f.handleMu.RLock()
 	defer f.handleMu.RUnlock()
-	return f.h.GetCanonicalName()
+	return libkbfs.CanonicalTlfName(f.hPreferredName)
 }
 
 func (f *Folder) reportErr(ctx context.Context,
@@ -286,9 +289,12 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 }
 
 // TlfHandleChange is called when the name of a folder changes.
+// Note that newHandle may be nil. Then the handle in the folder is used.
+// This is used on e.g. logout/login.
 func (f *Folder) TlfHandleChange(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
-	f.fs.log.CDebugf(ctx, "TlfHandleChange called %v", newHandle.GetCanonicalName())
+	f.fs.log.CDebugf(ctx, "TlfHandleChange called on %q",
+		canonicalNameIfNotNil(newHandle))
 	// Handle in the background because we shouldn't lock during the
 	// notification
 	f.fs.queueNotification(func() {
@@ -296,18 +302,36 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 	})
 }
 
+func canonicalNameIfNotNil(h *libkbfs.TlfHandle) string {
+	if h == nil {
+		return "(nil)"
+	}
+	return string(h.GetCanonicalName())
+}
+
 func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
-	oldName := func() libkbfs.CanonicalTlfName {
+	cuser, err := libkbfs.GetCurrentUsernameIfPossible(ctx, f.fs.config.KBPKI(), f.list.public)
+	// Here we get an error, but there is little that can be done.
+	// cuser will be empty in the error case in which case we will default to the
+	// canonical format.
+	if err != nil {
+		f.fs.log.CDebugf(ctx, "tlfHandleChangeInvalidate: GetCurrentUserIfPossible failed: %v", err)
+	}
+	oldName, newName := func() (libkbfs.PreferredTlfName, libkbfs.PreferredTlfName) {
 		f.handleMu.Lock()
 		defer f.handleMu.Unlock()
-		oldName := f.h.GetCanonicalName()
-		f.h = newHandle
-		return oldName
+		oldName := f.hPreferredName
+		if newHandle != nil {
+			f.h = newHandle
+		}
+		f.hPreferredName = f.h.GetPreferredFormat(cuser)
+		return oldName, f.hPreferredName
 	}()
 
-	f.list.updateTlfName(ctx, string(oldName),
-		string(newHandle.GetCanonicalName()))
+	if oldName != newName {
+		f.list.updateTlfName(ctx, string(oldName), string(newName))
+	}
 }
 
 // TODO: Expire TLF nodes periodically. See

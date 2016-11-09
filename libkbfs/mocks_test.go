@@ -65,6 +65,24 @@ func (_mr *_MockBlockRecorder) DataVersion() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DataVersion")
 }
 
+func (_m *MockBlock) NewEmpty() Block {
+	ret := _m.ctrl.Call(_m, "NewEmpty")
+	ret0, _ := ret[0].(Block)
+	return ret0
+}
+
+func (_mr *_MockBlockRecorder) NewEmpty() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewEmpty")
+}
+
+func (_m *MockBlock) Set(other Block, codec kbfscodec.Codec) {
+	_m.ctrl.Call(_m, "Set", other, codec)
+}
+
+func (_mr *_MockBlockRecorder) Set(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Set", arg0, arg1)
+}
+
 // Mock of NodeID interface
 type MockNodeID struct {
 	ctrl     *gomock.Controller
@@ -517,6 +535,14 @@ func (_m *MockKBFSOps) PushConnectionStatusChange(service string, newStatus erro
 
 func (_mr *_MockKBFSOpsRecorder) PushConnectionStatusChange(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PushConnectionStatusChange", arg0, arg1)
+}
+
+func (_m *MockKBFSOps) PushStatusChange() {
+	_m.ctrl.Call(_m, "PushStatusChange")
+}
+
+func (_mr *_MockKBFSOpsRecorder) PushStatusChange() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PushStatusChange")
 }
 
 // Mock of KeybaseService interface
