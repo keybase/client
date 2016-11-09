@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Input} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
+import {Box, Icon, Input, Text} from '../../common-adapters'
+import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import type {Props} from './'
 
@@ -14,22 +14,49 @@ class Conversation extends Component<void, Props, void> {
 
   render () {
     return (
-      <Box style={{...globalStyles.flexBoxRow, minHeight: 48, borderTop: `solid 1px ${globalColors.black_05}`}}>
-        <Input
-          small={true}
-          style={{flex: 1, textAlign: 'left'}}
-          hintStyle={{textAlign: 'left'}}
-          ref={this._setRef}
-          hintText={`Write to ${this.props.participants.join(', ')}`}
-          underlineShow={false}
-          onEnterKeyDown={() => {
-            this.props.onPostMessage(this._input.getValue())
-            this._input.clearValue()
-          }}
-        />
+      <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
+        <Box style={{...globalStyles.flexBoxRow}}>
+          <Input
+            small={true}
+            style={styleInput}
+            hintStyle={{textAlign: 'left'}}
+            ref={this._setRef}
+            hintText={`Write to ${this.props.participants.join(', ')}`}
+            underlineShow={false}
+            onEnterKeyDown={() => {
+              this.props.onPostMessage(this._input.getValue())
+              this._input.clearValue()
+            }}
+          />
+          <Icon onClick={() => console.log('emoji callback')} style={styleIcon} type='iconfont-emoji' />
+          <Icon onClick={() => console.log('attachment callback')} style={styleIcon} type='iconfont-attachment' />
+        </Box>
+        <Text type='BodySmall' style={styleFooter}>*bold*, _italics_, `code`, >quote</Text>
       </Box>
     )
   }
+}
+
+const styleInput = {
+  flex: 1,
+  marginLeft: globalMargins.tiny,
+  marginRight: globalMargins.tiny,
+  textAlign: 'left',
+}
+
+const styleIcon = {
+  paddingTop: globalMargins.xtiny,
+  paddingLeft: globalMargins.xtiny,
+  paddingRight: globalMargins.xtiny,
+}
+
+const styleFooter = {
+  flex: 1,
+  color: globalColors.black_20,
+  textAlign: 'right',
+  marginTop: 0,
+  marginBottom: globalMargins.xtiny,
+  marginRight: globalMargins.tiny,
 }
 
 export default Conversation
