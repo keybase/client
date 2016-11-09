@@ -281,7 +281,7 @@ func (j journalMDOps) getRange(
 	[]ImmutableRootMetadata, error) {
 	// Grab the range from the journal first.
 	jirmds, err := j.getRangeFromJournal(ctx, id, bid, mStatus, start, stop)
-	if err != nil {
+	if err != nil && err != errTLFJournalDisabled {
 		return nil, err
 	}
 

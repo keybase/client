@@ -247,7 +247,7 @@ func (cr *ConflictResolver) checkDone(ctx context.Context) error {
 func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState,
 	writerLocked bool) (unmerged []ImmutableRootMetadata,
 	merged []ImmutableRootMetadata, err error) {
-	// first get all outstanding unmerged MDs for this device
+	// First get all outstanding unmerged MDs for this device.
 	var branchPoint MetadataRevision
 	if writerLocked {
 		branchPoint, unmerged, err =
@@ -260,11 +260,35 @@ func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState,
 		return nil, nil, err
 	}
 
-	// now get all the merged MDs, starting from after the branch point
-	merged, err = getMergedMDUpdates(
-		ctx, cr.fbo.config, cr.fbo.id(), branchPoint+1)
+	// Now get all the merged MDs, starting from after the branch
+	// point.  We fetch the branch point (if possible) to make sure
+	// it's the right predecessor of the unmerged branch.  TODO: stop
+	// fetching the branch point and remove the successor check below
+	// once we fix KBFS-1664.
+	fetchFrom := branchPoint + 1
+	if branchPoint >= MetadataRevisionInitial {
+		fetchFrom = branchPoint
+	}
+	merged, err = getMergedMDUpdates(ctx, cr.fbo.config, cr.fbo.id(), fetchFrom)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	if len(unmerged) > 0 {
+		err := merged[0].CheckValidSuccessor(
+			merged[0].mdID, unmerged[0].ReadOnly())
+		if err != nil {
+			cr.log.CDebugf(ctx, "Branch point (rev=%d, mdID=%s) is not a "+
+				"valid successor for unmerged rev %d (mdID=%s, bid=%s)",
+				merged[0].Revision(), merged[0].mdID, unmerged[0].Revision(),
+				unmerged[0].mdID, unmerged[0].BID())
+			return nil, nil, err
+		}
+	}
+
+	// Remove branch point.
+	if len(merged) > 0 && fetchFrom == branchPoint {
+		merged = merged[1:]
 	}
 
 	return unmerged, merged, nil
