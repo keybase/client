@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"path/filepath"
@@ -14,7 +15,59 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
+func conversationIDPrefixLength(ids []chat1.ConversationID) (int, error) {
+
+	// default to 4 characters, i.e. 2 bytes
+	length := 4
+
+	existing := make(map[string]string)
+	for _, id := range ids {
+		cidHex := id.Alias()
+		if cidHexExisting, ok := existing[cidHex[:length]]; ok {
+			// This should rarely happen, and even it happens, it should be still
+			// reasonably fast. So we are not bothering with using a trie.
+
+			if cidHexExisting == cidHex {
+				return 0, errors.New("duplicate conversation IDs")
+			}
+
+			if len(cidHexExisting) != len(cidHex) {
+				return 0, errors.New("inconsistent length of conversation IDs")
+			}
+
+			firstDifferent := -1
+			for i := range cidHex {
+				if cidHex[i] != cidHexExisting[i] {
+					firstDifferent = i
+					break
+				}
+			}
+
+			length = firstDifferent + 1
+			length += length % 2 // round up to full byte
+
+			newExisting := make(map[string]string)
+			for _, existing := range newExisting {
+				newExisting[existing[:length]] = existing
+			}
+			existing = newExisting
+		}
+
+		existing[cidHex[:length]] = cidHex
+	}
+
+	return length, nil
+}
+
 type conversationInfoListView []chat1.ConversationInfoLocal
+
+func (v conversationInfoListView) ids() []chat1.ConversationID {
+	ids := make([]chat1.ConversationID, 0, len(v))
+	for _, i := range v {
+		ids = append(ids, i.Id)
+	}
+	return ids
+}
 
 func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 	if len(v) == 0 {
@@ -24,14 +77,19 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
+	prefixLength, err := conversationIDPrefixLength(v.ids())
+	if err != nil {
+		return err
+	}
+
 	table := &flexibletable.Table{}
-	for i, conv := range v {
+	for _, conv := range v {
 		participants := strings.Split(conv.TlfName, ",")
 		table.Insert(flexibletable.Row{
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
 				Alignment: flexibletable.Right,
-				Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
+				Content:   flexibletable.SingleCell{Item: conv.Id.Alias()[:prefixLength]},
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
@@ -40,7 +98,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, flexibletable.ExpandableWrappable,
+		flexibletable.ColumnConstraint(prefixLength + 2), flexibletable.ExpandableWrappable,
 	}); err != nil {
 		return fmt.Errorf("rendering conversation info list view error: %v\n", err)
 	}
@@ -52,20 +110,31 @@ type conversationListView []chat1.ConversationLocal
 
 // Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
 func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
-	convName := strings.Join(v.without(g, conv.Info.WriterNames, myUsername), ",")
+	convName := strings.Join(v.withoutUnlessOnlyOne(g, conv.Info.WriterNames, myUsername), ",")
 	if len(conv.Info.ReaderNames) > 0 {
 		convName += "#" + strings.Join(conv.Info.ReaderNames, ",")
 	}
 	return convName
 }
 
-func (v conversationListView) without(g *libkb.GlobalContext, slice []string, el string) (res []string) {
+func (v conversationListView) withoutUnlessOnlyOne(g *libkb.GlobalContext, slice []string, el string) (res []string) {
+	if len(slice) == 1 {
+		return slice
+	}
 	for _, x := range slice {
 		if x != el {
 			res = append(res, x)
 		}
 	}
 	return res
+}
+
+func (v conversationListView) ids() []chat1.ConversationID {
+	ids := make([]chat1.ConversationID, 0, len(v))
+	for _, c := range v {
+		ids = append(ids, c.Info.Id)
+	}
+	return ids
 }
 
 func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, showDeviceName bool) error {
@@ -76,16 +145,23 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
+	prefixLength, err := conversationIDPrefixLength(v.ids())
+	if err != nil {
+		return err
+	}
+
 	table := &flexibletable.Table{}
-	for i, conv := range v {
+	for _, conv := range v {
+		indexCell := flexibletable.Cell{
+			Frame:     [2]string{"[", "]"},
+			Alignment: flexibletable.Right,
+			Content:   flexibletable.SingleCell{Item: conv.Info.Id.Alias()[:prefixLength]},
+		}
 
 		if conv.Error != nil {
 			table.Insert(flexibletable.Row{
-				flexibletable.Cell{
-					Frame:     [2]string{"[", "]"},
-					Alignment: flexibletable.Right,
-					Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
-				},
+				indexCell,
+
 				flexibletable.Cell{
 					Alignment: flexibletable.Center,
 					Content:   flexibletable.SingleCell{Item: ""},
@@ -148,11 +224,8 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		}
 
 		table.Insert(flexibletable.Row{
-			flexibletable.Cell{
-				Frame:     [2]string{"[", "]"},
-				Alignment: flexibletable.Right,
-				Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
-			},
+			indexCell,
+
 			flexibletable.Cell{
 				Alignment: flexibletable.Center,
 				Content:   flexibletable.SingleCell{Item: unread},
@@ -174,7 +247,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	}
 
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
+		flexibletable.ColumnConstraint(prefixLength + 2), 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
 	}); err != nil {
 		return fmt.Errorf("rendering conversation list view error: %v\n", err)
 	}
