@@ -167,7 +167,7 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
   })
 
   while (true) {
-    yield put(_waitingForResponse(true))
+    yield put(_waitingForResponse(false))
     // $ForceType
     const incoming: {[key: string]: any} = yield race({
       promptUsername: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.promptUsername'),
@@ -182,7 +182,7 @@ function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any,
       submitUsername: take(Constants.submitUsername),
       checkProof: take(Constants.checkProof),
     })
-    yield put(_waitingForResponse(false))
+    yield put(_waitingForResponse(true))
 
     if (incoming.cancel) {
       closeChannelMap(proveStartProofChanMap)
