@@ -1,7 +1,9 @@
 // @flow
 import React from 'react'
 import type {Props} from './user-actions'
-import {Box, Button, FollowButton} from '../common-adapters'
+import Box from './box'
+import Button from './button'
+import FollowButton from './follow-button'
 import {globalMargins} from '../styles'
 import {normal as proofNormal} from '../constants/tracker'
 

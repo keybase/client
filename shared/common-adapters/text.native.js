@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {NativeText} from './index.native'
+import {NativeText} from './native-wrappers.native'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 
 import type {Props, TextType, Background} from './text'

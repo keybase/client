@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './progress-indicator'
-import {NativeActivityIndicator} from './index.native'
+import {NativeActivityIndicator} from './native-wrappers.native'
 import {globalColors} from '../styles'
 
 class ProgressIndicator extends Component<void, Props, void> {

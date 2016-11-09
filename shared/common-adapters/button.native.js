@@ -2,7 +2,9 @@
 import ProgressIndicator from './progress-indicator'
 import React, {Component} from 'react'
 import type {Props} from './button'
-import {Text, ClickableBox, Box} from './index'
+import Text from './text'
+import ClickableBox from './clickable-box'
+import Box from './box'
 import {globalColors, globalStyles, globalMargins} from '../styles'
 
 const Progress = () => (

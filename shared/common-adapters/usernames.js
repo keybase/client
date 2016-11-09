@@ -1,9 +1,11 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './usernames'
-import {Box, Text} from './'
+import Box from './box'
+import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
+
+import type {Props} from './usernames'
 
 function usernameText ({type, users, style, inline, redColor}: Props) {
   return users.map((u, i) => {

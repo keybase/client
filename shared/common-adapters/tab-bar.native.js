@@ -2,7 +2,11 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
-import {Box, Icon, Text, NativeTouchableWithoutFeedback, Badge} from './index.native'
+import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
+import Badge from './badge'
+import Box from './box'
+import Icon from './icon'
+import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 
 class TabBarItem extends Component<void, ItemProps, void> {
