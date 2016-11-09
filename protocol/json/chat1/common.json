@@ -45,6 +45,12 @@
       "typedef": "bytes"
     },
     {
+      "type": "record",
+      "name": "InboxVers",
+      "fields": [],
+      "typedef": "uint64"
+    },
+    {
       "type": "enum",
       "name": "MessageType",
       "symbols": [
@@ -413,9 +419,21 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "InboxResType",
+      "symbols": [
+        "VERSIONHIT_0",
+        "FULL_1"
+      ]
+    },
+    {
       "type": "record",
-      "name": "InboxView",
+      "name": "InboxViewFull",
       "fields": [
+        {
+          "type": "InboxVers",
+          "name": "vers"
+        },
         {
           "type": {
             "type": "array",
@@ -429,6 +447,30 @@
             "Pagination"
           ],
           "name": "pagination"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "InboxView",
+      "switch": {
+        "type": "InboxResType",
+        "name": "rtype"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "VERSIONHIT",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "FULL",
+            "def": false
+          },
+          "body": "InboxViewFull"
         }
       ]
     }

@@ -13,9 +13,9 @@ import {routeAppend} from '../actions/router'
 
 class Devices extends Component {
   componentWillMount () {
-    const {devices, waitingForServer, loggedIn} = this.props
+    const {waitingForServer, loggedIn} = this.props
 
-    if (loggedIn && !devices && !waitingForServer) {
+    if (loggedIn && !waitingForServer) {
       this.props.loadDevices()
     }
   }

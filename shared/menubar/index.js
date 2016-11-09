@@ -14,6 +14,7 @@ import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {defaultKBFSPath} from '../constants/config'
 import {exec} from 'child_process'
 
+import type {KBFSStatus} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
 
 export type Props = $Shape<{
@@ -24,6 +25,7 @@ export type Props = $Shape<{
   loggedIn: ?boolean,
   switchTab: (tab: string) => void,
   folderProps: ?FolderProps,
+  kbfsStatus: KBFSStatus,
 }>
 
 const REQUEST_DELAY = 5000
@@ -173,6 +175,7 @@ class Menubar extends Component<void, Props, void> {
       openShell={() => this._openShell()}
       showBug={() => this._showBug()}
       username={this.props.username}
+      kbfsStatus={this.props.kbfsStatus}
       quit={() => this._quit()}
       refresh={() => this._checkForFolders(true)}
       onRekey={(path: string) => this._onRekey(path)}
@@ -187,6 +190,7 @@ export default connect(
     username: state.config && state.config.username,
     loggedIn: state.config && state.config.loggedIn,
     folderProps: state.favorite && state.favorite.folderState,
+    kbfsStatus: state.favorite && state.favorite.kbfsStatus,
   }),
   dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab, openRekeyDialog}, dispatch)
 )(Menubar)

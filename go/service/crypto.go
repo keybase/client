@@ -74,6 +74,10 @@ func (c *CryptoHandler) SignED25519(_ context.Context, arg keybase1.SignED25519A
 	return engine.SignED25519(c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
 }
 
+func (c *CryptoHandler) SignED25519ForKBFS(_ context.Context, arg keybase1.SignED25519ForKBFSArg) (keybase1.ED25519SignatureInfo, error) {
+	return engine.SignED25519ForKBFS(c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
+}
+
 func (c *CryptoHandler) SignToString(_ context.Context, arg keybase1.SignToStringArg) (string, error) {
 	return engine.SignToString(c.G(), c.secretUIMaker(arg.SessionID, arg.Reason), arg)
 }

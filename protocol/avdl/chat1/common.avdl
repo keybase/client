@@ -9,6 +9,7 @@ protocol common {
   @typedef("bytes")  record ConversationID {}
   @typedef("bytes")  record TLFID {}
   @typedef("bytes")  record Hash {}
+  @typedef("uint64") record InboxVers {}
 
   enum MessageType {
     NONE_0,
@@ -69,7 +70,6 @@ protocol common {
 
   record GetInboxQuery {
     union { null, ConversationID } convID;
-
     union { null, TopicType } topicType;
     union { null, TLFID } tlfID;
     union { null, TLFVisibility } tlfVisibility;
@@ -77,7 +77,7 @@ protocol common {
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
 
-    // If left empty, default is to show all.
+    // If left empty, default is to show unfiled and favorite
     array<ConversationStatus> status;
 
     boolean unreadOnly;
@@ -151,8 +151,19 @@ protocol common {
     bytes k; // Verifying key
   }
 
-  record InboxView {
+  enum InboxResType {
+    VERSIONHIT_0,
+    FULL_1
+  }
+
+  record InboxViewFull {
+    InboxVers vers;
     array<Conversation> conversations;
-    union { null, Pagination } pagination;
+    union { null, Pagination } pagination;  
+  }
+
+  variant InboxView switch (InboxResType rtype) {
+    case VERSIONHIT: void;
+    case FULL: InboxViewFull;
   }
 }

@@ -186,6 +186,7 @@ func (m *ChatRemoteMock) makeReaderInfo(convID chat1.ConversationID) (ri *chat1.
 
 func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxRemoteArg) (res chat1.GetInboxRemoteRes, err error) {
 	// TODO: add pagination support
+	var ibfull chat1.InboxViewFull
 	for _, conv := range m.world.conversations {
 		if arg.Query != nil {
 			if arg.Query.ConvID != nil && !conv.Metadata.ConversationID.Eq(*arg.Query.ConvID) {
@@ -213,12 +214,15 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 		}
 		convToAppend := *conv
 		convToAppend.ReaderInfo = m.makeReaderInfo(convToAppend.Metadata.ConversationID)
-		res.Inbox.Conversations = append(res.Inbox.Conversations, convToAppend)
-		if arg.Pagination != nil && arg.Pagination.Num != 0 && arg.Pagination.Num == len(res.Inbox.Conversations) {
+
+		ibfull.Conversations = append(ibfull.Conversations, convToAppend)
+		if arg.Pagination != nil && arg.Pagination.Num != 0 && arg.Pagination.Num == len(ibfull.Conversations) {
 			break
 		}
 	}
-	return res, nil
+	return chat1.GetInboxRemoteRes{
+		Inbox: chat1.NewInboxViewWithFull(ibfull),
+	}, nil
 }
 
 func (m *ChatRemoteMock) GetInboxByTLFIDRemote(ctx context.Context, tlfID chat1.TLFID) (res chat1.GetInboxByTLFIDRemoteRes, err error) {
@@ -307,6 +311,13 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 		if conv.Metadata.IdTriple.Tlfid.Eq(arg.IdTriple.Tlfid) &&
 			conv.Metadata.IdTriple.TopicID.String() == arg.IdTriple.TopicID.String() &&
 			conv.Metadata.IdTriple.TopicType == arg.IdTriple.TopicType {
+			// Identical triple
+			return res, libkb.ChatConvExistsError{ConvID: conv.Metadata.ConversationID}
+		}
+		if arg.IdTriple.TopicType == chat1.TopicType_CHAT &&
+			conv.Metadata.IdTriple.Tlfid.Eq(arg.IdTriple.Tlfid) &&
+			conv.Metadata.IdTriple.TopicType == arg.IdTriple.TopicType {
+			// Existing CHAT conv
 			return res, libkb.ChatConvExistsError{ConvID: conv.Metadata.ConversationID}
 		}
 	}

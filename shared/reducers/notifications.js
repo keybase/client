@@ -1,17 +1,18 @@
 // @flow
 import * as Constants from '../constants/notifications'
 import * as CommonConstants from '../constants/common'
-import type {NotificationKeys, NotificationAction} from '../constants/notifications'
+
+import type {NotificationKeys, NotificationAction, BadgeType} from '../constants/notifications'
 
 type State = {
-  menuBadge: boolean,
+  menuBadge: BadgeType,
   keyState: {
     [key: NotificationKeys]: boolean,
   },
 }
 
 const initialState = {
-  menuBadge: false,
+  menuBadge: 'regular',
   keyState: {},
 }
 
@@ -29,9 +30,12 @@ export default function (state: State = initialState, action: NotificationAction
 
       keyState[action.payload.key] = action.payload.on
 
-      // Badge if we have a new, other stuff later
-      const menuBadge = keyState.newTLFs
-      // TEMP if you want to see the menu badge change // const menuBadge = Math.random() < 0.5
+      let menuBadge = 'regular'
+      if (keyState.kbfsUploading) {
+        menuBadge = 'uploading'
+      } else if (keyState.newTLFs) {
+        menuBadge = 'badged'
+      }
 
       return {
         ...state,
