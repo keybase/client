@@ -353,9 +353,13 @@ func (md *BareRootMetadataV3) MakeSuccessorCopy(
 	extra ExtraMetadata, isReadableAndWriter bool) (
 	MutableBareRootMetadata, ExtraMetadata, bool, error) {
 
-	extraCopy, err := extra.DeepCopy(config.Codec())
-	if err != nil {
-		return nil, nil, false, err
+	var extraCopy ExtraMetadata
+	if extra != nil {
+		var err error
+		extraCopy, err = extra.DeepCopy(config.Codec())
+		if err != nil {
+			return nil, nil, false, err
+		}
 	}
 	mdCopy, err := md.DeepCopy(config.Codec())
 	if err != nil {
