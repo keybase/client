@@ -153,6 +153,13 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	}
 
 	ctx, _ = utils.GetUserInfoMapper(ctx, h.G())
+	typ, err := ib.Inbox.Rtype()
+	if err != nil {
+		return chat1.GetInboxAndUnboxLocalRes{}, err
+	}
+	if typ != chat1.InboxResType_FULL {
+		return chat1.GetInboxAndUnboxLocalRes{}, fmt.Errorf("inbox response not 'full' type")
+	}
 	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Full().Conversations)
 	if err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
