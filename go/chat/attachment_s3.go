@@ -119,11 +119,9 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 	log.Debug("s3 putMultiPipeline (size = %d)", size)
 
 	if previous != nil {
-		log.Warning("put multi, changing object key to %s", previous.ObjectKey)
+		log.Debug("put multi, changing object key to %s", previous.ObjectKey)
 		params.ObjectKey = previous.ObjectKey
 	}
-
-	log.Warning("put multi, object key = %s", params.ObjectKey)
 
 	multi, err := b.Multi(params.ObjectKey, "application/octet-stream", s3.ACL(params.Acl))
 	if err != nil {
@@ -131,15 +129,12 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		return "", err
 	}
 
-	log.Warning("init multi: %+v", multi)
-
 	var previousParts []s3.Part
 	if previous != nil {
 		previousParts, err = multi.ListParts()
 		if err != nil {
 			log.Debug("ignoring multi.ListParts error: %s", err)
 		}
-		log.Warning("previousParts: %+v", previousParts)
 	}
 
 	type job struct {
