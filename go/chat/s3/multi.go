@@ -22,7 +22,7 @@ import (
 type Multi struct {
 	Bucket   *Bucket
 	Key      string
-	UploadID string
+	UploadID string `xml:"UploadId"`
 }
 
 // That's the default. Here just for testing.

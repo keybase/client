@@ -184,17 +184,19 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 				log.Debug("start: upload part %d", b.index)
 				if previous != nil && len(previousParts) > b.index {
 					// check previousParts for this block
-					p := previousParts[b.index]
+					p := previousParts[b.index-1] // part list starts at index 1
 					md5sum := md5.Sum(b.block)
 					md5hex := `"` + hex.EncodeToString(md5sum[:]) + `"`
 					if int(p.Size) == len(b.block) && p.ETag == md5hex {
-						log.Debug("part %d already uploaded")
+						log.Debug("part %d already uploaded", b.index)
 						select {
 						case retCh <- p:
 						case <-ctx.Done():
 							return ctx.Err()
 						}
 						continue
+					} else {
+						log.Debug("part %d mismatch:  size %d != expected %d or etag %s != expected %s", b.index, p.Size, len(b.block), p.ETag, md5hex)
 					}
 				}
 				part, putErr := putRetry(ctx, log, multi, b.index, b.block)
