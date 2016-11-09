@@ -114,10 +114,10 @@ func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID c
 	if err != nil {
 		return chat1.Conversation{}, libkb.ChatStorageRemoteError{Msg: err.Error()}
 	}
-	if len(conv.Inbox.Conversations) == 0 {
+	if len(conv.Inbox.Full().Conversations) == 0 {
 		return chat1.Conversation{}, libkb.ChatStorageRemoteError{Msg: fmt.Sprintf("conv not found: %s", convID)}
 	}
-	return conv.Inbox.Conversations[0], nil
+	return conv.Inbox.Full().Conversations[0], nil
 }
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,

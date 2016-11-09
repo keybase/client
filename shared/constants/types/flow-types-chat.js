@@ -59,6 +59,11 @@ export const CommonConversationStatus = {
   blocked: 3,
 }
 
+export const CommonInboxResType = {
+  versionhit: 0,
+  full: 1,
+}
+
 export const CommonMessageType = {
   none: 0,
   text: 1,
@@ -615,7 +620,18 @@ export type HeaderPlaintextV1 = {
 export type HeaderPlaintextVersion = 
     1 // V1_1
 
-export type InboxView = {
+export type InboxResType = 
+    0 // VERSIONHIT_0
+  | 1 // FULL_1
+
+export type InboxVers = uint64
+
+export type InboxView = 
+    { rtype : 0 }
+  | { rtype : 1, full : ?InboxViewFull }
+
+export type InboxViewFull = {
+  vers: InboxVers,
   conversations?: ?Array<Conversation>,
   pagination?: ?Pagination,
 }
@@ -752,6 +768,12 @@ export type NewConversationLocalRes = {
   breaks?: ?Array<keybase1.TLFUserBreak>,
 }
 
+export type NewConversationPayload = {
+  Action: string,
+  convID: ConversationID,
+  inboxVers: InboxVers,
+}
+
 export type NewConversationRemoteRes = {
   convID: ConversationID,
   rateLimit?: ?RateLimit,
@@ -761,6 +783,7 @@ export type NewMessagePayload = {
   Action: string,
   convID: ConversationID,
   message: MessageBoxed,
+  inboxVers: InboxVers,
 }
 
 export type NotifyChatNewChatActivityRpcParam = Exact<{
@@ -806,6 +829,13 @@ export type RateLimit = {
   maxCalls: int,
 }
 
+export type ReadMessagePayload = {
+  Action: string,
+  convID: ConversationID,
+  msgID: MessageID,
+  inboxVers: InboxVers,
+}
+
 export type S3Params = {
   bucket: string,
   objectKey: string,
@@ -822,6 +852,13 @@ export type SetConversationStatusLocalRes = {
 
 export type SetConversationStatusRes = {
   rateLimit?: ?RateLimit,
+}
+
+export type SetStatusPayload = {
+  Action: string,
+  convID: ConversationID,
+  status: ConversationStatus,
+  inboxVers: InboxVers,
 }
 
 export type SignatureInfo = {
@@ -949,6 +986,7 @@ export type localSetConversationStatusLocalRpcParam = Exact<{
 }>
 
 export type remoteGetInboxRemoteRpcParam = Exact<{
+  vers: InboxVers,
   query?: ?GetInboxQuery,
   pagination?: ?Pagination
 }>

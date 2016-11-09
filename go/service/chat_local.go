@@ -125,8 +125,8 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, err
 	}
 	return chat1.GetInboxLocalRes{
-		ConversationsUnverified: ib.Inbox.Conversations,
-		Pagination:              ib.Inbox.Pagination,
+		ConversationsUnverified: ib.Inbox.Full().Conversations,
+		Pagination:              ib.Inbox.Full().Pagination,
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
 
 		// This s only populated if a TLF name is specified in arg.
@@ -159,7 +159,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 	}
 
 	ctx, _ = utils.GetUserInfoMapper(ctx, h.G())
-	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Conversations, arg.IdentifyBehavior)
+	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Full().Conversations, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}

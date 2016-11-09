@@ -5,10 +5,31 @@ protocol gregor {
         string Action;
     }
 
+    record NewConversationPayload {
+        string Action;
+        ConversationID convID;
+        InboxVers inboxVers;
+    }
+
     record NewMessagePayload {
         string Action;
         ConversationID convID;
         MessageBoxed message;
+        InboxVers inboxVers;
+    }
+
+    record ReadMessagePayload {
+        string Action;
+        ConversationID convID;
+        MessageID msgID;
+        InboxVers inboxVers; 
+    }
+
+    record SetStatusPayload {
+        string Action;
+        ConversationID convID;
+        ConversationStatus status;
+        InboxVers inboxVers;
     }
 
 }
