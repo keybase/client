@@ -1386,6 +1386,7 @@ type Config interface {
 	ConflictRenamer() ConflictRenamer
 	SetConflictRenamer(ConflictRenamer)
 	MetadataVersion() MetadataVer
+	SetMetadataVersion(MetadataVer)
 	DataVersion() DataVer
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
