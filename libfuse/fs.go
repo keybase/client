@@ -12,6 +12,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -34,6 +35,8 @@ type FS struct {
 	// this is like time.AfterFunc, except that in some tests this can be
 	// overridden to execute f without any delay.
 	execAfterDelay func(d time.Duration, f func())
+
+	root Root
 }
 
 // NewFS creates an FS
@@ -54,6 +57,15 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool) *FS {
 		log:           log,
 		errLog:        errLog,
 		notifications: libfs.NewFSNotifications(log),
+	}
+	fs.root.private = &FolderList{
+		fs:      fs,
+		folders: make(map[string]*TLF),
+	}
+	fs.root.public = &FolderList{
+		fs:      fs,
+		public:  true,
+		folders: make(map[string]*TLF),
 	}
 	fs.execAfterDelay = func(d time.Duration, f func()) {
 		time.AfterFunc(d, f)
@@ -142,11 +154,20 @@ func (f *FS) Serve(ctx context.Context) error {
 	f.fuse = srv
 
 	f.notifications.LaunchProcessor(ctx)
-	f.remoteStatus.Init(ctx, f.log, f.config)
+	f.remoteStatus.Init(ctx, f.log, f.config, f)
 	// Blocks forever, unless an interrupt signal is received
 	// (handled by libkbfs.Init).
 	return srv.Serve(f)
 }
+
+// UserChanged is called from libfs.
+func (f *FS) UserChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername) {
+	f.log.CDebugf(ctx, "User changed: %q -> %q", oldName, newName)
+	f.root.public.userChanged(ctx, oldName, newName)
+	f.root.private.userChanged(ctx, oldName, newName)
+}
+
+var _ libfs.RemoteStatusUpdater = (*FS)(nil)
 
 var _ fs.FS = (*FS)(nil)
 
@@ -170,18 +191,7 @@ func (f *FS) reportErr(ctx context.Context,
 
 // Root implements the fs.FS interface for FS.
 func (f *FS) Root() (fs.Node, error) {
-	n := &Root{
-		private: &FolderList{
-			fs:      f,
-			folders: make(map[string]*TLF),
-		},
-		public: &FolderList{
-			fs:      f,
-			public:  true,
-			folders: make(map[string]*TLF),
-		},
-	}
-	return n, nil
+	return &f.root, nil
 }
 
 // Statfs implements the fs.FSStatfser interface for FS.
