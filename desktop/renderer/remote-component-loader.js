@@ -23,9 +23,7 @@ setupSource()
 disableDragDrop()
 makeEngine()
 
-// $FlowIssue
 module.hot && module.hot.accept()
-// $FlowIssue
 module.hot && module.hot.dispose(() => {
   engine().reset()
 })

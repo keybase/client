@@ -81,7 +81,6 @@ export function setup (store: any) {
   const updateLiveConfig = () => store.dispatch(updateDebugConfig(require('./local-debug-live')))
 
   if (module.hot) {
-    // $FlowIssue
     module.hot.accept(() => updateLiveConfig())
   }
   updateLiveConfig()
