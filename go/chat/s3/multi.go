@@ -10,6 +10,8 @@ import (
 	"io"
 	"sort"
 	"strconv"
+
+	"golang.org/x/net/context"
 )
 
 // Multi represents an unfinished multipart upload.
@@ -48,7 +50,7 @@ type listMultiResp struct {
 // into different groupings of keys, similar to how folders would work.
 //
 // See http://goo.gl/ePioY for details.
-func (b *Bucket) ListMulti(prefix, delim string) (multis []*Multi, prefixes []string, err error) {
+func (b *Bucket) ListMulti(ctx context.Context, prefix, delim string) (multis []*Multi, prefixes []string, err error) {
 	params := map[string][]string{
 		"uploads":     {""},
 		"max-uploads": {strconv.FormatInt(int64(listMultiMax), 10)},
@@ -62,7 +64,7 @@ func (b *Bucket) ListMulti(prefix, delim string) (multis []*Multi, prefixes []st
 			params: params,
 		}
 		var resp listMultiResp
-		err := b.S3.query(req, &resp)
+		err := b.S3.query(ctx, req, &resp)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
@@ -88,8 +90,8 @@ func (b *Bucket) ListMulti(prefix, delim string) (multis []*Multi, prefixes []st
 // Multi returns a multipart upload handler for the provided key
 // inside b. If a multipart upload exists for key, it is returned,
 // otherwise a new multipart upload is initiated with contType and perm.
-func (b *Bucket) Multi(key, contType string, perm ACL) (*Multi, error) {
-	multis, _, err := b.ListMulti(key, "")
+func (b *Bucket) Multi(ctx context.Context, key, contType string, perm ACL) (*Multi, error) {
+	multis, _, err := b.ListMulti(ctx, key, "")
 	if err != nil && !hasCode(err, "NoSuchUpload") {
 		return nil, err
 	}
@@ -98,14 +100,14 @@ func (b *Bucket) Multi(key, contType string, perm ACL) (*Multi, error) {
 			return m, nil
 		}
 	}
-	return b.InitMulti(key, contType, perm)
+	return b.InitMulti(ctx, key, contType, perm)
 }
 
 // InitMulti initializes a new multipart upload at the provided
 // key inside b and returns a value for manipulating it.
 //
 // See http://goo.gl/XP8kL for details.
-func (b *Bucket) InitMulti(key string, contType string, perm ACL) (*Multi, error) {
+func (b *Bucket) InitMulti(ctx context.Context, key string, contType string, perm ACL) (*Multi, error) {
 	headers := map[string][]string{
 		"Content-Type":   {contType},
 		"Content-Length": {"0"},
@@ -126,7 +128,7 @@ func (b *Bucket) InitMulti(key string, contType string, perm ACL) (*Multi, error
 		UploadID string `xml:"UploadId"`
 	}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(req, &resp)
+		err = b.S3.query(ctx, req, &resp)
 		if !shouldRetry(err) {
 			break
 		}
@@ -141,15 +143,15 @@ func (b *Bucket) InitMulti(key string, contType string, perm ACL) (*Multi, error
 // Each part, except for the last one, must be at least 5MB in size.
 //
 // See http://goo.gl/pqZer for details.
-func (m *Multi) PutPart(n int, r io.ReadSeeker) (Part, error) {
+func (m *Multi) PutPart(ctx context.Context, n int, r io.ReadSeeker) (Part, error) {
 	partSize, _, md5b64, err := seekerInfo(r)
 	if err != nil {
 		return Part{}, err
 	}
-	return m.putPart(n, r, partSize, md5b64)
+	return m.putPart(ctx, n, r, partSize, md5b64)
 }
 
-func (m *Multi) putPart(n int, r io.ReadSeeker, partSize int64, md5b64 string) (Part, error) {
+func (m *Multi) putPart(ctx context.Context, n int, r io.ReadSeeker, partSize int64, md5b64 string) (Part, error) {
 	headers := map[string][]string{
 		"Content-Length": {strconv.FormatInt(partSize, 10)},
 		"Content-MD5":    {md5b64},
@@ -175,7 +177,7 @@ func (m *Multi) putPart(n int, r io.ReadSeeker, partSize int64, md5b64 string) (
 		if err != nil {
 			return Part{}, err
 		}
-		resp, err := m.Bucket.S3.run(req, nil)
+		resp, err := m.Bucket.S3.run(ctx, req, nil)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
@@ -232,7 +234,7 @@ var listPartsMax = 1000
 // ordered by part number.
 //
 // See http://goo.gl/ePioY for details.
-func (m *Multi) ListParts() ([]Part, error) {
+func (m *Multi) ListParts(ctx context.Context) ([]Part, error) {
 	params := map[string][]string{
 		"uploadId":  {m.UploadID},
 		"max-parts": {strconv.FormatInt(int64(listPartsMax), 10)},
@@ -246,7 +248,7 @@ func (m *Multi) ListParts() ([]Part, error) {
 			params: params,
 		}
 		var resp listPartsResp
-		err := m.Bucket.S3.query(req, &resp)
+		err := m.Bucket.S3.query(ctx, req, &resp)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
@@ -276,7 +278,7 @@ type ReaderAtSeeker interface {
 // new content.
 // PutAll returns all the parts of m (reused or not).
 func (m *Multi) PutAll(r ReaderAtSeeker, partSize int64) ([]Part, error) {
-	old, err := m.ListParts()
+	old, err := m.ListParts(nil)
 	if err != nil && !hasCode(err, "NoSuchUpload") {
 		return nil, err
 	}
@@ -313,7 +315,7 @@ NextSection:
 		}
 
 		// Part wasn't found or doesn't match. Send it.
-		part, err := m.putPart(current, section, partSize, md5b64)
+		part, err := m.putPart(nil, current, section, partSize, md5b64)
 		if err != nil {
 			return nil, err
 		}
@@ -357,7 +359,7 @@ type completeResponse struct {
 // and checked to see whether or not the complete succeeded.
 //
 // See http://goo.gl/2Z7Tw for details.
-func (m *Multi) Complete(parts []Part) error {
+func (m *Multi) Complete(ctx context.Context, parts []Part) error {
 	params := map[string][]string{
 		"uploadId": {m.UploadID},
 	}
@@ -385,7 +387,7 @@ func (m *Multi) Complete(parts []Part) error {
 		}
 
 		resp := &completeResponse{}
-		err := m.Bucket.S3.query(req, resp)
+		err := m.Bucket.S3.query(ctx, req, resp)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
@@ -418,7 +420,7 @@ func (m *Multi) Complete(parts []Part) error {
 // error returned? Is the issue completely undetectable?).
 //
 // See http://goo.gl/dnyJw for details.
-func (m *Multi) Abort() error {
+func (m *Multi) Abort(ctx context.Context) error {
 	params := map[string][]string{
 		"uploadId": {m.UploadID},
 	}
@@ -429,7 +431,7 @@ func (m *Multi) Abort() error {
 			path:   m.Key,
 			params: params,
 		}
-		err := m.Bucket.S3.query(req, nil)
+		err := m.Bucket.S3.query(ctx, req, nil)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}

@@ -94,7 +94,7 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 		case <-time.After(libkb.BackoffDefault.Duration(i)):
 		}
 		log.Debug("s3 putSingle attempt %d", i+1)
-		err := b.PutReader(params.ObjectKey, tee, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
+		err := b.PutReader(ctx, params.ObjectKey, tee, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
 		if err == nil {
 			log.Debug("putSingle attempt %d success", i+1)
 			return nil
@@ -123,17 +123,22 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		task.S3Params.ObjectKey = previous.ObjectKey
 	}
 
-	multi, err := b.Multi(task.S3Params.ObjectKey, "application/octet-stream", s3.ACL(task.S3Params.Acl))
+	multi, err := b.Multi(ctx, task.S3Params.ObjectKey, "application/octet-stream", s3.ACL(task.S3Params.Acl))
 	if err != nil {
 		log.Debug("Multi error: %s", err)
 		return "", err
 	}
 
-	var previousParts []s3.Part
+	var previousParts map[int]s3.Part
 	if previous != nil {
-		previousParts, err = multi.ListParts()
+		previousParts = make(map[int]s3.Part)
+		list, err := multi.ListParts(ctx)
 		if err != nil {
 			log.Debug("ignoring multi.ListParts error: %s", err)
+		} else {
+			for _, p := range list {
+				previousParts[p.N] = p
+			}
 		}
 	}
 
@@ -141,7 +146,9 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		block []byte
 		index int
 	}
-	eg, ctx := errgroup.WithContext(ctx)
+	// need to use ectx in everything in eg.Go() funcs since eg
+	// will cancel ectx in eg.Wait().
+	eg, ectx := errgroup.WithContext(ctx)
 	blockCh := make(chan job)
 	retCh := make(chan s3.Part)
 	eg.Go(func() error {
@@ -163,8 +170,8 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 			if n > 0 {
 				select {
 				case blockCh <- job{block: block, index: partNumber}:
-				case <-ctx.Done():
-					return ctx.Err()
+				case <-ectx.Done():
+					return ectx.Err()
 				}
 			}
 			if err == io.EOF || err == io.ErrUnexpectedEOF {
@@ -179,10 +186,10 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 				log.Debug("start: upload part %d", b.index)
 				md5sum := md5.Sum(b.block)
 				md5hex := hex.EncodeToString(md5sum[:])
-				if previous != nil && len(previousParts) > b.index {
+				if previous != nil {
 					// check s3 previousParts for this block
-					p := previousParts[b.index-1] // part list starts at index 1
-					if int(p.Size) == len(b.block) && p.ETag == `"`+md5hex+`"` {
+					p, ok := previousParts[b.index]
+					if ok && int(p.Size) == len(b.block) && p.ETag == `"`+md5hex+`"` {
 						log.Debug("part %d already uploaded to s3", b.index)
 						// check our own previous record for this part
 						ok, err := StashVerifyPart(task.PlaintextHash, task.ConversationID, b.index, md5hex)
@@ -192,8 +199,8 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 							log.Debug("part %d matched local upload record", b.index)
 							select {
 							case retCh <- p:
-							case <-ctx.Done():
-								return ctx.Err()
+							case <-ectx.Done():
+								return ectx.Err()
 							}
 							continue
 						} else {
@@ -205,14 +212,14 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 						// XXX abort this upload
 					}
 				}
-				part, putErr := putRetry(ctx, log, multi, b.index, b.block)
+				part, putErr := putRetry(ectx, log, multi, b.index, b.block)
 				if putErr != nil {
 					return putErr
 				}
 				select {
 				case retCh <- part:
-				case <-ctx.Done():
-					return ctx.Err()
+				case <-ectx.Done():
+					return ectx.Err()
 				}
 
 				if err := StashRecordPart(task.PlaintextHash, task.ConversationID, b.index, md5hex); err != nil {
@@ -245,7 +252,7 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 
 	log.Debug("s3 putMulti all parts uploaded, completing request")
 
-	if err = multi.Complete(parts); err != nil {
+	if err = multi.Complete(ctx, parts); err != nil {
 		log.Debug("multi.Complete error: %s", err)
 		return "", err
 	}
@@ -264,7 +271,7 @@ func putRetry(ctx context.Context, log logger.Logger, multi *s3.Multi, partNumbe
 		case <-time.After(libkb.BackoffDefault.Duration(i)):
 		}
 		log.Debug("attempt %d to upload part %d", i+1, partNumber)
-		part, putErr := multi.PutPart(partNumber, bytes.NewReader(block))
+		part, putErr := multi.PutPart(ctx, partNumber, bytes.NewReader(block))
 		if putErr == nil {
 			log.Debug("success in attempt %d to upload part %d", i+1, partNumber)
 			log.Debug("part: %+v", part)
