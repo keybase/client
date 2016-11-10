@@ -128,8 +128,8 @@
     return NO;
   }
 
-  // We can't reliably create a file list (Finder) favorite directly for /keybase, since it is a remove volume mount,
-  // and there is some funkiness there (like the URL property not resolving, or the display name being ignored.
+  // We can't reliably create a file list (Finder) favorite directly for /keybase, since it is a remote volume mount,
+  // and there is some funkiness there (like the URL property not resolving, or the display name being ignored).
   // If we create a symlink though, all these problems are avoided. So we'll create a symlink to /keybase and add this
   // as the file list favorite item.
   NSString *symPath = [config appPath:@"Keybase" options:0];
