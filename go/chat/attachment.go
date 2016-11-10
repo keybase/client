@@ -58,7 +58,7 @@ func UploadAsset(ctx context.Context, log logger.Logger, task *UploadTask) (chat
 	tee := io.TeeReader(encReader, hash)
 
 	// post to s3
-	upRes, err := PutS3(ctx, log, tee, int64(len), task.S3Params, task.S3Signer, task.Progress, task.LocalSrc, previous)
+	upRes, err := PutS3(ctx, log, tee, int64(len), task, previous)
 	if err != nil {
 		return chat1.Asset{}, err
 	}
@@ -146,24 +146,21 @@ func startUpload(ctx context.Context, log logger.Logger, task *UploadTask, encry
 		SignKey:   encrypter.signKey,
 		VerifyKey: encrypter.verifyKey,
 	}
-	stash := NewFileStash()
-	if err := stash.Start(task.PlaintextHash, task.ConversationID, info); err != nil {
-		log.Debug("stash.Start error: %s", err)
+	if err := StashStart(task.PlaintextHash, task.ConversationID, info); err != nil {
+		log.Debug("StashStart error: %s", err)
 	}
 }
 
 func finishUpload(ctx context.Context, log logger.Logger, task *UploadTask) {
-	stash := NewFileStash()
-	if err := stash.Finish(task.PlaintextHash, task.ConversationID); err != nil {
-		log.Debug("stash.Finish error: %s", err)
+	if err := StashFinish(task.PlaintextHash, task.ConversationID); err != nil {
+		log.Debug("StashFinish error: %s", err)
 	}
 }
 
 func previousUpload(ctx context.Context, log logger.Logger, task *UploadTask) *AttachmentInfo {
-	stash := NewFileStash()
-	info, found, err := stash.Lookup(task.PlaintextHash, task.ConversationID)
+	info, found, err := StashLookup(task.PlaintextHash, task.ConversationID)
 	if err != nil {
-		log.Debug("stash.Lookup error: %s", err)
+		log.Debug("StashLookup error: %s", err)
 		return nil
 	}
 	if !found {

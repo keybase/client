@@ -30,34 +30,34 @@ type PutS3Result struct {
 
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use
 // putSingle or putMultiPipeline based on the size of the object.
-func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, signer s3.Signer, progress ProgressReporter, local chat1.LocalSource, previous *AttachmentInfo) (*PutS3Result, error) {
+func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (*PutS3Result, error) {
 	region := s3.Region{
-		Name:             params.RegionName,
-		S3Endpoint:       params.RegionEndpoint,
-		S3BucketEndpoint: params.RegionBucketEndpoint,
+		Name:             task.S3Params.RegionName,
+		S3Endpoint:       task.S3Params.RegionEndpoint,
+		S3BucketEndpoint: task.S3Params.RegionBucketEndpoint,
 	}
-	conn := s3.New(signer, region)
-	conn.AccessKey = params.AccessKey
+	conn := s3.New(task.S3Signer, region)
+	conn.AccessKey = task.S3Params.AccessKey
 
-	b := conn.Bucket(params.Bucket)
+	b := conn.Bucket(task.S3Params.Bucket)
 
 	if size <= minMultiSize {
-		if err := putSingle(ctx, log, r, size, params, b, progress); err != nil {
+		if err := putSingle(ctx, log, r, size, task.S3Params, b, task.Progress); err != nil {
 			return nil, err
 		}
 	} else {
-		objectKey, err := putMultiPipeline(ctx, log, r, size, params, b, progress, local, previous)
+		objectKey, err := putMultiPipeline(ctx, log, r, size, task, b, previous)
 		if err != nil {
 			return nil, err
 		}
-		params.ObjectKey = objectKey
+		task.S3Params.ObjectKey = objectKey
 	}
 
 	res := PutS3Result{
-		Region:   params.RegionName,
-		Endpoint: params.RegionEndpoint,
-		Bucket:   params.Bucket,
-		Path:     params.ObjectKey,
+		Region:   task.S3Params.RegionName,
+		Endpoint: task.S3Params.RegionEndpoint,
+		Bucket:   task.S3Params.Bucket,
+		Path:     task.S3Params.ObjectKey,
 		Size:     size,
 	}
 
@@ -115,15 +115,15 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 // It returns the object key if no errors.  putMultiPipeline will return
 // a different object key from params.ObjectKey if a previous Put is
 // successfully resumed and completed.
-func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket, progress ProgressReporter, local chat1.LocalSource, previous *AttachmentInfo) (string, error) {
+func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size int64, task *UploadTask, b *s3.Bucket, previous *AttachmentInfo) (string, error) {
 	log.Debug("s3 putMultiPipeline (size = %d)", size)
 
 	if previous != nil {
 		log.Debug("put multi, changing object key to %s", previous.ObjectKey)
-		params.ObjectKey = previous.ObjectKey
+		task.S3Params.ObjectKey = previous.ObjectKey
 	}
 
-	multi, err := b.Multi(params.ObjectKey, "application/octet-stream", s3.ACL(params.Acl))
+	multi, err := b.Multi(task.S3Params.ObjectKey, "application/octet-stream", s3.ACL(task.S3Params.Acl))
 	if err != nil {
 		log.Debug("Multi error: %s", err)
 		return "", err
@@ -177,21 +177,32 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		eg.Go(func() error {
 			for b := range blockCh {
 				log.Debug("start: upload part %d", b.index)
+				md5sum := md5.Sum(b.block)
+				md5hex := hex.EncodeToString(md5sum[:])
 				if previous != nil && len(previousParts) > b.index {
-					// check previousParts for this block
+					// check s3 previousParts for this block
 					p := previousParts[b.index-1] // part list starts at index 1
-					md5sum := md5.Sum(b.block)
-					md5hex := `"` + hex.EncodeToString(md5sum[:]) + `"`
-					if int(p.Size) == len(b.block) && p.ETag == md5hex {
-						log.Debug("part %d already uploaded", b.index)
-						select {
-						case retCh <- p:
-						case <-ctx.Done():
-							return ctx.Err()
+					if int(p.Size) == len(b.block) && p.ETag == `"`+md5hex+`"` {
+						log.Debug("part %d already uploaded to s3", b.index)
+						// check our own previous record for this part
+						ok, err := StashVerifyPart(task.PlaintextHash, task.ConversationID, b.index, md5hex)
+						if err != nil {
+							log.Debug("StashVerifyPart error: %s", err)
+						} else if ok {
+							log.Debug("part %d matched local upload record", b.index)
+							select {
+							case retCh <- p:
+							case <-ctx.Done():
+								return ctx.Err()
+							}
+							continue
+						} else {
+							log.Debug("part %d failed local part record verification", b.index)
+							// XXX abort this upload
 						}
-						continue
 					} else {
-						log.Debug("part %d mismatch:  size %d != expected %d or etag %s != expected %s", b.index, p.Size, len(b.block), p.ETag, md5hex)
+						log.Debug("part %d s3 mismatch:  size %d != expected %d or etag %s != expected %s", b.index, p.Size, len(b.block), p.ETag, md5hex)
+						// XXX abort this upload
 					}
 				}
 				part, putErr := putRetry(ctx, log, multi, b.index, b.block)
@@ -203,6 +214,11 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 				case <-ctx.Done():
 					return ctx.Err()
 				}
+
+				if err := StashRecordPart(task.PlaintextHash, task.ConversationID, b.index, md5hex); err != nil {
+					log.Debug("StashRecordPart error: %s", err)
+				}
+
 				log.Debug("finish: upload part %d", b.index)
 			}
 			return nil
@@ -219,8 +235,8 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 	for p := range retCh {
 		parts = append(parts, p)
 		complete += p.Size
-		if progress != nil {
-			progress(int(complete), int(size))
+		if task.Progress != nil {
+			task.Progress(int(complete), int(size))
 		}
 	}
 	if err := eg.Wait(); err != nil {
@@ -235,7 +251,7 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 	}
 	log.Debug("s3 putMulti success, %d parts", len(parts))
 
-	return params.ObjectKey, nil
+	return task.S3Params.ObjectKey, nil
 }
 
 // putRetry sends a block to S3, retrying 10 times w/ backoff.
