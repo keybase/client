@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"io/ioutil"
 )
 
 // AutoInstall is not supported on Windows
@@ -175,4 +177,33 @@ func getVersionAndDrivers(logFile *os.File) {
 
 func SystemLogPath() string {
 	return ""
+}
+
+// IsInUse returns true if the mount is in use. This may be used by the updater
+// to determine if it's safe to apply an update and restart.
+func IsInUse(mountDir string, log Log) bool {
+	if mountDir == "" {
+		return false
+	}
+	if _, serr := os.Stat(mountDir); os.IsNotExist(serr) {
+		log.Debug("%s doesn't exist", mountDir)
+		return false
+	}
+
+	dat, err := ioutil.ReadFile(filepath.Join(mountDir, ".kbfs_number_of_handles"))
+	if err != nil {
+		log.Debug("Error reading kbfs handles: %s", err)
+		return false
+	}
+	i, err := strconv.Atoi(string(dat))
+	if err != nil {
+		log.Debug("Error converting count of kbfs handles: %s", err)
+		return false
+	}
+	if i > 0 {
+		log.Debug("Found kbfs handles in use: %d", i)
+		return true
+	}
+
+	return false
 }

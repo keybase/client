@@ -170,6 +170,7 @@ export const ConstantsStatusCode = {
   scchatalreadysuperseded: 2507,
   scchatalreadydeleted: 2508,
   scchattlffinalized: 2509,
+  scchatcollision: 2510,
 }
 
 export const CtlExitCode = {
@@ -499,6 +500,30 @@ export function Kex2ProvisionerKexStartRpcChannelMap (channelConfig: ChannelConf
 
 export function Kex2ProvisionerKexStartRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
   return new Promise((resolve, reject) => { Kex2ProvisionerKexStartRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function NotifyFSRequestFSEditListRequestRpc (request: Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSEditListRequestRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.NotifyFSRequest.FSEditListRequest'})
+}
+
+export function NotifyFSRequestFSEditListRequestRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSEditListRequestRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => NotifyFSRequestFSEditListRequestRpc({...request, incomingCallMap, callback}))
+}
+
+export function NotifyFSRequestFSEditListRequestRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSEditListRequestRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { NotifyFSRequestFSEditListRequestRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function NotifyFSRequestFSSyncStatusRequestRpc (request: Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSSyncStatusRequestRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.NotifyFSRequest.FSSyncStatusRequest'})
+}
+
+export function NotifyFSRequestFSSyncStatusRequestRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSSyncStatusRequestRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => NotifyFSRequestFSSyncStatusRequestRpc({...request, incomingCallMap, callback}))
+}
+
+export function NotifyFSRequestFSSyncStatusRequestRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSSyncStatusRequestRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { NotifyFSRequestFSSyncStatusRequestRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function ScanProofsScanProofsRpc (request: Exact<requestCommon & requestErrorCallback & {param: ScanProofsScanProofsRpcParam}>) {
@@ -3856,6 +3881,7 @@ export type StatusCode =
   | 2507 // SCChatAlreadySuperseded_2507
   | 2508 // SCChatAlreadyDeleted_2508
   | 2509 // SCChatTLFFinalized_2509
+  | 2510 // SCChatCollision_2510
 
 export type Stream = {
   fd: int,
@@ -5196,6 +5222,8 @@ export type rpc =
   | Kex2ProvisioneeDidCounterSignRpc
   | Kex2ProvisioneeHelloRpc
   | Kex2ProvisionerKexStartRpc
+  | NotifyFSRequestFSEditListRequestRpc
+  | NotifyFSRequestFSSyncStatusRequestRpc
   | ScanProofsScanProofsRpc
   | SecretKeysGetSecretKeysRpc
   | accountEmailChangeRpc
@@ -5643,20 +5671,6 @@ export type incomingCallMapType = Exact<{
       requestID: int
     }>,
     response: CommonResponseHandler
-  ) => void,
-  'keybase.1.NotifyFSRequest.FSEditListRequest'?: (
-    params: Exact<{
-      req: FSEditListRequest
-    }> /* ,
-    response: {} // Notify call
-    */
-  ) => void,
-  'keybase.1.NotifyFSRequest.FSSyncStatusRequest'?: (
-    params: Exact<{
-      req: FSSyncStatusRequest
-    }> /* ,
-    response: {} // Notify call
-    */
   ) => void,
   'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (
     params: Exact<{

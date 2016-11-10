@@ -73,7 +73,7 @@ var echoOK = echoResult{Status: "ok"}
 
 type chatEcho struct{}
 
-func (c *chatEcho) ListV1(context.Context) Reply {
+func (c *chatEcho) ListV1(context.Context, listOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -190,7 +190,7 @@ var optTests = []optTest{
 		input: `{"method": "list", "params":{"version": 1}}`,
 	},
 	{
-		input: `{"method": "list", "params":{"version": 1, "options": {"filter": "all"}}}`,
+		input: `{"method": "list", "params":{"version": 1, "options": {"topic_type": "boozle"}}}`,
 		err:   ErrInvalidOptions{},
 	},
 	{
@@ -235,6 +235,9 @@ var optTests = []optTest{
 	},
 	{
 		input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
+	},
+	{
+		input: `{"method": "list", "params":{"version": 1, "options": {"topic_type": "dEv"}}}`,
 	},
 	{
 		input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "7777"}}}`,
@@ -347,7 +350,7 @@ func TestChatAPIDecoderOptions(t *testing.T) {
 		if test.err != nil {
 			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
 				t.Errorf("test %d: input: %s", i, test.input)
-				t.Errorf("test %d: error type %T, expected %T (%s)", i, err, test.err, err)
+				t.Errorf("test %d: error type %T, expected %T (%v)", i, err, test.err, err)
 				continue
 			}
 		} else if err != nil {
