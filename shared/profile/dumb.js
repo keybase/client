@@ -334,6 +334,11 @@ const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
       usernameSubtitle: undefined,
       message: 'Your Bitcoin address has now been signed onto your profile.',
       title: 'Verified'},
+    'Confirm zcash': {...confirmBase,
+      platform: 'zcash',
+      usernameSubtitle: undefined,
+      message: 'Your Zcash address has now been signed onto your profile.',
+      title: 'Verified'},
     'Pending dns': {...confirmBase,
       ...pending,
       platform: 'dns',
@@ -373,6 +378,7 @@ const dumbProveEnterUsername: DumbComponentMap<ProveEnterUsername> = {
     'Bitcoin - Disabled': {...proveEnterUsernameBase, platform: 'btc', canContinue: false},
     'DNS': {...proveEnterUsernameBase, platform: 'dns'},
     'Website': {...proveEnterUsernameBase, platform: 'http'},
+    'Zcash': {...proveEnterUsernameBase, platform: 'zcash'},
   },
 }
 
@@ -416,6 +422,7 @@ const dumbRevoke: DumbComponentMap<Revoke> = {
     'DNS': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'dns'},
     'Website': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'http'},
     'https website': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'https'},
+    'Zcash': {...revokeBase, platformHandle: '1234-fake', platform: 'zcash'},
   },
 }
 

@@ -5,8 +5,7 @@ import {cryptocurrencyRegisterAddressRpcPromise, proveStartProofRpcChannelMap, C
 import {call, put, select, race, take} from 'redux-saga/effects'
 import {navigateUp, navigateTo, routeAppend} from '../router'
 import {profileTab} from '../../constants/tabs'
-import {singleFixedChannelConfig, closeChannelMap, takeFromChannelMap} from '../../util/saga'
-import {takeEvery} from 'redux-saga'
+import {singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, safeTakeEvery} from '../../util/saga'
 
 import type {AddProof, AskTextOrDNS, CancelAddProof, CheckProof, CleanupUsername, RegisterBTC, SubmitBTCAddress, SubmitUsername, UpdateErrorText, UpdatePlatform, UpdateProofStatus, UpdateProofText, UpdateSigID, Waiting, RegisterZcash, SubmitZcashAddress} from '../../constants/profile'
 import type {PlatformsExpandedType, ProvablePlatformsType} from '../../constants/types/more'
@@ -292,11 +291,11 @@ function * _submitCryptoAddress (action: SubmitBTCAddress | SubmitZcashAddress):
 
 function * proofsSaga (): SagaGenerator<any, any> {
   yield [
-    takeEvery(Constants.submitBTCAddress, _submitCryptoAddress),
-    takeEvery(Constants.submitZcashAddress, _submitCryptoAddress),
-    takeEvery(Constants.cancelAddProof, _cancelAddProof),
-    takeEvery(Constants.addProof, _addProof),
-    takeEvery(Constants.checkProof, _checkProof),
+    safeTakeEvery(Constants.submitBTCAddress, _submitCryptoAddress),
+    safeTakeEvery(Constants.submitZcashAddress, _submitCryptoAddress),
+    safeTakeEvery(Constants.cancelAddProof, _cancelAddProof),
+    safeTakeEvery(Constants.addProof, _addProof),
+    safeTakeEvery(Constants.checkProof, _checkProof),
   ]
 }
 
