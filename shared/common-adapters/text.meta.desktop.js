@@ -164,7 +164,7 @@ const metaData: {[key: TextType]: MetaType} = {
     },
     fontSize: 11,
     isLink: true,
-    styleOverride: globalStyles.fontRegular,
+    styleOverride: {...globalStyles.fontRegular, textDecoration: undefined},
   },
   'BodySmallSemibold': {
     colorForBackgroundMode: {
@@ -181,7 +181,7 @@ const metaData: {[key: TextType]: MetaType} = {
     },
     fontSize: 11,
     isLink: true,
-    styleOverride: globalStyles.fontSemibold,
+    styleOverride: {...globalStyles.fontSemibold, textDecoration: undefined},
   },
   'BodySmallPrimaryLink': {
     colorForBackgroundMode: {
