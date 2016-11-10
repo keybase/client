@@ -681,13 +681,14 @@ func (j *mdJournal) convertToBranch(
 		prevID = newID
 
 		// If possible, replace the old RMD in the cache.  If it's not
-		// already in the cache, don't bother adding it, as that will
-		// just evict something incorrectly.  TODO: Don't replace the
-		// MD until we know for sure that the branch conversion
-		// succeeds.
+		// already in the cache, or if it's been replaced by the REAL
+		// commit from the master branch due to a race, don't bother
+		// adding it, as that will just evict something incorrectly.
+		// TODO: Don't replace the MD until we know for sure that the
+		// branch conversion succeeds.
 		oldIrmd, err := mdcache.Get(
 			tlfID, brmd.RevisionNumber(), NullBranchID)
-		if err == nil {
+		if err == nil && entry.ID == oldIrmd.mdID {
 			newRmd, err := oldIrmd.deepCopy(codec)
 			if err != nil {
 				return NullBranchID, err
