@@ -130,16 +130,25 @@ func jsonStringSimple(object *jsonw.Wrapper) (string, error) {
 	return "", fmt.Errorf("Non-simple object: %v", object)
 }
 
-// selectionContents gets the HTML contents of all elements in a selection, concatenated by a space.
+// selectionContents gets the value of all elements in a selection, concatenated by a space.
 // If getting the contents/attr value of any elements fails, that does not cause an error.
+// The value of an element can be:
+// 1. its Text (if attr=="" and data==false)
+// 2. its Data (if attr=="" and data==true)
+// 3. an attribute (if attr=="something" and data==false)
+// The value of an element is its Text, unless one of
 // The result can be an empty string.
-func selectionContents(selection *goquery.Selection, useAttr bool, attr string) string {
+func selectionContents(selection *goquery.Selection, attr string, data bool) string {
 	var results []string
 	selection.Each(func(i int, element *goquery.Selection) {
-		if useAttr {
+		if attr != "" {
 			res, ok := element.Attr(attr)
 			if ok {
 				results = append(results, res)
+			}
+		} else if data {
+			if len(element.Nodes) > 0 {
+				results = append(results, element.Nodes[0].Data)
 			}
 		} else {
 			results = append(results, element.Text())

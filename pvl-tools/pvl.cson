@@ -30,67 +30,104 @@ services:
       , error: ["NOT_FOUND", "matching DNS entry not found"] } },
   ]]
   facebook: [[
-    # check url and extract username
+    # Check that the claimed username has no slashes or funny business that
+    # might trick us into checking a different url.
+    # Facebook usernames don't actually allow any special characters, but it's
+    # still possible for a malicious user to *claim* they have some slashes
+    # and a question mark in their name, in the hopes that that will trick us
+    # into hitting a totally unrelated URL. Guard against that happening by
+    # checking for special characters in the claimed name.
+    { assert_regex_match: {
+      , pattern: "^[a-zA-Z0-9\\.]+$"
+      , from: "username_service"
+      , error: ["BAD_USERNAME", "Invalid characters in username '%{username_service}'"] } },
+
+    # Check the provided url and extract the username and path.
+    # Accept either mobile or desktop urls. The fetched url will be rewritten later.
+    # We want to be strict about the structure of the url.
+    # No query parameters, no unexpected characters in the post ID.
     { regex_capture: {
-      , pattern: "^https://m\\.facebook\\.com/([^/]*)/posts/.*$"
+      , pattern: "^https://(m|www)\\.facebook\\.com/([^/]*)/posts/([0-9]+)$"
       , from: "hint_url"
-      , into: ["username_from_url"]
-      , error: ["BAD_API_URL", "Bad hint from server; URL should start with 'https://m.facebook.com/%{username_service}/posts/', received '%{hint_url}'"] } },
+      , into: ["unused1", "username_from_url", "post_id"]
+      , error: ["BAD_API_URL", "Bad hint from server; URL should start with 'https://m.facebook.com/%{username_service}/posts/', got '%{hint_url}'"] } },
+
+    # Check that the claimed username matches the url.
+    # Checking for the correct username is essential here. We rely on this
+    # check to prove that the user in question actually wrote the post. (Note
+    # that the m-site does *not* enforce this part of the URL. Only the
+    # desktop site does.)
     { assert_compare: {
       , cmp: "stripdots-then-cicmp"
       , a: "username_from_url"
       , b: "username_service"
-      , error: ["BAD_API_URL", "Bad hint from server; username in URL match '%{username_service}', received '%{username_from_url}'"] } },
+      , error: ["BAD_API_URL", "Bad hint from server; username in URL should match '%{username_service}', received '%{username_from_url}'"] } },
+
+    # Create the desktop url using the validated username and (not validated) post id.
+    { fill: {
+      , with: "https://www.facebook.com/%{username_from_url}/posts/%{post_id}"
+      , into: "our_url" } },
     { fetch: {
       , kind: "html"
-      , from: "hint_url" } },
-    # m.facebook.com returns 200's for posts you can't see, rather than 404's.
-    # Having a post that's deleted or private is going to be much more common
-    # than the obscure errors below. Do an explicit check for that, to produce
-    # a better error message.
-    {selector_css: {
-      , selectors: ["#m_story_permalink_view"]
+      , from: "our_url" } },
+
+    # Get the contents of the first (only) comment inside the first <code>
+    # block. Believe it or not, this comment contains the post markup below.
+    { selector_css: {
+      , selectors: ["code", 0, {contents: true}, 0]
+      , into: "first_code_comment"
+      , data: true
+      , error: ["FAILED_PARSE", "Could not find proof markup comment in Facebook's response"] } },
+
+    # Facebook escapes "--" as "-\-\" and "\" as "\\" when inserting text into
+    # comments. Unescape these.
+    { replace_all: {
+      , old: "-\\-\\"
+      , new: "--"
+      , from: "first_code_comment"
+      , into: "fcc2" } },
+    { replace_all: {
+      , old: "\\\\"
+      , new: "\\"
+      , from: "fcc2"
+      , into: "fcc3" } },
+
+    # Load the de-escaped comment as html
+    { parse_html: {
+      , from: "fcc3"
+      , error: ["FAILED_PARSE", "Failed to parse proof markup comment in Facebook post: %{fcc3}"] } },
+
+    # This query operates on the newly extractaparsed comment, not the original page load
+    # This is the selector for the post attachment links, which contains the
+	  # proof text. It's the "<a> tags inside the div that's the immediate
+	  # *sibling* of the 'userContet' div". The second of these three <a> tags
+	  # contains the proof text, the others are blank. But we just check their concatenation.
+    { selector_css: {
+      , selectors: ["div.userContent+div a"]
       , multi: true
-      , into: "unused"
-      , error: ["FAILED_PARSE", "Couldn't find facebook post %{hint_url}. Is it deleted or private?"] } }
-    # check the username in the post's link
-    { selector_css: {
-      , selectors: ["#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3", 0, "a", 0]
-      , attr: "href"
-      , into: "username_link"
-      , error: ["FAILED_PARSE", "Couldn't find username href"] } },
-    { parse_url: {
-      , from: "username_link"
-      , path: "path"
-      , error: ["FAILED_PARSE", "Failed to parse username URL: %{username_link}"] } },
-    { regex_capture: {
-      , pattern: "^[^/]*/([^/]*)$"
-      , from: "path"
-      , into: ["split_path_1"]
-      , error: ["FAILED_PARSE", "Username URL has no path"] } },
-    { assert_compare: {
-      , cmp: "stripdots-then-cicmp"
-      , a: "split_path_1"
-      , b: "username_service"
-      , error: ["BAD_USERNAME", "Usernames don't match '%{split_path_1}' vs '%{username_service}'"] } },
-    # check the proof text
-    { selector_css: {
-      , selectors: ["#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3", 1]
-      , into: "header"
-      , error: ["FAILED_PARSE", "Couldn't find proof text header"] } },
+      , into: "link_text"
+      , error: ["FAILED_PARSE", "Could not find link text in Facebook's response"] } },
     { whitespace_normalize: {
-      , from: "header"
-      , into: "header_nw" } },
+      , from: "link_text"
+      , into: "link_text_nw" } },
+
+    # Check the link text for username and sig
     { regex_capture: {
-      , pattern: "^Verifying myself: I am (\\S+) on Keybase\\.io\\. %{sig_id_medium}$"
-      , from: "header_nw"
-      , into: ["username_from_header"]
-      , error: ["TEXT_NOT_FOUND", "Proof text not found: 'Verifying myself: I am %{username_keybase} on Keybase.io. %{sig_id_medium}' != '%{header_nw}'"] } },
+      , pattern: "^.*Verifying myself: I am (\\S+) on Keybase.io. (\\S+).*$"
+      , from: "link_text_nw"
+      , into: ["username_from_link", "sig_from_link"]
+      , error: ["TEXT_NOT_FOUND", "Could not find Verifying myself: I am %{username_keybase} on Keybase.io. (%{sig_id_medium})"] } },
+    # Check username in link text
     { assert_compare: {
       , cmp: "cicmp"
-      , a: "username_from_header"
+      , a: "username_from_link"
       , b: "username_keybase"
-      , error: ["TEXT_NOT_FOUND", "Wrong keybase username in proof text '%{username_from_header}' != 'username_keybase'"] } }
+      , error: ["BAD_USERNAME", "Wrong keybase username in post '%{username_from_link}' should be '%{username_keybase}'"] } },
+    # Check the sig id in the link text
+    { assert_regex_match: {
+      , pattern: "^%{sig_id_medium}$"
+      , from: "sig_from_link"
+      , error: ["BAD_SIGNATURE", "Could not find sig; '%{sig_from_link}' != '%{sig_id_medium}'"] } },
   ]]
   github: [[
     # validate url and extract username
