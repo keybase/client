@@ -149,8 +149,12 @@ func New(signer Signer, region Region, client ...*http.Client) *S3 {
 	}
 }
 
+func (s3 *S3) SetAccessKey(key string) {
+	s3.AccessKey = key
+}
+
 // Bucket returns a Bucket with the given name.
-func (s3 *S3) Bucket(name string) *Bucket {
+func (s3 *S3) Bucket(name string) BucketInt {
 	if s3.Region.S3BucketEndpoint != "" || s3.Region.S3LowercaseBucket {
 		name = strings.ToLower(name)
 	}

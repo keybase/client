@@ -30,23 +30,23 @@ type PutS3Result struct {
 
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use
 // putSingle or putMultiPipeline based on the size of the object.
-func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (*PutS3Result, error) {
+func (a *AttachmentStore) PutS3(ctx context.Context, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (*PutS3Result, error) {
 	region := s3.Region{
 		Name:             task.S3Params.RegionName,
 		S3Endpoint:       task.S3Params.RegionEndpoint,
 		S3BucketEndpoint: task.S3Params.RegionBucketEndpoint,
 	}
-	conn := s3.New(task.S3Signer, region)
-	conn.AccessKey = task.S3Params.AccessKey
+	conn := a.s3c.New(task.S3Signer, region)
+	conn.SetAccessKey(task.S3Params.AccessKey)
 
 	b := conn.Bucket(task.S3Params.Bucket)
 
 	if size <= minMultiSize {
-		if err := putSingle(ctx, log, r, size, task.S3Params, b, task.Progress); err != nil {
+		if err := putSingle(ctx, a.log, r, size, task.S3Params, b, task.Progress); err != nil {
 			return nil, err
 		}
 	} else {
-		objectKey, err := putMultiPipeline(ctx, log, r, size, task, b, previous)
+		objectKey, err := putMultiPipeline(ctx, a.log, r, size, task, b, previous)
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +67,7 @@ func PutS3(ctx context.Context, log logger.Logger, r io.Reader, size int64, task
 // putSingle uploads data in r to S3 with the Put API.  It has to be
 // used for anything less than 5MB.  It can be used for anything up
 // to 5GB, but putMultiPipeline best for anything over 5MB.
-func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b *s3.Bucket, progress ProgressReporter) error {
+func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b s3.BucketInt, progress ProgressReporter) error {
 	log.Debug("s3 putSingle (size = %d)", size)
 
 	// In order to be able to retry the upload, need to read in the entire
@@ -115,7 +115,7 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 // It returns the object key if no errors.  putMultiPipeline will return
 // a different object key from params.ObjectKey if a previous Put is
 // successfully resumed and completed.
-func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size int64, task *UploadTask, b *s3.Bucket, previous *AttachmentInfo) (string, error) {
+func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size int64, task *UploadTask, b s3.BucketInt, previous *AttachmentInfo) (string, error) {
 	log.Debug("s3 putMultiPipeline (size = %d)", size)
 
 	if previous != nil {
@@ -262,7 +262,7 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 }
 
 // putRetry sends a block to S3, retrying 10 times w/ backoff.
-func putRetry(ctx context.Context, log logger.Logger, multi *s3.Multi, partNumber int, block []byte) (s3.Part, error) {
+func putRetry(ctx context.Context, log logger.Logger, multi s3.MultiInt, partNumber int, block []byte) (s3.Part, error) {
 	var lastErr error
 	for i := 0; i < 10; i++ {
 		select {

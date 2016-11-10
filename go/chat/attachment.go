@@ -23,7 +23,20 @@ type UploadTask struct {
 	Progress       ProgressReporter
 }
 
-func UploadAsset(ctx context.Context, log logger.Logger, task *UploadTask) (chat1.Asset, error) {
+type AttachmentStore struct {
+	log logger.Logger
+	s3c s3.Root
+}
+
+func NewAttachmentStore(log logger.Logger) *AttachmentStore {
+	return &AttachmentStore{
+		log: log,
+		// s3c: &s3.AWS{},
+		s3c: &s3.Mem{},
+	}
+}
+
+func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (chat1.Asset, error) {
 	// encrypt the stream
 	enc := NewSignEncrypter()
 	len := enc.EncryptedLen(task.LocalSrc.Size)
@@ -32,13 +45,13 @@ func UploadAsset(ctx context.Context, log logger.Logger, task *UploadTask) (chat
 	var previous *AttachmentInfo
 	resumable := len > minMultiSize // can only resume multi uploads
 	if resumable {
-		previous = previousUpload(ctx, log, task)
+		previous = previousUpload(ctx, a.log, task)
 	}
 
 	var err error
 	var encReader io.Reader
 	if previous != nil {
-		log.Debug("found previous upload for %s in conv %x", task.LocalSrc.Filename, task.ConversationID)
+		a.log.Debug("found previous upload for %s in conv %x", task.LocalSrc.Filename, task.ConversationID)
 		encReader, err = enc.EncryptResume(task.Plaintext, previous.EncKey, previous.SignKey, previous.VerifyKey)
 		if err != nil {
 			return chat1.Asset{}, err
@@ -49,7 +62,7 @@ func UploadAsset(ctx context.Context, log logger.Logger, task *UploadTask) (chat
 			return chat1.Asset{}, err
 		}
 		if resumable {
-			startUpload(ctx, log, task, enc)
+			startUpload(ctx, a.log, task, enc)
 		}
 	}
 
@@ -58,11 +71,11 @@ func UploadAsset(ctx context.Context, log logger.Logger, task *UploadTask) (chat
 	tee := io.TeeReader(encReader, hash)
 
 	// post to s3
-	upRes, err := PutS3(ctx, log, tee, int64(len), task, previous)
+	upRes, err := a.PutS3(ctx, tee, int64(len), task, previous)
 	if err != nil {
 		return chat1.Asset{}, err
 	}
-	log.Debug("chat attachment upload: %+v", upRes)
+	a.log.Debug("chat attachment upload: %+v", upRes)
 
 	asset := chat1.Asset{
 		Filename:  filepath.Base(task.LocalSrc.Filename),
@@ -77,14 +90,14 @@ func UploadAsset(ctx context.Context, log logger.Logger, task *UploadTask) (chat
 	}
 
 	if resumable {
-		finishUpload(ctx, log, task)
+		finishUpload(ctx, a.log, task)
 	}
 
 	return asset, nil
 }
 
 // DownloadAsset gets an object from S3 as described in asset.
-func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer, progress ProgressReporter) error {
+func (a *AttachmentStore) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer, signer s3.Signer, progress ProgressReporter) error {
 	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
 		return fmt.Errorf("unencrypted attachments not supported")
 	}
@@ -92,12 +105,12 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 		Name:       asset.Region,
 		S3Endpoint: asset.Endpoint,
 	}
-	conn := s3.New(signer, region)
-	conn.AccessKey = params.AccessKey
+	conn := a.s3c.New(signer, region)
+	conn.SetAccessKey(params.AccessKey)
 
 	b := conn.Bucket(asset.Bucket)
 
-	log.Debug("downloading %s from s3", asset.Path)
+	a.log.Debug("downloading %s from s3", asset.Path)
 	body, err := b.GetReader(ctx, asset.Path)
 	defer func() {
 		if body != nil {
@@ -128,13 +141,13 @@ func DownloadAsset(ctx context.Context, log logger.Logger, params chat1.S3Params
 		return err
 	}
 
-	log.Debug("downloaded and decrypted to %d plaintext bytes", n)
+	a.log.Debug("downloaded and decrypted to %d plaintext bytes", n)
 
 	// validate the EncHash
 	if !hmac.Equal(asset.EncHash, hash.Sum(nil)) {
 		return fmt.Errorf("invalid attachment content hash")
 	}
-	log.Debug("attachment content hash is valid")
+	a.log.Debug("attachment content hash is valid")
 
 	return nil
 }
