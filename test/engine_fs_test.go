@@ -542,7 +542,8 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 		t.Logf("Journal directory: %s", e.journalDir)
 		for i, c := range cfgs {
 			c.EnableJournaling(
-				filepath.Join(jdir, users[i].String()))
+				filepath.Join(jdir, users[i].String()),
+				libkbfs.TLFJournalBackgroundWorkEnabled)
 		}
 	}
 

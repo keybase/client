@@ -76,6 +76,10 @@ func realMain() (exitStatus int) {
 
 	log := logger.NewWithCallDepth("", 1)
 
+	// Pause journal background work, since it may interfere with
+	// an existing kbfs daemon instance.
+	kbfsParams.TLFJournalBackgroundWorkStatus =
+		libkbfs.TLFJournalBackgroundWorkPaused
 	// TODO: Turn off the rekey queue and other background tasks.
 
 	config, err := libkbfs.Init(kbCtx, *kbfsParams, nil, nil, log)

@@ -59,6 +59,11 @@ type InitParams struct {
 	// LogFileConfig tells us where to log and rotation config.
 	LogFileConfig logger.LogFileConfig
 
+	// TLFJournalBackgroundWorkStatus is the status to use to
+	// pass into config.EnableJournaling. Only has an effect when
+	// WriteJournalRoot is non-empty.
+	TLFJournalBackgroundWorkStatus TLFJournalBackgroundWorkStatus
+
 	// WriteJournalRoot, if non-empty, points to a path to a local
 	// directory to put write journals in. If non-empty, enables
 	// write journaling to be turned on for TLFs.
@@ -105,6 +110,8 @@ func DefaultInitParams(ctx Context) InitParams {
 			MaxSize:      128 * 1024 * 1024,
 			MaxKeepFiles: 3,
 		},
+		TLFJournalBackgroundWorkStatus: TLFJournalBackgroundWorkEnabled,
+		WriteJournalRoot:               filepath.Join(ctx.GetDataDir(), "kbfs_journal"),
 	}
 }
 
@@ -133,7 +140,12 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	flags.Var(SizeFlag{&params.LogFileConfig.MaxSize}, "log-file-max-size", "Maximum size of a log file before rotation")
 	// The default is to *DELETE* old log files for kbfs.
 	flags.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files", defaultParams.LogFileConfig.MaxKeepFiles, "Maximum number of log files for this service, older ones are deleted. 0 for infinite.")
-	flags.StringVar(&params.WriteJournalRoot, "write-journal-root", filepath.Join(ctx.GetDataDir(), "kbfs_journal"), "(EXPERIMENTAL) If non-empty, permits write journals to be turned on for TLFs which will be put in the given directory")
+	flags.StringVar(&params.WriteJournalRoot, "write-journal-root", defaultParams.WriteJournalRoot, "(EXPERIMENTAL) If non-empty, permits write journals to be turned on for TLFs which will be put in the given directory")
+
+	// No real need to enable setting
+	// params.TLFJournalBackgroundWorkStatus via a flag.
+	params.TLFJournalBackgroundWorkStatus = defaultParams.TLFJournalBackgroundWorkStatus
+
 	return &params
 }
 
@@ -384,7 +396,8 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 	// used.
 
 	if len(params.WriteJournalRoot) > 0 {
-		config.EnableJournaling(params.WriteJournalRoot)
+		config.EnableJournaling(params.WriteJournalRoot,
+			params.TLFJournalBackgroundWorkStatus)
 	}
 
 	return config, nil

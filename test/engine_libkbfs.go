@@ -87,7 +87,8 @@ func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 		k.t.Logf("Journal directory: %s", k.journalDir)
 		for name, c := range userMap {
 			c.(*libkbfs.ConfigLocal).EnableJournaling(
-				filepath.Join(jdir, name.String()))
+				filepath.Join(jdir, name.String()),
+				libkbfs.TLFJournalBackgroundWorkEnabled)
 		}
 	}
 

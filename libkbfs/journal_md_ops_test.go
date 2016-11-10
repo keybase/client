@@ -42,7 +42,7 @@ func setupJournalMDOpsTest(t *testing.T) (
 	}()
 
 	oldMDOps = config.MDOps()
-	config.EnableJournaling(tempdir)
+	config.EnableJournaling(tempdir, TLFJournalBackgroundWorkEnabled)
 	jServer, err = GetJournalServer(config)
 	// Turn off listeners to avoid background MD pushes for CR.
 	jServer.onBranchChange = nil
