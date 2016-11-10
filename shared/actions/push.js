@@ -1,9 +1,6 @@
 // @flow
 import * as Constants from '../constants/push'
 
-// $FlowIssue tell flow about this module
-import * as PushNotifications from 'react-native-push-notification'
-
 import {apiserverPostRpcPromise} from '../constants/types/flow-types'
 
 import {call, put, select} from 'redux-saga/effects'
@@ -13,6 +10,9 @@ import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
 import type {PushNotification, PushNotificationAction, PushPermissionsPromptAction, PushPermissionsRequestAction, PushPermissionsRequestingAction, PushTokenAction, SavePushTokenAction, TokenType, UpdatePushTokenAction} from '../constants/push'
+
+// $FlowIssue
+import {requestPushPermissions} from './platform.specific'
 
 export function permissionsRequest (): PushPermissionsRequestAction {
   return {type: Constants.permissionsRequest, payload: undefined}
@@ -47,7 +47,7 @@ function * permissionsRequestSaga (): SagaGenerator<any, any> {
     yield put({type: Constants.permissionsRequesting, payload: true})
 
     console.log('Requesting permissions')
-    const permissions = yield call([PushNotifications, PushNotifications.requestPermissions])
+    const permissions = yield call(requestPushPermissions)
     console.log('Permissions:', permissions)
     // TODO(gabriel): Set permissions we have in store, might want it at some point?
   } finally {
