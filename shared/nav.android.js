@@ -25,6 +25,10 @@ import {setupSource} from './util/forward-logs.native'
 
 import type {Tab} from './constants/tabs'
 
+module.hot && module.hot.accept(() => {
+  console.log('accepted update in nav.android')
+})
+
 const tabs: {[key: Tab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
   [profileTab]: {module: ProfileContainer, name: 'Profile'},

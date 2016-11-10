@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/devices'
+import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {Map, is} from 'immutable'
 import {devicesTab, loginTab} from '../constants/tabs'
@@ -28,6 +29,10 @@ import type {
   ShowDevices,
 } from '../constants/devices'
 import type {SagaGenerator} from '../constants/types/saga'
+
+isMobile && module.hot && module.hot.accept(() => {
+  console.log('accepted update in actions/devices')
+})
 
 export function loadDevices (): LoadDevices {
   return {type: Constants.loadDevices, payload: undefined}

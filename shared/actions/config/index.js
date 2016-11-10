@@ -2,13 +2,20 @@
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
 
+import {isMobile} from '../../constants/platform.js'
+
 import {navBasedOnLoginState} from '../../actions/login'
 import {resetSignup} from '../../actions/signup'
 import {registerGregorListeners} from '../../actions/gregor'
 
-import type {AsyncAction, Action} from '../../constants/types/flux'
 import {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc,
   userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
+
+import type {AsyncAction, Action} from '../../constants/types/flux'
+
+isMobile && module.hot && module.hot.accept(() => {
+  console.log('accepted update in actions/config')
+})
 
 function getConfig (): AsyncAction {
   return (dispatch, getState) => {
