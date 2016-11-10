@@ -37,7 +37,7 @@ class UsernameOrEmailRender extends Component<void, Props, State> {
             autoFocus={true}
             style={stylesInput}
             hintText='Username or email'
-            floatingLabelText='Username or email'
+            floatingHintTextOverride='Username or email'
             onChangeText={text => this.onChange(text)}
             onEnterKeyDown={() => this.onSubmit()}
             value={this.state.usernameOrEmail}

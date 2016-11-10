@@ -2,7 +2,6 @@
 // Known issues:
 // When input gets focus it shifts down 1 pixel when the cursor appears. This happens with a naked TextInput on RN...
 import React, {Component} from 'react'
-// import {findDOMNode} from 'react-dom'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.native'
 import {NativeTextInput} from './index.native'
@@ -47,6 +46,7 @@ class Input extends Component<void, Props, State> {
   }
 
   _setPasswordVisible (passwordVisible: boolean) {
+    // $FlowIssue
     this._textInput && this._textInput.setNativeProps({passwordVisible})
   }
 
@@ -132,12 +132,10 @@ class Input extends Component<void, Props, State> {
       ...globalStyles.flexBoxColumn,
       justifyContent: 'flex-start',
       maxWidth: 460,
-      // width: '100%',
     }
   }
 
   render () {
-  console.log('aaa', this.props)
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this._containerStyle(underlineColor)
@@ -231,21 +229,8 @@ class Input extends Component<void, Props, State> {
     )
   }
 
-          // ? <textarea {...textareaProps} />
-          // : <input {...inputProps} />}
-
   _autoResize () {
-    if (!this.props.multiline) {
-      return
-    }
-
-    const node = this._inputNode()
-    if (!node) {
-      return
-    }
-
-    // node.style.height = 'auto'
-    // node.style.height = `${node.scrollHeight}px`
+    // maybe support this later
   }
 }
 
@@ -255,14 +240,12 @@ const _bodySmallTextStyle = getTextStyle('BodySmall')
 
 const _errorStyle = {
   textAlign: 'center',
-  // width: '100%',
 }
 
 const _floatingStyle = {
   textAlign: 'center',
   minHeight: _bodySmallTextStyle.lineHeight,
   color: globalColors.blue,
-  // display: 'block',
   marginBottom: 9,
 }
 

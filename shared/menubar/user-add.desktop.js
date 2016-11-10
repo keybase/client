@@ -38,7 +38,6 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
         hideUnderline={true}
         autoFocus={true}
         hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
-        hintStyle={{...stylesInputHint, color: isPublic ? globalColors.black_20 : globalColors.white_40}}
         style={{flex: 1}}
         inputStyle={{color: isPublic ? globalColors.black_75 : globalColors.white}}
         onChangeText={onUpdateText}

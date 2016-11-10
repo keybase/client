@@ -32,8 +32,11 @@ class PaperKeyInput extends Component<void, Props, State> {
         <BackButton onClick={this.props.onBack} style={backStyle} />
         <Text style={headerTextStyle} type='Body'>Type in your paper key:</Text>
         <Icon style={paperKeyIconStyle} type='icon-paper-key-48' />
-        <Input multiline={true} rowsMax={3} style={paperKeyInputStyle}
-          onChange={e => this.setState({paperkey: e.target.textContent})}
+        <Input
+          multiline={true}
+          rowsMax={3}
+          style={paperKeyInputStyle}
+          onChangeText={paperkey => this.setState({paperkey})}
           errorText={errorText}
           floatingHintTextOverride='Paper key'
           hintText='elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose' />

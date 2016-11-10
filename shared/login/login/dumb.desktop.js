@@ -11,6 +11,7 @@ function createLogger (event) {
 
 const props: LoginProps = {
   users: ['awendland'],
+  passphrase: '',
   onForgotPassphrase: createLogger('onForgotPassphrase'),
   onSignup: createLogger('onSignup'),
   onBack: createLogger('onBack'),

@@ -11,7 +11,7 @@ const EditProfileRender = (props: Props) => (
       autoCorrect={true}
       autoFocus={true}
       style={styleInput}
-      floatingLabelText='Full name'
+      floatingHintTextOverride='Full name'
       hintText='Full name'
       value={props.fullname}
       onEnterKeyDown={props.onSubmit}
@@ -19,7 +19,7 @@ const EditProfileRender = (props: Props) => (
     <Input
       autoCorrect={true}
       style={styleInput}
-      floatingLabelText='Location'
+      floatingHintTextOverride='Location'
       hintText='Location'
       value={props.location}
       onEnterKeyDown={props.onSubmit}
@@ -27,12 +27,11 @@ const EditProfileRender = (props: Props) => (
     <Input
       autoCorrect={true}
       style={styleInput}
-      floatingLabelText='Bio'
+      floatingHintTextOverride='Bio'
       hintText='Bio'
       value={props.bio}
       multiline={true}
-      rows={3}
-      autoGrow={true}
+      rowsMin={3}
       errorText={props.bioLengthLeft <= 5 ? props.bioLengthLeft + ' chars left' : ''}
       onEnterKeyDown={props.onSubmit}
       onChangeText={bio => props.onBioChange(bio)} />

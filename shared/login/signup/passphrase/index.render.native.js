@@ -14,8 +14,15 @@ class PassphraseRender extends Component<void, Props, void> {
         <UserCard style={stylesCard}>
           <Input autoFocus={true} type='password'
             onChangeText={pass1 => this.props.pass1Update(pass1)}
-            hintText='Create a passphrase' floatingLabelText='Create a passphrase' errorText={passphraseError} />
-          <Input type='password' style={stylesSecond} hintText='Confirm passphrase' floatingLabelText='Confirm passphrase' onEnterKeyDown={this.props.onSubmit}
+            hintText='Create a passphrase'
+            floatingHintTextOverride='Create a passphrase'
+            errorText={passphraseError} />
+          <Input
+            type='password'
+            style={stylesSecond}
+            hintText='Confirm passphrase'
+            floatingHintTextOverride='Confirm passphrase'
+            onEnterKeyDown={this.props.onSubmit}
             onChangeText={pass2 => this.props.pass2Update(pass2)} />
           <Button fullWidth={true} type='Primary' label='Continue' onClick={this.props.onSubmit} />
         </UserCard>

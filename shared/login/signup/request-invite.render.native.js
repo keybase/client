@@ -15,14 +15,14 @@ class RequestInviteRender extends Component {
         <Icon style={stylesIcon} type='icon-invite-code-48' />
         <Input
           hintText='Your email address'
-          floatingLabelText='Your email address'
+          floatingHintTextOverride='Your email address'
           value={this.props.email}
           errorText={this.props.emailErrorText}
           onChangeText={email => this.props.emailChange(email)}
           autoFocus={true} />
         <Input
           hintText='Your name'
-          floatingLabelText='Your name'
+          floatingHintTextOverride='Your name'
           value={this.props.name}
           errorText={this.props.nameErrorText}
           onChangeText={name => this.props.nameChange(name)} />

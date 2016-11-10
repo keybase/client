@@ -29,7 +29,7 @@ function UpdateEmail (props: Props) {
         hintText='Email'
         value={props.email}
         onChangeText={props.onChangeNewEmail}
-        textStyle={{height: undefined}} style={{width: 400}} />
+        style={{width: 400}} />
       {!props.edited &&
         <VerifiedText isVerified={props.isVerified} style={{marginTop: 2, justifyContent: 'center'}} />
       }

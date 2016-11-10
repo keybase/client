@@ -38,7 +38,7 @@ class UsernameOrEmailRender extends Component<void, Props, State> {
             style={stylesInput}
             hintText='Username or email'
             onEnterKeyDown={() => this.onSubmit()}
-            onChange={event => this.onChange(event.target.value)}
+            onChangeText={text => this.onChange(text)}
             value={this.state.usernameOrEmail}
           />
           <Button

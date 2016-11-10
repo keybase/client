@@ -95,10 +95,9 @@ class SearchBar extends Component<void, Props, void> {
             autoFocus={true}
             ref='searchBox'
             onEnterKeyDown={() => this._onSearch()}
-            onChange={() => this._onDebouncedSearch()}
+            onChangeText={() => this._onDebouncedSearch()}
             value={this.props.searchText}
             hintText={this.props.searchHintText}
-            hintStyle={{textAlign: 'left'}}
             style={{paddingLeft: 20}}
             inputStyle={stylesInput}
           />

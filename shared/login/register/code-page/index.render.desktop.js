@@ -78,7 +78,7 @@ class CodePageRender extends Component<void, Props, void> {
           floatingHintTextOverride='Text code'
           multiline={true}
           value={this.props.enterText}
-          onChange={event => this.props.onChangeText(event.target.value)}
+          onChangeText={text => this.props.onChangeText(text)}
         />
         <Button type='Primary' style={{alignSelf: 'flex-end', marginTop: 35, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
         {this._otherIsPhone() && <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => this.props.setCodePageMode(codePageModeShowCode)}>

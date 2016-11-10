@@ -30,7 +30,7 @@ class PgpAdd extends Component<void, Props, void> {
           </Text>
           <Input
             small={true}
-            floatingLabelText='Your full name'
+            floatingHintTextOverride='Your full name'
             hintText='Your full name'
             value={this.props.fullName}
             onChangeText={this.props.onChangeFullName} />
@@ -38,23 +38,23 @@ class PgpAdd extends Component<void, Props, void> {
             {...emailInputProps}
             smallLabel='Email 1:'
             hintText='(required)'
-            onChange={this.props.onChangeEmail1}
+            onChangeText={this.props.onChangeEmail1}
             value={this.props.email1}
-            errorState={this.props.errorEmail1} />
+            errorText={this.props.errorEmail1 ? 'error' : null} />
           <Input
             {...emailInputProps}
             smallLabel='Email 2:'
             hintText='(optional)'
-            onChange={this.props.onChangeEmail2}
+            onChangeText={this.props.onChangeEmail2}
             value={this.props.email2}
-            errorState={this.props.errorEmail2} />
+            errorText={this.props.errorEmail2 ? 'error' : null} />
           <Input
             {...emailInputProps}
             smallLabel='Email 3:'
             hintText='(optional)'
-            onChange={this.props.onChangeEmail3}
+            onChangeText={this.props.onChangeEmail3}
             value={this.props.email3}
-            errorState={this.props.errorEmail3} />
+            errorText={this.props.errorEmail3 ? 'error' : null} />
           <Text
             style={styleInfoMessage(!!this.props.errorText)}
             type='Body'>

@@ -37,7 +37,7 @@ class InviteCodeRender extends Component<void, Props, State> {
             value={this.state.inviteCode}
             errorText={this.props.inviteCodeErrorText}
             onEnterKeyDown={submitInviteCode}
-            onChange={event => this.setState({inviteCode: event.target.value})}
+            onChangeText={inviteCode => this.setState({inviteCode})}
           />
           <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode} />
           <Text style={stylesText} type='Body'>Not invited?</Text>
