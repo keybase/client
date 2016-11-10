@@ -18,20 +18,6 @@ export function permissionsRequest (): PushPermissionsRequestAction {
   return {type: Constants.permissionsRequest, payload: undefined}
 }
 
-function * permissionsRequestSaga (): SagaGenerator<any, any> {
-  try {
-    yield put({type: Constants.permissionsRequesting, payload: true})
-
-    console.log('Requesting permissions')
-    const permissions = yield call(() => { return PushNotifications.requestPermissions() })
-    console.log('Permissions:', permissions)
-    // TODO(gabriel): Set permissions we have in store, might want it at some point?
-  } finally {
-    yield put({type: Constants.permissionsRequesting, payload: false})
-    yield put({type: Constants.permissionsPrompt, payload: false})
-  }
-}
-
 export function permissionsRequesting (enabled: boolean): PushPermissionsRequestingAction {
   return {type: Constants.permissionsRequesting, payload: enabled}
 }
@@ -44,12 +30,35 @@ export function pushNotification (notification: PushNotification): PushNotificat
   return {type: Constants.pushNotification, payload: notification}
 }
 
-function * pushNotificationSaga (notification: PushNotification): SagaGenerator<any, any> {
-  console.warn('Push notification:', notification)
-}
-
 export function pushToken (token: string, tokenType: TokenType): PushTokenAction {
   return {type: Constants.pushToken, payload: {token, tokenType}}
+}
+
+export function savePushToken (): SavePushTokenAction {
+  return {type: Constants.savePushToken, payload: undefined}
+}
+
+export function updatePushToken (token: string, tokenType: TokenType): UpdatePushTokenAction {
+  return {type: Constants.updatePushToken, payload: {token, tokenType}}
+}
+
+function * permissionsRequestSaga (): SagaGenerator<any, any> {
+  try {
+    yield put({type: Constants.permissionsRequesting, payload: true})
+
+    console.log('Requesting permissions')
+    const permissions = yield call([PushNotifications, PushNotifications.requestPermissions])
+    console.log('Permissions:', permissions)
+    // TODO(gabriel): Set permissions we have in store, might want it at some point?
+  } finally {
+    yield put({type: Constants.permissionsRequesting, payload: false})
+    yield put({type: Constants.permissionsPrompt, payload: false})
+  }
+}
+
+function * pushNotificationSaga (notification: PushNotification): SagaGenerator<any, any> {
+  // TODO: Handle push notifications
+  console.warn('Push notification:', notification)
 }
 
 function * pushTokenSaga (action: PushTokenAction): SagaGenerator<any, any> {
@@ -58,19 +67,16 @@ function * pushTokenSaga (action: PushTokenAction): SagaGenerator<any, any> {
   yield put(savePushToken())
 }
 
-export function savePushToken (): SavePushTokenAction {
-  return {type: Constants.savePushToken, payload: undefined}
-}
-
 function * savePushTokenSaga (): SagaGenerator<any, any> {
   try {
-    const pushSelector = (state: TypedState) => state.push
+    const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenType})
     const {token, tokenType} = ((yield select(pushSelector)): any)
 
-    const extendedConfig = yield select(state => state.config.extendedConfig)
+    const extendedConfigSelector = ({config: {extendedConfig}}: TypedState) => extendedConfig
+    const extendedConfig = ((yield select(extendedConfigSelector)): any)
 
     if (!extendedConfig || !extendedConfig.defaultDeviceID) {
-      throw new Error('No device available for saving push token')
+      throw new Error('No device available for saving push token:', extendedConfig)
     }
     const deviceID = extendedConfig.defaultDeviceID
     if (!token) {
@@ -92,10 +98,6 @@ function * savePushTokenSaga (): SagaGenerator<any, any> {
   } catch (err) {
     console.warn('Error trying to save push token:', err)
   }
-}
-
-export function updatePushToken (token: string, tokenType: TokenType): UpdatePushTokenAction {
-  return {type: Constants.updatePushToken, payload: {token, tokenType}}
 }
 
 function * pushSaga (): SagaGenerator<any, any> {

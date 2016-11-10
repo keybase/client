@@ -1,7 +1,9 @@
 // @flow
 import type {NoErrorTypedAction} from '../constants/types/flux'
 
-export type TokenType = '' | 'ios' | 'android'
+export const tokenTypeApple = 'apple'
+export const tokenTypeAndroidPlay = 'androidplay'
+export type TokenType = 'apple' | 'androidplay'
 
 export type PushNotification = {
   message: string,
@@ -30,7 +32,7 @@ export type PushNotificationAction = NoErrorTypedAction<'push:notification', Pus
 
 export type State = {
   token: string,
-  tokenType: TokenType,
+  tokenType: ?TokenType,
   permissionsRequesting: boolean,
   permissionsPrompt: boolean,
 }
@@ -38,6 +40,6 @@ export type State = {
 export const initialState: State = {
   permissionsPrompt: false,
   permissionsRequesting: false,
-  tokenType: '',
+  tokenType: null,
   token: '',
 }

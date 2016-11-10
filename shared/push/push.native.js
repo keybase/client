@@ -11,6 +11,8 @@ import * as PushNotifications from 'react-native-push-notification'
 import {permissionsPrompt, permissionsRequest, pushNotification, pushToken} from '../actions/push'
 
 import type {Props} from './push'
+import * as Constants from '../constants/push'
+import type {TokenType} from '../constants/push'
 
 class Push extends Component<void, Props, void> {
 
@@ -19,9 +21,19 @@ class Push extends Component<void, Props, void> {
   }
 
   configurePush () {
-    console.log('Configure push notifications')
     PushNotifications.configure({
-      onRegister: (token) => this.props.onPushToken(token.token, token.os),
+      onRegister: (token) => {
+        let tokenType: ?TokenType
+        switch (token.os) {
+          case 'ios': tokenType = Constants.tokenTypeApple; break
+          case 'android': tokenType = Constants.tokenTypeAndroidPlay; break
+        }
+        if (tokenType) {
+          this.props.onPushToken(token.token, tokenType)
+        } else {
+          this.props.onPushRegistrationError(new Error('Unrecognized os for token:', token))
+        }
+      },
       onNotification: (notification) => this.props.onPushNotification(notification),
       onError: (err) => this.props.onPushError(err),
       // Don't request permissions now, we'll ask later, after showing UI
@@ -44,7 +56,7 @@ class Push extends Component<void, Props, void> {
       } else {
         // We have permissions, this triggers a token registration in
         // case it changed.
-        PushNotifications.requestPermissions()
+        this.props.onRequestPermissions()
       }
     })
   }
@@ -109,7 +121,7 @@ export default connect(
         console.log('Showing push prompt')
         dispatch(permissionsPrompt(true))
       },
-      onPushToken: (token, tokenType) => {
+      onPushToken: (token: string, tokenType: TokenType) => {
         Clipboard.setString(token)
         console.warn('Registered push token (saved to clipboard):', token, tokenType)
         dispatch(pushToken(token, tokenType))
