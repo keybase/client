@@ -5,9 +5,9 @@ import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
 import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise, NotifyFSRequestFSSyncStatusRequestRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {navigateBack} from '../actions/router'
 import {call, put, select} from 'redux-saga/effects'
-import {takeLatest, takeEvery} from 'redux-saga'
+import {navigateBack} from '../actions/router'
+import {safeTakeLatest, safeTakeEvery} from '../util/saga'
 
 import type {Action} from '../constants/types/flux'
 import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, MarkTLFCreated, SetupKBFSChangedHandler} from '../constants/favorite'
@@ -290,10 +290,10 @@ function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
 
 function * favoriteSaga (): SagaGenerator<any, any> {
   yield [
-    takeLatest(Constants.favoriteList, _listSaga),
-    takeEvery(Constants.favoriteAdd, _addSaga),
-    takeEvery(Constants.favoriteIgnore, _ignoreSaga),
-    takeEvery(Constants.setupKBFSChangedHandler, _setupKBFSChangedHandler),
+    safeTakeLatest(Constants.favoriteList, _listSaga),
+    safeTakeEvery(Constants.favoriteAdd, _addSaga),
+    safeTakeEvery(Constants.favoriteIgnore, _ignoreSaga),
+    safeTakeEvery(Constants.setupKBFSChangedHandler, _setupKBFSChangedHandler),
   ]
 }
 

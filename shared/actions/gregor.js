@@ -1,13 +1,13 @@
 // @flow
 
 import * as Constants from '../constants/gregor'
-import {usernameSelector} from '../constants/selectors'
-import {folderFromPath} from '../constants/favorite.js'
-import {call, put, select} from 'redux-saga/effects'
-import {takeEvery} from 'redux-saga'
-import {favoriteList, markTLFCreated} from './favorite'
 import engine from '../engine'
+import {call, put, select} from 'redux-saga/effects'
 import {delegateUiCtlRegisterGregorFirehoseRpc} from '../constants/types/flow-types'
+import {favoriteList, markTLFCreated} from './favorite'
+import {folderFromPath} from '../constants/favorite.js'
+import {safeTakeEvery} from '../util/saga'
+import {usernameSelector} from '../constants/selectors'
 
 import type {PushState, PushOOBM, UpdateSeenMsgs, MsgMap, NonNullGregorItem} from '../constants/gregor'
 import type {Dispatch} from '../constants/types/flux'
@@ -128,8 +128,8 @@ function * handlePushOOBM (pushOOBM: pushOOBM) {
 
 function * gregorSaga (): SagaGenerator<any, any> {
   yield [
-    takeEvery(Constants.pushState, handlePushState),
-    takeEvery(Constants.pushOOBM, handlePushOOBM),
+    safeTakeEvery(Constants.pushState, handlePushState),
+    safeTakeEvery(Constants.pushOOBM, handlePushOOBM),
   ]
 }
 

@@ -2,33 +2,14 @@
 import * as Constants from '../constants/devices'
 import HiddenString from '../util/hidden-string'
 import {Map, is} from 'immutable'
-import {devicesTab, loginTab} from '../constants/tabs'
-
-import {navigateTo, navigateUp, routeAppend, switchTab} from './router'
-import {setRevokedSelf} from './login'
-import {takeEvery, takeLatest} from 'redux-saga'
 import {call, put, select, fork} from 'redux-saga/effects'
-import {singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
-import {
-  deviceDeviceHistoryListRpcPromise,
-  loginDeprovisionRpcPromise,
-  loginPaperKeyRpcChannelMap,
-  revokeRevokeDeviceRpcPromise,
-  rekeyGetRevokeWarningRpcPromise,
-} from '../constants/types/flow-types'
+import {deviceDeviceHistoryListRpcPromise, loginDeprovisionRpcPromise, loginPaperKeyRpcChannelMap, revokeRevokeDeviceRpcPromise, rekeyGetRevokeWarningRpcPromise} from '../constants/types/flow-types'
+import {devicesTab, loginTab} from '../constants/tabs'
+import {navigateTo, navigateUp, routeAppend, switchTab} from './router'
+import {safeTakeEvery, safeTakeLatest, singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, effectOnChannelMap} from '../util/saga'
+import {setRevokedSelf} from './login'
 
-import type {
-  DeviceRemoved,
-  GeneratePaperKey,
-  IncomingDisplayPaperKeyPhrase,
-  LoadDevices,
-  LoadingDevices,
-  PaperKeyLoaded,
-  PaperKeyLoading,
-  RemoveDevice,
-  ShowDevices,
-  ShowRemovePage,
-} from '../constants/devices'
+import type {DeviceRemoved, GeneratePaperKey, IncomingDisplayPaperKeyPhrase, LoadDevices, LoadingDevices, PaperKeyLoaded, PaperKeyLoading, RemoveDevice, ShowDevices, ShowRemovePage} from '../constants/devices'
 import type {Device} from '../constants/types/more'
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -147,7 +128,7 @@ function _generatePaperKey (channelConfig) {
 }
 
 function * _handlePromptRevokePaperKeys (chanMap): SagaGenerator<any, any> {
-  yield effectOnChannelMap(c => takeEvery(c, ({response}) => response.result(false)), chanMap, 'keybase.1.loginUi.promptRevokePaperKeys')
+  yield effectOnChannelMap(c => safeTakeEvery(c, ({response}) => response.result(false)), chanMap, 'keybase.1.loginUi.promptRevokePaperKeys')
 }
 
 function * _devicePaperKeySaga (): SagaGenerator<any, any> {
@@ -191,10 +172,10 @@ function * _devicePaperKeySaga (): SagaGenerator<any, any> {
 
 function * deviceSaga (): SagaGenerator<any, any> {
   yield [
-    takeLatest(Constants.loadDevices, _deviceListSaga),
-    takeEvery(Constants.removeDevice, _deviceRemoveSaga),
-    takeEvery(Constants.generatePaperKey, _devicePaperKeySaga),
-    takeEvery(Constants.showRemovePage, _deviceShowRemovePageSaga),
+    safeTakeLatest(Constants.loadDevices, _deviceListSaga),
+    safeTakeEvery(Constants.removeDevice, _deviceRemoveSaga),
+    safeTakeEvery(Constants.generatePaperKey, _devicePaperKeySaga),
+    safeTakeEvery(Constants.showRemovePage, _deviceShowRemovePageSaga),
   ]
 }
 
