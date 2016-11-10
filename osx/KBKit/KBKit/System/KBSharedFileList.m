@@ -35,12 +35,20 @@
   NSMutableArray *info = [NSMutableArray array];
   for (id item in (__bridge NSArray *)itemsRef) {
     LSSharedFileListItemRef itemRef = (__bridge LSSharedFileListItemRef)item;
-    NSString *displayName = (__bridge NSString *)(LSSharedFileListItemCopyDisplayName(itemRef));
-    UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes;
-    CFErrorRef errorRef;
-    NSURL *URL = (__bridge NSURL *)(LSSharedFileListItemCopyResolvedURL(itemRef, resolutionFlags, &errorRef));
+    CFStringRef displayNameRef = LSSharedFileListItemCopyDisplayName(itemRef);
 
-    [info addObject:[NSString stringWithFormat:@"Name: %@, URL: %@ (%@)", displayName, URL, itemRef]];
+    UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes;
+    CFURLRef URLRef = LSSharedFileListItemCopyResolvedURL(itemRef, resolutionFlags, NULL);
+    if (URLRef == NULL) {
+      DDLogDebug(@"Trying to resolve URL for %@", itemRef);
+      OSStatus err = LSSharedFileListItemResolve(itemRef, resolutionFlags, &URLRef, NULL);
+      if (err != noErr || URLRef == NULL) {
+        DDLogError(@"No URL for %@", itemRef);
+      }
+    }
+    [info addObject:[NSString stringWithFormat:@"Name: %@, URL: %@ (%@)", displayNameRef, URLRef, itemRef]];
+    if (URLRef != NULL) CFRelease(URLRef);
+    if (displayNameRef != NULL) CFRelease(displayNameRef);
   }
   CFRelease(itemsRef);
   CFRelease(fileListRef);

@@ -9,11 +9,11 @@
 #import "Installer.h"
 
 #import <KBKit/KBKit.h>
-#import "Settings.h"
+#import "Options.h"
 #import "Uninstaller.h"
 
 @interface Installer ()
-@property Settings *settings;
+@property Options *options;
 @property KBMemLogger *memLogger;
 @end
 
@@ -48,15 +48,15 @@ typedef NS_ENUM (NSInteger, KBExit) {
   [settings setObject:@"prod" forKey:@"run-mode"];
   [settings setObject:@"10" forKey:@"timeout"];
 #endif
-  _settings = [[Settings alloc] initWithSettings:settings];
+  _options = [[Options alloc] initWithSettings:settings];
   NSError *parseError = nil;
-  if (![_settings parseArgs:&parseError]) {
+  if (![_options parseArgs:&parseError]) {
     DDLogError(@"Error parsing: %@", parseError);
     [self exit:KBExitError];
     return;
   }
 
-  if ([_settings isUninstall]) {
+  if ([_options isUninstall]) {
     [self uninstall];
   } else {
     [self install];
@@ -78,18 +78,15 @@ typedef NS_ENUM (NSInteger, KBExit) {
 
 - (void)install {
   [self install:^(NSError *error, KBEnvironment *environment, KBExit exitCode) {
-    if (!error) {
-      [self afterInstall:environment];
-    }
-    DDLogInfo(@"Exit(%@)", @(exitCode));
     dispatch_async(dispatch_get_main_queue(), ^{
+      DDLogInfo(@"Exit(%@)", @(exitCode));
       [self exit:exitCode];
     });
   }];
 }
 
 - (void)uninstall {
-  [Uninstaller uninstallWithSettings:_settings completion:^(NSError *error) {
+  [Uninstaller uninstallWithOptions:_options completion:^(NSError *error) {
     if (error) {
       DDLogError(@"Error uninstalling: %@", error);
       [self exit:KBExitError];
@@ -109,7 +106,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
 }
 
 - (void)install:(void (^)(NSError *error, KBEnvironment *environment, KBExit exit))completion {
-  KBEnvironment *environment = [self.settings environment];
+  KBEnvironment *environment = [self.options environment];
 
   KBInstaller *installer = [[KBInstaller alloc] init];
   [installer installWithEnvironment:environment force:NO stopOnError:YES completion:^(NSError *error, NSArray *installables) {
@@ -117,11 +114,6 @@ typedef NS_ENUM (NSInteger, KBExit) {
       completion(error, environment, exit);
     }];
   }];
-}
-
-- (void)afterInstall:(KBEnvironment *)environment {
-  BOOL fileListFavoriteEnabled = [[environment configValueForKey:@"darwin.file_list_favorite" defaultValue:nil error:nil] boolValue];
-  [KBInstaller setFileListFavoriteEnabled:fileListFavoriteEnabled config:environment.config];
 }
 
 - (void)checkError:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
