@@ -9,7 +9,7 @@ import dumbComponentMap from '../shared/dev/dumb-sheet/component-map.desktop'
 
 const WORKER_COUNT = 10
 const CANVAS_SIZE = 1000
-const DEBUG_WINDOWS = true
+const DEBUG_WINDOWS = false
 
 if (process.argv.length !== 3) {
   console.log(`Usage: electron ${path.basename(process.argv[1])} DESTINATION`)
@@ -99,8 +99,6 @@ app.on('ready', () => {
       workerWin.on('responsive', () => console.log('Worker window responsive:', i))
       workerWin.on('closed', () => console.log('Worker window closed:', i))
 
-      // TODO: once we're on electron v1.2.3, try ready-to-show event.
-      // workerWin.webContents.once('did-finish-load', () => renderNext(workerWin.webContents))
       const workerURL = resolveRootAsURL('renderer', `renderer.html?visDiff`)
       console.log('Loading worker', i, workerURL)
       workerWin.loadURL(workerURL)
