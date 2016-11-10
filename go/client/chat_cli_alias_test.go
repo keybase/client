@@ -13,24 +13,24 @@ func mustMakeConvID(t *testing.T, val string) chat1.ConversationID {
 	return id
 }
 
-func TestConversationIDPrefixNumOfBytes(t *testing.T) {
-	prefixNumOfBytes, err := conversationIDPrefixNumOfBytes([]FullConversationAlias{
+func TestConversationAliasPrefixNumOfBytes(t *testing.T) {
+	prefixNumOfBytes, err := ConversationAliasPrefixNumOfBytes([]FullConversationAlias{
 		MakeFullConversationAlias(mustMakeConvID(t, "00000100000000000000")),
 		MakeFullConversationAlias(mustMakeConvID(t, "00000200000000000000")),
-	})
+	}, 2)
 	require.NoError(t, err)
 	require.Equal(t, 2, prefixNumOfBytes)
 
-	prefixNumOfBytes, err = conversationIDPrefixNumOfBytes([]FullConversationAlias{
+	prefixNumOfBytes, err = ConversationAliasPrefixNumOfBytes([]FullConversationAlias{
 		MakeFullConversationAlias(mustMakeConvID(t, "00000000100000000000")),
 		MakeFullConversationAlias(mustMakeConvID(t, "00000000200000000000")),
-	})
+	}, 2)
 	require.NoError(t, err)
 	require.Equal(t, 3, prefixNumOfBytes)
 
-	prefixNumOfBytes, err = conversationIDPrefixNumOfBytes([]FullConversationAlias{
+	prefixNumOfBytes, err = ConversationAliasPrefixNumOfBytes([]FullConversationAlias{
 		MakeFullConversationAlias(mustMakeConvID(t, "00000000000000000000")),
 		MakeFullConversationAlias(mustMakeConvID(t, "00000000000000000000")),
-	})
+	}, 2)
 	require.Error(t, err)
 }

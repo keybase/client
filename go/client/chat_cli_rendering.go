@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"path/filepath"
@@ -14,31 +13,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
-
-func conversationIDPrefixNumOfBytes(aliases []FullConversationAlias) (int, error) {
-	if len(aliases) == 0 {
-		return 2, nil
-	}
-
-	totalBytes := aliases[0].MustGetNumOfBytes()
-numOfBytesFinder:
-	// default to 5 characters, i.e. ":" plus 2 bytes
-	for numOfBytes := 2; numOfBytes < totalBytes; numOfBytes++ {
-		existing := make(map[ShortConversationAlias]bool)
-		for _, alias := range aliases {
-			shortened := alias.MustShorten(numOfBytes)
-			if existing[shortened] {
-				// This should rarely happen, and even it happens, it should be still
-				// reasonably fast. So we are not bothering with using a trie.
-				continue numOfBytesFinder
-			}
-			existing[shortened] = true
-		}
-		return numOfBytes, nil
-	}
-
-	return -1, errors.New("duplicate conversation IDs")
-}
 
 type conversationInfoListView []chat1.ConversationInfoLocal
 
@@ -58,7 +32,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
-	prefixNumOfBytes, err := conversationIDPrefixNumOfBytes(v.aliases())
+	prefixNumOfBytes, err := ConversationAliasPrefixNumOfBytes(v.aliases(), 2)
 	if err != nil {
 		return err
 	}
@@ -128,7 +102,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
-	prefixNumOfBytes, err := conversationIDPrefixNumOfBytes(v.aliases())
+	prefixNumOfBytes, err := ConversationAliasPrefixNumOfBytes(v.aliases(), 2)
 	if err != nil {
 		return err
 	}
