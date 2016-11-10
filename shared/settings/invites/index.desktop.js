@@ -19,14 +19,14 @@ function Invites (props: Props) {
     <Box style={{...globalStyles.flexBoxColumn, padding: globalMargins.medium, flexShrink: 0, flex: 1}}>
       <Box style={{...globalStyles.flexBoxColumn, minHeight: 269, alignItems: 'stretch', marginTop: globalMargins.small}}>
         <Input
-          floatingLabelText="Friend's email (optional)"
+          hintText="Friend's email (optional)"
           value={props.inviteEmail}
           onChangeText={props.onChangeInviteEmail}
           errorText={props.emailError ? ' ' : null}
           style={{marginBottom: 0}}
         />
         {props.showMessageField && <Input
-          floatingLabelText='Message (optional)'
+          hintText='Message (optional)'
           multiline={true}
           value={props.inviteMessage}
           onChangeText={props.onChangeInviteMessage}

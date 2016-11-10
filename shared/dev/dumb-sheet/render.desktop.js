@@ -96,9 +96,10 @@ class DumbSheetRender extends Component<void, Props, any> {
       <Box style={{...globalStyles.scrollable, padding: 20}} ref='scrollBox'>
         <BackButton onClick={this.props.onBack} />
         <Box style={{...globalStyles.flexBoxRow}}>
-          <Text type='Header'>Filter:</Text>
           <Input
             ref='filterInput'
+            small={true}
+            smallLabel='Filter:'
             value={filter}
             onChange={event => this._onFilterChange(event.target.value.toLowerCase())}
           />

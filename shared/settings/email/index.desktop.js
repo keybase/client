@@ -26,7 +26,7 @@ function UpdateEmail (props: Props) {
       onBack={props.onBack}
       notification={error}>
       <Input
-        floatingLabelText='Email'
+        hintText='Email'
         value={props.email}
         onChangeText={props.onChangeNewEmail}
         textStyle={{height: undefined}} style={{width: 400}} />

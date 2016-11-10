@@ -2,36 +2,34 @@
 import {Component} from 'react'
 
 export type Props = $Shape<{
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
-  autoCorrect?: bool,
-  autoFocus?: bool,
-  autoGrow?: bool,
   blur: () => void,
-  errorStyle?: ?Object,
-  errorStyle?: Object,
-  errorText?: ?string,
-  floatingLabelText?: string,
+  select: () => void,
   focus: () => void,
-  hintStyle?: Object,
-  hintText?: string,
+  value?: ?string,
+  hintText?: ?string,
+  floatingHintTextOverride?: ?string,
   inputStyle?: Object,
-  iosOmitUnderline?: boolean,
-  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'ascii-capable' | 'numbers-and-punctuation' | 'url' | 'number-pad' | 'name-phone-pad' | 'decimal-pad' | 'twitter' | 'web-search',
-  multiline?: bool,
-  onChange?: (event: Object) => void,
   onChangeText?: (text: string) => void,
   onEnterKeyDown?: (event: Object) => void,
   onKeyDown?: (event: Object) => void,
-  rows?: number, // Will be overridden if autoGrow is active
-  rowsMax?: number,
-  select: () => void,
-  small?: bool,
   style?: Object,
-  textStyle?: Object,
+  hideUnderline: boolean,
+  rowsMax?: number,
+  rowsMin?: number,
   type?: 'password' | 'text' | 'passwordVisible',
-  underlineShow?: boolean,
-  underlineStyle?: Object,
-  value?: ?string,
+  autoFocus?: bool,
+  multiline?: bool,
+  errorText?: ?string,
+  errorStyle?: ?Object,
+  small?: bool,
+  smallLabel?: string,
+  smallLabelStyle?: ?Object,
+
+  // Mobile only
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
+  autoCorrect?: bool,
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'ascii-capable' | 'numbers-and-punctuation' | 'url' | 'number-pad' | 'name-phone-pad' | 'decimal-pad' | 'twitter' | 'web-search',
+  returnKeyType? 'done' | 'go' | 'next' | 'search' | 'send'
 }>
 
 declare export default class Input extends Component<void, Props, void> { }

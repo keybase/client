@@ -59,15 +59,15 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
     const isPaperKey = this.props.type === PassphraseCommonPassphraseType.paperKey
     const typeStyle = {
       [PassphraseCommonPassphraseType.verifyPassPhrase]: {
-        floatingLabelText: 'Verify Passphrase',
+        hintText: 'Verify Passphrase',
         style: {marginBottom: 0},
       },
       [PassphraseCommonPassphraseType.passPhrase]: {
-        floatingLabelText: 'Passphrase',
+        hintText: 'Passphrase',
         style: {marginBottom: 0},
       },
       [PassphraseCommonPassphraseType.paperKey]: {
-        floatingLabelText: 'Paperkey',
+        floatingHintTextOverride: 'Paperkey',
         multiline: true,
         rowsMax: 2,
         hintText: 'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
@@ -108,7 +108,6 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
           <Text type='Body' style={{textAlign: 'center'}}>{this.props.prompt}</Text>
           {isPaperKey && <Icon type='icon-paper-key-48' style={{alignSelf: 'center'}} />}
           <FormWithCheckbox
-            style={{alignSelf: 'stretch'}}
             inputProps={inputProps}
             checkboxContainerStyle={{paddingLeft: 60, paddingRight: 60, ...checkboxContainerStyle}}
             checkboxesProps={checkboxProps}

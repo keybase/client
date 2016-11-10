@@ -16,7 +16,7 @@ type State = {
   paperkey: string,
 }
 
-export default class PaperKeyInput extends Component<void, Props, State> {
+class PaperKeyInput extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -35,6 +35,7 @@ export default class PaperKeyInput extends Component<void, Props, State> {
         <Input multiline={true} rowsMax={3} style={paperKeyInputStyle}
           onChange={e => this.setState({paperkey: e.target.textContent})}
           errorText={errorText}
+          floatingHintTextOverride='Paper key'
           hintText='elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose' />
         <Button type='Primary' label='Continue' style={continueStyle}
           waiting={this.props.waiting}
@@ -70,3 +71,5 @@ const continueStyle = {
   width: 116,
   alignSelf: 'center',
 }
+
+export default PaperKeyInput

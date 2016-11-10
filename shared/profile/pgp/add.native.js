@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Button, Input, PlatformIcon, SmallInput, StandardScreen, Text} from '../../common-adapters'
+import {Button, PlatformIcon, Input, StandardScreen, Text} from '../../common-adapters'
 import {NativeKeyboardAvoidingView} from '../../common-adapters/index.native'
 import {globalMargins, globalColors} from '../../styles'
 import type {Props} from './add'
@@ -9,6 +9,7 @@ class PgpAdd extends Component<void, Props, void> {
   render () {
     const nextDisabled = !this.props.email1 || !this.props.fullName
     const emailInputProps = {
+      small: true,
       style: styleEmailInput,
       autoCapitalize: 'none',
     }
@@ -28,28 +29,28 @@ class PgpAdd extends Component<void, Props, void> {
             Fill in your public info:
           </Text>
           <Input
+            small={true}
             floatingLabelText='Your full name'
             hintText='Your full name'
             value={this.props.fullName}
-            onChangeText={this.props.onChangeFullName}
-            textStyle={{height: undefined}} />
-          <SmallInput
+            onChangeText={this.props.onChangeFullName} />
+          <Input
             {...emailInputProps}
-            label='Email 1:'
+            smallLabel='Email 1:'
             hintText='(required)'
             onChange={this.props.onChangeEmail1}
             value={this.props.email1}
             errorState={this.props.errorEmail1} />
-          <SmallInput
+          <Input
             {...emailInputProps}
-            label='Email 2:'
+            smallLabel='Email 2:'
             hintText='(optional)'
             onChange={this.props.onChangeEmail2}
             value={this.props.email2}
             errorState={this.props.errorEmail2} />
-          <SmallInput
+          <Input
             {...emailInputProps}
-            label='Email 3:'
+            smallLabel='Email 3:'
             hintText='(optional)'
             onChange={this.props.onChangeEmail3}
             value={this.props.email3}

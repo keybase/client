@@ -47,7 +47,6 @@ const styles = {
     marginTop: 45,
   },
   input: {
-    alignSelf: 'stretch',
     marginBottom: 55,
     height: '4em',
   },

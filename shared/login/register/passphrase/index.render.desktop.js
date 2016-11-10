@@ -18,7 +18,7 @@ class PassphraseRender extends Component<void, Props, void> {
             autoFocus={true}
             style={stylesInput}
             type='password'
-            floatingLabelText='Passphrase'
+            hintText='Passphrase'
             onEnterKeyDown={() => this.props.onSubmit()}
             onChange={event => this.props.onChange(event.target.value)}
             value={this.props.passphrase}

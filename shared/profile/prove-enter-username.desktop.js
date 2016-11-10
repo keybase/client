@@ -82,7 +82,7 @@ class PrivateEnterUsernameRender extends Component<void, Props, State> {
           autoFocus={true}
           style={styleInput}
           {...inputSizeFix}
-          floatingLabelText={floatingLabelText}
+          floatingHintTextOverride={floatingLabelText}
           hintText={hintText}
           value={this.state.username}
           onChangeText={username => this.handleUsernameChange(username)}

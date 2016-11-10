@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
-import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, SmallInput, ListItem, PopupMenu, StandardScreen, TabBar, Text, Terminal, Dropdown} from './index'
+import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, Input, ListItem, PopupMenu, StandardScreen, TabBar, Text, Terminal, Dropdown} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
@@ -420,86 +420,192 @@ const inputMap: DumbComponentMap<Input> = {
     'Default Filled': {
       value: 'Hello, World!',
     },
+    'Default Filled style override': {
+      value: 'Hello, World!',
+      style: {
+        backgroundColor: 'red',
+      },
+    },
+    'Default Filled inputstyle override': {
+      value: 'Hello, World!',
+      inputStyle: {
+        backgroundColor: 'red',
+      },
+    },
+    'Default No underline': {
+      value: 'Hello, World!',
+      hideUnderline: true,
+    },
     'Hint Empty': {
       hintText: 'Hello...',
     },
     'Floating Label Empty': {
-      floatingLabelText: 'Hello...',
+      floatingHintTextOverride: 'Hello...',
+    },
+    'Password filled': {
+      floatingHintTextOverride: 'Shh...',
+      value: 'Hello, World!',
+      type: 'password',
+    },
+    'Password visible filled': {
+      floatingHintTextOverride: 'Shh...',
+      value: 'Hello, World!',
+      type: 'passwordVisible',
+    },
+    'Auto cap none': {
+      autoCapitalize: 'none',
+    },
+    'Auto cap sentences': {
+      autoCapitalize: 'sentences',
+    },
+    'Auto cap words': {
+      autoCapitalize: 'words',
+    },
+    'Auto cap characters': {
+      autoCapitalize: 'characters',
+    },
+    'Autocorrect': {
+      autoCorrect: true,
     },
     'Floating Label Filled': {
-      floatingLabelText: 'Hello...',
+      floatingHintTextOverride: 'Hello...',
       value: 'Hello, World!',
     },
     'Floating Label Error': {
-      floatingLabelText: 'Hello...',
+      floatingHintTextOverride: 'Hello...',
       value: 'Hello, Worl',
       errorText: 'Check your spelling',
     },
+    'Error styled': {
+      floatingHintTextOverride: 'Hello...',
+      value: 'Hello, Worl',
+      errorText: 'Check your spelling',
+      errorStyle: {
+        backgroundColor: 'blue',
+        padding: 20,
+      },
+    },
     'Floating Label Hint Empty': {
       hintText: 'Hello!',
-      floatingLabelText: 'Hello...',
+      floatingHintTextOverride: 'Hello...',
+    },
+    'Multi Label Styled': {
+      hintText: 'Hello!',
+      multiline: true,
+      value: 'multi styled',
+      inputStyle: {
+        color: 'blue',
+      },
     },
     'Hint Multiline Empty': {
-      hintText: 'This is a very long hint that will hopefully wrap to two lines',
-      rows: isMobile ? 2 : undefined,
+      hintText: 'This is a very long hint that will hopefully wrap to two lines or more more more!',
       multiline: true,
     },
+    'Long Multiline': {
+      value: 'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
+      multiline: true,
+    },
+    'Long Multiline rowsMax1': {
+      value: 'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
+      multiline: true,
+      rowsMax: 1,
+    },
+    'Long Multiline rowsMax2': {
+      value: 'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
+      multiline: true,
+      rowsMax: 2,
+    },
+    'Long Multiline rowsMax4': {
+      value: 'This is a very long text that will hopefully wrap to two laxes or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
+      multiline: true,
+      rowsMax: 4,
+    },
+    'Long Multiline rowsMin2Max4 small': {
+      value: 'This is a small text',
+      multiline: true,
+      rowsMin: 2,
+      rowsMax: 4,
+    },
+    'Long Multiline rowsMin2Max4 long': {
+      value: 'This is a very long text that will hopefully wrap to two lines or more more more! or more or more or more or more or more or more or more or more or more or more or more or more or more or more!',
+      multiline: true,
+      rowsMin: 2,
+      rowsMax: 4,
+    },
+    'Long Multiline rowsMin1': {
+      value: 'This is a small text',
+      multiline: true,
+      rowsMin: 1,
+    },
+    'Long Multiline rowsMin2': {
+      value: 'This is a small text',
+      multiline: true,
+      rowsMin: 2,
+    },
+    'Long Multiline rowsMin4': {
+      value: 'This is a small text',
+      multiline: true,
+      rowsMin: 4,
+    },
+    'Multiline error': {
+      value: 'This is a multiline with error',
+      multiline: true,
+      errorText: 'this is an error',
+    },
     'Floating Label Multiline Empty': {
-      floatingLabelText: 'Hello...',
+      floatingHintTextOverride: 'Hello...',
       multiline: true,
     },
     'Floating Label Multiline Filled': {
-      floatingLabelText: 'Hello...',
+      floatingHintTextOverride: 'Hello...',
       multiline: true,
       value: 'Hello, World!',
     },
     'Floating Label Multiline Filled Long': {
-      floatingLabelText: 'Hello...',
+      floatingHintTextOverride: 'Hello...',
       multiline: true,
       value: 'Hello,\nMy name is Max\nHow are you?',
     },
     'Small Empty': {
       small: true,
+      smallLabel: 'Small:',
     },
     'Small Filled': {
       small: true,
       value: 'Hello, World!',
+      smallLabel: 'Small:',
+    },
+    'Small styled': {
+      small: true,
+      value: 'Hello, World!',
+      smallLabel: 'Small:',
+      inputStyle: {
+        color: 'blue',
+      },
     },
     'Small Hint Empty': {
       small: true,
+      smallLabel: 'Small:',
       hintText: 'Hello...',
     },
-  },
-}
-
-const smallInputMap: DumbComponentMap<SmallInput> = {
-  component: SmallInput,
-  mocks: {
-    'Default Empty': {
-      label: 'Greet:',
+    'Small Label Empty': {
+      small: true,
       hintText: 'Hello...',
-      value: null,
-      onChange: ev => console.log('onChange', ev),
     },
-    'Default Filled': {
-      label: 'Greet:',
+    'Small Label Styled': {
+      small: true,
+      smallLabel: 'Styled:',
+      smallLabelStyle: {
+        backgroundColor: 'blue',
+      },
       hintText: 'Hello...',
-      value: 'Hello, World!',
-      onChange: ev => console.log('onChange', ev),
     },
-    'Error Empty': {
-      label: 'Greet:',
+    'Small Hint Error': {
+      small: true,
+      smallLabel: 'Small:',
+      value: 'has an error',
       hintText: 'Hello...',
-      errorState: true,
-      value: null,
-      onChange: ev => console.log('onChange', ev),
-    },
-    'Error Filled': {
-      label: 'Greet:',
-      hintText: 'Hello...',
-      value: 'Hello, World!',
-      errorState: true,
-      onChange: ev => console.log('onChange', ev),
+      errorText: 'this is invisible in the small input',
     },
   },
 }
@@ -718,7 +824,6 @@ export default {
   Input: inputMap,
   ListItem: listItemMap,
   PopupMenu: popupMenuMap,
-  SmallInput: smallInputMap,
   StandardScreen: standardScreenMap,
   TabBar: tabBarMap,
   Terminal: terminalMap,
