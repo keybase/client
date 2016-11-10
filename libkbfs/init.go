@@ -53,6 +53,10 @@ type InitParams struct {
 	// before marked for lazy revalidation.
 	TLFValidDuration time.Duration
 
+	// MetadataVersion is the default version of metadata to use
+	// when creating new metadata.
+	MetadataVersion int
+
 	// LogToFile if true, logs to a default file location.
 	LogToFile bool
 
@@ -94,6 +98,18 @@ func GetDefaultMDServer(ctx Context) string {
 	}
 }
 
+// GetDefaultMetadataVersion returns the default metadata version per run mode.
+func GetDefaultMetadataVersion(ctx Context) MetadataVer {
+	switch ctx.GetRunMode() {
+	case libkb.StagingRunMode:
+		return SegregatedKeyBundlesVer
+	case libkb.ProductionRunMode:
+		return InitialExtraMetadataVer
+	default:
+		return InitialExtraMetadataVer
+	}
+}
+
 func defaultLogPath(ctx Context) string {
 	return filepath.Join(ctx.GetLogDir(), libkb.KBFSLogFileName)
 }
@@ -105,6 +121,7 @@ func DefaultInitParams(ctx Context) InitParams {
 		BServerAddr:      GetDefaultBServer(ctx),
 		MDServerAddr:     GetDefaultMDServer(ctx),
 		TLFValidDuration: tlfValidDurationDefault,
+		MetadataVersion:  int(GetDefaultMetadataVersion(ctx)),
 		LogFileConfig: logger.LogFileConfig{
 			MaxAge:       30 * 24 * time.Hour,
 			MaxSize:      128 * 1024 * 1024,
@@ -146,6 +163,7 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	// params.TLFJournalBackgroundWorkStatus via a flag.
 	params.TLFJournalBackgroundWorkStatus = defaultParams.TLFJournalBackgroundWorkStatus
 
+	flags.IntVar(&params.MetadataVersion, "md-version", defaultParams.MetadataVersion, "Metadata version to use when creating new metadata")
 	return &params
 }
 
@@ -321,6 +339,7 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 		return lg
 	})
 
+	config.SetMetadataVersion(MetadataVer(params.MetadataVersion))
 	config.SetTLFValidDuration(params.TLFValidDuration)
 
 	kbfsOps := NewKBFSOpsStandard(config)
