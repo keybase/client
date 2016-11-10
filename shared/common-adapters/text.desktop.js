@@ -30,23 +30,28 @@ class Text extends Component<void, Props, void> {
       ...getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick),
       ...this.props.style,
     }
+    const meta = metaData[this.props.type]
+    const className = [
+      this.props.className,
+      meta.isLink ? 'hover-underline' : null,
+    ].filter(Boolean).join(' ')
 
     return <span
       ref={ref => { this._span = ref }}
-      className={this.props.className}
+      className={className}
       style={style}
       onClick={this.props.onClick}>{this.props.children}</span>
   }
 }
 
-function getStyle (type: TextType, backgroundMode?: ?Background, lineClampNum?: ?number, clickable?: ?boolean) {
+function getStyle (type: TextType, backgroundMode?: Background = 'Normal', lineClampNum?: ?number, clickable?: ?boolean) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
-  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode || 'Normal'] || defaultColor(backgroundMode)}
+  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
   const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? globalStyles.clickable : null
-  const textDecoration = meta.isLink ? {textDecoration: 'underline'} : null
+  const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecoration: 'underline'} : null
 
   return {
     ...sizeStyle,
