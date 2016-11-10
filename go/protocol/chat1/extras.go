@@ -27,25 +27,12 @@ func MakeConvID(val string) (ConversationID, error) {
 	return hex.DecodeString(val)
 }
 
-func MakeConvIDFromAlias(val string) (ConversationID, error) {
-	val = val[len(val)-4:] + val[:len(val)-4]
-	return hex.DecodeString(val)
-}
-
 func (cid ConversationID) Bytes() []byte {
 	return []byte(cid)
 }
 
 func (cid ConversationID) String() string {
 	return hex.EncodeToString(cid)
-}
-
-// Alias of a conversation ID is the hex string of it, with first 2 bytes (4
-// hex characters) moved to the end. This is because first 2 bytes are for
-// shard IDs, and for now is always 0.
-func (cid ConversationID) Alias() string {
-	cidHex := cid.String()
-	return cidHex[4:] + cidHex[:4]
 }
 
 func (cid ConversationID) IsNil() bool {

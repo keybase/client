@@ -15,58 +15,39 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-func conversationIDPrefixLength(ids []chat1.ConversationID) (int, error) {
-
-	// default to 4 characters, i.e. 2 bytes
-	length := 4
-
-	existing := make(map[string]string)
-	for _, id := range ids {
-		cidHex := id.Alias()
-		if cidHexExisting, ok := existing[cidHex[:length]]; ok {
-			// This should rarely happen, and even it happens, it should be still
-			// reasonably fast. So we are not bothering with using a trie.
-
-			if cidHexExisting == cidHex {
-				return 0, errors.New("duplicate conversation IDs")
-			}
-
-			if len(cidHexExisting) != len(cidHex) {
-				return 0, errors.New("inconsistent length of conversation IDs")
-			}
-
-			firstDifferent := -1
-			for i := range cidHex {
-				if cidHex[i] != cidHexExisting[i] {
-					firstDifferent = i
-					break
-				}
-			}
-
-			length = firstDifferent + 1
-			length += length % 2 // round up to full byte
-
-			newExisting := make(map[string]string)
-			for _, existing := range newExisting {
-				newExisting[existing[:length]] = existing
-			}
-			existing = newExisting
-		}
-
-		existing[cidHex[:length]] = cidHex
+func conversationIDPrefixNumOfBytes(aliases []FullConversationAlias) (int, error) {
+	if len(aliases) == 0 {
+		return 2, nil
 	}
 
-	return length, nil
+	totalBytes := aliases[0].MustGetNumOfBytes()
+numOfBytesFinder:
+	// default to 5 characters, i.e. ":" plus 2 bytes
+	for numOfBytes := 2; numOfBytes < totalBytes; numOfBytes++ {
+		existing := make(map[ShortConversationAlias]bool)
+		for _, alias := range aliases {
+			shortened := alias.MustShorten(numOfBytes)
+			if existing[shortened] {
+				// This should rarely happen, and even it happens, it should be still
+				// reasonably fast. So we are not bothering with using a trie.
+				continue numOfBytesFinder
+			}
+			existing[shortened] = true
+		}
+		return numOfBytes, nil
+	}
+
+	return -1, errors.New("duplicate conversation IDs")
 }
 
 type conversationInfoListView []chat1.ConversationInfoLocal
 
-func (v conversationInfoListView) ids() []chat1.ConversationID {
-	ids := make([]chat1.ConversationID, 0, len(v))
+func (v conversationInfoListView) aliases() []FullConversationAlias {
+	aliases := make([]FullConversationAlias, 0, len(v))
 	for _, i := range v {
-		ids = append(ids, i.Id)
+		aliases = append(aliases, MakeFullConversationAlias(i.Id))
 	}
-	return ids
+	return aliases
 }
 
 func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
@@ -77,7 +58,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
-	prefixLength, err := conversationIDPrefixLength(v.ids())
+	prefixNumOfBytes, err := conversationIDPrefixNumOfBytes(v.aliases())
 	if err != nil {
 		return err
 	}
@@ -89,7 +70,9 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
 				Alignment: flexibletable.Right,
-				Content:   flexibletable.SingleCell{Item: conv.Id.Alias()[:prefixLength]},
+				Content: flexibletable.SingleCell{
+					Item: string(MakeFullConversationAlias(conv.Id).MustShorten(prefixNumOfBytes)),
+				},
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
@@ -98,7 +81,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		flexibletable.ColumnConstraint(prefixLength + 2), flexibletable.ExpandableWrappable,
+		flexibletable.ColumnConstraint(ConversationAliasWidth(prefixNumOfBytes) + 2), flexibletable.ExpandableWrappable,
 	}); err != nil {
 		return fmt.Errorf("rendering conversation info list view error: %v\n", err)
 	}
@@ -129,12 +112,12 @@ func (v conversationListView) withoutUnlessOnlyOne(g *libkb.GlobalContext, slice
 	return res
 }
 
-func (v conversationListView) ids() []chat1.ConversationID {
-	ids := make([]chat1.ConversationID, 0, len(v))
+func (v conversationListView) aliases() []FullConversationAlias {
+	aliases := make([]FullConversationAlias, 0, len(v))
 	for _, c := range v {
-		ids = append(ids, c.Info.Id)
+		aliases = append(aliases, MakeFullConversationAlias(c.Info.Id))
 	}
-	return ids
+	return aliases
 }
 
 func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, showDeviceName bool) error {
@@ -145,7 +128,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
-	prefixLength, err := conversationIDPrefixLength(v.ids())
+	prefixNumOfBytes, err := conversationIDPrefixNumOfBytes(v.aliases())
 	if err != nil {
 		return err
 	}
@@ -155,7 +138,9 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		indexCell := flexibletable.Cell{
 			Frame:     [2]string{"[", "]"},
 			Alignment: flexibletable.Right,
-			Content:   flexibletable.SingleCell{Item: conv.Info.Id.Alias()[:prefixLength]},
+			Content: flexibletable.SingleCell{
+				Item: string(MakeFullConversationAlias(conv.Info.Id).MustShorten(prefixNumOfBytes)),
+			},
 		}
 
 		if conv.Error != nil {
@@ -247,7 +232,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	}
 
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		flexibletable.ColumnConstraint(prefixLength + 2), 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
+		flexibletable.ColumnConstraint(ConversationAliasWidth(prefixNumOfBytes) + 2), 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
 	}); err != nil {
 		return fmt.Errorf("rendering conversation list view error: %v\n", err)
 	}
