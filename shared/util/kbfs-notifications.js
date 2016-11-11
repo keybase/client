@@ -1,7 +1,6 @@
 // @flow
 import _ from 'lodash'
 import {KbfsCommonFSErrorType, KbfsCommonFSNotificationType, KbfsCommonFSStatusCode} from '../constants/types/flow-types'
-import {getTLF} from '../util/kbfs'
 import path from 'path'
 import type {FSNotification} from '../constants/types/flow-types'
 
