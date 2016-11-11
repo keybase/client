@@ -91,8 +91,6 @@ func (c *UserDeviceCache) LookupUsername(uimap *UserInfoMapper, uid keybase1.UID
 				Username: user.GetNormalizedName().String(),
 			}, nil
 		}
-		q := libkb.NewHTTPArgs()
-		q.Add("uid", libkb.UIDArg(uid))
 		nn, err := c.kbCtx.UIDToUsername(uid)
 		if err != nil {
 			return udCacheValue{}, err
