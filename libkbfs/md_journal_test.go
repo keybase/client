@@ -475,8 +475,10 @@ func TestMDJournalBranchConversion(t *testing.T) {
 	mdcache := NewMDCacheStandard(10)
 	cachedMd := makeMDForTest(
 		t, id, firstRevision, j.uid, signer, firstPrevRoot)
-	err := mdcache.Put(MakeImmutableRootMetadata(cachedMd,
-		j.key, fakeMdID(1), time.Now()))
+	cachedMdID, _, _, _, err := j.getEarliestWithExtra(false)
+	require.NoError(t, err)
+	err = mdcache.Put(MakeImmutableRootMetadata(cachedMd,
+		j.key, cachedMdID, time.Now()))
 	require.NoError(t, err)
 
 	bid, err := j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
