@@ -8,6 +8,7 @@ import Login from './login'
 import MetaNavigator from './router/meta-navigator'
 import NoTab from './no-tab'
 import ProfileContainer from './profile/container'
+import Push from './push/push.native'
 import React, {Component} from 'react'
 import Search from './search'
 import Settings from './settings'
@@ -92,8 +93,11 @@ function NavigationBarRouteMapper (navigateTo, navigateUp) {
   }
 }
 
-class Nav extends Component {
-  constructor (props) {
+type Props = any
+
+class Nav extends Component<void, Props, void> {
+
+  constructor (props: Props) {
     super(props)
 
     this.props.bootstrap()
@@ -135,11 +139,6 @@ class Nav extends Component {
     return this.props.router.get('activeTab')
   }
 
-  shouldComponentUpdate (nextProps, nextState) {
-    return (nextProps.router.get('activeTab') !== this._activeTab() ||
-            nextProps.dumbFullscreen !== this.props.dumbFullscreen)
-  }
-
   render () {
     if (this.props.dumbFullscreen) {
       return <DumbSheet />
@@ -156,11 +155,12 @@ class Nav extends Component {
       return this._renderContent(activeTab, module)
     }
 
+    const enablePushPrompt = this.props.provisioned && this.props.permissionsPrompt
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
-
     return (
       <Box style={{flex: 1}}>
-        <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />
+        {!enablePushPrompt && <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />}
+        <Push prompt={enablePushPrompt} />
       </Box>
     )
   }
@@ -196,21 +196,25 @@ const styles = {
   },
 }
 
-// $FlowIssue
 export default connect(
-  ({router, favorite: {privateBadge, publicBadge}, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({
-    router,
-    bootstrapped,
-    provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
-    username,
-    dumbFullscreen,
-    folderBadge: privateBadge + publicBadge,
-  }),
-  dispatch => ({
-    switchTab: tab => dispatch(switchTab(tab)),
-    navigateUp: () => dispatch(navigateUp()),
-    navigateTo: uri => dispatch(navigateTo(uri)),
-    bootstrap: () => dispatch(bootstrap()),
-    listenForNotifications: () => dispatch(listenForNotifications()),
-  })
+  (state: any) => {
+    const {router, favorite: {privateBadge, publicBadge}, config: {extendedConfig, username}, push: {permissionsPrompt}, dev: {debugConfig: {dumbFullscreen}}} = state
+    return ({
+      router,
+      provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
+      username,
+      dumbFullscreen,
+      folderBadge: privateBadge + publicBadge,
+      permissionsPrompt,
+    })
+  },
+  (dispatch: any) => {
+    return {
+      switchTab: tab => dispatch(switchTab(tab)),
+      navigateUp: () => dispatch(navigateUp()),
+      navigateTo: uri => dispatch(navigateTo(uri)),
+      bootstrap: () => dispatch(bootstrap()),
+      listenForNotifications: () => dispatch(listenForNotifications()),
+    }
+  }
 )(Nav)

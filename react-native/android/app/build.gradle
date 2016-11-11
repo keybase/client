@@ -154,7 +154,9 @@ dependencies {
     compile 'org.msgpack:msgpack:0.6.12'
     compile 'com.android.support:appcompat-v7:23.0.1'
     compile "com.facebook.react:react-native:+"  // From node_modules
+    compile 'com.google.android.gms:play-services-gcm:+'
     compile project(':ReactNativeBarcodescanner')
+    compile project(':react-native-push-notification')
     compile 'org.slf4j:slf4j-api:1.7.21'
     compile 'com.github.tony19:logback-android-core:1.1.1-5'
     compile('com.github.tony19:logback-android-classic:1.1.1-5') {

@@ -33,6 +33,12 @@ const initialState: State = {
     hasPGPKeyOnServer: null,
     canSave: false,
   },
+  push: {
+    permissionsPrompt: false,
+    permissionsRequesting: false,
+    tokenType: '',
+    token: '',
+  },
 }
 
 function reducer (state: State = initialState, action: Actions): State {
@@ -187,6 +193,7 @@ function reducer (state: State = initialState, action: Actions): State {
         ...state,
         waitingForResponse: action.payload,
       }
+
   }
   return state
 }
