@@ -13,6 +13,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -112,17 +113,12 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	return ncres.Conv.Info
 }
 
-func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
-	mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
-	ctc.advanceFakeClock(time.Second)
-}
-
-func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
+func postLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) (chat1.PostLocalRes, error) {
 	mt, err := msg.MessageType()
 	if err != nil {
 		t.Fatalf("msg.MessageType() error: %v\n", err)
 	}
-	_, err = ctc.as(t, asUser).chatLocalHandler().PostLocal(context.Background(), chat1.PostLocalArg{
+	return ctc.as(t, asUser).chatLocalHandler().PostLocal(context.Background(), chat1.PostLocalArg{
 		ConversationID: conv.Id,
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
@@ -133,9 +129,23 @@ func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUs
 			MessageBody: msg,
 		},
 	})
+}
+
+func postLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) (chat1.PostLocalRes, error) {
+	defer ctc.advanceFakeClock(time.Second)
+	return postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
+}
+
+func mustPostLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
+	_, err := postLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
 	if err != nil {
 		t.Fatalf("PostLocal error: %v", err)
 	}
+}
+
+func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) {
+	mustPostLocalForTestNoAdvanceClock(t, ctc, asUser, conv, msg)
+	ctc.advanceFakeClock(time.Second)
 }
 
 func TestChatNewConversationLocal(t *testing.T) {
@@ -263,6 +273,44 @@ func TestChatPostLocal(t *testing.T) {
 
 	if len(msg.ClientHeader.Sender.Bytes()) == 0 || len(msg.ClientHeader.SenderDevice.Bytes()) == 0 {
 		t.Fatalf("PostLocal didn't populate ClientHeader.Sender and/or ClientHeader.SenderDevice\n")
+	}
+}
+
+func TestChatPostLocalLengthLimit(t *testing.T) {
+	ctc := makeChatTestContext(t, "PostLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, ctc.as(t, users[1]).user().Username)
+
+	maxTextBody := strings.Repeat(".", msgchecker.TextMessageMaxLength)
+	_, err := postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody}))
+	if err != nil {
+		t.Fatalf("trying to post a text message with body length equal to the maximum failed")
+	}
+	_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody + "!"}))
+	if err == nil {
+		t.Fatalf("trying to post a text message with body length greater than the maximum did not fail")
+	}
+
+	maxHeadlineBody := strings.Repeat(".", msgchecker.HeadlineMaxLength)
+	_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: maxHeadlineBody}))
+	if err != nil {
+		t.Fatalf("trying to post a headline message with headline length equal to the maximum failed")
+	}
+	_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: maxHeadlineBody + "!"}))
+	if err == nil {
+		t.Fatalf("trying to post a headline message with headline length greater than the maximum did not fail")
+	}
+
+	maxTopicBody := strings.Repeat(".", msgchecker.TopicMaxLength)
+	_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody}))
+	if err != nil {
+		t.Fatalf("trying to post a ConversationMetadata message with ConversationTitle length equal to the maximum failed")
+	}
+	_, err = postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{ConversationTitle: maxTopicBody + "!"}))
+	if err == nil {
+		t.Fatalf("trying to post a ConversationMetadata message with ConversationTitle length greater than the maximum did not fail")
 	}
 }
 

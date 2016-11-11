@@ -1,19 +1,24 @@
 // @flow
 import * as Constants from '../constants/favorite'
 import _ from 'lodash'
+import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
-import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise, NotifyFSRequestFSSyncStatusRequestRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
-import {navigateBack} from '../actions/router'
 import {call, put, select} from 'redux-saga/effects'
-import {takeLatest, takeEvery} from 'redux-saga'
+import {navigateBack} from '../actions/router'
+import {safeTakeLatest, safeTakeEvery} from '../util/saga'
 
 import type {Action} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, MarkTLFCreated} from '../constants/favorite'
+import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, MarkTLFCreated, SetupKBFSChangedHandler} from '../constants/favorite'
 import type {FolderRPCWithMeta} from '../constants/folders'
 import type {SagaGenerator} from '../constants/types/saga'
 
 const {folderFromFolderRPCWithMeta, folderRPCFromPath} = Constants
+
+function setupKBFSChangedHandler (): SetupKBFSChangedHandler {
+  return {type: Constants.setupKBFSChangedHandler, payload: undefined}
+}
 
 function switchTab (showingPrivate: boolean): FavoriteSwitchTab {
   return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
@@ -262,11 +267,33 @@ function _notify (state) {
   previousNotifyState = newNotifyState
 }
 
+function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
+  yield put((dispatch: Dispatch) => {
+    const debouncedKBFSStopped = _.debounce(() => {
+      const badgeAction: Action = badgeApp('kbfsUploading', false)
+      dispatch(badgeAction)
+      dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: false}})
+    }, 2000)
+
+    engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
+      // This has a lot of missing data from the KBFS side so for now we just have a timeout that sets this to off
+      // ie. we don't get the syncingBytes or ops correctly (always zero)
+      const badgeAction: Action = badgeApp('kbfsUploading', true)
+      dispatch(badgeAction)
+      dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: true}})
+      debouncedKBFSStopped()
+    })
+  })
+
+  yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {param: {req: {requestID: 0}}})
+}
+
 function * favoriteSaga (): SagaGenerator<any, any> {
   yield [
-    takeLatest(Constants.favoriteList, _listSaga),
-    takeEvery(Constants.favoriteAdd, _addSaga),
-    takeEvery(Constants.favoriteIgnore, _ignoreSaga),
+    safeTakeLatest(Constants.favoriteList, _listSaga),
+    safeTakeEvery(Constants.favoriteAdd, _addSaga),
+    safeTakeEvery(Constants.favoriteIgnore, _ignoreSaga),
+    safeTakeEvery(Constants.setupKBFSChangedHandler, _setupKBFSChangedHandler),
   ]
 }
 
@@ -275,6 +302,7 @@ export {
   favoriteList,
   ignoreFolder,
   markTLFCreated,
+  setupKBFSChangedHandler,
   switchTab,
   toggleShowIgnored,
 }

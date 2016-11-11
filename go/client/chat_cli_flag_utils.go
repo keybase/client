@@ -82,6 +82,14 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "all",
 		Usage: `Include hidden conversations`,
 	},
+	"block": cli.BoolFlag{
+		Name:  "b, block",
+		Usage: "Block the conversation (instead of hiding until next activity)",
+	},
+	"unhide": cli.BoolFlag{
+		Name:  "u, unhide",
+		Usage: "Unhide/unblock the conversation",
+	},
 }
 
 func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
@@ -118,7 +126,7 @@ func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, er
 	case "dev":
 		topicType = chat1.TopicType_DEV
 	default:
-		err = fmt.Errorf("invalid topic-type %s. Has to be one of %v", t, []string{"chat", "dev"})
+		err = fmt.Errorf("invalid topic-type '%s'. Has to be one of %v", t, []string{"chat", "dev"})
 	}
 	return topicType, err
 }

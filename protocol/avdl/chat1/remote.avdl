@@ -64,7 +64,7 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
 
-  GetInboxRemoteRes getInboxRemote(union { null, GetInboxQuery } query, union { null, Pagination } pagination);
+  GetInboxRemoteRes getInboxRemote(InboxVers vers, union { null, GetInboxQuery } query, union { null, Pagination } pagination);
   GetThreadRemoteRes getThreadRemote(ConversationID conversationID, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
 
   PostRemoteRes postRemote(ConversationID conversationID, MessageBoxed messageBoxed);

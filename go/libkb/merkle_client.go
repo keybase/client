@@ -396,16 +396,15 @@ func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, stri
 	return nilKID, "", MerkleClientError{"no known verifying key"}
 }
 
-func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
+func (mc *MerkleClient) VerifyRoot(root *MerkleRoot, seqnoWhenCalled Seqno) error {
 
 	// First make sure it's not a rollback
-	q := mc.LastSeqno()
-	if q >= 0 && q > root.seqno {
+	if seqnoWhenCalled >= 0 && seqnoWhenCalled > root.seqno {
 		return fmt.Errorf("Server rolled back Merkle tree: %d > %d",
-			q, root.seqno)
+			seqnoWhenCalled, root.seqno)
 	}
 
-	mc.G().Log.Debug("| Merkle root: got back %d, >= cached %d", int(root.seqno), int(q))
+	mc.G().Log.Debug("| Merkle root: got back %d, >= cached %d", int(root.seqno), int(seqnoWhenCalled))
 
 	mc.Lock()
 	defer mc.Unlock()
@@ -710,13 +709,20 @@ func (mc *MerkleClient) LookupUser(q HTTPArgs, sigHints *SigHints) (u *MerkleUse
 		return
 	}
 
+	// Grab the cached seqno before the call to get the next one is made.
+	// Note, we can have multiple concurrenct calls to LookupUser that can return in any order.
+	// Checking against the cache after the call completes can cause false-positive rollback
+	// warnings if the first call is super slow, and the second call is super fast, and there
+	// was a change on the server side. See CORE-4064.
+	seqnoBeforeCall := mc.LastSeqno()
+
 	mc.G().Log.Debug("| LookupPath")
 	if path, err = mc.LookupPath(q, sigHints); err != nil {
 		return
 	}
 
 	mc.G().Log.Debug("| VerifyRoot")
-	if err = mc.VerifyRoot(path.root); err != nil {
+	if err = mc.VerifyRoot(path.root, seqnoBeforeCall); err != nil {
 		return
 	}
 

@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles'
+import {globalColors, globalMargins, globalStyles} from '../styles'
 import {Text, Button, Icon} from '../common-adapters'
 
 import type {Device} from '../constants/unlock-folders'
@@ -63,13 +63,13 @@ const styles = {
     overflowY: 'scroll',
     backgroundColor: globalColors.lightGrey,
     alignSelf: 'center',
-    paddingTop: 15,
-    paddingBottom: 15,
+    paddingTop: globalMargins.small,
+    paddingBottom: globalMargins.small,
   },
 
   buttonsContainer: {
     ...globalStyles.flexBoxRow,
-    marginTop: 15,
+    marginTop: globalMargins.small,
     marginRight: 30,
     alignSelf: 'center',
   },
