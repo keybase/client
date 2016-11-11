@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -33,17 +32,17 @@ func (f FullConversationAlias) mustBeValid() {
 	}
 }
 
-func (f FullConversationAlias) MustShorten(numOfBytes int) ShortConversationAlias {
+func (f FullConversationAlias) Shorten(numOfBytes int) ShortConversationAlias {
 	f.mustBeValid()
 	return ShortConversationAlias(f[:ConversationAliasWidth(numOfBytes)])
 }
 
-func (f FullConversationAlias) MustGetNumOfBytes() int {
+func (f FullConversationAlias) NumOfBytes() int {
 	f.mustBeValid()
 	return (len(f) - 1) / 2
 }
 
-func (f FullConversationAlias) ToConversationIDOrBust() chat1.ConversationID {
+func (f FullConversationAlias) ToConversationID() chat1.ConversationID {
 	f.mustBeValid()
 	cid, err := chat1.MakeConvID(string(f[1:]))
 	if err != nil {
@@ -67,31 +66,82 @@ func (s ShortConversationAlias) MatchesConversationID(cid chat1.ConversationID) 
 	return strings.HasPrefix(string(MakeFullConversationAlias(cid)), string(s))
 }
 
-func ConversationAliasPrefixNumOfBytes(
-	aliases []FullConversationAlias, minimumNumOfBytes int) (int, error) {
-	if minimumNumOfBytes < 1 {
-		minimumNumOfBytes = 1
+// ConversationIDGetter represents a group of conversation IDs.
+type ConversationIDGetter interface {
+	GetConversationID(index int) chat1.ConversationID
+	Len() int
+}
+
+// ConversationAliasShortener shortens conversation ID aliases. It's not safe
+// to use it from multiple go routines.
+type ConversationAliasShortener struct {
+	shortened         []ShortConversationAlias
+	idGetter          ConversationIDGetter
+	minimumNumOfBytes int
+}
+
+// NewConversationAliasShortener creates an ConversationAliasShortener. During
+// the lifetime of a ConversationAliasShortener, any call to any method in this
+// interface with the same argument should return the same value.
+func NewConversationAliasShortener(idGetter ConversationIDGetter, minimumNumOfBytes int) *ConversationAliasShortener {
+	return &ConversationAliasShortener{
+		idGetter:          idGetter,
+		minimumNumOfBytes: minimumNumOfBytes,
 	}
-	if len(aliases) == 0 {
-		return minimumNumOfBytes, nil
+}
+
+func (s *ConversationAliasShortener) shorten() {
+	if s.shortened != nil {
+		return
 	}
 
-	totalBytes := aliases[0].MustGetNumOfBytes()
+	if s.idGetter.Len() == 0 {
+		return
+	}
+
+	s.shortened = make([]ShortConversationAlias, s.idGetter.Len())
+
+	if s.minimumNumOfBytes < 1 {
+		s.minimumNumOfBytes = 1
+	}
+
+	aliases := make([]FullConversationAlias, 0, s.idGetter.Len())
+	for i := 0; i < s.idGetter.Len(); i++ {
+		aliases = append(aliases, MakeFullConversationAlias(s.idGetter.GetConversationID(i)))
+	}
+
+	totalBytes := aliases[0].NumOfBytes()
 numOfBytesFinder:
-	for numOfBytes := minimumNumOfBytes; numOfBytes < totalBytes; numOfBytes++ {
+	for numOfBytes := s.minimumNumOfBytes; numOfBytes < totalBytes; numOfBytes++ {
 		existing := make(map[ShortConversationAlias]bool)
-		for _, alias := range aliases {
-			shortened := alias.MustShorten(numOfBytes)
-			if existing[shortened] {
+		for i, alias := range aliases {
+			s.shortened[i] = alias.Shorten(numOfBytes)
+			if existing[s.shortened[i]] {
 				// With a reasonable minimumNumOfBytes, this should rarely happen, and
 				// even it happens, it should be still reasonably fast. So we are not
 				// bothering with using a trie.
 				continue numOfBytesFinder
 			}
-			existing[shortened] = true
+			existing[s.shortened[i]] = true
 		}
-		return numOfBytes, nil
+		return
 	}
 
-	return -1, errors.New("duplicate conversation IDs")
+	panic("duplicate conversation IDs")
+}
+
+// Shorten returns a ShortConversationAlias of conversation ID at index from
+// the internal ConversationIDGetter. Caller needs to ensure index < Len() of
+// the internal ConversationIDGetter.
+func (s *ConversationAliasShortener) Shorten(index int) ShortConversationAlias {
+	s.shorten()
+	return s.shortened[index]
+}
+
+func (s *ConversationAliasShortener) ShortenedLength() int {
+	if s.idGetter.Len() == 0 {
+		return 0
+	}
+	s.shorten()
+	return len(s.shortened[0])
 }

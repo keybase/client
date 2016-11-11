@@ -37,34 +37,34 @@ func (e MultipleConversationFoundError) Error() string {
 	return "multiple conversation found"
 }
 
-type ChatTLFNameCookerRequest struct {
+type ChatTLFNameModifierRequest struct {
 	Raw      string
 	IsPublic bool
 }
 
-type ChatTLFNameCooker interface {
-	Cook(ctx context.Context, req ChatTLFNameCookerRequest) (cooked string, err error)
+type ChatTLFNameModifier interface {
+	Modify(ctx context.Context, req ChatTLFNameModifierRequest) (modified string, err error)
 }
 
-type chatCLITLFNameCooker struct {
+type chatCLITLFNameModifier struct {
 	tlfClient  keybase1.TlfInterface
 	terminalUI libkb.TerminalUI
 
-	hippocampus map[ChatTLFNameCookerRequest]string
+	memorized map[ChatTLFNameModifierRequest]string
 }
 
-func newChatCLITLFNameCooker(tlfClient keybase1.TlfInterface, terminalUI libkb.TerminalUI) *chatCLITLFNameCooker {
-	return &chatCLITLFNameCooker{
-		tlfClient:   tlfClient,
-		terminalUI:  terminalUI,
-		hippocampus: make(map[ChatTLFNameCookerRequest]string),
+func newChatCLITLFNameModifier(tlfClient keybase1.TlfInterface, terminalUI libkb.TerminalUI) *chatCLITLFNameModifier {
+	return &chatCLITLFNameModifier{
+		tlfClient:  tlfClient,
+		terminalUI: terminalUI,
+		memorized:  make(map[ChatTLFNameModifierRequest]string),
 	}
 }
 
-func (c *chatCLITLFNameCooker) Cook(
-	ctx context.Context, req ChatTLFNameCookerRequest) (cooked string, err error) {
-	if cooked, ok := c.hippocampus[req]; ok {
-		return cooked, nil
+func (c *chatCLITLFNameModifier) Modify(
+	ctx context.Context, req ChatTLFNameModifierRequest) (modified string, err error) {
+	if modified, ok := c.memorized[req]; ok {
+		return modified, nil
 	}
 
 	query := keybase1.TLFQuery{
@@ -76,26 +76,26 @@ func (c *chatCLITLFNameCooker) Cook(
 		if err != nil {
 			return "", fmt.Errorf("canonicalizing TLF name error: %v", err)
 		}
-		cooked = string(res.CanonicalName)
+		modified = string(res.CanonicalName)
 	} else {
 		res, err := c.tlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, query)
 		if err != nil {
 			return "", fmt.Errorf("completing and canonicalizing TLF name error: %v", err)
 		}
-		cooked = string(res.CanonicalName)
+		modified = string(res.CanonicalName)
 	}
-	c.hippocampus[req] = cooked
+	c.memorized[req] = modified
 
-	if req.Raw != cooked {
-		c.terminalUI.Printf("Using TLF name: %s\n", cooked)
+	if req.Raw != modified {
+		c.terminalUI.Printf("Using TLF name: %s\n", modified)
 	}
 
-	return cooked, nil
+	return modified, nil
 }
 
 type ChatConversationResolvingRequest interface {
-	GetInboxAndUnboxLocalArg(ctx context.Context, cooker ChatTLFNameCooker) (chat1.GetInboxAndUnboxLocalArg, error)
-	NewConversationLocalArg(ctx context.Context, cooker ChatTLFNameCooker) (chat1.NewConversationLocalArg, error)
+	GetInboxAndUnboxLocalArg(ctx context.Context, modifier ChatTLFNameModifier) (chat1.GetInboxAndUnboxLocalArg, error)
+	NewConversationLocalArg(ctx context.Context, modifier ChatTLFNameModifier) (chat1.NewConversationLocalArg, error)
 	Pick([]chat1.ConversationInfoLocal) []chat1.ConversationInfoLocal
 }
 
@@ -103,11 +103,11 @@ type chatCLIAliasResolvingRequest struct {
 	alias ShortConversationAlias
 }
 
-func (r chatCLIAliasResolvingRequest) GetInboxAndUnboxLocalArg(ctx context.Context, cooker ChatTLFNameCooker) (chat1.GetInboxAndUnboxLocalArg, error) {
+func (r chatCLIAliasResolvingRequest) GetInboxAndUnboxLocalArg(ctx context.Context, modifier ChatTLFNameModifier) (chat1.GetInboxAndUnboxLocalArg, error) {
 	return chat1.GetInboxAndUnboxLocalArg{}, nil
 }
 
-func (r chatCLIAliasResolvingRequest) NewConversationLocalArg(ctx context.Context, cooker ChatTLFNameCooker) (chat1.NewConversationLocalArg, error) {
+func (r chatCLIAliasResolvingRequest) NewConversationLocalArg(ctx context.Context, modifier ChatTLFNameModifier) (chat1.NewConversationLocalArg, error) {
 	return chat1.NewConversationLocalArg{}, NewConvWithAliasError{}
 }
 
@@ -127,7 +127,7 @@ type chatCLIResolvingRequest struct {
 	Visibility chat1.TLFVisibility
 }
 
-func (r chatCLIResolvingRequest) GetInboxAndUnboxLocalArg(ctx context.Context, cooker ChatTLFNameCooker) (chat1.GetInboxAndUnboxLocalArg, error) {
+func (r chatCLIResolvingRequest) GetInboxAndUnboxLocalArg(ctx context.Context, modifier ChatTLFNameModifier) (chat1.GetInboxAndUnboxLocalArg, error) {
 	if len(r.TopicName) > 0 && r.TopicType == chat1.TopicType_CHAT {
 		return chat1.GetInboxAndUnboxLocalArg{},
 			errors.New("we are not supporting setting topic name for chat conversations yet")
@@ -135,7 +135,7 @@ func (r chatCLIResolvingRequest) GetInboxAndUnboxLocalArg(ctx context.Context, c
 
 	var tlfName *string
 	if len(r.TlfName) > 0 {
-		cTlfName, err := cooker.Cook(ctx, ChatTLFNameCookerRequest{
+		cTlfName, err := modifier.Modify(ctx, ChatTLFNameModifierRequest{
 			Raw:      r.TlfName,
 			IsPublic: r.Visibility == chat1.TLFVisibility_PUBLIC,
 		})
@@ -160,11 +160,11 @@ func (r chatCLIResolvingRequest) GetInboxAndUnboxLocalArg(ctx context.Context, c
 	}, nil
 }
 
-func (r chatCLIResolvingRequest) NewConversationLocalArg(ctx context.Context, cooker ChatTLFNameCooker) (chat1.NewConversationLocalArg, error) {
+func (r chatCLIResolvingRequest) NewConversationLocalArg(ctx context.Context, modifier ChatTLFNameModifier) (chat1.NewConversationLocalArg, error) {
 	if len(r.TlfName) == 0 {
 		return chat1.NewConversationLocalArg{}, NewConvWithoutTLFNameError{}
 	}
-	cTlfName, err := cooker.Cook(ctx, ChatTLFNameCookerRequest{
+	cTlfName, err := modifier.Modify(ctx, ChatTLFNameModifierRequest{
 		Raw:      r.TlfName,
 		IsPublic: r.Visibility == chat1.TLFVisibility_PUBLIC,
 	})
@@ -194,10 +194,10 @@ type ChatConversationResolver struct {
 }
 
 func (r *ChatConversationResolver) resolve(
-	ctx context.Context, req ChatConversationResolvingRequest, cooker ChatTLFNameCooker) (
+	ctx context.Context, req ChatConversationResolvingRequest, modifier ChatTLFNameModifier) (
 	conversations []chat1.ConversationInfoLocal, err error) {
 
-	giarg, err := req.GetInboxAndUnboxLocalArg(ctx, cooker)
+	giarg, err := req.GetInboxAndUnboxLocalArg(ctx, modifier)
 	if err != nil {
 		return nil, err
 	}
@@ -215,10 +215,10 @@ func (r *ChatConversationResolver) resolve(
 }
 
 func (r *ChatConversationResolver) create(
-	ctx context.Context, req ChatConversationResolvingRequest, cooker ChatTLFNameCooker) (
+	ctx context.Context, req ChatConversationResolvingRequest, modifier ChatTLFNameModifier) (
 	conversationInfo *chat1.ConversationInfoLocal, err error) {
 
-	ncarg, err := req.NewConversationLocalArg(ctx, cooker)
+	ncarg, err := req.NewConversationLocalArg(ctx, modifier)
 	if err != nil {
 		return nil, err
 	}
@@ -233,15 +233,15 @@ func (r *ChatConversationResolver) Resolve(
 	ctx context.Context, req ChatConversationResolvingRequest, terminalUI libkb.TerminalUI) (
 	conversationInfo *chat1.ConversationInfoLocal, err error) {
 
-	var cooker ChatTLFNameCooker
+	var modifier ChatTLFNameModifier
 	if terminalUI != nil {
-		cooker = newChatCLITLFNameCooker(r.TlfClient, terminalUI)
+		modifier = newChatCLITLFNameModifier(r.TlfClient, terminalUI)
 	} else {
-		// set cooker here for non-CLI
+		// set modifier here for non-CLI
 		return nil, errors.New("unimplemented")
 	}
 
-	convs, err := r.resolve(ctx, req, cooker)
+	convs, err := r.resolve(ctx, req, modifier)
 	if err != nil {
 		return nil, err
 	}
@@ -260,22 +260,22 @@ func (r *ChatConversationResolver) ResolveOrCreate(
 	ctx context.Context, req ChatConversationResolvingRequest, terminalUI libkb.TerminalUI) (
 	conversationInfo *chat1.ConversationInfoLocal, err error) {
 
-	var cooker ChatTLFNameCooker
+	var modifier ChatTLFNameModifier
 	if terminalUI != nil {
-		cooker = newChatCLITLFNameCooker(r.TlfClient, terminalUI)
+		modifier = newChatCLITLFNameModifier(r.TlfClient, terminalUI)
 	} else {
-		// set cooker here for non-CLI
+		// set modifier here for non-CLI
 		return nil, errors.New("unimplemented")
 	}
 
-	convs, err := r.resolve(ctx, req, cooker)
+	convs, err := r.resolve(ctx, req, modifier)
 	if err != nil {
 		return nil, err
 	}
 
 	switch len(convs) {
 	case 0:
-		conv, err := r.create(ctx, req, cooker)
+		conv, err := r.create(ctx, req, modifier)
 		if err != nil {
 			return nil, err
 		}

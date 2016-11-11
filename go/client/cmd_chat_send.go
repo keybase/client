@@ -85,7 +85,7 @@ func (c *cmdChatSend) Run() (err error) {
 		msg.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: ""})
 	default:
 		if len(c.message) == 0 {
-			return errors.New("Empty message. What do you want to send?")
+			return errors.New("message content required")
 		}
 
 		msg.ClientHeader.MessageType = chat1.MessageType_TEXT
@@ -118,7 +118,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	var tlfName string
 	if len(ctx.Args()) < 1 {
-		return errors.New("TLF name empty. What conversation do you want to send to?")
+		return errors.New("conversation participants empty")
 	}
 	// Get the TLF name from the first position arg
 	tlfName = ctx.Args().Get(0)

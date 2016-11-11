@@ -35,7 +35,7 @@ func (c *CmdChatHide) ParseArgv(ctx *cli.Context) error {
 
 	if len(ctx.Args()) != 1 {
 		cli.ShowCommandHelp(ctx, "send")
-		return errors.New("Expecting exactly 1 args")
+		return errors.New("Expecting exactly 1 arg")
 	}
 	tlfName := ctx.Args().Get(0)
 

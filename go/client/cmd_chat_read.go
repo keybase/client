@@ -62,7 +62,7 @@ func (c *cmdChatRead) Run() error {
 func (c *cmdChatRead) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 1 {
 		cli.ShowCommandHelp(ctx, "send")
-		return errors.New("Expecting exactly 1 args")
+		return errors.New("Expecting exactly 1 arg")
 	}
 	tlfName := ctx.Args().Get(0)
 	if c.fetcher, err = makeChatCLIConversationFetcher(ctx, tlfName, true); err != nil {
