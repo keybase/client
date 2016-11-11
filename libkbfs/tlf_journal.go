@@ -69,6 +69,10 @@ const (
 	// This will be the final entry for unflushed paths if there are
 	// too many revisions to process at once.
 	incompleteUnflushedPathsMarker = "..."
+	// ForcedBranchSquashThreshold is the minimum number of MD
+	// revisions in the journal that will trigger an automatic branch
+	// conversion (and subsequent resolution).
+	ForcedBranchSquashThreshold = 20
 )
 
 // TLFJournalStatus represents the status of a TLF's journal for
@@ -631,6 +635,14 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			return nil
 		}
 
+		converted, err := j.convertMDsToBranchIfOverThreshold(ctx)
+		if err != nil {
+			return err
+		}
+		if converted {
+			return nil
+		}
+
 		blockEnd, mdEnd, err := j.getJournalEnds(ctx)
 		if err != nil {
 			return err
@@ -744,14 +756,7 @@ func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
 	return j.mdJournal.getNextEntryToFlush(ctx, end, j.config.Crypto())
 }
 
-func (j *tlfJournal) convertMDsToBranch(
-	ctx context.Context, nextEntryEnd MetadataRevision) error {
-	j.journalLock.Lock()
-	defer j.journalLock.Unlock()
-	if err := j.checkEnabledLocked(); err != nil {
-		return err
-	}
-
+func (j *tlfJournal) convertMDsToBranchLocked(ctx context.Context) error {
 	bid, err := j.mdJournal.convertToBranch(
 		ctx, j.config.Crypto(), j.config.Codec(), j.tlfID, j.config.MDCache())
 	if err != nil {
@@ -763,6 +768,40 @@ func (j *tlfJournal) convertMDsToBranch(
 	}
 
 	return nil
+}
+
+func (j *tlfJournal) convertMDsToBranch(ctx context.Context) error {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return err
+	}
+
+	return j.convertMDsToBranchLocked(ctx)
+}
+
+func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
+	bool, error) {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return false, err
+	}
+
+	size, err := j.mdJournal.length()
+	if err != nil {
+		return false, err
+	}
+	if size < ForcedBranchSquashThreshold {
+		return false, nil
+	}
+
+	j.log.CDebugf(ctx, "Converting journal of length %d to branch", size)
+	err = j.convertMDsToBranchLocked(ctx)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
@@ -831,7 +870,7 @@ func (j *tlfJournal) flushOneMDOp(
 			j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
 			// Convert MDs to a branch and return -- the journal
 			// pauses until the resolution is complete.
-			err = j.convertMDsToBranch(ctx, end)
+			err = j.convertMDsToBranch(ctx)
 			if err != nil {
 				return false, err
 			}
