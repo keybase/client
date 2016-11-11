@@ -14,5 +14,6 @@ import (
 type KeybaseContext interface {
 	GetLog() logger.Logger
 	LoadUserByUID(uid keybase1.UID) (*libkb.User, error)
+	UIDToUsername(uid keybase1.UID) (libkb.NormalizedUsername, error)
 	Clock() clockwork.Clock
 }
