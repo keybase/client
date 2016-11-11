@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"fmt"
 	"strings"
+
+	"github.com/keybase/kbfs/tlf"
 )
 
 // PathType describes the types for different paths
@@ -51,6 +53,14 @@ func buildCanonicalPathForTlfName(public bool, tlfName CanonicalTlfName) string 
 		pathType = PublicPathType
 	}
 	return BuildCanonicalPath(pathType, string(tlfName))
+}
+
+func buildCanonicalPathForTlf(tlf tlf.ID, paths ...string) string {
+	pathType := PrivatePathType
+	if tlf.IsPublic() {
+		pathType = PublicPathType
+	}
+	return BuildCanonicalPath(pathType, paths...)
 }
 
 // path represents the full KBFS path to a particular location, so
@@ -111,6 +121,15 @@ func (p path) String() string {
 		names = append(names, node.Name)
 	}
 	return strings.Join(names, "/")
+}
+
+// CanonicalPathString returns canonical representation of the full path,
+// always prefaced by /keybase. This may require conversion to a platform
+// specific path, for example, by replacing /keybase with the appropriate drive
+// letter on Windows. It also, might need conversion if on a different run mode,
+// for example, /keybase.staging on Unix type platforms.
+func (p path) CanonicalPathString() string {
+	return buildCanonicalPathForTlf(p.Tlf, p.String())
 }
 
 // parentPath returns a new Path representing the parent subdirectory

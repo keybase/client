@@ -311,7 +311,7 @@ func fileRenameNotification(oldFile path, newFile path, writer keybase1.UID,
 	localTime time.Time) *keybase1.FSNotification {
 	n := baseFileEditNotification(newFile, writer, localTime)
 	n.NotificationType = keybase1.FSNotificationType_FILE_RENAMED
-	n.Params = map[string]string{errorParamRenameOldFilename: oldFile.String()}
+	n.Params = map[string]string{errorParamRenameOldFilename: oldFile.CanonicalPathString()}
 	return n
 }
 
@@ -335,7 +335,7 @@ func baseNotification(file path, finish bool) *keybase1.FSNotification {
 
 	return &keybase1.FSNotification{
 		PublicTopLevelFolder: file.Tlf.IsPublic(),
-		Filename:             file.String(),
+		Filename:             file.CanonicalPathString(),
 		StatusCode:           code,
 	}
 }
