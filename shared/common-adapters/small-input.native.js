@@ -1,8 +1,9 @@
 // @flow
 import React from 'react'
 import type {SmallInputProps} from './small-input'
-import {Box, Text, NativeTextInput} from './index.native'
-import {getStyle} from './text'
+import {NativeTextInput} from './native-wrappers.native'
+import Box from './box'
+import Text, {getStyle} from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {isAndroid} from '../constants/platform'
 

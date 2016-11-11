@@ -19,7 +19,6 @@ makeEngine()
 hello(process.pid, 'Menubar', process.argv, __VERSION__) // eslint-disable-line no-undef
 
 if (module.hot) {
-  // $FlowIssue
   module.hot.accept()
 }
 

@@ -54,6 +54,12 @@ declare class Notification { }
 declare var __VERSION__: string;
 declare var __DEV__: boolean;
 declare var __SCREENSHOT__: boolean;
+declare var module: {
+  hot?: {
+    accept: any;
+    dispose: any;
+  }
+};
 
 // Algebraic data types
 // This is a bit hacky, but it gives you strong guarantees.

@@ -25,6 +25,10 @@ import {navigateTo, routeAppend, navigateUp, switchTab} from '../router'
 import {overrideLoggedInTab} from '../../local-debug'
 import {RPCError} from '../../util/errors'
 
+module.hot && module.hot.accept(() => {
+  console.log('accepted update in actions/login')
+})
+
 const InputCancelError = {desc: 'Cancel Login', code: ConstantsStatusCode.scinputcanceled}
 
 function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {

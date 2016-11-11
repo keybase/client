@@ -1,9 +1,11 @@
 // @flow
 import React, {Component} from 'react'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
-import type {Props, MenuItem} from './popup-menu'
-import {Box, Text} from '../common-adapters/index'
+import Box from './box'
+import Text from './text'
 import {globalColors, globalMargins, globalStyles} from '../styles'
+
+import type {Props, MenuItem} from './popup-menu'
 
 // Menu Item
 type MenuItemProps = MenuItem & {

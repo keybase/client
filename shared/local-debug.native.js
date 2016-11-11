@@ -26,6 +26,7 @@ let config: {[key: string]: any} = {
   logStatFrequency: 0,
   actionStatFrequency: 0,
   isTesting: nativeBridge.test === '1',
+  dumbSheetOnly: false,
 }
 
 if (__DEV__ && true) {
@@ -45,6 +46,7 @@ if (__DEV__ && true) {
   }
   config.overrideLoggedInTab = Tabs.settingsTab
   config.printRoutes = true
+  config.dumbSheetOnly = false
 }
 
 export const {
@@ -64,6 +66,7 @@ export const {
   logStatFrequency,
   actionStatFrequency,
   isTesting,
+  dumbSheetOnly,
 } = config
 
 export function initTabbedRouterState () {
@@ -78,7 +81,6 @@ export function setup (store: any) {
   const updateLiveConfig = () => store.dispatch(updateDebugConfig(require('./local-debug-live')))
 
   if (module.hot) {
-    // $FlowIssue
     module.hot.accept(() => updateLiveConfig())
   }
   updateLiveConfig()

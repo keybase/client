@@ -102,7 +102,6 @@ export default function configureStore (initialState: any) {
   theStore = store
 
   if (module.hot && !isMobile) {
-    // $FlowIssue
     module.hot.accept('../reducers', () => {
       store.replaceReducer(require('../reducers').default)
     })
