@@ -52,6 +52,13 @@ func (f FullConversationAlias) ToConversationIDOrBust() chat1.ConversationID {
 	return cid
 }
 
+func MakeShortConversationAlias(str string) (ShortConversationAlias, bool) {
+	if len(str) <= 1 || !strings.HasPrefix(str, ":") {
+		return "", false
+	}
+	return ShortConversationAlias(str), true
+}
+
 func (s ShortConversationAlias) MatchesFullAlias(f FullConversationAlias) bool {
 	return strings.HasPrefix(string(f), string(s))
 }

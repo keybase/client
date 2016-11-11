@@ -14,7 +14,7 @@ import (
 
 type chatCLIConversationFetcher struct {
 	query            chat1.GetConversationForCLILocalQuery
-	resolvingRequest chatConversationResolvingRequest
+	resolvingRequest ChatConversationResolvingRequest
 }
 
 func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations chat1.ConversationLocal, messages []chat1.MessageUnboxed, err error) {
@@ -22,16 +22,16 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, fmt.Errorf("Getting chat service client error: %s", err)
 	}
-	resolver := &chatConversationResolver{G: g, ChatClient: chatClient}
-	resolver.TlfClient, err = GetTlfClient(g)
+	tlfClient, err := GetTlfClient(g)
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, err
 	}
+	resolver := &ChatConversationResolver{
+		ChatClient: chatClient,
+		TlfClient:  tlfClient,
+	}
 
-	conversationInfo, _, err := resolver.Resolve(ctx, f.resolvingRequest, chatConversationResolvingBehavior{
-		CreateIfNotExists: false,
-		Interactive:       true,
-	})
+	conversationInfo, err := resolver.Resolve(ctx, f.resolvingRequest, g.UI.GetTerminalUI())
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, fmt.Errorf("resolving conversation error: %v\n", err)
 	}

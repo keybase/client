@@ -35,10 +35,6 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "clear-headline",
 		Usage: `Clear the headline for the conversation`,
 	},
-	"stdin": cli.BoolFlag{
-		Name:  "stdin",
-		Usage: "Use STDIN for message content. [conversation] is required and [message] is ignored.",
-	},
 	"at-most": cli.IntFlag{
 		Name:  "at-most",
 		Usage: `Show at most this number of items. Only effective when > 0. "keybase chat" tries to show n+2 items, where n is # of unread items. --at-most caps the total number of items possibly shown in case there are too many unread items.`,
@@ -131,21 +127,29 @@ func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, er
 	return topicType, err
 }
 
-func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req chatConversationResolvingRequest, err error) {
-	req.TopicName = ctx.String("topic-name")
-	req.TlfName = tlfName
-	if req.TopicType, err = parseConversationTopicType(ctx); err != nil {
-		return chatConversationResolvingRequest{}, err
-	}
-	if req.TopicType == chat1.TopicType_CHAT && len(req.TopicName) != 0 {
-		return chatConversationResolvingRequest{}, errors.New("multiple topics are not yet supported")
-	}
-	if ctx.Bool("private") {
-		req.Visibility = chat1.TLFVisibility_PRIVATE
-	} else if ctx.Bool("public") {
-		req.Visibility = chat1.TLFVisibility_PUBLIC
+func parseConversationResolvingRequest(ctx *cli.Context, tlfNameOrAlias string) (req ChatConversationResolvingRequest, err error) {
+	if alias, ok := MakeShortConversationAlias(tlfNameOrAlias); ok {
+		req = chatCLIAliasResolvingRequest{
+			alias: alias,
+		}
 	} else {
-		req.Visibility = chat1.TLFVisibility_ANY
+		var theReq chatCLIResolvingRequest
+		theReq.TopicName = ctx.String("topic-name")
+		theReq.TlfName = tlfNameOrAlias
+		if theReq.TopicType, err = parseConversationTopicType(ctx); err != nil {
+			return nil, err
+		}
+		if theReq.TopicType == chat1.TopicType_CHAT && len(theReq.TopicName) != 0 {
+			return nil, errors.New("multiple topics are not yet supported")
+		}
+		if ctx.Bool("private") {
+			theReq.Visibility = chat1.TLFVisibility_PRIVATE
+		} else if ctx.Bool("public") {
+			theReq.Visibility = chat1.TLFVisibility_PUBLIC
+		} else {
+			theReq.Visibility = chat1.TLFVisibility_ANY
+		}
+		req = theReq
 	}
 	return req, nil
 }
