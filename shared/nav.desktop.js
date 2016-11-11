@@ -42,6 +42,7 @@ type Props = {
   navigateBack: () => void,
   navigateUp: () => void,
   folderBadge: number,
+  chatBadge: number,
   searchActive: boolean,
   setSearchActive: (active: boolean) => void,
 }
@@ -113,6 +114,10 @@ class Nav extends Component<void, Props, void> {
       return true
     }
 
+    if (this.props.chatBadge !== nextProps.chatBadge) {
+      return true
+    }
+
     if (this.props.menuBadge !== nextProps.menuBadge) {
       ipcRenderer.send('showTray', nextProps.menuBadge)
     }
@@ -170,7 +175,7 @@ class Nav extends Component<void, Props, void> {
           searchActive={this.props.searchActive}
           username={this.props.username}
           searchContent={<Search />}
-          badgeNumbers={{[folderTab]: this.props.folderBadge}}
+          badgeNumbers={{[folderTab]: this.props.folderBadge, [chatTab]: this.props.chatBadge}}
           tabContent={tabContent} />
         <GlobalError />
       </div>
@@ -190,14 +195,14 @@ export default connect(
     search: {searchActive},
     router,
     config: {extendedConfig, username},
-    favorite: {publicBadge = 0, privateBadge = 0},
-    notifications: {menuBadge}}) => ({
+    notifications: {menuBadge, menuNotifications}}) => ({
       router,
       searchActive,
       provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
       username,
       menuBadge,
-      folderBadge: publicBadge + privateBadge,
+      folderBadge: menuNotifications.folderBadge,
+      chatBadge: menuNotifications.chatBadge,
     }),
   dispatch => {
     return {

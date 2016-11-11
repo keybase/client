@@ -1,10 +1,11 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
+import {List} from 'immutable'
 
-import type {Actions, State, ConversationState} from '../constants/chat'
+import type {Actions, State, ConversationState, AppendMessages, Message} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord} = Constants
+const {StateRecord, ConversationStateRecord, makeSnippet} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -26,19 +27,50 @@ function reducer (state: State = initialState, action: Actions) {
             .set('isLoading', false)
         })
 
-      return state.set('conversationStates', newConversationStates)
+      // Reset the unread count
+      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
+
+      return state
+        .set('conversationStates', newConversationStates)
+        .set('inbox', newInboxStates)
     }
     case Constants.appendMessages: {
-      const appendMessages = action.payload.messages
+      const appendAction: AppendMessages = action
+      const appendMessages = appendAction.payload.messages
+      const message: Message = appendMessages[0]
+      const conversationIDKey = appendAction.payload.conversationIDKey
       const newConversationStates = state.get('conversationStates').update(
-        action.payload.conversationIDKey,
+        conversationIDKey,
         initialConversation,
         conversation => conversation.set('messages', conversation.get('messages').push(...appendMessages)))
 
-      return state.set('conversationStates', newConversationStates)
+      const isSelected = state.get('selectedConversation') === action.payload.conversationIDKey
+      let snippet
+      try {
+        // $FlowIssue doens't understand try
+        snippet = makeSnippet(message.message.stringValue(), 100)
+      } catch (_) { }
+
+      const newInboxStates = state.get('inbox').map(inbox => (
+        inbox.get('conversationIDKey') !== conversationIDKey
+          ? inbox
+          : inbox
+            .set('unreadCount', isSelected ? 0 : inbox.get('unreadCount') + appendMessages.length)
+            .set('time', message.timestamp)
+            .set('snippet', snippet)
+      ))
+
+      return state
+        .set('conversationStates', newConversationStates)
+        .set('inbox', newInboxStates)
     }
     case Constants.selectConversation:
-      return state.set('selectedConversation', action.payload.conversationIDKey)
+      const conversationIDKey = action.payload.conversationIDKey
+      // Set unread to zero
+      const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
+      return state
+        .set('selectedConversation', conversationIDKey)
+        .set('inbox', newInboxStates)
     case Constants.loadingMessages: {
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,

@@ -10,7 +10,6 @@ import type {BadgeType} from '../shared/constants/notifications'
 let iconType: BadgeType = 'regular'
 
 const isMacOS = process.platform === 'darwin'
-
 const isDarkMode = () => isMacOS && systemPreferences && systemPreferences.isDarkMode()
 
 const getIcon = (invertColors) => {
@@ -35,8 +34,9 @@ export default function () {
     index: resolveRootAsURL('renderer', 'renderer.html?menubar'),
     width: 320,
     height: 350,
-    frame: false,
     resizable: false,
+    hasShadow: true,
+    transparent: true,
     preloadWindow: true,
     icon: getIcon(false),
     // Without this flag set, menubar will hide the dock icon when the app

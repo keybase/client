@@ -88,6 +88,7 @@ export default function () {
   ipcMain.on('showMain', () => {
     console.log('Show main window (requested)')
     mainWindow.show(true)
+    mainWindow.window && mainWindow.window.focus()
   })
 
   ipcMain.on('tabChanged', (event, tab) => {

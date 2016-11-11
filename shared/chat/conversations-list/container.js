@@ -9,6 +9,7 @@ import type {TypedState} from '../../constants/reducer'
 export default connect(
   (state: TypedState) => ({
     inbox: state.chat.get('inbox'),
+    selectedConversation: state.chat.get('selectedConversation'),
   }),
   (dispatch: Dispatch) => ({
     onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key)),

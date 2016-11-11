@@ -224,8 +224,8 @@ const stylesNavIconSelected = {
 }
 
 const styleBadgeNav = {
-  position: 'relative',
-  left: 20,
+  position: 'absolute',
+  right: 13,
   top: 10,
 }
 
