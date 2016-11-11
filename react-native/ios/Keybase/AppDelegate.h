@@ -12,7 +12,7 @@
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
-@property (nonatomic, strong) UIWindow *window;
-@property (nonatomic, strong) Engine * engine;
+@property (nonatomic) UIWindow *window;
+@property (nonatomic) Engine *engine;
 
 @end

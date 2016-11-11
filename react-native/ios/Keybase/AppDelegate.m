@@ -15,50 +15,40 @@
 #import "LogSend.h"
 
 @interface AppDelegate ()
-
-@property (nonatomic, strong) LogSend * logSender;
-
+@property LogSend *logSender;
 @end
 
 @implementation AppDelegate
 
-- (void) setupGo
-{
-
-  NSNumber * SecurityAccessGroupOverride =
+- (void)setupGo {
 #if SIMULATOR
-  @YES;
+  NSNumber *securityAccessGroupOverride = @YES;
 #else
-  @NO;
+  NSNumber *securityAccessGroupOverride = @NO;
 #endif
 
-  NSString * home = NSHomeDirectory();
+  NSString *home = NSHomeDirectory();
 
-#if TESTING
-#else
-  NSString * logFile = [home stringByAppendingPathComponent:@"ios.log"];
+#if !TESTING
+  NSString *logFile = [home stringByAppendingPathComponent:@"ios.log"];
 
-  NSError * err;
+  NSError *err;
   self.engine = [[Engine alloc] initWithSettings:@{
                                                    @"runmode": @"staging",
                                                    @"homedir": home,
                                                    @"logFile": logFile,
                                                    @"serverURI": @"",
-                                                   @"SecurityAccessGroupOverride": SecurityAccessGroupOverride
+                                                   @"SecurityAccessGroupOverride": securityAccessGroupOverride
                                                    } error:&err];
 
   self.logSender = [[LogSend alloc] initWithPath:logFile];
 #endif
-
 }
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   [self setupGo];
 
-  NSURL *jsCodeLocation;
-
-  jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
+  NSURL *jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"Keybase"

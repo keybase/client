@@ -12,6 +12,6 @@
 
 @interface KeyListener : UIViewController
 
-@property (nonatomic, strong) RCTBridge * bridge;
+@property RCTBridge *bridge;
 
 @end

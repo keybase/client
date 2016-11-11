@@ -11,7 +11,7 @@
 #import <keybase/keybase.h>
 #import "RCTEventDispatcher.h"
 #import "AppDelegate.h"
-#import "Utils.h"
+#import "Testing.h"
 
 @interface Engine ()
 
@@ -113,10 +113,12 @@ RCT_EXPORT_METHOD(reset) {
 }
 
 - (NSDictionary *)constantsToExport {
-  NSString * testVal = [Utils areWeBeingUnitTested] ? @"1" : @"";
-  return @{ @"eventName": eventName,
-            @"test": testVal, 
-            @"version": GoKeybaseVersion()};
+  NSString *testVal = [Testing areWeBeingUnitTested] ? @"1" : @"";
+  return @{
+           @"eventName": eventName,
+           @"test": testVal,
+           @"version": GoKeybaseVersion()
+          };
 }
 
 @end
