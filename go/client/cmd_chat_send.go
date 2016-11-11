@@ -55,7 +55,7 @@ func (c *cmdChatSend) Run() (err error) {
 	resolver := &ChatConversationResolver{ChatClient: chatClient, TlfClient: tlfClient}
 
 	ctx := context.TODO()
-	conversationInfo, err := resolver.Resolve(ctx, c.resolvingRequest, c.G().UI.GetTerminalUI())
+	conversationInfo, err := resolver.ResolveOrCreate(ctx, c.resolvingRequest, c.G().UI.GetTerminalUI())
 	if err != nil {
 		return err
 	}

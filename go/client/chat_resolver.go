@@ -111,13 +111,13 @@ func (r chatCLIAliasResolvingRequest) NewConversationLocalArg(ctx context.Contex
 	return chat1.NewConversationLocalArg{}, NewConvWithAliasError{}
 }
 
-func (r chatCLIAliasResolvingRequest) Pick(old []chat1.ConversationInfoLocal) []chat1.ConversationInfoLocal {
+func (r chatCLIAliasResolvingRequest) Pick(old []chat1.ConversationInfoLocal) (picked []chat1.ConversationInfoLocal) {
 	for _, conv := range old {
 		if r.alias.MatchesConversationID(conv.Id) {
-			return []chat1.ConversationInfoLocal{conv}
+			picked = append(picked, conv)
 		}
 	}
-	return nil
+	return picked
 }
 
 type chatCLIResolvingRequest struct {
