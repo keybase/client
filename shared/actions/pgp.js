@@ -1,7 +1,7 @@
 // @flow
 
 import * as Constants from '../constants/pgp'
-import {takeEvery} from 'redux-saga'
+import {safeTakeEvery} from '../util/saga'
 import {pgpPgpStorageDismissRpc} from '../constants/types/flow-types'
 
 import type {PgpAckedMessage} from '../constants/pgp'
@@ -22,7 +22,7 @@ function * pgpSecurityModelChangeMessageSaga ({payload: {hitOk}}: PgpAckedMessag
 }
 
 function * saga (): any {
-  yield takeEvery(Constants.pgpAckedMessage, pgpSecurityModelChangeMessageSaga)
+  yield safeTakeEvery(Constants.pgpAckedMessage, pgpSecurityModelChangeMessageSaga)
 }
 
 export default saga

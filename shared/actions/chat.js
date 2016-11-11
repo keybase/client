@@ -5,7 +5,7 @@ import engine from '../engine'
 import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalRpcPromise} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
 import {call, put, select} from 'redux-saga/effects'
-import {takeLatest, takeEvery} from 'redux-saga'
+import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {usernameSelector} from '../constants/selectors'
 
 import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler} from '../constants/chat'
@@ -284,13 +284,13 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
 
 function * chatSaga (): SagaGenerator<any, any> {
   yield [
-    takeLatest(Constants.loadInbox, _loadInbox),
-    takeLatest(Constants.loadedInbox, _loadedInbox),
-    takeEvery(Constants.loadMoreMessages, _loadMoreMessages),
-    takeLatest(Constants.selectConversation, _selectConversation),
-    takeEvery(Constants.setupNewChatHandler, _setupNewChatHandler),
-    takeEvery(Constants.incomingMessage, _incomingMessage),
-    takeEvery(Constants.postMessage, _postMessage),
+    safeTakeLatest(Constants.loadInbox, _loadInbox),
+    safeTakeLatest(Constants.loadedInbox, _loadedInbox),
+    safeTakeEvery(Constants.loadMoreMessages, _loadMoreMessages),
+    safeTakeLatest(Constants.selectConversation, _selectConversation),
+    safeTakeEvery(Constants.setupNewChatHandler, _setupNewChatHandler),
+    safeTakeEvery(Constants.incomingMessage, _incomingMessage),
+    safeTakeEvery(Constants.postMessage, _postMessage),
   ]
 }
 

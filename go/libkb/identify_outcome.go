@@ -56,9 +56,19 @@ func (i *IdentifyOutcome) TrackSet() *TrackSet {
 }
 
 func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
+
+	// Treat DNS and Web as the same type, and sort them together
+	// in the same bucket.
+	dnsToWeb := func(t keybase1.ProofType) keybase1.ProofType {
+		if t == keybase1.ProofType_DNS {
+			return keybase1.ProofType_GENERIC_WEB_SITE
+		}
+		return t
+	}
+
 	m := make(map[keybase1.ProofType][]*LinkCheckResult)
 	for _, p := range i.ProofChecks {
-		pt := p.link.GetProofType()
+		pt := dnsToWeb(p.link.GetProofType())
 		m[pt] = append(m[pt], p)
 	}
 

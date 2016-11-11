@@ -3,7 +3,8 @@ import Platform, {OS} from '../constants/platform'
 import React from 'react'
 import _ from 'lodash'
 import type {Props} from './meta'
-import {Text, Box} from './index'
+import Box from './box'
+import Text from './text'
 import {globalColors} from '../styles'
 
 const isAndroid = Platform.OS_ANDROID === OS

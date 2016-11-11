@@ -2,7 +2,8 @@
 import React from 'react'
 import type {IconType} from './icon'
 import type {PlatformsExpandedType} from '../constants/types/more'
-import {Box, Icon} from '../common-adapters'
+import Box from './box'
+import Icon from './icon'
 import {isMobile} from '../constants/platform'
 
 type Props = {

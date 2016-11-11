@@ -5,7 +5,8 @@ import {apiserverGetRpcPromise, apiserverPostRpcPromise, apiserverPostJSONRpcPro
 import {call, put, select, fork, cancel} from 'redux-saga/effects'
 import {routeAppend, navigateUp} from '../actions/router'
 import {setDeletedSelf} from '../actions/login'
-import {takeEvery, takeLatest, delay} from 'redux-saga'
+import {delay} from 'redux-saga'
+import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 
 import type {DeleteAccountForever, Invitation, InvitesReclaim, InvitesReclaimed, InvitesRefresh, InvitesSend, InvitesSent, LoadSettings, NotificationsRefresh, NotificationsSave, NotificationsToggle, OnChangeNewEmail, OnChangeNewPassphrase, OnChangeNewPassphraseConfirm, OnChangeShowPassphrase, OnSubmitNewEmail, OnSubmitNewPassphrase, OnUpdatePGPSettings, OnUpdatedPGPSettings, SetAllowDeleteAccount} from '../constants/settings'
 import type {SagaGenerator} from '../constants/types/saga'
@@ -371,16 +372,16 @@ function * loadSettingsSaga (): SagaGenerator<any, any> {
 
 function * settingsSaga (): SagaGenerator<any, any> {
   yield [
-    takeEvery(Constants.invitesReclaim, reclaimInviteSaga),
-    takeLatest(Constants.invitesRefresh, refreshInvitesSaga),
-    takeEvery(Constants.invitesSend, sendInviteSaga),
-    takeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
-    takeLatest(Constants.notificationsSave, saveNotificationsSaga),
-    takeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga),
-    takeLatest(Constants.loadSettings, loadSettingsSaga),
-    takeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail),
-    takeEvery(Constants.onSubmitNewPassphrase, _onSubmitNewPassphrase),
-    takeEvery(Constants.onUpdatePGPSettings, _onUpdatePGPSettings),
+    safeTakeEvery(Constants.invitesReclaim, reclaimInviteSaga),
+    safeTakeLatest(Constants.invitesRefresh, refreshInvitesSaga),
+    safeTakeEvery(Constants.invitesSend, sendInviteSaga),
+    safeTakeLatest(Constants.notificationsRefresh, refreshNotificationsSaga),
+    safeTakeLatest(Constants.notificationsSave, saveNotificationsSaga),
+    safeTakeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga),
+    safeTakeLatest(Constants.loadSettings, loadSettingsSaga),
+    safeTakeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail),
+    safeTakeEvery(Constants.onSubmitNewPassphrase, _onSubmitNewPassphrase),
+    safeTakeEvery(Constants.onUpdatePGPSettings, _onUpdatePGPSettings),
   ]
 }
 

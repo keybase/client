@@ -1,9 +1,9 @@
 // @flow
 import * as Constants from '../../constants/kbfs'
+import {call, put} from 'redux-saga/effects'
 import {fsListRpcPromise} from '../../constants/types/flow-types'
 import {openSaga} from './index.platform'
-import {call, put} from 'redux-saga/effects'
-import {takeLatest, takeEvery} from 'redux-saga'
+import {safeTakeLatest, safeTakeEvery} from '../../util/saga'
 
 import type {ListResult} from '../../constants/types/flow-types'
 import type {FSList, FSListed, FSOpen} from '../../constants/kbfs'
@@ -34,8 +34,8 @@ function * _listSaga (action: FSList): SagaGenerator<any, any> {
 
 function * kbfsSaga (): SagaGenerator<any, any> {
   yield [
-    takeLatest(Constants.fsList, _listSaga),
-    takeEvery(Constants.fsOpen, openSaga),
+    safeTakeLatest(Constants.fsList, _listSaga),
+    safeTakeEvery(Constants.fsOpen, openSaga),
   ]
 }
 

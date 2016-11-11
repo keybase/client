@@ -21,6 +21,9 @@ const initialState: FavoriteState = {
     publicIgnoredOpen: false,
     privateIgnoredOpen: false,
   },
+  kbfsStatus: {
+    isAsyncWriteHappening: false,
+  },
 }
 
 export default function (state: FavoriteState = initialState, action: FavoriteAction): FavoriteState {
@@ -90,6 +93,12 @@ export default function (state: FavoriteState = initialState, action: FavoriteAc
           publicIgnoredOpen: action.payload.isPrivate ? state.viewState.publicIgnoredOpen : !state.viewState.publicIgnoredOpen,
           privateIgnoredOpen: action.payload.isPrivate ? !state.viewState.privateIgnoredOpen : state.viewState.privateIgnoredOpen,
         },
+      }
+
+    case Constants.kbfsStatusUpdated:
+      return {
+        ...state,
+        kbfsStatus: action.payload,
       }
 
     default:

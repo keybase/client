@@ -1,7 +1,9 @@
 // @flow
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import {Box, Avatar, Text} from './'
+import Box from './box'
+import Avatar from './avatar'
+import Text from './text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 

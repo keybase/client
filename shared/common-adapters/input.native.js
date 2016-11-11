@@ -2,8 +2,9 @@
 import Platform, {OS} from '../constants/platform'
 import React, {Component} from 'react'
 import type {Props} from './input'
-import {Box, Text, NativeTextInput} from './index.native'
-import {getStyle} from './text'
+import Box from './box'
+import Text, {getStyle} from './text'
+import {NativeTextInput} from './native-wrappers.native'
 import {globalColors, globalStyles} from '../styles'
 
 /* ==========

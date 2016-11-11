@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {NativeText} from './index.native'
+import {NativeText} from './native-wrappers.native'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 
 import type {Props, TextType, Background} from './text'
@@ -28,11 +28,11 @@ class Text extends Component<void, Props, void> {
   }
 }
 
-function getStyle (type: TextType, backgroundMode?: ?Background, lineClampNum?: ?number, clickable?: ?boolean) {
+function getStyle (type: TextType, backgroundMode?: Background = 'Normal', lineClampNum?: ?number, clickable?: ?boolean) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
-  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode || 'Normal'] || defaultColor(backgroundMode)}
-  const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
+  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
+  const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecorationLine: 'underline'} : {}
 
   return {
     ...sizeStyle,

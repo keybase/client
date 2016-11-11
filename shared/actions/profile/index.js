@@ -10,7 +10,7 @@ import {getMyProfile} from '.././tracker'
 import {navigateUp, routeAppend, switchTab} from '../../actions/router'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
-import {takeEvery} from 'redux-saga'
+import {safeTakeEvery} from '../../util/saga'
 
 import type {BackToProfile, EditProfile, FinishRevokeProof, FinishRevoking, OnClickAvatar, OnClickFollowers, OnClickFollowing, OnUserClick, OutputInstructionsActionLink, State, SubmitRevokeProof, UpdateUsername, WaitingRevokeProof} from '../../constants/profile'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -205,15 +205,15 @@ function * _backToProfile (): SagaGenerator<any, any> {
 
 function * _profileSaga (): SagaGenerator<any, any> {
   yield [
-    takeEvery(Constants.backToProfile, _backToProfile),
-    takeEvery(Constants.editProfile, _editProfile),
-    takeEvery(Constants.finishRevoking, _finishRevoking),
-    takeEvery(Constants.onClickAvatar, _onClickAvatar),
-    takeEvery(Constants.onClickFollowers, _onClickFollowers),
-    takeEvery(Constants.onClickFollowing, _onClickFollowing),
-    takeEvery(Constants.onUserClick, _onUserClick),
-    takeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink),
-    takeEvery(Constants.submitRevokeProof, _submitRevokeProof),
+    safeTakeEvery(Constants.backToProfile, _backToProfile),
+    safeTakeEvery(Constants.editProfile, _editProfile),
+    safeTakeEvery(Constants.finishRevoking, _finishRevoking),
+    safeTakeEvery(Constants.onClickAvatar, _onClickAvatar),
+    safeTakeEvery(Constants.onClickFollowers, _onClickFollowers),
+    safeTakeEvery(Constants.onClickFollowing, _onClickFollowing),
+    safeTakeEvery(Constants.onUserClick, _onUserClick),
+    safeTakeEvery(Constants.outputInstructionsActionLink, _outputInstructionsActionLink),
+    safeTakeEvery(Constants.submitRevokeProof, _submitRevokeProof),
   ]
 }
 

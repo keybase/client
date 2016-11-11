@@ -1,7 +1,7 @@
 // @flow
 
 import {call, put, select} from 'redux-saga/effects'
-import {takeLatest} from 'redux-saga'
+import {safeTakeLatest} from '../util/saga'
 import * as Constants from '../constants/plan-billing'
 import {apiserverGetRpcPromise, apiserverPostRpcPromise} from '../constants/types/flow-types'
 
@@ -182,10 +182,10 @@ function * bootstrapDataSaga (): SagaGenerator<any, any> {
 
 function * billingSaga (): SagaGenerator<any, any> {
   yield [
-    takeLatest(Constants.updateBilling, updateBillingSaga),
-    takeLatest(Constants.fetchBillingAndQuota, fetchBillingAndQuotaSaga),
-    takeLatest(Constants.fetchBillingOverview, fetchBillingOverviewSaga),
-    takeLatest(Constants.bootstrapData, bootstrapDataSaga),
+    safeTakeLatest(Constants.updateBilling, updateBillingSaga),
+    safeTakeLatest(Constants.fetchBillingAndQuota, fetchBillingAndQuotaSaga),
+    safeTakeLatest(Constants.fetchBillingOverview, fetchBillingOverviewSaga),
+    safeTakeLatest(Constants.bootstrapData, bootstrapDataSaga),
   ]
 }
 
