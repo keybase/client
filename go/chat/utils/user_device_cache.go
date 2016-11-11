@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -80,14 +81,26 @@ func (c *UserDeviceCache) LookupUsername(uimap *UserInfoMapper, uid keybase1.UID
 		UID:        uid,
 		WithDevice: false,
 	}
+	c.kbCtx.GetLog().Debug("+ UserDeviceCache#LookupUsername(%s)", uid)
 	val, err := c.lookup(cKey, func() (udCacheValue, error) {
-		user, err := uimap.User(uid)
+
+		// First try the user cache
+		if user := uimap.UserFromCache(uid); user != nil {
+			c.kbCtx.GetLog().Debug("| Hit cache for uid=%s", uid)
+			return udCacheValue{
+				Username: user.GetNormalizedName().String(),
+			}, nil
+		}
+		q := libkb.NewHTTPArgs()
+		q.Add("uid", libkb.UIDArg(uid))
+		nn, err := c.kbCtx.UIDToUsername(uid)
 		if err != nil {
 			return udCacheValue{}, err
 		}
 		return udCacheValue{
-			Username: user.GetNormalizedName().String(),
+			Username: nn.String(),
 		}, nil
 	})
+	c.kbCtx.GetLog().Debug("- UserDeviceCache#LookupUsername(%s) -> %s, %s", uid, val.Username, err)
 	return val.Username, err
 }

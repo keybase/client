@@ -281,7 +281,9 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs, sigHints *SigHints) (vp *Verifica
 	q.Add("poll", I{10})
 
 	// Add the local db sigHints version
-	q.Add("sig_hints_low", I{sigHints.version})
+	if sigHints != nil {
+		q.Add("sig_hints_low", I{sigHints.version})
+	}
 
 	res, err := mc.G().API.Get(APIArg{
 		Endpoint:       "merkle/path",
@@ -302,8 +304,10 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs, sigHints *SigHints) (vp *Verifica
 		return
 	}
 
-	if err = sigHints.RefreshWith(res.Body.AtKey("sigs")); err != nil {
-		return
+	if sigHints != nil {
+		if err = sigHints.RefreshWith(res.Body.AtKey("sigs")); err != nil {
+			return
+		}
 	}
 
 	root, err := NewMerkleRootFromJSON(res.Body.AtKey("root"), mc.G())
