@@ -1,7 +1,6 @@
 // @flow
 import _ from 'lodash'
 import {KbfsCommonFSErrorType, KbfsCommonFSNotificationType, KbfsCommonFSStatusCode} from '../constants/types/flow-types'
-import {getTLF} from '../util/kbfs'
 import path from 'path'
 import type {FSNotification} from '../constants/types/flow-types'
 
@@ -10,10 +9,16 @@ type DecodedKBFSError = {
   'body': string,
 }
 
+function tlfForNotification (notification: FSNotification): string {
+  // The notification.filename is canonical platform independent path.
+  // To get the TLF we can look at the first 3 directories.
+  // /keybase/private/gabrielh/foo.txt => /keybase/private/gabrielh
+  return notification.filename.split(path.sep).slice(0, 4).join(path.sep)
+}
+
 export function decodeKBFSError (user: string, notification: FSNotification): DecodedKBFSError {
   console.log('Notification (kbfs error):', notification)
-  const basedir = notification.filename.split(path.sep)[0]
-  const tlf = `/keybase${getTLF(notification.publicTopLevelFolder, basedir)}`
+  const tlf = tlfForNotification(notification)
   switch (notification.errorType) {
     case KbfsCommonFSErrorType.accessDenied:
       let prefix = user ? `${user} does` : 'You do'
@@ -166,8 +171,7 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
     return
   }
 
-  const basedir = notification.filename.split(path.sep)[0]
-  const tlf = getTLF(notification.publicTopLevelFolder, basedir)
+  const tlf = tlfForNotification(notification)
 
   let title = `KBFS: ${action}`
   let body = `Files in ${tlf} ${notification.status}`
