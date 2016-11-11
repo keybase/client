@@ -5,7 +5,6 @@ import React, {Component} from 'react'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.native'
 import {NativeTextInput} from './index.native'
-import {getStyle} from './text'
 import {globalStyles, globalColors} from '../styles'
 
 import type {Props} from './input'
@@ -43,6 +42,10 @@ class Input extends Component<void, Props, State> {
     if (nextProps.type !== this.props.type) {
       this._setPasswordVisible(nextProps.type === 'passwordVisible')
     }
+  }
+
+  _autoResize () {
+    // maybe support this later. Keeping this flow so it matches desktop
   }
 
   _setPasswordVisible (passwordVisible: boolean) {
@@ -170,7 +173,7 @@ class Input extends Component<void, Props, State> {
     }
 
     const floatingHintText = !!this.state.value.length &&
-      ( this.props.hasOwnProperty('floatingHintTextOverride')
+      (this.props.hasOwnProperty('floatingHintTextOverride')
        ? this.props.floatingHintTextOverride
        : this.props.hintText || ' ')
 
@@ -227,10 +230,6 @@ class Input extends Component<void, Props, State> {
         {!!this.props.errorText && !this.props.small && <Text type='BodyError' style={{..._errorStyle, ...this.props.errorStyle}}>{this.props.errorText}</Text>}
       </Box>
     )
-  }
-
-  _autoResize () {
-    // maybe support this later
   }
 }
 

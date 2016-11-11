@@ -4,7 +4,6 @@ import {findDOMNode} from 'react-dom'
 import Box from './box'
 import Text, {getStyle as getTextStyle} from './text.desktop'
 import {globalStyles, globalColors} from '../styles'
-import {getStyle} from './text'
 
 import type {Props} from './input'
 
@@ -54,6 +53,20 @@ class Input extends Component<void, Props, State> {
     this._autoResize()
 
     this.props.onChangeText && this.props.onChangeText(event.target.value || '')
+  }
+
+  _autoResize () {
+    if (!this.props.multiline) {
+      return
+    }
+
+    const node = this._inputNode()
+    if (!node) {
+      return
+    }
+
+    node.style.height = 'auto'
+    node.style.height = `${node.scrollHeight}px`
   }
 
   _inputNode () {
@@ -162,7 +175,7 @@ class Input extends Component<void, Props, State> {
     }
 
     const floatingHintText = !!this.state.value.length &&
-      ( this.props.hasOwnProperty('floatingHintTextOverride')
+      (this.props.hasOwnProperty('floatingHintTextOverride')
        ? this.props.floatingHintTextOverride
        : this.props.hintText || ' ')
 
@@ -211,20 +224,6 @@ class Input extends Component<void, Props, State> {
         {!!this.props.errorText && !this.props.small && <Text type='BodyError' style={{..._errorStyle, ...this.props.errorStyle}}>{this.props.errorText}</Text>}
       </Box>
     )
-  }
-
-  _autoResize () {
-    if (!this.props.multiline) {
-      return
-    }
-
-    const node = this._inputNode()
-    if (!node) {
-      return
-    }
-
-    node.style.height = 'auto'
-    node.style.height = `${node.scrollHeight}px`
   }
 }
 

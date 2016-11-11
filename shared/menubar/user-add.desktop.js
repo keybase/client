@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './user-add'
 import type {IconType} from '../common-adapters/icon'
-import {Box, Button, Input, Icon, Text} from '../common-adapters'
+import {Box, Button, Input, Icon} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
 
@@ -113,25 +113,6 @@ const stylesInputContainer = {
   flex: 1,
   height: 40,
   overflow: 'hidden',
-}
-
-const stylesInputHint = {
-  ...globalStyles.fontSemibold,
-  fontSize: 14,
-  textAlign: 'left',
-  marginBottom: 2,
-}
-
-const stylesInputUnderline = {
-  display: 'none',
-}
-
-const stylesPrivatePrefix = {
-  ...globalStyles.fontSemibold,
-  color: globalColors.white,
-  fontSize: 14,
-  marginRight: 2,
-  marginTop: 2,
 }
 
 export default UserAdd
