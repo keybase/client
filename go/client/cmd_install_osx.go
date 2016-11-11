@@ -42,7 +42,7 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			},
 			cli.StringFlag{
 				Name:  "c, components",
-				Usage: "Components to install, comma separated. Specify 'cli' for command line, 'service' for service, kbfs for 'kbfs', or blank for all.",
+				Usage: fmt.Sprintf("Components to install, comma separated (%q)", install.ComponentNames),
 			},
 			cli.DurationFlag{
 				Name:  "t, timeout",
@@ -134,6 +134,8 @@ func (v *CmdInstall) Run() error {
 	return nil
 }
 
+var defaultUninstallComponents = []string{"service", "kbfs", "updater", "fuse", "helper"}
+
 func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name: "uninstall",
@@ -144,7 +146,7 @@ func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			},
 			cli.StringFlag{
 				Name:  "c, components",
-				Usage: "Components to uninstall, comma separated. Specify 'cli' for command line, 'service' for service, 'kbfs' for KBFS, or blank for all.",
+				Usage: fmt.Sprintf("Components to uninstall, comma separated (%q)", install.ComponentNames),
 			},
 		},
 		ArgumentHelp: "",
@@ -179,7 +181,7 @@ func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 		if libkb.IsBrewBuild {
 			v.components = []string{"service"}
 		} else {
-			v.components = []string{"service", "kbfs", "updater", "fuse", "helper"}
+			v.components = defaultUninstallComponents
 		}
 	} else {
 		v.components = strings.Split(ctx.String("components"), ",")
