@@ -126,8 +126,7 @@ function setupHMR (store) {
     }
   })
 
-  // $FlowIssue
-  module.hot.accept('../shared/local-debug-live', () => {
+  module.hot && module.hot.accept('../shared/local-debug-live', () => {
     store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
   })
 }

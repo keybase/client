@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/devices'
+import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {Map, is} from 'immutable'
 import {call, put, select, fork} from 'redux-saga/effects'
@@ -12,6 +13,10 @@ import {setRevokedSelf} from './login'
 import type {DeviceRemoved, GeneratePaperKey, IncomingDisplayPaperKeyPhrase, LoadDevices, LoadingDevices, PaperKeyLoaded, PaperKeyLoading, RemoveDevice, ShowDevices, ShowRemovePage} from '../constants/devices'
 import type {Device} from '../constants/types/more'
 import type {SagaGenerator} from '../constants/types/saga'
+
+isMobile && module.hot && module.hot.accept(() => {
+  console.log('accepted update in actions/devices')
+})
 
 export function loadDevices (): LoadDevices {
   return {type: Constants.loadDevices, payload: undefined}

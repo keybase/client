@@ -1,8 +1,12 @@
 // @flow
+import Box from './box'
+import ClickableBox from './clickable-box'
+import Icon from './icon'
+import Text from './text'
 import React, {Component} from 'react'
-import type {Props} from './choice-list'
-import {Box, Text, Icon, ClickableBox} from './index'
 import {globalStyles, globalColors, globalMargins} from '../styles'
+
+import type {Props} from './choice-list'
 
 type State = {
   activeIndex: ?number,
