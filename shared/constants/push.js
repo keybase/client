@@ -1,9 +1,9 @@
 // @flow
 import type {NoErrorTypedAction} from '../constants/types/flux'
 
-export const tokenTypeApple = 'apple'
-export const tokenTypeAndroidPlay = 'androidplay'
 export type TokenType = 'apple' | 'androidplay'
+export const tokenTypeApple: TokenType = 'apple'
+export const tokenTypeAndroidPlay: TokenType = 'androidplay'
 
 export type PushNotification = {
   message: string,
