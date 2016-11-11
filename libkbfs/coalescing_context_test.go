@@ -39,8 +39,6 @@ func TestCoalescingContext(t *testing.T) {
 	}
 	cf2()
 
-	require.NoError(t, cc.Err())
-
 	t.Log("Verify that the CoalescingContext is Done() only after its parent contexts have both been canceled.")
 	select {
 	case <-time.After(time.Second):
