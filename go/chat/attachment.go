@@ -24,15 +24,15 @@ type UploadTask struct {
 }
 
 type AttachmentStore struct {
-	log logger.Logger
-	s3c s3.Root
+	log      logger.Logger
+	s3signer s3.Signer
+	s3c      s3.Root
 }
 
 func NewAttachmentStore(log logger.Logger) *AttachmentStore {
 	return &AttachmentStore{
 		log: log,
-		// s3c: &s3.AWS{},
-		s3c: &s3.Mem{},
+		s3c: &s3.AWS{},
 	}
 }
 

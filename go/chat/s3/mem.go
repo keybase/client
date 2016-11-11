@@ -18,20 +18,25 @@ type Mem struct{}
 var _ Root = &Mem{}
 
 func (m *Mem) New(signer Signer, region Region) Connection {
-	return NewMemConn(signer)
+	return NewMemConn()
 }
 
 type MemConn struct {
-	signer  Signer
 	buckets map[string]*MemBucket
 	sync.Mutex
 }
 
-func NewMemConn(signer Signer) *MemConn {
-	return &MemConn{
-		signer:  signer,
-		buckets: make(map[string]*MemBucket),
-	}
+// only create one of these
+var mc *MemConn
+var mcMake sync.Once
+
+func NewMemConn() *MemConn {
+	mcMake.Do(func() {
+		mc = &MemConn{
+			buckets: make(map[string]*MemBucket),
+		}
+	})
+	return mc
 }
 
 var _ Connection = &MemConn{}
