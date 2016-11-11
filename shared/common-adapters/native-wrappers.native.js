@@ -22,10 +22,6 @@ import {
   TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
 } from 'react-native'
 
-if (module.hot) {
-  // module.hot.accept(() => { console.warn('Ive accepted my fate here in native wrappers index') })
-}
-
 export {
   NativeActivityIndicator,
   NativeAnimated,
