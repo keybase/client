@@ -122,4 +122,9 @@ func TestUploadAssetSmall(t *testing.T) {
 		S3Signer:       &ptsigner{},
 		ConversationID: randBytes(t, 16),
 	}
+	a, err := s.UploadAsset(ctx, task)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = a
 }
