@@ -5,6 +5,7 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import RenderRoute from './route-tree/render-route'
 import flags from './util/feature-flags'
+import {isDarwin} from './constants/platform'
 
 import {navigateUp, setRouteState} from './actions/route-tree'
 
@@ -15,7 +16,6 @@ type Props = {
   provisioned: boolean,
   username: string,
   navigateUp: () => void,
-  folderBadge: number,
   routeDef: RouteDefNode,
   routeState: RouteStateNode,
   setRouteState: (path: Path, partialState: {}) => void,
@@ -30,7 +30,7 @@ class Main extends Component<void, Props, void> {
   }
 
   _handleKeyDown (e: SyntheticKeyboardEvent) {
-    const modKey = process.platform === 'darwin' ? e.metaKey : e.ctrlKey
+    const modKey = isDarwin ? e.metaKey : e.ctrlKey
     // TODO (MBG): add back once we have a back action
     // if (modKey && e.key === 'ArrowLeft') {
     //   e.preventDefault()
@@ -44,20 +44,15 @@ class Main extends Component<void, Props, void> {
     }
   }
 
-  shouldComponentUpdate (nextProps, nextState) {
-    if (this.props.folderBadge !== nextProps.folderBadge) {
-      return true
-    }
-
-    if (this.props.menuBadge !== nextProps.menuBadge) {
+  componentDidUpdate (prevProps) {
+    if (this.props.menuBadge !== prevProps.menuBadge) {
       ipcRenderer.send(this.props.menuBadge ? 'showTrayRegular' : 'showTrayBadged')
     }
-
-    return !this.props.routeState.equals(nextProps.routeState) || !this.props.routeDef.equals(nextProps.routeDef)
   }
 
   componentDidMount () {
     if (flags.admin) window.addEventListener('keydown', this._handleKeyDown)
+    ipcRenderer.send('showTray', this.props.menuBadge)
   }
 
   componentWillUnmount () {
@@ -80,14 +75,12 @@ export default connect(
   ({
     routeTree: {routeDef, routeState},
     config: {extendedConfig, username},
-    favorite: {publicBadge = 0, privateBadge = 0},
     notifications: {menuBadge}}) => ({
       routeDef,
       routeState,
       provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
       username,
       menuBadge,
-      folderBadge: publicBadge + privateBadge,
     }),
   dispatch => {
     return {
