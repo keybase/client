@@ -76,6 +76,12 @@
 			"revisionTime": "2015-08-27T15:34:15+03:00"
 		},
 		{
+			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
+			"revisionTime": "2016-10-29T20:57:26Z"
+		},
+		{
 			"checksumSHA1": "F+YOz/6ymsuIxUy511OAdxjyhRI=",
 			"path": "github.com/docopt/docopt-go",
 			"revision": "784ddc588536785e7299f7272f39101f7faccc3f",
