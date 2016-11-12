@@ -756,9 +756,11 @@ func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
 	return j.mdJournal.getNextEntryToFlush(ctx, end, j.config.Crypto())
 }
 
-func (j *tlfJournal) convertMDsToBranchLocked(ctx context.Context) error {
-	bid, err := j.mdJournal.convertToBranch(
-		ctx, j.config.Crypto(), j.config.Codec(), j.tlfID, j.config.MDCache())
+func (j *tlfJournal) convertMDsToBranchLocked(
+	ctx context.Context, bid BranchID) error {
+	err := j.mdJournal.convertToBranch(
+		ctx, bid, j.config.Crypto(), j.config.Codec(), j.tlfID,
+		j.config.MDCache())
 	if err != nil {
 		return err
 	}
@@ -771,13 +773,23 @@ func (j *tlfJournal) convertMDsToBranchLocked(ctx context.Context) error {
 }
 
 func (j *tlfJournal) convertMDsToBranch(ctx context.Context) error {
+	bid := LocalSquashBranchID
+	// Loop just in case we randomly pick the local squash branch ID.
+	for bid == LocalSquashBranchID {
+		var err error
+		bid, err = j.config.Crypto().MakeRandomBranchID()
+		if err != nil {
+			return err
+		}
+	}
+
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
 		return err
 	}
 
-	return j.convertMDsToBranchLocked(ctx)
+	return j.convertMDsToBranchLocked(ctx, bid)
 }
 
 func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
@@ -797,7 +809,7 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
 	}
 
 	j.log.CDebugf(ctx, "Converting journal of length %d to branch", size)
-	err = j.convertMDsToBranchLocked(ctx)
+	err = j.convertMDsToBranchLocked(ctx, LocalSquashBranchID)
 	if err != nil {
 		return false, err
 	}
