@@ -140,7 +140,6 @@ func TestUploadAssetSmall(t *testing.T) {
 	s := makeTestStore(t)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 1*MB)
-	_ = plaintext
 	a, err := s.UploadAsset(ctx, task)
 	if err != nil {
 		t.Fatal(err)
@@ -159,10 +158,50 @@ func TestUploadAssetLarge(t *testing.T) {
 	s := makeTestStore(t)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 12*MB)
-	_ = plaintext
 	a, err := s.UploadAsset(ctx, task)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	var buf bytes.Buffer
+	if err = s.DownloadAsset(ctx, task.S3Params, a, &buf, task.S3Signer, nil); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(plaintext, buf.Bytes()) {
+		t.Errorf("downloaded asset did not match uploaded asset")
+	}
+}
+
+type pwcancel struct {
+	cancel func()
+	after  int
+}
+
+func (p *pwcancel) report(bytesCompleted, bytesTotal int) {
+	if bytesCompleted > p.after {
+		p.cancel()
+	}
+}
+
+func TestUploadAssetResume(t *testing.T) {
+	s := makeTestStore(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	plaintext, task := makeUploadTask(t, 12*MB)
+	pw := &pwcancel{
+		cancel: cancel,
+		after:  7 * MB,
+	}
+	task.Progress = pw.report
+	_, err := s.UploadAsset(ctx, task)
+	if err == nil {
+		t.Fatal("expected upload to be canceled")
+	}
+
+	ctx = context.Background()
+	task.Progress = nil
+	a, err := s.UploadAsset(ctx, task)
+	if err != nil {
+		t.Fatalf("expected second UploadAsset call to work, got: %s", err)
 	}
 
 	var buf bytes.Buffer
