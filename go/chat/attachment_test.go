@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/hex"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -13,6 +14,8 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
 )
+
+const MB = 1024 * 1024
 
 func TestSignEncrypter(t *testing.T) {
 	e := NewSignEncrypter()
@@ -103,6 +106,10 @@ func randBytes(t *testing.T, n int) []byte {
 	return buf
 }
 
+func randString(t *testing.T, nbytes int) string {
+	return hex.EncodeToString(randBytes(t, nbytes))
+}
+
 type ptsigner struct{}
 
 func (p *ptsigner) Sign(payload []byte) ([]byte, error) {
@@ -110,21 +117,59 @@ func (p *ptsigner) Sign(payload []byte) ([]byte, error) {
 	return s[:], nil
 }
 
-func TestUploadAssetSmall(t *testing.T) {
-	s := makeTestStore(t)
-	ctx := context.Background()
-	plaintext := randBytes(t, 1024)
-	task := &UploadTask{
-		S3Params:       chat1.S3Params{},
-		LocalSrc:       chat1.LocalSource{},
+func makeUploadTask(t *testing.T, size int) (plaintext []byte, task *UploadTask) {
+	plaintext = randBytes(t, size)
+	task = &UploadTask{
+		S3Params: chat1.S3Params{
+			Bucket:    "upload-test",
+			ObjectKey: randString(t, 8),
+		},
+		LocalSrc: chat1.LocalSource{
+			Filename: randString(t, 8),
+			Size:     size,
+		},
 		Plaintext:      bytes.NewReader(plaintext),
 		PlaintextHash:  randBytes(t, 16),
 		S3Signer:       &ptsigner{},
 		ConversationID: randBytes(t, 16),
 	}
+	return plaintext, task
+}
+
+func TestUploadAssetSmall(t *testing.T) {
+	s := makeTestStore(t)
+	ctx := context.Background()
+	plaintext, task := makeUploadTask(t, 1*MB)
+	_ = plaintext
 	a, err := s.UploadAsset(ctx, task)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_ = a
+
+	var buf bytes.Buffer
+	if err = s.DownloadAsset(ctx, task.S3Params, a, &buf, task.S3Signer, nil); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(plaintext, buf.Bytes()) {
+		t.Errorf("downloaded asset did not match uploaded asset")
+	}
+}
+
+func TestUploadAssetLarge(t *testing.T) {
+	s := makeTestStore(t)
+	ctx := context.Background()
+	plaintext, task := makeUploadTask(t, 12*MB)
+	_ = plaintext
+	a, err := s.UploadAsset(ctx, task)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var buf bytes.Buffer
+	if err = s.DownloadAsset(ctx, task.S3Params, a, &buf, task.S3Signer, nil); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(plaintext, buf.Bytes()) {
+		t.Errorf("downloaded asset did not match uploaded asset")
+	}
 }
