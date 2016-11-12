@@ -1,7 +1,6 @@
 // @flow
 import {OS} from '../constants/platform'
 import {OS_IOS, OS_ANDROID} from '../constants/platform.shared'
-import NavigatorNavigationBarStyles from 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS'
 import {StatusBar} from 'react-native'
 import globalColors from './colors'
 
@@ -103,8 +102,6 @@ const globalStyles = {
   ...util,
 }
 
-const navBarHeight = OS === OS_ANDROID ? 60 : NavigatorNavigationBarStyles.General.TotalNavHeight
-const tabBarHeight = 48
 // FIXME: StatusBar.currentHeight returns undefined on iOS in RN 0.34
 const statusBarHeight = OS === OS_ANDROID ? StatusBar.currentHeight : 20
 
@@ -115,8 +112,6 @@ function backgroundURL (...path: Array<string>): Object {
 export {
   globalColors,
   backgroundURL,
-  navBarHeight,
-  tabBarHeight,
   statusBarHeight,
   globalStyles,
   globalMargins,
