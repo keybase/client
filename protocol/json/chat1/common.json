@@ -51,6 +51,12 @@
       "typedef": "uint64"
     },
     {
+      "type": "record",
+      "name": "OutboxID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
       "type": "enum",
       "name": "MessageType",
       "symbols": [
@@ -379,6 +385,13 @@
         {
           "type": "gregor1.DeviceID",
           "name": "senderDevice"
+        },
+        {
+          "type": [
+            null,
+            "OutboxID"
+          ],
+          "name": "outboxID"
         }
       ]
     },

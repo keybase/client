@@ -224,7 +224,6 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
-  @typedef("bytes") record OutboxID {}
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;

@@ -481,7 +481,6 @@ type PostLocalRes struct {
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 }
 
-type OutboxID []byte
 type PostLocalNonblockRes struct {
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 	OutboxID   OutboxID    `codec:"outboxID" json:"outboxID"`
