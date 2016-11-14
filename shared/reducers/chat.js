@@ -46,6 +46,7 @@ function reducer (state: State = initialState, action: Actions) {
           const index = conversation.get('messages').findIndex(item => item.outboxID === outboxID)
           if (index <= 0) {
             console.warn("Couldn't find an outbox entry to modify")
+            return conversation.get('messages')
           }
           return conversation.set('messages', conversation.get('messages').update(index, item => {
             item.messageID = messageID

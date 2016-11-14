@@ -15,7 +15,7 @@ export type Message = {
   message: HiddenString,
   author: string,
   timestamp: number,
-  messageID: number,
+  messageID?: number,
   followState: FollowState,
   messageState: MessageState,
 } | {

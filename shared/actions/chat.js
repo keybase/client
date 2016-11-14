@@ -139,7 +139,6 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       type: 'Text',
       author: author,
       outboxID: sent.outboxID.toString('hex'),
-      messageID: sent.outboxID.toString('hex'),
       timestamp: Date.now(),
       messageState: 'pending',
       message: new HiddenString(action.payload.text.stringValue()),
@@ -181,7 +180,6 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           payload: {
             conversationIDKey: conversationIDToKey(sentMessage.convID),
             outboxID: sentMessage.outboxID.toString('hex'),
-            messageID: sentMessage.messageID,
             messageState: 'sent',
           },
         })
