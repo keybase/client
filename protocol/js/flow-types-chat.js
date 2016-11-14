@@ -297,6 +297,18 @@ export function remoteGetThreadRemoteRpcPromise (request: $Exact<requestCommon &
   return new Promise((resolve, reject) => { remoteGetThreadRemoteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteGetUnreadUpdateFullRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetUnreadUpdateFullResult) => void} & {param: remoteGetUnreadUpdateFullRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.GetUnreadUpdateFull'})
+}
+
+export function remoteGetUnreadUpdateFullRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetUnreadUpdateFullResult) => void} & {param: remoteGetUnreadUpdateFullRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteGetUnreadUpdateFullRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteGetUnreadUpdateFullRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetUnreadUpdateFullResult) => void} & {param: remoteGetUnreadUpdateFullRpcParam}>): Promise<remoteGetUnreadUpdateFullResult> {
+  return new Promise((resolve, reject) => { remoteGetUnreadUpdateFullRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteMarkAsReadRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteMarkAsReadResult) => void} & {param: remoteMarkAsReadRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.remote.markAsRead'})
 }
@@ -758,6 +770,7 @@ export type NewConversationPayload = {
   Action: string,
   convID: ConversationID,
   inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
 }
 
 export type NewConversationRemoteRes = {
@@ -770,6 +783,7 @@ export type NewMessagePayload = {
   convID: ConversationID,
   message: MessageBoxed,
   inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
 }
 
 export type NotifyChatNewChatActivityRpcParam = Exact<{
@@ -818,6 +832,7 @@ export type ReadMessagePayload = {
   convID: ConversationID,
   msgID: MessageID,
   inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
 }
 
 export type S3Params = {
@@ -843,6 +858,7 @@ export type SetStatusPayload = {
   convID: ConversationID,
   status: ConversationStatus,
   inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
 }
 
 export type SignatureInfo = {
@@ -881,6 +897,17 @@ export type UnreadFirstNumLimit = {
   NumRead: int,
   AtLeast: int,
   AtMost: int,
+}
+
+export type UnreadUpdate = {
+  convID: ConversationID,
+  UnreadMessages: int,
+}
+
+export type UnreadUpdateFull = {
+  ignore: boolean,
+  inboxVers: InboxVers,
+  updates?: ?Array<UnreadUpdate>,
 }
 
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
@@ -981,6 +1008,10 @@ export type remoteGetThreadRemoteRpcParam = Exact<{
   pagination?: ?Pagination
 }>
 
+export type remoteGetUnreadUpdateFullRpcParam = Exact<{
+  inboxVers: InboxVers
+}>
+
 export type remoteMarkAsReadRpcParam = Exact<{
   conversationID: ConversationID,
   msgID: MessageID
@@ -1046,6 +1077,8 @@ type remoteGetS3ParamsResult = S3Params
 
 type remoteGetThreadRemoteResult = GetThreadRemoteRes
 
+type remoteGetUnreadUpdateFullResult = UnreadUpdateFull
+
 type remoteMarkAsReadResult = MarkAsReadRes
 
 type remoteNewConversationRemote2Result = NewConversationRemoteRes
@@ -1075,6 +1108,7 @@ export type rpc =
   | remoteGetMessagesRemoteRpc
   | remoteGetS3ParamsRpc
   | remoteGetThreadRemoteRpc
+  | remoteGetUnreadUpdateFullRpc
   | remoteMarkAsReadRpc
   | remoteNewConversationRemote2Rpc
   | remoteNewConversationRemoteRpc

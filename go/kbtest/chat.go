@@ -395,6 +395,10 @@ func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, tlfID chat1.TLFID) err
 	return nil
 }
 
+func (m *ChatRemoteMock) GetUnreadUpdateFull(ctx context.Context, inboxVers chat1.InboxVers) (chat1.UnreadUpdateFull, error) {
+	return chat1.UnreadUpdateFull{}, errors.New("not implemented")
+}
+
 type convByNewlyUpdated struct {
 	mock *ChatRemoteMock
 }
