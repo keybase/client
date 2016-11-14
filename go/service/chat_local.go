@@ -747,6 +747,8 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
 
+	// XXX if Plaintext becomes ReadResetter, can move this to chat package
+
 	// compute plaintext hash
 	// XXX don't need to do this if local.Size < 5MB
 	plaintextHasher := sha256.New()

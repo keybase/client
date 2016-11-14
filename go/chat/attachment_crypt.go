@@ -19,6 +19,12 @@ type Encrypter interface {
 	// It generates new keys every time it is called.
 	Encrypt(plaintext io.Reader) (ciphertext io.Reader, err error)
 
+	// EncryptResume takes a plaintext reader and a set of keys.  It
+	// returns a ciphertext reader.  It *does not* generate new keys
+	// but uses the parameter keys.  These keys should *only* be used
+	// to encrypt the same plaintext as a previous attempt.
+	EncryptResume(r io.Reader, encKey signencrypt.SecretboxKey, signKey signencrypt.SignKey, verifyKey signencrypt.VerifyKey) (io.Reader, error)
+
 	// EncryptKey returns the ephemeral key that was used during the
 	// last invocation of Encrypt.
 	EncryptKey() []byte

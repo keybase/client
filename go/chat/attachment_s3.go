@@ -5,19 +5,21 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"time"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/sync/errgroup"
 )
 
 const minMultiSize = 5 * 1024 * 1024 // can't use Multi API with parts less than 5MB
 const blockSize = 5 * 1024 * 1024    // 5MB is the minimum Multi part size
+
+var ErrAbortOnPartMismatch = errors.New("local part mismatch, aborting upload")
 
 // PutS3Result is the success result of calling PutS3.
 type PutS3Result struct {
@@ -31,22 +33,15 @@ type PutS3Result struct {
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use
 // putSingle or putMultiPipeline based on the size of the object.
 func (a *AttachmentStore) PutS3(ctx context.Context, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (*PutS3Result, error) {
-	region := s3.Region{
-		Name:             task.S3Params.RegionName,
-		S3Endpoint:       task.S3Params.RegionEndpoint,
-		S3BucketEndpoint: task.S3Params.RegionBucketEndpoint,
-	}
-	conn := a.s3c.New(task.S3Signer, region)
-	conn.SetAccessKey(task.S3Params.AccessKey)
-
-	b := conn.Bucket(task.S3Params.Bucket)
+	region := a.regionFromParams(task.S3Params)
+	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey).Bucket(task.S3Params.Bucket)
 
 	if size <= minMultiSize {
-		if err := putSingle(ctx, a.log, r, size, task.S3Params, b, task.Progress); err != nil {
+		if err := a.putSingle(ctx, r, size, task.S3Params, b, task.Progress); err != nil {
 			return nil, err
 		}
 	} else {
-		objectKey, err := putMultiPipeline(ctx, a.log, r, size, task, b, previous)
+		objectKey, err := a.putMultiPipeline(ctx, r, size, task, b, previous)
 		if err != nil {
 			return nil, err
 		}
@@ -67,8 +62,8 @@ func (a *AttachmentStore) PutS3(ctx context.Context, r io.Reader, size int64, ta
 // putSingle uploads data in r to S3 with the Put API.  It has to be
 // used for anything less than 5MB.  It can be used for anything up
 // to 5GB, but putMultiPipeline best for anything over 5MB.
-func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, params chat1.S3Params, b s3.BucketInt, progress ProgressReporter) error {
-	log.Debug("s3 putSingle (size = %d)", size)
+func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params, b s3.BucketInt, progress ProgressReporter) error {
+	a.log.Debug("s3 putSingle (size = %d)", size)
 
 	// In order to be able to retry the upload, need to read in the entire
 	// attachment.  But putSingle is only called for attachments <= 5MB, so
@@ -93,13 +88,13 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 			return ctx.Err()
 		case <-time.After(libkb.BackoffDefault.Duration(i)):
 		}
-		log.Debug("s3 putSingle attempt %d", i+1)
+		a.log.Debug("s3 putSingle attempt %d", i+1)
 		err := b.PutReader(ctx, params.ObjectKey, tee, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
 		if err == nil {
-			log.Debug("putSingle attempt %d success", i+1)
+			a.log.Debug("putSingle attempt %d success", i+1)
 			return nil
 		}
-		log.Debug("putSingle attempt %d error: %s", i+1, err)
+		a.log.Debug("putSingle attempt %d error: %s", i+1, err)
 		lastErr = err
 
 		// move back to beginning of sr buffer for retry
@@ -111,21 +106,21 @@ func putSingle(ctx context.Context, log logger.Logger, r io.Reader, size int64, 
 }
 
 // putMultiPipeline uploads data in r to S3 using the Multi API.  It uses a
-// pipeline to upload 10 blocks of data concurrently.  Each block is 5MB.
-// It returns the object key if no errors.  putMultiPipeline will return
-// a different object key from params.ObjectKey if a previous Put is
+// pipeline to upload pipelineSize (default 10) blocks of data concurrently.
+// Each block is 5MB. It returns the object key if no errors.  putMultiPipeline
+// will return a different object key from params.ObjectKey if a previous Put is
 // successfully resumed and completed.
-func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size int64, task *UploadTask, b s3.BucketInt, previous *AttachmentInfo) (string, error) {
-	log.Debug("s3 putMultiPipeline (size = %d)", size)
+func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, size int64, task *UploadTask, b s3.BucketInt, previous *AttachmentInfo) (string, error) {
+	a.log.Debug("s3 putMultiPipeline (size = %d)", size)
 
 	if previous != nil {
-		log.Debug("put multi, changing object key to %s", previous.ObjectKey)
+		a.log.Debug("put multi, changing object key to %s", previous.ObjectKey)
 		task.S3Params.ObjectKey = previous.ObjectKey
 	}
 
 	multi, err := b.Multi(ctx, task.S3Params.ObjectKey, "application/octet-stream", s3.ACL(task.S3Params.Acl))
 	if err != nil {
-		log.Debug("Multi error: %s", err)
+		a.log.Debug("Multi error: %s", err)
 		return "", err
 	}
 
@@ -134,7 +129,7 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		previousParts = make(map[int]s3.Part)
 		list, err := multi.ListParts(ctx)
 		if err != nil {
-			log.Debug("ignoring multi.ListParts error: %s", err)
+			a.log.Debug("ignoring multi.ListParts error: %s", err)
 		} else {
 			for _, p := range list {
 				previousParts[p.N] = p
@@ -142,10 +137,6 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		}
 	}
 
-	type job struct {
-		block []byte
-		index int
-	}
 	// need to use ectx in everything in eg.Go() funcs since eg
 	// will cancel ectx in eg.Wait().
 	eg, ectx := errgroup.WithContext(ctx)
@@ -153,80 +144,14 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 	retCh := make(chan s3.Part)
 	eg.Go(func() error {
 		defer close(blockCh)
-		var partNumber int
-		for {
-			partNumber++
-			block := make([]byte, blockSize)
-			// must call io.ReadFull to ensure full block read
-			n, err := io.ReadFull(r, block)
-			// io.ErrUnexpectedEOF will be returned for last partial block,
-			// which is ok.
-			if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
-				return err
-			}
-			if n < blockSize {
-				block = block[:n]
-			}
-			if n > 0 {
-				select {
-				case blockCh <- job{block: block, index: partNumber}:
-				case <-ectx.Done():
-					return ectx.Err()
-				}
-			}
-			if err == io.EOF || err == io.ErrUnexpectedEOF {
-				break
-			}
-		}
-		return nil
+		return a.makeBlockJobs(ectx, r, blockCh)
 	})
-	for i := 0; i < 10; i++ {
+	for i := 0; i < a.pipelineSize; i++ {
 		eg.Go(func() error {
 			for b := range blockCh {
-				log.Debug("start: upload part %d", b.index)
-				md5sum := md5.Sum(b.block)
-				md5hex := hex.EncodeToString(md5sum[:])
-				if previous != nil {
-					// check s3 previousParts for this block
-					p, ok := previousParts[b.index]
-					if ok && int(p.Size) == len(b.block) && p.ETag == `"`+md5hex+`"` {
-						log.Debug("part %d already uploaded to s3", b.index)
-						// check our own previous record for this part
-						ok, err := StashVerifyPart(task.PlaintextHash, task.ConversationID, b.index, md5hex)
-						if err != nil {
-							log.Debug("StashVerifyPart error: %s", err)
-						} else if ok {
-							log.Debug("part %d matched local upload record", b.index)
-							select {
-							case retCh <- p:
-							case <-ectx.Done():
-								return ectx.Err()
-							}
-							continue
-						} else {
-							log.Debug("part %d failed local part record verification", b.index)
-							// XXX abort this upload
-						}
-					} else {
-						log.Debug("part %d s3 mismatch:  size %d != expected %d or etag %s != expected %s", b.index, p.Size, len(b.block), p.ETag, md5hex)
-						// XXX abort this upload
-					}
+				if err := a.uploadPart(ectx, task, b, previous, previousParts, multi, retCh); err != nil {
+					return err
 				}
-				part, putErr := putRetry(ectx, log, multi, b.index, b.block)
-				if putErr != nil {
-					return putErr
-				}
-				select {
-				case retCh <- part:
-				case <-ectx.Done():
-					return ectx.Err()
-				}
-
-				if err := StashRecordPart(task.PlaintextHash, task.ConversationID, b.index, md5hex); err != nil {
-					log.Debug("StashRecordPart error: %s", err)
-				}
-
-				log.Debug("finish: upload part %d", b.index)
 			}
 			return nil
 		})
@@ -250,19 +175,103 @@ func putMultiPipeline(ctx context.Context, log logger.Logger, r io.Reader, size 
 		return "", err
 	}
 
-	log.Debug("s3 putMulti all parts uploaded, completing request")
+	a.log.Debug("s3 putMulti all parts uploaded, completing request")
 
 	if err = multi.Complete(ctx, parts); err != nil {
-		log.Debug("multi.Complete error: %s", err)
+		a.log.Debug("multi.Complete error: %s", err)
 		return "", err
 	}
-	log.Debug("s3 putMulti success, %d parts", len(parts))
+	a.log.Debug("s3 putMulti success, %d parts", len(parts))
 
 	return task.S3Params.ObjectKey, nil
 }
 
+type job struct {
+	block []byte
+	index int
+}
+
+func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan job) error {
+	var partNumber int
+	for {
+		partNumber++
+		block := make([]byte, blockSize)
+		// must call io.ReadFull to ensure full block read
+		n, err := io.ReadFull(r, block)
+		// io.ErrUnexpectedEOF will be returned for last partial block,
+		// which is ok.
+		if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
+			return err
+		}
+		if n < blockSize {
+			block = block[:n]
+		}
+		if n > 0 {
+			select {
+			case blockCh <- job{block: block, index: partNumber}:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+		if err == io.EOF || err == io.ErrUnexpectedEOF {
+			break
+		}
+	}
+	return nil
+
+}
+
+func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b job, previous *AttachmentInfo, previousParts map[int]s3.Part, multi s3.MultiInt, retCh chan s3.Part) error {
+	a.log.Debug("start: upload part %d", b.index)
+	md5sum := md5.Sum(b.block)
+	md5hex := hex.EncodeToString(md5sum[:])
+	if previous != nil {
+		// check s3 previousParts for this block
+		p, ok := previousParts[b.index]
+		if ok && int(p.Size) == len(b.block) && p.ETag == `"`+md5hex+`"` {
+			a.log.Debug("part %d already uploaded to s3", b.index)
+			// check our own previous record for this part
+			ok, err := StashVerifyPart(task.PlaintextHash, task.ConversationID, b.index, md5hex)
+			if err != nil {
+				a.log.Debug("StashVerifyPart error: %s", err)
+			} else if ok {
+				a.log.Debug("part %d matched local upload record", b.index)
+				select {
+				case retCh <- p:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+				return nil
+			} else {
+				a.log.Debug("part %d failed local part record verification", b.index)
+				return ErrAbortOnPartMismatch
+			}
+		} else if p.Size > 0 {
+			// only abort if the part size from s3 is > 0
+			a.log.Debug("part %d s3 mismatch:  size %d != expected %d or etag %s != expected %s", b.index, p.Size, len(b.block), p.ETag, md5hex)
+			return ErrAbortOnPartMismatch
+		}
+	}
+	part, putErr := a.putRetry(ctx, multi, b.index, b.block)
+	if putErr != nil {
+		return putErr
+	}
+	select {
+	case retCh <- part:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	if err := StashRecordPart(task.PlaintextHash, task.ConversationID, b.index, md5hex); err != nil {
+		a.log.Debug("StashRecordPart error: %s", err)
+	}
+
+	a.log.Debug("finish: upload part %d", b.index)
+	return nil
+}
+
 // putRetry sends a block to S3, retrying 10 times w/ backoff.
-func putRetry(ctx context.Context, log logger.Logger, multi s3.MultiInt, partNumber int, block []byte) (s3.Part, error) {
+func (a *AttachmentStore) putRetry(ctx context.Context, multi s3.MultiInt, partNumber int, block []byte) (s3.Part, error) {
 	var lastErr error
 	for i := 0; i < 10; i++ {
 		select {
@@ -270,14 +279,13 @@ func putRetry(ctx context.Context, log logger.Logger, multi s3.MultiInt, partNum
 			return s3.Part{}, ctx.Err()
 		case <-time.After(libkb.BackoffDefault.Duration(i)):
 		}
-		log.Debug("attempt %d to upload part %d", i+1, partNumber)
+		a.log.Debug("attempt %d to upload part %d", i+1, partNumber)
 		part, putErr := multi.PutPart(ctx, partNumber, bytes.NewReader(block))
 		if putErr == nil {
-			log.Debug("success in attempt %d to upload part %d", i+1, partNumber)
-			log.Debug("part: %+v", part)
+			a.log.Debug("success in attempt %d to upload part %d", i+1, partNumber)
 			return part, nil
 		}
-		log.Debug("error in attempt %d to upload part %d: %s", i+1, putErr)
+		a.log.Debug("error in attempt %d to upload part %d: %s", i+1, putErr)
 		lastErr = putErr
 	}
 	return s3.Part{}, fmt.Errorf("failed to put part %d (last error: %s)", partNumber, lastErr)

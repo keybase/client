@@ -13,10 +13,15 @@ import (
 	"golang.org/x/net/context"
 )
 
+type ReadResetter interface {
+	io.Reader
+	Reset() error
+}
+
 type UploadTask struct {
 	S3Params       chat1.S3Params
 	LocalSrc       chat1.LocalSource
-	Plaintext      io.Reader
+	Plaintext      ReadResetter
 	PlaintextHash  []byte
 	S3Signer       s3.Signer
 	ConversationID chat1.ConversationID
@@ -24,16 +29,20 @@ type UploadTask struct {
 }
 
 type AttachmentStore struct {
-	log       logger.Logger
-	s3signer  s3.Signer
-	s3c       s3.Root
-	keyTester func(encKey, sigKey []byte) // used for testing only to check key changes
+	log      logger.Logger
+	s3signer s3.Signer
+	s3c      s3.Root
+
+	// testing hooks
+	keyTester    func(encKey, sigKey []byte) // used for testing only to check key changes
+	pipelineSize int
 }
 
 func NewAttachmentStore(log logger.Logger) *AttachmentStore {
 	return &AttachmentStore{
-		log: log,
-		s3c: &s3.AWS{},
+		log:          log,
+		s3c:          &s3.AWS{},
+		pipelineSize: 10,
 	}
 }
 
@@ -46,9 +55,23 @@ func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (ch
 	var previous *AttachmentInfo
 	resumable := len > minMultiSize // can only resume multi uploads
 	if resumable {
-		previous = previousUpload(ctx, a.log, task)
+		previous = a.previousUpload(ctx, task)
 	}
 
+	asset, err := a.uploadAsset(ctx, task, enc, previous, resumable)
+
+	// if the upload is aborted, reset the stream and start over to get new keys
+	if err == ErrAbortOnPartMismatch && previous != nil {
+		a.log.Debug("uploadAsset resume call aborted, resetting stream and starting from scratch")
+		previous = nil
+		task.Plaintext.Reset()
+		return a.uploadAsset(ctx, task, enc, nil, resumable)
+	}
+
+	return asset, err
+}
+
+func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncrypter, previous *AttachmentInfo, resumable bool) (chat1.Asset, error) {
 	var err error
 	var encReader io.Reader
 	if previous != nil {
@@ -63,7 +86,7 @@ func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (ch
 			return chat1.Asset{}, err
 		}
 		if resumable {
-			startUpload(ctx, a.log, task, enc)
+			a.startUpload(ctx, task, enc)
 		}
 	}
 
@@ -77,8 +100,13 @@ func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (ch
 	tee := io.TeeReader(encReader, hash)
 
 	// post to s3
-	upRes, err := a.PutS3(ctx, tee, int64(len), task, previous)
+	length := int64(enc.EncryptedLen(task.LocalSrc.Size))
+	upRes, err := a.PutS3(ctx, tee, length, task, previous)
 	if err != nil {
+		if err == ErrAbortOnPartMismatch && previous != nil {
+			// erase information about previous upload attempt
+			a.finishUpload(ctx, task)
+		}
 		return chat1.Asset{}, err
 	}
 	a.log.Debug("chat attachment upload: %+v", upRes)
@@ -96,7 +124,7 @@ func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (ch
 	}
 
 	if resumable {
-		finishUpload(ctx, a.log, task)
+		a.finishUpload(ctx, task)
 	}
 
 	return asset, nil
@@ -107,14 +135,8 @@ func (a *AttachmentStore) DownloadAsset(ctx context.Context, params chat1.S3Para
 	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
 		return fmt.Errorf("unencrypted attachments not supported")
 	}
-	region := s3.Region{
-		Name:       asset.Region,
-		S3Endpoint: asset.Endpoint,
-	}
-	conn := a.s3c.New(signer, region)
-	conn.SetAccessKey(params.AccessKey)
-
-	b := conn.Bucket(asset.Bucket)
+	region := a.regionFromAsset(asset)
+	b := a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
 
 	a.log.Debug("downloading %s from s3", asset.Path)
 	body, err := b.GetReader(ctx, asset.Path)
@@ -158,7 +180,7 @@ func (a *AttachmentStore) DownloadAsset(ctx context.Context, params chat1.S3Para
 	return nil
 }
 
-func startUpload(ctx context.Context, log logger.Logger, task *UploadTask, encrypter *SignEncrypter) {
+func (a *AttachmentStore) startUpload(ctx context.Context, task *UploadTask, encrypter *SignEncrypter) {
 	info := AttachmentInfo{
 		ObjectKey: task.S3Params.ObjectKey,
 		EncKey:    encrypter.encKey,
@@ -166,24 +188,45 @@ func startUpload(ctx context.Context, log logger.Logger, task *UploadTask, encry
 		VerifyKey: encrypter.verifyKey,
 	}
 	if err := StashStart(task.PlaintextHash, task.ConversationID, info); err != nil {
-		log.Debug("StashStart error: %s", err)
+		a.log.Debug("StashStart error: %s", err)
 	}
 }
 
-func finishUpload(ctx context.Context, log logger.Logger, task *UploadTask) {
+func (a *AttachmentStore) finishUpload(ctx context.Context, task *UploadTask) {
 	if err := StashFinish(task.PlaintextHash, task.ConversationID); err != nil {
-		log.Debug("StashFinish error: %s", err)
+		a.log.Debug("StashFinish error: %s", err)
 	}
 }
 
-func previousUpload(ctx context.Context, log logger.Logger, task *UploadTask) *AttachmentInfo {
+func (a *AttachmentStore) previousUpload(ctx context.Context, task *UploadTask) *AttachmentInfo {
 	info, found, err := StashLookup(task.PlaintextHash, task.ConversationID)
 	if err != nil {
-		log.Debug("StashLookup error: %s", err)
+		a.log.Debug("StashLookup error: %s", err)
 		return nil
 	}
 	if !found {
 		return nil
 	}
 	return &info
+}
+
+func (a *AttachmentStore) regionFromParams(params chat1.S3Params) s3.Region {
+	return s3.Region{
+		Name:             params.RegionName,
+		S3Endpoint:       params.RegionEndpoint,
+		S3BucketEndpoint: params.RegionBucketEndpoint,
+	}
+}
+
+func (a *AttachmentStore) regionFromAsset(asset chat1.Asset) s3.Region {
+	return s3.Region{
+		Name:       asset.Region,
+		S3Endpoint: asset.Endpoint,
+	}
+}
+
+func (a *AttachmentStore) s3Conn(signer s3.Signer, region s3.Region, accessKey string) s3.Connection {
+	conn := a.s3c.New(signer, region)
+	conn.SetAccessKey(accessKey)
+	return conn
 }

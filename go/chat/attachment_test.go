@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"io"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -159,6 +160,27 @@ func (p *ptsigner) Sign(payload []byte) ([]byte, error) {
 	return s[:], nil
 }
 
+type bytesReadResetter struct {
+	data []byte
+	r    io.Reader
+}
+
+func newBytesReadResetter(d []byte) *bytesReadResetter {
+	return &bytesReadResetter{
+		data: d,
+		r:    bytes.NewReader(d),
+	}
+}
+
+func (b *bytesReadResetter) Read(p []byte) (n int, err error) {
+	return b.r.Read(p)
+}
+
+func (b *bytesReadResetter) Reset() error {
+	b.r = bytes.NewReader(b.data)
+	return nil
+}
+
 func makeUploadTask(t *testing.T, size int) (plaintext []byte, task *UploadTask) {
 	plaintext = randBytes(t, size)
 	task = &UploadTask{
@@ -170,7 +192,8 @@ func makeUploadTask(t *testing.T, size int) (plaintext []byte, task *UploadTask)
 			Filename: randString(t, 8),
 			Size:     size,
 		},
-		Plaintext:      bytes.NewReader(plaintext),
+		// Plaintext:      bytes.NewReader(plaintext),
+		Plaintext:      newBytesReadResetter(plaintext),
 		PlaintextHash:  randBytes(t, 16),
 		S3Signer:       &ptsigner{},
 		ConversationID: randBytes(t, 16),
@@ -238,6 +261,7 @@ func TestUploadAssetResumeOK(t *testing.T) {
 		sig = s
 	}
 	s := makeTestStore(t, kt)
+	s.pipelineSize = 1
 	ctx, cancel := context.WithCancel(context.Background())
 	size := 12 * MB
 	plaintext, task := makeUploadTask(t, size)
@@ -258,7 +282,8 @@ func TestUploadAssetResumeOK(t *testing.T) {
 	sig1 := hex.EncodeToString(sig)
 
 	// try again:
-	task.Plaintext = bytes.NewReader(plaintext)
+	s.pipelineSize = 10
+	task.Plaintext.Reset()
 	ctx = context.Background()
 	task.Progress = nil
 	a, err := s.UploadAsset(ctx, task)
@@ -309,6 +334,7 @@ func TestUploadAssetResumeChange(t *testing.T) {
 		sig = s
 	}
 	s := makeTestStore(t, kt)
+	s.pipelineSize = 1
 	ctx, cancel := context.WithCancel(context.Background())
 	size := 12 * MB
 	plaintext, task := makeUploadTask(t, size)
@@ -333,8 +359,9 @@ func TestUploadAssetResumeChange(t *testing.T) {
 
 	// try again, changing the file and the hash (but same destination on s3):
 	// this simulates the file changing between upload attempt 1 and this attempt.
+	s.pipelineSize = 10
 	plaintext = randBytes(t, size)
-	task.Plaintext = bytes.NewReader(plaintext)
+	task.Plaintext = newBytesReadResetter(plaintext)
 	task.PlaintextHash = randBytes(t, 16)
 	task.Progress = nil
 
@@ -384,10 +411,12 @@ func TestUploadAssetResumeChange(t *testing.T) {
 func TestUploadAssetResumeRestart(t *testing.T) {
 	var enc, sig []byte
 	kt := func(e, s []byte) {
+		t.Logf("key tracker function called: %x, %x", e, s)
 		enc = e
 		sig = s
 	}
 	s := makeTestStore(t, kt)
+	s.pipelineSize = 1
 	ctx, cancel := context.WithCancel(context.Background())
 	size := 12 * MB
 	plaintext, task := makeUploadTask(t, size)
@@ -412,15 +441,17 @@ func TestUploadAssetResumeRestart(t *testing.T) {
 
 	// try again, changing only one byte of the file.
 	// this should result in full restart of upload with new keys
+	s.pipelineSize = 10
 	plaintext[0] ^= 0x10
-	task.Plaintext = bytes.NewReader(plaintext)
+	task.Plaintext = newBytesReadResetter(plaintext)
 	task.Progress = nil
 
 	ctx = context.Background()
 	a, err := s.UploadAsset(ctx, task)
 	if err != nil {
-		t.Fatalf("expected second UploadAsset call to work, got: %s", err)
+		t.Fatal(err)
 	}
+
 	if a.Size != signencrypt.GetSealedSize(size) {
 		t.Errorf("uploaded asset size: %d, expected %d", a.Size, signencrypt.GetSealedSize(size))
 	}
