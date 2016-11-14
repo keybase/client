@@ -20,22 +20,22 @@ const (
 	// participants from an extension suffix in the TLF name.
 	HandleExtensionSep = " "
 	// HandleExtensionDateFormat is the date format for the HandleExtension string.
-	HandleExtensionDateFormat = "2006-01-02"
+	handleExtensionDateFormat = "2006-01-02"
 	// HandleExtensionDateRegex is the regular expression matching the HandleExtension
 	// date member in string form.
-	HandleExtensionDateRegex = "2[0-9]{3}-[0-9]{2}-[0-9]{2}"
+	handleExtensionDateRegex = "2[0-9]{3}-[0-9]{2}-[0-9]{2}"
 	// HandleExtensionNumberRegex is the regular expression matching the HandleExtension
 	// number member in string form.
-	HandleExtensionNumberRegex = "[0-9]+"
+	handleExtensionNumberRegex = "[0-9]+"
 	// HandleExtensionUsernameRegex is the regular expression matching the HandleExtension
 	// username member in string form.
-	HandleExtensionUsernameRegex = "[a-z0-9_]+"
+	handleExtensionUsernameRegex = "[a-z0-9_]+"
 	// HandleExtensionConflictString is the string identifying a conflict extension.
-	HandleExtensionConflictString = "conflicted copy"
+	handleExtensionConflictString = "conflicted copy"
 	// HandleExtensionFinalizedString is the format string identifying a finalized extension.
-	HandleExtensionFinalizedString = "files before %saccount reset"
+	handleExtensionFinalizedString = "files before %saccount reset"
 	// HandleExtensionFormat is the formate string for a HandleExtension.
-	HandleExtensionFormat = "(%s %s%s)"
+	handleExtensionFormat = "(%s %s%s)"
 	// HandleExtensionStaticTestDate is a static date used for tests (2016-03-14).
 	HandleExtensionStaticTestDate = 1457913600
 )
@@ -55,39 +55,39 @@ const (
 )
 
 // HandleExtensionFinalizedStringRegex is the regex identifying a finalized extension string.
-var HandleExtensionFinalizedStringRegex = fmt.Sprintf(
-	HandleExtensionFinalizedString, "(?:"+HandleExtensionUsernameRegex+"[\\s]+)*",
+var handleExtensionFinalizedStringRegex = fmt.Sprintf(
+	handleExtensionFinalizedString, "(?:"+handleExtensionUsernameRegex+"[\\s]+)*",
 )
 
 // HandleExtensionTypeRegex is the regular expression matching the HandleExtension string.
-var HandleExtensionTypeRegex = HandleExtensionConflictString + "|" + HandleExtensionFinalizedStringRegex
+var HandleExtensionTypeRegex = handleExtensionConflictString + "|" + handleExtensionFinalizedStringRegex
 
 // HandleExtensionFinalizedRegex is the compiled regular expression matching a finalized
 // handle extension.
-var HandleExtensionFinalizedRegex = regexp.MustCompile(
-	fmt.Sprintf(HandleExtensionFinalizedString, "(?:("+HandleExtensionUsernameRegex+")[\\s]+)*"),
+var handleExtensionFinalizedRegex = regexp.MustCompile(
+	fmt.Sprintf(handleExtensionFinalizedString, "(?:("+handleExtensionUsernameRegex+")[\\s]+)*"),
 )
 
 // String implements the fmt.Stringer interface for HandleExtensionType
 func (et HandleExtensionType) String(username libkb.NormalizedUsername) string {
 	switch et {
 	case HandleExtensionConflict:
-		return HandleExtensionConflictString
+		return handleExtensionConflictString
 	case HandleExtensionFinalized:
 		if len(username) != 0 {
 			username += " "
 		}
-		return fmt.Sprintf(HandleExtensionFinalizedString, username)
+		return fmt.Sprintf(handleExtensionFinalizedString, username)
 	}
 	return "<unknown extension type>"
 }
 
 // ParseHandleExtensionString parses an extension type and optional username from a string.
 func ParseHandleExtensionString(s string) (HandleExtensionType, libkb.NormalizedUsername) {
-	if HandleExtensionConflictString == s {
+	if handleExtensionConflictString == s {
 		return HandleExtensionConflict, ""
 	}
-	m := HandleExtensionFinalizedRegex.FindStringSubmatch(s)
+	m := handleExtensionFinalizedRegex.FindStringSubmatch(s)
 	if len(m) < 2 {
 		return HandleExtensionUnknown, ""
 	}
@@ -106,10 +106,10 @@ var ErrHandleExtensionInvalidNumber = errors.New("Invalid TLF handle extension n
 // HandleExtensionRegex is the compiled regular expression matching a valid combination
 // of TLF handle extensions in string form.
 var HandleExtensionRegex = regexp.MustCompile(
-	fmt.Sprintf("\\"+HandleExtensionFormat,
+	fmt.Sprintf("\\"+handleExtensionFormat,
 		"("+HandleExtensionTypeRegex+")",
-		"("+HandleExtensionDateRegex+")",
-		"(?: #("+HandleExtensionNumberRegex+"))?\\"),
+		"("+handleExtensionDateRegex+")",
+		"(?: #("+handleExtensionNumberRegex+"))?\\"),
 )
 
 // HandleExtension is information which identifies a particular extension.
@@ -124,13 +124,13 @@ type HandleExtension struct {
 // String implements the fmt.Stringer interface for HandleExtension.
 // Ex: "(conflicted copy 2016-05-09 #2)"
 func (e HandleExtension) String() string {
-	date := time.Unix(e.Date, 0).UTC().Format(HandleExtensionDateFormat)
+	date := time.Unix(e.Date, 0).UTC().Format(handleExtensionDateFormat)
 	var num string
 	if e.Number > 1 {
 		num = " #"
 		num += strconv.FormatUint(uint64(e.Number), 10)
 	}
-	return fmt.Sprintf(HandleExtensionFormat, e.Type.String(e.Username), date, num)
+	return fmt.Sprintf(handleExtensionFormat, e.Type.String(e.Username), date, num)
 }
 
 // NewHandleExtension returns a new HandleExtension struct
@@ -155,8 +155,8 @@ func newHandleExtension(extType HandleExtensionType, num uint16, un libkb.Normal
 		return nil, ErrHandleExtensionInvalidNumber
 	}
 	// mask out everything but the date
-	date := now.UTC().Format(HandleExtensionDateFormat)
-	now, err := time.Parse(HandleExtensionDateFormat, date)
+	date := now.UTC().Format(handleExtensionDateFormat)
+	now, err := time.Parse(handleExtensionDateFormat, date)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func parseHandleExtension(fields []string) (*HandleExtension, error) {
 	if extType == HandleExtensionUnknown {
 		return nil, ErrHandleExtensionInvalidString
 	}
-	date, err := time.Parse(HandleExtensionDateFormat, fields[2])
+	date, err := time.Parse(handleExtensionDateFormat, fields[2])
 	if err != nil {
 		return nil, err
 	}
