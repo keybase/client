@@ -171,7 +171,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           },
         })
       }
-      return
+      break
     case NotifyChatChatActivityType.messageSent:
       const sentMessage: ?MessageSentInfo = action.payload.activity.messageSent
       if (sentMessage) {
@@ -184,6 +184,9 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           },
         })
       }
+      break
+    default:
+      console.warn('Unsupported incoming message type for Chat')
   }
 }
 
