@@ -52,7 +52,7 @@ func MakeExtraOrBust(prefix string, t require.TestingT) Extra {
 //   MyType
 //   // Override MyType.St.
 //   St mySubTypeFuture
-//   extra
+//   kbfscrypto.Extra
 // }
 //
 // func (mf myTypeFuture) toCurrent() MyType {
@@ -61,7 +61,7 @@ func MakeExtraOrBust(prefix string, t require.TestingT) Extra {
 //   return m
 // }
 //
-// func (mf myTypeFuture) ToCurrentStruct() CurrentStruct {
+// func (mf myTypeFuture) ToCurrentStruct() kbfscrypto.CurrentStruct {
 //   return mf.toCurrent()
 // }
 //
@@ -74,7 +74,7 @@ func MakeExtraOrBust(prefix string, t require.TestingT) Extra {
 //       codec.UnknownFieldSet{},
 //     },
 //     makeFakeMySubTypeFuture(t),
-//     makeExtraOrBust("MyType", t),
+//     kbfscrypto.MakeExtraOrBust("MyType", t),
 //   }
 //   return mf
 // }
@@ -89,7 +89,7 @@ func MakeExtraOrBust(prefix string, t require.TestingT) Extra {
 //   cCurrentKnownOnly := kbfscodec.NewMsgpackNoUnknownFields()
 //   RegisterOps(cCurrentKnownOnly)
 //
-//   kfscodec.TestStructUnknownFields(t, makeMyTypeFuture(t))
+//   kbfscodec.TestStructUnknownFields(t, makeMyTypeFuture(t))
 // }
 
 // CurrentStruct is an interface for the current version of a struct
