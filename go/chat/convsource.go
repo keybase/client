@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -26,13 +27,13 @@ func NewRemoteConversationSource(g *libkb.GlobalContext, b *Boxer, ri chat1.Remo
 }
 
 func (s *RemoteConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msg chat1.MessageBoxed, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.MessageUnboxed, error) {
 	// Do nothing here, we don't care about pushed messages
 	return chat1.MessageUnboxed{}, nil
 }
 
 func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.ThreadView, []*chat1.RateLimit, []keybase1.TLFUserBreak, error) {
 
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: convID,
@@ -42,15 +43,15 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	boxed, err := s.ri.GetThreadRemote(ctx, rarg)
 	rl := []*chat1.RateLimit{boxed.RateLimit}
 	if err != nil {
-		return chat1.ThreadView{}, rl, err
+		return chat1.ThreadView{}, rl, nil, err
 	}
 
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
+	thread, breaks, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, identifyBehavior)
 	if err != nil {
-		return chat1.ThreadView{}, rl, err
+		return chat1.ThreadView{}, rl, nil, err
 	}
 
-	return thread, rl, nil
+	return thread, rl, breaks, nil
 }
 
 func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
@@ -60,24 +61,26 @@ func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor
 type HybridConversationSource struct {
 	libkb.Contextified
 	ri      chat1.RemoteInterface
+	ti      keybase1.TlfInterface
 	boxer   *Boxer
 	storage *storage.Storage
 }
 
-func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *storage.Storage, ri chat1.RemoteInterface) *HybridConversationSource {
+func NewHybridConversationSource(g *libkb.GlobalContext, b *Boxer, storage *storage.Storage, ri chat1.RemoteInterface, ti keybase1.TlfInterface) *HybridConversationSource {
 	return &HybridConversationSource{
 		Contextified: libkb.NewContextified(g),
 		ri:           ri,
 		boxer:        b,
 		storage:      storage,
+		ti:           ti,
 	}
 }
 
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msg chat1.MessageBoxed) (chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msg chat1.MessageBoxed, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.MessageUnboxed, error) {
 	var err error
 
-	decmsg, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(), msg)
+	decmsg, _, err := s.boxer.UnboxMessage(ctx, NewKeyFinder(), msg, identifyBehavior)
 	if err != nil {
 		return decmsg, err
 	}
@@ -118,7 +121,7 @@ func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID c
 }
 
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.ThreadView, []*chat1.RateLimit, []keybase1.TLFUserBreak, error) {
 
 	var err error
 	var rl []*chat1.RateLimit
@@ -140,12 +143,36 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 					MsgID:          localData.Messages[0].GetMessageID(),
 				})
 				if err != nil {
-					return chat1.ThreadView{}, nil, err
+					return chat1.ThreadView{}, nil, nil, err
 				}
 				rl = append(rl, res.RateLimit)
 			}
 
-			return localData, rl, nil
+			var breaks []keybase1.TLFUserBreak
+			if len(localData.Messages) > 0 && localData.Messages[0].IsValid() {
+				m := localData.Messages[0].Valid()
+				if m.ClientHeader.TlfPublic {
+					res, err := s.ti.PublicCanonicalTLFNameAndID(ctx, keybase1.TLFQuery{
+						IdentifyBehavior: identifyBehavior,
+						TlfName:          m.ClientHeader.TlfName,
+					})
+					if err != nil {
+						return chat1.ThreadView{}, nil, nil, err
+					}
+					breaks = res.Breaks.Breaks
+				} else {
+					res, err := s.ti.CryptKeys(ctx, keybase1.TLFQuery{
+						IdentifyBehavior: identifyBehavior,
+						TlfName:          m.ClientHeader.TlfName,
+					})
+					if err != nil {
+						return chat1.ThreadView{}, nil, nil, err
+					}
+					breaks = res.NameIDBreaks.Breaks.Breaks
+				}
+			}
+
+			return localData, rl, breaks, nil
 		}
 	} else {
 		s.G().Log.Debug("Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
@@ -161,13 +188,13 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	boxed, err := s.ri.GetThreadRemote(ctx, rarg)
 	rl = append(rl, boxed.RateLimit)
 	if err != nil {
-		return chat1.ThreadView{}, rl, err
+		return chat1.ThreadView{}, rl, nil, err
 	}
 
 	// Unbox
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID)
+	thread, breaks, err := s.boxer.UnboxThread(ctx, boxed.Thread, convID, identifyBehavior)
 	if err != nil {
-		return chat1.ThreadView{}, rl, err
+		return chat1.ThreadView{}, rl, nil, err
 	}
 
 	// Store locally (just warn on error, don't abort the whole thing)
@@ -175,7 +202,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		s.G().Log.Warning("Pull: unable to commit thread locally: convID: %s uid: %s", convID, uid)
 	}
 
-	return thread, rl, nil
+	return thread, rl, breaks, nil
 }
 
 func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
@@ -183,9 +210,9 @@ func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,
-	ri chat1.RemoteInterface) libkb.ConversationSource {
+	ri chat1.RemoteInterface, ti keybase1.TlfInterface) libkb.ConversationSource {
 	if typ == "hybrid" {
-		return NewHybridConversationSource(g, boxer, storage, ri)
+		return NewHybridConversationSource(g, boxer, storage, ri, ti)
 	}
 	return NewRemoteConversationSource(g, boxer, ri)
 }

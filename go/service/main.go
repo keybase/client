@@ -226,7 +226,12 @@ func (d *Service) createMessageDeliverer() {
 	tlf := newTlfHandler(nil, d.G())
 	udc := utils.NewUserDeviceCache(d.G())
 
-	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf, udc), ri, si)
+	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf, udc), ri, si,
+		// We use GUI behavior for the MessageDeliverer here so the deliverer never
+		// has identify errors. The NonblockingSender that queues messages into the
+		// deliverer should do identify according to the pre-set identifyBehavior,
+		// before returning.
+		keybase1.TLFIdentifyBehavior_CHAT_GUI)
 	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
 
 	uid := d.G().Env.GetUID()

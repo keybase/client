@@ -95,6 +95,7 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 			TopicType:     &req.TopicType,
 			TlfVisibility: &req.Visibility,
 		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}, nil
 }
 
@@ -173,10 +174,11 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 		tnp = &req.TopicName
 	}
 	ncres, err := r.ChatClient.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
-		TlfName:       req.ctx.canonicalizedTlfName,
-		TopicName:     tnp,
-		TopicType:     req.TopicType,
-		TlfVisibility: req.Visibility,
+		TlfName:          req.ctx.canonicalizedTlfName,
+		TopicName:        tnp,
+		TopicType:        req.TopicType,
+		TlfVisibility:    req.Visibility,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("creating conversation error: %v\n", err)
@@ -204,16 +206,10 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 		}
 		return nil, false, errors.New("no conversation found")
 	case 1:
-		if req.TlfName != conversations[0].TlfName {
-			// This must be:
-			//
-			// 1) a special case where user only has one conversation, and user
-			//    didn't specify TLF name; or
-			// 2) user specified TLF name but we auto-completed it or canonicalized
-			//    it.
-			//
-			// Either way, we present a visual confirmation so that user knows chich
-			// conversation she's sending into or reading from.
+		if req.TlfName == "" {
+			// This must be a special case where user only has one conversation, and
+			// user didn't specify TLF name. We present a visual confirmation here so
+			// that user knows which conversation she's sending into or reading from.
 			if conversations[0].Triple.TopicType == chat1.TopicType_CHAT {
 				r.G.UI.GetTerminalUI().Printf("Found %s conversation: %s\n",
 					conversations[0].Triple.TopicType.String(), conversations[0].TlfName)

@@ -510,9 +510,9 @@ type ExternalServicesCollector interface {
 
 type ConversationSource interface {
 	Push(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-		msg chat1.MessageBoxed) (chat1.MessageUnboxed, error)
+		msg chat1.MessageBoxed, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.MessageUnboxed, error)
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
-		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
+		pagination *chat1.Pagination, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.ThreadView, []*chat1.RateLimit, []keybase1.TLFUserBreak, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
 }
 

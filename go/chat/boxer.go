@@ -69,13 +69,13 @@ func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.Messag
 // Returns (_, err) for non-permanent errors, and (MessageUnboxedError, nil) for permanent errors.
 // Permanent errors can be cached and must be treated as a value to deal with.
 // Whereas temporary errors are transient failures.
-func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.MessageBoxed) (chat1.MessageUnboxed, libkb.ChatUnboxingError) {
+func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.MessageBoxed, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.MessageUnboxed, []keybase1.TLFUserBreak, libkb.ChatUnboxingError) {
 	tlfName := boxed.ClientHeader.TlfName
 	tlfPublic := boxed.ClientHeader.TlfPublic
-	keys, err := finder.Find(ctx, b.tlf, tlfName, tlfPublic)
+	keys, err := finder.Find(ctx, b.tlf, tlfName, tlfPublic, identifyBehavior)
 	if err != nil {
 		// transient error
-		return chat1.MessageUnboxed{}, libkb.NewTransientChatUnboxingError(err)
+		return chat1.MessageUnboxed{}, nil, libkb.NewTransientChatUnboxingError(err)
 	}
 
 	var matchKey *keybase1.CryptKey
@@ -88,7 +88,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.
 
 	if matchKey == nil {
 		err := fmt.Errorf("no key found for generation %d", boxed.KeyGeneration)
-		return chat1.MessageUnboxed{}, libkb.NewTransientChatUnboxingError(err)
+		return chat1.MessageUnboxed{}, keys.NameIDBreaks.Breaks.Breaks, libkb.NewTransientChatUnboxingError(err)
 	}
 
 	pt, headerHash, ierr := b.unboxMessageWithKey(ctx, boxed, matchKey)
@@ -96,9 +96,9 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.
 		b.log().Warning("failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			ierr.Error())
 		if ierr.IsPermanent() {
-			return b.makeErrorMessage(boxed, ierr.Inner()), nil
+			return b.makeErrorMessage(boxed, ierr.Inner()), keys.NameIDBreaks.Breaks.Breaks, nil
 		}
-		return chat1.MessageUnboxed{}, ierr
+		return chat1.MessageUnboxed{}, keys.NameIDBreaks.Breaks.Breaks, ierr
 	}
 
 	_, uimap := utils.GetUserInfoMapper(ctx, b.kbCtx)
@@ -116,7 +116,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.
 		SenderUsername:   username,
 		SenderDeviceName: deviceName,
 		HeaderHash:       headerHash,
-	}), nil
+	}), keys.NameIDBreaks.Breaks.Breaks, nil
 
 }
 
@@ -214,16 +214,16 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 }
 
 // unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
-func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, convID chat1.ConversationID) (thread chat1.ThreadView, err error) {
+func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, convID chat1.ConversationID, identifyBehavior keybase1.TLFIdentifyBehavior) (thread chat1.ThreadView, breaks []keybase1.TLFUserBreak, err error) {
 	thread = chat1.ThreadView{
 		Pagination: boxed.Pagination,
 	}
 
-	if thread.Messages, err = b.UnboxMessages(ctx, boxed.Messages); err != nil {
-		return chat1.ThreadView{}, err
+	if thread.Messages, breaks, err = b.UnboxMessages(ctx, boxed.Messages, identifyBehavior); err != nil {
+		return chat1.ThreadView{}, nil, err
 	}
 
-	return thread, nil
+	return thread, breaks, nil
 }
 
 func (b *Boxer) getUsernameAndDeviceName(uid keybase1.UID, deviceID keybase1.DeviceID,
@@ -244,46 +244,53 @@ func (b *Boxer) getSenderInfoLocal(uimap *utils.UserInfoMapper, clientHeader cha
 	return username, deviceName, nil
 }
 
-func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageUnboxed, err error) {
+func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, identifyBehavior keybase1.TLFIdentifyBehavior) (unboxed []chat1.MessageUnboxed, breaks []keybase1.TLFUserBreak, err error) {
 	finder := NewKeyFinder()
 	ctx, _ = utils.GetUserInfoMapper(ctx, b.kbCtx)
 	for _, msg := range boxed {
-		decmsg, err := b.UnboxMessage(ctx, finder, msg)
+		decmsg, brks, err := b.UnboxMessage(ctx, finder, msg, identifyBehavior)
 		if err != nil {
-			return unboxed, err
+			return nil, nil, err
 		}
 		unboxed = append(unboxed, decmsg)
+		if len(brks) > 0 {
+			breaks = append(breaks, brks...)
+		}
 	}
 
-	return unboxed, nil
+	breaks = keybase1.FlattenTLFUserBreaks(breaks)
+
+	return unboxed, breaks, nil
 }
 
 // boxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
 // finds the most recent key for the TLF.
-func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (*chat1.MessageBoxed, error) {
+func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair, identifyBehavior keybase1.TLFIdentifyBehavior) (*chat1.MessageBoxed, []keybase1.TLFUserBreak, error) {
 	tlfName := msg.ClientHeader.TlfName
 	var recentKey *keybase1.CryptKey
+	var breaks []keybase1.TLFUserBreak
 
 	if len(tlfName) == 0 {
-		return nil, libkb.ChatBoxingError{Msg: "blank TLF name given"}
+		return nil, nil, libkb.ChatBoxingError{Msg: "blank TLF name given"}
 	}
 	if msg.ClientHeader.TlfPublic {
 		recentKey = &publicCryptKey
 		res, err := b.tlf.PublicCanonicalTLFNameAndID(ctx, keybase1.TLFQuery{
 			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			IdentifyBehavior: identifyBehavior,
 		})
 		if err != nil {
-			return nil, libkb.ChatBoxingError{Msg: "PublicCanonicalTLFNameAndID: " + err.Error()}
+			return nil, nil, libkb.ChatBoxingError{Msg: "PublicCanonicalTLFNameAndID: " + err.Error()}
 		}
 		msg.ClientHeader.TlfName = string(res.CanonicalName)
+		breaks = res.Breaks.Breaks
 	} else {
 		keys, err := b.tlf.CryptKeys(ctx, keybase1.TLFQuery{
 			TlfName:          tlfName,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			IdentifyBehavior: identifyBehavior,
 		})
 		if err != nil {
-			return nil, libkb.ChatBoxingError{Msg: "CryptKeys: " + err.Error()}
+			return nil, nil, libkb.ChatBoxingError{Msg: "CryptKeys: " + err.Error()}
 		}
 		msg.ClientHeader.TlfName = string(keys.NameIDBreaks.CanonicalName)
 
@@ -292,22 +299,23 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext, sign
 				recentKey = &key
 			}
 		}
+		breaks = keys.NameIDBreaks.Breaks.Breaks
 	}
 
 	if len(msg.ClientHeader.TlfName) == 0 {
-		return nil, libkb.ChatBoxingError{Msg: fmt.Sprintf("blank TLF name received: original: %s canonical: %s", tlfName, msg.ClientHeader.TlfName)}
+		return nil, breaks, libkb.ChatBoxingError{Msg: fmt.Sprintf("blank TLF name received: original: %s canonical: %s", tlfName, msg.ClientHeader.TlfName)}
 	}
 
 	if recentKey == nil {
-		return nil, libkb.ChatBoxingError{Msg: fmt.Sprintf("no key found for tlf %q (public: %v)", tlfName, msg.ClientHeader.TlfPublic)}
+		return nil, breaks, libkb.ChatBoxingError{Msg: fmt.Sprintf("no key found for tlf %q (public: %v)", tlfName, msg.ClientHeader.TlfPublic)}
 	}
 
 	boxed, err := b.boxMessageWithKeysV1(msg, recentKey, signingKeyPair)
 	if err != nil {
-		return nil, libkb.ChatBoxingError{Msg: err.Error()}
+		return nil, breaks, libkb.ChatBoxingError{Msg: err.Error()}
 	}
 
-	return boxed, nil
+	return boxed, breaks, nil
 }
 
 // boxMessageWithKeysV1 encrypts and signs a keybase1.MessagePlaintextV1 into a

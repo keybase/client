@@ -446,6 +446,7 @@ export type ConversationLocal = {
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
   maxMessages?: ?Array<MessageUnboxed>,
+  breaks?: ?Array<keybase1.TLFUserBreak>,
 }
 
 export type ConversationMetadata = {
@@ -469,6 +470,7 @@ export type ConversationStatus =
 
 export type DownloadAttachmentLocalRes = {
   rateLimits?: ?Array<RateLimit>,
+  breaks?: ?Array<keybase1.TLFUserBreak>,
 }
 
 export type EncryptedData = {
@@ -530,6 +532,7 @@ export type GetInboxLocalRes = {
   conversationsUnverified?: ?Array<Conversation>,
   pagination?: ?Pagination,
   rateLimits?: ?Array<RateLimit>,
+  breaks?: ?Array<keybase1.TLFUserBreak>,
 }
 
 export type GetInboxQuery = {
@@ -570,6 +573,7 @@ export type GetInboxSummaryForCLILocalRes = {
 export type GetMessagesLocalRes = {
   messages?: ?Array<MessageUnboxed>,
   rateLimits?: ?Array<RateLimit>,
+  breaks?: ?Array<keybase1.TLFUserBreak>,
 }
 
 export type GetMessagesRemoteRes = {
@@ -581,6 +585,7 @@ export type GetThreadLocalRes = {
   thread: ThreadView,
   outbox?: ?Array<OutboxRecord>,
   rateLimits?: ?Array<RateLimit>,
+  breaks?: ?Array<keybase1.TLFUserBreak>,
 }
 
 export type GetThreadQuery = {
@@ -760,6 +765,7 @@ export type MessageUnboxedValid = {
 export type NewConversationLocalRes = {
   conv: ConversationLocal,
   rateLimits?: ?Array<RateLimit>,
+  breaks?: ?Array<keybase1.TLFUserBreak>,
 }
 
 export type NewConversationPayload = {
@@ -803,10 +809,12 @@ export type Pagination = {
 export type PostLocalNonblockRes = {
   rateLimits?: ?Array<RateLimit>,
   outboxID: OutboxID,
+  breaks?: ?Array<keybase1.TLFUserBreak>,
 }
 
 export type PostLocalRes = {
   rateLimits?: ?Array<RateLimit>,
+  breaks?: ?Array<keybase1.TLFUserBreak>,
 }
 
 export type PostRemoteRes = {
@@ -905,7 +913,8 @@ export type localDownloadAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   messageID: MessageID,
   sink: keybase1.Stream,
-  preview: boolean
+  preview: boolean,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
 export type localGetConversationForCLILocalRpcParam = Exact<{
@@ -914,12 +923,14 @@ export type localGetConversationForCLILocalRpcParam = Exact<{
 
 export type localGetInboxAndUnboxLocalRpcParam = Exact<{
   query?: ?GetInboxLocalQuery,
-  pagination?: ?Pagination
+  pagination?: ?Pagination,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
 export type localGetInboxLocalRpcParam = Exact<{
   query?: ?GetInboxLocalQuery,
-  pagination?: ?Pagination
+  pagination?: ?Pagination,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
 export type localGetInboxSummaryForCLILocalRpcParam = Exact<{
@@ -928,20 +939,23 @@ export type localGetInboxSummaryForCLILocalRpcParam = Exact<{
 
 export type localGetMessagesLocalRpcParam = Exact<{
   conversationID: ConversationID,
-  messageIDs?: ?Array<MessageID>
+  messageIDs?: ?Array<MessageID>,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{
   conversationID: ConversationID,
   query?: ?GetThreadQuery,
-  pagination?: ?Pagination
+  pagination?: ?Pagination,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
 export type localNewConversationLocalRpcParam = Exact<{
   tlfName: string,
   topicType: TopicType,
   tlfVisibility: TLFVisibility,
-  topicName?: ?string
+  topicName?: ?string,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
 export type localPostAttachmentLocalRpcParam = Exact<{
@@ -950,17 +964,20 @@ export type localPostAttachmentLocalRpcParam = Exact<{
   attachment: LocalSource,
   preview?: ?LocalSource,
   title: string,
-  metadata: bytes
+  metadata: bytes,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
 export type localPostLocalNonblockRpcParam = Exact<{
   conversationID: ConversationID,
-  msg: MessagePlaintext
+  msg: MessagePlaintext,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
 export type localPostLocalRpcParam = Exact<{
   conversationID: ConversationID,
-  msg: MessagePlaintext
+  msg: MessagePlaintext,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
 export type localSetConversationStatusLocalRpcParam = Exact<{

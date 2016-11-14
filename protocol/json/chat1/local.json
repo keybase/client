@@ -497,6 +497,13 @@
             "items": "MessageUnboxed"
           },
           "name": "maxMessages"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFUserBreak"
+          },
+          "name": "breaks"
         }
       ]
     },
@@ -570,6 +577,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFUserBreak"
+          },
+          "name": "breaks"
         }
       ]
     },
@@ -597,6 +611,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFUserBreak"
+          },
+          "name": "breaks"
         }
       ]
     },
@@ -718,6 +739,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFUserBreak"
+          },
+          "name": "breaks"
         }
       ]
     },
@@ -741,6 +769,13 @@
         {
           "type": "OutboxID",
           "name": "outboxID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFUserBreak"
+          },
+          "name": "breaks"
         }
       ]
     },
@@ -789,6 +824,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFUserBreak"
+          },
+          "name": "breaks"
         }
       ]
     },
@@ -926,6 +968,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFUserBreak"
+          },
+          "name": "breaks"
         }
       ]
     },
@@ -939,6 +988,13 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFUserBreak"
+          },
+          "name": "breaks"
         }
       ]
     }
@@ -963,6 +1019,10 @@
             null,
             "Pagination"
           ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "GetThreadLocalRes"
@@ -982,6 +1042,10 @@
             null,
             "Pagination"
           ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "GetInboxLocalRes"
@@ -1001,6 +1065,10 @@
             null,
             "Pagination"
           ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "GetInboxAndUnboxLocalRes"
@@ -1014,6 +1082,10 @@
         {
           "name": "msg",
           "type": "MessagePlaintext"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "PostLocalRes"
@@ -1027,6 +1099,10 @@
         {
           "name": "msg",
           "type": "MessagePlaintext"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "PostLocalNonblockRes"
@@ -1076,6 +1152,10 @@
         {
           "name": "metadata",
           "type": "bytes"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "PostLocalRes"
@@ -1100,6 +1180,10 @@
             null,
             "string"
           ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "NewConversationLocalRes"
@@ -1134,6 +1218,10 @@
             "type": "array",
             "items": "MessageID"
           }
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "GetMessagesLocalRes"
@@ -1159,6 +1247,10 @@
         {
           "name": "preview",
           "type": "boolean"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "DownloadAttachmentLocalRes"

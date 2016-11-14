@@ -203,7 +203,7 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 		return sum[:]
 	}
 
-	boxed, err := boxer.BoxMessage(ctx, msg, signKP)
+	boxed, _, err := boxer.BoxMessage(ctx, msg, signKP, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +217,7 @@ func TestChatMessageUnboxInvalidBodyHash(t *testing.T) {
 	boxer.hashV1 = origHashFn
 
 	// This should produce a permanent error. So err will be nil, but the decmsg will be state=error.
-	decmsg, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed)
+	decmsg, _, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -250,7 +250,7 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 
 	ctx := context.Background()
 
-	boxed, err := boxer.BoxMessage(ctx, msg, signKP)
+	boxed, _, err := boxer.BoxMessage(ctx, msg, signKP, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -261,7 +261,7 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 	}
 
 	// This should produce a non-permanent error. So err will be set.
-	decmsg, ierr := boxer.UnboxMessage(ctx, NewKeyFinderMock(), *boxed)
+	decmsg, _, ierr := boxer.UnboxMessage(ctx, NewKeyFinderMock(), *boxed, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	if !strings.Contains(ierr.Error(), "no key found") {
 		t.Fatalf("error should contain 'no key found': %v", ierr)
 	}
@@ -378,7 +378,7 @@ func TestChatMessagePublic(t *testing.T) {
 
 	ctx := context.Background()
 
-	boxed, err := boxer.BoxMessage(ctx, msg, signKP)
+	boxed, _, err := boxer.BoxMessage(ctx, msg, signKP, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -389,7 +389,7 @@ func TestChatMessagePublic(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	decmsg, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed)
+	decmsg, _, err := boxer.UnboxMessage(ctx, NewKeyFinder(), *boxed, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -411,6 +411,6 @@ func NewKeyFinderMock() KeyFinder {
 	return &KeyFinderMock{}
 }
 
-func (k *KeyFinderMock) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool) (keybase1.GetTLFCryptKeysRes, error) {
+func (k *KeyFinderMock) Find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string, tlfPublic bool, identifyBehavior keybase1.TLFIdentifyBehavior) (keybase1.GetTLFCryptKeysRes, error) {
 	return keybase1.GetTLFCryptKeysRes{}, nil
 }

@@ -163,6 +163,7 @@ protocol local {
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
     array<MessageUnboxed> maxMessages; // the latest message for each message type
+    array<keybase1.TLFUserBreak> breaks;
   }
 
   record OutboxRecord {
@@ -171,7 +172,7 @@ protocol local {
     MessagePlaintext Msg; 
   }
 
-  GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
+  GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetThreadQuery {
     boolean markAsRead;
     array<MessageType> messageTypes;
@@ -182,17 +183,24 @@ protocol local {
     ThreadView thread;
     array<OutboxRecord> outbox;
     array<RateLimit> rateLimits;
+    array<keybase1.TLFUserBreak> breaks;
   }
 
   // topicName in GetInboxLocalQuery is ignored
-  GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
+  GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;
     union { null, Pagination } pagination;
     array<RateLimit> rateLimits;
+
+   // This only contains identify breaks if a TLF name is specified in arg. It
+   // doesn't contain breaks otherwise, since GetInboxLocal doesn't run
+   // identify for each conversation in the inbox. GetInboxAndUnboxLocal should
+   // be used if identify breaks are needed.
+    array<keybase1.TLFUserBreak> breaks;
   }
 
-  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
+  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior );
   record GetInboxLocalQuery {
     // Local analog of common:GetInboxQuery
 
@@ -219,17 +227,19 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
-  PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg);
+  PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalRes {
     array<RateLimit> rateLimits;
+    array<keybase1.TLFUserBreak> breaks;
   }
 
   @typedef("bytes") record OutboxID {}
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
+    array<keybase1.TLFUserBreak> breaks;
   }
-  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg);
+  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status);
   record SetConversationStatusLocalRes {
@@ -243,12 +253,13 @@ protocol local {
   }
 
   // Post an attachment in source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview, string title, bytes metadata);
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName);
+  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName, keybase1.TLFIdentifyBehavior identifyBehavior);
   record NewConversationLocalRes {
     ConversationLocal conv;
     array<RateLimit> rateLimits;
+    array<keybase1.TLFUserBreak> breaks;
   }
 
 
@@ -291,15 +302,17 @@ protocol local {
   }
 
   // Get messages by ID.
-  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs);
+  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetMessagesLocalRes {
     array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;
+    array<keybase1.TLFUserBreak> breaks;
   }
 
   // Download an attachment from a message into sink.
   record DownloadAttachmentLocalRes {
     array<RateLimit> rateLimits;
+    array<keybase1.TLFUserBreak> breaks;
   }
-  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview);
+  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
 }

@@ -64,8 +64,8 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}
-	baseSender := NewBlockingSender(tc.G, boxer, func() chat1.RemoteInterface { return ri }, f)
-	sender := NewNonblockingSender(tc.G, baseSender)
+	baseSender := NewBlockingSender(tc.G, boxer, func() chat1.RemoteInterface { return ri }, f, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+	sender := NewNonblockingSender(tc.G, baseSender, tlf, keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	listener := chatListener{
 		action: make(chan int),
 	}
@@ -96,7 +96,7 @@ func TestNonblockChannel(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	obid, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,

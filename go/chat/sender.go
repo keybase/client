@@ -17,25 +17,27 @@ import (
 )
 
 type Sender interface {
-	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, *chat1.RateLimit, error)
-	Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error)
+	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, *chat1.RateLimit, []keybase1.TLFUserBreak, error)
+	Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, []keybase1.TLFUserBreak, error)
 }
 
 type BlockingSender struct {
 	libkb.Contextified
 
-	boxer       *Boxer
-	getSecretUI func() libkb.SecretUI
-	getRi       func() chat1.RemoteInterface
+	boxer            *Boxer
+	getSecretUI      func() libkb.SecretUI
+	getRi            func() chat1.RemoteInterface
+	identifyBehavior keybase1.TLFIdentifyBehavior
 }
 
 func NewBlockingSender(g *libkb.GlobalContext, boxer *Boxer, getRi func() chat1.RemoteInterface,
-	getSecretUI func() libkb.SecretUI) *BlockingSender {
+	getSecretUI func() libkb.SecretUI, identifyBehavior keybase1.TLFIdentifyBehavior) *BlockingSender {
 	return &BlockingSender{
-		Contextified: libkb.NewContextified(g),
-		getRi:        getRi,
-		getSecretUI:  getSecretUI,
-		boxer:        boxer,
+		Contextified:     libkb.NewContextified(g),
+		getRi:            getRi,
+		getSecretUI:      getSecretUI,
+		boxer:            boxer,
+		identifyBehavior: identifyBehavior,
 	}
 }
 
@@ -78,7 +80,7 @@ func (s *BlockingSender) addPrevPointersToMessage(msg chat1.MessagePlaintext, co
 		return chat1.MessagePlaintext{}, fmt.Errorf("chatLocalHandler expects an empty prev list")
 	}
 
-	res, _, err := s.G().ConvSource.Pull(context.Background(), convID, msg.ClientHeader.Sender, nil, nil)
+	res, _, _, err := s.G().ConvSource.Pull(context.Background(), convID, msg.ClientHeader.Sender, nil, nil, s.identifyBehavior)
 	if err != nil {
 		return chat1.MessagePlaintext{}, err
 	}
@@ -99,34 +101,34 @@ func (s *BlockingSender) addPrevPointersToMessage(msg chat1.MessagePlaintext, co
 	return updated, nil
 }
 
-func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
+func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, []keybase1.TLFUserBreak, error) {
 	msg, err := s.addSenderToMessage(plaintext)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// convID will be nil in makeFirstMessage, for example
 	if convID != nil {
 		msg, err = s.addPrevPointersToMessage(msg, *convID)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	// encrypt the message
 	skp, err := s.getSigningKeyPair()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// For now, BoxMessage canonicalizes the TLF name. We should try to refactor
 	// it a bit to do it here.
-	boxed, err := s.boxer.BoxMessage(ctx, msg, skp)
+	boxed, breaks, err := s.boxer.BoxMessage(ctx, msg, skp, s.identifyBehavior)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return boxed, nil
+	return boxed, breaks, nil
 }
 
 func (s *BlockingSender) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {
@@ -144,17 +146,17 @@ func (s *BlockingSender) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err e
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext) (chat1.OutboxID, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext) (chat1.OutboxID, *chat1.RateLimit, []keybase1.TLFUserBreak, error) {
 
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
-	boxed, err := s.Prepare(ctx, msg, &convID)
+	boxed, breaks, err := s.Prepare(ctx, msg, &convID)
 	if err != nil {
-		return chat1.OutboxID{}, nil, err
+		return chat1.OutboxID{}, nil, nil, err
 	}
 
 	ri := s.getRi()
 	if ri == nil {
-		return chat1.OutboxID{}, nil, fmt.Errorf("Send(): no remote client found")
+		return chat1.OutboxID{}, nil, breaks, fmt.Errorf("Send(): no remote client found")
 	}
 
 	rarg := chat1.PostRemoteArg{
@@ -163,17 +165,17 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	plres, err := ri.PostRemote(ctx, rarg)
 	if err != nil {
-		return chat1.OutboxID{}, nil, err
+		return chat1.OutboxID{}, nil, breaks, err
 	}
 	boxed.ServerHeader = &plres.MsgHeader
 
 	// Write new message out to cache
-	if _, err := s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
-		return chat1.OutboxID{}, nil, err
+	if _, err := s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed, s.identifyBehavior); err != nil {
+		return chat1.OutboxID{}, nil, breaks, err
 	}
 	res := make([]byte, 4)
 	binary.LittleEndian.PutUint32(res, uint32(boxed.GetMessageID()))
-	return res, plres.RateLimit, nil
+	return res, plres.RateLimit, breaks, nil
 }
 
 type DelivererSecretUI struct {
@@ -283,7 +285,7 @@ func (s *Deliverer) deliverLoop() {
 		// Send messages
 		pops := 0
 		for _, obr := range obrs {
-			_, rl, err := s.sender.Send(context.Background(), obr.ConvID, obr.Msg)
+			_, rl, _, err := s.sender.Send(context.Background(), obr.ConvID, obr.Msg)
 			if err != nil {
 				s.G().Log.Error("failed to send msg: convID: %s err: %s", obr.ConvID, err.Error())
 				break
@@ -314,23 +316,52 @@ func (s *Deliverer) deliverLoop() {
 
 type NonblockingSender struct {
 	libkb.Contextified
-	sender Sender
+	sender           Sender
+	ti               keybase1.TlfInterface
+	identifyBehavior keybase1.TLFIdentifyBehavior
 }
 
-func NewNonblockingSender(g *libkb.GlobalContext, sender Sender) *NonblockingSender {
+func NewNonblockingSender(g *libkb.GlobalContext, sender Sender, ti keybase1.TlfInterface, identifyBehavior keybase1.TLFIdentifyBehavior) *NonblockingSender {
 	s := &NonblockingSender{
-		Contextified: libkb.NewContextified(g),
-		sender:       sender,
+		Contextified:     libkb.NewContextified(g),
+		sender:           sender,
+		ti:               ti,
+		identifyBehavior: identifyBehavior,
 	}
 	return s
 }
 
-func (s *NonblockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
+func (s *NonblockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, []keybase1.TLFUserBreak, error) {
 	return s.sender.Prepare(ctx, plaintext, convID)
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext) (chat1.OutboxID, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext) (chat1.OutboxID, *chat1.RateLimit, []keybase1.TLFUserBreak, error) {
+	// The deliverer uses GUI mode all the time, i.e., no errors on identify
+	// failure. As a result, we need to do identify here before returning in
+	// order to error in case the identifyBehavior is CLI, and collect identify
+	// breaks in case of GUI. Also in case of CLI mode, we never queue up the
+	// message if identify fails.
+	var breaks []keybase1.TLFUserBreak
+	if msg.ClientHeader.TlfPublic {
+		res, err := s.ti.PublicCanonicalTLFNameAndID(ctx, keybase1.TLFQuery{
+			IdentifyBehavior: s.identifyBehavior,
+			TlfName:          msg.ClientHeader.TlfName,
+		})
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		breaks = res.Breaks.Breaks
+	} else {
+		res, err := s.ti.CryptKeys(ctx, keybase1.TLFQuery{
+			IdentifyBehavior: s.identifyBehavior,
+			TlfName:          msg.ClientHeader.TlfName,
+		})
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		breaks = res.NameIDBreaks.Breaks.Breaks
+	}
 	oid, err := s.G().MessageDeliverer.Queue(convID, msg)
-	return oid, &chat1.RateLimit{}, err
+	return oid, &chat1.RateLimit{}, breaks, err
 }
