@@ -1819,11 +1819,11 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 
 	const input2 = "second round of content"
 	{
-		ctx := context.Background()
-		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", false)
-
 		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 		defer libkbfs.CleanupCancellationDelayer(ctx)
+
+		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", false)
+
 		ops := config.KBFSOps()
 		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
 		if err != nil {
@@ -2077,11 +2077,11 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 	// the whole page.
 	const input2 = "input round two"
 	{
-		ctx := context.Background()
-		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config1, "user1,user2", false)
-
 		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 		defer libkbfs.CleanupCancellationDelayer(ctx)
+
+		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config1, "user1,user2", false)
+
 		ops := config1.KBFSOps()
 		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
 		if err != nil {
