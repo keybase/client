@@ -149,9 +149,9 @@ func makeRootMetadata(bareMd MutableBareRootMetadata,
 }
 
 // makeInitialRootMetadata creates a new RootMetadata with the given
-// MetadataVer, revision MetadataRevisionInitial, and the given TlfID
-// and BareTlfHandle. Note that if the given ID/handle are private,
-// rekeying must be done separately.
+// MetadataVer, revision MetadataRevisionInitial, and the given TLF ID
+// and handle. Note that if the given ID/handle are private, rekeying
+// must be done separately.
 func makeInitialRootMetadata(
 	ver MetadataVer, tlfID tlf.ID, h *TlfHandle) (*RootMetadata, error) {
 	bh, err := h.ToBareHandle()

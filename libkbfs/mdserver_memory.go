@@ -18,7 +18,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-// An mdHandleKey is an encoded BareTlfHandle.
+// An mdHandleKey is an encoded tlf.Handle.
 type mdHandleKey string
 
 type mdBlockKey struct {

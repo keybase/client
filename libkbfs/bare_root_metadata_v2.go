@@ -143,9 +143,9 @@ type BareRootMetadataV2 struct {
 }
 
 // MakeInitialBareRootMetadataV2 creates a new BareRootMetadataV2
-// object with revision MetadataRevisionInitial, and the given TlfID
-// and BareTlfHandle. Note that if the given ID/handle are private,
-// rekeying must be done separately.
+// object with revision MetadataRevisionInitial, and the given TLF ID
+// and handle. Note that if the given ID/handle are private, rekeying
+// must be done separately.
 func MakeInitialBareRootMetadataV2(tlfID tlf.ID, h tlf.Handle) (
 	*BareRootMetadataV2, error) {
 	if tlfID.IsPublic() != h.IsPublic() {

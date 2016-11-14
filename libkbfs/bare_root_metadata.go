@@ -8,9 +8,9 @@ import "github.com/keybase/kbfs/tlf"
 
 // MakeInitialBareRootMetadata creates a new MutableBareRootMetadata
 // instance of the given MetadataVer with revision
-// MetadataRevisionInitial, and the given TlfID and
-// BareTlfHandle. Note that if the given ID/handle are private,
-// rekeying must be done separately.
+// MetadataRevisionInitial, and the given TLF ID and handle. Note that
+// if the given ID/handle are private, rekeying must be done
+// separately.
 func MakeInitialBareRootMetadata(
 	ver MetadataVer, tlfID tlf.ID, h tlf.Handle) (
 	MutableBareRootMetadata, error) {

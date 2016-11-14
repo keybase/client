@@ -172,8 +172,8 @@ func (rsa resolvableSocialAssertion) resolve(ctx context.Context) (nameUIDPair, 
 	return nameUIDPair{}, keybase1.SocialAssertion(rsa), nil
 }
 
-// MakeTlfHandle creates a TlfHandle from the given BareTlfHandle and
-// the given normalizedUsernameGetter (which is usually a KBPKI).
+// MakeTlfHandle creates a TlfHandle from the given tlf.Handle and the
+// given normalizedUsernameGetter (which is usually a KBPKI).
 func MakeTlfHandle(
 	ctx context.Context, bareHandle tlf.Handle,
 	nug normalizedUsernameGetter) (*TlfHandle, error) {

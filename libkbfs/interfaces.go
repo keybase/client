@@ -1602,7 +1602,7 @@ type BareRootMetadata interface {
 	// CheckValidSuccessorForServer is like CheckValidSuccessor but with
 	// server-specific error messages.
 	CheckValidSuccessorForServer(currID MdID, nextMd BareRootMetadata) error
-	// MakeBareTlfHandle makes a BareTlfHandle for this
+	// MakeBareTlfHandle makes a tlf.Handle for this
 	// BareRootMetadata. Should be used only by servers and MDOps.
 	MakeBareTlfHandle(extra ExtraMetadata) (tlf.Handle, error)
 	// TlfHandleExtensions returns a list of handle extensions associated with the TLf.

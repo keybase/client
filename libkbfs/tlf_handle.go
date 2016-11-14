@@ -24,9 +24,9 @@ import (
 // CanonicalTlfName is a string containing the canonical name of a TLF.
 type CanonicalTlfName string
 
-// TlfHandle contains all the info in a BareTlfHandle as well as
-// additional info. This doesn't embed BareTlfHandle to avoid having
-// to keep track of data in multiple places.
+// TlfHandle contains all the info in a tlf.Handle as well as
+// additional info. This doesn't embed tlf.Handle to avoid having to
+// keep track of data in multiple places.
 type TlfHandle struct {
 	// If this is true, resolvedReaders and unresolvedReaders
 	// should both be nil.
@@ -279,7 +279,7 @@ func (h TlfHandle) Equals(
 	return eq, nil
 }
 
-// ToBareHandle returns a BareTlfHandle corresponding to this handle.
+// ToBareHandle returns a tlf.Handle corresponding to this handle.
 func (h TlfHandle) ToBareHandle() (tlf.Handle, error) {
 	var readers []keybase1.UID
 	if h.public {
@@ -293,7 +293,7 @@ func (h TlfHandle) ToBareHandle() (tlf.Handle, error) {
 		h.Extensions())
 }
 
-// ToBareHandleOrBust returns a BareTlfHandle corresponding to this
+// ToBareHandleOrBust returns a tlf.Handle corresponding to this
 // handle, and panics if there's an error. Used by tests.
 func (h TlfHandle) ToBareHandleOrBust() tlf.Handle {
 	bh, err := h.ToBareHandle()
