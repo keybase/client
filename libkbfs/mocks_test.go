@@ -4050,6 +4050,14 @@ func (_mr *_MockConfigRecorder) MetadataVersion() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MetadataVersion")
 }
 
+func (_m *MockConfig) SetMetadataVersion(_param0 MetadataVer) {
+	_m.ctrl.Call(_m, "SetMetadataVersion", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetMetadataVersion(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMetadataVersion", arg0)
+}
+
 func (_m *MockConfig) DataVersion() DataVer {
 	ret := _m.ctrl.Call(_m, "DataVersion")
 	ret0, _ := ret[0].(DataVer)
