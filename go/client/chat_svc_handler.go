@@ -184,14 +184,45 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Rep
 
 // DeleteV1 implements ChatServiceHandler.DeleteV1.
 func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
-	convID, err := chat1.MakeConvID(opts.ConversationID)
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, _, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
+
+	// Fetch any edits that exist for this message.
+	// TODO: This is a big and inefficient fetch that scans all edits in the
+	// entire conversation. We should have this in a local index instead.
+	readArg := chat1.GetThreadLocalArg{
+		ConversationID: convID,
+		Query: &chat1.GetThreadQuery{
+			MarkAsRead:   false,
+			MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT},
+		},
+	}
+	threadView, err := client.GetThreadLocal(ctx, readArg)
+	messageAndEdits := []chat1.MessageID{opts.MessageID}
+	for _, m := range threadView.Thread.Messages {
+		st, err := m.State()
+		if err != nil {
+			return c.errReply(fmt.Errorf("invalid message: unknown state (%s)", err))
+		}
+		if st == chat1.MessageUnboxedState_ERROR {
+			c.G().Log.Warning("Failed to unbox edit %d: %s", m.Error().MessageID, m.Error().ErrMsg)
+			continue
+		}
+		if m.Valid().MessageBody.Edit().MessageID == opts.MessageID {
+			messageAndEdits = append(messageAndEdits, m.Valid().ServerHeader.MessageID)
+		}
+	}
+
 	arg := sendArgV1{
 		conversationID: convID,
 		channel:        opts.Channel,
-		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{opts.MessageID}}),
+		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messageAndEdits}),
 		mtype:          chat1.MessageType_DELETE,
 		supersedes:     opts.MessageID,
 		response:       "message deleted",
@@ -464,6 +495,8 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	header.rateLimits = append(header.rateLimits, gilres.RateLimits...)
 
 	var convTriple chat1.ConversationIDTriple
+	var tlfName string
+	var visibility chat1.TLFVisibility
 	existing := gilres.Conversations
 	switch len(existing) {
 	case 0:
@@ -477,17 +510,23 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 			return nil, err
 		}
 		header.rateLimits = append(header.rateLimits, ncres.RateLimits...)
-		convTriple, header.conversationID = ncres.Conv.Info.Triple, ncres.Conv.Info.Id
+		convTriple = ncres.Conv.Info.Triple
+		tlfName = ncres.Conv.Info.TlfName
+		visibility = ncres.Conv.Info.Visibility
+		header.conversationID = ncres.Conv.Info.Id
 	case 1:
-		convTriple, header.conversationID = existing[0].Info.Triple, existing[0].Info.Id
+		convTriple = existing[0].Info.Triple
+		tlfName = existing[0].Info.TlfName
+		visibility = existing[0].Info.Visibility
+		header.conversationID = existing[0].Info.Id
 	default:
 		return nil, fmt.Errorf("multiple conversations matched")
 	}
 
 	header.clientHeader = chat1.MessageClientHeader{
 		Conv:        convTriple,
-		TlfName:     *query.TlfName,
-		TlfPublic:   *query.TlfVisibility == chat1.TLFVisibility_PUBLIC,
+		TlfName:     tlfName,
+		TlfPublic:   visibility == chat1.TLFVisibility_PUBLIC,
 		MessageType: arg.mtype,
 		Supersedes:  arg.supersedes,
 	}
