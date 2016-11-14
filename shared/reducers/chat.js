@@ -1,7 +1,6 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
-import {List} from 'immutable'
 
 import type {Actions, State, ConversationState, AppendMessages, Message} from '../constants/chat'
 

@@ -1,7 +1,6 @@
 // @flow
 import React from 'react'
 import {Box, Text} from '../../common-adapters'
-import {List} from 'immutable'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from './'

@@ -242,7 +242,6 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
 
 // Update the badging of the app. This is a short term impl so we can get this info. It'll come from the daemon later
 function * _updateBadge (): SagaGenerator<any, any> {
-  console.log('aaaa, throttled udpatebadge')
   const inboxSelector = (state: TypedState) => state.chat.get('inbox')
   const inbox: List<InboxState> = ((yield select(inboxSelector)): any)
 
@@ -310,7 +309,6 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.setupNewChatHandler, _setupNewChatHandler),
     safeTakeEvery(Constants.incomingMessage, _incomingMessage),
     safeTakeEvery(Constants.postMessage, _postMessage),
-    // safeTakeLatest(Constants.updateBadge, _updateBadge),
     yield throttle(1000, Constants.updateBadge, _updateBadge),
   ]
 }

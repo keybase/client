@@ -119,7 +119,6 @@ function makeSnippet (message: string, max: number) {
   return [...(message.substring(0, max * 4).replace(/\s+/g, ' '))].slice(0, max).join('')
 }
 
-
 export {
   conversationIDToKey,
   keyToConversationID,

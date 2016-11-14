@@ -171,7 +171,7 @@ const ArrowTick = () => (
     borderLeft: '6px solid transparent',
     borderRight: '6px solid transparent',
     borderBottom: `6px solid ${globalColors.white}`,
-  }}/>
+  }} />
 )
 
 type BadgeIconType = 'folder' | 'people' | 'chat' | 'device'
