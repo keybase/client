@@ -4017,6 +4017,11 @@ export type UserCard = {
   theyFollowYou: boolean,
 }
 
+export type UserPlusAllKeys = {
+  base: UserPlusKeys,
+  pgpKeys?: ?Array<PublicKey>,
+}
+
 export type UserPlusKeys = {
   uid: UID,
   username: string,

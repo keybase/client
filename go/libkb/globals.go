@@ -72,19 +72,20 @@ type GlobalContext struct {
 	NotifyRouter      *NotifyRouter      // How to route notifications
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
-	UIRouter        UIRouter                  // How to route UIs
-	Services        ExternalServicesCollector // All known external services
-	ExitCode        keybase1.ExitCode         // Value to return to OS on Exit()
-	RateLimits      *RateLimits               // tracks the last time certain actions were taken
-	clockMu         sync.Mutex                // protects Clock
-	clock           clockwork.Clock           // RealClock unless we're testing
-	SecretStoreAll  *SecretStoreLocked        // nil except for tests and supported platforms
-	hookMu          sync.RWMutex              // protects loginHooks, logoutHooks
-	loginHooks      []LoginHook               // call these on login
-	logoutHooks     []LogoutHook              // call these on logout
-	GregorDismisser GregorDismisser           // for dismissing gregor items that we've handled
-	GregorListener  GregorListener            // for alerting about clients connecting and registering UI protocols
-	OutOfDateInfo   keybase1.OutOfDateInfo    // Stores out of date messages we got from API server headers.
+	UIRouter         UIRouter                  // How to route UIs
+	Services         ExternalServicesCollector // All known external services
+	ExitCode         keybase1.ExitCode         // Value to return to OS on Exit()
+	RateLimits       *RateLimits               // tracks the last time certain actions were taken
+	clockMu          sync.Mutex                // protects Clock
+	clock            clockwork.Clock           // RealClock unless we're testing
+	SecretStoreAll   *SecretStoreLocked        // nil except for tests and supported platforms
+	hookMu           sync.RWMutex              // protects loginHooks, logoutHooks
+	loginHooks       []LoginHook               // call these on login
+	logoutHooks      []LogoutHook              // call these on logout
+	GregorDismisser  GregorDismisser           // for dismissing gregor items that we've handled
+	GregorListener   GregorListener            // for alerting about clients connecting and registering UI protocols
+	OutOfDateInfo    keybase1.OutOfDateInfo    // Stores out of date messages we got from API server headers.
+	CachedUserLoader *CachedUserLoader         // Load flat users with the ability to hit the cache
 
 	CardCache *UserCardCache // cache of keybase1.UserCard objects
 
@@ -133,6 +134,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.createLoginState()
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
+	g.CachedUserLoader = NewCachedUserLoader(g, CachedUserTimeout)
 	return g
 }
 
