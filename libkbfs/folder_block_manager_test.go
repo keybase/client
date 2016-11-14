@@ -30,7 +30,7 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 	clock, now := newTestClockAndTimeNow()
 	config.SetClock(clock)
 
-	rootNode := GetRootNodeOrBust(t, ctx, config, userName.String(), false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, userName.String(), false)
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
 	if err != nil {
@@ -129,7 +129,7 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 	testQuotaReclamation(t, ctx, config, userName)
 
 	// Make sure the MD has an unembedded change block.
-	rootNode := GetRootNodeOrBust(t, ctx, config, userName.String(), false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, userName.String(), false)
 	md, err := config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get MD: %v", err)
@@ -155,7 +155,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	// block-checking logic.
 	config.bsplit.(*BlockSplitterSimple).blockChangeEmbedMaxSize = 16 << 20
 
-	rootNode := GetRootNodeOrBust(t, ctx, config, userName.String(), false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, userName.String(), false)
 	// Do a bunch of operations.
 	kbfsOps := config.KBFSOps()
 	for i := 0; i < numPointersPerGCThreshold; i++ {
@@ -232,7 +232,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	config2.SetClock(clock)
 
 	name := u1.String() + "," + u2.String()
-	rootNode1 := GetRootNodeOrBust(t, ctx, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 	data := []byte{1, 2, 3, 4, 5}
 	kbfsOps1 := config1.KBFSOps()
 	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
@@ -267,7 +267,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 
 	// u2 reads the file
-	rootNode2 := GetRootNodeOrBust(t, ctx, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 	kbfsOps2 := config2.KBFSOps()
 	aNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
 	if err != nil {
@@ -467,7 +467,7 @@ func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
 
 	// Create a shared folder.
 	name := u1.String() + "," + u2.String()
-	rootNode1 := GetRootNodeOrBust(t, ctx, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(t, config2Dev2)
@@ -539,7 +539,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 
 	config.qrMinHeadAge = qrMinHeadAgeDefault
 
-	rootNode := GetRootNodeOrBust(t, ctx, config, userName.String(), false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, userName.String(), false)
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
 	if err != nil {

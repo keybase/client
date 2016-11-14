@@ -565,7 +565,7 @@ func GetRootNodeForTest(
 // must be canonical, creating it if necessary, and failing if there's
 // an error.
 func GetRootNodeOrBust(
-	t logger.TestLogBackend, ctx context.Context,
+	ctx context.Context, t logger.TestLogBackend,
 	config Config, name string, public bool) Node {
 	n, err := GetRootNodeForTest(ctx, config, name, public)
 	if err != nil {

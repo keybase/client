@@ -209,7 +209,7 @@ func testCRSharedFolderForUsers(
 
 	// create by the first user
 	kbfsOps := configs[createAs].KBFSOps()
-	rootNode := GetRootNodeOrBust(t, ctx, configs[createAs], name, false)
+	rootNode := GetRootNodeOrBust(ctx, t, configs[createAs], name, false)
 	dir := rootNode
 	for _, d := range dirs {
 		dirNext, _, err := kbfsOps.CreateDir(ctx, dir, d)
@@ -232,7 +232,7 @@ func testCRSharedFolderForUsers(
 
 		kbfsOps := config.KBFSOps()
 		kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
-		rootNode := GetRootNodeOrBust(t, ctx, config, name, false)
+		rootNode := GetRootNodeOrBust(ctx, t, config, name, false)
 		dir := rootNode
 		for _, d := range dirs {
 			var err error
