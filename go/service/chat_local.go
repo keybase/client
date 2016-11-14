@@ -707,7 +707,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 
-	_, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg)
+	_, _, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg)
 	if err != nil {
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
@@ -722,7 +722,7 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 	nonblockSender := chat.NewNonblockingSender(h.G(), sender)
 
-	obid, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg)
+	obid, _, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg)
 	if err != nil {
 		return chat1.PostLocalNonblockRes{},
 			fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())

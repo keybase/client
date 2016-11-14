@@ -39,6 +39,7 @@ type MessageSentInfo struct {
 	ConvID    ConversationID `codec:"convID" json:"convID"`
 	RateLimit RateLimit      `codec:"rateLimit" json:"rateLimit"`
 	OutboxID  OutboxID       `codec:"outboxID" json:"outboxID"`
+	MessageID MessageID      `codec:"messageID" json:"messageID"`
 }
 
 type ChatActivity struct {

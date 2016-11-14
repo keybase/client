@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"sync"
@@ -17,7 +16,7 @@ import (
 )
 
 type Sender interface {
-	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, *chat1.RateLimit, error)
+	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error)
 }
 
@@ -144,17 +143,17 @@ func (s *BlockingSender) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err e
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext) (chat1.OutboxID, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
 
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 	boxed, err := s.Prepare(ctx, msg, &convID)
 	if err != nil {
-		return chat1.OutboxID{}, nil, err
+		return chat1.OutboxID{}, 0, nil, err
 	}
 
 	ri := s.getRi()
 	if ri == nil {
-		return chat1.OutboxID{}, nil, fmt.Errorf("Send(): no remote client found")
+		return chat1.OutboxID{}, 0, nil, fmt.Errorf("Send(): no remote client found")
 	}
 
 	rarg := chat1.PostRemoteArg{
@@ -163,17 +162,16 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	}
 	plres, err := ri.PostRemote(ctx, rarg)
 	if err != nil {
-		return chat1.OutboxID{}, nil, err
+		return chat1.OutboxID{}, 0, nil, err
 	}
 	boxed.ServerHeader = &plres.MsgHeader
 
 	// Write new message out to cache
 	if _, err := s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
-		return chat1.OutboxID{}, nil, err
+		return chat1.OutboxID{}, 0, nil, err
 	}
-	res := make([]byte, 4)
-	binary.LittleEndian.PutUint32(res, uint32(boxed.GetMessageID()))
-	return res, plres.RateLimit, nil
+
+	return []byte{}, plres.MsgHeader.MessageID, plres.RateLimit, nil
 }
 
 type DelivererSecretUI struct {
@@ -283,7 +281,7 @@ func (s *Deliverer) deliverLoop() {
 		// Send messages
 		pops := 0
 		for _, obr := range obrs {
-			_, rl, err := s.sender.Send(context.Background(), obr.ConvID, obr.Msg)
+			_, msgID, rl, err := s.sender.Send(context.Background(), obr.ConvID, obr.Msg)
 			if err != nil {
 				s.G().Log.Error("failed to send msg: convID: %s err: %s", obr.ConvID, err.Error())
 				break
@@ -293,6 +291,7 @@ func (s *Deliverer) deliverLoop() {
 			activity := chat1.NewChatActivityWithMessageSent(chat1.MessageSentInfo{
 				ConvID:    obr.ConvID,
 				OutboxID:  obr.OutboxID,
+				MessageID: msgID,
 				RateLimit: *rl,
 			})
 			s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
@@ -330,7 +329,7 @@ func (s *NonblockingSender) Prepare(ctx context.Context, plaintext chat1.Message
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext) (chat1.OutboxID, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
 	oid, err := s.G().MessageDeliverer.Queue(convID, msg)
-	return oid, &chat1.RateLimit{}, err
+	return oid, 0, &chat1.RateLimit{}, err
 }

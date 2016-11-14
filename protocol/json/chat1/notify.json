@@ -46,6 +46,10 @@
         {
           "type": "OutboxID",
           "name": "outboxID"
+        },
+        {
+          "type": "MessageID",
+          "name": "messageID"
         }
       ]
     },
