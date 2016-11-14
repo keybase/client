@@ -262,6 +262,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             followState: isYou ? 'You' : 'Following', // TODO get this
+            messageState: 'sent',
           }
         default:
           return {

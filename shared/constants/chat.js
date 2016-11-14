@@ -16,6 +16,7 @@ export type Message = {
   timestamp: number,
   messageID: number,
   followState: FollowState,
+  messageState: 'pending' | 'sent' | 'failed',
 } | {
   type: 'Error',
   reason: string,
