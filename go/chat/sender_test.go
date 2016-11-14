@@ -96,7 +96,7 @@ func TestNonblockChannel(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	obid, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+	obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,
