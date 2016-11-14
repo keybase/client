@@ -134,6 +134,15 @@ class Input extends Component<void, Props, State> {
     }
   }
 
+  _propTypeToSingleLineType () {
+    switch (this.props.type) {
+      case 'password':
+        return 'password'
+      default:
+        return 'text'
+    }
+  }
+
   render () {
     const underlineColor = this._underlineColor()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
@@ -193,11 +202,7 @@ class Input extends Component<void, Props, State> {
     const singlelineProps = {
       ...commonProps,
       style: {...inputStyle, ...this.props.inputStyle},
-      type: {
-        password: 'password',
-        text: 'text',
-        passwordVisible: 'text',
-      }[this.props.type || 'text'] || 'text',
+      type: this._propTypeToSingleLineType(),
     }
 
     const multilineProps = {
