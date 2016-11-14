@@ -2,7 +2,7 @@
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
-import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalRpcPromise} from '../constants/types/flow-types-chat'
+import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
 import {call, put, select} from 'redux-saga/effects'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
@@ -118,7 +118,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     senderDevice: Buffer.from(deviceID, 'hex'),
   }
 
-  yield call(localPostLocalRpcPromise, {
+  const sent = yield call(localPostLocalNonblockRpcPromise, {
     param: {
       conversationID: keyToConversationID(action.payload.conversationIDKey),
       msg: {
@@ -132,6 +132,10 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       },
     },
   })
+  if (sent) {
+    console.warn(sent.outboxID)
+    console.warn(sent.outboxID.toString('hex'))
+  }
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
