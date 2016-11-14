@@ -96,12 +96,12 @@ func parseHandleExtensionString(s string) (HandleExtensionType, libkb.Normalized
 
 // ErrHandleExtensionInvalidString is returned when a given string is not parsable as a
 // valid extension suffix.
-var ErrHandleExtensionInvalidString = errors.New("Invalid TLF handle extension string")
+var errHandleExtensionInvalidString = errors.New("Invalid TLF handle extension string")
 
 // ErrHandleExtensionInvalidNumber is returned when an invalid number is used in an
 // extension definition. Handle extension numbers present in the string must be >1. Numbers
 // passed to NewHandleExtension must be >0.
-var ErrHandleExtensionInvalidNumber = errors.New("Invalid TLF handle extension number")
+var errHandleExtensionInvalidNumber = errors.New("Invalid TLF handle extension number")
 
 // HandleExtensionRegex is the compiled regular expression matching a valid combination
 // of TLF handle extensions in string form.
@@ -140,9 +140,9 @@ func NewHandleExtension(extType HandleExtensionType, num uint16, un libkb.Normal
 	return newHandleExtension(extType, num, un, now)
 }
 
-// NewTestHandleExtensionStaticTime returns a new HandleExtension struct populated with
+// newTestHandleExtensionStaticTime returns a new HandleExtension struct populated with
 // a static date for testing.
-func NewTestHandleExtensionStaticTime(extType HandleExtensionType, num uint16, un libkb.NormalizedUsername) (
+func newTestHandleExtensionStaticTime(extType HandleExtensionType, num uint16, un libkb.NormalizedUsername) (
 	*HandleExtension, error) {
 	now := time.Unix(HandleExtensionStaticTestDate, 0)
 	return newHandleExtension(extType, num, un, now)
@@ -152,7 +152,7 @@ func NewTestHandleExtensionStaticTime(extType HandleExtensionType, num uint16, u
 func newHandleExtension(extType HandleExtensionType, num uint16, un libkb.NormalizedUsername, now time.Time) (
 	*HandleExtension, error) {
 	if num == 0 {
-		return nil, ErrHandleExtensionInvalidNumber
+		return nil, errHandleExtensionInvalidNumber
 	}
 	// mask out everything but the date
 	date := now.UTC().Format(handleExtensionDateFormat)
@@ -171,11 +171,11 @@ func newHandleExtension(extType HandleExtensionType, num uint16, un libkb.Normal
 // parseHandleExtension parses a HandleExtension array of string fields.
 func parseHandleExtension(fields []string) (*HandleExtension, error) {
 	if len(fields) != 4 {
-		return nil, ErrHandleExtensionInvalidString
+		return nil, errHandleExtensionInvalidString
 	}
 	extType, un := parseHandleExtensionString(fields[1])
 	if extType == HandleExtensionUnknown {
-		return nil, ErrHandleExtensionInvalidString
+		return nil, errHandleExtensionInvalidString
 	}
 	date, err := time.Parse(handleExtensionDateFormat, fields[2])
 	if err != nil {
@@ -188,7 +188,7 @@ func parseHandleExtension(fields []string) (*HandleExtension, error) {
 			return nil, err
 		}
 		if num < 2 {
-			return nil, ErrHandleExtensionInvalidNumber
+			return nil, errHandleExtensionInvalidNumber
 		}
 	}
 	return &HandleExtension{
@@ -203,7 +203,7 @@ func parseHandleExtension(fields []string) (*HandleExtension, error) {
 func ParseHandleExtensionSuffix(s string) ([]HandleExtension, error) {
 	exts := handleExtensionRegex.FindAllStringSubmatch(s, 2)
 	if len(exts) < 1 || len(exts) > 2 {
-		return nil, ErrHandleExtensionInvalidString
+		return nil, errHandleExtensionInvalidString
 	}
 	extMap := make(map[HandleExtensionType]bool)
 	var extensions []HandleExtension
@@ -214,7 +214,7 @@ func ParseHandleExtensionSuffix(s string) ([]HandleExtension, error) {
 		}
 		if extMap[ext.Type] {
 			// No duplicate extension types in the same suffix.
-			return nil, ErrHandleExtensionInvalidString
+			return nil, errHandleExtensionInvalidString
 		}
 		extMap[ext.Type] = true
 		extensions = append(extensions, *ext)

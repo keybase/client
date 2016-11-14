@@ -128,28 +128,28 @@ func TestHandleExtensionKnownTime(t *testing.T) {
 
 func TestHandleExtensionErrors(t *testing.T) {
 	_, err := NewHandleExtension(HandleExtensionConflict, 0, "", time.Now())
-	if err != ErrHandleExtensionInvalidNumber {
-		t.Fatalf("Expected ErrHandleExtensionInvalidNumber, got: %v", err)
+	if err != errHandleExtensionInvalidNumber {
+		t.Fatalf("Expected errHandleExtensionInvalidNumber, got: %v", err)
 	}
 	_, err = ParseHandleExtensionSuffix("(conflicted copy 2016-05-10 #0)")
-	if err != ErrHandleExtensionInvalidNumber {
-		t.Fatalf("Expected ErrHandleExtensionInvalidNumber, got: %v", err)
+	if err != errHandleExtensionInvalidNumber {
+		t.Fatalf("Expected errHandleExtensionInvalidNumber, got: %v", err)
 	}
 	_, err = ParseHandleExtensionSuffix("(conflicted copy 2016-05-10 #1)")
-	if err != ErrHandleExtensionInvalidNumber {
-		t.Fatalf("Expected ErrHandleExtensionInvalidNumber, got: %v", err)
+	if err != errHandleExtensionInvalidNumber {
+		t.Fatalf("Expected errHandleExtensionInvalidNumber, got: %v", err)
 	}
 	_, err = ParseHandleExtensionSuffix("nope")
-	if err != ErrHandleExtensionInvalidString {
-		t.Fatalf("Expected ErrHandleExtensionInvalidString, got: %v", err)
+	if err != errHandleExtensionInvalidString {
+		t.Fatalf("Expected errHandleExtensionInvalidString, got: %v", err)
 	}
 	_, err = ParseHandleExtensionSuffix("(conflicted copy #2)")
-	if err != ErrHandleExtensionInvalidString {
-		t.Fatalf("Expected ErrHandleExtensionInvalidString, got: %v", err)
+	if err != errHandleExtensionInvalidString {
+		t.Fatalf("Expected errHandleExtensionInvalidString, got: %v", err)
 	}
 	_, err = ParseHandleExtensionSuffix("(conflicted copy 2016-05-10 #)")
-	if err != ErrHandleExtensionInvalidString {
-		t.Fatalf("Expected ErrHandleExtensionInvalidString, got: %v", err)
+	if err != errHandleExtensionInvalidString {
+		t.Fatalf("Expected errHandleExtensionInvalidString, got: %v", err)
 	}
 }
 
@@ -181,11 +181,11 @@ func TestHandleExtensionUnknownFields(t *testing.T) {
 }
 
 func TestHandleExtensionMultiple(t *testing.T) {
-	e, err := NewTestHandleExtensionStaticTime(HandleExtensionConflict, 1, "")
+	e, err := newTestHandleExtensionStaticTime(HandleExtensionConflict, 1, "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	e2, err := NewTestHandleExtensionStaticTime(HandleExtensionFinalized, 2, "charlie")
+	e2, err := newTestHandleExtensionStaticTime(HandleExtensionFinalized, 2, "charlie")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -219,11 +219,11 @@ func TestHandleExtensionMultiple(t *testing.T) {
 }
 
 func TestHandleExtensionMultipleSingleUser(t *testing.T) {
-	e, err := NewTestHandleExtensionStaticTime(HandleExtensionConflict, 2, "")
+	e, err := newTestHandleExtensionStaticTime(HandleExtensionConflict, 2, "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	e2, err := NewTestHandleExtensionStaticTime(HandleExtensionFinalized, 1, "")
+	e2, err := newTestHandleExtensionStaticTime(HandleExtensionFinalized, 1, "")
 	if err != nil {
 		t.Fatal(err)
 	}
