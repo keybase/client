@@ -4,7 +4,7 @@ import {NavigationExperimental} from 'react-native'
 import {Box} from './common-adapters/index.native'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
-import {globalColors} from './styles/index.native'
+import {globalColors, statusBarHeight} from './styles/index.native'
 import {listenForNotifications} from './actions/notifications'
 import {loginTab, folderTab} from './constants/tabs'
 import TabBar from './tab-bar/index.render.native'
@@ -37,6 +37,7 @@ function Nav (props: Props) {
             <Box style={{
               flex: 1,
               backgroundColor: globalColors.white,
+              paddingTop: scene.route.tags.underStatusBar ? 0 : statusBarHeight,
             }}>
               {scene.route.component}
             </Box>
