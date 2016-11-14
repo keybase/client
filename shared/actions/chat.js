@@ -9,7 +9,7 @@ import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {usernameSelector} from '../constants/selectors'
 
 import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler} from '../constants/chat'
-import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
+import type {GetInboxAndUnboxLocalRes, MessageSentInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
@@ -132,28 +132,60 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       },
     },
   })
-  if (sent) {
-    console.warn(sent.outboxID)
-    console.warn(sent.outboxID.toString('hex'))
+
+  const author = yield select(usernameSelector)
+  if (sent && author) {
+    const message: Message = {
+      type: 'Text',
+      author: author,
+      outboxID: sent.outboxID.toString('hex'),
+      messageID: sent.outboxID.toString('hex'),
+      timestamp: Date.now(),
+      messageState: 'pending',
+      message: new HiddenString(action.payload.text.stringValue()),
+      followState: 'You',
+    }
+    yield put({
+      type: Constants.appendMessages,
+      payload: {
+        conversationIDKey: action.payload.conversationIDKey,
+        messages: [message],
+      },
+    })
   }
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
-  if (action.payload.activity.activityType === NotifyChatChatActivityType.incomingMessage) {
-    const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
-    if (incomingMessage) {
-      const messageUnboxed: MessageUnboxed = incomingMessage.message
-      const yourName = yield select(usernameSelector)
-      const message = _unboxedToMessage(messageUnboxed, 0, yourName)
+  switch (action.payload.activity.activityType) {
+    case NotifyChatChatActivityType.incomingMessage:
+      const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
+      if (incomingMessage) {
+        const messageUnboxed: MessageUnboxed = incomingMessage.message
+        const yourName = yield select(usernameSelector)
+        const message = _unboxedToMessage(messageUnboxed, 0, yourName)
 
-      yield put({
-        type: Constants.appendMessages,
-        payload: {
-          conversationIDKey: conversationIDToKey(incomingMessage.convID),
-          messages: [message],
-        },
-      })
-    }
+        yield put({
+          type: Constants.appendMessages,
+          payload: {
+            conversationIDKey: conversationIDToKey(incomingMessage.convID),
+            messages: [message],
+          },
+        })
+      }
+      return
+    case NotifyChatChatActivityType.messageSent:
+      const sentMessage: ?MessageSentInfo = action.payload.activity.messageSent
+      if (sentMessage) {
+        yield put({
+          type: Constants.updateMessage,
+          payload: {
+            conversationIDKey: conversationIDToKey(sentMessage.convID),
+            outboxID: sentMessage.outboxID.toString('hex'),
+            messageID: sentMessage.messageID,
+            messageState: 'sent',
+          },
+        })
+      }
   }
 }
 
@@ -266,7 +298,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             followState: isYou ? 'You' : 'Following', // TODO get this
-            messageState: 'sent',
+            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
           }
         default:
           return {
