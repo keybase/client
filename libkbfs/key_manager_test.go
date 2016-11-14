@@ -728,7 +728,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -946,11 +946,11 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	// Users 2 and 3 should be unable to read the data now since its
 	// device wasn't registered when the folder was originally
 	// created.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
-	_, err = GetRootNodeForTest(config3, name, false)
+	_, err = GetRootNodeForTest(ctx, config3, name, false)
 	if _, ok := err.(NeedOtherRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -977,7 +977,7 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	}
 
 	// The new devices should be able to read now.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if err != nil {
 		t.Fatalf("Got unexpected error after rekey: %v", err)
 	}
@@ -1023,7 +1023,7 @@ func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	t.Log("Check that user 2 device 2 is unable to read the file")
 	// user 2 device 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1117,7 +1117,7 @@ func TestKeyManagerReaderRekey(t *testing.T) {
 	// user 2 device 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1135,7 +1135,7 @@ func TestKeyManagerReaderRekey(t *testing.T) {
 	root2dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
 
 	t.Log("User 1 device 2 should still be unable to read")
-	_, err = GetRootNodeForTest(config1Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config1Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1199,7 +1199,7 @@ func TestKeyManagerReaderRekeyAndRevoke(t *testing.T) {
 	t.Log("Check that user 2 device 3 is unable to read the file")
 	// user 2 device 3 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config2Dev3, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev3, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1290,7 +1290,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1351,7 +1351,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 
 	// user 3 dev 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config3Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config3Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1444,7 +1444,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1838,7 +1838,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T) {
 	// Now cause a paper prompt unlock via a folder access
 	errCh := make(chan error)
 	go func() {
-		_, err := GetRootNodeForTest(config2Dev2, name, false)
+		_, err := GetRootNodeForTest(ctx, config2Dev2, name, false)
 		select {
 		case errCh <- err:
 		case <-ctx.Done():

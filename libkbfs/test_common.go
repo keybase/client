@@ -545,8 +545,9 @@ func CheckConfigAndShutdown(t logger.TestLogBackend, config Config) {
 
 // GetRootNodeForTest gets the root node for the given TLF name, which
 // must be canonical, creating it if necessary.
-func GetRootNodeForTest(config Config, name string, public bool) (Node, error) {
-	ctx := context.Background()
+func GetRootNodeForTest(
+	ctx context.Context, config Config, name string,
+	public bool) (Node, error) {
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, public)
 	if err != nil {
 		return nil, err
@@ -565,7 +566,8 @@ func GetRootNodeForTest(config Config, name string, public bool) (Node, error) {
 // an error.
 func GetRootNodeOrBust(
 	t logger.TestLogBackend, config Config, name string, public bool) Node {
-	n, err := GetRootNodeForTest(config, name, public)
+	ctx := context.Background()
+	n, err := GetRootNodeForTest(ctx, config, name, public)
 	if err != nil {
 		t.Fatalf("Couldn't get root node for %s (public=%t): %v",
 			name, public, err)
