@@ -18,6 +18,7 @@ const factory = (message: Message, index: number, key: string, style: Object, is
         author={message.author}
         message={message.message.stringValue()}
         followState={message.followState}
+        messageState={message.messageState}
         />
     default:
       return <Box key={key} style={style} />

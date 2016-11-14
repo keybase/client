@@ -8,6 +8,7 @@ import type {NoErrorTypedAction} from './types/flux'
 
 export type MessageType = 'Text'
 export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
+export type MessageState = 'pending' | 'sent' | 'failed'
 
 export type Message = {
   type: 'Text',
@@ -16,7 +17,7 @@ export type Message = {
   timestamp: number,
   messageID: number,
   followState: FollowState,
-  messageState: 'pending' | 'sent' | 'failed',
+  messageState: MessageState,
 } | {
   type: 'Error',
   reason: string,
