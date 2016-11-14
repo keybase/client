@@ -17,7 +17,7 @@ import (
 
 func readAndCompareData(t *testing.T, config Config, ctx context.Context,
 	name string, expectedData []byte, user libkb.NormalizedUsername) {
-	rootNode := GetRootNodeOrBust(t, config, name, false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, name, false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.Lookup(ctx, rootNode, "a")
@@ -82,8 +82,8 @@ func TestBasicMDUpdate(t *testing.T) {
 
 	name := userName1.String() + "," + userName2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	_, statusChan, err := kbfsOps2.FolderStatus(ctx, rootNode2.GetFolderBranch())
@@ -145,7 +145,7 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 
 	name := userName1.String() + "," + userName2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 	// user 1 creates a file
@@ -155,7 +155,7 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	}
 
 	// user 2 looks up the directory (and sees the file)
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	// now user 1 renames the old file, and creates a new one
 	err = kbfsOps1.Rename(ctx, rootNode1, "a", rootNode1, "b")
@@ -212,7 +212,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 	fileNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
@@ -227,7 +227,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	DisableCRForTesting(config1, rootNode1.GetFolderBranch())
 
 	// then user2 write to the file
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	fileNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -279,7 +279,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 
 	// Keep the config1B node in memory, so it doesn't get garbage
 	// collected (preventing notifications)
-	rootNode1B := GetRootNodeOrBust(t, config1B, name, false)
+	rootNode1B := GetRootNodeOrBust(ctx, t, config1B, name, false)
 
 	kbfsOps1B := config1B.KBFSOps()
 	fileNode1B, _, err := kbfsOps1B.Lookup(ctx, rootNode1B, "a")
@@ -374,7 +374,7 @@ func TestMultiUserWrite(t *testing.T) {
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
@@ -383,7 +383,7 @@ func TestMultiUserWrite(t *testing.T) {
 	}
 
 	// then user2 write to the file
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	fileNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -452,7 +452,7 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
@@ -461,7 +461,7 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	}
 
 	// look it up on user2
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -602,7 +602,7 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
@@ -615,7 +615,7 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 	}
 
 	// look it up on user2
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -709,7 +709,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
@@ -722,7 +722,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 	}
 
 	// look it up on user2
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -833,7 +833,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
@@ -842,7 +842,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	}
 
 	// look it up on user2
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -948,7 +948,7 @@ func TestCRDouble(t *testing.T) {
 	name := userName1.String() + "," + userName2.String()
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config1, name, false)
+	rootNode := GetRootNodeOrBust(ctx, t, config1, name, false)
 	kbfsOps1 := config1.KBFSOps()
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
@@ -956,7 +956,7 @@ func TestCRDouble(t *testing.T) {
 	}
 
 	// look it up on user2
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -1122,7 +1122,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
@@ -1135,7 +1135,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	}
 
 	// look it up on user2
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -1161,7 +1161,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 
 	// user2 device 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1244,7 +1244,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
-	rootNode2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 	dirA2Dev2, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
 	if err != nil {
 		t.Fatalf("Couldn't lookup dir: %v", err)
@@ -1313,7 +1313,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
@@ -1326,7 +1326,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	}
 
 	// look it up on user2
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -1348,7 +1348,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 
 	// user2 device 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1422,7 +1422,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
-	rootNode2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 	dirA2Dev2, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
 	if err != nil {
 		t.Fatalf("Couldn't lookup dir: %v", err)
@@ -1496,7 +1496,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	config1.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config1, name, false)
+	rootNode := GetRootNodeOrBust(ctx, t, config1, name, false)
 	kbfsOps1 := config1.KBFSOps()
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
@@ -1504,7 +1504,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	}
 
 	// look it up on user2
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -1641,7 +1641,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	name := userName1.String() + "," + userName2.String()
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config1, name, false)
+	rootNode := GetRootNodeOrBust(ctx, t, config1, name, false)
 	kbfsOps1 := config1.KBFSOps()
 	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
@@ -1658,7 +1658,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	}
 
 	// look it up on user2
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	aNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -1787,7 +1787,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
@@ -1800,7 +1800,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	}
 
 	// look it up on user2
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	ops2 := getOps(config2, rootNode2.GetFolderBranch().Tlf)
@@ -1952,7 +1952,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	name := userName1.String() + "," + userName2.String()
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config1, name, false)
+	rootNode := GetRootNodeOrBust(ctx, t, config1, name, false)
 	kbfsOps1 := config1.KBFSOps()
 	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
@@ -1969,7 +1969,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	}
 
 	// look it up on user2
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")

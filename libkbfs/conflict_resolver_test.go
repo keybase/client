@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"testing"
@@ -201,15 +202,14 @@ func TestCRInputFracturedRange(t *testing.T) {
 	}
 }
 
-func testCRSharedFolderForUsers(t *testing.T, name string, createAs keybase1.UID,
+func testCRSharedFolderForUsers(
+	t *testing.T, ctx context.Context, name string, createAs keybase1.UID,
 	configs map[keybase1.UID]Config, dirs []string) map[keybase1.UID]Node {
 	nodes := make(map[keybase1.UID]Node)
 
 	// create by the first user
 	kbfsOps := configs[createAs].KBFSOps()
-	rootNode := GetRootNodeOrBust(t, configs[createAs], name, false)
-	ctx := BackgroundContextWithCancellationDelayer()
-	defer CleanupCancellationDelayer(ctx)
+	rootNode := GetRootNodeOrBust(ctx, t, configs[createAs], name, false)
 	dir := rootNode
 	for _, d := range dirs {
 		dirNext, _, err := kbfsOps.CreateDir(ctx, dir, d)
@@ -232,7 +232,7 @@ func testCRSharedFolderForUsers(t *testing.T, name string, createAs keybase1.UID
 
 		kbfsOps := config.KBFSOps()
 		kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
-		rootNode := GetRootNodeOrBust(t, config, name, false)
+		rootNode := GetRootNodeOrBust(ctx, t, config, name, false)
 		dir := rootNode
 		for _, d := range dirs {
 			var err error
@@ -369,7 +369,7 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	configs := make(map[keybase1.UID]Config)
 	configs[uid1] = config1
 	configs[uid2] = config2
-	nodes := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"dir"})
+	nodes := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"dir"})
 	dir1 := nodes[uid1]
 	dir2 := nodes[uid2]
 	fb := dir1.GetFolderBranch()
@@ -429,9 +429,9 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	configs := make(map[keybase1.UID]Config)
 	configs[uid1] = config1
 	configs[uid2] = config2
-	nodesA := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"dirA"})
+	nodesA := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"dirA"})
 	dirA1 := nodesA[uid1]
-	nodesB := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"dirB"})
+	nodesB := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"dirB"})
 	dirB1 := nodesB[uid1]
 	dirB2 := nodesB[uid2]
 	fb := dirA1.GetFolderBranch()
@@ -491,7 +491,7 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	configs := make(map[keybase1.UID]Config)
 	configs[uid1] = config1
 	configs[uid2] = config2
-	nodesA := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"dirA"})
+	nodesA := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"dirA"})
 	dirA1 := nodesA[uid1]
 	fb := dirA1.GetFolderBranch()
 
@@ -499,10 +499,10 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
 
-	nodesB := testCRSharedFolderForUsers(t, name, uid1, configs,
+	nodesB := testCRSharedFolderForUsers(t, ctx, name, uid1, configs,
 		[]string{"dirA", "dirB"})
 	dirB1 := nodesB[uid1]
-	nodesC := testCRSharedFolderForUsers(t, name, uid1, configs,
+	nodesC := testCRSharedFolderForUsers(t, ctx, name, uid1, configs,
 		[]string{"dirA", "dirB", "dirC"})
 	dirC2 := nodesC[uid2]
 	dirAPtr := cr1.fbo.nodeCache.PathFromNode(dirA1).tailPointer()
@@ -588,7 +588,7 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	configs := make(map[keybase1.UID]Config)
 	configs[uid1] = config1
 	configs[uid2] = config2
-	nodesA := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"dirA"})
+	nodesA := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"dirA"})
 	dirA1 := nodesA[uid1]
 	fb := dirA1.GetFolderBranch()
 
@@ -596,10 +596,10 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
 
-	nodesB := testCRSharedFolderForUsers(t, name, uid1, configs,
+	nodesB := testCRSharedFolderForUsers(t, ctx, name, uid1, configs,
 		[]string{"dirA", "dirB"})
 	dirB1 := nodesB[uid1]
-	nodesC := testCRSharedFolderForUsers(t, name, uid1, configs,
+	nodesC := testCRSharedFolderForUsers(t, ctx, name, uid1, configs,
 		[]string{"dirA", "dirB", "dirC"})
 	dirC1 := nodesC[uid1]
 	dirC2 := nodesC[uid2]
@@ -674,7 +674,7 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	configs := make(map[keybase1.UID]Config)
 	configs[uid1] = config1
 	configs[uid2] = config2
-	nodesA := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"dirA"})
+	nodesA := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"dirA"})
 	dirA1 := nodesA[uid1]
 	dirA2 := nodesA[uid2]
 	fb := dirA1.GetFolderBranch()
@@ -683,27 +683,27 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	cr2 := testCRGetCROrBust(t, config2, fb)
 	cr2.Shutdown()
 
-	nodesB := testCRSharedFolderForUsers(t, name, uid1, configs,
+	nodesB := testCRSharedFolderForUsers(t, ctx, name, uid1, configs,
 		[]string{"dirA", "dirB"})
 	dirB1 := nodesB[uid1]
 	dirB2 := nodesB[uid2]
-	nodesC := testCRSharedFolderForUsers(t, name, uid1, configs,
+	nodesC := testCRSharedFolderForUsers(t, ctx, name, uid1, configs,
 		[]string{"dirA", "dirB", "dirC"})
 	dirC2 := nodesC[uid2]
-	nodesD := testCRSharedFolderForUsers(t, name, uid1, configs,
+	nodesD := testCRSharedFolderForUsers(t, ctx, name, uid1, configs,
 		[]string{"dirA", "dirB", "dirD"})
 	dirD1 := nodesD[uid1]
 	dirD2 := nodesD[uid2]
-	nodesE := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"dirE"})
+	nodesE := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"dirE"})
 	dirE1 := nodesE[uid1]
-	nodesF := testCRSharedFolderForUsers(t, name, uid1, configs,
+	nodesF := testCRSharedFolderForUsers(t, ctx, name, uid1, configs,
 		[]string{"dirE", "dirF"})
 	dirF2 := nodesF[uid2]
 	dirEPtr := cr2.fbo.nodeCache.PathFromNode(dirE1).tailPointer()
 	dirFPtr := cr2.fbo.nodeCache.PathFromNode(dirF2).tailPointer()
-	nodesG := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"dirG"})
+	nodesG := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"dirG"})
 	dirG1 := nodesG[uid1]
-	nodesH := testCRSharedFolderForUsers(t, name, uid1, configs,
+	nodesH := testCRSharedFolderForUsers(t, ctx, name, uid1, configs,
 		[]string{"dirG", "dirH"})
 	dirH1 := nodesH[uid1]
 	dirH2 := nodesH[uid2]
@@ -853,16 +853,16 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	configs := make(map[keybase1.UID]Config)
 	configs[uid1] = config1
 	configs[uid2] = config2
-	nodesRoot := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"root"})
+	nodesRoot := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"root"})
 	dirRoot1 := nodesRoot[uid1]
 	dirRoot2 := nodesRoot[uid2]
 	fb := dirRoot1.GetFolderBranch()
 
-	nodesA := testCRSharedFolderForUsers(t, name, uid1, configs,
+	nodesA := testCRSharedFolderForUsers(t, ctx, name, uid1, configs,
 		[]string{"root", "dirA"})
 	dirA1 := nodesA[uid1]
 
-	nodesB := testCRSharedFolderForUsers(t, name, uid1, configs,
+	nodesB := testCRSharedFolderForUsers(t, ctx, name, uid1, configs,
 		[]string{"root", "dirB"})
 	dirB1 := nodesB[uid1]
 	dirB2 := nodesB[uid2]
@@ -942,7 +942,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 	configs := make(map[keybase1.UID]Config)
 	configs[uid1] = config1
 	configs[uid2] = config2
-	nodesRoot := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"root"})
+	nodesRoot := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"root"})
 	dirRoot1 := nodesRoot[uid1]
 	dirRoot2 := nodesRoot[uid2]
 	fb := dirRoot1.GetFolderBranch()
@@ -1010,7 +1010,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	configs := make(map[keybase1.UID]Config)
 	configs[uid1] = config1
 	configs[uid2] = config2
-	nodesRoot := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"root"})
+	nodesRoot := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"root"})
 	dirRoot1 := nodesRoot[uid1]
 	dirRoot2 := nodesRoot[uid2]
 	fb := dirRoot1.GetFolderBranch()
@@ -1116,7 +1116,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 	configs := make(map[keybase1.UID]Config)
 	configs[uid1] = config1
 	configs[uid2] = config2
-	nodes := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"dir"})
+	nodes := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"dir"})
 	dir1 := nodes[uid1]
 	dir2 := nodes[uid2]
 	fb := dir1.GetFolderBranch()
@@ -1207,7 +1207,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	configs := make(map[keybase1.UID]Config)
 	configs[uid1] = config1
 	configs[uid2] = config2
-	nodes := testCRSharedFolderForUsers(t, name, uid1, configs, []string{"dir"})
+	nodes := testCRSharedFolderForUsers(t, ctx, name, uid1, configs, []string{"dir"})
 	dir1 := nodes[uid1]
 	dir2 := nodes[uid2]
 	fb := dir1.GetFolderBranch()

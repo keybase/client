@@ -696,7 +696,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	// Create a shared folder
 	name := u1.String() + "," + u2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 
@@ -706,7 +706,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 
@@ -728,7 +728,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -812,7 +812,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 
 	// this device should be able to read now
-	root2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	root2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, root2Dev2.GetFolderBranch())
@@ -821,7 +821,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 
 	// device 2 should still work
-	rootNode2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 
 	children, err := kbfsOps2Dev2.GetDirChildren(ctx, rootNode2Dev2)
 	if _, ok := children["d"]; !ok {
@@ -848,7 +848,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 
 	// meanwhile, device 3 should be able to read both the new and the
 	// old files
-	rootNode2Dev3 := GetRootNodeOrBust(t, config2Dev3, name, false)
+	rootNode2Dev3 := GetRootNodeOrBust(ctx, t, config2Dev3, name, false)
 
 	kbfsOps2Dev3 := config2Dev3.KBFSOps()
 	aNode, _, err := kbfsOps2Dev3.Lookup(ctx, rootNode2Dev3, "a")
@@ -915,7 +915,7 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	// Create a shared folder
 	name := u1.String() + "," + u2.String() + ReaderSep + u3.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 
@@ -946,11 +946,11 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	// Users 2 and 3 should be unable to read the data now since its
 	// device wasn't registered when the folder was originally
 	// created.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
-	_, err = GetRootNodeForTest(config3, name, false)
+	_, err = GetRootNodeForTest(ctx, config3, name, false)
 	if _, ok := err.(NeedOtherRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -977,12 +977,12 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	}
 
 	// The new devices should be able to read now.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if err != nil {
 		t.Fatalf("Got unexpected error after rekey: %v", err)
 	}
 
-	_ = GetRootNodeOrBust(t, config3, name, false)
+	_ = GetRootNodeOrBust(ctx, t, config3, name, false)
 }
 
 func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
@@ -1000,7 +1000,7 @@ func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	t.Log("Create a shared folder")
 	name := u1.String() + "," + u2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 
@@ -1023,13 +1023,13 @@ func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	t.Log("Check that user 2 device 2 is unable to read the file")
 	// user 2 device 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
 	t.Log("User 2 rekeys from device 1")
-	root2dev1 := GetRootNodeOrBust(t, config2, name, false)
+	root2dev1 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	err = kbfsOps2.Rekey(ctx, root2dev1.GetFolderBranch().Tlf)
@@ -1038,7 +1038,7 @@ func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	}
 
 	t.Log("User 2 device 2 should be able to read now")
-	root2dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	root2dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 
 	t.Log("User 2 device 2 reads user 1's file")
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
@@ -1082,7 +1082,7 @@ func TestKeyManagerReaderRekey(t *testing.T) {
 	t.Log("Create a shared folder")
 	name := u1.String() + ReaderSep + u2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 
@@ -1117,13 +1117,13 @@ func TestKeyManagerReaderRekey(t *testing.T) {
 	// user 2 device 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
 	t.Log("User 2 rekeys from device 1")
-	root2dev1 := GetRootNodeOrBust(t, config2, name, false)
+	root2dev1 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	kbfsOps2 := config2.KBFSOps()
 	err = kbfsOps2.Rekey(ctx, root2dev1.GetFolderBranch().Tlf)
@@ -1132,10 +1132,10 @@ func TestKeyManagerReaderRekey(t *testing.T) {
 	}
 
 	t.Log("User 2 device 2 should be able to read now")
-	root2dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	root2dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 
 	t.Log("User 1 device 2 should still be unable to read")
-	_, err = GetRootNodeForTest(config1Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config1Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1170,7 +1170,7 @@ func TestKeyManagerReaderRekeyAndRevoke(t *testing.T) {
 	t.Log("Create a shared folder")
 	name := u1.String() + ReaderSep + u2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 
@@ -1199,13 +1199,13 @@ func TestKeyManagerReaderRekeyAndRevoke(t *testing.T) {
 	t.Log("Check that user 2 device 3 is unable to read the file")
 	// user 2 device 3 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config2Dev3, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev3, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
 	t.Log("User 2 rekeys from device 2")
-	root2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	root2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	err = kbfsOps2Dev2.Rekey(ctx, root2Dev2.GetFolderBranch().Tlf)
 	if err != nil {
@@ -1214,7 +1214,7 @@ func TestKeyManagerReaderRekeyAndRevoke(t *testing.T) {
 	}
 
 	t.Log("User 2 device 3 should be able to read now")
-	GetRootNodeOrBust(t, config2Dev3, name, false)
+	GetRootNodeOrBust(ctx, t, config2Dev3, name, false)
 
 	// A second rekey by the same reader shouldn't change the
 	// revision, since the rekey bit is already set, even though a
@@ -1265,7 +1265,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 	// 2 writers 1 reader
 	name := u1.String() + "," + u2.String() + "#" + u3.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 
@@ -1290,7 +1290,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1321,7 +1321,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 	}
 
 	// this device should be able to read now
-	rootNode2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 
 	// look for the file
 	aNode, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
@@ -1351,7 +1351,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 
 	// user 3 dev 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(config3Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config3Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1382,7 +1382,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 	}
 
 	// this device should be able to read now
-	rootNode3Dev2 := GetRootNodeOrBust(t, config3Dev2, name, false)
+	rootNode3Dev2 := GetRootNodeOrBust(ctx, t, config3Dev2, name, false)
 
 	// look for the file
 	a2Node, _, err := kbfsOps3Dev2.Lookup(ctx, rootNode3Dev2, "a")
@@ -1422,7 +1422,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	// create a shared folder
 	name := u1.String() + "," + u2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 
@@ -1444,7 +1444,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	_, err = GetRootNodeForTest(ctx, config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -1456,7 +1456,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	}
 
 	// this device should be able to read now
-	root2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	root2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 
 	// Now revoke the original user 2 device
 	clock.Add(1 * time.Minute)
@@ -1504,7 +1504,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	rootNode1 = GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 = GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	children, err := kbfsOps1.GetDirChildren(ctx, rootNode1)
 	if _, ok := children["b"]; !ok {
@@ -1550,7 +1550,7 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 	// Create a shared folder
 	name := u1.String() + "," + u2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 
@@ -1627,7 +1627,7 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 
 	config2Dev2.SetCrypto(clta.Crypto)
 
-	rootNode2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 
 	kbfsOps2 := config2Dev2.KBFSOps()
 	children, err := kbfsOps2.GetDirChildren(ctx, rootNode2Dev2)
@@ -1668,7 +1668,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 	// Create a shared folder
 	name := u1.String() + "," + u2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
 
@@ -1759,7 +1759,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 
 	config2Dev2.SetCrypto(clta.Crypto)
 
-	rootNode2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 
 	kbfsOps2 := config2Dev2.KBFSOps()
 	children, err := kbfsOps2.GetDirChildren(ctx, rootNode2Dev2)
@@ -1788,7 +1788,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T) {
 	// Create a shared folder
 	name := u1.String() + "," + u2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 	config2Dev2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(t, config2Dev2)
 
@@ -1838,7 +1838,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T) {
 	// Now cause a paper prompt unlock via a folder access
 	errCh := make(chan error)
 	go func() {
-		_, err := GetRootNodeForTest(config2Dev2, name, false)
+		_, err := GetRootNodeForTest(ctx, config2Dev2, name, false)
 		select {
 		case errCh <- err:
 		case <-ctx.Done():
@@ -1882,5 +1882,5 @@ func TestKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T) {
 	ops.mdWriterLock.Lock(lState)
 	ops.mdWriterLock.Unlock(lState)
 
-	GetRootNodeOrBust(t, config2Dev2, name, false)
+	GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 }

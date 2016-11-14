@@ -53,7 +53,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 		name := strings.Join(writers, ",")
 		names = append(names, name)
 		// user 1 creates the directory
-		rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+		rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 		// user 1 creates a file
 		_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 		if err != nil {
@@ -72,7 +72,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
 	for _, name := range names {
-		_, err := GetRootNodeForTest(config2Dev2, name, false)
+		_, err := GetRootNodeForTest(ctx, config2Dev2, name, false)
 		if _, ok := err.(NeedSelfRekeyError); !ok {
 			t.Fatalf("Got unexpected error when reading with new key: %v", err)
 		}
@@ -82,7 +82,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 
 	// now user 1 should rekey via its rekey worker
 	for _, name := range names {
-		rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+		rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
 		// queue it for rekey
 		c := config1.RekeyQueue().Enqueue(rootNode1.GetFolderBranch().Tlf)
 		rekeyChannels = append(rekeyChannels, c)
@@ -97,6 +97,6 @@ func TestRekeyQueueBasic(t *testing.T) {
 
 	// user 2's new device should be able to read now
 	for _, name := range names {
-		_ = GetRootNodeOrBust(t, config2Dev2, name, false)
+		_ = GetRootNodeOrBust(ctx, t, config2Dev2, name, false)
 	}
 }

@@ -271,11 +271,12 @@ func TestReaddirPrivate(t *testing.T) {
 	defer cancelFn()
 
 	{
+		ctx := context.Background()
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", false)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", true)
 	}
 
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
@@ -292,11 +293,12 @@ func TestReaddirPublic(t *testing.T) {
 	defer cancelFn()
 
 	{
+		ctx := context.Background()
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", false)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", true)
 	}
 
 	checkDir(t, filepath.Join(mnt.Dir, PublicName), map[string]fileInfoCheck{
@@ -1376,11 +1378,12 @@ func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 	defer cancelFn()
 
 	{
+		ctx := context.Background()
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
-		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", false)
+		libkbfs.GetRootNodeOrBust(ctx, t, config, "janedoe,jdoe", true)
 	}
 
 	err := os.Remove(filepath.Join(mnt.Dir, PrivateName, "jdoe,janedoe"))
@@ -1614,7 +1617,7 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 func syncFolderToServerHelper(t *testing.T, tlf string, public bool, fs *FS) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	defer libkbfs.CleanupCancellationDelayer(ctx)
-	root := libkbfs.GetRootNodeOrBust(t, fs.config, tlf, public)
+	root := libkbfs.GetRootNodeOrBust(ctx, t, fs.config, tlf, public)
 	err := fs.config.KBFSOps().SyncFromServerForTesting(ctx, root.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
@@ -1816,10 +1819,11 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 
 	const input2 = "second round of content"
 	{
-		jdoe := libkbfs.GetRootNodeOrBust(t, config, "jdoe", false)
-
 		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 		defer libkbfs.CleanupCancellationDelayer(ctx)
+
+		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", false)
+
 		ops := config.KBFSOps()
 		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
 		if err != nil {
@@ -2073,10 +2077,11 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 	// the whole page.
 	const input2 = "input round two"
 	{
-		jdoe := libkbfs.GetRootNodeOrBust(t, config1, "user1,user2", false)
-
 		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 		defer libkbfs.CleanupCancellationDelayer(ctx)
+
+		jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config1, "user1,user2", false)
+
 		ops := config1.KBFSOps()
 		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
 		if err != nil {
@@ -2184,10 +2189,11 @@ func TestStatusFile(t *testing.T) {
 	defer mnt.Close()
 	defer cancelFn()
 
-	jdoe := libkbfs.GetRootNodeOrBust(t, config, "jdoe", true)
-
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	defer libkbfs.CleanupCancellationDelayer(ctx)
+
+	jdoe := libkbfs.GetRootNodeOrBust(ctx, t, config, "jdoe", true)
+
 	ops := config.KBFSOps()
 	status, _, err := ops.FolderStatus(ctx, jdoe.GetFolderBranch())
 	if err != nil {
@@ -2236,7 +2242,8 @@ func TestUnstageFile(t *testing.T) {
 	checkDir(t, myroot2, map[string]fileInfoCheck{})
 
 	// turn updates off for user 2
-	rootNode2 := libkbfs.GetRootNodeOrBust(t, config2, "user1,user2", false)
+	ctx := context.Background()
+	rootNode2 := libkbfs.GetRootNodeOrBust(ctx, t, config2, "user1,user2", false)
 	_, err := libkbfs.DisableUpdatesForTesting(config2,
 		rootNode2.GetFolderBranch())
 	if err != nil {

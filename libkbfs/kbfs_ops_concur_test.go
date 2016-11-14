@@ -75,7 +75,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	// Initialize the MD using a different config
 	c2 := ConfigAsUser(config, "test_user")
 	defer CheckConfigAndShutdown(t, c2)
-	rootNode := GetRootNodeOrBust(t, c2, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, c2, "test_user", false)
 
 	n := 10
 	c := make(chan error, n)
@@ -118,7 +118,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 		StallMDOp(ctx, config, StallableMDAfterPut, 1)
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -175,7 +175,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	config.SetBlockSplitter(bsplitter)
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -310,7 +310,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	config.SetBlockSplitter(bsplitter)
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -424,7 +424,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -549,7 +549,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -636,7 +636,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	config.SetBlockCache(NewBlockCacheStandard(0, 1<<30))
 
 	// Create a file.
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -728,7 +728,7 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 	config.SetBlockSplitter(bsplitter)
 
 	// Create a file.
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -781,7 +781,7 @@ func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -827,7 +827,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = 5
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -935,7 +935,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -1065,7 +1065,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -1155,7 +1155,7 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 		StallBlockOp(ctx, config, StallableBlockPut, 1)
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -1267,7 +1267,7 @@ func TestKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T) {
 	ctxStallSync, cancel2 := context.WithCancel(ctxStallSync)
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -1388,38 +1388,48 @@ func TestKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T) {
 // already started, and cancellation is delayed. Since no extra delay greater
 // than the grace period in MD writes is introduced, Create should succeed.
 func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
-	config, _, ctxThrowaway, cancel := kbfsOpsConcurInit(t, "test_user")
-	defer kbfsConcurTestShutdown(t, config, ctxThrowaway, cancel)
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
-	ctx := context.Background()
+	onPutStalledCh, putUnstallCh, putCtx :=
+		StallMDOp(context.Background(), config, StallableMDPut, 1)
 
-	onPutStalledCh, putUnstallCh, ctx :=
-		StallMDOp(ctx, config, StallableMDPut, 1)
+	putCtx, cancel2 := context.WithCancel(putCtx)
 
-	ctx, cancel2 := context.WithCancel(ctx)
-
-	ctx, err := NewContextWithCancellationDelayer(ctx)
+	putCtx, err := NewContextWithCancellationDelayer(putCtx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	errChan := make(chan error)
 	go func() {
-		_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, WithExcl)
-		errChan <- err
+		_, _, err := kbfsOps.CreateFile(putCtx, rootNode, "a", false, WithExcl)
+		select {
+		case errChan <- err:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		}
 	}()
 
 	// Wait until Create gets stuck at MDOps.Put(). At this point, the delayed
 	// cancellation should have been enabled.
-	<-onPutStalledCh
+	select {
+	case <-onPutStalledCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 	cancel2()
 	close(putUnstallCh)
 
 	// We expect no canceled error
-	err = <-errChan
+	select {
+	case err = <-errChan:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 	if err != nil {
 		t.Fatalf("Create returned error: %v", err)
 	}
@@ -1436,41 +1446,49 @@ func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
 // period is introduced to MD write, so Create should fail. This is to ensure
 // Ctrl-C is able to interrupt the process eventually after the grace period.
 func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
-	config, _, ctxThrowaway, cancel := kbfsOpsConcurInit(t, "test_user")
-	defer kbfsConcurTestShutdown(t, config, ctxThrowaway, cancel)
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
 	// This essentially fast-forwards the grace period timer, making cancellation
 	// happen much faster. This way we can avoid time.Sleep.
 	config.SetDelayedCancellationGracePeriod(0)
 
-	ctx := context.Background()
+	onPutStalledCh, putUnstallCh, putCtx :=
+		StallMDOp(context.Background(), config, StallableMDPut, 1)
 
-	onPutStalledCh, putUnstallCh, ctx :=
-		StallMDOp(ctx, config, StallableMDPut, 1)
+	putCtx, cancel2 := context.WithCancel(putCtx)
 
-	ctx, cancel2 := context.WithCancel(ctx)
-
-	ctx, err := NewContextWithCancellationDelayer(ctx)
+	putCtx, err := NewContextWithCancellationDelayer(putCtx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	errChan := make(chan error)
 	go func() {
-		_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, WithExcl)
-		errChan <- err
+		_, _, err := kbfsOps.CreateFile(putCtx, rootNode, "a", false, WithExcl)
+		select {
+		case errChan <- err:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		}
 	}()
 
 	// Wait until Create gets stuck at MDOps.Put(). At this point, the delayed
 	// cancellation should have been enabled.
-	<-onPutStalledCh
+	select {
+	case <-onPutStalledCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 	cancel2()
 
 	select {
 	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	case <-putCtx.Done():
 		// The cancellation delayer makes cancellation become async. This makes
 		// sure ctx is actually canceled before unstalling.
 	case <-time.After(time.Second):
@@ -1482,7 +1500,11 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	close(putUnstallCh)
 
 	// We expect a canceled error
-	err = <-errChan
+	select {
+	case err = <-errChan:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 	if err != context.Canceled {
 		t.Fatalf("Create didn't fail after grace period after cancellation."+
 			" Got %v; expecting context.Canceled", err)
@@ -1514,7 +1536,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	config.SetBlockSplitter(bsplitter)
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -1607,7 +1629,7 @@ func TestKBFSOpsConcurCanceledSyncFailsAfterCanceledSyncSucceeds(t *testing.T) {
 	config.SetBlockSplitter(bsplitter)
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -1691,7 +1713,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -1786,7 +1808,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
 	// create and write to a file
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)

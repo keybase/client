@@ -46,8 +46,8 @@ func TestBasicTlfEditHistory(t *testing.T) {
 
 	name := userName1.String() + "," + userName2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 
 	// user 1 creates a file
 	kbfsOps1 := config1.KBFSOps()
@@ -169,8 +169,8 @@ func TestLongTlfEditHistory(t *testing.T) {
 
 	name := userName1.String() + "," + userName2.String()
 
-	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
-	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
 	kbfsOps1 := config1.KBFSOps()
 	kbfsOps2 := config2.KBFSOps()
 
