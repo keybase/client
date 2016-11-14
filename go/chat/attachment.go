@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
@@ -22,10 +23,16 @@ type UploadTask struct {
 	S3Params       chat1.S3Params
 	LocalSrc       chat1.LocalSource
 	Plaintext      ReadResetter
-	PlaintextHash  []byte
+	plaintextHash  []byte
 	S3Signer       s3.Signer
 	ConversationID chat1.ConversationID
 	Progress       ProgressReporter
+}
+
+func (u *UploadTask) Nonce() signencrypt.Nonce {
+	var n [signencrypt.NonceSize]byte
+	copy(n[:], u.plaintextHash)
+	return &n
 }
 
 type AttachmentStore struct {
@@ -36,6 +43,7 @@ type AttachmentStore struct {
 	// testing hooks
 	keyTester    func(encKey, sigKey []byte) // used for testing only to check key changes
 	pipelineSize int
+	aborts       int
 }
 
 func NewAttachmentStore(log logger.Logger) *AttachmentStore {
@@ -47,6 +55,21 @@ func NewAttachmentStore(log logger.Logger) *AttachmentStore {
 }
 
 func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (chat1.Asset, error) {
+	// compute plaintext hash
+	if task.plaintextHash == nil {
+		plaintextHasher := sha256.New()
+		io.Copy(plaintextHasher, task.Plaintext)
+		task.plaintextHash = plaintextHasher.Sum(nil)
+
+		// reset the stream to the beginning of the file
+		if err := task.Plaintext.Reset(); err != nil {
+			a.log.Debug("source stream reset error: %s", err)
+			return chat1.Asset{}, err
+		}
+	} else {
+		a.log.Warning("skipping plaintextHash calculation due to existing plaintextHash (testing only feature)")
+	}
+
 	// encrypt the stream
 	enc := NewSignEncrypter()
 	len := enc.EncryptedLen(task.LocalSrc.Size)
@@ -63,6 +86,7 @@ func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (ch
 	// if the upload is aborted, reset the stream and start over to get new keys
 	if err == ErrAbortOnPartMismatch && previous != nil {
 		a.log.Debug("uploadAsset resume call aborted, resetting stream and starting from scratch")
+		a.aborts++
 		previous = nil
 		task.Plaintext.Reset()
 		return a.uploadAsset(ctx, task, enc, nil, resumable)
@@ -76,12 +100,12 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 	var encReader io.Reader
 	if previous != nil {
 		a.log.Debug("found previous upload for %s in conv %x", task.LocalSrc.Filename, task.ConversationID)
-		encReader, err = enc.EncryptResume(task.Plaintext, previous.EncKey, previous.SignKey, previous.VerifyKey)
+		encReader, err = enc.EncryptResume(task.Plaintext, task.Nonce(), previous.EncKey, previous.SignKey, previous.VerifyKey)
 		if err != nil {
 			return chat1.Asset{}, err
 		}
 	} else {
-		encReader, err = enc.Encrypt(task.Plaintext)
+		encReader, err = enc.EncryptWithNonce(task.Plaintext, task.Nonce())
 		if err != nil {
 			return chat1.Asset{}, err
 		}
@@ -121,6 +145,7 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 		Key:       enc.EncryptKey(),
 		VerifyKey: enc.VerifyKey(),
 		EncHash:   hash.Sum(nil),
+		Nonce:     task.Nonce()[:],
 	}
 
 	if resumable {
@@ -159,9 +184,13 @@ func (a *AttachmentStore) DownloadAsset(ctx context.Context, params chat1.S3Para
 
 	// decrypt body
 	dec := NewSignDecrypter()
-	decBody := dec.Decrypt(tee, asset.Key, asset.VerifyKey)
-	if err != nil {
-		return err
+	var decBody io.Reader
+	if asset.Nonce != nil {
+		var nonce [signencrypt.NonceSize]byte
+		copy(nonce[:], asset.Nonce)
+		decBody = dec.DecryptWithNonce(tee, &nonce, asset.Key, asset.VerifyKey)
+	} else {
+		decBody = dec.Decrypt(tee, asset.Key, asset.VerifyKey)
 	}
 
 	n, err := io.Copy(w, decBody)
@@ -187,19 +216,19 @@ func (a *AttachmentStore) startUpload(ctx context.Context, task *UploadTask, enc
 		SignKey:   encrypter.signKey,
 		VerifyKey: encrypter.verifyKey,
 	}
-	if err := StashStart(task.PlaintextHash, task.ConversationID, info); err != nil {
+	if err := StashStart(task.plaintextHash, task.ConversationID, info); err != nil {
 		a.log.Debug("StashStart error: %s", err)
 	}
 }
 
 func (a *AttachmentStore) finishUpload(ctx context.Context, task *UploadTask) {
-	if err := StashFinish(task.PlaintextHash, task.ConversationID); err != nil {
+	if err := StashFinish(task.plaintextHash, task.ConversationID); err != nil {
 		a.log.Debug("StashFinish error: %s", err)
 	}
 }
 
 func (a *AttachmentStore) previousUpload(ctx context.Context, task *UploadTask) *AttachmentInfo {
-	info, found, err := StashLookup(task.PlaintextHash, task.ConversationID)
+	info, found, err := StashLookup(task.plaintextHash, task.ConversationID)
 	if err != nil {
 		a.log.Debug("StashLookup error: %s", err)
 		return nil

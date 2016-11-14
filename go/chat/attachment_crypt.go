@@ -16,14 +16,20 @@ type Encrypter interface {
 	EncryptedLen(size int) int
 
 	// Encrypt takes a plaintext reader and returns a ciphertext reader.
-	// It generates new keys every time it is called.
+	// It generates new keys every time it is called and uses a
+	// constant nonce.
 	Encrypt(plaintext io.Reader) (ciphertext io.Reader, err error)
+
+	// EncryptWithNonce takes a plaintext reader and returns a ciphertext reader.
+	// It generates new keys every time it is called and uses
+	// the provided nonce.
+	EncryptWithNonce(plaintext io.Reader, nonce signencrypt.Nonce) (ciphertext io.Reader, err error)
 
 	// EncryptResume takes a plaintext reader and a set of keys.  It
 	// returns a ciphertext reader.  It *does not* generate new keys
 	// but uses the parameter keys.  These keys should *only* be used
 	// to encrypt the same plaintext as a previous attempt.
-	EncryptResume(r io.Reader, encKey signencrypt.SecretboxKey, signKey signencrypt.SignKey, verifyKey signencrypt.VerifyKey) (io.Reader, error)
+	EncryptResume(r io.Reader, nonce signencrypt.Nonce, encKey signencrypt.SecretboxKey, signKey signencrypt.SignKey, verifyKey signencrypt.VerifyKey) (io.Reader, error)
 
 	// EncryptKey returns the ephemeral key that was used during the
 	// last invocation of Encrypt.
@@ -37,12 +43,16 @@ type Encrypter interface {
 
 type Decrypter interface {
 	// Decrypt takes a ciphertext reader, encryption and verify keys.
-	// It returns a plaintext reader.
+	// It returns a plaintext reader.  It uses the constant nonce.
 	Decrypt(ciphertext io.Reader, encKey, verifyKey []byte) (plaintext io.Reader)
+
+	// DecryptWithNonce takes a ciphertext reader, nonce, encryption and verify keys.
+	// It returns a plaintext reader.
+	DecryptWithNonce(ciphertext io.Reader, nonce signencrypt.Nonce, encKey, verifyKey []byte) (plaintext io.Reader)
 }
 
 // The ASCII bytes "kbchatattachment".
-var nonce signencrypt.Nonce = &[16]byte{0x6b, 0x62, 0x63, 0x68, 0x61, 0x74, 0x61, 0x74, 0x74, 0x61, 0x63, 0x68, 0x6d, 0x65, 0x6e, 0x74}
+var nonceConst signencrypt.Nonce = &[16]byte{0x6b, 0x62, 0x63, 0x68, 0x61, 0x74, 0x61, 0x74, 0x74, 0x61, 0x63, 0x68, 0x6d, 0x65, 0x6e, 0x74}
 
 type SignEncrypter struct {
 	encKey    signencrypt.SecretboxKey
@@ -65,13 +75,20 @@ func (s *SignEncrypter) Encrypt(r io.Reader) (io.Reader, error) {
 	if err := s.makeKeys(); err != nil {
 		return nil, err
 	}
+	return signencrypt.NewEncodingReader(s.encKey, s.signKey, nonceConst, r), nil
+}
+
+func (s *SignEncrypter) EncryptWithNonce(r io.Reader, nonce signencrypt.Nonce) (io.Reader, error) {
+	if err := s.makeKeys(); err != nil {
+		return nil, err
+	}
 	return signencrypt.NewEncodingReader(s.encKey, s.signKey, nonce, r), nil
 }
 
 // EncryptResume is used to create a SignEncrypter to resume an interrupted attachment upload.
 // It is *very* important that the keys passed in are not used to encrypt different plaintext
 // than their original usage.
-func (s *SignEncrypter) EncryptResume(r io.Reader, encKey signencrypt.SecretboxKey, signKey signencrypt.SignKey, verifyKey signencrypt.VerifyKey) (io.Reader, error) {
+func (s *SignEncrypter) EncryptResume(r io.Reader, nonce signencrypt.Nonce, encKey signencrypt.SecretboxKey, signKey signencrypt.SignKey, verifyKey signencrypt.VerifyKey) (io.Reader, error) {
 	s.encKey = encKey
 	s.signKey = signKey
 	s.verifyKey = verifyKey
@@ -124,6 +141,14 @@ func NewSignDecrypter() *SignDecrypter {
 }
 
 func (s *SignDecrypter) Decrypt(r io.Reader, encKey, verifyKey []byte) io.Reader {
+	var xencKey [signencrypt.SecretboxKeySize]byte
+	copy(xencKey[:], encKey)
+	var xverifyKey [ed25519.PublicKeySize]byte
+	copy(xverifyKey[:], verifyKey)
+	return signencrypt.NewDecodingReader(&xencKey, &xverifyKey, nonceConst, r)
+}
+
+func (s *SignDecrypter) DecryptWithNonce(r io.Reader, nonce signencrypt.Nonce, encKey, verifyKey []byte) (plaintext io.Reader) {
 	var xencKey [signencrypt.SecretboxKeySize]byte
 	copy(xencKey[:], encKey)
 	var xverifyKey [ed25519.PublicKeySize]byte

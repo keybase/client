@@ -231,7 +231,7 @@ func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b jo
 		if ok && int(p.Size) == len(b.block) && p.ETag == `"`+md5hex+`"` {
 			a.log.Debug("part %d already uploaded to s3", b.index)
 			// check our own previous record for this part
-			ok, err := StashVerifyPart(task.PlaintextHash, task.ConversationID, b.index, md5hex)
+			ok, err := StashVerifyPart(task.plaintextHash, task.ConversationID, b.index, md5hex)
 			if err != nil {
 				a.log.Debug("StashVerifyPart error: %s", err)
 			} else if ok {
@@ -262,7 +262,7 @@ func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b jo
 		return ctx.Err()
 	}
 
-	if err := StashRecordPart(task.PlaintextHash, task.ConversationID, b.index, md5hex); err != nil {
+	if err := StashRecordPart(task.plaintextHash, task.ConversationID, b.index, md5hex); err != nil {
 		a.log.Debug("StashRecordPart error: %s", err)
 	}
 

@@ -414,6 +414,7 @@ export type Asset = {
   key: bytes,
   verifyKey: bytes,
   title: string,
+  nonce: bytes,
 }
 
 export type BodyPlaintext = 

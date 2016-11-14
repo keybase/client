@@ -118,6 +118,10 @@
         {
           "type": "string",
           "name": "title"
+        },
+        {
+          "type": "bytes",
+          "name": "nonce"
         }
       ]
     },

@@ -161,8 +161,9 @@ func (p *ptsigner) Sign(payload []byte) ([]byte, error) {
 }
 
 type bytesReadResetter struct {
-	data []byte
-	r    io.Reader
+	data   []byte
+	r      io.Reader
+	resets int
 }
 
 func newBytesReadResetter(d []byte) *bytesReadResetter {
@@ -177,6 +178,7 @@ func (b *bytesReadResetter) Read(p []byte) (n int, err error) {
 }
 
 func (b *bytesReadResetter) Reset() error {
+	b.resets++
 	b.r = bytes.NewReader(b.data)
 	return nil
 }
@@ -192,9 +194,7 @@ func makeUploadTask(t *testing.T, size int) (plaintext []byte, task *UploadTask)
 			Filename: randString(t, 8),
 			Size:     size,
 		},
-		// Plaintext:      bytes.NewReader(plaintext),
 		Plaintext:      newBytesReadResetter(plaintext),
-		PlaintextHash:  randBytes(t, 16),
 		S3Signer:       &ptsigner{},
 		ConversationID: randBytes(t, 16),
 	}
@@ -283,7 +283,9 @@ func TestUploadAssetResumeOK(t *testing.T) {
 
 	// try again:
 	s.pipelineSize = 10
-	task.Plaintext.Reset()
+	br := newBytesReadResetter(plaintext)
+	task.Plaintext = br
+	task.plaintextHash = nil
 	ctx = context.Background()
 	task.Progress = nil
 	a, err := s.UploadAsset(ctx, task)
@@ -325,6 +327,11 @@ func TestUploadAssetResumeOK(t *testing.T) {
 	if sig1 != sig2 {
 		t.Errorf("verify key changed between attempts 1 and 2")
 	}
+
+	// 1 reset for plaintext hash calc
+	if br.resets != 1 {
+		t.Errorf("stream resets: %d, expected 1", br.resets)
+	}
 }
 
 func TestUploadAssetResumeChange(t *testing.T) {
@@ -361,8 +368,9 @@ func TestUploadAssetResumeChange(t *testing.T) {
 	// this simulates the file changing between upload attempt 1 and this attempt.
 	s.pipelineSize = 10
 	plaintext = randBytes(t, size)
-	task.Plaintext = newBytesReadResetter(plaintext)
-	task.PlaintextHash = randBytes(t, 16)
+	br := newBytesReadResetter(plaintext)
+	task.Plaintext = br
+	task.plaintextHash = nil
 	task.Progress = nil
 
 	ctx = context.Background()
@@ -406,6 +414,11 @@ func TestUploadAssetResumeChange(t *testing.T) {
 	if sig1 == sig2 {
 		t.Errorf("verify key did not change between attempts 1 and 2")
 	}
+
+	// only reset of second attempt should be after plaintext hash
+	if br.resets != 1 {
+		t.Errorf("stream resets: %d, expected 1", br.resets)
+	}
 }
 
 func TestUploadAssetResumeRestart(t *testing.T) {
@@ -443,7 +456,8 @@ func TestUploadAssetResumeRestart(t *testing.T) {
 	// this should result in full restart of upload with new keys
 	s.pipelineSize = 10
 	plaintext[0] ^= 0x10
-	task.Plaintext = newBytesReadResetter(plaintext)
+	br := newBytesReadResetter(plaintext)
+	task.Plaintext = br
 	task.Progress = nil
 
 	ctx = context.Background()
@@ -487,5 +501,13 @@ func TestUploadAssetResumeRestart(t *testing.T) {
 	}
 	if sig1 == sig2 {
 		t.Errorf("verify key did not change between attempts 1 and 2")
+	}
+
+	// make sure the stream is reset due to abort:
+	if br.resets != 1 {
+		t.Errorf("stream resets: %d, expected 1", br.resets)
+	}
+	if s.aborts != 1 {
+		t.Errorf("aborts: %d, expected 1", s.aborts)
 	}
 }
