@@ -1407,17 +1407,29 @@ func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
 	errChan := make(chan error)
 	go func() {
 		_, _, err := kbfsOps.CreateFile(putCtx, rootNode, "a", false, WithExcl)
-		errChan <- err
+		select {
+		case errChan <- err:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		}
 	}()
 
 	// Wait until Create gets stuck at MDOps.Put(). At this point, the delayed
 	// cancellation should have been enabled.
-	<-onPutStalledCh
+	select {
+	case <-onPutStalledCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 	cancel2()
 	close(putUnstallCh)
 
 	// We expect no canceled error
-	err = <-errChan
+	select {
+	case err = <-errChan:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 	if err != nil {
 		t.Fatalf("Create returned error: %v", err)
 	}
@@ -1457,16 +1469,26 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	errChan := make(chan error)
 	go func() {
 		_, _, err := kbfsOps.CreateFile(putCtx, rootNode, "a", false, WithExcl)
-		errChan <- err
+		select {
+		case errChan <- err:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
+		}
 	}()
 
 	// Wait until Create gets stuck at MDOps.Put(). At this point, the delayed
 	// cancellation should have been enabled.
-	<-onPutStalledCh
+	select {
+	case <-onPutStalledCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 	cancel2()
 
 	select {
 	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	case <-putCtx.Done():
 		// The cancellation delayer makes cancellation become async. This makes
 		// sure ctx is actually canceled before unstalling.
 	case <-time.After(time.Second):
@@ -1478,7 +1500,11 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	close(putUnstallCh)
 
 	// We expect a canceled error
-	err = <-errChan
+	select {
+	case err = <-errChan:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
 	if err != context.Canceled {
 		t.Fatalf("Create didn't fail after grace period after cancellation."+
 			" Got %v; expecting context.Canceled", err)
