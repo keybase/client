@@ -19,6 +19,7 @@ protocol NotifyChat {
     ConversationID convID;
     RateLimit rateLimit;
     OutboxID outboxID;
+    MessageID messageID;
   }
 
   variant ChatActivity switch (ChatActivityType activityType) {

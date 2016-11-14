@@ -712,6 +712,7 @@ export type MessageSentInfo = {
   convID: ConversationID,
   rateLimit: RateLimit,
   outboxID: OutboxID,
+  messageID: MessageID,
 }
 
 export type MessageServerHeader = {
