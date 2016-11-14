@@ -340,6 +340,7 @@ func makeFakeSyncOpFuture(t *testing.T) syncOpFuture {
 			makeFakeOpCommon(t, true),
 			makeFakeBlockUpdate(t),
 			nil,
+			false,
 		},
 		[]writeRangeFuture{
 			makeFakeWriteRangeFuture(t),
@@ -375,6 +376,7 @@ func makeFakeSetAttrOpFuture(t *testing.T) setAttrOpFuture {
 			makeFakeBlockUpdate(t),
 			mtimeAttr,
 			makeFakeBlockPointer(t),
+			false,
 		},
 		makeExtraOrBust("setAttrOp", t),
 	}

@@ -557,7 +557,7 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 	}
 
 	if unmergedChain.isFile() {
-		// Replace the updates on all file operations
+		// Replace the updates on all file operations.
 		for _, op := range unmergedChain.ops {
 			switch realOp := op.(type) {
 			case *syncOp:

@@ -1061,6 +1061,8 @@ func (fbo *folderBlockOps) Read(
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
+	fbo.log.CDebugf(ctx, "Reading from %v", file.tailPointer())
+
 	// getFileLocked already checks read permissions
 	fblock, err := fbo.getFileLocked(ctx, lState, kmd, file, blockRead)
 	if err != nil {

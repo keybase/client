@@ -275,6 +275,24 @@ func (cc *crChain) remove(ctx context.Context, log logger.Logger,
 	return anyRemoved
 }
 
+func (cc *crChain) hasSyncOp() bool {
+	for _, op := range cc.ops {
+		if _, ok := op.(*syncOp); ok {
+			return true
+		}
+	}
+	return false
+}
+
+func (cc *crChain) hasSetAttrOp() bool {
+	for _, op := range cc.ops {
+		if _, ok := op.(*setAttrOp); ok {
+			return true
+		}
+	}
+	return false
+}
+
 type renameInfo struct {
 	originalOldParent BlockPointer
 	oldName           string

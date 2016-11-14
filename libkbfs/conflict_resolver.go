@@ -1275,6 +1275,17 @@ outer:
 	return nil
 }
 
+// crConflictCheckQuick checks whether the two given chains have any
+// direct conflicts.  TODO: currently this is a little pessimistic
+// because it assumes any set attrs are in conflict, when in reality
+// they can be for different attributes, or the same attribute with
+// the same value.
+func crConflictCheckQuick(unmergedChain, mergedChain *crChain) bool {
+	return unmergedChain != nil && mergedChain != nil &&
+		((unmergedChain.hasSyncOp() && mergedChain.hasSyncOp()) ||
+			(unmergedChain.hasSetAttrOp() && mergedChain.hasSetAttrOp()))
+}
+
 // fixRenameConflicts checks every unmerged createOp associated with a
 // rename to see if it will cause a cycle.  If so, it makes it a
 // symlink create operation instead.  It also checks whether a
@@ -1327,6 +1338,57 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 			}
 
 			doubleRenames = append(doubleRenames, mergedMostRecent)
+			continue
+		}
+
+		// If this node was modified in both branches, we need to fork
+		// the node, so we can get rid of the unmerged remove op and
+		// force a copy on the create op.
+		unmergedChain := unmergedChains.byOriginal[ptr]
+		mergedChain := mergedChains.byOriginal[ptr]
+		if crConflictCheckQuick(unmergedChain, mergedChain) {
+			cr.log.CDebugf(ctx, "File that was renamed on the unmerged "+
+				"branch from %s -> %s has conflicting edits, forking "+
+				"(original ptr %v)", info.oldName, info.newName, ptr)
+			oldParent := unmergedChains.byOriginal[info.originalOldParent]
+			for _, op := range oldParent.ops {
+				ro, ok := op.(*rmOp)
+				if !ok {
+					continue
+				}
+				if ro.OldName == info.oldName {
+					ro.dropThis = true
+					break
+				}
+			}
+			newParent := unmergedChains.byOriginal[info.originalNewParent]
+			for _, npOp := range newParent.ops {
+				co, ok := npOp.(*createOp)
+				if !ok {
+					continue
+				}
+				if co.NewName == info.newName && co.renamed {
+					co.forceCopy = true
+					co.renamed = false
+					co.AddRefBlock(unmergedChain.mostRecent)
+					co.DelRefBlock(ptr)
+					// Clear out the ops on the file itself, as we
+					// will be doing a fresh create instead.
+					unmergedChain.ops = []op{}
+					break
+				}
+			}
+			// Reset the chain of the forked file to the most recent
+			// pointer, since we want to avoid any local notifications
+			// linking the old version of the file to the new one.
+			if ptr != unmergedChain.mostRecent {
+				err := unmergedChains.changeOriginal(
+					ptr, unmergedChain.mostRecent)
+				if err != nil {
+					return nil, err
+				}
+				unmergedChains.createdOriginals[unmergedChain.mostRecent] = true
+			}
 			continue
 		}
 
@@ -1462,18 +1524,87 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 		}
 	}
 
+	// A map from merged most recent pointers of the parent
+	// directories of files that have been forked, to a list of child
+	// pointers within those directories that need their merged paths
+	// fixed up.
+	forkedFromMergedRenames := make(map[BlockPointer][]pathNode)
+
+	// Check the merged renames to see if any of them affect a
+	// modified file that the unmerged branch did not rename.  If we
+	// find one, fork the file and leave the unmerged version under
+	// its unmerged name.
+	for ptr, info := range mergedChains.renamedOriginals {
+		if mergedChains.isDeleted(ptr) {
+			continue
+		}
+
+		// Skip double renames, already dealt with them above.
+		if unmergedInfo, ok := unmergedChains.renamedOriginals[ptr]; ok &&
+			(info.originalNewParent != unmergedInfo.originalNewParent ||
+				info.newName != unmergedInfo.newName) {
+			continue
+		}
+
+		// If this is a file that was modified in both branches, we
+		// need to fork the file and tell the unmerged copy to keep
+		// its current name.
+		unmergedChain := unmergedChains.byOriginal[ptr]
+		mergedChain := mergedChains.byOriginal[ptr]
+		if crConflictCheckQuick(unmergedChain, mergedChain) {
+			cr.log.CDebugf(ctx, "File that was renamed on the merged "+
+				"branch from %s -> %s has conflicting edits, forking "+
+				"(original ptr %v)", info.oldName, info.newName, ptr)
+			var unmergedParentPath path
+			for _, op := range unmergedChain.ops {
+				switch realOp := op.(type) {
+				case *syncOp:
+					realOp.keepUnmergedTailName = true
+					unmergedParentPath = *op.getFinalPath().parentPath()
+				case *setAttrOp:
+					realOp.keepUnmergedTailName = true
+					unmergedParentPath = *op.getFinalPath().parentPath()
+				}
+			}
+			if unmergedParentPath.isValid() {
+				// Reset the merged path for this file back to the
+				// merged path corresponding to the unmerged parent.
+				// Put the merged parent path on the list of paths to
+				// search for.
+				unmergedParent := unmergedParentPath.tailPointer()
+				if _, ok := mergedPaths[unmergedParent]; !ok {
+					upOriginal := unmergedChains.originals[unmergedParent]
+					mergedParent, err :=
+						mergedChains.mostRecentFromOriginalOrSame(upOriginal)
+					if err != nil {
+						return nil, err
+					}
+					forkedFromMergedRenames[mergedParent] =
+						append(forkedFromMergedRenames[mergedParent],
+							pathNode{unmergedChain.mostRecent, info.oldName})
+					newUnmergedPaths =
+						append(newUnmergedPaths, unmergedParentPath)
+				}
+			}
+		}
+	}
+
 	for _, ptr := range removeRenames {
 		delete(unmergedChains.renamedOriginals, ptr)
 	}
 
-	if len(doubleRenames) == 0 {
+	numRenamesToCheck := len(doubleRenames) + len(forkedFromMergedRenames)
+	if numRenamesToCheck == 0 {
 		return newUnmergedPaths, nil
 	}
 
 	// Make chains for the new merged parents of all the double renames.
 	newPtrs := make(map[BlockPointer]bool)
-	ptrs := make([]BlockPointer, len(doubleRenames))
+	ptrs := make([]BlockPointer, len(doubleRenames), numRenamesToCheck)
 	copy(ptrs, doubleRenames)
+	for ptr := range forkedFromMergedRenames {
+		ptrs = append(ptrs, ptr)
+	}
 	// Fake out the rest of the chains to populate newPtrs
 	for ptr := range mergedChains.byMostRecent {
 		newPtrs[ptr] = true
@@ -1567,6 +1698,22 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 			chain, unmergedChains, mergedChains, symPath)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	for ptr, pathNodes := range forkedFromMergedRenames {
+		// Find the merged paths
+		node, ok := nodeMap[ptr]
+		if !ok || node == nil {
+			return nil, fmt.Errorf("Couldn't find merged path for "+
+				"forked parent pointer %v", ptr)
+		}
+
+		mergedPathNewParent := mergedNodeCache.PathFromNode(node)
+		for _, pNode := range pathNodes {
+			mergedPath := mergedPathNewParent.ChildPath(
+				pNode.Name, pNode.BlockPointer)
+			mergedPaths[pNode.BlockPointer] = mergedPath
 		}
 	}
 
@@ -1722,10 +1869,7 @@ func collapseActions(unmergedChains *crChains, unmergedPaths []path,
 			continue
 		}
 
-		fileActions, ok := actionMap[p.tailPointer()]
-		if !ok {
-			continue
-		}
+		fileActions := actionMap[p.tailPointer()]
 
 		// If this is a directory with setAttr(mtime)-related actions,
 		// just those action should be collapsed into the parent.
@@ -1782,7 +1926,8 @@ func collapseActions(unmergedChains *crChains, unmergedPaths []path,
 		if chain.isFile() {
 			mergedPaths[unmergedMostRecent] = parentPath
 			delete(actionMap, p.tailPointer())
-		} else if !wasParentActions {
+		}
+		if !wasParentActions {
 			// The parent isn't yet represented in our data
 			// structures, so we have to make sure its actions get
 			// executed.
@@ -1793,9 +1938,21 @@ func collapseActions(unmergedChains *crChains, unmergedPaths []path,
 					continue
 				}
 				unmergedParentPath := *unmergedPath.parentPath()
-				newUnmergedPaths = append(newUnmergedPaths, unmergedParentPath)
 				unmergedParent := unmergedParentPath.tailPointer()
-				mergedPaths[unmergedParent] = parentPath
+				unmergedParentChain :=
+					unmergedChains.byMostRecent[unmergedParent]
+				// If this is a file, only add a new unmerged path if
+				// the parent has ops; otherwise it will confuse the
+				// resolution code and lead to stray blocks.
+				if !chain.isFile() || len(unmergedParentChain.ops) > 0 {
+					newUnmergedPaths =
+						append(newUnmergedPaths, unmergedParentPath)
+				}
+				// File merged paths were already updated above.
+				if !chain.isFile() {
+					mergedPaths[unmergedParent] = parentPath
+				}
+				break
 			}
 		}
 	}
