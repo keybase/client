@@ -3019,11 +3019,12 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 	for ptr := range unmergedChains.createdOriginals {
 		if !refs[ptr] && !unrefs[ptr] && unmergedChains.byOriginal[ptr] != nil {
 			toUnref[ptr] = true
-		} else if _, ok := unmergedChains.blockChangePointers[ptr]; ok {
-			toUnref[ptr] = true
-		} else if _, ok := unmergedChains.toUnrefPointers[ptr]; ok {
+		} else if unmergedChains.blockChangePointers[ptr] {
 			toUnref[ptr] = true
 		}
+	}
+	for ptr := range unmergedChains.toUnrefPointers {
+		toUnref[ptr] = true
 	}
 	for ptr := range toUnref {
 		isUnflushed, err := cr.config.BlockServer().IsUnflushed(
@@ -3137,7 +3138,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	}
 
 	updates = make(map[BlockPointer]BlockPointer)
-	if root == nil {
+	if root == nil && len(unmergedChains.toUnrefPointers) == 0 {
 		return updates, newBlockPutState(0), nil, nil
 	}
 
@@ -3146,12 +3147,16 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		return nil, nil, nil, err
 	}
 
-	// Now do a depth-first walk, and syncBlock back up to the fork on
-	// every branch
-	bps, err = cr.syncTree(ctx, lState, unmergedChains, md, uid, root,
-		BlockPointer{}, lbc, newFileBlocks)
-	if err != nil {
-		return nil, nil, nil, err
+	if root != nil {
+		// Now do a depth-first walk, and syncBlock back up to the fork on
+		// every branch
+		bps, err = cr.syncTree(ctx, lState, unmergedChains, md, uid, root,
+			BlockPointer{}, lbc, newFileBlocks)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+	} else {
+		bps = newBlockPutState(0)
 	}
 
 	oldOps := md.data.Changes.Ops

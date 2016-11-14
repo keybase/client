@@ -32,7 +32,11 @@ type crChain struct {
 //  * A create followed by a remove for the same name (delete both ops)
 //  * A create followed by a create (renamed == true) for the same name
 //    (delete the create op)
-func (cc *crChain) collapse() {
+//  * A remove that only unreferences blocks created within this branch
+// This function returns the list of pointers that should be unreferenced
+// as part of an eventual resolution of the corresponding branch.
+func (cc *crChain) collapse(createdOriginals map[BlockPointer]bool,
+	originals map[BlockPointer]BlockPointer) (toUnrefs []BlockPointer) {
 	createsSeen := make(map[string]int)
 	indicesToRemove := make(map[int]bool)
 	for i, op := range cc.ops {
@@ -51,9 +55,23 @@ func (cc *crChain) collapse() {
 				// The rm cancels out the create, so remove it.
 				indicesToRemove[prevCreateIndex] = true
 				// Also remove the rmOp if it was part of a rename
-				// (i.e., it wasn't a "real" rm).
-				if len(op.Unrefs()) == 0 {
+				// (i.e., it wasn't a "real" rm), or if it otherwise
+				// only unreferenced blocks that were created on this
+				// branch.
+				doRemove := true
+				for _, unref := range op.Unrefs() {
+					original, ok := originals[unref]
+					if !ok {
+						original = unref
+					}
+					if !createdOriginals[original] {
+						doRemove = false
+						break
+					}
+				}
+				if doRemove {
 					indicesToRemove[i] = true
+					toUnrefs = append(toUnrefs, op.Unrefs()...)
 				}
 			}
 		case *setAttrOp:
@@ -72,6 +90,7 @@ func (cc *crChain) collapse() {
 		}
 		cc.ops = ops
 	}
+	return toUnrefs
 }
 
 func (cc *crChain) getCollapsedWriteRange() []WriteRange {
@@ -782,7 +801,10 @@ func newCRChains(
 	mostRecentMD := chainMDs[len(chainMDs)-1]
 
 	for _, chain := range ccs.byOriginal {
-		chain.collapse()
+		toUnrefs := chain.collapse(ccs.createdOriginals, ccs.originals)
+		for _, unref := range toUnrefs {
+			ccs.toUnrefPointers[unref] = true
+		}
 		// NOTE: even if we've removed all its ops, still keep the
 		// chain around so we can see the mapping between the original
 		// and most recent pointers.
