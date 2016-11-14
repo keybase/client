@@ -60,7 +60,7 @@ var handleExtensionFinalizedStringRegex = fmt.Sprintf(
 )
 
 // HandleExtensionTypeRegex is the regular expression matching the HandleExtension string.
-var HandleExtensionTypeRegex = handleExtensionConflictString + "|" + handleExtensionFinalizedStringRegex
+var handleExtensionTypeRegex = handleExtensionConflictString + "|" + handleExtensionFinalizedStringRegex
 
 // HandleExtensionFinalizedRegex is the compiled regular expression matching a finalized
 // handle extension.
@@ -82,8 +82,8 @@ func (et HandleExtensionType) String(username libkb.NormalizedUsername) string {
 	return "<unknown extension type>"
 }
 
-// ParseHandleExtensionString parses an extension type and optional username from a string.
-func ParseHandleExtensionString(s string) (HandleExtensionType, libkb.NormalizedUsername) {
+// parseHandleExtensionString parses an extension type and optional username from a string.
+func parseHandleExtensionString(s string) (HandleExtensionType, libkb.NormalizedUsername) {
 	if handleExtensionConflictString == s {
 		return HandleExtensionConflict, ""
 	}
@@ -105,9 +105,9 @@ var ErrHandleExtensionInvalidNumber = errors.New("Invalid TLF handle extension n
 
 // HandleExtensionRegex is the compiled regular expression matching a valid combination
 // of TLF handle extensions in string form.
-var HandleExtensionRegex = regexp.MustCompile(
+var handleExtensionRegex = regexp.MustCompile(
 	fmt.Sprintf("\\"+handleExtensionFormat,
-		"("+HandleExtensionTypeRegex+")",
+		"("+handleExtensionTypeRegex+")",
 		"("+handleExtensionDateRegex+")",
 		"(?: #("+handleExtensionNumberRegex+"))?\\"),
 )
@@ -173,7 +173,7 @@ func parseHandleExtension(fields []string) (*HandleExtension, error) {
 	if len(fields) != 4 {
 		return nil, ErrHandleExtensionInvalidString
 	}
-	extType, un := ParseHandleExtensionString(fields[1])
+	extType, un := parseHandleExtensionString(fields[1])
 	if extType == HandleExtensionUnknown {
 		return nil, ErrHandleExtensionInvalidString
 	}
@@ -201,7 +201,7 @@ func parseHandleExtension(fields []string) (*HandleExtension, error) {
 
 // ParseHandleExtensionSuffix parses a TLF handle extension suffix string.
 func ParseHandleExtensionSuffix(s string) ([]HandleExtension, error) {
-	exts := HandleExtensionRegex.FindAllStringSubmatch(s, 2)
+	exts := handleExtensionRegex.FindAllStringSubmatch(s, 2)
 	if len(exts) < 1 || len(exts) > 2 {
 		return nil, ErrHandleExtensionInvalidString
 	}
@@ -222,8 +222,8 @@ func ParseHandleExtensionSuffix(s string) ([]HandleExtension, error) {
 	return extensions, nil
 }
 
-// NewHandleExtensionSuffix creates a suffix string given a set of extensions.
-func NewHandleExtensionSuffix(extensions []HandleExtension) string {
+// newHandleExtensionSuffix creates a suffix string given a set of extensions.
+func newHandleExtensionSuffix(extensions []HandleExtension) string {
 	var suffix string
 	for _, extension := range extensions {
 		suffix += HandleExtensionSep
@@ -263,5 +263,5 @@ func (l HandleExtensionList) Splat() (ci, fi *HandleExtension) {
 
 // Suffix outputs a suffix string for this extension list.
 func (l HandleExtensionList) Suffix() string {
-	return NewHandleExtensionSuffix(l)
+	return newHandleExtensionSuffix(l)
 }

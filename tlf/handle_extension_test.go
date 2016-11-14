@@ -190,7 +190,7 @@ func TestHandleExtensionMultiple(t *testing.T) {
 		t.Fatal(err)
 	}
 	exts := []HandleExtension{*e, *e2}
-	suffix := NewHandleExtensionSuffix(exts)
+	suffix := newHandleExtensionSuffix(exts)
 	expectSuffix := " (conflicted copy 2016-03-14) (files before charlie account reset 2016-03-14 #2)"
 	if suffix != expectSuffix {
 		t.Fatalf("Expected suffix '%s', got: '%s'", expectSuffix, suffix)
@@ -228,7 +228,7 @@ func TestHandleExtensionMultipleSingleUser(t *testing.T) {
 		t.Fatal(err)
 	}
 	exts := []HandleExtension{*e, *e2}
-	suffix := NewHandleExtensionSuffix(exts)
+	suffix := newHandleExtensionSuffix(exts)
 	expectSuffix := " (conflicted copy 2016-03-14 #2) (files before account reset 2016-03-14)"
 	if suffix != expectSuffix {
 		t.Fatalf("Expected suffix '%s', got: '%s'", expectSuffix, suffix)
