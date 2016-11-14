@@ -1374,7 +1374,7 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 					co.DelRefBlock(ptr)
 					// Clear out the ops on the file itself, as we
 					// will be doing a fresh create instead.
-					unmergedChain.ops = []op{}
+					unmergedChain.ops = nil
 					break
 				}
 			}
