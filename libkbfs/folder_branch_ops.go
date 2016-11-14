@@ -3905,14 +3905,16 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 
 	// If there's anything in the journal, don't apply these MDs.
 	// Wait for CR to happen.
-	mergedRev, err := fbo.getJournalPredecessorRevision(ctx)
-	if err != nil {
-		return err
-	}
-	if mergedRev != MetadataRevisionUninitialized {
-		fbo.log.CDebugf(ctx,
-			"Ignoring fetched revisions while MDs are in journal")
-		return nil
+	if fbo.isMasterBranchLocked(lState) {
+		mergedRev, err := fbo.getJournalPredecessorRevision(ctx)
+		if err != nil {
+			return err
+		}
+		if mergedRev != MetadataRevisionUninitialized {
+			fbo.log.CDebugf(ctx,
+				"Ignoring fetched revisions while MDs are in journal")
+			return nil
+		}
 	}
 
 	fbo.headLock.Lock(lState)
@@ -4532,47 +4534,54 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 		return err
 	}
 
-	if !fbo.isMasterBranch(lState) {
-		if err := fbo.cr.Wait(ctx); err != nil {
-			return err
-		}
-		// If we are still staged after the wait, then we have a problem.
+	for true {
 		if !fbo.isMasterBranch(lState) {
-			return fmt.Errorf("Conflict resolution didn't take us out of " +
-				"staging.")
-		}
-	}
-
-	dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
-	if len(dirtyRefs) > 0 {
-		for _, ref := range dirtyRefs {
-			fbo.log.CDebugf(ctx, "DeCache entry left: %v", ref)
-		}
-		return errors.New("can't sync from server while dirty")
-	}
-
-	// A journal flush after CR, if needed.
-	if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
-		fbo.log); err != nil {
-		return err
-	}
-
-	if err := fbo.mdFlushes.Wait(ctx); err != nil {
-		return err
-	}
-
-	if err := fbo.branchChanges.Wait(ctx); err != nil {
-		return err
-	}
-
-	if err := fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdates); err != nil {
-		if applyErr, ok := err.(MDRevisionMismatch); ok {
-			if applyErr.rev == applyErr.curr {
-				fbo.log.CDebugf(ctx, "Already up-to-date with server")
-				return nil
+			if err := fbo.cr.Wait(ctx); err != nil {
+				return err
+			}
+			// If we are still staged after the wait, then we have a problem.
+			if !fbo.isMasterBranch(lState) {
+				return fmt.Errorf("Conflict resolution didn't take us out of " +
+					"staging.")
 			}
 		}
-		return err
+
+		dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
+		if len(dirtyRefs) > 0 {
+			for _, ref := range dirtyRefs {
+				fbo.log.CDebugf(ctx, "DeCache entry left: %v", ref)
+			}
+			return errors.New("can't sync from server while dirty")
+		}
+
+		// A journal flush after CR, if needed.
+		if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
+			fbo.log); err != nil {
+			return err
+		}
+
+		if err := fbo.mdFlushes.Wait(ctx); err != nil {
+			return err
+		}
+
+		if err := fbo.branchChanges.Wait(ctx); err != nil {
+			return err
+		}
+
+		if err := fbo.getAndApplyMDUpdates(
+			ctx, lState, fbo.applyMDUpdates); err != nil {
+			if applyErr, ok := err.(MDRevisionMismatch); ok {
+				if applyErr.rev == applyErr.curr {
+					fbo.log.CDebugf(ctx, "Already up-to-date with server")
+					return nil
+				}
+			}
+			if _, isUnmerged := err.(UnmergedError); isUnmerged {
+				continue
+			}
+			return err
+		}
+		break
 	}
 
 	// Wait for all the asynchronous block archiving and quota
