@@ -4,10 +4,8 @@
 package service
 
 import (
-	"crypto/sha256"
 	"errors"
 	"fmt"
-	"io"
 	"time"
 
 	"golang.org/x/net/context"
@@ -747,25 +745,10 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
 
-	// XXX if Plaintext becomes ReadResetter, can move this to chat package
-
-	// compute plaintext hash
-	// XXX don't need to do this if local.Size < 5MB
-	plaintextHasher := sha256.New()
-	io.Copy(plaintextHasher, src)
-	plaintextHash := plaintextHasher.Sum(nil)
-
-	// reset the stream to the beginning of the file
-	if err := src.Reset(); err != nil {
-		h.G().Log.Debug("source stream reset error: %s", err)
-		return chat1.Asset{}, err
-	}
-
 	task := chat.UploadTask{
 		S3Params:       params,
 		LocalSrc:       local,
 		Plaintext:      src,
-		PlaintextHash:  plaintextHash,
 		S3Signer:       h,
 		ConversationID: conversationID,
 		Progress:       progress,
