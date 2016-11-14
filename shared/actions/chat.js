@@ -180,6 +180,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           payload: {
             conversationIDKey: conversationIDToKey(sentMessage.convID),
             outboxID: sentMessage.outboxID.toString('hex'),
+            messageID: sentMessage.messageID,
             messageState: 'sent',
           },
         })
