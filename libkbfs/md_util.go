@@ -301,7 +301,7 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 		}
 		if currHead < MetadataRevisionInitial {
 			return MetadataRevisionUninitialized, nil,
-				errors.New("Ran out of MD updates to unstage!")
+				errors.New("ran out of MD updates to unstage")
 		}
 		// TODO: limit the number of MDs we're allowed to hold in
 		// memory at any one time?

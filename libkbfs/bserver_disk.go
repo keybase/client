@@ -167,7 +167,7 @@ func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 		id, tlfID, context, len(buf))
 
 	if context.GetRefNonce() != ZeroBlockRefNonce {
-		return fmt.Errorf("Can't Put() a block with a non-zero refnonce.")
+		return errors.New("can't Put() a block with a non-zero refnonce")
 	}
 
 	tlfStorage, err := b.getStorage(ctx, tlfID)

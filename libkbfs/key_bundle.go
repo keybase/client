@@ -205,7 +205,7 @@ func (tkg TLFWriterKeyGenerations) ToTLFWriterKeyBundleV3(
 		}
 		// Sanity check.
 		if len(keys) != int(keyGen) {
-			return nil, fmt.Errorf("Expected %d keys, found %d\n", keyGen, len(keys))
+			return nil, fmt.Errorf("expected %d keys, found %d", keyGen, len(keys))
 		}
 		// Save the current key.
 		currKey := keys[len(keys)-1]

@@ -93,7 +93,7 @@ func validateBlockServerPut(
 	}
 
 	if context.GetRefNonce() != ZeroBlockRefNonce {
-		return fmt.Errorf("Can't Put() a block with a non-zero refnonce.")
+		return errors.New("can't Put() a block with a non-zero refnonce")
 	}
 
 	bufID, err := crypto.MakePermanentBlockID(buf)

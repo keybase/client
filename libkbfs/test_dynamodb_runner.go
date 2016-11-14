@@ -117,7 +117,7 @@ func (tdr *TestDynamoDBRunner) downloadIfNecessary() error {
 
 	// verify the hash
 	if sha256Hash != LocalDynamoDBSha256Hash {
-		return fmt.Errorf("Expected hash %s, got: %s\n",
+		return fmt.Errorf("expected hash %s, got: %s",
 			LocalDynamoDBSha256Hash, sha256Hash)
 	}
 

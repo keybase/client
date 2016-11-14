@@ -4309,7 +4309,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	if !fbo.isMasterBranchLocked(lState) {
-		return errors.New("Can't rekey while staged.")
+		return errors.New("can't rekey while staged")
 	}
 
 	head := fbo.getHead(lState)
@@ -4548,7 +4548,7 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 		for _, ref := range dirtyRefs {
 			fbo.log.CDebugf(ctx, "DeCache entry left: %v", ref)
 		}
-		return errors.New("Can't sync from server while dirty.")
+		return errors.New("can't sync from server while dirty")
 	}
 
 	// A journal flush after CR, if needed.

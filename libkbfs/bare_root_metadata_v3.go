@@ -410,7 +410,7 @@ func (md *BareRootMetadataV3) CheckValidSuccessor(
 		return fmt.Errorf("Unexpected branch ID on successor: %s vs. %s",
 			md.BID(), nextMd.BID())
 	} else if md.MergedStatus() == Unmerged && nextMd.MergedStatus() == Merged {
-		return errors.New("Merged MD can't follow unmerged MD.")
+		return errors.New("merged MD can't follow unmerged MD")
 	}
 
 	// (6) Check disk usage.

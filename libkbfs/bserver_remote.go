@@ -497,7 +497,8 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 	if finalError == nil {
 		if len(notDone) != 0 {
 			b.log.CErrorf(ctx, "batchDowngradeReferences finished successfully with outstanding refs? all=%v done=%v notDone=%v\n", contexts, doneRefs, notDone)
-			return doneRefs, errors.New("batchDowngradeReferences inconsistent result\n")
+			return doneRefs,
+				errors.New("batchDowngradeReferences inconsistent result")
 		}
 	}
 	return doneRefs, finalError

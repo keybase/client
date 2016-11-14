@@ -14,7 +14,7 @@ import (
 	"github.com/keybase/kbfs/dokan/winacl"
 )
 
-var errNotWindows = errors.New("Dokan not supported outside Windows.")
+var errNotWindows = errors.New("dokan not supported outside Windows")
 
 func loadDokanDLL(fullpath string) error { return errNotWindows }
 
