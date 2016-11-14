@@ -5300,7 +5300,7 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(t, ctx, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -5346,7 +5346,7 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	defer kbfsTestShutdownNoMocksNoCheck(t, config, ctx, cancel)
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(t, ctx, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -5392,7 +5392,7 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(t, ctx, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -5430,7 +5430,7 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(t, ctx, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -5503,7 +5503,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	})
 
 	// create a file.
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(t, ctx, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
 	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
@@ -5517,7 +5517,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	// Shutdown the mdserver explicitly before the state checker tries to run
 	defer config2.MDServer().Shutdown()
 
-	rootNode2 := GetRootNodeOrBust(t, config2, "test_user", false)
+	rootNode2 := GetRootNodeOrBust(t, ctx, config2, "test_user", false)
 	// Lookup the file, which should fail on block ID verification
 	kbfsOps2 := config2.KBFSOps()
 	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
@@ -5533,7 +5533,7 @@ func TestKBFSOpsEmptyTlfSize(t *testing.T) {
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
 	// Create a TLF.
-	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	rootNode := GetRootNodeOrBust(t, ctx, config, "test_user", false)
 	status, _, err := config.KBFSOps().FolderStatus(ctx,
 		rootNode.GetFolderBranch())
 	if err != nil {
@@ -5562,7 +5562,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	defer kbfsTestShutdownNoMocksNoCheck(t, config1, ctx, cancel)
 
 	// Create alice's TLF.
-	rootNode1 := GetRootNodeOrBust(t, config1, "alice", false)
+	rootNode1 := GetRootNodeOrBust(t, ctx, config1, "alice", false)
 	fb1 := rootNode1.GetFolderBranch()
 
 	kbfsOps1 := config1.KBFSOps()
@@ -5580,7 +5580,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	config2.SetMDServer(mdserver2)
 	config2.SetMDCache(NewMDCacheStandard(1))
 
-	rootNode2 := GetRootNodeOrBust(t, config2, "alice,mallory", false)
+	rootNode2 := GetRootNodeOrBust(t, ctx, config2, "alice,mallory", false)
 	require.Equal(t, fb1.Tlf, rootNode2.GetFolderBranch().Tlf)
 
 	kbfsOps2 := config2.KBFSOps()

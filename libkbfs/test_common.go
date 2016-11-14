@@ -565,8 +565,8 @@ func GetRootNodeForTest(
 // must be canonical, creating it if necessary, and failing if there's
 // an error.
 func GetRootNodeOrBust(
-	t logger.TestLogBackend, config Config, name string, public bool) Node {
-	ctx := context.Background()
+	t logger.TestLogBackend, ctx context.Context,
+	config Config, name string, public bool) Node {
 	n, err := GetRootNodeForTest(ctx, config, name, public)
 	if err != nil {
 		t.Fatalf("Couldn't get root node for %s (public=%t): %v",
