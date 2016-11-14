@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
@@ -186,7 +187,8 @@ func (p *pwcancel) report(bytesCompleted, bytesTotal int) {
 func TestUploadAssetResume(t *testing.T) {
 	s := makeTestStore(t)
 	ctx, cancel := context.WithCancel(context.Background())
-	plaintext, task := makeUploadTask(t, 12*MB)
+	size := 12 * MB
+	plaintext, task := makeUploadTask(t, size)
 	pw := &pwcancel{
 		cancel: cancel,
 		after:  7 * MB,
@@ -197,18 +199,27 @@ func TestUploadAssetResume(t *testing.T) {
 		t.Fatal("expected upload to be canceled")
 	}
 
+	// try again:
+	task.Plaintext = bytes.NewReader(plaintext)
 	ctx = context.Background()
 	task.Progress = nil
 	a, err := s.UploadAsset(ctx, task)
 	if err != nil {
 		t.Fatalf("expected second UploadAsset call to work, got: %s", err)
 	}
+	if a.Size != signencrypt.GetSealedSize(size) {
+		t.Errorf("uploaded asset size: %d, expected %d", a.Size, signencrypt.GetSealedSize(size))
+	}
 
 	var buf bytes.Buffer
 	if err = s.DownloadAsset(ctx, task.S3Params, a, &buf, task.S3Signer, nil); err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(plaintext, buf.Bytes()) {
-		t.Errorf("downloaded asset did not match uploaded asset")
+	plaintextDownload := buf.Bytes()
+	if len(plaintextDownload) != len(plaintext) {
+		t.Errorf("downloaded asset len: %d, expected %d", len(plaintextDownload), len(plaintext))
+	}
+	if !bytes.Equal(plaintext, plaintextDownload) {
+		t.Errorf("downloaded asset did not match uploaded asset (%x v. %x)", plaintextDownload[:10], plaintext[:10])
 	}
 }
