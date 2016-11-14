@@ -20,17 +20,17 @@ type Handle struct {
 	FinalizedInfo     *HandleExtension           `codec:"fi,omitempty"`
 }
 
-// ErrNoWriters is the error returned by MakeHandle if it is
+// errNoWriters is the error returned by MakeHandle if it is
 // passed an empty list of writers.
-var ErrNoWriters = errors.New("Cannot make TLF handle with no writers; need rekey?")
+var errNoWriters = errors.New("Cannot make TLF handle with no writers; need rekey?")
 
-// ErrInvalidWriter is the error returned by MakeHandle if it
+// errInvalidWriter is the error returned by MakeHandle if it
 // is passed an invalid writer.
-var ErrInvalidWriter = errors.New("Cannot make TLF handle with invalid writer")
+var errInvalidWriter = errors.New("Cannot make TLF handle with invalid writer")
 
-// ErrInvalidReader is the error returned by MakeHandle if it
+// errInvalidReader is the error returned by MakeHandle if it
 // is passed an invalid reader.
-var ErrInvalidReader = errors.New("Cannot make TLF handle with invalid reader")
+var errInvalidReader = errors.New("Cannot make TLF handle with invalid reader")
 
 // UIDList can be used to lexicographically sort UIDs.
 type UIDList []keybase1.UID
@@ -74,12 +74,12 @@ func MakeHandle(
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
 	extensions []HandleExtension) (Handle, error) {
 	if len(writers) == 0 {
-		return Handle{}, ErrNoWriters
+		return Handle{}, errNoWriters
 	}
 
 	for _, w := range writers {
 		if w == keybase1.PUBLIC_UID {
-			return Handle{}, ErrInvalidWriter
+			return Handle{}, errInvalidWriter
 		}
 	}
 
@@ -88,7 +88,7 @@ func MakeHandle(
 		// should be the public UID.
 		for _, r := range readers {
 			if r == keybase1.PUBLIC_UID {
-				return Handle{}, ErrInvalidReader
+				return Handle{}, errInvalidReader
 			}
 		}
 	}

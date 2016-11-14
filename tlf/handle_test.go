@@ -75,7 +75,7 @@ func TestMakeHandle(t *testing.T) {
 
 func TestMakeHandleFailures(t *testing.T) {
 	_, err := MakeHandle(nil, nil, nil, nil, nil)
-	assert.Equal(t, ErrNoWriters, err)
+	assert.Equal(t, errNoWriters, err)
 
 	w := []keybase1.UID{
 		keybase1.MakeTestUID(4),
@@ -88,10 +88,10 @@ func TestMakeHandleFailures(t *testing.T) {
 	}
 
 	_, err = MakeHandle(r, nil, nil, nil, nil)
-	assert.Equal(t, ErrInvalidWriter, err)
+	assert.Equal(t, errInvalidWriter, err)
 
 	_, err = MakeHandle(w, r, nil, nil, nil)
-	assert.Equal(t, ErrInvalidReader, err)
+	assert.Equal(t, errInvalidReader, err)
 
 	ur := []keybase1.SocialAssertion{
 		{
@@ -101,7 +101,7 @@ func TestMakeHandleFailures(t *testing.T) {
 	}
 
 	_, err = MakeHandle(w, r[:1], nil, ur, nil)
-	assert.Equal(t, ErrInvalidReader, err)
+	assert.Equal(t, errInvalidReader, err)
 }
 
 func TestHandleAccessorsPrivate(t *testing.T) {
