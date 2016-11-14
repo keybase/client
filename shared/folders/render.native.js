@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import type {Props} from './render'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, statusBarHeight} from '../styles'
 
 class FoldersRender extends Component<void, Props, void> {
   _makeItem (isPublic: boolean, isSelected: boolean) {
@@ -63,6 +63,7 @@ class FoldersRender extends Component<void, Props, void> {
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
+  paddingTop: statusBarHeight,
 }
 
 const styleBadge = {

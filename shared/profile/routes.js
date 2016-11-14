@@ -14,6 +14,7 @@ export const profileRoute = new RouteDefNode({
   component: Profile,
   title: 'Profile',
   initialState: {currentFriendshipsTab: 'Followers'},
+  tags: {underStatusBar: true},
   children: {
     profile: () => profileRoute,
   },

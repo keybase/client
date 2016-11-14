@@ -7,6 +7,7 @@ import PaperKey from './files/paperkey'
 const filesSubTree = {
   files: {
     component: Files,
+    tags: {underStatusBar: true},
     children: {
       paperkey: {
         component: PaperKey,
@@ -21,11 +22,13 @@ const routeTree = new RouteDefNode({
     private: {
       component: PrivateFolders,
       initialState: {showingIgnored: false},
+      tags: {underStatusBar: true},
       children: filesSubTree,
     },
     public: {
       component: PublicFolders,
       initialState: {showingIgnored: false},
+      tags: {underStatusBar: true},
       children: filesSubTree,
     },
   },
