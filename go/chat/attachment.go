@@ -24,9 +24,10 @@ type UploadTask struct {
 }
 
 type AttachmentStore struct {
-	log      logger.Logger
-	s3signer s3.Signer
-	s3c      s3.Root
+	log       logger.Logger
+	s3signer  s3.Signer
+	s3c       s3.Root
+	keyTester func(encKey, sigKey []byte) // used for testing only to check key changes
 }
 
 func NewAttachmentStore(log logger.Logger) *AttachmentStore {
@@ -64,6 +65,11 @@ func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (ch
 		if resumable {
 			startUpload(ctx, a.log, task, enc)
 		}
+	}
+
+	if a.keyTester != nil {
+		a.log.Warning("AttachmentStore.keyTester exists, reporting keys")
+		a.keyTester(enc.EncryptKey(), enc.VerifyKey())
 	}
 
 	// compute ciphertext hash

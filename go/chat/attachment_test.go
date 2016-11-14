@@ -90,13 +90,54 @@ func TestSignEncrypter(t *testing.T) {
 	}
 }
 
-func makeTestStore(t *testing.T) *AttachmentStore {
+func makeTestStore(t *testing.T, kt func(enc, sig []byte)) *AttachmentStore {
 	s := NewAttachmentStore(logger.NewTestLogger(t))
+	s.keyTester = kt
 
 	// use in-memory implementation of s3 interface
 	s.s3c = &s3.Mem{}
 
 	return s
+}
+
+func testStoreMultis(t *testing.T, s *AttachmentStore) []*s3.MemMulti {
+	m, ok := s.s3c.(*s3.Mem)
+	if !ok {
+		t.Fatalf("not s3.Mem: %T", s.s3c)
+	}
+	// get *MemConn directly
+	c := m.NewMemConn()
+	return c.AllMultis()
+}
+
+func assertNumMultis(t *testing.T, s *AttachmentStore, n int) {
+	numMultis := len(testStoreMultis(t, s))
+	if numMultis != n {
+		t.Errorf("number of s3 multis: %d, expected %d", numMultis, n)
+	}
+}
+
+func getMulti(t *testing.T, s *AttachmentStore, index int) *s3.MemMulti {
+	all := testStoreMultis(t, s)
+	return all[index]
+}
+
+func assertNumParts(t *testing.T, s *AttachmentStore, index, n int) {
+	m := getMulti(t, s, index)
+	p, err := m.ListParts(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(p) != n {
+		t.Errorf("num parts in multi: %d, expected %d", len(p), n)
+	}
+}
+
+func assertNumPutParts(t *testing.T, s *AttachmentStore, index, calls int) {
+	m := getMulti(t, s, index)
+	if m.NumPutParts() != calls {
+		t.Errorf("num PutPart calls: %d, expected %d", m.NumPutParts(), calls)
+	}
 }
 
 func randBytes(t *testing.T, n int) []byte {
@@ -138,7 +179,7 @@ func makeUploadTask(t *testing.T, size int) (plaintext []byte, task *UploadTask)
 }
 
 func TestUploadAssetSmall(t *testing.T) {
-	s := makeTestStore(t)
+	s := makeTestStore(t, nil)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 1*MB)
 	a, err := s.UploadAsset(ctx, task)
@@ -153,10 +194,13 @@ func TestUploadAssetSmall(t *testing.T) {
 	if !bytes.Equal(plaintext, buf.Bytes()) {
 		t.Errorf("downloaded asset did not match uploaded asset")
 	}
+
+	// small uploads should not (cannot) use multi interface to s3:
+	assertNumMultis(t, s, 0)
 }
 
 func TestUploadAssetLarge(t *testing.T) {
-	s := makeTestStore(t)
+	s := makeTestStore(t, nil)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 12*MB)
 	a, err := s.UploadAsset(ctx, task)
@@ -171,6 +215,9 @@ func TestUploadAssetLarge(t *testing.T) {
 	if !bytes.Equal(plaintext, buf.Bytes()) {
 		t.Errorf("downloaded asset did not match uploaded asset")
 	}
+
+	// large uploads should use multi interface to s3:
+	assertNumMultis(t, s, 1)
 }
 
 type pwcancel struct {
@@ -184,8 +231,13 @@ func (p *pwcancel) report(bytesCompleted, bytesTotal int) {
 	}
 }
 
-func TestUploadAssetResume(t *testing.T) {
-	s := makeTestStore(t)
+func TestUploadAssetResumeOK(t *testing.T) {
+	var enc, sig []byte
+	kt := func(e, s []byte) {
+		enc = e
+		sig = s
+	}
+	s := makeTestStore(t, kt)
 	ctx, cancel := context.WithCancel(context.Background())
 	size := 12 * MB
 	plaintext, task := makeUploadTask(t, size)
@@ -198,6 +250,12 @@ func TestUploadAssetResume(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected upload to be canceled")
 	}
+
+	assertNumParts(t, s, 0, 2)
+
+	// keep track of the keys used in attempt 1
+	enc1 := hex.EncodeToString(enc)
+	sig1 := hex.EncodeToString(sig)
 
 	// try again:
 	task.Plaintext = bytes.NewReader(plaintext)
@@ -221,5 +279,182 @@ func TestUploadAssetResume(t *testing.T) {
 	}
 	if !bytes.Equal(plaintext, plaintextDownload) {
 		t.Errorf("downloaded asset did not match uploaded asset (%x v. %x)", plaintextDownload[:10], plaintext[:10])
+	}
+
+	// a resumed upload should reuse existing multi, so there should only be one:
+	assertNumMultis(t, s, 1)
+
+	// 12MB == 3 parts
+	assertNumParts(t, s, 0, 3)
+
+	// there should only be 3 calls to PutPart (2 in attempt 1, 1 in attempt 2).
+	assertNumPutParts(t, s, 0, 3)
+
+	// keep track of the keys used in attempt 2
+	enc2 := hex.EncodeToString(enc)
+	sig2 := hex.EncodeToString(sig)
+
+	if enc1 != enc2 {
+		t.Errorf("encrypt key changed between attempts 1 and 2")
+	}
+	if sig1 != sig2 {
+		t.Errorf("verify key changed between attempts 1 and 2")
+	}
+}
+
+func TestUploadAssetResumeChange(t *testing.T) {
+	var enc, sig []byte
+	kt := func(e, s []byte) {
+		enc = e
+		sig = s
+	}
+	s := makeTestStore(t, kt)
+	ctx, cancel := context.WithCancel(context.Background())
+	size := 12 * MB
+	plaintext, task := makeUploadTask(t, size)
+	pw := &pwcancel{
+		cancel: cancel,
+		after:  7 * MB,
+	}
+	task.Progress = pw.report
+	_, err := s.UploadAsset(ctx, task)
+	if err == nil {
+		t.Fatal("expected upload to be canceled")
+	}
+
+	assertNumParts(t, s, 0, 2)
+
+	// there should be 2 calls to PutPart.
+	assertNumPutParts(t, s, 0, 2)
+
+	// keep track of the keys used in attempt 1
+	enc1 := hex.EncodeToString(enc)
+	sig1 := hex.EncodeToString(sig)
+
+	// try again, changing the file and the hash (but same destination on s3):
+	// this simulates the file changing between upload attempt 1 and this attempt.
+	plaintext = randBytes(t, size)
+	task.Plaintext = bytes.NewReader(plaintext)
+	task.PlaintextHash = randBytes(t, 16)
+	task.Progress = nil
+
+	ctx = context.Background()
+	a, err := s.UploadAsset(ctx, task)
+	if err != nil {
+		t.Fatalf("expected second UploadAsset call to work, got: %s", err)
+	}
+	if a.Size != signencrypt.GetSealedSize(size) {
+		t.Errorf("uploaded asset size: %d, expected %d", a.Size, signencrypt.GetSealedSize(size))
+	}
+
+	var buf bytes.Buffer
+	if err = s.DownloadAsset(ctx, task.S3Params, a, &buf, task.S3Signer, nil); err != nil {
+		t.Fatal(err)
+	}
+	plaintextDownload := buf.Bytes()
+	if len(plaintextDownload) != len(plaintext) {
+		t.Errorf("downloaded asset len: %d, expected %d", len(plaintextDownload), len(plaintext))
+	}
+	if !bytes.Equal(plaintext, plaintextDownload) {
+		t.Errorf("downloaded asset did not match uploaded asset (%x v. %x)", plaintextDownload[:10], plaintext[:10])
+	}
+
+	// a resumed upload should reuse existing multi (even if contents change), so there should only be one:
+	assertNumMultis(t, s, 1)
+
+	// 2 parts made it to s3 in attempt 1.  Make sure there are now 3 parts, but that the 2 original parts
+	// were replaced.
+	assertNumParts(t, s, 0, 3)
+
+	// there should be 5 total calls to PutPart (2 in attempt 1, 3 in attempt 2).
+	assertNumPutParts(t, s, 0, 5)
+
+	// keep track of the keys used in attempt 2
+	enc2 := hex.EncodeToString(enc)
+	sig2 := hex.EncodeToString(sig)
+
+	if enc1 == enc2 {
+		t.Errorf("encrypt key did not change between attempts 1 and 2")
+	}
+	if sig1 == sig2 {
+		t.Errorf("verify key did not change between attempts 1 and 2")
+	}
+}
+
+func TestUploadAssetResumeRestart(t *testing.T) {
+	var enc, sig []byte
+	kt := func(e, s []byte) {
+		enc = e
+		sig = s
+	}
+	s := makeTestStore(t, kt)
+	ctx, cancel := context.WithCancel(context.Background())
+	size := 12 * MB
+	plaintext, task := makeUploadTask(t, size)
+	pw := &pwcancel{
+		cancel: cancel,
+		after:  7 * MB,
+	}
+	task.Progress = pw.report
+	_, err := s.UploadAsset(ctx, task)
+	if err == nil {
+		t.Fatal("expected upload to be canceled")
+	}
+
+	assertNumParts(t, s, 0, 2)
+
+	// there should be 2 calls to PutPart.
+	assertNumPutParts(t, s, 0, 2)
+
+	// keep track of the keys used in attempt 1
+	enc1 := hex.EncodeToString(enc)
+	sig1 := hex.EncodeToString(sig)
+
+	// try again, changing only one byte of the file.
+	// this should result in full restart of upload with new keys
+	plaintext[0] ^= 0x10
+	task.Plaintext = bytes.NewReader(plaintext)
+	task.Progress = nil
+
+	ctx = context.Background()
+	a, err := s.UploadAsset(ctx, task)
+	if err != nil {
+		t.Fatalf("expected second UploadAsset call to work, got: %s", err)
+	}
+	if a.Size != signencrypt.GetSealedSize(size) {
+		t.Errorf("uploaded asset size: %d, expected %d", a.Size, signencrypt.GetSealedSize(size))
+	}
+
+	var buf bytes.Buffer
+	if err = s.DownloadAsset(ctx, task.S3Params, a, &buf, task.S3Signer, nil); err != nil {
+		t.Fatal(err)
+	}
+	plaintextDownload := buf.Bytes()
+	if len(plaintextDownload) != len(plaintext) {
+		t.Errorf("downloaded asset len: %d, expected %d", len(plaintextDownload), len(plaintext))
+	}
+	if !bytes.Equal(plaintext, plaintextDownload) {
+		t.Errorf("downloaded asset did not match uploaded asset (%x v. %x)", plaintextDownload[:10], plaintext[:10])
+	}
+
+	// a resumed upload should reuse existing multi (even if contents change), so there should only be one:
+	assertNumMultis(t, s, 1)
+
+	// 2 parts made it to s3 in attempt 1.  Make sure there are now 3 parts, but that the 2 original parts
+	// were replaced.
+	assertNumParts(t, s, 0, 3)
+
+	// there should be 5 total calls to PutPart (2 in attempt 1, 3 in attempt 2).
+	assertNumPutParts(t, s, 0, 5)
+
+	// keep track of the keys used in attempt 2
+	enc2 := hex.EncodeToString(enc)
+	sig2 := hex.EncodeToString(sig)
+
+	if enc1 == enc2 {
+		t.Errorf("encrypt key did not change between attempts 1 and 2")
+	}
+	if sig1 == sig2 {
+		t.Errorf("verify key did not change between attempts 1 and 2")
 	}
 }

@@ -13,12 +13,15 @@ import (
 	"golang.org/x/net/context"
 )
 
-type Mem struct{}
+type Mem struct {
+	mc     *MemConn
+	mcMake sync.Once
+}
 
 var _ Root = &Mem{}
 
 func (m *Mem) New(signer Signer, region Region) Connection {
-	return NewMemConn()
+	return m.NewMemConn()
 }
 
 type MemConn struct {
@@ -26,17 +29,13 @@ type MemConn struct {
 	sync.Mutex
 }
 
-// only create one of these
-var mc *MemConn
-var mcMake sync.Once
-
-func NewMemConn() *MemConn {
-	mcMake.Do(func() {
-		mc = &MemConn{
+func (m *Mem) NewMemConn() *MemConn {
+	m.mcMake.Do(func() {
+		m.mc = &MemConn{
 			buckets: make(map[string]*MemBucket),
 		}
 	})
-	return mc
+	return m.mc
 }
 
 var _ Connection = &MemConn{}
@@ -53,6 +52,18 @@ func (s *MemConn) Bucket(name string) BucketInt {
 	b = NewMemBucket(s, name)
 	s.buckets[name] = b
 	return b
+}
+
+func (s *MemConn) AllMultis() []*MemMulti {
+	s.Lock()
+	defer s.Unlock()
+	var all []*MemMulti
+	for _, b := range s.buckets {
+		for _, m := range b.multis {
+			all = append(all, m)
+		}
+	}
+	return all
 }
 
 type MemBucket struct {
@@ -95,8 +106,6 @@ func (b *MemBucket) PutReader(ctx context.Context, path string, r io.Reader, len
 	}
 	b.objects[path] = buf.Bytes()
 
-	fmt.Printf("\n\n\n\n\nXXXXXXXXXX  put %d bytes in %q\n\n\n\n\n\n", len(b.objects[path]), path)
-
 	return nil
 }
 
@@ -119,9 +128,10 @@ func (b *MemBucket) Multi(ctx context.Context, key, contType string, perm ACL) (
 }
 
 type MemMulti struct {
-	bucket *MemBucket
-	path   string
-	parts  map[int]*part
+	bucket      *MemBucket
+	path        string
+	parts       map[int]*part
+	numPutParts int
 	sync.Mutex
 }
 
@@ -183,7 +193,17 @@ func (m *MemMulti) PutPart(ctx context.Context, index int, r io.ReadSeeker) (Par
 	p := newPart(index, buf)
 	m.parts[index] = p
 
+	m.numPutParts++
+
 	return p.export(), nil
+}
+
+// NumPutParts returns the number of times PutPart was called.
+func (m *MemMulti) NumPutParts() int {
+	m.Lock()
+	defer m.Unlock()
+
+	return m.numPutParts
 }
 
 type part struct {
@@ -203,7 +223,7 @@ func newPart(index int, buf bytes.Buffer) *part {
 }
 
 func (p *part) export() Part {
-	return Part{N: p.index, ETag: p.hash, Size: int64(len(p.data))}
+	return Part{N: p.index, ETag: `"` + p.hash + `"`, Size: int64(len(p.data))}
 }
 
 type partList []*part
