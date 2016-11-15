@@ -258,7 +258,7 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, i
 		}
 	}
 
-	breaks = keybase1.FlattenTLFUserBreaks(breaks)
+	breaks = utils.FlattenTLFUserBreaks(breaks)
 
 	return unboxed, breaks, nil
 }

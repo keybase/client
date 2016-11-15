@@ -165,3 +165,16 @@ func splitAndNormalizeTLFNameCanonicalize(name string, public bool) (writerNames
 	}
 	return writerNames, readerNames, extensionSuffix, err
 }
+
+func FlattenTLFUserBreaks(breaks []keybase1.TLFUserBreak) (flattened []keybase1.TLFUserBreak) {
+	uids := make(map[string]bool)
+	for _, b := range breaks {
+		uid := b.User.Uid.String()
+		if !uids[uid] {
+			uids[uid] = true
+			flattened = append(flattened, b)
+		}
+	}
+
+	return flattened
+}
