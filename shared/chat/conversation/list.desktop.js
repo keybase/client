@@ -38,6 +38,7 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     this._cellCache = new CellSizeCache(this._indexToID)
+    this._toRemeasure = []
   }
 
   _indexToID = index => {
@@ -53,6 +54,18 @@ class ConversationList extends Component<void, Props, State> {
         console.warn('id is null for index:', messageIndex)
       }
       return id
+    }
+  }
+
+  componentWillUpdate (nextProps: Props, nextState: State) {
+    // If a message has moved from pending to send, tell the List to 
+    // discard heights for it and everything after it, so that they're
+    // re-rendered.'
+    if (this._toRemeasure.length) {
+      this._toRemeasure.forEach(item => {
+        this._list.recomputeRowHeights(item)
+      })
+      this._toRemeasure = []
     }
   }
 
@@ -82,15 +95,10 @@ class ConversationList extends Component<void, Props, State> {
     }
   }
 
-  _toRemeasure = []
-
   _invalidateChangedMessages () {
     this.state.messages.forEach((item, index) => {
       if (item.messageID !== this.props.messages.get(index, {}).messageID) {
-        console.warn('resetting ' + index, item, this.props.messages.get(index, {}))
-        // this._cellMeasurer.() // ForRow(index + 1)
-       // this._list.recomputeRowHeights(index + 1)
-       this._toRemeasure.push(index + 1)
+        this._toRemeasure.push(index + 1)
       }
     })
   }
@@ -130,7 +138,6 @@ class ConversationList extends Component<void, Props, State> {
     if (index === 0) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
     }
-
     const message = this.state.messages.get(index - 1)
     return messageFactory(message, index, key, style, isScrolling)
   }
@@ -140,11 +147,6 @@ class ConversationList extends Component<void, Props, State> {
     let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
-    this._toRemeasure.forEach(index => this._cellMeasurer.resetMeasurementForRow(index))
-    this._toRemeasure = []
-
-    console.warn('last')
-    console.warn(this.state.messages.last() && this.state.messages.last().messageState)
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <AutoSizer>
