@@ -89,7 +89,7 @@ export const prependMessages = 'chat:prependMessages'
 export const setupNewChatHandler = 'chat:setupNewChatHandler'
 export const incomingMessage = 'chat:incomingMessage'
 export const postMessage = 'chat:postMessage'
-export const updateMessage = 'chat:updateMessage'
+export const pendingMessageWasSent = 'chat:pendingMessageWasSent'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
@@ -101,7 +101,7 @@ export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {
 export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
-export type UpdateMessage = NoErrorTypedAction<'chat:updateMessage', {newMessage: Message}>
+export type PendingMessageWasSent = NoErrorTypedAction<'chat:pendingMessageWasSent', {newMessage: Message}>
 export type Actions = AppendMessages | LoadMoreMessages | PrependMessages | SelectConversation | LoadInbox | LoadedInbox
 
 function conversationIDToKey (conversationID: ConversationID): ConversationIDKey {

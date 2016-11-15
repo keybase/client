@@ -9,7 +9,7 @@ import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {usernameSelector} from '../constants/selectors'
 
 import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler} from '../constants/chat'
-import type {GetInboxAndUnboxLocalRes, MessageSentInfo, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
+import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
@@ -162,28 +162,27 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
         const message = _unboxedToMessage(messageUnboxed, 0, yourName)
-
-        yield put({
-          type: Constants.appendMessages,
-          payload: {
-            conversationIDKey: conversationIDToKey(incomingMessage.convID),
-            messages: [message],
-          },
-        })
-      }
-      break
-    case NotifyChatChatActivityType.messageSent:
-      const sentMessage: ?MessageSentInfo = action.payload.activity.messageSent
-      if (sentMessage) {
-        yield put({
-          type: Constants.updateMessage,
-          payload: {
-            conversationIDKey: conversationIDToKey(sentMessage.convID),
-            outboxID: sentMessage.outboxID.toString('hex'),
-            messageID: sentMessage.messageID,
-            messageState: 'sent',
-          },
-        })
+        if (message.outboxID) {
+          // If the message has an outboxID, then we sent it and have already
+          // rendered it in the message list -- we just need to mark it as sent.
+          yield put({
+            type: Constants.pendingMessageWasSent,
+            payload: {
+              conversationIDKey: conversationIDToKey(message.convID),
+              outboxID: message.outboxID.toString('hex'),
+              messageID: message.messageID,
+              messageState: 'sent',
+            },
+          })
+        } else {
+          yield put({
+            type: Constants.appendMessages,
+            payload: {
+              conversationIDKey: conversationIDToKey(incomingMessage.convID),
+              messages: [message],
+            },
+          })
+        }
       }
       break
     default:

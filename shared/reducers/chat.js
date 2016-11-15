@@ -37,7 +37,7 @@ function reducer (state: State = initialState, action: Actions) {
 
       return state.set('conversationStates', newConversationStates)
     }
-    case Constants.updateMessage: {
+    case Constants.pendingMessageWasSent: {
       const {outboxID, messageID, messageState} = action.payload
       const newConversationStates = state.get('conversationStates').update(
         action.payload.conversationIDKey,
