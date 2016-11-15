@@ -188,25 +188,28 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	// Send a normal message.
 	if nActions == 0 {
 		nActions++
-		if !c.hasTTY {
-			if len(ctx.Args()) != 1 {
+		switch len(ctx.Args()) {
+		case 2:
+			// message is supplied, so stdin is ignored even if piped
+			c.message = ctx.Args().Get(1)
+		case 1:
+			if !c.hasTTY {
+				bytes, err := ioutil.ReadAll(io.LimitReader(os.Stdin, msgchecker.TextMessageMaxLength))
+				if err != nil {
+					return err
+				}
+				c.message = string(bytes)
+			} else {
+				c.message = "" // get message through prompt later
+			}
+		case 0:
+			if !c.hasTTY {
 				return fmt.Errorf("need exactly 1 argument to send from stdin")
 			}
-			bytes, err := ioutil.ReadAll(io.LimitReader(os.Stdin, msgchecker.TextMessageMaxLength))
-			if err != nil {
-				return err
-			}
-			c.message = string(bytes)
-		} else {
-			switch len(ctx.Args()) {
-			case 0, 1:
-				c.message = ""
-			case 2:
-				c.message = ctx.Args().Get(1)
-			default:
-				cli.ShowCommandHelp(ctx, "send")
-				return fmt.Errorf("chat send takes 1 or 2 args")
-			}
+			c.message = "" // get message through prompt later
+		default:
+			cli.ShowCommandHelp(ctx, "send")
+			return fmt.Errorf("chat send takes 0, 1 or 2 args")
 		}
 	}
 
