@@ -2421,67 +2421,53 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 		return nil, err
 	}
 
-	// We also need to add in any creates that happened within
-	// newly-created directories (which aren't being merged with other
-	// newly-created directories), to ensure that the overall Refs are
-	// correct and that future CR processes can check those create ops
-	// for conflicts.
 	var newPaths []path
 	for original, chain := range unmergedChains.byOriginal {
-		if !unmergedChains.isCreated(original) ||
-			mergedChains.isCreated(original) {
-			continue
-		}
 		added := false
 		for i, op := range chain.ops {
 			if cop, ok := op.(*createOp); ok {
-				// Shallowly copy the create op and update its
-				// directory to the most recent pointer -- this won't
-				// work with the usual revert ops process because that
-				// skips chains which are newly-created within this
-				// branch.
-				newCreateOp := *cop
-				newCreateOp.Dir, err = makeBlockUpdate(
-					chain.mostRecent, chain.mostRecent)
-				if err != nil {
-					return nil, err
-				}
-				chain.ops[i] = &newCreateOp
-				if !added {
-					newPaths = append(newPaths, path{
-						FolderBranch: cr.fbo.folderBranch,
-						path: []pathNode{{
-							BlockPointer: chain.mostRecent}},
-					})
-					added = true
+				// We need to add in any creates that happened
+				// within newly-created directories (which aren't
+				// being merged with other newly-created directories),
+				// to ensure that the overall Refs are correct and
+				// that future CR processes can check those create ops
+				// for conflicts.
+				if unmergedChains.isCreated(original) &&
+					!mergedChains.isCreated(original) {
+
+					// Shallowly copy the create op and update its
+					// directory to the most recent pointer -- this won't
+					// work with the usual revert ops process because that
+					// skips chains which are newly-created within this
+					// branch.
+					newCreateOp := *cop
+					newCreateOp.Dir, err = makeBlockUpdate(
+						chain.mostRecent, chain.mostRecent)
+					if err != nil {
+						return nil, err
+					}
+					chain.ops[i] = &newCreateOp
+					if !added {
+						newPaths = append(newPaths, path{
+							FolderBranch: cr.fbo.folderBranch,
+							path: []pathNode{{
+								BlockPointer: chain.mostRecent}},
+						})
+						added = true
+					}
 				}
 				if cop.Type == Dir || len(cop.Refs()) == 0 {
 					continue
 				}
-				// Make sure to add any direct file blocks too,
-				// originating in later syncs.
+				// Add any direct file blocks too into each create op,
+				// which originated in later unmerged syncs.
 				ptr, err :=
 					unmergedChains.mostRecentFromOriginalOrSame(cop.Refs()[0])
 				if err != nil {
 					return nil, err
 				}
-				file := path{
-					FolderBranch: cr.fbo.folderBranch,
-					path:         []pathNode{{BlockPointer: ptr}},
-				}
-				fblock, err := cr.fbo.blocks.GetFileBlockForReading(ctx, lState,
-					unmergedChains.mostRecentChainMDInfo.kmd, ptr, file.Branch, file)
-				if err != nil {
-					return nil, err
-				}
-				if fblock.IsInd {
-					newCreateOp.RefBlocks = make([]BlockPointer,
-						len(fblock.IPtrs)+1)
-					newCreateOp.RefBlocks[0] = cop.Refs()[0]
-					for j, iptr := range fblock.IPtrs {
-						newCreateOp.RefBlocks[j+1] = iptr.BlockPointer
-					}
-				}
+				trackSyncPtrChangesInCreate(
+					ptr, chain, unmergedChains, cop.NewName)
 			}
 		}
 	}
