@@ -142,7 +142,7 @@ helpers.nodeWithDockerCleanup("ec2-fleet-max-test-linux", {}, {}) {
                                         }
                                         sh "npm install ./visdiff"
                                         try {
-                                            timeout(time: 10, unit: 'MINUTES') {
+                                            timeout(time: 100, unit: 'MINUTES') {
                                                 dir("desktop") {
                                                     sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, ${env.COMMIT_HASH})...${env.COMMIT_HASH}'"
                                                 }
