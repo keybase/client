@@ -140,9 +140,9 @@ func NewHandleExtension(extType HandleExtensionType, num uint16, un libkb.Normal
 	return newHandleExtension(extType, num, un, now)
 }
 
-// newTestHandleExtensionStaticTime returns a new HandleExtension struct populated with
+// NewTestHandleExtensionStaticTime returns a new HandleExtension struct populated with
 // a static date for testing.
-func newTestHandleExtensionStaticTime(extType HandleExtensionType, num uint16, un libkb.NormalizedUsername) (
+func NewTestHandleExtensionStaticTime(extType HandleExtensionType, num uint16, un libkb.NormalizedUsername) (
 	*HandleExtension, error) {
 	now := time.Unix(HandleExtensionStaticTestDate, 0)
 	return newHandleExtension(extType, num, un, now)

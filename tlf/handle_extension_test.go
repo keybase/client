@@ -181,11 +181,11 @@ func TestHandleExtensionUnknownFields(t *testing.T) {
 }
 
 func TestHandleExtensionMultiple(t *testing.T) {
-	e, err := newTestHandleExtensionStaticTime(HandleExtensionConflict, 1, "")
+	e, err := NewTestHandleExtensionStaticTime(HandleExtensionConflict, 1, "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	e2, err := newTestHandleExtensionStaticTime(HandleExtensionFinalized, 2, "charlie")
+	e2, err := NewTestHandleExtensionStaticTime(HandleExtensionFinalized, 2, "charlie")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -219,11 +219,11 @@ func TestHandleExtensionMultiple(t *testing.T) {
 }
 
 func TestHandleExtensionMultipleSingleUser(t *testing.T) {
-	e, err := newTestHandleExtensionStaticTime(HandleExtensionConflict, 2, "")
+	e, err := NewTestHandleExtensionStaticTime(HandleExtensionConflict, 2, "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	e2, err := newTestHandleExtensionStaticTime(HandleExtensionFinalized, 1, "")
+	e2, err := NewTestHandleExtensionStaticTime(HandleExtensionFinalized, 1, "")
 	if err != nil {
 		t.Fatal(err)
 	}
