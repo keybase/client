@@ -12,13 +12,13 @@ const _marginColor = (followState) => ({
   'Broken': globalColors.red,
 }[followState])
 
-const MessageText = ({author, message, followState, style}: Props) => (
+const MessageText = ({author, message, followState, messageState, style}: Props) => (
   <Box style={{...globalStyles.flexBoxRow, padding: globalMargins.tiny, ...style}}>
     <Box style={{width: 2, alignSelf: 'stretch', backgroundColor: _marginColor(followState)}} />
     <Avatar size={24} username={author} style={{marginRight: globalMargins.tiny}} />
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Text type='BodySemibold' style={{...(followState === 'You' ? globalStyles.fontItalic : null)}}>{author}</Text>
-      <Text type='Body'>{message}</Text>
+      <Text type='Body' style={messageState === 'pending' ? {color: globalColors.black_40} : {}}>{message}</Text>
     </Box>
   </Box>
 )
