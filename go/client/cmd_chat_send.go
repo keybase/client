@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	isatty "github.com/mattn/go-isatty"
 )
 
 type cmdChatSend struct {
@@ -37,7 +38,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cl.ChooseCommand(&cmdChatSend{Contextified: libkb.NewContextified(g)}, "send", c)
 		},
 		Flags: append(getConversationResolverFlags(),
-			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "stdin", "nonblock")...,
+			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "nonblock")...,
 		),
 	}
 }
@@ -138,7 +139,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.setTopicName = ctx.String("set-topic-name")
 	c.setHeadline = ctx.String("set-headline")
 	c.clearHeadline = ctx.Bool("clear-headline")
-	c.useStdin = ctx.Bool("stdin")
+	c.useStdin = !isatty.IsTerminal(os.Stdin.Fd())
 	c.nonBlock = ctx.Bool("nonblock")
 
 	var tlfName string

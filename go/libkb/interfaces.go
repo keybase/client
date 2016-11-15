@@ -352,6 +352,7 @@ type PromptDescriptor int
 type OutputDescriptor int
 
 type TerminalUI interface {
+	StdinIsTerminal() bool
 	ErrorWriter() io.Writer
 	Output(string) error
 	OutputDesc(OutputDescriptor, string) error
