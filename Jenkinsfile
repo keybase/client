@@ -145,7 +145,7 @@ helpers.nodeWithDockerCleanup("ec2-fleet-max-test-linux", {}, {}) {
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
                                                 dir("desktop") {
-                                                    sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, ${env.COMMIT_HASH})...${env.COMMIT_HASH}'"
+                                                    sh "../node_modules/.bin/keybase-visdiff '8e7ee55e0f67a354f0520ce0a08c2f1f8297051b...${env.COMMIT_HASH}'"
                                                 }
                                             }
                                         } catch (e) {
