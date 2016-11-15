@@ -18,7 +18,7 @@ const MessageText = ({author, message, followState, messageState, style}: Props)
     <Avatar size={24} username={author} style={{marginRight: globalMargins.tiny}} />
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Text type='BodySemibold' style={{...(followState === 'You' ? globalStyles.fontItalic : null)}}>{author}</Text>
-      <Text type={messageState === 'pending' ? 'BodySmallItalic' : 'Body'}>{message}</Text>
+      <Text type='Body' style={messageState === 'pending' ? {color: globalColors.black_40} : {}}>{message}</Text>
     </Box>
   </Box>
 )
