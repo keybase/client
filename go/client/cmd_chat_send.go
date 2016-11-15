@@ -5,12 +5,14 @@ package client
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -190,7 +192,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 			if len(ctx.Args()) != 1 {
 				return fmt.Errorf("need exactly 1 argument to send from stdin")
 			}
-			bytes, err := ioutil.ReadAll(os.Stdin)
+			bytes, err := ioutil.ReadAll(io.LimitReader(os.Stdin, msgchecker.TextMessageMaxLength))
 			if err != nil {
 				return err
 			}
