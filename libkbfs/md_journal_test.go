@@ -544,13 +544,14 @@ func TestMDJournalResolveAndClear(t *testing.T) {
 	ctx := context.Background()
 
 	bid := LocalSquashBranchID
+	mdcache := NewMDCacheStandard(10)
 	err := j.convertToBranch(ctx, bid, signer, kbfscodec.NewMsgpack(), id,
-		NewMDCacheStandard(10))
+		mdcache)
 	require.NoError(t, err)
 
 	resolveRev := firstRevision
 	md := makeMDForTest(t, id, resolveRev, j.uid, signer, firstPrevRoot)
-	_, err = j.resolveAndClear(ctx, signer, ekg, bsplit, bid, md)
+	_, err = j.resolveAndClear(ctx, signer, ekg, bsplit, mdcache, bid, md)
 	require.NoError(t, err)
 
 	require.Equal(t, 1, getMDJournalLength(t, j))

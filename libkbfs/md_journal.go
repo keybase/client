@@ -1184,7 +1184,7 @@ func (j *mdJournal) clear(
 
 func (j *mdJournal) resolveAndClear(
 	ctx context.Context, signer kbfscrypto.Signer, ekg encryptionKeyGetter,
-	bsplit BlockSplitter, bid BranchID, rmd *RootMetadata) (
+	bsplit BlockSplitter, mdcache MDCache, bid BranchID, rmd *RootMetadata) (
 	mdID MdID, err error) {
 	j.log.CDebugf(ctx, "Resolve and clear, branch %s, resolve rev %d",
 		bid, rmd.Revision())
@@ -1208,6 +1208,16 @@ func (j *mdJournal) resolveAndClear(
 	if j.branchID != bid {
 		return MdID{}, fmt.Errorf("Resolve and clear for branch %s "+
 			"while on branch %s", bid, j.branchID)
+	}
+
+	earliestRevision, err := j.j.readEarliestRevision()
+	if err != nil {
+		return MdID{}, err
+	}
+
+	latestRevision, err := j.j.readLatestRevision()
+	if err != nil {
+		return MdID{}, err
 	}
 
 	// First make a new journal to hold the block.
@@ -1277,6 +1287,11 @@ func (j *mdJournal) resolveAndClear(
 
 	// Make the defer above remove the old temp dir.
 	idJournalTempDir = oldIDJournalTempDir
+
+	// Delete all of the branch MDs from the md cache.
+	for rev := earliestRevision; rev <= latestRevision; rev++ {
+		mdcache.Delete(j.tlfID, rev, bid)
+	}
 
 	return mdID, nil
 }
