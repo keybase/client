@@ -2,6 +2,7 @@
 import React from 'react'
 import {Box, Text, Avatar} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import * as Constants from '../../../constants/chat'
 
 import type {Props} from './text'
 
@@ -12,15 +13,45 @@ const _marginColor = (followState) => ({
   'Broken': globalColors.red,
 }[followState])
 
-const MessageText = ({author, message, followState, style}: Props) => (
-  <Box style={{...globalStyles.flexBoxRow, padding: globalMargins.tiny, ...style}}>
-    <Box style={{width: 2, alignSelf: 'stretch', backgroundColor: _marginColor(followState)}} />
-    <Avatar size={24} username={author} style={{marginRight: globalMargins.tiny}} />
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-      <Text type='BodySemibold' style={{...(followState === 'You' ? globalStyles.fontItalic : null)}}>{author}</Text>
-      <Text type='Body'>{message}</Text>
+const MessageText = ({text, messageState, style}: {text: string, messageState: Constants.MessageState, style: Object}) => {
+  switch (messageState) {
+    case 'Failed':
+    case 'Sending':
+      return <Text type='Body' style={{color: globalColors.black_40, ...style}}>{text}</Text>
+    case 'Ok':
+    default:
+      return <Text style={style} type='Body'>{text}</Text>
+  }
+}
+
+const colorForAuthor = (followState: Constants.FollowState) => {
+  if (followState === 'You') {
+    return globalColors.black_75
+  } else {
+    return _marginColor(followState)
+  }
+}
+
+const MessageTextWrapper = ({author, message, messageState, followState, style, includeHeader, onRetry}: Props) => (
+  <Box style={{...globalStyles.flexBoxRow, ...style}}>
+    <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(followState)}} />
+    <Box style={{...globalStyles.flexBoxRow, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
+      {includeHeader
+        ? <Avatar size={24} username={author} style={{marginRight: globalMargins.tiny}} />
+        : <Box style={{width: 32}} />}
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(followState), ...(followState === 'You' ? globalStyles.italic : null)}}>{author}</Text>}
+        <MessageText text={message} messageState={messageState} style={{marginTop: globalMargins.xtiny}} />
+        {messageState === 'Failed' && (
+          <Box>
+            <Text type='BodySmall' style={{fontSize: 9, color: globalColors.red}}>{'┏(>_<)┓'}</Text>
+            <Text type='BodySmall' style={{color: globalColors.red}}> Failed to send. </Text>
+            <Text type='BodySmall' style={{color: globalColors.red, textDecoration: 'underline'}} onClick={onRetry}>Retry</Text>
+          </Box>
+        )}
+      </Box>
     </Box>
   </Box>
 )
 
-export default MessageText
+export default MessageTextWrapper
