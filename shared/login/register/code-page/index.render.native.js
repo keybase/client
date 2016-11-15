@@ -67,12 +67,12 @@ class CodePageRender extends Component<void, Props, void> {
 
         {isIOS &&
           <Box style={{alignSelf: 'center', width: 200, height: 200}}>
-            <Box style={[styles.box, styles.boxEdge, {left: 0}]} />
-            <Box style={[styles.box, styles.boxEdge, {right: 0}]} />
-            <Box style={[styles.box, styles.boxCorner, {right: 0, top: 0}]} />
-            <Box style={[styles.box, styles.boxCorner, {left: 0, top: 0}]} />
-            <Box style={[styles.box, styles.boxCorner, {right: 0, bottom: 0}]} />
-            <Box style={[styles.box, styles.boxCorner, {left: 0, bottom: 0}]} />
+            <Box style={[stylesScan.box, stylesScan.boxEdge, {left: 0}]} />
+            <Box style={[stylesScan.box, stylesScan.boxEdge, {right: 0}]} />
+            <Box style={[stylesScan.box, stylesScan.boxCorner, {right: 0, top: 0}]} />
+            <Box style={[stylesScan.box, stylesScan.boxCorner, {left: 0, top: 0}]} />
+            <Box style={[stylesScan.box, stylesScan.boxCorner, {right: 0, bottom: 0}]} />
+            <Box style={[stylesScan.box, stylesScan.boxCorner, {left: 0, bottom: 0}]} />
           </Box>}
       </Qr>
     )
@@ -114,14 +114,12 @@ class CodePageRender extends Component<void, Props, void> {
         </Box>
         <TabBar>
           <TabBarItem
-            key={this.props.mode}
             selected={this.props.mode === codePageModeShowCode}
             label='Display Code'
             onClick={() => { this.props.setCodePageMode(codePageModeScanCode) }}>
               {this.renderShowCode()}
           </TabBarItem>
           <TabBarItem
-            key={this.props.mode}
             label='Scan Code'
             selected={this.props.mode === codePageModeScanCode}
             onClick={() => { this.props.setCodePageMode(codePageModeShowCode) }}>
@@ -142,14 +140,12 @@ class CodePageRender extends Component<void, Props, void> {
         </Box>
         <TabBar underlined={true}>
           <TabBarItem
-            key={this.props.mode}
             selected={this.props.mode === codePageModeShowText}
             label='Display Code'
             onClick={() => { this.props.setCodePageMode(codePageModeEnterText) }}>
               {this.renderShowText()}
           </TabBarItem>
           <TabBarItem
-            key={this.props.mode}
             label='Type Code'
             selected={this.props.mode === codePageModeEnterText}
             onClick={() => { this.props.setCodePageMode(codePageModeShowText) }}>
@@ -179,20 +175,10 @@ const stylesContainer = {
   justifyContent: 'flex-start',
 }
 
-const stylesHeader = {
-  flex: 1,
-  marginTop: 32,
-}
-
 const stylesIntro = {
   marginTop: 55,
   alignItems: 'center',
   marginBottom: 30,
-}
-
-const stylesSwitch = {
-  justifyContent: 'center',
-  marginTop: 50,
 }
 
 const stylesEnterText = {
@@ -211,7 +197,7 @@ const stylesTextCode = {
   color: globalColors.darkBlue,
 }
 
-const styles = NativeStyleSheet.create({
+const stylesScan = NativeStyleSheet.create({
   box: {
     backgroundColor: 'red',
     position: 'absolute',
