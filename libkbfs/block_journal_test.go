@@ -678,8 +678,6 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	bID5, _, _ := putBlockData(ctx, t, j, data5)
 	data6 := []byte{21, 22, 23, 24}
 	bID6, _, _ := putBlockData(ctx, t, j, data6)
-	err = j.saveBlocksUntilNextMDFlush()
-	require.NoError(t, err)
 	savedBlocks = append(savedBlocks, bID5, bID6)
 	flushAll()
 

@@ -353,9 +353,24 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 	return refs, unflushedBytes, nil
 }
 
-func (j *blockJournal) appendJournalEntry(entry blockJournalEntry) (
+func (j *blockJournal) appendJournalEntry(ctx context.Context,
+	entry blockJournalEntry) (
 	journalOrdinal, error) {
-	return j.j.appendJournalEntry(nil, entry)
+	ordinal, err := j.j.appendJournalEntry(nil, entry)
+	if err != nil {
+		return 0, err
+	}
+
+	if j.saveUntilMDFlush != nil {
+		_, err := j.saveUntilMDFlush.appendJournalEntry(nil, entry)
+		if err != nil {
+			// TODO: Should we remove it from the main journal and
+			// fail the whole append?
+			j.log.CWarningf(ctx, "Appending to the saved list failed: %v", err)
+		}
+	}
+
+	return ordinal, nil
 }
 
 func (j *blockJournal) length() (uint64, error) {
@@ -577,7 +592,7 @@ func (j *blockJournal) putData(
 		return err
 	}
 
-	ordinal, err := j.appendJournalEntry(blockJournalEntry{
+	ordinal, err := j.appendJournalEntry(ctx, blockJournalEntry{
 		Op:       blockPutOp,
 		Contexts: map[BlockID][]BlockContext{id: {context}},
 	})
@@ -604,7 +619,7 @@ func (j *blockJournal) addReference(
 		}
 	}()
 
-	ordinal, err := j.appendJournalEntry(blockJournalEntry{
+	ordinal, err := j.appendJournalEntry(ctx, blockJournalEntry{
 		Op:       addRefOp,
 		Contexts: map[BlockID][]BlockContext{id: {context}},
 	})
@@ -657,7 +672,7 @@ func (j *blockJournal) removeReferences(
 		liveCounts[id] = count
 	}
 
-	_, err = j.appendJournalEntry(blockJournalEntry{
+	_, err = j.appendJournalEntry(ctx, blockJournalEntry{
 		Op:       removeRefsOp,
 		Contexts: contexts,
 	})
@@ -702,7 +717,7 @@ func (j *blockJournal) archiveReferences(
 		}
 	}()
 
-	ordinal, err := j.appendJournalEntry(blockJournalEntry{
+	ordinal, err := j.appendJournalEntry(ctx, blockJournalEntry{
 		Op:       archiveRefsOp,
 		Contexts: contexts,
 	})
@@ -752,7 +767,7 @@ func (j *blockJournal) markMDRevision(ctx context.Context,
 		}
 	}()
 
-	_, err = j.appendJournalEntry(blockJournalEntry{
+	_, err = j.appendJournalEntry(ctx, blockJournalEntry{
 		Op:       mdRevMarkerOp,
 		Revision: rev,
 	})
@@ -1136,6 +1151,10 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 }
 
 func (j *blockJournal) saveBlocksUntilNextMDFlush() error {
+	if j.saveUntilMDFlush != nil {
+		return nil
+	}
+
 	// Copy the current journal entries into a new journal.  After the
 	// next MD flush, we can use the saved journal to delete the block
 	// data for all the entries in the saved journal.
@@ -1153,14 +1172,10 @@ func (j *blockJournal) saveBlocksUntilNextMDFlush() error {
 		return err
 	}
 
-	savedJournal := j.saveUntilMDFlush
-	if savedJournal == nil {
-		savedJournalDir := savedBlockJournalDir(j.dir)
-
-		sj := makeDiskJournal(
-			j.codec, savedJournalDir, reflect.TypeOf(blockJournalEntry{}))
-		savedJournal = &sj
-	}
+	savedJournalDir := savedBlockJournalDir(j.dir)
+	sj := makeDiskJournal(
+		j.codec, savedJournalDir, reflect.TypeOf(blockJournalEntry{}))
+	savedJournal := &sj
 
 	for i := first; i <= last; i++ {
 		e, err := j.readJournalEntry(i)
