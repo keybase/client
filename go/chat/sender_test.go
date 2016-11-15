@@ -40,8 +40,8 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	n.Lock()
 	defer n.Unlock()
 	typ, err := activity.ActivityType()
-	if err == nil && typ == chat1.ChatActivityType_MESSAGE_SENT {
-		n.obids = append(n.obids, activity.MessageSent().OutboxID)
+	if err == nil && typ == chat1.ChatActivityType_INCOMING_MESSAGE {
+		n.obids = append(n.obids, *activity.IncomingMessage().Message.Valid().ClientHeader.OutboxID)
 		n.action <- len(n.obids)
 	}
 }
