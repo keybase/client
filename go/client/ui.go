@@ -21,7 +21,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/spotty"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	isatty "github.com/mattn/go-isatty"
 )
 
 type UI struct {
@@ -911,10 +910,6 @@ func sentencePunctuate(s string) string {
 
 // GetTerminalUI returns the main client UI, which happens to be a terminal UI
 func (ui *UI) GetTerminalUI() libkb.TerminalUI { return ui }
-
-func (ui *UI) StdinIsTerminal() bool {
-	return isatty.IsTerminal(os.Stdin.Fd())
-}
 
 // GetDumbOutput returns the main client UI, which happens to also be a
 // dumb output UI too.
