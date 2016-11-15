@@ -137,7 +137,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   if (sent && author) {
     const message: Message = {
       type: 'Text',
-      author: author,
+      author,
       outboxID: sent.outboxID.toString('hex'),
       timestamp: Date.now(),
       messageState: 'pending',
