@@ -77,7 +77,7 @@ app.on('ready', () => {
   for (let i = 0; i < WORKER_COUNT; i++) {
     setTimeout(() => {
       console.log('Creating new worker window', i)
-      const workerWin = new BrowserWindow({show: DEBUG_WINDOWS, width: CANVAS_SIZE, height: CANVAS_SIZE, })
+      const workerWin = new BrowserWindow({show: DEBUG_WINDOWS, width: CANVAS_SIZE, height: CANVAS_SIZE})
       console.log('Created new worker window', i)
 
       workerWin.on('ready-to-show', () => console.log('Worker window ready-to-show:', i))
