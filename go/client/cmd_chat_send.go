@@ -25,7 +25,7 @@ type cmdChatSend struct {
 	setTopicName  string
 	setHeadline   string
 	clearHeadline bool
-	useStdin      bool
+	hasTTY        bool
 	nonBlock      bool
 }
 
@@ -57,7 +57,7 @@ func (c *cmdChatSend) Run() (err error) {
 	ctx := context.TODO()
 	conversationInfo, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: true,
-		Interactive:       !c.useStdin,
+		Interactive:       c.hasTTY,
 	})
 	if err != nil {
 		return err
@@ -139,7 +139,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.setTopicName = ctx.String("set-topic-name")
 	c.setHeadline = ctx.String("set-headline")
 	c.clearHeadline = ctx.Bool("clear-headline")
-	c.useStdin = !isatty.IsTerminal(os.Stdin.Fd())
+	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())
 	c.nonBlock = ctx.Bool("nonblock")
 
 	var tlfName string
@@ -155,7 +155,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.setTopicName != "" {
 		nActions++
-		if c.useStdin {
+		if !c.hasTTY {
 			return fmt.Errorf("stdin not supported when setting topic name")
 		}
 		if len(ctx.Args()) > 1 {
@@ -165,7 +165,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.setHeadline != "" {
 		nActions++
-		if c.useStdin {
+		if !c.hasTTY {
 			return fmt.Errorf("stdin not supported with --set-headline")
 		}
 		if len(ctx.Args()) > 1 {
@@ -175,7 +175,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.clearHeadline {
 		nActions++
-		if c.useStdin {
+		if !c.hasTTY {
 			return fmt.Errorf("stdin not supported with --clear-headline")
 		}
 		if len(ctx.Args()) > 1 {
@@ -186,7 +186,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	// Send a normal message.
 	if nActions == 0 {
 		nActions++
-		if c.useStdin {
+		if !c.hasTTY {
 			if len(ctx.Args()) != 1 {
 				return fmt.Errorf("need exactly 1 argument to send from stdin")
 			}
