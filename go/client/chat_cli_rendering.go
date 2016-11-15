@@ -16,6 +16,11 @@ import (
 
 type conversationInfoListView []chat1.ConversationInfoLocal
 
+func (v conversationInfoListView) Len() int { return len(v) }
+func (v conversationInfoListView) GetConversationID(index int) chat1.ConversationID {
+	return v[index].Id
+}
+
 func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 	if len(v) == 0 {
 		return nil
@@ -24,6 +29,8 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
+	shortener := NewConversationAliasShortener(v, 2)
+
 	table := &flexibletable.Table{}
 	for i, conv := range v {
 		participants := strings.Split(conv.TlfName, ",")
@@ -31,7 +38,9 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 			flexibletable.Cell{
 				Frame:     [2]string{"[", "]"},
 				Alignment: flexibletable.Right,
-				Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
+				Content: flexibletable.SingleCell{
+					Item: string(shortener.Shorten(i)),
+				},
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
@@ -40,7 +49,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, flexibletable.ExpandableWrappable,
+		flexibletable.ColumnConstraint(ConversationAliasWidth(shortener.ShortenedLength() + 2)), flexibletable.ExpandableWrappable,
 	}); err != nil {
 		return fmt.Errorf("rendering conversation info list view error: %v\n", err)
 	}
@@ -50,16 +59,24 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 
 type conversationListView []chat1.ConversationLocal
 
+func (v conversationListView) Len() int { return len(v) }
+func (v conversationListView) GetConversationID(index int) chat1.ConversationID {
+	return v[index].Info.Id
+}
+
 // Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
 func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
-	convName := strings.Join(v.without(g, conv.Info.WriterNames, myUsername), ",")
+	convName := strings.Join(v.withoutUnlessOnlyOne(g, conv.Info.WriterNames, myUsername), ",")
 	if len(conv.Info.ReaderNames) > 0 {
 		convName += "#" + strings.Join(conv.Info.ReaderNames, ",")
 	}
 	return convName
 }
 
-func (v conversationListView) without(g *libkb.GlobalContext, slice []string, el string) (res []string) {
+func (v conversationListView) withoutUnlessOnlyOne(g *libkb.GlobalContext, slice []string, el string) (res []string) {
+	if len(slice) == 1 {
+		return slice
+	}
 	for _, x := range slice {
 		if x != el {
 			res = append(res, x)
@@ -76,16 +93,22 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
 
+	shortener := NewConversationAliasShortener(v, 2)
+
 	table := &flexibletable.Table{}
 	for i, conv := range v {
+		indexCell := flexibletable.Cell{
+			Frame:     [2]string{"[", "]"},
+			Alignment: flexibletable.Right,
+			Content: flexibletable.SingleCell{
+				Item: string(shortener.Shorten(i)),
+			},
+		}
 
 		if conv.Error != nil {
 			table.Insert(flexibletable.Row{
-				flexibletable.Cell{
-					Frame:     [2]string{"[", "]"},
-					Alignment: flexibletable.Right,
-					Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
-				},
+				indexCell,
+
 				flexibletable.Cell{
 					Alignment: flexibletable.Center,
 					Content:   flexibletable.SingleCell{Item: ""},
@@ -148,11 +171,8 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 		}
 
 		table.Insert(flexibletable.Row{
-			flexibletable.Cell{
-				Frame:     [2]string{"[", "]"},
-				Alignment: flexibletable.Right,
-				Content:   flexibletable.SingleCell{Item: strconv.Itoa(i + 1)},
-			},
+			indexCell,
+
 			flexibletable.Cell{
 				Alignment: flexibletable.Center,
 				Content:   flexibletable.SingleCell{Item: unread},
@@ -174,7 +194,7 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	}
 
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
+		flexibletable.ColumnConstraint(ConversationAliasWidth(shortener.ShortenedLength() + 2)), 1, flexibletable.ColumnConstraint(w / 4), flexibletable.ColumnConstraint(w / 4), flexibletable.Expandable,
 	}); err != nil {
 		return fmt.Errorf("rendering conversation list view error: %v\n", err)
 	}

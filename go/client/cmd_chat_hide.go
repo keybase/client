@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -12,7 +13,7 @@ import (
 
 type CmdChatHide struct {
 	libkb.Contextified
-	resolvingRequest chatConversationResolvingRequest
+	resolvingRequest ChatConversationResolvingRequest
 	status           chat1.ConversationStatus
 }
 
@@ -32,14 +33,11 @@ func newCmdChatHide(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 func (c *CmdChatHide) ParseArgv(ctx *cli.Context) error {
 	var err error
 
-	if len(ctx.Args()) > 1 {
-		return fmt.Errorf("too many arguments")
+	if len(ctx.Args()) != 1 {
+		cli.ShowCommandHelp(ctx, "send")
+		return errors.New("Expecting exactly 1 arg")
 	}
-
-	tlfName := ""
-	if len(ctx.Args()) == 1 {
-		tlfName = ctx.Args()[0]
-	}
+	tlfName := ctx.Args().Get(0)
 
 	c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName)
 	if err != nil {
@@ -70,17 +68,16 @@ func (c *CmdChatHide) Run() error {
 	if err != nil {
 		return err
 	}
-
-	resolver := &chatConversationResolver{G: c.G(), ChatClient: chatClient}
-	resolver.TlfClient, err = GetTlfClient(c.G())
+	tlfClient, err := GetTlfClient(c.G())
 	if err != nil {
 		return err
 	}
+	resolver := &ChatConversationResolver{
+		ChatClient: chatClient,
+		TlfClient:  tlfClient,
+	}
 
-	conversationInfo, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
-		CreateIfNotExists: false,
-		Interactive:       false,
-	})
+	conversationInfo, err := resolver.Resolve(ctx, c.resolvingRequest, c.G().UI.GetTerminalUI())
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -18,7 +19,7 @@ import (
 
 type cmdChatSend struct {
 	libkb.Contextified
-	resolvingRequest chatConversationResolvingRequest
+	resolvingRequest ChatConversationResolvingRequest
 	// Only one of these should be set
 	message       string
 	setTopicName  string
@@ -37,7 +38,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cl.ChooseCommand(&cmdChatSend{Contextified: libkb.NewContextified(g)}, "send", c)
 		},
 		Flags: append(getConversationResolverFlags(),
-			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "stdin", "nonblock")...,
+			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "nonblock")...,
 		),
 	}
 }
@@ -47,17 +48,14 @@ func (c *cmdChatSend) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	resolver := &chatConversationResolver{G: c.G(), ChatClient: chatClient}
-	resolver.TlfClient, err = GetTlfClient(c.G())
+	tlfClient, err := GetTlfClient(c.G())
 	if err != nil {
 		return err
 	}
+	resolver := &ChatConversationResolver{ChatClient: chatClient, TlfClient: tlfClient}
 
 	ctx := context.TODO()
-	conversationInfo, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
-		CreateIfNotExists: true,
-		Interactive:       !c.useStdin,
-	})
+	conversationInfo, err := resolver.ResolveOrCreate(ctx, c.resolvingRequest, c.G().UI.GetTerminalUI())
 	if err != nil {
 		return err
 	}
@@ -69,10 +67,6 @@ func (c *cmdChatSend) Run() (err error) {
 	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
 	msg.ClientHeader.Conv = conversationInfo.Triple
 	msg.ClientHeader.TlfName = conversationInfo.TlfName
-
-	// Whether the user is really sure they want to send to the selected conversation.
-	// We require an additional confirmation if the choose menu was used.
-	confirmed := !userChosen
 
 	// Do one of set topic name, set headline, or send message
 	switch {
@@ -90,30 +84,12 @@ func (c *cmdChatSend) Run() (err error) {
 		msg.ClientHeader.MessageType = chat1.MessageType_HEADLINE
 		msg.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{Headline: ""})
 	default:
-		// Ask for message contents
 		if len(c.message) == 0 {
-			promptText := "Please enter message content: "
-			if !confirmed {
-				promptText = fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter message content to send: ", conversationInfo.TlfName)
-			}
-			c.message, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
-			if err != nil {
-				return err
-			}
-			confirmed = true
+			return errors.New("message content required")
 		}
 
 		msg.ClientHeader.MessageType = chat1.MessageType_TEXT
 		msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{Body: c.message})
-	}
-
-	if !confirmed {
-		promptText := fmt.Sprintf("Send to [%s]? Hit Ctrl-C to cancel, or enter to send.", conversationInfo.TlfName)
-		_, err = c.G().UI.GetTerminalUI().Prompt(PromptDescriptorEnterChatMessage, promptText)
-		if err != nil {
-			return err
-		}
-		confirmed = true
 	}
 
 	args.Msg = msg
@@ -138,14 +114,15 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.setTopicName = ctx.String("set-topic-name")
 	c.setHeadline = ctx.String("set-headline")
 	c.clearHeadline = ctx.Bool("clear-headline")
-	c.useStdin = ctx.Bool("stdin")
 	c.nonBlock = ctx.Bool("nonblock")
 
 	var tlfName string
-	// Get the TLF name from the first position arg
-	if len(ctx.Args()) >= 1 {
-		tlfName = ctx.Args().Get(0)
+	if len(ctx.Args()) < 1 {
+		return errors.New("conversation participants empty")
 	}
+	// Get the TLF name from the first position arg
+	tlfName = ctx.Args().Get(0)
+
 	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
 		return err
 	}
@@ -154,9 +131,6 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.setTopicName != "" {
 		nActions++
-		if c.useStdin {
-			return fmt.Errorf("stdin not supported when setting topic name")
-		}
 		if len(ctx.Args()) > 1 {
 			return fmt.Errorf("cannot send message and set topic name simultaneously")
 		}
@@ -164,9 +138,6 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.setHeadline != "" {
 		nActions++
-		if c.useStdin {
-			return fmt.Errorf("stdin not supported with --set-headline")
-		}
 		if len(ctx.Args()) > 1 {
 			return fmt.Errorf("cannot send message and set headline name simultaneously")
 		}
@@ -174,9 +145,6 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.clearHeadline {
 		nActions++
-		if c.useStdin {
-			return fmt.Errorf("stdin not supported with --clear-headline")
-		}
 		if len(ctx.Args()) > 1 {
 			return fmt.Errorf("cannot send message and clear headline name simultaneously")
 		}
@@ -185,25 +153,18 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	// Send a normal message.
 	if nActions == 0 {
 		nActions++
-		if c.useStdin {
-			if len(ctx.Args()) != 1 {
-				return fmt.Errorf("need exactly 1 argument to send from stdin")
-			}
+		switch len(ctx.Args()) {
+		case 1:
 			bytes, err := ioutil.ReadAll(os.Stdin)
 			if err != nil {
 				return err
 			}
 			c.message = string(bytes)
-		} else {
-			switch len(ctx.Args()) {
-			case 0, 1:
-				c.message = ""
-			case 2:
-				c.message = ctx.Args().Get(1)
-			default:
-				cli.ShowCommandHelp(ctx, "send")
-				return fmt.Errorf("chat send takes 1 or 2 args")
-			}
+		case 2:
+			c.message = ctx.Args().Get(1)
+		default:
+			cli.ShowCommandHelp(ctx, "send")
+			return fmt.Errorf("chat send takes 1 or 2 args")
 		}
 	}
 

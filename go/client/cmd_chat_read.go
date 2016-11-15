@@ -4,6 +4,8 @@
 package client
 
 import (
+	"errors"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -58,10 +60,11 @@ func (c *cmdChatRead) Run() error {
 }
 
 func (c *cmdChatRead) ParseArgv(ctx *cli.Context) (err error) {
-	var tlfName string
-	if len(ctx.Args()) >= 1 {
-		tlfName = ctx.Args().Get(0)
+	if len(ctx.Args()) != 1 {
+		cli.ShowCommandHelp(ctx, "send")
+		return errors.New("Expecting exactly 1 arg")
 	}
+	tlfName := ctx.Args().Get(0)
 	if c.fetcher, err = makeChatCLIConversationFetcher(ctx, tlfName, true); err != nil {
 		return err
 	}
