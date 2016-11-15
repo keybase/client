@@ -503,8 +503,8 @@ func TestUploadAssetResumeRestart(t *testing.T) {
 		t.Errorf("verify key did not change between attempts 1 and 2")
 	}
 
-	// make sure the stream is reset due to abort:
-	if br.resets != 1 {
+	// make sure the stream is reset due to abort (once for plaintext hash, once to get to beginning):
+	if br.resets != 2 {
 		t.Errorf("stream resets: %d, expected 1", br.resets)
 	}
 	if s.aborts != 1 {

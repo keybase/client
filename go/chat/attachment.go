@@ -29,6 +29,16 @@ type UploadTask struct {
 	Progress       ProgressReporter
 }
 
+func (u *UploadTask) computePlaintextHash() error {
+	plaintextHasher := sha256.New()
+	io.Copy(plaintextHasher, u.Plaintext)
+	u.plaintextHash = plaintextHasher.Sum(nil)
+
+	// reset the stream to the beginning of the file
+	return u.Plaintext.Reset()
+
+}
+
 func (u *UploadTask) Nonce() signencrypt.Nonce {
 	var n [signencrypt.NonceSize]byte
 	copy(n[:], u.plaintextHash)
@@ -57,13 +67,7 @@ func NewAttachmentStore(log logger.Logger) *AttachmentStore {
 func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (chat1.Asset, error) {
 	// compute plaintext hash
 	if task.plaintextHash == nil {
-		plaintextHasher := sha256.New()
-		io.Copy(plaintextHasher, task.Plaintext)
-		task.plaintextHash = plaintextHasher.Sum(nil)
-
-		// reset the stream to the beginning of the file
-		if err := task.Plaintext.Reset(); err != nil {
-			a.log.Debug("source stream reset error: %s", err)
+		if err := task.computePlaintextHash(); err != nil {
 			return chat1.Asset{}, err
 		}
 	} else {
@@ -89,6 +93,10 @@ func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (ch
 		a.aborts++
 		previous = nil
 		task.Plaintext.Reset()
+		// recompute plaintext hash:
+		if err := task.computePlaintextHash(); err != nil {
+			return chat1.Asset{}, err
+		}
 		return a.uploadAsset(ctx, task, enc, nil, resumable)
 	}
 
