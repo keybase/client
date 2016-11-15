@@ -3436,7 +3436,9 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		// The child blocks should be referenced in the resolution op.
 		_, ok := md.data.Changes.Ops[len(md.data.Changes.Ops)-1].(*resolutionOp)
 		if !ok {
-			md.AddOp(newResolutionOp())
+			// Append directly to the ops list, rather than use AddOp,
+			// because the size estimate was already calculated.
+			md.data.Changes.Ops = append(md.data.Changes.Ops, newResolutionOp())
 		}
 
 		err = cr.fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes, uid)
