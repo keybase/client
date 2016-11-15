@@ -18,6 +18,7 @@ export type Message = {
   messageID?: number,
   followState: FollowState,
   messageState: MessageState,
+  outboxID?: ?string,
 } | {
   type: 'Error',
   reason: string,

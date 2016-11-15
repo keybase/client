@@ -164,12 +164,12 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const message = _unboxedToMessage(messageUnboxed, 0, yourName)
         if (message.outboxID) {
           // If the message has an outboxID, then we sent it and have already
-          // rendered it in the message list -- we just need to mark it as sent.
+          // rendered it in the message list; we just need to mark it as sent.
           yield put({
             type: Constants.pendingMessageWasSent,
             payload: {
-              conversationIDKey: conversationIDToKey(message.convID),
-              outboxID: message.outboxID.toString('hex'),
+              conversationIDKey: conversationIDToKey(incomingMessage.convID),
+              outboxID: message.outboxID,
               messageID: message.messageID,
               messageState: 'sent',
             },
@@ -300,6 +300,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             followState: isYou ? 'You' : 'Following', // TODO get this
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
+            outboxID: payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex'),
           }
         default:
           return {
