@@ -723,12 +723,6 @@
     },
     {
       "type": "record",
-      "name": "OutboxID",
-      "fields": [],
-      "typedef": "bytes"
-    },
-    {
-      "type": "record",
       "name": "PostLocalNonblockRes",
       "fields": [
         {

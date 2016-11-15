@@ -281,21 +281,12 @@ func (s *Deliverer) deliverLoop() {
 		// Send messages
 		pops := 0
 		for _, obr := range obrs {
-			_, msgID, rl, err := s.sender.Send(context.Background(), obr.ConvID, obr.Msg)
+			obr.Msg.ClientHeader.OutboxID = &obr.OutboxID
+			_, _, _, err := s.sender.Send(context.Background(), obr.ConvID, obr.Msg)
 			if err != nil {
 				s.G().Log.Error("failed to send msg: convID: %s err: %s", obr.ConvID, err.Error())
 				break
 			}
-
-			// Notify everyone that this sent
-			activity := chat1.NewChatActivityWithMessageSent(chat1.MessageSentInfo{
-				ConvID:    obr.ConvID,
-				OutboxID:  obr.OutboxID,
-				MessageID: msgID,
-				RateLimit: *rl,
-			})
-			s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
-				keybase1.UID(obr.Msg.ClientHeader.Sender.String()), &activity)
 			pops++
 		}
 

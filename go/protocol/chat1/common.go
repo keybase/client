@@ -16,6 +16,7 @@ type ConversationID []byte
 type TLFID []byte
 type Hash []byte
 type InboxVers uint64
+type OutboxID []byte
 type MessageType int
 
 const (
@@ -189,6 +190,7 @@ type MessageClientHeader struct {
 	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
 	Sender       gregor1.UID              `codec:"sender" json:"sender"`
 	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	OutboxID     *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 }
 
 type EncryptedData struct {
