@@ -65,7 +65,7 @@ func resolveOneUser(
 
 func makeTlfHandleHelper(
 	ctx context.Context, public bool, writers, readers []resolvableUser,
-	extensions []TlfHandleExtension) (*TlfHandle, error) {
+	extensions []tlf.HandleExtension) (*TlfHandle, error) {
 	if public && len(readers) > 0 {
 		return nil, errors.New("public folder cannot have readers")
 	}
@@ -131,7 +131,7 @@ func makeTlfHandleHelper(
 		canonicalName += ReaderSep + strings.Join(readerNames, ",")
 	}
 
-	extensionList := tlfHandleExtensionList(extensions)
+	extensionList := tlf.HandleExtensionList(extensions)
 	sort.Sort(extensionList)
 	canonicalName += extensionList.Suffix()
 	conflictInfo, finalizedInfo := extensionList.Splat()
@@ -172,10 +172,10 @@ func (rsa resolvableSocialAssertion) resolve(ctx context.Context) (nameUIDPair, 
 	return nameUIDPair{}, keybase1.SocialAssertion(rsa), nil
 }
 
-// MakeTlfHandle creates a TlfHandle from the given BareTlfHandle and
-// the given normalizedUsernameGetter (which is usually a KBPKI).
+// MakeTlfHandle creates a TlfHandle from the given tlf.Handle and the
+// given normalizedUsernameGetter (which is usually a KBPKI).
 func MakeTlfHandle(
-	ctx context.Context, bareHandle BareTlfHandle,
+	ctx context.Context, bareHandle tlf.Handle,
 	nug normalizedUsernameGetter) (*TlfHandle, error) {
 	writers := make([]resolvableUser, 0, len(bareHandle.Writers)+len(bareHandle.UnresolvedWriters))
 	for _, w := range bareHandle.Writers {
@@ -479,9 +479,9 @@ func parseTlfHandleLoose(
 			resolvableAssertion{kbpki, r, keybase1.UID("")}, changesCh}
 	}
 
-	var extensions []TlfHandleExtension
+	var extensions []tlf.HandleExtension
 	if len(extensionSuffix) != 0 {
-		extensions, err = ParseTlfHandleExtensionSuffix(extensionSuffix)
+		extensions, err = tlf.ParseHandleExtensionSuffix(extensionSuffix)
 		if err != nil {
 			return nil, err
 		}
@@ -504,10 +504,10 @@ func parseTlfHandleLoose(
 	}
 
 	if extensionSuffix != "" {
-		extensionList := tlfHandleExtensionList(extensions)
+		extensionList := tlf.HandleExtensionList(extensions)
 		sort.Sort(extensionList)
 		var canonExtensionString = extensionList.Suffix()
-		if canonExtensionString != TlfHandleExtensionSep+extensionSuffix {
+		if canonExtensionString != tlf.HandleExtensionSep+extensionSuffix {
 			return nil, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
 		}
 	}

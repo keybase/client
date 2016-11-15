@@ -1005,20 +1005,6 @@ func (e NoSuchTlfHandleError) Error() string {
 	return fmt.Sprintf("Folder handle for %s not found", e.ID)
 }
 
-// TlfHandleExtensionMismatchError indicates the expected extension
-// doesn't match the server's extension for the given handle.
-type TlfHandleExtensionMismatchError struct {
-	Expected TlfHandleExtension
-	// Actual may be nil.
-	Actual *TlfHandleExtension
-}
-
-// Error implements the error interface for TlfHandleExtensionMismatchError
-func (e TlfHandleExtensionMismatchError) Error() string {
-	return fmt.Sprintf("Folder handle extension mismatch, "+
-		"expected: %s, actual: %s", e.Expected, e.Actual)
-}
-
 // MetadataIsFinalError indicates that we tried to make or set a
 // successor to a finalized folder.
 type MetadataIsFinalError struct {

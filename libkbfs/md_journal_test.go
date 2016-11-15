@@ -93,7 +93,7 @@ func makeMDForTest(t *testing.T, tlfID tlf.ID, revision MetadataRevision,
 	nug := testNormalizedUsernameGetter{
 		uid: "fake_username",
 	}
-	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 	h, err := MakeTlfHandle(context.Background(), bh, nug)
 	require.NoError(t, err)

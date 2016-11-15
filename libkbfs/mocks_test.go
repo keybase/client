@@ -2550,9 +2550,9 @@ func (_mr *_MockMDOpsRecorder) ResolveBranch(arg0, arg1, arg2, arg3, arg4 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveBranch", arg0, arg1, arg2, arg3, arg4)
 }
 
-func (_m *MockMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (BareTlfHandle, error) {
+func (_m *MockMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error) {
 	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
-	ret0, _ := ret[0].(BareTlfHandle)
+	ret0, _ := ret[0].(tlf.Handle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2744,7 +2744,7 @@ func (_mr *_MockMDServerRecorder) RefreshAuthToken(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
-func (_m *MockMDServer) GetForHandle(ctx context.Context, handle BareTlfHandle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
+func (_m *MockMDServer) GetForHandle(ctx context.Context, handle tlf.Handle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, mStatus)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
@@ -2867,9 +2867,9 @@ func (_mr *_MockMDServerRecorder) IsConnected() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsConnected")
 }
 
-func (_m *MockMDServer) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (BareTlfHandle, error) {
+func (_m *MockMDServer) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error) {
 	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
-	ret0, _ := ret[0].(BareTlfHandle)
+	ret0, _ := ret[0].(tlf.Handle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2930,7 +2930,7 @@ func (_mr *_MockmdServerLocalRecorder) RefreshAuthToken(arg0 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
-func (_m *MockmdServerLocal) GetForHandle(ctx context.Context, handle BareTlfHandle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
+func (_m *MockmdServerLocal) GetForHandle(ctx context.Context, handle tlf.Handle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, mStatus)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
@@ -3053,9 +3053,9 @@ func (_mr *_MockmdServerLocalRecorder) IsConnected() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsConnected")
 }
 
-func (_m *MockmdServerLocal) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (BareTlfHandle, error) {
+func (_m *MockmdServerLocal) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (tlf.Handle, error) {
 	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
-	ret0, _ := ret[0].(BareTlfHandle)
+	ret0, _ := ret[0].(tlf.Handle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -4050,6 +4050,14 @@ func (_mr *_MockConfigRecorder) MetadataVersion() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MetadataVersion")
 }
 
+func (_m *MockConfig) SetMetadataVersion(_param0 MetadataVer) {
+	_m.ctrl.Call(_m, "SetMetadataVersion", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetMetadataVersion(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMetadataVersion", arg0)
+}
+
 func (_m *MockConfig) DataVersion() DataVer {
 	ret := _m.ctrl.Call(_m, "DataVersion")
 	ret0, _ := ret[0].(DataVer)
@@ -4652,9 +4660,9 @@ func (_mr *_MockBareRootMetadataRecorder) CheckValidSuccessorForServer(arg0, arg
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckValidSuccessorForServer", arg0, arg1)
 }
 
-func (_m *MockBareRootMetadata) MakeBareTlfHandle(extra ExtraMetadata) (BareTlfHandle, error) {
+func (_m *MockBareRootMetadata) MakeBareTlfHandle(extra ExtraMetadata) (tlf.Handle, error) {
 	ret := _m.ctrl.Call(_m, "MakeBareTlfHandle", extra)
-	ret0, _ := ret[0].(BareTlfHandle)
+	ret0, _ := ret[0].(tlf.Handle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -4663,9 +4671,9 @@ func (_mr *_MockBareRootMetadataRecorder) MakeBareTlfHandle(arg0 interface{}) *g
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeBareTlfHandle", arg0)
 }
 
-func (_m *MockBareRootMetadata) TlfHandleExtensions() []TlfHandleExtension {
+func (_m *MockBareRootMetadata) TlfHandleExtensions() []tlf.HandleExtension {
 	ret := _m.ctrl.Call(_m, "TlfHandleExtensions")
-	ret0, _ := ret[0].([]TlfHandleExtension)
+	ret0, _ := ret[0].([]tlf.HandleExtension)
 	return ret0
 }
 
@@ -5079,9 +5087,9 @@ func (_mr *_MockMutableBareRootMetadataRecorder) CheckValidSuccessorForServer(ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckValidSuccessorForServer", arg0, arg1)
 }
 
-func (_m *MockMutableBareRootMetadata) MakeBareTlfHandle(extra ExtraMetadata) (BareTlfHandle, error) {
+func (_m *MockMutableBareRootMetadata) MakeBareTlfHandle(extra ExtraMetadata) (tlf.Handle, error) {
 	ret := _m.ctrl.Call(_m, "MakeBareTlfHandle", extra)
-	ret0, _ := ret[0].(BareTlfHandle)
+	ret0, _ := ret[0].(tlf.Handle)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -5090,9 +5098,9 @@ func (_mr *_MockMutableBareRootMetadataRecorder) MakeBareTlfHandle(arg0 interfac
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeBareTlfHandle", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) TlfHandleExtensions() []TlfHandleExtension {
+func (_m *MockMutableBareRootMetadata) TlfHandleExtensions() []tlf.HandleExtension {
 	ret := _m.ctrl.Call(_m, "TlfHandleExtensions")
-	ret0, _ := ret[0].([]TlfHandleExtension)
+	ret0, _ := ret[0].([]tlf.HandleExtension)
 	return ret0
 }
 
@@ -5549,7 +5557,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetUnresolvedWriters(arg0 inter
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetUnresolvedWriters", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SetConflictInfo(ci *TlfHandleExtension) {
+func (_m *MockMutableBareRootMetadata) SetConflictInfo(ci *tlf.HandleExtension) {
 	_m.ctrl.Call(_m, "SetConflictInfo", ci)
 }
 
@@ -5557,7 +5565,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetConflictInfo(arg0 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetConflictInfo", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SetFinalizedInfo(fi *TlfHandleExtension) {
+func (_m *MockMutableBareRootMetadata) SetFinalizedInfo(fi *tlf.HandleExtension) {
 	_m.ctrl.Call(_m, "SetFinalizedInfo", fi)
 }
 

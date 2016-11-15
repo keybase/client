@@ -4,7 +4,10 @@
 
 package libkbfs
 
-import "github.com/keybase/kbfs/kbfscrypto"
+import (
+	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/tlf"
+)
 
 // FakeInitialRekey fakes the initial rekey for the given
 // BareRootMetadata. This is necessary since newly-created
@@ -12,7 +15,7 @@ import "github.com/keybase/kbfs/kbfscrypto"
 // TlfHandle from until the first rekey. pubKey is non-empty only for
 // server-side tests.
 func FakeInitialRekey(md MutableBareRootMetadata,
-	crypto cryptoPure, h BareTlfHandle, pubKey kbfscrypto.TLFPublicKey) (
+	crypto cryptoPure, h tlf.Handle, pubKey kbfscrypto.TLFPublicKey) (
 	ExtraMetadata, error) {
 	var readerEPubKeyIndex int
 	// Apply the "negative hack" for V2 and earlier.

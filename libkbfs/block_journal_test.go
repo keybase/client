@@ -24,14 +24,14 @@ import (
 
 type blockJournalEntryFuture struct {
 	blockJournalEntry
-	extra
+	kbfscodec.Extra
 }
 
 func (ef blockJournalEntryFuture) toCurrent() blockJournalEntry {
 	return ef.blockJournalEntry
 }
 
-func (ef blockJournalEntryFuture) toCurrentStruct() currentStruct {
+func (ef blockJournalEntryFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return ef.toCurrent()
 }
 
@@ -50,7 +50,7 @@ func makeFakeBlockJournalEntryFuture(t *testing.T) blockJournalEntryFuture {
 			false,
 			codec.UnknownFieldSetHandler{},
 		},
-		makeExtraOrBust("blockJournalEntry", t),
+		kbfscodec.MakeExtraOrBust("blockJournalEntry", t),
 	}
 	return ef
 }

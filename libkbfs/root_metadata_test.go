@@ -26,7 +26,7 @@ import (
 type privateMetadataFuture struct {
 	PrivateMetadata
 	Dir dirEntryFuture
-	extra
+	kbfscodec.Extra
 }
 
 func (pmf privateMetadataFuture) toCurrent() PrivateMetadata {
@@ -34,7 +34,7 @@ func (pmf privateMetadataFuture) toCurrent() PrivateMetadata {
 	pm.Dir = DirEntry(pmf.Dir.toCurrent())
 	pm.Changes.Ops = make(opsList, len(pmf.Changes.Ops))
 	for i, opFuture := range pmf.Changes.Ops {
-		currentOp := opFuture.(futureStruct).toCurrentStruct()
+		currentOp := opFuture.(kbfscodec.FutureStruct).ToCurrentStruct()
 		// A generic version of "v := currentOp; ...Ops[i] = &v".
 		v := reflect.New(reflect.TypeOf(currentOp))
 		v.Elem().Set(reflect.ValueOf(currentOp))
@@ -43,7 +43,7 @@ func (pmf privateMetadataFuture) toCurrent() PrivateMetadata {
 	return pm
 }
 
-func (pmf privateMetadataFuture) toCurrentStruct() currentStruct {
+func (pmf privateMetadataFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return pmf.toCurrent()
 }
 
@@ -79,7 +79,7 @@ func makeFakePrivateMetadataFuture(t *testing.T) privateMetadataFuture {
 			BlockChanges{},
 		},
 		makeFakeDirEntryFuture(t),
-		makeExtraOrBust("PrivateMetadata", t),
+		kbfscodec.MakeExtraOrBust("PrivateMetadata", t),
 	}
 	return pmf
 }
@@ -313,7 +313,7 @@ func TestWriterMetadataEncodedFields(t *testing.T) {
 
 type writerMetadataExtraFuture struct {
 	WriterMetadataExtra
-	extra
+	kbfscodec.Extra
 }
 
 func (wmef writerMetadataExtraFuture) toCurrent() WriterMetadataExtra {
@@ -346,7 +346,7 @@ func (wmf writerMetadataFuture) toCurrent() WriterMetadataV2 {
 	return wm
 }
 
-func (wmf writerMetadataFuture) toCurrentStruct() currentStruct {
+func (wmf writerMetadataFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return wmf.toCurrent()
 }
 
@@ -380,7 +380,7 @@ func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
 				[]keybase1.SocialAssertion{sa},
 				codec.UnknownFieldSetHandler{},
 			},
-			makeExtraOrBust("WriterMetadata", t),
+			kbfscodec.MakeExtraOrBust("WriterMetadata", t),
 		},
 	}
 }
@@ -417,7 +417,7 @@ type bareRootMetadataFuture struct {
 	bareRootMetadataWrapper
 	// Override BareRootMetadata.RKeys.
 	RKeys tlfReaderKeyGenerationsFuture `codec:",omitempty"`
-	extra
+	kbfscodec.Extra
 }
 
 func (brmf *bareRootMetadataFuture) toCurrent() BareRootMetadata {
@@ -427,7 +427,7 @@ func (brmf *bareRootMetadataFuture) toCurrent() BareRootMetadata {
 	return &rm
 }
 
-func (brmf *bareRootMetadataFuture) toCurrentStruct() currentStruct {
+func (brmf *bareRootMetadataFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return brmf.toCurrent()
 }
 
@@ -464,7 +464,7 @@ func makeFakeBareRootMetadataFuture(t *testing.T) *bareRootMetadataFuture {
 			},
 		},
 		[]*tlfReaderKeyBundleFuture{&rkb},
-		makeExtraOrBust("BareRootMetadata", t),
+		kbfscodec.MakeExtraOrBust("BareRootMetadata", t),
 	}
 	return &rmf
 }

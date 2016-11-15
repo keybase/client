@@ -18,7 +18,7 @@ import (
 )
 
 func makeBRMDForTest(t *testing.T, crypto cryptoPure, id tlf.ID,
-	h BareTlfHandle, revision MetadataRevision, uid keybase1.UID,
+	h tlf.Handle, revision MetadataRevision, uid keybase1.UID,
 	prevRoot MdID) *BareRootMetadataV2 {
 	var md BareRootMetadataV2
 	// MDv3 TODO: uncomment the below when we're ready for MDv3
@@ -61,7 +61,7 @@ func TestMDServerBasics(t *testing.T) {
 	require.NoError(t, err)
 
 	// (1) get metadata -- allocates an ID
-	h, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	h, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	id, rmds, err := mdServer.GetForHandle(ctx, h, Merged)
@@ -173,7 +173,7 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create first TLF.
-	h1, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	h1, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	id1, _, err := mdServer.GetForHandle(ctx, h1, Merged)
@@ -181,7 +181,7 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 
 	// Create second TLF, which should end up being different from
 	// the first one.
-	h2, err := MakeBareTlfHandle([]keybase1.UID{uid}, []keybase1.UID{keybase1.PUBLIC_UID}, nil, nil, nil)
+	h2, err := tlf.MakeHandle([]keybase1.UID{uid}, []keybase1.UID{keybase1.PUBLIC_UID}, nil, nil, nil)
 	require.NoError(t, err)
 
 	id2, _, err := mdServer.GetForHandle(ctx, h2, Merged)

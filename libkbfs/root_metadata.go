@@ -149,9 +149,9 @@ func makeRootMetadata(bareMd MutableBareRootMetadata,
 }
 
 // makeInitialRootMetadata creates a new RootMetadata with the given
-// MetadataVer, revision MetadataRevisionInitial, and the given TlfID
-// and BareTlfHandle. Note that if the given ID/handle are private,
-// rekeying must be done separately.
+// MetadataVer, revision MetadataRevisionInitial, and the given TLF ID
+// and handle. Note that if the given ID/handle are private, rekeying
+// must be done separately.
 func makeInitialRootMetadata(
 	ver MetadataVer, tlfID tlf.ID, h *TlfHandle) (*RootMetadata, error) {
 	bh, err := h.ToBareHandle()
@@ -296,7 +296,7 @@ func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 
 // MakeBareTlfHandle makes a BareTlfHandle for this
 // RootMetadata. Should be used only by servers and MDOps.
-func (md *RootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
+func (md *RootMetadata) MakeBareTlfHandle() (tlf.Handle, error) {
 	if md.tlfHandle != nil {
 		panic(errors.New("MakeBareTlfHandle called when md.tlfHandle exists"))
 	}
@@ -624,12 +624,12 @@ func (md *RootMetadata) SetUnresolvedWriters(writers []keybase1.SocialAssertion)
 }
 
 // SetConflictInfo wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) SetConflictInfo(ci *TlfHandleExtension) {
+func (md *RootMetadata) SetConflictInfo(ci *tlf.HandleExtension) {
 	md.bareMd.SetConflictInfo(ci)
 }
 
 // SetFinalizedInfo wraps the respective method of the underlying BareRootMetadata for convenience.
-func (md *RootMetadata) SetFinalizedInfo(fi *TlfHandleExtension) {
+func (md *RootMetadata) SetFinalizedInfo(fi *tlf.HandleExtension) {
 	md.bareMd.SetFinalizedInfo(fi)
 }
 
@@ -958,8 +958,8 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 // with the revision incremented and the final bit set.
 func (rmds *RootMetadataSigned) MakeFinalCopy(
 	codec kbfscodec.Codec, now time.Time,
-	finalizedInfo *TlfHandleExtension) (*RootMetadataSigned, error) {
-	if finalizedInfo.Type != TlfHandleExtensionFinalized {
+	finalizedInfo *tlf.HandleExtension) (*RootMetadataSigned, error) {
+	if finalizedInfo.Type != tlf.HandleExtensionFinalized {
 		return nil, fmt.Errorf(
 			"Extension %s does not have finalized type",
 			finalizedInfo)

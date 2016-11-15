@@ -962,7 +962,7 @@ type MDOps interface {
 	// which may not yet be reflected in the MD if the TLF hasn't been rekeyed since it
 	// entered into a conflicting state.
 	GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-		BareTlfHandle, error)
+		tlf.Handle, error)
 }
 
 // KeyOps fetches server-side key halves from the key server.
@@ -1045,7 +1045,7 @@ type MDServer interface {
 	// the logged-in user has read permission on the folder.  It
 	// creates the folder if one doesn't exist yet, and the logged-in
 	// user has permission to do so.
-	GetForHandle(ctx context.Context, handle BareTlfHandle,
+	GetForHandle(ctx context.Context, handle tlf.Handle,
 		mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error)
 
 	// GetForTLF returns the current (signed/encrypted) metadata object
@@ -1112,7 +1112,7 @@ type MDServer interface {
 	// entered into a conflicting state.  For the highest level of confidence, the caller
 	// should verify the mapping with a Merkle tree lookup.
 	GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
-		BareTlfHandle, error)
+		tlf.Handle, error)
 
 	// OffsetFromServerTime is the current estimate for how off our
 	// local clock is from the mdserver clock.  Add this to any
@@ -1602,11 +1602,11 @@ type BareRootMetadata interface {
 	// CheckValidSuccessorForServer is like CheckValidSuccessor but with
 	// server-specific error messages.
 	CheckValidSuccessorForServer(currID MdID, nextMd BareRootMetadata) error
-	// MakeBareTlfHandle makes a BareTlfHandle for this
+	// MakeBareTlfHandle makes a tlf.Handle for this
 	// BareRootMetadata. Should be used only by servers and MDOps.
-	MakeBareTlfHandle(extra ExtraMetadata) (BareTlfHandle, error)
+	MakeBareTlfHandle(extra ExtraMetadata) (tlf.Handle, error)
 	// TlfHandleExtensions returns a list of handle extensions associated with the TLf.
-	TlfHandleExtensions() (extensions []TlfHandleExtension)
+	TlfHandleExtensions() (extensions []tlf.HandleExtension)
 	// GetDeviceKIDs returns the KIDs (of
 	// kbfscrypto.CryptPublicKeys) for all known devices for the
 	// given user at the given key generation, if any.  Returns an
@@ -1750,9 +1750,9 @@ type MutableBareRootMetadata interface {
 	// SetUnresolvedWriters sets the list of unresolved writers assoiated with this folder.
 	SetUnresolvedWriters(writers []keybase1.SocialAssertion)
 	// SetConflictInfo sets any conflict info associated with this metadata revision.
-	SetConflictInfo(ci *TlfHandleExtension)
+	SetConflictInfo(ci *tlf.HandleExtension)
 	// SetFinalizedInfo sets any finalized info associated with this metadata revision.
-	SetFinalizedInfo(fi *TlfHandleExtension)
+	SetFinalizedInfo(fi *tlf.HandleExtension)
 	// SetWriters sets the list of writers associated with this folder.
 	SetWriters(writers []keybase1.UID)
 	// SetTlfID sets the ID of the underlying folder in the metadata structure.

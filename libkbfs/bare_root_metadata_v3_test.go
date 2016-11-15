@@ -20,7 +20,7 @@ func TestRootMetadataVersionV3(t *testing.T) {
 	// All V3 objects should have SegregatedKeyBundlesVer.
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
@@ -33,7 +33,7 @@ func TestIsValidRekeyRequestBasicV3(t *testing.T) {
 	tlfID := tlf.FakeID(1, false)
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	codec := kbfscodec.NewMsgpack()
@@ -70,7 +70,7 @@ func TestRootMetadataPublicVersionV3(t *testing.T) {
 	tlfID := tlf.FakeID(1, true)
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, []keybase1.UID{keybase1.PublicUID}, nil, nil, nil)
+	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, []keybase1.UID{keybase1.PublicUID}, nil, nil, nil)
 	require.NoError(t, err)
 
 	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)

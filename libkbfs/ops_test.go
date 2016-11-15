@@ -127,14 +127,14 @@ func TestSetAttrOpCustomUpdate(t *testing.T) {
 
 type writeRangeFuture struct {
 	WriteRange
-	extra
+	kbfscodec.Extra
 }
 
 func (wrf writeRangeFuture) toCurrent() WriteRange {
 	return wrf.WriteRange
 }
 
-func (wrf writeRangeFuture) toCurrentStruct() currentStruct {
+func (wrf writeRangeFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return wrf.toCurrent()
 }
 
@@ -145,7 +145,7 @@ func makeFakeWriteRangeFuture(t *testing.T) writeRangeFuture {
 			10,
 			codec.UnknownFieldSetHandler{},
 		},
-		makeExtraOrBust("WriteRange", t),
+		kbfscodec.MakeExtraOrBust("WriteRange", t),
 	}
 	return wrf
 }
@@ -196,14 +196,14 @@ func registerOpsFuture(codec kbfscodec.Codec) {
 
 type createOpFuture struct {
 	createOp
-	extra
+	kbfscodec.Extra
 }
 
 func (cof createOpFuture) toCurrent() createOp {
 	return cof.createOp
 }
 
-func (cof createOpFuture) toCurrentStruct() currentStruct {
+func (cof createOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return cof.toCurrent()
 }
 
@@ -242,7 +242,7 @@ func makeFakeCreateOpFuture(t *testing.T) createOpFuture {
 			false,
 			"",
 		},
-		makeExtraOrBust("createOp", t),
+		kbfscodec.MakeExtraOrBust("createOp", t),
 	}
 	return cof
 }
@@ -253,14 +253,14 @@ func TestCreateOpUnknownFields(t *testing.T) {
 
 type rmOpFuture struct {
 	rmOp
-	extra
+	kbfscodec.Extra
 }
 
 func (rof rmOpFuture) toCurrent() rmOp {
 	return rof.rmOp
 }
 
-func (rof rmOpFuture) toCurrentStruct() currentStruct {
+func (rof rmOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return rof.toCurrent()
 }
 
@@ -272,7 +272,7 @@ func makeFakeRmOpFuture(t *testing.T) rmOpFuture {
 			makeFakeBlockUpdate(t),
 			false,
 		},
-		makeExtraOrBust("rmOp", t),
+		kbfscodec.MakeExtraOrBust("rmOp", t),
 	}
 	return rof
 }
@@ -283,14 +283,14 @@ func TestRmOpUnknownFields(t *testing.T) {
 
 type renameOpFuture struct {
 	renameOp
-	extra
+	kbfscodec.Extra
 }
 
 func (rof renameOpFuture) toCurrent() renameOp {
 	return rof.renameOp
 }
 
-func (rof renameOpFuture) toCurrentStruct() currentStruct {
+func (rof renameOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return rof.toCurrent()
 }
 
@@ -305,7 +305,7 @@ func makeFakeRenameOpFuture(t *testing.T) renameOpFuture {
 			makeFakeBlockPointer(t),
 			Exec,
 		},
-		makeExtraOrBust("renameOp", t),
+		kbfscodec.MakeExtraOrBust("renameOp", t),
 	}
 	return rof
 }
@@ -318,7 +318,7 @@ type syncOpFuture struct {
 	syncOp
 	// Overrides syncOp.Writes.
 	Writes []writeRangeFuture `codec:"w"`
-	extra
+	kbfscodec.Extra
 }
 
 func (sof syncOpFuture) toCurrent() syncOp {
@@ -330,7 +330,7 @@ func (sof syncOpFuture) toCurrent() syncOp {
 	return so
 }
 
-func (sof syncOpFuture) toCurrentStruct() currentStruct {
+func (sof syncOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return sof.toCurrent()
 }
 
@@ -346,7 +346,7 @@ func makeFakeSyncOpFuture(t *testing.T) syncOpFuture {
 			makeFakeWriteRangeFuture(t),
 			makeFakeWriteRangeFuture(t),
 		},
-		makeExtraOrBust("syncOp", t),
+		kbfscodec.MakeExtraOrBust("syncOp", t),
 	}
 	return sof
 }
@@ -357,14 +357,14 @@ func TestSyncOpUnknownFields(t *testing.T) {
 
 type setAttrOpFuture struct {
 	setAttrOp
-	extra
+	kbfscodec.Extra
 }
 
 func (sof setAttrOpFuture) toCurrent() setAttrOp {
 	return sof.setAttrOp
 }
 
-func (sof setAttrOpFuture) toCurrentStruct() currentStruct {
+func (sof setAttrOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return sof.toCurrent()
 }
 
@@ -378,7 +378,7 @@ func makeFakeSetAttrOpFuture(t *testing.T) setAttrOpFuture {
 			makeFakeBlockPointer(t),
 			false,
 		},
-		makeExtraOrBust("setAttrOp", t),
+		kbfscodec.MakeExtraOrBust("setAttrOp", t),
 	}
 	return sof
 }
@@ -389,14 +389,14 @@ func TestSetAttrOpUnknownFields(t *testing.T) {
 
 type resolutionOpFuture struct {
 	resolutionOp
-	extra
+	kbfscodec.Extra
 }
 
 func (rof resolutionOpFuture) toCurrent() resolutionOp {
 	return rof.resolutionOp
 }
 
-func (rof resolutionOpFuture) toCurrentStruct() currentStruct {
+func (rof resolutionOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return rof.toCurrent()
 }
 
@@ -405,7 +405,7 @@ func makeFakeResolutionOpFuture(t *testing.T) resolutionOpFuture {
 		resolutionOp{
 			makeFakeOpCommon(t, true),
 		},
-		makeExtraOrBust("resolutionOp", t),
+		kbfscodec.MakeExtraOrBust("resolutionOp", t),
 	}
 	return rof
 }
@@ -416,14 +416,14 @@ func TestResolutionOpUnknownFields(t *testing.T) {
 
 type rekeyOpFuture struct {
 	rekeyOp
-	extra
+	kbfscodec.Extra
 }
 
 func (rof rekeyOpFuture) toCurrent() rekeyOp {
 	return rof.rekeyOp
 }
 
-func (rof rekeyOpFuture) toCurrentStruct() currentStruct {
+func (rof rekeyOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return rof.toCurrent()
 }
 
@@ -432,7 +432,7 @@ func makeFakeRekeyOpFuture(t *testing.T) rekeyOpFuture {
 		rekeyOp{
 			makeFakeOpCommon(t, true),
 		},
-		makeExtraOrBust("rekeyOp", t),
+		kbfscodec.MakeExtraOrBust("rekeyOp", t),
 	}
 	return rof
 }
@@ -443,14 +443,14 @@ func TestRekeyOpUnknownFields(t *testing.T) {
 
 type gcOpFuture struct {
 	GCOp
-	extra
+	kbfscodec.Extra
 }
 
 func (gof gcOpFuture) toCurrent() GCOp {
 	return gof.GCOp
 }
 
-func (gof gcOpFuture) toCurrentStruct() currentStruct {
+func (gof gcOpFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return gof.toCurrent()
 }
 
@@ -460,7 +460,7 @@ func makeFakeGcOpFuture(t *testing.T) gcOpFuture {
 			makeFakeOpCommon(t, false),
 			100,
 		},
-		makeExtraOrBust("gcOp", t),
+		kbfscodec.MakeExtraOrBust("gcOp", t),
 	}
 	return gof
 }

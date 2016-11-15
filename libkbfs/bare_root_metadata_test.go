@@ -21,7 +21,7 @@ func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
 	tlfID := tlf.FakeID(1, false)
 
 	uid := keybase1.MakeTestUID(1)
-	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	brmd, err := MakeInitialBareRootMetadata(ver, tlfID, bh)
@@ -51,8 +51,8 @@ func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
 	err = rmds.IsValidAndSigned(codec, crypto, extra)
 	require.NoError(t, err)
 
-	ext, err := NewTlfHandleExtension(
-		TlfHandleExtensionFinalized, 1, "fake user")
+	ext, err := tlf.NewHandleExtension(
+		tlf.HandleExtensionFinalized, 1, "fake user", time.Now())
 	require.NoError(t, err)
 
 	// make a final copy

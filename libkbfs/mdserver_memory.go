@@ -18,7 +18,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-// An mdHandleKey is an encoded BareTlfHandle.
+// An mdHandleKey is an encoded tlf.Handle.
 type mdHandleKey string
 
 type mdBlockKey struct {
@@ -61,7 +61,7 @@ type mdServerMemShared struct {
 	// Bare TLF handle -> TLF ID
 	handleDb map[mdHandleKey]tlf.ID
 	// TLF ID -> latest bare TLF handle
-	latestHandleDb map[tlf.ID]BareTlfHandle
+	latestHandleDb map[tlf.ID]tlf.Handle
 	// (TLF ID, branch ID) -> list of MDs
 	mdDb map[mdBlockKey]mdBlockMemList
 	// Writer key bundle ID -> writer key bundles
@@ -89,7 +89,7 @@ var _ mdServerLocal = (*MDServerMemory)(nil)
 // all data in-memory.
 func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 	handleDb := make(map[mdHandleKey]tlf.ID)
-	latestHandleDb := make(map[tlf.ID]BareTlfHandle)
+	latestHandleDb := make(map[tlf.ID]tlf.Handle)
 	mdDb := make(map[mdBlockKey]mdBlockMemList)
 	branchDb := make(map[mdBranchKey]BranchID)
 	writerKeyBundleDb := make(map[mdExtraWriterKey]*TLFWriterKeyBundleV3)
@@ -112,7 +112,7 @@ func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 
 var errMDServerMemoryShutdown = errors.New("MDServerMemory is shutdown")
 
-func (md *MDServerMemory) getHandleID(ctx context.Context, handle BareTlfHandle,
+func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
 	mStatus MergeStatus) (tlfID tlf.ID, created bool, err error) {
 	handleBytes, err := md.config.Codec().Encode(handle)
 	if err != nil {
@@ -151,7 +151,7 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle BareTlfHandle,
 }
 
 // GetForHandle implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) GetForHandle(ctx context.Context, handle BareTlfHandle,
+func (md *MDServerMemory) GetForHandle(ctx context.Context, handle tlf.Handle,
 	mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
 	id, created, err := md.getHandleID(ctx, handle, mStatus)
 	if err != nil {
@@ -684,7 +684,7 @@ func (md *MDServerMemory) addNewAssertionForTest(uid keybase1.UID,
 	// Iterate through all the handles, and add handles for ones
 	// containing newAssertion to now include the uid.
 	for hBytes, id := range md.handleDb {
-		var h BareTlfHandle
+		var h tlf.Handle
 		err := md.config.Codec().Decode([]byte(hBytes), &h)
 		if err != nil {
 			return err
@@ -719,11 +719,11 @@ func (md *MDServerMemory) getCurrentMergedHeadRevision(
 
 // GetLatestHandleForTLF implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetLatestHandleForTLF(_ context.Context, id tlf.ID) (
-	BareTlfHandle, error) {
+	tlf.Handle, error) {
 	md.lock.RLock()
 	defer md.lock.RUnlock()
 	if md.latestHandleDb == nil {
-		return BareTlfHandle{}, errMDServerMemoryShutdown
+		return tlf.Handle{}, errMDServerMemoryShutdown
 	}
 
 	return md.latestHandleDb[id], nil

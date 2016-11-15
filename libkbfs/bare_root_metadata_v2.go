@@ -133,20 +133,20 @@ type BareRootMetadataV2 struct {
 
 	// ConflictInfo is set if there's a conflict for the given folder's
 	// handle after a social assertion resolution.
-	ConflictInfo *TlfHandleExtension `codec:"ci,omitempty"`
+	ConflictInfo *tlf.HandleExtension `codec:"ci,omitempty"`
 
 	// FinalizedInfo is set if there are no more valid writer keys capable
 	// of writing to the given folder.
-	FinalizedInfo *TlfHandleExtension `codec:"fi,omitempty"`
+	FinalizedInfo *tlf.HandleExtension `codec:"fi,omitempty"`
 
 	codec.UnknownFieldSetHandler
 }
 
 // MakeInitialBareRootMetadataV2 creates a new BareRootMetadataV2
-// object with revision MetadataRevisionInitial, and the given TlfID
-// and BareTlfHandle. Note that if the given ID/handle are private,
-// rekeying must be done separately.
-func MakeInitialBareRootMetadataV2(tlfID tlf.ID, h BareTlfHandle) (
+// object with revision MetadataRevisionInitial, and the given TLF ID
+// and handle. Note that if the given ID/handle are private, rekeying
+// must be done separately.
+func MakeInitialBareRootMetadataV2(tlfID tlf.ID, h tlf.Handle) (
 	*BareRootMetadataV2, error) {
 	if tlfID.IsPublic() != h.IsPublic() {
 		return nil, errors.New(
@@ -516,18 +516,18 @@ func (md *BareRootMetadataV2) CheckValidSuccessorForServer(
 
 // MakeBareTlfHandle implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) MakeBareTlfHandle(_ ExtraMetadata) (
-	BareTlfHandle, error) {
+	tlf.Handle, error) {
 	var writers, readers []keybase1.UID
 	if md.ID.IsPublic() {
 		writers = md.Writers
 		readers = []keybase1.UID{keybase1.PublicUID}
 	} else {
 		if len(md.WKeys) == 0 {
-			return BareTlfHandle{}, errors.New("No writer key generations; need rekey?")
+			return tlf.Handle{}, errors.New("No writer key generations; need rekey?")
 		}
 
 		if len(md.RKeys) == 0 {
-			return BareTlfHandle{}, errors.New("No reader key generations; need rekey?")
+			return tlf.Handle{}, errors.New("No reader key generations; need rekey?")
 		}
 
 		wkb := md.WKeys[len(md.WKeys)-1]
@@ -549,7 +549,7 @@ func (md *BareRootMetadataV2) MakeBareTlfHandle(_ ExtraMetadata) (
 		}
 	}
 
-	return MakeBareTlfHandle(
+	return tlf.MakeHandle(
 		writers, readers,
 		md.Extra.UnresolvedWriters, md.UnresolvedReaders,
 		md.TlfHandleExtensions())
@@ -557,7 +557,7 @@ func (md *BareRootMetadataV2) MakeBareTlfHandle(_ ExtraMetadata) (
 
 // TlfHandleExtensions implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) TlfHandleExtensions() (
-	extensions []TlfHandleExtension) {
+	extensions []tlf.HandleExtension) {
 	if md.ConflictInfo != nil {
 		extensions = append(extensions, *md.ConflictInfo)
 	}
@@ -1005,12 +1005,12 @@ func (md *BareRootMetadataV2) SetUnresolvedWriters(writers []keybase1.SocialAsse
 }
 
 // SetConflictInfo implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) SetConflictInfo(ci *TlfHandleExtension) {
+func (md *BareRootMetadataV2) SetConflictInfo(ci *tlf.HandleExtension) {
 	md.ConflictInfo = ci
 }
 
 // SetFinalizedInfo implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) SetFinalizedInfo(fi *TlfHandleExtension) {
+func (md *BareRootMetadataV2) SetFinalizedInfo(fi *tlf.HandleExtension) {
 	md.FinalizedInfo = fi
 }
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/stretchr/testify/require"
@@ -17,14 +18,14 @@ import (
 
 type tlfCryptKeyInfoFuture struct {
 	TLFCryptKeyInfo
-	extra
+	kbfscodec.Extra
 }
 
 func (cki tlfCryptKeyInfoFuture) toCurrent() TLFCryptKeyInfo {
 	return cki.TLFCryptKeyInfo
 }
 
-func (cki tlfCryptKeyInfoFuture) toCurrentStruct() currentStruct {
+func (cki tlfCryptKeyInfoFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return cki.toCurrent()
 }
 
@@ -44,7 +45,7 @@ func makeFakeTLFCryptKeyInfoFuture(t *testing.T) tlfCryptKeyInfoFuture {
 	}
 	return tlfCryptKeyInfoFuture{
 		cki,
-		makeExtraOrBust("TLFCryptKeyInfo", t),
+		kbfscodec.MakeExtraOrBust("TLFCryptKeyInfo", t),
 	}
 }
 
@@ -211,7 +212,7 @@ type tlfWriterKeyBundleFuture struct {
 	TLFWriterKeyBundleV2
 	// Override TLFWriterKeyBundleV2.WKeys.
 	WKeys userDeviceKeyInfoMapFuture
-	extra
+	kbfscodec.Extra
 }
 
 func (wkbf tlfWriterKeyBundleFuture) toCurrent() TLFWriterKeyBundleV2 {
@@ -220,7 +221,7 @@ func (wkbf tlfWriterKeyBundleFuture) toCurrent() TLFWriterKeyBundleV2 {
 	return wkb
 }
 
-func (wkbf tlfWriterKeyBundleFuture) toCurrentStruct() currentStruct {
+func (wkbf tlfWriterKeyBundleFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return wkbf.toCurrent()
 }
 
@@ -244,7 +245,7 @@ func makeFakeTLFWriterKeyBundleFuture(t *testing.T) tlfWriterKeyBundleFuture {
 	return tlfWriterKeyBundleFuture{
 		wkb,
 		makeFakeDeviceKeyInfoMapFuture(t),
-		makeExtraOrBust("TLFWriterKeyBundleV2", t),
+		kbfscodec.MakeExtraOrBust("TLFWriterKeyBundleV2", t),
 	}
 }
 
@@ -256,7 +257,7 @@ type tlfReaderKeyBundleFuture struct {
 	TLFReaderKeyBundleV2
 	// Override TLFReaderKeyBundleV2.WKeys.
 	RKeys userDeviceKeyInfoMapFuture
-	extra
+	kbfscodec.Extra
 }
 
 func (rkbf tlfReaderKeyBundleFuture) toCurrent() TLFReaderKeyBundleV2 {
@@ -265,7 +266,7 @@ func (rkbf tlfReaderKeyBundleFuture) toCurrent() TLFReaderKeyBundleV2 {
 	return rkb
 }
 
-func (rkbf tlfReaderKeyBundleFuture) toCurrentStruct() currentStruct {
+func (rkbf tlfReaderKeyBundleFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return rkbf.toCurrent()
 }
 
@@ -280,7 +281,7 @@ func makeFakeTLFReaderKeyBundleFuture(t *testing.T) tlfReaderKeyBundleFuture {
 	return tlfReaderKeyBundleFuture{
 		rkb,
 		makeFakeDeviceKeyInfoMapFuture(t),
-		makeExtraOrBust("TLFReaderKeyBundleV2", t),
+		kbfscodec.MakeExtraOrBust("TLFReaderKeyBundleV2", t),
 	}
 }
 

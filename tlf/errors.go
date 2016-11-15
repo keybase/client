@@ -15,3 +15,17 @@ type InvalidIDError struct {
 func (e InvalidIDError) Error() string {
 	return fmt.Sprintf("Invalid TLF ID %q", e.id)
 }
+
+// HandleExtensionMismatchError indicates the expected extension
+// doesn't match the server's extension for the given handle.
+type HandleExtensionMismatchError struct {
+	Expected HandleExtension
+	// Actual may be nil.
+	Actual *HandleExtension
+}
+
+// Error implements the error interface for HandleExtensionMismatchError
+func (e HandleExtensionMismatchError) Error() string {
+	return fmt.Sprintf("Folder handle extension mismatch, "+
+		"expected: %s, actual: %s", e.Expected, e.Actual)
+}

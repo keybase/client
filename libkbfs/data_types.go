@@ -23,10 +23,6 @@ const (
 	// TLF name.
 	ReaderSep = "#"
 
-	// TlfHandleExtensionSep is the string that separates the folder
-	// participants from an extension suffix in the TLF name.
-	TlfHandleExtensionSep = " "
-
 	// PublicUIDName is the name given to keybase1.PublicUID.  This string
 	// should correspond to an illegal or reserved Keybase user name.
 	PublicUIDName = "_public"
