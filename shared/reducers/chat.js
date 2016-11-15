@@ -45,10 +45,14 @@ function reducer (state: State = initialState, action: Actions) {
 
       const isSelected = state.get('selectedConversation') === action.payload.conversationIDKey
       let snippet
-      try {
-        // $FlowIssue doens't understand try
-        snippet = makeSnippet(message.message.stringValue(), 100)
-      } catch (_) { }
+
+      switch (message.type) {
+        case 'Text':
+          snippet = makeSnippet(message.message && message.message.stringValue(), 100)
+          break
+        default:
+          snippet = ''
+      }
 
       const newInboxStates = state.get('inbox').map(inbox => (
         inbox.get('conversationIDKey') !== conversationIDKey

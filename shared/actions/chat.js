@@ -43,17 +43,22 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxStat
       return null
     }
 
-    const recentMessage: ?MessageUnboxed = (convo.maxMessages || []).find(message => (
-      message.state === LocalMessageUnboxedState.valid &&
-      message.valid &&
-      message.valid.messageBody.messageType === CommonMessageType.text
-    ))
-
     let snippet
-    try {
-      // $FlowIssue doens't understand try
-      snippet = makeSnippet(recentMessage.valid.messageBody.text.body, 100)
-    } catch (_) { }
+    (convo.maxMessages || []).some(message => {
+      if (message.state === LocalMessageUnboxedState.valid && message.valid) {
+        switch (message.valid.messageBody.messageType) {
+          case CommonMessageType.text:
+            snippet = makeSnippet(message.valid.messageBody.text && message.valid.messageBody.text.body, 100)
+            return true
+          case CommonMessageType.attachment:
+            snippet = 'Attachment'
+            return true
+          default:
+            return false
+        }
+      }
+      return false
+    })
 
     return new InboxStateRecord({
       info: convo.info,
@@ -246,7 +251,7 @@ function * _updateBadge (): SagaGenerator<any, any> {
   const inbox: List<InboxState> = ((yield select(inboxSelector)): any)
 
   const total = inbox.reduce((total, i) => total + i.get('unreadCount'), 0)
-  yield put(badgeApp('chatInbox', !!total, total))
+  yield put(badgeApp('chatInbox', total > 0, total))
 }
 
 function _threadToPagination (thread) {

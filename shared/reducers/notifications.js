@@ -39,7 +39,7 @@ export default function (state: State = initialState, action: NotificationAction
       }
 
       keyState[badgeAction.payload.key] = badgeAction.payload.on
-      let menuNotifications = {...state.menuNotifications}
+      const menuNotifications = {...state.menuNotifications}
 
       let menuBadge = 'regular'
       if (keyState.kbfsUploading) {

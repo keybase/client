@@ -114,7 +114,7 @@ function keyToConversationID (key: ConversationIDKey): ConversationID {
 }
 
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
-function makeSnippet (message: string, max: number) {
+function makeSnippet (message: ?string = '', max: number) {
   // $FlowIssue flow doesn't understand spread + strings
   return [...(message.substring(0, max * 4).replace(/\s+/g, ' '))].slice(0, max).join('')
 }
