@@ -227,6 +227,6 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 		if behavior.Interactive {
 			return r.resolveWithCliUIInteractively(ctx, req, conversations)
 		}
-		return nil, false, errors.New("multiple conversations is found")
+		return nil, false, errors.New("multiple conversations found")
 	}
 }
