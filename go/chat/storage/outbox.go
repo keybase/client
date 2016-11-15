@@ -152,7 +152,7 @@ func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlain
 
 	// Generate new outbox ID
 	var outboxID chat1.OutboxID
-	outboxID, err = libkb.RandBytes(16)
+	outboxID, err = libkb.RandBytes(8)
 	if err != nil {
 		return nil, o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error getting outboxID: err: %s", err.Error()))

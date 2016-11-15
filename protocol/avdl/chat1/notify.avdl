@@ -6,8 +6,7 @@ protocol NotifyChat {
 
   enum ChatActivityType {
     RESERVED_0,
-    INCOMING_MESSAGE_1,
-    MESSAGE_SENT_2
+    INCOMING_MESSAGE_1
   }
 
   record IncomingMessage {
@@ -15,16 +14,8 @@ protocol NotifyChat {
     ConversationID convID;
   }
 
-  record MessageSentInfo {
-    ConversationID convID;
-    RateLimit rateLimit;
-    OutboxID outboxID;
-    MessageID messageID;
-  }
-
   variant ChatActivity switch (ChatActivityType activityType) {
     case INCOMING_MESSAGE: IncomingMessage;
-    case MESSAGE_SENT: MessageSentInfo;
   }
 
   @notify("")

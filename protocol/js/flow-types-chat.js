@@ -103,7 +103,6 @@ export const LocalMessageUnboxedState = {
 export const NotifyChatChatActivityType = {
   reserved: 0,
   incomingMessage: 1,
-  messageSent: 2,
 }
 
 export function localDownloadAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>) {
@@ -408,12 +407,10 @@ export type BodyPlaintextVersion =
 
 export type ChatActivity = 
     { activityType : 1, incomingMessage : ?IncomingMessage }
-  | { activityType : 2, messageSent : ?MessageSentInfo }
 
 export type ChatActivityType = 
     0 // RESERVED_0
   | 1 // INCOMING_MESSAGE_1
-  | 2 // MESSAGE_SENT_2
 
 export type Conversation = {
   metadata: ConversationMetadata,
@@ -677,6 +674,7 @@ export type MessageClientHeader = {
   prev?: ?Array<MessagePreviousPointer>,
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
+  outboxID?: ?OutboxID,
 }
 
 export type MessageConversationMetadata = {
@@ -706,13 +704,6 @@ export type MessagePlaintext = {
 export type MessagePreviousPointer = {
   id: MessageID,
   hash: Hash,
-}
-
-export type MessageSentInfo = {
-  convID: ConversationID,
-  rateLimit: RateLimit,
-  outboxID: OutboxID,
-  messageID: MessageID,
 }
 
 export type MessageServerHeader = {
