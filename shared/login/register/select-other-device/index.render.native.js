@@ -81,6 +81,7 @@ const stylesIcon = {
 }
 const stylesWont = {
   marginTop: 10,
+  marginBottom:10,
   alignSelf: 'center',
 }
 

@@ -31,7 +31,6 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
 
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
   renderForSource () {
-    if (!this.props.source) return null
     if (this.props.source.type === 'icon') {
       return <Icon type={this.props.source.icon} style={{fontSize: 48, width: 48, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
     }

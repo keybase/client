@@ -90,12 +90,12 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
     )
   }
 
-  _renderDefault (color: string, badgeNumber: number) {
-    if (this.props.source && this.props.source.type !== 'icon') return // needed to make flow happy
+  _renderIcon (color: string, badgeNumber: number) {
+    if (this.props.source.type !== 'icon') return // needed to make flow happy
     const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
     return (
       <Box style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}>
-        {this.props.source && <Icon type={this.props.source.icon} style={{...stylesIcon, color, ...this.props.styleIcon}} />}
+        <Icon type={this.props.source.icon} style={{...stylesIcon, color, ...this.props.styleIcon}} />
         {!!this.props.label &&
           <Text type='BodySemibold' style={{color, textAlign: 'center', ...globalStyles.clickable, ...this.props.styleLabel}}>
             {this.props.label}
@@ -122,7 +122,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
         return this._renderNav(badgeNumber)
       case 'icon':
       default:
-        return this._renderDefault(color, badgeNumber)
+        return this._renderIcon(color, badgeNumber)
     }
   }
 }

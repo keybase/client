@@ -27,7 +27,7 @@ import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, setti
 import type {Tab} from './constants/tabs'
 
 module.hot && module.hot.accept(() => {
-  console.log('accepted update in nav.android')
+  console.log('accepted update in nav.ios')
 })
 
 const tabs: {[key: Tab]: {module: any}} = {

@@ -62,7 +62,7 @@ class CodePageRender extends Component<void, Props, void> {
       <Qr
         scanning={true}
         onBarCodeRead={code => this.props.qrScanned(code)}
-        style={{flex: 1}}
+        style={stylesQRScan}
         qrCode={this.props.qrCode}>
 
         {isIOS &&
@@ -88,31 +88,70 @@ class CodePageRender extends Component<void, Props, void> {
 
   renderEnterText () {
     return (
-      <Box>
-        <Box style={stylesEnterText}>
-          <Icon type='icon-phone-text-code-32' style={{alignSelf: 'center'}} />
-          <Input
-            hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
-            multiline={true}
-            rows={3}
-            value={this.props.enterText}
-            onChangeText={text => this.props.onChangeText(text)}
-          />
-        </Box>
-        <Button type='Primary' style={{marginTop: 5, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
+      <Box style={stylesEnterText}>
+        <Icon type='icon-phone-text-code-32' style={{alignSelf: 'center'}} />
+        <Input
+          hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
+          multiline={true}
+          rows={3}
+          value={this.props.enterText}
+          onChangeText={text => this.props.onChangeText(text)}
+        />
+        <Button type='Primary' style={{marginTop: 10, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
       </Box>
     )
   }
 
-  renderQRCode () {
+  renderSwitchButton (mode: Mode, icon: IconType, label: string) {
+    return (
+      <ClickableBox
+        underlayColor={globalColors.white}
+        onClick={() => this.props.setCodePageMode(mode)}
+        style={{marginBottom: 20}}>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', alignSelf: 'center', marginLeft: 10, marginRight: 10}}>
+          <Icon type={icon} />
+          <Text type='BodyBigLink' style={{marginLeft: 4}}>{label}</Text>
+        </Box>
+      </ClickableBox>
+    )
+  }
+
+  renderScanCodeForDesktop () {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
         <Box style={stylesIntro}>
           <Text type='Header' style={{marginBottom: 10}}>Scan QR code</Text>
-          <Text type='Body'>In the Keybase App</Text>
+          <Text type='Body'>In the Keybase app on your computer,</Text>
           <Text type='Body'>{'go to Devices > Add a new device.'}</Text>
         </Box>
-        <TabBar>
+        {this.renderScanCode()}
+        {this.renderSwitchButton(codePageModeEnterText, 'icon-phone-text-code-32', 'Type text code instead')}
+      </Container>
+    )
+  }
+
+  renderShowCodeForDesktop () {
+    return (
+      <Container style={stylesContainer} onBack={this.props.onBack}>
+        <Box style={stylesIntro}>
+          <Text type='Header' style={{marginBottom: 10}}>Scan QR code</Text>
+          <Text type='Body'>{'When adding a new mobile device.'}</Text>
+        </Box>
+        {this.renderShowCode()}
+        {this.renderSwitchButton(codePageModeShowText, 'icon-phone-text-code-32', 'Type text code instead')}
+      </Container>
+    )
+  }
+
+  renderCodeForMobile () {
+    return (
+      <Container style={stylesContainer} onBack={this.props.onBack}>
+        <Box style={stylesIntro}>
+          <Text type='Header' style={{marginBottom: 10}}>Scan QR code</Text>
+          <Text type='Body'>In the Keybase app</Text>
+          <Text type='Body'>{'go to Devices > Add a new device.'}</Text>
+        </Box>
+        <TabBar style={{flex: 1}}>
           <TabBarItem
             selected={this.props.mode === codePageModeShowCode}
             label='Display Code'
@@ -126,11 +165,39 @@ class CodePageRender extends Component<void, Props, void> {
               {this.renderScanCode()}
           </TabBarItem>
         </TabBar>
+        {this.renderSwitchButton(codePageModeEnterText, 'icon-phone-text-code-32', 'Type text code instead')}
       </Container>
     )
   }
 
-  renderTextCode() {
+  renderShowTextForDesktop() {
+    return (
+      <Container style={stylesContainer} onBack={this.props.onBack}>
+        <Box style={stylesIntro}>
+          <Text type='Header' style={{marginBottom: 10}}>Type in text code</Text>
+          <Text type='Body'>Please run</Text>
+          <Text type='TerminalInline' backgroundMode='Terminal'>keybase device add</Text>
+          <Text type='Body'>in the terminal on your computer.</Text>
+        </Box>
+        {this.renderShowText()}
+        {this.renderSwitchButton(codePageModeShowCode, 'icon-phone-qr-code-48', 'Scan QR code instead')}
+      </Container>
+    )
+  }
+
+  renderEnterTextForDesktop () {
+    return (
+      <Container style={stylesContainer} onBack={this.props.onBack}>
+        <Box style={stylesIntro}>
+          <Text type='Header'>Type in text code</Text>
+        </Box>
+        {this.renderEnterText()}
+        {this.renderSwitchButton(codePageModeScanCode, 'icon-phone-qr-code-48', 'Scan QR code instead')}
+      </Container>
+    )
+  }
+
+  renderTextForMobile() {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
         <Box style={stylesIntro}>
@@ -138,7 +205,7 @@ class CodePageRender extends Component<void, Props, void> {
             <Text type='Body'>In the Keybase App</Text>
             <Text type='Body'>{'go to Devices > Add a new device.'}</Text>
         </Box>
-        <TabBar underlined={true}>
+        <TabBar underlined={true} style={{flex: 1}}>
           <TabBarItem
             selected={this.props.mode === codePageModeShowText}
             label='Display Code'
@@ -152,18 +219,37 @@ class CodePageRender extends Component<void, Props, void> {
               {this.renderEnterText()}
           </TabBarItem>
         </TabBar>
+        {this.renderSwitchButton(codePageModeScanCode, 'icon-phone-qr-code-48', 'Scan QR code instead')}
       </Container>
     )
   }
 
   render () {
+    let isMobile = this.props.otherDeviceRole === 'codePageDeviceRoleExistingPhone'
     switch (this.props.mode) {
     case codePageModeShowCode:
+      if (isMobile) {
+        return this.renderCodeForMobile()
+      }
+      return this.renderShowCodeForDesktop()
+
     case codePageModeScanCode:
-      return this.renderQRCode()
+      if (isMobile) {
+        return this.renderCodeForMobile()
+      }
+      return this.renderScanCodeForDesktop()
+
     case codePageModeShowText:
+    if (isMobile) {
+        return this.renderTextForMobile()
+      }
+      return this.renderShowTextForDesktop()
+
     case codePageModeEnterText:
-      return this.renderTextCode()
+      if (isMobile) {
+        return this.renderTextForMobile()
+      }
+      return this.renderEnterTextForDesktop()
     }
   }
 }
@@ -176,18 +262,24 @@ const stylesContainer = {
 }
 
 const stylesIntro = {
-  marginTop: 55,
+  marginTop: 30,
   alignItems: 'center',
-  marginBottom: 30,
+  marginBottom: 20,
 }
 
 const stylesEnterText = {
-  marginTop: 10,
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+  justifyContent: 'center',
   padding: 20,
 }
 
 const stylesShowText = {
-  marginTop: 20,
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+  justifyContent: 'center',
+  marginTop: 10,
+  marginBottom: 10,
   padding: 32,
 }
 
@@ -195,6 +287,12 @@ const stylesTextCode = {
   ...globalStyles.selectable,
   ...globalStyles.fontTerminal,
   color: globalColors.darkBlue,
+  textAlign: 'center',
+}
+
+const stylesQRScan = {
+  height: 200,
+  marginBottom: 20,
 }
 
 const stylesScan = NativeStyleSheet.create({
