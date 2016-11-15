@@ -24,6 +24,7 @@ type State = {
 class ConversationList extends Component<void, Props, State> {
   _cellCache: any;
   _cellMeasurer: any;
+  _list: any;
   state: State;
 
   constructor (props: Props) {
@@ -47,7 +48,7 @@ class ConversationList extends Component<void, Props, State> {
       // minus one because loader message is there
       const messageIndex = index - 1
       const message = this.state.messages.get(messageIndex)
-      const id = message && message.messageID
+      const id = message && (message.outboxID || message.messageID)
       if (id == null) {
         console.warn('id is null for index:', messageIndex)
       }
@@ -74,14 +75,29 @@ class ConversationList extends Component<void, Props, State> {
   componentWillReceiveProps (nextProps: Props) {
     // If we're not scrolling let's update our internal messages
     if (!this.state.isScrolling) {
+      this._invalidateChangedMessages()
       this.setState({
         messages: nextProps.messages,
       })
     }
   }
 
+  _toRemeasure = []
+
+  _invalidateChangedMessages () {
+    this.state.messages.forEach((item, index) => {
+      if (item.messageID !== this.props.messages.get(index, {}).messageID) {
+        console.warn('resetting ' + index, item, this.props.messages.get(index, {}))
+        // this._cellMeasurer.() // ForRow(index + 1)
+       // this._list.recomputeRowHeights(index + 1)
+       this._toRemeasure.push(index + 1)
+      }
+    })
+  }
+
   _onScrollSettled = _.debounce(() => {
     // If we've stopped scrolling let's update our internal messages
+    this._invalidateChangedMessages()
     this.setState({
       isScrolling: false,
       ...(this.state.messages !== this.props.messages ? {messages: this.props.messages} : null),
@@ -120,10 +136,15 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   render () {
-    const countWithLoading = this.state.messages.size + 1 // Loading row on top always
+    const countWithLoading = this.state.messages.count() + 1 // Loading row on top always
     let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
+    this._toRemeasure.forEach(index => this._cellMeasurer.resetMeasurementForRow(index))
+    this._toRemeasure = []
+
+    console.warn('last')
+    console.warn(this.state.messages.last() && this.state.messages.last().messageState)
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <AutoSizer>
@@ -137,6 +158,7 @@ class ConversationList extends Component<void, Props, State> {
               {({getRowHeight}) => (
                 <List
                   height={height}
+                  ref={r => { this._list = r }}
                   width={width}
                   onScroll={this._onScroll}
                   scrollTop={scrollTop}
