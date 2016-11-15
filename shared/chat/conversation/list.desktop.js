@@ -49,6 +49,9 @@ class ConversationList extends Component<void, Props, State> {
       // minus one because loader message is there
       const messageIndex = index - 1
       const message = this.state.messages.get(messageIndex)
+      // We want a stable key -- messages have an outboxID but no
+      // messageID, then later gain a messageID.  So if we prefer
+      // outboxIDs to messageIDs for the key, every row keeps its key.
       const id = message && (message.outboxID || message.messageID)
       if (id == null) {
         console.warn('id is null for index:', messageIndex)
@@ -58,7 +61,7 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   componentWillUpdate (nextProps: Props, nextState: State) {
-    // If a message has moved from pending to send, tell the List to 
+    // If a message has moved from pending to send, tell the List to
     // discard heights for it and everything after it, so that they're
     // re-rendered.'
     if (this._toRemeasure.length) {
