@@ -93,7 +93,7 @@ class DumbSheetRender extends Component<void, Props, any> {
     let numItemsLeftWeCanShow = numItemsLeftWeCanShowMax
 
     return (
-      <Box style={{...globalStyles.scrollable, padding: 20}} ref='scrollBox'>
+      <Box style={{...globalStyles.scrollable, flex: 1, padding: 20}} ref='scrollBox'>
         <BackButton onClick={this.props.onBack} />
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text type='Header'>Filter:</Text>

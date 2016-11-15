@@ -8,7 +8,7 @@ import {shell, ipcRenderer} from 'electron'
 import * as favoriteAction from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
-import {switchTab} from '../actions/router'
+import {navigateTo} from '../actions/route-tree'
 import {loginTab} from '../constants/tabs'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {defaultKBFSPath} from '../constants/config'
@@ -23,7 +23,7 @@ export type Props = $Shape<{
   favoriteList: () => void,
   openInKBFS: (target?: any) => void,
   loggedIn: ?boolean,
-  switchTab: (tab: string) => void,
+  onShowLoginTab: () => void,
   folderProps: ?FolderProps,
   kbfsStatus: KBFSStatus,
 }>
@@ -125,7 +125,7 @@ class Menubar extends Component<void, Props, void> {
 
   _logIn () {
     this._showMain()
-    this.props.switchTab(loginTab)
+    this.props.onShowLoginTab()
     this._closeMenubar()
   }
 
@@ -192,7 +192,10 @@ export default connect(
     folderProps: state.favorite && state.favorite.folderState,
     kbfsStatus: state.favorite && state.favorite.kbfsStatus,
   }),
-  dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab, openRekeyDialog}, dispatch)
+  dispatch => ({
+    onShowLoginTab: () => { dispatch(navigateTo([loginTab])) },
+    ...bindActionCreators({...favoriteAction, openInKBFS, openRekeyDialog}, dispatch),
+  })
 )(Menubar)
 
 export function selector (): (store: Object) => Object {

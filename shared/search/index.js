@@ -7,11 +7,12 @@ import {TypedConnector} from '../util/typed-connect'
 import {searchResultToAssertion} from '../constants/search'
 import {privateFolderWithUsers, publicFolderWithUsers} from '../constants/config'
 import {openInKBFS} from '../actions/kbfs'
-import {routeAppend} from '../actions/router'
+import {navigateAppend} from '../actions/route-tree'
 import UserPane from './user-pane'
 
 import type {TypedState} from '../constants/reducer'
 import type {FSOpen} from '../constants/kbfs'
+import type {NavigateAppend} from '../constants/route-tree'
 import type {Props} from './render'
 import type {SearchActions} from '../constants/search'
 import type {TypedDispatch} from '../constants/types/flux'
@@ -32,7 +33,7 @@ class Search extends Component<void, Props, void> {
   }
 }
 
-const connector: TypedConnector<TypedState, TypedDispatch<SearchActions | FSOpen>, OwnProps, Props> = new TypedConnector()
+const connector: TypedConnector<TypedState, TypedDispatch<SearchActions | FSOpen | NavigateAppend>, OwnProps, Props> = new TypedConnector()
 
 export default connector.connect(
   ({search:
@@ -53,7 +54,7 @@ export default connector.connect(
      showUserGroup,
      selectedUsers,
      onRemoveUserFromGroup: user => { dispatch(removeUserFromGroup(user)) },
-     onClickUserInGroup: user => { dispatch(isMobile ? routeAppend({path: 'profile', userOverride: {username: user.username}}) : selectUserForInfo(user)) },
+     onClickUserInGroup: user => { dispatch(isMobile ? navigateAppend([{selected: 'profile', username: user.username}]) : selectUserForInfo(user)) },
      onReset: () => { dispatch(reset()) },
      onAddAnotherUserToGroup: () => { dispatch(hideUserGroup()) },
      onOpenPrivateGroupFolder: () => { username && dispatch(openInKBFS(privateFolderWithUsers(selectedUsers.map(searchResultToAssertion).concat(username)))) },

@@ -11,7 +11,6 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import {normal as proofNormal, checking as proofChecking, metaUnreachable, metaPending} from '../constants/tracker'
 import {stateColors} from '../util/tracker'
 
-import type {Tab as FriendshipsTab} from './friendships'
 import type {Proof} from '../constants/tracker'
 import type {Props} from './index'
 
@@ -20,7 +19,6 @@ export const HEADER_TOP_SPACE = 48
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 
 type State = {
-  currentFriendshipsTab: FriendshipsTab,
   foldersExpanded: boolean,
   proofMenuIndex: ?number,
   popupMenuPosition: {
@@ -41,7 +39,6 @@ class ProfileRender extends PureComponent<void, Props, State> {
     this._scrollContainer = null
 
     this.state = {
-      currentFriendshipsTab: 'Followers',
       foldersExpanded: false,
       proofMenuIndex: null,
       popupMenuPosition: {},
@@ -284,8 +281,8 @@ class ProfileRender extends PureComponent<void, Props, State> {
           {!loading &&
             <Friendships
               style={styleFriendships}
-              currentTab={this.state.currentFriendshipsTab}
-              onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
+              currentTab={this.props.currentFriendshipsTab}
+              onSwitchTab={currentFriendshipsTab => this.props.onChangeFriendshipsTab(currentFriendshipsTab)}
               onUserClick={this.props.onUserClick}
               followers={this.props.followers}
               following={this.props.following} />}

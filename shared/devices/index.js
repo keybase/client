@@ -1,15 +1,11 @@
 // @flow
-import CodePage from '../login/register/code-page'
-import GenPaperKey from './gen-paper-key'
 import React, {Component} from 'react'
-import RemoveDevice from './device-revoke'
 import Render from './render'
-import ShowDevice from './device-page'
 import _ from 'lodash'
 import {addNewPhone, addNewComputer, addNewPaperKey} from '../actions/login'
 import {connect} from 'react-redux'
 import {loadDevices} from '../actions/devices'
-import {routeAppend} from '../actions/router'
+import {navigateAppend} from '../actions/route-tree'
 
 class Devices extends Component {
   componentWillMount () {
@@ -17,18 +13,6 @@ class Devices extends Component {
 
     if (loggedIn && !waitingForServer) {
       this.props.loadDevices()
-    }
-  }
-
-  static parseRoute () {
-    return {
-      componentAtTop: {title: 'Devices'},
-      subRoutes: {
-        codePage: CodePage,
-        genPaperKey: GenPaperKey,
-        showDevice: ShowDevice,
-        removeDevice: RemoveDevice,
-      },
     }
   }
 
@@ -40,6 +24,8 @@ class Devices extends Component {
       <Render
         devices={devices}
         revokedDevices={revokedDevices}
+        showingRevoked={this.props.showingRevoked}
+        onToggleShowRevoked={this.props.onToggleShowRevoked}
         addNewPhone={this.props.addNewPhone}
         addNewComputer={this.props.addNewComputer}
         addNewPaperKey={this.props.addNewPaperKey}
@@ -51,15 +37,17 @@ class Devices extends Component {
 }
 
 export default connect(
-  (state: any) => {
+  (state: any, {routeState}) => {
     const {devices, waitingForServer, error} = state.devices
     const {loggedIn} = state.config
-    return {devices, waitingForServer, error, loggedIn}
+    const {showingRevoked} = routeState
+    return {devices, waitingForServer, error, loggedIn, showingRevoked}
   },
-  (dispatch: any) => {
+  (dispatch: any, {routeState, setRouteState}) => {
     return {
       loadDevices: () => dispatch(loadDevices()),
-      showExistingDevicePage: device => dispatch(routeAppend({path: 'showDevice', device})),
+      onToggleShowRevoked: () => { setRouteState({showingRevoked: !routeState.showingRevoked}) },
+      showExistingDevicePage: device => dispatch(navigateAppend([{selected: 'devicePage', device}])),
       addNewPhone: () => dispatch(addNewPhone()),
       addNewComputer: () => dispatch(addNewComputer()),
       addNewPaperKey: () => dispatch(addNewPaperKey()),

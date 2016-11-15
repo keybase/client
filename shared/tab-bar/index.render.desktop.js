@@ -1,132 +1,110 @@
 // @flow
 
-import React, {Component} from 'react'
-import {Box, TabBar, Avatar} from '../common-adapters'
-import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
+import React from 'react'
+import {Box, Avatar} from '../common-adapters'
+import {TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import flags from '../util/feature-flags'
+import {
+  chatTab,
+  profileTab,
+  peopleTab,
+  folderTab,
+  devicesTab,
+  searchTab,
+  settingsTab,
+} from '../constants/tabs'
 
-import {profileTab, peopleTab, folderTab, devicesTab, settingsTab, chatTab, tabPrettify} from '../constants/tabs'
-
-import type {Tab} from '../constants/tabs'
-import type {IconType} from '../common-adapters/icon'
 import type {Props} from './index.render'
 
-const icons: {[key: Tab]: IconType} = {
-  [peopleTab]: 'iconfont-people',
-  ...(flags.tabChatEnabled ? {[chatTab]: 'iconfont-chat'} : null),
-  [folderTab]: 'iconfont-folder',
-  [devicesTab]: 'iconfont-device',
-  [settingsTab]: 'iconfont-settings',
-}
+export default function TabBar ({selectedTab, onTabClick, username, badgeNumbers}: Props) {
+  const avatar = (
+    <Avatar
+      size={32}
+      onClick={() => onTabClick(profileTab)}
+      username={username}
+      borderColor={selectedTab === profileTab ? globalColors.white : globalColors.blue3_40}
+    />
+  )
 
-export type SearchButton = 'TabBar:searchButton'
-export const searchButton = 'TabBar:searchButton'
-
-function tabToIcon (t: Tab): IconType {
-  return icons[t]
-}
-
-export default class TabBarRender extends Component<void, Props, void> {
-  _renderSearch (onClick: () => void) {
-    const source = {type: 'nav', icon: 'iconfont-nav-search'}
-    const button = (
+  return (
+    <Box style={stylesTabBar}>
       <TabBarButton
         label='Search'
-        selected={this.props.searchActive}
-        source={source} />
-    )
-
-    return (
-      <TabBarItem
-        key='search'
-        tabBarButton={button}
-        selected={!!this.props.searchActive}
-        onClick={onClick}
-        style={{...stylesTabBarItem}}
-      >
-        <Box style={{flex: 1, ...globalStyles.flexBoxColumn}}>{this.props.searchContent || <Box />}</Box>
-      </TabBarItem>
-    )
-  }
-
-  _renderProfileButton (tab: Tab, selected: boolean, onClick: () => void) {
-    // $FlowIssue
-    const avatar: Avatar = <Avatar size={32} onClick={onClick} username={this.props.username} borderColor={selected ? globalColors.white : globalColors.blue3_40} />
-    const source = {type: 'avatar', avatar}
-    const label = this.props.username
-    return (
-      <TabBarButton
-        label={label}
-        selected={selected}
-        badgeNumber={this.props.badgeNumbers[tab]}
-        source={source} />
-    )
-  }
-
-  _renderNormalButton (tab: Tab, selected: boolean, onClick: () => void) {
-    const source = {type: 'nav', icon: tabToIcon(tab)}
-    const label = tabPrettify(tab)
-    return (
-      <TabBarButton
+        selected={selectedTab === searchTab}
+        onClick={() => onTabClick(searchTab)}
+        source={{type: 'nav', icon: 'iconfont-nav-search'}}
         style={stylesTabButton}
-        label={label}
-        selected={selected}
-        badgeNumber={this.props.badgeNumbers[tab]}
-        source={source} />
-    )
-  }
-
-  _renderTabItems () {
-    // $FlowIssue
-    const tabs: Array<VisibleTab> = [
-      folderTab,
-      ...(flags.tabChatEnabled ? [chatTab] : []),
-      ...(flags.tabPeopleEnabled ? [peopleTab] : []),
-      devicesTab,
-      settingsTab,
-      profileTab,
-    ].filter(Boolean)
-
-    return tabs.map((t: VisibleTab) => {
-      const onClick = () => this.props.onTabClick(t)
-      const isProfile = t === profileTab
-
-      const selected = !this.props.searchActive && this.props.selectedTab === t
-      const button = isProfile ? this._renderProfileButton(t, selected, onClick) : this._renderNormalButton(t, selected, onClick)
-
-      return (
-        <TabBarItem
-          key={t}
-          tabBarButton={button}
-          selected={selected}
-          onClick={onClick}
-          style={{...stylesTabBarItem}}
-          styleContainer={{...(isProfile ? {flex: 1, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'} : {})}}
-        >
-          <Box style={{flex: 1, ...globalStyles.flexBoxColumn}}>{this.props.tabContent[t]}</Box>
-        </TabBarItem>
-      )
-    })
-  }
-
-  render () {
-    let tabItems = [this._renderSearch(this.props.onSearchClick || (() => {}))]
-    tabItems = tabItems.concat(this._renderTabItems())
-
-    return (
-      <TabBar style={stylesTabBarContainer}
-        styleTabBar={{...stylesTabBar}}>
-        {tabItems}
-      </TabBar>
-    )
-  }
-}
-
-const stylesTabBarContainer = {
-  ...globalStyles.flexBoxRow,
-  flex: 1,
-  height: 580,
+      />
+      <TabBarButton
+        label='Folders'
+        selected={selectedTab === folderTab}
+        onClick={() => onTabClick(folderTab)}
+        badgeNumber={badgeNumbers[folderTab]}
+        source={{type: 'nav', icon: 'iconfont-folder'}}
+        style={stylesTabButton}
+      />
+      {flags.tabChatEnabled &&
+        <TabBarButton
+          label='Chat'
+          selected={selectedTab === chatTab}
+          onClick={() => onTabClick(chatTab)}
+          badgeNumber={badgeNumbers[chatTab]}
+          source={{type: 'nav', icon: 'iconfont-chat'}}
+          style={stylesTabButton}
+        />
+      }
+      {flags.tabPeopleEnabled &&
+        <TabBarButton
+          label='Chat'
+          selected={selectedTab === peopleTab}
+          onClick={() => onTabClick(peopleTab)}
+          badgeNumber={badgeNumbers[peopleTab]}
+          source={{type: 'nav', icon: 'iconfont-people'}}
+          style={stylesTabButton}
+        />
+      }
+      <TabBarButton
+        label='Devices'
+        selected={selectedTab === devicesTab}
+        onClick={() => onTabClick(devicesTab)}
+        badgeNumber={badgeNumbers[devicesTab]}
+        source={{type: 'nav', icon: 'iconfont-device'}}
+        style={stylesTabButton}
+      />
+      <TabBarButton
+        label='Settings'
+        selected={selectedTab === settingsTab}
+        onClick={() => onTabClick(settingsTab)}
+        badgeNumber={badgeNumbers[settingsTab]}
+        source={{type: 'nav', icon: 'iconfont-settings'}}
+        style={stylesTabButton}
+      />
+      <TabBarButton
+        label={username}
+        selected={selectedTab === profileTab}
+        onClick={() => onTabClick(profileTab)}
+        badgeNumber={badgeNumbers[profileTab]}
+        source={{type: 'avatar', avatar}}
+        style={{flex: 1}}
+        styleContainer={{
+          flex: 1,
+          ...globalStyles.flexBoxColumn,
+          justifyContent: 'flex-end',
+        }}
+      />
+      {flags.tabPeopleEnabled &&
+        <TabBarButton
+          label='People'
+          selected={selectedTab === peopleTab}
+          onClick={() => onTabClick(peopleTab)}
+          badgeNumber={badgeNumbers[peopleTab]}
+          source={{type: 'nav', icon: 'iconfont-people'}}
+          style={stylesTabButton}
+        />
+      }
+    </Box>
+  )
 }
 
 const stylesTabBar = {
@@ -139,8 +117,4 @@ const stylesTabBar = {
 
 const stylesTabButton = {
   height: 56,
-}
-
-const stylesTabBarItem = {
-  ...globalStyles.flexBoxColumn,
 }

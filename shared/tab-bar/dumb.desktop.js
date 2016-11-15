@@ -40,7 +40,6 @@ const map: DumbComponentMap<TabBar> = {
     },
     'Search Active': {
       onTabClick: t => console.log('tabbar:click', t),
-      searchActive: true,
       selectedTab: peopleTab,
       username: 'max',
       badgeNumbers,

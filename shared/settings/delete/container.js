@@ -1,6 +1,6 @@
 // @flow
 import {TypedConnector} from '../../util/typed-connect'
-import {routeAppend} from '../../actions/router'
+import {navigateAppend} from '../../actions/route-tree'
 import Delete from './index'
 
 import type {TypedDispatch} from '../../constants/types/flux'
@@ -14,8 +14,8 @@ export default connector.connect(
     const currentDevice = state.devices.devices && state.devices.devices.find(d => d.currentDevice)
 
     return {
-      onRevokeCurrentDevice: () => { dispatch(routeAppend({path: 'removeDevice', device: currentDevice})) },
-      onDelete: () => { dispatch(routeAppend({path: 'deleteConfirm'})) },
+      onRevokeCurrentDevice: () => { dispatch(navigateAppend([{selected: 'removeDevice', device: currentDevice}])) },
+      onDelete: () => { dispatch(navigateAppend(['deleteConfirm'])) },
     }
   }
 )(Delete)

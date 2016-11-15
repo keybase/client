@@ -1,8 +1,7 @@
 // @flow
 import './globals.native'
-// $FlowIssue
-import Nav from './nav'
 import DumbSheet from './dev/dumb-sheet'
+import Main from './main'
 import React, {Component} from 'react'
 import configureStore from './store/configure-store'
 import {AppRegistry, NativeAppEventEmitter, AsyncStorage} from 'react-native'
@@ -11,6 +10,8 @@ import {makeEngine} from './engine'
 import {serializeRestore, serializeSave, timeTravel, timeTravelForward, timeTravelBack} from './constants/dev'
 import {setup as setupLocalDebug, dumbSheetOnly} from './local-debug'
 import {stateKey} from './constants/reducer'
+import routeDefs from '../shared/routes'
+import {setRouteDef} from '../shared/actions/route-tree'
 
 module.hot && module.hot.accept(() => {
   console.log('accepted update in shared/index.native')
@@ -22,6 +23,7 @@ class Keybase extends Component {
   componentWillMount () {
     this.store = configureStore()
     setupLocalDebug(this.store)
+    this.store.dispatch(setRouteDef(routeDefs))
     makeEngine()
     this.subscriptions = []
     if (__DEV__) {
@@ -50,7 +52,7 @@ class Keybase extends Component {
   render () {
     return (
       <Provider store={this.store}>
-        {dumbSheetOnly ? <DumbSheet /> : <Nav />}
+        {dumbSheetOnly ? <DumbSheet /> : <Main />}
       </Provider>
     )
   }

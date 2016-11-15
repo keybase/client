@@ -7,7 +7,7 @@ import {addProof, checkProof, cancelAddProof, submitUsername, submitBTCAddress, 
 import {apiserverPostRpcPromise, revokeRevokeSigsRpcPromise} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
-import {navigateUp, routeAppend, switchTab} from '../../actions/router'
+import {navigateAppend, navigateTo, navigateUp, switchTo} from '../../actions/route-tree'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
 import {safeTakeEvery} from '../../util/saga'
@@ -68,8 +68,9 @@ function onUserClick (username: string, uid: string): OnUserClick {
 }
 
 function * _onUserClick (action: OnUserClick): SagaGenerator<any, any> {
-  yield put(routeAppend({path: 'profile', userOverride: action.payload}, profileTab))
-  yield put(switchTab(profileTab))
+  const {username, uid} = action.payload
+  yield put(switchTo([profileTab]))
+  yield put(navigateAppend([{selected: 'profile', username, uid}], [profileTab]))
 }
 
 function onClickAvatar (username: ?string, uid: string, openWebsite?: boolean): OnClickAvatar {
@@ -200,7 +201,7 @@ function backToProfile (): BackToProfile {
 
 function * _backToProfile (): SagaGenerator<any, any> {
   yield put(getMyProfile())
-  yield put(navigateUp())
+  yield put(navigateTo([], [profileTab]))
 }
 
 function * _profileSaga (): SagaGenerator<any, any> {

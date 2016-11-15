@@ -1,9 +1,17 @@
 // @flow
 import {Component} from 'react'
 
+import type {Tab} from '../constants/settings'
+
+export type BannerType = 'red' | 'green'
+
 export type Props = {
+  children: React$Element<*>,
+  bannerElement?: React$Element<*>,
+  bannerType?: BannerType,
+  selectedTab: Tab,
   showComingSoon: boolean,
-  onDevMenu: () => void,
+  onTabChange: (tab: Tab) => void,
 }
 
 export default class Render extends Component<void, Props, void> { }

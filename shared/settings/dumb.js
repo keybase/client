@@ -7,7 +7,7 @@ import UpdateEmail from './email'
 import UpdatePassphrase from './passphrase'
 import PaymentForm from './payment'
 import Landing from './landing'
-import SettingsNav from './nav'
+import SettingsContainer from './render'
 import DeleteMe from './delete'
 import DeleteConfirm from './delete-confirm'
 import Notifications from './notifications'
@@ -15,6 +15,7 @@ import InviteGenerated from './invite-generated'
 import PlanDetails from './plan-details'
 import Invites from './invites'
 import Help from './help'
+import {landingTab} from '../constants/settings'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -224,22 +225,10 @@ const landingMap: DumbComponentMap<Landing> = {
 const fillerContent = <Box style={{flex: 1, backgroundColor: 'grey'}} />
 
 const settingsNavBase = {
-  content: fillerContent,
-  items: [{
-    text: 'Your Account',
-    onClick: () => { console.log('clicked your account') },
-    badgeNumber: 1,
-    selected: true,
-  }, {
-    text: 'Invitations (15)',
-    onClick: () => { console.log('clicked ivites') },
-  }, {
-    text: 'Notifications',
-    onClick: () => { console.log('clicked notifications') },
-  }, {
-    text: 'Delete me',
-    onClick: () => { console.log('clicked delete me') },
-  }],
+  children: fillerContent,
+  selectedTab: landingTab,
+  onTabChange: tab => { console.log('onTabChange', tab) },
+  showComingSoon: false,
 }
 
 const bannerTextStyle = {
@@ -248,8 +237,8 @@ const bannerTextStyle = {
   flex: 1,
 }
 
-const settingsNavMap: DumbComponentMap<SettingsNav> = {
-  component: SettingsNav,
+const settingsContainerMap: DumbComponentMap<SettingsContainer> = {
+  component: SettingsContainer,
   mocks: {
     'Normal': settingsNavBase,
     'Normal - Good Banner': {
@@ -515,7 +504,7 @@ export default {
   UpdatePassphrase: updatePassphraseMap,
   PaymentForm: paymentFormMap,
   Landing: landingMap,
-  SettingsNav: settingsNavMap,
+  SettingsContainer: settingsContainerMap,
   DeleteMe: deleteMeMap,
   DeleteConfirm: deleteConfirmMap,
   Notifications: notificationsMap,

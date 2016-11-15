@@ -90,10 +90,5 @@ export default function () {
     mainWindow.show(true)
   })
 
-  ipcMain.on('tabChanged', (event, tab) => {
-    appState.state.tab = tab
-    appState.saveState()
-  })
-
   return mainWindow
 }
