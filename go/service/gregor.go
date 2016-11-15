@@ -870,7 +870,9 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			nm.ConvID, nm.Message.ClientHeader.Sender)
 		if nm.Message.ClientHeader.OutboxID != nil {
 			g.G().Log.Debug("push handler: chat activity: newMessage: outboxID: %s",
-				nm.Message.ClientHeader.OutboxID)
+				hex.EncodeToString(*nm.Message.ClientHeader.OutboxID))
+		} else {
+			g.G().Log.Debug("push handler: chat activity: newMessage: outboxID is empty")
 		}
 
 		uid := m.UID().Bytes()
