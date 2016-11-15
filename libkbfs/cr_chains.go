@@ -329,8 +329,8 @@ func (ri renameInfo) String() string {
 // mostRecentChainMetadataInfo contains the subset of information for
 // the most recent chainMetadata that is needed for crChains.
 type mostRecentChainMetadataInfo struct {
-	kmd     KeyMetadata
-	rootPtr BlockPointer
+	kmd      KeyMetadata
+	rootInfo BlockInfo
 }
 
 // crChains contains a crChain for every KBFS node affected by the
@@ -822,8 +822,8 @@ func newCRChains(
 	}
 
 	ccs.mostRecentChainMDInfo = mostRecentChainMetadataInfo{
-		kmd:     mostRecentMD,
-		rootPtr: mostRecentMD.Data().Dir.BlockPointer,
+		kmd:      mostRecentMD,
+		rootInfo: mostRecentMD.Data().Dir.BlockInfo,
 	}
 
 	return ccs, nil
@@ -990,7 +990,7 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 
 	pathMap, err := blocks.SearchForPaths(ctx, nodeCache, ptrs,
 		newPtrs, ccs.mostRecentChainMDInfo.kmd,
-		ccs.mostRecentChainMDInfo.rootPtr)
+		ccs.mostRecentChainMDInfo.rootInfo.BlockPointer)
 	if err != nil {
 		return nil, err
 	}

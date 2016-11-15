@@ -972,7 +972,7 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 	nodeMap, _, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs,
 		mergedChains.mostRecentChainMDInfo.kmd,
-		mergedChains.mostRecentChainMDInfo.rootPtr)
+		mergedChains.mostRecentChainMDInfo.rootInfo.BlockPointer)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1632,7 +1632,7 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 	nodeMap, _, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs,
 		mergedChains.mostRecentChainMDInfo.kmd,
-		mergedChains.mostRecentChainMDInfo.rootPtr)
+		mergedChains.mostRecentChainMDInfo.rootInfo.BlockPointer)
 	if err != nil {
 		return nil, err
 	}
@@ -2635,7 +2635,7 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 			nodeMap, cache, err := cr.fbo.blocks.SearchForNodes(
 				ctx, cr.fbo.nodeCache, ptrs, newPtrs,
 				unmergedChains.mostRecentChainMDInfo.kmd,
-				unmergedChains.mostRecentChainMDInfo.rootPtr)
+				unmergedChains.mostRecentChainMDInfo.rootInfo.BlockPointer)
 			if err != nil {
 				return path{}, err
 			}
@@ -3166,12 +3166,27 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		return nil, nil, nil, err
 	}
 
+	oldOps := md.data.Changes.Ops
+	resOp, ok := oldOps[len(oldOps)-1].(*resolutionOp)
+	if !ok {
+		return nil, nil, nil, fmt.Errorf("dummy op is not gc: %s",
+			oldOps[len(oldOps)-1])
+	}
+
 	isSquash := mostRecentMergedMD.data.Dir.BlockPointer !=
-		mergedChains.mostRecentChainMDInfo.rootPtr
+		mergedChains.mostRecentChainMDInfo.rootInfo.BlockPointer
 	if isSquash {
 		// Squashes don't need to sync anything new.
 		bps = newBlockPutState(0)
-		md.data.Dir.BlockPointer = unmergedChains.mostRecentChainMDInfo.rootPtr
+		md.data.Dir.BlockInfo = unmergedChains.mostRecentChainMDInfo.rootInfo
+		for original, chain := range unmergedChains.byOriginal {
+			if unmergedChains.isCreated(original) ||
+				unmergedChains.isDeleted(original) ||
+				chain.original == chain.mostRecent {
+				continue
+			}
+			resOp.AddUpdate(original, chain.mostRecent)
+		}
 	} else {
 		// Construct a tree out of the merged paths, and do a sync at each leaf.
 		root := cr.makeSyncTree(ctx, resolvedPaths, lbc, newFileBlocks)
@@ -3185,13 +3200,6 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		} else {
 			bps = newBlockPutState(0)
 		}
-	}
-
-	oldOps := md.data.Changes.Ops
-	resOp, ok := oldOps[len(oldOps)-1].(*resolutionOp)
-	if !ok {
-		return nil, nil, nil, fmt.Errorf("dummy op is not gc: %s",
-			oldOps[len(oldOps)-1])
 	}
 
 	// Create an update map, and fix up the gc ops.
