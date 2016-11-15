@@ -48,11 +48,11 @@ function reducer (state: State = initialState, action: Actions) {
             console.warn("Couldn't find an outbox entry to modify")
             return conversation.get('messages')
           }
-          return conversation.set('messages', conversation.get('messages').update(index, item => {
-            item.messageID = messageID
-            item.messageState = messageState
-            return item
-          }))
+          return conversation.set('messages', conversation.get('messages').update(index, item => ({
+            ...item,
+            messageID,
+            messageState,
+          })))
         }
       )
       return state.set('conversationStates', newConversationStates)
