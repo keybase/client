@@ -9,7 +9,7 @@ import dumbComponentMap from '../shared/dev/dumb-sheet/component-map.desktop'
 
 const WORKER_COUNT = 10
 const CANVAS_SIZE = 1000
-const DEBUG_WINDOWS = true
+const DEBUG_WINDOWS = false
 
 if (process.argv.length !== 3) {
   console.log(`Usage: electron ${path.basename(process.argv[1])} DESTINATION`)
