@@ -21,25 +21,29 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
     return (
       <Box style={{...stylesTab, ...this.props.style}}>
         <Text type='BodySemibold' style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_60}}>
-          {this.props.label.toUpperCase()}
+          {!!this.props.label && this.props.label.toUpperCase()}
         </Text>
-        {(!this.props.underlined || this.props.selected) && <Box style={stylesSelectedUnderline(this.props.selected ? selectedColor : 'transparent')} />}
-        {!this.props.selected && this.props.underlined && <Box style={stylesUnselectedUnderline} />}
+        {this.props.selected && <Box style={stylesSelectedUnderline(selectedColor)} />}
       </Box>
     )
   }
 }
 
 class TabBarButton extends Component<void, TabBarButtonProps, void> {
+  renderForSource () {
+    if (!this.props.source) return null
+    if (this.props.source.type === 'icon') {
+      return <Icon type={this.props.source.icon} style={{fontSize: 48, width: 48, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
+    }
+    return this.props.source.avatar
+  }
+
   render () {
-    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
     const badgeNumber = this.props.badgeNumber || 0
 
     return (
-      <Box style={{backgroundColor, ...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
-        {this.props.source.type === 'icon'
-          ? <Icon type={this.props.source.icon} style={{fontSize: 48, width: 48, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
-          : this.props.source.avatar}
+      <Box style={{...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
+        {this.renderForSource()}
         {badgeNumber > 0 &&
           <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
             <Badge badgeNumber={badgeNumber} badgeStyle={{marginRight: -40, marginTop: -20}} />
@@ -57,8 +61,11 @@ class TabBar extends Component<void, Props, void> {
       const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
       return (
         <NativeTouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
-          <Box style={{...item.props.styleContainer, flexGrow: 1}}>
-            {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
+          <Box style={{flexGrow: 1}}>
+            <Box style={{...item.props.styleContainer, flexGrow: 1}}>
+              {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
+            </Box>
+            {this.props.underlined && <Box style={stylesUnderline} />}
           </Box>
         </NativeTouchableWithoutFeedback>
       )
@@ -71,7 +78,7 @@ class TabBar extends Component<void, Props, void> {
 
   render () {
     const tabBarButtons = (
-      <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.midnightBlue, ...this.props.styleTabBar}}>
+      <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
         {this._labels()}
       </Box>
     )
@@ -117,11 +124,10 @@ const stylesSelectedUnderline = color => ({
   backgroundColor: color,
 })
 
-const stylesUnselectedUnderline = {
-  height: 2,
-  marginTop: 1,
-  backgroundColor: globalColors.black_10,
+const stylesUnderline = {
+  height: 1,
   alignSelf: 'stretch',
+  backgroundColor: globalColors.black_05,
 }
 
 export {

@@ -8,7 +8,8 @@ import Container from '../../forms/container'
 import Platform, {OS} from '../../../constants/platform'
 import Qr from './qr'
 import React, {Component} from 'react'
-import {Box, Button, ClickableBox, Icon, Input, NativeStyleSheet, ProgressIndicator, Text} from '../../../common-adapters/index.native'
+import {Box, Button, ClickableBox, Icon, Input, NativeStyleSheet, ProgressIndicator, TabBar, Text} from '../../../common-adapters/index.native'
+import {TabBarItem, TabBarButton} from '../../../common-adapters/tab-bar'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer, codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
 import {globalStyles, globalColors} from '../../../styles'
 
@@ -44,159 +45,19 @@ function determineModes (myDeviceRole: DeviceRole, otherDeviceRole: DeviceRole, 
 }
 
 class CodePageRender extends Component<void, Props, void> {
-  renderMode (mode: Mode) {
-    return (
-      <Box style={{flexGrow: 1, ...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-        {mode === codePageModeScanCode && this.renderScanner()}
-        {mode === codePageModeShowCode && this.renderCode()}
-        {mode === codePageModeShowText && this.renderShowText()}
-        {mode === codePageModeEnterText && this.renderEnterText()}
-      </Box>
-    )
-  }
 
-  renderSwitch () {
-    const availableModes = determineModes(this.props.myDeviceRole, this.props.otherDeviceRole, this.props.cameraBrokenMode)
-    if (!availableModes) {
-      return null
-    }
-
-    const inactiveModes = availableModes.filter(m => m !== this.props.mode)
-
-    const modeTextMap: {[key: Mode]: string} = {
-      codePageModeScanCode: 'Scan QR code instead',
-      codePageModeShowCode: 'Display QR Code here instead',
-      codePageModeShowText: 'Type text code instead',
-      codePageModeEnterText: 'Type text code instead',
-    }
-
-    const iconTypeMap: {[key: Mode]: IconType} = {
-      codePageModeScanCode: 'icon-phone-qr-code-48',
-      codePageModeShowCode: 'icon-phone-qr-code-48',
-      codePageModeShowText: 'icon-phone-text-code-32',
-      codePageModeEnterText: 'icon-phone-text-code-32',
-    }
-
-    const iconTypeFn = (m: Mode) => iconTypeMap[m] || 'phone-text-code'
-    const modeTextFn = (m: Mode) => modeTextMap[m] || 'Switch mode'
-
-    return (
-      <Box style={{...globalStyles.flexBoxRow, ...stylesSwitch}}>
-        {inactiveModes.map(mode => (
-          <ClickableBox
-            key={mode}
-            underlayColor={globalColors.white}
-            onClick={() => this.props.setCodePageMode(mode)}>
-            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginLeft: 10, marginRight: 10}}>
-              <Icon type={iconTypeFn(mode)} />
-              <Text type='Body' style={{marginLeft: 15, textAlign: 'center'}}>{modeTextFn(mode)}</Text>
-            </Box>
-          </ClickableBox>
-        ))}
-      </Box>
-    )
-  }
-
-  renderContent () {
-    return (
-      <Box style={stylesHeader}>
-        {this.props.mode
-          ? this.renderMode(this.props.mode)
-          : <Text type='Body'>No Active Mode found</Text>}
-      </Box>
-    )
-  }
-
-  renderIntroShowTextCode () {
-    return (
-      <Box style={stylesIntro}>
-        <Text type='Header' style={{marginBottom: 10}}>Type in text code</Text>
-        <Text type='BodySmall' >Please run </Text>
-        <Text type='Terminal'>keybase device add</Text>
-        <Text type='BodySmall'> in the terminal on your computer.</Text>
-      </Box>
-    )
-  }
-
-  renderIntroEnterTextCode () {
-    return (
-      <Box style={stylesIntro}>
-        <Text type='Header' style={{marginBottom: 10}}>Enter text code</Text>
-        <Text type='BodySmall'>In the Keybase App</Text>
-        <Text type='BodySmall'>{'go to Devices > Add a new device'}</Text>
-      </Box>
-    )
-  }
-
-  renderIntroScanCode () {
-    return (
-      <Box style={stylesIntro}>
-        <Text type='Header' style={{marginBottom: 10}}>Scan QR code</Text>
-        <Text type='BodySmall'>In the Keybase App</Text>
-        <Text type='BodySmall'>{'go to Devices > Add a new device'}</Text>
-      </Box>
-    )
-  }
-
-  renderIntroShowQR () {
-    return (
-      <Box style={stylesIntro}>
-        <Text type='Header' style={{marginBottom: 10}}>Scan this QR code</Text>
-        <Text type='BodySmall'>{'When adding a new mobile device'}</Text>
-      </Box>
-    )
-  }
-
-  renderIntro () {
-    const headerTextMap: {[key: Mode]: React$Element<*>} = {
-      codePageModeScanCode: this.renderIntroScanCode(),
-      codePageModeShowCode: this.renderIntroShowQR(),
-      codePageModeShowText: this.renderIntroShowTextCode(),
-      codePageModeEnterText: this.renderIntroEnterTextCode(),
-    }
-
-    return headerTextMap[this.props.mode] || <Text type='BodySmall'>Good luck</Text>
-  }
-
-  renderShowText () {
-    return (
-      <Box style={stylesControl}>
-        <Text type='Body' style={{color: globalColors.darkBlue}}>{this.props.textCode}</Text>
-        <ProgressIndicator type='Large' style={stylesSpinner} />
-      </Box>
-    )
-  }
-
-  renderEnterText () {
-    return (
-      <Box>
-        <Icon type='icon-phone-text-code-32' style={{alignSelf: 'center'}} />
-        <Input
-          hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
-          floatingLabelText='Text code'
-          multiline={true}
-          rows={3}
-          value={this.props.enterText}
-          onChangeText={text => this.props.onChangeText(text)}
-        />
-        <Button type='Primary' style={{marginTop: 5, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
-      </Box>
-    )
-  }
-
-  renderCode () {
+  renderShowCode () {
     return (
       <Qr
         style={{alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}
         scanning={false}
         onBarCodeRead={() => {}}
         qrCode={this.props.qrCode}>
-        <Text type='Body'>Scan this QR code with your other device</Text>
       </Qr>
     )
   }
 
-  renderScanner () {
+  renderScanCode() {
     return (
       <Qr
         scanning={true}
@@ -217,14 +78,97 @@ class CodePageRender extends Component<void, Props, void> {
     )
   }
 
-  render () {
+  renderShowText () {
+    return (
+      <Box style={stylesShowText}>
+        <Text type='Header' style={stylesTextCode}>{this.props.textCode}</Text>
+      </Box>
+    )
+  }
+
+  renderEnterText () {
+    return (
+      <Box>
+        <Box style={stylesEnterText}>
+          <Icon type='icon-phone-text-code-32' style={{alignSelf: 'center'}} />
+          <Input
+            hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
+            multiline={true}
+            rows={3}
+            value={this.props.enterText}
+            onChangeText={text => this.props.onChangeText(text)}
+          />
+        </Box>
+        <Button type='Primary' style={{marginTop: 5, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
+      </Box>
+    )
+  }
+
+  renderQRCode () {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
-        {this.renderIntro()}
-        {this.renderContent()}
-        {this.renderSwitch()}
+        <Box style={stylesIntro}>
+          <Text type='Header' style={{marginBottom: 10}}>Scan QR code</Text>
+          <Text type='Body'>In the Keybase App</Text>
+          <Text type='Body'>{'go to Devices > Add a new device.'}</Text>
+        </Box>
+        <TabBar>
+          <TabBarItem
+            key={this.props.mode}
+            selected={this.props.mode === codePageModeShowCode}
+            label='Display Code'
+            onClick={() => { this.props.setCodePageMode(codePageModeScanCode) }}>
+              {this.renderShowCode()}
+          </TabBarItem>
+          <TabBarItem
+            key={this.props.mode}
+            label='Scan Code'
+            selected={this.props.mode === codePageModeScanCode}
+            onClick={() => { this.props.setCodePageMode(codePageModeShowCode) }}>
+              {this.renderScanCode()}
+          </TabBarItem>
+        </TabBar>
       </Container>
     )
+  }
+
+  renderTextCode() {
+    return (
+      <Container style={stylesContainer} onBack={this.props.onBack}>
+        <Box style={stylesIntro}>
+          <Text type='Header' style={{marginBottom: 10}}>Type text code</Text>
+            <Text type='Body'>In the Keybase App</Text>
+            <Text type='Body'>{'go to Devices > Add a new device.'}</Text>
+        </Box>
+        <TabBar underlined={true}>
+          <TabBarItem
+            key={this.props.mode}
+            selected={this.props.mode === codePageModeShowText}
+            label='Display Code'
+            onClick={() => { this.props.setCodePageMode(codePageModeEnterText) }}>
+              {this.renderShowText()}
+          </TabBarItem>
+          <TabBarItem
+            key={this.props.mode}
+            label='Type Code'
+            selected={this.props.mode === codePageModeEnterText}
+            onClick={() => { this.props.setCodePageMode(codePageModeShowText) }}>
+              {this.renderEnterText()}
+          </TabBarItem>
+        </TabBar>
+      </Container>
+    )
+  }
+
+  render () {
+    switch (this.props.mode) {
+    case codePageModeShowCode:
+    case codePageModeScanCode:
+      return this.renderQRCode()
+    case codePageModeShowText:
+    case codePageModeEnterText:
+      return this.renderTextCode()
+    }
   }
 }
 
@@ -237,12 +181,13 @@ const stylesContainer = {
 
 const stylesHeader = {
   flex: 1,
-  marginTop: 46,
+  marginTop: 32,
 }
 
 const stylesIntro = {
   marginTop: 55,
   alignItems: 'center',
+  marginBottom: 30,
 }
 
 const stylesSwitch = {
@@ -250,14 +195,20 @@ const stylesSwitch = {
   marginTop: 50,
 }
 
-const stylesControl = {
-  marginTop: 46,
-  height: 100,
+const stylesEnterText = {
+  marginTop: 10,
+  padding: 20,
 }
 
-const stylesSpinner = {
-  marginTop: 30,
-  alignSelf: 'center',
+const stylesShowText = {
+  marginTop: 20,
+  padding: 32,
+}
+
+const stylesTextCode = {
+  ...globalStyles.selectable,
+  ...globalStyles.fontTerminal,
+  color: globalColors.darkBlue,
 }
 
 const styles = NativeStyleSheet.create({

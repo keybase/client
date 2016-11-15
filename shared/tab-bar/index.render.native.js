@@ -3,6 +3,7 @@
 import React, {Component} from 'react'
 import {TabBar, Avatar} from '../common-adapters'
 import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
+import {globalColors} from '../styles'
 
 import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'
 
@@ -57,4 +58,8 @@ export default class TabBarRender extends Component<void, Props, void> {
   }
 }
 
-const stylesTabBar = {justifyContent: 'space-between', height: 56}
+const stylesTabBar = {
+  backgroundColor: globalColors.midnightBlue,
+  justifyContent: 'space-between',
+  height: 56
+}

@@ -20,10 +20,33 @@ const baseMock = {
   enterText: 'Foo Enter Text',
 }
 
+const scanCodeMock = {
+  ...baseMock,
+  mode: 'codePageModeScanCode',
+}
+
+const showCodeMock = {
+  ...baseMock,
+  mode: 'codePageModeShowCode',
+}
+
+const showTextMock = {
+  ...baseMock,
+  mode: 'codePageModeShowText',
+}
+
+const enterTextMock = {
+  ...baseMock,
+  mode: 'codePageModeEnterText',
+}
+
 const dumbComponentMap: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
-    'Normal': baseMock,
+    'Show Text': showTextMock,
+    'Enter Text': enterTextMock,
+    'Scan Code': scanCodeMock,
+    'Show Code': showCodeMock,
   },
 }
 

@@ -3,7 +3,6 @@ import Avatar from './avatar'
 import {Component} from 'react'
 import type {Exact} from '../constants/types/more'
 import type {IconType} from './icon'
-import type {TextType} from './text'
 
 export type Props = Exact<{
   style?: ?Object,
@@ -31,9 +30,11 @@ export type ItemProps = Exact<{
 
 export class TabBarItem extends Component<void, ItemProps, void> { }
 
+export type TabBarButtonSource = {type: 'icon', icon: IconType} | {type: 'avatar', avatar: Avatar} | {type: 'nav', icon: IconType}
+
 export type TabBarButtonProps = Exact<{
-  selected: boolean,
-  source: {type: 'icon', icon: IconType} | {type: 'avatar', avatar: Avatar} | {type: 'nav', icon: IconType},
+  selected?: boolean,
+  source?: TabBarButtonSource,
   label?: string,
   badgeNumber?: ?number,
   style?: Object,
