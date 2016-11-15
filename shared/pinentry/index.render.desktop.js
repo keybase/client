@@ -113,7 +113,7 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
             checkboxContainerStyle={{paddingLeft: 60, paddingRight: 60, ...checkboxContainerStyle}}
             checkboxesProps={checkboxProps}
           />
-          <Button style={{alignSelf: 'flex-end'}} type='Primary' label={this.props.submitLabel} onClick={submitPassphrase} disabled={!this.state.passphrase} />
+          <Button style={{alignSelf: 'center'}} type='Primary' label={this.props.submitLabel} onClick={submitPassphrase} disabled={!this.state.passphrase} />
         </Box>
       </Box>
     )

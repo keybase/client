@@ -42,7 +42,7 @@ class InviteCodeRender extends Component<void, Props, State> {
 const stylesButton = {
   marginTop: 10,
   marginRight: 0,
-  alignSelf: 'flex-end',
+  alignSelf: 'center',
 }
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
