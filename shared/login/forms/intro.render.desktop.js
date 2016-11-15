@@ -37,14 +37,14 @@ class Intro extends Component<void, IntroProps, void> {
     return (
       <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf || this.props.justDeletedSelf || this.props.justLoginFromRevokedDevice ? 0 : 45}}>
         {!!this.props.justRevokedSelf && <Box style={stylesRevoked}>
-          <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>{this.props.justRevokedSelf}</Text>
-          <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>&nbsp;was revoked successfully</Text>
+          <Text type='BodySemibold' style={{color: globalColors.white}}>{this.props.justRevokedSelf}</Text>
+          <Text type='BodySemibold' style={{color: globalColors.white}}>&nbsp;was revoked successfully</Text>
         </Box>}
         {!!this.props.justDeletedSelf && <Box style={stylesRevoked}>
-          <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>Your Keybase account "{this.props.justDeletedSelf}" has been deleted. Au revoir!</Text>
+          <Text type='BodySemibold' style={{color: globalColors.white}}>Your Keybase account "{this.props.justDeletedSelf}" has been deleted. Au revoir!</Text>
         </Box>}
-        {!!this.props.justLoginFromRevokedDevice && <Box style={stylesRevoked}>
-          <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>This device has been revoked, please log in again.</Text>
+        {!!this.props.justLoginFromRevokedDevice && <Box style={{...stylesRevoked, backgroundColor: globalColors.blue}}>
+          <Text type='BodySemibold' style={{color: globalColors.white}}>This device has been revoked, please log in again.</Text>
         </Box>}
         <Icon type='icon-keybase-logo-160' />
         <Text style={stylesHeader} type='HeaderBig'>Join Keybase</Text>
