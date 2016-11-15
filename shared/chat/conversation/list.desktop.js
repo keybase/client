@@ -140,6 +140,7 @@ class ConversationList extends Component<void, Props, State> {
     if (index === 0) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
     }
+
     const message = this.state.messages.get(index - 1)
     return messageFactory(message, index, key, style, isScrolling)
   }
