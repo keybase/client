@@ -134,6 +134,7 @@ helpers.nodeWithDockerCleanup("ec2-fleet-max-test-linux", {}, {}) {
                                             variable: 'VISDIFF_GH_TOKEN',
                                     ]]) {
                                     withEnv([
+                                        "VISDIFF_S3_BUCKET=keybase-jenkins-visdiff",
                                         "VISDIFF_WORK_DIR=${env.BASEDIR}/visdiff",
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
