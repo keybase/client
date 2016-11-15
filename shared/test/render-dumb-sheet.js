@@ -9,7 +9,7 @@ import DumbSheetItem from '../dev/dumb-sheet/item'
 
 const PADDING = 25
 
-window.load = (options) => {
+function run (options) {
   const onDisplay = (ev, msg) => {
     const map = dumbComponentMap[msg.key]
     const mockKey = msg.mockKey
@@ -68,3 +68,16 @@ window.load = (options) => {
   ipcRenderer.on('display', onDisplay)
   onDisplay(null, options.firstDisplay)
 }
+
+declare class ExtendedDocument extends Document {
+  fonts: {
+    ready: Promise<*>,
+  },
+}
+declare var document: ExtendedDocument
+
+window.addEventListener('load', () =>
+  document.fonts.ready.then(() =>
+    run()
+  )
+)
