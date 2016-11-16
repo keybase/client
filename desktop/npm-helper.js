@@ -159,7 +159,7 @@ const commands = {
       ELECTRON_ENABLE_LOGGING: 1,
     },
     nodePathDesktop: true,
-    shell: 'webpack --config webpack.config.visdiff.js && electron ./dist/render-visdiff.bundle.js',
+    shell: 'webpack --config webpack.config.visdiff.js && strace -o /tmp/visdiff_strace electron ./dist/render-visdiff.bundle.js',
     help: 'Render images of dumb components',
   },
   'local-visdiff': {
