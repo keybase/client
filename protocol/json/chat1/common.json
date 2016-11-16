@@ -51,6 +51,12 @@
       "typedef": "uint64"
     },
     {
+      "type": "record",
+      "name": "OutboxID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
       "type": "enum",
       "name": "MessageType",
       "symbols": [
@@ -343,6 +349,20 @@
     },
     {
       "type": "record",
+      "name": "OutboxInfo",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "prev"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "composeTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageClientHeader",
       "fields": [
         {
@@ -379,6 +399,20 @@
         {
           "type": "gregor1.DeviceID",
           "name": "senderDevice"
+        },
+        {
+          "type": [
+            null,
+            "OutboxID"
+          ],
+          "name": "outboxID"
+        },
+        {
+          "type": [
+            null,
+            "OutboxInfo"
+          ],
+          "name": "outboxInfo"
         }
       ]
     },

@@ -1,0 +1,17 @@
+// @flow
+import {Component} from 'react'
+
+import type {TokenType} from '../constants/push'
+
+export type Props = {
+  prompt: boolean,
+  permissionsRequesting: boolean,
+  onShowPrompt: () => void,
+  onRequestPermissions: () => void,
+  onPushToken: (token: string, tokenType: TokenType) => void,
+  onPushNotification: () => void,
+  onPushError: () => void,
+  onPushRegistrationError: () => void,
+  onRequestPermissions: () => void,
+  onClose: () => void,
+}

@@ -452,9 +452,9 @@ func (f *FakeIOErrorReader) Read(buf []byte) (int, error) {
 }
 
 func TestTransientIOErrorsInReaderWrappers(t *testing.T) {
-	// If our DecodingReader, it'll give up and fail forever. But if
-	// either reader gets an IO error from its inner reader, it should be
-	// willing to retry. Simulate this case on both ends, with a
+	// If our DecodingReader gets a decryption error, it'll give up and fail
+	// forever. But if either reader gets an IO error from its inner reader, it
+	// should be willing to retry. Simulate this case on both ends, with a
 	// FakeIOErrorReader that returns a Read error one time and then returns
 	// real bytes on subsequent calls.
 

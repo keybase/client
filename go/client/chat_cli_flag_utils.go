@@ -35,10 +35,6 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "clear-headline",
 		Usage: `Clear the headline for the conversation`,
 	},
-	"stdin": cli.BoolFlag{
-		Name:  "stdin",
-		Usage: "Use STDIN for message content. [conversation] is required and [message] is ignored.",
-	},
 	"at-most": cli.IntFlag{
 		Name:  "at-most",
 		Usage: `Show at most this number of items. Only effective when > 0. "keybase chat" tries to show n+2 items, where n is # of unread items. --at-most caps the total number of items possibly shown in case there are too many unread items.`,

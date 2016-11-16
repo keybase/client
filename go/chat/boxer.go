@@ -171,6 +171,7 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 	if err != nil {
 		return chat1.MessagePlaintext{}, nil, libkb.NewPermanentChatUnboxingError(err)
 	}
+
 	switch headerVersion {
 	case chat1.HeaderPlaintextVersion_V1:
 		hp := header.V1()
@@ -186,6 +187,8 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 	default:
 		return chat1.MessagePlaintext{}, nil, libkb.NewPermanentChatUnboxingError(libkb.NewChatHeaderVersionError(headerVersion))
 	}
+	clientHeader.OutboxInfo = msg.ClientHeader.OutboxInfo
+	clientHeader.OutboxID = msg.ClientHeader.OutboxID
 
 	if skipBodyVerification {
 		// body was deleted, so return empty body that matches header version

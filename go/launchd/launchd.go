@@ -168,6 +168,10 @@ func (s Service) Restart(wait time.Duration) error {
 
 // WaitForStatus waits for service status to be available
 func (s Service) WaitForStatus(wait time.Duration, delay time.Duration) (*ServiceStatus, error) {
+	if wait <= 0 {
+		return s.LoadStatus()
+	}
+
 	t := time.Now()
 	i := 1
 	for time.Now().Sub(t) < wait {

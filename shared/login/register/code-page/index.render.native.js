@@ -171,9 +171,9 @@ class CodePageRender extends Component<void, Props, void> {
         <Icon type='icon-phone-text-code-32' style={{alignSelf: 'center'}} />
         <Input
           hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
-          floatingLabelText='Text code'
+          floatingHintTextOverride='Text code'
           multiline={true}
-          rows={3}
+          rowsMin={3}
           value={this.props.enterText}
           onChangeText={text => this.props.onChangeText(text)}
         />

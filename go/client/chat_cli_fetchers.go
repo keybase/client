@@ -5,11 +5,13 @@ package client
 
 import (
 	"fmt"
+	"os"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	isatty "github.com/mattn/go-isatty"
 )
 
 type chatCLIConversationFetcher struct {
@@ -28,9 +30,11 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 		return chat1.ConversationLocal{}, nil, err
 	}
 
+	hasTTY := isatty.IsTerminal(os.Stdout.Fd())
+
 	conversationInfo, _, err := resolver.Resolve(ctx, f.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
-		Interactive:       true,
+		Interactive:       hasTTY,
 	})
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, fmt.Errorf("resolving conversation error: %v\n", err)

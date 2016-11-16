@@ -620,6 +620,18 @@ func TestGetMessagesLocal(t *testing.T) {
 	}
 }
 
+func extractOutbox(t *testing.T, msgs []chat1.MessageUnboxed) []chat1.MessageUnboxed {
+	var routbox []chat1.MessageUnboxed
+	for _, msg := range msgs {
+		typ, err := msg.State()
+		require.NoError(t, err)
+		if typ == chat1.MessageUnboxedState_OUTBOX {
+			routbox = append(routbox, msg)
+		}
+	}
+	return routbox
+}
+
 func TestGetOutbox(t *testing.T) {
 	ctc := makeChatTestContext(t, "GetOutbox", 3)
 	defer ctc.cleanup()
@@ -639,6 +651,9 @@ func TestGetOutbox(t *testing.T) {
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,
 			TlfPublic: false,
+			OutboxInfo: &chat1.OutboxInfo{
+				Prev: 10,
+			},
 		},
 	})
 	require.NoError(t, err)
@@ -648,13 +663,15 @@ func TestGetOutbox(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.Equal(t, 1, len(thread.Outbox), "wrong size outbox")
-	require.Equal(t, obid, thread.Outbox[0].OutboxID, "wrong outbox ID")
+	routbox := extractOutbox(t, thread.Thread.Messages)
+	require.Equal(t, 1, len(routbox), "wrong size outbox")
+	require.Equal(t, obid, routbox[0].Outbox().OutboxID, "wrong outbox ID")
 
 	thread, err = h.GetThreadLocal(context.Background(), chat1.GetThreadLocalArg{
 		ConversationID: created2.Id,
 	})
 	require.NoError(t, err)
-	require.Equal(t, 0, len(thread.Outbox), "non empty outbox")
+	routbox = extractOutbox(t, thread.Thread.Messages)
+	require.Equal(t, 0, len(routbox), "non empty outbox")
 
 }

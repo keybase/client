@@ -1,15 +1,12 @@
 // @flow
 import * as Constants from '../../constants/config'
 import path from 'path'
-import {CommonClientType} from '../../constants/types/flow-types'
-import {call, put, select, race, take} from 'redux-saga/effects'
-import {delay} from 'redux-saga'
-import {getExtendedStatus} from '../config'
+import {kbfsMountGetCurrentMountDirRpcPromise} from '../../constants/types/flow-types'
+import {call, put, select} from 'redux-saga/effects'
 import {ipcRenderer} from 'electron'
 import {isWindows} from '../../constants/platform'
 
 import type {FSOpen} from '../../constants/kbfs'
-import type {ExtendedStatus} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 
 function open (openPath: string) {
@@ -29,27 +26,6 @@ function openInDefault (openPath: string) {
   open(openPath)
 }
 
-function windowsKBFSRoot (extendedConfig: ExtendedStatus): string {
-  const kbfsClients = extendedConfig.Clients && extendedConfig.Clients.length && extendedConfig.Clients.filter(c => c.clientType === CommonClientType.kbfs) || []
-
-  if (kbfsClients.length > 1) {
-    throw new Error('There is more than one kbfs client')
-  }
-
-  if (kbfsClients.length === 0) {
-    throw new Error('There are no kbfs clients')
-  }
-
-  // Hacky Regex to find a mount point on windows matches anything like foobar:\ or K:\
-  const kbfsPath = kbfsClients[0].argv && kbfsClients[0].argv.filter(arg => arg.search(/.*:\\?$/) === 0)[0]
-
-  if (!kbfsPath) {
-    throw new Error('Could not figure out kbfs path from argv')
-  }
-
-  return kbfsPath + '\\'
-}
-
 function * openInWindows (openPath: string): SagaGenerator<any, any> {
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
     console.warn(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
@@ -62,30 +38,11 @@ function * openInWindows (openPath: string): SagaGenerator<any, any> {
   // On windows the path isn't /keybase
   // We can figure it out by looking at the extendedConfig though
   if (kbfsPath === Constants.defaultKBFSPath) {
-    let kbfsPathError
-    kbfsPath = null
-
-    // there can be a race between extendedConfig / kbfs / everything loading so we try a couple of times
-    for (let i = 0; i < 3; ++i) {
-      const extendedConfig = yield select(state => state.config.extendedConfig)
-      try {
-        kbfsPath = yield call(windowsKBFSRoot, extendedConfig)
-        if (kbfsPath) {
-          break
-        }
-      } catch (error) {
-        kbfsPathError = error
-      }
-
-      yield put(getExtendedStatus())
-      yield race({
-        loaded: take(Constants.extendedConfigLoaded),
-        timeout: call(delay, 1000),
-      })
-    }
+    // make call
+    kbfsPath = yield call(kbfsMountGetCurrentMountDirRpcPromise)
 
     if (!kbfsPath) {
-      console.warn('Error in parsing kbfsPath: ', kbfsPathError)
+      console.warn('Error in finding kbfspath')
       return
     }
 

@@ -145,7 +145,7 @@ func (s *Storage) MaybeNuke(force bool, err libkb.ChatStorageError, convID chat1
 	if force || err.ShouldClear() {
 		s.G().Log.Warning("chat local storage corrupted: clearing")
 		if err := s.G().LocalChatDb.Delete(makeBlockIndexKey(convID, uid)); err != nil {
-			s.G().Log.Error("failed to delete chat index, clearing entire database")
+			s.G().Log.Error("failed to delete chat index, clearing entire database (delete error: %s)", err)
 			if _, err = s.G().LocalChatDb.Nuke(); err != nil {
 				panic("unable to clear local storage")
 			}
@@ -242,8 +242,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
-	rl *[]*chat1.RateLimit) (chat1.ThreadView, libkb.ChatStorageError) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, libkb.ChatStorageError) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()

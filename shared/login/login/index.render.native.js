@@ -7,7 +7,7 @@ import {globalStyles, globalMargins, globalColors} from '../../styles'
 class LoginRender extends Component<void, Props, void> {
   render () {
     const inputProps = {
-      floatingLabelText: 'Passphrase',
+      hintText: 'Passphrase',
       style: {marginBottom: 0},
       onChangeText: passphrase => this.props.passphraseChange(passphrase),
       type: this.props.showTyping ? 'passwordVisible' : 'password',

@@ -215,14 +215,12 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
-	obr, err := outbox.PullConversation(arg.ConversationID)
-	if err != nil {
+	if err = outbox.SprinkleIntoThread(arg.ConversationID, &thread); err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
 
 	return chat1.GetThreadLocalRes{
 		Thread:     thread,
-		Outbox:     obr,
 		RateLimits: utils.AggRateLimitsP(rl),
 	}, nil
 }
@@ -707,7 +705,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 
-	_, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg)
+	_, _, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
 	if err != nil {
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
@@ -718,11 +716,16 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 
 func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (chat1.PostLocalNonblockRes, error) {
 
+	// Add outbox information
+	arg.Msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
+		Prev: arg.ClientPrev,
+	}
+
 	// Create non block sender
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 	nonblockSender := chat.NewNonblockingSender(h.G(), sender)
 
-	obid, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg)
+	obid, _, rl, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev)
 	if err != nil {
 		return chat1.PostLocalNonblockRes{},
 			fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())

@@ -63,7 +63,7 @@ const (
 )
 
 // ComponentNames are all the valid component names
-var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater}
+var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp}
 
 // String returns string for ComponentName
 func (c ComponentName) String() string {

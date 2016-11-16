@@ -152,13 +152,14 @@ func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlain
 
 	// Generate new outbox ID
 	var outboxID chat1.OutboxID
-	outboxID, err = libkb.RandBytes(16)
+	outboxID, err = libkb.RandBytes(8)
 	if err != nil {
 		return nil, o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error getting outboxID: err: %s", err.Error()))
 	}
 
 	// Append record
+	msg.ClientHeader.OutboxID = &outboxID
 	obox.Records = append(obox.Records, chat1.OutboxRecord{
 		Msg:      msg,
 		ConvID:   convID,
@@ -226,6 +227,94 @@ func (o *Outbox) PopNOldestMessages(n int) error {
 	if err := o.writeDiskOutbox(obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error writing outbox: err: %s", err.Error()))
+	}
+
+	return nil
+}
+
+func (o *Outbox) RemoveMessage(obid chat1.OutboxID) error {
+	o.Lock()
+	defer o.Unlock()
+
+	// Read outbox for the user
+	obox, err := o.readDiskOutbox()
+	if err != nil {
+		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
+			"error reading outbox: err: %s", err.Error()))
+	}
+
+	// Scan to find the message and don't include it
+	var recs []chat1.OutboxRecord
+	for _, obr := range obox.Records {
+		if !obr.OutboxID.Eq(obid) {
+			recs = append(recs, obr)
+		}
+	}
+	obox.Records = recs
+
+	// Write out box
+	if err := o.writeDiskOutbox(obox); err != nil {
+		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
+			"error writing outbox: err: %s", err.Error()))
+	}
+
+	return nil
+}
+
+func (o *Outbox) getMsgOrdinal(msg chat1.MessageUnboxed) (chat1.MessageID, error) {
+	typ, err := msg.State()
+	if err != nil {
+		return 0, err
+	}
+
+	switch typ {
+	case chat1.MessageUnboxedState_OUTBOX:
+		return msg.Outbox().Msg.ClientHeader.OutboxInfo.Prev, nil
+	default:
+		return msg.GetMessageID(), nil
+	}
+}
+
+func (o *Outbox) insertMessage(thread *chat1.ThreadView, obr chat1.OutboxRecord) error {
+	prev := obr.Msg.ClientHeader.OutboxInfo.Prev
+	inserted := false
+	var res []chat1.MessageUnboxed
+	for index, msg := range thread.Messages {
+		ord, err := o.getMsgOrdinal(msg)
+		if err != nil {
+			return err
+		}
+		if !inserted && prev >= ord {
+			res = append(res, chat1.NewMessageUnboxedWithOutbox(obr))
+			o.G().Log.Debug("inserting at: %d msgID: %d", index, msg.GetMessageID())
+			inserted = true
+		}
+		res = append(res, msg)
+	}
+
+	thread.Messages = res
+	return nil
+}
+
+func (o *Outbox) SprinkleIntoThread(convID chat1.ConversationID, thread *chat1.ThreadView) error {
+	o.Lock()
+	defer o.Unlock()
+
+	// Read outbox for the user
+	obox, err := o.readDiskOutbox()
+	if err != nil {
+		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(), "error reading outbox: err: %s",
+			err.Error()))
+	}
+
+	// Sprinkle each outbox message in
+	for _, obr := range obox.Records {
+		if !obr.ConvID.Eq(convID) {
+			continue
+		}
+		if err := o.insertMessage(thread, obr); err != nil {
+			return err
+		}
 	}
 
 	return nil

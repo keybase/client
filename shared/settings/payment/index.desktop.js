@@ -12,25 +12,25 @@ function PaymentForm (props: Props) {
       notification={props.errorMessage ? {message: props.errorMessage, type: 'error'} : null}
     >
       <Input
-        floatingLabelText='Card number'
+        hintText='Card number'
         value={props.cardNumber}
         onChangeText={props.onChangeCardNumber}
         style={styleInput}
       />
       <Input
-        floatingLabelText='Name on card'
+        hintText='Name on card'
         value={props.name}
         onChangeText={props.onChangeName}
         style={styleInput}
       />
       <Input
-        floatingLabelText='Card expiration (MM/YYYY)'
+        hintText='Card expiration (MM/YYYY)'
         value={props.expiration}
         onChangeText={props.onChangeExpiration}
         style={styleInput}
       />
       <Input
-        floatingLabelText='Security code'
+        hintText='Security code'
         value={props.securityCode}
         onChangeText={props.onChangeSecurityCode}
         style={styleInput}

@@ -48,12 +48,7 @@ class DumbSheetRender extends Component<void, Props, any> {
   componentDidMount () {
     // After all child components have loaded (and their autoFocuses, if present, have been triggered)
     // return focus back to the main filter field of the dumb sheet.
-    ReactDOM.findDOMNode(this.refs.filterInput).querySelector('input').focus()
-  }
-
-  componentWillReceiveProps (nextProps: Props) {
-    // FIXME: desktop <Input> element keeps internal state, need to set its value manually
-    this.refs.filterInput.setValue(nextProps.dumbFilter)
+    this.refs.filterInput.focus()
   }
 
   _filterToParams () {
@@ -96,12 +91,12 @@ class DumbSheetRender extends Component<void, Props, any> {
       <Box style={{...globalStyles.scrollable, padding: 20}} ref='scrollBox'>
         <BackButton onClick={this.props.onBack} />
         <Box style={{...globalStyles.flexBoxRow}}>
-          <Text type='Header'>Filter:</Text>
           <Input
             ref='filterInput'
-            value={filter}
-            onChange={event => this._onFilterChange(event.target.value.toLowerCase())}
-          />
+            small={true}
+            smallLabel='Filter:'
+            value={this.props.dumbFilter}
+            onChangeText={text => this._onFilterChange(text.toLowerCase())} />
         </Box>
         {keys.map(key => {
           const map = dumbComponentMap[key]

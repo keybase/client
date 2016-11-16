@@ -16,7 +16,7 @@ import {getStyle} from '../../../common-adapters/text'
 const SubTitle = ({usePhone}) => (
   <p>
     <Text type='BodySmall'>In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to</Text>
-    <Icon type='iconfont-identity-devices' style={stylesPhoneIcon} />
+    <Icon type='iconfont-identity-devices' />
     <Text type='BodySmall'>Devices > Add a new device.</Text>
   </p>
 )
@@ -74,12 +74,11 @@ class CodePageRender extends Component<void, Props, void> {
         <SubTitle usePhone={this._otherIsPhone()} />
         <Icon style={{marginTop: 30, marginBottom: 40}} type='icon-phone-text-code-32' />
         <Input
-          style={{alignSelf: 'stretch'}}
           hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
-          floatingLabelText='Text code'
+          floatingHintTextOverride='Text code'
           multiline={true}
           value={this.props.enterText}
-          onChange={event => this.props.onChangeText(event.target.value)}
+          onChangeText={text => this.props.onChangeText(text)}
         />
         <Button type='Primary' style={{alignSelf: 'flex-end', marginTop: 35, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
         {this._otherIsPhone() && <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => this.props.setCodePageMode(codePageModeShowCode)}>
@@ -136,11 +135,6 @@ const stylesQr = {
   backgroundRepeat: 'no-repeat',
   backgroundSize: '234px 234px',
   imageRendering: 'pixelated',
-}
-const stylesPhoneIcon = {
-  fontSize: 30,
-  marginRight: 25,
-  transform: 'rotate(-325deg) translateX(18px)',
 }
 
 export default CodePageRender

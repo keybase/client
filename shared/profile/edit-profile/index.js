@@ -45,10 +45,10 @@ class EditProfile extends Component<void, Props, State> {
     const bioMaxChars = maxProfileBioChars
     const bioLengthLeft = bioMaxChars - this.state.bio.length
     return <Render
-      bio={this.props.bio}
+      bio={this.state.bio}
       bioLengthLeft={bioLengthLeft}
-      fullname={this.props.fullname}
-      location={this.props.location}
+      fullname={this.state.fullname}
+      location={this.state.location}
       onBack={this.props.onBack}
       onBioChange={bio => this.setState({bio})}
       onCancel={this.props.onBack}

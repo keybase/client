@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Button, Input, PlatformIcon, SmallInput, StandardScreen, Text} from '../../common-adapters'
+import {Button, PlatformIcon, Input, StandardScreen, Text} from '../../common-adapters'
 import {NativeKeyboardAvoidingView} from '../../common-adapters/index.native'
 import {globalMargins, globalColors} from '../../styles'
 import type {Props} from './add'
@@ -9,6 +9,7 @@ class PgpAdd extends Component<void, Props, void> {
   render () {
     const nextDisabled = !this.props.email1 || !this.props.fullName
     const emailInputProps = {
+      small: true,
       style: styleEmailInput,
       autoCapitalize: 'none',
     }
@@ -28,32 +29,32 @@ class PgpAdd extends Component<void, Props, void> {
             Fill in your public info:
           </Text>
           <Input
-            floatingLabelText='Your full name'
+            small={true}
+            floatingHintTextOverride='Your full name'
             hintText='Your full name'
             value={this.props.fullName}
-            onChangeText={this.props.onChangeFullName}
-            textStyle={{height: undefined}} />
-          <SmallInput
+            onChangeText={this.props.onChangeFullName} />
+          <Input
             {...emailInputProps}
-            label='Email 1:'
+            smallLabel='Email 1:'
             hintText='(required)'
-            onChange={this.props.onChangeEmail1}
+            onChangeText={this.props.onChangeEmail1}
             value={this.props.email1}
-            errorState={this.props.errorEmail1} />
-          <SmallInput
+            errorText={this.props.errorEmail1 ? 'error' : null} />
+          <Input
             {...emailInputProps}
-            label='Email 2:'
+            smallLabel='Email 2:'
             hintText='(optional)'
-            onChange={this.props.onChangeEmail2}
+            onChangeText={this.props.onChangeEmail2}
             value={this.props.email2}
-            errorState={this.props.errorEmail2} />
-          <SmallInput
+            errorText={this.props.errorEmail2 ? 'error' : null} />
+          <Input
             {...emailInputProps}
-            label='Email 3:'
+            smallLabel='Email 3:'
             hintText='(optional)'
-            onChange={this.props.onChangeEmail3}
+            onChangeText={this.props.onChangeEmail3}
             value={this.props.email3}
-            errorState={this.props.errorEmail3} />
+            errorText={this.props.errorEmail3 ? 'error' : null} />
           <Text
             style={styleInfoMessage(!!this.props.errorText)}
             type='Body'>

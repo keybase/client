@@ -64,13 +64,6 @@ class PrivateEnterUsernameRender extends Component<void, Props, State> {
 
   render () {
     const {headerText, floatingLabelText, hintText} = platformText[this.props.platform]
-    // FIXME: Input component has extra bottom space when no floating text.
-    // This adjusts the sizes to be equal, but we should fix this discrepancy
-    // in the component.
-    let inputSizeFix = {}
-    if (!floatingLabelText) {
-      inputSizeFix = {textStyle: {height: 40, marginTop: 29, marginBottom: 11}}
-    }
 
     return (
       <Box style={styleContainer}>
@@ -81,8 +74,7 @@ class PrivateEnterUsernameRender extends Component<void, Props, State> {
         <Input
           autoFocus={true}
           style={styleInput}
-          {...inputSizeFix}
-          floatingLabelText={floatingLabelText}
+          floatingHintTextOverride={floatingLabelText}
           hintText={hintText}
           value={this.state.username}
           onChangeText={username => this.handleUsernameChange(username)}

@@ -732,3 +732,13 @@ func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
 	arg.PublicKeyOptional = true
 	return LoadUser(arg)
 }
+
+func (g *GlobalContext) UIDToUsername(uid keybase1.UID) (NormalizedUsername, error) {
+	q := NewHTTPArgs()
+	q.Add("uid", UIDArg(uid))
+	leaf, err := g.MerkleClient.LookupUser(q, nil)
+	if err != nil {
+		return NormalizedUsername(""), err
+	}
+	return NewNormalizedUsername(leaf.username), nil
+}

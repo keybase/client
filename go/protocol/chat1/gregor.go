@@ -12,30 +12,39 @@ type GenericPayload struct {
 }
 
 type NewConversationPayload struct {
-	Action    string         `codec:"Action" json:"Action"`
-	ConvID    ConversationID `codec:"convID" json:"convID"`
-	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	Action       string         `codec:"Action" json:"Action"`
+	ConvID       ConversationID `codec:"convID" json:"convID"`
+	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
 type NewMessagePayload struct {
-	Action    string         `codec:"Action" json:"Action"`
-	ConvID    ConversationID `codec:"convID" json:"convID"`
-	Message   MessageBoxed   `codec:"message" json:"message"`
-	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	Action       string         `codec:"Action" json:"Action"`
+	ConvID       ConversationID `codec:"convID" json:"convID"`
+	Message      MessageBoxed   `codec:"message" json:"message"`
+	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
 type ReadMessagePayload struct {
-	Action    string         `codec:"Action" json:"Action"`
-	ConvID    ConversationID `codec:"convID" json:"convID"`
-	MsgID     MessageID      `codec:"msgID" json:"msgID"`
-	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	Action       string         `codec:"Action" json:"Action"`
+	ConvID       ConversationID `codec:"convID" json:"convID"`
+	MsgID        MessageID      `codec:"msgID" json:"msgID"`
+	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
 }
 
 type SetStatusPayload struct {
-	Action    string             `codec:"Action" json:"Action"`
-	ConvID    ConversationID     `codec:"convID" json:"convID"`
-	Status    ConversationStatus `codec:"status" json:"status"`
-	InboxVers InboxVers          `codec:"inboxVers" json:"inboxVers"`
+	Action       string             `codec:"Action" json:"Action"`
+	ConvID       ConversationID     `codec:"convID" json:"convID"`
+	Status       ConversationStatus `codec:"status" json:"status"`
+	InboxVers    InboxVers          `codec:"inboxVers" json:"inboxVers"`
+	UnreadUpdate *UnreadUpdate      `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
+}
+
+type UnreadUpdate struct {
+	ConvID         ConversationID `codec:"convID" json:"convID"`
+	UnreadMessages int            `codec:"UnreadMessages" json:"UnreadMessages"`
 }
 
 type GregorInterface interface {

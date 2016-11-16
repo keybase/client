@@ -562,6 +562,11 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
 	}
 
+	if libkb.IsIn(string(ComponentNameApp), components, false) {
+		err = uninstallApp(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameApp), err))
+	}
+
 	return newUninstallResult(componentResults)
 }
 
@@ -636,6 +641,11 @@ func uninstallFuse(runMode libkb.RunMode, log Log) error {
 func uninstallHelper(runMode libkb.RunMode, log Log) error {
 	log.Info("Removing privileged helper tool")
 	return execNativeInstallerWithArg("--uninstall-helper", runMode, log)
+}
+
+func uninstallApp(runMode libkb.RunMode, log Log) error {
+	log.Info("Removing app")
+	return execNativeInstallerWithArg("--uninstall-app", runMode, log)
 }
 
 func execNativeInstallerWithArg(arg string, runMode libkb.RunMode, log Log) error {

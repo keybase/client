@@ -72,6 +72,12 @@ func (u *UserInfoMapper) Lookup(uid keybase1.UID, deviceID keybase1.DeviceID) (u
 	return user.GetNormalizedName().String(), dname, nil
 }
 
+func (u *UserInfoMapper) UserFromCache(uid keybase1.UID) *libkb.User {
+	u.Lock()
+	defer u.Unlock()
+	return u.users[uid]
+}
+
 func (u *UserInfoMapper) User(uid keybase1.UID) (*libkb.User, error) {
 	u.Lock()
 	defer u.Unlock()

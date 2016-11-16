@@ -74,7 +74,7 @@ class SearchBar extends Component<void, Props, void> {
     const tooltips: {[key: string]: ?string} = {'Hackernews': 'Hacker News'}
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0}}>
         <Box style={stylesServicesContainer}>
           {services.map(s => (
             <ServiceIcon
@@ -89,16 +89,16 @@ class SearchBar extends Component<void, Props, void> {
         </Box>
         <Box style={stylesInputContainer}>
           <Input
+            small={true}
+            hideUnderline={true}
             type='text'
             autoFocus={true}
             ref='searchBox'
             onEnterKeyDown={() => this._onSearch()}
-            onChange={() => this._onDebouncedSearch()}
+            onChangeText={() => this._onDebouncedSearch()}
             value={this.props.searchText}
             hintText={this.props.searchHintText}
-            hintStyle={{textAlign: 'left'}}
-            underlineShow={false}
-            style={{width: '100%', paddingLeft: 20, marginBottom: 0, marginTop: 17}}
+            style={{paddingLeft: 20}}
             inputStyle={stylesInput}
           />
           <Icon type='iconfont-remove' style={{marginRight: 16, opacity: this.props.searchText ? 1 : 0}}

@@ -9,10 +9,10 @@
 #import <Foundation/Foundation.h>
 
 #import <KBKit/KBKit.h>
-#import "Settings.h"
+#import "Options.h"
 
 @interface Uninstaller : NSObject
 
-+ (void)uninstallWithSettings:(Settings *)settings completion:(KBCompletion)completion;
++ (void)uninstallWithOptions:(Options *)options completion:(KBCompletion)completion;
 
 @end

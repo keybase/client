@@ -200,6 +200,86 @@ func NewMessageBodyWithHeadline(v MessageHeadline) MessageBody {
 	}
 }
 
+type OutboxStateType int
+
+const (
+	OutboxStateType_SENDING OutboxStateType = 0
+	OutboxStateType_ERROR   OutboxStateType = 1
+)
+
+var OutboxStateTypeMap = map[string]OutboxStateType{
+	"SENDING": 0,
+	"ERROR":   1,
+}
+
+var OutboxStateTypeRevMap = map[OutboxStateType]string{
+	0: "SENDING",
+	1: "ERROR",
+}
+
+type OutboxState struct {
+	State__   OutboxStateType `codec:"state" json:"state"`
+	Sending__ *int            `codec:"sending,omitempty" json:"sending,omitempty"`
+	Error__   *string         `codec:"error,omitempty" json:"error,omitempty"`
+}
+
+func (o *OutboxState) State() (ret OutboxStateType, err error) {
+	switch o.State__ {
+	case OutboxStateType_SENDING:
+		if o.Sending__ == nil {
+			err = errors.New("unexpected nil value for Sending__")
+			return ret, err
+		}
+	case OutboxStateType_ERROR:
+		if o.Error__ == nil {
+			err = errors.New("unexpected nil value for Error__")
+			return ret, err
+		}
+	}
+	return o.State__, nil
+}
+
+func (o OutboxState) Sending() int {
+	if o.State__ != OutboxStateType_SENDING {
+		panic("wrong case accessed")
+	}
+	if o.Sending__ == nil {
+		return 0
+	}
+	return *o.Sending__
+}
+
+func (o OutboxState) Error() string {
+	if o.State__ != OutboxStateType_ERROR {
+		panic("wrong case accessed")
+	}
+	if o.Error__ == nil {
+		return ""
+	}
+	return *o.Error__
+}
+
+func NewOutboxStateWithSending(v int) OutboxState {
+	return OutboxState{
+		State__:   OutboxStateType_SENDING,
+		Sending__: &v,
+	}
+}
+
+func NewOutboxStateWithError(v string) OutboxState {
+	return OutboxState{
+		State__: OutboxStateType_ERROR,
+		Error__: &v,
+	}
+}
+
+type OutboxRecord struct {
+	State    OutboxState      `codec:"state" json:"state"`
+	OutboxID OutboxID         `codec:"outboxID" json:"outboxID"`
+	ConvID   ConversationID   `codec:"convID" json:"convID"`
+	Msg      MessagePlaintext `codec:"Msg" json:"Msg"`
+}
+
 type HeaderPlaintextVersion int
 
 const (
@@ -223,6 +303,7 @@ type HeaderPlaintextV1 struct {
 	Sender          gregor1.UID              `codec:"sender" json:"sender"`
 	SenderDevice    gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
 	BodyHash        Hash                     `codec:"bodyHash" json:"bodyHash"`
+	OutboxInfo      *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	HeaderSignature *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
 }
 
@@ -318,18 +399,21 @@ type MessagePlaintext struct {
 type MessageUnboxedState int
 
 const (
-	MessageUnboxedState_VALID MessageUnboxedState = 1
-	MessageUnboxedState_ERROR MessageUnboxedState = 2
+	MessageUnboxedState_VALID  MessageUnboxedState = 1
+	MessageUnboxedState_ERROR  MessageUnboxedState = 2
+	MessageUnboxedState_OUTBOX MessageUnboxedState = 3
 )
 
 var MessageUnboxedStateMap = map[string]MessageUnboxedState{
-	"VALID": 1,
-	"ERROR": 2,
+	"VALID":  1,
+	"ERROR":  2,
+	"OUTBOX": 3,
 }
 
 var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
 	1: "VALID",
 	2: "ERROR",
+	3: "OUTBOX",
 }
 
 type MessageUnboxedValid struct {
@@ -348,9 +432,10 @@ type MessageUnboxedError struct {
 }
 
 type MessageUnboxed struct {
-	State__ MessageUnboxedState  `codec:"state" json:"state"`
-	Valid__ *MessageUnboxedValid `codec:"valid,omitempty" json:"valid,omitempty"`
-	Error__ *MessageUnboxedError `codec:"error,omitempty" json:"error,omitempty"`
+	State__  MessageUnboxedState  `codec:"state" json:"state"`
+	Valid__  *MessageUnboxedValid `codec:"valid,omitempty" json:"valid,omitempty"`
+	Error__  *MessageUnboxedError `codec:"error,omitempty" json:"error,omitempty"`
+	Outbox__ *OutboxRecord        `codec:"outbox,omitempty" json:"outbox,omitempty"`
 }
 
 func (o *MessageUnboxed) State() (ret MessageUnboxedState, err error) {
@@ -363,6 +448,11 @@ func (o *MessageUnboxed) State() (ret MessageUnboxedState, err error) {
 	case MessageUnboxedState_ERROR:
 		if o.Error__ == nil {
 			err = errors.New("unexpected nil value for Error__")
+			return ret, err
+		}
+	case MessageUnboxedState_OUTBOX:
+		if o.Outbox__ == nil {
+			err = errors.New("unexpected nil value for Outbox__")
 			return ret, err
 		}
 	}
@@ -389,6 +479,16 @@ func (o MessageUnboxed) Error() MessageUnboxedError {
 	return *o.Error__
 }
 
+func (o MessageUnboxed) Outbox() OutboxRecord {
+	if o.State__ != MessageUnboxedState_OUTBOX {
+		panic("wrong case accessed")
+	}
+	if o.Outbox__ == nil {
+		return OutboxRecord{}
+	}
+	return *o.Outbox__
+}
+
 func NewMessageUnboxedWithValid(v MessageUnboxedValid) MessageUnboxed {
 	return MessageUnboxed{
 		State__: MessageUnboxedState_VALID,
@@ -403,9 +503,11 @@ func NewMessageUnboxedWithError(v MessageUnboxedError) MessageUnboxed {
 	}
 }
 
-type ThreadView struct {
-	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
-	Pagination *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
+func NewMessageUnboxedWithOutbox(v OutboxRecord) MessageUnboxed {
+	return MessageUnboxed{
+		State__:  MessageUnboxedState_OUTBOX,
+		Outbox__: &v,
+	}
 }
 
 type UnreadFirstNumLimit struct {
@@ -431,10 +533,9 @@ type ConversationLocal struct {
 	MaxMessages []MessageUnboxed       `codec:"maxMessages" json:"maxMessages"`
 }
 
-type OutboxRecord struct {
-	OutboxID OutboxID         `codec:"outboxID" json:"outboxID"`
-	ConvID   ConversationID   `codec:"convID" json:"convID"`
-	Msg      MessagePlaintext `codec:"Msg" json:"Msg"`
+type ThreadView struct {
+	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
+	Pagination *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 type GetThreadQuery struct {
@@ -445,9 +546,8 @@ type GetThreadQuery struct {
 }
 
 type GetThreadLocalRes struct {
-	Thread     ThreadView     `codec:"thread" json:"thread"`
-	Outbox     []OutboxRecord `codec:"outbox" json:"outbox"`
-	RateLimits []RateLimit    `codec:"rateLimits" json:"rateLimits"`
+	Thread     ThreadView  `codec:"thread" json:"thread"`
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 }
 
 type GetInboxLocalRes struct {
@@ -481,7 +581,6 @@ type PostLocalRes struct {
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 }
 
-type OutboxID []byte
 type PostLocalNonblockRes struct {
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
 	OutboxID   OutboxID    `codec:"outboxID" json:"outboxID"`
@@ -565,6 +664,7 @@ type PostLocalArg struct {
 type PostLocalNonblockArg struct {
 	ConversationID ConversationID   `codec:"conversationID" json:"conversationID"`
 	Msg            MessagePlaintext `codec:"msg" json:"msg"`
+	ClientPrev     MessageID        `codec:"clientPrev" json:"clientPrev"`
 }
 
 type SetConversationStatusLocalArg struct {

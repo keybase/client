@@ -83,6 +83,16 @@ protocol remote {
   // conversation per TLF ID on GetInboxRemote.
   void tlfFinalize(TLFID tlfID);
 
+  UnreadUpdateFull GetUnreadUpdateFull(InboxVers inboxVers);
+  // The full set of updates of all convs in a single user's inbox
+  record UnreadUpdateFull {
+      // Set if this update should be ignored because the requester was already up to date
+      boolean ignore;
+      // The inbox version that this full update was derived from
+      InboxVers inboxVers;
+      array<UnreadUpdate> updates;
+  }
+
   record S3Params {
     string bucket;
     string objectKey;

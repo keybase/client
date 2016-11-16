@@ -13,7 +13,7 @@
 #import "RCTLog.h"
 #import "RCTRootView.h"
 
-#define TIMEOUT_SECONDS (1000 * 60 * 2)
+#define TIMEOUT_SECONDS 600
 #define TEXT_TO_LOOK_FOR @"DONE TESTING"
 
 @interface KeybaseTests : XCTestCase

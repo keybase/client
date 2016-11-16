@@ -8,6 +8,7 @@ export type Props = {
   onSomeoneElse: () => void,
   error: ?string,
   waitingForResponse: boolean,
+  passphrase: string,
   showTyping: boolean,
   saveInKeychain: boolean,
   selectedUser: ?string,

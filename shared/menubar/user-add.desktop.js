@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './user-add'
 import type {IconType} from '../common-adapters/icon'
-import {Box, Button, Input, Icon, Text} from '../common-adapters'
+import {Box, Button, Input, Icon} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
 
@@ -25,22 +25,23 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void
   </Box>
 )
 
-const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username}) => {
+const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}) => {
   const icon: IconType = isPublic ? 'icon-folder-public-open-32' : 'icon-folder-private-open-32'
 
   return (
     <Box style={{...stylesInputContainer,
       backgroundColor: isPublic ? globalColors.lightGrey : globalColors.darkBlue3}}>
-      {!isPublic && <Text type='BodySemiboldItalic' style={stylesPrivatePrefix}>{username},</Text>}
       <Input
         small={true}
+        smallLabel={isPublic ? '' : `${username},`}
+        smallLabelStyle={{marginRight: 0, color: isPublic ? globalColors.black_75 : globalColors.white}}
+        hideUnderline={true}
         autoFocus={true}
         hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
-        hintStyle={{...stylesInputHint, color: isPublic ? globalColors.black_20 : globalColors.white_40}}
-        style={stylesInput}
-        inputStyle={{...stylesInputInput, color: isPublic ? globalColors.black_75 : globalColors.white}}
-        underlineStyle={stylesInputUnderline}
+        style={{flex: 1}}
+        inputStyle={{color: isPublic ? globalColors.black_75 : globalColors.white}}
         onChangeText={onUpdateText}
+        value={text}
         onKeyDown={event => {
           if (event.key === 'Enter') {
             onSubmit()
@@ -82,6 +83,7 @@ class UserAdd extends Component<void, Props, State> {
     return this.state.showingInput
       ? <UserInput
         onSubmit={() => this._submit()}
+        text={this.state.text}
         onCancel={() => this._showInput(false)}
         onUpdateText={text => this.setState({text})}
         {...this.props} />
@@ -111,36 +113,6 @@ const stylesInputContainer = {
   flex: 1,
   height: 40,
   overflow: 'hidden',
-}
-
-const stylesInput = {
-  flex: 1,
-  marginTop: 12,
-}
-
-const stylesInputInput = {
-  ...globalStyles.fontSemibold,
-  fontSize: 14,
-  textAlign: 'left',
-}
-
-const stylesInputHint = {
-  ...globalStyles.fontSemibold,
-  fontSize: 14,
-  textAlign: 'left',
-  marginBottom: 2,
-}
-
-const stylesInputUnderline = {
-  display: 'none',
-}
-
-const stylesPrivatePrefix = {
-  ...globalStyles.fontSemibold,
-  color: globalColors.white,
-  fontSize: 14,
-  marginRight: 2,
-  marginTop: 2,
 }
 
 export default UserAdd
