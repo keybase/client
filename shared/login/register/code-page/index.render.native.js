@@ -155,13 +155,13 @@ class CodePageRender extends Component<void, Props, void> {
           <TabBarItem
             selected={this.props.mode === codePageModeShowCode}
             label='Display Code'
-            onClick={() => { this.props.setCodePageMode(codePageModeScanCode) }}>
+            onClick={() => { this.props.setCodePageMode(codePageModeShowCode) }}>
               {this.renderShowCode()}
           </TabBarItem>
           <TabBarItem
             label='Scan Code'
             selected={this.props.mode === codePageModeScanCode}
-            onClick={() => { this.props.setCodePageMode(codePageModeShowCode) }}>
+            onClick={() => { this.props.setCodePageMode(codePageModeScanCode) }}>
               {this.renderScanCode()}
           </TabBarItem>
         </TabBar>
@@ -209,13 +209,13 @@ class CodePageRender extends Component<void, Props, void> {
           <TabBarItem
             selected={this.props.mode === codePageModeShowText}
             label='Display Code'
-            onClick={() => { this.props.setCodePageMode(codePageModeEnterText) }}>
+            onClick={() => { this.props.setCodePageMode(codePageModeShowText) }}>
               {this.renderShowText()}
           </TabBarItem>
           <TabBarItem
             label='Type Code'
             selected={this.props.mode === codePageModeEnterText}
-            onClick={() => { this.props.setCodePageMode(codePageModeShowText) }}>
+            onClick={() => { this.props.setCodePageMode(codePageModeEnterText) }}>
               {this.renderEnterText()}
           </TabBarItem>
         </TabBar>
