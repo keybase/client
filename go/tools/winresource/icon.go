@@ -1,4 +1,4 @@
-package goversioninfo
+package main
 
 import (
 	"encoding/binary"

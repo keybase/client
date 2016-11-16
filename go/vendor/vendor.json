@@ -45,14 +45,19 @@
 			"revisionTime": "2014-09-07T16:52:47-07:00"
 		},
 		{
+			"path": "github.com/akavel/rsrc",
+			"revision": "ba14da1f827188454a4591717fff29999010887f",
+			"revisionTime": "2015-11-03T21:43:39+01:00"
+		},
+		{
 			"path": "github.com/akavel/rsrc/binutil",
 			"revision": "59b2acb86e3659d46e181b8ee3eb1638995deb96",
 			"revisionTime": "2015-07-03T16:15:20+02:00"
 		},
 		{
 			"path": "github.com/akavel/rsrc/coff",
-			"revision": "59b2acb86e3659d46e181b8ee3eb1638995deb96",
-			"revisionTime": "2015-07-03T16:15:20+02:00"
+			"revision": "ba14da1f827188454a4591717fff29999010887f",
+			"revisionTime": "2015-11-03T21:43:39+01:00"
 		},
 		{
 			"path": "github.com/akavel/rsrc/ico",
@@ -114,8 +119,8 @@
 		},
 		{
 			"path": "github.com/josephspurrier/goversioninfo",
-			"revision": "0ec0f16b6f6fd29a6ef146fddab80417dbcfa7e8",
-			"revisionTime": "2015-09-01T19:20:23-04:00"
+			"revision": "53f6213da3d79c41d3ebc5fbc06d97be82e49dba",
+			"revisionTime": "2016-06-21T22:08:13-04:00"
 		},
 		{
 			"path": "github.com/kardianos/osext",

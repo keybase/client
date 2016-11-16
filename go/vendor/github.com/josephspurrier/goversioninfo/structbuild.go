@@ -1,11 +1,6 @@
-// Copyright 2015 Joseph Spurrier
-// Author: Joseph Spurrier (http://josephspurrier.com)
-// License: http://www.apache.org/licenses/LICENSE-2.0.html
-
 package goversioninfo
 
 import (
-	"math"
 	"reflect"
 )
 
@@ -85,9 +80,8 @@ type VSString struct {
 	WValueLength uint16
 	WType        uint16
 	SzKey        []byte
-	Padding1     []byte
+	Padding      []byte
 	Value        []byte
-	Padding2     []byte
 }
 
 // VSVarFileInfo holds the translation collection of 1.
@@ -110,7 +104,7 @@ type VSVar struct {
 	Value        uint32
 }
 
-func buildString(i int, v reflect.Value) (VSString, bool, uint16) {
+func buildString(i int, v reflect.Value) (VSString, bool) {
 	sValue := string(v.Field(i).Interface().(string))
 	sName := v.Type().Field(i).Name
 
@@ -118,46 +112,43 @@ func buildString(i int, v reflect.Value) (VSString, bool, uint16) {
 
 	// If the value is set
 	if sValue != "" {
-		// Create key
-		ss.SzKey = padString(sName, false)
-		soFar := len(ss.SzKey) + 6
-		ss.Padding1 = padBytes(4 - int(math.Mod(float64(soFar), 4)))
-		// Ensure there is at least 4 bytes between the key and value by NOT
-		// using this code
-		/*if len(ss.Padding1) == 4 {
-			ss.Padding1 = []byte{}
-		}*/
-
-		// Create value
-		ss.Value = padString(sValue, true)
-		soFar += (len(ss.Value) + len(ss.Padding1))
-		ss.Padding2 = padBytes(4 - int(math.Mod(float64(soFar), 4)))
-		// Eliminate too much spacing
-		if len(ss.Padding2) == 4 {
-			ss.Padding2 = []byte{}
-		}
-
-		// Length of text in words (2 bytes)
-		ss.WValueLength = uint16(len(ss.Value) / 2)
-		// This is NOT a good way because the copyright symbol counts as 2 letters
-		//ss.WValueLength = uint16(len(sValue) + 1)
-
 		// 0 for binary, 1 for text
 		ss.WType = 0x01
 
-		// Length of structure
-		ss.WLength = uint16(soFar)
-		// Don't include the padding in the length, but you must pass it back to
-		// the parent to be included
-		//ss.WLength = uint16(soFar + len(ss.Padding2))
+		// Create key
+		ss.SzKey = padString(sName, 0)
 
-		return ss, true, uint16(len(ss.Padding2))
+		// Align to 32-bit boundary
+		soFar := 2
+		for (len(ss.SzKey)+6+soFar)%4 != 0 {
+			soFar += 2
+		}
+		ss.Padding = padBytes(soFar)
+		soFar += len(ss.SzKey)
+
+		// Align zeros to 32-bit boundary
+		zeros := 2
+		for (6+soFar+(len(padString(sValue, 0)))+zeros)%4 != 0 {
+			zeros += 2
+		}
+
+		// Create value
+		ss.Value = padString(sValue, zeros)
+
+		// Length of text in words (2 bytes) plus zero terminate word
+		ss.WValueLength = uint16(len(padString(sValue, 0))/2) + 1
+
+		// Length of structure
+		//ss.WLength = 6 + uint16(soFar) + (ss.WValueLength * 2)
+		ss.WLength = uint16(6 + soFar + len(ss.Value))
+
+		return ss, true
 	}
 
-	return ss, false, 0
+	return ss, false
 }
 
-func buildStringTable(vi *VersionInfo) (VSStringTable, uint16) {
+func buildStringTable(vi *VersionInfo) VSStringTable {
 	st := VSStringTable{}
 
 	// Always set to 0
@@ -167,26 +158,32 @@ func buildStringTable(vi *VersionInfo) (VSStringTable, uint16) {
 	st.WType = 0x01
 
 	// Language identifier and Code page
-	st.SzKey = padString(vi.VarFileInfo.Translation.getTranslationString(), false)
-	soFar := len(st.SzKey) + 6
-	st.Padding = padBytes(4 - int(math.Mod(float64(soFar), 4)))
+	st.SzKey = padString(vi.VarFileInfo.Translation.getTranslationString(), 0)
+
+	// Align to 32-bit boundary
+	soFar := 2
+	for (len(st.SzKey)+6+soFar)%4 != 0 {
+		soFar += 2
+	}
+	st.Padding = padBytes(soFar)
+	soFar += len(st.SzKey)
 
 	// Loop through the struct fields
 	v := reflect.ValueOf(vi.StringFileInfo)
 	for i := 0; i < v.NumField(); i++ {
 		// If the struct is valid
-		if r, ok, extra := buildString(i, v); ok {
+		if r, ok := buildString(i, v); ok {
 			st.Children = append(st.Children, r)
-			st.WLength += (r.WLength + extra)
+			st.WLength += r.WLength
 		}
 	}
 
-	st.WLength += uint16(soFar)
+	st.WLength += 6 + uint16(soFar)
 
-	return st, uint16(len(st.Padding))
+	return st
 }
 
-func buildStringFileInfo(vi *VersionInfo) (VSStringFileInfo, uint16) {
+func buildStringFileInfo(vi *VersionInfo) VSStringFileInfo {
 	sf := VSStringFileInfo{}
 
 	// Always set to 0
@@ -195,37 +192,50 @@ func buildStringFileInfo(vi *VersionInfo) (VSStringFileInfo, uint16) {
 	// 0 for binary, 1 for text
 	sf.WType = 0x01
 
-	sf.SzKey = padString("StringFileInfo", false)
-	soFar := len(sf.SzKey) + 6
-	sf.Padding = padBytes(4 - int(math.Mod(float64(soFar), 4)))
+	sf.SzKey = padString("StringFileInfo", 0)
+
+	// Align to 32-bit boundary
+	soFar := 2
+	for (len(sf.SzKey)+6+soFar)%4 != 0 {
+		soFar += 2
+	}
+	sf.Padding = padBytes(soFar)
+	soFar += len(sf.SzKey)
 
 	// Allows for more than one string table
-	st, extra := buildStringTable(vi)
+	st := buildStringTable(vi)
 	sf.Children = st
-	sf.WLength += (uint16(soFar) + uint16(len(sf.Padding)) + st.WLength)
 
-	return sf, extra
+	sf.WLength = 6 + uint16(soFar) + st.WLength
+
+	return sf
 }
 
 func buildVar(vfi VarFileInfo) VSVar {
 	vs := VSVar{}
-	// Create key
-	vs.SzKey = padString("Translation", false)
-	soFar := len(vs.SzKey) + 6
-	vs.Padding = padBytes(4 - int(math.Mod(float64(soFar), 4)))
-
-	// Create value
-	vs.Value = str2Uint32(vfi.Translation.getTranslation())
-	soFar += (4 + len(vs.Padding))
-
-	// Length of text in bytes
-	vs.WValueLength = 4
 
 	// 0 for binary, 1 for text
 	vs.WType = 0x00
 
+	// Create key
+	vs.SzKey = padString("Translation", 0)
+
+	// Align to 32-bit boundary
+	soFar := 2
+	for (len(vs.SzKey)+6+soFar)%4 != 0 {
+		soFar += 2
+	}
+	vs.Padding = padBytes(soFar)
+	soFar += len(vs.SzKey)
+
+	// Create value
+	vs.Value = str2Uint32(vfi.Translation.getTranslation())
+
+	// Length of text in bytes
+	vs.WValueLength = 4
+
 	// Length of structure
-	vs.WLength = uint16(soFar)
+	vs.WLength = 6 + vs.WValueLength + uint16(soFar)
 
 	return vs
 }
@@ -239,14 +249,20 @@ func buildVarFileInfo(vfi VarFileInfo) VSVarFileInfo {
 	// 0 for binary, 1 for text
 	vf.WType = 0x01
 
-	vf.SzKey = padString("VarFileInfo", false)
-	soFar := len(vf.SzKey) + 6
-	vf.Padding = padBytes(4 - int(math.Mod(float64(soFar), 4)))
+	vf.SzKey = padString("VarFileInfo", 0)
 
-	// Allows for more than one string table
+	// Align to 32-bit boundary
+	soFar := 2
+	for (len(vf.SzKey)+6+soFar)%4 != 0 {
+		soFar += 2
+	}
+	vf.Padding = padBytes(soFar)
+	soFar += len(vf.SzKey)
+
+	// TODO Allow for more than one var table
 	st := buildVar(vfi)
 	vf.Value = st
-	vf.WLength += (uint16(soFar) + uint16(len(vf.Padding)) + st.WLength)
+	vf.WLength = 6 + st.WLength + uint16(soFar)
 
 	return vf
 }
@@ -282,28 +298,33 @@ func (v *VersionInfo) Build() {
 	// 0 for binary, 1 for text
 	vi.WType = 0x00
 
-	vi.SzKey = padString("VS_VERSION_INFO", false)
-	soFar := len(vi.SzKey) + 6
-	vi.Padding1 = padBytes(4 - int(math.Mod(float64(soFar), 4)))
+	vi.SzKey = padString("VS_VERSION_INFO", 0)
+
+	// Align to 32-bit boundary
+	// 6 is for the size of WLength, WValueLength, and WType (each is 1 word or 2 bytes: FF FF)
+	soFar := 2
+	for (len(vi.SzKey)+6+soFar)%4 != 0 {
+		soFar += 2
+	}
+	vi.Padding1 = padBytes(soFar)
+	soFar += len(vi.SzKey)
 
 	vi.Value = buildFixedFileInfo(v)
 
-	// Length of value (always the same)
+	// Length of VSFixedFileInfo (always the same)
 	vi.WValueLength = 0x34
 
-	// Never needs padding
+	// Never needs padding, not included in WLength
 	vi.Padding2 = []byte{}
 
 	// Build strings
-	sf, extraPadding := buildStringFileInfo(v)
-	vi.Children = sf
+	vi.Children = buildStringFileInfo(v)
 
 	// Build translation
-	vf := buildVarFileInfo(v.VarFileInfo)
-	vi.Children2 = vf
+	vi.Children2 = buildVarFileInfo(v.VarFileInfo)
 
 	// Calculate the total size
-	vi.WLength += (uint16(soFar) + uint16(len(vi.Padding1)) + vi.WValueLength + uint16(len(vi.Padding2)) + vi.Children.WLength + vi.Children2.WLength + extraPadding)
+	vi.WLength += 6 + uint16(soFar) + vi.WValueLength + vi.Children.WLength + vi.Children2.WLength
 
 	v.Structure = vi
 }
