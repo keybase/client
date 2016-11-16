@@ -191,7 +191,7 @@ func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1)
 	arg := sendArgV1{
 		conversationID: convID,
 		channel:        opts.Channel,
-		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageID: opts.MessageID}),
+		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: []chat1.MessageID{opts.MessageID}}),
 		mtype:          chat1.MessageType_DELETE,
 		supersedes:     opts.MessageID,
 		response:       "message deleted",

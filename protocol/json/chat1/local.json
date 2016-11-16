@@ -56,8 +56,11 @@
       "name": "MessageDelete",
       "fields": [
         {
-          "type": "MessageID",
-          "name": "messageID"
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          },
+          "name": "messageIDs"
         }
       ]
     },
