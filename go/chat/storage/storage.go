@@ -201,6 +201,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 		}
 
 		superID := msg.Valid().ClientHeader.Supersedes
+		s.debug("updateSupersededBy: supersedes: %d", superID)
 		if superID == 0 {
 			continue
 		}

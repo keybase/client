@@ -150,8 +150,7 @@ func (o *Outbox) PopNOldestMessages(n int) error {
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error reading outbox: err: %s", err.Error()))
+		return o.maybeNuke(err)
 	}
 
 	// Pop N off front
@@ -174,8 +173,7 @@ func (o *Outbox) RemoveMessage(obid chat1.OutboxID) error {
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error reading outbox: err: %s", err.Error()))
+		return o.maybeNuke(err)
 	}
 
 	// Scan to find the message and don't include it
