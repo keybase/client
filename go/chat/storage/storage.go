@@ -33,6 +33,8 @@ type storageEngine interface {
 		msgs []chat1.MessageUnboxed) libkb.ChatStorageError
 	readMessages(ctx context.Context, res resultCollector,
 		convID chat1.ConversationID, uid gregor1.UID, maxID chat1.MessageID) libkb.ChatStorageError
+	getMaxMessageID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (
+		chat1.MessageID, libkb.ChatStorageError)
 }
 
 func New(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI) *Storage {
@@ -241,14 +243,9 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	return nil
 }
 
-func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
+func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
 	rl *[]*chat1.RateLimit) (chat1.ThreadView, libkb.ChatStorageError) {
-	// All public functions get locks to make access to the database single threaded.
-	// They should never be called from private functons.
-	s.Lock()
-	defer s.Unlock()
-
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
@@ -258,7 +255,6 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 
 	// Init storage engine first
 	var err libkb.ChatStorageError
-	convID := conv.Metadata.ConversationID
 	ctx, err = s.engine.init(ctx, key, convID, uid)
 	if err != nil {
 		return chat1.ThreadView{}, s.MaybeNuke(false, err, convID, uid)
@@ -268,13 +264,13 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	var maxID chat1.MessageID
 	var num int
 	if pagination == nil {
-		maxID = conv.ReaderInfo.MaxMsgid
+		maxID = msgID
 		num = 10000
 	} else {
 		var pid chat1.MessageID
 		num = pagination.Num
 		if len(pagination.Next) == 0 && len(pagination.Previous) == 0 {
-			maxID = conv.ReaderInfo.MaxMsgid
+			maxID = msgID
 		} else if len(pagination.Next) > 0 {
 			if derr := decode(pagination.Next, &pid); derr != nil {
 				err = libkb.ChatStorageRemoteError{Msg: "Fetch: failed to decode pager: " + derr.Error()}
@@ -320,4 +316,31 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 
 	s.debug("Fetch: cache hit: num: %d", len(res))
 	return tres, nil
+}
+
+func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
+	rl *[]*chat1.RateLimit) (chat1.ThreadView, libkb.ChatStorageError) {
+	// All public functions get locks to make access to the database single threaded.
+	// They should never be called from private functons.
+	s.Lock()
+	defer s.Unlock()
+
+	maxMsgID, err := s.engine.getMaxMessageID(ctx, convID, uid)
+	if err != nil {
+		return chat1.ThreadView{}, err
+	}
+
+	return s.fetchUpToMsgIDLocked(ctx, convID, uid, maxMsgID, query, pagination, rl)
+}
+
+func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
+	rl *[]*chat1.RateLimit) (chat1.ThreadView, libkb.ChatStorageError) {
+	// All public functions get locks to make access to the database single threaded.
+	// They should never be called from private functons.
+	s.Lock()
+	defer s.Unlock()
+
+	return s.fetchUpToMsgIDLocked(ctx, conv.Metadata.ConversationID, uid, conv.ReaderInfo.MaxMsgid, query, pagination, rl)
 }

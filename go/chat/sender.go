@@ -68,7 +68,7 @@ func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.M
 	return updated, nil
 }
 
-func (s *BlockingSender) addPrevPointersToMessage(msg chat1.MessagePlaintext, convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
+func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1.MessagePlaintext, convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
 	// Make sure the caller hasn't already assembled this list. For now, this
 	// should never happen, and we'll return an error just in case we make a
 	// mistake in the future. But if there's some use case in the future where
@@ -77,9 +77,14 @@ func (s *BlockingSender) addPrevPointersToMessage(msg chat1.MessagePlaintext, co
 		return chat1.MessagePlaintext{}, fmt.Errorf("chatLocalHandler expects an empty prev list")
 	}
 
-	res, _, err := s.G().ConvSource.Pull(context.Background(), convID, msg.ClientHeader.Sender, nil, nil)
+	res, _, err := s.G().ConvSource.PullLocalOnly(context.Background(), convID, msg.ClientHeader.Sender, nil, nil)
 	if err != nil {
-		return chat1.MessagePlaintext{}, err
+		switch err.(type) {
+		case libkb.ChatStorageMissError:
+			s.G().Log.Warning("No local messages; skipping prev pointers")
+		default:
+			return chat1.MessagePlaintext{}, err
+		}
 	}
 
 	prevs, err := CheckPrevPointersAndGetUnpreved(&res)
@@ -106,7 +111,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// convID will be nil in makeFirstMessage, for example
 	if convID != nil {
-		msg, err = s.addPrevPointersToMessage(msg, *convID)
+		msg, err = s.addPrevPointersToMessage(ctx, msg, *convID)
 		if err != nil {
 			return nil, err
 		}

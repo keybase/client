@@ -12,6 +12,7 @@ import (
 
 type msgEngine struct {
 	libkb.Contextified
+	msgIDTracker
 }
 
 type boxedLocalMessage struct {
@@ -33,6 +34,7 @@ func (b boxedLocalMessage) GetMessageType() chat1.MessageType {
 func newMsgEngine(g *libkb.GlobalContext) *msgEngine {
 	return &msgEngine{
 		Contextified: libkb.NewContextified(g),
+		msgIDTracker: msgIDTracker{Contextified: libkb.NewContextified(g)},
 	}
 }
 
@@ -59,6 +61,8 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 	if len(msgs) == 0 {
 		return nil
 	}
+
+	var maxMsgID chat1.MessageID
 
 	// Write out all the messages
 	for _, msg := range msgs {
@@ -103,6 +107,14 @@ func (ms *msgEngine) writeMessages(ctx context.Context, convID chat1.Conversatio
 			return libkb.NewChatStorageInternalError(ms.G(), "writeMessages: failed to write msg: %s",
 				err.Error())
 		}
+
+		if msg.GetMessageID() > maxMsgID {
+			maxMsgID = msg.GetMessageID()
+		}
+	}
+
+	if err := ms.bumpMaxMessageID(ctx, convID, uid, maxMsgID); err != nil {
+		return err
 	}
 
 	return nil
