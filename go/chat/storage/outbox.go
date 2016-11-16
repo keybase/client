@@ -296,7 +296,7 @@ func (o *Outbox) insertMessage(thread *chat1.ThreadView, obr chat1.OutboxRecord)
 	return nil
 }
 
-func (o *Outbox) SprinkleIntoThread(thread *chat1.ThreadView) error {
+func (o *Outbox) SprinkleIntoThread(convID chat1.ConversationID, thread *chat1.ThreadView) error {
 	o.Lock()
 	defer o.Unlock()
 
@@ -309,6 +309,9 @@ func (o *Outbox) SprinkleIntoThread(thread *chat1.ThreadView) error {
 
 	// Sprinkle each outbox message in
 	for _, obr := range obox.Records {
+		if !obr.ConvID.Eq(convID) {
+			continue
+		}
 		if err := o.insertMessage(thread, obr); err != nil {
 			return err
 		}

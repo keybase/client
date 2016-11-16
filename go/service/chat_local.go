@@ -215,7 +215,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
-	if err = outbox.SprinkleIntoThread(&thread); err != nil {
+	if err = outbox.SprinkleIntoThread(arg.ConversationID, &thread); err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
 

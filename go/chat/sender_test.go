@@ -241,7 +241,7 @@ func TestNonblockTimer(t *testing.T) {
 	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
 	t.Logf("source size: %d", len(tres.Messages))
 	require.NoError(t, err)
-	require.NoError(t, outbox.SprinkleIntoThread(&tres))
+	require.NoError(t, outbox.SprinkleIntoThread(res.ConvID, &tres))
 	checkThread(t, tres, sentRef)
 	clock.Advance(5 * time.Minute)
 
