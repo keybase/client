@@ -181,6 +181,11 @@ type MessagePreviousPointer struct {
 	Hash Hash      `codec:"hash" json:"hash"`
 }
 
+type OutboxInfo struct {
+	Prev        MessageID    `codec:"prev" json:"prev"`
+	ComposeTime gregor1.Time `codec:"composeTime" json:"composeTime"`
+}
+
 type MessageClientHeader struct {
 	Conv         ConversationIDTriple     `codec:"conv" json:"conv"`
 	TlfName      string                   `codec:"tlfName" json:"tlfName"`
@@ -191,6 +196,7 @@ type MessageClientHeader struct {
 	Sender       gregor1.UID              `codec:"sender" json:"sender"`
 	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
 	OutboxID     *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	OutboxInfo   *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 }
 
 type EncryptedData struct {

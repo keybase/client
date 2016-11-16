@@ -98,6 +98,12 @@ export const LocalHeaderPlaintextVersion = {
 export const LocalMessageUnboxedState = {
   valid: 1,
   error: 2,
+  outbox: 3,
+}
+
+export const LocalOutboxStateType = {
+  sending: 0,
+  error: 1,
 }
 
 export const NotifyChatChatActivityType = {
@@ -588,7 +594,6 @@ export type GetMessagesRemoteRes = {
 
 export type GetThreadLocalRes = {
   thread: ThreadView,
-  outbox?: ?Array<OutboxRecord>,
   rateLimits?: ?Array<RateLimit>,
 }
 
@@ -618,6 +623,7 @@ export type HeaderPlaintextV1 = {
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
   bodyHash: Hash,
+  outboxInfo?: ?OutboxInfo,
   headerSignature?: ?SignatureInfo,
 }
 
@@ -687,6 +693,7 @@ export type MessageClientHeader = {
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
   outboxID?: ?OutboxID,
+  outboxInfo?: ?OutboxInfo,
 }
 
 export type MessageConversationMetadata = {
@@ -741,6 +748,7 @@ export type MessageType =
 export type MessageUnboxed = 
     { state : 1, valid : ?MessageUnboxedValid }
   | { state : 2, error : ?MessageUnboxedError }
+  | { state : 3, outbox : ?OutboxRecord }
 
 export type MessageUnboxedError = {
   errMsg: string,
@@ -751,6 +759,7 @@ export type MessageUnboxedError = {
 export type MessageUnboxedState = 
     1 // VALID_1
   | 2 // ERROR_2
+  | 3 // OUTBOX_3
 
 export type MessageUnboxedValid = {
   clientHeader: MessageClientHeader,
@@ -793,11 +802,25 @@ export type NotifyChatNewChatActivityRpcParam = Exact<{
 
 export type OutboxID = bytes
 
+export type OutboxInfo = {
+  prev: MessageID,
+  composeTime: gregor1.Time,
+}
+
 export type OutboxRecord = {
+  state: OutboxState,
   outboxID: OutboxID,
   convID: ConversationID,
   Msg: MessagePlaintext,
 }
+
+export type OutboxState = 
+    { state : 0, sending : ?int }
+  | { state : 1, error : ?string }
+
+export type OutboxStateType = 
+    0 // SENDING_0
+  | 1 // ERROR_1
 
 export type Pagination = {
   next: bytes,
@@ -974,7 +997,8 @@ export type localPostAttachmentLocalRpcParam = Exact<{
 
 export type localPostLocalNonblockRpcParam = Exact<{
   conversationID: ConversationID,
-  msg: MessagePlaintext
+  msg: MessagePlaintext,
+  clientPrev: MessageID
 }>
 
 export type localPostLocalRpcParam = Exact<{

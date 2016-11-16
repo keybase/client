@@ -349,6 +349,20 @@
     },
     {
       "type": "record",
+      "name": "OutboxInfo",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "prev"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "composeTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "MessageClientHeader",
       "fields": [
         {
@@ -392,6 +406,13 @@
             "OutboxID"
           ],
           "name": "outboxID"
+        },
+        {
+          "type": [
+            null,
+            "OutboxInfo"
+          ],
+          "name": "outboxInfo"
         }
       ]
     },
