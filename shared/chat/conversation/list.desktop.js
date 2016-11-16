@@ -116,7 +116,10 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     const message = this.state.messages.get(index - 1)
-    return messageFactory(message, index, key, style, isScrolling)
+    const prevMessage = this.state.messages.get(index - 2)
+
+    const skipMsgHeader = !!prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author
+    return messageFactory(message, !skipMsgHeader, index, key, style, isScrolling)
   }
 
   render () {
