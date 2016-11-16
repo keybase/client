@@ -243,6 +243,51 @@ func TestUploadAssetLarge(t *testing.T) {
 	assertNumMultis(t, s, 1)
 }
 
+type uploader struct {
+	s         *AttachmentStore
+	encKey    []byte
+	sigKey    []byte
+	plaintext []byte
+	task      *UploadTask
+}
+
+func newUploader(t *testing.T, size int) *uploader {
+	u := new(uploader)
+	u.s = makeTestStore(t, u.keyTracker)
+	u.plaintext, u.task = makeUploadTask(t, size)
+	return u
+}
+
+func (u *uploader) keyTracker(e, s []byte) {
+	u.encKey = e
+	u.sigKey = s
+}
+
+func (u *uploader) UploadPartial(t *testing.T, blocks int) {
+	u.s.blockLimit = blocks
+
+	_, err := u.s.UploadAsset(context.Background(), u.task)
+	if err == nil {
+		t.Fatal("expected incomplete upload to have error")
+	}
+
+	assertNumParts(t, u.s, 0, blocks)
+}
+
+func TestUploadAssetResumeOK2(t *testing.T) {
+	u := newUploader(t, 12*MB)
+	_, err := s.UploadAsset(ctx, task)
+	if err == nil {
+		t.Fatal("expected incomplete upload to have error")
+	}
+
+	assertNumParts(t, s, 0, s.blockLimit)
+
+	// keep track of the keys used in attempt 1
+	enc1 := hex.EncodeToString(enc)
+	sig1 := hex.EncodeToString(sig)
+}
+
 func TestUploadAssetResumeOK(t *testing.T) {
 	var enc, sig []byte
 	kt := func(e, s []byte) {
