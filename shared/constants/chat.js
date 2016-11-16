@@ -10,8 +10,8 @@ export type MessageType = 'Text'
 export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
 export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', 'NotFollowing']
 
-export type MessageState = 'Sending' | 'Failed' | 'Ok'
-export const messageStates: Array<MessageState> = ['Sending', 'Failed', 'Ok']
+export type MessageState = 'pending' | 'failed' | 'sent'
+export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
 export type Message = {
   type: 'Text',
