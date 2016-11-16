@@ -162,7 +162,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
         const message = _unboxedToMessage(messageUnboxed, 0, yourName)
-        if (message.outboxID && message.type === 'Text') {
+        if (message.outboxID && message.type === 'Text' && yourName === message.author) {
           // If the message has an outboxID, then we sent it and have already
           // rendered it in the message list; we just need to mark it as sent.
           yield put({
