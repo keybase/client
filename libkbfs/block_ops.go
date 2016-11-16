@@ -20,14 +20,14 @@ type BlockOpsStandard struct {
 var _ BlockOps = (*BlockOpsStandard)(nil)
 
 // NewBlockOpsStandard creates a new BlockOpsStandard
-func NewBlockOpsStandard(config Config) *BlockOpsStandard {
+func NewBlockOpsStandard(config Config, queueSize int) *BlockOpsStandard {
 	bops := &BlockOpsStandard{
 		config:  config,
-		queue:   newBlockRetrievalQueue(defaultBlockRetrievalWorkerQueueSize, config.Codec()),
-		workers: make([]*blockRetrievalWorker, 0, defaultBlockRetrievalWorkerQueueSize),
+		queue:   newBlockRetrievalQueue(queueSize, config.Codec()),
+		workers: make([]*blockRetrievalWorker, 0, queueSize),
 	}
 	bg := &realBlockGetter{config: config}
-	for i := 0; i < defaultBlockRetrievalWorkerQueueSize; i++ {
+	for i := 0; i < queueSize; i++ {
 		bops.workers = append(bops.workers, newBlockRetrievalWorker(bg, bops.queue))
 	}
 	return bops

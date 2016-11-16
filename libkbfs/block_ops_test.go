@@ -93,7 +93,7 @@ func blockOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
-	bops := NewBlockOpsStandard(config)
+	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	config.SetBlockOps(bops)
 	ctx = context.Background()
 	return
