@@ -86,13 +86,14 @@ func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlain
 	}
 
 	// Generate new outbox ID
-	outboxID, ierr := libkb.RandBytes(8)
+	rbs, ierr := libkb.RandBytes(8)
 	if ierr != nil {
 		return nil, o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error getting outboxID: err: %s", ierr.Error()))
 	}
 
 	// Append record
+	outboxID := chat1.OutboxID(rbs)
 	msg.ClientHeader.OutboxID = &outboxID
 	obox.Records = append(obox.Records, chat1.OutboxRecord{
 		Msg:      msg,
@@ -187,7 +188,7 @@ func (o *Outbox) RemoveMessage(obid chat1.OutboxID) error {
 	obox.Records = recs
 
 	// Write out box
-	if err := o.writeDiskOutbox(obox); err != nil {
+	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
 		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
 			"error writing outbox: err: %s", err.Error()))
 	}
@@ -237,8 +238,7 @@ func (o *Outbox) SprinkleIntoThread(convID chat1.ConversationID, thread *chat1.T
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(), "error reading outbox: err: %s",
-			err.Error()))
+		return o.maybeNuke(err)
 	}
 
 	// Sprinkle each outbox message in
