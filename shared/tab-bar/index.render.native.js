@@ -61,5 +61,5 @@ export default class TabBarRender extends Component<void, Props, void> {
 const stylesTabBar = {
   backgroundColor: globalColors.midnightBlue,
   justifyContent: 'space-between',
-  height: 56
+  height: 56,
 }

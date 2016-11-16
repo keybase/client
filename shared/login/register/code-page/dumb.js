@@ -1,7 +1,6 @@
 // @flow
 import Render from './index.render'
 import type {DumbComponentMap} from '../../../constants/types/more'
-import type {Mode} from '../../../constants/login'
 
 const baseMock = {
   mode: 'codePageModeScanCode',
@@ -70,14 +69,14 @@ const enterTextMock = {
 const dumbComponentMap: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
-    'Scan Code': scanCodeMock,
-    'Show Text': showTextMock,
-    'Enter Text': enterTextMock,
-    'Show Code': showCodeMock,
     'Scan Code (Mobile)': scanCodeDeviceMock,
     'Show Text (Mobile)': showTextDeviceMock,
     'Enter Text (Mobile)': enterTextDeviceMock,
     'Show Code (Mobile)': showCodeDeviceMock,
+    'Show Text': showTextMock,
+    'Enter Text': enterTextMock,
+    'Show Code': showCodeMock,
+    'Scan Code': scanCodeMock,
   },
 }
 

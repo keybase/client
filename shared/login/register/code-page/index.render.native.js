@@ -8,41 +8,16 @@ import Container from '../../forms/container'
 import Platform, {OS} from '../../../constants/platform'
 import Qr from './qr'
 import React, {Component} from 'react'
-import {Box, Button, ClickableBox, Icon, Input, NativeStyleSheet, ProgressIndicator, TabBar, Text} from '../../../common-adapters/index.native'
-import {TabBarItem, TabBarButton} from '../../../common-adapters/tab-bar'
-import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer, codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
+import {Box, Button, ClickableBox, Icon, Input, NativeStyleSheet, TabBar, Text} from '../../../common-adapters/index.native'
+import {TabBarItem} from '../../../common-adapters/tab-bar'
+import {codePageDeviceRoleExistingPhone, codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
 import {globalStyles, globalColors} from '../../../styles'
 
 import type {IconType} from '../../../common-adapters/icon'
-import type {Mode, DeviceRole} from '../../../constants/login'
+import type {Mode} from '../../../constants/login'
 import type {Props} from './index.render'
 
 const isIOS = Platform.OS_IOS === OS
-
-function determineModes (myDeviceRole: DeviceRole, otherDeviceRole: DeviceRole, cameraBrokenMode: boolean): ?Array<Mode> {
-  let controls = null
-
-  switch (myDeviceRole + otherDeviceRole) {
-    case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingComputer: // fallthrough
-    case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewComputer:
-      controls = [codePageModeScanCode, codePageModeEnterText]
-      break
-    case codePageDeviceRoleExistingPhone + codePageDeviceRoleNewPhone: // fallthrough
-    case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
-      if (cameraBrokenMode) {
-        controls = [codePageModeShowText, codePageModeEnterText]
-      } else {
-        controls = [codePageModeShowCode, codePageModeScanCode]
-      }
-      break
-    case codePageDeviceRoleNewComputer + codePageDeviceRoleExistingPhone: // fallthrough
-    case codePageDeviceRoleExistingComputer + codePageDeviceRoleNewPhone:
-      controls = [codePageModeShowCode, codePageModeEnterText]
-      break
-  }
-
-  return controls
-}
 
 class CodePageRender extends Component<void, Props, void> {
 
@@ -52,12 +27,11 @@ class CodePageRender extends Component<void, Props, void> {
         style={{alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}
         scanning={false}
         onBarCodeRead={() => {}}
-        qrCode={this.props.qrCode}>
-      </Qr>
+        qrCode={this.props.qrCode} />
     )
   }
 
-  renderScanCode() {
+  renderScanCode () {
     return (
       <Qr
         scanning={true}
@@ -156,13 +130,13 @@ class CodePageRender extends Component<void, Props, void> {
             selected={this.props.mode === codePageModeShowCode}
             label='Display Code'
             onClick={() => { this.props.setCodePageMode(codePageModeShowCode) }}>
-              {this.renderShowCode()}
+            {this.renderShowCode()}
           </TabBarItem>
           <TabBarItem
             label='Scan Code'
             selected={this.props.mode === codePageModeScanCode}
             onClick={() => { this.props.setCodePageMode(codePageModeScanCode) }}>
-              {this.renderScanCode()}
+            {this.renderScanCode()}
           </TabBarItem>
         </TabBar>
         {this.renderSwitchButton(codePageModeEnterText, 'icon-phone-text-code-32', 'Type text code instead')}
@@ -170,7 +144,7 @@ class CodePageRender extends Component<void, Props, void> {
     )
   }
 
-  renderShowTextForDesktop() {
+  renderShowTextForDesktop () {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
         <Box style={stylesIntro}>
@@ -197,26 +171,26 @@ class CodePageRender extends Component<void, Props, void> {
     )
   }
 
-  renderTextForMobile() {
+  renderTextForMobile () {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>
         <Box style={stylesIntro}>
           <Text type='Header' style={{marginBottom: 10}}>Type text code</Text>
-            <Text type='Body'>In the Keybase App</Text>
-            <Text type='Body'>{'go to Devices > Add a new device.'}</Text>
+          <Text type='Body'>In the Keybase App</Text>
+          <Text type='Body'>{'go to Devices > Add a new device.'}</Text>
         </Box>
         <TabBar underlined={true} style={{flex: 1}}>
           <TabBarItem
             selected={this.props.mode === codePageModeShowText}
             label='Display Code'
             onClick={() => { this.props.setCodePageMode(codePageModeShowText) }}>
-              {this.renderShowText()}
+            {this.renderShowText()}
           </TabBarItem>
           <TabBarItem
             label='Type Code'
             selected={this.props.mode === codePageModeEnterText}
             onClick={() => { this.props.setCodePageMode(codePageModeEnterText) }}>
-              {this.renderEnterText()}
+            {this.renderEnterText()}
           </TabBarItem>
         </TabBar>
         {this.renderSwitchButton(codePageModeScanCode, 'icon-phone-qr-code-48', 'Scan QR code instead')}
@@ -225,31 +199,31 @@ class CodePageRender extends Component<void, Props, void> {
   }
 
   render () {
-    let isMobile = this.props.otherDeviceRole === 'codePageDeviceRoleExistingPhone'
+    let isMobile = this.props.otherDeviceRole === codePageDeviceRoleExistingPhone
     switch (this.props.mode) {
-    case codePageModeShowCode:
-      if (isMobile) {
-        return this.renderCodeForMobile()
-      }
-      return this.renderShowCodeForDesktop()
+      case codePageModeShowCode:
+        if (isMobile) {
+          return this.renderCodeForMobile()
+        }
+        return this.renderShowCodeForDesktop()
 
-    case codePageModeScanCode:
-      if (isMobile) {
-        return this.renderCodeForMobile()
-      }
-      return this.renderScanCodeForDesktop()
+      case codePageModeScanCode:
+        if (isMobile) {
+          return this.renderCodeForMobile()
+        }
+        return this.renderScanCodeForDesktop()
 
-    case codePageModeShowText:
-    if (isMobile) {
-        return this.renderTextForMobile()
-      }
-      return this.renderShowTextForDesktop()
+      case codePageModeShowText:
+        if (isMobile) {
+          return this.renderTextForMobile()
+        }
+        return this.renderShowTextForDesktop()
 
-    case codePageModeEnterText:
-      if (isMobile) {
-        return this.renderTextForMobile()
-      }
-      return this.renderEnterTextForDesktop()
+      case codePageModeEnterText:
+        if (isMobile) {
+          return this.renderTextForMobile()
+        }
+        return this.renderEnterTextForDesktop()
     }
   }
 }
