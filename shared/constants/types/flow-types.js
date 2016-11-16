@@ -2650,6 +2650,21 @@ export type BTCRegisterBTCRpcParam = Exact<{
   force: boolean
 }>
 
+export type BadgeConversationInfo = {
+  convID: ChatConversationID,
+  UnreadMessages: int,
+}
+
+export type BadgeState = {
+  total: int,
+  newTlfs: int,
+  rekeysNeeded: int,
+  newFollowers: int,
+  unreadChatMessages: int,
+  unreadChatConversations: int,
+  conversations?: ?Array<BadgeConversationInfo>,
+}
+
 export type BinaryKID = bytes
 
 export type BlockIdCombo = {
@@ -2688,6 +2703,8 @@ export type ChallengeInfo = {
   now: long,
   challenge: string,
 }
+
+export type ChatConversationID = bytes
 
 export type CheckProofStatus = {
   found: boolean,
@@ -3284,7 +3301,12 @@ export type NotificationChannels = {
   chat: boolean,
   pgp: boolean,
   kbfsrequest: boolean,
+  badges: boolean,
 }
+
+export type NotifyBadgesBadgeStateRpcParam = Exact<{
+  badgeState: BadgeState
+}>
 
 export type NotifyFSFSActivityRpcParam = Exact<{
   notification: FSNotification
@@ -5659,6 +5681,13 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyApp.exit'?: (
     params: Exact<{}>,
     response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyBadges.badgeState'?: (
+    params: Exact<{
+      badgeState: BadgeState
+    }> /* ,
+    response: {} // Notify call
+    */
   ) => void,
   'keybase.1.NotifyFavorites.favoritesChanged'?: (
     params: Exact<{
