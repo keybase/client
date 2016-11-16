@@ -6,6 +6,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"golang.org/x/net/context"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/msgchecker"
+	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -546,7 +548,9 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
-
+	if os.Getenv("CHAT_S3_FAKE") == "1" {
+		ctx = s3.NewFakeS3Context(ctx)
+	}
 	chatUI := h.getChatUI(arg.SessionID)
 	progress := func(bytesComplete, bytesTotal int) {
 		parg := chat1.ChatAttachmentUploadProgressArg{

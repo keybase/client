@@ -120,8 +120,7 @@ func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, siz
 
 	multi, err := b.Multi(ctx, task.S3Params.ObjectKey, "application/octet-stream", s3.ACL(task.S3Params.Acl))
 	if err != nil {
-		a.log.Debug("Multi error: %s", err)
-		return "", err
+		return "", fmt.Errorf("s3 Multi error: %s", err)
 	}
 
 	var previousParts map[int]s3.Part

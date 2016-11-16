@@ -191,7 +191,7 @@ const (
 // PutBucket creates a new bucket.
 //
 // See http://goo.gl/ndjnR for details.
-func (b *Bucket) PutBucket(perm ACL) error {
+func (b *Bucket) PutBucket(ctx context.Context, perm ACL) error {
 	headers := map[string][]string{
 		"x-amz-acl": {string(perm)},
 	}

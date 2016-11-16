@@ -93,7 +93,14 @@ func (b *Bucket) ListMulti(ctx context.Context, prefix, delim string) (multis []
 func (b *Bucket) Multi(ctx context.Context, key, contType string, perm ACL) (MultiInt, error) {
 	multis, _, err := b.ListMulti(ctx, key, "")
 	if err != nil && !hasCode(err, "NoSuchUpload") {
-		return nil, err
+		if !UsingFakeS3(ctx) {
+			return nil, err
+		}
+		// fakes3 returns NoSuchKey instead of NoSuchUpload, and we want to continue
+		// in that case, not abort
+		if !hasCode(err, "NoSuchKey") {
+			return nil, err
+		}
 	}
 	for _, m := range multis {
 		if m.Key == key {
