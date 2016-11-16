@@ -21,7 +21,7 @@ class PassphraseRender extends Component<void, Props, void> {
             inputProps={{
               autoFocus: true,
               type: showTyping ? 'passwordVisible' : 'password',
-              floatingLabelText: 'Passphrase',
+              floatingHintTextOverride: 'Passphrase',
               onEnterKeyDown: this.props.onSubmit,
               onChangeText: t => this.props.onChange(t),
               value: this.props.passphrase,

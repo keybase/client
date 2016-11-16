@@ -29,7 +29,16 @@ class InviteCodeRender extends Component<void, Props, State> {
         <Box style={stylesBox}>
           <Text style={stylesHeader} type='Header'>Type in your invite code:</Text>
           <Icon style={stylesIcon} type='icon-invite-code-48' />
-          <Input autoFocus={true} style={stylesInput} hintText='goddess brown result reject' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode} onChange={event => this.setState({inviteCode: event.target.value})} />
+          <Input
+            autoFocus={true}
+            style={stylesInput}
+            hintText='goddess brown result reject'
+            floatingHintTextOverride='Invite code'
+            value={this.state.inviteCode}
+            errorText={this.props.inviteCodeErrorText}
+            onEnterKeyDown={submitInviteCode}
+            onChangeText={inviteCode => this.setState({inviteCode})}
+          />
           <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode} />
           <Text style={stylesText} type='Body'>Not invited?</Text>
           <Text type='BodyPrimaryLink' onClick={this.props.onRequestInvite}>Request an invite code</Text>
@@ -42,7 +51,7 @@ class InviteCodeRender extends Component<void, Props, State> {
 const stylesButton = {
   marginTop: 10,
   marginRight: 0,
-  alignSelf: 'flex-end',
+  alignSelf: 'center',
 }
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,

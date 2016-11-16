@@ -14,7 +14,9 @@
       "symbols": [
         "RESERVED_0",
         "INCOMING_MESSAGE_1",
-        "MESSAGE_SENT_2"
+        "READ_MESSAGE_2",
+        "NEW_CONVERSATION_3",
+        "SET_STATUS_4"
       ]
     },
     {
@@ -46,10 +48,44 @@
         {
           "type": "OutboxID",
           "name": "outboxID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReadMessageInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
         },
         {
           "type": "MessageID",
-          "name": "messageID"
+          "name": "msgID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NewConversationInfo",
+      "fields": [
+        {
+          "type": "ConversationLocal",
+          "name": "conv"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetStatusInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "ConversationStatus",
+          "name": "status"
         }
       ]
     },
@@ -70,10 +106,24 @@
         },
         {
           "label": {
-            "name": "MESSAGE_SENT",
+            "name": "READ_MESSAGE",
             "def": false
           },
-          "body": "MessageSentInfo"
+          "body": "ReadMessageInfo"
+        },
+        {
+          "label": {
+            "name": "NEW_CONVERSATION",
+            "def": false
+          },
+          "body": "NewConversationInfo"
+        },
+        {
+          "label": {
+            "name": "SET_STATUS",
+            "def": false
+          },
+          "body": "SetStatusInfo"
         }
       ]
     }

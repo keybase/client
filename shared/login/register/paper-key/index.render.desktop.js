@@ -19,7 +19,7 @@ const Render = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingFor
         errorText={error}
         hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
         onEnterKeyDown={() => onSubmit()}
-        onChange={event => onChangePaperKey(event.target.value)}
+        onChangeText={text => onChangePaperKey(text)}
         value={paperKey}
       />
       <Button
@@ -47,7 +47,6 @@ const styles = {
     marginTop: 45,
   },
   input: {
-    alignSelf: 'stretch',
     marginBottom: 55,
     height: '4em',
   },

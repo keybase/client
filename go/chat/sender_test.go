@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"encoding/hex"
+
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -40,9 +42,12 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	n.Lock()
 	defer n.Unlock()
 	typ, err := activity.ActivityType()
-	if err == nil && typ == chat1.ChatActivityType_MESSAGE_SENT {
-		n.obids = append(n.obids, activity.MessageSent().OutboxID)
-		n.action <- len(n.obids)
+	if err == nil && typ == chat1.ChatActivityType_INCOMING_MESSAGE {
+		header := activity.IncomingMessage().Message.Valid().ClientHeader
+		if header.OutboxID != nil {
+			n.obids = append(n.obids, *activity.IncomingMessage().Message.Valid().ClientHeader.OutboxID)
+			n.action <- len(n.obids)
+		}
 	}
 }
 
@@ -53,7 +58,7 @@ func getUser(world *kbtest.ChatMockWorld) (libkb.TestContext, *kbtest.FakeUser) 
 	return libkb.TestContext{}, nil
 }
 
-func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.FakeUser, Sender, *chatListener, func() libkb.SecretUI, clockwork.FakeClock) {
+func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.FakeUser, Sender, Sender, *chatListener, func() libkb.SecretUI, clockwork.FakeClock) {
 	world := kbtest.NewChatMockWorld(t, "chatsender", 1)
 	ri := kbtest.NewChatRemoteMock(world)
 	tlf := kbtest.NewTlfMock(world)
@@ -74,11 +79,11 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 	tc.G.MessageDeliverer = NewDeliverer(tc.G, baseSender)
 	tc.G.MessageDeliverer.Start(u.User.GetUID().ToBytes())
 
-	return tc, ri, u, sender, &listener, f, world.Fc
+	return tc, ri, u, sender, baseSender, &listener, f, world.Fc
 }
 
 func TestNonblockChannel(t *testing.T) {
-	tc, ri, u, sender, listener, _, _ := setupTest(t)
+	tc, ri, u, sender, _, listener, _, _ := setupTest(t)
 	defer tc.Cleanup()
 
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
@@ -96,13 +101,15 @@ func TestNonblockChannel(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
+
+	// Send nonblock
 	obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Sender:    u.User.GetUID().ToBytes(),
 			TlfName:   u.Username,
 			TlfPublic: false,
 		},
-	})
+	}, 0)
 	require.NoError(t, err)
 
 	select {
@@ -113,10 +120,37 @@ func TestNonblockChannel(t *testing.T) {
 
 	require.Equal(t, 1, len(listener.obids), "wrong length")
 	require.Equal(t, obid, listener.obids[0], "wrong obid")
+
+}
+
+type sentRecord struct {
+	msgID    *chat1.MessageID
+	outboxID *chat1.OutboxID
+}
+
+func checkThread(t *testing.T, thread chat1.ThreadView, ref []sentRecord) {
+	require.Equal(t, len(ref), len(thread.Messages), "size not equal")
+	for index, msg := range thread.Messages {
+		rindex := len(ref) - index - 1
+		t.Logf("checking index: %d rindex: %d", index, rindex)
+		if ref[rindex].msgID != nil {
+			t.Logf("msgID: ref: %d actual: %d", *ref[rindex].msgID, thread.Messages[index].GetMessageID())
+			require.NotZero(t, msg.GetMessageID(), "missing message ID")
+			require.Equal(t, *ref[rindex].msgID, msg.GetMessageID(), "invalid message ID")
+		} else if ref[index].outboxID != nil {
+			t.Logf("obID: ref: %s actual: %s",
+				hex.EncodeToString(*ref[rindex].outboxID),
+				hex.EncodeToString(msg.Outbox().OutboxID))
+			require.Equal(t, *ref[rindex].outboxID, msg.Outbox().OutboxID, "invalid outbox ID")
+		} else {
+			require.Fail(t, "unknown ref type")
+		}
+		t.Logf("index %d succeeded", index)
+	}
 }
 
 func TestNonblockTimer(t *testing.T) {
-	tc, ri, u, _, listener, f, clock := setupTest(t)
+	tc, ri, u, _, baseSender, listener, f, clock := setupTest(t)
 	defer tc.Cleanup()
 
 	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
@@ -127,25 +161,51 @@ func TestNonblockTimer(t *testing.T) {
 		},
 		TLFMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
-				TlfName:   u.Username,
-				TlfPublic: false,
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_TLFNAME,
 			},
 			KeyGeneration: 1,
 		},
 	})
 	require.NoError(t, err)
 
+	// Send a bunch of nonblocking messages
+	var sentRef []sentRecord
+	for i := 0; i < 5; i++ {
+		_, msgID, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Sender:      u.User.GetUID().ToBytes(),
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			}),
+		}, 0)
+		t.Logf("generated msgID: %d", msgID)
+		require.NoError(t, err)
+		sentRef = append(sentRef, sentRecord{msgID: &msgID})
+	}
+
 	outbox := storage.NewOutbox(tc.G, u.User.GetUID().ToBytes(), f)
 	var obids []chat1.OutboxID
+	msgID := *sentRef[len(sentRef)-1].msgID
 	for i := 0; i < 5; i++ {
 		obid, err := outbox.PushMessage(res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Sender:    u.User.GetUID().ToBytes(),
 				TlfName:   u.Username,
 				TlfPublic: false,
+				OutboxInfo: &chat1.OutboxInfo{
+					Prev: msgID,
+				},
 			},
 		})
+		t.Logf("generated obid: %s prev: %d", hex.EncodeToString(obid), msgID)
 		require.NoError(t, err)
+		sentRef = append(sentRef, sentRecord{outboxID: &obid})
 		obids = append(obids, obid)
 	}
 
@@ -156,6 +216,33 @@ func TestNonblockTimer(t *testing.T) {
 	default:
 	}
 
+	// Send a bunch of nonblocking messages
+	for i := 0; i < 5; i++ {
+		_, msgID, _, err := baseSender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Sender:      u.User.GetUID().ToBytes(),
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			}),
+		}, 0)
+		t.Logf("generated msgID: %d", msgID)
+		sentRef = append(sentRef, sentRecord{msgID: &msgID})
+		require.NoError(t, err)
+	}
+
+	// Check get thread, make sure it makes sense
+	typs := []chat1.MessageType{chat1.MessageType_TEXT}
+	tres, _, err := tc.G.ConvSource.Pull(context.TODO(), res.ConvID, u.User.GetUID().ToBytes(),
+		&chat1.GetThreadQuery{MessageTypes: typs}, nil)
+	tres.Messages = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: typs})
+	t.Logf("source size: %d", len(tres.Messages))
+	require.NoError(t, err)
+	require.NoError(t, outbox.SprinkleIntoThread(res.ConvID, &tres))
+	checkThread(t, tres, sentRef)
 	clock.Advance(5 * time.Minute)
 
 	// Should get a blast of all 5

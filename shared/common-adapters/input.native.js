@@ -1,170 +1,251 @@
 // @flow
-import Platform, {OS} from '../constants/platform'
+// Known issues:
+// When input gets focus it shifts down 1 pixel when the cursor appears. This happens with a naked TextInput on RN...
 import React, {Component} from 'react'
-import type {Props} from './input'
 import Box from './box'
-import Text, {getStyle} from './text'
-import {NativeTextInput} from './native-wrappers.native'
-import {globalColors, globalStyles} from '../styles'
+import Text, {getStyle as getTextStyle} from './text.native'
+import {NativeTextInput} from './index.native'
+import {globalStyles, globalColors} from '../styles'
 
-/* ==========
- * =  BUGS  =
- * ==========
- *
- * iOS:
- *  - Placeholder text (hintText) is top left aligned. (AW 2016-08-26)
- *  - Multiline inputs appear to get pushed ~4px right of center. (AW 2016-08-26)
- *
- * Android:
- *  - Auto grow does not work. (AW 2016-8-26)
- *    - The text will size to the initial dimensions, it just won't expand after a user types.
- *    - onContentSizeChange never gets called again.
- *    - Multiline hints get truncated
- *  - Cursor is hidden when multiline text exceeds element bounds (AW 2016-08-26)
- *    - Instead of the element focus following the cursor like in single line.
- *  - Multiline flag changes the padding amount required to adjust for native element chrome. (AW 2016-08-26)
- *
- */
+import type {Props} from './input'
 
 type State = {
-  inputFocused: boolean,
-  text: string,
-  textHeight: number,
+  value: string,
+  focused: boolean,
 }
 
 class Input extends Component<void, Props, State> {
   state: State;
-  _textInput: any;
+  _input: any;
 
   constructor (props: Props) {
     super(props)
+
     this.state = {
-      inputFocused: false,
-      text: this.props.value || '',
-      textHeight: 0,
+      value: props.value || '',
+      focused: false,
     }
   }
 
-  _setPasswordVisible (props: Props) {
-    const passwordVisible = props.type === 'passwordVisible'
-    if (this._textInput) {
-      this._textInput.setNativeProps({passwordVisible})
+  componentDidMount () {
+    this._autoResize()
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (nextProps.hasOwnProperty('value')) {
+      this.setState({value: nextProps.value || ''})
+      this._autoResize()
     }
   }
 
   componentWillUpdate (nextProps: Props) {
     if (nextProps.type !== this.props.type) {
-      this._setPasswordVisible(nextProps)
+      this._setPasswordVisible(nextProps.type === 'passwordVisible')
     }
   }
 
-  _onContentSizeChange (event: SyntheticEvent) {
-    // $ForceType
-    const nativeEvent: {contentSize: {height: number}} = event.nativeEvent
-    this.setState({
-      textHeight: nativeEvent.contentSize.height,
-    })
+  _autoResize () {
+    // maybe support this later. Keeping this flow so it matches desktop
+  }
+
+  _setPasswordVisible (passwordVisible: boolean) {
+    // $FlowIssue
+    this._textInput && this._textInput.setNativeProps({passwordVisible})
+  }
+
+  getValue (): string {
+    return this.state.value || ''
+  }
+
+  setValue (value: string) {
+    this.setState({value: value || ''})
+  }
+
+  clearValue () {
+    this._onChangeText('')
+  }
+
+  _onChangeText = (text: string) => {
+    this.setState({value: text || ''})
+    this._autoResize()
+
+    this.props.onChangeText && this.props.onChangeText(text || '')
+  }
+
+  _inputNode () {
+    return this._input
+  }
+
+  focus () {
+    this._input && this._inputNode().focus()
+  }
+
+  select () {
+    this._input && this._inputNode().select()
+  }
+
+  blur () {
+    this._input && this._inputNode().blur()
+  }
+
+  _onKeyDown = (e: SyntheticKeyboardEvent) => {
+    if (this.props.onKeyDown) {
+      this.props.onKeyDown(e)
+    }
+
+    if (this.props.onEnterKeyDown && e.key === 'Enter') {
+      this.props.onEnterKeyDown(e)
+    }
+  }
+
+  _onFocus = () => {
+    this.setState({focused: true})
+  }
+
+  _onBlur = () => {
+    this.setState({focused: false})
+  }
+
+  _underlineColor () {
+    if (this.props.hideUnderline) {
+      return globalColors.transparent
+    }
+
+    if (this.props.errorText && this.props.errorText.length) {
+      return globalColors.red
+    }
+
+    return this.state.focused ? globalColors.blue : globalColors.black_10
+  }
+
+  _rowsToHeight (rows) {
+    return rows * _lineHeight +
+      1 // border
+  }
+
+  _containerStyle (underlineColor) {
+    return this.props.small
+    ? {
+      ...globalStyles.flexBoxRow,
+      borderBottomWidth: 1,
+      borderBottomColor: underlineColor,
+      flex: 1,
+    }
+    : {
+      ...globalStyles.flexBoxColumn,
+      justifyContent: 'flex-start',
+      maxWidth: 460,
+    }
   }
 
   render () {
-    const isIOS = Platform.OS_IOS === OS
-    const isShowingFloatingLabel = this.state.text.length > 0
-    const password = this.props.type === 'password'
-    const autoGrow = this.props.autoGrow
-      ? {onContentSizeChange: (event) => this._onContentSizeChange(event)}
-      : {}
-    const autoGrowActive = isIOS && this.props.autoGrow
+    const underlineColor = this._underlineColor()
+    const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
+    const containerStyle = this._containerStyle(underlineColor)
+
+    const commonInputStyle = {
+      ...globalStyles.fontSemibold,
+      fontSize: _headerTextStyle.fontSize,
+      lineHeight: _lineHeight,
+      backgroundColor: globalColors.transparent,
+      flex: 1,
+      borderWidth: 0,
+      ...(this.props.small
+      ? {textAlign: 'left'}
+      : {
+        textAlign: 'center',
+        minWidth: 333,
+      }),
+    }
+
+    const singlelineStyle = {
+      ...commonInputStyle,
+      height: 28,
+      padding: 0,
+    }
+
+    const multilineStyle = {
+      ...commonInputStyle,
+      paddingTop: 0,
+      paddingBottom: 0,
+      minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
+      ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : null),
+    }
+
+    const floatingHintText = !!this.state.value.length &&
+      (this.props.hasOwnProperty('floatingHintTextOverride')
+       ? this.props.floatingHintTextOverride
+       : this.props.hintText || ' ')
+
+    const commonProps = {
+      autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
+      autoCapitalize: this.props.autoCapitalize || 'none',
+      keyboardType: this.props.keyboardType,
+      autoFocus: this.props.autoFocus,
+      onBlur: this._onBlur,
+      onChangeText: this._onChangeText,
+      onFocus: this._onFocus,
+      onKeyDown: this._onKeyDown,
+      placeholder: this.props.hintText,
+      ref: r => { this._input = r },
+      returnKeyType: this.props.returnKeyType,
+      value: this.state.value,
+      secureTextEntry: this.props.type === 'password',
+      underlineColorAndroid: globalColors.transparent,
+    }
+
+    const singlelineProps = {
+      ...commonProps,
+      multiline: false,
+      style: {...singlelineStyle, ...this.props.inputStyle},
+      type: {
+        password: 'password',
+        text: 'text',
+        passwordVisible: 'text',
+      }[this.props.type || 'text'] || 'text',
+    }
+
+    const multilineProps = {
+      ...commonProps,
+      multiline: true,
+      style: {...multilineStyle, ...this.props.inputStyle},
+    }
+
+    const smallLabelStyle = {
+      ...globalStyles.fontSemibold,
+      fontSize: _headerTextStyle.fontSize,
+      lineHeight: _lineHeight,
+      marginRight: 8,
+      color: globalColors.blue,
+      ...this.props.smallLabelStyle,
+    }
 
     return (
       <Box style={{...containerStyle, ...this.props.style}}>
-        {isShowingFloatingLabel &&
-          <Text
-            type='BodySmallSemibold'
-            style={{...floatingLabelStyle}}>
-            {this.props.floatingLabelText}
-          </Text>}
-        <NativeTextInput
-          style={{
-            ...getStyle('Header'),
-            ...textInputStyle({...this.state, ...this.props, isShowingFloatingLabel, autoGrowActive}),
-            ...this.props.inputStyle,
-          }}
-          keyboardType={this.props.keyboardType}
-          ref={component => { this._textInput = component }}
-          autoCorrect={this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect}
-          defaultValue={this.props.value}
-          secureTextEntry={password}
-          autoFocus={this.props.autoFocus}
-          placeholder={this.props.hintText}
-          placeholderTextColor={globalColors.black_10}
-          underlineColorAndroid={this.state.inputFocused ? globalColors.blue : globalColors.black_10}
-          multiline={this.props.multiline}
-          numberOfLines={this.props.rows}
-          autoCapitalize={this.props.autoCapitalize || 'none'}
-          onFocus={() => this.setState({inputFocused: true})}
-          onBlur={() => this.setState({inputFocused: false})}
-          onSubmitEditing={this.props.onEnterKeyDown}
-          {...autoGrow}
-          onChange={this.props.onChange}
-          onChangeText={text => { this.setState({text}); this.props.onChangeText && this.props.onChangeText(text) }} />
-        {isIOS && !this.props.iosOmitUnderline &&
-          <HorizontalLine focused={this.state.inputFocused} />}
-        {!!(this.props.errorText) &&
-          <Text
-            type='BodyError'
-            style={{...errorText, ...this.props.errorStyle}}>
-            {this.props.errorText}
-          </Text>}
+        {!this.props.small && <Text type='BodySmall' style={_floatingStyle}>{floatingHintText}</Text>}
+        {!!this.props.small && !!this.props.smallLabel && <Text type='BodySmall' style={smallLabelStyle}>{this.props.smallLabel}</Text>}
+        <Box style={this.props.small ? {flex: 1} : {borderBottomWidth: 1, borderBottomColor: underlineColor}}>
+          <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
+        </Box>
+        {!!this.props.errorText && !this.props.small && <Text type='BodyError' style={{..._errorStyle, ...this.props.errorStyle}}>{this.props.errorText}</Text>}
       </Box>
     )
   }
 }
 
-const FLOATING_LABEL_HEIGHT = 18
-const FLOATING_LABEL_OFFSET = -4
-const TEXT_INPUT_PLATFORM_PADDING = OS === Platform.OS_IOS
-  ? 6 // Minor padding adjustment needed on iOS
-  : 18 // Large padding adjustment needed on Android b/c native view has padding
+const _lineHeight = 28
+const _headerTextStyle = getTextStyle('Header')
+const _bodySmallTextStyle = getTextStyle('BodySmall')
 
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'stretch',
+const _errorStyle = {
+  textAlign: 'center',
 }
 
-const floatingLabelStyle = {
+const _floatingStyle = {
+  textAlign: 'center',
+  minHeight: _bodySmallTextStyle.lineHeight,
   color: globalColors.blue,
-  textAlign: 'center',
-  height: FLOATING_LABEL_HEIGHT,
-  lineHeight: FLOATING_LABEL_HEIGHT,
+  marginBottom: 9,
 }
-
-const textInputStyle = ({isShowingFloatingLabel, textHeight, rows, multiline, autoGrowActive}: {
-  isShowingFloatingLabel: boolean,
-  textHeight: number,
-  rows?: number,
-  multiline?: boolean,
-  autoGrowActive?: boolean,
-}) => {
-  const MIN_TEXT_HEIGHT = (getStyle('Header') ? getStyle('Header').lineHeight : 0) + TEXT_INPUT_PLATFORM_PADDING
-  return {
-    marginTop: (isShowingFloatingLabel ? 0 : FLOATING_LABEL_HEIGHT) + FLOATING_LABEL_OFFSET,
-    height: Math.max(textHeight, (autoGrowActive ? 1 : rows || 1) * MIN_TEXT_HEIGHT),
-    textAlign: 'center',
-    // BUG (AW): adjust for an odd bug in iOS that causes multiline inputs to
-    // not center their contents properly
-    marginLeft: (multiline && OS === Platform.OS_IOS) ? 4 : 0,
-  }
-}
-
-const errorText = {
-  textAlign: 'center',
-}
-
-const HorizontalLine = ({focused}) => <Box style={{
-  left: 0,
-  right: 0,
-  height: 1,
-  backgroundColor: focused ? globalColors.blue : globalColors.black_10,
-}} />
 
 export default Input

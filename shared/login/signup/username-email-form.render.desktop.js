@@ -12,8 +12,8 @@ class UsernameEmailFormRender extends Component {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer} outerStyle={stylesOuter}>
         <UserCard style={stylesCard}>
-          <Input autoFocus={true} floatingLabelText='Create a username' value={this.props.username} errorText={this.props.usernameErrorText} onChangeText={username => this.props.usernameChange(username)} />
-          <Input floatingLabelText='Email address' value={this.props.email} errorText={this.props.emailErrorText} onEnterKeyDown={this.props.onSubmit} onChangeText={email => this.props.emailChange(email)} />
+          <Input autoFocus={true} hintText='Create a username' value={this.props.username} errorText={this.props.usernameErrorText} onChangeText={username => this.props.usernameChange(username)} />
+          <Input hintText='Email address' value={this.props.email} errorText={this.props.emailErrorText} onEnterKeyDown={this.props.onSubmit} onChangeText={email => this.props.emailChange(email)} />
           <Button waiting={this.props.waiting} style={{marginTop: 40, alignSelf: 'center'}} type='Primary' label='Continue' onClick={this.props.onSubmit} />
         </UserCard>
       </Container>

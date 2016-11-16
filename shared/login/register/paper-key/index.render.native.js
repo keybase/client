@@ -16,10 +16,10 @@ class PaperKeyRender extends Component<void, Props, void> {
           <Icon type='icon-paper-key-48' />
           <Input
             multiline={true}
-            rows={3}
+            rowsMin={3}
             autoFocus={true}
             style={stylesInput}
-            floatingLabelText='Paper key'
+            floatingHintTextOverride='Paper key'
             hintText='opp blezzard tofi pando'
             errorText={this.props.error}
             onEnterKeyDown={() => this.props.onSubmit()}

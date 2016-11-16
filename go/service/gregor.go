@@ -11,6 +11,9 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/chat"
+	cstorage "github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
@@ -865,16 +868,115 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			g.G().Log.Error("push handler: chat activity: error decoding newMessage: %s", err.Error())
 			return err
 		}
+
 		g.G().Log.Debug("push handler: chat activity: newMessage: convID: %s sender: %s",
 			nm.ConvID, nm.Message.ClientHeader.Sender)
+		if nm.Message.ClientHeader.OutboxID != nil {
+			g.G().Log.Debug("push handler: chat activity: newMessage: outboxID: %s",
+				hex.EncodeToString(*nm.Message.ClientHeader.OutboxID))
+		} else {
+			g.G().Log.Debug("push handler: chat activity: newMessage: outboxID is empty")
+		}
+
 		uid := m.UID().Bytes()
+
 		decmsg, err := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 		if err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to storage message: %s", err.Error())
 		}
+		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
+			return chat.DelivererSecretUI{}
+		}).NewMessage(nm.InboxVers, nm.ConvID, decmsg); err != nil {
+			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
+				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
+			}
+		}
+
 		activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
 			Message: decmsg,
 			ConvID:  nm.ConvID,
+		})
+	case "readMessage":
+		var nm chat1.ReadMessagePayload
+		err = dec.Decode(&nm)
+		if err != nil {
+			g.G().Log.Error("push handler: chat activity: error decoding: %s", err.Error())
+			return err
+		}
+		g.G().Log.Debug("push handler: chat activity: readMessage: convID: %s msgID: %d",
+			nm.ConvID, nm.MsgID)
+
+		uid := m.UID().Bytes()
+		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
+			return chat.DelivererSecretUI{}
+		}).ReadMessage(nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
+			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
+				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
+			}
+		}
+		activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
+			MsgID:  nm.MsgID,
+			ConvID: nm.ConvID,
+		})
+	case "setStatus":
+		var nm chat1.SetStatusPayload
+		err = dec.Decode(&nm)
+		if err != nil {
+			g.G().Log.Error("push handler: chat activity: error decoding: %s", err.Error())
+			return err
+		}
+		g.G().Log.Debug("push handler: chat activity: setStatus: convID: %s status: %d",
+			nm.ConvID, nm.Status)
+
+		uid := m.UID().Bytes()
+		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
+			return chat.DelivererSecretUI{}
+		}).SetStatus(nm.InboxVers, nm.ConvID, nm.Status); err != nil {
+			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
+				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
+			}
+		}
+		activity = chat1.NewChatActivityWithSetStatus(chat1.SetStatusInfo{
+			ConvID: nm.ConvID,
+			Status: nm.Status,
+		})
+	case "newConversation":
+		var nm chat1.NewConversationPayload
+		err = dec.Decode(&nm)
+		if err != nil {
+			g.G().Log.Error("push handler: chat activity: error decoding: %s", err.Error())
+			return err
+		}
+		g.G().Log.Debug("push handler: chat activity: newConversation: convID: %s ", nm.ConvID)
+		uid := m.UID().Bytes()
+
+		// We need to get this conversation and then localize it
+		var inbox chat.Inbox
+		tlf := newTlfHandler(nil, g.G())
+		boxer := chat.NewBoxer(g.G(), tlf, utils.NewUserDeviceCache(g.G()))
+		inboxSource := chat.NewRemoteInboxSource(g.G(), boxer,
+			func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: g.cli} },
+			func() keybase1.TlfInterface { return tlf })
+		if inbox, _, err = inboxSource.Read(context.Background(), uid, &chat1.GetInboxLocalQuery{
+			ConvID: &nm.ConvID,
+		}, nil); err != nil {
+			g.G().Log.Error("push handler: chat activity: unable to read conversation: %s", err.Error())
+			return err
+		}
+		if len(inbox.Convs) != 1 {
+			g.G().Log.Error("push handler: chat activity: unable to find conversation")
+			return fmt.Errorf("unable to find conversation")
+		}
+
+		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
+			return chat.DelivererSecretUI{}
+		}).NewConversation(nm.InboxVers, inbox.Convs[0]); err != nil {
+			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
+				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
+			}
+		}
+		activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
+			Conv: inbox.Convs[0],
 		})
 	default:
 		return fmt.Errorf("unhandled chat.activity action %q", action)

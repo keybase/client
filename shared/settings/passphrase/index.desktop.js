@@ -15,7 +15,7 @@ function UpdatePassphrase (props: Props) {
       onBack={props.onBack}
       notification={notification} >
       <Input
-        floatingLabelText='New passphrase'
+        hintText='New passphrase'
         value={props.newPassphrase}
         type={inputType}
         errorText={props.newPassphraseError}
@@ -27,7 +27,7 @@ function UpdatePassphrase (props: Props) {
         (Minimum 12 characters)
       </Text>}
       <Input
-        floatingLabelText='Confirm new passphrase'
+        hintText='Confirm new passphrase'
         value={props.newPassphraseConfirm}
         type={inputType}
         errorText={props.newPassphraseConfirmError}

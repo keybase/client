@@ -23,6 +23,7 @@ type ChatMockWorld struct {
 	Fc clockwork.FakeClock
 
 	Tcs     map[string]*libkb.TestContext
+	TcsByID map[string]*libkb.TestContext
 	Users   map[string]*FakeUser
 	tlfs    map[keybase1.CanonicalTlfName]chat1.TLFID
 	tlfKeys map[keybase1.CanonicalTlfName][]keybase1.CryptKey
@@ -38,6 +39,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 	world = &ChatMockWorld{
 		Fc:      clockwork.NewFakeClockAt(time.Now()),
 		Tcs:     make(map[string]*libkb.TestContext),
+		TcsByID: make(map[string]*libkb.TestContext),
 		Users:   make(map[string]*FakeUser),
 		tlfs:    make(map[keybase1.CanonicalTlfName]chat1.TLFID),
 		tlfKeys: make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
@@ -52,6 +54,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 		}
 		world.Users[u.Username] = u
 		world.Tcs[u.Username] = &tc
+		world.TcsByID[u.User.GetUID().String()] = &tc
 	}
 
 	world.Fc.Advance(time.Hour)
@@ -289,6 +292,7 @@ func (m *ChatRemoteMock) GetConversationMetadataRemote(ctx context.Context, conv
 }
 
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
+	uid := arg.MessageBoxed.ClientHeader.Sender
 	conv := m.world.GetConversationByID(arg.ConversationID)
 	ri := m.makeReaderInfo(conv.Metadata.ConversationID)
 	inserted := m.insertMsgAndSort(arg.ConversationID, arg.MessageBoxed)
@@ -299,6 +303,19 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	sort.Sort(convByNewlyUpdated{mock: m})
 	res.MsgHeader = *inserted.ServerHeader
 	res.RateLimit = &chat1.RateLimit{}
+
+	// hit notify router with new message
+	if m.world.TcsByID[uid.String()].G.NotifyRouter != nil {
+		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
+			Message: chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
+				ClientHeader: inserted.ClientHeader,
+				ServerHeader: *inserted.ServerHeader,
+			}),
+		})
+		m.world.TcsByID[uid.String()].G.NotifyRouter.HandleNewChatActivity(context.Background(),
+			keybase1.UID(uid.String()), &activity)
+	}
+
 	return
 }
 
@@ -376,6 +393,10 @@ func (m *ChatRemoteMock) SetConversationStatus(ctx context.Context, arg chat1.Se
 
 func (m *ChatRemoteMock) TlfFinalize(ctx context.Context, tlfID chat1.TLFID) error {
 	return nil
+}
+
+func (m *ChatRemoteMock) GetUnreadUpdateFull(ctx context.Context, inboxVers chat1.InboxVers) (chat1.UnreadUpdateFull, error) {
+	return chat1.UnreadUpdateFull{}, errors.New("not implemented")
 }
 
 type convByNewlyUpdated struct {

@@ -55,6 +55,23 @@ protocol local {
     case HEADLINE: MessageHeadline;
   }
 
+  enum OutboxStateType {
+    SENDING_0,
+    ERROR_1
+  }
+
+  variant OutboxState switch (OutboxStateType state) {
+    case SENDING: int; // # of attempts
+    case ERROR: string; // err msg
+  }
+
+  record OutboxRecord {
+    OutboxState state; 
+    OutboxID outboxID;
+    ConversationID convID;
+    MessagePlaintext Msg;
+  }   
+  
   enum HeaderPlaintextVersion {
     V1_1
   }
@@ -71,6 +88,7 @@ protocol local {
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
     Hash bodyHash;
+    union { null, OutboxInfo } outboxInfo;
     union {null, SignatureInfo} headerSignature;
   }
 
@@ -104,7 +122,8 @@ protocol local {
 
   enum MessageUnboxedState {
     VALID_1,
-    ERROR_2
+    ERROR_2,
+    OUTBOX_3
   }
 
   record MessageUnboxedValid {
@@ -125,11 +144,7 @@ protocol local {
   variant MessageUnboxed switch (MessageUnboxedState state) {
     case VALID: MessageUnboxedValid;
     case ERROR: MessageUnboxedError;
-  }
-  
-  record ThreadView {
-    array<MessageUnboxed> messages;
-    union { null, Pagination } pagination;
+    case OUTBOX: OutboxRecord;
   }
 
   // This causes fetching to return N items, where N = IdeallyGetUnreadPlus +
@@ -163,12 +178,11 @@ protocol local {
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
     array<MessageUnboxed> maxMessages; // the latest message for each message type
-  }
+  } 
 
-  record OutboxRecord {
-    OutboxID outboxID;
-    ConversationID convID;
-    MessagePlaintext Msg; 
+  record ThreadView {
+    array<MessageUnboxed> messages;
+    union { null, Pagination } pagination;
   }
 
   GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
@@ -180,7 +194,6 @@ protocol local {
   }
   record GetThreadLocalRes {
     ThreadView thread;
-    array<OutboxRecord> outbox;
     array<RateLimit> rateLimits;
   }
 
@@ -193,6 +206,7 @@ protocol local {
   }
 
   GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
+
   record GetInboxLocalQuery {
     // Local analog of common:GetInboxQuery
 
@@ -224,12 +238,11 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
-  @typedef("bytes") record OutboxID {}
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
   }
-  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg);
+  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev);
 
   SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status);
   record SetConversationStatusLocalRes {

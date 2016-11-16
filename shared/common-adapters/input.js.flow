@@ -2,36 +2,34 @@
 import {Component} from 'react'
 
 export type Props = $Shape<{
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
-  autoCorrect?: bool,
   autoFocus?: bool,
-  autoGrow?: bool,
   blur: () => void,
   errorStyle?: ?Object,
-  errorStyle?: Object,
   errorText?: ?string,
-  floatingLabelText?: string,
+  floatingHintTextOverride?: ?string, // if undefined will use hintText. Use this to override hintText
   focus: () => void,
-  hintStyle?: Object,
-  hintText?: string,
+  hideUnderline: boolean,
+  hintText?: ?string,
   inputStyle?: Object,
-  iosOmitUnderline?: boolean,
-  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'ascii-capable' | 'numbers-and-punctuation' | 'url' | 'number-pad' | 'name-phone-pad' | 'decimal-pad' | 'twitter' | 'web-search',
   multiline?: bool,
-  onChange?: (event: Object) => void,
   onChangeText?: (text: string) => void,
   onEnterKeyDown?: (event: Object) => void,
   onKeyDown?: (event: Object) => void,
-  rows?: number, // Will be overridden if autoGrow is active
   rowsMax?: number,
+  rowsMin?: number,
   select: () => void,
   small?: bool,
+  smallLabel?: string,
+  smallLabelStyle?: ?Object,
   style?: Object,
-  textStyle?: Object,
   type?: 'password' | 'text' | 'passwordVisible',
-  underlineShow?: boolean,
-  underlineStyle?: Object,
   value?: ?string,
+
+  // Mobile only
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
+  autoCorrect?: bool,
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'ascii-capable' | 'numbers-and-punctuation' | 'url' | 'number-pad' | 'name-phone-pad' | 'decimal-pad' | 'twitter' | 'web-search',
+  returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
 }>
 
 declare export default class Input extends Component<void, Props, void> { }

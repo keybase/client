@@ -103,7 +103,7 @@ export default class UserSearchRender extends Component<void, Props, void> {
           icon={<Icon type={this.props.searchIcon} style={{width: 32, height: 32}} />}
           body={(
             <Box style={{flex: 2, height: 32}}>
-              <Input type='text' autoCapitalize='none' value={this.props.searchText} hintText={this.props.searchHintText} iosOmitUnderline={true} style={{marginTop: 0, height: 32}} onChangeText={text => this.props.onSearch(text)} />
+              <Input small={true} type='text' value={this.props.searchText} hintText={this.props.searchHintText} hideUnderline={true} style={{height: 32}} onChangeText={text => this.props.onSearch(text)} />
             </Box>
           )}
           action={<Box />} />

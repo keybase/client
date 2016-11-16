@@ -196,6 +196,60 @@
     },
     {
       "type": "enum",
+      "name": "OutboxStateType",
+      "symbols": [
+        "SENDING_0",
+        "ERROR_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "OutboxState",
+      "switch": {
+        "type": "OutboxStateType",
+        "name": "state"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "SENDING",
+            "def": false
+          },
+          "body": "int"
+        },
+        {
+          "label": {
+            "name": "ERROR",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "OutboxRecord",
+      "fields": [
+        {
+          "type": "OutboxState",
+          "name": "state"
+        },
+        {
+          "type": "OutboxID",
+          "name": "outboxID"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "MessagePlaintext",
+          "name": "Msg"
+        }
+      ]
+    },
+    {
+      "type": "enum",
       "name": "HeaderPlaintextVersion",
       "symbols": [
         "V1_1"
@@ -239,6 +293,13 @@
         {
           "type": "Hash",
           "name": "bodyHash"
+        },
+        {
+          "type": [
+            null,
+            "OutboxInfo"
+          ],
+          "name": "outboxInfo"
         },
         {
           "type": [
@@ -319,7 +380,8 @@
       "name": "MessageUnboxedState",
       "symbols": [
         "VALID_1",
-        "ERROR_2"
+        "ERROR_2",
+        "OUTBOX_3"
       ]
     },
     {
@@ -391,26 +453,13 @@
             "def": false
           },
           "body": "MessageUnboxedError"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ThreadView",
-      "fields": [
-        {
-          "type": {
-            "type": "array",
-            "items": "MessageUnboxed"
-          },
-          "name": "messages"
         },
         {
-          "type": [
-            null,
-            "Pagination"
-          ],
-          "name": "pagination"
+          "label": {
+            "name": "OUTBOX",
+            "def": false
+          },
+          "body": "OutboxRecord"
         }
       ]
     },
@@ -502,19 +551,21 @@
     },
     {
       "type": "record",
-      "name": "OutboxRecord",
+      "name": "ThreadView",
       "fields": [
         {
-          "type": "OutboxID",
-          "name": "outboxID"
+          "type": {
+            "type": "array",
+            "items": "MessageUnboxed"
+          },
+          "name": "messages"
         },
         {
-          "type": "ConversationID",
-          "name": "convID"
-        },
-        {
-          "type": "MessagePlaintext",
-          "name": "Msg"
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
         }
       ]
     },
@@ -556,13 +607,6 @@
         {
           "type": "ThreadView",
           "name": "thread"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "OutboxRecord"
-          },
-          "name": "outbox"
         },
         {
           "type": {
@@ -720,12 +764,6 @@
           "name": "rateLimits"
         }
       ]
-    },
-    {
-      "type": "record",
-      "name": "OutboxID",
-      "fields": [],
-      "typedef": "bytes"
     },
     {
       "type": "record",
@@ -1027,6 +1065,10 @@
         {
           "name": "msg",
           "type": "MessagePlaintext"
+        },
+        {
+          "name": "clientPrev",
+          "type": "MessageID"
         }
       ],
       "response": "PostLocalNonblockRes"

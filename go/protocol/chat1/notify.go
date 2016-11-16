@@ -15,19 +15,25 @@ type ChatActivityType int
 const (
 	ChatActivityType_RESERVED         ChatActivityType = 0
 	ChatActivityType_INCOMING_MESSAGE ChatActivityType = 1
-	ChatActivityType_MESSAGE_SENT     ChatActivityType = 2
+	ChatActivityType_READ_MESSAGE     ChatActivityType = 2
+	ChatActivityType_NEW_CONVERSATION ChatActivityType = 3
+	ChatActivityType_SET_STATUS       ChatActivityType = 4
 )
 
 var ChatActivityTypeMap = map[string]ChatActivityType{
 	"RESERVED":         0,
 	"INCOMING_MESSAGE": 1,
-	"MESSAGE_SENT":     2,
+	"READ_MESSAGE":     2,
+	"NEW_CONVERSATION": 3,
+	"SET_STATUS":       4,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	0: "RESERVED",
 	1: "INCOMING_MESSAGE",
-	2: "MESSAGE_SENT",
+	2: "READ_MESSAGE",
+	3: "NEW_CONVERSATION",
+	4: "SET_STATUS",
 }
 
 type IncomingMessage struct {
@@ -39,13 +45,28 @@ type MessageSentInfo struct {
 	ConvID    ConversationID `codec:"convID" json:"convID"`
 	RateLimit RateLimit      `codec:"rateLimit" json:"rateLimit"`
 	OutboxID  OutboxID       `codec:"outboxID" json:"outboxID"`
-	MessageID MessageID      `codec:"messageID" json:"messageID"`
+}
+
+type ReadMessageInfo struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+}
+
+type NewConversationInfo struct {
+	Conv ConversationLocal `codec:"conv" json:"conv"`
+}
+
+type SetStatusInfo struct {
+	ConvID ConversationID     `codec:"convID" json:"convID"`
+	Status ConversationStatus `codec:"status" json:"status"`
 }
 
 type ChatActivity struct {
-	ActivityType__    ChatActivityType `codec:"activityType" json:"activityType"`
-	IncomingMessage__ *IncomingMessage `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
-	MessageSent__     *MessageSentInfo `codec:"messageSent,omitempty" json:"messageSent,omitempty"`
+	ActivityType__    ChatActivityType     `codec:"activityType" json:"activityType"`
+	IncomingMessage__ *IncomingMessage     `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
+	ReadMessage__     *ReadMessageInfo     `codec:"readMessage,omitempty" json:"readMessage,omitempty"`
+	NewConversation__ *NewConversationInfo `codec:"newConversation,omitempty" json:"newConversation,omitempty"`
+	SetStatus__       *SetStatusInfo       `codec:"setStatus,omitempty" json:"setStatus,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -55,9 +76,19 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 			err = errors.New("unexpected nil value for IncomingMessage__")
 			return ret, err
 		}
-	case ChatActivityType_MESSAGE_SENT:
-		if o.MessageSent__ == nil {
-			err = errors.New("unexpected nil value for MessageSent__")
+	case ChatActivityType_READ_MESSAGE:
+		if o.ReadMessage__ == nil {
+			err = errors.New("unexpected nil value for ReadMessage__")
+			return ret, err
+		}
+	case ChatActivityType_NEW_CONVERSATION:
+		if o.NewConversation__ == nil {
+			err = errors.New("unexpected nil value for NewConversation__")
+			return ret, err
+		}
+	case ChatActivityType_SET_STATUS:
+		if o.SetStatus__ == nil {
+			err = errors.New("unexpected nil value for SetStatus__")
 			return ret, err
 		}
 	}
@@ -74,14 +105,34 @@ func (o ChatActivity) IncomingMessage() IncomingMessage {
 	return *o.IncomingMessage__
 }
 
-func (o ChatActivity) MessageSent() MessageSentInfo {
-	if o.ActivityType__ != ChatActivityType_MESSAGE_SENT {
+func (o ChatActivity) ReadMessage() ReadMessageInfo {
+	if o.ActivityType__ != ChatActivityType_READ_MESSAGE {
 		panic("wrong case accessed")
 	}
-	if o.MessageSent__ == nil {
-		return MessageSentInfo{}
+	if o.ReadMessage__ == nil {
+		return ReadMessageInfo{}
 	}
-	return *o.MessageSent__
+	return *o.ReadMessage__
+}
+
+func (o ChatActivity) NewConversation() NewConversationInfo {
+	if o.ActivityType__ != ChatActivityType_NEW_CONVERSATION {
+		panic("wrong case accessed")
+	}
+	if o.NewConversation__ == nil {
+		return NewConversationInfo{}
+	}
+	return *o.NewConversation__
+}
+
+func (o ChatActivity) SetStatus() SetStatusInfo {
+	if o.ActivityType__ != ChatActivityType_SET_STATUS {
+		panic("wrong case accessed")
+	}
+	if o.SetStatus__ == nil {
+		return SetStatusInfo{}
+	}
+	return *o.SetStatus__
 }
 
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
@@ -91,10 +142,24 @@ func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	}
 }
 
-func NewChatActivityWithMessageSent(v MessageSentInfo) ChatActivity {
+func NewChatActivityWithReadMessage(v ReadMessageInfo) ChatActivity {
 	return ChatActivity{
-		ActivityType__: ChatActivityType_MESSAGE_SENT,
-		MessageSent__:  &v,
+		ActivityType__: ChatActivityType_READ_MESSAGE,
+		ReadMessage__:  &v,
+	}
+}
+
+func NewChatActivityWithNewConversation(v NewConversationInfo) ChatActivity {
+	return ChatActivity{
+		ActivityType__:    ChatActivityType_NEW_CONVERSATION,
+		NewConversation__: &v,
+	}
+}
+
+func NewChatActivityWithSetStatus(v SetStatusInfo) ChatActivity {
+	return ChatActivity{
+		ActivityType__: ChatActivityType_SET_STATUS,
+		SetStatus__:    &v,
 	}
 }
 
