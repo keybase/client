@@ -2434,7 +2434,6 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 				// for conflicts.
 				if unmergedChains.isCreated(original) &&
 					!mergedChains.isCreated(original) {
-
 					// Shallowly copy the create op and update its
 					// directory to the most recent pointer -- this won't
 					// work with the usual revert ops process because that
@@ -3162,7 +3161,10 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	isSquash := mostRecentMergedMD.data.Dir.BlockPointer !=
 		mergedChains.mostRecentChainMDInfo.rootInfo.BlockPointer
 	if isSquash {
-		// Squashes don't need to sync anything new.
+		// Squashes don't need to sync anything new.  Just set the
+		// root pointer to the most recent root pointer, and fill up
+		// the resolution op with all the known chain updates for this
+		// branch.
 		bps = newBlockPutState(0)
 		md.data.Dir.BlockInfo = unmergedChains.mostRecentChainMDInfo.rootInfo
 		for original, chain := range unmergedChains.byOriginal {
@@ -3778,8 +3780,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		// this!
 		//
 		// nothing to do
-		cr.log.CDebugf(ctx, "No updates to resolve, so complete resolution "+
-			"to follow revision %d", mostRecentMergedMD.Revision())
+		cr.log.CDebugf(ctx, "No updates to resolve, so finishing")
 		lbc := make(localBcache)
 		newFileBlocks := make(fileBlockMap)
 		err = cr.completeResolution(ctx, lState, unmergedChains,
