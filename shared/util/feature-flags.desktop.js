@@ -20,7 +20,6 @@ const ff: FeatureFlags = {
   tabChatEnabled: featureOn('tabChatEnabled', true),
   tabProfileEnabled: true,
   recentFilesEnabled: featureOn('recentFilesEnabled'),
-  serviceFacebookEnabled: featureOn('serviceFacebookEnabled', true),
   plansEnabled: featureOn('plansEnabled'),
 }
 

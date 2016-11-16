@@ -3,7 +3,6 @@ import _ from 'lodash'
 import {globalColors} from '../styles'
 import {proveMessage} from '../util/platforms.js'
 import {PlatformsExpanded} from '../constants/types/more'
-import flags from '../util/feature-flags'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
@@ -27,9 +26,6 @@ export function folderIconProps (folder: Folder, style: ?Object = {}) {
 
 export function missingProofs (userProofs: Array<Proof>, onClick: (missingProof: MissingProof) => void): Array<MissingProof> {
   let availableProofTypes = _.without(PlatformsExpanded, 'http', 'https', 'dnsOrGenericWebSite', 'dns')
-  if (!flags.serviceFacebookEnabled) {
-    availableProofTypes = _.without(availableProofTypes, 'facebook')
-  }
   const userProofTypes = _.chain(userProofs)
     .map(p => p.type)
     .uniq()
