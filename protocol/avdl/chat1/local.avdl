@@ -206,6 +206,7 @@ protocol local {
   }
 
   GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
+
   record GetInboxLocalQuery {
     // Local analog of common:GetInboxQuery
 
