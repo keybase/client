@@ -26,6 +26,7 @@ class ConversationList extends Component<void, Props, State> {
   _cellMeasurer: any;
   _list: any;
   state: State;
+  _toRemeasure: List;
 
   constructor (props: Props) {
     super(props)
