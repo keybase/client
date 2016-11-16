@@ -16,6 +16,7 @@ import flags from './util/feature-flags'
 import globalRoutes from './router/global-routes'
 import {connect} from 'react-redux'
 import {globalStyles} from './styles'
+import {isDarwin} from './constants/platform'
 import {mapValues} from 'lodash'
 import {navigateBack, navigateUp, switchTab} from './actions/router'
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
@@ -96,7 +97,7 @@ class Nav extends Component<void, Props, void> {
   }
 
   _handleKeyDown (e: SyntheticKeyboardEvent) {
-    const modKey = process.platform === 'darwin' ? e.metaKey : e.ctrlKey
+    const modKey = isDarwin ? e.metaKey : e.ctrlKey
     if (modKey && e.key === 'ArrowLeft') {
       e.preventDefault()
       this.props.navigateBack()
@@ -110,16 +111,17 @@ class Nav extends Component<void, Props, void> {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
+    // MUST be first
+    if (this.props.menuBadge !== nextProps.menuBadge) {
+      ipcRenderer.send('showTray', nextProps.menuBadge)
+    }
+
     if (this.props.folderBadge !== nextProps.folderBadge) {
       return true
     }
 
     if (this.props.chatBadge !== nextProps.chatBadge) {
       return true
-    }
-
-    if (this.props.menuBadge !== nextProps.menuBadge) {
-      ipcRenderer.send('showTray', nextProps.menuBadge)
     }
 
     if (this.props.searchActive !== nextProps.searchActive) {
@@ -132,6 +134,7 @@ class Nav extends Component<void, Props, void> {
   componentDidMount () {
     this._checkTabChanged()
     if (flags.admin) window.addEventListener('keydown', this._handleKeyDown)
+    ipcRenderer.send('showTray', this.props.menuBadge)
   }
 
   componentDidUpdate () {

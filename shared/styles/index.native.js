@@ -1,6 +1,5 @@
 // @flow
-import {OS} from '../constants/platform'
-import {OS_IOS, OS_ANDROID} from '../constants/platform.shared'
+import {isAndroid, isIOS} from '../constants/platform'
 import NavigatorNavigationBarStyles from 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS'
 import globalColors from './colors'
 
@@ -13,66 +12,53 @@ const globalMargins = {
   xlarge: 64,
 }
 
-const fontCommon = {
+const fontIOS = {
+  fontRegular: {
+    fontFamily: 'OpenSans',
+    fontWeight: '400',
+  },
+  fontSemibold: {
+    fontFamily: 'OpenSans',
+    fontWeight: '600',
+  },
+  fontBold: {
+    fontFamily: 'OpenSans',
+    fontWeight: '700',
+  },
+  fontTerminal: {
+    fontFamily: 'Source Code Pro',
+  },
+  fontTerminalSemibold: {
+    fontFamily: 'Source Code Pro',
+    fontWeight: '600',
+  },
 }
 
-const font = {
-  [OS_IOS]: {
-    fontRegular: {
-      ...fontCommon,
-      fontFamily: 'OpenSans',
-      fontWeight: '400',
-    },
-    fontSemibold: {
-      ...fontCommon,
-      fontFamily: 'OpenSans',
-      fontWeight: '600',
-    },
-    fontBold: {
-      ...fontCommon,
-      fontFamily: 'OpenSans',
-      fontWeight: '700',
-    },
-    fontTerminal: {
-      ...fontCommon,
-      fontFamily: 'Source Code Pro',
-    },
-    fontTerminalSemibold: {
-      ...fontCommon,
-      fontFamily: 'Source Code Pro',
-      fontWeight: '600',
-    },
+const fontAndroid = {
+  fontRegular: {
+    fontFamily: 'OpenSans',
   },
-  [OS_ANDROID]: {
-    fontRegular: {
-      ...fontCommon,
-      fontFamily: 'OpenSans',
-    },
-    fontSemibold: {
-      ...fontCommon,
-      fontFamily: 'OpenSans-Semi',
-      fontWeight: 'bold',
-    },
-    fontBold: {
-      ...fontCommon,
-      fontFamily: 'OpenSans',
-      fontWeight: 'bold',
-    },
-    italic: {
-      fontStyle: 'italic',
-    },
-    fontTerminal: {
-      ...fontCommon,
-      fontFamily: 'SourceCodePro',
-    },
-    fontTerminalSemibold: {
-      ...fontCommon,
-      fontFamily: 'SourceCodePro-Semi',
-      fontWeight: 'bold',
-    },
+  fontSemibold: {
+    fontFamily: 'OpenSans-Semi',
+    fontWeight: 'bold',
   },
-// $FlowIssue doesn't understand computed props
-}[OS]
+  fontBold: {
+    fontFamily: 'OpenSans',
+    fontWeight: 'bold',
+  },
+  italic: {
+    fontStyle: 'italic',
+  },
+  fontTerminal: {
+    fontFamily: 'SourceCodePro',
+  },
+  fontTerminalSemibold: {
+    fontFamily: 'SourceCodePro-Semi',
+    fontWeight: 'bold',
+  },
+}
+
+const font = isIOS ? fontIOS : fontAndroid
 
 const util = {
   flexBoxColumn: {
@@ -102,7 +88,7 @@ const globalStyles = {
   ...util,
 }
 
-const navBarHeight = OS === OS_ANDROID ? 60 : NavigatorNavigationBarStyles.General.TotalNavHeight
+const navBarHeight = isAndroid ? 60 : NavigatorNavigationBarStyles.General.TotalNavHeight
 const tabBarHeight = 48
 function backgroundURL (...path: Array<string>): Object {
   return {}

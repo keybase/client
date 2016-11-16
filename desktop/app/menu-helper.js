@@ -2,6 +2,8 @@
 // Can't tell which thread we're in so let's try both
 import electron from 'electron'
 import {executeActionsForContext} from '../shared/util/quit-helper.desktop'
+// $FlowIssue doens't understand symlinks
+import {isDarwin} from '../shared/constants/platform'
 
 const Menu = electron.Menu || electron.remote.Menu
 const shell = electron.shell || electron.remote.shell
@@ -32,7 +34,7 @@ export default function makeMenu (window: any) {
         click: (item, focusedWindow) => focusedWindow && focusedWindow.reload(),
       },
       {label: 'Toggle Developer Tools',
-        accelerator: (() => (process.platform === 'darwin') ? 'Alt+Command+I' : 'Ctrl+Shift+I')(),
+        accelerator: (() => isDarwin ? 'Alt+Command+I' : 'Ctrl+Shift+I')(),
         click: (item, focusedWindow) => focusedWindow && focusedWindow.toggleDevTools(),
       },
     ]) : []),
@@ -42,7 +44,7 @@ export default function makeMenu (window: any) {
     submenu: [{label: 'Learn More', click () { shell.openExternal('https://keybase.io') }}],
   }
 
-  if (process.platform === 'darwin') {
+  if (isDarwin) {
     const template = [{
       label: 'Keybase',
       submenu: [

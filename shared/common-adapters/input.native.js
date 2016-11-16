@@ -1,11 +1,11 @@
 // @flow
-import Platform, {OS} from '../constants/platform'
-import React, {Component} from 'react'
-import type {Props} from './input'
 import Box from './box'
+import React, {Component} from 'react'
 import Text, {getStyle} from './text'
+import type {Props} from './input'
 import {NativeTextInput} from './native-wrappers.native'
 import {globalColors, globalStyles} from '../styles'
+import {isIOS} from '../constants/platform'
 
 /* ==========
  * =  BUGS  =
@@ -67,7 +67,6 @@ class Input extends Component<void, Props, State> {
   }
 
   render () {
-    const isIOS = Platform.OS_IOS === OS
     const isShowingFloatingLabel = this.state.text.length > 0
     const password = this.props.type === 'password'
     const autoGrow = this.props.autoGrow
@@ -122,7 +121,7 @@ class Input extends Component<void, Props, State> {
 
 const FLOATING_LABEL_HEIGHT = 18
 const FLOATING_LABEL_OFFSET = -4
-const TEXT_INPUT_PLATFORM_PADDING = OS === Platform.OS_IOS
+const TEXT_INPUT_PLATFORM_PADDING = isIOS
   ? 6 // Minor padding adjustment needed on iOS
   : 18 // Large padding adjustment needed on Android b/c native view has padding
 
@@ -152,7 +151,7 @@ const textInputStyle = ({isShowingFloatingLabel, textHeight, rows, multiline, au
     textAlign: 'center',
     // BUG (AW): adjust for an odd bug in iOS that causes multiline inputs to
     // not center their contents properly
-    marginLeft: (multiline && OS === Platform.OS_IOS) ? 4 : 0,
+    marginLeft: (multiline && isIOS) ? 4 : 0,
   }
 }
 

@@ -1,8 +1,9 @@
 // @flow
 import net from 'net'
-import type {createClientType, incomingRPCCallbackType, connectCallbackType} from './index.platform'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
-import {socketPath} from '../constants/platform.specific.desktop'
+import {isWindows, socketPath} from '../constants/platform.desktop'
+
+import type {createClientType, incomingRPCCallbackType, connectCallbackType} from './index.platform'
 
 class NativeTransport extends TransportShared {
   constructor (incomingRPCCallback, connectCallback) {
@@ -25,7 +26,7 @@ function windowsHack () {
   // unblocks.  Could be Electron, could be a node-framed-msgpack-rpc
   // bug, who knows.
   // $FlowIssue
-  if (process.platform !== 'win32' || process.type !== 'renderer') {
+  if (!isWindows || process.type !== 'renderer') {
     return
   }
 

@@ -1,18 +1,19 @@
 // @flow
+import * as favoriteAction from '../actions/favorite'
 import React, {Component} from 'react'
 import Render from './index.render'
+import engine from '../engine'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import engine from '../engine'
-import {shell, ipcRenderer} from 'electron'
-import * as favoriteAction from '../actions/favorite'
-import {openInKBFS} from '../actions/kbfs'
-import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
-import {switchTab} from '../actions/router'
-import {loginTab} from '../constants/tabs'
-import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {defaultKBFSPath} from '../constants/config'
+import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {exec} from 'child_process'
+import {isWindows} from '../constants/platform'
+import {loginTab} from '../constants/tabs'
+import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
+import {openInKBFS} from '../actions/kbfs'
+import {shell, ipcRenderer} from 'electron'
+import {switchTab} from '../actions/router'
 
 import type {MenuNotificationState} from '../constants/notifications'
 import type {KBFSStatus} from '../constants/favorite'
@@ -147,7 +148,7 @@ class Menubar extends Component<void, Props, void> {
   }
 
   _openShell () {
-    if (process.platform === 'win32') {
+    if (isWindows) {
       let shellCmd = 'start "Keybase Shell" "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Keybase\\Keybase Shell.lnk"'
       exec(shellCmd, (err) => {
         if (err) {

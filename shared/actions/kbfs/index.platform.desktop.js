@@ -2,10 +2,11 @@
 import * as Constants from '../../constants/config'
 import path from 'path'
 import {CommonClientType} from '../../constants/types/flow-types'
-import {delay} from 'redux-saga'
 import {call, put, select, race, take} from 'redux-saga/effects'
+import {delay} from 'redux-saga'
 import {getExtendedStatus} from '../config'
 import {ipcRenderer} from 'electron'
+import {isWindows} from '../../constants/platform'
 
 import type {FSOpen} from '../../constants/kbfs'
 import type {ExtendedStatus} from '../../constants/types/flow-types'
@@ -106,7 +107,7 @@ function * openSaga (action: FSOpen): SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
 
   console.log('openInKBFS:', openPath)
-  if (process.platform === 'win32') {
+  if (isWindows) {
     yield * openInWindows(openPath)
   } else {
     yield call(openInDefault, openPath)

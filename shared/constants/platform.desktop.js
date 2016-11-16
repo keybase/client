@@ -1,10 +1,15 @@
 // @flow
-import {OS_ELECTRON} from './platform.shared'
 import path from 'path'
 import getenv from 'getenv'
 
-const OS = OS_ELECTRON
 const isMobile = false
+const isAndroid = false
+const isIOS = false
+
+const isElectron = true
+const isDarwin = process.platform === 'darwin'
+const isWindows = process.platform === 'win32'
+const isLinux = process.platform === 'linux'
 
 const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
 
@@ -90,12 +95,17 @@ function logFileName (): string {
 
 const socketPath = findSocketDialPath()
 const dataRoot = findDataRoot()
-const splashRoot = process.platform === 'darwin' ? darwinCacheRoot : dataRoot
+const splashRoot = isDarwin ? darwinCacheRoot : dataRoot
 
 export {
-  OS,
   dataRoot,
+  isAndroid,
+  isDarwin,
+  isElectron,
+  isIOS,
+  isLinux,
   isMobile,
+  isWindows,
   logFileName,
   runMode,
   socketPath,

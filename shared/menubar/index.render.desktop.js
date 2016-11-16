@@ -6,11 +6,10 @@ import flags from '../util/feature-flags'
 import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/index'
 import {folderTab, profileTab, chatTab, devicesTab} from '../constants/tabs'
 import {globalStyles, globalColors} from '../styles'
+import {isWindows, isDarwin} from '../constants/platform'
 
 import type {MenuNotificationState} from '../constants/notifications'
 import type {Props} from './index.render'
-
-const isDarwin = process.platform === 'darwin'
 
 type State = {
   showingPrivate: boolean,
@@ -69,7 +68,7 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
     return [
       ...(this.props.loggedIn ? [{title: 'Open Keybase', onClick: () => this.props.openApp()}] : []),
       {title: 'Open folders', onClick: this.props.showKBFS},
-      ...(process.platform === 'win32' ? [{title: 'Keybase Shell', onClick: this.props.openShell}] : []),
+      ...(isWindows ? [{title: 'Keybase Shell', onClick: this.props.openShell}] : []),
       {title: 'Keybase.io', onClick: this.props.showUser},
       {title: 'Report a bug', onClick: this.props.showBug},
       {title: 'Help/Doc', onClick: this.props.showHelp},
