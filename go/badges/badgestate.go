@@ -5,8 +5,6 @@ package badges
 
 import (
 	"fmt"
-	"os"
-	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/gregor"
@@ -80,7 +78,6 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 
 	b.updateCounts()
 
-	b.debug()
 	return nil
 }
 
@@ -95,7 +92,6 @@ func (b *BadgeState) UpdateWithChat(update chat1.UnreadUpdate, inboxVers chat1.I
 
 	b.updateWithChat(update)
 	b.updateCounts()
-	b.debug()
 }
 
 func (b *BadgeState) UpdateWithChatFull(update chat1.UnreadUpdateFull) {
@@ -119,7 +115,6 @@ func (b *BadgeState) UpdateWithChatFull(update chat1.UnreadUpdateFull) {
 
 	b.inboxVers = update.InboxVers
 	b.updateCounts()
-	b.debug()
 }
 
 func (b *BadgeState) Clear() {
@@ -150,18 +145,4 @@ func (b *BadgeState) updateCounts() {
 
 	// Compute total badge count
 	b.Total = b.NewTlfs + b.RekeysNeeded + b.NewFollowers + b.UnreadChatConversations
-}
-
-// debug writes to a temporary file for debugging.
-// TODO remove this function.
-func (b *BadgeState) debug() {
-	home := os.Getenv("kbu_home")
-	logpath := home + "/badgestate.log"
-	logfile, err := os.OpenFile(logpath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-	if err != nil {
-		panic("TODO remove this method")
-	}
-	logfile.WriteString("\n\n***\n\n")
-	logfile.WriteString(strings.Replace(fmt.Sprintf("%+v\n", b), " ", "\n", -1))
-	logfile.Close()
 }

@@ -911,7 +911,6 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		})
 
 		if g.badger != nil && nm.UnreadUpdate != nil {
-			g.G().Log.Debug("@@@ $badge newMessage")
 			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 		}
 	case "readMessage":
@@ -938,7 +937,6 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		})
 
 		if g.badger != nil && nm.UnreadUpdate != nil {
-			g.G().Log.Debug("@@@ $badge newMessage")
 			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 		}
 	case "setStatus":
@@ -965,7 +963,6 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		})
 
 		if g.badger != nil && nm.UnreadUpdate != nil {
-			g.G().Log.Debug("@@@ $badge newMessage")
 			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 		}
 	case "newConversation":
@@ -1009,7 +1006,6 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		})
 
 		if g.badger != nil && nm.UnreadUpdate != nil {
-			g.G().Log.Debug("@@@ $badge newMessage")
 			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 		}
 	default:
