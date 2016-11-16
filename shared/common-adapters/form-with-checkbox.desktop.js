@@ -1,4 +1,4 @@
-// @flow
+  // @flow
 import React, {Component} from 'react'
 import type {Props as CheckboxProps} from './checkbox'
 import type {Props} from './form-with-checkbox'
@@ -9,11 +9,11 @@ class FormWithCheckbox extends Component<void, Props, void> {
   render () {
     const {inputProps, checkboxesProps} = this.props
     const {errorText = ''} = inputProps
-    const inputWOError = {...inputProps, errorText: null}
+    const inputWOError = {...inputProps, errorText: null, errorStyle: {opacity: 0}}
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, marginBottom: 15, ...this.props.style}}>
-        <Input errorStyle={{marginTop: 26}} {...inputWOError} />
+      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginBottom: 15, ...this.props.style}}>
+        <Input {...inputWOError} />
         <Box style={{...styles.checkboxContainer, ...this.props.checkboxContainerStyle}}>
           {checkboxesProps.map(p => {
             const checkProps: CheckboxProps = {key: p.label, ...p}
@@ -31,7 +31,7 @@ const styles = {
     ...globalStyles.flexBoxRow,
     justifyContent: 'center',
     position: 'relative',
-    bottom: 7,
+    marginTop: 7,
   },
 }
 

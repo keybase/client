@@ -1,60 +1,91 @@
 // @flow
 import React, {Component} from 'react'
-import {TextField} from 'material-ui'
+import {findDOMNode} from 'react-dom'
+import Box from './box'
+import Text, {getStyle as getTextStyle} from './text.desktop'
 import {globalStyles, globalColors} from '../styles'
-import {getStyle} from './text'
 
 import type {Props} from './input'
 
 type State = {
-  value: ?string,
+  value: string,
   focused: boolean,
 }
 
 class Input extends Component<void, Props, State> {
   state: State;
-  _textField: any;
+  _input: any;
 
   constructor (props: Props) {
     super(props)
 
     this.state = {
-      value: props.value,
+      value: props.value || '',
       focused: false,
     }
   }
 
-  getValue (): ?string {
-    return this.state.value
+  componentDidMount () {
+    this._autoResize()
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (nextProps.hasOwnProperty('value')) {
+      this.setState({value: nextProps.value || ''})
+      this._autoResize()
+    }
+  }
+
+  getValue (): string {
+    return this.state.value || ''
   }
 
   setValue (value: string) {
-    this.setState({value})
+    this.setState({value: value || ''})
   }
 
   clearValue () {
-    this.onChange({target: {value: null}})
+    this._onChange({target: {value: ''}})
   }
 
-  onChange (event: {target: {value: ?string}}) {
-    this.setState({value: event.target.value})
-    this.props.onChange && this.props.onChange(event)
+  _onChange = (event: {target: {value: ?string}}) => {
+    this.setState({value: event.target.value || ''})
+    this._autoResize()
+
     this.props.onChangeText && this.props.onChangeText(event.target.value || '')
   }
 
+  _autoResize () {
+    if (!this.props.multiline) {
+      return
+    }
+
+    const node = this._inputNode()
+    if (!node) {
+      return
+    }
+
+    node.style.height = 'auto'
+    node.style.height = `${node.scrollHeight}px`
+  }
+
+  _inputNode () {
+    return findDOMNode(this._input)
+  }
+
   focus () {
-    this._textField && this._textField.focus()
+    this._input && this._inputNode().focus()
   }
 
   select () {
-    this._textField && this._textField.select()
+    this._input && this._inputNode().select()
   }
 
   blur () {
-    this._textField && this._textField.blur()
+    this._input && this._inputNode().blur()
   }
 
-  _onKeyDown (e: SyntheticKeyboardEvent) {
+  _onKeyDown = (e: SyntheticKeyboardEvent) => {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e)
     }
@@ -64,145 +95,158 @@ class Input extends Component<void, Props, State> {
     }
   }
 
+  _onFocus = () => {
+    this.setState({focused: true})
+  }
+
+  _onBlur = () => {
+    this.setState({focused: false})
+  }
+
+  _underlineColor () {
+    if (this.props.hideUnderline) {
+      return globalColors.transparent
+    }
+
+    if (this.props.errorText && this.props.errorText.length) {
+      return globalColors.red
+    }
+
+    return this.state.focused ? globalColors.blue : globalColors.black_10
+  }
+
+  _rowsToHeight (rows) {
+    return rows * _lineHeight +
+      1 // border
+  }
+
+  _containerStyle (underlineColor) {
+    return this.props.small
+    ? {
+      ...globalStyles.flexBoxRow,
+      borderBottom: `1px solid ${underlineColor}`,
+      flex: 1,
+    }
+    : {
+      ...globalStyles.flexBoxColumn,
+      maxWidth: 460,
+      width: '100%',
+    }
+  }
+
+  _propTypeToSingleLineType () {
+    switch (this.props.type) {
+      case 'password':
+        return 'password'
+      default:
+        return 'text'
+    }
+  }
+
   render () {
-    const style = this.props.small ? styles.containerSmall : styles.container
-    const textStyle = this.props.small ? styles.inputSmall : styles.input
-    const textHeight = this.props.small ? 32 : (this.props.floatingLabelText ? 79 : 50)
-    const hintStyle = {bottom: this.props.small ? 11 : (this.props.multiline ? 16 : 14)}
+    const underlineColor = this._underlineColor()
+    const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
+    const containerStyle = this._containerStyle(underlineColor)
 
-    // HACK to make this cr*p line up. let's :fire: this whole file soon
-    if (!this.props.small && !this.props.floatingLabelText && this.props.hintText) {
-      // $FlowIssue this whole class needs to be cleaned up
-      hintStyle.bottom = 'initial'
-      // $FlowIssue this whole class needs to be cleaned up
-      hintStyle.top = 7
-    }
-    if (!this.props.small && this.props.floatingLabelText && this.props.hintText) {
-      // $FlowIssue this whole class needs to be cleaned up
-      hintStyle.top = 32
+    const commonInputStyle = {
+      ...globalStyles.fontSemibold,
+      fontSize: _headerTextStyle.fontSize,
+      lineHeight: `${_lineHeight}px`,
+      backgroundColor: globalColors.transparent,
+      flex: 1,
+      border: 'none',
+      outlineWidth: 0,
+      ...(this.props.small
+      ? {textAlign: 'left'}
+      : {
+        textAlign: 'center',
+        minWidth: 333,
+        borderBottom: `1px solid ${underlineColor}`,
+      }),
     }
 
-    // HACK: We can't reset the text area style, so we need to counteract it by moving the wrapper up
-    const multilineStyleFix = {
-      height: 'auto',
-      position: 'relative',
-      // Other HACK: having a floating label affects position, but only in multiline
-      bottom: (this.props.floatingLabelText ? 30 : 6),
-      // tweak distance between entered text and floating label to match single-line
-      marginTop: 1,
-      // tweak distance between entered text and underline to match single-line
-      marginBottom: -2,
+    const inputStyle = {
+      ...commonInputStyle,
+      height: 28,
     }
-    const inputStyle = this.props.multiline ? multilineStyleFix : {height: 'auto', top: 3}
-    const alignStyle = this.props.style && this.props.style.textAlign ? {textAlign: this.props.style.textAlign} : {textAlign: 'center'}
 
-    const passwordVisible = this.props.type === 'passwordVisible'
-    const password = this.props.type === 'password'
+    const textareaStyle = {
+      ...commonInputStyle,
+      height: 'initial',
+      resize: 'none',
+      wrap: 'off',
+      paddingTop: 0,
+      paddingBottom: 0,
+      minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
+      ...(this.props.rowsMax
+        ? {maxHeight: this._rowsToHeight(this.props.rowsMax)}
+        : {overflowY: 'hidden'}),
+    }
+
+    const floatingHintText = !!this.state.value.length &&
+      (this.props.hasOwnProperty('floatingHintTextOverride')
+       ? this.props.floatingHintTextOverride
+       : this.props.hintText || ' ')
+
+    const commonProps = {
+      autoFocus: this.props.autoFocus,
+      onBlur: this._onBlur,
+      onChange: this._onChange,
+      onFocus: this._onFocus,
+      onKeyDown: this._onKeyDown,
+      placeholder: this.props.hintText,
+      ref: r => { this._input = r },
+      value: this.state.value,
+    }
+
+    const singlelineProps = {
+      ...commonProps,
+      style: {...inputStyle, ...this.props.inputStyle},
+      type: this._propTypeToSingleLineType(),
+    }
+
+    const multilineProps = {
+      ...commonProps,
+      style: {...textareaStyle, ...this.props.inputStyle},
+    }
+
+    const smallLabelStyle = {
+      ...globalStyles.fontSemibold,
+      fontSize: _headerTextStyle.fontSize,
+      lineHeight: `${_lineHeight}px`,
+      marginRight: 8,
+      color: globalColors.blue,
+      ...this.props.smallLabelStyle,
+    }
 
     return (
-      <div style={{...style, ...this.props.style}} onClick={() => { this._textField && this._textField.focus() }}>
-        <TextField
-          autoComplete={(passwordVisible || password) ? 'off' : undefined}
-          autoFocus={this.props.autoFocus}
-          errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
-          errorText={this.props.errorText}
-          floatingLabelFocusStyle={styles.floatingLabelFocusStyle}
-          floatingLabelStyle={styles.floatingLabelStyle}
-          floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
-          fullWidth={true}
-          hintStyle={{...hintStyle, ...styles.hintStyle, ...this.props.hintStyle}}
-          hintText={this.props.hintText}
-          inputStyle={{...(this.props.small ? {} : {marginTop: 4}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
-          textareaStyle={{...alignStyle, overflow: 'overlay'}}
-          name='name'
-          multiLine={this.props.multiline}
-          onBlur={() => this.setState({focused: false})}
-          onChange={event => this.onChange(event)}
-          onFocus={() => this.setState({focused: true})}
-          onKeyDown={e => this._onKeyDown(e)}
-          ref={textField => (this._textField = textField)}
-          rows={this.props.rows}
-          rowsMax={this.props.rowsMax}
-          style={{...textStyle, height: textHeight, transition: 'none', ...globalStyles.flexBoxColumn, ...this.props.textStyle}}
-          type={password ? 'password' : 'text'}
-          underlineFocusStyle={{...styles.underlineFocusStyle, ...this.props.underlineStyle}}
-          underlineShow={this.props.underlineShow}
-          underlineStyle={{...styles.underlineStyle, ...this.props.underlineStyle}}
-          value={this.state.value || ''}
-          />
-      </div>
+      <Box style={{...containerStyle, ...this.props.style}}>
+        {!this.props.small && <Text type='BodySmall' style={_floatingStyle}>{floatingHintText}</Text>}
+        {!!this.props.small && !!this.props.smallLabel && <Text type='BodySmall' style={smallLabelStyle}>{this.props.smallLabel}</Text>}
+        {this.props.multiline
+          ? <textarea {...multilineProps} />
+          : <input {...singlelineProps} />}
+        {!!this.props.errorText && !this.props.small && <Text type='BodyError' style={{..._errorStyle, ...this.props.errorStyle}}>{this.props.errorText}</Text>}
+      </Box>
     )
   }
 }
 
-export const styles = {
-  container: {
-    marginBottom: 8,
-  },
-  containerSmall: {
-    margin: 0,
-    marginTop: 2,
-  },
-  input: {
-    ...getStyle('Header', 'Normal'),
-    color: globalColors.black_10,
-  },
-  inputSmall: {
-    ...getStyle('BodySmall', 'Normal'),
-    color: globalColors.black_10,
-    lineHeight: '16px',
-  },
-  underlineFocusStyle: {
-    marginTop: 4,
-    borderColor: globalColors.blue,
-    borderBottom: 'solid 1px',
-    transition: '',
-  },
-  underlineStyle: {
-    borderColor: globalColors.black_10,
-    bottom: 'auto',
-    marginTop: 4,
-  },
-  errorStyle: {
-    ...globalStyles.fontRegular,
-    color: globalColors.red,
-    alignSelf: 'center',
-    fontSize: 13,
-    lineHeight: '17px',
-    position: 'initial',
-    marginTop: 4,
-    paddingTop: 4,
-  },
-  hintStyle: {
-    ...globalStyles.fontSemibold,
-    color: globalColors.black_10,
-    width: '100%',
-    textAlign: 'center',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  floatingLabelStyle: {
-    ...globalStyles.fontSemibold,
-    alignSelf: 'center',
-    color: globalColors.black_10,
-    fontSize: 16,
-    lineHeight: '29px',
-    position: 'inherit',
-    top: 30,
-    transform: 'scale(1) translate3d(0, 0, 0)',
-    transition: 'color 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms',
-  },
-  floatingLabelFocusStyle: {
-    ...globalStyles.fontSemibold,
-    alignSelf: 'center',
-    color: globalColors.blue,
-    fontSize: 11,
-    lineHeight: '29px',
-    position: 'inherit',
-    transform: 'perspective(1px) scale(1) translate3d(2px, -26px, 0)',
-    transformOrigin: 'center top',
-  },
+const _lineHeight = 28
+const _headerTextStyle = getTextStyle('Header')
+const _bodySmallTextStyle = getTextStyle('BodySmall')
+
+const _errorStyle = {
+  textAlign: 'center',
+  width: '100%',
+}
+
+const _floatingStyle = {
+  textAlign: 'center',
+  minHeight: _bodySmallTextStyle.lineHeight,
+  color: globalColors.blue,
+  display: 'block',
+  marginBottom: 9,
 }
 
 export default Input

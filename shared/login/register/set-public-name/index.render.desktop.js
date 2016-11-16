@@ -13,9 +13,9 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
         autoFocus={true}
         errorText={deviceNameError}
         style={stylesInput}
-        floatingLabelText='Device name'
+        hintText='Device name'
         onEnterKeyDown={() => onSubmit()}
-        onChange={event => onChange(event.target.value)}
+        onChangeText={text => onChange(text)}
         value={deviceName} />
       <Button
         type='Primary'

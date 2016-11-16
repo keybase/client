@@ -14,19 +14,19 @@ class EditProfileRender extends Component<void, Props, void> {
           <Input
             autoFocus={true}
             style={styleEditProfile}
-            floatingLabelText='Full name'
+            hintText='Full name'
             value={this.props.fullname}
             onEnterKeyDown={this.props.onSubmit}
             onChangeText={fullname => this.props.onFullnameChange(fullname)} />
           <Input
             style={styleEditProfile}
-            floatingLabelText='Location'
+            hintText='Location'
             value={this.props.location}
             onEnterKeyDown={this.props.onSubmit}
             onChangeText={location => this.props.onLocationChange(location)} />
           <Input
             style={styleEditProfile}
-            floatingLabelText='Bio'
+            hintText='Bio'
             value={this.props.bio}
             multiline={true}
             rowsMax={4}
