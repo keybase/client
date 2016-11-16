@@ -29,7 +29,8 @@ type mdIDJournal struct {
 // depend on the ID, as the mdJournal may change the ID when
 // converting to a branch.
 type mdIDJournalEntry struct {
-	ID MdID
+	ID            MdID
+	IsLocalSquash bool
 
 	codec.UnknownFieldSetHandler
 }

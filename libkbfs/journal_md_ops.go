@@ -91,6 +91,26 @@ func (j journalMDOps) getHeadFromJournal(
 		return ImmutableRootMetadata{}, nil
 	}
 
+	// If we are being asked for the merged head, but the journal is
+	// for a local squash branch, we might contain some non-branch
+	// entries before some branch entries.
+	if mStatus == Merged {
+		for head.BID() == LocalSquashBranchID {
+			newHead := head.RevisionNumber() - 1
+			if newHead < MetadataRevisionInitial {
+				break
+			}
+			ibrmds, err := tlfJournal.getMDRange(ctx, newHead, newHead)
+			if err != nil {
+				return ImmutableRootMetadata{}, nil
+			}
+			if len(ibrmds) == 0 {
+				break
+			}
+			head = ibrmds[0]
+		}
+	}
+
 	if head.MergedStatus() != mStatus {
 		return ImmutableRootMetadata{}, nil
 	}
@@ -158,7 +178,21 @@ func (j journalMDOps) getRangeFromJournal(
 		return nil, nil
 	}
 
-	head := ibrmds[len(ibrmds)-1]
+	headIndex := len(ibrmds) - 1
+	head := ibrmds[headIndex]
+	// If we are being asked for merged entries, but the journal is
+	// for a local squash branch, we might contain some non-branch
+	// entries before some branch entries.
+	if mStatus == Merged {
+		for head.BID() == LocalSquashBranchID {
+			if headIndex == 0 {
+				break
+			}
+			ibrmds = ibrmds[:headIndex]
+			headIndex--
+			head = ibrmds[headIndex]
+		}
+	}
 
 	if head.MergedStatus() != mStatus {
 		return nil, nil
@@ -183,6 +217,12 @@ func (j journalMDOps) getRangeFromJournal(
 	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
 
 	for _, ibrmd := range ibrmds {
+		if bid == LocalSquashBranchID && ibrmd.BID() != bid {
+			// It's acceptable for the journal to contain non-branch
+			// local squashes if the branch is itself a local squash.
+			continue
+		}
+
 		irmd, err := j.convertImmutableBareRMDToIRMD(
 			ctx, ibrmd, handle, tlfJournal.uid, tlfJournal.key)
 		if err != nil {

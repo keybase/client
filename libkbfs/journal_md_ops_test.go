@@ -303,3 +303,81 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 	_, err = mdOps.PutUnmerged(ctx, rmd)
 	require.Error(t, err, "Unmerged put with rmd.BID() == j.branchID == NullBranchID")
 }
+
+func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
+	tempdir, config, _, jServer := setupJournalMDOpsTest(t)
+	defer teardownJournalMDOpsTest(t, tempdir, config)
+
+	ctx := context.Background()
+	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	require.NoError(t, err)
+
+	bh, err := tlf.MakeHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	require.NoError(t, err)
+
+	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
+	require.NoError(t, err)
+
+	mdOps := jServer.mdOps()
+	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
+	require.NoError(t, err)
+	require.Equal(t, ImmutableRootMetadata{}, irmd)
+	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+
+	tlfJournal, ok := jServer.getTLFJournal(id)
+	require.True(t, ok)
+
+	// Prepare the md journal to have a leading local squash revision.
+	firstRevision := MetadataRevision(1)
+	initialRmd := makeMDForJournalMDOpsTest(t, config, id, h, firstRevision)
+	j := tlfJournal.mdJournal
+	initialMdID, err := j.put(ctx, config.Crypto(), config.KeyManager(),
+		config.BlockSplitter(), initialRmd, true)
+	require.NoError(t, err)
+
+	mdCount := 10
+	rmd := initialRmd
+	mdID := initialMdID
+	// Put several MDs after a local squash
+	for i := 0; i < mdCount; i++ {
+		rmd, err = rmd.MakeSuccessor(ctx, config, mdID, true)
+		require.NoError(t, err)
+		mdID, err = j.put(ctx, config.Crypto(), config.KeyManager(),
+			config.BlockSplitter(), rmd, false)
+		require.NoError(t, err)
+	}
+
+	mdcache := NewMDCacheStandard(10)
+	err = j.convertToBranch(
+		ctx, LocalSquashBranchID, config.Crypto(), config.Codec(), id, mdcache)
+	require.NoError(t, err)
+
+	// The merged head should still be the initial rmd, because we
+	// marked it as a squash and it shouldn't have gotten converted.
+	irmd, err = mdOps.GetForTLF(ctx, id)
+	require.NoError(t, err)
+	require.Equal(t, initialMdID, irmd.mdID)
+	require.Equal(t, firstRevision, irmd.Revision())
+
+	// The unmerged head should be the last MD we put, converted to a
+	// branch.
+	irmd, err = mdOps.GetUnmergedForTLF(ctx, id, LocalSquashBranchID)
+	require.NoError(t, err)
+	require.Equal(t, rmd.Revision(), irmd.Revision())
+	require.Equal(t, LocalSquashBranchID, irmd.BID())
+
+	// The merged range should just be the initial MD.
+	stopRevision := firstRevision + MetadataRevision(mdCount*2)
+	irmds, err := mdOps.GetRange(ctx, id, firstRevision, stopRevision)
+	require.NoError(t, err)
+	require.Len(t, irmds, 1)
+	require.Equal(t, initialMdID, irmds[0].mdID)
+	require.Equal(t, firstRevision, irmds[0].Revision())
+
+	irmds, err = mdOps.GetUnmergedRange(ctx, id, LocalSquashBranchID,
+		firstRevision, stopRevision)
+	require.NoError(t, err)
+	require.Len(t, irmds, mdCount)
+	require.Equal(t, firstRevision+MetadataRevision(1), irmds[0].Revision())
+}

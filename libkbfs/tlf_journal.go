@@ -798,10 +798,17 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
 	}
 
 	size, err := j.mdJournal.length()
+	if size < ForcedBranchSquashThreshold {
+		return false, nil
+	}
+
+	ok, err := j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashThreshold)
 	if err != nil {
 		return false, err
 	}
-	if size < ForcedBranchSquashThreshold {
+	if !ok {
+		// Most of what's in the log are already local squashes, so no
+		// need to squash it more.
 		return false, nil
 	}
 
@@ -1400,7 +1407,7 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 
 	mdID, err = j.mdJournal.put(ctx, j.config.Crypto(),
 		j.config.encryptionKeyGetter(), j.config.BlockSplitter(),
-		rmd)
+		rmd, false)
 	if err != nil {
 		return MdID{}, false, err
 	}
