@@ -299,7 +299,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             followState: isYou ? 'You' : 'Following', // TODO get this
-            messageState: 'Ok', // TODO, distinguish sent/pending once CORE sends it.
+            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID: payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex'),
           }
         default:
