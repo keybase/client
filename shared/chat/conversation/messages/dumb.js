@@ -57,9 +57,7 @@ const stackedMessagesMap = {
       mock1: {...baseMock, followState: 'Following', messageState: 'Ok', includeHeader: true},
       mock2: {...baseMock, followState: 'Following', messageState: 'Ok', includeHeader: false},
     },
-  }
-
-  ,
+  },
 }
 
 export default {

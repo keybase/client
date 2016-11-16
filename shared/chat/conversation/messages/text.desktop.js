@@ -32,6 +32,14 @@ const colorForAuthor = (followState: Constants.FollowState) => {
   }
 }
 
+const Retry = ({onRetry}: {onRetry: () => void}) => (
+  <Box>
+    <Text type='BodySmall' style={{fontSize: 9, color: globalColors.red}}>{'┏(>_<)┓'}</Text>
+    <Text type='BodySmall' style={{color: globalColors.red}}> Failed to send. </Text>
+    <Text type='BodySmall' style={{color: globalColors.red, textDecoration: 'underline'}} onClick={onRetry}>Retry</Text>
+  </Box>
+)
+
 const MessageTextWrapper = ({author, message, messageState, followState, style, includeHeader, onRetry}: Props) => (
   <Box style={{...globalStyles.flexBoxRow, ...style}}>
     <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(followState)}} />
@@ -42,13 +50,7 @@ const MessageTextWrapper = ({author, message, messageState, followState, style, 
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(followState), ...(followState === 'You' ? globalStyles.italic : null)}}>{author}</Text>}
         <MessageText text={message} messageState={messageState} style={{marginTop: globalMargins.xtiny}} />
-        {messageState === 'Failed' && (
-          <Box>
-            <Text type='BodySmall' style={{fontSize: 9, color: globalColors.red}}>{'┏(>_<)┓'}</Text>
-            <Text type='BodySmall' style={{color: globalColors.red}}> Failed to send. </Text>
-            <Text type='BodySmall' style={{color: globalColors.red, textDecoration: 'underline'}} onClick={onRetry}>Retry</Text>
-          </Box>
-        )}
+        {messageState === 'Failed' && <Retry onRetry={onRetry} />}
       </Box>
     </Box>
   </Box>
