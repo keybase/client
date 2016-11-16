@@ -27,9 +27,6 @@ export function folderIconProps (folder: Folder, style: ?Object = {}) {
 
 export function missingProofs (userProofs: Array<Proof>, onClick: (missingProof: MissingProof) => void): Array<MissingProof> {
   let availableProofTypes = _.without(PlatformsExpanded, 'http', 'https', 'dnsOrGenericWebSite', 'dns')
-  if (!flags.serviceFacebookEnabled) {
-    availableProofTypes = _.without(availableProofTypes, 'facebook')
-  }
   const userProofTypes = _.chain(userProofs)
     .map(p => p.type)
     .uniq()
