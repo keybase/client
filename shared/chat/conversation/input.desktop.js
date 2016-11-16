@@ -19,10 +19,9 @@ class Conversation extends Component<void, Props, void> {
           <Input
             small={true}
             style={styleInput}
-            hintStyle={{textAlign: 'left'}}
             ref={this._setRef}
             hintText={`Write to ${this.props.participants.join(', ')}`}
-            underlineShow={false}
+            hideUnderline={false}
             onEnterKeyDown={() => {
               this.props.onPostMessage(this._input.getValue())
               this._input.clearValue()

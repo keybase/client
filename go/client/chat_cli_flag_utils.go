@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 )
 
@@ -34,10 +34,6 @@ var chatFlags = map[string]cli.Flag{
 	"clear-headline": cli.BoolFlag{
 		Name:  "clear-headline",
 		Usage: `Clear the headline for the conversation`,
-	},
-	"stdin": cli.BoolFlag{
-		Name:  "stdin",
-		Usage: "Use STDIN for message content. [conversation] is required and [message] is ignored.",
 	},
 	"at-most": cli.IntFlag{
 		Name:  "at-most",
@@ -192,7 +188,7 @@ func makeChatCLIInboxFetcherActivitySorted(ctx *cli.Context) (fetcher chatCLIInb
 	}
 
 	if !ctx.Bool("all") {
-		fetcher.query.Status = libkb.VisibleChatConversationStatuses()
+		fetcher.query.Status = utils.VisibleChatConversationStatuses()
 	}
 
 	return fetcher, err
@@ -220,7 +216,7 @@ func makeChatCLIInboxFetcherUnreadFirst(ctx *cli.Context) (fetcher chatCLIInboxF
 	}
 
 	if !ctx.Bool("all") {
-		fetcher.query.Status = libkb.VisibleChatConversationStatuses()
+		fetcher.query.Status = utils.VisibleChatConversationStatuses()
 	}
 
 	return fetcher, err

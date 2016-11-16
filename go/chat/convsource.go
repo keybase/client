@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/chat/storage"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -54,8 +53,8 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 }
 
 func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
-	return chat1.ThreadView{}, nil, libkb.ChatStorageMissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	return chat1.ThreadView{}, libkb.ChatStorageMissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
 }
 
 func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
@@ -131,11 +130,10 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	// Get conversation metadata
 	if conv, err := s.getConvMetadata(ctx, convID, &rl); err == nil {
 		// Try locally first
-		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination, &rl)
+		localData, err := s.storage.Fetch(ctx, conv, uid, query, pagination)
 		if err == nil {
 			// If found, then return the stuff
 			s.G().Log.Debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
-			localData.Messages = utils.FilterByType(localData.Messages, query)
 
 			// Before returning the stuff, send remote request to mark as read if
 			// requested.
@@ -184,14 +182,13 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 }
 
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
 
-	var rl []*chat1.RateLimit
-	tv, err := s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination, &rl)
+	tv, err := s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination)
 	if err != nil {
-		return chat1.ThreadView{}, nil, err
+		return chat1.ThreadView{}, err
 	}
-	return tv, rl, nil
+	return tv, nil
 }
 
 func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {

@@ -4,7 +4,7 @@ import type {DumbComponentMap} from '../../../constants/types/more'
 
 export type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'
 const baseMock = {
-  mode: 'codePageModeScanCode',
+  mode: 'codePageModeEnterText',
   textCode: 'go hammer go hammer go hammer go stop hammer time',
   qrCode: 'go hammer go hammer go hammer go stop hammer time',
   myDeviceRole: 'codePageDeviceRoleNewPhone',

@@ -16,7 +16,7 @@ import (
 )
 
 type Sender interface {
-	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error)
+	Send(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error)
 	Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error)
 }
 
@@ -68,7 +68,9 @@ func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.M
 	return updated, nil
 }
 
-func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1.MessagePlaintext, convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
+func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1.MessagePlaintext,
+	convID chat1.ConversationID) (chat1.MessagePlaintext, error) {
+
 	// Make sure the caller hasn't already assembled this list. For now, this
 	// should never happen, and we'll return an error just in case we make a
 	// mistake in the future. But if there's some use case in the future where
@@ -77,7 +79,7 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 		return chat1.MessagePlaintext{}, fmt.Errorf("chatLocalHandler expects an empty prev list")
 	}
 
-	res, _, err := s.G().ConvSource.PullLocalOnly(context.Background(), convID, msg.ClientHeader.Sender, nil, nil)
+	res, err := s.G().ConvSource.PullLocalOnly(context.Background(), convID, msg.ClientHeader.Sender, nil, nil)
 	if err != nil {
 		switch err.(type) {
 		case libkb.ChatStorageMissError:
@@ -148,7 +150,7 @@ func (s *BlockingSender) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err e
 }
 
 func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
 
 	// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 	boxed, err := s.Prepare(ctx, msg, &convID)
@@ -172,9 +174,17 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	boxed.ServerHeader = &plres.MsgHeader
 
 	// Write new message out to cache
-	if _, err := s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
+	if _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
 		return chat1.OutboxID{}, 0, nil, err
 	}
+	// TODO: make this cache write work
+	/*if err = storage.NewInbox(s.G(), boxed.ClientHeader.Sender, func() libkb.SecretUI {
+		return DelivererSecretUI{}
+	}).NewMessage(0, convID, unboxed); err != nil {
+		if _, ok := err.(libkb.ChatStorageMissError); !ok {
+			return chat1.OutboxID{}, nil, err
+		}
+	}*/
 
 	return []byte{}, plres.MsgHeader.MessageID, plres.RateLimit, nil
 }
@@ -192,6 +202,7 @@ type Deliverer struct {
 
 	sender     Sender
 	outbox     *storage.Outbox
+	storage    *storage.Storage
 	shutdownCh chan struct{}
 	msgSentCh  chan struct{}
 	delivering bool
@@ -203,6 +214,7 @@ func NewDeliverer(g *libkb.GlobalContext, sender Sender) *Deliverer {
 		shutdownCh:   make(chan struct{}, 1),
 		msgSentCh:    make(chan struct{}, 100),
 		sender:       sender,
+		storage:      storage.New(g, func() libkb.SecretUI { return DelivererSecretUI{} }),
 	}
 
 	g.PushShutdownHook(func() error {
@@ -276,7 +288,10 @@ func (s *Deliverer) deliverLoop() {
 		// Fetch outbox
 		obrs, err := s.outbox.PullAllConversations()
 		if err != nil {
-			s.G().Log.Error("unable to pull outbox: uid: %s err: %s", s.outbox.GetUID(), err.Error())
+			if _, ok := err.(libkb.ChatStorageMissError); !ok {
+				s.G().Log.Error("unable to pull outbox: uid: %s err: %s", s.outbox.GetUID(),
+					err.Error())
+			}
 			continue
 		}
 		if len(obrs) > 0 {
@@ -286,10 +301,10 @@ func (s *Deliverer) deliverLoop() {
 		// Send messages
 		pops := 0
 		for _, obr := range obrs {
-			obr.Msg.ClientHeader.OutboxID = &obr.OutboxID
-			_, _, _, err := s.sender.Send(context.Background(), obr.ConvID, obr.Msg)
+			_, _, _, err := s.sender.Send(context.Background(), obr.ConvID, obr.Msg, 0)
 			if err != nil {
-				s.G().Log.Error("failed to send msg: convID: %s err: %s", obr.ConvID, err.Error())
+				s.G().Log.Error("failed to send msg: uid: %s convID: %s err: %s", s.outbox.GetUID(),
+					obr.ConvID, err.Error())
 				break
 			}
 			pops++
@@ -325,7 +340,12 @@ func (s *NonblockingSender) Prepare(ctx context.Context, plaintext chat1.Message
 }
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
-	msg chat1.MessagePlaintext) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
+
+	msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
+		Prev:        clientPrev,
+		ComposeTime: gregor1.ToTime(time.Now()),
+	}
 	oid, err := s.G().MessageDeliverer.Queue(convID, msg)
 	return oid, 0, &chat1.RateLimit{}, err
 }

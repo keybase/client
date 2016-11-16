@@ -514,7 +514,7 @@ type ConversationSource interface {
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
-		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
+		pagination *chat1.Pagination) (chat1.ThreadView, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
 }
 

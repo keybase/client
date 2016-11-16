@@ -17,8 +17,8 @@ import s3 from 's3'
 
 const NPM_CMD = os.platform() === 'win32' ? 'npm.cmd' : 'npm'
 
-const BUCKET_S3 = 'keybase-app-visdiff'
-const BUCKET_HTTP = 'https://keybase-app-visdiff.s3.amazonaws.com'
+const BUCKET_S3 = process.env['VISDIFF_S3_BUCKET']
+const BUCKET_HTTP = `https://${BUCKET_S3}.s3.amazonaws.com`
 const MAX_INLINE_IMAGES = 6
 
 const DIFF_NEW = 'new'

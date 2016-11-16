@@ -98,11 +98,20 @@ export const LocalHeaderPlaintextVersion = {
 export const LocalMessageUnboxedState = {
   valid: 1,
   error: 2,
+  outbox: 3,
+}
+
+export const LocalOutboxStateType = {
+  sending: 0,
+  error: 1,
 }
 
 export const NotifyChatChatActivityType = {
   reserved: 0,
   incomingMessage: 1,
+  readMessage: 2,
+  newConversation: 3,
+  setStatus: 4,
 }
 
 export function localDownloadAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>) {
@@ -297,6 +306,18 @@ export function remoteGetThreadRemoteRpcPromise (request: $Exact<requestCommon &
   return new Promise((resolve, reject) => { remoteGetThreadRemoteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function remoteGetUnreadUpdateFullRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetUnreadUpdateFullResult) => void} & {param: remoteGetUnreadUpdateFullRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.remote.GetUnreadUpdateFull'})
+}
+
+export function remoteGetUnreadUpdateFullRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetUnreadUpdateFullResult) => void} & {param: remoteGetUnreadUpdateFullRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => remoteGetUnreadUpdateFullRpc({...request, incomingCallMap, callback}))
+}
+
+export function remoteGetUnreadUpdateFullRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetUnreadUpdateFullResult) => void} & {param: remoteGetUnreadUpdateFullRpcParam}>): Promise<remoteGetUnreadUpdateFullResult> {
+  return new Promise((resolve, reject) => { remoteGetUnreadUpdateFullRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function remoteMarkAsReadRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: remoteMarkAsReadResult) => void} & {param: remoteMarkAsReadRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.remote.markAsRead'})
 }
@@ -407,10 +428,16 @@ export type BodyPlaintextVersion =
 
 export type ChatActivity = 
     { activityType : 1, incomingMessage : ?IncomingMessage }
+  | { activityType : 2, readMessage : ?ReadMessageInfo }
+  | { activityType : 3, newConversation : ?NewConversationInfo }
+  | { activityType : 4, setStatus : ?SetStatusInfo }
 
 export type ChatActivityType = 
     0 // RESERVED_0
   | 1 // INCOMING_MESSAGE_1
+  | 2 // READ_MESSAGE_2
+  | 3 // NEW_CONVERSATION_3
+  | 4 // SET_STATUS_4
 
 export type Conversation = {
   metadata: ConversationMetadata,
@@ -576,7 +603,6 @@ export type GetMessagesRemoteRes = {
 
 export type GetThreadLocalRes = {
   thread: ThreadView,
-  outbox?: ?Array<OutboxRecord>,
   rateLimits?: ?Array<RateLimit>,
 }
 
@@ -606,6 +632,7 @@ export type HeaderPlaintextV1 = {
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
   bodyHash: Hash,
+  outboxInfo?: ?OutboxInfo,
   headerSignature?: ?SignatureInfo,
 }
 
@@ -675,6 +702,7 @@ export type MessageClientHeader = {
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
   outboxID?: ?OutboxID,
+  outboxInfo?: ?OutboxInfo,
 }
 
 export type MessageConversationMetadata = {
@@ -706,6 +734,12 @@ export type MessagePreviousPointer = {
   hash: Hash,
 }
 
+export type MessageSentInfo = {
+  convID: ConversationID,
+  rateLimit: RateLimit,
+  outboxID: OutboxID,
+}
+
 export type MessageServerHeader = {
   messageID: MessageID,
   supersededBy: MessageID,
@@ -729,6 +763,7 @@ export type MessageType =
 export type MessageUnboxed = 
     { state : 1, valid : ?MessageUnboxedValid }
   | { state : 2, error : ?MessageUnboxedError }
+  | { state : 3, outbox : ?OutboxRecord }
 
 export type MessageUnboxedError = {
   errMsg: string,
@@ -739,6 +774,7 @@ export type MessageUnboxedError = {
 export type MessageUnboxedState = 
     1 // VALID_1
   | 2 // ERROR_2
+  | 3 // OUTBOX_3
 
 export type MessageUnboxedValid = {
   clientHeader: MessageClientHeader,
@@ -747,6 +783,10 @@ export type MessageUnboxedValid = {
   senderUsername: string,
   senderDeviceName: string,
   headerHash: Hash,
+}
+
+export type NewConversationInfo = {
+  conv: ConversationLocal,
 }
 
 export type NewConversationLocalRes = {
@@ -758,6 +798,7 @@ export type NewConversationPayload = {
   Action: string,
   convID: ConversationID,
   inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
 }
 
 export type NewConversationRemoteRes = {
@@ -770,6 +811,7 @@ export type NewMessagePayload = {
   convID: ConversationID,
   message: MessageBoxed,
   inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
 }
 
 export type NotifyChatNewChatActivityRpcParam = Exact<{
@@ -779,11 +821,25 @@ export type NotifyChatNewChatActivityRpcParam = Exact<{
 
 export type OutboxID = bytes
 
+export type OutboxInfo = {
+  prev: MessageID,
+  composeTime: gregor1.Time,
+}
+
 export type OutboxRecord = {
+  state: OutboxState,
   outboxID: OutboxID,
   convID: ConversationID,
   Msg: MessagePlaintext,
 }
+
+export type OutboxState = 
+    { state : 0, sending : ?int }
+  | { state : 1, error : ?string }
+
+export type OutboxStateType = 
+    0 // SENDING_0
+  | 1 // ERROR_1
 
 export type Pagination = {
   next: bytes,
@@ -813,11 +869,17 @@ export type RateLimit = {
   maxCalls: int,
 }
 
+export type ReadMessageInfo = {
+  convID: ConversationID,
+  msgID: MessageID,
+}
+
 export type ReadMessagePayload = {
   Action: string,
   convID: ConversationID,
   msgID: MessageID,
   inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
 }
 
 export type S3Params = {
@@ -838,11 +900,17 @@ export type SetConversationStatusRes = {
   rateLimit?: ?RateLimit,
 }
 
+export type SetStatusInfo = {
+  convID: ConversationID,
+  status: ConversationStatus,
+}
+
 export type SetStatusPayload = {
   Action: string,
   convID: ConversationID,
   status: ConversationStatus,
   inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
 }
 
 export type SignatureInfo = {
@@ -881,6 +949,17 @@ export type UnreadFirstNumLimit = {
   NumRead: int,
   AtLeast: int,
   AtMost: int,
+}
+
+export type UnreadUpdate = {
+  convID: ConversationID,
+  UnreadMessages: int,
+}
+
+export type UnreadUpdateFull = {
+  ignore: boolean,
+  inboxVers: InboxVers,
+  updates?: ?Array<UnreadUpdate>,
 }
 
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
@@ -947,7 +1026,8 @@ export type localPostAttachmentLocalRpcParam = Exact<{
 
 export type localPostLocalNonblockRpcParam = Exact<{
   conversationID: ConversationID,
-  msg: MessagePlaintext
+  msg: MessagePlaintext,
+  clientPrev: MessageID
 }>
 
 export type localPostLocalRpcParam = Exact<{
@@ -979,6 +1059,10 @@ export type remoteGetThreadRemoteRpcParam = Exact<{
   conversationID: ConversationID,
   query?: ?GetThreadQuery,
   pagination?: ?Pagination
+}>
+
+export type remoteGetUnreadUpdateFullRpcParam = Exact<{
+  inboxVers: InboxVers
 }>
 
 export type remoteMarkAsReadRpcParam = Exact<{
@@ -1046,6 +1130,8 @@ type remoteGetS3ParamsResult = S3Params
 
 type remoteGetThreadRemoteResult = GetThreadRemoteRes
 
+type remoteGetUnreadUpdateFullResult = UnreadUpdateFull
+
 type remoteMarkAsReadResult = MarkAsReadRes
 
 type remoteNewConversationRemote2Result = NewConversationRemoteRes
@@ -1075,6 +1161,7 @@ export type rpc =
   | remoteGetMessagesRemoteRpc
   | remoteGetS3ParamsRpc
   | remoteGetThreadRemoteRpc
+  | remoteGetUnreadUpdateFullRpc
   | remoteMarkAsReadRpc
   | remoteNewConversationRemote2Rpc
   | remoteNewConversationRemoteRpc

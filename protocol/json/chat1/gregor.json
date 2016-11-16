@@ -27,6 +27,13 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        },
+        {
+          "type": [
+            null,
+            "UnreadUpdate"
+          ],
+          "name": "unreadUpdate"
         }
       ]
     },
@@ -49,6 +56,13 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        },
+        {
+          "type": [
+            null,
+            "UnreadUpdate"
+          ],
+          "name": "unreadUpdate"
         }
       ]
     },
@@ -71,6 +85,13 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        },
+        {
+          "type": [
+            null,
+            "UnreadUpdate"
+          ],
+          "name": "unreadUpdate"
         }
       ]
     },
@@ -93,6 +114,27 @@
         {
           "type": "InboxVers",
           "name": "inboxVers"
+        },
+        {
+          "type": [
+            null,
+            "UnreadUpdate"
+          ],
+          "name": "unreadUpdate"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnreadUpdate",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "int",
+          "name": "UnreadMessages"
         }
       ]
     }

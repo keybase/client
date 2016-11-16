@@ -244,8 +244,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 }
 
 func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
-	rl *[]*chat1.RateLimit) (chat1.ThreadView, libkb.ChatStorageError) {
+	uid gregor1.UID, msgID chat1.MessageID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, libkb.ChatStorageError) {
 	// Fetch secret key
 	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
 	if ierr != nil {
@@ -319,8 +318,7 @@ func (s *Storage) fetchUpToMsgIDLocked(ctx context.Context, convID chat1.Convers
 }
 
 func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
-	rl *[]*chat1.RateLimit) (chat1.ThreadView, libkb.ChatStorageError) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, libkb.ChatStorageError) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
@@ -331,16 +329,15 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context, convID chat1.Conve
 		return chat1.ThreadView{}, err
 	}
 
-	return s.fetchUpToMsgIDLocked(ctx, convID, uid, maxMsgID, query, pagination, rl)
+	return s.fetchUpToMsgIDLocked(ctx, convID, uid, maxMsgID, query, pagination)
 }
 
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
-	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination,
-	rl *[]*chat1.RateLimit) (chat1.ThreadView, libkb.ChatStorageError) {
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, libkb.ChatStorageError) {
 	// All public functions get locks to make access to the database single threaded.
 	// They should never be called from private functons.
 	s.Lock()
 	defer s.Unlock()
 
-	return s.fetchUpToMsgIDLocked(ctx, conv.Metadata.ConversationID, uid, conv.ReaderInfo.MaxMsgid, query, pagination, rl)
+	return s.fetchUpToMsgIDLocked(ctx, conv.Metadata.ConversationID, uid, conv.ReaderInfo.MaxMsgid, query, pagination)
 }
