@@ -3,7 +3,7 @@ import Devices from './render'
 import type {Device} from '../constants/types/more'
 
 const dev1: Device = {
-  name: 'Paper Key (lorem ipsum...)',
+  name: 'Paper Key (hello world)',
   deviceID: '3d2e716574f68fb4eb5b56a5ec8eeeee',
   type: 'backup',
   created: 1444423192000,
