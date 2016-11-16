@@ -5,7 +5,6 @@
 
 import LoadingMore from './messages/loading-more'
 import React, {Component} from 'react'
-import Immutable from 'immutable'
 import _ from 'lodash'
 import messageFactory from './messages'
 import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
@@ -94,7 +93,7 @@ class ConversationList extends Component<void, Props, State> {
     if (!this.state.isScrolling) {
       this._invalidateChangedMessages(nextProps)
       this.setState({
-        messages: this._hackyFilterMessages(nextProps.messages),
+        messages: nextProps.messages,
       })
     }
   }
@@ -107,16 +106,12 @@ class ConversationList extends Component<void, Props, State> {
     })
   }
 
-  _hackyFilterMessages(ms: any): any {
-    return Immutable.Map(ms.map(m => ([m.messageID, m]))).valueSeq()
-  }
-
   _onScrollSettled = _.debounce(() => {
     // If we've stopped scrolling let's update our internal messages
     this._invalidateChangedMessages(this.props)
     this.setState({
       isScrolling: false,
-      ...(this.state.messages !== this.props.messages ? {messages: this._hackyFilterMessages(this.props.messages)} : null),
+      ...(this.state.messages !== this.props.messages ? {messages: this.props.messages} : null),
     })
   }, 1000)
 
