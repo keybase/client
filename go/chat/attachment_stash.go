@@ -14,12 +14,12 @@ import (
 )
 
 type AttachmentInfo struct {
-	ObjectKey string
-	EncKey    signencrypt.SecretboxKey
-	SignKey   signencrypt.SignKey
-	VerifyKey signencrypt.VerifyKey
-	Parts     map[int]string
-	StartedAt time.Time
+	ObjectKey string                   // s3 destination
+	EncKey    signencrypt.SecretboxKey // encryption key
+	SignKey   signencrypt.SignKey      // signing key
+	VerifyKey signencrypt.VerifyKey    // verification key
+	Parts     map[int]string           // map of parts uploaded to S3, key == part number, value == hash of ciphertext
+	StartedAt time.Time                // when the upload started
 }
 
 type AttachmentStash interface {
@@ -40,6 +40,8 @@ func (s stashKey) String() string {
 }
 
 var defaultStash = &FileStash{}
+
+var ErrPartNotFound = errors.New("part does not exist in stash")
 
 func StashStart(plaintextHash []byte, conversationID chat1.ConversationID, info AttachmentInfo) error {
 	return defaultStash.Start(plaintextHash, conversationID, info)
@@ -95,7 +97,7 @@ func (f *FileStash) RecordPart(plaintextHash []byte, conversationID chat1.Conver
 	key := stashKey{PlaintextHash: plaintextHash, ConversationID: conversationID}
 	info, found := c[key.String()]
 	if !found {
-		return errors.New("in progress upload not found")
+		return ErrPartNotFound
 	}
 
 	if info.Parts == nil {
@@ -115,7 +117,7 @@ func (f *FileStash) VerifyPart(plaintextHash []byte, conversationID chat1.Conver
 		return false, err
 	}
 	if !found {
-		return false, errors.New("in progress upload not found")
+		return false, ErrPartNotFound
 	}
 
 	return info.Parts[partNumber] == hash, nil

@@ -243,17 +243,6 @@ func TestUploadAssetLarge(t *testing.T) {
 	assertNumMultis(t, s, 1)
 }
 
-type pwcancel struct {
-	cancel func()
-	after  int
-}
-
-func (p *pwcancel) report(bytesCompleted, bytesTotal int) {
-	if bytesCompleted > p.after {
-		p.cancel()
-	}
-}
-
 func TestUploadAssetResumeOK(t *testing.T) {
 	var enc, sig []byte
 	kt := func(e, s []byte) {
@@ -261,28 +250,23 @@ func TestUploadAssetResumeOK(t *testing.T) {
 		sig = s
 	}
 	s := makeTestStore(t, kt)
-	s.pipelineSize = 1
-	ctx, cancel := context.WithCancel(context.Background())
+	s.blockLimit = 2
+	ctx := context.Background()
 	size := 12 * MB
 	plaintext, task := makeUploadTask(t, size)
-	pw := &pwcancel{
-		cancel: cancel,
-		after:  7 * MB,
-	}
-	task.Progress = pw.report
 	_, err := s.UploadAsset(ctx, task)
 	if err == nil {
-		t.Fatal("expected upload to be canceled")
+		t.Fatal("expected incomplete upload to have error")
 	}
 
-	assertNumParts(t, s, 0, 2)
+	assertNumParts(t, s, 0, s.blockLimit)
 
 	// keep track of the keys used in attempt 1
 	enc1 := hex.EncodeToString(enc)
 	sig1 := hex.EncodeToString(sig)
 
 	// try again:
-	s.pipelineSize = 10
+	s.blockLimit = 0
 	br := newBytesReadResetter(plaintext)
 	task.Plaintext = br
 	task.plaintextHash = nil
@@ -341,15 +325,10 @@ func TestUploadAssetResumeChange(t *testing.T) {
 		sig = s
 	}
 	s := makeTestStore(t, kt)
-	s.pipelineSize = 1
-	ctx, cancel := context.WithCancel(context.Background())
+	s.blockLimit = 2
+	ctx := context.Background()
 	size := 12 * MB
 	plaintext, task := makeUploadTask(t, size)
-	pw := &pwcancel{
-		cancel: cancel,
-		after:  7 * MB,
-	}
-	task.Progress = pw.report
 	_, err := s.UploadAsset(ctx, task)
 	if err == nil {
 		t.Fatal("expected upload to be canceled")
@@ -366,7 +345,7 @@ func TestUploadAssetResumeChange(t *testing.T) {
 
 	// try again, changing the file and the hash (but same destination on s3):
 	// this simulates the file changing between upload attempt 1 and this attempt.
-	s.pipelineSize = 10
+	s.blockLimit = 0
 	plaintext = randBytes(t, size)
 	br := newBytesReadResetter(plaintext)
 	task.Plaintext = br
@@ -429,24 +408,17 @@ func TestUploadAssetResumeRestart(t *testing.T) {
 		sig = s
 	}
 	s := makeTestStore(t, kt)
-	s.pipelineSize = 1
-	ctx, cancel := context.WithCancel(context.Background())
+	s.blockLimit = 2
+	ctx := context.Background()
 	size := 12 * MB
 	plaintext, task := makeUploadTask(t, size)
-	pw := &pwcancel{
-		cancel: cancel,
-		after:  7 * MB,
-	}
-	task.Progress = pw.report
 	_, err := s.UploadAsset(ctx, task)
 	if err == nil {
 		t.Fatal("expected upload to be canceled")
 	}
 
-	assertNumParts(t, s, 0, 2)
-
-	// there should be 2 calls to PutPart.
-	assertNumPutParts(t, s, 0, 2)
+	// there should be s.blockLimit calls to PutPart.
+	assertNumPutParts(t, s, 0, s.blockLimit)
 
 	// keep track of the keys used in attempt 1
 	enc1 := hex.EncodeToString(enc)
@@ -454,7 +426,7 @@ func TestUploadAssetResumeRestart(t *testing.T) {
 
 	// try again, changing only one byte of the file.
 	// this should result in full restart of upload with new keys
-	s.pipelineSize = 10
+	s.blockLimit = 0
 	plaintext[0] ^= 0x10
 	br := newBytesReadResetter(plaintext)
 	task.Plaintext = br

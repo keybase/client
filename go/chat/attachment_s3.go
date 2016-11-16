@@ -174,6 +174,10 @@ func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, siz
 		return "", err
 	}
 
+	if a.blockLimit > 0 {
+		return "", errors.New("block limit hit, not completing multi upload")
+	}
+
 	a.log.Debug("s3 putMulti all parts uploaded, completing request")
 
 	if err = multi.Complete(ctx, parts); err != nil {
@@ -206,6 +210,9 @@ func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockC
 			block = block[:n]
 		}
 		if n > 0 {
+			// if block is not empty, create a job for it and put it in
+			// blockCh.  Or, if the context has been canceled, then
+			// stop this loop and return from this function.
 			select {
 			case blockCh <- job{block: block, index: partNumber}:
 			case <-ctx.Done():
@@ -213,6 +220,11 @@ func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockC
 			}
 		}
 		if err == io.EOF || err == io.ErrUnexpectedEOF {
+			break
+		}
+
+		if a.blockLimit > 0 && partNumber >= a.blockLimit {
+			a.log.Debug("hit blockLimit of %d", a.blockLimit)
 			break
 		}
 	}
@@ -251,6 +263,12 @@ func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b jo
 			return ErrAbortOnPartMismatch
 		}
 	}
+
+	// stash part info locally before attempting S3 put
+	if err := StashRecordPart(task.plaintextHash, task.ConversationID, b.index, md5hex); err != nil {
+		a.log.Debug("StashRecordPart error: %s", err)
+	}
+
 	part, putErr := a.putRetry(ctx, multi, b.index, b.block)
 	if putErr != nil {
 		return putErr
@@ -259,10 +277,6 @@ func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b jo
 	case retCh <- part:
 	case <-ctx.Done():
 		return ctx.Err()
-	}
-
-	if err := StashRecordPart(task.plaintextHash, task.ConversationID, b.index, md5hex); err != nil {
-		a.log.Debug("StashRecordPart error: %s", err)
 	}
 
 	a.log.Debug("finish: upload part %d", b.index)

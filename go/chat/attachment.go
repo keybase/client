@@ -54,6 +54,7 @@ type AttachmentStore struct {
 	keyTester    func(encKey, sigKey []byte) // used for testing only to check key changes
 	pipelineSize int
 	aborts       int
+	blockLimit   int // max number of blocks to upload
 }
 
 func NewAttachmentStore(log logger.Logger) *AttachmentStore {
@@ -122,6 +123,7 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 		}
 	}
 
+	// XXX make this only work in devel mode or panic in production
 	if a.keyTester != nil {
 		a.log.Warning("AttachmentStore.keyTester exists, reporting keys")
 		a.keyTester(enc.EncryptKey(), enc.VerifyKey())
