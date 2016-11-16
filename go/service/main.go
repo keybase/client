@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/utils"
@@ -384,7 +386,7 @@ func (d *Service) OnLogout() error {
 	}
 	d.rekeyMaster.Logout()
 	if d.badger != nil {
-		d.badger.Clear()
+		d.badger.Clear(context.TODO())
 	}
 	return nil
 }

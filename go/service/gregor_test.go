@@ -69,6 +69,8 @@ type nlistener struct {
 	favoritesChanged []keybase1.UID
 }
 
+var _ libkb.NotifyListener = (*nlistener)(nil)
+
 func (n *nlistener) Logout()                                                      {}
 func (n *nlistener) Login(username string)                                        {}
 func (n *nlistener) ClientOutOfDate(to, uri, msg string)                          {}
@@ -86,6 +88,7 @@ func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                          
 func (n *nlistener) PGPKeyInSecretStoreFile()                                      {}
 func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)             {}
 func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                     {}
+func (n *nlistener) BadgeState(badgeState keybase1.BadgeState)                     {}
 
 type showTrackerPopupIdentifyUI struct {
 	kbtest.FakeIdentifyUI

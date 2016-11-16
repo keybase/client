@@ -4,12 +4,12 @@
 package badges
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // BadgeState represents the number of badges on the app. It's threadsafe.
@@ -19,16 +19,11 @@ type BadgeState struct {
 	libkb.Contextified
 	sync.Mutex
 
-	Total                   int
-	NewTlfs                 int
-	RekeysNeeded            int
-	NewFollowers            int
-	UnreadChatMessages      int
-	UnreadChatConversations int
+	state keybase1.BadgeState
 
 	inboxVers chat1.InboxVers
-	// Map from ConversationID.String to unread message count.
-	chatUnreadMap map[string]int
+	// Map from ConversationID.String to BadgeConversationInfo.
+	chatUnreadMap map[string]keybase1.BadgeConversationInfo
 }
 
 // NewBadgeState creates a new empty BadgeState.
@@ -36,15 +31,21 @@ func NewBadgeState(g *libkb.GlobalContext) *BadgeState {
 	return &BadgeState{
 		Contextified:  libkb.NewContextified(g),
 		inboxVers:     chat1.InboxVers(0),
-		chatUnreadMap: make(map[string]int),
+		chatUnreadMap: make(map[string]keybase1.BadgeConversationInfo),
 	}
 }
 
 // Exports the state summary
-func (b *BadgeState) Export() (interface{} /*will use keybase1.BadgeState when implemented*/, error) {
+func (b *BadgeState) Export() (keybase1.BadgeState, error) {
 	b.Lock()
 	defer b.Unlock()
-	return nil, fmt.Errorf("BadgeState export not implemented")
+
+	b.state.Conversations = []keybase1.BadgeConversationInfo{}
+	for _, info := range b.chatUnreadMap {
+		b.state.Conversations = append(b.state.Conversations, info)
+	}
+
+	return b.state, nil
 }
 
 // UpdateWithGregor updates the badge state from a gregor state.
@@ -52,9 +53,9 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.Lock()
 	defer b.Unlock()
 
-	b.NewTlfs = 0
-	b.NewFollowers = 0
-	b.RekeysNeeded = 0
+	b.state.NewTlfs = 0
+	b.state.NewFollowers = 0
+	b.state.RekeysNeeded = 0
 
 	items, err := gstate.Items()
 	if err != nil {
@@ -68,11 +69,11 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 		category := categoryObj.String()
 		switch category {
 		case "tlf":
-			b.NewTlfs++
+			b.state.NewTlfs++
 		case "kbfs_tlf_rekey_needed", "kbfs_tlf_sbs_rekey_needed":
-			b.RekeysNeeded++
+			b.state.RekeysNeeded++
 		case "follow":
-			b.NewFollowers++
+			b.state.NewFollowers++
 		}
 	}
 
@@ -107,7 +108,7 @@ func (b *BadgeState) UpdateWithChatFull(update chat1.UnreadUpdateFull) {
 		return
 	}
 
-	b.chatUnreadMap = make(map[string]int)
+	b.chatUnreadMap = make(map[string]keybase1.BadgeConversationInfo)
 
 	for _, upd := range update.Updates {
 		b.updateWithChat(upd)
@@ -118,31 +119,29 @@ func (b *BadgeState) UpdateWithChatFull(update chat1.UnreadUpdateFull) {
 }
 
 func (b *BadgeState) Clear() {
-	b.Total = 0
-	b.NewTlfs = 0
-	b.RekeysNeeded = 0
-	b.NewFollowers = 0
-	b.UnreadChatMessages = 0
-	b.UnreadChatConversations = 0
+	b.state = keybase1.BadgeState{}
 	b.inboxVers = chat1.InboxVers(0)
-	b.chatUnreadMap = make(map[string]int)
+	b.chatUnreadMap = make(map[string]keybase1.BadgeConversationInfo)
 }
 
 func (b *BadgeState) updateWithChat(update chat1.UnreadUpdate) {
-	b.chatUnreadMap[update.ConvID.String()] = update.UnreadMessages
+	b.chatUnreadMap[update.ConvID.String()] = keybase1.BadgeConversationInfo{
+		ConvID:         keybase1.ChatConversationID(update.ConvID),
+		UnreadMessages: update.UnreadMessages,
+	}
 }
 
 func (b *BadgeState) updateCounts() {
 	// Compute chat counts
-	b.UnreadChatMessages = 0
-	b.UnreadChatConversations = 0
-	for _, c := range b.chatUnreadMap {
-		if c > 0 {
-			b.UnreadChatConversations++
+	b.state.UnreadChatMessages = 0
+	b.state.UnreadChatConversations = 0
+	for _, info := range b.chatUnreadMap {
+		if info.UnreadMessages > 0 {
+			b.state.UnreadChatConversations++
 		}
-		b.UnreadChatMessages += c
+		b.state.UnreadChatMessages += info.UnreadMessages
 	}
 
 	// Compute total badge count
-	b.Total = b.NewTlfs + b.RekeysNeeded + b.NewFollowers + b.UnreadChatConversations
+	b.state.Total = b.state.NewTlfs + b.state.RekeysNeeded + b.state.NewFollowers + b.state.UnreadChatConversations
 }

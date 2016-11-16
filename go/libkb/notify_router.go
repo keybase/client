@@ -42,6 +42,7 @@ type NotifyListener interface {
 	KeyfamilyChanged(uid keybase1.UID)
 	NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)
 	PGPKeyInSecretStoreFile()
+	BadgeState(badgeState keybase1.BadgeState)
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -259,6 +260,32 @@ func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username string) 
 	})
 	if n.listener != nil {
 		n.listener.TrackingChanged(uid, username)
+	}
+}
+
+// HandleBadgeState is called whenever the badge state changes
+// It will broadcast the messages to all curious listeners.
+func (n *NotifyRouter) HandleBadgeState(badgeState keybase1.BadgeState) {
+	if n == nil {
+		return
+	}
+	n.G().Log.Debug("Sending BadgeState notfication: %v", badgeState.Total)
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Badges` notification type
+		if n.getNotificationChannels(id).Badges {
+			// In the background do...
+			go func() {
+				// A send of a `BadgeState` RPC with the badge state
+				(keybase1.NotifyBadgesClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).BadgeState(context.Background(), badgeState)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.BadgeState(badgeState)
 	}
 }
 
