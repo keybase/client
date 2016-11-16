@@ -63,7 +63,7 @@ class ConversationList extends Component<void, Props, State> {
 
   componentWillUpdate (nextProps: Props, nextState: State) {
     // If a message has moved from pending to sent, tell the List to discard
-    // heights for it and everything after it, so that they're re-rendered.
+    // heights for it (which will re-render it and everything after it)
     if (this._toRemeasure.length) {
       this._toRemeasure.forEach(item => {
         this._list.recomputeRowHeights(item)
