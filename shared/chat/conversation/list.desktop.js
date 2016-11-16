@@ -91,16 +91,16 @@ class ConversationList extends Component<void, Props, State> {
   componentWillReceiveProps (nextProps: Props) {
     // If we're not scrolling let's update our internal messages
     if (!this.state.isScrolling) {
-      this._invalidateChangedMessages()
+      this._invalidateChangedMessages(nextProps)
       this.setState({
         messages: nextProps.messages,
       })
     }
   }
 
-  _invalidateChangedMessages () {
+  _invalidateChangedMessages (props: Props) {
     this.state.messages.forEach((item, index) => {
-      if (item.messageID !== this.props.messages.get(index, {}).messageID) {
+      if (item.messageID !== props.messages.get(index, {}).messageID) {
         this._toRemeasure.push(index + 1)
       }
     })
@@ -108,7 +108,7 @@ class ConversationList extends Component<void, Props, State> {
 
   _onScrollSettled = _.debounce(() => {
     // If we've stopped scrolling let's update our internal messages
-    this._invalidateChangedMessages()
+    this._invalidateChangedMessages(this.props)
     this.setState({
       isScrolling: false,
       ...(this.state.messages !== this.props.messages ? {messages: this.props.messages} : null),
