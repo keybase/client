@@ -3,7 +3,6 @@ import _ from 'lodash'
 import {globalColors} from '../styles'
 import {proveMessage} from '../util/platforms.js'
 import {PlatformsExpanded} from '../constants/types/more'
-import flags from '../util/feature-flags'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
