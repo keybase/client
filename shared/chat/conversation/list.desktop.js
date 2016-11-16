@@ -144,9 +144,10 @@ class ConversationList extends Component<void, Props, State> {
 
     const message = this.state.messages.get(index - 1)
     const prevMessage = this.state.messages.get(index - 2)
+    const isFirstMessage = index - 1 === 0
+    const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
 
-    const skipMsgHeader = !!prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author
-    return messageFactory(message, !skipMsgHeader, index, key, style, isScrolling)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, style, isScrolling)
   }
 
   render () {

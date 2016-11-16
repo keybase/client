@@ -13,7 +13,6 @@ const _marginColor = (followState) => ({
   'Broken': globalColors.red,
 }[followState])
 
-
 const MessageText = ({text, messageState, style}: {text: string, messageState: Constants.MessageState, style: Object}) => {
   switch (messageState) {
     case 'Failed':
