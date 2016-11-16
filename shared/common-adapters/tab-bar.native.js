@@ -60,8 +60,8 @@ class TabBar extends Component<void, Props, void> {
       const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
       return (
         <NativeTouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
-          <Box style={{flexGrow: 1}}>
-            <Box style={{...item.props.styleContainer, flexGrow: 1}}>
+          <Box style={{flex: 1}}>
+            <Box style={{...item.props.styleContainer}}>
               {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
             </Box>
             {this.props.underlined && <Box style={stylesUnderline} />}
