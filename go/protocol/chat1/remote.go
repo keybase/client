@@ -64,6 +64,12 @@ type SetConversationStatusRes struct {
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
+type UnreadUpdateFull struct {
+	Ignore    bool           `codec:"ignore" json:"ignore"`
+	InboxVers InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	Updates   []UnreadUpdate `codec:"updates" json:"updates"`
+}
+
 type S3Params struct {
 	Bucket               string `codec:"bucket" json:"bucket"`
 	ObjectKey            string `codec:"objectKey" json:"objectKey"`
@@ -119,6 +125,10 @@ type TlfFinalizeArg struct {
 	TlfID TLFID `codec:"tlfID" json:"tlfID"`
 }
 
+type GetUnreadUpdateFullArg struct {
+	InboxVers InboxVers `codec:"inboxVers" json:"inboxVers"`
+}
+
 type GetS3ParamsArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 }
@@ -138,6 +148,7 @@ type RemoteInterface interface {
 	MarkAsRead(context.Context, MarkAsReadArg) (MarkAsReadRes, error)
 	SetConversationStatus(context.Context, SetConversationStatusArg) (SetConversationStatusRes, error)
 	TlfFinalize(context.Context, TLFID) error
+	GetUnreadUpdateFull(context.Context, InboxVers) (UnreadUpdateFull, error)
 	GetS3Params(context.Context, ConversationID) (S3Params, error)
 	S3Sign(context.Context, S3SignArg) ([]byte, error)
 }
@@ -290,6 +301,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"GetUnreadUpdateFull": {
+				MakeArg: func() interface{} {
+					ret := make([]GetUnreadUpdateFullArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetUnreadUpdateFullArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetUnreadUpdateFullArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUnreadUpdateFull(ctx, (*typedArgs)[0].InboxVers)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getS3Params": {
 				MakeArg: func() interface{} {
 					ret := make([]GetS3ParamsArg, 1)
@@ -374,6 +401,12 @@ func (c RemoteClient) SetConversationStatus(ctx context.Context, __arg SetConver
 func (c RemoteClient) TlfFinalize(ctx context.Context, tlfID TLFID) (err error) {
 	__arg := TlfFinalizeArg{TlfID: tlfID}
 	err = c.Cli.Call(ctx, "chat.1.remote.tlfFinalize", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) GetUnreadUpdateFull(ctx context.Context, inboxVers InboxVers) (res UnreadUpdateFull, err error) {
+	__arg := GetUnreadUpdateFullArg{InboxVers: inboxVers}
+	err = c.Cli.Call(ctx, "chat.1.remote.GetUnreadUpdateFull", []interface{}{__arg}, &res)
 	return
 }
 

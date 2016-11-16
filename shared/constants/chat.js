@@ -3,12 +3,15 @@ import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {List, Map, Record} from 'immutable'
 
-import type {ConversationID as RPCConversationID, ChatActivity, ConversationInfoLocal} from './types/flow-types-chat'
 import type {NoErrorTypedAction} from './types/flux'
+import type {ConversationID as RPCConversationID, ChatActivity, ConversationInfoLocal} from './types/flow-types-chat'
 
 export type MessageType = 'Text'
 export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
-export type MessageState = 'pending' | 'sent' | 'failed'
+export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', 'NotFollowing']
+
+export type MessageState = 'Sending' | 'Failed' | 'Ok'
+export const messageStates: Array<MessageState> = ['Sending', 'Failed', 'Ok']
 
 export type Message = {
   type: 'Text',

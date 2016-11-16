@@ -128,6 +128,11 @@ protocol common {
     Hash hash;
   }
 
+  record OutboxInfo {
+    MessageID prev; // This is the message ID the sending client device saw as the previous
+    gregor1.Time composeTime;
+  }    
+  
   record MessageClientHeader {
     ConversationIDTriple conv;
     string tlfName;
@@ -137,7 +142,8 @@ protocol common {
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;
-    union { null, OutboxID } outboxID; 
+    union { null, OutboxID } outboxID;
+    union { null, OutboxInfo } outboxInfo;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)

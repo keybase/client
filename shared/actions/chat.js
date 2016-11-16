@@ -140,7 +140,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       author,
       outboxID: sent.outboxID.toString('hex'),
       timestamp: Date.now(),
-      messageState: 'pending',
+      messageState: 'Sending',
       message: new HiddenString(action.payload.text.stringValue()),
       followState: 'You',
     }
@@ -171,7 +171,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
               conversationIDKey: conversationIDToKey(incomingMessage.convID),
               outboxID: message.outboxID,
               messageID: message.messageID,
-              messageState: 'sent',
+              messageState: 'Ok',
             },
           })
         } else {
@@ -299,7 +299,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             followState: isYou ? 'You' : 'Following', // TODO get this
-            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
+            messageState: 'Ok', // TODO, distinguish sent/pending once CORE sends it.
             outboxID: payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex'),
           }
         default:

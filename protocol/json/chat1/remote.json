@@ -204,6 +204,27 @@
     },
     {
       "type": "record",
+      "name": "UnreadUpdateFull",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "ignore"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UnreadUpdate"
+          },
+          "name": "updates"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "S3Params",
       "fields": [
         {
@@ -369,6 +390,15 @@
         }
       ],
       "response": null
+    },
+    "GetUnreadUpdateFull": {
+      "request": [
+        {
+          "name": "inboxVers",
+          "type": "InboxVers"
+        }
+      ],
+      "response": "UnreadUpdateFull"
     },
     "getS3Params": {
       "request": [

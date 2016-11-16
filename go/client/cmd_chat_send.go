@@ -5,15 +5,18 @@ package client
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	isatty "github.com/mattn/go-isatty"
 )
 
 type cmdChatSend struct {
@@ -24,7 +27,7 @@ type cmdChatSend struct {
 	setTopicName  string
 	setHeadline   string
 	clearHeadline bool
-	useStdin      bool
+	hasTTY        bool
 	nonBlock      bool
 }
 
@@ -37,7 +40,7 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cl.ChooseCommand(&cmdChatSend{Contextified: libkb.NewContextified(g)}, "send", c)
 		},
 		Flags: append(getConversationResolverFlags(),
-			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "stdin", "nonblock")...,
+			mustGetChatFlags("set-topic-name", "set-headline", "clear-headline", "nonblock")...,
 		),
 	}
 }
@@ -56,7 +59,7 @@ func (c *cmdChatSend) Run() (err error) {
 	ctx := context.TODO()
 	conversationInfo, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: true,
-		Interactive:       !c.useStdin,
+		Interactive:       c.hasTTY,
 	})
 	if err != nil {
 		return err
@@ -138,7 +141,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	c.setTopicName = ctx.String("set-topic-name")
 	c.setHeadline = ctx.String("set-headline")
 	c.clearHeadline = ctx.Bool("clear-headline")
-	c.useStdin = ctx.Bool("stdin")
+	c.hasTTY = isatty.IsTerminal(os.Stdin.Fd())
 	c.nonBlock = ctx.Bool("nonblock")
 
 	var tlfName string
@@ -154,7 +157,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.setTopicName != "" {
 		nActions++
-		if c.useStdin {
+		if !c.hasTTY {
 			return fmt.Errorf("stdin not supported when setting topic name")
 		}
 		if len(ctx.Args()) > 1 {
@@ -164,7 +167,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.setHeadline != "" {
 		nActions++
-		if c.useStdin {
+		if !c.hasTTY {
 			return fmt.Errorf("stdin not supported with --set-headline")
 		}
 		if len(ctx.Args()) > 1 {
@@ -174,7 +177,7 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if c.clearHeadline {
 		nActions++
-		if c.useStdin {
+		if !c.hasTTY {
 			return fmt.Errorf("stdin not supported with --clear-headline")
 		}
 		if len(ctx.Args()) > 1 {
@@ -185,25 +188,28 @@ func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 	// Send a normal message.
 	if nActions == 0 {
 		nActions++
-		if c.useStdin {
-			if len(ctx.Args()) != 1 {
+		switch len(ctx.Args()) {
+		case 2:
+			// message is supplied, so stdin is ignored even if piped
+			c.message = ctx.Args().Get(1)
+		case 1:
+			if !c.hasTTY {
+				bytes, err := ioutil.ReadAll(io.LimitReader(os.Stdin, msgchecker.TextMessageMaxLength))
+				if err != nil {
+					return err
+				}
+				c.message = string(bytes)
+			} else {
+				c.message = "" // get message through prompt later
+			}
+		case 0:
+			if !c.hasTTY {
 				return fmt.Errorf("need exactly 1 argument to send from stdin")
 			}
-			bytes, err := ioutil.ReadAll(os.Stdin)
-			if err != nil {
-				return err
-			}
-			c.message = string(bytes)
-		} else {
-			switch len(ctx.Args()) {
-			case 0, 1:
-				c.message = ""
-			case 2:
-				c.message = ctx.Args().Get(1)
-			default:
-				cli.ShowCommandHelp(ctx, "send")
-				return fmt.Errorf("chat send takes 1 or 2 args")
-			}
+			c.message = "" // get message through prompt later
+		default:
+			cli.ShowCommandHelp(ctx, "send")
+			return fmt.Errorf("chat send takes 0, 1 or 2 args")
 		}
 	}
 

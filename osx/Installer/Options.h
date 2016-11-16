@@ -1,5 +1,5 @@
 //
-//  Settings.h
+//  Options.h
 //  Keybase
 //
 //  Created by Gabriel on 1/11/16.
@@ -22,7 +22,7 @@ typedef NS_OPTIONS (NSUInteger, UninstallOptions) {
   UninstallOptionAll = UninstallOptionMountDir | UninstallOptionFuse | UninstallOptionHelper,
 };
 
-@interface Settings : NSObject
+@interface Options : NSObject
 
 @property (readonly) NSString *appPath;
 @property (readonly) NSString *runMode;

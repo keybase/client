@@ -7,6 +7,8 @@
 //
 
 #import "KBMountDir.h"
+#import "KBInstaller.h"
+#import "KBSharedFileList.h"
 
 @interface KBMountDir ()
 @property KBHelperTool *helperTool;
@@ -79,9 +81,13 @@
       }
       // Run check again after create for debug info
       [self checkMountDirExists];
+
+      // Enabled Finder favorite
+      [self setFinderFavoriteEnabled:YES];
       completion(nil);
     }];
   } else {
+    [self setFinderFavoriteEnabled:YES];
     completion(nil);
   }
 }
@@ -94,6 +100,55 @@
     return;
   }
   [self removeMountDir:mountDir completion:completion];
+  [self setFinderFavoriteEnabled:NO];
+}
+
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
+  if ([self checkMountDirExists]) {
+    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:nil error:nil];
+  } else {
+    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:nil error:nil];
+  }
+  completion(self.componentStatus);
+}
+
+- (BOOL)setFinderFavoriteEnabled:(BOOL)favoritedEnabled {
+  NSError *error = nil;
+  [KBMountDir setFileListFavoriteEnabled:favoritedEnabled config:self.config error:&error];
+  if (error) {
+    DDLogError(@"Error setting file list favorite: %@", error);
+    return NO;
+  }
+  return YES;
+}
+
++ (BOOL)setFileListFavoriteEnabled:(BOOL)fileListFavoriteEnabled config:(KBEnvConfig *)config error:(NSError **)error {
+  if (!config.mountDir) {
+    if (error) *error = KBMakeError(0, @"No mount dir");
+    return NO;
+  }
+
+  // We can't reliably create a file list (Finder) favorite directly for /keybase, since it is a remote volume mount,
+  // and there is some funkiness there (like the URL property not resolving, or the display name being ignored).
+  // If we create a symlink though, all these problems are avoided. So we'll create a symlink to /keybase and add this
+  // as the file list favorite item.
+  NSString *symPath = [config appPath:@"Keybase" options:0];
+  if (![[NSFileManager defaultManager] fileExistsAtPath:symPath]) {
+    if ([[NSFileManager defaultManager] createSymbolicLinkAtPath:symPath withDestinationPath:config.mountDir error:error]) {
+      return NO;
+    }
+  }
+
+  NSURL *URL = [NSURL fileURLWithPath:symPath];
+  NSString *name = [config appName];
+  //DDLogDebug(@"File list favorite items: %@", [KBSharedFileList debugItemsForType:kLSSharedFileListFavoriteItems]);
+  DDLogDebug(@"File list favorite %@ (%@)", (fileListFavoriteEnabled ? @"enabled" : @"disabled"), URL);
+  BOOL changed = [KBSharedFileList setEnabled:fileListFavoriteEnabled URL:URL name:name type:kLSSharedFileListFavoriteItems insertAfter:kLSSharedFileListItemBeforeFirst error:&error];
+  DDLogDebug(@"File list favorites changed: %@", changed ? @"Yes" : @"No");
+  if (error) {
+    return NO;
+  }
+  return changed;
 }
 
 @end

@@ -12,27 +12,27 @@
 
 @implementation Uninstaller
 
-+ (void)uninstallWithSettings:(Settings *)settings completion:(KBCompletion)completion {
-  KBEnvironment *environment = settings.environment;
++ (void)uninstallWithOptions:(Options *)options completion:(KBCompletion)completion {
+  KBEnvironment *environment = options.environment;
   NSMutableArray *installables = [NSMutableArray array];
   // The order of the installables to uninstall is important.
   // For example, if you remove the helper first, kext won't unload.
-  if (settings.uninstallOptions & UninstallOptionMountDir) {
+  if (options.uninstallOptions & UninstallOptionMountDir) {
     KBMountDir *mountDir = [[KBMountDir alloc] initWithConfig:environment.config helperTool:environment.helperTool];
     [installables addObject:mountDir];
   }
-  if (settings.uninstallOptions & UninstallOptionFuse) {
+  if (options.uninstallOptions & UninstallOptionFuse) {
     if (!environment.fuse) {
       completion(KBMakeError(-1, @"No fuse to uninstall"));
       return;
     }
     [installables addObject:environment.fuse];
   }
-  if (settings.uninstallOptions & UninstallOptionHelper) {
+  if (options.uninstallOptions & UninstallOptionHelper) {
     [installables addObject:environment.helperTool];
   }
-  if (settings.uninstallOptions & UninstallOptionApp) {
-    [installables addObject:[[KBAppBundle alloc] initWithPath:settings.appPath]];
+  if (options.uninstallOptions & UninstallOptionApp) {
+    [installables addObject:[[KBAppBundle alloc] initWithPath:options.appPath]];
   }
   [KBUninstaller uninstall:installables completion:completion];
 }
