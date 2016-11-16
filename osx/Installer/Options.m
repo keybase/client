@@ -1,14 +1,14 @@
 //
-//  Settings.m
+//  Options.m
 //  Keybase
 //
 //  Created by Gabriel on 1/11/16.
 //  Copyright © 2016 Keybase. All rights reserved.
 //
 
-#import "Settings.h"
+#import "Options.h"
 
-@interface Settings ()
+@interface Options ()
 @property NSString *appPath;
 @property NSString *runMode;
 @property UninstallOptions uninstallOptions;
@@ -17,7 +17,7 @@
 @property GBSettings *settings;
 @end
 
-@implementation Settings
+@implementation Options
 
 - (instancetype)init {
   if ((self = [self initWithSettings:[GBSettings settingsWithName:@"Settings" parent:nil]])) {

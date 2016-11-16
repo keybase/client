@@ -19,6 +19,5 @@
 - (void)uninstallWithEnvironment:(KBEnvironment *)environment completion:(dispatch_block_t)completion;
 
 + (void)setLoginItemEnabled:(BOOL)loginItemEnabled config:(KBEnvConfig *)config appPath:(NSString *)appPath;
-+ (void)setFileListFavoriteEnabled:(BOOL)fileListFavoriteEnabled config:(KBEnvConfig *)config;
 
 @end
