@@ -35,7 +35,17 @@ func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 	if driveLetter > 'Z' {
 		t.Error("Too many users - out of drive letters")
 	}
-	getDriveLetterLock(driveLetter).Lock()
+
+	createSuccess := false
+
+	lock := getDriveLetterLock(driveLetter)
+	lock.Lock()
+	defer func() {
+		if !createSuccess {
+			lock.Unlock()
+		}
+	}()
+
 	ctx := context.Background()
 	ctx, cancelFn := context.WithCancel(ctx)
 	fs, err := libdokan.NewFS(ctx, config, logger.NewTestLogger(t))
@@ -56,13 +66,14 @@ func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 		t.Fatal(err)
 	}
 
+	createSuccess = true
 	return &fsUser{
 		mntDir: mnt.Dir,
 		config: config,
 		cancel: cancelFn,
 		close: func() {
 			dokan.Unmount(mnt.Dir)
-			getDriveLetterLock(driveLetter).Unlock()
+			lock.Unlock()
 		},
 	}
 }

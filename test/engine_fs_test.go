@@ -49,6 +49,13 @@ type fsUser struct {
 	close    func()
 }
 
+// It's important that this be called, even on error paths, as it may
+// do unmounts and release locks.
+func (u *fsUser) shutdown() {
+	u.cancel()
+	u.close()
+}
+
 // Perform Init for the engine
 func (*fsEngine) Init() {}
 
@@ -390,8 +397,7 @@ func (*fsEngine) UnflushedPaths(user User, tlfName string, isPublic bool) (
 // given user.
 func (e *fsEngine) Shutdown(user User) error {
 	u := user.(*fsUser)
-	u.cancel()
-	u.close()
+	u.shutdown()
 
 	// Get the user name before shutting everything down.
 	var userName libkb.NormalizedUsername
@@ -504,6 +510,14 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 	clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User {
 	e.t = t
 	res := map[libkb.NormalizedUsername]User{}
+	initSuccess := false
+	defer func() {
+		if !initSuccess {
+			for _, user := range res {
+				user.(*fsUser).shutdown()
+			}
+		}
+	}()
 
 	if int(opTimeout) > 0 {
 		// TODO: wrap fs calls in our own timeout-able layer?
@@ -547,6 +561,7 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 		}
 	}
 
+	initSuccess = true
 	return res
 }
 

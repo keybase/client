@@ -83,10 +83,31 @@ func sequential(actions ...optionOp) optionOp {
 	}
 }
 
+type errorList struct {
+	el []error
+}
+
+func (el errorList) Error() string {
+	return fmt.Sprintf("%v", el.el)
+}
+
 func (o *opt) close() {
+	var el []error
+	// Make sure Shutdown is called properly for every user, even
+	// if any of the calls fail.
 	for _, user := range o.users {
-		o.expectSuccess("Shutdown", o.engine.Shutdown(user))
+		err := o.engine.Shutdown(user)
+		if err != nil {
+			el = append(el, err)
+		}
 	}
+
+	var err error
+	if len(el) > 0 {
+		err = errorList{el}
+	}
+
+	o.expectSuccess("Shutdown", err)
 }
 
 func (o *opt) runInitOnce() {
