@@ -109,6 +109,9 @@ export const LocalOutboxStateType = {
 export const NotifyChatChatActivityType = {
   reserved: 0,
   incomingMessage: 1,
+  readMessage: 2,
+  newConversation: 3,
+  setStatus: 4,
 }
 
 export function localDownloadAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>) {
@@ -425,10 +428,16 @@ export type BodyPlaintextVersion =
 
 export type ChatActivity = 
     { activityType : 1, incomingMessage : ?IncomingMessage }
+  | { activityType : 2, readMessage : ?ReadMessageInfo }
+  | { activityType : 3, newConversation : ?NewConversationInfo }
+  | { activityType : 4, setStatus : ?SetStatusInfo }
 
 export type ChatActivityType = 
     0 // RESERVED_0
   | 1 // INCOMING_MESSAGE_1
+  | 2 // READ_MESSAGE_2
+  | 3 // NEW_CONVERSATION_3
+  | 4 // SET_STATUS_4
 
 export type Conversation = {
   metadata: ConversationMetadata,
@@ -725,6 +734,12 @@ export type MessagePreviousPointer = {
   hash: Hash,
 }
 
+export type MessageSentInfo = {
+  convID: ConversationID,
+  rateLimit: RateLimit,
+  outboxID: OutboxID,
+}
+
 export type MessageServerHeader = {
   messageID: MessageID,
   supersededBy: MessageID,
@@ -768,6 +783,10 @@ export type MessageUnboxedValid = {
   senderUsername: string,
   senderDeviceName: string,
   headerHash: Hash,
+}
+
+export type NewConversationInfo = {
+  conv: ConversationLocal,
 }
 
 export type NewConversationLocalRes = {
@@ -850,6 +869,11 @@ export type RateLimit = {
   maxCalls: int,
 }
 
+export type ReadMessageInfo = {
+  convID: ConversationID,
+  msgID: MessageID,
+}
+
 export type ReadMessagePayload = {
   Action: string,
   convID: ConversationID,
@@ -874,6 +898,11 @@ export type SetConversationStatusLocalRes = {
 
 export type SetConversationStatusRes = {
   rateLimit?: ?RateLimit,
+}
+
+export type SetStatusInfo = {
+  convID: ConversationID,
+  status: ConversationStatus,
 }
 
 export type SetStatusPayload = {

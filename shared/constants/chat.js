@@ -10,16 +10,18 @@ export type MessageType = 'Text'
 export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
 export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', 'NotFollowing']
 
-export type MessageState = 'Sending' | 'Failed' | 'Ok'
-export const messageStates: Array<MessageState> = ['Sending', 'Failed', 'Ok']
+export type MessageState = 'pending' | 'failed' | 'sent'
+export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
 export type Message = {
   type: 'Text',
   message: HiddenString,
   author: string,
   timestamp: number,
-  messageID: number,
+  messageID?: number,
   followState: FollowState,
+  messageState: MessageState,
+  outboxID?: ?string,
 } | {
   type: 'Error',
   reason: string,
@@ -95,6 +97,7 @@ export const setupNewChatHandler = 'chat:setupNewChatHandler'
 export const incomingMessage = 'chat:incomingMessage'
 export const postMessage = 'chat:postMessage'
 export const updateBadge = 'chat:updateBadge'
+export const pendingMessageWasSent = 'chat:pendingMessageWasSent'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
@@ -106,7 +109,7 @@ export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {
 export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
-
+export type PendingMessageWasSent = NoErrorTypedAction<'chat:pendingMessageWasSent', {newMessage: Message}>
 export type Actions = AppendMessages | LoadMoreMessages | PrependMessages | SelectConversation | LoadInbox | LoadedInbox
 
 function conversationIDToKey (conversationID: ConversationID): ConversationIDKey {

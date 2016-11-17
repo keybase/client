@@ -187,6 +187,7 @@ const (
 	DBChatBlockIndex          = 0xf6
 	DBChatBlocks              = 0xf7
 	DBChatOutbox              = 0xf8
+	DBChatInbox               = 0xf9
 )
 
 const (

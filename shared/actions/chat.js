@@ -2,7 +2,7 @@
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
-import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalRpcPromise} from '../constants/types/flow-types-chat'
+import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
 import {badgeApp} from '../actions/notifications'
 import {call, put, select} from 'redux-saga/effects'
@@ -120,7 +120,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     senderDevice: Buffer.from(deviceID, 'hex'),
   }
 
-  yield call(localPostLocalRpcPromise, {
+  const sent = yield call(localPostLocalNonblockRpcPromise, {
     param: {
       conversationID: keyToConversationID(action.payload.conversationIDKey),
       msg: {
@@ -134,34 +134,70 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       },
     },
   })
+
+  const author = yield select(usernameSelector)
+  if (sent && author) {
+    const message: Message = {
+      type: 'Text',
+      author,
+      outboxID: sent.outboxID.toString('hex'),
+      timestamp: Date.now(),
+      messageState: 'pending',
+      message: new HiddenString(action.payload.text.stringValue()),
+      followState: 'You',
+    }
+    yield put({
+      type: Constants.appendMessages,
+      payload: {
+        conversationIDKey: action.payload.conversationIDKey,
+        messages: [message],
+      },
+    })
+  }
 }
 
 function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
-  if (action.payload.activity.activityType === NotifyChatChatActivityType.incomingMessage) {
-    const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
-    if (incomingMessage) {
-      const messageUnboxed: MessageUnboxed = incomingMessage.message
-      const yourName = yield select(usernameSelector)
-      const message = _unboxedToMessage(messageUnboxed, 0, yourName)
-      const conversationIDKey = conversationIDToKey(incomingMessage.convID)
+  switch (action.payload.activity.activityType) {
+    case NotifyChatChatActivityType.incomingMessage:
+      const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
+      if (incomingMessage) {
+        const messageUnboxed: MessageUnboxed = incomingMessage.message
+        const yourName = yield select(usernameSelector)
+        const message = _unboxedToMessage(messageUnboxed, 0, yourName)
+        const conversationIDKey = conversationIDToKey(incomingMessage.convID)
 
-      // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
-      const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
-      const conversationState = yield select(conversationStateSelector)
-      if (!conversationState) {
-        yield put(loadInbox())
+        // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
+        const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+        const conversationState = yield select(conversationStateSelector)
+        if (!conversationState) {
+          yield put(loadInbox())
+        }
+
+        if (message.outboxID && message.type === 'Text' && yourName === message.author) {
+          // If the message has an outboxID, then we sent it and have already
+          // rendered it in the message list; we just need to mark it as sent.
+          yield put({
+            type: Constants.pendingMessageWasSent,
+            payload: {
+              conversationIDKey,
+              outboxID: message.outboxID,
+              messageID: message.messageID,
+              messageState: 'sent',
+            },
+          })
+        } else {
+          yield put({
+            type: Constants.appendMessages,
+            payload: {
+              conversationIDKey,
+              messages: [message],
+            },
+          })
+        }
       }
-
-      yield put({
-        type: Constants.appendMessages,
-        payload: {
-          conversationIDKey,
-          messages: [message],
-        },
-      })
-
-      yield put({type: Constants.updateBadge, payload: undefined})
-    }
+      break
+    default:
+      console.warn('Unsupported incoming message type for Chat')
   }
 }
 
@@ -283,6 +319,8 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
             ...common,
             message: new HiddenString(payload.messageBody && payload.messageBody.text && payload.messageBody.text.body || ''),
             followState: isYou ? 'You' : 'Following', // TODO get this
+            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
+            outboxID: payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex'),
           }
         default:
           return {
