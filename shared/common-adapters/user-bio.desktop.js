@@ -187,7 +187,7 @@ const stylesBio = {
 }
 const stylesBioType = {
   Profile: {
-    marginBottom: 4
+    marginBottom: globalMargins.tiny,
   },
   Tracker: {},
 }
