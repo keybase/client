@@ -188,20 +188,21 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 }
 
 // getSupersedes must be called with a valid msg
-func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) (chat1.MessageID, libkb.ChatStorageError) {
+func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, libkb.ChatStorageError) {
 	body := msg.Valid().MessageBody
 	typ, err := (&body).MessageType()
 	if err != nil {
-		return 0, libkb.NewChatStorageInternalError(s.G(), "invalid msg: %s", err.Error())
+		return nil, libkb.NewChatStorageInternalError(s.G(), "invalid msg: %s", err.Error())
 	}
 
+	// We use the message ID in the body over the field in the client header to avoid server trust.
 	switch typ {
 	case chat1.MessageType_EDIT:
-		return msg.Valid().MessageBody.Edit().MessageID, nil
+		return []chat1.MessageID{msg.Valid().MessageBody.Edit().MessageID}, nil
 	case chat1.MessageType_DELETE:
-		return msg.Valid().MessageBody.Delete().MessageID, nil
+		return []chat1.MessageID{msg.Valid().MessageBody.Delete().MessageID}, nil
 	default:
-		return 0, nil
+		return nil, nil
 	}
 }
 
@@ -218,45 +219,45 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			continue
 		}
 
-		superID, err := s.getSupersedes(msg)
+		superIDs, err := s.getSupersedes(msg)
 		if err != nil {
 			continue
 		}
-		s.debug("updateSupersededBy: supersedes: %d", superID)
-		if superID == 0 {
-			continue
-		}
+		s.debug("updateSupersededBy: supersedes: %v", superIDs)
 
-		s.debug("updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, superID)
-		// Read super msg
-		var superMsgs []chat1.MessageUnboxed
-		rc := newSimpleResultCollector(1)
-		err = s.engine.readMessages(ctx, rc, convID, uid, superID)
-		if err != nil {
-			// If we don't have the message, just keep going
-			if _, ok := err.(libkb.ChatStorageMissError); ok {
-				continue
-			}
-			return err
-		}
-		superMsgs = rc.result()
-		if len(superMsgs) == 0 {
-			continue
-		}
-
-		// Update supersededBy on the target message if we have it
-		superMsg := superMsgs[0]
-		if superMsg.IsValid() {
-			s.debug("updateSupersededBy: writing: id: %d superseded: %d", msgid, superID)
-			mvalid := superMsg.Valid()
-			mvalid.ServerHeader.SupersededBy = msgid
-			superMsgs[0] = chat1.NewMessageUnboxedWithValid(mvalid)
-			if err = s.engine.writeMessages(ctx, convID, uid, superMsgs); err != nil {
+		// Set all supersedes targets
+		for _, superID := range superIDs {
+			s.debug("updateSupersededBy: supersedes: id: %d supersedes: %d", msgid, superID)
+			// Read super msg
+			var superMsgs []chat1.MessageUnboxed
+			rc := newSimpleResultCollector(1)
+			err = s.engine.readMessages(ctx, rc, convID, uid, superID)
+			if err != nil {
+				// If we don't have the message, just keep going
+				if _, ok := err.(libkb.ChatStorageMissError); ok {
+					continue
+				}
 				return err
 			}
-		} else {
-			s.debug("updateSupersededBy: skipping id: %d, it is stored as an error",
-				superMsg.GetMessageID())
+			superMsgs = rc.result()
+			if len(superMsgs) == 0 {
+				continue
+			}
+
+			// Update supersededBy on the target message if we have it
+			superMsg := superMsgs[0]
+			if superMsg.IsValid() {
+				s.debug("updateSupersededBy: writing: id: %d superseded: %d", msgid, superID)
+				mvalid := superMsg.Valid()
+				mvalid.ServerHeader.SupersededBy = msgid
+				superMsgs[0] = chat1.NewMessageUnboxedWithValid(mvalid)
+				if err = s.engine.writeMessages(ctx, convID, uid, superMsgs); err != nil {
+					return err
+				}
+			} else {
+				s.debug("updateSupersededBy: skipping id: %d, it is stored as an error",
+					superMsg.GetMessageID())
+			}
 		}
 	}
 
