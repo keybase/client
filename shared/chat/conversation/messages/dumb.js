@@ -21,7 +21,7 @@ const mocks = followStates.reduce((outerAcc, followState) => (
     ...messageStates.reduce((acc, messageState) => (
       (followState === 'You')
         ? {...acc, [`${messageState} - ${followState}`]: {...baseMock, messageState, followState}}
-        : {...acc, [`Ok - ${followState}`]: {...baseMock, messageState, followState}}
+        : {...acc, [`sent - ${followState}`]: {...baseMock, messageState, followState}}
     ), outerAcc),
   }
 ), {})
@@ -42,20 +42,20 @@ const stackedMessagesMap = {
   component: StackedMessages,
   mocks: {
     'Stacked - two messages': {
-      mock1: {...baseMock, followState: 'You', messageState: 'Ok', includeHeader: true},
-      mock2: {...baseMock, followState: 'You', messageState: 'Ok', includeHeader: false},
+      mock1: {...baseMock, followState: 'You', messageState: 'sent', includeHeader: true},
+      mock2: {...baseMock, followState: 'You', messageState: 'sent', includeHeader: false},
     },
-    'Stacked - one ok, one sending': {
-      mock1: {...baseMock, followState: 'You', messageState: 'Ok', includeHeader: true},
-      mock2: {...baseMock, followState: 'You', messageState: 'Sending', includeHeader: false},
+    'Stacked - one sent, one pending': {
+      mock1: {...baseMock, followState: 'You', messageState: 'sent', includeHeader: true},
+      mock2: {...baseMock, followState: 'You', messageState: 'pending', includeHeader: false},
     },
-    'Stacked - one ok, one failed': {
-      mock1: {...baseMock, followState: 'You', messageState: 'Ok', includeHeader: true, message: 'Thanks!'},
-      mock2: {...baseMock, followState: 'You', messageState: 'Failed', includeHeader: false, message: 'Sorry my network connection is super bad…'},
+    'Stacked - one sent, one failed': {
+      mock1: {...baseMock, followState: 'You', messageState: 'sent', includeHeader: true, message: 'Thanks!'},
+      mock2: {...baseMock, followState: 'You', messageState: 'failed', includeHeader: false, message: 'Sorry my network connection is super bad…'},
     },
-    'Stacked - someone else. two ok': {
-      mock1: {...baseMock, followState: 'Following', messageState: 'Ok', includeHeader: true},
-      mock2: {...baseMock, followState: 'Following', messageState: 'Ok', includeHeader: false},
+    'Stacked - someone else. two sent': {
+      mock1: {...baseMock, followState: 'Following', messageState: 'sent', includeHeader: true},
+      mock2: {...baseMock, followState: 'Following', messageState: 'sent', includeHeader: false},
     },
   },
 }

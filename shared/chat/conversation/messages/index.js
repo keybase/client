@@ -17,10 +17,10 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         key={key}
         style={style}
         author={message.author}
-        messageState={'Ok'}
         onRetry={() => console.log('todo, hookup onRetry')}
         message={message.message.stringValue()}
         followState={message.followState}
+        messageState={message.messageState}
         includeHeader={includeHeader}
         />
     default:

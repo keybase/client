@@ -37,6 +37,26 @@ function reducer (state: State = initialState, action: Actions) {
 
       return state.set('conversationStates', newConversationStates)
     }
+    case Constants.pendingMessageWasSent: {
+      const {outboxID, messageID, messageState} = action.payload
+      const newConversationStates = state.get('conversationStates').update(
+        action.payload.conversationIDKey,
+        initialConversation,
+        conversation => {
+          const index = conversation.get('messages').findIndex(item => item.outboxID === outboxID)
+          if (index < 0) {
+            console.warn("Couldn't find an outbox entry to modify")
+            return conversation
+          }
+          return conversation.updateIn(['messages', index], item => ({
+            ...item,
+            messageID,
+            messageState,
+          }))
+        }
+      )
+      return state.set('conversationStates', newConversationStates)
+    }
     case Constants.selectConversation:
       return state.set('selectedConversation', action.payload.conversationIDKey)
     case Constants.loadingMessages: {

@@ -24,7 +24,9 @@ type State = {
 class ConversationList extends Component<void, Props, State> {
   _cellCache: any;
   _cellMeasurer: any;
+  _list: any;
   state: State;
+  _toRemeasure: List;
 
   constructor (props: Props) {
     super(props)
@@ -37,6 +39,7 @@ class ConversationList extends Component<void, Props, State> {
     }
 
     this._cellCache = new CellSizeCache(this._indexToID)
+    this._toRemeasure = []
   }
 
   _indexToID = index => {
@@ -47,11 +50,25 @@ class ConversationList extends Component<void, Props, State> {
       // minus one because loader message is there
       const messageIndex = index - 1
       const message = this.state.messages.get(messageIndex)
-      const id = message && message.messageID
+      // We want a stable key -- messages have an outboxID but no messageID,
+      // then later gain a messageID.  So if we prefer outboxIDs to messageIDs
+      // for the key, every row keeps its key.
+      const id = message && (message.outboxID || message.messageID)
       if (id == null) {
         console.warn('id is null for index:', messageIndex)
       }
       return id
+    }
+  }
+
+  componentWillUpdate (nextProps: Props, nextState: State) {
+    // If a message has moved from pending to sent, tell the List to discard
+    // heights for it (which will re-render it and everything after it)
+    if (this._toRemeasure.length) {
+      this._toRemeasure.forEach(item => {
+        this._list.recomputeRowHeights(item)
+      })
+      this._toRemeasure = []
     }
   }
 
@@ -74,14 +91,24 @@ class ConversationList extends Component<void, Props, State> {
   componentWillReceiveProps (nextProps: Props) {
     // If we're not scrolling let's update our internal messages
     if (!this.state.isScrolling) {
+      this._invalidateChangedMessages(nextProps)
       this.setState({
         messages: nextProps.messages,
       })
     }
   }
 
+  _invalidateChangedMessages (props: Props) {
+    this.state.messages.forEach((item, index) => {
+      if (item.messageID !== props.messages.get(index, {}).messageID) {
+        this._toRemeasure.push(index + 1)
+      }
+    })
+  }
+
   _onScrollSettled = _.debounce(() => {
     // If we've stopped scrolling let's update our internal messages
+    this._invalidateChangedMessages(this.props)
     this.setState({
       isScrolling: false,
       ...(this.state.messages !== this.props.messages ? {messages: this.props.messages} : null),
@@ -117,13 +144,14 @@ class ConversationList extends Component<void, Props, State> {
 
     const message = this.state.messages.get(index - 1)
     const prevMessage = this.state.messages.get(index - 2)
+    const isFirstMessage = index - 1 === 0
+    const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
 
-    const skipMsgHeader = !!prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author
-    return messageFactory(message, !skipMsgHeader, index, key, style, isScrolling)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, style, isScrolling)
   }
 
   render () {
-    const countWithLoading = this.state.messages.size + 1 // Loading row on top always
+    const countWithLoading = this.state.messages.count() + 1 // Loading row on top always
     let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
@@ -140,6 +168,7 @@ class ConversationList extends Component<void, Props, State> {
               {({getRowHeight}) => (
                 <List
                   height={height}
+                  ref={r => { this._list = r }}
                   width={width}
                   onScroll={this._onScroll}
                   scrollTop={scrollTop}
