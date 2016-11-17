@@ -127,7 +127,7 @@ func (c CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
 func (c CryptoCommon) MakePermanentBlockID(encodedEncryptedData []byte) (BlockID, error) {
 	h, err := kbfshash.DefaultHash(encodedEncryptedData)
 	if err != nil {
-		return BlockID{}, nil
+		return BlockID{}, err
 	}
 	return BlockID{h}, nil
 }

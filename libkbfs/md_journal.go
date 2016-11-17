@@ -1173,7 +1173,7 @@ func (j *mdJournal) clear(
 
 	err = j.j.clear()
 	if err != nil {
-		return nil
+		return err
 	}
 
 	// Garbage-collect the old branch entries.  TODO: we'll eventually

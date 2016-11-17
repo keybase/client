@@ -1124,7 +1124,7 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 			e.Ignore = true
 			err = j.j.writeJournalEntry(i, e)
 			if err != nil {
-				return nil
+				return err
 			}
 
 			if e.Op == blockPutOp {
@@ -1142,7 +1142,7 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 			e.Ignore = true
 			err = j.j.writeJournalEntry(i, e)
 			if err != nil {
-				return nil
+				return err
 			}
 		}
 	}
