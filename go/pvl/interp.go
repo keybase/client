@@ -407,19 +407,6 @@ func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofTy
 					"Script contains json selector in non-html mode")
 			}
 		case ins.SelectorCSS != nil:
-			// Can only select after fetching.
-			switch {
-			case service == keybase1.ProofType_DNS:
-				return logerr(g, service, whichscript, i,
-					"DNS script cannot use css selector")
-			case !modeknown:
-				return logerr(g, service, whichscript, i,
-					"Script cannot select before fetch")
-			case mode != fetchModeHTML:
-				return logerr(g, service, whichscript, i,
-					"Script contains css selector in non-html mode")
-			}
-
 			// Can only select one of text, attr, or data.
 			if ins.SelectorCSS.Attr != "" && ins.SelectorCSS.Data {
 				return logerr(g, service, whichscript, i,

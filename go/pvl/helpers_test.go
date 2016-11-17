@@ -277,32 +277,39 @@ func TestJSONStringSimple(t *testing.T) {
 type selectionContentsTest struct {
 	html     *goquery.Document
 	selector string
-	useAttr  bool
+	contents bool
 	attr     string
+	data     bool
 	out      string
 }
 
 var selectionContentsDocument = makeHTMLDangerous(`
 <html>
 <head></head><div>a<span class="x" data-foo="y">b</span></div><div data-foo="z">c</div>
+<p>hea<!--vy han-->ded</p>
 </html>
 `)
 
 var selectionContentsTests = []selectionContentsTest{
-	{selectionContentsDocument, "div", false, "", "ab c"},
-	{selectionContentsDocument, "span", false, "", "b"},
-	{selectionContentsDocument, "span", true, "data-foo", "y"},
-	{selectionContentsDocument, "div", true, "data-foo", "z"},
-	{selectionContentsDocument, "span", true, "data-bar", ""},
-	{selectionContentsDocument, "div", true, "data-baz", ""},
+	{selectionContentsDocument, "div", false, "", false, "ab c"},
+	{selectionContentsDocument, "span", false, "", false, "b"},
+	{selectionContentsDocument, "span", false, "data-foo", false, "y"},
+	{selectionContentsDocument, "div", false, "data-foo", false, "z"},
+	{selectionContentsDocument, "span", false, "data-bar", false, ""},
+	{selectionContentsDocument, "div", false, "data-baz", false, ""},
+	{selectionContentsDocument, "p", false, "", false, "headed"},
+	{selectionContentsDocument, "p", true, "", true, "hea vy han ded"},
 }
 
 func TestSelectionContents(t *testing.T) {
 	for i, test := range selectionContentsTests {
 		sel := test.html.Find(test.selector)
-		out := selectionContents(sel, test.useAttr, test.attr)
+		if test.contents {
+			sel = sel.Contents()
+		}
+		out := selectionContents(sel, test.attr, test.data)
 		if out != test.out {
-			t.Fatalf("%v mismatch\n%v\n%v", i, out, test.out)
+			t.Fatalf("%v mismatch\n'%v'\n'%v'", i, out, test.out)
 		}
 	}
 }
