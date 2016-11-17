@@ -58,7 +58,6 @@ class ProfileRender extends PureComponent<void, Props, State> {
     }
 
     const headerStyle = {
-      fontWeight: 'bold',
       textAlign: 'center',
       paddingLeft: globalMargins.small,
       paddingRight: globalMargins.small,
@@ -71,7 +70,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
         header: {
           title: 'header',
           view: <Text
-            type='BodySmall'
+            type='BodySemibold'
             style={{
               ...headerStyle,
               color: globalColors.white,
@@ -96,7 +95,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
           title: 'header',
           view: <Text
             key='header'
-            type='BodySmall'
+            type='BodySemibold'
             style={{
               ...headerStyle,
               color: globalColors.white,
@@ -258,7 +257,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
             </Box>
             <Box style={styleProofColumn}>
               <Box style={styleProofNoticeBox}>
-                {proofNotice && <Text type='BodySmallSemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
+                {proofNotice && <Text type='BodySemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
               </Box>
               {(loading || this.props.proofs.length > 0) &&
                 <UserProofs
