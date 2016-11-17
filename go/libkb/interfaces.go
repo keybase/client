@@ -520,4 +520,5 @@ type MessageDeliverer interface {
 	Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, error)
 	Start(uid gregor1.UID)
 	Stop()
+	ForceDeliverLoop()
 }
