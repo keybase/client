@@ -1,5 +1,5 @@
 // @flow
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {MetaType, TextType, Background} from './text'
 
@@ -257,6 +257,38 @@ const metaData: {[key: TextType]: MetaType} = {
       height: 16,
       padding: 2,
       wordWrap: 'break-word',
+    },
+  },
+  'CodeSnippet': {
+    colorForBackgroundMode: {
+      'Normal': globalColors.blue,
+    },
+    fontSize: 12,
+    styleOverride: {
+      ...globalStyles.fontTerminal,
+      ...globalStyles.rounded,
+      paddingLeft: globalMargins.xtiny,
+      paddingRight: globalMargins.xtiny,
+      backgroundColor: globalColors.beige,
+    },
+  },
+  'CodeSnippetBlock': {
+    colorForBackgroundMode: {
+      'Normal': globalColors.black_75,
+    },
+    fontSize: 12,
+    styleOverride: {
+      ...globalStyles.fontTerminal,
+      ...globalStyles.rounded,
+      display: 'block',
+      backgroundColor: globalColors.beige,
+      marginTop: globalMargins.xtiny,
+      marginBottom: globalMargins.xtiny,
+      paddingTop: globalMargins.xtiny,
+      paddingBottom: globalMargins.xtiny,
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
+      whiteSpace: 'pre',
     },
   },
 }

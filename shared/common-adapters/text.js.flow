@@ -37,6 +37,8 @@ type TextType =
 | 'TerminalComment'
 | 'TerminalEmpty'
 | 'TerminalInline'
+| 'CodeSnippet'
+| 'CodeSnippetBlock'
 
 type Props = {
   backgroundMode?: Background,
