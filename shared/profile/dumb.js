@@ -353,7 +353,7 @@ const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
 }
 
 const proveEnterUsernameBase = {
-  username: 'chris',
+  username: '',
   errorText: null,
   errorCode: null,
   canContinue: true,
