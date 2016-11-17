@@ -45,7 +45,6 @@ type AttachmentStash interface {
 	Start(key StashKey, info AttachmentInfo) error
 	Lookup(key StashKey) (AttachmentInfo, bool, error)
 	RecordPart(key StashKey, partNumber int, hash string) error
-	VerifyPart(key StashKey, partNumber int, hash string) (bool, error)
 	Finish(key StashKey) error
 }
 
@@ -98,24 +97,6 @@ func (f *FileStash) RecordPart(key StashKey, partNumber int, hash string) error 
 	info.Parts[partNumber] = hash
 	c[key.String()] = info
 	return f.serialize(c)
-}
-
-func (f *FileStash) VerifyPart(key StashKey, partNumber int, hash string) (bool, error) {
-	f.Lock()
-	defer f.Unlock()
-	info, found, err := f.lookup(key)
-	if err != nil {
-		return false, err
-	}
-	if !found {
-		return false, ErrPartNotFound
-	}
-
-	rhash, pfound := info.Parts[partNumber]
-	if !pfound {
-		return false, ErrPartNotFound
-	}
-	return rhash == hash, nil
 }
 
 func (f *FileStash) Finish(key StashKey) error {
