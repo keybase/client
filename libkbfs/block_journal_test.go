@@ -93,8 +93,7 @@ func setupBlockJournalTest(t *testing.T) (
 }
 
 func teardownBlockJournalTest(t *testing.T, tempdir string, j *blockJournal) {
-	ctx := context.Background()
-	err := j.checkInSync(ctx)
+	err := j.checkInSyncForTest()
 	assert.NoError(t, err)
 
 	err = os.RemoveAll(tempdir)
@@ -166,7 +165,7 @@ func TestBlockJournalBasic(t *testing.T) {
 	getAndCheckBlockData(ctx, t, j, bID, bCtx2, data, serverHalf)
 
 	// Shutdown and restart.
-	err := j.checkInSync(ctx)
+	err := j.checkInSyncForTest()
 	require.NoError(t, err)
 	j, err = makeBlockJournal(ctx, j.codec, j.crypto, tempdir, j.log)
 	require.NoError(t, err)
@@ -193,35 +192,6 @@ func TestBlockJournalAddReference(t *testing.T) {
 	// Of course, the block get should still fail.
 	_, _, err = j.getDataWithContext(bID, bCtx)
 	require.Equal(t, blockNonExistentError{bID}, err)
-}
-
-func TestBlockJournalRemoveReferences(t *testing.T) {
-	ctx, tempdir, j := setupBlockJournalTest(t)
-	defer teardownBlockJournalTest(t, tempdir, j)
-
-	// Put the block.
-	data := []byte{1, 2, 3, 4}
-	bID, bCtx, serverHalf := putBlockData(ctx, t, j, data)
-
-	// Add a reference.
-	bCtx2 := addBlockRef(ctx, t, j, bID)
-
-	// Remove references.
-	liveCounts, err := j.removeReferences(
-		ctx, map[BlockID][]BlockContext{bID: {bCtx, bCtx2}})
-	require.NoError(t, err)
-	require.Equal(t, map[BlockID]int{bID: 0}, liveCounts)
-	require.Equal(t, 3, getBlockJournalLength(t, j))
-
-	// Make sure the block data is inaccessible.
-	_, _, err = j.getDataWithContext(bID, bCtx)
-	require.Equal(t, blockNonExistentError{bID}, err)
-
-	// But the actual data should remain (for flushing).
-	buf, half, err := j.getData(bID)
-	require.NoError(t, err)
-	require.Equal(t, data, buf)
-	require.Equal(t, serverHalf, half)
 }
 
 func TestBlockJournalArchiveReferences(t *testing.T) {
@@ -263,15 +233,46 @@ func TestBlockJournalArchiveNonExistentReference(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestBlockJournalRemoveReferences(t *testing.T) {
+	ctx, tempdir, j := setupBlockJournalTest(t)
+	defer teardownBlockJournalTest(t, tempdir, j)
+
+	// Put the block.
+	data := []byte{1, 2, 3, 4}
+	bID, bCtx, serverHalf := putBlockData(ctx, t, j, data)
+
+	// Add a reference.
+	bCtx2 := addBlockRef(ctx, t, j, bID)
+
+	// Remove references.
+	liveCounts, err := j.removeReferences(
+		ctx, map[BlockID][]BlockContext{bID: {bCtx, bCtx2}})
+	require.NoError(t, err)
+	require.Equal(t, map[BlockID]int{bID: 0}, liveCounts)
+	require.Equal(t, 3, getBlockJournalLength(t, j))
+
+	// Make sure the block data is inaccessible.
+	_, _, err = j.getDataWithContext(bID, bCtx)
+	require.Equal(t, blockNonExistentError{bID}, err)
+
+	// But the actual data should remain (for flushing).
+	buf, half, err := j.s.getData(bID)
+	require.NoError(t, err)
+	require.Equal(t, data, buf)
+	require.Equal(t, serverHalf, half)
+}
+
 func testBlockJournalGCd(t *testing.T, j *blockJournal) {
-	filepath.Walk(j.dir,
+	err := filepath.Walk(j.dir,
 		func(path string, info os.FileInfo, _ error) error {
-			// We should only find the blocks directory here.
-			if path != j.dir && path != j.blocksPath() && path != j.j.dir {
+			// We should only find the blocks directories and
+			// aggregate info file here.
+			if path != j.dir && path != j.s.dir && path != j.j.dir && path != aggregateInfoPath(j.dir) {
 				t.Errorf("Found unexpected block path: %s", path)
 			}
 			return nil
 		})
+	require.NoError(t, err)
 }
 
 func TestBlockJournalFlush(t *testing.T) {
@@ -361,7 +362,7 @@ func TestBlockJournalFlush(t *testing.T) {
 			bID: {bCtx, bCtx2, bCtx3},
 		})
 	require.NoError(t, err)
-	require.Equal(t, map[BlockID]int{}, liveCounts)
+	require.Equal(t, map[BlockID]int{bID: 0}, liveCounts)
 
 	flush()
 
@@ -376,10 +377,28 @@ func TestBlockJournalFlush(t *testing.T) {
 	length, err := j.length()
 	require.NoError(t, err)
 	require.Zero(t, length)
-	require.Zero(t, j.unflushedBytes)
 
 	// Make sure the ordinals and blocks are flushed.
 	testBlockJournalGCd(t, j)
+}
+
+func flushBlockJournalOne(ctx context.Context, t *testing.T,
+	j *blockJournal, blockServer BlockServer,
+	bcache BlockCache, reporter Reporter, tlfID tlf.ID) {
+	first, err := j.j.readEarliestOrdinal()
+	require.NoError(t, err)
+	entries, _, err := j.getNextEntriesToFlush(ctx, first+1,
+		maxJournalBlockFlushBatchSize)
+	require.NoError(t, err)
+	require.Equal(t, 1, entries.length())
+	err = flushBlockEntries(ctx, j.log, blockServer,
+		bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
+		entries)
+	require.NoError(t, err)
+	err = j.removeFlushedEntries(ctx, entries, tlfID, reporter)
+	require.NoError(t, err)
+	err = j.checkInSyncForTest()
+	require.NoError(t, err)
 }
 
 func TestBlockJournalFlushInterleaved(t *testing.T) {
@@ -407,20 +426,8 @@ func TestBlockJournalFlushInterleaved(t *testing.T) {
 	reporter := NewReporterSimple(nil, 0)
 
 	flushOne := func() {
-		first, err := j.j.readEarliestOrdinal()
-		require.NoError(t, err)
-		entries, _, err := j.getNextEntriesToFlush(ctx, first+1,
-			maxJournalBlockFlushBatchSize)
-		require.NoError(t, err)
-		require.Equal(t, 1, entries.length())
-		err = flushBlockEntries(ctx, j.log, blockServer,
-			bcache, reporter, tlfID, CanonicalTlfName("fake TLF"),
-			entries)
-		require.NoError(t, err)
-		err = j.removeFlushedEntries(ctx, entries, tlfID, reporter)
-		require.NoError(t, err)
-		err = j.checkInSync(ctx)
-		require.NoError(t, err)
+		flushBlockJournalOne(
+			ctx, t, j, blockServer, bcache, reporter, tlfID)
 	}
 
 	flushOne()
@@ -548,7 +555,7 @@ func TestBlockJournalFlushMDRevMarker(t *testing.T) {
 	require.NoError(t, err)
 	err = j.removeFlushedEntries(ctx, entries, tlfID, reporter)
 	require.NoError(t, err)
-	err = j.checkInSync(ctx)
+	err = j.checkInSyncForTest()
 	require.NoError(t, err)
 }
 
@@ -604,7 +611,7 @@ func TestBlockJournalIgnoreBlocks(t *testing.T) {
 	require.NoError(t, err)
 	err = j.removeFlushedEntries(ctx, entries, tlfID, reporter)
 	require.NoError(t, err)
-	err = j.checkInSync(ctx)
+	err = j.checkInSyncForTest()
 	require.NoError(t, err)
 }
 
@@ -660,7 +667,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 
 	// The blocks can still be fetched from the journal.
 	for _, bid := range savedBlocks {
-		err = j.exists(bid)
+		err = j.hasData(bid)
 		require.NoError(t, err)
 	}
 
@@ -684,7 +691,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	// Make sure all the blocks still exist, including both the old
 	// and the new ones.
 	for _, bid := range savedBlocks {
-		err = j.exists(bid)
+		err = j.hasData(bid)
 		require.NoError(t, err)
 	}
 
@@ -700,14 +707,149 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	err = j.onMDFlush()
 	require.NoError(t, err)
 
-	err = j.exists(bID1)
+	err = j.hasData(bID1)
 	require.True(t, os.IsNotExist(err))
-	err = j.exists(bID2)
+	err = j.hasData(bID2)
 	require.True(t, os.IsNotExist(err))
-	err = j.exists(bID3)
+	err = j.hasData(bID3)
 	require.True(t, os.IsNotExist(err))
-	err = j.exists(bID4)
+	err = j.hasData(bID4)
 	require.True(t, os.IsNotExist(err))
 
 	testBlockJournalGCd(t, j)
+}
+
+func TestBlockJournalUnflushedBytes(t *testing.T) {
+	ctx, tempdir, j := setupBlockJournalTest(t)
+	defer teardownBlockJournalTest(t, tempdir, j)
+
+	requireSize := func(expectedSize int) {
+		require.Equal(t, int64(expectedSize), j.getUnflushedBytes())
+		var info aggregateInfo
+		err := kbfscodec.DeserializeFromFile(
+			j.codec, aggregateInfoPath(j.dir), &info)
+		if !os.IsNotExist(err) {
+			require.NoError(t, err)
+		}
+		require.Equal(t, int64(expectedSize), info.UnflushedBytes)
+	}
+
+	// Prime the cache.
+	requireSize(0)
+
+	data1 := []byte{1, 2, 3, 4}
+	bID1, bCtx1, _ := putBlockData(ctx, t, j, data1)
+
+	requireSize(len(data1))
+
+	data2 := []byte{1, 2, 3, 4, 5}
+	bID2, bCtx2, _ := putBlockData(ctx, t, j, data2)
+
+	expectedSize := len(data1) + len(data2)
+	requireSize(expectedSize)
+
+	// Adding, archive, or removing references shouldn't change
+	// anything.
+
+	bCtx1b := addBlockRef(ctx, t, j, bID1)
+	requireSize(expectedSize)
+
+	data3 := []byte{1, 2, 3}
+	bID3, err := j.crypto.MakePermanentBlockID(data3)
+	require.NoError(t, err)
+	_ = addBlockRef(ctx, t, j, bID3)
+	require.NoError(t, err)
+
+	err = j.archiveReferences(
+		ctx, map[BlockID][]BlockContext{bID2: {bCtx2}})
+	require.NoError(t, err)
+	requireSize(expectedSize)
+
+	liveCounts, err := j.removeReferences(
+		ctx, map[BlockID][]BlockContext{bID1: {bCtx1, bCtx1b}})
+	require.NoError(t, err)
+	require.Equal(t, map[BlockID]int{bID1: 0}, liveCounts)
+	requireSize(expectedSize)
+
+	liveCounts, err = j.removeReferences(
+		ctx, map[BlockID][]BlockContext{bID2: {bCtx2}})
+	require.NoError(t, err)
+	require.Equal(t, map[BlockID]int{bID2: 0}, liveCounts)
+	requireSize(expectedSize)
+
+	blockServer := NewBlockServerMemory(newTestBlockServerLocalConfig(t))
+	tlfID := tlf.FakeID(1, false)
+	bcache := NewBlockCacheStandard(0, 0)
+	reporter := NewReporterSimple(nil, 0)
+	flushOne := func() {
+		flushBlockJournalOne(
+			ctx, t, j, blockServer, bcache, reporter, tlfID)
+	}
+
+	// Flush the first put.
+	flushOne()
+	expectedSize = len(data2)
+	requireSize(expectedSize)
+
+	// Flush the second put.
+	flushOne()
+	requireSize(0)
+
+	// Flush the first add ref.
+	flushOne()
+	requireSize(0)
+
+	// Flush the second add ref, but push the block to the server
+	// first.
+
+	uid1 := keybase1.MakeTestUID(1)
+	bCtx3 := BlockContext{uid1, "", ZeroBlockRefNonce}
+	serverHalf3, err := j.crypto.MakeRandomBlockCryptKeyServerHalf()
+	require.NoError(t, err)
+
+	err = blockServer.Put(
+		context.Background(), tlfID, bID3, bCtx3, data3, serverHalf3)
+	require.NoError(t, err)
+
+	flushOne()
+	requireSize(0)
+
+	// Flush the add archive.
+	flushOne()
+	requireSize(0)
+
+	// Flush the first remove.
+	flushOne()
+	requireSize(0)
+
+	// Flush the second remove.
+	flushOne()
+	requireSize(0)
+}
+
+func TestBlockJournalUnflushedBytesIgnore(t *testing.T) {
+	ctx, tempdir, j := setupBlockJournalTest(t)
+	defer teardownBlockJournalTest(t, tempdir, j)
+
+	requireSize := func(expectedSize int) {
+		require.Equal(t, int64(expectedSize), j.getUnflushedBytes())
+	}
+
+	// Prime the cache.
+	requireSize(0)
+
+	data1 := []byte{1, 2, 3, 4}
+	bID1, _, _ := putBlockData(ctx, t, j, data1)
+
+	requireSize(len(data1))
+
+	data2 := []byte{1, 2, 3, 4, 5}
+	_, _, _ = putBlockData(ctx, t, j, data2)
+
+	requireSize(len(data1) + len(data2))
+
+	err := j.ignoreBlocksAndMDRevMarkers(ctx, []BlockID{bID1})
+	require.NoError(t, err)
+
+	requireSize(len(data2))
 }

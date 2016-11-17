@@ -400,7 +400,7 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	err := jServer.EnableAuto(ctx)
 	require.NoError(t, err)
 
-	status, tlfIDs := jServer.Status()
+	status, tlfIDs := jServer.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Zero(t, status.JournalCount)
 	require.Len(t, tlfIDs, 0)
@@ -421,7 +421,7 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	err = blockServer.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
 
-	status, tlfIDs = jServer.Status()
+	status, tlfIDs = jServer.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Equal(t, 1, status.JournalCount)
 	require.Len(t, tlfIDs, 1)
@@ -442,7 +442,7 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	err = jServer.EnableExistingJournals(
 		ctx, uid, verifyingKey, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
-	status, tlfIDs = jServer.Status()
+	status, tlfIDs = jServer.Status(ctx)
 	require.True(t, status.EnableAuto)
 	require.Equal(t, 1, status.JournalCount)
 	require.Len(t, tlfIDs, 1)

@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -27,40 +26,32 @@ import (
 //
 // The directory layout looks like:
 //
+// dir/aggregate_info
 // dir/block_journal/EARLIEST
 // dir/block_journal/LATEST
 // dir/block_journal/0...000
 // dir/block_journal/0...001
 // dir/block_journal/0...fff
-// dir/blocks/0100/0...01/data
-// dir/blocks/0100/0...01/key_server_half
-// ...
-// dir/blocks/01ff/f...ff/data
-// dir/blocks/01ff/f...ff/key_server_half
+// dir/blocks/...
+// dir/saved_block_journal/EARLIEST
+// dir/saved_block_journal/LATEST
+// dir/saved_block_journal/...
+//
+// aggregate_info holds aggregate info about the block journal;
+// currently it just holds the count of unflushed bytes.
 //
 // Each entry in the journal in dir/block_journal contains the
 // mutating operation and arguments for a single operation, except for
 // block data. (See diskJournal comments for more details about the
 // journal.)
 //
-// The block data is stored separately in dir/blocks. Each block has
-// its own subdirectory with its ID truncated to 17 bytes (34
-// characters) as a name. The block subdirectories are splayed over (#
-// of possible hash types) * 256 subdirectories -- one byte for the
-// hash type (currently only one) plus the first byte of the hash data
-// -- using the first four characters of the name to keep the number
-// of directories in dir itself to a manageable number, similar to
-// git. Each block directory has data, which is the raw block data
-// that should hash to the block ID, and key_server_half, which
-// contains the raw data for the associated key server half. Future
-// versions of the journal might add more files to this directory; if
-// any code is written to move blocks around, it should be careful to
-// preserve any unknown files in a block directory.
+// The block data is stored separately in dir/blocks. See
+// blockDiskStore comments for more details.
 //
 // The maximum number of characters added to the root dir by a block
-// journal is 59:
+// journal is 51:
 //
-//   /blocks/01ff/f...(30 characters total)...ff/key_server_half
+//   /blocks/(max 44 characters)
 //
 // blockJournal is not goroutine-safe, so any code that uses it must
 // guarantee that only one goroutine at a time calls its functions.
@@ -72,18 +63,22 @@ type blockJournal struct {
 	log      logger.Logger
 	deferLog logger.Logger
 
-	j    diskJournal
-	refs map[BlockID]blockRefMap
+	// j is the main journal.
+	j diskJournal
 
+	// saveUntilMDFlush, when non-nil, prevents garbage collection
+	// of blocks. When removed, all the referenced blocks are
+	// garbage-collected.
+	//
+	// TODO: We only really need to save a list of IDs, and not a
+	// full journal.
 	saveUntilMDFlush *diskJournal
 
-	// Tracks the total size of on-disk blocks that will be flushed to
-	// the server (i.e., does not count reference adds).  It is only
-	// accurate for users of this journal that properly flush entries;
-	// in particular, calls to `removeReferences` with
-	// removeUnreferencedBlocks set to true can cause this count to
-	// deviate from the actual disk usage of the journal.
-	unflushedBytes int64
+	// s stores all the block data. s should always reflect the
+	// state you get by replaying all the entries in j.
+	s *blockDiskStore
+
+	aggregateInfo aggregateInfo
 }
 
 type blockOpType int
@@ -168,6 +163,9 @@ func makeBlockJournal(
 	deferLog := log.CloneWithAddedDepth(1)
 	j := makeDiskJournal(
 		codec, journalPath, reflect.TypeOf(blockJournalEntry{}))
+
+	storeDir := filepath.Join(dir, "blocks")
+	s := makeBlockDiskStore(codec, crypto, storeDir)
 	journal := &blockJournal{
 		codec:    codec,
 		crypto:   crypto,
@@ -175,11 +173,7 @@ func makeBlockJournal(
 		log:      log,
 		deferLog: deferLog,
 		j:        j,
-	}
-
-	refs, unflushedBytes, err := journal.readJournal(ctx)
-	if err != nil {
-		return nil, err
+		s:        s,
 	}
 
 	// If a saved block journal exists, we need to remove its entries
@@ -197,35 +191,34 @@ func makeBlockJournal(
 		journal.saveUntilMDFlush = &sj
 	}
 
-	journal.refs = refs
-	journal.unflushedBytes = unflushedBytes
+	// Get initial aggregate info.
+	err = kbfscodec.DeserializeFromFile(
+		codec, aggregateInfoPath(dir), &journal.aggregateInfo)
+	if !os.IsNotExist(err) && err != nil {
+		return nil, err
+	}
+
 	return journal, nil
 }
 
-// The functions below are for building various non-journal paths.
+// The functions below are for reading and writing aggregate info.
 
-func (j *blockJournal) blocksPath() string {
-	return filepath.Join(j.dir, "blocks")
+// Ideally, this would be a JSON file, but we'd need a JSON
+// encoder/decoder that supports unknown fields.
+type aggregateInfo struct {
+	UnflushedBytes int64
+
+	codec.UnknownFieldSetHandler
 }
 
-func (j *blockJournal) blockPath(id BlockID) string {
-	// Truncate to 34 characters, which corresponds to 16 random
-	// bytes (since the first byte is a hash type) or 128 random
-	// bits, which means that the expected number of blocks
-	// generated before getting a path collision is 2^64 (see
-	// https://en.wikipedia.org/wiki/Birthday_problem#Cast_as_a_collision_problem
-	// ). The full ID can be recovered just by hashing the data
-	// again with the same hash type.
-	idStr := id.String()
-	return filepath.Join(j.blocksPath(), idStr[:4], idStr[4:34])
+func aggregateInfoPath(dir string) string {
+	return filepath.Join(dir, "aggregate_info")
 }
 
-func (j *blockJournal) blockDataPath(id BlockID) string {
-	return filepath.Join(j.blockPath(id), "data")
-}
-
-func (j *blockJournal) keyServerHalfPath(id BlockID) string {
-	return filepath.Join(j.blockPath(id), "key_server_half")
+func (j *blockJournal) adjustUnflushedBytes(delta int64) error {
+	j.aggregateInfo.UnflushedBytes += delta
+	return kbfscodec.SerializeToFile(
+		j.codec, j.aggregateInfo, aggregateInfoPath(j.dir))
 }
 
 // The functions below are for reading and writing journal entries.
@@ -240,121 +233,8 @@ func (j *blockJournal) readJournalEntry(ordinal journalOrdinal) (
 	return entry.(blockJournalEntry), nil
 }
 
-// readJournal reads the journal and returns a map of all the block
-// references in the journal and the total number of bytes that need
-// flushing.
-func (j *blockJournal) readJournal(ctx context.Context) (
-	map[BlockID]blockRefMap, int64, error) {
-	refs := make(map[BlockID]blockRefMap)
-
-	first, err := j.j.readEarliestOrdinal()
-	if os.IsNotExist(err) {
-		return refs, 0, nil
-	} else if err != nil {
-		return nil, 0, err
-	}
-	last, err := j.j.readLatestOrdinal()
-	if err != nil {
-		return nil, 0, err
-	}
-
-	j.log.CDebugf(ctx, "Reading journal entries %d to %d", first, last)
-
-	var unflushedBytes int64
-	for i := first; i <= last; i++ {
-		e, err := j.readJournalEntry(i)
-		if err != nil {
-			return nil, 0, err
-		}
-
-		// Handle single ops separately.
-		switch e.Op {
-		case blockPutOp, addRefOp:
-			id, context, err := e.getSingleContext()
-			if err != nil {
-				return nil, 0, err
-			}
-
-			blockRefs := refs[id]
-			if blockRefs == nil {
-				blockRefs = make(blockRefMap)
-				refs[id] = blockRefs
-			}
-
-			err = blockRefs.put(context, liveBlockRef, i)
-			if err != nil {
-				return nil, 0, err
-			}
-
-			// Only puts count as bytes, on the assumption that the
-			// refs won't have to upload any new bytes.  (This might
-			// be wrong if all references to a block were deleted
-			// since the addref entry was appended.)
-			if e.Op == blockPutOp && !e.Ignore {
-				b, err := j.getDataSize(id)
-				// Ignore ENOENT errors, since users like
-				// BlockServerDisk can remove block data without
-				// deleting the corresponding addRef.
-				if err != nil && !os.IsNotExist(err) {
-					return nil, 0, err
-				}
-				unflushedBytes += b
-			}
-
-			continue
-		}
-
-		for id, idContexts := range e.Contexts {
-			blockRefs := refs[id]
-
-			switch e.Op {
-			case removeRefsOp:
-				if blockRefs == nil {
-					// All refs are already gone,
-					// which is not an error.
-					continue
-				}
-
-				for _, context := range idContexts {
-					err := blockRefs.remove(context, nil)
-					if err != nil {
-						return nil, 0, err
-					}
-				}
-
-				if len(blockRefs) == 0 {
-					delete(refs, id)
-				}
-
-			case archiveRefsOp:
-				if blockRefs == nil {
-					blockRefs = make(blockRefMap)
-					refs[id] = blockRefs
-				}
-
-				for _, context := range idContexts {
-					err := blockRefs.put(
-						context, archivedBlockRef, i)
-					if err != nil {
-						return nil, 0, err
-					}
-				}
-
-			case mdRevMarkerOp:
-				// Ignore MD revision markers.
-				continue
-
-			default:
-				return nil, 0, fmt.Errorf("Unknown op %s", e.Op)
-			}
-		}
-	}
-	j.log.CDebugf(ctx, "Found %d block bytes in the journal", unflushedBytes)
-	return refs, unflushedBytes, nil
-}
-
-func (j *blockJournal) appendJournalEntry(ctx context.Context,
-	entry blockJournalEntry) (
+func (j *blockJournal) appendJournalEntry(
+	ctx context.Context, entry blockJournalEntry) (
 	journalOrdinal, error) {
 	ordinal, err := j.j.appendJournalEntry(nil, entry)
 	if err != nil {
@@ -387,141 +267,25 @@ func (j *blockJournal) end() (journalOrdinal, error) {
 	return last + 1, nil
 }
 
-func (j *blockJournal) getRefEntry(
-	id BlockID, refNonce BlockRefNonce) (blockRefEntry, error) {
-	refs := j.refs[id]
-	if refs == nil {
-		return blockRefEntry{}, blockNonExistentError{id}
-	}
-
-	e, ok := refs[refNonce]
-	if !ok {
-		return blockRefEntry{}, blockNonExistentError{id}
-	}
-
-	return e, nil
+func (j *blockJournal) hasData(id BlockID) error {
+	return j.s.hasData(id)
 }
 
-func (j *blockJournal) putRefEntry(
-	id BlockID, refEntry blockRefEntry, ordinal journalOrdinal) error {
-	existingRefEntry, err := j.getRefEntry(
-		id, refEntry.context.GetRefNonce())
-	var exists bool
-	switch err.(type) {
-	case blockNonExistentError:
-		exists = false
-	case nil:
-		exists = true
-	default:
-		return err
-	}
-
-	if exists {
-		err = existingRefEntry.checkContext(refEntry.context)
-		if err != nil {
-			return err
-		}
-	}
-
-	if j.refs[id] == nil {
-		j.refs[id] = make(blockRefMap)
-	}
-
-	return j.refs[id].put(refEntry.context, refEntry.status, ordinal)
-}
-
-func (j *blockJournal) exists(id BlockID) error {
-	_, err := os.Stat(j.blockDataPath(id))
-	return err
-}
-
-func (j *blockJournal) getDataSize(id BlockID) (int64, error) {
-	fi, err := os.Stat(j.blockDataPath(id))
-	if err != nil {
-		return 0, err
-	}
-	return fi.Size(), nil
-}
-
-func (j *blockJournal) getData(id BlockID) (
-	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
-	data, err := ioutil.ReadFile(j.blockDataPath(id))
-	if os.IsNotExist(err) {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
-			blockNonExistentError{id}
-	} else if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-	}
-
-	keyServerHalfPath := j.keyServerHalfPath(id)
-	buf, err := ioutil.ReadFile(keyServerHalfPath)
-	if os.IsNotExist(err) {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
-			blockNonExistentError{id}
-	} else if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-	}
-
-	// Check integrity.
-
-	dataID, err := j.crypto.MakePermanentBlockID(data)
-	if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-	}
-
-	if id != dataID {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, fmt.Errorf(
-			"Block ID mismatch: expected %s, got %s", id, dataID)
-	}
-
-	var serverHalf kbfscrypto.BlockCryptKeyServerHalf
-	err = serverHalf.UnmarshalBinary(buf)
-	if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-	}
-
-	return data, serverHalf, nil
+func (j *blockJournal) remove(id BlockID) error {
+	// TODO: we'll eventually need a sweeper to clean up entries
+	// left behind if we crash here.
+	return j.s.remove(id)
 }
 
 // All functions below are public functions.
 
-func (j *blockJournal) hasRef(id BlockID) bool {
-	return j.refs[id] != nil
-}
-
-func (j *blockJournal) hasNonArchivedRef(id BlockID) bool {
-	refs := j.refs[id]
-	return (refs != nil) && refs.hasNonArchivedRef()
-}
-
-func (j *blockJournal) hasContext(id BlockID, context BlockContext) bool {
-	refs := j.refs[id]
-	return (refs != nil) && (refs.checkExists(context) == nil)
-}
-
-func (j *blockJournal) getDataWithContext(
-	id BlockID, context BlockContext) (
+func (j *blockJournal) getDataWithContext(id BlockID, context BlockContext) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
-	refEntry, err := j.getRefEntry(id, context.GetRefNonce())
-	if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-	}
-
-	err = refEntry.checkContext(context)
-	if err != nil {
-		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
-	}
-
-	return j.getData(id)
+	return j.s.getDataWithContext(id, context)
 }
 
-func (j *blockJournal) getAll() (
-	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
-	res := make(map[BlockID]map[BlockRefNonce]blockRefLocalStatus)
-	for id, refs := range j.refs {
-		res[id] = refs.getStatuses()
-	}
-	return res, nil
+func (j *blockJournal) getUnflushedBytes() int64 {
+	return j.aggregateInfo.UnflushedBytes
 }
 
 func (j *blockJournal) putData(
@@ -537,62 +301,24 @@ func (j *blockJournal) putData(
 		}
 	}()
 
-	err = validateBlockServerPut(j.crypto, id, context, buf)
+	next, err := j.end()
 	if err != nil {
 		return err
 	}
 
-	// Check the data and retrieve the server half, if they exist.
-	_, existingServerHalf, err := j.getDataWithContext(id, context)
-	var exists bool
-	switch err.(type) {
-	case blockNonExistentError:
-		exists = false
-	case nil:
-		exists = true
-	default:
-		return err
-	}
-
-	if exists {
-		// If the entry already exists, everything should be
-		// the same, except for possibly additional
-		// references.
-
-		// We checked that both buf and the existing data hash
-		// to id, so no need to check that they're both equal.
-
-		if existingServerHalf != serverHalf {
-			return fmt.Errorf(
-				"key server half mismatch: expected %s, got %s",
-				existingServerHalf, serverHalf)
-		}
-	}
-
-	err = os.MkdirAll(j.blockPath(id), 0700)
+	err = j.s.put(id, context, buf, serverHalf, next.String())
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(j.blockDataPath(id), buf, 0600)
-	if err != nil {
-		return err
-	}
-	j.unflushedBytes += int64(len(buf))
-
-	// TODO: Add integrity-checking for key server half?
-
-	data, err := serverHalf.MarshalBinary()
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(
-		j.keyServerHalfPath(id), data, 0600)
+	// Decremented when the put journal entry is ignored or
+	// flushed.
+	err = j.adjustUnflushedBytes(int64(len(buf)))
 	if err != nil {
 		return err
 	}
 
-	ordinal, err := j.appendJournalEntry(ctx, blockJournalEntry{
+	_, err = j.appendJournalEntry(ctx, blockJournalEntry{
 		Op:       blockPutOp,
 		Contexts: map[BlockID][]BlockContext{id: {context}},
 	})
@@ -600,10 +326,7 @@ func (j *blockJournal) putData(
 		return err
 	}
 
-	return j.putRefEntry(id, blockRefEntry{
-		status:  liveBlockRef,
-		context: context,
-	}, ordinal)
+	return nil
 }
 
 func (j *blockJournal) addReference(
@@ -619,7 +342,17 @@ func (j *blockJournal) addReference(
 		}
 	}()
 
-	ordinal, err := j.appendJournalEntry(ctx, blockJournalEntry{
+	next, err := j.end()
+	if err != nil {
+		return err
+	}
+
+	err = j.s.addReference(id, context, next.String())
+	if err != nil {
+		return err
+	}
+
+	_, err = j.appendJournalEntry(ctx, blockJournalEntry{
 		Op:       addRefOp,
 		Contexts: map[BlockID][]BlockContext{id: {context}},
 	})
@@ -627,84 +360,7 @@ func (j *blockJournal) addReference(
 		return err
 	}
 
-	return j.putRefEntry(id, blockRefEntry{
-		status:  liveBlockRef,
-		context: context,
-	}, ordinal)
-}
-
-// removeReferences fixes up the in-memory reference map to delete the
-// given references.  If removeUnreferencedBlocks is true, it will
-// also delete the corresponding blocks from the disk.  However, in
-// that case, j.unflushedBytes will no longer be accurate and
-// shouldn't be relied upon.
-func (j *blockJournal) removeReferences(
-	ctx context.Context, contexts map[BlockID][]BlockContext) (
-	liveCounts map[BlockID]int, err error) {
-	j.log.CDebugf(ctx, "Removing references for %v", contexts)
-	defer func() {
-		if err != nil {
-			j.deferLog.CDebugf(ctx,
-				"Removing references for %v", contexts, err)
-		}
-	}()
-
-	liveCounts = make(map[BlockID]int)
-
-	for id, idContexts := range contexts {
-		refs := j.refs[id]
-		if refs == nil {
-			// This block is already gone; no error.
-			continue
-		}
-
-		for _, context := range idContexts {
-			err := refs.remove(context, nil)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		count := len(refs)
-		if count == 0 {
-			delete(j.refs, id)
-		}
-		liveCounts[id] = count
-	}
-
-	_, err = j.appendJournalEntry(ctx, blockJournalEntry{
-		Op:       removeRefsOp,
-		Contexts: contexts,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return liveCounts, nil
-}
-
-// removeBlockData removes any existing block data for the given
-// ID. If there is no data, nil is returned; this can happen when we
-// have only non-put references to a block in the journal.
-func (j *blockJournal) removeBlockData(id BlockID) error {
-	if j.hasRef(id) {
-		return fmt.Errorf(
-			"Trying to remove data for referenced block %s", id)
-	}
-	path := j.blockPath(id)
-
-	err := os.RemoveAll(path)
-	if err != nil {
-		return err
-	}
-
-	// Remove the parent (splayed) directory if it exists and is
-	// empty.
-	err = os.Remove(filepath.Dir(path))
-	if os.IsNotExist(err) || isExist(err) {
-		err = nil
-	}
-	return err
+	return nil
 }
 
 func (j *blockJournal) archiveReferences(
@@ -717,7 +373,17 @@ func (j *blockJournal) archiveReferences(
 		}
 	}()
 
-	ordinal, err := j.appendJournalEntry(ctx, blockJournalEntry{
+	next, err := j.end()
+	if err != nil {
+		return err
+	}
+
+	err = j.s.archiveReferences(contexts, next.String())
+	if err != nil {
+		return err
+	}
+
+	_, err = j.appendJournalEntry(ctx, blockJournalEntry{
 		Op:       archiveRefsOp,
 		Contexts: contexts,
 	})
@@ -725,36 +391,47 @@ func (j *blockJournal) archiveReferences(
 		return err
 	}
 
-	for id, idContexts := range contexts {
-		for _, context := range idContexts {
-			refNonce := context.GetRefNonce()
-			refEntry, err := j.getRefEntry(id, refNonce)
-			switch err.(type) {
-			case blockNonExistentError:
-				refEntry = blockRefEntry{
-					status:  archivedBlockRef,
-					context: context,
-				}
+	return nil
+}
 
-			case nil:
-				err = refEntry.checkContext(context)
-				if err != nil {
-					return err
-				}
-				refEntry.status = archivedBlockRef
-
-			default:
-				return err
-			}
-
-			err = j.putRefEntry(id, refEntry, ordinal)
-			if err != nil {
-				return err
-			}
+// removeReferences removes references for the given contexts from
+// their respective IDs.
+func (j *blockJournal) removeReferences(
+	ctx context.Context, contexts map[BlockID][]BlockContext) (
+	liveCounts map[BlockID]int, err error) {
+	j.log.CDebugf(ctx, "Removing references for %v", contexts)
+	defer func() {
+		if err != nil {
+			j.deferLog.CDebugf(ctx,
+				"Removing references for %v", contexts, err)
 		}
+	}()
+
+	// Add the journal entry first, so that if we crash before
+	// removing the refs, we have at worst un-GCed blocks.
+
+	_, err = j.appendJournalEntry(ctx, blockJournalEntry{
+		Op:       removeRefsOp,
+		Contexts: contexts,
+	})
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	liveCounts = make(map[BlockID]int)
+	for id, idContexts := range contexts {
+		// Remove the references unconditionally here (i.e.,
+		// with an empty tag), since j.s should reflect the
+		// most recent state.
+		liveCount, err := j.s.removeReferences(id, idContexts, "")
+		if err != nil {
+			return nil, err
+		}
+
+		liveCounts[id] = liveCount
+	}
+
+	return liveCounts, nil
 }
 
 func (j *blockJournal) markMDRevision(ctx context.Context,
@@ -867,7 +544,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 				return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
 			}
 
-			data, serverHalf, err = j.getData(id)
+			data, serverHalf, err = j.s.getData(id)
 			if err != nil {
 				return blockEntriesToFlush{}, MetadataRevisionUninitialized, err
 			}
@@ -1007,57 +684,47 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 			ordinal, earliestOrdinal)
 	}
 
-	// Fix up the block byte count if we've finished a Put.
-	if entry.Op == blockPutOp && !entry.Ignore {
-		id, _, err := entry.getSingleContext()
-		if err != nil {
-			return 0, err
-		}
-		flushedBytes, err = j.getDataSize(id)
-		if err != nil {
-			return 0, err
-		}
-
-		if flushedBytes > j.unflushedBytes {
-			return 0, fmt.Errorf("Block %v is bigger than our current count "+
-				"of journal block bytes (%d > %d)", id,
-				flushedBytes, j.unflushedBytes)
-		}
-		j.unflushedBytes -= flushedBytes
-	}
-
 	_, err = j.j.removeEarliest()
 	if err != nil {
 		return 0, err
 	}
 
+	// Store the block byte count if we've finished a Put.
+	if entry.Op == blockPutOp && !entry.Ignore {
+		id, _, err := entry.getSingleContext()
+		if err != nil {
+			return 0, err
+		}
+		flushedBytes, err = j.s.getDataSize(id)
+		if err != nil {
+			return 0, err
+		}
+
+		err = j.adjustUnflushedBytes(-flushedBytes)
+		if err != nil {
+			return 0, err
+		}
+	}
+
 	// Remove any of the entry's refs that hasn't been modified by
 	// a subsequent block op (i.e., that has earliestOrdinal as a
-	// tag).
+	// tag). Has no effect for removeRefsOp (since those are
+	// already removed) or mdRevMarkerOp (which has no
+	// references).
 	for id, idContexts := range entry.Contexts {
-		refs := j.refs[id]
-		if len(refs) == 0 {
-			continue
+		liveCount, err := j.s.removeReferences(
+			id, idContexts, earliestOrdinal.String())
+		if err != nil {
+			return 0, err
 		}
-		for _, context := range idContexts {
-			err := refs.remove(context, earliestOrdinal)
+		// If j.saveUntilMDFlush is non-nil, then postpone
+		// garbage collection until it becomes nil.
+		if j.saveUntilMDFlush == nil && liveCount == 0 {
+			// Garbage-collect the old entry if we are not
+			// saving blocks until the next MD flush.
+			err := j.remove(id)
 			if err != nil {
 				return 0, err
-			}
-			if len(refs) == 0 {
-				delete(j.refs, id)
-
-				// Garbage-collect the old entry if we are not saving
-				// blocks until the next MD flush.  TODO: we'll
-				// eventually need a sweeper to clean up entries left
-				// behind if we crash here.
-				if j.saveUntilMDFlush == nil {
-					err = j.removeBlockData(id)
-					if err != nil {
-						return 0, err
-					}
-				}
-				break
 			}
 		}
 	}
@@ -1128,14 +795,17 @@ func (j *blockJournal) ignoreBlocksAndMDRevMarkers(ctx context.Context,
 			}
 
 			if e.Op == blockPutOp {
-				b, err := j.getDataSize(id)
-				// Ignore ENOENT errors, since users like
-				// BlockServerDisk can remove block data without
-				// deleting the corresponding addRef.
+				// Treat ignored put ops as flushed
+				// for the purposes of accounting.
+				ignoredBytes, err := j.s.getDataSize(id)
 				if err != nil {
 					return err
 				}
-				j.unflushedBytes -= b
+
+				err = j.adjustUnflushedBytes(-ignoredBytes)
+				if err != nil {
+					return err
+				}
 			}
 
 		case mdRevMarkerOp:
@@ -1228,11 +898,13 @@ func (j *blockJournal) onMDFlush() error {
 
 		j.log.CDebugf(nil, "Removing data for entry %d", i)
 		for id := range entry.Contexts {
-			if len(j.refs[id]) == 0 {
-				// Garbage-collect the old entry.  TODO: we'll
-				// eventually need a sweeper to clean up entries left
-				// behind if we crash here.
-				err = j.removeBlockData(id)
+			hasRef, err := j.s.hasAnyRef(id)
+			if err != nil {
+				return err
+			}
+			if !hasRef {
+				// Garbage-collect the old entry.
+				err = j.remove(id)
 				if err != nil {
 					return err
 				}
@@ -1249,13 +921,110 @@ func (j *blockJournal) onMDFlush() error {
 	return nil
 }
 
-func (j *blockJournal) checkInSync(ctx context.Context) error {
-	refs, _, err := j.readJournal(ctx)
+func (j *blockJournal) getAllRefsForTest() (map[BlockID]blockRefMap, error) {
+	refs := make(map[BlockID]blockRefMap)
+
+	first, err := j.j.readEarliestOrdinal()
+	if os.IsNotExist(err) {
+		return refs, nil
+	} else if err != nil {
+		return nil, err
+	}
+	last, err := j.j.readLatestOrdinal()
+	if err != nil {
+		return nil, err
+	}
+
+	for i := first; i <= last; i++ {
+		e, err := j.readJournalEntry(i)
+		if err != nil {
+			return nil, err
+		}
+
+		// Handle single ops separately.
+		switch e.Op {
+		case blockPutOp, addRefOp:
+			id, context, err := e.getSingleContext()
+			if err != nil {
+				return nil, err
+			}
+
+			blockRefs := refs[id]
+			if blockRefs == nil {
+				blockRefs = make(blockRefMap)
+				refs[id] = blockRefs
+			}
+
+			err = blockRefs.put(context, liveBlockRef, i.String())
+			if err != nil {
+				return nil, err
+			}
+
+			continue
+		}
+
+		for id, idContexts := range e.Contexts {
+			blockRefs := refs[id]
+
+			switch e.Op {
+			case removeRefsOp:
+				if blockRefs == nil {
+					// All refs are already gone,
+					// which is not an error.
+					continue
+				}
+
+				for _, context := range idContexts {
+					err := blockRefs.remove(context, "")
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				if len(blockRefs) == 0 {
+					delete(refs, id)
+				}
+
+			case archiveRefsOp:
+				if blockRefs == nil {
+					blockRefs = make(blockRefMap)
+					refs[id] = blockRefs
+				}
+
+				for _, context := range idContexts {
+					err := blockRefs.put(
+						context, archivedBlockRef, i.String())
+					if err != nil {
+						return nil, err
+					}
+				}
+
+			case mdRevMarkerOp:
+				// Ignore MD revision markers.
+				continue
+
+			default:
+				return nil, fmt.Errorf("Unknown op %s", e.Op)
+			}
+		}
+	}
+	return refs, nil
+}
+
+func (j *blockJournal) checkInSyncForTest() error {
+	journalRefs, err := j.getAllRefsForTest()
 	if err != nil {
 		return err
 	}
-	if !reflect.DeepEqual(refs, j.refs) {
-		return fmt.Errorf("refs = %v != j.refs = %v", refs, j.refs)
+
+	storeRefs, err := j.s.getAllRefsForTest()
+	if err != nil {
+		return err
+	}
+
+	if !reflect.DeepEqual(journalRefs, storeRefs) {
+		return fmt.Errorf("journal refs = %+v != store refs = %+v",
+			journalRefs, storeRefs)
 	}
 	return nil
 }

@@ -147,7 +147,7 @@ type tlfJournalBWDelegate interface {
 // servers.
 //
 // The maximum number of characters added to the root dir by a TLF
-// journal is 59, which just the max of the block journal and MD
+// journal is 51, which just the max of the block journal and MD
 // journal numbers.
 type tlfJournal struct {
 	uid                 keybase1.UID
@@ -913,13 +913,14 @@ func (j *tlfJournal) getJournalStatusLocked() (TLFJournalStatus, error) {
 	if j.lastFlushErr != nil {
 		lastFlushErr = j.lastFlushErr.Error()
 	}
+	unflushedBytes := j.blockJournal.getUnflushedBytes()
 	return TLFJournalStatus{
 		Dir:            j.dir,
 		BranchID:       j.mdJournal.getBranchID().String(),
 		RevisionStart:  earliestRevision,
 		RevisionEnd:    latestRevision,
 		BlockOpCount:   blockEntryCount,
-		UnflushedBytes: j.blockJournal.unflushedBytes,
+		UnflushedBytes: unflushedBytes,
 		LastFlushErr:   lastFlushErr,
 	}, nil
 }
@@ -1108,14 +1109,14 @@ func (j *tlfJournal) getJournalStatusWithPaths(ctx context.Context,
 	return jStatus, nil
 }
 
-func (j *tlfJournal) getUnflushedBytes() int64 {
+func (j *tlfJournal) getUnflushedBytes() (int64, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return 0
+		return 0, err
 	}
 
-	return j.blockJournal.unflushedBytes
+	return j.blockJournal.getUnflushedBytes(), nil
 }
 
 func (j *tlfJournal) shutdown() {
@@ -1135,17 +1136,9 @@ func (j *tlfJournal) shutdown() {
 		return
 	}
 
-	blockJournal := j.blockJournal
-
 	// Make further accesses error out.
 	j.blockJournal = nil
 	j.mdJournal = nil
-
-	ctx := context.Background()
-	err := blockJournal.checkInSync(ctx)
-	if err != nil {
-		panic(err)
-	}
 }
 
 // disable prevents new operations from hitting the journal.  Will
@@ -1308,7 +1301,7 @@ func (j *tlfJournal) isBlockUnflushed(id BlockID) (bool, error) {
 		return false, err
 	}
 
-	err := j.blockJournal.exists(id)
+	err := j.blockJournal.hasData(id)
 	if err != nil {
 		// Might exist on the server
 		return false, nil

@@ -77,15 +77,19 @@ func (b *BlockServerMemory) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
 				entry.tlfID, tlfID)
 	}
 
-	err = entry.refs.checkExists(context)
+	exists, err := entry.refs.checkExists(context)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
+	}
+	if !exists {
+		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
+			blockNonExistentError{id}
 	}
 
 	return entry.blockData, entry.keyServerHalf, nil
 }
 
-func validateBlockServerPut(
+func validateBlockPut(
 	crypto cryptoPure, id BlockID, context BlockContext, buf []byte) error {
 	if context.GetCreator() != context.GetWriter() {
 		return fmt.Errorf("Can't Put() a block with creator=%s != writer=%s",
@@ -119,7 +123,7 @@ func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 	b.log.CDebugf(ctx, "BlockServerMemory.Put id=%s tlfID=%s context=%s "+
 		"size=%d", id, tlfID, context, len(buf))
 
-	err = validateBlockServerPut(b.crypto, id, context, buf)
+	err = validateBlockPut(b.crypto, id, context, buf)
 	if err != nil {
 		return err
 	}
@@ -166,7 +170,7 @@ func (b *BlockServerMemory) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 		}
 	}
 
-	return refs.put(context, liveBlockRef, nil)
+	return refs.put(context, liveBlockRef, "")
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerMemory.
@@ -202,7 +206,7 @@ func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 			"been archived and cannot be referenced.", id)}
 	}
 
-	return entry.refs.put(context, liveBlockRef, nil)
+	return entry.refs.put(context, liveBlockRef, "")
 }
 
 func (b *BlockServerMemory) removeBlockReference(
@@ -226,7 +230,7 @@ func (b *BlockServerMemory) removeBlockReference(
 	}
 
 	for _, context := range contexts {
-		err := entry.refs.remove(context, nil)
+		err := entry.refs.remove(context, "")
 		if err != nil {
 			return 0, err
 		}
@@ -279,15 +283,16 @@ func (b *BlockServerMemory) archiveBlockReference(
 			entry.tlfID, tlfID)
 	}
 
-	err := entry.refs.checkExists(context)
-	if _, ok := err.(blockNonExistentError); ok {
-		return BServerErrorBlockNonExistent{fmt.Sprintf("Block ID %s (ref %s) "+
-			"doesn't exist and cannot be archived.", id, context.GetRefNonce())}
-	} else if err != nil {
+	exists, err := entry.refs.checkExists(context)
+	if err != nil {
 		return err
 	}
+	if !exists {
+		return BServerErrorBlockNonExistent{fmt.Sprintf("Block ID %s (ref %s) "+
+			"doesn't exist and cannot be archived.", id, context.GetRefNonce())}
+	}
 
-	return entry.refs.put(context, archivedBlockRef, nil)
+	return entry.refs.put(context, archivedBlockRef, "")
 }
 
 // ArchiveBlockReferences implements the BlockServer interface for
@@ -312,11 +317,12 @@ func (b *BlockServerMemory) ArchiveBlockReferences(ctx context.Context,
 	return nil
 }
 
-// getAll returns all the known block references, and should only be
-// used during testing.
-func (b *BlockServerMemory) getAll(ctx context.Context, tlfID tlf.ID) (
-	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
-	res := make(map[BlockID]map[BlockRefNonce]blockRefLocalStatus)
+// getAllRefsForTest implements the blockServerLocal interface for
+// BlockServerMemory.
+func (b *BlockServerMemory) getAllRefsForTest(
+	ctx context.Context, tlfID tlf.ID) (
+	map[BlockID]blockRefMap, error) {
+	res := make(map[BlockID]blockRefMap)
 	b.lock.RLock()
 	defer b.lock.RUnlock()
 
@@ -328,7 +334,7 @@ func (b *BlockServerMemory) getAll(ctx context.Context, tlfID tlf.ID) (
 		if entry.tlfID != tlfID {
 			continue
 		}
-		res[id] = entry.refs.getStatuses()
+		res[id] = entry.refs.deepCopy()
 	}
 	return res, nil
 }

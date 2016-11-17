@@ -587,7 +587,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	var jServerStatus *JournalServerStatus
 	jServer, jErr := GetJournalServer(fs.config)
 	if jErr == nil {
-		status, tlfIDs := jServer.Status()
+		status, tlfIDs := jServer.Status(ctx)
 		jServerStatus = &status
 		err := fillInJournalStatusUnflushedPaths(
 			ctx, fs.config, jServerStatus, tlfIDs)

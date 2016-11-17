@@ -69,7 +69,7 @@ type mdFlushListener interface {
 // MDOps.
 //
 // The maximum number of characters added to the root dir by a journal
-// server journal is 116: 59 for the TLF journal, and 57 for
+// server journal is 108: 51 for the TLF journal, and 57 for
 // everything else.
 //
 //   /v1/de...-...(53 characters total)...ff(/tlf journal)
@@ -569,13 +569,20 @@ func (j *JournalServer) mdOps() journalMDOps {
 // Status returns a JournalServerStatus object suitable for
 // diagnostics.  It also returns a list of TLF IDs which have journals
 // enabled.
-func (j *JournalServer) Status() (JournalServerStatus, []tlf.ID) {
+func (j *JournalServer) Status(
+	ctx context.Context) (JournalServerStatus, []tlf.ID) {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
-	var unflushedBytes int64
+	var totalUnflushedBytes int64
 	tlfIDs := make([]tlf.ID, 0, len(j.tlfJournals))
 	for _, tlfJournal := range j.tlfJournals {
-		unflushedBytes += tlfJournal.getUnflushedBytes()
+		unflushedBytes, err := tlfJournal.getUnflushedBytes()
+		if err != nil {
+			j.log.CWarningf(ctx,
+				"Couldn't calculate unflushed bytes for %s: %v",
+				tlfJournal.tlfID, err)
+		}
+		totalUnflushedBytes += unflushedBytes
 		tlfIDs = append(tlfIDs, tlfJournal.tlfID)
 	}
 	return JournalServerStatus{
@@ -585,7 +592,7 @@ func (j *JournalServer) Status() (JournalServerStatus, []tlf.ID) {
 		CurrentVerifyingKey: j.currentVerifyingKey,
 		EnableAuto:          j.serverConfig.EnableAuto,
 		JournalCount:        len(tlfIDs),
-		UnflushedBytes:      unflushedBytes,
+		UnflushedBytes:      totalUnflushedBytes,
 	}, tlfIDs
 }
 

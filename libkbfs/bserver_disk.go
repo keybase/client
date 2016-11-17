@@ -21,12 +21,12 @@ import (
 
 type blockServerDiskTlfStorage struct {
 	lock sync.RWMutex
-	// journal is nil after it is shut down in Shutdown().
-	journal *blockJournal
+	// store is nil after it is shut down in Shutdown().
+	store *blockDiskStore
 }
 
 // BlockServerDisk implements the BlockServer interface by just
-// storing blocks in a local leveldb instance.
+// storing blocks in a local disk store.
 type BlockServerDisk struct {
 	codec        kbfscodec.Codec
 	crypto       cryptoPure
@@ -83,7 +83,7 @@ func NewBlockServerTempDir(
 
 var errBlockServerDiskShutdown = errors.New("BlockServerDisk is shutdown")
 
-func (b *BlockServerDisk) getStorage(ctx context.Context, tlfID tlf.ID) (
+func (b *BlockServerDisk) getStorage(tlfID tlf.ID) (
 	*blockServerDiskTlfStorage, error) {
 	storage, err := func() (*blockServerDiskTlfStorage, error) {
 		b.tlfStorageLock.RLock()
@@ -114,13 +114,10 @@ func (b *BlockServerDisk) getStorage(ctx context.Context, tlfID tlf.ID) (
 	}
 
 	path := filepath.Join(b.dirPath, tlfID.String())
-	journal, err := makeBlockJournal(ctx, b.codec, b.crypto, path, b.log)
-	if err != nil {
-		return nil, err
-	}
+	store := makeBlockDiskStore(b.codec, b.crypto, path)
 
 	storage = &blockServerDiskTlfStorage{
-		journal: journal,
+		store: store,
 	}
 
 	b.tlfStorage[tlfID] = storage
@@ -136,19 +133,19 @@ func (b *BlockServerDisk) Get(ctx context.Context, tlfID tlf.ID, id BlockID,
 	}()
 	b.log.CDebugf(ctx, "BlockServerDisk.Get id=%s tlfID=%s context=%s",
 		id, tlfID, context)
-	tlfStorage, err := b.getStorage(ctx, tlfID)
+	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
 
 	tlfStorage.lock.RLock()
 	defer tlfStorage.lock.RUnlock()
-	if tlfStorage.journal == nil {
+	if tlfStorage.store == nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{},
 			errBlockServerDiskShutdown
 	}
 
-	data, keyServerHalf, err := tlfStorage.journal.getDataWithContext(
+	data, keyServerHalf, err := tlfStorage.store.getDataWithContext(
 		id, context)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
@@ -170,18 +167,23 @@ func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id BlockID,
 		return errors.New("can't Put() a block with a non-zero refnonce")
 	}
 
-	tlfStorage, err := b.getStorage(ctx, tlfID)
+	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
 		return err
 	}
 
 	tlfStorage.lock.Lock()
 	defer tlfStorage.lock.Unlock()
-	if tlfStorage.journal == nil {
+	if tlfStorage.store == nil {
 		return errBlockServerDiskShutdown
 	}
 
-	return tlfStorage.journal.putData(ctx, id, context, buf, serverHalf)
+	err = tlfStorage.store.put(id, context, buf, serverHalf, "")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerDisk.
@@ -189,28 +191,36 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	id BlockID, context BlockContext) error {
 	b.log.CDebugf(ctx, "BlockServerDisk.AddBlockReference id=%s "+
 		"tlfID=%s context=%s", id, tlfID, context)
-	tlfStorage, err := b.getStorage(ctx, tlfID)
+	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
 		return err
 	}
 
 	tlfStorage.lock.Lock()
 	defer tlfStorage.lock.Unlock()
-	if tlfStorage.journal == nil {
+	if tlfStorage.store == nil {
 		return errBlockServerDiskShutdown
 	}
 
-	if !tlfStorage.journal.hasRef(id) {
+	hasRef, err := tlfStorage.store.hasAnyRef(id)
+	if err != nil {
+		return err
+	}
+	if !hasRef {
 		return BServerErrorBlockNonExistent{fmt.Sprintf("Block ID %s "+
 			"doesn't exist and cannot be referenced.", id)}
 	}
 
-	if !tlfStorage.journal.hasNonArchivedRef(id) {
+	hasNonArchivedRef, err := tlfStorage.store.hasNonArchivedRef(id)
+	if err != nil {
+		return err
+	}
+	if !hasNonArchivedRef {
 		return BServerErrorBlockArchived{fmt.Sprintf("Block ID %s has "+
 			"been archived and cannot be referenced.", id)}
 	}
 
-	return tlfStorage.journal.addReference(ctx, id, context)
+	return tlfStorage.store.addReference(id, context, "")
 }
 
 // RemoveBlockReferences implements the BlockServer interface for
@@ -223,25 +233,28 @@ func (b *BlockServerDisk) RemoveBlockReferences(ctx context.Context,
 	}()
 	b.log.CDebugf(ctx, "BlockServerDisk.RemoveBlockReference "+
 		"tlfID=%s contexts=%v", tlfID, contexts)
-	tlfStorage, err := b.getStorage(ctx, tlfID)
+	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
 		return nil, err
 	}
 
 	tlfStorage.lock.Lock()
 	defer tlfStorage.lock.Unlock()
-	if tlfStorage.journal == nil {
+	if tlfStorage.store == nil {
 		return nil, errBlockServerDiskShutdown
 	}
 
-	liveCounts, err = tlfStorage.journal.removeReferences(ctx, contexts)
-	if err != nil {
-		return nil, err
-	}
+	liveCounts = make(map[BlockID]int)
+	for id, idContexts := range contexts {
+		liveCount, err := tlfStorage.store.removeReferences(
+			id, idContexts, "")
+		if err != nil {
+			return nil, err
+		}
+		liveCounts[id] = liveCount
 
-	for id := range contexts {
-		if !tlfStorage.journal.hasRef(id) {
-			err := tlfStorage.journal.removeBlockData(id)
+		if liveCount == 0 {
+			err := tlfStorage.store.remove(id)
 			if err != nil {
 				return nil, err
 			}
@@ -260,20 +273,24 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 	}()
 	b.log.CDebugf(ctx, "BlockServerDisk.ArchiveBlockReferences "+
 		"tlfID=%s contexts=%v", tlfID, contexts)
-	tlfStorage, err := b.getStorage(ctx, tlfID)
+	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
 		return err
 	}
 
 	tlfStorage.lock.Lock()
 	defer tlfStorage.lock.Unlock()
-	if tlfStorage.journal == nil {
+	if tlfStorage.store == nil {
 		return errBlockServerDiskShutdown
 	}
 
 	for id, idContexts := range contexts {
 		for _, context := range idContexts {
-			if !tlfStorage.journal.hasContext(id, context) {
+			hasContext, err := tlfStorage.store.hasContext(id, context)
+			if err != nil {
+				return err
+			}
+			if !hasContext {
 				return BServerErrorBlockNonExistent{
 					fmt.Sprintf(
 						"Block ID %s (context %s) doesn't "+
@@ -284,38 +301,38 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 		}
 	}
 
-	return tlfStorage.journal.archiveReferences(ctx, contexts)
+	return tlfStorage.store.archiveReferences(contexts, "")
 }
 
-// getAll returns all the known block references, and should only be
-// used during testing.
-func (b *BlockServerDisk) getAll(ctx context.Context, tlfID tlf.ID) (
-	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
-	tlfStorage, err := b.getStorage(ctx, tlfID)
+// getAllRefsForTest implements the blockServerLocal interface for
+// BlockServerDisk.
+func (b *BlockServerDisk) getAllRefsForTest(ctx context.Context, tlfID tlf.ID) (
+	map[BlockID]blockRefMap, error) {
+	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
 		return nil, err
 	}
 
 	tlfStorage.lock.RLock()
 	defer tlfStorage.lock.RUnlock()
-	if tlfStorage.journal == nil {
+	if tlfStorage.store == nil {
 		return nil, errBlockServerDiskShutdown
 	}
 
-	return tlfStorage.journal.getAll()
+	return tlfStorage.store.getAllRefsForTest()
 }
 
 // IsUnflushed implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) IsUnflushed(ctx context.Context, tlfID tlf.ID,
 	_ BlockID) (bool, error) {
-	tlfStorage, err := b.getStorage(ctx, tlfID)
+	tlfStorage, err := b.getStorage(tlfID)
 	if err != nil {
 		return false, err
 	}
 
 	tlfStorage.lock.RLock()
 	defer tlfStorage.lock.RUnlock()
-	if tlfStorage.journal == nil {
+	if tlfStorage.store == nil {
 		return false, errBlockServerDiskShutdown
 	}
 
@@ -337,18 +354,13 @@ func (b *BlockServerDisk) Shutdown() {
 		func() {
 			s.lock.Lock()
 			defer s.lock.Unlock()
-			if s.journal == nil {
+			if s.store == nil {
 				// Already shutdown.
 				return
 			}
 
-			ctx := context.Background()
-			err := s.journal.checkInSync(ctx)
-			if err != nil {
-				panic(err)
-			}
 			// Make further accesses error out.
-			s.journal = nil
+			s.store = nil
 		}()
 	}
 

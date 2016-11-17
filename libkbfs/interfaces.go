@@ -1217,21 +1217,14 @@ type BlockServer interface {
 	GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error)
 }
 
-type blockRefLocalStatus int
-
-const (
-	liveBlockRef     blockRefLocalStatus = 1
-	archivedBlockRef blockRefLocalStatus = 2
-)
-
 // blockServerLocal is the interface for BlockServer implementations
 // that store data locally.
 type blockServerLocal interface {
 	BlockServer
-	// getAll returns all the known block references, and should only be
-	// used during testing.
-	getAll(ctx context.Context, tlfID tlf.ID) (
-		map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error)
+	// getAllRefsForTest returns all the known block references
+	// for the given TLF, and should only be used during testing.
+	getAllRefsForTest(ctx context.Context, tlfID tlf.ID) (
+		map[BlockID]blockRefMap, error)
 }
 
 // BlockSplitter decides when a file or directory block needs to be split

@@ -341,23 +341,23 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 		return errors.New("StateChecker only works against " +
 			"BlockServerLocal")
 	}
-	bserverKnownBlocks, err := bserverLocal.getAll(ctx, tlf)
+	bserverKnownBlocks, err := bserverLocal.getAllRefsForTest(ctx, tlf)
 	if err != nil {
 		return err
 	}
 
-	blockRefsByID := make(map[BlockID]map[BlockRefNonce]blockRefLocalStatus)
+	blockRefsByID := make(map[BlockID]blockRefMap)
 	for ptr := range expectedLiveBlocks {
 		if _, ok := blockRefsByID[ptr.ID]; !ok {
-			blockRefsByID[ptr.ID] = make(map[BlockRefNonce]blockRefLocalStatus)
+			blockRefsByID[ptr.ID] = make(blockRefMap)
 		}
-		blockRefsByID[ptr.ID][ptr.RefNonce] = liveBlockRef
+		blockRefsByID[ptr.ID].put(ptr.BlockContext, liveBlockRef, "")
 	}
 	for ptr := range archivedBlocks {
 		if _, ok := blockRefsByID[ptr.ID]; !ok {
-			blockRefsByID[ptr.ID] = make(map[BlockRefNonce]blockRefLocalStatus)
+			blockRefsByID[ptr.ID] = make(blockRefMap)
 		}
-		blockRefsByID[ptr.ID][ptr.RefNonce] = archivedBlockRef
+		blockRefsByID[ptr.ID].put(ptr.BlockContext, archivedBlockRef, "")
 	}
 
 	if g, e := bserverKnownBlocks, blockRefsByID; !reflect.DeepEqual(g, e) {
