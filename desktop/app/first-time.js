@@ -1,6 +1,6 @@
 // @flow
 // Checks to see if we've launched before (we touch started.txt). If not, write the file and open a browser
-import {splashRoot} from '../shared/constants/platform.specific.desktop'
+import {splashRoot} from '../shared/constants/platform.desktop'
 import path from 'path'
 import fs from 'fs'
 

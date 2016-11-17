@@ -1,21 +1,24 @@
 // @flow
+import * as favoriteAction from '../actions/favorite'
 import React, {Component} from 'react'
 import Render from './index.render'
+import engine from '../engine'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import engine from '../engine'
-import {shell, ipcRenderer} from 'electron'
-import * as favoriteAction from '../actions/favorite'
-import {openInKBFS} from '../actions/kbfs'
-import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
-import {switchTab} from '../actions/router'
-import {loginTab} from '../constants/tabs'
-import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {defaultKBFSPath} from '../constants/config'
+import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {exec} from 'child_process'
+import {isWindows} from '../constants/platform'
+import {loginTab} from '../constants/tabs'
+import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
+import {openInKBFS} from '../actions/kbfs'
+import {shell, ipcRenderer} from 'electron'
+import {switchTab} from '../actions/router'
 
+import type {MenuNotificationState} from '../constants/notifications'
 import type {KBFSStatus} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
+import type {Tab} from '../constants/tabs'
 
 export type Props = $Shape<{
   username: ?string,
@@ -26,6 +29,7 @@ export type Props = $Shape<{
   switchTab: (tab: string) => void,
   folderProps: ?FolderProps,
   kbfsStatus: KBFSStatus,
+  badgeInfo: MenuNotificationState,
 }>
 
 const REQUEST_DELAY = 5000
@@ -144,7 +148,7 @@ class Menubar extends Component<void, Props, void> {
   }
 
   _openShell () {
-    if (process.platform === 'win32') {
+    if (isWindows) {
       let shellCmd = 'start "Keybase Shell" "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Keybase\\Keybase Shell.lnk"'
       exec(shellCmd, (err) => {
         if (err) {
@@ -171,7 +175,10 @@ class Menubar extends Component<void, Props, void> {
       showHelp={() => this._showHelp()}
       showUser={() => this._showUser()}
       showKBFS={() => this._openFolder()}
-      openApp={() => this._showMain()}
+      openApp={(tab?: Tab) => {
+        this._showMain()
+        tab && this.props.switchTab(tab)
+      }}
       openShell={() => this._openShell()}
       showBug={() => this._showBug()}
       username={this.props.username}
@@ -180,6 +187,7 @@ class Menubar extends Component<void, Props, void> {
       refresh={() => this._checkForFolders(true)}
       onRekey={(path: string) => this._onRekey(path)}
       onFolderClick={(path: string) => this._openFolder(path)}
+      badgeInfo={this.props.badgeInfo}
     />
   }
 }
@@ -191,6 +199,7 @@ export default connect(
     loggedIn: state.config && state.config.loggedIn,
     folderProps: state.favorite && state.favorite.folderState,
     kbfsStatus: state.favorite && state.favorite.kbfsStatus,
+    badgeInfo: state.notifications && state.notifications.menuNotifications || {},
   }),
   dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab, openRekeyDialog}, dispatch)
 )(Menubar)
@@ -203,6 +212,9 @@ export function selector (): (store: Object) => Object {
         loggedIn: store.config.loggedIn,
         kbfsPath: store.config.kbfsPath,
         extendedConfig: store.config.extendedConfig,
+      },
+      notifications: {
+        menuNotifications: store.notifications.menuNotifications,
       },
       favorite: store.favorite,
       dev: {

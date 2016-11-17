@@ -89,6 +89,10 @@ class ConversationList extends Component<void, Props, State> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
+    if (this.props.selectedConversation !== nextProps.selectedConversation) {
+      this.setState({isLockedToBottom: true})
+    }
+
     // If we're not scrolling let's update our internal messages
     if (!this.state.isScrolling) {
       this._invalidateChangedMessages(nextProps)

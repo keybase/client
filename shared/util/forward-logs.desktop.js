@@ -5,12 +5,12 @@ import path from 'path'
 import util from 'util'
 import {forwardLogs} from '../local-debug'
 import {ipcMain, ipcRenderer} from 'electron'
-import {logFileName} from '../constants/platform.specific.desktop.js'
+import {logFileName, isWindows} from '../constants/platform.desktop'
 
 let fileWritable = null
 
 function fileDoesNotExist (err) {
-  if (process.platform === 'win32' && err.errno === -4058) { return true }
+  if (isWindows && err.errno === -4058) { return true }
   if (err.errno === -2) { return true }
 
   return false
@@ -79,8 +79,8 @@ function setupTarget () {
     return
   }
 
-  const stdOutWriter = t => { (process.platform !== 'win32') && process.stdout.write(t) }
-  const stdErrWriter = t => { (process.platform !== 'win32') && process.stderr.write(t) }
+  const stdOutWriter = t => { !isWindows && process.stdout.write(t) }
+  const stdErrWriter = t => { !isWindows && process.stderr.write(t) }
   const logFileWriter = t => { fileWritable && fileWritable.write(t) }
 
   const output = {

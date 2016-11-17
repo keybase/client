@@ -3,7 +3,7 @@ import {exec} from 'child_process'
 import fs from 'fs'
 import os from 'os'
 
-import {runMode} from '../shared/constants/platform.specific.desktop'
+import {runMode} from '../shared/constants/platform.desktop'
 
 // Execute at path with args.
 // If you specify platformOnly or runModeOnly, then callback will be called

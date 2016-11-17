@@ -1,13 +1,11 @@
 // @flow
-import Platform, {OS} from '../constants/platform'
+import Box from './box'
 import React from 'react'
+import Text from './text'
 import _ from 'lodash'
 import type {Props} from './meta'
-import Box from './box'
-import Text from './text'
 import {globalColors} from '../styles'
-
-const isAndroid = Platform.OS_ANDROID === OS
+import {isAndroid} from '../constants/platform'
 
 const Meta = ({title, style}: Props) => (
   <Box style={{

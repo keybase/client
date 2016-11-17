@@ -4,8 +4,10 @@ import HiddenString from '../util/hidden-string'
 import engine from '../engine'
 import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
+import {badgeApp} from '../actions/notifications'
 import {call, put, select} from 'redux-saga/effects'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
+import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
 
 import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler} from '../constants/chat'
@@ -13,7 +15,7 @@ import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
-const {conversationIDToKey, keyToConversationID, InboxStateRecord} = Constants
+const {conversationIDToKey, keyToConversationID, InboxStateRecord, makeSnippet} = Constants
 
 function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString): PostMessage {
   return {type: Constants.postMessage, payload: {conversationIDKey, text}}
@@ -35,37 +37,37 @@ function selectConversation (conversationIDKey: ConversationIDKey): SelectConver
   return {type: Constants.selectConversation, payload: {conversationIDKey}}
 }
 
-// This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
-function _makeSnippet (message, max) {
-  // $FlowIssue flow doesn't understand spread + strings
-  return [...(message.substring(0, max * 4).replace(/\s+/g, ' '))].slice(0, max).join('')
-}
-
 function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxState> {
   return List((inbox.conversations || []).map(convo => {
     if (!convo.info.id) {
       return null
     }
 
-    const recentMessage: ?MessageUnboxed = (convo.maxMessages || []).find(message => (
-      message.state === LocalMessageUnboxedState.valid &&
-      message.valid &&
-      message.valid.messageBody.messageType === CommonMessageType.text
-    ))
-
     let snippet
-    try {
-      // $FlowIssue doens't understand try
-      snippet = _makeSnippet(recentMessage.valid.messageBody.text.body, 100)
-    } catch (_) { }
+    (convo.maxMessages || []).some(message => {
+      if (message.state === LocalMessageUnboxedState.valid && message.valid) {
+        switch (message.valid.messageBody.messageType) {
+          case CommonMessageType.text:
+            snippet = makeSnippet(message.valid.messageBody.text && message.valid.messageBody.text.body, 100)
+            return true
+          case CommonMessageType.attachment:
+            snippet = 'Attachment'
+            return true
+          default:
+            return false
+        }
+      }
+      return false
+    })
 
     return new InboxStateRecord({
       info: convo.info,
       conversationIDKey: conversationIDToKey(convo.info.id),
       participants: List(convo.info.writerNames || []), // TODO in recent order... somehow
       muted: false, // TODO
-      time: 'Time', // TODO
+      time: convo.readerInfo.mtime,
       snippet,
+      unreadCount: convo.readerInfo.maxMsgid - convo.readerInfo.readMsgid, // TODO likely get this from the notifications payload miles is working on
     })
   }).filter(Boolean))
 }
@@ -162,13 +164,22 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
         const message = _unboxedToMessage(messageUnboxed, 0, yourName)
+        const conversationIDKey = conversationIDToKey(incomingMessage.convID)
+
+        // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
+        const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+        const conversationState = yield select(conversationStateSelector)
+        if (!conversationState) {
+          yield put(loadInbox())
+        }
+
         if (message.outboxID && message.type === 'Text' && yourName === message.author) {
           // If the message has an outboxID, then we sent it and have already
           // rendered it in the message list; we just need to mark it as sent.
           yield put({
             type: Constants.pendingMessageWasSent,
             payload: {
-              conversationIDKey: conversationIDToKey(incomingMessage.convID),
+              conversationIDKey,
               outboxID: message.outboxID,
               messageID: message.messageID,
               messageState: 'sent',
@@ -178,7 +189,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
           yield put({
             type: Constants.appendMessages,
             payload: {
-              conversationIDKey: conversationIDToKey(incomingMessage.convID),
+              conversationIDKey,
               messages: [message],
             },
           })
@@ -270,6 +281,15 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
   })
 }
 
+// Update the badging of the app. This is a short term impl so we can get this info. It'll come from the daemon later
+function * _updateBadge (): SagaGenerator<any, any> {
+  const inboxSelector = (state: TypedState) => state.chat.get('inbox')
+  const inbox: List<InboxState> = ((yield select(inboxSelector)): any)
+
+  const total = inbox.reduce((total, i) => total + i.get('unreadCount'), 0)
+  yield put(badgeApp('chatInbox', total > 0, total))
+}
+
 function _threadToPagination (thread) {
   if (thread && thread.thread && thread.thread.pagination) {
     return thread.thread.pagination
@@ -313,12 +333,14 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
   return {
     type: 'Error', // TODO
     messageID: idx,
+    timestamp: Date.now(),
     reason: 'temp',
   }
 }
 
 function * _selectConversation (action: SelectConversation): SagaGenerator<any, any> {
   yield put(loadMoreMessages())
+  yield put({type: Constants.updateBadge, payload: undefined})
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
@@ -330,6 +352,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.setupNewChatHandler, _setupNewChatHandler),
     safeTakeEvery(Constants.incomingMessage, _incomingMessage),
     safeTakeEvery(Constants.postMessage, _postMessage),
+    yield throttle(1000, Constants.updateBadge, _updateBadge),
   ]
 }
 

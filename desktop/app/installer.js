@@ -3,7 +3,7 @@ import {app} from 'electron'
 import exec from './exec'
 import {appInstallerPath, appBundlePath} from './paths'
 import {quit} from './ctl'
-import {runMode} from '../shared/constants/platform.specific.desktop'
+import {runMode} from '../shared/constants/platform.desktop'
 
 export default (callback: (err: any) => void): void => {
   const installerPath = appInstallerPath()

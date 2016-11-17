@@ -25,6 +25,7 @@ export type Message = {
 } | {
   type: 'Error',
   reason: string,
+  timestamp: number,
   messageID: number,
 } | {
   type: 'Unhandled',
@@ -58,6 +59,7 @@ export const InboxStateRecord = Record({
   muted: false,
   time: '',
   snippet: '',
+  unreadCount: 0,
 })
 
 export type InboxState = Record<{
@@ -67,6 +69,7 @@ export type InboxState = Record<{
   muted: boolean,
   time: string,
   snippet: string,
+  unreadCount: number,
 }>
 
 export const StateRecord = Record({
@@ -93,6 +96,7 @@ export const prependMessages = 'chat:prependMessages'
 export const setupNewChatHandler = 'chat:setupNewChatHandler'
 export const incomingMessage = 'chat:incomingMessage'
 export const postMessage = 'chat:postMessage'
+export const updateBadge = 'chat:updateBadge'
 export const pendingMessageWasSent = 'chat:pendingMessageWasSent'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
@@ -116,8 +120,15 @@ function keyToConversationID (key: ConversationIDKey): ConversationID {
   return Buffer.from(key, 'base64')
 }
 
+// This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
+function makeSnippet (message: ?string = '', max: number) {
+  // $FlowIssue flow doesn't understand spread + strings
+  return [...(message.substring(0, max * 4).replace(/\s+/g, ' '))].slice(0, max).join('')
+}
+
 export {
   conversationIDToKey,
   keyToConversationID,
+  makeSnippet,
   maxMessagesToLoadAtATime,
 }

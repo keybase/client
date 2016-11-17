@@ -1,15 +1,11 @@
 // @flow
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
-
-import {isMobile} from '../../constants/platform.js'
-
+import {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
+import {isMobile} from '../../constants/platform'
 import {navBasedOnLoginState} from '../../actions/login'
-import {resetSignup} from '../../actions/signup'
 import {registerGregorListeners} from '../../actions/gregor'
-
-import {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc,
-  userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
+import {resetSignup} from '../../actions/signup'
 
 import type {AsyncAction, Action} from '../../constants/types/flux'
 
