@@ -2,7 +2,7 @@
 import exec from './exec'
 import fs from 'fs'
 import {ipcMain, shell} from 'electron'
-// $FlowIssue doens't understand symlinks
+// $FlowIssue doesn't understand symlinks
 import {isDarwin, isWindows} from '../shared/constants/platform'
 import {pathToURL} from './paths'
 
