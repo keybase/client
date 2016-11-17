@@ -879,6 +879,22 @@ func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicK
 	return exportedKeys, pgpKeyCount
 }
 
+// ExportAllPGPKeys exports all pgp keys.
+func (ckf ComputedKeyFamily) ExportAllPGPKeys() (keys []keybase1.PublicKey) {
+	for _, key := range ckf.GetAllActiveSibkeys() {
+		if _, isPGP := key.(*PGPKeyBundle); isPGP {
+			keys = append(keys, ckf.exportPublicKey(key))
+		}
+	}
+	for _, key := range ckf.GetAllActiveSubkeys() {
+		if _, isPGP := key.(*PGPKeyBundle); isPGP {
+			keys = append(keys, ckf.exportPublicKey(key))
+		}
+	}
+	sort.Sort(PublicKeyList(keys))
+	return keys
+}
+
 func (ckf ComputedKeyFamily) ExportRevokedDeviceKeys() []keybase1.RevokedKey {
 	var ex []keybase1.RevokedKey
 	for _, key := range ckf.GetRevokedKeys() {
@@ -929,6 +945,13 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 
 	ret.Uvv = u.ExportToVersionVector(idTime)
 	return ret
+}
+
+func (u *User) ExportToUserPlusAllKeys(idTime keybase1.Time) keybase1.UserPlusAllKeys {
+	return keybase1.UserPlusAllKeys{
+		Base:    u.ExportToUserPlusKeys(idTime),
+		PGPKeys: u.GetComputedKeyFamily().ExportAllPGPKeys(),
+	}
 }
 
 //=============================================================================

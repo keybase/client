@@ -366,6 +366,23 @@
       ]
     },
     {
+      "type": "record",
+      "name": "UserPlusAllKeys",
+      "fields": [
+        {
+          "type": "UserPlusKeys",
+          "name": "base"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKeys"
+          },
+          "name": "pgpKeys"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "MerkleTreeID",
       "symbols": [

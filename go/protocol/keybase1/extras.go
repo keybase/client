@@ -767,7 +767,7 @@ func (u UserPlusKeys) GetName() string {
 	return u.Username
 }
 
-func (u *UserPlusKeys) DeepCopy() *UserPlusKeys {
+func (u *UserPlusAllKeys) DeepCopy() *UserPlusAllKeys {
 	handle := &codec.MsgpackHandle{
 		WriteExt:    true,
 		RawToString: true,
@@ -776,7 +776,15 @@ func (u *UserPlusKeys) DeepCopy() *UserPlusKeys {
 	enc := codec.NewEncoderBytes(&v, handle)
 	enc.Encode(*u)
 	dec := codec.NewDecoderBytes(v, handle)
-	var ret UserPlusKeys
+	var ret UserPlusAllKeys
 	dec.Decode(&ret)
 	return &ret
+}
+
+func (u UserPlusAllKeys) GetUID() UID {
+	return u.Base.GetUID()
+}
+
+func (u UserPlusAllKeys) GetName() string {
+	return u.Base.GetName()
 }

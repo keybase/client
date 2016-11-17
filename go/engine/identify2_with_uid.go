@@ -55,8 +55,10 @@ type Identify2WithUID struct {
 	// If we just resolved a user, then we can plumb this through to loadUser()
 	ResolveBody *jsonw.Wrapper
 
-	me   *libkb.User
-	them *libkb.User
+	me       *libkb.User
+	them     *libkb.User
+	meFlat   *keybase1.UserPlusAllKeys
+	themFlat *keybase1.UserPlusAllKeys
 
 	themAssertion   libkb.AssertionExpression
 	remoteAssertion libkb.AssertionAnd
@@ -205,8 +207,8 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return nil
 	}
 
-	e.G().Log.Debug("| Identify2WithUID.loadUsers")
-	if err = e.loadUsers(ctx); err != nil {
+	e.G().Log.Debug("| Identify2WithUID.loadFlatUsers")
+	if err = e.loadFlatUsers(ctx); err != nil {
 		return err
 	}
 
@@ -223,6 +225,11 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 	if !e.useRemoteAssertions() && e.allowEarlyOuts() && e.checkSlowCacheHit() {
 		e.G().Log.Debug("| hit slow cache, first check")
 		return nil
+	}
+
+	e.G().Log.Debug("| Identify2WithUID.loadUsers")
+	if err = e.loadUsers(ctx); err != nil {
+		return err
 	}
 
 	e.G().Log.Debug("| Identify2WithUID.createIdentifyState")
@@ -563,6 +570,23 @@ func (e *Identify2WithUID) loadMe(ctx *Context) (err error) {
 	return err
 }
 
+func (e *Identify2WithUID) loadFlatMe(ctx *Context) (err error) {
+
+	// Short circuit loadMe for testing
+	if e.testArgs != nil && e.testArgs.noMe {
+		return nil
+	}
+
+	var ok bool
+	var uid keybase1.UID
+	ok, uid, err = IsLoggedIn(e, ctx)
+	if err != nil || !ok {
+		return err
+	}
+	e.flatMe, e.me, err = e.G().FlatUserLoader.Load(e.G(), uid)
+	return err
+}
+
 func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	arg := libkb.NewLoadUserArg(e.G())
 	arg.UID = e.arg.Uid
@@ -585,19 +609,52 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	return nil
 }
 
+func (e *Identify2WithUID) loadFlatUsers(ctx *Context) error {
+	var loadMeErr, loadThemErr error
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		loadMeErr = e.loadFlatMe(ctx)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		loadThemErr = e.loadFlatThem(ctx)
+		wg.Done()
+	}()
+	wg.Wait()
+
+	if loadMeErr != nil {
+		return loadMeErr
+	}
+	if loadThemErr != nil {
+		return loadThemErr
+	}
+
+	return nil
+}
+
 func (e *Identify2WithUID) loadUsers(ctx *Context) error {
 	var loadMeErr, loadThemErr error
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		loadMeErr = e.loadMe(ctx)
-		wg.Done()
-	}()
-	wg.Add(1)
-	go func() {
-		loadThemErr = e.loadThem(ctx)
-		wg.Done()
-	}()
+
+	if e.me == nil {
+		wg.Add(1)
+		go func() {
+			loadMeErr = e.loadMe(ctx)
+			wg.Done()
+		}()
+	}
+
+	if e.them == nil {
+		wg.Add(1)
+		go func() {
+			loadThemErr = e.loadThem(ctx)
+			wg.Done()
+		}()
+	}
 	wg.Wait()
 
 	if loadMeErr != nil {

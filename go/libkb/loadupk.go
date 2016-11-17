@@ -8,15 +8,15 @@ import (
 	"time"
 )
 
-type UserPlusKeysLoader struct {
+type UserPlusAllKeysLoader struct {
 	sync.Mutex
 	Contextified
-	m         map[string]*keybase1.UserPlusKeys
+	m         map[string]*keybase1.UserPlusAllKeys
 	locktab   LockTable
 	Freshness time.Duration
 }
 
-func (u *UserPlusKeysLoader) getCachedUPK(uid keybase1.UID) (*keybase1.UserPlusKeys, bool) {
+func (u *UserPlusAllKeysLoader) getCachedUPK(uid keybase1.UID) (*keybase1.UserPlusAllKeys, bool) {
 	u.Lock()
 	defer u.Unlock()
 	upk := u.m[uid.String()]
@@ -24,7 +24,7 @@ func (u *UserPlusKeysLoader) getCachedUPK(uid keybase1.UID) (*keybase1.UserPlusK
 		u.G().Log.Debug("| missed cached")
 		return nil, true
 	}
-	diff := u.G().Clock().Now().Sub(keybase1.FromTime(upk.Uvv.CachedAt))
+	diff := u.G().Clock().Now().Sub(keybase1.FromTime(upk.Base.Uvv.CachedAt))
 	fresh := (diff <= u.Freshness)
 	if fresh {
 		u.G().Log.Debug("| cache hit was fresh (cached %s ago)", diff)
@@ -34,8 +34,8 @@ func (u *UserPlusKeysLoader) getCachedUPK(uid keybase1.UID) (*keybase1.UserPlusK
 	return upk, fresh
 }
 
-func (u *UserPlusKeysLoader) Load(arg LoadUserArg) (ret *keybase1.UserPlusKeys, user *User, err error) {
-	u.G().Trace(fmt.Sprintf("UserPlusKeysLoader#Load(%s)", arg.UID), func() error { return err })
+func (u *UserPlusAllKeysLoader) Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
+	u.G().Trace(fmt.Sprintf("UserPlusAllKeysLoader#Load(%s)", arg.UID), func() error { return err })
 
 	if arg.UID.IsNil() {
 		err = errors.New("need a UID to load UPK from loader")
@@ -60,9 +60,9 @@ func (u *UserPlusKeysLoader) Load(arg LoadUserArg) (ret *keybase1.UserPlusKeys, 
 
 		var leaf *MerkleUserLeaf
 		leaf, err = lookupMerkleLeaf(u.G(), arg.UID, true, sigHints)
-		if leaf.public != nil && leaf.public.Seqno == Seqno(upk.Uvv.SigChain) {
+		if leaf.public != nil && leaf.public.Seqno == Seqno(upk.Base.Uvv.SigChain) {
 			u.G().Log.Debug("| user was still fresh after check with merkle tree")
-			upk.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
+			upk.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
 			return upk.DeepCopy(), nil, nil
 		}
 
@@ -75,7 +75,7 @@ func (u *UserPlusKeysLoader) Load(arg LoadUserArg) (ret *keybase1.UserPlusKeys, 
 		return nil, nil, err
 	}
 
-	tmp := user.ExportToUserPlusKeys(keybase1.Time(0))
+	tmp := user.ExportToUserPlusAllKeys(keybase1.Time(0))
 	ret = &tmp
 	u.Lock()
 	u.m[arg.UID.String()] = ret
