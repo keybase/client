@@ -189,7 +189,6 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 	}
 	clientHeader.OutboxInfo = msg.ClientHeader.OutboxInfo
 	clientHeader.OutboxID = msg.ClientHeader.OutboxID
-	clientHeader.Supersedes = msg.ClientHeader.Supersedes
 
 	if skipBodyVerification {
 		// body was deleted, so return empty body that matches header version

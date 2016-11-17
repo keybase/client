@@ -187,6 +187,24 @@ func (s *Storage) Merge(ctx context.Context, convID chat1.ConversationID, uid gr
 	return nil
 }
 
+// getSupersedes must be called with a valid msg
+func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) (chat1.MessageID, libkb.ChatStorageError) {
+	body := msg.Valid().MessageBody
+	typ, err := (&body).MessageType()
+	if err != nil {
+		return 0, libkb.NewChatStorageInternalError(s.G(), "invalid msg: %s", err.Error())
+	}
+
+	switch typ {
+	case chat1.MessageType_EDIT:
+		return msg.Valid().MessageBody.Edit().MessageID, nil
+	case chat1.MessageType_DELETE:
+		return msg.Valid().MessageBody.Delete().MessageID, nil
+	default:
+		return 0, nil
+	}
+}
+
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) libkb.ChatStorageError {
 
@@ -200,7 +218,10 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 			continue
 		}
 
-		superID := msg.Valid().ClientHeader.Supersedes
+		superID, err := s.getSupersedes(msg)
+		if err != nil {
+			continue
+		}
 		s.debug("updateSupersededBy: supersedes: %d", superID)
 		if superID == 0 {
 			continue
@@ -210,7 +231,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 		// Read super msg
 		var superMsgs []chat1.MessageUnboxed
 		rc := newSimpleResultCollector(1)
-		err := s.engine.readMessages(ctx, rc, convID, uid, superID)
+		err = s.engine.readMessages(ctx, rc, convID, uid, superID)
 		if err != nil {
 			// If we don't have the message, just keep going
 			if _, ok := err.(libkb.ChatStorageMissError); ok {
