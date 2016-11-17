@@ -369,12 +369,12 @@ func TestStorageLocalMax(t *testing.T) {
 	msgs := makeMsgRange(10)
 	conv := makeConversation(15)
 
-	_, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, nil, nil)
+	_, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, nil)
 	require.Error(t, err)
 	require.IsType(t, libkb.ChatStorageMissError{}, err, "wrong error type")
 
 	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
-	tv, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, nil, nil)
+	tv, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, tv.Messages, 10)
 }
