@@ -120,6 +120,33 @@ func (s *HybridConversationSource) getConvMetadata(ctx context.Context, convID c
 	return conv.Inbox.Full().Conversations[0], nil
 }
 
+func (s *HybridConversationSource) inspectBreaksFromMessages(ctx context.Context, msgs []chat1.MessageUnboxed, identifyBehavior keybase1.TLFIdentifyBehavior) ([]keybase1.TLFUserBreak, error) {
+	for _, msg := range msgs {
+		m := msg.Valid()
+
+		if m.ClientHeader.TlfPublic {
+			res, err := s.ti.PublicCanonicalTLFNameAndID(ctx, keybase1.TLFQuery{
+				IdentifyBehavior: identifyBehavior,
+				TlfName:          m.ClientHeader.TlfName,
+			})
+			if err != nil {
+				return nil, err
+			}
+			return res.Breaks.Breaks, nil
+		}
+
+		res, err := s.ti.CryptKeys(ctx, keybase1.TLFQuery{
+			IdentifyBehavior: identifyBehavior,
+			TlfName:          m.ClientHeader.TlfName,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return res.NameIDBreaks.Breaks.Breaks, nil
+	}
+	return nil, nil
+}
+
 func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.ThreadView, []*chat1.RateLimit, []keybase1.TLFUserBreak, error) {
 
@@ -148,28 +175,9 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				rl = append(rl, res.RateLimit)
 			}
 
-			var breaks []keybase1.TLFUserBreak
-			if len(localData.Messages) > 0 && localData.Messages[0].IsValid() {
-				m := localData.Messages[0].Valid()
-				if m.ClientHeader.TlfPublic {
-					res, err := s.ti.PublicCanonicalTLFNameAndID(ctx, keybase1.TLFQuery{
-						IdentifyBehavior: identifyBehavior,
-						TlfName:          m.ClientHeader.TlfName,
-					})
-					if err != nil {
-						return chat1.ThreadView{}, nil, nil, err
-					}
-					breaks = res.Breaks.Breaks
-				} else {
-					res, err := s.ti.CryptKeys(ctx, keybase1.TLFQuery{
-						IdentifyBehavior: identifyBehavior,
-						TlfName:          m.ClientHeader.TlfName,
-					})
-					if err != nil {
-						return chat1.ThreadView{}, nil, nil, err
-					}
-					breaks = res.NameIDBreaks.Breaks.Breaks
-				}
+			breaks, err := s.inspectBreaksFromMessages(ctx, localData.Messages, identifyBehavior)
+			if err != nil {
+				return chat1.ThreadView{}, nil, nil, err
 			}
 
 			return localData, rl, breaks, nil
