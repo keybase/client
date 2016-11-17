@@ -1778,9 +1778,13 @@ func NewChatStorageInternalError(g *GlobalContext, msg string, args ...interface
 }
 
 type ChatStorageMissError struct {
+	Msg string
 }
 
 func (e ChatStorageMissError) Error() string {
+	if len(e.Msg) > 0 {
+		return "chat cache miss: " + e.Msg
+	}
 	return "chat cache miss"
 }
 
