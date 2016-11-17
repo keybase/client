@@ -19,6 +19,9 @@ import (
 const minMultiSize = 5 * 1024 * 1024 // can't use Multi API with parts less than 5MB
 const blockSize = 5 * 1024 * 1024    // 5MB is the minimum Multi part size
 
+// ErrAbortOnPartMismatch is returned when there is a mismatch between a current
+// part and a previous attempt part.  If ErrAbortOnPartMismatch is returned,
+// the caller should abort the upload attempt and start from scratch.
 var ErrAbortOnPartMismatch = errors.New("local part mismatch, aborting upload")
 
 // PutS3Result is the success result of calling PutS3.
@@ -199,6 +202,9 @@ func (j job) etag() string {
 	return `"` + j.hash + `"`
 }
 
+// makeBlockJobs reads ciphertext chunks from r and creates jobs that it puts onto blockCh.
+// If this is a resumed upload, it verifies the blocks against the local stash before
+// creating jobs.
 func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan job, stashKey StashKey, previous *AttachmentInfo) error {
 	var partNumber int
 	for {
@@ -244,6 +250,7 @@ func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockC
 	return nil
 }
 
+// addJob creates a job and puts it on blockCh, unless the blockCh isn't ready and the context has been canceled.
 func (a *AttachmentStore) addJob(ctx context.Context, blockCh chan job, block []byte, partNumber int, hash string) error {
 	// Create a job, unless the context has been canceled.
 	select {
@@ -254,6 +261,9 @@ func (a *AttachmentStore) addJob(ctx context.Context, blockCh chan job, block []
 	}
 }
 
+// uploadPart handles uploading a job to S3.  The job `b` has already passed local stash verification.
+// If this is a resumed upload, it checks the previous parts reported by S3 and will skip uploading
+// any that already exist.
 func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b job, previous *AttachmentInfo, previousParts map[int]s3.Part, multi s3.MultiInt, retCh chan s3.Part) error {
 	a.log.Debug("start: upload part %d", b.index)
 
