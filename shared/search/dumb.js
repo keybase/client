@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react'
-import Search from './render'
+import Search from './'
 import type {DumbComponentMap} from '../constants/types/more'
 import UserPane from './user-pane/render'
 

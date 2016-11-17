@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Render from './render'
+import {HOCForm} from '../../common-adapters'
 import {connect} from 'react-redux'
 import {editProfile} from '../../actions/profile'
 import {maxProfileBioChars} from '../../constants/profile'
@@ -8,15 +9,7 @@ import {navigateUp} from '../../actions/router'
 
 import type {Props} from './render'
 
-type State = {
-  bio: string,
-  fullname: string,
-  location: string,
-}
-
-class EditProfile extends Component<void, Props, State> {
-  state: State;
-
+class EditProfile extends Component<void, Props, void> {
   static parseRoute (currentPath, uri) {
     return {
       componentAtTop: {
@@ -27,34 +20,26 @@ class EditProfile extends Component<void, Props, State> {
     }
   }
 
-  constructor (props: Props) {
-    super(props)
-    this.state = {
-      bio: this.props.bio,
-      fullname: this.props.fullname,
-      location: this.props.location,
-    }
-  }
-
   onSubmit () {
-    const {bio, location, fullname} = this.state
+    // $FlowIssue
+    const {bio, location, fullname} = this.props.getFormValues()
     this.props.onEditProfile({bio, location, fullname})
   }
 
   render () {
     const bioMaxChars = maxProfileBioChars
-    const bioLengthLeft = bioMaxChars - this.state.bio.length
+    const bioLengthLeft = bioMaxChars - this.props.bio.length
     return <Render
-      bio={this.state.bio}
+      bio={this.props.bio}
       bioLengthLeft={bioLengthLeft}
-      fullname={this.state.fullname}
-      location={this.state.location}
+      fullname={this.props.fullname}
+      location={this.props.location}
       onBack={this.props.onBack}
-      onBioChange={bio => this.setState({bio})}
+      onBioChange={this.props.onBioChange}
       onCancel={this.props.onBack}
       onEditProfile={this.props.onEditProfile}
-      onFullnameChange={fullname => this.setState({fullname})}
-      onLocationChange={location => this.setState({location})}
+      onFullnameChange={this.props.onFullnameChange}
+      onLocationChange={this.props.onLocationChange}
       onSubmit={() => this.onSubmit()}
     />
   }
@@ -76,4 +61,9 @@ export default connect(
       onEditProfile: ({bio, fullname, location}) => dispatch(editProfile(bio, fullname, location)),
     }
   }
-)(EditProfile)
+)(HOCForm(
+  EditProfile,
+  {valueName: 'bio', updateValueName: 'onBioChange'},
+  {valueName: 'fullname', updateValueName: 'onFullnameChange'},
+  {valueName: 'location', updateValueName: 'onLocationChange'}
+))

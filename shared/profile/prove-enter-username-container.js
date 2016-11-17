@@ -1,6 +1,7 @@
 // @flow
 import ProveEnterUsername from './prove-enter-username'
 import React, {Component} from 'react'
+import {HOCForm} from '../common-adapters'
 import {TypedConnector} from '../util/typed-connect'
 import {submitUsername, cancelAddProof, updateUsername, submitBTCAddress, submitZcashAddress} from '../actions/profile'
 
@@ -48,4 +49,9 @@ export default connector.connect(
       waiting: profile.waiting,
     }
   }
-)(ProveEnterUsernameContainer)
+)(HOCForm(ProveEnterUsernameContainer, {
+  valueName: 'username',
+  updateValueName: 'onUsernameChange',
+  updateValueDebounce: 1000,
+  updateBeforeSubmitName: 'onContinue',
+}))

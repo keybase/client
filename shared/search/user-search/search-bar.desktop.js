@@ -42,28 +42,11 @@ class ServiceIcon extends Component<void, ServiceIconProps, ServiceIconState> {
 }
 
 class SearchBar extends Component<void, Props, void> {
-  _onDebouncedSearch: (overridePlatform?: SearchPlatforms) => void;
-
-  constructor (props: Props) {
-    super(props)
-    this._onDebouncedSearch = _.debounce(this._onSearch, 500)
-  }
-
-  componentWillReceiveProps (nextProps: Props) {
-    if (nextProps.searchText === null && nextProps.searchText !== this.props.searchText) {
-      this.refs && this.refs.searchBox && this.refs.searchBox.clearValue()
-    }
-  }
-
-  _onSearch (overridePlatform?: SearchPlatforms) {
-    this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '', overridePlatform || null)
-  }
-
-  _onClickService (platform: SearchPlatforms) {
+  _onClickService = (platform: SearchPlatforms) => {
     this.props.onClickService(platform)
     if (this.refs.searchBox) {
       if (this.refs.searchBox.getValue()) {
-        this._onSearch(platform)
+        this.props.onSearch(platform)
       }
       this.refs.searchBox.focus()
     }
@@ -83,7 +66,7 @@ class SearchBar extends Component<void, Props, void> {
               tooltip={tooltips[s] || s}
               iconType={platformToLogo24(s)}
               selected={this.props.selectedService === s}
-              onClickService={p => this._onClickService(p)}
+              onClickService={this._onClickService}
               />
           ))}
         </Box>
@@ -94,8 +77,7 @@ class SearchBar extends Component<void, Props, void> {
             type='text'
             autoFocus={true}
             ref='searchBox'
-            onEnterKeyDown={() => this._onSearch()}
-            onChangeText={() => this._onDebouncedSearch()}
+            onChangeText={text => this.props.onSearch(text)}
             value={this.props.searchText}
             hintText={this.props.searchHintText}
             style={{paddingLeft: 20}}
