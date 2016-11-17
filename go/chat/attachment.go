@@ -3,14 +3,17 @@ package chat
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -26,6 +29,7 @@ type UploadTask struct {
 	plaintextHash  []byte
 	S3Signer       s3.Signer
 	ConversationID chat1.ConversationID
+	UserID         keybase1.UID
 	Progress       ProgressReporter
 }
 
@@ -36,7 +40,10 @@ func (u *UploadTask) computePlaintextHash() error {
 
 	// reset the stream to the beginning of the file
 	return u.Plaintext.Reset()
+}
 
+func (u *UploadTask) stashKey() StashKey {
+	return NewStashKey(u.plaintextHash, u.ConversationID, u.UserID)
 }
 
 func (u *UploadTask) Nonce() signencrypt.Nonce {
@@ -49,19 +56,36 @@ type AttachmentStore struct {
 	log      logger.Logger
 	s3signer s3.Signer
 	s3c      s3.Root
+	stash    AttachmentStash
 
 	// testing hooks
-	keyTester    func(encKey, sigKey []byte) // used for testing only to check key changes
-	pipelineSize int
-	aborts       int
-	blockLimit   int // max number of blocks to upload
+	testing    bool                        // true if we're in a test
+	keyTester  func(encKey, sigKey []byte) // used for testing only to check key changes
+	aborts     int                         // number of aborts
+	blockLimit int                         // max number of blocks to upload
 }
 
-func NewAttachmentStore(log logger.Logger) *AttachmentStore {
+// NewAttachmentStore creates a standard AttachmentStore that uses a real
+// S3 connection.
+func NewAttachmentStore(log logger.Logger, runtimeDir string) *AttachmentStore {
 	return &AttachmentStore{
-		log:          log,
-		s3c:          &s3.AWS{},
-		pipelineSize: 10,
+		log:   log,
+		s3c:   &s3.AWS{},
+		stash: NewFileStash(runtimeDir),
+	}
+}
+
+// newAttachmentStoreTesting creates an AttachmentStore suitable for testing
+// purposes.  It is not exposed outside this package.
+// It uses an in-memory s3 interface, reports enc/sig keys, and allows limiting
+// the number of blocks uploaded.
+func newAttachmentStoreTesting(log logger.Logger, kt func(enc, sig []byte)) *AttachmentStore {
+	return &AttachmentStore{
+		log:       log,
+		s3c:       &s3.Mem{},
+		stash:     NewFileStash(os.TempDir()),
+		keyTester: kt,
+		testing:   true,
 	}
 }
 
@@ -72,6 +96,9 @@ func (a *AttachmentStore) UploadAsset(ctx context.Context, task *UploadTask) (ch
 			return chat1.Asset{}, err
 		}
 	} else {
+		if !a.testing {
+			return chat1.Asset{}, errors.New("task.plaintextHash not nil")
+		}
 		a.log.Warning("skipping plaintextHash calculation due to existing plaintextHash (testing only feature)")
 	}
 
@@ -123,8 +150,7 @@ func (a *AttachmentStore) uploadAsset(ctx context.Context, task *UploadTask, enc
 		}
 	}
 
-	// XXX make this only work in devel mode or panic in production
-	if a.keyTester != nil {
+	if a.testing && a.keyTester != nil {
 		a.log.Warning("AttachmentStore.keyTester exists, reporting keys")
 		a.keyTester(enc.EncryptKey(), enc.VerifyKey())
 	}
@@ -226,19 +252,19 @@ func (a *AttachmentStore) startUpload(ctx context.Context, task *UploadTask, enc
 		SignKey:   encrypter.signKey,
 		VerifyKey: encrypter.verifyKey,
 	}
-	if err := StashStart(task.plaintextHash, task.ConversationID, info); err != nil {
+	if err := a.stash.Start(task.stashKey(), info); err != nil {
 		a.log.Debug("StashStart error: %s", err)
 	}
 }
 
 func (a *AttachmentStore) finishUpload(ctx context.Context, task *UploadTask) {
-	if err := StashFinish(task.plaintextHash, task.ConversationID); err != nil {
+	if err := a.stash.Finish(task.stashKey()); err != nil {
 		a.log.Debug("StashFinish error: %s", err)
 	}
 }
 
 func (a *AttachmentStore) previousUpload(ctx context.Context, task *UploadTask) *AttachmentInfo {
-	info, found, err := StashLookup(task.plaintextHash, task.ConversationID)
+	info, found, err := a.stash.Lookup(task.stashKey())
 	if err != nil {
 		a.log.Debug("StashLookup error: %s", err)
 		return nil

@@ -106,7 +106,7 @@ func (a *AttachmentStore) putSingle(ctx context.Context, r io.Reader, size int64
 }
 
 // putMultiPipeline uploads data in r to S3 using the Multi API.  It uses a
-// pipeline to upload pipelineSize (default 10) blocks of data concurrently.
+// pipeline to upload 10 blocks of data concurrently.
 // Each block is 5MB. It returns the object key if no errors.  putMultiPipeline
 // will return a different object key from params.ObjectKey if a previous Put is
 // successfully resumed and completed.
@@ -143,9 +143,9 @@ func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, siz
 	retCh := make(chan s3.Part)
 	eg.Go(func() error {
 		defer close(blockCh)
-		return a.makeBlockJobs(ectx, r, blockCh)
+		return a.makeBlockJobs(ectx, r, blockCh, task.stashKey(), previous)
 	})
-	for i := 0; i < a.pipelineSize; i++ {
+	for i := 0; i < 10; i++ {
 		eg.Go(func() error {
 			for b := range blockCh {
 				if err := a.uploadPart(ectx, task, b, previous, previousParts, multi, retCh); err != nil {
@@ -192,9 +192,14 @@ func (a *AttachmentStore) putMultiPipeline(ctx context.Context, r io.Reader, siz
 type job struct {
 	block []byte
 	index int
+	hash  string
 }
 
-func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan job) error {
+func (j job) etag() string {
+	return `"` + j.hash + `"`
+}
+
+func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan job, stashKey StashKey, previous *AttachmentInfo) error {
 	var partNumber int
 	for {
 		partNumber++
@@ -210,13 +215,21 @@ func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockC
 			block = block[:n]
 		}
 		if n > 0 {
-			// if block is not empty, create a job for it and put it in
-			// blockCh.  Or, if the context has been canceled, then
-			// stop this loop and return from this function.
-			select {
-			case blockCh <- job{block: block, index: partNumber}:
-			case <-ctx.Done():
-				return ctx.Err()
+			md5sum := md5.Sum(block)
+			md5hex := hex.EncodeToString(md5sum[:])
+
+			if previous != nil {
+				// resuming an upload, so check local stash record
+				// and abort on mismatch before adding a job for this block
+				lhash, found := previous.Parts[partNumber]
+				if found && lhash != md5hex {
+					a.log.Debug("part %d failed local part record verification", partNumber)
+					return ErrAbortOnPartMismatch
+				}
+			}
+
+			if err := a.addJob(ctx, blockCh, block, partNumber, md5hex); err != nil {
+				return err
 			}
 		}
 		if err == io.EOF || err == io.ErrUnexpectedEOF {
@@ -229,43 +242,53 @@ func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockC
 		}
 	}
 	return nil
+}
 
+func (a *AttachmentStore) addJob(ctx context.Context, blockCh chan job, block []byte, partNumber int, hash string) error {
+	// Create a job, unless the context has been canceled.
+	select {
+	case blockCh <- job{block: block, index: partNumber, hash: hash}:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b job, previous *AttachmentInfo, previousParts map[int]s3.Part, multi s3.MultiInt, retCh chan s3.Part) error {
 	a.log.Debug("start: upload part %d", b.index)
-	md5sum := md5.Sum(b.block)
-	md5hex := hex.EncodeToString(md5sum[:])
+
+	// check to see if this part has already been uploaded.
+	// for job `b` to be here, it has already passed local stash verification.
 	if previous != nil {
 		// check s3 previousParts for this block
 		p, ok := previousParts[b.index]
-		if ok && int(p.Size) == len(b.block) && p.ETag == `"`+md5hex+`"` {
+		if ok && int(p.Size) == len(b.block) && p.ETag == b.etag() {
 			a.log.Debug("part %d already uploaded to s3", b.index)
-			// check our own previous record for this part
-			ok, err := StashVerifyPart(task.plaintextHash, task.ConversationID, b.index, md5hex)
-			if err != nil {
-				a.log.Debug("StashVerifyPart error: %s", err)
-			} else if ok {
-				a.log.Debug("part %d matched local upload record", b.index)
-				select {
-				case retCh <- p:
-				case <-ctx.Done():
-					return ctx.Err()
-				}
-				return nil
-			} else {
-				a.log.Debug("part %d failed local part record verification", b.index)
-				return ErrAbortOnPartMismatch
+
+			// part already uploaded, so put it in the retCh unless the context
+			// has been canceled
+			select {
+			case retCh <- p:
+			case <-ctx.Done():
+				return ctx.Err()
 			}
-		} else if p.Size > 0 {
-			// only abort if the part size from s3 is > 0
-			a.log.Debug("part %d s3 mismatch:  size %d != expected %d or etag %s != expected %s", b.index, p.Size, len(b.block), p.ETag, md5hex)
+
+			// nothing else to do
+			return nil
+		}
+
+		if p.Size > 0 {
+			// only abort if the part size from s3 is > 0.
+			a.log.Debug("part %d s3 mismatch:  size %d != expected %d or etag %s != expected %s", b.index, p.Size, len(b.block), p.ETag, b.etag())
 			return ErrAbortOnPartMismatch
 		}
+
+		// this part doesn't exist on s3, so it needs to be uploaded
+		a.log.Debug("part %d not uploaded to s3 by previous upload attempt", b.index)
 	}
 
 	// stash part info locally before attempting S3 put
-	if err := StashRecordPart(task.plaintextHash, task.ConversationID, b.index, md5hex); err != nil {
+	if err := a.stash.RecordPart(task.stashKey(), b.index, b.hash); err != nil {
 		a.log.Debug("StashRecordPart error: %s", err)
 	}
 
@@ -273,6 +296,9 @@ func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b jo
 	if putErr != nil {
 		return putErr
 	}
+
+	// put the successfully uploaded part information in the retCh
+	// unless the context has been canceled.
 	select {
 	case retCh <- part:
 	case <-ctx.Done():

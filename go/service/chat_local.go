@@ -49,7 +49,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		tlf:          tlf,
 		udc:          udc,
 		boxer:        chat.NewBoxer(g, tlf, udc),
-		store:        chat.NewAttachmentStore(g.Log),
+		store:        chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 	}
 
 	if gh != nil {
@@ -755,6 +755,7 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 		Plaintext:      src,
 		S3Signer:       h,
 		ConversationID: conversationID,
+		UserID:         h.G().Env.GetUID(),
 		Progress:       progress,
 	}
 	return h.store.UploadAsset(ctx, &task)

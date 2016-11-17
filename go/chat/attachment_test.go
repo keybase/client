@@ -92,13 +92,7 @@ func TestSignEncrypter(t *testing.T) {
 }
 
 func makeTestStore(t *testing.T, kt func(enc, sig []byte)) *AttachmentStore {
-	s := NewAttachmentStore(logger.NewTestLogger(t))
-	s.keyTester = kt
-
-	// use in-memory implementation of s3 interface
-	s.s3c = &s3.Mem{}
-
-	return s
+	return newAttachmentStoreTesting(logger.NewTestLogger(t), kt)
 }
 
 func testStoreMultis(t *testing.T, s *AttachmentStore) []*s3.MemMulti {

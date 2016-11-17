@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type AttachmentInfo struct {
@@ -22,52 +23,44 @@ type AttachmentInfo struct {
 	StartedAt time.Time                // when the upload started
 }
 
-type AttachmentStash interface {
-	Start(plaintextHash []byte, conversationID chat1.ConversationID, info AttachmentInfo) error
-	Lookup(plaintextHash []byte, conversationID chat1.ConversationID) (AttachmentInfo, bool, error)
-	RecordPart(plaintextHash []byte, conversationID chat1.ConversationID, partNumber int, hash string) error
-	VerifyPart(plaintextHash []byte, conversationID chat1.ConversationID, partNumber int, hash string) (bool, error)
-	Finish(plaintextHash []byte, conversationID chat1.ConversationID) error
-}
-
-type stashKey struct {
+type StashKey struct {
 	PlaintextHash  []byte
 	ConversationID chat1.ConversationID
+	UserID         keybase1.UID
 }
 
-func (s stashKey) String() string {
-	return fmt.Sprintf("%x:%x", s.PlaintextHash, s.ConversationID)
+func (s StashKey) String() string {
+	return fmt.Sprintf("%x:%x:%s", s.PlaintextHash, s.ConversationID, s.UserID)
 }
 
-var defaultStash = &FileStash{}
+func NewStashKey(plaintextHash []byte, cid chat1.ConversationID, uid keybase1.UID) StashKey {
+	return StashKey{
+		PlaintextHash:  plaintextHash,
+		ConversationID: cid,
+		UserID:         uid,
+	}
+}
+
+type AttachmentStash interface {
+	Start(key StashKey, info AttachmentInfo) error
+	Lookup(key StashKey) (AttachmentInfo, bool, error)
+	RecordPart(key StashKey, partNumber int, hash string) error
+	VerifyPart(key StashKey, partNumber int, hash string) (bool, error)
+	Finish(key StashKey) error
+}
 
 var ErrPartNotFound = errors.New("part does not exist in stash")
 
-func StashStart(plaintextHash []byte, conversationID chat1.ConversationID, info AttachmentInfo) error {
-	return defaultStash.Start(plaintextHash, conversationID, info)
-}
-
-func StashLookup(plaintextHash []byte, conversationID chat1.ConversationID) (AttachmentInfo, bool, error) {
-	return defaultStash.Lookup(plaintextHash, conversationID)
-}
-
-func StashRecordPart(plaintextHash []byte, conversationID chat1.ConversationID, partNumber int, hash string) error {
-	return defaultStash.RecordPart(plaintextHash, conversationID, partNumber, hash)
-}
-
-func StashVerifyPart(plaintextHash []byte, conversationID chat1.ConversationID, partNumber int, hash string) (bool, error) {
-	return defaultStash.VerifyPart(plaintextHash, conversationID, partNumber, hash)
-}
-
-func StashFinish(plaintextHash []byte, conversationID chat1.ConversationID) error {
-	return defaultStash.Finish(plaintextHash, conversationID)
-}
-
 type FileStash struct {
+	dir string
 	sync.Mutex
 }
 
-func (f *FileStash) Start(plaintextHash []byte, conversationID chat1.ConversationID, info AttachmentInfo) error {
+func NewFileStash(dir string) *FileStash {
+	return &FileStash{dir: dir}
+}
+
+func (f *FileStash) Start(key StashKey, info AttachmentInfo) error {
 	f.Lock()
 	defer f.Unlock()
 	c, err := f.contents()
@@ -75,26 +68,24 @@ func (f *FileStash) Start(plaintextHash []byte, conversationID chat1.Conversatio
 		return err
 	}
 	info.StartedAt = time.Now()
-	key := stashKey{PlaintextHash: plaintextHash, ConversationID: conversationID}
 	c[key.String()] = info
 
 	return f.serialize(c)
 }
 
-func (f *FileStash) Lookup(plaintextHash []byte, conversationID chat1.ConversationID) (AttachmentInfo, bool, error) {
+func (f *FileStash) Lookup(key StashKey) (AttachmentInfo, bool, error) {
 	f.Lock()
 	defer f.Unlock()
-	return f.lookup(plaintextHash, conversationID)
+	return f.lookup(key)
 }
 
-func (f *FileStash) RecordPart(plaintextHash []byte, conversationID chat1.ConversationID, partNumber int, hash string) error {
+func (f *FileStash) RecordPart(key StashKey, partNumber int, hash string) error {
 	f.Lock()
 	defer f.Unlock()
 	c, err := f.contents()
 	if err != nil {
 		return err
 	}
-	key := stashKey{PlaintextHash: plaintextHash, ConversationID: conversationID}
 	info, found := c[key.String()]
 	if !found {
 		return ErrPartNotFound
@@ -109,10 +100,10 @@ func (f *FileStash) RecordPart(plaintextHash []byte, conversationID chat1.Conver
 	return f.serialize(c)
 }
 
-func (f *FileStash) VerifyPart(plaintextHash []byte, conversationID chat1.ConversationID, partNumber int, hash string) (bool, error) {
+func (f *FileStash) VerifyPart(key StashKey, partNumber int, hash string) (bool, error) {
 	f.Lock()
 	defer f.Unlock()
-	info, found, err := f.lookup(plaintextHash, conversationID)
+	info, found, err := f.lookup(key)
 	if err != nil {
 		return false, err
 	}
@@ -120,23 +111,29 @@ func (f *FileStash) VerifyPart(plaintextHash []byte, conversationID chat1.Conver
 		return false, ErrPartNotFound
 	}
 
-	return info.Parts[partNumber] == hash, nil
+	rhash, pfound := info.Parts[partNumber]
+	if !pfound {
+		return false, ErrPartNotFound
+	}
+	return rhash == hash, nil
 }
 
-func (f *FileStash) Finish(plaintextHash []byte, conversationID chat1.ConversationID) error {
+func (f *FileStash) Finish(key StashKey) error {
 	f.Lock()
 	defer f.Unlock()
 	c, err := f.contents()
 	if err != nil {
 		return err
 	}
-	key := stashKey{PlaintextHash: plaintextHash, ConversationID: conversationID}
 	delete(c, key.String())
 	return f.serialize(c)
 }
 
 func (f *FileStash) filename() string {
-	return filepath.Join(os.TempDir(), "chat_attachment_stash")
+	if f.dir == "" {
+		panic("FileStash used with no directory")
+	}
+	return filepath.Join(f.dir, "chat_attachment_stash")
 }
 
 func (f *FileStash) contents() (map[string]AttachmentInfo, error) {
@@ -167,12 +164,11 @@ func (f *FileStash) serialize(m map[string]AttachmentInfo) error {
 	return enc.Encode(m)
 }
 
-func (f *FileStash) lookup(plaintextHash []byte, conversationID chat1.ConversationID) (AttachmentInfo, bool, error) {
+func (f *FileStash) lookup(key StashKey) (AttachmentInfo, bool, error) {
 	c, err := f.contents()
 	if err != nil {
 		return AttachmentInfo{}, false, err
 	}
-	key := stashKey{PlaintextHash: plaintextHash, ConversationID: conversationID}
 	info, found := c[key.String()]
 	return info, found, nil
 }
