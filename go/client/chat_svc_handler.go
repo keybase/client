@@ -225,6 +225,7 @@ func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1)
 		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messageAndEdits}),
 		mtype:          chat1.MessageType_DELETE,
 		supersedes:     opts.MessageID,
+		deletes:        messageAndEdits,
 		response:       "message deleted",
 	}
 	return c.sendV1(ctx, arg)
@@ -432,6 +433,7 @@ type sendArgV1 struct {
 	body           chat1.MessageBody
 	mtype          chat1.MessageType
 	supersedes     chat1.MessageID
+	deletes        []chat1.MessageID
 	response       string
 }
 
@@ -529,6 +531,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 		TlfPublic:   visibility == chat1.TLFVisibility_PUBLIC,
 		MessageType: arg.mtype,
 		Supersedes:  arg.supersedes,
+		Deletes:     arg.deletes,
 	}
 
 	return &header, nil
