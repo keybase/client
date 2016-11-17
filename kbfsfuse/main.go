@@ -85,9 +85,8 @@ func start() *libfs.Error {
 	if kbfsParams.Debug {
 		fuseLog := logger.NewWithCallDepth("FUSE", 1)
 		fuseLog.Configure("", true, "")
-		fuse.Debug = func(msg interface{}) {
-			fuseLog.Debug("%s", msg)
-		}
+		fuse.Debug = libfuse.MakeFuseDebugFn(
+			fuseLog, false /* superVerbose */)
 	}
 
 	mountpoint := flag.Arg(0)

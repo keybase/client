@@ -34,9 +34,7 @@ func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 	opTimeout time.Duration) *fsUser {
 	log := logger.NewTestLogger(t)
 	debugLog := log.CloneWithAddedDepth(1)
-	fuse.Debug = func(msg interface{}) {
-		debugLog.Debug("%s", msg)
-	}
+	fuse.Debug = libfuse.MakeFuseDebugFn(debugLog, false /* superVerbose */)
 
 	filesys := libfuse.NewFS(config, nil, false)
 	fn := func(mnt *fstestutil.Mount) fs.FS {
