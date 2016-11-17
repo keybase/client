@@ -38,7 +38,7 @@ class UserEntry extends PureComponent<void, UserEntryProps, void> {
     </Box>
   }
 }
-//a comment
+
 const userEntryContainerStyle = {
   ...globalStyles.clickable,
   ...globalStyles.flexBoxColumn,
