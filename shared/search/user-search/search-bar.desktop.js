@@ -1,7 +1,5 @@
 // @flow
 import React, {Component} from 'react'
-import _ from 'lodash'
-
 import {Box, Icon, Input, Text} from '../../common-adapters'
 import {globalStyles, globalColors, transition} from '../../styles'
 import {platformToLogo24} from '../../constants/search'
@@ -45,9 +43,6 @@ class SearchBar extends Component<void, Props, void> {
   _onClickService = (platform: SearchPlatforms) => {
     this.props.onClickService(platform)
     if (this.refs.searchBox) {
-      if (this.refs.searchBox.getValue()) {
-        this.props.onSearch(platform)
-      }
       this.refs.searchBox.focus()
     }
   }

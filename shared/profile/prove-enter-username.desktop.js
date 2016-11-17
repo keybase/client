@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import React from 'react'
 import openURL from '../util/open-url'
 import {Box, Icon, Text, Button, Input, PlatformIcon} from '../common-adapters'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
@@ -53,7 +53,7 @@ const PrivateEnterUsernameRender = (props: Props) => {
         hintText={hintText}
         value={props.username}
         onChangeText={props.onUsernameChange}
-        onEnterKeyDown={() => {props.canContinue && props.onContinue()}} />
+        onEnterKeyDown={() => { props.canContinue && props.onContinue() }} />
       <UsernameTips platform={props.platform} />
       <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
         <Button type='Secondary' onClick={props.onCancel} label='Cancel' />

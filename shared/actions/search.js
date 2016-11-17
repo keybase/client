@@ -128,10 +128,9 @@ function rawResults (term: string, platform: SearchPlatforms, rresults: Array<Ra
   }
 }
 
-export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results | Waiting> {
+export function search (term: string) : TypedAsyncAction<Search | Results | Waiting> {
   return (dispatch, getState) => {
-    // In case platform is passed in as null
-    const platform: SearchPlatforms = maybePlatform || 'Keybase'
+    const platform: SearchPlatforms = getState().search.searchPlatform
 
     dispatch({
       type: Constants.search,
@@ -198,10 +197,18 @@ function waiting (waiting: boolean): Waiting {
   }
 }
 
-export function selectPlatform (platform: SearchPlatforms): SelectPlatform {
-  return {
-    type: Constants.selectPlatform,
-    payload: {platform},
+export function selectPlatform (platform: SearchPlatforms): TypedAsyncAction<SelectPlatform | Search | Results | Waiting> {
+  return (dispatch, getState) => {
+    dispatch({
+      type: Constants.selectPlatform,
+      payload: {platform},
+    })
+
+    const text: string =
+      getState() &&
+      getState().search &&
+      getState().search.searchText || ''
+    dispatch(search(text))
   }
 }
 

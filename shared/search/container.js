@@ -49,7 +49,7 @@ export default connector.connect(
      waiting,
      onClickResult: user => { dispatch(addUserToGroup(user)) },
      selectedService: searchPlatform,
-     onSearch: (term, selectedPlatform) => { dispatch(search(term, selectedPlatform || searchPlatform)) },
+     onSearch: term => { dispatch(search(term)) },
      onClickService: platform => { searchPlatform !== platform && dispatch(selectPlatform(platform)) },
      showUserGroup,
      selectedUsers,
