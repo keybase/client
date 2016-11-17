@@ -1518,7 +1518,9 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 
 	// The set of unflushed paths could change as part of the
 	// resolution, and the revision numbers definitely change.
-	if !j.unflushedPaths.reinitializeWithResolution(mdInfo, perRevMap) {
+	isLocalSquash := bid == LocalSquashBranchID
+	if !j.unflushedPaths.reinitializeWithResolution(
+		mdInfo, perRevMap, isLocalSquash) {
 		return MdID{}, true, nil
 	}
 
