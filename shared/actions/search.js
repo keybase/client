@@ -7,7 +7,7 @@ import {filterNull} from '../util/arrays'
 import {isFollowing as isFollowing_} from './config'
 
 import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
-  AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult,
+  AddUsersToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult,
   SearchPlatforms, Reset, Waiting, SetActive} from '../constants/search'
 
 const {platformToLogo16, platformToLogo32, searchResultKeys} = Constants
@@ -212,10 +212,10 @@ export function selectUserForInfo (user: SearchResult): SelectUserForInfo {
   }
 }
 
-export function addUserToGroup (user: SearchResult): AddUserToGroup {
+export function addUsersToGroup (users: Array<SearchResult>): AddUsersToGroup {
   return {
-    type: Constants.addUserToGroup,
-    payload: {user},
+    type: Constants.addUsersToGroup,
+    payload: {users},
   }
 }
 

@@ -2,20 +2,32 @@
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
-import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise} from '../constants/types/flow-types-chat'
+import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
-import {badgeApp} from '../actions/notifications'
+import {badgeApp} from './notifications'
 import {call, put, select} from 'redux-saga/effects'
+import {chatTab} from '../constants/tabs'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
+import {setActive as setSearchActive, reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
+import {switchTab} from './router'
 import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
+import {usernameToSearchResult} from '../constants/search'
 
-import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler} from '../constants/chat'
+import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler, NewChat, StartConversation} from '../constants/chat'
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
 const {conversationIDToKey, keyToConversationID, InboxStateRecord, makeSnippet} = Constants
+
+function startConversation (users: Array<string>): StartConversation {
+  return {type: Constants.startConversation, payload: {users}}
+}
+
+function newChat (existingParticipants: Array<string>): NewChat {
+  return {type: Constants.newChat, payload: {existingParticipants}}
+}
 
 function postMessage (conversationIDKey: ConversationIDKey, text: HiddenString): PostMessage {
   return {type: Constants.postMessage, payload: {conversationIDKey, text}}
@@ -338,6 +350,29 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
   }
 }
 
+function * _startConversation (action: StartConversation): SagaGenerator<any, any> {
+  const result = yield call(localNewConversationLocalRpcPromise, {
+    param: {
+      tlfName: action.payload.users.join(','),
+      topicType: CommonTopicType.chat,
+      tlfVisibility: CommonTLFVisibility.private,
+    }})
+  if (result) {
+    const conversationIDKey = conversationIDToKey(result.conv.info.id)
+
+    yield put(loadInbox())
+    yield put(selectConversation(conversationIDKey))
+    yield put(setSearchActive(false))
+    yield put(switchTab(chatTab))
+  }
+}
+
+function * _newChat (action: NewChat): SagaGenerator<any, any> {
+  yield put(searchReset())
+  yield put(searchAddUsersToGroup(action.payload.existingParticipants.map(usernameToSearchResult)))
+  yield put(setSearchActive(true))
+}
+
 function * _selectConversation (action: SelectConversation): SagaGenerator<any, any> {
   yield put(loadMoreMessages())
   yield put({type: Constants.updateBadge, payload: undefined})
@@ -351,7 +386,9 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeLatest(Constants.selectConversation, _selectConversation),
     safeTakeEvery(Constants.setupNewChatHandler, _setupNewChatHandler),
     safeTakeEvery(Constants.incomingMessage, _incomingMessage),
+    safeTakeEvery(Constants.newChat, _newChat),
     safeTakeEvery(Constants.postMessage, _postMessage),
+    safeTakeEvery(Constants.startConversation, _startConversation),
     yield throttle(1000, Constants.updateBadge, _updateBadge),
   ]
 }
@@ -361,7 +398,9 @@ export default chatSaga
 export {
   loadInbox,
   loadMoreMessages,
+  newChat,
+  postMessage,
   selectConversation,
   setupNewChatHandler,
-  postMessage,
+  startConversation,
 }

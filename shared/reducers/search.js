@@ -80,14 +80,21 @@ export default function (state: State = initialState, action: SearchActions): St
         }
       }
       break
-    case Constants.addUserToGroup:
+    case Constants.addUsersToGroup:
       if (!action.error) {
-        const user = action.payload.user
-        // Try to upgrade an external search result into a keybase search result, won't work
-        // if it's already a keybase search result or the user doesn't have a keybase account.
-        const maybeUpgradedUser = user.service === 'external' && user.keybaseSearchResult ? user.keybaseSearchResult : user
-        const alreadySelected = state.selectedUsers.find(u => equalSearchResult(u, maybeUpgradedUser)) !== undefined
-        const selectedUsers = alreadySelected ? state.selectedUsers : [maybeUpgradedUser].concat(state.selectedUsers)
+        const users = action.payload.users
+        let selectedUsers = state.selectedUsers
+        let maybeUpgradedUser
+
+        users.forEach(user => {
+          // Try to upgrade an external search result into a keybase search result, won't work
+          // if it's already a keybase search result or the user doesn't have a keybase account.
+          maybeUpgradedUser = user.service === 'external' && user.keybaseSearchResult ? user.keybaseSearchResult : user
+          const alreadySelected = state.selectedUsers.find(u => equalSearchResult(u, maybeUpgradedUser)) !== undefined
+          if (!alreadySelected) {
+            selectedUsers = [maybeUpgradedUser].concat(selectedUsers)
+          }
+        })
 
         return {
           ...state,
