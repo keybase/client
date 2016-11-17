@@ -334,6 +334,7 @@ const styleScrollHeaderCover = {
 const styleBioColumn = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  width: '50%',
 }
 
 const styleActions = {

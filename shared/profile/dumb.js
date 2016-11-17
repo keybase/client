@@ -166,7 +166,7 @@ const propsBase: RenderProps = {
   onRevokeProof: proof => console.log('onRevokeProof', proof),
   parentProps: isMobile ? {} : {
     style: {
-      width: 640,
+      width: 720,
       height: 578,
     },
   },
