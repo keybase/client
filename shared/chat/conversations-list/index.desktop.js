@@ -52,7 +52,7 @@ const ConversationList = ({inbox, onSelectConversation, selectedConversation, on
         </Box>
         <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{_timestamp(conversation.get('time'), nowOverride)}</Text>
       </Box>
-    )).toJS()}
+    ))}
   </Box>
 )
 
