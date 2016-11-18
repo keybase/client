@@ -1,11 +1,15 @@
 // @flow
-import React, {Component} from 'react'
-
-import {Box, Icon, Text, Button, PopupMenu} from '../common-adapters/index'
-import {globalStyles, globalColors} from '../styles'
 import Folders from '../folders/render'
-import type {Props} from './index.render'
+import React, {Component} from 'react'
 import UserAdd from './user-add'
+import flags from '../util/feature-flags'
+import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/index'
+import {folderTab, profileTab, chatTab, devicesTab} from '../constants/tabs'
+import {globalStyles, globalColors} from '../styles'
+import {isWindows, isDarwin} from '../constants/platform'
+
+import type {MenuNotificationState} from '../constants/notifications'
+import type {Props} from './index.render'
 
 type State = {
   showingPrivate: boolean,
@@ -42,7 +46,9 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
 
     return (
       <Box style={{...styles.container}}>
-        <Box style={{...stylesTopRow, position: 'absolute'}}>
+        {isDarwin && <style>{_realCSS}</style>}
+        {isDarwin && <ArrowTick />}
+        <Box style={{...stylesTopRow, justifyContent: 'flex-end'}}>
           <Icon
             style={menuStyle}
             type='iconfont-hamburger'
@@ -59,21 +65,15 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
   }
 
   _menuItems () {
-    let items = []
-    if (this.props.loggedIn) {
-      items.push({title: 'Open Keybase', onClick: this.props.openApp})
-    }
-    items.push({title: 'Open folders', onClick: this.props.showKBFS})
-    if (process.platform === 'win32') {
-      items.push({title: 'Keybase Shell', onClick: this.props.openShell})
-    }
-    items.push(
+    return [
+      ...(this.props.loggedIn ? [{title: 'Open Keybase', onClick: () => this.props.openApp()}] : []),
+      {title: 'Open folders', onClick: this.props.showKBFS},
+      ...(isWindows ? [{title: 'Keybase Shell', onClick: this.props.openShell}] : []),
       {title: 'Keybase.io', onClick: this.props.showUser},
       {title: 'Report a bug', onClick: this.props.showBug},
       {title: 'Help/Doc', onClick: this.props.showHelp},
       {title: 'Quit', onClick: this.props.quit},
-    )
-    return items
+    ]
   }
 
   _onAdd (path: string) {
@@ -116,17 +116,24 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
       onRekey: this.props.onRekey,
     }
 
-    const menuColor = this.state.showingPrivate
-      ? (this.state.showingMenu ? globalColors.white : globalColors.blue3_40)
-      : (this.state.showingMenu ? globalColors.black : globalColors.black_40)
-
-    const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor}
+    // $FlowIssue
+    const badgeTypes: Array<BadgeIconType> = [
+      'folder',
+      ...(flags.tabProfileEnabled ? ['people'] : []),
+      ...(flags.tabChatEnabled ? ['chat'] : []),
+      'device',
+    ]
 
     return (
       <Box style={styles.container}>
-        <Box style={stylesTopRow}>
+        {isDarwin && <style>{_realCSS}</style>}
+        {isDarwin && <ArrowTick />}
+        <Box style={{...stylesTopRow, borderBottom: `1px solid ${globalColors.black_05}`}}>
+          <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', alignItems: 'center', marginLeft: 24 + 8}}>
+            {badgeTypes.map(type => <BadgeIcon key={type} type={type} countMap={this.props.badgeInfo} openApp={this.props.openApp} />)}
+          </Box>
           <Icon
-            style={menuStyle}
+            style={{...globalStyles.clickable, color: globalColors.black_40, hoverColor: globalColors.black, width: 24, marginLeft: 8}}
             type='iconfont-hamburger'
             onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
         </Box>
@@ -143,23 +150,92 @@ class MenubarRender extends Component<DefaultProps, Props, State> {
   }
 }
 
+const _realCSS = `
+body {
+  background-color: ${globalColors.transparent};
+}
+`
+
+const ArrowTick = () => (
+  // Css triangle!
+  <Box style={{
+    height: 0,
+    width: 0,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    top: -6,
+    borderLeft: '6px solid transparent',
+    borderRight: '6px solid transparent',
+    borderBottom: `6px solid ${globalColors.white}`,
+  }} />
+)
+
+type BadgeIconType = 'folder' | 'people' | 'chat' | 'device'
+
+const BadgeIcon = ({type, countMap, openApp}: {type: BadgeIconType, countMap: MenuNotificationState, openApp: (tab: ?string) => void}) => {
+  const count = {
+    folder: countMap.folderBadge,
+    people: countMap.peopleBadge,
+    chat: countMap.chatBadge,
+    device: countMap.deviceBadge,
+  }[type]
+
+  if (type === 'device' && !count) {
+    return null
+  }
+
+  const iconType = {
+    folder: 'iconfont-folder',
+    people: 'iconfont-people',
+    chat: 'iconfont-chat',
+    device: 'iconfont-device',
+  }[type]
+
+  const tab = {
+    folder: folderTab,
+    people: profileTab,
+    chat: chatTab,
+    device: devicesTab,
+  }[type]
+
+  return (
+    <Box style={{...globalStyles.clickable, marginLeft: 7, marginRight: 7, position: 'relative'}} onClick={() => openApp(tab)}>
+      <Icon style={{color: count ? globalColors.blue : globalColors.lightGrey2}} type={iconType} />
+      {!!count && <Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -4, bottom: -4, margin: 0, border: `2px solid ${globalColors.white}`}} />}
+    </Box>
+  )
+}
+
 MenubarRender.defaultProps = {
   openToPrivate: true,
   openWithMenuShowing: false,
 }
 
+const borderRadius = 4
+
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   position: 'relative',
+  marginTop: 13,
+  borderTopLeftRadius: borderRadius,
+  borderTopRightRadius: borderRadius,
 }
 
 const stylesTopRow = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'flex-start',
-  minHeight: 34,
-  paddingLeft: 10,
-  paddingTop: 4,
+  alignItems: 'center',
+  backgroundColor: globalColors.white,
+  flex: 1,
+  minHeight: 32,
+  maxHeight: 32,
+  paddingLeft: 8,
+  paddingRight: 8,
+  borderTopLeftRadius: borderRadius,
+  borderTopRightRadius: borderRadius,
 }
 
 const stylesPrivate = {
@@ -183,8 +259,9 @@ const stylesLogo = {
 }
 
 const styleMenu = {
-  marginTop: 29,
-  marginLeft: 4,
+  position: 'absolute',
+  top: 29,
+  right: 4,
 }
 
 export default MenubarRender

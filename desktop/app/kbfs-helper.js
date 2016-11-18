@@ -2,10 +2,12 @@
 import exec from './exec'
 import fs from 'fs'
 import {ipcMain, shell} from 'electron'
+// $FlowIssue doesn't understand symlinks
+import {isDarwin, isWindows} from '../shared/constants/platform'
 import {pathToURL} from './paths'
 
 function openDirectory (path) {
-  if (process.platform === 'win32') {
+  if (isWindows) {
     openDirectoryInWindows(path)
   } else {
     openDirectoryDefault(path)
@@ -38,7 +40,7 @@ function openDirectoryDefault (path) {
     // https://github.com/electron/electron/issues/6889
     // When this is resolved we should switch back to openExternal
     // instead of exec'ing with open.
-    if (process.platform === 'darwin') {
+    if (isDarwin) {
       openURLWithExecInMacOS(url)
     } else {
       shell.openExternal(url)

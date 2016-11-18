@@ -9,7 +9,7 @@ import DumbSheetItem from '../dev/dumb-sheet/item'
 
 const PADDING = 25
 
-ipcRenderer.on('display', (ev, msg) => {
+function onDisplay (ev, msg) {
   const map = dumbComponentMap[msg.key]
   const mockKey = msg.mockKey
 
@@ -26,18 +26,16 @@ ipcRenderer.on('display', (ev, msg) => {
     </MuiThemeProvider>
   )
 
-  const appEl = document.getElementById('root')
-  ReactDOM.render(displayTree, appEl, () => {
-    // Remove pesky blinking cursors
-    if (document.activeElement.tagName === 'INPUT') {
-      document.activeElement.blur()
-    }
-
+  const sendDisplayDone = () => {
     // Unfortunately some resources lazy load after they're rendered.  We need
     // to give the renderer time to load.  After trying process.nextTick,
     // requestAnimationFrame, etc., simply putting in a time delay worked best.
     setTimeout(() => {
       const renderedEl = document.getElementById('rendered')
+      if (!renderedEl) {
+        ipcRenderer.send('display-error', {...msg})
+        return
+      }
       const box = renderedEl.getBoundingClientRect()
       const rect = {
         x: box.left - PADDING,
@@ -46,7 +44,39 @@ ipcRenderer.on('display', (ev, msg) => {
         height: Math.floor(box.height + 2 * PADDING),
       }
 
-      ev.sender.send('display-done', {rect, ...msg})
+      ipcRenderer.send('display-done', {rect, ...msg})
     }, 1000)
-  })
-})
+  }
+
+  const appEl = document.getElementById('root')
+  try {
+    ReactDOM.render(displayTree, appEl, () => {
+      // Remove pesky blinking cursors
+      if (document.activeElement.tagName === 'INPUT') {
+        document.activeElement.blur()
+      }
+
+      sendDisplayDone()
+    })
+  } catch (err) {
+    ReactDOM.render(<p>{JSON.stringify(err)}</p>, appEl, () => {
+      sendDisplayDone()
+    })
+  }
+}
+
+function run (options) {
+  ipcRenderer.on('display', onDisplay)
+  onDisplay(null, options.firstDisplay)
+}
+
+declare class ExtendedDocument extends Document {
+  fonts: {
+    ready: Promise<*>,
+  },
+}
+declare var document: ExtendedDocument
+
+window.load = (options) => {
+  document.fonts.ready.then(() => run(options))
+}

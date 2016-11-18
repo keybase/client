@@ -7,6 +7,7 @@ import type {InboxState, ConversationIDKey} from '../../constants/chat'
 export type Props = {
   inbox: List<InboxState>,
   onSelectConversation: (key: ConversationIDKey) => void,
+  selectedConversation: ConversationIDKey,
 }
 
 export default class ConversationList extends Component<void, Props, void> { }

@@ -65,10 +65,10 @@ function * _listenSaga (): SagaGenerator<any, any> {
   yield put(setupNewChatHandler())
 }
 
-function badgeApp (key: NotificationKeys, on: boolean): BadgeAppAction {
+function badgeApp (key: NotificationKeys, on: boolean, count: number = 0): BadgeAppAction {
   return {
     type: Constants.badgeApp,
-    payload: {key, on},
+    payload: {key, on, count},
   }
 }
 

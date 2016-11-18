@@ -186,7 +186,7 @@ func (b *bug3964Repairman) Run(lctx LoginContext, pps *PassphraseStream) (err er
 
 	lksec, err = pps.ToLKSec(b.G(), lctx.GetUID())
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if dkm, err = b.loadLKSecServerDetails(lctx, lksec); err != nil {

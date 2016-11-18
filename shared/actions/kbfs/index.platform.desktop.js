@@ -4,6 +4,7 @@ import path from 'path'
 import {kbfsMountGetCurrentMountDirRpcPromise} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {ipcRenderer} from 'electron'
+import {isWindows} from '../../constants/platform'
 
 import type {FSOpen} from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -63,7 +64,7 @@ function * openSaga (action: FSOpen): SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
 
   console.log('openInKBFS:', openPath)
-  if (process.platform === 'win32') {
+  if (isWindows) {
     yield * openInWindows(openPath)
   } else {
     yield call(openInDefault, openPath)

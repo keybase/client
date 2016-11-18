@@ -5,7 +5,7 @@
  */
 
 import Container from '../../forms/container'
-import Platform, {OS} from '../../../constants/platform'
+import {isIOS} from '../../../constants/platform'
 import Qr from './qr'
 import React, {Component} from 'react'
 import {Box, Button, ClickableBox, Icon, Input, NativeStyleSheet, TabBar, Text} from '../../../common-adapters/index.native'
@@ -16,8 +16,6 @@ import {globalStyles, globalColors} from '../../../styles'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Mode} from '../../../constants/login'
 import type {Props} from './index.render'
-
-const isIOS = Platform.OS_IOS === OS
 
 class CodePageRender extends Component<void, Props, void> {
 

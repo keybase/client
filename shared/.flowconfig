@@ -10,6 +10,7 @@
 .*/node_modules/react-tap-event-plugin/node_modules/.*
 .*/react/node_modules/.*
 ../desktop/build/.*
+../desktop/release/.*
 ../desktop/shared/.*
 ../react-native/shared/.*
 

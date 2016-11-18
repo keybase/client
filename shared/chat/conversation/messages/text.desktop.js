@@ -15,10 +15,10 @@ const _marginColor = (followState) => ({
 
 const MessageText = ({text, messageState, style}: {text: string, messageState: Constants.MessageState, style: Object}) => {
   switch (messageState) {
-    case 'Failed':
-    case 'Sending':
+    case 'failed':
+    case 'pending':
       return <Text type='Body' style={{color: globalColors.black_40, ...style}}>{text}</Text>
-    case 'Ok':
+    case 'sent':
     default:
       return <Text style={style} type='Body'>{text}</Text>
   }
@@ -50,7 +50,7 @@ const MessageTextWrapper = ({author, message, messageState, followState, style, 
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(followState), ...(followState === 'You' ? globalStyles.italic : null)}}>{author}</Text>}
         <MessageText text={message} messageState={messageState} style={{marginTop: globalMargins.xtiny}} />
-        {messageState === 'Failed' && <Retry onRetry={onRetry} />}
+        {messageState === 'failed' && <Retry onRetry={onRetry} />}
       </Box>
     </Box>
   </Box>

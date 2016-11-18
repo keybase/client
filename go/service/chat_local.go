@@ -507,10 +507,24 @@ func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg c
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (chat1.PostLocalRes, error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+
 	err := msgchecker.CheckMessagePlaintext(arg.Msg)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
+
+	// Make sure sender is set
+	db := make([]byte, 16)
+	uid := h.G().Env.GetUID()
+	deviceID := h.G().Env.GetDeviceID()
+	if err = deviceID.ToBytes(db); err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	arg.Msg.ClientHeader.Sender = uid.ToBytes()
+	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 

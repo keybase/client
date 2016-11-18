@@ -16,10 +16,11 @@ export default connect(
     if (selectedConversation) {
       const conversationState = state.chat.get('conversationStates').get(selectedConversation)
       if (conversationState) {
-        const inbox = state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selectedConversation)
+        const inbox = state.chat.get('inbox')
+        const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
 
         return {
-          participants: inbox && inbox.participants || List(),
+          participants: selected && selected.participants || List(),
           messages: conversationState.messages,
           moreToLoad: conversationState.moreToLoad,
           isLoading: conversationState.isLoading,

@@ -83,6 +83,17 @@ func TestGPGIndex2Dot1(t *testing.T) {
 	}
 }
 
+func TestGPGFindGreg(t *testing.T) {
+	index := parse(t, greg)
+	if index == nil {
+		t.Fatal("parsing failed")
+	}
+	keys := index.Fingerprints.Get("6A457A06CB07E916EC88EC741193ACD196ED61F2")
+	if len(keys) == 0 {
+		t.Fatal("expected to find greg's key")
+	}
+}
+
 const myKeyring = `
 tru::1:1416474053:1439900531:3:1:5
 pub:u:2048:17:76D78F0500D026C4:1282220531:1439900531::u:::scESC:
@@ -245,4 +256,17 @@ uid:u::::1475200495::92725E39A37C33E515983C6B0D25E7320ABB8247::Max Test <themax+
 ssb:u:256:18:A0E78D11A79FE1EF:1475200495::::::e:::+::cv25519:
 fpr:::::::::39DC5F5D9252DDA6F5BF660CA0E78D11A79FE1EF:
 grp:::::::::7872FB84783726E5B066CEF45D6DEC2F2364A2A5:
+`
+const greg = `
+sec:u:1024:17:1193ACD196ED61F2:1149381441:::u:::scESC:::+::::
+fpr:::::::::6A457A06CB07E916EC88EC741193ACD196ED61F2:
+grp:::::::::FD72593CF57F00142A7514558A4CA8FFBE36F076:
+uid:u::::1245342200::90A49BDC6914351F4F2BDF295723DE5323BE42E1::Gregory Martin Pfeil (personal) <greg@technomadic.org>:::::::::
+uid:u::::1245341857::DCC83A1E17A088D1D646966017A54390D70F63C7::Gregory Martin Pfeil (Clozure Associates) <greg@clozure.com>:::::::::
+uid:u::::1245342043::D274624C55A6124E935928A0C0AAC0A45DF47AB5::Gregory Martin Pfeil (ITA Software) <gpfeil@itasoftware.com>:::::::::
+uid:u::::1149382607::34BDFD347FED57041E483973C27C4F5C6379E1A6::Gregory Martin Pfeil (Amazon.com) <pfeil@amazon.com>:::::::::
+uid:u::::1292846928::C9A8CEFCDA1CEF8706A5B815EE4027F1340F209F::Gregory Martin Pfeil (Rayservers) <greg@rayservers.net>:::::::::
+ssb:u:2048:16:35259A50693B4429:1149381489::::::e:::+:::
+fpr:::::::::82E14B2AF315373CFFA88C8335259A50693B4429:
+grp:::::::::36714469BDCD99CD5748B39D9463E3DD06BEE2CC:
 `

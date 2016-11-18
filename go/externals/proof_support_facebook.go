@@ -123,9 +123,10 @@ func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHin
 		return libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "failed to parse proof markup comment in Facebook post: %s", err)
 	}
 
-	// This is the selector for the post attachment link, which contains the
-	// proof text. It's the "first <a> tag inside the div that's the immediate
-	// *sibling* of the 'userContet' div".
+	// This is the selector for the post attachment links, which contain the
+	// proof text. It's the "<a> tags inside the div that's the immediate
+	// *sibling* of the 'userContet' div". The second of these three <a> tags
+	// contains the proof text, the others are blank. But we just check their concatenation.
 	linkText := innerGoQuery.Find("div.userContent+div a").Text()
 
 	// Confirm that the proof text matches the hint.

@@ -1,5 +1,5 @@
 // @flow
-import {OS} from '../constants/platform'
+import {isAndroid} from '../constants/platform'
 
 // Uncomment to disable idlecallback
 // function requestIdleCallback (cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void): number {
@@ -8,7 +8,7 @@ import {OS} from '../constants/platform'
 // }
 
 // TODO (AW): Re-enable requestIdleCallback for Android once https://github.com/facebook/react-native/issues/9579 is fixed
-const requestIdleCallback = (typeof window !== 'undefined' && OS !== 'android' && window.requestIdleCallback) ||
+const requestIdleCallback = (typeof window !== 'undefined' && !isAndroid && window.requestIdleCallback) ||
   function (cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void): number {
     var start = Date.now()
     return setTimeout(function () {
@@ -21,7 +21,7 @@ const requestIdleCallback = (typeof window !== 'undefined' && OS !== 'android' &
     }, 1)
   }
 
-const cancelIdleCallback = (typeof window !== 'undefined' && OS !== 'android' && window.cancelIdleCallback) ||
+const cancelIdleCallback = (typeof window !== 'undefined' && !isAndroid && window.cancelIdleCallback) ||
   function (id: number) {
     clearTimeout(id)
   }

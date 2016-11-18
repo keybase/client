@@ -2,6 +2,8 @@
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 import {ipcMain, systemPreferences} from 'electron'
+// $FlowIssue doens't understand symlinks
+import {isDarwin, isWindows, isLinux} from '../shared/constants/platform'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import {showDevTools, skipSecondaryDevtools} from '../shared/local-debug.desktop'
 
@@ -9,18 +11,16 @@ import type {BadgeType} from '../shared/constants/notifications'
 
 let iconType: BadgeType = 'regular'
 
-const isMacOS = process.platform === 'darwin'
-
-const isDarkMode = () => isMacOS && systemPreferences && systemPreferences.isDarkMode()
+const isDarkMode = () => isDarwin && systemPreferences && systemPreferences.isDarkMode()
 
 const getIcon = (invertColors) => {
   const devMode = __DEV__ ? '-dev' : ''
   let color = 'white'
   let platform = ''
 
-  if (isMacOS) {
+  if (isDarwin) {
     color = isDarkMode() ? 'white' : 'black'
-  } else if (process.platform === 'win32') {
+  } else if (isWindows) {
     color = 'black'
     platform = 'windows-'
   }
@@ -35,8 +35,9 @@ export default function () {
     index: resolveRootAsURL('renderer', 'renderer.html?menubar'),
     width: 320,
     height: 350,
-    frame: false,
     resizable: false,
+    hasShadow: true,
+    transparent: true,
     preloadWindow: true,
     icon: getIcon(false),
     // Without this flag set, menubar will hide the dock icon when the app
@@ -49,7 +50,7 @@ export default function () {
     mb.tray.setImage(getIcon(invertColors))
   }
 
-  if (isMacOS && systemPreferences && systemPreferences.subscribeNotification) {
+  if (isDarwin && systemPreferences && systemPreferences.subscribeNotification) {
     systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
       updateIcon(false)
     })
@@ -108,23 +109,23 @@ export default function () {
       mb.hideWindow()
     })
 
-    if (process.platform === 'linux') {
+    if (isLinux) {
       mb.tray.setToolTip('Show Keybase')
     }
 
     mb.on('show', () => {
       menubarListeners.forEach(l => l.send('menubarShow'))
-      isMacOS && updateIcon(!isDarkMode())
+      isDarwin && updateIcon(!isDarkMode())
     })
     mb.on('hide', () => {
       menubarListeners.forEach(l => l.send('menubarHide'))
-      isMacOS && updateIcon(false)
+      isDarwin && updateIcon(false)
     })
   })
 
   // Work around an OS X bug that leaves a gap in the status bar if you exit
   // without removing your status bar icon.
-  if (isMacOS) {
+  if (isDarwin) {
     mb.app.on('before-quit', () => {
       mb.tray && mb.tray.destroy()
     })
