@@ -1,7 +1,7 @@
 {
-  "presets": ["es2015", "stage-1", "react"],
+  "presets": ["babel-preset-es2015", "babel-preset-stage-1", "babel-preset-react"],
   "plugins": [
-    "transform-runtime",
+    "babel-plugin-transform-runtime",
     "react-hot-loader/babel",
     ["babel-plugin-transform-builtin-extend", {
       "globals": ["Error"]
