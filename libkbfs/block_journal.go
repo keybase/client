@@ -26,7 +26,7 @@ import (
 //
 // The directory layout looks like:
 //
-// dir/aggregate_info
+// dir/block_aggregate_info
 // dir/block_journal/EARLIEST
 // dir/block_journal/LATEST
 // dir/block_journal/0...000
@@ -37,7 +37,7 @@ import (
 // dir/saved_block_journal/LATEST
 // dir/saved_block_journal/...
 //
-// aggregate_info holds aggregate info about the block journal;
+// block_aggregate_info holds aggregate info about the block journal;
 // currently it just holds the count of unflushed bytes.
 //
 // Each entry in the journal in dir/block_journal contains the
@@ -212,7 +212,7 @@ type aggregateInfo struct {
 }
 
 func aggregateInfoPath(dir string) string {
-	return filepath.Join(dir, "aggregate_info")
+	return filepath.Join(dir, "block_aggregate_info")
 }
 
 func (j *blockJournal) adjustUnflushedBytes(delta int64) error {
