@@ -71,10 +71,12 @@ func (fs *KBFSOpsStandard) markForReIdentifyIfNeededLoop() {
 		var returnCh chan<- struct{}
 		var ok bool
 		select {
-		// Normal case: feed the current time from config and mark fbos needing validation.
+		// Normal case: feed the current time from config and mark fbos needing
+		// validation.
 		case <-ticker.C:
 			now = fs.config.Clock().Now()
-		// Mark everything for reidentification via now being the empty value or quit.
+		// Mark everything for reidentification via now being the empty value or
+		// quit.
 		case returnCh, ok = <-fs.reIdentifyControlChan:
 			if !ok {
 				ticker.Stop()
@@ -88,7 +90,8 @@ func (fs *KBFSOpsStandard) markForReIdentifyIfNeededLoop() {
 	}
 }
 
-func (fs *KBFSOpsStandard) markForReIdentifyIfNeeded(now time.Time, maxValid time.Duration) {
+func (fs *KBFSOpsStandard) markForReIdentifyIfNeeded(
+	now time.Time, maxValid time.Duration) {
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 
@@ -121,7 +124,8 @@ func (fs *KBFSOpsStandard) Shutdown() error {
 }
 
 // PushConnectionStatusChange pushes human readable connection status changes.
-func (fs *KBFSOpsStandard) PushConnectionStatusChange(service string, newStatus error) {
+func (fs *KBFSOpsStandard) PushConnectionStatusChange(
+	service string, newStatus error) {
 	fs.currentStatus.PushConnectionStatusChange(service, newStatus)
 }
 
@@ -256,32 +260,9 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	return ops
 }
 
-// GetTLFCryptKeys implements the KBFSOps interface for
-// KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetTLFCryptKeys(
-	ctx context.Context, tlfHandle *TlfHandle) (
-	keys []kbfscrypto.TLFCryptKey, id tlf.ID, err error) {
-	var rmd ImmutableRootMetadata
-	_, rmd, id, err = fs.getOrInitializeNewMDMaster(
-		ctx, fs.config.MDOps(), tlfHandle, true)
-	if err != nil {
-		return keys, id, err
-	}
-
-	keys, err = fs.config.KeyManager().GetTLFCryptKeyOfAllGenerations(ctx, rmd)
-	return keys, id, err
-}
-
-// GetTLFID implements the KBFSOps interface for KBFSOpsStandard.
-func (fs *KBFSOpsStandard) GetTLFID(ctx context.Context, tlfHandle *TlfHandle) (tlf.ID, error) {
-	_, _, id, err := fs.getOrInitializeNewMDMaster(ctx, fs.config.MDOps(), tlfHandle,
-		true)
-	return id, err
-}
-
 func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
-	ctx context.Context, mdops MDOps, h *TlfHandle, create bool) (initialized bool,
-	md ImmutableRootMetadata, id tlf.ID, err error) {
+	ctx context.Context, mdops MDOps, h *TlfHandle, create bool) (
+	initialized bool, md ImmutableRootMetadata, id tlf.ID, err error) {
 	defer func() {
 		if getExtendedIdentify(ctx).behavior.AlwaysRunIdentify() &&
 			!initialized && err == nil {
@@ -327,6 +308,61 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
 
 }
 
+func (fs *KBFSOpsStandard) getMDByHandle(ctx context.Context,
+	tlfHandle *TlfHandle) (rmd ImmutableRootMetadata, err error) {
+	fbo := func() *folderBranchOps {
+		fs.opsLock.Lock()
+		defer fs.opsLock.Unlock()
+		return fs.opsByFav[tlfHandle.ToFavorite()]
+	}()
+	if fbo != nil {
+		lState := makeFBOLockState()
+		rmd = fbo.getHead(lState)
+	}
+	if rmd == (ImmutableRootMetadata{}) {
+		_, rmd, _, err = fs.getOrInitializeNewMDMaster(
+			ctx, fs.config.MDOps(), tlfHandle, true)
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
+
+		// Make sure fbo exists and head is set so that next time we use this we
+		// don't need to hit server even when there isn't any FS activity.
+		if fbo == nil {
+			fb := FolderBranch{Tlf: rmd.TlfID(), Branch: MasterBranch}
+			fbo = fs.getOpsByHandle(ctx, tlfHandle, fb)
+		}
+		if err = fbo.SetInitialHeadFromServer(ctx, rmd); err != nil {
+			return ImmutableRootMetadata{}, err
+		}
+	}
+
+	return rmd, nil
+}
+
+// GetTLFCryptKeys implements the KBFSOps interface for
+// KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetTLFCryptKeys(
+	ctx context.Context, tlfHandle *TlfHandle) (
+	keys []kbfscrypto.TLFCryptKey, id tlf.ID, err error) {
+	rmd, err := fs.getMDByHandle(ctx, tlfHandle)
+	if err != nil {
+		return nil, tlf.ID{}, err
+	}
+	keys, err = fs.config.KeyManager().GetTLFCryptKeyOfAllGenerations(ctx, rmd)
+	return keys, rmd.TlfID(), err
+}
+
+// GetTLFID implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) GetTLFID(ctx context.Context,
+	tlfHandle *TlfHandle) (tlf.ID, error) {
+	rmd, err := fs.getMDByHandle(ctx, tlfHandle)
+	if err != nil {
+		return tlf.ID{}, err
+	}
+	return rmd.TlfID(), err
+}
+
 // getMaybeCreateRootNode is called for GetOrCreateRootNode and GetRootNode.
 func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 	ctx context.Context, h *TlfHandle, branch BranchName, create bool) (
@@ -346,7 +382,8 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 	if md == (ImmutableRootMetadata{}) {
 		var id tlf.ID
 		var initialized bool
-		initialized, md, id, err = fs.getOrInitializeNewMDMaster(ctx, mdops, h, create)
+		initialized, md, id, err = fs.getOrInitializeNewMDMaster(
+			ctx, mdops, h, create)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}
@@ -375,7 +412,8 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 			}
 			fb := FolderBranch{Tlf: id, Branch: MasterBranch}
 			fops := fs.getOpsByHandle(ctx, h, fb)
-			if err := fops.addToFavoritesByHandle(ctx, fs.favs, h, false); err != nil {
+			if err := fops.addToFavoritesByHandle(
+				ctx, fs.favs, h, false); err != nil {
 				// Failure to favorite shouldn't cause a failure.  Just log
 				// and move on.
 				fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
