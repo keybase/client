@@ -72,7 +72,7 @@ class FriendshipsRender extends Component<void, Props, void> {
           selected={this.props.currentTab === 'Followers'}
           label={`FOLLOWERS (${this.props.followers.length})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Followers') }}>
-          <Box style={{marginTop: globalMargins.tiny}}>
+          <Box style={{marginTop: globalMargins.small}}>
             <ReactList
               useTranslate3d={true}
               itemRenderer={(index, key) => this._itemRenderer(true, index)}
@@ -84,7 +84,7 @@ class FriendshipsRender extends Component<void, Props, void> {
           selected={this.props.currentTab === 'Following'}
           label={`FOLLOWING (${this.props.following.length})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Following') }}>
-          <Box style={{marginTop: globalMargins.tiny}}>
+          <Box style={{marginTop: globalMargins.small}}>
             <ReactList
               useTranslate3d={true}
               itemRenderer={(index, key) => this._itemRenderer(false, index)}
