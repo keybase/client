@@ -46,6 +46,8 @@ type CachedUserLoadInfo struct {
 	InCache      bool
 	TimedOut     bool
 	StaleVersion bool
+	LoadedLeaf   bool
+	LoadedUser   bool
 }
 
 func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
@@ -59,7 +61,12 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	lock := u.locktab.AcquireOnName(arg.UID.String())
 	defer lock.Release()
 
-	upk, fresh := u.getCachedUPK(arg.UID)
+	var upk *keybase1.UserPlusAllKeys
+	var fresh bool
+
+	if !arg.ForceReload {
+		upk, fresh = u.getCachedUPK(arg.UID)
+	}
 
 	if upk != nil {
 		if info != nil {
@@ -71,9 +78,6 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		if info != nil {
 			info.TimedOut = true
 		}
-	}
-
-	if upk != nil {
 
 		var sigHints *SigHints
 		sigHints, err = LoadSigHints(arg.UID, u.G())
@@ -83,6 +87,12 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 		var leaf *MerkleUserLeaf
 		leaf, err = lookupMerkleLeaf(u.G(), arg.UID, true, sigHints)
+		if err != nil {
+			return nil, nil, err
+		}
+		if info != nil {
+			info.LoadedLeaf = true
+		}
 		if leaf.public != nil && leaf.public.Seqno == Seqno(upk.Base.Uvv.SigChain) {
 			u.G().Log.Debug("| user was still fresh after check with merkle tree")
 			upk.Base.Uvv.CachedAt = keybase1.ToTime(u.G().Clock().Now())
@@ -97,8 +107,14 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	}
 
 	user, err = LoadUser(arg)
+	if info != nil {
+		info.LoadedUser = true
+	}
 	if err != nil {
 		return nil, nil, err
+	}
+	if user == nil {
+		return nil, nil, UserNotFoundError{UID: arg.UID, Msg: "LoadUser failed"}
 	}
 
 	tmp := user.ExportToUserPlusAllKeys(keybase1.Time(0))
@@ -113,4 +129,24 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 func (u *CachedUserLoader) Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
 	return u.loadWithInfo(arg, nil)
+}
+
+func (u *CachedUserLoader) CheckKIDForUID(uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, err error) {
+
+	var info CachedUserLoadInfo
+	upk, _, err := u.loadWithInfo(NewLoadUserByUIDArg(u.G(), uid), &info)
+
+	if err != nil {
+		return false, nil, err
+	}
+	found, revokedAt = CheckKID(upk, kid)
+	if found || info.LoadedLeaf || info.LoadedUser {
+		return found, revokedAt, nil
+	}
+	upk, _, err = u.loadWithInfo(NewLoadUserByUIDForceArg(u.G(), uid), nil)
+	if err != nil {
+		return false, nil, err
+	}
+	found, revokedAt = CheckKID(upk, kid)
+	return found, revokedAt, nil
 }
