@@ -78,9 +78,6 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		if info != nil {
 			info.TimedOut = true
 		}
-	}
-
-	if upk != nil {
 
 		var sigHints *SigHints
 		sigHints, err = LoadSigHints(arg.UID, u.G())
@@ -90,6 +87,9 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 		var leaf *MerkleUserLeaf
 		leaf, err = lookupMerkleLeaf(u.G(), arg.UID, true, sigHints)
+		if err != nil {
+			return nil, nil, err
+		}
 		if info != nil {
 			info.LoadedLeaf = true
 		}
@@ -113,6 +113,9 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	if err != nil {
 		return nil, nil, err
 	}
+	if user == nil {
+		return nil, nil, UserNotFoundError{UID: arg.UID, Msg: "LoadUser failed"}
+	}
 
 	tmp := user.ExportToUserPlusAllKeys(keybase1.Time(0))
 	ret = &tmp
@@ -132,13 +135,10 @@ func (u *CachedUserLoader) CheckKIDForUID(uid keybase1.UID, kid keybase1.KID) (f
 
 	var info CachedUserLoadInfo
 	upk, _, err := u.loadWithInfo(NewLoadUserByUIDArg(u.G(), uid), &info)
+
 	if err != nil {
 		return false, nil, err
 	}
-	if upk == nil {
-		return false, nil, UserNotFoundError{UID: uid, Msg: "cachedUserLoad failed"}
-	}
-
 	found, revokedAt = CheckKID(upk, kid)
 	if found || info.LoadedLeaf || info.LoadedUser {
 		return found, revokedAt, nil
@@ -146,9 +146,6 @@ func (u *CachedUserLoader) CheckKIDForUID(uid keybase1.UID, kid keybase1.KID) (f
 	upk, _, err = u.loadWithInfo(NewLoadUserByUIDForceArg(u.G(), uid), nil)
 	if err != nil {
 		return false, nil, err
-	}
-	if upk == nil {
-		return false, nil, UserNotFoundError{UID: uid, Msg: "cachedUserLoad failed (2nd time)"}
 	}
 	found, revokedAt = CheckKID(upk, kid)
 	return found, revokedAt, nil
