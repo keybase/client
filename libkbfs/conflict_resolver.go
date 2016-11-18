@@ -2415,6 +2415,11 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 	lState *lockState, unmergedPaths []path,
 	unmergedChains, mergedChains *crChains,
 	mostRecentMergedMD ImmutableRootMetadata) (*RootMetadata, error) {
+	err := cr.checkDone(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	newMD, err := mostRecentMergedMD.MakeSuccessor(
 		ctx, cr.config, mostRecentMergedMD.MdID(), true)
 	if err != nil {
@@ -2706,6 +2711,11 @@ func (rmd rootMetadataWithKeyAndTimestamp) LocalTimestamp() time.Time {
 func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 	md *RootMetadata, unmergedChains, mergedChains *crChains,
 	mergedPaths map[BlockPointer]path) (map[BlockPointer]path, error) {
+	err := cr.checkDone(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	key, err := cr.config.KBPKI().GetCurrentVerifyingKey(ctx)
 	if err != nil {
 		return nil, err
@@ -3145,6 +3155,11 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	newFileBlocks fileBlockMap) (
 	updates map[BlockPointer]BlockPointer, bps *blockPutState,
 	blocksToDelete []BlockID, err error) {
+	err = cr.checkDone(ctx)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	updates = make(map[BlockPointer]BlockPointer)
 
 	_, uid, err := cr.config.KBPKI().GetCurrentUserInfo(ctx)
@@ -3560,6 +3575,11 @@ func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 	unmergedChains, mergedChains *crChains,
 	updates map[BlockPointer]BlockPointer,
 	bps *blockPutState, blocksToDelete []BlockID, writerLocked bool) error {
+	err := cr.checkDone(ctx)
+	if err != nil {
+		return err
+	}
+
 	// Fix up all the block pointers in the merged ops to work well
 	// for local notifications.  Make a dummy op at the beginning to
 	// convert all the merged most recent pointers into unmerged most
@@ -3622,6 +3642,11 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 				md.ReadOnly(), bps, blockDeleteOnMDFail)
 		}
 	}()
+
+	err = cr.checkDone(ctx)
+	if err != nil {
+		return err
+	}
 
 	// Put all the blocks.  TODO: deal with recoverable block errors?
 	_, err = doBlockPuts(ctx, cr.config.BlockServer(), cr.config.BlockCache(),
