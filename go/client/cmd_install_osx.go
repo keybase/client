@@ -126,15 +126,18 @@ func (v *CmdInstall) Run() error {
 			return err
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
-	} else {
-		if err := result.Status.GoError(); err != nil {
-			v.G().Log.Errorf("%s", err)
-		}
 	}
 	return nil
 }
 
-var defaultUninstallComponents = []string{"service", "kbfs", "updater", "fuse", "helper"}
+var defaultUninstallComponents = []string{
+	install.ComponentNameService.String(),
+	install.ComponentNameKBFS.String(),
+	install.ComponentNameUpdater.String(),
+	install.ComponentNameFuse.String(),
+	install.ComponentNameHelper.String(),
+	install.ComponentNameCLI.String(),
+}
 
 func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
@@ -190,6 +193,10 @@ func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdUninstall) Run() error {
+	bundlePath, err := install.AppBundleForPath()
+	if err != nil {
+		return err
+	}
 	result := install.Uninstall(v.G(), v.components, v.G().Log)
 	if v.format == "json" {
 		out, err := json.MarshalIndent(result, "", "  ")
@@ -198,9 +205,8 @@ func (v *CmdUninstall) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	} else {
-		if err := result.Status.GoError(); err != nil {
-			v.G().Log.Errorf("%s", err)
-		}
+		t := v.G().UI.GetTerminalUI()
+		t.Printf("\nYou can now remove %s to complete your uninstall.\n", bundlePath)
 	}
 	return nil
 }
