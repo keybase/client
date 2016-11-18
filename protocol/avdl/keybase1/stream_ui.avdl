@@ -5,5 +5,6 @@ protocol streamUi {
 
   void close(int sessionID, Stream s);
   bytes read(int sessionID, Stream s, int sz);
+  void reset(int sessionID, Stream s);
   int write(int sessionID, Stream s, bytes buf);
 }

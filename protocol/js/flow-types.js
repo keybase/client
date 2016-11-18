@@ -4868,6 +4868,10 @@ export type streamUiReadRpcParam = Exact<{
   sz: int
 }>
 
+export type streamUiResetRpcParam = Exact<{
+  s: Stream
+}>
+
 export type streamUiWriteRpcParam = Exact<{
   s: Stream,
   buf: bytes
@@ -5999,6 +6003,13 @@ export type incomingCallMapType = Exact<{
       error: RPCErrorHandler,
       result: (result: streamUiReadResult) => void,
     }
+  ) => void,
+  'keybase.1.streamUi.reset'?: (
+    params: Exact<{
+      sessionID: int,
+      s: Stream
+    }>,
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.streamUi.write'?: (
     params: Exact<{

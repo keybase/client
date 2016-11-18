@@ -27,6 +27,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 const debug = false
@@ -147,8 +149,12 @@ func New(signer Signer, region Region, client ...*http.Client) *S3 {
 	}
 }
 
+func (s3 *S3) SetAccessKey(key string) {
+	s3.AccessKey = key
+}
+
 // Bucket returns a Bucket with the given name.
-func (s3 *S3) Bucket(name string) *Bucket {
+func (s3 *S3) Bucket(name string) BucketInt {
 	if s3.Region.S3BucketEndpoint != "" || s3.Region.S3LowercaseBucket {
 		name = strings.ToLower(name)
 	}
@@ -185,7 +191,7 @@ const (
 // PutBucket creates a new bucket.
 //
 // See http://goo.gl/ndjnR for details.
-func (b *Bucket) PutBucket(perm ACL) error {
+func (b *Bucket) PutBucket(ctx context.Context, perm ACL) error {
 	headers := map[string][]string{
 		"x-amz-acl": {string(perm)},
 	}
@@ -196,7 +202,7 @@ func (b *Bucket) PutBucket(perm ACL) error {
 		headers: headers,
 		payload: b.locationConstraint(),
 	}
-	return b.S3.query(req, nil)
+	return b.S3.query(nil, req, nil)
 }
 
 // DelBucket removes an existing S3 bucket. All objects in the bucket must
@@ -210,7 +216,7 @@ func (b *Bucket) DelBucket() (err error) {
 		path:   "/",
 	}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(req, nil)
+		err = b.S3.query(nil, req, nil)
 		if !shouldRetry(err) {
 			break
 		}
@@ -221,8 +227,8 @@ func (b *Bucket) DelBucket() (err error) {
 // Get retrieves an object from an S3 bucket.
 //
 // See http://goo.gl/isCO7 for details.
-func (b *Bucket) Get(path string) (data []byte, err error) {
-	body, err := b.GetReader(path)
+func (b *Bucket) Get(ctx context.Context, path string) (data []byte, err error) {
+	body, err := b.GetReader(ctx, path)
 	defer func() {
 		if body != nil {
 			body.Close()
@@ -239,8 +245,8 @@ func (b *Bucket) Get(path string) (data []byte, err error) {
 // returning the body of the HTTP response.
 // It is the caller's responsibility to call Close on rc when
 // finished reading.
-func (b *Bucket) GetReader(path string) (rc io.ReadCloser, err error) {
-	resp, err := b.GetResponse(path)
+func (b *Bucket) GetReader(ctx context.Context, path string) (rc io.ReadCloser, err error) {
+	resp, err := b.GetResponse(ctx, path)
 	if resp != nil {
 		return resp.Body, err
 	}
@@ -251,8 +257,8 @@ func (b *Bucket) GetReader(path string) (rc io.ReadCloser, err error) {
 // returning the HTTP response.
 // It is the caller's responsibility to call Close on rc when
 // finished reading
-func (b *Bucket) GetResponse(path string) (resp *http.Response, err error) {
-	return b.GetResponseWithHeaders(path, make(http.Header))
+func (b *Bucket) GetResponse(ctx context.Context, path string) (resp *http.Response, err error) {
+	return b.GetResponseWithHeaders(ctx, path, make(http.Header))
 }
 
 // GetReaderWithHeaders retrieves an object from an S3 bucket
@@ -260,7 +266,7 @@ func (b *Bucket) GetResponse(path string) (resp *http.Response, err error) {
 // returning the body of the HTTP response.
 // It is the caller's responsibility to call Close on rc when
 // finished reading
-func (b *Bucket) GetResponseWithHeaders(path string, headers map[string][]string) (resp *http.Response, err error) {
+func (b *Bucket) GetResponseWithHeaders(ctx context.Context, path string, headers map[string][]string) (resp *http.Response, err error) {
 	req := &request{
 		bucket:  b.Name,
 		path:    path,
@@ -271,7 +277,7 @@ func (b *Bucket) GetResponseWithHeaders(path string, headers map[string][]string
 		return nil, err
 	}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		resp, err := b.S3.run(req, nil)
+		resp, err := b.S3.run(ctx, req, nil)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
@@ -295,7 +301,7 @@ func (b *Bucket) Exists(path string) (exists bool, err error) {
 		return
 	}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		resp, err := b.S3.run(req, nil)
+		resp, err := b.S3.run(nil, req, nil)
 
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
@@ -332,7 +338,7 @@ func (b *Bucket) Head(path string, headers map[string][]string) (*http.Response,
 	}
 
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		resp, err := b.S3.run(req, nil)
+		resp, err := b.S3.run(nil, req, nil)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
@@ -347,9 +353,9 @@ func (b *Bucket) Head(path string, headers map[string][]string) (*http.Response,
 // Put inserts an object into the S3 bucket.
 //
 // See http://goo.gl/FEBPD for details.
-func (b *Bucket) Put(path string, data []byte, contType string, perm ACL, options Options) error {
+func (b *Bucket) Put(ctx context.Context, path string, data []byte, contType string, perm ACL, options Options) error {
 	body := bytes.NewBuffer(data)
-	return b.PutReader(path, body, int64(len(data)), contType, perm, options)
+	return b.PutReader(ctx, path, body, int64(len(data)), contType, perm, options)
 }
 
 // PutCopy puts a copy of an object given by the key path into bucket b using b.Path as the target key
@@ -367,7 +373,7 @@ func (b *Bucket) PutCopy(path string, perm ACL, options CopyOptions, source stri
 	}
 	result = &CopyObjectResult{}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(req, result)
+		err = b.S3.query(nil, req, result)
 		if !shouldRetry(err) {
 			break
 		}
@@ -382,14 +388,14 @@ func (b *Bucket) PutCopy(path string, perm ACL, options CopyOptions, source stri
 PutHeader - like Put, inserts an object into the S3 bucket.
 Instead of Content-Type string, pass in custom headers to override defaults.
 */
-func (b *Bucket) PutHeader(path string, data []byte, customHeaders map[string][]string, perm ACL) error {
+func (b *Bucket) PutHeader(ctx context.Context, path string, data []byte, customHeaders map[string][]string, perm ACL) error {
 	body := bytes.NewBuffer(data)
-	return b.PutReaderHeader(path, body, int64(len(data)), customHeaders, perm)
+	return b.PutReaderHeader(ctx, path, body, int64(len(data)), customHeaders, perm)
 }
 
 // PutReader inserts an object into the S3 bucket by consuming data
 // from r until EOF.
-func (b *Bucket) PutReader(path string, r io.Reader, length int64, contType string, perm ACL, options Options) error {
+func (b *Bucket) PutReader(ctx context.Context, path string, r io.Reader, length int64, contType string, perm ACL, options Options) error {
 	headers := map[string][]string{
 		"Content-Length": {strconv.FormatInt(length, 10)},
 		"Content-Type":   {contType},
@@ -403,14 +409,14 @@ func (b *Bucket) PutReader(path string, r io.Reader, length int64, contType stri
 		headers: headers,
 		payload: r,
 	}
-	return b.S3.query(req, nil)
+	return b.S3.query(ctx, req, nil)
 }
 
 /*
 PutReaderHeader - like PutReader, inserts an object into S3 from a reader.
 Instead of Content-Type string, pass in custom headers to override defaults.
 */
-func (b *Bucket) PutReaderHeader(path string, r io.Reader, length int64, customHeaders map[string][]string, perm ACL) error {
+func (b *Bucket) PutReaderHeader(ctx context.Context, path string, r io.Reader, length int64, customHeaders map[string][]string, perm ACL) error {
 	// Default headers
 	headers := map[string][]string{
 		"Content-Length": {strconv.FormatInt(length, 10)},
@@ -430,7 +436,7 @@ func (b *Bucket) PutReaderHeader(path string, r io.Reader, length int64, customH
 		headers: headers,
 		payload: r,
 	}
-	return b.S3.query(req, nil)
+	return b.S3.query(ctx, req, nil)
 }
 
 // addHeaders adds o's specified fields to headers
@@ -511,7 +517,7 @@ func (b *Bucket) PutBucketSubresource(subresource string, r io.Reader, length in
 		params:  url.Values{subresource: {""}},
 	}
 
-	return b.S3.query(req, nil)
+	return b.S3.query(nil, req, nil)
 }
 
 // Del removes an object from the S3 bucket.
@@ -523,7 +529,7 @@ func (b *Bucket) Del(path string) error {
 		bucket: b.Name,
 		path:   path,
 	}
-	return b.S3.query(req, nil)
+	return b.S3.query(nil, req, nil)
 }
 
 type Delete struct {
@@ -566,7 +572,7 @@ func (b *Bucket) DelMulti(objects Delete) error {
 		payload: buf,
 	}
 
-	return b.S3.query(req, nil)
+	return b.S3.query(nil, req, nil)
 }
 
 // The ListResp type holds the results of a List bucket operation.
@@ -670,7 +676,7 @@ func (b *Bucket) List(prefix, delim, marker string, max int) (result *ListResp, 
 	}
 	result = &ListResp{}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(req, result)
+		err = b.S3.query(nil, req, result)
 		if !shouldRetry(err) {
 			break
 		}
@@ -731,7 +737,7 @@ func (b *Bucket) Versions(prefix, delim, keyMarker string, versionIDMarker strin
 	}
 	result = &VersionsResp{}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(req, result)
+		err = b.S3.query(nil, req, result)
 		if !shouldRetry(err) {
 			break
 		}
@@ -830,11 +836,11 @@ func (req *request) url() (*url.URL, error) {
 // query prepares and runs the req request.
 // If resp is not nil, the XML data contained in the response
 // body will be unmarshalled on it.
-func (s3 *S3) query(req *request, resp interface{}) error {
+func (s3 *S3) query(ctx context.Context, req *request, resp interface{}) error {
 	err := s3.prepare(req)
 	if err == nil {
 		var httpResponse *http.Response
-		httpResponse, err = s3.run(req, resp)
+		httpResponse, err = s3.run(ctx, req, resp)
 		if resp == nil && httpResponse != nil {
 			httpResponse.Body.Close()
 		}
@@ -901,7 +907,7 @@ func (s3 *S3) prepare(req *request) error {
 // run sends req and returns the http response from the server.
 // If resp is not nil, the XML data contained in the response
 // body will be unmarshalled on it.
-func (s3 *S3) run(req *request, resp interface{}) (*http.Response, error) {
+func (s3 *S3) run(ctx context.Context, req *request, resp interface{}) (*http.Response, error) {
 	if debug {
 		log.Printf("Running S3 request: %#v", req)
 	}
@@ -911,13 +917,17 @@ func (s3 *S3) run(req *request, resp interface{}) (*http.Response, error) {
 		return nil, err
 	}
 
-	hreq := http.Request{
+	hreq := &http.Request{
 		URL:        u,
 		Method:     req.method,
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 		Close:      true,
 		Header:     req.headers,
+	}
+
+	if ctx != nil {
+		hreq = hreq.WithContext(ctx)
 	}
 
 	if v, ok := req.headers["Content-Length"]; ok {
@@ -957,7 +967,7 @@ func (s3 *S3) run(req *request, resp interface{}) (*http.Response, error) {
 		}
 	}
 
-	hresp, err := s3.client.Do(&hreq)
+	hresp, err := s3.client.Do(hreq)
 	if err != nil {
 		return nil, err
 	}

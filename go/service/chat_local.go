@@ -4,11 +4,9 @@
 package service
 
 import (
-	"crypto/sha256"
 	"errors"
 	"fmt"
-	"io"
-	"path/filepath"
+	"os"
 	"time"
 
 	"golang.org/x/net/context"
@@ -16,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/msgchecker"
+	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -33,6 +32,7 @@ type chatLocalHandler struct {
 	tlf   keybase1.TlfInterface
 	udc   *utils.UserDeviceCache
 	boxer *chat.Boxer
+	store *chat.AttachmentStore
 
 	// Only for testing
 	rc chat1.RemoteInterface
@@ -49,6 +49,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		tlf:          tlf,
 		udc:          udc,
 		boxer:        chat.NewBoxer(g, tlf, udc),
+		store:        chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 	}
 
 	if gh != nil {
@@ -561,7 +562,9 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
-
+	if os.Getenv("CHAT_S3_FAKE") == "1" {
+		ctx = s3.NewFakeS3Context(ctx)
+	}
 	chatUI := h.getChatUI(arg.SessionID)
 	progress := func(bytesComplete, bytesTotal int) {
 		parg := chat1.ChatAttachmentUploadProgressArg{
@@ -586,7 +589,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	g.Go(func() error {
 		chatUI.ChatAttachmentUploadStart(ctx)
 		var err error
-		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, progress)
+		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
 		return err
 	})
@@ -600,7 +603,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
 			previewParams.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, *arg.Preview, nil)
+			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, *arg.Preview, arg.ConversationID, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
@@ -698,7 +701,7 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		obj = *attachment.Preview
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
-	if err := chat.DownloadAsset(ctx, h.G().Log, params, obj, sink, h, progress); err != nil {
+	if err := h.store.DownloadAsset(ctx, params, obj, sink, h, progress); err != nil {
 		sink.Close()
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
@@ -755,41 +758,19 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 	return h.remoteClient().S3Sign(context.Background(), arg)
 }
 
-func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource, progress chat.ProgressReporter) (chat1.Asset, error) {
+func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource, conversationID chat1.ConversationID, progress chat.ProgressReporter) (chat1.Asset, error) {
 	// create a buffered stream
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
 
-	// encrypt the stream
-	enc := chat.NewSignEncrypter()
-	len := enc.EncryptedLen(local.Size)
-	encReader, err := enc.Encrypt(src)
-	if err != nil {
-		return chat1.Asset{}, err
+	task := chat.UploadTask{
+		S3Params:       params,
+		LocalSrc:       local,
+		Plaintext:      src,
+		S3Signer:       h,
+		ConversationID: conversationID,
+		UserID:         h.G().Env.GetUID(),
+		Progress:       progress,
 	}
-
-	// compute hash
-	hash := sha256.New()
-	tee := io.TeeReader(encReader, hash)
-
-	// post to s3
-	upRes, err := chat.PutS3(ctx, h.G().Log, tee, int64(len), params, h, progress)
-	if err != nil {
-		return chat1.Asset{}, err
-	}
-	h.G().Log.Debug("chat attachment upload: %+v", upRes)
-
-	asset := chat1.Asset{
-		Filename:  filepath.Base(local.Filename),
-		Region:    upRes.Region,
-		Endpoint:  upRes.Endpoint,
-		Bucket:    upRes.Bucket,
-		Path:      upRes.Path,
-		Size:      int(upRes.Size),
-		Key:       enc.EncryptKey(),
-		VerifyKey: enc.VerifyKey(),
-		EncHash:   hash.Sum(nil),
-	}
-	return asset, nil
-
+	return h.store.UploadAsset(ctx, &task)
 }
