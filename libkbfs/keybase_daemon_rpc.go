@@ -25,6 +25,8 @@ type KeybaseDaemonRPC struct {
 	// testing).
 	shutdownFn func()
 
+	keepAliveCancel context.CancelFunc
+
 	// protocols (additional to required protocols) to register on server connect
 	protocols []rpc.Protocol
 }
@@ -51,6 +53,11 @@ func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger, debug 
 	conn := NewSharedKeybaseConnection(kbCtx, config, k)
 	k.fillClients(conn.GetClient())
 	k.shutdownFn = conn.Shutdown
+
+	ctx, cancel := context.WithCancel(context.Background())
+	k.keepAliveCancel = cancel
+	go k.keepAliveLoop(ctx)
+
 	return k
 }
 
@@ -59,6 +66,8 @@ func newKeybaseDaemonRPCWithClient(kbCtx Context, client rpc.GenericClient,
 	log logger.Logger) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(nil, kbCtx, log)
 	k.fillClients(client)
+	// No need for a keepalive loop in this case, since this is only
+	// used during testing.
 	return k
 }
 
@@ -308,9 +317,41 @@ func (k *KeybaseDaemonRPC) ShouldRetryOnConnect(err error) bool {
 	return !inputCanceled
 }
 
+func (k *KeybaseDaemonRPC) keepAliveLoop(ctx context.Context) {
+	// If the connection is dropped, we need to re-connect and send
+	// another HelloIAm message. However, we can't actually detect
+	// when the connection is closed until KBFS makes another outgoing
+	// RPC, which might not happen for a while.  So continuously send
+	// a cheap RPC in the background, so that OnConnect will get
+	// called as soon as the connection comes back.
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if k.sessionClient == nil {
+				// Clients haven't been filled yet.
+				continue
+			}
+			const sessionID = 0
+			err := k.sessionClient.SessionPing(ctx)
+			if err != nil && err.Error() != NoCurrentSessionExpectedError {
+				// Only log the error if it's not "no current session".
+				k.log.CWarningf(
+					ctx, "Background keep alive hit an error: %v", err)
+			}
+		}
+	}
+}
+
 // Shutdown implements the KeybaseService interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) Shutdown() {
 	if k.shutdownFn != nil {
 		k.shutdownFn()
+	}
+	if k.keepAliveCancel != nil {
+		k.keepAliveCancel()
 	}
 }
