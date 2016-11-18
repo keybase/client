@@ -7,6 +7,8 @@ import {List, Map} from 'immutable'
 import {badgeApp} from './notifications'
 import {call, put, select} from 'redux-saga/effects'
 import {chatTab} from '../constants/tabs'
+import {openInKBFS} from './kbfs'
+import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {setActive as setSearchActive, reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {switchTab} from './router'
@@ -14,12 +16,16 @@ import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
 import {usernameToSearchResult} from '../constants/search'
 
-import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler, NewChat, StartConversation} from '../constants/chat'
+import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler, NewChat, StartConversation, OpenFolder} from '../constants/chat'
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
 const {conversationIDToKey, keyToConversationID, InboxStateRecord, makeSnippet} = Constants
+
+function openFolder (): OpenFolder {
+  return {type: Constants.openFolder, payload: undefined}
+}
 
 function startConversation (users: Array<string>): StartConversation {
   return {type: Constants.startConversation, payload: {users}}
@@ -375,6 +381,24 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
   }
 }
 
+function * _openFolder (): SagaGenerator<any, any> {
+  const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
+  const conversationIDKey = yield select(selectedSelector)
+
+  const inboxSelector = (state: TypedState) => {
+    return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
+  }
+
+  const inbox = yield select(inboxSelector)
+  if (inbox) {
+    const helper = inbox.get('info').visibility === CommonTLFVisibility.public ? publicFolderWithUsers : privateFolderWithUsers
+    const path = helper(inbox.get('participants').map(p => p.username).toJS())
+    yield put(openInKBFS(path))
+  } else {
+    throw new Error(`Can't find conversation path`)
+  }
+}
+
 function * _newChat (action: NewChat): SagaGenerator<any, any> {
   yield put(searchReset())
   yield put(searchAddUsersToGroup(action.payload.existingParticipants.map(usernameToSearchResult)))
@@ -397,6 +421,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.newChat, _newChat),
     safeTakeEvery(Constants.postMessage, _postMessage),
     safeTakeEvery(Constants.startConversation, _startConversation),
+    safeTakeLatest(Constants.openFolder, _openFolder),
     yield throttle(1000, Constants.updateBadge, _updateBadge),
   ]
 }
@@ -407,6 +432,7 @@ export {
   loadInbox,
   loadMoreMessages,
   newChat,
+  openFolder,
   postMessage,
   selectConversation,
   setupNewChatHandler,

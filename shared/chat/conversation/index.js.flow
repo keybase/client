@@ -12,6 +12,8 @@ export type Props = {
   isLoading: boolean,
   onPostMessage: (text: string) => void,
   selectedConversation: ?ConversationIDKey,
+  onOpenFolder: () => void,
+  onOpenSidePanel: () => void,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

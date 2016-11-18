@@ -3,7 +3,7 @@ import Conversation from './index'
 import HiddenString from '../../util/hidden-string'
 import {List} from 'immutable'
 import {connect} from 'react-redux'
-import {loadMoreMessages, postMessage} from '../../actions/chat'
+import {loadMoreMessages, postMessage, openFolder} from '../../actions/chat'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -39,6 +39,7 @@ export default connect(
   },
   (dispatch: Dispatch) => ({
     loadMoreMessages: () => dispatch(loadMoreMessages()),
+    onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({

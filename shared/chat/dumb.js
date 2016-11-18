@@ -18,11 +18,11 @@ const participants = [
     you: true,
   },
   {
-    username: 'chrisnojima',
+    username: 'chrisnojimahlksdfhlkshflkdshflkhsdflkdshflksdhflkdshflkhdslkfhdslkfhldkshlkh',
     you: false,
   },
   {
-    username: 'oconnor663',
+    username: 'oconnor663hslfhlsdhfldshflsdhflhsdlfhsdlfhsdlhfslhfhlsfhlshlfshlhfl',
     you: false,
     following: true,
   },

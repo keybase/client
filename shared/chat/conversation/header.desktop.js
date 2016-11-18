@@ -5,12 +5,12 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './'
 
-const Header = ({participants}: Props) => (
+const Header = ({participants, onOpenFolder, onOpenSidePanel}: Props) => (
   <Box style={containerStyle}>
-    <Usernames inline={true} type='BodyBig' users={participants.filter(p => !p.you).toJS()}
-      containerStyle={{flex: 1, textAlign: 'center'}} />
-    <Icon type='iconfont-folder-private' style={{marginLeft: globalMargins.tiny}} />
-    <Icon type='iconfont-info' style={{marginLeft: globalMargins.tiny}} />
+    <Usernames inline={false} type='BodyBig' users={participants.filter(p => !p.you).toJS()}
+      containerStyle={{flex: 1, textAlign: 'center', justifyContent: 'center'}} />
+    <Icon type='iconfont-folder-private' style={{marginLeft: globalMargins.tiny}} onClick={onOpenFolder} />
+    <Icon type='iconfont-info' style={{marginLeft: globalMargins.tiny}} onClick={onOpenSidePanel} />
   </Box>
 )
 
@@ -20,8 +20,7 @@ const containerStyle = {
   borderBottom: `solid 1px ${globalColors.black_05}`,
   justifyContent: 'center',
   alignItems: 'center',
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
+  padding: globalMargins.tiny,
 }
 
 export default Header
