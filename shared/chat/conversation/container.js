@@ -1,13 +1,35 @@
 // @flow
 import Conversation from './index'
 import HiddenString from '../../util/hidden-string'
+import React, {Component} from 'react'
 import {List} from 'immutable'
 import {connect} from 'react-redux'
-import {loadMoreMessages, postMessage, openFolder} from '../../actions/chat'
+import {loadMoreMessages, postMessage, openFolder, newChat} from '../../actions/chat'
+import {onUserClick} from '../../actions/profile'
 
 import type {TypedState} from '../../constants/reducer'
+import type {Props} from '.'
 
 type OwnProps = {}
+type State = {
+  sidePanelOpen: boolean,
+}
+
+class ConversationContainer extends Component<void, Props, State> {
+  state: State
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {sidePanelOpen: false}
+  }
+
+  render () {
+    return <Conversation
+      {...this.props}
+      sidePanelOpen={this.state.sidePanelOpen}
+      toggleSidePanel={() => this.setState({sidePanelOpen: !this.state.sidePanelOpen})} />
+  }
+}
 
 export default connect(
   (state: TypedState) => {
@@ -39,13 +61,16 @@ export default connect(
   },
   (dispatch: Dispatch) => ({
     loadMoreMessages: () => dispatch(loadMoreMessages()),
+    onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
+    onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
     onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
+    onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toJS()),
   }),
-)(Conversation)
+)(ConversationContainer)

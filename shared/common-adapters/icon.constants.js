@@ -635,15 +635,15 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-loader-infinity-static-80.png'),
   },
-  'icon-loader-uploading-16': {
-    isFont: false,
-    extension: 'gif',
-    require: require('../images/icons/icon-loader-uploading-16.gif'),
-  },
   'icon-loader-uploading-16-static': {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-loader-uploading-16-static.png'),
+  },
+  'icon-loader-uploading-16': {
+    isFont: false,
+    extension: 'gif',
+    require: require('../images/icons/icon-loader-uploading-16.gif'),
   },
   'icon-no-gpg': {
     isFont: false,
@@ -984,6 +984,11 @@ const iconMeta_ = {
     isFont: false,
     extension: 'png',
     require: require('../images/icons/icon-update-pause-64.png'),
+  },
+  'icon-user-add-32': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-user-add-32.png'),
   },
   'icon-website-16': {
     isFont: false,

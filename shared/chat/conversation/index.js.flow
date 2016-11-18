@@ -5,15 +5,18 @@ import {List} from 'immutable'
 import type {Message, ConversationIDKey, ParticipantItem} from '../../constants/chat'
 
 export type Props = {
+  isLoading: boolean,
   loadMoreMessages: () => void,
   messages: List<Message>,
-  participants: List<ParticipantItem>,
   moreToLoad: boolean,
-  isLoading: boolean,
-  onPostMessage: (text: string) => void,
-  selectedConversation: ?ConversationIDKey,
+  onAddParticipant: () => void,
   onOpenFolder: () => void,
-  onOpenSidePanel: () => void,
+  onPostMessage: (text: string) => void,
+  onShowProfile: (username: string) => void,
+  participants: List<ParticipantItem>,
+  selectedConversation: ?ConversationIDKey,
+  sidePanelOpen: boolean,
+  toggleSidePanel: () => void,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

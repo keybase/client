@@ -2,6 +2,7 @@
 import ConversationHeader from './conversation/header.desktop'
 import ConversationInput from './conversation/input.desktop'
 import ConversationList from './conversation/list.desktop'
+import ConversationSidePanel from './conversation/side-panel/index.desktop'
 import ConversationsList from './conversations-list'
 import HiddenString from '../util/hidden-string'
 import {InboxStateRecord} from '../constants/chat'
@@ -18,11 +19,11 @@ const participants = [
     you: true,
   },
   {
-    username: 'chrisnojimahlksdfhlkshflkdshflkhsdflkdshflksdhflkdshflkhdslkfhdslkfhldkshlkh',
+    username: 'chrisnojima',
     you: false,
   },
   {
-    username: 'oconnor663hslfhlsdhfldshflsdhflhsdlfhsdlfhsdlhfslhfhlsfhlshlfshlhfl',
+    username: 'oconnor66',
     you: false,
     following: true,
   },
@@ -94,6 +95,7 @@ const commonConvoProps = {
   isLoading: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
+  onShowProfile: (username: string) => console.log('on show profile', username),
 }
 
 const emptyConvoProps = {
@@ -199,6 +201,28 @@ const list = {
   },
 }
 
+const commonSidePanel = {
+  parentProps: {
+    style: {
+      width: 320,
+    },
+  },
+}
+
+const sidePanel = {
+  component: ConversationSidePanel,
+  mocks: {
+    'Normal': {
+      ...commonConvoProps,
+      ...commonSidePanel,
+    },
+    'Empty': {
+      ...emptyConvoProps,
+      ...commonSidePanel,
+    },
+  },
+}
+
 const conversationsList = {
   component: ConversationsList,
   mocks: {
@@ -215,5 +239,6 @@ export default {
   'ChatHeader': header,
   'ChatInput': input,
   'ChatList': list,
+  'ChatSidePanel': sidePanel,
   'ChatConversationsList': conversationsList,
 }
