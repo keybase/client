@@ -31,20 +31,24 @@ func newBadger(g *libkb.GlobalContext) *Badger {
 }
 
 func (b *Badger) PushState(state gregor1.State) {
+	b.G().Log.Debug("Badger update with gregor state")
 	b.badgeState.UpdateWithGregor(state)
 }
 
 func (b *Badger) PushChatUpdate(update chat1.UnreadUpdate, inboxVers chat1.InboxVers) {
+	b.G().Log.Debug("Badger update with chat update")
 	b.badgeState.UpdateWithChat(update, inboxVers)
 }
 
 func (b *Badger) Resync(ctx context.Context, remoteClient *chat1.RemoteClient) error {
+	b.G().Log.Debug("Badger resync req")
 	update, err := remoteClient.GetUnreadUpdateFull(ctx, chat1.InboxVers(0))
 	if err != nil {
 		b.G().Log.Warning("Badger resync failed: %v", err)
 		return err
 	}
 	b.badgeState.UpdateWithChatFull(update)
+	b.G().Log.Debug("Badger resync complete")
 	return nil
 }
 
