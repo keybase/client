@@ -20,8 +20,12 @@ type CurrentSessionArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type SessionPingArg struct {
+}
+
 type SessionInterface interface {
 	CurrentSession(context.Context, int) (Session, error)
+	SessionPing(context.Context) error
 }
 
 func SessionProtocol(i SessionInterface) rpc.Protocol {
@@ -44,6 +48,17 @@ func SessionProtocol(i SessionInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"sessionPing": {
+				MakeArg: func() interface{} {
+					ret := make([]SessionPingArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.SessionPing(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -55,5 +70,10 @@ type SessionClient struct {
 func (c SessionClient) CurrentSession(ctx context.Context, sessionID int) (res Session, err error) {
 	__arg := CurrentSessionArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.session.currentSession", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SessionClient) SessionPing(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.session.sessionPing", []interface{}{SessionPingArg{}}, nil)
 	return
 }

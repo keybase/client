@@ -4,6 +4,7 @@
 package chat1
 
 import (
+	"errors"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
@@ -14,6 +15,8 @@ type TopicID []byte
 type ConversationID []byte
 type TLFID []byte
 type Hash []byte
+type InboxVers uint64
+type OutboxID []byte
 type MessageType int
 
 const (
@@ -178,6 +181,11 @@ type MessagePreviousPointer struct {
 	Hash Hash      `codec:"hash" json:"hash"`
 }
 
+type OutboxInfo struct {
+	Prev        MessageID    `codec:"prev" json:"prev"`
+	ComposeTime gregor1.Time `codec:"composeTime" json:"composeTime"`
+}
+
 type MessageClientHeader struct {
 	Conv         ConversationIDTriple     `codec:"conv" json:"conv"`
 	TlfName      string                   `codec:"tlfName" json:"tlfName"`
@@ -187,6 +195,8 @@ type MessageClientHeader struct {
 	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
 	Sender       gregor1.UID              `codec:"sender" json:"sender"`
 	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
+	OutboxID     *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	OutboxInfo   *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 }
 
 type EncryptedData struct {
@@ -201,9 +211,66 @@ type SignatureInfo struct {
 	K []byte `codec:"k" json:"k"`
 }
 
-type InboxView struct {
+type InboxResType int
+
+const (
+	InboxResType_VERSIONHIT InboxResType = 0
+	InboxResType_FULL       InboxResType = 1
+)
+
+var InboxResTypeMap = map[string]InboxResType{
+	"VERSIONHIT": 0,
+	"FULL":       1,
+}
+
+var InboxResTypeRevMap = map[InboxResType]string{
+	0: "VERSIONHIT",
+	1: "FULL",
+}
+
+type InboxViewFull struct {
+	Vers          InboxVers      `codec:"vers" json:"vers"`
 	Conversations []Conversation `codec:"conversations" json:"conversations"`
 	Pagination    *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+type InboxView struct {
+	Rtype__ InboxResType   `codec:"rtype" json:"rtype"`
+	Full__  *InboxViewFull `codec:"full,omitempty" json:"full,omitempty"`
+}
+
+func (o *InboxView) Rtype() (ret InboxResType, err error) {
+	switch o.Rtype__ {
+	case InboxResType_FULL:
+		if o.Full__ == nil {
+			err = errors.New("unexpected nil value for Full__")
+			return ret, err
+		}
+	}
+	return o.Rtype__, nil
+}
+
+func (o InboxView) Full() InboxViewFull {
+	if o.Rtype__ != InboxResType_FULL {
+		panic("wrong case accessed")
+	}
+	if o.Full__ == nil {
+		return InboxViewFull{}
+	}
+	return *o.Full__
+}
+
+func NewInboxViewWithVersionhit() InboxView {
+	return InboxView{
+		Rtype__: InboxResType_VERSIONHIT,
+	}
+}
+
+func NewInboxViewWithFull(v InboxViewFull) InboxView {
+	return InboxView{
+		Rtype__: InboxResType_FULL,
+		Full__:  &v,
+	}
 }
 
 type CommonInterface interface {

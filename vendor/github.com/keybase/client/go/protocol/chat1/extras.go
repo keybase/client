@@ -159,6 +159,13 @@ var ConversationStatusGregorMap = map[ConversationStatus]string{
 	ConversationStatus_BLOCKED:  "blocked",
 }
 
+var ConversationStatusGregorRevMap = map[string]ConversationStatus{
+	"unfiled":  ConversationStatus_UNFILED,
+	"favorite": ConversationStatus_FAVORITE,
+	"ignored":  ConversationStatus_IGNORED,
+	"blocked":  ConversationStatus_BLOCKED,
+}
+
 func (t ConversationIDTriple) Hash10B() []byte {
 	h := sha256.New()
 	h.Write(t.Tlfid)
@@ -181,4 +188,8 @@ func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 	}
 	h10 := t.Hash10B()
 	return bytes.Equal(h10[2:], []byte(cid[2:]))
+}
+
+func (o OutboxID) Eq(r OutboxID) bool {
+	return bytes.Equal(o, r)
 }

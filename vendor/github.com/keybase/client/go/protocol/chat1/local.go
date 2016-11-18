@@ -43,6 +43,7 @@ type Asset struct {
 	EncHash   Hash   `codec:"encHash" json:"encHash"`
 	Key       []byte `codec:"key" json:"key"`
 	VerifyKey []byte `codec:"verifyKey" json:"verifyKey"`
+	Title     string `codec:"title" json:"title"`
 }
 
 type MessageAttachment struct {
@@ -199,6 +200,86 @@ func NewMessageBodyWithHeadline(v MessageHeadline) MessageBody {
 	}
 }
 
+type OutboxStateType int
+
+const (
+	OutboxStateType_SENDING OutboxStateType = 0
+	OutboxStateType_ERROR   OutboxStateType = 1
+)
+
+var OutboxStateTypeMap = map[string]OutboxStateType{
+	"SENDING": 0,
+	"ERROR":   1,
+}
+
+var OutboxStateTypeRevMap = map[OutboxStateType]string{
+	0: "SENDING",
+	1: "ERROR",
+}
+
+type OutboxState struct {
+	State__   OutboxStateType `codec:"state" json:"state"`
+	Sending__ *int            `codec:"sending,omitempty" json:"sending,omitempty"`
+	Error__   *string         `codec:"error,omitempty" json:"error,omitempty"`
+}
+
+func (o *OutboxState) State() (ret OutboxStateType, err error) {
+	switch o.State__ {
+	case OutboxStateType_SENDING:
+		if o.Sending__ == nil {
+			err = errors.New("unexpected nil value for Sending__")
+			return ret, err
+		}
+	case OutboxStateType_ERROR:
+		if o.Error__ == nil {
+			err = errors.New("unexpected nil value for Error__")
+			return ret, err
+		}
+	}
+	return o.State__, nil
+}
+
+func (o OutboxState) Sending() int {
+	if o.State__ != OutboxStateType_SENDING {
+		panic("wrong case accessed")
+	}
+	if o.Sending__ == nil {
+		return 0
+	}
+	return *o.Sending__
+}
+
+func (o OutboxState) Error() string {
+	if o.State__ != OutboxStateType_ERROR {
+		panic("wrong case accessed")
+	}
+	if o.Error__ == nil {
+		return ""
+	}
+	return *o.Error__
+}
+
+func NewOutboxStateWithSending(v int) OutboxState {
+	return OutboxState{
+		State__:   OutboxStateType_SENDING,
+		Sending__: &v,
+	}
+}
+
+func NewOutboxStateWithError(v string) OutboxState {
+	return OutboxState{
+		State__: OutboxStateType_ERROR,
+		Error__: &v,
+	}
+}
+
+type OutboxRecord struct {
+	State    OutboxState      `codec:"state" json:"state"`
+	OutboxID OutboxID         `codec:"outboxID" json:"outboxID"`
+	ConvID   ConversationID   `codec:"convID" json:"convID"`
+	Msg      MessagePlaintext `codec:"Msg" json:"Msg"`
+}
+
 type HeaderPlaintextVersion int
 
 const (
@@ -222,6 +303,7 @@ type HeaderPlaintextV1 struct {
 	Sender          gregor1.UID              `codec:"sender" json:"sender"`
 	SenderDevice    gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
 	BodyHash        Hash                     `codec:"bodyHash" json:"bodyHash"`
+	OutboxInfo      *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
 	HeaderSignature *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
 }
 
@@ -317,18 +399,21 @@ type MessagePlaintext struct {
 type MessageUnboxedState int
 
 const (
-	MessageUnboxedState_VALID MessageUnboxedState = 1
-	MessageUnboxedState_ERROR MessageUnboxedState = 2
+	MessageUnboxedState_VALID  MessageUnboxedState = 1
+	MessageUnboxedState_ERROR  MessageUnboxedState = 2
+	MessageUnboxedState_OUTBOX MessageUnboxedState = 3
 )
 
 var MessageUnboxedStateMap = map[string]MessageUnboxedState{
-	"VALID": 1,
-	"ERROR": 2,
+	"VALID":  1,
+	"ERROR":  2,
+	"OUTBOX": 3,
 }
 
 var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
 	1: "VALID",
 	2: "ERROR",
+	3: "OUTBOX",
 }
 
 type MessageUnboxedValid struct {
@@ -347,9 +432,10 @@ type MessageUnboxedError struct {
 }
 
 type MessageUnboxed struct {
-	State__ MessageUnboxedState  `codec:"state" json:"state"`
-	Valid__ *MessageUnboxedValid `codec:"valid,omitempty" json:"valid,omitempty"`
-	Error__ *MessageUnboxedError `codec:"error,omitempty" json:"error,omitempty"`
+	State__  MessageUnboxedState  `codec:"state" json:"state"`
+	Valid__  *MessageUnboxedValid `codec:"valid,omitempty" json:"valid,omitempty"`
+	Error__  *MessageUnboxedError `codec:"error,omitempty" json:"error,omitempty"`
+	Outbox__ *OutboxRecord        `codec:"outbox,omitempty" json:"outbox,omitempty"`
 }
 
 func (o *MessageUnboxed) State() (ret MessageUnboxedState, err error) {
@@ -362,6 +448,11 @@ func (o *MessageUnboxed) State() (ret MessageUnboxedState, err error) {
 	case MessageUnboxedState_ERROR:
 		if o.Error__ == nil {
 			err = errors.New("unexpected nil value for Error__")
+			return ret, err
+		}
+	case MessageUnboxedState_OUTBOX:
+		if o.Outbox__ == nil {
+			err = errors.New("unexpected nil value for Outbox__")
 			return ret, err
 		}
 	}
@@ -388,6 +479,16 @@ func (o MessageUnboxed) Error() MessageUnboxedError {
 	return *o.Error__
 }
 
+func (o MessageUnboxed) Outbox() OutboxRecord {
+	if o.State__ != MessageUnboxedState_OUTBOX {
+		panic("wrong case accessed")
+	}
+	if o.Outbox__ == nil {
+		return OutboxRecord{}
+	}
+	return *o.Outbox__
+}
+
 func NewMessageUnboxedWithValid(v MessageUnboxedValid) MessageUnboxed {
 	return MessageUnboxed{
 		State__: MessageUnboxedState_VALID,
@@ -402,9 +503,11 @@ func NewMessageUnboxedWithError(v MessageUnboxedError) MessageUnboxed {
 	}
 }
 
-type ThreadView struct {
-	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
-	Pagination *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
+func NewMessageUnboxedWithOutbox(v OutboxRecord) MessageUnboxed {
+	return MessageUnboxed{
+		State__:  MessageUnboxedState_OUTBOX,
+		Outbox__: &v,
+	}
 }
 
 type UnreadFirstNumLimit struct {
@@ -430,6 +533,11 @@ type ConversationLocal struct {
 	MaxMessages []MessageUnboxed       `codec:"maxMessages" json:"maxMessages"`
 }
 
+type ThreadView struct {
+	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
+	Pagination *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
 type GetThreadQuery struct {
 	MarkAsRead   bool          `codec:"markAsRead" json:"markAsRead"`
 	MessageTypes []MessageType `codec:"messageTypes" json:"messageTypes"`
@@ -449,18 +557,18 @@ type GetInboxLocalRes struct {
 }
 
 type GetInboxLocalQuery struct {
-	TlfName               *string              `codec:"tlfName,omitempty" json:"tlfName,omitempty"`
-	TopicName             *string              `codec:"topicName,omitempty" json:"topicName,omitempty"`
-	ConvID                *ConversationID      `codec:"convID,omitempty" json:"convID,omitempty"`
-	TopicType             *TopicType           `codec:"topicType,omitempty" json:"topicType,omitempty"`
-	TlfVisibility         *TLFVisibility       `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
-	Before                *gregor1.Time        `codec:"before,omitempty" json:"before,omitempty"`
-	After                 *gregor1.Time        `codec:"after,omitempty" json:"after,omitempty"`
-	OneChatTypePerTLF     *bool                `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
-	StatusOverrideDefault []ConversationStatus `codec:"statusOverrideDefault" json:"statusOverrideDefault"`
-	UnreadOnly            bool                 `codec:"unreadOnly" json:"unreadOnly"`
-	ReadOnly              bool                 `codec:"readOnly" json:"readOnly"`
-	ComputeActiveList     bool                 `codec:"computeActiveList" json:"computeActiveList"`
+	TlfName           *string              `codec:"tlfName,omitempty" json:"tlfName,omitempty"`
+	TopicName         *string              `codec:"topicName,omitempty" json:"topicName,omitempty"`
+	ConvID            *ConversationID      `codec:"convID,omitempty" json:"convID,omitempty"`
+	TopicType         *TopicType           `codec:"topicType,omitempty" json:"topicType,omitempty"`
+	TlfVisibility     *TLFVisibility       `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
+	Before            *gregor1.Time        `codec:"before,omitempty" json:"before,omitempty"`
+	After             *gregor1.Time        `codec:"after,omitempty" json:"after,omitempty"`
+	OneChatTypePerTLF *bool                `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
+	Status            []ConversationStatus `codec:"status" json:"status"`
+	UnreadOnly        bool                 `codec:"unreadOnly" json:"unreadOnly"`
+	ReadOnly          bool                 `codec:"readOnly" json:"readOnly"`
+	ComputeActiveList bool                 `codec:"computeActiveList" json:"computeActiveList"`
 }
 
 type GetInboxAndUnboxLocalRes struct {
@@ -471,6 +579,11 @@ type GetInboxAndUnboxLocalRes struct {
 
 type PostLocalRes struct {
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+type PostLocalNonblockRes struct {
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+	OutboxID   OutboxID    `codec:"outboxID" json:"outboxID"`
 }
 
 type SetConversationStatusLocalRes struct {
@@ -489,13 +602,14 @@ type NewConversationLocalRes struct {
 }
 
 type GetInboxSummaryForCLILocalQuery struct {
-	TopicType           TopicType           `codec:"topicType" json:"topicType"`
-	After               string              `codec:"after" json:"after"`
-	Before              string              `codec:"before" json:"before"`
-	Visibility          TLFVisibility       `codec:"visibility" json:"visibility"`
-	UnreadFirst         bool                `codec:"unreadFirst" json:"unreadFirst"`
-	UnreadFirstLimit    UnreadFirstNumLimit `codec:"unreadFirstLimit" json:"unreadFirstLimit"`
-	ActivitySortedLimit int                 `codec:"activitySortedLimit" json:"activitySortedLimit"`
+	TopicType           TopicType            `codec:"topicType" json:"topicType"`
+	After               string               `codec:"after" json:"after"`
+	Before              string               `codec:"before" json:"before"`
+	Visibility          TLFVisibility        `codec:"visibility" json:"visibility"`
+	Status              []ConversationStatus `codec:"status" json:"status"`
+	UnreadFirst         bool                 `codec:"unreadFirst" json:"unreadFirst"`
+	UnreadFirstLimit    UnreadFirstNumLimit  `codec:"unreadFirstLimit" json:"unreadFirstLimit"`
+	ActivitySortedLimit int                  `codec:"activitySortedLimit" json:"activitySortedLimit"`
 }
 
 type GetInboxSummaryForCLILocalRes struct {
@@ -547,6 +661,12 @@ type PostLocalArg struct {
 	Msg            MessagePlaintext `codec:"msg" json:"msg"`
 }
 
+type PostLocalNonblockArg struct {
+	ConversationID ConversationID   `codec:"conversationID" json:"conversationID"`
+	Msg            MessagePlaintext `codec:"msg" json:"msg"`
+	ClientPrev     MessageID        `codec:"clientPrev" json:"clientPrev"`
+}
+
 type SetConversationStatusLocalArg struct {
 	ConversationID ConversationID     `codec:"conversationID" json:"conversationID"`
 	Status         ConversationStatus `codec:"status" json:"status"`
@@ -558,6 +678,8 @@ type PostAttachmentLocalArg struct {
 	ClientHeader   MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
 	Attachment     LocalSource         `codec:"attachment" json:"attachment"`
 	Preview        *LocalSource        `codec:"preview,omitempty" json:"preview,omitempty"`
+	Title          string              `codec:"title" json:"title"`
+	Metadata       []byte              `codec:"metadata" json:"metadata"`
 }
 
 type NewConversationLocalArg struct {
@@ -593,6 +715,7 @@ type LocalInterface interface {
 	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
+	PostLocalNonblock(context.Context, PostLocalNonblockArg) (PostLocalNonblockRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
 	PostAttachmentLocal(context.Context, PostAttachmentLocalArg) (PostLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
@@ -666,6 +789,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postLocalNonblock": {
+				MakeArg: func() interface{} {
+					ret := make([]PostLocalNonblockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostLocalNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostLocalNonblockArg)(nil), args)
+						return
+					}
+					ret, err = i.PostLocalNonblock(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -807,6 +946,11 @@ func (c LocalClient) GetInboxAndUnboxLocal(ctx context.Context, __arg GetInboxAn
 
 func (c LocalClient) PostLocal(ctx context.Context, __arg PostLocalArg) (res PostLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostLocalNonblock(ctx context.Context, __arg PostLocalNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postLocalNonblock", []interface{}{__arg}, &res)
 	return
 }
 
