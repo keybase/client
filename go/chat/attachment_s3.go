@@ -299,6 +299,8 @@ func (a *AttachmentStore) uploadPart(ctx context.Context, task *UploadTask, b jo
 	}
 
 	// stash part info locally before attempting S3 put
+	// doing this before attempting the S3 put is important
+	// for security concerns.
 	if err := a.stash.RecordPart(task.stashKey(), b.index, b.hash); err != nil {
 		a.log.Debug("StashRecordPart error: %s", err)
 	}
