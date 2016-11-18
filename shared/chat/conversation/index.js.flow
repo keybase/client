@@ -1,8 +1,8 @@
 // @flow
 import {Component} from 'react'
-import {List} from 'immutable'
+import {List, Map} from 'immutable'
 
-import type {Message, ConversationIDKey, ParticipantItem} from '../../constants/chat'
+import type {Message, ConversationIDKey, ParticipantItem, MetaData} from '../../constants/chat'
 
 export type Props = {
   isLoading: boolean,
@@ -17,6 +17,7 @@ export type Props = {
   selectedConversation: ?ConversationIDKey,
   sidePanelOpen: boolean,
   toggleSidePanel: () => void,
+  metaData: Map<string, MetaData>,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

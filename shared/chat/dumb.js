@@ -5,8 +5,8 @@ import ConversationList from './conversation/list.desktop'
 import ConversationSidePanel from './conversation/side-panel/index.desktop'
 import ConversationsList from './conversations-list'
 import HiddenString from '../util/hidden-string'
-import {InboxStateRecord} from '../constants/chat'
-import {List} from 'immutable'
+import {InboxStateRecord, MetaDataRecord} from '../constants/chat'
+import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 
 import type {ConversationIDKey} from '../constants/chat'
@@ -23,7 +23,7 @@ const participants = [
     you: false,
   },
   {
-    username: 'oconnor66',
+    username: 'oconnor663',
     you: false,
     following: true,
   },
@@ -87,6 +87,13 @@ const messages = [
   },
 ]
 
+const metaData = {
+  'cjb': MetaDataRecord({fullname: 'Chris Ball'}),
+  'chris': MetaDataRecord({fullname: 'Chris Coyne'}),
+  'chrisnojima': MetaDataRecord({fullname: 'Chris Nojima'}),
+  'oconnor663': MetaDataRecord({fullname: `Jack O'Connor`}),
+}
+
 const commonConvoProps = {
   loadMoreMessages: () => console.log('load more'),
   messages: List(messages),
@@ -96,6 +103,7 @@ const commonConvoProps = {
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
   onShowProfile: (username: string) => console.log('on show profile', username),
+  metaData: Map(metaData),
 }
 
 const emptyConvoProps = {

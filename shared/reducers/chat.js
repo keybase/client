@@ -102,6 +102,8 @@ function reducer (state: State = initialState, action: Actions) {
 
       return state.set('conversationStates', newConversationStates)
     }
+    case Constants.updatedMetadata:
+      return state.set('metaData', state.get('metaData').merge(action.payload))
     case Constants.loadedInbox:
       return state.set('inbox', action.payload.inbox)
   }
