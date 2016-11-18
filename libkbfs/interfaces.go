@@ -915,6 +915,11 @@ type MDOps interface {
 	// merge status, if the logged-in user has read permission on
 	// the folder.  It creates the folder if one doesn't exist
 	// yet, and the logged-in user has permission to do so.
+	//
+	// If there is no returned error, then the returned ID must
+	// always be non-null. An empty ImmutableRootMetadata may be
+	// returned, but if it is non-empty, then its ID must match
+	// the returned ID.
 	GetForHandle(
 		ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (
 		tlf.ID, ImmutableRootMetadata, error)
@@ -1045,6 +1050,11 @@ type MDServer interface {
 	// the logged-in user has read permission on the folder.  It
 	// creates the folder if one doesn't exist yet, and the logged-in
 	// user has permission to do so.
+	//
+	// If there is no returned error, then the returned ID must
+	// always be non-null. A nil *RootMetadataSigned may be
+	// returned, but if it is non-nil, then its ID must match the
+	// returned ID.
 	GetForHandle(ctx context.Context, handle tlf.Handle,
 		mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error)
 

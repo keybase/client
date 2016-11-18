@@ -93,6 +93,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
 	require.NoError(t, err)
+	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 
 	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
@@ -113,7 +114,13 @@ func TestJournalMDOpsBasics(t *testing.T) {
 		prevRoot = mdID
 	}
 
-	head, err := mdOps.GetForTLF(ctx, id)
+	id, head, err := mdOps.GetForHandle(ctx, h, Merged)
+	require.NoError(t, err)
+	require.NotEqual(t, tlf.NullID, id)
+	require.NotNil(t, head)
+	require.Equal(t, MetadataRevision(7), head.Revision())
+
+	head, err = mdOps.GetForTLF(ctx, id)
 	require.NoError(t, err)
 	require.NotNil(t, head)
 	require.Equal(t, MetadataRevision(7), head.Revision())
@@ -254,6 +261,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 
 	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
 	require.NoError(t, err)
+	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 
 	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
@@ -284,6 +292,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 
 	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
 	require.NoError(t, err)
+	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 
 	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)

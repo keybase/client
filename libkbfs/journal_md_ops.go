@@ -226,7 +226,7 @@ func (j journalMDOps) GetForHandle(
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 	if irmd != (ImmutableRootMetadata{}) {
-		return tlf.ID{}, irmd, nil
+		return tlfID, irmd, nil
 	}
 	if remoteMStatus != mStatus {
 		return tlfID, ImmutableRootMetadata{}, nil
