@@ -252,12 +252,6 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 		err = g.connectNoTLS(uri)
 	}
 
-	if g.badger != nil {
-		go func(badger *Badger) {
-			badger.Resync(context.TODO(), &chat1.RemoteClient{Cli: g.cli})
-		}(g.badger)
-	}
-
 	return err
 }
 
@@ -465,6 +459,12 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	} else {
 		g.Debug("sync success: replayed: %d consumed: %d",
 			len(replayedMsgs), len(consumedMsgs))
+	}
+
+	if g.badger != nil {
+		go func(badger *Badger) {
+			badger.Resync(context.Background(), &chat1.RemoteClient{Cli: g.cli})
+		}(g.badger)
 	}
 
 	return nil
