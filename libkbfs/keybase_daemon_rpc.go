@@ -337,8 +337,7 @@ func (k *KeybaseDaemonRPC) keepAliveLoop(ctx context.Context) {
 			}
 			const sessionID = 0
 			err := k.sessionClient.SessionPing(ctx)
-			if err != nil && err.Error() != NoCurrentSessionExpectedError {
-				// Only log the error if it's not "no current session".
+			if err != nil {
 				k.log.CWarningf(
 					ctx, "Background keep alive hit an error: %v", err)
 			}
