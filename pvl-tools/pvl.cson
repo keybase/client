@@ -99,9 +99,9 @@ services:
 
     # This query operates on the newly extractaparsed comment, not the original page load
     # This is the selector for the post attachment links, which contains the
-	  # proof text. It's the "<a> tags inside the div that's the immediate
-	  # *sibling* of the 'userContet' div". The second of these three <a> tags
-	  # contains the proof text, the others are blank. But we just check their concatenation.
+    # proof text. It's the "<a> tags inside the div that's the immediate
+    # *sibling* of the 'userContet' div". The second of these three <a> tags
+    # contains the proof text, the others are blank. But we just check their concatenation.
     { selector_css: {
       , selectors: ["div.userContent+div a"]
       , multi: true
@@ -113,7 +113,7 @@ services:
 
     # Check the link text for username and sig
     { regex_capture: {
-      , pattern: "^.*Verifying myself: I am (\\S+) on Keybase.io. (\\S+).*$"
+      , pattern: "^Verifying myself: I am (\\S+) on Keybase.io. (\\S+)$"
       , from: "link_text_nw"
       , into: ["username_from_link", "sig_from_link"]
       , error: ["TEXT_NOT_FOUND", "Could not find Verifying myself: I am %{username_keybase} on Keybase.io. (%{sig_id_medium})"] } },
@@ -124,9 +124,10 @@ services:
       , b: "username_keybase"
       , error: ["BAD_USERNAME", "Wrong keybase username in post '%{username_from_link}' should be '%{username_keybase}'"] } },
     # Check the sig id in the link text
-    { assert_regex_match: {
-      , pattern: "^%{sig_id_medium}$"
-      , from: "sig_from_link"
+    { assert_compare: {
+      , cmp: "exact"
+      , a: "sig_id_medium"
+      , b: "sig_from_link"
       , error: ["BAD_SIGNATURE", "Could not find sig; '%{sig_from_link}' != '%{sig_id_medium}'"] } },
   ]]
   github: [[

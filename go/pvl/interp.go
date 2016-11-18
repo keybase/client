@@ -888,8 +888,15 @@ func stepSelectorCSS(g proofContextExt, ins selectorCSST, state scriptState) (sc
 			"CSS selector matched too many elements")
 	}
 
-	// Whether to get an attribute or the text contents.
-	res := selectionContents(selection, ins.Attr, ins.Data)
+	// Get the text, attribute, or data.
+	var res string
+	if ins.Attr != "" {
+		res = selectionAttr(selection, ins.Attr)
+	} else if ins.Data {
+		res = selectionData(selection)
+	} else {
+		res = selectionText(selection)
+	}
 
 	err := state.Regs.Set(ins.Into, res)
 	return state, err

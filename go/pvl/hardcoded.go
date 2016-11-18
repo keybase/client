@@ -187,7 +187,7 @@ var hardcodedPVLString = `
               "username_from_link",
               "sig_from_link"
             ],
-            "pattern": "^.*Verifying myself: I am (\\S+) on Keybase.io. (\\S+).*$"
+            "pattern": "^Verifying myself: I am (\\S+) on Keybase.io. (\\S+)$"
           }
         },
         {
@@ -202,13 +202,14 @@ var hardcodedPVLString = `
           }
         },
         {
-          "assert_regex_match": {
+          "assert_compare": {
+            "a": "sig_id_medium",
+            "b": "sig_from_link",
+            "cmp": "exact",
             "error": [
               "BAD_SIGNATURE",
               "Could not find sig; '%{sig_from_link}' != '%{sig_id_medium}'"
-            ],
-            "from": "sig_from_link",
-            "pattern": "^%{sig_id_medium}$"
+            ]
           }
         }
       ]

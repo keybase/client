@@ -274,6 +274,13 @@ func TestJSONStringSimple(t *testing.T) {
 	}
 }
 
+var selectionContentsDocument = makeHTMLDangerous(`
+<html>
+<head></head><div>a<span class="x" data-foo="y">b</span></div><div data-foo="z">c</div>
+<p>hea<!--vy han-->ded</p>
+</html>
+`)
+
 type selectionContentsTest struct {
 	html     *goquery.Document
 	selector string
@@ -282,13 +289,6 @@ type selectionContentsTest struct {
 	data     bool
 	out      string
 }
-
-var selectionContentsDocument = makeHTMLDangerous(`
-<html>
-<head></head><div>a<span class="x" data-foo="y">b</span></div><div data-foo="z">c</div>
-<p>hea<!--vy han-->ded</p>
-</html>
-`)
 
 var selectionContentsTests = []selectionContentsTest{
 	{selectionContentsDocument, "div", false, "", false, "ab c"},
@@ -307,7 +307,14 @@ func TestSelectionContents(t *testing.T) {
 		if test.contents {
 			sel = sel.Contents()
 		}
-		out := selectionContents(sel, test.attr, test.data)
+		var out string
+		if test.attr != "" {
+			out = selectionAttr(sel, test.attr)
+		} else if test.data {
+			out = selectionData(sel)
+		} else {
+			out = selectionText(sel)
+		}
 		if out != test.out {
 			t.Fatalf("%v mismatch\n'%v'\n'%v'", i, out, test.out)
 		}
