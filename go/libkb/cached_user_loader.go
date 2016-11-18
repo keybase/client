@@ -50,6 +50,10 @@ type CachedUserLoadInfo struct {
 	LoadedUser   bool
 }
 
+// loadWithInfo loads a user by UID from the CachedUserLoader object. The 'info'
+// object contains information about how the request was handled, but otherwise,
+// this method behaves like (and implements) the public CachedUserLoader#Load
+// method below.
 func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
 	defer u.G().Trace(fmt.Sprintf("CachedUserLoader#Load(%s)", arg.UID), func() error { return err })()
 
@@ -127,6 +131,10 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	return ret, user, nil
 }
 
+// Load a UserPlusAllKeys from the local cache, falls back to LoadUser, and cache the user.
+// Can only perform lookups by UID. Will return a non-nil UserPlusAllKeys, or a non-nil error,
+// but never both non-nill, nor never both nil. If we had to do a full LoadUser as part of the
+// request, it's returned too.
 func (u *CachedUserLoader) Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
 	return u.loadWithInfo(arg, nil)
 }

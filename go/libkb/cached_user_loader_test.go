@@ -32,28 +32,30 @@ func TestCachedUserLoad(t *testing.T) {
 			t.Fatalf("expected %s but got %s", "t_alice", upk.GetName())
 		}
 	}
-	if info.InCache || info.TimedOut || info.StaleVersion {
+	if info.InCache || info.TimedOut || info.StaleVersion || info.LoadedLeaf || !info.LoadedUser {
 		t.Fatalf("wrong info: %+v", info)
 	}
 
 	fakeClock.Advance(CachedUserTimeout / 100)
+	info = CachedUserLoadInfo{}
 	upk, user, err = tc.G.CachedUserLoader.loadWithInfo(arg, &info)
 	checkLoad(upk, err)
 	if user != nil {
 		t.Fatal("expected no full user load")
 	}
 
-	if !info.InCache || info.TimedOut || info.StaleVersion {
+	if !info.InCache || info.TimedOut || info.StaleVersion || info.LoadedLeaf || info.LoadedUser {
 		t.Fatalf("wrong info: %+v", info)
 	}
 
 	fakeClock.Advance(2 * CachedUserTimeout)
+	info = CachedUserLoadInfo{}
 	upk, user, err = tc.G.CachedUserLoader.loadWithInfo(arg, &info)
 	checkLoad(upk, err)
 	if user != nil {
 		t.Fatal("expected no full user load")
 	}
-	if !info.InCache || !info.TimedOut || info.StaleVersion {
+	if !info.InCache || !info.TimedOut || info.StaleVersion || !info.LoadedLeaf || info.LoadedUser {
 		t.Fatalf("wrong info: %+v", info)
 	}
 }

@@ -7,7 +7,7 @@ import (
 )
 
 // BaseProofSet creates a basic proof set for a user with their
-// keybase and uid proofs and any pgp fingerpring proofs.
+// keybase and uid proofs and any pgp fingerprint proofs.
 func BaseProofSet(u *keybase1.UserPlusAllKeys) *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.GetName()},
