@@ -14,6 +14,7 @@ import (
 // a simple max-size algorithm to determine when to split blocks.
 type BlockSplitterSimple struct {
 	maxSize                 int64
+	maxPtrsPerBlock         int
 	blockChangeEmbedMaxSize uint64
 }
 
@@ -75,6 +76,7 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 
 	return &BlockSplitterSimple{
 		maxSize:                 maxSize,
+		maxPtrsPerBlock:         int(maxSize / int64(bpSize)),
 		blockChangeEmbedMaxSize: blockChangeEmbedMaxSize,
 	}, nil
 }
@@ -122,6 +124,12 @@ func (b *BlockSplitterSimple) CopyUntilSplit(
 func (b *BlockSplitterSimple) CheckSplit(block *FileBlock) int64 {
 	// The split will always be right
 	return 0
+}
+
+// MaxPtrsPerBlock implements the BlockSplitter interface for
+// BlockSplitterSimple.
+func (b *BlockSplitterSimple) MaxPtrsPerBlock() int {
+	return b.maxPtrsPerBlock
 }
 
 // ShouldEmbedBlockChanges implements the BlockSplitter interface for

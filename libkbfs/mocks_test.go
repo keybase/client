@@ -3617,6 +3617,16 @@ func (_mr *_MockBlockSplitterRecorder) CheckSplit(arg0 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckSplit", arg0)
 }
 
+func (_m *MockBlockSplitter) MaxPtrsPerBlock() int {
+	ret := _m.ctrl.Call(_m, "MaxPtrsPerBlock")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+func (_mr *_MockBlockSplitterRecorder) MaxPtrsPerBlock() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MaxPtrsPerBlock")
+}
+
 func (_m *MockBlockSplitter) ShouldEmbedBlockChanges(bc *BlockChanges) bool {
 	ret := _m.ctrl.Call(_m, "ShouldEmbedBlockChanges", bc)
 	ret0, _ := ret[0].(bool)
