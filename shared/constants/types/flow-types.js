@@ -2206,6 +2206,18 @@ export function sessionCurrentSessionRpcPromise (request: $Exact<requestCommon &
   return new Promise((resolve, reject) => { sessionCurrentSessionRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function sessionSessionPingRpc (request: Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'keybase.1.session.sessionPing'})
+}
+
+export function sessionSessionPingRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => sessionSessionPingRpc({...request, incomingCallMap, callback}))
+}
+
+export function sessionSessionPingRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { sessionSessionPingRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function signupCheckInvitationCodeRpc (request: Exact<requestCommon & requestErrorCallback & {param: signupCheckInvitationCodeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'keybase.1.signup.checkInvitationCode'})
 }
@@ -5364,6 +5376,7 @@ export type rpc =
   | saltpackSaltpackSignRpc
   | saltpackSaltpackVerifyRpc
   | sessionCurrentSessionRpc
+  | sessionSessionPingRpc
   | signupCheckInvitationCodeRpc
   | signupCheckUsernameAvailableRpc
   | signupInviteRequestRpc
