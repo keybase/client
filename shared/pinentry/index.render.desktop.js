@@ -57,7 +57,13 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
     const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
 
     const isPaperKey = this.props.type === PassphraseCommonPassphraseType.paperKey
-    const typeStyle = {
+    const typeStyle: $Shape<{
+      hintText: string,
+      style: Object,
+      multiline: boolean,
+      rowsMax: number,
+      floatingHintTextOverride: string,
+    }> = {
       [PassphraseCommonPassphraseType.verifyPassPhrase]: {
         hintText: 'Verify Passphrase',
         style: {marginBottom: 0},
@@ -71,7 +77,6 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
         multiline: true,
         rowsMax: 2,
         hintText: 'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
-        checkboxContainerStyle: {bottom: 0},
       },
     }[this.props.type]
 
@@ -82,7 +87,7 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
     }[this.props.type]
 
     const inputProps = {
-      onChange: event => this.setState({passphrase: event.target.value}),
+      onChangeText: passphrase => this.setState({passphrase}),
       onEnterKeyDown: () => submitPassphrase(),
       type: this.state.showTyping ? 'passwordVisible' : 'password',
       errorText: this.props.retryLabel,

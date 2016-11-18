@@ -32,6 +32,23 @@ func randBytes(n int) []byte {
 	return ret
 }
 
+func makeEdit(id chat1.MessageID, supersedes chat1.MessageID) chat1.MessageUnboxed {
+	msg := chat1.MessageUnboxedValid{
+		ServerHeader: chat1.MessageServerHeader{
+			MessageID: id,
+		},
+		ClientHeader: chat1.MessageClientHeader{
+			MessageType: chat1.MessageType_EDIT,
+			Supersedes:  supersedes,
+		},
+		MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+			MessageID: supersedes,
+			Body:      "edit",
+		}),
+	}
+	return chat1.NewMessageUnboxedWithValid(msg)
+}
+
 func makeMsgWithType(id chat1.MessageID, supersedes chat1.MessageID, typ chat1.MessageType) chat1.MessageUnboxed {
 	msg := chat1.MessageUnboxedValid{
 		ServerHeader: chat1.MessageServerHeader{
@@ -229,8 +246,8 @@ func TestStorageSupersedes(t *testing.T) {
 	_, storage, uid := setupStorageTest(t, "suprsedes")
 
 	msgs := makeMsgRange(110)
-	superseder := makeMsg(chat1.MessageID(111), 6)
-	superseder2 := makeMsg(chat1.MessageID(112), 11)
+	superseder := makeEdit(chat1.MessageID(111), 6)
+	superseder2 := makeEdit(chat1.MessageID(112), 11)
 	msgs = append([]chat1.MessageUnboxed{superseder}, msgs...)
 	conv := makeConversation(msgs[0].GetMessageID())
 
@@ -361,4 +378,20 @@ func TestStorageTypeFilter(t *testing.T) {
 		require.Equal(t, textmsgs[i].GetMessageID(), restexts[i].GetMessageID(), "msg mismatch")
 	}
 
+}
+
+func TestStorageLocalMax(t *testing.T) {
+	_, storage, uid := setupStorageTest(t, "local-max")
+
+	msgs := makeMsgRange(10)
+	conv := makeConversation(15)
+
+	_, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, nil)
+	require.Error(t, err)
+	require.IsType(t, libkb.ChatStorageMissError{}, err, "wrong error type")
+
+	require.NoError(t, storage.Merge(context.TODO(), conv.Metadata.ConversationID, uid, msgs))
+	tv, err := storage.FetchUpToLocalMaxMsgID(context.TODO(), conv.Metadata.ConversationID, uid, nil, nil)
+	require.NoError(t, err)
+	require.Len(t, tv.Messages, 10)
 }

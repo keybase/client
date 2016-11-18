@@ -6,6 +6,7 @@ package client
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -16,6 +17,7 @@ import (
 
 type Source interface {
 	io.ReadCloser
+	io.Seeker
 	Open() error
 	CloseWithError(error) error
 }
@@ -46,6 +48,9 @@ func (b *BufferSource) Read(p []byte) (n int, err error) {
 
 func (b *BufferSource) Close() error               { return nil }
 func (b *BufferSource) CloseWithError(error) error { return nil }
+func (b *BufferSource) Seek(offset int64, whence int) (int64, error) {
+	return 0, errors.New("BufferSource does not support Seek")
+}
 
 type StdinSource struct {
 	open bool
@@ -101,6 +106,10 @@ func (b *StdinSource) Read(p []byte) (n int, err error) {
 	return 0, io.EOF
 }
 
+func (b *StdinSource) Seek(offset int64, whence int) (int64, error) {
+	return 0, errors.New("StdinSource does not support Seek")
+}
+
 type FileSource struct {
 	name string
 	file *os.File
@@ -137,10 +146,35 @@ func (s *FileSource) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 	if n, err = s.file.Read(p); n == 0 || err != nil {
+		// not sure why we Close() here instead of letting
+		// caller Close() when they want...
 		s.file.Close()
 		s.file = nil
 	}
 	return n, err
+}
+
+// Seek implements io.Seeker.
+//
+// Some notes:
+//
+// s.file could be nil because FileSource.Read() closes s.file at
+// the end of reading a file.  If s.file is nil, Seek will reopen
+// the file.
+//
+// The alternative is to remove the Close() in Read(),
+// but leave that untouched so as not to break
+// anything that depends on that behavior.
+//
+func (s *FileSource) Seek(offset int64, whence int) (int64, error) {
+	if s.file == nil {
+		// the file could be nil because Read(...) closes
+		// at the end of reading.  Reopen it here:
+		if err := s.Open(); err != nil {
+			return 0, err
+		}
+	}
+	return s.file.Seek(offset, whence)
 }
 
 type StdoutSink struct {

@@ -79,9 +79,14 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 		return chat1.MessagePlaintext{}, fmt.Errorf("chatLocalHandler expects an empty prev list")
 	}
 
-	res, _, err := s.G().ConvSource.Pull(context.Background(), convID, msg.ClientHeader.Sender, nil, nil)
+	res, err := s.G().ConvSource.PullLocalOnly(context.Background(), convID, msg.ClientHeader.Sender, nil, nil)
 	if err != nil {
-		return chat1.MessagePlaintext{}, err
+		switch err.(type) {
+		case libkb.ChatStorageMissError:
+			s.G().Log.Warning("No local messages; skipping prev pointers")
+		default:
+			return chat1.MessagePlaintext{}, err
+		}
 	}
 
 	prevs, err := CheckPrevPointersAndGetUnpreved(&res)
