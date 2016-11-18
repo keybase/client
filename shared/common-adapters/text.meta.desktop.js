@@ -90,6 +90,11 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 13,
     styleOverride: globalStyles.fontRegular,
   },
+  'BodyInherit': {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 14,
+    styleOverride: {...globalStyles.fontRegular, fontWeight: undefined},
+  },
   'BodySemibold': {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 13,

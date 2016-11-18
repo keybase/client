@@ -13,6 +13,7 @@ type Background =
 type TextType =
   'Body'
 | 'BodyBig'
+| 'BodyInherit'
 | 'BodyBigLink'
 | 'BodyError'
 | 'BodyPrimaryLink'
