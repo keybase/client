@@ -259,24 +259,25 @@ class ProfileRender extends PureComponent<void, Props, State> {
               <Box style={styleProofNoticeBox}>
                 {proofNotice && <Text type='BodySemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
               </Box>
-              {(loading || this.props.proofs.length > 0) &&
-                <UserProofs
-                  type={'proofs'}
-                  ref={c => { this._proofList = c }}
-                  style={styleProofs}
-                  username={this.props.username}
-                  loading={loading}
-                  proofs={this.props.proofs}
-                  onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
-                  showingMenuIndex={this.state.proofMenuIndex}
-                />}
-              {!loading && !this.props.serverActive && missingProofs.length > 0 &&
-                <UserProofs
-                  type={'missingProofs'}
-                  username={this.props.username}
-                  missingProofs={missingProofs}
-                />}
-              {!loading && folders}
+              <Box style={styleProofs}>
+                {(loading || this.props.proofs.length > 0) &&
+                  <UserProofs
+                    type={'proofs'}
+                    ref={c => { this._proofList = c }}
+                    username={this.props.username}
+                    loading={loading}
+                    proofs={this.props.proofs}
+                    onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
+                    showingMenuIndex={this.state.proofMenuIndex}
+                  />}
+                {!loading && !this.props.serverActive && missingProofs.length > 0 &&
+                  <UserProofs
+                    type={'missingProofs'}
+                    username={this.props.username}
+                    missingProofs={missingProofs}
+                  />}
+                {!loading && folders}
+              </Box>
             </Box>
           </Box>
           {!loading &&
