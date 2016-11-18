@@ -115,7 +115,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	checkSystemUser(g.Log)
 
 	if !cl.IsService() {
-		if err = logger.SaveConsoleMode(); err == nil {
+		if logger.SaveConsoleMode() == nil {
 			defer logger.RestoreConsoleMode()
 		}
 		client.InitUI()
