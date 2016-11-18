@@ -227,6 +227,7 @@ func (a *AttachmentStore) makeBlockJobs(ctx context.Context, r io.Reader, blockC
 			if previous != nil {
 				// resuming an upload, so check local stash record
 				// and abort on mismatch before adding a job for this block
+				// because if we don't it amounts to nonce reuse
 				lhash, found := previous.Parts[partNumber]
 				if found && lhash != md5hex {
 					a.log.Debug("part %d failed local part record verification", partNumber)
