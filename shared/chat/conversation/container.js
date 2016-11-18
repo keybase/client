@@ -71,6 +71,6 @@ export default connect(
     ...dispatchProps,
     ...ownProps,
     onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
-    onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toJS()),
+    onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
   }),
 )(ConversationContainer)

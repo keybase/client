@@ -392,7 +392,7 @@ function * _openFolder (): SagaGenerator<any, any> {
   const inbox = yield select(inboxSelector)
   if (inbox) {
     const helper = inbox.get('info').visibility === CommonTLFVisibility.public ? publicFolderWithUsers : privateFolderWithUsers
-    const path = helper(inbox.get('participants').map(p => p.username).toJS())
+    const path = helper(inbox.get('participants').map(p => p.username).toArray())
     yield put(openInKBFS(path))
   } else {
     throw new Error(`Can't find conversation path`)
