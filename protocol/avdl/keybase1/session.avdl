@@ -12,4 +12,5 @@ protocol session {
   }
 
   Session currentSession(int sessionID);
+  void sessionPing();
 }
