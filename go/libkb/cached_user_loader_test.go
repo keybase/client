@@ -69,6 +69,10 @@ func TesetCheckKIDForUID(t *testing.T) {
 
 	// The 't_kb' user's Sibkey for device named 'Computer'
 	kbKIDSibkey := keybase1.KID("0120d2156264b9023ca1828a57e6e925cbb48f80e8e701fe036b1dfd50337d10d6db0a")
+
+	rebeccaUID := keybase1.UID("99337e411d1004050e9e7ee2cf1a6219")
+	rebeccaKIDRevoked := keybase1.KID("0120e177772304cd9ec833ceb88eeb6e32a667151d9e4fb09df433a846d05e6c40350a")
+
 	found, revokedAt, err := tc.G.CachedUserLoader.CheckKIDForUID(georgeUID, georgeKIDSibkey)
 	if !found || (revokedAt != nil) || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
@@ -79,6 +83,11 @@ func TesetCheckKIDForUID(t *testing.T) {
 	}
 	found, revokedAt, err = tc.G.CachedUserLoader.CheckKIDForUID(georgeUID, kbKIDSibkey)
 	if found || (revokedAt != nil) || (err != nil) {
+		t.Fatalf("bad CheckKIDForUID response")
+	}
+
+	found, revokedAt, err = tc.G.CachedUserLoader.CheckKIDForUID(rebeccaUID, rebeccaKIDRevoked)
+	if !found || (revokedAt == nil) || (err != nil) {
 		t.Fatalf("bad CheckKIDForUID response")
 	}
 }
