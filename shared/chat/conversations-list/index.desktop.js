@@ -45,8 +45,8 @@ const ConversationList = ({inbox, onSelectConversation, selectedConversation, on
           borderColor={conversation.get('unreadCount') ? globalColors.orange : undefined}
         />
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: 12, position: 'relative'}}>
-          <Box style={{position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
-            <Usernames inline={true} type='Body' backgroundMode='Terminal' users={conversation.get('participants').filter(p => !p.you)} />
+          <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
+            <Usernames inline={true} type='Body' backgroundMode='Terminal' users={conversation.get('participants').filter(p => !p.you)} title={conversation.get('participants').filter(p => !p.you).map(p => p.username).join(', ')} />
             <Text backgroundMode='Terminal' type='BodySmall' style={noWrapStyle}>{conversation.get('snippet')}</Text>
           </Box>
         </Box>

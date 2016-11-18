@@ -1,7 +1,6 @@
 // TODO wrapping issues. can we do ellipsis?
 // @flow
 import React, {Component} from 'react'
-import Box from './box'
 import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
@@ -14,7 +13,7 @@ function usernameText ({type, users, style, inline, redColor, backgroundMode}: P
       ...style,
       ...(!isMobile ? {textDecoration: 'inherit'} : null),
       ...(u.broken ? {color: redColor || globalColors.red} : null),
-      ...(inline ? {display: 'inline-block'} : null),
+      ...(inline ? {display: 'inline'} : null),
       ...(u.you ? globalStyles.italic : null),
     }
 
@@ -37,16 +36,24 @@ function usernameText ({type, users, style, inline, redColor, backgroundMode}: P
 
 class Usernames extends Component<void, Props, void> {
   render () {
-    const containerStyle = this.props.inline ? {display: 'inline'} : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
+    const containerStyle = this.props.inline ? {
+      display: 'inline',
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
+      width: '100%',
+      overflow: 'hidden',
+    } : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
     const rwers = this.props.users.filter(u => !u.readOnly)
     const readers = this.props.users.filter(u => !!u.readOnly)
 
     return (
-      <Box style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'}), ...this.props.containerStyle}}>
+      <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'}), ...this.props.containerStyle}} title={this.props.title}>
+        {!!this.props.prefix && <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>{this.props.prefix}</Text>}
         {usernameText({...this.props, users: rwers})}
         {!!readers.length && <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...this.props.style, marginRight: 1}}>#</Text>}
         {usernameText({...this.props, users: readers})}
-      </Box>
+        {!!this.props.suffix && <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>{this.props.suffix}</Text>}
+      </Text>
     )
   }
 }

@@ -37,6 +37,7 @@ class Text extends Component<void, Props, void> {
     ].filter(Boolean).join(' ')
 
     return <span
+      title={this.props.title}
       ref={ref => { this._span = ref }}
       className={className}
       style={style}
