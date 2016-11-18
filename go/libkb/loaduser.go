@@ -51,6 +51,13 @@ func NewLoadUserByUIDArg(g *GlobalContext, uid keybase1.UID) LoadUserArg {
 	return arg
 }
 
+func NewLoadUserByUIDForceArg(g *GlobalContext, uid keybase1.UID) LoadUserArg {
+	arg := NewLoadUserArg(g)
+	arg.UID = uid
+	arg.ForceReload = true
+	return arg
+}
+
 func NewLoadUserPubOptionalArg(g *GlobalContext) LoadUserArg {
 	arg := NewLoadUserArg(g)
 	arg.PublicKeyOptional = true
