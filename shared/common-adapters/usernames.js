@@ -1,4 +1,3 @@
-// TODO wrapping issues. can we do ellipsis?
 // @flow
 import React, {Component} from 'react'
 import Text from './text'
