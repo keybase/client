@@ -1,4 +1,5 @@
 // @flow
+import ChatMap from '../../chat/dumb'
 import CommonMap from '../../common-adapters/dumb'
 import DevicePageMap from '../../devices/device-page/dumb.desktop'
 import DeviceRevokeMap from '../../devices/device-revoke/dumb'
@@ -22,6 +23,7 @@ import TrackerMap from '../../tracker/dumb.desktop'
 import UnlockFoldersMap from '../../unlock-folders/dumb'
 
 const map: any = {
+  ...ChatMap,
   ...CommonMap,
   ...DevicePageMap,
   ...DeviceRevokeMap,

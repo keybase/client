@@ -49,7 +49,7 @@ function selectConversation (conversationIDKey: ConversationIDKey): SelectConver
   return {type: Constants.selectConversation, payload: {conversationIDKey}}
 }
 
-function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxState> {
+function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string): List<InboxState> {
   return List((inbox.conversations || []).map(convo => {
     if (!convo.info.id) {
       return null
@@ -72,10 +72,17 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxStat
       return false
     })
 
+    // TODO in recent order... somehow
+    const participants = List((convo.info.writerNames || []).map(username => ({
+      username,
+      broken: false, // TODO
+      you: author && username === author,
+    })))
+
     return new InboxStateRecord({
       info: convo.info,
       conversationIDKey: conversationIDToKey(convo.info.id),
-      participants: List(convo.info.writerNames || []), // TODO in recent order... somehow
+      participants,
       muted: false, // TODO
       time: convo.readerInfo.mtime,
       snippet,
@@ -224,7 +231,8 @@ function * _setupNewChatHandler (): SagaGenerator<any, any> {
 function * _loadInbox (): SagaGenerator<any, any> {
   // $ForceType
   const inbox: GetInboxAndUnboxLocalRes = yield call(localGetInboxAndUnboxLocalRpcPromise, {params: {}})
-  const conversations: List<InboxState> = _inboxToConversations(inbox)
+  const author = yield select(usernameSelector)
+  const conversations: List<InboxState> = _inboxToConversations(inbox, author)
   yield put({type: Constants.loadedInbox, payload: {inbox: conversations}})
 }
 

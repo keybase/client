@@ -1,3 +1,4 @@
+// TODO wrapping issues. can we do ellipsis?
 // @flow
 import React, {Component} from 'react'
 import Box from './box'
@@ -7,7 +8,7 @@ import {isMobile} from '../constants/platform'
 
 import type {Props} from './usernames'
 
-function usernameText ({type, users, style, inline, redColor}: Props) {
+function usernameText ({type, users, style, inline, redColor, backgroundMode}: Props) {
   return users.map((u, i) => {
     const userStyle = {
       ...style,
@@ -21,10 +22,14 @@ function usernameText ({type, users, style, inline, redColor}: Props) {
       <Text
         key={u.username}
         type={type}
+        backgroundMode={backgroundMode}
         style={userStyle}>{u.username}
         {
           (i !== users.length - 1) && // Injecting the commas here so we never wrap and have newlines starting with a ,
-            <Text type={type} style={{...style, marginRight: 1}}>,</Text>}
+            <Text
+              type={type}
+              backgroundMode={backgroundMode}
+              style={{...style, marginRight: 1}}>,</Text>}
       </Text>
     )
   })
@@ -37,10 +42,9 @@ class Usernames extends Component<void, Props, void> {
     const readers = this.props.users.filter(u => !!u.readOnly)
 
     return (
-      <Box style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'})}}>
-
+      <Box style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'}), ...this.props.containerStyle}}>
         {usernameText({...this.props, users: rwers})}
-        {!!readers.length && <Text type={this.props.type} style={{...this.props.style, marginRight: 1}}>#</Text>}
+        {!!readers.length && <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...this.props.style, marginRight: 1}}>#</Text>}
         {usernameText({...this.props, users: readers})}
       </Box>
     )
