@@ -90,6 +90,7 @@ protocol local {
     gregor1.DeviceID senderDevice;
     Hash bodyHash;
     union { null, OutboxInfo } outboxInfo;
+    union { null, OutboxID } outboxID;
     union {null, SignatureInfo} headerSignature;
   }
 
@@ -316,4 +317,8 @@ protocol local {
     array<RateLimit> rateLimits;
   }
   DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview);
+
+  void CancelPost(OutboxID outboxID); 
+  void RetryPost(OutboxID outboxID);
+
 }

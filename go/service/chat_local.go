@@ -714,6 +714,38 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 	return chat1.DownloadAttachmentLocalRes{RateLimits: msgs.RateLimits}, nil
 }
 
+func (h *chatLocalHandler) CancelPost(ctx context.Context, outboxID chat1.OutboxID) error {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+
+	uid := h.G().Env.GetUID()
+	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
+	if err := outbox.RemoveMessage(outboxID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *chatLocalHandler) RetryPost(ctx context.Context, outboxID chat1.OutboxID) error {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+
+	// Mark as retry in the outbox
+	uid := h.G().Env.GetUID()
+	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
+	if err := outbox.RetryMessage(outboxID); err != nil {
+		return err
+	}
+
+	// Force the send loop to try again
+	h.G().MessageDeliverer.ForceDeliverLoop()
+
+	return nil
+}
+
 // getSecretUI returns a SecretUI, preferring a delegated SecretUI if
 // possible.
 func (h *chatLocalHandler) getSecretUI() libkb.SecretUI {

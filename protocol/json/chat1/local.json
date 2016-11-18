@@ -308,6 +308,13 @@
         {
           "type": [
             null,
+            "OutboxID"
+          ],
+          "name": "outboxID"
+        },
+        {
+          "type": [
+            null,
             "SignatureInfo"
           ],
           "name": "headerSignature"
@@ -1208,6 +1215,24 @@
         }
       ],
       "response": "DownloadAttachmentLocalRes"
+    },
+    "CancelPost": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
+    },
+    "RetryPost": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"
