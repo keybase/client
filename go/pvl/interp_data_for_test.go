@@ -65,6 +65,26 @@ var html1 = `
 </html>
 `
 
+var html2 = `
+<html>
+<head>
+<title>proofer</title>
+</head>
+<body>
+	<div class="a">
+		<div class="b">
+			<!-- cow -->
+			a
+			<!-- bunga -->
+		</div>
+	</div>
+	<div class="moo" data-x="y">
+	evil.com
+	</div>
+</body>
+</html>
+`
+
 var json1 = ` {
   "data": [
     {
