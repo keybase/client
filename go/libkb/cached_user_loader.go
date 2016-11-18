@@ -133,7 +133,7 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 // Load a UserPlusAllKeys from the local cache, falls back to LoadUser, and cache the user.
 // Can only perform lookups by UID. Will return a non-nil UserPlusAllKeys, or a non-nil error,
-// but never both non-nill, nor never both nil. If we had to do a full LoadUser as part of the
+// but never both non-nil, nor never both nil. If we had to do a full LoadUser as part of the
 // request, it's returned too.
 func (u *CachedUserLoader) Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error) {
 	return u.loadWithInfo(arg, nil)
