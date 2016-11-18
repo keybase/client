@@ -43,9 +43,10 @@ const userEntryContainerStyle = {
   ...globalStyles.clickable,
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  justifyContent: 'center',
+  justifyContent: 'flex-start',
   width: 112,
-  height: 96,
+  height: 123,
+  padding: globalMargins.xtiny,
   display: 'inline-flex',
 }
 
@@ -71,37 +72,29 @@ class FriendshipsRender extends Component<void, Props, void> {
           selected={this.props.currentTab === 'Followers'}
           label={`FOLLOWERS (${this.props.followers.length})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Followers') }}>
-          <ReactList
-            style={reactListStyle}
-            useTranslate3d={true}
-            itemRenderer={(index, key) => this._itemRenderer(true, index)}
-            length={this.props.followers.length}
-            type='uniform' />
+          <Box style={{marginTop: globalMargins.tiny}}>
+            <ReactList
+              useTranslate3d={true}
+              itemRenderer={(index, key) => this._itemRenderer(true, index)}
+              length={this.props.followers.length}
+              type='uniform' />
+          </Box>
         </TabBarItem>
         <TabBarItem
           selected={this.props.currentTab === 'Following'}
           label={`FOLLOWING (${this.props.following.length})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Following') }}>
-          <ReactList
-            style={reactListStyle}
-            useTranslate3d={true}
-            itemRenderer={(index, key) => this._itemRenderer(false, index)}
-            length={this.props.following.length}
-            type='uniform' />
+          <Box style={{marginTop: globalMargins.tiny}}>
+            <ReactList
+              useTranslate3d={true}
+              itemRenderer={(index, key) => this._itemRenderer(false, index)}
+              length={this.props.following.length}
+              type='uniform' />
+          </Box>
         </TabBarItem>
       </TabBar>
     )
   }
-}
-
-const reactListStyle = {
-  flex: 1,
-  paddingTop: globalMargins.small,
-  paddingBottom: globalMargins.small,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  borderTop: `solid 1px ${globalColors.black_10}`,
-  overflowY: 'auto',
 }
 
 export default FriendshipsRender
