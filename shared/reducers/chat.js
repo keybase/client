@@ -1,10 +1,11 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
+import * as WindowConstants from '../constants/window'
 
-import type {Actions, State, ConversationState, AppendMessages, Message} from '../constants/chat'
+import type {Actions, State, ConversationState, AppendMessages, Message, MessageID} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, makeSnippet} = Constants
+const {StateRecord, ConversationStateRecord, InboxState, makeSnippet} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
@@ -38,12 +39,23 @@ function reducer (state: State = initialState, action: Actions) {
       const appendMessages = appendAction.payload.messages
       const message: Message = appendMessages[0]
       const conversationIDKey = appendAction.payload.conversationIDKey
+
+      const isSelected = state.get('selectedConversation') === action.payload.conversationIDKey
+
       const newConversationStates = state.get('conversationStates').update(
         conversationIDKey,
         initialConversation,
-        conversation => conversation.set('messages', conversation.get('messages').push(...appendMessages)))
+        conversation => {
+          conversation = conversation.set('messages', conversation.get('messages').push(...appendMessages))
 
-      const isSelected = state.get('selectedConversation') === action.payload.conversationIDKey
+          // Set first new message (unless in selected conversation with focus)
+          let firstMessage = appendMessages[0]
+          if (!conversation.get('firstNewMessageID') && !(isSelected && state.get('focused'))) {
+            conversation = conversation.set('firstNewMessageID', firstMessage.messageID)
+          }
+          return conversation
+        })
+
       let snippet
 
       switch (message.type) {
@@ -88,7 +100,21 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('conversationStates', newConversationStates)
     }
     case Constants.selectConversation:
+
+      // Clear new messages id when switching away from conversation (if select was from a user)
+      if (action.payload.fromUser) {
+        const previousConversation = state.get('selectedConversation')
+        if (previousConversation) {
+          const newConversationStates = state.get('conversationStates').update(
+            previousConversation,
+            initialConversation,
+            conversation => conversation.set('firstNewMessageID', null))
+          state = state.set('conversationStates', newConversationStates)
+        }
+      }
+
       const conversationIDKey = action.payload.conversationIDKey
+
       // Set unread to zero
       const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
       return state
@@ -104,6 +130,9 @@ function reducer (state: State = initialState, action: Actions) {
     }
     case Constants.loadedInbox:
       return state.set('inbox', action.payload.inbox)
+    case WindowConstants.changedFocus:
+      return state.set('focused', action.payload)
+
   }
 
   return state

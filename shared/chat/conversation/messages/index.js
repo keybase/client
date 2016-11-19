@@ -5,7 +5,7 @@ import {Box} from '../../../common-adapters'
 
 import type {Message} from '../../../constants/chat'
 
-const factory = (message: Message, includeHeader: boolean, index: number, key: string, style: Object, isScrolling: boolean) => {
+const factory = (message: Message, includeHeader: boolean, index: number, key: string, isFirstToRead: boolean, style: Object, isScrolling: boolean) => {
   if (!message) {
     return <Box key={key} style={style} />
   }
@@ -22,6 +22,7 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         followState={message.followState}
         messageState={message.messageState}
         includeHeader={includeHeader}
+        isFirstToRead={isFirstToRead}
         />
     default:
       return <Box key={key} style={style} />

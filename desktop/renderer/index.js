@@ -19,6 +19,7 @@ import {bootstrap} from '../shared/actions/config'
 import {devEditAction} from '../shared/reducers/dev-edit'
 import {disable as disableDragDrop} from '../shared/util/drag-drop'
 import {listenForNotifications} from '../shared/actions/notifications'
+import {changedFocus} from '../shared/actions/window'
 import {merge} from 'lodash'
 import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {setupContextMenu} from '../app/menu-helper'
@@ -71,6 +72,14 @@ function setupApp (store) {
       } catch (_) {
       }
     })
+  })
+
+  const currentWindow = electron.remote.getCurrentWindow()
+  currentWindow.on('focus', () => {
+    store.dispatch(changedFocus(true))
+  })
+  currentWindow.on('blur', () => {
+    store.dispatch(changedFocus(false))
   })
 
   store.subscribe(() => {

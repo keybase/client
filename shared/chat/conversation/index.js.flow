@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import {List} from 'immutable'
 
-import type {Message, ConversationIDKey} from '../../constants/chat'
+import type {Message, ConversationIDKey, MessageID} from '../../constants/chat'
 
 export type Props = {
   loadMoreMessages: () => void,
@@ -12,6 +12,7 @@ export type Props = {
   isLoading: boolean,
   onPostMessage: (text: string) => void,
   selectedConversation: ?ConversationIDKey,
+  firstNewMessageID: ?MessageID,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

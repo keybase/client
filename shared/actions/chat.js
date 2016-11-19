@@ -33,8 +33,8 @@ function loadMoreMessages (): LoadMoreMessages {
   return {type: Constants.loadMoreMessages, payload: undefined}
 }
 
-function selectConversation (conversationIDKey: ConversationIDKey): SelectConversation {
-  return {type: Constants.selectConversation, payload: {conversationIDKey}}
+function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean): SelectConversation {
+  return {type: Constants.selectConversation, payload: {conversationIDKey, fromUser}}
 }
 
 function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes): List<InboxState> {
@@ -223,7 +223,7 @@ function * _loadedInbox (action: LoadedInbox): SagaGenerator<any, any> {
   if (!selectedConversation) {
     if (action.payload.inbox.count()) {
       const mostRecentConversation = action.payload.inbox.get(0)
-      yield put(selectConversation(mostRecentConversation.get('conversationIDKey')))
+      yield put(selectConversation(mostRecentConversation.get('conversationIDKey'), false))
     }
   }
 }

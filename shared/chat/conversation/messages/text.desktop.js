@@ -40,8 +40,8 @@ const Retry = ({onRetry}: {onRetry: () => void}) => (
   </Box>
 )
 
-const MessageTextWrapper = ({author, message, messageState, followState, style, includeHeader, onRetry}: Props) => (
-  <Box style={{...globalStyles.flexBoxRow, ...style}}>
+const MessageTextWrapper = ({author, message, messageState, followState, style, includeHeader, isFirstToRead, onRetry}: Props) => (
+  <Box style={{...globalStyles.flexBoxRow, ...(isFirstToRead ? stylesFirstToRead : null), ...style}}>
     <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(followState)}} />
     <Box style={{...globalStyles.flexBoxRow, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
       {includeHeader
@@ -55,5 +55,9 @@ const MessageTextWrapper = ({author, message, messageState, followState, style, 
     </Box>
   </Box>
 )
+
+const stylesFirstToRead = {
+  borderTop: 'solid 1px #ff6f21',
+}
 
 export default MessageTextWrapper

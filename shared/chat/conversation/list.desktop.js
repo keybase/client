@@ -150,12 +150,14 @@ class ConversationList extends Component<void, Props, State> {
     const prevMessage = this.state.messages.get(index - 2)
     const isFirstMessage = index - 1 === 0
     const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
+    const isFirstToRead = this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, style, isScrolling)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstToRead, style, isScrolling)
   }
 
   render () {
-    const countWithLoading = this.state.messages.count() + 1 // Loading row on top always
+    const messageCount = this.state.messages.count()
+    const countWithLoading = messageCount + 1 // Loading row on top always
     let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 

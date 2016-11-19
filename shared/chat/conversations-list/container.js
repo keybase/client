@@ -12,6 +12,6 @@ export default connect(
     selectedConversation: state.chat.get('selectedConversation'),
   }),
   (dispatch: Dispatch) => ({
-    onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key)),
+    onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
   })
 )(ConversationList)
