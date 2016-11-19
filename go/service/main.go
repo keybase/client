@@ -202,6 +202,13 @@ func (d *Service) Run() (err error) {
 		return
 	}
 
+	if err = d.G().LocalDb.ForceOpen(); err != nil {
+		return err
+	}
+	if err = d.G().LocalChatDb.ForceOpen(); err != nil {
+		return err
+	}
+
 	var l net.Listener
 	if l, err = d.ConfigRPCServer(); err != nil {
 		return

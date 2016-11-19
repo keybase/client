@@ -1845,3 +1845,11 @@ type ExistsError struct {
 func (e ExistsError) Error() string {
 	return e.Msg
 }
+
+//=============================================================================
+
+type LevelDBOpenClosedError struct{}
+
+func (e LevelDBOpenClosedError) Error() string {
+	return "opening a closed DB"
+}
