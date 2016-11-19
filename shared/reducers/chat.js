@@ -3,9 +3,9 @@ import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 
-import type {Actions, State, ConversationState, AppendMessages, Message, MessageID} from '../constants/chat'
+import type {Actions, State, ConversationState, AppendMessages, Message} from '../constants/chat'
 
-const {StateRecord, ConversationStateRecord, InboxState, makeSnippet} = Constants
+const {StateRecord, ConversationStateRecord, makeSnippet} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
