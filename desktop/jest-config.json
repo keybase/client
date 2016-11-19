@@ -1,8 +1,0 @@
-{
-  "rootDir": "..",
-  "testPathDirs": ["<rootDir>/desktop", "<rootDir>/shared"],
-  "transform": {
-    ".+\\.js$": "<rootDir>/desktop/test/babel-transformer.js"
-  },
-  "modulePaths": ["<rootDir>/desktop/node_modules"]
-}
