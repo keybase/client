@@ -15,7 +15,6 @@ import type {State as SearchState} from '../reducers/search'
 import type {State as SettingsState} from '../constants/settings'
 import type {State as TotalTrackerState} from '../reducers/tracker'
 import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
-import type {State as WindowState} from '../constants/window'
 
 export type TypedState = {
   config: ConfigState,
@@ -34,7 +33,6 @@ export type TypedState = {
   signup: SignupState,
   tracker: TotalTrackerState,
   unlockFolders: UnlockFoldersState,
-  window: WindowState,
 }
 
 // TODO swap State with TypedState when TypedState includes everything we care about
