@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import React from 'react'
 import openURL from '../util/open-url'
 import {Box, Icon, Text, Button, Input, PlatformIcon} from '../common-adapters'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
@@ -24,10 +24,6 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
   return null
 }
 
-type State = {
-  username: string,
-}
-
 function customError (error: string, code: ?number) {
   if (code === ConstantsStatusCode.scprofilenotpublic) {
     return <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
@@ -41,52 +37,30 @@ function customError (error: string, code: ?number) {
   return <Text style={styleErrorBannerText} type='BodySemibold'>{error}</Text>
 }
 
-class PrivateEnterUsernameRender extends Component<void, Props, State> {
-  state: State;
+const PrivateEnterUsernameRender = (props: Props) => {
+  const {headerText, floatingLabelText, hintText} = platformText[props.platform]
 
-  constructor (props: Props) {
-    super(props)
-    this.state = {
-      username: '',
-    }
-  }
-
-  handleUsernameChange (username: string) {
-    if (this.props.onUsernameChange) {
-      this.props.onUsernameChange(username)
-    }
-    this.setState({username})
-  }
-
-  handleContinue () {
-    this.props.onContinue(this.state.username)
-  }
-
-  render () {
-    const {headerText, floatingLabelText, hintText} = platformText[this.props.platform]
-
-    return (
-      <Box style={styleContainer}>
-        <Icon style={styleClose} type='iconfont-close' onClick={this.props.onCancel} />
-        {this.props.errorText && <Box style={styleErrorBanner}>{customError(this.props.errorText, this.props.errorCode)}</Box>}
-        <Text type='Header' style={{marginBottom: globalMargins.medium}}>{headerText}</Text>
-        <PlatformIcon platform={this.props.platform} overlay={'icon-proof-unfinished'} overlayColor={globalColors.grey} />
-        <Input
-          autoFocus={true}
-          style={styleInput}
-          floatingHintTextOverride={floatingLabelText}
-          hintText={hintText}
-          value={this.state.username}
-          onChangeText={username => this.handleUsernameChange(username)}
-          onEnterKeyDown={() => this.handleContinue()} />
-        <UsernameTips platform={this.props.platform} />
-        <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
-          <Button type='Secondary' onClick={this.props.onCancel} label='Cancel' />
-          <Button type='Primary' disabled={!this.props.canContinue} onClick={() => this.handleContinue()} label='Continue' />
-        </Box>
+  return (
+    <Box style={styleContainer}>
+      <Icon style={styleClose} type='iconfont-close' onClick={props.onCancel} />
+      {props.errorText && <Box style={styleErrorBanner}>{customError(props.errorText, props.errorCode)}</Box>}
+      <Text type='Header' style={{marginBottom: globalMargins.medium}}>{headerText}</Text>
+      <PlatformIcon platform={props.platform} overlay={'icon-proof-unfinished'} overlayColor={globalColors.grey} />
+      <Input
+        autoFocus={true}
+        style={styleInput}
+        floatingHintTextOverride={floatingLabelText}
+        hintText={hintText}
+        value={props.username}
+        onChangeText={props.onUsernameChange}
+        onEnterKeyDown={() => { props.canContinue && props.onContinue() }} />
+      <UsernameTips platform={props.platform} />
+      <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
+        <Button type='Secondary' onClick={props.onCancel} label='Cancel' />
+        <Button type='Primary' disabled={!props.canContinue} onClick={props.onContinue} label='Continue' />
       </Box>
-    )
-  }
+    </Box>
+  )
 }
 
 const styleErrorBanner = {

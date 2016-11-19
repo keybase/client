@@ -1,18 +1,19 @@
 // @flow
 import React, {Component} from 'react'
-import {isMobile} from '../constants/platform'
-import {search, selectPlatform, addUserToGroup, removeUserFromGroup, selectUserForInfo, hideUserGroup, reset} from '../actions/search'
-import Render from './render'
-import {TypedConnector} from '../util/typed-connect'
-import {searchResultToAssertion} from '../constants/search'
-import {privateFolderWithUsers, publicFolderWithUsers} from '../constants/config'
-import {openInKBFS} from '../actions/kbfs'
-import {routeAppend} from '../actions/router'
+import Render from './'
 import UserPane from './user-pane'
+import {HOCForm} from '../common-adapters'
+import {TypedConnector} from '../util/typed-connect'
+import {isMobile} from '../constants/platform'
+import {openInKBFS} from '../actions/kbfs'
+import {privateFolderWithUsers, publicFolderWithUsers} from '../constants/config'
+import {routeAppend} from '../actions/router'
+import {search, selectPlatform, addUserToGroup, removeUserFromGroup, selectUserForInfo, hideUserGroup, reset} from '../actions/search'
+import {searchResultToAssertion} from '../constants/search'
 
 import type {TypedState} from '../constants/reducer'
 import type {FSOpen} from '../constants/kbfs'
-import type {Props} from './render'
+import type {Props} from './'
 import type {SearchActions} from '../constants/search'
 import type {TypedDispatch} from '../constants/types/flux'
 
@@ -48,7 +49,7 @@ export default connector.connect(
      waiting,
      onClickResult: user => { dispatch(addUserToGroup(user)) },
      selectedService: searchPlatform,
-     onSearch: (term, selectedPlatform) => { dispatch(search(term, selectedPlatform || searchPlatform)) },
+     onSearch: term => { dispatch(search(term)) },
      onClickService: platform => { searchPlatform !== platform && dispatch(selectPlatform(platform)) },
      showUserGroup,
      selectedUsers,
@@ -60,4 +61,4 @@ export default connector.connect(
      onOpenPublicGroupFolder: () => { username && dispatch(openInKBFS(publicFolderWithUsers(selectedUsers.map(searchResultToAssertion)))) },
      onGroupChat: () => { console.log('TODO open group chat') },
      chatEnabled: false,
-   }))(Search)
+   }))(HOCForm(Search, {valueName: 'searchText', updateValueName: 'onSearch', updateValueDebounce: 500}))

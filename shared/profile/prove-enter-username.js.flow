@@ -11,7 +11,7 @@ export type Props = {
   errorCode: ?number,
   canContinue?: boolean,
   onUsernameChange?: (username: string) => void,
-  onContinue: (username: string) => void,
+  onContinue: () => void,
   onCancel: () => void,
 }
 
