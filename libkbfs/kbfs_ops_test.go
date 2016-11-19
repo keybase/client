@@ -594,7 +594,7 @@ func makeBP(id BlockID, kmd KeyMetadata, config Config,
 	return BlockPointer{
 		ID:      id,
 		KeyGen:  kmd.LatestKeyGeneration(),
-		DataVer: DefaultNewBlockDataVersion(config, false),
+		DataVer: DefaultNewBlockDataVersion(false),
 		BlockContext: BlockContext{
 			Creator: u,
 			// Refnonces not needed; explicit refnonce

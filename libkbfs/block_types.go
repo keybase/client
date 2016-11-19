@@ -185,7 +185,7 @@ func (fb FileBlock) DeepCopy(codec kbfscodec.Codec) (*FileBlock, error) {
 }
 
 // DefaultNewBlockDataVersion returns the default data version for new blocks.
-func DefaultNewBlockDataVersion(c Config, holes bool) DataVer {
+func DefaultNewBlockDataVersion(holes bool) DataVer {
 	if holes {
 		return FilesWithHolesDataVer
 	}
