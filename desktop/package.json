@@ -31,7 +31,7 @@
     "start-hot": "npm run _helper start-hot",
     "start-hot-debug": "npm run _helper start-hot-debug",
     "start-prod": "npm run _helper start-prod",
-    "test": "cd ../shared && jest --config=../desktop/test/jest-config.json",
+    "test": "cd ../shared && jest --config=../desktop/test/jest-config.json --coverage",
     "undiff-log": "npm run _helper undiff-log",
     "updated-fonts": "npm run _helper updated-fonts",
     "vendor-install": "node npm-vendor.js",
