@@ -14,7 +14,7 @@
 
 ### Test Installer
 
-./build/KeybaseInstaller.app/Contents/MacOS/Keybase --app-path=/Applications/Keybase.app --run-mode=prod
+./build/KeybaseInstaller.app/Contents/MacOS/Keybase --app-path=/Applications/Keybase.app --run-mode=prod --timeout=10
 
 ### Releasing Installer
 

@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"encoding/hex"
+
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -196,6 +198,8 @@ func (d DelivererSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal
 	return keybase1.GetPassphraseRes{}, fmt.Errorf("no secret UI available")
 }
 
+const deliverMaxAttempts = 5
+
 type Deliverer struct {
 	libkb.Contextified
 	sync.Mutex
@@ -256,6 +260,14 @@ func (s *Deliverer) doStop() {
 	}
 }
 
+func (s *Deliverer) ForceDeliverLoop() {
+	s.msgSentCh <- struct{}{}
+}
+
+func (s *Deliverer) SetSender(sender Sender) {
+	s.sender = sender
+}
+
 func (s *Deliverer) Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, error) {
 
 	s.debug("queued new message: convID: %s uid: %s", convID, s.outbox.GetUID())
@@ -301,10 +313,45 @@ func (s *Deliverer) deliverLoop() {
 		// Send messages
 		pops := 0
 		for _, obr := range obrs {
-			_, _, _, err := s.sender.Send(context.Background(), obr.ConvID, obr.Msg, 0)
+
+			// Check type
+			state, err := obr.State.State()
 			if err != nil {
-				s.G().Log.Error("failed to send msg: uid: %s convID: %s err: %s", s.outbox.GetUID(),
-					obr.ConvID, err.Error())
+				s.G().Log.Error("strange entry in the outbox, invalid type: %s", err.Error())
+			}
+			if state != chat1.OutboxStateType_SENDING {
+				s.debug("skipping error state record: id: %s convID: %s uid: %s",
+					hex.EncodeToString(obr.OutboxID), obr.ConvID, s.outbox.GetUID())
+				continue
+			}
+
+			// Do the actual send
+			_, _, _, err = s.sender.Send(context.Background(), obr.ConvID, obr.Msg, 0)
+			if err != nil {
+				s.G().Log.Error("failed to send msg: uid: %s convID: %s err: %s attempts: %d",
+					s.outbox.GetUID(), obr.ConvID, err.Error(), obr.State.Sending())
+
+				// Process failure
+				if obr.State.Sending() > deliverMaxAttempts {
+					// Mark the entire outbox as an error if we can't send
+					s.debug("max failure attempts reached, marking all as errors and notifying")
+					obids, err := s.outbox.MarkAllAsError()
+					if err != nil {
+						s.G().Log.Error("unable to mark as error on outbox: uid: %s err: %s",
+							s.outbox.GetUID(), err.Error())
+					}
+					act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
+						OutboxIDs: obids,
+					})
+					s.G().NotifyRouter.HandleNewChatActivity(context.Background(),
+						keybase1.UID(s.outbox.GetUID().String()), &act)
+				} else {
+					if err = s.outbox.RecordFailedAttempt(obr.OutboxID); err != nil {
+						s.G().Log.Error("unable to record failed attempt on outbox: uid %s err: %s",
+							s.outbox.GetUID(), err.Error())
+					}
+				}
+
 				break
 			}
 			pops++

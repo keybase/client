@@ -112,6 +112,19 @@ export const NotifyChatChatActivityType = {
   readMessage: 2,
   newConversation: 3,
   setStatus: 4,
+  failedMessage: 5,
+}
+
+export function localCancelPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.CancelPost'})
+}
+
+export function localCancelPostRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localCancelPostRpc({...request, incomingCallMap, callback}))
+}
+
+export function localCancelPostRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { localCancelPostRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function localDownloadAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>) {
@@ -244,6 +257,18 @@ export function localPostLocalRpcChannelMap (channelConfig: ChannelConfig<*>, re
 
 export function localPostLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostLocalResult) => void} & {param: localPostLocalRpcParam}>): Promise<localPostLocalResult> {
   return new Promise((resolve, reject) => { localPostLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function localRetryPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localRetryPostRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.RetryPost'})
+}
+
+export function localRetryPostRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: localRetryPostRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localRetryPostRpc({...request, incomingCallMap, callback}))
+}
+
+export function localRetryPostRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: localRetryPostRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { localRetryPostRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function localSetConversationStatusLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localSetConversationStatusLocalResult) => void} & {param: localSetConversationStatusLocalRpcParam}>) {
@@ -414,6 +439,7 @@ export type Asset = {
   key: bytes,
   verifyKey: bytes,
   title: string,
+  nonce: bytes,
 }
 
 export type BodyPlaintext = 
@@ -431,6 +457,7 @@ export type ChatActivity =
   | { activityType : 2, readMessage : ?ReadMessageInfo }
   | { activityType : 3, newConversation : ?NewConversationInfo }
   | { activityType : 4, setStatus : ?SetStatusInfo }
+  | { activityType : 5, failedMessage : ?FailedMessageInfo }
 
 export type ChatActivityType = 
     0 // RESERVED_0
@@ -438,6 +465,7 @@ export type ChatActivityType =
   | 2 // READ_MESSAGE_2
   | 3 // NEW_CONVERSATION_3
   | 4 // SET_STATUS_4
+  | 5 // FAILED_MESSAGE_5
 
 export type Conversation = {
   metadata: ConversationMetadata,
@@ -499,6 +527,10 @@ export type EncryptedData = {
   v: int,
   e: bytes,
   n: bytes,
+}
+
+export type FailedMessageInfo = {
+  outboxIDs?: ?Array<OutboxID>,
 }
 
 export type GenericPayload = {
@@ -633,6 +665,7 @@ export type HeaderPlaintextV1 = {
   senderDevice: gregor1.DeviceID,
   bodyHash: Hash,
   outboxInfo?: ?OutboxInfo,
+  outboxID?: ?OutboxID,
   headerSignature?: ?SignatureInfo,
 }
 
@@ -972,6 +1005,10 @@ export type chatUiChatAttachmentUploadProgressRpcParam = Exact<{
   bytesTotal: int
 }>
 
+export type localCancelPostRpcParam = Exact<{
+  outboxID: OutboxID
+}>
+
 export type localDownloadAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   messageID: MessageID,
@@ -1033,6 +1070,10 @@ export type localPostLocalNonblockRpcParam = Exact<{
 export type localPostLocalRpcParam = Exact<{
   conversationID: ConversationID,
   msg: MessagePlaintext
+}>
+
+export type localRetryPostRpcParam = Exact<{
+  outboxID: OutboxID
 }>
 
 export type localSetConversationStatusLocalRpcParam = Exact<{
@@ -1145,7 +1186,8 @@ type remoteS3SignResult = bytes
 type remoteSetConversationStatusResult = SetConversationStatusRes
 
 export type rpc =
-    localDownloadAttachmentLocalRpc
+    localCancelPostRpc
+  | localDownloadAttachmentLocalRpc
   | localGetConversationForCLILocalRpc
   | localGetInboxAndUnboxLocalRpc
   | localGetInboxLocalRpc
@@ -1156,6 +1198,7 @@ export type rpc =
   | localPostAttachmentLocalRpc
   | localPostLocalNonblockRpc
   | localPostLocalRpc
+  | localRetryPostRpc
   | localSetConversationStatusLocalRpc
   | remoteGetInboxRemoteRpc
   | remoteGetMessagesRemoteRpc
