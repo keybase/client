@@ -29,8 +29,12 @@ const ConversationList = ({inbox, onSelectConversation, selectedConversation, on
       <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
       <Text type='BodyBigLink'>New chat</Text>
     </Box>
-    {inbox.map(conversation => (
-      <Box
+    {inbox.map(conversation => {
+      // Get participants (don't include ourself) unless the only participant is ourself
+      let participants = conversation.get('participants').filter(p => !p.you)
+      if (participants.count() === 0) participants = conversation.get('participants')
+
+      return (<Box
         onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
         title={`${conversation.get('unreadCount')} unread`}
         style={{
@@ -51,8 +55,8 @@ const ConversationList = ({inbox, onSelectConversation, selectedConversation, on
           </Box>
         </Box>
         <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{_timestamp(conversation.get('time'), nowOverride)}</Text>
-      </Box>
-    ))}
+      </Box>)
+    })}
   </Box>
 )
 
