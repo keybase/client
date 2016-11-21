@@ -86,7 +86,7 @@ func (s *BlockingSender) addPrevPointersToMessage(ctx context.Context, msg chat1
 	res, err := s.G().ConvSource.PullLocalOnly(context.Background(), convID, msg.ClientHeader.Sender, nil, nil)
 	switch err.(type) {
 	case libkb.ChatStorageMissError:
-		s.G().Log.Warning("No local messages; skipping prev pointers")
+		s.G().Log.Debug("No local messages; skipping prev pointers")
 	case nil:
 		prevs, err = CheckPrevPointersAndGetUnpreved(&res)
 		if err != nil {
