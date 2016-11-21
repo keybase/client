@@ -157,7 +157,7 @@ func (s Service) Stop(wait time.Duration) (bool, error) {
 			return false, waitErr
 		}
 	}
-	s.log.Info("Stopped %s (wait=%s)", s.label, wait)
+	s.log.Info("Stopped %s", s.label)
 	return true, nil
 }
 

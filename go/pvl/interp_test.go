@@ -479,6 +479,88 @@ var interpUnitTests = []interpUnitTest{
 		shouldwork: false,
 	},
 
+	// ## ReplaceAll
+	{
+		name:      "ReplaceAll-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "a" } },
+{"replace_all": {
+  "old": "foo",
+  "new": "pow",
+  "from": "a",
+  "into": "b" } },
+{"assert_regex_match": {
+  "pattern": "^pow bar powz barz$",
+  "from": "b" } }
+]]`},
+		service:    keybase1.ProofType_GENERIC_WEB_SITE,
+		restype:    libkb.XAPIResText,
+		restext:    "foo bar fooz barz",
+		shouldwork: true,
+	}, {
+		name:      "ReplaceAll-ok-no-matches",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "a" } },
+{"replace_all": {
+  "old": "foo",
+  "new": "pow",
+  "from": "a",
+  "into": "b" } },
+{"assert_regex_match": {
+  "pattern": "^%{a}$",
+  "from": "b" } }
+]]`},
+		service:    keybase1.ProofType_GENERIC_WEB_SITE,
+		restype:    libkb.XAPIResText,
+		restext:    "glue bar gluez barz",
+		shouldwork: true,
+	}, {
+		// Test unescaping the weird escaping that facebook comments use.
+		name:      "ReplaceAll-ok-facebook",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GENERIC_WEB_SITE: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } },
+{"replace_all": {
+  "old": "-\\-\\",
+  "new": "--",
+  "from": "tmp1",
+  "into": "tmp2" } },
+{"replace_all": {
+  "old": "\\\\",
+  "new": "\\",
+  "from": "tmp2",
+  "into": "tmp3" } },
+{"assert_regex_match": {
+  "pattern": "^double -- back \\\\$",
+  "from": "tmp3" } },
+{"fill": {
+  "with": "double -- back \\",
+  "into": "ref" } },
+{"assert_compare": {
+  "cmp": "exact",
+  "a": "tmp3",
+  "b": "ref" } }
+]]`},
+		service:    keybase1.ProofType_GENERIC_WEB_SITE,
+		restype:    libkb.XAPIResText,
+		restext:    "double -\\-\\ back \\\\",
+		shouldwork: true,
+	},
+
 	// ## ParseURL
 	{
 		name:      "ParseURL-ok",
@@ -582,6 +664,31 @@ var interpUnitTests = []interpUnitTest{
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResJSON,
 		resjson:    json1,
+		shouldwork: true,
+	},
+
+	// ## ParseHTML
+	{
+		name:      "ParseHTML-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } },
+{"parse_html": {
+  "from": "tmp1" } },
+{"selector_css": {
+  "selectors": ["p", 2],
+  "into": "tmp2" } },
+{"assert_regex_match": {
+  "pattern": "^c$",
+  "from": "tmp2" } }
+]]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResText,
+		restext:    "<p>a</p><p>b</p><p>c</p>",
 		shouldwork: true,
 	},
 
@@ -821,6 +928,35 @@ var interpUnitTests = []interpUnitTest{
 		service:    keybase1.ProofType_GITHUB,
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
+		shouldwork: true,
+	}, {
+		name:      "SelectorCSS-ok-contents",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "html",
+  "from": "hint_url" } },
+{"selector_css": {
+  "selectors": [".a .b", {"contents": true}],
+  "multi": true,
+  "data": true,
+  "into": "tmp1" } },
+{"whitespace_normalize": {
+  "from": "tmp1",
+  "into": "tmp2" } },
+{"replace_all": {
+  "old": " ",
+  "new": "",
+  "from": "tmp2",
+  "into": "tmp3" } },
+{"assert_regex_match": {
+  "pattern": "^cowabunga$",
+  "from": "tmp3" } }
+]]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResHTML,
+		reshtml:    html2,
 		shouldwork: true,
 	},
 
@@ -1271,6 +1407,9 @@ var interpUnitTests = []interpUnitTest{
 		errstatus:  keybase1.ProofStatus_INVALID_PVL,
 	},
 
+	// ## (Invalid) ReplaceAll
+	// No tests
+
 	// ## (Invalid) Fetch
 	{
 		name:      "Fetch-invalid-type",
@@ -1322,6 +1461,9 @@ var interpUnitTests = []interpUnitTest{
 		errstatus:  keybase1.ProofStatus_INVALID_PVL,
 	},
 
+	// ## (Invalid) ParseHTML
+	// No tests
+
 	// ## (Invalid) SelectorJSON
 	{
 		name:      "SelectorJSON-invalid-scripttype",
@@ -1367,6 +1509,23 @@ var interpUnitTests = []interpUnitTest{
   "from": "hint_url" } },
 {"selector_json": {
   "selectors": [],
+  "into": "tmp1" } }
+]]`},
+		service:    keybase1.ProofType_GITHUB,
+		restype:    libkb.XAPIResJSON,
+		resjson:    json1,
+		shouldwork: false,
+		errstatus:  keybase1.ProofStatus_INVALID_PVL,
+	}, {
+		name:      "SelectorJSON-invalid-contents",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_GITHUB: `[[
+{"fetch": {
+  "kind": "json",
+  "from": "hint_url" } },
+{"selector_json": {
+  "selectors": [{"contents": true}],
   "into": "tmp1" } }
 ]]`},
 		service:    keybase1.ProofType_GITHUB,

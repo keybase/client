@@ -96,6 +96,7 @@ func (o *Outbox) PushMessage(convID chat1.ConversationID, msg chat1.MessagePlain
 	outboxID := chat1.OutboxID(rbs)
 	msg.ClientHeader.OutboxID = &outboxID
 	obox.Records = append(obox.Records, chat1.OutboxRecord{
+		State:    chat1.NewOutboxStateWithSending(0),
 		Msg:      msg,
 		ConvID:   convID,
 		OutboxID: outboxID,
@@ -150,8 +151,7 @@ func (o *Outbox) PopNOldestMessages(n int) error {
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error reading outbox: err: %s", err.Error()))
+		return o.maybeNuke(err)
 	}
 
 	// Pop N off front
@@ -167,6 +167,129 @@ func (o *Outbox) PopNOldestMessages(n int) error {
 	return nil
 }
 
+func (o *Outbox) RecordFailedAttempt(obid chat1.OutboxID) error {
+	o.Lock()
+	defer o.Unlock()
+
+	// Read outbox for the user
+	obox, err := o.readDiskOutbox()
+	if err != nil {
+		return o.maybeNuke(err)
+	}
+
+	// Loop through and find record
+	var recs []chat1.OutboxRecord
+	for _, obr := range obox.Records {
+		if obr.OutboxID.Eq(obid) {
+			state, err := obr.State.State()
+			if err != nil {
+				return err
+			}
+			if state == chat1.OutboxStateType_SENDING {
+				obr.State = chat1.NewOutboxStateWithSending(obr.State.Sending() + 1)
+			}
+		}
+
+		recs = append(recs, obr)
+	}
+
+	// Write out box
+	obox.Records = recs
+	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
+		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
+			"error writing outbox: err: %s", err.Error()))
+	}
+
+	return nil
+}
+
+func (o *Outbox) RetryMessage(obid chat1.OutboxID) error {
+	o.Lock()
+	defer o.Unlock()
+
+	// Read outbox for the user
+	obox, err := o.readDiskOutbox()
+	if err != nil {
+		return o.maybeNuke(err)
+	}
+
+	// Loop through and find record
+	var recs []chat1.OutboxRecord
+	for _, obr := range obox.Records {
+		if obr.OutboxID.Eq(obid) {
+			obr.State = chat1.NewOutboxStateWithSending(0)
+		}
+		recs = append(recs, obr)
+	}
+
+	// Write out box
+	obox.Records = recs
+	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
+		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
+			"error writing outbox: err: %s", err.Error()))
+	}
+
+	return nil
+}
+
+func (o *Outbox) MarkAllAsError() ([]chat1.OutboxID, error) {
+	o.Lock()
+	defer o.Unlock()
+
+	// Read outbox for the user
+	obox, err := o.readDiskOutbox()
+	if err != nil {
+		return nil, o.maybeNuke(err)
+	}
+
+	// Loop through and find record
+	var recs []chat1.OutboxRecord
+	var res []chat1.OutboxID
+	for _, obr := range obox.Records {
+		obr.State = chat1.NewOutboxStateWithError("failed to send")
+		recs = append(recs, obr)
+		res = append(res, obr.OutboxID)
+	}
+
+	// Write out box
+	obox.Records = recs
+	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
+		return res, o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
+			"error writing outbox: err: %s", err.Error()))
+	}
+
+	return res, nil
+}
+
+func (o *Outbox) MarkAsError(obid chat1.OutboxID) error {
+	o.Lock()
+	defer o.Unlock()
+
+	// Read outbox for the user
+	obox, err := o.readDiskOutbox()
+	if err != nil {
+		return o.maybeNuke(err)
+	}
+
+	// Loop through and find record
+	var recs []chat1.OutboxRecord
+	for _, obr := range obox.Records {
+		if obr.OutboxID.Eq(obid) {
+			obr.State = chat1.NewOutboxStateWithError("failed to send")
+		}
+		recs = append(recs, obr)
+	}
+
+	// Write out box
+	obox.Records = recs
+	if err := o.writeDiskBox(o.dbKey(), obox); err != nil {
+		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
+			"error writing outbox: err: %s", err.Error()))
+	}
+
+	return nil
+}
+
 func (o *Outbox) RemoveMessage(obid chat1.OutboxID) error {
 	o.Lock()
 	defer o.Unlock()
@@ -174,8 +297,7 @@ func (o *Outbox) RemoveMessage(obid chat1.OutboxID) error {
 	// Read outbox for the user
 	obox, err := o.readDiskOutbox()
 	if err != nil {
-		return o.maybeNuke(libkb.NewChatStorageInternalError(o.G(),
-			"error reading outbox: err: %s", err.Error()))
+		return o.maybeNuke(err)
 	}
 
 	// Scan to find the message and don't include it

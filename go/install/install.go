@@ -177,7 +177,7 @@ func KBFSBundleVersion(context Context, binPath string) (string, error) {
 	return kbfsVersion, nil
 }
 
-func createCommandLine(binPath string, linkPath string) error {
+func createCommandLine(binPath string, linkPath string, log Log) error {
 	if _, err := os.Lstat(linkPath); err == nil {
 		err := os.Remove(linkPath)
 		if err != nil {
@@ -185,6 +185,7 @@ func createCommandLine(binPath string, linkPath string) error {
 		}
 	}
 
+	log.Info("Linking %s to %s", linkPath, binPath)
 	return os.Symlink(binPath, linkPath)
 }
 
@@ -200,17 +201,23 @@ func defaultLinkPath() (string, error) {
 	return linkPath, nil
 }
 
-func uninstallCommandLine() error {
+func uninstallCommandLine(log Log) error {
 	linkPath, err := defaultLinkPath()
+	if err != nil {
+		return nil
+	}
 
+	log.Debug("Link path: %s", linkPath)
 	fi, err := os.Lstat(linkPath)
 	if os.IsNotExist(err) {
+		log.Debug("Path doesn't exist: %s", linkPath)
 		return nil
 	}
 	isLink := (fi.Mode()&os.ModeSymlink != 0)
 	if !isLink {
 		return fmt.Errorf("Path is not a symlink: %s", linkPath)
 	}
+	log.Info("Removing %s", linkPath)
 	return os.Remove(linkPath)
 }
 

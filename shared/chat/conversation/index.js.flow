@@ -8,6 +8,7 @@ export type Props = {
   isLoading: boolean,
   loadMoreMessages: () => void,
   messages: List<Message>,
+  participants: List<ParticipantItem>,
   moreToLoad: boolean,
   onAddParticipant: () => void,
   onOpenFolder: () => void,

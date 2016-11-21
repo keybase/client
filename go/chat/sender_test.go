@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -20,8 +21,9 @@ import (
 
 type chatListener struct {
 	sync.Mutex
-	obids  []chat1.OutboxID
-	action chan int
+	obids    []chat1.OutboxID
+	incoming chan int
+	failing  chan []chat1.OutboxID
 }
 
 func (n *chatListener) Logout()                                                      {}
@@ -42,11 +44,15 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	n.Lock()
 	defer n.Unlock()
 	typ, err := activity.ActivityType()
-	if err == nil && typ == chat1.ChatActivityType_INCOMING_MESSAGE {
-		header := activity.IncomingMessage().Message.Valid().ClientHeader
-		if header.OutboxID != nil {
-			n.obids = append(n.obids, *activity.IncomingMessage().Message.Valid().ClientHeader.OutboxID)
-			n.action <- len(n.obids)
+	if err == nil {
+		if typ == chat1.ChatActivityType_INCOMING_MESSAGE {
+			header := activity.IncomingMessage().Message.Valid().ClientHeader
+			if header.OutboxID != nil {
+				n.obids = append(n.obids, *activity.IncomingMessage().Message.Valid().ClientHeader.OutboxID)
+				n.incoming <- len(n.obids)
+			}
+		} else if typ == chat1.ChatActivityType_FAILED_MESSAGE {
+			n.failing <- activity.FailedMessage().OutboxIDs
 		}
 	}
 }
@@ -72,7 +78,8 @@ func setupTest(t *testing.T) (libkb.TestContext, chat1.RemoteInterface, *kbtest.
 	baseSender := NewBlockingSender(tc.G, boxer, func() chat1.RemoteInterface { return ri }, f)
 	sender := NewNonblockingSender(tc.G, baseSender)
 	listener := chatListener{
-		action: make(chan int),
+		incoming: make(chan int),
+		failing:  make(chan []chat1.OutboxID),
 	}
 	tc.G.ConvSource = NewRemoteConversationSource(tc.G, boxer, ri)
 	tc.G.NotifyRouter.SetListener(&listener)
@@ -113,7 +120,7 @@ func TestNonblockChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	select {
-	case <-listener.action:
+	case <-listener.incoming:
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "event not received")
 	}
@@ -211,7 +218,7 @@ func TestNonblockTimer(t *testing.T) {
 
 	// Make we get nothing until timer is up
 	select {
-	case <-listener.action:
+	case <-listener.incoming:
 		require.Fail(t, "action event received too soon")
 	default:
 	}
@@ -249,7 +256,7 @@ func TestNonblockTimer(t *testing.T) {
 	var olen int
 	for i := 0; i < 5; i++ {
 		select {
-		case olen = <-listener.action:
+		case olen = <-listener.incoming:
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "event not received")
 		}
@@ -261,8 +268,71 @@ func TestNonblockTimer(t *testing.T) {
 	// Make sure it is really empty
 	clock.Advance(5 * time.Minute)
 	select {
-	case <-listener.action:
+	case <-listener.incoming:
 		require.Fail(t, "action event received too soon")
 	default:
 	}
+}
+
+type FailingSender struct {
+}
+
+func (f FailingSender) Send(ctx context.Context, convID chat1.ConversationID,
+	msg chat1.MessagePlaintext, clientPrev chat1.MessageID) (chat1.OutboxID, chat1.MessageID, *chat1.RateLimit, error) {
+	return chat1.OutboxID{}, 0, nil, fmt.Errorf("I always fail!!!!")
+}
+
+func (f FailingSender) Prepare(ctx context.Context, msg chat1.MessagePlaintext, convID *chat1.ConversationID) (*chat1.MessageBoxed, error) {
+	return nil, nil
+}
+
+func TestFailing(t *testing.T) {
+
+	tc, ri, u, sender, _, listener, _, _ := setupTest(t)
+	defer tc.Cleanup()
+
+	res, err := ri.NewConversationRemote2(context.TODO(), chat1.NewConversationRemote2Arg{
+		IdTriple: chat1.ConversationIDTriple{
+			Tlfid:     []byte{4, 5, 6},
+			TopicType: 0,
+			TopicID:   []byte{0},
+		},
+		TLFMessage: chat1.MessageBoxed{
+			ClientHeader: chat1.MessageClientHeader{
+				TlfName:   u.Username,
+				TlfPublic: false,
+			},
+			KeyGeneration: 1,
+		},
+	})
+	require.NoError(t, err)
+
+	tc.G.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
+
+	// Send nonblock
+	var obids []chat1.OutboxID
+	for i := 0; i < 5; i++ {
+		obid, _, _, err := sender.Send(context.TODO(), res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Sender:    u.User.GetUID().ToBytes(),
+				TlfName:   u.Username,
+				TlfPublic: false,
+			},
+		}, 0)
+		require.NoError(t, err)
+		obids = append(obids, obid)
+	}
+	for i := 0; i < deliverMaxAttempts; i++ {
+		tc.G.MessageDeliverer.ForceDeliverLoop()
+	}
+
+	var recvd []chat1.OutboxID
+	select {
+	case recvd = <-listener.failing:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "event not received")
+	}
+
+	require.Equal(t, len(obids), len(recvd), "invalid length")
+	require.Equal(t, obids, recvd, "list mismatch")
 }
