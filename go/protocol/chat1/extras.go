@@ -27,10 +27,6 @@ func MakeConvID(val string) (ConversationID, error) {
 	return hex.DecodeString(val)
 }
 
-func (cid ConversationID) Bytes() []byte {
-	return []byte(cid)
-}
-
 func (cid ConversationID) String() string {
 	return hex.EncodeToString(cid)
 }
@@ -49,7 +45,7 @@ func (cid ConversationID) Less(c ConversationID) bool {
 
 // DbShortForm should only be used when interacting with the database, and should
 // never leave Gregor
-func (cid ConversationID) DbShortForm() ConversationID {
+func (cid ConversationID) DbShortForm() []byte {
 	return cid[:10]
 }
 
