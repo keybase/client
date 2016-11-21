@@ -20,6 +20,7 @@ export type ConversationIDKey = string
 export type ParticipantItem = UserListItem
 
 export type MessageID = RPCMessageID
+export type Message = TextMessage | ErrorMessage | UnhandledMessage | TimestampMessage
 
 export type TextMessage = {
   type: 'Text',
@@ -50,7 +51,12 @@ export type UnhandledMessage = {
   messageID: MessageID,
 }
 
-export type Message = TextMessage | ErrorMessage | UnhandledMessage
+export type MessageTimestamp = {
+  type: 'Timestamp',
+  timestamp: number,
+}
+
+export type MaybeTimestamp = MessageTimestamp | null
 
 export const ConversationStateRecord = Record({
   messages: List(),
