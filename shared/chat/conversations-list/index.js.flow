@@ -8,6 +8,7 @@ export type Props = {
   inbox: List<InboxState>,
   onSelectConversation: (key: ConversationIDKey) => void,
   selectedConversation: ConversationIDKey,
+  onNewChat: () => void,
 }
 
 export default class ConversationList extends Component<void, Props, void> { }

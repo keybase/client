@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import moment from 'moment'
-import {Box, Text, Avatar} from '../../common-adapters'
+import {Box, Text, Avatar, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from './'
@@ -20,8 +20,14 @@ function _timestamp (time: number): string {
   return m.format('MMM D')
 }
 
-const ConversationList = ({inbox, onSelectConversation, selectedConversation}: Props) => (
+const ConversationList = ({inbox, onSelectConversation, selectedConversation, onNewChat}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.darkBlue4, width: 240}}>
+    <Box
+      style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, height: 48, justifyContent: 'center', alignItems: 'center'}}
+      onClick={() => onNewChat()}>
+      <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
+      <Text type='BodyBigLink'>New chat</Text>
+    </Box>
     {inbox.map(conversation => (
       <Box
         onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}

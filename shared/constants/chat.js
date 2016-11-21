@@ -98,6 +98,8 @@ export const incomingMessage = 'chat:incomingMessage'
 export const postMessage = 'chat:postMessage'
 export const updateBadge = 'chat:updateBadge'
 export const pendingMessageWasSent = 'chat:pendingMessageWasSent'
+export const newChat = 'chat:newChat'
+export const startConversation = 'chat:startConversation'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
@@ -110,7 +112,10 @@ export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler',
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
 export type PendingMessageWasSent = NoErrorTypedAction<'chat:pendingMessageWasSent', {newMessage: Message}>
-export type Actions = AppendMessages | LoadMoreMessages | PrependMessages | SelectConversation | LoadInbox | LoadedInbox
+export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
+export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
+
+export type Actions = AppendMessages | LoadMoreMessages | PrependMessages | SelectConversation | LoadInbox | LoadedInbox | NewChat | StartConversation
 
 function conversationIDToKey (conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('base64')
