@@ -572,7 +572,12 @@ func (j *mdJournal) convertToBranch(
 	ctx context.Context, bid BranchID, signer kbfscrypto.Signer,
 	codec kbfscodec.Codec, tlfID tlf.ID, mdcache MDCache) (err error) {
 	if j.branchID != NullBranchID {
-		return fmt.Errorf("convertToBranch called with BID=%s", j.branchID)
+		return fmt.Errorf(
+			"convertToBranch called with j.branchID=%s", j.branchID)
+	}
+	if bid == NullBranchID {
+		return fmt.Errorf(
+			"convertToBranch called with null branchID")
 	}
 
 	earliestRevision, err := j.j.readEarliestRevision()

@@ -635,6 +635,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			return nil
 		}
 
+		/*  Will uncomment when the rest of KBFS-1653 goes in.
 		converted, err := j.convertMDsToBranchIfOverThreshold(ctx)
 		if err != nil {
 			return err
@@ -642,6 +643,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		if converted {
 			return nil
 		}
+		*/
 
 		blockEnd, mdEnd, err := j.getJournalEnds(ctx)
 		if err != nil {
@@ -773,14 +775,9 @@ func (j *tlfJournal) convertMDsToBranchLocked(
 }
 
 func (j *tlfJournal) convertMDsToBranch(ctx context.Context) error {
-	bid := LocalSquashBranchID
-	// Loop just in case we randomly pick the local squash branch ID.
-	for bid == LocalSquashBranchID {
-		var err error
-		bid, err = j.config.Crypto().MakeRandomBranchID()
-		if err != nil {
-			return err
-		}
+	bid, err := j.config.Crypto().MakeRandomBranchID()
+	if err != nil {
+		return err
 	}
 
 	j.journalLock.Lock()

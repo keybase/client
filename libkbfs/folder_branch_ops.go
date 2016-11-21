@@ -4550,7 +4550,8 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 		return err
 	}
 
-	for true {
+	// Loop until we're fully updated on the master branch.
+	for {
 		if !fbo.isMasterBranch(lState) {
 			if err := fbo.cr.Wait(ctx); err != nil {
 				return err
