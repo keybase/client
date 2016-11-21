@@ -32,8 +32,8 @@ const ConversationList = ({inbox, onSelectConversation, selectedConversation, on
     {inbox.map(conversation => {
       // Get participants (don't include ourself) unless the only participant is ourself
       let participants = conversation.get('participants').filter(p => !p.you)
-      if (participants.count() == 0) participants = conversation.get('participants')
-      if (participants.count() == 0) return null
+      if (participants.count() === 0) participants = conversation.get('participants')
+      if (participants.count() === 0) return null
 
       return (
         <Box
