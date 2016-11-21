@@ -8,23 +8,6 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props} from './markdown'
 import type {PropsOf} from '../constants/types/more'
 
-// Order matters, since we want to match the longer ticks first
-const openToClosePair = {
-  '```': '```',
-  '`': '`',
-  '*': '*',
-  '_': '_',
-  '~': '~',
-}
-
-const markToRegex = {
-  '```': '```',
-  '`': '`',
-  '*': '\\*',
-  '_': '_',
-  '~': '~',
-}
-
 type TagInfo<C> = {Component: Class<C>, props: PropsOf<C>}
 
 const codeSnippetStyle = {
@@ -49,6 +32,24 @@ const codeSnippetBlockStyle = {
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
   whiteSpace: 'pre',
+}
+
+// Order matters, since we want to match the longer ticks first
+const openToClosePair = {
+  '```': '```',
+  '`': '`',
+  '*': '*',
+  '_': '_',
+  '~': '~',
+}
+
+// We have to escape certain marks when turning them into a regex
+const markToRegex = {
+  '```': '```',
+  '`': '`',
+  '*': '\\*',
+  '_': '_',
+  '~': '~',
 }
 
 const initialOpenToTag = {
