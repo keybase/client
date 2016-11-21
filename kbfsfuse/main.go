@@ -33,6 +33,7 @@ To run against remote KBFS servers:
     [-bserver=%s] [-mdserver=%s]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
     [-log-to-file] [-log-file=path/to/file] [-md-version=version]
+		[-clean-bcache-cap=0]
     %s/path/to/mountpoint
 
 To run in a local testing environment:
@@ -40,6 +41,7 @@ To run in a local testing environment:
     [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
     [-log-to-file] [-log-file=path/to/file] [-md-version=version]
+		[-clean-bcache-cap=0]
     %s/path/to/mountpoint
 
 `

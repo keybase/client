@@ -343,6 +343,18 @@
 			"revisionTime": "2015-01-10T16:24:53Z"
 		},
 		{
+			"checksumSHA1": "zJZyxS96XiEnDJSZkWwXtktziRY=",
+			"path": "github.com/shirou/gopsutil/internal/common",
+			"revision": "22a03b5be3f384f558742929065778aa26471033",
+			"revisionTime": "2016-06-14T09:28:26Z"
+		},
+		{
+			"checksumSHA1": "LUipApIqOLcKbZfwXknNCifGles=",
+			"path": "github.com/shirou/gopsutil/mem",
+			"revision": "22a03b5be3f384f558742929065778aa26471033",
+			"revisionTime": "2016-06-14T09:28:26Z"
+		},
+		{
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "c5d7a69bf8a2c9c374798160849c071093e41dd1",
 			"revisionTime": "2016-04-18T22:58:27Z"

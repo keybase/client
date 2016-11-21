@@ -33,6 +33,10 @@ type InitParams struct {
 	// empty, a default value is used depending on the run mode.
 	MDServerAddr string
 
+	// If non-zero, specifies the capacity (in bytes) of the block cache. If
+	// zero, the capacity is set using getDefaultBlockCacheCapacity().
+	CleanBlockCacheCapacity uint64
+
 	// If true, use in-memory servers and ignore BServerAddr,
 	// MDServerAddr, and ServerRootDir.
 	ServerInMemory bool
@@ -158,6 +162,7 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	// The default is to *DELETE* old log files for kbfs.
 	flags.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files", defaultParams.LogFileConfig.MaxKeepFiles, "Maximum number of log files for this service, older ones are deleted. 0 for infinite.")
 	flags.StringVar(&params.WriteJournalRoot, "write-journal-root", defaultParams.WriteJournalRoot, "(EXPERIMENTAL) If non-empty, permits write journals to be turned on for TLFs which will be put in the given directory")
+	flags.Uint64Var(&params.CleanBlockCacheCapacity, "clean-bcache-cap", defaultParams.CleanBlockCacheCapacity, "If non-zero, specify the capacity of clean block cache. If zero, the capacity is set based on system RAM.")
 
 	// No real need to enable setting
 	// params.TLFJournalBackgroundWorkStatus via a flag.
@@ -304,6 +309,13 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 	}()
 
 	config := NewConfigLocal()
+
+	if params.CleanBlockCacheCapacity > 0 {
+		log.Debug("overriding default clean block cache capacity from %d to %d",
+			config.BlockCache().GetCleanBytesCapacity(),
+			params.CleanBlockCacheCapacity)
+		config.BlockCache().SetCleanBytesCapacity(params.CleanBlockCacheCapacity)
+	}
 
 	config.SetBlockOps(NewBlockOpsStandard(config, defaultBlockRetrievalWorkerQueueSize))
 

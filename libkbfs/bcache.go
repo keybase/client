@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/kbfs/kbfshash"
@@ -141,6 +142,18 @@ func (b *BlockCacheStandard) CheckForKnownPtr(tlf tlf.ID, block *FileBlock) (
 	return ptr, nil
 }
 
+// SetCleanBytesCapacity implements the BlockCache interface for
+// BlockCacheStandard.
+func (b *BlockCacheStandard) SetCleanBytesCapacity(capacity uint64) {
+	atomic.StoreUint64(&b.cleanBytesCapacity, capacity)
+}
+
+// GetCleanBytesCapacity implements the BlockCache interface for
+// BlockCacheStandard.
+func (b *BlockCacheStandard) GetCleanBytesCapacity() (capacity uint64) {
+	return atomic.LoadUint64(&b.cleanBytesCapacity)
+}
+
 func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 	if b.cleanTransient == nil {
 		return false
@@ -155,9 +168,11 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 		}
 	}()
 
+	cleanBytesCapacity := b.GetCleanBytesCapacity()
+
 	// Evict items from the cache until the bytes capacity is lower
 	// than the total capacity (or until no items are removed).
-	for b.cleanTotalBytes+size > b.cleanBytesCapacity {
+	for b.cleanTotalBytes+size > cleanBytesCapacity {
 		// Unlock while removing, since onEvict needs the lock and
 		// cleanTransient.Len() takes the LRU mutex (which could lead
 		// to a deadlock with onEvict).  TODO: either change
@@ -175,7 +190,7 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 		doUnlock = true
 		b.bytesLock.Lock()
 	}
-	if b.cleanTotalBytes+size > b.cleanBytesCapacity {
+	if b.cleanTotalBytes+size > cleanBytesCapacity {
 		// There must be too many permanent clean blocks, so we
 		// couldn't make room.
 		return false

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/shirou/gopsutil/mem"
 	"golang.org/x/net/context"
 )
 
@@ -206,6 +207,22 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 		}
 	}
 	return localUsers
+}
+
+// getDefaultCleanBlocKCacheCapacity returns the default clean block cache
+// capacity. If we can get total RAM of the system, we cap at the smaller of
+// <1/4 of available memory> and <MaxBlockSizeBytesDefault * 1024>; otherwise,
+// fallback to latter.
+func getDefaultCleanBlockCacheCapacity() uint64 {
+	capacity := uint64(MaxBlockSizeBytesDefault) * 1024
+	vmstat, err := mem.VirtualMemory()
+	if err == nil {
+		ramBased := vmstat.Total / 8
+		if ramBased < capacity {
+			capacity = ramBased
+		}
+	}
+	return capacity
 }
 
 // NewConfigLocal constructs a new ConfigLocal with some default
@@ -637,13 +654,30 @@ func (c *ConfigLocal) MaxDirBytes() uint64 {
 }
 
 func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
+	logger := c.MakeLogger("")
+
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.mdcache = NewMDCacheStandard(defaultMDCacheCapacity)
 	c.kcache = NewKeyCacheStandard(defaultMDCacheCapacity)
 	c.kbcache = NewKeyBundleCacheStandard(defaultMDCacheCapacity * 2)
-	// Limit the block cache to 10K entries or 1024 blocks (currently 512MiB)
-	c.bcache = NewBlockCacheStandard(10000, MaxBlockSizeBytesDefault*1024)
+
+	var capacity uint64
+	if c.bcache == nil {
+		capacity = getDefaultCleanBlockCacheCapacity()
+		if logger != nil {
+			logger.CDebugf(nil,
+				"setting default clean block cache capacity to %d", capacity)
+		}
+	} else {
+		capacity = c.bcache.GetCleanBytesCapacity()
+		if logger != nil {
+			logger.CDebugf(nil,
+				"setting clean block cache capacity based on existing value %d", capacity)
+		}
+	}
+	c.bcache = NewBlockCacheStandard(10000, capacity)
+
 	oldDirtyBcache := c.dirtyBcache
 
 	// TODO: we should probably fail or re-schedule this reset if
@@ -657,15 +691,10 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	// ~1MB, so we can support a connection speed as low as ~54 KB/s.
 	minSyncBufferSize := int64(MaxBlockSizeBytesDefault)
 
-	// The maximum number of bytes we can try to sync at once (also
-	// limits the amount of memory used by dirty blocks).  We make it
-	// slightly bigger than the max number of parallel bytes in order
-	// to reserve reuse put "slots" while waiting for earlier puts to
-	// finish.  This also limits the maxinim amount of memory used by
-	// the dirty block cache (to around 100MB with the current
-	// defaults).
-	maxSyncBufferSize :=
-		int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
+	// The maximum number of bytes we can try to sync at once (also limits the
+	// amount of memory used by dirty blocks). We use the same value from clean
+	// block cache capacity here.
+	maxSyncBufferSize := int64(capacity)
 
 	// Start off conservatively to avoid getting immediate timeouts on
 	// slow connections.

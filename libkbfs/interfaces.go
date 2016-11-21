@@ -656,6 +656,14 @@ type BlockCache interface {
 	// DeleteKnownPtr removes the cached ID for the given file
 	// block. It does not remove the block itself.
 	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
+
+	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
+	// cache.
+	SetCleanBytesCapacity(capacity uint64)
+
+	// GetCleanBytesCapacity atomically gets clean bytes capacity for block
+	// cache.
+	GetCleanBytesCapacity() (capacity uint64)
 }
 
 // DirtyPermChan is a channel that gets closed when the holder has

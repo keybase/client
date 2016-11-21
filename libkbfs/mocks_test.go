@@ -1571,6 +1571,24 @@ func (_mr *_MockBlockCacheRecorder) DeleteKnownPtr(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteKnownPtr", arg0, arg1)
 }
 
+func (_m *MockBlockCache) SetCleanBytesCapacity(capacity uint64) {
+	_m.ctrl.Call(_m, "SetCleanBytesCapacity", capacity)
+}
+
+func (_mr *_MockBlockCacheRecorder) SetCleanBytesCapacity(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetCleanBytesCapacity", arg0)
+}
+
+func (_m *MockBlockCache) GetCleanBytesCapacity() uint64 {
+	ret := _m.ctrl.Call(_m, "GetCleanBytesCapacity")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockBlockCacheRecorder) GetCleanBytesCapacity() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCleanBytesCapacity")
+}
+
 // Mock of DirtyBlockCache interface
 type MockDirtyBlockCache struct {
 	ctrl     *gomock.Controller
