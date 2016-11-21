@@ -43,6 +43,10 @@
         }
       ],
       "response": "Session"
+    },
+    "sessionPing": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"

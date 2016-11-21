@@ -44,6 +44,7 @@
   [parser registerSwitch:@"uninstall-helper"];
   [parser registerSwitch:@"uninstall"];
   [parser registerSwitch:@"install-fuse"];
+  [parser registerSwitch:@"install-mountdir"];
   [parser registerSettings:self.settings];
   NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
   if (![parser parseOptionsWithArguments:subargs commandLine:args[0]]) {
@@ -78,6 +79,9 @@
 
   if ([[self.settings objectForKey:@"install-fuse"] boolValue]) {
     self.installOptions |= KBInstallOptionFuse;
+  }
+  if ([[self.settings objectForKey:@"install-mountdir"] boolValue]) {
+    self.installOptions |= KBInstallOptionMountDir;
   }
   if (self.installOptions == 0) {
     self.installOptions = KBInstallOptionAll;

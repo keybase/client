@@ -118,6 +118,10 @@
         {
           "type": "string",
           "name": "title"
+        },
+        {
+          "type": "bytes",
+          "name": "nonce"
         }
       ]
     },
@@ -300,6 +304,13 @@
             "OutboxInfo"
           ],
           "name": "outboxInfo"
+        },
+        {
+          "type": [
+            null,
+            "OutboxID"
+          ],
+          "name": "outboxID"
         },
         {
           "type": [
@@ -1204,6 +1215,24 @@
         }
       ],
       "response": "DownloadAttachmentLocalRes"
+    },
+    "CancelPost": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
+    },
+    "RetryPost": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

@@ -52,6 +52,11 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	return thread, rl, nil
 }
 
+func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	return chat1.ThreadView{}, libkb.ChatStorageMissError{Msg: "PullLocalOnly is unimplemented for RemoteConversationSource"}
+}
+
 func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
 	return nil
 }
@@ -174,6 +179,16 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	return thread, rl, nil
+}
+
+func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+
+	tv, err := s.storage.FetchUpToLocalMaxMsgID(ctx, convID, uid, query, pagination)
+	if err != nil {
+		return chat1.ThreadView{}, err
+	}
+	return tv, nil
 }
 
 func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {

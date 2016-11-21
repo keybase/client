@@ -23,7 +23,7 @@ const participants = [
     you: false,
   },
   {
-    username: 'oconnor66',
+    username: 'oconnor663',
     you: false,
     following: true,
   },

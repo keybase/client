@@ -1,14 +1,15 @@
 // @flow
 import {Component} from 'react'
+import type {Exact} from '../constants/types/more'
 
-export type Props = $Shape<{
+export type Props = Exact<{
   autoFocus?: bool,
-  blur: () => void,
+  blur?: () => void,
   errorStyle?: ?Object,
   errorText?: ?string,
   floatingHintTextOverride?: ?string, // if undefined will use hintText. Use this to override hintText
-  focus: () => void,
-  hideUnderline: boolean,
+  focus?: () => void,
+  hideUnderline?: boolean,
   hintText?: ?string,
   inputStyle?: Object,
   multiline?: bool,
@@ -17,7 +18,7 @@ export type Props = $Shape<{
   onKeyDown?: (event: Object) => void,
   rowsMax?: number,
   rowsMin?: number,
-  select: () => void,
+  select?: () => void,
   small?: bool,
   smallLabel?: string,
   smallLabelStyle?: ?Object,
