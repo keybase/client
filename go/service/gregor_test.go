@@ -28,7 +28,7 @@ func TestGregorHandler(t *testing.T) {
 
 	tc.G.SetService()
 
-	listener := &nlistener{}
+	listener := newNlistener(t)
 	tc.G.NotifyRouter.SetListener(listener)
 
 	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
@@ -67,11 +67,21 @@ func TestGregorHandler(t *testing.T) {
 }
 
 type nlistener struct {
+	t                *testing.T
 	favoritesChanged []keybase1.UID
-	badgestates      []keybase1.BadgeState
+	badgeState       chan keybase1.BadgeState
+	testChanTimeout  time.Duration
 }
 
 var _ libkb.NotifyListener = (*nlistener)(nil)
+
+func newNlistener(t *testing.T) *nlistener {
+	return &nlistener{
+		t:               t,
+		badgeState:      make(chan keybase1.BadgeState, 1),
+		testChanTimeout: 20 * time.Second,
+	}
+}
 
 func (n *nlistener) Logout()                                                      {}
 func (n *nlistener) Login(username string)                                        {}
@@ -90,14 +100,23 @@ func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                          
 func (n *nlistener) PGPKeyInSecretStoreFile()                                      {}
 func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)             {}
 func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                     {}
+
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
-	n.badgestates = append(n.badgestates, badgeState)
-}
-func (n *nlistener) lastBadgeState(t *testing.T) keybase1.BadgeState {
-	if len(n.badgestates) == 0 {
-		t.Fatalf("no recorded badge states")
+	select {
+	case n.badgeState <- badgeState:
+	case <-time.After(n.testChanTimeout):
+		require.Fail(n.t, "badgestate not read")
 	}
-	return n.badgestates[len(n.badgestates)-1]
+}
+
+func (n *nlistener) getBadgeState(t *testing.T) keybase1.BadgeState {
+	select {
+	case x := <-n.badgeState:
+		return x
+	case <-time.After(n.testChanTimeout):
+		require.Fail(t, "badgestate not received")
+		return keybase1.BadgeState{}
+	}
 }
 
 type showTrackerPopupIdentifyUI struct {
@@ -579,7 +598,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
 	tc.G.SetService()
-	listener := &nlistener{}
+	listener := newNlistener(t)
 	tc.G.NotifyRouter.SetListener(listener)
 
 	// Set up client and server
@@ -587,8 +606,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 	h.badger = newBadger(tc.G)
 	t.Logf("client setup complete")
 
-	// Consume msg
-	t.Logf("server messages")
+	t.Logf("server message")
 	msg := server.newIbm2(uid, gregor1.Category("tlf"), gregor1.Body([]byte{}))
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
 
@@ -598,24 +616,20 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
-	require.Equal(t, 1, listener.lastBadgeState(t).NewTlfs, "one new tlf")
+	bs := listener.getBadgeState(t)
+	require.Equal(t, 1, bs.NewTlfs, "one new tlf")
 
-	// Consume msg
 	t.Logf("server dismissal")
 	_ = server.newDismissal(uid, msg)
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
 
-	require.Equal(t, 1, listener.lastBadgeState(t).NewTlfs, "still one new tlf")
-
-	// Sync from the server
 	t.Logf("client sync")
 	_, _, err = h.serverSync(context.TODO(), server)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	t.Logf("client sync complete")
 
-	require.Equal(t, 1, listener.lastBadgeState(t).Total, "no more badges")
+	bs = listener.getBadgeState(t)
+	require.Equal(t, 1, bs.Total, "no more badges")
 }
 
 // TestGregorBadgesOOBM doesn't actually use out of band messages.
@@ -624,7 +638,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
 	tc.G.SetService()
-	listener := &nlistener{}
+	listener := newNlistener(t)
 	tc.G.NotifyRouter.SetListener(listener)
 
 	// Set up client and server
@@ -637,6 +651,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 		ConvID:         chat1.ConversationID(`a`),
 		UnreadMessages: 2,
 	}, 0)
+	_ = listener.getBadgeState(t)
 
 	t.Logf("sending second chat update")
 	h.badger.PushChatUpdate(chat1.UnreadUpdate{
@@ -644,9 +659,10 @@ func TestGregorBadgesOOBM(t *testing.T) {
 		UnreadMessages: 2,
 	}, 1)
 
-	require.Equal(t, 2, listener.lastBadgeState(t).UnreadChatConversations, "unread chat convs")
-	require.Equal(t, 4, listener.lastBadgeState(t).UnreadChatMessages, "unread chat messages")
-	require.Equal(t, 2, listener.lastBadgeState(t).Total, "total badge count")
+	bs := listener.getBadgeState(t)
+	require.Equal(t, 2, bs.UnreadChatConversations, "unread chat convs")
+	require.Equal(t, 4, bs.UnreadChatMessages, "unread chat messages")
+	require.Equal(t, 2, bs.Total, "total badge count")
 
 	t.Logf("resyncing")
 	// Instead of calling badger.Resync, reach in and twiddle the knobs.
@@ -658,15 +674,17 @@ func TestGregorBadgesOOBM(t *testing.T) {
 		},
 	})
 	h.badger.send()
-	require.Equal(t, 1, listener.lastBadgeState(t).UnreadChatConversations, "unread chat convs")
-	require.Equal(t, 3, listener.lastBadgeState(t).UnreadChatMessages, "unread chat messages")
-	require.Equal(t, 1, listener.lastBadgeState(t).Total, "total badge count")
+	bs = listener.getBadgeState(t)
+	require.Equal(t, 1, bs.UnreadChatConversations, "unread chat convs")
+	require.Equal(t, 3, bs.UnreadChatMessages, "unread chat messages")
+	require.Equal(t, 1, bs.Total, "total badge count")
 
 	t.Logf("clearing")
 	h.badger.Clear(context.TODO())
-	require.Equal(t, 0, listener.lastBadgeState(t).UnreadChatConversations, "unread chat convs")
-	require.Equal(t, 0, listener.lastBadgeState(t).UnreadChatMessages, "unread chat messages")
-	require.Equal(t, 0, listener.lastBadgeState(t).Total, "total badge count")
+	bs = listener.getBadgeState(t)
+	require.Equal(t, 0, bs.UnreadChatConversations, "unread chat convs")
+	require.Equal(t, 0, bs.UnreadChatMessages, "unread chat messages")
+	require.Equal(t, 0, bs.Total, "total badge count")
 }
 
 func TestSyncDismissalExistingState(t *testing.T) {
