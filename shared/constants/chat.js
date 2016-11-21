@@ -3,6 +3,7 @@ import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {List, Map, Record} from 'immutable'
 
+import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction} from './types/flux'
 import type {ConversationID as RPCConversationID, ChatActivity, ConversationInfoLocal} from './types/flow-types-chat'
 
@@ -51,6 +52,7 @@ export type ConversationState = Record<{
 
 export type ConversationID = RPCConversationID
 export type ConversationIDKey = string
+export type ParticipantItem = UserListItem
 
 export const InboxStateRecord = Record({
   info: null,
@@ -64,7 +66,7 @@ export const InboxStateRecord = Record({
 
 export type InboxState = Record<{
   info: ConversationInfoLocal,
-  participants: List<string>,
+  participants: List<ParticipantItem>,
   conversationIDKey: ConversationIDKey,
   muted: boolean,
   time: string,

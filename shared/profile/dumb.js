@@ -104,7 +104,7 @@ const folders = [
       {username: 'chris', you: true},
       {username: 'chrisnojima'},
       {username: 'marcopolo'},
-      {username: 'zanderz'},
+      {username: 'kldsjflksjflkd sfkjds klf djslfk dslkf jdlks jfkld sjflk djslkf lkzanderz'},
     ],
     ...baseFolder,
     isPublic: false,

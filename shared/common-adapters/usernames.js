@@ -1,19 +1,18 @@
 // @flow
 import React, {Component} from 'react'
-import Box from './box'
 import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
 
 import type {Props} from './usernames'
 
-function usernameText ({type, users, style, inline, redColor}: Props) {
+function usernameText ({type, users, style, inline, redColor, backgroundMode}: Props) {
   return users.map((u, i) => {
     const userStyle = {
       ...style,
       ...(!isMobile ? {textDecoration: 'inherit'} : null),
       ...(u.broken ? {color: redColor || globalColors.red} : null),
-      ...(inline ? {display: 'inline-block'} : null),
+      ...(inline ? {display: 'inline'} : null),
       ...(u.you ? globalStyles.italic : null),
     }
 
@@ -21,10 +20,14 @@ function usernameText ({type, users, style, inline, redColor}: Props) {
       <Text
         key={u.username}
         type={type}
+        backgroundMode={backgroundMode}
         style={userStyle}>{u.username}
         {
           (i !== users.length - 1) && // Injecting the commas here so we never wrap and have newlines starting with a ,
-            <Text type={type} style={{...style, marginRight: 1}}>,</Text>}
+            <Text
+              type={type}
+              backgroundMode={backgroundMode}
+              style={{...style, marginRight: 1}}>,</Text>}
       </Text>
     )
   })
@@ -32,17 +35,24 @@ function usernameText ({type, users, style, inline, redColor}: Props) {
 
 class Usernames extends Component<void, Props, void> {
   render () {
-    const containerStyle = this.props.inline ? {display: 'inline'} : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
+    const containerStyle = this.props.inline ? {
+      display: 'inline',
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
+      width: '100%',
+      overflow: 'hidden',
+    } : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
     const rwers = this.props.users.filter(u => !u.readOnly)
     const readers = this.props.users.filter(u => !!u.readOnly)
 
     return (
-      <Box style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'})}}>
-
+      <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'}), ...this.props.containerStyle}} title={this.props.title}>
+        {!!this.props.prefix && <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>{this.props.prefix}</Text>}
         {usernameText({...this.props, users: rwers})}
-        {!!readers.length && <Text type={this.props.type} style={{...this.props.style, marginRight: 1}}>#</Text>}
+        {!!readers.length && <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={{...this.props.style, marginRight: 1}}>#</Text>}
         {usernameText({...this.props, users: readers})}
-      </Box>
+        {!!this.props.suffix && <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>{this.props.suffix}</Text>}
+      </Text>
     )
   }
 }
