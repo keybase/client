@@ -267,20 +267,29 @@ function _notify (state) {
   previousNotifyState = newNotifyState
 }
 
+// Don't send duplicates else we get high cpu usage
+let _kbfsUploadingState = false
 function * _setupKBFSChangedHandler (): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     const debouncedKBFSStopped = _.debounce(() => {
-      const badgeAction: Action = badgeApp('kbfsUploading', false)
-      dispatch(badgeAction)
-      dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: false}})
+      if (_kbfsUploadingState === true) {
+        _kbfsUploadingState = false
+        const badgeAction: Action = badgeApp('kbfsUploading', false)
+        dispatch(badgeAction)
+        dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: false}})
+      }
     }, 2000)
 
     engine().setIncomingHandler('keybase.1.NotifyFS.FSSyncActivity', ({status}) => {
       // This has a lot of missing data from the KBFS side so for now we just have a timeout that sets this to off
       // ie. we don't get the syncingBytes or ops correctly (always zero)
-      const badgeAction: Action = badgeApp('kbfsUploading', true)
-      dispatch(badgeAction)
-      dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: true}})
+      if (_kbfsUploadingState === false) {
+        _kbfsUploadingState = true
+        const badgeAction: Action = badgeApp('kbfsUploading', true)
+        dispatch(badgeAction)
+        dispatch({type: Constants.kbfsStatusUpdated, payload: {isAsyncWriteHappening: true}})
+      }
+      // We have to debounce while the events are still happening no matter what
       debouncedKBFSStopped()
     })
   })
