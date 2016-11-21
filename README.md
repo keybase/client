@@ -75,7 +75,7 @@ Currently, our server implementations are not open source.
 
 Prerequisites:
 
-* [Go 1.6](https://golang.org/dl/) or higher.
+* [Go 1.7](https://golang.org/dl/) or higher.
 * A running Keybase client service (see [instructions](https://github.com/keybase/client/tree/master/go)).
 * On OS X, you may have to [install FUSE yourself](https://osxfuse.github.io/).
   * You may need to pass the `--use-system-fuse` flag to `kbfsfuse` if
