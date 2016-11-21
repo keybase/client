@@ -5,9 +5,11 @@ import {List} from 'immutable'
 import type {InboxState, ConversationIDKey} from '../../constants/chat'
 
 export type Props = {
+  nowOverride?: number, // just for dumb rendering
   inbox: List<InboxState>,
   onSelectConversation: (key: ConversationIDKey) => void,
   selectedConversation: ConversationIDKey,
+  onNewChat: () => void,
 }
 
 export default class ConversationList extends Component<void, Props, void> { }

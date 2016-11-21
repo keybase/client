@@ -52,9 +52,9 @@ function User ({selected, user, insertSpacing, onRemove, onClickUser}: {selected
   )
 }
 
-const GroupAction = ({onClick, icon, label}: {onClick: () => void, icon: IconType, label: string}) => (
+const GroupAction = ({onClick, icon, label, style}: {onClick: () => void, icon: IconType, label: string, style?: ?Object}) => (
   <Box style={groupActionStyle} onClick={onClick}>
-    <Icon style={{marginRight: 9}} type={icon} />
+    <Icon style={{marginRight: 9, ...style}} type={icon} />
     <Text type='BodyPrimaryLink'>{label}</Text>
   </Box>
 )
@@ -69,7 +69,7 @@ export default function UserGroup ({selectedUsers, onClickUserInGroup, onRemoveU
         onRemove={onRemoveUserFromGroup} onClickUser={onClickUserInGroup} insertSpacing={true} />)}
       <GroupAction onClick={onOpenPrivateGroupFolder} icon='icon-folder-private-open-24' label={privateFolderText} />
       {selectedUsers.length === 1 && <GroupAction onClick={onOpenPublicGroupFolder} icon='icon-folder-public-open-24' label='Open public folder' />}
-      {chatEnabled && <GroupAction onClick={onGroupChat} icon='iconfont-chat' label='Start a chat' />}
+      {chatEnabled && <GroupAction onClick={onGroupChat} icon='iconfont-chat' label='Start a chat' style={{color: globalColors.blue}} />}
     </Box>
   )
 }

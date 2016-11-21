@@ -16,6 +16,8 @@ type UserBasic interface {
 	GetName() string
 }
 
+var _ UserBasic = keybase1.UserPlusKeys{}
+
 type User struct {
 	// Raw JSON element read from the server or our local DB.
 	basics     *jsonw.Wrapper

@@ -89,6 +89,7 @@ const (
 	ProofCacheShortDur         = 30 * time.Minute
 	Identify2CacheLongTimeout  = 6 * time.Hour
 	Identify2CacheShortTimeout = 1 * time.Minute
+	CachedUserTimeout          = 10 * time.Minute // How long we'll go without rerequesting hints/merkle seqno
 	LinkCacheSize              = 0x10000
 	LinkCacheCleanDur          = 1 * time.Minute
 

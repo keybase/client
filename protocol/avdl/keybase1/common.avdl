@@ -144,6 +144,11 @@ protocol Common {
       UserVersionVector uvv;
   }
 
+  record UserPlusAllKeys {
+      UserPlusKeys base;
+      array<PublicKey> pgpKeys;
+  }
+
   enum MerkleTreeID {
        MASTER_0,
        KBFS_PUBLIC_1,

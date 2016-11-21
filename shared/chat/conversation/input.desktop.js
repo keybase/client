@@ -20,7 +20,7 @@ class Conversation extends Component<void, Props, void> {
             small={true}
             style={styleInput}
             ref={this._setRef}
-            hintText={`Write to ${this.props.participants.join(', ')}`}
+            hintText={`Write to ${this.props.participants.filter(p => !p.you).map(p => p.username).join(', ')}`}
             hideUnderline={false}
             onEnterKeyDown={() => {
               this.props.onPostMessage(this._input.getValue())

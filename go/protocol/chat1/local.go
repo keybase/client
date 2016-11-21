@@ -44,6 +44,7 @@ type Asset struct {
 	Key       []byte `codec:"key" json:"key"`
 	VerifyKey []byte `codec:"verifyKey" json:"verifyKey"`
 	Title     string `codec:"title" json:"title"`
+	Nonce     []byte `codec:"nonce" json:"nonce"`
 }
 
 type MessageAttachment struct {
@@ -304,6 +305,7 @@ type HeaderPlaintextV1 struct {
 	SenderDevice    gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
 	BodyHash        Hash                     `codec:"bodyHash" json:"bodyHash"`
 	OutboxInfo      *OutboxInfo              `codec:"outboxInfo,omitempty" json:"outboxInfo,omitempty"`
+	OutboxID        *OutboxID                `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	HeaderSignature *SignatureInfo           `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
 }
 
@@ -710,6 +712,14 @@ type DownloadAttachmentLocalArg struct {
 	Preview        bool            `codec:"preview" json:"preview"`
 }
 
+type CancelPostArg struct {
+	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
+}
+
+type RetryPostArg struct {
+	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
@@ -723,6 +733,8 @@ type LocalInterface interface {
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
 	GetMessagesLocal(context.Context, GetMessagesLocalArg) (GetMessagesLocalRes, error)
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
+	CancelPost(context.Context, OutboxID) error
+	RetryPost(context.Context, OutboxID) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -921,6 +933,38 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"CancelPost": {
+				MakeArg: func() interface{} {
+					ret := make([]CancelPostArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CancelPostArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CancelPostArg)(nil), args)
+						return
+					}
+					err = i.CancelPost(ctx, (*typedArgs)[0].OutboxID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"RetryPost": {
+				MakeArg: func() interface{} {
+					ret := make([]RetryPostArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RetryPostArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RetryPostArg)(nil), args)
+						return
+					}
+					err = i.RetryPost(ctx, (*typedArgs)[0].OutboxID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -988,5 +1032,17 @@ func (c LocalClient) GetMessagesLocal(ctx context.Context, __arg GetMessagesLoca
 
 func (c LocalClient) DownloadAttachmentLocal(ctx context.Context, __arg DownloadAttachmentLocalArg) (res DownloadAttachmentLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.DownloadAttachmentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) CancelPost(ctx context.Context, outboxID OutboxID) (err error) {
+	__arg := CancelPostArg{OutboxID: outboxID}
+	err = c.Cli.Call(ctx, "chat.1.local.CancelPost", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) RetryPost(ctx context.Context, outboxID OutboxID) (err error) {
+	__arg := RetryPostArg{OutboxID: outboxID}
+	err = c.Cli.Call(ctx, "chat.1.local.RetryPost", []interface{}{__arg}, nil)
 	return
 }

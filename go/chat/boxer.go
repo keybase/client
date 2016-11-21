@@ -183,12 +183,12 @@ func (b *Boxer) unboxMessageWithKey(ctx context.Context, msg chat1.MessageBoxed,
 			Prev:         hp.Prev,
 			Sender:       hp.Sender,
 			SenderDevice: hp.SenderDevice,
+			OutboxInfo:   hp.OutboxInfo,
+			OutboxID:     hp.OutboxID,
 		}
 	default:
 		return chat1.MessagePlaintext{}, nil, libkb.NewPermanentChatUnboxingError(libkb.NewChatHeaderVersionError(headerVersion))
 	}
-	clientHeader.OutboxInfo = msg.ClientHeader.OutboxInfo
-	clientHeader.OutboxID = msg.ClientHeader.OutboxID
 
 	if skipBodyVerification {
 		// body was deleted, so return empty body that matches header version
@@ -339,6 +339,8 @@ func (b *Boxer) boxMessageWithKeysV1(msg chat1.MessagePlaintext, key *keybase1.C
 		Sender:       msg.ClientHeader.Sender,
 		SenderDevice: msg.ClientHeader.SenderDevice,
 		BodyHash:     bodyHash[:],
+		OutboxInfo:   msg.ClientHeader.OutboxInfo,
+		OutboxID:     msg.ClientHeader.OutboxID,
 	}
 
 	// sign the header and insert the signature
