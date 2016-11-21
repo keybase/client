@@ -6,7 +6,7 @@
 import * as Tabs from './constants/tabs'
 import {updateConfig} from './command-line.desktop.js'
 
-let config: {[key:string]: any} = {
+let config: {[key: string]: any} = {
   allowStartupFailure: false,
   printRPC: false,
   showDevTools: false,
