@@ -1,14 +1,15 @@
 // @flow
 import React from 'react'
 import moment from 'moment'
-import {Box, Text, Avatar} from '../../common-adapters'
+import {Box, Text, Avatar, Icon, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from './'
 
-function _timestamp (time: number): string {
+function _timestamp (time: number, nowOverride?: number): string {
   const m = moment(time)
-  const today = moment().clone().startOf('day')
+  const now = nowOverride ? moment(nowOverride) : moment()
+  const today = now.clone().startOf('day')
   const weekOld = today.clone().subtract(7, 'days')
 
   if (m.isSame(today, 'd')) {
@@ -20,8 +21,14 @@ function _timestamp (time: number): string {
   return m.format('MMM D')
 }
 
-const ConversationList = ({inbox, onSelectConversation, selectedConversation}: Props) => (
+const ConversationList = ({inbox, onSelectConversation, selectedConversation, onNewChat, nowOverride}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.darkBlue4, width: 240}}>
+    <Box
+      style={{...globalStyles.flexBoxRow, ...globalStyles.clickable, height: 48, justifyContent: 'center', alignItems: 'center'}}
+      onClick={() => onNewChat()}>
+      <Icon type='iconfont-new' style={{color: globalColors.blue, marginRight: 9}} />
+      <Text type='BodyBigLink'>New chat</Text>
+    </Box>
     {inbox.map(conversation => (
       <Box
         onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
@@ -34,18 +41,18 @@ const ConversationList = ({inbox, onSelectConversation, selectedConversation}: P
         <Avatar
           size={32}
           backgroundColor={globalColors.darkBlue4}
-          username={conversation.get('participants').first()}
+          username={conversation.get('participants').filter(p => !p.you).first().username}
           borderColor={conversation.get('unreadCount') ? globalColors.orange : undefined}
         />
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: 12, position: 'relative'}}>
-          <Box style={{position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
-            <Text backgroundMode='Terminal' type='Body' style={noWrapStyle}>{conversation.get('participants').join(', ')}</Text>
+          <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
+            <Usernames inline={true} type='Body' backgroundMode='Terminal' users={conversation.get('participants').filter(p => !p.you)} title={conversation.get('participants').filter(p => !p.you).map(p => p.username).join(', ')} />
             <Text backgroundMode='Terminal' type='BodySmall' style={noWrapStyle}>{conversation.get('snippet')}</Text>
           </Box>
         </Box>
-        <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{_timestamp(conversation.get('time'))}</Text>
+        <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{_timestamp(conversation.get('time'), nowOverride)}</Text>
       </Box>
-    )).toJS()}
+    ))}
   </Box>
 )
 

@@ -1,20 +1,28 @@
 // @flow
 import {Component} from 'react'
-import type {TextType} from './text'
+import type {TextType, Background} from './text'
 
-export type UserList = Array<{
+export type UserListItem = {
   username: string,
   readOnly?: boolean,
   broken?: boolean,
-  you?: boolean
-}>
+  you?: boolean,
+  following?: boolean,
+}
+
+export type UserList = Array<UserListItem>
 
 export type Props = {
   type: TextType,
+  backgroundMode?: Background,
   style?: Object,
+  containerStyle?: Object,
   inline?: bool,
   users: UserList,
   redColor?: string,
+  title?: string,
+  prefix?: ?string,
+  suffix?: ?string,
 }
 
 declare export function usernameText(props: Props): void

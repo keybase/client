@@ -76,6 +76,7 @@ function * handleTLFUpdate (items: Array<NonNullGregorItem>): SagaGenerator<any,
   const seenMsgs: MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
 
   // Check if any are a tlf items
+  // $FlowIssue
   const tlfUpdates = items.filter(isTlfItem)
   const newTlfUpdates = tlfUpdates.filter(gItem => !seenMsgs[gItem.md.msgID.toString('base64')])
   if (newTlfUpdates.length) {

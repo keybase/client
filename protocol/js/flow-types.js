@@ -4029,6 +4029,11 @@ export type UserCard = {
   theyFollowYou: boolean,
 }
 
+export type UserPlusAllKeys = {
+  base: UserPlusKeys,
+  pgpKeys?: ?Array<PublicKey>,
+}
+
 export type UserPlusKeys = {
   uid: UID,
   username: string,
@@ -4866,6 +4871,10 @@ export type streamUiCloseRpcParam = Exact<{
 export type streamUiReadRpcParam = Exact<{
   s: Stream,
   sz: int
+}>
+
+export type streamUiResetRpcParam = Exact<{
+  s: Stream
 }>
 
 export type streamUiWriteRpcParam = Exact<{
@@ -5999,6 +6008,13 @@ export type incomingCallMapType = Exact<{
       error: RPCErrorHandler,
       result: (result: streamUiReadResult) => void,
     }
+  ) => void,
+  'keybase.1.streamUi.reset'?: (
+    params: Exact<{
+      sessionID: int,
+      s: Stream
+    }>,
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.streamUi.write'?: (
     params: Exact<{
