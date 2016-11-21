@@ -13,7 +13,6 @@ type Background =
 type TextType =
   'Body'
 | 'BodyBig'
-| 'BodyInherit'
 | 'BodyBigLink'
 | 'BodyError'
 | 'BodyPrimaryLink'
@@ -38,8 +37,6 @@ type TextType =
 | 'TerminalComment'
 | 'TerminalEmpty'
 | 'TerminalInline'
-| 'CodeSnippet'
-| 'CodeSnippetBlock'
 
 type Props = {
   backgroundMode?: Background,

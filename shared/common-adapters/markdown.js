@@ -1,8 +1,9 @@
 // @flow
 
 import Text from './text'
-import React from 'react'
+import React, {PureComponent} from 'react'
 import {List} from 'immutable'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './markdown'
 import type {PropsOf} from '../constants/types/more'
@@ -26,12 +27,36 @@ const markToRegex = {
 
 type TagInfo<C> = {Component: Class<C>, props: PropsOf<C>}
 
+const codeSnippetStyle = {
+  ...globalStyles.fontTerminal,
+  ...globalStyles.rounded,
+  fontSize: 12,
+  paddingLeft: globalMargins.xtiny,
+  paddingRight: globalMargins.xtiny,
+  backgroundColor: globalColors.beige,
+  color: globalColors.blue,
+}
+
+const codeSnippetBlockStyle = {
+  ...codeSnippetStyle,
+  display: 'block',
+  color: globalColors.black_75,
+  backgroundColor: globalColors.beige,
+  marginTop: globalMargins.xtiny,
+  marginBottom: globalMargins.xtiny,
+  paddingTop: globalMargins.xtiny,
+  paddingBottom: globalMargins.xtiny,
+  paddingLeft: globalMargins.tiny,
+  paddingRight: globalMargins.tiny,
+  whiteSpace: 'pre',
+}
+
 const initialOpenToTag = {
-  '`': {Component: Text, props: {type: 'CodeSnippet', style: {}}},
-  '```': {Component: Text, props: {type: 'CodeSnippetBlock'}},
+  '`': {Component: Text, props: {type: 'Body', style: codeSnippetStyle}},
+  '```': {Component: Text, props: {type: 'Body', style: codeSnippetBlockStyle}},
   '*': {Component: Text, props: {type: 'BodySemibold'}},
-  '_': {Component: Text, props: {type: 'BodyInherit', style: {fontStyle: 'italic'}}},
-  '~': {Component: Text, props: {type: 'BodyInherit', style: {textDecoration: 'line-through'}}},
+  '_': {Component: Text, props: {type: 'Body', style: {fontStyle: 'italic', fontWeight: undefined}}},
+  '~': {Component: Text, props: {type: 'Body', style: {textDecoration: 'line-through', fontWeight: undefined}}},
 }
 
 const openToNextOpenToTag = {
@@ -110,27 +135,31 @@ function _parseRecursive (text: string, tagStack: TagStack, key: number): React$
     return _parseRecursive(
       restText,
       tagStack
-      .update(-1, m => ({...m, textSoFar: '', elementsSoFar: m.elementsSoFar.push(m.textSoFar)}))
-      .push({
-        componentInfo: openToTag[matchingMark],
-        closingTag: openToClosePair[matchingMark],
-        textSoFar: '',
-        elementsSoFar: new List(),
-        openToTag: openToNextOpenToTag[matchingMark] || {},
-      }),
+        .update(-1, m => ({...m, textSoFar: '', elementsSoFar: m.elementsSoFar.push(m.textSoFar)}))
+        .push({
+          componentInfo: openToTag[matchingMark],
+          closingTag: openToClosePair[matchingMark],
+          textSoFar: '',
+          elementsSoFar: new List(),
+          openToTag: openToNextOpenToTag[matchingMark] || {},
+        }),
       key
     )
   } else {
     if (firstChar === '\\') {
-      return _parseRecursive(text.slice(2), tagStack.update(-1, m => ({...m, textSoFar: m.textSoFar + text.slice(1, 2)})), key)
+      return _parseRecursive(text.slice(2), tagStack.update(-1, m => ({...m, textSoFar: m.textSoFar + text[1]})), key)
     } else {
       return _parseRecursive(restText, tagStack.update(-1, m => ({...m, textSoFar: m.textSoFar + firstChar})), key)
     }
   }
 }
 
-const Markdown = ({children}: Props) => {
-  return <Text type='Body'>{_parseRecursive(children || '', new List([initalTagMeta]), 0)}</Text>
+const initialTagStack = new List([initalTagMeta])
+
+class Markdown extends PureComponent<void, Props, void> {
+  render () {
+    return <Text type='Body'>{_parseRecursive(this.props.children || '', initialTagStack, 0)}</Text>
+  }
 }
 
 export default Markdown
