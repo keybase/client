@@ -3924,14 +3924,30 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// resolution kicks in.  TODO: cache these for future use.
 	if !fbo.isMasterBranchLocked(lState) {
 		if len(rmds) > 0 {
+			latestMerged := rmds[len(rmds)-1]
+			// If we're running a journal, don't trust our own updates
+			// here because they might have come from our own journal
+			// before the conflict was detected.  Assume we'll hear
+			// about the conflict via callbacks from the journal.
+			if TLFJournalEnabled(fbo.config, fbo.id()) {
+				key, err := fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
+				if err != nil {
+					return err
+				}
+				if key == latestMerged.LastModifyingWriterVerifyingKey() {
+					return UnmergedError{}
+				}
+			}
+
 			// setHeadLocked takes care of merged case
-			fbo.setLatestMergedRevisionLocked(ctx, lState, rmds[len(rmds)-1].Revision(), false)
+			fbo.setLatestMergedRevisionLocked(
+				ctx, lState, latestMerged.Revision(), false)
 
 			unmergedRev := MetadataRevisionUninitialized
 			if fbo.head != (ImmutableRootMetadata{}) {
 				unmergedRev = fbo.head.Revision()
 			}
-			fbo.cr.Resolve(unmergedRev, rmds[len(rmds)-1].Revision())
+			fbo.cr.Resolve(unmergedRev, latestMerged.Revision())
 		}
 		return UnmergedError{}
 	}
