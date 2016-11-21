@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGregorHandler(t *testing.T) {
@@ -67,6 +68,7 @@ func TestGregorHandler(t *testing.T) {
 
 type nlistener struct {
 	favoritesChanged []keybase1.UID
+	badgestates      []keybase1.BadgeState
 }
 
 var _ libkb.NotifyListener = (*nlistener)(nil)
@@ -88,7 +90,15 @@ func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                          
 func (n *nlistener) PGPKeyInSecretStoreFile()                                      {}
 func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)             {}
 func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                     {}
-func (n *nlistener) BadgeState(badgeState keybase1.BadgeState)                     {}
+func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
+	n.badgestates = append(n.badgestates, badgeState)
+}
+func (n *nlistener) lastBadgeState(t *testing.T) keybase1.BadgeState {
+	if len(n.badgestates) == 0 {
+		t.Fatalf("no recorded badge states")
+	}
+	return n.badgestates[len(n.badgestates)-1]
+}
 
 type showTrackerPopupIdentifyUI struct {
 	kbtest.FakeIdentifyUI
@@ -277,6 +287,25 @@ func (m mockGregord) newIbm(uid gregor1.UID) gregor1.Message {
 				Creation_: &gregor1.Item{
 					Category_: "unknown!",
 					Body_:     gregor1.Body([]byte("HIHIHI")),
+				},
+			},
+		},
+	}
+}
+
+func (m mockGregord) newIbm2(uid gregor1.UID, category gregor1.Category, body gregor1.Body) gregor1.Message {
+	m.fc.Advance(time.Minute)
+	return gregor1.Message{
+		Ibm_: &gregor1.InBandMessage{
+			StateUpdate_: &gregor1.StateUpdateMessage{
+				Md_: gregor1.Metadata{
+					Uid_:   uid,
+					MsgID_: newMsgID(),
+					Ctime_: gregor1.ToTime(m.fc.Now()),
+				},
+				Creation_: &gregor1.Item{
+					Category_: category,
+					Body_:     body,
 				},
 			},
 		},
@@ -544,6 +573,100 @@ func TestSyncDismissal(t *testing.T) {
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
+}
+
+func TestGregorBadgesIBM(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor", 2)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	listener := &nlistener{}
+	tc.G.NotifyRouter.SetListener(listener)
+
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
+	h.badger = newBadger(tc.G)
+	t.Logf("client setup complete")
+
+	// Consume msg
+	t.Logf("server messages")
+	msg := server.newIbm2(uid, gregor1.Category("tlf"), gregor1.Body([]byte{}))
+	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
+
+	// Sync from the server
+	t.Logf("client sync")
+	_, _, err := h.serverSync(context.TODO(), server)
+	require.NoError(t, err)
+	t.Logf("client sync complete")
+
+	require.Equal(t, 1, listener.lastBadgeState(t).NewTlfs, "one new tlf")
+
+	// Consume msg
+	t.Logf("server dismissal")
+	_ = server.newDismissal(uid, msg)
+	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
+
+	require.Equal(t, 1, listener.lastBadgeState(t).NewTlfs, "still one new tlf")
+
+	// Sync from the server
+	t.Logf("client sync")
+	_, _, err = h.serverSync(context.TODO(), server)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("client sync complete")
+
+	require.Equal(t, 1, listener.lastBadgeState(t).Total, "no more badges")
+}
+
+// TestGregorBadgesOOBM doesn't actually use out of band messages.
+// Instead it feeds chat updates directly to badger. So it's a pretty weak test.
+func TestGregorBadgesOOBM(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor", 2)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	listener := &nlistener{}
+	tc.G.NotifyRouter.SetListener(listener)
+
+	// Set up client and server
+	h, _, _ := setupSyncTests(t, tc)
+	h.badger = newBadger(tc.G)
+	t.Logf("client setup complete")
+
+	t.Logf("sending first chat update")
+	h.badger.PushChatUpdate(chat1.UnreadUpdate{
+		ConvID:         chat1.ConversationID(`a`),
+		UnreadMessages: 2,
+	}, 0)
+
+	t.Logf("sending second chat update")
+	h.badger.PushChatUpdate(chat1.UnreadUpdate{
+		ConvID:         chat1.ConversationID(`b`),
+		UnreadMessages: 2,
+	}, 1)
+
+	require.Equal(t, 2, listener.lastBadgeState(t).UnreadChatConversations, "unread chat convs")
+	require.Equal(t, 4, listener.lastBadgeState(t).UnreadChatMessages, "unread chat messages")
+	require.Equal(t, 2, listener.lastBadgeState(t).Total, "total badge count")
+
+	t.Logf("resyncing")
+	// Instead of calling badger.Resync, reach in and twiddle the knobs.
+	h.badger.badgeState.UpdateWithChatFull(chat1.UnreadUpdateFull{
+		InboxVers: chat1.InboxVers(4),
+		Updates: []chat1.UnreadUpdate{
+			{ConvID: chat1.ConversationID(`b`), UnreadMessages: 0},
+			{ConvID: chat1.ConversationID(`c`), UnreadMessages: 3},
+		},
+	})
+	h.badger.send()
+	require.Equal(t, 1, listener.lastBadgeState(t).UnreadChatConversations, "unread chat convs")
+	require.Equal(t, 3, listener.lastBadgeState(t).UnreadChatMessages, "unread chat messages")
+	require.Equal(t, 1, listener.lastBadgeState(t).Total, "total badge count")
+
+	t.Logf("clearing")
+	h.badger.Clear(context.TODO())
+	require.Equal(t, 0, listener.lastBadgeState(t).UnreadChatConversations, "unread chat convs")
+	require.Equal(t, 0, listener.lastBadgeState(t).UnreadChatMessages, "unread chat messages")
+	require.Equal(t, 0, listener.lastBadgeState(t).Total, "total badge count")
 }
 
 func TestSyncDismissalExistingState(t *testing.T) {
