@@ -150,7 +150,7 @@ const commands = {
     help: 'Launch installed Keybase app with console output',
   },
   'postinstall': {
-    help: 'Window: fixup symlinks, all: install global eslint. dummy msgpack',
+    help: 'Window: fixup symlinks, all: install global eslint. dummy msgpack. monkeypatch material-ui',
     code: postInstall,
   },
   'render-screenshots': {
@@ -202,6 +202,11 @@ function postInstall () {
   } else {
     exec("mkdir -p node_modules/msgpack; echo 'module.exports = null' > node_modules/msgpack/index.js; echo '{\"main\": \"index.js\"}' > node_modules/msgpack/package.json")
   }
+
+  const materialPath = 'node_modules/material-ui/package.json'
+  const materialUIJson = JSON.parse(fs.readFileSync(materialPath, 'utf8'))
+  materialUIJson.peerDependencies = {}
+  fs.writeFileSync(materialPath, JSON.stringify(materialUIJson, null, 4), 'utf8')
 }
 
 function setupDebugMain () {

@@ -1,6 +1,6 @@
 // @flow
 import Box from './box'
-import FlatButton from 'material-ui/FlatButton'
+import FlatButton from 'material-ui'
 import React from 'react'
 import type {Props} from './clickable-box'
 

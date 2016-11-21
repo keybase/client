@@ -52,7 +52,7 @@
     "immutable": "3.8.1",
     "jsonfile": "2.4.0",
     "lodash": "4.17.2",
-    "material-ui": "git://github.com/keybase/material-ui#887cea63bbd9d1c2e4160d7c85aea1a0db6b67c1",
+    "material-ui": "0.15.4",
     "menubar": "5.1.0",
     "mkdirp": "0.5.1",
     "moment": "2.16.0",
@@ -127,5 +127,5 @@
   "optionalDependencies": {
     "fsevents": "1.0.15"
   },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#edad7d5630a65d3b04c5006af31e2b49f430d432"
+  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#823beae03c5c64f21e56384ec8fb2e5f268410c3"
 }
