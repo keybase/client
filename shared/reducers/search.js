@@ -83,24 +83,15 @@ export default function (state: State = initialState, action: SearchActions): St
     case Constants.addUsersToGroup:
       if (!action.error) {
         const users = action.payload.users
-        let selectedUsers = state.selectedUsers
-        let maybeUpgradedUser
-
-        users.forEach(user => {
-          // Try to upgrade an external search result into a keybase search result, won't work
-          // if it's already a keybase search result or the user doesn't have a keybase account.
-          maybeUpgradedUser = user.service === 'external' && user.keybaseSearchResult ? user.keybaseSearchResult : user
-          const alreadySelected = state.selectedUsers.find(u => equalSearchResult(u, maybeUpgradedUser)) !== undefined
-          if (!alreadySelected) {
-            selectedUsers = [maybeUpgradedUser].concat(selectedUsers)
-          }
-        })
+        const maybeUpgradeUser = user => user.service === 'external' && user.keybaseSearchResult ? user.keybaseSearchResult : user
+        const isNotSelected = user => state.selectedUsers.find(u => equalSearchResult(u, user)) === undefined
+        const selectedUsers = users.map(maybeUpgradeUser).filter(isNotSelected).concat(state.selectedUsers)
 
         return {
           ...state,
           selectedUsers,
           showUserGroup: showUserGroup(null, selectedUsers),
-          userForInfoPane: maybeUpgradedUser,
+          userForInfoPane: action.payload.users.length ? maybeUpgradeUser(action.payload.users[0]) : null,
           searchHintText: searchHintText(state.searchPlatform, selectedUsers),
           results: [],
           searchText: null,

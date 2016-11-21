@@ -16,7 +16,8 @@
         "INCOMING_MESSAGE_1",
         "READ_MESSAGE_2",
         "NEW_CONVERSATION_3",
-        "SET_STATUS_4"
+        "SET_STATUS_4",
+        "FAILED_MESSAGE_5"
       ]
     },
     {
@@ -90,6 +91,19 @@
       ]
     },
     {
+      "type": "record",
+      "name": "FailedMessageInfo",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "OutboxID"
+          },
+          "name": "outboxIDs"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "ChatActivity",
       "switch": {
@@ -124,6 +138,13 @@
             "def": false
           },
           "body": "SetStatusInfo"
+        },
+        {
+          "label": {
+            "name": "FAILED_MESSAGE",
+            "def": false
+          },
+          "body": "FailedMessageInfo"
         }
       ]
     }
