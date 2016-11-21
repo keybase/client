@@ -14,7 +14,9 @@ export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', '
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
-export type Message = {
+export type Message = MessageText | MessageError | MessageTimestamp | MessageUnhandled
+
+export type MessageText = {
   type: 'Text',
   message: HiddenString,
   author: string,
@@ -23,16 +25,27 @@ export type Message = {
   followState: FollowState,
   messageState: MessageState,
   outboxID?: ?string,
-} | {
+}
+
+export type MessageError = {
   type: 'Error',
   reason: string,
   timestamp: number,
   messageID: number,
-} | {
+}
+
+export type MessageTimestamp = {
+  type: 'Timestamp',
+  timestamp: number,
+}
+
+export type MessageUnhandled = {
   type: 'Unhandled',
   timestamp: number,
   messageID: number,
 }
+
+export type MaybeTimestamp = MessageTimestamp | null
 
 export const ConversationStateRecord = Record({
   messages: List(),

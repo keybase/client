@@ -14,7 +14,7 @@ import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
 import {usernameToSearchResult} from '../constants/search'
 
-import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler, NewChat, StartConversation} from '../constants/chat'
+import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, MaybeTimestamp, Message, PostMessage, SelectConversation, SetupNewChatHandler, NewChat, StartConversation} from '../constants/chat'
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
@@ -205,6 +205,17 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             },
           })
         } else {
+          // How long was it between the previous message and this one?
+          // If more than Constants.blahblah, put in a timestamp marker too.
+          // But let's just hardcode it for now.
+          const timestamp = 123
+          yield put({
+            type: Constants.appendMessages,
+            payload: {
+              conversationIDKey,
+              messages: [timestamp],
+            },
+          })
           yield put({
             type: Constants.appendMessages,
             payload: {
@@ -288,6 +299,13 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
 
   const yourName = yield select(usernameSelector)
   const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName)).reverse()
+  let newMessages = []
+  messages.forEach((message, idx) => {
+    if (idx >= 2) {
+      newMessages.push(_maybeAddTimestamp(messages[idx], messages[idx - 1]))
+      newMessages.push(message)
+    }
+  })
   const pagination = _threadToPagination(thread)
 
   yield put({
@@ -318,6 +336,19 @@ function _threadToPagination (thread) {
     last: undefined,
     next: undefined,
   }
+}
+
+function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
+  if (message.type !== 'Text' || prevMessage.type !== 'Text') {
+    return null
+  }
+  if (message.timestamp - prevMessage.timestamp > 10) {
+    return {
+      type: 'Timestamp',
+      timestamp: prevMessage.timestamp,
+    }
+  }
+  return null
 }
 
 function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Message {
