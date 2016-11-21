@@ -428,6 +428,8 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	// All done with fresh replays
 	g.freshReplay = false
 
+	g.pushState(keybase1.PushReason_RECONNECTED)
+
 	return replayedMsgs, consumedMsgs, nil
 }
 
@@ -449,8 +451,6 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	if err := g.auth(ctx, cli); err != nil {
 		return err
 	}
-
-	g.pushState(keybase1.PushReason_RECONNECTED)
 
 	// Sync down events since we have been dead
 	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: cli})
