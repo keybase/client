@@ -52,7 +52,7 @@
     "immutable": "3.8.1",
     "jsonfile": "2.4.0",
     "lodash": "4.17.2",
-    "material-ui": "git://github.com/keybase/material-ui#3783aa99b4905539a0f8487199eeca7dec4dfc28",
+    "material-ui": "git://github.com/keybase/material-ui#887cea63bbd9d1c2e4160d7c85aea1a0db6b67c1",
     "menubar": "5.1.0",
     "mkdirp": "0.5.1",
     "moment": "2.16.0",
