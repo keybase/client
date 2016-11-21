@@ -15,11 +15,13 @@ const blockSize = 100
 
 type blockEngine struct {
 	libkb.Contextified
+	msgIDTracker
 }
 
 func newBlockEngine(g *libkb.GlobalContext) *blockEngine {
 	return &blockEngine{
 		Contextified: libkb.NewContextified(g),
+		msgIDTracker: msgIDTracker{Contextified: libkb.NewContextified(g)},
 	}
 }
 
@@ -327,6 +329,8 @@ func (be *blockEngine) writeMessages(ctx context.Context, convID chat1.Conversat
 		}
 	}
 
+	var maxMsgID chat1.MessageID
+
 	// Append to the block
 	newBlock = maxB
 	for index, msg := range msgs {
@@ -337,11 +341,20 @@ func (be *blockEngine) writeMessages(ctx context.Context, convID chat1.Conversat
 		}
 		newBlock.Msgs[be.getBlockPosition(msgID)] = msg
 		lastWritten = index
+
+		if msg.GetMessageID() > maxMsgID {
+			maxMsgID = msg.GetMessageID()
+		}
 	}
 
 	// Write the block
 	if err = be.writeBlock(ctx, bi, newBlock); err != nil {
 		return libkb.NewChatStorageInternalError(be.G(), "writeMessages: failed to write block: %s", err.Message())
+	}
+
+	// bump max message ID to whatever that has been written
+	if err := be.bumpMaxMessageID(ctx, convID, uid, maxMsgID); err != nil {
+		return err
 	}
 
 	// We didn't write everything out in this block, move to another one

@@ -513,6 +513,8 @@ type ConversationSource interface {
 		msg chat1.MessageBoxed) (chat1.MessageUnboxed, error)
 	Pull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
 		pagination *chat1.Pagination) (chat1.ThreadView, []*chat1.RateLimit, error)
+	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, query *chat1.GetThreadQuery,
+		pagination *chat1.Pagination) (chat1.ThreadView, error)
 	Clear(convID chat1.ConversationID, uid gregor1.UID) error
 }
 
@@ -520,4 +522,5 @@ type MessageDeliverer interface {
 	Queue(convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.OutboxID, error)
 	Start(uid gregor1.UID)
 	Stop()
+	ForceDeliverLoop()
 }

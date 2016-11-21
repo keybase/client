@@ -176,6 +176,11 @@ type UserPlusKeys struct {
 	Uvv               UserVersionVector `codec:"uvv" json:"uvv"`
 }
 
+type UserPlusAllKeys struct {
+	Base    UserPlusKeys `codec:"base" json:"base"`
+	PGPKeys []PublicKey  `codec:"pgpKeys" json:"pgpKeys"`
+}
+
 type MerkleTreeID int
 
 const (
