@@ -1002,7 +1002,7 @@ func TestCRDouble(t *testing.T) {
 		defer wg.Done()
 		err = kbfsOps2.Sync(syncCtx, fileNodeC)
 		if err != context.Canceled {
-			t.Fatalf("Bad sync error, expected canceled: %v", err)
+			t.Errorf("Bad sync error, expected canceled: %v", err)
 		}
 	}()
 	<-onSyncStalledCh
@@ -1711,12 +1711,14 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 		err = RestartCRForTesting(putCtx, config2,
 			rootNode2.GetFolderBranch())
 		if err != nil {
-			t.Fatalf("Couldn't disable updates: %v", err)
+			t.Errorf("Couldn't disable updates: %v", err)
+			return
 		}
 		err = kbfsOps2.SyncFromServerForTesting(putCtx,
 			rootNode2.GetFolderBranch())
 		if err == nil {
-			t.Fatalf("Unexpected successful sync/CR: %v", err)
+			t.Errorf("Unexpected successful sync/CR: %v", err)
+			return
 		}
 	}()
 	<-onPutStalledCh
@@ -1857,16 +1859,19 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 		err = RestartCRForTesting(firstPutCtx, config2,
 			rootNode2.GetFolderBranch())
 		if err != nil {
-			t.Fatalf("Couldn't disable updates: %v", err)
+			t.Errorf("Couldn't disable updates: %v", err)
+			return
 		}
 		err = kbfsOps2.SyncFromServerForTesting(firstPutCtx,
 			rootNode2.GetFolderBranch())
 		if err == nil {
-			t.Fatalf("Unexpected successful sync/CR: %v", err)
+			t.Errorf("Unexpected successful sync/CR: %v", err)
+			return
 		}
 		err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
 		if err != nil {
-			t.Fatalf("Couldn't disable updates: %v", err)
+			t.Errorf("Couldn't disable updates: %v", err)
+			return
 		}
 	}()
 	<-onPutStalledCh
@@ -1890,12 +1895,14 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 		err = RestartCRForTesting(putCtx, config2,
 			rootNode2.GetFolderBranch())
 		if err != nil {
-			t.Fatalf("Couldn't disable updates: %v", err)
+			t.Errorf("Couldn't disable updates: %v", err)
+			return
 		}
 		err = kbfsOps2.SyncFromServerForTesting(putCtx,
 			rootNode2.GetFolderBranch())
 		if err != nil {
-			t.Fatalf("Unexpected unsuccessful sync/CR: %v", err)
+			t.Errorf("Unexpected unsuccessful sync/CR: %v", err)
+			return
 		}
 	}()
 	<-onPutStalledCh
@@ -1906,7 +1913,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	go func() {
 		_, _, err := kbfsOps2.CreateFile(ctx, dirA2, "g", false, NoExcl)
 		if err != nil {
-			t.Fatalf("Couldn't create file: %v", err)
+			t.Errorf("Couldn't create file: %v", err)
 		}
 		writeErrCh <- err
 	}()
@@ -2012,7 +2019,7 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 		defer wg.Done()
 		_, _, err = kbfsOps2.CreateFile(putCtx, rootNode2, "c", false, NoExcl)
 		if err == nil {
-			t.Fatalf("Could create file without error: %v", err)
+			t.Errorf("Could create file without error: %v", err)
 		}
 	}()
 	<-onPutStalledCh

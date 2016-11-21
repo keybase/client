@@ -760,7 +760,7 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 			default:
 			}
 			if err != nil {
-				t.Fatalf("Couldn't read file: %v", err)
+				t.Errorf("Couldn't read file: %v", err)
 				break
 			}
 		}
@@ -1404,14 +1404,10 @@ func TestKBFSOpsCanceledCreateNoError(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	errChan := make(chan error)
+	errChan := make(chan error, 1)
 	go func() {
 		_, _, err := kbfsOps.CreateFile(putCtx, rootNode, "a", false, WithExcl)
-		select {
-		case errChan <- err:
-		case <-ctx.Done():
-			t.Fatal(ctx.Err())
-		}
+		errChan <- err
 	}()
 
 	// Wait until Create gets stuck at MDOps.Put(). At this point, the delayed
@@ -1466,14 +1462,10 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	errChan := make(chan error)
+	errChan := make(chan error, 1)
 	go func() {
 		_, _, err := kbfsOps.CreateFile(putCtx, rootNode, "a", false, WithExcl)
-		select {
-		case errChan <- err:
-		case <-ctx.Done():
-			t.Fatal(ctx.Err())
-		}
+		errChan <- err
 	}()
 
 	// Wait until Create gets stuck at MDOps.Put(). At this point, the delayed
