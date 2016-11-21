@@ -16,6 +16,14 @@ const openToClosePair = {
   '~': '~',
 }
 
+const markToRegex = {
+  '```': '```',
+  '`': '`',
+  '*': '\\*',
+  '_': '_',
+  '~': '~',
+}
+
 type TagInfo<C> = {Component: Class<C>, props: PropsOf<C>}
 
 const initialOpenToTag = {
@@ -54,9 +62,19 @@ const initalTagMeta: TagMeta = {
 
 type TagStack = List<TagMeta>
 
+const marksRegex = new RegExp(Object.keys(openToClosePair).map(s => '^' + markToRegex[s]).join('|'))
 function matchWithMark (text: string): ?{matchingMark: string, restText: string} {
-  const matchingMark = Object.keys(openToClosePair).find(mark => text.indexOf(mark) === 0)
-  return matchingMark ? {matchingMark, restText: text.slice(matchingMark.length)} : null
+  const m = text.match(marksRegex)
+  if (m && m[0]) {
+    const matchingMark = m[0]
+    return {matchingMark, restText: text.slice(matchingMark.length)}
+  }
+  return null
+}
+
+function hasClosingMark (text: string, openingMark): boolean {
+  const closingMark = openToClosePair[openingMark]
+  return text.indexOf(closingMark, openingMark.length) !== -1
 }
 
 function tagMetaToElement (m: TagMeta, key) {
@@ -88,7 +106,7 @@ function _parseRecursive (text: string, tagStack: TagStack, key: number): React$
       tagStack.pop().update(-1, m => ({...m, elementsSoFar: m.elementsSoFar.push(newElement)})),
       key + 1
     )
-  } else if (matchingMark && openToTag[matchingMark]) {
+  } else if (matchingMark && openToTag[matchingMark] && hasClosingMark(text, matchingMark)) {
     return _parseRecursive(
       restText,
       tagStack

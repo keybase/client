@@ -820,7 +820,7 @@ const markdownDumbMap: DumbComponentMap<Markdown> = {
       children: 'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";``` How about *bold* and _italic?_ nice.\n Now youre thinking with ~portals~ crypto.\n how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_',
     },
     'special chars in code block': {
-      children: 'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";\n // this should be *asterisk* ```',
+      children: 'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";\n// this should be *asterisk* ```',
     },
     'Messed up': {
       children: 'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";`` I think I *missed something**',
