@@ -198,28 +198,28 @@ class CodePageRender extends Component<void, Props, void> {
   }
 
   render () {
-    let isMobile = this.props.otherDeviceRole === codePageDeviceRoleExistingPhone
+    let otherDeviceIsMobile = this.props.otherDeviceRole === codePageDeviceRoleExistingPhone
     switch (this.props.mode) {
       case codePageModeShowCode:
-        if (isMobile) {
+        if (otherDeviceIsMobile) {
           return this.renderCodeForMobile()
         }
         return this.renderShowCodeForDesktop()
 
       case codePageModeScanCode:
-        if (isMobile) {
+        if (otherDeviceIsMobile) {
           return this.renderCodeForMobile()
         }
         return this.renderScanCodeForDesktop()
 
       case codePageModeShowText:
-        if (isMobile) {
+        if (otherDeviceIsMobile) {
           return this.renderTextForMobile()
         }
         return this.renderShowTextForDesktop()
 
       case codePageModeEnterText:
-        if (isMobile) {
+        if (otherDeviceIsMobile) {
           return this.renderTextForMobile()
         }
         return this.renderEnterTextForDesktop()
