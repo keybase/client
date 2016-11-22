@@ -388,3 +388,68 @@ func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
 	dirtyPtrs = append(dirtyPtrs, fd.file.tailPointer())
 	return newDe, dirtyPtrs, nil
 }
+
+func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
+	topBlock *FileBlock, oldDe DirEntry) (
+	newDe DirEntry, unrefs []BlockInfo, newlyDirtiedChildBytes int64,
+	err error) {
+	iSize := int64(size) // TODO: deal with overflow
+	ptr, parentBlocks, block, nextBlockOff, startOff, wasDirty, err :=
+		fd.getFileBlockAtOffset(ctx, topBlock, iSize, blockWrite)
+	if err != nil {
+		return DirEntry{}, nil, 0, err
+	}
+
+	oldLen := len(block.Contents)
+	// We need to delete some data (and possibly entire blocks).
+	block.Contents = append([]byte(nil), block.Contents[:iSize-startOff]...)
+
+	newlyDirtiedChildBytes = int64(len(block.Contents))
+	if wasDirty {
+		newlyDirtiedChildBytes -= int64(oldLen) // negative
+	}
+
+	if nextBlockOff > 0 {
+		// TODO: if indexInParent == 0, we can remove the level of indirection.
+		// TODO: support multiple levels of indirection.
+		parentBlock := parentBlocks[0].pblock
+		indexInParent := parentBlocks[0].childIndex
+		for _, ptr := range parentBlock.IPtrs[indexInParent+1:] {
+			unrefs = append(unrefs, ptr.BlockInfo)
+		}
+		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
+		// always make the parent block dirty, so we will sync it
+		if err = fd.cacher(fd.file.tailPointer(), parentBlock); err != nil {
+			return DirEntry{}, nil, newlyDirtiedChildBytes, err
+		}
+	}
+
+	if topBlock.IsInd {
+		// Always make the top block dirty, so we will sync its
+		// indirect blocks.  This has the added benefit of ensuring
+		// that any truncate to a file while it's being sync'd will be
+		// deferred, even if it's to a block that's not currently
+		// being sync'd, since this top-most block will always be in
+		// the dirtyFiles map.
+		if err = fd.cacher(fd.file.tailPointer(), topBlock); err != nil {
+			return DirEntry{}, nil, newlyDirtiedChildBytes, err
+		}
+	}
+
+	for _, pb := range parentBlocks {
+		// Remember how many bytes it was.
+		unrefs = append(unrefs, pb.pblock.IPtrs[pb.childIndex].BlockInfo)
+		pb.pblock.IPtrs[pb.childIndex].EncodedSize = 0
+	}
+
+	newDe = oldDe
+	newDe.EncodedSize = 0
+	newDe.Size = size
+
+	// Keep the old block ID while it's dirty.
+	if err = fd.cacher(ptr, block); err != nil {
+		return DirEntry{}, nil, newlyDirtiedChildBytes, err
+	}
+
+	return newDe, unrefs, newlyDirtiedChildBytes, nil
+}

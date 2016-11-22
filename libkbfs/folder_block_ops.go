@@ -1215,8 +1215,8 @@ func (fbo *folderBlockOps) writeDataLocked(
 
 	newDe, dirtyPtrs, unrefs, newlyDirtiedChildBytes, bytesExtended, err :=
 		fd.write(ctx, data, off, fblock, de, df)
-	// Record the unrefs and directory entry before checking the error
-	// so we remember the state of newly dirtied blocks.
+	// Record the unrefs before checking the error so we remember the
+	// state of newly dirtied blocks.
 	si.unrefs = append(si.unrefs, unrefs...)
 	if err != nil {
 		return WriteRange{}, nil, newlyDirtiedChildBytes, err
@@ -1383,7 +1383,7 @@ func (fbo *folderBlockOps) truncateLocked(
 
 	// find the block where the file should now end
 	iSize := int64(size) // TODO: deal with overflow
-	ptr, parentBlocks, block, nextBlockOff, startOff, _, err :=
+	_, _, block, nextBlockOff, startOff, _, err :=
 		fd.getFileBlockAtOffset(ctx, fblock, iSize, blockWrite)
 	if err != nil {
 		return &WriteRange{}, nil, 0, err
@@ -1417,71 +1417,26 @@ func (fbo *folderBlockOps) truncateLocked(
 		return nil, nil, 0, err
 	}
 
-	oldLen := len(block.Contents)
-	dirtyBcache := fbo.config.DirtyBlockCache()
-	wasDirty := dirtyBcache.IsDirty(fbo.id(), ptr, file.Branch)
-
-	// otherwise, we need to delete some data (and possibly entire blocks)
-	block.Contents = append([]byte(nil), block.Contents[:iSize-startOff]...)
-
-	newlyDirtiedChildBytes := int64(len(block.Contents))
-	if wasDirty {
-		newlyDirtiedChildBytes -= int64(oldLen) // negative
-	}
-	df := fbo.getOrCreateDirtyFileLocked(lState, file)
-	df.updateNotYetSyncingBytes(newlyDirtiedChildBytes)
-
 	si, err := fbo.getOrCreateSyncInfoLocked(lState, de)
 	if err != nil {
 		return nil, nil, 0, err
 	}
-	if nextBlockOff > 0 {
-		// TODO: if indexInParent == 0, we can remove the level of indirection.
-		// TODO: support multiple levels of indirection.
-		parentBlock := parentBlocks[0].pblock
-		indexInParent := parentBlocks[0].childIndex
-		for _, ptr := range parentBlock.IPtrs[indexInParent+1:] {
-			si.unrefs = append(si.unrefs, ptr.BlockInfo)
-		}
-		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
-		// always make the parent block dirty, so we will sync it
-		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
-			file.tailPointer(), file, parentBlock); err != nil {
-			return nil, nil, newlyDirtiedChildBytes, err
-		}
-	}
 
-	if fblock.IsInd {
-		// Always make the top block dirty, so we will sync its
-		// indirect blocks.  This has the added benefit of ensuring
-		// that any truncate to a file while it's being sync'd will be
-		// deferred, even if it's to a block that's not currently
-		// being sync'd, since this top-most block will always be in
-		// the dirtyFiles map.
-		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
-			file.tailPointer(), file, fblock); err != nil {
-			return nil, nil, newlyDirtiedChildBytes, err
-		}
-	}
-
-	for _, pb := range parentBlocks {
-		// Remember how many bytes it was.
-		si.unrefs = append(si.unrefs,
-			pb.pblock.IPtrs[pb.childIndex].BlockInfo)
-		pb.pblock.IPtrs[pb.childIndex].EncodedSize = 0
-	}
-
-	latestWrite := si.op.addTruncate(size)
-
-	de.EncodedSize = 0
-	de.Size = size
-	fbo.deCache[file.tailPointer().Ref()] = de
-
-	// Keep the old block ID while it's dirty.
-	if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
-		ptr, file, block); err != nil {
+	newDe, unrefs, newlyDirtiedChildBytes, err := fd.truncateShrink(
+		ctx, size, fblock, de)
+	// Record the unrefs before checking the error so we remember the
+	// state of newly dirtied blocks.
+	si.unrefs = append(si.unrefs, unrefs...)
+	if err != nil {
 		return nil, nil, newlyDirtiedChildBytes, err
 	}
+
+	// Update dirtied bytes and unrefs regardless of error.
+	df := fbo.getOrCreateDirtyFileLocked(lState, file)
+	df.updateNotYetSyncingBytes(newlyDirtiedChildBytes)
+
+	latestWrite := si.op.addTruncate(size)
+	fbo.deCache[file.tailPointer().Ref()] = newDe
 
 	return &latestWrite, nil, newlyDirtiedChildBytes, nil
 }
