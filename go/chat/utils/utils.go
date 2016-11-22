@@ -240,3 +240,12 @@ func VisibleChatConversationStatuses() []chat1.ConversationStatus {
 		chat1.ConversationStatus_FAVORITE,
 	}
 }
+
+func IsVisibleChatConversationStatus(status chat1.ConversationStatus) bool {
+	for _, s := range VisibleChatConversationStatuses() {
+		if status == s {
+			return true
+		}
+	}
+	return false
+}
