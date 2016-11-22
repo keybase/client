@@ -153,8 +153,8 @@ type mdJournal struct {
 }
 
 func makeMDJournalWithIDJournal(
-	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	crypto cryptoPure, clock Clock, tlfID tlf.ID,
+	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
+	codec kbfscodec.Codec, crypto cryptoPure, clock Clock, tlfID tlf.ID,
 	mdVer MetadataVer, dir string, idJournal mdIDJournal,
 	log logger.Logger) (*mdJournal, error) {
 	if uid == keybase1.UID("") {
@@ -203,7 +203,7 @@ func makeMDJournalWithIDJournal(
 				"earliest.BID=%s != latest.BID=%s",
 				earliest.BID(), latest.BID())
 		}
-		log.CDebugf(nil, "Initializing with branch ID %s", latest.BID())
+		log.CDebugf(ctx, "Initializing with branch ID %s", latest.BID())
 		journal.branchID = latest.BID()
 	}
 
@@ -211,13 +211,13 @@ func makeMDJournalWithIDJournal(
 }
 
 func makeMDJournal(
-	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	crypto cryptoPure, clock Clock, tlfID tlf.ID,
+	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
+	codec kbfscodec.Codec, crypto cryptoPure, clock Clock, tlfID tlf.ID,
 	mdVer MetadataVer, dir string,
 	log logger.Logger) (*mdJournal, error) {
 	journalDir := filepath.Join(dir, "md_journal")
 	return makeMDJournalWithIDJournal(
-		uid, key, codec, crypto, clock, tlfID, mdVer, dir,
+		ctx, uid, key, codec, crypto, clock, tlfID, mdVer, dir,
 		makeMdIDJournal(codec, journalDir), log)
 }
 
@@ -1297,7 +1297,7 @@ func (j *mdJournal) resolveAndClear(
 	}()
 
 	otherJournal, err := makeMDJournalWithIDJournal(
-		j.uid, j.key, j.codec, j.crypto, j.clock, j.tlfID, j.mdVer, j.dir,
+		ctx, j.uid, j.key, j.codec, j.crypto, j.clock, j.tlfID, j.mdVer, j.dir,
 		otherIDJournal, j.log)
 	if err != nil {
 		return MdID{}, err

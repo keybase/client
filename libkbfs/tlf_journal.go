@@ -299,7 +299,7 @@ func makeTLFJournal(
 	}
 
 	mdJournal, err := makeMDJournal(
-		uid, key, config.Codec(), config.Crypto(), config.Clock(),
+		ctx, uid, key, config.Codec(), config.Crypto(), config.Clock(),
 		tlfID, config.MetadataVersion(), dir, log)
 	if err != nil {
 		return nil, err

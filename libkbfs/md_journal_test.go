@@ -74,7 +74,8 @@ func setupMDJournalTest(t *testing.T) (
 	}()
 
 	log := logger.NewTestLogger(t)
-	j, err = makeMDJournal(uid, verifyingKey, codec, crypto, wallClock{},
+	ctx := context.Background()
+	j, err = makeMDJournal(ctx, uid, verifyingKey, codec, crypto, wallClock{},
 		tlfID, defaultClientMetadataVer, tempdir, log)
 	require.NoError(t, err)
 
@@ -804,7 +805,8 @@ func TestMDJournalRestart(t *testing.T) {
 		firstRevision, firstPrevRoot, mdCount, j)
 
 	// Restart journal.
-	j, err := makeMDJournal(j.uid, j.key, codec, crypto, j.clock,
+	ctx := context.Background()
+	j, err := makeMDJournal(ctx, j.uid, j.key, codec, crypto, j.clock,
 		j.tlfID, j.mdVer, j.dir, j.log)
 	require.NoError(t, err)
 
@@ -845,7 +847,7 @@ func TestMDJournalRestartAfterBranchConversion(t *testing.T) {
 
 	// Restart journal.
 
-	j, err = makeMDJournal(j.uid, j.key, codec, crypto, j.clock,
+	j, err = makeMDJournal(ctx, j.uid, j.key, codec, crypto, j.clock,
 		j.tlfID, j.mdVer, j.dir, j.log)
 	require.NoError(t, err)
 
