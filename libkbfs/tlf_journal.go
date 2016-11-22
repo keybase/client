@@ -811,7 +811,7 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
 	}
 
 	j.log.CDebugf(ctx, "Converting journal of length %d to branch", size)
-	err = j.convertMDsToBranchLocked(ctx, LocalSquashBranchID)
+	err = j.convertMDsToBranchLocked(ctx, PendingLocalSquashBranchID)
 	if err != nil {
 		return false, err
 	}
@@ -1516,9 +1516,9 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 
 	// The set of unflushed paths could change as part of the
 	// resolution, and the revision numbers definitely change.
-	isLocalSquash := bid == LocalSquashBranchID
+	isPendingLocalSquash := bid == PendingLocalSquashBranchID
 	if !j.unflushedPaths.reinitializeWithResolution(
-		mdInfo, perRevMap, isLocalSquash) {
+		mdInfo, perRevMap, isPendingLocalSquash) {
 		return MdID{}, true, nil
 	}
 

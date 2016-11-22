@@ -198,7 +198,7 @@ func makeMDJournalWithIDJournal(
 	if earliest != nil {
 		if earliest.BID() != latest.BID() &&
 			!(earliest.BID() == NullBranchID &&
-				latest.BID() == LocalSquashBranchID) {
+				latest.BID() == PendingLocalSquashBranchID) {
 			return nil, fmt.Errorf(
 				"earliest.BID=%s != latest.BID=%s",
 				earliest.BID(), latest.BID())
@@ -437,7 +437,7 @@ func (j mdJournal) getMDAndExtra(id MdID, verifyBranchID bool) (
 	}
 
 	if verifyBranchID && rmd.BID() != j.branchID &&
-		!(rmd.BID() == NullBranchID && j.branchID == LocalSquashBranchID) {
+		!(rmd.BID() == NullBranchID && j.branchID == PendingLocalSquashBranchID) {
 		return nil, nil, time.Time{}, fmt.Errorf(
 			"Branch ID mismatch: expected %s, got %s",
 			j.branchID, rmd.BID())
@@ -636,14 +636,14 @@ func (j *mdJournal) convertToBranch(
 
 	var prevID MdID
 
-	isLocalSquash := bid == LocalSquashBranchID
+	isPendingLocalSquash := bid == PendingLocalSquashBranchID
 	for _, entry := range allEntries {
 		brmd, _, ts, err := j.getMDAndExtra(entry.ID, true)
 		if err != nil {
 			return err
 		}
 
-		if entry.IsLocalSquash && isLocalSquash {
+		if entry.IsLocalSquash && isPendingLocalSquash {
 			// If this is a local squash, don't convert it.  We don't
 			// want to squash anything more into it.
 			j.log.CDebugf(ctx, "Preserving local squash %s", entry.ID)
@@ -755,7 +755,7 @@ func (j *mdJournal) convertToBranch(
 
 	mdsToRemove = make([]MdID, 0, len(allEntries))
 	for _, entry := range allEntries {
-		if entry.IsLocalSquash && isLocalSquash {
+		if entry.IsLocalSquash && isPendingLocalSquash {
 			continue
 		}
 		mdsToRemove = append(mdsToRemove, entry.ID)
@@ -1226,9 +1226,9 @@ func (j *mdJournal) clear(
 	// Garbage-collect the old branch entries.  TODO: we'll eventually
 	// need a sweeper to clean up entries left behind if we crash
 	// here.
-	isLocalSquash := bid == LocalSquashBranchID
+	isPendingLocalSquash := bid == PendingLocalSquashBranchID
 	for _, entry := range allEntries {
-		if entry.IsLocalSquash && isLocalSquash {
+		if entry.IsLocalSquash && isPendingLocalSquash {
 			continue
 		}
 		err := j.removeMD(entry.ID)
@@ -1305,8 +1305,7 @@ func (j *mdJournal) resolveAndClear(
 
 	// Put the local squashes back into the new journal, since they
 	// weren't part of the resolve.
-	isLocalSquash := bid == LocalSquashBranchID
-	if isLocalSquash {
+	if bid == PendingLocalSquashBranchID {
 		for ; earliestRevision <= latestRevision; earliestRevision++ {
 			entry, err := j.j.readJournalEntry(earliestRevision)
 			if err != nil {

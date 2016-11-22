@@ -95,7 +95,7 @@ func (j journalMDOps) getHeadFromJournal(
 	// for a local squash branch, we might contain some non-branch
 	// entries before some branch entries.
 	if mStatus == Merged {
-		for head.BID() == LocalSquashBranchID {
+		for head.BID() == PendingLocalSquashBranchID {
 			newHead := head.RevisionNumber() - 1
 			if newHead < MetadataRevisionInitial {
 				break
@@ -184,7 +184,7 @@ func (j journalMDOps) getRangeFromJournal(
 	// for a local squash branch, we might contain some non-branch
 	// entries before some branch entries.
 	if mStatus == Merged {
-		for head.BID() == LocalSquashBranchID {
+		for head.BID() == PendingLocalSquashBranchID {
 			if headIndex == 0 {
 				break
 			}
@@ -217,7 +217,7 @@ func (j journalMDOps) getRangeFromJournal(
 	irmds := make([]ImmutableRootMetadata, 0, len(ibrmds))
 
 	for _, ibrmd := range ibrmds {
-		if bid == LocalSquashBranchID && ibrmd.BID() != bid {
+		if bid == PendingLocalSquashBranchID && ibrmd.BID() != bid {
 			// It's acceptable for the journal to contain non-branch
 			// local squashes if the branch is itself a local squash.
 			continue

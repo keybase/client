@@ -260,7 +260,7 @@ func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState,
 		return nil, nil, err
 	}
 
-	if len(unmerged) > 0 && unmerged[0].BID() == LocalSquashBranchID {
+	if len(unmerged) > 0 && unmerged[0].BID() == PendingLocalSquashBranchID {
 		cr.log.CDebugf(ctx, "Squashing local branch")
 		return unmerged, nil, nil
 	}
@@ -342,7 +342,7 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 	// revisions, or this is a local squash and we won't block for
 	// very long.
 	if (len(unmerged)+len(merged) > cr.maxRevsThreshold) ||
-		(len(unmerged) > 0 && unmerged[0].BID() == LocalSquashBranchID) {
+		(len(unmerged) > 0 && unmerged[0].BID() == PendingLocalSquashBranchID) {
 		cr.lockNextTime = true
 	}
 	return nil
