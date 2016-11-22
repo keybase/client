@@ -1010,10 +1010,7 @@ func (fbo *folderBlockOps) Read(
 	nRead := int64(0)
 	n := int64(len(dest))
 
-	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return 0, err
-	}
+	var uid keybase1.UID // Data reads don't depend on the uid.
 	fd := fbo.newFileData(lState, file, uid, kmd)
 
 	for nRead < n {

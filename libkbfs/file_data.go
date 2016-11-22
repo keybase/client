@@ -19,13 +19,13 @@ type dirtyBlockCacher func(ptr BlockPointer, block Block) error
 type fileData struct {
 	file   path
 	uid    keybase1.UID
-	crypto Crypto
+	crypto cryptoPure
 	kmd    KeyMetadata
 	getter fileBlockGetter
 	cacher dirtyBlockCacher
 }
 
-func newFileData(file path, uid keybase1.UID, crypto Crypto,
+func newFileData(file path, uid keybase1.UID, crypto cryptoPure,
 	kmd KeyMetadata, getter fileBlockGetter,
 	cacher dirtyBlockCacher) *fileData {
 	return &fileData{
@@ -50,12 +50,12 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 	// search until it's not an indirect block
 	for block.IsInd {
 		nextIndex := len(block.IPtrs) - 1
-		for i, ptr := range block.IPtrs {
-			if ptr.Off == off {
+		for i, iptr := range block.IPtrs {
+			if iptr.Off == off {
 				// small optimization to avoid iterating past the right ptr
 				nextIndex = i
 				break
-			} else if ptr.Off > off {
+			} else if iptr.Off > off {
 				// i can never be 0, because the first ptr always has
 				// an offset at the beginning of the range
 				nextIndex = i - 1
@@ -125,6 +125,8 @@ func (fd *fileData) createIndirectBlock(
 	return fblock, nil
 }
 
+// newRightBlock appends a new block (with a temporary ID) to the end
+// of this file.
 func (fd *fileData) newRightBlock(
 	ctx context.Context, ptr BlockPointer, pblock *FileBlock,
 	off int64) error {
