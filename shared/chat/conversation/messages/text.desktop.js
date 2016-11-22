@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Text, Avatar} from '../../../common-adapters'
+import {Box, Text, Avatar, Markdown} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import * as Constants from '../../../constants/chat'
 
@@ -17,10 +17,10 @@ const MessageText = ({text, messageState, style}: {text: string, messageState: C
   switch (messageState) {
     case 'failed':
     case 'pending':
-      return <Text type='Body' style={{color: globalColors.black_40, ...style}}>{text}</Text>
+      return <Markdown style={{color: globalColors.black_40, ...style}}>{text}</Markdown>
     case 'sent':
     default:
-      return <Text style={style} type='Body'>{text}</Text>
+      return <Markdown style={style}>{text}</Markdown>
   }
 }
 

@@ -58,9 +58,9 @@ const markToRegex = {
 const initialOpenToTag = {
   '`': {Component: Text, props: {type: 'Body', style: codeSnippetStyle}},
   '```': {Component: Text, props: {type: 'Body', style: codeSnippetBlockStyle}},
-  '*': {Component: Text, props: {type: 'BodySemibold'}},
-  '_': {Component: Text, props: {type: 'Body', style: {fontStyle: 'italic', fontWeight: undefined}}},
-  '~': {Component: Text, props: {type: 'Body', style: {textDecoration: 'line-through', fontWeight: undefined}}},
+  '*': {Component: Text, props: {type: 'BodySemibold', style: {color: undefined}}},
+  '_': {Component: Text, props: {type: 'Body', style: {fontStyle: 'italic', fontWeight: undefined, color: undefined}}},
+  '~': {Component: Text, props: {type: 'Body', style: {textDecoration: 'line-through', fontWeight: undefined, color: undefined}}},
   ':': {Component: Emoji, props: {size: 16}},
 }
 
@@ -73,7 +73,7 @@ const openToNextOpenToTag = {
   ':': {},
 }
 
-const plainStringTag = {Component: Text, props: {type: 'Body'}}
+const plainStringTag = {Component: Text, props: {type: 'Body', style: {color: undefined}}}
 
 type TagMeta = {
   componentInfo: {Component: ReactClass<*>, props: Object},
@@ -169,7 +169,7 @@ const initialTagStack = new List([initalTagMeta])
 
 class Markdown extends PureComponent<void, Props, void> {
   render () {
-    return <Text type='Body'>{_parseRecursive(preprocessEmojiColors(this.props.children || ''), initialTagStack, 0)}</Text>
+    return <Text type='Body' style={this.props.style}>{_parseRecursive(preprocessEmojiColors(this.props.children || ''), initialTagStack, 0)}</Text>
   }
 }
 
