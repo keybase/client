@@ -53,7 +53,7 @@ class ConversationList extends Component<void, Props, State> {
       // We want a stable key -- messages have an outboxID but no messageID,
       // then later gain a messageID.  So if we prefer outboxIDs to messageIDs
       // for the key, every row keeps its key.
-      const id = message && (message.outboxID || message.messageID)
+      const id = message && (message.outboxID || message.messageID || message.timestamp)
       if (id == null) {
         console.warn('id is null for index:', messageIndex)
       }
