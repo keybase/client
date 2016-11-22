@@ -26,6 +26,7 @@ function listenForNotifications (): ListenForNotifications {
 function * _listenSaga (): SagaGenerator<any, any> {
   const channels = {
     app: true,
+    badges: true,
     chat: true,
     favorites: false,
     kbfs: true,

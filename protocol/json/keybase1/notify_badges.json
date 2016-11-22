@@ -1,0 +1,81 @@
+{
+  "protocol": "NotifyBadges",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "ChatConversationID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "BadgeState",
+      "fields": [
+        {
+          "type": "int",
+          "name": "total"
+        },
+        {
+          "type": "int",
+          "name": "newTlfs"
+        },
+        {
+          "type": "int",
+          "name": "rekeysNeeded"
+        },
+        {
+          "type": "int",
+          "name": "newFollowers"
+        },
+        {
+          "type": "int",
+          "name": "unreadChatMessages"
+        },
+        {
+          "type": "int",
+          "name": "unreadChatConversations"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "BadgeConversationInfo"
+          },
+          "name": "conversations"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BadgeConversationInfo",
+      "fields": [
+        {
+          "type": "ChatConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "int",
+          "name": "UnreadMessages"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "badgeState": {
+      "request": [
+        {
+          "name": "badgeState",
+          "type": "BadgeState"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    }
+  },
+  "namespace": "keybase.1"
+}
