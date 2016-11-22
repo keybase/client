@@ -17,6 +17,7 @@ protocol notifyCtl {
     boolean chat;
     boolean pgp;
     boolean kbfsrequest;
+    boolean badges;
   }
 
   void setNotifications(NotificationChannels channels);

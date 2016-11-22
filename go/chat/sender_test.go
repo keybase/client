@@ -26,6 +26,8 @@ type chatListener struct {
 	failing  chan []chat1.OutboxID
 }
 
+var _ libkb.NotifyListener = (*chatListener)(nil)
+
 func (n *chatListener) Logout()                                                      {}
 func (n *chatListener) Login(username string)                                        {}
 func (n *chatListener) ClientOutOfDate(to, uri, msg string)                          {}
@@ -40,6 +42,7 @@ func (n *chatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.
 func (n *chatListener) FavoritesChanged(uid keybase1.UID)                            {}
 func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                            {}
 func (n *chatListener) PGPKeyInSecretStoreFile()                                     {}
+func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                    {}
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	n.Lock()
 	defer n.Unlock()
