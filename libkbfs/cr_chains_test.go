@@ -186,7 +186,7 @@ func TestCRChainsSingleOp(t *testing.T) {
 
 	co, err := newCreateOp("new", dir2Unref, File)
 	require.NoError(t, err)
-	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+	_ = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{rootPtrUnref, dir1Unref, dir2Unref}, co)
 	chainMD.AddOp(co)
 	chainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
@@ -220,7 +220,7 @@ func TestCRChainsRenameOp(t *testing.T) {
 	ro, err := newRenameOp(oldName, dir1Unref, newName, dir2Unref, filePtr, File)
 	require.NoError(t, err)
 	expectedRenames[filePtr] = renameInfo{dir1Unref, "old", dir2Unref, "new"}
-	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+	_ = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{rootPtrUnref, dir1Unref, dir2Unref}, ro)
 	chainMD.AddOp(ro)
 	chainMD.data.Dir.BlockPointer = expected[rootPtrUnref]
@@ -323,7 +323,7 @@ func testCRChainsMultiOps(t *testing.T) ([]chainMetadata, BlockPointer) {
 	// rm root/dir1/dir2/file1
 	op5, err := newRmOp(f1, dir2Unref)
 	require.NoError(t, err)
-	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+	_ = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref], dir2Unref},
 		op5)
 	bigChainMD.AddOp(op5)
@@ -490,7 +490,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	require.NoError(t, err)
 	// expected the previous old name, not the new one
 	expectedRenames[file4Ptr] = renameInfo{dir1Unref, f4, dir1Unref, f3}
-	currPtr = testCRFillOpPtrs(currPtr, expected, revPtrs,
+	_ = testCRFillOpPtrs(currPtr, expected, revPtrs,
 		[]BlockPointer{expected[rootPtrUnref], expected[dir1Unref]}, op9)
 	chainMD.AddOp(op9)
 

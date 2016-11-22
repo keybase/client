@@ -217,7 +217,9 @@ func (tlf *TLF) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 		fav := tlf.folder.h.ToFavorite()
 		tlf.folder.handleMu.Unlock()
 		tlf.folder.fs.log.CDebugf(ctx, "TLF Removing favorite %q", fav.Name)
-		defer tlf.folder.reportErr(ctx, libkbfs.WriteMode, err)
+		defer func() {
+			tlf.folder.reportErr(ctx, libkbfs.WriteMode, err)
+		}()
 		err = tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx, fav)
 	}
 

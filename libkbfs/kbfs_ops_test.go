@@ -5112,7 +5112,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	changeReadyBlockData := ReadyBlockData{
 		buf: changeBuf,
 	}
-	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), kmdMatcher{rmd},
+	_ = config.mockBops.EXPECT().Ready(gomock.Any(), kmdMatcher{rmd},
 		gomock.Any()).Return(changeBlockID, changePlainSize,
 		changeReadyBlockData, nil).After(lastCall)
 	config.mockBserv.EXPECT().Put(gomock.Any(), rmd.TlfID(), changeBlockID,

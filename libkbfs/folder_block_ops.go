@@ -2388,7 +2388,7 @@ func (fbo *folderBlockOps) doDeferredWritesLocked(ctx context.Context,
 			return true, err
 		}
 	}
-	return false, nil
+	return stillDirty, nil
 }
 
 // FinishSync finishes the sync process for a file, given the state

@@ -349,10 +349,12 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 			errChan <- nil
 		}).Return(errChan)
 	err = c.KeyfamilyChanged(context.Background(), uid1)
+	require.NoError(t, err)
 	<-errChan
 	// This one shouldn't trigger CheckForRekeys; if it does, the mock
 	// controller will catch it during Finish.
 	err = c.KeyfamilyChanged(context.Background(), uid2)
+	require.NoError(t, err)
 }
 
 // truncateNotificationTimestamps is a helper function to truncate

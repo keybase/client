@@ -272,6 +272,7 @@ func TestLongTlfEditHistory(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps1.Rename(ctx, rootNode1, renameFile, rootNode1,
 		renameFile+".New")
+	require.NoError(t, err)
 
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
