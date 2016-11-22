@@ -2814,7 +2814,8 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 						return nil, err
 					}
 					info, _, readyBlockData, err := ReadyBlock(
-						ctx, cr.config, newMD.ReadOnly(), childBlock, uid)
+						ctx, cr.config.BlockCache(), cr.config.BlockOps(),
+						cr.config.Crypto(), newMD.ReadOnly(), childBlock, uid)
 					if err != nil {
 						return nil, err
 					}

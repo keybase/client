@@ -563,3 +563,53 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 	}
 	return unrefs, nil
 }
+
+// Need: newInfo->{readyBlockData, oldPtr}
+
+func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
+	dirtyBcache DirtyBlockCache, bops BlockOps, bps *blockPutState,
+	topBlock *FileBlock, df *dirtyFile) (map[BlockInfo]BlockPointer, error) {
+	if !topBlock.IsInd {
+		return nil, nil
+	}
+
+	oldPtrs := make(map[BlockInfo]BlockPointer)
+	// TODO: handle multiple levels of indirection.
+	for i := 0; i < len(topBlock.IPtrs); i++ {
+		ptr := topBlock.IPtrs[i]
+		isDirty := dirtyBcache.IsDirty(id, ptr.BlockPointer, fd.file.Branch)
+		if (ptr.EncodedSize > 0) && isDirty {
+			return nil, InconsistentEncodedSizeError{ptr.BlockInfo}
+		}
+		if !isDirty {
+			continue
+		}
+
+		// Ready the dirty block.
+		_, _, block, _, _, _, err := fd.getFileBlockAtOffset(
+			ctx, topBlock, ptr.Off, blockWrite)
+		if err != nil {
+			return nil, err
+		}
+
+		newInfo, _, readyBlockData, err :=
+			ReadyBlock(ctx, bcache, bops, fd.crypto, fd.kmd, block, fd.uid)
+		if err != nil {
+			return nil, err
+		}
+
+		err = bcache.Put(newInfo.BlockPointer, id, block, PermanentEntry)
+		if err != nil {
+			return nil, err
+		}
+
+		bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData,
+			func() error {
+				return df.setBlockSynced(ptr.BlockPointer)
+			})
+
+		topBlock.IPtrs[i].BlockInfo = newInfo
+		oldPtrs[newInfo] = ptr.BlockPointer
+	}
+	return oldPtrs, nil
+}
