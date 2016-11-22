@@ -330,6 +330,13 @@ func (fd *fileData) write(ctx context.Context, data []byte, off int64,
 	return newDe, dirtyPtrs, unrefs, newlyDirtiedChildBytes, bytesExtended, nil
 }
 
+// truncateExtend increases file size to the given size, by either
+// writing blank data or inserting "holes" into the file depending on
+// how big the extension is. Return params:
+// * newDe: a new directory entry with the EncodedSize cleared if the file
+//   was extended.
+// * dirtyPtrs: a slice of the BlockPointers that have been dirtied during
+//   the write.
 func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
 	topBlock *FileBlock, oldDe DirEntry, df *dirtyFile) (
 	newDe DirEntry, dirtyPtrs []BlockPointer, err error) {
@@ -390,6 +397,14 @@ func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
 	return newDe, dirtyPtrs, nil
 }
 
+// truncateShrink shrinks the file to the given size. Return params:
+// * newDe: a new directory entry with the EncodedSize cleared if the file
+//   was extended.
+// * unrefs: a slice of BlockInfos that must be unreferenced as part of an
+//   eventual sync of this write.  May be non-nil even if err != nil.
+// * newlyDirtiedChildBytes is the total amount of block data dirtied by this
+//   write, including the entire size of blocks that have had at least one
+//   byte dirtied.  As above, it may be non-zero even if err != nil.
 func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 	topBlock *FileBlock, oldDe DirEntry) (
 	newDe DirEntry, unrefs []BlockInfo, newlyDirtiedChildBytes int64,
@@ -455,6 +470,11 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 	return newDe, unrefs, newlyDirtiedChildBytes, nil
 }
 
+// split, if given an indirect top block of a file, checks whether any
+// of the dirty leaf blocks in that file need to be split up
+// differently (i.e., if the BlockSplitter is using
+// fingerprinting-based boundaries).  It returns the set of blocks
+// that now need to be unreferenced.
 func (fd *fileData) split(ctx context.Context, id tlf.ID,
 	dirtyBcache DirtyBlockCache, topBlock *FileBlock) (
 	unrefs []BlockInfo, err error) {
@@ -564,8 +584,10 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 	return unrefs, nil
 }
 
-// Need: newInfo->{readyBlockData, oldPtr}
-
+// ready, if given an indirect top-block, readies all the dirty child
+// blocks, and updates their block IDs in their parent block's list of
+// indirect pointers.  It returns a map pointing from the new block
+// info from any readied block to its corresponding old block pointer.
 func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 	dirtyBcache DirtyBlockCache, bops BlockOps, bps *blockPutState,
 	topBlock *FileBlock, df *dirtyFile) (map[BlockInfo]BlockPointer, error) {
