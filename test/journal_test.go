@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/keybase/kbfs/libkbfs"
 )
 
 // bob creates a file while running the journal.
@@ -368,6 +370,218 @@ func TestJournalQRSimple(t *testing.T) {
 			resumeJournal(),
 			flushJournal(),
 			checkUnflushedPaths(nil),
+		),
+	)
+}
+
+// bob creates a bunch of files in a journal and the operations get
+// coalesced together.
+func TestJournalCoalescingBasicCreates(t *testing.T) {
+	var busyWork []fileOp
+	var reads []fileOp
+	listing := m{"^a$": "DIR"}
+	iters := libkbfs.ForcedBranchSquashThreshold + 1
+	unflushedPaths := []string{"alice,bob"}
+	for i := 0; i < iters; i++ {
+		name := fmt.Sprintf("a%d", i)
+		contents := fmt.Sprintf("hello%d", i)
+		busyWork = append(busyWork, mkfile(name, contents))
+		reads = append(reads, read(name, contents))
+		listing["^"+name+"$"] = "FILE"
+		unflushedPaths = append(unflushedPaths, "alice,bob/"+name)
+	}
+
+	test(t, journal(),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+		),
+		as(bob, busyWork...),
+		as(bob,
+			checkUnflushedPaths(unflushedPaths),
+			resumeJournal(),
+			// This should kick off conflict resolution.
+			flushJournal(),
+		),
+		as(bob,
+			lsdir("", listing),
+			checkUnflushedPaths(nil),
+		),
+		as(bob, reads...),
+		as(alice,
+			lsdir("", listing),
+		),
+		as(alice, reads...),
+	)
+}
+
+// bob creates and appends to a file in a journal and the operations
+// get coalesced together.
+func TestJournalCoalescingWrites(t *testing.T) {
+	var busyWork []fileOp
+	iters := libkbfs.ForcedBranchSquashThreshold + 1
+	var contents string
+	for i := 0; i < iters; i++ {
+		contents += fmt.Sprintf("hello%d", i)
+		busyWork = append(busyWork, write("a/b", contents))
+	}
+
+	test(t, journal(), blockSize(20), blockChangeSize(5),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+		),
+		as(bob, busyWork...),
+		as(bob,
+			checkUnflushedPaths([]string{
+				"alice,bob/a",
+				"alice,bob/a/b",
+			}),
+			resumeJournal(),
+			// This should kick off conflict resolution.
+			flushJournal(),
+		),
+		as(bob,
+			lsdir("", m{"a": "DIR"}),
+			lsdir("a", m{"b": "FILE"}),
+			read("a/b", contents),
+			checkUnflushedPaths(nil),
+		),
+		as(alice,
+			lsdir("", m{"a": "DIR"}),
+			lsdir("a", m{"b": "FILE"}),
+			read("a/b", contents),
+		),
+	)
+}
+
+// bob does a bunch of operations in a journal and the operations get
+// coalesced together.
+func TestJournalCoalescingMixedOperations(t *testing.T) {
+	var busyWork []fileOp
+	iters := libkbfs.ForcedBranchSquashThreshold + 1
+	for i := 0; i < iters; i++ {
+		name := fmt.Sprintf("a%d", i)
+		busyWork = append(busyWork, mkfile(name, "hello"), rm(name))
+	}
+
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t, journal(), blockSize(20), blockChangeSize(5),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			mkfile("a/b", "hello"),
+			mkfile("a/c", "hello2"),
+			mkfile("a/d", "hello3"),
+			mkfile("a/e", "hello4"),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+			// bob does a bunch of stuff:
+			//  * writes to an existing file a/b
+			//  * creates a new directory f
+			//  * creates and writes to a new file f/g
+			//  * creates and writes to a new file h
+			//  * removes an existing file a/c
+			//  * renames an existing file a/d -> a/i
+			//  * sets the mtime on a/e
+			//  * does a bunch of busy work to ensure we hit the squash limit
+			write("a/b", "world"),
+			mkdir("f"),
+			mkfile("f/g", "hello5"),
+			mkfile("h", "hello6"),
+			rm("a/c"),
+			rename("a/d", "a/i"),
+			setmtime("a/e", targetMtime),
+		),
+		as(bob, busyWork...),
+		as(bob,
+			checkUnflushedPaths([]string{
+				"",
+				"alice,bob",
+				"alice,bob/a",
+				"alice,bob/a/b",
+				"alice,bob/a/e",
+				"alice,bob/f",
+				"alice,bob/f/g",
+				"alice,bob/h",
+			}),
+			resumeJournal(),
+			// This should kick off conflict resolution.
+			flushJournal(),
+		),
+		as(bob,
+			lsdir("", m{"a": "DIR", "f": "DIR", "h": "FILE"}),
+			lsdir("a", m{"b": "FILE", "e": "FILE", "i": "FILE"}),
+			read("a/b", "world"),
+			read("a/e", "hello4"),
+			mtime("a/e", targetMtime),
+			read("a/i", "hello3"),
+			lsdir("f", m{"g": "FILE"}),
+			read("f/g", "hello5"),
+			read("h", "hello6"),
+			checkUnflushedPaths(nil),
+		),
+		as(alice,
+			lsdir("", m{"a": "DIR", "f": "DIR", "h": "FILE"}),
+			lsdir("a", m{"b": "FILE", "e": "FILE", "i": "FILE"}),
+			read("a/b", "world"),
+			read("a/e", "hello4"),
+			mtime("a/e", targetMtime),
+			read("a/i", "hello3"),
+			lsdir("f", m{"g": "FILE"}),
+			read("f/g", "hello5"),
+			read("h", "hello6"),
+		),
+	)
+}
+
+// bob makes a bunch of changes that cancel each other out, and get
+// coalesced together.
+func TestJournalCoalescingNoChanges(t *testing.T) {
+	var busyWork []fileOp
+	iters := libkbfs.ForcedBranchSquashThreshold + 1
+	for i := 0; i < iters; i++ {
+		name := fmt.Sprintf("a%d", i)
+		busyWork = append(busyWork, mkfile(name, "hello"), rm(name))
+	}
+
+	test(t, journal(),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+		),
+		as(bob, busyWork...),
+		as(bob,
+			checkUnflushedPaths([]string{
+				"",
+				"alice,bob",
+			}),
+			resumeJournal(),
+			// This should kick off conflict resolution.
+			flushJournal(),
+		),
+		as(bob,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{}),
+			checkUnflushedPaths(nil),
+		),
+		as(alice,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{}),
 		),
 	)
 }
