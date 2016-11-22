@@ -635,7 +635,6 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			return nil
 		}
 
-		/*  Will uncomment when the rest of KBFS-1653 goes in.
 		converted, err := j.convertMDsToBranchIfOverThreshold(ctx)
 		if err != nil {
 			return err
@@ -643,7 +642,6 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		if converted {
 			return nil
 		}
-		*/
 
 		blockEnd, mdEnd, err := j.getJournalEnds(ctx)
 		if err != nil {
