@@ -426,11 +426,16 @@ function * _newChat (action: NewChat): SagaGenerator<any, any> {
 }
 
 function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
+  // Don't send sharing before signup values
+  const usernames = action.payload.users.filter(name => name.indexOf('@') === -1).join(',')
+  if (!usernames) {
+    return
+  }
   const results: any = yield call(apiserverGetRpcPromise, {
     param: {
       endpoint: 'user/lookup',
       args: [
-        {key: 'usernames', value: action.payload.users.join(',')},
+        {key: 'usernames', value: usernames},
         {key: 'fields', value: 'profile'},
       ],
     },
