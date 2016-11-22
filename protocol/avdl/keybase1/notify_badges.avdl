@@ -1,0 +1,29 @@
+@namespace("keybase.1")
+protocol NotifyBadges {
+  import idl "common.avdl";
+
+  @typedef("bytes")  record ChatConversationID {}
+
+  record BadgeState {
+    // Total badge count for the app
+    int total;
+
+    int newTlfs;
+    int rekeysNeeded;
+    int newFollowers;
+
+    // Total number of unread chat messages
+    int unreadChatMessages;
+    // Number of chat conversations with unread messages
+    int unreadChatConversations;
+    array<BadgeConversationInfo> conversations;
+  }
+
+  record BadgeConversationInfo {
+    ChatConversationID convID;
+    int UnreadMessages;
+  }
+
+  @notify("")
+  void badgeState(BadgeState badgeState);
+}

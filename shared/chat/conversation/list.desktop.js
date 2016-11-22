@@ -5,6 +5,7 @@
 
 import LoadingMore from './messages/loading-more'
 import React, {Component} from 'react'
+import SidePanel from './side-panel/index.desktop'
 import _ from 'lodash'
 import messageFactory from './messages'
 import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
@@ -127,7 +128,7 @@ class ConversationList extends Component<void, Props, State> {
 
     // At the top, load more messages. Action handles loading state and if there's actually any more
     if (scrollTop === 0) {
-      this.props.loadMoreMessages()
+      this.props.onLoadMoreMessages()
     }
 
     const isLockedToBottom = scrollTop + clientHeight === scrollHeight
@@ -160,7 +161,7 @@ class ConversationList extends Component<void, Props, State> {
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
         <AutoSizer>
           {({height, width}) => (
             <CellMeasurer
@@ -184,6 +185,9 @@ class ConversationList extends Component<void, Props, State> {
             </CellMeasurer>
           )}
         </AutoSizer>
+        {this.props.sidePanelOpen && <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', right: 0, top: 0, bottom: 0, width: 320}}>
+          <SidePanel {...this.props} />
+        </Box>}
       </Box>
     )
   }

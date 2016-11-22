@@ -388,6 +388,13 @@
         {
           "type": {
             "type": "array",
+            "items": "MessageID"
+          },
+          "name": "deletes"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "MessagePreviousPointer"
           },
           "name": "prev"

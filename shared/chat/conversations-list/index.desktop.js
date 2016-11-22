@@ -3,6 +3,7 @@ import React from 'react'
 import moment from 'moment'
 import {Box, Text, Avatar, Icon, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
+import {participantFilter} from '../../constants/chat'
 
 import type {Props} from './'
 
@@ -30,34 +31,30 @@ const ConversationList = ({inbox, onSelectConversation, selectedConversation, on
       <Text type='BodyBigLink'>New chat</Text>
     </Box>
     {inbox.map(conversation => {
-      // Get participants (don't include ourself) unless the only participant is ourself
-      let participants = conversation.get('participants').filter(p => !p.you)
-      if (participants.count() === 0) participants = conversation.get('participants')
+      const participants = participantFilter(conversation.get('participants'))
 
-      return (
-        <Box
-          onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
-          title={`${conversation.get('unreadCount')} unread`}
-          style={{
-            ...containerStyle,
-            backgroundColor: selectedConversation === conversation.get('conversationIDKey') ? globalColors.darkBlue2 : globalColors.transparent,
-          }}
-          key={conversation.get('conversationIDKey')}>
-          <Avatar
-            size={32}
-            backgroundColor={globalColors.darkBlue4}
-            username={participants.first().username}
-            borderColor={conversation.get('unreadCount') ? globalColors.orange : undefined}
-          />
-          <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: 12, position: 'relative'}}>
-            <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
-              <Usernames inline={true} type='Body' backgroundMode='Terminal' users={participants} title={participants.map(p => p.username).join(', ')} />
-              <Text backgroundMode='Terminal' type='BodySmall' style={noWrapStyle}>{conversation.get('snippet')}</Text>
-            </Box>
+      return (<Box
+        onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
+        title={`${conversation.get('unreadCount')} unread`}
+        style={{
+          ...containerStyle,
+          backgroundColor: selectedConversation === conversation.get('conversationIDKey') ? globalColors.darkBlue2 : globalColors.transparent,
+        }}
+        key={conversation.get('conversationIDKey')}>
+        <Avatar
+          size={32}
+          backgroundColor={globalColors.darkBlue4}
+          username={participants.first().username}
+          borderColor={conversation.get('unreadCount') ? globalColors.orange : undefined}
+        />
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: 12, position: 'relative'}}>
+          <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
+            <Usernames inline={true} type='Body' backgroundMode='Terminal' users={participants.toArray()} title={participants.map(p => p.username).join(', ')} />
+            <Text backgroundMode='Terminal' type='BodySmall' style={noWrapStyle}>{conversation.get('snippet')}</Text>
           </Box>
-          <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{_timestamp(conversation.get('time'), nowOverride)}</Text>
         </Box>
-      )
+        <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{_timestamp(conversation.get('time'), nowOverride)}</Text>
+      </Box>)
     })}
   </Box>
 )

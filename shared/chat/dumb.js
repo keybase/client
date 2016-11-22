@@ -2,10 +2,11 @@
 import ConversationHeader from './conversation/header.desktop'
 import ConversationInput from './conversation/input.desktop'
 import ConversationList from './conversation/list.desktop'
+import ConversationSidePanel from './conversation/side-panel/index.desktop'
 import ConversationsList from './conversations-list'
 import HiddenString from '../util/hidden-string'
-import {InboxStateRecord} from '../constants/chat'
-import {List} from 'immutable'
+import {InboxStateRecord, MetaDataRecord} from '../constants/chat'
+import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 
 import type {ConversationIDKey} from '../constants/chat'
@@ -86,6 +87,13 @@ const messages = [
   },
 ]
 
+const metaData = {
+  'cjb': MetaDataRecord({fullname: 'Chris Ball'}),
+  'chris': MetaDataRecord({fullname: 'Chris Coyne'}),
+  'chrisnojima': MetaDataRecord({fullname: 'Chris Nojima'}),
+  'oconnor663': MetaDataRecord({fullname: `Jack O'Connor`}),
+}
+
 const commonConvoProps = {
   loadMoreMessages: () => console.log('load more'),
   messages: List(messages),
@@ -94,6 +102,8 @@ const commonConvoProps = {
   isLoading: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
+  onShowProfile: (username: string) => console.log('on show profile', username),
+  metaData: Map(metaData),
 }
 
 const emptyConvoProps = {
@@ -199,6 +209,28 @@ const list = {
   },
 }
 
+const commonSidePanel = {
+  parentProps: {
+    style: {
+      width: 320,
+    },
+  },
+}
+
+const sidePanel = {
+  component: ConversationSidePanel,
+  mocks: {
+    'Normal': {
+      ...commonConvoProps,
+      ...commonSidePanel,
+    },
+    'Empty': {
+      ...emptyConvoProps,
+      ...commonSidePanel,
+    },
+  },
+}
+
 const conversationsList = {
   component: ConversationsList,
   mocks: {
@@ -215,5 +247,6 @@ export default {
   'ChatHeader': header,
   'ChatInput': input,
   'ChatList': list,
+  'ChatSidePanel': sidePanel,
   'ChatConversationsList': conversationsList,
 }
