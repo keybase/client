@@ -165,8 +165,8 @@ func addUnflushedPaths(ctx context.Context,
 
 	mostRecentMDInfo := mdInfos[len(mdInfos)-1]
 	chains.mostRecentChainMDInfo = mostRecentChainMetadataInfo{
-		kmd:      mostRecentMDInfo.kmd,
-		rootInfo: mostRecentMDInfo.pmd.Dir.BlockInfo,
+		kmd:     mostRecentMDInfo.kmd,
+		rootPtr: mostRecentMDInfo.pmd.Dir.BlockPointer,
 	}
 
 	err := cpp.populateChainPaths(ctx, log, chains, true)

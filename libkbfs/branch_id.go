@@ -29,11 +29,6 @@ var _ encoding.BinaryUnmarshaler = (*BranchID)(nil)
 // NullBranchID is an empty BranchID
 var NullBranchID = BranchID{}
 
-// LocalSquashBranchID indicates a local branch that is not in known
-// conflict with the master branch, but just needs to be squashed.
-var LocalSquashBranchID = BranchID{
-	[BranchIDByteLen]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}}
-
 // Bytes returns the bytes of the BranchID.
 func (id BranchID) Bytes() []byte {
 	return id.id[:]

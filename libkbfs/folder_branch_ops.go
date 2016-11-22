@@ -3905,16 +3905,14 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 
 	// If there's anything in the journal, don't apply these MDs.
 	// Wait for CR to happen.
-	if fbo.isMasterBranchLocked(lState) {
-		mergedRev, err := fbo.getJournalPredecessorRevision(ctx)
-		if err != nil {
-			return err
-		}
-		if mergedRev != MetadataRevisionUninitialized {
-			fbo.log.CDebugf(ctx,
-				"Ignoring fetched revisions while MDs are in journal")
-			return nil
-		}
+	mergedRev, err := fbo.getJournalPredecessorRevision(ctx)
+	if err != nil {
+		return err
+	}
+	if mergedRev != MetadataRevisionUninitialized {
+		fbo.log.CDebugf(ctx,
+			"Ignoring fetched revisions while MDs are in journal")
+		return nil
 	}
 
 	fbo.headLock.Lock(lState)
@@ -3924,30 +3922,14 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// resolution kicks in.  TODO: cache these for future use.
 	if !fbo.isMasterBranchLocked(lState) {
 		if len(rmds) > 0 {
-			latestMerged := rmds[len(rmds)-1]
-			// If we're running a journal, don't trust our own updates
-			// here because they might have come from our own journal
-			// before the conflict was detected.  Assume we'll hear
-			// about the conflict via callbacks from the journal.
-			if TLFJournalEnabled(fbo.config, fbo.id()) {
-				key, err := fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
-				if err != nil {
-					return err
-				}
-				if key == latestMerged.LastModifyingWriterVerifyingKey() {
-					return UnmergedError{}
-				}
-			}
-
 			// setHeadLocked takes care of merged case
-			fbo.setLatestMergedRevisionLocked(
-				ctx, lState, latestMerged.Revision(), false)
+			fbo.setLatestMergedRevisionLocked(ctx, lState, rmds[len(rmds)-1].Revision(), false)
 
 			unmergedRev := MetadataRevisionUninitialized
 			if fbo.head != (ImmutableRootMetadata{}) {
 				unmergedRev = fbo.head.Revision()
 			}
-			fbo.cr.Resolve(unmergedRev, latestMerged.Revision())
+			fbo.cr.Resolve(unmergedRev, rmds[len(rmds)-1].Revision())
 		}
 		return UnmergedError{}
 	}
@@ -4550,55 +4532,47 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 		return err
 	}
 
-	// Loop until we're fully updated on the master branch.
-	for {
+	if !fbo.isMasterBranch(lState) {
+		if err := fbo.cr.Wait(ctx); err != nil {
+			return err
+		}
+		// If we are still staged after the wait, then we have a problem.
 		if !fbo.isMasterBranch(lState) {
-			if err := fbo.cr.Wait(ctx); err != nil {
-				return err
-			}
-			// If we are still staged after the wait, then we have a problem.
-			if !fbo.isMasterBranch(lState) {
-				return fmt.Errorf("Conflict resolution didn't take us out of " +
-					"staging.")
-			}
+			return fmt.Errorf("Conflict resolution didn't take us out of " +
+				"staging.")
 		}
+	}
 
-		dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
-		if len(dirtyRefs) > 0 {
-			for _, ref := range dirtyRefs {
-				fbo.log.CDebugf(ctx, "DeCache entry left: %v", ref)
+	dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
+	if len(dirtyRefs) > 0 {
+		for _, ref := range dirtyRefs {
+			fbo.log.CDebugf(ctx, "DeCache entry left: %v", ref)
+		}
+		return errors.New("can't sync from server while dirty")
+	}
+
+	// A journal flush after CR, if needed.
+	if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
+		fbo.log); err != nil {
+		return err
+	}
+
+	if err := fbo.mdFlushes.Wait(ctx); err != nil {
+		return err
+	}
+
+	if err := fbo.branchChanges.Wait(ctx); err != nil {
+		return err
+	}
+
+	if err := fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdates); err != nil {
+		if applyErr, ok := err.(MDRevisionMismatch); ok {
+			if applyErr.rev == applyErr.curr {
+				fbo.log.CDebugf(ctx, "Already up-to-date with server")
+				return nil
 			}
-			return errors.New("can't sync from server while dirty")
 		}
-
-		// A journal flush after CR, if needed.
-		if err := WaitForTLFJournal(ctx, fbo.config, fbo.id(),
-			fbo.log); err != nil {
-			return err
-		}
-
-		if err := fbo.mdFlushes.Wait(ctx); err != nil {
-			return err
-		}
-
-		if err := fbo.branchChanges.Wait(ctx); err != nil {
-			return err
-		}
-
-		if err := fbo.getAndApplyMDUpdates(
-			ctx, lState, fbo.applyMDUpdates); err != nil {
-			if applyErr, ok := err.(MDRevisionMismatch); ok {
-				if applyErr.rev == applyErr.curr {
-					fbo.log.CDebugf(ctx, "Already up-to-date with server")
-					return nil
-				}
-			}
-			if _, isUnmerged := err.(UnmergedError); isUnmerged {
-				continue
-			}
-			return err
-		}
-		break
+		return err
 	}
 
 	// Wait for all the asynchronous block archiving and quota

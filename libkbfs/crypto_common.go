@@ -41,13 +41,9 @@ func (c CryptoCommon) MakeRandomTlfID(isPublic bool) (tlf.ID, error) {
 // MakeRandomBranchID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakeRandomBranchID() (BranchID, error) {
 	var id BranchID
-	// Loop just in case we randomly pick the null or local squash
-	// branch IDs.
-	for id == NullBranchID || id == LocalSquashBranchID {
-		err := kbfscrypto.RandRead(id.id[:])
-		if err != nil {
-			return BranchID{}, err
-		}
+	err := kbfscrypto.RandRead(id.id[:])
+	if err != nil {
+		return BranchID{}, err
 	}
 	return id, nil
 }

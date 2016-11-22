@@ -569,25 +569,21 @@ func (j mdJournal) checkGetParams() (ImmutableBareRootMetadata, error) {
 }
 
 func (j *mdJournal) convertToBranch(
-	ctx context.Context, bid BranchID, signer kbfscrypto.Signer,
-	codec kbfscodec.Codec, tlfID tlf.ID, mdcache MDCache) (err error) {
+	ctx context.Context, signer kbfscrypto.Signer, codec kbfscodec.Codec,
+	tlfID tlf.ID, mdcache MDCache) (bid BranchID, err error) {
 	if j.branchID != NullBranchID {
-		return fmt.Errorf(
-			"convertToBranch called with j.branchID=%s", j.branchID)
-	}
-	if bid == NullBranchID {
-		return fmt.Errorf(
-			"convertToBranch called with null branchID")
+		return NullBranchID, fmt.Errorf(
+			"convertToBranch called with BID=%s", j.branchID)
 	}
 
 	earliestRevision, err := j.j.readEarliestRevision()
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 
 	latestRevision, err := j.j.readLatestRevision()
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 
 	j.log.CDebugf(
@@ -596,14 +592,19 @@ func (j *mdJournal) convertToBranch(
 	_, allEntries, err := j.j.getEntryRange(
 		earliestRevision, latestRevision)
 	if err != nil {
-		return err
+		return NullBranchID, err
+	}
+
+	bid, err = j.crypto.MakeRandomBranchID()
+	if err != nil {
+		return NullBranchID, err
 	}
 
 	j.log.CDebugf(ctx, "New branch ID=%s", bid)
 
 	journalTempDir, err := ioutil.TempDir(j.dir, "md_journal")
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 	j.log.CDebugf(ctx, "Using temp dir %s for rewriting", journalTempDir)
 
@@ -636,7 +637,7 @@ func (j *mdJournal) convertToBranch(
 	for i, entry := range allEntries {
 		brmd, _, ts, err := j.getMDAndExtra(entry.ID, true)
 		if err != nil {
-			return err
+			return NullBranchID, err
 		}
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
@@ -645,7 +646,7 @@ func (j *mdJournal) convertToBranch(
 		// changed it.
 		err = brmd.SignWriterMetadataInternally(ctx, j.codec, signer)
 		if err != nil {
-			return err
+			return NullBranchID, err
 		}
 
 		j.log.CDebugf(ctx, "Old prev root of rev=%s is %s",
@@ -665,7 +666,7 @@ func (j *mdJournal) convertToBranch(
 		// os.Chtimes() on the file after writing it.
 		newID, err := j.putMD(brmd)
 		if err != nil {
-			return err
+			return NullBranchID, err
 		}
 		mdsToRemove = append(mdsToRemove, newID)
 
@@ -674,7 +675,7 @@ func (j *mdJournal) convertToBranch(
 		newEntry.ID = newID
 		err = tempJournal.append(brmd.RevisionNumber(), newEntry)
 		if err != nil {
-			return err
+			return NullBranchID, err
 		}
 
 		prevID = newID
@@ -693,7 +694,7 @@ func (j *mdJournal) convertToBranch(
 		if err == nil && entry.ID == oldIrmd.mdID {
 			newRmd, err := oldIrmd.deepCopy(codec)
 			if err != nil {
-				return err
+				return NullBranchID, err
 			}
 			newRmd.bareMd = brmd
 			// Everything else is the same.
@@ -703,7 +704,7 @@ func (j *mdJournal) convertToBranch(
 					newID, ts),
 				NullBranchID)
 			if err != nil {
-				return err
+				return NullBranchID, err
 			}
 		}
 
@@ -719,7 +720,7 @@ func (j *mdJournal) convertToBranch(
 	oldJournalTempDir := journalTempDir + ".old"
 	dir, err := j.j.move(oldJournalTempDir)
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 
 	j.log.CDebugf(ctx, "Moved old journal from %s to %s",
@@ -727,7 +728,7 @@ func (j *mdJournal) convertToBranch(
 
 	newJournalOldDir, err := tempJournal.move(dir)
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 
 	j.log.CDebugf(ctx, "Moved new journal from %s to %s",
@@ -744,7 +745,7 @@ func (j *mdJournal) convertToBranch(
 	j.j = tempJournal
 	j.branchID = bid
 
-	return nil
+	return bid, nil
 }
 
 // getNextEntryToFlush returns the info for the next journal entry to
@@ -1189,7 +1190,7 @@ func (j *mdJournal) clear(
 
 func (j *mdJournal) resolveAndClear(
 	ctx context.Context, signer kbfscrypto.Signer, ekg encryptionKeyGetter,
-	bsplit BlockSplitter, mdcache MDCache, bid BranchID, rmd *RootMetadata) (
+	bsplit BlockSplitter, bid BranchID, rmd *RootMetadata) (
 	mdID MdID, err error) {
 	j.log.CDebugf(ctx, "Resolve and clear, branch %s, resolve rev %d",
 		bid, rmd.Revision())
@@ -1213,16 +1214,6 @@ func (j *mdJournal) resolveAndClear(
 	if j.branchID != bid {
 		return MdID{}, fmt.Errorf("Resolve and clear for branch %s "+
 			"while on branch %s", bid, j.branchID)
-	}
-
-	earliestRevision, err := j.j.readEarliestRevision()
-	if err != nil {
-		return MdID{}, err
-	}
-
-	latestRevision, err := j.j.readLatestRevision()
-	if err != nil {
-		return MdID{}, err
 	}
 
 	// First make a new journal to hold the block.
@@ -1292,11 +1283,6 @@ func (j *mdJournal) resolveAndClear(
 
 	// Make the defer above remove the old temp dir.
 	idJournalTempDir = oldIDJournalTempDir
-
-	// Delete all of the branch MDs from the md cache.
-	for rev := earliestRevision; rev <= latestRevision; rev++ {
-		mdcache.Delete(j.tlfID, rev, bid)
-	}
 
 	return mdID, nil
 }
