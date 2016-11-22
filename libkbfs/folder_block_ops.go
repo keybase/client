@@ -601,51 +601,6 @@ func (fbo *folderBlockOps) GetDir(
 	return fbo.getDirLocked(ctx, lState, kmd, dir, rtype)
 }
 
-func (fbo *folderBlockOps) getFileBlockAtOffsetLocked(ctx context.Context,
-	lState *lockState, kmd KeyMetadata, file path, topBlock *FileBlock,
-	off int64, rtype blockReqType) (
-	ptr BlockPointer, parentBlock *FileBlock, indexInParent int,
-	block *FileBlock, nextBlockStartOff, startOff int64, err error) {
-	fbo.blockLock.AssertAnyLocked(lState)
-
-	// find the block matching the offset, if it exists
-	ptr = file.tailPointer()
-	block = topBlock
-	nextBlockStartOff = -1
-	startOff = 0
-	// search until it's not an indirect block
-	for block.IsInd {
-		nextIndex := len(block.IPtrs) - 1
-		for i, ptr := range block.IPtrs {
-			if ptr.Off == off {
-				// small optimization to avoid iterating past the right ptr
-				nextIndex = i
-				break
-			} else if ptr.Off > off {
-				// i can never be 0, because the first ptr always has
-				// an offset at the beginning of the range
-				nextIndex = i - 1
-				break
-			}
-		}
-		nextPtr := block.IPtrs[nextIndex]
-		parentBlock = block
-		indexInParent = nextIndex
-		startOff = nextPtr.Off
-		// there is more to read if we ever took a path through a
-		// ptr that wasn't the final ptr in its respective list
-		if nextIndex != len(block.IPtrs)-1 {
-			nextBlockStartOff = block.IPtrs[nextIndex+1].Off
-		}
-		ptr = nextPtr.BlockPointer
-		if block, err = fbo.getFileBlockLocked(ctx, lState, kmd, ptr, file, rtype); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
 // updateWithDirtyEntriesLocked checks if the given DirBlock has any
 // entries that are in deCache (i.e., entries pointing to dirty
 // files). If so, it makes a copy with all such entries replaced with
@@ -828,51 +783,6 @@ func (fbo *folderBlockOps) cacheBlockIfNotYetDirtyLocked(
 	return nil
 }
 
-func (fbo *folderBlockOps) newRightBlockLocked(
-	ctx context.Context, lState *lockState, ptr BlockPointer,
-	file path, pblock *FileBlock,
-	off int64, kmd KeyMetadata) error {
-	fbo.blockLock.AssertLocked(lState)
-
-	newRID, err := fbo.config.Crypto().MakeTemporaryBlockID()
-	if err != nil {
-		return err
-	}
-	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return err
-	}
-	rblock := &FileBlock{}
-
-	newPtr := BlockPointer{
-		ID:      newRID,
-		KeyGen:  kmd.LatestKeyGeneration(),
-		DataVer: DefaultNewBlockDataVersion(fbo.config, false),
-		BlockContext: BlockContext{
-			Creator:  uid,
-			RefNonce: ZeroBlockRefNonce,
-		},
-	}
-
-	pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
-		BlockInfo: BlockInfo{
-			BlockPointer: newPtr,
-			EncodedSize:  0,
-		},
-		Off: off,
-	})
-
-	if err = fbo.cacheBlockIfNotYetDirtyLocked(
-		lState, newPtr, file, rblock); err != nil {
-		return err
-	}
-	if err = fbo.cacheBlockIfNotYetDirtyLocked(
-		lState, ptr, file, pblock); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (fbo *folderBlockOps) getOrCreateSyncInfoLocked(
 	lState *lockState, de DirEntry) (*syncInfo, error) {
 	fbo.blockLock.AssertLocked(lState)
@@ -1049,6 +959,20 @@ func (fbo *folderBlockOps) PrepRename(
 	return oldPBlock, newPBlock, newDe, lbc, nil
 }
 
+func (fbo *folderBlockOps) newFileData(lState *lockState,
+	file path, uid keybase1.UID, kmd KeyMetadata) *fileData {
+	return newFileData(file, uid, fbo.config.Crypto(), kmd,
+		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
+			file path, rtype blockReqType) (*FileBlock, error) {
+			return fbo.getFileBlockLocked(
+				ctx, lState, kmd, ptr, file, rtype)
+		},
+		func(ptr BlockPointer, block Block) error {
+			return fbo.cacheBlockIfNotYetDirtyLocked(
+				lState, ptr, file, block)
+		})
+}
+
 // The amount that the read timeout is smaller than the global one.
 const readTimeoutSmallerBy = 2 * time.Second
 
@@ -1086,11 +1010,14 @@ func (fbo *folderBlockOps) Read(
 	nRead := int64(0)
 	n := int64(len(dest))
 
+	var uid keybase1.UID // Data reads don't depend on the uid.
+	fd := fbo.newFileData(lState, file, uid, kmd)
+
 	for nRead < n {
 		nextByte := nRead + off
 		toRead := n - nRead
-		_, _, _, block, nextBlockOff, startOff, err := fbo.getFileBlockAtOffsetLocked(
-			ctx, lState, kmd, file, fblock, nextByte, blockRead)
+		_, _, _, block, nextBlockOff, startOff, err := fd.getFileBlockAtOffset(
+			ctx, fblock, nextByte, blockRead)
 		if err != nil {
 			// If we hit a timeout while reading then return the bytes already read
 			// and no error. If the upstream tries to do something blocking they
@@ -1218,52 +1145,6 @@ func (fbo *folderBlockOps) writeGetFileLocked(
 	return fblock, uid, nil
 }
 
-// createIndirectBlockLocked creates a new indirect block and
-// pick a new id for the existing block, and use the existing block's ID for
-// the new indirect block that becomes the parent.
-func (fbo *folderBlockOps) createIndirectBlockLocked(lState *lockState,
-	kmd KeyMetadata, file path, uid keybase1.UID, dver DataVer) (
-	*FileBlock, error) {
-
-	newID, err := fbo.config.Crypto().MakeTemporaryBlockID()
-	if err != nil {
-		return nil, err
-	}
-	fblock := &FileBlock{
-		CommonBlock: CommonBlock{
-			IsInd: true,
-		},
-		IPtrs: []IndirectFilePtr{
-			{
-				BlockInfo: BlockInfo{
-					BlockPointer: BlockPointer{
-						ID:      newID,
-						KeyGen:  kmd.LatestKeyGeneration(),
-						DataVer: dver,
-						BlockContext: BlockContext{
-							Creator:  uid,
-							RefNonce: ZeroBlockRefNonce,
-						},
-					},
-					EncodedSize: 0,
-				},
-				Off: 0,
-			},
-		},
-	}
-
-	df := fbo.getOrCreateDirtyFileLocked(lState, file)
-	// Mark the old block ID as not dirty, so that we will treat the
-	// old block ID as newly dirtied in cacheBlockIfNotYetDirtyLocked.
-	df.setBlockNotDirty(file.tailPointer())
-	err = fbo.cacheBlockIfNotYetDirtyLocked(lState, file.tailPointer(), file,
-		fblock)
-	if err != nil {
-		return nil, err
-	}
-	return fblock, nil
-}
-
 // Returns the set of blocks dirtied during this write that might need
 // to be cleaned up if the write is deferred.
 func (fbo *folderBlockOps) writeDataLocked(
@@ -1291,6 +1172,8 @@ func (fbo *folderBlockOps) writeDataLocked(
 	if err != nil {
 		return WriteRange{}, nil, 0, err
 	}
+
+	fd := fbo.newFileData(lState, file, uid, kmd)
 
 	dirtyBcache := fbo.config.DirtyBlockCache()
 	bsplit := fbo.config.BlockSplitter()
@@ -1329,9 +1212,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 	}
 	for nCopied < n {
 		ptr, parentBlock, indexInParent, block, nextBlockOff, startOff, err :=
-			fbo.getFileBlockAtOffsetLocked(
-				ctx, lState, kmd, file, fblock,
-				off+nCopied, blockWrite)
+			fd.getFileBlockAtOffset(ctx, fblock, off+nCopied, blockWrite)
 		if err != nil {
 			return WriteRange{}, nil, newlyDirtiedChildBytes, err
 		}
@@ -1360,8 +1241,8 @@ func (fbo *folderBlockOps) writeDataLocked(
 		if nCopied < n && nextBlockOff < 0 {
 			// If the block doesn't already have a parent block, make one.
 			if ptr == file.tailPointer() {
-				fblock, err = fbo.createIndirectBlockLocked(lState, kmd, file,
-					uid, DefaultNewBlockDataVersion(fbo.config, false))
+				fblock, err = fd.createIndirectBlock(
+					df, DefaultNewBlockDataVersion(false))
 				if err != nil {
 					return WriteRange{}, nil, newlyDirtiedChildBytes, err
 				}
@@ -1374,15 +1255,15 @@ func (fbo *folderBlockOps) writeDataLocked(
 
 			// Make a new right block and update the parent's
 			// indirect block list
-			err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
-				file, fblock, startOff+int64(len(block.Contents)), kmd)
+			err = fd.newRightBlock(ctx, file.tailPointer(), fblock,
+				startOff+int64(len(block.Contents)))
 			if err != nil {
 				return WriteRange{}, nil, newlyDirtiedChildBytes, err
 			}
 		} else if nCopied < n && off+nCopied < nextBlockOff {
 			// We need a new block to be inserted here
-			err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
-				file, fblock, startOff+int64(len(block.Contents)), kmd)
+			err = fd.newRightBlock(ctx, file.tailPointer(), fblock,
+				startOff+int64(len(block.Contents)))
 			if err != nil {
 				return WriteRange{}, nil, newlyDirtiedChildBytes, err
 			}
@@ -1553,14 +1434,17 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 		return WriteRange{}, nil, err
 	}
 
+	fd := fbo.newFileData(lState, file, uid, kmd)
+
 	var dirtyPtrs []BlockPointer
 
 	fbo.log.CDebugf(ctx, "truncateExtendLocked: extending fblock %#v", fblock)
 	if !fblock.IsInd {
 		fbo.log.CDebugf(ctx, "truncateExtendLocked: making block indirect %v", file.tailPointer())
 		old := fblock
-		fblock, err = fbo.createIndirectBlockLocked(lState, kmd, file, uid,
-			DefaultNewBlockDataVersion(fbo.config, true))
+		df := fbo.getOrCreateDirtyFileLocked(lState, file)
+		fblock, err = fd.createIndirectBlock(
+			df, DefaultNewBlockDataVersion(true))
 		if err != nil {
 			return WriteRange{}, nil, err
 		}
@@ -1578,8 +1462,7 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	// code only does one but it should be straightforward to
 	// generalize, just annoying
 
-	err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
-		file, fblock, int64(size), kmd)
+	err = fd.newRightBlock(ctx, file.tailPointer(), fblock, int64(size))
 	if err != nil {
 		return WriteRange{}, nil, err
 	}
@@ -1649,16 +1532,17 @@ func (fbo *folderBlockOps) truncateLocked(
 		defer jServer.dirtyOpEnd(fbo.id())
 	}
 
-	fblock, _, err := fbo.writeGetFileLocked(ctx, lState, kmd, file)
+	fblock, uid, err := fbo.writeGetFileLocked(ctx, lState, kmd, file)
 	if err != nil {
 		return &WriteRange{}, nil, 0, err
 	}
 
+	fd := fbo.newFileData(lState, file, uid, kmd)
+
 	// find the block where the file should now end
 	iSize := int64(size) // TODO: deal with overflow
 	ptr, parentBlock, indexInParent, block, nextBlockOff, startOff, err :=
-		fbo.getFileBlockAtOffsetLocked(
-			ctx, lState, kmd, file, fblock, iSize, blockWrite)
+		fd.getFileBlockAtOffset(ctx, fblock, iSize, blockWrite)
 	if err != nil {
 		return &WriteRange{}, nil, 0, err
 	}
@@ -2069,6 +1953,8 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	dirtyBcache := fbo.config.DirtyBlockCache()
 	df := fbo.getOrCreateDirtyFileLocked(lState, file)
 
+	fd := fbo.newFileData(lState, file, uid, md.ReadOnly())
+
 	// Note: below we add possibly updated file blocks as "unref" and
 	// "ref" blocks.  This is fine, since conflict resolution or
 	// notifications will never happen within a file.
@@ -2098,9 +1984,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 			}
 			if isDirty {
 				_, _, _, block, nextBlockOff, _, err :=
-					fbo.getFileBlockAtOffsetLocked(
-						ctx, lState, md.ReadOnly(), file, fblock,
-						ptr.Off, blockWrite)
+					fd.getFileBlockAtOffset(ctx, fblock, ptr.Off, blockWrite)
 				if err != nil {
 					return nil, nil, syncState, nil, err
 				}
@@ -2116,16 +2000,15 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 					// put the extra bytes in front of the next block
 					if nextBlockOff < 0 {
 						// need to make a new block
-						if err := fbo.newRightBlockLocked(
-							ctx, lState, file.tailPointer(), file, fblock,
-							endOfBlock, md.ReadOnly()); err != nil {
+						if err := fd.newRightBlock(
+							ctx, file.tailPointer(), fblock,
+							endOfBlock); err != nil {
 							return nil, nil, syncState, nil, err
 						}
 					}
 					rPtr, _, _, rblock, _, _, err :=
-						fbo.getFileBlockAtOffsetLocked(
-							ctx, lState, md.ReadOnly(), file, fblock,
-							endOfBlock, blockWrite)
+						fd.getFileBlockAtOffset(
+							ctx, fblock, endOfBlock, blockWrite)
 					if err != nil {
 						return nil, nil, syncState, nil, err
 					}
@@ -2145,9 +2028,8 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 
 					endOfBlock := ptr.Off + int64(len(block.Contents))
 					rPtr, _, _, rblock, _, _, err :=
-						fbo.getFileBlockAtOffsetLocked(
-							ctx, lState, md.ReadOnly(), file, fblock,
-							endOfBlock, blockWrite)
+						fd.getFileBlockAtOffset(
+							ctx, fblock, endOfBlock, blockWrite)
 					if err != nil {
 						return nil, nil, syncState, nil, err
 					}
@@ -2189,8 +2071,8 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 					InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
-				_, _, _, block, _, _, err := fbo.getFileBlockAtOffsetLocked(
-					ctx, lState, md.ReadOnly(), file, fblock, ptr.Off, blockWrite)
+				_, _, _, block, _, _, err := fd.getFileBlockAtOffset(
+					ctx, fblock, ptr.Off, blockWrite)
 				if err != nil {
 					return nil, nil, syncState, nil, err
 				}
