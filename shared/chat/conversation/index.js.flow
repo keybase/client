@@ -6,19 +6,18 @@ import type {Message, ConversationIDKey, ParticipantItem, MetaData} from '../../
 
 export type Props = {
   isLoading: boolean,
-  loadMoreMessages: () => void,
   messages: List<Message>,
-  participants: List<ParticipantItem>,
+  metaData: Map<string, MetaData>,
   moreToLoad: boolean,
   onAddParticipant: () => void,
+  onLoadMoreMessages: () => void,
   onOpenFolder: () => void,
   onPostMessage: (text: string) => void,
   onShowProfile: (username: string) => void,
+  onToggleSidePanel: () => void,
   participants: List<ParticipantItem>,
   selectedConversation: ?ConversationIDKey,
   sidePanelOpen: boolean,
-  toggleSidePanel: () => void,
-  metaData: Map<string, MetaData>,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

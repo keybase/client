@@ -33,7 +33,7 @@ class ConversationContainer extends Component<void, Props, State> {
     return <Conversation
       {...this.props}
       sidePanelOpen={this.state.sidePanelOpen}
-      toggleSidePanel={() => this.setState({sidePanelOpen: !this.state.sidePanelOpen})} />
+      onToggleSidePanel={() => this.setState({sidePanelOpen: !this.state.sidePanelOpen})} />
   }
 }
 
@@ -68,7 +68,7 @@ export default connect(
     }
   },
   (dispatch: Dispatch) => ({
-    loadMoreMessages: () => dispatch(loadMoreMessages()),
+    onLoadMoreMessages: () => dispatch(loadMoreMessages()),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),

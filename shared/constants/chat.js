@@ -159,9 +159,19 @@ function makeSnippet (message: ?string = '', max: number) {
   return [...(message.substring(0, max * 4).replace(/\s+/g, ' '))].slice(0, max).join('')
 }
 
+// Filters out myself from most of our views of the list, unless the list is just me
+function participantFilter (participants: List<ParticipantItem>): List<ParticipantItem> {
+  const withoutYou = participants.filter(p => !p.you)
+  if (withoutYou.count() === 0) {
+    return participants
+  }
+  return withoutYou
+}
+
 export {
   conversationIDToKey,
   keyToConversationID,
   makeSnippet,
   maxMessagesToLoadAtATime,
+  participantFilter,
 }
