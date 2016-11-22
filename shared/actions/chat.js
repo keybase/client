@@ -243,17 +243,20 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             },
           })
         } else {
+          console.table(conversationState)
           // How long was it between the previous message and this one?
-          // If more than Constants.blahblah, put in a timestamp marker too.
-          // But let's just hardcode it for now.
-          const timestamp = 123
-          yield put({
-            type: Constants.appendMessages,
-            payload: {
-              conversationIDKey,
-              messages: [timestamp],
-            },
-          })
+          if (conversationState !== null && conversationState.messages !== null) {
+            const timestamp = _maybeAddTimestamp(message, conversationState.messages[-1])
+            if (timestamp !== null) {
+              yield put({
+                type: Constants.appendMessages,
+                payload: {
+                  conversationIDKey,
+                  messages: [timestamp],
+                },
+              })
+            }
+          }
           yield put({
             type: Constants.appendMessages,
             payload: {
@@ -345,9 +348,12 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
   let newMessages = []
   messages.forEach((message, idx) => {
     if (idx >= 2) {
-      newMessages.push(_maybeAddTimestamp(messages[idx], messages[idx - 1]))
-      newMessages.push(message)
+      const maybe = _maybeAddTimestamp(messages[idx], messages[idx - 1])
+      if (maybe !== null) {
+        newMessages.push(maybe)
+      }
     }
+    newMessages.push(message)
   })
 
   const pagination = _threadToPagination(thread)
@@ -356,7 +362,7 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
     type: Constants.prependMessages,
     payload: {
       conversationIDKey,
-      messages,
+      messages: newMessages,
       moreToLoad: !pagination.last,
       paginationNext: pagination.next,
     },
@@ -386,7 +392,7 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   if (message.type !== 'Text' || prevMessage.type !== 'Text') {
     return null
   }
-  if (message.timestamp - prevMessage.timestamp > 10) {
+  if (message.timestamp - prevMessage.timestamp > 1000000) { // ms
     return {
       type: 'Timestamp',
       timestamp: prevMessage.timestamp,
