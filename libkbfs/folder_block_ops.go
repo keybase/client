@@ -976,7 +976,7 @@ func (fbo *folderBlockOps) newFileData(lState *lockState,
 		func(ptr BlockPointer, block Block) error {
 			return fbo.cacheBlockIfNotYetDirtyLocked(
 				lState, ptr, file, block)
-		})
+		}, fbo.log)
 }
 
 // The amount that the read timeout is smaller than the global one.
@@ -1329,72 +1329,21 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 
 	fd := fbo.newFileData(lState, file, uid, kmd)
 
-	var dirtyPtrs []BlockPointer
-
-	fbo.log.CDebugf(ctx, "truncateExtendLocked: extending fblock %#v", fblock)
-	if !fblock.IsInd {
-		fbo.log.CDebugf(ctx, "truncateExtendLocked: making block indirect %v", file.tailPointer())
-		old := fblock
-		df := fbo.getOrCreateDirtyFileLocked(lState, file)
-		fblock, err = fd.createIndirectBlock(
-			df, DefaultNewBlockDataVersion(true))
-		if err != nil {
-			return WriteRange{}, nil, err
-		}
-		fblock.IPtrs[0].Holes = true
-		err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
-			fblock.IPtrs[0].BlockPointer, file, old)
-		if err != nil {
-			return WriteRange{}, nil, err
-		}
-		dirtyPtrs = append(dirtyPtrs, fblock.IPtrs[0].BlockPointer)
-		fbo.log.CDebugf(ctx, "truncateExtendLocked: new zero data block %v", fblock.IPtrs[0].BlockPointer)
-	}
-
-	// TODO: support multiple levels of indirection.  Right now the
-	// code only does one but it should be straightforward to
-	// generalize, just annoying
-
-	err = fd.newRightBlock(ctx, file.tailPointer(), fblock, int64(size))
-	if err != nil {
-		return WriteRange{}, nil, err
-	}
-	dirtyPtrs = append(dirtyPtrs, fblock.IPtrs[len(fblock.IPtrs)-1].BlockPointer)
-	fbo.log.CDebugf(ctx, "truncateExtendLocked: new right data block %v",
-		fblock.IPtrs[len(fblock.IPtrs)-1].BlockPointer)
-
 	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, file)
 	if err != nil {
 		return WriteRange{}, nil, err
 	}
+	df := fbo.getOrCreateDirtyFileLocked(lState, file)
+	newDe, dirtyPtrs, err := fd.truncateExtend(ctx, size, fblock, de, df)
+	if err != nil {
+		return WriteRange{}, nil, err
+	}
+	fbo.deCache[file.tailPointer().Ref()] = newDe
 
 	si, err := fbo.getOrCreateSyncInfoLocked(lState, de)
 	if err != nil {
 		return WriteRange{}, nil, err
 	}
-
-	de.EncodedSize = 0
-	// update the file info
-	de.Size = size
-	fbo.deCache[file.tailPointer().Ref()] = de
-
-	// Mark all for presense of holes, one would be enough,
-	// but this is more robust and easy.
-	for i := range fblock.IPtrs {
-		fblock.IPtrs[i].Holes = true
-	}
-	// Always make the top block dirty, so we will sync its
-	// indirect blocks.  This has the added benefit of ensuring
-	// that any write to a file while it's being sync'd will be
-	// deferred, even if it's to a block that's not currently
-	// being sync'd, since this top-most block will always be in
-	// the fileBlockStates map.
-	err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
-		file.tailPointer(), file, fblock)
-	if err != nil {
-		return WriteRange{}, nil, err
-	}
-	dirtyPtrs = append(dirtyPtrs, file.tailPointer())
 	latestWrite := si.op.addTruncate(size)
 
 	if fbo.config.DirtyBlockCache().ShouldForceSync(fbo.id()) {

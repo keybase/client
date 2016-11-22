@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -24,11 +25,12 @@ type fileData struct {
 	bsplit BlockSplitter
 	getter fileBlockGetter
 	cacher dirtyBlockCacher
+	log    logger.Logger
 }
 
 func newFileData(file path, uid keybase1.UID, crypto cryptoPure,
 	bsplit BlockSplitter, kmd KeyMetadata, getter fileBlockGetter,
-	cacher dirtyBlockCacher) *fileData {
+	cacher dirtyBlockCacher, log logger.Logger) *fileData {
 	return &fileData{
 		file:   file,
 		uid:    uid,
@@ -37,6 +39,7 @@ func newFileData(file path, uid keybase1.UID, crypto cryptoPure,
 		kmd:    kmd,
 		getter: getter,
 		cacher: cacher,
+		log:    log,
 	}
 }
 
@@ -324,4 +327,64 @@ func (fd *fileData) write(ctx context.Context, data []byte, off int64,
 	}
 
 	return newDe, dirtyPtrs, unrefs, newlyDirtiedChildBytes, bytesExtended, nil
+}
+
+func (fd *fileData) truncateExtend(ctx context.Context, size uint64,
+	topBlock *FileBlock, oldDe DirEntry, df *dirtyFile) (
+	newDe DirEntry, dirtyPtrs []BlockPointer, err error) {
+	fd.log.CDebugf(ctx, "truncateExtendLocked: extending fblock %#v", topBlock)
+	if !topBlock.IsInd {
+		fd.log.CDebugf(ctx, "truncateExtendLocked: making block indirect %v",
+			fd.file.tailPointer())
+		old := topBlock
+		topBlock, err = fd.createIndirectBlock(
+			df, DefaultNewBlockDataVersion(true))
+		if err != nil {
+			return DirEntry{}, nil, err
+		}
+		topBlock.IPtrs[0].Holes = true
+		err = fd.cacher(topBlock.IPtrs[0].BlockPointer, old)
+		if err != nil {
+			return DirEntry{}, nil, err
+		}
+		dirtyPtrs = append(dirtyPtrs, topBlock.IPtrs[0].BlockPointer)
+		fd.log.CDebugf(ctx, "truncateExtendLocked: new zero data block %v",
+			topBlock.IPtrs[0].BlockPointer)
+	}
+
+	// TODO: support multiple levels of indirection.  Right now the
+	// code only does one but it should be straightforward to
+	// generalize, just annoying
+
+	err = fd.newRightBlock(ctx, fd.file.tailPointer(), topBlock, int64(size))
+	if err != nil {
+		return DirEntry{}, nil, err
+	}
+	dirtyPtrs = append(dirtyPtrs,
+		topBlock.IPtrs[len(topBlock.IPtrs)-1].BlockPointer)
+	fd.log.CDebugf(ctx, "truncateExtendLocked: new right data block %v",
+		topBlock.IPtrs[len(topBlock.IPtrs)-1].BlockPointer)
+
+	newDe = oldDe
+	newDe.EncodedSize = 0
+	// update the file info
+	newDe.Size = size
+
+	// Mark all for presense of holes, one would be enough,
+	// but this is more robust and easy.
+	for i := range topBlock.IPtrs {
+		topBlock.IPtrs[i].Holes = true
+	}
+	// Always make the top block dirty, so we will sync its
+	// indirect blocks.  This has the added benefit of ensuring
+	// that any write to a file while it's being sync'd will be
+	// deferred, even if it's to a block that's not currently
+	// being sync'd, since this top-most block will always be in
+	// the fileBlockStates map.
+	err = fd.cacher(fd.file.tailPointer(), topBlock)
+	if err != nil {
+		return DirEntry{}, nil, err
+	}
+	dirtyPtrs = append(dirtyPtrs, fd.file.tailPointer())
+	return newDe, dirtyPtrs, nil
 }
