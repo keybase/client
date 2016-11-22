@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -452,4 +453,113 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 	}
 
 	return newDe, unrefs, newlyDirtiedChildBytes, nil
+}
+
+func (fd *fileData) split(ctx context.Context, id tlf.ID,
+	dirtyBcache DirtyBlockCache, topBlock *FileBlock) (
+	unrefs []BlockInfo, err error) {
+	if !topBlock.IsInd {
+		return nil, nil
+	}
+
+	// TODO: Verify that any getFileBlock... calls here
+	// only use the dirty cache and not the network, since
+	// the blocks are dirty.
+
+	// For an indirect file:
+	//   1) check if each dirty block is split at the right place.
+	//   2) if it needs fewer bytes, prepend the extra bytes to the next
+	//      block (making a new one if it doesn't exist), and the next block
+	//      gets marked dirty
+	//   3) if it needs more bytes, then use copyUntilSplit() to fetch bytes
+	//      from the next block (if there is one), remove the copied bytes
+	//      from the next block and mark it dirty
+	//   4) Then go through once more, and ready and finalize each
+	//      dirty block, updating its ID in the indirect pointer list
+	for i := 0; i < len(topBlock.IPtrs); i++ {
+		ptr := topBlock.IPtrs[i]
+		isDirty := dirtyBcache.IsDirty(id, ptr.BlockPointer, fd.file.Branch)
+		if (ptr.EncodedSize > 0) && isDirty {
+			return unrefs, InconsistentEncodedSizeError{ptr.BlockInfo}
+		}
+		if !isDirty {
+			continue
+		}
+		_, _, block, nextBlockOff, _, _, err :=
+			fd.getFileBlockAtOffset(ctx, topBlock, ptr.Off, blockWrite)
+		if err != nil {
+			return unrefs, err
+		}
+
+		splitAt := fd.bsplit.CheckSplit(block)
+		switch {
+		case splitAt == 0:
+			continue
+		case splitAt > 0:
+			endOfBlock := ptr.Off + int64(len(block.Contents))
+			extraBytes := block.Contents[splitAt:]
+			block.Contents = block.Contents[:splitAt]
+			// put the extra bytes in front of the next block
+			if nextBlockOff < 0 {
+				// need to make a new block
+				if err := fd.newRightBlock(
+					ctx, fd.file.tailPointer(), topBlock,
+					endOfBlock); err != nil {
+					return unrefs, err
+				}
+			}
+			rPtr, _, rblock, _, _, _, err :=
+				fd.getFileBlockAtOffset(
+					ctx, topBlock, endOfBlock, blockWrite)
+			if err != nil {
+				return unrefs, err
+			}
+			rblock.Contents = append(extraBytes, rblock.Contents...)
+			if err = fd.cacher(rPtr, rblock); err != nil {
+				return unrefs, err
+			}
+			topBlock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
+			unrefs = append(unrefs, topBlock.IPtrs[i+1].BlockInfo)
+			topBlock.IPtrs[i+1].EncodedSize = 0
+		case splitAt < 0:
+			if nextBlockOff < 0 {
+				// end of the line
+				continue
+			}
+
+			endOfBlock := ptr.Off + int64(len(block.Contents))
+			rPtr, _, rblock, _, _, _, err :=
+				fd.getFileBlockAtOffset(
+					ctx, topBlock, endOfBlock, blockWrite)
+			if err != nil {
+				return unrefs, err
+			}
+			// copy some of that block's data into this block
+			nCopied := fd.bsplit.CopyUntilSplit(block, false,
+				rblock.Contents, int64(len(block.Contents)))
+			rblock.Contents = rblock.Contents[nCopied:]
+			if len(rblock.Contents) > 0 {
+				if err = fd.cacher(rPtr, rblock); err != nil {
+					return unrefs, err
+				}
+				topBlock.IPtrs[i+1].Off =
+					ptr.Off + int64(len(block.Contents))
+				unrefs = append(unrefs, topBlock.IPtrs[i+1].BlockInfo)
+				topBlock.IPtrs[i+1].EncodedSize = 0
+			} else {
+				// TODO: delete the block, and if we're down
+				// to just one indirect block, remove the
+				// layer of indirection
+				//
+				// TODO: When we implement more than one level
+				// of indirection, make sure that the pointer
+				// to the parent block in the grandparent
+				// block has EncodedSize 0.
+				unrefs = append(unrefs, topBlock.IPtrs[i+1].BlockInfo)
+				topBlock.IPtrs =
+					append(topBlock.IPtrs[:i+1], topBlock.IPtrs[i+2:]...)
+			}
+		}
+	}
+	return unrefs, nil
 }

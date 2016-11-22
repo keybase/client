@@ -1757,110 +1757,16 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	// "ref" blocks.  This is fine, since conflict resolution or
 	// notifications will never happen within a file.
 
-	// if this is an indirect block:
-	//   1) check if each dirty block is split at the right place.
-	//   2) if it needs fewer bytes, prepend the extra bytes to the next
-	//      block (making a new one if it doesn't exist), and the next block
-	//      gets marked dirty
-	//   3) if it needs more bytes, then use copyUntilSplit() to fetch bytes
-	//      from the next block (if there is one), remove the copied bytes
-	//      from the next block and mark it dirty
-	//   4) Then go through once more, and ready and finalize each
-	//      dirty block, updating its ID in the indirect pointer list
-	bsplit := fbo.config.BlockSplitter()
+	unrefs, err := fd.split(ctx, fbo.id(), dirtyBcache, fblock)
+	// Preserve any unrefs before checking the error.
+	for _, unref := range unrefs {
+		md.AddUnrefBlock(unref)
+	}
+	if err != nil {
+		return nil, nil, syncState, nil, err
+	}
+
 	if fblock.IsInd {
-		// TODO: Verify that any getFileBlock... calls here
-		// only use the dirty cache and not the network, since
-		// the blocks are be dirty.
-		for i := 0; i < len(fblock.IPtrs); i++ {
-			ptr := fblock.IPtrs[i]
-			isDirty := dirtyBcache.IsDirty(fbo.id(), ptr.BlockPointer,
-				file.Branch)
-			if (ptr.EncodedSize > 0) && isDirty {
-				return nil, nil, syncState, nil,
-					InconsistentEncodedSizeError{ptr.BlockInfo}
-			}
-			if isDirty {
-				_, _, block, nextBlockOff, _, _, err :=
-					fd.getFileBlockAtOffset(ctx, fblock, ptr.Off, blockWrite)
-				if err != nil {
-					return nil, nil, syncState, nil, err
-				}
-
-				splitAt := bsplit.CheckSplit(block)
-				switch {
-				case splitAt == 0:
-					continue
-				case splitAt > 0:
-					endOfBlock := ptr.Off + int64(len(block.Contents))
-					extraBytes := block.Contents[splitAt:]
-					block.Contents = block.Contents[:splitAt]
-					// put the extra bytes in front of the next block
-					if nextBlockOff < 0 {
-						// need to make a new block
-						if err := fd.newRightBlock(
-							ctx, file.tailPointer(), fblock,
-							endOfBlock); err != nil {
-							return nil, nil, syncState, nil, err
-						}
-					}
-					rPtr, _, rblock, _, _, _, err :=
-						fd.getFileBlockAtOffset(
-							ctx, fblock, endOfBlock, blockWrite)
-					if err != nil {
-						return nil, nil, syncState, nil, err
-					}
-					rblock.Contents = append(extraBytes, rblock.Contents...)
-					if err = fbo.cacheBlockIfNotYetDirtyLocked(
-						lState, rPtr, file, rblock); err != nil {
-						return nil, nil, syncState, nil, err
-					}
-					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
-					md.AddUnrefBlock(fblock.IPtrs[i+1].BlockInfo)
-					fblock.IPtrs[i+1].EncodedSize = 0
-				case splitAt < 0:
-					if nextBlockOff < 0 {
-						// end of the line
-						continue
-					}
-
-					endOfBlock := ptr.Off + int64(len(block.Contents))
-					rPtr, _, rblock, _, _, _, err :=
-						fd.getFileBlockAtOffset(
-							ctx, fblock, endOfBlock, blockWrite)
-					if err != nil {
-						return nil, nil, syncState, nil, err
-					}
-					// copy some of that block's data into this block
-					nCopied := bsplit.CopyUntilSplit(block, false,
-						rblock.Contents, int64(len(block.Contents)))
-					rblock.Contents = rblock.Contents[nCopied:]
-					if len(rblock.Contents) > 0 {
-						if err = fbo.cacheBlockIfNotYetDirtyLocked(
-							lState, rPtr, file, rblock); err != nil {
-							return nil, nil, syncState, nil, err
-						}
-						fblock.IPtrs[i+1].Off =
-							ptr.Off + int64(len(block.Contents))
-						md.AddUnrefBlock(fblock.IPtrs[i+1].BlockInfo)
-						fblock.IPtrs[i+1].EncodedSize = 0
-					} else {
-						// TODO: delete the block, and if we're down
-						// to just one indirect block, remove the
-						// layer of indirection
-						//
-						// TODO: When we implement more than one level
-						// of indirection, make sure that the pointer
-						// to the parent block in the grandparent
-						// block has EncodedSize 0.
-						md.AddUnrefBlock(fblock.IPtrs[i+1].BlockInfo)
-						fblock.IPtrs =
-							append(fblock.IPtrs[:i+1], fblock.IPtrs[i+2:]...)
-					}
-				}
-			}
-		}
-
 		for i, ptr := range fblock.IPtrs {
 			localPtr := ptr.BlockPointer
 			isDirty := dirtyBcache.IsDirty(fbo.id(), localPtr, file.Branch)
