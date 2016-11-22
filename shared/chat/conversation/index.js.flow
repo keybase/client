@@ -6,7 +6,7 @@ import type {Message, ConversationIDKey, ParticipantItem} from '../../constants/
 
 export type Props = {
   isLoading: boolean,
-  loadMoreMessages: () => void,
+  onLoadMoreMessages: () => void,
   messages: List<Message>,
   participants: List<ParticipantItem>,
   moreToLoad: boolean,
@@ -17,7 +17,7 @@ export type Props = {
   participants: List<ParticipantItem>,
   selectedConversation: ?ConversationIDKey,
   sidePanelOpen: boolean,
-  toggleSidePanel: () => void,
+  onToggleSidePanel: () => void,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

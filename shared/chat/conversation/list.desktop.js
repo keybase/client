@@ -128,7 +128,7 @@ class ConversationList extends Component<void, Props, State> {
 
     // At the top, load more messages. Action handles loading state and if there's actually any more
     if (scrollTop === 0) {
-      this.props.loadMoreMessages()
+      this.props.onLoadMoreMessages()
     }
 
     const isLockedToBottom = scrollTop + clientHeight === scrollHeight
