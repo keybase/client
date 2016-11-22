@@ -4,11 +4,9 @@
 package service
 
 import (
-	"crypto/sha256"
 	"errors"
 	"fmt"
-	"io"
-	"path/filepath"
+	"os"
 	"time"
 
 	"golang.org/x/net/context"
@@ -16,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/msgchecker"
+	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -33,6 +32,7 @@ type chatLocalHandler struct {
 	tlf   keybase1.TlfInterface
 	udc   *utils.UserDeviceCache
 	boxer *chat.Boxer
+	store *chat.AttachmentStore
 
 	// Only for testing
 	rc chat1.RemoteInterface
@@ -49,6 +49,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		tlf:          tlf,
 		udc:          udc,
 		boxer:        chat.NewBoxer(g, tlf, udc),
+		store:        chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 	}
 
 	if gh != nil {
@@ -57,49 +58,6 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 	}
 
 	return h
-}
-
-func (h *chatLocalHandler) cryptKeysWrapper(ctx context.Context, tlfName string) (tlfID chat1.TLFID, canonicalTlfName string, err error) {
-	resp, err := h.tlf.CryptKeys(ctx, keybase1.TLFQuery{
-		TlfName:          tlfName,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-	})
-	if err != nil {
-		return nil, "", err
-	}
-	tlfIDb := resp.NameIDBreaks.TlfID.ToBytes()
-	if tlfIDb == nil {
-		return nil, "", errors.New("invalid TLF ID acquired")
-	}
-	tlfID = chat1.TLFID(tlfIDb)
-	return tlfID, string(resp.NameIDBreaks.CanonicalName), nil
-}
-
-func (h *chatLocalHandler) getInboxQueryLocalToRemote(ctx context.Context, lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, err error) {
-	if lquery == nil {
-		return nil, nil
-	}
-	rquery = &chat1.GetInboxQuery{}
-	if lquery.TlfName != nil && len(*lquery.TlfName) > 0 {
-		tlfID, _, err := h.cryptKeysWrapper(ctx, *lquery.TlfName)
-		if err != nil {
-			return nil, err
-		}
-		rquery.TlfID = &tlfID
-	}
-
-	rquery.After = lquery.After
-	rquery.Before = lquery.Before
-	rquery.TlfVisibility = lquery.TlfVisibility
-	rquery.TopicType = lquery.TopicType
-	rquery.UnreadOnly = lquery.UnreadOnly
-	rquery.ReadOnly = lquery.ReadOnly
-	rquery.ComputeActiveList = lquery.ComputeActiveList
-	rquery.ConvID = lquery.ConvID
-	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
-	rquery.Status = lquery.Status
-
-	return rquery, nil
 }
 
 // GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
@@ -112,7 +70,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, fmt.Errorf("cannot query by TopicName without unboxing")
 	}
 
-	rquery, err := h.getInboxQueryLocalToRemote(ctx, arg.Query)
+	rquery, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
@@ -131,56 +89,32 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 }
 
 // GetInboxAndUnboxLocal implements keybase.chatLocal.getInboxAndUnboxLocal protocol.
-func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAndUnboxLocalArg) (inbox chat1.GetInboxAndUnboxLocalRes, err error) {
+func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAndUnboxLocalArg) (chat1.GetInboxAndUnboxLocalRes, error) {
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}
+	uid := h.G().Env.GetUID()
+	if uid.IsNil() {
+		return chat1.GetInboxAndUnboxLocalRes{}, libkb.LoginRequiredError{}
+	}
 
-	rquery, err := h.getInboxQueryLocalToRemote(ctx, arg.Query)
+	// Create inbox source
+	inbox := chat.NewRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
+		func() keybase1.TlfInterface { return h.tlf })
+
+	// Read inbox from the source
+	ib, rl, err := inbox.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination)
 	if err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}
-	ib, err := h.remoteClient().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
-		Query:      rquery,
-		Pagination: arg.Pagination,
-	})
-	if err != nil {
-		return chat1.GetInboxAndUnboxLocalRes{}, err
-	}
-	inbox = chat1.GetInboxAndUnboxLocalRes{
-		Pagination: arg.Pagination,
-		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
+
+	res := chat1.GetInboxAndUnboxLocalRes{
+		Conversations: ib.Convs,
+		Pagination:    ib.Pagination,
+		RateLimits:    utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
 	}
 
-	ctx, _ = utils.GetUserInfoMapper(ctx, h.G())
-	convLocals, err := h.localizeConversationsPipeline(ctx, ib.Inbox.Full().Conversations)
-	if err != nil {
-		return chat1.GetInboxAndUnboxLocalRes{}, err
-	}
-	for _, convLocal := range convLocals {
-		if rquery != nil && rquery.TlfID != nil {
-			// Verify using signed TlfName to make sure server returned genuine
-			// conversation.
-			signedTlfID, _, err := h.cryptKeysWrapper(ctx, convLocal.Info.TlfName)
-			if err != nil {
-				return chat1.GetInboxAndUnboxLocalRes{}, err
-			}
-			// The *rquery.TlfID is trusted source of TLF ID here since it's derived
-			// from the TLF name in the query.
-			if !signedTlfID.Eq(*rquery.TlfID) || !signedTlfID.Eq(convLocal.Info.Triple.Tlfid) {
-				return chat1.GetInboxAndUnboxLocalRes{}, errors.New("server returned conversations for different TLF than query")
-			}
-		}
-
-		// server can't query on topic name, so we have to do it ourselves in the loop
-		if arg.Query != nil && arg.Query.TopicName != nil && *arg.Query.TopicName != convLocal.Info.TopicName {
-			continue
-		}
-
-		inbox.Conversations = append(inbox.Conversations, convLocal)
-	}
-
-	return inbox, nil
+	return res, nil
 }
 
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
@@ -216,7 +150,9 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg chat1.GetThre
 	// Fetch outbox and tack onto the result
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
 	if err = outbox.SprinkleIntoThread(arg.ConversationID, &thread); err != nil {
-		return chat1.GetThreadLocalRes{}, err
+		if _, ok := err.(libkb.ChatStorageMissError); !ok {
+			return chat1.GetThreadLocalRes{}, err
+		}
 	}
 
 	return chat1.GetThreadLocalRes{
@@ -233,7 +169,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	tlfID, cname, err := h.cryptKeysWrapper(ctx, arg.TlfName)
+	tlfID, cname, err := utils.CryptKeysWrapper(ctx, h.tlf, arg.TlfName)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
@@ -245,7 +181,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 	}
 
 	for i := 0; i < 3; i++ {
-		triple.TopicID, err = libkb.NewChatTopicID()
+		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, fmt.Errorf("error creating topic ID: %s", err)
 		}
@@ -287,26 +223,34 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		}
 
 		// create succeeded; grabbing the conversation and returning
-
-		gilres, err := h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Query: &chat1.GetInboxLocalQuery{
-				ConvID: &convID,
-			},
-		})
+		uid := h.G().Env.GetUID()
+		inbox := chat.NewRemoteInboxSource(h.G(), h.boxer, h.remoteClient,
+			func() keybase1.TlfInterface { return h.tlf })
+		// Read inbox from the source
+		ib, rl, err := inbox.Read(ctx, uid.ToBytes(), &chat1.GetInboxLocalQuery{
+			ConvID: &convID,
+		}, nil)
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, err
 		}
-		res.RateLimits = append(res.RateLimits, gilres.RateLimits...)
-
-		if len(gilres.Conversations) != 1 {
-			return chat1.NewConversationLocalRes{}, fmt.Errorf("unexpected number (%d) of conversation; need 1", len(gilres.Conversations))
+		if rl != nil {
+			res.RateLimits = append(res.RateLimits, *rl)
 		}
-		res.Conv = gilres.Conversations[0]
+
+		if len(ib.Convs) != 1 {
+			return chat1.NewConversationLocalRes{}, fmt.Errorf("newly created conversation fetch error: found %d conversations", len(ib.Convs))
+		}
+		res.Conv = ib.Convs[0]
+		// Update inbox cache
+		if err = storage.NewInbox(h.G(), uid.ToBytes(), h.getSecretUI).NewConversation(0, res.Conv); err != nil {
+			if _, ok := err.(libkb.ChatStorageMissError); !ok {
+				return chat1.NewConversationLocalRes{}, err
+			}
+		}
 
 		if res.Conv.Error != nil {
 			return chat1.NewConversationLocalRes{}, errors.New(*res.Conv.Error)
 		}
-
 		return res, nil
 	}
 
@@ -345,65 +289,6 @@ func (h *chatLocalHandler) makeFirstMessage(ctx context.Context, triple chat1.Co
 
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 	return sender.Prepare(ctx, msg, nil)
-}
-
-func (h *chatLocalHandler) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation) ([]chat1.ConversationLocal, error) {
-	// Fetch conversation local information in parallel
-	ctx, _ = utils.GetUserInfoMapper(ctx, h.G())
-	type jobRes struct {
-		conv  chat1.ConversationLocal
-		index int
-	}
-	type job struct {
-		conv  chat1.Conversation
-		index int
-	}
-	eg, ctx := errgroup.WithContext(ctx)
-	convCh := make(chan job)
-	retCh := make(chan jobRes)
-	eg.Go(func() error {
-		defer close(convCh)
-		for i, conv := range convs {
-			select {
-			case convCh <- job{conv: conv, index: i}:
-			case <-ctx.Done():
-				return ctx.Err()
-			}
-		}
-		return nil
-	})
-	for i := 0; i < 10; i++ {
-		eg.Go(func() error {
-			for conv := range convCh {
-				convLocal, err := h.localizeConversation(ctx, conv.conv)
-				if err != nil {
-					return err
-				}
-				jr := jobRes{
-					conv:  convLocal,
-					index: conv.index,
-				}
-				select {
-				case retCh <- jr:
-				case <-ctx.Done():
-					return ctx.Err()
-				}
-			}
-			return nil
-		})
-	}
-	go func() {
-		eg.Wait()
-		close(retCh)
-	}()
-	res := make([]chat1.ConversationLocal, len(convs))
-	for c := range retCh {
-		res[c.index] = c.conv
-	}
-	if err := eg.Wait(); err != nil {
-		return nil, err
-	}
-	return res, nil
 }
 
 func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetInboxSummaryForCLILocalQuery) (res chat1.GetInboxSummaryForCLILocalRes, err error) {
@@ -496,81 +381,6 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
 
 	return res, nil
-}
-
-func (h *chatLocalHandler) localizeConversation(
-	ctx context.Context, conversationRemote chat1.Conversation) (
-	conversationLocal chat1.ConversationLocal, err error) {
-
-	ctx, uimap := utils.GetUserInfoMapper(ctx, h.G())
-
-	conversationLocal.Info = chat1.ConversationInfoLocal{
-		Id: conversationRemote.Metadata.ConversationID,
-	}
-
-	if len(conversationRemote.MaxMsgs) == 0 {
-		errMsg := "conversation has an empty MaxMsgs field"
-		return chat1.ConversationLocal{Error: &errMsg}, nil
-	}
-	if conversationLocal.MaxMessages, err = h.boxer.UnboxMessages(ctx, conversationRemote.MaxMsgs); err != nil {
-		errMsg := err.Error()
-		return chat1.ConversationLocal{Error: &errMsg}, nil
-	}
-
-	if conversationRemote.ReaderInfo == nil {
-		errMsg := "empty ReaderInfo from server?"
-		return chat1.ConversationLocal{Error: &errMsg}, nil
-	}
-	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
-
-	var maxValidID chat1.MessageID
-	for _, mm := range conversationLocal.MaxMessages {
-		if mm.IsValid() {
-			body := mm.Valid().MessageBody
-			if t, err := body.MessageType(); err != nil {
-				return chat1.ConversationLocal{}, err
-			} else if t == chat1.MessageType_METADATA {
-				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
-			}
-
-			if mm.GetMessageID() >= maxValidID {
-				conversationLocal.Info.TlfName = mm.Valid().ClientHeader.TlfName
-				maxValidID = mm.GetMessageID()
-			}
-			conversationLocal.Info.Triple = mm.Valid().ClientHeader.Conv
-		}
-	}
-
-	if len(conversationLocal.Info.TlfName) == 0 {
-		errMsg := "no valid message in the conversation"
-		return chat1.ConversationLocal{Error: &errMsg}, nil
-	}
-
-	// Verify ConversationID is derivable from ConversationIDTriple
-	if !conversationLocal.Info.Triple.Derivable(conversationLocal.Info.Id) {
-		errMsg := "unexpected response from server: conversation ID is not derivable from conversation triple."
-		return chat1.ConversationLocal{Error: &errMsg}, nil
-	}
-
-	if _, conversationLocal.Info.TlfName, err = h.cryptKeysWrapper(ctx, conversationLocal.Info.TlfName); err != nil {
-		return chat1.ConversationLocal{}, err
-	}
-
-	conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
-		h.udc,
-		uimap,
-		conversationLocal.Info.TlfName,
-		conversationRemote.Metadata.ActiveList)
-	if err != nil {
-		return chat1.ConversationLocal{}, fmt.Errorf("error reordering participants: %v", err.Error())
-	}
-
-	// verify Conv matches ConversationIDTriple in MessageClientHeader
-	if !conversationRemote.Metadata.IdTriple.Eq(conversationLocal.Info.Triple) {
-		return chat1.ConversationLocal{}, errors.New("server header conversation triple does not match client header triple")
-	}
-
-	return conversationLocal, nil
 }
 
 func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg chat1.GetConversationForCLILocalQuery) (res chat1.GetConversationForCLILocalRes, err error) {
@@ -698,10 +508,24 @@ func (h *chatLocalHandler) SetConversationStatusLocal(ctx context.Context, arg c
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (chat1.PostLocalRes, error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+
 	err := msgchecker.CheckMessagePlaintext(arg.Msg)
 	if err != nil {
 		return chat1.PostLocalRes{}, err
 	}
+
+	// Make sure sender is set
+	db := make([]byte, 16)
+	uid := h.G().Env.GetUID()
+	deviceID := h.G().Env.GetDeviceID()
+	if err = deviceID.ToBytes(db); err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	arg.Msg.ClientHeader.Sender = uid.ToBytes()
+	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 
@@ -738,7 +562,9 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
-
+	if os.Getenv("CHAT_S3_FAKE") == "1" {
+		ctx = s3.NewFakeS3Context(ctx)
+	}
 	chatUI := h.getChatUI(arg.SessionID)
 	progress := func(bytesComplete, bytesTotal int) {
 		parg := chat1.ChatAttachmentUploadProgressArg{
@@ -763,7 +589,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	g.Go(func() error {
 		chatUI.ChatAttachmentUploadStart(ctx)
 		var err error
-		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, progress)
+		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
 		return err
 	})
@@ -777,7 +603,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
 			previewParams.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, *arg.Preview, nil)
+			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, *arg.Preview, arg.ConversationID, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
@@ -875,7 +701,7 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		obj = *attachment.Preview
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
-	if err := chat.DownloadAsset(ctx, h.G().Log, params, obj, sink, h, progress); err != nil {
+	if err := h.store.DownloadAsset(ctx, params, obj, sink, h, progress); err != nil {
 		sink.Close()
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
@@ -886,6 +712,38 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 	}
 
 	return chat1.DownloadAttachmentLocalRes{RateLimits: msgs.RateLimits}, nil
+}
+
+func (h *chatLocalHandler) CancelPost(ctx context.Context, outboxID chat1.OutboxID) error {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+
+	uid := h.G().Env.GetUID()
+	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
+	if err := outbox.RemoveMessage(outboxID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (h *chatLocalHandler) RetryPost(ctx context.Context, outboxID chat1.OutboxID) error {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+
+	// Mark as retry in the outbox
+	uid := h.G().Env.GetUID()
+	outbox := storage.NewOutbox(h.G(), uid.ToBytes(), h.getSecretUI)
+	if err := outbox.RetryMessage(outboxID); err != nil {
+		return err
+	}
+
+	// Force the send loop to try again
+	h.G().MessageDeliverer.ForceDeliverLoop()
+
+	return nil
 }
 
 // getSecretUI returns a SecretUI, preferring a delegated SecretUI if
@@ -932,41 +790,19 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 	return h.remoteClient().S3Sign(context.Background(), arg)
 }
 
-func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource, progress chat.ProgressReporter) (chat1.Asset, error) {
+func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource, conversationID chat1.ConversationID, progress chat.ProgressReporter) (chat1.Asset, error) {
 	// create a buffered stream
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
 
-	// encrypt the stream
-	enc := chat.NewSignEncrypter()
-	len := enc.EncryptedLen(local.Size)
-	encReader, err := enc.Encrypt(src)
-	if err != nil {
-		return chat1.Asset{}, err
+	task := chat.UploadTask{
+		S3Params:       params,
+		LocalSrc:       local,
+		Plaintext:      src,
+		S3Signer:       h,
+		ConversationID: conversationID,
+		UserID:         h.G().Env.GetUID(),
+		Progress:       progress,
 	}
-
-	// compute hash
-	hash := sha256.New()
-	tee := io.TeeReader(encReader, hash)
-
-	// post to s3
-	upRes, err := chat.PutS3(ctx, h.G().Log, tee, int64(len), params, h, progress)
-	if err != nil {
-		return chat1.Asset{}, err
-	}
-	h.G().Log.Debug("chat attachment upload: %+v", upRes)
-
-	asset := chat1.Asset{
-		Filename:  filepath.Base(local.Filename),
-		Region:    upRes.Region,
-		Endpoint:  upRes.Endpoint,
-		Bucket:    upRes.Bucket,
-		Path:      upRes.Path,
-		Size:      int(upRes.Size),
-		Key:       enc.EncryptKey(),
-		VerifyKey: enc.VerifyKey(),
-		EncHash:   hash.Sum(nil),
-	}
-	return asset, nil
-
+	return h.store.UploadAsset(ctx, &task)
 }

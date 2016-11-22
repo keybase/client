@@ -1,12 +1,12 @@
 // @flow
-import Platform, {OS} from '../constants/platform'
-import React, {Component} from 'react'
-import type {Props} from './dropdown'
-import Text from './text'
-import Icon from './icon'
 import Box from './box'
+import Icon from './icon'
+import React, {Component} from 'react'
+import Text from './text'
+import type {Props} from './dropdown'
 import {NativeTouchableWithoutFeedback, NativePicker, NativeModal} from './native-wrappers.native'
 import {globalStyles, globalColors} from '../styles'
+import {isIOS} from '../constants/platform'
 
 /*
  * A dropdown on ios and android.
@@ -157,7 +157,7 @@ class Dropdown extends Component<void, Props, State> {
   }
 
   render (): React$Element<*> {
-    return OS === Platform.OS_IOS ? this._renderIOS() : this._renderAndroid()
+    return isIOS ? this._renderIOS() : this._renderAndroid()
   }
 }
 

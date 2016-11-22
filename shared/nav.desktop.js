@@ -16,6 +16,7 @@ import flags from './util/feature-flags'
 import globalRoutes from './router/global-routes'
 import {connect} from 'react-redux'
 import {globalStyles} from './styles'
+import {isDarwin} from './constants/platform'
 import {mapValues} from 'lodash'
 import {navigateBack, navigateUp, switchTab} from './actions/router'
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
@@ -42,6 +43,7 @@ type Props = {
   navigateBack: () => void,
   navigateUp: () => void,
   folderBadge: number,
+  chatBadge: number,
   searchActive: boolean,
   setSearchActive: (active: boolean) => void,
 }
@@ -95,7 +97,7 @@ class Nav extends Component<void, Props, void> {
   }
 
   _handleKeyDown (e: SyntheticKeyboardEvent) {
-    const modKey = process.platform === 'darwin' ? e.metaKey : e.ctrlKey
+    const modKey = isDarwin ? e.metaKey : e.ctrlKey
     if (modKey && e.key === 'ArrowLeft') {
       e.preventDefault()
       this.props.navigateBack()
@@ -109,12 +111,17 @@ class Nav extends Component<void, Props, void> {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
+    // MUST be first
+    if (this.props.menuBadge !== nextProps.menuBadge) {
+      ipcRenderer.send('showTray', nextProps.menuBadge)
+    }
+
     if (this.props.folderBadge !== nextProps.folderBadge) {
       return true
     }
 
-    if (this.props.menuBadge !== nextProps.menuBadge) {
-      ipcRenderer.send('showTray', nextProps.menuBadge)
+    if (this.props.chatBadge !== nextProps.chatBadge) {
+      return true
     }
 
     if (this.props.searchActive !== nextProps.searchActive) {
@@ -127,6 +134,7 @@ class Nav extends Component<void, Props, void> {
   componentDidMount () {
     this._checkTabChanged()
     if (flags.admin) window.addEventListener('keydown', this._handleKeyDown)
+    ipcRenderer.send('showTray', this.props.menuBadge)
   }
 
   componentDidUpdate () {
@@ -170,7 +178,7 @@ class Nav extends Component<void, Props, void> {
           searchActive={this.props.searchActive}
           username={this.props.username}
           searchContent={<Search />}
-          badgeNumbers={{[folderTab]: this.props.folderBadge}}
+          badgeNumbers={{[folderTab]: this.props.folderBadge, [chatTab]: this.props.chatBadge}}
           tabContent={tabContent} />
         <GlobalError />
       </div>
@@ -190,14 +198,14 @@ export default connect(
     search: {searchActive},
     router,
     config: {extendedConfig, username},
-    favorite: {publicBadge = 0, privateBadge = 0},
-    notifications: {menuBadge}}) => ({
+    notifications: {menuBadge, menuNotifications}}) => ({
       router,
       searchActive,
       provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
       username,
       menuBadge,
-      folderBadge: publicBadge + privateBadge,
+      folderBadge: menuNotifications.folderBadge,
+      chatBadge: menuNotifications.chatBadge,
     }),
   dispatch => {
     return {

@@ -78,6 +78,18 @@ export function searchResultToAssertion (r: SearchResult): string {
   return r.username
 }
 
+export function usernameToSearchResult (username: string): SearchResult {
+  return {
+    service: 'keybase',
+    username,
+    isFollowing: false, // TODO
+    extraInfo: {
+      service: 'none',
+      fullName: '', // TODO
+    },
+  }
+}
+
 export const search = 'search:search'
 export type Search = TypedAction<'search:search', {term: string}, void>
 
@@ -90,8 +102,8 @@ export type SelectPlatform = TypedAction<'search:selectPlatform', {platform: Sea
 export const selectUserForInfo = 'search:selectUserForInfo'
 export type SelectUserForInfo = TypedAction<'search:selectUserForInfo', {user: SearchResult}, void>
 
-export const addUserToGroup = 'search:addUserToGroup'
-export type AddUserToGroup = TypedAction<'search:addUserToGroup', {user: SearchResult}, void>
+export const addUsersToGroup = 'search:addUsersToGroup'
+export type AddUsersToGroup = TypedAction<'search:addUsersToGroup', {users: Array<SearchResult>}, void>
 
 export const removeUserFromGroup = 'search:removeUserFromGroup'
 export type RemoveUserFromGroup = TypedAction<'search:removeUserFromGroup', {user: SearchResult}, void>
@@ -108,7 +120,7 @@ export type Waiting = TypedAction<'search:waiting', {waiting: boolean}, void>
 export const setActive = 'search:setActive'
 export type SetActive = TypedAction<'search:setActive', {active: boolean}, void>
 
-export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup
+export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUsersToGroup
   | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting | SetActive | OnClickFollowers | OnClickFollowing | OnClickAvatar
 
 export function platformToIcon (platform: SearchPlatforms): IconType {

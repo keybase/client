@@ -64,3 +64,8 @@ func (h *SessionHandler) CurrentSession(_ context.Context, sessionID int) (keyba
 
 	return s, nil
 }
+
+// SessionPing can be used by keepalives for connected services.
+func (h *SessionHandler) SessionPing(context.Context) error {
+	return nil
+}

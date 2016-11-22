@@ -47,7 +47,7 @@ typedef NS_ENUM (NSInteger, KBErrorResponse) {
 
 #define KBMakeErrorWithRecovery(CODE, MSG, RECOVERY, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey: MSG, NSLocalizedRecoveryOptionsErrorKey: @[@"OK"], NSLocalizedRecoverySuggestionErrorKey:[NSString stringWithFormat:RECOVERY, ##__VA_ARGS__]}]
 
-#define KBMakeWarning(MSG) KBMakeError(KBErrorCodeWarning, MSG)
+#define KBMakeWarning(MSG, ...) KBMakeError(KBErrorCodeWarning, MSG, ##__VA_ARGS__)
 #define KBIsWarning(ERR) ((ERR.code == KBErrorCodeWarning))
 
 

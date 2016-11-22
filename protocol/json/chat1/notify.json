@@ -13,7 +13,11 @@
       "name": "ChatActivityType",
       "symbols": [
         "RESERVED_0",
-        "INCOMING_MESSAGE_1"
+        "INCOMING_MESSAGE_1",
+        "READ_MESSAGE_2",
+        "NEW_CONVERSATION_3",
+        "SET_STATUS_4",
+        "FAILED_MESSAGE_5"
       ]
     },
     {
@@ -31,6 +35,75 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSentInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "RateLimit",
+          "name": "rateLimit"
+        },
+        {
+          "type": "OutboxID",
+          "name": "outboxID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReadMessageInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NewConversationInfo",
+      "fields": [
+        {
+          "type": "ConversationLocal",
+          "name": "conv"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetStatusInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "ConversationStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FailedMessageInfo",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "OutboxID"
+          },
+          "name": "outboxIDs"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "ChatActivity",
       "switch": {
@@ -44,6 +117,34 @@
             "def": false
           },
           "body": "IncomingMessage"
+        },
+        {
+          "label": {
+            "name": "READ_MESSAGE",
+            "def": false
+          },
+          "body": "ReadMessageInfo"
+        },
+        {
+          "label": {
+            "name": "NEW_CONVERSATION",
+            "def": false
+          },
+          "body": "NewConversationInfo"
+        },
+        {
+          "label": {
+            "name": "SET_STATUS",
+            "def": false
+          },
+          "body": "SetStatusInfo"
+        },
+        {
+          "label": {
+            "name": "FAILED_MESSAGE",
+            "def": false
+          },
+          "body": "FailedMessageInfo"
         }
       ]
     }

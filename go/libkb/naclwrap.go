@@ -685,7 +685,7 @@ func (k NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (str
 
 	info, err := k.Encrypt(plaintext, senderDh)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	return PacketArmoredEncode(info)

@@ -9,6 +9,7 @@ import dumbComponentMap from '../shared/dev/dumb-sheet/component-map.desktop'
 
 const WORKER_COUNT = 10
 const CANVAS_SIZE = 1000
+const DEBUG_WINDOWS = false
 
 if (process.argv.length !== 3) {
   console.log(`Usage: electron ${path.basename(process.argv[1])} DESTINATION`)
@@ -46,6 +47,14 @@ app.on('ready', () => {
     rendering++
   }
 
+  ipcMain.on('display-error', (ev, msg) => {
+    count++
+    console.log(`[${count} / ${total}] error ${msg}`)
+    rendering--
+    const sender = ev.sender
+    renderNext(sender)
+  })
+
   ipcMain.on('display-done', (ev, msg) => {
     const sender = ev.sender
     sender.getOwnerBrowserWindow().capturePage(msg.rect, img => {
@@ -68,19 +77,29 @@ app.on('ready', () => {
   for (let i = 0; i < WORKER_COUNT; i++) {
     setTimeout(() => {
       console.log('Creating new worker window', i)
-      const workerWin = new BrowserWindow({show: false, width: CANVAS_SIZE, height: CANVAS_SIZE})
+      const workerWin = new BrowserWindow({show: DEBUG_WINDOWS, width: CANVAS_SIZE, height: CANVAS_SIZE})
       console.log('Created new worker window', i)
 
       workerWin.on('ready-to-show', () => console.log('Worker window ready-to-show:', i))
-      workerWin.webContents.on('did-finish-load', () => console.log('Worker window did-finish-load:', i))
+      const firstDisplay = toRender.pop()
+      workerWin.webContents.on('did-finish-load', () => {
+        if (DEBUG_WINDOWS) {
+          workerWin.webContents.openDevTools('right')
+        }
+
+        console.log('Worker window did-finish-load:', i)
+        workerWin.webContents.send('load', {
+          scripts: [scriptPath],
+          firstDisplay,
+        })
+        rendering++
+      })
       workerWin.webContents.on('did-fail-load', () => console.log('Worker window did-fail-load:', i))
       workerWin.on('unresponsive', () => console.log('Worker window unresponsive:', i))
       workerWin.on('responsive', () => console.log('Worker window responsive:', i))
       workerWin.on('closed', () => console.log('Worker window closed:', i))
 
-      // TODO: once we're on electron v1.2.3, try ready-to-show event.
-      workerWin.webContents.once('did-finish-load', () => renderNext(workerWin.webContents))
-      const workerURL = resolveRootAsURL('renderer', `renderer.html?src=${scriptPath}`)
+      const workerURL = resolveRootAsURL('renderer', `renderer.html?visDiff`)
       console.log('Loading worker', i, workerURL)
       workerWin.loadURL(workerURL)
       console.log('Loaded worker', i, workerURL)

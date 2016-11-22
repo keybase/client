@@ -2,6 +2,7 @@
 import {Component} from 'react'
 
 import type {KBFSStatus} from '../constants/favorite'
+import type {MenuNotificationState} from '../constants/notifications'
 import type {Props as FolderProps} from '../folders/render'
 
 export type Props = {
@@ -23,6 +24,7 @@ export type Props = {
   showKBFS: () => void,
   showUser: (username: ?string) => void,
   username: ?string,
+  badgeInfo: MenuNotificationState,
 }
 
 export default class Render extends Component<void, Props, void> {}

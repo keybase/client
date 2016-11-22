@@ -5,7 +5,7 @@
  */
 
 import Container from '../../forms/container'
-import Platform, {OS} from '../../../constants/platform'
+import {isIOS} from '../../../constants/platform'
 import Qr from './qr'
 import React, {Component} from 'react'
 import {Box, Button, ClickableBox, Icon, Input, NativeStyleSheet, ProgressIndicator, Text} from '../../../common-adapters/index.native'
@@ -15,8 +15,6 @@ import {globalStyles, globalColors} from '../../../styles'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Mode, DeviceRole} from '../../../constants/login'
 import type {Props} from './index.render'
-
-const isIOS = Platform.OS_IOS === OS
 
 function determineModes (myDeviceRole: DeviceRole, otherDeviceRole: DeviceRole, cameraBrokenMode: boolean): ?Array<Mode> {
   let controls = null

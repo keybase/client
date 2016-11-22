@@ -47,6 +47,7 @@ type Props = {
   onPress?: void,
   style?: Object,
   type: TextType,
+  title?: ?string,
 }
 
 type MetaType = {

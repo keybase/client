@@ -6,7 +6,11 @@ protocol NotifyChat {
 
   enum ChatActivityType {
     RESERVED_0,
-    INCOMING_MESSAGE_1
+    INCOMING_MESSAGE_1,
+    READ_MESSAGE_2,
+    NEW_CONVERSATION_3,
+    SET_STATUS_4,
+    FAILED_MESSAGE_5
   }
 
   record IncomingMessage {
@@ -14,8 +18,36 @@ protocol NotifyChat {
     ConversationID convID;
   }
 
+  record MessageSentInfo {
+    ConversationID convID;
+    RateLimit rateLimit;
+    OutboxID outboxID;
+  }
+
+  record ReadMessageInfo {
+    ConversationID convID;
+    MessageID msgID;
+  }
+
+  record NewConversationInfo {
+    ConversationLocal conv;
+  }
+
+  record SetStatusInfo {
+    ConversationID convID;
+    ConversationStatus status;
+  }
+
+  record FailedMessageInfo {
+    array<OutboxID> outboxIDs;
+  }
+
   variant ChatActivity switch (ChatActivityType activityType) {
     case INCOMING_MESSAGE: IncomingMessage;
+    case READ_MESSAGE: ReadMessageInfo;
+    case NEW_CONVERSATION: NewConversationInfo;
+    case SET_STATUS: SetStatusInfo;
+    case FAILED_MESSAGE: FailedMessageInfo;
   }
 
   @notify("")

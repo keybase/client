@@ -198,13 +198,12 @@ class ProfileRender extends PureComponent<void, Props, State> {
       .orderBy('isPublic', 'asc')
       .map(folder => (
         <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
             <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
           </Box>
-          <Box className='hover-underline' style={{marginTop: 2}}>
-            <Text type='Body' style={{color: 'inherit'}}>{folder.isPublic ? 'public/' : 'private/'}</Text>
-            <Usernames inline={true} users={folder.users} type='Body' style={{color: 'inherit'}} />
-          </Box>
+          <Text type='Body' className='hover-underline' style={{marginTop: 2}}>
+            <Usernames inline={false} users={folder.users} type='Body' style={{color: 'inherit'}} containerStyle={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}} prefix={folder.isPublic ? 'public/' : 'private/'} />
+          </Text>
         </Box>
       ))
       .value()

@@ -38,6 +38,19 @@
       ],
       "response": "bytes"
     },
+    "reset": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "s",
+          "type": "Stream"
+        }
+      ],
+      "response": null
+    },
     "write": {
       "request": [
         {
