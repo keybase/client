@@ -78,18 +78,6 @@ export function searchResultToAssertion (r: SearchResult): string {
   return r.username
 }
 
-export function usernameToSearchResult (username: string): SearchResult {
-  return {
-    service: 'keybase',
-    username,
-    isFollowing: false, // TODO
-    extraInfo: {
-      service: 'none',
-      fullName: '', // TODO
-    },
-  }
-}
-
 export const search = 'search:search'
 export type Search = TypedAction<'search:search', {term: string}, void>
 
