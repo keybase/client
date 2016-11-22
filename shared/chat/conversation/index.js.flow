@@ -1,23 +1,23 @@
 // @flow
 import {Component} from 'react'
-import {List} from 'immutable'
+import {List, Map} from 'immutable'
 
-import type {Message, ConversationIDKey, ParticipantItem} from '../../constants/chat'
+import type {Message, ConversationIDKey, ParticipantItem, MetaData} from '../../constants/chat'
 
 export type Props = {
   isLoading: boolean,
-  onLoadMoreMessages: () => void,
   messages: List<Message>,
-  participants: List<ParticipantItem>,
+  metaData: Map<string, MetaData>,
   moreToLoad: boolean,
   onAddParticipant: () => void,
+  onLoadMoreMessages: () => void,
   onOpenFolder: () => void,
   onPostMessage: (text: string) => void,
   onShowProfile: (username: string) => void,
+  onToggleSidePanel: () => void,
   participants: List<ParticipantItem>,
   selectedConversation: ?ConversationIDKey,
   sidePanelOpen: boolean,
-  onToggleSidePanel: () => void,
 }
 
 export default class Conversation extends Component<void, Props, void> { }

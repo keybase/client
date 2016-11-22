@@ -11,8 +11,8 @@ const Participants = (props: Props) => (
       <Box key={p.username} style={rowStyle} onClick={() => props.onShowProfile(p.username)}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1, marginRight: globalMargins.tiny}}>
           <Avatar size={32} username={p.username} />
-          <Usernames type='Body' users={[p]} containerStyle={{marginLeft: 12}} />
-          <Text type='Body' style={{marginLeft: 8, flex: 1, color: globalColors.black_40, textAlign: 'right'}}>TODO</Text>
+          <Usernames colorFollowing={true} type='Body' users={[p]} containerStyle={{marginLeft: 12}} />
+          <Text type='Body' style={{marginLeft: 8, flex: 1, color: globalColors.black_40, textAlign: 'right'}}>{props.metaData.getIn([p.username, 'fullname'], 'Unknown')}</Text>
         </Box>
         <Divider style={{marginLeft: 44}} />
       </Box>

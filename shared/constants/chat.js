@@ -74,16 +74,26 @@ export type InboxState = Record<{
   unreadCount: number,
 }>
 
+export type MetaData = Record<{
+  fullname: string,
+}>
+
+export const MetaDataRecord = Record({
+  fullname: 'Unknown',
+})
+
 export const StateRecord = Record({
   inbox: List(),
   conversationStates: Map(),
   selectedConversation: null,
+  metaData: Map(),
 })
 
 export type State = Record<{
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   selectedConversation: ?ConversationIDKey,
+  metaData: Map<string, MetaData>,
 }>
 
 const maxMessagesToLoadAtATime = 50
@@ -103,6 +113,8 @@ export const pendingMessageWasSent = 'chat:pendingMessageWasSent'
 export const newChat = 'chat:newChat'
 export const startConversation = 'chat:startConversation'
 export const openFolder = 'chat:openFolder'
+export const updateMetadata = 'chat:updateMetadata'
+export const updatedMetadata = 'chat:updatedMetadata'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
@@ -118,6 +130,8 @@ export type PendingMessageWasSent = NoErrorTypedAction<'chat:pendingMessageWasSe
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
+export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
+export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
 
 export type Actions = AppendMessages
   | LoadInbox
@@ -128,6 +142,8 @@ export type Actions = AppendMessages
   | PrependMessages
   | SelectConversation
   | StartConversation
+  | UpdateMetadata
+  | UpdatedMetadata
 
 function conversationIDToKey (conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('base64')

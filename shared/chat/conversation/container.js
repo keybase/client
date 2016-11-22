@@ -2,7 +2,7 @@
 import Conversation from './index'
 import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
-import {List} from 'immutable'
+import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
 import {loadMoreMessages, postMessage, openFolder, newChat} from '../../actions/chat'
 import {onUserClick} from '../../actions/profile'
@@ -21,6 +21,12 @@ class ConversationContainer extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     this.state = {sidePanelOpen: false}
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.selectedConversation !== nextProps.selectedConversation) {
+      this.setState({sidePanelOpen: false})
+    }
   }
 
   render () {
@@ -47,6 +53,7 @@ export default connect(
           moreToLoad: conversationState.moreToLoad,
           isLoading: conversationState.isLoading,
           selectedConversation,
+          metaData: state.chat.get('metaData'),
         }
       }
     }
@@ -57,6 +64,7 @@ export default connect(
       moreToLoad: false,
       isLoading: false,
       selectedConversation,
+      metaData: Map(),
     }
   },
   (dispatch: Dispatch) => ({
