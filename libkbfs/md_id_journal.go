@@ -24,10 +24,13 @@ type mdIDJournal struct {
 	j diskJournal
 }
 
-// An mdIDJournalEntry is, for now, just an MdID. In the future, it
-// may contain more fields. However, make sure that new fields don't
-// depend on the ID, as the mdJournal may change the ID when
-// converting to a branch.
+// An mdIDJournalEntry is an MdID and a boolean describing whether
+// this entry was the result of a local squash. Make sure that new
+// fields don't depend on the ID or `isLocalSquash`, as the mdJournal
+// may change these when converting to a branch.  Note that
+// `isLocalSquash` may only be true for entries in a continuous prefix
+// of the id journal; once there is one entry with `isLocalSquash =
+// false`, it will be the same in all the remaining entries.
 type mdIDJournalEntry struct {
 	ID            MdID
 	IsLocalSquash bool
