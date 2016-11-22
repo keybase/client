@@ -15,6 +15,8 @@ import {
   getPath,
 } from '../'
 
+import type {PropsPath} from '../'
+
 jest.unmock('immutable')
 
 let emptyRouteDef = new RouteDefNode({children: {}, component: () => {}})
@@ -123,10 +125,10 @@ describe('routeSetProps', () => {
       }),
     }))
 
-    const newRouteState2 = routeSetProps(demoRouteDef, startRouteState, [
+    const newRouteState2 = routeSetProps(demoRouteDef, startRouteState, ([
       'foo',
       {selected: 'bar', props: {it: 'works'}},
-    ])
+    ]: PropsPath<*>))
     expect(newRouteState2).toEqual(new RouteStateNode({
       selected: 'foo',
       children: I.Map({
@@ -167,14 +169,14 @@ describe('routeSetProps', () => {
 
   it('throws when traversing to a path with missing def', () => {
     expect(() => {
-      routeSetProps(demoRouteDef, null, ['etc', 'missing'])
+      routeSetProps(demoRouteDef, null, (['etc', 'missing']: PropsPath<*>))
     }).toThrowError(InvalidRouteError)
   })
 })
 
 describe('routeNavigate', () => {
   it('resets the state of the destination node', () => {
-    const startRouteState = routeNavigate(demoRouteDef, null, ['foo', {selected: 'bar', props: {hello: 'world'}}])
+    const startRouteState = routeNavigate(demoRouteDef, null, (['foo', {selected: 'bar', props: {hello: 'world'}}]: PropsPath<*>))
     expect(startRouteState).toEqual(new RouteStateNode({
       selected: 'foo',
       children: I.Map({
@@ -273,7 +275,7 @@ describe('routeClear', () => {
 
 describe('checkRouteState', () => {
   it('returns nothing for a valid state', () => {
-    const routeState = routeNavigate(demoRouteDef, null, ['foo', 'bar'])
+    const routeState = routeNavigate(demoRouteDef, null, (['foo', 'bar']: PropsPath<*>))
     expect(checkRouteState(demoRouteDef, routeState)).toBeUndefined()
   })
 
@@ -295,12 +297,12 @@ describe('checkRouteState', () => {
 
 describe('getPath', () => {
   it('returns the path of a route state', () => {
-    const routeState = routeNavigate(demoRouteDef, null, ['foo', 'bar'])
+    const routeState = routeNavigate(demoRouteDef, null, (['foo', 'bar']: PropsPath<*>))
     expect(getPath(routeState)).toEqual(I.List(['foo', 'bar']))
   })
 
   it('starts with parentPath, if specified', () => {
-    const routeState = routeNavigate(demoRouteDef, null, ['foo', 'bar'])
+    const routeState = routeNavigate(demoRouteDef, null, (['foo', 'bar']: PropsPath<*>))
     const routeState2 = routeNavigate(demoRouteDef, routeState, ['etc'])
     expect(getPath(routeState2)).toEqual(I.List(['etc']))
     expect(getPath(routeState2, ['foo'])).toEqual(I.List(['foo', 'bar']))

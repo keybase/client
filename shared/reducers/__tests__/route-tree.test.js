@@ -8,6 +8,8 @@ import {
   navigateUp,
 } from '../../actions/route-tree'
 
+import type {PropsPath} from '../../route-tree'
+
 jest.unmock('immutable')
 jest.unmock('../../route-tree')
 jest.unmock('../../actions/route-tree')
@@ -40,7 +42,7 @@ describe('routeTree reducer', () => {
   describe('navigateUp action', () => {
     it('works correctly', () => {
       const routeDef = demoRouteDef
-      const routeState = routeSetProps(routeDef, null, ['foo', 'bar'])
+      const routeState = routeSetProps(routeDef, null, (['foo', 'bar']: PropsPath<*>))
 
       const action = navigateUp()
       const newState = routeTreeReducer(new State({routeDef, routeState}), action)
@@ -57,18 +59,18 @@ describe('routeTree reducer', () => {
       const action = navigateAppend(['bar'])
       const newState = routeTreeReducer(new State({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
-      expect(newState.routeState).toEqual(routeSetProps(routeDef, null, ['foo', 'bar']))
+      expect(newState.routeState).toEqual(routeSetProps(routeDef, null, (['foo', 'bar']: PropsPath<*>)))
     })
 
     it('works correctly with a normal append with parentPath', () => {
       const routeDef = demoRouteDef
-      const routeStatePre = routeSetProps(routeDef, null, ['foo', 'bar'])
+      const routeStatePre = routeSetProps(routeDef, null, (['foo', 'bar']: PropsPath<*>))
       const routeState = routeNavigate(routeDef, routeStatePre, ['etc'])
 
       const action = navigateAppend(['baz'], ['foo'])
       const newState = routeTreeReducer(new State({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
-      const expectedStatePre = routeSetProps(routeDef, null, ['foo', 'bar', 'baz'])
+      const expectedStatePre = routeSetProps(routeDef, null, (['foo', 'bar', 'baz']: PropsPath<*>))
       const expectedState = routeNavigate(routeDef, expectedStatePre, ['etc'])
       expect(newState.routeState).toEqual(expectedState)
     })
