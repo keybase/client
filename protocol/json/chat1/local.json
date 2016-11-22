@@ -429,6 +429,17 @@
         {
           "type": "Hash",
           "name": "headerHash"
+        },
+        {
+          "type": [
+            null,
+            "SignatureInfo"
+          ],
+          "name": "headerSignature"
+        },
+        {
+          "type": "bool",
+          "name": "fromRevokedDevice"
         }
       ]
     },

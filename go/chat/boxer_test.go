@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat/utils"
@@ -118,10 +119,11 @@ func TestChatMessageUnbox(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	messagePlaintext, _, err := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	umwkr, err := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if err != nil {
 		t.Fatal(err)
 	}
+	messagePlaintext := umwkr.messagePlaintext
 	body := messagePlaintext.MessageBody
 	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
 		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
@@ -129,6 +131,7 @@ func TestChatMessageUnbox(t *testing.T) {
 	if body.Text().Body != text {
 		t.Errorf("body text: %q, expected %q", body.Text().Body, text)
 	}
+	require.Equal(t, false, umwkr.fromRevokedDevice, "message should not be from revoked device")
 }
 
 func TestChatMessageInvalidBodyHash(t *testing.T) {
@@ -166,7 +169,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 	// put original hash fn back
 	boxer.hashV1 = origHashFn
 
-	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := ierr.Inner().(libkb.ChatBodyHashInvalid); !ok {
 		t.Fatalf("unexpected error for invalid body hash: %s", ierr)
 	}
@@ -313,7 +316,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 	// put original signing fn back
 	boxer.sign = origSign
 
-	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := ierr.Inner().(libkb.BadSigError); !ok {
 		t.Fatalf("unexpected error for invalid header signature: %s", ierr)
 	}
@@ -347,7 +350,7 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := ierr.Inner().(libkb.NoKeyError); !ok {
 		t.Fatalf("unexpected error for invalid sender key: %v", ierr)
 	}

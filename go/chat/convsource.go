@@ -135,6 +135,13 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// If found, then return the stuff
 			s.G().Log.Debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
 
+			// Before returning the stuff, update FromRevokedDevice on each message.
+			updatedMessages, err := s.updateMessages(ctx, localData.Messages)
+			if err != nil {
+				return chat1.ThreadView{}, rl, err
+			}
+			localData.Messages = updatedMessages
+
 			// Before returning the stuff, send remote request to mark as read if
 			// requested.
 			if query != nil && query.MarkAsRead && len(localData.Messages) > 0 {
@@ -176,9 +183,58 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	// Store locally (just warn on error, don't abort the whole thing)
 	if err = s.storage.Merge(ctx, convID, uid, thread.Messages); err != nil {
 		s.G().Log.Warning("Pull: unable to commit thread locally: convID: %s uid: %s", convID, uid)
+		s.G().Log.Warning("@@@ %v", err)
 	}
 
 	return thread, rl, nil
+}
+
+func (s *HybridConversationSource) updateMessages(ctx context.Context, messages []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
+	updatedMessages := make([]chat1.MessageUnboxed, 0, len(messages))
+	for _, m := range messages {
+		m2, err := s.updateMessage(ctx, m)
+		if err != nil {
+			return updatedMessages, err
+		}
+		updatedMessages = append(updatedMessages, m2)
+	}
+	return updatedMessages, nil
+}
+
+func (s *HybridConversationSource) updateMessage(ctx context.Context, message chat1.MessageUnboxed) (chat1.MessageUnboxed, error) {
+	typ, err := message.State()
+	if err != nil {
+		return chat1.MessageUnboxed{}, err
+	}
+	switch typ {
+	case chat1.MessageUnboxedState_VALID:
+		m := message.Valid()
+		s.G().Log.Warning("@@@ updating message msgid:%v from cache hit", m.ServerHeader.MessageID)
+		if m.HeaderSignature == nil {
+			// Skip revocation check for messages cached before the sig was part of the cache.
+			s.G().Log.Warning("updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
+			return message, nil
+		}
+
+		sender := m.ClientHeader.Sender
+		key := m.HeaderSignature.K
+		ctime := m.ServerHeader.Ctime
+		validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, key, ctime)
+		if err != nil {
+			return chat1.MessageUnboxed{}, err
+		}
+		if !validAtCtime {
+			return chat1.MessageUnboxed{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
+		}
+		// TODO delete this var
+		oldval := m.FromRevokedDevice
+		m.FromRevokedDevice = revoked
+		s.G().Log.Warning("@@@ updated msgid:%v revoked:%v (was:%v)", m.ServerHeader.MessageID, m.FromRevokedDevice, oldval)
+		updatedMessage := chat1.NewMessageUnboxedWithValid(m)
+		return updatedMessage, nil
+	default:
+		return message, nil
+	}
 }
 
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,
