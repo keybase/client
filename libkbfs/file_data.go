@@ -38,9 +38,14 @@ func newFileData(file path, uid keybase1.UID, crypto cryptoPure,
 	}
 }
 
+type parentBlockAndChildIndex struct {
+	pblock     *FileBlock
+	childIndex int
+}
+
 func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 	topBlock *FileBlock, off int64, rtype blockReqType) (
-	ptr BlockPointer, parentBlock *FileBlock, indexInParent int,
+	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
 	block *FileBlock, nextBlockStartOff, startOff int64, err error) {
 	// find the block matching the offset, if it exists
 	ptr = fd.file.tailPointer()
@@ -63,8 +68,8 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 			}
 		}
 		nextPtr := block.IPtrs[nextIndex]
-		parentBlock = block
-		indexInParent = nextIndex
+		parentBlocks = append(parentBlocks,
+			parentBlockAndChildIndex{block, nextIndex})
 		startOff = nextPtr.Off
 		// there is more to read if we ever took a path through a
 		// ptr that wasn't the final ptr in its respective list
@@ -74,12 +79,11 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 		ptr = nextPtr.BlockPointer
 		block, err = fd.getter(ctx, fd.kmd, ptr, fd.file, rtype)
 		if err != nil {
-			return zeroPtr, nil, 0, nil, 0, 0, err
+			return zeroPtr, nil, nil, 0, 0, err
 		}
 	}
 
-	return ptr, parentBlock, indexInParent, block, nextBlockStartOff,
-		startOff, nil
+	return ptr, parentBlocks, block, nextBlockStartOff, startOff, nil
 }
 
 // createIndirectBlock creates a new indirect block and pick a new id
