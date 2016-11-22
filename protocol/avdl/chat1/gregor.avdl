@@ -2,11 +2,11 @@
 protocol gregor {
 
     record GenericPayload {
-        string Action;
+        string action;
     }
 
     record NewConversationPayload {
-        string Action;
+        string action;
         ConversationID convID;
         InboxVers inboxVers;
         union { null, UnreadUpdate } unreadUpdate;
@@ -21,7 +21,7 @@ protocol gregor {
     }
 
     record ReadMessagePayload {
-        string Action;
+        string action;
         ConversationID convID;
         MessageID msgID;
         InboxVers inboxVers; 
@@ -29,7 +29,7 @@ protocol gregor {
     }
 
     record SetStatusPayload {
-        string Action;
+        string action;
         ConversationID convID;
         ConversationStatus status;
         InboxVers inboxVers;
@@ -40,7 +40,7 @@ protocol gregor {
         ConversationID convID;
         // The count of unread messages to display
         // Counts only visible types of messages deserving of a badge, no EDITs
-        int UnreadMessages;
+        int unreadMessages;
     }
 
 }

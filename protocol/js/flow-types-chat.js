@@ -116,7 +116,7 @@ export const NotifyChatChatActivityType = {
 }
 
 export function localCancelPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.local.CancelPost'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.cancelPost'})
 }
 
 export function localCancelPostRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}>): ChannelMap<*> {
@@ -128,7 +128,7 @@ export function localCancelPostRpcPromise (request: $Exact<requestCommon & reque
 }
 
 export function localDownloadAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.local.DownloadAttachmentLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.downloadAttachmentLocal'})
 }
 
 export function localDownloadAttachmentLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}>): ChannelMap<*> {
@@ -188,7 +188,7 @@ export function localGetInboxSummaryForCLILocalRpcPromise (request: $Exact<reque
 }
 
 export function localGetMessagesLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetMessagesLocalResult) => void} & {param: localGetMessagesLocalRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.local.GetMessagesLocal'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.getMessagesLocal'})
 }
 
 export function localGetMessagesLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localGetMessagesLocalResult) => void} & {param: localGetMessagesLocalRpcParam}>): ChannelMap<*> {
@@ -260,7 +260,7 @@ export function localPostLocalRpcPromise (request: $Exact<requestCommon & {callb
 }
 
 export function localRetryPostRpc (request: Exact<requestCommon & requestErrorCallback & {param: localRetryPostRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'chat.1.local.RetryPost'})
+  engineRpcOutgoing({...request, method: 'chat.1.local.retryPost'})
 }
 
 export function localRetryPostRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & requestErrorCallback & {param: localRetryPostRpcParam}>): ChannelMap<*> {
@@ -534,13 +534,13 @@ export type FailedMessageInfo = {
 }
 
 export type GenericPayload = {
-  Action: string,
+  action: string,
 }
 
 export type GetConversationForCLILocalQuery = {
   markAsRead: boolean,
-  MessageTypes?: ?Array<MessageType>,
-  Since?: ?string,
+  messageTypes?: ?Array<MessageType>,
+  since?: ?string,
   limit: UnreadFirstNumLimit,
   conversationId: ConversationID,
 }
@@ -828,7 +828,7 @@ export type NewConversationLocalRes = {
 }
 
 export type NewConversationPayload = {
-  Action: string,
+  action: string,
   convID: ConversationID,
   inboxVers: InboxVers,
   unreadUpdate?: ?UnreadUpdate,
@@ -863,7 +863,7 @@ export type OutboxRecord = {
   state: OutboxState,
   outboxID: OutboxID,
   convID: ConversationID,
-  Msg: MessagePlaintext,
+  msg: MessagePlaintext,
 }
 
 export type OutboxState = 
@@ -908,7 +908,7 @@ export type ReadMessageInfo = {
 }
 
 export type ReadMessagePayload = {
-  Action: string,
+  action: string,
   convID: ConversationID,
   msgID: MessageID,
   inboxVers: InboxVers,
@@ -939,7 +939,7 @@ export type SetStatusInfo = {
 }
 
 export type SetStatusPayload = {
-  Action: string,
+  action: string,
   convID: ConversationID,
   status: ConversationStatus,
   inboxVers: InboxVers,
@@ -979,14 +979,14 @@ export type TopicType =
   | 2 // DEV_2
 
 export type UnreadFirstNumLimit = {
-  NumRead: int,
-  AtLeast: int,
-  AtMost: int,
+  numRead: int,
+  atLeast: int,
+  atMost: int,
 }
 
 export type UnreadUpdate = {
   convID: ConversationID,
-  UnreadMessages: int,
+  unreadMessages: int,
 }
 
 export type UnreadUpdateFull = {

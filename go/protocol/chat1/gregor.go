@@ -8,11 +8,11 @@ import (
 )
 
 type GenericPayload struct {
-	Action string `codec:"Action" json:"Action"`
+	Action string `codec:"action" json:"action"`
 }
 
 type NewConversationPayload struct {
-	Action       string         `codec:"Action" json:"Action"`
+	Action       string         `codec:"action" json:"action"`
 	ConvID       ConversationID `codec:"convID" json:"convID"`
 	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
 	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
@@ -27,7 +27,7 @@ type NewMessagePayload struct {
 }
 
 type ReadMessagePayload struct {
-	Action       string         `codec:"Action" json:"Action"`
+	Action       string         `codec:"action" json:"action"`
 	ConvID       ConversationID `codec:"convID" json:"convID"`
 	MsgID        MessageID      `codec:"msgID" json:"msgID"`
 	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
@@ -35,7 +35,7 @@ type ReadMessagePayload struct {
 }
 
 type SetStatusPayload struct {
-	Action       string             `codec:"Action" json:"Action"`
+	Action       string             `codec:"action" json:"action"`
 	ConvID       ConversationID     `codec:"convID" json:"convID"`
 	Status       ConversationStatus `codec:"status" json:"status"`
 	InboxVers    InboxVers          `codec:"inboxVers" json:"inboxVers"`
@@ -44,7 +44,7 @@ type SetStatusPayload struct {
 
 type UnreadUpdate struct {
 	ConvID         ConversationID `codec:"convID" json:"convID"`
-	UnreadMessages int            `codec:"UnreadMessages" json:"UnreadMessages"`
+	UnreadMessages int            `codec:"unreadMessages" json:"unreadMessages"`
 }
 
 type GregorInterface interface {
