@@ -141,9 +141,15 @@ type mdJournal struct {
 
 	j mdIDJournal
 
-	// This doesn't need to be persisted, even if the journal
-	// becomes empty, since on a restart the branch ID is
-	// retrieved from the server (via GetUnmergedForTLF).
+	// branchID is the BranchID that every MD in the journal is set
+	// to, except for when it is PendingLocalSquashBranchID, in which
+	// case the journal is a bunch of MDs with a null branchID
+	// followed by a bunch of MDs with bid =
+	// PendingLocalSquashBranchID.
+	//
+	// branchID doesn't need to be persisted, even if the journal
+	// becomes empty, since on a restart the branch ID is retrieved
+	// from the server (via GetUnmergedForTLF).
 	branchID BranchID
 
 	// Set only when the journal becomes empty due to
@@ -664,10 +670,12 @@ func (j *mdJournal) convertToBranch(
 			return err
 		}
 
-		j.log.CDebugf(ctx, "Old prev root of rev=%s is %s",
-			brmd.RevisionNumber(), brmd.GetPrevRoot())
-
+		// Set the prev root for everything after the first MD we
+		// modify, which happens to be indicated by mdsToRemove being
+		// non-empty.
 		if len(mdsToRemove) > 0 {
+			j.log.CDebugf(ctx, "Old prev root of rev=%s is %s",
+				brmd.RevisionNumber(), brmd.GetPrevRoot())
 			j.log.CDebugf(ctx, "Changing prev root of rev=%s to %s",
 				brmd.RevisionNumber(), prevID)
 			brmd.SetPrevRoot(prevID)
@@ -865,25 +873,30 @@ func (j mdJournal) length() (uint64, error) {
 
 func (j mdJournal) atLeastNNonLocalSquashes(
 	numNonLocalSquashes uint64) (bool, error) {
+	size, err := j.length()
+	if err != nil {
+		return false, err
+	}
+	if size < ForcedBranchSquashThreshold {
+		return false, nil
+	}
+
 	latestRev, err := j.readLatestRevision()
 	if err != nil {
 		return false, err
 	}
 
-	_, entries, err := j.j.getEntryRange(
-		latestRev-MetadataRevision(numNonLocalSquashes), latestRev)
+	// Since the IsLocalSquash entries are guaranteed to be a prefix
+	// of the journal, we can just look up an entry that's back
+	// `numNonLocalSquashes` entries ago, and see if it's a local
+	// squash or not.
+	entry, err := j.j.readJournalEntry(
+		latestRev - MetadataRevision(numNonLocalSquashes))
 	if err != nil {
 		return false, err
 	}
 
-	count := uint64(0)
-	for _, e := range entries {
-		if !e.IsLocalSquash {
-			count++
-		}
-	}
-
-	return count >= numNonLocalSquashes, nil
+	return !entry.IsLocalSquash, nil
 }
 
 func (j mdJournal) end() (MetadataRevision, error) {
@@ -1078,6 +1091,11 @@ func (j *mdJournal) put(
 			j.branchID, rmd.BID())
 	}
 
+	if isLocalSquash && rmd.BID() != NullBranchID {
+		return MdID{}, fmt.Errorf("A local squash must have a null branch ID,"+
+			" but this one has bid=%s", rmd.BID())
+	}
+
 	// Check permissions and consistency with head, if it exists.
 	if head != (ImmutableBareRootMetadata{}) {
 		ok, err := isWriterOrValidRekey(
@@ -1097,6 +1115,19 @@ func (j *mdJournal) put(
 				head.mdID, rmd.bareMd)
 			if err != nil {
 				return MdID{}, err
+			}
+		}
+
+		// Local squashes should only be preceded by another local
+		// squash in the journal.
+		if isLocalSquash {
+			entry, exists, err := j.j.getLatestEntry()
+			if err != nil {
+				return MdID{}, err
+			}
+			if exists && !entry.IsLocalSquash {
+				return MdID{}, fmt.Errorf("Local squash is not preceded "+
+					"by a local squash (head=%s)", entry.ID)
 			}
 		}
 	}
@@ -1160,6 +1191,11 @@ func (j *mdJournal) put(
 	return id, nil
 }
 
+// clear removes all the journal entries, and deletes the
+// corresponding MD updates.  If the branch is a pending local squash,
+// it preserved the MD updates corresponding to the prefix of existing
+// local squashes, so they can be re-used in the newly-resolved
+// journal.
 func (j *mdJournal) clear(
 	ctx context.Context, bid BranchID) (err error) {
 	j.log.CDebugf(ctx, "Clearing journal for branch %s", bid)

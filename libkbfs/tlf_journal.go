@@ -795,11 +795,6 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
 		return false, err
 	}
 
-	size, err := j.mdJournal.length()
-	if size < ForcedBranchSquashThreshold {
-		return false, nil
-	}
-
 	ok, err := j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashThreshold)
 	if err != nil {
 		return false, err
@@ -810,7 +805,8 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
 		return false, nil
 	}
 
-	j.log.CDebugf(ctx, "Converting journal of length %d to branch", size)
+	j.log.CDebugf(ctx, "Converting journal with more than %d "+
+		"non-local-squash entries to a branch", ForcedBranchSquashThreshold)
 	err = j.convertMDsToBranchLocked(ctx, PendingLocalSquashBranchID)
 	if err != nil {
 		return false, err

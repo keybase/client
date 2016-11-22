@@ -218,6 +218,10 @@ func (j journalMDOps) getRangeFromJournal(
 
 	for _, ibrmd := range ibrmds {
 		if bid == PendingLocalSquashBranchID && ibrmd.BID() != bid {
+			if ibrmd.BID() != NullBranchID {
+				return nil, fmt.Errorf("Local squash on branch %s does not "+
+					"have a null branch ID, has %s", bid, ibrmd.BID())
+			}
 			// It's acceptable for the journal to contain non-branch
 			// local squashes if the branch is itself a local squash.
 			continue
