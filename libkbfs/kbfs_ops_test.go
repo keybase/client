@@ -5112,6 +5112,8 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	changeReadyBlockData := ReadyBlockData{
 		buf: changeBuf,
 	}
+	tempBCID := fakeBlockID(252)
+	config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(tempBCID, nil)
 	_ = config.mockBops.EXPECT().Ready(gomock.Any(), kmdMatcher{rmd},
 		gomock.Any()).Return(changeBlockID, changePlainSize,
 		changeReadyBlockData, nil).After(lastCall)
