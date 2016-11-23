@@ -3,7 +3,11 @@
 protocol pgpUi {
   import idl "common.avdl";
 
+  // signed by known keybase key + user:
   void outputSignatureSuccess(int sessionID, string fingerprint, string username, Time signedAt);
+
+  // signing key unknown to keybase:
+  void outputSignatureSuccessNonKeybase(int sessionID, string keyID, Time signedAt);
 
   // pgpKeyGenDefault calls these:
   void keyGenerated(int sessionID, KID kid, KeyInfo key);

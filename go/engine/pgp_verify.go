@@ -28,7 +28,7 @@ type PGPVerify struct {
 	arg        *PGPVerifyArg
 	source     io.Reader
 	signStatus *libkb.SignatureStatus
-	owner      *libkb.User
+	signer     *libkb.User
 	libkb.Contextified
 }
 
@@ -94,8 +94,8 @@ func (e *PGPVerify) SignatureStatus() *libkb.SignatureStatus {
 	return e.signStatus
 }
 
-func (e *PGPVerify) Owner() *libkb.User {
-	return e.owner
+func (e *PGPVerify) Signer() *libkb.User {
+	return e.signer
 }
 
 // runAttached verifies an attached signature
@@ -111,7 +111,7 @@ func (e *PGPVerify) runAttached(ctx *Context) error {
 		return err
 	}
 	e.signStatus = eng.SignatureStatus()
-	e.owner = eng.Owner()
+	e.signer = eng.Signer()
 
 	return nil
 }
@@ -131,7 +131,7 @@ func (e *PGPVerify) runDetached(ctx *Context) error {
 		return err
 	}
 
-	e.owner = sk.Owner()
+	e.signer = sk.KeyOwnerByEntity(signer)
 	e.signStatus = &libkb.SignatureStatus{IsSigned: true}
 
 	if signer != nil {
@@ -160,7 +160,7 @@ func (e *PGPVerify) runDetached(ctx *Context) error {
 		}
 
 		fingerprint := libkb.PGPFingerprint(signer.PrimaryKey.Fingerprint)
-		OutputSignatureSuccess(ctx, fingerprint, sk.Owner(), e.signStatus.SignatureTime)
+		OutputSignatureSuccess(ctx, fingerprint, e.signer, e.signStatus.SignatureTime)
 	}
 
 	return nil
@@ -194,7 +194,7 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 		return fmt.Errorf("Check sig error: %s", err)
 	}
 
-	e.owner = sk.Owner()
+	e.signer = sk.KeyOwnerByEntity(signer)
 	e.signStatus = &libkb.SignatureStatus{IsSigned: true}
 
 	if signer != nil {
@@ -214,7 +214,7 @@ func (e *PGPVerify) runClearsign(ctx *Context) error {
 		}
 
 		fingerprint := libkb.PGPFingerprint(signer.PrimaryKey.Fingerprint)
-		OutputSignatureSuccess(ctx, fingerprint, sk.Owner(), e.signStatus.SignatureTime)
+		OutputSignatureSuccess(ctx, fingerprint, e.signer, e.signStatus.SignatureTime)
 	}
 
 	return nil
@@ -225,7 +225,7 @@ func (e *PGPVerify) checkSignedBy(ctx *Context) error {
 		// no assertion necessary
 		return nil
 	}
-	if !e.signStatus.Verified || e.signStatus.Entity == nil || e.owner == nil {
+	if !e.signStatus.Verified || e.signStatus.Entity == nil || e.signer == nil {
 		// signature not valid, so no need to assert
 		return nil
 	}
@@ -248,9 +248,9 @@ func (e *PGPVerify) checkSignedBy(ctx *Context) error {
 	}
 
 	// check if it is equal to signature owner
-	if !e.owner.Equal(signByUser) {
+	if !e.signer.Equal(signByUser) {
 		return libkb.BadSigError{
-			E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.owner.GetName(), e.arg.SignedBy),
+			E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.signer.GetName(), e.arg.SignedBy),
 		}
 	}
 
