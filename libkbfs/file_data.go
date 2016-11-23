@@ -654,3 +654,20 @@ func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
 	}
 	return blockInfos, nil
 }
+
+// findIPtrsAndClearSize looks for the given indirect pointer, and
+// returns whether it could be found.  As a side effect, it also
+// clears the encoded size for that indirect pointer.
+func (fd *fileData) findIPtrsAndClearSize(topBlock *FileBlock,
+	ptr BlockPointer) (found bool) {
+	// TODO: handle multiple levels of indirection.  To make that
+	// efficient, we may need to pass in more information about which
+	// internal indirect pointers may have dirty child blocks.
+	for i, iptr := range topBlock.IPtrs {
+		if iptr.BlockPointer == ptr {
+			topBlock.IPtrs[i].EncodedSize = 0
+			return true
+		}
+	}
+	return false
+}

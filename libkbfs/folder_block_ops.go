@@ -811,7 +811,7 @@ func (fbo *folderBlockOps) GetDirtyRefs(lState *lockState) []BlockRef {
 // fixed up to reflect the fact that some of the indirect pointers now
 // need to change.
 func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
-	ctx context.Context, lState *lockState, file path,
+	ctx context.Context, lState *lockState, file path, kmd KeyMetadata,
 	redirtyOnRecoverableError map[BlockPointer]BlockPointer) {
 	fbo.blockLock.AssertLocked(lState)
 
@@ -838,17 +838,18 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 		return
 	}
 
+	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't find uid during recovery: %v", err)
+		return
+	}
+	fd := fbo.newFileData(lState, file, uid, kmd)
+
 	// If a copy of the top indirect block was made, we need to
 	// redirty all the sync'd blocks under their new IDs, so that
 	// future syncs will know they failed.
 	for newPtr, oldPtr := range redirtyOnRecoverableError {
-		found := false
-		for i, iptr := range fblock.IPtrs {
-			if iptr.BlockPointer == newPtr {
-				found = true
-				fblock.IPtrs[i].EncodedSize = 0
-			}
-		}
+		found := fd.findIPtrsAndClearSize(fblock, newPtr)
 		if !found {
 			continue
 		}
@@ -1913,7 +1914,7 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		if result.fblock != nil {
 			*result.fblock = *result.savedFblock
 			fbo.fixChildBlocksAfterRecoverableErrorLocked(
-				ctx, lState, file,
+				ctx, lState, file, md,
 				result.redirtyOnRecoverableError)
 		}
 	} else {
