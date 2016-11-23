@@ -9,8 +9,8 @@ import {globalStyles, globalColors} from '../../../styles'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({
-    'mobile': 'icon-phone-bw-48',
-    'desktop': 'icon-computer-bw-48',
+    'mobile': 'icon-phone-48',
+    'desktop': 'icon-computer-48',
     'backup': 'icon-paper-key-48',
   }: {[key: DeviceType]: IconType})[type]
 

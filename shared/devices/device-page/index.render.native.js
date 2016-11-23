@@ -63,8 +63,8 @@ const Timeline = ({timeline}) => (
 const Render = ({banner, name, type, deviceID, currentDevice, timeline,
   revokedAt, showRemoveDevicePage, device, onBack}: Props) => {
   const icon: IconType = {
-    'mobile': 'icon-phone-bw-64',
-    'desktop': 'icon-computer-bw-64',
+    'mobile': 'icon-phone-64',
+    'desktop': 'icon-computer-64',
     'backup': 'icon-paper-key-64',
   }[type]
 

@@ -13,7 +13,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
         style={stylesContainer}
         onBack={onBack}>
         <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
-        <Icon type='icon-phone-colors-32' style={stylesIcon} />
+        <Icon type='icon-phone-32' style={stylesIcon} />
         <Input
           autoFocus={true}
           style={stylesInput}
