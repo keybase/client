@@ -513,25 +513,11 @@ func (fbo *folderBlockOps) getFileLocked(ctx context.Context,
 // indirection.)
 func (fbo *folderBlockOps) GetIndirectFileBlockInfos(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, file path) ([]BlockInfo, error) {
-	// TODO: handle multiple levels of indirection.
-	fBlock, err := func() (*FileBlock, error) {
-		fbo.blockLock.RLock(lState)
-		defer fbo.blockLock.RUnlock(lState)
-		fblock, _, err := fbo.getFileBlockLocked(
-			ctx, lState, kmd, file.tailPointer(), file, blockRead)
-		return fblock, err
-	}()
-	if err != nil {
-		return nil, err
-	}
-	if !fBlock.IsInd {
-		return nil, nil
-	}
-	blockInfos := make([]BlockInfo, len(fBlock.IPtrs))
-	for i, ptr := range fBlock.IPtrs {
-		blockInfos[i] = ptr.BlockInfo
-	}
-	return blockInfos, nil
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	var uid keybase1.UID // Data reads don't depend on the uid.
+	fd := fbo.newFileData(lState, file, uid, kmd)
+	return fd.getIndirectFileBlockInfos(ctx)
 }
 
 // getDirLocked retrieves the block pointed to by the tail pointer of
@@ -966,6 +952,7 @@ func (fbo *folderBlockOps) PrepRename(
 
 func (fbo *folderBlockOps) newFileData(lState *lockState,
 	file path, uid keybase1.UID, kmd KeyMetadata) *fileData {
+	fbo.blockLock.AssertAnyLocked(lState)
 	return newFileData(file, uid, fbo.config.Crypto(),
 		fbo.config.BlockSplitter(), kmd,
 		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,

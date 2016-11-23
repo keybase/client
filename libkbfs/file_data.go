@@ -635,3 +635,22 @@ func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 	}
 	return oldPtrs, nil
 }
+
+func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
+	[]BlockInfo, error) {
+	// TODO: handle multiple levels of indirection.
+	topBlock, _, err := fd.getter(
+		ctx, fd.kmd, fd.file.tailPointer(), fd.file, blockRead)
+	if err != nil {
+		return nil, err
+	}
+
+	if !topBlock.IsInd {
+		return nil, nil
+	}
+	blockInfos := make([]BlockInfo, len(topBlock.IPtrs))
+	for i, ptr := range topBlock.IPtrs {
+		blockInfos[i] = ptr.BlockInfo
+	}
+	return blockInfos, nil
+}
