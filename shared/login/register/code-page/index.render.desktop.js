@@ -15,9 +15,9 @@ import {getStyle} from '../../../common-adapters/text'
 
 const SubTitle = ({usePhone}) => (
   <p>
-    <Text type='BodySmall'>In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to</Text>
-    <Icon type='iconfont-identity-devices' />
-    <Text type='BodySmall'>Devices > Add a new device.</Text>
+    <Text type='Body'>In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to</Text>
+    <Icon type='iconfont-identity-devices' style={{padding: '0 5px'}}/>
+    <Text type='Body'>Devices > Add a new device.</Text>
   </p>
 )
 
@@ -30,9 +30,9 @@ class CodePageRender extends Component<void, Props, void> {
 
         <Text type='Header' style={{marginTop: 60}}>Type in text code</Text>
         <p style={{marginTop: 10}}>
-          <Text type='BodySmall'>Run&nbsp;</Text><Text type='Terminal'>keybase device add</Text><Text type='BodySmall'>&nbsp;on your other device and type this code there: </Text>
+          <Text type='Body'>Run&nbsp;</Text><Text type='TerminalInline'>keybase device add</Text><Text type='Body'>&nbsp;on your other device and type this code there: </Text>
         </p>
-        <Icon type='icon-computer-bw-48' style={{marginTop: 28}} />
+        <Icon type='icon-computer-text-code-48' style={{marginTop: 28}} />
 
         <Text type='Body' style={stylesPaperkey}>{this.props.textCode}</Text>
       </Container>
@@ -110,10 +110,12 @@ const stylesContainer = {
 }
 const stylesPaperkey = {
   ...getStyle('Header', 'Normal'),
+  ...globalStyles.fontTerminal,
   ...globalStyles.selectable,
   color: globalColors.darkBlue,
   display: 'inline-block',
-  lineHeight: '24px',
+  maxWidth: 460,
+  lineHeight: '20px',
   marginTop: 30,
   textAlign: 'center',
 }
