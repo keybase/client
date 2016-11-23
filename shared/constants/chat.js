@@ -1,7 +1,7 @@
 // @flow
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
-import {List, Map, Record} from 'immutable'
+import {Set, List, Map, Record} from 'immutable'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction} from './types/flux'
@@ -14,12 +14,13 @@ export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', '
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
+export type MessageID = number
 export type Message = {
   type: 'Text',
   message: HiddenString,
   author: string,
   timestamp: number,
-  messageID?: number,
+  messageID?: MessageID,
   followState: FollowState,
   messageState: MessageState,
   outboxID?: ?string,
@@ -27,15 +28,16 @@ export type Message = {
   type: 'Error',
   reason: string,
   timestamp: number,
-  messageID: number,
+  messageID: MessageID,
 } | {
   type: 'Unhandled',
   timestamp: number,
-  messageID: number,
+  messageID: MessageID,
 }
 
 export const ConversationStateRecord = Record({
   messages: List(),
+  seenMessages: Set(),
   moreToLoad: false,
   isLoading: true,
   paginationNext: undefined,
@@ -44,6 +46,7 @@ export const ConversationStateRecord = Record({
 
 export type ConversationState = Record<{
   messages: List<Message>,
+  seenMessages: Set<MessageID>,
   moreToLoad: boolean,
   isLoading: boolean,
   paginationNext: ?Buffer,
