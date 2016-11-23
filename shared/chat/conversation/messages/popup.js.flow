@@ -1,0 +1,14 @@
+// @flow
+import {Component} from 'react'
+
+import type {Message} from '../../../constants/chat'
+
+export type Props = {
+  message: Message,
+  style?: Object,
+  onEdit: () => void,
+  onDelete: () => void,
+  onHidden: () => void,
+}
+
+export default class Popup extends Component<void, Props, void> { }

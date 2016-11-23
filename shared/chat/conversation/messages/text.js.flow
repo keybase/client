@@ -1,15 +1,13 @@
 // @flow
 import {Component} from 'react'
 
-import type {FollowState, MessageState} from '../../../constants/chat'
+import type {TextMessage} from '../../../constants/chat'
 
 export type Props = {
-  author: string,
-  message: string,
-  followState: FollowState,
-  messageState: MessageState,
+  message: TextMessage,
   includeHeader: boolean,
   onRetry: () => void,
+  onAction: (event: any) => void,
   style: Object,
 }
 

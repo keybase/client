@@ -171,6 +171,8 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       messageState: 'pending',
       message: new HiddenString(action.payload.text.stringValue()),
       followState: 'You',
+      deviceType: '',
+      deviceName: '',
     }
     yield put({
       type: Constants.appendMessages,
@@ -186,6 +188,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
     case NotifyChatChatActivityType.incomingMessage:
       const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
+      console.log('Chat activity', action.payload)
       if (incomingMessage) {
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
@@ -223,7 +226,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       }
       break
     default:
-      console.warn('Unsupported incoming message type for Chat')
+      console.warn('Unsupported incoming message type for Chat:', action.payload.activity.activityType)
   }
 }
 
@@ -338,6 +341,8 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
     if (payload) {
       const common = {
         author: payload.senderUsername,
+        deviceName: payload.senderDeviceName,
+        deviceType: payload.senderDeviceType,
         timestamp: payload.serverHeader.ctime,
         messageID: payload.serverHeader.messageID,
       }

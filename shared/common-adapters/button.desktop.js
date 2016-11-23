@@ -52,6 +52,10 @@ class Button extends Component<void, Props, void> {
           opacity: disabled ? stylesButtonDanger.disabledOpacity : 1,
         }
         break
+      case 'Custom':
+        backgroundStyle = stylesButtonCustom
+        labelStyle = stylesButtonCustomLabel
+        break
       case 'Secondary':
       default:
         backgroundStyle = {
@@ -185,6 +189,13 @@ const stylesButtonSmall = {
   height: 28,
   lineHeight: '27px',
 }
+const stylesButtonCustom = {
+  borderRadius: 55,
+  fontSize: 16,
+  height: 32,
+  lineHeight: '32px',
+  minWidth: 10,
+}
 const stylesButtonLabel = {
   ...globalStyles.fontSemibold,
   display: 'block',
@@ -202,6 +213,9 @@ const stylesButtonSmallLabel = {
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
   lineHeight: 0,
+}
+const stylesButtonCustomLabel = {
+  color: globalColors.black_75,
 }
 const stylesProgress = {
   position: 'absolute',

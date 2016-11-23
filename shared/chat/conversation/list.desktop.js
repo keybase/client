@@ -5,7 +5,9 @@
 
 import LoadingMore from './messages/loading-more'
 import React, {Component} from 'react'
+import ReactDOM from 'react-dom'
 import SidePanel from './side-panel/index.desktop'
+import Popup from './messages/popup'
 import _ from 'lodash'
 import messageFactory from './messages'
 import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
@@ -142,6 +144,27 @@ class ConversationList extends Component<void, Props, State> {
     this._onScrollSettled()
   }, 100)
 
+  showPopup (message: Message, event: any) {
+    if (message.type !== 'Text') return
+    const clientRect = event.target.getBoundingClientRect()
+    // Position next to button (client rect)
+    // TODO: Measure instead of pixel math
+    const x = clientRect.left - 205
+    let y = clientRect.top - (message.followState === 'You' ? 200 : 116)
+    if (y < 10) y = 10
+    const popupComponent = <Popup
+      message={message}
+      onEdit={() => console.log('edit')}
+      onDelete={() => console.log('delete')}
+      onHidden={() => {
+        ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
+      }}
+      style={{position: 'absolute', top: y, left: x}}
+      />
+    const container = document.getElementById('popupContainer')
+    ReactDOM.render(popupComponent, container)
+  }
+
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
     if (index === 0) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
@@ -151,8 +174,9 @@ class ConversationList extends Component<void, Props, State> {
     const prevMessage = this.state.messages.get(index - 2)
     const isFirstMessage = index - 1 === 0
     const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
+    const onAction = (event) => { this.showPopup(message, event) }
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, style, isScrolling)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, style, isScrolling, onAction)
   }
 
   render () {

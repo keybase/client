@@ -62,9 +62,8 @@ func TestPGPDecrypt(t *testing.T) {
 		t.Errorf("decoded: %q, expected: %q", decmsg, msg)
 	}
 
-	owner := dec.Owner()
-	if owner == nil {
-		t.Errorf("owner is nil")
+	if dec.Signer() != nil {
+		t.Errorf("signer exists, but NoSign flag was true")
 	}
 }
 
@@ -346,9 +345,8 @@ func TestPGPDecryptLong(t *testing.T) {
 		}
 	}
 
-	owner := dec.Owner()
-	if owner == nil {
-		t.Errorf("owner is nil")
+	if dec.Signer() != nil {
+		t.Errorf("signer exists, but NoSign flag set to true")
 	}
 }
 
@@ -403,14 +401,87 @@ func TestPGPDecryptClearsign(t *testing.T) {
 	}
 }
 
+// TestPGPDecryptNonKeybase tests decrypt on a message
+// created with a key unknown to keybase.
+func TestPGPDecryptNonKeybase(t *testing.T) {
+	tcRecipient := SetupEngineTest(t, "PGPDecrypt - Recipient")
+	defer tcRecipient.Cleanup()
+	recipient := createFakeUserWithPGPSibkey(tcRecipient)
+
+	tcSigner := SetupEngineTest(t, "PGPDecrypt - Signer")
+	defer tcSigner.Cleanup()
+	keyA, err := tcSigner.MakePGPKey("keya@keybase.io")
+
+	// find recipient key
+	ur, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tcSigner.G, recipient.Username))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rkeys := ur.GetActivePGPKeys(false)
+	if len(rkeys) == 0 {
+		t.Fatal("recipient has no active pgp keys")
+	}
+
+	// encrypt and sign a message with keyA
+	mid := libkb.NewBufferCloser()
+	msg := "Is it time for lunch?"
+	recipients := []*libkb.PGPKeyBundle{keyA, rkeys[0]}
+	if err := libkb.PGPEncrypt(strings.NewReader(msg), mid, keyA, recipients); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("encrypted data: %x", mid.Bytes())
+
+	idUI := &FakeIdentifyUI{}
+	pgpUI := &TestPgpUI{}
+	ctx := &Context{
+		IdentifyUI: idUI,
+		SecretUI:   recipient.NewSecretUI(),
+		LogUI:      tcRecipient.G.UI.GetLogUI(),
+		PgpUI:      pgpUI,
+	}
+
+	// decrypt it
+	decoded := libkb.NewBufferCloser()
+	decarg := &PGPDecryptArg{
+		Source:       bytes.NewReader(mid.Bytes()),
+		Sink:         decoded,
+		AssertSigned: false,
+	}
+	dec := NewPGPDecrypt(decarg, tcRecipient.G)
+	if err := RunEngine(dec, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	if idUI.User != nil {
+		if idUI.User.Username == recipient.Username {
+			t.Errorf("pgp decrypt identified recipient")
+		} else {
+			t.Errorf("identify ui user is not nil: %s", idUI.User.Username)
+		}
+	}
+	if pgpUI.OutputCount != 0 {
+		t.Errorf("PgpUI OutputSignatureSuccess called %d times, expected 0", pgpUI.OutputCount)
+	}
+	if pgpUI.OutputNonKeybaseCount != 1 {
+		t.Errorf("PgpUI OutputSignatureSuccessNonKeybase called %d times, expected 0", pgpUI.OutputNonKeybaseCount)
+	}
+}
+
 type TestPgpUI struct {
-	OutputCount int
-	ShouldPush  bool
-	Generated   keybase1.KeyGeneratedArg
+	OutputCount           int
+	OutputNonKeybaseCount int
+	ShouldPush            bool
+	Generated             keybase1.KeyGeneratedArg
 }
 
 func (t *TestPgpUI) OutputSignatureSuccess(context.Context, keybase1.OutputSignatureSuccessArg) error {
 	t.OutputCount++
+	return nil
+}
+
+func (t *TestPgpUI) OutputSignatureSuccessNonKeybase(context.Context, keybase1.OutputSignatureSuccessNonKeybaseArg) error {
+	t.OutputNonKeybaseCount++
 	return nil
 }
 

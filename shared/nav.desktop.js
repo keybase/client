@@ -181,6 +181,7 @@ class Nav extends Component<void, Props, void> {
           badgeNumbers={{[folderTab]: this.props.folderBadge, [chatTab]: this.props.chatBadge}}
           tabContent={tabContent} />
         <GlobalError />
+        <div id='popupContainer' />
       </div>
     )
   }

@@ -14,13 +14,18 @@ type uictxkey int
 
 var uiKey uictxkey = 1
 
+type device struct {
+	name  string
+	dtype string
+}
+
 // UserInfoMapper looks up usernames and device names, memoizing the results.
 // Only intended to be used for a single request (i.e., getting all the
 // users and devices for a thread).
 type UserInfoMapper struct {
-	users       map[keybase1.UID]*libkb.User
-	deviceNames map[string]string
-	kbCtx       KeybaseContext
+	users   map[keybase1.UID]*libkb.User
+	devices map[string]device
+	kbCtx   KeybaseContext
 	sync.Mutex
 }
 
@@ -40,36 +45,36 @@ func GetUserInfoMapper(ctx context.Context, kbCtx KeybaseContext) (context.Conte
 
 func newUserInfoMapper(kbCtx KeybaseContext) *UserInfoMapper {
 	return &UserInfoMapper{
-		users:       make(map[keybase1.UID]*libkb.User),
-		deviceNames: make(map[string]string),
-		kbCtx:       kbCtx,
+		users:   make(map[keybase1.UID]*libkb.User),
+		devices: make(map[string]device),
+		kbCtx:   kbCtx,
 	}
 }
 
-func (u *UserInfoMapper) Lookup(uid keybase1.UID, deviceID keybase1.DeviceID) (username, deviceName string, err error) {
+func (u *UserInfoMapper) Lookup(uid keybase1.UID, deviceID keybase1.DeviceID) (username, deviceName string, deviceType string, err error) {
 	user, err := u.User(uid)
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 
 	u.Lock()
 	defer u.Unlock()
 
 	dkey := fmt.Sprintf("%s:%s", uid, deviceID)
-	dname, ok := u.deviceNames[dkey]
+	dev, ok := u.devices[dkey]
 	if !ok {
 		d, err := user.GetDevice(deviceID)
 		if err != nil {
-			return "", "", err
+			return "", "", "", err
 		}
 		if d.Description == nil {
-			return "", "", fmt.Errorf("nil device name for %s", dkey)
+			return "", "", "", fmt.Errorf("nil device name for %s", dkey)
 		}
-		dname = *d.Description
-		u.deviceNames[dkey] = dname
+		dev = device{name: *d.Description, dtype: d.Type}
+		u.devices[dkey] = dev
 	}
 
-	return user.GetNormalizedName().String(), dname, nil
+	return user.GetNormalizedName().String(), dev.name, dev.dtype, nil
 }
 
 func (u *UserInfoMapper) UserFromCache(uid keybase1.UID) *libkb.User {

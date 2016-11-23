@@ -1,8 +1,9 @@
 // @flow
-import React from 'react'
-import {Box, Text, Avatar} from '../../../common-adapters'
+import React, {Component} from 'react'
+import {Box, Button, Text, Avatar} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import * as Constants from '../../../constants/chat'
+import type {TextMessage} from '../../../constants/chat'
 
 import type {Props} from './text'
 
@@ -13,8 +14,9 @@ const _marginColor = (followState) => ({
   'Broken': globalColors.red,
 }[followState])
 
-const MessageText = ({text, messageState, style}: {text: string, messageState: Constants.MessageState, style: Object}) => {
-  switch (messageState) {
+const MessageText = ({message, style}: {message: TextMessage, style: Object}) => {
+  const text = message.message.stringValue()
+  switch (message.messageState) {
     case 'failed':
     case 'pending':
       return <Text type='Body' style={{color: globalColors.black_40, ...style}}>{text}</Text>
@@ -40,20 +42,49 @@ const Retry = ({onRetry}: {onRetry: () => void}) => (
   </Box>
 )
 
-const MessageTextWrapper = ({author, message, messageState, followState, style, includeHeader, onRetry}: Props) => (
-  <Box style={{...globalStyles.flexBoxRow, ...style}}>
-    <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(followState)}} />
-    <Box style={{...globalStyles.flexBoxRow, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
-      {includeHeader
-        ? <Avatar size={24} username={author} style={{marginRight: globalMargins.tiny}} />
-        : <Box style={{width: 32}} />}
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(followState), ...(followState === 'You' ? globalStyles.italic : null)}}>{author}</Text>}
-        <MessageText text={message} messageState={messageState} style={{marginTop: globalMargins.xtiny}} />
-        {messageState === 'failed' && <Retry onRetry={onRetry} />}
-      </Box>
-    </Box>
-  </Box>
-)
+type State = {
+  hovered: boolean,
+}
 
-export default MessageTextWrapper
+export default class MessageTextComponent extends Component<void, Props, State> {
+  state: State;
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {
+      hovered: false,
+    }
+  }
+
+  render () {
+    const {message, style, includeHeader, onRetry, onAction} = this.props
+
+    const buttonActionStyle = {
+      display: (this.state.hovered ? 'block': 'none'),
+      height: 20,
+      lineHeight: '20px',
+      marginLeft: 'auto',
+    }
+
+    return (
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1}} onMouseOver={() => this.setState({hovered: true})} onMouseOut={() => this.setState({hovered: false})}>
+        <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
+          <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.followState)}} />
+          <Box style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
+            {includeHeader
+              ? <Avatar size={24} username={message.author} style={{marginRight: globalMargins.tiny}} />
+              : <Box style={{width: 32}} />}
+            <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+              {includeHeader && <Text type='BodySmallSemibold' style={{color: colorForAuthor(message.followState), ...(message.followState === 'You' ? globalStyles.italic : null)}}>{message.author}</Text>}
+              <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
+                <MessageText message={message} style={{marginTop: globalMargins.xtiny, flex: 1}} />
+                <Button type='Custom' label='' more={true} small={true} onClick={onAction} style={buttonActionStyle} />
+              </Box>
+              {message.messageState === 'failed' && <Retry onRetry={onRetry} />}
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
+}

@@ -1,7 +1,8 @@
 // @flow
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
-import {List, Map, Record} from 'immutable'
+import moment from 'moment'
+import {Set, List, Map, Record} from 'immutable'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction} from './types/flux'
@@ -14,28 +15,39 @@ export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', '
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
-export type Message = {
+export type MessageID = number
+
+export type TextMessage = {
   type: 'Text',
   message: HiddenString,
   author: string,
+  deviceName: string,
+  deviceType: string,
   timestamp: number,
-  messageID?: number,
+  messageID?: MessageID,
   followState: FollowState,
   messageState: MessageState,
   outboxID?: ?string,
-} | {
+}
+
+export type ErrorMessage = {
   type: 'Error',
   reason: string,
   timestamp: number,
-  messageID: number,
-} | {
+  messageID: MessageID,
+}
+
+export type UnhandledMessage = {
   type: 'Unhandled',
   timestamp: number,
-  messageID: number,
+  messageID: MessageID,
 }
+
+export type Message = TextMessage | ErrorMessage | UnhandledMessage
 
 export const ConversationStateRecord = Record({
   messages: List(),
+  seenMessages: Set(),
   moreToLoad: false,
   isLoading: true,
   paginationNext: undefined,
@@ -44,6 +56,7 @@ export const ConversationStateRecord = Record({
 
 export type ConversationState = Record<{
   messages: List<Message>,
+  seenMessages: Set<MessageID>,
   moreToLoad: boolean,
   isLoading: boolean,
   paginationNext: ?Buffer,
@@ -153,6 +166,21 @@ function keyToConversationID (key: ConversationIDKey): ConversationID {
   return Buffer.from(key, 'base64')
 }
 
+function timestampToString (time: number, nowOverride?: number): string {
+  const m = moment(time)
+  const now = nowOverride ? moment(nowOverride) : moment()
+  const today = now.clone().startOf('day')
+  const weekOld = today.clone().subtract(7, 'days')
+
+  if (m.isSame(today, 'd')) {
+    return m.format('h:mm A')
+  } else if (m.isAfter(weekOld)) {
+    return m.format('dddd')
+  }
+
+  return m.format('MMM D')
+}
+
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
 function makeSnippet (message: ?string = '', max: number) {
   // $FlowIssue flow doesn't understand spread + strings
@@ -174,4 +202,5 @@ export {
   makeSnippet,
   maxMessagesToLoadAtATime,
   participantFilter,
+  timestampToString,
 }

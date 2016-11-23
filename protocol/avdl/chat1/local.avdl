@@ -34,7 +34,7 @@ protocol local {
     string path;               // path to the object in bucket
     int size;                  // size of the object
     string mimeType;           // mime type of the object
-    Hash encHash;              // hash of ciphertext object 
+    Hash encHash;              // hash of ciphertext object
     bytes key;                 // encryption key
     bytes verifyKey;           // signature verification key
     string title;              // title of the asset (defaults to filename if not provided)
@@ -67,18 +67,18 @@ protocol local {
   }
 
   record OutboxRecord {
-    OutboxState state; 
+    OutboxState state;
     OutboxID outboxID;
     ConversationID convID;
     MessagePlaintext Msg;
-  }   
-  
+  }
+
   enum HeaderPlaintextVersion {
     V1_1
   }
 
   // HeaderPlaintextV1 is version 1 of HeaderPlaintext.
-  // The fields here cannot change.  To modify, 
+  // The fields here cannot change.  To modify,
   // create a new record type with a new version.
   record HeaderPlaintextV1 {
     ConversationIDTriple conv;
@@ -99,7 +99,7 @@ protocol local {
   variant HeaderPlaintext switch (HeaderPlaintextVersion version) {
     case V1: HeaderPlaintextV1;
   }
-  
+
   enum BodyPlaintextVersion {
     V1_1
   }
@@ -134,6 +134,7 @@ protocol local {
     MessageBody messageBody;
     string senderUsername;
     string senderDeviceName;
+    string senderDeviceType;
     Hash headerHash;
   }
 
@@ -141,7 +142,7 @@ protocol local {
     string errMsg;
     MessageID messageID;
     MessageType messageType;
-  } 
+  }
 
   variant MessageUnboxed switch (MessageUnboxedState state) {
     case VALID: MessageUnboxedValid;
@@ -180,7 +181,7 @@ protocol local {
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
     array<MessageUnboxed> maxMessages; // the latest message for each message type
-  } 
+  }
 
   record ThreadView {
     array<MessageUnboxed> messages;
@@ -318,7 +319,7 @@ protocol local {
   }
   DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview);
 
-  void CancelPost(OutboxID outboxID); 
+  void CancelPost(OutboxID outboxID);
   void RetryPost(OutboxID outboxID);
 
 }
