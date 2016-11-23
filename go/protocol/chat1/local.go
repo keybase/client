@@ -821,7 +821,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"SetConversationStatusLocal": {
+			"setConversationStatusLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]SetConversationStatusLocalArg, 1)
 					return &ret
@@ -999,7 +999,7 @@ func (c LocalClient) PostLocalNonblock(ctx context.Context, __arg PostLocalNonbl
 }
 
 func (c LocalClient) SetConversationStatusLocal(ctx context.Context, __arg SetConversationStatusLocalArg) (res SetConversationStatusLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.SetConversationStatusLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.local.setConversationStatusLocal", []interface{}{__arg}, &res)
 	return
 }
 

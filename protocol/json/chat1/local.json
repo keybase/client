@@ -1084,7 +1084,7 @@
       ],
       "response": "PostLocalNonblockRes"
     },
-    "SetConversationStatusLocal": {
+    "setConversationStatusLocal": {
       "request": [
         {
           "name": "conversationID",

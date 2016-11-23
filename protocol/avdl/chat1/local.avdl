@@ -246,7 +246,7 @@ protocol local {
   }
   PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev);
 
-  SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status);
+  SetConversationStatusLocalRes setConversationStatusLocal(ConversationID conversationID, ConversationStatus status);
   record SetConversationStatusLocalRes {
     array<RateLimit> rateLimits;
   }
