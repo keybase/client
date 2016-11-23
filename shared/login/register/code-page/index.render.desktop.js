@@ -80,7 +80,7 @@ class CodePageRender extends Component<void, Props, void> {
           value={this.props.enterText}
           onChangeText={text => this.props.onChangeText(text)}
         />
-        <Button type='Primary' style={{alignSelf: 'flex-end', marginTop: 35, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
+        <Button type='Primary' style={{alignSelf: 'center', marginTop: 35, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
         {this._otherIsPhone() && <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => this.props.setCodePageMode(codePageModeShowCode)}>
           <Icon style={{marginRight: 15}} type='icon-phone-qr-code-48' />
           <Text type='BodyPrimaryLink' onClick={() => this.props.setCodePageMode(codePageModeShowCode)}>Scan QR code instead</Text>
