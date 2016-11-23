@@ -1016,7 +1016,7 @@ func (fbo *folderBlockOps) Read(
 	for nRead < n {
 		nextByte := nRead + off
 		toRead := n - nRead
-		_, _, _, block, nextBlockOff, startOff, err := fd.getFileBlockAtOffset(
+		_, _, block, nextBlockOff, startOff, err := fd.getFileBlockAtOffset(
 			ctx, fblock, nextByte, blockRead)
 		if err != nil {
 			// If we hit a timeout while reading then return the bytes already read
@@ -1211,7 +1211,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		return WriteRange{}, nil, 0, err
 	}
 	for nCopied < n {
-		ptr, parentBlock, indexInParent, block, nextBlockOff, startOff, err :=
+		ptr, parentBlocks, block, nextBlockOff, startOff, err :=
 			fd.getFileBlockAtOffset(ctx, fblock, off+nCopied, blockWrite)
 		if err != nil {
 			return WriteRange{}, nil, newlyDirtiedChildBytes, err
@@ -1269,6 +1269,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 			}
 			// And push the indirect pointers to right
 			newb := fblock.IPtrs[len(fblock.IPtrs)-1]
+			indexInParent := parentBlocks[0].childIndex
 			copy(fblock.IPtrs[indexInParent+2:], fblock.IPtrs[indexInParent+1:])
 			fblock.IPtrs[indexInParent+1] = newb
 			if oldSizeWithoutHoles == de.Size {
@@ -1306,11 +1307,11 @@ func (fbo *folderBlockOps) writeDataLocked(
 			newlyDirtiedChildBytes -= int64(oldLen)
 		}
 
-		if parentBlock != nil {
-			// remember how many bytes it was
+		for _, pb := range parentBlocks {
+			// Remember how many bytes it was.
 			si.unrefs = append(si.unrefs,
-				parentBlock.IPtrs[indexInParent].BlockInfo)
-			parentBlock.IPtrs[indexInParent].EncodedSize = 0
+				pb.pblock.IPtrs[pb.childIndex].BlockInfo)
+			pb.pblock.IPtrs[pb.childIndex].EncodedSize = 0
 		}
 
 		// keep the old block ID while it's dirty
@@ -1541,7 +1542,7 @@ func (fbo *folderBlockOps) truncateLocked(
 
 	// find the block where the file should now end
 	iSize := int64(size) // TODO: deal with overflow
-	ptr, parentBlock, indexInParent, block, nextBlockOff, startOff, err :=
+	ptr, parentBlocks, block, nextBlockOff, startOff, err :=
 		fd.getFileBlockAtOffset(ctx, fblock, iSize, blockWrite)
 	if err != nil {
 		return &WriteRange{}, nil, 0, err
@@ -1594,7 +1595,10 @@ func (fbo *folderBlockOps) truncateLocked(
 		return nil, nil, 0, err
 	}
 	if nextBlockOff > 0 {
-		// TODO: if indexInParent == 0, we can remove the level of indirection
+		// TODO: if indexInParent == 0, we can remove the level of indirection.
+		// TODO: support multiple levels of indirection.
+		parentBlock := parentBlocks[0].pblock
+		indexInParent := parentBlocks[0].childIndex
 		for _, ptr := range parentBlock.IPtrs[indexInParent+1:] {
 			si.unrefs = append(si.unrefs, ptr.BlockInfo)
 		}
@@ -1619,13 +1623,11 @@ func (fbo *folderBlockOps) truncateLocked(
 		}
 	}
 
-	if parentBlock != nil {
-		// TODO: When we implement more than one level of indirection,
-		// make sure that the pointer to parentBlock in the grandparent block
-		// has EncodedSize 0.
+	for _, pb := range parentBlocks {
+		// Remember how many bytes it was.
 		si.unrefs = append(si.unrefs,
-			parentBlock.IPtrs[indexInParent].BlockInfo)
-		parentBlock.IPtrs[indexInParent].EncodedSize = 0
+			pb.pblock.IPtrs[pb.childIndex].BlockInfo)
+		pb.pblock.IPtrs[pb.childIndex].EncodedSize = 0
 	}
 
 	latestWrite := si.op.addTruncate(size)
@@ -1983,7 +1985,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 					InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
-				_, _, _, block, nextBlockOff, _, err :=
+				_, _, block, nextBlockOff, _, err :=
 					fd.getFileBlockAtOffset(ctx, fblock, ptr.Off, blockWrite)
 				if err != nil {
 					return nil, nil, syncState, nil, err
@@ -2006,7 +2008,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 							return nil, nil, syncState, nil, err
 						}
 					}
-					rPtr, _, _, rblock, _, _, err :=
+					rPtr, _, rblock, _, _, err :=
 						fd.getFileBlockAtOffset(
 							ctx, fblock, endOfBlock, blockWrite)
 					if err != nil {
@@ -2027,7 +2029,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 					}
 
 					endOfBlock := ptr.Off + int64(len(block.Contents))
-					rPtr, _, _, rblock, _, _, err :=
+					rPtr, _, rblock, _, _, err :=
 						fd.getFileBlockAtOffset(
 							ctx, fblock, endOfBlock, blockWrite)
 					if err != nil {
@@ -2071,7 +2073,7 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 					InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
-				_, _, _, block, _, _, err := fd.getFileBlockAtOffset(
+				_, _, block, _, _, err := fd.getFileBlockAtOffset(
 					ctx, fblock, ptr.Off, blockWrite)
 				if err != nil {
 					return nil, nil, syncState, nil, err
