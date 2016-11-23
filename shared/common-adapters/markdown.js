@@ -162,7 +162,7 @@ function _parseRecursive (text: string, tagStack: TagStack, key: number): React$
 
 // It's a lot easier to parse emojis if we change :santa::skin-tone-3: to :santa\:\:skin-tone-3:
 function preprocessEmojiColors (text: string): string {
-  return text.replace(/:([\w-]*)::([\w-]*):/g, ':$1\\:\\:$2:')
+  return text.replace(/:([\w-]*)::(skin-tone-\d):/g, ':$1\\:\\:$2:')
 }
 
 const initialTagStack = new List([initalTagMeta])
