@@ -38,6 +38,10 @@ func newFileData(file path, uid keybase1.UID, crypto cryptoPure,
 	}
 }
 
+// parentBlockAndChildIndex is a node on a path down the tree to a
+// particular leaf node.  `pblock` is an indirect block corresponding
+// to one of that leaf node's parents, and `childIndex` is an index
+// into `pblock.IPtrs` to the next node along the path.
 type parentBlockAndChildIndex struct {
 	pblock     *FileBlock
 	childIndex int
