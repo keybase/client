@@ -37,9 +37,15 @@ const (
 )
 
 type upcQueuedOp struct {
-	op            upcQueuedOpType
-	info          unflushedPathMDInfo
-	rev           MetadataRevision
+	op upcQueuedOpType
+
+	// Remove ops don't need an info.
+	info unflushedPathMDInfo
+
+	// All op types should set this.
+	rev MetadataRevision
+
+	// Only reinit ops need to set this explicitly.
 	isLocalSquash bool
 }
 
