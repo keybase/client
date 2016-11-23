@@ -16,7 +16,7 @@ func TestKeyCacheBasic(t *testing.T) {
 	cache := NewKeyCacheStandard(10)
 	id := tlf.FakeID(100, true)
 	key := kbfscrypto.MakeTLFCryptKey([32]byte{0xf})
-	keyGen := KeyGen(1)
+	keyGen := FirstValidKeyGen
 	_, err := cache.GetTLFCryptKey(id, keyGen)
 	if _, ok := err.(KeyCacheMissError); !ok {
 		t.Fatal(errors.New("expected KeyCacheMissError"))

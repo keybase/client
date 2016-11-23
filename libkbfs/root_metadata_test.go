@@ -544,9 +544,9 @@ func TestRootMetadataFinalIsFinal(t *testing.T) {
 func getAllUsersKeysForTest(
 	t *testing.T, config Config, rmd *RootMetadata, un string) []kbfscrypto.TLFCryptKey {
 	var keys []kbfscrypto.TLFCryptKey
-	for i := 1; i <= int(rmd.LatestKeyGeneration()); i++ {
+	for keyGen := FirstValidKeyGen; keyGen <= rmd.LatestKeyGeneration(); keyGen++ {
 		key, err := config.KeyManager().(*KeyManagerStandard).getTLFCryptKeyUsingCurrentDevice(
-			context.Background(), rmd, KeyGen(i), true)
+			context.Background(), rmd, keyGen, true)
 		require.NoError(t, err)
 		keys = append(keys, key)
 	}

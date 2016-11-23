@@ -60,7 +60,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
 func (km *KeyManagerStandard) GetTLFCryptKeyOfAllGenerations(
 	ctx context.Context, kmd KeyMetadata) (
 	keys []kbfscrypto.TLFCryptKey, err error) {
-	for g := KeyGen(FirstValidKeyGen); g <= kmd.LatestKeyGeneration(); g++ {
+	for g := FirstValidKeyGen; g <= kmd.LatestKeyGeneration(); g++ {
 		var key kbfscrypto.TLFCryptKey
 		key, err = km.getTLFCryptKeyUsingCurrentDevice(ctx, kmd, g, true)
 		if err != nil {
@@ -673,7 +673,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	// If there's at least one new device, add that device to every key bundle.
 	if addNewReaderDevice || addNewWriterDevice {
-		for keyGen := KeyGen(FirstValidKeyGen); keyGen <= currKeyGen; keyGen++ {
+		for keyGen := FirstValidKeyGen; keyGen <= currKeyGen; keyGen++ {
 			flags := getTLFCryptKeyAnyDevice
 			if promptPaper {
 				flags |= getTLFCryptKeyPromptPaper
@@ -762,7 +762,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	// Save the previous TLF crypt key. It's symmetrically encrypted and appended to a list
 	// for MDv3 metadata.
 	var prevTlfCryptKey kbfscrypto.TLFCryptKey
-	if currKeyGen >= KeyGen(FirstValidKeyGen) && md.StoresHistoricTLFCryptKeys() {
+	if currKeyGen >= FirstValidKeyGen && md.StoresHistoricTLFCryptKeys() {
 		flags := getTLFCryptKeyAnyDevice
 		if promptPaper {
 			flags |= getTLFCryptKeyPromptPaper
@@ -783,7 +783,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	md.data.TLFPrivateKey = privKey
 
 	// Delete server-side key halves for any revoked devices.
-	for keygen := KeyGen(FirstValidKeyGen); keygen <= currKeyGen; keygen++ {
+	for keygen := FirstValidKeyGen; keygen <= currKeyGen; keygen++ {
 		rDkim, wDkim, err := md.getUserDeviceKeyInfoMaps(keygen)
 		if _, noDkim := err.(TLFCryptKeyNotPerDeviceEncrypted); noDkim {
 			// No DKIM for this generation. This is possible for MDv3.

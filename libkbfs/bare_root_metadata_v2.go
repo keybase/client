@@ -1043,13 +1043,15 @@ func (md *BareRootMetadataV2) Version() MetadataVer {
 	return PreExtraMetadataVer
 }
 
-// GetTLFPublicKey implements the BareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) GetTLFPublicKey(keyGen KeyGen, _ ExtraMetadata) (
-	kbfscrypto.TLFPublicKey, bool) {
-	if keyGen > md.LatestKeyGeneration() {
-		return kbfscrypto.TLFPublicKey{}, false
+// GetCurrentTLFPublicKey implements the BareRootMetadata interface
+// for BareRootMetadataV2.
+func (md *BareRootMetadataV2) GetCurrentTLFPublicKey(
+	_ ExtraMetadata) (kbfscrypto.TLFPublicKey, error) {
+	if len(md.WKeys) == 0 {
+		return kbfscrypto.TLFPublicKey{}, errors.New(
+			"No key generations in GetCurrentTLFPublicKey")
 	}
-	return md.WKeys[keyGen].TLFPublicKey, true
+	return md.WKeys[len(md.WKeys)-1].TLFPublicKey, nil
 }
 
 // AreKeyGenerationsEqual implements the BareRootMetadata interface for BareRootMetadataV2.

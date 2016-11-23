@@ -868,7 +868,7 @@ func (md *BareRootMetadataV3) AddNewKeysForTesting(crypto cryptoPure,
 	}
 	if md.WriterMetadata.LatestKeyGen >= FirstValidKeyGen {
 		// TODO: Relax this if needed (but would have to
-		// retrieve the previous pubkeys below).
+		// retrieve the previous historical crypt keys below).
 		panic("Cannot add more than one key generation")
 	}
 	for _, dkim := range wDkim {
@@ -895,10 +895,8 @@ func (md *BareRootMetadataV3) AddNewKeysForTesting(crypto cryptoPure,
 	}
 
 	wkb := &TLFWriterKeyBundleV3{
-		Keys: wDkim,
-		// TODO: Retrieve the previous pubkeys and prepend
-		// them.
-		TLFPublicKeys: []kbfscrypto.TLFPublicKey{pubKey},
+		Keys:         wDkim,
+		TLFPublicKey: pubKey,
 		// TODO: Size this to the max EPubKeyIndex for writers.
 		TLFEphemeralPublicKeys: make([]kbfscrypto.TLFEphemeralPublicKey, 1),
 	}
@@ -926,14 +924,14 @@ func (md *BareRootMetadataV3) AddNewKeysForTesting(crypto cryptoPure,
 func (md *BareRootMetadataV3) NewKeyGeneration(pubKey kbfscrypto.TLFPublicKey) (
 	extra ExtraMetadata) {
 	newWriterKeys := &TLFWriterKeyBundleV3{
-		Keys: make(UserDeviceKeyInfoMap),
+		Keys:         make(UserDeviceKeyInfoMap),
+		TLFPublicKey: pubKey,
 	}
 	newReaderKeys := &TLFReaderKeyBundleV3{
 		TLFReaderKeyBundleV2: TLFReaderKeyBundleV2{
 			RKeys: make(UserDeviceKeyInfoMap),
 		},
 	}
-	newWriterKeys.TLFPublicKeys = []kbfscrypto.TLFPublicKey{pubKey}
 	md.WriterMetadata.LatestKeyGen++
 	return &ExtraMetadataV3{
 		rkb: newReaderKeys,
@@ -981,17 +979,16 @@ func (md *BareRootMetadataV3) Version() MetadataVer {
 	return SegregatedKeyBundlesVer
 }
 
-// GetTLFPublicKey implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetTLFPublicKey(
-	keyGen KeyGen, extra ExtraMetadata) (kbfscrypto.TLFPublicKey, bool) {
-	if keyGen > md.LatestKeyGeneration() {
-		return kbfscrypto.TLFPublicKey{}, false
-	}
+// GetCurrentTLFPublicKey implements the BareRootMetadata interface
+// for BareRootMetadataV3.
+func (md *BareRootMetadataV3) GetCurrentTLFPublicKey(
+	extra ExtraMetadata) (kbfscrypto.TLFPublicKey, error) {
 	wkb, _, ok := getKeyBundlesV3(extra)
 	if !ok {
-		return kbfscrypto.TLFPublicKey{}, false
+		return kbfscrypto.TLFPublicKey{}, errors.New(
+			"Invalid key bundles in GetCurrentTLFPublicKey")
 	}
-	return wkb.TLFPublicKeys[keyGen], true
+	return wkb.TLFPublicKey, nil
 }
 
 // AreKeyGenerationsEqual implements the BareRootMetadata interface for BareRootMetadataV3.
@@ -1085,11 +1082,11 @@ func (md *BareRootMetadataV3) FinalizeRekey(
 	if !ok {
 		return errors.New("Invalid extra metadata")
 	}
-	if md.LatestKeyGeneration() < KeyGen(FirstValidKeyGen) {
+	if md.LatestKeyGeneration() < FirstValidKeyGen {
 		return fmt.Errorf("Invalid key generation %d", md.LatestKeyGeneration())
 	}
 	if (prevKey != kbfscrypto.TLFCryptKey{}) {
-		numKeys := int(md.LatestKeyGeneration() - KeyGen(FirstValidKeyGen))
+		numKeys := int(md.LatestKeyGeneration() - FirstValidKeyGen)
 		if numKeys == 0 {
 			return errors.New("Previous key non-nil for first key generation")
 		}
@@ -1132,7 +1129,7 @@ func (md *BareRootMetadataV3) GetHistoricTLFCryptKey(crypto cryptoPure,
 		return kbfscrypto.TLFCryptKey{}, errors.New(
 			"Invalid extra metadata")
 	}
-	if keyGen < KeyGen(FirstValidKeyGen) || keyGen >= md.LatestKeyGeneration() {
+	if keyGen < FirstValidKeyGen || keyGen >= md.LatestKeyGeneration() {
 		return kbfscrypto.TLFCryptKey{}, fmt.Errorf(
 			"Invalid key generation %d", keyGen)
 	}
@@ -1141,7 +1138,7 @@ func (md *BareRootMetadataV3) GetHistoricTLFCryptKey(crypto cryptoPure,
 	if err != nil {
 		return kbfscrypto.TLFCryptKey{}, err
 	}
-	index := int(keyGen - KeyGen(FirstValidKeyGen))
+	index := int(keyGen - FirstValidKeyGen)
 	if index >= len(oldKeys) || index < 0 {
 		return kbfscrypto.TLFCryptKey{}, fmt.Errorf(
 			"Index %d out of range (max: %d)", index, len(oldKeys))

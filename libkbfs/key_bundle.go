@@ -176,14 +176,14 @@ func (tkg TLFWriterKeyGenerations) ToTLFWriterKeyBundleV3(
 	*TLFWriterKeyBundleV3, error) {
 
 	keyGen := tkg.LatestKeyGeneration()
-	if keyGen < 1 {
+	if keyGen < FirstValidKeyGen {
 		return nil, errors.New("No key generations to convert")
 	}
 
 	wkbCopy := &TLFWriterKeyBundleV3{}
 
 	// Copy the latest UserDeviceKeyInfoMap.
-	wkb := tkg[keyGen-1]
+	wkb := tkg[keyGen-FirstValidKeyGen]
 	wkbCopy.Keys = wkb.WKeys.deepCopy()
 
 	// Copy all of the TLFEphemeralPublicKeys at this generation.
@@ -191,13 +191,10 @@ func (tkg TLFWriterKeyGenerations) ToTLFWriterKeyBundleV3(
 		make(kbfscrypto.TLFEphemeralPublicKeys, len(wkb.TLFEphemeralPublicKeys))
 	copy(wkbCopy.TLFEphemeralPublicKeys[:], wkb.TLFEphemeralPublicKeys)
 
-	// Copy all of the TLFPublicKeys.
-	wkbCopy.TLFPublicKeys = make([]kbfscrypto.TLFPublicKey, int(keyGen))
-	for i, wkb := range tkg {
-		wkbCopy.TLFPublicKeys[i] = wkb.TLFPublicKey
-	}
+	// Copy the current TLFPublicKey.
+	wkbCopy.TLFPublicKey = wkb.TLFPublicKey
 
-	if keyGen > 1 {
+	if keyGen > FirstValidKeyGen {
 		// Fetch all of the TLFCryptKeys.
 		keys, err := keyManager.GetTLFCryptKeyOfAllGenerations(ctx, kmd)
 		if err != nil {

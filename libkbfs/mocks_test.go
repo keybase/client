@@ -3370,15 +3370,15 @@ func (_mr *_MockblockServerLocalRecorder) GetUserQuotaInfo(arg0 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUserQuotaInfo", arg0)
 }
 
-func (_m *MockblockServerLocal) getAllRefs(ctx context.Context, tlfID tlf.ID) (map[BlockID]blockRefMap, error) {
-	ret := _m.ctrl.Call(_m, "getAllRefs", ctx, tlfID)
+func (_m *MockblockServerLocal) getAllRefsForTest(ctx context.Context, tlfID tlf.ID) (map[BlockID]blockRefMap, error) {
+	ret := _m.ctrl.Call(_m, "getAllRefsForTest", ctx, tlfID)
 	ret0, _ := ret[0].(map[BlockID]blockRefMap)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockblockServerLocalRecorder) getAllRefs(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "getAllRefs", arg0, arg1)
+func (_mr *_MockblockServerLocalRecorder) getAllRefsForTest(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "getAllRefsForTest", arg0, arg1)
 }
 
 // Mock of BlockSplitter interface
@@ -4875,15 +4875,15 @@ func (_mr *_MockBareRootMetadataRecorder) Version() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Version")
 }
 
-func (_m *MockBareRootMetadata) GetTLFPublicKey(_param0 KeyGen, _param1 ExtraMetadata) (kbfscrypto.TLFPublicKey, bool) {
-	ret := _m.ctrl.Call(_m, "GetTLFPublicKey", _param0, _param1)
+func (_m *MockBareRootMetadata) GetCurrentTLFPublicKey(_param0 ExtraMetadata) (kbfscrypto.TLFPublicKey, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentTLFPublicKey", _param0)
 	ret0, _ := ret[0].(kbfscrypto.TLFPublicKey)
-	ret1, _ := ret[1].(bool)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockBareRootMetadataRecorder) GetTLFPublicKey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFPublicKey", arg0, arg1)
+func (_mr *_MockBareRootMetadataRecorder) GetCurrentTLFPublicKey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentTLFPublicKey", arg0)
 }
 
 func (_m *MockBareRootMetadata) AreKeyGenerationsEqual(_param0 kbfscodec.Codec, _param1 BareRootMetadata) (bool, error) {
@@ -5302,15 +5302,15 @@ func (_mr *_MockMutableBareRootMetadataRecorder) Version() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Version")
 }
 
-func (_m *MockMutableBareRootMetadata) GetTLFPublicKey(_param0 KeyGen, _param1 ExtraMetadata) (kbfscrypto.TLFPublicKey, bool) {
-	ret := _m.ctrl.Call(_m, "GetTLFPublicKey", _param0, _param1)
+func (_m *MockMutableBareRootMetadata) GetCurrentTLFPublicKey(_param0 ExtraMetadata) (kbfscrypto.TLFPublicKey, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentTLFPublicKey", _param0)
 	ret0, _ := ret[0].(kbfscrypto.TLFPublicKey)
-	ret1, _ := ret[1].(bool)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockMutableBareRootMetadataRecorder) GetTLFPublicKey(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFPublicKey", arg0, arg1)
+func (_mr *_MockMutableBareRootMetadataRecorder) GetCurrentTLFPublicKey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentTLFPublicKey", arg0)
 }
 
 func (_m *MockMutableBareRootMetadata) AreKeyGenerationsEqual(_param0 kbfscodec.Codec, _param1 BareRootMetadata) (bool, error) {
