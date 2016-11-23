@@ -1015,7 +1015,8 @@ func (j *tlfJournal) getJournalStatusWithRange() (
 	// It would be nice to avoid getting this range if we are not
 	// the initializer, but at this point we don't know if we'll
 	// need to initialize or not.
-	ibrmds, err = j.mdJournal.getRange(jStatus.RevisionStart, stop)
+	ibrmds, err = j.mdJournal.getRange(j.mdJournal.branchID,
+		jStatus.RevisionStart, stop)
 	if err != nil {
 		return TLFJournalStatus{}, nil, nil, false, err
 	}
@@ -1359,18 +1360,18 @@ func (j *tlfJournal) isBlockUnflushed(id BlockID) (bool, error) {
 }
 
 func (j *tlfJournal) getMDHead(
-	ctx context.Context) (ImmutableBareRootMetadata, error) {
+	ctx context.Context, bid BranchID) (ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
 		return ImmutableBareRootMetadata{}, err
 	}
 
-	return j.mdJournal.getHead()
+	return j.mdJournal.getHead(bid)
 }
 
 func (j *tlfJournal) getMDRange(
-	ctx context.Context, start, stop MetadataRevision) (
+	ctx context.Context, bid BranchID, start, stop MetadataRevision) (
 	[]ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
@@ -1378,7 +1379,7 @@ func (j *tlfJournal) getMDRange(
 		return nil, err
 	}
 
-	return j.mdJournal.getRange(start, stop)
+	return j.mdJournal.getRange(bid, start, stop)
 }
 
 func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,

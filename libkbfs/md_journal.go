@@ -667,6 +667,7 @@ func (j *mdJournal) convertToBranch(
 		// changed it.
 		err = brmd.SignWriterMetadataInternally(ctx, j.codec, signer)
 		if err != nil {
+			j.log.CDebugf(ctx, "Early exit %d %v", brmd.RevisionNumber(), err)
 			return err
 		}
 
@@ -907,15 +908,70 @@ func (j mdJournal) getBranchID() BranchID {
 	return j.branchID
 }
 
-func (j mdJournal) getHead() (ImmutableBareRootMetadata, error) {
-	return j.checkGetParams()
+func (j mdJournal) getHead(bid BranchID) (ImmutableBareRootMetadata, error) {
+	head, err := j.checkGetParams()
+	if err != nil {
+		return ImmutableBareRootMetadata{}, err
+	}
+	if head == (ImmutableBareRootMetadata{}) {
+		return ImmutableBareRootMetadata{}, nil
+	}
+
+	getLocalSquashHead := bid == NullBranchID &&
+		j.branchID == PendingLocalSquashBranchID
+	if !getLocalSquashHead {
+		if head.BID() != bid {
+			return ImmutableBareRootMetadata{}, nil
+		}
+		return head, nil
+	}
+
+	// Look backwards in the journal for the first entry with
+	// IsLocalSquash set to true.
+	earliestRev, err := j.readEarliestRevision()
+	if err != nil {
+		return ImmutableBareRootMetadata{}, err
+	}
+
+	latestRev, err := j.readLatestRevision()
+	if err != nil {
+		return ImmutableBareRootMetadata{}, err
+	}
+
+	for rev := latestRev; rev >= earliestRev; rev-- {
+		entry, err := j.j.readJournalEntry(rev)
+		if err != nil {
+			return ImmutableBareRootMetadata{}, err
+		}
+		if entry.IsLocalSquash {
+			latestID := entry.ID
+			latest, extra, timestamp, err := j.getMDAndExtra(
+				latestID, false)
+			if err != nil {
+				return ImmutableBareRootMetadata{}, err
+			}
+			return MakeImmutableBareRootMetadata(
+				latest, extra, latestID, timestamp), nil
+		}
+	}
+	return ImmutableBareRootMetadata{}, nil
 }
 
-func (j mdJournal) getRange(start, stop MetadataRevision) (
+func (j mdJournal) getRange(bid BranchID, start, stop MetadataRevision) (
 	[]ImmutableBareRootMetadata, error) {
-	_, err := j.checkGetParams()
+	head, err := j.checkGetParams()
 	if err != nil {
 		return nil, err
+	} else if head == (ImmutableBareRootMetadata{}) {
+		return nil, nil
+	}
+
+	// If we are on a pending local squash branch, the caller can ask
+	// for "merged" entries that make up a prefix of the journal.
+	getLocalSquashPrefix := bid == NullBranchID &&
+		j.branchID == PendingLocalSquashBranchID
+	if head.BID() != bid && !getLocalSquashPrefix {
+		return nil, nil
 	}
 
 	realStart, entries, err := j.j.getEntryRange(start, stop)
@@ -924,11 +980,20 @@ func (j mdJournal) getRange(start, stop MetadataRevision) (
 	}
 	var ibrmds []ImmutableBareRootMetadata
 	for i, entry := range entries {
+		if getLocalSquashPrefix && !entry.IsLocalSquash {
+			// We only need the prefix up to the first non-local-squash.
+			break
+		} else if entry.IsLocalSquash && bid == PendingLocalSquashBranchID {
+			// Ignore the local squash prefix of this journal.
+			continue
+		}
+
 		expectedRevision := realStart + MetadataRevision(i)
 		brmd, extra, ts, err := j.getMDAndExtra(entry.ID, true)
 		if err != nil {
 			return nil, err
 		}
+
 		if expectedRevision != brmd.RevisionNumber() {
 			panic(fmt.Errorf("expected revision %v, got %v",
 				expectedRevision, brmd.RevisionNumber()))
@@ -1218,7 +1283,7 @@ func (j *mdJournal) clear(
 		return nil
 	}
 
-	head, err := j.getHead()
+	head, err := j.getHead(bid)
 	if err != nil {
 		return err
 	}

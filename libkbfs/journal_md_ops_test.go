@@ -171,20 +171,25 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NotNil(t, head)
 	require.Equal(t, MetadataRevision(8), head.Revision())
 
-	head, err = mdOps.GetUnmergedForTLF(ctx, id, NullBranchID)
+	// Find the branch ID.
+	tlfJournal, ok := jServer.getTLFJournal(id)
+	require.True(t, ok)
+	bid := tlfJournal.mdJournal.branchID
+
+	head, err = mdOps.GetUnmergedForTLF(ctx, id, bid)
 	require.NoError(t, err)
 	require.NotNil(t, head)
 	require.Equal(t, MetadataRevision(10), head.Revision())
 
 	// (4) push some new unmerged metadata blocks linking to the
 	//     middle merged block.
-	var bid BranchID
 	for i := MetadataRevision(11); i < 41; i++ {
 		rmd.SetRevision(MetadataRevision(i))
 		rmd.SetPrevRoot(prevRoot)
 		mdID, err := mdOps.PutUnmerged(ctx, rmd)
 		require.NoError(t, err, "i=%d", i)
 		prevRoot = mdID
+		require.Equal(t, bid, rmd.BID())
 		bid = rmd.BID()
 		require.NoError(t, err)
 	}
@@ -350,7 +355,8 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 
 	mdcache := NewMDCacheStandard(10)
 	err = j.convertToBranch(
-		ctx, PendingLocalSquashBranchID, config.Crypto(), config.Codec(), id, mdcache)
+		ctx, PendingLocalSquashBranchID, config.Crypto(), config.Codec(),
+		id, mdcache)
 	require.NoError(t, err)
 
 	// The merged head should still be the initial rmd, because we
