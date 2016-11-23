@@ -1999,7 +1999,12 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 			t.Errorf("Couldn't lookup a: %v", err)
 		}
 	}()
-	<-blocked
+	// Wait for the lookup to block.
+	select {
+	case <-blocked:
+	case <-ctx.Done():
+		t.Fatal("Timeout while waiting for lookup to block")
+	}
 
 	// u2 starts to sync but the sync is stalled while holding the
 	// block lock.
@@ -2012,13 +2017,24 @@ func TestKBFSOpsLookupSyncRace(t *testing.T) {
 			t.Errorf("Couldn't sync user 2 from server: %v", err)
 		}
 	}()
-	<-blocked
 
 	// Unblock the lookup.
 	select {
 	case <-paths:
 	case <-ctx.Done():
 		t.Fatal("Timeout while waiting for paths")
+	}
+
+	// Wait for the sync to block.  NOTE: To repro KBFS-1717, this
+	// call needs to go before we unblock the paths lookup.  However,
+	// with the fix for KBFS-1717, the test will hang if we do that
+	// since the Lookup holds blockLock while it gets the path.  So as
+	// is, this isn't a direct repro but it's still a test worth
+	// having around.
+	select {
+	case <-blocked:
+	case <-ctx.Done():
+		t.Fatal("Timeout while waiting for sync to block")
 	}
 
 	// u2 got the path, so let the sync succeed, which will let the

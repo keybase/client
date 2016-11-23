@@ -738,6 +738,43 @@ func (fbo *folderBlockOps) GetDirtyEntry(
 	return fbo.getDirtyEntryLocked(ctx, lState, kmd, file)
 }
 
+// Lookup returns the possibly-dirty DirEntry of the given file in its
+// parent DirBlock, and a Node for the file if it exists.  It has to
+// do all of this under the block lock to avoid races with
+// UpdatePointers.
+func (fbo *folderBlockOps) Lookup(
+	ctx context.Context, lState *lockState, kmd KeyMetadata,
+	dir Node, name string) (Node, DirEntry, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+
+	dirPath := fbo.nodeCache.PathFromNode(dir)
+	if !dirPath.isValid() {
+		return nil, DirEntry{}, InvalidPathError{dirPath}
+	}
+
+	childPath := dirPath.ChildPathNoPtr(name)
+	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, childPath)
+	if err != nil {
+		return nil, DirEntry{}, err
+	}
+
+	if de.Type == Sym {
+		return nil, de, nil
+	}
+
+	err = fbo.checkDataVersion(childPath, de.BlockPointer)
+	if err != nil {
+		return nil, DirEntry{}, err
+	}
+
+	node, err := fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
+	if err != nil {
+		return nil, DirEntry{}, err
+	}
+	return node, de, nil
+}
+
 func (fbo *folderBlockOps) getOrCreateDirtyFileLocked(lState *lockState,
 	file path) *dirtyFile {
 	fbo.blockLock.AssertLocked(lState)
