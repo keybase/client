@@ -546,12 +546,38 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	arg.Msg.ClientHeader.Sender = uid.ToBytes()
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
+	var pendingAssetDeletes []chat1.Asset
+	if arg.Msg.ClientHeader.MessageType == chat1.MessageType_DELETE {
+		// check to see if deleting an attachment
+		md := arg.Msg.MessageBody.Delete()
+		for _, msgID := range md.MessageIDs {
+			assets, err := chat.AssetsForMessage(ctx, msgID)
+			if err != nil {
+				h.G().Log.Debug("error getting assets for message: %s", err)
+				// continue despite error?  Or return error and let user try again.
+			}
+			if len(assets) > 0 {
+				pendingAssetDeletes = append(pendingAssetDeletes, assets...)
+			}
+		}
+	}
+
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 
 	_, _, rl, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0)
 	if err != nil {
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
+
+	if len(pendingAssetDeletes) > 0 {
+		if err := chat.DeleteAssets(ctx, pendingAssetDeletes); err != nil {
+			h.G().Log.Debug("error deleting assets: %s", err)
+			// there's no way to get asset information after this point.
+			// we should do everything we can to delete them if they
+			// should be deleted...
+		}
+	}
+
 	return chat1.PostLocalRes{
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
 	}, nil
