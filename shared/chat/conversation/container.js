@@ -54,6 +54,7 @@ export default connect(
           isLoading: conversationState.isLoading,
           selectedConversation,
           metaData: state.chat.get('metaData'),
+          bannerMessage: null,
         }
       }
     }
@@ -65,6 +66,7 @@ export default connect(
       isLoading: false,
       selectedConversation,
       metaData: Map(),
+      bannerMessage: null,
     }
   },
   (dispatch: Dispatch) => ({

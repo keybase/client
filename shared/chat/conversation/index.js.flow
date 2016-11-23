@@ -2,8 +2,9 @@
 import {Component} from 'react'
 import {List, Map} from 'immutable'
 
-import type {Message, ConversationIDKey, ParticipantItem, MetaData} from '../../constants/chat'
+import type {Props as BannerMessage} from './banner'
 
+import type {Message, ConversationIDKey, ParticipantItem, MetaData} from '../../constants/chat'
 export type Props = {
   isLoading: boolean,
   messages: List<Message>,
@@ -18,6 +19,7 @@ export type Props = {
   participants: List<ParticipantItem>,
   selectedConversation: ?ConversationIDKey,
   sidePanelOpen: boolean,
+  bannerMessage: ?BannerMessage
 }
 
 export default class Conversation extends Component<void, Props, void> { }
