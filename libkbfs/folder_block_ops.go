@@ -998,14 +998,17 @@ func (fbo *folderBlockOps) newFileData(lState *lockState,
 			return fbo.getFileBlockLocked(
 				ctx, lState, kmd, ptr, file, rtype)
 		},
+		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
+			file path) (*FileBlock, error) {
+			newLState := makeFBOLockState()
+			return fbo.GetFileBlockForReading(
+				ctx, newLState, kmd, ptr, file.Branch, file)
+		},
 		func(ptr BlockPointer, block Block) error {
 			return fbo.cacheBlockIfNotYetDirtyLocked(
 				lState, ptr, file, block)
 		}, fbo.log)
 }
-
-// The amount that the read timeout is smaller than the global one.
-const readTimeoutSmallerBy = 2 * time.Second
 
 // Read reads from the given file into the given buffer at the given
 // offset. It returns the number of bytes read and nil, or 0 and the
@@ -1018,81 +1021,9 @@ func (fbo *folderBlockOps) Read(
 
 	fbo.log.CDebugf(ctx, "Reading from %v", file.tailPointer())
 
-	// getFileLocked already checks read permissions
-	fblock, err := fbo.getFileLocked(ctx, lState, kmd, file, blockRead)
-	if err != nil {
-		return 0, err
-	}
-
-	// If we have a large enough timeout add a temporary timeout that is
-	// readTimeoutSmallerBy. Use that for reading so short reads get returned
-	// upstream without triggering the global timeout.
-	now := time.Now()
-	deadline, haveTimeout := ctx.Deadline()
-	if haveTimeout {
-		rem := deadline.Sub(now) - readTimeoutSmallerBy
-		if rem > 0 {
-			var cancel func()
-			ctx, cancel = context.WithTimeout(ctx, rem)
-			defer cancel()
-		}
-	}
-
-	nRead := int64(0)
-	n := int64(len(dest))
-
 	var uid keybase1.UID // Data reads don't depend on the uid.
 	fd := fbo.newFileData(lState, file, uid, kmd)
-
-	for nRead < n {
-		nextByte := nRead + off
-		toRead := n - nRead
-		_, _, block, nextBlockOff, startOff, _, err := fd.getFileBlockAtOffset(
-			ctx, fblock, nextByte, blockRead)
-		if err != nil {
-			// If we hit a timeout while reading then return the bytes already read
-			// and no error. If the upstream tries to do something blocking they
-			// will encounter the error with the context again. Only do this
-			// if we have already read some bytes to avoid pathological cases
-			// causing a reader looping.
-			if err == context.DeadlineExceeded && nRead > 0 {
-				fbo.log.CDebugf(ctx, "Read short: read %d bytes of %d\n", nRead, n)
-				return nRead, nil
-			}
-			return 0, err
-		}
-		blockLen := int64(len(block.Contents))
-		lastByteInBlock := startOff + blockLen
-
-		if nextByte >= lastByteInBlock {
-			if nextBlockOff > 0 {
-				fill := nextBlockOff - nextByte
-				if fill > toRead {
-					fill = toRead
-				}
-				fbo.log.CDebugf(ctx, "Read from hole: nextByte=%d lastByteInBlock=%d fill=%d\n", nextByte, lastByteInBlock, fill)
-				if fill <= 0 {
-					fbo.log.CErrorf(ctx, "Read invalid file fill <= 0 while reading hole")
-					return nRead, BadSplitError{}
-				}
-				for i := 0; i < int(fill); i++ {
-					dest[int(nRead)+i] = 0
-				}
-				nRead += fill
-				continue
-			}
-			return nRead, nil
-		} else if toRead > lastByteInBlock-nextByte {
-			toRead = lastByteInBlock - nextByte
-		}
-
-		firstByteToRead := nextByte - startOff
-		copy(dest[nRead:nRead+toRead],
-			block.Contents[firstByteToRead:toRead+firstByteToRead])
-		nRead += toRead
-	}
-
-	return n, nil
+	return fd.read(ctx, dest, off)
 }
 
 func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(

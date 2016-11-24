@@ -1060,7 +1060,7 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 			ctx, j.config.Codec(), j.config.Crypto(),
 			j.config.BlockCache(), j.config.BlockOps(),
 			j.config.mdDecryptionKeyGetter(), j.uid,
-			rmd.GetSerializedPrivateMetadata(), rmd, rmd)
+			rmd.GetSerializedPrivateMetadata(), rmd, rmd, j.log)
 		if err != nil {
 			return nil, err
 		}

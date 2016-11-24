@@ -5,14 +5,28 @@
 package libkbfs
 
 import (
+	"time"
+
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 )
 
+// fileBlockGetter is a function that gets a block suitable for
+// reading or writing, and also returns whether the block was already
+// dirty.  It is suitable for calls from the same goroutine as the
+// caller of fileData functions.
 type fileBlockGetter func(context.Context, KeyMetadata, BlockPointer,
 	path, blockReqType) (fblock *FileBlock, wasDirty bool, err error)
+
+// fileBlockGoGetter is a function that gets a block for reading, and
+// is called from goroutines spawned by fileData.
+type fileBlockGoGetter func(context.Context, KeyMetadata, BlockPointer,
+	path) (fblock *FileBlock, err error)
+
+// dirtyBlockCacher writes dirty blocks to a cache.
 type dirtyBlockCacher func(ptr BlockPointer, block Block) error
 
 // fileData is a helper struct for accessing and manipulating data
@@ -24,23 +38,34 @@ type fileData struct {
 	crypto cryptoPure
 	kmd    KeyMetadata
 	bsplit BlockSplitter
+
+	// getter is used when fetching blocks within the same goroutine
+	// as the caller of the fileData function.
 	getter fileBlockGetter
+
+	// goGetter is used when fetching blocks from goroutines created
+	// by fileData.  It may need different locking properties from
+	// `getter`.  It will only be used for read requests.
+	goGetter fileBlockGoGetter
+
 	cacher dirtyBlockCacher
 	log    logger.Logger
 }
 
 func newFileData(file path, uid keybase1.UID, crypto cryptoPure,
 	bsplit BlockSplitter, kmd KeyMetadata, getter fileBlockGetter,
-	cacher dirtyBlockCacher, log logger.Logger) *fileData {
+	goGetter fileBlockGoGetter, cacher dirtyBlockCacher,
+	log logger.Logger) *fileData {
 	return &fileData{
-		file:   file,
-		uid:    uid,
-		crypto: crypto,
-		bsplit: bsplit,
-		kmd:    kmd,
-		getter: getter,
-		cacher: cacher,
-		log:    log,
+		file:     file,
+		uid:      uid,
+		crypto:   crypto,
+		bsplit:   bsplit,
+		kmd:      kmd,
+		getter:   getter,
+		goGetter: goGetter,
+		cacher:   cacher,
+		log:      log,
 	}
 }
 
@@ -95,6 +120,341 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 	}
 
 	return ptr, parentBlocks, block, nextBlockStartOff, startOff, wasDirty, nil
+}
+
+// getLeafBlocksForOffsetRange fetches all the leaf ("direct") blocks
+// that encompass the given offset range (half-inclusive) in the file.
+// If `endOff` is -1, it returns blocks until reaching the end of the
+// file.  Note the range could be made up of holes, indicated in the
+// IPtrs list of the parent blocks.  If `prefixOk` is true, the
+// function will ignore context deadline errors and return whatever
+// prefix of the data it could fetch within the deadine.  Return
+// params:
+//
+//   * pathsFromRoot is a slice, ordered by file offset, of paths from
+//     the root to each block that makes up the range.
+//   * blocks: a map from block pointer to a data-containing leaf node
+//     in the given range of offsets.
+//   * nextBlockOff is the offset of the block that follows the last
+//     block given in `pathsFromRoot`.  If `pathsFromRoot` contains
+//     the largest block among the children, nextBlockOff is -1.
+func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
+	pblock *FileBlock, startOff int64, endOff int64,
+	prefixOk bool) (pathsFromRoot [][]parentBlockAndChildIndex,
+	blocks map[BlockPointer]*FileBlock, nextBlockOffset int64, err error) {
+	if !pblock.IsInd {
+		// Return a single empty path and am empty child block map.
+		return [][]parentBlockAndChildIndex{nil}, nil, -1, nil
+	}
+
+	type resp struct {
+		pathsFromRoot [][]parentBlockAndChildIndex
+		blocks        map[BlockPointer]*FileBlock
+		nextBlockOff  int64
+	}
+
+	// Search all of the in-range child blocks, and their child
+	// blocks, etc, in parallel.
+	respChans := make([]<-chan resp, 0, len(pblock.IPtrs))
+	eg, groupCtx := errgroup.WithContext(ctx)
+	nextBlockOff := int64(-1)
+	for i, iptr := range pblock.IPtrs {
+		// Some byte of this block is included in the left side of the
+		// range if `startOff` is less than the largest byte offset in
+		// the block.
+		inRangeLeft := true
+		if i < len(pblock.IPtrs)-1 {
+			inRangeLeft = startOff < pblock.IPtrs[i+1].Off
+		}
+		if !inRangeLeft {
+			continue
+		}
+		// Some byte of this block is included in the right side of
+		// the range if `endOff` is bigger than the smallest byte
+		// offset in the block (or if we're explicitly reading all the
+		// data to the end).
+		inRangeRight := endOff == -1 || endOff > iptr.Off
+		if !inRangeRight {
+			// This block is the first one past the offset range
+			// amount the children.
+			nextBlockOff = iptr.Off
+			break
+		}
+
+		ptr := iptr.BlockPointer
+		childIndex := i
+		respCh := make(chan resp, 1)
+		respChans = append(respChans, respCh)
+		eg.Go(func() error {
+			block, err := fd.goGetter(groupCtx, fd.kmd, ptr, fd.file)
+			if err != nil {
+				return err
+			}
+			// Recurse down to the level of the child.
+			pfr, blocks, nextBlockOff, err := fd.getLeafBlocksForOffsetRange(
+				groupCtx, block, startOff, endOff, prefixOk)
+			if err != nil {
+				return err
+			}
+
+			// Append self to the front of every path and add `block` to
+			// the blocks map.
+			var r resp
+			for _, p := range pfr {
+				newPath := append([]parentBlockAndChildIndex{{
+					pblock:     pblock,
+					childIndex: childIndex,
+				}}, p...)
+				r.pathsFromRoot = append(r.pathsFromRoot, newPath)
+			}
+			r.blocks = make(map[BlockPointer]*FileBlock)
+			r.blocks[ptr] = block
+			for ptr, block := range blocks {
+				r.blocks[ptr] = block
+			}
+			r.nextBlockOff = nextBlockOff
+			respCh <- r
+			return nil
+		})
+	}
+
+	// If we are ok with just getting the prefix, don't treat a
+	// deadline exceeded error as fatal.
+	if err := eg.Wait(); err != nil && (!prefixOk ||
+		err != context.DeadlineExceeded) {
+		return nil, nil, 0, err
+	}
+
+	blocks = make(map[BlockPointer]*FileBlock)
+outer:
+	for i, respCh := range respChans {
+		select {
+		case r := <-respCh:
+			pathsFromRoot = append(pathsFromRoot, r.pathsFromRoot...)
+			for ptr, block := range r.blocks {
+				blocks[ptr] = block
+			}
+			if i == len(respChans)-1 {
+				// Figure out the offset of the next data block after
+				// the last in-range one.  It's the minimum of the
+				// next one at this level and the next one at the
+				// child's level, not counting -1 (which means we are
+				// returning the the last block at the given level).
+				if (r.nextBlockOff != -1 && r.nextBlockOff < nextBlockOff) ||
+					nextBlockOff == -1 {
+					nextBlockOff = r.nextBlockOff
+				}
+			}
+		default:
+			// There should always be a response ready in every
+			// channel, unless prefixOk is true.
+			if prefixOk {
+				break outer
+			} else {
+				panic("No response ready when !prefixOk")
+			}
+		}
+	}
+	return pathsFromRoot, blocks, nextBlockOff, nil
+}
+
+// getByteSlicesInOffsetRange returns an ordered, continuous slice of
+// byte ranges for the data described by the half-inclusve offset
+// range `[startOff, endOff)`.  If `endOff` == -1, it returns data to
+// the end of the file.  The caller is responsible for concatenating
+// the data into a single buffer if desired. If `prefixOk` is true,
+// the function will ignore context deadline errors and return
+// whatever prefix of the data it could fetch within the deadine.
+func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
+	startOff, endOff int64, prefixOk bool) ([][]byte, error) {
+	if (endOff != -1 && endOff <= startOff) || startOff < 0 {
+		return nil, nil
+	}
+
+	topBlock, _, err := fd.getter(ctx, fd.kmd, fd.file.tailPointer(),
+		fd.file, blockRead)
+	if err != nil {
+		return nil, err
+	}
+
+	// Find all the indirect pointers to leaf blocks in the offset range.
+	var iptrs []IndirectFilePtr
+	firstBlockOff := int64(-1)
+	endBlockOff := int64(-1)
+	nextBlockOff := int64(-1)
+	var blockMap map[BlockPointer]*FileBlock
+	if topBlock.IsInd {
+		var pfr [][]parentBlockAndChildIndex
+		pfr, blockMap, nextBlockOff, err = fd.getLeafBlocksForOffsetRange(
+			ctx, topBlock, startOff, endOff, prefixOk)
+		if err != nil {
+			return nil, err
+		}
+
+		for i, p := range pfr {
+			if len(p) == 0 {
+				continue
+			}
+			lowestAncestor := p[len(p)-1]
+			iptr := lowestAncestor.pblock.IPtrs[lowestAncestor.childIndex]
+			iptrs = append(iptrs, iptr)
+			if firstBlockOff < 0 {
+				firstBlockOff = iptr.Off
+			}
+			if i == len(pfr)-1 {
+				leafBlock := blockMap[iptr.BlockPointer]
+				endBlockOff = iptr.Off + int64(len(leafBlock.Contents))
+			}
+		}
+	} else {
+		iptrs = []IndirectFilePtr{{
+			BlockInfo: BlockInfo{BlockPointer: fd.file.tailPointer()},
+			Off:       0,
+		}}
+		firstBlockOff = 0
+		endBlockOff = int64(len(topBlock.Contents))
+		blockMap = map[BlockPointer]*FileBlock{fd.file.tailPointer(): topBlock}
+	}
+
+	if len(iptrs) == 0 {
+		return nil, nil
+	}
+
+	nRead := int64(0)
+	n := endOff - startOff
+	if endOff == -1 {
+		n = endBlockOff - startOff
+	}
+
+	// Grab the relevant byte slices from each block described by the
+	// indirect pointer, filling in holes as needed.
+	var bytes [][]byte
+	for _, iptr := range iptrs {
+		block := blockMap[iptr.BlockPointer]
+		blockLen := int64(len(block.Contents))
+		nextByte := nRead + startOff
+		toRead := n - nRead
+		blockOff := iptr.Off
+		lastByteInBlock := blockOff + blockLen
+
+		if nextByte >= lastByteInBlock {
+			if nextBlockOff > 0 {
+				fill := nextBlockOff - nextByte
+				if fill > toRead {
+					fill = toRead
+				}
+				fd.log.CDebugf(ctx, "Read from hole: nextByte=%d "+
+					"lastByteInBlock=%d fill=%d", nextByte, lastByteInBlock,
+					fill)
+				if fill <= 0 {
+					fd.log.CErrorf(ctx,
+						"Read invalid file fill <= 0 while reading hole")
+					return nil, BadSplitError{}
+				}
+				bytes = append(bytes, make([]byte, fill))
+				nRead += fill
+				continue
+			}
+			return bytes, nil
+		} else if toRead > lastByteInBlock-nextByte {
+			toRead = lastByteInBlock - nextByte
+		}
+
+		if toRead == 0 {
+			continue
+		}
+
+		firstByteToRead := nextByte - blockOff
+		bytes = append(bytes,
+			block.Contents[firstByteToRead:toRead+firstByteToRead])
+		nRead += toRead
+	}
+
+	// If we didn't complete the read and there's another block, then
+	// we've hit another hole and need to add a fill.
+	if nRead < n && nextBlockOff > 0 {
+		toRead := n - nRead
+		nextByte := nRead + startOff
+		fill := nextBlockOff - nextByte
+		if fill > toRead {
+			fill = toRead
+		}
+		fd.log.CDebugf(ctx, "Read from hole at end of file: nextByte=%d "+
+			"fill=%d", nextByte, fill)
+		if fill <= 0 {
+			fd.log.CErrorf(ctx,
+				"Read invalid file fill <= 0 while reading hole")
+			return nil, BadSplitError{}
+		}
+		bytes = append(bytes, make([]byte, fill))
+	}
+	return bytes, nil
+}
+
+// The amount that the read timeout is smaller than the global one.
+const readTimeoutSmallerBy = 2 * time.Second
+
+// read fills the `dest` buffer with data from the file, starting at
+// `startOff`.  Returns the number of bytes copied.  If the read
+// operation nears the deadline set in `ctx`, it returns as big a
+// prefix as possible before reaching the deadline.
+func (fd *fileData) read(ctx context.Context, dest []byte, startOff int64) (
+	int64, error) {
+	if len(dest) == 0 {
+		return 0, nil
+	}
+
+	// If we have a large enough timeout add a temporary timeout that is
+	// readTimeoutSmallerBy. Use that for reading so short reads get returned
+	// upstream without triggering the global timeout.
+	now := time.Now()
+	deadline, haveTimeout := ctx.Deadline()
+	if haveTimeout {
+		rem := deadline.Sub(now) - readTimeoutSmallerBy
+		if rem > 0 {
+			var cancel func()
+			ctx, cancel = context.WithTimeout(ctx, rem)
+			defer cancel()
+		}
+	}
+
+	bytes, err := fd.getByteSlicesInOffsetRange(ctx, startOff,
+		startOff+int64(len(dest)), true)
+	if err != nil {
+		return 0, err
+	}
+
+	currLen := int64(0)
+	for _, b := range bytes {
+		bLen := int64(len(b))
+		copy(dest[currLen:currLen+bLen], b)
+		currLen += bLen
+	}
+	return currLen, nil
+}
+
+// getBytes returns a buffer containing data from the file, in the
+// half-inclusive range `[startOff, endOff)`.  If `endOff` == -1, it
+// returns data until the end of the file.
+func (fd *fileData) getBytes(ctx context.Context, startOff int64,
+	endOff int64) (data []byte, err error) {
+	bytes, err := fd.getByteSlicesInOffsetRange(ctx, startOff, endOff, false)
+	if err != nil {
+		return nil, err
+	}
+
+	bufSize := 0
+	for _, b := range bytes {
+		bufSize += len(b)
+	}
+	data = make([]byte, bufSize)
+	currLen := 0
+	for _, b := range bytes {
+		copy(data[currLen:currLen+len(b)], b)
+		currLen += len(b)
+	}
+
+	return data, nil
 }
 
 // createIndirectBlock creates a new indirect block and pick a new id
