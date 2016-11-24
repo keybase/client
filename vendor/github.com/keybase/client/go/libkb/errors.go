@@ -1660,15 +1660,6 @@ func (e ChatConvExistsError) Error() string {
 
 //=============================================================================
 
-type ChatCollisionError struct {
-}
-
-func (e ChatCollisionError) Error() string {
-	return fmt.Sprintf("conversation id collision")
-}
-
-//=============================================================================
-
 type ChatUnknownTLFIDError struct {
 	TlfID chat1.TLFID
 }
@@ -1778,13 +1769,9 @@ func NewChatStorageInternalError(g *GlobalContext, msg string, args ...interface
 }
 
 type ChatStorageMissError struct {
-	Msg string
 }
 
 func (e ChatStorageMissError) Error() string {
-	if len(e.Msg) > 0 {
-		return "chat cache miss: " + e.Msg
-	}
 	return "chat cache miss"
 }
 
@@ -1826,30 +1813,4 @@ func (e ChatStorageMiscError) ShouldClear() bool {
 
 func (e ChatStorageMiscError) Message() string {
 	return e.Msg
-}
-
-//=============================================================================
-
-type InvalidAddressError struct {
-	Msg string
-}
-
-func (e InvalidAddressError) Error() string {
-	return e.Msg
-}
-
-type ExistsError struct {
-	Msg string
-}
-
-func (e ExistsError) Error() string {
-	return e.Msg
-}
-
-//=============================================================================
-
-type LevelDBOpenClosedError struct{}
-
-func (e LevelDBOpenClosedError) Error() string {
-	return "opening a closed DB"
 }

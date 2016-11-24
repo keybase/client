@@ -4,7 +4,6 @@
 package pvl
 
 import (
-	"bytes"
 	b64 "encoding/base64"
 	"net"
 	"net/url"
@@ -67,10 +66,8 @@ const (
 	cmdAssertCompare       commandName = "assert_compare"
 	cmdWhitespaceNormalize commandName = "whitespace_normalize"
 	cmdRegexCapture        commandName = "regex_capture"
-	cmdReplaceAll          commandName = "replace_all"
 	cmdParseURL            commandName = "parse_url"
 	cmdFetch               commandName = "fetch"
-	cmdParseHTML           commandName = "parse_html"
 	cmdSelectorJSON        commandName = "selector_json"
 	cmdSelectorCSS         commandName = "selector_css"
 	cmdFill                commandName = "fill"
@@ -360,7 +357,6 @@ func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofTy
 		case ins.AssertCompare != nil:
 		case ins.WhitespaceNormalize != nil:
 		case ins.RegexCapture != nil:
-		case ins.ReplaceAll != nil:
 		case ins.ParseURL != nil:
 		case ins.Fill != nil:
 
@@ -392,7 +388,6 @@ func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofTy
 				return logerr(g, service, whichscript, i,
 					"Unsupported fetch type: %v", fetchType)
 			}
-		case ins.ParseHTML != nil:
 		case ins.SelectorJSON != nil:
 			// Can only select after fetching.
 			switch {
@@ -407,10 +402,17 @@ func validateScript(g proofContextExt, script *scriptT, service keybase1.ProofTy
 					"Script contains json selector in non-html mode")
 			}
 		case ins.SelectorCSS != nil:
-			// Can only select one of text, attr, or data.
-			if ins.SelectorCSS.Attr != "" && ins.SelectorCSS.Data {
+			// Can only select after fetching.
+			switch {
+			case service == keybase1.ProofType_DNS:
 				return logerr(g, service, whichscript, i,
-					"Script contains css selector with both 'attr' and 'data' set")
+					"DNS script cannot use css selector")
+			case !modeknown:
+				return logerr(g, service, whichscript, i,
+					"Script cannot select before fetch")
+			case mode != fetchModeHTML:
+				return logerr(g, service, whichscript, i,
+					"Script contains css selector in non-html mode")
 			}
 		default:
 			return logerr(g, service, whichscript, i,
@@ -546,18 +548,12 @@ func stepInstruction(g proofContextExt, ins instructionT, state scriptState) (sc
 	case ins.RegexCapture != nil:
 		newState, stepErr = stepRegexCapture(g, *ins.RegexCapture, state)
 		customErrSpec = ins.RegexCapture.Error
-	case ins.ReplaceAll != nil:
-		newState, stepErr = stepReplaceAll(g, *ins.ReplaceAll, state)
-		customErrSpec = ins.ReplaceAll.Error
 	case ins.ParseURL != nil:
 		newState, stepErr = stepParseURL(g, *ins.ParseURL, state)
 		customErrSpec = ins.ParseURL.Error
 	case ins.Fetch != nil:
 		newState, stepErr = stepFetch(g, *ins.Fetch, state)
 		customErrSpec = ins.Fetch.Error
-	case ins.ParseHTML != nil:
-		newState, stepErr = stepParseHTML(g, *ins.ParseHTML, state)
-		customErrSpec = ins.ParseHTML.Error
 	case ins.SelectorJSON != nil:
 		newState, stepErr = stepSelectorJSON(g, *ins.SelectorJSON, state)
 		customErrSpec = ins.SelectorJSON.Error
@@ -708,21 +704,6 @@ func stepRegexCapture(g proofContextExt, ins regexCaptureT, state scriptState) (
 	return state, nil
 }
 
-func stepReplaceAll(g proofContextExt, ins replaceAllT, state scriptState) (scriptState, libkb.ProofError) {
-	from, err := state.Regs.Get(ins.From)
-	if err != nil {
-		return state, err
-	}
-
-	replaced := strings.Replace(from, ins.Old, ins.New, -1)
-	err = state.Regs.Set(ins.Into, replaced)
-	if err != nil {
-		return state, err
-	}
-
-	return state, nil
-}
-
 func stepParseURL(g proofContextExt, ins parseURLT, state scriptState) (scriptState, libkb.ProofError) {
 	s, err := state.Regs.Get(ins.From)
 	if err != nil {
@@ -824,24 +805,6 @@ func stepFetch(g proofContextExt, ins fetchT, state scriptState) (scriptState, l
 	}
 }
 
-func stepParseHTML(g proofContextExt, ins parseHTMLT, state scriptState) (scriptState, libkb.ProofError) {
-	from, err := state.Regs.Get(ins.From)
-	if err != nil {
-		return state, err
-	}
-
-	gq, err2 := goquery.NewDocumentFromReader(bytes.NewBuffer([]byte(from)))
-	if err2 != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Failed to parse html from '%v': %v", ins.From, err2)
-	}
-
-	state.FetchResult = &fetchResult{
-		fetchMode: fetchModeHTML,
-		HTML:      gq,
-	}
-	return state, nil
-}
-
 func stepSelectorJSON(g proofContextExt, ins selectorJSONT, state scriptState) (scriptState, libkb.ProofError) {
 	if state.FetchResult == nil || state.FetchResult.fetchMode != fetchModeJSON {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
@@ -888,15 +851,9 @@ func stepSelectorCSS(g proofContextExt, ins selectorCSST, state scriptState) (sc
 			"CSS selector matched too many elements")
 	}
 
-	// Get the text, attribute, or data.
-	var res string
-	if ins.Attr != "" {
-		res = selectionAttr(selection, ins.Attr)
-	} else if ins.Data {
-		res = selectionData(selection)
-	} else {
-		res = selectionText(selection)
-	}
+	// Whether to get an attribute or the text contents.
+	useAttr := ins.Attr != ""
+	res := selectionContents(selection, useAttr, ins.Attr)
 
 	err := state.Regs.Set(ins.Into, res)
 	return state, err
@@ -933,11 +890,9 @@ func runCSSSelectorInner(g proofContextExt, html *goquery.Selection, selectors [
 			selection = selection.Eq(selector.Index)
 		case selector.IsKey:
 			selection = selection.Find(selector.Key)
-		case selector.IsContents:
-			selection = selection.Contents()
 		default:
 			return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"CSS selector entry must be a string, int, or 'contents' %v", selector)
+				"Selector entry must be a string or int %v", selector)
 		}
 	}
 
@@ -1002,10 +957,9 @@ func runSelectorJSONInner(g proofContextExt, state scriptState, selectedObject *
 			results = append(results, innerresults...)
 		}
 		return results, nil
-	default:
-		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"JSON selector entry must be a string, int, or 'all' %v", selector)
 	}
+	return []string{}, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+		"Invalid selector entry: %v", selector)
 }
 
 // Take a regex descriptor, do variable substitution, and build a regex.

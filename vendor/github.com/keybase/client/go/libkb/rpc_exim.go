@@ -84,7 +84,7 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase1.RemoteProof {
 	return keybase1.RemoteProof{
 		ProofType:     p.GetProofType(),
 		Key:           k,
-		Value:         strings.ToLower(v),
+		Value:         v,
 		DisplayMarkup: v,
 		SigID:         p.GetSigID(),
 		MTime:         keybase1.ToTime(p.GetCTime()),
@@ -456,12 +456,6 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ChatAlreadyDeletedError{Msg: s.Desc}
 	case SCBadEmail:
 		return BadEmailError{Msg: s.Desc}
-	case SCExists:
-		return ExistsError{Msg: s.Desc}
-	case SCInvalidAddress:
-		return InvalidAddressError{Msg: s.Desc}
-	case SCChatCollision:
-		return ChatCollisionError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -604,8 +598,6 @@ func (c CryptocurrencyChainLink) Export() (ret keybase1.Cryptocurrency) {
 	ret.Pkhash = c.pkhash
 	ret.Address = c.address
 	ret.SigID = c.GetSigID()
-	ret.Type = c.typ.String()
-	ret.Family = string(c.typ.ToCryptocurrencyFamily())
 	return ret
 }
 
@@ -879,22 +871,6 @@ func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicK
 	return exportedKeys, pgpKeyCount
 }
 
-// ExportAllPGPKeys exports all pgp keys.
-func (ckf ComputedKeyFamily) ExportAllPGPKeys() (keys []keybase1.PublicKey) {
-	for _, key := range ckf.GetAllActiveSibkeys() {
-		if _, isPGP := key.(*PGPKeyBundle); isPGP {
-			keys = append(keys, ckf.exportPublicKey(key))
-		}
-	}
-	for _, key := range ckf.GetAllActiveSubkeys() {
-		if _, isPGP := key.(*PGPKeyBundle); isPGP {
-			keys = append(keys, ckf.exportPublicKey(key))
-		}
-	}
-	sort.Sort(PublicKeyList(keys))
-	return keys
-}
-
 func (ckf ComputedKeyFamily) ExportRevokedDeviceKeys() []keybase1.RevokedKey {
 	var ex []keybase1.RevokedKey
 	for _, key := range ckf.GetRevokedKeys() {
@@ -945,13 +921,6 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 
 	ret.Uvv = u.ExportToVersionVector(idTime)
 	return ret
-}
-
-func (u *User) ExportToUserPlusAllKeys(idTime keybase1.Time) keybase1.UserPlusAllKeys {
-	return keybase1.UserPlusAllKeys{
-		Base:    u.ExportToUserPlusKeys(idTime),
-		PGPKeys: u.GetComputedKeyFamily().ExportAllPGPKeys(),
-	}
 }
 
 //=============================================================================
@@ -1455,34 +1424,10 @@ func (e ChatTLFFinalizedError) ToStatus() keybase1.Status {
 	}
 }
 
-func (e ChatCollisionError) ToStatus() keybase1.Status {
-	return keybase1.Status{
-		Code: SCChatCollision,
-		Name: "SC_CHAT_COLLISION",
-		Desc: e.Error(),
-	}
-}
-
 func (e BadEmailError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCBadEmail,
 		Name: "SC_BAD_EMAIL",
-		Desc: e.Error(),
-	}
-}
-
-func (e ExistsError) ToStatus() keybase1.Status {
-	return keybase1.Status{
-		Code: SCExists,
-		Name: "SC_EXISTS",
-		Desc: e.Error(),
-	}
-}
-
-func (e InvalidAddressError) ToStatus() keybase1.Status {
-	return keybase1.Status{
-		Code: SCInvalidAddress,
-		Name: "SC_INVALID_ADDRESS",
 		Desc: e.Error(),
 	}
 }

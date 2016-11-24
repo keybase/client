@@ -587,7 +587,7 @@ func ParseSibkeyChainLink(b GenericChainLink) (ret *SibkeyChainLink, err error) 
 
 func (s *SibkeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
 func (s *SibkeyChainLink) GetRole() KeyRole              { return DLGSibkey }
-func (s *SibkeyChainLink) Type() string                  { return DelegationTypeSibkey }
+func (s *SibkeyChainLink) Type() string                  { return SibkeyType }
 func (s *SibkeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SibkeyChainLink) GetDevice() *Device            { return s.device }
 func (s *SibkeyChainLink) GetPGPFullHash() string        { return s.extractPGPFullHash("sibkey") }
@@ -675,7 +675,7 @@ func ParseSubkeyChainLink(b GenericChainLink) (ret *SubkeyChainLink, err error) 
 	return
 }
 
-func (s *SubkeyChainLink) Type() string                  { return DelegationTypeSubkey }
+func (s *SubkeyChainLink) Type() string                  { return SubkeyType }
 func (s *SubkeyChainLink) ToDisplayString() string       { return s.kid.String() }
 func (s *SubkeyChainLink) GetRole() KeyRole              { return DLGSubkey }
 func (s *SubkeyChainLink) GetDelegatedKid() keybase1.KID { return s.kid }
@@ -727,7 +727,7 @@ func ParsePGPUpdateChainLink(b GenericChainLink) (ret *PGPUpdateChainLink, err e
 	return
 }
 
-func (l *PGPUpdateChainLink) Type() string                       { return DelegationTypePGPUpdate }
+func (l *PGPUpdateChainLink) Type() string                       { return PGPUpdateType }
 func (l *PGPUpdateChainLink) ToDisplayString() string            { return l.kid.String() }
 func (l *PGPUpdateChainLink) GetPGPFullHash() string             { return l.extractPGPFullHash("pgp_update") }
 func (l *PGPUpdateChainLink) insertIntoTable(tab *IdentityTable) { tab.insertLink(l) }
@@ -817,7 +817,6 @@ type CryptocurrencyChainLink struct {
 	GenericChainLink
 	pkhash  []byte
 	address string
-	typ     CryptocurrencyType
 }
 
 func (c CryptocurrencyChainLink) GetAddress() string {
@@ -828,28 +827,27 @@ func ParseCryptocurrencyChainLink(b GenericChainLink) (
 	cl *CryptocurrencyChainLink, err error) {
 
 	jw := b.payloadJSON.AtPath("body.cryptocurrency")
-	var styp, addr string
+	var typ, addr string
 	var pkhash []byte
 
-	jw.AtKey("type").GetStringVoid(&styp, &err)
+	jw.AtKey("type").GetStringVoid(&typ, &err)
 	jw.AtKey("address").GetStringVoid(&addr, &err)
 
 	if err != nil {
 		return
 	}
 
-	var typ CryptocurrencyType
-	typ, pkhash, err = CryptocurrencyParseAndCheck(addr)
+	if typ != "bitcoin" {
+		err = fmt.Errorf("Can only handle 'bitcoin' addresses for now; got %s", typ)
+		return
+	}
+
+	_, pkhash, err = BtcAddrCheck(addr, nil)
 	if err != nil {
 		err = fmt.Errorf("At signature %s: %s", b.ToDebugString(), err)
 		return
 	}
-	if styp != typ.String() {
-		err = fmt.Errorf("Got %q type but wanted %q at: %s", styp, typ.String(), err)
-		return
-	}
-
-	cl = &CryptocurrencyChainLink{b, pkhash, addr, typ}
+	cl = &CryptocurrencyChainLink{b, pkhash, addr}
 	return
 }
 
@@ -1040,11 +1038,11 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseCryptocurrencyChainLink(base)
 		case "revoke":
 			ret, err = ParseRevokeChainLink(base)
-		case DelegationTypeSibkey:
+		case SibkeyType:
 			ret, err = ParseSibkeyChainLink(base)
-		case DelegationTypeSubkey:
+		case SubkeyType:
 			ret, err = ParseSubkeyChainLink(base)
-		case DelegationTypePGPUpdate:
+		case PGPUpdateType:
 			ret, err = ParsePGPUpdateChainLink(base)
 		case "device":
 			ret, err = ParseDeviceChainLink(base)
@@ -1166,25 +1164,13 @@ func (idt *IdentityTable) TrackChainLinkFor(username string, uid keybase1.UID) (
 	return nil, nil
 }
 
-func (idt *IdentityTable) ActiveCryptocurrency(family CryptocurrencyFamily) *CryptocurrencyChainLink {
+func (idt *IdentityTable) ActiveCryptocurrency() *CryptocurrencyChainLink {
+	var ret *CryptocurrencyChainLink
 	tab := idt.cryptocurrency
-	for i := len(tab) - 1; i >= 0; i-- {
-		link := tab[i]
-		if link.typ.ToCryptocurrencyFamily() == family {
-			if link.IsRevoked() {
-				return nil
-			}
-			return link
-		}
-	}
-	return nil
-}
-
-func (idt *IdentityTable) AllActiveCryptocurrency() []CryptocurrencyChainLink {
-	var ret []CryptocurrencyChainLink
-	for _, link := range idt.cryptocurrency {
-		if !link.IsRevoked() {
-			ret = append(ret, *link)
+	if len(tab) > 0 {
+		last := tab[len(tab)-1]
+		if !last.IsRevoked() {
+			ret = last
 		}
 	}
 	return ret
@@ -1216,8 +1202,7 @@ func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui I
 		}(lcr)
 	}
 
-	allAcc := idt.AllActiveCryptocurrency()
-	for _, acc := range allAcc {
+	if acc := idt.ActiveCryptocurrency(); acc != nil {
 		if err := acc.Display(ui); err != nil {
 			return err
 		}

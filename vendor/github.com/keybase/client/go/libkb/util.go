@@ -173,7 +173,7 @@ type SafeWriteLogger interface {
 }
 
 // SafeWriteToFile to safely write to a file. Use mode=0 for default permissions.
-func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
+func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	fn := t.GetFilename()
 	g.Debug(fmt.Sprintf("+ Writing to %s", fn))
 	tmpfn, tmp, err := OpenTempFile(fn, "", mode)

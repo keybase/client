@@ -19,11 +19,6 @@ type ReadArg struct {
 	Sz        int    `codec:"sz" json:"sz"`
 }
 
-type ResetArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	S         Stream `codec:"s" json:"s"`
-}
-
 type WriteArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	S         Stream `codec:"s" json:"s"`
@@ -33,7 +28,6 @@ type WriteArg struct {
 type StreamUiInterface interface {
 	Close(context.Context, CloseArg) error
 	Read(context.Context, ReadArg) ([]byte, error)
-	Reset(context.Context, ResetArg) error
 	Write(context.Context, WriteArg) (int, error)
 }
 
@@ -73,22 +67,6 @@ func StreamUiProtocol(i StreamUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"reset": {
-				MakeArg: func() interface{} {
-					ret := make([]ResetArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]ResetArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]ResetArg)(nil), args)
-						return
-					}
-					err = i.Reset(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"write": {
 				MakeArg: func() interface{} {
 					ret := make([]WriteArg, 1)
@@ -120,11 +98,6 @@ func (c StreamUiClient) Close(ctx context.Context, __arg CloseArg) (err error) {
 
 func (c StreamUiClient) Read(ctx context.Context, __arg ReadArg) (res []byte, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.streamUi.read", []interface{}{__arg}, &res)
-	return
-}
-
-func (c StreamUiClient) Reset(ctx context.Context, __arg ResetArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.streamUi.reset", []interface{}{__arg}, nil)
 	return
 }
 

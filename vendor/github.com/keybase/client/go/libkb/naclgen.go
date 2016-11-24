@@ -47,9 +47,9 @@ func (g *NaclKeyGen) SaveLKS(gc *GlobalContext, lks *LKSec, lctx LoginContext) e
 func (g *NaclKeyGen) Push(lctx LoginContext, aggregated bool) (d Delegator, err error) {
 	var delegationType DelegationType
 	if g.arg.Sibkey {
-		delegationType = DelegationTypeSibkey
+		delegationType = SibkeyType
 	} else {
-		delegationType = DelegationTypeSubkey
+		delegationType = SubkeyType
 	}
 	d = Delegator{
 		NewKey:         g.pair,

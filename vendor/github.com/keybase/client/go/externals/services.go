@@ -26,6 +26,10 @@ func (e externalServicesCollection) GetServiceType(s string) libkb.ServiceType {
 func (e externalServicesCollection) ListProofCheckers(mode libkb.RunMode) []string {
 	var ret []string
 	for k, v := range e {
+		// Don't display Facebook in prod until it's supported. TODO: Delete me!
+		if k == "facebook" && mode == libkb.ProductionRunMode {
+			continue
+		}
 		if useDevelProofCheckers || !v.IsDevelOnly() {
 			ret = append(ret, k)
 		}

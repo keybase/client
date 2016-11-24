@@ -89,7 +89,6 @@ const (
 	ProofCacheShortDur         = 30 * time.Minute
 	Identify2CacheLongTimeout  = 6 * time.Hour
 	Identify2CacheShortTimeout = 1 * time.Minute
-	CachedUserTimeout          = 10 * time.Minute // How long we'll go without rerequesting hints/merkle seqno
 	LinkCacheSize              = 0x10000
 	LinkCacheCleanDur          = 1 * time.Minute
 
@@ -149,8 +148,6 @@ const (
 	SCAlreadyLoggedIn        = int(keybase1.StatusCode_SCAlreadyLoggedIn)
 	SCCanceled               = int(keybase1.StatusCode_SCCanceled)
 	SCInputCanceled          = int(keybase1.StatusCode_SCInputCanceled)
-	SCExists                 = int(keybase1.StatusCode_SCExists)
-	SCInvalidAddress         = int(keybase1.StatusCode_SCInvalidAddress)
 	SCReloginRequired        = int(keybase1.StatusCode_SCReloginRequired)
 	SCResolutionFailed       = int(keybase1.StatusCode_SCResolutionFailed)
 	SCProfileNotPublic       = int(keybase1.StatusCode_SCProfileNotPublic)
@@ -211,7 +208,6 @@ const (
 	SCChatAlreadySuperseded  = int(keybase1.StatusCode_SCChatAlreadySuperseded)
 	SCChatAlreadyDeleted     = int(keybase1.StatusCode_SCChatAlreadyDeleted)
 	SCChatTLFFinalized       = int(keybase1.StatusCode_SCChatTLFFinalized)
-	SCChatCollision          = int(keybase1.StatusCode_SCChatCollision)
 	SCBadEmail               = int(keybase1.StatusCode_SCBadEmail)
 )
 
@@ -228,19 +224,19 @@ type LinkType string
 type DelegationType LinkType
 
 const (
-	LinkTypeAuthentication    LinkType = "auth"
-	LinkTypeCryptocurrency             = "cryptocurrency"
-	LinkTypeRevoke                     = "revoke"
-	LinkTypeTrack                      = "track"
-	LinkTypeUntrack                    = "untrack"
-	LinkTypeUpdatePassphrase           = "update_passphrase_hash"
-	LinkTypeUpdateSettings             = "update_settings"
-	LinkTypeWebServiceBinding          = "web_service_binding"
+	AuthenticationType    LinkType = "auth"
+	CryptocurrencyType             = "cryptocurrency"
+	RevokeType                     = "revoke"
+	TrackType                      = "track"
+	UntrackType                    = "untrack"
+	UpdatePassphraseType           = "update_passphrase_hash"
+	UpdateSettingsType             = "update_settings"
+	WebServiceBindingType          = "web_service_binding"
 
-	DelegationTypeEldest    DelegationType = "eldest"
-	DelegationTypePGPUpdate                = "pgp_update"
-	DelegationTypeSibkey                   = "sibkey"
-	DelegationTypeSubkey                   = "subkey"
+	EldestType    DelegationType = "eldest"
+	PGPUpdateType                = "pgp_update"
+	SibkeyType                   = "sibkey"
+	SubkeyType                   = "subkey"
 )
 
 const (

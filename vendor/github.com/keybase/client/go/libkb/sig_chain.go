@@ -348,7 +348,7 @@ func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) (links []*ChainLink,
 			break
 		}
 		// Also stop walking if the current link has type "eldest".
-		if sc.chainLinks[i].unpacked.typ == string(DelegationTypeEldest) {
+		if sc.chainLinks[i].unpacked.typ == string(EldestType) {
 			break
 		}
 		// Or if the link is one of our hardcoded six that reuse an eldest key ambiguously.
@@ -432,7 +432,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		// family. That's important because a chain link might revoke the same
 		// key that signed it.
 		isDelegating := (tcl.GetRole() != DLGNone)
-		isModifyingKeys := isDelegating || tcl.Type() == DelegationTypePGPUpdate
+		isModifyingKeys := isDelegating || tcl.Type() == PGPUpdateType
 		isFinalLink := (linkIndex == len(links)-1)
 		isLastLinkInSameKeyRun := (isFinalLink || newKID != links[linkIndex+1].GetKID())
 

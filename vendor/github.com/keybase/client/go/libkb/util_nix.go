@@ -46,8 +46,3 @@ func PosixLineEndings(arg string) string {
 func AppDataDir() (string, error) {
 	return "", errors.New("unsupported: AppDataDir")
 }
-
-// SafeWriteToFile is a pass-through to safeWriteToFileOnce on non-Windows.
-func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
-	return safeWriteToFileOnce(g, t, mode)
-}

@@ -131,7 +131,7 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 		if l.db == nil {
 			// This means DB is already closed. We are preventing lazy-opening after
 			// closing, so just return error here.
-			return LevelDBOpenClosedError{}
+			return errors.New("opening a closed DB")
 		}
 
 		return action()
@@ -141,12 +141,6 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 	if l.nukeIfCorrupt(err) {
 		err = nil
 	}
-
-	// Notably missing here is the error handling for when DB open fails but on
-	// an error other than "db is corrupted". We simply return the error here
-	// without resetting `dbOpenerOcce` (i.e. next call into LevelDb would result
-	// in a LevelDBOpenClosedError), because if DB open fails, retrying it
-	// wouldn't help. We should find the root cause and deal with it.
 
 	return err
 }

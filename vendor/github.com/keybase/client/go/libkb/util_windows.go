@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
-	"time"
 
 	"golang.org/x/sys/windows"
 )
@@ -77,22 +76,4 @@ func AppDataDir() (string, error) {
 	}
 
 	return folder, nil
-}
-
-// SafeWriteToFile retries safeWriteToFileOnce a few times on Windows,
-// in case AV programs interfere with 2 writes in quick succession.
-func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
-
-	var err error
-	for i := 0; i < 5; i++ {
-		if err != nil {
-			g.Debug("Retrying failed safeWriteToFileOnce - %s", err)
-			time.Sleep(10 * time.Millisecond)
-		}
-		err = safeWriteToFileOnce(g, t, mode)
-		if err == nil {
-			break
-		}
-	}
-	return err
 }

@@ -67,28 +67,16 @@ var hardcodedPVLString = `
     "facebook": [
       [
         {
-          "assert_regex_match": {
-            "error": [
-              "BAD_USERNAME",
-              "Invalid characters in username '%{username_service}'"
-            ],
-            "from": "username_service",
-            "pattern": "^[a-zA-Z0-9\\.]+$"
-          }
-        },
-        {
           "regex_capture": {
             "error": [
               "BAD_API_URL",
-              "Bad hint from server; URL should start with 'https://m.facebook.com/%{username_service}/posts/', got '%{hint_url}'"
+              "Bad hint from server; URL should start with 'https://m.facebook.com/%{username_service}/posts/', received '%{hint_url}'"
             ],
             "from": "hint_url",
             "into": [
-              "unused1",
-              "username_from_url",
-              "post_id"
+              "username_from_url"
             ],
-            "pattern": "^https://(m|www)\\.facebook\\.com/([^/]*)/posts/([0-9]+)$"
+            "pattern": "^https://m\\.facebook\\.com/([^/]*)/posts/.*$"
           }
         },
         {
@@ -98,117 +86,119 @@ var hardcodedPVLString = `
             "cmp": "stripdots-then-cicmp",
             "error": [
               "BAD_API_URL",
-              "Bad hint from server; username in URL should match '%{username_service}', received '%{username_from_url}'"
+              "Bad hint from server; username in URL match '%{username_service}', received '%{username_from_url}'"
             ]
           }
         },
         {
-          "fill": {
-            "into": "our_url",
-            "with": "https://www.facebook.com/%{username_from_url}/posts/%{post_id}"
-          }
-        },
-        {
           "fetch": {
-            "from": "our_url",
+            "from": "hint_url",
             "kind": "html"
           }
         },
         {
           "selector_css": {
-            "data": true,
             "error": [
               "FAILED_PARSE",
-              "Could not find proof markup comment in Facebook's response"
+              "Couldn't find facebook post %{hint_url}. Is it deleted or private?"
             ],
-            "into": "first_code_comment",
+            "into": "unused",
+            "multi": true,
             "selectors": [
-              "code",
+              "#m_story_permalink_view"
+            ]
+          }
+        },
+        {
+          "selector_css": {
+            "attr": "href",
+            "error": [
+              "FAILED_PARSE",
+              "Couldn't find username href"
+            ],
+            "into": "username_link",
+            "selectors": [
+              "#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3",
               0,
-              {
-                "contents": true
-              },
+              "a",
               0
             ]
           }
         },
         {
-          "replace_all": {
-            "from": "first_code_comment",
-            "into": "fcc2",
-            "new": "--",
-            "old": "-\\-\\"
-          }
-        },
-        {
-          "replace_all": {
-            "from": "fcc2",
-            "into": "fcc3",
-            "new": "\\",
-            "old": "\\\\"
-          }
-        },
-        {
-          "parse_html": {
+          "parse_url": {
             "error": [
               "FAILED_PARSE",
-              "Failed to parse proof markup comment in Facebook post: %{fcc3}"
+              "Failed to parse username URL: %{username_link}"
             ],
-            "from": "fcc3"
+            "from": "username_link",
+            "path": "path"
+          }
+        },
+        {
+          "regex_capture": {
+            "error": [
+              "FAILED_PARSE",
+              "Username URL has no path"
+            ],
+            "from": "path",
+            "into": [
+              "split_path_1"
+            ],
+            "pattern": "^[^/]*/([^/]*)$"
+          }
+        },
+        {
+          "assert_compare": {
+            "a": "split_path_1",
+            "b": "username_service",
+            "cmp": "stripdots-then-cicmp",
+            "error": [
+              "BAD_USERNAME",
+              "Usernames don't match '%{split_path_1}' vs '%{username_service}'"
+            ]
           }
         },
         {
           "selector_css": {
             "error": [
               "FAILED_PARSE",
-              "Could not find link text in Facebook's response"
+              "Couldn't find proof text header"
             ],
-            "into": "link_text",
-            "multi": true,
+            "into": "header",
             "selectors": [
-              "div.userContent+div a"
+              "#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3",
+              1
             ]
           }
         },
         {
           "whitespace_normalize": {
-            "from": "link_text",
-            "into": "link_text_nw"
+            "from": "header",
+            "into": "header_nw"
           }
         },
         {
           "regex_capture": {
             "error": [
               "TEXT_NOT_FOUND",
-              "Could not find Verifying myself: I am %{username_keybase} on Keybase.io. (%{sig_id_medium})"
+              "Proof text not found: 'Verifying myself: I am %{username_keybase} on Keybase.io. %{sig_id_medium}' != '%{header_nw}'"
             ],
-            "from": "link_text_nw",
+            "from": "header_nw",
             "into": [
-              "username_from_link",
-              "sig_from_link"
+              "username_from_header"
             ],
-            "pattern": "^Verifying myself: I am (\\S+) on Keybase.io. (\\S+)$"
+            "pattern": "^Verifying myself: I am (\\S+) on Keybase\\.io\\. %{sig_id_medium}$"
           }
         },
         {
           "assert_compare": {
-            "a": "username_from_link",
+            "a": "username_from_header",
             "b": "username_keybase",
             "cmp": "cicmp",
             "error": [
-              "BAD_USERNAME",
-              "Wrong keybase username in post '%{username_from_link}' should be '%{username_keybase}'"
-            ]
-          }
-        },
-        {
-          "assert_compare": {
-            "a": "sig_id_medium",
-            "b": "sig_from_link",
-            "cmp": "exact",
-            "error": [
-              "BAD_SIGNATURE",
-              "Could not find sig; '%{sig_from_link}' != '%{sig_id_medium}'"
+              "TEXT_NOT_FOUND",
+              "Wrong keybase username in proof text '%{username_from_header}' != 'username_keybase'"
             ]
           }
         }

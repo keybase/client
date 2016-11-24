@@ -17,14 +17,8 @@ type ReadCloser struct {
 	f keybase1.Stream
 }
 
-type ReadCloseSeeker interface {
-	io.ReadCloser
-	io.Seeker
-}
-
 type ExportedStream struct {
-	// r io.ReadCloser
-	r ReadCloseSeeker
+	r io.ReadCloser
 	w io.WriteCloser
 	i int
 }
@@ -48,7 +42,7 @@ func (s *ExportedStreams) ExportWriter(w io.WriteCloser) keybase1.Stream {
 	return es.Export()
 }
 
-func (s *ExportedStreams) ExportReader(r ReadCloseSeeker) keybase1.Stream {
+func (s *ExportedStreams) ExportReader(r io.ReadCloser) keybase1.Stream {
 	es := s.alloc()
 	es.r = r
 	return es.Export()
@@ -135,19 +129,6 @@ func (s *ExportedStreams) Write(_ context.Context, a keybase1.WriteArg) (n int, 
 	return
 }
 
-func (s *ExportedStreams) Reset(_ context.Context, a keybase1.ResetArg) error {
-	s.Lock()
-	defer s.Unlock()
-
-	obj, found := s.m[a.S.Fd]
-	if !found || obj.r == nil {
-		return StreamNotFoundError{}
-	}
-
-	_, err := obj.r.Seek(0, io.SeekStart)
-	return err
-}
-
 type RemoteStream struct {
 	Stream    keybase1.Stream
 	Cli       *keybase1.StreamUiClient
@@ -171,10 +152,6 @@ func (ewc RemoteStream) Read(buf []byte) (n int, err error) {
 	return
 }
 
-func (ewc RemoteStream) Reset() (err error) {
-	return ewc.Cli.Reset(context.TODO(), keybase1.ResetArg{S: ewc.Stream, SessionID: ewc.SessionID})
-}
-
 type RemoteStreamBuffered struct {
 	rs *RemoteStream
 	r  *bufio.Reader
@@ -185,7 +162,8 @@ func NewRemoteStreamBuffered(s keybase1.Stream, c *keybase1.StreamUiClient, sess
 	x := &RemoteStreamBuffered{
 		rs: &RemoteStream{Stream: s, Cli: c, SessionID: sessionID},
 	}
-	x.createBufs()
+	x.r = bufio.NewReader(x.rs)
+	x.w = bufio.NewWriter(x.rs)
 	return x
 }
 
@@ -200,18 +178,4 @@ func (x *RemoteStreamBuffered) Read(p []byte) (int, error) {
 func (x *RemoteStreamBuffered) Close() error {
 	x.w.Flush()
 	return x.rs.Close()
-}
-
-func (x *RemoteStreamBuffered) Reset() (err error) {
-	x.w.Flush()
-	if err := x.rs.Reset(); err != nil {
-		return err
-	}
-	x.createBufs()
-	return nil
-}
-
-func (x *RemoteStreamBuffered) createBufs() {
-	x.r = bufio.NewReader(x.rs)
-	x.w = bufio.NewWriter(x.rs)
 }

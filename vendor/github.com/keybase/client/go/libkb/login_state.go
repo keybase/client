@@ -399,34 +399,6 @@ func ComputeLoginPackage(lctx LoginContext, username string) (ret PDPKALoginPack
 	return computeLoginPackageFromEmailOrUsername(username, ps, loginSession)
 }
 
-func (s *LoginState) ResetAccount(un string) (err error) {
-	var aerr error
-	err = s.loginHandle(func(lctx LoginContext) error {
-		aerr = lctx.LoadLoginSession(un)
-		if aerr != nil {
-			return aerr
-		}
-		pdpka, aerr := ComputeLoginPackage(lctx, un)
-		if aerr != nil {
-			return aerr
-		}
-		arg := APIArg{
-			Endpoint:    "nuke",
-			NeedSession: true,
-			Args:        NewHTTPArgs(),
-			SessionR:    lctx.LocalSession(),
-		}
-		pdpka.PopulateArgs(&arg.Args)
-		res, aerr := s.G().API.Post(arg)
-		s.G().Log.Info("NUKE Result: %+v\n", res.AppStatus)
-		return aerr
-	}, nil, "ResetAccount")
-	if aerr != nil {
-		return aerr
-	}
-	return err
-}
-
 func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, error) {
 
 	arg := APIArg{

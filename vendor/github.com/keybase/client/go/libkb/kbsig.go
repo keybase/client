@@ -317,7 +317,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User, outcome *IdentifyOutcome) (ret *jsonw.Wrapper, err error) {
 	ret, err = ProofMetadata{
 		Me:         u,
-		LinkType:   LinkTypeTrack,
+		LinkType:   TrackType,
 		SigningKey: signingKey,
 	}.ToJSON(u.G())
 	if err == nil {
@@ -329,7 +329,7 @@ func (u *User) TrackingProofFor(signingKey GenericKey, u2 *User, outcome *Identi
 func (u *User) UntrackingProofFor(signingKey GenericKey, u2 *User) (ret *jsonw.Wrapper, err error) {
 	ret, err = ProofMetadata{
 		Me:         u,
-		LinkType:   LinkTypeUntrack,
+		LinkType:   UntrackType,
 		SigningKey: signingKey,
 	}.ToJSON(u.G())
 	if err == nil {
@@ -344,15 +344,15 @@ func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 	var kp *jsonw.Wrapper
 	includePGPHash := false
 
-	if arg.DelegationType == DelegationTypeEldest {
+	if arg.DelegationType == EldestType {
 		includePGPHash = true
 	} else if arg.NewKey != nil {
 		keySection := KeySection{
 			Key: arg.NewKey,
 		}
-		if arg.DelegationType == DelegationTypePGPUpdate {
+		if arg.DelegationType == PGPUpdateType {
 			keySection.IncludePGPHash = true
-		} else if arg.DelegationType == DelegationTypeSibkey {
+		} else if arg.DelegationType == SibkeyType {
 			keySection.HasRevSig = true
 			keySection.RevSig = arg.RevSig
 			keySection.IncludePGPHash = true
@@ -405,7 +405,7 @@ func KeyProof(arg Delegator) (ret *jsonw.Wrapper, err error) {
 func (u *User) ServiceProof(signingKey GenericKey, typ ServiceType, remotename string) (ret *jsonw.Wrapper, err error) {
 	ret, err = ProofMetadata{
 		Me:         u,
-		LinkType:   LinkTypeWebServiceBinding,
+		LinkType:   WebServiceBindingType,
 		SigningKey: signingKey,
 	}.ToJSON(u.G())
 	if err != nil {
@@ -432,7 +432,7 @@ func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID,
 func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret *jsonw.Wrapper, err error) {
 	if ret, err = (ProofMetadata{
 		Me:         u,
-		LinkType:   LinkTypeAuthentication,
+		LinkType:   AuthenticationType,
 		ExpireIn:   ei,
 		SigningKey: key,
 	}.ToJSON(u.G())); err != nil {
@@ -454,7 +454,7 @@ func (u *User) AuthenticationProof(key GenericKey, session string, ei int) (ret 
 func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []keybase1.KID, deviceToDisable keybase1.DeviceID) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
-		LinkType:   LinkTypeRevoke,
+		LinkType:   RevokeType,
 		SigningKey: key,
 	}.ToJSON(u.G())
 	if err != nil {
@@ -481,7 +481,7 @@ func (u *User) RevokeKeysProof(key GenericKey, kidsToRevoke []keybase1.KID, devi
 func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
-		LinkType:   LinkTypeRevoke,
+		LinkType:   RevokeType,
 		SigningKey: key,
 	}.ToJSON(u.G())
 	if err != nil {
@@ -498,10 +498,10 @@ func (u *User) RevokeSigsProof(key GenericKey, sigIDsToRevoke []keybase1.SigID) 
 	return ret, nil
 }
 
-func (u *User) CryptocurrencySig(key GenericKey, address string, typ CryptocurrencyType, sigToRevoke keybase1.SigID) (*jsonw.Wrapper, error) {
+func (u *User) CryptocurrencySig(key GenericKey, address string, sigToRevoke keybase1.SigID) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
-		LinkType:   LinkTypeCryptocurrency,
+		LinkType:   CryptocurrencyType,
 		SigningKey: key,
 	}.ToJSON(u.G())
 	if err != nil {
@@ -510,7 +510,7 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, typ Cryptocurre
 	body := ret.AtKey("body")
 	currencySection := jsonw.NewDictionary()
 	currencySection.SetKey("address", jsonw.NewString(address))
-	currencySection.SetKey("type", jsonw.NewString(typ.String()))
+	currencySection.SetKey("type", jsonw.NewString("bitcoin"))
 	body.SetKey("cryptocurrency", currencySection)
 	if len(sigToRevoke) > 0 {
 		revokeSection := jsonw.NewDictionary()
@@ -523,7 +523,7 @@ func (u *User) CryptocurrencySig(key GenericKey, address string, typ Cryptocurre
 func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen PassphraseGeneration, pdpka5kid string) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
-		LinkType:   LinkTypeUpdatePassphrase,
+		LinkType:   UpdatePassphraseType,
 		SigningKey: key,
 	}.ToJSON(u.G())
 	if err != nil {
@@ -542,7 +542,7 @@ func (u *User) UpdatePassphraseProof(key GenericKey, pwh string, ppGen Passphras
 func (u *User) UpdateEmailProof(key GenericKey, newEmail string) (*jsonw.Wrapper, error) {
 	ret, err := ProofMetadata{
 		Me:         u,
-		LinkType:   LinkTypeUpdateSettings,
+		LinkType:   UpdateSettingsType,
 		SigningKey: key,
 	}.ToJSON(u.G())
 	if err != nil {
