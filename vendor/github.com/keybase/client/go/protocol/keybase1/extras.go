@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -756,4 +757,34 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 
 func (c CanonicalTlfName) String() string {
 	return string(c)
+}
+
+func (u UserPlusKeys) GetUID() UID {
+	return u.Uid
+}
+
+func (u UserPlusKeys) GetName() string {
+	return u.Username
+}
+
+func (u *UserPlusAllKeys) DeepCopy() *UserPlusAllKeys {
+	handle := &codec.MsgpackHandle{
+		WriteExt:    true,
+		RawToString: true,
+	}
+	v := make([]byte, 100)
+	enc := codec.NewEncoderBytes(&v, handle)
+	enc.Encode(*u)
+	dec := codec.NewDecoderBytes(v, handle)
+	var ret UserPlusAllKeys
+	dec.Decode(&ret)
+	return &ret
+}
+
+func (u UserPlusAllKeys) GetUID() UID {
+	return u.Base.GetUID()
+}
+
+func (u UserPlusAllKeys) GetName() string {
+	return u.Base.GetName()
 }

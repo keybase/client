@@ -72,23 +72,25 @@ type GlobalContext struct {
 	NotifyRouter      *NotifyRouter      // How to route notifications
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
-	UIRouter        UIRouter                  // How to route UIs
-	Services        ExternalServicesCollector // All known external services
-	ExitCode        keybase1.ExitCode         // Value to return to OS on Exit()
-	RateLimits      *RateLimits               // tracks the last time certain actions were taken
-	clockMu         sync.Mutex                // protects Clock
-	clock           clockwork.Clock           // RealClock unless we're testing
-	SecretStoreAll  *SecretStoreLocked        // nil except for tests and supported platforms
-	hookMu          sync.RWMutex              // protects loginHooks, logoutHooks
-	loginHooks      []LoginHook               // call these on login
-	logoutHooks     []LogoutHook              // call these on logout
-	GregorDismisser GregorDismisser           // for dismissing gregor items that we've handled
-	GregorListener  GregorListener            // for alerting about clients connecting and registering UI protocols
-	OutOfDateInfo   keybase1.OutOfDateInfo    // Stores out of date messages we got from API server headers.
+	UIRouter         UIRouter                  // How to route UIs
+	Services         ExternalServicesCollector // All known external services
+	ExitCode         keybase1.ExitCode         // Value to return to OS on Exit()
+	RateLimits       *RateLimits               // tracks the last time certain actions were taken
+	clockMu          sync.Mutex                // protects Clock
+	clock            clockwork.Clock           // RealClock unless we're testing
+	SecretStoreAll   *SecretStoreLocked        // nil except for tests and supported platforms
+	hookMu           sync.RWMutex              // protects loginHooks, logoutHooks
+	loginHooks       []LoginHook               // call these on login
+	logoutHooks      []LogoutHook              // call these on logout
+	GregorDismisser  GregorDismisser           // for dismissing gregor items that we've handled
+	GregorListener   GregorListener            // for alerting about clients connecting and registering UI protocols
+	OutOfDateInfo    keybase1.OutOfDateInfo    // Stores out of date messages we got from API server headers.
+	CachedUserLoader *CachedUserLoader         // Load flat users with the ability to hit the cache
 
 	CardCache *UserCardCache // cache of keybase1.UserCard objects
 
-	ConvSource ConversationSource // source of remote message bodies for chat
+	ConvSource       ConversationSource // source of remote message bodies for chat
+	MessageDeliverer MessageDeliverer   // background message delivery service
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -132,6 +134,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.createLoginState()
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
+	g.CachedUserLoader = NewCachedUserLoader(g, CachedUserTimeout)
 	return g
 }
 
@@ -377,6 +380,9 @@ func (g *GlobalContext) Shutdown() error {
 		}
 		if g.Resolver != nil {
 			g.Resolver.Shutdown()
+		}
+		if g.MessageDeliverer != nil {
+			g.MessageDeliverer.Stop()
 		}
 
 		for _, hook := range g.ShutdownHooks {
@@ -659,7 +665,6 @@ func (g *GlobalContext) GetConfigDir() string {
 	return g.Env.GetConfigDir()
 }
 
-// GetMountDir returns the stored mount path
 func (g *GlobalContext) GetMountDir() (string, error) {
 	return g.Env.GetMountDir()
 }
@@ -728,4 +733,14 @@ func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
 	arg := NewLoadUserByUIDArg(g, uid)
 	arg.PublicKeyOptional = true
 	return LoadUser(arg)
+}
+
+func (g *GlobalContext) UIDToUsername(uid keybase1.UID) (NormalizedUsername, error) {
+	q := NewHTTPArgs()
+	q.Add("uid", UIDArg(uid))
+	leaf, err := g.MerkleClient.LookupUser(q, nil)
+	if err != nil {
+		return NormalizedUsername(""), err
+	}
+	return NewNormalizedUsername(leaf.username), nil
 }

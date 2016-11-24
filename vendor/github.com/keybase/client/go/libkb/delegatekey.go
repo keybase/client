@@ -61,10 +61,10 @@ func (d Delegator) GetSigningKey() GenericKey {
 }
 
 func (d Delegator) IsSibkeyOrEldest() bool {
-	return d.DelegationType == SibkeyType || d.DelegationType == EldestType
+	return d.DelegationType == DelegationTypeSibkey || d.DelegationType == DelegationTypeEldest
 }
 
-func (d Delegator) IsEldest() bool { return d.DelegationType == EldestType }
+func (d Delegator) IsEldest() bool { return d.DelegationType == DelegationTypeEldest }
 
 // GetMerkleTriple gets the new MerkleTriple that came about as a result
 // of performing the key delegation.
@@ -87,7 +87,7 @@ func (d *Delegator) CheckArgs() (err error) {
 		G.Log.Debug("| Picked passed-in signing key")
 	} else {
 		G.Log.Debug("| Picking new key for an eldest self-sig")
-		d.DelegationType = EldestType
+		d.DelegationType = DelegationTypeEldest
 	}
 
 	if d.EldestKID.Exists() || d.IsEldest() {
@@ -170,7 +170,7 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 
 	// For a sibkey signature, we first sign the blob with the
 	// sibkey, and then embed that signature for the delegating key
-	if d.DelegationType == SibkeyType {
+	if d.DelegationType == DelegationTypeSibkey {
 		if jw, err = KeyProof(*d); err != nil {
 			G.Log.Debug("| Failure in intermediate KeyProof()")
 			return err
@@ -245,7 +245,7 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 		hargs["server_half"] = S{Val: hex.EncodeToString(d.ServerHalf)}
 	}
 
-	if d.DelegationType == PGPUpdateType {
+	if d.DelegationType == DelegationTypePGPUpdate {
 		hargs["is_update"] = B{Val: true}
 	}
 

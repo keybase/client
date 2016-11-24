@@ -192,6 +192,7 @@ type MessageClientHeader struct {
 	TlfPublic    bool                     `codec:"tlfPublic" json:"tlfPublic"`
 	MessageType  MessageType              `codec:"messageType" json:"messageType"`
 	Supersedes   MessageID                `codec:"supersedes" json:"supersedes"`
+	Deletes      []MessageID              `codec:"deletes" json:"deletes"`
 	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
 	Sender       gregor1.UID              `codec:"sender" json:"sender"`
 	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
