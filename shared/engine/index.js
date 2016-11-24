@@ -306,6 +306,7 @@ const makeEngine = () => {
 
   if (!engine) {
     engine = (process.env.KEYBASE_NO_ENGINE || isTesting) ? new FakeEngine() : new Engine()
+    console.log('aaa', engine)
   }
   return engine
 }
