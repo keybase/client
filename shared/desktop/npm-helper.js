@@ -150,7 +150,7 @@ const commands = {
     help: 'Launch installed Keybase app with console output',
   },
   'postinstall': {
-    help: 'Window: fixup symlinks, all: install global eslint. dummy msgpack',
+    help: 'all: install global eslint. dummy modules',
     code: postInstall,
   },
   'render-screenshots': {
@@ -191,13 +191,9 @@ const commands = {
 
 function postInstall () {
   // Inject dummy module
-  if (process.platform === 'win32') {
-    exec('if not exist node_modules\\msgpack mkdir node_modules\\msgpack')
-    exec('echo module.exports = null > node_modules\\msgpack\\index.js')
-    exec('echo {"main": "index.js"} > node_modules\\msgpack\\package.json')
-  } else {
-    exec("mkdir -p node_modules/msgpack; echo 'module.exports = null' > node_modules/msgpack/index.js; echo '{\"main\": \"index.js\"}' > node_modules/msgpack/package.json")
-  }
+  exec('node make-shim net')
+  exec('node make-shim tls')
+  exec('node make-shim msgpack')
 }
 
 function setupDebugMain () {
