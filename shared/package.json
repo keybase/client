@@ -40,7 +40,7 @@
     "wrap": "npm uninstall fsevents && npm prune && npm dedupe && npm shrinkwrap --dev",
     "rn-start": "./node_modules/react-native/packager/packager.sh",
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
-    "rn-gobuild-android": ".react-native/gobuild.sh android",
+    "rn-gobuild-android": "./react-native/gobuild.sh android",
     "rn-packager-wipe-cache": "node ./packager/wipe-cache.js",
     "rn-test-ios": "xcodebuild test -project ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'"
   },

@@ -31,7 +31,7 @@ project.ext.react = [
         // bundleInBeta: true,
 
         // the root of your project, i.e. where "package.json" lives
-        root: "../../",
+        root: "../../../",
 
         // where to put the JS bundle asset in debug mode
         jsBundleDirDebug: "$buildDir/intermediates/assets/debug",
