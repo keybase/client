@@ -1,0 +1,72 @@
+def getCommit(path) {
+    dir(path) {
+        return bat(returnStdout: true, script: '@echo off && git rev-parse HEAD').trim()
+    }
+}
+
+def doBuild(){
+  stage 'Checkout Client'
+  bat 'if EXIST src\\github.com\\keybase\\client\\shared cd src\\github.com\\keybase\\client && git checkout shared'
+  bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\shared cd src\\github.com\\keybase\\client && git checkout desktop/shared'
+  checkout poll: false, scm: [$class: 'GitSCM', branches: [[name: '${ClientRevision}']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'src\\github.com\\keybase\\client']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/keybase/client.git']]]
+  stage 'Checkout KBFS'
+  checkout poll: false, scm: [$class: 'GitSCM', branches: [[name: '${KBFSRevision}']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'src\\github.com\\keybase\\kbfs']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/keybase/kbfs.git']]]
+  stage 'Checkout go-updater'
+  checkout poll: false, scm: [$class: 'GitSCM', branches: [[name: '${UpdaterRevision}']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'src\\github.com\\keybase\\go-updater']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/keybase/go-updater.git']]]
+  stage 'Checkout release'
+  checkout poll: false, scm: [$class: 'GitSCM', branches: [[name: '${ReleaseRevision}']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'src\\github.com\\keybase\\release']], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/keybase/release.git']]]
+  bat '''
+    if EXIST src\\github.com\\keybase\\client\\desktop\\release rmdir /q /s src\\github.com\\keybase\\client\\desktop\\release
+    path
+  '''
+  
+  stage 'Build Client'
+  bat '"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\build_prerelease.cmd' 
+  stage 'Build UI'
+  bat 'src\\github.com\\keybase\\client\\packaging\\windows\\buildui.bat'
+  stage 'Build Installer'
+  bat 'call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\doinstaller_wix.cmd'
+  archiveArtifacts 'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.*'
+
+  if (UpdateChannel != "None"){
+    stage 'Publish to S3'
+
+    step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'prerelease.keybase.io/windows', excludedFile: '', flatten: true, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: true, selectedRegion: 'us-east-1', showDirectlyInBrowser: false, sourceFile: 'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.exe', storageClass: 'STANDARD', uploadFromSlave: true, useServerSideEncryption: false]], profileName: 'keybase', userMetadata: []])
+    step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'prerelease.keybase.io', excludedFile: '', flatten: true, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: true, selectedRegion: 'us-east-1', showDirectlyInBrowser: false, sourceFile: 'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json', storageClass: 'STANDARD', uploadFromSlave: true, useServerSideEncryption: false]], profileName: 'keybase', userMetadata: []])
+  }
+
+  if (UpdateChannel == "Smoke"){
+    def clientCommit = getCommit('src\\github.com\\keybase\\client')
+    def kbfsCommit =  getCommit('src\\github.com\\keybase\\kbfs')
+    def updaterCommit =  getCommit('src\\github.com\\keybase\\go-updater')
+    def releaseCommit =  getCommit('src\\github.com\\keybase\\release')
+    def smokeASemVer = ''
+    dir('src\\github.com\\keybase\\client\\go\\keybase') {
+        smokeASemVer = bat(returnStdout: true, script: '@echo off && winresource.exe -cv').trim()
+    }
+    build job: 'windows-installer-pipeline', parameters: [string(name: 'ClientRevision', value: "${clientCommit}"), string(name: 'KBFSRevision', value: "${kbfsCommit}"), string(name: 'UpdaterRevision', value: "${updaterCommit}"), string(name: 'ReleaseRevision', value: "${releaseCommit}"), string(name: 'DOKAN_PATH', value: "${DOKAN_PATH}"), string(name: 'UpdateChannel', value: 'Smoke2'), string(name: 'SmokeASemVer', value: "${smokeASemVer}")], wait: false
+  }
+  if (UpdateChannel == "Smoke2"){
+    stage 'Publish smoke updater jsons to S3'
+    step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'prerelease.keybase.io/windows-support', excludedFile: 'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json', flatten: true, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: true, selectedRegion: 'us-east-1', showDirectlyInBrowser: false, sourceFile: 'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.json', storageClass: 'STANDARD', uploadFromSlave: true, useServerSideEncryption: false]], profileName: 'keybase', userMetadata: []])
+    def smokeBSemVer = ''
+    dir('src\\github.com\\keybase\\client\\go\\keybase') {
+        smokeBSemVer = bat(returnStdout: true, script: '@echo off && winresource.exe -cv').trim()
+    }
+    withCredentials([[$class: 'StringBinding', credentialsId: 'KEYBASE_TOKEN', variable: 'KEYBASE_TOKEN']]) {
+      dir('src\\github.com\\keybase\\release') {
+          bat 'release announce-build --build-a="${SmokeASemVer}" --build-b="${smokeBSemVer}" --platform="windows"'
+      }
+    }
+  }
+}
+
+// Invoke the build with a separate workspace for each executor,
+// and with GOPATH set to that workspace
+node ('windows-release') {
+  ws("${WORKSPACE}_${EXECUTOR_NUMBER}") {
+    withEnv(["GOPATH=${pwd()}"]) {
+      doBuild()
+    }
+  }
+}
