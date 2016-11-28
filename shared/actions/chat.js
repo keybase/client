@@ -7,12 +7,12 @@ import {List, Map} from 'immutable'
 import {apiserverGetRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select} from 'redux-saga/effects'
-import {chatTab} from '../constants/tabs'
+import {searchTab, chatTab} from '../constants/tabs'
 import {openInKBFS} from './kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {setActive as setSearchActive, reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
-import {switchTab} from './router'
+import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
+import {switchTo} from './route-tree'
 import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
 
@@ -386,8 +386,7 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
 
     yield put(loadInbox())
     yield put(selectConversation(conversationIDKey))
-    yield put(setSearchActive(false))
-    yield put(switchTab(chatTab))
+    yield put(switchTo([chatTab]))
   }
 }
 
@@ -426,7 +425,7 @@ function * _newChat (action: NewChat): SagaGenerator<any, any> {
       fullName: metaData.getIn([username, 'fullname'], 'Unknown'),
     },
   }))))
-  yield put(setSearchActive(true))
+  yield put(switchTo([searchTab]))
 }
 
 function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {

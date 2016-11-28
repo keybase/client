@@ -159,11 +159,11 @@ export type Actions = AppendMessages
   | UpdatedMetadata
 
 function conversationIDToKey (conversationID: ConversationID): ConversationIDKey {
-  return conversationID.toString('base64')
+  return conversationID.toString('hex')
 }
 
 function keyToConversationID (key: ConversationIDKey): ConversationID {
-  return Buffer.from(key, 'base64')
+  return Buffer.from(key, 'hex')
 }
 
 function timestampToString (time: number, nowOverride?: number): string {

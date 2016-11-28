@@ -24,14 +24,14 @@
 		"Comments": "",
 		"CompanyName": "",
 		"FileDescription": "",
-		"FileVersion": "v1.0.0.0",
+		"FileVersion": "",
 		"InternalName": "",
 		"LegalCopyright": "",
 		"LegalTrademarks": "",
 		"OriginalFilename": "",
 		"PrivateBuild": "",
 		"ProductName": "",
-		"ProductVersion": "",
+		"ProductVersion": "v1.0.0.0",
 		"SpecialBuild": ""
 	},
 	"VarFileInfo":

@@ -13,7 +13,7 @@ import {loginTab} from '../constants/tabs'
 import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
 import {openInKBFS} from '../actions/kbfs'
 import {shell, ipcRenderer} from 'electron'
-import {switchTab} from '../actions/router'
+import {navigateTo, switchTo} from '../actions/route-tree'
 
 import type {MenuNotificationState} from '../constants/notifications'
 import type {KBFSStatus} from '../constants/favorite'
@@ -27,6 +27,7 @@ export type Props = $Shape<{
   openInKBFS: (target?: any) => void,
   loggedIn: ?boolean,
   switchTab: (tab: string) => void,
+  onShowLoginTab: () => void,
   folderProps: ?FolderProps,
   kbfsStatus: KBFSStatus,
   badgeInfo: MenuNotificationState,
@@ -129,7 +130,7 @@ class Menubar extends Component<void, Props, void> {
 
   _logIn () {
     this._showMain()
-    this.props.switchTab(loginTab)
+    this.props.onShowLoginTab()
     this._closeMenubar()
   }
 
@@ -201,7 +202,11 @@ export default connect(
     kbfsStatus: state.favorite && state.favorite.kbfsStatus,
     badgeInfo: state.notifications && state.notifications.menuNotifications || {},
   }),
-  dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab, openRekeyDialog}, dispatch)
+  dispatch => ({
+    onShowLoginTab: () => { dispatch(navigateTo([loginTab])) },
+    switchTab: tab => { dispatch(switchTo([tab])) },
+    ...bindActionCreators({...favoriteAction, openInKBFS, openRekeyDialog}, dispatch),
+  })
 )(Menubar)
 
 export function selector (): (store: Object) => Object {
