@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/signencrypt"
@@ -92,7 +93,8 @@ func TestSignEncrypter(t *testing.T) {
 }
 
 func makeTestStore(t *testing.T, kt func(enc, sig []byte)) *AttachmentStore {
-	return newAttachmentStoreTesting(logger.NewTestLogger(t), kt)
+	return newAttachmentStoreTesting(
+		logger.NewTestLogger(t, time.Now()), kt)
 }
 
 func testStoreMultis(t *testing.T, s *AttachmentStore) []*s3.MemMulti {

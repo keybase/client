@@ -31,17 +31,17 @@ type TestLogBackend interface {
 // messages except Fatal are printed using Logf, to avoid failing a
 // test that is trying to test an error condition.
 type TestLogger struct {
-	log              TestLogBackend
-	extraDepth       int
-	startTime        *time.Time
-	setStartTimeOnce *sync.Once
+	log          TestLogBackend
+	extraDepth   int
+	startTime    time.Time
+	firstLogOnce *sync.Once
 }
 
-func NewTestLogger(log TestLogBackend) *TestLogger {
+func NewTestLogger(log TestLogBackend, startTime time.Time) *TestLogger {
 	return &TestLogger{
-		log:              log,
-		startTime:        &time.Time{},
-		setStartTimeOnce: &sync.Once{},
+		log:          log,
+		startTime:    startTime,
+		firstLogOnce: &sync.Once{},
 	}
 }
 
@@ -50,10 +50,9 @@ var _ Logger = (*TestLogger)(nil)
 
 func (log *TestLogger) prefixCaller(
 	extraDepth int, lvl logging.Level, fmts string) string {
-	var first bool
-	log.setStartTimeOnce.Do(func() {
-		first = true
-		*log.startTime = time.Now()
+	var firstLog bool
+	log.firstLogOnce.Do(func() {
+		firstLog = true
 	})
 
 	// The testing library doesn't let us control the stack depth,
@@ -61,9 +60,9 @@ func (log *TestLogger) prefixCaller(
 	// it out (at least on a terminal) and do our own formatting.
 	_, file, line, _ := runtime.Caller(2 + extraDepth)
 	elements := strings.Split(file, "/")
-	dt := time.Since(*log.startTime)
+	dt := time.Since(log.startTime)
 	dtStr := dt.String()
-	if first {
+	if firstLog {
 		dtStr += " (started at " + log.startTime.String() + ")"
 	}
 	return fmt.Sprintf("\r%s:%d: %s [%.1s] %s",
