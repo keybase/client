@@ -51,6 +51,7 @@ function loadMoreMessages (): LoadMoreMessages {
   return {type: Constants.loadMoreMessages, payload: undefined}
 }
 
+// Select conversation, fromUser indicates it was triggered by a user and not programatically
 function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean): SelectConversation {
   return {type: Constants.selectConversation, payload: {conversationIDKey, fromUser}}
 }

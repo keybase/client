@@ -57,7 +57,7 @@ const MessageTextWrapper = ({author, message, messageState, followState, style, 
 )
 
 const stylesFirstNewMessage = {
-  borderTop: 'solid 1px #ff6f21',
+  borderTop: `solid 1px ${globalColors.orange}`,
 }
 
 export default MessageTextWrapper
