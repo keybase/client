@@ -1,13 +1,11 @@
 // @flow
 import React from 'react'
-import {Box, Button, Icon, PopupMenu, Text} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
-import * as Constants from '../../../constants/chat'
+import {Box, Icon, PopupMenu, Text} from '../../../common-adapters'
+import {globalStyles, globalColors} from '../../../styles'
 import {timestampToString} from '../../../constants/chat'
-import type {Message, TextMessage} from '../../../constants/chat'
+import type {TextMessage} from '../../../constants/chat'
 
 import type {Props} from './popup'
-import type {MenuItem} from '../../../common-adapters/popup-menu'
 
 function iconNameForDeviceType (deviceType: string): string {
   switch (deviceType) {
@@ -18,7 +16,7 @@ function iconNameForDeviceType (deviceType: string): string {
 
 const TextMessagePopup = ({message}: {message: TextMessage}) => {
   const {deviceName, deviceType, timestamp} = message
-  const iconName = 'icon-fancy-encrypted-computer-150-x-64'
+  const iconName = iconNameForDeviceType(deviceType)
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Icon type={iconName} />

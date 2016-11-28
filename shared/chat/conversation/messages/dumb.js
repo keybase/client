@@ -1,7 +1,6 @@
 // @flow
 
 import React from 'react'
-import Popup from './popup'
 import Text from './text'
 import {Box} from '../../../common-adapters'
 import HiddenString from '../../../util/hidden-string'
@@ -14,7 +13,7 @@ function messageMock (messageState: MessageState, followState: FollowState, text
   return {
     type: 'Text',
     author: 'cecileb',
-    message: new HiddenString(text ? text : 'hello world'),
+    message: new HiddenString(text || 'hello world'),
     followState,
     messageState,
     deviceName: 'Macbook',

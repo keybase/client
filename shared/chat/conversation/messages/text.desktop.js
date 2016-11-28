@@ -60,14 +60,14 @@ export default class MessageTextComponent extends Component<void, Props, State> 
     const {message, style, includeHeader, onRetry, onAction} = this.props
 
     const buttonActionStyle = {
-      display: (this.state.hovered ? 'block': 'none'),
+      display: (this.state.hovered ? 'block' : 'none'),
       height: 20,
       lineHeight: '20px',
       marginLeft: 'auto',
     }
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}} onMouseOver={() => this.setState({hovered: true})} onMouseOut={() => this.setState({hovered: false})}>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...style}} onMouseOver={() => this.setState({hovered: true})} onMouseOut={() => this.setState({hovered: false})}>
         <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
           <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.followState)}} />
           <Box style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
