@@ -56,7 +56,7 @@ type ReadMessageInfo struct {
 }
 
 type NewConversationInfo struct {
-	Conv ConversationLocal `codec:"conv" json:"conv"`
+	Conv ConversationLocalWithBreaks `codec:"conv" json:"conv"`
 }
 
 type SetStatusInfo struct {

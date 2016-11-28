@@ -30,7 +30,7 @@ protocol NotifyChat {
   }
 
   record NewConversationInfo {
-    ConversationLocal conv;
+    ConversationLocalWithBreaks conv;
   }
 
   record SetStatusInfo {

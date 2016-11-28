@@ -110,7 +110,7 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	if err != nil {
 		t.Fatalf("NewConversationLocal error: %v\n", err)
 	}
-	return ncres.Conv.Info
+	return ncres.Conv.ConversationLocal.Info
 }
 
 func postLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) (chat1.PostLocalRes, error) {
@@ -207,14 +207,14 @@ func TestChatGetInboxAndUnboxLocal(t *testing.T) {
 		t.Fatalf("unexpected response from GetInboxAndUnboxLocal. expected 1 items, got %d\n", len(conversations))
 	}
 	conv := ctc.world.GetConversationByID(created.Id)
-	if conversations[0].Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
-		t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
+	if conversations[0].ConversationLocal.Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
+		t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].ConversationLocal.Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
 	}
-	if !conversations[0].Info.Id.Eq(created.Id) {
-		t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
+	if !conversations[0].ConversationLocal.Info.Id.Eq(created.Id) {
+		t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].ConversationLocal.Info.Id, created.Id)
 	}
-	if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
-		t.Fatalf("unexpected topicType in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
+	if conversations[0].ConversationLocal.Info.Triple.TopicType != chat1.TopicType_CHAT {
+		t.Fatalf("unexpected topicType in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].ConversationLocal.Info.Triple.TopicType, chat1.TopicType_CHAT)
 	}
 }
 
@@ -239,14 +239,14 @@ func TestChatGetInboxAndUnboxLocalTlfName(t *testing.T) {
 		t.Fatalf("unexpected response from GetInboxAndUnboxLocal. expected 1 items, got %d\n", len(conversations))
 	}
 	conv := ctc.world.GetConversationByID(created.Id)
-	if conversations[0].Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
-		t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
+	if conversations[0].ConversationLocal.Info.TlfName != conv.MaxMsgs[0].ClientHeader.TlfName {
+		t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].ConversationLocal.Info.TlfName, conv.MaxMsgs[0].ClientHeader.TlfName)
 	}
-	if !conversations[0].Info.Id.Eq(created.Id) {
-		t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
+	if !conversations[0].ConversationLocal.Info.Id.Eq(created.Id) {
+		t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].ConversationLocal.Info.Id, created.Id)
 	}
-	if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
-		t.Fatalf("unexpected topicType in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
+	if conversations[0].ConversationLocal.Info.Triple.TopicType != chat1.TopicType_CHAT {
+		t.Fatalf("unexpected topicType in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].ConversationLocal.Info.Triple.TopicType, chat1.TopicType_CHAT)
 	}
 }
 

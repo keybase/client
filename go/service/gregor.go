@@ -1002,7 +1002,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			func() keybase1.TlfInterface { return tlf })
 		if inbox, _, err = inboxSource.Read(context.Background(), uid, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,
-		}, nil); err != nil {
+		}, nil, keybase1.TLFIdentifyBehavior_CHAT_GUI); err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to read conversation: %s", err.Error())
 			return err
 		}
@@ -1013,7 +1013,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
 			return chat.DelivererSecretUI{}
-		}).NewConversation(nm.InboxVers, inbox.Convs[0]); err != nil {
+		}).NewConversation(nm.InboxVers, inbox.Convs[0].ConversationLocal); err != nil {
 			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
 				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
 			}
