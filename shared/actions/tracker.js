@@ -624,10 +624,7 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
     },
     'keybase.1.identifyUi.cancel': ({sessionID}, response) => {
       response.result()
-      engine().cancelSession(sessionID)
-    },
-    'keybase.1.identifyUi.finish': ({sessionID}, response) => {
-      response.result()
+
       requestIdleCallback(() => {
         // Check if there were any errors in the proofs
         dispatch({type: Constants.updateProofState, payload: {username}})
@@ -651,6 +648,10 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
         }
 
         onFinish && onFinish()
+
+        // cleanup bookkeeping
+        delete sessionIDToUsername[sessionID]
+        engine().cancelSession(sessionID)
       }, {timeout: 1e3})
 
       // if we're pending we still want to call onFinish
@@ -658,8 +659,9 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
         onFinish && onFinish()
       }
 
-      // cleanup bookkeeping
-      delete sessionIDToUsername[sessionID]
+    },
+    'keybase.1.identifyUi.finish': ({sessionID}, response) => { // Cancel is actually the 'last' call that happens
+      response.result()
     },
   }
 }
