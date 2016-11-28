@@ -124,8 +124,6 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.
 		// ignore non-fatal error
 	}
 
-	b.log().Warning("@@@ Unboxed msgid:%v revoked:%v", boxed.ServerHeader.MessageID, umwkr.fromRevokedDevice)
-
 	return chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 		ClientHeader:      pt.ClientHeader,
 		ServerHeader:      *boxed.ServerHeader,
@@ -508,7 +506,6 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 
 	// check key validity
 	validAtCtime, revoked, ierr := b.ValidSenderKey(ctx, header.Sender, header.HeaderSignature.K, msg.ServerHeader.Ctime)
-	b.log().Warning("@@@ msgid:%v validAtCtime:%v revoked:%v err:%v", msg.ServerHeader.MessageID, validAtCtime, revoked, ierr)
 	if ierr != nil {
 		return verifyMessageRes{}, ierr
 	}
@@ -569,7 +566,6 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 
 	revoked := revokedAt2 != nil
 	validAtCtime := found && (!revoked || revokedAt2.After(ctime2))
-	b.log().Warning("@@@ key:%v", kid)
 	return validAtCtime, revoked, nil
 }
 
