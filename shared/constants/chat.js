@@ -109,7 +109,8 @@ export type State = Record<{
   metaData: Map<string, MetaData>,
 }>
 
-const maxMessagesToLoadAtATime = 50
+export const howLongBetweenTimestampsMs = 1000 * 60 * 15
+export const maxMessagesToLoadAtATime = 50
 
 export const appendMessages = 'chat:appendMessages'
 export const selectConversation = 'chat:selectConversation'
@@ -185,6 +186,5 @@ export {
   conversationIDToKey,
   keyToConversationID,
   makeSnippet,
-  maxMessagesToLoadAtATime,
   participantFilter,
 }
