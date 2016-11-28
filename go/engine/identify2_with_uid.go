@@ -33,6 +33,112 @@ const (
 	identify2TrackBroke
 )
 
+type identifyUser struct {
+	arg  libkb.LoadUserArg
+	full *libkb.User
+	thin *keybase1.UserPlusAllKeys
+}
+
+func (i *identifyUser) GetUID() keybase1.UID {
+	if i.thin != nil {
+		return i.thin.GetUID()
+	}
+	if i.full != nil {
+		return i.full.GetUID()
+	}
+	panic("null user")
+}
+
+func (i *identifyUser) GetName() string {
+	if i.thin != nil {
+		return i.thin.GetName()
+	}
+	if i.full != nil {
+		return i.full.GetName()
+	}
+	panic("null user")
+}
+
+func (i *identifyUser) BaseProofSet() *libkb.ProofSet {
+	if i.thin != nil {
+		return libkb.BaseProofSet(i.thin)
+	}
+	if i.full != nil {
+		return i.full.BaseProofSet()
+	}
+	panic("null user")
+}
+
+func (i *identifyUser) User(cache libkb.Identify2Cacher) (*libkb.User, error) {
+	if i.full != nil {
+		return i.full, nil
+	}
+	if cache != nil {
+		cache.DidFullUserLoad(i.GetUID())
+	}
+	var err error
+	i.full, err = libkb.LoadUser(i.arg)
+	return i.full, err
+}
+
+func (i *identifyUser) Export() *keybase1.User {
+	if i.thin != nil {
+		return i.thin.Export()
+	}
+	if i.full != nil {
+		return i.full.Export()
+	}
+	panic("null user")
+}
+
+func (i *identifyUser) ExportToUserPlusKeys(now keybase1.Time) keybase1.UserPlusKeys {
+	if i.thin != nil {
+		ret := i.thin.Base
+		ret.Uvv.LastIdentifiedAt = now
+		return ret
+	}
+	if i.full != nil {
+		return i.full.ExportToUserPlusKeys(now)
+	}
+	panic("null user")
+}
+
+func (i *identifyUser) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeys) bool {
+	if i.thin != nil {
+		ret := i.thin.Base.Uvv.Equal(upk.Uvv)
+		return ret
+	}
+	if i.full != nil {
+		return i.full.IsCachedIdentifyFresh(upk)
+	}
+	panic("null user")
+}
+
+func (i *identifyUser) Equal(i2 *identifyUser) bool {
+	return i.GetUID().Equal(i2.GetUID())
+}
+
+func (i *identifyUser) load(g *libkb.GlobalContext) (err error) {
+	i.thin, i.full, err = g.CachedUserLoader.Load(i.arg)
+	return err
+}
+
+func (i *identifyUser) isNil() bool {
+	return i.thin == nil && i.full == nil
+}
+
+func loadIdentifyUser(g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb.Identify2Cacher) (*identifyUser, error) {
+	ret := &identifyUser{arg: arg}
+	err := ret.load(g)
+	if ret.isNil() {
+		ret = nil
+	}
+	if ret.full != nil {
+		cache.DidFullUserLoad(ret.GetUID())
+	}
+	return ret, err
+}
+
 //
 // TODOs:
 //   - think harder about what we're caching in failure cases; right now we're only
@@ -55,8 +161,8 @@ type Identify2WithUID struct {
 	// If we just resolved a user, then we can plumb this through to loadUser()
 	ResolveBody *jsonw.Wrapper
 
-	me   *libkb.User
-	them *libkb.User
+	me   *identifyUser
+	them *identifyUser
 
 	themAssertion   libkb.AssertionExpression
 	remoteAssertion libkb.AssertionAnd
@@ -454,7 +560,13 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	waiter := e.displayUserCardAsync(iui)
 
 	e.G().Log.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
-	if err = e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, iui, e); err != nil {
+	var them *libkb.User
+	them, err = e.them.User(e.getCache())
+	if err != nil {
+		return err
+	}
+
+	if err = them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, iui, e); err != nil {
 		e.G().Log.Debug("| Failure in running IDTable")
 		return err
 	}
@@ -504,14 +616,23 @@ func (e *Identify2WithUID) getTrackChainLink(tmp bool) (*libkb.TrackChainLink, e
 	if e.me == nil {
 		return nil, nil
 	}
-	if tmp {
-		return e.me.TmpTrackChainLinkFor(e.them.GetName(), e.them.GetUID())
+	me, err := e.me.User(e.getCache())
+	if err != nil {
+		return nil, err
 	}
-	return e.me.TrackChainLinkFor(e.them.GetName(), e.them.GetUID())
+	if tmp {
+		return me.TmpTrackChainLinkFor(e.them.GetName(), e.them.GetUID())
+	}
+	return me.TrackChainLinkFor(e.them.GetName(), e.them.GetUID())
 }
 
 func (e *Identify2WithUID) createIdentifyState() (err error) {
-	e.state = libkb.NewIdentifyStateWithGregorItem(e.responsibleGregorItem, e.them)
+	var them *libkb.User
+	them, err = e.them.User(e.getCache())
+	if err != nil {
+		return err
+	}
+	e.state = libkb.NewIdentifyStateWithGregorItem(e.responsibleGregorItem, them)
 	tcl, err := e.getTrackChainLink(false)
 	if err != nil {
 		return err
@@ -559,7 +680,7 @@ func (e *Identify2WithUID) loadMe(ctx *Context) (err error) {
 	if err != nil || !ok {
 		return err
 	}
-	e.me, err = libkb.LoadMeByUID(e.G(), uid)
+	e.me, err = loadIdentifyUser(e.G(), libkb.NewLoadUserByUIDArg(e.G(), uid), e.getCache())
 	return err
 }
 
@@ -567,7 +688,7 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	arg := libkb.NewLoadUserArg(e.G())
 	arg.UID = e.arg.Uid
 	arg.ResolveBody = e.ResolveBody
-	e.them, err = libkb.LoadUser(arg)
+	e.them, err = loadIdentifyUser(e.G(), arg, e.getCache())
 	if err != nil {
 		switch err.(type) {
 		case libkb.NoKeyError:
