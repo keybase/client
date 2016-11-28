@@ -53,6 +53,10 @@ type conversationListView []chat1.ConversationLocal
 // Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
 func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	convName := strings.Join(v.without(g, conv.Info.WriterNames, myUsername), ",")
+	if len(conv.Info.WriterNames) == 1 && conv.Info.WriterNames[0] == myUsername {
+		// The user is the only writer.
+		convName = myUsername
+	}
 	if len(conv.Info.ReaderNames) > 0 {
 		convName += "#" + strings.Join(conv.Info.ReaderNames, ",")
 	}

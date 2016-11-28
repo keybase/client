@@ -27,10 +27,6 @@ func MakeConvID(val string) (ConversationID, error) {
 	return hex.DecodeString(val)
 }
 
-func (cid ConversationID) Bytes() []byte {
-	return []byte(cid)
-}
-
 func (cid ConversationID) String() string {
 	return hex.EncodeToString(cid)
 }
@@ -45,6 +41,12 @@ func (cid ConversationID) Eq(c ConversationID) bool {
 
 func (cid ConversationID) Less(c ConversationID) bool {
 	return bytes.Compare(cid, c) < 0
+}
+
+// DbShortForm should only be used when interacting with the database, and should
+// never leave Gregor
+func (cid ConversationID) DbShortForm() []byte {
+	return cid[:10]
 }
 
 func MakeTLFID(val string) (TLFID, error) {
@@ -166,28 +168,25 @@ var ConversationStatusGregorRevMap = map[string]ConversationStatus{
 	"blocked":  ConversationStatus_BLOCKED,
 }
 
-func (t ConversationIDTriple) Hash10B() []byte {
+func (t ConversationIDTriple) Hash() []byte {
 	h := sha256.New()
 	h.Write(t.Tlfid)
 	h.Write(t.TopicID)
 	h.Write([]byte(strconv.Itoa(int(t.TopicType))))
 	hash := h.Sum(nil)
 
-	return hash[:10]
+	return hash
 }
 
 func (t ConversationIDTriple) ToConversationID(shardID [2]byte) ConversationID {
-	h := t.Hash10B()
+	h := t.Hash()
 	h[0], h[1] = shardID[0], shardID[1]
 	return ConversationID(h)
 }
 
 func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
-	if len(cid) != 10 {
-		return false
-	}
-	h10 := t.Hash10B()
-	return bytes.Equal(h10[2:], []byte(cid[2:]))
+	h := t.Hash()
+	return bytes.Equal(h[2:], []byte(cid[2:]))
 }
 
 func (o OutboxID) Eq(r OutboxID) bool {

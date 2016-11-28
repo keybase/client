@@ -19,7 +19,7 @@ protocol local {
   }
 
   record MessageDelete {
-    MessageID messageID;
+    array<MessageID> messageIDs;
   }
 
   record MessageHeadline {
