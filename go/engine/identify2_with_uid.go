@@ -133,7 +133,7 @@ func loadIdentifyUser(g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb
 	if ret.isNil() {
 		ret = nil
 	}
-	if ret.full != nil {
+	if ret.full != nil && cache != nil {
 		cache.DidFullUserLoad(ret.GetUID())
 	}
 	return ret, err
