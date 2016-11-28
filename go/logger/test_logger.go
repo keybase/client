@@ -51,7 +51,9 @@ var _ Logger = (*TestLogger)(nil)
 
 func (log *TestLogger) prefixCaller(
 	extraDepth int, lvl logging.Level, fmts string) string {
+	var first bool
 	log.setStartTimeOnce.Do(func() {
+		first = true
 		*log.startTime = time.Now()
 	})
 
@@ -61,8 +63,12 @@ func (log *TestLogger) prefixCaller(
 	_, file, line, _ := runtime.Caller(2 + extraDepth)
 	elements := strings.Split(file, "/")
 	dt := time.Since(*log.startTime)
+	dtStr := dt.String()
+	if first {
+		dtStr += " (started at " + log.startTime.String() + ")"
+	}
 	return fmt.Sprintf("\r%s:%d: %s [%.1s] %s",
-		elements[len(elements)-1], line, dt, lvl, fmts)
+		elements[len(elements)-1], line, dtStr, lvl, fmts)
 }
 
 func (log *TestLogger) Debug(fmts string, arg ...interface{}) {
