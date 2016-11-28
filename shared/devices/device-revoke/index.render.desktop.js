@@ -7,8 +7,8 @@ import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel, endangeredTLFs}: Props) => {
   const icon: IconType = {
-    'mobile': 'icon-phone-bw-revoke-48',
-    'desktop': 'icon-computer-bw-revoke-48',
+    'mobile': 'icon-phone-revoke-48',
+    'desktop': 'icon-computer-revoke-48',
     'backup': 'icon-paper-key-revoke-48',
   }[type]
 
