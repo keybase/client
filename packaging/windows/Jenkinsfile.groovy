@@ -5,8 +5,9 @@ def getCommit(path) {
 }
 
 def doBuild() {
-    parallel(
-        stage('Checkout Client') {
+    stage('Checkout Client') {
+        parallel(
+            
             // Reset symlink due to node/git/windows problems
             bat 'if EXIST src\\github.com\\keybase\\client\\shared cd src\\github.com\\keybase\\client && git checkout shared'
             bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\shared cd src\\github.com\\keybase\\client && git checkout desktop/shared'
@@ -24,8 +25,8 @@ def doBuild() {
                     userRemoteConfigs: [[url: 'https://github.com/keybase/client.git']]
                 ],
             ])
-        }
-        stage('Checkout KBFS') {
+
+
             checkout([
                 poll: false, 
                 scm: [
@@ -40,8 +41,6 @@ def doBuild() {
                     userRemoteConfigs: [[url: 'https://github.com/keybase/kbfs.git']]
                 ],
             ])
-        }
-        stage('Checkout go-updater') {
             checkout([
                 poll: false, 
                 scm: [
@@ -56,8 +55,6 @@ def doBuild() {
                     userRemoteConfigs: [[url: 'https://github.com/keybase/go-updater.git']]
                 ],
             ])            
-        }        
-        stage('Checkout Release') {
             checkout([
                 poll: false, 
                 scm: [
@@ -72,8 +69,8 @@ def doBuild() {
                     userRemoteConfigs: [[url: 'https://github.com/keybase/release.git']]
                 ],
             ])            
-        }
-    )
+        )
+    }
     stage('Build Client') {
         bat '"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\build_prerelease.cmd'
     } 
