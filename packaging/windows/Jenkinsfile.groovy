@@ -6,11 +6,10 @@ def getCommit(path) {
 
 def doBuild() {
     stage('Checkout Client') {
-        parallel(
-            
-            // Reset symlink due to node/git/windows problems
-            bat 'if EXIST src\\github.com\\keybase\\client\\shared cd src\\github.com\\keybase\\client && git checkout shared'
-            bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\shared cd src\\github.com\\keybase\\client && git checkout desktop/shared'
+        // Reset symlink due to node/git/windows problems
+        bat 'if EXIST src\\github.com\\keybase\\client\\shared cd src\\github.com\\keybase\\client && git checkout shared'
+        bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\shared cd src\\github.com\\keybase\\client && git checkout desktop/shared'
+        parallel(            
             checkout([
                 poll: false,
                 scm: [
