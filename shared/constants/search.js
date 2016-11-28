@@ -78,18 +78,6 @@ export function searchResultToAssertion (r: SearchResult): string {
   return r.username
 }
 
-export function usernameToSearchResult (username: string): SearchResult {
-  return {
-    service: 'keybase',
-    username,
-    isFollowing: false, // TODO
-    extraInfo: {
-      service: 'none',
-      fullName: '', // TODO
-    },
-  }
-}
-
 export const search = 'search:search'
 export type Search = TypedAction<'search:search', {term: string}, void>
 
@@ -117,11 +105,8 @@ export type Reset = TypedAction<'search:reset', {}, void>
 export const waiting = 'search:waiting'
 export type Waiting = TypedAction<'search:waiting', {waiting: boolean}, void>
 
-export const setActive = 'search:setActive'
-export type SetActive = TypedAction<'search:setActive', {active: boolean}, void>
-
 export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUsersToGroup
-  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting | SetActive | OnClickFollowers | OnClickFollowing | OnClickAvatar
+  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting | OnClickFollowers | OnClickFollowing | OnClickAvatar
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {

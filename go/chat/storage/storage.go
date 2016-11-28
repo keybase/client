@@ -202,7 +202,7 @@ func (s *Storage) getSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, li
 	case chat1.MessageType_EDIT:
 		return []chat1.MessageID{msg.Valid().MessageBody.Edit().MessageID}, nil
 	case chat1.MessageType_DELETE:
-		return []chat1.MessageID{msg.Valid().MessageBody.Delete().MessageID}, nil
+		return msg.Valid().MessageBody.Delete().MessageIDs, nil
 	default:
 		return nil, nil
 	}

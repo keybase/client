@@ -731,6 +731,7 @@ export type MessageClientHeader = {
   tlfPublic: boolean,
   messageType: MessageType,
   supersedes: MessageID,
+  deletes?: ?Array<MessageID>,
   prev?: ?Array<MessagePreviousPointer>,
   sender: gregor1.UID,
   senderDevice: gregor1.DeviceID,
@@ -743,7 +744,7 @@ export type MessageConversationMetadata = {
 }
 
 export type MessageDelete = {
-  messageID: MessageID,
+  messageIDs?: ?Array<MessageID>,
 }
 
 export type MessageEdit = {

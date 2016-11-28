@@ -1,28 +1,20 @@
 // @flow
-import React, {Component} from 'react'
+import React from 'react'
 import Render from './render'
 import {connect} from 'react-redux'
-import {navigateUp} from '../../actions/router'
+import {navigateUp} from '../../actions/route-tree'
 import {updateDebugConfig} from '../../actions/dev'
 import {isTesting} from '../../local-debug'
 
-class DumbSheet extends Component<*, *, *> {
-  render () {
-    return <Render
-      onBack={this.props.onBack}
-      onDebugConfigChange={this.props.onDebugConfigChange}
-      dumbIndex={this.props.dumbIndex}
-      dumbFilter={this.props.dumbFilter}
-      dumbFullscreen={this.props.dumbFullscreen}
-      autoIncrement={isTesting}
-    />
-  }
-
-  static parseRoute () {
-    return {
-      componentAtTop: {title: 'DumbSheet'},
-    }
-  }
+function DumbSheet (props) {
+  return <Render
+    onBack={props.onBack}
+    onDebugConfigChange={props.onDebugConfigChange}
+    dumbIndex={props.dumbIndex}
+    dumbFilter={props.dumbFilter}
+    dumbFullscreen={props.dumbFullscreen}
+    autoIncrement={isTesting}
+  />
 }
 
 export default connect(
@@ -34,4 +26,5 @@ export default connect(
   (dispatch: any) => ({
     onBack: () => dispatch(navigateUp()),
     onDebugConfigChange: value => dispatch(updateDebugConfig(value)),
-  }))(DumbSheet)
+  })
+)(DumbSheet)

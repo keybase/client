@@ -3,12 +3,11 @@ import React, {Component} from 'react'
 import Render from './render'
 import _ from 'lodash'
 import flags from '../../util/feature-flags'
-import paperkey from './paperkey'
 import type {Folder} from '../list'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {favoriteFolder, ignoreFolder} from '../../actions/favorite'
-import {navigateUp, routeAppend} from '../../actions/router'
+import {navigateUp, navigateAppend} from '../../actions/route-tree'
 import {openInKBFS} from '../../actions/kbfs'
 
 type Props = $Shape<{
@@ -17,7 +16,7 @@ type Props = $Shape<{
   username: string,
   allowIgnore: boolean,
   navigateUp: () => void,
-  routeAppend: (route: any) => void,
+  navigateAppend: (route: any) => void,
   ignoreFolder: (path: string) => void,
   favoriteFolder: (path: string) => void,
   openInKBFS: (path: string) => void,
@@ -42,7 +41,10 @@ class Files extends Component<void, Props, State> {
     this.state = {
       visiblePopupMenu: false,
     }
-    this._checkFolderExistence(props)
+    setImmediate(() => {
+      // FIXME: we shouldn't be navigating when a component mounts
+      this._checkFolderExistence(props)
+    })
   }
 
   componentWillReceiveProps (nextProps) {
@@ -74,7 +76,7 @@ class Files extends Component<void, Props, State> {
         youCanUnlock={folder.youCanUnlock}
         onBack={() => this.props.navigateUp()}
         openCurrentFolder={openCurrentFolder}
-        onClickPaperkey={device => this.props.routeAppend({path: 'paperkey', name: device.name})}
+        onClickPaperkey={device => this.props.navigateAppend([{selected: 'paperkey', name: device.name}])}  // FIXME: does this name route prop get used anywhere?
         ignoreCurrentFolder={ignoreCurrentFolder}
         unIgnoreCurrentFolder={unIgnoreCurrentFolder}
         recentFilesSection={folder.recentFiles} // TODO (AW): integrate recent files once the service provides this data
@@ -82,20 +84,10 @@ class Files extends Component<void, Props, State> {
       />
     )
   }
-
-  static parseRoute (currentPath, uri) {
-    return {
-      componentAtTop: {
-        title: 'Files',
-        element: <ConnectedFiles path={currentPath.get('path')} />,
-      },
-      subRoutes: {paperkey},
-    }
-  }
 }
 
 const ConnectedFiles = connect(
-  (state: any, ownProps) => {
+  (state: any, {routeProps: {path}}) => {
     const folders: Array<Folder> = [].concat(
       _.get(state, 'favorite.folderState.private.tlfs', []),
       _.get(state, 'favorite.folderState.public.tlfs', []),
@@ -103,14 +95,15 @@ const ConnectedFiles = connect(
       _.get(state, 'favorite.folderState.public.ignored', [])
     )
 
-    const folder = folders.find(f => f.path === ownProps.path)
+    const folder = folders.find(f => f.path === path)
 
     return {
+      path,
       folder,
       username: state.config && state.config.username,
     }
   },
-  (dispatch: any) => bindActionCreators({favoriteFolder, ignoreFolder, navigateUp, openInKBFS, routeAppend}, dispatch)
+  (dispatch: any) => bindActionCreators({favoriteFolder, ignoreFolder, navigateUp, openInKBFS, navigateAppend}, dispatch)
 )(Files)
 
 export default ConnectedFiles

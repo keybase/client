@@ -2,11 +2,10 @@
 import Container from '../../forms/container.desktop'
 import React from 'react'
 import openURL from '../../../util/open-url'
-import parseMarkdown from '../../../util/simple-md'
 import type {Props} from './index.render'
 import {RPCError} from '../../../util/errors'
 import {ConstantsStatusCode} from '../../../constants/types/flow-types'
-import {Text} from '../../../common-adapters'
+import {Text, Markdown} from '../../../common-adapters'
 
 const renderError = (error: RPCError) => {
   const fields = (Array.isArray(error.fields) ? error.fields : []).reduce((acc, f) => {
@@ -59,7 +58,7 @@ const renderError = (error: RPCError) => {
     case ConstantsStatusCode.sckeynotfound:
       return (
         <p>
-          {error.desc ? parseMarkdown(error.desc) : (
+          {error.desc ? <Markdown>{error.desc}</Markdown> : (
             <Text type='Body'>Your PGP keychain has multiple keys installed, and we're not sure which one to use to provision your account. Please run <Text type='Terminal'>keybase login</Text> on the command line to continue.</Text>
           )}
         </p>

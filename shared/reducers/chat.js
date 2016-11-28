@@ -1,12 +1,28 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
+import {Set, List, Map} from 'immutable'
 
-import type {Actions, State, ConversationState, AppendMessages, Message} from '../constants/chat'
+import type {Actions, State, ConversationState, AppendMessages, Message, MessageID} from '../constants/chat'
 
 const {StateRecord, ConversationStateRecord, makeSnippet} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
+
+function dedupeMessages (seenMessages: Set<MessageID>, knownMessages: List<Message>, newMessages: Array<Message>): {seenMessages: Set<MessageID>, updatedMessages: List<Message>, unseenMessages: List<Message>} {
+  const newButSeenMessages = newMessages
+    .filter(m => m.messageID && seenMessages.has(m.messageID))
+    .reduce((acc, m) => acc.set(m.messageID, m), Map())
+
+  const updatedMessages = knownMessages.map(m => newButSeenMessages.get(m.messageID, m))
+  const unseenMessages = List(newMessages).filterNot(m => m.messageID && seenMessages.has(m.messageID))
+
+  return {
+    updatedMessages,
+    unseenMessages,
+    seenMessages: seenMessages.union(unseenMessages.map(m => m.messageID || -1)),
+  }
+}
 
 function reducer (state: State = initialState, action: Actions) {
   switch (action.type) {
@@ -19,8 +35,12 @@ function reducer (state: State = initialState, action: Actions) {
         conversationIDKey,
         initialConversation,
         conversation => {
+          const {seenMessages, messages: knownMessages} = conversation
+          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages, knownMessages, prependMessages)
+
           return conversation
-            .set('messages', conversation.get('messages').unshift(...prependMessages))
+            .set('messages', unseenMessages.concat(updatedMessages))
+            .set('seenMessages', nextSeenMessages)
             .set('moreToLoad', moreToLoad)
             .set('paginationNext', paginationNext)
             .set('isLoading', false)
@@ -41,7 +61,13 @@ function reducer (state: State = initialState, action: Actions) {
       const newConversationStates = state.get('conversationStates').update(
         conversationIDKey,
         initialConversation,
-        conversation => conversation.set('messages', conversation.get('messages').push(...appendMessages)))
+        conversation => {
+          const {seenMessages, messages: knownMessages} = conversation
+          const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages, knownMessages, appendMessages)
+          return conversation
+            .set('messages', updatedMessages.concat(unseenMessages))
+            .set('seenMessages', nextSeenMessages)
+        })
 
       const isSelected = state.get('selectedConversation') === action.payload.conversationIDKey
       let snippet
@@ -82,7 +108,7 @@ function reducer (state: State = initialState, action: Actions) {
             ...item,
             messageID,
             messageState,
-          }))
+          })).set('seenMessages', conversation.seenMessages.add(messageID))
         }
       )
       return state.set('conversationStates', newConversationStates)
@@ -102,6 +128,8 @@ function reducer (state: State = initialState, action: Actions) {
 
       return state.set('conversationStates', newConversationStates)
     }
+    case Constants.updatedMetadata:
+      return state.set('metaData', state.get('metaData').merge(action.payload))
     case Constants.loadedInbox:
       return state.set('inbox', action.payload.inbox)
   }

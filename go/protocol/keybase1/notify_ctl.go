@@ -21,6 +21,7 @@ type NotificationChannels struct {
 	Chat        bool `codec:"chat" json:"chat"`
 	PGP         bool `codec:"pgp" json:"pgp"`
 	Kbfsrequest bool `codec:"kbfsrequest" json:"kbfsrequest"`
+	Badges      bool `codec:"badges" json:"badges"`
 }
 
 type SetNotificationsArg struct {

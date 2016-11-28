@@ -409,11 +409,11 @@ func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
 	return nil
 }
 
-func (e *Identify2WithUID) displayUserCardAsync(ctx *Context) <-chan error {
+func (e *Identify2WithUID) displayUserCardAsync(iui libkb.IdentifyUI) <-chan error {
 	if e.calledFromChatGUI() {
 		return nil
 	}
-	return displayUserCardAsync(e.G(), ctx, e.them.GetUID(), (e.me != nil))
+	return displayUserCardAsync(e.G(), iui, e.them.GetUID(), (e.me != nil))
 }
 
 func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
@@ -451,7 +451,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 		return err
 	}
 
-	waiter := e.displayUserCardAsync(ctx)
+	waiter := e.displayUserCardAsync(iui)
 
 	e.G().Log.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
 	if err = e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, iui, e); err != nil {

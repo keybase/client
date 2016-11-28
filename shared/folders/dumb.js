@@ -187,8 +187,7 @@ const commonFolders = {
   private: {tlfs, ignored, isPublic: false, parentProps, onToggleShowIgnored, showIgnored: true},
   public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps, onToggleShowIgnored, showIgnored: false},
   showingPrivate: true,
-  publicShowingIgnored: false,
-  privateShowingIgnored: true,
+  showingIgnored: true,
 }
 
 const map: DumbComponentMap<Folders> = {
