@@ -10,7 +10,7 @@ def elvisFile(thing) {
     return thing ? file(thing) : null;
 }
 
-def reactRoot = elvisFile(config.root) ?: file("../../")
+def reactRoot = elvisFile(config.root) ?: file("../../../")
 def inputExcludes = config.inputExcludes ?: ["android/**", "ios/**"]
 
 void runBefore(String dependentTaskName, Task task) {
