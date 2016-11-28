@@ -46,7 +46,7 @@ export function revokeProofLanguage (platform: PlatformsExpandedType) {
       msg = 'Drop key'
       break
     default:
-      msg = 'Revoke proof'
+      msg = 'Revoke'
   }
   return msg
 }

@@ -226,7 +226,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
       <Box style={styleOuterContainer}>
         <Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
-        {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 10, top: 10, zIndex: 12}}
+        {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 14, top: 16, zIndex: 12}}
           textStyle={{color: globalColors.white}} iconStyle={{color: globalColors.white}} />}
         <Box ref={c => { this._scrollContainer = c }} className='scroll-container' style={styleContainer}>
           <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}} />
@@ -259,24 +259,25 @@ class ProfileRender extends PureComponent<void, Props, State> {
               <Box style={styleProofNoticeBox}>
                 {proofNotice && <Text type='BodySemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
               </Box>
-              {(loading || this.props.proofs.length > 0) &&
-                <UserProofs
-                  type={'proofs'}
-                  ref={c => { this._proofList = c }}
-                  style={styleProofs}
-                  username={this.props.username}
-                  loading={loading}
-                  proofs={this.props.proofs}
-                  onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
-                  showingMenuIndex={this.state.proofMenuIndex}
-                />}
-              {!loading && !this.props.serverActive && missingProofs.length > 0 &&
-                <UserProofs
-                  type={'missingProofs'}
-                  username={this.props.username}
-                  missingProofs={missingProofs}
-                />}
-              {!loading && folders}
+              <Box style={styleProofs}>
+                {(loading || this.props.proofs.length > 0) &&
+                  <UserProofs
+                    type={'proofs'}
+                    ref={c => { this._proofList = c }}
+                    username={this.props.username}
+                    loading={loading}
+                    proofs={this.props.proofs}
+                    onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
+                    showingMenuIndex={this.state.proofMenuIndex}
+                  />}
+                {!loading && !this.props.serverActive && missingProofs.length > 0 &&
+                  <UserProofs
+                    type={'missingProofs'}
+                    username={this.props.username}
+                    missingProofs={missingProofs}
+                  />}
+                {!loading && folders}
+              </Box>
             </Box>
           </Box>
           {!loading &&
@@ -379,7 +380,7 @@ const styleFolderIcon = {
 }
 
 const styleFriendships = {
-  marginTop: globalMargins.medium,
+  marginTop: globalMargins.large,
 }
 
 const styleProofMenu = {
