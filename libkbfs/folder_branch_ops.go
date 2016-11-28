@@ -1568,31 +1568,9 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 			return err
 		}
 
-		dirPath, err := fbo.pathFromNodeForRead(dir)
+		node, de, err = fbo.blocks.Lookup(ctx, lState, md.ReadOnly(), dir, name)
 		if err != nil {
 			return err
-		}
-
-		childPath := dirPath.ChildPathNoPtr(name)
-
-		de, err = fbo.blocks.GetDirtyEntry(
-			ctx, lState, md.ReadOnly(), childPath)
-		if err != nil {
-			return err
-		}
-
-		if de.Type == Sym {
-			node = nil
-		} else {
-			err = fbo.blocks.checkDataVersion(childPath, de.BlockPointer)
-			if err != nil {
-				return err
-			}
-
-			node, err = fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
-			if err != nil {
-				return err
-			}
 		}
 		return nil
 	})

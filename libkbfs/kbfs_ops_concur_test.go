@@ -1900,3 +1900,160 @@ func TestKBFSOpsCancelGetFavorites(t *testing.T) {
 	}
 	testRPCWithCanceledContext(t, serverConn, f)
 }
+
+type stallingNodeCache struct {
+	NodeCache
+
+	doStallUpdate     <-chan struct{}
+	unstallUpdate     <-chan struct{}
+	beforePathsCalled chan<- struct{}
+	afterPathCalled   chan<- struct{}
+}
+
+func (snc *stallingNodeCache) UpdatePointer(
+	oldRef BlockRef, newPtr BlockPointer) {
+	select {
+	case <-snc.doStallUpdate:
+		<-snc.unstallUpdate
+	default:
+	}
+	snc.NodeCache.UpdatePointer(oldRef, newPtr)
+}
+
+func (snc *stallingNodeCache) PathFromNode(node Node) path {
+	snc.beforePathsCalled <- struct{}{}
+	p := snc.NodeCache.PathFromNode(node)
+	snc.afterPathCalled <- struct{}{}
+	return p
+}
+
+// Test that a lookup that straddles a sync from the same file doesn't
+// have any races.  Regression test for KBFS-1717.
+func TestKBFSOpsLookupSyncRace(t *testing.T) {
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
+	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
+
+	config2 := ConfigAsUser(config1, userName2)
+	defer CheckConfigAndShutdown(t, config2)
+
+	name := userName1.String() + "," + userName2.String()
+
+	rootNode2 := GetRootNodeOrBust(ctx, t, config2, name, false)
+	kbfsOps2 := config2.KBFSOps()
+	ops2 := getOps(config2, rootNode2.GetFolderBranch().Tlf)
+	doStallUpdate := make(chan struct{}, 1)
+	unstallUpdate := make(chan struct{})
+	beforePathsCalled := make(chan struct{})
+	afterPathCalled := make(chan struct{})
+	snc := &stallingNodeCache{
+		NodeCache:         ops2.nodeCache,
+		doStallUpdate:     doStallUpdate,
+		unstallUpdate:     unstallUpdate,
+		beforePathsCalled: beforePathsCalled,
+		afterPathCalled:   afterPathCalled,
+	}
+	ops2.nodeCache = snc
+	ops2.blocks.nodeCache = snc
+	defer func() {
+		ops2.nodeCache = snc.NodeCache
+		ops2.blocks.nodeCache = snc.NodeCache
+	}()
+
+	// u1 creates a file.
+	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, false)
+	kbfsOps1 := config1.KBFSOps()
+	fileNodeA1, _, err := kbfsOps1.CreateFile(
+		ctx, rootNode1, "a", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// u2 syncs and then disables updates.
+	if err := kbfsOps2.SyncFromServerForTesting(
+		ctx, rootNode2.GetFolderBranch()); err != nil {
+		t.Fatal("Couldn't sync user 2 from server")
+	}
+	_, err = DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+
+	// u2 writes to the file.
+	data := []byte{1, 2, 3}
+	err = kbfsOps1.Write(ctx, fileNodeA1, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+	if err := kbfsOps1.Sync(ctx, fileNodeA1); err != nil {
+		t.Fatalf("Couldn't finish sync: %v", err)
+	}
+
+	// u2 tries to lookup the file, which will block until we drain
+	// the afterPathCalled channel.
+	var wg sync.WaitGroup
+	wg.Add(1)
+	var fileNodeA2 Node
+	go func() {
+		defer wg.Done()
+		var err error
+		fileNodeA2, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+		if err != nil {
+			t.Errorf("Couldn't lookup a: %v", err)
+		}
+	}()
+	// Wait for the lookup to block.
+	select {
+	case <-beforePathsCalled:
+	case <-ctx.Done():
+		t.Fatal("Timeout while waiting for lookup to block")
+	}
+
+	// u2 starts to sync but the sync is stalled while holding the
+	// block lock.
+	doStallUpdate <- struct{}{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := kbfsOps2.SyncFromServerForTesting(
+			ctx, rootNode2.GetFolderBranch()); err != nil {
+			t.Errorf("Couldn't sync user 2 from server: %v", err)
+		}
+	}()
+
+	// Unblock the lookup.
+	select {
+	case <-afterPathCalled:
+	case <-ctx.Done():
+		t.Fatal("Timeout while waiting for afterPathCalled")
+	}
+
+	// Wait for the sync to block and let the sync succeed (which will
+	// let the lookup succeed).  NOTE: To repro KBFS-1717, this call
+	// needs to go before we unblock the paths lookup.  However, with
+	// the fix for KBFS-1717, the test will hang if we do that since
+	// the Lookup holds blockLock while it gets the path.  So as is,
+	// this isn't a direct repro but it's still a test worth having
+	// around.
+	select {
+	case unstallUpdate <- struct{}{}:
+	case <-ctx.Done():
+		t.Fatal("Timeout while waiting for sync to block")
+	}
+	wg.Wait()
+
+	// Now u2 reads using the node it just looked up, and should see
+	// the right data.
+	gotData := make([]byte, len(data))
+	go func() { <-beforePathsCalled; <-afterPathCalled }() // Read needs a path lookup too.
+	nr, err := kbfsOps2.Read(ctx, fileNodeA2, gotData, 0)
+	if err != nil {
+		t.Errorf("Couldn't read data: %v", err)
+	}
+	if nr != int64(len(gotData)) {
+		t.Errorf("Only read %d bytes", nr)
+	}
+	if !bytes.Equal(data, gotData) {
+		t.Errorf("Read wrong data.  Expected %v, got %v", data, gotData)
+	}
+}
