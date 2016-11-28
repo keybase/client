@@ -37,6 +37,10 @@ type TestLogger struct {
 	firstLogOnce *sync.Once
 }
 
+// NewTestLogger returns a logger to be used for a specific test. The
+// given startTime is used for calculating durations from the start of
+// the test, which is printed out for each log. Only one *TestLogger
+// should be used per test.
 func NewTestLogger(log TestLogBackend, startTime time.Time) *TestLogger {
 	return &TestLogger{
 		log:          log,
