@@ -29,8 +29,7 @@ type TestLogBackend interface {
 
 // TestLogger is a Logger that writes to a TestLogBackend.  All
 // messages except Fatal are printed using Logf, to avoid failing a
-// test that is trying to test an error condition.  No context tags
-// are logged.
+// test that is trying to test an error condition.
 type TestLogger struct {
 	log              TestLogBackend
 	extraDepth       int
