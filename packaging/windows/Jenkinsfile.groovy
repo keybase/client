@@ -9,62 +9,63 @@ def doBuild() {
         // Reset symlink due to node/git/windows problems
         bat 'if EXIST src\\github.com\\keybase\\client\\shared cd src\\github.com\\keybase\\client && git checkout shared'
         bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\shared cd src\\github.com\\keybase\\client && git checkout desktop/shared'
-        checkout([
-            poll: false,
-            scm: [
-                $class: 'GitSCM',
-                branches: [[name: '${ClientRevision}']],
-                doGenerateSubmoduleConfigurations: false,
-                extensions: [[
-                    $class: 'RelativeTargetDirectory',
-                    relativeTargetDir: 'src\\github.com\\keybase\\client'
-                ]], 
-                submoduleCfg: [],
-                userRemoteConfigs: [[url: 'https://github.com/keybase/client.git']]
-            ],
-        ])
-        checkout([
-            poll: false, 
-            scm: [
-                $class: 'GitSCM',
-                branches: [[name: '${KBFSRevision}']],
-                doGenerateSubmoduleConfigurations: false,
-                extensions: [[
-                    $class: 'RelativeTargetDirectory',
-                    relativeTargetDir: 'src\\github.com\\keybase\\kbfs'
-                ]],
-                submoduleCfg: [],
-                userRemoteConfigs: [[url: 'https://github.com/keybase/kbfs.git']]
-            ],
-        ])
-        checkout([
-            poll: false, 
-            scm: [
-                $class: 'GitSCM',
-                branches: [[name: '${UpdaterRevision}']],
-                doGenerateSubmoduleConfigurations: false,
-                extensions: [[
-                    $class: 'RelativeTargetDirectory',
-                    relativeTargetDir: 'src\\github.com\\keybase\\go-updater'
-                ]],
-                submoduleCfg: [],
-                userRemoteConfigs: [[url: 'https://github.com/keybase/go-updater.git']]
-            ],
-        ])            
-        checkout([
-            poll: false, 
-            scm: [
-                $class: 'GitSCM',
-                branches: [[name: '${ReleaseRevision}']],
-                doGenerateSubmoduleConfigurations: false,
-                extensions: [[
-                    $class: 'RelativeTargetDirectory',
-                    relativeTargetDir: 'src\\github.com\\keybase\\release'
-                ]],
-                submoduleCfg: [],
-                userRemoteConfigs: [[url: 'https://github.com/keybase/release.git']]
-            ],
-        ])            
+        parallel(
+            checkout_client: {
+                dir('src/github.com/keybase/client') {                        
+                    checkout([
+                        poll: false,
+                        scm: [
+                            $class: 'GitSCM',
+                            branches: [[name: '${ClientRevision}']],
+                            doGenerateSubmoduleConfigurations: false,
+                            submoduleCfg: [],
+                            userRemoteConfigs: [[url: 'https://github.com/keybase/client.git']]
+                        ],
+                    ])
+                }
+            },
+            checkout_kbfs: {
+                dir('src/github.com/keybase/kbfs') {                        
+                    checkout([
+                        poll: false, 
+                        scm: [
+                            $class: 'GitSCM',
+                            branches: [[name: '${KBFSRevision}']],
+                            doGenerateSubmoduleConfigurations: false,
+                            userRemoteConfigs: [[url: 'https://github.com/keybase/kbfs.git']]
+                        ],
+                    ])
+                }
+            },
+            checkout_updater: {
+                dir('src/github.com/keybase/go-updater') {                        
+                    checkout([
+                        poll: false, 
+                        scm: [
+                            $class: 'GitSCM',
+                            branches: [[name: '${UpdaterRevision}']],
+                            doGenerateSubmoduleConfigurations: false,
+                            submoduleCfg: [],
+                            userRemoteConfigs: [[url: 'https://github.com/keybase/go-updater.git']]
+                        ],
+                    ])
+                }
+            },
+            checkout_release: {
+                dir('src/github.com/keybase/go-updater') {                        
+                    checkout([
+                        poll: false, 
+                        scm: [
+                            $class: 'GitSCM',
+                            branches: [[name: '${ReleaseRevision}']],
+                            doGenerateSubmoduleConfigurations: false,
+                            submoduleCfg: [],
+                            userRemoteConfigs: [[url: 'https://github.com/keybase/release.git']]
+                        ],
+                    ])
+                }
+            }            
+        )
     }
     stage('Build Client') {
         bat '"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\build_prerelease.cmd'
