@@ -4,7 +4,6 @@ import type {ProofStatus, SigID, KID} from './types/flow-types'
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
 
 export const addProof = 'profile:addProof'
-export const askTextOrDNS = 'profile:askTextOrDNS'
 export const backToProfile = 'profile:backToProfile'
 export const cancelAddProof = 'profile:cancelAddProof'
 export const cancelPgpGen = 'profile:cancelPgpGen'
@@ -22,8 +21,6 @@ export const onClickFollowers = 'profile:onClickFollowers'
 export const onClickFollowing = 'profile:onClickFollowing'
 export const onUserClick = 'profile:onUserClick'
 export const outputInstructionsActionLink = 'profile:outputInstructionsActionLink'
-export const registerBTC = 'profile:registerBTC'
-export const registerZcash = 'profile:registerZcash'
 export const submitBTCAddress = 'profile:submitBTCAddress'
 export const submitZcashAddress = 'profile:submitZcashAddress'
 export const submitRevokeProof = 'profile:submitRevokeProof'
@@ -39,7 +36,6 @@ export const updateUsername = 'profile:updateUsername'
 export const waiting = 'profile:waiting'
 export const waitingRevokeProof = 'profile:revoke:waiting'
 export type AddProof = NoErrorTypedAction<'profile:addProof', {platform: PlatformsExpandedType}>
-export type AskTextOrDNS = NoErrorTypedAction<'profile:askTextOrDNS', void>
 export type BackToProfile = NoErrorTypedAction<'profile:backToProfile', void>
 export type CancelAddProof = NoErrorTypedAction<'profile:cancelAddProof', void>
 export type CancelPgpGen = NoErrorTypedAction<'profile:cancelPgpGen', {}>
@@ -56,8 +52,6 @@ export type OnClickFollowers = NoErrorTypedAction<'profile:onClickFollowers', {u
 export type OnClickFollowing = NoErrorTypedAction<'profile:onClickFollowing', {username: ?string, uid: string, openWebsite: ?boolean}>
 export type OnUserClick = NoErrorTypedAction<'profile:onUserClick', {username: string, uid: string}>
 export type OutputInstructionsActionLink = NoErrorTypedAction<'profile:outputInstructionsActionLink', void>
-export type RegisterBTC = NoErrorTypedAction<'profile:registerBTC', void>
-export type RegisterZcash = NoErrorTypedAction<'profile:registerZcash', void>
 export type SubmitZcashAddress = NoErrorTypedAction<'profile:submitZcashAddress', void>
 export type SubmitBTCAddress = NoErrorTypedAction<'profile:submitBTCAddress', void>
 export type SubmitRevokeProof = NoErrorTypedAction<'profile:submitRevokeProof', {proofId: string}>

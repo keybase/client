@@ -3,19 +3,13 @@ import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
 import UpdatePassphrase from './index'
 import {connect} from 'react-redux'
-import {navigateUp} from '../../actions/router'
+import {navigateUp} from '../../actions/route-tree'
 import {onChangeNewPassphrase, onChangeNewPassphraseConfirm, onChangeShowPassphrase, onSubmitNewPassphrase, onUpdatePGPSettings} from '../../actions/settings'
 
 import type {Props} from './index'
 import type {TypedState} from '../../constants/reducer'
 
 class PassphraseContainer extends Component<void, Props, void> {
-  static parseRoute () {
-    return {
-      componentAtTop: {title: 'Change Passphrase'},
-    }
-  }
-
   componentWillMount () {
     this.props.onUpdatePGPSettings()
   }

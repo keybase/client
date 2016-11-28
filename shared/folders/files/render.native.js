@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import type {FileSection} from '../../constants/folders'
 import type {Props} from './render'
 import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView} from '../../common-adapters/index.native'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 class FilesRender extends Component<void, Props, void> {
@@ -61,7 +61,7 @@ class FilesRender extends Component<void, Props, void> {
     const tlfTextStyle = styleTLFTextThemed[this.props.theme]
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme]}}>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme], paddingTop: statusBarHeight}}>
         {this._renderHeader()}
         <Box style={{...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
           <Box style={{...globalStyles.flexBoxRow, position: 'relative', justifyContent: 'center', alignItems: 'flex-start', marginTop: -1 * globalMargins.small}}>
