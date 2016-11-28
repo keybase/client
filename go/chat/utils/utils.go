@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
@@ -239,4 +239,13 @@ func VisibleChatConversationStatuses() []chat1.ConversationStatus {
 		chat1.ConversationStatus_UNFILED,
 		chat1.ConversationStatus_FAVORITE,
 	}
+}
+
+func IsVisibleChatConversationStatus(status chat1.ConversationStatus) bool {
+	for _, s := range VisibleChatConversationStatuses() {
+		if status == s {
+			return true
+		}
+	}
+	return false
 }

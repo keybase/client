@@ -139,6 +139,7 @@ protocol common {
     boolean tlfPublic;
     MessageType messageType;
     MessageID supersedes;
+    array<MessageID> deletes;
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
     gregor1.DeviceID senderDevice;

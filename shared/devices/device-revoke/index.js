@@ -5,24 +5,11 @@ import Render from './index.render'
 import type {Props} from './index.render'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import {navigateUp} from '../../actions/router'
+import {navigateUp} from '../../actions/route-tree'
 
 class DeviceRevoke extends Component<void, Props, void> {
-  static parseRoute (currentPath) {
-    return {
-      componentAtTop: {
-        title: 'Device revoke',
-        props: {
-          device: currentPath.get('device'),
-          endangeredTLFs: currentPath.get('endangeredTLFs'),
-        },
-      },
-    }
-  }
-
   render () {
     const device = this.props.device
-    const {endangeredTLFs} = this.props.endangeredTLFs
     return <Render
       name={device.name}
       type={device.type}
@@ -31,15 +18,13 @@ class DeviceRevoke extends Component<void, Props, void> {
       device={device}
       onSubmit={this.props.onSubmit}
       onCancel={this.props.onCancel}
-      endangeredTLFs={endangeredTLFs}
+      endangeredTLFs={this.props.endangeredTLFs}
     />
   }
 }
 
 export default connect(
-  (state: any, ownProps) => {
-    return ownProps
-  },
+  (state: any, ownProps) => ownProps.routeProps,
   (dispatch: any) => {
     return {
       ...bindActionCreators(devicesActions, dispatch),

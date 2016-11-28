@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import Render from '../../login/signup/success/index.render'
 import {connect} from 'react-redux'
 import {generatePaperKey, loadDevices} from '../../actions/devices'
-import {navigateUp} from '../../actions/router'
+import {navigateUp} from '../../actions/route-tree'
 
 type State = {
   loading: boolean,

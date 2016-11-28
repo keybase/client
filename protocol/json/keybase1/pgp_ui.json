@@ -29,6 +29,23 @@
       ],
       "response": null
     },
+    "outputSignatureSuccessNonKeybase": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "keyID",
+          "type": "string"
+        },
+        {
+          "name": "signedAt",
+          "type": "Time"
+        }
+      ],
+      "response": null
+    },
     "keyGenerated": {
       "request": [
         {

@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import Render from './index.render'
+import RenderSetPublicName from './index.render'
 import type {Props, State} from './index.render'
 import {connect} from 'react-redux'
 
@@ -22,7 +22,7 @@ class SetPublicName extends Component<void, Props, State> {
     const nameTakenError = nameTaken ? `The device name: ${this.state.deviceName || ''} is already taken` : null
 
     return (
-      <Render
+      <RenderSetPublicName
         deviceName={this.state.deviceName}
         onChange={deviceName => this.setState({deviceName})}
         onSubmit={() => this.props.onSubmit(this.state.deviceName)}
@@ -34,24 +34,13 @@ class SetPublicName extends Component<void, Props, State> {
       />
     )
   }
-
-  static parseRoute (store, currentPath, nextPath) {
-    return {
-      componentAtTop: {
-        title: '',
-        component: SetPublicName,
-        leftButtonTitle: '',
-      },
-    }
-  }
 }
 
 type OwnProps = any
 
 export default connect(
-  (state: any, op: OwnProps) => ({waiting: state.login.waitingForResponse})
+  (state: any, {routeProps}: OwnProps) => ({
+    ...routeProps,
+    waiting: state.login.waitingForResponse,
+  })
 )(SetPublicName)
-
-export {
-  SetPublicName,
-}

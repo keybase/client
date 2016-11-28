@@ -25,7 +25,7 @@ type MessageEdit struct {
 }
 
 type MessageDelete struct {
-	MessageID MessageID `codec:"messageID" json:"messageID"`
+	MessageIDs []MessageID `codec:"messageIDs" json:"messageIDs"`
 }
 
 type MessageHeadline struct {

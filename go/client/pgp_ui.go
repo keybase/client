@@ -40,6 +40,21 @@ func (p PgpUI) OutputSignatureSuccess(_ context.Context, arg keybase1.OutputSign
 	return nil
 }
 
+func (p PgpUI) OutputSignatureSuccessNonKeybase(ctx context.Context, arg keybase1.OutputSignatureSuccessNonKeybaseArg) error {
+	signedAt := keybase1.FromTime(arg.SignedAt)
+	output := func(fmtString string, args ...interface{}) {
+		s := fmt.Sprintf(fmtString, args...)
+		s = ColorString("green", s)
+		p.w.Write([]byte(s))
+	}
+
+	if signedAt.IsZero() {
+		output("Signature verified. Signed by key %s (unknown to keybase).\n", arg.KeyID)
+	} else {
+		output("Signature verified. Signed by key %s (unknown to keybase) %s (%s).\n", arg.KeyID, humanize.Time(signedAt), signedAt)
+	}
+	return nil
+}
 func (p PgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedArg) error {
 	return nil
 }

@@ -1,6 +1,6 @@
 // @flow
 import {TypedConnector} from '../../util/typed-connect'
-import {routeAppend} from '../../actions/router'
+import {navigateAppend} from '../../actions/route-tree'
 import Delete from './index'
 
 import type {TypedDispatch} from '../../constants/types/flux'
@@ -11,11 +11,13 @@ const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new 
 
 export default connector.connect(
   (state, dispatch, ownProps) => {
+    // FIXME: we need to load devices before this view is displayed so the current device exists in this collection
     const currentDevice = state.devices.devices && state.devices.devices.find(d => d.currentDevice)
 
     return {
-      onRevokeCurrentDevice: () => { dispatch(routeAppend({path: 'removeDevice', device: currentDevice})) },
-      onDelete: () => { dispatch(routeAppend({path: 'deleteConfirm'})) },
+      // FIXME: this needs to be updated to use showRemovePage action so endangeredTLFs is populated
+      onRevokeCurrentDevice: () => { dispatch(navigateAppend([{selected: 'removeDevice', props: {device: currentDevice, endangeredTLFs: []}}])) },
+      onDelete: () => { dispatch(navigateAppend(['deleteConfirm'])) },
     }
   }
 )(Delete)

@@ -4,13 +4,9 @@ import type {Tab} from '../constants/tabs'
 
 export type Props = {
   onTabClick: (tab: Tab) => void,
-  onSearchClick?: () => void,
-  searchActive?: boolean,
   selectedTab: Tab,
   username: string,
   badgeNumbers: {[key: Tab]: number},
-  searchContent?: React$Element<*>,
-  tabContent: {[key: Tab]: React$Element<*>}
 }
 
 export default class TabBar extends Component<void, Props, void> { }

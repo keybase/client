@@ -3,7 +3,7 @@
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
 
-import Nav from '../../nav.desktop'
+import Main from '../../main.desktop'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import RemoteManager from './remote-manager'
@@ -14,6 +14,7 @@ import engine, {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import loadPerf from '../../util/load-perf'
+import routeDefs from '../../routes'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../../actions/config'
 import {devEditAction} from '../../reducers/dev-edit'
@@ -21,6 +22,7 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import {listenForNotifications} from '../../actions/notifications'
 import {merge} from 'lodash'
 import {reduxDevToolsEnable, devStoreChangingFunctions} from '../../local-debug.desktop'
+import {setRouteDef} from '../../actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 import {setupSource} from '../../util/forward-logs'
 import {updateDebugConfig} from '../../actions/dev'
@@ -90,7 +92,7 @@ function setupApp (store) {
   window.addEventListener('online', () => store.dispatch(bootstrap()))
 }
 
-function render (store, NavComponent) {
+function render (store, MainComponent) {
   let dt
   if (__DEV__ && reduxDevToolsEnable) { // eslint-disable-line no-undef
     const DevTools = require('./redux-dev-tools').default
@@ -102,11 +104,15 @@ function render (store, NavComponent) {
       <Root store={store}>
         <div style={{display: 'flex', flex: 1}}>
           <RemoteManager />
-          <NavComponent />
+          <MainComponent />
           {dt}
         </div>
       </Root>
     </AppContainer>), document.getElementById('root'))
+}
+
+function setupRoutes (store) {
+  store.dispatch(setRouteDef(routeDefs))
 }
 
 function setupHMR (store) {
@@ -114,15 +120,19 @@ function setupHMR (store) {
     return
   }
 
-  module.hot.accept('../../nav.desktop', () => {
+  module.hot.accept('../../main.desktop', () => {
     try {
       store.dispatch({type: updateReloading, payload: {reloading: true}})
-      const NewNav = require('../../nav.desktop').default
-      render(store, NewNav)
+      const NewMain = require('../shared/main.desktop').default
+      render(store, NewMain)
       engine().reset()
     } finally {
       setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
     }
+  })
+
+  module.hot && module.hot.accept(['../../main.desktop', '../../routes'], () => {
+    store.dispatch(setRouteDef(require('../../routes').default))
   })
 
   module.hot && module.hot.accept('../../local-debug-live', () => {
@@ -132,9 +142,10 @@ function setupHMR (store) {
 
 function load () {
   const store = setupStore()
+  setupRoutes(store)
   setupApp(store)
   setupHMR(store)
-  render(store, Nav)
+  render(store, Main)
 }
 
 window.load = load

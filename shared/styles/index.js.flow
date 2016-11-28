@@ -13,4 +13,5 @@ declare export var globalMargins: {
   large: number,
   xlarge: number
 }
+declare export var statusBarHeight: number
 declare export function backgroundURL (...path: Array<string>): string

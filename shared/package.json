@@ -41,7 +41,7 @@
     "rn-start": "./node_modules/react-native/packager/packager.sh",
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
     "rn-gobuild-android": "./react-native/gobuild.sh android",
-    "rn-packager-wipe-cache": "node ./packager/wipe-cache.js",
+    "rn-packager-wipe-cache": "node ./react-native/wipe-cache.js",
     "rn-test-ios": "xcodebuild test -project ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'"
   },
   "keywords": [],
@@ -91,6 +91,7 @@
     "babel-loader": "6.2.5",
     "babel-plugin-react-transform": "2.0.2",
     "babel-plugin-transform-runtime": "6.15.0",
+    "babel-plugin-transform-builtin-extend": "1.1.0",
     "babel-preset-es2015": "6.16.0",
     "babel-preset-react": "6.16.0",
     "babel-preset-stage-1": "6.16.0",

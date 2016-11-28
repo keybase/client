@@ -1,13 +1,41 @@
 // @flow
 import Conversation from './index'
 import HiddenString from '../../util/hidden-string'
-import {List} from 'immutable'
+import React, {Component} from 'react'
+import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {loadMoreMessages, postMessage} from '../../actions/chat'
+import {loadMoreMessages, postMessage, openFolder, newChat} from '../../actions/chat'
+import {onUserClick} from '../../actions/profile'
 
 import type {TypedState} from '../../constants/reducer'
+import type {Props} from '.'
 
 type OwnProps = {}
+type State = {
+  sidePanelOpen: boolean,
+}
+
+class ConversationContainer extends Component<void, Props, State> {
+  state: State
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {sidePanelOpen: false}
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    if (this.props.selectedConversation !== nextProps.selectedConversation) {
+      this.setState({sidePanelOpen: false})
+    }
+  }
+
+  render () {
+    return <Conversation
+      {...this.props}
+      sidePanelOpen={this.state.sidePanelOpen}
+      onToggleSidePanel={() => this.setState({sidePanelOpen: !this.state.sidePanelOpen})} />
+  }
+}
 
 export default connect(
   (state: TypedState) => {
@@ -25,6 +53,7 @@ export default connect(
           moreToLoad: conversationState.moreToLoad,
           isLoading: conversationState.isLoading,
           selectedConversation,
+          metaData: state.chat.get('metaData'),
         }
       }
     }
@@ -35,16 +64,21 @@ export default connect(
       moreToLoad: false,
       isLoading: false,
       selectedConversation,
+      metaData: Map(),
     }
   },
   (dispatch: Dispatch) => ({
-    loadMoreMessages: () => dispatch(loadMoreMessages()),
+    onLoadMoreMessages: () => dispatch(loadMoreMessages()),
+    onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
+    onOpenFolder: () => dispatch(openFolder()),
     onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
+    onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
     onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
+    onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
   }),
-)(Conversation)
+)(ConversationContainer)

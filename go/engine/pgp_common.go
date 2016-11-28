@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"time"
 
 	"golang.org/x/net/context"
@@ -20,4 +21,14 @@ func OutputSignatureSuccess(ctx *Context, fingerprint libkb.PGPFingerprint, owne
 		SignedAt:    keybase1.TimeFromSeconds(signatureTime.Unix()),
 	}
 	ctx.PgpUI.OutputSignatureSuccess(context.TODO(), arg)
+}
+
+// OutputSignatureSuccessNonKeybase prints the details of successful signature verification
+// when signing key is not known to keybase.
+func OutputSignatureSuccessNonKeybase(ctx *Context, keyID uint64, signatureTime time.Time) {
+	arg := keybase1.OutputSignatureSuccessNonKeybaseArg{
+		KeyID:    fmt.Sprintf("%X", keyID),
+		SignedAt: keybase1.TimeFromSeconds(signatureTime.Unix()),
+	}
+	ctx.PgpUI.OutputSignatureSuccessNonKeybase(ctx.NetContext, arg)
 }

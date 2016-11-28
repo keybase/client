@@ -23,7 +23,7 @@ type PGPDecrypt struct {
 	libkb.Contextified
 	arg        *PGPDecryptArg
 	signStatus *libkb.SignatureStatus
-	owner      *libkb.User
+	signer     *libkb.User
 }
 
 // NewPGPDecrypt creates a PGPDecrypt engine.
@@ -77,7 +77,8 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	e.owner = sk.Owner()
+	// get the owner of the signing key
+	e.signer = sk.KeyOwner(e.signStatus.KeyID)
 
 	if len(e.arg.SignedBy) > 0 {
 		e.arg.AssertSigned = true
@@ -96,6 +97,12 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 	// message is signed and verified
 
 	if len(e.arg.SignedBy) > 0 {
+		if e.signer == nil {
+			return libkb.BadSigError{
+				E: fmt.Sprintf("Signer not a keybase user, cannot match signed by assertion %q", e.arg.SignedBy),
+			}
+		}
+
 		// identify the SignedBy assertion
 		arg := NewIdentifyArg(e.arg.SignedBy, false, false)
 		eng := NewIdentify(arg, e.G())
@@ -109,14 +116,21 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 			return libkb.ErrNilUser
 		}
 
-		if !signByUser.Equal(e.owner) {
+		if !signByUser.Equal(e.signer) {
 			return libkb.BadSigError{
-				E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.owner.GetName(), e.arg.SignedBy),
+				E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.signer.GetName(), e.arg.SignedBy),
 			}
 		}
 	} else {
+		if e.signer == nil {
+			// signer isn't a keybase user
+			e.G().Log.Debug("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
+			OutputSignatureSuccessNonKeybase(ctx, e.signStatus.KeyID, e.signStatus.SignatureTime)
+			return nil
+		}
+
 		// identify the signer
-		arg := NewIdentifyArg(e.owner.GetName(), false, false)
+		arg := NewIdentifyArg(e.signer.GetName(), false, false)
 		eng := NewIdentify(arg, e.G())
 		if err := RunEngine(eng, ctx); err != nil {
 			return err
@@ -128,7 +142,7 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 	}
 
 	bundle := libkb.NewPGPKeyBundle(e.signStatus.Entity)
-	OutputSignatureSuccess(ctx, bundle.GetFingerprint(), e.owner, e.signStatus.SignatureTime)
+	OutputSignatureSuccess(ctx, bundle.GetFingerprint(), e.signer, e.signStatus.SignatureTime)
 	return nil
 }
 
@@ -136,6 +150,6 @@ func (e *PGPDecrypt) SignatureStatus() *libkb.SignatureStatus {
 	return e.signStatus
 }
 
-func (e *PGPDecrypt) Owner() *libkb.User {
-	return e.owner
+func (e *PGPDecrypt) Signer() *libkb.User {
+	return e.signer
 }
