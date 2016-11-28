@@ -21,7 +21,7 @@ export type SignupState = {
   paperkey: ?HiddenString,
   signupError: ?HiddenString,
   waiting: boolean,
-  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess',
+  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess',
 }
 
 const initialState: SignupState = {
@@ -161,7 +161,7 @@ export default function (state: SignupState = initialState, action: SignupAction
         return {
           ...state,
           paperkey,
-          phase: 'paperkey',
+          phase: 'success',
         }
       }
 

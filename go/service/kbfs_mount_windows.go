@@ -131,8 +131,8 @@ func doMountChange(oldMount string, newMount string) error {
 	if err != nil {
 		return err
 	}
-	// Use the first icon bound into keybase.exe - note we can add different ones and change the 0 here
-	err = k.SetStringValue("", keybaseExe+",0")
+	// Use the second icon bound into keybase.exe - hence the 1
+	err = k.SetStringValue("", keybaseExe+",1")
 
 	// Also give a nice label
 	k2, _, err := registry.CreateKey(registry.CURRENT_USER, `SOFTWARE\Classes\Applications\Explorer.exe\Drives\`+newMount[:1]+`\DefaultLabel`, registry.SET_VALUE|registry.CREATE_SUB_KEY|registry.WRITE)

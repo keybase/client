@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import Render from '../../login/register/paper-key/index.render'
 import {checkPaperKey, toPaperKeyInput, onBackFromPaperKey} from '../../actions/unlock-folders'
 import {connect} from 'react-redux'
-import {navigateUp} from '../../actions/router'
+import {navigateUp} from '../../actions/route-tree'
 
 import type {State as StoreState} from '../../reducers/unlock-folders'
 import type {TypedState} from '../../constants/reducer'
@@ -57,14 +57,6 @@ class PaperKey extends Component<void, Props, State> {
       paperKey={this.state.paperKey}
       waitingForResponse={this.props.waiting}
     />
-  }
-
-  static parseRoute (currentPath, uri) {
-    return {
-      componentAtTop: {
-        title: 'Paperkey',
-      },
-    }
   }
 }
 

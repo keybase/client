@@ -7,8 +7,8 @@ import {globalStyles, globalColors} from '../styles'
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
   const icon: IconType = {
-    'mobile': 'icon-phone-bw-48',
-    'desktop': 'icon-computer-bw-48',
+    'mobile': 'icon-phone-48',
+    'desktop': 'icon-computer-48',
     'backup': 'icon-paper-key-48',
   }[device.type]
 
