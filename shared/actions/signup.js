@@ -5,32 +5,31 @@ import _ from 'lodash'
 import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName,
   Signup, ShowPaperKey, ShowSuccess, ResetSignup, RestartSignup, RequestInvite,
   StartRequestInvite, SignupWaiting} from '../constants/signup'
-import type {RouteAppend} from '../constants/router'
 import type {TypedAsyncAction, AsyncAction} from '../constants/types/flux'
-import {Map} from 'immutable'
 import {loginTab} from '../constants/tabs'
 import {isMobile} from '../constants/platform'
-import {routeAppend, navigateUp} from '../actions/router'
+import {navigateTo, navigateAppend} from '../actions/route-tree'
+import type {NavigateAppend, NavigateTo} from '../constants/route-tree'
 import {CommonDeviceType, signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
   signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../constants/types/flow-types'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 
-function nextPhase (): TypedAsyncAction<RouteAppend> {
+function nextPhase (): TypedAsyncAction<NavigateAppend> {
   return (dispatch, getState) => {
     // TODO careful here since this will not be sync on a remote component!
     const phase: string = getState().signup.phase
-    dispatch(routeAppend(phase))
+    dispatch(navigateAppend([phase], [loginTab, 'signup']))
   }
 }
 
-export function startRequestInvite (): TypedAsyncAction<StartRequestInvite | RouteAppend> {
+export function startRequestInvite (): TypedAsyncAction<StartRequestInvite | NavigateAppend> {
   return dispatch => new Promise((resolve, reject) => {
     dispatch({type: Constants.startRequestInvite, payload: {}})
     dispatch(nextPhase())
   })
 }
 
-export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | RouteAppend | SignupWaiting> {
+export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | NavigateAppend | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
 
@@ -52,7 +51,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
   })
 }
 
-export function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | RouteAppend | SignupWaiting> {
+export function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | NavigateAppend | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     // Returns an error string if not valid
     const emailError = isValidEmail(email)
@@ -99,7 +98,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
   })
 }
 
-export function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | RouteAppend | SignupWaiting> {
+export function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | NavigateAppend | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     const emailError = isValidEmail(email)
     const usernameError = isValidUsername(username)
@@ -144,7 +143,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
   })
 }
 
-export function checkPassphrase (passphrase1: string, passphrase2: string): TypedAsyncAction<CheckPassphrase | RouteAppend> {
+export function checkPassphrase (passphrase1: string, passphrase2: string): TypedAsyncAction<CheckPassphrase | NavigateAppend> {
   return dispatch => new Promise((resolve, reject) => {
     let passphraseError = null
     if (!passphrase1 || !passphrase2) {
@@ -173,7 +172,7 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
   })
 }
 
-export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<SubmitDeviceName | RouteAppend | Signup | ShowPaperKey | SignupWaiting> {
+export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<SubmitDeviceName | NavigateAppend | Signup | ShowPaperKey | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     // TODO do some checking on the device name - ideally this is done on the service side
     let deviceNameError = null
@@ -231,7 +230,7 @@ export function sawPaperKey (): AsyncAction {
   }
 }
 
-function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<Signup | ShowPaperKey | RouteAppend | SignupWaiting> {
+function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<Signup | ShowPaperKey | NavigateAppend | SignupWaiting> {
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const {email, username, inviteCode, passphrase, deviceName} = getState().signup
     paperKeyResponse = null
@@ -304,11 +303,10 @@ export function resetSignup (): ResetSignup {
   }
 }
 
-export function restartSignup (): TypedAsyncAction<RestartSignup | RouteAppend> {
+export function restartSignup (): TypedAsyncAction<RestartSignup | NavigateTo> {
   return dispatch => new Promise((resolve, reject) => {
     dispatch({type: Constants.restartSignup, payload: {}})
-    dispatch(navigateUp(loginTab, Map({path: 'signup'})))
-    dispatch(navigateUp())
+    dispatch(navigateTo([loginTab]))
     resolve()
   })
 }

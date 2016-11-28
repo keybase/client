@@ -4,22 +4,28 @@ import HiddenString from '../util/hidden-string'
 import engine from '../engine'
 import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
+import {apiserverGetRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select} from 'redux-saga/effects'
-import {chatTab} from '../constants/tabs'
+import {searchTab, chatTab} from '../constants/tabs'
+import {openInKBFS} from './kbfs'
+import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {setActive as setSearchActive, reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
-import {switchTab} from './router'
+import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
+import {switchTo} from './route-tree'
 import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
-import {usernameToSearchResult} from '../constants/search'
 
-import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler, NewChat, StartConversation} from '../constants/chat'
+import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler, NewChat, StartConversation, OpenFolder, UpdateMetadata} from '../constants/chat'
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
 
-const {conversationIDToKey, keyToConversationID, InboxStateRecord, makeSnippet} = Constants
+const {conversationIDToKey, keyToConversationID, InboxStateRecord, makeSnippet, MetaDataRecord} = Constants
+
+function openFolder (): OpenFolder {
+  return {type: Constants.openFolder, payload: undefined}
+}
 
 function startConversation (users: Array<string>): StartConversation {
   return {type: Constants.startConversation, payload: {users}}
@@ -49,7 +55,7 @@ function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boo
   return {type: Constants.selectConversation, payload: {conversationIDKey, fromUser}}
 }
 
-function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string): List<InboxState> {
+function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string, following: {[key: string]: boolean}): List<InboxState> {
   return List((inbox.conversations || []).map(convo => {
     if (!convo.info.id) {
       return null
@@ -77,6 +83,7 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string
       username,
       broken: false, // TODO
       you: author && username === author,
+      following: !!following[username],
     })))
 
     return new InboxStateRecord({
@@ -228,11 +235,16 @@ function * _setupNewChatHandler (): SagaGenerator<any, any> {
   })
 }
 
+const followingSelector = (state: TypedState) => state.config.following
+
 function * _loadInbox (): SagaGenerator<any, any> {
   // $ForceType
   const inbox: GetInboxAndUnboxLocalRes = yield call(localGetInboxAndUnboxLocalRpcPromise, {params: {}})
   const author = yield select(usernameSelector)
-  const conversations: List<InboxState> = _inboxToConversations(inbox, author)
+
+  const following = yield select(followingSelector)
+
+  const conversations: List<InboxState> = _inboxToConversations(inbox, author, following || {})
   yield put({type: Constants.loadedInbox, payload: {inbox: conversations}})
 }
 
@@ -370,20 +382,90 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
 
     yield put(loadInbox())
     yield put(selectConversation(conversationIDKey, false))
-    yield put(setSearchActive(false))
-    yield put(switchTab(chatTab))
+    yield put(switchTo([chatTab]))
+  }
+}
+
+function * _openFolder (): SagaGenerator<any, any> {
+  const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
+  const conversationIDKey = yield select(selectedSelector)
+
+  const inboxSelector = (state: TypedState) => {
+    return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
+  }
+
+  const inbox = yield select(inboxSelector)
+  if (inbox) {
+    const helper = inbox.get('info').visibility === CommonTLFVisibility.public ? publicFolderWithUsers : privateFolderWithUsers
+    const path = helper(inbox.get('participants').map(p => p.username).toArray())
+    yield put(openInKBFS(path))
+  } else {
+    throw new Error(`Can't find conversation path`)
   }
 }
 
 function * _newChat (action: NewChat): SagaGenerator<any, any> {
   yield put(searchReset())
-  yield put(searchAddUsersToGroup(action.payload.existingParticipants.map(usernameToSearchResult)))
-  yield put(setSearchActive(true))
+
+  const metaDataSelector = (state: TypedState) => state.chat.get('metaData')
+  const metaData = ((yield select(metaDataSelector)): any)
+
+  const following = (yield select(followingSelector)) || {}
+
+  yield put(searchAddUsersToGroup(action.payload.existingParticipants.map(username => ({
+    service: 'keybase',
+    username,
+    isFollowing: !!following[username],
+    extraInfo: {
+      service: 'none',
+      fullName: metaData.getIn([username, 'fullname'], 'Unknown'),
+    },
+  }))))
+  yield put(switchTo([searchTab]))
+}
+
+function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
+  // Don't send sharing before signup values
+  const usernames = action.payload.users.filter(name => name.indexOf('@') === -1).join(',')
+  if (!usernames) {
+    return
+  }
+  const results: any = yield call(apiserverGetRpcPromise, {
+    param: {
+      endpoint: 'user/lookup',
+      args: [
+        {key: 'usernames', value: usernames},
+        {key: 'fields', value: 'profile'},
+      ],
+    },
+  })
+
+  const parsed = JSON.parse(results.body)
+  const payload = {}
+  action.payload.users.forEach((username, idx) => {
+    payload[username] = new MetaDataRecord({
+      fullname: parsed.them[idx].profile.full_name,
+    })
+  })
+
+  yield put({
+    type: Constants.updatedMetadata,
+    payload,
+  })
 }
 
 function * _selectConversation (action: SelectConversation): SagaGenerator<any, any> {
   yield put(loadMoreMessages())
   yield put({type: Constants.updateBadge, payload: undefined})
+
+  const inboxSelector = (state: TypedState) => {
+    return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === action.payload.conversationIDKey)
+  }
+
+  const inbox = yield select(inboxSelector)
+  if (inbox) {
+    yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').filter(p => !p.you).map(p => p.username).toArray()}})
+  }
 }
 
 function * chatSaga (): SagaGenerator<any, any> {
@@ -397,6 +479,8 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.newChat, _newChat),
     safeTakeEvery(Constants.postMessage, _postMessage),
     safeTakeEvery(Constants.startConversation, _startConversation),
+    safeTakeEvery(Constants.updateMetadata, _updateMetadata),
+    safeTakeLatest(Constants.openFolder, _openFolder),
     yield throttle(1000, Constants.updateBadge, _updateBadge),
   ]
 }
@@ -407,6 +491,7 @@ export {
   loadInbox,
   loadMoreMessages,
   newChat,
+  openFolder,
   postMessage,
   selectConversation,
   setupNewChatHandler,

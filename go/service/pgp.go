@@ -27,6 +27,10 @@ func (u *RemotePgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.O
 	return u.cli.OutputSignatureSuccess(ctx, arg)
 }
 
+func (u *RemotePgpUI) OutputSignatureSuccessNonKeybase(ctx context.Context, arg keybase1.OutputSignatureSuccessNonKeybaseArg) error {
+	return u.cli.OutputSignatureSuccessNonKeybase(ctx, arg)
+}
+
 func (u *RemotePgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedArg) error {
 	arg.SessionID = u.sessionID
 	return u.cli.KeyGenerated(ctx, arg)
@@ -123,7 +127,7 @@ func (h *PGPHandler) PGPDecrypt(_ context.Context, arg keybase1.PGPDecryptArg) (
 		return keybase1.PGPSigVerification{}, err
 	}
 
-	return sigVer(h.G(), eng.SignatureStatus(), eng.Owner()), nil
+	return sigVer(h.G(), eng.SignatureStatus(), eng.Signer()), nil
 }
 
 func (h *PGPHandler) PGPVerify(_ context.Context, arg keybase1.PGPVerifyArg) (keybase1.PGPSigVerification, error) {
@@ -147,18 +151,18 @@ func (h *PGPHandler) PGPVerify(_ context.Context, arg keybase1.PGPVerifyArg) (ke
 		return keybase1.PGPSigVerification{}, err
 	}
 
-	return sigVer(h.G(), eng.SignatureStatus(), eng.Owner()), nil
+	return sigVer(h.G(), eng.SignatureStatus(), eng.Signer()), nil
 }
 
-func sigVer(g *libkb.GlobalContext, ss *libkb.SignatureStatus, owner *libkb.User) keybase1.PGPSigVerification {
+func sigVer(g *libkb.GlobalContext, ss *libkb.SignatureStatus, signer *libkb.User) keybase1.PGPSigVerification {
 	var res keybase1.PGPSigVerification
 	if ss.IsSigned {
 		res.IsSigned = ss.IsSigned
 		res.Verified = ss.Verified
-		if owner != nil {
-			signer := owner.Export()
-			if signer != nil {
-				res.Signer = *signer
+		if signer != nil {
+			signerExp := signer.Export()
+			if signerExp != nil {
+				res.Signer = *signerExp
 			}
 		}
 		if ss.Entity != nil {

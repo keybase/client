@@ -23,6 +23,7 @@ export type Props = {
   title?: string,
   prefix?: ?string,
   suffix?: ?string,
+  colorFollowing?: boolean,
 }
 
 declare export function usernameText(props: Props): void

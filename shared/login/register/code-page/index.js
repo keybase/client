@@ -4,7 +4,7 @@
  * you're a phone/computer and if you're the existing device or the new device
  */
 import React, {Component} from 'react'
-import Render from './index.render'
+import RenderCodePage from './index.render'
 import type {Props} from './index.render'
 import {connect} from 'react-redux'
 
@@ -25,7 +25,7 @@ class CodePage extends Component<void, Props, State> {
 
   render () {
     return (
-      <Render
+      <RenderCodePage
         enterText={this.state.enterText}
         onChangeText={enterText => this.setState({enterText})}
         onBack={this.props.onBack}
@@ -46,5 +46,8 @@ class CodePage extends Component<void, Props, State> {
 }
 
 export default connect(
-  (state: any, ownProps: any) => ownProps.mapStateToProps(state),
+  (state: any, {routeProps}) => ({
+    ...routeProps.mapStateToProps(state),
+    ...routeProps,
+  })
 )(CodePage)
