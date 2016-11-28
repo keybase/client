@@ -214,8 +214,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     }
     let messages = []
     if (conversationState && conversationState.messages !== null) {
-      const messageList = conversationState.messages.toJS()
-      const prevMessage = messageList[messageList.length - 1]
+      const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
       const timestamp = _maybeAddTimestamp(message, prevMessage)
       if (timestamp !== null) {
         messages.push(timestamp)
@@ -265,8 +264,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         } else {
           // How long was it between the previous message and this one?
           if (conversationState && conversationState.messages !== null) {
-            const messages = conversationState.messages.toJS()
-            const prevMessage = messages[messages.length - 1]
+            const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
             const timestamp = _maybeAddTimestamp(message, prevMessage)
             if (timestamp !== null) {
               yield put({
