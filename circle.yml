@@ -35,12 +35,12 @@ dependencies:
     #    background: true
     #    parallel: true
     - rm -rf $HOME/client/react-native/node_modules # Clear node_modules cache, it appears to be getting out of sync
-    - npm install
-    - npm install -g react-native-cli
+    - yarn
+    - yarn global react-native-cli
     - mkdir -p $GOPATH/src/github.com/keybase
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
-    - npm run gobuild-android
-    - npm run sync
+    - yarn run gobuild-android
+    - yarn run sync
 test:
   override:
     # TODO(mm) uncomment these device tests (see todo above)

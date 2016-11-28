@@ -124,11 +124,9 @@ helpers.rootLinuxNode(env, {
                                 "KEYBASE_JS_VENDOR_DIR=${env.BASEDIR}/js-vendor-desktop",
                             ]) {
                                 dir("desktop") {
-                                    sh "npm run vendor-install"
+                                    sh "yarn"
                                     sh "unzip ${env.KEYBASE_JS_VENDOR_DIR}/flow/flow-linux64*.zip -d ${env.BASEDIR}"
                                     sh "${env.BASEDIR}/flow/flow status shared"
-                                    sh "npm run shrinkwrap-audit"
-                                    sh "npm run shrinkwrap-audit -- ../react-native"
                                 }
                                 sh "desktop/node_modules/.bin/eslint ."
                                 // Only run visdiff for PRs
@@ -148,9 +146,8 @@ helpers.rootLinuxNode(env, {
                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                     ]) {
                                         dir("visdiff") {
-                                            sh "npm install"
+                                            sh "yarn"
                                         }
-                                        sh "npm install ./visdiff"
                                         try {
                                             timeout(time: 10, unit: 'MINUTES') {
                                                 dir("desktop") {
@@ -236,11 +233,10 @@ helpers.rootLinuxNode(env, {
                                     wrap([$class: 'Xvfb']) {
                                         println "Test Windows JS"
                                         dir("visdiff") {
-                                            bat "npm install"
+                                            bat "yarn"
                                         }
-                                        bat "npm install .\\visdiff"
                                         dir("desktop") {
-                                            bat "npm run vendor-install"
+                                            bat "yarn"
                                             withCredentials([[$class: 'UsernamePasswordMultiBinding',
                                                     credentialsId: 'visdiff-aws-creds',
                                                     usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',

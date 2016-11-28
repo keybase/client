@@ -113,7 +113,6 @@
     "redux-devtools-dock-monitor": "1.1.1",
     "redux-devtools-log-monitor": "1.1.1",
     "redux-logger": "2.7.4",
-    "shrinkpack": "0.17.1",
     "source-map-support": "0.4.6",
     "unused-files-webpack-plugin": "3.0.0",
     "webpack": "1.13.3",
