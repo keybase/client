@@ -367,9 +367,9 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
   let newMessages = []
   messages.forEach((message, idx) => {
     if (idx >= 2) {
-      const maybe = _maybeAddTimestamp(messages[idx], messages[idx - 1])
-      if (maybe !== null) {
-        newMessages.push(maybe)
+      const timestamp = _maybeAddTimestamp(messages[idx], messages[idx - 1])
+      if (timestamp !== null) {
+        newMessages.push(timestamp)
       }
     }
     newMessages.push(message)
