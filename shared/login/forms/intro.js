@@ -2,7 +2,8 @@
 import React, {Component} from 'react'
 import Render from './intro.render'
 import {connect} from 'react-redux'
-import {routeAppend} from '../../actions/router'
+import {loginTab} from '../../constants/tabs'
+import {navigateTo} from '../../actions/route-tree'
 import {retryBootstrap} from '../../actions/config'
 import {setRevokedSelf, setDeletedSelf, setLoginFromRevokedDevice, login} from '../../actions/login'
 
@@ -35,12 +36,13 @@ export default connect(
       dispatch(setLoginFromRevokedDevice(''))
       dispatch(setRevokedSelf(''))
       dispatch(setDeletedSelf(''))
-      dispatch(routeAppend('signup'))
+      dispatch(navigateTo([loginTab, 'signup']))
     },
     onLogin: () => {
       dispatch(setLoginFromRevokedDevice(''))
       dispatch(setRevokedSelf(''))
       dispatch(setDeletedSelf(''))
+      dispatch(navigateTo([loginTab, 'login']))
       dispatch(login())
     },
     onRetry: () => {
