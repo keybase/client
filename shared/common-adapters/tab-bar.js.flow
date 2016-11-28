@@ -33,7 +33,8 @@ export class TabBarItem extends Component<void, ItemProps, void> { }
 
 export type TabBarButtonProps = Exact<{
   selected: boolean,
-  source: {type: 'icon', icon: IconType} | {type: 'avatar', avatar: Avatar} | {type: 'nav', icon: IconType},
+  onClick?: () => void,
+  source: {type: 'icon', icon: IconType} | {type: 'avatar', avatar: React$Element<*>} | {type: 'nav', icon: IconType},
   label?: string,
   badgeNumber?: ?number,
   style?: Object,

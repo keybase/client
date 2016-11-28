@@ -6,11 +6,13 @@ export type Props = {
   devices: Array<_Device>,
   revokedDevices?: Array<_Device>,
   waitingForServer: boolean,
+  showingRevoked: boolean,
   addNewPhone: () => void,
   addNewComputer: () => void,
   addNewPaperKey: () => void,
   showRemoveDevicePage: (device: _Device) => void,
-  showExistingDevicePage: (device: _Device) => void
+  showExistingDevicePage: (device: _Device) => void,
+  onToggleShowRevoked: () => void,
 }
 
 export default class Render extends Component<void, Props, void> { }

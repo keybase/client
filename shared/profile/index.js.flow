@@ -3,7 +3,7 @@ import {Component} from 'react'
 
 import type {SimpleProofState, UserInfo} from '../constants/tracker'
 import type {BioEditFns} from '../common-adapters/user-bio'
-import type {FriendshipUserInfo} from './friendships'
+import type {Tab as FriendshipsTab, FriendshipUserInfo} from './friendships'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
 import type {Folder} from '../folders/list'
@@ -14,11 +14,13 @@ export type Props = {
   bioEditFns: ?BioEditFns,
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
+  currentFriendshipsTab: FriendshipsTab,
   refresh: () => void,
   onBack: ?() => void,
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
+  onChangeFriendshipsTab: (currentFriendshipsTab: FriendshipsTab) => void,
   onMissingProofClick: (missingProof: MissingProof) => void,
   onFolderClick: (folder: Folder) => void,
   onUserClick: (username: string) => void,
