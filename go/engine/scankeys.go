@@ -5,6 +5,7 @@ package engine
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -22,11 +23,12 @@ import (
 // so has to be in the engine package.  It is a UIConsumer.
 type ScanKeys struct {
 	// keys  openpgp.EntityList
-	skbs  []*libkb.SKB // all skb blocks for local keys
-	secui libkb.SecretUI
-	owner *libkb.User // the owner of the found key(s).  Can be `me` or any other keybase user.
-	me    *libkb.User
+	skbs      []*libkb.SKB // all skb blocks for local keys
+	secui     libkb.SecretUI
+	keyOwners map[uint64]*libkb.User // user objects for owners of keys found, for convenience
+	me        *libkb.User
 	libkb.Contextified
+	sync.Mutex // protect keyOwners map
 }
 
 const unlockReason = "PGP Decryption"
@@ -39,13 +41,14 @@ var _ openpgp.KeyRing = &ScanKeys{}
 func NewScanKeys(secui libkb.SecretUI, g *libkb.GlobalContext) (*ScanKeys, error) {
 	sk := &ScanKeys{
 		secui:        secui,
+		keyOwners:    make(map[uint64]*libkb.User),
 		Contextified: libkb.NewContextified(g),
 	}
 	var err error
 
 	g.Log.Debug("+ NewScanKeys")
 	defer func() {
-		g.Log.Debug("- NewScanKeys -> %s", err)
+		g.Log.Debug("- NewScanKeys -> %v", err)
 	}()
 
 	lin, err := g.LoginState().LoggedInLoad()
@@ -113,7 +116,9 @@ func (s *ScanKeys) KeysById(id uint64) []openpgp.Key {
 	s.G().Log.Debug("ScanKeys:KeysById(%016x) => %d keys match in memory", id, len(memres))
 	if len(memres) > 0 {
 		s.G().Log.Debug("ScanKeys:KeysById(%016x) => owner == me (%s)", id, s.me.GetName())
-		s.owner = s.me // `me` is the owner of all s.skbs
+		s.Lock()
+		s.keyOwners[id] = s.me
+		s.Unlock()
 		return memres
 	}
 
@@ -144,7 +149,9 @@ func (s *ScanKeys) KeysByIdUsage(id uint64, requiredUsage byte) []openpgp.Key {
 	s.G().Log.Debug("ScanKeys:KeysByIdUsage(%016x, %x) => %d keys match in memory", id, requiredUsage, len(memres))
 	if len(memres) > 0 {
 		s.G().Log.Debug("ScanKeys:KeysByIdUsage(%016x) => owner == me (%s)", id, s.me.GetName())
-		s.owner = s.me // `me` is the owner of all s.skbs
+		s.Lock()
+		s.keyOwners[id] = s.me
+		s.Unlock()
 		return memres
 	}
 
@@ -168,10 +175,31 @@ func (s *ScanKeys) DecryptionKeys() []openpgp.Key {
 	return all.DecryptionKeys()
 }
 
-// Owner returns the owner of the keys found by ScanKeys that were
-// used in KeysById or KeysByIdUsage.
-func (s *ScanKeys) Owner() *libkb.User {
-	return s.owner
+// KeyOwner returns the owner of the keys found by ScanKeys that were
+// used in KeysById or KeysByIdUsage, indexed by keyID.
+func (s *ScanKeys) KeyOwner(keyID uint64) *libkb.User {
+	s.Lock()
+	defer s.Unlock()
+
+	return s.keyOwners[keyID]
+}
+
+func (s *ScanKeys) KeyOwnerByEntity(entity *openpgp.Entity) *libkb.User {
+	s.Lock()
+	defer s.Unlock()
+
+	if entity == nil {
+		return nil
+	}
+	if u, found := s.keyOwners[entity.PrimaryKey.KeyId]; found {
+		return u
+	}
+	for _, subKey := range entity.Subkeys {
+		if u, found := s.keyOwners[subKey.PublicKey.KeyId]; found {
+			return u
+		}
+	}
+	return nil
 }
 
 // coalesceBlocks puts the synced pgp key block and all the pgp key
@@ -226,7 +254,9 @@ func (s *ScanKeys) scan(id uint64) (openpgp.EntityList, error) {
 	}
 	// user found is the owner of the keys
 	s.G().Log.Debug("scan(%016x) => owner of key = (%s)", id, uplus[0].User.GetName())
-	s.owner = uplus[0].User
+	s.Lock()
+	s.keyOwners[id] = uplus[0].User
+	s.Unlock()
 
 	// convert the bundles to an openpgp entity list
 	// (which implements the openpgp.KeyRing interface)

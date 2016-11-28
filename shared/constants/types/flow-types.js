@@ -4686,6 +4686,11 @@ export type pgpUiKeyGeneratedRpcParam = Exact<{
   key: KeyInfo
 }>
 
+export type pgpUiOutputSignatureSuccessNonKeybaseRpcParam = Exact<{
+  keyID: string,
+  signedAt: Time
+}>
+
 export type pgpUiOutputSignatureSuccessRpcParam = Exact<{
   fingerprint: string,
   username: string,
@@ -5784,6 +5789,14 @@ export type incomingCallMapType = Exact<{
       sessionID: int,
       fingerprint: string,
       username: string,
+      signedAt: Time
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (
+    params: Exact<{
+      sessionID: int,
+      keyID: string,
       signedAt: Time
     }>,
     response: CommonResponseHandler
