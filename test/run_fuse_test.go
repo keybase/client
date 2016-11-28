@@ -23,19 +23,21 @@ type fuseEngine struct {
 	fsEngine
 }
 
-func createEngine() Engine {
-	e := &fuseEngine{}
-	e.createUser = createUserFuse
-	e.name = "fuse"
-	return e
+func createEngine(t testing.TB) Engine {
+	log := logger.NewTestLogger(t)
+	debugLog := log.CloneWithAddedDepth(1)
+	fuse.Debug = libfuse.MakeFuseDebugFn(debugLog, false /* superVerbose */)
+	return &fuseEngine{
+		fsEngine: fsEngine{
+			name:       "fuse",
+			t:          t,
+			createUser: createUserFuse,
+		},
+	}
 }
 
 func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 	opTimeout time.Duration) *fsUser {
-	log := logger.NewTestLogger(t)
-	debugLog := log.CloneWithAddedDepth(1)
-	fuse.Debug = libfuse.MakeFuseDebugFn(debugLog, false /* superVerbose */)
-
 	filesys := libfuse.NewFS(config, nil, false)
 	fn := func(mnt *fstestutil.Mount) fs.FS {
 		filesys.SetFuseConn(mnt.Server, mnt.Conn)
@@ -56,16 +58,31 @@ func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 		t.Fatal(err)
 	}
 	t.Logf("FUSE HasInvalidate=%v", mnt.Conn.Protocol().HasInvalidate())
+
+	ctx := context.Background()
+
+	username, _, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancelFn := context.WithCancel(ctx)
+
+	ctx = filesys.WithContext(ctx)
+	logTags := logger.CtxLogTags{
+		CtxUserKey: CtxOpUser,
+	}
+	ctx = logger.NewContextWithLogTags(ctx, logTags)
+	ctx = context.WithValue(ctx, CtxUserKey, username)
+
 	// the fsUser.cancel will cancel notification processing; the FUSE
 	// serve loop is terminated by unmounting the filesystem
-	ctx := context.Background()
-	ctx, cancelFn := context.WithCancel(ctx)
-	ctx = filesys.WithContext(ctx)
 	filesys.LaunchNotificationProcessor(ctx)
 	return &fsUser{
-		mntDir: mnt.Dir,
-		config: config,
-		cancel: cancelFn,
-		close:  mnt.Close,
+		mntDir:   mnt.Dir,
+		username: username,
+		config:   config,
+		cancel:   cancelFn,
+		close:    mnt.Close,
 	}
 }

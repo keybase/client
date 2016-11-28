@@ -22,11 +22,14 @@ type dokanEngine struct {
 	fsEngine
 }
 
-func createEngine() Engine {
-	e := &dokanEngine{}
-	e.createUser = createUserDokan
-	e.name = "dokan"
-	return e
+func createEngine(t testing.TB) Engine {
+	return &dokanEngine{
+		fsEngine: fsEngine{
+			name:       "dokan",
+			t:          t,
+			createUser: createUserDokan,
+		},
+	}
 }
 
 func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal,
@@ -47,7 +50,19 @@ func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 	}()
 
 	ctx := context.Background()
+
+	username, _, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	ctx, cancelFn := context.WithCancel(ctx)
+	logTags := logger.CtxLogTags{
+		CtxUserKey: CtxOpUser,
+	}
+	ctx = logger.NewContextWithLogTags(ctx, logTags)
+	ctx = context.WithValue(ctx, CtxUserKey, username)
+
 	fs, err := libdokan.NewFS(ctx, config, logger.NewTestLogger(t))
 	if err != nil {
 		t.Fatal(err)
@@ -68,9 +83,10 @@ func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 
 	createSuccess = true
 	return &fsUser{
-		mntDir: mnt.Dir,
-		config: config,
-		cancel: cancelFn,
+		mntDir:   mnt.Dir,
+		username: username,
+		config:   config,
+		cancel:   cancelFn,
 		close: func() {
 			dokan.Unmount(mnt.Dir)
 			lock.Unlock()

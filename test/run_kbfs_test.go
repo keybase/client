@@ -6,6 +6,8 @@
 
 package test
 
-func createEngine() Engine {
+import "testing"
+
+func createEngine(t testing.TB) Engine {
 	return &LibKBFS{}
 }

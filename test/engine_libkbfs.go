@@ -98,6 +98,9 @@ func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 const (
 	// CtxOpID is the display name for the unique operation test ID tag.
 	CtxOpID = "TID"
+
+	// CtxOpUser is the display name for the user tag.
+	CtxOpUser = "User"
 )
 
 // CtxTagKey is the type used for unique context tags
@@ -106,10 +109,23 @@ type CtxTagKey int
 const (
 	// CtxIDKey is the type of the tag for unique operation IDs.
 	CtxIDKey CtxTagKey = iota
+
+	// CtxUserKey is the type of the user tag.
+	CtxUserKey
 )
 
-func (k *LibKBFS) newContext() (context.Context, context.CancelFunc) {
+func (k *LibKBFS) newContext(u User) (context.Context, context.CancelFunc) {
 	ctx := context.Background()
+
+	config, ok := u.(libkbfs.Config)
+	if !ok {
+		panic("passed parameter isn't a config object")
+	}
+	username, _, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		panic(err)
+	}
+
 	var cancel context.CancelFunc
 	if k.opTimeout > 0 {
 		ctx, cancel = context.WithTimeout(ctx, k.opTimeout)
@@ -118,10 +134,12 @@ func (k *LibKBFS) newContext() (context.Context, context.CancelFunc) {
 	}
 
 	id, errRandomRequestID := libkbfs.MakeRandomRequestID()
-	ctx, err := libkbfs.NewContextWithCancellationDelayer(libkbfs.NewContextReplayable(
+	ctx, err = libkbfs.NewContextWithCancellationDelayer(libkbfs.NewContextReplayable(
 		ctx, func(ctx context.Context) context.Context {
-			logTags := make(logger.CtxLogTags)
-			logTags[CtxIDKey] = CtxOpID
+			logTags := logger.CtxLogTags{
+				CtxIDKey:   CtxOpID,
+				CtxUserKey: CtxOpUser,
+			}
 			ctx = logger.NewContextWithLogTags(ctx, logTags)
 
 			// Add a unique ID to this context, identifying a particular
@@ -129,6 +147,8 @@ func (k *LibKBFS) newContext() (context.Context, context.CancelFunc) {
 			if errRandomRequestID == nil {
 				ctx = context.WithValue(ctx, CtxIDKey, id)
 			}
+
+			ctx = context.WithValue(ctx, CtxUserKey, username)
 
 			return ctx
 		}))
@@ -149,7 +169,7 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 		panic("passed parameter isn't a config object")
 	}
 	var err error
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	_, uid, err = config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -183,7 +203,7 @@ outer:
 // GetFavorites implements the Engine interface.
 func (k *LibKBFS) GetFavorites(u User, public bool) (map[string]bool, error) {
 	config := u.(*libkbfs.ConfigLocal)
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	favorites, err := config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
@@ -204,7 +224,7 @@ func (k *LibKBFS) GetRootDir(u User, tlfName string, isPublic bool, expectedCano
 	dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, isPublic)
 	if err != nil {
@@ -229,7 +249,7 @@ func (k *LibKBFS) GetRootDir(u User, tlfName string, isPublic bool, expectedCano
 func (k *LibKBFS) CreateDir(u User, parentDir Node, name string) (dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	dir, _, err = kbfsOps.CreateDir(ctx, parentDir.(libkbfs.Node), name)
 	if err != nil {
@@ -243,7 +263,7 @@ func (k *LibKBFS) CreateDir(u User, parentDir Node, name string) (dir Node, err 
 func (k *LibKBFS) CreateFile(u User, parentDir Node, name string) (file Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	file, _, err = kbfsOps.CreateFile(ctx, parentDir.(libkbfs.Node), name,
 		false, libkbfs.NoExcl)
@@ -258,7 +278,7 @@ func (k *LibKBFS) CreateFile(u User, parentDir Node, name string) (file Node, er
 func (k *LibKBFS) CreateFileExcl(u User, parentDir Node, name string) (file Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	file, _, err = kbfsOps.CreateFile(ctx, parentDir.(libkbfs.Node), name, false, libkbfs.WithExcl)
 	if err != nil {
@@ -272,7 +292,7 @@ func (k *LibKBFS) CreateFileExcl(u User, parentDir Node, name string) (file Node
 func (k *LibKBFS) CreateLink(u User, parentDir Node, fromName, toPath string) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	_, err = kbfsOps.CreateLink(ctx, parentDir.(libkbfs.Node), fromName, toPath)
 	return err
@@ -281,7 +301,7 @@ func (k *LibKBFS) CreateLink(u User, parentDir Node, fromName, toPath string) (e
 // RemoveDir implements the Engine interface.
 func (k *LibKBFS) RemoveDir(u User, dir Node, name string) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	return kbfsOps.RemoveDir(ctx, dir.(libkbfs.Node), name)
 }
@@ -289,7 +309,7 @@ func (k *LibKBFS) RemoveDir(u User, dir Node, name string) (err error) {
 // RemoveEntry implements the Engine interface.
 func (k *LibKBFS) RemoveEntry(u User, dir Node, name string) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	return kbfsOps.RemoveEntry(ctx, dir.(libkbfs.Node), name)
 }
@@ -298,7 +318,7 @@ func (k *LibKBFS) RemoveEntry(u User, dir Node, name string) (err error) {
 func (k *LibKBFS) Rename(u User, srcDir Node, srcName string,
 	dstDir Node, dstName string) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	return kbfsOps.Rename(ctx, srcDir.(libkbfs.Node), srcName, dstDir.(libkbfs.Node), dstName)
 }
@@ -306,14 +326,14 @@ func (k *LibKBFS) Rename(u User, srcDir Node, srcName string,
 // WriteFile implements the Engine interface.
 func (k *LibKBFS) WriteFile(u User, file Node, data []byte, off int64, sync bool) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	err = kbfsOps.Write(ctx, file.(libkbfs.Node), data, off)
 	if err != nil {
 		return err
 	}
 	if sync {
-		ctx, cancel := k.newContext()
+		ctx, cancel := k.newContext(u)
 		defer cancel()
 		err = kbfsOps.Sync(ctx, file.(libkbfs.Node))
 	}
@@ -323,14 +343,14 @@ func (k *LibKBFS) WriteFile(u User, file Node, data []byte, off int64, sync bool
 // TruncateFile implements the Engine interface.
 func (k *LibKBFS) TruncateFile(u User, file Node, size uint64, sync bool) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	err = kbfsOps.Truncate(ctx, file.(libkbfs.Node), size)
 	if err != nil {
 		return err
 	}
 	if sync {
-		ctx, cancel := k.newContext()
+		ctx, cancel := k.newContext(u)
 		defer cancel()
 		err = kbfsOps.Sync(ctx, file.(libkbfs.Node))
 	}
@@ -340,7 +360,7 @@ func (k *LibKBFS) TruncateFile(u User, file Node, size uint64, sync bool) (err e
 // Sync implements the Engine interface.
 func (k *LibKBFS) Sync(u User, file Node) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	return kbfsOps.Sync(ctx, file.(libkbfs.Node))
 }
@@ -349,7 +369,7 @@ func (k *LibKBFS) Sync(u User, file Node) (err error) {
 func (k *LibKBFS) ReadFile(u User, file Node, off int64, buf []byte) (length int, err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
 	var numRead int64
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	numRead, err = kbfsOps.Read(ctx, file.(libkbfs.Node), buf, off)
 	if err != nil {
@@ -367,7 +387,7 @@ type libkbfsSymNode struct {
 func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPath string, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	file, ei, err := kbfsOps.Lookup(ctx, parentDir.(libkbfs.Node), name)
 	if err != nil {
@@ -391,7 +411,7 @@ func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPat
 func (k *LibKBFS) GetDirChildrenTypes(u User, parentDir Node) (childrenTypes map[string]string, err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
 	var entries map[string]libkbfs.EntryInfo
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	entries, err = kbfsOps.GetDirChildren(ctx, parentDir.(libkbfs.Node))
 	if err != nil {
@@ -408,7 +428,7 @@ func (k *LibKBFS) GetDirChildrenTypes(u User, parentDir Node) (childrenTypes map
 func (k *LibKBFS) SetEx(u User, file Node, ex bool) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	return kbfsOps.SetEx(ctx, file.(libkbfs.Node), ex)
 }
@@ -417,7 +437,7 @@ func (k *LibKBFS) SetEx(u User, file Node, ex bool) (err error) {
 func (k *LibKBFS) SetMtime(u User, file Node, mtime time.Time) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	return kbfsOps.SetMtime(ctx, file.(libkbfs.Node), &mtime)
 }
@@ -427,7 +447,7 @@ func (k *LibKBFS) GetMtime(u User, file Node) (mtime time.Time, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
 	var info libkbfs.EntryInfo
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	if node, ok := file.(libkbfs.Node); ok {
 		info, err = kbfsOps.Stat(ctx, node)
@@ -465,7 +485,7 @@ func getRootNode(ctx context.Context, config libkbfs.Config, tlfName string,
 func (k *LibKBFS) DisableUpdatesForTesting(u User, tlfName string, isPublic bool) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	dir, err := getRootNode(ctx, config, tlfName, isPublic)
 	if err != nil {
@@ -500,7 +520,7 @@ func (*LibKBFS) MakeNaïveStaller(u User) *libkbfs.NaïveStaller {
 func (k *LibKBFS) ReenableUpdates(u User, tlfName string, isPublic bool) error {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	dir, err := getRootNode(ctx, config, tlfName, isPublic)
 	if err != nil {
@@ -531,7 +551,7 @@ func (k *LibKBFS) ReenableUpdates(u User, tlfName string, isPublic bool) error {
 func (k *LibKBFS) SyncFromServerForTesting(u User, tlfName string, isPublic bool) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	dir, err := getRootNode(ctx, config, tlfName, isPublic)
 	if err != nil {
@@ -545,7 +565,7 @@ func (k *LibKBFS) SyncFromServerForTesting(u User, tlfName string, isPublic bool
 func (k *LibKBFS) ForceQuotaReclamation(u User, tlfName string, isPublic bool) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	dir, err := getRootNode(ctx, config, tlfName, isPublic)
 	if err != nil {
@@ -566,7 +586,7 @@ func (k *LibKBFS) AddNewAssertion(u User, oldAssertion, newAssertion string) err
 func (k *LibKBFS) Rekey(u User, tlfName string, isPublic bool) error {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	dir, err := getRootNode(ctx, config, tlfName, isPublic)
 	if err != nil {
@@ -580,7 +600,7 @@ func (k *LibKBFS) Rekey(u User, tlfName string, isPublic bool) error {
 func (k *LibKBFS) EnableJournal(u User, tlfName string, isPublic bool) error {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	dir, err := getRootNode(ctx, config, tlfName, isPublic)
 	if err != nil {
@@ -600,7 +620,7 @@ func (k *LibKBFS) EnableJournal(u User, tlfName string, isPublic bool) error {
 func (k *LibKBFS) PauseJournal(u User, tlfName string, isPublic bool) error {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	dir, err := getRootNode(ctx, config, tlfName, isPublic)
 	if err != nil {
@@ -620,7 +640,7 @@ func (k *LibKBFS) PauseJournal(u User, tlfName string, isPublic bool) error {
 func (k *LibKBFS) ResumeJournal(u User, tlfName string, isPublic bool) error {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	dir, err := getRootNode(ctx, config, tlfName, isPublic)
 	if err != nil {
@@ -640,7 +660,7 @@ func (k *LibKBFS) ResumeJournal(u User, tlfName string, isPublic bool) error {
 func (k *LibKBFS) FlushJournal(u User, tlfName string, isPublic bool) error {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	dir, err := getRootNode(ctx, config, tlfName, isPublic)
 	if err != nil {
@@ -660,7 +680,7 @@ func (k *LibKBFS) UnflushedPaths(u User, tlfName string, isPublic bool) (
 	[]string, error) {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext()
+	ctx, cancel := k.newContext(u)
 	defer cancel()
 	dir, err := getRootNode(ctx, config, tlfName, isPublic)
 	if err != nil {

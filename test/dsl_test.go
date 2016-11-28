@@ -51,7 +51,7 @@ type opt struct {
 
 func test(t testing.TB, actions ...optionOp) {
 	o := &opt{}
-	o.engine = createEngine()
+	o.engine = createEngine(t)
 	o.engine.Init()
 	o.t = t
 	defer o.close()
@@ -235,8 +235,9 @@ func addNewAssertion(oldAssertion, newAssertion string) optionOp {
 }
 
 type fileOp struct {
-	operation func(*ctx) error
-	flags     fileOpFlags
+	operation   func(*ctx) error
+	flags       fileOpFlags
+	description string
 }
 type fileOpFlags uint32
 
@@ -254,17 +255,26 @@ type ctx struct {
 	staller    *libkbfs.NaïveStaller
 }
 
+func runFileOpHelper(c *ctx, fop fileOp) (string, error) {
+	desc := fmt.Sprintf("(%s) %s", c.username, fop.description)
+	c.t.Log(desc)
+	err := fop.operation(c)
+	if err != nil {
+		c.t.Logf("%s failed with %s", desc, err)
+	}
+	return desc, err
+}
+
 func runFileOp(c *ctx, fop fileOp) (string, error) {
 	if c.rootNode == nil && fop.flags&IsInit == 0 {
 		initOp := initRoot()
-		err := initOp.operation(c)
+		desc, err := runFileOpHelper(c, initOp)
 		if err != nil {
-			c.t.Logf("initRoot failed running as %s", c.username)
-			return "initRoot", err
+			desc = fmt.Sprintf("%s for %s", desc, fop.description)
+			return desc, err
 		}
 	}
-	c.t.Log("fop", fop)
-	return "File operation", fop.operation(c)
+	return runFileOpHelper(c, fop)
 }
 
 func expectError(op fileOp, reasonPrefix string) fileOp {
@@ -279,14 +289,16 @@ func expectError(op fileOp, reasonPrefix string) fileOp {
 			return fmt.Errorf("Got the wrong error: expected prefix %q, got %q", reasonPrefix, err.Error())
 		}
 		return nil
-	}, IsInit /* So that we can use expectError with e.g. initRoot(). */}
+	}, IsInit, /* So that we can use expectError with e.g. initRoot(). */
+		fmt.Sprintf("expectError(%s, %s)",
+			op.description, reasonPrefix)}
 }
 
 func noSync() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.noSyncInit = true
 		return nil
-	}, IsInit}
+	}, IsInit, "noSync()"}
 }
 
 func (o *opt) expectSuccess(reason string, err error) {
@@ -306,7 +318,7 @@ func addTime(d time.Duration) fileOp {
 	return fileOp{func(c *ctx) error {
 		c.clock.Add(d)
 		return nil
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("addTime(%s)", d)}
 }
 
 func as(user username, fops ...fileOp) optionOp {
@@ -332,7 +344,6 @@ func as(user username, fops ...fileOp) optionOp {
 // not called directly.
 func initRoot() fileOp {
 	return fileOp{func(c *ctx) error {
-		c.t.Logf("initRoot for %s", c.username)
 		if !c.noSyncInit {
 			// Do this before GetRootDir so that we pick
 			// up any TLF name changes.
@@ -347,20 +358,20 @@ func initRoot() fileOp {
 		}
 		c.rootNode = root
 		return nil
-	}, IsInit}
+	}, IsInit, "initRoot()"}
 }
 
 func custom(f func(func(fileOp) error) error) fileOp {
 	return fileOp{func(c *ctx) error {
 		return f(func(fop fileOp) error { return fop.operation(c) })
-	}, Defaults}
+	}, Defaults, "custom()"}
 }
 
 func mkdir(name string) fileOp {
 	return fileOp{func(c *ctx) error {
 		_, _, err := c.getNode(name, createDir, resolveAllSyms)
 		return err
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("mkdir(%s)", name)}
 }
 
 func write(name string, contents string) fileOp {
@@ -382,7 +393,8 @@ func pwriteBSSync(name string, contents []byte, off int64, sync bool) fileOp {
 			return err
 		}
 		return c.engine.WriteFile(c.user, f, contents, off, sync)
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("pwriteBSSync(%s, %d bytes, off=%d, sync=%t)",
+		name, len(contents), off, sync)}
 }
 
 func truncate(name string, size uint64) fileOp {
@@ -392,7 +404,7 @@ func truncate(name string, size uint64) fileOp {
 			return err
 		}
 		return c.engine.TruncateFile(c.user, f, size, true)
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("truncate(%s, %d)", name, size)}
 }
 
 func read(name string, contents string) fileOp {
@@ -414,14 +426,15 @@ func preadBS(name string, contents []byte, at int64) fileOp {
 			return fmt.Errorf("Read (name=%s) got=%d, expected=%d bytes: contents=%s differ from expected=%s", name, len(bs), len(contents), bs, contents)
 		}
 		return nil
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("preadBS(%s, %d bytes, at=%d)",
+		name, len(contents), at)}
 }
 
 func exists(filename string) fileOp {
 	return fileOp{func(c *ctx) error {
 		_, _, err := c.getNode(filename, noCreate, resolveAllSyms)
 		return err
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("exists(%s)", filename)}
 }
 func notExists(filename string) fileOp {
 	return fileOp{func(c *ctx) error {
@@ -430,14 +443,14 @@ func notExists(filename string) fileOp {
 			return fmt.Errorf("File that should not exist exists: %q", filename)
 		}
 		return nil
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("notExists(%s)", filename)}
 }
 
 func mkfileexcl(name string) fileOp {
 	return fileOp{func(c *ctx) error {
 		_, _, err := c.getNode(name, createFileExcl, resolveAllSyms)
 		return err
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("mkfileexcl(%s)", name)}
 }
 
 func mkfile(name string, contents string) fileOp {
@@ -455,7 +468,7 @@ func mkfile(name string, contents string) fileOp {
 			return nil
 		}
 		return c.engine.WriteFile(c.user, f, []byte(contents), 0, true)
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("mkfile(%s, %d bytes)", name, len(contents))}
 }
 
 func link(fromName, toPath string) fileOp {
@@ -466,7 +479,7 @@ func link(fromName, toPath string) fileOp {
 			return err
 		}
 		return c.engine.CreateLink(c.user, parent, name, toPath)
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("link(%s => %s)", fromName, toPath)}
 }
 
 func setex(filepath string, ex bool) fileOp {
@@ -476,7 +489,7 @@ func setex(filepath string, ex bool) fileOp {
 			return err
 		}
 		return c.engine.SetEx(c.user, file, ex)
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("setex(%s, %t)", filepath, ex)}
 }
 
 func setmtime(filepath string, mtime time.Time) fileOp {
@@ -486,7 +499,7 @@ func setmtime(filepath string, mtime time.Time) fileOp {
 			return err
 		}
 		return c.engine.SetMtime(c.user, file, mtime)
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("setmtime(%s, %s)", filepath, mtime)}
 }
 
 func mtime(filepath string, expectedMtime time.Time) fileOp {
@@ -504,7 +517,7 @@ func mtime(filepath string, expectedMtime time.Time) fileOp {
 				mtime, expectedMtime)
 		}
 		return nil
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("mtime(%s, %s)", filepath, expectedMtime)}
 }
 
 func rm(filepath string) fileOp {
@@ -515,7 +528,7 @@ func rm(filepath string) fileOp {
 			return err
 		}
 		return c.engine.RemoveEntry(c.user, parent, name)
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("rm(%s)", filepath)}
 }
 
 func rmdir(filepath string) fileOp {
@@ -526,7 +539,7 @@ func rmdir(filepath string) fileOp {
 			return err
 		}
 		return c.engine.RemoveDir(c.user, parent, name)
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("rmdir(%s)", filepath)}
 }
 
 func rename(src, dst string) fileOp {
@@ -542,7 +555,7 @@ func rename(src, dst string) fileOp {
 			return err
 		}
 		return c.engine.Rename(c.user, sparent, sname, dparent, dname)
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("rename(%s => %s)", src, dst)}
 }
 
 func disableUpdates() fileOp {
@@ -552,7 +565,7 @@ func disableUpdates() fileOp {
 			return err
 		}
 		return c.engine.DisableUpdatesForTesting(c.user, c.tlfName, c.tlfIsPublic)
-	}, IsInit}
+	}, IsInit, "disableUpdates()"}
 }
 
 func stallDelegateOnMDPut() fileOp {
@@ -560,7 +573,7 @@ func stallDelegateOnMDPut() fileOp {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
 		c.staller.StallMDOp(libkbfs.StallableMDPut, 100, true)
 		return nil
-	}, Defaults}
+	}, Defaults, "stallDelegateOnMDPut()"}
 }
 
 func stallOnMDPut() fileOp {
@@ -568,28 +581,28 @@ func stallOnMDPut() fileOp {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
 		c.staller.StallMDOp(libkbfs.StallableMDPut, 100, false)
 		return nil
-	}, Defaults}
+	}, Defaults, "stallOnMDPut()"}
 }
 
 func waitForStalledMDPut() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.WaitForStallMDOp(libkbfs.StallableMDPut)
 		return nil
-	}, IsInit}
+	}, IsInit, "waitForStalledMDPut()"}
 }
 
 func unstallOneMDPut() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UnstallOneMDOp(libkbfs.StallableMDPut)
 		return nil
-	}, IsInit}
+	}, IsInit, "unstallOneMDPut()"}
 }
 
 func undoStallOnMDPut() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UndoStallMDOp(libkbfs.StallableMDPut)
 		return nil
-	}, IsInit}
+	}, IsInit, "undoStallOnMDPut()"}
 }
 
 func stallDelegateOnMDGetForTLF() fileOp {
@@ -597,7 +610,7 @@ func stallDelegateOnMDGetForTLF() fileOp {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
 		c.staller.StallMDOp(libkbfs.StallableMDGetForTLF, 100, true)
 		return nil
-	}, Defaults}
+	}, Defaults, "stallDelegateOnMDGetForTLF()"}
 }
 
 func stallOnMDGetForTLF() fileOp {
@@ -605,28 +618,28 @@ func stallOnMDGetForTLF() fileOp {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
 		c.staller.StallMDOp(libkbfs.StallableMDGetForTLF, 100, false)
 		return nil
-	}, Defaults}
+	}, Defaults, "stallOnMDGetForTLF()"}
 }
 
 func waitForStalledMDGetForTLF() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.WaitForStallMDOp(libkbfs.StallableMDGetForTLF)
 		return nil
-	}, IsInit}
+	}, IsInit, "waitForStalledMDGetForTLF()"}
 }
 
 func unstallOneMDGetForTLF() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UnstallOneMDOp(libkbfs.StallableMDGetForTLF)
 		return nil
-	}, IsInit}
+	}, IsInit, "unstallOneMDGetForTLF()"}
 }
 
 func undoStallOnMDGetForTLF() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UndoStallMDOp(libkbfs.StallableMDGetForTLF)
 		return nil
-	}, IsInit}
+	}, IsInit, "undoStallOnMDGetForTLF()"}
 }
 
 func stallDelegateOnMDGetRange() fileOp {
@@ -634,7 +647,7 @@ func stallDelegateOnMDGetRange() fileOp {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
 		c.staller.StallMDOp(libkbfs.StallableMDGetRange, 100, true)
 		return nil
-	}, Defaults}
+	}, Defaults, "stallDelegateOnMDGetRange()"}
 }
 
 func stallOnMDGetRange() fileOp {
@@ -642,28 +655,28 @@ func stallOnMDGetRange() fileOp {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
 		c.staller.StallMDOp(libkbfs.StallableMDGetRange, 100, false)
 		return nil
-	}, Defaults}
+	}, Defaults, "stallOnMDGetRange()"}
 }
 
 func waitForStalledMDGetRange() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.WaitForStallMDOp(libkbfs.StallableMDGetRange)
 		return nil
-	}, IsInit}
+	}, IsInit, "waitForStalledMDGetRange()"}
 }
 
 func unstallOneMDGetRange() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UnstallOneMDOp(libkbfs.StallableMDGetRange)
 		return nil
-	}, IsInit}
+	}, IsInit, "unstallOneMDGetRange()"}
 }
 
 func undoStallOnMDGetRange() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UndoStallMDOp(libkbfs.StallableMDGetRange)
 		return nil
-	}, IsInit}
+	}, IsInit, "undoStallOnMDGetRange()"}
 }
 
 func stallDelegateOnMDResolveBranch() fileOp {
@@ -671,7 +684,7 @@ func stallDelegateOnMDResolveBranch() fileOp {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
 		c.staller.StallMDOp(libkbfs.StallableMDResolveBranch, 100, true)
 		return nil
-	}, Defaults}
+	}, Defaults, "stallDelegateOnMDResolveBranch()"}
 }
 
 func stallOnMDResolveBranch() fileOp {
@@ -679,28 +692,28 @@ func stallOnMDResolveBranch() fileOp {
 		// TODO: Allow test to pass in a more precise maxStalls limit.
 		c.staller.StallMDOp(libkbfs.StallableMDResolveBranch, 100, false)
 		return nil
-	}, Defaults}
+	}, Defaults, "stallOnMDResolveBranch()"}
 }
 
 func waitForStalledMDResolveBranch() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.WaitForStallMDOp(libkbfs.StallableMDResolveBranch)
 		return nil
-	}, IsInit}
+	}, IsInit, "waitForStalledMDResolveBranch()"}
 }
 
 func unstallOneMDResolveBranch() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UnstallOneMDOp(libkbfs.StallableMDResolveBranch)
 		return nil
-	}, IsInit}
+	}, IsInit, "unstallOneMDResolveBranch()"}
 }
 
 func undoStallOnMDResolveBranch() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UndoStallMDOp(libkbfs.StallableMDResolveBranch)
 		return nil
-	}, IsInit}
+	}, IsInit, "undoStallOnMDResolveBranch()"}
 }
 
 func reenableUpdates() fileOp {
@@ -710,13 +723,13 @@ func reenableUpdates() fileOp {
 			return err
 		}
 		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
-	}, IsInit}
+	}, IsInit, "reenableUpdates()"}
 }
 
 func reenableUpdatesNoSync() fileOp {
 	return fileOp{func(c *ctx) error {
 		return c.engine.ReenableUpdates(c.user, c.tlfName, c.tlfIsPublic)
-	}, IsInit}
+	}, IsInit, "reenableUpdatesNoSync()"}
 }
 
 func forceQuotaReclamation() fileOp {
@@ -727,37 +740,37 @@ func forceQuotaReclamation() fileOp {
 		}
 		// Wait for QR to finish.
 		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
-	}, IsInit}
+	}, IsInit, "forceQuotaReclamation()"}
 }
 
 func rekey() fileOp {
 	return fileOp{func(c *ctx) error {
 		return c.engine.Rekey(c.user, c.tlfName, c.tlfIsPublic)
-	}, IsInit}
+	}, IsInit, "rekey()"}
 }
 
 func enableJournal() fileOp {
 	return fileOp{func(c *ctx) error {
 		return c.engine.EnableJournal(c.user, c.tlfName, c.tlfIsPublic)
-	}, IsInit}
+	}, IsInit, "enableJournal()"}
 }
 
 func pauseJournal() fileOp {
 	return fileOp{func(c *ctx) error {
 		return c.engine.PauseJournal(c.user, c.tlfName, c.tlfIsPublic)
-	}, IsInit}
+	}, IsInit, "pauseJournal()"}
 }
 
 func resumeJournal() fileOp {
 	return fileOp{func(c *ctx) error {
 		return c.engine.ResumeJournal(c.user, c.tlfName, c.tlfIsPublic)
-	}, IsInit}
+	}, IsInit, "resumeJournal()"}
 }
 
 func flushJournal() fileOp {
 	return fileOp{func(c *ctx) error {
 		return c.engine.FlushJournal(c.user, c.tlfName, c.tlfIsPublic)
-	}, IsInit}
+	}, IsInit, "flushJournal()"}
 }
 
 func checkUnflushedPaths(expectedPaths []string) fileOp {
@@ -774,7 +787,7 @@ func checkUnflushedPaths(expectedPaths []string) fileOp {
 				expectedPaths, paths)
 		}
 		return nil
-	}, IsInit}
+	}, IsInit, fmt.Sprintf("checkUnflushedPaths(%s)", expectedPaths)}
 }
 
 func lsfavoritesOp(c *ctx, expected []string, public bool) error {
@@ -802,13 +815,13 @@ func lsfavoritesOp(c *ctx, expected []string, public bool) error {
 func lspublicfavorites(contents []string) fileOp {
 	return fileOp{func(c *ctx) error {
 		return lsfavoritesOp(c, contents, true)
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("lspublicfavorites(%s)", contents)}
 }
 
 func lsprivatefavorites(contents []string) fileOp {
 	return fileOp{func(c *ctx) error {
 		return lsfavoritesOp(c, contents, false)
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("lsprivatefavorites(%s)", contents)}
 }
 
 func lsdir(name string, contents m) fileOp {
@@ -840,7 +853,7 @@ func lsdir(name string, contents m) fileOp {
 			return fmt.Errorf("unexpected %s of type %s found in %s", node, ty, name)
 		}
 		return nil
-	}, Defaults}
+	}, Defaults, fmt.Sprintf("lsdir(%s, %d bytes)", name, len(contents))}
 }
 
 // createType specifies whether getNode should create any nodes that
