@@ -12,13 +12,17 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
+	"reflect"
 	"time"
 
 	"strconv"
 
+	"github.com/akavel/rsrc/binutil"
+	"github.com/akavel/rsrc/coff"
 	"github.com/josephspurrier/goversioninfo"
 	"github.com/keybase/client/go/libkb"
 )
@@ -36,6 +40,90 @@ func getBuildName() string {
 
 }
 
+// kbWriteSyso creates a resource file from the version info and optionally an icon.
+// arch must be an architecture string accepted by coff.Arch, like "386" or "amd64"
+// Note this is partially lifted from josephspurrier/goversioninfo, which we
+// extend here to write multiple icons.
+func kbWriteSyso(vi *goversioninfo.VersionInfo, filename string, arch string, icons []string) error {
+
+	// Channel for generating IDs
+	newID := make(chan uint16)
+	go func() {
+		for i := uint16(1); ; i++ {
+			newID <- i
+		}
+	}()
+
+	// Create a new RSRC section
+	coff := coff.NewRSRC()
+
+	// Set the architechture
+	err := coff.Arch(arch)
+	if err != nil {
+		return err
+	}
+
+	// ID 16 is for Version Information
+	coff.AddResource(16, 1, goversioninfo.SizedReader{&vi.Buffer})
+
+	// NOTE: if/when we start using a manifest, it goes here
+
+	// If icon is enabled
+	if vi.IconPath != "" {
+		if err := addIcon(coff, vi.IconPath, newID); err != nil {
+			return err
+		}
+	}
+	// if extra icons were passed in
+	for _, i := range icons {
+		if err := addIcon(coff, i, newID); err != nil {
+			return err
+		}
+	}
+
+	coff.Freeze()
+
+	// Write to file
+	return writeCoff(coff, filename)
+}
+
+// From josephspurrier/goversioninfo
+func writeCoff(coff *coff.Coff, fnameout string) error {
+	out, err := os.Create(fnameout)
+	if err != nil {
+		return err
+	}
+	if err = writeCoffTo(out, coff); err != nil {
+		return fmt.Errorf("error writing %q: %v", fnameout, err)
+	}
+	return nil
+}
+
+// From josephspurrier/goversioninfo
+func writeCoffTo(w io.WriteCloser, coff *coff.Coff) error {
+	bw := binutil.Writer{W: w}
+
+	// write the resulting file to disk
+	binutil.Walk(coff, func(v reflect.Value, path string) error {
+		if binutil.Plain(v.Kind()) {
+			bw.WriteLE(v.Interface())
+			return nil
+		}
+		vv, ok := v.Interface().(binutil.SizedReader)
+		if ok {
+			bw.WriteFromSized(vv)
+			return binutil.WALK_SKIP
+		}
+		return nil
+	})
+
+	err := bw.Err
+	if closeErr := w.Close(); closeErr != nil && err == nil {
+		err = closeErr
+	}
+	return err
+}
+
 // Create the syso and custom build file
 func main() {
 
@@ -45,6 +133,7 @@ func main() {
 	printCustomBuildPtr := flag.Bool("cb", false, "print custom build number to console (no .syso output)")
 	printWinVerPtr := flag.Bool("w", false, "print windows format version to console (no .syso output)")
 	iconPtr := flag.String("i", "../../media/icons/Keybase.ico", "icon pathname")
+	kbfsIconPtr := flag.String("kbfsicon", "../../media/icons/windows/keybase-root-icon.ico", "icon pathname")
 	fileDescriptionPtr := flag.String("d", "Keybase utility", "File Description")
 	originalFilenamePtr := flag.String("n", "keybase.exe", "File name")
 
@@ -125,7 +214,7 @@ func main() {
 	vi.IconPath = *iconPtr
 
 	// Create the file
-	if err := vi.WriteSyso(*outPtr); err != nil {
+	if err := kbWriteSyso(vi, *outPtr, "386", []string{*kbfsIconPtr}); err != nil {
 		log.Printf("Error writing %s: %v", *outPtr, err)
 		os.Exit(3)
 	}
