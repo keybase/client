@@ -1,7 +1,7 @@
 // @flow
 import MessageText from './text'
 import Timestamp from './timestamp'
-import moment from 'moment'
+import {formatTimeForMessages} from '../../../util/timestamp'
 import React from 'react'
 import {Box} from '../../../common-adapters'
 
@@ -45,9 +45,8 @@ const factory = (message: Message, includeHeader: boolean, index: number, key: s
         onAction={onAction}
         />
     case 'Timestamp':
-      const timestamp = timestampWithFormat(message.timestamp, momentFormatter(message.timestamp))
       return <Timestamp
-        timestamp={timestamp}
+        timestamp={formatTimeForMessages(message.timestamp)}
         key={message.timestamp}
         style={style}
         />

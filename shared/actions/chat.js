@@ -127,8 +127,9 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string
 }
 
 function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
+  const {conversationIDKey} = action.payload
   const infoSelector = (state: TypedState) => {
-    const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === action.payload.conversationIDKey)
+    const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
     if (convo) {
       return convo.get('info')
     }
@@ -176,7 +177,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
 
   const sent = yield call(localPostLocalNonblockRpcPromise, {
     param: {
-      conversationID: keyToConversationID(action.payload.conversationIDKey),
+      conversationID: keyToConversationID(conversationIDKey),
       msg: {
         clientHeader,
         messageBody: {
@@ -203,11 +204,30 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       deviceName: '',
       conversationIDKey: action.payload.conversationIDKey,
     }
+
+    // Should we add a timestamp before our new message?
+    // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
+    const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
+    const conversationState = yield select(conversationStateSelector)
+    if (!conversationState) {
+      yield put(loadInbox())
+    }
+    let messages = []
+    if (conversationState && conversationState.messages !== null) {
+      const messageList = conversationState.messages.toJS()
+      const prevMessage = messageList[messageList.length - 1]
+      const timestamp = _maybeAddTimestamp(message, prevMessage)
+      if (timestamp !== null) {
+        messages.push(timestamp)
+      }
+    }
+
+    messages.push(message)
     yield put({
       type: Constants.appendMessages,
       payload: {
-        conversationIDKey: action.payload.conversationIDKey,
-        messages: [message],
+        conversationIDKey,
+        messages,
       },
     })
   }
@@ -243,10 +263,11 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
             },
           })
         } else {
-          console.table(conversationState)
           // How long was it between the previous message and this one?
-          if (conversationState !== null && conversationState.messages !== null) {
-            const timestamp = _maybeAddTimestamp(message, conversationState.messages[-1])
+          if (conversationState && conversationState.messages !== null) {
+            const messages = conversationState.messages.toJS()
+            const prevMessage = messages[messages.length - 1]
+            const timestamp = _maybeAddTimestamp(message, prevMessage)
             if (timestamp !== null) {
               yield put({
                 type: Constants.appendMessages,
@@ -392,7 +413,7 @@ function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimes
   if (message.type !== 'Text' || prevMessage.type !== 'Text') {
     return null
   }
-  if (message.timestamp - prevMessage.timestamp > 1000000) { // ms
+  if (message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) { // ms
     return {
       type: 'Timestamp',
       timestamp: prevMessage.timestamp,
@@ -428,10 +449,11 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             outboxID: payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex'),
           }
         default:
-          return {
+          const unhandled: MessageUnhandled = {
             ...common,
             type: 'Unhandled',
           }
+          return unhandled
       }
     }
   }
