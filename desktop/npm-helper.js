@@ -200,6 +200,7 @@ function postInstall () {
     exec('echo module.exports = null > node_modules\\msgpack\\index.js')
     exec('echo {"main": "index.js"} > node_modules\\msgpack\\package.json')
   } else {
+    // Making a shim module. TODO use rn's make-shim instead. This is to make msgpack requires work but allow the fallback to purepack (in node-framemsgpack code)
     exec("mkdir -p node_modules/msgpack; echo 'module.exports = null' > node_modules/msgpack/index.js; echo '{\"main\": \"index.js\"}' > node_modules/msgpack/package.json")
   }
 
