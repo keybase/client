@@ -188,7 +188,6 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
     case NotifyChatChatActivityType.incomingMessage:
       const incomingMessage: ?IncomingMessageRPCType = action.payload.activity.incomingMessage
-      console.log('Chat activity', action.payload)
       if (incomingMessage) {
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
@@ -226,7 +225,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       }
       break
     default:
-      console.warn('Unsupported incoming message type for Chat:', action.payload.activity.activityType)
+      console.warn('Unsupported incoming message type for Chat:', action.payload.activity)
   }
 }
 
