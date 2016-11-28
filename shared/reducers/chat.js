@@ -69,10 +69,17 @@ function reducer (state: State = initialState, action: Actions) {
           const {seenMessages, messages: knownMessages} = conversation
           const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages, knownMessages, appendMessages)
 
-          // Set first new message (unless in selected conversation with focus)
-          let firstMessage = appendMessages[0]
-          if (!conversation.get('firstNewMessageID') && !(isSelected && state.get('focused'))) {
+
+          const firstMessage = appendMessages[0]
+          const inConversationFocused = (isSelected && state.get('focused'))
+          if (!conversation.get('firstNewMessageID') && !inConversationFocused) {
+            // Set first new message if we don't have one set, and are not in
+            // the conversation with window focused
             conversation = conversation.set('firstNewMessageID', firstMessage.messageID)
+          } else if (inConversationFocused) {
+            // Clear new message if we received a new message while in
+            // conversation and window is focused
+            conversation = conversation.set('firstNewMessageID', null)
           }
 
           return conversation
