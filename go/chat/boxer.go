@@ -56,19 +56,6 @@ func (b *Boxer) log() logger.Logger {
 	return b.kbCtx.GetLog()
 }
 
-func (b *Boxer) loadCachedUser(uid gregor1.UID) (*keybase1.UserPlusAllKeys, error) {
-	loader := b.kbCtx.GetCachedUserLoader()
-	if loader == nil {
-		return nil, fmt.Errorf("no CachedUserLoader available in context")
-	}
-	kbUID := keybase1.UID(uid.String())
-	upk, _, err := loader.Load(libkb.NewLoadUserByUIDArg(loader.G(), kbUID))
-	if err != nil {
-		return nil, err
-	}
-	return upk, nil
-}
-
 func (b *Boxer) makeErrorMessage(msg chat1.MessageBoxed, err error) chat1.MessageUnboxed {
 	return chat1.NewMessageUnboxedWithError(chat1.MessageUnboxedError{
 		ErrMsg:      err.Error(),
