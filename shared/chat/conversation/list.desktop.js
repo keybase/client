@@ -170,6 +170,7 @@ class ConversationList extends Component<void, Props, State> {
       style={{position: 'absolute', top: y, left: x}}
       />
     const container = document.getElementById('popupContainer')
+    // ReactDOM.render(popupComponent, event.target)
     ReactDOM.render(popupComponent, container)
   }
 
@@ -184,6 +185,8 @@ class ConversationList extends Component<void, Props, State> {
     const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
     const onAction = (event) => { this.showPopup(message, event) }
     const isSelected = this.state.selectedMessageID === message.messageID
+    // TODO: We need to update the message component selected status
+    // when showing popup, which isn't currently working.
 
     return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, style, isScrolling, onAction, isSelected)
   }
@@ -197,6 +200,7 @@ class ConversationList extends Component<void, Props, State> {
     .message {
       background-color: transparent;
     }
+    .message .action-button {
       visibility: hidden;
     }
     .message:hover {
