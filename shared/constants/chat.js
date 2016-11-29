@@ -5,7 +5,7 @@ import {Set, List, Map, Record} from 'immutable'
 
 import type {UserListItem} from '../common-adapters/usernames'
 import type {NoErrorTypedAction} from './types/flux'
-import type {ConversationID as RPCConversationID, ChatActivity, ConversationInfoLocal} from './types/flow-types-chat'
+import type {ConversationID as RPCConversationID, MessageID as RPCMessageID, ChatActivity, ConversationInfoLocal} from './types/flow-types-chat'
 
 export type MessageType = 'Text'
 export type FollowState = 'You' | 'Following' | 'Broken' | 'NotFollowing'
@@ -14,7 +14,8 @@ export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', '
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
-export type MessageID = number
+export type MessageID = RPCMessageID
+
 export type Message = {
   type: 'Text',
   message: HiddenString,
@@ -42,6 +43,7 @@ export const ConversationStateRecord = Record({
   isLoading: true,
   paginationNext: undefined,
   paginationPrevious: undefined,
+  firstNewMessageID: undefined,
 })
 
 export type ConversationState = Record<{
@@ -51,6 +53,7 @@ export type ConversationState = Record<{
   isLoading: boolean,
   paginationNext: ?Buffer,
   paginationPrevious: ?Buffer,
+  firstNewMessageID: ?MessageID,
 }>
 
 export type ConversationID = RPCConversationID
@@ -89,6 +92,7 @@ export const StateRecord = Record({
   inbox: List(),
   conversationStates: Map(),
   selectedConversation: null,
+  focused: false,
   metaData: Map(),
 })
 
@@ -96,6 +100,7 @@ export type State = Record<{
   inbox: List<InboxState>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   selectedConversation: ?ConversationIDKey,
+  focused: boolean,
   metaData: Map<string, MetaData>,
 }>
 
@@ -125,7 +130,7 @@ export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<In
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
 export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>, moreToLoad: boolean, paginationNext: ?Buffer}>
-export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey}>
+export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
 export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type PostMessage = NoErrorTypedAction<'chat:postMessage', {conversationIDKey: ConversationIDKey, text: HiddenString}>
