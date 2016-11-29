@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/keybase/client/go/logger"
 )
 
 // ServiceInfo describes runtime info for a service.
@@ -41,12 +43,14 @@ func NewServiceInfo(version string, prerelease string, label string, pid int) Se
 }
 
 // WriteFile writes service info as JSON in runtimeDir.
-func (s ServiceInfo) WriteFile(path string) error {
+func (s ServiceInfo) WriteFile(path string, log logger.Logger) error {
 	out, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path, []byte(out), 0644)
+
+	file := NewFile(path, []byte(out), 0644)
+	return file.Save(log)
 }
 
 // serviceLog is the log interface for ServiceInfo
@@ -56,7 +60,7 @@ type serviceLog interface {
 
 // WaitForServiceInfoFile tries to wait for a service info file, which should be
 // written on successful service startup.
-func WaitForServiceInfoFile(path string, label string, pid string, maxAttempts int, wait time.Duration, log serviceLog) (*ServiceInfo, error) {
+func WaitForServiceInfoFile(path string, label string, pid string, log serviceLog) (*ServiceInfo, error) {
 	if pid == "" {
 		return nil, fmt.Errorf("No pid to wait for")
 	}
@@ -85,12 +89,13 @@ func WaitForServiceInfoFile(path string, label string, pid string, maxAttempts i
 		return &serviceInfo, nil
 	}
 
-	attempt := 1
+	// Keep looking for service info file for max attempts
+	maxAttempts := 50
+	delay := time.Millisecond * 400
 	serviceInfo, lookErr := lookForServiceInfo()
-	for attempt < maxAttempts && serviceInfo == nil {
-		attempt++
+	for attempt := 1; attempt < maxAttempts && serviceInfo == nil; attempt++ {
 		log.Debug("Waiting for service info file (%s)...", path)
-		time.Sleep(wait)
+		time.Sleep(delay)
 		serviceInfo, lookErr = lookForServiceInfo()
 	}
 

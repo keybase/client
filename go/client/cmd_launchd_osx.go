@@ -372,6 +372,6 @@ func WaitForService(g *libkb.GlobalContext, launchService launchd.Service, servi
 	if launchdStatus.IsErrored() {
 		return fmt.Errorf("%s is not running (exit status %s)", launchdStatus.Label(), launchdStatus.LastExitStatus())
 	}
-	_, err = libkb.WaitForServiceInfoFile(serviceInfoPath, launchdStatus.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, g.Log)
+	_, err = libkb.WaitForServiceInfoFile(serviceInfoPath, launchdStatus.Label(), launchdStatus.Pid(), g.Log)
 	return err
 }

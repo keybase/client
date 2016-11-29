@@ -327,7 +327,7 @@ func (d *Service) writeServiceInfo() error {
 
 	// Write runtime info file
 	rtInfo := libkb.KeybaseServiceInfo(d.G())
-	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath())
+	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath(), d.G().Log)
 }
 
 func (d *Service) hourlyChecks() {
