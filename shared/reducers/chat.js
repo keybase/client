@@ -69,7 +69,6 @@ function reducer (state: State = initialState, action: Actions) {
           const {seenMessages, messages: knownMessages} = conversation
           const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages, knownMessages, appendMessages)
 
-
           const firstMessage = appendMessages[0]
           const inConversationFocused = (isSelected && state.get('focused'))
           if (!conversation.get('firstNewMessageID') && !inConversationFocused) {
