@@ -130,11 +130,10 @@ func (i *identifyUser) isNil() bool {
 func loadIdentifyUser(g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb.Identify2Cacher) (*identifyUser, error) {
 	ret := &identifyUser{arg: arg}
 	err := ret.load(g)
-	if ret != nil && ret.full != nil && cache != nil {
-		cache.DidFullUserLoad(ret.GetUID())
-	}
 	if ret.isNil() {
 		ret = nil
+	} else if ret.full != nil && cache != nil {
+		cache.DidFullUserLoad(ret.GetUID())
 	}
 	return ret, err
 }
