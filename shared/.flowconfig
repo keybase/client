@@ -7,6 +7,7 @@
 .*/node_modules/json5/.*
 .*/node_modules/binary-extensions/.*
 .*/node_modules/npm/.*
+.*/node_modules/electron-packager/test/.*
 .*/node_modules/react-tap-event-plugin/node_modules/.*
 .*/react/node_modules/.*
 ../desktop/build/.*
