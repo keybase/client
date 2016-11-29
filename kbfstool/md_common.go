@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
@@ -163,4 +164,52 @@ func mdParseAndGet(ctx context.Context, config libkbfs.Config, input string) (
 	}
 
 	return mdGet(ctx, config, tlfID, branchID, rev)
+}
+
+func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
+	tlfPath string) (libkbfs.ImmutableRootMetadata, keybase1.UID, error) {
+	handle, err := parseTLFPath(ctx, config.KBPKI(), tlfPath)
+	if err != nil {
+		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), err
+	}
+
+	username, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), err
+	}
+
+	// Make sure we're a writer before doing anything else.
+	if !handle.IsWriter(uid) {
+		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""),
+			libkbfs.NewWriteAccessError(
+				handle, username, handle.GetCanonicalPath())
+	}
+
+	fmt.Printf("Looking for unmerged branch...\n")
+
+	_, unmergedIRMD, err := config.MDOps().GetForHandle(
+		ctx, handle, libkbfs.Unmerged)
+	if err != nil {
+		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), err
+	}
+	if unmergedIRMD != (libkbfs.ImmutableRootMetadata{}) {
+		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), fmt.Errorf(
+			"%s has unmerged data; try unstaging it first",
+			tlfPath)
+	}
+
+	fmt.Printf("Getting latest metadata...\n")
+
+	_, irmd, err := config.MDOps().GetForHandle(
+		ctx, handle, libkbfs.Merged)
+	if err != nil {
+		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), err
+	}
+
+	if irmd == (libkbfs.ImmutableRootMetadata{}) {
+		fmt.Printf("No TLF found for %q\n", tlfPath)
+		return libkbfs.ImmutableRootMetadata{}, keybase1.UID(""), nil
+	}
+
+	return irmd, uid, nil
 }

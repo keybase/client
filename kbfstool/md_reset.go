@@ -14,50 +14,13 @@ import (
 func mdResetOne(
 	ctx context.Context, config libkbfs.Config, tlfPath string,
 	checkValid, dryRun, force bool) error {
-	handle, err := parseTLFPath(ctx, config.KBPKI(), tlfPath)
+	irmd, uid, err := mdGetMergedHeadForWriter(ctx, config, tlfPath)
 	if err != nil {
 		return err
 	}
 
 	// This function is loosely adapted from
 	// folderBranchOps.initMDLocked.
-
-	username, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return err
-	}
-
-	// Make sure we're a writer before doing anything else.
-	if !handle.IsWriter(uid) {
-		return libkbfs.NewWriteAccessError(
-			handle, username, handle.GetCanonicalPath())
-	}
-
-	fmt.Printf("Looking for unmerged branch...\n")
-
-	_, unmergedIRMD, err := config.MDOps().GetForHandle(
-		ctx, handle, libkbfs.Unmerged)
-	if err != nil {
-		return err
-	}
-	if unmergedIRMD != (libkbfs.ImmutableRootMetadata{}) {
-		return fmt.Errorf(
-			"%s has unmerged data; try unstaging it first",
-			tlfPath)
-	}
-
-	fmt.Printf("Getting latest metadata...\n")
-
-	_, irmd, err := config.MDOps().GetForHandle(
-		ctx, handle, libkbfs.Merged)
-	if err != nil {
-		return err
-	}
-
-	if irmd == (libkbfs.ImmutableRootMetadata{}) {
-		fmt.Printf("No TLF found for %q\n", tlfPath)
-		return nil
-	}
 
 	if checkValid {
 		rootPtr := irmd.Data().Dir.BlockPointer
@@ -124,7 +87,7 @@ func mdResetOne(
 	err = libkbfs.PutBlockCheckQuota(
 		ctx, config.BlockServer(), config.Reporter(),
 		rmdNext.TlfID(), info.BlockPointer, readyBlockData,
-		handle.GetCanonicalName())
+		irmd.GetTlfHandle().GetCanonicalName())
 	if err != nil {
 		return err
 	}
