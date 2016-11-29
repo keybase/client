@@ -64,7 +64,7 @@ func (t emptyFile) GetFileSecurity(ctx context.Context, fi *dokan.FileInfo, si w
 		sd.SetGroup(currentGroupSID)
 	}
 	if si&winacl.DACLSecurityInformation != 0 {
-		var acl winacl.Acl
+		var acl winacl.ACL
 		acl.AddAllowAccess(0x001F01FF, currentUserSID)
 		sd.SetDacl(&acl)
 	}

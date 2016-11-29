@@ -19,13 +19,13 @@ type aceHeader struct {
 	Size        uint16
 }
 
-// Acl is the type for access control lists.
-type Acl struct {
+// ACL is the type for access control lists.
+type ACL struct {
 	raw      []byte
 	aceCount int
 }
 
-func (acl *Acl) initIfEmpty() {
+func (acl *ACL) initIfEmpty() {
 	if acl.raw == nil {
 		acl.raw = make([]byte, 8, 8+16)
 		acl.raw[0] = aclRevision
@@ -37,7 +37,7 @@ const (
 )
 
 // AddAllowAccess add a new ALLOW_ACCESS ACE to the ACL.
-func (acl *Acl) AddAllowAccess(accessMask uint32, sid *SID) {
+func (acl *ACL) AddAllowAccess(accessMask uint32, sid *SID) {
 	acl.initIfEmpty()
 	ssize := sidSize(sid)
 	var bs [8]byte
@@ -52,7 +52,7 @@ func (acl *Acl) AddAllowAccess(accessMask uint32, sid *SID) {
 	acl.aceCount++
 }
 
-func (acl *Acl) bytes() []byte {
+func (acl *ACL) bytes() []byte {
 	binary.LittleEndian.PutUint16(acl.raw[2:], uint16(len(acl.raw)))
 	binary.LittleEndian.PutUint16(acl.raw[4:], uint16(acl.aceCount))
 	return acl.raw

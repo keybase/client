@@ -90,8 +90,8 @@ func (sd *SecurityDescriptor) SetGroup(sid *SID) {
 	}
 }
 
-// SetDacl sets a dacl in the security descriptor to the given Acl.
-func (sd *SecurityDescriptor) SetDacl(acl *Acl) {
+// SetDacl sets a dacl in the security descriptor to the given ACL.
+func (sd *SecurityDescriptor) SetDacl(acl *ACL) {
 	bs := acl.bytes()
 	off := sd.curOffset
 	sd.curOffset += len(bs)
