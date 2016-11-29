@@ -9,10 +9,6 @@ class People extends Component {
   render () {
     return <PeopleRender showComingSoon={!flags.tabPeopleEnabled} />
   }
-
-  static parseRoute () {
-    return {componentAtTop: {title: 'People'}}
-  }
 }
 
 export default connect()(People)
