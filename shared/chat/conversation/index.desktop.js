@@ -18,7 +18,7 @@ const Conversation = (props: Props) => {
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Header {...props} />
       <List {...props} />
-      {props.bannerMessage && banner}
+      {banner}
       <Input {...props} />
     </Box>
   )

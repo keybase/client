@@ -7,6 +7,7 @@ export type Props = {
   onClose?: () => void,
   style?: Object,
   children?: ?Object,
+  windowDragging?: boolean,
   type: 'Default' | 'Strong'
 }
 

@@ -9,8 +9,9 @@ class Header extends Component<DefaultProps, Props, void> {
   static defaultProps: DefaultProps;
 
   renderDefault () {
+    const maybeWindowDraggingStyle = this.props.windowDragging ? globalStyles.windowDragging : {}
     return (
-      <div style={{...styles.container, ...styles.defaultContainer, ...this.props.style}}>
+      <div style={{...styles.container, ...maybeWindowDraggingStyle, ...styles.defaultContainer, ...this.props.style}}>
         {this.props.children}
         {this.props.icon && <Icon type='icon-keybase-logo-24' />}
         <Text type='Body' style={{flex: 1, paddingLeft: 6}}>{this.props.title}</Text>
@@ -22,8 +23,9 @@ class Header extends Component<DefaultProps, Props, void> {
   }
 
   renderStrong () {
+    const maybeWindowDraggingStyle = this.props.windowDragging ? globalStyles.windowDragging : {}
     return (
-      <div style={{...styles.container, ...styles.strongContainer, ...this.props.style}}>
+      <div style={{...styles.container, ...maybeWindowDraggingStyle, ...styles.strongContainer, ...this.props.style}}>
         {this.props.title && <Text type='Header' backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6, cursor: 'default'}}>{this.props.title}</Text>}
         {this.props.children}
         {this.props.onClose && (
@@ -44,12 +46,11 @@ class Header extends Component<DefaultProps, Props, void> {
   }
 }
 
-Header.defaultProps = {type: 'Default'}
+Header.defaultProps = {type: 'Default', windowDragging: true}
 
 const styles = {
   container: {
     ...globalStyles.flexBoxRow,
-    ...globalStyles.windowDragging,
     ...globalStyles.noSelect,
     paddingLeft: 10,
     paddingRight: 10,
