@@ -4,6 +4,20 @@ def getCommit(path) {
     }
 }
 
+def checkout_keybase(repo, revision) {
+    dir("src/github.com/keybase/${repo}") {
+        retry(3) {
+            checkout([
+                scm: [
+                    $class: 'GitSCM',
+                    branches: [[name: revision]],
+                    userRemoteConfigs: [[url: "https://github.com/keybase/${repo}.git"]],
+                ]
+            ])
+        }
+    }
+}
+
 def doBuild() {
     stage('Checkout Client') {
         // Reset symlink due to node/git/windows problems
@@ -11,69 +25,10 @@ def doBuild() {
         bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\shared cd src\\github.com\\keybase\\client && git checkout desktop/shared'
         bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\renderer\\fonts cd src\\github.com\\keybase\\client && rd desktop\\renderer\\fonts'
         parallel(
-            checkout_client: {
-                dir('src/github.com/keybase/client') {
-                    retry (3) {                        
-                        checkout([
-                            poll: false,
-                            scm: [
-                                $class: 'GitSCM',
-                                branches: [[name: '${ClientRevision}']],
-                                doGenerateSubmoduleConfigurations: false,
-                                submoduleCfg: [],
-                                userRemoteConfigs: [[url: 'https://github.com/keybase/client.git']]
-                            ],
-                        ])
-                    }
-                }
-            },
-            checkout_kbfs: {
-                dir('src/github.com/keybase/kbfs') {
-                    retry (3) {                        
-                        checkout([
-                            poll: false, 
-                            scm: [
-                                $class: 'GitSCM',
-                                branches: [[name: '${KBFSRevision}']],
-                                doGenerateSubmoduleConfigurations: false,
-                                userRemoteConfigs: [[url: 'https://github.com/keybase/kbfs.git']]
-                            ],
-                        ])
-                    }
-                }
-            },
-            checkout_updater: {
-                dir('src/github.com/keybase/go-updater') {     
-                    retry (3) {                   
-                        checkout([
-                            poll: false, 
-                            scm: [
-                                $class: 'GitSCM',
-                                branches: [[name: '${UpdaterRevision}']],
-                                doGenerateSubmoduleConfigurations: false,
-                                submoduleCfg: [],
-                                userRemoteConfigs: [[url: 'https://github.com/keybase/go-updater.git']]
-                            ],
-                        ])
-                    }
-                }
-            },
-            checkout_release: {
-                dir('src/github.com/keybase/release') {
-                    retry (3) {
-                        checkout([
-                            poll: false, 
-                            scm: [
-                                $class: 'GitSCM',
-                                branches: [[name: '${ReleaseRevision}']],
-                                doGenerateSubmoduleConfigurations: false,
-                                submoduleCfg: [],
-                                userRemoteConfigs: [[url: 'https://github.com/keybase/release.git']]
-                            ],
-                        ])
-                    }
-                }
-            }            
+            checkout_client: { checkout_repo('client', ClientRevision) },
+            checkout_kbfs: { checkout_repo('kbfs', KBFSRevision) },
+            checkout_updater: { checkout_repo('go-updater', UpdaterRevision) },
+            checkout_release: { checkout_repo('release', ReleaseRevision) },
         )
     }
     // Make sure any previous desktop build is deleted
