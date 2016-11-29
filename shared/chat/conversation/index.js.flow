@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import {List, Map} from 'immutable'
 
-import type {ConversationIDKey, Message, MessageID, MetaData, ParticipantItem} from '../../constants/chat'
+import type {ConversationIDKey, Message, MetaData, ParticipantItem} from '../../constants/chat'
 
 export type Props = {
   isLoading: boolean,
@@ -10,8 +10,8 @@ export type Props = {
   metaData: Map<string, MetaData>,
   moreToLoad: boolean,
   onAddParticipant: () => void,
-  onDeleteMessage: (messageID: MessageID) => void,
-  onEditMessage: (messageID: MessageID) => void,
+  onDeleteMessage: (message: Message) => void,
+  onEditMessage: (message: Message) => void,
   onLoadMoreMessages: () => void,
   onOpenFolder: () => void,
   onPostMessage: (text: string) => void,

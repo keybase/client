@@ -35,13 +35,12 @@ const Popup = ({message, onEditMessage, onDeleteMessage, onHidden, style}: Props
       view: headerView,
     }
 
-    const messageID = message.messageID
     let items = []
-    if (messageID && message.followState === 'You') {
+    if (message.followState === 'You') {
       items = [
         'Divider',
-        {title: 'Edit', onClick: () => onEditMessage(messageID)},
-        {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(messageID)},
+        {title: 'Edit', onClick: () => onEditMessage(message)},
+        {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(message)},
       ]
     }
 
