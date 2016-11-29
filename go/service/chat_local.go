@@ -639,6 +639,11 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	return h.PostLocal(ctx, postArg)
 }
 
+// PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
+func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFileAttachmentLocalArg) (chat1.PostLocalRes, error) {
+	return chat1.PostLocalRes{}, nil
+}
+
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
 func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat1.DownloadAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
 	chatUI := h.getChatUI(arg.SessionID)
@@ -712,6 +717,11 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 	}
 
 	return chat1.DownloadAttachmentLocalRes{RateLimits: msgs.RateLimits}, nil
+}
+
+// DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
+func (h *chatLocalHandler) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
+	return chat1.DownloadAttachmentLocalRes{}, nil
 }
 
 func (h *chatLocalHandler) CancelPost(ctx context.Context, outboxID chat1.OutboxID) error {

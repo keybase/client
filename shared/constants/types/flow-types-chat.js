@@ -139,6 +139,18 @@ export function localDownloadAttachmentLocalRpcPromise (request: $Exact<requestC
   return new Promise((resolve, reject) => { localDownloadAttachmentLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
+export function localDownloadFileAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadFileAttachmentLocalResult) => void} & {param: localDownloadFileAttachmentLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.DownloadFileAttachmentLocal'})
+}
+
+export function localDownloadFileAttachmentLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadFileAttachmentLocalResult) => void} & {param: localDownloadFileAttachmentLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localDownloadFileAttachmentLocalRpc({...request, incomingCallMap, callback}))
+}
+
+export function localDownloadFileAttachmentLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localDownloadFileAttachmentLocalResult) => void} & {param: localDownloadFileAttachmentLocalRpcParam}>): Promise<localDownloadFileAttachmentLocalResult> {
+  return new Promise((resolve, reject) => { localDownloadFileAttachmentLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function localGetConversationForCLILocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localGetConversationForCLILocalResult) => void} & {param: localGetConversationForCLILocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chat.1.local.getConversationForCLILocal'})
 }
@@ -233,6 +245,18 @@ export function localPostAttachmentLocalRpcChannelMap (channelConfig: ChannelCon
 
 export function localPostAttachmentLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostAttachmentLocalResult) => void} & {param: localPostAttachmentLocalRpcParam}>): Promise<localPostAttachmentLocalResult> {
   return new Promise((resolve, reject) => { localPostAttachmentLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
+export function localPostFileAttachmentLocalRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostFileAttachmentLocalResult) => void} & {param: localPostFileAttachmentLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chat.1.local.postFileAttachmentLocal'})
+}
+
+export function localPostFileAttachmentLocalRpcChannelMap (channelConfig: ChannelConfig<*>, request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostFileAttachmentLocalResult) => void} & {param: localPostFileAttachmentLocalRpcParam}>): ChannelMap<*> {
+  return _channelMapRpcHelper(channelConfig, (incomingCallMap, callback) => localPostFileAttachmentLocalRpc({...request, incomingCallMap, callback}))
+}
+
+export function localPostFileAttachmentLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: localPostFileAttachmentLocalResult) => void} & {param: localPostFileAttachmentLocalRpcParam}>): Promise<localPostFileAttachmentLocalResult> {
+  return new Promise((resolve, reject) => { localPostFileAttachmentLocalRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function localPostLocalNonblockRpc (request: Exact<requestCommon & {callback?: ?(err: ?any, response: localPostLocalNonblockResult) => void} & {param: localPostLocalNonblockRpcParam}>) {
@@ -693,6 +717,10 @@ export type IncomingMessage = {
   convID: ConversationID,
 }
 
+export type LocalFileSource = {
+  filename: string,
+}
+
 export type LocalSource = {
   source: keybase1.Stream,
   filename: string,
@@ -1017,6 +1045,13 @@ export type localDownloadAttachmentLocalRpcParam = Exact<{
   preview: boolean
 }>
 
+export type localDownloadFileAttachmentLocalRpcParam = Exact<{
+  conversationID: ConversationID,
+  messageID: MessageID,
+  filename: string,
+  preview: boolean
+}>
+
 export type localGetConversationForCLILocalRpcParam = Exact<{
   query: GetConversationForCLILocalQuery
 }>
@@ -1058,6 +1093,15 @@ export type localPostAttachmentLocalRpcParam = Exact<{
   clientHeader: MessageClientHeader,
   attachment: LocalSource,
   preview?: ?LocalSource,
+  title: string,
+  metadata: bytes
+}>
+
+export type localPostFileAttachmentLocalRpcParam = Exact<{
+  conversationID: ConversationID,
+  clientHeader: MessageClientHeader,
+  attachment: LocalFileSource,
+  preview?: ?LocalFileSource,
   title: string,
   metadata: bytes
 }>
@@ -1142,6 +1186,8 @@ export type remoteTlfFinalizeRpcParam = Exact<{
 
 type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
 
+type localDownloadFileAttachmentLocalResult = DownloadAttachmentLocalRes
+
 type localGetConversationForCLILocalResult = GetConversationForCLILocalRes
 
 type localGetInboxAndUnboxLocalResult = GetInboxAndUnboxLocalRes
@@ -1157,6 +1203,8 @@ type localGetThreadLocalResult = GetThreadLocalRes
 type localNewConversationLocalResult = NewConversationLocalRes
 
 type localPostAttachmentLocalResult = PostLocalRes
+
+type localPostFileAttachmentLocalResult = PostLocalRes
 
 type localPostLocalNonblockResult = PostLocalNonblockRes
 
@@ -1189,6 +1237,7 @@ type remoteSetConversationStatusResult = SetConversationStatusRes
 export type rpc =
     localCancelPostRpc
   | localDownloadAttachmentLocalRpc
+  | localDownloadFileAttachmentLocalRpc
   | localGetConversationForCLILocalRpc
   | localGetInboxAndUnboxLocalRpc
   | localGetInboxLocalRpc
@@ -1197,6 +1246,7 @@ export type rpc =
   | localGetThreadLocalRpc
   | localNewConversationLocalRpc
   | localPostAttachmentLocalRpc
+  | localPostFileAttachmentLocalRpc
   | localPostLocalNonblockRpc
   | localPostLocalRpc
   | localRetryPostRpc

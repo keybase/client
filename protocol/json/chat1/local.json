@@ -811,24 +811,6 @@
     },
     {
       "type": "record",
-      "name": "LocalSource",
-      "fields": [
-        {
-          "type": "keybase1.Stream",
-          "name": "source"
-        },
-        {
-          "type": "string",
-          "name": "filename"
-        },
-        {
-          "type": "int",
-          "name": "size"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "NewConversationLocalRes",
       "fields": [
         {
@@ -983,6 +965,34 @@
     },
     {
       "type": "record",
+      "name": "LocalSource",
+      "fields": [
+        {
+          "type": "keybase1.Stream",
+          "name": "source"
+        },
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LocalFileSource",
+      "fields": [
+        {
+          "type": "string",
+          "name": "filename"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "DownloadAttachmentLocalRes",
       "fields": [
         {
@@ -1100,42 +1110,6 @@
       ],
       "response": "SetConversationStatusLocalRes"
     },
-    "postAttachmentLocal": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "conversationID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "clientHeader",
-          "type": "MessageClientHeader"
-        },
-        {
-          "name": "attachment",
-          "type": "LocalSource"
-        },
-        {
-          "name": "preview",
-          "type": [
-            null,
-            "LocalSource"
-          ]
-        },
-        {
-          "name": "title",
-          "type": "string"
-        },
-        {
-          "name": "metadata",
-          "type": "bytes"
-        }
-      ],
-      "response": "PostLocalRes"
-    },
     "newConversationLocal": {
       "request": [
         {
@@ -1194,6 +1168,78 @@
       ],
       "response": "GetMessagesLocalRes"
     },
+    "postAttachmentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "clientHeader",
+          "type": "MessageClientHeader"
+        },
+        {
+          "name": "attachment",
+          "type": "LocalSource"
+        },
+        {
+          "name": "preview",
+          "type": [
+            null,
+            "LocalSource"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "metadata",
+          "type": "bytes"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
+    "postFileAttachmentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "clientHeader",
+          "type": "MessageClientHeader"
+        },
+        {
+          "name": "attachment",
+          "type": "LocalFileSource"
+        },
+        {
+          "name": "preview",
+          "type": [
+            null,
+            "LocalFileSource"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "metadata",
+          "type": "bytes"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
     "DownloadAttachmentLocal": {
       "request": [
         {
@@ -1211,6 +1257,31 @@
         {
           "name": "sink",
           "type": "keybase1.Stream"
+        },
+        {
+          "name": "preview",
+          "type": "boolean"
+        }
+      ],
+      "response": "DownloadAttachmentLocalRes"
+    },
+    "DownloadFileAttachmentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "messageID",
+          "type": "MessageID"
+        },
+        {
+          "name": "filename",
+          "type": "string"
         },
         {
           "name": "preview",

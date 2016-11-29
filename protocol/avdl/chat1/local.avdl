@@ -251,15 +251,6 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
-  record LocalSource {
-    keybase1.Stream source;
-    string filename;
-    int size;
-  }
-
-  // Post an attachment in source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview, string title, bytes metadata);
-
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName);
   record NewConversationLocalRes {
     ConversationLocal conv;
@@ -312,11 +303,35 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
-  // Download an attachment from a message into sink.
+  // LocalSource is a stream attachment source.
+  record LocalSource {
+    keybase1.Stream source;
+    string filename;
+    int size;
+  }
+
+  // Post an attachment from stream source to conversationID.
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview, string title, bytes metadata);
+
+  // LocalFileSource is a file attachment source.  Filename must be readable
+  // by the service for the duration of the attachment upload.
+  record LocalFileSource {
+    string filename;
+  }
+
+  // Post an attachment from file source to conversationID.
+  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalFileSource attachment, union { null, LocalFileSource } preview, string title, bytes metadata);
+
   record DownloadAttachmentLocalRes {
     array<RateLimit> rateLimits;
   }
+
+  // Download an attachment from a message into sink stream.
   DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview);
+  
+  // Download an attachment from a message into a local file.  
+  // Filename must be writable by the service.
+  DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview);
 
   void CancelPost(OutboxID outboxID); 
   void RetryPost(OutboxID outboxID);
