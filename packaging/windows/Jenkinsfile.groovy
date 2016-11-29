@@ -25,10 +25,10 @@ def doBuild() {
         bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\shared cd src\\github.com\\keybase\\client && git checkout desktop/shared'
         bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\renderer\\fonts cd src\\github.com\\keybase\\client && rd desktop\\renderer\\fonts'
         parallel(
-            checkout_client: { checkout_repo('client', ClientRevision) },
-            checkout_kbfs: { checkout_repo('kbfs', KBFSRevision) },
-            checkout_updater: { checkout_repo('go-updater', UpdaterRevision) },
-            checkout_release: { checkout_repo('release', ReleaseRevision) },
+            checkout_client: { checkout_keybase('client', ClientRevision) },
+            checkout_kbfs: { checkout_keybase('kbfs', KBFSRevision) },
+            checkout_updater: { checkout_keybase('go-updater', UpdaterRevision) },
+            checkout_release: { checkout_keybase('release', ReleaseRevision) },
         )
     }
     // Make sure any previous desktop build is deleted
