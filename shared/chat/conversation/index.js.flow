@@ -10,6 +10,8 @@ export type Props = {
   metaData: Map<string, MetaData>,
   moreToLoad: boolean,
   onAddParticipant: () => void,
+  onDeleteMessage: (message: Message) => void,
+  onEditMessage: (message: Message) => void,
   onLoadMoreMessages: () => void,
   onOpenFolder: () => void,
   onPostMessage: (text: string) => void,
