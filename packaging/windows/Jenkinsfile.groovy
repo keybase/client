@@ -52,7 +52,7 @@ def doBuild() {
                 }
             },
             checkout_release: {
-                dir('src/github.com/keybase/go-updater') {                        
+                dir('src/github.com/keybase/release') {                        
                     checkout([
                         poll: false, 
                         scm: [
