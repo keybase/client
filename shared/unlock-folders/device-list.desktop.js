@@ -14,9 +14,9 @@ export type Props = {
 class DeviceRow extends Component<void, {device: Device}, void> {
   render () {
     const icon = {
-      'desktop': 'icon-computer-bw-32',
+      'desktop': 'icon-computer-32',
       'backup': 'icon-paper-key-32',
-      'mobile': 'icon-phone-bw-32',
+      'mobile': 'icon-phone-32',
     }[this.props.device.type]
 
     return (

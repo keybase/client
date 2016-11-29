@@ -25,7 +25,6 @@
         },
     },
     "rules": {
-        "babel/flow-object-type": [1, "comma"],
         "babel/func-params-comma-dangle": 0,
         "comma-dangle": [2, "always-multiline"],
         "filenames/match-regex": [2, "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"],
@@ -40,6 +39,7 @@
         "flowtype/delimiter-dangle": [2, "always-multiline"],
         "flowtype/no-dupe-keys": 2,
         "flowtype/semi": [2, "never"],
+        "flowtype/object-type-delimiter": [2, "comma"],
         "jsx-quotes": [2, "prefer-single"],
         "import/named": 2,
         "import/export": 2,

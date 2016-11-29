@@ -1,7 +1,8 @@
 // @flow
 import Box from './box'
-import FlatButton from 'material-ui/FlatButton'
 import React from 'react'
+import {FlatButton} from 'material-ui'
+
 import type {Props} from './clickable-box'
 
 export default function ClickableBox (props: Props & {children: any}) {

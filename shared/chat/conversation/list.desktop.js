@@ -185,14 +185,16 @@ class ConversationList extends Component<void, Props, State> {
     const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
     const onAction = (event) => { this.showPopup(message, event) }
     const isSelected = this.state.selectedMessageID === message.messageID
+    const isFirstNewMessage = this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
     // TODO: We need to update the message component selected status
     // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, style, isScrolling, onAction, isSelected)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, onAction, isSelected)
   }
 
   render () {
-    const countWithLoading = this.state.messages.count() + 1 // Loading row on top always
+    const messageCount = this.state.messages.count()
+    const countWithLoading = messageCount + 1 // Loading row on top always
     let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 

@@ -85,20 +85,6 @@ const commands = {
     shell: `${nodeCmd} server.js`,
     help: 'Make a development build of the js code',
   },
-  'watch-test-file': {
-    env: {WATCH: 'true'},
-    nodeEnv: 'staging',
-    nodePathDesktop: true,
-    shell: `${nodeCmd} test.js`,
-    help: 'test code',
-  },
-  'test': {
-    env: {},
-    nodeEnv: 'staging',
-    nodePathDesktop: true,
-    shell: `${nodeCmd} test.js`,
-    help: 'test code',
-  },
   'build-prod': {
     nodeEnv: 'production',
     nodePathDesktop: true,
@@ -150,7 +136,7 @@ const commands = {
     help: 'Launch installed Keybase app with console output',
   },
   'postinstall': {
-    help: 'Window: fixup symlinks, all: install global eslint. dummy msgpack',
+    help: 'Window: fixup symlinks, all: install global eslint. dummy msgpack. monkeypatch material-ui',
     code: postInstall,
   },
   'render-screenshots': {
@@ -200,8 +186,14 @@ function postInstall () {
     exec('echo module.exports = null > node_modules\\msgpack\\index.js')
     exec('echo {"main": "index.js"} > node_modules\\msgpack\\package.json')
   } else {
+    // Making a shim module. TODO use rn's make-shim instead. This is to make msgpack requires work but allow the fallback to purepack (in node-framemsgpack code)
     exec("mkdir -p node_modules/msgpack; echo 'module.exports = null' > node_modules/msgpack/index.js; echo '{\"main\": \"index.js\"}' > node_modules/msgpack/package.json")
   }
+
+  const materialPath = 'node_modules/material-ui/package.json'
+  const materialUIJson = JSON.parse(fs.readFileSync(materialPath, 'utf8'))
+  materialUIJson.peerDependencies = {}
+  fs.writeFileSync(materialPath, JSON.stringify(materialUIJson, null, 4), 'utf8')
 }
 
 function setupDebugMain () {

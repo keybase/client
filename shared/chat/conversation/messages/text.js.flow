@@ -6,6 +6,7 @@ import type {MessageID, TextMessage} from '../../../constants/chat'
 export type Props = {
   message: TextMessage,
   includeHeader: boolean,
+  isFirstNewMessage: boolean,
   onRetry: () => void,
   onAction: (event: any) => void,
   style: Object,

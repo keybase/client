@@ -59,8 +59,9 @@ function deleteMessage (message: Message): DeleteMessage {
   return {type: Constants.deleteMessage, payload: {message}}
 }
 
-function selectConversation (conversationIDKey: ConversationIDKey): SelectConversation {
-  return {type: Constants.selectConversation, payload: {conversationIDKey}}
+// Select conversation, fromUser indicates it was triggered by a user and not programatically
+function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean): SelectConversation {
+  return {type: Constants.selectConversation, payload: {conversationIDKey, fromUser}}
 }
 
 function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string, following: {[key: string]: boolean}): List<InboxState> {
@@ -266,7 +267,7 @@ function * _loadedInbox (action: LoadedInbox): SagaGenerator<any, any> {
   if (!selectedConversation) {
     if (action.payload.inbox.count()) {
       const mostRecentConversation = action.payload.inbox.get(0)
-      yield put(selectConversation(mostRecentConversation.get('conversationIDKey')))
+      yield put(selectConversation(mostRecentConversation.get('conversationIDKey'), false))
     }
   }
 }
@@ -396,7 +397,7 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
     const conversationIDKey = conversationIDToKey(result.conv.info.id)
 
     yield put(loadInbox())
-    yield put(selectConversation(conversationIDKey))
+    yield put(selectConversation(conversationIDKey, false))
     yield put(switchTo([chatTab]))
   }
 }

@@ -44,9 +44,9 @@ const Retry = ({onRetry}: {onRetry: () => void}) => (
 
 export default class MessageTextComponent extends Component<void, Props, void> {
   render () {
-    const {message, style, includeHeader, onRetry, onAction} = this.props
+    const {message, style, includeHeader, isFirstNewMessage, onRetry, onAction} = this.props
     return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...style}} className='message'>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, ...(isFirstNewMessage ? stylesFirstNewMessage : null), ...style}} className='message'>
         <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
           <Box style={{width: 2, marginRight: globalMargins.tiny, alignSelf: 'stretch', backgroundColor: _marginColor(message.followState)}} />
           <Box style={{...globalStyles.flexBoxRow, flex: 1, paddingTop: (includeHeader ? globalMargins.tiny : 0)}}>
@@ -68,4 +68,8 @@ export default class MessageTextComponent extends Component<void, Props, void> {
       </Box>
     )
   }
+}
+
+const stylesFirstNewMessage = {
+  borderTop: `solid 1px ${globalColors.orange}`,
 }

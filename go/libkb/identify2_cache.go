@@ -20,6 +20,7 @@ type Identify2Cache struct {
 type Identify2Cacher interface {
 	Get(keybase1.UID, GetCheckTimeFunc, time.Duration) (*keybase1.UserPlusKeys, error)
 	Insert(up *keybase1.UserPlusKeys) error
+	DidFullUserLoad(keybase1.UID)
 	Shutdown()
 }
 
@@ -78,3 +79,6 @@ func (c *Identify2Cache) Insert(up *keybase1.UserPlusKeys) error {
 func (c *Identify2Cache) Shutdown() {
 	c.cache.Shutdown()
 }
+
+// DidFullUserLoad is a noop unless we're testing...
+func (c *Identify2Cache) DidFullUserLoad(_ keybase1.UID) {}
