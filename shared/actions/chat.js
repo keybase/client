@@ -205,7 +205,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       conversationIDKey: action.payload.conversationIDKey,
     }
 
-    // Should we add a timestamp before our new message?
+    // Time to decide: should we add a timestamp before our new message?
     const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
     const conversationState = yield select(conversationStateSelector)
     let messages = []

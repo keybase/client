@@ -21,7 +21,7 @@ export type ParticipantItem = UserListItem
 
 export type MessageID = RPCMessageID
 
-export type ClientMessage = MessageTimestamp
+export type ClientMessage = TimestampMessage
 export type ServerMessage = TextMessage | ErrorMessage | UnhandledMessage
 
 export type Message = ClientMessage | ServerMessage
