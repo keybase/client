@@ -807,7 +807,8 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 
 	task := chat.UploadTask{
 		S3Params:       params,
-		LocalSrc:       local,
+		Filename:       local.Filename,
+		FileSize:       local.Size,
 		Plaintext:      src,
 		S3Signer:       h,
 		ConversationID: conversationID,
