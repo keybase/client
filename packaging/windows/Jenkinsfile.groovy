@@ -67,15 +67,15 @@ def doBuild() {
             }            
         )
     }
+    // Make sure any previous desktop build is deleted
+    bat '''
+        if EXIST src\\github.com\\keybase\\client\\desktop\\release rmdir /q /s src\\github.com\\keybase\\client\\desktop\\release
+        path
+    '''                
     stage('Build Client') {
         bat '"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\build_prerelease.cmd'
     } 
     stage('Build UI') {
-        // Make sure any previous desktop build is deleted
-        bat '''
-            if EXIST src\\github.com\\keybase\\client\\desktop\\release rmdir /q /s src\\github.com\\keybase\\client\\desktop\\release
-            path
-        '''                
         bat 'src\\github.com\\keybase\\client\\packaging\\windows\\buildui.bat'
     }
     stage('Build Installer') {
