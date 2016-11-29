@@ -2331,7 +2331,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	}
 
 	md.AddOp(gco)
-	md.data.LastGCRevision = gco.LatestRev
+	md.SetLastGCRevision(gco.LatestRev)
 
 	bps, err := fbo.maybeUnembedAndPutBlocks(ctx, md)
 	if err != nil {

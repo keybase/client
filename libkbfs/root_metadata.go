@@ -355,6 +355,12 @@ func (md *RootMetadata) ClearBlockChanges() {
 	md.data.Changes.Ops = nil
 }
 
+// SetLastGCRevision sets the last revision up to and including which
+// garbage collection was performed on this TLF.
+func (md *RootMetadata) SetLastGCRevision(rev MetadataRevision) {
+	md.data.LastGCRevision = rev
+}
+
 // updateFromTlfHandle updates the current RootMetadata's fields to
 // reflect the given handle, which must be the result of running the
 // current handle with ResolveAgain().
