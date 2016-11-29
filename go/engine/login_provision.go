@@ -114,6 +114,10 @@ func (e *loginProvision) Run(ctx *Context) error {
 		return err
 	}
 
+	// Zero out the TX so that we don't abort it in the defer()
+	// exit.
+	tx = nil
+
 	if err := e.ensurePaperKey(ctx); err != nil {
 		return err
 	}
@@ -121,10 +125,6 @@ func (e *loginProvision) Run(ctx *Context) error {
 	if err := e.displaySuccess(ctx); err != nil {
 		return err
 	}
-
-	// Zero out the TX so that we don't abort it in the defer()
-	// exit.
-	tx = nil
 
 	// provisioning was successful, so the user has changed:
 	e.G().NotifyRouter.HandleKeyfamilyChanged(e.arg.User.GetUID())
