@@ -20,24 +20,6 @@ const baseMock = {
   enterText: 'Foo Enter Text',
 }
 
-
-const computerComputerMock = {
-  mode: 'codePageModeShowText',
-  textCode: 'go hammer go hammer go hammer go stop hammer time go stop hammer time',
-  qrCode: 'go hammer go hammer go hammer go stop hammer time',
-  myDeviceRole: 'codePageDeviceRoleNewPhone',
-  otherDeviceRole: 'codePageDeviceRoleExistingComputer',
-  cameraBrokenMode: false,
-  setCodePageMode: () => {},
-  qrScanned: data => console.log('QR Scanned:', data),
-  setCameraBrokenMode: () => {},
-  textEntered: () => console.log('textEntered'),
-  onChangeText: () => console.log('onChangeText'),
-  doneRegistering: () => console.log('doneRegistering'),
-  onBack: () => console.log('onBack'),
-  enterText: 'Foo Enter Text',
-}
-
 const scanCodeDeviceMock = {
   ...baseMock,
   mode: 'codePageModeScanCode',
@@ -89,8 +71,7 @@ const enterTextMock = {
 const dumbComponentMap: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
-    'Computer - Phone': baseMock,
-    'Computer - Computer': computerComputerMock,
+    'Normal': baseMock,
     'Scan Code (Mobile)': scanCodeDeviceMock,
     'Show Text (Mobile)': showTextDeviceMock,
     'Enter Text (Mobile)': enterTextDeviceMock,
