@@ -34,16 +34,8 @@ module.exports = {
     libraryTarget: 'commonjs2',
   },
   resolve: {
-    // modulesDirectories: [path.join(__dirname, 'node_modules')],
-    // root: [path.join(__dirname)],
     extensions: ['', '.desktop.js', '.js', '.jsx', '.json', '.flow'],
-    // packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main'],
   },
-  // resolveLoader: {
-    // modulesDirectories: ['web_loaders', 'web_modules', 'node_loaders', 'node_modules', path.join(__dirname, 'node_modules')],
-    // extensions: ['', '.webpack-loader.js', '.web-loader.js', '.loader.js', '.js'],
-    // packageMains: ['webpackLoader', 'webLoader', 'loader', 'main'],
-  // },
   plugins: [
     new webpack.DefinePlugin(defines),
   ],

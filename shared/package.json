@@ -42,7 +42,7 @@
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
     "rn-gobuild-android": "./react-native/gobuild.sh android",
     "rn-packager-wipe-cache": "node ./react-native/wipe-cache.js",
-    "rn-test-ios": "xcodebuild test -project ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'"
+    "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'"
   },
   "keywords": [],
   "author": "",
