@@ -80,7 +80,7 @@ func (j journalMDOps) getHeadFromJournal(
 		return ImmutableRootMetadata{}, nil
 	}
 
-	head, err := tlfJournal.getMDHead(ctx)
+	head, err := tlfJournal.getMDHead(ctx, bid)
 	if err == errTLFJournalDisabled {
 		return ImmutableRootMetadata{}, nil
 	} else if err != nil {
@@ -147,7 +147,7 @@ func (j journalMDOps) getRangeFromJournal(
 		return nil, nil
 	}
 
-	ibrmds, err := tlfJournal.getMDRange(ctx, start, stop)
+	ibrmds, err := tlfJournal.getMDRange(ctx, bid, start, stop)
 	if err == errTLFJournalDisabled {
 		return nil, nil
 	} else if err != nil {
@@ -158,8 +158,8 @@ func (j journalMDOps) getRangeFromJournal(
 		return nil, nil
 	}
 
-	head := ibrmds[len(ibrmds)-1]
-
+	headIndex := len(ibrmds) - 1
+	head := ibrmds[headIndex]
 	if head.MergedStatus() != mStatus {
 		return nil, nil
 	}

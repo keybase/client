@@ -141,9 +141,15 @@ type mdJournal struct {
 
 	j mdIDJournal
 
-	// This doesn't need to be persisted, even if the journal
-	// becomes empty, since on a restart the branch ID is
-	// retrieved from the server (via GetUnmergedForTLF).
+	// branchID is the BranchID that every MD in the journal is set
+	// to, except for when it is PendingLocalSquashBranchID, in which
+	// case the journal is a bunch of MDs with a null branchID
+	// followed by a bunch of MDs with bid =
+	// PendingLocalSquashBranchID.
+	//
+	// branchID doesn't need to be persisted, even if the journal
+	// becomes empty, since on a restart the branch ID is retrieved
+	// from the server (via GetUnmergedForTLF).
 	branchID BranchID
 
 	// Set only when the journal becomes empty due to
@@ -153,8 +159,8 @@ type mdJournal struct {
 }
 
 func makeMDJournalWithIDJournal(
-	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	crypto cryptoPure, clock Clock, tlfID tlf.ID,
+	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
+	codec kbfscodec.Codec, crypto cryptoPure, clock Clock, tlfID tlf.ID,
 	mdVer MetadataVer, dir string, idJournal mdIDJournal,
 	log logger.Logger) (*mdJournal, error) {
 	if uid == keybase1.UID("") {
@@ -196,26 +202,28 @@ func makeMDJournalWithIDJournal(
 	}
 
 	if earliest != nil {
-		if earliest.BID() != latest.BID() {
+		if earliest.BID() != latest.BID() &&
+			!(earliest.BID() == NullBranchID &&
+				latest.BID() == PendingLocalSquashBranchID) {
 			return nil, fmt.Errorf(
 				"earliest.BID=%s != latest.BID=%s",
 				earliest.BID(), latest.BID())
 		}
-		log.CDebugf(nil, "Initializing with branch ID %s", earliest.BID())
-		journal.branchID = earliest.BID()
+		log.CDebugf(ctx, "Initializing with branch ID %s", latest.BID())
+		journal.branchID = latest.BID()
 	}
 
 	return &journal, nil
 }
 
 func makeMDJournal(
-	uid keybase1.UID, key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
-	crypto cryptoPure, clock Clock, tlfID tlf.ID,
+	ctx context.Context, uid keybase1.UID, key kbfscrypto.VerifyingKey,
+	codec kbfscodec.Codec, crypto cryptoPure, clock Clock, tlfID tlf.ID,
 	mdVer MetadataVer, dir string,
 	log logger.Logger) (*mdJournal, error) {
 	journalDir := filepath.Join(dir, "md_journal")
 	return makeMDJournalWithIDJournal(
-		uid, key, codec, crypto, clock, tlfID, mdVer, dir,
+		ctx, uid, key, codec, crypto, clock, tlfID, mdVer, dir,
 		makeMdIDJournal(codec, journalDir), log)
 }
 
@@ -434,7 +442,8 @@ func (j mdJournal) getMDAndExtra(id MdID, verifyBranchID bool) (
 		return nil, nil, time.Time{}, err
 	}
 
-	if verifyBranchID && rmd.BID() != j.branchID {
+	if verifyBranchID && rmd.BID() != j.branchID &&
+		!(rmd.BID() == NullBranchID && j.branchID == PendingLocalSquashBranchID) {
 		return nil, nil, time.Time{}, fmt.Errorf(
 			"Branch ID mismatch: expected %s, got %s",
 			j.branchID, rmd.BID())
@@ -569,21 +578,25 @@ func (j mdJournal) checkGetParams() (ImmutableBareRootMetadata, error) {
 }
 
 func (j *mdJournal) convertToBranch(
-	ctx context.Context, signer kbfscrypto.Signer, codec kbfscodec.Codec,
-	tlfID tlf.ID, mdcache MDCache) (bid BranchID, err error) {
+	ctx context.Context, bid BranchID, signer kbfscrypto.Signer,
+	codec kbfscodec.Codec, tlfID tlf.ID, mdcache MDCache) (err error) {
 	if j.branchID != NullBranchID {
-		return NullBranchID, fmt.Errorf(
-			"convertToBranch called with BID=%s", j.branchID)
+		return fmt.Errorf(
+			"convertToBranch called with j.branchID=%s", j.branchID)
+	}
+	if bid == NullBranchID {
+		return fmt.Errorf(
+			"convertToBranch called with null branchID")
 	}
 
 	earliestRevision, err := j.j.readEarliestRevision()
 	if err != nil {
-		return NullBranchID, err
+		return err
 	}
 
 	latestRevision, err := j.j.readLatestRevision()
 	if err != nil {
-		return NullBranchID, err
+		return err
 	}
 
 	j.log.CDebugf(
@@ -592,19 +605,14 @@ func (j *mdJournal) convertToBranch(
 	_, allEntries, err := j.j.getEntryRange(
 		earliestRevision, latestRevision)
 	if err != nil {
-		return NullBranchID, err
-	}
-
-	bid, err = j.crypto.MakeRandomBranchID()
-	if err != nil {
-		return NullBranchID, err
+		return err
 	}
 
 	j.log.CDebugf(ctx, "New branch ID=%s", bid)
 
 	journalTempDir, err := ioutil.TempDir(j.dir, "md_journal")
 	if err != nil {
-		return NullBranchID, err
+		return err
 	}
 	j.log.CDebugf(ctx, "Using temp dir %s for rewriting", journalTempDir)
 
@@ -634,11 +642,24 @@ func (j *mdJournal) convertToBranch(
 
 	var prevID MdID
 
-	for i, entry := range allEntries {
+	isPendingLocalSquash := bid == PendingLocalSquashBranchID
+	for _, entry := range allEntries {
 		brmd, _, ts, err := j.getMDAndExtra(entry.ID, true)
 		if err != nil {
-			return NullBranchID, err
+			return err
 		}
+
+		if entry.IsLocalSquash && isPendingLocalSquash {
+			// If this is a local squash, don't convert it.  We don't
+			// want to squash anything more into it.
+			j.log.CDebugf(ctx, "Preserving local squash %s", entry.ID)
+			err = tempJournal.append(brmd.RevisionNumber(), entry)
+			if err != nil {
+				return err
+			}
+			continue
+		}
+
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
 
@@ -646,13 +667,16 @@ func (j *mdJournal) convertToBranch(
 		// changed it.
 		err = brmd.SignWriterMetadataInternally(ctx, j.codec, signer)
 		if err != nil {
-			return NullBranchID, err
+			j.log.CDebugf(ctx, "Early exit %d %v", brmd.RevisionNumber(), err)
+			return err
 		}
 
-		j.log.CDebugf(ctx, "Old prev root of rev=%s is %s",
-			brmd.RevisionNumber(), brmd.GetPrevRoot())
-
-		if i > 0 {
+		// Set the prev root for everything after the first MD we
+		// modify, which happens to be indicated by mdsToRemove being
+		// non-empty.
+		if len(mdsToRemove) > 0 {
+			j.log.CDebugf(ctx, "Old prev root of rev=%s is %s",
+				brmd.RevisionNumber(), brmd.GetPrevRoot())
 			j.log.CDebugf(ctx, "Changing prev root of rev=%s to %s",
 				brmd.RevisionNumber(), prevID)
 			brmd.SetPrevRoot(prevID)
@@ -666,16 +690,17 @@ func (j *mdJournal) convertToBranch(
 		// os.Chtimes() on the file after writing it.
 		newID, err := j.putMD(brmd)
 		if err != nil {
-			return NullBranchID, err
+			return err
 		}
 		mdsToRemove = append(mdsToRemove, newID)
 
 		// Preserve unknown fields from the old journal.
 		newEntry := entry
 		newEntry.ID = newID
+		newEntry.IsLocalSquash = false
 		err = tempJournal.append(brmd.RevisionNumber(), newEntry)
 		if err != nil {
-			return NullBranchID, err
+			return err
 		}
 
 		prevID = newID
@@ -694,7 +719,7 @@ func (j *mdJournal) convertToBranch(
 		if err == nil && entry.ID == oldIrmd.mdID {
 			newRmd, err := oldIrmd.deepCopy(codec)
 			if err != nil {
-				return NullBranchID, err
+				return err
 			}
 			newRmd.bareMd = brmd
 			// Everything else is the same.
@@ -704,7 +729,7 @@ func (j *mdJournal) convertToBranch(
 					newID, ts),
 				NullBranchID)
 			if err != nil {
-				return NullBranchID, err
+				return err
 			}
 		}
 
@@ -720,7 +745,7 @@ func (j *mdJournal) convertToBranch(
 	oldJournalTempDir := journalTempDir + ".old"
 	dir, err := j.j.move(oldJournalTempDir)
 	if err != nil {
-		return NullBranchID, err
+		return err
 	}
 
 	j.log.CDebugf(ctx, "Moved old journal from %s to %s",
@@ -728,7 +753,7 @@ func (j *mdJournal) convertToBranch(
 
 	newJournalOldDir, err := tempJournal.move(dir)
 	if err != nil {
-		return NullBranchID, err
+		return err
 	}
 
 	j.log.CDebugf(ctx, "Moved new journal from %s to %s",
@@ -737,15 +762,18 @@ func (j *mdJournal) convertToBranch(
 	// Make the defer block above remove oldJournalTempDir.
 	journalTempDir = oldJournalTempDir
 
-	mdsToRemove = nil
+	mdsToRemove = make([]MdID, 0, len(allEntries))
 	for _, entry := range allEntries {
+		if entry.IsLocalSquash && isPendingLocalSquash {
+			continue
+		}
 		mdsToRemove = append(mdsToRemove, entry.ID)
 	}
 
 	j.j = tempJournal
 	j.branchID = bid
 
-	return bid, nil
+	return nil
 }
 
 // getNextEntryToFlush returns the info for the next journal entry to
@@ -844,6 +872,34 @@ func (j mdJournal) length() (uint64, error) {
 	return j.j.length()
 }
 
+func (j mdJournal) atLeastNNonLocalSquashes(
+	numNonLocalSquashes uint64) (bool, error) {
+	size, err := j.length()
+	if err != nil {
+		return false, err
+	}
+	if size < ForcedBranchSquashThreshold {
+		return false, nil
+	}
+
+	latestRev, err := j.readLatestRevision()
+	if err != nil {
+		return false, err
+	}
+
+	// Since the IsLocalSquash entries are guaranteed to be a prefix
+	// of the journal, we can just look up an entry that's back
+	// `numNonLocalSquashes` entries ago, and see if it's a local
+	// squash or not.
+	entry, err := j.j.readJournalEntry(
+		latestRev - MetadataRevision(numNonLocalSquashes))
+	if err != nil {
+		return false, err
+	}
+
+	return !entry.IsLocalSquash, nil
+}
+
 func (j mdJournal) end() (MetadataRevision, error) {
 	return j.j.end()
 }
@@ -852,15 +908,70 @@ func (j mdJournal) getBranchID() BranchID {
 	return j.branchID
 }
 
-func (j mdJournal) getHead() (ImmutableBareRootMetadata, error) {
-	return j.checkGetParams()
+func (j mdJournal) getHead(bid BranchID) (ImmutableBareRootMetadata, error) {
+	head, err := j.checkGetParams()
+	if err != nil {
+		return ImmutableBareRootMetadata{}, err
+	}
+	if head == (ImmutableBareRootMetadata{}) {
+		return ImmutableBareRootMetadata{}, nil
+	}
+
+	getLocalSquashHead := bid == NullBranchID &&
+		j.branchID == PendingLocalSquashBranchID
+	if !getLocalSquashHead {
+		if head.BID() != bid {
+			return ImmutableBareRootMetadata{}, nil
+		}
+		return head, nil
+	}
+
+	// Look backwards in the journal for the first entry with
+	// IsLocalSquash set to true.
+	earliestRev, err := j.readEarliestRevision()
+	if err != nil {
+		return ImmutableBareRootMetadata{}, err
+	}
+
+	latestRev, err := j.readLatestRevision()
+	if err != nil {
+		return ImmutableBareRootMetadata{}, err
+	}
+
+	for rev := latestRev; rev >= earliestRev; rev-- {
+		entry, err := j.j.readJournalEntry(rev)
+		if err != nil {
+			return ImmutableBareRootMetadata{}, err
+		}
+		if entry.IsLocalSquash {
+			latestID := entry.ID
+			latest, extra, timestamp, err := j.getMDAndExtra(
+				latestID, false)
+			if err != nil {
+				return ImmutableBareRootMetadata{}, err
+			}
+			return MakeImmutableBareRootMetadata(
+				latest, extra, latestID, timestamp), nil
+		}
+	}
+	return ImmutableBareRootMetadata{}, nil
 }
 
-func (j mdJournal) getRange(start, stop MetadataRevision) (
+func (j mdJournal) getRange(bid BranchID, start, stop MetadataRevision) (
 	[]ImmutableBareRootMetadata, error) {
-	_, err := j.checkGetParams()
+	head, err := j.checkGetParams()
 	if err != nil {
 		return nil, err
+	} else if head == (ImmutableBareRootMetadata{}) {
+		return nil, nil
+	}
+
+	// If we are on a pending local squash branch, the caller can ask
+	// for "merged" entries that make up a prefix of the journal.
+	getLocalSquashPrefix := bid == NullBranchID &&
+		j.branchID == PendingLocalSquashBranchID
+	if head.BID() != bid && !getLocalSquashPrefix {
+		return nil, nil
 	}
 
 	realStart, entries, err := j.j.getEntryRange(start, stop)
@@ -869,11 +980,20 @@ func (j mdJournal) getRange(start, stop MetadataRevision) (
 	}
 	var ibrmds []ImmutableBareRootMetadata
 	for i, entry := range entries {
+		if getLocalSquashPrefix && !entry.IsLocalSquash {
+			// We only need the prefix up to the first non-local-squash.
+			break
+		} else if entry.IsLocalSquash && bid == PendingLocalSquashBranchID {
+			// Ignore the local squash prefix of this journal.
+			continue
+		}
+
 		expectedRevision := realStart + MetadataRevision(i)
 		brmd, extra, ts, err := j.getMDAndExtra(entry.ID, true)
 		if err != nil {
 			return nil, err
 		}
+
 		if expectedRevision != brmd.RevisionNumber() {
 			panic(fmt.Errorf("expected revision %v, got %v",
 				expectedRevision, brmd.RevisionNumber()))
@@ -936,7 +1056,8 @@ func (e MDJournalConflictError) Error() string {
 // rmd becomes the initial entry.
 func (j *mdJournal) put(
 	ctx context.Context, signer kbfscrypto.Signer,
-	ekg encryptionKeyGetter, bsplit BlockSplitter, rmd *RootMetadata) (
+	ekg encryptionKeyGetter, bsplit BlockSplitter, rmd *RootMetadata,
+	isLocalSquash bool) (
 	mdID MdID, err error) {
 	j.log.CDebugf(ctx, "Putting MD for TLF=%s with rev=%s bid=%s",
 		rmd.TlfID(), rmd.Revision(), rmd.BID())
@@ -1035,6 +1156,11 @@ func (j *mdJournal) put(
 			j.branchID, rmd.BID())
 	}
 
+	if isLocalSquash && rmd.BID() != NullBranchID {
+		return MdID{}, fmt.Errorf("A local squash must have a null branch ID,"+
+			" but this one has bid=%s", rmd.BID())
+	}
+
 	// Check permissions and consistency with head, if it exists.
 	if head != (ImmutableBareRootMetadata{}) {
 		ok, err := isWriterOrValidRekey(
@@ -1054,6 +1180,19 @@ func (j *mdJournal) put(
 				head.mdID, rmd.bareMd)
 			if err != nil {
 				return MdID{}, err
+			}
+		}
+
+		// Local squashes should only be preceded by another local
+		// squash in the journal.
+		if isLocalSquash {
+			entry, exists, err := j.j.getLatestEntry()
+			if err != nil {
+				return MdID{}, err
+			}
+			if exists && !entry.IsLocalSquash {
+				return MdID{}, fmt.Errorf("Local squash is not preceded "+
+					"by a local squash (head=%s)", entry.ID)
 			}
 		}
 	}
@@ -1086,6 +1225,10 @@ func (j *mdJournal) put(
 		return MdID{}, err
 	}
 
+	newEntry := mdIDJournalEntry{
+		ID:            id,
+		IsLocalSquash: isLocalSquash,
+	}
 	if head != (ImmutableBareRootMetadata{}) &&
 		rmd.Revision() == head.RevisionNumber() {
 
@@ -1096,12 +1239,12 @@ func (j *mdJournal) put(
 		// head here -- the new head is in general a different
 		// MD, so the unknown fields from the old head won't
 		// make sense.
-		err = j.j.replaceHead(mdIDJournalEntry{ID: id})
+		err = j.j.replaceHead(newEntry)
 		if err != nil {
 			return MdID{}, err
 		}
 	} else {
-		err = j.j.append(rmd.Revision(), mdIDJournalEntry{ID: id})
+		err = j.j.append(rmd.Revision(), newEntry)
 		if err != nil {
 			return MdID{}, err
 		}
@@ -1113,6 +1256,11 @@ func (j *mdJournal) put(
 	return id, nil
 }
 
+// clear removes all the journal entries, and deletes the
+// corresponding MD updates.  If the branch is a pending local squash,
+// it preserved the MD updates corresponding to the prefix of existing
+// local squashes, so they can be re-used in the newly-resolved
+// journal.
 func (j *mdJournal) clear(
 	ctx context.Context, bid BranchID) (err error) {
 	j.log.CDebugf(ctx, "Clearing journal for branch %s", bid)
@@ -1135,7 +1283,7 @@ func (j *mdJournal) clear(
 		return nil
 	}
 
-	head, err := j.getHead()
+	head, err := j.getHead(bid)
 	if err != nil {
 		return err
 	}
@@ -1179,7 +1327,11 @@ func (j *mdJournal) clear(
 	// Garbage-collect the old branch entries.  TODO: we'll eventually
 	// need a sweeper to clean up entries left behind if we crash
 	// here.
+	isPendingLocalSquash := bid == PendingLocalSquashBranchID
 	for _, entry := range allEntries {
+		if entry.IsLocalSquash && isPendingLocalSquash {
+			continue
+		}
 		err := j.removeMD(entry.ID)
 		if err != nil {
 			return err
@@ -1190,7 +1342,7 @@ func (j *mdJournal) clear(
 
 func (j *mdJournal) resolveAndClear(
 	ctx context.Context, signer kbfscrypto.Signer, ekg encryptionKeyGetter,
-	bsplit BlockSplitter, bid BranchID, rmd *RootMetadata) (
+	bsplit BlockSplitter, mdcache MDCache, bid BranchID, rmd *RootMetadata) (
 	mdID MdID, err error) {
 	j.log.CDebugf(ctx, "Resolve and clear, branch %s, resolve rev %d",
 		bid, rmd.Revision())
@@ -1216,6 +1368,16 @@ func (j *mdJournal) resolveAndClear(
 			"while on branch %s", bid, j.branchID)
 	}
 
+	earliestRevision, err := j.j.readEarliestRevision()
+	if err != nil {
+		return MdID{}, err
+	}
+
+	latestRevision, err := j.j.readLatestRevision()
+	if err != nil {
+		return MdID{}, err
+	}
+
 	// First make a new journal to hold the block.
 
 	// Give this new journal a new ID journal.
@@ -1236,14 +1398,29 @@ func (j *mdJournal) resolveAndClear(
 	}()
 
 	otherJournal, err := makeMDJournalWithIDJournal(
-		j.uid, j.key, j.codec, j.crypto, j.clock, j.tlfID, j.mdVer, j.dir,
+		ctx, j.uid, j.key, j.codec, j.crypto, j.clock, j.tlfID, j.mdVer, j.dir,
 		otherIDJournal, j.log)
 	if err != nil {
 		return MdID{}, err
 	}
 
-	//otherJournal.branchID = NullBranchID
-	mdID, err = otherJournal.put(ctx, signer, ekg, bsplit, rmd)
+	// Put the local squashes back into the new journal, since they
+	// weren't part of the resolve.
+	if bid == PendingLocalSquashBranchID {
+		for ; earliestRevision <= latestRevision; earliestRevision++ {
+			entry, err := j.j.readJournalEntry(earliestRevision)
+			if err != nil {
+				return MdID{}, err
+			}
+			if !entry.IsLocalSquash {
+				break
+			}
+			j.log.CDebugf(ctx, "Preserving entry %s", entry.ID)
+			otherIDJournal.append(earliestRevision, entry)
+		}
+	}
+
+	mdID, err = otherJournal.put(ctx, signer, ekg, bsplit, rmd, true)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -1283,6 +1460,11 @@ func (j *mdJournal) resolveAndClear(
 
 	// Make the defer above remove the old temp dir.
 	idJournalTempDir = oldIDJournalTempDir
+
+	// Delete all of the branch MDs from the md cache.
+	for rev := earliestRevision; rev <= latestRevision; rev++ {
+		mdcache.Delete(j.tlfID, rev, bid)
+	}
 
 	return mdID, nil
 }

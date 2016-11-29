@@ -74,7 +74,8 @@ func setupMDJournalTest(t *testing.T) (
 	}()
 
 	log := logger.NewTestLogger(t)
-	j, err = makeMDJournal(uid, verifyingKey, codec, crypto, wallClock{},
+	ctx := context.Background()
+	j, err = makeMDJournal(ctx, uid, verifyingKey, codec, crypto, wallClock{},
 		tlfID, defaultClientMetadataVer, tempdir, log)
 	require.NoError(t, err)
 
@@ -111,7 +112,7 @@ func makeMDForTest(t *testing.T, tlfID tlf.ID, revision MetadataRevision,
 }
 
 func putMDRange(t *testing.T, tlfID tlf.ID, signer kbfscrypto.Signer,
-	ekg singleEncryptionKeyGetter, bsplit BlockSplitter,
+	ekg encryptionKeyGetter, bsplit BlockSplitter,
 	firstRevision MetadataRevision, firstPrevRoot MdID, mdCount int,
 	j *mdJournal) MdID {
 	prevRoot := firstPrevRoot
@@ -119,7 +120,7 @@ func putMDRange(t *testing.T, tlfID tlf.ID, signer kbfscrypto.Signer,
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, tlfID, revision, j.uid, signer, prevRoot)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md)
+		mdID, err := j.put(ctx, signer, ekg, bsplit, md, false)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
@@ -168,7 +169,7 @@ func TestMDJournalBasic(t *testing.T) {
 
 	// Should start off as empty.
 
-	head, err := j.getHead()
+	head, err := j.getHead(NullBranchID)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableBareRootMetadata{}, head)
 	require.Equal(t, 0, getMDJournalLength(t, j))
@@ -185,14 +186,14 @@ func TestMDJournalBasic(t *testing.T) {
 
 	// Should now be non-empty.
 	ibrmds, err := j.getRange(
-		1, firstRevision+MetadataRevision(2*mdCount))
+		NullBranchID, 1, firstRevision+MetadataRevision(2*mdCount))
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
 	checkIBRMDRange(t, j.uid, j.key, codec, crypto,
 		ibrmds, firstRevision, firstPrevRoot, Merged, NullBranchID)
 
-	head, err = j.getHead()
+	head, err = j.getHead(NullBranchID)
 	require.NoError(t, err)
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 }
@@ -203,7 +204,7 @@ func TestMDJournalGetNextEntry(t *testing.T) {
 
 	ctx := context.Background()
 	md := makeMDForTest(t, id, MetadataRevision(10), j.uid, signer, fakeMdID(1))
-	_, err := j.put(ctx, signer, ekg, bsplit, md)
+	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
 	mdID, rmds, _, err := j.getNextEntryToFlush(ctx, md.Revision(), signer)
@@ -229,10 +230,10 @@ func TestMDJournalPutCase1Empty(t *testing.T) {
 
 	ctx := context.Background()
 	md := makeMDForTest(t, id, MetadataRevision(10), j.uid, signer, fakeMdID(1))
-	_, err := j.put(ctx, signer, ekg, bsplit, md)
+	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
-	head, err := j.getHead()
+	head, err := j.getHead(NullBranchID)
 	require.NoError(t, err)
 	require.Equal(t, md.bareMd, head.BareRootMetadata)
 }
@@ -243,14 +244,15 @@ func TestMDJournalPutCase1Conflict(t *testing.T) {
 
 	ctx := context.Background()
 	md := makeMDForTest(t, id, MetadataRevision(10), j.uid, signer, fakeMdID(1))
-	_, err := j.put(ctx, signer, ekg, bsplit, md)
+	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+	err = j.convertToBranch(
+		ctx, PendingLocalSquashBranchID, signer, kbfscodec.NewMsgpack(),
 		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
-	_, err = j.put(ctx, signer, ekg, bsplit, md)
+	_, err = j.put(ctx, signer, ekg, bsplit, md, false)
 	require.Equal(t, MDJournalConflictError{}, err)
 }
 
@@ -275,10 +277,10 @@ func TestMDJournalPutCase1ReplaceHead(t *testing.T) {
 	revision := firstRevision + MetadataRevision(mdCount) - 1
 	md := makeMDForTest(t, id, revision, j.uid, signer, prevRoot)
 	md.SetDiskUsage(501)
-	_, err := j.put(ctx, signer, ekg, bsplit, md)
+	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
-	head, err := j.getHead()
+	head, err := j.getHead(NullBranchID)
 	require.NoError(t, err)
 	require.Equal(t, md.Revision(), head.RevisionNumber())
 	require.Equal(t, md.DiskUsage(), head.DiskUsage())
@@ -290,15 +292,16 @@ func TestMDJournalPutCase2NonEmptyReplace(t *testing.T) {
 
 	ctx := context.Background()
 	md := makeMDForTest(t, id, MetadataRevision(10), j.uid, signer, fakeMdID(1))
-	_, err := j.put(ctx, signer, ekg, bsplit, md)
+	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+	err = j.convertToBranch(
+		ctx, PendingLocalSquashBranchID, signer, kbfscodec.NewMsgpack(),
 		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	md.SetUnmerged()
-	_, err = j.put(ctx, signer, ekg, bsplit, md)
+	_, err = j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 }
 
@@ -308,16 +311,17 @@ func TestMDJournalPutCase2NonEmptyAppend(t *testing.T) {
 
 	ctx := context.Background()
 	md := makeMDForTest(t, id, MetadataRevision(10), j.uid, signer, fakeMdID(1))
-	mdID, err := j.put(ctx, signer, ekg, bsplit, md)
+	mdID, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+	err = j.convertToBranch(
+		ctx, PendingLocalSquashBranchID, signer, kbfscodec.NewMsgpack(),
 		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	md2 := makeMDForTest(t, id, MetadataRevision(11), j.uid, signer, mdID)
 	md2.SetUnmerged()
-	_, err = j.put(ctx, signer, ekg, bsplit, md2)
+	_, err = j.put(ctx, signer, ekg, bsplit, md2, false)
 	require.NoError(t, err)
 }
 
@@ -327,10 +331,11 @@ func TestMDJournalPutCase2Empty(t *testing.T) {
 
 	ctx := context.Background()
 	md := makeMDForTest(t, id, MetadataRevision(10), j.uid, signer, fakeMdID(1))
-	_, err := j.put(ctx, signer, ekg, bsplit, md)
+	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+	err = j.convertToBranch(
+		ctx, PendingLocalSquashBranchID, signer, kbfscodec.NewMsgpack(),
 		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
@@ -342,7 +347,7 @@ func TestMDJournalPutCase2Empty(t *testing.T) {
 
 	md2 := makeMDForTest(t, id, MetadataRevision(11), j.uid, signer, mdID)
 	md2.SetUnmerged()
-	_, err = j.put(ctx, signer, ekg, bsplit, md2)
+	_, err = j.put(ctx, signer, ekg, bsplit, md2, false)
 	require.NoError(t, err)
 }
 
@@ -352,20 +357,22 @@ func TestMDJournalPutCase3NonEmptyAppend(t *testing.T) {
 
 	ctx := context.Background()
 	md := makeMDForTest(t, id, MetadataRevision(10), j.uid, signer, fakeMdID(1))
-	_, err := j.put(ctx, signer, ekg, bsplit, md)
+	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+	bid := PendingLocalSquashBranchID
+	err = j.convertToBranch(
+		ctx, bid, signer, kbfscodec.NewMsgpack(),
 		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
-	head, err := j.getHead()
+	head, err := j.getHead(bid)
 	require.NoError(t, err)
 
 	md2 := makeMDForTest(t, id, MetadataRevision(11), j.uid, signer, head.mdID)
 	md2.SetUnmerged()
 	md2.SetBranchID(head.BID())
-	_, err = j.put(ctx, signer, ekg, bsplit, md2)
+	_, err = j.put(ctx, signer, ekg, bsplit, md2, false)
 	require.NoError(t, err)
 }
 
@@ -375,19 +382,21 @@ func TestMDJournalPutCase3NonEmptyReplace(t *testing.T) {
 
 	ctx := context.Background()
 	md := makeMDForTest(t, id, MetadataRevision(10), j.uid, signer, fakeMdID(1))
-	_, err := j.put(ctx, signer, ekg, bsplit, md)
+	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+	bid := PendingLocalSquashBranchID
+	err = j.convertToBranch(
+		ctx, bid, signer, kbfscodec.NewMsgpack(),
 		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
-	head, err := j.getHead()
+	head, err := j.getHead(bid)
 	require.NoError(t, err)
 
 	md.SetUnmerged()
 	md.SetBranchID(head.BID())
-	_, err = j.put(ctx, signer, ekg, bsplit, md)
+	_, err = j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 }
 
@@ -397,10 +406,11 @@ func TestMDJournalPutCase3EmptyAppend(t *testing.T) {
 
 	ctx := context.Background()
 	md := makeMDForTest(t, id, MetadataRevision(10), j.uid, signer, fakeMdID(1))
-	_, err := j.put(ctx, signer, ekg, bsplit, md)
+	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 
-	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+	err = j.convertToBranch(
+		ctx, PendingLocalSquashBranchID, signer, kbfscodec.NewMsgpack(),
 		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
@@ -413,7 +423,7 @@ func TestMDJournalPutCase3EmptyAppend(t *testing.T) {
 	md2 := makeMDForTest(t, id, MetadataRevision(11), j.uid, signer, mdID)
 	md2.SetUnmerged()
 	md2.SetBranchID(j.branchID)
-	_, err = j.put(ctx, signer, ekg, bsplit, md2)
+	_, err = j.put(ctx, signer, ekg, bsplit, md2, false)
 	require.NoError(t, err)
 }
 
@@ -425,7 +435,7 @@ func TestMDJournalPutCase4(t *testing.T) {
 	md := makeMDForTest(t, id, MetadataRevision(10), j.uid, signer, fakeMdID(1))
 	md.SetUnmerged()
 	md.SetBranchID(FakeBranchID(1))
-	_, err := j.put(ctx, signer, ekg, bsplit, md)
+	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 }
 
@@ -483,7 +493,8 @@ func TestMDJournalBranchConversion(t *testing.T) {
 		j.key, cachedMdID, time.Now()))
 	require.NoError(t, err)
 
-	bid, err := j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+	bid := PendingLocalSquashBranchID
+	err = j.convertToBranch(ctx, bid, signer, kbfscodec.NewMsgpack(),
 		id, mdcache)
 	require.NoError(t, err)
 
@@ -498,7 +509,7 @@ func TestMDJournalBranchConversion(t *testing.T) {
 	require.Equal(t, "mds", fileInfos[1].Name())
 
 	ibrmds, err := j.getRange(
-		1, firstRevision+MetadataRevision(2*mdCount))
+		bid, 1, firstRevision+MetadataRevision(2*mdCount))
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
@@ -507,7 +518,7 @@ func TestMDJournalBranchConversion(t *testing.T) {
 
 	require.Equal(t, 10, getMDJournalLength(t, j))
 
-	head, err := j.getHead()
+	head, err := j.getHead(bid)
 	require.NoError(t, err)
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 
@@ -522,7 +533,7 @@ func TestMDJournalBranchConversion(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestMDJournalResolveAndClear(t *testing.T) {
+func testMDJournalResolveAndClear(t *testing.T, bid BranchID) {
 	_, _, id, signer, ekg, bsplit, tempdir, j :=
 		setupMDJournalTest(t)
 	defer teardownMDJournalTest(t, tempdir)
@@ -535,21 +546,62 @@ func TestMDJournalResolveAndClear(t *testing.T) {
 
 	ctx := context.Background()
 
-	bid, err := j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(), id,
-		NewMDCacheStandard(10))
+	mdcache := NewMDCacheStandard(10)
+	err := j.convertToBranch(ctx, bid, signer, kbfscodec.NewMsgpack(), id,
+		mdcache)
 	require.NoError(t, err)
 
 	resolveRev := firstRevision
 	md := makeMDForTest(t, id, resolveRev, j.uid, signer, firstPrevRoot)
-	_, err = j.resolveAndClear(ctx, signer, ekg, bsplit, bid, md)
+	resolveMdID, err :=
+		j.resolveAndClear(ctx, signer, ekg, bsplit, mdcache, bid, md)
 	require.NoError(t, err)
 
 	require.Equal(t, 1, getMDJournalLength(t, j))
-	head, err := j.getHead()
+	head, err := j.getHead(NullBranchID)
+	require.NoError(t, err)
+	require.Equal(t, md.Revision(), head.RevisionNumber())
+
+	// Now put more MDs and resolve them again -- if this is a local
+	// squash, it should keep the original resolution as a separate
+	// entry.
+	putMDRange(t, id, signer, ekg, bsplit,
+		resolveRev+1, resolveMdID, mdCount, j)
+	err = j.convertToBranch(ctx, bid, signer, kbfscodec.NewMsgpack(), id,
+		mdcache)
+	require.NoError(t, err)
+	numExpectedMDs := 1
+	prevRoot := firstPrevRoot
+	if bid == PendingLocalSquashBranchID {
+		numExpectedMDs++
+		resolveRev++
+		prevRoot = resolveMdID
+	}
+	md = makeMDForTest(t, id, resolveRev, j.uid, signer, prevRoot)
+	_, err = j.resolveAndClear(ctx, signer, ekg, bsplit, mdcache, bid, md)
+	require.NoError(t, err)
+	require.Equal(t, numExpectedMDs, getMDJournalLength(t, j))
+	head, err = j.getHead(NullBranchID)
 	require.NoError(t, err)
 	require.Equal(t, md.Revision(), head.RevisionNumber())
 
 	flushAllMDs(t, ctx, signer, j)
+}
+
+func TestMDJournalResolveAndClear(t *testing.T) {
+	codec := kbfscodec.NewMsgpack()
+	crypto := MakeCryptoCommon(codec)
+	bid := PendingLocalSquashBranchID
+	for bid == PendingLocalSquashBranchID {
+		var err error
+		bid, err = crypto.MakeRandomBranchID()
+		require.NoError(t, err)
+	}
+	testMDJournalResolveAndClear(t, bid)
+}
+
+func TestMDJournalResolveAndClearLocalSquash(t *testing.T) {
+	testMDJournalResolveAndClear(t, PendingLocalSquashBranchID)
 }
 
 type limitedCryptoSigner struct {
@@ -581,15 +633,16 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := j.convertToBranch(
-		ctx, &limitedSigner, kbfscodec.NewMsgpack(), id, NewMDCacheStandard(10))
+	err := j.convertToBranch(
+		ctx, PendingLocalSquashBranchID, &limitedSigner,
+		kbfscodec.NewMsgpack(), id, NewMDCacheStandard(10))
 	require.NotNil(t, err)
 
 	// All entries should remain unchanged, since the conversion
 	// encountered an error.
 
 	ibrmds, err := j.getRange(
-		1, firstRevision+MetadataRevision(2*mdCount))
+		NullBranchID, 1, firstRevision+MetadataRevision(2*mdCount))
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
@@ -598,7 +651,7 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 
 	require.Equal(t, 10, getMDJournalLength(t, j))
 
-	head, err := j.getHead()
+	head, err := j.getHead(NullBranchID)
 	require.NoError(t, err)
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 
@@ -624,7 +677,7 @@ func TestMDJournalBranchConversionPreservesUnknownFields(t *testing.T) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, revision, j.uid, signer, prevRoot)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md)
+		mdID, err := j.put(ctx, signer, ekg, bsplit, md, false)
 		require.NoError(t, err)
 
 		// Add extra fields to the journal entry.
@@ -649,8 +702,9 @@ func TestMDJournalBranchConversionPreservesUnknownFields(t *testing.T) {
 		prevRoot = mdID
 	}
 
-	_, err := j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
-		id, NewMDCacheStandard(10))
+	err := j.convertToBranch(
+		ctx, PendingLocalSquashBranchID, signer, kbfscodec.NewMsgpack(), id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	// Check that the extra fields are preserved.
@@ -679,8 +733,9 @@ func TestMDJournalClear(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
-		id, NewMDCacheStandard(10))
+	err := j.convertToBranch(
+		ctx, PendingLocalSquashBranchID, signer, kbfscodec.NewMsgpack(), id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 	require.NotEqual(t, NullBranchID, j.branchID)
 
@@ -695,7 +750,7 @@ func TestMDJournalClear(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, bid, j.branchID)
 
-	head, err := j.getHead()
+	head, err := j.getHead(bid)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableBareRootMetadata{}, head)
 
@@ -705,7 +760,11 @@ func TestMDJournalClear(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, NullBranchID, j.branchID)
 
-	head, err = j.getHead()
+	head, err = j.getHead(bid)
+	require.NoError(t, err)
+	require.Equal(t, ImmutableBareRootMetadata{}, head)
+
+	head, err = j.getHead(NullBranchID)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableBareRootMetadata{}, head)
 
@@ -714,7 +773,7 @@ func TestMDJournalClear(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, NullBranchID, j.branchID)
 
-	head, err = j.getHead()
+	head, err = j.getHead(bid)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableBareRootMetadata{}, head)
 
@@ -722,8 +781,9 @@ func TestMDJournalClear(t *testing.T) {
 	// journal.
 	putMDRange(t, id, signer, ekg, bsplit,
 		firstRevision, firstPrevRoot, mdCount, j)
-	_, err = j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
-		id, NewMDCacheStandard(10))
+	err = j.convertToBranch(
+		ctx, PendingLocalSquashBranchID, signer, kbfscodec.NewMsgpack(), id,
+		NewMDCacheStandard(10))
 	require.NoError(t, err)
 	require.NotEqual(t, NullBranchID, j.branchID)
 
@@ -751,14 +811,15 @@ func TestMDJournalRestart(t *testing.T) {
 		firstRevision, firstPrevRoot, mdCount, j)
 
 	// Restart journal.
-	j, err := makeMDJournal(j.uid, j.key, codec, crypto, j.clock,
+	ctx := context.Background()
+	j, err := makeMDJournal(ctx, j.uid, j.key, codec, crypto, j.clock,
 		j.tlfID, j.mdVer, j.dir, j.log)
 	require.NoError(t, err)
 
 	require.Equal(t, mdCount, getMDJournalLength(t, j))
 
 	ibrmds, err := j.getRange(
-		1, firstRevision+MetadataRevision(2*mdCount))
+		NullBranchID, 1, firstRevision+MetadataRevision(2*mdCount))
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
@@ -785,20 +846,22 @@ func TestMDJournalRestartAfterBranchConversion(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := j.convertToBranch(ctx, signer, kbfscodec.NewMsgpack(),
+	bid := PendingLocalSquashBranchID
+	err := j.convertToBranch(
+		ctx, bid, signer, kbfscodec.NewMsgpack(),
 		id, NewMDCacheStandard(10))
 	require.NoError(t, err)
 
 	// Restart journal.
 
-	j, err = makeMDJournal(j.uid, j.key, codec, crypto, j.clock,
+	j, err = makeMDJournal(ctx, j.uid, j.key, codec, crypto, j.clock,
 		j.tlfID, j.mdVer, j.dir, j.log)
 	require.NoError(t, err)
 
 	require.Equal(t, mdCount, getMDJournalLength(t, j))
 
 	ibrmds, err := j.getRange(
-		1, firstRevision+MetadataRevision(2*mdCount))
+		bid, 1, firstRevision+MetadataRevision(2*mdCount))
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 

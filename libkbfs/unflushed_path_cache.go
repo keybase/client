@@ -28,6 +28,27 @@ const (
 type unflushedPathsPerRevMap map[string]bool
 type unflushedPathsMap map[MetadataRevision]unflushedPathsPerRevMap
 
+type upcQueuedOpType int
+
+const (
+	upcOpAppend upcQueuedOpType = iota
+	upcOpRemove
+	upcOpReinit
+)
+
+type upcQueuedOp struct {
+	op upcQueuedOpType
+
+	// Remove ops don't need an info.
+	info unflushedPathMDInfo
+
+	// All op types should set this.
+	rev MetadataRevision
+
+	// Only reinit ops need to set this explicitly.
+	isLocalSquash bool
+}
+
 // unflushedPathCache tracks the paths that have been modified by MD
 // updates that haven't yet been flushed from the journal.
 type unflushedPathCache struct {
@@ -36,8 +57,7 @@ type unflushedPathCache struct {
 	unflushedPaths  unflushedPathsMap
 	ready           chan struct{}
 	chainsPopulator chainsPathPopulator
-	appendQueue     []unflushedPathMDInfo
-	removeQueue     []MetadataRevision
+	queue           []upcQueuedOp
 }
 
 var errUPCNotInitialized = errors.New("The unflushed path cache is not yet initialized")
@@ -114,8 +134,7 @@ func (upc *unflushedPathCache) abortInitialization() {
 	upc.lock.Lock()
 	defer upc.lock.Unlock()
 	upc.state = upcUninitialized
-	upc.appendQueue = nil
-	upc.removeQueue = nil
+	upc.queue = nil
 	close(upc.ready)
 	upc.ready = nil
 }
@@ -165,8 +184,8 @@ func addUnflushedPaths(ctx context.Context,
 
 	mostRecentMDInfo := mdInfos[len(mdInfos)-1]
 	chains.mostRecentChainMDInfo = mostRecentChainMetadataInfo{
-		kmd:     mostRecentMDInfo.kmd,
-		rootPtr: mostRecentMDInfo.pmd.Dir.BlockPointer,
+		kmd:      mostRecentMDInfo.kmd,
+		rootInfo: mostRecentMDInfo.pmd.Dir.BlockInfo,
 	}
 
 	err := cpp.populateChainPaths(ctx, log, chains, true)
@@ -237,7 +256,11 @@ func (upc *unflushedPathCache) appendToCache(mdInfo unflushedPathMDInfo,
 		// Nothing to do.
 	case upcInitializing:
 		// Append to queue for processing at the end of initialization.
-		upc.appendQueue = append(upc.appendQueue, mdInfo)
+		upc.queue = append(upc.queue, upcQueuedOp{
+			op:   upcOpAppend,
+			info: mdInfo,
+			rev:  mdInfo.revision,
+		})
 	case upcInitialized:
 		if perRevMap == nil {
 			// This was prepared before `upc.chainsPopulator` was set,
@@ -260,7 +283,10 @@ func (upc *unflushedPathCache) removeFromCache(rev MetadataRevision) {
 		// Nothing to do.
 	case upcInitializing:
 		// Append to queue for processing at the end of initialization.
-		upc.removeQueue = append(upc.removeQueue, rev)
+		upc.queue = append(upc.queue, upcQueuedOp{
+			op:  upcOpRemove,
+			rev: rev,
+		})
 	case upcInitialized:
 		delete(upc.unflushedPaths, rev)
 	default:
@@ -269,26 +295,38 @@ func (upc *unflushedPathCache) removeFromCache(rev MetadataRevision) {
 }
 
 func (upc *unflushedPathCache) setCacheIfPossible(cache unflushedPathsMap,
-	cpp chainsPathPopulator) []unflushedPathMDInfo {
+	cpp chainsPathPopulator) []upcQueuedOp {
 	upc.lock.Lock()
 	defer upc.lock.Unlock()
-	if len(upc.appendQueue) > 0 {
+	if len(upc.queue) > 0 {
 		// We need to process more appends!
-		queue := upc.appendQueue
-		upc.appendQueue = nil
+		queue := upc.queue
+		upc.queue = nil
 		return queue
 	}
 
-	for _, rev := range upc.removeQueue {
-		delete(cache, rev)
-	}
-	upc.removeQueue = nil
 	upc.unflushedPaths = cache
 	upc.chainsPopulator = cpp
 	close(upc.ready)
 	upc.ready = nil
 	upc.state = upcInitialized
 	return nil
+}
+
+func reinitUpcCache(revision MetadataRevision,
+	unflushedPaths unflushedPathsMap, perRevMap unflushedPathsPerRevMap,
+	isLocalSquash bool) {
+	// Remove all entries equal or bigger to this revision.  Keep
+	// earlier revisions (likely preserved local squashes).
+	for rev := range unflushedPaths {
+		// Keep the revision if this is a local squash and it's
+		// smaller than the squash revision.
+		if isLocalSquash && rev < revision {
+			continue
+		}
+		delete(unflushedPaths, rev)
+	}
+	unflushedPaths[revision] = perRevMap
 }
 
 // initialize should only be called when the caller saw a `true` value
@@ -336,13 +374,50 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 		default:
 		}
 
-		log.CDebugf(ctx, "Processing unflushed paths for %d items in "+
-			"the append queue", len(queue))
-		err := addUnflushedPaths(ctx, uid, key, codec, log, queue, cpp,
-			unflushedPaths)
-		if err != nil {
-			return nil, false, err
+		// Do the queued appends up to the first reinitialization.
+		for len(queue) > 0 {
+			var appends []unflushedPathMDInfo
+			for _, op := range queue {
+				if op.op == upcOpAppend {
+					appends = append(appends, op.info)
+				} else if op.op == upcOpReinit {
+					break
+				}
+			}
+
+			log.CDebugf(ctx, "Processing unflushed paths for %d items in "+
+				"the append queue", len(appends))
+			err := addUnflushedPaths(ctx, uid, key, codec, log, appends, cpp,
+				unflushedPaths)
+			if err != nil {
+				return nil, false, err
+			}
+
+			// Do the queued removes up to the first reinitialization.
+			// Then to do the reinitialization and repeat using the
+			// remainder of the queue.
+			reinit := false
+			for i, op := range queue {
+				if op.op == upcOpRemove {
+					delete(unflushedPaths, op.rev)
+				} else if op.op == upcOpReinit {
+					perRevMap, err := upc.prepUnflushedPaths(ctx, uid, key,
+						codec, log, op.info)
+					if err != nil {
+						return nil, false, err
+					}
+					reinitUpcCache(
+						op.rev, unflushedPaths, perRevMap, op.isLocalSquash)
+					queue = queue[i+1:]
+					reinit = true
+					break
+				}
+			}
+			if !reinit {
+				queue = nil
+			}
 		}
+
 	}
 	// If we can't catch up to the queue, then instruct the caller to
 	// abort the initialization.
@@ -352,17 +427,39 @@ func (upc *unflushedPathCache) initialize(ctx context.Context,
 // reinitializeWithResolution returns true when successful, and false
 // if it needs to be retried after the per-revision map is recomputed.
 func (upc *unflushedPathCache) reinitializeWithResolution(
-	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap) bool {
+	mdInfo unflushedPathMDInfo, perRevMap unflushedPathsPerRevMap,
+	isLocalSquash bool) bool {
 	upc.lock.Lock()
 	defer upc.lock.Unlock()
 
-	if perRevMap == nil && upc.state != upcUninitialized {
-		return false
+	if perRevMap == nil {
+		switch upc.state {
+		case upcInitialized:
+			// Initialization started since the perRevMap was created,
+			// so try again.
+			return false
+		case upcInitializing:
+			// Save this reinit for later.
+			upc.queue = append(upc.queue, upcQueuedOp{
+				op:            upcOpReinit,
+				info:          mdInfo,
+				rev:           mdInfo.revision,
+				isLocalSquash: isLocalSquash,
+			})
+			return true
+		default:
+			// We can't initialize with a nil revision map.
+			return true
+		}
 	}
 
-	upc.unflushedPaths = unflushedPathsMap{mdInfo.revision: perRevMap}
-	upc.appendQueue = nil
-	upc.removeQueue = nil
+	if upc.unflushedPaths != nil {
+		reinitUpcCache(
+			mdInfo.revision, upc.unflushedPaths, perRevMap, isLocalSquash)
+	} else {
+		upc.unflushedPaths = unflushedPathsMap{mdInfo.revision: perRevMap}
+	}
+	upc.queue = nil
 	if upc.ready != nil {
 		close(upc.ready)
 		upc.ready = nil

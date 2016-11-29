@@ -251,9 +251,9 @@ func crActionConvertSymlink(unmergedMostRecent BlockPointer,
 // trackSyncPtrChangesInCreate makes sure the correct set of refs and
 // unrefs, from the syncOps on the unmerged branch, makes it into the
 // createOp for a new file.
-func (cuea *copyUnmergedEntryAction) trackSyncPtrChangesInCreate(
+func trackSyncPtrChangesInCreate(
 	mostRecentTargetPtr BlockPointer, unmergedChain *crChain,
-	unmergedChains *crChains) {
+	unmergedChains *crChains, toName string) {
 	targetChain, ok := unmergedChains.byMostRecent[mostRecentTargetPtr]
 	var refs, unrefs []BlockPointer
 	if ok && targetChain.isFile() {
@@ -284,7 +284,7 @@ func (cuea *copyUnmergedEntryAction) trackSyncPtrChangesInCreate(
 	if len(refs) > 0 {
 		for _, uop := range unmergedChain.ops {
 			cop, ok := uop.(*createOp)
-			if !ok || cop.NewName != cuea.toName {
+			if !ok || cop.NewName != toName {
 				continue
 			}
 			for _, ref := range refs {
@@ -296,6 +296,13 @@ func (cuea *copyUnmergedEntryAction) trackSyncPtrChangesInCreate(
 			break
 		}
 	}
+}
+
+func (cuea *copyUnmergedEntryAction) trackSyncPtrChangesInCreate(
+	mostRecentTargetPtr BlockPointer, unmergedChain *crChain,
+	unmergedChains *crChains) {
+	trackSyncPtrChangesInCreate(
+		mostRecentTargetPtr, unmergedChain, unmergedChains, cuea.toName)
 }
 
 func (cuea *copyUnmergedEntryAction) updateOps(unmergedMostRecent BlockPointer,

@@ -69,6 +69,10 @@ const (
 	// This will be the final entry for unflushed paths if there are
 	// too many revisions to process at once.
 	incompleteUnflushedPathsMarker = "..."
+	// ForcedBranchSquashThreshold is the minimum number of MD
+	// revisions in the journal that will trigger an automatic branch
+	// conversion (and subsequent resolution).
+	ForcedBranchSquashThreshold = 20
 )
 
 // TLFJournalStatus represents the status of a TLF's journal for
@@ -295,7 +299,7 @@ func makeTLFJournal(
 	}
 
 	mdJournal, err := makeMDJournal(
-		uid, key, config.Codec(), config.Crypto(), config.Clock(),
+		ctx, uid, key, config.Codec(), config.Crypto(), config.Clock(),
 		tlfID, config.MetadataVersion(), dir, log)
 	if err != nil {
 		return nil, err
@@ -631,6 +635,14 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			return nil
 		}
 
+		converted, err := j.convertMDsToBranchIfOverThreshold(ctx)
+		if err != nil {
+			return err
+		}
+		if converted {
+			return nil
+		}
+
 		blockEnd, mdEnd, err := j.getJournalEnds(ctx)
 		if err != nil {
 			return err
@@ -744,16 +756,11 @@ func (j *tlfJournal) getNextMDEntryToFlush(ctx context.Context,
 	return j.mdJournal.getNextEntryToFlush(ctx, end, j.config.Crypto())
 }
 
-func (j *tlfJournal) convertMDsToBranch(
-	ctx context.Context, nextEntryEnd MetadataRevision) error {
-	j.journalLock.Lock()
-	defer j.journalLock.Unlock()
-	if err := j.checkEnabledLocked(); err != nil {
-		return err
-	}
-
-	bid, err := j.mdJournal.convertToBranch(
-		ctx, j.config.Crypto(), j.config.Codec(), j.tlfID, j.config.MDCache())
+func (j *tlfJournal) convertMDsToBranchLocked(
+	ctx context.Context, bid BranchID) error {
+	err := j.mdJournal.convertToBranch(
+		ctx, bid, j.config.Crypto(), j.config.Codec(), j.tlfID,
+		j.config.MDCache())
 	if err != nil {
 		return err
 	}
@@ -763,6 +770,48 @@ func (j *tlfJournal) convertMDsToBranch(
 	}
 
 	return nil
+}
+
+func (j *tlfJournal) convertMDsToBranch(ctx context.Context) error {
+	bid, err := j.config.Crypto().MakeRandomBranchID()
+	if err != nil {
+		return err
+	}
+
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return err
+	}
+
+	return j.convertMDsToBranchLocked(ctx, bid)
+}
+
+func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context) (
+	bool, error) {
+	j.journalLock.Lock()
+	defer j.journalLock.Unlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return false, err
+	}
+
+	ok, err := j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashThreshold)
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		// Most of what's in the log are already local squashes, so no
+		// need to squash it more.
+		return false, nil
+	}
+
+	j.log.CDebugf(ctx, "Converting journal with more than %d "+
+		"non-local-squash entries to a branch", ForcedBranchSquashThreshold)
+	err = j.convertMDsToBranchLocked(ctx, PendingLocalSquashBranchID)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
@@ -831,7 +880,7 @@ func (j *tlfJournal) flushOneMDOp(
 			j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
 			// Convert MDs to a branch and return -- the journal
 			// pauses until the resolution is complete.
-			err = j.convertMDsToBranch(ctx, end)
+			err = j.convertMDsToBranch(ctx)
 			if err != nil {
 				return false, err
 			}
@@ -966,7 +1015,8 @@ func (j *tlfJournal) getJournalStatusWithRange() (
 	// It would be nice to avoid getting this range if we are not
 	// the initializer, but at this point we don't know if we'll
 	// need to initialize or not.
-	ibrmds, err = j.mdJournal.getRange(jStatus.RevisionStart, stop)
+	ibrmds, err = j.mdJournal.getRange(j.mdJournal.branchID,
+		jStatus.RevisionStart, stop)
 	if err != nil {
 		return TLFJournalStatus{}, nil, nil, false, err
 	}
@@ -1310,18 +1360,18 @@ func (j *tlfJournal) isBlockUnflushed(id BlockID) (bool, error) {
 }
 
 func (j *tlfJournal) getMDHead(
-	ctx context.Context) (ImmutableBareRootMetadata, error) {
+	ctx context.Context, bid BranchID) (ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
 		return ImmutableBareRootMetadata{}, err
 	}
 
-	return j.mdJournal.getHead()
+	return j.mdJournal.getHead(bid)
 }
 
 func (j *tlfJournal) getMDRange(
-	ctx context.Context, start, stop MetadataRevision) (
+	ctx context.Context, bid BranchID, start, stop MetadataRevision) (
 	[]ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
@@ -1329,7 +1379,7 @@ func (j *tlfJournal) getMDRange(
 		return nil, err
 	}
 
-	return j.mdJournal.getRange(start, stop)
+	return j.mdJournal.getRange(bid, start, stop)
 }
 
 func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
@@ -1352,7 +1402,7 @@ func (j *tlfJournal) doPutMD(ctx context.Context, rmd *RootMetadata,
 
 	mdID, err = j.mdJournal.put(ctx, j.config.Crypto(),
 		j.config.encryptionKeyGetter(), j.config.BlockSplitter(),
-		rmd)
+		rmd, false)
 	if err != nil {
 		return MdID{}, false, err
 	}
@@ -1463,7 +1513,9 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 
 	// The set of unflushed paths could change as part of the
 	// resolution, and the revision numbers definitely change.
-	if !j.unflushedPaths.reinitializeWithResolution(mdInfo, perRevMap) {
+	isPendingLocalSquash := bid == PendingLocalSquashBranchID
+	if !j.unflushedPaths.reinitializeWithResolution(
+		mdInfo, perRevMap, isPendingLocalSquash) {
 		return MdID{}, true, nil
 	}
 
@@ -1471,7 +1523,7 @@ func (j *tlfJournal) doResolveBranch(ctx context.Context,
 	// the existing branch, then clear the existing branch.
 	mdID, err = j.mdJournal.resolveAndClear(
 		ctx, j.config.Crypto(), j.config.encryptionKeyGetter(),
-		j.config.BlockSplitter(), bid, rmd)
+		j.config.BlockSplitter(), j.config.MDCache(), bid, rmd)
 	if err != nil {
 		return MdID{}, false, err
 	}

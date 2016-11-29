@@ -752,7 +752,9 @@ type cryptoPure interface {
 	// MakeRandomTlfID generates a dir ID using a CSPRNG.
 	MakeRandomTlfID(isPublic bool) (tlf.ID, error)
 
-	// MakeRandomBranchID generates a per-device branch ID using a CSPRNG.
+	// MakeRandomBranchID generates a per-device branch ID using a
+	// CSPRNG.  It will not return LocalSquashBranchID or
+	// NullBranchID.
 	MakeRandomBranchID() (BranchID, error)
 
 	// MakeMdID computes the MD ID of a RootMetadata object.
