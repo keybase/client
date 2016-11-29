@@ -56,14 +56,14 @@ const stylesPaperKeyContainer = {
   paddingLeft: 24,
   paddingRight: 24 * 2,
   paddingBottom: 8,
-  borderRadius: 1,
+  borderRadius: 3,
   backgroundColor: globalColors.white,
-  border: `solid 4px ${globalColors.darkBlue}`,
+  border: `solid 3px ${globalColors.darkBlue}`,
 }
 const stylesPaperCorner = {
   position: 'absolute',
-  top: -4,
-  right: -4,
+  top: -3,
+  right: -3,
 }
 const stylesCheck = {
   marginBottom: 60,

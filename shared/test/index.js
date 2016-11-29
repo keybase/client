@@ -1,2 +1,0 @@
-// @flow
-import './actions/signup'

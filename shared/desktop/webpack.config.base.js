@@ -1,7 +1,10 @@
 // @flow
+const fs = require('fs')
 const webpack = require('webpack')
 const path = require('path')
 const getenv = require('getenv')
+
+const babelConfig = JSON.parse(fs.readFileSync('./.babelrc', 'utf8'))
 
 const defines = {
   '__HOT__': JSON.stringify(getenv.boolish('HOT', false)),
@@ -15,11 +18,7 @@ module.exports = {
       test: /\.jsx?$/,
       loader: 'babel',
       exclude: /(node_modules|\/dist\/)/,
-      query: {
-        cacheDirectory: true,
-        plugins: ['transform-runtime', 'react-hot-loader/babel', ['babel-plugin-transform-builtin-extend', {globals: ['Error']}]],
-        presets: ['es2015', 'stage-1', 'react'],
-      },
+      query: Object.assign({cacheDirectory: true}, babelConfig),
     }, {
       test: /\.json?$/,
       loader: 'json',

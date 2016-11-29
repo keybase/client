@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import {List, Map} from 'immutable'
 
-import type {Message, ConversationIDKey, ParticipantItem, MetaData} from '../../constants/chat'
+import type {ConversationIDKey, Message, MessageID, MetaData, ParticipantItem} from '../../constants/chat'
 
 export type Props = {
   isLoading: boolean,
@@ -17,6 +17,7 @@ export type Props = {
   onToggleSidePanel: () => void,
   participants: List<ParticipantItem>,
   selectedConversation: ?ConversationIDKey,
+  firstNewMessageID: ?MessageID,
   sidePanelOpen: boolean,
 }
 

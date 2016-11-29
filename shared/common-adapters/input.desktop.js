@@ -232,7 +232,7 @@ class Input extends Component<void, Props, State> {
   }
 }
 
-const _lineHeight = 28
+const _lineHeight = 20
 const _headerTextStyle = getTextStyle('Header')
 const _bodySmallTextStyle = getTextStyle('BodySmall')
 
