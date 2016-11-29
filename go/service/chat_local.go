@@ -562,6 +562,58 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
+	parg := postAttachmentArg{
+		SessionID:      arg.SessionID,
+		ConversationID: arg.ConversationID,
+		ClientHeader:   arg.ClientHeader,
+		Attachment:     streamSource{arg.Attachment},
+		Title:          arg.Title,
+		Metadata:       arg.Metadata,
+	}
+	if arg.Preview != nil {
+		parg.Preview = streamSource{*arg.Preview}
+	}
+
+	return h.postAttachmentLocal(ctx, parg)
+}
+
+// PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
+func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFileAttachmentLocalArg) (chat1.PostLocalRes, error) {
+	parg := postAttachmentArg{
+		SessionID:      arg.SessionID,
+		ConversationID: arg.ConversationID,
+		ClientHeader:   arg.ClientHeader,
+		Title:          arg.Title,
+		Metadata:       arg.Metadata,
+	}
+	asrc, err := newFileSource(arg.Attachment)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	parg.Attachment = asrc
+	if arg.Preview != nil {
+		psrc, err := newFileSource(*arg.Preview)
+		if err != nil {
+			return chat1.PostLocalRes{}, err
+		}
+		parg.Preview = psrc
+	}
+
+	return h.postAttachmentLocal(ctx, parg)
+}
+
+// postAttachmentArg is a shared arg struct for the multiple PostAttachment* endpoints
+type postAttachmentArg struct {
+	SessionID      int
+	ConversationID chat1.ConversationID
+	ClientHeader   chat1.MessageClientHeader
+	Attachment     assetSource
+	Preview        assetSource
+	Title          string
+	Metadata       []byte
+}
+
+func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		ctx = s3.NewFakeS3Context(ctx)
 	}
@@ -589,7 +641,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 	g.Go(func() error {
 		chatUI.ChatAttachmentUploadStart(ctx)
 		var err error
-		object, err = h.uploadAsset(ctx, arg.SessionID, params, streamSource{arg.Attachment}, arg.ConversationID, progress)
+		object, err = h.uploadAsset(ctx, arg.SessionID, params, arg.Attachment, arg.ConversationID, progress)
 		chatUI.ChatAttachmentUploadDone(ctx)
 		return err
 	})
@@ -603,7 +655,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
 			previewParams.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, streamSource{*arg.Preview}, arg.ConversationID, nil)
+			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, arg.Preview, arg.ConversationID, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
@@ -637,11 +689,6 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		},
 	}
 	return h.PostLocal(ctx, postArg)
-}
-
-// PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
-func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFileAttachmentLocalArg) (chat1.PostLocalRes, error) {
-	return chat1.PostLocalRes{}, nil
 }
 
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
@@ -803,8 +850,10 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local assetSource, conversationID chat1.ConversationID, progress chat.ProgressReporter) (chat1.Asset, error) {
 	// create a buffered stream
 	cli := h.getStreamUICli()
-	// src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
-	src := local.Open(sessionID, cli)
+	src, err := local.Open(sessionID, cli)
+	if err != nil {
+		return chat1.Asset{}, err
+	}
 
 	task := chat.UploadTask{
 		S3Params:       params,
