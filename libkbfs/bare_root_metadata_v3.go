@@ -859,18 +859,87 @@ func (md *BareRootMetadataV3) SetRevision(revision MetadataRevision) {
 	md.Revision = revision
 }
 
-// AddNewKeysForTesting implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) AddNewKeysForTesting(crypto cryptoPure,
+func (md *BareRootMetadataV3) addKeyGenerationHelper(
+	crypto cryptoPure, prevExtra ExtraMetadata,
+	currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
+	pubKey kbfscrypto.TLFPublicKey,
 	wDkim, rDkim UserDeviceKeyInfoMap,
-	pubKey kbfscrypto.TLFPublicKey) (extra ExtraMetadata, err error) {
+	wPublicKeys, rPublicKeys []kbfscrypto.TLFEphemeralPublicKey) (
+	ExtraMetadata, error) {
 	if md.TlfID().IsPublic() {
-		panic("Called AddNewKeysForTesting on public TLF")
+		return nil, InvalidPublicTLFOperation{
+			md.TlfID(), "addKeyGenerationHelper"}
 	}
-	if md.WriterMetadata.LatestKeyGen >= FirstValidKeyGen {
-		// TODO: Relax this if needed (but would have to
-		// retrieve the previous historical crypt keys below).
-		panic("Cannot add more than one key generation")
+	if nextCryptKey == (kbfscrypto.TLFCryptKey{}) {
+		return nil, errors.New("Zero next crypt key")
 	}
+	latestKeyGen := md.LatestKeyGeneration()
+	var encryptedHistoricKeys EncryptedTLFCryptKeys
+	if currCryptKey == (kbfscrypto.TLFCryptKey{}) {
+		if latestKeyGen >= FirstValidKeyGen {
+			return nil, fmt.Errorf(
+				"Zero current crypt key with latest key generation %d",
+				latestKeyGen)
+		}
+	} else {
+		if latestKeyGen < FirstValidKeyGen {
+			return nil, errors.New(
+				"Non-zero current crypt key with no existing key generations")
+		}
+		var historicKeys []kbfscrypto.TLFCryptKey
+		if latestKeyGen > FirstValidKeyGen {
+			prevExtraV3, ok := prevExtra.(*ExtraMetadataV3)
+			if !ok {
+				return nil, errors.New("Invalid prev extra metadata")
+			}
+			var err error
+			historicKeys, err = crypto.DecryptTLFCryptKeys(
+				prevExtraV3.wkb.EncryptedHistoricTLFCryptKeys,
+				currCryptKey)
+			if err != nil {
+				return nil, err
+			}
+			expectedHistoricKeyCount :=
+				int(md.LatestKeyGeneration() - FirstValidKeyGen)
+			if len(historicKeys) != expectedHistoricKeyCount {
+				return nil, fmt.Errorf(
+					"Expected %d historic keys, got %d",
+					expectedHistoricKeyCount,
+					len(historicKeys))
+			}
+		}
+		historicKeys = append(historicKeys, currCryptKey)
+		var err error
+		encryptedHistoricKeys, err = crypto.EncryptTLFCryptKeys(
+			historicKeys, nextCryptKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+	newWriterKeys := &TLFWriterKeyBundleV3{
+		Keys:                          wDkim,
+		TLFPublicKey:                  pubKey,
+		EncryptedHistoricTLFCryptKeys: encryptedHistoricKeys,
+		TLFEphemeralPublicKeys:        wPublicKeys,
+	}
+	newReaderKeys := &TLFReaderKeyBundleV3{
+		TLFReaderKeyBundleV2: TLFReaderKeyBundleV2{
+			RKeys: rDkim,
+			TLFReaderEphemeralPublicKeys: rPublicKeys,
+		},
+	}
+	md.WriterMetadata.LatestKeyGen++
+	return &ExtraMetadataV3{
+		rkb: newReaderKeys,
+		wkb: newWriterKeys,
+	}, nil
+}
+
+func (md *BareRootMetadataV3) addKeyGenerationForTest(
+	crypto cryptoPure, prevExtra ExtraMetadata,
+	currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
+	pubKey kbfscrypto.TLFPublicKey,
+	wDkim, rDkim UserDeviceKeyInfoMap) ExtraMetadata {
 	for _, dkim := range wDkim {
 		for _, info := range dkim {
 			if info.EPubKeyIndex < 0 {
@@ -894,49 +963,37 @@ func (md *BareRootMetadataV3) AddNewKeysForTesting(crypto cryptoPure,
 		}
 	}
 
-	wkb := &TLFWriterKeyBundleV3{
-		Keys:         wDkim,
-		TLFPublicKey: pubKey,
-		// TODO: Size this to the max EPubKeyIndex for writers.
-		TLFEphemeralPublicKeys: make([]kbfscrypto.TLFEphemeralPublicKey, 1),
+	// TODO: Size this to the max EPubKeyIndex for writers.
+	wPublicKeys := make([]kbfscrypto.TLFEphemeralPublicKey, 1)
+	// TODO: Size this to the max EPubKeyIndex for readers.
+	rPublicKeys := make([]kbfscrypto.TLFEphemeralPublicKey, 1)
+	extra, err := md.addKeyGenerationHelper(
+		crypto, prevExtra, currCryptKey, nextCryptKey,
+		pubKey, wDkim, rDkim, wPublicKeys, rPublicKeys)
+	if err != nil {
+		panic(err)
 	}
-	rkb := &TLFReaderKeyBundleV3{
-		TLFReaderKeyBundleV2: TLFReaderKeyBundleV2{
-			RKeys: rDkim,
-			// TODO: Size this to the max EPubKeyIndex for readers.
-			TLFReaderEphemeralPublicKeys: make([]kbfscrypto.TLFEphemeralPublicKey, 1),
-		},
+	err = md.FinalizeRekey(crypto, extra)
+	if err != nil {
+		panic(err)
 	}
-	md.WriterMetadata.LatestKeyGen++
-	extra = &ExtraMetadataV3{
-		wkb: wkb,
-		rkb: rkb,
-	}
-	err = md.FinalizeRekey(crypto, kbfscrypto.TLFCryptKey{},
-		kbfscrypto.TLFCryptKey{}, extra)
+	return extra
+}
+
+// AddKeyGeneration implements the MutableBareRootMetadata interface
+// for BareRootMetadataV3.
+func (md *BareRootMetadataV3) AddKeyGeneration(
+	crypto cryptoPure, prevExtra ExtraMetadata,
+	currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
+	pubKey kbfscrypto.TLFPublicKey) (ExtraMetadata, error) {
+	wDkim := make(UserDeviceKeyInfoMap)
+	rDkim := make(UserDeviceKeyInfoMap)
+	extra, err := md.addKeyGenerationHelper(crypto, prevExtra,
+		currCryptKey, nextCryptKey, pubKey, wDkim, rDkim, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 	return extra, nil
-}
-
-// NewKeyGeneration implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) NewKeyGeneration(pubKey kbfscrypto.TLFPublicKey) (
-	extra ExtraMetadata) {
-	newWriterKeys := &TLFWriterKeyBundleV3{
-		Keys:         make(UserDeviceKeyInfoMap),
-		TLFPublicKey: pubKey,
-	}
-	newReaderKeys := &TLFReaderKeyBundleV3{
-		TLFReaderKeyBundleV2: TLFReaderKeyBundleV2{
-			RKeys: make(UserDeviceKeyInfoMap),
-		},
-	}
-	md.WriterMetadata.LatestKeyGen++
-	return &ExtraMetadataV3{
-		rkb: newReaderKeys,
-		wkb: newWriterKeys,
-	}
 }
 
 // SetUnresolvedReaders implements the MutableBareRootMetadata interface for BareRootMetadataV3.
@@ -1031,8 +1088,7 @@ func (md *BareRootMetadataV3) GetUserDeviceKeyInfoMaps(keyGen KeyGen, extra Extr
 // exist.
 func (md *BareRootMetadataV3) fillInDevices(crypto Crypto,
 	wkb *TLFWriterKeyBundleV3, rkb *TLFReaderKeyBundleV3,
-	wKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
-	rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (
@@ -1076,35 +1132,10 @@ func (md *BareRootMetadataV3) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
 
 // FinalizeRekey implements the MutableBareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) FinalizeRekey(
-	crypto cryptoPure, prevKey, currKey kbfscrypto.TLFCryptKey,
-	extra ExtraMetadata) error {
+	crypto cryptoPure, extra ExtraMetadata) error {
 	extraV3, ok := extra.(*ExtraMetadataV3)
 	if !ok {
 		return errors.New("Invalid extra metadata")
-	}
-	if md.LatestKeyGeneration() < FirstValidKeyGen {
-		return fmt.Errorf("Invalid key generation %d", md.LatestKeyGeneration())
-	}
-	if (prevKey != kbfscrypto.TLFCryptKey{}) {
-		numKeys := int(md.LatestKeyGeneration() - FirstValidKeyGen)
-		if numKeys == 0 {
-			return errors.New("Previous key non-nil for first key generation")
-		}
-		var oldKeys []kbfscrypto.TLFCryptKey
-		var err error
-		if numKeys > 1 {
-			oldKeys, err = crypto.DecryptTLFCryptKeys(
-				extraV3.wkb.EncryptedHistoricTLFCryptKeys, prevKey)
-			if err != nil {
-				return err
-			}
-		}
-		oldKeys = append(oldKeys, prevKey)
-		encOldKeys, err := crypto.EncryptTLFCryptKeys(oldKeys, currKey)
-		if err != nil {
-			return err
-		}
-		extraV3.wkb.EncryptedHistoricTLFCryptKeys = encOldKeys
 	}
 	var err error
 	md.WriterMetadata.WKeyBundleID, err = crypto.MakeTLFWriterKeyBundleID(extraV3.wkb)

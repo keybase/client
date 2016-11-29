@@ -552,8 +552,8 @@ type KeyManager interface {
 	// readers and writers.  If there are any new devices, it
 	// updates all existing key generations to include the new
 	// devices.  If there are devices that have been removed, it
-	// creates a new epoch of keys for the TLF.  If no devices
-	// have changed, or if there was an error, it returns false.
+	// creates a new epoch of keys for the TLF.  If there was an
+	// error, or the RootMetadata wasn't changed, it returns false.
 	// Otherwise, it returns true. If a new key generation is
 	// added the second return value points to this new key. This
 	// is to allow for caching of the TLF crypt key only after a
@@ -876,8 +876,7 @@ type cryptoPure interface {
 
 	// EncryptTLFCryptKeys encrypts an array of historic TLFCryptKeys.
 	EncryptTLFCryptKeys(oldKeys []kbfscrypto.TLFCryptKey,
-		key kbfscrypto.TLFCryptKey) (
-		EncryptedTLFCryptKeys, error)
+		key kbfscrypto.TLFCryptKey) (EncryptedTLFCryptKeys, error)
 
 	// DecryptTLFCryptKeys decrypts an array of historic TLFCryptKeys.
 	DecryptTLFCryptKeys(
@@ -1606,6 +1605,8 @@ type BareRootMetadata interface {
 	// MakeSuccessorCopy returns a newly constructed successor copy to this metadata revision.
 	// It differs from DeepCopy in that it can perform an up conversion to a new metadata
 	// version.
+	//
+	// TODO: Replace Config argument.
 	MakeSuccessorCopy(ctx context.Context, config Config, kmd KeyMetadata,
 		extra ExtraMetadata, isReadableAndWriter bool) (
 		mdCopy MutableBareRootMetadata, extraCopy ExtraMetadata, extraCopyIsNew bool, err error)
@@ -1750,14 +1751,27 @@ type MutableBareRootMetadata interface {
 	SetWriterMetadataCopiedBit()
 	// SetRevision sets the revision number of the underlying metadata.
 	SetRevision(revision MetadataRevision)
-	// AddNewKeysForTesting adds new writer and reader TLF key
-	// bundles to this revision of metadata.  pubKey is non-empty
-	// only for server-side tests.
-	AddNewKeysForTesting(crypto cryptoPure,
-		wDkim, rDkim UserDeviceKeyInfoMap,
+	// addKeyGenerationForTest is like AddKeyGeneration, except
+	// currCryptKey and nextCryptKey don't have to be zero if
+	// StoresHistoricTLFCryptKeys is false, and takes in
+	// pre-filled UserDeviceKeyInfoMaps, and also calls
+	// FinalizeRekey.
+	addKeyGenerationForTest(crypto cryptoPure, prevExtra ExtraMetadata,
+		currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
+		pubKey kbfscrypto.TLFPublicKey,
+		wDkim, rDkim UserDeviceKeyInfoMap) ExtraMetadata
+	// AddKeyGeneration adds a new key generation to this revision
+	// of metadata. If StoresHistoricTLFCryptKeys is false, then
+	// currCryptKey and nextCryptKey must be zero. Otherwise,
+	// nextCryptKey must be non-zero, and currCryptKey must be
+	// zero if there are no existing key generations, and non-zero
+	// for otherwise.
+	//
+	// AddKeyGeneration must only be called on metadata for
+	// private TLFs.
+	AddKeyGeneration(crypto cryptoPure, prevExtra ExtraMetadata,
+		currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
 		pubKey kbfscrypto.TLFPublicKey) (ExtraMetadata, error)
-	// NewKeyGeneration adds a new key generation to this revision of metadata.
-	NewKeyGeneration(pubKey kbfscrypto.TLFPublicKey) (extra ExtraMetadata)
 	// SetUnresolvedReaders sets the list of unresolved readers assoiated with this folder.
 	SetUnresolvedReaders(readers []keybase1.SocialAssertion)
 	// SetUnresolvedWriters sets the list of unresolved writers assoiated with this folder.
@@ -1777,10 +1791,9 @@ type MutableBareRootMetadata interface {
 	// key generation.
 	GetUserDeviceKeyInfoMaps(keyGen KeyGen, extra ExtraMetadata) (
 		readers, writers UserDeviceKeyInfoMap, err error)
-	// FinalizeRekey is called after all rekeying work has been performed on the underlying
-	// metadata.
-	FinalizeRekey(c cryptoPure, prevKey,
-		key kbfscrypto.TLFCryptKey, extra ExtraMetadata) error
+	// FinalizeRekey must be called called after all rekeying work
+	// has been performed on the underlying metadata.
+	FinalizeRekey(c cryptoPure, extra ExtraMetadata) error
 }
 
 // KeyBundleCache is an interface to a key bundle cache for use with v3 metadata.

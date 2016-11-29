@@ -269,20 +269,13 @@ func (md *RootMetadata) MakeSuccessor(
 	return newMd, nil
 }
 
-// AddNewKeysForTesting makes a new key generation for this RootMetadata using the
-// given TLF key bundles. Note: Only used by tests.
-func (md *RootMetadata) AddNewKeysForTesting(crypto cryptoPure,
-	wDkim, rDkim UserDeviceKeyInfoMap) (err error) {
-	if md.TlfID().IsPublic() {
-		return InvalidPublicTLFOperation{md.TlfID(), "AddNewKeys"}
-	}
-	var extra ExtraMetadata
-	if extra, err = md.bareMd.AddNewKeysForTesting(
-		crypto, wDkim, rDkim, kbfscrypto.TLFPublicKey{}); err != nil {
-		return err
-	}
+func (md *RootMetadata) addKeyGenerationForTest(
+	crypto cryptoPure, currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
+	wDkim, rDkim UserDeviceKeyInfoMap) {
+	extra := md.bareMd.addKeyGenerationForTest(
+		crypto, md.extra, currCryptKey, nextCryptKey,
+		kbfscrypto.TLFPublicKey{}, wDkim, rDkim)
 	md.extra = extra
-	return nil
 }
 
 // GetTlfHandle returns the TlfHandle for this RootMetadata.
@@ -655,15 +648,13 @@ func (md *RootMetadata) HasKeyForUser(keyGen KeyGen, user keybase1.UID) bool {
 
 // fakeInitialRekey wraps the FakeInitialRekey test function for
 // convenience.
-func (md *RootMetadata) fakeInitialRekey(crypto cryptoPure) error {
-	var err error
+func (md *RootMetadata) fakeInitialRekey(crypto cryptoPure) {
 	bh, err := md.tlfHandle.ToBareHandle()
 	if err != nil {
-		return err
+		panic(err)
 	}
-	md.extra, err = FakeInitialRekey(md.bareMd,
+	md.extra = FakeInitialRekey(md.bareMd,
 		crypto, bh, kbfscrypto.TLFPublicKey{})
-	return err
 }
 
 // GetBareRootMetadata returns an interface to the underlying serializeable metadata.
@@ -671,14 +662,22 @@ func (md *RootMetadata) GetBareRootMetadata() BareRootMetadata {
 	return md.bareMd
 }
 
-// NewKeyGeneration adds a new key generation to this revision of metadata.
-func (md *RootMetadata) NewKeyGeneration(pubKey kbfscrypto.TLFPublicKey) {
-	md.extra = md.bareMd.NewKeyGeneration(pubKey)
+// AddKeyGeneration adds a new key generation to this revision of metadata.
+func (md *RootMetadata) AddKeyGeneration(
+	crypto cryptoPure, prevCryptKey, currCryptKey kbfscrypto.TLFCryptKey,
+	pubKey kbfscrypto.TLFPublicKey) error {
+	newExtra, err := md.bareMd.AddKeyGeneration(
+		crypto, md.extra, prevCryptKey, currCryptKey, pubKey)
+	if err != nil {
+		return err
+	}
+	md.extra = newExtra
+	return nil
 }
 
 func (md *RootMetadata) fillInDevices(crypto Crypto,
-	keyGen KeyGen, wKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
-	rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	keyGen KeyGen,
+	wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (serverKeyMap, error) {
@@ -708,12 +707,14 @@ func (md *RootMetadata) fillInDevices(crypto Crypto,
 	return serverKeyMap{}, errors.New("Unknown bare metadata version")
 }
 
-func (md *RootMetadata) finalizeRekey(
-	crypto cryptoPure, prevKey, currKey kbfscrypto.TLFCryptKey) error {
+func (md *RootMetadata) finalizeRekey(crypto cryptoPure) error {
+	err := md.bareMd.FinalizeRekey(crypto, md.extra)
+	if err != nil {
+		return err
+	}
 	wkbID := md.bareMd.GetTLFWriterKeyBundleID()
 	rkbID := md.bareMd.GetTLFReaderKeyBundleID()
-	err := md.bareMd.FinalizeRekey(crypto, prevKey, currKey, md.extra)
-	if err == nil && md.extra != nil {
+	if md.extra != nil {
 		includeWkb := wkbID != md.bareMd.GetTLFWriterKeyBundleID()
 		includeRkb := rkbID != md.bareMd.GetTLFReaderKeyBundleID()
 		md.extraNew = md.extra.Copy(includeWkb, includeRkb)

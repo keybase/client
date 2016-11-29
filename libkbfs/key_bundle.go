@@ -38,13 +38,6 @@ type TLFCryptKeyInfo struct {
 	codec.UnknownFieldSetHandler
 }
 
-type copyFields int
-
-const (
-	allFields copyFields = iota
-	knownFieldsOnly
-)
-
 // DeviceKeyInfoMap is a map from a user devices (identified by the
 // KID of the corresponding device CryptPublicKey) to the
 // TLF's symmetric secret key information.

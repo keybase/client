@@ -301,14 +301,6 @@ func NewEmptyUserDeviceKeyInfoMap() UserDeviceKeyInfoMap {
 	return UserDeviceKeyInfoMap{}
 }
 
-// AddNewKeysOrBust adds new keys to root metadata and blows up on error.
-func AddNewKeysOrBust(t logger.TestLogBackend, crypto cryptoPure,
-	rmd *RootMetadata, wDkim, rDkim UserDeviceKeyInfoMap) {
-	if err := rmd.AddNewKeysForTesting(crypto, wDkim, rDkim); err != nil {
-		t.Fatal(err)
-	}
-}
-
 func keySaltForUserDevice(name libkb.NormalizedUsername,
 	index int) libkb.NormalizedUsername {
 	if index > 0 {

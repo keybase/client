@@ -313,8 +313,7 @@ func (km *KeyManagerStandard) unmaskTLFCryptKey(ctx context.Context, serverHalfI
 
 func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
 	md *RootMetadata, keyGen KeyGen,
-	wKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
-	rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKey kbfscrypto.TLFCryptKey) error {
@@ -481,7 +480,7 @@ func (km *KeyManagerStandard) generateKeyMapForUsers(
 // Rekey implements the KeyManager interface for KeyManagerStandard.
 // TODO make this less terrible.
 func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promptPaper bool) (
-	rekeyDone bool, cryptKey *kbfscrypto.TLFCryptKey, err error) {
+	mdChanged bool, cryptKey *kbfscrypto.TLFCryptKey, err error) {
 	km.log.CDebugf(ctx, "Rekey %s (prompt for paper key: %t)",
 		md.TlfID(), promptPaper)
 	defer func() { km.deferLog.CDebugf(ctx, "Rekey %s done: %#v", md.TlfID(), err) }()
@@ -733,6 +732,22 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		}
 	}()
 
+	// From this point on, if we return true for mdChanged with a
+	// nil error or RekeyIncompleteError{}, we must call
+	// md.finalizeRekey() first.
+
+	defer func() {
+		_, isErrRekeyIncomplete := err.(RekeyIncompleteError)
+		if mdChanged && (err == nil || isErrRekeyIncomplete) {
+			finalizeErr := md.finalizeRekey(km.config.Crypto())
+			if finalizeErr != nil {
+				mdChanged = false
+				cryptKey = nil
+				err = finalizeErr
+			}
+		}
+	}()
+
 	if !isWriter {
 		if len(newReaderUsers) > 0 || addNewWriterDevice || incKeyGen {
 			// If we're a reader but we haven't completed all the work, return
@@ -740,17 +755,9 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 			return addNewReaderDeviceForSelf, nil, RekeyIncompleteError{}
 		}
 		// Otherwise, there's nothing left to do!
-		if err := md.finalizeRekey(km.config.Crypto(),
-			kbfscrypto.TLFCryptKey{}, tlfCryptKey); err != nil {
-			return false, nil, err
-		}
 		return true, nil, nil
 	} else if !incKeyGen {
 		// we're done!
-		if err := md.finalizeRekey(km.config.Crypto(),
-			kbfscrypto.TLFCryptKey{}, tlfCryptKey); err != nil {
-			return false, nil, err
-		}
 		return true, nil, nil
 	}
 
@@ -759,21 +766,30 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	km.config.Reporter().Notify(ctx, rekeyNotification(ctx, km.config, resolvedHandle,
 		false))
 
-	// Save the previous TLF crypt key. It's symmetrically encrypted and appended to a list
-	// for MDv3 metadata.
-	var prevTlfCryptKey kbfscrypto.TLFCryptKey
-	if currKeyGen >= FirstValidKeyGen && md.StoresHistoricTLFCryptKeys() {
-		flags := getTLFCryptKeyAnyDevice
-		if promptPaper {
-			flags |= getTLFCryptKeyPromptPaper
+	// Get the previous TLF crypt key if needed. It's
+	// symmetrically encrypted and appended to a list for MDv3
+	// metadata.
+	var prevTLFCryptKey, currTLFCryptKey kbfscrypto.TLFCryptKey
+	if md.StoresHistoricTLFCryptKeys() {
+		if currKeyGen >= FirstValidKeyGen {
+			flags := getTLFCryptKeyAnyDevice
+			if promptPaper {
+				flags |= getTLFCryptKeyPromptPaper
+			}
+			var err error
+			prevTLFCryptKey, err = km.getTLFCryptKey(
+				ctx, md.ReadOnly(), currKeyGen, flags)
+			if err != nil {
+				return false, nil, err
+			}
 		}
-		prevTlfCryptKey, err = km.getTLFCryptKey(ctx, md.ReadOnly(), currKeyGen, flags)
-		if err != nil {
-			return false, nil, err
-		}
+		currTLFCryptKey = tlfCryptKey
 	}
-
-	md.NewKeyGeneration(pubKey)
+	err = md.AddKeyGeneration(
+		km.config.Crypto(), prevTLFCryptKey, currTLFCryptKey, pubKey)
+	if err != nil {
+		return false, nil, err
+	}
 	currKeyGen = md.LatestKeyGeneration()
 	err = km.updateKeyBundle(ctx, md, currKeyGen, wKeys, rKeys, ePubKey,
 		ePrivKey, tlfCryptKey)
@@ -800,11 +816,6 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		if err != nil {
 			return false, nil, err
 		}
-	}
-
-	if err := md.finalizeRekey(km.config.Crypto(),
-		prevTlfCryptKey, tlfCryptKey); err != nil {
-		return false, nil, err
 	}
 
 	return true, &tlfCryptKey, nil

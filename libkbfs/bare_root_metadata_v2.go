@@ -947,14 +947,34 @@ func (md *BareRootMetadataV2) SetRevision(revision MetadataRevision) {
 	md.Revision = revision
 }
 
-// AddNewKeysForTesting implements the MutableBareRootMetadata
-// interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) AddNewKeysForTesting(_ cryptoPure,
-	wDkim, rDkim UserDeviceKeyInfoMap,
-	pubKey kbfscrypto.TLFPublicKey) (extra ExtraMetadata, err error) {
+func (md *BareRootMetadataV2) addKeyGenerationHelper(
+	pubKey kbfscrypto.TLFPublicKey, wDkim, rDkim UserDeviceKeyInfoMap,
+	wPublicKeys, rPublicKeys []kbfscrypto.TLFEphemeralPublicKey) error {
 	if md.TlfID().IsPublic() {
-		panic("Called AddNewKeysForTesting on public TLF")
+		return InvalidPublicTLFOperation{
+			md.TlfID(), "addKeyGenerationHelper"}
 	}
+
+	newWriterKeys := TLFWriterKeyBundleV2{
+		WKeys:                  wDkim,
+		TLFPublicKey:           pubKey,
+		TLFEphemeralPublicKeys: wPublicKeys,
+	}
+	newReaderKeys := TLFReaderKeyBundleV2{
+		RKeys: rDkim,
+		TLFReaderEphemeralPublicKeys: rPublicKeys,
+	}
+	md.WKeys = append(md.WKeys, newWriterKeys)
+	md.RKeys = append(md.RKeys, newReaderKeys)
+	return nil
+}
+
+// addKeyGenerationForTest implements the MutableBareRootMetadata
+// interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) addKeyGenerationForTest(
+	crypto cryptoPure, _ ExtraMetadata,
+	_, _ kbfscrypto.TLFCryptKey, pubKey kbfscrypto.TLFPublicKey,
+	wDkim, rDkim UserDeviceKeyInfoMap) ExtraMetadata {
 	for _, dkim := range wDkim {
 		for _, info := range dkim {
 			if info.EPubKeyIndex < 0 {
@@ -977,21 +997,21 @@ func (md *BareRootMetadataV2) AddNewKeysForTesting(_ cryptoPure,
 			}
 		}
 	}
-	wkb := TLFWriterKeyBundleV2{
-		WKeys:        wDkim,
-		TLFPublicKey: pubKey,
-		// TODO: Size this to the max EPubKeyIndex for writers.
-		TLFEphemeralPublicKeys: make([]kbfscrypto.TLFEphemeralPublicKey, 1),
+	// TODO: Size this to the max EPubKeyIndex for writers.
+	wPublicKeys := make([]kbfscrypto.TLFEphemeralPublicKey, 1)
+	// TODO: Size this to the max EPubKeyIndex (after undoing the
+	// negative hack) for readers.
+	rPublicKeys := make([]kbfscrypto.TLFEphemeralPublicKey, 1)
+	err := md.addKeyGenerationHelper(
+		pubKey, wDkim, rDkim, wPublicKeys, rPublicKeys)
+	if err != nil {
+		panic(err)
 	}
-	rkb := TLFReaderKeyBundleV2{
-		RKeys: rDkim,
-		// TODO: Size this to the max EPubKeyIndex (after
-		// undoing the negative hack) for readers.
-		TLFReaderEphemeralPublicKeys: make([]kbfscrypto.TLFEphemeralPublicKey, 1),
+	err = md.FinalizeRekey(crypto, nil)
+	if err != nil {
+		panic(err)
 	}
-	md.WKeys = append(md.WKeys, wkb)
-	md.RKeys = append(md.RKeys, rkb)
-	return nil, nil
+	return nil
 }
 
 // SetUnresolvedReaders implements the MutableBareRootMetadata interface for BareRootMetadataV2.
@@ -1092,19 +1112,25 @@ func (md *BareRootMetadataV2) GetUserDeviceKeyInfoMaps(keyGen KeyGen, _ ExtraMet
 	return rkb.RKeys, wkb.WKeys, nil
 }
 
-// NewKeyGeneration implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) NewKeyGeneration(
-	pubKey kbfscrypto.TLFPublicKey) ExtraMetadata {
-	newWriterKeys := TLFWriterKeyBundleV2{
-		WKeys:        make(UserDeviceKeyInfoMap),
-		TLFPublicKey: pubKey,
+// AddKeyGeneration implements the MutableBareRootMetadata interface
+// for BareRootMetadataV2.
+func (md *BareRootMetadataV2) AddKeyGeneration(
+	_ cryptoPure, _ ExtraMetadata,
+	currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey,
+	pubKey kbfscrypto.TLFPublicKey) (ExtraMetadata, error) {
+	if currCryptKey != (kbfscrypto.TLFCryptKey{}) {
+		return nil, errors.New("currCryptKey unexpectedly non-zero")
 	}
-	newReaderKeys := TLFReaderKeyBundleV2{
-		RKeys: make(UserDeviceKeyInfoMap),
+	if nextCryptKey != (kbfscrypto.TLFCryptKey{}) {
+		return nil, errors.New("nextCryptKey unexpectedly non-zero")
 	}
-	md.WKeys = append(md.WKeys, newWriterKeys)
-	md.RKeys = append(md.RKeys, newReaderKeys)
-	return nil
+	wDkim := make(UserDeviceKeyInfoMap)
+	rDkim := make(UserDeviceKeyInfoMap)
+	err := md.addKeyGenerationHelper(pubKey, wDkim, rDkim, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
 
 // fillInDevices ensures that every device for every writer and reader
@@ -1113,8 +1139,7 @@ func (md *BareRootMetadataV2) NewKeyGeneration(
 // exist.
 func (md *BareRootMetadataV2) fillInDevices(crypto Crypto,
 	wkb *TLFWriterKeyBundleV2, rkb *TLFReaderKeyBundleV2,
-	wKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
-	rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
+	wKeys, rKeys map[keybase1.UID][]kbfscrypto.CryptPublicKey,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (
@@ -1162,8 +1187,8 @@ func (md *BareRootMetadataV2) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
 
 // FinalizeRekey implements the MutableBareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) FinalizeRekey(
-	_ cryptoPure, _, _ kbfscrypto.TLFCryptKey, _ ExtraMetadata) error {
-	// No-op.
+	_ cryptoPure, _ ExtraMetadata) error {
+	// Nothing to do.
 	return nil
 }
 
