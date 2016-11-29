@@ -58,8 +58,8 @@ class FoldersRender extends Component<void, Props, void> {
                   {...(isPublic ? this.props.public : this.props.private)}
                   {...sharedListProps}
                   isPublic={isPublic}
-                  showIgnored={isPublic ? this.props.publicShowingIgnored : this.props.privateShowingIgnored}
-                  onToggleShowIgnored={() => this.props.onToggleShowIgnored(!isPublic)} />
+                  showIgnored={this.props.showingIgnored}
+                  onToggleShowIgnored={this.props.onToggleShowIgnored} />
               </TabBarItem>
             ))}
         </TabBar>

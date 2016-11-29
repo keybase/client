@@ -3,7 +3,7 @@
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
 
-import Nav from '../shared/nav.desktop'
+import Main from '../shared/main.desktop'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import RemoteManager from './remote-manager'
@@ -14,13 +14,16 @@ import engine, {makeEngine} from '../shared/engine'
 import hello from '../shared/util/hello'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import loadPerf from '../shared/util/load-perf'
+import routeDefs from '../shared/routes'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../shared/actions/config'
 import {devEditAction} from '../shared/reducers/dev-edit'
 import {disable as disableDragDrop} from '../shared/util/drag-drop'
 import {listenForNotifications} from '../shared/actions/notifications'
+import {changedFocus} from '../shared/actions/window'
 import {merge} from 'lodash'
 import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-debug.desktop'
+import {setRouteDef} from '../shared/actions/route-tree'
 import {setupContextMenu} from '../app/menu-helper'
 // $FlowIssue
 import {setupSource} from '../shared/util/forward-logs'
@@ -73,6 +76,14 @@ function setupApp (store) {
     })
   })
 
+  const currentWindow = electron.remote.getCurrentWindow()
+  currentWindow.on('focus', () => {
+    store.dispatch(changedFocus(true))
+  })
+  currentWindow.on('blur', () => {
+    store.dispatch(changedFocus(false))
+  })
+
   store.subscribe(() => {
     ipcRenderer.send('stateChange', store.getState())
   })
@@ -91,7 +102,7 @@ function setupApp (store) {
   window.addEventListener('online', () => store.dispatch(bootstrap()))
 }
 
-function render (store, NavComponent) {
+function render (store, MainComponent) {
   let dt
   if (__DEV__ && reduxDevToolsEnable) { // eslint-disable-line no-undef
     const DevTools = require('./redux-dev-tools').default
@@ -103,11 +114,15 @@ function render (store, NavComponent) {
       <Root store={store}>
         <div style={{display: 'flex', flex: 1}}>
           <RemoteManager />
-          <NavComponent />
+          <MainComponent />
           {dt}
         </div>
       </Root>
     </AppContainer>), document.getElementById('root'))
+}
+
+function setupRoutes (store) {
+  store.dispatch(setRouteDef(routeDefs))
 }
 
 function setupHMR (store) {
@@ -115,15 +130,19 @@ function setupHMR (store) {
     return
   }
 
-  module.hot.accept('../shared/nav.desktop', () => {
+  module.hot.accept('../shared/main.desktop', () => {
     try {
       store.dispatch({type: updateReloading, payload: {reloading: true}})
-      const NewNav = require('../shared/nav.desktop').default
-      render(store, NewNav)
+      const NewMain = require('../shared/main.desktop').default
+      render(store, NewMain)
       engine().reset()
     } finally {
       setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
     }
+  })
+
+  module.hot && module.hot.accept(['../shared/main.desktop', '../shared/routes'], () => {
+    store.dispatch(setRouteDef(require('../shared/routes').default))
   })
 
   module.hot && module.hot.accept('../shared/local-debug-live', () => {
@@ -133,9 +152,10 @@ function setupHMR (store) {
 
 function load () {
   const store = setupStore()
+  setupRoutes(store)
   setupApp(store)
   setupHMR(store)
-  render(store, Nav)
+  render(store, Main)
 }
 
 window.load = load

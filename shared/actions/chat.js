@@ -7,12 +7,12 @@ import {List, Map} from 'immutable'
 import {apiserverGetRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select} from 'redux-saga/effects'
-import {chatTab} from '../constants/tabs'
+import {searchTab, chatTab} from '../constants/tabs'
 import {openInKBFS} from './kbfs'
 import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {setActive as setSearchActive, reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
-import {switchTab} from './router'
+import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
+import {switchTo} from './route-tree'
 import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
 
@@ -51,8 +51,9 @@ function loadMoreMessages (): LoadMoreMessages {
   return {type: Constants.loadMoreMessages, payload: undefined}
 }
 
-function selectConversation (conversationIDKey: ConversationIDKey): SelectConversation {
-  return {type: Constants.selectConversation, payload: {conversationIDKey}}
+// Select conversation, fromUser indicates it was triggered by a user and not programatically
+function selectConversation (conversationIDKey: ConversationIDKey, fromUser: boolean): SelectConversation {
+  return {type: Constants.selectConversation, payload: {conversationIDKey, fromUser}}
 }
 
 function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string, following: {[key: string]: boolean}): List<InboxState> {
@@ -255,7 +256,7 @@ function * _loadedInbox (action: LoadedInbox): SagaGenerator<any, any> {
   if (!selectedConversation) {
     if (action.payload.inbox.count()) {
       const mostRecentConversation = action.payload.inbox.get(0)
-      yield put(selectConversation(mostRecentConversation.get('conversationIDKey')))
+      yield put(selectConversation(mostRecentConversation.get('conversationIDKey'), false))
     }
   }
 }
@@ -381,9 +382,8 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
     const conversationIDKey = conversationIDToKey(result.conv.info.id)
 
     yield put(loadInbox())
-    yield put(selectConversation(conversationIDKey))
-    yield put(setSearchActive(false))
-    yield put(switchTab(chatTab))
+    yield put(selectConversation(conversationIDKey, false))
+    yield put(switchTo([chatTab]))
   }
 }
 
@@ -422,7 +422,7 @@ function * _newChat (action: NewChat): SagaGenerator<any, any> {
       fullName: metaData.getIn([username, 'fullname'], 'Unknown'),
     },
   }))))
-  yield put(setSearchActive(true))
+  yield put(switchTo([searchTab]))
 }
 
 function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {

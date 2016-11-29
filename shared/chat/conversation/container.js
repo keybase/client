@@ -52,6 +52,7 @@ export default connect(
           messages: conversationState.messages,
           moreToLoad: conversationState.moreToLoad,
           isLoading: conversationState.isLoading,
+          firstNewMessageID: conversationState.firstNewMessageID,
           selectedConversation,
           metaData: state.chat.get('metaData'),
         }
