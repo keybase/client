@@ -62,13 +62,13 @@ const styleIconContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',
-  width: globalMargins.large + globalMargins.medium,
-  height: globalMargins.large + globalMargins.medium,
+  width: 80,
+  height: 80,
 }
 
 const styleIcon = {
-  width: globalMargins.large,
-  height: globalMargins.large,
+  width: 48,
+  height: 48,
 }
 
 const styleInfoContainer = {
