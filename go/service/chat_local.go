@@ -566,12 +566,15 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 		SessionID:      arg.SessionID,
 		ConversationID: arg.ConversationID,
 		ClientHeader:   arg.ClientHeader,
-		Attachment:     streamSource{arg.Attachment},
+		Attachment:     newStreamSource(arg.Attachment),
 		Title:          arg.Title,
 		Metadata:       arg.Metadata,
 	}
+	defer parg.Attachment.Close()
+
 	if arg.Preview != nil {
-		parg.Preview = streamSource{*arg.Preview}
+		parg.Preview = newStreamSource(*arg.Preview)
+		defer parg.Preview.Close()
 	}
 
 	return h.postAttachmentLocal(ctx, parg)
@@ -591,12 +594,15 @@ func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat
 		return chat1.PostLocalRes{}, err
 	}
 	parg.Attachment = asrc
+	defer parg.Attachment.Close()
+
 	if arg.Preview != nil {
 		psrc, err := newFileSource(*arg.Preview)
 		if err != nil {
 			return chat1.PostLocalRes{}, err
 		}
 		parg.Preview = psrc
+		defer parg.Preview.Close()
 	}
 
 	return h.postAttachmentLocal(ctx, parg)

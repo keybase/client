@@ -250,6 +250,9 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 
 // AttachV1 implements ChatServiceHandler.AttachV1.
 func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
+	if opts.NoStream {
+		return c.attachV1NoStream(ctx, opts)
+	}
 	convID, err := chat1.MakeConvID(opts.ConversationID)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
@@ -319,6 +322,76 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 		return c.errReply(err)
 	}
 	pres, err := client.PostAttachmentLocal(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+	header.rateLimits = append(header.rateLimits, pres.RateLimits...)
+
+	res := SendRes{
+		Message: "attachment sent",
+		RateLimits: RateLimits{
+			RateLimits: c.aggRateLimits(header.rateLimits),
+		},
+	}
+
+	return Reply{Result: res}
+}
+
+// attachV1NoStream uses PostFileAttachmentLocal instead of PostAttachmentLocal.
+func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOptionsV1) Reply {
+	c.G().Log.Warning("not using stream interface")
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
+	sarg := sendArgV1{
+		conversationID: convID,
+		channel:        opts.Channel,
+		mtype:          chat1.MessageType_ATTACHMENT,
+	}
+	query, err := c.getInboxLocalQuery(ctx, sarg.conversationID, sarg.channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	header, err := c.makePostHeader(ctx, sarg, query)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	arg := chat1.PostFileAttachmentLocalArg{
+		ConversationID: header.conversationID,
+		ClientHeader:   header.clientHeader,
+		Attachment: chat1.LocalFileSource{
+			Filename: opts.Filename,
+		},
+		Title: opts.Title,
+	}
+
+	// check for preview
+	if len(opts.Preview) > 0 {
+		plocal := chat1.LocalFileSource{
+			Filename: opts.Preview,
+		}
+		arg.Preview = &plocal
+	}
+
+	ui := &ChatUI{
+		Contextified: libkb.NewContextified(c.G()),
+		terminal:     c.G().UI.GetTerminalUI(),
+	}
+
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	protocols := []rpc.Protocol{
+		NewStreamUIProtocol(c.G()),
+		chat1.ChatUiProtocol(ui),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
+	pres, err := client.PostFileAttachmentLocal(ctx, arg)
 	if err != nil {
 		return c.errReply(err)
 	}

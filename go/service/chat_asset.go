@@ -16,27 +16,39 @@ type assetSource interface {
 	FileSize() int
 	Basename() string
 	Open(sessionID int, cli *keybase1.StreamUiClient) (chat.ReadResetter, error)
+	Close() error
 }
 
 type streamSource struct {
 	chat1.LocalSource
+	buf *libkb.RemoteStreamBuffered
 }
 
-func (s streamSource) FileSize() int {
+func newStreamSource(s chat1.LocalSource) *streamSource {
+	return &streamSource{LocalSource: s}
+}
+
+func (s *streamSource) FileSize() int {
 	return s.Size
 }
 
-func (s streamSource) Basename() string {
+func (s *streamSource) Basename() string {
 	return filepath.Base(s.Filename)
 }
 
-func (s streamSource) Open(sessionID int, cli *keybase1.StreamUiClient) (chat.ReadResetter, error) {
-	return libkb.NewRemoteStreamBuffered(s.Source, cli, sessionID), nil
+func (s *streamSource) Open(sessionID int, cli *keybase1.StreamUiClient) (chat.ReadResetter, error) {
+	s.buf = libkb.NewRemoteStreamBuffered(s.Source, cli, sessionID)
+	return s.buf, nil
+}
+
+func (s *streamSource) Close() error {
+	return s.buf.Close()
 }
 
 type fileSource struct {
 	chat1.LocalFileSource
 	info os.FileInfo
+	buf  *fileReadResetter
 }
 
 func newFileSource(s chat1.LocalFileSource) (*fileSource, error) {
@@ -50,16 +62,25 @@ func newFileSource(s chat1.LocalFileSource) (*fileSource, error) {
 	}, nil
 }
 
-func (f fileSource) FileSize() int {
+func (f *fileSource) FileSize() int {
 	return int(f.info.Size())
 }
 
-func (f fileSource) Basename() string {
+func (f *fileSource) Basename() string {
 	return f.info.Name()
 }
 
-func (f fileSource) Open(sessionID int, cli *keybase1.StreamUiClient) (chat.ReadResetter, error) {
-	return newFileReadResetter(f.Filename)
+func (f *fileSource) Open(sessionID int, cli *keybase1.StreamUiClient) (chat.ReadResetter, error) {
+	buf, err := newFileReadResetter(f.Filename)
+	if err != nil {
+		return nil, err
+	}
+	f.buf = buf
+	return f.buf, nil
+}
+
+func (f *fileSource) Close() error {
+	return f.buf.Close()
 }
 
 type fileReadResetter struct {
@@ -68,7 +89,7 @@ type fileReadResetter struct {
 	buf      *bufio.Reader
 }
 
-func newFileReadResetter(name string) (chat.ReadResetter, error) {
+func newFileReadResetter(name string) (*fileReadResetter, error) {
 	f := &fileReadResetter{filename: name}
 	if err := f.open(); err != nil {
 		return nil, err
@@ -97,4 +118,9 @@ func (f *fileReadResetter) Reset() error {
 	}
 	f.buf = bufio.NewReader(f.file)
 	return nil
+}
+
+func (f *fileReadResetter) Close() error {
+	f.buf = nil
+	return f.file.Close()
 }
