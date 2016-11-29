@@ -102,7 +102,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.
 	}
 
 	_, uimap := utils.GetUserInfoMapper(ctx, b.kbCtx)
-	username, deviceName, err := b.getSenderInfoLocal(uimap, pt.ClientHeader)
+	username, deviceName, deviceType, err := b.getSenderInfoLocal(uimap, pt.ClientHeader)
 	if err != nil {
 		b.log().Warning("unable to fetch sender informaton: UID: %s deviceID: %s",
 			pt.ClientHeader.Sender, pt.ClientHeader.SenderDevice)
@@ -115,6 +115,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, finder KeyFinder, boxed chat1.
 		MessageBody:      pt.MessageBody,
 		SenderUsername:   username,
 		SenderDeviceName: deviceName,
+		SenderDeviceType: deviceType,
 		HeaderHash:       headerHash,
 	}), nil
 
@@ -229,22 +230,15 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 	return thread, nil
 }
 
-func (b *Boxer) getUsernameAndDeviceName(uid keybase1.UID, deviceID keybase1.DeviceID,
-	uimap *utils.UserInfoMapper) (string, string, error) {
-
-	username, deviceName, err := b.udc.LookupUsernameAndDeviceName(uimap, uid, deviceID)
-	return username, deviceName, err
+func (b *Boxer) getUsernameAndDevice(uid keybase1.UID, deviceID keybase1.DeviceID,
+	uimap *utils.UserInfoMapper) (string, string, string, error) {
+	return b.udc.LookupUsernameAndDevice(uimap, uid, deviceID)
 }
 
-func (b *Boxer) getSenderInfoLocal(uimap *utils.UserInfoMapper, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, err error) {
+func (b *Boxer) getSenderInfoLocal(uimap *utils.UserInfoMapper, clientHeader chat1.MessageClientHeader) (senderUsername string, senderDeviceName string, senderDeviceType string, err error) {
 	uid := keybase1.UID(clientHeader.Sender.String())
 	did := keybase1.DeviceID(clientHeader.SenderDevice.String())
-	username, deviceName, err := b.getUsernameAndDeviceName(uid, did, uimap)
-	if err != nil {
-		return "", "", err
-	}
-
-	return username, deviceName, nil
+	return b.getUsernameAndDevice(uid, did, uimap)
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed) (unboxed []chat1.MessageUnboxed, err error) {

@@ -66,17 +66,6 @@ class Tracker extends Component<void, TrackerProps, void> {
     const renderProps = trackerPropsToRenderProps(this.props)
     return <Render {...renderProps} />
   }
-
-  static parseRoute (currentPath) {
-    return {
-      componentAtTop: {
-        title: 'Tracker',
-        props: {
-          username: currentPath.get('username'),
-        },
-      },
-    }
-  }
 }
 
 type OwnProps = {

@@ -5,14 +5,16 @@
 
 import LoadingMore from './messages/loading-more'
 import React, {Component} from 'react'
+import ReactDOM from 'react-dom'
 import SidePanel from './side-panel/index.desktop'
+import Popup from './messages/popup'
 import _ from 'lodash'
 import messageFactory from './messages'
 import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {Box} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {globalColors, globalStyles} from '../../styles'
 
-import type {Message} from '../../constants/chat'
+import type {Message, MessageID} from '../../constants/chat'
 import type {Props} from './'
 
 type State = {
@@ -20,6 +22,7 @@ type State = {
   isScrolling: boolean,
   messages: List<Message>,
   scrollTop: number,
+  selectedMessageID?: MessageID,
 }
 
 class ConversationList extends Component<void, Props, State> {
@@ -142,6 +145,35 @@ class ConversationList extends Component<void, Props, State> {
     this._onScrollSettled()
   }, 100)
 
+  showPopup (message: Message, event: any) {
+    if (message.type !== 'Text') return
+    this.setState({
+      selectedMessageID: message.messageID,
+    })
+
+    const clientRect = event.target.getBoundingClientRect()
+    // Position next to button (client rect)
+    // TODO: Measure instead of pixel math
+    const x = clientRect.left - 205
+    let y = clientRect.top - (message.followState === 'You' ? 200 : 116)
+    if (y < 10) y = 10
+    const popupComponent = <Popup
+      message={message}
+      onEditMessage={this.props.onEditMessage}
+      onDeleteMessage={this.props.onDeleteMessage}
+      onHidden={() => {
+        ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
+        this.setState({
+          selectedMessageID: undefined,
+        })
+      }}
+      style={{position: 'absolute', top: y, left: x}}
+      />
+    const container = document.getElementById('popupContainer')
+    // ReactDOM.render(popupComponent, event.target)
+    ReactDOM.render(popupComponent, container)
+  }
+
   _rowRenderer = ({index, key, style, isScrolling}: {index: number, key: string, style: Object, isScrolling: boolean}) => {
     if (index === 0) {
       return <LoadingMore style={style} key={key || index} hasMoreItems={this.props.moreToLoad} />
@@ -151,17 +183,39 @@ class ConversationList extends Component<void, Props, State> {
     const prevMessage = this.state.messages.get(index - 2)
     const isFirstMessage = index - 1 === 0
     const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
+    const onAction = (event) => { this.showPopup(message, event) }
+    const isSelected = this.state.selectedMessageID === message.messageID
+    const isFirstNewMessage = this.props.firstNewMessageID ? this.props.firstNewMessageID === message.messageID : false
+    // TODO: We need to update the message component selected status
+    // when showing popup, which isn't currently working.
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, style, isScrolling)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, isFirstNewMessage, style, isScrolling, onAction, isSelected)
   }
 
   render () {
-    const countWithLoading = this.state.messages.count() + 1 // Loading row on top always
+    const messageCount = this.state.messages.count()
+    const countWithLoading = messageCount + 1 // Loading row on top always
     let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
+    const realCSS = `
+    .message {
+      background-color: transparent;
+    }
+    .message .action-button {
+      visibility: hidden;
+    }
+    .message:hover {
+      background-color: ${globalColors.black_05};
+    }
+    .message:hover .action-button {
+      visibility: visible;
+    }
+    `
+
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
+        <style>{realCSS}</style>
         <AutoSizer>
           {({height, width}) => (
             <CellMeasurer

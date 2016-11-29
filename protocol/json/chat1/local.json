@@ -423,6 +423,10 @@
           "name": "senderDeviceName"
         },
         {
+          "type": "string",
+          "name": "senderDeviceType"
+        },
+        {
           "type": "Hash",
           "name": "headerHash"
         }
