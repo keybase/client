@@ -173,6 +173,7 @@ type serviceStatusResult struct {
 
 // WaitForStatus waits for service status to be available
 func (s Service) WaitForStatus(wait time.Duration, delay time.Duration) (*ServiceStatus, error) {
+	s.log.Info("Waiting for %s to be loaded...", s.label)
 	return waitForStatus(wait, delay, s.LoadStatus)
 }
 
@@ -213,6 +214,7 @@ func waitForStatus(wait time.Duration, delay time.Duration, fn loadStatusFn) (*S
 
 // WaitForExit waits for service to exit
 func (s Service) WaitForExit(wait time.Duration) error {
+	s.log.Info("Waiting for %s to exit...", s.label)
 	return waitForExit(wait, 200*time.Millisecond, s.LoadStatus)
 }
 
