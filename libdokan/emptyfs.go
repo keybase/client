@@ -63,6 +63,11 @@ func (t emptyFile) GetFileSecurity(ctx context.Context, fi *dokan.FileInfo, si w
 	if si&winacl.GroupSecurityInformation != 0 && currentGroupSID != nil {
 		sd.SetGroup(currentGroupSID)
 	}
+	if si&winacl.DACLSecurityInformation != 0 {
+		var acl winacl.Acl
+		acl.AddAllowAccess(0x001F01FF, currentUserSID)
+		sd.SetDacl(&acl)
+	}
 	return nil
 }
 func (t emptyFile) SetFileSecurity(ctx context.Context, fi *dokan.FileInfo, si winacl.SecurityInformation, sd *winacl.SecurityDescriptor) error {
