@@ -33,12 +33,15 @@ func NewSecurityDescriptorWithBuffer(bs []byte) *SecurityDescriptor {
 	if len(bs) >= sd.curOffset {
 		sd.ptr = (*selfRelativeSecurityDescriptor)(unsafe.Pointer(&bs[0]))
 		sd.ptr.Revision = 1
-		sd.ptr.Control = seSelfRelative
+		sd.ptr.Control = seSelfRelative | seOwnerDefaulted | seGroupDefaulted
 	}
 	return &sd
 }
 
 // SecurityDescriptor is the type for security descriptors.
+// Note that items have to be set in the following order:
+// 1) owner, 2) group, 3) sacl, 4) dacl. Some of them may
+// be omitted.
 type SecurityDescriptor struct {
 	bytes     []byte
 	ptr       *selfRelativeSecurityDescriptor
@@ -65,13 +68,17 @@ type selfRelativeSecurityDescriptor struct {
 }
 
 const (
-	seSelfRelative = 0x8000
+	seOwnerDefaulted = 0x1
+	seGroupDefaulted = 0x2
+	seDaclPresent    = 0x4
+	seSelfRelative   = 0x8000
 )
 
 // SetOwner sets the owner field of a SecurityDescriptor.
 func (sd *SecurityDescriptor) SetOwner(sid *SID) {
 	if off := sd.setSid(sid); off != 0 {
 		sd.ptr.OwnerOffset = int32(off)
+		sd.ptr.Control &^= seOwnerDefaulted
 	}
 }
 
@@ -79,7 +86,21 @@ func (sd *SecurityDescriptor) SetOwner(sid *SID) {
 func (sd *SecurityDescriptor) SetGroup(sid *SID) {
 	if off := sd.setSid(sid); off != 0 {
 		sd.ptr.GroupOffset = int32(off)
+		sd.ptr.Control &^= seGroupDefaulted
 	}
+}
+
+// SetDacl sets a dacl in the security descriptor to the given Acl.
+func (sd *SecurityDescriptor) SetDacl(acl *Acl) {
+	bs := acl.bytes()
+	off := sd.curOffset
+	sd.curOffset += len(bs)
+	if sd.HasOverflowed() {
+		return
+	}
+	copy(sd.bytes[off:], bs)
+	sd.ptr.Control |= seDaclPresent
+	sd.ptr.DaclOffset = int32(off)
 }
 
 func (sd *SecurityDescriptor) setSid(sid *SID) int {
