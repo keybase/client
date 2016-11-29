@@ -408,7 +408,7 @@ function _threadToPagination (thread) {
 }
 
 function _maybeAddTimestamp (message: Message, prevMessage: Message): MaybeTimestamp {
-  if (message.type !== 'Text' || prevMessage.type !== 'Text') {
+  if (prevMessage.type === 'Timestamp') {
     return null
   }
   if (message.timestamp - prevMessage.timestamp > Constants.howLongBetweenTimestampsMs) { // ms
