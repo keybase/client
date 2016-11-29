@@ -278,7 +278,7 @@ type OutboxRecord struct {
 	State    OutboxState      `codec:"state" json:"state"`
 	OutboxID OutboxID         `codec:"outboxID" json:"outboxID"`
 	ConvID   ConversationID   `codec:"convID" json:"convID"`
-	Msg      MessagePlaintext `codec:"Msg" json:"Msg"`
+	Msg      MessagePlaintext `codec:"msg" json:"msg"`
 }
 
 type HeaderPlaintextVersion int
@@ -513,9 +513,9 @@ func NewMessageUnboxedWithOutbox(v OutboxRecord) MessageUnboxed {
 }
 
 type UnreadFirstNumLimit struct {
-	NumRead int `codec:"NumRead" json:"NumRead"`
-	AtLeast int `codec:"AtLeast" json:"AtLeast"`
-	AtMost  int `codec:"AtMost" json:"AtMost"`
+	NumRead int `codec:"numRead" json:"numRead"`
+	AtLeast int `codec:"atLeast" json:"atLeast"`
+	AtMost  int `codec:"atMost" json:"atMost"`
 }
 
 type ConversationInfoLocal struct {
@@ -621,8 +621,8 @@ type GetInboxSummaryForCLILocalRes struct {
 
 type GetConversationForCLILocalQuery struct {
 	MarkAsRead     bool                `codec:"markAsRead" json:"markAsRead"`
-	MessageTypes   []MessageType       `codec:"MessageTypes" json:"MessageTypes"`
-	Since          *string             `codec:"Since,omitempty" json:"Since,omitempty"`
+	MessageTypes   []MessageType       `codec:"messageTypes" json:"messageTypes"`
+	Since          *string             `codec:"since,omitempty" json:"since,omitempty"`
 	Limit          UnreadFirstNumLimit `codec:"limit" json:"limit"`
 	ConversationId ConversationID      `codec:"conversationId" json:"conversationId"`
 }
@@ -821,7 +821,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"SetConversationStatusLocal": {
+			"setConversationStatusLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]SetConversationStatusLocalArg, 1)
 					return &ret
@@ -901,7 +901,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"GetMessagesLocal": {
+			"getMessagesLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]GetMessagesLocalArg, 1)
 					return &ret
@@ -917,7 +917,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"DownloadAttachmentLocal": {
+			"downloadAttachmentLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]DownloadAttachmentLocalArg, 1)
 					return &ret
@@ -933,7 +933,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"CancelPost": {
+			"cancelPost": {
 				MakeArg: func() interface{} {
 					ret := make([]CancelPostArg, 1)
 					return &ret
@@ -949,7 +949,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"RetryPost": {
+			"retryPost": {
 				MakeArg: func() interface{} {
 					ret := make([]RetryPostArg, 1)
 					return &ret
@@ -999,7 +999,7 @@ func (c LocalClient) PostLocalNonblock(ctx context.Context, __arg PostLocalNonbl
 }
 
 func (c LocalClient) SetConversationStatusLocal(ctx context.Context, __arg SetConversationStatusLocalArg) (res SetConversationStatusLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.SetConversationStatusLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.local.setConversationStatusLocal", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1026,23 +1026,23 @@ func (c LocalClient) GetConversationForCLILocal(ctx context.Context, query GetCo
 }
 
 func (c LocalClient) GetMessagesLocal(ctx context.Context, __arg GetMessagesLocalArg) (res GetMessagesLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.GetMessagesLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.local.getMessagesLocal", []interface{}{__arg}, &res)
 	return
 }
 
 func (c LocalClient) DownloadAttachmentLocal(ctx context.Context, __arg DownloadAttachmentLocalArg) (res DownloadAttachmentLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.DownloadAttachmentLocal", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.local.downloadAttachmentLocal", []interface{}{__arg}, &res)
 	return
 }
 
 func (c LocalClient) CancelPost(ctx context.Context, outboxID OutboxID) (err error) {
 	__arg := CancelPostArg{OutboxID: outboxID}
-	err = c.Cli.Call(ctx, "chat.1.local.CancelPost", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.local.cancelPost", []interface{}{__arg}, nil)
 	return
 }
 
 func (c LocalClient) RetryPost(ctx context.Context, outboxID OutboxID) (err error) {
 	__arg := RetryPostArg{OutboxID: outboxID}
-	err = c.Cli.Call(ctx, "chat.1.local.RetryPost", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "chat.1.local.retryPost", []interface{}{__arg}, nil)
 	return
 }

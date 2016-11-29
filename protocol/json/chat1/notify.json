@@ -150,7 +150,7 @@
     }
   ],
   "messages": {
-    "NewChatActivity": {
+    "newChatActivity": {
       "request": [
         {
           "name": "uid",

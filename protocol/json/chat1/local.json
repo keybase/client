@@ -251,7 +251,7 @@
         },
         {
           "type": "MessagePlaintext",
-          "name": "Msg"
+          "name": "msg"
         }
       ]
     },
@@ -483,15 +483,15 @@
       "fields": [
         {
           "type": "int",
-          "name": "NumRead"
+          "name": "numRead"
         },
         {
           "type": "int",
-          "name": "AtLeast"
+          "name": "atLeast"
         },
         {
           "type": "int",
-          "name": "AtMost"
+          "name": "atMost"
         }
       ]
     },
@@ -918,14 +918,14 @@
             "type": "array",
             "items": "MessageType"
           },
-          "name": "MessageTypes"
+          "name": "messageTypes"
         },
         {
           "type": [
             null,
             "string"
           ],
-          "name": "Since"
+          "name": "since"
         },
         {
           "type": "UnreadFirstNumLimit",
@@ -1087,7 +1087,7 @@
       ],
       "response": "PostLocalNonblockRes"
     },
-    "SetConversationStatusLocal": {
+    "setConversationStatusLocal": {
       "request": [
         {
           "name": "conversationID",
@@ -1178,7 +1178,7 @@
       ],
       "response": "GetConversationForCLILocalRes"
     },
-    "GetMessagesLocal": {
+    "getMessagesLocal": {
       "request": [
         {
           "name": "conversationID",
@@ -1194,7 +1194,7 @@
       ],
       "response": "GetMessagesLocalRes"
     },
-    "DownloadAttachmentLocal": {
+    "downloadAttachmentLocal": {
       "request": [
         {
           "name": "sessionID",
@@ -1219,7 +1219,7 @@
       ],
       "response": "DownloadAttachmentLocalRes"
     },
-    "CancelPost": {
+    "cancelPost": {
       "request": [
         {
           "name": "outboxID",
@@ -1228,7 +1228,7 @@
       ],
       "response": null
     },
-    "RetryPost": {
+    "retryPost": {
       "request": [
         {
           "name": "outboxID",
