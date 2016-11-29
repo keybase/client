@@ -53,10 +53,6 @@ class GenPaperKey extends Component<void, Props, State> {
       />
     )
   }
-
-  static parseRoute () {
-    return {componentAtTop: {}}
-  }
 }
 
 export default connect(

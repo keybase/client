@@ -1,22 +1,11 @@
 // @flow
 import ProveWebsiteChoice from './prove-website-choice'
-import React, {Component} from 'react'
 import {TypedConnector} from '../util/typed-connect'
 import {addProof, cancelAddProof} from '../actions/profile'
 
 import type {Props} from './prove-website-choice'
 import type {TypedDispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
-
-class ProveWebsiteChoiceContainer extends Component<void, Props, void> {
-  static parseRoute (currentPath, uri) {
-    return {componentAtTop: {title: ''}}
-  }
-
-  render () {
-    return <ProveWebsiteChoice {...this.props} />
-  }
-}
 
 const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
 
@@ -29,4 +18,4 @@ export default connector.connect(
       onCancel: () => { dispatch(cancelAddProof()) },
     }
   }
-)(ProveWebsiteChoiceContainer)
+)(ProveWebsiteChoice)

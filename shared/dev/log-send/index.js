@@ -24,10 +24,6 @@ class LogSend extends Component<void, {}, State> {
 
     return <Render logSendId={this.state.logSendId} onLogSend={onLogSend} />
   }
-
-  static parseRoute () {
-    return {componentAtTop: {title: 'Log Send'}}
-  }
 }
 
 export default LogSend

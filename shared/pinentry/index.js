@@ -7,10 +7,6 @@ class Pinentry extends Component {
   render () {
     return <PinentryRender {...this.props} />
   }
-
-  static parseRoute () {
-    return {componentAtTop: {title: 'pinentry'}}
-  }
 }
 
 export default connect(
