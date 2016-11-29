@@ -80,6 +80,16 @@ func (j journalMDOps) getHeadFromJournal(
 		return ImmutableRootMetadata{}, nil
 	}
 
+	if mStatus == Unmerged && bid == NullBranchID {
+		// We need to look up the branch ID because the caller didn't
+		// know it.
+		var err error
+		bid, err = tlfJournal.getBranchID()
+		if err != nil {
+			return ImmutableRootMetadata{}, err
+		}
+	}
+
 	head, err := tlfJournal.getMDHead(ctx, bid)
 	if err == errTLFJournalDisabled {
 		return ImmutableRootMetadata{}, nil

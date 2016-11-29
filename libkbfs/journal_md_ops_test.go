@@ -181,6 +181,12 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NotNil(t, head)
 	require.Equal(t, MetadataRevision(10), head.Revision())
 
+	_, head, err = mdOps.GetForHandle(ctx, h, Unmerged)
+	require.NoError(t, err)
+	require.NotNil(t, head)
+	require.Equal(t, MetadataRevision(10), head.Revision())
+	require.Equal(t, bid, head.BID())
+
 	// (4) push some new unmerged metadata blocks linking to the
 	//     middle merged block.
 	for i := MetadataRevision(11); i < 41; i++ {

@@ -1359,6 +1359,16 @@ func (j *tlfJournal) isBlockUnflushed(id BlockID) (bool, error) {
 	return true, nil
 }
 
+func (j *tlfJournal) getBranchID() (BranchID, error) {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	if err := j.checkEnabledLocked(); err != nil {
+		return NullBranchID, err
+	}
+
+	return j.mdJournal.branchID, nil
+}
+
 func (j *tlfJournal) getMDHead(
 	ctx context.Context, bid BranchID) (ImmutableBareRootMetadata, error) {
 	j.journalLock.RLock()
