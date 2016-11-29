@@ -132,7 +132,7 @@ func TestIdentifyAlternativeBehaviors(t *testing.T) {
 	require.NoError(t, err)
 	err = identifyUserListForTLF(ctx, nug, ti, uidList, false)
 	require.NoError(t, err)
-	tb := getExtendedIdentify(ctx).getTlfBreakOrBust()
+	tb := getExtendedIdentify(ctx).getTlfBreakAndClose()
 	require.Len(t, tb.Breaks, 1)
 	require.Equal(t, "zebra", tb.Breaks[0].User.Username)
 	require.NotNil(t, tb.Breaks[0].Breaks)

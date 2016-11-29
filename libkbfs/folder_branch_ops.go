@@ -865,7 +865,7 @@ func (fbo *folderBranchOps) identifyOnce(
 
 	ei := getExtendedIdentify(ctx)
 	if ei.behavior.WarningInsteadOfErrorOnBrokenTracks() &&
-		len(ei.getTlfBreakOrBust().Breaks) > 0 {
+		len(ei.getTlfBreakAndClose().Breaks) > 0 {
 		fbo.log.CDebugf(ctx,
 			"Identify finished with no error but broken proof warnings")
 	} else {

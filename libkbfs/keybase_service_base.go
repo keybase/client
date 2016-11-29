@@ -644,7 +644,7 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 	}
 
 	if query.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
-		res.NameIDBreaks.Breaks = getExtendedIdentify(ctx).getTlfBreakOrBust()
+		res.NameIDBreaks.Breaks = getExtendedIdentify(ctx).getTlfBreakAndClose()
 	}
 
 	return res, nil
@@ -679,7 +679,7 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 	res.TlfID = keybase1.TLFID(id.String())
 
 	if query.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
-		res.Breaks = getExtendedIdentify(ctx).getTlfBreakOrBust()
+		res.Breaks = getExtendedIdentify(ctx).getTlfBreakAndClose()
 	}
 
 	return res, nil
