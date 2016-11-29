@@ -205,7 +205,7 @@ const stylesButtonSmallLabel = {
 }
 const stylesProgress = {
   position: 'absolute',
-  height: 'calc(100% - 4px)',
+  height: 'calc(100% - 8px)',
   left: 0,
   right: 0,
   top: 0,

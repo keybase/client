@@ -1,6 +1,6 @@
 // @flow
 import {RouteDefNode} from '../route-tree'
-import Chat from './index'
+import Chat from './container'
 
 const routeTree = new RouteDefNode({
   component: Chat,

@@ -52,8 +52,8 @@ const deviceIcon: (isPrivate: boolean, type: string) => IconType = (isPrivate, t
   },
   'public': {
     'backup': 'icon-paper-key-32',
-    'desktop': 'icon-computer-bw-32',
-    'mobile': 'icon-phone-bw-32',
+    'desktop': 'icon-computer-32',
+    'mobile': 'icon-phone-32',
   },
 }[isPrivate ? 'private' : 'public'][type])
 
