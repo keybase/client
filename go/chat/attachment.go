@@ -296,3 +296,11 @@ func (a *AttachmentStore) s3Conn(signer s3.Signer, region s3.Region, accessKey s
 	conn.SetAccessKey(accessKey)
 	return conn
 }
+
+func AssetsForMessage(ctx context.Context, msgID chat1.MessageID) ([]chat1.Asset, error) {
+	return nil, nil
+}
+
+func DeleteAssets(ctx context.Context, assets []chat1.Asset) error {
+	return nil
+}

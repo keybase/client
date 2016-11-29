@@ -444,3 +444,7 @@ func TestUploadAssetResumeRestart(t *testing.T) {
 	// there should have been one abort
 	u.AssertNumAborts(1)
 }
+
+func TestDeleteAttachment(t *testing.T) {
+
+}
