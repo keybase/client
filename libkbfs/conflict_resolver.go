@@ -63,9 +63,10 @@ type ConflictResolver struct {
 	// resolveGroup tracks the outstanding resolves.
 	resolveGroup kbfssync.RepeatedWaitGroup
 
-	inputLock    sync.Mutex
-	currInput    conflictInput
-	lockNextTime bool
+	inputLock     sync.Mutex
+	currInput     conflictInput
+	lockNextTime  bool
+	canceledCount int
 }
 
 // NewConflictResolver constructs a new ConflictResolver (and launches
@@ -375,7 +376,10 @@ func (cr *ConflictResolver) makeChains(ctx context.Context,
 	unmergedSummary := unmergedChains.summary(unmergedChains, cr.fbo.nodeCache)
 	mergedSummary := mergedChains.summary(unmergedChains, cr.fbo.nodeCache)
 
-	cr.fbo.status.setCRSummary(unmergedSummary, mergedSummary)
+	// Ignore CR summaries for pending local squashes.
+	if len(unmerged) == 0 || unmerged[0].BID() != PendingLocalSquashBranchID {
+		cr.fbo.status.setCRSummary(unmergedSummary, mergedSummary)
+	}
 	return unmergedChains, mergedChains, nil
 }
 
@@ -3727,11 +3731,21 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 			cr.config.Reporter().ReportErr(ctx,
 				handle.GetCanonicalName(), handle.IsPublic(),
 				WriteMode, CRWrapError{err})
+			if err == context.Canceled {
+				cr.inputLock.Lock()
+				defer cr.inputLock.Unlock()
+				cr.canceledCount++
+				// TODO: decrease threshold for pending local squashes?
+				if cr.canceledCount > cr.maxRevsThreshold {
+					cr.lockNextTime = true
+				}
+			}
 		} else {
 			// We finished successfully, so no need to lock next time.
 			cr.inputLock.Lock()
 			defer cr.inputLock.Unlock()
 			cr.lockNextTime = false
+			cr.canceledCount = 0
 		}
 	}()
 
