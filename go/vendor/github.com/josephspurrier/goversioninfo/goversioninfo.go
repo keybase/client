@@ -1,7 +1,3 @@
-// Copyright 2015 Joseph Spurrier
-// Author: Joseph Spurrier (http://josephspurrier.com)
-// License: http://www.apache.org/licenses/LICENSE-2.0.html
-
 // Package goversioninfo creates a syso file which contains Microsoft Version Information and an optional icon.
 package goversioninfo
 
@@ -38,6 +34,7 @@ type VersionInfo struct {
 	Buffer         bytes.Buffer
 	Structure      VSVersionInfo
 	IconPath       string
+	ManifestPath   string
 }
 
 // Translation with langid and charsetid.
@@ -90,11 +87,11 @@ type StringFileInfo struct {
 // Helpers
 // *****************************************************************************
 
-type sizedReader struct {
+type SizedReader struct {
 	*bytes.Buffer
 }
 
-func (s sizedReader) Size() int64 {
+func (s SizedReader) Size() int64 {
 	return int64(s.Buffer.Len())
 }
 
@@ -111,16 +108,16 @@ func str2Uint32(s string) uint32 {
 	return uint32(u)
 }
 
-func padString(s string, zeroTerminate bool) []byte {
-	b := make([]byte, 0, len(s)*2+2)
+func padString(s string, zeros int) []byte {
+
+	b := make([]byte, 0, len(s)*2)
 
 	for _, x := range s {
 		b = append(b, byte(x))
 		b = append(b, 0x00)
 	}
 
-	if zeroTerminate {
-		b = append(b, 0x00)
+	for i := 0; i < zeros; i++ {
 		b = append(b, 0x00)
 	}
 
@@ -173,8 +170,9 @@ func (vi *VersionInfo) Walk() {
 	vi.Buffer = b
 }
 
-// WriteSyso creates a resource file from the version info and optionally an icon
-func (vi *VersionInfo) WriteSyso(filename string) error {
+// WriteSyso creates a resource file from the version info and optionally an icon.
+// arch must be an architecture string accepted by coff.Arch, like "386" or "amd64"
+func (vi *VersionInfo) WriteSyso(filename string, arch string) error {
 
 	// Channel for generating IDs
 	newID := make(chan uint16)
@@ -187,8 +185,27 @@ func (vi *VersionInfo) WriteSyso(filename string) error {
 	// Create a new RSRC section
 	coff := coff.NewRSRC()
 
+	// Set the architechture
+	err := coff.Arch(arch)
+	if err != nil {
+		return err
+	}
+
 	// ID 16 is for Version Information
-	coff.AddResource(16, 1, sizedReader{&vi.Buffer})
+	coff.AddResource(16, 1, SizedReader{&vi.Buffer})
+
+	// If manifest is enabled
+	if vi.ManifestPath != "" {
+
+		manifest, err := binutil.SizedOpen(vi.ManifestPath)
+		if err != nil {
+			return err
+		}
+		defer manifest.Close()
+
+		id := <-newID
+		coff.AddResource(rtManifest, id, manifest)
+	}
 
 	// If icon is enabled
 	if vi.IconPath != "" {

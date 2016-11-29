@@ -32,12 +32,17 @@ func (u *CachedUserLoader) getCachedUPK(uid keybase1.UID) (*keybase1.UserPlusAll
 		u.G().Log.Debug("| missed cached")
 		return nil, true
 	}
-	diff := u.G().Clock().Now().Sub(keybase1.FromTime(upk.Base.Uvv.CachedAt))
-	fresh := (diff <= u.Freshness)
-	if fresh {
-		u.G().Log.Debug("| cache hit was fresh (cached %s ago)", diff)
+	fresh := false
+	if u.Freshness == time.Duration(0) {
+		u.G().Log.Debug("| cache miss since cache disabled")
 	} else {
-		u.G().Log.Debug("| cache hit was stale (by %s)", u.Freshness-diff)
+		diff := u.G().Clock().Now().Sub(keybase1.FromTime(upk.Base.Uvv.CachedAt))
+		fresh = (diff <= u.Freshness)
+		if fresh {
+			u.G().Log.Debug("| cache hit was fresh (cached %s ago)", diff)
+		} else {
+			u.G().Log.Debug("| cache hit was stale (by %s)", u.Freshness-diff)
+		}
 	}
 	return upk, fresh
 }
@@ -48,6 +53,10 @@ type CachedUserLoadInfo struct {
 	StaleVersion bool
 	LoadedLeaf   bool
 	LoadedUser   bool
+}
+
+func (u *CachedUserLoader) Disable() {
+	u.Freshness = time.Duration(0)
 }
 
 // loadWithInfo loads a user by UID from the CachedUserLoader object. The 'info'
@@ -114,9 +123,14 @@ func (u *CachedUserLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	if info != nil {
 		info.LoadedUser = true
 	}
+
+	// In some cases, it's OK to have a user object and an error. This comes up in
+	// Identify2 when identifying users who don't have a sigchain. Note that we'll never
+	// hit the cache in this case (for now...)
 	if err != nil {
-		return nil, nil, err
+		return nil, user, err
 	}
+
 	if user == nil {
 		return nil, nil, UserNotFoundError{UID: arg.UID, Msg: "LoadUser failed"}
 	}

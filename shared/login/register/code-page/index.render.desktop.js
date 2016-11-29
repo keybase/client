@@ -33,7 +33,6 @@ class CodePageRender extends Component<void, Props, void> {
           <Text type='Body'>Run&nbsp;</Text><Text type='TerminalInline'>keybase device add</Text><Text type='Body'>&nbsp;on your other device and type this code there: </Text>
         </p>
         <Icon type='icon-computer-text-code-48' style={{marginTop: 28}} />
-
         <Text type='Body' style={stylesPaperkey}>{this.props.textCode}</Text>
       </Container>
     )

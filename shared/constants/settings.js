@@ -79,6 +79,20 @@ export type LoadSettings = NoErrorTypedAction<'settings:loadSettings', void>
 
 export const loadedSettings = 'settings:loadedSettings'
 
+type LandingTab = 'settingsTabs:landingTab'
+export const landingTab = 'settingsTabs:landingTab'
+type UpdatePaymentTab = 'settingsTabs:updatePaymentTab'
+export const updatePaymentTab = 'settingsTabs:updatePaymentTab'
+type InvitationsTab = 'settingsTabs:invitationsTab'
+export const invitationsTab = 'settingsTabs:invitationsTab'
+type NotificationsTab = 'settingsTabs:notificationsTab'
+export const notificationsTab = 'settingsTabs:notificationsTab'
+type DeleteMeTab = 'settingsTabs:deleteMeTab'
+export const deleteMeTab = 'settingsTabs:deleteMeTab'
+type DevMenuTab = 'settingsTabs:devMenuTab'
+export const devMenuTab = 'settingsTabs:devMenuTab'
+export type Tab = LandingTab | UpdatePaymentTab | InvitationsTab | NotificationsTab | DeleteMeTab | DevMenuTab
+
 export type Actions = InvitesRefresh | NotificationsRefresh | NotificationsRefreshed | NotificationsSave | NotificationsSaved | NotificationsToggle | SetAllowDeleteAccount
 
 export type Invitation = {
