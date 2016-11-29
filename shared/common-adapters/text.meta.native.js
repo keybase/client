@@ -207,7 +207,7 @@ const metaData: {[key: TextType]: MetaType} = {
   'Terminal': {
     colorForBackgroundMode: {
       'Normal': globalColors.blue3,
-      'Terminal': globalColors.blue3,
+      'Terminal': globalColors.darkBlue,
     },
     fontSize: 14,
     styleOverride: {
@@ -241,6 +241,7 @@ const metaData: {[key: TextType]: MetaType} = {
   'TerminalInline': {
     colorForBackgroundMode: {
       'Normal': globalColors.darkBlue,
+      'Terminal': globalColors.darkBlue,
     },
     fontSize: 14,
     styleOverride: {

@@ -116,7 +116,8 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
               if (onRekey) {
                 e.stopPropagation()
                 onRekey(path)
-              } }} label='Rekey' style={styles.action} />}
+              }
+            }} label='Rekey' style={styles.action} />}
           <Icon type={icon} style={{visibility: hasData ? 'visible' : 'hidden', ...(smallMode && !hasData ? {display: 'none'} : {})}} />
         </Box>
       </Box>

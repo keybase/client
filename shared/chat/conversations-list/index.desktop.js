@@ -1,26 +1,10 @@
 // @flow
 import React from 'react'
-import moment from 'moment'
 import {Box, Text, Avatar, Icon, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
-import {participantFilter} from '../../constants/chat'
+import {participantFilter, timestampToString} from '../../constants/chat'
 
 import type {Props} from './'
-
-function _timestamp (time: number, nowOverride?: number): string {
-  const m = moment(time)
-  const now = nowOverride ? moment(nowOverride) : moment()
-  const today = now.clone().startOf('day')
-  const weekOld = today.clone().subtract(7, 'days')
-
-  if (m.isSame(today, 'd')) {
-    return m.format('h:mm A')
-  } else if (m.isAfter(weekOld)) {
-    return m.format('dddd')
-  }
-
-  return m.format('MMM D')
-}
 
 const ConversationList = ({inbox, onSelectConversation, selectedConversation, onNewChat, nowOverride}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.darkBlue4, width: 240}}>
@@ -53,7 +37,7 @@ const ConversationList = ({inbox, onSelectConversation, selectedConversation, on
             <Text backgroundMode='Terminal' type='BodySmall' style={noWrapStyle}>{conversation.get('snippet')}</Text>
           </Box>
         </Box>
-        <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{_timestamp(conversation.get('time'), nowOverride)}</Text>
+        <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{timestampToString(conversation.get('time'), nowOverride)}</Text>
       </Box>)
     })}
   </Box>

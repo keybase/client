@@ -29,6 +29,7 @@ function Nav (props: Props) {
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {props.children}
       </Box>
+      <div id='popupContainer' />
     </Box>
   )
 }
