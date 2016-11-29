@@ -1,6 +1,7 @@
 // @flow
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
+import moment from 'moment'
 import {Set, List, Map, Record} from 'immutable'
 
 import type {UserListItem} from '../common-adapters/usernames'
@@ -14,27 +15,42 @@ export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', '
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
+export type ConversationID = RPCConversationID
+export type ConversationIDKey = string
+export type ParticipantItem = UserListItem
+
 export type MessageID = RPCMessageID
 
-export type Message = {
+export type TextMessage = {
   type: 'Text',
   message: HiddenString,
   author: string,
+  deviceName: string,
+  deviceType: string,
   timestamp: number,
+  conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
   followState: FollowState,
   messageState: MessageState,
   outboxID?: ?string,
-} | {
+}
+
+export type ErrorMessage = {
   type: 'Error',
   reason: string,
   timestamp: number,
-  messageID: MessageID,
-} | {
-  type: 'Unhandled',
-  timestamp: number,
+  conversationIDKey: ConversationIDKey,
   messageID: MessageID,
 }
+
+export type UnhandledMessage = {
+  type: 'Unhandled',
+  timestamp: number,
+  conversationIDKey: ConversationIDKey,
+  messageID: MessageID,
+}
+
+export type Message = TextMessage | ErrorMessage | UnhandledMessage
 
 export const ConversationStateRecord = Record({
   messages: List(),
@@ -55,10 +71,6 @@ export type ConversationState = Record<{
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
 }>
-
-export type ConversationID = RPCConversationID
-export type ConversationIDKey = string
-export type ParticipantItem = UserListItem
 
 export const InboxStateRecord = Record({
   info: null,
@@ -123,6 +135,8 @@ export const startConversation = 'chat:startConversation'
 export const openFolder = 'chat:openFolder'
 export const updateMetadata = 'chat:updateMetadata'
 export const updatedMetadata = 'chat:updatedMetadata'
+export const editMessage = 'chat:editMessage'
+export const deleteMessage = 'chat:deleteMessage'
 
 export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
@@ -140,8 +154,12 @@ export type StartConversation = NoErrorTypedAction<'chat:startConversation', {us
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
+export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
+export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 
 export type Actions = AppendMessages
+  | DeleteMessage
+  | EditMessage
   | LoadInbox
   | LoadMoreMessages
   | LoadedInbox
@@ -159,6 +177,21 @@ function conversationIDToKey (conversationID: ConversationID): ConversationIDKey
 
 function keyToConversationID (key: ConversationIDKey): ConversationID {
   return Buffer.from(key, 'hex')
+}
+
+function timestampToString (time: number, nowOverride?: number): string {
+  const m = moment(time)
+  const now = nowOverride ? moment(nowOverride) : moment()
+  const today = now.clone().startOf('day')
+  const weekOld = today.clone().subtract(7, 'days')
+
+  if (m.isSame(today, 'd')) {
+    return m.format('h:mm A')
+  } else if (m.isAfter(weekOld)) {
+    return m.format('dddd')
+  }
+
+  return m.format('MMM D')
 }
 
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
@@ -182,4 +215,5 @@ export {
   makeSnippet,
   maxMessagesToLoadAtATime,
   participantFilter,
+  timestampToString,
 }

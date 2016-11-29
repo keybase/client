@@ -424,6 +424,7 @@ type MessageUnboxedValid struct {
 	MessageBody      MessageBody         `codec:"messageBody" json:"messageBody"`
 	SenderUsername   string              `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName string              `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType string              `codec:"senderDeviceType" json:"senderDeviceType"`
 	HeaderHash       Hash                `codec:"headerHash" json:"headerHash"`
 }
 

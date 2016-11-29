@@ -45,10 +45,6 @@ class Login extends Component {
       selectedUserChange={selectedUser => this.setState({selectedUser})}
     />
   }
-
-  static parseRoute (store, currentPath, nextPath) {
-    return {componentAtTop: {}}
-  }
 }
 
 export default connect(

@@ -1,5 +1,4 @@
 // @flow
-import React, {Component} from 'react'
 import Revoke from './index'
 import {TypedConnector} from '../../util/typed-connect'
 import {submitRevokeProof, finishRevoking, dropPgp} from '../../actions/profile'
@@ -15,25 +14,6 @@ type OwnProps = RouteProps<{
   proofId: string,
   platformHandle: string,
 }, {}>
-
-class RevokeContainer extends Component<void, Props, void> {
-  static parseRoute (currentPath, uri) {
-    return {
-      componentAtTop: {
-        title: 'Revoke Proof',
-        props: {
-          platform: currentPath.get('platform'),
-          proofId: currentPath.get('proofId'),
-          platformHandle: currentPath.get('platformHandle'),
-        },
-      },
-    }
-  }
-
-  render () {
-    return <Revoke {...this.props} />
-  }
-}
 
 const connector: TypedConnector<TypedState, TypedDispatch<{}>, OwnProps, Props> = new TypedConnector()
 
@@ -52,4 +32,4 @@ export default connector.connect(
     platform: routeProps.platform,
     platformHandle: routeProps.platformHandle,
   })
-)(RevokeContainer)
+)(Revoke)
