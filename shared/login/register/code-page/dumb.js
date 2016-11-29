@@ -36,6 +36,7 @@ const computerComputerMock = {
   doneRegistering: () => console.log('doneRegistering'),
   onBack: () => console.log('onBack'),
   enterText: 'Foo Enter Text',
+}
 
 const scanCodeDeviceMock = {
   ...baseMock,
