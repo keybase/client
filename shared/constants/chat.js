@@ -149,11 +149,11 @@ export type Actions = AppendMessages
   | UpdatedMetadata
 
 function conversationIDToKey (conversationID: ConversationID): ConversationIDKey {
-  return conversationID.toString('base64')
+  return conversationID.toString('hex')
 }
 
 function keyToConversationID (key: ConversationIDKey): ConversationID {
-  return Buffer.from(key, 'base64')
+  return Buffer.from(key, 'hex')
 }
 
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols

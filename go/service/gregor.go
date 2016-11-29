@@ -433,6 +433,14 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	return replayedMsgs, consumedMsgs, nil
 }
 
+func (g *gregorHandler) makeReconnectOobm() gregor1.Message {
+	return gregor1.Message{
+		Oobm_: &gregor1.OutOfBandMessage{
+			System_: "internal.reconnect",
+		},
+	}
+}
+
 // OnConnect is called by the rpc library to indicate we have connected to
 // gregord
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
@@ -466,6 +474,12 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 			badger.Resync(context.Background(), &chat1.RemoteClient{Cli: g.cli})
 		}(g.badger)
 	}
+
+	// Broadcast reconnect oobm. Spawn this off into a goroutine so that we don't delay
+	// reconnection any longer than we have to.
+	go func(m gregor1.Message) {
+		g.BroadcastMessage(context.Background(), m)
+	}(g.makeReconnectOobm())
 
 	return nil
 }
@@ -801,6 +815,9 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		return g.kbfsFavorites(ctx, obm)
 	case "chat.activity":
 		return g.newChatActivity(ctx, obm)
+	case "internal.reconnect":
+		g.G().Log.Debug("reconnected to push server")
+		return nil
 	default:
 		return fmt.Errorf("unhandled system: %s", obm.System())
 	}

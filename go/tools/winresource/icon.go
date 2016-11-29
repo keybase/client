@@ -1,4 +1,6 @@
-package goversioninfo
+// +build windows
+
+package main
 
 import (
 	"encoding/binary"
