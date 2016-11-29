@@ -255,7 +255,7 @@ class ConversationList extends Component<void, Props, State> {
 }
 
 class CellSizeCache extends defaultCellMeasurerCellSizeCache {
-  _indexToID: (index: number) => number;
+  _indexToID: (index: number) => ?number;
 
   constructor (indexToID) {
     super({uniformColumnWidth: true})

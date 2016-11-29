@@ -4,13 +4,13 @@ import * as Constants from '../constants/chat'
 import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
 
-import type {Actions, State, ConversationState, AppendMessages, Message, MessageID} from '../constants/chat'
+import type {Actions, State, ConversationState, AppendMessages, Message, MessageID, ServerMessage} from '../constants/chat'
 
 const {StateRecord, ConversationStateRecord, makeSnippet} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
-function dedupeMessages (seenMessages: Set<MessageID>, knownMessages: List<Message>, newMessages: Array<Message>): {seenMessages: Set<MessageID>, updatedMessages: List<Message>, unseenMessages: List<Message>} {
+function dedupeMessages (seenMessages: Set<MessageID>, knownMessages: List<ServerMessage>, newMessages: Array<ServerMessage>): {seenMessages: Set<MessageID>, updatedMessages: List<ServerMessage>, unseenMessages: List<ServerMessage>} {
   const newButSeenMessages = newMessages
     .filter(m => m.messageID && seenMessages.has(m.messageID))
     .reduce((acc, m) => acc.set(m.messageID, m), Map())

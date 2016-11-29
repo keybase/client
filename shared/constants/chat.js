@@ -22,6 +22,9 @@ export type ParticipantItem = UserListItem
 export type MessageID = RPCMessageID
 export type Message = TextMessage | ErrorMessage | UnhandledMessage | TimestampMessage
 
+export type ClientMessage = MessageTimestamp
+export type ServerMessage = MessageText | MessageError | MessageUnhandled
+
 export type TextMessage = {
   type: 'Text',
   message: HiddenString,
@@ -145,12 +148,12 @@ export const updatedMetadata = 'chat:updatedMetadata'
 export const editMessage = 'chat:editMessage'
 export const deleteMessage = 'chat:deleteMessage'
 
-export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
+export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
-export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>, moreToLoad: boolean, paginationNext: ?Buffer}>
+export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
 export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
