@@ -52,10 +52,6 @@ class Button extends Component<void, Props, void> {
           opacity: disabled ? stylesButtonDanger.disabledOpacity : 1,
         }
         break
-      case 'Custom':
-        backgroundStyle = stylesButtonCustom
-        labelStyle = stylesButtonCustomLabel
-        break
       case 'Secondary':
       default:
         backgroundStyle = {
@@ -107,14 +103,8 @@ class Button extends Component<void, Props, void> {
       outerStyle = {...outerStyle, cursor: 'wait'}
     }
 
-    let label = this.props.label
-
-    if (this.props.more) {
-      label = '•••'
-    }
-
     return (
-      <div style={outerStyle}>
+      <div style={outerStyle} className={this.props.className}>
         <FlatButton
           onClick={this.props.onClick}
           onMouseEnter={this.props.onMouseEnter}
@@ -122,7 +112,7 @@ class Button extends Component<void, Props, void> {
           style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
           labelStyle={{...stylesButtonLabel, ...labelStyle, ...this.props.labelStyle}}
           {...rippleStyle}
-          label={label}
+          label={this.props.label}
           primary={this.props.type === 'Primary'}
           secondary={this.props.type === 'Secondary'}
           disabled={this.props.disabled || this.props.waiting}>
@@ -189,13 +179,6 @@ const stylesButtonSmall = {
   height: 28,
   lineHeight: '27px',
 }
-const stylesButtonCustom = {
-  borderRadius: 55,
-  fontSize: 16,
-  height: 32,
-  lineHeight: '32px',
-  minWidth: 10,
-}
 const stylesButtonLabel = {
   ...globalStyles.fontSemibold,
   display: 'block',
@@ -213,9 +196,6 @@ const stylesButtonSmallLabel = {
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
   lineHeight: 0,
-}
-const stylesButtonCustomLabel = {
-  color: globalColors.black_75,
 }
 const stylesProgress = {
   position: 'absolute',

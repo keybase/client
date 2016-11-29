@@ -12,9 +12,9 @@ import _ from 'lodash'
 import messageFactory from './messages'
 import {AutoSizer, CellMeasurer, List, defaultCellMeasurerCellSizeCache} from 'react-virtualized'
 import {Box} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {globalColors, globalStyles} from '../../styles'
 
-import type {Message} from '../../constants/chat'
+import type {Message, MessageID} from '../../constants/chat'
 import type {Props} from './'
 
 type State = {
@@ -22,6 +22,7 @@ type State = {
   isScrolling: boolean,
   messages: List<Message>,
   scrollTop: number,
+  selectedMessageID?: MessageID,
 }
 
 class ConversationList extends Component<void, Props, State> {
@@ -146,6 +147,10 @@ class ConversationList extends Component<void, Props, State> {
 
   showPopup (message: Message, event: any) {
     if (message.type !== 'Text') return
+    this.setState({
+      selectedMessageID: message.messageID,
+    })
+
     const clientRect = event.target.getBoundingClientRect()
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
@@ -154,10 +159,13 @@ class ConversationList extends Component<void, Props, State> {
     if (y < 10) y = 10
     const popupComponent = <Popup
       message={message}
-      onEdit={() => console.log('edit')}
-      onDelete={() => console.log('delete')}
+      onEditMessage={this.props.onEditMessage}
+      onDeleteMessage={this.props.onDeleteMessage}
       onHidden={() => {
         ReactDOM.unmountComponentAtNode(document.getElementById('popupContainer'))
+        this.setState({
+          selectedMessageID: undefined,
+        })
       }}
       style={{position: 'absolute', top: y, left: x}}
       />
@@ -175,8 +183,9 @@ class ConversationList extends Component<void, Props, State> {
     const isFirstMessage = index - 1 === 0
     const skipMsgHeader = (prevMessage && prevMessage.type === 'Text' && prevMessage.author === message.author)
     const onAction = (event) => { this.showPopup(message, event) }
+    const isSelected = this.state.selectedMessageID === message.messageID
 
-    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, style, isScrolling, onAction)
+    return messageFactory(message, isFirstMessage || !skipMsgHeader, index, key, style, isScrolling, onAction, isSelected)
   }
 
   render () {
@@ -184,8 +193,23 @@ class ConversationList extends Component<void, Props, State> {
     let scrollToIndex = this.state.isLockedToBottom ? countWithLoading - 1 : undefined
     let scrollTop = scrollToIndex ? undefined : this.state.scrollTop
 
+    const realCSS = `
+    .message {
+      background-color: transparent;
+    }
+      visibility: hidden;
+    }
+    .message:hover {
+      background-color: ${globalColors.black_05};
+    }
+    .message:hover .action-button {
+      visibility: visible;
+    }
+    `
+
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
+        <style>{realCSS}</style>
         <AutoSizer>
           {({height, width}) => (
             <CellMeasurer

@@ -1,14 +1,14 @@
 // @flow
 import {Component} from 'react'
 
-import type {Message} from '../../../constants/chat'
+import type {Message, MessageID} from '../../../constants/chat'
 
 export type Props = {
   message: Message,
-  style?: Object,
-  onEdit: () => void,
-  onDelete: () => void,
+  onDeleteMessage: (messageID: MessageID) => void,
+  onEditMessage: (messageID: MessageID) => void,
   onHidden: () => void,
+  style?: Object,
 }
 
 export default class Popup extends Component<void, Props, void> { }

@@ -4,18 +4,18 @@ import {Box, Icon, PopupMenu, Text} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
 import {timestampToString} from '../../../constants/chat'
 import type {TextMessage} from '../../../constants/chat'
+import type {IconType} from '../../../common-adapters/icon'
 
 import type {Props} from './popup'
 
-function iconNameForDeviceType (deviceType: string): string {
+function iconNameForDeviceType (deviceType: string): IconType {
   switch (deviceType) {
     case 'mobile': return 'icon-fancy-encrypted-phone-122-x-64'
     default: return 'icon-fancy-encrypted-computer-150-x-64'
   }
 }
 
-const TextMessagePopup = ({message}: {message: TextMessage}) => {
-  const {deviceName, deviceType, timestamp} = message
+const TextMessagePopup = ({message: {deviceName, deviceType, timestamp}}: {message: TextMessage}) => {
   const iconName = iconNameForDeviceType(deviceType)
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
@@ -27,7 +27,7 @@ const TextMessagePopup = ({message}: {message: TextMessage}) => {
   )
 }
 
-const Popup = ({message, onEdit, onDelete, onHidden, style}: Props) => {
+const Popup = ({message, onEditMessage, onDeleteMessage, onHidden, style}: Props) => {
   if (message.type === 'Text') {
     const headerView = <TextMessagePopup message={message} />
     const header = {
@@ -35,11 +35,15 @@ const Popup = ({message, onEdit, onDelete, onHidden, style}: Props) => {
       view: headerView,
     }
 
-    const items = message.followState === 'You' ? [
-      'Divider',
-      {title: 'Edit', onClick: () => onEdit()},
-      {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDelete()},
-    ] : []
+    const messageID = message.messageID
+    let items = []
+    if (messageID && message.followState === 'You') {
+      items = [
+        'Divider',
+        {title: 'Edit', onClick: () => onEditMessage(messageID)},
+        {title: 'Delete', subTitle: 'Deletes for everyone', danger: true, onClick: () => onDeleteMessage(messageID)},
+      ]
+    }
 
     return (
       <PopupMenu header={header} items={items} onHidden={onHidden} style={style} />

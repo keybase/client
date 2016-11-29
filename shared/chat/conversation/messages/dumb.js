@@ -19,6 +19,7 @@ function messageMock (messageState: MessageState, followState: FollowState, text
     deviceName: 'Macbook',
     deviceType: 'desktop',
     timestamp: 1479764890000,
+    conversationIDKey: 'cid1',
   }
 }
 

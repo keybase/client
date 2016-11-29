@@ -16,7 +16,7 @@ import {switchTo} from './route-tree'
 import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
 
-import type {ConversationIDKey, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler, NewChat, StartConversation, OpenFolder, UpdateMetadata} from '../constants/chat'
+import type {ConversationIDKey, DeleteMessage, EditMessage, InboxState, IncomingMessage, LoadInbox, LoadMoreMessages, LoadedInbox, Message, PostMessage, SelectConversation, SetupNewChatHandler, NewChat, StartConversation, OpenFolder, UpdateMetadata} from '../constants/chat'
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
 import type {SagaGenerator} from '../constants/types/saga'
 import type {TypedState} from '../constants/reducer'
@@ -49,6 +49,14 @@ function loadInbox (): LoadInbox {
 
 function loadMoreMessages (): LoadMoreMessages {
   return {type: Constants.loadMoreMessages, payload: undefined}
+}
+
+function editMessage (message: Message): EditMessage {
+  return {type: Constants.editMessage, payload: {message}}
+}
+
+function deleteMessage (message: Message): DeleteMessage {
+  return {type: Constants.deleteMessage, payload: {message}}
 }
 
 function selectConversation (conversationIDKey: ConversationIDKey): SelectConversation {
@@ -173,6 +181,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
       followState: 'You',
       deviceType: '',
       deviceName: '',
+      conversationIDKey: action.payload.conversationIDKey,
     }
     yield put({
       type: Constants.appendMessages,
@@ -191,8 +200,8 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
       if (incomingMessage) {
         const messageUnboxed: MessageUnboxed = incomingMessage.message
         const yourName = yield select(usernameSelector)
-        const message = _unboxedToMessage(messageUnboxed, 0, yourName)
         const conversationIDKey = conversationIDToKey(incomingMessage.convID)
+        const message = _unboxedToMessage(messageUnboxed, 0, yourName, conversationIDKey)
 
         // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
         const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
@@ -301,7 +310,7 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
   }})
 
   const yourName = yield select(usernameSelector)
-  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName)).reverse()
+  const messages = (thread && thread.thread && thread.thread.messages || []).map((message, idx) => _unboxedToMessage(message, idx, yourName, conversationIDKey)).reverse()
   const pagination = _threadToPagination(thread)
 
   yield put({
@@ -334,7 +343,7 @@ function _threadToPagination (thread) {
   }
 }
 
-function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Message {
+function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conversationIDKey: ConversationIDKey): Message {
   if (message.state === LocalMessageUnboxedState.valid) {
     const payload = message.valid
     if (payload) {
@@ -344,6 +353,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
         deviceType: payload.senderDeviceType,
         timestamp: payload.serverHeader.ctime,
         messageID: payload.serverHeader.messageID,
+        conversationIDKey: conversationIDKey,
       }
 
       const isYou = common.author === yourName
@@ -371,6 +381,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName): Mes
     messageID: idx,
     timestamp: Date.now(),
     reason: 'temp',
+    conversationIDKey: conversationIDKey,
   }
 }
 
@@ -492,6 +503,8 @@ function * chatSaga (): SagaGenerator<any, any> {
 export default chatSaga
 
 export {
+  deleteMessage,
+  editMessage,
   loadInbox,
   loadMoreMessages,
   newChat,

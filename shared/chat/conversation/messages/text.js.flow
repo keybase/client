@@ -1,7 +1,7 @@
 // @flow
 import {Component} from 'react'
 
-import type {TextMessage} from '../../../constants/chat'
+import type {MessageID, TextMessage} from '../../../constants/chat'
 
 export type Props = {
   message: TextMessage,
@@ -9,6 +9,7 @@ export type Props = {
   onRetry: () => void,
   onAction: (event: any) => void,
   style: Object,
+  isSelected: boolean,
 }
 
 export default class MessageText extends Component<void, Props, void> { }
