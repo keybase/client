@@ -141,7 +141,7 @@ def doBuild() {
                 smokeASemVer = bat(returnStdout: true, script: '@echo off && winresource.exe -cv').trim()
             }
             build([
-                job: '${env.JOB_NAME}',
+                job: "${env.JOB_NAME}",
                 parameters: [
                     string(name: 'ClientRevision', value: "${clientCommit}"),
                     string(name: 'KBFSRevision', value: "${kbfsCommit}"),
