@@ -26,6 +26,12 @@ module.exports = {
     }, {
       test: /\.(gif|png)$/,
       loader: 'null',
+    }, {
+      test: /\.ttf$/,
+      loader: 'file?name=[name].[ext]',
+    }, {
+      test: /\.css$/,
+      loader: 'style!css',
     }],
   },
   output: {

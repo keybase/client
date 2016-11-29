@@ -39,7 +39,7 @@ const copySync = (src, target, options) => {
 copySync('./Icon.png', 'build/desktop/Icon.png')
 copySync('./Icon@2x.png', 'build/desktop/Icon@2x.png')
 copySync('../shared/images', 'build/desktop/shared/images', filterAllowOnlyTypes('gif', 'png'))
-copySync('./renderer', 'build/desktop/renderer', filterAllowOnlyTypes('css', 'html', 'ttf'))
+copySync('./renderer', 'build/desktop/renderer', filterAllowOnlyTypes('html'))
 
 fs.writeJsonSync('build/package.json', {
   name: appName,
@@ -100,7 +100,7 @@ function startPack () {
     }
 
     copySync('./dist', 'build/desktop/sourcemaps', filterAllowOnlyTypes('map'))
-    copySync('./dist', 'build/desktop/dist', filterAllowOnlyTypes('js'))
+    copySync('./dist', 'build/desktop/dist', filterAllowOnlyTypes('js', 'ttf'))
 
     del('release')
     .then(paths => {

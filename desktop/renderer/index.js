@@ -27,6 +27,8 @@ import {setupSource} from '../shared/util/forward-logs'
 import {updateDebugConfig} from '../shared/actions/dev'
 import {updateReloading} from '../shared/constants/dev'
 
+import '../renderer/style.css'
+
 let _store
 function setupStore () {
   if (!_store) {
