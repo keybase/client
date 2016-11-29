@@ -137,7 +137,7 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 //     in the given range of offsets.
 //   * nextBlockOff is the offset of the block that follows the last
 //     block given in `pathsFromRoot`.  If `pathsFromRoot` contains
-//     the largest block among the children, nextBlockOff is -1.
+//     the last block among the children, nextBlockOff is -1.
 func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
 	pblock *FileBlock, startOff int64, endOff int64,
 	prefixOk bool) (pathsFromRoot [][]parentBlockAndChildIndex,
@@ -259,7 +259,7 @@ outer:
 }
 
 // getByteSlicesInOffsetRange returns an ordered, continuous slice of
-// byte ranges for the data described by the half-inclusve offset
+// byte ranges for the data described by the half-inclusive offset
 // range `[startOff, endOff)`.  If `endOff` == -1, it returns data to
 // the end of the file.  The caller is responsible for concatenating
 // the data into a single buffer if desired. If `prefixOk` is true,

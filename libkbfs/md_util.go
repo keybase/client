@@ -408,7 +408,9 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 	// Treat the unembedded block change like a file so we can reuse
 	// the file reading code.
 	file := path{FolderBranch{tlfID, MasterBranch},
-		[]pathNode{{info.BlockPointer, ""}}}
+		[]pathNode{{
+			info.BlockPointer, fmt.Sprintf("<MD with block change pointer %s>",
+				info.BlockPointer)}}}
 	getter := func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
 		p path, rtype blockReqType) (*FileBlock, bool, error) {
 		block, err := getFileBlockForMD(ctx, bcache, bops, ptr, tlfID, kmd)
@@ -424,9 +426,10 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 	cacher := func(ptr BlockPointer, block Block) error {
 		return nil
 	}
-	var uid keybase1.UID
 	// Reading doesn't use crypto or the block splitter, so for now
-	// just pass in nil.
+	// just pass in nil.  Also, reading doesn't depend on the UID, so
+	// it's ok to be empty.
+	var uid keybase1.UID
 	fd := newFileData(file, uid, nil, nil, rmdWithKeys, getter, goGetter,
 		cacher, log)
 

@@ -1755,7 +1755,8 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 			RefNonce: ZeroBlockRefNonce,
 		},
 	}
-	file := path{fbo.folderBranch, []pathNode{{ptr, ""}}}
+	file := path{fbo.folderBranch,
+		[]pathNode{{ptr, fmt.Sprintf("<MD rev %d>", md.Revision())}}}
 
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	// Simple dirty bcaches don't need to be shut down.
