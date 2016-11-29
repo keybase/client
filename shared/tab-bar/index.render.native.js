@@ -1,7 +1,7 @@
 // @flow
-import React, {Component} from 'react'
-import {Box, Avatar, TabBar} from '../common-adapters'
-import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
+import React from 'react'
+import {Box, Avatar} from '../common-adapters'
+import {TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'
 
