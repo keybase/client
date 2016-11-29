@@ -11,58 +11,66 @@ def doBuild() {
         bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\shared cd src\\github.com\\keybase\\client && git checkout desktop/shared'
         parallel(
             checkout_client: {
-                dir('src/github.com/keybase/client') {                        
-                    checkout([
-                        poll: false,
-                        scm: [
-                            $class: 'GitSCM',
-                            branches: [[name: '${ClientRevision}']],
-                            doGenerateSubmoduleConfigurations: false,
-                            submoduleCfg: [],
-                            userRemoteConfigs: [[url: 'https://github.com/keybase/client.git']]
-                        ],
-                    ])
+                dir('src/github.com/keybase/client') {
+                    retry (3) {                        
+                        checkout([
+                            poll: false,
+                            scm: [
+                                $class: 'GitSCM',
+                                branches: [[name: '${ClientRevision}']],
+                                doGenerateSubmoduleConfigurations: false,
+                                submoduleCfg: [],
+                                userRemoteConfigs: [[url: 'https://github.com/keybase/client.git']]
+                            ],
+                        ])
+                    }
                 }
             },
             checkout_kbfs: {
-                dir('src/github.com/keybase/kbfs') {                        
-                    checkout([
-                        poll: false, 
-                        scm: [
-                            $class: 'GitSCM',
-                            branches: [[name: '${KBFSRevision}']],
-                            doGenerateSubmoduleConfigurations: false,
-                            userRemoteConfigs: [[url: 'https://github.com/keybase/kbfs.git']]
-                        ],
-                    ])
+                dir('src/github.com/keybase/kbfs') {
+                    retry (3) {                        
+                        checkout([
+                            poll: false, 
+                            scm: [
+                                $class: 'GitSCM',
+                                branches: [[name: '${KBFSRevision}']],
+                                doGenerateSubmoduleConfigurations: false,
+                                userRemoteConfigs: [[url: 'https://github.com/keybase/kbfs.git']]
+                            ],
+                        ])
+                    }
                 }
             },
             checkout_updater: {
-                dir('src/github.com/keybase/go-updater') {                        
-                    checkout([
-                        poll: false, 
-                        scm: [
-                            $class: 'GitSCM',
-                            branches: [[name: '${UpdaterRevision}']],
-                            doGenerateSubmoduleConfigurations: false,
-                            submoduleCfg: [],
-                            userRemoteConfigs: [[url: 'https://github.com/keybase/go-updater.git']]
-                        ],
-                    ])
+                dir('src/github.com/keybase/go-updater') {     
+                    retry (3) {                   
+                        checkout([
+                            poll: false, 
+                            scm: [
+                                $class: 'GitSCM',
+                                branches: [[name: '${UpdaterRevision}']],
+                                doGenerateSubmoduleConfigurations: false,
+                                submoduleCfg: [],
+                                userRemoteConfigs: [[url: 'https://github.com/keybase/go-updater.git']]
+                            ],
+                        ])
+                    }
                 }
             },
             checkout_release: {
-                dir('src/github.com/keybase/release') {                        
-                    checkout([
-                        poll: false, 
-                        scm: [
-                            $class: 'GitSCM',
-                            branches: [[name: '${ReleaseRevision}']],
-                            doGenerateSubmoduleConfigurations: false,
-                            submoduleCfg: [],
-                            userRemoteConfigs: [[url: 'https://github.com/keybase/release.git']]
-                        ],
-                    ])
+                dir('src/github.com/keybase/release') {
+                    retry (3) {
+                        checkout([
+                            poll: false, 
+                            scm: [
+                                $class: 'GitSCM',
+                                branches: [[name: '${ReleaseRevision}']],
+                                doGenerateSubmoduleConfigurations: false,
+                                submoduleCfg: [],
+                                userRemoteConfigs: [[url: 'https://github.com/keybase/release.git']]
+                            ],
+                        ])
+                    }
                 }
             }            
         )
@@ -82,9 +90,8 @@ def doBuild() {
         bat 'call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\doinstaller_wix.cmd'
         archiveArtifacts 'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.*'
     }
-    // Disable publishing until ready to merge
-    // if (UpdateChannel != "None"){
-    if (UpdateChannel == "publish_enabled"){    
+    
+    if (UpdateChannel != "None"){    
         stage('Publish to S3') {
             step([
                 $class: 'S3BucketPublisher',
