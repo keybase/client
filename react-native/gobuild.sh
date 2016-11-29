@@ -8,7 +8,7 @@ cd $dir
 arg=${1:-}
 
 local_client=${LOCAL_CLIENT:-"1"}
-local_kbfs=${LOCAL_KBFS:-}
+local_kbfs=${LOCAL_KBFS:-"1"}
 skip_gomobile_init=${SKIP_GOMOBILE_INIT:-}
 tmp_gopath=${TMP_GOPATH:-"/tmp/go-${arg}"}
 
@@ -41,7 +41,7 @@ fi
 
 go_kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
 
-if [ ! "$local_kbfs" = "1" ]; then
+if [ "$local_kbfs" = "1" ]; then
   echo "Getting KBFS (via git clone)..."
   (cd "$GOPATH/src/github.com/keybase"; git clone https://github.com/keybase/kbfs)
   # echo "Getting KBFS (via go get)..."
