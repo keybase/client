@@ -20,10 +20,11 @@ export type ConversationIDKey = string
 export type ParticipantItem = UserListItem
 
 export type MessageID = RPCMessageID
-export type Message = TextMessage | ErrorMessage | UnhandledMessage | TimestampMessage
 
 export type ClientMessage = MessageTimestamp
-export type ServerMessage = MessageText | MessageError | MessageUnhandled
+export type ServerMessage = TextMessage | ErrorMessage | UnhandledMessage
+
+export type Message = ClientMessage | ServerMessage
 
 export type TextMessage = {
   type: 'Text',
@@ -189,21 +190,6 @@ function keyToConversationID (key: ConversationIDKey): ConversationID {
   return Buffer.from(key, 'hex')
 }
 
-function timestampToString (time: number, nowOverride?: number): string {
-  const m = moment(time)
-  const now = nowOverride ? moment(nowOverride) : moment()
-  const today = now.clone().startOf('day')
-  const weekOld = today.clone().subtract(7, 'days')
-
-  if (m.isSame(today, 'd')) {
-    return m.format('h:mm A')
-  } else if (m.isAfter(weekOld)) {
-    return m.format('dddd')
-  }
-
-  return m.format('MMM D')
-}
-
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
 function makeSnippet (message: ?string = '', max: number) {
   // $FlowIssue flow doesn't understand spread + strings
@@ -224,5 +210,4 @@ export {
   keyToConversationID,
   makeSnippet,
   participantFilter,
-  timestampToString,
 }

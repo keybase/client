@@ -2,7 +2,7 @@
 import React from 'react'
 import {Box, Text, Avatar, Icon, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
-import {participantFilter, timestampToString} from '../../constants/chat'
+import {participantFilter} from '../../constants/chat'
 import {formatTimeForConversationList} from '../../util/timestamp'
 
 import type {Props} from './'

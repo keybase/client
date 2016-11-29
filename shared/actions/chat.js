@@ -30,13 +30,13 @@ import type {
   LoadedInbox,
   MaybeTimestamp,
   Message,
-  UnhandledMessage,
   NewChat,
   OpenFolder,
   PostMessage,
   SelectConversation,
   SetupNewChatHandler,
   StartConversation,
+  UnhandledMessage,
   UpdateMetadata,
 } from '../constants/chat'
 
@@ -443,7 +443,7 @@ function _unboxedToMessage (message: MessageUnboxed, idx: number, yourName, conv
             outboxID: payload.clientHeader.outboxID && payload.clientHeader.outboxID.toString('hex'),
           }
         default:
-          const unhandled: MessageUnhandled = {
+          const unhandled: UnhandledMessage = {
             ...common,
             type: 'Unhandled',
           }

@@ -2,7 +2,7 @@
 import React from 'react'
 import {Box, Icon, PopupMenu, Text} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
-import {timestampToString} from '../../../constants/chat'
+import {formatTimeForMessages} from '../../../util/timestamp'
 import type {TextMessage} from '../../../constants/chat'
 import type {IconType} from '../../../common-adapters/icon'
 
@@ -22,7 +22,7 @@ const TextMessagePopup = ({message: {deviceName, deviceType, timestamp}}: {messa
       <Icon type={iconName} />
       <Text type='BodySmall' style={{color: globalColors.green2}}>ENCRYPTED & SIGNED</Text>
       <Text type='BodySmall' style={{color: globalColors.black_40}}>{`by ${deviceName}`}</Text>
-      <Text type='BodySmall' style={{color: globalColors.black_40}}>{timestampToString(timestamp)}</Text>
+      <Text type='BodySmall' style={{color: globalColors.black_40}}>{formatTimeForMessages(timestamp)}</Text>
     </Box>
   )
 }
