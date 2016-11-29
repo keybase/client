@@ -206,12 +206,8 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
     }
 
     // Should we add a timestamp before our new message?
-    // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
     const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
     const conversationState = yield select(conversationStateSelector)
-    if (!conversationState) {
-      yield put(loadInbox())
-    }
     let messages = []
     if (conversationState && conversationState.messages !== null) {
       const prevMessage = conversationState.messages.get(conversationState.messages.size - 1)
