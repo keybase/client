@@ -339,7 +339,6 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 
 // attachV1NoStream uses PostFileAttachmentLocal instead of PostAttachmentLocal.
 func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOptionsV1) Reply {
-	c.G().Log.Warning("not using stream interface")
 	convID, err := chat1.MakeConvID(opts.ConversationID)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))

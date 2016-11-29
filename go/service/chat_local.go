@@ -6,6 +6,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -699,6 +700,32 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
 func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat1.DownloadAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
+	darg := downloadAttachmentArg{
+		SessionID:      arg.SessionID,
+		ConversationID: arg.ConversationID,
+		MessageID:      arg.MessageID,
+		Preview:        arg.Preview,
+	}
+	cli := h.getStreamUICli()
+	darg.Sink = libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
+
+	return h.downloadAttachmentLocal(ctx, darg)
+}
+
+// DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
+func (h *chatLocalHandler) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
+	return chat1.DownloadAttachmentLocalRes{}, nil
+}
+
+type downloadAttachmentArg struct {
+	SessionID      int
+	ConversationID chat1.ConversationID
+	MessageID      chat1.MessageID
+	Sink           io.WriteCloser
+	Preview        bool
+}
+
+func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg downloadAttachmentArg) (chat1.DownloadAttachmentLocalRes, error) {
 	chatUI := h.getChatUI(arg.SessionID)
 	progress := func(bytesComplete, bytesTotal int) {
 		parg := chat1.ChatAttachmentDownloadProgressArg{
@@ -738,9 +765,6 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		return chat1.DownloadAttachmentLocalRes{}, errors.New(em)
 	}
 
-	cli := h.getStreamUICli()
-	sink := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
-
 	msg := first.Valid()
 	body := msg.MessageBody
 	if t, err := body.MessageType(); err != nil {
@@ -759,22 +783,17 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		obj = *attachment.Preview
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
-	if err := h.store.DownloadAsset(ctx, params, obj, sink, h, progress); err != nil {
-		sink.Close()
+	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {
+		arg.Sink.Close()
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 	chatUI.ChatAttachmentDownloadDone(ctx)
 
-	if err := sink.Close(); err != nil {
+	if err := arg.Sink.Close(); err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
 	return chat1.DownloadAttachmentLocalRes{RateLimits: msgs.RateLimits}, nil
-}
-
-// DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
-func (h *chatLocalHandler) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
-	return chat1.DownloadAttachmentLocalRes{}, nil
 }
 
 func (h *chatLocalHandler) CancelPost(ctx context.Context, outboxID chat1.OutboxID) error {
