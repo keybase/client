@@ -55,12 +55,12 @@ export type UnhandledMessage = {
   messageID: MessageID,
 }
 
-export type MessageTimestamp = {
+export type TimestampMessage = {
   type: 'Timestamp',
   timestamp: number,
 }
 
-export type MaybeTimestamp = MessageTimestamp | null
+export type MaybeTimestamp = TimestampMessage | null
 
 export const ConversationStateRecord = Record({
   messages: List(),
