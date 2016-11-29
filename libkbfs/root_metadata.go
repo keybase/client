@@ -71,6 +71,10 @@ type PrivateMetadata struct {
 	// The block changes done as part of the update that created this MD
 	Changes BlockChanges
 
+	// The last revision up to and including which garbage collection
+	// was performed on this TLF.
+	LastGCRevision MetadataRevision `codec:"lgc"`
+
 	codec.UnknownFieldSetHandler
 
 	// When the above Changes field gets unembedded into its own
