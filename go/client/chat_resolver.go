@@ -114,7 +114,7 @@ func (r *chatConversationResolver) resolveWithService(ctx context.Context, req c
 	}
 
 	for _, conv := range gilres.Conversations {
-		conversations = append(conversations, conv.ConversationLocal.Info)
+		conversations = append(conversations, conv.Info)
 	}
 
 	return conversations, nil
@@ -184,7 +184,7 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 	if err != nil {
 		return nil, fmt.Errorf("creating conversation error: %v\n", err)
 	}
-	return &ncres.Conv.ConversationLocal.Info, err
+	return &ncres.Conv.Info, err
 }
 
 func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversationResolvingRequest, behavior chatConversationResolvingBehavior) (

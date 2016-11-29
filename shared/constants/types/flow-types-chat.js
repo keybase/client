@@ -498,11 +498,7 @@ export type ConversationLocal = {
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
   maxMessages?: ?Array<MessageUnboxed>,
-}
-
-export type ConversationLocalWithBreaks = {
-  conversationLocal: ConversationLocal,
-  breaks?: ?Array<keybase1.TLFUserBreak>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type ConversationMetadata = {
@@ -526,7 +522,7 @@ export type ConversationStatus =
 
 export type DownloadAttachmentLocalRes = {
   rateLimits?: ?Array<RateLimit>,
-  breaks?: ?Array<keybase1.TLFUserBreak>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type EncryptedData = {
@@ -563,7 +559,7 @@ export type GetConversationMetadataRemoteRes = {
 }
 
 export type GetInboxAndUnboxLocalRes = {
-  conversations?: ?Array<ConversationLocalWithBreaks>,
+  conversations?: ?Array<ConversationLocal>,
   pagination?: ?Pagination,
   rateLimits?: ?Array<RateLimit>,
 }
@@ -592,7 +588,7 @@ export type GetInboxLocalRes = {
   conversationsUnverified?: ?Array<Conversation>,
   pagination?: ?Pagination,
   rateLimits?: ?Array<RateLimit>,
-  breaks?: ?Array<keybase1.TLFUserBreak>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type GetInboxQuery = {
@@ -633,7 +629,7 @@ export type GetInboxSummaryForCLILocalRes = {
 export type GetMessagesLocalRes = {
   messages?: ?Array<MessageUnboxed>,
   rateLimits?: ?Array<RateLimit>,
-  breaks?: ?Array<keybase1.TLFUserBreak>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type GetMessagesRemoteRes = {
@@ -644,7 +640,7 @@ export type GetMessagesRemoteRes = {
 export type GetThreadLocalRes = {
   thread: ThreadView,
   rateLimits?: ?Array<RateLimit>,
-  breaks?: ?Array<keybase1.TLFUserBreak>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type GetThreadQuery = {
@@ -829,11 +825,11 @@ export type MessageUnboxedValid = {
 }
 
 export type NewConversationInfo = {
-  conv: ConversationLocalWithBreaks,
+  conv: ConversationLocal,
 }
 
 export type NewConversationLocalRes = {
-  conv: ConversationLocalWithBreaks,
+  conv: ConversationLocal,
   rateLimits?: ?Array<RateLimit>,
 }
 
@@ -894,12 +890,12 @@ export type Pagination = {
 export type PostLocalNonblockRes = {
   rateLimits?: ?Array<RateLimit>,
   outboxID: OutboxID,
-  breaks?: ?Array<keybase1.TLFUserBreak>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type PostLocalRes = {
   rateLimits?: ?Array<RateLimit>,
-  breaks?: ?Array<keybase1.TLFUserBreak>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type PostRemoteRes = {
@@ -939,7 +935,7 @@ export type S3Params = {
 
 export type SetConversationStatusLocalRes = {
   rateLimits?: ?Array<RateLimit>,
-  breaks?: ?Array<keybase1.TLFUserBreak>,
+  identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
 export type SetConversationStatusRes = {

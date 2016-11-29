@@ -560,23 +560,13 @@
             "items": "MessageUnboxed"
           },
           "name": "maxMessages"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ConversationLocalWithBreaks",
-      "fields": [
-        {
-          "type": "ConversationLocal",
-          "name": "conversationLocal"
         },
         {
           "type": {
             "type": "array",
-            "items": "keybase1.TLFUserBreak"
+            "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "breaks"
+          "name": "identifyFailures"
         }
       ]
     },
@@ -649,9 +639,9 @@
         {
           "type": {
             "type": "array",
-            "items": "keybase1.TLFUserBreak"
+            "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "breaks"
+          "name": "identifyFailures"
         }
       ]
     },
@@ -683,9 +673,9 @@
         {
           "type": {
             "type": "array",
-            "items": "keybase1.TLFUserBreak"
+            "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "breaks"
+          "name": "identifyFailures"
         }
       ]
     },
@@ -777,7 +767,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationLocalWithBreaks"
+            "items": "ConversationLocal"
           },
           "name": "conversations"
         },
@@ -811,9 +801,9 @@
         {
           "type": {
             "type": "array",
-            "items": "keybase1.TLFUserBreak"
+            "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "breaks"
+          "name": "identifyFailures"
         }
       ]
     },
@@ -835,9 +825,9 @@
         {
           "type": {
             "type": "array",
-            "items": "keybase1.TLFUserBreak"
+            "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "breaks"
+          "name": "identifyFailures"
         }
       ]
     },
@@ -855,9 +845,9 @@
         {
           "type": {
             "type": "array",
-            "items": "keybase1.TLFUserBreak"
+            "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "breaks"
+          "name": "identifyFailures"
         }
       ]
     },
@@ -884,7 +874,7 @@
       "name": "NewConversationLocalRes",
       "fields": [
         {
-          "type": "ConversationLocalWithBreaks",
+          "type": "ConversationLocal",
           "name": "conv"
         },
         {
@@ -1034,9 +1024,9 @@
         {
           "type": {
             "type": "array",
-            "items": "keybase1.TLFUserBreak"
+            "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "breaks"
+          "name": "identifyFailures"
         }
       ]
     },
@@ -1054,9 +1044,9 @@
         {
           "type": {
             "type": "array",
-            "items": "keybase1.TLFUserBreak"
+            "items": "keybase1.TLFIdentifyFailure"
           },
-          "name": "breaks"
+          "name": "identifyFailures"
         }
       ]
     }

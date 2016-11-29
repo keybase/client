@@ -173,7 +173,7 @@ func CryptKeysWrapper(ctx context.Context,
 	tlfInterface keybase1.TlfInterface, tlfName string,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (
 	tlfID chat1.TLFID, canonicalTlfName string,
-	breaks []keybase1.TLFUserBreak, err error) {
+	breaks []keybase1.TLFIdentifyFailure, err error) {
 
 	resp, err := tlfInterface.CryptKeys(ctx, keybase1.TLFQuery{
 		TlfName:          tlfName,
@@ -193,7 +193,7 @@ func CryptKeysWrapper(ctx context.Context,
 func GetInboxQueryLocalToRemote(ctx context.Context,
 	tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (
-	rquery *chat1.GetInboxQuery, breaks []keybase1.TLFUserBreak, err error) {
+	rquery *chat1.GetInboxQuery, breaks []keybase1.TLFIdentifyFailure, err error) {
 
 	if lquery == nil {
 		return nil, nil, nil

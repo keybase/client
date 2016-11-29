@@ -35,10 +35,10 @@ type CryptKey struct {
 }
 
 type TLFBreak struct {
-	Breaks []TLFUserBreak `codec:"breaks" json:"breaks"`
+	Breaks []TLFIdentifyFailure `codec:"breaks" json:"breaks"`
 }
 
-type TLFUserBreak struct {
+type TLFIdentifyFailure struct {
 	User   User                 `codec:"user" json:"user"`
 	Breaks *IdentifyTrackBreaks `codec:"breaks,omitempty" json:"breaks,omitempty"`
 }

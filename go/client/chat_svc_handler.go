@@ -512,15 +512,15 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 			return nil, err
 		}
 		header.rateLimits = append(header.rateLimits, ncres.RateLimits...)
-		convTriple = ncres.Conv.ConversationLocal.Info.Triple
-		tlfName = ncres.Conv.ConversationLocal.Info.TlfName
-		visibility = ncres.Conv.ConversationLocal.Info.Visibility
-		header.conversationID = ncres.Conv.ConversationLocal.Info.Id
+		convTriple = ncres.Conv.Info.Triple
+		tlfName = ncres.Conv.Info.TlfName
+		visibility = ncres.Conv.Info.Visibility
+		header.conversationID = ncres.Conv.Info.Id
 	case 1:
-		convTriple = existing[0].ConversationLocal.Info.Triple
-		tlfName = existing[0].ConversationLocal.Info.TlfName
-		visibility = existing[0].ConversationLocal.Info.Visibility
-		header.conversationID = existing[0].ConversationLocal.Info.Id
+		convTriple = existing[0].Info.Triple
+		tlfName = existing[0].Info.TlfName
+		visibility = existing[0].Info.Visibility
+		header.conversationID = existing[0].Info.Id
 	default:
 		return nil, fmt.Errorf("multiple conversations matched")
 	}
@@ -677,7 +677,7 @@ func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, convIDStr str
 	if len(existing) == 0 {
 		return convID, rlimits, fmt.Errorf("no conversations matched %q", channel.Name)
 	}
-	convID = existing[0].ConversationLocal.Info.Id
+	convID = existing[0].Info.Id
 	return convID, rlimits, nil
 }
 

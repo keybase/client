@@ -13,6 +13,7 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
+	istorage "github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
@@ -1013,7 +1014,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
 			return chat.DelivererSecretUI{}
-		}).NewConversation(nm.InboxVers, inbox.Convs[0].ConversationLocal); err != nil {
+		}).NewConversation(nm.InboxVers, istorage.FromConversationLocal(inbox.Convs[0])); err != nil {
 			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
 				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
 			}

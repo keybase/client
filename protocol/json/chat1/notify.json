@@ -71,7 +71,7 @@
       "name": "NewConversationInfo",
       "fields": [
         {
-          "type": "ConversationLocalWithBreaks",
+          "type": "ConversationLocal",
           "name": "conv"
         }
       ]

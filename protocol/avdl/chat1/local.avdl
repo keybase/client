@@ -175,17 +175,19 @@ protocol local {
     array<string> readerNames;
   }
 
+  // ConversationLocal, whenever present, has a valid `identifyFailures` field that
+  // faithfully represent identify result. If identify information is not
+  // availabe, we should use a different type.
   record ConversationLocal {
     union { null, string } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
     array<MessageUnboxed> maxMessages; // the latest message for each message type
-  } 
 
-  record ConversationLocalWithBreaks {
-    ConversationLocal conversationLocal;
-    array<keybase1.TLFUserBreak> breaks;
-  }
+    // This field, if null or empty, indicates identify succeeded without any
+    // break.
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  } 
 
   record ThreadView {
     array<MessageUnboxed> messages;
@@ -202,7 +204,7 @@ protocol local {
   record GetThreadLocalRes {
     ThreadView thread;
     array<RateLimit> rateLimits;
-    array<keybase1.TLFUserBreak> breaks;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   // topicName in GetInboxLocalQuery is ignored
@@ -212,11 +214,11 @@ protocol local {
     union { null, Pagination } pagination;
     array<RateLimit> rateLimits;
 
-		// This only contains identify breaks if a TLF name is specified in arg. It
-		// doesn't contain breaks otherwise, since GetInboxLocal doesn't run
-		// identify for each conversation in the inbox. GetInboxAndUnboxLocal should
-		// be used if identify breaks are needed.
-    array<keybase1.TLFUserBreak> breaks;
+    // This only contains identify failures if a TLF name is specified in arg.
+    // It doesn't contain identifyFailures otherwise, since GetInboxLocal
+    // doesn't run identify for each conversation in the inbox.
+    // GetInboxAndUnboxLocal should be used if identify failures are needed.
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
@@ -241,7 +243,7 @@ protocol local {
     boolean computeActiveList;
   }
   record GetInboxAndUnboxLocalRes {
-    array<ConversationLocalWithBreaks> conversations;
+    array<ConversationLocal> conversations;
     union { null, Pagination } pagination;
     array<RateLimit> rateLimits;
   }
@@ -249,20 +251,20 @@ protocol local {
   PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalRes {
     array<RateLimit> rateLimits;
-    array<keybase1.TLFUserBreak> breaks;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
-    array<keybase1.TLFUserBreak> breaks;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status, keybase1.TLFIdentifyBehavior identifyBehavior);
   record SetConversationStatusLocalRes {
     array<RateLimit> rateLimits;
-    array<keybase1.TLFUserBreak> breaks;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   // Post an attachment in source to conversationID.
@@ -275,7 +277,7 @@ protocol local {
 
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName, keybase1.TLFIdentifyBehavior identifyBehavior);
   record NewConversationLocalRes {
-    ConversationLocalWithBreaks conv;
+    ConversationLocal conv;
     array<RateLimit> rateLimits;
   }
 
@@ -323,14 +325,14 @@ protocol local {
   record GetMessagesLocalRes {
     array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;
-    array<keybase1.TLFUserBreak> breaks;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   // Download an attachment from a message into sink.
   DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
   record DownloadAttachmentLocalRes {
     array<RateLimit> rateLimits;
-    array<keybase1.TLFUserBreak> breaks;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   void CancelPost(OutboxID outboxID); 

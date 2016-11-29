@@ -70,7 +70,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, fmt.Errorf("cannot query by TopicName without unboxing")
 	}
 
-	rquery, breaks, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query, arg.IdentifyBehavior)
+	rquery, identifyFailures, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
@@ -85,7 +85,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		ConversationsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:              ib.Inbox.Full().Pagination,
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
-		Breaks:                  breaks,
+		IdentifyFailures:        identifyFailures,
 	}, nil
 }
 
@@ -170,8 +170,8 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	// we are ignoring the `breaks` here since the `Read` after creating the
-	// conversation will get the breaks for us.
+	// we are ignoring the `identifyFailures` here since the `Read` after creating the
+	// conversation will get the identifyFailures for us.
 	tlfID, cname, _, err := utils.CryptKeysWrapper(ctx, h.tlf, arg.TlfName, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
@@ -245,14 +245,15 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		}
 		res.Conv = ib.Convs[0]
 		// Update inbox cache
-		if err = storage.NewInbox(h.G(), uid.ToBytes(), h.getSecretUI).NewConversation(0, res.Conv.ConversationLocal); err != nil {
+		if err = storage.NewInbox(h.G(), uid.ToBytes(),
+			h.getSecretUI).NewConversation(0, storage.FromConversationLocal(res.Conv)); err != nil {
 			if _, ok := err.(libkb.ChatStorageMissError); !ok {
 				return chat1.NewConversationLocalRes{}, err
 			}
 		}
 
-		if res.Conv.ConversationLocal.Error != nil {
-			return chat1.NewConversationLocalRes{}, errors.New(*res.Conv.ConversationLocal.Error)
+		if res.Conv.Error != nil {
+			return chat1.NewConversationLocalRes{}, errors.New(*res.Conv.Error)
 		}
 		return res, nil
 	}
@@ -346,9 +347,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
 		res.RateLimits = append(res.RateLimits, gires.RateLimits...)
-		for _, c := range gires.Conversations {
-			res.Conversations = append(res.Conversations, c.ConversationLocal)
-		}
+		res.Conversations = gires.Conversations
 
 		more := utils.Collar(
 			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
@@ -365,9 +364,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 				return chat1.GetInboxSummaryForCLILocalRes{}, err
 			}
 			res.RateLimits = append(res.RateLimits, gires.RateLimits...)
-			for _, c := range gires.Conversations {
-				res.Conversations = append(res.Conversations, c.ConversationLocal)
-			}
+			res.Conversations = gires.Conversations
 		}
 	} else {
 		if arg.ActivitySortedLimit <= 0 {
@@ -382,9 +379,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
 		res.RateLimits = append(res.RateLimits, gires.RateLimits...)
-		for _, c := range gires.Conversations {
-			res.Conversations = append(res.Conversations, c.ConversationLocal)
-		}
+		res.Conversations = gires.Conversations
 	}
 
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
@@ -415,7 +410,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	if len(ibres.Conversations) != 1 {
 		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("unexpected number (%d) of conversation; need 1", len(ibres.Conversations))
 	}
-	convLocal := ibres.Conversations[0].ConversationLocal
+	convLocal := ibres.Conversations[0]
 
 	var since time.Time
 	if arg.Since != nil {

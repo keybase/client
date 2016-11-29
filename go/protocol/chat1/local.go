@@ -529,15 +529,11 @@ type ConversationInfoLocal struct {
 }
 
 type ConversationLocal struct {
-	Error       *string                `codec:"error,omitempty" json:"error,omitempty"`
-	Info        ConversationInfoLocal  `codec:"info" json:"info"`
-	ReaderInfo  ConversationReaderInfo `codec:"readerInfo" json:"readerInfo"`
-	MaxMessages []MessageUnboxed       `codec:"maxMessages" json:"maxMessages"`
-}
-
-type ConversationLocalWithBreaks struct {
-	ConversationLocal ConversationLocal       `codec:"conversationLocal" json:"conversationLocal"`
-	Breaks            []keybase1.TLFUserBreak `codec:"breaks" json:"breaks"`
+	Error            *string                       `codec:"error,omitempty" json:"error,omitempty"`
+	Info             ConversationInfoLocal         `codec:"info" json:"info"`
+	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
+	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type ThreadView struct {
@@ -553,16 +549,16 @@ type GetThreadQuery struct {
 }
 
 type GetThreadLocalRes struct {
-	Thread     ThreadView              `codec:"thread" json:"thread"`
-	RateLimits []RateLimit             `codec:"rateLimits" json:"rateLimits"`
-	Breaks     []keybase1.TLFUserBreak `codec:"breaks" json:"breaks"`
+	Thread           ThreadView                    `codec:"thread" json:"thread"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type GetInboxLocalRes struct {
-	ConversationsUnverified []Conversation          `codec:"conversationsUnverified" json:"conversationsUnverified"`
-	Pagination              *Pagination             `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	RateLimits              []RateLimit             `codec:"rateLimits" json:"rateLimits"`
-	Breaks                  []keybase1.TLFUserBreak `codec:"breaks" json:"breaks"`
+	ConversationsUnverified []Conversation                `codec:"conversationsUnverified" json:"conversationsUnverified"`
+	Pagination              *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	RateLimits              []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures        []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type GetInboxLocalQuery struct {
@@ -581,25 +577,25 @@ type GetInboxLocalQuery struct {
 }
 
 type GetInboxAndUnboxLocalRes struct {
-	Conversations []ConversationLocalWithBreaks `codec:"conversations" json:"conversations"`
-	Pagination    *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	RateLimits    []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	Conversations []ConversationLocal `codec:"conversations" json:"conversations"`
+	Pagination    *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	RateLimits    []RateLimit         `codec:"rateLimits" json:"rateLimits"`
 }
 
 type PostLocalRes struct {
-	RateLimits []RateLimit             `codec:"rateLimits" json:"rateLimits"`
-	Breaks     []keybase1.TLFUserBreak `codec:"breaks" json:"breaks"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type PostLocalNonblockRes struct {
-	RateLimits []RateLimit             `codec:"rateLimits" json:"rateLimits"`
-	OutboxID   OutboxID                `codec:"outboxID" json:"outboxID"`
-	Breaks     []keybase1.TLFUserBreak `codec:"breaks" json:"breaks"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	OutboxID         OutboxID                      `codec:"outboxID" json:"outboxID"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type SetConversationStatusLocalRes struct {
-	RateLimits []RateLimit             `codec:"rateLimits" json:"rateLimits"`
-	Breaks     []keybase1.TLFUserBreak `codec:"breaks" json:"breaks"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type LocalSource struct {
@@ -609,8 +605,8 @@ type LocalSource struct {
 }
 
 type NewConversationLocalRes struct {
-	Conv       ConversationLocalWithBreaks `codec:"conv" json:"conv"`
-	RateLimits []RateLimit                 `codec:"rateLimits" json:"rateLimits"`
+	Conv       ConversationLocal `codec:"conv" json:"conv"`
+	RateLimits []RateLimit       `codec:"rateLimits" json:"rateLimits"`
 }
 
 type GetInboxSummaryForCLILocalQuery struct {
@@ -644,14 +640,14 @@ type GetConversationForCLILocalRes struct {
 }
 
 type GetMessagesLocalRes struct {
-	Messages   []MessageUnboxed        `codec:"messages" json:"messages"`
-	RateLimits []RateLimit             `codec:"rateLimits" json:"rateLimits"`
-	Breaks     []keybase1.TLFUserBreak `codec:"breaks" json:"breaks"`
+	Messages         []MessageUnboxed              `codec:"messages" json:"messages"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type DownloadAttachmentLocalRes struct {
-	RateLimits []RateLimit             `codec:"rateLimits" json:"rateLimits"`
-	Breaks     []keybase1.TLFUserBreak `codec:"breaks" json:"breaks"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type GetThreadLocalArg struct {
