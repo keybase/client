@@ -91,7 +91,7 @@ function _inboxToConversations (inbox: GetInboxAndUnboxLocalRes, author: ?string
       info: convo.info,
       conversationIDKey: conversationIDToKey(convo.info.id),
       participants,
-      muted: false, // TODO
+      muted: !!(convo.readerInfo.mtime % 2), // TODO, random for now
       time: convo.readerInfo.mtime,
       snippet,
       unreadCount: convo.readerInfo.maxMsgid - convo.readerInfo.readMsgid, // TODO likely get this from the notifications payload miles is working on

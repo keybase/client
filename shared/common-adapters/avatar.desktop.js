@@ -58,7 +58,7 @@ class Avatar extends PureComponent<void, Props, State> {
             ...avatarStyle,
             ...borderStyle,
             display: (!showNoAvatar && !showLoadingColor) ? 'block' : 'none',
-            backgroundColor: globalColors.white,
+            backgroundColor: this.props.backgroundColor || globalColors.white,
             opacity: this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0,
             backgroundClip: 'padding-box',
           }}
