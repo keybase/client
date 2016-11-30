@@ -408,6 +408,9 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 
 // DownloadV1 implements ChatServiceHandler.DownloadV1.
 func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOptionsV1) Reply {
+	if opts.NoStream && opts.Output != "-" {
+		return c.downloadV1NoStream(ctx, opts)
+	}
 	var fsink Sink
 	if opts.Output == "-" {
 		fsink = &StdoutSink{}
@@ -446,6 +449,52 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	}
 
 	dres, err := client.DownloadAttachmentLocal(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+	rlimits = append(rlimits, dres.RateLimits...)
+
+	res := SendRes{
+		Message: fmt.Sprintf("attachment downloaded to %s", opts.Output),
+		RateLimits: RateLimits{
+			RateLimits: c.aggRateLimits(rlimits),
+		},
+	}
+
+	return Reply{Result: res}
+}
+
+// downloadV1NoStream uses DownloadFileAttachmentLocal instead of DownloadAttachmentLocal.
+func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downloadOptionsV1) Reply {
+	ui := &ChatUI{
+		Contextified: libkb.NewContextified(c.G()),
+		terminal:     c.G().UI.GetTerminalUI(),
+	}
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	protocols := []rpc.Protocol{
+		NewStreamUIProtocol(c.G()),
+		chat1.ChatUiProtocol(ui),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
+
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	arg := chat1.DownloadFileAttachmentLocalArg{
+		ConversationID: convID,
+		MessageID:      opts.MessageID,
+		Preview:        opts.Preview,
+		Filename:       opts.Output,
+	}
+
+	dres, err := client.DownloadFileAttachmentLocal(ctx, arg)
 	if err != nil {
 		return c.errReply(err)
 	}
