@@ -16,7 +16,6 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/chat"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libcmdline"
@@ -235,9 +234,8 @@ func (d *Service) createMessageDeliverer() {
 	ri := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: d.gregor.cli} }
 	si := func() libkb.SecretUI { return chat.DelivererSecretUI{} }
 	tlf := newTlfHandler(nil, d.G())
-	udc := utils.NewUserDeviceCache(d.G())
 
-	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf, udc), ri, si)
+	sender := chat.NewBlockingSender(d.G(), chat.NewBoxer(d.G(), tlf), ri, si)
 	d.G().MessageDeliverer = chat.NewDeliverer(d.G(), sender)
 
 	uid := d.G().Env.GetUID()

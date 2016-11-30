@@ -31,7 +31,6 @@ type chatLocalHandler struct {
 	libkb.Contextified
 	gh    *gregorHandler
 	tlf   keybase1.TlfInterface
-	udc   *utils.UserDeviceCache
 	boxer *chat.Boxer
 	store *chat.AttachmentStore
 
@@ -42,14 +41,12 @@ type chatLocalHandler struct {
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
 	tlf := newTlfHandler(nil, g)
-	udc := utils.NewUserDeviceCache(g)
 	h := &chatLocalHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		gh:           gh,
 		tlf:          tlf,
-		udc:          udc,
-		boxer:        chat.NewBoxer(g, tlf, udc),
+		boxer:        chat.NewBoxer(g, tlf),
 		store:        chat.NewAttachmentStore(g.Log, g.Env.GetRuntimeDir()),
 	}
 
