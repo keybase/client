@@ -714,7 +714,19 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *chatLocalHandler) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
-	return chat1.DownloadAttachmentLocalRes{}, nil
+	darg := downloadAttachmentArg{
+		SessionID:      arg.SessionID,
+		ConversationID: arg.ConversationID,
+		MessageID:      arg.MessageID,
+		Preview:        arg.Preview,
+	}
+	sink, err := os.Create(arg.Filename)
+	if err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+	darg.Sink = sink
+
+	return h.downloadAttachmentLocal(ctx, darg)
 }
 
 type downloadAttachmentArg struct {

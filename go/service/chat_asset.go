@@ -116,7 +116,7 @@ func (f *fileReadResetter) Reset() error {
 	if err != nil {
 		return err
 	}
-	f.buf = bufio.NewReader(f.file)
+	f.buf.Reset(f.file)
 	return nil
 }
 
