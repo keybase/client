@@ -24,7 +24,11 @@ module.exports = {
       test: /\.json?$/,
       loader: 'json',
     }, {
+      test: /emoji-datasource.*\.(gif|png)$/,
+      loader: 'file?name=[name].[ext]',
+    }, {
       test: /\.(gif|png)$/,
+      exclude: /emoji-datasource/,
       loader: 'null',
     }, {
       test: /\.ttf$/,
