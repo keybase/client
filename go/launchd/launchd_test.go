@@ -114,7 +114,7 @@ func randStringBytes(n int) string {
 
 func TestWaitForStatusOK(t *testing.T) {
 	fn := func() (*ServiceStatus, error) {
-		return &ServiceStatus{label: "ok"}, nil
+		return &ServiceStatus{label: "ok", pid: "1"}, nil
 	}
 	status, err := waitForStatus(10*time.Millisecond, time.Millisecond, fn)
 	if err != nil {
@@ -130,7 +130,7 @@ func TestWaitForStatusDelayed(t *testing.T) {
 	fn := func() (*ServiceStatus, error) {
 		i++
 		if i == 5 {
-			return &ServiceStatus{label: "ok_delayed"}, nil
+			return &ServiceStatus{label: "ok_delayed", pid: "1"}, nil
 		}
 		return nil, nil
 	}

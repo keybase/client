@@ -60,7 +60,7 @@ type serviceLog interface {
 
 // WaitForServiceInfoFile tries to wait for a service info file, which should be
 // written on successful service startup.
-func WaitForServiceInfoFile(path string, label string, pid string, log serviceLog) (*ServiceInfo, error) {
+func WaitForServiceInfoFile(path string, label string, pid string, wait time.Duration, log serviceLog) (*ServiceInfo, error) {
 	if pid == "" {
 		return nil, fmt.Errorf("No pid to wait for")
 	}
@@ -89,25 +89,57 @@ func WaitForServiceInfoFile(path string, label string, pid string, log serviceLo
 		return &serviceInfo, nil
 	}
 
-	// Keep looking for service info file for max attempts
-	maxAttempts := 50
-	delay := time.Millisecond * 400
-	serviceInfo, lookErr := lookForServiceInfo()
-	for attempt := 1; attempt < maxAttempts && serviceInfo == nil; attempt++ {
-		log.Debug("Waiting for service info file (%s)...", path)
-		time.Sleep(delay)
-		serviceInfo, lookErr = lookForServiceInfo()
-	}
+	serviceInfo, err := waitForServiceInfo(wait, time.Millisecond*400, lookForServiceInfo)
 
 	// If no service info was found, let's return an error
 	if serviceInfo == nil {
-		if lookErr == nil {
-			lookErr = fmt.Errorf("%s isn't running (expecting pid=%s)", label, pid)
+		if err == nil {
+			err = fmt.Errorf("%s isn't running (expecting pid=%s)", label, pid)
 		}
-		return nil, lookErr
+		return nil, err
 	}
 
 	// We succeeded in finding service info
 	log.Debug("Found service info: %#v", *serviceInfo)
 	return serviceInfo, nil
+}
+
+type serviceInfoResult struct {
+	info *ServiceInfo
+	err  error
+}
+
+type loadServiceInfoFn func() (*ServiceInfo, error)
+
+func waitForServiceInfo(wait time.Duration, delay time.Duration, fn loadServiceInfoFn) (*ServiceInfo, error) {
+	if wait <= 0 {
+		return fn()
+	}
+
+	ticker := time.NewTicker(delay)
+	resultChan := make(chan serviceInfoResult, 1)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				info, err := fn()
+				if err != nil {
+					resultChan <- serviceInfoResult{info: nil, err: err}
+					return
+				}
+				if info != nil {
+					resultChan <- serviceInfoResult{info: info, err: nil}
+					return
+				}
+			}
+		}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.info, res.err
+	case <-time.After(wait):
+		ticker.Stop()
+		return nil, nil
+	}
 }
