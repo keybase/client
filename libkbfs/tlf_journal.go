@@ -822,6 +822,12 @@ func (j *tlfJournal) removeFlushedMDEntry(ctx context.Context,
 		return err
 	}
 
+	// This isn't with the call to j.onMDFlush since it needs to be
+	// under lock.
+	if err := j.blockJournal.onMDFlush(ctx); err != nil {
+		return err
+	}
+
 	if err := j.mdJournal.removeFlushedEntry(ctx, mdID, rmds); err != nil {
 		return err
 	}
@@ -894,11 +900,6 @@ func (j *tlfJournal) flushOneMDOp(
 	if j.onMDFlush != nil {
 		j.onMDFlush.onMDFlush(rmds.MD.TlfID(), rmds.MD.BID(),
 			rmds.MD.RevisionNumber())
-	}
-
-	err = j.blockJournal.onMDFlush()
-	if err != nil {
-		return false, err
 	}
 
 	err = j.removeFlushedMDEntry(ctx, mdID, rmds)

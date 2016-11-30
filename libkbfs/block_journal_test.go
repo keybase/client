@@ -705,7 +705,7 @@ func TestBlockJournalSaveUntilMDFlush(t *testing.T) {
 	}
 
 	// Now remove all the data.
-	err = j.onMDFlush()
+	err = j.onMDFlush(ctx)
 	require.NoError(t, err)
 
 	err = j.hasData(bID1)

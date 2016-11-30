@@ -860,7 +860,7 @@ func (j *blockJournal) saveBlocksUntilNextMDFlush() error {
 	return nil
 }
 
-func (j *blockJournal) onMDFlush() error {
+func (j *blockJournal) onMDFlush(ctx context.Context) error {
 	if j.saveUntilMDFlush == nil {
 		return nil
 	}
@@ -880,6 +880,7 @@ func (j *blockJournal) onMDFlush() error {
 		return err
 	}
 
+	j.log.CDebugf(ctx, "Removing saved data for entries [%d, %d]", first, last)
 	for i := first; i <= last; i++ {
 		e, err := j.saveUntilMDFlush.readJournalEntry(i)
 		if err != nil {
@@ -896,7 +897,6 @@ func (j *blockJournal) onMDFlush() error {
 			return errors.New("Unexpected block journal entry type in saved")
 		}
 
-		j.log.CDebugf(nil, "Removing data for entry %d", i)
 		for id := range entry.Contexts {
 			hasRef, err := j.s.hasAnyRef(id)
 			if err != nil {
