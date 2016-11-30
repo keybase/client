@@ -16,7 +16,7 @@ import {getStyle} from '../../../common-adapters/text'
 const SubTitle = ({usePhone}) => (
   <p>
     <Text type='Body'>In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to</Text>
-    <Icon type='iconfont-identity-devices' style={{paddingLeft: globalMargins.xtiny, paddingRight: globalMargins.xtiny, color: globalColors.black_75}}/>
+    <Icon type='iconfont-identity-devices' style={{paddingLeft: globalMargins.xtiny, paddingRight: globalMargins.xtiny, color: globalColors.black_75}} />
     <Text type='Body'>Devices > Add a new device.</Text>
   </p>
 )
