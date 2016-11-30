@@ -7,7 +7,6 @@ package client
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
@@ -30,10 +29,6 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "exclude",
 				Usage: fmt.Sprintf("Stop all except excluded components, comma separated. Specify %v.", availableCtlComponents),
 			},
-			cli.BoolFlag{
-				Name:  "no-wait",
-				Usage: "If specified we won't wait for services to exit",
-			},
 		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(newCmdCtlStop(g), "stop", c)
@@ -47,7 +42,6 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 type CmdCtlStop struct {
 	libkb.Contextified
 	components map[string]bool
-	noWait     bool
 }
 
 func newCmdCtlStop(g *libkb.GlobalContext) *CmdCtlStop {
@@ -58,7 +52,6 @@ func newCmdCtlStop(g *libkb.GlobalContext) *CmdCtlStop {
 
 func (s *CmdCtlStop) ParseArgv(ctx *cli.Context) error {
 	s.components = ctlParseArgv(ctx)
-	s.noWait = ctx.Bool("no-wait")
 	return nil
 }
 
@@ -67,7 +60,7 @@ func ctlBrewStop(g *libkb.GlobalContext) error {
 	return err
 }
 
-func ctlStop(g *libkb.GlobalContext, components map[string]bool, wait time.Duration) error {
+func ctlStop(g *libkb.GlobalContext, components map[string]bool) error {
 	if libkb.IsBrewBuild {
 		return ctlBrewStop(g)
 	}
@@ -98,11 +91,7 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool, wait time.Durat
 }
 
 func (s *CmdCtlStop) Run() error {
-	wait := defaultLaunchdWait
-	if s.noWait {
-		wait = 0
-	}
-	return ctlStop(s.G(), s.components, wait)
+	return ctlStop(s.G(), s.components)
 }
 
 func (s *CmdCtlStop) GetUsage() libkb.Usage {

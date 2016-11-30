@@ -5,7 +5,7 @@ import exec from './exec'
 
 export function ctlStop (callback: any) {
   const binPath = keybaseBinPath()
-  const args = ['ctl', 'stop', '--exclude=app', '--no-wait']
+  const args = ['ctl', 'stop', '--exclude=app']
   exec(binPath, args, 'darwin', 'prod', false, callback)
 }
 
