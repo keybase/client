@@ -552,7 +552,7 @@ func (b *Boxer) ValidSenderKey(ctx context.Context, sender gregor1.UID, key []by
 	}
 
 	revoked := revokedAt2 != nil
-	validAtCtime := found && (!revoked || revokedAt2.After(ctime2))
+	validAtCtime := (!revoked || revokedAt2.After(ctime2))
 	return validAtCtime, revoked, nil
 }
 
