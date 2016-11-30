@@ -546,21 +546,8 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 	arg.Msg.ClientHeader.Sender = uid.ToBytes()
 	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
-	var pendingAssetDeletes []chat1.Asset
-	if arg.Msg.ClientHeader.MessageType == chat1.MessageType_DELETE {
-		// check to see if deleting an attachment
-		md := arg.Msg.MessageBody.Delete()
-		for _, msgID := range md.MessageIDs {
-			assets, err := h.assetsForMessage(ctx, arg.ConversationID, msgID)
-			if err != nil {
-				h.G().Log.Debug("error getting assets for message: %s", err)
-				// continue despite error?  Or return error and let user try again.
-			}
-			if len(assets) > 0 {
-				pendingAssetDeletes = append(pendingAssetDeletes, assets...)
-			}
-		}
-	}
+	// keep track of any assets that need to be deleted after deleting the message
+	pendingAssetDeletes := h.pendingAssetDeletes(ctx, arg)
 
 	sender := chat.NewBlockingSender(h.G(), h.boxer, h.remoteClient, h.getSecretUI)
 
@@ -569,26 +556,7 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg chat1.PostLocalArg
 		return chat1.PostLocalRes{}, fmt.Errorf("PostLocal: unable to send message: %s", err.Error())
 	}
 
-	if len(pendingAssetDeletes) > 0 {
-		// get s3 params from server
-		params, err := h.remoteClient().GetS3Params(ctx, arg.ConversationID)
-		if err != nil {
-			h.G().Log.Debug("error getting s3 params: %s", err)
-			// there's no way to get asset information after this point.
-			// we should do everything we can to delete them if they
-			// should be deleted...
-		} else {
-			if err := h.store.DeleteAssets(ctx, params, h, pendingAssetDeletes); err != nil {
-				h.G().Log.Debug("error deleting assets: %s", err)
-				// there's no way to get asset information after this point.
-				// we should do everything we can to delete them if they
-				// should be deleted...
-			} else {
-				h.G().Log.Warning("deleted %d assets", len(pendingAssetDeletes))
-				h.G().Log.Warning("deleted assets: %+v", pendingAssetDeletes)
-			}
-		}
-	}
+	h.deleteAssets(ctx, arg.ConversationID, pendingAssetDeletes)
 
 	return chat1.PostLocalRes{
 		RateLimits: utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
@@ -1027,4 +995,47 @@ func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID
 
 	attachment := msg.MessageBody.Attachment()
 	return &attachment, msgs.RateLimits, nil
+}
+
+func (h *chatLocalHandler) pendingAssetDeletes(ctx context.Context, arg chat1.PostLocalArg) []chat1.Asset {
+	var pending []chat1.Asset
+	if arg.Msg.ClientHeader.MessageType == chat1.MessageType_DELETE {
+		// check to see if deleting an attachment
+		md := arg.Msg.MessageBody.Delete()
+		for _, msgID := range md.MessageIDs {
+			assets, err := h.assetsForMessage(ctx, arg.ConversationID, msgID)
+			if err != nil {
+				h.G().Log.Debug("error getting assets for message: %s", err)
+				// continue despite error?  Or return error and let user try again.
+			}
+			if len(assets) > 0 {
+				pending = append(pending, assets...)
+			}
+		}
+	}
+	return pending
+}
+
+func (h *chatLocalHandler) deleteAssets(ctx context.Context, conversationID chat1.ConversationID, assets []chat1.Asset) {
+	if len(assets) == 0 {
+		return
+	}
+
+	// get s3 params from server
+	params, err := h.remoteClient().GetS3Params(ctx, conversationID)
+	if err != nil {
+		h.G().Log.Debug("error getting s3 params: %s", err)
+		return
+	}
+
+	if err := h.store.DeleteAssets(ctx, params, h, assets); err != nil {
+		h.G().Log.Debug("error deleting assets: %s", err)
+
+		// there's no way to get asset information after this point.
+		// any assets not deleted will be stranded on s3.
+
+		return
+	}
+
+	h.G().Log.Debug("deleted %d assets", len(assets))
 }
