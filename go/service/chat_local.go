@@ -6,6 +6,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -570,6 +571,67 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
+	parg := postAttachmentArg{
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		ClientHeader:     arg.ClientHeader,
+		Attachment:       newStreamSource(arg.Attachment),
+		Title:            arg.Title,
+		Metadata:         arg.Metadata,
+		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+	defer parg.Attachment.Close()
+
+	if arg.Preview != nil {
+		parg.Preview = newStreamSource(*arg.Preview)
+		defer parg.Preview.Close()
+	}
+
+	return h.postAttachmentLocal(ctx, parg)
+}
+
+// PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
+func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFileAttachmentLocalArg) (chat1.PostLocalRes, error) {
+	parg := postAttachmentArg{
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		ClientHeader:     arg.ClientHeader,
+		Title:            arg.Title,
+		Metadata:         arg.Metadata,
+		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+	asrc, err := newFileSource(arg.Attachment)
+	if err != nil {
+		return chat1.PostLocalRes{}, err
+	}
+	parg.Attachment = asrc
+	defer parg.Attachment.Close()
+
+	if arg.Preview != nil {
+		psrc, err := newFileSource(*arg.Preview)
+		if err != nil {
+			return chat1.PostLocalRes{}, err
+		}
+		parg.Preview = psrc
+		defer parg.Preview.Close()
+	}
+
+	return h.postAttachmentLocal(ctx, parg)
+}
+
+// postAttachmentArg is a shared arg struct for the multiple PostAttachment* endpoints
+type postAttachmentArg struct {
+	SessionID        int
+	ConversationID   chat1.ConversationID
+	ClientHeader     chat1.MessageClientHeader
+	Attachment       assetSource
+	Preview          assetSource
+	Title            string
+	Metadata         []byte
+	IdentifyBehavior keybase1.TLFIdentifyBehavior
+}
+
+func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
 	if os.Getenv("CHAT_S3_FAKE") == "1" {
 		ctx = s3.NewFakeS3Context(ctx)
 	}
@@ -611,7 +673,7 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 			// add preview suffix to object key (P in hex)
 			// the s3path in gregor is expecting hex here
 			previewParams.ObjectKey += "50"
-			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, *arg.Preview, arg.ConversationID, nil)
+			prev, err := h.uploadAsset(ctx, arg.SessionID, previewParams, arg.Preview, arg.ConversationID, nil)
 			chatUI.ChatAttachmentPreviewUploadDone(ctx)
 			if err == nil {
 				preview = &prev
@@ -643,12 +705,54 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 			ClientHeader: arg.ClientHeader,
 			MessageBody:  chat1.NewMessageBodyWithAttachment(attachment),
 		},
+		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 	return h.PostLocal(ctx, postArg)
 }
 
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
 func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat1.DownloadAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
+	darg := downloadAttachmentArg{
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		MessageID:        arg.MessageID,
+		Preview:          arg.Preview,
+		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+	cli := h.getStreamUICli()
+	darg.Sink = libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
+
+	return h.downloadAttachmentLocal(ctx, darg)
+}
+
+// DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
+func (h *chatLocalHandler) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
+	darg := downloadAttachmentArg{
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		MessageID:        arg.MessageID,
+		Preview:          arg.Preview,
+		IdentifyBehavior: arg.IdentifyBehavior,
+	}
+	sink, err := os.Create(arg.Filename)
+	if err != nil {
+		return chat1.DownloadAttachmentLocalRes{}, err
+	}
+	darg.Sink = sink
+
+	return h.downloadAttachmentLocal(ctx, darg)
+}
+
+type downloadAttachmentArg struct {
+	SessionID        int
+	ConversationID   chat1.ConversationID
+	MessageID        chat1.MessageID
+	Sink             io.WriteCloser
+	Preview          bool
+	IdentifyBehavior keybase1.TLFIdentifyBehavior
+}
+
+func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg downloadAttachmentArg) (chat1.DownloadAttachmentLocalRes, error) {
 	chatUI := h.getChatUI(arg.SessionID)
 	progress := func(bytesComplete, bytesTotal int) {
 		parg := chat1.ChatAttachmentDownloadProgressArg{
@@ -666,8 +770,9 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 	}
 
 	marg := chat1.GetMessagesLocalArg{
-		ConversationID: arg.ConversationID,
-		MessageIDs:     []chat1.MessageID{arg.MessageID},
+		ConversationID:   arg.ConversationID,
+		MessageIDs:       []chat1.MessageID{arg.MessageID},
+		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 	msgs, err := h.GetMessagesLocal(ctx, marg)
 	if err != nil {
@@ -688,9 +793,6 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		return chat1.DownloadAttachmentLocalRes{}, errors.New(em)
 	}
 
-	cli := h.getStreamUICli()
-	sink := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
-
 	msg := first.Valid()
 	body := msg.MessageBody
 	if t, err := body.MessageType(); err != nil {
@@ -709,13 +811,13 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 		obj = *attachment.Preview
 	}
 	chatUI.ChatAttachmentDownloadStart(ctx)
-	if err := h.store.DownloadAsset(ctx, params, obj, sink, h, progress); err != nil {
-		sink.Close()
+	if err := h.store.DownloadAsset(ctx, params, obj, arg.Sink, h, progress); err != nil {
+		arg.Sink.Close()
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 	chatUI.ChatAttachmentDownloadDone(ctx)
 
-	if err := sink.Close(); err != nil {
+	if err := arg.Sink.Close(); err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
@@ -798,14 +900,18 @@ func (h *chatLocalHandler) Sign(payload []byte) ([]byte, error) {
 	return h.remoteClient().S3Sign(context.Background(), arg)
 }
 
-func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local chat1.LocalSource, conversationID chat1.ConversationID, progress chat.ProgressReporter) (chat1.Asset, error) {
+func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, params chat1.S3Params, local assetSource, conversationID chat1.ConversationID, progress chat.ProgressReporter) (chat1.Asset, error) {
 	// create a buffered stream
 	cli := h.getStreamUICli()
-	src := libkb.NewRemoteStreamBuffered(local.Source, cli, sessionID)
+	src, err := local.Open(sessionID, cli)
+	if err != nil {
+		return chat1.Asset{}, err
+	}
 
 	task := chat.UploadTask{
 		S3Params:       params,
-		LocalSrc:       local,
+		Filename:       local.Basename(),
+		FileSize:       local.FileSize(),
 		Plaintext:      src,
 		S3Signer:       h,
 		ConversationID: conversationID,

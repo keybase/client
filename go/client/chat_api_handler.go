@@ -204,6 +204,7 @@ type attachOptionsV1 struct {
 	Filename       string
 	Preview        string
 	Title          string
+	NoStream       bool
 }
 
 func (a attachOptionsV1) Check() error {
@@ -222,6 +223,7 @@ type downloadOptionsV1 struct {
 	MessageID      chat1.MessageID `json:"message_id"`
 	Output         string
 	Preview        bool
+	NoStream       bool
 }
 
 func (a downloadOptionsV1) Check() error {

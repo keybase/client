@@ -9,9 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -79,6 +81,35 @@ func getSigningKeyPairForTest(t *testing.T, tc libkb.TestContext, u *kbtest.Fake
 	return signKP
 }
 
+func getActiveDevicesAndKeys(tc libkb.TestContext, u *kbtest.FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
+	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username)
+	arg.PublicKeyOptional = true
+	user, err := libkb.LoadUser(arg)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	sibkeys := user.GetComputedKeyFamily().GetAllActiveSibkeys()
+	subkeys := user.GetComputedKeyFamily().GetAllActiveSubkeys()
+
+	activeDevices := []*libkb.Device{}
+	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
+		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
+			activeDevices = append(activeDevices, device)
+		}
+	}
+	return activeDevices, append(sibkeys, subkeys...)
+}
+
+func doRevokeDevice(tc libkb.TestContext, u *kbtest.FakeUser, id keybase1.DeviceID, force bool) error {
+	revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: id, Force: force}, tc.G)
+	ctx := &engine.Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: u.NewSecretUI(),
+	}
+	err := engine.RunEngine(revokeEngine, ctx)
+	return err
+}
+
 func TestChatMessageBox(t *testing.T) {
 	key := cryptKey(t)
 	msg := textMsg(t, "hello")
@@ -118,10 +149,11 @@ func TestChatMessageUnbox(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	messagePlaintext, _, err := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	umwkr, err := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if err != nil {
 		t.Fatal(err)
 	}
+	messagePlaintext := umwkr.messagePlaintext
 	body := messagePlaintext.MessageBody
 	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
 		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
@@ -129,6 +161,7 @@ func TestChatMessageUnbox(t *testing.T) {
 	if body.Text().Body != text {
 		t.Errorf("body text: %q, expected %q", body.Text().Body, text)
 	}
+	require.Equal(t, false, umwkr.fromRevokedDevice, "message should not be from revoked device")
 }
 
 func TestChatMessageInvalidBodyHash(t *testing.T) {
@@ -166,7 +199,7 @@ func TestChatMessageInvalidBodyHash(t *testing.T) {
 	// put original hash fn back
 	boxer.hashV1 = origHashFn
 
-	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := ierr.Inner().(libkb.ChatBodyHashInvalid); !ok {
 		t.Fatalf("unexpected error for invalid body hash: %s", ierr)
 	}
@@ -269,6 +302,7 @@ func TestChatMessageUnboxNoCryptKey(t *testing.T) {
 		t.Fatalf("message should not be unboxable")
 	}
 }
+
 func TestChatMessageInvalidHeaderSig(t *testing.T) {
 	key := cryptKey(t)
 	text := "hi"
@@ -313,7 +347,7 @@ func TestChatMessageInvalidHeaderSig(t *testing.T) {
 	// put original signing fn back
 	boxer.sign = origSign
 
-	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := ierr.Inner().(libkb.BadSigError); !ok {
 		t.Fatalf("unexpected error for invalid header signature: %s", ierr)
 	}
@@ -347,10 +381,133 @@ func TestChatMessageInvalidSenderKey(t *testing.T) {
 		Ctime: gregor1.ToTime(time.Now()),
 	}
 
-	_, _, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	_, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
 	if _, ok := ierr.Inner().(libkb.NoKeyError); !ok {
 		t.Fatalf("unexpected error for invalid sender key: %v", ierr)
 	}
+}
+
+// Sent with a revoked sender key after revocation
+func TestChatMessageRevokedKeyThenSent(t *testing.T) {
+	key := cryptKey(t)
+	text := "hi"
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	require.NoError(t, err)
+	t.Logf("using username:%+v uid: %+v", u.Username, u.User.GetUID())
+
+	// pick a device
+	devices, _ := getActiveDevicesAndKeys(tc, u)
+	var thisDevice *libkb.Device
+	for _, device := range devices {
+		if device.Type != libkb.DeviceTypePaper {
+			thisDevice = device
+		}
+	}
+	require.NotNil(t, thisDevice, "thisDevice should be non-nil")
+
+	// Find the key
+	f := func() libkb.SecretUI { return u.NewSecretUI() }
+	signingKey, err := engine.GetMySecretKey(tc.G, f, libkb.DeviceSigningKeyType, "some chat or something test")
+	require.NoError(t, err, "get device signing key")
+	signKP, ok := signingKey.(libkb.NaclSigningKeyPair)
+	require.Equal(t, true, ok, "signing key must be nacl")
+	t.Logf("found signing kp: %+v", signKP.GetKID())
+
+	// Revoke the key
+	t.Logf("revoking device id:%+v", thisDevice.ID)
+	err = doRevokeDevice(tc, u, thisDevice.ID, true)
+	require.NoError(t, err, "revoke device")
+
+	// Sleep for a second because revocation timestamps are only second-resolution.
+	time.Sleep(1 * time.Second)
+
+	// Reset the cache
+	// tc.G.CachedUserLoader = libkb.NewCachedUserLoader(tc.G, libkb.CachedUserTimeout)
+
+	// Sign a message using a key of u's that has been revoked
+	t.Logf("signing message")
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
+	require.NoError(t, err)
+
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+
+	// The message should not unbox
+	umwkr, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	require.NotNil(t, ierr, "unboxing must err (%v)", umwkr.fromRevokedDevice)
+	require.IsType(t, libkb.NoKeyError{}, ierr.Inner(), "unexpected error for revoked sender key: %v", ierr)
+
+	// Test key validity
+	validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
+	require.NoError(t, err, "ValidSenderKey")
+	require.False(t, validAtCtime, "revoked key should be invalid (v:%v r:%v)", validAtCtime, revoked)
+	require.True(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
+}
+
+// Sent with a revoked sender key before revocation
+func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
+	key := cryptKey(t)
+	text := "hi"
+	tc, boxer := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	require.NoError(t, err)
+	t.Logf("using username:%+v uid: %+v", u.Username, u.User.GetUID())
+
+	// pick a device
+	devices, _ := getActiveDevicesAndKeys(tc, u)
+	var thisDevice *libkb.Device
+	for _, device := range devices {
+		if device.Type != libkb.DeviceTypePaper {
+			thisDevice = device
+		}
+	}
+	require.NotNil(t, thisDevice, "thisDevice should be non-nil")
+
+	// Find the key
+	f := func() libkb.SecretUI { return u.NewSecretUI() }
+	signingKey, err := engine.GetMySecretKey(tc.G, f, libkb.DeviceSigningKeyType, "some chat or something test")
+	require.NoError(t, err, "get device signing key")
+	signKP, ok := signingKey.(libkb.NaclSigningKeyPair)
+	require.Equal(t, true, ok, "signing key must be nacl")
+	t.Logf("found signing kp: %+v", signKP.GetKID())
+
+	// Sign a message using a key of u's that has not yet been revoked
+	t.Logf("signing message")
+	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()))
+	boxed, err := boxer.boxMessageWithKeysV1(msg, key, signKP)
+	require.NoError(t, err)
+
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(time.Now()),
+	}
+
+	// Sleep for a second because revocation timestamps are only second-resolution.
+	time.Sleep(1 * time.Second)
+
+	// Revoke the key
+	t.Logf("revoking device id:%+v", thisDevice.ID)
+	err = doRevokeDevice(tc, u, thisDevice.ID, true)
+	require.NoError(t, err, "revoke device")
+
+	// The message should unbox but with FromRevokedDevice set
+	umwkr, ierr := boxer.unboxMessageWithKey(context.TODO(), *boxed, key)
+	require.Nil(t, ierr, "unboxing err")
+	require.True(t, umwkr.fromRevokedDevice, "message should be noticed as signed by revoked key")
+
+	// Test key validity
+	validAtCtime, revoked, err := boxer.ValidSenderKey(context.TODO(), gregor1.UID(u.User.GetUID().ToBytes()), signKP.GetBinaryKID(), boxed.ServerHeader.Ctime)
+	require.NoError(t, err, "ValidSenderKey")
+	require.True(t, validAtCtime, "revoked key should be valid at time (v:%v r:%v)", validAtCtime, revoked)
+	require.True(t, revoked, "key should be revoked (v:%v r:%v)", validAtCtime, revoked)
 }
 
 func TestChatMessagePublic(t *testing.T) {
