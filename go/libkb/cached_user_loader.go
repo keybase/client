@@ -176,7 +176,7 @@ func (u *CachedUserLoader) CheckKIDForUID(uid keybase1.UID, kid keybase1.KID) (f
 func (u *CachedUserLoader) LoadUserPlusKeys(uid keybase1.UID) (keybase1.UserPlusKeys, error) {
 	var up keybase1.UserPlusKeys
 	if uid.IsNil() {
-		return up, fmt.Errorf("Nil UID")
+		return up, NoUIDError{}
 	}
 
 	arg := NewLoadUserArg(u.G())
