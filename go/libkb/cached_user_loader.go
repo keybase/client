@@ -172,3 +172,24 @@ func (u *CachedUserLoader) CheckKIDForUID(uid keybase1.UID, kid keybase1.KID) (f
 	found, revokedAt = CheckKID(upk, kid)
 	return found, revokedAt, nil
 }
+
+func (u *CachedUserLoader) LoadUserPlusKeys(uid keybase1.UID) (keybase1.UserPlusKeys, error) {
+	var up keybase1.UserPlusKeys
+	if uid.IsNil() {
+		return up, fmt.Errorf("Nil UID")
+	}
+
+	arg := NewLoadUserArg(u.G())
+	arg.UID = uid
+	arg.PublicKeyOptional = true
+
+	upak, _, err := u.Load(arg)
+	if err != nil {
+		return up, err
+	}
+	if upak == nil {
+		return up, fmt.Errorf("Nil user, nil error from LoadUser")
+	}
+	up = upak.Base
+	return up, nil
+}
