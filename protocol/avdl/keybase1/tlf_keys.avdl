@@ -23,10 +23,10 @@ protocol tlfKeys {
   }
 
   record TLFBreak {
-    array<TLFUserBreak> breaks;
+    array<TLFIdentifyFailure> breaks;
   }
 
-  record TLFUserBreak {
+  record TLFIdentifyFailure {
     User user;
     union { null, IdentifyTrackBreaks } breaks;
   }
