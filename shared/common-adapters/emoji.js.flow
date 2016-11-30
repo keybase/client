@@ -5,4 +5,12 @@ export type Props = {
   size: number,
 }
 
+const EmojiWrapper = (props: Props) => {
+  return <Emoji {...props} emoji={[':', ...props.children, ':'].join('')} backgroundImageFn={backgroundImageFn} />
+}
+
+declare function backgroundImageFn (set: string, sheetSize: string): string
+
+export {backgroundImageFn}
+
 export default class Emoji extends Component<void, Props, void> { }
