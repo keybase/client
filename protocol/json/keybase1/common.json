@@ -126,18 +126,21 @@
       "fields": [
         {
           "type": "KID",
-          "name": "KID"
+          "name": "KID",
+          "lint": "ignore"
         },
         {
           "type": "string",
-          "name": "PGPFingerprint"
+          "name": "PGPFingerprint",
+          "lint": "ignore"
         },
         {
           "type": {
             "type": "array",
             "items": "PGPIdentity"
           },
-          "name": "PGPIdentities"
+          "name": "PGPIdentities",
+          "lint": "ignore"
         },
         {
           "type": "boolean",

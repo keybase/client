@@ -59,7 +59,8 @@
           }
         }
       ],
-      "response": "APIRes"
+      "response": "APIRes",
+      "lint": "ignore"
     },
     "Post": {
       "request": [
@@ -89,7 +90,8 @@
           }
         }
       ],
-      "response": "APIRes"
+      "response": "APIRes",
+      "lint": "ignore"
     },
     "PostJSON": {
       "request": [
@@ -126,7 +128,8 @@
           }
         }
       ],
-      "response": "APIRes"
+      "response": "APIRes",
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

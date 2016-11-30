@@ -251,7 +251,8 @@
         },
         {
           "type": "MessagePlaintext",
-          "name": "Msg"
+          "name": "Msg",
+          "lint": "ignore"
         }
       ]
     },
@@ -498,15 +499,18 @@
       "fields": [
         {
           "type": "int",
-          "name": "NumRead"
+          "name": "NumRead",
+          "lint": "ignore"
         },
         {
           "type": "int",
-          "name": "AtLeast"
+          "name": "AtLeast",
+          "lint": "ignore"
         },
         {
           "type": "int",
-          "name": "AtMost"
+          "name": "AtMost",
+          "lint": "ignore"
         }
       ]
     },
@@ -915,14 +919,16 @@
             "type": "array",
             "items": "MessageType"
           },
-          "name": "MessageTypes"
+          "name": "MessageTypes",
+          "lint": "ignore"
         },
         {
           "type": [
             null,
             "string"
           ],
-          "name": "Since"
+          "name": "Since",
+          "lint": "ignore"
         },
         {
           "type": "UnreadFirstNumLimit",
@@ -1123,7 +1129,8 @@
           "type": "ConversationStatus"
         }
       ],
-      "response": "SetConversationStatusLocalRes"
+      "response": "SetConversationStatusLocalRes",
+      "lint": "ignore"
     },
     "newConversationLocal": {
       "request": [
@@ -1181,7 +1188,8 @@
           }
         }
       ],
-      "response": "GetMessagesLocalRes"
+      "response": "GetMessagesLocalRes",
+      "lint": "ignore"
     },
     "postAttachmentLocal": {
       "request": [
@@ -1278,7 +1286,8 @@
           "type": "boolean"
         }
       ],
-      "response": "DownloadAttachmentLocalRes"
+      "response": "DownloadAttachmentLocalRes",
+      "lint": "ignore"
     },
     "DownloadFileAttachmentLocal": {
       "request": [
@@ -1303,7 +1312,8 @@
           "type": "boolean"
         }
       ],
-      "response": "DownloadAttachmentLocalRes"
+      "response": "DownloadAttachmentLocalRes",
+      "lint": "ignore"
     },
     "CancelPost": {
       "request": [
@@ -1312,7 +1322,8 @@
           "type": "OutboxID"
         }
       ],
-      "response": null
+      "response": null,
+      "lint": "ignore"
     },
     "RetryPost": {
       "request": [
@@ -1321,7 +1332,8 @@
           "type": "OutboxID"
         }
       ],
-      "response": null
+      "response": null,
+      "lint": "ignore"
     }
   },
   "namespace": "chat.1"

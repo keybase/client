@@ -4,6 +4,7 @@ var promise = require('bluebird')
 var fs = promise.promisifyAll(require('fs'))
 var path = require('path')
 var codeGenerators = require('./js-code-generators.js')
+var colors = require('colors')
 
 var projects = {
   'chat1': {
@@ -55,6 +56,7 @@ function load (file, project) {
 }
 
 function analyze (json, project) {
+  lintJSON(json)
   return reduceArray([].concat(
     analyzeEnums(json, project),
     analyzeTypes(json, project),
@@ -160,6 +162,8 @@ function analyzeMessages (json, project) {
 
   return Object.keys(json.messages).map(m => {
     const message = json.messages[m]
+
+    lintMessage(m, message)
 
     const params = (incoming, prefix) => (
       message.request
@@ -269,6 +273,7 @@ function parseUnion (unionTypes) {
 }
 
 function parseRecord (t) {
+  lintRecord(t)
   if (t.typedef) {
     return t.typedef
   }
@@ -375,4 +380,61 @@ type CommonResponseHandler = {
   Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',\n') + '\n}>\n'
   const toWrite = [typePrelude, codeGenerators.channelMapPrelude, typeDefs.join('\n\n'), incomingMap].join('\n')
   fs.writeFileSync(project.out, toWrite)
+}
+
+function decapitalize (s) {
+  return s.charAt(0).toLowerCase() + s.slice(1)
+}
+
+function isCapitalized (s) {
+  return decapitalize(s) != s
+}
+
+function isNotCapitalized (s) {
+  return capitalize(s) != s
+}
+
+function lintTypedef (record, typedef) {
+  switch (typedef) {
+    case 'int64':
+    case 'uint':
+    case 'uint64':
+      lintError(`${record.name}: ${typedef} cannot be fully represented as a Javascript number (double)`, record.lint)
+      break
+  }
+}
+
+function lintRecord (record) {
+  lintTypedef(record, record.typedef)
+  if (isNotCapitalized(record.name)) {
+    lintError(`Record name should be capitalized: ${t.name}`, record.lint)
+  }
+
+  record.fields.forEach(f => {
+    if (isCapitalized(f.name)) {
+      lintError(`Record variable names should not be capitalized: ${record.name}.${f.name}`, f.lint)
+    }
+  })
+}
+
+function lintMessage (name, message) {
+  if (isCapitalized(name)) {
+    lintError(`Method names should not be capitalized: ${name}`, message.lint)
+  }
+}
+
+function lintJSON(json) {
+  if (isNotCapitalized(json.protocol)) {
+    // Ignore protocol name lint errors by default
+    lintError(`Protocol names should be capitalized: ${json.protocol}`, 'ignore')
+  }
+}
+
+function lintError (s, lint) {
+  if (lint === 'ignore') {
+    console.log('Ignoring lint error:', s.yellow)
+  } else {
+    console.log(s.red)
+    process.exit(1)
+  }
 }

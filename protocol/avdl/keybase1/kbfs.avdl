@@ -18,23 +18,27 @@ protocol kbfs {
     It is just a starting point to get kbfs notifications through the daemon to
     the clients.
         */
+  @lint("ignore")
   void FSEvent(FSNotification event);
 
   /**
     kbfs calls this as a response to receiving an FSEditListRequest with a
     given requestID.
         */
+  @lint("ignore")
   void FSEditList(array<FSNotification> edits, int requestID);
 
   /**
     FSSyncStatus is called by KBFS as a response to receiving an
     FSSyncStatusRequest with a given requestID.
         */
+  @lint("ignore")
   void FSSyncStatus(FSSyncStatus status, int requestID);
 
   /**
     FSSyncEvent is called by KBFS when the sync status of an individual path
     changes.
         */
+  @lint("ignore")
   void FSSyncEvent(FSPathSyncStatus event);
 }

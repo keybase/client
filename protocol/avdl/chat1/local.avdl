@@ -70,6 +70,7 @@ protocol local {
     OutboxState state;
     OutboxID outboxID;
     ConversationID convID;
+    @lint("ignore")
     MessagePlaintext Msg;
   }
 
@@ -163,9 +164,12 @@ protocol local {
   // By definition, one could use a same non-zero number for both AtLeast and
   // AtMost to precisely control the number of items returned.
   record UnreadFirstNumLimit {
+    @lint("ignore")
     int NumRead;
 
+    @lint("ignore")
     int AtLeast;
+    @lint("ignore")
     int AtMost;
   }
 
@@ -252,6 +256,7 @@ protocol local {
   }
   PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev);
 
+  @lint("ignore")
   SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status);
   record SetConversationStatusLocalRes {
     array<RateLimit> rateLimits;
@@ -288,8 +293,10 @@ protocol local {
   GetConversationForCLILocalRes getConversationForCLILocal(GetConversationForCLILocalQuery query);
   record GetConversationForCLILocalQuery {
     boolean markAsRead;
+    @lint("ignore")
     array<MessageType> MessageTypes;
 
+    @lint("ignore")
     union { null, string } Since;
 
     UnreadFirstNumLimit limit;
@@ -303,6 +310,7 @@ protocol local {
   }
 
   // Get messages by ID.
+  @lint("ignore")
   GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs);
   record GetMessagesLocalRes {
     array<MessageUnboxed> messages;
@@ -333,13 +341,17 @@ protocol local {
   }
 
   // Download an attachment from a message into sink stream.
+  @lint("ignore")
   DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview);
-  
-  // Download an attachment from a message into a local file.  
+
+  // Download an attachment from a message into a local file.
   // Filename must be writable by the service.
+  @lint("ignore")
   DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview);
 
+  @lint("ignore")
   void CancelPost(OutboxID outboxID);
+  @lint("ignore")
   void RetryPost(OutboxID outboxID);
 
 }

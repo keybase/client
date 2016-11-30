@@ -76,6 +76,7 @@ protocol remote {
 
   MarkAsReadRes markAsRead(ConversationID conversationID, MessageID msgID);
 
+  @lint("ignore")
   SetConversationStatusRes SetConversationStatus(ConversationID conversationID, ConversationStatus status);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
@@ -83,6 +84,7 @@ protocol remote {
   // conversation per TLF ID on GetInboxRemote.
   void tlfFinalize(TLFID tlfID);
 
+  @lint("ignore")
   UnreadUpdateFull GetUnreadUpdateFull(InboxVers inboxVers);
   // The full set of updates of all convs in a single user's inbox
   record UnreadUpdateFull {
@@ -106,7 +108,7 @@ protocol remote {
   // getS3Params returns S3 params that the client needs to make S3
   // requests.
   S3Params getS3Params(ConversationID conversationID);
-  
+
   // s3Sign signs a payload for S3 requests.
   bytes s3Sign(int version, bytes payload);
 }
