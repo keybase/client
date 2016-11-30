@@ -28,6 +28,7 @@ func mdForceQROne(
 		LatestRev: irmd.Revision(),
 	}
 	rmdNext.AddOp(gco)
+	rmdNext.SetLastGCRevision(irmd.Revision())
 
 	fmt.Printf(
 		"Will put a forced QR op up to revision %d:\n", irmd.Revision())

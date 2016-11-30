@@ -704,10 +704,19 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 	ctx context.Context, head ReadOnlyRootMetadata) (
 	mostRecentOldEnoughRev, lastGCRev MetadataRevision, err error) {
 	// Walk backwards until we find one that is old enough.  Also,
-	// look out for the previous GCOp.
+	// look out for the previous GCOp.  TODO: Eventually get rid of
+	// this scan once we have some way to get the MD corresponding to
+	// a given timestamp.
 	currHead := head.Revision()
 	mostRecentOldEnoughRev = MetadataRevisionUninitialized
 	lastGCRev = MetadataRevisionUninitialized
+	if head.data.LastGCRevision >= MetadataRevisionInitial {
+		fbm.log.CDebugf(ctx, "Found last gc revision %d in "+
+			"head MD revision %d", head.data.LastGCRevision,
+			head.Revision())
+		lastGCRev = head.data.LastGCRevision
+	}
+
 	for {
 		startRev := currHead - maxMDsAtATime + 1 // (MetadataRevision is signed)
 		if startRev < MetadataRevisionInitial {
@@ -733,14 +742,21 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 			}
 
 			if lastGCRev == MetadataRevisionUninitialized {
-				for j := len(rmd.data.Changes.Ops) - 1; j >= 0; j-- {
-					GCOp, ok := rmd.data.Changes.Ops[j].(*GCOp)
-					if !ok {
-						continue
+				if rmd.data.LastGCRevision >= MetadataRevisionInitial {
+					fbm.log.CDebugf(ctx, "Found last gc revision %d in "+
+						"MD revision %d", rmd.data.LastGCRevision,
+						rmd.Revision())
+					lastGCRev = rmd.data.LastGCRevision
+				} else {
+					for j := len(rmd.data.Changes.Ops) - 1; j >= 0; j-- {
+						GCOp, ok := rmd.data.Changes.Ops[j].(*GCOp)
+						if !ok {
+							continue
+						}
+						fbm.log.CDebugf(ctx, "Found last gc op: %s", GCOp)
+						lastGCRev = GCOp.LatestRev
+						break
 					}
-					fbm.log.CDebugf(ctx, "Found last gc op: %s", GCOp)
-					lastGCRev = GCOp.LatestRev
-					break
 				}
 			}
 
@@ -756,6 +772,20 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 		}
 
 		if numNew < maxMDsAtATime || currHead < MetadataRevisionInitial {
+			break
+		}
+
+		if lastGCRev != MetadataRevisionUninitialized &&
+			currHead < head.Revision()-numMaxRevisionsPerQR {
+			// If we've already found the latest gc rev, we should
+			// avoid scanning too far back into the update history
+			// because it's expensive.  We can rely on the fact that
+			// eventually there will be a lull in updates, and we'll
+			// be able to find the mostRecentOldEnoughRev quickly by
+			// just looking at the head.
+			fbm.log.CDebugf(ctx, "Stopping QR early because we can't easily "+
+				"find the most recent old-enough revision (last GC rev %d)",
+				lastGCRev)
 			break
 		}
 	}

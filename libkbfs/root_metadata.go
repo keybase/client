@@ -71,6 +71,10 @@ type PrivateMetadata struct {
 	// The block changes done as part of the update that created this MD
 	Changes BlockChanges
 
+	// The last revision up to and including which garbage collection
+	// was performed on this TLF.
+	LastGCRevision MetadataRevision `codec:"lgc"`
+
 	codec.UnknownFieldSetHandler
 
 	// When the above Changes field gets unembedded into its own
@@ -349,6 +353,12 @@ func (md *RootMetadata) ClearBlockChanges() {
 	md.data.Changes.sizeEstimate = 0
 	md.data.Changes.Info = BlockInfo{}
 	md.data.Changes.Ops = nil
+}
+
+// SetLastGCRevision sets the last revision up to and including which
+// garbage collection was performed on this TLF.
+func (md *RootMetadata) SetLastGCRevision(rev MetadataRevision) {
+	md.data.LastGCRevision = rev
 }
 
 // updateFromTlfHandle updates the current RootMetadata's fields to

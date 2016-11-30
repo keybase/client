@@ -75,6 +75,7 @@ func makeFakePrivateMetadataFuture(t *testing.T) privateMetadataFuture {
 				},
 				0,
 			},
+			0,
 			codec.UnknownFieldSetHandler{},
 			BlockChanges{},
 		},
