@@ -2,8 +2,6 @@
 import Render from './index.render'
 import type {DumbComponentMap} from '../../../constants/types/more'
 
-export type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'
-
 const baseMock = {
   mode: 'codePageModeScanCode',
   textCode: 'derive jump shop federal member moral clip prevent vast wear critic purple mistake',
@@ -71,7 +69,6 @@ const enterTextMock = {
 const dumbComponentMap: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
-    'Normal': baseMock,
     'Scan Code (Mobile)': scanCodeDeviceMock,
     'Show Text (Mobile)': showTextDeviceMock,
     'Enter Text (Mobile)': enterTextDeviceMock,
