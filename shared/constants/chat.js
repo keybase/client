@@ -1,7 +1,6 @@
 // @flow
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
-import moment from 'moment'
 import {Set, List, Map, Record} from 'immutable'
 
 import type {UserListItem} from '../common-adapters/usernames'
@@ -20,6 +19,11 @@ export type ConversationIDKey = string
 export type ParticipantItem = UserListItem
 
 export type MessageID = RPCMessageID
+
+export type ClientMessage = TimestampMessage
+export type ServerMessage = TextMessage | ErrorMessage | UnhandledMessage
+
+export type Message = ClientMessage | ServerMessage
 
 export type TextMessage = {
   type: 'Text',
@@ -50,7 +54,12 @@ export type UnhandledMessage = {
   messageID: MessageID,
 }
 
-export type Message = TextMessage | ErrorMessage | UnhandledMessage
+export type TimestampMessage = {
+  type: 'Timestamp',
+  timestamp: number,
+}
+
+export type MaybeTimestamp = TimestampMessage | null
 
 export const ConversationStateRecord = Record({
   messages: List(),
@@ -116,7 +125,8 @@ export type State = Record<{
   metaData: Map<string, MetaData>,
 }>
 
-const maxMessagesToLoadAtATime = 50
+export const howLongBetweenTimestampsMs = 1000 * 60 * 15
+export const maxMessagesToLoadAtATime = 50
 
 export const appendMessages = 'chat:appendMessages'
 export const selectConversation = 'chat:selectConversation'
@@ -138,12 +148,12 @@ export const updatedMetadata = 'chat:updatedMetadata'
 export const editMessage = 'chat:editMessage'
 export const deleteMessage = 'chat:deleteMessage'
 
-export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
+export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
-export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>, moreToLoad: boolean, paginationNext: ?Buffer}>
+export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
 export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
@@ -179,21 +189,6 @@ function keyToConversationID (key: ConversationIDKey): ConversationID {
   return Buffer.from(key, 'hex')
 }
 
-function timestampToString (time: number, nowOverride?: number): string {
-  const m = moment(time)
-  const now = nowOverride ? moment(nowOverride) : moment()
-  const today = now.clone().startOf('day')
-  const weekOld = today.clone().subtract(7, 'days')
-
-  if (m.isSame(today, 'd')) {
-    return m.format('h:mm A')
-  } else if (m.isAfter(weekOld)) {
-    return m.format('dddd')
-  }
-
-  return m.format('MMM D')
-}
-
 // This is emoji aware hence all the weird ... stuff. See https://mathiasbynens.be/notes/javascript-unicode#iterating-over-symbols
 function makeSnippet (message: ?string = '', max: number) {
   // $FlowIssue flow doesn't understand spread + strings
@@ -213,7 +208,5 @@ export {
   conversationIDToKey,
   keyToConversationID,
   makeSnippet,
-  maxMessagesToLoadAtATime,
   participantFilter,
-  timestampToString,
 }

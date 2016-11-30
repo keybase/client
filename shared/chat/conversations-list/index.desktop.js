@@ -2,7 +2,8 @@
 import React from 'react'
 import {Box, Text, Avatar, Icon, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
-import {participantFilter, timestampToString} from '../../constants/chat'
+import {participantFilter} from '../../constants/chat'
+import {formatTimeForConversationList} from '../../util/timestamp'
 
 import type {Props} from './'
 
@@ -37,7 +38,7 @@ const ConversationList = ({inbox, onSelectConversation, selectedConversation, on
             <Text backgroundMode='Terminal' type='BodySmall' style={noWrapStyle}>{conversation.get('snippet')}</Text>
           </Box>
         </Box>
-        <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{timestampToString(conversation.get('time'), nowOverride)}</Text>
+        <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
       </Box>)
     })}
   </Box>
