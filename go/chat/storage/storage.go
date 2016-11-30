@@ -364,3 +364,40 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 
 	return s.fetchUpToMsgIDLocked(ctx, conv.Metadata.ConversationID, uid, conv.ReaderInfo.MaxMsgid, query, pagination)
 }
+
+func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgIDs []chat1.MessageID) ([]*chat1.MessageUnboxed, error) {
+
+	// Fetch secret key
+	key, ierr := getSecretBoxKey(s.G(), s.getSecretUI)
+	if ierr != nil {
+		return nil,
+			libkb.ChatStorageMiscError{Msg: "unable to get secret key: " + ierr.Error()}
+	}
+
+	// Init storage engine first
+	var err libkb.ChatStorageError
+	ctx, err = s.engine.init(ctx, key, convID, uid)
+	if err != nil {
+		return nil, s.MaybeNuke(false, err, convID, uid)
+	}
+
+	// Run seek looking for each message
+	var res []*chat1.MessageUnboxed
+	for _, msgID := range msgIDs {
+		rc := newSimpleResultCollector(1)
+		var sres []chat1.MessageUnboxed
+		if err = s.engine.readMessages(ctx, rc, convID, uid, msgID); err != nil {
+			if _, ok := err.(libkb.ChatStorageMissError); ok {
+				res = append(res, nil)
+				continue
+			} else {
+				return nil, s.MaybeNuke(false, err, convID, uid)
+			}
+		}
+		sres = rc.result()
+		res = append(res, &sres[0])
+	}
+
+	return res, nil
+}
