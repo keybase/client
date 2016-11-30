@@ -784,42 +784,6 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 	if err != nil {
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
-	/*
-
-		marg := chat1.GetMessagesLocalArg{
-			ConversationID: arg.ConversationID,
-			MessageIDs:     []chat1.MessageID{arg.MessageID},
-			IdentifyBehavior: arg.IdentifyBehavior,
-		}
-		msgs, err := h.GetMessagesLocal(ctx, marg)
-		if err != nil {
-			return chat1.DownloadAttachmentLocalRes{}, err
-		}
-		if len(msgs.Messages) == 0 {
-			return chat1.DownloadAttachmentLocalRes{}, libkb.NotFoundError{}
-		}
-		first := msgs.Messages[0]
-		st, err := first.State()
-		if err != nil {
-			return chat1.DownloadAttachmentLocalRes{}, err
-		}
-		if st == chat1.MessageUnboxedState_ERROR {
-			em := first.Error().ErrMsg
-			// XXX temporary to fix master:
-			// (wanted to return ChatUnboxingError)
-			return chat1.DownloadAttachmentLocalRes{}, errors.New(em)
-		}
-
-		msg := first.Valid()
-		body := msg.MessageBody
-		if t, err := body.MessageType(); err != nil {
-			return chat1.DownloadAttachmentLocalRes{}, err
-		} else if t != chat1.MessageType_ATTACHMENT {
-			return chat1.DownloadAttachmentLocalRes{}, errors.New("not an attachment message")
-		}
-
-		attachment := msg.MessageBody.Attachment()
-	*/
 
 	attachment, limits, err := h.attachmentMessage(ctx, arg.ConversationID, arg.MessageID)
 
@@ -954,11 +918,6 @@ func (h *chatLocalHandler) assetsForMessage(ctx context.Context, conversationID 
 	}
 
 	return assets, nil
-}
-
-type attachmentMessageRes struct {
-	attachment chat1.MessageAttachment
-	limits     []chat1.RateLimit
 }
 
 func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID) (*chat1.MessageAttachment, []chat1.RateLimit, error) {
