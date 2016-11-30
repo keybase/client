@@ -426,7 +426,7 @@ function lintMessage (name, message) {
 function lintJSON(json) {
   if (isNotCapitalized(json.protocol)) {
     // Ignore protocol name lint errors by default
-    lintError(`Protocol names should be capitalized: ${json.protocol}`, 'ignore')
+    // lintError(`Protocol names should be capitalized: ${json.protocol}`, 'ignore')
   }
 }
 
