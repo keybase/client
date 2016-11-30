@@ -846,6 +846,8 @@ export type MessageUnboxedValid = {
   senderDeviceName: string,
   senderDeviceType: string,
   headerHash: Hash,
+  headerSignature?: ?SignatureInfo,
+  fromRevokedDevice: bool,
 }
 
 export type NewConversationInfo = {

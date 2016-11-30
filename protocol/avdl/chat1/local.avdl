@@ -136,6 +136,11 @@ protocol local {
     string senderDeviceName;
     string senderDeviceType;
     Hash headerHash;
+    union {null, SignatureInfo} headerSignature;
+    // Whether the message was sent by a device that is now revoked.
+    // We aren't sure whether the device was revoked when the message was sent.
+    // Re-evaluated when unboxed or pulled from the cache.
+    bool fromRevokedDevice;
   }
 
   record MessageUnboxedError {
