@@ -341,8 +341,9 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = true, false
 		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Pagination: &chat1.Pagination{Num: arg.UnreadFirstLimit.AtMost},
-			Query:      &query,
+			Pagination:       &chat1.Pagination{Num: arg.UnreadFirstLimit.AtMost},
+			Query:            &query,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}); err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
@@ -364,7 +365,7 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 				return chat1.GetInboxSummaryForCLILocalRes{}, err
 			}
 			res.RateLimits = append(res.RateLimits, gires.RateLimits...)
-			res.Conversations = gires.Conversations
+			res.Conversations = append(res.Conversations, gires.Conversations...)
 		}
 	} else {
 		if arg.ActivitySortedLimit <= 0 {
@@ -373,8 +374,9 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = false, false
 		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Pagination: &chat1.Pagination{Num: arg.ActivitySortedLimit},
-			Query:      &query,
+			Pagination:       &chat1.Pagination{Num: arg.ActivitySortedLimit},
+			Query:            &query,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}); err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
@@ -402,6 +404,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 		Query: &chat1.GetInboxLocalQuery{
 			ConvID: &arg.ConversationId,
 		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("getting conversation %v error: %v", arg.ConversationId, err)
@@ -430,8 +433,9 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	}
 
 	tv, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
-		ConversationID: arg.ConversationId,
-		Query:          &query,
+		ConversationID:   arg.ConversationId,
+		Query:            &query,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return chat1.GetConversationForCLILocalRes{}, err
