@@ -18,6 +18,26 @@ def checkout_keybase(repo, revision) {
     }
 }
 
+def publish(bucket, excluded, source) {
+    step([
+        $class: 'S3BucketPublisher',
+        dontWaitForConcurrentBuildCompletion: false,
+        entries: [[
+            bucket: bucket,
+            excludedFile: excluded,
+            flatten: true,
+            noUploadOnFailure: true,
+            selectedRegion: 'us-east-1',
+            sourceFile: source,
+            storageClass: 'STANDARD',
+            uploadFromSlave: true,
+        ]],
+        profileName: 'keybase',
+        userMetadata: []
+    ])
+
+}
+
 def doBuild() {
     stage('Checkout Client') {
         // Reset symlink due to node/git/windows problems
@@ -46,55 +66,23 @@ def doBuild() {
         bat 'call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\doinstaller_wix.cmd'
         archiveArtifacts 'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.*'
     }
-    
-    if (UpdateChannel != "None"){    
-        stage('Publish to S3') {
-            step([
-                $class: 'S3BucketPublisher',
-                dontWaitForConcurrentBuildCompletion: false,
-                entries: [[
-                    bucket: 'prerelease.keybase.io/windows',
-                    excludedFile: '',
-                    flatten: true,
-                    gzipFiles: false,
-                    keepForever: false,
-                    managedArtifacts: false,
-                    noUploadOnFailure: true,
-                    selectedRegion: 'us-east-1',
-                    showDirectlyInBrowser: false,
-                    sourceFile: 'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.exe',
-                    storageClass: 'STANDARD',
-                    uploadFromSlave: true,
-                    useServerSideEncryption: false
-                ]],
-                profileName: 'keybase',
-                userMetadata: []
-            ])
-            step([
-                $class: 'S3BucketPublisher',
-                dontWaitForConcurrentBuildCompletion: false,
-                entries: [[
-                    bucket: 'prerelease.keybase.io',
-                    excludedFile: '',
-                    flatten: true,
-                    gzipFiles: false,
-                    keepForever: false,
-                    managedArtifacts: false,
-                    noUploadOnFailure: true,
-                    selectedRegion: 'us-east-1',
-                    showDirectlyInBrowser: false,
-                    sourceFile: 'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json',
-                    storageClass: 'STANDARD',
-                    uploadFromSlave: true,
-                    useServerSideEncryption: false
-                ]],
-            profileName: 'keybase',
-            userMetadata: []])
+
+    stage('Publish to S3') {
+        if (UpdateChannel != "None"){    
+            publish('prerelease.keybase.io/windows', 
+                    '', 
+                    'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.exe') 
+            publish('prerelease.keybase.io', 
+                    '', 
+                    'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json') 
+        } else {
+            echo "No update channel"
         }
     }
 
-    if (UpdateChannel == "Smoke"){
-        stage('Invoke SmokeB build') {
+    
+    stage('Invoke SmokeB build') {
+        if (UpdateChannel == "Smoke"){
             def clientCommit = getCommit('src\\github.com\\keybase\\client')
             def kbfsCommit =  getCommit('src\\github.com\\keybase\\kbfs')
             def updaterCommit =  getCommit('src\\github.com\\keybase\\go-updater')
@@ -116,31 +104,15 @@ def doBuild() {
                 )],
                 wait: false
             ])
+        } else {
+            echo "Not a smoke build"
         }
     }
-    if (UpdateChannel == "Smoke2") {
-        stage('Publish smoke updater jsons to S3') {
-            step([
-                $class: 'S3BucketPublisher',
-                dontWaitForConcurrentBuildCompletion: false,
-                entries: [[
-                    bucket: 'prerelease.keybase.io/windows-support',
-                    excludedFile: 'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json',
-                    flatten: true,
-                    gzipFiles: false,
-                    keepForever: false,
-                    managedArtifacts: false,
-                    noUploadOnFailure: true,
-                    selectedRegion: 'us-east-1',
-                    showDirectlyInBrowser: false,
-                    sourceFile: 'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.json',
-                    storageClass: 'STANDARD',
-                    uploadFromSlave: true,
-                    useServerSideEncryption: false
-                ]],
-                profileName: 'keybase',
-                userMetadata: []
-            ])
+    stage('Publish smoke updater jsons to S3') {
+        if (UpdateChannel == "Smoke2") {
+            publish('prerelease.keybase.io/windows-support', 
+                'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json',
+                'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.json') 
             def smokeBSemVer = ''
             dir('src\\github.com\\keybase\\client\\go\\keybase') {
                 smokeBSemVer = bat(returnStdout: true, script: '@echo off && winresource.exe -cv').trim()
@@ -154,6 +126,8 @@ def doBuild() {
                     bat "release announce-build --build-a=\"${params.SmokeASemVer}\" --build-b=\"${smokeBSemVer}\" --platform=\"windows\""
                 }
             }
+        } else {
+            echo "Non smoke build"
         }
     }
 }
