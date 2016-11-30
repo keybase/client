@@ -21,8 +21,12 @@ type Inbox struct {
 }
 
 type InboxSource interface {
+	// Read reads inbox from the source. We specify the identify behavior as a
+	// parameter here to give it a chance to re-run identify an get latest
+	// identify results even when pulling from local storage. The local storage
+	// doesn't include identify information such as proof breaks.
 	Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxLocalQuery,
-		p *chat1.Pagination) (Inbox, *chat1.RateLimit, error)
+		p *chat1.Pagination, identifyBehavior keybase1.TLFIdentifyBehavior) (Inbox, *chat1.RateLimit, error)
 }
 
 type RemoteInboxSource struct {
@@ -45,10 +49,13 @@ func NewRemoteInboxSource(g *libkb.GlobalContext, boxer *Boxer, ri func() chat1.
 	}
 }
 
-func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxLocalQuery,
-	p *chat1.Pagination) (Inbox, *chat1.RateLimit, error) {
+func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
+	query *chat1.GetInboxLocalQuery, p *chat1.Pagination,
+	identifyBehavior keybase1.TLFIdentifyBehavior) (
+	Inbox, *chat1.RateLimit, error) {
 
-	rquery, err := utils.GetInboxQueryLocalToRemote(ctx, s.getTlfInterface(), query)
+	rquery, _, err := utils.GetInboxQueryLocalToRemote(ctx,
+		s.getTlfInterface(), query, identifyBehavior)
 	if err != nil {
 		return Inbox{}, nil, err
 	}
@@ -62,7 +69,8 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID, query *ch
 
 	var res []chat1.ConversationLocal
 	ctx, _ = utils.GetUserInfoMapper(ctx, s.G())
-	convLocals, err := s.localizeConversationsPipeline(ctx, ib.Inbox.Full().Conversations)
+	convLocals, err := s.localizeConversationsPipeline(ctx,
+		ib.Inbox.Full().Conversations, identifyBehavior)
 	if err != nil {
 		return Inbox{}, ib.RateLimit, err
 	}
@@ -70,8 +78,8 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID, query *ch
 		if rquery != nil && rquery.TlfID != nil {
 			// Verify using signed TlfName to make sure server returned genuine
 			// conversation.
-			signedTlfID, _, err := utils.CryptKeysWrapper(ctx, s.getTlfInterface(),
-				convLocal.Info.TlfName)
+			signedTlfID, _, _, err := utils.CryptKeysWrapper(ctx, s.getTlfInterface(),
+				convLocal.Info.TlfName, identifyBehavior)
 			if err != nil {
 				return Inbox{}, ib.RateLimit, err
 			}
@@ -122,17 +130,26 @@ func (s *HybridInboxSource) isSaveable(query *chat1.GetInboxLocalQuery, p *chat1
 }
 
 func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInboxLocalQuery,
-	p *chat1.Pagination) (Inbox, *chat1.RateLimit, error) {
+	p *chat1.Pagination, identifyBehavior keybase1.TLFIdentifyBehavior) (Inbox, *chat1.RateLimit, error) {
 
 	// Try local storage
 	saveable := s.isSaveable(query, p)
 	if saveable {
-		vers, convs, cerr := s.inbox.Read(query, p)
+		vers, convsStorage, cerr := s.inbox.Read(query, p)
 		if cerr != nil {
 			if _, ok := cerr.(libkb.ChatStorageMissError); !ok {
 				s.G().Log.Error("HybridInboxSource: error fetch inbox locally: %s", cerr.Error())
 			}
 		} else {
+			convs := make([]chat1.ConversationLocal, 0, len(convsStorage))
+			for _, cs := range convsStorage {
+				_, _, failures, err := utils.CryptKeysWrapper(ctx,
+					s.remote.getTlfInterface(), cs.Info.TlfName, identifyBehavior)
+				if err != nil {
+					return Inbox{}, nil, err
+				}
+				convs = append(convs, storage.ToConversationLocal(cs, failures))
+			}
 			s.G().Log.Debug("HybridInboxSource: hit local storage: uid: %s convs: %d", uid, len(convs))
 			// TODO: pagination
 			return Inbox{
@@ -144,14 +161,18 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, query *ch
 	}
 
 	// Go to the remote on miss
-	ib, rl, err := s.remote.Read(ctx, uid, query, p)
+	ib, rl, err := s.remote.Read(ctx, uid, query, p, identifyBehavior)
 	if err != nil {
 		return Inbox{}, rl, err
 	}
 
 	// Write out to local storage
 	if saveable {
-		if cerr := s.inbox.Replace(ib.Version, ib.Convs); cerr != nil {
+		convs := make([]storage.ConversationStorage, 0, len(ib.Convs))
+		for _, c := range ib.Convs {
+			convs = append(convs, storage.FromConversationLocal(c))
+		}
+		if cerr := s.inbox.Replace(ib.Version, convs); cerr != nil {
 			return Inbox{}, rl, cerr
 		}
 	}
@@ -159,7 +180,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, query *ch
 	return ib, rl, nil
 }
 
-func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation) ([]chat1.ConversationLocal, error) {
+func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior) ([]chat1.ConversationLocal, error) {
 	// Fetch conversation local information in parallel
 	ctx, _ = utils.GetUserInfoMapper(ctx, s.G())
 	type jobRes struct {
@@ -187,7 +208,7 @@ func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, c
 	for i := 0; i < 10; i++ {
 		eg.Go(func() error {
 			for conv := range convCh {
-				convLocal, err := s.localizeConversation(ctx, conv.conv)
+				convLocal, err := s.localizeConversation(ctx, conv.conv, identifyBehavior)
 				if err != nil {
 					return err
 				}
@@ -219,7 +240,7 @@ func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, c
 }
 
 func (s *RemoteInboxSource) localizeConversation(
-	ctx context.Context, conversationRemote chat1.Conversation) (
+	ctx context.Context, conversationRemote chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior) (
 	conversationLocal chat1.ConversationLocal, err error) {
 
 	ctx, uimap := utils.GetUserInfoMapper(ctx, s.G())
@@ -268,12 +289,15 @@ func (s *RemoteInboxSource) localizeConversation(
 
 	// Verify ConversationID is derivable from ConversationIDTriple
 	if !conversationLocal.Info.Triple.Derivable(conversationLocal.Info.Id) {
-		errMsg := "unexpected response from server: conversation ID is not derivable from conversation triple."
+		errMsg := fmt.Sprintf("unexpected response from server: conversation ID is not derivable from conversation triple. triple: %#+v; Id: %x",
+			conversationLocal.Info.Triple, conversationLocal.Info.Id)
 		return chat1.ConversationLocal{Error: &errMsg}, nil
 	}
 
-	if _, conversationLocal.Info.TlfName, err = utils.CryptKeysWrapper(ctx, s.getTlfInterface(),
-		conversationLocal.Info.TlfName); err != nil {
+	if _, conversationLocal.Info.TlfName,
+		conversationLocal.IdentifyFailures, err =
+		utils.CryptKeysWrapper(ctx, s.getTlfInterface(),
+			conversationLocal.Info.TlfName, identifyBehavior); err != nil {
 		return chat1.ConversationLocal{}, err
 	}
 
