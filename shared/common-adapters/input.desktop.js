@@ -245,7 +245,7 @@ const _bodySmallTextStyle = getTextStyle('BodySmall')
 const _errorStyle = {
   textAlign: 'center',
   width: '100%',
-  marginTop:globalMargins.xtiny,
+  marginTop: globalMargins.xtiny,
 }
 
 const _floatingStyle = {
