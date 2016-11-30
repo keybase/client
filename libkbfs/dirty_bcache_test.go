@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/tlf"
 
 	"golang.org/x/net/context"
@@ -50,14 +51,14 @@ func testExpectedMissingDirty(t *testing.T, id BlockID,
 }
 
 func TestDirtyBcachePut(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
+	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, logger.NewTestLogger(t),
 		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 	testDirtyBcachePut(t, fakeBlockID(1), dirtyBcache)
 }
 
 func TestDirtyBcachePutDuplicate(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
+	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, logger.NewTestLogger(t),
 		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 	id1 := fakeBlockID(1)
@@ -103,7 +104,7 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 }
 
 func TestDirtyBcacheDelete(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
+	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, logger.NewTestLogger(t),
 		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 
@@ -126,7 +127,7 @@ func TestDirtyBcacheDelete(t *testing.T) {
 
 func TestDirtyBcacheRequestPermission(t *testing.T) {
 	bufSize := int64(5)
-	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
+	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, logger.NewTestLogger(t),
 		bufSize, bufSize*2, bufSize)
 	defer dirtyBcache.Shutdown()
 	blockedChan := make(chan int64, 1)
@@ -201,7 +202,7 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 	bufSize := int64(10)
 	clock, now := newTestClockAndTimeNow()
-	dirtyBcache := NewDirtyBlockCacheStandard(clock, testLoggerMaker(t),
+	dirtyBcache := NewDirtyBlockCacheStandard(clock, logger.NewTestLogger(t),
 		bufSize, bufSize*2, bufSize)
 	defer dirtyBcache.Shutdown()
 	// no backpressure yet
@@ -242,7 +243,7 @@ func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 
 func TestDirtyBcacheResetBufferCap(t *testing.T) {
 	bufSize := int64(5)
-	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
+	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, logger.NewTestLogger(t),
 		bufSize, bufSize*2, bufSize)
 	defer dirtyBcache.Shutdown()
 	dirtyBcache.resetBufferCapTime = 1 * time.Millisecond

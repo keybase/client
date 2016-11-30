@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -28,7 +29,8 @@ const (
 // BlockServerRemote implements the BlockServer interface and
 // represents a remote KBFS block server.
 type BlockServerRemote struct {
-	config     Config
+	codec      kbfscodec.Codec
+	cig        currentInfoGetter
 	shutdownFn func()
 	putClient  keybase1.BlockInterface
 	getClient  keybase1.BlockInterface
@@ -134,11 +136,13 @@ var _ rpc.ConnectionHandler = (*blockServerRemoteClientHandler)(nil)
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
-func NewBlockServerRemote(config Config, blkSrvAddr string, ctx Context) *BlockServerRemote {
-	log := config.MakeLogger("BSR")
+func NewBlockServerRemote(codec kbfscodec.Codec, signer kbfscrypto.Signer,
+	cig currentInfoGetter, log logger.Logger,
+	blkSrvAddr string, ctx Context) *BlockServerRemote {
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
-		config:     config,
+		codec:      codec,
+		cig:        cig,
 		log:        log,
 		deferLog:   deferLog,
 		blkSrvAddr: blkSrvAddr,
@@ -154,7 +158,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string, ctx Context) *BlockS
 		bs:   bs,
 		name: "BlockServerRemotePut",
 	}
-	bs.putAuthToken = kbfscrypto.NewAuthToken(config.Crypto(),
+	bs.putAuthToken = kbfscrypto.NewAuthToken(signer,
 		BServerTokenServer, BServerTokenExpireIn,
 		"libkbfs_bserver_remote", VersionString(), putClientHandler)
 	putClientHandler.authToken = bs.putAuthToken
@@ -162,7 +166,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string, ctx Context) *BlockS
 		bs:   bs,
 		name: "BlockServerRemoteGet",
 	}
-	bs.getAuthToken = kbfscrypto.NewAuthToken(config.Crypto(),
+	bs.getAuthToken = kbfscrypto.NewAuthToken(signer,
 		BServerTokenServer, BServerTokenExpireIn,
 		"libkbfs_bserver_remote", VersionString(), getClientHandler)
 	getClientHandler.authToken = bs.getAuthToken
@@ -171,7 +175,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string, ctx Context) *BlockS
 		kbfscrypto.GetRootCerts(blkSrvAddr),
 		bServerErrorUnwrapper{}, putClientHandler,
 		false, /* connect only on-demand */
-		ctx.NewRPCLogFactory(), libkb.WrapError, config.MakeLogger(""),
+		ctx.NewRPCLogFactory(), libkb.WrapError, log,
 		LogTagsFromContext)
 	bs.putClient = keybase1.BlockClient{Cli: putConn.GetClient()}
 	putClientHandler.client = bs.putClient
@@ -179,7 +183,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string, ctx Context) *BlockS
 		kbfscrypto.GetRootCerts(blkSrvAddr),
 		bServerErrorUnwrapper{}, getClientHandler,
 		false, /* connect only on-demand */
-		ctx.NewRPCLogFactory(), libkb.WrapError, config.MakeLogger(""),
+		ctx.NewRPCLogFactory(), libkb.WrapError, log,
 		LogTagsFromContext)
 	bs.getClient = keybase1.BlockClient{Cli: getConn.GetClient()}
 	getClientHandler.client = bs.getClient
@@ -192,12 +196,13 @@ func NewBlockServerRemote(config Config, blkSrvAddr string, ctx Context) *BlockS
 }
 
 // For testing.
-func newBlockServerRemoteWithClient(config Config,
+func newBlockServerRemoteWithClient(codec kbfscodec.Codec,
+	cig currentInfoGetter, log logger.Logger,
 	client keybase1.BlockInterface) *BlockServerRemote {
-	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
-		config:    config,
+		codec:     codec,
+		cig:       cig,
 		putClient: client,
 		getClient: client,
 		log:       log,
@@ -221,7 +226,7 @@ func (b *BlockServerRemote) resetAuth(
 		b.log.Debug("BlockServerRemote: resetAuth called, err: %#v", err)
 	}()
 
-	_, _, err = b.config.KBPKI().GetCurrentUserInfo(ctx)
+	_, _, err = b.cig.GetCurrentUserInfo(ctx)
 	if err != nil {
 		b.log.Debug("BlockServerRemote: User logged out, skipping resetAuth")
 		return nil
@@ -234,11 +239,11 @@ func (b *BlockServerRemote) resetAuth(
 	}
 
 	// get UID, deviceKID and normalized username
-	username, uid, err := b.config.KBPKI().GetCurrentUserInfo(ctx)
+	username, uid, err := b.cig.GetCurrentUserInfo(ctx)
 	if err != nil {
 		return err
 	}
-	key, err := b.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	key, err := b.cig.GetCurrentVerifyingKey(ctx)
 	if err != nil {
 		return err
 	}
@@ -527,7 +532,7 @@ func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *UserQuo
 	if err != nil {
 		return nil, err
 	}
-	return UserQuotaInfoDecode(res, b.config.Codec())
+	return UserQuotaInfoDecode(res, b.codec)
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.

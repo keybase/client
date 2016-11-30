@@ -15,17 +15,25 @@ import (
 	"golang.org/x/net/context"
 )
 
-// KBPKIClient uses a config's KeybaseService.
+// keybaseServiceOwner is a wrapper around a KeybaseService, to allow
+// switching the underlying service at runtime. It is usually
+// implemented by Config.
+type keybaseServiceOwner interface {
+	KeybaseService() KeybaseService
+}
+
+// KBPKIClient uses a KeybaseService.
 type KBPKIClient struct {
-	config Config
-	log    logger.Logger
+	serviceOwner keybaseServiceOwner
+	log          logger.Logger
 }
 
 var _ KBPKI = (*KBPKIClient)(nil)
 
-// NewKBPKIClient returns a new KBPKIClient with the given Config.
-func NewKBPKIClient(config Config) *KBPKIClient {
-	return &KBPKIClient{config, config.MakeLogger("")}
+// NewKBPKIClient returns a new KBPKIClient with the given service.
+func NewKBPKIClient(
+	serviceOwner keybaseServiceOwner, log logger.Logger) *KBPKIClient {
+	return &KBPKIClient{serviceOwner, log}
 }
 
 // GetCurrentToken implements the KBPKI interface for KBPKIClient.
@@ -74,13 +82,13 @@ func (k *KBPKIClient) GetCurrentVerifyingKey(ctx context.Context) (
 // Resolve implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Resolve(ctx context.Context, assertion string) (
 	libkb.NormalizedUsername, keybase1.UID, error) {
-	return k.config.KeybaseService().Resolve(ctx, assertion)
+	return k.serviceOwner.KeybaseService().Resolve(ctx, assertion)
 }
 
 // Identify implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
 	UserInfo, error) {
-	return k.config.KeybaseService().Identify(ctx, assertion, reason)
+	return k.serviceOwner.KeybaseService().Identify(ctx, assertion, reason)
 }
 
 // GetNormalizedUsername implements the KBPKI interface for
@@ -164,7 +172,7 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	// If the first attempt couldn't find the key, try again after
 	// clearing our local cache.  We might have stale info if the
 	// service hasn't learned of the users' new key yet.
-	k.config.KeybaseService().FlushUserFromLocalCache(ctx, uid)
+	k.serviceOwner.KeybaseService().FlushUserFromLocalCache(ctx, uid)
 
 	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
 	if err != nil {
@@ -187,7 +195,7 @@ func (k *KBPKIClient) HasUnverifiedVerifyingKey(
 	if ok {
 		return nil
 	}
-	k.config.KeybaseService().FlushUserUnverifiedKeysFromLocalCache(ctx, uid)
+	k.serviceOwner.KeybaseService().FlushUserUnverifiedKeysFromLocalCache(ctx, uid)
 	ok, err = k.hasUnverifiedVerifyingKey(ctx, uid, verifyingKey)
 	if err != nil {
 		return err
@@ -210,38 +218,38 @@ func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
 
 func (k *KBPKIClient) loadUserPlusKeys(ctx context.Context, uid keybase1.UID) (
 	UserInfo, error) {
-	return k.config.KeybaseService().LoadUserPlusKeys(ctx, uid)
+	return k.serviceOwner.KeybaseService().LoadUserPlusKeys(ctx, uid)
 }
 
 func (k *KBPKIClient) session(ctx context.Context) (SessionInfo, error) {
 	const sessionID = 0
-	return k.config.KeybaseService().CurrentSession(ctx, sessionID)
+	return k.serviceOwner.KeybaseService().CurrentSession(ctx, sessionID)
 }
 
 // FavoriteAdd implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
-	return k.config.KeybaseService().FavoriteAdd(ctx, folder)
+	return k.serviceOwner.KeybaseService().FavoriteAdd(ctx, folder)
 }
 
 // FavoriteDelete implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
-	return k.config.KeybaseService().FavoriteDelete(ctx, folder)
+	return k.serviceOwner.KeybaseService().FavoriteDelete(ctx, folder)
 }
 
 // FavoriteList implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
 	const sessionID = 0
-	return k.config.KeybaseService().FavoriteList(ctx, sessionID)
+	return k.serviceOwner.KeybaseService().FavoriteList(ctx, sessionID)
 }
 
 // Notify implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
-	return k.config.KeybaseService().Notify(ctx, notification)
+	return k.serviceOwner.KeybaseService().Notify(ctx, notification)
 }
 
 func (k *KBPKIClient) loadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
 	[]keybase1.PublicKey, error) {
-	return k.config.KeybaseService().LoadUnverifiedKeys(ctx, uid)
+	return k.serviceOwner.KeybaseService().LoadUnverifiedKeys(ctx, uid)
 }
 
 // GetCurrentUsernameIfPossible returns the current username

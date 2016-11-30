@@ -5,8 +5,6 @@
 package libkbfs
 
 import (
-	"testing"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -44,7 +42,7 @@ func (cig singleCurrentInfoGetter) GetCurrentVerifyingKey(
 }
 
 type testMDServerLocalConfig struct {
-	t      *testing.T
+	log    logger.Logger
 	clock  Clock
 	codec  kbfscodec.Codec
 	crypto cryptoPure
@@ -52,10 +50,10 @@ type testMDServerLocalConfig struct {
 }
 
 func newTestMDServerLocalConfig(
-	t *testing.T, cig currentInfoGetter) testMDServerLocalConfig {
+	log logger.Logger, cig currentInfoGetter) testMDServerLocalConfig {
 	codec := kbfscodec.NewMsgpack()
 	return testMDServerLocalConfig{
-		t:      t,
+		log:    log,
 		clock:  newTestClockNow(),
 		codec:  codec,
 		crypto: MakeCryptoCommon(codec),
@@ -84,5 +82,5 @@ func (c testMDServerLocalConfig) MetadataVersion() MetadataVer {
 }
 
 func (c testMDServerLocalConfig) MakeLogger(module string) logger.Logger {
-	return logger.NewTestLogger(c.t)
+	return c.log
 }

@@ -60,22 +60,12 @@ func fakeMdID(b byte) MdID {
 	return MdID{h}
 }
 
-func testLoggerMaker(t logger.TestLogBackend) func(m string) logger.Logger {
-	return func(m string) logger.Logger {
-		return logger.NewTestLogger(t)
-	}
-}
-
-func setTestLogger(config Config, t logger.TestLogBackend) {
-	config.SetLoggerMaker(testLoggerMaker(t))
-}
-
 // newConfigForTest returns a ConfigLocal object suitable for use by
 // MakeTestConfigOrBust or ConfigAsUser.
 //
 // TODO: Move more common code here.
-func newConfigForTest() *ConfigLocal {
-	config := NewConfigLocal()
+func newConfigForTest(loggerFn func(module string) logger.Logger) *ConfigLocal {
+	config := NewConfigLocal(loggerFn)
 
 	bops := NewBlockOpsStandard(config, testBlockRetrievalWorkerQueueSize)
 	config.SetBlockOps(bops)
@@ -89,8 +79,9 @@ func newConfigForTest() *ConfigLocal {
 // unit-testing with the given list of users.
 func MakeTestConfigOrBust(t logger.TestLogBackend,
 	users ...libkb.NormalizedUsername) *ConfigLocal {
-	config := newConfigForTest()
-	setTestLogger(config, t)
+	config := newConfigForTest(func(m string) logger.Logger {
+		return logger.NewTestLogger(t)
+	})
 
 	kbfsOps := NewKBFSOpsStandard(config)
 	config.SetKBFSOps(kbfsOps)
@@ -106,7 +97,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 		config.Codec())
 	config.SetKeybaseService(daemon)
 
-	kbpki := NewKBPKIClient(config)
+	kbpki := NewKBPKIClient(config, config.MakeLogger(""))
 	config.SetKBPKI(kbpki)
 
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
@@ -119,19 +110,23 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	var blockServer BlockServer
 	switch {
 	case bserverAddr == TempdirServerAddr:
+		log := config.MakeLogger("BSTD")
 		var err error
 		blockServer, err = NewBlockServerTempDir(
-			blockServerLocalConfigAdapter{config})
+			config.Codec(), config.Crypto(), log)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 	case len(bserverAddr) != 0:
-		blockServer = NewBlockServerRemote(config, bserverAddr, env.NewContext())
+		bserverLog := config.MakeLogger("BSR")
+		blockServer = NewBlockServerRemote(
+			config.Codec(), config.Crypto(), config.KBPKI(),
+			bserverLog, bserverAddr, env.NewContext())
 
 	default:
-		blockServer = NewBlockServerMemory(
-			blockServerLocalConfigAdapter{config})
+		log := config.MakeLogger("BSM")
+		blockServer = NewBlockServerMemory(config.Crypto(), log)
 	}
 	config.SetBlockServer(blockServer)
 
@@ -209,8 +204,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 // ConfigAsUser clones a test configuration, setting another user as
 // the logged in user
 func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *ConfigLocal {
-	c := newConfigForTest()
-	c.SetLoggerMaker(config.loggerFn)
+	c := newConfigForTest(config.loggerFn)
 
 	kbfsOps := NewKBFSOpsStandard(c)
 	c.SetKBFSOps(kbfsOps)
@@ -232,7 +226,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	}
 	newDaemon := NewKeybaseDaemonMemory(loggedInUID, localUsers, c.Codec())
 	c.SetKeybaseService(newDaemon)
-	c.SetKBPKI(NewKBPKIClient(c))
+	c.SetKBPKI(NewKBPKIClient(c, c.MakeLogger("")))
 
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser)
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser)
@@ -241,7 +235,10 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c.noBGFlush = config.noBGFlush
 
 	if s, ok := config.BlockServer().(*BlockServerRemote); ok {
-		blockServer := NewBlockServerRemote(c, s.RemoteAddress(), env.NewContext())
+		bserverLog := config.MakeLogger("BSR")
+		blockServer := NewBlockServerRemote(c.Codec(), c.Crypto(),
+			c.KBPKI(), bserverLog, s.RemoteAddress(),
+			env.NewContext())
 		c.SetBlockServer(blockServer)
 	} else {
 		c.SetBlockServer(config.BlockServer())

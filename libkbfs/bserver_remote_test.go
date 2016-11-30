@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -27,13 +28,12 @@ type FakeBServerClient struct {
 }
 
 func NewFakeBServerClient(
-	config Config,
+	crypto cryptoPure, log logger.Logger,
 	readyChan chan<- struct{},
 	goChan <-chan struct{},
 	finishChan chan<- struct{}) *FakeBServerClient {
 	return &FakeBServerClient{
-		bserverMem: NewBlockServerMemory(
-			blockServerLocalConfigAdapter{config}),
+		bserverMem: NewBlockServerMemory(crypto, log),
 		readyChan:  readyChan,
 		goChan:     goChan,
 		finishChan: finishChan,
@@ -185,11 +185,10 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
 	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"user1", "user2"})
 	currentUID := localUsers[0].UID
-	crypto := &CryptoLocal{CryptoCommon: MakeCryptoCommon(codec)}
-	config := &ConfigLocal{codec: codec, crypto: crypto}
-	setTestLogger(config, t)
-	fc := NewFakeBServerClient(config, nil, nil, nil)
-	b := newBlockServerRemoteWithClient(config, fc)
+	log := logger.NewTestLogger(t)
+	crypto := MakeCryptoCommon(codec)
+	fc := NewFakeBServerClient(crypto, log, nil, nil, nil)
+	b := newBlockServerRemoteWithClient(codec, nil, log, fc)
 
 	tlfID := tlf.FakeID(2, false)
 	bCtx := BlockContext{currentUID, "", ZeroBlockRefNonce}
@@ -199,7 +198,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	serverHalf, err := config.Crypto().MakeRandomBlockCryptKeyServerHalf()
+	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
 	if err != nil {
 		t.Errorf("Couldn't make block server key half: %v", err)
 	}
@@ -256,21 +255,18 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
 	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"testuser"})
 	currentUID := localUsers[0].UID
-	crypto := &CryptoLocal{CryptoCommon: MakeCryptoCommon(codec)}
-	config := &ConfigLocal{codec: codec, crypto: crypto}
-	setTestLogger(config, t)
-
+	crypto := MakeCryptoCommon(codec)
 	serverConn, conn := rpc.MakeConnectionForTest(t)
-	b := newBlockServerRemoteWithClient(
-		config, keybase1.BlockClient{Cli: conn.GetClient()})
+	log := logger.NewTestLogger(t)
+	b := newBlockServerRemoteWithClient(codec, nil, log,
+		keybase1.BlockClient{Cli: conn.GetClient()})
 
 	f := func(ctx context.Context) error {
 		bID := fakeBlockID(1)
 		tlfID := tlf.FakeID(2, false)
 		bCtx := BlockContext{currentUID, "", ZeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
-		serverHalf, err :=
-			config.Crypto().MakeRandomBlockCryptKeyServerHalf()
+		serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
 		if err != nil {
 			t.Errorf("Couldn't make block server key half: %v", err)
 		}

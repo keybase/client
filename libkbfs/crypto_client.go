@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
@@ -21,7 +22,6 @@ type CryptoClient struct {
 	deferLog   logger.Logger
 	client     keybase1.CryptoInterface
 	shutdownFn func()
-	config     Config
 }
 
 // cryptoWarningTime says how long we should wait before logging a
@@ -31,14 +31,13 @@ const cryptoWarningTime = 2 * time.Minute
 var _ Crypto = (*CryptoClient)(nil)
 
 // NewCryptoClient constructs a crypto client for a keybase1.CryptoInterface.
-func NewCryptoClient(config Config, client keybase1.CryptoInterface, log logger.Logger) *CryptoClient {
+func NewCryptoClient(codec kbfscodec.Codec, client keybase1.CryptoInterface, log logger.Logger) *CryptoClient {
 	deferLog := log.CloneWithAddedDepth(1)
 	return &CryptoClient{
-		CryptoCommon: MakeCryptoCommon(config.Codec()),
+		CryptoCommon: MakeCryptoCommon(codec),
 		client:       client,
 		log:          log,
 		deferLog:     deferLog,
-		config:       config,
 	}
 }
 

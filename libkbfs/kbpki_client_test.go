@@ -10,11 +10,20 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"golang.org/x/net/context"
 )
+
+type keybaseServiceSelfOwner struct {
+	service KeybaseService
+}
+
+func (o keybaseServiceSelfOwner) KeybaseService() KeybaseService {
+	return o.service
+}
 
 func makeTestKBPKIClient(t *testing.T) (
 	client *KBPKIClient, currentUID keybase1.UID, users []LocalUser) {
@@ -23,9 +32,8 @@ func makeTestKBPKIClient(t *testing.T) (
 	users = MakeLocalUsers(names)
 	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, users, codec)
-	config := &ConfigLocal{codec: codec, service: daemon}
-	setTestLogger(config, t)
-	return NewKBPKIClient(config), currentUID, users
+	return NewKBPKIClient(keybaseServiceSelfOwner{daemon},
+		logger.NewTestLogger(t)), currentUID, users
 }
 
 func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
@@ -45,9 +53,8 @@ func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 	}
 	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, users, codec)
-	config := &ConfigLocal{codec: codec, service: daemon}
-	setTestLogger(config, t)
-	return NewKBPKIClient(config), currentUID, users
+	return NewKBPKIClient(keybaseServiceSelfOwner{daemon},
+		logger.NewTestLogger(t)), currentUID, users
 }
 
 func TestKBPKIClientIdentify(t *testing.T) {
@@ -121,7 +128,7 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 	ctr := NewSafeTestReporter(t)
 	mockCtrl := gomock.NewController(ctr)
 	config := NewConfigMock(mockCtrl, ctr)
-	c := NewKBPKIClient(config)
+	c := NewKBPKIClient(config, config.MakeLogger(""))
 	config.SetKBPKI(c)
 	defer func() {
 		config.ctr.CheckForFailures()
@@ -201,9 +208,8 @@ func makeTestKBPKIClientWithUnverifiedKey(t *testing.T) (
 	}
 	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, users, codec)
-	config := &ConfigLocal{codec: codec, service: daemon}
-	setTestLogger(config, t)
-	return NewKBPKIClient(config), currentUID, users
+	return NewKBPKIClient(keybaseServiceSelfOwner{daemon},
+		logger.NewTestLogger(t)), currentUID, users
 }
 
 func TestKBPKIClientHasUnverifiedVerifyingKey(t *testing.T) {

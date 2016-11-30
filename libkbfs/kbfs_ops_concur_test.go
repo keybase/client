@@ -14,7 +14,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -925,8 +924,10 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
 	// give it a remote block server with a fake client
-	fc := NewFakeBServerClient(config, nil, nil, nil)
-	b := newBlockServerRemoteWithClient(config, fc)
+	log := config.MakeLogger("")
+	fc := NewFakeBServerClient(config.Crypto(), log, nil, nil, nil)
+	b := newBlockServerRemoteWithClient(
+		config.Codec(), config.KBPKI(), log, fc)
 	config.BlockServer().Shutdown()
 	config.SetBlockServer(b)
 
@@ -1891,7 +1892,7 @@ func TestKBFSOpsCancelGetFavorites(t *testing.T) {
 	daemon := newKeybaseDaemonRPCWithClient(
 		nil,
 		conn.GetClient(),
-		logger.NewTestLogger(t))
+		config.MakeLogger(""))
 	config.SetKeybaseService(daemon)
 
 	f := func(ctx context.Context) error {

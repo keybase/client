@@ -44,15 +44,10 @@ var _ blockServerLocal = (*BlockServerDisk)(nil)
 // newBlockServerDisk constructs a new BlockServerDisk that stores
 // its data in the given directory.
 func newBlockServerDisk(
-	config blockServerLocalConfig,
+	codec kbfscodec.Codec, crypto cryptoPure, log logger.Logger,
 	dirPath string, shutdownFunc func(logger.Logger)) *BlockServerDisk {
 	bserv := &BlockServerDisk{
-		config.Codec(),
-		config.cryptoPure(),
-		config.MakeLogger("BSD"),
-		dirPath,
-		shutdownFunc,
-		sync.RWMutex{},
+		codec, crypto, log, dirPath, shutdownFunc, sync.RWMutex{},
 		make(map[tlf.ID]*blockServerDiskTlfStorage),
 	}
 	return bserv
@@ -60,20 +55,20 @@ func newBlockServerDisk(
 
 // NewBlockServerDir constructs a new BlockServerDisk that stores
 // its data in the given directory.
-func NewBlockServerDir(
-	config blockServerLocalConfig, dirPath string) *BlockServerDisk {
-	return newBlockServerDisk(config, dirPath, nil)
+func NewBlockServerDir(codec kbfscodec.Codec, crypto cryptoPure,
+	log logger.Logger, dirPath string) *BlockServerDisk {
+	return newBlockServerDisk(codec, crypto, log, dirPath, nil)
 }
 
 // NewBlockServerTempDir constructs a new BlockServerDisk that stores its
 // data in a temp directory which is cleaned up on shutdown.
-func NewBlockServerTempDir(
-	config blockServerLocalConfig) (*BlockServerDisk, error) {
+func NewBlockServerTempDir(codec kbfscodec.Codec, crypto cryptoPure,
+	log logger.Logger) (*BlockServerDisk, error) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_bserver_tmp")
 	if err != nil {
 		return nil, err
 	}
-	return newBlockServerDisk(config, tempdir, func(log logger.Logger) {
+	return newBlockServerDisk(codec, crypto, log, tempdir, func(log logger.Logger) {
 		err := os.RemoveAll(tempdir)
 		if err != nil {
 			log.Warning("error removing %s: %s", tempdir, err)

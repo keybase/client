@@ -1455,7 +1455,6 @@ type Config interface {
 	ResetCaches()
 
 	MakeLogger(module string) logger.Logger
-	SetLoggerMaker(func(module string) logger.Logger)
 	// MetricsRegistry may be nil, which should be interpreted as
 	// not using metrics at all. (i.e., as if UseNilMetrics were
 	// set). This differs from how go-metrics treats nil Registry

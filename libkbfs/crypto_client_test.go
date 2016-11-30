@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -23,12 +24,12 @@ type FakeCryptoClient struct {
 	goChan    <-chan struct{}
 }
 
-func NewFakeCryptoClient(config Config, signingKey kbfscrypto.SigningKey,
+func NewFakeCryptoClient(
+	codec kbfscodec.Codec, signingKey kbfscrypto.SigningKey,
 	cryptPrivateKey kbfscrypto.CryptPrivateKey, readyChan chan<- struct{},
 	goChan <-chan struct{}) *FakeCryptoClient {
 	return &FakeCryptoClient{
-		Local: NewCryptoLocal(
-			config.Codec(), signingKey, cryptPrivateKey),
+		Local:     NewCryptoLocal(codec, signingKey, cryptPrivateKey),
 		readyChan: readyChan,
 		goChan:    goChan,
 	}
@@ -138,19 +139,14 @@ func (fc FakeCryptoClient) Notify(_ context.Context, s string, args interface{})
 	return fmt.Errorf("Unknown notify: %s %v", s, args)
 }
 
-func testCryptoClientConfig(t *testing.T) Config {
-	config := &ConfigLocal{codec: kbfscodec.NewMsgpack()}
-	setTestLogger(config, t)
-	return config
-}
-
 // Test that signing a message and then verifying it works.
 func TestCryptoClientSignAndVerify(t *testing.T) {
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
-	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
-	c := newCryptoClientWithClient(config, fc)
+	codec := kbfscodec.NewMsgpack()
+	log := logger.NewTestLogger(t)
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
+	c := newCryptoClientWithClient(codec, log, fc)
 
 	msg := []byte("message")
 	sigInfo, err := c.Sign(context.Background(), msg)
@@ -166,9 +162,10 @@ func TestCryptoClientSignAndVerify(t *testing.T) {
 
 // Test that canceling a signing RPC returns the correct error
 func TestCryptoClientSignCanceled(t *testing.T) {
-	config := testCryptoClientConfig(t)
+	codec := kbfscodec.NewMsgpack()
+	log := logger.NewTestLogger(t)
 	serverConn, conn := rpc.MakeConnectionForTest(t)
-	c := newCryptoClientWithClient(config, conn.GetClient())
+	c := newCryptoClientWithClient(codec, log, conn.GetClient())
 
 	f := func(ctx context.Context) error {
 		msg := []byte("message")
@@ -183,9 +180,10 @@ func TestCryptoClientSignCanceled(t *testing.T) {
 func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
-	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
-	c := newCryptoClientWithClient(config, fc)
+	codec := kbfscodec.NewMsgpack()
+	log := logger.NewTestLogger(t)
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
+	c := newCryptoClientWithClient(codec, log, fc)
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -243,9 +241,10 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
-	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
-	c := newCryptoClientWithClient(config, fc)
+	codec := kbfscodec.NewMsgpack()
+	log := logger.NewTestLogger(t)
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
+	c := newCryptoClientWithClient(codec, log, fc)
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -288,9 +287,10 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
-	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
-	c := newCryptoClientWithClient(config, fc)
+	codec := kbfscodec.NewMsgpack()
+	log := logger.NewTestLogger(t)
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
+	c := newCryptoClientWithClient(codec, log, fc)
 
 	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 0)
 
@@ -306,9 +306,10 @@ func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T)
 func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
-	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
-	c := newCryptoClientWithClient(config, fc)
+	codec := kbfscodec.NewMsgpack()
+	log := logger.NewTestLogger(t)
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
+	c := newCryptoClientWithClient(codec, log, fc)
 
 	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 4)
 	clientHalves := make([]kbfscrypto.TLFCryptKeyClientHalf, 0, 4)
@@ -366,9 +367,10 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
-	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
-	c := newCryptoClientWithClient(config, fc)
+	codec := kbfscodec.NewMsgpack()
+	log := logger.NewTestLogger(t)
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
+	c := newCryptoClientWithClient(codec, log, fc)
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -456,9 +458,10 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
-	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
-	c := newCryptoClientWithClient(config, fc)
+	codec := kbfscodec.NewMsgpack()
+	log := logger.NewTestLogger(t)
+	fc := NewFakeCryptoClient(codec, signingKey, cryptPrivateKey, nil, nil)
+	c := newCryptoClientWithClient(codec, log, fc)
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -542,9 +545,10 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 // Test that canceling a signing RPC returns the correct error
 func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
 	cryptPrivateKey := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("client crypt private")
-	config := testCryptoClientConfig(t)
+	codec := kbfscodec.NewMsgpack()
+	log := logger.NewTestLogger(t)
 	serverConn, conn := rpc.MakeConnectionForTest(t)
-	c := newCryptoClientWithClient(config, conn.GetClient())
+	c := newCryptoClientWithClient(codec, log, conn.GetClient())
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {

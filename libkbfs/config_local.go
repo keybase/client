@@ -209,7 +209,7 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 	return localUsers
 }
 
-// getDefaultCleanBlocKCacheCapacity returns the default clean block cache
+// getDefaultCleanBlockCacheCapacity returns the default clean block cache
 // capacity. If we can get total RAM of the system, we cap at the smaller of
 // <1/4 of available memory> and <MaxBlockSizeBytesDefault * 1024>; otherwise,
 // fallback to latter.
@@ -228,8 +228,13 @@ func getDefaultCleanBlockCacheCapacity() uint64 {
 // NewConfigLocal constructs a new ConfigLocal with some default
 // components that don't depend on a logger. The caller will have to
 // fill in the rest.
-func NewConfigLocal() *ConfigLocal {
-	config := &ConfigLocal{}
+//
+// TODO: Now that NewConfigLocal takes loggerFn, add more default
+// components.
+func NewConfigLocal(loggerFn func(module string) logger.Logger) *ConfigLocal {
+	config := &ConfigLocal{
+		loggerFn: loggerFn,
+	}
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
@@ -654,27 +659,22 @@ func (c *ConfigLocal) MaxDirBytes() uint64 {
 }
 
 func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
-	logger := c.MakeLogger("")
-
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.mdcache = NewMDCacheStandard(defaultMDCacheCapacity)
 	c.kcache = NewKeyCacheStandard(defaultMDCacheCapacity)
 	c.kbcache = NewKeyBundleCacheStandard(defaultMDCacheCapacity * 2)
 
+	log := c.MakeLogger("")
 	var capacity uint64
 	if c.bcache == nil {
 		capacity = getDefaultCleanBlockCacheCapacity()
-		if logger != nil {
-			logger.CDebugf(nil,
-				"setting default clean block cache capacity to %d", capacity)
-		}
+		log.Debug("setting default clean block cache capacity to %d",
+			capacity)
 	} else {
 		capacity = c.bcache.GetCleanBytesCapacity()
-		if logger != nil {
-			logger.CDebugf(nil,
-				"setting clean block cache capacity based on existing value %d", capacity)
-		}
+		log.Debug("setting clean block cache capacity based on existing value %d",
+			capacity)
 	}
 	c.bcache = NewBlockCacheStandard(10000, capacity)
 
@@ -700,7 +700,8 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	// slow connections.
 	startSyncBufferSize := minSyncBufferSize
 
-	c.dirtyBcache = NewDirtyBlockCacheStandard(c.clock, c.MakeLogger,
+	dbcLog := c.MakeLogger("DBC")
+	c.dirtyBcache = NewDirtyBlockCacheStandard(c.clock, dbcLog,
 		minSyncBufferSize, maxSyncBufferSize, startSyncBufferSize)
 	return oldDirtyBcache
 }
@@ -727,20 +728,9 @@ func (c *ConfigLocal) ResetCaches() {
 
 // MakeLogger implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) MakeLogger(module string) logger.Logger {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-	if c.loggerFn == nil {
-		return nil
-	}
+	// No need to lock since c.loggerFn is initialized once at
+	// construction.
 	return c.loggerFn(module)
-}
-
-// SetLoggerMaker implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetLoggerMaker(
-	loggerFn func(module string) logger.Logger) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.loggerFn = loggerFn
 }
 
 // MetricsRegistry implements the Config interface for ConfigLocal.
@@ -862,7 +852,6 @@ func (c *ConfigLocal) journalizeBcaches() error {
 	if !ok {
 		return fmt.Errorf("Dirty bcache unexpectedly type %T", syncCache)
 	}
-	syncCache.name = "sync"
 	jServer.delegateDirtyBlockCache = syncCache
 
 	// Make a dirty block cache specifically for the journal
@@ -871,9 +860,9 @@ func (c *ConfigLocal) journalizeBcaches() error {
 	// always set the min and max to the same thing.
 	maxSyncBufferSize :=
 		int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
-	journalCache := NewDirtyBlockCacheStandard(c.clock, c.MakeLogger,
+	log := c.MakeLogger("DBCJ")
+	journalCache := NewDirtyBlockCacheStandard(c.clock, log,
 		maxSyncBufferSize, maxSyncBufferSize, maxSyncBufferSize)
-	journalCache.name = "journal"
 	c.SetDirtyBlockCache(jServer.dirtyBlockCache(journalCache))
 
 	jServer.delegateBlockCache = c.BlockCache()

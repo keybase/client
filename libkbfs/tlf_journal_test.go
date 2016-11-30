@@ -68,6 +68,7 @@ func (d testBWDelegate) requireNextState(
 // also contains some helper functions for testing.
 type testTLFJournalConfig struct {
 	t            *testing.T
+	log          logger.Logger
 	tlfID        tlf.ID
 	splitter     BlockSplitter
 	codec        kbfscodec.Codec
@@ -140,7 +141,7 @@ func (c testTLFJournalConfig) MDServer() MDServer {
 }
 
 func (c testTLFJournalConfig) MakeLogger(module string) logger.Logger {
-	return logger.NewTestLogger(c.t)
+	return c.log
 }
 
 func (c testTLFJournalConfig) makeBlock(data []byte) (
@@ -207,11 +208,12 @@ func setupTLFJournalTest(
 		uid:          uid,
 		verifyingKey: verifyingKey,
 	}
-	mdserver, err := NewMDServerMemory(newTestMDServerLocalConfig(t, cig))
+	log := logger.NewTestLogger(t)
+	mdserver, err := NewMDServerMemory(newTestMDServerLocalConfig(log, cig))
 	require.NoError(t, err)
 
 	config = &testTLFJournalConfig{
-		t, tlf.FakeID(1, false), bsplitter, codec, crypto,
+		t, log, tlf.FakeID(1, false), bsplitter, codec, crypto,
 		nil, nil, NewMDCacheStandard(10),
 		NewReporterSimple(newTestClockNow(), 10), uid, verifyingKey, ekg, nil, mdserver,
 	}
@@ -246,7 +248,7 @@ func setupTLFJournalTest(
 		}
 	}()
 
-	delegateBlockServer := NewBlockServerMemory(config)
+	delegateBlockServer := NewBlockServerMemory(config.Crypto(), log)
 
 	tlfJournal, err = makeTLFJournal(ctx, uid, verifyingKey,
 		tempdir, config.tlfID, config, delegateBlockServer,

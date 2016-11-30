@@ -67,7 +67,13 @@ type ConfigMock struct {
 }
 
 func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
-	config := &ConfigMock{}
+	config := &ConfigMock{
+		ConfigLocal: ConfigLocal{
+			loggerFn: func(m string) logger.Logger {
+				return logger.NewTestLogger(ctr.t)
+			},
+		},
+	}
 	config.mockKbfs = NewMockKBFSOps(c)
 	config.SetKBFSOps(config.mockKbfs)
 	config.mockKbs = NewMockKeybaseService(c)
@@ -118,9 +124,6 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetRekeyQueue(config.mockRekeyQueue)
 	config.observer = &FakeObserver{}
 	config.ctr = ctr
-	config.SetLoggerMaker(func(m string) logger.Logger {
-		return logger.NewTestLogger(ctr.t)
-	})
 	// turn off background flushing by default during tests
 	config.noBGFlush = true
 

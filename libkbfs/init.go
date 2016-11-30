@@ -223,16 +223,17 @@ func makeKeyServer(config Config, serverInMemory bool, serverRootDir, keyserverA
 func makeBlockServer(config Config, serverInMemory bool, serverRootDir, bserverAddr string, ctx Context, log logger.Logger) (
 	BlockServer, error) {
 	if serverInMemory {
+		bserverLog := config.MakeLogger("BSM")
 		// local in-memory block server
-		return NewBlockServerMemory(
-			blockServerLocalConfigAdapter{config}), nil
+		return NewBlockServerMemory(config.Crypto(), bserverLog), nil
 	}
 
 	if len(serverRootDir) > 0 {
 		// local persistent block server
 		blockPath := filepath.Join(serverRootDir, "kbfs_block")
-		return NewBlockServerDir(
-			blockServerLocalConfigAdapter{config}, blockPath), nil
+		bserverLog := config.MakeLogger("BSD")
+		return NewBlockServerDir(config.Codec(), config.Crypto(),
+			bserverLog, blockPath), nil
 	}
 
 	if len(bserverAddr) == 0 {
@@ -240,7 +241,9 @@ func makeBlockServer(config Config, serverInMemory bool, serverRootDir, bserverA
 	}
 
 	log.Debug("Using remote bserver %s", bserverAddr)
-	return NewBlockServerRemote(config, bserverAddr, ctx), nil
+	bserverLog := config.MakeLogger("BSR")
+	return NewBlockServerRemote(config.Codec(), config.Crypto(),
+		config.KBPKI(), bserverLog, bserverAddr, ctx), nil
 }
 
 // InitLog sets up logging switching to a log file if necessary.
@@ -308,7 +311,21 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 		os.Exit(1)
 	}()
 
-	config := NewConfigLocal()
+	config := NewConfigLocal(func(module string) logger.Logger {
+		mname := "kbfs"
+		if module != "" {
+			mname += fmt.Sprintf("(%s)", module)
+		}
+		// Add log depth so that context-based messages get the right
+		// file printed out.
+		lg := logger.NewWithCallDepth(mname, 1)
+		if params.Debug {
+			// Turn on debugging.  TODO: allow a proper log file and
+			// style to be specified.
+			lg.Configure("", true, "")
+		}
+		return lg
+	})
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.Debug("overriding default clean block cache capacity from %d to %d",
@@ -336,23 +353,6 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 		config.SetKeyBundleCache(keyBundleCache)
 	}
 
-	// Set logging
-	config.SetLoggerMaker(func(module string) logger.Logger {
-		mname := "kbfs"
-		if module != "" {
-			mname += fmt.Sprintf("(%s)", module)
-		}
-		// Add log depth so that context-based messages get the right
-		// file printed out.
-		lg := logger.NewWithCallDepth(mname, 1)
-		if params.Debug {
-			// Turn on debugging.  TODO: allow a proper log file and
-			// style to be specified.
-			lg.Configure("", true, "")
-		}
-		return lg
-	})
-
 	config.SetMetadataVersion(MetadataVer(params.MetadataVersion))
 	config.SetTLFValidDuration(params.TLFValidDuration)
 
@@ -362,10 +362,12 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 	config.SetKeyManager(NewKeyManagerStandard(config))
 	config.SetMDOps(NewMDOpsStandard(config))
 
+	kbfsLog := config.MakeLogger("")
+
 	if keybaseServiceCn == nil {
 		keybaseServiceCn = keybaseDaemon{}
 	}
-	service, err := keybaseServiceCn.NewKeybaseService(config, params, ctx, config.MakeLogger(""))
+	service, err := keybaseServiceCn.NewKeybaseService(config, params, ctx, kbfsLog)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
@@ -376,14 +378,14 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 
 	config.SetKeybaseService(service)
 
-	k := NewKBPKIClient(config)
+	k := NewKBPKIClient(config, kbfsLog)
 	config.SetKBPKI(k)
 
 	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
 
 	// crypto must be initialized before the MD and block servers
 	// are initialized, since those depend on crypto.
-	crypto, err := keybaseServiceCn.NewCrypto(config, params, ctx, log)
+	crypto, err := keybaseServiceCn.NewCrypto(config, params, ctx, kbfsLog)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating crypto: %s", err)
 	}
