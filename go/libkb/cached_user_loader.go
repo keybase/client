@@ -183,6 +183,9 @@ func (u *CachedUserLoader) LoadUserPlusKeys(uid keybase1.UID) (keybase1.UserPlus
 	arg.UID = uid
 	arg.PublicKeyOptional = true
 
+	// We need to force a reload to make KBFS tests pass
+	arg.ForceReload = true
+
 	upak, _, err := u.Load(arg)
 	if err != nil {
 		return up, err
