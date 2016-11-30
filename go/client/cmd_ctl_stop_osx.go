@@ -29,6 +29,11 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "exclude",
 				Usage: fmt.Sprintf("Stop all except excluded components, comma separated. Specify %v.", availableCtlComponents),
 			},
+			// TODO(gabriel): Remove this un-used option
+			cli.BoolFlag{
+				Name:  "no-wait",
+				Usage: "Deprecated",
+			},
 		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(newCmdCtlStop(g), "stop", c)
