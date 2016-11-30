@@ -1,7 +1,6 @@
 // @flow
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
-import moment from 'moment'
 import {Set, List, Map, Record} from 'immutable'
 
 import type {UserListItem} from '../common-adapters/usernames'
