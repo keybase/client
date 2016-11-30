@@ -69,12 +69,12 @@ def doBuild() {
 
     stage('Publish to S3') {
         if (UpdateChannel != "None"){    
-            publish('prerelease.keybase.io/windows', 
-                    '', 
-                    'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.exe') 
-            publish('prerelease.keybase.io', 
-                    '', 
-                    'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json') 
+            publish("prerelease.keybase.io/windows", 
+                    "", 
+                    "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.exe") 
+            publish("prerelease.keybase.io", 
+                    "", 
+                    "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json") 
         } else {
             echo "No update channel"
         }
@@ -110,9 +110,9 @@ def doBuild() {
     }
     stage('Publish smoke updater jsons to S3') {
         if (UpdateChannel == "Smoke2") {
-            publish('prerelease.keybase.io/windows-support', 
-                'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json',
-                'src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.json') 
+            publish("prerelease.keybase.io/windows-support", 
+                "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json",
+                "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\*.json") 
             def smokeBSemVer = ''
             dir('src\\github.com\\keybase\\client\\go\\keybase') {
                 smokeBSemVer = bat(returnStdout: true, script: '@echo off && winresource.exe -cv').trim()
