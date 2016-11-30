@@ -60,7 +60,7 @@ type serviceLog interface {
 
 // WaitForServiceInfoFile tries to wait for a service info file, which should be
 // written on successful service startup.
-func WaitForServiceInfoFile(path string, label string, pid string, wait time.Duration, log serviceLog) (*ServiceInfo, error) {
+func WaitForServiceInfoFile(path string, label string, pid string, timeout time.Duration, log serviceLog) (*ServiceInfo, error) {
 	if pid == "" {
 		return nil, fmt.Errorf("No pid to wait for")
 	}
@@ -89,7 +89,8 @@ func WaitForServiceInfoFile(path string, label string, pid string, wait time.Dur
 		return &serviceInfo, nil
 	}
 
-	serviceInfo, err := waitForServiceInfo(wait, time.Millisecond*400, lookForServiceInfo)
+	log.Debug("Looking for service info file (timeout=%s)", timeout)
+	serviceInfo, err := waitForServiceInfo(timeout, time.Millisecond*400, lookForServiceInfo)
 
 	// If no service info was found, let's return an error
 	if serviceInfo == nil {
@@ -111,8 +112,8 @@ type serviceInfoResult struct {
 
 type loadServiceInfoFn func() (*ServiceInfo, error)
 
-func waitForServiceInfo(wait time.Duration, delay time.Duration, fn loadServiceInfoFn) (*ServiceInfo, error) {
-	if wait <= 0 {
+func waitForServiceInfo(timeout time.Duration, delay time.Duration, fn loadServiceInfoFn) (*ServiceInfo, error) {
+	if timeout <= 0 {
 		return fn()
 	}
 
@@ -138,7 +139,7 @@ func waitForServiceInfo(wait time.Duration, delay time.Duration, fn loadServiceI
 	select {
 	case res := <-resultChan:
 		return res.info, res.err
-	case <-time.After(wait):
+	case <-time.After(timeout):
 		ticker.Stop()
 		return nil, nil
 	}
