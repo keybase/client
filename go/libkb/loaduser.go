@@ -8,6 +8,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"runtime/debug"
 )
 
 type LoadUserArg struct {
@@ -138,6 +139,10 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	defer TimeLog(fmt.Sprintf("LoadUser: %+v", arg), arg.G().Clock().Now(), arg.G().Log.Debug)
 	arg.G().Log.Debug("LoadUser: %+v", arg)
 	var refresh bool
+
+	if arg.G().VDL.DumpSiteLoadUser() {
+		debug.PrintStack()
+	}
 
 	// Whatever the reply is, pass along our desired global context
 	defer func() {
@@ -394,26 +399,5 @@ func lookupMerkleLeaf(g *GlobalContext, uid keybase1.UID, localExists bool, sigH
 }
 
 func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID) (keybase1.UserPlusKeys, error) {
-	var up keybase1.UserPlusKeys
-	if uid.IsNil() {
-		return up, fmt.Errorf("Nil UID")
-	}
-
-	arg := NewLoadUserArg(g)
-	arg.UID = uid
-	arg.PublicKeyOptional = true
-	u, err := LoadUser(arg)
-	if err != nil {
-		return up, err
-	}
-	if u == nil {
-		return up, fmt.Errorf("Nil user, nil error from LoadUser")
-	}
-
-	up, err = u.ExportToUserPlusKeys(keybase1.Time(0)), nil
-	if err != nil {
-		return up, err
-	}
-
-	return up, nil
+	return g.CachedUserLoader.LoadUserPlusKeys(uid)
 }
