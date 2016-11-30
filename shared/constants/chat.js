@@ -14,27 +14,52 @@ export const followStates: Array<FollowState> = ['You', 'Following', 'Broken', '
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 
+export type ConversationID = RPCConversationID
+export type ConversationIDKey = string
+export type ParticipantItem = UserListItem
+
 export type MessageID = RPCMessageID
 
-export type Message = {
+export type ClientMessage = TimestampMessage
+export type ServerMessage = TextMessage | ErrorMessage | UnhandledMessage
+
+export type Message = ClientMessage | ServerMessage
+
+export type TextMessage = {
   type: 'Text',
   message: HiddenString,
   author: string,
+  deviceName: string,
+  deviceType: string,
   timestamp: number,
+  conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
   followState: FollowState,
   messageState: MessageState,
   outboxID?: ?string,
-} | {
+}
+
+export type ErrorMessage = {
   type: 'Error',
   reason: string,
   timestamp: number,
-  messageID: MessageID,
-} | {
-  type: 'Unhandled',
-  timestamp: number,
+  conversationIDKey: ConversationIDKey,
   messageID: MessageID,
 }
+
+export type UnhandledMessage = {
+  type: 'Unhandled',
+  timestamp: number,
+  conversationIDKey: ConversationIDKey,
+  messageID: MessageID,
+}
+
+export type TimestampMessage = {
+  type: 'Timestamp',
+  timestamp: number,
+}
+
+export type MaybeTimestamp = TimestampMessage | null
 
 export const ConversationStateRecord = Record({
   messages: List(),
@@ -55,10 +80,6 @@ export type ConversationState = Record<{
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
 }>
-
-export type ConversationID = RPCConversationID
-export type ConversationIDKey = string
-export type ParticipantItem = UserListItem
 
 export const InboxStateRecord = Record({
   info: null,
@@ -104,7 +125,8 @@ export type State = Record<{
   metaData: Map<string, MetaData>,
 }>
 
-const maxMessagesToLoadAtATime = 50
+export const howLongBetweenTimestampsMs = 1000 * 60 * 15
+export const maxMessagesToLoadAtATime = 50
 
 export const appendMessages = 'chat:appendMessages'
 export const selectConversation = 'chat:selectConversation'
@@ -123,13 +145,15 @@ export const startConversation = 'chat:startConversation'
 export const openFolder = 'chat:openFolder'
 export const updateMetadata = 'chat:updateMetadata'
 export const updatedMetadata = 'chat:updatedMetadata'
+export const editMessage = 'chat:editMessage'
+export const deleteMessage = 'chat:deleteMessage'
 
-export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>}>
+export type AppendMessages = NoErrorTypedAction<'chat:appendMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>}>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
 export type LoadMoreMessages = NoErrorTypedAction<'chat:loadMoreMessages', void>
 export type LoadingMessages = NoErrorTypedAction<'chat:loadingMessages', {conversationIDKey: ConversationIDKey}>
-export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<Message>, moreToLoad: boolean, paginationNext: ?Buffer}>
+export type PrependMessages = NoErrorTypedAction<'chat:prependMessages', {conversationIDKey: ConversationIDKey, messages: Array<ServerMessage>, moreToLoad: boolean, paginationNext: ?Buffer}>
 export type SelectConversation = NoErrorTypedAction<'chat:selectConversation', {conversationIDKey: ConversationIDKey, fromUser: boolean}>
 export type SetupNewChatHandler = NoErrorTypedAction<'chat:setupNewChatHandler', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
@@ -140,8 +164,12 @@ export type StartConversation = NoErrorTypedAction<'chat:startConversation', {us
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
+export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>
+export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 
 export type Actions = AppendMessages
+  | DeleteMessage
+  | EditMessage
   | LoadInbox
   | LoadMoreMessages
   | LoadedInbox
@@ -180,6 +208,5 @@ export {
   conversationIDToKey,
   keyToConversationID,
   makeSnippet,
-  maxMessagesToLoadAtATime,
   participantFilter,
 }

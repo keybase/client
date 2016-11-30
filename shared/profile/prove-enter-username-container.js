@@ -1,22 +1,11 @@
 // @flow
 import ProveEnterUsername from './prove-enter-username'
-import React, {Component} from 'react'
 import {TypedConnector} from '../util/typed-connect'
 import {submitUsername, cancelAddProof, updateUsername, submitBTCAddress, submitZcashAddress} from '../actions/profile'
 
 import type {Props} from './prove-enter-username'
 import type {TypedDispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
-
-class ProveEnterUsernameContainer extends Component<void, any, void> {
-  static parseRoute (currentPath, uri) {
-    return {componentAtTop: {title: 'Enter Username'}}
-  }
-
-  render () {
-    return <ProveEnterUsername {...this.props} />
-  }
-}
 
 const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
 
@@ -48,4 +37,4 @@ export default connector.connect(
       waiting: profile.waiting,
     }
   }
-)(ProveEnterUsernameContainer)
+)(ProveEnterUsername)

@@ -19,6 +19,7 @@ type udCacheKey struct {
 type udCacheValue struct {
 	Username   string
 	DeviceName string
+	DeviceType string
 }
 
 // UserDeviceCache looks up usernames and device names, memoizing the results.
@@ -59,20 +60,21 @@ func (c *UserDeviceCache) lookup(cKey udCacheKey, filler udFiller) (udCacheValue
 	return cVal, nil
 }
 
-func (c *UserDeviceCache) LookupUsernameAndDeviceName(uimap *UserInfoMapper, uid keybase1.UID, deviceID keybase1.DeviceID) (username string, devicename string, err error) {
+func (c *UserDeviceCache) LookupUsernameAndDevice(uimap *UserInfoMapper, uid keybase1.UID, deviceID keybase1.DeviceID) (username string, deviceName string, deviceType string, err error) {
 	cKey := udCacheKey{
 		UID:        uid,
 		WithDevice: true,
 		DeviceID:   deviceID,
 	}
 	val, err := c.lookup(cKey, func() (udCacheValue, error) {
-		username, deviceName, err := uimap.Lookup(uid, deviceID)
+		username, deviceName, deviceType, err := uimap.Lookup(uid, deviceID)
 		return udCacheValue{
 			Username:   username,
 			DeviceName: deviceName,
+			DeviceType: deviceType,
 		}, err
 	})
-	return val.Username, val.DeviceName, err
+	return val.Username, val.DeviceName, val.DeviceType, err
 }
 
 func (c *UserDeviceCache) LookupUsername(uimap *UserInfoMapper, uid keybase1.UID) (username string, err error) {

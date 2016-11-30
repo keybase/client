@@ -28,12 +28,6 @@ class Search extends Component<void, Props, void> {
       <Render {...this.props} />
     )
   }
-
-  static parseRoute () {
-    return {
-      componentAtTop: {title: 'Search'},
-    }
-  }
 }
 
 const connector: TypedConnector<TypedState, TypedDispatch<SearchActions | FSOpen | StartConversation | NavigateAppend>, OwnProps, Props> = new TypedConnector()

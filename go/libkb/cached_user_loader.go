@@ -3,9 +3,10 @@ package libkb
 import (
 	"errors"
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"sync"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type CachedUserLoader struct {
@@ -171,4 +172,28 @@ func (u *CachedUserLoader) CheckKIDForUID(uid keybase1.UID, kid keybase1.KID) (f
 	}
 	found, revokedAt = CheckKID(upk, kid)
 	return found, revokedAt, nil
+}
+
+func (u *CachedUserLoader) LoadUserPlusKeys(uid keybase1.UID) (keybase1.UserPlusKeys, error) {
+	var up keybase1.UserPlusKeys
+	if uid.IsNil() {
+		return up, NoUIDError{}
+	}
+
+	arg := NewLoadUserArg(u.G())
+	arg.UID = uid
+	arg.PublicKeyOptional = true
+
+	// We need to force a reload to make KBFS tests pass
+	arg.ForceReload = true
+
+	upak, _, err := u.Load(arg)
+	if err != nil {
+		return up, err
+	}
+	if upak == nil {
+		return up, fmt.Errorf("Nil user, nil error from LoadUser")
+	}
+	up = upak.Base
+	return up, nil
 }

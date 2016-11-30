@@ -2,8 +2,7 @@
 :: $1 is full path to keybase.exe
 :: todo: specify output?
 ::
-:: For Jenkins:
-if DEFINED WORKSPACE set GOPATH=%WORKSPACE%
+
 set GOARCH=386
 ::
 :: get the target build folder. Assume winresource.exe has been built.

@@ -1,22 +1,11 @@
 // @flow
 import EditAvatar from './edit-avatar'
-import React, {Component} from 'react'
 import {TypedConnector} from '../util/typed-connect'
 import {navigateUp} from '../actions/route-tree'
 
 import type {Props} from './edit-avatar'
 import type {TypedDispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
-
-class EditAvatarContainer extends Component<void, any, void> {
-  static parseRoute (currentPath, uri) {
-    return {componentAtTop: {title: ''}}
-  }
-
-  render () {
-    return <EditAvatar {...this.props} />
-  }
-}
 
 const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
 
@@ -36,4 +25,4 @@ export default connector.connect(
       onAck: () => { dispatch(navigateUp()) },
     }
   }
-)(EditAvatarContainer)
+)(EditAvatar)

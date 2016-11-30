@@ -4,10 +4,11 @@ import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
 import {List, Map} from 'immutable'
 import {connect} from 'react-redux'
-import {loadMoreMessages, postMessage, openFolder, newChat} from '../../actions/chat'
+import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage} from '../../actions/chat'
 import {onUserClick} from '../../actions/profile'
 
 import type {TypedState} from '../../constants/reducer'
+import type {Message} from '../../constants/chat'
 import type {Props} from '.'
 
 type OwnProps = {}
@@ -69,6 +70,8 @@ export default connect(
     }
   },
   (dispatch: Dispatch) => ({
+    onEditMessage: (message: Message) => { dispatch(editMessage(message)) },
+    onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
     onLoadMoreMessages: () => dispatch(loadMoreMessages()),
     onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
     onOpenFolder: () => dispatch(openFolder()),

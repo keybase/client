@@ -15,7 +15,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <DefineConstants>Debug;GuiSourceDir=$(SolutionDir)\..\..\..\desktop\release\win32-ia32\Keybase-win32-ia32</DefineConstants>
+    <DefineConstants>Debug;GuiSourceDir=$(GOPATH)\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32</DefineConstants>
     <SuppressIces>ICE20;ICE38</SuppressIces>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
@@ -23,7 +23,7 @@
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <SuppressValidation>False</SuppressValidation>
     <SuppressIces>ICE20;ICE38</SuppressIces>
-    <DefineConstants>GuiSourceDir=$(SolutionDir)\..\..\..\desktop\release\win32-ia32\Keybase-win32-ia32</DefineConstants>
+    <DefineConstants>GuiSourceDir=$(GOPATH)\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="gui.wxs" />

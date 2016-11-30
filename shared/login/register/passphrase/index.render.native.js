@@ -58,7 +58,6 @@ const stylesCard = {
 }
 const usernameStyle = {
   textAlign: 'center',
-  paddingBottom: globalMargins.small,
 }
 
 export default PassphraseRender

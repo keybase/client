@@ -4,24 +4,10 @@ import moment from 'moment'
 import {Box, Text, MultiAvatar, Icon, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {participantFilter} from '../../constants/chat'
+import {formatTimeForConversationList} from '../../util/timestamp'
 
 import type {Props} from './'
 import type {InboxState} from '../../constants/chat'
-
-function _timestamp (time: number, nowOverride?: number): string {
-  const m = moment(time)
-  const now = nowOverride ? moment(nowOverride) : moment()
-  const today = now.clone().startOf('day')
-  const weekOld = today.clone().subtract(7, 'days')
-
-  if (m.isSame(today, 'd')) {
-    return m.format('h:mm A')
-  } else if (m.isAfter(weekOld)) {
-    return m.format('dddd')
-  }
-
-  return m.format('MMM D')
-}
 
 const AddNewRow = ({onNewChat}: Props) => (
   <Box
@@ -59,14 +45,9 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
   return <Box
     onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
     title={`${conversation.get('unreadCount')} unread`}
-    style={{
-      ...rowContainerStyle,
-      backgroundColor: isSelected ? globalColors.darkBlue2 : globalColors.transparent,
-    }}>
-    <MultiAvatar
-      singleSize={32}
-      multiSize={24}
-      avatarProps={avatarProps} />
+    style={{...rowContainerStyle,
+      backgroundColor: isSelected ? globalColors.darkBlue2 : globalColors.transparent}}>
+    <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
     {conversation.get('muted') && <p>MUTED</p>}
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: 12, position: 'relative'}}>
       <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center'}}>
@@ -74,7 +55,7 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
         {snippet && <Text backgroundMode='Terminal' type='BodySmall' style={noWrapStyle}>{snippet}</Text>}
       </Box>
     </Box>
-    <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{_timestamp(conversation.get('time'), nowOverride)}</Text>
+    <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
   </Box>
 }
 
