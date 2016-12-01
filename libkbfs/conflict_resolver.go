@@ -2839,41 +2839,42 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 
 		var childBps *blockPutState
 		if entryType != Dir && fblock.IsInd {
-			childBps = newBlockPutState(len(fblock.IPtrs))
+			childBps = newBlockPutState(1)
 			// For an indirect file block, make sure a new
 			// reference is made for every child block.
-			for i, iptr := range fblock.IPtrs {
-				// If journaling is enabled, new references aren't
-				// supported.  We have to fetch each block and ready
-				// it.  TODO: remove this when KBFS-1149 is fixed.
-				//
-				// TODO: parallelize the block fetches.
-				if TLFJournalEnabled(cr.config, cr.fbo.id()) {
-					cr.log.CDebugf(ctx, "Duplicating data from child block %v",
-						iptr.BlockPointer)
-					childBlock, err := cr.fbo.blocks.GetFileBlockForReading(
-						ctx, lState,
-						unmergedChains.mostRecentChainMDInfo.kmd,
-						iptr.BlockPointer, node.mergedPath.Branch,
-						node.mergedPath)
-					if err != nil {
-						return nil, err
-					}
-					info, _, readyBlockData, err := ReadyBlock(
-						ctx, cr.config.BlockCache(), cr.config.BlockOps(),
-						cr.config.Crypto(), newMD.ReadOnly(), childBlock, uid)
-					if err != nil {
-						return nil, err
-					}
-					fblock.IPtrs[i].BlockInfo = info
-					childBps.addNewBlock(info.BlockPointer, childBlock,
-						readyBlockData, nil)
-					newMD.AddRefBlock(info)
-				} else {
-					childBps.addNewBlock(iptr.BlockPointer, nil,
-						ReadyBlockData{}, nil)
-					newMD.AddRefBlock(iptr.BlockInfo)
+
+			dirtyBcache := simpleDirtyBlockCacheStandard()
+			// Simple dirty bcaches don't need to be shut down.
+
+			fd := cr.newFileData(
+				lState, node.mergedPath, uid, newMD.ReadOnly(), dirtyBcache)
+			var infos []BlockInfo
+			var err error
+
+			// If journaling is enabled, new references aren't
+			// supported.  We have to fetch each block and ready
+			// it.  TODO: remove this when KBFS-1149 is fixed.
+			if TLFJournalEnabled(cr.config, cr.fbo.id()) {
+				infos, err = fd.undupChildrenInCopy(
+					ctx, cr.config.BlockCache(), cr.config.BlockOps(),
+					childBps, fblock)
+				if err != nil {
+					return nil, err
 				}
+			} else {
+				infos, err = fd.getIndirectFileBlockInfosWithTopBlock(
+					ctx, fblock)
+				if err != nil {
+					return nil, err
+				}
+
+				for _, info := range infos {
+					childBps.addNewBlock(info.BlockPointer, nil,
+						ReadyBlockData{}, nil)
+				}
+			}
+			for _, info := range infos {
+				newMD.AddRefBlock(info)
 			}
 		}
 

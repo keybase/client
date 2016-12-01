@@ -996,15 +996,10 @@ func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 	return oldPtrs, nil
 }
 
-func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
+func (fd *fileData) getIndirectFileBlockInfosWithTopBlock(ctx context.Context,
+	topBlock *FileBlock) (
 	[]BlockInfo, error) {
 	// TODO: handle multiple levels of indirection.
-	topBlock, _, err := fd.getter(
-		ctx, fd.kmd, fd.file.tailPointer(), fd.file, blockRead)
-	if err != nil {
-		return nil, err
-	}
-
 	if !topBlock.IsInd {
 		return nil, nil
 	}
@@ -1013,6 +1008,17 @@ func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
 		blockInfos[i] = ptr.BlockInfo
 	}
 	return blockInfos, nil
+}
+
+func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
+	[]BlockInfo, error) {
+	// TODO: handle multiple levels of indirection.
+	topBlock, _, err := fd.getter(
+		ctx, fd.kmd, fd.file.tailPointer(), fd.file, blockRead)
+	if err != nil {
+		return nil, err
+	}
+	return fd.getIndirectFileBlockInfosWithTopBlock(ctx, topBlock)
 }
 
 // findIPtrsAndClearSize looks for the given indirect pointer, and
@@ -1094,4 +1100,43 @@ func (fd *fileData) deepCopy(ctx context.Context, codec kbfscodec.Codec,
 	}
 
 	return newTopPtr, allChildPtrs, nil
+}
+
+// undupChildrenInCopy takes a top block that's been copied via
+// deepCopy(), and un-deduplicates all leaf children of the block.  It
+// add all child blocks to the provided `bps`, including both the ones
+// that were deduplicated and the ones that weren't (TODO).  It
+// returns the BlockInfos for all children, including ones that
+// weren't de-duplicated.
+func (fd *fileData) undupChildrenInCopy(ctx context.Context,
+	bcache BlockCache, bops BlockOps, bps *blockPutState,
+	topBlock *FileBlock) ([]BlockInfo, error) {
+	if !topBlock.IsInd {
+		return nil, nil
+	}
+
+	// TODO: support multiple levels of indirection.
+	// TODO: parallelize
+	blockInfos := make([]BlockInfo, len(topBlock.IPtrs))
+	for i, iptr := range topBlock.IPtrs {
+		if iptr.RefNonce == ZeroBlockRefNonce {
+			// No need to un-dup mid-level indirect blocks.  TODO:
+			// fetch the blocks and add them to the bps (only needed
+			// for multiple levels of indirection).
+			blockInfos = append(blockInfos, iptr.BlockInfo)
+			continue
+		}
+		childBlock, _, err := fd.getter(ctx, fd.kmd, iptr.BlockPointer,
+			fd.file, blockRead)
+		if err != nil {
+			return nil, err
+		}
+
+		newInfo, _, readyBlockData, err :=
+			ReadyBlock(ctx, bcache, bops, fd.crypto, fd.kmd, childBlock, fd.uid)
+		topBlock.IPtrs[i].BlockInfo = newInfo
+		bps.addNewBlock(newInfo.BlockPointer, childBlock, readyBlockData, nil)
+		blockInfos = append(blockInfos, newInfo)
+	}
+	return blockInfos, nil
 }
