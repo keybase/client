@@ -3447,8 +3447,18 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		// since there's no guarantee that this sync comes
 		// from closing the file, and we still want to serve
 		// stat calls accurately if the user still has an open
-		// handle to this file. TODO: Hook this in with the
-		// node cache GC logic to be perfectly accurate.
+		// handle to this file.
+		//
+		// Note in particular that if a file just had a dirty
+		// directory entry cached (due to an attribute change on a
+		// removed file, for example), this will clear that attribute
+		// change.  If there's still an open file handle, the user
+		// won't be able to see the change anymore.
+		//
+		// TODO: Hook this in with the node cache GC logic to be
+		// perfectly accurate (but at the same time, we'd then have to
+		// fix up the intentional panic in the background flusher to
+		// be more tolerant of long-lived dirty, removed files).
 		return true, fbo.blocks.ClearCacheInfo(lState, file)
 	}
 

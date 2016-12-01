@@ -1546,8 +1546,19 @@ func (fbo *folderBlockOps) Truncate(
 func (fbo *folderBlockOps) IsDirty(lState *lockState, file path) bool {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	return fbo.config.DirtyBlockCache().IsDirty(
-		fbo.id(), file.tailPointer(), file.Branch)
+	// Definitely dirty if a block is dirty.
+	if fbo.config.DirtyBlockCache().IsDirty(
+		fbo.id(), file.tailPointer(), file.Branch) {
+		return true
+	}
+
+	// The deCache entry could still be dirty, if a file had an
+	// attribute set (like mtime or exec) after the file was removed.
+	// Still count the file as dirty in that case; most likely, the
+	// caller will next call `ClearCacheInfo` to remove this entry.
+	// (See comments in `folderBranchOps.syncLocked`.)
+	_, ok := fbo.deCache[file.tailPointer().Ref()]
+	return ok
 }
 
 func (fbo *folderBlockOps) clearCacheInfoLocked(lState *lockState,
