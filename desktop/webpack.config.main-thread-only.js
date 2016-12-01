@@ -28,7 +28,7 @@ config.entry = {
 }
 
 config.plugins.push(
- new webpack.DefinePlugin(defines)
+  new webpack.DefinePlugin(defines)
 )
 
 if (getenv.boolish('HOT', false)) {
