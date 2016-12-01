@@ -1206,11 +1206,9 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
-	fbo.headLock.Lock(lState)
-	defer fbo.headLock.Unlock(lState)
 	// Some other thread got here first, so give up and let it go
 	// before we push anything to the servers.
-	if fbo.head != (ImmutableRootMetadata{}) {
+	if fbo.getHead(lState) != (ImmutableRootMetadata{}) {
 		fbo.log.CDebugf(ctx, "Head was already set, aborting")
 		return nil
 	}
@@ -1241,6 +1239,14 @@ func (fbo *folderBranchOps) initMDLocked(
 	err = fbo.finalizeBlocks(bps)
 	if err != nil {
 		return err
+	}
+
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+	if fbo.head != (ImmutableRootMetadata{}) {
+		return fmt.Errorf(
+			"%v: Unexpected MD ID during new MD initialization: %v",
+			md.TlfID(), fbo.head.mdID)
 	}
 
 	key, err := fbo.config.KBPKI().GetCurrentVerifyingKey(ctx)
