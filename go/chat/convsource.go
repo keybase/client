@@ -210,7 +210,7 @@ func (s *HybridConversationSource) updateMessage(ctx context.Context, message ch
 		m := message.Valid()
 		if m.HeaderSignature == nil {
 			// Skip revocation check for messages cached before the sig was part of the cache.
-			s.G().Log.Warning("updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
+			s.G().Log.Debug("updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
 			return message, nil
 		}
 
