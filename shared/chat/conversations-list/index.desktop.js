@@ -1,6 +1,5 @@
 // @flow
 import React from 'react'
-import moment from 'moment'
 import {Box, Text, MultiAvatar, Icon, Usernames} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {participantFilter} from '../../constants/chat'
@@ -35,6 +34,7 @@ const rowBorderColor = (idx: number, lastParticipantIndex: number, hasUnread: bo
 const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride, conversation}: Props & {conversation: InboxState}) => {
   const participants = participantFilter(conversation.get('participants'))
   const isSelected = selectedConversation === conversation.get('conversationIDKey')
+  const isMuted = conversation.get('muted')
   // $FlowIssue
   const avatarProps = participants.slice(0, 2).map((p, idx) => ({
     backgroundColor: globalColors.darkBlue4,
@@ -42,21 +42,51 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
     borderColor: rowBorderColor(idx, Math.min(2, participants.count()) - 1, !!conversation.get('unreadCount'), isSelected),
   })).toArray()
   const snippet = conversation.get('snippet')
-  return <Box
-    onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
-    title={`${conversation.get('unreadCount')} unread`}
-    style={{...rowContainerStyle,
-      backgroundColor: isSelected ? globalColors.darkBlue2 : globalColors.transparent}}>
-    <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
-    {conversation.get('muted') && <p>MUTED</p>}
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: 12, position: 'relative'}}>
-      <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center'}}>
-        <Usernames inline={true} type='Body' backgroundMode='Terminal' users={participants.toArray()} title={participants.map(p => p.username).join(', ')} />
-        {snippet && <Text backgroundMode='Terminal' type='BodySmall' style={noWrapStyle}>{snippet}</Text>}
+  const subColor = isSelected ? globalColors.white : globalColors.blue3_40
+  return (
+    <Box
+      onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
+      title={`${conversation.get('unreadCount')} unread`}
+      style={{...rowContainerStyle,
+        backgroundColor: isSelected ? globalColors.darkBlue2 : globalColors.transparent}}>
+        <Box style={{...globalStyles.flexBoxRow, flex: 1, maxWidth: 48, alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 4}}>
+          <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
+          {isMuted && <Icon type='iconfont-shh' style={shhStyle} />}
+        </Box>
+        <Box style={{...globalStyles.flexBoxRow, flex: 1, borderBottom: `solid 1px ${globalColors.black_10}`, paddingRight: 8, paddingTop: 4, paddingBottom: 4}}>
+          <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingRight: 13}}>
+            <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center'}}>
+              <Usernames
+                inline={true}
+                type='BodySemibold'
+                style={{color: isMuted ? globalColors.blue3_40 : globalColors.white}}
+                containerStyle={{color: isMuted ? globalColors.blue3_40 : globalColors.white}}
+                users={participants.toArray()}
+                title={participants.map(p => p.username).join(', ')} />
+              {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, color: subColor}}>{snippet}</Text>}
+            </Box>
+          </Box>
+          <Text type='BodySmall' style={{marginRight: 4, alignSelf: isMuted ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
       </Box>
     </Box>
-    <Text backgroundMode='Terminal' type='BodySmall' style={{marginRight: 4}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
-  </Box>
+  )
+}
+
+const shhStyle = {
+  color: globalColors.darkBlue2,
+  alignSelf: 'flex-end',
+  marginLeft: -5,
+  marginTop: 5,
+  // TODO remove this when we get the updated icon w/ the stroke
+  textShadow: `
+    -1px -1px 0 ${globalColors.darkBlue4},
+     1px -1px 0 ${globalColors.darkBlue4},
+    -1px  1px 0 ${globalColors.darkBlue4},
+     1px  1px 0 ${globalColors.darkBlue4},
+    -2px -2px 0 ${globalColors.darkBlue4},
+     2px -2px 0 ${globalColors.darkBlue4},
+    -2px  2px 0 ${globalColors.darkBlue4},
+     2px  2px 0 ${globalColors.darkBlue4}`,
 }
 
 const ConversationList = (props: Props) => (
@@ -82,11 +112,11 @@ const scrollableStyle = {
 }
 
 const noWrapStyle = {
-  whiteSpace: 'nowrap',
   display: 'block',
-  width: '100%',
-  textOverflow: 'ellipsis',
   overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  width: '100%',
 }
 
 const rowContainerStyle = {
@@ -95,8 +125,6 @@ const rowContainerStyle = {
   flexShrink: 0,
   minHeight: 40,
   maxHeight: 40,
-  padding: 4,
-  borderBottom: `solid 1px ${globalColors.black_10}`,
 }
 
 export default ConversationList
