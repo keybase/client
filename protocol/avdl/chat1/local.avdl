@@ -181,19 +181,26 @@ protocol local {
     array<string> readerNames;
   }
 
+  // ConversationLocal, whenever present, has a valid `identifyFailures` field that
+  // faithfully represent identify result. If identify information is not
+  // availabe, we should use a different type.
   record ConversationLocal {
     union { null, string } error;
     ConversationInfoLocal info;
     ConversationReaderInfo readerInfo;
     array<MessageUnboxed> maxMessages; // the latest message for each message type
-  }
+
+    // This field, if null or empty, indicates identify succeeded without any
+    // break.
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  } 
 
   record ThreadView {
     array<MessageUnboxed> messages;
     union { null, Pagination } pagination;
   }
 
-  GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination);
+  GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetThreadQuery {
     boolean markAsRead;
     array<MessageType> messageTypes;
@@ -203,18 +210,24 @@ protocol local {
   record GetThreadLocalRes {
     ThreadView thread;
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   // topicName in GetInboxLocalQuery is ignored
-  GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
+  GetInboxLocalRes getInboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxLocalRes {
     array<Conversation> conversationsUnverified;
     union { null, Pagination } pagination;
     array<RateLimit> rateLimits;
+
+    // This only contains identify failures if a TLF name is specified in arg.
+    // It doesn't contain identifyFailures otherwise, since GetInboxLocal
+    // doesn't run identify for each conversation in the inbox.
+    // GetInboxAndUnboxLocal should be used if identify failures are needed.
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination);
-
+  GetInboxAndUnboxLocalRes getInboxAndUnboxLocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetInboxLocalQuery {
     // Local analog of common:GetInboxQuery
 
@@ -241,23 +254,26 @@ protocol local {
     array<RateLimit> rateLimits;
   }
 
-  PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg);
+  PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalRes {
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
-  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev);
 
-  SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status);
+  SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status, keybase1.TLFIdentifyBehavior identifyBehavior);
   record SetConversationStatusLocalRes {
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName);
+  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName, keybase1.TLFIdentifyBehavior identifyBehavior);
   record NewConversationLocalRes {
     ConversationLocal conv;
     array<RateLimit> rateLimits;
@@ -303,10 +319,11 @@ protocol local {
   }
 
   // Get messages by ID.
-  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs);
+  GetMessagesLocalRes GetMessagesLocal(ConversationID conversationID, array<MessageID> messageIDs, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetMessagesLocalRes {
     array<MessageUnboxed> messages;
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   // LocalSource is a stream attachment source.
@@ -317,7 +334,7 @@ protocol local {
   }
 
   // Post an attachment from stream source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview, string title, bytes metadata);
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalSource attachment, union { null, LocalSource } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // LocalFileSource is a file attachment source.  Filename must be readable
   // by the service for the duration of the attachment upload.
@@ -326,18 +343,19 @@ protocol local {
   }
 
   // Post an attachment from file source to conversationID.
-  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalFileSource attachment, union { null, LocalFileSource } preview, string title, bytes metadata);
+  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageClientHeader clientHeader, LocalFileSource attachment, union { null, LocalFileSource } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record DownloadAttachmentLocalRes {
     array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
   // Download an attachment from a message into sink stream.
-  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview);
+  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
   
   // Download an attachment from a message into a local file.  
   // Filename must be writable by the service.
-  DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview);
+  DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   void CancelPost(OutboxID outboxID);
   void RetryPost(OutboxID outboxID);

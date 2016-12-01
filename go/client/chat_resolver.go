@@ -36,6 +36,8 @@ type chatConversationResolvingBehavior struct {
 
 	// Specify whether the resolve should create a conversation if none is found.
 	CreateIfNotExists bool
+
+	IdentifyBehavior keybase1.TLFIdentifyBehavior
 }
 
 type chatConversationResolver struct {
@@ -68,7 +70,7 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(
 }
 
 func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
-	ctx context.Context, req chatConversationResolvingRequest) (chat1.GetInboxAndUnboxLocalArg, error) {
+	ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.GetInboxAndUnboxLocalArg, error) {
 	if len(req.TopicName) > 0 && req.TopicType == chat1.TopicType_CHAT {
 		return chat1.GetInboxAndUnboxLocalArg{},
 			errors.New("we are not supporting setting topic name for chat conversations yet")
@@ -95,12 +97,13 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 			TopicType:     &req.TopicType,
 			TlfVisibility: &req.Visibility,
 		},
+		IdentifyBehavior: identifyBehavior,
 	}, nil
 }
 
-func (r *chatConversationResolver) resolveWithService(ctx context.Context, req chatConversationResolvingRequest) (
+func (r *chatConversationResolver) resolveWithService(ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior) (
 	conversations []chat1.ConversationInfoLocal, err error) {
-	arg, err := r.makeGetInboxAndUnboxLocalArg(ctx, req)
+	arg, err := r.makeGetInboxAndUnboxLocalArg(ctx, req, identifyBehavior)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +191,7 @@ func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversa
 	conversationInfo *chat1.ConversationInfoLocal, userChosen bool, err error) {
 	req.ctx = &chatConversationResolvingRequestContext{}
 
-	conversations, err := r.resolveWithService(ctx, req)
+	conversations, err := r.resolveWithService(ctx, req, behavior.IdentifyBehavior)
 	if err != nil {
 		return nil, false, err
 	}

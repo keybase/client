@@ -39,7 +39,7 @@ export function switchTo (path: Path, parentPath?: Path): SwitchTo {
 
 // Navigate to a new absolute path. E.g.:
 //
-//   navigateTo({selected: 'foo', prop1: 'hello'}, {selected: 'bar', prop2: 'world'})
+//   navigateTo({selected: 'foo', props: {prop1: 'hello'}}, {selected: 'bar', props: {prop2: 'world'}})
 //   => /foo?prop1=hello/bar?prop2=world
 //
 // You can also specify path names as strings. This will select the name

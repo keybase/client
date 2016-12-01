@@ -71,7 +71,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		return chat1.GetInboxLocalRes{}, fmt.Errorf("cannot query by TopicName without unboxing")
 	}
 
-	rquery, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query)
+	rquery, identifyFailures, err := utils.GetInboxQueryLocalToRemote(ctx, h.tlf, arg.Query, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxLocalRes{}, err
 	}
@@ -86,6 +86,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 		ConversationsUnverified: ib.Inbox.Full().Conversations,
 		Pagination:              ib.Inbox.Full().Pagination,
 		RateLimits:              utils.AggRateLimitsP([]*chat1.RateLimit{ib.RateLimit}),
+		IdentifyFailures:        identifyFailures,
 	}, nil
 }
 
@@ -104,7 +105,7 @@ func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.
 		func() keybase1.TlfInterface { return h.tlf })
 
 	// Read inbox from the source
-	ib, rl, err := inbox.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination)
+	ib, rl, err := inbox.Read(ctx, uid.ToBytes(), arg.Query, arg.Pagination, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.GetInboxAndUnboxLocalRes{}, err
 	}
@@ -170,7 +171,9 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	tlfID, cname, err := utils.CryptKeysWrapper(ctx, h.tlf, arg.TlfName)
+	// we are ignoring the `identifyFailures` here since the `Read` after creating the
+	// conversation will get the identifyFailures for us.
+	tlfID, cname, _, err := utils.CryptKeysWrapper(ctx, h.tlf, arg.TlfName, arg.IdentifyBehavior)
 	if err != nil {
 		return chat1.NewConversationLocalRes{}, err
 	}
@@ -230,7 +233,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		// Read inbox from the source
 		ib, rl, err := inbox.Read(ctx, uid.ToBytes(), &chat1.GetInboxLocalQuery{
 			ConvID: &convID,
-		}, nil)
+		}, nil, arg.IdentifyBehavior)
 		if err != nil {
 			return chat1.NewConversationLocalRes{}, err
 		}
@@ -243,7 +246,8 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		}
 		res.Conv = ib.Convs[0]
 		// Update inbox cache
-		if err = storage.NewInbox(h.G(), uid.ToBytes(), h.getSecretUI).NewConversation(0, res.Conv); err != nil {
+		if err = storage.NewInbox(h.G(), uid.ToBytes(),
+			h.getSecretUI).NewConversation(0, storage.FromConversationLocal(res.Conv)); err != nil {
 			if _, ok := err.(libkb.ChatStorageMissError); !ok {
 				return chat1.NewConversationLocalRes{}, err
 			}
@@ -338,13 +342,14 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = true, false
 		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Pagination: &chat1.Pagination{Num: arg.UnreadFirstLimit.AtMost},
-			Query:      &query,
+			Pagination:       &chat1.Pagination{Num: arg.UnreadFirstLimit.AtMost},
+			Query:            &query,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}); err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
 		res.RateLimits = append(res.RateLimits, gires.RateLimits...)
-		res.Conversations = append(res.Conversations, gires.Conversations...)
+		res.Conversations = gires.Conversations
 
 		more := utils.Collar(
 			arg.UnreadFirstLimit.AtLeast-len(res.Conversations),
@@ -370,13 +375,14 @@ func (h *chatLocalHandler) GetInboxSummaryForCLILocal(ctx context.Context, arg c
 		query := queryBase
 		query.UnreadOnly, query.ReadOnly = false, false
 		if gires, err = h.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
-			Pagination: &chat1.Pagination{Num: arg.ActivitySortedLimit},
-			Query:      &query,
+			Pagination:       &chat1.Pagination{Num: arg.ActivitySortedLimit},
+			Query:            &query,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}); err != nil {
 			return chat1.GetInboxSummaryForCLILocalRes{}, err
 		}
 		res.RateLimits = append(res.RateLimits, gires.RateLimits...)
-		res.Conversations = append(res.Conversations, gires.Conversations...)
+		res.Conversations = gires.Conversations
 	}
 
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
@@ -399,6 +405,7 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 		Query: &chat1.GetInboxLocalQuery{
 			ConvID: &arg.ConversationId,
 		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return chat1.GetConversationForCLILocalRes{}, fmt.Errorf("getting conversation %v error: %v", arg.ConversationId, err)
@@ -427,8 +434,9 @@ func (h *chatLocalHandler) GetConversationForCLILocal(ctx context.Context, arg c
 	}
 
 	tv, err := h.GetThreadLocal(ctx, chat1.GetThreadLocalArg{
-		ConversationID: arg.ConversationId,
-		Query:          &query,
+		ConversationID:   arg.ConversationId,
+		Query:            &query,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return chat1.GetConversationForCLILocalRes{}, err
@@ -564,12 +572,13 @@ func (h *chatLocalHandler) PostLocalNonblock(ctx context.Context, arg chat1.Post
 // PostAttachmentLocal implements chat1.LocalInterface.PostAttachmentLocal.
 func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.PostAttachmentLocalArg) (chat1.PostLocalRes, error) {
 	parg := postAttachmentArg{
-		SessionID:      arg.SessionID,
-		ConversationID: arg.ConversationID,
-		ClientHeader:   arg.ClientHeader,
-		Attachment:     newStreamSource(arg.Attachment),
-		Title:          arg.Title,
-		Metadata:       arg.Metadata,
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		ClientHeader:     arg.ClientHeader,
+		Attachment:       newStreamSource(arg.Attachment),
+		Title:            arg.Title,
+		Metadata:         arg.Metadata,
+		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 	defer parg.Attachment.Close()
 
@@ -584,11 +593,12 @@ func (h *chatLocalHandler) PostAttachmentLocal(ctx context.Context, arg chat1.Po
 // PostFileAttachmentLocal implements chat1.LocalInterface.PostFileAttachmentLocal.
 func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFileAttachmentLocalArg) (chat1.PostLocalRes, error) {
 	parg := postAttachmentArg{
-		SessionID:      arg.SessionID,
-		ConversationID: arg.ConversationID,
-		ClientHeader:   arg.ClientHeader,
-		Title:          arg.Title,
-		Metadata:       arg.Metadata,
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		ClientHeader:     arg.ClientHeader,
+		Title:            arg.Title,
+		Metadata:         arg.Metadata,
+		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 	asrc, err := newFileSource(arg.Attachment)
 	if err != nil {
@@ -611,13 +621,14 @@ func (h *chatLocalHandler) PostFileAttachmentLocal(ctx context.Context, arg chat
 
 // postAttachmentArg is a shared arg struct for the multiple PostAttachment* endpoints
 type postAttachmentArg struct {
-	SessionID      int
-	ConversationID chat1.ConversationID
-	ClientHeader   chat1.MessageClientHeader
-	Attachment     assetSource
-	Preview        assetSource
-	Title          string
-	Metadata       []byte
+	SessionID        int
+	ConversationID   chat1.ConversationID
+	ClientHeader     chat1.MessageClientHeader
+	Attachment       assetSource
+	Preview          assetSource
+	Title            string
+	Metadata         []byte
+	IdentifyBehavior keybase1.TLFIdentifyBehavior
 }
 
 func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAttachmentArg) (chat1.PostLocalRes, error) {
@@ -694,6 +705,7 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 			ClientHeader: arg.ClientHeader,
 			MessageBody:  chat1.NewMessageBodyWithAttachment(attachment),
 		},
+		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 	return h.PostLocal(ctx, postArg)
 }
@@ -701,10 +713,11 @@ func (h *chatLocalHandler) postAttachmentLocal(ctx context.Context, arg postAtta
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.
 func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat1.DownloadAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
 	darg := downloadAttachmentArg{
-		SessionID:      arg.SessionID,
-		ConversationID: arg.ConversationID,
-		MessageID:      arg.MessageID,
-		Preview:        arg.Preview,
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		MessageID:        arg.MessageID,
+		Preview:          arg.Preview,
+		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 	cli := h.getStreamUICli()
 	darg.Sink = libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
@@ -715,10 +728,11 @@ func (h *chatLocalHandler) DownloadAttachmentLocal(ctx context.Context, arg chat
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *chatLocalHandler) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (chat1.DownloadAttachmentLocalRes, error) {
 	darg := downloadAttachmentArg{
-		SessionID:      arg.SessionID,
-		ConversationID: arg.ConversationID,
-		MessageID:      arg.MessageID,
-		Preview:        arg.Preview,
+		SessionID:        arg.SessionID,
+		ConversationID:   arg.ConversationID,
+		MessageID:        arg.MessageID,
+		Preview:          arg.Preview,
+		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 	sink, err := os.Create(arg.Filename)
 	if err != nil {
@@ -730,11 +744,12 @@ func (h *chatLocalHandler) DownloadFileAttachmentLocal(ctx context.Context, arg 
 }
 
 type downloadAttachmentArg struct {
-	SessionID      int
-	ConversationID chat1.ConversationID
-	MessageID      chat1.MessageID
-	Sink           io.WriteCloser
-	Preview        bool
+	SessionID        int
+	ConversationID   chat1.ConversationID
+	MessageID        chat1.MessageID
+	Sink             io.WriteCloser
+	Preview          bool
+	IdentifyBehavior keybase1.TLFIdentifyBehavior
 }
 
 func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg downloadAttachmentArg) (chat1.DownloadAttachmentLocalRes, error) {
@@ -755,8 +770,9 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 	}
 
 	marg := chat1.GetMessagesLocalArg{
-		ConversationID: arg.ConversationID,
-		MessageIDs:     []chat1.MessageID{arg.MessageID},
+		ConversationID:   arg.ConversationID,
+		MessageIDs:       []chat1.MessageID{arg.MessageID},
+		IdentifyBehavior: arg.IdentifyBehavior,
 	}
 	msgs, err := h.GetMessagesLocal(ctx, marg)
 	if err != nil {
