@@ -1,4 +1,5 @@
 // @flow
+import React, {Component} from 'react'
 import ProveEnterUsername from './prove-enter-username'
 import {TypedConnector} from '../util/typed-connect'
 import {submitUsername, cancelAddProof, updateUsername, submitBTCAddress, submitZcashAddress} from '../actions/profile'
