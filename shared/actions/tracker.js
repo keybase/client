@@ -646,7 +646,6 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
       if (alreadyPending) {
         onFinish && onFinish()
       }
-
     },
     'keybase.1.identifyUi.finish': ({sessionID}, response) => { // Cancel is actually the 'last' call that happens
       response.result()
