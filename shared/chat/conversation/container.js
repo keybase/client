@@ -25,6 +25,7 @@ export default connect(
           moreToLoad: conversationState.moreToLoad,
           isLoading: conversationState.isLoading,
           selectedConversation,
+          emojiPickerOpen: false,
         }
       }
     }

@@ -48,6 +48,14 @@ class Input extends Component<void, Props, State> {
     this._onChange({target: {value: ''}})
   }
 
+  selections () {
+    const node = this._input && this._inputNode()
+    if (node) {
+      const {selectionStart, selectionEnd} = node
+      return {selectionStart, selectionEnd}
+    }
+  }
+
   _onChange = (event: {target: {value: ?string}}) => {
     this.setState({value: event.target.value || ''})
     this._autoResize()
@@ -90,7 +98,7 @@ class Input extends Component<void, Props, State> {
       this.props.onKeyDown(e)
     }
 
-    if (this.props.onEnterKeyDown && e.key === 'Enter') {
+    if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey) {
       this.props.onEnterKeyDown(e)
     }
   }
@@ -207,6 +215,7 @@ class Input extends Component<void, Props, State> {
 
     const multilineProps = {
       ...commonProps,
+      rows: this.props.rowsMin || defaultRowsToShow,
       style: {...textareaStyle, ...this.props.inputStyle},
     }
 

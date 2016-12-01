@@ -11,6 +11,7 @@ export type Props = {
   moreToLoad: boolean,
   isLoading: boolean,
   onPostMessage: (text: string) => void,
+  emojiPickerOpen: boolean,
   selectedConversation: ?ConversationIDKey,
 }
 
