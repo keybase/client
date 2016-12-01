@@ -271,12 +271,8 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-<<<<<<< HEAD
   @lint("ignore")
-  SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status);
-=======
   SetConversationStatusLocalRes SetConversationStatusLocal(ConversationID conversationID, ConversationStatus status, keybase1.TLFIdentifyBehavior identifyBehavior);
->>>>>>> master
   record SetConversationStatusLocalRes {
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
@@ -363,21 +359,13 @@ protocol local {
   }
 
   // Download an attachment from a message into sink stream.
-<<<<<<< HEAD
   @lint("ignore")
-  DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview);
-
-  // Download an attachment from a message into a local file.
-  // Filename must be writable by the service.
-  @lint("ignore")
-  DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview);
-=======
   DownloadAttachmentLocalRes DownloadAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, keybase1.Stream sink, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Download an attachment from a message into a local file.
   // Filename must be writable by the service.
+  @lint("ignore")
   DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
->>>>>>> master
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);
