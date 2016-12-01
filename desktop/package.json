@@ -48,7 +48,7 @@
     "deep-diff": "0.3.4",
     "deep-equal": "1.0.1",
     "emoji-datasource": "2.4.4",
-    "emoji-mart": "marcopolo/emoji-mart#published",
+    "emoji-mart": "github:marcopolo/emoji-mart#published",
     "framed-msgpack-rpc": "1.1.13",
     "getenv": "0.7.0",
     "immutable": "3.8.1",
