@@ -1206,6 +1206,13 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
+	// Some other thread got here first, so give up and let it go
+	// before we push anything to the servers.
+	if fbo.getHead(lState) != (ImmutableRootMetadata{}) {
+		fbo.log.CDebugf(ctx, "Head was already set, aborting")
+		return nil
+	}
+
 	if err = PutBlockCheckQuota(ctx, fbo.config.BlockServer(),
 		fbo.config.Reporter(), md.TlfID(), info.BlockPointer, readyBlockData,
 		md.GetTlfHandle().GetCanonicalName()); err != nil {
