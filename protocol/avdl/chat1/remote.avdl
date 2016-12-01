@@ -71,6 +71,7 @@ protocol remote {
   NewConversationRemoteRes newConversationRemote(ConversationIDTriple idTriple);
 
   // on duplication of idTriple, and error is returned and the conversation ID of the existing conversation is returned.
+  @lint("ignore")
   NewConversationRemoteRes newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage);
   GetMessagesRemoteRes getMessagesRemote(ConversationID conversationID, array<MessageID> messageIDs);
 

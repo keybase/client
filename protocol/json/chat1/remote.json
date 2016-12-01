@@ -338,7 +338,8 @@
           "type": "MessageBoxed"
         }
       ],
-      "response": "NewConversationRemoteRes"
+      "response": "NewConversationRemoteRes",
+      "lint": "ignore"
     },
     "getMessagesRemote": {
       "request": [

@@ -421,6 +421,12 @@ function lintMessage (name, message) {
   if (isCapitalized(name)) {
     lintError(`Method names should not be capitalized: ${name}`, message.lint)
   }
+
+  message.request.forEach(f => {
+    if (isCapitalized(f.name)) {
+      lintError(`Method arg names should not be capitalized: ${f.name}`, message.lint)
+    }
+  })
 }
 
 function lintJSON(json) {
