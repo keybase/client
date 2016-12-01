@@ -15,6 +15,7 @@ export type Props = {
   onLoadMoreMessages: () => void,
   onOpenFolder: () => void,
   onPostMessage: (text: string) => void,
+  emojiPickerOpen: boolean,
   onShowProfile: (username: string) => void,
   onToggleSidePanel: () => void,
   participants: List<ParticipantItem>,

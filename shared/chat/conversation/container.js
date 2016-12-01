@@ -55,6 +55,7 @@ export default connect(
           isLoading: conversationState.isLoading,
           firstNewMessageID: conversationState.firstNewMessageID,
           selectedConversation,
+          emojiPickerOpen: false,
           metaData: state.chat.get('metaData'),
         }
       }

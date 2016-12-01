@@ -2,33 +2,72 @@
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
+import {Picker} from 'emoji-mart'
+import {backgroundImageFn} from '../../common-adapters/emoji'
 import {participantFilter} from '../../constants/chat'
 
 import type {Props} from './'
 
-class Conversation extends Component<void, Props, void> {
-  _input: any
+type State = {
+  emojiPickerOpen: boolean,
+  inputText: ?string,
+}
+
+class Conversation extends Component<void, Props, State> {
+  _input: any;
+  state: State;
 
   _setRef = r => {
     this._input = r
   }
 
+  constructor (props: Props) {
+    super(props)
+    const {emojiPickerOpen} = props
+    this.state = {emojiPickerOpen, inputText: null}
+  }
+
+  _insertEmoji (emojiColons: string) {
+    const inputText = this.state.inputText || ''
+    if (this._input) {
+      const {selectionStart = 0, selectionEnd = 0} = this._input.selections() || {}
+      const nextInputText = [inputText.substring(0, selectionStart), emojiColons, inputText.substring(selectionEnd)].join('')
+      this.setState({inputText: nextInputText})
+    }
+  }
+
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
-        <Box style={{...globalStyles.flexBoxRow}}>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}}>
           <Input
             small={true}
             style={styleInput}
             ref={this._setRef}
             hintText={`Write to ${participantFilter(this.props.participants).map(p => p.username).join(', ')}`}
             hideUnderline={true}
+            onChangeText={inputText => this.setState({inputText})}
+            value={this.state.inputText}
+            multiline={true}
+            rowsMin={1}
             onEnterKeyDown={() => {
-              this.props.onPostMessage(this._input.getValue())
-              this._input.clearValue()
+              if (this.state.inputText) {
+                this.props.onPostMessage(this.state.inputText)
+                this._input.clearValue()
+              }
             }}
           />
-          <Icon onClick={() => console.log('emoji callback')} style={styleIcon} type='iconfont-emoji' />
+          {this.state.emojiPickerOpen && (
+            <Box>
+              <Box style={{position: 'absolute', right: 0, bottom: 0, top: 0, left: 0}} onClick={() => this.setState({emojiPickerOpen: false})} />
+              <Box style={{position: 'relative'}}>
+                <Box style={{position: 'absolute', right: 0, bottom: 0}}>
+                  <Picker onClick={emoji => this._insertEmoji(emoji.colons)} emoji={'ghost'} title={'emojibase'} backgroundImageFn={backgroundImageFn} />
+                </Box>
+              </Box>
+            </Box>
+          )}
+          <Icon onClick={() => this.setState({emojiPickerOpen: !this.state.emojiPickerOpen})} style={styleIcon} type='iconfont-emoji' />
           <Icon onClick={() => console.log('attachment callback')} style={styleIcon} type='iconfont-attachment' />
         </Box>
         <Text type='BodySmall' style={styleFooter}>*bold*, _italics_, `code`, >quote</Text>

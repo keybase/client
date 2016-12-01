@@ -102,6 +102,7 @@ const commonConvoProps = {
   isLoading: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
+  emojiPickerOpen: false,
   onShowProfile: (username: string) => console.log('on show profile', username),
   metaData: Map(metaData),
 }
@@ -180,6 +181,11 @@ const input = {
   mocks: {
     'Normal': {
       ...commonConvoProps,
+    },
+    'Emoji Open': {
+      ...commonConvoProps,
+      emojiPickerOpen: true,
+      parentProps: {style: {height: 370, paddingTop: 330}},
     },
     'Empty': {
       ...emptyConvoProps,
