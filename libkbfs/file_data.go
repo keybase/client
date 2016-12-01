@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
@@ -1029,4 +1030,68 @@ func (fd *fileData) findIPtrsAndClearSize(topBlock *FileBlock,
 		}
 	}
 	return false
+}
+
+// deepCopy makes a complete copy of this file, deduping leaf blocks
+// and making new random BlockPointers for all indirect blocks.  It
+// returns the new top pointer of the copy, and all the new child
+// pointers in the copy.
+func (fd *fileData) deepCopy(ctx context.Context, codec kbfscodec.Codec,
+	dataVer DataVer) (
+	newTopPtr BlockPointer, allChildPtrs []BlockPointer, err error) {
+	topBlock, _, err := fd.getter(ctx, fd.kmd, fd.file.tailPointer(),
+		fd.file, blockRead)
+	if err != nil {
+		return zeroPtr, nil, err
+	}
+
+	newTopBlock, err := topBlock.DeepCopy(codec)
+	if err != nil {
+		return zeroPtr, nil, err
+	}
+	newTopPtr = fd.file.tailPointer()
+	if topBlock.IsInd {
+		newID, err := fd.crypto.MakeTemporaryBlockID()
+		if err != nil {
+			return zeroPtr, nil, err
+		}
+		newTopPtr = BlockPointer{
+			ID:      newID,
+			KeyGen:  fd.kmd.LatestKeyGeneration(),
+			DataVer: dataVer,
+			BlockContext: BlockContext{
+				Creator:  fd.uid,
+				RefNonce: ZeroBlockRefNonce,
+			},
+		}
+	} else {
+		newTopPtr.RefNonce, err = fd.crypto.MakeBlockRefNonce()
+		if err != nil {
+			return zeroPtr, nil, err
+		}
+		newTopPtr.SetWriter(fd.uid)
+	}
+	fd.log.CDebugf(ctx, "Deep copying file %s: %v -> %v",
+		fd.file.tailName(), fd.file.tailPointer(), newTopPtr)
+
+	// Dup all of the leaf blocks.
+	// TODO: deal with multiple levels of indirection.
+	if topBlock.IsInd {
+		for i, iptr := range topBlock.IPtrs {
+			// Generate a new nonce for each one.
+			iptr.RefNonce, err = fd.crypto.MakeBlockRefNonce()
+			if err != nil {
+				return zeroPtr, nil, err
+			}
+			iptr.SetWriter(fd.uid)
+			newTopBlock.IPtrs[i] = iptr
+			allChildPtrs = append(allChildPtrs, iptr.BlockPointer)
+		}
+	}
+
+	if err = fd.cacher(newTopPtr, newTopBlock); err != nil {
+		return zeroPtr, nil, err
+	}
+
+	return newTopPtr, allChildPtrs, nil
 }

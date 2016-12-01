@@ -2065,6 +2065,27 @@ func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 	return dblock, nil
 }
 
+func (cr *ConflictResolver) newFileData(lState *lockState,
+	file path, uid keybase1.UID, kmd KeyMetadata,
+	dirtyBcache DirtyBlockCache) *fileData {
+	return newFileData(file, uid, cr.config.Crypto(),
+		cr.config.BlockSplitter(), kmd,
+		// We shouldn't ever be fetching dirty blocks during a successful
+		// conflict resolution.
+		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
+			file path, rtype blockReqType) (*FileBlock, bool, error) {
+			block, err := cr.fbo.blocks.GetFileBlockForReading(
+				ctx, lState, kmd, ptr, file.Branch, file)
+			if err != nil {
+				return nil, false, err
+			}
+			return block, false, nil
+		},
+		func(ptr BlockPointer, block Block) error {
+			return dirtyBcache.Put(cr.fbo.id(), ptr, cr.fbo.branch(), block)
+		}, cr.log)
+}
+
 // fileBlockMap maps latest merged block pointer to a map of final
 // merged name -> file block.
 type fileBlockMap map[BlockPointer]map[string]*FileBlock
@@ -2074,43 +2095,36 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	name string, ptr BlockPointer, blocks fileBlockMap) (
 	BlockPointer, error) {
 	kmd := chains.mostRecentChainMDInfo.kmd
-	fblock, err := cr.fbo.blocks.GetFileBlockForReading(
-		ctx, lState, kmd, ptr, parentPath.Branch,
-		parentPath.ChildPath(name, ptr))
-	if err != nil {
-		return BlockPointer{}, err
-	}
-	fblock, err = fblock.DeepCopy(cr.config.Codec())
-	if err != nil {
-		return BlockPointer{}, err
-	}
-	newPtr := ptr
 	_, uid, err := cr.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return BlockPointer{}, err
 	}
-	if fblock.IsInd {
-		newID, err := cr.config.Crypto().MakeTemporaryBlockID()
-		if err != nil {
-			return BlockPointer{}, err
-		}
-		newPtr = BlockPointer{
-			ID:      newID,
-			KeyGen:  kmd.LatestKeyGeneration(),
-			DataVer: cr.config.DataVersion(),
-			BlockContext: BlockContext{
-				Creator:  uid,
-				RefNonce: ZeroBlockRefNonce,
-			},
-		}
-	} else {
-		newPtr.RefNonce, err = cr.config.Crypto().MakeBlockRefNonce()
-		if err != nil {
-			return BlockPointer{}, err
-		}
-		newPtr.SetWriter(uid)
+
+	dirtyBcache := simpleDirtyBlockCacheStandard()
+	// Simple dirty bcaches don't need to be shut down.
+
+	file := parentPath.ChildPath(name, ptr)
+	fd := cr.newFileData(lState, file, uid, kmd, dirtyBcache)
+	oldInfos, err := fd.getIndirectFileBlockInfos(ctx)
+	if err != nil {
+		return BlockPointer{}, err
 	}
-	cr.log.CDebugf(ctx, "Deep copying file %s: %v -> %v", name, ptr, newPtr)
+
+	newPtr, allChildPtrs, err := fd.deepCopy(
+		ctx, cr.config.Codec(), cr.config.DataVersion())
+	if err != nil {
+		return BlockPointer{}, err
+	}
+
+	block, err := dirtyBcache.Get(cr.fbo.id(), newPtr, cr.fbo.branch())
+	if err != nil {
+		return BlockPointer{}, err
+	}
+	fblock, ok := block.(*FileBlock)
+	if !ok {
+		return BlockPointer{}, NotFileBlockError{ptr, cr.fbo.branch(), file}
+	}
+
 	// Mark this as having been created during this chain, so that
 	// later during block accounting we can infer the origin of the
 	// block.
@@ -2124,32 +2138,24 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	newlyCreated := chains.isCreated(original)
 	if newlyCreated {
 		chains.toUnrefPointers[original] = true
+		for _, oldInfo := range oldInfos {
+			chains.toUnrefPointers[oldInfo.BlockPointer] = true
+		}
 	}
 
 	if _, ok := blocks[mergedMostRecent]; !ok {
 		blocks[mergedMostRecent] = make(map[string]*FileBlock)
 	}
 
-	// Dup all of the leaf blocks.
-	// TODO: deal with multiple levels of indirection.
-	if fblock.IsInd {
-		for i, iptr := range fblock.IPtrs {
-			if newlyCreated {
-				chains.toUnrefPointers[iptr.BlockPointer] = true
-			}
-
-			// Generate a new nonce for each one.
-			iptr.RefNonce, err = cr.config.Crypto().MakeBlockRefNonce()
-			if err != nil {
-				return BlockPointer{}, err
-			}
-			iptr.SetWriter(uid)
-			fblock.IPtrs[i] = iptr
-			chains.createdOriginals[iptr.BlockPointer] = true
-		}
+	for _, childPtr := range allChildPtrs {
+		chains.createdOriginals[childPtr] = true
 	}
 
 	blocks[mergedMostRecent][name] = fblock
+	// TODO: when we support multiple levels of indirection, for any
+	// mid-level indirect blocks in allChildPtrs, save the
+	// corresponding dirty block to some structure where it will later
+	// be added to the blockPutState and written to the server.
 	return newPtr, nil
 }
 
