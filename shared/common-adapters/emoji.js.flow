@@ -3,10 +3,7 @@ import {Component} from 'react'
 
 export type Props = {
   size: number,
-}
-
-const EmojiWrapper = (props: Props) => {
-  return <Emoji {...props} emoji={[':', ...props.children, ':'].join('')} backgroundImageFn={backgroundImageFn} />
+  children?: string,
 }
 
 declare function backgroundImageFn (set: string, sheetSize: string): string
