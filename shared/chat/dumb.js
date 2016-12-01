@@ -148,6 +148,15 @@ const inbox = [
     snippet: 'long ago',
     unreadCount: 0,
   }),
+  new InboxStateRecord({
+    info: null,
+    participants: List(participants.slice(0, 2)),
+    conversationIDKey: 'convo6',
+    muted: false,
+    time: now - 1000 * 60 * 60 * 3,
+    snippet: '3 hours ago',
+    unreadCount: 1,
+  }),
 ]
 
 const commonConversationsProps = {
@@ -236,6 +245,14 @@ const conversationsList = {
   mocks: {
     'Normal': {
       ...commonConversationsProps,
+    },
+    'Selected Normal': {
+      ...commonConversationsProps,
+      selectedConversation: 'convo1',
+    },
+    'SelectedMuted': {
+      ...commonConversationsProps,
+      selectedConversation: 'convo3',
     },
     'Empty': {
       ...emptyConversationsProps,
