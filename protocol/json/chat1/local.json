@@ -439,7 +439,7 @@
           "name": "headerSignature"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "fromRevokedDevice"
         }
       ]

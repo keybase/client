@@ -409,10 +409,12 @@ function lintRecord (record) {
   if (isNotCapitalized(record.name)) {
     lintError(`Record name should be capitalized: ${t.name}`, record.lint)
   }
-
   record.fields.forEach(f => {
     if (isCapitalized(f.name)) {
       lintError(`Record variable names should not be capitalized: ${record.name}.${f.name}`, f.lint)
+    }
+    if (f.type === 'bool') {
+      lintError(`Use boolean instead of bool: ${f.name}`)
     }
   })
 }
@@ -425,6 +427,9 @@ function lintMessage (name, message) {
   message.request.forEach(f => {
     if (isCapitalized(f.name)) {
       lintError(`Method arg names should not be capitalized: ${f.name}`, message.lint)
+    }
+    if (f.type === 'bool') {
+      lintError(`Use boolean instead of bool: ${f.name}`)
     }
   })
 }

@@ -3068,7 +3068,7 @@ export type GetTLFCryptKeysRes = {
 }
 
 export type HasServerKeysRes = {
-  hasServerKeys: bool,
+  hasServerKeys: boolean,
 }
 
 export type Hello2Res = {

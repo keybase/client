@@ -528,7 +528,7 @@ export type ConversationLocal = {
 export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
-  isFinalized: bool,
+  isFinalized: boolean,
   activeList?: ?Array<gregor1.UID>,
 }
 
@@ -852,7 +852,7 @@ export type MessageUnboxedValid = {
   senderDeviceType: string,
   headerHash: Hash,
   headerSignature?: ?SignatureInfo,
-  fromRevokedDevice: bool,
+  fromRevokedDevice: boolean,
 }
 
 export type NewConversationInfo = {

@@ -249,7 +249,7 @@
           "name": "conversationID"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "isFinalized"
         },
         {

@@ -95,7 +95,7 @@ protocol common {
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
-    bool isFinalized;
+    boolean isFinalized;
     // List of users sorted by recency of last [intentional] post.
     // Most recent first. May be incomplete or empty.
     array<gregor1.UID> activeList;
