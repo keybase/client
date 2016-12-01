@@ -27,6 +27,10 @@ config.entry = {
   main: ['./app/index.js'],
 }
 
+config.plugins.push(
+ new webpack.DefinePlugin(defines)
+)
+
 if (getenv.boolish('HOT', false)) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin())
 }
