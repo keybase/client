@@ -26,15 +26,12 @@ const MultiAvatar = ({avatarProps, singleSize, multiSize, style}: Props) => {
   const rightProps: AvatarProps = avatarProps[1]
 
   if (avatarProps.length === 1) {
-    // $FlowIssue
     return <Avatar {...leftProps} size={singleSize} />
   }
 
   return (
     <Box style={{...containerStyle, ...style}}>
-      {/* $FlowIssue */}
       <Avatar {...leftProps} style={leftAvatar} size={multiSize} />
-      {/* $FlowIssue */}
       <Avatar {...rightProps} style={rightAvatar} size={multiSize} />
     </Box>
   )
