@@ -610,25 +610,19 @@ type createMapKey struct {
 // the given file.  It will return an error if called with a pointer
 // that doesn't represent a file.
 func (cr *ConflictResolver) addChildBlocksIfIndirectFile(ctx context.Context,
-	lState *lockState, original BlockPointer, unmergedChains *crChains,
-	currPath path, op op) error {
-	mostRecent, err := unmergedChains.mostRecentFromOriginalOrSame(original)
-	if err != nil {
-		return err
-	}
+	lState *lockState, unmergedChains *crChains, currPath path, op op) error {
 	// For files with indirect pointers, and all child blocks
 	// as refblocks for the re-created file.
-	fblock, err := cr.fbo.blocks.GetFileBlockForReading(ctx, lState,
-		unmergedChains.mostRecentChainMDInfo.kmd,
-		mostRecent, currPath.Branch, currPath)
+	infos, err := cr.fbo.blocks.GetIndirectFileBlockInfos(
+		ctx, lState, unmergedChains.mostRecentChainMDInfo.kmd, currPath)
 	if err != nil {
 		return err
 	}
-	if fblock.IsInd {
+	if len(infos) > 0 {
 		cr.log.CDebugf(ctx, "Adding child pointers for recreated "+
 			"file %s", currPath)
-		for _, ptr := range fblock.IPtrs {
-			op.AddRefBlock(ptr.BlockPointer)
+		for _, info := range infos {
+			op.AddRefBlock(info.BlockPointer)
 		}
 	}
 	return nil
@@ -756,7 +750,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 
 		if co.Type != Dir {
 			err = cr.addChildBlocksIfIndirectFile(ctx, lState,
-				currOriginal, unmergedChains, currPath, co)
+				unmergedChains, currPath, co)
 			if err != nil {
 				return path{}, BlockPointer{}, nil, err
 			}
@@ -2374,8 +2368,15 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 					// in this branch, just use the create op.
 					op = chains.copyOpAndRevertUnrefsToOriginals(cop)
 					if cop.Type != Dir {
-						err := cr.addChildBlocksIfIndirectFile(ctx, lState,
-							renameOriginal, chains, cop.getFinalPath(), op)
+						renameMostRecent, err :=
+							chains.mostRecentFromOriginalOrSame(renameOriginal)
+						if err != nil {
+							return nil, err
+						}
+
+						err = cr.addChildBlocksIfIndirectFile(ctx, lState,
+							chains, cop.getFinalPath().ChildPath(
+								cop.NewName, renameMostRecent), op)
 						if err != nil {
 							return nil, err
 						}

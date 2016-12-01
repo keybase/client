@@ -775,13 +775,15 @@ func newCRChains(
 			ccs.blockChangePointers[ptr] = true
 
 			// Any child block change pointers?
-			fblock, err := fbo.GetFileBlockForReading(ctx, makeFBOLockState(),
-				chainMD, ptr, MasterBranch, path{})
+			infos, err := fbo.GetIndirectFileBlockInfos(
+				ctx, makeFBOLockState(), chainMD,
+				path{fbo.folderBranch, []pathNode{{
+					ptr, fmt.Sprintf("<MD rev %d>", chainMD.Revision())}}})
 			if err != nil {
 				return nil, err
 			}
-			for _, iptr := range fblock.IPtrs {
-				ccs.blockChangePointers[iptr.BlockPointer] = true
+			for _, info := range infos {
+				ccs.blockChangePointers[info.BlockPointer] = true
 			}
 		}
 
