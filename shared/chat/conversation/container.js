@@ -57,6 +57,7 @@ export default connect(
           selectedConversation,
           emojiPickerOpen: false,
           metaData: state.chat.get('metaData'),
+          bannerMessage: null,
         }
       }
     }
@@ -68,6 +69,7 @@ export default connect(
       isLoading: false,
       selectedConversation,
       metaData: Map(),
+      bannerMessage: null,
     }
   },
   (dispatch: Dispatch) => ({
