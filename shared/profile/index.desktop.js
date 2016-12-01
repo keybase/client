@@ -11,7 +11,6 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 import {normal as proofNormal, checking as proofChecking, metaUnreachable, metaPending} from '../constants/tracker'
 import {stateColors} from '../util/tracker'
 
-import type {Tab as FriendshipsTab} from './friendships'
 import type {Proof} from '../constants/tracker'
 import type {Props} from './index'
 
@@ -20,7 +19,6 @@ export const HEADER_TOP_SPACE = 48
 export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 
 type State = {
-  currentFriendshipsTab: FriendshipsTab,
   foldersExpanded: boolean,
   proofMenuIndex: ?number,
   popupMenuPosition: {
@@ -41,7 +39,6 @@ class ProfileRender extends PureComponent<void, Props, State> {
     this._scrollContainer = null
 
     this.state = {
-      currentFriendshipsTab: 'Followers',
       foldersExpanded: false,
       proofMenuIndex: null,
       popupMenuPosition: {},
@@ -58,7 +55,6 @@ class ProfileRender extends PureComponent<void, Props, State> {
     }
 
     const headerStyle = {
-      fontWeight: 'bold',
       textAlign: 'center',
       paddingLeft: globalMargins.small,
       paddingRight: globalMargins.small,
@@ -71,7 +67,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
         header: {
           title: 'header',
           view: <Text
-            type='BodySmall'
+            type='BodySemibold'
             style={{
               ...headerStyle,
               color: globalColors.white,
@@ -96,7 +92,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
           title: 'header',
           view: <Text
             key='header'
-            type='BodySmall'
+            type='BodySemibold'
             style={{
               ...headerStyle,
               color: globalColors.white,
@@ -227,7 +223,7 @@ class ProfileRender extends PureComponent<void, Props, State> {
       <Box style={styleOuterContainer}>
         <Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
-        {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 10, top: 10, zIndex: 12}}
+        {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 14, top: 16, zIndex: 12}}
           textStyle={{color: globalColors.white}} iconStyle={{color: globalColors.white}} />}
         <Box ref={c => { this._scrollContainer = c }} className='scroll-container' style={styleContainer}>
           <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}} />
@@ -258,33 +254,34 @@ class ProfileRender extends PureComponent<void, Props, State> {
             </Box>
             <Box style={styleProofColumn}>
               <Box style={styleProofNoticeBox}>
-                {proofNotice && <Text type='BodySmallSemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
+                {proofNotice && <Text type='BodySemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
               </Box>
-              {(loading || this.props.proofs.length > 0) &&
-                <UserProofs
-                  type={'proofs'}
-                  ref={c => { this._proofList = c }}
-                  style={styleProofs}
-                  username={this.props.username}
-                  loading={loading}
-                  proofs={this.props.proofs}
-                  onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
-                  showingMenuIndex={this.state.proofMenuIndex}
-                />}
-              {!loading && !this.props.serverActive && missingProofs.length > 0 &&
-                <UserProofs
-                  type={'missingProofs'}
-                  username={this.props.username}
-                  missingProofs={missingProofs}
-                />}
-              {!loading && folders}
+              <Box style={styleProofs}>
+                {(loading || this.props.proofs.length > 0) &&
+                  <UserProofs
+                    type={'proofs'}
+                    ref={c => { this._proofList = c }}
+                    username={this.props.username}
+                    loading={loading}
+                    proofs={this.props.proofs}
+                    onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
+                    showingMenuIndex={this.state.proofMenuIndex}
+                  />}
+                {!loading && !this.props.serverActive && missingProofs.length > 0 &&
+                  <UserProofs
+                    type={'missingProofs'}
+                    username={this.props.username}
+                    missingProofs={missingProofs}
+                  />}
+                {!loading && folders}
+              </Box>
             </Box>
           </Box>
           {!loading &&
             <Friendships
               style={styleFriendships}
-              currentTab={this.state.currentFriendshipsTab}
-              onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
+              currentTab={this.props.currentFriendshipsTab}
+              onSwitchTab={currentFriendshipsTab => this.props.onChangeFriendshipsTab(currentFriendshipsTab)}
               onUserClick={this.props.onUserClick}
               followers={this.props.followers}
               following={this.props.following} />}
@@ -334,6 +331,7 @@ const styleScrollHeaderCover = {
 const styleBioColumn = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  width: '50%',
 }
 
 const styleActions = {
@@ -379,7 +377,7 @@ const styleFolderIcon = {
 }
 
 const styleFriendships = {
-  marginTop: globalMargins.medium,
+  marginTop: globalMargins.large,
 }
 
 const styleProofMenu = {

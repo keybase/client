@@ -91,23 +91,9 @@ func (e *Login) Run(ctx *Context) error {
 	// clear out any existing session:
 	e.G().Logout()
 
-	// transaction around config file
-	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
-	if err != nil {
-		return err
-	}
-
-	// From this point on, if there's an error, we abort the
-	// transaction.
-	defer func() {
-		if tx != nil {
-			tx.Abort()
-		}
-	}()
-
 	// run the LoginLoadUser sub-engine to load a user
 	ueng := newLoginLoadUser(e.G(), e.usernameOrEmail)
-	if err = RunEngine(ueng, ctx); err != nil {
+	if err := RunEngine(ueng, ctx); err != nil {
 		return err
 	}
 
@@ -124,18 +110,9 @@ func (e *Login) Run(ctx *Context) error {
 		User:       ueng.User(),
 	}
 	deng := newLoginProvision(e.G(), darg)
-	if err = RunEngine(deng, ctx); err != nil {
+	if err := RunEngine(deng, ctx); err != nil {
 		return err
 	}
-
-	// commit the config changes
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	// Zero out the TX so that we don't abort it in the defer()
-	// exit.
-	tx = nil
 
 	e.sendNotification()
 	return nil

@@ -184,16 +184,48 @@ func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1) Rep
 
 // DeleteV1 implements ChatServiceHandler.DeleteV1.
 func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1) Reply {
-	convID, err := chat1.MakeConvID(opts.ConversationID)
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, _, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
+
+	// Fetch any edits that exist for this message.
+	// TODO: This is a big and inefficient fetch that scans all edits in the
+	// entire conversation. We should have this in a local index instead.
+	readArg := chat1.GetThreadLocalArg{
+		ConversationID: convID,
+		Query: &chat1.GetThreadQuery{
+			MarkAsRead:   false,
+			MessageTypes: []chat1.MessageType{chat1.MessageType_EDIT},
+		},
+	}
+	threadView, err := client.GetThreadLocal(ctx, readArg)
+	messageAndEdits := []chat1.MessageID{opts.MessageID}
+	for _, m := range threadView.Thread.Messages {
+		st, err := m.State()
+		if err != nil {
+			return c.errReply(fmt.Errorf("invalid message: unknown state (%s)", err))
+		}
+		if st == chat1.MessageUnboxedState_ERROR {
+			c.G().Log.Warning("Failed to unbox edit %d: %s", m.Error().MessageID, m.Error().ErrMsg)
+			continue
+		}
+		if m.Valid().MessageBody.Edit().MessageID == opts.MessageID {
+			messageAndEdits = append(messageAndEdits, m.Valid().ServerHeader.MessageID)
+		}
+	}
+
 	arg := sendArgV1{
 		conversationID: convID,
 		channel:        opts.Channel,
-		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageID: opts.MessageID}),
+		body:           chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: messageAndEdits}),
 		mtype:          chat1.MessageType_DELETE,
 		supersedes:     opts.MessageID,
+		deletes:        messageAndEdits,
 		response:       "message deleted",
 	}
 	return c.sendV1(ctx, arg)
@@ -218,6 +250,9 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 
 // AttachV1 implements ChatServiceHandler.AttachV1.
 func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1) Reply {
+	if opts.NoStream {
+		return c.attachV1NoStream(ctx, opts)
+	}
 	convID, err := chat1.MakeConvID(opts.ConversationID)
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
@@ -302,8 +337,80 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 	return Reply{Result: res}
 }
 
+// attachV1NoStream uses PostFileAttachmentLocal instead of PostAttachmentLocal.
+func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOptionsV1) Reply {
+	convID, err := chat1.MakeConvID(opts.ConversationID)
+	if err != nil {
+		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
+	}
+	sarg := sendArgV1{
+		conversationID: convID,
+		channel:        opts.Channel,
+		mtype:          chat1.MessageType_ATTACHMENT,
+	}
+	query, err := c.getInboxLocalQuery(ctx, sarg.conversationID, sarg.channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	header, err := c.makePostHeader(ctx, sarg, query)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	arg := chat1.PostFileAttachmentLocalArg{
+		ConversationID: header.conversationID,
+		ClientHeader:   header.clientHeader,
+		Attachment: chat1.LocalFileSource{
+			Filename: opts.Filename,
+		},
+		Title: opts.Title,
+	}
+
+	// check for preview
+	if len(opts.Preview) > 0 {
+		plocal := chat1.LocalFileSource{
+			Filename: opts.Preview,
+		}
+		arg.Preview = &plocal
+	}
+
+	ui := &ChatUI{
+		Contextified: libkb.NewContextified(c.G()),
+		terminal:     c.G().UI.GetTerminalUI(),
+	}
+
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	protocols := []rpc.Protocol{
+		NewStreamUIProtocol(c.G()),
+		chat1.ChatUiProtocol(ui),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
+	pres, err := client.PostFileAttachmentLocal(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+	header.rateLimits = append(header.rateLimits, pres.RateLimits...)
+
+	res := SendRes{
+		Message: "attachment sent",
+		RateLimits: RateLimits{
+			RateLimits: c.aggRateLimits(header.rateLimits),
+		},
+	}
+
+	return Reply{Result: res}
+}
+
 // DownloadV1 implements ChatServiceHandler.DownloadV1.
 func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOptionsV1) Reply {
+	if opts.NoStream && opts.Output != "-" {
+		return c.downloadV1NoStream(ctx, opts)
+	}
 	var fsink Sink
 	if opts.Output == "-" {
 		fsink = &StdoutSink{}
@@ -342,6 +449,52 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	}
 
 	dres, err := client.DownloadAttachmentLocal(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+	rlimits = append(rlimits, dres.RateLimits...)
+
+	res := SendRes{
+		Message: fmt.Sprintf("attachment downloaded to %s", opts.Output),
+		RateLimits: RateLimits{
+			RateLimits: c.aggRateLimits(rlimits),
+		},
+	}
+
+	return Reply{Result: res}
+}
+
+// downloadV1NoStream uses DownloadFileAttachmentLocal instead of DownloadAttachmentLocal.
+func (c *chatServiceHandler) downloadV1NoStream(ctx context.Context, opts downloadOptionsV1) Reply {
+	ui := &ChatUI{
+		Contextified: libkb.NewContextified(c.G()),
+		terminal:     c.G().UI.GetTerminalUI(),
+	}
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	protocols := []rpc.Protocol{
+		NewStreamUIProtocol(c.G()),
+		chat1.ChatUiProtocol(ui),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return c.errReply(err)
+	}
+
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	arg := chat1.DownloadFileAttachmentLocalArg{
+		ConversationID: convID,
+		MessageID:      opts.MessageID,
+		Preview:        opts.Preview,
+		Filename:       opts.Output,
+	}
+
+	dres, err := client.DownloadFileAttachmentLocal(ctx, arg)
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -401,6 +554,7 @@ type sendArgV1 struct {
 	body           chat1.MessageBody
 	mtype          chat1.MessageType
 	supersedes     chat1.MessageID
+	deletes        []chat1.MessageID
 	response       string
 }
 
@@ -464,6 +618,8 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	header.rateLimits = append(header.rateLimits, gilres.RateLimits...)
 
 	var convTriple chat1.ConversationIDTriple
+	var tlfName string
+	var visibility chat1.TLFVisibility
 	existing := gilres.Conversations
 	switch len(existing) {
 	case 0:
@@ -477,19 +633,26 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 			return nil, err
 		}
 		header.rateLimits = append(header.rateLimits, ncres.RateLimits...)
-		convTriple, header.conversationID = ncres.Conv.Info.Triple, ncres.Conv.Info.Id
+		convTriple = ncres.Conv.Info.Triple
+		tlfName = ncres.Conv.Info.TlfName
+		visibility = ncres.Conv.Info.Visibility
+		header.conversationID = ncres.Conv.Info.Id
 	case 1:
-		convTriple, header.conversationID = existing[0].Info.Triple, existing[0].Info.Id
+		convTriple = existing[0].Info.Triple
+		tlfName = existing[0].Info.TlfName
+		visibility = existing[0].Info.Visibility
+		header.conversationID = existing[0].Info.Id
 	default:
 		return nil, fmt.Errorf("multiple conversations matched")
 	}
 
 	header.clientHeader = chat1.MessageClientHeader{
 		Conv:        convTriple,
-		TlfName:     *query.TlfName,
-		TlfPublic:   *query.TlfVisibility == chat1.TLFVisibility_PUBLIC,
+		TlfName:     tlfName,
+		TlfPublic:   visibility == chat1.TLFVisibility_PUBLIC,
 		MessageType: arg.mtype,
 		Supersedes:  arg.supersedes,
+		Deletes:     arg.deletes,
 	}
 
 	return &header, nil

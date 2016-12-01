@@ -25,7 +25,7 @@ type MessageEdit struct {
 }
 
 type MessageDelete struct {
-	MessageID MessageID `codec:"messageID" json:"messageID"`
+	MessageIDs []MessageID `codec:"messageIDs" json:"messageIDs"`
 }
 
 type MessageHeadline struct {
@@ -419,12 +419,15 @@ var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
 }
 
 type MessageUnboxedValid struct {
-	ClientHeader     MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
-	ServerHeader     MessageServerHeader `codec:"serverHeader" json:"serverHeader"`
-	MessageBody      MessageBody         `codec:"messageBody" json:"messageBody"`
-	SenderUsername   string              `codec:"senderUsername" json:"senderUsername"`
-	SenderDeviceName string              `codec:"senderDeviceName" json:"senderDeviceName"`
-	HeaderHash       Hash                `codec:"headerHash" json:"headerHash"`
+	ClientHeader      MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
+	ServerHeader      MessageServerHeader `codec:"serverHeader" json:"serverHeader"`
+	MessageBody       MessageBody         `codec:"messageBody" json:"messageBody"`
+	SenderUsername    string              `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName  string              `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType  string              `codec:"senderDeviceType" json:"senderDeviceType"`
+	HeaderHash        Hash                `codec:"headerHash" json:"headerHash"`
+	HeaderSignature   *SignatureInfo      `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
+	FromRevokedDevice bool                `codec:"fromRevokedDevice" json:"fromRevokedDevice"`
 }
 
 type MessageUnboxedError struct {
@@ -529,10 +532,11 @@ type ConversationInfoLocal struct {
 }
 
 type ConversationLocal struct {
-	Error       *string                `codec:"error,omitempty" json:"error,omitempty"`
-	Info        ConversationInfoLocal  `codec:"info" json:"info"`
-	ReaderInfo  ConversationReaderInfo `codec:"readerInfo" json:"readerInfo"`
-	MaxMessages []MessageUnboxed       `codec:"maxMessages" json:"maxMessages"`
+	Error            *string                       `codec:"error,omitempty" json:"error,omitempty"`
+	Info             ConversationInfoLocal         `codec:"info" json:"info"`
+	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
+	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type ThreadView struct {
@@ -548,14 +552,16 @@ type GetThreadQuery struct {
 }
 
 type GetThreadLocalRes struct {
-	Thread     ThreadView  `codec:"thread" json:"thread"`
-	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+	Thread           ThreadView                    `codec:"thread" json:"thread"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type GetInboxLocalRes struct {
-	ConversationsUnverified []Conversation `codec:"conversationsUnverified" json:"conversationsUnverified"`
-	Pagination              *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	RateLimits              []RateLimit    `codec:"rateLimits" json:"rateLimits"`
+	ConversationsUnverified []Conversation                `codec:"conversationsUnverified" json:"conversationsUnverified"`
+	Pagination              *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	RateLimits              []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures        []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type GetInboxLocalQuery struct {
@@ -580,22 +586,19 @@ type GetInboxAndUnboxLocalRes struct {
 }
 
 type PostLocalRes struct {
-	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type PostLocalNonblockRes struct {
-	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
-	OutboxID   OutboxID    `codec:"outboxID" json:"outboxID"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	OutboxID         OutboxID                      `codec:"outboxID" json:"outboxID"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type SetConversationStatusLocalRes struct {
-	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
-}
-
-type LocalSource struct {
-	Source   keybase1.Stream `codec:"source" json:"source"`
-	Filename string          `codec:"filename" json:"filename"`
-	Size     int             `codec:"size" json:"size"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type NewConversationLocalRes struct {
@@ -634,61 +637,70 @@ type GetConversationForCLILocalRes struct {
 }
 
 type GetMessagesLocalRes struct {
-	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
-	RateLimits []RateLimit      `codec:"rateLimits" json:"rateLimits"`
+	Messages         []MessageUnboxed              `codec:"messages" json:"messages"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+type LocalSource struct {
+	Source   keybase1.Stream `codec:"source" json:"source"`
+	Filename string          `codec:"filename" json:"filename"`
+	Size     int             `codec:"size" json:"size"`
+}
+
+type LocalFileSource struct {
+	Filename string `codec:"filename" json:"filename"`
 }
 
 type DownloadAttachmentLocalRes struct {
-	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
 type GetThreadLocalArg struct {
-	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
-	Query          *GetThreadQuery `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination     *Pagination     `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
+	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type GetInboxLocalArg struct {
-	Query      *GetInboxLocalQuery `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
+	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type GetInboxAndUnboxLocalArg struct {
-	Query      *GetInboxLocalQuery `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
+	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type PostLocalArg struct {
-	ConversationID ConversationID   `codec:"conversationID" json:"conversationID"`
-	Msg            MessagePlaintext `codec:"msg" json:"msg"`
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type PostLocalNonblockArg struct {
-	ConversationID ConversationID   `codec:"conversationID" json:"conversationID"`
-	Msg            MessagePlaintext `codec:"msg" json:"msg"`
-	ClientPrev     MessageID        `codec:"clientPrev" json:"clientPrev"`
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
+	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type SetConversationStatusLocalArg struct {
-	ConversationID ConversationID     `codec:"conversationID" json:"conversationID"`
-	Status         ConversationStatus `codec:"status" json:"status"`
-}
-
-type PostAttachmentLocalArg struct {
-	SessionID      int                 `codec:"sessionID" json:"sessionID"`
-	ConversationID ConversationID      `codec:"conversationID" json:"conversationID"`
-	ClientHeader   MessageClientHeader `codec:"clientHeader" json:"clientHeader"`
-	Attachment     LocalSource         `codec:"attachment" json:"attachment"`
-	Preview        *LocalSource        `codec:"preview,omitempty" json:"preview,omitempty"`
-	Title          string              `codec:"title" json:"title"`
-	Metadata       []byte              `codec:"metadata" json:"metadata"`
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	Status           ConversationStatus           `codec:"status" json:"status"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type NewConversationLocalArg struct {
-	TlfName       string        `codec:"tlfName" json:"tlfName"`
-	TopicType     TopicType     `codec:"topicType" json:"topicType"`
-	TlfVisibility TLFVisibility `codec:"tlfVisibility" json:"tlfVisibility"`
-	TopicName     *string       `codec:"topicName,omitempty" json:"topicName,omitempty"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TopicType        TopicType                    `codec:"topicType" json:"topicType"`
+	TlfVisibility    TLFVisibility                `codec:"tlfVisibility" json:"tlfVisibility"`
+	TopicName        *string                      `codec:"topicName,omitempty" json:"topicName,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type GetInboxSummaryForCLILocalArg struct {
@@ -700,16 +712,49 @@ type GetConversationForCLILocalArg struct {
 }
 
 type GetMessagesLocalArg struct {
-	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	MessageIDs     []MessageID    `codec:"messageIDs" json:"messageIDs"`
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	MessageIDs       []MessageID                  `codec:"messageIDs" json:"messageIDs"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type PostAttachmentLocalArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	ClientHeader     MessageClientHeader          `codec:"clientHeader" json:"clientHeader"`
+	Attachment       LocalSource                  `codec:"attachment" json:"attachment"`
+	Preview          *LocalSource                 `codec:"preview,omitempty" json:"preview,omitempty"`
+	Title            string                       `codec:"title" json:"title"`
+	Metadata         []byte                       `codec:"metadata" json:"metadata"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type PostFileAttachmentLocalArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	ClientHeader     MessageClientHeader          `codec:"clientHeader" json:"clientHeader"`
+	Attachment       LocalFileSource              `codec:"attachment" json:"attachment"`
+	Preview          *LocalFileSource             `codec:"preview,omitempty" json:"preview,omitempty"`
+	Title            string                       `codec:"title" json:"title"`
+	Metadata         []byte                       `codec:"metadata" json:"metadata"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type DownloadAttachmentLocalArg struct {
-	SessionID      int             `codec:"sessionID" json:"sessionID"`
-	ConversationID ConversationID  `codec:"conversationID" json:"conversationID"`
-	MessageID      MessageID       `codec:"messageID" json:"messageID"`
-	Sink           keybase1.Stream `codec:"sink" json:"sink"`
-	Preview        bool            `codec:"preview" json:"preview"`
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	MessageID        MessageID                    `codec:"messageID" json:"messageID"`
+	Sink             keybase1.Stream              `codec:"sink" json:"sink"`
+	Preview          bool                         `codec:"preview" json:"preview"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type DownloadFileAttachmentLocalArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	MessageID        MessageID                    `codec:"messageID" json:"messageID"`
+	Filename         string                       `codec:"filename" json:"filename"`
+	Preview          bool                         `codec:"preview" json:"preview"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
 type CancelPostArg struct {
@@ -727,12 +772,14 @@ type LocalInterface interface {
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	PostLocalNonblock(context.Context, PostLocalNonblockArg) (PostLocalNonblockRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
-	PostAttachmentLocal(context.Context, PostAttachmentLocalArg) (PostLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
 	GetMessagesLocal(context.Context, GetMessagesLocalArg) (GetMessagesLocalRes, error)
+	PostAttachmentLocal(context.Context, PostAttachmentLocalArg) (PostLocalRes, error)
+	PostFileAttachmentLocal(context.Context, PostFileAttachmentLocalArg) (PostLocalRes, error)
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
+	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, OutboxID) error
 }
@@ -837,22 +884,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"postAttachmentLocal": {
-				MakeArg: func() interface{} {
-					ret := make([]PostAttachmentLocalArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PostAttachmentLocalArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]PostAttachmentLocalArg)(nil), args)
-						return
-					}
-					ret, err = i.PostAttachmentLocal(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"newConversationLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]NewConversationLocalArg, 1)
@@ -917,6 +948,38 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"postAttachmentLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]PostAttachmentLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostAttachmentLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostAttachmentLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.PostAttachmentLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postFileAttachmentLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]PostFileAttachmentLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostFileAttachmentLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostFileAttachmentLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.PostFileAttachmentLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"DownloadAttachmentLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]DownloadAttachmentLocalArg, 1)
@@ -929,6 +992,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.DownloadAttachmentLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"DownloadFileAttachmentLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]DownloadFileAttachmentLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DownloadFileAttachmentLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DownloadFileAttachmentLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.DownloadFileAttachmentLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1003,11 +1082,6 @@ func (c LocalClient) SetConversationStatusLocal(ctx context.Context, __arg SetCo
 	return
 }
 
-func (c LocalClient) PostAttachmentLocal(ctx context.Context, __arg PostAttachmentLocalArg) (res PostLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postAttachmentLocal", []interface{}{__arg}, &res)
-	return
-}
-
 func (c LocalClient) NewConversationLocal(ctx context.Context, __arg NewConversationLocalArg) (res NewConversationLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.newConversationLocal", []interface{}{__arg}, &res)
 	return
@@ -1030,8 +1104,23 @@ func (c LocalClient) GetMessagesLocal(ctx context.Context, __arg GetMessagesLoca
 	return
 }
 
+func (c LocalClient) PostAttachmentLocal(ctx context.Context, __arg PostAttachmentLocalArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postAttachmentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostFileAttachmentLocal(ctx context.Context, __arg PostFileAttachmentLocalArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocal", []interface{}{__arg}, &res)
+	return
+}
+
 func (c LocalClient) DownloadAttachmentLocal(ctx context.Context, __arg DownloadAttachmentLocalArg) (res DownloadAttachmentLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.DownloadAttachmentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) DownloadFileAttachmentLocal(ctx context.Context, __arg DownloadFileAttachmentLocalArg) (res DownloadAttachmentLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.DownloadFileAttachmentLocal", []interface{}{__arg}, &res)
 	return
 }
 

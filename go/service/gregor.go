@@ -13,6 +13,7 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
+	istorage "github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
@@ -96,6 +97,7 @@ type gregorHandler struct {
 	ibmHandlers      []libkb.GregorInBandMessageHandler
 	gregorCli        *grclient.Client
 	firehoseHandlers []libkb.GregorFirehoseHandler
+	badger           *Badger
 
 	// This mutex protects the con object
 	connMutex sync.Mutex
@@ -144,6 +146,7 @@ func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 		Contextified:    libkb.NewContextified(g),
 		freshReplay:     true,
 		pushStateFilter: func(m gregor.Message) bool { return true },
+		badger:          nil,
 	}
 
 	// Attempt to create a gregor client initially, if we are not logged in
@@ -249,6 +252,7 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 	} else {
 		err = g.connectNoTLS(uri)
 	}
+
 	return err
 }
 
@@ -316,6 +320,10 @@ func (g *gregorHandler) pushState(r keybase1.PushReason) {
 		return
 	}
 	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) { h.PushState(s, r) })
+
+	if g.badger != nil {
+		g.badger.PushState(s)
+	}
 }
 
 func (g *gregorHandler) pushOutOfBandMessages(m []gregor1.OutOfBandMessage) {
@@ -421,7 +429,17 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	// All done with fresh replays
 	g.freshReplay = false
 
+	g.pushState(keybase1.PushReason_RECONNECTED)
+
 	return replayedMsgs, consumedMsgs, nil
+}
+
+func (g *gregorHandler) makeReconnectOobm() gregor1.Message {
+	return gregor1.Message{
+		Oobm_: &gregor1.OutOfBandMessage{
+			System_: "internal.reconnect",
+		},
+	}
 }
 
 // OnConnect is called by the rpc library to indicate we have connected to
@@ -443,8 +461,6 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return err
 	}
 
-	g.pushState(keybase1.PushReason_RECONNECTED)
-
 	// Sync down events since we have been dead
 	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: cli})
 	if err != nil {
@@ -453,6 +469,18 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		g.Debug("sync success: replayed: %d consumed: %d",
 			len(replayedMsgs), len(consumedMsgs))
 	}
+
+	if g.badger != nil {
+		go func(badger *Badger) {
+			badger.Resync(context.Background(), &chat1.RemoteClient{Cli: g.cli})
+		}(g.badger)
+	}
+
+	// Broadcast reconnect oobm. Spawn this off into a goroutine so that we don't delay
+	// reconnection any longer than we have to.
+	go func(m gregor1.Message) {
+		g.BroadcastMessage(context.Background(), m)
+	}(g.makeReconnectOobm())
 
 	return nil
 }
@@ -788,6 +816,9 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		return g.kbfsFavorites(ctx, obm)
 	case "chat.activity":
 		return g.newChatActivity(ctx, obm)
+	case "internal.reconnect":
+		g.G().Log.Debug("reconnected to push server")
+		return nil
 	default:
 		return fmt.Errorf("unhandled system: %s", obm.System())
 	}
@@ -896,6 +927,10 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			Message: decmsg,
 			ConvID:  nm.ConvID,
 		})
+
+		if g.badger != nil && nm.UnreadUpdate != nil {
+			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+		}
 	case "readMessage":
 		var nm chat1.ReadMessagePayload
 		err = dec.Decode(&nm)
@@ -918,6 +953,10 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			MsgID:  nm.MsgID,
 			ConvID: nm.ConvID,
 		})
+
+		if g.badger != nil && nm.UnreadUpdate != nil {
+			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+		}
 	case "setStatus":
 		var nm chat1.SetStatusPayload
 		err = dec.Decode(&nm)
@@ -940,6 +979,10 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			ConvID: nm.ConvID,
 			Status: nm.Status,
 		})
+
+		if g.badger != nil && nm.UnreadUpdate != nil {
+			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+		}
 	case "newConversation":
 		var nm chat1.NewConversationPayload
 		err = dec.Decode(&nm)
@@ -948,6 +991,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			return err
 		}
 		g.G().Log.Debug("push handler: chat activity: newConversation: convID: %s ", nm.ConvID)
+
 		uid := m.UID().Bytes()
 
 		// We need to get this conversation and then localize it
@@ -959,7 +1003,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			func() keybase1.TlfInterface { return tlf })
 		if inbox, _, err = inboxSource.Read(context.Background(), uid, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,
-		}, nil); err != nil {
+		}, nil, keybase1.TLFIdentifyBehavior_CHAT_GUI); err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to read conversation: %s", err.Error())
 			return err
 		}
@@ -970,7 +1014,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
 			return chat.DelivererSecretUI{}
-		}).NewConversation(nm.InboxVers, inbox.Convs[0]); err != nil {
+		}).NewConversation(nm.InboxVers, istorage.FromConversationLocal(inbox.Convs[0])); err != nil {
 			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
 				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
 			}
@@ -978,6 +1022,10 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 		activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
 			Conv: inbox.Convs[0],
 		})
+
+		if g.badger != nil && nm.UnreadUpdate != nil {
+			g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+		}
 	default:
 		return fmt.Errorf("unhandled chat.activity action %q", action)
 	}

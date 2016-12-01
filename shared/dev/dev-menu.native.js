@@ -1,12 +1,12 @@
 // @flow
 import MenuList from '../settings/menu-list'
 import React, {Component} from 'react'
-import dumbSheet from './dumb-sheet'
 import engine from '../engine'
-import logSend from './log-send'
 import {connect} from 'react-redux'
 import {logout} from '../actions/login'
-import {routeAppend} from '../actions/router'
+import {navigateAppend} from '../actions/route-tree'
+import {Box} from '../common-adapters'
+import {globalStyles} from '../styles'
 
 class DevMenu extends Component {
   render () {
@@ -17,23 +17,18 @@ class DevMenu extends Component {
       {name: 'Log Send', onClick: this.props.onLogSend},
     ]
     return (
-      <MenuList items={menuItems} />
+      <Box style={{...globalStyles.flexBoxRow}}>
+        <MenuList items={menuItems} />
+      </Box>
     )
-  }
-
-  static parseRoute () {
-    return {
-      componentAtTop: {title: 'Dev Menu'},
-      subRoutes: {dumbSheet, logSend},
-    }
   }
 }
 
 export default connect(
   state => ({}),
   (dispatch: any) => ({
-    onDumbSheet: () => dispatch(routeAppend('dumbSheet')),
+    onDumbSheet: () => dispatch(navigateAppend(['dumbSheet'])),
     onReset: () => engine().reset(),
-    onLogSend: () => dispatch(routeAppend('logSend')),
+    onLogSend: () => dispatch(navigateAppend(['logSend'])),
     logout: () => dispatch(logout()),
   }))(DevMenu)

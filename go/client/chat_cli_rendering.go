@@ -53,6 +53,10 @@ type conversationListView []chat1.ConversationLocal
 // Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
 func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	convName := strings.Join(v.without(g, conv.Info.WriterNames, myUsername), ",")
+	if len(conv.Info.WriterNames) == 1 && conv.Info.WriterNames[0] == myUsername {
+		// The user is the only writer.
+		convName = myUsername
+	}
 	if len(conv.Info.ReaderNames) > 0 {
 		convName += "#" + strings.Join(conv.Info.ReaderNames, ",")
 	}
@@ -194,6 +198,7 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 
 	ui := g.UI.GetTerminalUI()
 	w, _ := ui.TerminalSize()
+	showRevokeAdvisory := false
 
 	headline, err := v.headline(g)
 	if err != nil {
@@ -214,6 +219,10 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 
 		if !mv.Renderable {
 			continue
+		}
+
+		if mv.FromRevokedDevice {
+			showRevokeAdvisory = true
 		}
 
 		unread := ""
@@ -257,6 +266,10 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 		return fmt.Errorf("rendering conversation view error: %v\n", err)
 	}
 
+	if showRevokeAdvisory {
+		g.UI.GetTerminalUI().Printf("\nNote: Messages with (!) next to the sender were sent from a device that is now revoked.\n")
+	}
+
 	return nil
 }
 
@@ -289,11 +302,13 @@ const deletedTextCLI = "[deleted]"
 // Takes into account superseding edits and deletions.
 type messageView struct {
 	MessageID chat1.MessageID
+
 	// Whether to show this message. Show texts, but not edits or deletes.
 	Renderable                  bool
 	AuthorAndTime               string
 	AuthorAndTimeWithDeviceName string
 	Body                        string
+	FromRevokedDevice           bool
 
 	// Used internally for supersedeers
 	messageType chat1.MessageType
@@ -311,8 +326,13 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 	if st == chat1.MessageUnboxedState_ERROR {
 		return mv, fmt.Errorf("<%s>", m.Error().ErrMsg)
 	}
+	// TODO handle messages in outbox properly
+	if st == chat1.MessageUnboxedState_OUTBOX {
+		return mv, fmt.Errorf("<message waiting to be sent>")
+	}
 
 	mv.MessageID = m.GetMessageID()
+	mv.FromRevokedDevice = m.Valid().FromRevokedDevice
 
 	// Check what message supersedes this one.
 	var mvsup *messageView
@@ -328,12 +348,6 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 		}
 		mvsup = &mvsupInner
 	}
-
-	t := gregor1.FromTime(m.Valid().ServerHeader.Ctime)
-	mv.AuthorAndTime = fmt.Sprintf("%s %s",
-		m.Valid().SenderUsername, shortDurationFromNow(t))
-	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s <%s> %s",
-		m.Valid().SenderUsername, m.Valid().SenderDeviceName, shortDurationFromNow(t))
 
 	body := m.Valid().MessageBody
 	typ, err := body.MessageType()
@@ -360,6 +374,9 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 		mv.Renderable = true
 		mv.Body = body.Text().Body
 		if mvsup != nil {
+			if mvsup.FromRevokedDevice {
+				mv.FromRevokedDevice = true
+			}
 			switch mvsup.messageType {
 			case chat1.MessageType_EDIT:
 				mv.Body = mvsup.Body
@@ -382,6 +399,9 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 			mv.Body += " [preview available]"
 		}
 		if mvsup != nil {
+			if mvsup.FromRevokedDevice {
+				mv.FromRevokedDevice = true
+			}
 			switch mvsup.messageType {
 			case chat1.MessageType_EDIT:
 				// Editing attachments is not supported, ignore the edit
@@ -406,6 +426,16 @@ func newMessageView(g *libkb.GlobalContext, conversationID chat1.ConversationID,
 	default:
 		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 	}
+
+	possiblyRevokedMark := ""
+	if mv.FromRevokedDevice {
+		possiblyRevokedMark = "(!)"
+	}
+	t := gregor1.FromTime(m.Valid().ServerHeader.Ctime)
+	mv.AuthorAndTime = fmt.Sprintf("%s%s %s",
+		m.Valid().SenderUsername, possiblyRevokedMark, shortDurationFromNow(t))
+	mv.AuthorAndTimeWithDeviceName = fmt.Sprintf("%s%s <%s> %s",
+		m.Valid().SenderUsername, possiblyRevokedMark, m.Valid().SenderDeviceName, shortDurationFromNow(t))
 
 	return mv, nil
 }

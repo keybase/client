@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {TypedConnector} from '../../util/typed-connect'
-import {navigateUp} from '../../actions/router'
+import {navigateUp} from '../../actions/route-tree'
 import {HOCTimers} from '../../common-adapters'
 import DeleteConfirm from './index'
 import {setAllowDeleteAccount, deleteAccountForever} from '../../actions/settings'
@@ -24,10 +24,6 @@ class DeleteConfirmContainer extends Component<void, Props & TimerProps, void> {
 
   componentWillUnmount () {
     this.props.setAllowDeleteAccount(false)
-  }
-
-  static parseRoute () {
-    return {componentAtTop: {title: ''}}
   }
 
   render () {

@@ -8,7 +8,7 @@ import _ from 'lodash'
 import moment from 'moment'
 import {BackButton, Box, ComingSoon, Icon, PopupMenu, Text, UserActions, UserBio, UserProofs, NativeScrollView} from '../common-adapters/index.native'
 import {friendlyName as platformFriendlyName} from '../util/platforms'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
 import {normal as proofNormal, metaPending, metaUnreachable} from '../constants/tracker'
 import {stateColors} from '../util/tracker'
 import {usernameText} from '../common-adapters/usernames'
@@ -163,7 +163,7 @@ class Profile extends Component<void, Props, State> {
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}}>
+        <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background, paddingTop: statusBarHeight}}>
           {this.props.onBack && <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: 16}} iconStyle={{color: globalColors.white}} />}
         </Box>
         <NativeScrollView style={{flex: 1, backgroundColor: globalColors.white}} contentContainerStyle={{backgroundColor: globalColors.white}}>

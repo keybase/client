@@ -4,6 +4,7 @@ import {Box, Icon, Input, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../common-adapters/emoji'
+import {participantFilter} from '../../constants/chat'
 
 import type {Props} from './'
 
@@ -43,8 +44,8 @@ class Conversation extends Component<void, Props, State> {
             small={true}
             style={styleInput}
             ref={this._setRef}
-            hintText={`Write to ${this.props.participants.filter(p => !p.you).map(p => p.username).join(', ')}`}
-            hideUnderline={false}
+            hintText={`Write to ${participantFilter(this.props.participants).map(p => p.username).join(', ')}`}
+            hideUnderline={true}
             onChangeText={inputText => this.setState({inputText})}
             value={this.state.inputText}
             multiline={true}

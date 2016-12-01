@@ -23,8 +23,6 @@ export default function HOCTimers<P> (ComposedComponent: ReactClass<P & TimerPro
     _intervalIds: Array<number>
     _timerFuncs: TimerProps
 
-    static parseRoute: ?() => void;
-
     constructor (props: any) {
       super(props)
       this._timeoutIds = []
@@ -55,8 +53,5 @@ export default function HOCTimers<P> (ComposedComponent: ReactClass<P & TimerPro
     }
   }
 
-  // TODO: this is necessary so that our static parseRoute method passes
-  // through this component.
-  TimersComponent.parseRoute = ComposedComponent.parseRoute
   return TimersComponent
 }

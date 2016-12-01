@@ -6,7 +6,7 @@
 import * as Tabs from './constants/tabs'
 import {updateConfig} from './command-line.desktop.js'
 
-let config: {[key:string]: any} = {
+let config: {[key: string]: any} = {
   allowStartupFailure: false,
   printRPC: false,
   showDevTools: false,
@@ -26,7 +26,6 @@ let config: {[key:string]: any} = {
   initialTabState: {},
   forceMainWindowPosition: null,
   closureStoreCheck: false,
-  searchActive: false,
   logStatFrequency: 0,
   actionStatFrequency: 0,
   isTesting: false,
@@ -79,7 +78,6 @@ export const {
   reactPerf,
   reduxDevToolsEnable,
   reduxDevToolsSelect,
-  searchActive,
   showAllTrackers,
   showDevTools,
   skipSecondaryDevtools,

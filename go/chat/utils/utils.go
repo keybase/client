@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 // parseDurationExtended is like time.ParseDuration, but adds "d" unit. "1d" is
@@ -169,33 +169,41 @@ func splitAndNormalizeTLFNameCanonicalize(name string, public bool) (writerNames
 	return writerNames, readerNames, extensionSuffix, err
 }
 
-func CryptKeysWrapper(ctx context.Context, tlfInterface keybase1.TlfInterface, tlfName string) (tlfID chat1.TLFID, canonicalTlfName string, err error) {
+func CryptKeysWrapper(ctx context.Context,
+	tlfInterface keybase1.TlfInterface, tlfName string,
+	identifyBehavior keybase1.TLFIdentifyBehavior) (
+	tlfID chat1.TLFID, canonicalTlfName string,
+	breaks []keybase1.TLFIdentifyFailure, err error) {
+
 	resp, err := tlfInterface.CryptKeys(ctx, keybase1.TLFQuery{
 		TlfName:          tlfName,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		IdentifyBehavior: identifyBehavior,
 	})
 	if err != nil {
-		return nil, "", err
+		return nil, "", nil, err
 	}
 	tlfIDb := resp.NameIDBreaks.TlfID.ToBytes()
 	if tlfIDb == nil {
-		return nil, "", errors.New("invalid TLF ID acquired")
+		return nil, "", resp.NameIDBreaks.Breaks.Breaks, errors.New("invalid TLF ID acquired")
 	}
 	tlfID = chat1.TLFID(tlfIDb)
-	return tlfID, string(resp.NameIDBreaks.CanonicalName), nil
+	return tlfID, string(resp.NameIDBreaks.CanonicalName), resp.NameIDBreaks.Breaks.Breaks, nil
 }
 
-func GetInboxQueryLocalToRemote(ctx context.Context, tlfInterface keybase1.TlfInterface,
-	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, err error) {
+func GetInboxQueryLocalToRemote(ctx context.Context,
+	tlfInterface keybase1.TlfInterface, lquery *chat1.GetInboxLocalQuery,
+	identifyBehavior keybase1.TLFIdentifyBehavior) (
+	rquery *chat1.GetInboxQuery, breaks []keybase1.TLFIdentifyFailure, err error) {
 
 	if lquery == nil {
-		return nil, nil
+		return nil, nil, nil
 	}
 	rquery = &chat1.GetInboxQuery{}
 	if lquery.TlfName != nil && len(*lquery.TlfName) > 0 {
-		tlfID, _, err := CryptKeysWrapper(ctx, tlfInterface, *lquery.TlfName)
+		tlfID, _, breaks, err := CryptKeysWrapper(ctx,
+			tlfInterface, *lquery.TlfName, identifyBehavior)
 		if err != nil {
-			return nil, err
+			return nil, breaks, err
 		}
 		rquery.TlfID = &tlfID
 	}
@@ -211,7 +219,7 @@ func GetInboxQueryLocalToRemote(ctx context.Context, tlfInterface keybase1.TlfIn
 	rquery.OneChatTypePerTLF = lquery.OneChatTypePerTLF
 	rquery.Status = lquery.Status
 
-	return rquery, nil
+	return rquery, breaks, nil
 }
 
 const (
@@ -239,4 +247,13 @@ func VisibleChatConversationStatuses() []chat1.ConversationStatus {
 		chat1.ConversationStatus_UNFILED,
 		chat1.ConversationStatus_FAVORITE,
 	}
+}
+
+func IsVisibleChatConversationStatus(status chat1.ConversationStatus) bool {
+	for _, s := range VisibleChatConversationStatuses() {
+		if status == s {
+			return true
+		}
+	}
+	return false
 }

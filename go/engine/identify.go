@@ -198,7 +198,7 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	is.Precompute(ctx.IdentifyUI.DisplayKey)
 
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
-	waiter := e.displayUserCardAsync(ctx)
+	waiter := e.displayUserCardAsync(ctx.IdentifyUI)
 
 	if err := e.user.IDTable().Identify(is, e.arg.ForceRemoteCheck, ctx.IdentifyUI, nil); err != nil {
 		return nil, err
@@ -361,7 +361,7 @@ func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret
 	return ret, nil
 }
 
-func displayUserCard(g *libkb.GlobalContext, ctx *Context, uid keybase1.UID, useSession bool) error {
+func displayUserCard(g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.UID, useSession bool) error {
 	card, err := getUserCard(g, uid, useSession)
 	if err != nil {
 		return err
@@ -370,17 +370,17 @@ func displayUserCard(g *libkb.GlobalContext, ctx *Context, uid keybase1.UID, use
 		return nil
 	}
 
-	return ctx.IdentifyUI.DisplayUserCard(*card)
+	return iui.DisplayUserCard(*card)
 }
 
-func displayUserCardAsync(g *libkb.GlobalContext, ctx *Context, uid keybase1.UID, useSession bool) <-chan error {
+func displayUserCardAsync(g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.UID, useSession bool) <-chan error {
 	ch := make(chan error)
 	go func() {
-		ch <- displayUserCard(g, ctx, uid, useSession)
+		ch <- displayUserCard(g, iui, uid, useSession)
 	}()
 	return ch
 }
 
-func (e *Identify) displayUserCardAsync(ctx *Context) <-chan error {
-	return displayUserCardAsync(e.G(), ctx, e.user.GetUID(), (e.me != nil))
+func (e *Identify) displayUserCardAsync(iui libkb.IdentifyUI) <-chan error {
+	return displayUserCardAsync(e.G(), iui, e.user.GetUID(), (e.me != nil))
 }
