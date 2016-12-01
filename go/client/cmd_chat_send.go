@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	isatty "github.com/mattn/go-isatty"
 )
 
@@ -60,6 +61,7 @@ func (c *cmdChatSend) Run() (err error) {
 	conversationInfo, userChosen, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: true,
 		Interactive:       c.hasTTY,
+		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {
 		return err

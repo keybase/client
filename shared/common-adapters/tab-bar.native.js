@@ -21,10 +21,9 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
     return (
       <Box style={{...stylesTab, ...this.props.style}}>
         <Text type='BodySemibold' style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_60}}>
-          {this.props.label.toUpperCase()}
+          {!!this.props.label && this.props.label.toUpperCase()}
         </Text>
-        {(!this.props.underlined || this.props.selected) && <Box style={stylesSelectedUnderline(this.props.selected ? selectedColor : 'transparent')} />}
-        {!this.props.selected && this.props.underlined && <Box style={stylesUnselectedUnderline} />}
+        {this.props.selected && <Box style={stylesSelectedUnderline(selectedColor)} />}
       </Box>
     )
   }
@@ -66,8 +65,11 @@ class TabBar extends Component<void, Props, void> {
       const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
       return (
         <NativeTouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
-          <Box style={{...item.props.styleContainer, flexGrow: 1}}>
-            {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
+          <Box style={{flex: 1}}>
+            <Box style={{...item.props.styleContainer}}>
+              {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
+            </Box>
+            {this.props.underlined && <Box style={stylesUnderline} />}
           </Box>
         </NativeTouchableWithoutFeedback>
       )
@@ -80,7 +82,7 @@ class TabBar extends Component<void, Props, void> {
 
   render () {
     const tabBarButtons = (
-      <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.midnightBlue, ...this.props.styleTabBar}}>
+      <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
         {this._labels()}
       </Box>
     )
@@ -126,11 +128,10 @@ const stylesSelectedUnderline = color => ({
   backgroundColor: color,
 })
 
-const stylesUnselectedUnderline = {
-  height: 2,
-  marginTop: 1,
-  backgroundColor: globalColors.black_10,
+const stylesUnderline = {
+  height: 1,
   alignSelf: 'stretch',
+  backgroundColor: globalColors.black_05,
 }
 
 export {

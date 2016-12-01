@@ -57,6 +57,7 @@ type Identify2WithUIDTester struct {
 	slowStats       cacheStats
 	fastStats       cacheStats
 	now             time.Time
+	userLoads       map[keybase1.UID]int
 }
 
 func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
@@ -66,6 +67,7 @@ func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
 		startCh:      make(chan struct{}, 1),
 		cache:        make(map[keybase1.UID](*keybase1.UserPlusKeys)),
 		now:          time.Now(),
+		userLoads:    make(map[keybase1.UID]int),
 	}
 }
 
@@ -197,6 +199,9 @@ func (i *Identify2WithUIDTester) Insert(up *keybase1.UserPlusKeys) error {
 	copy.Uvv.CachedAt = keybase1.ToTime(i.now)
 	i.cache[up.Uid] = copy
 	return nil
+}
+func (i *Identify2WithUIDTester) DidFullUserLoad(uid keybase1.UID) {
+	i.userLoads[uid]++
 }
 
 func (i *Identify2WithUIDTester) Shutdown() {}
@@ -656,12 +661,14 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	arg := &keybase1.Identify2Arg{
 		Uid: tracyUID,
 	}
+
 	run := func() {
-		eng := NewIdentify2WithUID(tc.G, arg)
-		eng.testArgs = &Identify2WithUIDTestArgs{
+		testArgs := &Identify2WithUIDTestArgs{
 			cache: i,
 			clock: func() time.Time { return i.now },
 		}
+		eng := NewIdentify2WithUID(tc.G, arg)
+		eng.testArgs = testArgs
 		ctx := Context{IdentifyUI: i}
 		err := eng.Run(&ctx)
 		if err != nil {
@@ -669,9 +676,17 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 		}
 	}
 
+	numTracyLoads := func() int {
+		tracyUID := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
+		return i.userLoads[tracyUID]
+	}
+
 	// First time we'll cause an ID, so we need to start & finish
 	arg.UserAssertion = "4ff50d580914427227bb14c821029e2c7cf0d488@" + libkb.PGPAssertionKey
 	run()
+	if n := numTracyLoads(); n != 1 {
+		t.Fatalf("expected 1 full user load; got %d", n)
+	}
 	<-i.startCh
 	<-i.finishCh
 
@@ -686,13 +701,18 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(1, 0, 1, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
 	}
-
+	if n := numTracyLoads(); n != 1 {
+		t.Fatalf("expected 1 full user load; got %d", n)
+	}
 	arg.UserAssertion += "+tacovontaco@twitter"
 	i.incNow(time.Second)
 	run()
 	// A new slow-path hit
 	if !i.fastStats.eq(0, 0, 0, 0) || !i.slowStats.eq(2, 0, 1, 0) {
 		t.Fatalf("bad cache stats %+v %+v", i.fastStats, i.slowStats)
+	}
+	if n := numTracyLoads(); n != 2 {
+		t.Fatalf("expected 2 full user load; got %d", n)
 	}
 
 	i.incNow(libkb.Identify2CacheLongTimeout)

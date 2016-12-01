@@ -1,15 +1,16 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/chat'
+import * as WindowConstants from '../constants/window'
 import {Set, List, Map} from 'immutable'
 
-import type {Actions, State, ConversationState, AppendMessages, Message, MessageID} from '../constants/chat'
+import type {Actions, State, ConversationState, AppendMessages, Message, MessageID, ServerMessage} from '../constants/chat'
 
 const {StateRecord, ConversationStateRecord, makeSnippet} = Constants
 const initialState: State = new StateRecord()
 const initialConversation: ConversationState = new ConversationStateRecord()
 
-function dedupeMessages (seenMessages: Set<MessageID>, knownMessages: List<Message>, newMessages: Array<Message>): {seenMessages: Set<MessageID>, updatedMessages: List<Message>, unseenMessages: List<Message>} {
+function dedupeMessages (seenMessages: Set<MessageID>, knownMessages: List<ServerMessage>, newMessages: Array<ServerMessage>): {seenMessages: Set<MessageID>, updatedMessages: List<ServerMessage>, unseenMessages: List<ServerMessage>} {
   const newButSeenMessages = newMessages
     .filter(m => m.messageID && seenMessages.has(m.messageID))
     .reduce((acc, m) => acc.set(m.messageID, m), Map())
@@ -58,18 +59,33 @@ function reducer (state: State = initialState, action: Actions) {
       const appendMessages = appendAction.payload.messages
       const message: Message = appendMessages[0]
       const conversationIDKey = appendAction.payload.conversationIDKey
+
+      const isSelected = state.get('selectedConversation') === action.payload.conversationIDKey
+
       const newConversationStates = state.get('conversationStates').update(
         conversationIDKey,
         initialConversation,
         conversation => {
           const {seenMessages, messages: knownMessages} = conversation
           const {updatedMessages, unseenMessages, seenMessages: nextSeenMessages} = dedupeMessages(seenMessages, knownMessages, appendMessages)
+
+          const firstMessage = appendMessages[0]
+          const inConversationFocused = (isSelected && state.get('focused'))
+          if (!conversation.get('firstNewMessageID') && !inConversationFocused) {
+            // Set first new message if we don't have one set, and are not in
+            // the conversation with window focused
+            conversation = conversation.set('firstNewMessageID', firstMessage.messageID)
+          } else if (inConversationFocused) {
+            // Clear new message if we received a new message while in
+            // conversation and window is focused
+            conversation = conversation.set('firstNewMessageID', null)
+          }
+
           return conversation
             .set('messages', updatedMessages.concat(unseenMessages))
             .set('seenMessages', nextSeenMessages)
         })
 
-      const isSelected = state.get('selectedConversation') === action.payload.conversationIDKey
       let snippet
 
       switch (message.type) {
@@ -114,7 +130,21 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('conversationStates', newConversationStates)
     }
     case Constants.selectConversation:
+
+      // Clear new messages id when switching away from conversation (if select was from a user)
+      if (action.payload.fromUser) {
+        const previousConversation = state.get('selectedConversation')
+        if (previousConversation) {
+          const newConversationStates = state.get('conversationStates').update(
+            previousConversation,
+            initialConversation,
+            conversation => conversation.set('firstNewMessageID', null))
+          state = state.set('conversationStates', newConversationStates)
+        }
+      }
+
       const conversationIDKey = action.payload.conversationIDKey
+
       // Set unread to zero
       const newInboxStates = state.get('inbox').map(inbox => inbox.get('conversationIDKey') !== conversationIDKey ? inbox : inbox.set('unreadCount', 0))
       return state
@@ -132,6 +162,9 @@ function reducer (state: State = initialState, action: Actions) {
       return state.set('metaData', state.get('metaData').merge(action.payload))
     case Constants.loadedInbox:
       return state.set('inbox', action.payload.inbox)
+    case WindowConstants.changedFocus:
+      return state.set('focused', action.payload)
+
   }
 
   return state

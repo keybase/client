@@ -788,3 +788,20 @@ func (u UserPlusAllKeys) GetUID() UID {
 func (u UserPlusAllKeys) GetName() string {
 	return u.Base.GetName()
 }
+
+func (u UserPlusAllKeys) Export() *User {
+	return &User{Uid: u.GetUID(), Username: u.GetName()}
+}
+
+func (u UserVersionVector) Equal(u2 UserVersionVector) bool {
+	if u2.Id == 0 || u.Id == 0 || u2.Id != u.Id {
+		return false
+	}
+	if u2.SigHints == 0 || u.SigHints == 0 || u2.SigHints != u.SigHints {
+		return false
+	}
+	if u2.SigChain == 0 || u.SigChain == 0 || u2.SigChain != u.SigChain {
+		return false
+	}
+	return true
+}

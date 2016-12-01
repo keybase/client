@@ -1,9 +1,7 @@
 // @flow
 import MenuList from '../settings/menu-list'
 import React, {Component} from 'react'
-import dumbSheet from './dumb-sheet'
 import engine from '../engine'
-import logSend from './log-send'
 import {connect} from 'react-redux'
 import {logout} from '../actions/login'
 import {navigateAppend} from '../actions/route-tree'
@@ -23,13 +21,6 @@ class DevMenu extends Component {
         <MenuList items={menuItems} />
       </Box>
     )
-  }
-
-  static parseRoute () {
-    return {
-      componentAtTop: {title: 'Dev Menu'},
-      subRoutes: {dumbSheet, logSend},
-    }
   }
 }
 

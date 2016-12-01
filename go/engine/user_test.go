@@ -4,9 +4,10 @@
 package engine
 
 import (
-	"testing"
-
+	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/libkb"
+	"testing"
+	"time"
 )
 
 func TestLoadUserPlusKeysHasKeys(t *testing.T) {
@@ -28,7 +29,9 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 }
 
 func TestLoadUserPlusKeysRevoked(t *testing.T) {
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc := SetupEngineTest(t, "login")
+	tc.G.SetClock(fakeClock)
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUserPaper(tc, "login")
@@ -60,6 +63,7 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	if err := doRevokeDevice(tc, fu, paper.ID, false); err != nil {
 		t.Fatal(err)
 	}
+	fakeClock.Advance(libkb.CachedUserTimeout + 2*time.Second)
 
 	up2, err := libkb.LoadUserPlusKeys(tc.G, me.GetUID())
 	if err != nil {

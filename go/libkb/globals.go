@@ -103,10 +103,11 @@ type GlobalTestOptions struct {
 	NoBug3964Repair bool
 }
 
-func (g *GlobalContext) GetLog() logger.Logger       { return g.Log }
-func (g *GlobalContext) GetAPI() API                 { return g.API }
-func (g *GlobalContext) GetExternalAPI() ExternalAPI { return g.XAPI }
-func (g *GlobalContext) GetServerURI() string        { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetLog() logger.Logger                  { return g.Log }
+func (g *GlobalContext) GetAPI() API                            { return g.API }
+func (g *GlobalContext) GetExternalAPI() ExternalAPI            { return g.XAPI }
+func (g *GlobalContext) GetServerURI() string                   { return g.Env.GetServerURI() }
+func (g *GlobalContext) GetCachedUserLoader() *CachedUserLoader { return g.CachedUserLoader }
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
