@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/libkb"
@@ -59,6 +60,22 @@ func (s *RemoteConversationSource) PullLocalOnly(ctx context.Context, convID cha
 
 func (s *RemoteConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
 	return nil
+}
+
+func (s *RemoteConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
+
+	rres, err := s.ri.GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
+		ConversationID: convID,
+		MessageIDs:     msgIDs,
+	})
+
+	msgs, err := s.boxer.UnboxMessages(ctx, rres.Msgs)
+	if err != nil {
+		return nil, err
+	}
+
+	return msgs, nil
 }
 
 type HybridConversationSource struct {
@@ -244,6 +261,71 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 
 func (s *HybridConversationSource) Clear(convID chat1.ConversationID, uid gregor1.UID) error {
 	return s.storage.MaybeNuke(true, nil, convID, uid)
+}
+
+type ByMsgID []chat1.MessageUnboxed
+
+func (m ByMsgID) Len() int           { return len(m) }
+func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m ByMsgID) Less(i, j int) bool { return m[i].GetMessageID() > m[j].GetMessageID() }
+
+func (s *HybridConversationSource) GetMessages(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
+
+	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
+
+	msgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make a pass to determine which message IDs we need to grab remotely
+	var remoteMsgs []chat1.MessageID
+	for index, msg := range msgs {
+		if msg == nil {
+			remoteMsgs = append(remoteMsgs, msgIDs[index])
+		}
+	}
+
+	// Grab message from remote
+	s.G().Log.Debug("HybridConversationSource: GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs), len(remoteMsgs))
+	if len(remoteMsgs) > 0 {
+		rmsgs, err := s.ri.GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
+			ConversationID: convID,
+			MessageIDs:     remoteMsgs,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// Unbox all the remote messages
+		rmsgsUnboxed, err := s.boxer.UnboxMessages(ctx, rmsgs.Msgs)
+		if err != nil {
+			return nil, err
+		}
+
+		sort.Sort(ByMsgID(rmsgsUnboxed))
+		for _, rmsg := range rmsgsUnboxed {
+			rmsgsTab[rmsg.GetMessageID()] = rmsg
+		}
+
+		// Write out messages
+		if err := s.storage.Merge(ctx, convID, uid, rmsgsUnboxed); err != nil {
+			return nil, err
+		}
+	}
+
+	// Form final result
+	var res []chat1.MessageUnboxed
+	for index, msg := range msgs {
+		if msg != nil {
+			res = append(res, *msg)
+		} else {
+			res = append(res, rmsgsTab[msgIDs[index]])
+		}
+	}
+
+	return res, nil
 }
 
 func NewConversationSource(g *libkb.GlobalContext, typ string, boxer *Boxer, storage *storage.Storage,
