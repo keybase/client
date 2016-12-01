@@ -43,7 +43,7 @@ def doBuild() {
         // Reset symlink due to node/git/windows problems
         bat 'if EXIST src\\github.com\\keybase\\client\\shared cd src\\github.com\\keybase\\client && git checkout shared'
         bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\shared cd src\\github.com\\keybase\\client && git checkout desktop/shared'
-        bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\renderer\\fonts cd src\\github.com\\keybase\\client && rd desktop/renderer/fonts 2>NUL'
+        bat 'if EXIST src\\github.com\\keybase\\client\\desktop\\renderer\\fonts cd src\\github.com\\keybase\\client && git checkout desktop/renderer/fonts'
         parallel(
             checkout_client: { checkout_keybase('client', ClientRevision) },
             checkout_kbfs: { checkout_keybase('kbfs', KBFSRevision) },
