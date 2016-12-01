@@ -16,6 +16,8 @@ const defines = {
 
 console.warn('Injecting dev defines: ', defines)
 
+// Error out on errors
+config.bail = true
 config.debug = true
 config.devtool = NO_SOURCE_MAPS ? undefined : 'inline-eval-cheap-source-map'
 config.pathinfo = true
@@ -24,11 +26,6 @@ config.output.publicPath = 'http://localhost:4000/dist/'
 config.entry = {
   main: ['./app/index.js'],
 }
-
-config.plugins.push(
-  new webpack.NoErrorsPlugin(),
-  new webpack.DefinePlugin(defines)
-)
 
 if (getenv.boolish('HOT', false)) {
   config.plugins.push(new webpack.HotModuleReplacementPlugin())
