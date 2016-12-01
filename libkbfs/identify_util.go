@@ -20,7 +20,7 @@ type extendedIdentify struct {
 
 	// lock guards userBreaks and tlfBreaks
 	lock       sync.Mutex
-	userBreaks chan keybase1.TLFUserBreak
+	userBreaks chan keybase1.TLFIdentifyFailure
 	tlfBreaks  *keybase1.TLFBreak
 }
 
@@ -29,7 +29,7 @@ func (ei *extendedIdentify) userBreak(username libkb.NormalizedUsername, uid key
 		return
 	}
 
-	ei.userBreaks <- keybase1.TLFUserBreak{
+	ei.userBreaks <- keybase1.TLFIdentifyFailure{
 		Breaks: breaks,
 		User: keybase1.User{
 			Uid:      uid,
@@ -119,7 +119,7 @@ func makeExtendedIdentify(ctx context.Context,
 		}), nil
 	}
 
-	ch := make(chan keybase1.TLFUserBreak)
+	ch := make(chan keybase1.TLFIdentifyFailure)
 	return NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, ctxExtendedIdentifyKey, &extendedIdentify{
 			behavior:   behavior,

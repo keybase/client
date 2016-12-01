@@ -94,7 +94,7 @@ func (d *Device) Export(lt LinkType) (*jsonw.Wrapper, error) {
 		return nil, err
 	}
 
-	if lt == SubkeyType {
+	if lt == DelegationTypeSubkey {
 		// subkeys shouldn't have name or type
 		if err := dw.DeleteKey("name"); err != nil {
 			return nil, err
