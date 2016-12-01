@@ -129,7 +129,7 @@ func (e *loginProvision) Run(ctx *Context) error {
 	// provisioning was successful, so the user has changed:
 	e.G().NotifyRouter.HandleKeyfamilyChanged(e.arg.User.GetUID())
 	// Remove this after kbfs notification change complete
-	e.G().NotifyRouter.HandleUserChanged(e.arg.User.GetUID())
+	e.G().UserChanged(e.arg.User.GetUID())
 
 	return nil
 }

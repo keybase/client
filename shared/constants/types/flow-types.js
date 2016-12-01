@@ -3240,6 +3240,8 @@ export type LinkCheckResult = {
   breaksTracking: boolean,
 }
 
+export type LinkID = string
+
 export type ListResult = {
   files?: ?Array<File>,
 }
@@ -3616,6 +3618,12 @@ export type RemoteProof = {
   displayMarkup: string,
   sigID: SigID,
   mTime: Time,
+}
+
+export type RemoteTrack = {
+  username: string,
+  uid: UID,
+  linkID: LinkID,
 }
 
 export type RevokeWarning = {
@@ -4054,6 +4062,7 @@ export type UserCard = {
 export type UserPlusAllKeys = {
   base: UserPlusKeys,
   pgpKeys?: ?Array<PublicKey>,
+  remoteTracks?: ?Array<RemoteTrack>,
 }
 
 export type UserPlusKeys = {
