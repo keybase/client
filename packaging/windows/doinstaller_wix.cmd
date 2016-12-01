@@ -2,16 +2,21 @@
 :: $1 is full path to keybase.exe
 :: todo: specify output?
 ::
-:: For Jenkins:
-if DEFINED WORKSPACE set GOPATH=%WORKSPACE%
 set GOARCH=386
+
+echo %KEYBASE_SECRET_STORE_FILE%
+:: This has to be reset too for a separate batch command
+if DEFINED BUILD_NUMBER set KEYBASE_WINBUILD=%BUILD_NUMBER%
+set SIGNTOOL=signtool
+set CERTISSUER=DigiCert
+
 ::
 :: get the target build folder. Assume winresource.exe has been built.
 :: If not, go there and do "go generate"
 set Folder=%GOPATH%\src\github.com\keybase\client\go\keybase\
 set PathName=%Folder%keybase.exe
 
-if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=c:\work\bin\dokan-dev\build81
 echo DOKAN_PATH %DOKAN_PATH%
 
 for /F delims^=^"^ tokens^=2 %%x in ('findstr ProductCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanProductCodeX64=%%x
@@ -111,9 +116,8 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-go get github.com/keybase/release
-go install github.com/keybase/release
-set ReleaseBin=%GOPATH%\bin\windows_386\release.exe
+:: Here we rely on the previous steps checking out and building release.exe
+set ReleaseBin=%GOPATH%\src\github.com\keybase\release\release.exe
 
 if not EXIST %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG% mkdir %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
@@ -153,14 +157,4 @@ IF %ERRORLEVEL% NEQ 0 (
 
 IF %UpdateChannel% EQU Smoke (
   %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\desktop\CHANGELOG.txt --prop=DokanProductCodeX64:%DokanProductCodeX64% --prop=DokanProductCodeX86:%DokanProductCodeX86% > update-windows-prod-test-v2.json
-  :: Generate the command file containing the BuildA version
-  echo %ReleaseBin% announce-build --build-a="%SEMVER%" --build-b="%%1" --platform="windows" > doannounce.bat
-)
-
-IF %UpdateChannel% EQU Smoke2 (
-  :: SmokeABuildID is a build parameter provided by the first smoke build
-  pushd ..\%SmokeABuildID%
-  :: Give the BuildB argument to the BuildA command file
-  doannounce.bat %SEMVER%
-  popd
 )

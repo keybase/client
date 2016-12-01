@@ -3,7 +3,8 @@ import React, {Component} from 'react'
 import Render from './index.render'
 import {connect} from 'react-redux'
 import {openAccountResetPage, relogin, login} from '../../actions/login'
-import {routeAppend} from '../../actions/router'
+import {loginTab} from '../../constants/tabs'
+import {navigateTo} from '../../actions/route-tree'
 
 import type {TypedState} from '../../constants/reducer'
 import type {Props} from './index.render'
@@ -44,10 +45,6 @@ class Login extends Component {
       selectedUserChange={selectedUser => this.setState({selectedUser})}
     />
   }
-
-  static parseRoute (store, currentPath, nextPath) {
-    return {componentAtTop: {}}
-  }
 }
 
 export default connect(
@@ -70,7 +67,7 @@ export default connect(
   (dispatch: any) => ({
     onForgotPassphrase: () => dispatch(openAccountResetPage()),
     onLogin: (user, passphrase) => dispatch(relogin(user, passphrase)),
-    onSignup: () => dispatch(routeAppend(['signup'])),
+    onSignup: () => dispatch(navigateTo([loginTab, 'signup'])),
     onSomeoneElse: () => { dispatch(login()) },
   })
 )(Login)

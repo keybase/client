@@ -37,7 +37,7 @@ class PopupMenu extends Component<void, Props, void> {
                     <Text className='title' type='Body' style={{...stylesMenuText, ...i.style}}>{i.title}</Text>
                     {i.subTitle && <Text className='subtitle' key={i.subTitle} type='BodySmall' style={{...stylesMenuText, ...i.style}}>{i.subTitle}</Text>}
                   </Box>
-                  )
+                )
               })
             }
           </Box>

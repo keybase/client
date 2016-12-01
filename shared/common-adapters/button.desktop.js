@@ -103,14 +103,8 @@ class Button extends Component<void, Props, void> {
       outerStyle = {...outerStyle, cursor: 'wait'}
     }
 
-    let label = this.props.label
-
-    if (this.props.more) {
-      label = '•••'
-    }
-
     return (
-      <div style={outerStyle}>
+      <div style={outerStyle} className={this.props.className}>
         <FlatButton
           onClick={this.props.onClick}
           onMouseEnter={this.props.onMouseEnter}
@@ -118,7 +112,7 @@ class Button extends Component<void, Props, void> {
           style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
           labelStyle={{...stylesButtonLabel, ...labelStyle, ...this.props.labelStyle}}
           {...rippleStyle}
-          label={label}
+          label={this.props.label}
           primary={this.props.type === 'Primary'}
           secondary={this.props.type === 'Secondary'}
           disabled={this.props.disabled || this.props.waiting}>
@@ -205,7 +199,7 @@ const stylesButtonSmallLabel = {
 }
 const stylesProgress = {
   position: 'absolute',
-  height: 'calc(100% - 4px)',
+  height: 'calc(100% - 8px)',
   left: 0,
   right: 0,
   top: 0,

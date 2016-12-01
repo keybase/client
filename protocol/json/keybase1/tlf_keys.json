@@ -47,7 +47,7 @@
         {
           "type": {
             "type": "array",
-            "items": "TLFUserBreak"
+            "items": "TLFIdentifyFailure"
           },
           "name": "breaks"
         }
@@ -55,7 +55,7 @@
     },
     {
       "type": "record",
-      "name": "TLFUserBreak",
+      "name": "TLFIdentifyFailure",
       "fields": [
         {
           "type": "User",

@@ -151,6 +151,7 @@ const propsBase: RenderProps = {
   error: null,
   trackerState: normal,
   currentlyFollowing: false,
+  currentFriendshipsTab: 'Followers',
   onPushProfile: username => console.log('onpush', username),
   reason: '',
   onBack: () => console.log('onBack'),
@@ -158,6 +159,7 @@ const propsBase: RenderProps = {
   onFollow: () => console.log('onFollow'),
   onUnfollow: () => console.log('onUnfollow'),
   onAcceptProofs: () => console.log('onAcceptProofs'),
+  onChangeFriendshipsTab: (currentFriendshipsTab) => console.log('onChangeFriendshipsTab', currentFriendshipsTab),
   onFolderClick: folder => { console.log('onFolderClick', folder) },
   onUserClick: username => { console.log('onUserClick', username) },
   onMissingProofClick: proof => { console.log(`Prove ${proof.type}`) },
@@ -166,7 +168,7 @@ const propsBase: RenderProps = {
   onRevokeProof: proof => console.log('onRevokeProof', proof),
   parentProps: isMobile ? {} : {
     style: {
-      width: 640,
+      width: 720,
       height: 578,
     },
   },
@@ -256,6 +258,10 @@ const dumbMap: DumbComponentMap<Profile> = {
       bioEditFns,
       isYou: true,
       proofs: [],
+    },
+    'Your Profile - Following Tab': {
+      ...propsBase,
+      currentFriendshipsTab: 'Following',
     },
     'Unfollowed': propsBase,
     'Unfollowed - Profile page': {
