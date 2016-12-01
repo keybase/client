@@ -52,7 +52,7 @@
   </Product>
   <Fragment>
 		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="AppDataFolder">
+			<Directory Id="LocalAppDataFolder">
         <Directory Id="INSTALLFOLDER" Name="Keybase">
           <Directory Id="PROMPTERFOLDER" Name="prompter"/>
         </Directory>

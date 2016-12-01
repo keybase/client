@@ -240,6 +240,7 @@ func (g *GlobalContext) PushShutdownHook(sh ShutdownHook) {
 }
 
 func (g *GlobalContext) ConfigureConfig() error {
+	RemoteSettingsRepairman(g)
 	c := NewJSONConfigFile(g, g.Env.GetConfigFilename())
 	err := c.Load(false)
 	if err != nil {
