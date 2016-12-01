@@ -280,18 +280,28 @@ const dumbMap: DumbComponentMap<Profile> = {
       ...propsBase,
       afterMount: c => c.setState({foldersExpanded: true}),
     },
+    'Unfollowed - Changed (Proofs unreachable)': {
+      ...propsBase,
+      proofs: proofsChanged,
+      trackerState: error,
+    },
+    'Unfollowed - Changed (Proofs deleted)': {
+      ...propsBase,
+      proofs: proofsDeleted,
+      trackerState: error,
+    },
     'Followed': {
       ...propsBase,
       proofs: proofsTracked,
       currentlyFollowing: true,
     },
-    'Changed': {
+    'Followed - Changed': {
       ...propsBase,
       proofs: proofsDeleted,
       trackerState: error,
       currentlyFollowing: true,
     },
-    'Changed - Scrolled': {
+    'Followed - Changed - Scrolled': {
       ...propsBase,
       proofs: proofsDeleted,
       trackerState: error,
