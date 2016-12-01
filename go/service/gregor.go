@@ -13,6 +13,7 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/chat"
 	cstorage "github.com/keybase/client/go/chat/storage"
+	istorage "github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
@@ -433,6 +434,14 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	return replayedMsgs, consumedMsgs, nil
 }
 
+func (g *gregorHandler) makeReconnectOobm() gregor1.Message {
+	return gregor1.Message{
+		Oobm_: &gregor1.OutOfBandMessage{
+			System_: "internal.reconnect",
+		},
+	}
+}
+
 // OnConnect is called by the rpc library to indicate we have connected to
 // gregord
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
@@ -466,6 +475,12 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 			badger.Resync(context.Background(), &chat1.RemoteClient{Cli: g.cli})
 		}(g.badger)
 	}
+
+	// Broadcast reconnect oobm. Spawn this off into a goroutine so that we don't delay
+	// reconnection any longer than we have to.
+	go func(m gregor1.Message) {
+		g.BroadcastMessage(context.Background(), m)
+	}(g.makeReconnectOobm())
 
 	return nil
 }
@@ -801,6 +816,9 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		return g.kbfsFavorites(ctx, obm)
 	case "chat.activity":
 		return g.newChatActivity(ctx, obm)
+	case "internal.reconnect":
+		g.G().Log.Debug("reconnected to push server")
+		return nil
 	default:
 		return fmt.Errorf("unhandled system: %s", obm.System())
 	}
@@ -985,7 +1003,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 			func() keybase1.TlfInterface { return tlf })
 		if inbox, _, err = inboxSource.Read(context.Background(), uid, &chat1.GetInboxLocalQuery{
 			ConvID: &nm.ConvID,
-		}, nil); err != nil {
+		}, nil, keybase1.TLFIdentifyBehavior_CHAT_GUI); err != nil {
 			g.G().Log.Error("push handler: chat activity: unable to read conversation: %s", err.Error())
 			return err
 		}
@@ -996,7 +1014,7 @@ func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandM
 
 		if err = cstorage.NewInbox(g.G(), uid, func() libkb.SecretUI {
 			return chat.DelivererSecretUI{}
-		}).NewConversation(nm.InboxVers, inbox.Convs[0]); err != nil {
+		}).NewConversation(nm.InboxVers, istorage.FromConversationLocal(inbox.Convs[0])); err != nil {
 			if _, ok := (err).(libkb.ChatStorageMissError); !ok {
 				g.G().Log.Error("push handler: chat activity: unable to update inbox: %s", err.Error())
 			}

@@ -129,6 +129,9 @@ helpers.rootLinuxNode(env, {
                                     sh "${env.BASEDIR}/flow/flow status shared"
                                 }
                                 sh "desktop/node_modules/.bin/eslint ."
+                                dir("desktop") {
+                                    sh "npm test"
+                                }
                                 // Only run visdiff for PRs
                                 if (env.CHANGE_ID) {
                                     wrap([$class: 'Xvfb', screen: '1280x1024x16']) {

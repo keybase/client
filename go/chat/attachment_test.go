@@ -184,10 +184,8 @@ func makeUploadTask(t *testing.T, size int) (plaintext []byte, task *UploadTask)
 			Bucket:    "upload-test",
 			ObjectKey: randString(t, 8),
 		},
-		LocalSrc: chat1.LocalSource{
-			Filename: randString(t, 8),
-			Size:     size,
-		},
+		Filename:       randString(t, 8),
+		FileSize:       size,
 		Plaintext:      newBytesReadResetter(plaintext),
 		S3Signer:       &ptsigner{},
 		ConversationID: randBytes(t, 16),

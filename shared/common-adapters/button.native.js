@@ -28,6 +28,7 @@ class Button extends Component<void, Props, void> {
       Follow,
       Following,
       Unfollow,
+      Custom,
     }[this.props.type + backgroundModeName]
 
     const labelStyle = {
@@ -38,6 +39,7 @@ class Button extends Component<void, Props, void> {
       FollowLabel,
       FollowingLabel,
       UnfollowLabel,
+      CustomLabel,
     }[this.props.type + 'Label' + backgroundModeName]
 
     if (this.props.fullWidth) {
@@ -106,6 +108,7 @@ const disabled = {
   Follow: {opacity: 0.3},
   Following: {opacity: 0.3},
   Unfollow: {opacity: 0.3},
+  Custom: {opacity: 0.3},
 }
 
 const Primary = {
@@ -173,6 +176,11 @@ const Unfollow = {
 }
 const UnfollowLabel = {
   ...commonLabel,
+}
+
+const Custom = {}
+const CustomLabel = {
+  textAlign: 'center',
   color: globalColors.black_75,
 }
 

@@ -9,10 +9,6 @@ class NoTab extends Component {
   render () {
     return <NoTabRender />
   }
-
-  static parseRoute () {
-    return {}
-  }
 }
 
 export default connect()(NoTab)

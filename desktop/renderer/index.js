@@ -20,6 +20,7 @@ import {bootstrap} from '../shared/actions/config'
 import {devEditAction} from '../shared/reducers/dev-edit'
 import {disable as disableDragDrop} from '../shared/util/drag-drop'
 import {listenForNotifications} from '../shared/actions/notifications'
+import {changedFocus} from '../shared/actions/window'
 import {merge} from 'lodash'
 import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {setRouteDef} from '../shared/actions/route-tree'
@@ -75,6 +76,14 @@ function setupApp (store) {
     })
   })
 
+  const currentWindow = electron.remote.getCurrentWindow()
+  currentWindow.on('focus', () => {
+    store.dispatch(changedFocus(true))
+  })
+  currentWindow.on('blur', () => {
+    store.dispatch(changedFocus(false))
+  })
+
   store.subscribe(() => {
     ipcRenderer.send('stateChange', store.getState())
   })
@@ -121,7 +130,8 @@ function setupHMR (store) {
     return
   }
 
-  module.hot.accept('../shared/main.desktop', () => {
+  module.hot && module.hot.accept(['../shared/main.desktop', '../shared/routes'], () => {
+    store.dispatch(setRouteDef(require('../shared/routes').default))
     try {
       store.dispatch({type: updateReloading, payload: {reloading: true}})
       const NewMain = require('../shared/main.desktop').default
@@ -130,10 +140,6 @@ function setupHMR (store) {
     } finally {
       setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
     }
-  })
-
-  module.hot && module.hot.accept(['../shared/main.desktop', '../shared/routes'], () => {
-    store.dispatch(setRouteDef(require('../shared/routes').default))
   })
 
   module.hot && module.hot.accept('../shared/local-debug-live', () => {

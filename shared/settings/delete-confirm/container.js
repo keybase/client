@@ -26,10 +26,6 @@ class DeleteConfirmContainer extends Component<void, Props & TimerProps, void> {
     this.props.setAllowDeleteAccount(false)
   }
 
-  static parseRoute () {
-    return {componentAtTop: {title: ''}}
-  }
-
   render () {
     return <DeleteConfirm {...this.props} />
   }

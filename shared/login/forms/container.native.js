@@ -18,7 +18,6 @@ const Container = ({children, onBack, style, outerStyle}: Props) => {
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    padding: 16,
     flex: 1,
   },
   innerContainer: {

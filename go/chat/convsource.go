@@ -135,6 +135,13 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 			// If found, then return the stuff
 			s.G().Log.Debug("Pull: cache hit: convID: %s uid: %s", convID, uid)
 
+			// Before returning the stuff, update FromRevokedDevice on each message.
+			updatedMessages, err := s.updateMessages(ctx, localData.Messages)
+			if err != nil {
+				return chat1.ThreadView{}, rl, err
+			}
+			localData.Messages = updatedMessages
+
 			// Before returning the stuff, send remote request to mark as read if
 			// requested.
 			if query != nil && query.MarkAsRead && len(localData.Messages) > 0 {
@@ -179,6 +186,50 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	return thread, rl, nil
+}
+
+func (s *HybridConversationSource) updateMessages(ctx context.Context, messages []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, error) {
+	updatedMessages := make([]chat1.MessageUnboxed, 0, len(messages))
+	for _, m := range messages {
+		m2, err := s.updateMessage(ctx, m)
+		if err != nil {
+			return updatedMessages, err
+		}
+		updatedMessages = append(updatedMessages, m2)
+	}
+	return updatedMessages, nil
+}
+
+func (s *HybridConversationSource) updateMessage(ctx context.Context, message chat1.MessageUnboxed) (chat1.MessageUnboxed, error) {
+	typ, err := message.State()
+	if err != nil {
+		return chat1.MessageUnboxed{}, err
+	}
+	switch typ {
+	case chat1.MessageUnboxedState_VALID:
+		m := message.Valid()
+		if m.HeaderSignature == nil {
+			// Skip revocation check for messages cached before the sig was part of the cache.
+			s.G().Log.Warning("updateMessage skipping message (%v) with no cached HeaderSignature", m.ServerHeader.MessageID)
+			return message, nil
+		}
+
+		sender := m.ClientHeader.Sender
+		key := m.HeaderSignature.K
+		ctime := m.ServerHeader.Ctime
+		validAtCtime, revoked, err := s.boxer.ValidSenderKey(ctx, sender, key, ctime)
+		if err != nil {
+			return chat1.MessageUnboxed{}, err
+		}
+		if !validAtCtime {
+			return chat1.MessageUnboxed{}, libkb.NewPermanentChatUnboxingError(libkb.NoKeyError{Msg: "key invalid for sender at message ctime"})
+		}
+		m.FromRevokedDevice = revoked
+		updatedMessage := chat1.NewMessageUnboxedWithValid(m)
+		return updatedMessage, nil
+	default:
+		return message, nil
+	}
 }
 
 func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID chat1.ConversationID,

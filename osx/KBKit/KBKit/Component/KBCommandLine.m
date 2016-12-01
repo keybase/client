@@ -119,7 +119,7 @@
   // Check if we're linked properly at /usr/local/bin
   NSString *resolved = [self resolveLinkPath:linkPath];
   if ([resolved isEqualToString:path]) {
-    DDLogDebug(@"%@ resolved to %@", path, resolved);
+    DDLogDebug(@"%@ resolved to %@", linkPath, resolved);
     return YES;
   }
 

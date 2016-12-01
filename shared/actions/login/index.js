@@ -180,9 +180,8 @@ function setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) : AsyncAction 
 
 function generateQRCode (dispatch: Dispatch, getState: GetState) {
   const store = getState().login.codePage
-  const goodMode = store.mode === Constants.codePageModeShowCode
 
-  if (goodMode && !store.qrCode && store.textCode) {
+  if (!store.qrCode && store.textCode) {
     dispatch({type: Constants.setQRCode, payload: {qrCode: new HiddenString(qrGenerate(store.textCode.stringValue()))}})
   }
 }
