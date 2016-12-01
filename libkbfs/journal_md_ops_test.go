@@ -312,7 +312,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, MetadataRevision(1))
 
 	_, err = mdOps.PutUnmerged(ctx, rmd)
-	require.Error(t, err, "Unmerged put with rmd.BID() == j.branchID == NullBranchID")
+	require.EqualError(t, err, "Unmerged put with rmd.BID() == j.branchID == NullBranchID")
 }
 
 func TestJournalMDOpsLocalSquashBranch(t *testing.T) {

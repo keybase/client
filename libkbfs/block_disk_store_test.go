@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -189,7 +190,7 @@ func TestBlockDiskStoreRemove(t *testing.T) {
 
 	// Should not be removable.
 	err := s.remove(bID)
-	require.Error(t, err, "Trying to remove data")
+	require.True(t, strings.HasPrefix(err.Error(), "Trying to remove data"))
 
 	// Remove reference.
 	liveCount, err := s.removeReferences(bID, []BlockContext{bCtx}, "")

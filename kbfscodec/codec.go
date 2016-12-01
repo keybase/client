@@ -26,7 +26,8 @@ const (
 type Codec interface {
 	// Decode unmarshals the given buffer into the given object, if possible.
 	Decode(buf []byte, obj interface{}) error
-	// Encode marshals the given object into a returned buffer.
+	// Encode marshals the given object (which must not be typed
+	// or untyped nil) into a returned buffer.
 	Encode(obj interface{}) ([]byte, error)
 	// RegisterType should be called for all types that are stored
 	// under ambiguous types (like interface{} or nil interface) in a
@@ -48,9 +49,35 @@ type Codec interface {
 		typer func(interface{}) reflect.Value)
 }
 
-// Equal returns whether or not the given objects serialize to the
-// same byte string. x or y (or both) can be nil.
+func isTypedNil(obj interface{}) bool {
+	v := reflect.ValueOf(obj)
+	// This switch is needed because IsNil() panics for other
+	// kinds.
+	switch v.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map,
+		reflect.Ptr, reflect.Slice:
+		return v.IsNil()
+	default:
+	}
+	return false
+}
+
+func isNil(obj interface{}) bool {
+	return obj == nil || isTypedNil(obj)
+}
+
+// Equal returns whether or not the given objects, if both non-nil,
+// serialize to the same byte string. If either x or y is (typed or
+// untyped) nil, then Equal returns true if the other one is (typed or
+// untyped) nil, too.
 func Equal(c Codec, x, y interface{}) (bool, error) {
+	if isNil(x) {
+		return isNil(y), nil
+	}
+	if isNil(y) {
+		return false, nil
+	}
+
 	xBuf, err := c.Encode(x)
 	if err != nil {
 		return false, err
