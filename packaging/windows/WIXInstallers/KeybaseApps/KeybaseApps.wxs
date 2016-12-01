@@ -34,7 +34,7 @@
       <Custom Action="StopGUI" Before="InstallValidate"/>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
-      
+      <RemoveExistingProducts After="InstallFinalize" />      
     </InstallExecuteSequence>
 
 
