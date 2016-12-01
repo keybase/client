@@ -21,7 +21,6 @@
     "inject-sourcemaps-prod": "yarn run _helper inject-sourcemaps-prod",
     "lint": "cd .. && eslint .",
     "local-visdiff": "yarn run _helper local-visdiff",
-    "mocha": "KEYBASE_RUN_MODE=devel node_modules/mocha/bin/mocha --require source-map-support/register dist/test.bundle.js",
     "package": "yarn run _helper package --",
     "postinstall": "yarn run _helper postinstall",
     "render-screenshots": "yarn run _helper render-screenshots",
@@ -33,10 +32,7 @@
     "start-prod": "yarn run _helper start-prod",
     "test": "cd ../shared && jest --config=../desktop/test/jest-config.json --coverage",
     "undiff-log": "yarn run _helper undiff-log",
-    "updated-fonts": "yarn run _helper updated-fonts",
-    "vendor-install": "node npm-vendor.js",
-    "vendor-update": "node npm-vendor.js update",
-    "watch-test-file": "KEYBASE_RUN_MODE=devel yarn run _helper watch-test-file"
+    "updated-fonts": "yarn run _helper updated-fonts"
   },
   "keywords": [],
   "author": "",
