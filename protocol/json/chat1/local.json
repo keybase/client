@@ -1426,6 +1426,19 @@
         }
       ],
       "response": null
+    },
+    "markAsReadLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": "MarkAsReadRes"
     }
   },
   "namespace": "chat.1"

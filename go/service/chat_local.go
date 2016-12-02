@@ -90,6 +90,16 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, arg chat1.GetInbox
 	}, nil
 }
 
+func (h *chatLocalHandler) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalArg) (chat1.MarkAsReadRes, error) {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return chat1.MarkAsReadRes{}, err
+	}
+	return h.remoteClient().MarkAsRead(ctx, chat1.MarkAsReadArg{
+		ConversationID: arg.ConversationID,
+		MsgID:          arg.MsgID,
+	})
+}
+
 // GetInboxAndUnboxLocal implements keybase.chatLocal.getInboxAndUnboxLocal protocol.
 func (h *chatLocalHandler) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAndUnboxLocalArg) (chat1.GetInboxAndUnboxLocalRes, error) {
 	if err := h.assertLoggedIn(ctx); err != nil {
