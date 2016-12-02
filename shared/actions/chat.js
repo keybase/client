@@ -243,7 +243,7 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         // user's looking at it already.
         const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
         const selectedConversationIDKey = yield select(selectedSelector)
-        if (conversationIDKey === selectedConversationIDKey) {
+        if (message && message.messageID && conversationIDKey === selectedConversationIDKey) {
           yield call(localMarkAsReadLocalRpcPromise, {
             param: {
               conversationID: incomingMessage.convID,
