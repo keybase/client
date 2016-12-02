@@ -150,6 +150,7 @@ type readOptionsV1 struct {
 	Channel        ChatChannel
 	ConversationID string `json:"conversation_id"`
 	Limit          string
+	Peek           bool
 }
 
 func (r readOptionsV1) Check() error {

@@ -101,7 +101,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 	arg := chat1.GetThreadLocalArg{
 		ConversationID: convID,
 		Query: &chat1.GetThreadQuery{
-			MarkAsRead: true,
+			MarkAsRead: !opts.Peek,
 		},
 	}
 	threadView, err := client.GetThreadLocal(ctx, arg)
