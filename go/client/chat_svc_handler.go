@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -64,6 +65,14 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	var cl ChatList
 	cl.Conversations = make([]ConvSummary, len(inbox.ConversationsUnverified))
 	for i, conv := range inbox.ConversationsUnverified {
+		readerInfo := conv.ReaderInfo
+		convUnread := false
+		var convMtime gregor1.Time
+		if readerInfo != nil {
+			convUnread = readerInfo.ReadMsgid < readerInfo.MaxMsgid
+			convMtime = readerInfo.Mtime
+		}
+
 		maxID := chat1.MessageID(0)
 		for _, msg := range conv.MaxMsgs {
 			if msg.ServerHeader.MessageID > maxID {
@@ -76,6 +85,9 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 						Public:    pub,
 						TopicType: strings.ToLower(conv.Metadata.IdTriple.TopicType.String()),
 					},
+					Unread:     convUnread,
+					ActiveAt:   convMtime.UnixSeconds(),
+					ActiveAtMs: convMtime.UnixMilliseconds(),
 				}
 				maxID = msg.ServerHeader.MessageID
 			}
@@ -884,8 +896,11 @@ type Thread struct {
 
 // ConvSummary is used for JSON output of a conversation in the inbox.
 type ConvSummary struct {
-	ID      string      `json:"id"`
-	Channel ChatChannel `json:"channel"`
+	ID         string      `json:"id"`
+	Channel    ChatChannel `json:"channel"`
+	Unread     bool        `json:"unread"`
+	ActiveAt   int64       `json:"active_at"`
+	ActiveAtMs int64       `json:"active_at_ms"`
 }
 
 // ChatList is a list of conversations in the inbox.
