@@ -151,6 +151,7 @@ type readOptionsV1 struct {
 	ConversationID string `json:"conversation_id"`
 	Limit          string
 	Peek           bool
+	UnreadOnly     bool `json:"unread_only"`
 }
 
 func (r readOptionsV1) Check() error {

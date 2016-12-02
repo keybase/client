@@ -128,15 +128,23 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		}
 
 		mv := m.Valid()
+
 		if mv.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
 			// skip TLFNAME messages
 			continue
 		}
+
+		unread := mv.ServerHeader.MessageID > readMsgID
+		if opts.UnreadOnly && !unread {
+			continue
+		}
+
 		prev := mv.ClientHeader.Prev
 		// Avoid having null show up in the output JSON.
 		if prev == nil {
 			prev = []chat1.MessagePreviousPointer{}
 		}
+
 		msg := MsgSummary{
 			ID: mv.ServerHeader.MessageID,
 			Channel: ChatChannel{
@@ -151,10 +159,10 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			SentAt:   mv.ServerHeader.Ctime.UnixSeconds(),
 			SentAtMs: mv.ServerHeader.Ctime.UnixMilliseconds(),
 			Prev:     prev,
-			Unread:   mv.ServerHeader.MessageID > readMsgID,
+			Unread:   unread,
 		}
-		msg.Content = c.convertMsgBody(mv.MessageBody)
 
+		msg.Content = c.convertMsgBody(mv.MessageBody)
 		msg.Sender.Username = mv.SenderUsername
 		msg.Sender.DeviceName = mv.SenderDeviceName
 
