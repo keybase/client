@@ -283,12 +283,10 @@ const dumbMap: DumbComponentMap<Profile> = {
     'Unfollowed - Changed (Proofs unreachable)': {
       ...propsBase,
       proofs: proofsChanged,
-      trackerState: error,
     },
     'Unfollowed - Changed (Proofs deleted)': {
       ...propsBase,
       proofs: proofsDeleted,
-      trackerState: error,
     },
     'Followed': {
       ...propsBase,
