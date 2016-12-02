@@ -765,6 +765,11 @@ type RetryPostArg struct {
 	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
 }
 
+type MarkAsReadLocalArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	MsgID          MessageID      `codec:"msgID" json:"msgID"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetInboxLocal(context.Context, GetInboxLocalArg) (GetInboxLocalRes, error)
@@ -782,6 +787,7 @@ type LocalInterface interface {
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	CancelPost(context.Context, OutboxID) error
 	RetryPost(context.Context, OutboxID) error
+	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -1044,6 +1050,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"markAsReadLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]MarkAsReadLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]MarkAsReadLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]MarkAsReadLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.MarkAsReadLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1133,5 +1155,10 @@ func (c LocalClient) CancelPost(ctx context.Context, outboxID OutboxID) (err err
 func (c LocalClient) RetryPost(ctx context.Context, outboxID OutboxID) (err error) {
 	__arg := RetryPostArg{OutboxID: outboxID}
 	err = c.Cli.Call(ctx, "chat.1.local.RetryPost", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalArg) (res MarkAsReadRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.markAsReadLocal", []interface{}{__arg}, &res)
 	return
 }

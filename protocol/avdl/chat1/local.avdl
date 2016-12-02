@@ -360,4 +360,6 @@ protocol local {
   void CancelPost(OutboxID outboxID);
   void RetryPost(OutboxID outboxID);
 
+  MarkAsReadRes markAsReadLocal(ConversationID conversationID, MessageID msgID);
+
 }
