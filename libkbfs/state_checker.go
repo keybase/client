@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
@@ -28,30 +29,41 @@ func NewStateChecker(config Config) *StateChecker {
 	return &StateChecker{config, config.MakeLogger("")}
 }
 
+func (sc *StateChecker) newFileData(lState *lockState,
+	file path, kmd KeyMetadata, ops *folderBranchOps) *fileData {
+	var uid keybase1.UID // reads don't need UID
+	return newFileData(file, uid, sc.config.Crypto(),
+		sc.config.BlockSplitter(), kmd,
+		// We shouldn't ever be fetching dirty blocks during state
+		// checking.
+		func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
+			file path, rtype blockReqType) (*FileBlock, bool, error) {
+			block, err := ops.blocks.GetFileBlockForReading(
+				ctx, lState, kmd, ptr, file.Branch, file)
+			if err != nil {
+				return nil, false, err
+			}
+			return block, false, nil
+		},
+		func(ptr BlockPointer, block Block) error {
+			return nil
+		}, sc.log)
+}
+
 // findAllFileBlocks adds all file blocks found under this block to
 // the blocksFound map, if the given path represents an indirect
 // block.
 func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 	lState *lockState, ops *folderBranchOps, kmd KeyMetadata,
 	file path, blockSizes map[BlockPointer]uint32) error {
-	fblock, err := ops.blocks.GetFileBlockForReading(ctx, lState, kmd,
-		file.tailPointer(), file.Branch, file)
+	fd := sc.newFileData(lState, file, kmd, ops)
+	infos, err := fd.getIndirectFileBlockInfos(ctx)
 	if err != nil {
 		return err
 	}
 
-	if !fblock.IsInd {
-		return nil
-	}
-
-	parentPath := file.parentPath()
-	for _, childPtr := range fblock.IPtrs {
-		blockSizes[childPtr.BlockPointer] = childPtr.EncodedSize
-		p := parentPath.ChildPath(file.tailName(), childPtr.BlockPointer)
-		err := sc.findAllFileBlocks(ctx, lState, ops, kmd, p, blockSizes)
-		if err != nil {
-			return err
-		}
+	for _, info := range infos {
+		blockSizes[info.BlockPointer] = info.EncodedSize
 	}
 	return nil
 }
@@ -187,15 +199,14 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf tlf.ID) error 
 			actualLiveBlocks[info.BlockPointer] = info.EncodedSize
 
 			// Any child block change pointers?
-			fblock, err := ops.blocks.GetFileBlockForReading(ctx, lState,
-				rmd.ReadOnly(), info.BlockPointer, MasterBranch, path{})
+			file := path{FolderBranch{tlf, MasterBranch},
+				[]pathNode{{
+					info.BlockPointer,
+					fmt.Sprintf("<MD with revision %d>", rmd.Revision())}}}
+			err := sc.findAllFileBlocks(ctx, lState, ops, rmd.ReadOnly(),
+				file, actualLiveBlocks)
 			if err != nil {
 				return err
-			}
-			for _, iptr := range fblock.IPtrs {
-				sc.log.CDebugf(ctx, "Unembedded child block change: %v, %d",
-					iptr.BlockPointer, iptr.EncodedSize)
-				actualLiveBlocks[iptr.BlockPointer] = iptr.EncodedSize
 			}
 		}
 
