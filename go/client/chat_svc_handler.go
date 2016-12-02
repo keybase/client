@@ -162,6 +162,11 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 
 	}
 
+	// Avoid having null show up in the output JSON.
+	if thread.Messages == nil {
+		thread.Messages = []Message{}
+	}
+
 	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: thread}
 }
