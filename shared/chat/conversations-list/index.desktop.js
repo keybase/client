@@ -47,26 +47,25 @@ const Row = ({onSelectConversation, selectedConversation, onNewChat, nowOverride
     <Box
       onClick={() => onSelectConversation(conversation.get('conversationIDKey'))}
       title={`${conversation.get('unreadCount')} unread`}
-      style={{...rowContainerStyle,
-        backgroundColor: isSelected ? globalColors.darkBlue2 : globalColors.transparent}}>
-        <Box style={{...globalStyles.flexBoxRow, flex: 1, maxWidth: 48, alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 4}}>
-          <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
-          {isMuted && <Icon type='iconfont-shh' style={shhStyle} />}
-        </Box>
-        <Box style={{...globalStyles.flexBoxRow, flex: 1, borderBottom: `solid 1px ${globalColors.black_10}`, paddingRight: 8, paddingTop: 4, paddingBottom: 4}}>
-          <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
-            <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center'}}>
-              <Usernames
-                inline={true}
-                type='BodySemibold'
-                style={{color: isMuted ? globalColors.blue3_40 : globalColors.white}}
-                containerStyle={{color: isMuted ? globalColors.blue3_40 : globalColors.white, paddingRight: 7}}
-                users={participants.toArray()}
-                title={participants.map(p => p.username).join(', ')} />
-              {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, color: subColor}}>{snippet}</Text>}
-            </Box>
+      style={{...rowContainerStyle, backgroundColor: isSelected ? globalColors.darkBlue2 : globalColors.transparent}}>
+      <Box style={{...globalStyles.flexBoxRow, flex: 1, maxWidth: 48, alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 4}}>
+        <MultiAvatar singleSize={32} multiSize={24} avatarProps={avatarProps} />
+        {isMuted && <Icon type='iconfont-shh' style={shhStyle} />}
+      </Box>
+      <Box style={{...globalStyles.flexBoxRow, flex: 1, borderBottom: `solid 1px ${globalColors.black_10}`, paddingRight: 8, paddingTop: 4, paddingBottom: 4}}>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
+          <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center'}}>
+            <Usernames
+              inline={true}
+              type='BodySemibold'
+              style={{color: isMuted ? globalColors.blue3_40 : globalColors.white}}
+              containerStyle={{color: isMuted ? globalColors.blue3_40 : globalColors.white, paddingRight: 7}}
+              users={participants.toArray()}
+              title={participants.map(p => p.username).join(', ')} />
+            {snippet && !isMuted && <Text type='BodySmall' style={{...noWrapStyle, color: subColor}}>{snippet}</Text>}
           </Box>
-          <Text type='BodySmall' style={{marginRight: 4, alignSelf: isMuted ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
+        </Box>
+        <Text type='BodySmall' style={{marginRight: 4, alignSelf: isMuted ? 'center' : 'flex-start', color: subColor}}>{formatTimeForConversationList(conversation.get('time'), nowOverride)}</Text>
       </Box>
     </Box>
   )
@@ -99,16 +98,16 @@ const ConversationList = (props: Props) => (
 )
 
 const containerStyle = {
-    ...globalStyles.flexBoxColumn,
-   backgroundColor: globalColors.darkBlue4,
-   maxWidth: 240,
-   flex: 1,
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.darkBlue4,
+  maxWidth: 240,
+  flex: 1,
 }
 
 const scrollableStyle = {
-    ...globalStyles.flexBoxColumn,
-   flex: 1,
-   overflowY: 'auto',
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+  overflowY: 'auto',
 }
 
 const noWrapStyle = {
