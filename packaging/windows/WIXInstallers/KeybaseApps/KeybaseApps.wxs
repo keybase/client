@@ -16,7 +16,7 @@
                       Type="raw" />
     </Property>
     
-    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />		
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
 		<Feature Id="ProductFeature" Title="Keybase Application" Level="1">
 			<ComponentGroupRef Id="ProductComponents" />
@@ -80,6 +80,7 @@
         and no removable components, so we have to special-case them here and in the xsl transform (gui.xsl) -->
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
         <RemoveFolder Id="GuiSharedDirRemove" On="uninstall" Directory="GuiSharedDir"/>
+        <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Directory="ROAMINGINSTALLFOLDER"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
