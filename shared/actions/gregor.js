@@ -28,17 +28,25 @@ function updateSeenMsgs (seenMsgs: Array<NonNullGregorItem>): UpdateSeenMsgs {
   return {type: Constants.updateSeenMsgs, payload: {seenMsgs}}
 }
 
-function isNonNullGregorItem (gItem: GregorItem): boolean {
-  return !!(gItem && gItem.item && gItem.md)
-}
-
 function isTlfItem (gItem: GregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
 }
 
 function toNonNullGregorItems (state: GregorState): Array<NonNullGregorItem> {
-  // $ForceType
-  return (state.items || []).filter(isNonNullGregorItem)
+  if (!state.items) {
+    return []
+  }
+
+  // We need to do this in two steps because flow understands filter(Boolean)
+  // can un-Maybe a type, but it doesn't understand general predicates.
+  return state.items
+    .map(x => {
+      const md = x.md
+      const item = x.item
+      // Gotta copy the object because flow is VERY UNCHILL about casting these maybes.
+      return md && item ? {md, item} : null
+    })
+    .filter(Boolean)
 }
 
 function registerGregorListeners () {
@@ -72,7 +80,6 @@ function registerGregorListeners () {
 }
 
 function * handleTLFUpdate (items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
-  // $ForceType
   const seenMsgs: MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
 
   // Check if any are a tlf items

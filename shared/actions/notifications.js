@@ -40,7 +40,6 @@ function * _listenSaga (): SagaGenerator<any, any> {
     users: true,
   }
 
-  // $ForceType
   const engineInst: Engine = yield call(engine)
   yield call([engineInst, engineInst.listenOnConnect], 'setNotifications', () => {
     notifyCtlSetNotificationsRpc({
