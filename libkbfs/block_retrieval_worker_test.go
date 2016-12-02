@@ -260,7 +260,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 }
 
 func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
-	t.Log("Test the ability of a worker and queue to work correctly together.")
+	t.Log("Test that we can retrieve the same block into different block types.")
 	codec := kbfscodec.NewMsgpack()
 	q := newBlockRetrievalQueue(1, codec)
 	require.NotNil(t, q)
