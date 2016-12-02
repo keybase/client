@@ -1,7 +1,5 @@
 // @flow
 
-import type {Reachability} from '../constants/types/flow-types'
-
 export class RPCError extends Error {
   code: number;
   fields: any;

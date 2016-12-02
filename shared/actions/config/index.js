@@ -125,7 +125,6 @@ export function retryBootstrap (): AsyncAction {
 let bootstrapSetup = false
 export function bootstrap (): AsyncAction {
   return (dispatch, getState) => {
-    const state = getState()
     if (!bootstrapSetup) {
       bootstrapSetup = true
       console.log('[bootstrap] registered bootstrap')
