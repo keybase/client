@@ -2,6 +2,7 @@
 import ConversationHeader from './conversation/header.desktop'
 import ConversationInput from './conversation/input.desktop'
 import ConversationList from './conversation/list.desktop'
+import ConversationBanner from './conversation/banner'
 import ConversationSidePanel from './conversation/side-panel/index.desktop'
 import ConversationsList from './conversations-list'
 import HiddenString from '../util/hidden-string'
@@ -102,6 +103,7 @@ const commonConvoProps = {
   isLoading: false,
   onPostMessage: (text: string) => console.log('on post', text),
   selectedConversation: 'convo1',
+  emojiPickerOpen: false,
   onShowProfile: (username: string) => console.log('on show profile', username),
   metaData: Map(metaData),
 }
@@ -181,6 +183,11 @@ const input = {
     'Normal': {
       ...commonConvoProps,
     },
+    'Emoji Open': {
+      ...commonConvoProps,
+      emojiPickerOpen: true,
+      parentProps: {style: {height: 370, paddingTop: 330}},
+    },
     'Empty': {
       ...emptyConvoProps,
     },
@@ -243,10 +250,32 @@ const conversationsList = {
   },
 }
 
+const conversationBanner = {
+  component: ConversationBanner,
+  mocks: {
+    'Info': {
+      type: 'Info',
+      text: 'Some info',
+    },
+    'Invite': {
+      type: 'Invite',
+      inviteLink: 'keybase.io/inv/9999999999',
+      onClickInviteLink: () => { console.log('Clicked the invite link') },
+    },
+    'Error': {
+      type: 'Error',
+      text: 'Some of jzila’s proofs have changed since you last followed them.',
+      textLink: 'Please Review',
+      textLinkOnClick: () => { console.log('Clicked the text link') },
+    },
+  },
+}
+
 export default {
   'ChatHeader': header,
   'ChatInput': input,
   'ChatList': list,
   'ChatSidePanel': sidePanel,
   'ChatConversationsList': conversationsList,
+  'ChatBanner': conversationBanner,
 }

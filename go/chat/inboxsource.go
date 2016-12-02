@@ -69,8 +69,8 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 
 	var res []chat1.ConversationLocal
 	ctx, _ = utils.GetUserInfoMapper(ctx, s.G())
-	convLocals, err := s.localizeConversationsPipeline(ctx,
-		ib.Inbox.Full().Conversations, identifyBehavior)
+	convLocals, err := s.localizeConversationsPipeline(ctx, uid, ib.Inbox.Full().Conversations,
+		identifyBehavior)
 	if err != nil {
 		return Inbox{}, ib.RateLimit, err
 	}
@@ -180,7 +180,9 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID, query *ch
 	return ib, rl, nil
 }
 
-func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, convs []chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior) ([]chat1.ConversationLocal, error) {
+func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, uid gregor1.UID,
+	convs []chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior) ([]chat1.ConversationLocal, error) {
+
 	// Fetch conversation local information in parallel
 	ctx, _ = utils.GetUserInfoMapper(ctx, s.G())
 	type jobRes struct {
@@ -208,7 +210,7 @@ func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, c
 	for i := 0; i < 10; i++ {
 		eg.Go(func() error {
 			for conv := range convCh {
-				convLocal, err := s.localizeConversation(ctx, conv.conv, identifyBehavior)
+				convLocal, err := s.localizeConversation(ctx, uid, conv.conv, identifyBehavior)
 				if err != nil {
 					return err
 				}
@@ -239,8 +241,8 @@ func (s *RemoteInboxSource) localizeConversationsPipeline(ctx context.Context, c
 	return res, nil
 }
 
-func (s *RemoteInboxSource) localizeConversation(
-	ctx context.Context, conversationRemote chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior) (
+func (s *RemoteInboxSource) localizeConversation(ctx context.Context, uid gregor1.UID,
+	conversationRemote chat1.Conversation, identifyBehavior keybase1.TLFIdentifyBehavior) (
 	conversationLocal chat1.ConversationLocal, err error) {
 
 	ctx, uimap := utils.GetUserInfoMapper(ctx, s.G())
@@ -253,7 +255,15 @@ func (s *RemoteInboxSource) localizeConversation(
 		errMsg := "conversation has an empty MaxMsgs field"
 		return chat1.ConversationLocal{Error: &errMsg}, nil
 	}
-	if conversationLocal.MaxMessages, err = s.boxer.UnboxMessages(ctx, conversationRemote.MaxMsgs); err != nil {
+
+	s.G().Log.Debug("localizeConversation: localizing %d msgs", len(conversationRemote.MaxMsgs))
+	var msgIDs []chat1.MessageID
+	for _, m := range conversationRemote.MaxMsgs {
+		msgIDs = append(msgIDs, m.GetMessageID())
+	}
+	conversationLocal.MaxMessages, err = s.G().ConvSource.GetMessages(ctx,
+		conversationRemote.Metadata.ConversationID, uid, msgIDs)
+	if err != nil {
 		errMsg := err.Error()
 		return chat1.ConversationLocal{Error: &errMsg}, nil
 	}
