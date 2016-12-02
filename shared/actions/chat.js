@@ -36,7 +36,6 @@ import type {
   SetupNewChatHandler,
   StartConversation,
   UnhandledMessage,
-  UpdateBadge,
   UpdateMetadata,
 } from '../constants/chat'
 
@@ -404,12 +403,6 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
   })
 }
 
-// Update the badging of the app.
-function * _updateBadge (action: UpdateBadge): SagaGenerator<any, any> {
-  const {newConversations} = action.payload
-  yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
-}
-
 function _threadToPagination (thread) {
   if (thread && thread.thread && thread.thread.pagination) {
     return thread.thread.pagination
@@ -578,10 +571,7 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
       const conversationID = keyToConversationID(action.payload.conversationIDKey)
       const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
       yield call(localMarkAsReadLocalRpcPromise, {
-        param: {
-          conversationID,
-          msgID,
-        },
+        param: {conversationID, msgID},
       })
     }
   }
@@ -600,7 +590,6 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.startConversation, _startConversation),
     safeTakeEvery(Constants.updateMetadata, _updateMetadata),
     safeTakeLatest(Constants.openFolder, _openFolder),
-    safeTakeLatest(Constants.updateBadge, _updateBadge),
   ]
 }
 
