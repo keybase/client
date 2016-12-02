@@ -296,3 +296,25 @@ func (a *AttachmentStore) s3Conn(signer s3.Signer, region s3.Region, accessKey s
 	conn.SetAccessKey(accessKey)
 	return conn
 }
+
+func (a *AttachmentStore) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error {
+	var errs []error
+	for _, asset := range assets {
+		if err := a.DeleteAsset(ctx, params, signer, asset); err != nil {
+			a.log.Debug("DeleteAsset error: %s", err)
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		a.log.Debug("DeleteAssets errors: %d, returning first one", len(errs))
+		return errs[0]
+	}
+	return nil
+}
+
+func (a *AttachmentStore) DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer, asset chat1.Asset) error {
+	region := a.regionFromAsset(asset)
+	b := a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
+	return b.Del(ctx, asset.Path)
+}

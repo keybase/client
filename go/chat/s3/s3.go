@@ -523,13 +523,13 @@ func (b *Bucket) PutBucketSubresource(subresource string, r io.Reader, length in
 // Del removes an object from the S3 bucket.
 //
 // See http://goo.gl/APeTt for details.
-func (b *Bucket) Del(path string) error {
+func (b *Bucket) Del(ctx context.Context, path string) error {
 	req := &request{
 		method: "DELETE",
 		bucket: b.Name,
 		path:   path,
 	}
-	return b.S3.query(nil, req, nil)
+	return b.S3.query(ctx, req, nil)
 }
 
 type Delete struct {
