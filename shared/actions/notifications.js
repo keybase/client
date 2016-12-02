@@ -34,6 +34,7 @@ function * _listenSaga (): SagaGenerator<any, any> {
     keyfamily: false,
     paperkeys: false,
     pgp: true,
+    reachability: true,
     service: true,
     session: true,
     tracking: true,

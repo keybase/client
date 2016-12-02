@@ -39,6 +39,7 @@ type Service struct {
 	rekeyMaster      *rekeyMaster
 	messageDeliverer *chat.Deliverer
 	badger           *Badger
+	reachability     *reachability
 }
 
 type Shutdowner interface {
@@ -54,6 +55,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		logForwarder: newLogFwd(),
 		rekeyMaster:  newRekeyMaster(g),
 		badger:       newBadger(g),
+		reachability: newReachability(g),
 	}
 }
 
@@ -82,6 +84,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
 		keybase1.PGPProtocol(NewPGPHandler(xp, g)),
+		keybase1.ReachabilityProtocol(newReachabilityHandler(xp, g, d.reachability)),
 		keybase1.RevokeProtocol(NewRevokeHandler(xp, g)),
 		keybase1.ProveProtocol(NewProveHandler(xp, g)),
 		keybase1.SaltpackProtocol(NewSaltpackHandler(xp, g)),

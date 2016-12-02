@@ -1,8 +1,7 @@
 // @flow
 
-// NOTICE: Doing `instanceof RPCError` (or any Error subtypes) will fail until a
-// fix goes in. We aren't doing this anywhere yet though.
-// TODO(mgood): Remove this when your fix goes in
+import type {Reachability} from '../constants/types/flow-types'
+
 export class RPCError extends Error {
   code: number;
   fields: any;

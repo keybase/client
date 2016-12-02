@@ -133,9 +133,6 @@ export function bootstrap (): AsyncAction {
         console.log('[bootstrap] bootstrapping on connect')
         dispatch(bootstrap())
       })
-    } else if (state.dev && state.dev.reloading) {
-      // Let's still register the listeners
-      dispatch(_registerListeners())
     } else {
       console.log('[bootstrap] performing bootstrap...')
       Promise.all(

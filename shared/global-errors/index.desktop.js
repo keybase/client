@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {Box, Text, Icon, HOCTimers} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition} from '../styles'
+import {ReachabilityReachable} from '../constants/types/flow-types'
 
 import type {Props} from './index'
 
@@ -79,43 +80,71 @@ class GlobalError extends Component<void, Props, State> {
     }[size]
   }
 
-  render () {
+  renderReachability () {
+    return (
+      <Box style={{...containerOverlayStyle}}>
+        <Box style={{...overlayRowStyle}}>
+          <Text type='BodyBig' style={{color: globalColors.white, textAlign: 'center'}}>Keybase is currently unreachable. Trying to reconnect you…</Text>
+        </Box>
+        <Box style={{...overlayFillStyle}}>
+          <Icon type='icon-loader-connecting-112' />
+        </Box>
+      </Box>
+    )
+  }
+
+  renderError () {
     const {onDismiss} = this.props
     const summary = this.state.cachedSummary
     const details = this.state.cachedDetails
     const maxHeight = GlobalError.maxHeightForSize(this.state.size)
 
     return (
-      <Box style={{...containerStyle, maxHeight}} onClick={this._onExpandClick}>
-        <Box style={summaryRowStyle}>
+      <Box style={{...containerStyle, ...containerErrorStyle, maxHeight}} onClick={this._onExpandClick}>
+        <Box style={{...summaryRowStyle, ...summaryRowErrorStyle}}>
           {summary && <Icon type='iconfont-exclamation' style={{color: globalColors.white, marginRight: 8}} />}
-          <Text type='BodySmall' style={{color: globalColors.white, textAlign: 'center'}}>{summary}</Text>
+          <Text type='BodyBig' style={{color: globalColors.white, textAlign: 'center'}}>{summary}</Text>
           {summary && <Icon type='iconfont-close' onClick={onDismiss} style={{position: 'absolute', right: 8, color: globalColors.white_75}} />}
         </Box>
-        <Text type='BodySmall' style={detailStyle}>{details}</Text>
+        <Text type='BodyBig' style={detailStyle}>{details}</Text>
       </Box>
     )
+  }
+
+  render () {
+    if (this.props.reachability && this.props.reachability.reachable === ReachabilityReachable.no) {
+      return this.renderReachability()
+    }
+    return this.renderError()
   }
 }
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  ...transition('max-height'),
   overflow: 'hidden',
   position: 'absolute',
   top: 0,
   left: 0,
   right: 0,
-  backgroundColor: globalColors.black_75,
+  zIndex: 1000,
+}
+
+const containerErrorStyle = {
+  ...transition('max-height'),
 }
 
 const summaryRowStyle = {
   ...globalStyles.flexBoxRow,
+  flex: 1,
   justifyContent: 'center',
-  minHeight: GlobalError.maxHeightForSize('Small'),
-  padding: 8,
   alignItems: 'center',
   position: 'relative',
+  padding: 8,
+}
+
+const summaryRowErrorStyle = {
+  backgroundColor: globalColors.black_75,
+  minHeight: GlobalError.maxHeightForSize('Small'),
 }
 
 const detailStyle = {
@@ -125,6 +154,32 @@ const detailStyle = {
   textAlign: 'center',
   paddingLeft: globalMargins.xlarge,
   paddingRight: globalMargins.xlarge,
+}
+
+const containerOverlayStyle = {
+  ...globalStyles.flexBoxColumn,
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 1000,
+  bottom: 0,
+}
+
+const overlayRowStyle = {
+  ...globalStyles.flexBoxRow,
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: 8,
+  backgroundColor: globalColors.blue,
+}
+
+const overlayFillStyle = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: globalColors.white_75,
 }
 
 export default HOCTimers(GlobalError)

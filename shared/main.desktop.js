@@ -8,6 +8,7 @@ import flags from './util/feature-flags'
 import {isDarwin} from './constants/platform'
 
 import {navigateUp, setRouteState} from './actions/route-tree'
+import {checkReachability} from './actions/gregor'
 
 import type {RouteDefNode, RouteStateNode, Path} from './route-tree'
 
@@ -19,6 +20,7 @@ type Props = {
   routeDef: RouteDefNode,
   routeState: RouteStateNode,
   setRouteState: (path: Path, partialState: {}) => void,
+  checkReachability: () => void,
 }
 
 class Main extends Component<void, Props, void> {
@@ -53,6 +55,9 @@ class Main extends Component<void, Props, void> {
   componentDidMount () {
     if (flags.admin) window.addEventListener('keydown', this._handleKeyDown)
     ipcRenderer.send('showTray', this.props.menuBadge)
+
+    window.addEventListener('online', this.props.checkReachability)
+    window.addEventListener('offline', this.props.checkReachability)
   }
 
   componentWillUnmount () {
@@ -86,6 +91,7 @@ export default connect(
     return {
       navigateUp: () => dispatch(navigateUp()),
       setRouteState: (path, partialState) => { dispatch(setRouteState(path, partialState)) },
+      checkReachability: () => dispatch(checkReachability()),
     }
   }
 )(Main)
