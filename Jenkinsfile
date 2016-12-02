@@ -121,12 +121,10 @@ helpers.rootLinuxNode(env, {
                             test_linux_js: { withEnv([
                                 "PATH=${env.HOME}/.node/bin:${env.PATH}",
                                 "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                "KEYBASE_JS_VENDOR_DIR=${env.BASEDIR}/js-vendor-desktop",
                             ]) {
                                 dir("desktop") {
                                     sh "yarn"
-                                    sh "unzip ${env.KEYBASE_JS_VENDOR_DIR}/flow/flow-linux64*.zip -d ${env.BASEDIR}"
-                                    sh "${env.BASEDIR}/flow/flow status shared"
+                                    sh "./node_modules/.bin/flow"
                                 }
                                 sh "desktop/node_modules/.bin/eslint ."
                                 dir("desktop") {
@@ -199,7 +197,6 @@ helpers.rootLinuxNode(env, {
                                 'GOROOT=C:\\tools\\go',
                                 "GOPATH=\"${GOPATH}\"",
                                 "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
-                                "KEYBASE_JS_VENDOR_DIR=${BASEDIR}\\js-vendor-desktop",
                                 "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                             ]) {
