@@ -115,6 +115,10 @@ type dirBlockFuture struct {
 	kbfscodec.Extra
 }
 
+func (dbf *dirBlockFuture) NewEmpty() Block {
+	return &dirBlockFuture{}
+}
+
 func (dbf *dirBlockFuture) Set(other Block, codec kbfscodec.Codec) {
 	otherDbf := other.(*dirBlockFuture)
 	err := kbfscodec.Update(codec, dbf, otherDbf)
@@ -175,6 +179,10 @@ type fileBlockFuture struct {
 	// Overrides fileBlockCurrent.IPtrs.
 	IPtrs []indirectFilePtrFuture `codec:"i,omitempty"`
 	kbfscodec.Extra
+}
+
+func (fbf *fileBlockFuture) NewEmpty() Block {
+	return &fileBlockFuture{}
 }
 
 func (fbf *fileBlockFuture) Set(other Block, codec kbfscodec.Codec) {
