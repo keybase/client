@@ -5,7 +5,6 @@
 package kbfscodec
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -165,12 +164,6 @@ func (c *CodecMsgpack) Decode(buf []byte, obj interface{}) (err error) {
 
 // Encode implements the Codec interface for CodecMsgpack
 func (c *CodecMsgpack) Encode(obj interface{}) (buf []byte, err error) {
-	if obj == nil {
-		return nil, errors.New("Cannot encode untyped nil")
-	}
-	if isTypedNil(obj) {
-		return nil, fmt.Errorf("Cannot encode nil of type %T", obj)
-	}
 	err = codec.NewEncoderBytes(&buf, c.h).Encode(obj)
 	return
 }

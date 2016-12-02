@@ -7,8 +7,6 @@ package kbfscodec
 import (
 	"bytes"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
 // TestCodecEncodeMap tests that codec.Encode() isn't affected by map
@@ -36,22 +34,4 @@ func TestCodecEncodeMap(t *testing.T) {
 	if !bytes.Equal(b1, b2) {
 		t.Errorf("%v != %v", b1, b2)
 	}
-}
-
-func TestCodecEncodeUntypedNil(t *testing.T) {
-	codec := NewMsgpack()
-	_, err := codec.Encode(nil)
-	require.EqualError(t, err, "Cannot encode untyped nil")
-}
-
-func TestCodecEncodeTypedNil(t *testing.T) {
-	codec := NewMsgpack()
-	_, err := codec.Encode((*int)(nil))
-	require.EqualError(t, err, "Cannot encode nil of type *int")
-}
-
-func TestCodecEncodeStruct(t *testing.T) {
-	codec := NewMsgpack()
-	_, err := codec.Encode(struct{}{})
-	require.NoError(t, err)
 }
