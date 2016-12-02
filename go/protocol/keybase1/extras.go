@@ -786,7 +786,7 @@ func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
 	i := sort.Search(len(u.RemoteTracks), func(j int) bool {
 		return u.RemoteTracks[j].Username >= s
 	})
-	if i < 0 || i >= len(u.RemoteTracks) {
+	if i >= len(u.RemoteTracks) {
 		return nil
 	}
 	return &u.RemoteTracks[i]
