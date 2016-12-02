@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/logger"
@@ -125,39 +126,44 @@ func (fd *fileData) getFileBlockAtOffset(ctx context.Context,
 // getLeafBlocksForOffsetRange fetches all the leaf ("direct") blocks
 // that encompass the given offset range (half-inclusive) in the file.
 // If `endOff` is -1, it returns blocks until reaching the end of the
-// file.  Note the range could be made up of holes, indicated in the
-// IPtrs list of the parent blocks.  If `prefixOk` is true, the
-// function will ignore context deadline errors and return whatever
-// prefix of the data it could fetch within the deadine.  Return
-// params:
+// file.  Note the range could be made up of holes, meaning that the
+// last byte of a direct block doesn't immediately precede the first
+// byte of the subsequent block.  If `prefixOk` is true, the function
+// will ignore context deadline errors and return whatever prefix of
+// the data it could fetch within the deadine.  Return params:
 //
 //   * pathsFromRoot is a slice, ordered by file offset, of paths from
-//     the root to each block that makes up the range.
+//     the root to each block that makes up the range.  If the path is
+//     empty, it indicates that pblock is a direct block and has no
+//     children.
 //   * blocks: a map from block pointer to a data-containing leaf node
 //     in the given range of offsets.
 //   * nextBlockOff is the offset of the block that follows the last
 //     block given in `pathsFromRoot`.  If `pathsFromRoot` contains
 //     the last block among the children, nextBlockOff is -1.
 func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
-	pblock *FileBlock, startOff int64, endOff int64,
+	ptr BlockPointer, pblock *FileBlock, startOff, endOff int64,
 	prefixOk bool) (pathsFromRoot [][]parentBlockAndChildIndex,
 	blocks map[BlockPointer]*FileBlock, nextBlockOffset int64, err error) {
 	if !pblock.IsInd {
-		// Return a single empty path and am empty child block map.
-		return [][]parentBlockAndChildIndex{nil}, nil, -1, nil
+		// Return a single empty path and a child map with only this
+		// block in it, under the assumption that the caller already
+		// checked the range for this block.
+		return [][]parentBlockAndChildIndex{nil},
+			map[BlockPointer]*FileBlock{ptr: pblock}, -1, nil
 	}
 
 	type resp struct {
-		pathsFromRoot [][]parentBlockAndChildIndex
-		blocks        map[BlockPointer]*FileBlock
-		nextBlockOff  int64
+		pathsFromRoot   [][]parentBlockAndChildIndex
+		blocks          map[BlockPointer]*FileBlock
+		nextBlockOffset int64
 	}
 
 	// Search all of the in-range child blocks, and their child
 	// blocks, etc, in parallel.
 	respChans := make([]<-chan resp, 0, len(pblock.IPtrs))
 	eg, groupCtx := errgroup.WithContext(ctx)
-	nextBlockOff := int64(-1)
+	nextBlockOffsetThisLevel := int64(-1)
 	for i, iptr := range pblock.IPtrs {
 		// Some byte of this block is included in the left side of the
 		// range if `startOff` is less than the largest byte offset in
@@ -177,7 +183,7 @@ func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
 		if !inRangeRight {
 			// This block is the first one past the offset range
 			// amount the children.
-			nextBlockOff = iptr.Off
+			nextBlockOffsetThisLevel = iptr.Off
 			break
 		}
 
@@ -191,8 +197,8 @@ func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
 				return err
 			}
 			// Recurse down to the level of the child.
-			pfr, blocks, nextBlockOff, err := fd.getLeafBlocksForOffsetRange(
-				groupCtx, block, startOff, endOff, prefixOk)
+			pfr, blocks, nextBlockOffset, err := fd.getLeafBlocksForOffsetRange(
+				groupCtx, ptr, block, startOff, endOff, prefixOk)
 			if err != nil {
 				return err
 			}
@@ -207,43 +213,36 @@ func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
 				}}, p...)
 				r.pathsFromRoot = append(r.pathsFromRoot, newPath)
 			}
-			r.blocks = make(map[BlockPointer]*FileBlock)
-			r.blocks[ptr] = block
-			for ptr, block := range blocks {
-				r.blocks[ptr] = block
-			}
-			r.nextBlockOff = nextBlockOff
+			r.blocks = blocks
+			r.nextBlockOffset = nextBlockOffset
 			respCh <- r
 			return nil
 		})
 	}
 
+	err = eg.Wait()
 	// If we are ok with just getting the prefix, don't treat a
 	// deadline exceeded error as fatal.
-	if err := eg.Wait(); err != nil && (!prefixOk ||
-		err != context.DeadlineExceeded) {
+	if prefixOk && err == context.DeadlineExceeded {
+		err = nil
+	}
+	if err != nil {
 		return nil, nil, 0, err
 	}
 
 	blocks = make(map[BlockPointer]*FileBlock)
+	minNextBlockOffsetChild := int64(-1)
 outer:
-	for i, respCh := range respChans {
+	for _, respCh := range respChans {
 		select {
 		case r := <-respCh:
 			pathsFromRoot = append(pathsFromRoot, r.pathsFromRoot...)
 			for ptr, block := range r.blocks {
 				blocks[ptr] = block
 			}
-			if i == len(respChans)-1 {
-				// Figure out the offset of the next data block after
-				// the last in-range one.  It's the minimum of the
-				// next one at this level and the next one at the
-				// child's level, not counting -1 (which means we are
-				// returning the the last block at the given level).
-				if (r.nextBlockOff != -1 && r.nextBlockOff < nextBlockOff) ||
-					nextBlockOff == -1 {
-					nextBlockOff = r.nextBlockOff
-				}
+			if r.nextBlockOffset != -1 &&
+				r.nextBlockOffset < minNextBlockOffsetChild {
+				minNextBlockOffsetChild = r.nextBlockOffset
 			}
 		default:
 			// There should always be a response ready in every
@@ -255,7 +254,20 @@ outer:
 			}
 		}
 	}
-	return pathsFromRoot, blocks, nextBlockOff, nil
+
+	// If this level has no offset, or one of the children has an
+	// offset that's smaller than the one at this level, use the child
+	// offset instead.
+	if nextBlockOffsetThisLevel == -1 {
+		nextBlockOffset = minNextBlockOffsetChild
+	} else if minNextBlockOffsetChild != -1 &&
+		minNextBlockOffsetChild < nextBlockOffsetThisLevel {
+		nextBlockOffset = minNextBlockOffsetChild
+	} else {
+		nextBlockOffset = nextBlockOffsetThisLevel
+	}
+
+	return pathsFromRoot, blocks, nextBlockOffset, nil
 }
 
 // getByteSlicesInOffsetRange returns an ordered, continuous slice of
@@ -269,6 +281,8 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 	startOff, endOff int64, prefixOk bool) ([][]byte, error) {
 	if (endOff != -1 && endOff <= startOff) || startOff < 0 {
 		return nil, nil
+	} else if startOff < -1 || endOff < -1 {
+		return nil, fmt.Errorf("Bad offset range [%d, %d)", startOff, endOff)
 	}
 
 	topBlock, _, err := fd.getter(ctx, fd.kmd, fd.file.tailPointer(),
@@ -286,14 +300,15 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 	if topBlock.IsInd {
 		var pfr [][]parentBlockAndChildIndex
 		pfr, blockMap, nextBlockOff, err = fd.getLeafBlocksForOffsetRange(
-			ctx, topBlock, startOff, endOff, prefixOk)
+			ctx, fd.file.tailPointer(), topBlock, startOff, endOff, prefixOk)
 		if err != nil {
 			return nil, err
 		}
 
 		for i, p := range pfr {
 			if len(p) == 0 {
-				continue
+				return nil, fmt.Errorf("Unexpected empty path to child for "+
+					"file %v", fd.file.tailPointer())
 			}
 			lowestAncestor := p[len(p)-1]
 			iptr := lowestAncestor.pblock.IPtrs[lowestAncestor.childIndex]
@@ -360,9 +375,11 @@ func (fd *fileData) getByteSlicesInOffsetRange(ctx context.Context,
 			toRead = lastByteInBlock - nextByte
 		}
 
+		/**
 		if toRead == 0 {
 			continue
 		}
+		*/
 
 		firstByteToRead := nextByte - blockOff
 		bytes = append(bytes,
@@ -436,8 +453,8 @@ func (fd *fileData) read(ctx context.Context, dest []byte, startOff int64) (
 // getBytes returns a buffer containing data from the file, in the
 // half-inclusive range `[startOff, endOff)`.  If `endOff` == -1, it
 // returns data until the end of the file.
-func (fd *fileData) getBytes(ctx context.Context, startOff int64,
-	endOff int64) (data []byte, err error) {
+func (fd *fileData) getBytes(ctx context.Context, startOff, endOff int64) (
+	data []byte, err error) {
 	bytes, err := fd.getByteSlicesInOffsetRange(ctx, startOff, endOff, false)
 	if err != nil {
 		return nil, err
