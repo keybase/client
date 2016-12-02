@@ -25,6 +25,7 @@ type ChatServiceHandler interface {
 	AttachV1(context.Context, attachOptionsV1) Reply
 	DownloadV1(context.Context, downloadOptionsV1) Reply
 	SetStatusV1(context.Context, setStatusOptionsV1) Reply
+	MarkV1(context.Context, markOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -571,6 +572,10 @@ func (c *chatServiceHandler) SetStatusV1(ctx context.Context, opts setStatusOpti
 		},
 	}
 	return Reply{Result: res}
+}
+
+func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Reply {
+	return Reply{}
 }
 
 type sendArgV1 struct {
