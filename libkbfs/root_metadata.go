@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"reflect"
@@ -17,6 +16,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
+	"golang.org/x/net/context"
 )
 
 // MetadataFlags bitfield.
@@ -406,31 +406,60 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 // loadCachedBlockChanges swaps any cached block changes so that
 // future local accesses to this MD (from the cache) can directly
 // access the ops without needing to re-embed the block changes.
-func (md *RootMetadata) loadCachedBlockChanges(bps *blockPutState) {
-	if md.data.Changes.Ops == nil {
-		md.data.Changes, md.data.cachedChanges =
-			md.data.cachedChanges, md.data.Changes
-		md.data.Changes.Ops[0].
-			AddRefBlock(md.data.cachedChanges.Info.BlockPointer)
-		// Find the block and ref any children, if any.
-		if bps == nil {
-			panic("Must provide blocks when changes are unembedded")
+func (md *RootMetadata) loadCachedBlockChanges(
+	ctx context.Context, bps *blockPutState) {
+	if md.data.Changes.Ops != nil {
+		return
+	}
+
+	md.data.Changes, md.data.cachedChanges =
+		md.data.cachedChanges, md.data.Changes
+	md.data.Changes.Ops[0].
+		AddRefBlock(md.data.cachedChanges.Info.BlockPointer)
+	// Find the block and ref any children, if any.
+	if bps == nil {
+		panic("Must provide blocks when changes are unembedded")
+	}
+
+	// Prepare a map of all FileBlocks for easy access by fileData
+	// below.
+	fileBlocks := make(map[BlockPointer]*FileBlock)
+	for _, bs := range bps.blockStates {
+		if fblock, ok := bs.block.(*FileBlock); ok {
+			fileBlocks[bs.blockPtr] = fblock
 		}
-		found := false
-		for _, bs := range bps.blockStates {
-			if bs.blockPtr != md.data.cachedChanges.Info.BlockPointer {
-				continue
+	}
+
+	// uid, crypto, bsplitter and log aren't used for simply getting the
+	// indirect pointers, so set them to nil.
+	var uid keybase1.UID
+	file := path{FolderBranch{md.TlfID(), MasterBranch},
+		[]pathNode{{
+			md.data.cachedChanges.Info.BlockPointer,
+			fmt.Sprintf("<MD with revision %d>", md.Revision())}}}
+	fd := newFileData(file, uid, nil, nil, md.ReadOnly(),
+		func(_ context.Context, _ KeyMetadata, ptr BlockPointer,
+			_ path, _ blockReqType) (*FileBlock, bool, error) {
+			fblock, ok := fileBlocks[ptr]
+			if !ok {
+				return nil, false, fmt.Errorf(
+					"No unembedded block change pointer %v in bps", ptr)
 			}
-			found = true
-			for _, iptr := range bs.block.(*FileBlock).IPtrs {
-				md.data.Changes.Ops[0].AddRefBlock(iptr.BlockPointer)
-			}
-			break
-		}
-		if !found {
-			panic(fmt.Sprintf("Couldn't find top change block %v",
-				md.data.cachedChanges.Info.BlockPointer))
-		}
+			return fblock, false, nil
+		},
+		func(ptr BlockPointer, block Block) error {
+			return nil
+		}, nil)
+
+	infos, err := fd.getIndirectFileBlockInfos(ctx)
+	if err != nil {
+		panic(fmt.Sprintf(
+			"Couldn't find all unembedded change blocks for %v: %v",
+			md.data.cachedChanges.Info.BlockPointer, err))
+	}
+
+	for _, info := range infos {
+		md.data.Changes.Ops[0].AddRefBlock(info.BlockPointer)
 	}
 }
 
