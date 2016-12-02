@@ -1,8 +1,7 @@
-// @flow
-const webpack = require('webpack')
+const webpack = require('webpack') // eslint-disable-line flowtype/require-valid-file-annotation
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
-const config: any = Object.assign({}, baseConfig)
+const config = Object.assign({}, baseConfig)
 
 const defines = {
   '__DEV__': true,
