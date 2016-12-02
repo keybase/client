@@ -63,7 +63,14 @@ func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 	// Wait until the caller tells us to continue
 	select {
 	case <-source.ch:
-		block.Set(source.block, bg.codec)
+		bytes, err := bg.codec.Encode(source.block)
+		if err != nil {
+			return err
+		}
+		err = bg.codec.Decode(bytes, block)
+		if err != nil {
+			return err
+		}
 	case <-ctx.Done():
 		return ctx.Err()
 	}
@@ -250,4 +257,47 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	require.True(t, shutdown)
 	w.Shutdown()
 	require.True(t, shutdown)
+}
+
+func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
+	t.Log("Test the ability of a worker and queue to work correctly together.")
+	codec := kbfscodec.NewMsgpack()
+	q := newBlockRetrievalQueue(1, codec)
+	require.NotNil(t, q)
+	defer q.Shutdown()
+
+	bg := newFakeBlockGetter()
+	w1 := newBlockRetrievalWorker(bg, q)
+	require.NotNil(t, w1)
+	defer w1.Shutdown()
+
+	t.Log("Setup source blocks")
+	ptr1 := makeFakeBlockPointer(t)
+	block1 := makeFakeFileBlock(t)
+	ch1 := bg.setBlockToReturn(ptr1, block1)
+	testCommonBlock := &CommonBlock{}
+	bytes, err := codec.Encode(block1)
+	require.NoError(t, err)
+	err = codec.Decode(bytes, testCommonBlock)
+	require.NoError(t, err)
+
+	t.Log("Make a retrieval for the same block twice, but with a different target block type.")
+	testBlock1 := &FileBlock{}
+	testBlock2 := &CommonBlock{}
+	req1Ch := q.Request(context.Background(), 1, nil, ptr1, testBlock1)
+	req2Ch := q.Request(context.Background(), 1, nil, ptr1, testBlock2)
+	// Ensure the worker picks up the request
+	time.Sleep(50 * time.Millisecond)
+
+	t.Log("Allow the first ptr1 retrieval to complete.")
+	ch1 <- struct{}{}
+	err = <-req1Ch
+	require.NoError(t, err)
+	require.Equal(t, testBlock1, block1)
+
+	t.Log("Allow the second ptr1 retrieval to complete.")
+	ch1 <- struct{}{}
+	err = <-req2Ch
+	require.NoError(t, err)
+	require.Equal(t, testBlock2, testCommonBlock)
 }
