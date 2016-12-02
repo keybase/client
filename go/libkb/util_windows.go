@@ -109,9 +109,6 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	return err
 }
 
-func copyFiles(g *GlobalContext, ext string, oldPathname string, newPathname string) error {
-	return nil
-}
 
 func RemoteSettingsRepairman(g *GlobalContext) error {
 	var retErr error
