@@ -8,6 +8,7 @@ import (
 	"container/heap"
 	"errors"
 	"io"
+	"reflect"
 	"sync"
 
 	"github.com/keybase/kbfs/kbfscodec"
@@ -55,6 +56,11 @@ type blockRetrieval struct {
 	insertionOrder uint64
 }
 
+type blockPtrLookup struct {
+	bp BlockPointer
+	t  reflect.Type
+}
+
 // blockRetrievalQueue manages block retrieval requests. Higher priority
 // requests are executed first. Requests are executed in FIFO order within a
 // given priority level.
@@ -62,7 +68,7 @@ type blockRetrievalQueue struct {
 	// protects ptrs, insertionCount, and the heap
 	mtx sync.RWMutex
 	// queued or in progress retrievals
-	ptrs map[BlockPointer]*blockRetrieval
+	ptrs map[blockPtrLookup]*blockRetrieval
 	// global counter of insertions to queue
 	// capacity: ~584 years at 1 billion requests/sec
 	insertionCount uint64
@@ -82,7 +88,7 @@ type blockRetrievalQueue struct {
 // (more than numWorkers will block).
 func newBlockRetrievalQueue(numWorkers int, codec kbfscodec.Codec) *blockRetrievalQueue {
 	return &blockRetrievalQueue{
-		ptrs:        make(map[BlockPointer]*blockRetrieval),
+		ptrs:        make(map[blockPtrLookup]*blockRetrieval),
 		heap:        &blockRetrievalHeap{},
 		workerQueue: make(chan chan *blockRetrieval, numWorkers),
 		doneCh:      make(chan struct{}),
@@ -130,6 +136,8 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 		return ch
 	}
 
+	bpLookup := blockPtrLookup{ptr, reflect.TypeOf(block)}
+
 	brq.mtx.Lock()
 	defer brq.mtx.Unlock()
 	// Might have to retry if the context has been canceled.
@@ -137,7 +145,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 	// statement at the bottom on the first iteration, or the `continue`
 	// statement first which causes it to `return` on the next iteration.
 	for {
-		br, exists := brq.ptrs[ptr]
+		br, exists := brq.ptrs[bpLookup]
 		if !exists {
 			// Add to the heap
 			br = &blockRetrieval{
@@ -149,7 +157,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 			}
 			br.ctx, br.cancelFunc = NewCoalescingContext(ctx)
 			brq.insertionCount++
-			brq.ptrs[ptr] = br
+			brq.ptrs[bpLookup] = br
 			heap.Push(brq.heap, br)
 			defer brq.notifyWorker()
 		} else {
@@ -157,7 +165,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context, priority int, kmd K
 			if err == context.Canceled {
 				// We need to delete the request pointer, but we'll still let the
 				// existing request be processed by a worker.
-				delete(brq.ptrs, br.blockPtr)
+				delete(brq.ptrs, bpLookup)
 				continue
 			}
 		}
@@ -194,7 +202,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 	brq.mtx.Lock()
 	// This might have already been removed if the context has been canceled.
 	// That's okay, because this will then be a no-op.
-	delete(brq.ptrs, retrieval.blockPtr)
+	bpLookup := blockPtrLookup{retrieval.blockPtr, reflect.TypeOf(block)}
+	delete(brq.ptrs, bpLookup)
 	brq.mtx.Unlock()
 	retrieval.cancelFunc()
 
