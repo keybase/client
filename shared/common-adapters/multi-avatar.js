@@ -6,7 +6,7 @@ import React from 'react'
 
 import type {Props as AvatarProps, AvatarSize} from './avatar'
 
-type Props = {
+export type Props = {
   avatarProps: Array<AvatarProps>,
   singleSize: AvatarSize,
   multiSize: AvatarSize,
@@ -50,6 +50,3 @@ const rightAvatar = {
 }
 
 export default MultiAvatar
-export type {
-  Props,
-}
