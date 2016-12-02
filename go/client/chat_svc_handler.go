@@ -575,7 +575,37 @@ func (c *chatServiceHandler) SetStatusV1(ctx context.Context, opts setStatusOpti
 }
 
 func (c *chatServiceHandler) MarkV1(ctx context.Context, opts markOptionsV1) Reply {
-	return Reply{}
+	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	arg := chat1.MarkAsReadLocalArg{
+		ConversationID: convID,
+		MsgID:          opts.MessageID,
+	}
+
+	res, err := client.MarkAsReadLocal(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	allLimits := rlimits
+	if res.RateLimit != nil {
+		allLimits = append(allLimits, *res.RateLimit)
+	}
+
+	cres := EmptyRes{
+		RateLimits: RateLimits{
+			c.aggRateLimits(allLimits),
+		},
+	}
+	return Reply{Result: cres}
 }
 
 type sendArgV1 struct {
