@@ -2,7 +2,7 @@
 const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const baseConfig = require('./webpack.config.base')
-const config = Object.assign({}, baseConfig)
+const config: any = Object.assign({}, baseConfig)
 
 const defines = {
   '__DEV__': true,
@@ -19,6 +19,8 @@ config.plugins.push(
   new webpack.optimize.OccurenceOrderPlugin(),
   new webpack.DefinePlugin(defines)
 )
+
+config.output.publicPath = '../dist/'
 
 config.target = webpackTargetElectronRenderer(config)
 module.exports = config
