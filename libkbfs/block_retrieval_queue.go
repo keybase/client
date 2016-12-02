@@ -205,7 +205,7 @@ func (brq *blockRetrievalQueue) FinalizeRequest(retrieval *blockRetrieval, block
 	bpLookup := blockPtrLookup{retrieval.blockPtr, reflect.TypeOf(block)}
 	delete(brq.ptrs, bpLookup)
 	brq.mtx.Unlock()
-	retrieval.cancelFunc()
+	defer retrieval.cancelFunc()
 
 	// This is a symbolic lock, since there shouldn't be any other goroutines
 	// accessing requests at this point. But requests had contentious access
