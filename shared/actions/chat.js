@@ -2,9 +2,9 @@
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
-import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType} from '../constants/types/flow-types-chat'
+import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType, CommonConversationStatus} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
-import {apiserverGetRpcPromise} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {call, put, select} from 'redux-saga/effects'
 import {searchTab, chatTab} from '../constants/tabs'
@@ -178,6 +178,7 @@ function * _postMessage (action: PostMessage): SagaGenerator<any, any> {
   const sent = yield call(localPostLocalNonblockRpcPromise, {
     param: {
       conversationID: keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
       msg: {
         clientHeader,
         messageBody: {
@@ -298,8 +299,12 @@ function * _setupNewChatHandler (): SagaGenerator<any, any> {
 const followingSelector = (state: TypedState) => state.config.following
 
 function * _loadInbox (): SagaGenerator<any, any> {
-  // $ForceType
-  const inbox: GetInboxAndUnboxLocalRes = yield call(localGetInboxAndUnboxLocalRpcPromise, {params: {}})
+  const inbox: GetInboxAndUnboxLocalRes = ((yield call(localGetInboxAndUnboxLocalRpcPromise, {param: {
+    query: {
+      status: Object.keys(CommonConversationStatus).filter(k => !['ignored', 'blocked'].includes(k)).map(k => CommonConversationStatus[k]),
+    },
+    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+  }})): any)
   const author = yield select(usernameSelector)
 
   const following = yield select(followingSelector)
@@ -356,6 +361,7 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
       next,
       num: Constants.maxMessagesToLoadAtATime,
     },
+    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
   }})
 
   const yourName = yield select(usernameSelector)
@@ -465,6 +471,7 @@ function * _startConversation (action: StartConversation): SagaGenerator<any, an
       tlfName: action.payload.users.join(','),
       topicType: CommonTopicType.chat,
       tlfVisibility: CommonTLFVisibility.private,
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
     }})
   if (result) {
     const conversationIDKey = conversationIDToKey(result.conv.info.id)
