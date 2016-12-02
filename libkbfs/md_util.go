@@ -419,10 +419,6 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 		}
 		return block, false, nil
 	}
-	goGetter := func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
-		p path) (*FileBlock, error) {
-		return getFileBlockForMD(ctx, bcache, bops, ptr, tlfID, kmd)
-	}
 	cacher := func(ptr BlockPointer, block Block) error {
 		return nil
 	}
@@ -430,8 +426,7 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 	// just pass in nil.  Also, reading doesn't depend on the UID, so
 	// it's ok to be empty.
 	var uid keybase1.UID
-	fd := newFileData(file, uid, nil, nil, rmdWithKeys, getter, goGetter,
-		cacher, log)
+	fd := newFileData(file, uid, nil, nil, rmdWithKeys, getter, cacher, log)
 
 	buf, err := fd.getBytes(ctx, 0, -1)
 	if err != nil {

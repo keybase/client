@@ -1774,11 +1774,6 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 		}
 		return fblock, true, nil
 	}
-	goGetter := func(ctx context.Context, kmd KeyMetadata, ptr BlockPointer,
-		p path) (*FileBlock, error) {
-		block, _, err := getter(ctx, kmd, ptr, p, blockRead)
-		return block, err
-	}
 	cacher := func(ptr BlockPointer, block Block) error {
 		return dirtyBcache.Put(fbo.id(), ptr, fbo.branch(), block)
 	}
@@ -1790,8 +1785,7 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 
 	df := newDirtyFile(file, dirtyBcache)
 	fd := newFileData(file, uid, fbo.config.Crypto(),
-		fbo.config.BlockSplitter(), md.ReadOnly(),
-		getter, goGetter, cacher, fbo.log)
+		fbo.config.BlockSplitter(), md.ReadOnly(), getter, cacher, fbo.log)
 
 	// Write all the data.
 	_, _, _, _, _, err = fd.write(ctx, buf, 0, block, DirEntry{}, df)

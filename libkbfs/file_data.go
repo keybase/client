@@ -17,15 +17,10 @@ import (
 
 // fileBlockGetter is a function that gets a block suitable for
 // reading or writing, and also returns whether the block was already
-// dirty.  It is suitable for calls from the same goroutine as the
-// caller of fileData functions.
+// dirty.  It may be called from new goroutines, and must handle any
+// required locks accordingly.
 type fileBlockGetter func(context.Context, KeyMetadata, BlockPointer,
 	path, blockReqType) (fblock *FileBlock, wasDirty bool, err error)
-
-// fileBlockGoGetter is a function that gets a block for reading, and
-// is called from goroutines spawned by fileData.
-type fileBlockGoGetter func(context.Context, KeyMetadata, BlockPointer,
-	path) (fblock *FileBlock, err error)
 
 // dirtyBlockCacher writes dirty blocks to a cache.
 type dirtyBlockCacher func(ptr BlockPointer, block Block) error
@@ -39,34 +34,23 @@ type fileData struct {
 	crypto cryptoPure
 	kmd    KeyMetadata
 	bsplit BlockSplitter
-
-	// getter is used when fetching blocks within the same goroutine
-	// as the caller of the fileData function.
 	getter fileBlockGetter
-
-	// goGetter is used when fetching blocks from goroutines created
-	// by fileData.  It may need different locking properties from
-	// `getter`.  It will only be used for read requests.
-	goGetter fileBlockGoGetter
-
 	cacher dirtyBlockCacher
 	log    logger.Logger
 }
 
 func newFileData(file path, uid keybase1.UID, crypto cryptoPure,
 	bsplit BlockSplitter, kmd KeyMetadata, getter fileBlockGetter,
-	goGetter fileBlockGoGetter, cacher dirtyBlockCacher,
-	log logger.Logger) *fileData {
+	cacher dirtyBlockCacher, log logger.Logger) *fileData {
 	return &fileData{
-		file:     file,
-		uid:      uid,
-		crypto:   crypto,
-		bsplit:   bsplit,
-		kmd:      kmd,
-		getter:   getter,
-		goGetter: goGetter,
-		cacher:   cacher,
-		log:      log,
+		file:   file,
+		uid:    uid,
+		crypto: crypto,
+		bsplit: bsplit,
+		kmd:    kmd,
+		getter: getter,
+		cacher: cacher,
+		log:    log,
 	}
 }
 
@@ -192,7 +176,8 @@ func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
 		respCh := make(chan resp, 1)
 		respChans = append(respChans, respCh)
 		eg.Go(func() error {
-			block, err := fd.goGetter(groupCtx, fd.kmd, ptr, fd.file)
+			block, _, err := fd.getter(
+				groupCtx, fd.kmd, ptr, fd.file, blockReadParallel)
 			if err != nil {
 				return err
 			}
@@ -203,8 +188,7 @@ func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
 				return err
 			}
 
-			// Append self to the front of every path and add `block` to
-			// the blocks map.
+			// Append self to the front of every path.
 			var r resp
 			for _, p := range pfr {
 				newPath := append([]parentBlockAndChildIndex{{
