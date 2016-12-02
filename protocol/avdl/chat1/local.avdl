@@ -372,4 +372,6 @@ protocol local {
   @lint("ignore")
   void RetryPost(OutboxID outboxID);
 
+  MarkAsReadRes markAsReadLocal(ConversationID conversationID, MessageID msgID);
+
 }

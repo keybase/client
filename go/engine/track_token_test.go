@@ -436,14 +436,15 @@ func TestTrackFailTempRecover(t *testing.T) {
 	// Advance the clock to make sure local temp track goes away
 	fakeClock.Advance(tc.G.Env.GetLocalTrackMaxAge() + time.Minute)
 
-	if _, e2 := eng.i2eng.getTrackChainLink(true); e2 == nil {
-		t.Fatalf("Expected no temporary LocalTrackChainLinkFor %s", username)
+	if err := eng.i2eng.createIdentifyState(); err != nil {
+		t.Fatal(err)
 	}
-
-	if _, e2 := eng.i2eng.getTrackChainLink(false); e2 != nil {
+	if eng.i2eng.state.TrackLookup() == nil {
 		t.Fatalf("Expected permanent LocalTrackChainLinkFor %s", username)
 	}
-
+	if eng.i2eng.state.TmpTrackLookup() != nil {
+		t.Fatalf("Expected no temporary LocalTrackChainLinkFor %s", username)
+	}
 	assertTracking(tc, username)
 }
 

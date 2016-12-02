@@ -123,9 +123,12 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 	}
 
 	if err == nil {
-		// Remove these after desktop notification change complete:
-		e.G().NotifyRouter.HandleUserChanged(e.arg.Me.GetUID())
-		e.G().NotifyRouter.HandleUserChanged(e.them.GetUID())
+		// Remove this after desktop notification change complete:
+		e.G().UserChanged(e.them.GetUID())
+
+		// Remove these after desktop notification change complete, but
+		// add in: e.G().BustLocalUserCache(e.arg.Me.GetUID())
+		e.G().UserChanged(e.arg.Me.GetUID())
 
 		// Keep these:
 		e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetName())

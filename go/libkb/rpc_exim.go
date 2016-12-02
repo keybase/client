@@ -949,8 +949,40 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 
 func (u *User) ExportToUserPlusAllKeys(idTime keybase1.Time) keybase1.UserPlusAllKeys {
 	return keybase1.UserPlusAllKeys{
-		Base:    u.ExportToUserPlusKeys(idTime),
-		PGPKeys: u.GetComputedKeyFamily().ExportAllPGPKeys(),
+		Base:         u.ExportToUserPlusKeys(idTime),
+		PGPKeys:      u.GetComputedKeyFamily().ExportAllPGPKeys(),
+		RemoteTracks: u.ExportRemoteTracks(),
+	}
+}
+
+type remoteTrackSorter []keybase1.RemoteTrack
+
+func (s remoteTrackSorter) Len() int           { return len(s) }
+func (s remoteTrackSorter) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s remoteTrackSorter) Less(i, j int) bool { return s[i].Username < s[j].Username }
+
+func (u *User) ExportRemoteTracks() []keybase1.RemoteTrack {
+	var ret []keybase1.RemoteTrack
+	if u.IDTable() == nil {
+		return ret
+	}
+	trackList := u.IDTable().GetTrackList()
+	for _, track := range trackList {
+		ret = append(ret, track.Export())
+	}
+	sort.Sort(remoteTrackSorter(ret))
+	return ret
+}
+
+func (i LinkID) Export() keybase1.LinkID {
+	return keybase1.LinkID(i.String())
+}
+
+func (t TrackChainLink) Export() keybase1.RemoteTrack {
+	return keybase1.RemoteTrack{
+		Uid:      t.whomUID,
+		Username: strings.ToLower(t.whomUsername),
+		LinkID:   t.id.Export(),
 	}
 }
 
