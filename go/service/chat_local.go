@@ -785,7 +785,7 @@ func (h *chatLocalHandler) downloadAttachmentLocal(ctx context.Context, arg down
 		return chat1.DownloadAttachmentLocalRes{}, err
 	}
 
-	attachment, limits, err := h.attachmentMessage(ctx, arg.ConversationID, arg.MessageID)
+	attachment, limits, err := h.attachmentMessage(ctx, arg.ConversationID, arg.MessageID, arg.IdentifyBehavior)
 
 	obj := attachment.Object
 	if arg.Preview {
@@ -906,8 +906,8 @@ func (h *chatLocalHandler) uploadAsset(ctx context.Context, sessionID int, param
 	return h.store.UploadAsset(ctx, &task)
 }
 
-func (h *chatLocalHandler) assetsForMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID) ([]chat1.Asset, error) {
-	attachment, _, err := h.attachmentMessage(ctx, conversationID, msgID)
+func (h *chatLocalHandler) assetsForMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID, idBehavior keybase1.TLFIdentifyBehavior) ([]chat1.Asset, error) {
+	attachment, _, err := h.attachmentMessage(ctx, conversationID, msgID, idBehavior)
 	if err != nil {
 		return nil, err
 	}
@@ -920,11 +920,11 @@ func (h *chatLocalHandler) assetsForMessage(ctx context.Context, conversationID 
 	return assets, nil
 }
 
-func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID) (*chat1.MessageAttachment, []chat1.RateLimit, error) {
+func (h *chatLocalHandler) attachmentMessage(ctx context.Context, conversationID chat1.ConversationID, msgID chat1.MessageID, idBehavior keybase1.TLFIdentifyBehavior) (*chat1.MessageAttachment, []chat1.RateLimit, error) {
 	arg := chat1.GetMessagesLocalArg{
 		ConversationID:   conversationID,
 		MessageIDs:       []chat1.MessageID{msgID},
-		IdentifyBehavior: arg.IdentifyBehavior,
+		IdentifyBehavior: idBehavior,
 	}
 	msgs, err := h.GetMessagesLocal(ctx, arg)
 	if err != nil {
@@ -962,7 +962,7 @@ func (h *chatLocalHandler) pendingAssetDeletes(ctx context.Context, arg chat1.Po
 		// check to see if deleting an attachment
 		md := arg.Msg.MessageBody.Delete()
 		for _, msgID := range md.MessageIDs {
-			assets, err := h.assetsForMessage(ctx, arg.ConversationID, msgID)
+			assets, err := h.assetsForMessage(ctx, arg.ConversationID, msgID, arg.IdentifyBehavior)
 			if err != nil {
 				h.G().Log.Debug("error getting assets for message: %s", err)
 				// continue despite error?  Or return error and let user try again.
