@@ -109,25 +109,42 @@ func SafeWriteToFile(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
 	return err
 }
 
-func RemoteSettingsRepairman(g *GlobalContext) {
+func copyFiles(g *GlobalContext, ext string, oldPathname string, newPathname string) error {
+	return nil
+}
+
+func RemoteSettingsRepairman(g *GlobalContext) error {
+	var retErr error
 	w := Win32{Base{"keybase",
 		func() string { return g.Env.getHomeFromCmdOrConfig() },
 		func() RunMode { return g.Env.GetRunMode() }}}
 
-	currentPathname := w.Home(false)
-	kbDir := filepath.Base(currentPathname)
+	currentHome := w.Home(false)
+	kbDir := filepath.Base(currentHome)
+	currentConfig := g.Env.GetConfigFilename()
 	oldDir, err := AppDataDir()
 	if err != nil {
-		return
+		return err
 	}
-	oldPathname := filepath.Join(oldDir, kbDir)
-	if oldExists, _ := FileExists(oldPathname); oldExists {
-		if currentExists, _ := FileExists(currentPathname); !currentExists {
-			g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldPathname, currentPathname)
-			err = os.Rename(oldPathname, currentPathname)
-			if err != nil {
-				g.Log.Error("RemoteSettingsRepairman error - %s", err)
+	_, configName := filepath.Split(currentConfig)
+	oldHome := filepath.Join(oldDir, kbDir)
+	oldConfig := filepath.Join(oldHome, configName)
+	if oldExists, _ := FileExists(oldConfig); oldExists {
+		if currentExists, _ := FileExists(currentConfig); !currentExists {
+			g.Log.Info("RemoteSettingsRepairman moving from %s to %s", oldHome, currentHome)
+			files, _ := filepath.Glob(filepath.Join(oldHome, "*"))
+			for _, oldPathName := range files {
+				_, name := filepath.Split(oldPathName)
+				newPathName := filepath.Join(currentHome, name)
+				if err := os.Rename(oldPathName, newPathName); err != nil {
+					g.Log.Error("RemoteSettingsRepairman error moving %s to %s - %s", oldPathName, newPathName, err)
+					retErr = err // record the last error and keep going
+				}
 			}
 		}
 	}
+	if retErr == nil {
+		retErr = os.Remove(oldHome)
+	}
+	return retErr
 }
