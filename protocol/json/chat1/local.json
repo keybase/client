@@ -251,8 +251,7 @@
         },
         {
           "type": "MessagePlaintext",
-          "name": "Msg",
-          "lint": "ignore"
+          "name": "msg"
         }
       ]
     },
@@ -499,18 +498,15 @@
       "fields": [
         {
           "type": "int",
-          "name": "NumRead",
-          "lint": "ignore"
+          "name": "numRead"
         },
         {
           "type": "int",
-          "name": "AtLeast",
-          "lint": "ignore"
+          "name": "atLeast"
         },
         {
           "type": "int",
-          "name": "AtMost",
-          "lint": "ignore"
+          "name": "atMost"
         }
       ]
     },
@@ -961,16 +957,14 @@
             "type": "array",
             "items": "MessageType"
           },
-          "name": "MessageTypes",
-          "lint": "ignore"
+          "name": "messageTypes"
         },
         {
           "type": [
             null,
             "string"
           ],
-          "name": "Since",
-          "lint": "ignore"
+          "name": "since"
         },
         {
           "type": "UnreadFirstNumLimit",
@@ -1194,7 +1188,7 @@
       ],
       "response": "PostLocalNonblockRes"
     },
-    "SetConversationStatusLocal": {
+    "setConversationStatusLocal": {
       "request": [
         {
           "name": "conversationID",
@@ -1209,8 +1203,7 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "SetConversationStatusLocalRes",
-      "lint": "ignore"
+      "response": "SetConversationStatusLocalRes"
     },
     "newConversationLocal": {
       "request": [
@@ -1258,7 +1251,7 @@
       ],
       "response": "GetConversationForCLILocalRes"
     },
-    "GetMessagesLocal": {
+    "getMessagesLocal": {
       "request": [
         {
           "name": "conversationID",
@@ -1276,8 +1269,7 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "GetMessagesLocalRes",
-      "lint": "ignore"
+      "response": "GetMessagesLocalRes"
     },
     "postAttachmentLocal": {
       "request": [
@@ -1359,7 +1351,7 @@
       ],
       "response": "PostLocalRes"
     },
-    "DownloadAttachmentLocal": {
+    "downloadAttachmentLocal": {
       "request": [
         {
           "name": "sessionID",
@@ -1386,10 +1378,9 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "DownloadAttachmentLocalRes",
-      "lint": "ignore"
+      "response": "DownloadAttachmentLocalRes"
     },
-    "DownloadFileAttachmentLocal": {
+    "downloadFileAttachmentLocal": {
       "request": [
         {
           "name": "sessionID",
@@ -1416,28 +1407,25 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "DownloadAttachmentLocalRes",
-      "lint": "ignore"
+      "response": "DownloadAttachmentLocalRes"
     },
-    "CancelPost": {
+    "cancelPost": {
       "request": [
         {
           "name": "outboxID",
           "type": "OutboxID"
         }
       ],
-      "response": null,
-      "lint": "ignore"
+      "response": null
     },
-    "RetryPost": {
+    "retryPost": {
       "request": [
         {
           "name": "outboxID",
           "type": "OutboxID"
         }
       ],
-      "response": null,
-      "lint": "ignore"
+      "response": null
     },
     "markAsReadLocal": {
       "request": [

@@ -8,8 +8,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "Action",
-          "lint": "ignore"
+          "name": "action"
         }
       ]
     },
@@ -19,8 +18,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "Action",
-          "lint": "ignore"
+          "name": "action"
         },
         {
           "type": "ConversationID",
@@ -45,8 +43,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "Action",
-          "lint": "ignore"
+          "name": "action"
         },
         {
           "type": "ConversationID",
@@ -75,8 +72,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "Action",
-          "lint": "ignore"
+          "name": "action"
         },
         {
           "type": "ConversationID",
@@ -105,8 +101,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "Action",
-          "lint": "ignore"
+          "name": "action"
         },
         {
           "type": "ConversationID",
@@ -139,8 +134,7 @@
         },
         {
           "type": "int",
-          "name": "UnreadMessages",
-          "lint": "ignore"
+          "name": "unreadMessages"
         }
       ]
     }

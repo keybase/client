@@ -103,7 +103,7 @@ type NewConversationRemoteArg struct {
 
 type NewConversationRemote2Arg struct {
 	IdTriple   ConversationIDTriple `codec:"idTriple" json:"idTriple"`
-	TLFMessage MessageBoxed         `codec:"TLFMessage" json:"TLFMessage"`
+	TlfMessage MessageBoxed         `codec:"tlfMessage" json:"tlfMessage"`
 }
 
 type GetMessagesRemoteArg struct {
@@ -269,7 +269,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"SetConversationStatus": {
+			"setConversationStatus": {
 				MakeArg: func() interface{} {
 					ret := make([]SetConversationStatusArg, 1)
 					return &ret
@@ -301,7 +301,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"GetUnreadUpdateFull": {
+			"getUnreadUpdateFull": {
 				MakeArg: func() interface{} {
 					ret := make([]GetUnreadUpdateFullArg, 1)
 					return &ret
@@ -394,7 +394,7 @@ func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (res 
 }
 
 func (c RemoteClient) SetConversationStatus(ctx context.Context, __arg SetConversationStatusArg) (res SetConversationStatusRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.remote.SetConversationStatus", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.remote.setConversationStatus", []interface{}{__arg}, &res)
 	return
 }
 
@@ -406,7 +406,7 @@ func (c RemoteClient) TlfFinalize(ctx context.Context, tlfID TLFID) (err error) 
 
 func (c RemoteClient) GetUnreadUpdateFull(ctx context.Context, inboxVers InboxVers) (res UnreadUpdateFull, err error) {
 	__arg := GetUnreadUpdateFullArg{InboxVers: inboxVers}
-	err = c.Cli.Call(ctx, "chat.1.remote.GetUnreadUpdateFull", []interface{}{__arg}, &res)
+	err = c.Cli.Call(ctx, "chat.1.remote.getUnreadUpdateFull", []interface{}{__arg}, &res)
 	return
 }
 
