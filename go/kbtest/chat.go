@@ -341,7 +341,7 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 
 	res.ConvID = arg.IdTriple.ToConversationID([2]byte{0, 0})
 
-	first := m.insertMsgAndSort(res.ConvID, arg.TLFMessage)
+	first := m.insertMsgAndSort(res.ConvID, arg.TlfMessage)
 	m.world.conversations = append(m.world.conversations, &chat1.Conversation{
 		Metadata: chat1.ConversationMetadata{
 			IdTriple:       arg.IdTriple,

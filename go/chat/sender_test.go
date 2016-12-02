@@ -102,7 +102,7 @@ func TestNonblockChannel(t *testing.T) {
 			TopicType: 0,
 			TopicID:   []byte{0},
 		},
-		TLFMessage: chat1.MessageBoxed{
+		TlfMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
 				TlfName:   u.Username,
 				TlfPublic: false,
@@ -169,7 +169,7 @@ func TestNonblockTimer(t *testing.T) {
 			TopicType: 0,
 			TopicID:   []byte{0},
 		},
-		TLFMessage: chat1.MessageBoxed{
+		TlfMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
 				TlfName:     u.Username,
 				TlfPublic:   false,
@@ -300,7 +300,7 @@ func TestFailing(t *testing.T) {
 			TopicType: 0,
 			TopicID:   []byte{0},
 		},
-		TLFMessage: chat1.MessageBoxed{
+		TlfMessage: chat1.MessageBoxed{
 			ClientHeader: chat1.MessageClientHeader{
 				TlfName:   u.Username,
 				TlfPublic: false,

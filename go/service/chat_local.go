@@ -209,7 +209,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, arg chat1.N
 		var ncrres chat1.NewConversationRemoteRes
 		ncrres, reserr = h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,
-			TLFMessage: *firstMessageBoxed,
+			TlfMessage: *firstMessageBoxed,
 		})
 		if ncrres.RateLimit != nil {
 			res.RateLimits = append(res.RateLimits, *ncrres.RateLimit)
