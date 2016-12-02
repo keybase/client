@@ -30,6 +30,9 @@
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
       <Custom Action="StopUpdater" Before="InstallValidate"/>
+      <!-- These roaming actions are temporary, while we switch from appdata to localappdata. -->
+      <Custom Action="StopUpdaterRoaming" Before="InstallValidate"/>
+      <Custom Action="StopMainAppRoaming" Before="StopGUI"/>
       <Custom Action="StopMainApp" Before="StopGUI"/>
       <Custom Action="StopGUI" Before="InstallValidate"/>
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
@@ -61,8 +64,12 @@
       </Directory>
       <Directory Id="StartupFolder" Name="Startup" />
       <Directory Id="SystemFolder" Name="System" />
+      <Directory Id="AppDataFolder">
+        <Directory Id="ROAMINGINSTALLFOLDER" Name="Keybase">
+        </Directory>
+      </Directory>
     </Directory>
-	</Fragment>
+  </Fragment>
   
 	<Fragment>
 		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
@@ -214,6 +221,20 @@
     <CustomAction Id="StopUpdater"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopMainAppRoaming"
+              Directory="ROAMINGINSTALLFOLDER"
+              ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait &quot;[ROAMINGINSTALLFOLDER]keybase.exe&quot; ctl stop --kill-kbfs"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopUpdaterRoaming"
+              Directory="ROAMINGINSTALLFOLDER"
+              ExeCommand="[ROAMINGINSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
