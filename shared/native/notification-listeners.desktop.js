@@ -3,6 +3,7 @@ import {remote} from 'electron'
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
 import {kbfsNotification} from '../util/kbfs-notifications'
+import {updateBadge} from '../constants/chat'
 import {pgpKeyInSecretStoreFile} from '../constants/pgp'
 
 import type {Dispatch} from '../constants/types/flux'
@@ -40,6 +41,14 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     },
     'keybase.1.NotifyFS.FSActivity': ({notification}) => {
       kbfsNotification(notification, notify, getState)
+    },
+    'keybase.1.NotifyBadges.badgeState': ({badgeState}) => {
+      dispatch({
+        type: updateBadge,
+        payload: {
+          newConversations: badgeState.unreadChatConversations,
+        },
+      })
     },
     'keybase.1.NotifyService.shutdown': () => {
       // console.log('Quitting due to service shutdown')

@@ -162,6 +162,7 @@ export type PendingMessageWasSent = NoErrorTypedAction<'chat:pendingMessageWasSe
 export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
 export type StartConversation = NoErrorTypedAction<'chat:startConversation', {users: Array<string>}>
 export type OpenFolder = NoErrorTypedAction<'chat:openFolder', void>
+export type UpdateBadge = NoErrorTypedAction<'chat:updateBadge', {newConversations: number}>
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {[key: string]: MetaData}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message}>

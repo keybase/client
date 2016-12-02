@@ -2,7 +2,7 @@
 import * as Constants from '../constants/chat'
 import HiddenString from '../util/hidden-string'
 import engine from '../engine'
-import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType, CommonConversationStatus} from '../constants/types/flow-types-chat'
+import {CommonMessageType, CommonTLFVisibility, LocalMessageUnboxedState, NotifyChatChatActivityType, localGetInboxAndUnboxLocalRpcPromise, localGetThreadLocalRpcPromise, localMarkAsReadLocalRpcPromise, localPostLocalNonblockRpcPromise, localNewConversationLocalRpcPromise, CommonTopicType, CommonConversationStatus} from '../constants/types/flow-types-chat'
 import {List, Map} from 'immutable'
 import {apiserverGetRpcPromise, TlfKeysTLFIdentifyBehavior} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
@@ -13,7 +13,6 @@ import {publicFolderWithUsers, privateFolderWithUsers} from '../constants/config
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {reset as searchReset, addUsersToGroup as searchAddUsersToGroup} from './search'
 import {switchTo} from './route-tree'
-import {throttle} from 'redux-saga'
 import {usernameSelector} from '../constants/selectors'
 
 import type {GetInboxAndUnboxLocalRes, IncomingMessage as IncomingMessageRPCType, MessageUnboxed} from '../constants/types/flow-types-chat'
@@ -37,6 +36,7 @@ import type {
   SetupNewChatHandler,
   StartConversation,
   UnhandledMessage,
+  UpdateBadge,
   UpdateMetadata,
 } from '../constants/chat'
 
@@ -239,6 +239,20 @@ function * _incomingMessage (action: IncomingMessage): SagaGenerator<any, any> {
         const conversationIDKey = conversationIDToKey(incomingMessage.convID)
         const message = _unboxedToMessage(messageUnboxed, 0, yourName, conversationIDKey)
 
+        // Is this message for the currently selected conversation? If so, mark
+        // it as read ASAP to avoid badging it -- we don't need to badge, the
+        // user's looking at it already.
+        const selectedSelector = (state: TypedState) => state.chat.get('selectedConversation')
+        const selectedConversationIDKey = yield select(selectedSelector)
+        if (conversationIDKey === selectedConversationIDKey) {
+          yield call(localMarkAsReadLocalRpcPromise, {
+            param: {
+              conversationID: incomingMessage.convID,
+              msgID: message.messageID,
+            },
+          })
+        }
+
         // TODO short-term if we haven't seen this in the conversation list we'll refresh the inbox. Instead do an integration w/ gregor
         const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(conversationIDKey)
         const conversationState = yield select(conversationStateSelector)
@@ -390,13 +404,10 @@ function * _loadMoreMessages (): SagaGenerator<any, any> {
   })
 }
 
-// Update the badging of the app. This is a short term impl so we can get this info. It'll come from the daemon later
-function * _updateBadge (): SagaGenerator<any, any> {
-  const inboxSelector = (state: TypedState) => state.chat.get('inbox')
-  const inbox: List<InboxState> = ((yield select(inboxSelector)): any)
-
-  const total = inbox.reduce((total, i) => total + i.get('unreadCount'), 0)
-  yield put(badgeApp('chatInbox', total > 0, total))
+// Update the badging of the app.
+function * _updateBadge (action: UpdateBadge): SagaGenerator<any, any> {
+  const {newConversations} = action.payload
+  yield put(badgeApp('chatInbox', newConversations > 0, newConversations))
 }
 
 function _threadToPagination (thread) {
@@ -552,7 +563,6 @@ function * _updateMetadata (action: UpdateMetadata): SagaGenerator<any, any> {
 
 function * _selectConversation (action: SelectConversation): SagaGenerator<any, any> {
   yield put(loadMoreMessages())
-  yield put({type: Constants.updateBadge, payload: undefined})
 
   const inboxSelector = (state: TypedState) => {
     return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === action.payload.conversationIDKey)
@@ -561,6 +571,19 @@ function * _selectConversation (action: SelectConversation): SagaGenerator<any, 
   const inbox = yield select(inboxSelector)
   if (inbox) {
     yield put({type: Constants.updateMetadata, payload: {users: inbox.get('participants').filter(p => !p.you).map(p => p.username).toArray()}})
+    // If we're switching to a badged conversation, unbadge it.
+    const conversationStateSelector = (state: TypedState) => state.chat.get('conversationStates', Map()).get(action.payload.conversationIDKey)
+    const conversationState = yield select(conversationStateSelector)
+    if (conversationState && conversationState.messages !== null) {
+      const conversationID = keyToConversationID(action.payload.conversationIDKey)
+      const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
+      yield call(localMarkAsReadLocalRpcPromise, {
+        param: {
+          conversationID,
+          msgID,
+        },
+      })
+    }
   }
 }
 
@@ -577,7 +600,7 @@ function * chatSaga (): SagaGenerator<any, any> {
     safeTakeEvery(Constants.startConversation, _startConversation),
     safeTakeEvery(Constants.updateMetadata, _updateMetadata),
     safeTakeLatest(Constants.openFolder, _openFolder),
-    yield throttle(1000, Constants.updateBadge, _updateBadge),
+    safeTakeLatest(Constants.updateBadge, _updateBadge),
   ]
 }
 
