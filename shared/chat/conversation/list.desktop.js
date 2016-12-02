@@ -233,6 +233,7 @@ class ConversationList extends Component<void, Props, State> {
               rowCount={countWithLoading} >
               {({getRowHeight}) => (
                 <List
+                  style={{outline: 'none'}}
                   height={height}
                   ref={r => { this._list = r }}
                   width={width}

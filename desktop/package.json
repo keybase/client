@@ -41,7 +41,8 @@
   "dependencies": {
     "deep-diff": "0.3.4",
     "deep-equal": "1.0.1",
-    "electron": "1.4.8",
+    "emoji-datasource": "2.4.4",
+    "emoji-mart": "0.3.4",
     "framed-msgpack-rpc": "1.1.13",
     "getenv": "0.7.0",
     "immutable": "3.8.1",
@@ -82,8 +83,10 @@
     "babel-runtime": "6.18.0",
     "chai": "3.5.0",
     "chai-as-promised": "6.0.0",
+    "css-loader": "^0.26.0",
     "del": "2.2.2",
     "devtron": "1.4.0",
+    "electron": "1.4.8",
     "electron-download": "git://github.com/keybase/electron-download#5350b5a1bad8ba7bb8c7201abe59ae3a03c3d75d",
     "electron-packager": "8.3.0",
     "eslint": "3.11.1",
@@ -112,6 +115,7 @@
     "redux-devtools-log-monitor": "1.1.1",
     "redux-logger": "2.7.4",
     "source-map-support": "0.4.6",
+    "style-loader": "^0.13.1",
     "unused-files-webpack-plugin": "3.0.0",
     "webpack": "1.13.3",
     "webpack-dashboard": "0.2.0",
@@ -122,6 +126,5 @@
   },
   "optionalDependencies": {
     "fsevents": "1.0.15"
-  },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#82d4a42f5d85a56b43b4d6bb95a6a640940db88f"
+  }
 }

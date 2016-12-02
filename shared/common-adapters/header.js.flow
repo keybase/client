@@ -3,10 +3,11 @@ import {Component} from 'react'
 
 export type Props = {
   icon?: boolean,
-  title: string,
-  onClose: () => void,
+  title?: string,
+  onClose?: () => void,
   style?: Object,
   children?: ?Object,
+  windowDragging?: boolean,
   type: 'Default' | 'Strong'
 }
 

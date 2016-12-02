@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "buffer": "5.0.0",
+    "core-js": "1.2.7",
     "deep-diff": "0.3.4",
     "framed-msgpack-rpc": "1.1.13",
     "getenv": "0.7.0",
