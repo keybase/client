@@ -71,7 +71,7 @@ func (e *PaperKeySubmit) Run(ctx *Context) error {
 	e.G().NotifyRouter.HandlePaperKeyCached(me.GetUID(), e.pair.encKey.GetKID(), e.pair.sigKey.GetKID())
 
 	// XXX - this is temporary until KBFS handles the above notification
-	e.G().NotifyRouter.HandleUserChanged(me.GetUID())
+	e.G().UserChanged(me.GetUID())
 
 	return nil
 }

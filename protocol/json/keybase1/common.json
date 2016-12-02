@@ -73,6 +73,12 @@
     },
     {
       "type": "record",
+      "name": "LinkID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "BinaryKID",
       "fields": [],
       "typedef": "bytes"
@@ -367,6 +373,24 @@
     },
     {
       "type": "record",
+      "name": "RemoteTrack",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "LinkID",
+          "name": "linkID"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserPlusAllKeys",
       "fields": [
         {
@@ -379,6 +403,13 @@
             "items": "PublicKey"
           },
           "name": "pgpKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RemoteTrack"
+          },
+          "name": "remoteTracks"
         }
       ]
     },

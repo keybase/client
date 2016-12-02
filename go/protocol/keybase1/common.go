@@ -24,6 +24,7 @@ type UID string
 type DeviceID string
 type SigID string
 type KID string
+type LinkID string
 type BinaryKID []byte
 type TLFID string
 type Bytes32 [32]byte
@@ -176,9 +177,16 @@ type UserPlusKeys struct {
 	Uvv               UserVersionVector `codec:"uvv" json:"uvv"`
 }
 
+type RemoteTrack struct {
+	Username string `codec:"username" json:"username"`
+	Uid      UID    `codec:"uid" json:"uid"`
+	LinkID   LinkID `codec:"linkID" json:"linkID"`
+}
+
 type UserPlusAllKeys struct {
-	Base    UserPlusKeys `codec:"base" json:"base"`
-	PGPKeys []PublicKey  `codec:"pgpKeys" json:"pgpKeys"`
+	Base         UserPlusKeys  `codec:"base" json:"base"`
+	PGPKeys      []PublicKey   `codec:"pgpKeys" json:"pgpKeys"`
+	RemoteTracks []RemoteTrack `codec:"remoteTracks" json:"remoteTracks"`
 }
 
 type MerkleTreeID int

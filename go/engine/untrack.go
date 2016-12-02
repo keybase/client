@@ -99,8 +99,8 @@ func (e *UntrackEngine) Run(ctx *Context) (err error) {
 		return
 	}
 
-	e.G().NotifyRouter.HandleUserChanged(e.arg.Me.GetUID())
-	e.G().NotifyRouter.HandleUserChanged(them.GetUID())
+	e.G().UserChanged(e.arg.Me.GetUID())
+	e.G().UserChanged(them.GetUID())
 
 	e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetName())
 	e.G().NotifyRouter.HandleTrackingChanged(them.GetUID(), them.GetName())

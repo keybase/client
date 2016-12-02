@@ -30,6 +30,10 @@ protocol Common {
   @typedef("string")
   record KID {}
 
+  // Chain link IDs
+  @typedef("string")
+  record LinkID {}
+
   // But sometimes we need binary kids...
   @typedef("bytes")
   record BinaryKID {}
@@ -144,9 +148,16 @@ protocol Common {
       UserVersionVector uvv;
   }
 
+  record RemoteTrack {
+      string username;
+      UID uid;
+      LinkID linkID;
+  }
+
   record UserPlusAllKeys {
       UserPlusKeys base;
       array<PublicKey> pgpKeys;
+      array<RemoteTrack> remoteTracks;
   }
 
   enum MerkleTreeID {

@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -779,6 +780,16 @@ func (u *UserPlusAllKeys) DeepCopy() *UserPlusAllKeys {
 	var ret UserPlusAllKeys
 	dec.Decode(&ret)
 	return &ret
+}
+
+func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
+	i := sort.Search(len(u.RemoteTracks), func(j int) bool {
+		return u.RemoteTracks[j].Username >= s
+	})
+	if i >= len(u.RemoteTracks) {
+		return nil
+	}
+	return &u.RemoteTracks[i]
 }
 
 func (u UserPlusAllKeys) GetUID() UID {

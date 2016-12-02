@@ -136,6 +136,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
 	g.CachedUserLoader = NewCachedUserLoader(g, CachedUserTimeout)
+
 	return g
 }
 
@@ -744,4 +745,17 @@ func (g *GlobalContext) UIDToUsername(uid keybase1.UID) (NormalizedUsername, err
 		return NormalizedUsername(""), err
 	}
 	return NewNormalizedUsername(leaf.username), nil
+}
+
+func (g *GlobalContext) BustLocalUserCache(u keybase1.UID) {
+	if g.CachedUserLoader != nil {
+		g.CachedUserLoader.Invalidate(u)
+	}
+}
+
+func (g *GlobalContext) UserChanged(u keybase1.UID) {
+	g.BustLocalUserCache(u)
+	if g.NotifyRouter != nil {
+		g.NotifyRouter.HandleUserChanged(u)
+	}
 }
