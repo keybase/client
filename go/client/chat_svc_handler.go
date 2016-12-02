@@ -93,13 +93,13 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		return c.errReply(err)
 	}
 
-	convID, rlimits, err := c.resolveAPIConvID(ctx, opts.ConversationID, opts.Channel)
+	conv, rlimits, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
 	if err != nil {
 		return c.errReply(err)
 	}
 
 	arg := chat1.GetThreadLocalArg{
-		ConversationID: convID,
+		ConversationID: conv.Info.Id,
 		Query: &chat1.GetThreadQuery{
 			MarkAsRead: !opts.Peek,
 		},
@@ -109,6 +109,8 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		return c.errReply(err)
 	}
 	rlimits = append(rlimits, threadView.RateLimits...)
+
+	readMsgID := conv.ReaderInfo.ReadMsgid
 
 	var thread Thread
 	for _, m := range threadView.Thread.Messages {
@@ -149,6 +151,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			SentAt:   mv.ServerHeader.Ctime.UnixSeconds(),
 			SentAtMs: mv.ServerHeader.Ctime.UnixMilliseconds(),
 			Prev:     prev,
+			Unread:   mv.ServerHeader.MessageID > readMsgID,
 		}
 		msg.Content = c.convertMsgBody(mv.MessageBody)
 
@@ -158,8 +161,6 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		thread.Messages = append(thread.Messages, Message{
 			Msg: &msg,
 		})
-		continue
-
 	}
 
 	// Avoid having null show up in the output JSON.
@@ -765,46 +766,57 @@ func (c *chatServiceHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []Rat
 // Prefers using ChatChannel but if it is blank (default-valued) then uses ConvIDStr.
 // Uses tlfclient and GetInboxAndUnboxLocal's ConversationsUnverified.
 func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, convIDStr string, channel ChatChannel) (chat1.ConversationID, []chat1.RateLimit, error) {
-	var convID chat1.ConversationID
+	conv, limits, err := c.findConversation(ctx, convIDStr, channel)
+	if err != nil {
+		return chat1.ConversationID{}, nil, err
+	}
+	return conv.Info.Id, limits, nil
+}
+
+// findConversation finds a conversation.
+// It prefers using ChatChannel but if it is blank (default-valued) then uses ConvIDStr.
+// Uses tlfclient and GetInboxAndUnboxLocal's ConversationsUnverified.
+func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr string, channel ChatChannel) (chat1.ConversationLocal, []chat1.RateLimit, error) {
+	var conv chat1.ConversationLocal
 	var rlimits []chat1.RateLimit
 
 	if (channel == ChatChannel{}) && len(convIDStr) == 0 {
-		return convID, rlimits, fmt.Errorf("missing conversation specificer")
+		return conv, rlimits, errors.New("missing conversation specificer")
 	}
 
+	var convID chat1.ConversationID
 	if channel == (ChatChannel{}) {
-		// Use ConvID as a fallback if channel is blank.
-		// Support for API usage of ConvIDs is scheduled for termination.
-		convID, err := chat1.MakeConvID(convIDStr)
+		var err error
+		convID, err = chat1.MakeConvID(convIDStr)
 		if err != nil {
-			return convID, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
+			return conv, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
 		}
 	}
 
 	client, err := GetChatLocalClient(c.G())
 	if err != nil {
-		return convID, rlimits, err
+		return conv, rlimits, err
 	}
-	query, err := c.getInboxLocalQuery(ctx, chat1.ConversationID{}, channel)
+	query, err := c.getInboxLocalQuery(ctx, convID, channel)
 	if err != nil {
-		return convID, rlimits, err
+		return conv, rlimits, err
 	}
 	gilres, err := client.GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 		Query: &query,
 	})
 	if err != nil {
-		return convID, rlimits, err
+		return conv, rlimits, err
 	}
 	rlimits = append(rlimits, gilres.RateLimits...)
 	existing := gilres.Conversations
 	if len(existing) > 1 {
-		return convID, rlimits, fmt.Errorf("multiple conversations matched %q", channel.Name)
+		return conv, rlimits, fmt.Errorf("multiple conversations matched %q", channel.Name)
 	}
 	if len(existing) == 0 {
-		return convID, rlimits, fmt.Errorf("no conversations matched %q", channel.Name)
+		return conv, rlimits, fmt.Errorf("no conversations matched %q", channel.Name)
 	}
-	convID = existing[0].Info.Id
-	return convID, rlimits, nil
+
+	return existing[0], rlimits, nil
 }
 
 func TopicTypeFromStrDefault(str string) (chat1.TopicType, error) {
@@ -847,6 +859,7 @@ type MsgSummary struct {
 	SentAtMs int64                          `json:"sent_at_ms"`
 	Content  MsgContent                     `json:"content"`
 	Prev     []chat1.MessagePreviousPointer `json:"prev"`
+	Unread   bool                           `json:"unread"`
 }
 
 // Message contains eiter a MsgSummary or an Error.  Used for JSON output.
