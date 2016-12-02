@@ -23,6 +23,6 @@ protocol account {
    */
   HasServerKeysRes hasServerKeys(int sessionID);
   record HasServerKeysRes {
-    bool hasServerKeys;
+    boolean hasServerKeys;
   }
 }

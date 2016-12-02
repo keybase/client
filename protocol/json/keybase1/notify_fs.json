@@ -16,7 +16,8 @@
         }
       ],
       "response": null,
-      "notify": ""
+      "notify": "",
+      "lint": "ignore"
     },
     "FSSyncActivity": {
       "request": [
@@ -26,7 +27,8 @@
         }
       ],
       "response": null,
-      "oneway": true
+      "oneway": true,
+      "lint": "ignore"
     },
     "FSEditListResponse": {
       "request": [
@@ -43,7 +45,8 @@
         }
       ],
       "response": null,
-      "oneway": true
+      "oneway": true,
+      "lint": "ignore"
     },
     "FSSyncStatusResponse": {
       "request": [
@@ -57,7 +60,8 @@
         }
       ],
       "response": null,
-      "oneway": true
+      "oneway": true,
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

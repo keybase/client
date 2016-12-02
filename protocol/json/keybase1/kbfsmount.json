@@ -5,14 +5,16 @@
   "messages": {
     "GetCurrentMountDir": {
       "request": [],
-      "response": "string"
+      "response": "string",
+      "lint": "ignore"
     },
     "GetAllAvailableMountDirs": {
       "request": [],
       "response": {
         "type": "array",
         "items": "string"
-      }
+      },
+      "lint": "ignore"
     },
     "SetCurrentMountDir": {
       "request": [
@@ -21,7 +23,8 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": null,
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

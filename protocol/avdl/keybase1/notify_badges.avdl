@@ -21,6 +21,7 @@ protocol NotifyBadges {
 
   record BadgeConversationInfo {
     ChatConversationID convID;
+    @lint("ignore")
     int UnreadMessages;
   }
 
