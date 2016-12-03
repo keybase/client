@@ -317,6 +317,7 @@ protocol local {
 
     UnreadFirstNumLimit limit;
 
+    @lint("ignore")
     ConversationID conversationId;
   }
   record GetConversationForCLILocalRes {

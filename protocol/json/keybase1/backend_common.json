@@ -19,7 +19,8 @@
           "type": "UID",
           "name": "chargedTo"
         }
-      ]
+      ],
+      "lint": "ignore"
     },
     {
       "type": "record",

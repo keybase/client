@@ -5,6 +5,7 @@ var fs = promise.promisifyAll(require('fs'))
 var path = require('path')
 var codeGenerators = require('./js-code-generators.js')
 var colors = require('colors')
+var camelcase = require('camelcase');
 
 var projects = {
   'chat1': {
@@ -386,12 +387,53 @@ function decapitalize (s) {
   return s.charAt(0).toLowerCase() + s.slice(1)
 }
 
-function isCapitalized (s) {
-  return decapitalize(s) != s
-}
+const shorthands = [
 
-function isNotCapitalized (s) {
-  return capitalize(s) != s
+  {re:  /Tty([A-Zs]|$)/g, into: 'TTY$1', re2: /^TTY/, into2: 'tty'},
+  {re:  /Tlf([A-Zs]|$)/g, into: 'TLF$1', re2: /^TLF/, into2: 'tlf'},
+  {re:  /Uid([A-Zs]|$)/g, into: 'UID$1', re2: /^UID/, into2: 'uid'},
+  {re:  /Kid([A-Zs]|$)/g, into: 'KID$1', re2: /^KID/, into2: 'kid'},
+  {re:  /Cli([A-Z]|$)/g,  into: 'CLI$1', re2: /^CLI/, into2: 'cli'},
+  {re:  /Api([A-Zs]|$)/g, into: 'API$1', re2: /^API/, into2: 'api'},
+  {re:  /Btc([A-Z]|$)/g,  into: 'BTC$1', re2: /^BTC/, into2: 'btc'},
+  {re:  /Pgp([A-Z]|$)/g,  into: 'PGP$1', re2: /^PGP/, into2: 'pgp'},
+  {re:  /Gpg([A-Z]|$)/g,  into: 'GPG$1', re2: /^GPG/, into2: 'gpg'},
+  {re:  /Uri([A-Zs]|$)/g, into: 'URI$1', re2: /^URI/, into2: 'uri'},
+  {re:  /Gui([A-Z]|$)/g,  into: 'GUI$1', re2: /^GUI/, into2: 'gui'},
+
+  {re:  /Kbfs([A-Z]|$)/g, into: 'KBFS$1', re2: /^KBFS/, into2: 'kbfs'},
+  {re:  /Json([A-Z]|$)/g, into: 'JSON$1', re2: /^JSON/, into2: 'json'},
+
+  {re:  /Ed25519([A-Z]|$)/g, into: 'ED25519$1', re2: /^ED25519/, into2: 'ed25519'},
+
+  {re:  /Id([A-Zs]|$)/g , into: 'ID$1' , re2: /^ID/,  into2: 'id' },
+  {re:  /Kv([A-Zs]|$)/g,  into: 'KV$1',  re2: /^KV/,  into2: 'kv' },
+  {re:  /Ui([A-Z]|$)/g,   into: 'UI$1',  re2: /^UI/,  into2: 'ui' }, // this has to be placed after the one for UID
+  {re:  /Fs([A-Z]|$)/g,   into: 'FS$1',  re2: /^FS/,  into2: 'fs' },
+  {re:  /Md([A-Z]|$)/g,   into: 'MD$1',  re2: /^MD/,  into2: 'md' },
+  {re:  /Ok([A-Z]|$)/g,   into: 'OK$1',  re2: /^OK/,  into2: 'ok' },
+]
+
+function camelcaseWithSpecialHandlings(s, shouldCapitalize) {
+  const capitalized = capitalize(camelcase(s))
+  let specialized = capitalized
+  for ( let shorthand of shorthands ) {
+    specialized = specialized.replace(shorthand.re, shorthand.into)
+  }
+  specialized = specialized.replace(/[Tt][Ll][Ff][Ii][Dd]([A-Zs]|$)/g, 'TLFID$1')
+
+  // since the handling FS would replace TLFs with TLFS
+  specialized = specialized.replace(/T[Ll]FS/g, 'TLFs')
+
+  if (shouldCapitalize) {
+    return specialized
+  }
+
+  for ( let shorthand of shorthands ) {
+    specialized = specialized.replace(shorthand.re2, shorthand.into2)
+  }
+
+  return decapitalize(specialized)
 }
 
 function lintTypedef (record, typedef) {
@@ -406,12 +448,14 @@ function lintTypedef (record, typedef) {
 
 function lintRecord (record) {
   lintTypedef(record, record.typedef)
-  if (isNotCapitalized(record.name)) {
-    lintError(`Record name should be capitalized: ${t.name}`, record.lint)
+  const rName = camelcaseWithSpecialHandlings(record.name, true)
+  if (rName !== record.name) {
+    lintError(`Record name ${record.name} should be ${rName}`, record.lint)
   }
   record.fields.forEach(f => {
-    if (isCapitalized(f.name)) {
-      lintError(`Record variable names should not be capitalized: ${record.name}.${f.name}`, f.lint)
+    const fName = camelcaseWithSpecialHandlings(f.name, false)
+    if (fName !== f.name) {
+      lintError(`Record variable name ${record.name}.${f.name} should be ${rName}.${fName}`, f.lint)
     }
     if (f.type === 'bool') {
       lintError(`Use boolean instead of bool: ${f.name}`)
@@ -420,13 +464,15 @@ function lintRecord (record) {
 }
 
 function lintMessage (name, message) {
-  if (isCapitalized(name)) {
-    lintError(`Method names should not be capitalized: ${name}`, message.lint)
+  const mName = camelcaseWithSpecialHandlings(name, false)
+  if (mName !== name) {
+    lintError(`Method name ${name} should be ${mName}`, message.lint)
   }
 
   message.request.forEach(f => {
-    if (isCapitalized(f.name)) {
-      lintError(`Method arg names should not be capitalized: ${f.name}`, message.lint)
+    const fName = camelcaseWithSpecialHandlings(f.name, false)
+    if (fName !== f.name) {
+      lintError(`Method arg name ${f.name} should be ${fName}`, message.lint)
     }
     if (f.type === 'bool') {
       lintError(`Use boolean instead of bool: ${f.name}`)
@@ -435,7 +481,8 @@ function lintMessage (name, message) {
 }
 
 function lintJSON(json) {
-  if (isNotCapitalized(json.protocol)) {
+  const pName = camelcaseWithSpecialHandlings(json.protocol, true)
+  if (pName !== json.protocol) {
     // Ignore protocol name lint errors by default
     // lintError(`Protocol names should be capitalized: ${json.protocol}`, 'ignore')
   }

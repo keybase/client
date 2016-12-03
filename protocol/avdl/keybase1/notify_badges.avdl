@@ -8,6 +8,7 @@ protocol NotifyBadges {
     // Total badge count for the app
     int total;
 
+    @lint("ignore")
     int newTlfs;
     int rekeysNeeded;
     int newFollowers;
