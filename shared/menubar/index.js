@@ -150,7 +150,7 @@ class Menubar extends Component<void, Props, void> {
 
   _openShell () {
     if (isWindows) {
-      let shellCmd = 'start "Keybase Shell" "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Keybase\\Keybase Shell.lnk"'
+      let shellCmd = 'start "Keybase Shell" "%LOCALAPPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Keybase\\Keybase Shell.lnk"'
       exec(shellCmd, (err) => {
         if (err) {
           console.log('Error starting Keybase Shell:', err)
