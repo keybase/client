@@ -56,6 +56,11 @@ type blockRetrieval struct {
 	insertionOrder uint64
 }
 
+// blockPtrLookup is used to uniquely identify block retrieval requests. The
+// reflect.Type is needed because sometimes a request is placed concurrently
+// for a specific block type and a generic block type. The requests will both
+// cause a retrieval, but branching on type allows us to avoid special casing
+// the code.
 type blockPtrLookup struct {
 	bp BlockPointer
 	t  reflect.Type

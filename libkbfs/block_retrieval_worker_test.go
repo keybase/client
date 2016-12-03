@@ -9,7 +9,6 @@ import (
 	"errors"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/stretchr/testify/require"
@@ -19,8 +18,9 @@ import (
 // blockReturner contains a block value to copy into requested blocks, and a
 // channel to synchronize on with the worker.
 type blockReturner struct {
-	block Block
-	ch    chan struct{}
+	block      Block
+	continueCh chan struct{}
+	startCh    chan struct{}
 }
 
 // fakeBlockGetter allows specifying and obtaining fake blocks.
@@ -41,15 +41,16 @@ func newFakeBlockGetter() *fakeBlockGetter {
 // setBlockToReturn sets the block that will be returned for a given
 // BlockPointer. Returns a writeable channel that getBlock will wait on, to
 // allow synchronization of tests.
-func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) chan<- struct{} {
+func (bg *fakeBlockGetter) setBlockToReturn(blockPtr BlockPointer, block Block) (startCh <-chan struct{}, continueCh chan<- struct{}) {
 	bg.mtx.Lock()
 	defer bg.mtx.Unlock()
-	ch := make(chan struct{})
+	sCh, cCh := make(chan struct{}), make(chan struct{})
 	bg.blockMap[blockPtr] = blockReturner{
-		block: block,
-		ch:    ch,
+		block:      block,
+		startCh:    sCh,
+		continueCh: cCh,
 	}
-	return ch
+	return sCh, cCh
 }
 
 // getBlock implements the interface for realBlockGetter.
@@ -61,20 +62,15 @@ func (bg *fakeBlockGetter) getBlock(ctx context.Context, kmd KeyMetadata, blockP
 		return errors.New("Block doesn't exist in fake block map")
 	}
 	// Wait until the caller tells us to continue
-	select {
-	case <-source.ch:
-		bytes, err := bg.codec.Encode(source.block)
-		if err != nil {
-			return err
+	for {
+		select {
+		case source.startCh <- struct{}{}:
+		case <-source.continueCh:
+			return kbfscodec.Update(bg.codec, block, source.block)
+		case <-ctx.Done():
+			return ctx.Err()
 		}
-		err = bg.codec.Decode(bytes, block)
-		if err != nil {
-			return err
-		}
-	case <-ctx.Done():
-		return ctx.Err()
 	}
-	return nil
 }
 
 func makeFakeFileBlock(t *testing.T) *FileBlock {
@@ -99,11 +95,11 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 
 	ptr1 := makeFakeBlockPointer(t)
 	block1 := makeFakeFileBlock(t)
-	ch1 := bg.setBlockToReturn(ptr1, block1)
+	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 
 	block := &FileBlock{}
 	ch := q.Request(context.Background(), 1, nil, ptr1, block)
-	ch1 <- struct{}{}
+	continueCh1 <- struct{}{}
 	err := <-ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
@@ -116,17 +112,16 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	defer q.Shutdown()
 
 	bg := newFakeBlockGetter()
-	w1 := newBlockRetrievalWorker(bg, q)
+	w1, w2 := newBlockRetrievalWorker(bg, q), newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w1)
-	defer w1.Shutdown()
-	w2 := newBlockRetrievalWorker(bg, q)
 	require.NotNil(t, w2)
+	defer w1.Shutdown()
 	defer w2.Shutdown()
 
 	ptr1, ptr2 := makeFakeBlockPointer(t), makeFakeBlockPointer(t)
 	block1, block2 := makeFakeFileBlock(t), makeFakeFileBlock(t)
-	ch1 := bg.setBlockToReturn(ptr1, block1)
-	ch2 := bg.setBlockToReturn(ptr2, block2)
+	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
+	_, continueCh2 := bg.setBlockToReturn(ptr2, block2)
 
 	t.Log("Make 2 requests for 2 different blocks")
 	block := &FileBlock{}
@@ -134,20 +129,20 @@ func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	req2Ch := q.Request(context.Background(), 1, nil, ptr2, block)
 
 	t.Log("Allow the second request to complete before the first")
-	ch2 <- struct{}{}
+	continueCh2 <- struct{}{}
 	err := <-req2Ch
 	require.NoError(t, err)
 	require.Equal(t, block2, block)
 
 	t.Log("Make another request for ptr2")
 	req2Ch = q.Request(context.Background(), 1, nil, ptr2, block)
-	ch2 <- struct{}{}
+	continueCh2 <- struct{}{}
 	err = <-req2Ch
 	require.NoError(t, err)
 	require.Equal(t, block2, block)
 
 	t.Log("Complete the ptr1 request")
-	ch1 <- struct{}{}
+	continueCh1 <- struct{}{}
 	err = <-req1Ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
@@ -166,9 +161,9 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 
 	ptr1, ptr2, ptr3 := makeFakeBlockPointer(t), makeFakeBlockPointer(t), makeFakeBlockPointer(t)
 	block1, block2, block3 := makeFakeFileBlock(t), makeFakeFileBlock(t), makeFakeFileBlock(t)
-	ch1 := bg.setBlockToReturn(ptr1, block1)
-	ch2 := bg.setBlockToReturn(ptr2, block2)
-	ch3 := bg.setBlockToReturn(ptr3, block3)
+	startCh1, continueCh1 := bg.setBlockToReturn(ptr1, block1)
+	_, continueCh2 := bg.setBlockToReturn(ptr2, block2)
+	_, continueCh3 := bg.setBlockToReturn(ptr3, block3)
 
 	t.Log("Make 3 retrievals for 3 different blocks. All retrievals after the first should be queued.")
 	block := &FileBlock{}
@@ -177,19 +172,19 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	req1Ch := q.Request(context.Background(), 1, nil, ptr1, block)
 	req2Ch := q.Request(context.Background(), 1, nil, ptr2, block)
 	req3Ch := q.Request(context.Background(), 1, nil, ptr3, testBlock1)
-	// Ensure the worker picks up the request
-	time.Sleep(50 * time.Millisecond)
+	// Ensure the worker picks up the first request
+	<-startCh1
 	t.Log("Make a high priority request for the third block, which should complete next.")
 	req4Ch := q.Request(context.Background(), 2, nil, ptr3, testBlock2)
 
 	t.Log("Allow the ptr1 retrieval to complete.")
-	ch1 <- struct{}{}
+	continueCh1 <- struct{}{}
 	err := <-req1Ch
 	require.NoError(t, err)
 	require.Equal(t, block1, block)
 
 	t.Log("Allow the ptr3 retrieval to complete. Both waiting requests should complete.")
-	ch3 <- struct{}{}
+	continueCh3 <- struct{}{}
 	err1 := <-req3Ch
 	err2 := <-req4Ch
 	require.NoError(t, err1)
@@ -197,8 +192,8 @@ func TestBlockRetrievalWorkerWithQueue(t *testing.T) {
 	require.Equal(t, block3, testBlock1)
 	require.Equal(t, block3, testBlock2)
 
-	t.Log("Complete the ptr1 retrieval.")
-	ch2 <- struct{}{}
+	t.Log("Complete the ptr2 retrieval.")
+	continueCh2 <- struct{}{}
 	err = <-req2Ch
 	require.NoError(t, err)
 	require.Equal(t, block2, block)
@@ -217,7 +212,7 @@ func TestBlockRetrievalWorkerCancel(t *testing.T) {
 
 	ptr1 := makeFakeBlockPointer(t)
 	block1 := makeFakeFileBlock(t)
-	_ = bg.setBlockToReturn(ptr1, block1)
+	_, _ = bg.setBlockToReturn(ptr1, block1)
 
 	block := &FileBlock{}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -239,7 +234,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 
 	ptr1 := makeFakeBlockPointer(t)
 	block1 := makeFakeFileBlock(t)
-	reqCh := bg.setBlockToReturn(ptr1, block1)
+	_, continueCh := bg.setBlockToReturn(ptr1, block1)
 
 	w.Shutdown()
 	block := &FileBlock{}
@@ -250,7 +245,7 @@ func TestBlockRetrievalWorkerShutdown(t *testing.T) {
 	shutdown := false
 	select {
 	case <-ch:
-	case reqCh <- struct{}{}:
+	case continueCh <- struct{}{}:
 	default:
 		shutdown = true
 	}
@@ -274,11 +269,9 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 	t.Log("Setup source blocks")
 	ptr1 := makeFakeBlockPointer(t)
 	block1 := makeFakeFileBlock(t)
-	ch1 := bg.setBlockToReturn(ptr1, block1)
+	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
 	testCommonBlock := &CommonBlock{}
-	bytes, err := codec.Encode(block1)
-	require.NoError(t, err)
-	err = codec.Decode(bytes, testCommonBlock)
+	err := kbfscodec.Update(codec, testCommonBlock, block1)
 	require.NoError(t, err)
 
 	t.Log("Make a retrieval for the same block twice, but with a different target block type.")
@@ -286,17 +279,15 @@ func TestBlockRetrievalWorkerMultipleBlockTypes(t *testing.T) {
 	testBlock2 := &CommonBlock{}
 	req1Ch := q.Request(context.Background(), 1, nil, ptr1, testBlock1)
 	req2Ch := q.Request(context.Background(), 1, nil, ptr1, testBlock2)
-	// Ensure the worker picks up the request
-	time.Sleep(50 * time.Millisecond)
 
 	t.Log("Allow the first ptr1 retrieval to complete.")
-	ch1 <- struct{}{}
+	continueCh1 <- struct{}{}
 	err = <-req1Ch
 	require.NoError(t, err)
 	require.Equal(t, testBlock1, block1)
 
 	t.Log("Allow the second ptr1 retrieval to complete.")
-	ch1 <- struct{}{}
+	continueCh1 <- struct{}{}
 	err = <-req2Ch
 	require.NoError(t, err)
 	require.Equal(t, testBlock2, testCommonBlock)
